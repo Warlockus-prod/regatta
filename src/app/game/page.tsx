@@ -43,6 +43,37 @@ interface Course {
   finishLine: { a: Vec2; b: Vec2 };
 }
 
+interface LogSample {
+  t: number;
+  x: number;
+  y: number;
+  heading: number;
+  twa: number;
+  speed: number;
+  lap: number;
+}
+
+interface LogEvent {
+  type: 'start' | 'tack' | 'mark-rounded' | 'finish' | 'no-go-entered';
+  t: number;
+  note?: string;
+}
+
+interface Coaching {
+  overall: string;
+  score: number;
+  mistakes: Array<{
+    timeStart: number;
+    timeEnd: number;
+    severity: 'minor' | 'major';
+    titleRu: string;
+    explanationRu: string;
+    fixRu: string;
+  }>;
+  strengths: string[];
+  nextGoalRu: string;
+}
+
 // ============================================================================
 // CONSTANTS & CONFIG
 // ============================================================================
@@ -287,6 +318,22 @@ export default function GamePage() {
   const rafRef = useRef<number | null>(null);
   const startTimeRef = useRef<number>(0);
 
+  // Race log for AI coaching
+  const logSamplesRef = useRef<LogSample[]>([]);
+  const logEventsRef = useRef<LogEvent[]>([]);
+  const lastSampleTimeRef = useRef<number>(0);
+  const wasInNoGoRef = useRef<boolean>(false);
+  const lastTackSignRef = useRef<number>(0);
+
+  // AI coaching state
+  const [coaching, setCoaching] = useState<Coaching | null>(null);
+  const [coachingLoading, setCoachingLoading] = useState(false);
+  const [coachingError, setCoachingError] = useState<string | null>(null);
+
+  // Touch controls state (true while button held)
+  const [leftHeld, setLeftHeld] = useState(false);
+  const [rightHeld, setRightHeld] = useState(false);
+
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
@@ -338,6 +385,13 @@ export default function GamePage() {
     boatsRef.current = boats;
     setResults([]);
     setElapsed(0);
+    setCoaching(null);
+    setCoachingError(null);
+    logSamplesRef.current = [];
+    logEventsRef.current = [];
+    lastSampleTimeRef.current = 0;
+    wasInNoGoRef.current = false;
+    lastTackSignRef.current = 0;
   }, []);
 
   // -----------------------------------------------------------------------
@@ -400,9 +454,9 @@ export default function GamePage() {
 
         // --- Heading update ---
         if (boat.isPlayer) {
-          const turnInput =
-            (keysRef.current.has('arrowright') || keysRef.current.has('d') ? 1 : 0) -
-            (keysRef.current.has('arrowleft') || keysRef.current.has('a') ? 1 : 0);
+          const keyRight = keysRef.current.has('arrowright') || keysRef.current.has('d') || rightHeld;
+          const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeld;
+          const turnInput = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
           boat.heading = normalizeAngle(boat.heading + turnInput * TURN_RATE * dt);
         } else {
           boat.heading = computeAIHeading(boat, course, dt);
@@ -438,6 +492,10 @@ export default function GamePage() {
           const windwardMark = course.marks[0];
           if (distance(boat.pos, windwardMark.pos) < MARK_ROUND_DIST + windwardMark.radius) {
             boat.lapDone = 1;
+            if (boat.isPlayer) {
+              const t = (now - startTimeRef.current) / 1000;
+              logEventsRef.current.push({ type: 'mark-rounded', t, note: 'windward' });
+            }
           }
         } else if (boat.lapDone === 1) {
           // Check finish line crossing (from north to south direction)
@@ -446,9 +504,43 @@ export default function GamePage() {
               // Crossed southward = finish
               boat.lapDone = 2;
               boat.finishTime = (now - startTimeRef.current) / 1000;
+              if (boat.isPlayer) {
+                logEventsRef.current.push({ type: 'finish', t: boat.finishTime });
+              }
             }
           }
         }
+      }
+
+      // --- Race log recording (player only) ---
+      const playerBoat = boats.find((b) => b.isPlayer);
+      if (playerBoat && playerBoat.lapDone < 2) {
+        const t = (now - startTimeRef.current) / 1000;
+        if (t - lastSampleTimeRef.current >= 0.5) {
+          logSamplesRef.current.push({
+            t,
+            x: Math.round(playerBoat.pos.x),
+            y: Math.round(playerBoat.pos.y),
+            heading: Math.round(playerBoat.heading),
+            twa: Math.round(calcTWA(playerBoat.heading)),
+            speed: Math.round(playerBoat.speed * 10) / 10,
+            lap: playerBoat.lapDone,
+          });
+          lastSampleTimeRef.current = t;
+        }
+        // No-go zone event
+        const pTWA = calcTWA(playerBoat.heading);
+        const inNoGo = Math.abs(pTWA) < 30 && playerBoat.speed < 2;
+        if (inNoGo && !wasInNoGoRef.current) {
+          logEventsRef.current.push({ type: 'no-go-entered', t });
+        }
+        wasInNoGoRef.current = inNoGo;
+        // Tack event (wind side flipped)
+        const tackSign = pTWA > 0 ? 1 : -1;
+        if (lastTackSignRef.current !== 0 && tackSign !== lastTackSignRef.current && playerBoat.speed > 1) {
+          logEventsRef.current.push({ type: 'tack', t, note: tackSign > 0 ? 'to-port-tack' : 'to-starboard-tack' });
+        }
+        lastTackSignRef.current = tackSign;
       }
 
       // Update UI state
@@ -488,6 +580,37 @@ export default function GamePage() {
           .sort((a, b) => a.time - b.time);
         setResults(sorted);
         setGameState('finished');
+
+        // --- Request AI coaching ---
+        const playerRank = sorted.findIndex((r) => r.isPlayer) + 1;
+        const payload = {
+          difficulty,
+          courseInfo: {
+            windDirection: WIND_DIRECTION,
+            windwardMark: course.marks[0].pos,
+            startY: course.startLine.a.y,
+          },
+          finishTime: player.finishTime ?? null,
+          position: playerRank,
+          totalBoats: sorted.length,
+          samples: logSamplesRef.current,
+          events: logEventsRef.current,
+        };
+        setCoachingLoading(true);
+        fetch('/api/coach', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+          .then((r) => r.json())
+          .then((data) => {
+            if (data.coaching) setCoaching(data.coaching);
+            else if (data.fallback) setCoachingError('AI тренер не настроен (нет API ключа)');
+            else setCoachingError(data.error || 'Ошибка AI');
+          })
+          .catch((err) => setCoachingError(err.message || 'Сетевая ошибка'))
+          .finally(() => setCoachingLoading(false));
+
         return;
       }
 
@@ -897,11 +1020,49 @@ export default function GamePage() {
 
           <button
             onClick={backToMenu}
-            className="absolute bottom-4 right-4 px-3 py-2 card text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            className="absolute top-1/2 right-4 -translate-y-1/2 px-3 py-2 card text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition md:top-auto md:bottom-4 md:translate-y-0"
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
           >
             ← Меню
           </button>
+
+          {/* Touch controls (visible on touch devices / always shown for accessibility) */}
+          <div className="absolute bottom-16 left-0 right-0 flex justify-between items-end px-4 pointer-events-none md:hidden">
+            <button
+              onPointerDown={(e) => { e.preventDefault(); setLeftHeld(true); }}
+              onPointerUp={() => setLeftHeld(false)}
+              onPointerCancel={() => setLeftHeld(false)}
+              onPointerLeave={() => setLeftHeld(false)}
+              aria-label="Turn left"
+              className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
+              style={{
+                background: leftHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
+                border: '2px solid rgba(0, 212, 255, 0.5)',
+                color: 'var(--accent-cyan)',
+                backdropFilter: 'blur(8px)',
+                touchAction: 'none',
+              }}
+            >
+              ←
+            </button>
+            <button
+              onPointerDown={(e) => { e.preventDefault(); setRightHeld(true); }}
+              onPointerUp={() => setRightHeld(false)}
+              onPointerCancel={() => setRightHeld(false)}
+              onPointerLeave={() => setRightHeld(false)}
+              aria-label="Turn right"
+              className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
+              style={{
+                background: rightHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
+                border: '2px solid rgba(0, 212, 255, 0.5)',
+                color: 'var(--accent-cyan)',
+                backdropFilter: 'blur(8px)',
+                touchAction: 'none',
+              }}
+            >
+              →
+            </button>
+          </div>
         </>
       )}
 
@@ -919,9 +1080,9 @@ export default function GamePage() {
 
       {/* Finish overlay */}
       {gameState === 'finished' && (
-        <div className="absolute inset-0 flex items-center justify-center p-4" style={{ background: 'rgba(10, 22, 40, 0.85)', backdropFilter: 'blur(8px)' }}>
-          <div className="card p-8 max-w-md w-full">
-            <div className="text-center mb-6">
+        <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10, 22, 40, 0.9)', backdropFilter: 'blur(8px)' }}>
+          <div className="card p-6 sm:p-8 max-w-lg w-full my-4">
+            <div className="text-center mb-5">
               <div className="text-sm text-[var(--text-muted)] mb-2">РЕЗУЛЬТАТ</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
                 <>
@@ -942,7 +1103,7 @@ export default function GamePage() {
             </div>
 
             {/* Leaderboard */}
-            <div className="mb-6 space-y-1">
+            <div className="mb-5 space-y-1">
               {results.map((r, i) => (
                 <div
                   key={i}
@@ -964,6 +1125,80 @@ export default function GamePage() {
                   </span>
                 </div>
               ))}
+            </div>
+
+            {/* AI Coach */}
+            <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-xl">🧭</span>
+                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>AI-тренер</div>
+              </div>
+              {coachingLoading && (
+                <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
+                  <span className="inline-block w-3 h-3 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
+                  Анализирую гонку...
+                </div>
+              )}
+              {coachingError && !coaching && (
+                <div className="text-xs text-[var(--text-muted)] italic">{coachingError}</div>
+              )}
+              {coaching && (
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Оценка</div>
+                      <div className="text-lg font-bold" style={{
+                        color: coaching.score >= 75 ? 'var(--success)' : coaching.score >= 50 ? 'var(--warning)' : 'var(--danger)',
+                      }}>
+                        {coaching.score}/100
+                      </div>
+                    </div>
+                    <p className="text-sm text-[var(--text-primary)] leading-relaxed">{coaching.overall}</p>
+                  </div>
+
+                  {coaching.mistakes.length > 0 && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">Ошибки</div>
+                      <div className="space-y-2">
+                        {coaching.mistakes.map((m, i) => (
+                          <div key={i} className="text-xs p-2 rounded" style={{ background: 'rgba(10, 22, 40, 0.5)' }}>
+                            <div className="flex items-start gap-2 mb-1">
+                              <span className="text-[10px] px-1.5 py-0.5 rounded" style={{
+                                background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
+                                color: m.severity === 'major' ? 'var(--danger)' : 'var(--warning)',
+                              }}>
+                                {formatTime(m.timeStart)}–{formatTime(m.timeEnd)}
+                              </span>
+                              <div className="font-semibold text-[var(--text-primary)]">{m.titleRu}</div>
+                            </div>
+                            <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{m.explanationRu}</p>
+                            <p className="text-[var(--success)] leading-relaxed">💡 {m.fixRu}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {coaching.strengths.length > 0 && (
+                    <div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">Сильные стороны</div>
+                      <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
+                        {coaching.strengths.map((s, i) => (
+                          <li key={i} className="flex items-start gap-1">
+                            <span className="text-[var(--success)]">✓</span>
+                            <span>{s}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
+                    <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">Цель на следующую гонку</div>
+                    <p className="text-xs text-[var(--accent-cyan)]">{coaching.nextGoalRu}</p>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-3">
