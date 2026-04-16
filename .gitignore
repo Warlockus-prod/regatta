@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# System
+.DS_Store
+*.pem
+
+# Editor
+.vscode/
+.idea/
+
+# Test/QA artefacts
+.playwright-mcp/
+playwright-mcp/
+*-full.png
+*-fixed*.png
+*-viewport.png
+*-with-game.png
+courses-*.png
+racing-*.png
+simulator-*.png
+glossary-*.png
+game-*.png
+home-*.png
+
+# Next.js types
+next-env.d.ts
+
+# Claude local
+.claude/

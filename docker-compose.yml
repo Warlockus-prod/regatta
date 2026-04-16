@@ -1,0 +1,14 @@
+services:
+  regatta:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: regatta:latest
+    container_name: regatta
+    restart: unless-stopped
+    ports:
+      # Bind only to docker bridge so the shared nginx_server reverse proxy can reach it
+      - "172.17.0.1:4500:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
