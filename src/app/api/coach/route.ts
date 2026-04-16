@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
+import { logInfo, logWarn, logError } from '@/lib/log';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -60,8 +61,10 @@ interface RaceLog {
 }
 
 export async function POST(req: Request) {
+  const started = Date.now();
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    logWarn('coach.no-api-key');
     return NextResponse.json(
       { error: 'API key not configured', fallback: true },
       { status: 200 },
@@ -71,9 +74,19 @@ export async function POST(req: Request) {
   let log: RaceLog;
   try {
     log = await req.json();
-  } catch {
+  } catch (err) {
+    logError('coach.invalid-json', { err: err instanceof Error ? err.message : 'unknown' });
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
+
+  logInfo('coach.request', {
+    difficulty: log.difficulty,
+    position: log.position,
+    totalBoats: log.totalBoats,
+    samples: log.samples?.length ?? 0,
+    events: log.events?.length ?? 0,
+    finishTime: log.finishTime,
+  });
 
   // Downsample samples to keep prompt small (~1 sample per 2 seconds)
   const downsampled = log.samples.filter((_, i) => i % 4 === 0);
@@ -112,6 +125,7 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
 
     const textBlock = response.content.find((b) => b.type === 'text');
     if (!textBlock || textBlock.type !== 'text') {
+      logError('coach.no-text-response', { ms: Date.now() - started });
       return NextResponse.json({ error: 'No text response' }, { status: 500 });
     }
 
@@ -123,12 +137,26 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
     let parsed;
     try {
       parsed = JSON.parse(jsonText);
-    } catch {
+    } catch (err) {
+      logError('coach.non-json', {
+        ms: Date.now() - started,
+        err: err instanceof Error ? err.message : 'unknown',
+        rawPreview: textBlock.text.slice(0, 200),
+      });
       return NextResponse.json({
         error: 'Model returned non-JSON',
         raw: textBlock.text,
       }, { status: 500 });
     }
+
+    logInfo('coach.success', {
+      ms: Date.now() - started,
+      score: parsed.score,
+      mistakes: parsed.mistakes?.length ?? 0,
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      cacheRead: response.usage.cache_read_input_tokens ?? 0,
+    });
 
     return NextResponse.json({
       coaching: parsed,
@@ -140,6 +168,11 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : 'Unknown error';
+    logError('coach.exception', {
+      ms: Date.now() - started,
+      err: msg,
+      stack: err instanceof Error ? err.stack?.split('\n').slice(0, 3).join(' | ') : undefined,
+    });
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }
