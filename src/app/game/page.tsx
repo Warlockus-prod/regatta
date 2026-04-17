@@ -1,6 +1,8 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
+import { analyseRaceLocally } from '@/lib/fallback-coach';
 
 // ============================================================================
 // TYPES
@@ -338,6 +340,16 @@ export default function GamePage() {
   const [autopilotOn, setAutopilotOn] = useState(false);
   const autopilotHeadingRef = useRef<number>(0);
 
+  // Sound state (for UI toggle; actual playback reads live from lib)
+  const [muted, setMutedState] = useState(false);
+  useEffect(() => { setMutedState(isMuted()); }, []);
+
+  // Wind strength multiplier: 0.6 (light) / 1.0 (medium) / 1.3 (heavy)
+  const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
+  const windStrengthMul = windStrength === 'light' ? 0.65 : windStrength === 'heavy' ? 1.3 : 1.0;
+  const windStrengthRef = useRef(windStrengthMul);
+  useEffect(() => { windStrengthRef.current = windStrengthMul; }, [windStrengthMul]);
+
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
@@ -411,11 +423,13 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState !== 'countdown') return;
     if (countdown === 0) {
+      playStart();
       startTimeRef.current = performance.now();
       lastTimeRef.current = performance.now();
       setGameState('racing');
       return;
     }
+    playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
   }, [gameState, countdown]);
@@ -478,7 +492,7 @@ export default function GamePage() {
         // --- Speed from sailing physics ---
         const twa = calcTWA(boat.heading);
         const speedMul = boat.isPlayer ? 1.0 : cfg.aiSpeedMul;
-        boat.targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul;
+        boat.targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul * windStrengthRef.current;
 
         // Lerp speed toward target
         const accel = (boat.targetSpeed > boat.speed ? ACCEL : ACCEL * 0.6);
@@ -508,6 +522,7 @@ export default function GamePage() {
             if (boat.isPlayer) {
               const t = (now - startTimeRef.current) / 1000;
               logEventsRef.current.push({ type: 'mark-rounded', t, note: 'windward' });
+              playMarkRound();
             }
           }
         } else if (boat.lapDone === 1) {
@@ -519,6 +534,7 @@ export default function GamePage() {
               boat.finishTime = (now - startTimeRef.current) / 1000;
               if (boat.isPlayer) {
                 logEventsRef.current.push({ type: 'finish', t: boat.finishTime });
+                playFinish();
               }
             }
           }
@@ -546,12 +562,14 @@ export default function GamePage() {
         const inNoGo = Math.abs(pTWA) < 30 && playerBoat.speed < 2;
         if (inNoGo && !wasInNoGoRef.current) {
           logEventsRef.current.push({ type: 'no-go-entered', t });
+          playNoGo();
         }
         wasInNoGoRef.current = inNoGo;
         // Tack event (wind side flipped)
         const tackSign = pTWA > 0 ? 1 : -1;
         if (lastTackSignRef.current !== 0 && tackSign !== lastTackSignRef.current && playerBoat.speed > 1) {
           logEventsRef.current.push({ type: 'tack', t, note: tackSign > 0 ? 'to-port-tack' : 'to-starboard-tack' });
+          playTack();
         }
         lastTackSignRef.current = tackSign;
       }
@@ -617,11 +635,22 @@ export default function GamePage() {
         })
           .then((r) => r.json())
           .then((data) => {
-            if (data.coaching) setCoaching(data.coaching);
-            else if (data.fallback) setCoachingError('AI тренер не настроен (нет API ключа)');
-            else setCoachingError(data.error || 'Ошибка AI');
+            if (data.coaching) {
+              setCoaching(data.coaching);
+            } else {
+              // Fall back to local rule-based analysis so the user still gets feedback
+              const local = analyseRaceLocally(payload);
+              setCoaching(local);
+              if (data.fallback) setCoachingError(null);
+              else setCoachingError('AI недоступен — показан локальный анализ');
+            }
           })
-          .catch((err) => setCoachingError(err.message || 'Сетевая ошибка'))
+          .catch(() => {
+            // Network error — use local analysis
+            const local = analyseRaceLocally(payload);
+            setCoaching(local);
+            setCoachingError('AI недоступен — показан локальный анализ');
+          })
           .finally(() => setCoachingLoading(false));
 
         return;
@@ -941,6 +970,33 @@ export default function GamePage() {
           })}
         </div>
 
+        {/* Wind strength selector */}
+        <div className="card p-4 mb-6">
+          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">СИЛА ВЕТРА / WIND STRENGTH</div>
+          <div className="grid grid-cols-3 gap-2">
+            {([
+              { id: 'light', label: 'Слабый', labelEn: 'Light', icon: '🌬', desc: '~5 kts' },
+              { id: 'medium', label: 'Средний', labelEn: 'Medium', icon: '💨', desc: '~10 kts' },
+              { id: 'heavy', label: 'Сильный', labelEn: 'Heavy', icon: '🌪', desc: '~15 kts' },
+            ] as const).map((w) => (
+              <button
+                key={w.id}
+                onClick={() => setWindStrength(w.id)}
+                className={`p-3 rounded-lg border transition text-center ${windStrength === w.id ? 'ring-1' : ''}`}
+                style={{
+                  borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                  background: windStrength === w.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                  outlineColor: 'var(--accent-cyan)',
+                }}
+              >
+                <div className="text-xl mb-1">{w.icon}</div>
+                <div className="text-sm font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
+                <div className="text-[10px] text-[var(--text-muted)]">{w.labelEn} · {w.desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* Controls info */}
         <div className="card p-5 mb-6">
           <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">УПРАВЛЕНИЕ / CONTROLS</div>
@@ -1000,43 +1056,55 @@ export default function GamePage() {
       {/* HUD — top bar */}
       {gameState === 'racing' && (
         <>
-          <div className="absolute top-4 left-4 card p-3 flex flex-col gap-2 min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[var(--text-muted)]">КУРС</span>
-              <span className="text-xs font-mono" style={{ color: currentPoS.color }}>{currentPoS.nameRu}</span>
+          {/* Left HUD: course info — compact on mobile */}
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">КУРС</span>
+              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{currentPoS.nameRu}</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[var(--text-muted)]">УГОЛ К ВЕТРУ</span>
-              <span className="text-xs font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">TWA</span>
+              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-[var(--text-muted)]">СКОРОСТЬ</span>
-              <span className="text-xs font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kts</span>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">СКОР.</span>
+              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kts</span>
             </div>
-            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
+            <div className="w-full h-1 sm:h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="h-full transition-all" style={{ width: `${(playerSpeed / MAX_SPEED) * 100}%`, background: currentPoS.color }} />
             </div>
           </div>
 
-          <div className="absolute top-4 right-4 card p-3 flex flex-col gap-1.5 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="text-xs text-[var(--text-muted)]">ПОЗИЦИЯ</div>
-            <div className="text-2xl font-bold" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
-              {position.rank} <span className="text-xs text-[var(--text-muted)]">/ {position.total}</span>
+          {/* Right HUD: position + time — compact */}
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">ПОЗИЦИЯ</div>
+            <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
+              {position.rank}<span className="text-[10px] sm:text-xs text-[var(--text-muted)]"> / {position.total}</span>
             </div>
-            <div className="text-xs text-[var(--text-muted)] mt-1">ВРЕМЯ</div>
-            <div className="text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">ВРЕМЯ</div>
+            <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
           </div>
 
-          {/* Mark progress indicator */}
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 card px-4 py-2 text-xs" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && '→ Идём к верхнему знаку (лавируй!)'}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && '→ Идём на финиш (полный курс)'}
+          {/* Mark progress indicator — above touch controls on mobile */}
+          <div className="absolute bottom-40 left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs md:bottom-16 whitespace-nowrap" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && '→ К верхнему знаку'}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && '→ На финиш'}
             {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && '✓ Финиш!'}
           </div>
 
+          {/* Mute toggle */}
+          <button
+            onClick={() => setMutedState(toggleMuted())}
+            aria-label={muted ? 'Unmute' : 'Mute'}
+            className="absolute top-16 left-2 sm:top-auto sm:bottom-4 sm:left-4 w-9 h-9 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
+          >
+            {muted ? '🔇' : '🔊'}
+          </button>
+
           <button
             onClick={backToMenu}
-            className="absolute top-1/2 right-4 -translate-y-1/2 px-3 py-2 card text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition md:top-auto md:bottom-4 md:translate-y-0"
+            className="absolute top-16 right-2 sm:top-auto sm:bottom-4 sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
           >
             ← Меню

@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ClientErrorReporter from "@/components/ClientErrorReporter";
+import OnboardingTour from "@/components/OnboardingTour";
+import HelpOverlay from "@/components/HelpOverlay";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,7 +19,21 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Regatta — Sailing Simulator",
   description: "Interactive sailing education simulator. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.",
-  icons: { icon: "/favicon.ico" },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Regatta",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" },
+    ],
+    apple: [
+      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
+    ],
+  },
   openGraph: {
     title: "Regatta — Sailing Simulator",
     description: "Симулятор парусной яхты: курсы, паруса, гоночные стратегии, игра с AI-соперниками.",
@@ -47,6 +63,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col ocean-bg">
         <ClientErrorReporter />
+        <OnboardingTour />
+        <HelpOverlay />
         <Navigation />
         <main className="flex-1">
           {children}

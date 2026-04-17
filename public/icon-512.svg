@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a1628"/>
+      <stop offset="100%" stop-color="#0d2847"/>
+    </linearGradient>
+    <linearGradient id="sail" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#cfe7f4"/>
+    </linearGradient>
+  </defs>
+  <!-- Background with rounded corners for maskable -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- Wave layers -->
+  <path d="M0 380 Q 128 350 256 380 T 512 380 L 512 512 L 0 512 Z" fill="#081830" opacity="0.8"/>
+  <path d="M0 420 Q 128 395 256 420 T 512 420 L 512 512 L 0 512 Z" fill="#0b1e38" opacity="0.9"/>
+  <!-- Mast -->
+  <line x1="256" y1="140" x2="256" y2="395" stroke="#d0d8e0" stroke-width="6" stroke-linecap="round"/>
+  <!-- Mainsail -->
+  <path d="M256 140 Q 330 200 340 320 L 256 320 Z" fill="url(#sail)" stroke="#ffffff" stroke-width="2"/>
+  <!-- Jib -->
+  <path d="M256 170 Q 210 260 160 320 L 256 320 Z" fill="url(#sail)" stroke="#ffffff" stroke-width="2" opacity="0.92"/>
+  <!-- Hull -->
+  <path d="M160 380 Q 256 420 352 380 L 340 395 Q 256 430 172 395 Z" fill="#152540" stroke="#00d4ff" stroke-width="3"/>
+  <!-- Wind accent lines -->
+  <g stroke="#00e5ff" stroke-width="4" stroke-linecap="round" opacity="0.7">
+    <line x1="60" y1="80" x2="110" y2="80"/>
+    <line x1="50" y1="110" x2="120" y2="110"/>
+    <line x1="70" y1="140" x2="130" y2="140"/>
+  </g>
+</svg>

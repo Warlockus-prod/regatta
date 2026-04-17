@@ -103,29 +103,42 @@ export default function Navigation() {
             </span>
           </Link>
 
-          {/* Nav Links - Desktop */}
-          <div className="hidden md:flex items-center gap-1">
+          {/* Nav Links - Desktop only shows text on xl+, icons-only on md-lg */}
+          <div className="hidden md:flex items-center gap-0.5 lg:gap-1">
             {navItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all
+                  title={item.label}
+                  className={`flex items-center gap-2 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-all
                     ${isActive
                       ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
                       : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
                     }`}
                 >
                   {item.icon}
-                  <span>{item.label}</span>
+                  <span className="hidden lg:inline">{item.label}</span>
                 </Link>
               );
             })}
           </div>
 
-          {/* Mobile menu button */}
-          <MobileMenu pathname={pathname} />
+          <div className="flex items-center gap-1">
+            {/* Help button */}
+            <button
+              onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
+              title="Горячие клавиши (?)"
+              aria-label="Open help"
+              className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)] transition text-sm font-bold"
+            >
+              ?
+            </button>
+
+            {/* Mobile menu button */}
+            <MobileMenu pathname={pathname} />
+          </div>
         </div>
       </div>
     </nav>

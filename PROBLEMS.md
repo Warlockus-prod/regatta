@@ -18,6 +18,53 @@ _(none currently — fill in when issues discovered)_
 
 ---
 
+## Deferred (not blocking, tracked for future)
+
+- [ ] **Practical missions** — checkpoints like "reach mark using close-hauled only", "3 laps under 2 min". Design doc drafted below.
+- [ ] **Video demos on Courses page** — short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
+- [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) — add container to VPS, small nginx conf, ~15 LOC script tag in layout.
+- [ ] **Polar diagram** — classic training tool. Renders speed-vs-TWA curve given wind strength. Read-only view in `/simulator` as toggleable overlay.
+- [ ] **Course editor** — drag/drop marks on a canvas, serialize to URL hash, share. Substantial feature, ~1 day.
+- [ ] **Multiplayer** — 2–6 players on same course via WebSocket. Requires backend (Node+Socket.io or similar). Architectural decision needed: keep within same Docker on VPS or move to Vercel + separate ws server.
+- [ ] **Capacitor wrap** — ship as iOS/Android app from same codebase. Simple wrapper around Next.js PWA. ~2 hours.
+- [ ] **Wind shifts in game** — every 30–60s the wind direction shifts ±5–15°. Requires physics refactor (currently wind is const).
+- [ ] **Gusts & lulls** — visual wind patches on water affecting local speed ±20%.
+- [ ] **Ghost replay** — overlay optimal path vs player after finish.
+- [ ] **VMG hint arrow** — "sail higher" / "sail lower" during upwind.
+- [ ] **Mark-rounding penalties** — 360° turn penalty for touching a mark.
+
+### Missions design sketch (for later implementation)
+
+Data-driven missions live in `src/data/missions.ts`:
+
+```ts
+interface Mission {
+  id: string;
+  titleRu: string;
+  titleEn: string;
+  goalRu: string;
+  goalEn: string;
+  constraints: MissionConstraint[];
+  successCriteria: MissionCriterion[];
+  reward?: string;
+}
+```
+
+`MissionConstraint`: e.g. `{ type: 'max-tacks', value: 4 }`, `{ type: 'only-close-hauled' }`.
+`MissionCriterion`: e.g. `{ type: 'finish-under', seconds: 120 }`, `{ type: 'no-no-go' }`.
+
+Game page reads an active mission from URL `/game?m=upwind-only` or from menu selection, wires it into the game loop, shows constraints in HUD, and verifies at finish.
+
+### SEO / discoverability (when time)
+
+- [ ] Add `/sitemap.xml` route (static list of 6 pages)
+- [ ] Add `/robots.txt` allowing crawling
+- [ ] Per-page OG images (rendered via Next.js `opengraph-image.tsx`)
+- [ ] Structured data (schema.org WebApplication)
+- [ ] Proper `<html lang>` per page if i18n added
+
+---
+
 ## Backlog
 
 ### High priority (user value)
