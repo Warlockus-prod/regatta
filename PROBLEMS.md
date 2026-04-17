@@ -14,13 +14,6 @@ Logs to check for clues:
 
 ## Active
 
-### B1. Mobile game: boat doesn't turn (Critical)
-- **Symptom:** on mobile, tapping the left/right touch buttons in `/game` doesn't rotate the player boat
-- **Reproduce:** open https://regatta.icoffio.com/game on mobile → start any race → hold left or right button → boat stays facing north
-- **Suspected cause:** React state `leftHeld`/`rightHeld` captured by game loop closure at first render
-- **Fix plan:** convert to `useRef` so loop always reads current value
-- **Priority:** must ship in next session before anything else
-
 ### B2. Simulator - text overlap on compass diagram
 - **Symptom:** in `/simulator`, labels (angle ticks, cardinal N/E/S/W, course names) sometimes overlap each other and the yacht icon, especially at certain boat angles
 - **Fix plan:** add background-pill under TWA angle label; offset cardinals slightly further out; ensure TWA label avoids cardinal positions
@@ -34,9 +27,9 @@ Logs to check for clues:
 
 ## Deferred (not blocking, tracked for future)
 
-- [ ] **3D yacht anatomy** - currently shipped as stylized 2D side-profile of Bavaria 46 with 17 hotspots. User explicitly wanted 3D "directly". Upgrade plan: acquire Bavaria 46 GLB model (TurboSquid ~$50 or Sketchfab free with attribution), integrate `<model-viewer>` web component, translate 2D hotspot positions to 3D cameraOrbit coords. Why deferred: a broken fake 3D is worse UX than a good 2D; data + API contract is identical so swap-in is easy (~1 day).
+- [x] ~~**3D yacht anatomy**~~ - **done v7.2.** `<model-viewer>` loading CC0 Poly Haven "Ship Pinnace" from /public/models/ship_pinnace/. 2D/3D toggle on /anatomy. Historic pinnace, not modern Bavaria - swap via `NEXT_PUBLIC_ANATOMY_GLB_URL` when a licensed modern cruiser GLB is ready, no code change required.
 
-- [ ] **Practical missions - game integration** - mission data + evaluation logic in `src/data/missions.ts` is ready (4 missions designed, evaluator implemented). Still TODO: mission picker UI in game menu, forcing of difficulty/wind-strength when mission selected, showing pass/fail on finish screen. ~1-2 hours of focused work - deferred to avoid bloating game page in this wave.
+- [x] ~~**Practical missions - game integration**~~ - **done v7.0.** Mission picker + HUD hint + pass/fail card via `evaluateMission`.
 - [ ] **Video demos on Courses page** - short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
 - [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) - add container to VPS, small nginx conf, ~15 LOC script tag in layout.
 - [ ] **Polar diagram** - classic training tool. Renders speed-vs-TWA curve given wind strength. Read-only view in `/simulator` as toggleable overlay.
@@ -84,9 +77,9 @@ Game page reads an active mission from URL `/game?m=upwind-only` or from menu se
 ## Backlog
 
 ### High priority (user value)
-- [ ] **Mini-map** of the whole course in game overlay (bottom-right corner) - see `AUDIT.md` §5.1
-- [ ] **Wind shifts** - rotate wind direction by ±5-15° every 30-60 sec for tactical depth
-- [ ] **Autopilot (AUTO button)** - hold current heading until player intervenes, essential for mobile one-hand play
+- [x] ~~**Mini-map**~~ - **done** (`drawMiniMap` in game canvas bottom-right)
+- [x] ~~**Wind shifts**~~ - **done v7.0.** Direction oscillates, gusts modulate speed, HUD indicator.
+- [x] ~~**Autopilot (AUTO button)**~~ - **done** (with tooltip in v6.0)
 - [ ] **Custom favicon + OG image** - currently using default Next.js favicon
 
 ### Medium
@@ -114,6 +107,24 @@ Game page reads an active mission from URL `/game?m=upwind-only` or from menu se
 
 | Date | Problem | Fix |
 |---|---|---|
+| 2026-04-17 | B1 mobile game boat doesn't turn | `leftHeld/rightHeld` mirrored to `useRef`; touch steering works (v6.0) |
+| 2026-04-17 | Missions data unused in game | Mission picker + HUD hint + pass/fail card wired up (v7.0) |
+| 2026-04-17 | Constant wind, no tactical depth | Wind direction oscillates +/-6 deg, gusts 0.85-1.25x; TWA/no-go/laylines follow live wind (v7.0) |
+| 2026-04-17 | Autopilot button existed but purpose unclear | Tooltip + caption under button explains "hold heading, disengages on any turn" (v6.0) |
+| 2026-04-17 | Mobile white bg gap on overscroll | `overscroll-behavior: none` on html/body + fixed dark gradient `::before` for iOS Safari (v6.0) |
+| 2026-04-17 | Menu didn't close on outside click | Replaced `<details>` with controlled state + `mousedown` outside-click + Escape handler (v6.0) |
+| 2026-04-17 | Homepage language toggle required reload | Homepage converted to client component, all strings via `tp()` (v6.0) |
+| 2026-04-17 | Russian-only UI | Polish added; `Lang = 'ru' | 'en' | 'pl'`, new `tp()` helper, 3-button toggle (v6.0) |
+| 2026-04-17 | No leaderboards / anonymous identity | Session cookie `regatta_sid` + `players` and `race_results` SQLite tables + `/api/{player,race-result,leaderboard}` + `/leaderboard` page + on-finish nickname prompt (v7.0) |
+| 2026-04-17 | 3D anatomy not available | `<model-viewer>` integration on /anatomy with Poly Haven CC0 "Ship Pinnace" shipped in /public/models/ (v7.2). Can be overridden via `NEXT_PUBLIC_ANATOMY_GLB_URL` with a Bavaria 46 GLB later. |
+| 2026-04-17 | em-dash / en-dash in UI text everywhere | 520 occurrences replaced with ASCII hyphen; AI responses scrubbed server-side (v6.0 + v7.2) |
+| 2026-04-17 | AI responses violated typography rule | /api/ai-chat and /api/coach scrub em/en-dashes before sending to client + system prompts updated (v7.2) |
+| 2026-04-17 | Feedback widget RU-only with no assistant | Two tabs: Claude-powered AI assistant (scoped to sailing) + Feedback. Clickable `/section` links in replies (v6.0) |
+| 2026-04-17 | Race mechanics unclear before start | Briefing screen with SVG course preview + rules + AUTO explanation; countdown pauses timer so boats can free-sail into start (v6.0) |
+| 2026-04-17 | Boats clipped through each other | Pair-wise collision repel with 22-unit min separation + 8% speed penalty on contact (v6.0) |
+| 2026-04-17 | AI coach showed static dot while thinking | 4-stage `AnalyzingProgress` animation + progress bar (v6.0) |
+| 2026-04-17 | No way to re-watch race | `ReplayOverlay` with scrubbable timeline, event dots (tack / no-go / mark), per-timestamp coach comments, 0.5x-4x speed (v6.0) |
+| 2026-04-17 | Only one boat style (generic cruiser triangle) | 4 styles (Cruiser / Racer / Classic / Skiff), different hull proportions, decks, sail heights, picker with SVG previews (v7.0) |
 | 2026-04-16 | `JSX.Element` namespace not found in TS strict mode (courses page) | Replaced with `React.ReactElement` |
 | 2026-04-16 | `ringColor` not a valid CSS property on React `style` prop | Replaced with `outlineColor` |
 | 2026-04-16 | Hydration mismatch on courses page SVG - float precision between server and client for `Math.sin`/`cos` results | Round polar→cartesian outputs to 2 decimal places |

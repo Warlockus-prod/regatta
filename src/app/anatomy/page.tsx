@@ -162,10 +162,9 @@ export default function AnatomyPage() {
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
 
-  // Source GLB/glTF: env override OR bundled Poly Haven ship pinnace (CC0).
-  // Replace with a modern cruiser GLB later when licensed; the current model is a
-  // historic sailing pinnace but reads as "a sailing vessel" and uses CC0 assets.
-  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/ship_pinnace/ship_pinnace_1k.gltf';
+  // Source GLB: env override OR bundled Kenney low-poly modern sailing yacht (CC0).
+  // Swap to a Bavaria 46 GLB by setting NEXT_PUBLIC_ANATOMY_GLB_URL when available.
+  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/sailboat.glb';
 
   // Probe the GLB when 3D tab opens so we show a friendly fallback if it's missing.
   useEffect(() => {
@@ -358,15 +357,14 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
       >
         <model-viewer
           src={modelSrc}
-          alt="Bavaria 46 3D model"
+          alt="Sailing yacht 3D model"
           camera-controls
           auto-rotate
-          shadow-intensity="0.7"
+          shadow-intensity="0.6"
           exposure="1"
-          camera-orbit="35deg 75deg 6m"
-          field-of-view="30deg"
+          camera-orbit="35deg 70deg auto"
+          field-of-view="25deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
-          poster="/icon-192.svg"
         />
       </div>
       <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
@@ -374,7 +372,7 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
            'Drag, pan, zoom - wheel or pinch.')}
         <br />
         <span className="text-[10px]">
-          Model: <a href="https://polyhaven.com/a/ship_pinnace" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Ship Pinnace by Poly Haven</a> (CC0)
+          Model: <a href="https://kenney.nl/assets/watercraft-kit" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Watercraft Kit by Kenney.nl</a> (CC0) - low-poly placeholder, replace with a licensed Bavaria 46 GLB later.
         </span>
       </div>
     </div>
