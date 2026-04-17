@@ -14,7 +14,21 @@ Logs to check for clues:
 
 ## Active
 
-_(none currently — fill in when issues discovered)_
+### B1. Mobile game: boat doesn't turn (Critical)
+- **Symptom:** on mobile, tapping the left/right touch buttons in `/game` doesn't rotate the player boat
+- **Reproduce:** open https://regatta.icoffio.com/game on mobile → start any race → hold left or right button → boat stays facing north
+- **Suspected cause:** React state `leftHeld`/`rightHeld` captured by game loop closure at first render
+- **Fix plan:** convert to `useRef` so loop always reads current value
+- **Priority:** must ship in next session before anything else
+
+### B2. Simulator — text overlap on compass diagram
+- **Symptom:** in `/simulator`, labels (angle ticks, cardinal N/E/S/W, course names) sometimes overlap each other and the yacht icon, especially at certain boat angles
+- **Fix plan:** add background-pill under TWA angle label; offset cardinals slightly further out; ensure TWA label avoids cardinal positions
+
+### B3. /rules — illustration angles inconsistent with wind
+- **Symptom:** in some of the 8 rule illustrations the boat rotation doesn't match the wind direction correctly (e.g. port-tack vs starboard-tack visual could confuse)
+- **Fix plan:** review all 8 SVGs with sailing-accuracy lens: wind arrow, sail on opposite side of wind, boat heading matches claimed tack
+- **Also:** add small "not to scale" note per illustration
 
 ---
 
