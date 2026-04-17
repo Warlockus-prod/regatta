@@ -360,10 +360,14 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
           alt="Sailing yacht 3D model"
           camera-controls
           auto-rotate
+          auto-rotate-delay="500"
+          rotation-per-second="15deg"
           shadow-intensity="0.6"
-          exposure="1"
-          camera-orbit="35deg 70deg auto"
-          field-of-view="25deg"
+          exposure="1.1"
+          camera-orbit="30deg 72deg 120%"
+          min-camera-orbit="auto auto 80%"
+          max-camera-orbit="auto auto 250%"
+          field-of-view="30deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         />
       </div>
