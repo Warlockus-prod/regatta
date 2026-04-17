@@ -1,148 +1,157 @@
 import Link from 'next/link';
 
-const sections = [
-  {
-    href: '/simulator',
-    title: 'Интерактивный симулятор',
-    subtitle: 'Interactive Simulator',
-    description: 'Управляй яхтой, настраивай паруса, пойми как ветер влияет на движение',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 20l3.5-3.5"/>
-        <path d="M18 4l-6.5 6.5"/>
-        <path d="M2 20l8-2-6-6-2 8z"/>
-        <path d="M18 4l2 2-8 8"/>
-        <path d="M20 6l-1.5 8.5L12 21"/>
-      </svg>
-    ),
-    color: 'var(--accent-cyan)',
-    bgColor: 'rgba(0, 212, 255, 0.08)',
-    borderColor: 'rgba(0, 212, 255, 0.2)',
-  },
+// ============================================================================
+// Three primary entry points — matches the "who are you" framing
+// ============================================================================
+
+const entryPoints = [
   {
     href: '/courses',
-    title: 'Курсы относительно ветра',
-    subtitle: 'Points of Sail',
-    description: 'Все курсы яхты: от левентика до фордевинда. Углы, паруса, скорости',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-        <path d="M2 12h20"/>
-      </svg>
-    ),
-    color: 'var(--success)',
-    bgColor: 'rgba(68, 255, 136, 0.08)',
-    borderColor: 'rgba(68, 255, 136, 0.2)',
-  },
-  {
-    href: '/racing',
-    title: 'Гоночные стратегии',
-    subtitle: 'Racing Strategy',
-    description: 'Лавировка, старт, огибание знаков, расхождение с яхтами, правила',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
-      </svg>
-    ),
-    color: 'var(--warning)',
-    bgColor: 'rgba(255, 170, 0, 0.08)',
-    borderColor: 'rgba(255, 170, 0, 0.2)',
+    emoji: '🧭',
+    title: 'Начать с нуля',
+    subtitle: 'First time',
+    description: 'Впервые идёшь на яхту или регату. Освой базу за 45 минут: ветер, курсы, паруса, простые правила.',
+    accent: 'var(--accent-cyan)',
+    border: 'rgba(0, 212, 255, 0.3)',
+    bg: 'rgba(0, 212, 255, 0.08)',
   },
   {
     href: '/game',
-    title: 'Гонка-симулятор',
-    subtitle: 'Race Game',
-    description: 'Соревнуйся с AI-соперниками. 3 уровня сложности. Проверь свои навыки на практике',
+    emoji: '⛵',
+    title: 'Освежить перед стартом',
+    subtitle: 'Quick refresher',
+    description: 'Опыт есть, но регата скоро. Прогони ветер, лавировку и старт на практике в игре с AI.',
+    accent: 'var(--success)',
+    border: 'rgba(68, 255, 136, 0.3)',
+    bg: 'rgba(68, 255, 136, 0.08)',
+  },
+  {
+    href: '/racing',
+    emoji: '📖',
+    title: 'Разобрать правила',
+    subtitle: 'Rules & tactics',
+    description: 'Правый галс, место у знака, грязный ветер, лейлайн — через короткие сценарии, не сухой текст.',
+    accent: 'var(--warning)',
+    border: 'rgba(255, 170, 0, 0.3)',
+    bg: 'rgba(255, 170, 0, 0.08)',
+  },
+];
+
+// ============================================================================
+// Secondary tools (after the main entry points)
+// ============================================================================
+
+const secondaryTools = [
+  {
+    href: '/simulator',
+    title: 'Симулятор',
+    subtitle: 'Simulator',
+    description: 'Интерактивная яхта: top-view + side-view с креном. Почувствуй ветер руками.',
+    accent: 'var(--accent-cyan)',
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polygon points="10 8 16 12 10 16 10 8"/>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 20l3.5-3.5"/><path d="M18 4l-6.5 6.5"/><path d="M2 20l8-2-6-6-2 8z"/><path d="M18 4l2 2-8 8"/>
       </svg>
     ),
-    color: '#ff6688',
-    bgColor: 'rgba(255, 102, 136, 0.08)',
-    borderColor: 'rgba(255, 102, 136, 0.2)',
   },
   {
     href: '/glossary',
-    title: 'Глоссарий терминов',
-    subtitle: 'Sailing Glossary',
-    description: 'Все парусные термины на русском и английском. Части яхты, паруса, манёвры',
+    title: 'Глоссарий',
+    subtitle: 'Glossary',
+    description: '51 термин RU/EN. Бейдевинд = close-hauled, связка = overlap. Ищи и фильтруй.',
+    accent: '#8844ff',
     icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        <line x1="8" y1="7" x2="16" y2="7"/>
-        <line x1="8" y1="11" x2="14" y2="11"/>
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+        <line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/>
       </svg>
     ),
-    color: '#8844ff',
-    bgColor: 'rgba(136, 68, 255, 0.08)',
-    borderColor: 'rgba(136, 68, 255, 0.2)',
   },
+];
+
+// ============================================================================
+// "Why" bullets — differentiators at a glance
+// ============================================================================
+
+const whyBullets = [
+  { icon: '⚡', title: 'За 45 минут', text: 'От «я ничего не понимаю» до «я готов слушать брифинг».' },
+  { icon: '🎯', title: 'Через сценарии', text: 'Не учебник, а ситуации с воды. Действие → объяснение.' },
+  { icon: '🌐', title: 'RU / EN', text: 'Все термины на русском и английском — учишь и язык тоже.' },
+  { icon: '📱', title: 'В браузере', text: 'Ничего не ставишь. Открыл ссылку — учишься.' },
 ];
 
 export default function HomePage() {
   return (
     <div className="page-enter">
-      {/* Hero */}
+      {/* ===== HERO ===== */}
       <section className="relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-12 text-center">
-          <h1 className="text-4xl sm:text-5xl font-bold tracking-tight mb-4"
-              style={{ background: 'linear-gradient(135deg, var(--text-primary), var(--accent-cyan))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Regatta
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 text-center">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6 text-xs font-medium"
+               style={{ background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'var(--accent-cyan)' }}>
+            <span className="w-1.5 h-1.5 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
+            Быстрый вход в яхтенные гонки
+          </div>
+
+          <h1 className="text-4xl sm:text-6xl font-bold tracking-tight mb-4 leading-[1.1]">
+            До регаты <span style={{ color: 'var(--accent-cyan)' }}>неделя?</span>
+            <br />
+            Успеешь разобраться.
           </h1>
-          <p className="text-xl text-[var(--text-secondary)] mb-2">
-            Симулятор парусной яхты
+
+          <p className="max-w-2xl mx-auto text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed mb-3">
+            Интерактивный тренажёр для тех, кому скоро на регату, тренировку или первая неделя на яхте.
+            Ветер, курсы, паруса, базовые правила — через короткие сценарии, не учебник.
           </p>
           <p className="text-sm text-[var(--text-muted)] mb-10">
-            Sailing Yacht Simulator
+            Browser-based sailing trainer · RU / EN
           </p>
-          <p className="max-w-2xl mx-auto text-[var(--text-secondary)] leading-relaxed">
-            Научись управлять яхтой: пойми как ставить паруса под разными углами к ветру,
-            освой курсы и манёвры, подготовься к гонкам. Все термины на русском и английском.
-          </p>
+
+          {/* CTA badges */}
+          <div className="inline-flex flex-wrap gap-2 justify-center text-xs text-[var(--text-muted)]">
+            <span className="px-2.5 py-1 rounded-full" style={{ border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+              ~45 мин базы
+            </span>
+            <span className="px-2.5 py-1 rounded-full" style={{ border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+              Без установки
+            </span>
+            <span className="px-2.5 py-1 rounded-full" style={{ border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+              RU / EN
+            </span>
+            <span className="px-2.5 py-1 rounded-full" style={{ border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+              AI-тренер после гонки
+            </span>
+          </div>
         </div>
 
-        {/* Decorative wave */}
+        {/* Decorative bottom line */}
         <div className="absolute bottom-0 left-0 right-0 h-px"
-             style={{ background: 'linear-gradient(90deg, transparent, rgba(0,212,255,0.3), transparent)' }} />
+             style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent)' }} />
       </section>
 
-      {/* Section Cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sections.map((section, idx) => (
+      {/* ===== THREE ENTRY POINTS ===== */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="text-center mb-8">
+          <h2 className="text-xl sm:text-2xl font-semibold mb-2">С чего начнёшь?</h2>
+          <p className="text-sm text-[var(--text-muted)]">Where do you start?</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {entryPoints.map((ep) => (
             <Link
-              key={section.href}
-              href={section.href}
-              className={`group card p-6 flex flex-col gap-4 hover:scale-[1.02] transition-all duration-300 ${
-                // 5th card (index 4) spans 2 cols on medium screens to avoid lonely row
-                idx === sections.length - 1 ? 'sm:col-span-2 lg:col-span-1' : ''
-              }`}
-              style={{ borderColor: section.borderColor }}
+              key={ep.href}
+              href={ep.href}
+              className="group card p-6 hover:scale-[1.02] transition-all duration-300 flex flex-col gap-4"
+              style={{ borderColor: ep.border, background: ep.bg }}
             >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
-                     style={{ background: section.bgColor, color: section.color, border: `1px solid ${section.borderColor}` }}>
-                  {section.icon}
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold group-hover:text-[var(--accent-cyan)] transition-colors">
-                    {section.title}
-                  </h2>
-                  <p className="text-xs text-[var(--text-muted)]">{section.subtitle}</p>
-                </div>
+              <div className="text-4xl">{ep.emoji}</div>
+              <div>
+                <div className="text-lg font-semibold mb-0.5">{ep.title}</div>
+                <div className="text-xs text-[var(--text-muted)]">{ep.subtitle}</div>
               </div>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-                {section.description}
-              </p>
-              <div className="flex items-center gap-1 text-xs font-medium mt-auto"
-                   style={{ color: section.color }}>
-                <span>Открыть</span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed flex-1">{ep.description}</p>
+              <div className="flex items-center gap-1 text-xs font-medium mt-auto" style={{ color: ep.accent }}>
+                <span>Начать</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
                      className="group-hover:translate-x-1 transition-transform">
                   <polyline points="9 18 15 12 9 6"/>
                 </svg>
@@ -152,16 +161,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Quick Info */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-16">
-        <div className="card p-6 text-center">
-          <p className="text-sm text-[var(--text-secondary)]">
-            <span className="font-medium text-[var(--text-primary)]">Совет:</span>{' '}
-            Начни с раздела{' '}
-            <Link href="/courses" className="text-[var(--accent-cyan)] hover:underline">Курсы</Link>
-            , чтобы понять основы, затем переходи в{' '}
-            <Link href="/simulator" className="text-[var(--accent-cyan)] hover:underline">Симулятор</Link>
-            {' '}для практики.
+      {/* ===== WHY BULLETS ===== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          {whyBullets.map((b) => (
+            <div key={b.title} className="card p-4">
+              <div className="text-2xl mb-2">{b.icon}</div>
+              <div className="text-sm font-semibold mb-1">{b.title}</div>
+              <div className="text-xs text-[var(--text-muted)] leading-relaxed">{b.text}</div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== SECONDARY TOOLS ===== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-1">Дополнительно</h2>
+          <p className="text-xs text-[var(--text-muted)]">Инструменты под руками</p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {secondaryTools.map((t) => (
+            <Link
+              key={t.href}
+              href={t.href}
+              className="group card p-5 flex items-center gap-4 hover:border-[var(--accent-cyan)] transition-colors"
+            >
+              <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+                   style={{ color: t.accent, background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.15)' }}>
+                {t.icon}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-semibold group-hover:text-[var(--accent-cyan)] transition-colors">{t.title}</div>
+                <div className="text-[11px] text-[var(--text-muted)] mb-1">{t.subtitle}</div>
+                <div className="text-xs text-[var(--text-secondary)]">{t.description}</div>
+              </div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+                   className="text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)] group-hover:translate-x-1 transition-all">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* ===== CALL-TO-ACTION / TIP ===== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
+        <div className="card p-5 sm:p-6 text-center" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+            <span className="font-semibold text-[var(--text-primary)]">Не знаешь куда идти?</span>{' '}
+            Начни с{' '}
+            <Link href="/courses" className="text-[var(--accent-cyan)] hover:underline font-medium">«Курсов относительно ветра»</Link>
+            {' '}— это база всего парусного. Потом{' '}
+            <Link href="/simulator" className="text-[var(--accent-cyan)] hover:underline font-medium">Симулятор</Link>
+            {' '}для ощущения в руках, потом{' '}
+            <Link href="/game" className="text-[var(--accent-cyan)] hover:underline font-medium">Гонка</Link>
+            {' '}с AI-соперниками для практики.
           </p>
         </div>
       </section>

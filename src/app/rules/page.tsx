@@ -1,0 +1,273 @@
+'use client';
+
+import { useState } from 'react';
+import { ruleScenarios, type RuleScenario } from '@/data/rules';
+
+// ============================================================================
+// Scenario illustrations — pure SVG, stylized, readable on any background
+// ============================================================================
+
+function Boat({ x, y, rot = 0, color = '#ffffff', label }: { x: number; y: number; rot?: number; color?: string; label?: string }) {
+  return (
+    <g transform={`translate(${x} ${y}) rotate(${rot})`}>
+      <path d="M0,-10 Q5,0 3,8 L-3,8 Q-5,0 0,-10 Z" fill={color} stroke="#ffffff" strokeWidth="1" />
+      {/* Sail */}
+      <path d="M0,-6 Q3,-2 2,4 L0,4 Z" fill="#ffffff" opacity="0.9" />
+      {label && <text x="0" y="18" textAnchor="middle" fontSize="8" fill={color}>{label}</text>}
+    </g>
+  );
+}
+
+function WindArrow({ x, y, length = 40 }: { x: number; y: number; length?: number }) {
+  return (
+    <g>
+      <line x1={x} y1={y} x2={x} y2={y + length} stroke="#00e5ff" strokeWidth="1.5" />
+      <polygon points={`${x - 3},${y + length - 5} ${x + 3},${y + length - 5} ${x},${y + length}`} fill="#00e5ff" />
+      <text x={x} y={y - 5} textAnchor="middle" fontSize="9" fill="#00e5ff">ветер</text>
+    </g>
+  );
+}
+
+function PortVsStarboard() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <WindArrow x={100} y={10} length={30} />
+      {/* Starboard tack boat heading up-right */}
+      <Boat x={60} y={80} rot={30} color="#44ff88" label="правый галс ✓" />
+      {/* Port tack boat heading up-left */}
+      <Boat x={140} y={80} rot={-30} color="#ff6666" label="левый галс ✗" />
+      {/* Collision arrow */}
+      <path d="M 75 75 Q 100 55 125 75" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" />
+    </svg>
+  );
+}
+
+function WindwardLeeward() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <WindArrow x={170} y={10} length={25} />
+      <Boat x={60} y={50} rot={-90} color="#ff6666" label="наветренный ✗" />
+      <Boat x={60} y={100} rot={-90} color="#44ff88" label="подветренный ✓" />
+      <text x="100" y="75" fontSize="10" fill="#8ba7b8">→ →</text>
+    </svg>
+  );
+}
+
+function Overtaking() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <Boat x={120} y={50} rot={-90} color="#44ff88" label="впереди" />
+      <Boat x={60} y={80} rot={-90} color="#ff6666" label="обгоняющий" />
+      <path d="M 70 75 Q 90 50 115 50" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" markerEnd="url(#arr)" />
+      <defs>
+        <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#ffaa00" /></marker>
+      </defs>
+      <text x="100" y="120" textAnchor="middle" fontSize="9" fill="#8ba7b8">обгоняющий уступает</text>
+    </svg>
+  );
+}
+
+function MarkRoom() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      {/* Mark */}
+      <circle cx="100" cy="50" r="8" fill="#ffaa00" stroke="#ffffff" strokeWidth="1.5" />
+      <text x="100" y="35" textAnchor="middle" fontSize="8" fill="#ffaa00">знак</text>
+      {/* Zone circle (3 boat lengths) */}
+      <circle cx="100" cy="50" r="35" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.6" />
+      {/* Inside boat — gets mark room */}
+      <Boat x={80} y={90} rot={-45} color="#44ff88" label="внутренняя ✓" />
+      {/* Outside boat */}
+      <Boat x={50} y={100} rot={-45} color="#ff6666" label="внешняя" />
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">внешняя даёт место</text>
+    </svg>
+  );
+}
+
+function Crossing() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <Boat x={30} y={70} rot={90} color="#44ff88" label="я" />
+      <Boat x={170} y={70} rot={-90} color="#ff6666" label="соперник" />
+      <line x1="40" y1="70" x2="160" y2="70" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
+      <text x="100" y="50" textAnchor="middle" fontSize="9" fill="#ffaa00">?</text>
+      <text x="100" y="120" textAnchor="middle" fontSize="8" fill="#8ba7b8">избегай контакта!</text>
+    </svg>
+  );
+}
+
+function StartLine() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      {/* Line */}
+      <line x1="20" y1="50" x2="180" y2="50" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4,3" />
+      <circle cx="20" cy="50" r="6" fill="#ffaa00" />
+      <circle cx="180" cy="50" r="6" fill="#ffaa00" />
+      <text x="100" y="40" textAnchor="middle" fontSize="9" fill="#ffaa00">СТАРТ</text>
+      <WindArrow x={100} y={90} length={20} />
+      {/* Boats */}
+      <Boat x={50} y={80} rot={0} color="#44ff88" />
+      <Boat x={90} y={85} rot={-15} color="#ffffff" />
+      <Boat x={120} y={80} rot={10} color="#ffaa00" />
+      <Boat x={155} y={85} rot={-5} color="#44aaff" />
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">разгон + чистый ветер</text>
+    </svg>
+  );
+}
+
+function CollisionAvoid() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <Boat x={70} y={70} rot={45} color="#ff6666" />
+      <Boat x={130} y={70} rot={-45} color="#ff6666" />
+      <text x="100" y="50" textAnchor="middle" fontSize="16" fill="#ff4444">⚠️</text>
+      <text x="100" y="110" textAnchor="middle" fontSize="9" fill="#ffaa00">увалиться / затормозить</text>
+      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">безопасность &gt; правота</text>
+    </svg>
+  );
+}
+
+function Penalty() {
+  return (
+    <svg viewBox="0 0 200 140" className="w-full h-auto">
+      <WindArrow x={30} y={10} length={20} />
+      {/* Circle path */}
+      <path d="M 100 30 A 30 30 0 1 1 100 90 A 30 30 0 1 1 100 30" fill="none" stroke="#ffaa00" strokeWidth="1.5" strokeDasharray="4,3" />
+      <Boat x={100} y={30} rot={0} color="#ff6666" label="1" />
+      <Boat x={130} y={60} rot={90} color="#ffffff" label="2" />
+      <Boat x={100} y={90} rot={180} color="#ffffff" label="3" />
+      <Boat x={70} y={60} rot={-90} color="#44ff88" label="4" />
+      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">360° = оверштаг + фордевинд</text>
+    </svg>
+  );
+}
+
+const SVG_MAP: Record<RuleScenario['svg'], () => React.ReactElement> = {
+  'port-vs-starboard': PortVsStarboard,
+  'windward-leeward': WindwardLeeward,
+  overtaking: Overtaking,
+  'mark-room': MarkRoom,
+  crossing: Crossing,
+  'start-line': StartLine,
+  'collision-avoid': CollisionAvoid,
+  penalty: Penalty,
+};
+
+// ============================================================================
+// Page
+// ============================================================================
+
+export default function RulesPage() {
+  const [openId, setOpenId] = useState<string | null>(ruleScenarios[0].id);
+
+  return (
+    <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      {/* Header */}
+      <div className="mb-8">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
+             style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
+          📖 Простые правила
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">8 ситуаций — и ты не потеряешься</h1>
+        <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+          Не учебник правил, а базовые расклады с воды: сцена → вопрос → ответ → почему → что делать на практике. Открывай по одной.
+        </p>
+      </div>
+
+      {/* Scenario cards */}
+      <div className="space-y-3">
+        {ruleScenarios.map((r) => {
+          const isOpen = openId === r.id;
+          const SvgComp = SVG_MAP[r.svg];
+          return (
+            <div
+              key={r.id}
+              className="card overflow-hidden transition-all"
+              style={{ borderColor: isOpen ? 'rgba(255, 170, 0, 0.3)' : undefined }}
+            >
+              <button
+                onClick={() => setOpenId(isOpen ? null : r.id)}
+                className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
+              >
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-2xl shrink-0">{r.icon}</span>
+                  <div className="min-w-0">
+                    <div className="text-base sm:text-lg font-semibold truncate">{r.titleRu}</div>
+                    <div className="text-xs text-[var(--text-muted)] truncate">{r.titleEn}</div>
+                  </div>
+                </div>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className={`shrink-0 text-[var(--text-muted)] transition-transform ${isOpen ? 'rotate-180' : ''}`}
+                >
+                  <polyline points="6 9 12 15 18 9"/>
+                </svg>
+              </button>
+
+              {isOpen && (
+                <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
+                  {/* Illustration */}
+                  <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
+                    <SvgComp />
+                  </div>
+
+                  {/* Content */}
+                  <div className="space-y-4 text-sm">
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Сцена</div>
+                      <p className="text-[var(--text-secondary)]">{r.sceneRu}</p>
+                    </div>
+
+                    <div className="p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent-cyan)' }}>Вопрос → Ответ</div>
+                      <p className="font-medium mb-2">{r.questionRu}</p>
+                      <p className="text-[var(--text-primary)]">{r.answerRu}</p>
+                    </div>
+
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Почему</div>
+                      <p className="text-[var(--text-secondary)]">{r.whyRu}</p>
+                    </div>
+
+                    <div className="p-3 rounded-lg" style={{ background: 'rgba(68, 255, 136, 0.05)', border: '1px solid rgba(68, 255, 136, 0.15)' }}>
+                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--success)' }}>На практике</div>
+                      <p className="text-[var(--text-primary)]">{r.inPracticeRu}</p>
+                    </div>
+
+                    <details className="text-xs text-[var(--text-muted)]">
+                      <summary className="cursor-pointer hover:text-[var(--text-secondary)]">English version</summary>
+                      <div className="mt-2 space-y-2 pl-2 border-l border-[rgba(139,167,184,0.2)]">
+                        <p><strong>Scene:</strong> {r.sceneEn}</p>
+                        <p><strong>Q:</strong> {r.questionEn}</p>
+                        <p><strong>A:</strong> {r.answerEn}</p>
+                        <p><strong>Why:</strong> {r.whyEn}</p>
+                        <p><strong>In practice:</strong> {r.inPracticeEn}</p>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-10 p-5 card text-center" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
+        <p className="text-sm text-[var(--text-secondary)]">
+          <span className="font-semibold text-[var(--text-primary)]">Важно:</span>{' '}
+          это <em>упрощённая</em> версия правил для входа в тему. Полный официальный текст —{' '}
+          <a href="https://www.sailing.org/tools/documents/RRS20252028Finalv21-%5B29617%5D.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-cyan)] hover:underline">
+            Racing Rules of Sailing 2025–2028 (PDF)
+          </a>.
+        </p>
+      </div>
+    </div>
+  );
+}
