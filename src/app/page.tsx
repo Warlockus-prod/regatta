@@ -114,11 +114,14 @@ export default function HomePage() {
       {/* Section Cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sections.map((section) => (
+          {sections.map((section, idx) => (
             <Link
               key={section.href}
               href={section.href}
-              className="group card p-6 flex flex-col gap-4 hover:scale-[1.02] transition-all duration-300"
+              className={`group card p-6 flex flex-col gap-4 hover:scale-[1.02] transition-all duration-300 ${
+                // 5th card (index 4) spans 2 cols on medium screens to avoid lonely row
+                idx === sections.length - 1 ? 'sm:col-span-2 lg:col-span-1' : ''
+              }`}
               style={{ borderColor: section.borderColor }}
             >
               <div className="flex items-center gap-4">

@@ -334,6 +334,10 @@ export default function GamePage() {
   const [leftHeld, setLeftHeld] = useState(false);
   const [rightHeld, setRightHeld] = useState(false);
 
+  // Autopilot: holds a target heading; any input turns it off
+  const [autopilotOn, setAutopilotOn] = useState(false);
+  const autopilotHeadingRef = useRef<number>(0);
+
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
@@ -457,7 +461,16 @@ export default function GamePage() {
           const keyRight = keysRef.current.has('arrowright') || keysRef.current.has('d') || rightHeld;
           const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeld;
           const turnInput = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
-          boat.heading = normalizeAngle(boat.heading + turnInput * TURN_RATE * dt);
+          if (turnInput !== 0) {
+            // Any input turns off autopilot
+            if (autopilotOn) setAutopilotOn(false);
+            boat.heading = normalizeAngle(boat.heading + turnInput * TURN_RATE * dt);
+          } else if (autopilotOn) {
+            // Smoothly hold target heading (stops drift caused by wind / wave ~ n/a but future-proofed)
+            const diff = angleDiff(boat.heading, autopilotHeadingRef.current);
+            const maxTurn = TURN_RATE * 0.5 * dt;
+            boat.heading = normalizeAngle(boat.heading + Math.max(-maxTurn, Math.min(maxTurn, diff)));
+          }
         } else {
           boat.heading = computeAIHeading(boat, course, dt);
         }
@@ -843,6 +856,9 @@ export default function GamePage() {
         ctx.restore();
       }
     }
+
+    // --- Mini-map (bottom-right) ---
+    drawMiniMap(ctx, W, H, boats, course);
   }, []);
 
   // -----------------------------------------------------------------------
@@ -1024,6 +1040,29 @@ export default function GamePage() {
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
           >
             ← Меню
+          </button>
+
+          {/* Autopilot button (bottom-center above the hint) */}
+          <button
+            onClick={() => {
+              const player = boatsRef.current.find((b) => b.isPlayer);
+              if (!player) return;
+              if (autopilotOn) {
+                setAutopilotOn(false);
+              } else {
+                autopilotHeadingRef.current = player.heading;
+                setAutopilotOn(true);
+              }
+            }}
+            className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-semibold transition active:scale-95 md:bottom-16"
+            style={{
+              background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
+              color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
+              border: '1px solid rgba(0, 212, 255, 0.5)',
+              backdropFilter: 'blur(8px)',
+            }}
+          >
+            {autopilotOn ? '⏸ AUTO ВКЛ' : '▶ AUTO'}
           </button>
 
           {/* Touch controls (visible on touch devices / always shown for accessibility) */}
@@ -1339,4 +1378,102 @@ function getPointOfSailName(twa: number): { nameRu: string; color: string } {
   if (a < 110) return { nameRu: 'Галфвинд', color: '#44ff88' };
   if (a < 160) return { nameRu: 'Бакштаг', color: '#44aaff' };
   return { nameRu: 'Фордевинд', color: '#8844ff' };
+}
+
+function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats: Boat[], course: Course) {
+  // Size + position of mini-map
+  const mapW = Math.min(140, W * 0.22);
+  const mapH = Math.min(180, H * 0.28);
+  const pad = 12;
+  const mx = W - mapW - pad;
+  const my = H - mapH - pad;
+
+  // Background
+  ctx.save();
+  ctx.fillStyle = 'rgba(10, 22, 40, 0.85)';
+  ctx.strokeStyle = 'rgba(0, 212, 255, 0.25)';
+  ctx.lineWidth = 1;
+  roundRect(ctx, mx, my, mapW, mapH, 8);
+  ctx.fill();
+  ctx.stroke();
+
+  // Label
+  ctx.fillStyle = 'rgba(139, 167, 184, 0.8)';
+  ctx.font = '600 9px system-ui, sans-serif';
+  ctx.textAlign = 'left';
+  ctx.fillText('ТРАССА / COURSE', mx + 6, my + 12);
+
+  // World bounds (from constants): WORLD.width x WORLD.height = 800 x 1200
+  // Figure out scale to fit
+  const WORLD_W = 800;
+  const WORLD_H = 1200;
+  const margin = 12;
+  const innerW = mapW - margin * 2;
+  const innerH = mapH - margin * 2 - 10; // extra top margin for label
+  const scaleX = innerW / WORLD_W;
+  const scaleY = innerH / WORLD_H;
+  const s = Math.min(scaleX, scaleY);
+  const offsetX = mx + margin + (innerW - WORLD_W * s) / 2;
+  const offsetY = my + margin + 10 + (innerH - WORLD_H * s) / 2;
+
+  const worldToMap = (p: Vec2) => ({ x: offsetX + p.x * s, y: offsetY + p.y * s });
+
+  // Clip to mini-map bounds
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(mx + 2, my + 14, mapW - 4, mapH - 16);
+  ctx.clip();
+
+  // Start/finish line
+  const lineA = worldToMap(course.startLine.a);
+  const lineB = worldToMap(course.startLine.b);
+  ctx.strokeStyle = '#ffaa00';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(lineA.x, lineA.y);
+  ctx.lineTo(lineB.x, lineB.y);
+  ctx.stroke();
+
+  // Windward mark
+  const wm = worldToMap(course.marks[0].pos);
+  ctx.fillStyle = '#ffaa00';
+  ctx.beginPath();
+  ctx.arc(wm.x, wm.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Boats
+  for (const b of boats) {
+    const bp = worldToMap(b.pos);
+    ctx.fillStyle = b.isPlayer ? '#00d4ff' : b.color;
+    ctx.beginPath();
+    ctx.arc(bp.x, bp.y, b.isPlayer ? 3 : 2, 0, Math.PI * 2);
+    ctx.fill();
+    if (b.isPlayer) {
+      // Heading line
+      ctx.strokeStyle = '#00d4ff';
+      ctx.lineWidth = 1;
+      const hr = 6;
+      ctx.beginPath();
+      ctx.moveTo(bp.x, bp.y);
+      ctx.lineTo(bp.x + Math.sin(deg2rad(b.heading)) * hr, bp.y - Math.cos(deg2rad(b.heading)) * hr);
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+  ctx.restore();
+}
+
+function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
 }
