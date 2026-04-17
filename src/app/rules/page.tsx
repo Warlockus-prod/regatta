@@ -29,40 +29,46 @@ function WindArrow({ x, y, length = 40 }: { x: number; y: number; length?: numbe
 }
 
 function PortVsStarboard() {
+  // Wind from top (down arrow). Close-hauled courses ~45° from wind.
+  // Starboard tack = wind from starboard (right) side → boat heads UP-LEFT (rot ≈ -45).
+  // Port tack     = wind from port  (left)  side → boat heads UP-RIGHT (rot ≈ +45).
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={10} length={30} />
-      {/* Starboard tack boat heading up-right */}
-      <Boat x={60} y={80} rot={30} color="#44ff88" label="правый галс ✓" />
-      {/* Port tack boat heading up-left */}
-      <Boat x={140} y={80} rot={-30} color="#ff6666" label="левый галс ✗" />
-      {/* Collision arrow */}
-      <path d="M 75 75 Q 100 55 125 75" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" />
+      <Boat x={140} y={85} rot={-45} color="#44ff88" label="правый галс ✓" />
+      <Boat x={60} y={85} rot={45} color="#ff6666" label="левый галс ✗" />
+      {/* Converging dashed lines to show they meet */}
+      <path d="M 75 80 Q 100 60 125 80" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" />
     </svg>
   );
 }
 
 function WindwardLeeward() {
+  // Both on same tack (starboard — wind from top-right). Heading roughly west-ish.
+  // Windward = closer to wind = upper boat. Leeward = farther from wind = lower boat.
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
-      <WindArrow x={170} y={10} length={25} />
-      <Boat x={60} y={50} rot={-90} color="#ff6666" label="наветренный ✗" />
-      <Boat x={60} y={100} rot={-90} color="#44ff88" label="подветренный ✓" />
-      <text x="100" y="75" fontSize="10" fill="#8ba7b8">→ →</text>
+      <WindArrow x={100} y={10} length={25} />
+      <Boat x={130} y={55} rot={-70} color="#ff6666" label="наветренный ✗" />
+      <Boat x={70} y={95} rot={-70} color="#44ff88" label="подветренный ✓" />
+      {/* Arrow showing both heading same direction */}
+      <path d="M 95 75 L 55 90" fill="none" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
     </svg>
   );
 }
 
 function Overtaking() {
+  // Both boats heading up. Catching boat is behind (lower on screen).
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
-      <Boat x={120} y={50} rot={-90} color="#44ff88" label="впереди" />
-      <Boat x={60} y={80} rot={-90} color="#ff6666" label="обгоняющий" />
-      <path d="M 70 75 Q 90 50 115 50" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" markerEnd="url(#arr)" />
+      <WindArrow x={30} y={10} length={20} />
+      <Boat x={120} y={50} rot={0} color="#44ff88" label="впереди" />
+      <Boat x={100} y={100} rot={0} color="#ff6666" label="обгоняющий" />
+      <path d="M 105 95 Q 115 75 120 60" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" markerEnd="url(#arr)" />
       <defs>
         <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#ffaa00" /></marker>
       </defs>
-      <text x="100" y="120" textAnchor="middle" fontSize="9" fill="#8ba7b8">обгоняющий уступает</text>
+      <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#8ba7b8">обгоняющий уступает</text>
     </svg>
   );
 }
@@ -85,31 +91,37 @@ function MarkRoom() {
 }
 
 function Crossing() {
+  // Wind from top. Both boats on courses likely to meet.
+  // Left boat heading UP-RIGHT (port tack, wind on left) — "я"
+  // Right boat heading UP-LEFT (starboard tack, wind on right) — "соперник"
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
-      <Boat x={30} y={70} rot={90} color="#44ff88" label="я" />
-      <Boat x={170} y={70} rot={-90} color="#ff6666" label="соперник" />
-      <line x1="40" y1="70" x2="160" y2="70" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
-      <text x="100" y="50" textAnchor="middle" fontSize="9" fill="#ffaa00">?</text>
-      <text x="100" y="120" textAnchor="middle" fontSize="8" fill="#8ba7b8">избегай контакта!</text>
+      <WindArrow x={100} y={10} length={20} />
+      <Boat x={45} y={90} rot={45} color="#44ff88" label="я" />
+      <Boat x={155} y={90} rot={-45} color="#ff6666" label="соперник" />
+      <line x1="55" y1="82" x2="145" y2="82" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
+      <text x="100" y="65" textAnchor="middle" fontSize="11" fill="#ffaa00" fontWeight="600">?</text>
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">избегай контакта!</text>
     </svg>
   );
 }
 
 function StartLine() {
+  // Wind comes FROM above. Start line is at leeward end; boats head upwind after start.
+  // So: wind arrow ABOVE the line (pointing down toward line), boats BELOW line heading up.
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
-      {/* Line */}
-      <line x1="20" y1="50" x2="180" y2="50" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4,3" />
-      <circle cx="20" cy="50" r="6" fill="#ffaa00" />
-      <circle cx="180" cy="50" r="6" fill="#ffaa00" />
-      <text x="100" y="40" textAnchor="middle" fontSize="9" fill="#ffaa00">СТАРТ</text>
-      <WindArrow x={100} y={90} length={20} />
-      {/* Boats */}
-      <Boat x={50} y={80} rot={0} color="#44ff88" />
-      <Boat x={90} y={85} rot={-15} color="#ffffff" />
-      <Boat x={120} y={80} rot={10} color="#ffaa00" />
-      <Boat x={155} y={85} rot={-5} color="#44aaff" />
+      <WindArrow x={100} y={5} length={20} />
+      {/* Start line */}
+      <line x1="20" y1="60" x2="180" y2="60" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4,3" />
+      <circle cx="20" cy="60" r="5" fill="#ffaa00" />
+      <circle cx="180" cy="60" r="5" fill="#ffaa00" />
+      <text x="100" y="52" textAnchor="middle" fontSize="9" fill="#ffaa00" fontWeight="600">СТАРТ</text>
+      {/* Boats approaching the line from below, heading roughly up (close-hauled just after start) */}
+      <Boat x={55} y={100} rot={-30} color="#44ff88" />
+      <Boat x={85} y={105} rot={25} color="#ffffff" />
+      <Boat x={120} y={100} rot={-15} color="#ffaa00" />
+      <Boat x={155} y={105} rot={20} color="#44aaff" />
       <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">разгон + чистый ветер</text>
     </svg>
   );

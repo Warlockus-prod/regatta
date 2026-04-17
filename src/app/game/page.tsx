@@ -332,9 +332,14 @@ export default function GamePage() {
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [coachingError, setCoachingError] = useState<string | null>(null);
 
-  // Touch controls state (true while button held)
+  // Touch controls state (true while button held). Mirror to ref so the game
+  // loop always reads the current value — fixes B1 (mobile steering).
   const [leftHeld, setLeftHeld] = useState(false);
   const [rightHeld, setRightHeld] = useState(false);
+  const leftHeldRef = useRef(false);
+  const rightHeldRef = useRef(false);
+  useEffect(() => { leftHeldRef.current = leftHeld; }, [leftHeld]);
+  useEffect(() => { rightHeldRef.current = rightHeld; }, [rightHeld]);
 
   // Autopilot: holds a target heading; any input turns it off
   const [autopilotOn, setAutopilotOn] = useState(false);
@@ -472,8 +477,8 @@ export default function GamePage() {
 
         // --- Heading update ---
         if (boat.isPlayer) {
-          const keyRight = keysRef.current.has('arrowright') || keysRef.current.has('d') || rightHeld;
-          const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeld;
+          const keyRight = keysRef.current.has('arrowright') || keysRef.current.has('d') || rightHeldRef.current;
+          const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeldRef.current;
           const turnInput = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
           if (turnInput !== 0) {
             // Any input turns off autopilot

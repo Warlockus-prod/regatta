@@ -363,12 +363,40 @@ export default function SimulatorPage() {
     ctx.beginPath();
     ctx.arc(0, 0, rArc, startA, endA, diff > 0);
     ctx.stroke();
-    // TWA label at arc middle
+    // TWA label at arc middle — with pill background so it's readable over
+    // cardinal labels and sector overlays (B2 fix).
     const midA = (startA + endA) / 2 + (Math.abs(endA - startA) > Math.PI ? Math.PI : 0);
-    ctx.fillStyle = pos.color;
+    const lx = Math.cos(midA) * (rArc + 18);
+    const ly = Math.sin(midA) * (rArc + 18);
+    const labelText = `${Math.round(wa)}°`;
     ctx.font = '600 12px system-ui, sans-serif';
+    const tw = ctx.measureText(labelText).width;
+    // Pill background
+    ctx.fillStyle = 'rgba(10, 22, 40, 0.85)';
+    ctx.strokeStyle = pos.color + '88';
+    ctx.lineWidth = 1;
+    const padX = 6;
+    const pillW = tw + padX * 2;
+    const pillH = 16;
+    const rr = 8;
+    ctx.beginPath();
+    ctx.moveTo(lx - pillW / 2 + rr, ly - pillH / 2);
+    ctx.lineTo(lx + pillW / 2 - rr, ly - pillH / 2);
+    ctx.quadraticCurveTo(lx + pillW / 2, ly - pillH / 2, lx + pillW / 2, ly - pillH / 2 + rr);
+    ctx.lineTo(lx + pillW / 2, ly + pillH / 2 - rr);
+    ctx.quadraticCurveTo(lx + pillW / 2, ly + pillH / 2, lx + pillW / 2 - rr, ly + pillH / 2);
+    ctx.lineTo(lx - pillW / 2 + rr, ly + pillH / 2);
+    ctx.quadraticCurveTo(lx - pillW / 2, ly + pillH / 2, lx - pillW / 2, ly + pillH / 2 - rr);
+    ctx.lineTo(lx - pillW / 2, ly - pillH / 2 + rr);
+    ctx.quadraticCurveTo(lx - pillW / 2, ly - pillH / 2, lx - pillW / 2 + rr, ly - pillH / 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    // Label
+    ctx.fillStyle = pos.color;
     ctx.textAlign = 'center';
-    ctx.fillText(`${Math.round(wa)}°`, Math.cos(midA) * (rArc + 14), Math.sin(midA) * (rArc + 14));
+    ctx.textBaseline = 'middle';
+    ctx.fillText(labelText, lx, ly + 0.5);
     ctx.restore();
 
     // --- Hint text ---
