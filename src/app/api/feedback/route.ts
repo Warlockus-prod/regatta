@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { logInfo, logError } from '@/lib/log';
+import { insertFeedback } from '@/lib/db';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -84,6 +85,21 @@ export async function POST(req: Request) {
     logError('feedback.persist-failed', { err: err instanceof Error ? err.message : 'unknown' });
     // Still return ok — the log line above preserves the content in docker logs
   }
+
+  // Also persist to SQLite for /stats admin
+  insertFeedback({
+    kind: record.kind as 'feedback' | 'bug',
+    category: record.category,
+    message: record.message,
+    expected: record.expected,
+    actual: record.actual,
+    contact: record.contact,
+    path: record.path,
+    viewport: record.viewport,
+    language: record.language,
+    ua: record.ua,
+    ip: record.ip,
+  });
 
   return NextResponse.json({ ok: true });
 }

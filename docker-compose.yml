@@ -16,3 +16,9 @@ services:
     environment:
       - NODE_ENV=production
       - NEXT_TELEMETRY_DISABLED=1
+      - REGATTA_DB_DIR=/data
+    volumes:
+      - regatta_data:/data
+
+volumes:
+  regatta_data:

@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
+  // Native addons need to be external so Next doesn't try to bundle them
+  serverExternalPackages: ["better-sqlite3"],
 };
 
 export default nextConfig;
