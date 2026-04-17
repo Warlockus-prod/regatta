@@ -128,3 +128,83 @@ export const bootcampLessons: BootcampLesson[] = [
 ];
 
 export const BOOTCAMP_TOTAL_MINUTES = bootcampLessons.reduce((sum, l) => sum + l.estMinutes, 0);
+
+// ============================================================================
+// Quick refresh — 15 min condensed path for experienced sailors
+// ============================================================================
+
+export interface QuickLesson {
+  id: string;
+  emoji: string;
+  titleRu: string;
+  titleEn: string;
+  tipRu: string;
+  tipEn: string;
+  route: string;
+  estMinutes: number;
+}
+
+export const quickRefreshLessons: QuickLesson[] = [
+  {
+    id: 'q-wind',
+    emoji: '🌬',
+    titleRu: 'Ветер: 30 секунд',
+    titleEn: 'Wind: 30 sec',
+    tipRu: 'Где источник, где мёртвая зона. Всё.',
+    tipEn: 'Where wind comes from, where is no-go. Done.',
+    route: '/simulator',
+    estMinutes: 1,
+  },
+  {
+    id: 'q-courses',
+    emoji: '🧭',
+    titleRu: 'Курсы: 5 штук',
+    titleEn: '5 points of sail',
+    tipRu: 'Левентик / бейдевинд / галфвинд / бакштаг / фордевинд. Запомни в этом порядке.',
+    tipEn: 'In-irons / close-hauled / beam reach / broad reach / running. Memorize in order.',
+    route: '/courses',
+    estMinutes: 2,
+  },
+  {
+    id: 'q-maneuvers',
+    emoji: '↔️',
+    titleRu: 'Повороты: оверштаг vs фордевинд',
+    titleEn: 'Tack vs jibe',
+    tipRu: 'Оверштаг — нос через ветер. Фордевинд — корма. Второй опаснее (гик).',
+    tipEn: 'Tack — bow through wind. Jibe — stern. The second is dangerous (boom).',
+    route: '/glossary',
+    estMinutes: 2,
+  },
+  {
+    id: 'q-rules',
+    emoji: '📖',
+    titleRu: 'Топ-3 правила',
+    titleEn: 'Top-3 rules',
+    tipRu: 'Starboard > Port. Leeward > Windward. Избегай контакта.',
+    tipEn: 'Starboard > Port. Leeward > Windward. Avoid contact.',
+    route: '/rules',
+    estMinutes: 3,
+  },
+  {
+    id: 'q-start',
+    emoji: '🏁',
+    titleRu: 'Стартовая процедура',
+    titleEn: 'Start sequence',
+    tipRu: '5-4-1-start signals. Не раньше. Разгон. Чистый ветер.',
+    tipEn: '5-4-1-start signals. Not early. Build speed. Clean air.',
+    route: '/racing',
+    estMinutes: 2,
+  },
+  {
+    id: 'q-race',
+    emoji: '⛵',
+    titleRu: 'Одна гонка с AI',
+    titleEn: 'One race vs AI',
+    tipRu: 'Medium сложность. Посмотри разбор тренера.',
+    tipEn: 'Medium difficulty. Check the coach analysis.',
+    route: '/game',
+    estMinutes: 5,
+  },
+];
+
+export const QUICK_REFRESH_TOTAL_MINUTES = quickRefreshLessons.reduce((s, l) => s + l.estMinutes, 0);

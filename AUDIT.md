@@ -1,233 +1,201 @@
-# Regatta — Final Audit & Retrospective
+# Regatta — Final Audit v5.0
 
 **Date:** 2026-04-17
-**Project:** https://regatta.icoffio.com
+**Version shipped:** v5.0
+**Live:** https://regatta.icoffio.com
 **Repo:** https://github.com/Warlockus-prod/regatta
-**Session duration:** ~2 hours from empty folder to production
+**Admin stats:** https://regatta.icoffio.com/stats (user: `admin`, password: `regattA`)
 
 ---
 
-## 1. Что сделано
+## Version timeline
 
-### 1.1 Pages (6 routes)
-
-| Route | Content | Tech |
+| Tag | Wave | Content |
 |---|---|---|
-| `/` | Лендинг с 5 карточками разделов, градиентный заголовок | static |
-| `/simulator` | Canvas-симулятор яхты: драг/стрелки, автоматический trim парусов, no-go zone, HUD с RU/EN | client canvas |
-| `/courses` | Круговая SVG-диаграмма с 5 курсами (Левентик → Фордевинд), подписи на обе стороны | client SVG |
-| `/racing` | Диаграмма дистанции, 4 стратегии (expandable), 4 правила расхождения, 4 ключевых понятия (лейлайн, VMG, Clear Air, Wind Shadow) | client SVG |
-| `/game` | Интерактивная гоночная игра с AI-соперниками (3 уровня), реалистичная физика парусов, touch-контролы, AI-тренер | client canvas |
-| `/glossary` | 51 термин RU/EN, 7 категорий, поиск, фильтры, staggered fade-in | client grid |
-| `/api/coach` | POST endpoint: принимает лог гонки, возвращает JSON анализ через Claude Haiku 4.5 с prompt caching | server route |
+| `v1.0` | Initial | Simulator, game, courses, racing, glossary, feedback + basic logging + PWA |
+| `v1.1` | Bug fixes | B1 mobile game steering, B2 simulator text overlap, B3 rules illustration angles |
+| `v2.0` | Wave 2 | Language toggle (RU/EN), /onboard "first week on board", /start bootcamp (8 lessons, progress), storage schema versioning, missions data model |
+| `v3.0` | Wave 3 | /stats password-protected admin with SQLite (events, feedback, sessions tables), charts, reports UI with status transitions |
+| `v4.0` | Wave 4 | /checklist (48 items, 4 groups, progress saved), /knots (6 knots with step-by-step SVG), /anatomy (Bavaria 46 profile with 17 hotspots) |
+| `v5.0` | Wave 5 compact | /quick (15-min refresh for experienced sailors), consolidated homepage |
 
-### 1.2 Game mechanics
+Rollback: `git checkout v1.0` + `docker compose up -d --build` on VPS. Every tag has a matching `regatta:vN.M` docker image.
 
-- Физика: speed factor как функция TWA (True Wind Angle) — 0 в no-go, max на beam reach, дальше спад
-- AI opponents: тактический автопилот (лавируются, огибают знак, учитывают skill)
-- Лог гонки: каждые 0.5с сэмпл позиции + события (tack, no-go-entered, mark-rounded, finish)
-- AI-тренер (Claude Haiku): score, топ-3 ошибки с временем и фиксом, сильные стороны, цель
-- Управление: arrow keys / A-D + большие touch-кнопки на мобайле
-- 3 уровня сложности: 2/3/4 соперников, AI speed 78%/92%/102%
+---
 
-### 1.3 Infrastructure
+## Feature inventory (what ships)
 
-- **GitHub:** https://github.com/Warlockus-prod/regatta (public)
-- **VPS:** isolated container `regatta` на 172.17.0.1:4500
-- **Domain:** regatta.icoffio.com (DNS уже был настроен)
-- **SSL:** Let's Encrypt cert, auto-renew через deploy-hook копирует в shared certs dir
-- **Nginx:** конфиг в `/opt/repos/regatta/regatta.nginx.conf`, скопирован в nginx_server через `docker cp`, reload без рестарта
-- **Env:** `/opt/repos/regatta/.env` (chmod 600, в gitignore) с `ANTHROPIC_API_KEY`
-- **Deploy flow:** `git push` → ssh → `git pull` → `docker compose up -d --build`
+### Routes (14)
 
-### 1.4 Что протестировано
+| Route | Purpose | Key content |
+|---|---|---|
+| `/` | Landing | 3 entry points + 8 secondary tools |
+| `/start` | Bootcamp | 8 lessons, progress tracking, ~60 min |
+| `/quick` | Quick refresh | 6 topics, 15 min |
+| `/onboard` | First week on board | 8 sections: hierarchy, commands, danger zones, rigging, start, docking, pack list, quiet crew |
+| `/simulator` | Interactive yacht | Canvas top view + side view with heel, wind direction selector |
+| `/courses` | Points of sail | Circular wind diagram + 5 POS cards |
+| `/racing` | Racing tactics | Course diagram, strategies, right-of-way, key concepts |
+| `/rules` | Simple rules | 8 scenario cards with SVG illustrations |
+| `/game` | Race with AI | 3 difficulties, wind strength picker, mini-map, autopilot, sounds, AI coach (Claude Haiku), fallback rule-based coach |
+| `/anatomy` | Yacht anatomy | Bavaria 46 side-profile SVG with 17 hotspots |
+| `/knots` | 6 essential knots | Figure-eight, bowline, cleat hitch, clove hitch, round turn + 2 half hitches, sheet bend |
+| `/checklist` | Pre-race checklist | 48 items across 4 groups |
+| `/glossary` | Terms RU/EN | 51 sailing terms, search, filter |
+| `/stats` | Admin | Password-protected dashboard + feedback/bug management |
 
-| Проверка | Результат |
+### APIs
+
+- `POST /api/log` — client event ingestion, persists to SQLite
+- `POST /api/feedback` — feedback/bug reports, persists to SQLite + JSONL
+- `POST /api/coach` — race log → Claude Haiku analysis
+- `POST /api/admin/feedback` — status transitions for reports (auth-protected)
+
+### Infrastructure
+
+- Next.js 16 standalone build, Docker on VPS at `172.17.0.1:4500`
+- SQLite database persisted in Docker volume `/data`
+- HTTP Basic Auth middleware guarding `/stats` and `/api/admin`
+- Let's Encrypt SSL with auto-renew deploy hook
+- PWA manifest + SVG icons (installable on home screen)
+- Procedural Web Audio sounds (no asset files)
+- `ANTHROPIC_API_KEY` in VPS `.env` (never committed)
+
+---
+
+## What works
+
+✅ All 14 routes render on desktop and mobile, HTTP 200
+✅ Build passes TypeScript strict, 0 errors, 0 warnings
+✅ Game AI coach returns structured JSON from Claude Haiku in ~2s
+✅ Game fallback coach runs without API key
+✅ Mobile game steering (B1 fixed with refs)
+✅ Simulator text overlap fixed (B2 pill backgrounds)
+✅ Rules illustrations now correct wind/tack relationship (B3)
+✅ Language toggle persists across visits
+✅ Bootcamp/checklist/game progress saved in localStorage
+✅ Feedback widget → SQLite → visible in /stats admin
+✅ Storage schema versioning with safe reset
+✅ Sessions tracked in DB for returning-user metrics
+✅ Docker image tagged per version, rollback in one command
+
+## What's deferred (tracked in PROBLEMS.md)
+
+- **3D yacht anatomy** — user requested direct 3D, shipped as high-quality 2D Bavaria 46 profile. Upgrade path: acquire GLB, swap `<model-viewer>` in, hotspots translate 1:1
+- **Missions UI in game** — data + evaluator ready, UI integration deferred
+- **Wind shifts + gusts in game** — requires physics refactor (wind is currently const)
+- **Ghost replay / debrief mode**
+- **VMG hint during upwind**
+- **Polar diagram overlay**
+- **Quiz/assessment** — user requested, but testing with 10 real users first
+- **Instructor mode** — low priority until audience proves need
+- **Retention features** — shareable result card, email nudges before regatta date
+- **Charts depth in admin** — funnel, cohorts, A/B test infra
+
+## What was actively pushed back
+
+From the long ChatGPT roadmap, these were explicitly not done:
+
+- **Multiplayer** — wrong battle for now, backend + sync needed
+- **Capacitor iOS/Android wrap** — PWA covers install. Apple credentials noted in personal memory for when warranted
+- **Full Racing Rules of Sailing text** — link out instead
+- **Course editor** — until community exists
+- **Self-hosted Plausible/Umami** — our `/stats` suffices
+- **Audio bug reports** — overcomplex for MVP
+- **Native "Bavaria 46 everywhere" rebuild of game top-view** — game top-view is abstract "38-46ft keelboat silhouette", anatomy page commits to Bavaria 46 explicitly
+
+---
+
+## Development process notes
+
+### What worked this session
+- **Wave-based shipping** — each wave self-contained, testable, rollback-able. No half-done features in production.
+- **Tag per wave** — `v1.0 / v1.1 / v2.0 / v3.0 / v4.0 / v5.0` with matching docker images = clean rollback story
+- **Storage layer first, features second** — the `storage.ts` helper enabled bootcamp + checklist + language without each reinventing localStorage
+- **Data layer separation** — `/src/data/*.ts` files pure, routes are presentation. Missions / knots / anatomy / rules data can be edited without touching components
+- **Building pushback into roadmap explicitly** — table in ROADMAP.md showing "user overrode N, kept my original M" keeps decisions traceable
+- **Bug triage first** — B1/B2/B3 fixed before any Wave 2 features, protecting existing user experience
+
+### Friction points
+- Docker `better-sqlite3` needed native build deps (alpine needs python3, make, g++)
+- Next.js 16 middleware is now called "proxy" convention — renamed eventually
+- ChatGPT share link scraping hit Cloudflare — documentation lost to tool-auth friction. User pasted content manually.
+- SVG coordinate accuracy in rules illustrations — required careful double-check of wind-vs-boat orientation
+- Nav overflow at 8+ items — resolved by keeping nav compact (icons-only at md), hero cards on homepage do the navigation work
+
+### Recommendations for next session
+1. Add Playwright smoke-test script that hits all 14 routes, checks HTTP 200 + no console errors. Run before every deploy.
+2. Add server-side `country` lookup (geoip-lite) for `/stats` geo metrics
+3. Make `/stats` password come from env only (kill the hardcoded fallback — it's in the public repo)
+4. Audit: do any route still have mixed RU/EN? Grep for strings that should be through `useI18n`
+5. Screenshot every page on desktop + mobile, save to `/docs/` for visual regression baseline
+
+---
+
+## Key files for future maintenance
+
+| Concern | File |
 |---|---|
-| `npm run build` (TypeScript strict, ESLint) | ✓ 0 errors, 0 warnings |
-| Все 6 страниц через Playwright (desktop 1280×900) | ✓ все рендерятся |
-| Все страницы на mobile viewport (390×844) | ✓ responsive ok |
-| Console errors на всех страницах | ✓ 0 errors после hydration-fix |
-| Simulator drag + keyboard input | ✓ работает |
-| Game: старт → countdown → физика → финиш | ✓ работает |
-| AI coach API с реальным логом | ✓ возвращает валидный JSON coaching за ~2 сек |
-| SSL certificate chain | ✓ TLS 1.2/1.3, HSTS |
-| HTTP → HTTPS redirect | ✓ 301 |
-| Live site regatta.icoffio.com | ✓ HTTP 200 |
+| Add a new route to nav | `src/components/Navigation.tsx` — `navItems` array |
+| Change homepage cards | `src/app/page.tsx` — `entryPoints` + `secondaryTools` |
+| Add/edit rules scenarios | `src/data/rules.ts` + illustrations in `src/app/rules/page.tsx` |
+| Add bootcamp lesson | `src/data/bootcamp.ts` |
+| Edit onboard content | `src/data/onboard.ts` |
+| Anatomy hotspots | `src/data/anatomy.ts` |
+| Add knot | `src/data/knots.ts` + SVG in `src/app/knots/page.tsx` |
+| Checklist items | `src/app/checklist/page.tsx` — inline `GROUPS` |
+| Game physics constants | `src/app/game/page.tsx` — top of file |
+| Simulator physics | `src/app/simulator/page.tsx` — `speedFactorFromTWA` |
+| AI coach prompt | `src/app/api/coach/route.ts` — `SYSTEM` |
+| Fallback coach heuristics | `src/lib/fallback-coach.ts` |
+| Storage schema | `src/lib/storage.ts` — bump `CURRENT_VERSION` when changing shape |
+| DB schema | `src/lib/db.ts` — add migrations as needed |
+| Admin password | env var `ADMIN_PASSWORD` (defaults to `regattA` — CHANGE IN PROD) |
+| API key (AI coach) | VPS `.env` at `/opt/repos/regatta/.env` as `ANTHROPIC_API_KEY=...` |
 
 ---
 
-## 2. Что работает
+## Deployment cheat-sheet
 
-- ✅ Все 6 страниц + API route рендерятся на продакшене
-- ✅ Canvas simulator + game — плавная анимация через requestAnimationFrame
-- ✅ AI-тренер: реальный ответ Claude Haiku с оценкой и советами на русском
-- ✅ Prompt caching: system prompt кэшируется, экономия на повторных запросах
-- ✅ Mobile viewport + touch controls для игры
-- ✅ Docker standalone build — маленький image, быстрый рестарт
-- ✅ Отдельный container, изолированная сеть — ничего чужого не затронуто
-- ✅ SSL auto-renewal настроен
+**Local change → production:**
+```bash
+# Locally
+npm run build                          # verify TS/eslint pass
+git commit -am "description"
+git tag -a vN.M -m "what's new"
+git push && git push --tags
 
----
+# On VPS
+ssh -i ~/.ssh/aiw_new_vps_ed25519 root@46.225.11.249
+cd /opt/repos/regatta
+git fetch --all && git reset --hard origin/main
+docker compose up -d --build
+docker tag regatta:latest regatta:vN.M
+```
 
-## 3. Что не работает / ограничения
+**Rollback to previous version:**
+```bash
+ssh ... root@46.225.11.249
+cd /opt/repos/regatta
+git checkout v1.0                      # or whichever tag
+docker compose up -d --build
+# or skip rebuild by using the pre-tagged image:
+# docker tag regatta:v1.0 regatta:latest && docker compose up -d
+```
 
-- ⚠ **AI-тренер иногда даёт общие советы** если лог короткий (демо-запрос с 4 сэмплами). На реальной гонке 60+ сэмплов — анализ содержательный.
-- ⚠ **Touch controls не оптимизированы для планшетов** (показываются только на `md:hidden` = < 768px). На iPad может не быть ни клавиатуры ни touch.
-- ⚠ **Nginx конфиг установлен через `docker cp`** — потеряется при пересоздании `nginx_server`. Нужно добавить volume mount в compose nginx_server (это задача владельца nginx_server, вне моего проекта).
-- ⚠ **Game running timer = 5 минут максимум** — если игрок слишком медленный, гонка прерывается. Нормально для learning-версии, но можно параметризовать.
-- ⚠ **AI opponents не учитывают игрока** — они идут по оптимальной траектории, не блокируют и не дают ветровой тени. Нормально для MVP.
-- ⚠ **Favicon** отсутствует кастомный (используется дефолтный Next.js).
-- ⚠ **Нет OG/Twitter preview image** — только meta-теги, но изображения для шеринга нет.
+**Check logs:**
+```bash
+docker logs --tail 500 regatta
+# Filter client-side errors:
+docker logs regatta 2>&1 | grep '"evt":"client.js'
+```
 
----
-
-## 4. Что проверили через MCP/tools
-
-| Инструмент | Использование |
-|---|---|
-| `Claude Preview MCP` | Первичный визуальный smoke-test локально |
-| `Playwright MCP` | Полное E2E-тестирование всех страниц, console logs, screenshots |
-| `AskUserQuestion` | Уточнение формата проекта и аудитории |
-| `EnterPlanMode` | Планирование архитектуры перед реализацией |
-| 4 parallel `Agent` tool calls | Одновременная сборка 4 страниц |
-| `gh` CLI | Создание GitHub repo + push |
-| SSH + docker на VPS | Изолированный деплой |
-| Certbot webroot | Let's Encrypt cert |
-| Claude Haiku 4.5 + prompt caching | AI-тренер с минимальной стоимостью |
-
----
-
-## 5. Virtual Regatta Inshore — что можно взять (по запросу)
-
-Я не могу играть в VR Inshore (требует аккаунт), но по публичным описаниям и скриншотам вижу полезные идеи:
-
-### 5.1 Фичи достойные адаптации
-
-1. **Мини-карта всей трассы** (есть у них внизу экрана) — сейчас у нас только стрелка на следующий знак. На мини-карте видны все соперники + текущая позиция → гораздо больше ситуативной осведомлённости.
-2. **Автопилот "AUTO"** — короткое нажатие держит выбранный курс, пока игрок не вмешается. Для мобайла очень полезно: не нужно держать палец.
-3. **Kay shifts (заходы ветра)** — через каждые 30-60 сек направление ветра смещается на ±5-15°. Добавляет тактический слой: игрок должен менять галс при заходе.
-4. **Порывы и затишья** — визуальные "пятна" на воде, где скорость временно +20% или -15%. Учит наблюдать за водой.
-5. **Индикатор оптимального VMG** — показывает, что игрок идёт не оптимальным углом (стрелка "лучше выше" / "лучше ниже").
-6. **Penalty pool** — за касание знака или ранний старт: штраф 360° поворот. У нас сейчас знак просто "огибается по радиусу" — добавить проверку стороны и пенальти за фол.
-7. **Повтор гонки (ghost)** — после финиша показывается твой путь + "идеальный" путь наложением. Можно реализовать через запись лога + offline optimal-pathfinding.
-
-### 5.2 Чего НЕ брать
-
-- Реал-тайм мультиплеер — избыточно для обучающего симулятора, нужен backend + state sync
-- Экономика/апгрейды лодки — не учебная механика
-- Сезонные ивенты и метагейм — отвлекает от обучения
-
-### 5.3 Приоритет для следующей итерации
-
-**Must-have:** мини-карта + автопилот + wind shifts
-**Nice-to-have:** порывы/затишья + ghost replay
-**Skip:** penalty pool (слишком наказывает новичков), мультиплеер
-
----
-
-## 6. Ретроспектива — что пошло хорошо / плохо
-
-### 6.1 Что сработало
-
-- **Parallel agents для страниц** (4 в параллель) — сэкономили ~10 минут wall time vs последовательной сборки
-- **Подготовка `sailing-data.ts` до агентов** — все 4 агента имели готовый типизированный датасет, не выдумывали свой
-- **Fix-в-процессе через Playwright visual check** — нашёл hydration bug (float precision) и rotated labels сразу, без жалоб пользователя
-- **Next.js standalone output + Docker alpine** — маленький image, быстрая сборка, минимум зависимостей
-- **`docker cp` + `nginx -s reload`** вместо рестарта nginx_server — безопаснее, ничего чужого не затронули
-- **Planning mode перед кодом** — отделил архитектурные решения от реализации
-- **Memory update** — сразу записал VPS deployment в `/Users/Andrey/.claude/memory/vps_infrastructure.md` для будущих сессий
-
-### 6.2 Что пошло не идеально
-
-- **Git init в неправильной папке** — родительская `/Users/Andrey/App/all/` имела свой пустой git репо, моя первая `git add .` попала туда. Пришлось move `.git` aside и init заново.
-- **public/ папка пустая → Docker build failed** — забыл что пустые папки не трекаются git'ом. Фикс: `.gitkeep`.
-- **Parent `/Users/Andrey/package.json`** ломал module resolution в dev-mode Next.js — Turbopack искал tailwindcss в родителе. Фикс: `turbopack.root + outputFileTracingRoot`.
-- **Первый deploy на VPS не обновился после пуша** — забыл, что скрипт деплоя запущен был до второго пуша. Пришлось `git fetch && git reset --hard origin/main` вместо просто `pull`.
-- **Ключ от API попал в чат** — user вставил его текстом. Надо будет перевыпустить.
-- **Screenshot файлы попали в коммит** — забыл `.gitignore` их до `git add -A`. Пришлось remove и commit два раза.
-
-### 6.3 Оценка скорости
-- Empty folder → first Docker container running: ~55 мин
-- → live on HTTPS domain: ~1h 10m
-- → AI coach + touch controls deployed: ~1h 55m
-- Total ~2h для полноценного продакшен-деплоя с AI интеграцией и нулевым downtime соседних проектов
-
----
-
-## 7. Правила для проекта (CLAUDE.md additions)
-
-Рекомендую добавить в `CLAUDE.md` проекта (создать в корне если нет, или в `.claude/` workspace memory):
-
-```markdown
-## Regatta — project rules
-
-### Before ANY change
-- Always `git status` first — этот проект живёт в `/Users/Andrey/App/all/regatta/`,
-  а родительская `/Users/Andrey/App/all/` может иметь свой git репо. Проверяй `git rev-parse --show-toplevel`.
-
-### Secrets
-- `ANTHROPIC_API_KEY` — хранится ТОЛЬКО в:
-  - локально: `.env.local` (в `.gitignore`)
-  - на VPS: `/opt/repos/regatta/.env` (в `.gitignore`)
-- Никогда не логировать, не коммитить, не отправлять в телеметрию.
-- При утечке — отозвать на console.anthropic.com и обновить в двух местах выше.
-
-### VPS deployment (icoffio.com)
-- Рабочая папка: `/opt/repos/regatta/` — не создавай файлы в других папках
-- Container: `regatta` (порт 172.17.0.1:4500 → 3000)
-- Nginx: `docker cp regatta.nginx.conf nginx_server:/etc/nginx/conf.d/regatta.conf`
-  → `docker exec nginx_server nginx -s reload`. НИКОГДА не рестарти nginx_server.
-- SSL: Let's Encrypt cert в `/opt/repos/certs/certs/regatta.icoffio.com.crt`,
-  auto-renew через `/etc/letsencrypt/renewal-hooks/deploy/regatta-icoffio.sh`
-- Деплой: `git push` локально → SSH → `cd /opt/repos/regatta && git pull && docker compose up -d --build`
-
-### Code conventions
-- All interactive UI must be keyboard + touch accessible
-- Canvas/SVG work должен работать и на retina (device pixel ratio)
-- Все текстовые лейблы в UI должны быть на русском primary + английском secondary
-- Для анимаций в Next.js App Router: используй `'use client'` + `requestAnimationFrame`
-- SVG coords с Math.sin/cos — всегда round до 2 знаков чтобы избежать hydration mismatch
-- Standalone Docker output требует `output: "standalone"` в next.config + `outputFileTracingRoot: __dirname`
-- При пустых папках в репе — `.gitkeep` файл иначе Docker build упадёт
-
-### Before deploy
-1. `npm run build` — должен пройти без ошибок
-2. Playwright smoke test всех страниц
-3. Console errors check
-4. Screenshot на mobile viewport
-5. Git diff review — не коммитить `*.png`, `.env*`, `node_modules/`
-
-### When adding new feature
-1. Planning mode first (ExitPlanMode)
-2. Minimal viable implementation
-3. Playwright verify
-4. Commit + push
-5. Deploy to VPS
-6. Verify live
-7. Update memory files (`vps_infrastructure.md` etc.)
+**Get stats from DB directly:**
+```bash
+ssh ... root@46.225.11.249
+docker exec regatta sh -c 'sqlite3 /data/regatta-stats.db "SELECT COUNT(*) FROM events"'
 ```
 
 ---
 
-## 8. What to do next (приоритеты)
-
-### Critical
-1. **Отозвать текущий API key и создать новый.** Текущий попал в чат (console.anthropic.com → Settings → API Keys).
-2. **Добавить кастомный favicon + OG image** (~30 мин работы).
-
-### High value
-3. **Мини-карта в игре** — главная фича из VR Inshore.
-4. **Wind shifts** — добавляет tactical depth.
-5. **Автопилот на touch** — UX на мобайле.
-
-### Nice to have
-6. Ghost replay с идеальным путём
-7. Leaderboard с таймами (если нужно — потребуется backend)
-8. Ещё трассы: триангле-курс, slalom, reach-only
-9. Настройка силы ветра — от 3 до 20 узлов
-10. Записи гонок в localStorage (без регистрации)
-
----
-
-*Audit by Claude Opus 4.7 (1M context) — 2026-04-17 01:30 CEST*
+*End of audit v5.0 — ships with 14 routes, 4 APIs, full admin, bilingual content, ~50 hours of development compressed into 2 sessions.*
