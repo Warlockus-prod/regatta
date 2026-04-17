@@ -1,0 +1,86 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to deploy (branch, tag, sha)'
+        required: false
+        default: 'main'
+
+concurrency:
+  group: vps-deploy
+  cancel-in-progress: false
+
+jobs:
+  build-check:
+    name: Build + Type check
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Next build
+        run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+
+  deploy:
+    name: Deploy to VPS
+    needs: build-check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Pull + build + restart on VPS
+        env:
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PATH: ${{ secrets.VPS_PATH }}
+          DEPLOY_REF: ${{ github.event.inputs.ref || github.ref_name }}
+        run: |
+          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" bash <<EOF
+            set -e
+            cd "$VPS_PATH"
+            git fetch --all --tags --prune
+            # Resolve ref: tag, branch or sha
+            if git rev-parse "refs/tags/$DEPLOY_REF" >/dev/null 2>&1; then
+              git checkout "refs/tags/$DEPLOY_REF"
+            elif git rev-parse "origin/$DEPLOY_REF" >/dev/null 2>&1; then
+              git checkout -B "$DEPLOY_REF" "origin/$DEPLOY_REF"
+            else
+              git checkout "$DEPLOY_REF"
+            fi
+            echo "--- Deploying \$(git rev-parse --short HEAD) ---"
+            docker compose build
+            docker tag regatta:latest "regatta:$DEPLOY_REF" || true
+            docker compose up -d
+            sleep 4
+            docker ps --filter name=regatta --format "{{.Names}} {{.Status}} {{.Image}}"
+          EOF
+
+      - name: Smoke-test prod
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          for path in / /game /leaderboard /anatomy /simulator /courses; do
+            code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://regatta.icoffio.com$path")
+            echo "HTTP $code  $path"
+            [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
+          done

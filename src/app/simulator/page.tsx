@@ -250,16 +250,17 @@ export default function SimulatorPage() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // --- Cardinal labels ---
+    // --- Cardinal labels - placed OUTSIDE the ring so they never overlap with
+    // the TWA arc, the no-go sector or the yacht (B2 fix).
     ctx.fillStyle = COLORS.muted;
-    ctx.font = '10px system-ui, sans-serif';
+    ctx.font = '600 11px system-ui, sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     const labels = [['N', 0], ['E', 90], ['S', 180], ['W', 270]] as const;
     labels.forEach(([t, deg]) => {
       const a = d2r(deg - 90);
-      const x = cx + Math.cos(a) * (R - 16);
-      const y = cy + Math.sin(a) * (R - 16);
+      const x = cx + Math.cos(a) * (R + 14);
+      const y = cy + Math.sin(a) * (R + 14);
       ctx.fillText(t, x, y);
     });
 
@@ -668,7 +669,193 @@ export default function SimulatorPage() {
             <p className="mt-2 text-sm text-[var(--text-primary)] leading-relaxed">{pos.description}</p>
             <p className="mt-2 text-xs text-[var(--text-muted)] leading-relaxed">{pos.descriptionEn}</p>
           </details>
+
+          <details className="card p-3" open>
+            <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)]">ДВА ПАРУСА / TWO-SAIL PHYSICS</summary>
+            <TwoSailPhysics twaAbsolute={wa} />
+          </details>
+
+          <details className="card p-3">
+            <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)]">ПОЛЯРА / POLAR DIAGRAM</summary>
+            <PolarDiagram twaAbsolute={wa} />
+          </details>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Polar diagram - speed vs TWA curve for a typical cruiser in medium wind
+// ============================================================================
+
+function PolarDiagram({ twaAbsolute }: { twaAbsolute: number }) {
+  // Speed factor table keyed on TWA (0..180). Typical cruiser polar shape.
+  // Numbers are relative boat-speed (0..1), tuned to match pointsOfSail in sailing-data.
+  const polar: { twa: number; speed: number }[] = [];
+  for (let t = 0; t <= 180; t += 5) {
+    let s = 0;
+    if (t < 30) s = 0;
+    else if (t < 45) s = ((t - 30) / 15) * 0.65;
+    else if (t < 90) s = 0.65 + ((t - 45) / 45) * 0.35;
+    else if (t < 160) s = 1.0 - ((t - 90) / 70) * 0.15;
+    else s = 0.85 - ((t - 160) / 20) * 0.25;
+    polar.push({ twa: t, speed: Math.max(0, s) });
+  }
+
+  // Render on a half-disc (right side only because of symmetry).
+  const SIZE = 180;
+  const CX = SIZE / 2;
+  const CY = SIZE / 2;
+  const R = SIZE * 0.45;
+
+  const poly = polar
+    .map(({ twa, speed }) => {
+      const angle = (twa - 90) * Math.PI / 180; // 0° = wind up, 90° = right
+      const r = speed * R;
+      const x = CX + Math.cos(angle) * r;
+      const y = CY + Math.sin(angle) * r;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(' ');
+
+  // Current position marker
+  const currentSpeed = polar.find((p) => p.twa >= twaAbsolute)?.speed ?? 0;
+  const cAngle = (twaAbsolute - 90) * Math.PI / 180;
+  const cx = CX + Math.cos(cAngle) * currentSpeed * R;
+  const cy = CY + Math.sin(cAngle) * currentSpeed * R;
+
+  return (
+    <div className="mt-2">
+      <div className="text-xs text-[var(--text-secondary)] leading-relaxed mb-2">
+        Поляра - кривая скорости на разных углах к ветру для крузового слупа в среднем ветре. Показывает где яхта идёт быстрее всего.
+      </div>
+      <div className="flex justify-center">
+        <svg viewBox={`0 0 ${SIZE} ${SIZE}`} width={SIZE} height={SIZE} style={{ maxWidth: '100%' }}>
+          {/* Concentric speed rings */}
+          {[0.25, 0.5, 0.75, 1.0].map((f) => (
+            <circle key={f} cx={CX} cy={CY} r={f * R} fill="none" stroke="rgba(139,167,184,0.2)" strokeWidth="0.5" strokeDasharray="2 3" />
+          ))}
+          {/* TWA radial lines at 30, 60, 90, 120, 150 */}
+          {[30, 60, 90, 120, 150].map((t) => {
+            const a = (t - 90) * Math.PI / 180;
+            const x2 = CX + Math.cos(a) * R;
+            const y2 = CY + Math.sin(a) * R;
+            return (
+              <g key={t}>
+                <line x1={CX} y1={CY} x2={x2} y2={y2} stroke="rgba(139,167,184,0.15)" strokeWidth="0.5" />
+                <text x={CX + Math.cos(a) * (R + 8)} y={CY + Math.sin(a) * (R + 8) + 3}
+                      fontSize="8" fill="#5a7a8a" textAnchor="middle">{t}°</text>
+              </g>
+            );
+          })}
+          {/* Wind arrow at top */}
+          <line x1={CX} y1={CY - R - 14} x2={CX} y2={CY - R + 2} stroke="#00e5ff" strokeWidth="1.2" />
+          <polygon points={`${CX - 3},${CY - R - 4} ${CX + 3},${CY - R - 4} ${CX},${CY - R + 2}`} fill="#00e5ff" />
+          <text x={CX} y={CY - R - 18} fontSize="7.5" fill="#00e5ff" textAnchor="middle">ветер</text>
+          {/* No-go sector */}
+          <path
+            d={`M ${CX} ${CY} L ${CX + Math.cos((-30 - 90) * Math.PI / 180) * R} ${CY + Math.sin((-30 - 90) * Math.PI / 180) * R}
+                A ${R} ${R} 0 0 1 ${CX + Math.cos((30 - 90) * Math.PI / 180) * R} ${CY + Math.sin((30 - 90) * Math.PI / 180) * R} Z`}
+            fill="rgba(255,68,68,0.08)" stroke="rgba(255,68,68,0.3)" strokeWidth="0.5" strokeDasharray="2 2" />
+          {/* Polar curve (right half) */}
+          <polyline points={poly} fill="rgba(0,212,255,0.1)" stroke="#00d4ff" strokeWidth="1.5" />
+          {/* Mirror for the left side */}
+          <polyline points={poly} fill="rgba(0,212,255,0.1)" stroke="#00d4ff" strokeWidth="1.5"
+                    transform={`scale(-1,1) translate(${-SIZE},0)`} />
+          {/* Current TWA marker */}
+          <circle cx={cx} cy={cy} r="4" fill="#44ff88" stroke="#ffffff" strokeWidth="1.5" />
+          {/* Center wind-source marker */}
+          <circle cx={CX} cy={CY} r="1.5" fill="#8ba7b8" />
+        </svg>
+      </div>
+      <div className="mt-2 flex items-center justify-center gap-3 text-[10px] text-[var(--text-muted)]">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#00d4ff' }} />поляра</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />ты сейчас</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: 'rgba(255,68,68,0.3)' }} />мёртвая зона</span>
+      </div>
+      <div className="mt-2 text-[11px] text-[var(--text-secondary)] leading-relaxed">
+        <span className="font-semibold text-[var(--accent-cyan)]">Как читать:</span> чем дальше точка от центра, тем быстрее яхта на этом угле. Максимум около 90° (галфвинд). Около 150° (бакштаг) - тоже быстро. Фордевинд (180°) медленнее, потому что грот перекрывает стаксель.
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Two-sail physics explainer - reacts to current TWA
+// ============================================================================
+
+function TwoSailPhysics({ twaAbsolute }: { twaAbsolute: number }) {
+  const wa = twaAbsolute;
+  let mode: 'no-go' | 'upwind' | 'beam' | 'broad' | 'downwind';
+  if (wa < 30) mode = 'no-go';
+  else if (wa < 60) mode = 'upwind';
+  else if (wa < 110) mode = 'beam';
+  else if (wa < 160) mode = 'broad';
+  else mode = 'downwind';
+
+  const blocks: Record<typeof mode, { title: string; main: string; jib: string; slot: string; tip: string }> = {
+    'no-go': {
+      title: 'Мёртвая зона - оба паруса полощут',
+      main: 'Грот стоит вдоль ветра, не наполнен.',
+      jib: 'Стаксель так же - флаг на ветру.',
+      slot: 'Slot-эффекта нет, тяги нет, яхта не идёт.',
+      tip: 'Увалить на 50° от ветра - паруса наполнятся, поедешь.',
+    },
+    upwind: {
+      title: 'Бейдевинд - slot effect на максимум',
+      main: 'Грот выбран туго, почти вдоль диаметральной.',
+      jib: 'Стаксель выбран на 75% угла грота - образует узкую щель.',
+      slot: 'Между ними ветер ускоряется (венту́ри) - подсос даёт гроту больше тяги. Это и есть slot effect.',
+      tip: 'Стаксель закрыл грот в подветр = щель сузилась = грот заполаскивает. Трави стаксель.',
+    },
+    beam: {
+      title: 'Галфвинд - максимальная скорость',
+      main: 'Грот выходит под 30-45°.',
+      jib: 'Стаксель тоже открыт, работает как крыло.',
+      slot: 'Оба паруса дают тягу равномерно. Slot ещё эффективен.',
+      tip: 'Самый быстрый курс. Крен максимальный - готовься.',
+    },
+    broad: {
+      title: 'Бакштаг - паруса раскрыты',
+      main: 'Грот почти упёрся в ванты, гик далеко выдвинут.',
+      jib: 'Стаксель начинает прикрываться гротом (blanket effect).',
+      slot: 'Slot уже не работает - паруса в «параллель», ловят ветер отдельно.',
+      tip: 'Хороший курс для спинакера/геннакера - но их поднимают только опытные.',
+    },
+    downwind: {
+      title: 'Фордевинд - стаксель сдувается',
+      main: 'Грот полностью раскрыт, гик почти у воды.',
+      jib: 'Стаксель в ветровой тени грота - полощет или опал.',
+      slot: 'Эффекта нет. Два паруса = потеря одного.',
+      tip: '«Крылья бабочки»: стаксель переносят на противоположный борт (wing-on-wing) - оба работают отдельно. Либо спинакер/геннакер.',
+    },
+  };
+
+  const b = blocks[mode];
+  return (
+    <div className="mt-2 space-y-2">
+      <div className="text-sm font-semibold text-[var(--text-primary)]">{b.title}</div>
+      <div className="grid grid-cols-1 gap-1.5 text-xs">
+        <div className="flex gap-2">
+          <span className="text-[var(--accent-cyan)] shrink-0 w-16 font-semibold">Грот:</span>
+          <span className="text-[var(--text-secondary)]">{b.main}</span>
+        </div>
+        <div className="flex gap-2">
+          <span className="text-[var(--accent-cyan)] shrink-0 w-16 font-semibold">Стаксель:</span>
+          <span className="text-[var(--text-secondary)]">{b.jib}</span>
+        </div>
+        <div className="flex gap-2">
+          <span className="text-[var(--success)] shrink-0 w-16 font-semibold">Slot:</span>
+          <span className="text-[var(--text-secondary)]">{b.slot}</span>
+        </div>
+      </div>
+      <div className="p-2 rounded text-[11px] leading-relaxed" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+        <span className="text-[var(--accent-cyan)] font-semibold">💡 </span>
+        <span className="text-[var(--text-primary)]">{b.tip}</span>
+      </div>
+      <div className="text-[10px] text-[var(--text-muted)] leading-relaxed pt-1 border-t border-[rgba(139,167,184,0.15)]">
+        <span className="font-semibold">Геннакер:</span> лёгкий асимметричный парус для фордевинда/бакштага. Поднимают вместо стакселя, когда ветер из-за спины. На симуляторе не показан - управление требует отдельной команды (trimmer). Эффект: удваивает скорость на попутных курсах.
       </div>
     </div>
   );
@@ -715,36 +902,83 @@ function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'por
   ctx.arc(0, -hullLen * 0.15, 2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sail - goes opposite side of wind
-  const sailSide = tack === 'starboard' ? -1 : 1;  // wind from right → sail on left
-  const sailAngleFromCenterline = (() => {
+  // Sails - both go opposite side of wind.
+  // Main (грот) pivots from mast and extends aft (toward cockpit).
+  // Jib (стаксель) pivots from forestay (bow) and is trimmed tighter than main.
+  const sailSide = tack === 'starboard' ? -1 : 1;  // wind from right → sails on left
+  const mainAngle = (() => {
     if (pos.angleMin === 0) return 0;
     return pos.sailAngle;
   })();
-  const twaMag = (pos.angleMin + pos.angleMax) / 2; // approximate "current" TWA for sail
+  // Jib is sheeted in tighter: ~0.75x the main's angle on upwind, collapses more downwind
+  const twaMag = (pos.angleMin + pos.angleMax) / 2;
+  const jibFactor = twaMag < 120 ? 0.75 : 0.55; // jib loses drive going dead downwind (blanketed)
+  const jibAngle = mainAngle * jibFactor;
 
   // Animated flutter if near no-go
   const flutter = twaMag < 35 ? Math.sin(performance.now() / 80) * 2 : 0;
+  const jibFlutter = twaMag < 35 ? Math.sin(performance.now() / 80 + 1) * 2.5 : 0;
+  // Jib is blanketed by main going dead downwind -> render semi-transparent
+  const jibBlanketed = twaMag > 155;
+  const inNoGo = pos.speedFactor < 0.05;
 
+  // --- Jib (стаксель) - drawn FIRST so mainsail overlaps forward edge ---
   ctx.save();
-  ctx.rotate(d2r(sailAngleFromCenterline * sailSide + flutter));
-  ctx.fillStyle = pos.speedFactor < 0.05 ? 'rgba(255, 255, 255, 0.25)' : COLORS.sail;
+  ctx.translate(0, -hullLen * 0.45); // forestay tack near bow
+  ctx.rotate(d2r(jibAngle * sailSide + jibFlutter));
+  ctx.fillStyle = inNoGo
+    ? 'rgba(255, 255, 255, 0.2)'
+    : jibBlanketed ? 'rgba(246, 251, 255, 0.4)' : 'rgba(246, 251, 255, 0.92)';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(0, 0); // tack at forestay
+  // Billow toward clew; jib foot is shorter than main foot
+  ctx.quadraticCurveTo(sailSide * 7, hullLen * 0.14, sailSide * 3, hullLen * 0.28);
+  ctx.lineTo(0, hullLen * 0.28);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Mainsail (грот) - drawn on top, pivots at mast ---
+  ctx.save();
+  ctx.rotate(d2r(mainAngle * sailSide + flutter));
+  ctx.fillStyle = inNoGo ? 'rgba(255, 255, 255, 0.25)' : COLORS.sail;
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(0, -hullLen * 0.15);
-  // Curved sail
-  ctx.quadraticCurveTo(
-    sailSide * 8,
-    hullLen * 0.1,
-    sailSide * 2,
-    hullLen * 0.35,
-  );
+  ctx.quadraticCurveTo(sailSide * 8, hullLen * 0.1, sailSide * 2, hullLen * 0.35);
   ctx.lineTo(0, hullLen * 0.35);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
   ctx.restore();
+
+  // --- Slot effect indicator: visible on close-hauled/beam reach when both sails drive ---
+  if (!inNoGo && !jibBlanketed && twaMag >= 35 && twaMag <= 120) {
+    ctx.save();
+    const slotOpacity = Math.min(1, (twaMag - 30) / 40) * 0.4;
+    ctx.strokeStyle = `rgba(0, 212, 255, ${slotOpacity})`;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([2, 3]);
+    // Draw a curved arrow between jib clew and mainsail luff showing airflow slot
+    ctx.beginPath();
+    ctx.moveTo(sailSide * 3.5, -hullLen * 0.18);
+    ctx.quadraticCurveTo(sailSide * 6, -hullLen * 0.05, sailSide * 4, hullLen * 0.08);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Small arrowhead
+    ctx.fillStyle = `rgba(0, 212, 255, ${slotOpacity * 1.5})`;
+    ctx.beginPath();
+    ctx.moveTo(sailSide * 4, hullLen * 0.08);
+    ctx.lineTo(sailSide * 5.5, hullLen * 0.04);
+    ctx.lineTo(sailSide * 4.5, hullLen * 0.13);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  }
 
   // Heel indicator (small lean lines on sides)
   if (Math.abs(heel) > 5) {

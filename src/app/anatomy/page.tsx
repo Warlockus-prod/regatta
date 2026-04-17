@@ -227,7 +227,7 @@ export default function AnatomyPage() {
               </div>
             </>
           ) : (
-            <Anatomy3D modelSrc={modelSrc} modelOk={modelOk} />
+            <Anatomy3D modelSrc={modelSrc} modelOk={modelOk} activeId={activeId} onSelect={setActiveId} />
           )}
         </div>
 
@@ -315,7 +315,23 @@ export default function AnatomyPage() {
 // Anatomy3D - <model-viewer>-based interactive 3D yacht
 // ============================================================================
 
-function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean | null }) {
+// Hotspot positions for the Kenney sailboat (model units, roughly -1..+1 box)
+const hotspots3D: { id: string; pos: string; normal?: string; label: string }[] = [
+  { id: 'mast',    pos: '0 0.6 0',     normal: '0 1 0',   label: 'Мачта' },
+  { id: 'boom',    pos: '0 0.3 0.15',  normal: '1 0 0',   label: 'Гик' },
+  { id: 'mainsail',pos: '0.1 0.55 0',  normal: '1 0 0',   label: 'Грот' },
+  { id: 'jib',     pos: '-0.05 0.4 -0.5', normal: '0 0 -1', label: 'Стаксель' },
+  { id: 'bow',     pos: '0 0 -0.7',    normal: '0 0 -1',  label: 'Нос' },
+  { id: 'stern',   pos: '0 0.05 0.6',  normal: '0 0 1',   label: 'Корма' },
+  { id: 'cockpit', pos: '0 0.1 0.3',   normal: '0 1 0',   label: 'Кокпит' },
+];
+
+function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
+  modelSrc: string;
+  modelOk: boolean | null;
+  activeId: string | null;
+  onSelect: (id: string) => void;
+}) {
   const { t, tp } = useI18n();
 
   if (modelOk === false) {
@@ -360,8 +376,8 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
           alt="Sailing yacht 3D model"
           camera-controls
           auto-rotate
-          auto-rotate-delay="500"
-          rotation-per-second="15deg"
+          auto-rotate-delay="2500"
+          rotation-per-second="12deg"
           shadow-intensity="0.6"
           exposure="1.1"
           camera-orbit="30deg 72deg 120%"
@@ -369,7 +385,35 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
           max-camera-orbit="auto auto 250%"
           field-of-view="30deg"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
-        />
+        >
+          {hotspots3D.map((h) => (
+            <button
+              key={h.id}
+              slot={`hotspot-${h.id}`}
+              data-position={h.pos}
+              data-normal={h.normal}
+              data-visibility-attribute="visible"
+              onClick={() => onSelect(h.id)}
+              title={h.label}
+              style={{
+                border: 'none',
+                background: activeId === h.id ? 'var(--accent-cyan)' : 'rgba(0, 212, 255, 0.85)',
+                color: '#0a1628',
+                borderRadius: '999px',
+                padding: '3px 10px',
+                fontSize: '10px',
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.5)',
+                whiteSpace: 'nowrap',
+                transform: activeId === h.id ? 'scale(1.2)' : 'scale(1)',
+                transition: 'transform 0.15s ease',
+              }}
+            >
+              {h.label}
+            </button>
+          ))}
+        </model-viewer>
       </div>
       <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
         {t('Крути, двигай, зум - колесом мыши или щипком на тачскрине.',

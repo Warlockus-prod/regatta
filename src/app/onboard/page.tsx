@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useState } from 'react';
 import { onboardSections } from '@/data/onboard';
 import { useI18n } from '@/lib/i18n';
@@ -87,7 +88,46 @@ export default function OnboardPage() {
         })}
       </div>
 
-      <div className="mt-10 p-5 card text-center" style={{ background: 'rgba(68, 255, 136, 0.04)', borderColor: 'rgba(68, 255, 136, 0.2)' }}>
+      {/* Deep-dive chapters (linked standalone pages) */}
+      <div className="mt-10 mb-4">
+        <h2 className="text-xl font-semibold mb-2">
+          {t('Глубже по темам', 'Deeper by topic')}
+        </h2>
+        <p className="text-sm text-[var(--text-muted)] mb-4">
+          {t(
+            'Краткий обзор здесь - подробности в отдельных разделах.',
+            'Overview here - details on dedicated pages.',
+          )}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <Link href="/anatomy" className="card p-4 hover:border-[var(--accent-cyan)] transition">
+            <div className="text-2xl mb-1">🔧</div>
+            <div className="font-semibold">{t('Устройство яхты', 'Yacht anatomy')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">2D + 3D Bavaria 46</div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {t('17 деталей с описанием. 3D модель крутится.', '17 parts described. 3D model rotates.')}
+            </p>
+          </Link>
+          <Link href="/knots" className="card p-4 hover:border-[var(--accent-cyan)] transition">
+            <div className="text-2xl mb-1">🪢</div>
+            <div className="font-semibold">{t('Узлы', 'Knots')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">6 базовых</div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {t('Восьмёрка, беседочный, на утку - со схемами.', 'Figure-8, bowline, cleat hitch - with diagrams.')}
+            </p>
+          </Link>
+          <Link href="/checklist" className="card p-4 hover:border-[var(--accent-cyan)] transition">
+            <div className="text-2xl mb-1">✅</div>
+            <div className="font-semibold">{t('Чек-лист к регате', 'Pre-race checklist')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">{t('Что взять, что знать', 'Pack, know, do')}</div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              {t('Прогресс по пунктам сохраняется в браузере.', 'Progress saved in the browser.')}
+            </p>
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-8 p-5 card text-center" style={{ background: 'rgba(68, 255, 136, 0.04)', borderColor: 'rgba(68, 255, 136, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)]">
           {t(
             'Это базовая подборка. Каждая яхта - свой маленький мир. Главное правило: не уверен - спроси, не трогай без команды.',

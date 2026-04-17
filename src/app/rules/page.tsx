@@ -228,6 +228,7 @@ export default function RulesPage() {
                   {/* Illustration */}
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
                     <SvgComp />
+                    <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">схематично, не в масштабе</div>
                   </div>
 
                   {/* Content */}

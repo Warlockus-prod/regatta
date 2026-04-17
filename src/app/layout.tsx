@@ -27,22 +27,19 @@ export const metadata: Metadata = {
     title: "Regatta",
     statusBarStyle: "black-translucent",
   },
-  icons: {
-    icon: [
-      { url: "/favicon.ico" },
-      { url: "/icon-192.svg", type: "image/svg+xml", sizes: "192x192" },
-    ],
-    apple: [
-      { url: "/icon-192.svg", sizes: "192x192", type: "image/svg+xml" },
-    ],
-  },
+  // Icons are generated dynamically via src/app/icon.tsx + apple-icon.tsx
   openGraph: {
     title: "Regatta - Sailing Simulator",
-    description: "Симулятор парусной яхты: курсы, паруса, гоночные стратегии, игра с AI-соперниками.",
+    description: "Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.",
     url: "https://regatta.icoffio.com",
     siteName: "Regatta",
     locale: "ru_RU",
     type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Regatta - Sailing Simulator",
+    description: "До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.",
   },
 };
 

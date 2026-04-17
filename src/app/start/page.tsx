@@ -48,21 +48,50 @@ export default function StartHerePage() {
 
   return (
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      {/* Hero */}
+      {/* Track picker hub */}
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'var(--accent-cyan)' }}>
-          🎓 {t('Bootcamp', 'Bootcamp')}
+          🎓 {t('Выбери трек', 'Pick your track')}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {t('База за', 'Basics in')} <span style={{ color: 'var(--accent-cyan)' }}>{BOOTCAMP_TOTAL_MINUTES} {t('минут', 'min')}</span>
+          {t('С чего начнёшь?', 'Where do you start?')}
         </h1>
-        <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
+        <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-5">
           {t(
-            '8 уроков по 5 минут. От ветра до мини-гонки. Каждый урок - короткий визит в соответствующий раздел с конкретным заданием.',
-            '8 lessons of 5 min each. From wind to mini-race. Each lesson is a short visit to the relevant section with a specific task.',
+            'Три пути к старту. Выбери свой по времени и опыту.',
+            'Three tracks to starting line. Pick one by time and experience.',
           )}
         </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
+          <div className="card p-4 ring-2" style={{ borderColor: 'var(--accent-cyan)', outlineColor: 'var(--accent-cyan)', background: 'rgba(0, 212, 255, 0.06)' }}>
+            <div className="text-2xl mb-1">📚</div>
+            <div className="font-semibold text-[var(--accent-cyan)]">{t('Полный курс', 'Full course')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">{BOOTCAMP_TOTAL_MINUTES} {t('мин', 'min')} · 8 {t('уроков', 'lessons')}</div>
+            <p className="text-xs text-[var(--text-secondary)]">{t('Ты - совсем с нуля. Разберёшь всё по шагам.', 'From zero. Step by step.')}</p>
+            <div className="text-[10px] text-[var(--text-muted)] mt-2">↓ {t('ниже на странице', 'below on this page')}</div>
+          </div>
+          <Link href="/quick" className="card p-4 hover:border-[var(--success)] transition">
+            <div className="text-2xl mb-1">⚡</div>
+            <div className="font-semibold" style={{ color: 'var(--success)' }}>{t('Освежить', 'Refresh')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">15 {t('мин', 'min')} · 6 {t('тем', 'topics')}</div>
+            <p className="text-xs text-[var(--text-secondary)]">{t('Опыт есть, регата - завтра. Только ключевое.', 'Got experience, race tomorrow. Key points only.')}</p>
+          </Link>
+          <Link href="/onboard" className="card p-4 hover:border-[var(--warning)] transition">
+            <div className="text-2xl mb-1">⚓</div>
+            <div className="font-semibold" style={{ color: 'var(--warning)' }}>{t('На яхте', 'On board')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">{t('Как вести себя', 'How to behave')}</div>
+            <p className="text-xs text-[var(--text-secondary)]">{t('Команды, что опасно, что брать. Для первого выхода.', 'Commands, dangers, what to pack. For your first day aboard.')}</p>
+          </Link>
+        </div>
+      </div>
+
+      {/* Bootcamp section header */}
+      <div className="mb-4 flex items-center gap-2">
+        <span className="text-xl">📚</span>
+        <h2 className="text-xl font-semibold">
+          {t('Полный курс:', 'Full course:')} <span style={{ color: 'var(--accent-cyan)' }}>{BOOTCAMP_TOTAL_MINUTES} {t('минут', 'min')}</span>
+        </h2>
       </div>
 
       {/* Progress bar */}
@@ -89,72 +118,18 @@ export default function StartHerePage() {
         )}
       </div>
 
-      {/* Lessons */}
-      <div className="space-y-3">
-        {bootcampLessons.map((lesson) => {
-          const isDone = progress.completed.includes(lesson.id);
-          const isCurrent = progress.current === lesson.id;
-          const title = lang === 'ru' ? lesson.titleRu : lesson.titleEn;
-          const summary = lang === 'ru' ? lesson.summaryRu : lesson.summaryEn;
-          const focus = lang === 'ru' ? lesson.focusRu : lesson.focusEn;
-          return (
-            <div
-              key={lesson.id}
-              className="card p-4 sm:p-5 transition-all"
-              style={{
-                borderColor: isDone ? 'rgba(68, 255, 136, 0.3)' : isCurrent ? 'rgba(0, 212, 255, 0.3)' : undefined,
-                background: isDone ? 'rgba(68, 255, 136, 0.04)' : undefined,
-              }}
-            >
-              <div className="flex items-start gap-3 sm:gap-4">
-                {/* Checkbox */}
-                <button
-                  onClick={() => handleToggleComplete(lesson.id)}
-                  aria-label={isDone ? 'Mark incomplete' : 'Mark complete'}
-                  className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center transition mt-0.5"
-                  style={{
-                    background: isDone ? 'var(--success)' : 'transparent',
-                    border: `2px solid ${isDone ? 'var(--success)' : 'rgba(139, 167, 184, 0.4)'}`,
-                  }}
-                >
-                  {isDone && (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  )}
-                </button>
-
-                {/* Content */}
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1 flex-wrap">
-                    <span className="text-xs font-mono text-[var(--text-muted)]">#{lesson.order}</span>
-                    <span className="text-xl">{lesson.emoji}</span>
-                    <h3 className={`text-base sm:text-lg font-semibold ${isDone ? 'line-through opacity-70' : ''}`}>
-                      {title}
-                    </h3>
-                    <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(0, 212, 255, 0.1)', color: 'var(--accent-cyan)' }}>
-                      {lesson.estMinutes} {t('мин', 'min')}
-                    </span>
-                  </div>
-                  <p className="text-sm text-[var(--text-secondary)] mb-2">{summary}</p>
-                  <p className="text-xs text-[var(--text-muted)] italic mb-3">💡 {focus}</p>
-
-                  <Link
-                    href={lesson.route}
-                    onClick={() => handleStartLesson(lesson.id)}
-                    className="inline-flex items-center gap-1 text-sm font-medium"
-                    style={{ color: isDone ? 'var(--success)' : 'var(--accent-cyan)' }}
-                  >
-                    <span>{isDone ? t('Повторить', 'Review') : isCurrent ? t('Продолжить', 'Continue') : t('Открыть', 'Open')}</span>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="9 18 15 12 9 6"/>
-                    </svg>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+      {/* Lessons - accordion style, collapsed by default */}
+      <div className="space-y-2">
+        {bootcampLessons.map((lesson) => (
+          <LessonAccordion
+            key={lesson.id}
+            lesson={lesson}
+            done={progress.completed.includes(lesson.id)}
+            current={progress.current === lesson.id}
+            onToggle={() => handleToggleComplete(lesson.id)}
+            onStart={() => handleStartLesson(lesson.id)}
+          />
+        ))}
       </div>
 
       {/* Completion card */}
@@ -187,6 +162,106 @@ export default function StartHerePage() {
               {t('Первая неделя на яхте', 'First week on board')}
             </Link>
           </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// LessonAccordion - collapsible lesson card with inline summary
+// ============================================================================
+
+interface LessonLike {
+  id: string;
+  order: number;
+  emoji: string;
+  route: string;
+  estMinutes: number;
+  titleRu: string; titleEn: string;
+  summaryRu: string; summaryEn: string;
+  focusRu: string; focusEn: string;
+}
+
+function LessonAccordion({
+  lesson, done, current, onToggle, onStart,
+}: {
+  lesson: LessonLike;
+  done: boolean;
+  current: boolean;
+  onToggle: () => void;
+  onStart: () => void;
+}) {
+  const { lang, t } = useI18n();
+  const [open, setOpen] = useState(current);
+  const title = lang === 'ru' ? lesson.titleRu : lesson.titleEn;
+  const summary = lang === 'ru' ? lesson.summaryRu : lesson.summaryEn;
+  const focus = lang === 'ru' ? lesson.focusRu : lesson.focusEn;
+
+  return (
+    <div
+      className="card overflow-hidden transition-all"
+      style={{
+        borderColor: done ? 'rgba(68, 255, 136, 0.3)' : current ? 'rgba(0, 212, 255, 0.3)' : undefined,
+        background: done ? 'rgba(68, 255, 136, 0.04)' : undefined,
+      }}
+    >
+      <div className="flex items-center gap-3 p-3 sm:p-4">
+        <button
+          onClick={onToggle}
+          aria-label={done ? 'Mark incomplete' : 'Mark complete'}
+          className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center transition"
+          style={{
+            background: done ? 'var(--success)' : 'transparent',
+            border: `2px solid ${done ? 'var(--success)' : 'rgba(139, 167, 184, 0.4)'}`,
+          }}
+        >
+          {done && (
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          )}
+        </button>
+
+        <button
+          onClick={() => setOpen(!open)}
+          className="flex-1 text-left flex items-center gap-2 min-w-0"
+        >
+          <span className="text-xs font-mono text-[var(--text-muted)] shrink-0">#{lesson.order}</span>
+          <span className="text-lg shrink-0">{lesson.emoji}</span>
+          <span className={`text-sm sm:text-base font-semibold truncate ${done ? 'line-through opacity-70' : ''}`}>
+            {title}
+          </span>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(0, 212, 255, 0.1)', color: 'var(--accent-cyan)' }}>
+            {lesson.estMinutes} {t('мин', 'min')}
+          </span>
+        </button>
+
+        <svg
+          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+          className="shrink-0 text-[var(--text-muted)]"
+          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          onClick={() => setOpen(!open)}
+        >
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </div>
+
+      {open && (
+        <div className="px-4 pb-4 pl-12">
+          <p className="text-sm text-[var(--text-secondary)] mb-2">{summary}</p>
+          <p className="text-xs text-[var(--text-muted)] italic mb-3">💡 {focus}</p>
+          <Link
+            href={lesson.route}
+            onClick={onStart}
+            className="inline-flex items-center gap-1 text-sm font-medium"
+            style={{ color: done ? 'var(--success)' : 'var(--accent-cyan)' }}
+          >
+            <span>{done ? t('Повторить', 'Review') : current ? t('Продолжить', 'Continue') : t('Открыть раздел', 'Open section')}</span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+          </Link>
         </div>
       )}
     </div>

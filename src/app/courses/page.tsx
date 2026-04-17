@@ -41,6 +41,18 @@ function YachtIcon({
   mirror?: boolean;
 }) {
   const effectiveSail = mirror ? -sailAngle : sailAngle;
+  // Jib is sheeted ~0.75x tighter than main when sailing upwind,
+  // looser (0.55x) when running. sailAngle is boom-out degrees.
+  const jibFactor = Math.abs(sailAngle) < 45 ? 0.75 : 0.55;
+  const jibSail = effectiveSail * jibFactor;
+  // Main sail geometry (from mast)
+  const mastTop = -size * 0.55;
+  const boomEndX = Math.sin(effectiveSail * DEG) * size * 0.45;
+  const boomEndY = mastTop + Math.cos(effectiveSail * DEG) * size * 0.4;
+  // Jib geometry (from forestay at bow)
+  const forestayY = -size * 0.6;
+  const jibClewX = Math.sin(jibSail * DEG) * size * 0.28;
+  const jibClewY = forestayY + Math.cos(jibSail * DEG) * size * 0.35;
   return (
     <g transform={`translate(${cx},${cy}) rotate(${angle})`}>
       {/* Hull */}
@@ -57,19 +69,28 @@ function YachtIcon({
         x1={0}
         y1={-size * 0.15}
         x2={0}
-        y2={-size * 0.55}
+        y2={mastTop}
         stroke="#fff"
         strokeWidth={1.2}
       />
-      {/* Sail */}
-      <line
-        x1={0}
-        y1={-size * 0.55}
-        x2={Math.sin(effectiveSail * DEG) * size * 0.45}
-        y2={-size * 0.55 + Math.cos(effectiveSail * DEG) * size * 0.4}
+      {/* Jib (стаксель) - triangle forward of mast */}
+      <path
+        d={`M 0 ${forestayY} L ${jibClewX} ${jibClewY} L 0 ${jibClewY} Z`}
+        fill={color}
+        fillOpacity={0.22}
         stroke={color}
-        strokeWidth={2}
-        strokeLinecap="round"
+        strokeWidth={1.2}
+        strokeLinejoin="round"
+        opacity={0.9}
+      />
+      {/* Mainsail (грот) - triangle aft of mast */}
+      <path
+        d={`M 0 ${mastTop} L ${boomEndX} ${boomEndY} L 0 ${boomEndY} Z`}
+        fill={color}
+        fillOpacity={0.35}
+        stroke={color}
+        strokeWidth={1.8}
+        strokeLinejoin="round"
         opacity={0.95}
       />
     </g>
@@ -696,7 +717,7 @@ export default function CoursesPage() {
       </section>
 
       {/* Detail cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-4">
         <h2 className="text-xl font-semibold mb-5 text-[var(--text-primary)]">
           Все курсы
           <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
@@ -712,6 +733,83 @@ export default function CoursesPage() {
               onSelect={() => handleSelect(point.id)}
             />
           ))}
+        </div>
+      </section>
+
+      {/* Two sails theory */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+        <div className="card p-6 sm:p-8">
+          <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
+            Два паруса, а не один
+            <span className="text-sm font-normal text-[var(--text-muted)] ml-2">Two sails, not one</span>
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
+            Обычная круизная яхта (слуп) несёт два паруса: грот и стаксель. На диаграмме
+            каждый кораблик показан с обоими: треугольник за мачтой - грот, треугольник перед
+            мачтой - стаксель. На реальной лодке они работают вместе, а шкотов (верёвок управления) - два.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="rounded-lg p-4" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
+                Грот / Mainsail
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Большой парус за мачтой. Главный двигатель на всех курсах кроме чистого фордевинда.
+                Управляется гика-шкотом. В сильный ветер рифится (уменьшается) первым.
+              </p>
+            </div>
+            <div className="rounded-lg p-4" style={{ background: 'rgba(255, 221, 68, 0.05)', border: '1px solid rgba(255, 221, 68, 0.15)' }}>
+              <div className="text-sm font-semibold mb-1" style={{ color: '#ffdd44' }}>
+                Стаксель / Jib
+              </div>
+              <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+                Треугольный парус перед мачтой. Ускоряет воздух перед гротом (эффект щели),
+                даёт дополнительную тягу на острых курсах. У него свой шкот - шкотовый.
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-5 rounded-lg p-4" style={{ background: 'rgba(255, 136, 68, 0.04)', border: '1px solid rgba(255, 136, 68, 0.12)' }}>
+            <div className="text-sm font-semibold mb-1" style={{ color: '#ff8844' }}>
+              Эффект щели / Slot effect
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              Когда стаксель и грот работают вместе, между ними образуется суживающаяся щель.
+              Воздух в ней ускоряется и создаёт разрежение на подветренной стороне грота -
+              парус тянет лучше, чем если бы стоял один. Именно поэтому на бейдевинде лодка
+              со стакселем идёт заметно быстрее.
+            </p>
+          </div>
+
+          <div className="mt-5">
+            <h3 className="text-base font-semibold mb-2 text-[var(--text-primary)]">
+              А что ещё бывает?
+              <span className="text-xs font-normal text-[var(--text-muted)] ml-2">What else is there?</span>
+            </h3>
+            <div className="space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
+              <p>
+                <span className="font-semibold text-[var(--text-primary)]">Генуя (genoa) </span>
+                - большой стаксель, чей задний край заходит за мачту. Даёт заметно больше тяги
+                на бейдевинде и галфвинде, но сложнее в работе при поворотах.
+              </p>
+              <p>
+                <span className="font-semibold text-[var(--text-primary)]">Геннакер (gennaker) </span>
+                - асимметричный лёгкий парус для попутных курсов (бакштаг, фордевинд).
+                Ставится вместо стакселя, надувается как шар. Проще спинакера, не требует
+                спинакер-гика.
+              </p>
+              <p>
+                <span className="font-semibold text-[var(--text-primary)]">Спинакер (spinnaker) </span>
+                - симметричный пузатый парус только для чистого фордевинда. Требует отдельного
+                гика и навыка. На круизёрах встречается редко.
+              </p>
+              <p className="text-[var(--text-muted)] pt-1">
+                В симуляторе показаны только грот + стаксель - базовая конфигурация слупа.
+                Остальные паруса - для продвинутых гонок.
+              </p>
+            </div>
+          </div>
         </div>
       </section>
     </div>

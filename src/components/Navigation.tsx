@@ -102,10 +102,10 @@ const Icon = {
 // Primary - always in the desktop bar
 const primary: NavItem[] = [
   { href: '/', ru: 'Главная', en: 'Home', pl: 'Główna', icon: Icon.home },
-  { href: '/start', ru: 'Bootcamp', en: 'Bootcamp', pl: 'Bootcamp', icon: Icon.start },
+  { href: '/start', ru: 'Старт', en: 'Start', pl: 'Start', icon: Icon.start },
+  { href: '/courses', ru: 'Курсы к ветру', en: 'Points of sail', pl: 'Kursy wiatru', icon: Icon.courses },
   { href: '/simulator', ru: 'Симулятор', en: 'Simulator', pl: 'Symulator', icon: Icon.simulator },
   { href: '/game', ru: 'Гонка', en: 'Race', pl: 'Regata', icon: Icon.race },
-  { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
 ];
 
 // Grouped extras
@@ -113,15 +113,13 @@ const groups: NavGroup[] = [
   {
     titleRu: 'Обучение', titleEn: 'Learn', titlePl: 'Nauka',
     items: [
-      { href: '/quick', ru: 'Освежить 15 мин', en: 'Quick refresh', pl: 'Odśwież 15 min', icon: Icon.quick },
-      { href: '/courses', ru: 'Курсы к ветру', en: 'Points of sail', pl: 'Kursy wiatru', icon: Icon.courses },
+      { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka', icon: Icon.tactics },
     ],
   },
   {
     titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokładzie',
     items: [
-      { href: '/onboard', ru: 'Первая неделя', en: 'First week', pl: 'Pierwszy tydzień', icon: Icon.onboard },
       { href: '/anatomy', ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu', icon: Icon.anatomy },
       { href: '/knots', ru: 'Узлы', en: 'Knots', pl: 'Węzły', icon: Icon.knots },
       { href: '/checklist', ru: 'Чек-лист', en: 'Checklist', pl: 'Lista kontrolna', icon: Icon.checklist },

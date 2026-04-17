@@ -12,13 +12,11 @@ import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/dat
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type GameState = 'menu' | 'briefing' | 'countdown' | 'racing' | 'finished' | 'replay';
-type BoatStyle = 'cruiser' | 'racer' | 'classic' | 'skiff';
+type BoatStyle = 'cruiser' | 'racer';
 
 const BOAT_STYLES: { id: BoatStyle; labelRu: string; labelEn: string; descRu: string; hullScale: number; hullWidth: number; sailHue: string }[] = [
-  { id: 'cruiser', labelRu: 'Круизная яхта', labelEn: 'Cruiser', descRu: 'Сбалансированная. Bavaria-like.', hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
-  { id: 'racer',   labelRu: 'Гоночная',      labelEn: 'Racer',   descRu: 'Узкий длинный корпус. Быстрая.', hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
-  { id: 'classic', labelRu: 'Классика',      labelEn: 'Classic', descRu: 'Широкая, устойчивая.',            hullScale: 0.95, hullWidth: 1.15, sailHue: '#f8f0d8' },
-  { id: 'skiff',   labelRu: 'Скиф',          labelEn: 'Skiff',   descRu: 'Короткая, манёвренная.',          hullScale: 0.85, hullWidth: 0.95, sailHue: '#ddeeff' },
+  { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', descRu: 'Сбалансированная, для начала.',       hullScale: 1.0,  hullWidth: 1.0,  sailHue: '#ffffff' },
+  { id: 'racer',   labelRu: 'Гоночная', labelEn: 'Racer',   descRu: 'Узкий длинный корпус, быстрая.',     hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
 ];
 
 interface Vec2 { x: number; y: number }
@@ -1160,214 +1158,17 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'menu') {
     return (
-      <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div className="text-center mb-10">
-          <h1 className="text-4xl sm:text-5xl font-bold mb-3"
-              style={{ background: 'linear-gradient(135deg, var(--text-primary), #ff6688)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-            Гонка
-          </h1>
-          <p className="text-lg text-[var(--text-secondary)]">Race Game</p>
-          <p className="mt-4 max-w-xl mx-auto text-sm text-[var(--text-secondary)]">
-            Обогни верхний знак и первым пересеки финишную линию. Управляй яхтой стрелками или A/D.
-            Учитывай ветер - нельзя идти прямо против него, нужно лавировать галсами.
-          </p>
-        </div>
-
-        {/* Mission picker strip */}
-        <div className="card p-4 mb-6">
-          <div className="flex items-center justify-between mb-3">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)]">РЕЖИМ / MODE</div>
-            {selectedMission && (
-              <button
-                onClick={() => pickMission(null)}
-                className="text-[11px] text-[var(--accent-cyan)] hover:underline"
-              >
-                Сбросить миссию
-              </button>
-            )}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-            {/* Free race tile */}
-            <button
-              onClick={() => pickMission(null)}
-              className={`p-3 rounded-lg text-left text-xs transition border ${!selectedMission ? 'ring-1' : 'opacity-70 hover:opacity-100'}`}
-              style={{
-                borderColor: !selectedMission ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                background: !selectedMission ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                outlineColor: 'var(--accent-cyan)',
-              }}
-            >
-              <div className="text-lg mb-1">🏁</div>
-              <div className="font-semibold text-[var(--text-primary)]">Свободная</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Без целей, любая сложность</div>
-            </button>
-
-            {missions.map((m) => {
-              const active = selectedMission?.id === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => pickMission(m)}
-                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                  style={{
-                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                    outlineColor: 'var(--accent-cyan)',
-                  }}
-                >
-                  <div className="text-lg mb-1">{m.emoji}</div>
-                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{m.titleRu}</div>
-                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{m.descRu}</div>
-                </button>
-              );
-            })}
-          </div>
-          {selectedMission && (
-            <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
-              <div className="text-[var(--text-primary)] font-semibold mb-1">
-                {selectedMission.emoji} {selectedMission.titleRu}
-              </div>
-              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{selectedMission.descRu}</div>
-              <div className="text-[var(--accent-cyan)]">💡 {selectedMission.hintRu}</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                Автонастройки: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · ветер {selectedMission.windStrength === 'light' ? 'слабый' : selectedMission.windStrength === 'heavy' ? 'сильный' : 'средний'}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Boat style picker */}
-        <div className="card p-4 mb-6">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ЛОДКА / BOAT</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-            {BOAT_STYLES.map((b) => {
-              const active = boatStyle === b.id;
-              return (
-                <button
-                  key={b.id}
-                  onClick={() => setBoatStyle(b.id)}
-                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                  style={{
-                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                    outlineColor: 'var(--accent-cyan)',
-                  }}
-                >
-                  <BoatStylePreview style={b.id} />
-                  <div className="font-semibold text-[var(--text-primary)] mt-2">{b.labelRu}</div>
-                  <div className="text-[10px] text-[var(--text-muted)]">{b.descRu}</div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Difficulty cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
-            const cfg = DIFFICULTY_CONFIG[d];
-            const active = difficulty === d;
-            return (
-              <button
-                key={d}
-                onClick={() => setDifficulty(d)}
-                className={`card p-5 text-left transition-all ${active ? 'ring-2 scale-[1.02]' : 'hover:scale-[1.01]'}`}
-                style={{
-                  borderColor: active ? cfg.color : undefined,
-                  outlineColor: active ? cfg.color : undefined,
-                  boxShadow: active ? `0 4px 24px ${cfg.color}33` : undefined,
-                }}
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-3 h-3 rounded-full" style={{ background: cfg.color }} />
-                  <div>
-                    <div className="font-semibold" style={{ color: cfg.color }}>{cfg.label}</div>
-                    <div className="text-xs text-[var(--text-muted)]">{cfg.labelEn}</div>
-                  </div>
-                </div>
-                <p className="text-xs text-[var(--text-secondary)] leading-relaxed mb-3">{cfg.description}</p>
-                <div className="flex flex-col gap-1 text-xs text-[var(--text-muted)]">
-                  <div><span className="text-[var(--text-secondary)]">Соперники:</span> {cfg.opponents}</div>
-                  <div><span className="text-[var(--text-secondary)]">AI скорость:</span> {Math.round(cfg.aiSpeedMul * 100)}%</div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Wind strength selector */}
-        <div className="card p-4 mb-6">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">СИЛА ВЕТРА / WIND STRENGTH</div>
-          <div className="grid grid-cols-3 gap-2">
-            {([
-              { id: 'light', label: 'Слабый', labelEn: 'Light', icon: '🌬', desc: '~5 kts' },
-              { id: 'medium', label: 'Средний', labelEn: 'Medium', icon: '💨', desc: '~10 kts' },
-              { id: 'heavy', label: 'Сильный', labelEn: 'Heavy', icon: '🌪', desc: '~15 kts' },
-            ] as const).map((w) => (
-              <button
-                key={w.id}
-                onClick={() => setWindStrength(w.id)}
-                className={`p-3 rounded-lg border transition text-center ${windStrength === w.id ? 'ring-1' : ''}`}
-                style={{
-                  borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                  background: windStrength === w.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-                  outlineColor: 'var(--accent-cyan)',
-                }}
-              >
-                <div className="text-xl mb-1">{w.icon}</div>
-                <div className="text-sm font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
-                <div className="text-[10px] text-[var(--text-muted)]">{w.labelEn} · {w.desc}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Controls info */}
-        <div className="card p-5 mb-6">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">УПРАВЛЕНИЕ / CONTROLS</div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-            <div className="flex items-center gap-2">
-              <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
-              <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-              <span className="text-[var(--text-secondary)]">Влево</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
-              <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-              <span className="text-[var(--text-secondary)]">Вправо</span>
-            </div>
-            <div className="flex items-center gap-2 col-span-2">
-              <div className="text-xs text-[var(--text-muted)]">
-                Стрелка в углу экрана показывает направление к следующему знаку.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Rules summary */}
-        <div className="card p-5 mb-6">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ТРАССА / COURSE</div>
-          <ol className="text-sm text-[var(--text-secondary)] space-y-2 list-decimal list-inside">
-            <li>Старт от нижней оранжевой линии (там же финиш).</li>
-            <li>Иди к верхнему знаку (оранжевый буй вверху трассы). Придётся лавировать галсами - ветер дует прямо сверху.</li>
-            <li>Обогни верхний знак (подойди ближе 30 метров).</li>
-            <li>Возвращайся к финишу полным курсом (бакштаг/фордевинд) - это быстрее.</li>
-            <li>Пересеки финишную линию сверху вниз.</li>
-          </ol>
-        </div>
-
-        <button
-          onClick={openBriefing}
-          className="w-full py-4 rounded-xl font-semibold text-lg transition-all hover:scale-[1.01]"
-          style={{
-            background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
-            color: '#0a1628',
-            boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
-          }}
-        >
-          К брифингу ({DIFFICULTY_CONFIG[difficulty].label}) →
-        </button>
-      </div>
+      <GameMenu
+        difficulty={difficulty}
+        setDifficulty={setDifficulty}
+        windStrength={windStrength}
+        setWindStrength={setWindStrength}
+        boatStyle={boatStyle}
+        setBoatStyle={setBoatStyle}
+        selectedMission={selectedMission}
+        pickMission={pickMission}
+        openBriefing={openBriefing}
+      />
     );
   }
 
@@ -1936,12 +1737,6 @@ function drawBoat(
     ctx.globalAlpha = 0.35;
     ctx.fillRect(-0.8 * s, -11 * s, 1.6 * s, 20 * s);
     ctx.globalAlpha = 1;
-  } else if (style === 'classic') {
-    // Wooden deck stripe
-    ctx.fillStyle = '#7a4a1e';
-    ctx.globalAlpha = 0.4;
-    ctx.fillRect(-hullStern * 0.6, -8 * s, hullStern * 1.2, 14 * s);
-    ctx.globalAlpha = 1;
   }
 
   // Cockpit
@@ -1975,9 +1770,9 @@ function drawBoat(
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  // Sail luff height depends on style — racer has taller sail
+  // Sail luff height depends on style - racer has taller sail
   const sailTop = style === 'racer' ? -4 * s : -3 * s;
-  const sailFoot = style === 'skiff' ? 8 * s : 9 * s;
+  const sailFoot = 9 * s;
   ctx.moveTo(0, sailTop);
   ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, sailFoot);
   ctx.lineTo(0, sailFoot);
@@ -2163,6 +1958,61 @@ function AnalyzingProgress() {
 }
 
 // ============================================================================
+// Ghost path - idealised optimal trajectory for the current course
+// ============================================================================
+
+function computeGhostPath(course: Course): Vec2[] {
+  const startMid = {
+    x: (course.startLine.a.x + course.startLine.b.x) / 2,
+    y: course.startLine.a.y,
+  };
+  const mark = course.marks[0].pos;
+  const finishMid = {
+    x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
+    y: course.finishLine.a.y,
+  };
+
+  // Wind from north (0 deg). Close-hauled angle ~ 42 deg from wind on each side.
+  // Layline from the mark going DOWNwind at +/- 42 deg. The player should tack at the layline.
+  const CH = 42;                                       // close-hauled angle (deg from wind)
+  const mx = mark.x;
+  const my = mark.y;
+  const startY = startMid.y;
+
+  // Starboard-tack layline from the mark (heading ~ 135-90=45 deg when reaching mark from port side)
+  // We want a single-tack path: sail port tack from start to (layline point), then starboard tack to mark.
+  // Layline equation: from mark, going south-east at 42 deg from vertical.
+  // Tack point = intersection of port-tack line from start (going up-left at 42 from vertical)
+  //          with starboard layline from mark (going down-left at 42 from vertical).
+  // Simple formula:
+  const tanCH = Math.tan(CH * Math.PI / 180);
+  // Port-tack heading from start: up-left. x decreases as y decreases.
+  // Starboard-layline from mark: down-left (relative to mark). x decreases as y increases.
+  // Let dy1 = distance sailed north before tack, then:
+  //   tack point: (startMid.x - dy1 * tanCH, startY - dy1)
+  // Starboard-layline point for same x: tacked distance dy2 going up-right toward mark:
+  //   tack point: (mx - (my - py) * tanCH, py) for some py
+  // Solve: startMid.x - dy1 * tanCH = mx - (startY - dy1 - my) * ... (treat simply below)
+
+  // Pragmatic: pick tack point at midway of the vertical distance, offset by the reach-out amount.
+  const verticalDist = startY - my;
+  const halfHeight = verticalDist / 2;
+  const reachX = halfHeight * tanCH;                        // horizontal offset at tack
+  const tackPoint: Vec2 = { x: startMid.x - reachX, y: startY - halfHeight };
+
+  // Broad reach back: curve via a midpoint shifted east (to simulate VMG-optimal broad reach)
+  const broadMid: Vec2 = { x: finishMid.x + 60, y: (my + finishMid.y) / 2 };
+
+  return [
+    startMid,
+    tackPoint,
+    mark,
+    broadMid,
+    finishMid,
+  ];
+}
+
+// ============================================================================
 // Replay overlay - scrubbable timeline on a mini-course map
 // ============================================================================
 
@@ -2256,7 +2106,29 @@ function ReplayOverlay({
     ctx.lineWidth = 1.5;
     ctx.stroke();
 
-    // Track trail up to current idx
+    // --- Ghost / ideal path overlay (computed from course geometry) ---
+    const ghost = computeGhostPath(course);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(68, 255, 136, 0.55)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    for (let i = 0; i < ghost.length; i++) {
+      const p = toXY(ghost[i]);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    // Label the ghost
+    const gMid = toXY(ghost[Math.floor(ghost.length / 2)]);
+    ctx.font = '600 9px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(68, 255, 136, 0.85)';
+    ctx.textAlign = 'left';
+    ctx.fillText('идеал', gMid.x + 6, gMid.y - 4);
+    ctx.restore();
+
+    // Track trail up to current idx (player track)
     ctx.strokeStyle = 'rgba(0, 212, 255, 0.85)';
     ctx.lineWidth = 2;
     ctx.beginPath();
@@ -2333,8 +2205,10 @@ function ReplayOverlay({
 
         <canvas ref={canvasRef} className="w-full block rounded-lg" style={{ aspectRatio: '2/3', maxHeight: '55vh', background: '#061428' }} />
 
-        {/* Event tags legend */}
-        <div className="flex flex-wrap gap-2 mt-3 text-[10px] text-[var(--text-muted)]">
+        {/* Legend */}
+        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[10px] text-[var(--text-muted)]">
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />твой трек</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />идеальный путь</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />поворот</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />мёртвая зона</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />знак / финиш</span>
@@ -2401,6 +2275,309 @@ function ReplayOverlay({
 }
 
 // ============================================================================
+// GameMenu - 3-preset entry (Учусь / Свободная / Миссия) with collapsible details
+// ============================================================================
+
+type MenuTab = 'learn' | 'free' | 'mission';
+
+function GameMenu({
+  difficulty, setDifficulty,
+  windStrength, setWindStrength,
+  boatStyle, setBoatStyle,
+  selectedMission, pickMission,
+  openBriefing,
+}: {
+  difficulty: Difficulty;
+  setDifficulty: (d: Difficulty) => void;
+  windStrength: 'light' | 'medium' | 'heavy';
+  setWindStrength: (w: 'light' | 'medium' | 'heavy') => void;
+  boatStyle: BoatStyle;
+  setBoatStyle: (b: BoatStyle) => void;
+  selectedMission: Mission | null;
+  pickMission: (m: Mission | null) => void;
+  openBriefing: () => void;
+}) {
+  const [tab, setTab] = useState<MenuTab>('learn');
+  const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // When tab changes, apply defaults
+  useEffect(() => {
+    if (tab === 'learn') {
+      pickMission(null);
+      setDifficulty('easy');
+      setWindStrength('medium');
+      setBoatStyle('cruiser');
+    } else if (tab === 'free') {
+      pickMission(null);
+      // keep user's manual selection
+    }
+    // mission tab: user picks mission -> it sets difficulty + wind automatically
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
+
+  const ctaLabel =
+    tab === 'learn' ? 'Начать - Учусь гоняю' :
+    tab === 'mission' ? (selectedMission ? `К миссии: ${selectedMission.titleRu}` : 'Выбери миссию') :
+    `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`;
+
+  const ctaColor =
+    tab === 'learn' ? DIFFICULTY_CONFIG.easy.color :
+    tab === 'mission' ? (selectedMission ? DIFFICULTY_CONFIG[selectedMission.difficulty].color : '#8ba7b8') :
+    DIFFICULTY_CONFIG[difficulty].color;
+
+  const ctaDisabled = tab === 'mission' && !selectedMission;
+
+  return (
+    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-10">
+      <div className="text-center mb-8">
+        <h1 className="text-4xl sm:text-5xl font-bold mb-2"
+            style={{ background: 'linear-gradient(135deg, var(--text-primary), #ff6688)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          Гонка
+        </h1>
+        <p className="text-sm text-[var(--text-muted)]">Race · выбери режим</p>
+      </div>
+
+      {/* Three big preset cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
+        <PresetCard
+          active={tab === 'learn'}
+          onClick={() => setTab('learn')}
+          emoji="🎓"
+          accent="#44ff88"
+          title="Учусь гоняю"
+          subtitle="Easy + средний ветер"
+          desc="Спокойные противники, плавные повороты. Для первого опыта гонки."
+        />
+        <PresetCard
+          active={tab === 'free'}
+          onClick={() => setTab('free')}
+          emoji="🏁"
+          accent="#00d4ff"
+          title="Свободная гонка"
+          subtitle="Сам выбираешь"
+          desc="Сложность, сила ветра, лодка - под тебя. Без конкретной цели."
+        />
+        <PresetCard
+          active={tab === 'mission'}
+          onClick={() => setTab('mission')}
+          emoji="🎯"
+          accent="#ffaa00"
+          title="Миссия"
+          subtitle="Конкретная задача"
+          desc="4 сценария: чистая гонка, под 90 сек, мин. галсов, слабый ветер."
+        />
+      </div>
+
+      {/* Tab-specific controls */}
+      {tab === 'mission' && (
+        <div className="card p-4 mb-5">
+          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ВЫБЕРИ МИССИЮ</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            {missions.map((m) => {
+              const active = selectedMission?.id === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => pickMission(m)}
+                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
+                  style={{
+                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                    outlineColor: 'var(--accent-cyan)',
+                  }}
+                >
+                  <div className="text-lg mb-1">{m.emoji}</div>
+                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{m.titleRu}</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{m.descRu}</div>
+                </button>
+              );
+            })}
+          </div>
+          {selectedMission && (
+            <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
+              <div className="text-[var(--text-primary)] font-semibold mb-1">
+                {selectedMission.emoji} {selectedMission.titleRu}
+              </div>
+              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{selectedMission.descRu}</div>
+              <div className="text-[var(--accent-cyan)]">💡 {selectedMission.hintRu}</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">
+                Автонастройки: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · ветер {selectedMission.windStrength === 'light' ? 'слабый' : selectedMission.windStrength === 'heavy' ? 'сильный' : 'средний'}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'free' && (
+        <div className="card p-4 mb-5 space-y-4">
+          {/* Difficulty */}
+          <div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">СЛОЖНОСТЬ</div>
+            <div className="grid grid-cols-3 gap-2">
+              {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
+                const cfg = DIFFICULTY_CONFIG[d];
+                const active = difficulty === d;
+                return (
+                  <button
+                    key={d}
+                    onClick={() => setDifficulty(d)}
+                    className={`p-2.5 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : ''}`}
+                    style={{
+                      borderColor: active ? cfg.color : 'rgba(139, 167, 184, 0.2)',
+                      background: active ? `${cfg.color}15` : 'transparent',
+                      outlineColor: cfg.color,
+                    }}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
+                      <div className="font-semibold" style={{ color: cfg.color }}>{cfg.label}</div>
+                    </div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} соперников</div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          {/* Wind */}
+          <div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">СИЛА ВЕТРА</div>
+            <div className="grid grid-cols-3 gap-2">
+              {([
+                { id: 'light',  label: 'Слабый',  icon: '🌬', desc: '~5 kts'  },
+                { id: 'medium', label: 'Средний', icon: '💨', desc: '~10 kts' },
+                { id: 'heavy',  label: 'Сильный', icon: '🌪', desc: '~15 kts' },
+              ] as const).map((w) => (
+                <button
+                  key={w.id}
+                  onClick={() => setWindStrength(w.id)}
+                  className={`p-2.5 rounded-lg border transition text-center ${windStrength === w.id ? 'ring-1' : ''}`}
+                  style={{
+                    borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                    background: windStrength === w.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                    outlineColor: 'var(--accent-cyan)',
+                  }}
+                >
+                  <div className="text-base mb-0.5">{w.icon}</div>
+                  <div className="text-xs font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
+                  <div className="text-[9px] text-[var(--text-muted)]">{w.desc}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* Boat */}
+          <div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ЛОДКА</div>
+            <div className="grid grid-cols-2 gap-2">
+              {BOAT_STYLES.map((b) => {
+                const active = boatStyle === b.id;
+                return (
+                  <button
+                    key={b.id}
+                    onClick={() => setBoatStyle(b.id)}
+                    className={`p-2.5 rounded-lg text-left text-xs transition border flex items-center gap-3 ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
+                    style={{
+                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                      outlineColor: 'var(--accent-cyan)',
+                    }}
+                  >
+                    <BoatStylePreview style={b.id} />
+                    <div>
+                      <div className="font-semibold text-[var(--text-primary)]">{b.labelRu}</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">{b.descRu}</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Collapsible details panel (controls + course rules) */}
+      <button
+        onClick={() => setDetailsOpen(!detailsOpen)}
+        className="w-full mb-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1 transition"
+      >
+        <span>{detailsOpen ? 'Скрыть детали' : 'Показать управление и правила трассы'}</span>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+             style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      {detailsOpen && (
+        <div className="card p-4 mb-5 space-y-4">
+          <div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">УПРАВЛЕНИЕ</div>
+            <div className="flex flex-wrap gap-3 text-sm">
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
+                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
+                <span className="text-[var(--text-secondary)]">Влево</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
+                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
+                <span className="text-[var(--text-secondary)]">Вправо</span>
+              </div>
+              <div className="text-xs text-[var(--text-muted)]">На мобайле — кнопки внизу экрана.</div>
+            </div>
+          </div>
+          <div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ТРАССА</div>
+            <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
+              <li>Старт от нижней оранжевой линии (там же финиш).</li>
+              <li>Идёшь к верхнему знаку галсами - ветер сверху.</li>
+              <li>Огибаешь знак (ближе 30 метров).</li>
+              <li>Возвращаешься полным курсом и пересекаешь финиш сверху вниз.</li>
+            </ol>
+          </div>
+        </div>
+      )}
+
+      <button
+        onClick={openBriefing}
+        disabled={ctaDisabled}
+        className="w-full py-4 rounded-xl font-semibold text-lg transition-all disabled:opacity-40 hover:scale-[1.01]"
+        style={{
+          background: `linear-gradient(135deg, ${ctaColor}, ${ctaColor}cc)`,
+          color: '#0a1628',
+          boxShadow: `0 4px 24px ${ctaColor}44`,
+        }}
+      >
+        {ctaLabel} →
+      </button>
+    </div>
+  );
+}
+
+function PresetCard({
+  active, onClick, emoji, accent, title, subtitle, desc,
+}: {
+  active: boolean; onClick: () => void;
+  emoji: string; accent: string; title: string; subtitle: string; desc: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`card p-4 text-left transition-all ${active ? 'ring-2 scale-[1.02]' : 'hover:scale-[1.01] opacity-85 hover:opacity-100'}`}
+      style={{
+        borderColor: active ? accent : undefined,
+        outlineColor: active ? accent : undefined,
+        background: active ? `${accent}0D` : undefined,
+        boxShadow: active ? `0 4px 24px ${accent}33` : undefined,
+      }}
+    >
+      <div className="text-3xl mb-1.5">{emoji}</div>
+      <div className="font-semibold text-base" style={{ color: active ? accent : 'var(--text-primary)' }}>{title}</div>
+      <div className="text-[11px] text-[var(--text-muted)] mb-2">{subtitle}</div>
+      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+    </button>
+  );
+}
+
+// ============================================================================
 // Small SVG preview of a boat style (used in the boat picker)
 // ============================================================================
 
@@ -2426,9 +2603,6 @@ function BoatStylePreview({ style }: { style: BoatStyle }) {
       />
       {style === 'racer' && (
         <rect x="-1" y={-h / 2.5} width="2" height={h * 0.7} fill="#00d4ff" opacity="0.4" />
-      )}
-      {style === 'classic' && (
-        <rect x={-w / 4} y={-h / 4} width={w / 2} height={h / 2} fill="#7a4a1e" opacity="0.35" />
       )}
     </svg>
   );
