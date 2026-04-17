@@ -53,3 +53,9 @@ tsconfig.tsbuildinfo
 .claude/
 live-mobile-*.png
 qa-*.png
+
+# Playwright screenshots in repo root
+/anatomy-*.png
+/leaderboard*.png
+/game-*.png
+/home-*.png
