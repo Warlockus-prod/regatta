@@ -1,8 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import Script from 'next/script';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
+
+// <model-viewer> custom element type (runtime loaded from CDN, typed loosely)
+type ModelViewerProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
+  src?: string;
+  alt?: string;
+  'auto-rotate'?: boolean | string;
+  'camera-controls'?: boolean | string;
+  'shadow-intensity'?: string | number;
+  'camera-orbit'?: string;
+  'field-of-view'?: string;
+  exposure?: string | number;
+  poster?: string;
+  'environment-image'?: string;
+};
+declare module 'react' {
+  namespace JSX {
+    interface IntrinsicElements {
+      'model-viewer': ModelViewerProps;
+    }
+  }
+}
 
 // Bavaria 46 side-profile SVG - stylized, not photorealistic
 function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
@@ -133,10 +155,24 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
 }
 
 export default function AnatomyPage() {
-  const { lang, t } = useI18n();
+  const { lang, t, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
+  const [view, setView] = useState<'2d' | '3d'>('2d');
+  const [modelOk, setModelOk] = useState<boolean | null>(null); // null = unknown, true = loaded, false = missing
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
+
+  // Source GLB: env override OR bundled /models/cruiser.glb
+  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/cruiser.glb';
+
+  // Probe the GLB when 3D tab opens so we show a friendly fallback if it's missing.
+  useEffect(() => {
+    if (view !== '3d') return;
+    if (modelOk !== null) return;
+    fetch(modelSrc, { method: 'HEAD' })
+      .then((r) => setModelOk(r.ok))
+      .catch(() => setModelOk(false));
+  }, [view, modelOk, modelSrc]);
 
   return (
     <div className="page-enter max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -154,16 +190,44 @@ export default function AnatomyPage() {
         </p>
       </div>
 
+      {/* View toggle */}
+      <div className="mb-3 inline-flex rounded-lg p-0.5" style={{ background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+        <button
+          onClick={() => setView('2d')}
+          className="px-3 py-1.5 rounded-md text-xs font-semibold transition"
+          style={{
+            background: view === '2d' ? 'var(--accent-cyan)' : 'transparent',
+            color: view === '2d' ? '#0a1628' : 'var(--text-secondary)',
+          }}
+        >
+          {tp('2D профиль', '2D profile', 'Profil 2D')}
+        </button>
+        <button
+          onClick={() => setView('3d')}
+          className="px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1"
+          style={{
+            background: view === '3d' ? 'var(--accent-cyan)' : 'transparent',
+            color: view === '3d' ? '#0a1628' : 'var(--text-secondary)',
+          }}
+        >
+          {tp('3D модель', '3D model', 'Model 3D')}
+          <span className="text-[9px] px-1 rounded" style={{ background: view === '3d' ? 'rgba(10, 22, 40, 0.2)' : 'rgba(255, 170, 0, 0.2)', color: view === '3d' ? '#0a1628' : 'var(--warning)' }}>BETA</span>
+        </button>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-4 sm:gap-6">
-        {/* SVG profile */}
+        {/* Model area (2D or 3D) */}
         <div className="card p-3 sm:p-4">
-          <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
-          <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-            {t(
-              'Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m',
-              'Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m',
-            )}
-          </div>
+          {view === '2d' ? (
+            <>
+              <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
+              <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
+                Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
+              </div>
+            </>
+          ) : (
+            <Anatomy3D modelSrc={modelSrc} modelOk={modelOk} />
+          )}
         </div>
 
         {/* Info panel */}
@@ -229,11 +293,84 @@ export default function AnatomyPage() {
       </div>
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
-        {t(
-          'Стилизованный профиль Bavaria 46. Полноценная 3D-модель с hotspots - следующая итерация.',
-          'Stylized Bavaria 46 profile. Full 3D model with hotspots - next iteration.',
-        )}
+        {view === '2d'
+          ? t('Стилизованный профиль Bavaria 46. Переключись на 3D для объёмной модели.',
+              'Stylized Bavaria 46 profile. Switch to 3D for a rotatable model.')
+          : t('3D модель в бете. Крутить мышью, колесо - зум.',
+              '3D model is in beta. Drag to rotate, wheel to zoom.')}
       </p>
+
+      {/* Load Google model-viewer web component on demand */}
+      <Script
+        type="module"
+        src="https://unpkg.com/@google/model-viewer@^4.0.0/dist/model-viewer.min.js"
+        strategy="lazyOnload"
+      />
+    </div>
+  );
+}
+
+// ============================================================================
+// Anatomy3D - <model-viewer>-based interactive 3D yacht
+// ============================================================================
+
+function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean | null }) {
+  const { t, tp } = useI18n();
+
+  if (modelOk === false) {
+    return (
+      <div
+        className="w-full rounded-lg flex flex-col items-center justify-center text-center p-8"
+        style={{
+          aspectRatio: '16/10',
+          background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.35), rgba(6, 20, 40, 0.8))',
+          border: '1px dashed rgba(0, 212, 255, 0.25)',
+        }}
+      >
+        <div className="text-5xl mb-3">⛵</div>
+        <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
+          {tp('3D модель скоро', '3D model coming soon', 'Model 3D wkrótce')}
+        </div>
+        <div className="text-xs text-[var(--text-secondary)] max-w-md leading-relaxed">
+          {t(
+            'Подбираем лицензированную 3D-модель круизера 46 футов. Пока что используй 2D-профиль - он покрывает все детали устройства яхты.',
+            'We are sourcing a licensed 3D model of a 46-foot cruiser. Meanwhile use the 2D profile - it covers every part.',
+          )}
+        </div>
+        <div className="text-[10px] text-[var(--text-muted)] mt-3 font-mono">
+          expected at: <span className="text-[var(--accent-cyan)]">{modelSrc}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div
+        className="w-full rounded-lg overflow-hidden"
+        style={{
+          aspectRatio: '16/10',
+          background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.35), rgba(6, 20, 40, 0.8))',
+          border: '1px solid rgba(0, 212, 255, 0.15)',
+        }}
+      >
+        <model-viewer
+          src={modelSrc}
+          alt="Bavaria 46 3D model"
+          camera-controls
+          auto-rotate
+          shadow-intensity="0.7"
+          exposure="1"
+          camera-orbit="35deg 75deg 6m"
+          field-of-view="30deg"
+          style={{ width: '100%', height: '100%', background: 'transparent' }}
+          poster="/icon-192.svg"
+        />
+      </div>
+      <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
+        {t('Крути, двигай, зум - колесом мыши или щипком на тачскрине.',
+           'Drag, pan, zoom - wheel or pinch.')}
+      </div>
     </div>
   );
 }
