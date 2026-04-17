@@ -32,7 +32,8 @@ const SYSTEM = `Ты опытный тренер по парусному спо�
 - Говори конкретно, с цифрами из лога (углы, время, расстояния)
 - Русский язык, дружелюбный но профессиональный тон
 - Если игрок играл хорошо - скажи об этом прямо, не выдумывай ошибки
-- Анализируй: попадание в мёртвую зону (TWA<30°), плохие галсы при лавировке, огибание знаков широко, лишние повороты, падение скорости`;
+- Анализируй: попадание в мёртвую зону (TWA<30°), плохие галсы при лавировке, огибание знаков широко, лишние повороты, падение скорости
+- ТИПОГРАФИКА: никогда не используй длинные тире «—» (U+2014) или короткие тире «–» (U+2013). Пиши обычный дефис «-».`;
 
 interface LogEvent {
   type: 'mark-rounded' | 'tack' | 'finish' | 'no-go-entered' | 'start';
@@ -148,6 +149,20 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
         raw: textBlock.text,
       }, { status: 500 });
     }
+
+    // Enforce typography rule: scrub em-dashes / en-dashes from all string fields.
+    const scrub = (s: unknown): unknown => {
+      if (typeof s === 'string') return s.replace(/\u2014/g, '-').replace(/\u2013/g, '-');
+      if (Array.isArray(s)) return s.map(scrub);
+      if (s && typeof s === 'object') {
+        const out: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(s as Record<string, unknown>)) out[k] = scrub(v);
+        return out;
+      }
+      return s;
+    };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    parsed = scrub(parsed) as any;
 
     logInfo('coach.success', {
       ms: Date.now() - started,

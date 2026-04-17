@@ -37,6 +37,7 @@ const SYSTEM_RU = `Ты дружелюбный ассистент яхтенно
 4. Отвечай на том языке, на котором задан вопрос (ru/en/pl), даже если раздел помечен по-русски.
 5. Максимум 4-6 коротких предложений. Без многословия. Используй markdown умеренно.
 6. Не выдумывай факты. Если не знаешь - скажи прямо.
+7. ТИПОГРАФИКА: никогда не используй длинные тире «—» (U+2014) или короткие тире «–» (U+2013). Пиши обычный дефис «-». Это жёсткое правило проекта.
 
 ${SITE_SECTIONS}`;
 
@@ -99,7 +100,9 @@ export async function POST(req: Request) {
     });
 
     const textBlock = response.content.find((b) => b.type === 'text');
-    const text = textBlock && textBlock.type === 'text' ? textBlock.text : '';
+    // Enforce project typography rule: no em-dash / en-dash anywhere in user-facing text.
+    const raw = textBlock && textBlock.type === 'text' ? textBlock.text : '';
+    const text = raw.replace(/\u2014/g, '-').replace(/\u2013/g, '-');
 
     logInfo('ai-chat.success', {
       ms: Date.now() - started,

@@ -162,8 +162,10 @@ export default function AnatomyPage() {
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
 
-  // Source GLB: env override OR bundled /models/cruiser.glb
-  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/cruiser.glb';
+  // Source GLB/glTF: env override OR bundled Poly Haven ship pinnace (CC0).
+  // Replace with a modern cruiser GLB later when licensed; the current model is a
+  // historic sailing pinnace but reads as "a sailing vessel" and uses CC0 assets.
+  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/ship_pinnace/ship_pinnace_1k.gltf';
 
   // Probe the GLB when 3D tab opens so we show a friendly fallback if it's missing.
   useEffect(() => {
@@ -370,6 +372,10 @@ function Anatomy3D({ modelSrc, modelOk }: { modelSrc: string; modelOk: boolean |
       <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
         {t('Крути, двигай, зум - колесом мыши или щипком на тачскрине.',
            'Drag, pan, zoom - wheel or pinch.')}
+        <br />
+        <span className="text-[10px]">
+          Model: <a href="https://polyhaven.com/a/ship_pinnace" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Ship Pinnace by Poly Haven</a> (CC0)
+        </span>
       </div>
     </div>
   );
