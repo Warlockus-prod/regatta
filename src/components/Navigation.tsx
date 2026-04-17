@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import LanguageToggle from './LanguageToggle';
+import { useI18n } from '@/lib/i18n';
 
 const navItems = [
   {
@@ -10,9 +12,31 @@ const navItems = [
     labelEn: 'Home',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-        <polyline points="10 17 15 12 10 7"/>
-        <line x1="15" y1="12" x2="3" y2="12"/>
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/start',
+    label: 'Старт',
+    labelEn: 'Start',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <polygon points="10 8 16 12 10 16 10 8"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/onboard',
+    label: 'На яхте',
+    labelEn: 'On board',
+    icon: (
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L12 22"/>
+        <path d="M5 8H19"/>
+        <path d="M3 18c2 1 4 1 6 0s4-1 6 0 4 1 6 0"/>
       </svg>
     ),
   },
@@ -68,12 +92,13 @@ const navItems = [
   },
   {
     href: '/game',
-    label: 'Игра',
-    labelEn: 'Game',
+    label: 'Гонка',
+    labelEn: 'Race',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polygon points="10 8 16 12 10 16 10 8"/>
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+        <line x1="4" y1="22" x2="4" y2="15"/>
+        <circle cx="14" cy="10" r="2" fill="currentColor"/>
       </svg>
     ),
   },
@@ -94,6 +119,7 @@ const navItems = [
 
 export default function Navigation() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[rgba(0,212,255,0.1)] backdrop-blur-md"
@@ -132,13 +158,16 @@ export default function Navigation() {
                     }`}
                 >
                   {item.icon}
-                  <span className="hidden lg:inline">{item.label}</span>
+                  <span className="hidden lg:inline">{t(item.label, item.labelEn)}</span>
                 </Link>
               );
             })}
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
+            {/* Language toggle */}
+            <LanguageToggle />
+
             {/* Help button */}
             <button
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
@@ -159,6 +188,7 @@ export default function Navigation() {
 }
 
 function MobileMenu({ pathname }: { pathname: string }) {
+  const { t } = useI18n();
   return (
     <div className="md:hidden">
       <details className="relative">
@@ -184,7 +214,7 @@ function MobileMenu({ pathname }: { pathname: string }) {
                   }`}
               >
                 {item.icon}
-                <span>{item.label}</span>
+                <span>{t(item.label, item.labelEn)}</span>
               </Link>
             );
           })}

@@ -6,11 +6,11 @@ import Link from 'next/link';
 
 const entryPoints = [
   {
-    href: '/courses',
-    emoji: '🧭',
+    href: '/start',
+    emoji: '🎓',
     title: 'Начать с нуля',
-    subtitle: 'First time',
-    description: 'Впервые идёшь на яхту или регату. Освой базу за 45 минут: ветер, курсы, паруса, простые правила.',
+    subtitle: 'Bootcamp',
+    description: '8 уроков по 5 минут. От ветра до мини-гонки. Прогресс сохраняется, можно проходить постепенно.',
     accent: 'var(--accent-cyan)',
     border: 'rgba(0, 212, 255, 0.3)',
     bg: 'rgba(0, 212, 255, 0.08)',
@@ -20,17 +20,17 @@ const entryPoints = [
     emoji: '⛵',
     title: 'Освежить перед стартом',
     subtitle: 'Quick refresher',
-    description: 'Опыт есть, но регата скоро. Прогони ветер, лавировку и старт на практике в игре с AI.',
+    description: 'Опыт есть, но регата скоро. Гонка с AI-соперниками + разбор ошибок AI-тренером.',
     accent: 'var(--success)',
     border: 'rgba(68, 255, 136, 0.3)',
     bg: 'rgba(68, 255, 136, 0.08)',
   },
   {
-    href: '/racing',
+    href: '/rules',
     emoji: '📖',
     title: 'Разобрать правила',
-    subtitle: 'Rules & tactics',
-    description: 'Правый галс, место у знака, грязный ветер, лейлайн — через короткие сценарии, не сухой текст.',
+    subtitle: 'Simple rules',
+    description: 'Правый галс, место у знака, старт, столкновение — через 8 карточек-сценариев, не сухой текст.',
     accent: 'var(--warning)',
     border: 'rgba(255, 170, 0, 0.3)',
     bg: 'rgba(255, 170, 0, 0.08)',
@@ -43,6 +43,18 @@ const entryPoints = [
 
 const secondaryTools = [
   {
+    href: '/onboard',
+    title: 'Первая неделя на яхте',
+    subtitle: 'First week on board',
+    description: 'Не как управлять, а как вести себя на борту: команды, что опасно, что брать с собой.',
+    accent: 'var(--success)',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M12 2L12 22"/><path d="M5 8H19"/><path d="M3 18c2 1 4 1 6 0s4-1 6 0 4 1 6 0"/>
+      </svg>
+    ),
+  },
+  {
     href: '/simulator',
     title: 'Симулятор',
     subtitle: 'Simulator',
@@ -51,6 +63,18 @@ const secondaryTools = [
     icon: (
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M2 20l3.5-3.5"/><path d="M18 4l-6.5 6.5"/><path d="M2 20l8-2-6-6-2 8z"/><path d="M18 4l2 2-8 8"/>
+      </svg>
+    ),
+  },
+  {
+    href: '/racing',
+    title: 'Тактика',
+    subtitle: 'Tactics',
+    description: 'Лавировка, старт, огибание знаков, правила расхождения — диаграммы и стратегии.',
+    accent: 'var(--warning)',
+    icon: (
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
       </svg>
     ),
   },

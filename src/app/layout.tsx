@@ -6,6 +6,7 @@ import ClientErrorReporter from "@/components/ClientErrorReporter";
 import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import { I18nProvider } from "@/lib/i18n";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,15 +64,17 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col ocean-bg">
-        <ClientErrorReporter />
-        <OnboardingTour />
-        <HelpOverlay />
-        <Navigation />
-        <main className="flex-1">
-          {children}
-        </main>
-        {/* Feedback widget hidden on the fullscreen game to avoid covering canvas */}
-        <FeedbackWidget hideOn={[]} />
+        <I18nProvider>
+          <ClientErrorReporter />
+          <OnboardingTour />
+          <HelpOverlay />
+          <Navigation />
+          <main className="flex-1">
+            {children}
+          </main>
+          {/* Feedback widget hidden on the fullscreen game to avoid covering canvas */}
+          <FeedbackWidget hideOn={[]} />
+        </I18nProvider>
       </body>
     </html>
   );

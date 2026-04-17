@@ -34,7 +34,7 @@ Logs to check for clues:
 
 ## Deferred (not blocking, tracked for future)
 
-- [ ] **Practical missions** — checkpoints like "reach mark using close-hauled only", "3 laps under 2 min". Design doc drafted below.
+- [ ] **Practical missions — game integration** — mission data + evaluation logic in `src/data/missions.ts` is ready (4 missions designed, evaluator implemented). Still TODO: mission picker UI in game menu, forcing of difficulty/wind-strength when mission selected, showing pass/fail on finish screen. ~1-2 hours of focused work — deferred to avoid bloating game page in this wave.
 - [ ] **Video demos on Courses page** — short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
 - [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) — add container to VPS, small nginx conf, ~15 LOC script tag in layout.
 - [ ] **Polar diagram** — classic training tool. Renders speed-vs-TWA curve given wind strength. Read-only view in `/simulator` as toggleable overlay.
