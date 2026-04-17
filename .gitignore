@@ -51,3 +51,4 @@ next-env.d.ts
 # Claude local
 .claude/
 live-mobile-*.png
+qa-*.png
