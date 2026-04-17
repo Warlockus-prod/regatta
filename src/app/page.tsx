@@ -46,13 +46,33 @@ const secondaryTools = [
     href: '/onboard',
     title: 'Первая неделя на яхте',
     subtitle: 'First week on board',
-    description: 'Не как управлять, а как вести себя на борту: команды, что опасно, что брать с собой.',
+    description: 'Не как управлять, а как вести себя на борту: команды, что опасно, что брать.',
     accent: 'var(--success)',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L12 22"/><path d="M5 8H19"/><path d="M3 18c2 1 4 1 6 0s4-1 6 0 4 1 6 0"/>
-      </svg>
-    ),
+    icon: '⚓',
+  },
+  {
+    href: '/anatomy',
+    title: 'Устройство яхты',
+    subtitle: 'Yacht anatomy',
+    description: 'Bavaria 46 с кликабельными деталями: нос, мачта, гик, шкоты, лебёдки.',
+    accent: 'var(--success)',
+    icon: '🔧',
+  },
+  {
+    href: '/knots',
+    title: '6 узлов',
+    subtitle: 'Knots',
+    description: 'Восьмёрка, беседочный, на утку — только реально нужные, с пошаговыми схемами.',
+    accent: '#8844ff',
+    icon: '🪢',
+  },
+  {
+    href: '/checklist',
+    title: 'Чек-лист к регате',
+    subtitle: 'Pre-race checklist',
+    description: 'Что взять, что узнать, что сделать перед выходом. Прогресс сохраняется.',
+    accent: 'var(--warning)',
+    icon: '✅',
   },
   {
     href: '/simulator',
@@ -60,23 +80,23 @@ const secondaryTools = [
     subtitle: 'Simulator',
     description: 'Интерактивная яхта: top-view + side-view с креном. Почувствуй ветер руками.',
     accent: 'var(--accent-cyan)',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 20l3.5-3.5"/><path d="M18 4l-6.5 6.5"/><path d="M2 20l8-2-6-6-2 8z"/><path d="M18 4l2 2-8 8"/>
-      </svg>
-    ),
+    icon: '🎮',
   },
   {
     href: '/racing',
     title: 'Тактика',
     subtitle: 'Tactics',
-    description: 'Лавировка, старт, огибание знаков, правила расхождения — диаграммы и стратегии.',
+    description: 'Лавировка, старт, огибание знаков, правила расхождения — диаграммы.',
     accent: 'var(--warning)',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>
-      </svg>
-    ),
+    icon: '🎯',
+  },
+  {
+    href: '/courses',
+    title: 'Курсы относительно ветра',
+    subtitle: 'Points of sail',
+    description: 'Левентик, бейдевинд, галфвинд, бакштаг, фордевинд — интерактивная диаграмма.',
+    accent: 'var(--success)',
+    icon: '🧭',
   },
   {
     href: '/glossary',
@@ -84,12 +104,7 @@ const secondaryTools = [
     subtitle: 'Glossary',
     description: '51 термин RU/EN. Бейдевинд = close-hauled, связка = overlap. Ищи и фильтруй.',
     accent: '#8844ff',
-    icon: (
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        <line x1="8" y1="7" x2="16" y2="7"/><line x1="8" y1="11" x2="14" y2="11"/>
-      </svg>
-    ),
+    icon: '📚',
   },
 ];
 
@@ -205,26 +220,21 @@ export default function HomePage() {
           <p className="text-xs text-[var(--text-muted)]">Инструменты под руками</p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {secondaryTools.map((t) => (
             <Link
               key={t.href}
               href={t.href}
-              className="group card p-5 flex items-center gap-4 hover:border-[var(--accent-cyan)] transition-colors"
+              className="group card p-4 flex flex-col gap-2 hover:border-[var(--accent-cyan)] transition-colors"
             >
-              <div className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
-                   style={{ color: t.accent, background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.15)' }}>
-                {t.icon}
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">{t.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-semibold group-hover:text-[var(--accent-cyan)] transition-colors line-clamp-1">{t.title}</div>
+                  <div className="text-[10px] text-[var(--text-muted)]">{t.subtitle}</div>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm font-semibold group-hover:text-[var(--accent-cyan)] transition-colors">{t.title}</div>
-                <div className="text-[11px] text-[var(--text-muted)] mb-1">{t.subtitle}</div>
-                <div className="text-xs text-[var(--text-secondary)]">{t.description}</div>
-              </div>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-                   className="text-[var(--text-muted)] group-hover:text-[var(--accent-cyan)] group-hover:translate-x-1 transition-all">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
+              <div className="text-xs text-[var(--text-secondary)] line-clamp-2">{t.description}</div>
             </Link>
           ))}
         </div>

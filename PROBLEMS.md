@@ -34,6 +34,8 @@ Logs to check for clues:
 
 ## Deferred (not blocking, tracked for future)
 
+- [ ] **3D yacht anatomy** — currently shipped as stylized 2D side-profile of Bavaria 46 with 17 hotspots. User explicitly wanted 3D "directly". Upgrade plan: acquire Bavaria 46 GLB model (TurboSquid ~$50 or Sketchfab free with attribution), integrate `<model-viewer>` web component, translate 2D hotspot positions to 3D cameraOrbit coords. Why deferred: a broken fake 3D is worse UX than a good 2D; data + API contract is identical so swap-in is easy (~1 day).
+
 - [ ] **Practical missions — game integration** — mission data + evaluation logic in `src/data/missions.ts` is ready (4 missions designed, evaluator implemented). Still TODO: mission picker UI in game menu, forcing of difficulty/wind-strength when mission selected, showing pass/fail on finish screen. ~1-2 hours of focused work — deferred to avoid bloating game page in this wave.
 - [ ] **Video demos on Courses page** — short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
 - [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) — add container to VPS, small nginx conf, ~15 LOC script tag in layout.
