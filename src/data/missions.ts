@@ -1,5 +1,5 @@
 // ============================================================================
-// Missions — structured game variants with specific goals.
+// Missions - structured game variants with specific goals.
 // Evaluated post-race using the same race log as AI coach.
 // ============================================================================
 
@@ -42,8 +42,8 @@ export const missions: Mission[] = [
     difficulty: 'easy',
     windStrength: 'medium',
     constraints: [{ type: 'no-no-go' }],
-    hintRu: 'Следи за углом к ветру — не меньше 40° при лавировке.',
-    hintEn: 'Watch your TWA — at least 40° when beating upwind.',
+    hintRu: 'Следи за углом к ветру - не меньше 40° при лавировке.',
+    hintEn: 'Watch your TWA - at least 40° when beating upwind.',
   },
   {
     id: 'sub-90',
@@ -55,7 +55,7 @@ export const missions: Mission[] = [
     difficulty: 'medium',
     windStrength: 'heavy',
     constraints: [{ type: 'finish-under-sec', value: 90 }],
-    hintRu: 'Сильный ветер — скорость высокая. Минимизируй повороты.',
+    hintRu: 'Сильный ветер - скорость высокая. Минимизируй повороты.',
     hintEn: 'Strong wind, high speed. Minimize tacks.',
   },
   {

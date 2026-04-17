@@ -74,6 +74,35 @@ function db(): Database.Database {
       language TEXT,
       visit_count INTEGER NOT NULL DEFAULT 1
     );
+
+    -- Anonymous player profiles (session_id -> nickname)
+    CREATE TABLE IF NOT EXISTS players (
+      sid TEXT PRIMARY KEY,
+      nickname TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL
+    );
+
+    -- Finished race results for leaderboards
+    CREATE TABLE IF NOT EXISTS race_results (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ts INTEGER NOT NULL,
+      sid TEXT NOT NULL,
+      nickname TEXT NOT NULL,
+      difficulty TEXT NOT NULL,
+      wind_strength TEXT NOT NULL,
+      mission_id TEXT,
+      finish_time_sec REAL NOT NULL,
+      position INTEGER,
+      total_boats INTEGER,
+      tacks INTEGER,
+      no_go_entries INTEGER,
+      top_speed REAL,
+      score INTEGER
+    );
+    CREATE INDEX IF NOT EXISTS idx_race_ts ON race_results(ts);
+    CREATE INDEX IF NOT EXISTS idx_race_leaderboard ON race_results(difficulty, wind_strength, finish_time_sec);
+    CREATE INDEX IF NOT EXISTS idx_race_mission ON race_results(mission_id, finish_time_sec);
   `);
 
   return _db;
@@ -116,7 +145,7 @@ export function insertEvent(e: EventInsert): void {
       e.sessionId ?? null,
       e.ua ?? null,
       e.ip ?? null,
-      null, // country — lookup deferred (would need geo-ip lib)
+      null, // country - lookup deferred (would need geo-ip lib)
       detectDevice(e.ua),
       e.viewport ?? null,
       e.language ?? null,
@@ -133,7 +162,7 @@ export function insertEvent(e: EventInsert): void {
       `).run(e.sessionId, Date.now(), Date.now(), detectDevice(e.ua), e.language ?? null);
     }
   } catch {
-    // Don't crash on DB errors — best-effort telemetry
+    // Don't crash on DB errors - best-effort telemetry
   }
 }
 
@@ -283,4 +312,118 @@ export function updateFeedbackStatus(id: number, status: string): boolean {
 
 export async function ensureDbDirExists() {
   try { await fs.mkdir(DB_DIR, { recursive: true }); } catch { /* ignore */ }
+}
+
+// ============================================================================
+// Players / leaderboard (Wave 7 Phase A)
+// ============================================================================
+
+export interface Player {
+  sid: string;
+  nickname: string;
+  created_at: number;
+  updated_at: number;
+}
+
+export function upsertPlayer(sid: string, nickname: string): Player | null {
+  try {
+    const d = db();
+    const now = Date.now();
+    d.prepare(`
+      INSERT INTO players (sid, nickname, created_at, updated_at)
+      VALUES (?, ?, ?, ?)
+      ON CONFLICT(sid) DO UPDATE SET nickname = excluded.nickname, updated_at = excluded.updated_at
+    `).run(sid, nickname, now, now);
+    return d.prepare('SELECT * FROM players WHERE sid = ?').get(sid) as Player;
+  } catch {
+    return null;
+  }
+}
+
+export function getPlayer(sid: string): Player | null {
+  try {
+    const d = db();
+    return (d.prepare('SELECT * FROM players WHERE sid = ?').get(sid) as Player) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export interface RaceResultInsert {
+  sid: string;
+  nickname: string;
+  difficulty: string;
+  windStrength: string;
+  missionId?: string | null;
+  finishTimeSec: number;
+  position?: number | null;
+  totalBoats?: number | null;
+  tacks?: number | null;
+  noGoEntries?: number | null;
+  topSpeed?: number | null;
+  score?: number | null;
+}
+
+export function insertRaceResult(r: RaceResultInsert): number | null {
+  try {
+    const d = db();
+    const info = d.prepare(`
+      INSERT INTO race_results (ts, sid, nickname, difficulty, wind_strength, mission_id,
+        finish_time_sec, position, total_boats, tacks, no_go_entries, top_speed, score)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).run(
+      Date.now(), r.sid, r.nickname, r.difficulty, r.windStrength,
+      r.missionId ?? null, r.finishTimeSec, r.position ?? null, r.totalBoats ?? null,
+      r.tacks ?? null, r.noGoEntries ?? null, r.topSpeed ?? null, r.score ?? null,
+    );
+    return info.lastInsertRowid as number;
+  } catch {
+    return null;
+  }
+}
+
+export interface LeaderboardRow {
+  nickname: string;
+  sid: string;
+  difficulty: string;
+  wind_strength: string;
+  mission_id: string | null;
+  finish_time_sec: number;
+  score: number | null;
+  ts: number;
+}
+
+export function topByDifficulty(difficulty: string, wind: string, limit = 20): LeaderboardRow[] {
+  try {
+    const d = db();
+    // Best (shortest) finish time per player for the given bucket
+    return d.prepare(`
+      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
+      FROM race_results r
+      WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL
+      GROUP BY r.sid
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(difficulty, wind, limit) as LeaderboardRow[];
+  } catch {
+    return [];
+  }
+}
+
+export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
+  try {
+    const d = db();
+    return d.prepare(`
+      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
+      FROM race_results r
+      WHERE r.mission_id = ?
+      GROUP BY r.sid
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(missionId, limit) as LeaderboardRow[];
+  } catch {
+    return [];
+  }
 }

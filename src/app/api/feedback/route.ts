@@ -12,7 +12,7 @@ export const maxDuration = 15;
  * Writes structured JSON to stdout (captured by docker logs) AND appends to
  * /tmp/regatta-feedback.jsonl so reports don't scroll away in verbose logs.
  *
- * Screenshot uploads are not supported yet — they'll arrive as base64 in a
+ * Screenshot uploads are not supported yet - they'll arrive as base64 in a
  * later iteration behind a feature flag.
  */
 
@@ -77,13 +77,13 @@ export async function POST(req: Request) {
     messageLen: record.message.length,
   });
 
-  // Append to a dedicated feedback log — survives log rotation better
+  // Append to a dedicated feedback log - survives log rotation better
   try {
     await fs.mkdir(path.dirname(FEEDBACK_PATH), { recursive: true });
     await fs.appendFile(FEEDBACK_PATH, JSON.stringify(record) + '\n', 'utf8');
   } catch (err) {
     logError('feedback.persist-failed', { err: err instanceof Error ? err.message : 'unknown' });
-    // Still return ok — the log line above preserves the content in docker logs
+    // Still return ok - the log line above preserves the content in docker logs
   }
 
   // Also persist to SQLite for /stats admin

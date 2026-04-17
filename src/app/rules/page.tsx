@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
 
 // ============================================================================
-// Scenario illustrations — pure SVG, stylized, readable on any background
+// Scenario illustrations - pure SVG, stylized, readable on any background
 // ============================================================================
 
 function Boat({ x, y, rot = 0, color = '#ffffff', label }: { x: number; y: number; rot?: number; color?: string; label?: string }) {
@@ -44,7 +44,7 @@ function PortVsStarboard() {
 }
 
 function WindwardLeeward() {
-  // Both on same tack (starboard — wind from top-right). Heading roughly west-ish.
+  // Both on same tack (starboard - wind from top-right). Heading roughly west-ish.
   // Windward = closer to wind = upper boat. Leeward = farther from wind = lower boat.
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
@@ -81,7 +81,7 @@ function MarkRoom() {
       <text x="100" y="35" textAnchor="middle" fontSize="8" fill="#ffaa00">знак</text>
       {/* Zone circle (3 boat lengths) */}
       <circle cx="100" cy="50" r="35" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.6" />
-      {/* Inside boat — gets mark room */}
+      {/* Inside boat - gets mark room */}
       <Boat x={80} y={90} rot={-45} color="#44ff88" label="внутренняя ✓" />
       {/* Outside boat */}
       <Boat x={50} y={100} rot={-45} color="#ff6666" label="внешняя" />
@@ -92,8 +92,8 @@ function MarkRoom() {
 
 function Crossing() {
   // Wind from top. Both boats on courses likely to meet.
-  // Left boat heading UP-RIGHT (port tack, wind on left) — "я"
-  // Right boat heading UP-LEFT (starboard tack, wind on right) — "соперник"
+  // Left boat heading UP-RIGHT (port tack, wind on left) - "я"
+  // Right boat heading UP-LEFT (starboard tack, wind on right) - "соперник"
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={10} length={20} />
@@ -180,7 +180,7 @@ export default function RulesPage() {
              style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
           📖 Простые правила
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">8 ситуаций — и ты не потеряешься</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">8 ситуаций - и ты не потеряешься</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           Не учебник правил, а базовые расклады с воды: сцена → вопрос → ответ → почему → что делать на практике. Открывай по одной.
         </p>
@@ -274,9 +274,9 @@ export default function RulesPage() {
       <div className="mt-10 p-5 card text-center" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)]">
           <span className="font-semibold text-[var(--text-primary)]">Важно:</span>{' '}
-          это <em>упрощённая</em> версия правил для входа в тему. Полный официальный текст —{' '}
+          это <em>упрощённая</em> версия правил для входа в тему. Полный официальный текст -{' '}
           <a href="https://www.sailing.org/tools/documents/RRS20252028Finalv21-%5B29617%5D.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-cyan)] hover:underline">
-            Racing Rules of Sailing 2025–2028 (PDF)
+            Racing Rules of Sailing 2025-2028 (PDF)
           </a>.
         </p>
       </div>

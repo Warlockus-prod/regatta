@@ -23,7 +23,7 @@ export default function StatsPage() {
         <div className="card p-4">
           <p className="text-sm text-[var(--danger)]">DB error: {error ?? 'unknown'}</p>
           <p className="text-xs text-[var(--text-muted)] mt-2">
-            SQLite может быть не инициализирована — зайди на любую страницу сайта, чтобы сгенерировать событие.
+            SQLite может быть не инициализирована - зайди на любую страницу сайта, чтобы сгенерировать событие.
           </p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function StatsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         {/* Top paths */}
         <Panel title="Топ страниц (7 дней)">
-          <Bars items={metrics.topPaths.map((p) => ({ label: p.path || '—', value: p.count }))} />
+          <Bars items={metrics.topPaths.map((p) => ({ label: p.path || '-', value: p.count }))} />
         </Panel>
 
         {/* Top events */}

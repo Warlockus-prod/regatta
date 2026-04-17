@@ -7,7 +7,7 @@ export const runtime = 'nodejs';
 /**
  * Client-side error/event reporter.
  * POST body: { level: "error"|"warn"|"info", evt: string, ...any }
- * Fire-and-forget from the browser — should always return 204 even on malformed input
+ * Fire-and-forget from the browser - should always return 204 even on malformed input
  * so it never breaks the user's session.
  */
 export async function POST(req: Request) {
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       meta: body,
     });
   } catch {
-    // Swallow — never 500 to the client for a log report
+    // Swallow - never 500 to the client for a log report
   }
   return new NextResponse(null, { status: 204 });
 }

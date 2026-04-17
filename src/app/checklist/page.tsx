@@ -82,7 +82,7 @@ const GROUPS: ChecklistGroup[] = [
     titleRu: 'Перед выходом на воду',
     titleEn: 'Before heading out',
     itemsRu: [
-      'Туалет (!) — в море хуже',
+      'Туалет (!) - в море хуже',
       'Спасжилет на себя, подогнан по размеру',
       'Таблетка от морской болезни',
       'Телефон в сухой мешок',
@@ -93,7 +93,7 @@ const GROUPS: ChecklistGroup[] = [
       'Узнал/послушал прогноз погоды',
     ],
     itemsEn: [
-      'Toilet (!) — it\'s worse at sea',
+      'Toilet (!) - it\'s worse at sea',
       'Lifejacket on and properly fitted',
       'Motion sickness pill',
       'Phone in dry bag',

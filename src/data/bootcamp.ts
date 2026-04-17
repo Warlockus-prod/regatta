@@ -1,5 +1,5 @@
 // ============================================================================
-// Bootcamp — guided learning path. 8 lessons, ~5 minutes each.
+// Bootcamp - guided learning path. 8 lessons, ~5 minutes each.
 // Each lesson points to an existing section on the site + adds a short
 // "focus this time" description.
 // ============================================================================
@@ -27,12 +27,12 @@ export const bootcampLessons: BootcampLesson[] = [
     emoji: '🌬',
     titleRu: 'Ветер и направление',
     titleEn: 'Wind & direction',
-    summaryRu: 'Откуда дует, куда направлен. «Неходовая зона» — почему нельзя в лоб.',
-    summaryEn: 'Where the wind comes from and where it goes. The no-go zone — why you can\'t sail straight at it.',
+    summaryRu: 'Откуда дует, куда направлен. «Неходовая зона» - почему нельзя в лоб.',
+    summaryEn: 'Where the wind comes from and where it goes. The no-go zone - why you can\'t sail straight at it.',
     estMinutes: 5,
     route: '/simulator',
-    focusRu: 'Покрути ветер (потяни метку по кольцу). Посмотри где красный сектор — туда яхта идти не может.',
-    focusEn: 'Rotate the wind (drag the marker on the outer ring). See the red sector — the boat can\'t sail there.',
+    focusRu: 'Покрути ветер (потяни метку по кольцу). Посмотри где красный сектор - туда яхта идти не может.',
+    focusEn: 'Rotate the wind (drag the marker on the outer ring). See the red sector - the boat can\'t sail there.',
   },
   {
     id: 'points-of-sail',
@@ -53,7 +53,7 @@ export const bootcampLessons: BootcampLesson[] = [
     emoji: '⛵',
     titleRu: 'Как работает парус',
     titleEn: 'How a sail works',
-    summaryRu: 'На острых курсах парус — крыло (аэродинамическая тяга). На полных — парашют (давление).',
+    summaryRu: 'На острых курсах парус - крыло (аэродинамическая тяга). На полных - парашют (давление).',
     summaryEn: 'On close courses the sail is a wing (lift). On downwind it\'s a parachute (pressure).',
     estMinutes: 4,
     route: '/simulator',
@@ -92,7 +92,7 @@ export const bootcampLessons: BootcampLesson[] = [
     emoji: '🎯',
     titleRu: 'Лавировка и VMG',
     titleEn: 'Beating and VMG',
-    summaryRu: 'Чтобы дойти против ветра — идёшь галсами под ~45°. VMG = скорость в нужную сторону, а не просто скорость по воде.',
+    summaryRu: 'Чтобы дойти против ветра - идёшь галсами под ~45°. VMG = скорость в нужную сторону, а не просто скорость по воде.',
     summaryEn: 'To go upwind you zigzag at ~45°. VMG = speed toward your goal, not speed through water.',
     estMinutes: 7,
     route: '/racing',
@@ -109,7 +109,7 @@ export const bootcampLessons: BootcampLesson[] = [
     summaryEn: '8 core situations: tacks, overtaking, marks, crossings, collisions.',
     estMinutes: 10,
     route: '/rules',
-    focusRu: 'Прочитай все 8 карточек. После каждой — попытайся мысленно пересказать «кто кому уступает и почему».',
+    focusRu: 'Прочитай все 8 карточек. После каждой - попытайся мысленно пересказать «кто кому уступает и почему».',
     focusEn: 'Read all 8 cards. After each, try to mentally restate "who gives way, why".',
   },
   {
@@ -130,7 +130,7 @@ export const bootcampLessons: BootcampLesson[] = [
 export const BOOTCAMP_TOTAL_MINUTES = bootcampLessons.reduce((sum, l) => sum + l.estMinutes, 0);
 
 // ============================================================================
-// Quick refresh — 15 min condensed path for experienced sailors
+// Quick refresh - 15 min condensed path for experienced sailors
 // ============================================================================
 
 export interface QuickLesson {
@@ -170,8 +170,8 @@ export const quickRefreshLessons: QuickLesson[] = [
     emoji: '↔️',
     titleRu: 'Повороты: оверштаг vs фордевинд',
     titleEn: 'Tack vs jibe',
-    tipRu: 'Оверштаг — нос через ветер. Фордевинд — корма. Второй опаснее (гик).',
-    tipEn: 'Tack — bow through wind. Jibe — stern. The second is dangerous (boom).',
+    tipRu: 'Оверштаг - нос через ветер. Фордевинд - корма. Второй опаснее (гик).',
+    tipEn: 'Tack - bow through wind. Jibe - stern. The second is dangerous (boom).',
     route: '/glossary',
     estMinutes: 2,
   },

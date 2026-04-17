@@ -39,8 +39,8 @@ export const knots: Knot[] = [
       {
         titleRu: 'Сделай петлю',
         titleEn: 'Form a loop',
-        detailsRu: 'Возьми конец верёвки и сложи пополам — получилась петля.',
-        detailsEn: 'Take the rope\'s end and fold it back on itself — you have a loop.',
+        detailsRu: 'Возьми конец верёвки и сложи пополам - получилась петля.',
+        detailsEn: 'Take the rope\'s end and fold it back on itself - you have a loop.',
       },
       {
         titleRu: 'Заведи хвост за себя',
@@ -57,12 +57,12 @@ export const knots: Knot[] = [
       {
         titleRu: 'Затяни',
         titleEn: 'Tighten',
-        detailsRu: 'Потяни одновременно за оба конца — получится «восьмёрка». Оставь хвост ~10 см.',
-        detailsEn: 'Pull both ends — you get a figure-eight. Leave a ~10 cm tail.',
+        detailsRu: 'Потяни одновременно за оба конца - получится «восьмёрка». Оставь хвост ~10 см.',
+        detailsEn: 'Pull both ends - you get a figure-eight. Leave a ~10 cm tail.',
       },
     ],
-    mistakeRu: 'Сделать простой узел вместо восьмёрки — он будет туго развязываться под нагрузкой.',
-    mistakeEn: 'Tying a simple overhand knot instead — it jams under load and is hard to untie.',
+    mistakeRu: 'Сделать простой узел вместо восьмёрки - он будет туго развязываться под нагрузкой.',
+    mistakeEn: 'Tying a simple overhand knot instead - it jams under load and is hard to untie.',
   },
   {
     id: 'bowline',
@@ -77,8 +77,8 @@ export const knots: Knot[] = [
       {
         titleRu: '«Озеро, дерево, заяц»',
         titleEn: '"Rabbit, tree, hole"',
-        detailsRu: 'Мнемоника: сделай маленькую петлю ("озеро"), длинный конец ("дерево"), короткий конец — "заяц".',
-        detailsEn: 'Memo: small loop ("hole"), long end ("tree"), short end — "rabbit".',
+        detailsRu: 'Мнемоника: сделай маленькую петлю ("озеро"), длинный конец ("дерево"), короткий конец - "заяц".',
+        detailsEn: 'Memo: small loop ("hole"), long end ("tree"), short end - "rabbit".',
       },
       {
         titleRu: 'Заяц выходит из озера',
@@ -105,7 +105,7 @@ export const knots: Knot[] = [
         detailsEn: 'Pull the main loop and the standing end. Leave a ~10 cm tail.',
       },
     ],
-    mistakeRu: 'Завернуть «зайца» не в ту сторону — получится не беседочный, а похожий, но скользящий узел. Проверяй: правильный беседочный узнаётся по перевёрнутой восьмёрке в центре.',
+    mistakeRu: 'Завернуть «зайца» не в ту сторону - получится не беседочный, а похожий, но скользящий узел. Проверяй: правильный беседочный узнаётся по перевёрнутой восьмёрке в центре.',
     mistakeEn: 'Wrapping the "rabbit" the wrong way gives a slip knot, not a bowline. Check: correct bowline looks like an inverted 8 in the middle.',
   },
   {
@@ -115,8 +115,8 @@ export const knots: Knot[] = [
     nameEn: 'Cleat hitch',
     useRu: 'Закрепить конец на утке (причальная, мачтовая, на гике).',
     useEn: 'Secure a line to a cleat (dock, mast, boom).',
-    bavariaUseRu: 'На всех швартовых утках Bavaria 46 — на носу, корме и миделе. На утках для ходовых концов в кокпите.',
-    bavariaUseEn: 'On every mooring cleat of Bavaria 46 — bow, stern, midship. On cockpit cleats for working lines.',
+    bavariaUseRu: 'На всех швартовых утках Bavaria 46 - на носу, корме и миделе. На утках для ходовых концов в кокпите.',
+    bavariaUseEn: 'On every mooring cleat of Bavaria 46 - bow, stern, midship. On cockpit cleats for working lines.',
     steps: [
       {
         titleRu: 'Обведи основание утки',
@@ -131,20 +131,20 @@ export const knots: Knot[] = [
         detailsEn: 'Figure-eight around the horns: under the near horn, over the far, back under. 2-3 eights.',
       },
       {
-        titleRu: 'Последняя петля — подвёрнута',
-        titleEn: 'Last tuck — folded under',
+        titleRu: 'Последняя петля - подвёрнута',
+        titleEn: 'Last tuck - folded under',
         detailsRu: 'Последний виток заверни хвост ПОД последнюю петлю, чтобы она зажалась.',
         detailsEn: 'Tuck the tail UNDER the last loop so it\'s pinched.',
       },
       {
         titleRu: 'Чтобы не распускалось',
         titleEn: 'Security check',
-        detailsRu: 'Потяни за хвост — должно держать. При рывке за основной конец узел не должен соскочить.',
-        detailsEn: 'Pull on the tail — should hold. Yank the standing part — knot must not slip.',
+        detailsRu: 'Потяни за хвост - должно держать. При рывке за основной конец узел не должен соскочить.',
+        detailsEn: 'Pull on the tail - should hold. Yank the standing part - knot must not slip.',
       },
     ],
-    mistakeRu: 'Слишком много восьмёрок (5+) — узел трудно распустить мокрыми руками в спешке.',
-    mistakeEn: 'Too many figure-eights (5+) — hard to untie with wet hands in a hurry.',
+    mistakeRu: 'Слишком много восьмёрок (5+) - узел трудно распустить мокрыми руками в спешке.',
+    mistakeEn: 'Too many figure-eights (5+) - hard to untie with wet hands in a hurry.',
   },
   {
     id: 'clove-hitch',
@@ -181,7 +181,7 @@ export const knots: Knot[] = [
         detailsEn: 'Tighten both ends evenly. The knot holds by pinching between the two wraps.',
       },
     ],
-    mistakeRu: 'Не пересечь первый оборот — тогда узел не зафиксируется и будет скользить.',
+    mistakeRu: 'Не пересечь первый оборот - тогда узел не зафиксируется и будет скользить.',
     mistakeEn: 'If the wraps don\'t cross, the knot slides and fails.',
   },
   {
@@ -209,8 +209,8 @@ export const knots: Knot[] = [
       {
         titleRu: 'Второй полуштык',
         titleEn: 'Second half hitch',
-        detailsRu: 'Повтори то же самое — ещё один полуштык.',
-        detailsEn: 'Repeat — second half hitch.',
+        detailsRu: 'Повтори то же самое - ещё один полуштык.',
+        detailsEn: 'Repeat - second half hitch.',
       },
       {
         titleRu: 'Затяни и проверь',
@@ -219,8 +219,8 @@ export const knots: Knot[] = [
         detailsEn: 'Both half hitches should go the same way. Check the tail is pinned.',
       },
     ],
-    mistakeRu: 'Сделать один шлаг вместо двух — узел меньше держит при рывках.',
-    mistakeEn: 'Only one round turn — the knot takes more load and slips easier.',
+    mistakeRu: 'Сделать один шлаг вместо двух - узел меньше держит при рывках.',
+    mistakeEn: 'Only one round turn - the knot takes more load and slips easier.',
   },
   {
     id: 'sheet-bend',
@@ -263,7 +263,7 @@ export const knots: Knot[] = [
         detailsEn: 'Hold the thick loop, pull the thin rope. Both tails should end up on the same side.',
       },
     ],
-    mistakeRu: 'Хвосты на разных сторонах — так узел ослаблен почти на 50%. Пересвяжи.',
-    mistakeEn: 'Tails on opposite sides — about 50% weaker. Retie.',
+    mistakeRu: 'Хвосты на разных сторонах - так узел ослаблен почти на 50%. Пересвяжи.',
+    mistakeEn: 'Tails on opposite sides - about 50% weaker. Retie.',
   },
 ];

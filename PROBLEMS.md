@@ -21,11 +21,11 @@ Logs to check for clues:
 - **Fix plan:** convert to `useRef` so loop always reads current value
 - **Priority:** must ship in next session before anything else
 
-### B2. Simulator — text overlap on compass diagram
+### B2. Simulator - text overlap on compass diagram
 - **Symptom:** in `/simulator`, labels (angle ticks, cardinal N/E/S/W, course names) sometimes overlap each other and the yacht icon, especially at certain boat angles
 - **Fix plan:** add background-pill under TWA angle label; offset cardinals slightly further out; ensure TWA label avoids cardinal positions
 
-### B3. /rules — illustration angles inconsistent with wind
+### B3. /rules - illustration angles inconsistent with wind
 - **Symptom:** in some of the 8 rule illustrations the boat rotation doesn't match the wind direction correctly (e.g. port-tack vs starboard-tack visual could confuse)
 - **Fix plan:** review all 8 SVGs with sailing-accuracy lens: wind arrow, sail on opposite side of wind, boat heading matches claimed tack
 - **Also:** add small "not to scale" note per illustration
@@ -34,20 +34,20 @@ Logs to check for clues:
 
 ## Deferred (not blocking, tracked for future)
 
-- [ ] **3D yacht anatomy** — currently shipped as stylized 2D side-profile of Bavaria 46 with 17 hotspots. User explicitly wanted 3D "directly". Upgrade plan: acquire Bavaria 46 GLB model (TurboSquid ~$50 or Sketchfab free with attribution), integrate `<model-viewer>` web component, translate 2D hotspot positions to 3D cameraOrbit coords. Why deferred: a broken fake 3D is worse UX than a good 2D; data + API contract is identical so swap-in is easy (~1 day).
+- [ ] **3D yacht anatomy** - currently shipped as stylized 2D side-profile of Bavaria 46 with 17 hotspots. User explicitly wanted 3D "directly". Upgrade plan: acquire Bavaria 46 GLB model (TurboSquid ~$50 or Sketchfab free with attribution), integrate `<model-viewer>` web component, translate 2D hotspot positions to 3D cameraOrbit coords. Why deferred: a broken fake 3D is worse UX than a good 2D; data + API contract is identical so swap-in is easy (~1 day).
 
-- [ ] **Practical missions — game integration** — mission data + evaluation logic in `src/data/missions.ts` is ready (4 missions designed, evaluator implemented). Still TODO: mission picker UI in game menu, forcing of difficulty/wind-strength when mission selected, showing pass/fail on finish screen. ~1-2 hours of focused work — deferred to avoid bloating game page in this wave.
-- [ ] **Video demos on Courses page** — short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
-- [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) — add container to VPS, small nginx conf, ~15 LOC script tag in layout.
-- [ ] **Polar diagram** — classic training tool. Renders speed-vs-TWA curve given wind strength. Read-only view in `/simulator` as toggleable overlay.
-- [ ] **Course editor** — drag/drop marks on a canvas, serialize to URL hash, share. Substantial feature, ~1 day.
-- [ ] **Multiplayer** — 2–6 players on same course via WebSocket. Requires backend (Node+Socket.io or similar). Architectural decision needed: keep within same Docker on VPS or move to Vercel + separate ws server.
-- [ ] **Capacitor wrap** — ship as iOS/Android app from same codebase. Simple wrapper around Next.js PWA. ~2 hours.
-- [ ] **Wind shifts in game** — every 30–60s the wind direction shifts ±5–15°. Requires physics refactor (currently wind is const).
-- [ ] **Gusts & lulls** — visual wind patches on water affecting local speed ±20%.
-- [ ] **Ghost replay** — overlay optimal path vs player after finish.
-- [ ] **VMG hint arrow** — "sail higher" / "sail lower" during upwind.
-- [ ] **Mark-rounding penalties** — 360° turn penalty for touching a mark.
+- [ ] **Practical missions - game integration** - mission data + evaluation logic in `src/data/missions.ts` is ready (4 missions designed, evaluator implemented). Still TODO: mission picker UI in game menu, forcing of difficulty/wind-strength when mission selected, showing pass/fail on finish screen. ~1-2 hours of focused work - deferred to avoid bloating game page in this wave.
+- [ ] **Video demos on Courses page** - short muted webm clips showing each point of sail in motion. Needs asset creation (record simulator or render externally).
+- [ ] **Self-hosted analytics** (Plausible / Umami / Pirsch) - add container to VPS, small nginx conf, ~15 LOC script tag in layout.
+- [ ] **Polar diagram** - classic training tool. Renders speed-vs-TWA curve given wind strength. Read-only view in `/simulator` as toggleable overlay.
+- [ ] **Course editor** - drag/drop marks on a canvas, serialize to URL hash, share. Substantial feature, ~1 day.
+- [ ] **Multiplayer** - 2-6 players on same course via WebSocket. Requires backend (Node+Socket.io or similar). Architectural decision needed: keep within same Docker on VPS or move to Vercel + separate ws server.
+- [ ] **Capacitor wrap** - ship as iOS/Android app from same codebase. Simple wrapper around Next.js PWA. ~2 hours.
+- [ ] **Wind shifts in game** - every 30-60s the wind direction shifts ±5-15°. Requires physics refactor (currently wind is const).
+- [ ] **Gusts & lulls** - visual wind patches on water affecting local speed ±20%.
+- [ ] **Ghost replay** - overlay optimal path vs player after finish.
+- [ ] **VMG hint arrow** - "sail higher" / "sail lower" during upwind.
+- [ ] **Mark-rounding penalties** - 360° turn penalty for touching a mark.
 
 ### Missions design sketch (for later implementation)
 
@@ -84,29 +84,29 @@ Game page reads an active mission from URL `/game?m=upwind-only` or from menu se
 ## Backlog
 
 ### High priority (user value)
-- [ ] **Mini-map** of the whole course in game overlay (bottom-right corner) — see `AUDIT.md` §5.1
-- [ ] **Wind shifts** — rotate wind direction by ±5–15° every 30–60 sec for tactical depth
-- [ ] **Autopilot (AUTO button)** — hold current heading until player intervenes, essential for mobile one-hand play
-- [ ] **Custom favicon + OG image** — currently using default Next.js favicon
+- [ ] **Mini-map** of the whole course in game overlay (bottom-right corner) - see `AUDIT.md` §5.1
+- [ ] **Wind shifts** - rotate wind direction by ±5-15° every 30-60 sec for tactical depth
+- [ ] **Autopilot (AUTO button)** - hold current heading until player intervenes, essential for mobile one-hand play
+- [ ] **Custom favicon + OG image** - currently using default Next.js favicon
 
 ### Medium
-- [ ] **Gusts & lulls** — visual wind patches on water affecting speed ±20%
-- [ ] **Ghost replay** — overlay ideal path vs player path after finish
-- [ ] **VMG hint** — arrow saying "sail higher" / "sail lower" for optimal upwind VMG
-- [ ] **Mark rounding penalties** — 360° turn penalty for touching a mark
-- [ ] **More courses** — triangle course, slalom, reach-only
+- [ ] **Gusts & lulls** - visual wind patches on water affecting speed ±20%
+- [ ] **Ghost replay** - overlay ideal path vs player path after finish
+- [ ] **VMG hint** - arrow saying "sail higher" / "sail lower" for optimal upwind VMG
+- [ ] **Mark rounding penalties** - 360° turn penalty for touching a mark
+- [ ] **More courses** - triangle course, slalom, reach-only
 
 ### Low
-- [ ] **Wind strength slider** — 3 kts (light) to 20 kts (heavy) before race
-- [ ] **Save race history to localStorage** — no account needed, just track PBs per difficulty
-- [ ] **Accessibility** — keyboard focus outlines are currently subtle; also add aria-live for position changes
-- [ ] **i18n switcher** — offer English-primary view (now RU primary, EN secondary)
+- [ ] **Wind strength slider** - 3 kts (light) to 20 kts (heavy) before race
+- [ ] **Save race history to localStorage** - no account needed, just track PBs per difficulty
+- [ ] **Accessibility** - keyboard focus outlines are currently subtle; also add aria-live for position changes
+- [ ] **i18n switcher** - offer English-primary view (now RU primary, EN secondary)
 
 ### Infrastructure / Tech debt
 - [ ] Add volume mount for `regatta.nginx.conf` to shared `nginx_server` compose so config survives container recreation. Currently via `docker cp` → lost on nginx_server rebuild.
-- [ ] Automate deploy — GitHub Actions runner SSHs to VPS and does `git pull && docker compose up -d --build`. Right now deploy is manual.
+- [ ] Automate deploy - GitHub Actions runner SSHs to VPS and does `git pull && docker compose up -d --build`. Right now deploy is manual.
 - [ ] Add a CI workflow to at least run `npm run build` + `tsc --noEmit` on every push.
-- [ ] Move hardcoded `ANTHROPIC_API_KEY` from `.env.local` — user must rotate the key that leaked in chat.
+- [ ] Move hardcoded `ANTHROPIC_API_KEY` from `.env.local` - user must rotate the key that leaked in chat.
 
 ---
 
@@ -116,7 +116,7 @@ Game page reads an active mission from URL `/game?m=upwind-only` or from menu se
 |---|---|---|
 | 2026-04-16 | `JSX.Element` namespace not found in TS strict mode (courses page) | Replaced with `React.ReactElement` |
 | 2026-04-16 | `ringColor` not a valid CSS property on React `style` prop | Replaced with `outlineColor` |
-| 2026-04-16 | Hydration mismatch on courses page SVG — float precision between server and client for `Math.sin`/`cos` results | Round polar→cartesian outputs to 2 decimal places |
+| 2026-04-16 | Hydration mismatch on courses page SVG - float precision between server and client for `Math.sin`/`cos` results | Round polar→cartesian outputs to 2 decimal places |
 | 2026-04-16 | Rotated course labels unreadable (upside-down on bottom half of diagram) | Render non-rotated horizontal labels mirrored on both port/starboard sides; expand viewBox 520→600 to fit |
 | 2026-04-16 | Overlapping leeward gate labels on racing page | Added `labelPos: 'left'\|'right'\|'below'\|'above'` prop to `BuoyMark` + shared "Leeward Gate" subtitle |
 | 2026-04-16 | `public/` dir empty → Docker build fails on `COPY public` | Added `public/.gitkeep` |
@@ -129,8 +129,8 @@ Game page reads an active mission from URL `/game?m=upwind-only` or from menu se
 ## Observed patterns (learning for next time)
 
 1. **Always `.gitkeep` empty folders** you need in the Docker build.
-2. **Always `git rev-parse --show-toplevel`** before `git init` — there may already be a parent repo.
+2. **Always `git rev-parse --show-toplevel`** before `git init` - there may already be a parent repo.
 3. **SVG coords from trig functions need rounding** to avoid hydration mismatches.
-4. **Nginx config changes on shared server** — use `docker cp` + `docker exec nginx -s reload`, never restart.
-5. **Let's Encrypt cert files renew but don't auto-copy** to shared cert dirs — always set up a deploy-hook.
+4. **Nginx config changes on shared server** - use `docker cp` + `docker exec nginx -s reload`, never restart.
+5. **Let's Encrypt cert files renew but don't auto-copy** to shared cert dirs - always set up a deploy-hook.
 6. **Next.js `output: "standalone"`** needs `outputFileTracingRoot` explicitly pinned in monorepo-adjacent setups.

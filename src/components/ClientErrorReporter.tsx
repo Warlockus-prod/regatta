@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { clientError, clientInfo } from '@/lib/client-log';
 
 /**
- * Mounted once in the root layout — attaches listeners for uncaught errors
+ * Mounted once in the root layout - attaches listeners for uncaught errors
  * and unhandled promise rejections, sending them to /api/log.
  *
  * Also logs a lightweight "page-view" event for each navigation so we can

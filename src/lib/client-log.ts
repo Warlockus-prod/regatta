@@ -1,7 +1,7 @@
 /**
- * Client-side logger — fires-and-forgets events to /api/log.
+ * Client-side logger - fires-and-forgets events to /api/log.
  * Uses sendBeacon when available (survives page unload), falls back to fetch.
- * Silent on failure — must never break the user's experience.
+ * Silent on failure - must never break the user's experience.
  */
 type Level = 'info' | 'warn' | 'error';
 

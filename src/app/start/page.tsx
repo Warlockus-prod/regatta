@@ -59,7 +59,7 @@ export default function StartHerePage() {
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {t(
-            '8 уроков по 5 минут. От ветра до мини-гонки. Каждый урок — короткий визит в соответствующий раздел с конкретным заданием.',
+            '8 уроков по 5 минут. От ветра до мини-гонки. Каждый урок - короткий визит в соответствующий раздел с конкретным заданием.',
             '8 lessons of 5 min each. From wind to mini-race. Each lesson is a short visit to the relevant section with a specific task.',
           )}
         </p>
@@ -167,8 +167,8 @@ export default function StartHerePage() {
           <h3 className="text-xl font-bold mb-2">{t('База пройдена!', 'Basics complete!')}</h3>
           <p className="text-sm text-[var(--text-secondary)] mb-4">
             {t(
-              'Ты освоил основы парусного дела. На воде пригодится всё — ветер, курсы, правила, тактика.',
-              'You\'ve got the basics of sailing. Wind, courses, rules, tactics — all of it useful on the water.',
+              'Ты освоил основы парусного дела. На воде пригодится всё - ветер, курсы, правила, тактика.',
+              'You\'ve got the basics of sailing. Wind, courses, rules, tactics - all of it useful on the water.',
             )}
           </p>
           <div className="flex flex-wrap gap-2 justify-center">

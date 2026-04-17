@@ -2,14 +2,45 @@ import { NextResponse, type NextRequest } from 'next/server';
 
 /**
  * HTTP Basic Auth for /stats admin.
- * User: admin, password: from env ADMIN_PASSWORD or fallback "regattA".
- * Runs on Edge runtime — must not use Node APIs.
+ * Plus: anonymous session cookie issued on any page visit (so we can
+ * correlate progress across reloads without any login / personal data).
+ * Runs on Edge runtime - must not use Node APIs.
  */
 const BASIC_USER = 'admin';
 const BASIC_PASS = process.env.ADMIN_PASSWORD || 'regattA';
 
+const SESSION_COOKIE = 'regatta_sid';
+const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
+function ensureSessionCookie(res: NextResponse, req: NextRequest) {
+  if (req.cookies.get(SESSION_COOKIE)) return;
+  // crypto.randomUUID is available on Edge runtime
+  const sid = crypto.randomUUID();
+  res.cookies.set({
+    name: SESSION_COOKIE,
+    value: sid,
+    maxAge: SESSION_MAX_AGE,
+    path: '/',
+    httpOnly: false, // client can read to send with custom events
+    sameSite: 'lax',
+  });
+}
+
 export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
+
+  // Issue session cookie for regular navigations (skip static assets & api)
+  if (
+    !pathname.startsWith('/stats') &&
+    !pathname.startsWith('/api/admin') &&
+    !pathname.startsWith('/_next') &&
+    !pathname.startsWith('/api/')
+  ) {
+    const res = NextResponse.next();
+    ensureSessionCookie(res, req);
+    return res;
+  }
+
   if (!pathname.startsWith('/stats') && !pathname.startsWith('/api/admin')) {
     return NextResponse.next();
   }
@@ -38,5 +69,10 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/stats/:path*', '/api/admin/:path*'],
+  // Match all paths except _next/static files and common public assets,
+  // so session cookies are issued site-wide, and admin basic-auth still fires
+  // on its own prefixes.
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|icon-.*|manifest\\.json).*)',
+  ],
 };

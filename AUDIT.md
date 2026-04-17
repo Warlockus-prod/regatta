@@ -1,4 +1,4 @@
-# Regatta — Final Audit v5.0
+# Regatta - Final Audit v5.0
 
 **Date:** 2026-04-17
 **Version shipped:** v5.0
@@ -46,10 +46,10 @@ Rollback: `git checkout v1.0` + `docker compose up -d --build` on VPS. Every tag
 
 ### APIs
 
-- `POST /api/log` — client event ingestion, persists to SQLite
-- `POST /api/feedback` — feedback/bug reports, persists to SQLite + JSONL
-- `POST /api/coach` — race log → Claude Haiku analysis
-- `POST /api/admin/feedback` — status transitions for reports (auth-protected)
+- `POST /api/log` - client event ingestion, persists to SQLite
+- `POST /api/feedback` - feedback/bug reports, persists to SQLite + JSONL
+- `POST /api/coach` - race log → Claude Haiku analysis
+- `POST /api/admin/feedback` - status transitions for reports (auth-protected)
 
 ### Infrastructure
 
@@ -81,52 +81,52 @@ Rollback: `git checkout v1.0` + `docker compose up -d --build` on VPS. Every tag
 
 ## What's deferred (tracked in PROBLEMS.md)
 
-- **3D yacht anatomy** — user requested direct 3D, shipped as high-quality 2D Bavaria 46 profile. Upgrade path: acquire GLB, swap `<model-viewer>` in, hotspots translate 1:1
-- **Missions UI in game** — data + evaluator ready, UI integration deferred
-- **Wind shifts + gusts in game** — requires physics refactor (wind is currently const)
+- **3D yacht anatomy** - user requested direct 3D, shipped as high-quality 2D Bavaria 46 profile. Upgrade path: acquire GLB, swap `<model-viewer>` in, hotspots translate 1:1
+- **Missions UI in game** - data + evaluator ready, UI integration deferred
+- **Wind shifts + gusts in game** - requires physics refactor (wind is currently const)
 - **Ghost replay / debrief mode**
 - **VMG hint during upwind**
 - **Polar diagram overlay**
-- **Quiz/assessment** — user requested, but testing with 10 real users first
-- **Instructor mode** — low priority until audience proves need
-- **Retention features** — shareable result card, email nudges before regatta date
-- **Charts depth in admin** — funnel, cohorts, A/B test infra
+- **Quiz/assessment** - user requested, but testing with 10 real users first
+- **Instructor mode** - low priority until audience proves need
+- **Retention features** - shareable result card, email nudges before regatta date
+- **Charts depth in admin** - funnel, cohorts, A/B test infra
 
 ## What was actively pushed back
 
 From the long ChatGPT roadmap, these were explicitly not done:
 
-- **Multiplayer** — wrong battle for now, backend + sync needed
-- **Capacitor iOS/Android wrap** — PWA covers install. Apple credentials noted in personal memory for when warranted
-- **Full Racing Rules of Sailing text** — link out instead
-- **Course editor** — until community exists
-- **Self-hosted Plausible/Umami** — our `/stats` suffices
-- **Audio bug reports** — overcomplex for MVP
-- **Native "Bavaria 46 everywhere" rebuild of game top-view** — game top-view is abstract "38-46ft keelboat silhouette", anatomy page commits to Bavaria 46 explicitly
+- **Multiplayer** - wrong battle for now, backend + sync needed
+- **Capacitor iOS/Android wrap** - PWA covers install. Apple credentials noted in personal memory for when warranted
+- **Full Racing Rules of Sailing text** - link out instead
+- **Course editor** - until community exists
+- **Self-hosted Plausible/Umami** - our `/stats` suffices
+- **Audio bug reports** - overcomplex for MVP
+- **Native "Bavaria 46 everywhere" rebuild of game top-view** - game top-view is abstract "38-46ft keelboat silhouette", anatomy page commits to Bavaria 46 explicitly
 
 ---
 
 ## Development process notes
 
 ### What worked this session
-- **Wave-based shipping** — each wave self-contained, testable, rollback-able. No half-done features in production.
-- **Tag per wave** — `v1.0 / v1.1 / v2.0 / v3.0 / v4.0 / v5.0` with matching docker images = clean rollback story
-- **Storage layer first, features second** — the `storage.ts` helper enabled bootcamp + checklist + language without each reinventing localStorage
-- **Data layer separation** — `/src/data/*.ts` files pure, routes are presentation. Missions / knots / anatomy / rules data can be edited without touching components
-- **Building pushback into roadmap explicitly** — table in ROADMAP.md showing "user overrode N, kept my original M" keeps decisions traceable
-- **Bug triage first** — B1/B2/B3 fixed before any Wave 2 features, protecting existing user experience
+- **Wave-based shipping** - each wave self-contained, testable, rollback-able. No half-done features in production.
+- **Tag per wave** - `v1.0 / v1.1 / v2.0 / v3.0 / v4.0 / v5.0` with matching docker images = clean rollback story
+- **Storage layer first, features second** - the `storage.ts` helper enabled bootcamp + checklist + language without each reinventing localStorage
+- **Data layer separation** - `/src/data/*.ts` files pure, routes are presentation. Missions / knots / anatomy / rules data can be edited without touching components
+- **Building pushback into roadmap explicitly** - table in ROADMAP.md showing "user overrode N, kept my original M" keeps decisions traceable
+- **Bug triage first** - B1/B2/B3 fixed before any Wave 2 features, protecting existing user experience
 
 ### Friction points
 - Docker `better-sqlite3` needed native build deps (alpine needs python3, make, g++)
-- Next.js 16 middleware is now called "proxy" convention — renamed eventually
-- ChatGPT share link scraping hit Cloudflare — documentation lost to tool-auth friction. User pasted content manually.
-- SVG coordinate accuracy in rules illustrations — required careful double-check of wind-vs-boat orientation
-- Nav overflow at 8+ items — resolved by keeping nav compact (icons-only at md), hero cards on homepage do the navigation work
+- Next.js 16 middleware is now called "proxy" convention - renamed eventually
+- ChatGPT share link scraping hit Cloudflare - documentation lost to tool-auth friction. User pasted content manually.
+- SVG coordinate accuracy in rules illustrations - required careful double-check of wind-vs-boat orientation
+- Nav overflow at 8+ items - resolved by keeping nav compact (icons-only at md), hero cards on homepage do the navigation work
 
 ### Recommendations for next session
 1. Add Playwright smoke-test script that hits all 14 routes, checks HTTP 200 + no console errors. Run before every deploy.
 2. Add server-side `country` lookup (geoip-lite) for `/stats` geo metrics
-3. Make `/stats` password come from env only (kill the hardcoded fallback — it's in the public repo)
+3. Make `/stats` password come from env only (kill the hardcoded fallback - it's in the public repo)
 4. Audit: do any route still have mixed RU/EN? Grep for strings that should be through `useI18n`
 5. Screenshot every page on desktop + mobile, save to `/docs/` for visual regression baseline
 
@@ -136,21 +136,21 @@ From the long ChatGPT roadmap, these were explicitly not done:
 
 | Concern | File |
 |---|---|
-| Add a new route to nav | `src/components/Navigation.tsx` — `navItems` array |
-| Change homepage cards | `src/app/page.tsx` — `entryPoints` + `secondaryTools` |
+| Add a new route to nav | `src/components/Navigation.tsx` - `navItems` array |
+| Change homepage cards | `src/app/page.tsx` - `entryPoints` + `secondaryTools` |
 | Add/edit rules scenarios | `src/data/rules.ts` + illustrations in `src/app/rules/page.tsx` |
 | Add bootcamp lesson | `src/data/bootcamp.ts` |
 | Edit onboard content | `src/data/onboard.ts` |
 | Anatomy hotspots | `src/data/anatomy.ts` |
 | Add knot | `src/data/knots.ts` + SVG in `src/app/knots/page.tsx` |
-| Checklist items | `src/app/checklist/page.tsx` — inline `GROUPS` |
-| Game physics constants | `src/app/game/page.tsx` — top of file |
-| Simulator physics | `src/app/simulator/page.tsx` — `speedFactorFromTWA` |
-| AI coach prompt | `src/app/api/coach/route.ts` — `SYSTEM` |
+| Checklist items | `src/app/checklist/page.tsx` - inline `GROUPS` |
+| Game physics constants | `src/app/game/page.tsx` - top of file |
+| Simulator physics | `src/app/simulator/page.tsx` - `speedFactorFromTWA` |
+| AI coach prompt | `src/app/api/coach/route.ts` - `SYSTEM` |
 | Fallback coach heuristics | `src/lib/fallback-coach.ts` |
-| Storage schema | `src/lib/storage.ts` — bump `CURRENT_VERSION` when changing shape |
-| DB schema | `src/lib/db.ts` — add migrations as needed |
-| Admin password | env var `ADMIN_PASSWORD` (defaults to `regattA` — CHANGE IN PROD) |
+| Storage schema | `src/lib/storage.ts` - bump `CURRENT_VERSION` when changing shape |
+| DB schema | `src/lib/db.ts` - add migrations as needed |
+| Admin password | env var `ADMIN_PASSWORD` (defaults to `regattA` - CHANGE IN PROD) |
 | API key (AI coach) | VPS `.env` at `/opt/repos/regatta/.env` as `ANTHROPIC_API_KEY=...` |
 
 ---
@@ -198,4 +198,4 @@ docker exec regatta sh -c 'sqlite3 /data/regatta-stats.db "SELECT COUNT(*) FROM 
 
 ---
 
-*End of audit v5.0 — ships with 14 routes, 4 APIs, full admin, bilingual content, ~50 hours of development compressed into 2 sessions.*
+*End of audit v5.0 - ships with 14 routes, 4 APIs, full admin, bilingual content, ~50 hours of development compressed into 2 sessions.*

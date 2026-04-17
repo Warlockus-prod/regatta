@@ -1,5 +1,5 @@
 /**
- * Versioned localStorage helper — safe reset on schema mismatch.
+ * Versioned localStorage helper - safe reset on schema mismatch.
  * All keys live under "regatta." namespace and carry an embedded version.
  */
 
@@ -30,7 +30,7 @@ export function storageGet<T>(key: string, fallback: T): T {
     if (!raw) return fallback;
     const env = JSON.parse(raw) as StorageEnvelope<T>;
     if (env.v !== CURRENT_VERSION) {
-      // Schema mismatch — safe reset of this key. Future: run migration.
+      // Schema mismatch - safe reset of this key. Future: run migration.
       window.localStorage.removeItem(NS + key);
       return fallback;
     }
@@ -46,7 +46,7 @@ export function storageSet<T>(key: string, value: T): void {
     const env: StorageEnvelope<T> = { v: CURRENT_VERSION, data: value };
     window.localStorage.setItem(NS + key, JSON.stringify(env));
   } catch {
-    // Quota or disabled — silently drop
+    // Quota or disabled - silently drop
   }
 }
 

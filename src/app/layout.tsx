@@ -19,7 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Regatta — Sailing Simulator",
+  title: "Regatta - Sailing Simulator",
   description: "Interactive sailing education simulator. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.",
   manifest: "/manifest.json",
   appleWebApp: {
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
     ],
   },
   openGraph: {
-    title: "Regatta — Sailing Simulator",
+    title: "Regatta - Sailing Simulator",
     description: "Симулятор парусной яхты: курсы, паруса, гоночные стратегии, игра с AI-соперниками.",
     url: "https://regatta.icoffio.com",
     siteName: "Regatta",
@@ -62,8 +62,9 @@ export default function RootLayout({
     <html
       lang="ru"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={{ background: '#0a1628' }}
     >
-      <body className="min-h-full flex flex-col ocean-bg">
+      <body className="min-h-full flex flex-col ocean-bg" style={{ background: '#0a1628' }}>
         <I18nProvider>
           <ClientErrorReporter />
           <OnboardingTour />

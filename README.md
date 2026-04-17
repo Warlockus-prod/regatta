@@ -1,4 +1,4 @@
-# Regatta — Sailing Yacht Simulator
+# Regatta - Sailing Yacht Simulator
 
 Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.
 
@@ -6,11 +6,11 @@ Interactive sailing education app. Learn points of sail, sail trim, racing strat
 
 ## Features
 
-- **Interactive Simulator** — drag/arrow-key to rotate the yacht, watch sails trim automatically, see current point of sail in RU/EN.
-- **Points of Sail** — circular wind diagram with all sailing courses (Левентик, Бейдевинд, Галфвинд, Бакштаг, Фордевинд).
-- **Racing Strategy** — race course diagrams, upwind/downwind strategies, right-of-way rules, key concepts (layline, VMG, clear air).
-- **Race Game** — compete with AI opponents on three difficulty levels with real sailing physics.
-- **Glossary** — 51 bilingual sailing terms across 7 categories.
+- **Interactive Simulator** - drag/arrow-key to rotate the yacht, watch sails trim automatically, see current point of sail in RU/EN.
+- **Points of Sail** - circular wind diagram with all sailing courses (Левентик, Бейдевинд, Галфвинд, Бакштаг, Фордевинд).
+- **Racing Strategy** - race course diagrams, upwind/downwind strategies, right-of-way rules, key concepts (layline, VMG, clear air).
+- **Race Game** - compete with AI opponents on three difficulty levels with real sailing physics.
+- **Glossary** - 51 bilingual sailing terms across 7 categories.
 
 ## Stack
 

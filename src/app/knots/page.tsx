@@ -7,7 +7,7 @@ import { useI18n } from '@/lib/i18n';
 // Simple step visualization: show rope as connected arcs with highlighted step
 function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
   // Each knot gets a dedicated stylized SVG diagram per step.
-  // We keep them intentionally simple — the text does the heavy lifting.
+  // We keep them intentionally simple - the text does the heavy lifting.
   const visuals: Record<string, (step: number) => React.ReactElement> = {
     'figure-eight': (s) => (
       <svg viewBox="0 0 200 140" className="w-full h-auto">
@@ -118,7 +118,7 @@ export default function KnotsPage() {
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {t(
             'Не коллекция, а рабочий набор. Используются везде на Bavaria 46 и на любой другой яхте.',
-            'Not a collection — a working set. Used everywhere on Bavaria 46 and most yachts.',
+            'Not a collection - a working set. Used everywhere on Bavaria 46 and most yachts.',
           )}
         </p>
       </div>

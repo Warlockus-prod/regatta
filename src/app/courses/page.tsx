@@ -370,7 +370,7 @@ function WindDiagram({
         );
       })()}
 
-      {/* Russian labels around the circle — horizontal, mirrored on both sides */}
+      {/* Russian labels around the circle - horizontal, mirrored on both sides */}
       {pointsOfSail.map((p) => {
         if (p.id === 'in-irons') {
           return (

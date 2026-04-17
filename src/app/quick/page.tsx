@@ -19,7 +19,7 @@ export default function QuickRefreshPage() {
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {t(
-            'Для тех у кого опыт уже есть и регата — завтра. 6 ключевых тем без воды.',
+            'Для тех у кого опыт уже есть и регата - завтра. 6 ключевых тем без воды.',
             'For experienced sailors with a regatta tomorrow. 6 key topics, no filler.',
           )}
         </p>
@@ -56,8 +56,8 @@ export default function QuickRefreshPage() {
 
       <div className="mt-6 p-4 card text-center text-sm text-[var(--text-secondary)]">
         {t(
-          'Если хочешь полный маршрут на 45+ минут —',
-          'If you want the full 45+ min path —',
+          'Если хочешь полный маршрут на 45+ минут -',
+          'If you want the full 45+ min path -',
         )}{' '}
         <Link href="/start" className="text-[var(--accent-cyan)] hover:underline">
           {t('Bootcamp', 'Bootcamp')}

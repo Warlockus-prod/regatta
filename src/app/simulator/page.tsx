@@ -59,7 +59,7 @@ function tackSide(boatHeading: number, windDir: number): 'port' | 'starboard' {
   return s > 0 ? 'starboard' : 'port';
 }
 
-/** Heel (leewards lean) — depends on sail force × sin(TWA).
+/** Heel (leewards lean) - depends on sail force × sin(TWA).
  * No heel in no-go zone (no force) or directly downwind. Max at beam reach. */
 function heelDeg(wa: number, speedFactor: number): number {
   if (wa < NO_GO_HALF) return 0;
@@ -193,7 +193,7 @@ export default function SimulatorPage() {
   }, []);
 
   // --------------------------------------------------------------------------
-  // Animation loop — lerp display values for smooth visuals, then draw
+  // Animation loop - lerp display values for smooth visuals, then draw
   // --------------------------------------------------------------------------
   useEffect(() => {
     let last = performance.now();
@@ -263,7 +263,7 @@ export default function SimulatorPage() {
       ctx.fillText(t, x, y);
     });
 
-    // --- No-go zone sector — oriented to wind source ---
+    // --- No-go zone sector - oriented to wind source ---
     const wDir = windDir;
     ctx.save();
     ctx.translate(cx, cy);
@@ -363,7 +363,7 @@ export default function SimulatorPage() {
     ctx.beginPath();
     ctx.arc(0, 0, rArc, startA, endA, diff > 0);
     ctx.stroke();
-    // TWA label at arc middle — with pill background so it's readable over
+    // TWA label at arc middle - with pill background so it's readable over
     // cardinal labels and sector overlays (B2 fix).
     const midA = (startA + endA) / 2 + (Math.abs(endA - startA) > Math.PI ? Math.PI : 0);
     const lx = Math.cos(midA) * (rArc + 18);
@@ -403,7 +403,7 @@ export default function SimulatorPage() {
     ctx.fillStyle = COLORS.muted;
     ctx.font = '11px system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('Потяни яхту — повернёт. Потяни по кольцу — ветер.', cx, 14);
+    ctx.fillText('Потяни яхту - повернёт. Потяни по кольцу - ветер.', cx, 14);
   }, [windDir, pos, wa, tack, heel]);
 
   // --------------------------------------------------------------------------
@@ -452,7 +452,7 @@ export default function SimulatorPage() {
       ctx.stroke();
     }
 
-    // Wind arrow (from left, always — we assume this view is looking along wind direction)
+    // Wind arrow (from left, always - we assume this view is looking along wind direction)
     ctx.save();
     ctx.strokeStyle = COLORS.wind;
     ctx.fillStyle = COLORS.wind;
@@ -679,7 +679,7 @@ export default function SimulatorPage() {
 // ============================================================================
 
 function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'port' | 'starboard', heel: number) {
-  // Hull — elongated oval, bow pointing up (0° = north)
+  // Hull - elongated oval, bow pointing up (0° = north)
   const hullLen = 48;
   const hullBeam = 16;
 
@@ -715,7 +715,7 @@ function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'por
   ctx.arc(0, -hullLen * 0.15, 2, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sail — goes opposite side of wind
+  // Sail - goes opposite side of wind
   const sailSide = tack === 'starboard' ? -1 : 1;  // wind from right → sail on left
   const sailAngleFromCenterline = (() => {
     if (pos.angleMin === 0) return 0;
@@ -765,7 +765,7 @@ function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'por
 }
 
 function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
-  // Hull — side profile, waterline at y=0
+  // Hull - side profile, waterline at y=0
   const hullLen = 180;
   const hullHeight = 22;
   const drop = 10; // how much below waterline
@@ -843,7 +843,7 @@ function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
   ctx.lineTo(mastX + 55, -hullHeight - 14);
   ctx.stroke();
 
-  // Mainsail — curved, billowing toward the right (away from wind)
+  // Mainsail - curved, billowing toward the right (away from wind)
   const sailCurve = 16 + forceFactor * 10;
   ctx.fillStyle = COLORS.sail;
   ctx.strokeStyle = '#ffffff';
@@ -856,7 +856,7 @@ function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
   ctx.fill();
   ctx.stroke();
 
-  // Jib — smaller triangle at the front
+  // Jib - smaller triangle at the front
   ctx.fillStyle = COLORS.sail;
   ctx.beginPath();
   ctx.moveTo(mastX, mastTop + 15);

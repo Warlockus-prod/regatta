@@ -2,124 +2,155 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { useEffect, useRef, useState } from 'react';
 import LanguageToggle from './LanguageToggle';
 import { useI18n } from '@/lib/i18n';
 
-const navItems = [
+// ============================================================================
+// Menu model - primary items always visible on desktop,
+// "Ещё / More" opens a rich dropdown with everything else grouped.
+// ============================================================================
+
+interface NavItem {
+  href: string;
+  ru: string; en: string; pl: string;
+  icon: React.ReactNode;
+}
+
+interface NavGroup {
+  titleRu: string; titleEn: string; titlePl: string;
+  items: NavItem[];
+}
+
+const Icon = {
+  home: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+      <polyline points="9 22 9 12 15 12 15 22"/>
+    </svg>
+  ),
+  start: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+    </svg>
+  ),
+  quick: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    </svg>
+  ),
+  rules: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+    </svg>
+  ),
+  onboard: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 2L12 22"/><path d="M5 8H19"/>
+      <path d="M3 18c2 1 4 1 6 0s4-1 6 0 4 1 6 0"/>
+    </svg>
+  ),
+  simulator: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M2 20l3.5-3.5"/><path d="M18 4l-6.5 6.5"/>
+      <path d="M2 20l8-2-6-6-2 8z"/><path d="M18 4l2 2-8 8"/>
+      <path d="M20 6l-1.5 8.5L12 21"/>
+    </svg>
+  ),
+  courses: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>
+    </svg>
+  ),
+  tactics: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+    </svg>
+  ),
+  race: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
+      <line x1="4" y1="22" x2="4" y2="15"/>
+      <circle cx="14" cy="10" r="2" fill="currentColor"/>
+    </svg>
+  ),
+  glossary: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+  ),
+  anatomy: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"/><path d="M12 1v6m0 10v6m11-11h-6M7 12H1"/>
+    </svg>
+  ),
+  knots: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  ),
+  checklist: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="9 11 12 14 22 4"/>
+      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  ),
+};
+
+// Primary - always in the desktop bar
+const primary: NavItem[] = [
+  { href: '/', ru: 'Главная', en: 'Home', pl: 'Główna', icon: Icon.home },
+  { href: '/start', ru: 'Bootcamp', en: 'Bootcamp', pl: 'Bootcamp', icon: Icon.start },
+  { href: '/simulator', ru: 'Симулятор', en: 'Simulator', pl: 'Symulator', icon: Icon.simulator },
+  { href: '/game', ru: 'Гонка', en: 'Race', pl: 'Regata', icon: Icon.race },
+  { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
+];
+
+// Grouped extras
+const groups: NavGroup[] = [
   {
-    href: '/',
-    label: 'Главная',
-    labelEn: 'Home',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-        <polyline points="9 22 9 12 15 12 15 22"/>
-      </svg>
-    ),
+    titleRu: 'Обучение', titleEn: 'Learn', titlePl: 'Nauka',
+    items: [
+      { href: '/quick', ru: 'Освежить 15 мин', en: 'Quick refresh', pl: 'Odśwież 15 min', icon: Icon.quick },
+      { href: '/courses', ru: 'Курсы к ветру', en: 'Points of sail', pl: 'Kursy wiatru', icon: Icon.courses },
+      { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka', icon: Icon.tactics },
+    ],
   },
   {
-    href: '/start',
-    label: 'Старт',
-    labelEn: 'Start',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polygon points="10 8 16 12 10 16 10 8"/>
-      </svg>
-    ),
+    titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokładzie',
+    items: [
+      { href: '/onboard', ru: 'Первая неделя', en: 'First week', pl: 'Pierwszy tydzień', icon: Icon.onboard },
+      { href: '/anatomy', ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu', icon: Icon.anatomy },
+      { href: '/knots', ru: 'Узлы', en: 'Knots', pl: 'Węzły', icon: Icon.knots },
+      { href: '/checklist', ru: 'Чек-лист', en: 'Checklist', pl: 'Lista kontrolna', icon: Icon.checklist },
+    ],
   },
   {
-    href: '/onboard',
-    label: 'На яхте',
-    labelEn: 'On board',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2L12 22"/>
-        <path d="M5 8H19"/>
-        <path d="M3 18c2 1 4 1 6 0s4-1 6 0 4 1 6 0"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/simulator',
-    label: 'Симулятор',
-    labelEn: 'Simulator',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M2 20l3.5-3.5"/>
-        <path d="M18 4l-6.5 6.5"/>
-        <path d="M2 20l8-2-6-6-2 8z"/>
-        <path d="M18 4l2 2-8 8"/>
-        <path d="M20 6l-1.5 8.5L12 21"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/courses',
-    label: 'Курсы',
-    labelEn: 'Courses',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/>
-        <path d="M2 12h20"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/rules',
-    label: 'Правила',
-    labelEn: 'Rules',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-        <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/racing',
-    label: 'Тактика',
-    labelEn: 'Tactics',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/game',
-    label: 'Гонка',
-    labelEn: 'Race',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/>
-        <line x1="4" y1="22" x2="4" y2="15"/>
-        <circle cx="14" cy="10" r="2" fill="currentColor"/>
-      </svg>
-    ),
-  },
-  {
-    href: '/glossary',
-    label: 'Глоссарий',
-    labelEn: 'Glossary',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-        <line x1="8" y1="7" x2="16" y2="7"/>
-        <line x1="8" y1="11" x2="14" y2="11"/>
-      </svg>
-    ),
+    titleRu: 'Справочник', titleEn: 'Reference', titlePl: 'Słownik',
+    items: [
+      { href: '/glossary', ru: 'Глоссарий', en: 'Glossary', pl: 'Glosariusz', icon: Icon.glossary },
+      { href: '/leaderboard', ru: 'Лидерборд', en: 'Leaderboard', pl: 'Ranking', icon: Icon.race },
+    ],
   },
 ];
 
+// ============================================================================
+
 export default function Navigation() {
   const pathname = usePathname();
-  const { t } = useI18n();
+  const { lang, tp } = useI18n();
+  const labelOf = (item: NavItem) => (lang === 'ru' ? item.ru : lang === 'pl' ? item.pl : item.en);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [moreOpen, setMoreOpen] = useState(false);
+
+  // Close all menus on route change
+  useEffect(() => {
+    setMobileOpen(false);
+    setMoreOpen(false);
+  }, [pathname]);
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[rgba(0,212,255,0.1)] backdrop-blur-md"
@@ -142,15 +173,15 @@ export default function Navigation() {
             </span>
           </Link>
 
-          {/* Nav Links - Desktop only shows text on xl+, icons-only on md-lg */}
+          {/* Desktop primary + More */}
           <div className="hidden md:flex items-center gap-0.5 lg:gap-1">
-            {navItems.map((item) => {
+            {primary.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  title={item.label}
+                  title={labelOf(item)}
                   className={`flex items-center gap-2 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-all
                     ${isActive
                       ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
@@ -158,28 +189,41 @@ export default function Navigation() {
                     }`}
                 >
                   {item.icon}
-                  <span className="hidden lg:inline">{t(item.label, item.labelEn)}</span>
+                  <span className="hidden lg:inline">{labelOf(item)}</span>
                 </Link>
               );
             })}
+
+            {/* More dropdown */}
+            <MoreDropdown
+              open={moreOpen}
+              setOpen={setMoreOpen}
+              labelOf={labelOf}
+              pathname={pathname}
+              moreLabel={tp('Ещё', 'More', 'Więcej')}
+            />
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Language toggle */}
             <LanguageToggle />
 
-            {/* Help button */}
             <button
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
-              title="Горячие клавиши (?)"
+              title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skróty (?)')}
               aria-label="Open help"
               className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)] transition text-sm font-bold"
             >
               ?
             </button>
 
-            {/* Mobile menu button */}
-            <MobileMenu pathname={pathname} />
+            {/* Mobile menu */}
+            <MobileMenu
+              open={mobileOpen}
+              setOpen={setMobileOpen}
+              labelOf={labelOf}
+              pathname={pathname}
+              tp={tp}
+            />
           </div>
         </div>
       </div>
@@ -187,39 +231,209 @@ export default function Navigation() {
   );
 }
 
-function MobileMenu({ pathname }: { pathname: string }) {
-  const { t } = useI18n();
+// ============================================================================
+// More dropdown (desktop) - with outside-click / Escape close
+// ============================================================================
+
+function MoreDropdown({
+  open,
+  setOpen,
+  labelOf,
+  pathname,
+  moreLabel,
+}: {
+  open: boolean;
+  setOpen: (b: boolean) => void;
+  labelOf: (i: NavItem) => string;
+  pathname: string;
+  moreLabel: string;
+}) {
+  const { tp } = useI18n();
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onClickAway = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    const onEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    document.addEventListener('mousedown', onClickAway);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClickAway);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [open, setOpen]);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-haspopup="true"
+        className={`flex items-center gap-1.5 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-all
+          ${open
+            ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+          }`}
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <circle cx="5" cy="12" r="1.5"/>
+          <circle cx="12" cy="12" r="1.5"/>
+          <circle cx="19" cy="12" r="1.5"/>
+        </svg>
+        <span className="hidden lg:inline">{moreLabel}</span>
+      </button>
+
+      {open && (
+        <div
+          className="absolute right-0 mt-2 w-80 rounded-xl shadow-xl border border-[rgba(0,212,255,0.2)] p-2 overflow-hidden"
+          style={{ background: 'var(--bg-card)' }}
+        >
+          {groups.map((g) => (
+            <div key={g.titleEn} className="py-1.5">
+              <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                {tp(g.titleRu, g.titleEn, g.titlePl)}
+              </div>
+              <div className="grid grid-cols-1 gap-0.5">
+                {g.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all
+                        ${isActive
+                          ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                        }`}
+                    >
+                      {item.icon}
+                      <span>{labelOf(item)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============================================================================
+// Mobile menu - custom overlay for proper outside-click close
+// ============================================================================
+
+function MobileMenu({
+  open,
+  setOpen,
+  labelOf,
+  pathname,
+  tp,
+}: {
+  open: boolean;
+  setOpen: (b: boolean) => void;
+  labelOf: (i: NavItem) => string;
+  pathname: string;
+  tp: (ru: string, en: string, pl: string) => string;
+}) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // Outside-click + Escape close
+  useEffect(() => {
+    if (!open) return;
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onEsc);
+    return () => document.removeEventListener('keydown', onEsc);
+  }, [open, setOpen]);
+
   return (
     <div className="md:hidden">
-      <details className="relative">
-        <summary className="list-none cursor-pointer p-2 rounded-lg hover:bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]">
+      <button
+        onClick={() => setOpen(!open)}
+        aria-expanded={open}
+        aria-label="Open menu"
+        className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]"
+      >
+        {open ? (
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        ) : (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6"/>
             <line x1="3" y1="12" x2="21" y2="12"/>
             <line x1="3" y1="18" x2="21" y2="18"/>
           </svg>
-        </summary>
-        <div className="absolute right-0 mt-2 w-56 rounded-xl shadow-xl border border-[rgba(0,212,255,0.15)] overflow-hidden"
-             style={{ background: 'var(--bg-card)' }}>
-          {navItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-4 py-3 text-sm font-medium transition-all
-                  ${isActive
-                    ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-                    : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
-                  }`}
-              >
-                {item.icon}
-                <span>{t(item.label, item.labelEn)}</span>
-              </Link>
-            );
-          })}
+        )}
+      </button>
+
+      {open && (
+        <div
+          className="fixed inset-0 z-[60]"
+          style={{ top: 56, background: 'rgba(5, 12, 24, 0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setOpen(false)}
+        >
+          <div
+            ref={panelRef}
+            onClick={(e) => e.stopPropagation()}
+            className="absolute right-2 top-2 w-[calc(100%-1rem)] max-w-xs rounded-xl shadow-xl border border-[rgba(0,212,255,0.2)] p-2 overflow-hidden max-h-[80vh] overflow-y-auto"
+            style={{ background: 'var(--bg-card)' }}
+          >
+            {/* Primary */}
+            <div className="py-1">
+              {primary.map((item) => {
+                const isActive = pathname === item.href;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
+                      ${isActive
+                        ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                      }`}
+                  >
+                    {item.icon}
+                    <span>{labelOf(item)}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {/* Grouped extras */}
+            {groups.map((g) => (
+              <div key={g.titleEn} className="py-1 border-t border-[rgba(0,212,255,0.08)]">
+                <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
+                  {tp(g.titleRu, g.titleEn, g.titlePl)}
+                </div>
+                {g.items.map((item) => {
+                  const isActive = pathname === item.href;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
+                        ${isActive
+                          ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                        }`}
+                    >
+                      {item.icon}
+                      <span>{labelOf(item)}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
-      </details>
+      )}
     </div>
   );
 }

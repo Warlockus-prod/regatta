@@ -1,6 +1,6 @@
 /**
  * Procedural sound effects using Web Audio API.
- * No external assets — keeps bundle small.
+ * No external assets - keeps bundle small.
  * All sounds respect the global mute flag (persisted in localStorage).
  */
 
@@ -20,7 +20,7 @@ function getCtx(): AudioContext | null {
       return null;
     }
   }
-  // Browsers require user gesture to resume — callers should call this on an event.
+  // Browsers require user gesture to resume - callers should call this on an event.
   if (ctx.state === 'suspended') {
     void ctx.resume();
   }
@@ -113,21 +113,21 @@ export function playStart() {
   tone({ freq: 660, durMs: 200, type: 'square', gain: 0.14, delayMs: 120 });
 }
 
-/** Tack (sail shift) — whoosh */
+/** Tack (sail shift) - whoosh */
 export function playTack() { noise(180, 1800, 0.05); }
 
-/** Mark rounded — cheerful chime */
+/** Mark rounded - cheerful chime */
 export function playMarkRound() {
   tone({ freq: 880, durMs: 130, type: 'triangle', gain: 0.1 });
   tone({ freq: 1320, durMs: 160, type: 'triangle', gain: 0.09, delayMs: 80 });
 }
 
-/** Finish — victory trumpet */
+/** Finish - victory trumpet */
 export function playFinish() {
   tone({ freq: 523, durMs: 150, type: 'triangle', gain: 0.14 });
   tone({ freq: 659, durMs: 150, type: 'triangle', gain: 0.14, delayMs: 150 });
   tone({ freq: 784, durMs: 320, type: 'triangle', gain: 0.16, delayMs: 300 });
 }
 
-/** No-go zone warning — quick dip */
+/** No-go zone warning - quick dip */
 export function playNoGo() { tone({ freq: 220, durMs: 100, type: 'sawtooth', gain: 0.06, freqEnd: 140 }); }

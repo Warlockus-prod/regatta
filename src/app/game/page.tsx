@@ -1,15 +1,25 @@
 'use client';
 
+import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
+import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 
 // ============================================================================
 // TYPES
 // ============================================================================
 
 type Difficulty = 'easy' | 'medium' | 'hard';
-type GameState = 'menu' | 'countdown' | 'racing' | 'finished';
+type GameState = 'menu' | 'briefing' | 'countdown' | 'racing' | 'finished' | 'replay';
+type BoatStyle = 'cruiser' | 'racer' | 'classic' | 'skiff';
+
+const BOAT_STYLES: { id: BoatStyle; labelRu: string; labelEn: string; descRu: string; hullScale: number; hullWidth: number; sailHue: string }[] = [
+  { id: 'cruiser', labelRu: 'Круизная яхта', labelEn: 'Cruiser', descRu: 'Сбалансированная. Bavaria-like.', hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
+  { id: 'racer',   labelRu: 'Гоночная',      labelEn: 'Racer',   descRu: 'Узкий длинный корпус. Быстрая.', hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
+  { id: 'classic', labelRu: 'Классика',      labelEn: 'Classic', descRu: 'Широкая, устойчивая.',            hullScale: 0.95, hullWidth: 1.15, sailHue: '#f8f0d8' },
+  { id: 'skiff',   labelRu: 'Скиф',          labelEn: 'Skiff',   descRu: 'Короткая, манёвренная.',          hullScale: 0.85, hullWidth: 0.95, sailHue: '#ddeeff' },
+];
 
 interface Vec2 { x: number; y: number }
 
@@ -142,13 +152,11 @@ function speedFactorFromTWA(twa: number): number {
   return 0.85 - ((a - 160) / 20) * 0.25;                           // broad → running
 }
 
-// True wind angle from boat heading. Wind is blowing FROM direction 0 (top) DOWN.
-// So from the boat's perspective, the wind comes from direction (0 - heading) = -heading.
+// True wind angle from boat heading, given current wind source direction.
+// windDir = direction the wind is COMING FROM (0 = from north).
 // TWA is the angle between the boat's bow and where the wind is coming from.
-function calcTWA(heading: number): number {
-  // Wind is coming from angle 0 (north in world). Boat heading is where the bow points.
-  // Angle between bow direction (heading) and wind source (0°):
-  let twa = ((heading - 0 + 540) % 360) - 180; // -180..180
+function calcTWA(heading: number, windDir = 0): number {
+  let twa = ((heading - windDir + 540) % 360) - 180; // -180..180
   return twa; // signed: positive = wind from starboard (right), negative = port
 }
 
@@ -332,8 +340,25 @@ export default function GamePage() {
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [coachingError, setCoachingError] = useState<string | null>(null);
 
+  // Mission pass/fail state (set on finish)
+  const [missionResult, setMissionResult] = useState<{ passed: boolean; reasons: string[]; mission: Mission } | null>(null);
+
+  // Leaderboard save state (logic defined further down after deps are declared)
+  const [nickname, setNickname] = useState<string | null>(null);
+  const [nicknameInput, setNicknameInput] = useState('');
+  const [saveState, setSaveState] = useState<'idle' | 'prompting' | 'saving' | 'saved' | 'error'>('idle');
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const saveAttemptedRef = useRef(false);
+
+  // Load nickname on mount
+  useEffect(() => {
+    fetch('/api/player').then((r) => r.json()).then((d) => {
+      if (d?.nickname) setNickname(d.nickname);
+    }).catch(() => {});
+  }, []);
+
   // Touch controls state (true while button held). Mirror to ref so the game
-  // loop always reads the current value — fixes B1 (mobile steering).
+  // loop always reads the current value - fixes B1 (mobile steering).
   const [leftHeld, setLeftHeld] = useState(false);
   const [rightHeld, setRightHeld] = useState(false);
   const leftHeldRef = useRef(false);
@@ -354,6 +379,113 @@ export default function GamePage() {
   const windStrengthMul = windStrength === 'light' ? 0.65 : windStrength === 'heavy' ? 1.3 : 1.0;
   const windStrengthRef = useRef(windStrengthMul);
   useEffect(() => { windStrengthRef.current = windStrengthMul; }, [windStrengthMul]);
+
+  // Mission selection: null = free race
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+
+  // Boat visual style
+  const [boatStyle, setBoatStyle] = useState<BoatStyle>('cruiser');
+  const boatStyleRef = useRef<BoatStyle>(boatStyle);
+  useEffect(() => { boatStyleRef.current = boatStyle; }, [boatStyle]);
+
+  // Wind shifts (live direction + gust multiplier)
+  const windDirRef = useRef<number>(WIND_DIRECTION);
+  const windGustRef = useRef<number>(1.0);
+  const [windDirDisplay, setWindDirDisplay] = useState<number>(WIND_DIRECTION);
+  const [windGustDisplay, setWindGustDisplay] = useState<number>(1.0);
+
+  // When a mission is picked, auto-apply its difficulty + wind
+  const pickMission = useCallback((m: Mission | null) => {
+    setSelectedMission(m);
+    if (m) {
+      setDifficulty(m.difficulty);
+      setWindStrength(m.windStrength);
+    }
+  }, []);
+
+  // Save finished race result to leaderboard (depends on all the state above)
+  const saveResult = useCallback((withNickname?: string) => {
+    const player = boatsRef.current.find((b) => b.isPlayer);
+    if (!player || player.lapDone !== 2 || player.finishTime == null) {
+      setSaveState('error');
+      setSaveError('Не финишировал');
+      return;
+    }
+    const effectiveNick = (withNickname ?? nickname ?? '').trim();
+    if (!effectiveNick) {
+      setSaveState('prompting');
+      return;
+    }
+    const tacks = logEventsRef.current.filter((e) => e.type === 'tack').length;
+    const noGoEntries = logEventsRef.current.filter((e) => e.type === 'no-go-entered').length;
+    const topSpeed = logSamplesRef.current.reduce((mx, s) => Math.max(mx, s.speed), 0);
+    const playerRank = results.findIndex((r) => r.isPlayer) + 1;
+
+    setSaveState('saving');
+    setSaveError(null);
+
+    const doSave = async () => {
+      try {
+        if (!nickname || nickname !== effectiveNick) {
+          const r = await fetch('/api/player', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nickname: effectiveNick }),
+          });
+          const d = await r.json();
+          if (!r.ok) throw new Error(d.error || 'Failed to save nickname');
+          setNickname(d.nickname);
+        }
+        const res = await fetch('/api/race-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            difficulty,
+            windStrength,
+            missionId: selectedMission?.id ?? null,
+            finishTimeSec: player.finishTime,
+            position: playerRank || null,
+            totalBoats: results.length || null,
+            tacks,
+            noGoEntries,
+            topSpeed: Math.round(topSpeed * 10) / 10,
+            score: coaching?.score ?? null,
+            nicknameFallback: effectiveNick,
+          }),
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.error || 'Failed to save result');
+        setSaveState('saved');
+      } catch (err) {
+        setSaveState('error');
+        setSaveError(err instanceof Error ? err.message : 'Network error');
+      }
+    };
+    void doSave();
+  }, [nickname, results, difficulty, windStrength, selectedMission, coaching]);
+
+  // Auto-save when finished (once)
+  useEffect(() => {
+    if (gameState !== 'finished') return;
+    if (saveAttemptedRef.current) return;
+    const player = boatsRef.current.find((b) => b.isPlayer);
+    if (!player || player.lapDone !== 2) return;
+    saveAttemptedRef.current = true;
+    if (nickname) {
+      saveResult();
+    } else {
+      setSaveState('prompting');
+    }
+  }, [gameState, nickname, saveResult]);
+
+  // Reset save state on new race
+  useEffect(() => {
+    if (gameState === 'briefing' || gameState === 'menu') {
+      saveAttemptedRef.current = false;
+      setSaveState('idle');
+      setSaveError(null);
+    }
+  }, [gameState]);
 
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
@@ -418,11 +550,18 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   // Start race flow
   // -----------------------------------------------------------------------
-  const startRace = useCallback(() => {
+  const openBriefing = useCallback(() => {
     initRace(difficulty);
+    setGameState('briefing');
+  }, [difficulty, initRace]);
+
+  const beginCountdown = useCallback(() => {
     setCountdown(3);
     setGameState('countdown');
-  }, [difficulty, initRace]);
+  }, []);
+
+  // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
+  const startRace = openBriefing;
 
   // Countdown
   useEffect(() => {
@@ -459,10 +598,17 @@ export default function GamePage() {
   }, []);
 
   // -----------------------------------------------------------------------
-  // Game loop
+  // Game loop - also runs during countdown so boats can sail freely before
+  // the race starts. Mark rounding, finish detection, race log and timer
+  // are all suppressed during countdown.
   // -----------------------------------------------------------------------
   useEffect(() => {
-    if (gameState !== 'racing') return;
+    if (gameState !== 'racing' && gameState !== 'countdown') return;
+    const isRacing = gameState === 'racing';
+    // Initialize lastTime for countdown when loop starts
+    if (lastTimeRef.current === 0 || gameState === 'countdown') {
+      lastTimeRef.current = performance.now();
+    }
 
     const step = (now: number) => {
       const dt = Math.min(0.05, (now - lastTimeRef.current) / 1000);
@@ -472,8 +618,29 @@ export default function GamePage() {
       const boats = boatsRef.current;
       const cfg = DIFFICULTY_CONFIG[difficulty];
 
+      // --- Wind shifts: slow sinusoidal direction drift + short gusts ---
+      // Direction oscillates ±6° with period ~22s (slow shift)
+      // Plus a faster ±2° wobble with period ~7s (nervous breeze)
+      const raceT = (now - (startTimeRef.current || now)) / 1000;
+      const shift = Math.sin(raceT * (2 * Math.PI / 22)) * 6
+                  + Math.sin(raceT * (2 * Math.PI / 7)) * 2;
+      windDirRef.current = (WIND_DIRECTION + shift + 360) % 360;
+      // Gusts: Perlin-ish approximation via blended sines (0.85 to 1.2)
+      const gust = 1.0
+                 + Math.sin(raceT * (2 * Math.PI / 9)) * 0.12
+                 + Math.sin(raceT * (2 * Math.PI / 3.3)) * 0.05;
+      windGustRef.current = Math.max(0.75, Math.min(1.25, gust));
+      // Cheap display update (every ~5 frames) to avoid renders storm
+      if (Math.floor(now / 120) % 2 === 0) {
+        setWindDirDisplay(windDirRef.current);
+        setWindGustDisplay(windGustRef.current);
+      }
+
+      // Capture previous positions BEFORE movement - used later for line-cross detection
+      const prevPositions = new Map<string, Vec2>();
+
       for (const boat of boats) {
-        const prevPos = { ...boat.pos };
+        prevPositions.set(boat.id, { ...boat.pos });
 
         // --- Heading update ---
         if (boat.isPlayer) {
@@ -495,9 +662,9 @@ export default function GamePage() {
         }
 
         // --- Speed from sailing physics ---
-        const twa = calcTWA(boat.heading);
+        const twa = calcTWA(boat.heading, windDirRef.current);
         const speedMul = boat.isPlayer ? 1.0 : cfg.aiSpeedMul;
-        boat.targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul * windStrengthRef.current;
+        boat.targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul * windStrengthRef.current * windGustRef.current;
 
         // Lerp speed toward target
         const accel = (boat.targetSpeed > boat.speed ? ACCEL : ACCEL * 0.6);
@@ -511,12 +678,44 @@ export default function GamePage() {
         // Clamp to world
         boat.pos.x = Math.max(20, Math.min(WORLD.width - 20, boat.pos.x));
         boat.pos.y = Math.max(20, Math.min(WORLD.height - 20, boat.pos.y));
+      }
+
+      // --- Collision avoidance: repel overlapping boats (simple nearest-pair)
+      const MIN_SEP = 22; // world units
+      for (let i = 0; i < boats.length; i++) {
+        for (let j = i + 1; j < boats.length; j++) {
+          const a = boats[i];
+          const b = boats[j];
+          const dx = b.pos.x - a.pos.x;
+          const dy = b.pos.y - a.pos.y;
+          const d = Math.hypot(dx, dy);
+          if (d < MIN_SEP && d > 0.01) {
+            const overlap = (MIN_SEP - d) / 2;
+            const nx = dx / d;
+            const ny = dy / d;
+            a.pos.x -= nx * overlap;
+            a.pos.y -= ny * overlap;
+            b.pos.x += nx * overlap;
+            b.pos.y += ny * overlap;
+            // small speed penalty on contact
+            a.speed *= 0.92;
+            b.speed *= 0.92;
+          }
+        }
+      }
+
+      // Re-process course progression after collision adjustments
+      for (const boat of boats) {
+        const prevPos = prevPositions.get(boat.id) ?? { ...boat.pos };
 
         // --- Wake ---
         if (boat.speed > 0.3) {
           boat.wake.unshift({ ...boat.pos });
           if (boat.wake.length > 30) boat.wake.pop();
         }
+
+        // Mark / finish detection only counts once the race is officially on.
+        if (!isRacing) continue;
 
         // --- Course progression ---
         if (boat.lapDone === 0) {
@@ -546,9 +745,9 @@ export default function GamePage() {
         }
       }
 
-      // --- Race log recording (player only) ---
+      // --- Race log recording (player only, race-time only) ---
       const playerBoat = boats.find((b) => b.isPlayer);
-      if (playerBoat && playerBoat.lapDone < 2) {
+      if (isRacing && playerBoat && playerBoat.lapDone < 2) {
         const t = (now - startTimeRef.current) / 1000;
         if (t - lastSampleTimeRef.current >= 0.5) {
           logSamplesRef.current.push({
@@ -556,14 +755,14 @@ export default function GamePage() {
             x: Math.round(playerBoat.pos.x),
             y: Math.round(playerBoat.pos.y),
             heading: Math.round(playerBoat.heading),
-            twa: Math.round(calcTWA(playerBoat.heading)),
+            twa: Math.round(calcTWA(playerBoat.heading, windDirRef.current)),
             speed: Math.round(playerBoat.speed * 10) / 10,
             lap: playerBoat.lapDone,
           });
           lastSampleTimeRef.current = t;
         }
         // No-go zone event
-        const pTWA = calcTWA(playerBoat.heading);
+        const pTWA = calcTWA(playerBoat.heading, windDirRef.current);
         const inNoGo = Math.abs(pTWA) < 30 && playerBoat.speed < 2;
         if (inNoGo && !wasInNoGoRef.current) {
           logEventsRef.current.push({ type: 'no-go-entered', t });
@@ -581,10 +780,10 @@ export default function GamePage() {
 
       // Update UI state
       const player = boats.find((b) => b.isPlayer)!;
-      const playerTwa = calcTWA(player.heading);
+      const playerTwa = calcTWA(player.heading, windDirRef.current);
       setPlayerTWA(playerTwa);
       setPlayerSpeed(player.speed);
-      setElapsed((now - startTimeRef.current) / 1000);
+      if (isRacing) setElapsed((now - startTimeRef.current) / 1000);
 
       // Calculate position (rank)
       const progress = boats.map((b) => ({
@@ -605,17 +804,34 @@ export default function GamePage() {
       // Render
       draw();
 
-      // Check race end: all boats finished OR player finished
+      // Check race end: all boats finished OR player finished - only when racing
       const allFinished = boats.every((b) => b.lapDone === 2);
       const playerFinished = player.lapDone === 2;
       const tooLong = elapsed > 300; // 5 minutes max
 
-      if (allFinished || (playerFinished && elapsed > (player.finishTime ?? 0) + 15) || tooLong) {
+      if (isRacing && (allFinished || (playerFinished && elapsed > (player.finishTime ?? 0) + 15) || tooLong)) {
         const sorted = [...boats]
           .map((b) => ({ name: b.name, time: b.finishTime ?? Infinity, color: b.color, isPlayer: b.isPlayer }))
           .sort((a, b) => a.time - b.time);
         setResults(sorted);
         setGameState('finished');
+
+        // --- Evaluate selected mission ---
+        if (selectedMission) {
+          const tacks = logEventsRef.current.filter((e) => e.type === 'tack').length;
+          const noGoEntries = logEventsRef.current.filter((e) => e.type === 'no-go-entered').length;
+          const topSpeed = logSamplesRef.current.reduce((m, s) => Math.max(m, s.speed), 0);
+          const metrics: RaceMetrics = {
+            finishTimeSec: player.finishTime ?? null,
+            tackCount: tacks,
+            noGoEntries,
+            topSpeed,
+          };
+          const r = evaluateMission(selectedMission, metrics, 'ru');
+          setMissionResult(r);
+        } else {
+          setMissionResult(null);
+        }
 
         // --- Request AI coaching ---
         const playerRank = sorted.findIndex((r) => r.isPlayer) + 1;
@@ -647,14 +863,14 @@ export default function GamePage() {
               const local = analyseRaceLocally(payload);
               setCoaching(local);
               if (data.fallback) setCoachingError(null);
-              else setCoachingError('AI недоступен — показан локальный анализ');
+              else setCoachingError('AI недоступен - показан локальный анализ');
             }
           })
           .catch(() => {
-            // Network error — use local analysis
+            // Network error - use local analysis
             const local = analyseRaceLocally(payload);
             setCoaching(local);
-            setCoachingError('AI недоступен — показан локальный анализ');
+            setCoachingError('AI недоступен - показан локальный анализ');
           })
           .finally(() => setCoachingLoading(false));
 
@@ -740,24 +956,37 @@ export default function GamePage() {
     }
     ctx.restore();
 
-    // --- No-go zone projected around wind direction (visual aid) ---
-    // Wind comes from direction 0 (top), so no-go zone on world is a cone pointing UP from player
+    // --- No-go zone projected around LIVE wind direction (visual aid) ---
     ctx.save();
     const playerScreen = toScreen(player.pos);
+    const wd = windDirRef.current;
+    ctx.translate(playerScreen.x, playerScreen.y);
+    ctx.rotate(deg2rad(wd)); // rotate local frame so wind points up
     ctx.beginPath();
-    ctx.moveTo(playerScreen.x, playerScreen.y);
     const coneLen = 120 * scale;
-    const leftA = deg2rad(360 - 30);  // 330° from north
-    const rightA = deg2rad(30);
-    ctx.lineTo(playerScreen.x + Math.sin(leftA) * coneLen, playerScreen.y - Math.cos(leftA) * coneLen);
-    ctx.arc(playerScreen.x, playerScreen.y, coneLen, -Math.PI / 2 - deg2rad(30), -Math.PI / 2 + deg2rad(30));
-    ctx.lineTo(playerScreen.x, playerScreen.y);
+    ctx.moveTo(0, 0);
+    ctx.arc(0, 0, coneLen, -Math.PI / 2 - deg2rad(30), -Math.PI / 2 + deg2rad(30));
+    ctx.lineTo(0, 0);
     ctx.closePath();
     ctx.fillStyle = 'rgba(255,68,68,0.08)';
     ctx.fill();
     ctx.strokeStyle = 'rgba(255,68,68,0.25)';
     ctx.lineWidth = 1;
     ctx.stroke();
+    // Wind arrow (short cyan) pointing DOWN from wind source toward player
+    ctx.beginPath();
+    const arrowLen = 22 * scale;
+    ctx.moveTo(0, -coneLen * 0.6);
+    ctx.lineTo(0, -coneLen * 0.6 + arrowLen);
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.9)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-4, -coneLen * 0.6 + arrowLen - 4);
+    ctx.lineTo(0, -coneLen * 0.6 + arrowLen);
+    ctx.lineTo(4, -coneLen * 0.6 + arrowLen - 4);
+    ctx.fillStyle = 'rgba(0, 212, 255, 0.9)';
+    ctx.fill();
     ctx.restore();
 
     // --- Start/Finish line ---
@@ -772,22 +1001,24 @@ export default function GamePage() {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // --- Laylines from windward mark ---
+    // --- Laylines from windward mark (shift with live wind) ---
     const windwardScreen = toScreen(course.marks[0].pos);
     ctx.save();
     ctx.strokeStyle = 'rgba(255,68,68,0.25)';
     ctx.setLineDash([4, 8]);
     ctx.lineWidth = 1;
     const laylen = 400 * scale;
-    // Port layline (going down-left at 45° from wind)
+    const wdL = windDirRef.current;
+    // Port layline = wind direction + 180 + 45 (downwind-right of wind source)
+    const portA = deg2rad(wdL + 180 + 45);
+    const starA = deg2rad(wdL + 180 - 45);
     ctx.beginPath();
     ctx.moveTo(windwardScreen.x, windwardScreen.y);
-    ctx.lineTo(windwardScreen.x - Math.sin(deg2rad(45)) * laylen, windwardScreen.y + Math.cos(deg2rad(45)) * laylen);
+    ctx.lineTo(windwardScreen.x + Math.sin(portA) * laylen, windwardScreen.y - Math.cos(portA) * laylen);
     ctx.stroke();
-    // Starboard layline
     ctx.beginPath();
     ctx.moveTo(windwardScreen.x, windwardScreen.y);
-    ctx.lineTo(windwardScreen.x + Math.sin(deg2rad(45)) * laylen, windwardScreen.y + Math.cos(deg2rad(45)) * laylen);
+    ctx.lineTo(windwardScreen.x + Math.sin(starA) * laylen, windwardScreen.y - Math.cos(starA) * laylen);
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.restore();
@@ -838,7 +1069,7 @@ export default function GamePage() {
 
       // Boat
       const bp = toScreen(boat.pos);
-      drawBoat(ctx, bp.x, bp.y, boat.heading, boat.color, scale, boat.isPlayer);
+      drawBoat(ctx, bp.x, bp.y, boat.heading, boat.color, scale, boat.isPlayer, windDirRef.current, boat.isPlayer ? boatStyleRef.current : 'cruiser');
 
       // Name label for opponents
       if (!boat.isPlayer) {
@@ -938,8 +1169,97 @@ export default function GamePage() {
           <p className="text-lg text-[var(--text-secondary)]">Race Game</p>
           <p className="mt-4 max-w-xl mx-auto text-sm text-[var(--text-secondary)]">
             Обогни верхний знак и первым пересеки финишную линию. Управляй яхтой стрелками или A/D.
-            Учитывай ветер — нельзя идти прямо против него, нужно лавировать галсами.
+            Учитывай ветер - нельзя идти прямо против него, нужно лавировать галсами.
           </p>
+        </div>
+
+        {/* Mission picker strip */}
+        <div className="card p-4 mb-6">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)]">РЕЖИМ / MODE</div>
+            {selectedMission && (
+              <button
+                onClick={() => pickMission(null)}
+                className="text-[11px] text-[var(--accent-cyan)] hover:underline"
+              >
+                Сбросить миссию
+              </button>
+            )}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            {/* Free race tile */}
+            <button
+              onClick={() => pickMission(null)}
+              className={`p-3 rounded-lg text-left text-xs transition border ${!selectedMission ? 'ring-1' : 'opacity-70 hover:opacity-100'}`}
+              style={{
+                borderColor: !selectedMission ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                background: !selectedMission ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                outlineColor: 'var(--accent-cyan)',
+              }}
+            >
+              <div className="text-lg mb-1">🏁</div>
+              <div className="font-semibold text-[var(--text-primary)]">Свободная</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-0.5">Без целей, любая сложность</div>
+            </button>
+
+            {missions.map((m) => {
+              const active = selectedMission?.id === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => pickMission(m)}
+                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
+                  style={{
+                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                    outlineColor: 'var(--accent-cyan)',
+                  }}
+                >
+                  <div className="text-lg mb-1">{m.emoji}</div>
+                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{m.titleRu}</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{m.descRu}</div>
+                </button>
+              );
+            })}
+          </div>
+          {selectedMission && (
+            <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
+              <div className="text-[var(--text-primary)] font-semibold mb-1">
+                {selectedMission.emoji} {selectedMission.titleRu}
+              </div>
+              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{selectedMission.descRu}</div>
+              <div className="text-[var(--accent-cyan)]">💡 {selectedMission.hintRu}</div>
+              <div className="text-[10px] text-[var(--text-muted)] mt-1">
+                Автонастройки: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · ветер {selectedMission.windStrength === 'light' ? 'слабый' : selectedMission.windStrength === 'heavy' ? 'сильный' : 'средний'}
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Boat style picker */}
+        <div className="card p-4 mb-6">
+          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ЛОДКА / BOAT</div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {BOAT_STYLES.map((b) => {
+              const active = boatStyle === b.id;
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => setBoatStyle(b.id)}
+                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
+                  style={{
+                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                    outlineColor: 'var(--accent-cyan)',
+                  }}
+                >
+                  <BoatStylePreview style={b.id} />
+                  <div className="font-semibold text-[var(--text-primary)] mt-2">{b.labelRu}</div>
+                  <div className="text-[10px] text-[var(--text-muted)]">{b.descRu}</div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Difficulty cards */}
@@ -1029,15 +1349,15 @@ export default function GamePage() {
           <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ТРАССА / COURSE</div>
           <ol className="text-sm text-[var(--text-secondary)] space-y-2 list-decimal list-inside">
             <li>Старт от нижней оранжевой линии (там же финиш).</li>
-            <li>Иди к верхнему знаку (оранжевый буй вверху трассы). Придётся лавировать галсами — ветер дует прямо сверху.</li>
+            <li>Иди к верхнему знаку (оранжевый буй вверху трассы). Придётся лавировать галсами - ветер дует прямо сверху.</li>
             <li>Обогни верхний знак (подойди ближе 30 метров).</li>
-            <li>Возвращайся к финишу полным курсом (бакштаг/фордевинд) — это быстрее.</li>
+            <li>Возвращайся к финишу полным курсом (бакштаг/фордевинд) - это быстрее.</li>
             <li>Пересеки финишную линию сверху вниз.</li>
           </ol>
         </div>
 
         <button
-          onClick={startRace}
+          onClick={openBriefing}
           className="w-full py-4 rounded-xl font-semibold text-lg transition-all hover:scale-[1.01]"
           style={{
             background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
@@ -1045,7 +1365,99 @@ export default function GamePage() {
             boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
           }}
         >
-          Начать гонку ({DIFFICULTY_CONFIG[difficulty].label})
+          К брифингу ({DIFFICULTY_CONFIG[difficulty].label}) →
+        </button>
+      </div>
+    );
+  }
+
+  // =====================================================================
+  // BRIEFING SCREEN - explains the race before countdown
+  // =====================================================================
+  if (gameState === 'briefing') {
+    return (
+      <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <div className="flex items-center justify-between mb-6">
+          <button
+            onClick={backToMenu}
+            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
+          >
+            ← Назад к выбору
+          </button>
+          <div className="text-xs px-2 py-1 rounded" style={{
+            background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
+            color: DIFFICULTY_CONFIG[difficulty].color,
+            border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
+          }}>
+            {DIFFICULTY_CONFIG[difficulty].label} · {windStrength === 'light' ? 'слабый' : windStrength === 'heavy' ? 'сильный' : 'средний'} ветер
+          </div>
+        </div>
+
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">Брифинг</h1>
+        <p className="text-sm text-[var(--text-secondary)] mb-6">
+          Что делать и как не накосячить. Прочитай - старт через 3 секунды будет некогда разбираться.
+        </p>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
+          {/* Course preview */}
+          <div className="card p-4">
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ТРАССА</div>
+            <CoursePreview />
+            <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
+              <li>Старт от оранжевой линии внизу.</li>
+              <li>Идёшь <span className="text-[var(--accent-cyan)] font-semibold">галсами</span> к верхнему знаку - прямо против ветра нельзя.</li>
+              <li>Обходишь верхний знак (подойди на ~30 м).</li>
+              <li>Возвращаешься полным курсом и пересекаешь финиш сверху вниз.</li>
+            </ol>
+          </div>
+
+          {/* Controls */}
+          <div className="card p-4">
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">УПРАВЛЕНИЕ</div>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="flex gap-1">
+                  <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
+                  <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
+                </div>
+                <span className="text-sm text-[var(--text-secondary)]">Повернуть. На мобайле - кнопки внизу экрана.</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="px-2 py-1 rounded text-[10px] font-semibold border border-[rgba(0,212,255,0.3)] text-[var(--accent-cyan)]">▶ AUTO</div>
+                <span className="text-sm text-[var(--text-secondary)]">Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">🧭</span>
+                <span className="text-sm text-[var(--text-secondary)]">Левый HUD - TWA (угол к ветру) и скорость. Держи TWA &gt; 40° на лавировке.</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-base">📍</span>
+                <span className="text-sm text-[var(--text-secondary)]">Стрелка на экране показывает направление к следующему знаку.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Key rules */}
+        <div className="card p-4 mb-6" style={{ borderColor: 'rgba(255, 170, 0, 0.3)', background: 'rgba(255, 170, 0, 0.04)' }}>
+          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ ВАЖНО</div>
+          <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 leading-relaxed">
+            <li>• В секторе ±30° от ветра паруса не работают - это <span className="text-[var(--danger)] font-semibold">мёртвая зона</span>. Если встал - отверни от ветра градусов на 50.</li>
+            <li>• Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.</li>
+            <li>• AI разберёт твою гонку после финиша и покажет, где ты терял время.</li>
+          </ul>
+        </div>
+
+        <button
+          onClick={beginCountdown}
+          className="w-full py-4 rounded-xl font-semibold text-lg transition-all hover:scale-[1.01]"
+          style={{
+            background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
+            color: '#0a1628',
+            boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
+          }}
+        >
+          Готов - старт через 3·2·1
         </button>
       </div>
     );
@@ -1058,10 +1470,10 @@ export default function GamePage() {
     <div className="relative w-full" style={{ height: 'calc(100vh - 56px)' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
-      {/* HUD — top bar */}
+      {/* HUD - top bar */}
       {gameState === 'racing' && (
         <>
-          {/* Left HUD: course info — compact on mobile */}
+          {/* Left HUD: course info - compact on mobile */}
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">КУРС</span>
@@ -1080,7 +1492,7 @@ export default function GamePage() {
             </div>
           </div>
 
-          {/* Right HUD: position + time — compact */}
+          {/* Right HUD: position + time - compact */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">ПОЗИЦИЯ</div>
             <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
@@ -1090,11 +1502,34 @@ export default function GamePage() {
             <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
           </div>
 
-          {/* Mark progress indicator — above touch controls on mobile */}
+          {/* Mark progress indicator - above touch controls on mobile */}
           <div className="absolute bottom-40 left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs md:bottom-16 whitespace-nowrap" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && '→ К верхнему знаку'}
             {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && '→ На финиш'}
             {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && '✓ Финиш!'}
+          </div>
+
+          {/* Mission hint (if any) - under the mark progress, only during race */}
+          {selectedMission && gameState === 'racing' && (
+            <div className="absolute bottom-52 md:bottom-28 left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center" style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)' }}>
+              <span className="mr-1">{selectedMission.emoji}</span>
+              <span className="text-[var(--accent-cyan)] font-semibold">{selectedMission.titleRu}:</span>{' '}
+              <span className="text-[var(--text-secondary)]">{selectedMission.hintRu}</span>
+            </div>
+          )}
+
+          {/* Wind indicator HUD (center-top, compact) */}
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 sm:top-4 card px-2 py-1.5 flex items-center gap-2" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
+            <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">ВЕТЕР</span>
+            <svg width="16" height="16" viewBox="-12 -12 24 24" style={{ transform: `rotate(${windDirDisplay}deg)` }}>
+              <line x1="0" y1="-9" x2="0" y2="7" stroke="#00d4ff" strokeWidth="1.5" />
+              <polygon points="-3,4 0,7 3,4" fill="#00d4ff" />
+            </svg>
+            <span className="text-[10px] sm:text-xs font-mono text-[var(--accent-cyan)]">
+              {Math.round(windDirDisplay)}°
+            </span>
+            {windGustDisplay > 1.08 && <span className="text-[10px] text-[var(--warning)] font-semibold">GUST</span>}
+            {windGustDisplay < 0.92 && <span className="text-[10px] text-[var(--text-muted)]">lull</span>}
           </div>
 
           {/* Mute toggle */}
@@ -1116,27 +1551,33 @@ export default function GamePage() {
           </button>
 
           {/* Autopilot button (bottom-center above the hint) */}
-          <button
-            onClick={() => {
-              const player = boatsRef.current.find((b) => b.isPlayer);
-              if (!player) return;
-              if (autopilotOn) {
-                setAutopilotOn(false);
-              } else {
-                autopilotHeadingRef.current = player.heading;
-                setAutopilotOn(true);
-              }
-            }}
-            className="absolute bottom-24 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-semibold transition active:scale-95 md:bottom-16"
-            style={{
-              background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
-              color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
-              border: '1px solid rgba(0, 212, 255, 0.5)',
-              backdropFilter: 'blur(8px)',
-            }}
-          >
-            {autopilotOn ? '⏸ AUTO ВКЛ' : '▶ AUTO'}
-          </button>
+          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 md:bottom-16 flex flex-col items-center gap-1">
+            <button
+              onClick={() => {
+                const player = boatsRef.current.find((b) => b.isPlayer);
+                if (!player) return;
+                if (autopilotOn) {
+                  setAutopilotOn(false);
+                } else {
+                  autopilotHeadingRef.current = player.heading;
+                  setAutopilotOn(true);
+                }
+              }}
+              title="AUTO: удерживает текущий курс. Выключится от любого поворота. Удобно на длинных галсах."
+              className="px-4 py-2 rounded-full text-xs font-semibold transition active:scale-95"
+              style={{
+                background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
+                color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
+                border: '1px solid rgba(0, 212, 255, 0.5)',
+                backdropFilter: 'blur(8px)',
+              }}
+            >
+              {autopilotOn ? '⏸ AUTO - держит курс' : '▶ AUTO - автопилот'}
+            </button>
+            <div className="text-[10px] text-[var(--text-muted)] max-w-[220px] text-center leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
+              {autopilotOn ? 'Курс удерживается. Поверни - выключит.' : 'Держит курс на длинных галсах.'}
+            </div>
+          </div>
 
           {/* Touch controls (visible on touch devices / always shown for accessibility) */}
           <div className="absolute bottom-16 left-0 right-0 flex justify-between items-end px-4 pointer-events-none md:hidden">
@@ -1239,18 +1680,33 @@ export default function GamePage() {
               ))}
             </div>
 
+            {/* Mission result card */}
+            {missionResult && (
+              <div className="mb-4 p-3 rounded-lg" style={{
+                background: missionResult.passed ? 'rgba(68, 255, 136, 0.08)' : 'rgba(255, 170, 0, 0.08)',
+                border: `1px solid ${missionResult.passed ? 'rgba(68, 255, 136, 0.35)' : 'rgba(255, 170, 0, 0.35)'}`,
+              }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-lg">{missionResult.mission.emoji}</span>
+                  <div className="text-sm font-semibold flex-1" style={{ color: missionResult.passed ? 'var(--success)' : 'var(--warning)' }}>
+                    {missionResult.passed ? '✓ Миссия пройдена' : '⚠ Миссия провалена'}: {missionResult.mission.titleRu}
+                  </div>
+                </div>
+                <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 list-disc list-inside">
+                  {missionResult.reasons.map((r, i) => (
+                    <li key={i}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
             {/* AI Coach */}
             <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xl">🧭</span>
                 <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>AI-тренер</div>
               </div>
-              {coachingLoading && (
-                <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
-                  <span className="inline-block w-3 h-3 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-                  Анализирую гонку...
-                </div>
-              )}
+              {coachingLoading && <AnalyzingProgress />}
               {coachingError && !coaching && (
                 <div className="text-xs text-[var(--text-muted)] italic">{coachingError}</div>
               )}
@@ -1279,7 +1735,7 @@ export default function GamePage() {
                                 background: m.severity === 'major' ? 'rgba(255, 68, 68, 0.2)' : 'rgba(255, 170, 0, 0.2)',
                                 color: m.severity === 'major' ? 'var(--danger)' : 'var(--warning)',
                               }}>
-                                {formatTime(m.timeStart)}–{formatTime(m.timeEnd)}
+                                {formatTime(m.timeStart)}-{formatTime(m.timeEnd)}
                               </span>
                               <div className="font-semibold text-[var(--text-primary)]">{m.titleRu}</div>
                             </div>
@@ -1313,16 +1769,90 @@ export default function GamePage() {
               )}
             </div>
 
-            <div className="flex gap-3">
+            {/* Leaderboard save block */}
+            {playerFinished?.time !== undefined && playerFinished.time !== Infinity && (
+              <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(139, 167, 184, 0.06)', border: '1px solid rgba(139, 167, 184, 0.2)' }}>
+                {saveState === 'prompting' && (
+                  <>
+                    <div className="text-sm font-semibold mb-2">🏆 Сохранить в таблицу лучших?</div>
+                    <div className="text-xs text-[var(--text-muted)] mb-2">
+                      Твой ник сохранится в этом браузере. Email / Telegram не нужны.
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={nicknameInput}
+                        onChange={(e) => setNicknameInput(e.target.value)}
+                        maxLength={20}
+                        placeholder="Твой ник (2-20)"
+                        className="flex-1 px-3 py-2 rounded text-sm"
+                        style={{
+                          background: 'var(--bg-secondary)',
+                          border: '1px solid rgba(0, 212, 255, 0.2)',
+                          color: 'var(--text-primary)',
+                        }}
+                      />
+                      <button
+                        onClick={() => saveResult(nicknameInput)}
+                        disabled={nicknameInput.trim().length < 2}
+                        className="px-3 py-2 rounded text-sm font-semibold disabled:opacity-40"
+                        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+                      >
+                        Сохранить
+                      </button>
+                      <button
+                        onClick={() => setSaveState('idle')}
+                        className="px-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        Не надо
+                      </button>
+                    </div>
+                  </>
+                )}
+                {saveState === 'saving' && (
+                  <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
+                    <span className="inline-block w-2 h-2 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
+                    Сохраняю результат…
+                  </div>
+                )}
+                {saveState === 'saved' && (
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="text-sm text-[var(--success)]">
+                      ✓ Сохранено как <span className="font-semibold">{nickname}</span>
+                    </div>
+                    <Link href="/leaderboard" className="text-xs text-[var(--accent-cyan)] hover:underline">
+                      Открыть таблицу →
+                    </Link>
+                  </div>
+                )}
+                {saveState === 'error' && (
+                  <div className="text-xs text-[var(--danger)]">
+                    Не удалось сохранить: {saveError}
+                  </div>
+                )}
+                {saveState === 'idle' && (
+                  <div className="text-xs text-[var(--text-muted)]">Результат не сохранён.</div>
+                )}
+              </div>
+            )}
+
+            <div className="flex gap-2 flex-wrap">
               <button
                 onClick={backToMenu}
-                className="flex-1 py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
+                className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
                 Меню
               </button>
               <button
-                onClick={startRace}
-                className="flex-1 py-2 rounded-lg font-semibold text-sm"
+                onClick={() => setGameState('replay')}
+                disabled={logSamplesRef.current.length < 5}
+                className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--accent-cyan)] hover:bg-[rgba(0,212,255,0.08)] transition disabled:opacity-40"
+              >
+                ▶ Replay гонки
+              </button>
+              <button
+                onClick={openBriefing}
+                className="flex-1 min-w-[100px] py-2 rounded-lg font-semibold text-sm"
                 style={{
                   background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
                   color: '#0a1628',
@@ -1334,6 +1864,17 @@ export default function GamePage() {
           </div>
         </div>
       )}
+
+      {/* Replay overlay */}
+      {gameState === 'replay' && (
+        <ReplayOverlay
+          samples={logSamplesRef.current}
+          events={logEventsRef.current}
+          course={courseRef.current}
+          mistakes={coaching?.mistakes ?? []}
+          onClose={() => setGameState('finished')}
+        />
+      )}
     </div>
   );
 }
@@ -1342,26 +1883,37 @@ export default function GamePage() {
 // DRAWING HELPERS
 // ============================================================================
 
-function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: number, color: string, scale: number, isPlayer: boolean) {
+function drawBoat(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, heading: number,
+  color: string, scale: number, isPlayer: boolean,
+  windDir = 0, style: BoatStyle = 'cruiser',
+) {
+  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(deg2rad(heading));
-  const s = scale * (isPlayer ? 1.15 : 1.0);
+  const s = scale * (isPlayer ? 1.15 : 1.0) * cfg.hullScale;
+  const w = cfg.hullWidth; // hull width multiplier
+
+  const hullLen = 14 * s;
+  const hullHalfW = 7 * s * w;
+  const hullStern = 4.5 * s * w;
 
   // Hull shadow
   ctx.save();
   ctx.translate(1, 2);
   ctx.fillStyle = 'rgba(0,0,0,0.4)';
   ctx.beginPath();
-  ctx.moveTo(0, -14 * s);
-  ctx.quadraticCurveTo(7 * s, 0, 4.5 * s, 12 * s);
-  ctx.lineTo(-4.5 * s, 12 * s);
-  ctx.quadraticCurveTo(-7 * s, 0, 0, -14 * s);
+  ctx.moveTo(0, -hullLen);
+  ctx.quadraticCurveTo(hullHalfW, 0, hullStern, 12 * s);
+  ctx.lineTo(-hullStern, 12 * s);
+  ctx.quadraticCurveTo(-hullHalfW, 0, 0, -hullLen);
   ctx.fill();
   ctx.restore();
 
   // Hull
-  const hullGrad = ctx.createLinearGradient(-7 * s, 0, 7 * s, 0);
+  const hullGrad = ctx.createLinearGradient(-hullHalfW, 0, hullHalfW, 0);
   hullGrad.addColorStop(0, isPlayer ? '#cfe7f4' : '#aaaaaa');
   hullGrad.addColorStop(0.5, '#ffffff');
   hullGrad.addColorStop(1, isPlayer ? '#8fb4c9' : '#666666');
@@ -1369,13 +1921,28 @@ function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: 
   ctx.strokeStyle = isPlayer ? '#ffffff' : '#555555';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, -14 * s);
-  ctx.quadraticCurveTo(7 * s, 0, 4.5 * s, 12 * s);
-  ctx.lineTo(-4.5 * s, 12 * s);
-  ctx.quadraticCurveTo(-7 * s, 0, 0, -14 * s);
+  ctx.moveTo(0, -hullLen);
+  ctx.quadraticCurveTo(hullHalfW, 0, hullStern, 12 * s);
+  ctx.lineTo(-hullStern, 12 * s);
+  ctx.quadraticCurveTo(-hullHalfW, 0, 0, -hullLen);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+
+  // Style-specific deck trim
+  if (style === 'racer') {
+    // Racing stripe along the deck
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.35;
+    ctx.fillRect(-0.8 * s, -11 * s, 1.6 * s, 20 * s);
+    ctx.globalAlpha = 1;
+  } else if (style === 'classic') {
+    // Wooden deck stripe
+    ctx.fillStyle = '#7a4a1e';
+    ctx.globalAlpha = 0.4;
+    ctx.fillRect(-hullStern * 0.6, -8 * s, hullStern * 1.2, 14 * s);
+    ctx.globalAlpha = 1;
+  }
 
   // Cockpit
   ctx.fillStyle = 'rgba(0,0,0,0.5)';
@@ -1389,9 +1956,8 @@ function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: 
   ctx.arc(0, -3 * s, 1.2 * s, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sail — angle it based on TWA
-  const twa = calcTWA(heading);
-  // Sail angle from centerline based on TWA (automatic trim)
+  // Sail - angle it based on TWA (with live wind direction)
+  const twa = calcTWA(heading, windDir);
   let sailAngleFromCenterline = 0;
   const absTWA = Math.abs(twa);
   if (absTWA < 30) sailAngleFromCenterline = 0;
@@ -1399,20 +1965,22 @@ function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: 
   else if (absTWA < 90) sailAngleFromCenterline = 30;
   else if (absTWA < 140) sailAngleFromCenterline = 55;
   else sailAngleFromCenterline = 75;
-  // Sail goes to the opposite side of wind
-  const sailSide = twa > 0 ? -1 : 1; // wind from starboard → sail on port
+  const sailSide = twa > 0 ? -1 : 1; // wind from starboard -> sail on port
   const sailA = deg2rad(sailAngleFromCenterline * sailSide);
 
   ctx.save();
   ctx.rotate(sailA);
-  // Sail as curved shape
-  ctx.fillStyle = absTWA < 30 ? 'rgba(255,255,255,0.3)' : color;
+  // Sail color: style hue tinted with boat color when drawing
+  ctx.fillStyle = absTWA < 30 ? 'rgba(255,255,255,0.3)' : (isPlayer ? color : cfg.sailHue);
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  ctx.moveTo(0, -3 * s);
-  ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, 9 * s);
-  ctx.lineTo(0, 9 * s);
+  // Sail luff height depends on style — racer has taller sail
+  const sailTop = style === 'racer' ? -4 * s : -3 * s;
+  const sailFoot = style === 'skiff' ? 8 * s : 9 * s;
+  ctx.moveTo(0, sailTop);
+  ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, sailFoot);
+  ctx.lineTo(0, sailFoot);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
@@ -1437,7 +2005,7 @@ function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: 
 // ============================================================================
 
 function formatTime(seconds: number): string {
-  if (!isFinite(seconds)) return '—';
+  if (!isFinite(seconds)) return '-';
   const m = Math.floor(seconds / 60);
   const s = Math.floor(seconds % 60);
   const ms = Math.floor((seconds * 10) % 10);
@@ -1535,6 +2103,389 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats:
 
   ctx.restore();
   ctx.restore();
+}
+
+// ============================================================================
+// Staged analysis progress (shown while Claude is thinking)
+// ============================================================================
+
+function AnalyzingProgress() {
+  const stages = [
+    { icon: '📍', label: 'Сверяю трек с трассой' },
+    { icon: '🌬', label: 'Считаю время в мёртвой зоне' },
+    { icon: '↺', label: 'Анализирую повороты и лейлайны' },
+    { icon: '🧭', label: 'Формулирую советы' },
+  ];
+  const [stage, setStage] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setStage((s) => (s + 1 < stages.length ? s + 1 : s)), 900);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="inline-block w-2.5 h-2.5 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
+        <span className="text-sm text-[var(--text-secondary)]">AI разбирает твою гонку…</span>
+      </div>
+      <ul className="space-y-1.5 text-xs">
+        {stages.map((s, i) => {
+          const active = i === stage;
+          const done = i < stage;
+          return (
+            <li
+              key={s.label}
+              className="flex items-center gap-2 transition-opacity"
+              style={{ opacity: active ? 1 : done ? 0.7 : 0.35 }}
+            >
+              <span className="w-4 inline-flex justify-center">
+                {done ? '✓' : active ? <span className="pulse-gentle">{s.icon}</span> : s.icon}
+              </span>
+              <span className={active ? 'text-[var(--accent-cyan)] font-medium' : 'text-[var(--text-secondary)]'}>
+                {s.label}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: 'rgba(0,212,255,0.12)' }}>
+        <div
+          className="h-full transition-all duration-700"
+          style={{
+            width: `${((stage + 1) / stages.length) * 100}%`,
+            background: 'linear-gradient(90deg, var(--accent-cyan), var(--accent-teal))',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Replay overlay - scrubbable timeline on a mini-course map
+// ============================================================================
+
+function ReplayOverlay({
+  samples,
+  events,
+  course,
+  mistakes,
+  onClose,
+}: {
+  samples: LogSample[];
+  events: LogEvent[];
+  course: Course;
+  mistakes: Coaching['mistakes'];
+  onClose: () => void;
+}) {
+  const [idx, setIdx] = useState(0);
+  const [playing, setPlaying] = useState(true);
+  const [speed, setSpeed] = useState(1);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  const total = samples.length;
+  const current = samples[Math.min(idx, total - 1)];
+
+  // Auto-advance
+  useEffect(() => {
+    if (!playing || total === 0) return;
+    const id = setInterval(() => {
+      setIdx((i) => {
+        const next = i + 1;
+        if (next >= total) {
+          setPlaying(false);
+          return total - 1;
+        }
+        return next;
+      });
+    }, 500 / speed);
+    return () => clearInterval(id);
+  }, [playing, speed, total]);
+
+  // Draw replay on canvas
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr;
+    canvas.height = rect.height * dpr;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const W = rect.width;
+    const H = rect.height;
+    const WORLD_W = 800;
+    const WORLD_H = 1200;
+    const pad = 20;
+    const innerW = W - pad * 2;
+    const innerH = H - pad * 2;
+    const s = Math.min(innerW / WORLD_W, innerH / WORLD_H);
+    const ox = pad + (innerW - WORLD_W * s) / 2;
+    const oy = pad + (innerH - WORLD_H * s) / 2;
+    const toXY = (p: { x: number; y: number }) => ({ x: ox + p.x * s, y: oy + p.y * s });
+
+    // Bg
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#051425');
+    grad.addColorStop(1, '#0a1f3d');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Start/finish line
+    const lineA = toXY(course.startLine.a);
+    const lineB = toXY(course.startLine.b);
+    ctx.strokeStyle = '#ffaa00';
+    ctx.setLineDash([6, 4]);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(lineA.x, lineA.y);
+    ctx.lineTo(lineB.x, lineB.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Windward mark
+    const wm = toXY(course.marks[0].pos);
+    ctx.beginPath();
+    ctx.arc(wm.x, wm.y, 8, 0, Math.PI * 2);
+    ctx.fillStyle = '#ffaa00';
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Track trail up to current idx
+    ctx.strokeStyle = 'rgba(0, 212, 255, 0.85)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    for (let i = 0; i <= Math.min(idx, total - 1); i++) {
+      const p = toXY(samples[i]);
+      if (i === 0) ctx.moveTo(p.x, p.y);
+      else ctx.lineTo(p.x, p.y);
+    }
+    ctx.stroke();
+
+    // Event markers on the track (tacks, no-go, mark-rounded) - show cumulatively
+    if (current) {
+      for (const ev of events) {
+        if (ev.t > current.t) break;
+        const sampAt = samples.find((sm) => Math.abs(sm.t - ev.t) < 0.6);
+        if (!sampAt) continue;
+        const pp = toXY(sampAt);
+        let col = '#00d4ff';
+        if (ev.type === 'tack') col = '#ffaa00';
+        else if (ev.type === 'no-go-entered') col = '#ff4444';
+        else if (ev.type === 'mark-rounded') col = '#44ff88';
+        else if (ev.type === 'finish') col = '#44ff88';
+        ctx.beginPath();
+        ctx.arc(pp.x, pp.y, 3.5, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.fill();
+      }
+
+      // Current boat position
+      const p = toXY(current);
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(deg2rad(current.heading));
+      ctx.fillStyle = '#00d4ff';
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(0, -8);
+      ctx.lineTo(5, 6);
+      ctx.lineTo(-5, 6);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
+  }, [idx, total, samples, events, course, current]);
+
+  // Active mistake at current time (from AI coach) - for overlay comment
+  const activeMistake = current
+    ? mistakes.find((m) => current.t >= m.timeStart && current.t <= m.timeEnd)
+    : undefined;
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4"
+      style={{ background: 'rgba(5, 12, 24, 0.95)', backdropFilter: 'blur(8px)' }}
+    >
+      <div className="card w-full max-w-2xl p-4 sm:p-5" style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <div className="text-lg font-semibold">Replay гонки</div>
+            <div className="text-[11px] text-[var(--text-muted)]">
+              Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+            aria-label="Close replay"
+          >
+            ✕
+          </button>
+        </div>
+
+        <canvas ref={canvasRef} className="w-full block rounded-lg" style={{ aspectRatio: '2/3', maxHeight: '55vh', background: '#061428' }} />
+
+        {/* Event tags legend */}
+        <div className="flex flex-wrap gap-2 mt-3 text-[10px] text-[var(--text-muted)]">
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />поворот</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />мёртвая зона</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />знак / финиш</span>
+        </div>
+
+        {/* Timeline slider */}
+        <div className="mt-3 flex items-center gap-3">
+          <button
+            onClick={() => setPlaying((p) => !p)}
+            className="w-10 h-10 rounded-full flex items-center justify-center"
+            style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+          >
+            {playing ? '⏸' : '▶'}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={Math.max(0, total - 1)}
+            value={idx}
+            onChange={(e) => { setIdx(Number(e.target.value)); setPlaying(false); }}
+            className="flex-1"
+          />
+          <span className="text-xs font-mono text-[var(--text-secondary)] min-w-[60px] text-right">
+            {current ? formatTime(current.t) : '-'}
+          </span>
+        </div>
+
+        {/* Speed control */}
+        <div className="mt-2 flex items-center gap-2 text-xs">
+          <span className="text-[var(--text-muted)]">Скорость</span>
+          {[0.5, 1, 2, 4].map((sp) => (
+            <button
+              key={sp}
+              onClick={() => setSpeed(sp)}
+              className="px-2 py-0.5 rounded border text-[11px]"
+              style={{
+                borderColor: speed === sp ? 'var(--accent-cyan)' : 'rgba(139,167,184,0.2)',
+                color: speed === sp ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                background: speed === sp ? 'rgba(0,212,255,0.1)' : 'transparent',
+              }}
+            >
+              {sp}×
+            </button>
+          ))}
+        </div>
+
+        {/* Active coach comment at this timestamp */}
+        {activeMistake && (
+          <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(255, 68, 68, 0.08)', border: '1px solid rgba(255, 68, 68, 0.2)' }}>
+            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--danger)' }}>
+              ⚠ {activeMistake.titleRu}
+            </div>
+            <div className="text-xs text-[var(--text-secondary)] leading-relaxed mb-1">
+              {activeMistake.explanationRu}
+            </div>
+            <div className="text-xs text-[var(--success)] leading-relaxed">
+              💡 {activeMistake.fixRu}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// Small SVG preview of a boat style (used in the boat picker)
+// ============================================================================
+
+function BoatStylePreview({ style }: { style: BoatStyle }) {
+  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
+  const w = 24 * cfg.hullWidth;
+  const h = 46 * cfg.hullScale;
+  return (
+    <svg viewBox="-24 -30 48 60" className="block mx-auto" width="44" height="55" aria-hidden="true">
+      {/* Hull */}
+      <path
+        d={`M 0,${-h / 2.2} Q ${w / 2},0 ${w / 3},${h / 2.8} L ${-w / 3},${h / 2.8} Q ${-w / 2},0 0,${-h / 2.2} Z`}
+        fill="#d7e8f4"
+        stroke="#8fb4c9"
+        strokeWidth="0.7"
+      />
+      {/* Sail */}
+      <path
+        d={`M 0,${-h / 2.4} Q 8,0 2,${h / 3.6} L 0,${h / 3.6} Z`}
+        fill={cfg.sailHue}
+        stroke="#ffffff"
+        strokeWidth="0.5"
+      />
+      {style === 'racer' && (
+        <rect x="-1" y={-h / 2.5} width="2" height={h * 0.7} fill="#00d4ff" opacity="0.4" />
+      )}
+      {style === 'classic' && (
+        <rect x={-w / 4} y={-h / 4} width={w / 2} height={h / 2} fill="#7a4a1e" opacity="0.35" />
+      )}
+    </svg>
+  );
+}
+
+// ============================================================================
+// Small SVG preview of the windward/leeward course (briefing screen)
+// ============================================================================
+
+function CoursePreview() {
+  return (
+    <svg viewBox="0 0 200 260" className="w-full max-w-[220px] mx-auto block">
+      {/* water */}
+      <defs>
+        <linearGradient id="cpWater" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0%" stopColor="#051425" />
+          <stop offset="100%" stopColor="#0a1f3d" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width="200" height="260" rx="8" fill="url(#cpWater)" />
+      {/* wind arrow */}
+      <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
+        <line x1="100" y1="10" x2="100" y2="40" />
+        <polygon points="96,38 100,48 104,38" />
+        <text x="108" y="28" fill="#00d4ff" fontSize="11" fontFamily="system-ui">ветер</text>
+      </g>
+      {/* windward mark */}
+      <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
+      <text x="112" y="64" fill="#ffaa00" fontSize="10" fontFamily="system-ui">верхний знак</text>
+      {/* start/finish line */}
+      <line x1="60" y1="220" x2="140" y2="220" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4 3" />
+      <circle cx="60" cy="220" r="4" fill="#ffaa00" />
+      <circle cx="140" cy="220" r="4" fill="#ffaa00" />
+      <text x="85" y="240" fill="#ffaa00" fontSize="10" fontFamily="system-ui">старт / финиш</text>
+      {/* route */}
+      <polyline
+        fill="none"
+        stroke="#00d4ff"
+        strokeWidth="1.5"
+        strokeDasharray="3 3"
+        points="100,220 75,170 120,130 90,95 100,65"
+      />
+      <polyline
+        fill="none"
+        stroke="#44ff88"
+        strokeWidth="1.5"
+        points="100,65 115,120 95,180 100,220"
+      />
+      {/* boat start */}
+      <circle cx="100" cy="220" r="3" fill="#00d4ff" />
+      {/* legend */}
+      <g fontSize="9" fontFamily="system-ui">
+        <text x="10" y="250" fill="#00d4ff">-- ходом против ветра (галсы)</text>
+        <text x="10" y="260" fill="#44ff88">-- попутно к финишу</text>
+      </g>
+    </svg>
+  );
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {

@@ -21,7 +21,7 @@ export default function OnboardPage() {
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {t(
             'Для тех, кто впервые идёт на регату или чартер. Не учат как управлять яхтой, а как вести себя на борту, чтобы быть полезным и не мешать.',
-            'For first-time regatta/charter crew. Not how to sail — how to behave on board so you\'re useful and not in the way.',
+            'For first-time regatta/charter crew. Not how to sail - how to behave on board so you\'re useful and not in the way.',
           )}
         </p>
       </div>
@@ -90,8 +90,8 @@ export default function OnboardPage() {
       <div className="mt-10 p-5 card text-center" style={{ background: 'rgba(68, 255, 136, 0.04)', borderColor: 'rgba(68, 255, 136, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)]">
           {t(
-            'Это базовая подборка. Каждая яхта — свой маленький мир. Главное правило: не уверен — спроси, не трогай без команды.',
-            'This is the basics. Each yacht has its own quirks. Main rule: not sure — ask. Don\'t touch without a command.',
+            'Это базовая подборка. Каждая яхта - свой маленький мир. Главное правило: не уверен - спроси, не трогай без команды.',
+            'This is the basics. Each yacht has its own quirks. Main rule: not sure - ask. Don\'t touch without a command.',
           )}
         </p>
       </div>

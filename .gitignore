@@ -47,6 +47,7 @@ home-*.png
 
 # Next.js types
 next-env.d.ts
+tsconfig.tsbuildinfo
 
 # Claude local
 .claude/

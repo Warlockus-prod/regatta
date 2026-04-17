@@ -10,7 +10,7 @@ const SHORTCUTS = [
   ]},
   { group: 'Игра', items: [
     { keys: ['← →', 'A / D'], action: 'Повернуть яхту' },
-    { keys: ['AUTO'], action: 'Автопилот — держит курс' },
+    { keys: ['AUTO'], action: 'Автопилот - держит курс' },
     { keys: ['🔊'], action: 'Звук вкл/выкл' },
   ]},
   { group: 'Везде', items: [

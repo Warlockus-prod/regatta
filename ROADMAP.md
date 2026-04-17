@@ -1,8 +1,45 @@
-# Regatta Trainer — Master Roadmap
+# Regatta Trainer - Master Roadmap
 
 **Last updated:** 2026-04-17
-**Current live version:** v1.0 at https://regatta.icoffio.com
+**Current live version:** v7.0 pending at https://regatta.icoffio.com
 **Backup:** git tag `v1.0`, docker image `regatta:v1.0`
+
+---
+
+## Wave 6 (shipped in v6.0)
+
+1. Polish language (pl) added everywhere via `tp(ru, en, pl)`; toggle now RU / EN / PL.
+2. Instant language switch on homepage (converted to client component).
+3. Mobile white overscroll gap fixed (html/body bg lock + iOS `::before` layer).
+4. Navigation rebuilt: 5 primary items + `Ещё` dropdown grouped by Обучение / На борту / Справочник; outside-click + Escape close.
+5. AI assistant tab in the feedback widget (POST /api/ai-chat, Claude Haiku with cached sailing-scoped system prompt; clickable internal links like /simulator).
+6. Game: briefing screen (course preview + rules + AUTO explanation) between menu and countdown.
+7. Game: free sail during countdown (boats can pre-position; timer/mark detection paused).
+8. Game: pair-wise boat collision repel with small speed penalty.
+9. Game: AUTO button tooltip + caption.
+10. Game: AnalyzingProgress (4-stage animation while Claude thinks) + Replay overlay (scrubbable timeline with per-timestamp coach comments, 0.5x-4x speed).
+11. Session cookie `regatta_sid` issued site-wide by middleware.
+12. Project rule: no em-dash (U+2014) or en-dash (U+2013) anywhere (520 occurrences replaced with ASCII hyphens).
+
+## Wave 7 (shipped in v7.0)
+
+1. **Missions UI.** Mission picker strip on game menu (Free race + 4 designed missions). Auto-applies difficulty + wind. Hint card on menu, HUD hint during race, pass/fail card on result screen using `evaluateMission` from `src/data/missions.ts`.
+2. **Wind shifts physics.** Wind direction oscillates (+-6 deg over 22s plus +-2 deg over 7s). Gusts modulate boat speed 0.85-1.25x (periods 9s + 3.3s). TWA, no-go and laylines all follow the live wind. Compact wind indicator HUD at top-center with direction arrow, degree value, and GUST/lull tag.
+3. **Boat style variety.** 4 styles (Cruiser, Racer, Classic, Skiff) with distinct hull proportions, decks (racing stripe / wooden deck), and sail heights. Picker in game menu with SVG previews.
+4. **Leaderboard Phase A.**
+   - New DB tables: `players` (sid -> nickname) and `race_results` (ts/sid/nickname/difficulty/wind/mission/finish_time/position/score).
+   - API: `GET/POST /api/player`, `POST /api/race-result`, `GET /api/leaderboard?difficulty=&wind=[&mission=]`.
+   - `/leaderboard` page: mode toggle (Free / Mission) + filters, top 20 per bucket with podium icons, highlight of current user.
+   - On race finish: nickname prompt modal (if no nick saved) -> stores nickname + result. Link to `/leaderboard` from save card.
+   - Nav "Ещё -> Справочник -> Лидерборд".
+5. **Polish / small:** rotated no-go zone cone follows live wind direction; lay-lines recomputed per wind dir; wind arrow in no-go cone.
+
+## Deferred to Wave 8
+
+- **3D Bavaria 46 via `<model-viewer>` in /anatomy.** Needs a free GLB source; skipped to keep Wave 7 deploy clean.
+- **Retention / shareable OG cards.** Defer until organic traffic justifies.
+- **Leaderboard Phase B (email / Telegram bind).** After Phase A usage data lands.
+- **Game HUD collapse to pill on mobile.** Minor polish.
 
 ---
 
@@ -14,23 +51,23 @@
 
 ---
 
-## Product decisions — updated
+## Product decisions - updated
 
-Все пункты где у меня были pushback'и — решение пользователя финальное.
+Все пункты где у меня были pushback'и - решение пользователя финальное.
 
 | # | Pushback (my original) | User decision | Status |
 |---|---|---|---|
-| 1 | Не коммититься на Bavaria 46 | **Bavaria 46 — главная яхта продукта.** Проверить сложность интеграции | Accepted |
+| 1 | Не коммититься на Bavaria 46 | **Bavaria 46 - главная яхта продукта.** Проверить сложность интеграции | Accepted |
 | 2 | 2D anatomy первым | **Согласен, 2D first** (as I proposed) | Accepted |
-| 3 | 3D anatomy — позже | **3D делаем сразу, лучше для продукта** | Override |
+| 3 | 3D anatomy - позже | **3D делаем сразу, лучше для продукта** | Override |
 | 4 | Full admin отложить | **Делаем сразу, на `/stats` с паролем `regattA`** | Override |
-| 5 | Softened 45-60 мин промис | **Держим обещание — делаем для всех сразу** | Override |
+| 5 | Softened 45-60 мин промис | **Держим обещание - делаем для всех сразу** | Override |
 | 6 | Не удалять игру | **Не удалять, добавлять фичи** (as I proposed) | Accepted |
 
 **Other user decisions:**
 - Languages: RU + EN во всём контенте (full toggle, not partial)
-- Waves для разработки — OK
-- "Чего не хватает" — отложить на потом
+- Waves для разработки - OK
+- "Чего не хватает" - отложить на потом
 
 ---
 
@@ -38,8 +75,8 @@
 
 ### B1. Mobile game: boat doesn't turn
 **Symptom:** На мобайле в `/game` при попытке управлять (touch кнопки ← →) лодка не поворачивается.
-**Likely cause:** React state `leftHeld` / `rightHeld` не пробрасывается в game loop через замыкание — `useEffect` захватил старые значения при первом рендере.
-**Fix:** заменить state на `useRef` для touch-кнопок, ИЛИ включить `leftHeld`/`rightHeld` в deps массива игрового loop'а (что перезапускает loop — плохо) — **используем ref**.
+**Likely cause:** React state `leftHeld` / `rightHeld` не пробрасывается в game loop через замыкание - `useEffect` захватил старые значения при первом рендере.
+**Fix:** заменить state на `useRef` для touch-кнопок, ИЛИ включить `leftHeld`/`rightHeld` в deps массива игрового loop'а (что перезапускает loop - плохо) - **используем ref**.
 **Impact:** Critical. Игра бесполезна на мобайле без этого.
 
 ### B2. Simulator text overlap on the compass
@@ -48,14 +85,14 @@
 **Fix:** сдвинуть подпись угла дальше от центра, добавить background-pill под текстом, или показывать только когда не overlaps с cardinal.
 **Impact:** Medium visual polish.
 
-### B3. Simple Rules illustrations — boat angles wrong relative to wind
+### B3. Simple Rules illustrations - boat angles wrong relative to wind
 **Symptom:** На иллюстрациях в `/rules` соотношение лодки к ветру визуально не точное (например, port-tack лодка может быть нарисована не под тем углом).
 **Fix:** пересмотреть каждую из 8 иллюстраций, выверить rotation лодок против wind arrow. Добавить комментарий "не в масштабе" где уместно.
-**Impact:** Medium — правильность обучения.
+**Impact:** Medium - правильность обучения.
 
 ---
 
-## Wave 2 — Content depth + i18n (highest value)
+## Wave 2 - Content depth + i18n (highest value)
 
 Ship together as one release.
 
@@ -63,26 +100,26 @@ Ship together as one release.
 - [ ] Language context (`LanguageContext`) с localStorage persistence
 - [ ] Toggle в navigation (✓ ✓)
 - [ ] Перевести все UI strings через useTranslation hook ИЛИ сделать шаблон `<T ru="..." en="..." />`
-- [ ] Все data файлы уже имеют RU+EN поля (pointsOfSail, rules, glossary) — переключатель просто выбирает какие показывать
+- [ ] Все data файлы уже имеют RU+EN поля (pointsOfSail, rules, glossary) - переключатель просто выбирает какие показывать
 - [ ] Default: RU; запомнить выбор
 
-### 2.2. "Первая неделя на яхте" — `/onboard`
-Contentual differentiator — уникальная ниша.
+### 2.2. "Первая неделя на яхте" - `/onboard`
+Contentual differentiator - уникальная ниша.
 - [ ] Иерархия:
   - Кто главный на лодке (шкипер, old salt, crew)
   - Как слушать команды + команды ("приготовиться к повороту", "поворот", "трави", "выбирай", "отдать конец", "кранец на борт")
   - Где сидеть, куда не совать руки
   - Почему гик опасен (ducking reflex)
   - Что такое шкоты, фалы, лебёдка, кранцы (link to anatomy когда готово)
-  - На старте / повороте / швартовке — что происходит, что от тебя ждут
+  - На старте / повороте / швартовке - что происходит, что от тебя ждут
   - Safety mindset
   - Что взять с собой (чек-лист)
   - Как не мешать (tips for quiet crew behavior)
 - [ ] Формат: аккордеон + SVG иллюстрации (не 3D пока)
 - [ ] Bavaria 46 terminology where applicable
 
-### 2.3. "Start Here" bootcamp — `/start`
-User insisted on keeping 45–60 мин promise.
+### 2.3. "Start Here" bootcamp - `/start`
+User insisted on keeping 45-60 мин promise.
 - [ ] 8-lesson guided flow:
   1. Ветер и направление (5 min, existing content)
   2. Курсы относительно ветра (10 min, links `/courses`)
@@ -110,24 +147,24 @@ User insisted on keeping 45–60 мин promise.
 
 ---
 
-## Wave 3 — Bavaria 46 commitment + Analytics admin
+## Wave 3 - Bavaria 46 commitment + Analytics admin
 
 ### 3.1. Bavaria 46 as visual base
 **Complexity estimate:** Medium (~2-3 hrs visual work, +1 day for 3D model integration in wave 4)
-- [ ] Обновить top-view яхты в simulator + game — силуэт Bavaria 46 (длинный корпус, правильная корма, transom steps)
-- [ ] Side view в simulator — Bavaria 46 profile с характерной cabin line, hard dodger, wheel pedestal
-- [ ] Sail plan: Bavaria 46 fractional rig — mainsail + 105% jib (не genoa)
+- [ ] Обновить top-view яхты в simulator + game - силуэт Bavaria 46 (длинный корпус, правильная корма, transom steps)
+- [ ] Side view в simulator - Bavaria 46 profile с характерной cabin line, hard dodger, wheel pedestal
+- [ ] Sail plan: Bavaria 46 fractional rig - mainsail + 105% jib (не genoa)
 - [ ] Все тексты "onboard" обновить под 46ft Bavaria terminology (wheel not tiller, двигатель Volvo, chart plotter at helm)
 - [ ] В footer / about: "Simulation based on Bavaria 46 Cruiser (LOA 13.99m, Beam 4.29m, Draft 2.05m)"
 
 ### 3.2. `/stats` admin page (full version)
-- [ ] Route `/stats` (not `/admin` — user chose `/stats`)
-- [ ] HTTP Basic Auth middleware — password `regattA` (hardcoded for now, can move to env later)
+- [ ] Route `/stats` (not `/admin` - user chose `/stats`)
+- [ ] HTTP Basic Auth middleware - password `regattA` (hardcoded for now, can move to env later)
   - Alternative: simple JWT cookie set via login page
 - [ ] SQLite-backed storage:
   - `events` table (id, ts, evt, path, session_id, ua, ip_country, app_version, meta_json)
   - `feedback` table (id, ts, kind, category, message, expected, actual, contact, path, ua, ip_country, status)
-- [ ] Ingest from existing `/api/log` and `/api/feedback` — write to SQLite in addition to stdout
+- [ ] Ingest from existing `/api/log` and `/api/feedback` - write to SQLite in addition to stdout
 - [ ] Dashboard widgets:
   - Users today / 7d / 30d
   - Sessions today + trend
@@ -160,9 +197,9 @@ User insisted on keeping 45–60 мин promise.
 
 ---
 
-## Wave 4 — 3D anatomy + knots (user wants 3D direct)
+## Wave 4 - 3D anatomy + knots (user wants 3D direct)
 
-### 4.1. 3D yacht anatomy — `/anatomy`
+### 4.1. 3D yacht anatomy - `/anatomy`
 User override: 3D directly, not 2D first.
 - [ ] Install `@google/model-viewer` (web component, ~60kb gzip)
 - [ ] Find/create Bavaria 46 GLB model:
@@ -177,7 +214,7 @@ User override: 3D directly, not 2D first.
   - winch, cleat, fairlead
   - rudder, keel
   - fender, mooring line
-  - steering wheel (not tiller — Bavaria 46 has wheel)
+  - steering wheel (not tiller - Bavaria 46 has wheel)
   - chart plotter, helm seat
 - [ ] Each hotspot click → slide-up panel with:
   - Name (RU + EN)
@@ -188,7 +225,7 @@ User override: 3D directly, not 2D first.
 - [ ] Mobile: pinch-zoom, touch drag to rotate (model-viewer handles)
 - [ ] Loading state with skeleton (3D assets are heavy)
 
-### 4.2. 6 knots — `/knots`
+### 4.2. 6 knots - `/knots`
 - [ ] figure-eight stopper
 - [ ] bowline
 - [ ] cleat hitch
@@ -197,11 +234,11 @@ User override: 3D directly, not 2D first.
 - [ ] sheet bend
 - [ ] For each:
   - Where it's used (with Bavaria 46 context: "для привязки к утке на причале", etc.)
-  - 4-6 step SVG animation (timeline-based, not full 3D — keep it fast)
+  - 4-6 step SVG animation (timeline-based, not full 3D - keep it fast)
   - Common mistake with illustration
 - [ ] Mobile-first: swipe between steps, tap to pause
 
-### 4.3. Pre-race checklist — `/checklist`
+### 4.3. Pre-race checklist - `/checklist`
 - [ ] Что взять с собой (одежда слоями, солнцезащита, перчатки)
 - [ ] Что узнать у шкипера (роль, команды, emergency)
 - [ ] Перед выходом на воду (head, lifejacket, brief)
@@ -210,7 +247,7 @@ User override: 3D directly, not 2D first.
 
 ---
 
-## Wave 5 — Depth + retention
+## Wave 5 - Depth + retention
 
 ### 5.1. Wind shifts + gusts in game (physics refactor)
 - [ ] Wind direction changes ±5-15° every 30-60s (medium/hard only)
@@ -228,7 +265,7 @@ User override: 3D directly, not 2D first.
 - [ ] Based on TWA vs optimal close-hauled angle (35-45°)
 - [ ] Subtle, dismissible
 
-### 5.4. Quick refresh mode — 15 min fast path
+### 5.4. Quick refresh mode - 15 min fast path
 - [ ] Condensed: wind → courses → tack → jibe → start → 5 scenarios
 - [ ] Different route from full Bootcamp
 
@@ -239,7 +276,7 @@ User override: 3D directly, not 2D first.
 
 ---
 
-## Wave 6 — Long-tail
+## Wave 6 - Long-tail
 
 ### 6.1. Polar diagram in simulator
 - [ ] Classic training tool: speed-vs-TWA curve at given wind strength
@@ -248,10 +285,10 @@ User override: 3D directly, not 2D first.
 ### 6.2. Lightweight assessment (quiz)
 - [ ] After each bootcamp lesson: 1-2 questions
 - [ ] Final verdict: "Готов к первой регате / Нужно повторить раздел X"
-- [ ] **Test with 10 users before shipping** — risk of feeling patronizing
+- [ ] **Test with 10 users before shipping** - risk of feeling patronizing
 
 ### 6.3. Instructor/skipper mode
-- [ ] Open scenario in "presentation mode" — bigger visuals, simplified
+- [ ] Open scenario in "presentation mode" - bigger visuals, simplified
 - [ ] "Share this to crew" link copy
 
 ### 6.4. Charts depth in admin
@@ -269,8 +306,8 @@ User override: 3D directly, not 2D first.
 | Capacitor iOS/Android app | PWA covers install use case | When web analytics show ≥5 installs/day via PWA and requests for native features (camera, offline) |
 | Course editor | Low ROI until audience scale | When there's a community of 1000+ users |
 | Self-hosted analytics (Plausible/Umami) | Our `/stats` covers needs | If admin becomes too slow or we need public-facing metrics |
-| Video demos | Needs asset creation time | After visuals stabilize — don't re-record on every UI change |
-| Full Racing Rules of Sailing text | Link out is fine | Never — not our differentiator |
+| Video demos | Needs asset creation time | After visuals stabilize - don't re-record on every UI change |
+| Full Racing Rules of Sailing text | Link out is fine | Never - not our differentiator |
 
 ---
 

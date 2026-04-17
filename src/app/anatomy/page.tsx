@@ -4,14 +4,14 @@ import { useState } from 'react';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 
-// Bavaria 46 side-profile SVG — stylized, not photorealistic
+// Bavaria 46 side-profile SVG - stylized, not photorealistic
 function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
   return (
     <svg viewBox="0 0 1000 500" className="w-full h-auto block" style={{ background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.3) 0%, rgba(13, 40, 71, 0.3) 70%, rgba(6, 20, 40, 0.8) 70%, rgba(6, 20, 40, 0.8) 100%)' }}>
       {/* Water surface */}
       <line x1="0" y1="350" x2="1000" y2="350" stroke="rgba(0, 212, 255, 0.2)" strokeWidth="1" strokeDasharray="4,4" />
 
-      {/* Hull — Bavaria 46 profile (sleek modern cruiser) */}
+      {/* Hull - Bavaria 46 profile (sleek modern cruiser) */}
       <defs>
         <linearGradient id="hullGrad" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#e8f0f6" />
@@ -29,7 +29,7 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
       {/* Twin rudders hint (one visible from side) */}
       <path d="M 800 360 L 800 430 L 825 430 L 825 360 Z" fill="#1a2d4d" stroke="#5a7a8a" strokeWidth="1" />
 
-      {/* Hull above waterline — Bavaria 46 silhouette */}
+      {/* Hull above waterline - Bavaria 46 silhouette */}
       <path d="M 140 340
                C 140 320, 160 305, 200 295
                L 250 280 L 720 275
@@ -148,7 +148,7 @@ export default function AnatomyPage() {
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bavaria 46</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {t(
-            'Нажми на точку на яхте — узнай название и зачем это нужно на борту.',
+            'Нажми на точку на яхте - узнай название и зачем это нужно на борту.',
             'Click a point on the yacht to learn the name and why it matters on board.',
           )}
         </p>
@@ -230,8 +230,8 @@ export default function AnatomyPage() {
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
         {t(
-          'Стилизованный профиль Bavaria 46. Полноценная 3D-модель с hotspots — следующая итерация.',
-          'Stylized Bavaria 46 profile. Full 3D model with hotspots — next iteration.',
+          'Стилизованный профиль Bavaria 46. Полноценная 3D-модель с hotspots - следующая итерация.',
+          'Stylized Bavaria 46 profile. Full 3D model with hotspots - next iteration.',
         )}
       </p>
     </div>

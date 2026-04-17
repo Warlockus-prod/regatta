@@ -32,15 +32,39 @@
   scrollbar-color: var(--bg-card) var(--bg-primary);
 }
 
-body {
+/* Lock the page bg color to dark so iOS/Android rubber-band overscroll
+   at the top and bottom shows the dark ocean instead of a white gap. */
+html, body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  /* Prevent the browser UI "overscroll" bouncing into a white gap */
+  overscroll-behavior-y: none;
 }
 
-/* Ocean gradient background */
+html {
+  min-height: 100%;
+}
+
+/* Ocean gradient background - repeated so the gradient is tile-safe
+   when the page is taller than the gradient, no bright band at bottom. */
 .ocean-bg {
-  background: linear-gradient(180deg, var(--bg-primary) 0%, #071a30 50%, #0d2847 100%);
+  background: var(--bg-primary) linear-gradient(180deg, var(--bg-primary) 0%, #071a30 50%, #0d2847 100%) no-repeat;
+  background-attachment: fixed; /* stays locked on scroll - no white gap on mobile pull */
+  background-size: 100% 100%;
+}
+
+/* On mobile Safari, position: fixed backgrounds get buggy during rubber-band;
+   use a layered approach - a fixed dark overlay that cannot scroll away. */
+@supports (-webkit-touch-callout: none) {
+  .ocean-bg::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(180deg, var(--bg-primary) 0%, #071a30 50%, #0d2847 100%);
+    pointer-events: none;
+  }
 }
 
 /* Card styles */
