@@ -5,7 +5,7 @@ export const runtime = 'nodejs';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const nick = (url.searchParams.get('nick') || 'Player').slice(0, 20);
-  const time = url.searchParams.get('time') || '—';
+  const time = url.searchParams.get('time') || '-';
   const place = url.searchParams.get('place') || '';
   const of = url.searchParams.get('of') || '';
   const code = url.searchParams.get('code') || '';

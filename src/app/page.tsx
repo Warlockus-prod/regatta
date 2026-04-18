@@ -89,16 +89,6 @@ const secondaryTools: Tool[] = [
     icon: '🔧',
   },
   {
-    href: '/knots',
-    titleRu: '6 узлов', titleEn: '6 knots', titlePl: '6 węzłów',
-    subtitleRu: 'Knots', subtitleEn: 'Knots', subtitlePl: 'Węzły',
-    descRu: 'Восьмёрка, беседочный, на утку - только реально нужные, с пошаговыми схемами.',
-    descEn: 'Figure-8, bowline, cleat hitch - only the ones you actually need, step-by-step.',
-    descPl: 'Ósemka, ratowniczy, knagowy - tylko te naprawdę potrzebne, krok po kroku.',
-    accent: '#8844ff',
-    icon: '🪢',
-  },
-  {
     href: '/checklist',
     titleRu: 'Чек-лист к регате', titleEn: 'Pre-race checklist', titlePl: 'Lista przed regatą',
     subtitleRu: 'Pre-race checklist', subtitleEn: 'Pre-race checklist', subtitlePl: 'Lista przed regatą',

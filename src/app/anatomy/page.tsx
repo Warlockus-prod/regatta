@@ -1,30 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import Script from 'next/script';
+import { useState } from 'react';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 
-// <model-viewer> custom element type (runtime loaded from CDN, typed loosely)
-type ModelViewerProps = React.DetailedHTMLProps<React.HTMLAttributes<HTMLElement>, HTMLElement> & {
-  src?: string;
-  alt?: string;
-  'auto-rotate'?: boolean | string;
-  'camera-controls'?: boolean | string;
-  'shadow-intensity'?: string | number;
-  'camera-orbit'?: string;
-  'field-of-view'?: string;
-  exposure?: string | number;
-  poster?: string;
-  'environment-image'?: string;
-};
-declare module 'react' {
-  namespace JSX {
-    interface IntrinsicElements {
-      'model-viewer': ModelViewerProps;
-    }
-  }
-}
+// ============================================================================
+// Yacht anatomy - 2D Bavaria 46 side-profile with clickable hotspots.
+// 3D viewer removed in Phase 0 (CLEANUP). Rationale: GLB pipeline was never
+// real (placeholder Kenney model, no hotspots coordinated with data), and
+// the 2D profile already covers every part we teach. If 3D returns later,
+// it should come with a proper Bavaria 46 GLB and hotspot positions sourced
+// from the same data file as the 2D view.
+// ============================================================================
 
 // Bavaria 46 side-profile SVG - stylized, not photorealistic
 function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
@@ -155,25 +142,10 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
 }
 
 export default function AnatomyPage() {
-  const { lang, t, tp } = useI18n();
+  const { lang, t } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
-  const [view, setView] = useState<'2d' | '3d'>('2d');
-  const [modelOk, setModelOk] = useState<boolean | null>(null); // null = unknown, true = loaded, false = missing
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
-
-  // Source GLB: env override OR bundled Kenney low-poly modern sailing yacht (CC0).
-  // Swap to a Bavaria 46 GLB by setting NEXT_PUBLIC_ANATOMY_GLB_URL when available.
-  const modelSrc = (process.env.NEXT_PUBLIC_ANATOMY_GLB_URL as string | undefined) || '/models/sailboat.glb';
-
-  // Probe the GLB when 3D tab opens so we show a friendly fallback if it's missing.
-  useEffect(() => {
-    if (view !== '3d') return;
-    if (modelOk !== null) return;
-    fetch(modelSrc, { method: 'HEAD' })
-      .then((r) => setModelOk(r.ok))
-      .catch(() => setModelOk(false));
-  }, [view, modelOk, modelSrc]);
 
   return (
     <div className="page-enter max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -191,44 +163,13 @@ export default function AnatomyPage() {
         </p>
       </div>
 
-      {/* View toggle */}
-      <div className="mb-3 inline-flex rounded-lg p-0.5" style={{ background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.2)' }}>
-        <button
-          onClick={() => setView('2d')}
-          className="px-3 py-1.5 rounded-md text-xs font-semibold transition"
-          style={{
-            background: view === '2d' ? 'var(--accent-cyan)' : 'transparent',
-            color: view === '2d' ? '#0a1628' : 'var(--text-secondary)',
-          }}
-        >
-          {tp('2D профиль', '2D profile', 'Profil 2D')}
-        </button>
-        <button
-          onClick={() => setView('3d')}
-          className="px-3 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1"
-          style={{
-            background: view === '3d' ? 'var(--accent-cyan)' : 'transparent',
-            color: view === '3d' ? '#0a1628' : 'var(--text-secondary)',
-          }}
-        >
-          {tp('3D модель', '3D model', 'Model 3D')}
-          <span className="text-[9px] px-1 rounded" style={{ background: view === '3d' ? 'rgba(10, 22, 40, 0.2)' : 'rgba(255, 170, 0, 0.2)', color: view === '3d' ? '#0a1628' : 'var(--warning)' }}>BETA</span>
-        </button>
-      </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-4 sm:gap-6">
-        {/* Model area (2D or 3D) */}
+        {/* Model area (2D only) */}
         <div className="card p-3 sm:p-4">
-          {view === '2d' ? (
-            <>
-              <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
-              <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-                Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
-              </div>
-            </>
-          ) : (
-            <Anatomy3D modelSrc={modelSrc} modelOk={modelOk} activeId={activeId} onSelect={setActiveId} />
-          )}
+          <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
+          <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
+            Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
+          </div>
         </div>
 
         {/* Info panel */}
@@ -294,202 +235,9 @@ export default function AnatomyPage() {
       </div>
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
-        {view === '2d'
-          ? t('Стилизованный профиль Bavaria 46. Переключись на 3D для объёмной модели.',
-              'Stylized Bavaria 46 profile. Switch to 3D for a rotatable model.')
-          : t('3D модель в бете. Крутить мышью, колесо - зум.',
-              '3D model is in beta. Drag to rotate, wheel to zoom.')}
+        {t('Стилизованный профиль Bavaria 46.',
+           'Stylized Bavaria 46 profile.')}
       </p>
-
-      {/* Load Google model-viewer web component on demand */}
-      <Script
-        type="module"
-        src="https://unpkg.com/@google/model-viewer@^4.0.0/dist/model-viewer.min.js"
-        strategy="lazyOnload"
-      />
-    </div>
-  );
-}
-
-// ============================================================================
-// Anatomy3D - <model-viewer>-based interactive 3D yacht
-// ============================================================================
-
-// Hotspot positions for the Kenney sailboat (model units, roughly -1..+1 box).
-// Labels + tooltips resolved through i18n inside Anatomy3D.
-interface Hotspot3D {
-  id: string;
-  pos: string;
-  normal?: string;
-  labelRu: string; labelEn: string;
-  tipRu: string; tipEn: string;
-}
-const hotspots3D: Hotspot3D[] = [
-  { id: 'mast',    pos: '0 0.6 0',        normal: '0 1 0',  labelRu: 'Мачта',   labelEn: 'Mast',     tipRu: 'Держит паруса. Не опирайся', tipEn: 'Holds the sails. Don\'t lean' },
-  { id: 'boom',    pos: '0 0.3 0.15',     normal: '1 0 0',  labelRu: 'Гик',     labelEn: 'Boom',     tipRu: 'Пересекает лодку при повороте. Береги голову', tipEn: 'Swings across during jibe. Watch your head' },
-  { id: 'mainsail',pos: '0.1 0.55 0',     normal: '1 0 0',  labelRu: 'Грот',    labelEn: 'Mainsail', tipRu: 'Главный двигатель', tipEn: 'Main drive' },
-  { id: 'jib',     pos: '-0.05 0.4 -0.5', normal: '0 0 -1', labelRu: 'Стаксель',labelEn: 'Jib',      tipRu: 'Парус перед мачтой. Slot effect', tipEn: 'Sail forward of the mast, makes the slot' },
-  { id: 'bow',     pos: '0 0 -0.7',       normal: '0 0 -1', labelRu: 'Нос',     labelEn: 'Bow',      tipRu: 'Держись одной рукой за леер', tipEn: 'Keep one hand on the lifeline' },
-  { id: 'stern',   pos: '0 0.05 0.6',     normal: '0 0 1',  labelRu: 'Корма',   labelEn: 'Stern',    tipRu: 'Отсюда садимся на борт', tipEn: 'Where you board' },
-  { id: 'cockpit', pos: '0 0.1 0.3',      normal: '0 1 0',  labelRu: 'Кокпит',  labelEn: 'Cockpit',  tipRu: 'Штурвал и шкоты', tipEn: 'Wheel and sheets' },
-];
-
-function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
-  modelSrc: string;
-  modelOk: boolean | null;
-  activeId: string | null;
-  onSelect: (id: string) => void;
-}) {
-  const { t, tp } = useI18n();
-
-  if (modelOk === false) {
-    return (
-      <div
-        className="w-full rounded-lg flex flex-col items-center justify-center text-center p-8"
-        style={{
-          aspectRatio: '16/10',
-          background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.35), rgba(6, 20, 40, 0.8))',
-          border: '1px dashed rgba(0, 212, 255, 0.25)',
-        }}
-      >
-        <div className="text-5xl mb-3">⛵</div>
-        <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-          {tp('3D модель скоро', '3D model coming soon', 'Model 3D wkrótce')}
-        </div>
-        <div className="text-xs text-[var(--text-secondary)] max-w-md leading-relaxed">
-          {t(
-            'Подбираем лицензированную 3D-модель круизера 46 футов. Пока что используй 2D-профиль - он покрывает все детали устройства яхты.',
-            'We are sourcing a licensed 3D model of a 46-foot cruiser. Meanwhile use the 2D profile - it covers every part.',
-          )}
-        </div>
-        <div className="text-[10px] text-[var(--text-muted)] mt-3 font-mono">
-          expected at: <span className="text-[var(--accent-cyan)]">{modelSrc}</span>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      <div
-        className="w-full rounded-lg overflow-hidden relative"
-        style={{
-          aspectRatio: '4/3',
-          minHeight: 380,
-          background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.35), rgba(6, 20, 40, 0.8))',
-          border: '1px solid rgba(0, 212, 255, 0.15)',
-        }}
-      >
-        <model-viewer
-          src={modelSrc}
-          alt="Sailing yacht 3D model"
-          camera-controls
-          touch-action="pan-y"
-          auto-rotate
-          auto-rotate-delay="3000"
-          rotation-per-second="10deg"
-          shadow-intensity="0.8"
-          exposure="1.2"
-          camera-orbit="25deg 68deg 70%"
-          min-camera-orbit="auto auto 40%"
-          max-camera-orbit="auto auto 200%"
-          field-of-view="26deg"
-          interaction-prompt="auto"
-          interaction-prompt-threshold="4000"
-          style={{ width: '100%', height: '100%', background: 'transparent' }}
-        >
-          {hotspots3D.map((h) => {
-            const isActive = activeId === h.id;
-            return (
-              <button
-                key={h.id}
-                slot={`hotspot-${h.id}`}
-                data-position={h.pos}
-                data-normal={h.normal}
-                data-visibility-attribute="visible"
-                onClick={() => onSelect(h.id)}
-                className="hotspot-3d"
-                style={{
-                  border: `2px solid ${isActive ? '#00d4ff' : '#ffffff'}`,
-                  background: isActive ? 'var(--accent-cyan)' : 'rgba(10, 22, 40, 0.85)',
-                  color: isActive ? '#0a1628' : 'var(--accent-cyan)',
-                  borderRadius: '999px',
-                  padding: '8px 14px',
-                  fontSize: '13px',
-                  fontWeight: 700,
-                  cursor: 'pointer',
-                  boxShadow: isActive
-                    ? '0 0 0 4px rgba(0, 212, 255, 0.25), 0 4px 12px rgba(0, 0, 0, 0.5)'
-                    : '0 2px 10px rgba(0, 0, 0, 0.6)',
-                  whiteSpace: 'nowrap',
-                  transform: isActive ? 'scale(1.12)' : 'scale(1)',
-                  transition: 'transform 0.15s ease, box-shadow 0.2s ease',
-                  position: 'relative',
-                }}
-              >
-                <span style={{
-                  display: 'inline-block',
-                  width: 8, height: 8, borderRadius: '50%',
-                  background: isActive ? '#0a1628' : '#00d4ff',
-                  marginRight: 6,
-                  verticalAlign: 'middle',
-                  boxShadow: isActive ? 'none' : '0 0 6px #00d4ff',
-                }} />
-                {t(h.labelRu, h.labelEn)}
-                <span
-                  className="hotspot-tooltip"
-                  style={{
-                    position: 'absolute',
-                    top: '110%',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    padding: '4px 9px',
-                    background: 'rgba(10, 22, 40, 0.95)',
-                    border: '1px solid rgba(0, 212, 255, 0.35)',
-                    borderRadius: 6,
-                    color: 'var(--text-primary)',
-                    fontSize: 10,
-                    fontWeight: 500,
-                    whiteSpace: 'nowrap',
-                    pointerEvents: 'none',
-                    opacity: 0,
-                    transition: 'opacity 0.15s ease',
-                    marginTop: 6,
-                    zIndex: 10,
-                  }}
-                >
-                  {t(h.tipRu, h.tipEn)}
-                </span>
-              </button>
-            );
-          })}
-        </model-viewer>
-      </div>
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
-        <div className="flex items-center gap-2">
-          <span>🖱 {t('тяни', 'drag')}</span>
-          <span>·</span>
-          <span>🔍 {t('колёсико / щипок = зум', 'wheel / pinch to zoom')}</span>
-          <span>·</span>
-          <span>✋ {t('правая кнопка = двигать', 'right-click to pan')}</span>
-        </div>
-        <button
-          onClick={() => {
-            const mv = document.querySelector('model-viewer') as unknown as { cameraOrbit?: string; resetTurntableRotation?: () => void };
-            if (mv) {
-              mv.cameraOrbit = '25deg 68deg 70%';
-              try { mv.resetTurntableRotation?.(); } catch { /* ignore */ }
-            }
-          }}
-          className="px-2 py-1 rounded border text-[10px] hover:text-[var(--accent-cyan)] hover:border-[var(--accent-cyan)] transition"
-          style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: 'var(--text-secondary)' }}
-        >
-          ⟳ {t('сбросить вид', 'reset view')}
-        </button>
-      </div>
-      <div className="mt-1 text-[10px] text-[var(--text-muted)] text-center">
-        Model: <a href="https://kenney.nl/assets/watercraft-kit" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Watercraft Kit by Kenney.nl</a> (CC0) - low-poly placeholder.
-      </div>
     </div>
   );
 }

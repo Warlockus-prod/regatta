@@ -232,7 +232,7 @@ export default function ReplayViewer() {
 }
 
 function formatTime(s: number): string {
-  if (!isFinite(s)) return '—';
+  if (!isFinite(s)) return '-';
   const m = Math.floor(s / 60);
   const sec = Math.floor(s % 60);
   const ms = Math.floor((s * 10) % 10);

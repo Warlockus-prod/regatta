@@ -110,21 +110,13 @@ export default function OnboardPage() {
             'Overview here - details on dedicated pages.',
           )}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link href="/anatomy" className="card p-4 hover:border-[var(--accent-cyan)] transition">
             <div className="text-2xl mb-1">🔧</div>
             <div className="font-semibold">{t('Устройство яхты', 'Yacht anatomy')}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-1">2D + 3D Bavaria 46</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">Bavaria 46</div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {t('17 деталей с описанием. 3D модель крутится.', '17 parts described. 3D model rotates.')}
-            </p>
-          </Link>
-          <Link href="/knots" className="card p-4 hover:border-[var(--accent-cyan)] transition">
-            <div className="text-2xl mb-1">🪢</div>
-            <div className="font-semibold">{t('Узлы', 'Knots')}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-1">6 базовых</div>
-            <p className="text-xs text-[var(--text-secondary)]">
-              {t('Восьмёрка, беседочный, на утку - со схемами.', 'Figure-8, bowline, cleat hitch - with diagrams.')}
+              {t('17 деталей с описанием, 2D профиль.', '17 parts described, 2D profile.')}
             </p>
           </Link>
           <Link href="/checklist" className="card p-4 hover:border-[var(--accent-cyan)] transition">

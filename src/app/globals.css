@@ -238,8 +238,3 @@ html {
   display: none;
 }
 
-/* 3D anatomy hotspot tooltip (model-viewer) */
-.hotspot-3d:hover .hotspot-tooltip,
-.hotspot-3d:focus-visible .hotspot-tooltip {
-  opacity: 1 !important;
-}

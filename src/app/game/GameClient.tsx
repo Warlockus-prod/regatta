@@ -2610,7 +2610,7 @@ function GameMenu({
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
                 <span className="text-[var(--text-secondary)]">Вправо</span>
               </div>
-              <div className="text-xs text-[var(--text-muted)]">На мобайле — кнопки внизу экрана.</div>
+              <div className="text-xs text-[var(--text-muted)]">На мобайле - кнопки внизу экрана.</div>
             </div>
           </div>
           <div>

@@ -226,15 +226,15 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   {chat.length === 0 && (
                     <div className="text-sm text-[var(--text-muted)] leading-relaxed p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)' }}>
                       {tp(
-                        'Привет! Спроси что-нибудь про яхтинг: курсы к ветру, правила, узлы, как лавировать. Сначала направлю по разделам сайта - если там нет, отвечу сам.',
-                        "Hi! Ask anything about sailing: points of sail, rules, knots, tacking. I'll point you to a section of the site first - if it's not there, I'll answer myself.",
-                        "Cześć! Zapytaj o cokolwiek z żeglarstwa: kursy, przepisy, węzły, halsowanie. Najpierw wskażę sekcję strony - jeśli tam nie ma, odpowiem sam."
+                        'Привет! Спроси что-нибудь про яхтинг: курсы к ветру, правила, трим парусов, как лавировать. Сначала направлю по разделам сайта - если там нет, отвечу сам.',
+                        "Hi! Ask anything about sailing: points of sail, rules, sail trim, tacking. I'll point you to a section of the site first - if it's not there, I'll answer myself.",
+                        "Cześć! Zapytaj o cokolwiek z żeglarstwa: kursy, przepisy, trym żagli, halsowanie. Najpierw wskażę sekcję strony - jeśli tam nie ma, odpowiem sam."
                       )}
                       <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
                         {([
                           tp('Как начать лавировку?', 'How to start tacking?', 'Jak zacząć halsowanie?'),
                           tp('Что такое фордевинд?', 'What is running?', 'Co to fordewind?'),
-                          tp('Как завязать восьмёрку?', 'How to tie figure-8?', 'Jak zawiązać ósemkę?'),
+                          tp('Что такое apparent wind?', 'What is apparent wind?', 'Co to apparent wind?'),
                         ]).map((q) => (
                           <button
                             key={q}
