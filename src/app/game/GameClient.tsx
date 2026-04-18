@@ -310,6 +310,8 @@ function computeAIHeading(boat: Boat, course: Course, dt: number): number {
 
 export default function GamePage() {
   const [gameState, setGameState] = useState<GameState>('menu');
+  // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
+  const [dailyDay, setDailyDay] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [countdown, setCountdown] = useState(3);
   const [elapsed, setElapsed] = useState(0);
@@ -348,11 +350,28 @@ export default function GamePage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const saveAttemptedRef = useRef(false);
 
+  // Shareable replay code
+  const [replayCode, setReplayCode] = useState<string | null>(null);
+  const replayAttemptedRef = useRef(false);
+
   // Load nickname on mount
   useEffect(() => {
     fetch('/api/player').then((r) => r.json()).then((d) => {
       if (d?.nickname) setNickname(d.nickname);
     }).catch(() => {});
+  }, []);
+
+  // Daily mode: read URL params and lock difficulty/wind
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+    const day = url.searchParams.get('daily');
+    if (!day) return;
+    setDailyDay(day);
+    const d = url.searchParams.get('difficulty');
+    const w = url.searchParams.get('wind');
+    if (d === 'easy' || d === 'medium' || d === 'hard') setDifficulty(d);
+    if (w === 'light' || w === 'medium' || w === 'heavy') setWindStrength(w);
   }, []);
 
   // Touch controls state (true while button held). Mirror to ref so the game
@@ -480,10 +499,39 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState === 'briefing' || gameState === 'menu') {
       saveAttemptedRef.current = false;
+      replayAttemptedRef.current = false;
       setSaveState('idle');
       setSaveError(null);
+      setReplayCode(null);
     }
   }, [gameState]);
+
+  // Auto-save replay on finish (fire and forget)
+  useEffect(() => {
+    if (gameState !== 'finished') return;
+    if (replayAttemptedRef.current) return;
+    const player = boatsRef.current.find((b) => b.isPlayer);
+    if (!player || player.lapDone !== 2) return;
+    if (logSamplesRef.current.length < 5) return;
+    replayAttemptedRef.current = true;
+    fetch('/api/replay', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        difficulty,
+        windStrength,
+        missionId: selectedMission?.id ?? null,
+        finishTimeSec: player.finishTime,
+        samples: logSamplesRef.current,
+        events: logEventsRef.current,
+        course: courseRef.current,
+        nicknameFallback: nickname ?? 'Player',
+      }),
+    })
+      .then((r) => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
+      .then((d) => { if (d?.code) setReplayCode(d.code); })
+      .catch(() => { /* silent - replay is optional */ });
+  }, [gameState, difficulty, windStrength, selectedMission, nickname]);
 
   // -----------------------------------------------------------------------
   // Initialize boats for a new race
@@ -1637,6 +1685,20 @@ export default function GamePage() {
               </div>
             )}
 
+            {/* Shareable replay */}
+            {replayCode && (
+              <ShareBlock
+                code={replayCode}
+                nickname={nickname}
+                difficulty={difficulty}
+                windStrength={windStrength}
+                finishTime={playerFinished?.time}
+                rank={playerRank}
+                total={results.length}
+                missionTitle={selectedMission?.titleRu}
+              />
+            )}
+
             <div className="flex gap-2 flex-wrap">
               <button
                 onClick={backToMenu}
@@ -1798,6 +1860,78 @@ function drawBoat(
 // ============================================================================
 // HELPERS
 // ============================================================================
+
+// ============================================================================
+// ShareBlock - nickname + replay code + copy-url / native share
+// ============================================================================
+
+function ShareBlock({
+  code, nickname, difficulty, windStrength, finishTime, rank, total, missionTitle,
+}: {
+  code: string; nickname: string | null;
+  difficulty: Difficulty; windStrength: 'light' | 'medium' | 'heavy';
+  finishTime?: number; rank?: number; total?: number;
+  missionTitle?: string;
+}) {
+  const [copied, setCopied] = useState(false);
+  const url = typeof window !== 'undefined' ? `${window.location.origin}/r/${code}` : '';
+  const shareText = finishTime
+    ? `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на regatta.icoffio.com - смотри replay`
+    : `Мой replay на regatta.icoffio.com`;
+
+  const onShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'Regatta replay', text: shareText, url });
+        return;
+      } catch { /* fallback to copy */ }
+    }
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch { /* ignore */ }
+  };
+
+  const ogUrl = finishTime
+    ? `/api/og/result?nick=${encodeURIComponent(nickname ?? 'Player')}&time=${encodeURIComponent(formatTime(finishTime))}&place=${rank ?? ''}&of=${total ?? ''}&code=${code}&difficulty=${difficulty}&wind=${windStrength}&mission=${encodeURIComponent(missionTitle ?? '')}`
+    : null;
+
+  return (
+    <div className="mb-4 p-3 rounded-lg"
+         style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+      <div className="flex items-center justify-between flex-wrap gap-2">
+        <div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">SHARE REPLAY</div>
+          <div className="text-sm font-mono font-semibold text-[var(--accent-cyan)] mt-0.5">
+            {code}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={onShare}
+            className="px-3 py-1.5 rounded text-xs font-semibold"
+            style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+          >
+            {copied ? '✓ Скопировано' : '🔗 Поделиться'}
+          </button>
+          <Link
+            href={`/r/${code}`}
+            className="px-3 py-1.5 rounded text-xs font-semibold border"
+            style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
+          >
+            Открыть
+          </Link>
+        </div>
+      </div>
+      {ogUrl && (
+        // Prefetch the OG image so it's ready when a social crawler fetches it
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={ogUrl} alt="" style={{ display: 'none' }} aria-hidden="true" />
+      )}
+    </div>
+  );
+}
 
 function formatTime(seconds: number): string {
   if (!isFinite(seconds)) return '-';

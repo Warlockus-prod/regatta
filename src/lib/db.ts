@@ -103,6 +103,34 @@ function db(): Database.Database {
     CREATE INDEX IF NOT EXISTS idx_race_ts ON race_results(ts);
     CREATE INDEX IF NOT EXISTS idx_race_leaderboard ON race_results(difficulty, wind_strength, finish_time_sec);
     CREATE INDEX IF NOT EXISTS idx_race_mission ON race_results(mission_id, finish_time_sec);
+
+    -- Shareable replays (Wave 13)
+    CREATE TABLE IF NOT EXISTS replays (
+      code TEXT PRIMARY KEY,
+      ts INTEGER NOT NULL,
+      sid TEXT,
+      nickname TEXT,
+      difficulty TEXT,
+      wind_strength TEXT,
+      mission_id TEXT,
+      finish_time_sec REAL,
+      samples_json TEXT NOT NULL,
+      events_json TEXT NOT NULL,
+      course_json TEXT,
+      views INTEGER NOT NULL DEFAULT 0
+    );
+    CREATE INDEX IF NOT EXISTS idx_replays_ts ON replays(ts);
+    CREATE INDEX IF NOT EXISTS idx_replays_sid ON replays(sid);
+
+    -- Daily challenges (Wave 13)
+    CREATE TABLE IF NOT EXISTS daily_challenges (
+      day TEXT PRIMARY KEY,
+      seed INTEGER NOT NULL,
+      difficulty TEXT NOT NULL,
+      wind_strength TEXT NOT NULL,
+      mission_id TEXT,
+      created_at INTEGER NOT NULL
+    );
   `);
 
   return _db;
@@ -423,6 +451,138 @@ export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
       ORDER BY finish_time_sec ASC
       LIMIT ?
     `).all(missionId, limit) as LeaderboardRow[];
+  } catch {
+    return [];
+  }
+}
+
+// ============================================================================
+// Replays (Wave 13)
+// ============================================================================
+
+export interface ReplayRow {
+  code: string;
+  ts: number;
+  sid: string | null;
+  nickname: string | null;
+  difficulty: string | null;
+  wind_strength: string | null;
+  mission_id: string | null;
+  finish_time_sec: number | null;
+  samples_json: string;
+  events_json: string;
+  course_json: string | null;
+  views: number;
+}
+
+export interface ReplayInsert {
+  sid: string | null;
+  nickname: string | null;
+  difficulty: string;
+  windStrength: string;
+  missionId: string | null;
+  finishTimeSec: number | null;
+  samples: unknown;    // will be JSON.stringified
+  events: unknown;
+  course: unknown;
+}
+
+function randReplayCode(): string {
+  const alpha = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 6; i++) s += alpha[Math.floor(Math.random() * alpha.length)];
+  return s;
+}
+
+export function insertReplay(r: ReplayInsert): string | null {
+  try {
+    const d = db();
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const code = randReplayCode();
+      const existing = d.prepare('SELECT code FROM replays WHERE code = ?').get(code);
+      if (existing) continue;
+      d.prepare(`
+        INSERT INTO replays (code, ts, sid, nickname, difficulty, wind_strength, mission_id,
+          finish_time_sec, samples_json, events_json, course_json, views)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
+      `).run(
+        code, Date.now(), r.sid, r.nickname, r.difficulty, r.windStrength,
+        r.missionId, r.finishTimeSec,
+        JSON.stringify(r.samples), JSON.stringify(r.events), JSON.stringify(r.course),
+      );
+      return code;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export function getReplay(code: string): ReplayRow | null {
+  try {
+    const d = db();
+    const row = d.prepare('SELECT * FROM replays WHERE code = ?').get(code) as ReplayRow | undefined;
+    if (!row) return null;
+    // Increment views (best-effort)
+    try { d.prepare('UPDATE replays SET views = views + 1 WHERE code = ?').run(code); } catch { /* ignore */ }
+    return row;
+  } catch {
+    return null;
+  }
+}
+
+// ============================================================================
+// Daily challenges (Wave 13)
+// ============================================================================
+
+export interface DailyChallenge {
+  day: string;
+  seed: number;
+  difficulty: string;
+  wind_strength: string;
+  mission_id: string | null;
+  created_at: number;
+}
+
+export function getOrCreateDaily(day: string): DailyChallenge {
+  const d = db();
+  let row = d.prepare('SELECT * FROM daily_challenges WHERE day = ?').get(day) as DailyChallenge | undefined;
+  if (row) return row;
+  // Deterministic pseudo-random from the date string
+  const hash = Array.from(day).reduce((acc, c) => (acc * 131 + c.charCodeAt(0)) >>> 0, 7);
+  const difficulties = ['easy', 'medium', 'medium', 'medium', 'hard'];
+  const winds = ['light', 'medium', 'medium', 'heavy'];
+  const seed = (hash % 1000);
+  const difficulty = difficulties[hash % difficulties.length];
+  const wind = winds[(hash >>> 3) % winds.length];
+  d.prepare(`
+    INSERT INTO daily_challenges (day, seed, difficulty, wind_strength, mission_id, created_at)
+    VALUES (?, ?, ?, ?, NULL, ?)
+  `).run(day, seed, difficulty, wind, Date.now());
+  row = d.prepare('SELECT * FROM daily_challenges WHERE day = ?').get(day) as DailyChallenge;
+  return row;
+}
+
+export function getDailyLeaderboard(day: string, limit = 10): LeaderboardRow[] {
+  try {
+    const d = db();
+    // Races on that day matching the daily difficulty + wind
+    const daily = d.prepare('SELECT * FROM daily_challenges WHERE day = ?').get(day) as DailyChallenge | undefined;
+    if (!daily) return [];
+    const dayStart = Date.parse(day + 'T00:00:00Z');
+    const dayEnd = dayStart + 24 * 60 * 60 * 1000;
+    return d.prepare(`
+      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
+      FROM race_results r
+      WHERE r.ts >= ? AND r.ts < ?
+        AND r.difficulty = ?
+        AND r.wind_strength = ?
+        AND r.mission_id IS NULL
+      GROUP BY r.sid
+      ORDER BY finish_time_sec ASC
+      LIMIT ?
+    `).all(dayStart, dayEnd, daily.difficulty, daily.wind_strength, limit) as LeaderboardRow[];
   } catch {
     return [];
   }
