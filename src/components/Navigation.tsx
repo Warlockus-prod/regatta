@@ -115,6 +115,7 @@ const groups: NavGroup[] = [
     items: [
       { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka', icon: Icon.tactics },
+      { href: '/trim-trainer', ru: 'Трим парусов', en: 'Sail trim', pl: 'Trim żagli', icon: Icon.tactics },
     ],
   },
   {
