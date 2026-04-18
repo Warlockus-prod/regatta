@@ -10,7 +10,6 @@ services:
       # Bind only to docker bridge so the shared nginx_server reverse proxy can reach it
       - "172.17.0.1:4500:3000"
     env_file:
-      # Optional — if absent, AI coach falls back to "not configured" message
       - path: ./.env
         required: false
     environment:
@@ -19,6 +18,20 @@ services:
       - REGATTA_DB_DIR=/data
     volumes:
       - regatta_data:/data
+
+  regatta-ws:
+    build:
+      context: ./ws-server
+      dockerfile: Dockerfile
+    image: regatta-ws:latest
+    container_name: regatta-ws
+    restart: unless-stopped
+    ports:
+      # Bound to docker bridge - nginx proxies /ws path here
+      - "172.17.0.1:4501:3001"
+    environment:
+      - NODE_ENV=production
+      - PORT=3001
 
 volumes:
   regatta_data:

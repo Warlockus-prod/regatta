@@ -59,3 +59,10 @@ qa-*.png
 /leaderboard*.png
 /game-*.png
 /home-*.png
+/v8-*.png
+
+# Playwright
+/playwright-report/
+/test-results/
+/blob-report/
+/playwright/.cache/

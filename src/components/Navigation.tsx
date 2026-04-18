@@ -128,6 +128,7 @@ const groups: NavGroup[] = [
   {
     titleRu: 'Справочник', titleEn: 'Reference', titlePl: 'Słownik',
     items: [
+      { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', icon: Icon.race },
       { href: '/glossary', ru: 'Глоссарий', en: 'Glossary', pl: 'Glosariusz', icon: Icon.glossary },
       { href: '/leaderboard', ru: 'Лидерборд', en: 'Leaderboard', pl: 'Ranking', icon: Icon.race },
     ],

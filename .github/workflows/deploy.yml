@@ -59,7 +59,6 @@ jobs:
             set -e
             cd "$VPS_PATH"
             git fetch --all --tags --prune
-            # Resolve ref: tag, branch or sha
             if git rev-parse "refs/tags/$DEPLOY_REF" >/dev/null 2>&1; then
               git checkout "refs/tags/$DEPLOY_REF"
             elif git rev-parse "origin/$DEPLOY_REF" >/dev/null 2>&1; then
@@ -75,7 +74,7 @@ jobs:
             docker ps --filter name=regatta --format "{{.Names}} {{.Status}} {{.Image}}"
           EOF
 
-      - name: Smoke-test prod
+      - name: Smoke-test prod (HTTP 200)
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
@@ -84,3 +83,30 @@ jobs:
             echo "HTTP $code  $path"
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
           done
+
+  e2e:
+    name: Playwright E2E on prod
+    needs: deploy
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci --no-audit --no-fund
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Wait briefly for new container to warm up
+        run: sleep 10
+      - name: Run E2E smoke tests
+        run: npx playwright test
+        env:
+          BASE_URL: https://regatta.icoffio.com
+      - name: Upload HTML report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 14
