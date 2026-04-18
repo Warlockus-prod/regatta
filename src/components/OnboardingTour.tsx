@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'regatta.onboarding.v1';
+const HIDE_ON = ['/simulator', '/trim-trainer', '/game', '/multiplayer'];
 
 const STEPS = [
   {
@@ -28,6 +29,9 @@ export default function OnboardingTour() {
 
   useEffect(() => {
     try {
+      if (typeof window !== 'undefined' && HIDE_ON.some((p) => window.location.pathname.startsWith(p))) {
+        return;
+      }
       if (!localStorage.getItem(STORAGE_KEY)) {
         // Delay slightly so page is rendered
         const t = setTimeout(() => setShow(true), 600);

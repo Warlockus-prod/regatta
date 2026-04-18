@@ -22,7 +22,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('ai');
-  const [shouldHide, setShouldHide] = useState(false);
+  const [shouldHide, setShouldHide] = useState(true);
 
   // Feedback tab state
   const [kind, setKind] = useState<Kind>('feedback');
@@ -48,7 +48,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       setPath(window.location.pathname);
       setShouldHide(hideOn.some((p) => window.location.pathname.startsWith(p)));
     }
-  }, [hideOn, open]);
+  }, [hideOn]);
 
   // Reset chat scroll on new message
   useEffect(() => {

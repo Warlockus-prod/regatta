@@ -70,8 +70,8 @@ export default function RootLayout({
           <main className="flex-1">
             {children}
           </main>
-          {/* Feedback widget hidden on the fullscreen game to avoid covering canvas */}
-          <FeedbackWidget hideOn={[]} />
+          {/* Feedback widget hidden on immersive pages to avoid covering simulators */}
+          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator', '/trim-trainer']} />
         </I18nProvider>
       </body>
     </html>
