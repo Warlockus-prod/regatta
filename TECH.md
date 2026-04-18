@@ -4,7 +4,7 @@ Architecture snapshot. Updated on structural changes (new module, removed
 feature, changed data flow) - NOT on every commit. When updating, date the
 entry in MEMORY.md pointing to the change.
 
-**Last updated:** 2026-04-18 (after Phase 0 cleanup)
+**Last updated:** 2026-04-18 (after Phase 1: sailing-physics engine landed)
 
 ---
 
@@ -93,8 +93,18 @@ src/
     ├── rate-limit.ts     # in-memory IP/session rate limits
     ├── log.ts            # structured server log
     ├── fallback-coach.ts # rule-based coach if no ANTHROPIC_API_KEY
-    └── race-physics.ts   # shared fake physics (TWA -> speedFactor) -
-                          # SLATED FOR REPLACEMENT by sailing-physics module
+    ├── race-physics.ts   # shared fake physics (TWA -> speedFactor) -
+    │                     # SLATED FOR REPLACEMENT by sailing-physics module
+    └── sailing-physics/  # real VPP-style engine (Phase 1, ADR-0001)
+        ├── types.ts      # BoatState, BoatParams, Controls, Diagnostics
+        ├── boat.ts       # abstract 2-sail cruiser params
+        ├── wind.ts       # true wind -> apparent wind vector math
+        ├── aero.ts       # Cl/Cd piecewise curves with stall
+        ├── forces.ts     # sail forces (drive + side) + slot multiplier
+        ├── balance.ts    # heel + leeway from moment balance
+        ├── simulate.ts   # tick(state, controls, params, dt) - pure function
+        ├── simulate.test.ts # 5 ADR-0001 verification tests (+3 sanity)
+        └── index.ts      # public API barrel export
 ```
 
 ---
@@ -139,21 +149,16 @@ SQLite → `/r/[code]` renders canvas scrub UI reading `/api/replay/[code]`.
 
 ---
 
-## Coming (Phase 1, not yet in tree)
+## Coming (Phase 2, not yet in tree)
 
-```
-src/lib/sailing-physics/
-├── types.ts      # BoatState, BoatParams, Controls, SailState
-├── wind.ts       # true wind + apparent wind vectors
-├── aero.ts       # Cl/Cd piecewise curves with stall
-├── forces.ts     # sail drive + side forces
-├── balance.ts    # heeling vs righting moment -> heel angle, leeway
-├── boat.ts       # abstract 2-sail cruiser parameters
-├── simulate.ts   # tick(state, controls, dt) => state (pure function)
-└── simulate.test.ts # unit tests for expected physics behavior
-```
+- New `/simulator` UI that reads `sailing-physics` state directly.
+  Two panels on one page: top = course/wind/vectors/metrics,
+  bottom = sheets/trim diagnostics. Both panels produced by one
+  `tick()` per frame (shared state, not two URLs).
+- Migration of `/game` and `/trim-trainer` from `race-physics.ts`
+  lookup tables to the new engine.
 
-See DECISIONS.md #0001 for the architectural rationale.
+See DECISIONS.md ADR-0001 and ROADMAP.md Phase 2/3 for the plan.
 
 ---
 

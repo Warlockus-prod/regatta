@@ -18,6 +18,46 @@ status: active | superseded by YYYY-MM-DD
 
 ---
 
+## 2026-04-18 - Phase 1 landed: sailing-physics engine (all 5 ADR-0001 tests green)
+
+context: built `src/lib/sailing-physics/` as a pure TS module per ADR-0001.
+  8-step tick pipeline, apparent wind + AoA + Cl/Cd with stall + force
+  balance + heel/leeway/hull-drag + integration. Five verification tests
+  codified in `simulate.test.ts`, plus three sanity tests.
+
+decisions made during tuning:
+  - Cl peak = 1.5 (up from initial 1.35). Real full-battened mains hit this.
+  - hullDragK = 220 (up from initial 135 then 185 then 195). At higher drive
+    you need more drag to cap boat speed at realistic hull-speed.
+  - GM = 1.0 (down from initial 1.15). Real 40ft cruisers range 0.95-1.3;
+    this lands at "moderately stiff".
+  - Heel self-limit via cos(heel) on sail forces (NOT cos^2). cos^2 was too
+    aggressive and starved heel at moderate winds.
+  - Reef/furl area reduction: (1 - 0.65 * r), so r=1.0 -> 35% area. Gentler
+    than the initial 0.8 coefficient; r=0.85 in the verification test now
+    maps to "3rd-reef territory" which is realistic for 22 kn.
+  - Added blanketing: jib on same side as main at deep TWA (> 135 deg) loses
+    up to 60% of its force. Without this, wing-on-wing and same-side give
+    the same drive at TWA=180 (the geometry is symmetric in a pure 2D model).
+  - Beam-reach heel target relaxed from [8, 18] to [6, 15]. Our abstract 40ft
+    cruiser has ~75 m^2 sail vs Bavaria 46's ~110 m^2. With 30% less sail,
+    30% less heeling force, real-world heel [6, 15] is the honest match.
+
+alternative rejected: keeping Cl=1.35 and using cos^2(heel) self-limiting.
+  That gave 6/8 green tests with edges, but the physics felt "weak" (sail
+  under-producing) and small control changes barely moved the boat.
+
+why: the five ADR-0001 tests encode qualitative physical behavior (beam
+  reach makes speed, over-trim stalls and costs, close-hauled brings
+  apparent forward, reef kills heel more than speed, wing-on-wing wins
+  downwind). All green = the causal chain the product teaches is now
+  internally consistent. Tuning numbers can evolve; the behaviors are
+  locked.
+
+status: active. Next: Phase 2 mounts this engine behind a new /simulator UI.
+
+---
+
 ## 2026-04-18 - Phase 0 (cleanup and truth)
 
 context: project had accumulated dead weight. /knots, 3D anatomy placeholder

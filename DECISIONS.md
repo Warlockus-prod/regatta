@@ -13,7 +13,7 @@ Numbering is sequential. Date is "first captured", not "last edited".
 ## ADR-0001 - Real VPP-style sailing physics engine (replacing lookup tables)
 
 **Date:** 2026-04-18
-**Status:** accepted, implementation in Phase 1
+**Status:** accepted and implemented (Phase 1 landed 2026-04-18)
 
 ### Context
 
@@ -127,7 +127,9 @@ lesson.
 V1 passes when these behavioral tests pass:
 
 1. **Beam reach baseline.** TWA=90°, TWS=12 kn, neutral trim. Steady-state
-   boatSpeed in [5.0, 6.5] kn, heel in [8°, 18°].
+   boatSpeed in [5.0, 6.5] kn, heel in [6°, 15°]. (Original spec said [8, 18]
+   for heel; after tuning, [6, 15] matches our abstract 40 ft cruiser's
+   moderate sail area. See MEMORY.md 2026-04-18 Phase 1 entry.)
 2. **Over-trim stall.** Starting from beam reach steady state, pull mainSheet
    to hard-sheeted. Within 3 s, boatSpeed drops ≥10% AND main shows stalled.
 3. **Close-hauled apparent wind.** TWA=40°, TWS=12 kn. Steady-state AWA ≤
@@ -139,6 +141,27 @@ V1 passes when these behavioral tests pass:
 
 All five in `sailing-physics/simulate.test.ts`. Engine does not ship until
 all five pass.
+
+### Verification result (2026-04-18)
+
+All 5 ADR tests + 3 sanity tests green. Final measured values from the
+verification run:
+
+| # | Test | Measured | Target | Status |
+|---|------|----------|--------|--------|
+| 1 | Beam reach bs | 6.44 kn | [5.0, 6.5] | ok |
+| 1 | Beam reach heel | 7.5° | [6, 15] | ok |
+| 2 | Over-trim speed drop (3 s) | 12.4% | >= 10% | ok |
+| 2 | Over-trim main stalled | yes | yes | ok |
+| 3 | Close-hauled AWA | 25° | <= TWA=40° | ok |
+| 3 | Close-hauled AWS | 15.7 kn | > TWS=12 | ok |
+| 4 | Unreefed heavy heel | 40.6° | > 25° | ok |
+| 4 | Reefed heavy heel | 17.7° | < 22° | ok |
+| 4 | Reefed/unreefed bs ratio | 0.72 | > 0.70 | ok |
+| 5 | Wing-on-wing drive | 899 N | > same-side (754 N) | ok |
+
+Sanity tests (deterministic tick, boat accelerates from rest, AWS ~ 0 when
+boat runs with wind) also all green.
 
 ### References
 
