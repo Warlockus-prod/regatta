@@ -1,6 +1,6 @@
 'use client';
 
-import { type ReactNode, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -364,373 +364,126 @@ export default function SimulatorPage() {
     ? tp('Правый галс', 'Starboard tack', 'Prawy hals')
     : tp('Левый галс', 'Port tack', 'Lewy hals');
 
+  // =====================================================================
+  // SIMULATOR V2 - immersive cockpit layout
+  // Same physics engine as /simulator (Phase 1). Different aesthetic:
+  // edge-to-edge hero scene, big hero numbers in floating glass cards,
+  // controls live in a sticky bottom strip.
+  // =====================================================================
+  const heelAbs = Math.abs(sim.result.state.heel);
+  const leewayAbs = Math.abs(sim.result.state.leeway);
+  const slotPct = Math.round(sim.result.diag.slotHealth * 100);
+
   return (
-    <div className="page-enter max-w-6xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-4 sm:space-y-6">
-      <header className="space-y-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium"
-               style={{ background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.22)', color: 'var(--accent-cyan)' }}>
-            {tp('Учебный VPP-симулятор', 'Training VPP simulator', 'Treningowy symulator VPP')}
-            <span className="text-[9px] px-1 rounded" style={{ background: 'rgba(0, 212, 255, 0.18)' }}>V1</span>
-          </div>
-          <a href="/simulator2" className="text-xs px-2.5 py-1 rounded-full border transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(255, 170, 0, 0.3)', color: 'var(--warning)' }}>
-            {tp('Попробуй V2 (immersive)', 'Try V2 (immersive)', 'Sprobuj V2 (immersive)')} →
-          </a>
+    <div className="page-enter relative min-h-screen" style={{ background: '#050b18' }}>
+      {/* Top-bar A/B strip */}
+      <div className="sticky top-0 z-30 flex items-center justify-between gap-3 px-4 sm:px-6 py-2 border-b"
+           style={{ background: 'rgba(5, 11, 24, 0.88)', borderColor: 'rgba(0, 212, 255, 0.16)', backdropFilter: 'blur(10px)' }}>
+        <div className="flex items-center gap-3">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase"
+                style={{ background: 'rgba(0, 212, 255, 0.16)', color: 'var(--accent-cyan)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+            V2 · Immersive
+          </span>
+          <span className="hidden sm:inline text-xs text-[var(--text-muted)]">
+            {tp('VPP · одна сцена · все силы на одном экране',
+                'VPP · one scene · all forces on one screen',
+                'VPP · jedna scena · wszystkie sily')}
+          </span>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">
-              {tp('Ветер, курс и трим парусов', 'Wind, course, and sail trim', 'Wiatr, kurs i trim zagli')}
-            </h1>
-            <p className="text-sm text-[var(--text-secondary)] max-w-3xl mt-1">
-              {tp(
-                'Один экран, один расчёт. Верхняя сцена показывает курс к ветру и силы, нижний блок объясняет, что делают грот и стаксель.',
-                'One screen, one calculation. The top scene shows course to the wind and forces, while the lower block explains what the main and jib are doing.',
-                'Jeden ekran, jedno obliczenie. Gorna scena pokazuje kurs do wiatru i sily, a dolny blok wyjasnia, co robia grott i fok.',
-              )}
-            </p>
-          </div>
-          <div className="text-xs text-[var(--text-muted)]">
-            {tp('Лодка: абстрактный 40 ft cruiser, 2 паруса', 'Boat: abstract 40 ft cruiser, 2 sails', 'Lodz: abstrakcyjny cruiser 40 ft, 2 zagle')}
-          </div>
-        </div>
-      </header>
-
-      <section className="card overflow-hidden">
-        <div className="flex items-center justify-between px-4 pt-4 sm:px-5 sm:pt-5">
-          <div>
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-              {tp('Курс и ветер', 'Course and wind', 'Kurs i wiatr')}
-            </div>
-            <div className="text-lg font-semibold mt-1" style={{ color: sim.pos.color }}>
-              {pointLabel}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-              {tp('Настройка', 'Trim score', 'Ocena trymu')}
-            </div>
-            <div className="text-2xl font-black font-mono" style={{ color: sim.trimScore > 80 ? 'var(--success)' : sim.trimScore > 55 ? 'var(--accent-cyan)' : 'var(--warning)' }}>
-              {sim.trimScore}%
-            </div>
-          </div>
-        </div>
-        <div className="px-3 pb-3 pt-3 sm:px-5 sm:pb-5">
-          <TopScene ui={ui} sim={sim} lang={lang} />
-        </div>
-      </section>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <MetricChip
-          label={tp('Скорость', 'Speed', 'Predkosc')}
-          value={`${sim.result.state.boatSpeed.toFixed(1)} kts`}
-          tone="cyan"
-        />
-        <MetricChip
-          label={tp('Крен', 'Heel', 'Przechyl')}
-          value={`${Math.round(sim.result.state.heel)}°`}
-          tone={Math.abs(sim.result.state.heel) > 22 ? 'danger' : 'cyan'}
-        />
-        <MetricChip
-          label="AWA"
-          value={`${Math.round(Math.abs(sim.result.diag.awa))}°`}
-          tone="cyan"
-        />
-        <MetricChip
-          label="AWS"
-          value={`${sim.result.diag.aws.toFixed(1)} kts`}
-          tone="cyan"
-        />
-        <MetricChip
-          label={tp('Левей', 'Leeway', 'Dryf boczny')}
-          value={`${Math.abs(sim.result.state.leeway).toFixed(1)}°`}
-          tone={Math.abs(sim.result.state.leeway) > 5 ? 'warning' : 'cyan'}
-        />
-        <MetricChip
-          label={tp('Курс', 'Point of sail', 'Kurs')}
-          value={pointLabel}
-          tone="neutral"
-        />
-        <MetricChip
-          label={tp('Галс', 'Tack', 'Hals')}
-          value={tackLabel}
-          tone="neutral"
-        />
-        <MetricChip
-          label={tp('Слот', 'Slot', 'Slot')}
-          value={`${Math.round(sim.result.diag.slotHealth * 100)}%`}
-          tone={sim.result.diag.slotHealth > 0.7 ? 'success' : sim.result.diag.slotHealth > 0.4 ? 'cyan' : 'warning'}
-        />
+        <a href="/simulator" className="text-xs font-semibold px-2.5 py-1 rounded-lg border transition hover:text-[var(--accent-cyan)]"
+           style={{ borderColor: 'rgba(139, 167, 184, 0.25)', color: 'var(--text-secondary)' }}>
+          {tp('← к V1', '← to V1', '← do V1')}
+        </a>
       </div>
 
-      <section className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr),340px] gap-4 sm:gap-5">
-        <div className="card p-4 sm:p-5 space-y-4">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-                {tp('Трим парусов', 'Sail trim', 'Trym zagli')}
-              </div>
-              <div className="text-lg font-semibold mt-1">
-                {tp('Грот и стаксель читают тот же state', 'Main and jib read the same state', 'Grott i fok czytaja ten sam stan')}
-              </div>
-            </div>
-            <label className="flex items-center gap-2 text-xs text-[var(--text-secondary)]">
-              <input
-                type="checkbox"
-                checked={ui.showOptimal}
-                onChange={(event) => setUi((prev) => ({ ...prev, showOptimal: event.target.checked }))}
-              />
-              {tp('Показать оптимум', 'Show target', 'Pokaz optimum')}
-            </label>
+      {/* HERO SCENE - edge-to-edge, fills most of viewport */}
+      <section className="relative overflow-hidden"
+               style={{ minHeight: 'min(82vh, 780px)', background: 'radial-gradient(ellipse at center 40%, #0e2749 0%, #061020 65%, #040a16 100%)' }}>
+        <div className="absolute inset-0 flex items-center justify-center p-3 sm:p-6">
+          <div className="w-full h-full max-w-5xl">
+            <TopScene ui={ui} sim={sim} lang={lang} />
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <ControlBlock title={tp('Быстрые пресеты', 'Quick presets', 'Szybkie presety')}>
-                <div className="grid grid-cols-3 gap-2">
-                  {COURSE_PRESETS.map((preset) => (
-                    <button
-                      key={preset.id}
-                      onClick={() => setPreset(preset.twa)}
-                      className="px-3 py-2 rounded-lg border text-xs font-semibold transition"
-                      style={{
-                        borderColor: Math.abs(ui.twa - preset.twa) < 1 ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                        background: Math.abs(ui.twa - preset.twa) < 1 ? 'rgba(0, 212, 255, 0.12)' : 'transparent',
-                        color: Math.abs(ui.twa - preset.twa) < 1 ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                      }}
-                    >
-                      {preset.id === 'close'
-                        ? tp('Бейдевинд', 'Close', 'Bajdewind')
-                        : preset.id === 'beam'
-                          ? tp('Галфвинд', 'Beam', 'Baksztag poprzeczny')
-                          : tp('Бакштаг', 'Broad', 'Baksztag')}
-                    </button>
-                  ))}
-                </div>
-              </ControlBlock>
-
-              <ControlBlock title={tp('Курс к ветру', 'Angle to wind', 'Kat do wiatru')}>
-                <SliderField
-                  label={tp('Угол курса', 'Course angle', 'Kat kursu')}
-                  value={`${ui.twa}°`}
-                  min={30}
-                  max={180}
-                  step={1}
-                  sliderValue={ui.twa}
-                  onChange={(value) => setUi((prev) => ({ ...prev, twa: value }))}
-                />
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <ToggleButton
-                    active={ui.tack === 'starboard'}
-                    onClick={() => setUi((prev) => ({ ...prev, tack: 'starboard' }))}
-                  >
-                    {tp('Правый галс', 'Starboard', 'Prawy hals')}
-                  </ToggleButton>
-                  <ToggleButton
-                    active={ui.tack === 'port'}
-                    onClick={() => setUi((prev) => ({ ...prev, tack: 'port' }))}
-                  >
-                    {tp('Левый галс', 'Port', 'Lewy hals')}
-                  </ToggleButton>
-                </div>
-              </ControlBlock>
-
-              <ControlBlock title={tp('Ветер', 'Wind', 'Wiatr')}>
-                <SliderField
-                  label={tp('Сила ветра', 'Wind speed', 'Sila wiatru')}
-                  value={`${ui.windSpeed} kts`}
-                  min={6}
-                  max={24}
-                  step={1}
-                  sliderValue={ui.windSpeed}
-                  onChange={(value) => setUi((prev) => ({ ...prev, windSpeed: value }))}
-                />
-              </ControlBlock>
-            </div>
-
-            <div className="space-y-4">
-              <ControlBlock title={tp('Паруса', 'Sails', 'Zagle')}>
-                <SliderField
-                  label={tp('Грот', 'Main', 'Grott')}
-                  value={`${Math.round(ui.mainAngle)}°`}
-                  min={0}
-                  max={Math.round(params.mainMaxOff)}
-                  step={1}
-                  sliderValue={ui.mainAngle}
-                  onChange={(value) => setUi((prev) => ({ ...prev, mainAngle: value }))}
-                />
-                <SliderField
-                  label={tp('Стаксель', 'Jib', 'Fok')}
-                  value={`${Math.round(ui.jibAngle)}°`}
-                  min={Math.round(params.jibMinOff)}
-                  max={Math.round(params.jibMaxOff)}
-                  step={1}
-                  sliderValue={ui.jibAngle}
-                  onChange={(value) => setUi((prev) => ({ ...prev, jibAngle: value }))}
-                />
-                <SliderField
-                  label={tp('Раскрытие стакселя', 'Jib furl', 'Rozwiniecie foka')}
-                  value={`${ui.jibFurlPct}%`}
-                  min={0}
-                  max={100}
-                  step={1}
-                  sliderValue={ui.jibFurlPct}
-                  onChange={(value) => setUi((prev) => ({ ...prev, jibFurlPct: value }))}
-                />
-                <div className="pt-1">
-                  <div className="text-[11px] font-semibold text-[var(--text-primary)] mb-2">
-                    {tp('Рифы грота', 'Reef', 'Refy')}
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {[0, 1, 2].map((level) => (
-                      <ToggleButton
-                        key={level}
-                        active={ui.reefLevel === level}
-                        onClick={() => setUi((prev) => ({ ...prev, reefLevel: level as ReefLevel }))}
-                      >
-                        {level === 0
-                          ? tp('Полный', 'Full', 'Pelny')
-                          : level === 1
-                            ? tp('1 риф', 'Reef 1', 'Ref 1')
-                            : tp('2 рифа', 'Reef 2', 'Ref 2')}
-                      </ToggleButton>
-                    ))}
-                  </div>
-                </div>
-              </ControlBlock>
-
-              <ControlBlock title={tp('Действия', 'Actions', 'Akcje')}>
-                <div className="grid grid-cols-2 gap-2">
-                  <ActionButton onClick={applyOptimal}>
-                    {tp('Поставить оптимум', 'Set target', 'Ustaw optimum')}
-                  </ActionButton>
-                  <ActionButton onClick={resetAll}>
-                    {tp('Сбросить всё', 'Reset', 'Reset')}
-                  </ActionButton>
-                </div>
-                <button
-                  onClick={() => setUi((prev) => ({ ...prev, advanced: !prev.advanced }))}
-                  className="w-full mt-2 px-3 py-2 rounded-lg border text-xs font-semibold transition"
-                  style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-secondary)' }}
-                >
-                  {ui.advanced
-                    ? tp('Скрыть twist', 'Hide twist', 'Ukryj twist')
-                    : tp('Показать twist', 'Show twist', 'Pokaz twist')}
-                </button>
-              </ControlBlock>
-            </div>
-          </div>
-
-          {ui.advanced && (
-            <ControlBlock title={tp('Twist', 'Twist', 'Twist')}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <SliderField
-                  label={tp('Twist грота', 'Main twist', 'Twist grota')}
-                  value={`${ui.mainTwistPct}%`}
-                  min={0}
-                  max={100}
-                  step={1}
-                  sliderValue={ui.mainTwistPct}
-                  onChange={(value) => setUi((prev) => ({ ...prev, mainTwistPct: value }))}
-                />
-                <SliderField
-                  label={tp('Twist стакселя', 'Jib twist', 'Twist foka')}
-                  value={`${ui.jibTwistPct}%`}
-                  min={0}
-                  max={100}
-                  step={1}
-                  sliderValue={ui.jibTwistPct}
-                  onChange={(value) => setUi((prev) => ({ ...prev, jibTwistPct: value }))}
-                />
-              </div>
-            </ControlBlock>
-          )}
         </div>
 
-        <div className="space-y-4">
-          <div className="card p-4 sm:p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div>
-                <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-                  {tp('Вид сбоку', 'Side view', 'Widok z boku')}
-                </div>
-                <div className="text-base font-semibold mt-1">
-                  {tp('Крен и форма парусов', 'Heel and sail shape', 'Przechyl i ksztalt zagli')}
-                </div>
+        {/* Overlay: point of sail + trim score (top-left) */}
+        <div className="absolute top-4 left-4 sm:top-6 sm:left-6 max-w-[60%]"
+             style={{ pointerEvents: 'none' }}>
+          <div className="rounded-2xl p-3 sm:p-4"
+               style={{ background: 'rgba(8, 24, 48, 0.58)', border: '1px solid rgba(0, 212, 255, 0.18)', backdropFilter: 'blur(14px)' }}>
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+              {tp('Курс', 'Point of sail', 'Kurs')}
+            </div>
+            <div className="text-xl sm:text-2xl font-bold mt-0.5" style={{ color: sim.pos.color }}>
+              {pointLabel}
+            </div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-1">
+              {lang === 'ru' ? sim.pos.sailWork : sim.pos.sailWorkEn}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <div className="text-[9px] uppercase tracking-wider text-[var(--text-muted)]">
+                {tp('Трим', 'Trim', 'Trim')}
               </div>
-              <div className="text-sm font-mono" style={{ color: Math.abs(sim.result.state.heel) > 22 ? 'var(--warning)' : 'var(--accent-cyan)' }}>
-                {Math.round(sim.result.state.heel)}°
+              <div className="text-sm font-black font-mono"
+                   style={{ color: sim.trimScore > 80 ? 'var(--success)' : sim.trimScore > 55 ? 'var(--accent-cyan)' : 'var(--warning)' }}>
+                {sim.trimScore}%
+              </div>
+              <div className="h-1.5 w-24 rounded-full overflow-hidden"
+                   style={{ background: 'rgba(255,255,255,0.08)' }}>
+                <div className="h-full transition-all"
+                     style={{ width: `${sim.trimScore}%`,
+                              background: sim.trimScore > 80 ? 'var(--success)' : sim.trimScore > 55 ? 'var(--accent-cyan)' : 'var(--warning)' }} />
               </div>
             </div>
-            <SideScene ui={ui} sim={sim} />
           </div>
+        </div>
 
-          <div className="card p-4 sm:p-5 space-y-3">
-            <div>
-              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-                {tp('Диагностика', 'Diagnostics', 'Diagnostyka')}
-              </div>
-              <div className="text-base font-semibold mt-1">
-                {tp('Что делает физика', 'What the physics is doing', 'Co robi fizyka')}
-              </div>
-            </div>
-
-            <ProgressRow
-              label="Main AoA"
-              value={`${Math.round(sim.result.diag.mainAoA)}°`}
-              fraction={clamp(sim.result.diag.mainAoA / 30, 0, 1)}
-              tone={sim.result.diag.mainStalled ? 'danger' : sim.result.diag.mainAoA < 5 ? 'warning' : 'cyan'}
-            />
-            <ProgressRow
-              label="Jib AoA"
-              value={`${Math.round(sim.result.diag.jibAoA)}°`}
-              fraction={clamp(sim.result.diag.jibAoA / 30, 0, 1)}
-              tone={sim.result.diag.jibStalled ? 'danger' : sim.result.diag.jibAoA < 5 ? 'warning' : 'cyan'}
-            />
-            <ProgressRow
-              label={tp('Слот', 'Slot', 'Slot')}
-              value={`${Math.round(sim.result.diag.slotHealth * 100)}%`}
-              fraction={clamp(sim.result.diag.slotHealth, 0, 1)}
-              tone={sim.result.diag.slotHealth > 0.7 ? 'success' : sim.result.diag.slotHealth > 0.4 ? 'cyan' : 'warning'}
-            />
-            <ProgressRow
-              label={tp('Сила тяги', 'Drive', 'Ciag')}
-              value={`${Math.round(sim.result.diag.drive)} N`}
-              fraction={clamp(sim.result.diag.drive / 2200, 0, 1)}
+        {/* Overlay: hero numbers (top-right) */}
+        <div className="absolute top-4 right-4 sm:top-6 sm:right-6 w-[170px] sm:w-[220px]">
+          <div className="rounded-2xl p-3 sm:p-4 space-y-3"
+               style={{ background: 'rgba(8, 24, 48, 0.62)', border: '1px solid rgba(0, 212, 255, 0.22)', backdropFilter: 'blur(14px)' }}>
+            <HeroNumber
+              label={tp('Скорость', 'Speed', 'Predkosc')}
+              value={sim.result.state.boatSpeed.toFixed(1)}
+              unit="kts"
               tone="cyan"
+              big
             />
-
-            <div className="grid grid-cols-2 gap-3 pt-1">
-              <MiniDelta
-                label={tp('К оптимуму по скорости', 'Speed vs optimal', 'Predkosc vs optimum')}
-                value={`${speedDelta >= 0 ? '+' : ''}${speedDelta.toFixed(1)} kts`}
-                good={speedDelta >= -0.15}
+            <HeroNumber
+              label={tp('Крен', 'Heel', 'Przechyl')}
+              value={Math.round(sim.result.state.heel).toString()}
+              unit="°"
+              tone={heelAbs > 22 ? 'danger' : heelAbs > 15 ? 'warning' : 'cyan'}
+            />
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t" style={{ borderColor: 'rgba(0, 212, 255, 0.1)' }}>
+              <HeroNumber label="AWA" value={Math.round(Math.abs(sim.result.diag.awa)).toString()} unit="°" tone="cyan" small />
+              <HeroNumber label="AWS" value={sim.result.diag.aws.toFixed(1)} unit="kts" tone="cyan" small />
+              <HeroNumber
+                label={tp('Слот', 'Slot', 'Slot')}
+                value={slotPct.toString()}
+                unit="%"
+                tone={slotPct > 70 ? 'success' : slotPct > 40 ? 'cyan' : 'warning'}
+                small
               />
-              <MiniDelta
-                label={tp('К оптимуму по крену', 'Heel vs optimal', 'Przechyl vs optimum')}
-                value={`${heelDelta >= 0 ? '+' : ''}${heelDelta.toFixed(1)}°`}
-                good={heelDelta <= 1.5}
-              />
-              <MiniDelta
-                label={tp('Drive vs optimal', 'Drive vs optimal', 'Ciag vs optimum')}
-                value={`${driveDelta >= 0 ? '+' : ''}${Math.round(driveDelta)} N`}
-                good={driveDelta >= -80}
-              />
-              <MiniDelta
-                label={tp('Левей vs optimal', 'Leeway vs optimal', 'Dryf vs optimum')}
-                value={`${leewayDelta >= 0 ? '+' : ''}${leewayDelta.toFixed(1)}°`}
-                good={leewayDelta <= 0.5}
+              <HeroNumber
+                label={tp('Снос', 'Leeway', 'Dryf')}
+                value={leewayAbs.toFixed(1)}
+                unit="°"
+                tone={leewayAbs > 5 ? 'warning' : 'cyan'}
+                small
               />
             </div>
           </div>
+        </div>
 
-          <div className="card p-4 sm:p-5">
-            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">
-              {tp('Комментарий', 'Commentary', 'Komentarz')}
+        {/* Overlay: commentary (bottom-left) */}
+        <div className="absolute bottom-4 left-4 sm:bottom-6 sm:left-6 max-w-md">
+          <div className="rounded-2xl p-3 sm:p-4"
+               style={{ background: 'rgba(8, 24, 48, 0.62)', border: '1px solid rgba(0, 212, 255, 0.18)', backdropFilter: 'blur(14px)' }}>
+            <div className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">
+              {tp('Разбор', 'Analysis', 'Analiza')}
             </div>
-            <ul className="space-y-2 text-sm text-[var(--text-secondary)] leading-relaxed">
-              {sim.feedback.map((message) => (
+            <ul className="space-y-1.5 text-[11px] sm:text-sm text-[var(--text-secondary)] leading-relaxed">
+              {sim.feedback.slice(0, 3).map((message) => (
                 <li key={message} className="flex gap-2">
                   <span className="mt-1.5 h-1.5 w-1.5 rounded-full shrink-0" style={{ background: 'var(--accent-cyan)' }} />
                   <span>{message}</span>
@@ -739,15 +492,232 @@ export default function SimulatorPage() {
             </ul>
           </div>
         </div>
+
+        {/* Overlay: side view + diagnostics (bottom-right) */}
+        <div className="hidden lg:block absolute bottom-6 right-6 w-[280px]">
+          <div className="rounded-2xl overflow-hidden"
+               style={{ background: 'rgba(8, 24, 48, 0.62)', border: '1px solid rgba(0, 212, 255, 0.2)', backdropFilter: 'blur(14px)' }}>
+            <div className="px-3 pt-3">
+              <div className="flex items-center justify-between">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                  {tp('Сбоку', 'Side', 'Z boku')}
+                </div>
+                <div className="text-xs font-mono"
+                     style={{ color: heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)' }}>
+                  {Math.round(sim.result.state.heel)}°
+                </div>
+              </div>
+            </div>
+            <div className="px-1.5 pb-1.5">
+              <SideScene ui={ui} sim={sim} />
+            </div>
+            <div className="px-3 pb-3 space-y-2 border-t" style={{ borderColor: 'rgba(0, 212, 255, 0.08)' }}>
+              <ProgressRow
+                label="Main AoA"
+                value={`${Math.round(sim.result.diag.mainAoA)}°`}
+                fraction={clamp(sim.result.diag.mainAoA / 30, 0, 1)}
+                tone={sim.result.diag.mainStalled ? 'danger' : sim.result.diag.mainAoA < 5 ? 'warning' : 'cyan'}
+              />
+              <ProgressRow
+                label="Jib AoA"
+                value={`${Math.round(sim.result.diag.jibAoA)}°`}
+                fraction={clamp(sim.result.diag.jibAoA / 30, 0, 1)}
+                tone={sim.result.diag.jibStalled ? 'danger' : sim.result.diag.jibAoA < 5 ? 'warning' : 'cyan'}
+              />
+              <ProgressRow
+                label={tp('Тяга', 'Drive', 'Ciag')}
+                value={`${Math.round(sim.result.diag.drive)} N`}
+                fraction={clamp(sim.result.diag.drive / 2200, 0, 1)}
+                tone="cyan"
+              />
+            </div>
+          </div>
+        </div>
       </section>
 
-      <footer className="text-xs text-[var(--text-muted)] leading-relaxed">
-        {tp(
-          'Расчёт идёт через apparent wind, угол атаки, Cl/Cd, heel, leeway и drag. Это уже не таблица курс -> скорость.',
-          'The calculation runs through apparent wind, angle of attack, Cl/Cd, heel, leeway, and drag. It is no longer a course-to-speed lookup table.',
-          'Obliczenie idzie przez pozorny wiatr, kat natarcia, Cl/Cd, przechyl, dryf i opor. To juz nie jest tabela kurs -> predkosc.',
-        )}
-      </footer>
+      {/* CONTROL STRIP - sticky-ish below hero */}
+      <section className="px-3 sm:px-5 py-4 sm:py-5"
+               style={{ background: 'linear-gradient(180deg, #050b18 0%, #081326 100%)', borderTop: '1px solid rgba(0, 212, 255, 0.08)' }}>
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Quick preset chips + tack toggle + show-target */}
+          <div className="flex items-center flex-wrap gap-2 sm:gap-3">
+            <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] shrink-0">
+              {tp('Пресеты', 'Presets', 'Presety')}
+            </div>
+            {COURSE_PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                onClick={() => setPreset(preset.twa)}
+                className="px-3 py-1.5 rounded-full border text-xs font-semibold transition"
+                style={{
+                  borderColor: Math.abs(ui.twa - preset.twa) < 1 ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.24)',
+                  background: Math.abs(ui.twa - preset.twa) < 1 ? 'rgba(0, 212, 255, 0.15)' : 'rgba(8, 24, 48, 0.4)',
+                  color: Math.abs(ui.twa - preset.twa) < 1 ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                }}
+              >
+                {preset.id === 'close'
+                  ? tp('Бейдевинд', 'Close', 'Bajdewind')
+                  : preset.id === 'beam'
+                    ? tp('Галфвинд', 'Beam', 'Baksztag poprzeczny')
+                    : tp('Бакштаг', 'Broad', 'Baksztag')}
+              </button>
+            ))}
+
+            <div className="mx-1 w-px h-5 bg-[rgba(139,167,184,0.2)] hidden sm:block" />
+
+            <button
+              onClick={() => setUi((prev) => ({ ...prev, tack: prev.tack === 'starboard' ? 'port' : 'starboard' }))}
+              className="px-3 py-1.5 rounded-full border text-xs font-semibold transition"
+              style={{ borderColor: 'rgba(139, 167, 184, 0.24)', color: 'var(--text-secondary)' }}
+            >
+              {tackLabel}
+            </button>
+
+            <div className="ml-auto flex items-center gap-2">
+              <label className="flex items-center gap-2 text-[11px] text-[var(--text-secondary)] cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={ui.showOptimal}
+                  onChange={(event) => setUi((prev) => ({ ...prev, showOptimal: event.target.checked }))}
+                />
+                {tp('Оптимум', 'Target', 'Optimum')}
+              </label>
+              <button onClick={applyOptimal}
+                      className="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition"
+                      style={{ borderColor: 'rgba(68, 255, 136, 0.4)', color: 'var(--success)' }}>
+                {tp('Поставить', 'Apply', 'Zastosuj')}
+              </button>
+              <button onClick={resetAll}
+                      className="px-2.5 py-1 rounded-full border text-[11px] font-semibold transition"
+                      style={{ borderColor: 'rgba(139, 167, 184, 0.24)', color: 'var(--text-muted)' }}>
+                {tp('Сброс', 'Reset', 'Reset')}
+              </button>
+            </div>
+          </div>
+
+          {/* Sliders row */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-3">
+            <InlineSlider
+              label={tp('Курс', 'Course', 'Kurs')}
+              value={`${ui.twa}°`}
+              min={30} max={180} step={1}
+              sliderValue={ui.twa}
+              onChange={(v) => setUi((p) => ({ ...p, twa: v }))}
+            />
+            <InlineSlider
+              label={tp('Ветер', 'Wind', 'Wiatr')}
+              value={`${ui.windSpeed} kts`}
+              min={6} max={24} step={1}
+              sliderValue={ui.windSpeed}
+              onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))}
+            />
+            <InlineSlider
+              label={tp('Грот', 'Main', 'Grott')}
+              value={`${Math.round(ui.mainAngle)}°`}
+              min={0} max={Math.round(params.mainMaxOff)} step={1}
+              sliderValue={ui.mainAngle}
+              onChange={(v) => setUi((p) => ({ ...p, mainAngle: v }))}
+            />
+            <InlineSlider
+              label={tp('Стаксель', 'Jib', 'Fok')}
+              value={`${Math.round(ui.jibAngle)}°`}
+              min={Math.round(params.jibMinOff)} max={Math.round(params.jibMaxOff)} step={1}
+              sliderValue={ui.jibAngle}
+              onChange={(v) => setUi((p) => ({ ...p, jibAngle: v }))}
+            />
+            <div className="space-y-1.5">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                {tp('Рифы', 'Reef', 'Refy')}
+              </div>
+              <div className="grid grid-cols-3 gap-1">
+                {[0, 1, 2].map((level) => (
+                  <button
+                    key={level}
+                    onClick={() => setUi((prev) => ({ ...prev, reefLevel: level as ReefLevel }))}
+                    className="px-2 py-1.5 rounded-md border text-[10px] font-semibold transition"
+                    style={{
+                      borderColor: ui.reefLevel === level ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.22)',
+                      background: ui.reefLevel === level ? 'rgba(0, 212, 255, 0.12)' : 'transparent',
+                      color: ui.reefLevel === level ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                    }}
+                  >
+                    {level === 0 ? tp('Full', 'Full', 'Pelny') : `R${level}`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile: inline side + diagnostics (hidden on lg where they're in overlay) */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 lg:hidden">
+            <div className="card p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                  {tp('Сбоку', 'Side view', 'Z boku')}
+                </div>
+                <div className="text-xs font-mono" style={{ color: heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)' }}>
+                  {Math.round(sim.result.state.heel)}°
+                </div>
+              </div>
+              <SideScene ui={ui} sim={sim} />
+            </div>
+            <div className="card p-3 space-y-2">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+                {tp('Диагностика', 'Diagnostics', 'Diagnostyka')}
+              </div>
+              <ProgressRow
+                label="Main AoA" value={`${Math.round(sim.result.diag.mainAoA)}°`}
+                fraction={clamp(sim.result.diag.mainAoA / 30, 0, 1)}
+                tone={sim.result.diag.mainStalled ? 'danger' : sim.result.diag.mainAoA < 5 ? 'warning' : 'cyan'}
+              />
+              <ProgressRow
+                label="Jib AoA" value={`${Math.round(sim.result.diag.jibAoA)}°`}
+                fraction={clamp(sim.result.diag.jibAoA / 30, 0, 1)}
+                tone={sim.result.diag.jibStalled ? 'danger' : sim.result.diag.jibAoA < 5 ? 'warning' : 'cyan'}
+              />
+              <ProgressRow
+                label={tp('Тяга', 'Drive', 'Ciag')}
+                value={`${Math.round(sim.result.diag.drive)} N`}
+                fraction={clamp(sim.result.diag.drive / 2200, 0, 1)}
+                tone="cyan"
+              />
+            </div>
+          </div>
+
+          {/* Delta chips row */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <MiniDelta
+              label={tp('Δ скорость', 'Δ speed', 'Δ predkosc')}
+              value={`${speedDelta >= 0 ? '+' : ''}${speedDelta.toFixed(1)} kts`}
+              good={speedDelta >= -0.15}
+            />
+            <MiniDelta
+              label={tp('Δ крен', 'Δ heel', 'Δ przechyl')}
+              value={`${heelDelta >= 0 ? '+' : ''}${heelDelta.toFixed(1)}°`}
+              good={heelDelta <= 1.5}
+            />
+            <MiniDelta
+              label={tp('Δ тяга', 'Δ drive', 'Δ ciag')}
+              value={`${driveDelta >= 0 ? '+' : ''}${Math.round(driveDelta)} N`}
+              good={driveDelta >= -80}
+            />
+            <MiniDelta
+              label={tp('Δ снос', 'Δ leeway', 'Δ dryf')}
+              value={`${leewayDelta >= 0 ? '+' : ''}${leewayDelta.toFixed(1)}°`}
+              good={leewayDelta <= 0.5}
+            />
+          </div>
+
+          {/* Footer line */}
+          <div className="text-[10px] sm:text-xs text-[var(--text-muted)] leading-relaxed pt-2">
+            {tp(
+              'Физический движок тот же, что в V1. Отличается только layout. Сравни и выбери - какой читается лучше.',
+              'Same physics engine as V1. Only the layout differs. Compare and pick the one that reads better.',
+              'Silnik fizyki jest ten sam co w V1. Tylko layout jest inny. Porownaj i wybierz.',
+            )}
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
@@ -1120,35 +1090,38 @@ function Arrow(props: {
   );
 }
 
-function MetricChip({ label, value, tone }: { label: string; value: string; tone: 'cyan' | 'danger' | 'warning' | 'success' | 'neutral' }) {
+function HeroNumber(props: {
+  label: string;
+  value: string;
+  unit: string;
+  tone: 'cyan' | 'danger' | 'warning' | 'success';
+  big?: boolean;
+  small?: boolean;
+}) {
+  const { label, value, unit, tone, big, small } = props;
   const color = tone === 'danger'
     ? 'var(--danger)'
     : tone === 'warning'
       ? 'var(--warning)'
       : tone === 'success'
         ? 'var(--success)'
-        : tone === 'neutral'
-          ? 'var(--text-primary)'
-          : 'var(--accent-cyan)';
+        : 'var(--accent-cyan)';
+
+  const valueSize = big ? 'text-4xl sm:text-5xl' : small ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl';
+  const unitSize = big ? 'text-sm' : small ? 'text-[10px]' : 'text-xs';
 
   return (
-    <div className="card p-3">
-      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">{label}</div>
-      <div className="text-lg sm:text-xl font-bold" style={{ color }}>{value}</div>
+    <div>
+      <div className="text-[9px] uppercase tracking-wider text-[var(--text-muted)]">{label}</div>
+      <div className="flex items-baseline gap-1 mt-0.5">
+        <span className={`${valueSize} font-black font-mono tabular-nums leading-none`} style={{ color }}>{value}</span>
+        <span className={`${unitSize} text-[var(--text-muted)] font-semibold`}>{unit}</span>
+      </div>
     </div>
   );
 }
 
-function ControlBlock({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div className="rounded-xl border border-[rgba(139,167,184,0.16)] bg-[rgba(8,24,48,0.55)] p-3 sm:p-4 space-y-3">
-      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">{title}</div>
-      {children}
-    </div>
-  );
-}
-
-function SliderField(props: {
+function InlineSlider(props: {
   label: string;
   value: string;
   min: number;
@@ -1159,10 +1132,10 @@ function SliderField(props: {
 }) {
   const { label, value, min, max, step, sliderValue, onChange } = props;
   return (
-    <label className="block">
-      <div className="flex items-center justify-between gap-3 mb-1.5">
-        <span className="text-[11px] font-semibold text-[var(--text-primary)]">{label}</span>
-        <span className="text-xs font-mono text-[var(--accent-cyan)]">{value}</span>
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">{label}</span>
+        <span className="text-[11px] font-mono font-bold text-[var(--accent-cyan)]">{value}</span>
       </div>
       <input
         type="range"
@@ -1174,36 +1147,7 @@ function SliderField(props: {
         className="w-full"
         style={{ accentColor: '#00d4ff' }}
       />
-    </label>
-  );
-}
-
-function ToggleButton(props: { active: boolean; onClick: () => void; children: ReactNode }) {
-  const { active, onClick, children } = props;
-  return (
-    <button
-      onClick={onClick}
-      className="px-3 py-2 rounded-lg border text-xs font-semibold transition"
-      style={{
-        borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-        background: active ? 'rgba(0, 212, 255, 0.12)' : 'transparent',
-        color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
-
-function ActionButton({ onClick, children }: { onClick: () => void; children: ReactNode }) {
-  return (
-    <button
-      onClick={onClick}
-      className="px-3 py-2 rounded-lg border text-xs font-semibold transition"
-      style={{ borderColor: 'rgba(0, 212, 255, 0.28)', color: 'var(--accent-cyan)' }}
-    >
-      {children}
-    </button>
+    </div>
   );
 }
 
