@@ -71,7 +71,10 @@ test.describe('Multiplayer smoke', () => {
     const guestNick = 'Guest_' + Date.now().toString(36);
     await g.getByPlaceholder('Введи ник').fill(guestNick);
     await g.getByPlaceholder('XXXX').fill(code);
-    await g.getByRole('button', { name: 'Войти' }).click();
+    // Wait for the join button to become enabled (requires 4 chars)
+    const joinBtn = g.getByRole('button', { name: 'Войти' });
+    await expect(joinBtn).toBeEnabled({ timeout: 3_000 });
+    await joinBtn.click();
 
     // Both should see 2 players in the lobby
     await expect(g.getByText(/КОД ЛОББИ/)).toBeVisible({ timeout: 10_000 });
