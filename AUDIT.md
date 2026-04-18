@@ -25,11 +25,11 @@ rewrite it - don't patch.
 - `/glossary` 51 terms
 
 ### Interactive routes (mix of solid + known-fake)
-- `/simulator` - **CORE PRODUCT, CURRENTLY FAKE PHYSICS.**
-  Uses lookup tables (`pointOfSailFor`, `speedFactorFromTWA`) and distance-to-
-  constant `trimEff`. No force balance, no real apparent wind computation.
-  Slated for replacement in Phase 1-2.
-- `/trim-trainer` - same fake-physics problem as simulator.
+- `/simulator` - **CORE PRODUCT. REAL PHYSICS (post-Phase 2).** Reads live
+  state from `src/lib/sailing-physics/` each tick. Optimal-trim overlay,
+  delta chips, commentary feedback.
+- `/trim-trainer` - still runs on `race-physics.ts` lookup. Phase 3 will
+  retire or migrate.
 - `/game` - race with AI opponents, Claude Haiku coach on finish. Uses
   `race-physics.ts` (same lookup approach). Gameplay works but physics is
   the same illusion as /simulator.

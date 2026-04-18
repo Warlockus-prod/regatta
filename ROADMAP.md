@@ -80,7 +80,7 @@ Explicitly out of scope for V1 (Phase 1):
 
 ---
 
-## Phase 2: new /simulator on the engine
+## Phase 2: new /simulator on the engine  **[DONE 2026-04-18]**
 
 Goal: rebuild `/simulator` as one page with two panels, both reading
 one shared state produced by one engine tick per frame.

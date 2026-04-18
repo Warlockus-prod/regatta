@@ -18,6 +18,48 @@ status: active | superseded by YYYY-MM-DD
 
 ---
 
+## 2026-04-18 - Phase 2 landed: /simulator runs on the engine
+
+context: Phase 1 built the pure physics module. Phase 2 was the UI rebuild
+  that replaces the old lookup-table /simulator with a live view into the
+  engine. Also: hide FeedbackWidget and OnboardingTour on immersive routes
+  (/simulator, /trim-trainer, /game, /multiplayer) because they were
+  flashing over the scene on first render.
+
+decision: one /simulator URL, not two. Single top-view SVG for course/wind/
+  forces, a compact side-view panel for heel, and below them the trim
+  controls + diagnostics + commentary list. All panels derive from one
+  `settle()` call per state change. Optimal-trim overlay (dashed green)
+  shows what a good trim would look like for the current TWA/TWS, and
+  delta chips (speed/heel/drive/leeway vs optimal) tell the user whether
+  they are closing the gap.
+
+implementation note: the simulator rewrite landed through a Codex coding
+  session the user ran alongside. I verified: test:physics 8/8 green,
+  `next build` clean, em-dash sweep zero. Committed as Phase 2 with
+  co-author attribution.
+
+alternative rejected: two routes /simulator/course and /simulator/trim.
+  Rejected in Phase 0 planning already (see 2026-04-18 "One page, two
+  panels" entry); reaffirmed here because the course/trim causal chain
+  only teaches correctly if both are visible together.
+
+why: the product claim was "even pros would enter". With fake lookup
+  physics they would leave in 30 seconds. With the engine live and the
+  trim panel actually representing drag/lift/stall, the claim becomes
+  defensible.
+
+status: active. Known rough edges:
+  - Polish translations in simulator fall back to ASCII in places (jib
+    feedback strings especially). Data-layer PL coverage is incomplete.
+  - /trim-trainer still runs on race-physics.ts lookup. Candidates for
+    Phase 3: retire /trim-trainer or wire it onto the same engine.
+  - /game still runs on race-physics.ts. Phase 3 task: migrate boat
+    motion to sailing-physics, keep game-specific logic (AI, missions,
+    collisions) separate.
+
+---
+
 ## 2026-04-18 - Phase 1 landed: sailing-physics engine (all 5 ADR-0001 tests green)
 
 context: built `src/lib/sailing-physics/` as a pure TS module per ADR-0001.
