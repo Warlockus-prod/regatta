@@ -7,7 +7,18 @@ import { useI18n } from '@/lib/i18n';
 
 export default function OnboardPage() {
   const { lang, t } = useI18n();
-  const [openId, setOpenId] = useState<string | null>(onboardSections[0].id);
+  // Open all sections by default so everything is readable in one scroll.
+  // Users expected to see the full "how to behave on a yacht" reference,
+  // not a click-by-click accordion.
+  const [openIds, setOpenIds] = useState<Set<string>>(
+    () => new Set(onboardSections.map((s) => s.id)),
+  );
+  const toggle = (id: string) =>
+    setOpenIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
 
   return (
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -29,7 +40,7 @@ export default function OnboardPage() {
 
       <div className="space-y-3">
         {onboardSections.map((section) => {
-          const isOpen = openId === section.id;
+          const isOpen = openIds.has(section.id);
           const items = lang === 'ru' ? section.itemsRu : section.itemsEn;
           const title = lang === 'ru' ? section.titleRu : section.titleEn;
           const warning = lang === 'ru' ? section.warningRu : section.warningEn;
@@ -40,7 +51,7 @@ export default function OnboardPage() {
               style={{ borderColor: isOpen ? 'rgba(0, 212, 255, 0.3)' : undefined }}
             >
               <button
-                onClick={() => setOpenId(isOpen ? null : section.id)}
+                onClick={() => toggle(section.id)}
                 className="w-full flex items-center justify-between gap-3 p-4 sm:p-5 text-left"
               >
                 <div className="flex items-center gap-3 min-w-0">
