@@ -323,11 +323,14 @@ export default function SimulatorPage() {
     ctx.lineTo(5, arrowY1 - 7);
     ctx.closePath();
     ctx.fill();
-    // Wind label
-    ctx.font = '600 10px system-ui, sans-serif';
+    // Wind label - larger, bolder so it reads on mobile
+    ctx.font = '700 13px system-ui, sans-serif';
     ctx.fillStyle = COLORS.wind;
     ctx.textAlign = 'center';
-    ctx.fillText('ВЕТЕР', 0, -(R + 10));
+    ctx.fillText('ВЕТЕР', 0, -(R + 16));
+    ctx.font = '500 9px system-ui, sans-serif';
+    ctx.fillStyle = 'rgba(0, 229, 255, 0.7)';
+    ctx.fillText('(источник)', 0, -(R + 4));
     ctx.restore();
 
     // --- Wind drag handle (visual hint on ring edge) ---
@@ -492,14 +495,27 @@ export default function SimulatorPage() {
     drawBoatSide(ctx, displaySpeed.current / MAX_SPEED_KTS, heelSign, Math.abs(sTWA));
     ctx.restore();
 
-    // Heel angle indicator
+    // HUD-like strip with key status
     ctx.save();
-    ctx.fillStyle = COLORS.muted;
-    ctx.font = '10px system-ui, sans-serif';
+    ctx.fillStyle = '#ffffff';
+    ctx.font = '600 11px system-ui, sans-serif';
     ctx.textAlign = 'left';
-    ctx.fillText(`Крен / Heel: ${Math.round(displayHeel.current)}°`, 10, H - 10);
-    ctx.fillText(`Скорость / Speed: ${displaySpeed.current.toFixed(1)} kts`, 10, H - 24);
+    ctx.fillText(`Скорость: ${displaySpeed.current.toFixed(1)} kts`, 10, H - 10);
+    ctx.fillText(`Крен: ${Math.round(displayHeel.current)}°`, 10, H - 24);
+    ctx.textAlign = 'right';
+    ctx.fillStyle = COLORS.cyan;
+    ctx.fillText('← ВЕТЕР сюда', W - 10, H - 10);
     ctx.restore();
+
+    // Heel explanation - when heel > 10°, show arrow + brief reason
+    if (Math.abs(displayHeel.current) > 10) {
+      ctx.save();
+      ctx.fillStyle = 'rgba(255, 221, 68, 0.85)';
+      ctx.font = '600 10px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Ветер давит в парус → яхта наклоняется', W / 2, 18);
+      ctx.restore();
+    }
 
     // Vertical reference line (shows true vertical vs mast tilt)
     ctx.save();
@@ -681,6 +697,18 @@ export default function SimulatorPage() {
             <PolarDiagram twaAbsolute={wa} />
           </details>
         </div>
+      </div>
+
+      {/* Sail Trim Trainer - inline below the view */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-xl">🎛</span>
+          <h2 className="text-lg font-semibold">Тренажёр грота и стакселя</h2>
+        </div>
+        <p className="text-xs text-[var(--text-muted)] mb-4 leading-relaxed max-w-2xl">
+          Двигай кнопками углы грота и стакселя. Смотри как меняется скорость, крен и trim efficiency. Ghost-контур показывает оптимальные углы для текущего курса.
+        </p>
+        <InlineTrimTrainer />
       </div>
     </div>
   );
@@ -867,9 +895,9 @@ function TwoSailPhysics({ twaAbsolute }: { twaAbsolute: number }) {
 // ============================================================================
 
 function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'port' | 'starboard', heel: number) {
-  // Hull - elongated oval, bow pointing up (0° = north)
-  const hullLen = 48;
-  const hullBeam = 16;
+  // Hull - elongated oval, bow pointing up (0° = north). Enlarged x1.5 for mobile legibility.
+  const hullLen = 72;
+  const hullBeam = 24;
 
   // Shadow
   ctx.save();
@@ -956,6 +984,26 @@ function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'por
   ctx.fill();
   ctx.stroke();
   ctx.restore();
+
+  // --- Sail labels (stay readable because the outer rotate puts them in natural orientation)
+  if (!inNoGo) {
+    ctx.save();
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.75)';
+    ctx.font = '600 9px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    // Mainsail label near its belly
+    ctx.save();
+    ctx.rotate(d2r(mainAngle * sailSide));
+    ctx.fillText('ГРОТ', sailSide * 5, hullLen * 0.22);
+    ctx.restore();
+    // Jib label near its belly
+    ctx.save();
+    ctx.translate(0, -hullLen * 0.45);
+    ctx.rotate(d2r(jibAngle * sailSide));
+    ctx.fillText('СТАКС.', sailSide * 4, hullLen * 0.18);
+    ctx.restore();
+    ctx.restore();
+  }
 
   // --- Slot effect indicator: visible on close-hauled/beam reach when both sails drive ---
   if (!inNoGo && !jibBlanketed && twaMag >= 35 && twaMag <= 120) {
@@ -1144,4 +1192,320 @@ function roundedHull(ctx: CanvasRenderingContext2D, beam: number, len: number) {
 function lerpAngle(a: number, b: number, t: number): number {
   const diff = norm(b - a + 540) - 180;
   return norm(a + diff * t);
+}
+
+// ============================================================================
+// Inline Sail-Trim Trainer - mini version of the standalone /trim-trainer page,
+// embedded at the bottom of /simulator so everything sailing-related lives on
+// one scroll. Learning model (not race-grade physics).
+// ============================================================================
+
+type TCourse = 'close-hauled' | 'beam' | 'broad';
+type TWind = 'light' | 'medium' | 'heavy';
+type TSailMode = 'both' | 'main-only' | 'jib-only';
+
+function InlineTrimTrainer() {
+  const [course, setCourse] = useState<TCourse>('close-hauled');
+  const [wind, setWind] = useState<TWind>('medium');
+  const [sailMode, setSailMode] = useState<TSailMode>('both');
+  const [mainAngle, setMainAngle] = useState(10);
+  const [jibAngle, setJibAngle] = useState(8);
+  const [reef, setReef] = useState<0 | 1 | 2>(0);
+  const [jibFurl, setJibFurl] = useState(100);
+
+  const optMain = course === 'close-hauled' ? 10 : course === 'beam' ? 45 : 75;
+  const optJib  = course === 'close-hauled' ? 8  : course === 'beam' ? 35 : 55;
+
+  const mainEff = sailMode === 'jib-only' ? 0 : trimEff(mainAngle, optMain);
+  const jibEff  = sailMode === 'main-only' ? 0 : trimEff(jibAngle, optJib) * (jibFurl / 100);
+  const reefArea = 1 - reef * 0.22;
+  const windMul = wind === 'light' ? 0.65 : wind === 'heavy' ? 1.3 : 1.0;
+  const slot = mainEff > 0.55 && jibEff > 0.55 ? 0.15 : 0;
+  const mainDrive = mainEff * 0.6 * reefArea;
+  const jibDrive = jibEff * 0.4;
+  const speed = Math.min(7.5, 7.5 * (mainDrive + jibDrive) * (1 + slot) * windMul);
+  const heelSrc = course === 'close-hauled' ? 1.0 : course === 'beam' ? 0.9 : 0.55;
+  const heel = Math.min(30, windMul * (mainDrive + jibDrive) * heelSrc * 28);
+  const trimEfficiency = sailMode === 'main-only' ? mainEff
+    : sailMode === 'jib-only' ? jibEff * (jibFurl / 100)
+    : (mainEff * 0.55 + jibEff * 0.45) * (1 + slot / 2);
+
+  // Reset on course change to optimum (quick reset helps)
+  const resetOptimum = () => { setMainAngle(optMain); setJibAngle(optJib); setReef(0); setJibFurl(100); };
+
+  // Comment
+  const comments: string[] = [];
+  if (sailMode !== 'jib-only') {
+    const dev = mainAngle - optMain;
+    if (dev > 10) comments.push(`Грот перетравлен на +${Math.round(dev)}° - теряешь тягу, выбери.`);
+    else if (dev < -10) comments.push(`Грот зажат на ${Math.round(-dev)}° - заполаскивает, потрави.`);
+  }
+  if (sailMode !== 'main-only') {
+    const dev = jibAngle - optJib;
+    if (dev > 10) comments.push(`Стаксель открыт слишком, slot слабый.`);
+    else if (dev < -10) comments.push(`Стаксель перетянут: закрывает грот в подветр.`);
+  }
+  if (slot > 0) comments.push('✓ Slot effect работает, оба паруса тянут вместе.');
+  if (wind === 'heavy' && reef === 0 && sailMode === 'both') comments.push('Сильный ветер + полный грот = перегруз. Попробуй 1 риф.');
+  if (comments.length === 0) comments.push('Настройка близка к оптимуму.');
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-[minmax(0,1fr),260px] gap-4">
+      {/* Controls + preview */}
+      <div className="space-y-3">
+        <div className="card p-3">
+          <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Курс</div>
+              <div className="grid grid-cols-3 gap-1">
+                {(['close-hauled', 'beam', 'broad'] as TCourse[]).map((c) => (
+                  <button key={c}
+                    onClick={() => { setCourse(c); }}
+                    className="px-2 py-1 rounded text-xs font-semibold border"
+                    style={{
+                      borderColor: course === c ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: course === c ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                      color: course === c ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                    }}>
+                    {c === 'close-hauled' ? 'Бейдевинд' : c === 'beam' ? 'Галфвинд' : 'Бакштаг'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Ветер</div>
+              <div className="grid grid-cols-3 gap-1">
+                {(['light', 'medium', 'heavy'] as TWind[]).map((w) => (
+                  <button key={w} onClick={() => setWind(w)}
+                    className="px-2 py-1 rounded text-xs font-semibold border"
+                    style={{
+                      borderColor: wind === w ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: wind === w ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                      color: wind === w ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                    }}>
+                    {w === 'light' ? 'Слабый' : w === 'heavy' ? 'Сильный' : 'Средний'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Что поднято</div>
+              <div className="grid grid-cols-3 gap-1">
+                {([
+                  { id: 'both', label: 'Оба' },
+                  { id: 'main-only', label: 'Грот' },
+                  { id: 'jib-only', label: 'Стаксель' },
+                ] as { id: TSailMode; label: string }[]).map((m) => (
+                  <button key={m.id} onClick={() => setSailMode(m.id)}
+                    className="px-2 py-1 rounded text-xs font-semibold border"
+                    style={{
+                      borderColor: sailMode === m.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: sailMode === m.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                      color: sailMode === m.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                    }}>
+                    {m.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="flex-1 min-w-[180px]">
+              <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Рифы грота</div>
+              <div className="grid grid-cols-3 gap-1">
+                {[0, 1, 2].map((r) => (
+                  <button key={r} onClick={() => setReef(r as 0 | 1 | 2)}
+                    className="px-2 py-1 rounded text-xs font-semibold border"
+                    style={{
+                      borderColor: reef === r ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: reef === r ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                      color: reef === r ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                    }}>
+                    {r === 0 ? 'Полный' : r === 1 ? '1 риф' : '2 рифа'}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Angle controls: button-driven, not sliders, per user request */}
+        <div className="card p-3 space-y-3">
+          <AngleControl
+            label={`ГРОТ · угол ${Math.round(mainAngle)}°`}
+            value={mainAngle}
+            onDelta={(d) => setMainAngle((v) => Math.max(0, Math.min(85, v + d)))}
+            optimum={optMain}
+            disabled={sailMode === 'jib-only'}
+          />
+          <AngleControl
+            label={`СТАКСЕЛЬ · угол ${Math.round(jibAngle)}°`}
+            value={jibAngle}
+            onDelta={(d) => setJibAngle((v) => Math.max(0, Math.min(75, v + d)))}
+            optimum={optJib}
+            disabled={sailMode === 'main-only'}
+          />
+          <AngleControl
+            label={`СТАКСЕЛЬ · раскрытие ${jibFurl}%`}
+            value={jibFurl}
+            onDelta={(d) => setJibFurl((v) => Math.max(0, Math.min(100, v + d * 2)))}
+            optimum={100}
+            disabled={sailMode === 'main-only'}
+            unitLabel="%"
+          />
+          <button onClick={resetOptimum}
+            className="w-full text-xs py-1.5 rounded border text-[var(--text-muted)] hover:text-[var(--accent-cyan)] hover:border-[var(--accent-cyan)] transition">
+            Поставить оптимум
+          </button>
+        </div>
+
+        {/* Mini preview (live sail angles) */}
+        <div className="card p-3 flex justify-center">
+          <TrimPreview course={course} mainAngle={mainAngle} jibAngle={jibAngle} jibFurl={jibFurl} reef={reef} sailMode={sailMode} optMain={optMain} optJib={optJib} />
+        </div>
+      </div>
+
+      {/* Effects */}
+      <div className="space-y-3">
+        <div className="card p-3">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">Эффект</div>
+          <Row label="Trim efficiency" value={`${Math.round(trimEfficiency * 100)}%`}
+               color={trimEfficiency > 0.75 ? 'var(--success)' : trimEfficiency > 0.5 ? 'var(--accent-cyan)' : trimEfficiency > 0.25 ? 'var(--warning)' : 'var(--danger)'}
+               bar={trimEfficiency * 100} />
+          <Row label="Скорость" value={`${speed.toFixed(1)} kts`} color="var(--accent-cyan)" />
+          <Row label="Крен" value={`${Math.round(heel)}°`}
+               color={heel > 22 ? 'var(--danger)' : heel > 15 ? 'var(--warning)' : 'var(--success)'} />
+          <div className="mt-3 text-[10px] text-[var(--text-muted)]">
+            Грот: {Math.round(mainEff * 100)}% · Стакс: {Math.round(jibEff * 100)}%
+          </div>
+        </div>
+        <div className="card p-3">
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">Комментарий</div>
+          <ul className="space-y-1 text-xs text-[var(--text-secondary)] leading-relaxed">
+            {comments.map((c, i) => (
+              <li key={i} className="flex gap-1.5">
+                <span className="shrink-0 mt-1 w-1 h-1 rounded-full"
+                      style={{ background: c.startsWith('✓') ? 'var(--success)' : 'var(--accent-cyan)' }} />
+                <span>{c}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function trimEff(angle: number, optimum: number): number {
+  const dev = Math.abs(angle - optimum);
+  if (dev >= 35) return 0;
+  return Math.max(0, 1 - (dev / 35) ** 1.4);
+}
+
+function AngleControl({ label, onDelta, optimum, value, disabled, unitLabel }: {
+  label: string;
+  value: number;
+  onDelta: (d: number) => void;
+  optimum: number;
+  disabled?: boolean;
+  unitLabel?: string;
+}) {
+  return (
+    <div style={{ opacity: disabled ? 0.35 : 1 }}>
+      <div className="flex items-center justify-between mb-1">
+        <div className="text-[11px] font-semibold tracking-wide text-[var(--text-primary)]">{label}</div>
+        <div className="text-[10px] text-[var(--text-muted)]">оптимум: {optimum}{unitLabel ?? '°'}</div>
+      </div>
+      <div className="flex gap-1.5">
+        <button onClick={() => onDelta(-5)} disabled={disabled}
+          className="flex-1 py-1.5 rounded text-xs font-bold border disabled:opacity-40"
+          style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>−5</button>
+        <button onClick={() => onDelta(-1)} disabled={disabled}
+          className="w-10 py-1.5 rounded text-xs border disabled:opacity-40"
+          style={{ borderColor: 'rgba(139, 167, 184, 0.2)', color: 'var(--text-secondary)' }}>−1</button>
+        <button onClick={() => onDelta(1)} disabled={disabled}
+          className="w-10 py-1.5 rounded text-xs border disabled:opacity-40"
+          style={{ borderColor: 'rgba(139, 167, 184, 0.2)', color: 'var(--text-secondary)' }}>+1</button>
+        <button onClick={() => onDelta(5)} disabled={disabled}
+          className="flex-1 py-1.5 rounded text-xs font-bold border disabled:opacity-40"
+          style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>+5</button>
+      </div>
+    </div>
+  );
+}
+
+function Row({ label, value, color, bar }: { label: string; value: string; color: string; bar?: number }) {
+  return (
+    <div className="mb-2 last:mb-0">
+      <div className="flex items-center justify-between text-[10px] text-[var(--text-muted)]">
+        <span>{label}</span>
+        <span className="font-mono font-bold text-sm" style={{ color }}>{value}</span>
+      </div>
+      {typeof bar === 'number' && (
+        <div className="h-1 rounded-full overflow-hidden mt-0.5" style={{ background: 'rgba(0,0,0,0.3)' }}>
+          <div className="h-full transition-all" style={{ width: `${Math.max(0, Math.min(100, bar))}%`, background: color }} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TrimPreview({ course, mainAngle, jibAngle, jibFurl, reef, sailMode, optMain, optJib }: {
+  course: TCourse; mainAngle: number; jibAngle: number; jibFurl: number;
+  reef: 0 | 1 | 2; sailMode: TSailMode; optMain: number; optJib: number;
+}) {
+  const W = 180, H = 240;
+  const boatRot = course === 'close-hauled' ? 45 : course === 'beam' ? 90 : 135;
+  const areaMul = 1 - reef * 0.22;
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
+      <defs>
+        <linearGradient id="tp-bg" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stopColor="#061428" /><stop offset="1" stopColor="#0a1f3d" />
+        </linearGradient>
+      </defs>
+      <rect x="0" y="0" width={W} height={H} rx="8" fill="url(#tp-bg)" />
+      {/* Wind from top */}
+      <g stroke="#00d4ff" strokeWidth="1.2" fill="#00d4ff">
+        <line x1={W/2} y1={8} x2={W/2} y2={32} />
+        <polygon points={`${W/2 - 4},30 ${W/2 + 4},30 ${W/2},36`} />
+        <text x={W/2} y="50" textAnchor="middle" fontSize="9" fill="#00d4ff">ветер</text>
+      </g>
+      <g transform={`translate(${W/2} ${H/2 + 20}) rotate(${boatRot})`}>
+        {/* Hull */}
+        <path d="M 0 -36 Q 12 0 7 30 L -7 30 Q -12 0 0 -36 Z" fill="#d7e8f4" stroke="#8fb4c9" strokeWidth="1" />
+        <polygon points="-4,-32 4,-32 0,-40" fill="#8fb4c9" />
+        <circle cx="0" cy="-8" r="2" fill="#333" />
+        {/* Jib */}
+        {sailMode !== 'main-only' && (
+          <g transform={`translate(0 -22) rotate(${jibAngle})`} opacity={jibFurl / 100}>
+            <path d={`M 0 0 Q ${4 * (jibFurl/100)} 10 ${1.5 * (jibFurl/100)} 20 L 0 20 Z`}
+                  fill="#f6fbff" stroke="#ffffff" strokeWidth="0.8" />
+          </g>
+        )}
+        {/* Main */}
+        {sailMode !== 'jib-only' && (
+          <g transform={`rotate(${mainAngle}) scale(1 ${areaMul})`}>
+            <path d="M 0 -8 Q 10 10 2 30 L 0 30 Z" fill="#f6fbff" stroke="#ffffff" strokeWidth="0.8" />
+          </g>
+        )}
+        {/* Ghost optimum */}
+        {sailMode === 'both' && (
+          <>
+            <g transform={`translate(0 -22) rotate(${optJib})`} opacity="0.35">
+              <path d="M 0 0 Q 4 10 1.5 20 L 0 20 Z" fill="none" stroke="#44ff88" strokeWidth="1" strokeDasharray="2 2" />
+            </g>
+            <g transform={`rotate(${optMain})`} opacity="0.35">
+              <path d="M 0 -8 Q 10 10 2 30 L 0 30 Z" fill="none" stroke="#44ff88" strokeWidth="1" strokeDasharray="2 2" />
+            </g>
+          </>
+        )}
+      </g>
+      <text x={W/2} y={H - 8} textAnchor="middle" fontSize="9" fill="#5a7a8a">
+        {course === 'close-hauled' ? 'бейдевинд 45°' : course === 'beam' ? 'галфвинд 90°' : 'бакштаг 135°'}
+      </text>
+    </svg>
+  );
 }

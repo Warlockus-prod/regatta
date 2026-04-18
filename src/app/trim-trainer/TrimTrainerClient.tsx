@@ -164,6 +164,15 @@ export default function TrimTrainerClient() {
 
   return (
     <div className="page-enter max-w-7xl mx-auto px-4 py-6 sm:py-10">
+      <div className="mb-4 p-3 rounded-lg"
+           style={{ background: 'rgba(255, 170, 0, 0.08)', border: '1px solid rgba(255, 170, 0, 0.3)' }}>
+        <div className="text-xs font-semibold" style={{ color: 'var(--warning)' }}>
+          🚧 Раздел переезжает внутрь симулятора
+        </div>
+        <div className="text-[11px] text-[var(--text-secondary)] leading-relaxed mt-0.5">
+          Скоро этот тренажёр будет частью страницы <Link href="/simulator" className="text-[var(--accent-cyan)] hover:underline">Симулятор</Link>. Эта страница временная, скрыта из меню.
+        </div>
+      </div>
       <div className="flex items-center justify-between mb-4">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-2 text-xs font-medium"

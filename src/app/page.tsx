@@ -1,7 +1,6 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
@@ -247,11 +246,6 @@ export default function HomePage() {
              style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent)' }} />
       </section>
 
-      {/* ===== DAILY CHALLENGE ===== */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-2 pb-6">
-        <DailyCard />
-      </section>
-
       {/* ===== THREE ENTRY POINTS ===== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
         <div className="text-center mb-8">
@@ -364,117 +358,4 @@ export default function HomePage() {
       </section>
     </div>
   );
-}
-
-// ============================================================================
-// DailyCard - today's challenge + top-10
-// ============================================================================
-
-interface DailyResponse {
-  day: string;
-  challenge: { seed: number; difficulty: string; windStrength: string; missionId: string | null };
-  top: { nickname: string; sid: string; finish_time_sec: number; ts: number }[];
-}
-
-function DailyCard() {
-  const { tp } = useI18n();
-  const [data, setData] = useState<DailyResponse | null>(null);
-  const [err, setErr] = useState(false);
-
-  useEffect(() => {
-    fetch('/api/daily')
-      .then((r) => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
-      .then((d) => setData(d))
-      .catch(() => setErr(true));
-  }, []);
-
-  if (err) return null;
-
-  const difficultyLabel = (d: string) =>
-    tp(
-      d === 'easy' ? 'Лёгкий' : d === 'hard' ? 'Сложный' : 'Средний',
-      d === 'easy' ? 'Easy' : d === 'hard' ? 'Hard' : 'Medium',
-      d === 'easy' ? 'Łatwy' : d === 'hard' ? 'Trudny' : 'Średni',
-    );
-  const windLabel = (w: string) =>
-    tp(
-      w === 'light' ? 'слабый' : w === 'heavy' ? 'сильный' : 'средний',
-      w === 'light' ? 'light' : w === 'heavy' ? 'heavy' : 'medium',
-      w === 'light' ? 'słaby' : w === 'heavy' ? 'silny' : 'średni',
-    );
-
-  const href = data
-    ? `/game?daily=${data.day}&difficulty=${data.challenge.difficulty}&wind=${data.challenge.windStrength}`
-    : '/game';
-
-  return (
-    <div
-      className="card p-5 sm:p-6"
-      style={{
-        background: 'linear-gradient(135deg, rgba(255, 170, 0, 0.06), rgba(0, 212, 255, 0.06))',
-        borderColor: 'rgba(255, 170, 0, 0.25)',
-      }}
-    >
-      <div className="flex items-center justify-between flex-wrap gap-3 mb-3">
-        <div>
-          <div className="text-xs tracking-wider font-semibold" style={{ color: 'var(--warning)' }}>
-            ⚡ {tp('ВЫЗОВ ДНЯ', 'TODAY\'S CHALLENGE', 'WYZWANIE DNIA')}
-          </div>
-          <div className="text-xl sm:text-2xl font-bold mt-1">
-            {data ? (
-              <>
-                {difficultyLabel(data.challenge.difficulty)} · {tp('ветер', 'wind', 'wiatr')} {windLabel(data.challenge.windStrength)}
-              </>
-            ) : (
-              <span className="text-[var(--text-muted)]">…</span>
-            )}
-          </div>
-          <div className="text-xs text-[var(--text-muted)] mt-0.5">
-            {data ? `${data.day} UTC · ${tp('каждый день новая', 'new each day', 'codziennie nowe')}` : ' '}
-          </div>
-        </div>
-        <Link
-          href={href}
-          className="px-4 py-2.5 rounded-lg font-semibold text-sm whitespace-nowrap"
-          style={{ background: 'linear-gradient(135deg, var(--warning), #ff8844)', color: '#0a1628' }}
-        >
-          {tp('Попробовать →', 'Try it →', 'Spróbuj →')}
-        </Link>
-      </div>
-
-      {data && data.top.length > 0 && (
-        <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1.5">
-            {tp('ЛУЧШИЕ СЕГОДНЯ', 'TOP TODAY', 'NAJLEPSI DZIŚ')}
-          </div>
-          <div className="space-y-0.5">
-            {data.top.slice(0, 5).map((r, i) => (
-              <div key={`${r.sid}-${i}`} className="flex items-center gap-3 text-xs">
-                <span className="font-mono w-5 text-center" style={{ color: i === 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
-                  {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
-                </span>
-                <span className="flex-1 truncate">{r.nickname}</span>
-                <span className="font-mono text-[var(--accent-cyan)]">
-                  {formatMMSS(r.finish_time_sec)}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {data && data.top.length === 0 && (
-        <div className="text-xs text-[var(--text-muted)] mt-2">
-          {tp('Пока никто не финишировал. Стань первым!', 'No finishers yet. Be the first!', 'Brak finiszów. Bądź pierwszy!')}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function formatMMSS(s: number): string {
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  const ms = Math.floor((s * 10) % 10);
-  return `${m}:${sec.toString().padStart(2, '0')}.${ms}`;
 }
