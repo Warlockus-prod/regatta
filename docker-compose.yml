@@ -27,8 +27,8 @@ services:
     container_name: regatta-ws
     restart: unless-stopped
     ports:
-      # Bound to docker bridge - nginx proxies /ws path here
-      - "172.17.0.1:4501:3001"
+      # Bound to docker bridge - nginx proxies /ws path here (4502, 4501 is taken)
+      - "172.17.0.1:4502:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
