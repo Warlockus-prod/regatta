@@ -18,6 +18,12 @@ services:
       - REGATTA_DB_DIR=/data
     volumes:
       - regatta_data:/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
   regatta-ws:
     build:
@@ -27,11 +33,19 @@ services:
     container_name: regatta-ws
     restart: unless-stopped
     ports:
-      # Bound to docker bridge - nginx proxies /ws path here (4502, 4501 is taken)
       - "172.17.0.1:4502:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
+      - NEXT_INTERNAL_URL=http://regatta:3000
+    depends_on:
+      - regatta
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 60s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   regatta_data:

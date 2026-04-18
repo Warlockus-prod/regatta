@@ -1,9 +1,14 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
+import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
+
+const COACH_LIMIT = 30;
+const COACH_WINDOW_MS = 60 * 60 * 1000;
 
 // System prompt - cached so repeated requests are cheap
 const SYSTEM = `Ты опытный тренер по парусному спорту. Тебе присылают лог гонки: позиции яхты игрока каждые 0.5 секунды, плюс события (повороты, прохождение знаков, финиш). Трасса - windward/leeward: нужно обогнуть верхний знак и вернуться к финишу. Ветер дует сверху (с севера, направление 0°).
@@ -69,6 +74,19 @@ export async function POST(req: Request) {
     return NextResponse.json(
       { error: 'API key not configured', fallback: true },
       { status: 200 },
+    );
+  }
+
+  const jar = await cookies();
+  const sid = jar.get('regatta_sid')?.value;
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+  const rlKey = 'coach:' + (sid ?? ip);
+  const rl = rateLimit(rlKey, COACH_LIMIT, COACH_WINDOW_MS);
+  if (!rl.ok) {
+    logWarn('coach.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs });
+    return NextResponse.json(
+      { error: 'Too many coach requests', fallback: true, retryAfterSec: Math.ceil(rl.resetMs / 1000) },
+      { status: 429, headers: { ...rateLimitHeaders(rl, COACH_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
     );
   }
 

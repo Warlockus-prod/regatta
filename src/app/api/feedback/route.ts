@@ -1,11 +1,16 @@
 import { NextResponse } from 'next/server';
-import { logInfo, logError } from '@/lib/log';
+import { cookies } from 'next/headers';
+import { logInfo, logError, logWarn } from '@/lib/log';
 import { insertFeedback } from '@/lib/db';
+import { rateLimit } from '@/lib/rate-limit';
 import { promises as fs } from 'fs';
 import path from 'path';
 
 export const runtime = 'nodejs';
 export const maxDuration = 15;
+
+const FEEDBACK_LIMIT = 10;
+const FEEDBACK_WINDOW_MS = 60 * 60 * 1000;
 
 /**
  * Feedback / bug report ingestion.
@@ -36,6 +41,15 @@ interface FeedbackPayload {
 const FEEDBACK_PATH = '/tmp/regatta-feedback.jsonl';
 
 export async function POST(req: Request) {
+  const jar = await cookies();
+  const sid = jar.get('regatta_sid')?.value;
+  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+  const rl = rateLimit('fb:' + (sid ?? ip), FEEDBACK_LIMIT, FEEDBACK_WINDOW_MS);
+  if (!rl.ok) {
+    logWarn('feedback.rate-limited', { key: (sid ?? ip).slice(0, 12), resetMs: rl.resetMs });
+    return NextResponse.json({ error: 'Слишком много отзывов за последний час' }, { status: 429 });
+  }
+
   let body: FeedbackPayload;
   try {
     body = await req.json();
