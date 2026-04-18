@@ -18,6 +18,35 @@ status: active | superseded by YYYY-MM-DD
 
 ---
 
+## 2026-04-18 - A/B: /simulator V1 (cards) vs /simulator2 V2 (immersive)
+
+context: user asked for a visibly different "красивый" simulator design.
+  Tried Google Stitch MCP to generate a reference design - it was running
+  but hadn't produced a screen by the time the branch was ready. Shipped
+  a hand-designed V2 at /simulator2 instead, with distinctly different
+  aesthetic from V1.
+
+decision: keep both live for side-by-side comparison. V1 gets a small
+  "Try V2" link next to the VPP badge. V2 has a "back to V1" link in
+  its sticky top strip. Both run the exact same physics engine (same
+  settle() call, same Controls shape); only the layout differs.
+
+V1 direction: data-dense, compact cards stacked, all controls visible at
+  once. Feels like an engineer's panel.
+
+V2 direction: immersive cockpit. Edge-to-edge radial-gradient hero scene
+  (~82vh), floating glass cards for numbers / analysis / diagnostics over
+  the scene. Sticky control strip below hero, inline sliders. Hero
+  typography (speed + heel as big mono numerals).
+
+next: let the user try both for a day or two, pick one, then I will
+  delete the other and remove the cross-link. If the user wants more
+  iteration before deciding, we can tune either independently.
+
+status: active.
+
+---
+
 ## 2026-04-18 - Phase 2 landed: /simulator runs on the engine
 
 context: Phase 1 built the pure physics module. Phase 2 was the UI rebuild
