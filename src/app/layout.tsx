@@ -71,7 +71,7 @@ export default function RootLayout({
             {children}
           </main>
           {/* Feedback widget hidden on immersive pages to avoid covering simulators */}
-          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator', '/trim-trainer']} />
+          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator']} />
         </I18nProvider>
       </body>
     </html>

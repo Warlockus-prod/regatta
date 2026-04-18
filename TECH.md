@@ -45,9 +45,11 @@ entry in MEMORY.md pointing to the change.
 - `/glossary` - 51 sailing terms RU/EN, search + filter
 
 **Interactive pages:**
-- `/simulator` - (currently fake physics lookup; Phase 1-2 target)
-- `/trim-trainer` - standalone sail-trim practice (also fake physics)
-- `/game` - race with AI opponents, Claude coach after finish
+- `/simulator` - VPP-style force-balance engine (post-Phase 2). Unified
+  course + trim teaching screen on a single shared state.
+- `/game` - race with AI opponents, Claude coach after finish. Arcade-style
+  physics in `race-physics.ts` (top-down position/heading/speed), separate
+  abstraction from `/simulator`'s VPP engine on purpose.
 - `/multiplayer` - WebSocket room, 2-8 players
 - `/leaderboard` - top times by difficulty / wind / mission
 - `/r/[code]` - replay viewer with scrubbable timeline
@@ -155,8 +157,8 @@ SQLite → `/r/[code]` renders canvas scrub UI reading `/api/replay/[code]`.
   Two panels on one page: top = course/wind/vectors/metrics,
   bottom = sheets/trim diagnostics. Both panels produced by one
   `tick()` per frame (shared state, not two URLs).
-- Migration of `/game` and `/trim-trainer` from `race-physics.ts`
-  lookup tables to the new engine.
+- (No forced migration of `/game` off `race-physics.ts`. The game is an
+  arcade, not a simulator; its abstraction is fit-for-purpose.)
 
 See DECISIONS.md ADR-0001 and ROADMAP.md Phase 2/3 for the plan.
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 
 const STORAGE_KEY = 'regatta.onboarding.v1';
-const HIDE_ON = ['/simulator', '/trim-trainer', '/game', '/multiplayer'];
+const HIDE_ON = ['/simulator', '/game', '/multiplayer'];
 
 const STEPS = [
   {

@@ -28,8 +28,6 @@ rewrite it - don't patch.
 - `/simulator` - **CORE PRODUCT. REAL PHYSICS (post-Phase 2).** Reads live
   state from `src/lib/sailing-physics/` each tick. Optimal-trim overlay,
   delta chips, commentary feedback.
-- `/trim-trainer` - still runs on `race-physics.ts` lookup. Phase 3 will
-  retire or migrate.
 - `/game` - race with AI opponents, Claude Haiku coach on finish. Uses
   `race-physics.ts` (same lookup approach). Gameplay works but physics is
   the same illusion as /simulator.
