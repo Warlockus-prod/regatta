@@ -316,15 +316,22 @@ export default function AnatomyPage() {
 // ============================================================================
 
 // Hotspot positions for the Kenney sailboat (model units, roughly -1..+1 box).
-// Each carries a short tooltip phrase; the full description appears in the right panel on click.
-const hotspots3D: { id: string; pos: string; normal?: string; label: string; tooltip: string }[] = [
-  { id: 'mast',    pos: '0 0.6 0',        normal: '0 1 0',  label: 'Мачта',    tooltip: 'Держит паруса. Не опирайся' },
-  { id: 'boom',    pos: '0 0.3 0.15',     normal: '1 0 0',  label: 'Гик',      tooltip: 'Пересекает лодку при повороте. Береги голову' },
-  { id: 'mainsail',pos: '0.1 0.55 0',     normal: '1 0 0',  label: 'Грот',     tooltip: 'Главный двигатель' },
-  { id: 'jib',     pos: '-0.05 0.4 -0.5', normal: '0 0 -1', label: 'Стаксель', tooltip: 'Парус перед мачтой. Slot effect' },
-  { id: 'bow',     pos: '0 0 -0.7',       normal: '0 0 -1', label: 'Нос',      tooltip: 'Держись одной рукой за леер' },
-  { id: 'stern',   pos: '0 0.05 0.6',     normal: '0 0 1',  label: 'Корма',    tooltip: 'Отсюда садимся на борт' },
-  { id: 'cockpit', pos: '0 0.1 0.3',      normal: '0 1 0',  label: 'Кокпит',   tooltip: 'Штурвал и шкоты' },
+// Labels + tooltips resolved through i18n inside Anatomy3D.
+interface Hotspot3D {
+  id: string;
+  pos: string;
+  normal?: string;
+  labelRu: string; labelEn: string;
+  tipRu: string; tipEn: string;
+}
+const hotspots3D: Hotspot3D[] = [
+  { id: 'mast',    pos: '0 0.6 0',        normal: '0 1 0',  labelRu: 'Мачта',   labelEn: 'Mast',     tipRu: 'Держит паруса. Не опирайся', tipEn: 'Holds the sails. Don\'t lean' },
+  { id: 'boom',    pos: '0 0.3 0.15',     normal: '1 0 0',  labelRu: 'Гик',     labelEn: 'Boom',     tipRu: 'Пересекает лодку при повороте. Береги голову', tipEn: 'Swings across during jibe. Watch your head' },
+  { id: 'mainsail',pos: '0.1 0.55 0',     normal: '1 0 0',  labelRu: 'Грот',    labelEn: 'Mainsail', tipRu: 'Главный двигатель', tipEn: 'Main drive' },
+  { id: 'jib',     pos: '-0.05 0.4 -0.5', normal: '0 0 -1', labelRu: 'Стаксель',labelEn: 'Jib',      tipRu: 'Парус перед мачтой. Slot effect', tipEn: 'Sail forward of the mast, makes the slot' },
+  { id: 'bow',     pos: '0 0 -0.7',       normal: '0 0 -1', labelRu: 'Нос',     labelEn: 'Bow',      tipRu: 'Держись одной рукой за леер', tipEn: 'Keep one hand on the lifeline' },
+  { id: 'stern',   pos: '0 0.05 0.6',     normal: '0 0 1',  labelRu: 'Корма',   labelEn: 'Stern',    tipRu: 'Отсюда садимся на борт', tipEn: 'Where you board' },
+  { id: 'cockpit', pos: '0 0.1 0.3',      normal: '0 1 0',  labelRu: 'Кокпит',  labelEn: 'Cockpit',  tipRu: 'Штурвал и шкоты', tipEn: 'Wheel and sheets' },
 ];
 
 function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
@@ -365,9 +372,10 @@ function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
   return (
     <div>
       <div
-        className="w-full rounded-lg overflow-hidden"
+        className="w-full rounded-lg overflow-hidden relative"
         style={{
-          aspectRatio: '16/10',
+          aspectRatio: '4/3',
+          minHeight: 380,
           background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.35), rgba(6, 20, 40, 0.8))',
           border: '1px solid rgba(0, 212, 255, 0.15)',
         }}
@@ -376,15 +384,18 @@ function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
           src={modelSrc}
           alt="Sailing yacht 3D model"
           camera-controls
+          touch-action="pan-y"
           auto-rotate
-          auto-rotate-delay="2500"
-          rotation-per-second="12deg"
-          shadow-intensity="0.6"
-          exposure="1.1"
-          camera-orbit="30deg 72deg 120%"
-          min-camera-orbit="auto auto 80%"
-          max-camera-orbit="auto auto 250%"
-          field-of-view="30deg"
+          auto-rotate-delay="3000"
+          rotation-per-second="10deg"
+          shadow-intensity="0.8"
+          exposure="1.2"
+          camera-orbit="25deg 68deg 70%"
+          min-camera-orbit="auto auto 40%"
+          max-camera-orbit="auto auto 200%"
+          field-of-view="26deg"
+          interaction-prompt="auto"
+          interaction-prompt-threshold="4000"
           style={{ width: '100%', height: '100%', background: 'transparent' }}
         >
           {hotspots3D.map((h) => {
@@ -424,7 +435,7 @@ function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
                   verticalAlign: 'middle',
                   boxShadow: isActive ? 'none' : '0 0 6px #00d4ff',
                 }} />
-                {h.label}
+                {t(h.labelRu, h.labelEn)}
                 <span
                   className="hotspot-tooltip"
                   style={{
@@ -447,20 +458,37 @@ function Anatomy3D({ modelSrc, modelOk, activeId, onSelect }: {
                     zIndex: 10,
                   }}
                 >
-                  {h.tooltip}
+                  {t(h.tipRu, h.tipEn)}
                 </span>
               </button>
             );
           })}
         </model-viewer>
       </div>
-      <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-        {t('Крути, двигай, зум - колесом мыши или щипком на тачскрине.',
-           'Drag, pan, zoom - wheel or pinch.')}
-        <br />
-        <span className="text-[10px]">
-          Model: <a href="https://kenney.nl/assets/watercraft-kit" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Watercraft Kit by Kenney.nl</a> (CC0) - low-poly placeholder, replace with a licensed Bavaria 46 GLB later.
-        </span>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-2">
+          <span>🖱 {t('тяни', 'drag')}</span>
+          <span>·</span>
+          <span>🔍 {t('колёсико / щипок = зум', 'wheel / pinch to zoom')}</span>
+          <span>·</span>
+          <span>✋ {t('правая кнопка = двигать', 'right-click to pan')}</span>
+        </div>
+        <button
+          onClick={() => {
+            const mv = document.querySelector('model-viewer') as unknown as { cameraOrbit?: string; resetTurntableRotation?: () => void };
+            if (mv) {
+              mv.cameraOrbit = '25deg 68deg 70%';
+              try { mv.resetTurntableRotation?.(); } catch { /* ignore */ }
+            }
+          }}
+          className="px-2 py-1 rounded border text-[10px] hover:text-[var(--accent-cyan)] hover:border-[var(--accent-cyan)] transition"
+          style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: 'var(--text-secondary)' }}
+        >
+          ⟳ {t('сбросить вид', 'reset view')}
+        </button>
+      </div>
+      <div className="mt-1 text-[10px] text-[var(--text-muted)] text-center">
+        Model: <a href="https://kenney.nl/assets/watercraft-kit" target="_blank" rel="noopener" className="text-[var(--accent-cyan)] hover:underline">Watercraft Kit by Kenney.nl</a> (CC0) - low-poly placeholder.
       </div>
     </div>
   );

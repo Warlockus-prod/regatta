@@ -483,18 +483,15 @@ export default function GamePage() {
     void doSave();
   }, [nickname, results, difficulty, windStrength, selectedMission, coaching]);
 
-  // Auto-save when finished (once)
+  // Auto-save when finished (once). We don't prompt for a nickname during the
+  // friends-testing phase; if there's no stored nickname we just skip saving.
   useEffect(() => {
     if (gameState !== 'finished') return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
     saveAttemptedRef.current = true;
-    if (nickname) {
-      saveResult();
-    } else {
-      setSaveState('prompting');
-    }
+    if (nickname) saveResult();
   }, [gameState, nickname, saveResult]);
 
   // Reset save state on new race
@@ -1508,30 +1505,36 @@ export default function GamePage() {
               )}
             </div>
 
-            {/* Leaderboard */}
-            <div className="mb-5 space-y-1">
-              {results.map((r, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between py-2 px-3 rounded"
-                  style={{
-                    background: r.isPlayer ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-                    border: r.isPlayer ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid transparent',
-                  }}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs font-mono w-5" style={{ color: i === 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
-                      {i + 1}.
+            {/* Compact leaderboard - collapsed by default, only winner + you shown on mobile */}
+            <details className="mb-5 card p-3">
+              <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
+                <span>{t('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS')} ({results.length})</span>
+                <span className="text-[var(--accent-cyan)]">▾</span>
+              </summary>
+              <div className="mt-3 space-y-1">
+                {results.map((r, i) => (
+                  <div
+                    key={i}
+                    className="flex items-center justify-between py-1.5 px-2 rounded"
+                    style={{
+                      background: r.isPlayer ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
+                      border: r.isPlayer ? '1px solid rgba(0, 212, 255, 0.3)' : '1px solid transparent',
+                    }}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-mono w-5" style={{ color: i === 0 ? 'var(--warning)' : 'var(--text-muted)' }}>
+                        {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                      </span>
+                      <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
+                      <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.name}</span>
+                    </div>
+                    <span className="text-xs font-mono text-[var(--text-secondary)]">
+                      {r.time === Infinity ? 'DNF' : formatTime(r.time)}
                     </span>
-                    <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
-                    <span className={`text-sm ${r.isPlayer ? 'font-semibold' : ''}`}>{r.name}</span>
                   </div>
-                  <span className="text-sm font-mono text-[var(--text-secondary)]">
-                    {r.time === Infinity ? 'DNF' : formatTime(r.time)}
-                  </span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            </details>
 
             {/* Mission result card */}
             {missionResult && (
@@ -1622,86 +1625,8 @@ export default function GamePage() {
               )}
             </div>
 
-            {/* Leaderboard save block */}
-            {playerFinished?.time !== undefined && playerFinished.time !== Infinity && (
-              <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(139, 167, 184, 0.06)', border: '1px solid rgba(139, 167, 184, 0.2)' }}>
-                {saveState === 'prompting' && (
-                  <>
-                    <div className="text-sm font-semibold mb-2">🏆 Сохранить в таблицу лучших?</div>
-                    <div className="text-xs text-[var(--text-muted)] mb-2">
-                      Твой ник сохранится в этом браузере. Email / Telegram не нужны.
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={nicknameInput}
-                        onChange={(e) => setNicknameInput(e.target.value)}
-                        maxLength={20}
-                        placeholder="Твой ник (2-20)"
-                        className="flex-1 px-3 py-2 rounded text-sm"
-                        style={{
-                          background: 'var(--bg-secondary)',
-                          border: '1px solid rgba(0, 212, 255, 0.2)',
-                          color: 'var(--text-primary)',
-                        }}
-                      />
-                      <button
-                        onClick={() => saveResult(nicknameInput)}
-                        disabled={nicknameInput.trim().length < 2}
-                        className="px-3 py-2 rounded text-sm font-semibold disabled:opacity-40"
-                        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-                      >
-                        Сохранить
-                      </button>
-                      <button
-                        onClick={() => setSaveState('idle')}
-                        className="px-2 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-                      >
-                        Не надо
-                      </button>
-                    </div>
-                  </>
-                )}
-                {saveState === 'saving' && (
-                  <div className="text-sm text-[var(--text-secondary)] flex items-center gap-2">
-                    <span className="inline-block w-2 h-2 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-                    Сохраняю результат…
-                  </div>
-                )}
-                {saveState === 'saved' && (
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="text-sm text-[var(--success)]">
-                      ✓ Сохранено как <span className="font-semibold">{nickname}</span>
-                    </div>
-                    <Link href="/leaderboard" className="text-xs text-[var(--accent-cyan)] hover:underline">
-                      Открыть таблицу →
-                    </Link>
-                  </div>
-                )}
-                {saveState === 'error' && (
-                  <div className="text-xs text-[var(--danger)]">
-                    Не удалось сохранить: {saveError}
-                  </div>
-                )}
-                {saveState === 'idle' && (
-                  <div className="text-xs text-[var(--text-muted)]">Результат не сохранён.</div>
-                )}
-              </div>
-            )}
-
-            {/* Shareable replay */}
-            {replayCode && (
-              <ShareBlock
-                code={replayCode}
-                nickname={nickname}
-                difficulty={difficulty}
-                windStrength={windStrength}
-                finishTime={playerFinished?.time}
-                rank={playerRank}
-                total={results.length}
-                missionTitle={selectedMission?.titleRu}
-              />
-            )}
+            {/* Nickname prompt + Share block hidden while we are testing with friends.
+                Save-to-leaderboard auto-happens silently in the background via saveResult(). */}
 
             <div className="flex gap-2 flex-wrap">
               <button

@@ -41,21 +41,22 @@ function YachtIcon({
   mirror?: boolean;
 }) {
   const effectiveSail = mirror ? -sailAngle : sailAngle;
-  // Jib is sheeted ~0.75x tighter than main when sailing upwind,
-  // looser (0.55x) when running. sailAngle is boom-out degrees.
   const jibFactor = Math.abs(sailAngle) < 45 ? 0.75 : 0.55;
   const jibSail = effectiveSail * jibFactor;
-  // Main sail geometry (from mast)
   const mastTop = -size * 0.55;
   const boomEndX = Math.sin(effectiveSail * DEG) * size * 0.45;
   const boomEndY = mastTop + Math.cos(effectiveSail * DEG) * size * 0.4;
-  // Jib geometry (from forestay at bow)
   const forestayY = -size * 0.6;
   const jibClewX = Math.sin(jibSail * DEG) * size * 0.28;
   const jibClewY = forestayY + Math.cos(jibSail * DEG) * size * 0.35;
+  // Wing-on-wing: at running / broad-reach the jib is set on the OPPOSITE side of the
+  // main to catch wind that the mainsail would otherwise blanket.
+  const wingOnWing = Math.abs(sailAngle) >= 75;
+  const wowJibX = -jibClewX;
+  const wowJibY = jibClewY;
   return (
     <g transform={`translate(${cx},${cy}) rotate(${angle})`}>
-      {/* Hull */}
+      {/* Hull with a bow triangle marker so orientation is unambiguous */}
       <ellipse
         rx={size * 0.22}
         ry={size * 0.7}
@@ -64,25 +65,36 @@ function YachtIcon({
         strokeWidth={1.5}
         opacity={0.9}
       />
-      {/* Mast */}
-      <line
-        x1={0}
-        y1={-size * 0.15}
-        x2={0}
-        y2={mastTop}
-        stroke="#fff"
-        strokeWidth={1.2}
-      />
-      {/* Jib (стаксель) - triangle forward of mast */}
-      <path
-        d={`M 0 ${forestayY} L ${jibClewX} ${jibClewY} L 0 ${jibClewY} Z`}
+      <polygon
+        points={`${-size * 0.12},${-size * 0.66} ${size * 0.12},${-size * 0.66} 0,${-size * 0.78}`}
         fill={color}
-        fillOpacity={0.22}
-        stroke={color}
-        strokeWidth={1.2}
-        strokeLinejoin="round"
-        opacity={0.9}
+        opacity={0.7}
       />
+      {/* Mast */}
+      <line x1={0} y1={-size * 0.15} x2={0} y2={mastTop} stroke="#fff" strokeWidth={1.2} />
+      {/* Jib (стаксель) - triangle forward of mast (OR on opposite side when wing-on-wing) */}
+      {wingOnWing ? (
+        <path
+          d={`M 0 ${forestayY} L ${wowJibX} ${wowJibY} L 0 ${wowJibY} Z`}
+          fill={color}
+          fillOpacity={0.22}
+          stroke={color}
+          strokeWidth={1.1}
+          strokeLinejoin="round"
+          strokeDasharray="2 1.5"
+          opacity={0.85}
+        />
+      ) : (
+        <path
+          d={`M 0 ${forestayY} L ${jibClewX} ${jibClewY} L 0 ${jibClewY} Z`}
+          fill={color}
+          fillOpacity={0.22}
+          stroke={color}
+          strokeWidth={1.2}
+          strokeLinejoin="round"
+          opacity={0.9}
+        />
+      )}
       {/* Mainsail (грот) - triangle aft of mast */}
       <path
         d={`M 0 ${mastTop} L ${boomEndX} ${boomEndY} L 0 ${boomEndY} Z`}
@@ -455,7 +467,7 @@ function WindDiagram({
           angle={y.angle}
           sailAngle={y.sailAngle}
           color={effectiveId === y.id ? y.color : 'rgba(255,255,255,0.45)'}
-          size={effectiveId === y.id ? 22 : 18}
+          size={effectiveId === y.id ? 30 : 24}
           mirror={y.mirror}
         />
       ))}

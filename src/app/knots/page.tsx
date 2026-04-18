@@ -107,6 +107,18 @@ export default function KnotsPage() {
 
   return (
     <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
+      <div className="mb-6 p-4 rounded-xl"
+           style={{ background: 'rgba(255, 170, 0, 0.08)', border: '1px solid rgba(255, 170, 0, 0.3)' }}>
+        <div className="text-sm font-semibold mb-1" style={{ color: 'var(--warning)' }}>
+          🚧 {t('Раздел в разработке', 'Section in progress')}
+        </div>
+        <div className="text-xs text-[var(--text-secondary)] leading-relaxed">
+          {t(
+            'Готовим нормальные схемы узлов. Пока этот раздел спрятан из меню, но доступен по прямой ссылке для тестирования.',
+            'Proper knot diagrams are in the works. Section is hidden from the menu for now but reachable via direct link.',
+          )}
+        </div>
+      </div>
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(136, 68, 255, 0.1)', border: '1px solid rgba(136, 68, 255, 0.25)', color: '#8844ff' }}>

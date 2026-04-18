@@ -115,23 +115,20 @@ const groups: NavGroup[] = [
     items: [
       { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka', icon: Icon.tactics },
-      { href: '/trim-trainer', ru: 'Трим парусов', en: 'Sail trim', pl: 'Trim żagli', icon: Icon.tactics },
     ],
   },
   {
     titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokładzie',
     items: [
       { href: '/anatomy', ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu', icon: Icon.anatomy },
-      { href: '/knots', ru: 'Узлы', en: 'Knots', pl: 'Węzły', icon: Icon.knots },
       { href: '/checklist', ru: 'Чек-лист', en: 'Checklist', pl: 'Lista kontrolna', icon: Icon.checklist },
     ],
   },
   {
-    titleRu: 'Справочник', titleEn: 'Reference', titlePl: 'Słownik',
+    titleRu: 'Ещё', titleEn: 'More', titlePl: 'Więcej',
     items: [
       { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', icon: Icon.race },
       { href: '/glossary', ru: 'Глоссарий', en: 'Glossary', pl: 'Glosariusz', icon: Icon.glossary },
-      { href: '/leaderboard', ru: 'Лидерборд', en: 'Leaderboard', pl: 'Ranking', icon: Icon.race },
     ],
   },
 ];
