@@ -5,7 +5,7 @@ import { knots } from '@/data/knots';
 import { useI18n } from '@/lib/i18n';
 
 // Simple step visualization: show rope as connected arcs with highlighted step
-function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
+function KnotStepVisual({ knotId, step, doneLabel }: { knotId: string; step: number; doneLabel: string }) {
   // Each knot gets a dedicated stylized SVG diagram per step.
   // We keep them intentionally simple - the text does the heavy lifting.
   const visuals: Record<string, (step: number) => React.ReactElement> = {
@@ -19,7 +19,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         {s >= 4 && (
           <g>
             <path d="M 110 70 Q 140 80 160 110" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />
-            <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">готово</text>
+            <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>
           </g>
         )}
       </svg>
@@ -34,7 +34,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         {s >= 5 && (
           <g>
             <ellipse cx="100" cy="100" rx="22" ry="30" stroke="#44ff88" strokeWidth="2" fill="none" />
-            <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">петля готова</text>
+            <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>
           </g>
         )}
       </svg>
@@ -48,7 +48,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         {s >= 1 && <path d="M 20 100 Q 40 80 70 80 L 130 80" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 2 && <path d="M 130 80 Q 150 65 132 60 L 68 70 Q 50 75 70 60 L 130 50" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 3 && <path d="M 130 50 Q 140 55 120 60" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
-        {s >= 4 && <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">держит</text>}
+        {s >= 4 && <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>}
       </svg>
     ),
     'clove-hitch': (s) => (
@@ -58,7 +58,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         {s >= 1 && <path d="M 40 100 Q 100 100 100 80 Q 100 65 160 65" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 2 && <path d="M 160 65 Q 170 45 100 50 Q 80 50 80 70 Q 80 85 160 95" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 3 && <path d="M 160 95 Q 145 100 130 95" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
-        {s >= 4 && <text x="100" y="135" textAnchor="middle" fontSize="9" fill="#44ff88">зажим</text>}
+        {s >= 4 && <text x="100" y="135" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>}
       </svg>
     ),
     'round-turn-two-half-hitches': (s) => (
@@ -73,7 +73,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         )}
         {s >= 2 && <path d="M 120 75 Q 140 90 130 100 Q 120 105 115 95" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 3 && <path d="M 115 95 Q 135 110 145 120 Q 155 122 148 112" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
-        {s >= 4 && <text x="100" y="135" textAnchor="middle" fontSize="9" fill="#44ff88">готово</text>}
+        {s >= 4 && <text x="100" y="135" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>}
       </svg>
     ),
     'sheet-bend': (s) => (
@@ -84,7 +84,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
         {s >= 2 && <path d="M 170 85 L 100 85 Q 80 85 85 100" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 3 && <path d="M 85 100 Q 75 75 60 75 L 55 70" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
         {s >= 4 && <path d="M 55 70 Q 65 55 95 70" stroke="var(--accent-cyan)" strokeWidth="3" fill="none" />}
-        {s >= 5 && <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">связано</text>}
+        {s >= 5 && <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#44ff88">{doneLabel}</text>}
       </svg>
     ),
   };
@@ -93,7 +93,7 @@ function KnotStepVisual({ knotId, step }: { knotId: string; step: number }) {
   if (!visual) {
     return (
       <div className="w-full h-32 flex items-center justify-center text-xs text-[var(--text-muted)]">
-        {`Шаг ${step}`}
+        {`step ${step}`}
       </div>
     );
   }
@@ -156,7 +156,7 @@ export default function KnotsPage() {
                   {/* Visual */}
                   <div>
                     <div className="rounded-lg p-3" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
-                      <KnotStepVisual knotId={knot.id} step={step} />
+                      <KnotStepVisual knotId={knot.id} step={step} doneLabel={t('готово', 'done')} />
                     </div>
                     {/* Step controls */}
                     <div className="flex items-center justify-between mt-3 gap-2">

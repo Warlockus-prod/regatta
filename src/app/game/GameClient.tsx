@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
 import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
+import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
 // TYPES
@@ -309,6 +310,7 @@ function computeAIHeading(boat: Boat, course: Course, dt: number): number {
 // ============================================================================
 
 export default function GamePage() {
+  const { t, tp } = useI18n();
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -1316,7 +1318,7 @@ export default function GamePage() {
   // RACING / COUNTDOWN / FINISHED SCREENS (Canvas)
   // =====================================================================
   return (
-    <div className="relative w-full" style={{ height: 'calc(100vh - 56px)' }}>
+    <div className="relative w-full" style={{ height: 'calc(100dvh - 56px)' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
       {/* HUD - top bar */}
@@ -1325,7 +1327,7 @@ export default function GamePage() {
           {/* Left HUD: course info - compact on mobile */}
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">КУРС</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('КУРС', 'POS')}</span>
               <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{currentPoS.nameRu}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
@@ -1333,7 +1335,7 @@ export default function GamePage() {
               <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">СКОР.</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('СКОР.', 'SPD')}</span>
               <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kts</span>
             </div>
             <div className="w-full h-1 sm:h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
@@ -1343,93 +1345,95 @@ export default function GamePage() {
 
           {/* Right HUD: position + time - compact */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">ПОЗИЦИЯ</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('ПОЗИЦИЯ', 'PLACE')}</div>
             <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
               {position.rank}<span className="text-[10px] sm:text-xs text-[var(--text-muted)]"> / {position.total}</span>
             </div>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">ВРЕМЯ</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{t('ВРЕМЯ', 'TIME')}</div>
             <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
           </div>
 
           {/* Mark progress indicator - above touch controls on mobile */}
-          <div className="absolute bottom-40 left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs md:bottom-16 whitespace-nowrap" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && '→ К верхнему знаку'}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && '→ На финиш'}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && '✓ Финиш!'}
+          <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs whitespace-nowrap"
+               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${t('К верхнему знаку', 'To windward mark')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${t('На финиш', 'To finish')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${t('Финиш!', 'Finish!')}`}
           </div>
 
           {/* Mission hint (if any) - under the mark progress, only during race */}
           {selectedMission && gameState === 'racing' && (
-            <div className="absolute bottom-52 md:bottom-28 left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center" style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)' }}>
+            <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center"
+                 style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 230px)' }}>
               <span className="mr-1">{selectedMission.emoji}</span>
-              <span className="text-[var(--accent-cyan)] font-semibold">{selectedMission.titleRu}:</span>{' '}
-              <span className="text-[var(--text-secondary)]">{selectedMission.hintRu}</span>
+              <span className="text-[var(--accent-cyan)] font-semibold">{t(selectedMission.titleRu, selectedMission.titleEn)}:</span>{' '}
+              <span className="text-[var(--text-secondary)]">{t(selectedMission.hintRu, selectedMission.hintEn)}</span>
             </div>
           )}
 
-          {/* Wind indicator HUD (center-top, compact) */}
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 sm:top-4 card px-2 py-1.5 flex items-center gap-2" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <span className="text-[10px] text-[var(--text-muted)] hidden sm:inline">ВЕТЕР</span>
-            <svg width="16" height="16" viewBox="-12 -12 24 24" style={{ transform: `rotate(${windDirDisplay}deg)` }}>
+          {/* Wind indicator (centered under the right HUD on mobile so it never overlaps with the left HUD) */}
+          <div className="absolute right-2 sm:right-4 card px-2 py-1 flex items-center gap-1.5"
+               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', top: 'calc(5.5rem + env(safe-area-inset-top, 0px))' }}>
+            <svg width="14" height="14" viewBox="-12 -12 24 24" style={{ transform: `rotate(${windDirDisplay}deg)` }}>
               <line x1="0" y1="-9" x2="0" y2="7" stroke="#00d4ff" strokeWidth="1.5" />
               <polygon points="-3,4 0,7 3,4" fill="#00d4ff" />
             </svg>
-            <span className="text-[10px] sm:text-xs font-mono text-[var(--accent-cyan)]">
+            <span className="text-[10px] font-mono text-[var(--accent-cyan)]">
               {Math.round(windDirDisplay)}°
             </span>
-            {windGustDisplay > 1.08 && <span className="text-[10px] text-[var(--warning)] font-semibold">GUST</span>}
-            {windGustDisplay < 0.92 && <span className="text-[10px] text-[var(--text-muted)]">lull</span>}
+            {windGustDisplay > 1.08 && <span className="text-[9px] text-[var(--warning)] font-semibold">G</span>}
+            {windGustDisplay < 0.92 && <span className="text-[9px] text-[var(--text-muted)]">l</span>}
           </div>
 
           {/* Mute toggle */}
           <button
             onClick={() => setMutedState(toggleMuted())}
             aria-label={muted ? 'Unmute' : 'Mute'}
-            className="absolute top-16 left-2 sm:top-auto sm:bottom-4 sm:left-4 w-9 h-9 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
+            className="absolute top-16 left-2 sm:top-auto sm:left-4 w-9 h-9 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
           >
             {muted ? '🔇' : '🔊'}
           </button>
 
           <button
             onClick={backToMenu}
-            className="absolute top-16 right-2 sm:top-auto sm:bottom-4 sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
+            className="absolute top-16 right-2 sm:top-auto sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
           >
-            ← Меню
+            ← {t('Меню', 'Menu')}
           </button>
 
-          {/* Autopilot button (bottom-center above the hint) */}
-          <div className="absolute bottom-24 left-1/2 -translate-x-1/2 md:bottom-16 flex flex-col items-center gap-1">
-            <button
-              onClick={() => {
-                const player = boatsRef.current.find((b) => b.isPlayer);
-                if (!player) return;
-                if (autopilotOn) {
-                  setAutopilotOn(false);
-                } else {
-                  autopilotHeadingRef.current = player.heading;
-                  setAutopilotOn(true);
-                }
-              }}
-              title="AUTO: удерживает текущий курс. Выключится от любого поворота. Удобно на длинных галсах."
-              className="px-4 py-2 rounded-full text-xs font-semibold transition active:scale-95"
-              style={{
-                background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
-                color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
-                border: '1px solid rgba(0, 212, 255, 0.5)',
-                backdropFilter: 'blur(8px)',
-              }}
-            >
-              {autopilotOn ? '⏸ AUTO - держит курс' : '▶ AUTO - автопилот'}
-            </button>
-            <div className="text-[10px] text-[var(--text-muted)] max-w-[220px] text-center leading-tight" style={{ textShadow: '0 1px 2px rgba(0,0,0,0.8)' }}>
-              {autopilotOn ? 'Курс удерживается. Поверни - выключит.' : 'Держит курс на длинных галсах.'}
-            </div>
-          </div>
+          {/* Autopilot button - above touch controls, safe-area aware */}
+          <button
+            onClick={() => {
+              const player = boatsRef.current.find((b) => b.isPlayer);
+              if (!player) return;
+              if (autopilotOn) {
+                setAutopilotOn(false);
+              } else {
+                autopilotHeadingRef.current = player.heading;
+                setAutopilotOn(true);
+              }
+            }}
+            title={t('AUTO: удерживает текущий курс. Выключится от любого поворота.',
+                     'AUTO: holds current heading. Disengages on any turn input.')}
+            className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition active:scale-95"
+            style={{
+              background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
+              color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
+              border: '1px solid rgba(0, 212, 255, 0.5)',
+              backdropFilter: 'blur(8px)',
+              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)',
+            }}
+          >
+            {autopilotOn ? `⏸ ${t('AUTO вкл', 'AUTO on')}` : `▶ ${t('AUTO', 'AUTO')}`}
+          </button>
 
-          {/* Touch controls (visible on touch devices / always shown for accessibility) */}
-          <div className="absolute bottom-16 left-0 right-0 flex justify-between items-end px-4 pointer-events-none md:hidden">
+          {/* Touch controls - safe-area aware so they never hide behind mobile browser UI */}
+          <div
+            className="absolute left-0 right-0 flex justify-between items-end px-4 pointer-events-none md:hidden"
+            style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}
+          >
             <button
               onPointerDown={(e) => { e.preventDefault(); setLeftHeld(true); }}
               onPointerUp={() => setLeftHeld(false)}
@@ -1756,7 +1760,9 @@ function drawBoat(
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(deg2rad(heading));
-  const s = scale * (isPlayer ? 1.15 : 1.0) * cfg.hullScale;
+  // Player boat is ~1.8x bigger than AI so you clearly see your sail shape.
+  // AI bumped ~1.4x too - they were too tiny to see their sails.
+  const s = scale * (isPlayer ? 1.8 : 1.35) * cfg.hullScale;
   const w = cfg.hullWidth; // hull width multiplier
 
   const hullLen = 14 * s;
@@ -1813,31 +1819,55 @@ function drawBoat(
   ctx.arc(0, -3 * s, 1.2 * s, 0, Math.PI * 2);
   ctx.fill();
 
-  // Sail - angle it based on TWA (with live wind direction)
+  // Both sails angle based on TWA. Wind comes FROM windDir, so from the boat's
+  // local frame the wind source is at (windDir - heading) relative. The sail
+  // extends to the LEE side (opposite the wind source).
   const twa = calcTWA(heading, windDir);
-  let sailAngleFromCenterline = 0;
   const absTWA = Math.abs(twa);
-  if (absTWA < 30) sailAngleFromCenterline = 0;
-  else if (absTWA < 45) sailAngleFromCenterline = 12;
-  else if (absTWA < 90) sailAngleFromCenterline = 30;
-  else if (absTWA < 140) sailAngleFromCenterline = 55;
-  else sailAngleFromCenterline = 75;
-  const sailSide = twa > 0 ? -1 : 1; // wind from starboard -> sail on port
-  const sailA = deg2rad(sailAngleFromCenterline * sailSide);
+  let mainAngleFromCenterline = 0;
+  if (absTWA < 30) mainAngleFromCenterline = 0;
+  else if (absTWA < 45) mainAngleFromCenterline = 12;
+  else if (absTWA < 90) mainAngleFromCenterline = 30;
+  else if (absTWA < 140) mainAngleFromCenterline = 55;
+  else mainAngleFromCenterline = 75;
+  // TWA > 0 means wind FROM starboard, sail goes to PORT (left, negative X in local frame).
+  const sailSide = twa > 0 ? -1 : 1;
+  const jibFactor = absTWA < 120 ? 0.75 : 0.55;     // jib sheeted tighter than main upwind
+  const inNoGo = absTWA < 30;
+  const jibBlanketed = absTWA > 155;                // dead downwind - main blocks wind from jib
 
+  // --- Mainsail (behind mast, extends aft) ---
   ctx.save();
-  ctx.rotate(sailA);
-  // Sail color: style hue tinted with boat color when drawing
-  ctx.fillStyle = absTWA < 30 ? 'rgba(255,255,255,0.3)' : (isPlayer ? color : cfg.sailHue);
+  ctx.rotate(deg2rad(mainAngleFromCenterline * sailSide));
+  ctx.fillStyle = inNoGo ? 'rgba(255,255,255,0.3)' : (isPlayer ? color : cfg.sailHue);
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.beginPath();
-  // Sail luff height depends on style - racer has taller sail
-  const sailTop = style === 'racer' ? -4 * s : -3 * s;
-  const sailFoot = 9 * s;
-  ctx.moveTo(0, sailTop);
-  ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, sailFoot);
-  ctx.lineTo(0, sailFoot);
+  const mainTop = style === 'racer' ? -4 * s : -3 * s;
+  const mainFoot = 9 * s;
+  ctx.moveTo(0, mainTop);
+  ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, mainFoot);
+  ctx.lineTo(0, mainFoot);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+  ctx.restore();
+
+  // --- Jib (in front of mast, smaller) ---
+  ctx.save();
+  ctx.translate(0, -11 * s);                          // tack near bow
+  ctx.rotate(deg2rad(mainAngleFromCenterline * jibFactor * sailSide));
+  ctx.fillStyle = inNoGo
+    ? 'rgba(255,255,255,0.3)'
+    : jibBlanketed
+      ? 'rgba(246,251,255,0.4)'
+      : 'rgba(246,251,255,0.92)';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.quadraticCurveTo(1.6 * s * sailSide, 3 * s, 0.5 * s * sailSide, 6 * s);
+  ctx.lineTo(0, 6 * s);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();

@@ -519,8 +519,12 @@ function SailAngleIllustration({
   const hullLen = 22;
   const mastTop = cy - hullLen * 0.6;
   const sailLen = 20;
+  // Main sail leeward (to the right)
   const sailEndX = cx + Math.sin(sailAngle * DEG) * sailLen;
   const sailEndY = mastTop + Math.cos(sailAngle * DEG) * sailLen * 0.4;
+  // For very downwind courses (sailAngle >= 75), show jib on opposite side
+  // (wing-on-wing) so the illustration clearly communicates fordewind geometry.
+  const wingOnWing = sailAngle >= 75;
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
@@ -541,16 +545,31 @@ function SailAngleIllustration({
       />
       {/* Mast */}
       <line x1={cx} y1={cy - 2} x2={cx} y2={mastTop} stroke="#fff" strokeWidth={1.5} />
-      {/* Sail */}
-      <line
-        x1={cx}
-        y1={mastTop}
-        x2={sailEndX}
-        y2={sailEndY}
+      {/* Mainsail as a small triangle so it reads as a sail, not just a stick. */}
+      <path
+        d={`M ${cx} ${mastTop} L ${sailEndX} ${sailEndY} L ${cx} ${sailEndY} Z`}
+        fill={color}
+        fillOpacity={0.35}
         stroke={color}
-        strokeWidth={2.5}
-        strokeLinecap="round"
+        strokeWidth={1.8}
+        strokeLinejoin="round"
       />
+      {/* Wing-on-wing jib on opposite side for running/broad-reach */}
+      {wingOnWing && (() => {
+        const jibEndX = cx - Math.sin(sailAngle * DEG) * sailLen * 0.7;
+        const jibEndY = mastTop + 4 + Math.cos(sailAngle * DEG) * sailLen * 0.4;
+        return (
+          <path
+            d={`M ${cx} ${mastTop + 4} L ${jibEndX} ${jibEndY} L ${cx} ${jibEndY} Z`}
+            fill={color}
+            fillOpacity={0.18}
+            stroke={color}
+            strokeWidth={1.2}
+            strokeLinejoin="round"
+            strokeDasharray="2 1.5"
+          />
+        );
+      })()}
 
       {/* Speed indicator dots */}
       {speedFactor > 0 && (

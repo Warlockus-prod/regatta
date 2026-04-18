@@ -488,7 +488,8 @@ export default function SimulatorPage() {
     ctx.save();
     ctx.translate(bx, bySurface);
     ctx.rotate(d2r(appliedHeel));
-    drawBoatSide(ctx, displaySpeed.current / MAX_SPEED_KTS);
+    // Pass the wind/sail side so the mainsail billows LEEWARD (same side as heel)
+    drawBoatSide(ctx, displaySpeed.current / MAX_SPEED_KTS, heelSign, Math.abs(sTWA));
     ctx.restore();
 
     // Heel angle indicator
@@ -998,8 +999,10 @@ function drawBoatTop(ctx: CanvasRenderingContext2D, pos: PointOfSail, tack: 'por
   }
 }
 
-function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
+function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number, sailSide: number = 1, twaAbs: number = 90) {
   // Hull - side profile, waterline at y=0
+  // sailSide: +1 = sail billows toward +X (right), -1 = toward -X (left). Matches heel direction.
+  // twaAbs: 0..180. Drives sail angle from centerline and reef-like shape.
   const hullLen = 180;
   const hullHeight = 22;
   const drop = 10; // how much below waterline
@@ -1061,8 +1064,8 @@ function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
   ctx.fill();
   ctx.stroke();
 
-  // Mast
-  const mastX = -5;
+  // Mast centered in hull
+  const mastX = 0;
   const mastTop = -hullHeight - 110;
   ctx.strokeStyle = '#d0d8e0';
   ctx.lineWidth = 2;
@@ -1071,30 +1074,49 @@ function drawBoatSide(ctx: CanvasRenderingContext2D, forceFactor: number) {
   ctx.lineTo(mastX, mastTop);
   ctx.stroke();
 
-  // Boom (horizontal)
+  // Boom swings toward the LEE side (sailSide); its length shows boom angle.
+  // Close-hauled -> boom almost centered (short horizontal extent).
+  // Broad reach / running -> boom fully out.
+  const boomExtent = Math.min(1, Math.max(0.2, twaAbs / 120)) * 60;
   ctx.beginPath();
   ctx.moveTo(mastX, -hullHeight - 14);
-  ctx.lineTo(mastX + 55, -hullHeight - 14);
+  ctx.lineTo(mastX + sailSide * boomExtent, -hullHeight - 14);
   ctx.stroke();
 
-  // Mainsail - curved, billowing toward the right (away from wind)
-  const sailCurve = 16 + forceFactor * 10;
-  ctx.fillStyle = COLORS.sail;
+  // Mainsail - billows leeward. The sign of the curve X matches sailSide.
+  const sailCurve = (16 + forceFactor * 10) * sailSide;
+  const inNoGo = twaAbs < 30;
+  ctx.fillStyle = inNoGo ? 'rgba(255, 255, 255, 0.25)' : COLORS.sail;
   ctx.strokeStyle = '#ffffff';
   ctx.lineWidth = 1;
   ctx.beginPath();
   ctx.moveTo(mastX, mastTop);
-  ctx.quadraticCurveTo(mastX + 30 + sailCurve, (mastTop + -hullHeight - 14) / 2, mastX + 55, -hullHeight - 14);
+  ctx.quadraticCurveTo(
+    mastX + sailCurve * 1.5,
+    (mastTop - hullHeight - 14) / 2,
+    mastX + sailSide * boomExtent,
+    -hullHeight - 14,
+  );
   ctx.lineTo(mastX, -hullHeight - 14);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 
-  // Jib - smaller triangle at the front
-  ctx.fillStyle = COLORS.sail;
+  // Jib (forestay at bow, clew to lee) - smaller; gets blanketed downwind.
+  const jibBlanketed = twaAbs > 155;
+  ctx.fillStyle = inNoGo
+    ? 'rgba(255, 255, 255, 0.25)'
+    : jibBlanketed
+      ? 'rgba(246, 251, 255, 0.4)'
+      : COLORS.sail;
   ctx.beginPath();
-  ctx.moveTo(mastX, mastTop + 15);
-  ctx.quadraticCurveTo(mastX + 25 + sailCurve * 0.5, -hullHeight - 40, mastX - 40, -hullHeight - 5);
+  ctx.moveTo(mastX, mastTop + 15);                  // forestay top (near mast top)
+  ctx.quadraticCurveTo(
+    mastX + sailSide * 18 + sailCurve * 0.3,
+    -hullHeight - 55,
+    mastX - hullLen * 0.22,                          // jib tack near bow (LHS of hull)
+    -hullHeight - 5,
+  );
   ctx.lineTo(mastX, -hullHeight - 5);
   ctx.closePath();
   ctx.fill();
