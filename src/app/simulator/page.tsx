@@ -762,18 +762,40 @@ function TopScene({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
   const noGoPath = sectorPath(cx, cy, 108, 184, -30, 30);
 
   return (
-    <div className="rounded-2xl overflow-hidden border border-[rgba(0,212,255,0.12)]"
+    <div className="rounded-2xl overflow-hidden border border-[rgba(0,212,255,0.14)] shadow-[0_8px_48px_rgba(0,0,0,0.45)]"
          style={{ background: 'linear-gradient(180deg, #081326 0%, #0b1e38 100%)' }}>
       <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-auto" style={{ minHeight: '45vh', maxHeight: '70vh' }}>
         <defs>
           <radialGradient id="sceneGlow" cx="50%" cy="45%" r="70%">
-            <stop offset="0%" stopColor="rgba(0, 212, 255, 0.11)" />
+            <stop offset="0%" stopColor="rgba(0, 212, 255, 0.14)" />
             <stop offset="100%" stopColor="rgba(0, 212, 255, 0)" />
           </radialGradient>
           <linearGradient id="waveFade" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0d2847" />
             <stop offset="100%" stopColor="#081830" />
           </linearGradient>
+          <filter id="arrowGlow" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.4" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4" />
+            <feOffset dx="0" dy="2" />
+            <feComponentTransfer>
+              <feFuncA type="linear" slope="0.45" />
+            </feComponentTransfer>
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <radialGradient id="noGoGrad" cx="50%" cy="60%" r="60%">
+            <stop offset="0%" stopColor="rgba(255, 82, 82, 0.22)" />
+            <stop offset="100%" stopColor="rgba(255, 82, 82, 0.06)" />
+          </radialGradient>
         </defs>
 
         <rect x="0" y="0" width={width} height={height} fill="url(#waveFade)" />
@@ -800,7 +822,7 @@ function TopScene({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
           />
         ))}
 
-        <path d={noGoPath} fill="rgba(255, 82, 82, 0.12)" stroke="rgba(255, 82, 82, 0.24)" />
+        <path d={noGoPath} fill="url(#noGoGrad)" stroke="rgba(255, 82, 82, 0.3)" strokeDasharray="4 4" />
 
         <path
           d={sectorPath(cx, cy, 108, 184, 32, 112)}
@@ -813,48 +835,50 @@ function TopScene({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
           stroke="rgba(0, 212, 255, 0.12)"
         />
 
-        <Arrow
-          from={{ x: cx, y: 30 }}
-          to={{ x: cx, y: 120 }}
-          stroke="#00d4ff"
-          label={lang === 'ru' ? 'истинный ветер' : 'true wind'}
-          labelX={cx}
-          labelY={22}
-          width={2.2}
-        />
+        <g filter="url(#arrowGlow)">
+          <Arrow
+            from={{ x: cx, y: 30 }}
+            to={{ x: cx, y: 120 }}
+            stroke="#00d4ff"
+            label={lang === 'ru' ? 'истинный ветер' : 'true wind'}
+            labelX={cx}
+            labelY={22}
+            width={2.4}
+          />
 
-        <Arrow
-          from={awStart}
-          to={awEnd}
-          stroke="#6fe4ff"
-          label={`AWA ${Math.round(Math.abs(sim.result.diag.awa))}°`}
-          labelX={awStart.x}
-          labelY={awStart.y - 10}
-          width={2}
-        />
+          <Arrow
+            from={awStart}
+            to={awEnd}
+            stroke="#6fe4ff"
+            label={`AWA ${Math.round(Math.abs(sim.result.diag.awa))}°`}
+            labelX={awStart.x}
+            labelY={awStart.y - 10}
+            width={2.2}
+          />
 
-        <Arrow
-          from={{ x: cx, y: cy }}
-          to={driveEnd}
-          stroke="#52ff8e"
-          label={lang === 'ru' ? 'тяга' : 'drive'}
-          labelX={driveEnd.x + 8}
-          labelY={driveEnd.y - 6}
-          width={2.4}
-        />
+          <Arrow
+            from={{ x: cx, y: cy }}
+            to={driveEnd}
+            stroke="#52ff8e"
+            label={lang === 'ru' ? 'тяга' : 'drive'}
+            labelX={driveEnd.x + 8}
+            labelY={driveEnd.y - 6}
+            width={2.6}
+          />
 
-        <Arrow
-          from={{ x: cx, y: cy }}
-          to={sideEnd}
-          stroke="#f6b73c"
-          label={lang === 'ru' ? 'боковая сила' : 'side force'}
-          labelX={sideEnd.x + (sim.result.diag.side >= 0 ? 8 : -8)}
-          labelY={sideEnd.y - 6}
-          anchor={sim.result.diag.side >= 0 ? 'start' : 'end'}
-          width={2}
-        />
+          <Arrow
+            from={{ x: cx, y: cy }}
+            to={sideEnd}
+            stroke="#f6b73c"
+            label={lang === 'ru' ? 'боковая сила' : 'side force'}
+            labelX={sideEnd.x + (sim.result.diag.side >= 0 ? 8 : -8)}
+            labelY={sideEnd.y - 6}
+            anchor={sim.result.diag.side >= 0 ? 'start' : 'end'}
+            width={2.2}
+          />
+        </g>
 
-        <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`}>
+        <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} filter="url(#softShadow)">
           <TopBoat
             mainAngle={ui.mainAngle}
             jibAngle={ui.jibAngle}
@@ -981,15 +1005,18 @@ function SideScene({ ui, sim }: { ui: UiState; sim: SimulationModel }) {
       </defs>
       <rect x="0" y="0" width={width} height={height} rx="16" fill="url(#sideBg)" />
 
-      <line x1="0" x2={width} y1={cy} y2={cy} stroke="rgba(0,212,255,0.24)" strokeDasharray="6 6" />
-      {Array.from({ length: 6 }).map((_, index) => (
-        <path
-          key={index}
-          d={`M 0 ${cy + 18 + index * 12} Q 42 ${cy + 12 + index * 12} 84 ${cy + 18 + index * 12} T ${width} ${cy + 18 + index * 12}`}
-          fill="none"
-          stroke="rgba(255,255,255,0.06)"
-        />
-      ))}
+      <line x1="0" x2={width} y1={cy} y2={cy} stroke="rgba(0,212,255,0.28)" strokeDasharray="6 6" />
+      <g className="sim-waves">
+        {Array.from({ length: 6 }).map((_, index) => (
+          <path
+            key={index}
+            d={`M 0 ${cy + 18 + index * 12} Q 42 ${cy + 12 + index * 12} 84 ${cy + 18 + index * 12} T ${width} ${cy + 18 + index * 12}`}
+            fill="none"
+            stroke="rgba(255,255,255,0.07)"
+            strokeWidth={1}
+          />
+        ))}
+      </g>
 
       {Array.from({ length: 3 }).map((_, index) => {
         const startX = windRightToLeft ? width - 28 - index * 32 : 28 + index * 32;

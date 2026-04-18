@@ -238,3 +238,21 @@ html {
   display: none;
 }
 
+/* Gentle water animation for the simulator side view. Moves the wave
+   bands up and down a couple of pixels; purely cosmetic. */
+@keyframes sim-waves-drift {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-2px); }
+  100% { transform: translateY(0); }
+}
+.sim-waves {
+  animation: sim-waves-drift 4.2s ease-in-out infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+
+/* Respect reduced-motion preference - disable all decorative animation. */
+@media (prefers-reduced-motion: reduce) {
+  .sim-waves { animation: none; }
+}
+
