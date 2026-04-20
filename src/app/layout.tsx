@@ -73,8 +73,11 @@ export default function RootLayout({
           <main className="flex-1">
             {children}
           </main>
-          {/* Feedback widget hidden on immersive pages to avoid covering simulators */}
-          <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator']} />
+          {/* Feedback + AI chat widget - now on every route (user request
+              2026-04-20). The floating bubble is small and uses the viewport
+              corner - simulators can coexist with it. If it ever gets in the
+              way on a specific route, hide per-route via `hideOn`. */}
+          <FeedbackWidget />
         </I18nProvider>
       </body>
     </html>
