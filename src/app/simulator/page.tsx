@@ -49,8 +49,20 @@ function getPointOfSail(wa: number): PointOfSail {
 }
 
 function getTackSide(boatHeading: number, windDir: number): 'port' | 'starboard' {
-  const norm = normalizeAngle(boatHeading - windDir);
-  // norm 0 = heading into wind, 1-179 = starboard tack, 181-359 = port tack
+  // Tack = which side of the boat the wind HITS.
+  // Relative angle = wind source bearing - bow bearing (normalized 0-360).
+  //   0       = wind dead ahead (in irons)
+  //   1..179  = wind source to the right of the bow = wind hits starboard
+  //             side = STARBOARD tack
+  //   180     = wind dead astern
+  //   181..359= wind source to the left of bow = wind hits port side =
+  //             PORT tack
+  //
+  // The previous formula used `boatHeading - windDir` which is opposite in
+  // sign and flipped the tack. That also flipped the sail-rendering side via
+  // `tackSign` below, so the main sail drew on the WINDWARD side of the
+  // boat (physically wrong; real sails go to leeward under wind pressure).
+  const norm = normalizeAngle(windDir - boatHeading);
   if (norm > 0 && norm < 180) return 'starboard';
   return 'port';
 }
