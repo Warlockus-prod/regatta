@@ -404,30 +404,60 @@ export default function RulesPage() {
         })}
       </div>
 
-      {/* COLREGS official links */}
+      {/* COLREGS official links - language-aware */}
       <div className="mb-10 p-5 card" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)] mb-3">
           <span className="font-semibold text-[var(--text-primary)]">
-            {tp('Официальный текст МППСС-72:', 'Official COLREGS text:', 'Oficjalny tekst COLREGS:')}
+            {tp('Официальный текст МППСС-72:', 'Official COLREGS text:', 'Oficjalny tekst MPZZM (COLREGS):')}
           </span>{' '}
           {tp(
             'принят Международной морской организацией (IMO) в 1972, действует во всех странах-подписантах. Обновлялись несколько раз, текущая редакция включает поправки 2007.',
             'adopted by the International Maritime Organization (IMO) in 1972, binding in all signatory countries. Amended several times, current edition includes 2007 revisions.',
-            'przyjete przez Miedzynarodowa Organizacje Morska (IMO) w 1972, obowiazujace we wszystkich panstwach-sygnatariuszach. Kilkakrotnie nowelizowane, obecna redakcja zawiera poprawki z 2007.',
+            'przyjete przez Miedzynarodowa Organizacje Morska (IMO) w 1972, obowiazuje we wszystkich panstwach-sygnatariuszach. Kilkakrotnie nowelizowane, obecna redakcja zawiera poprawki z 2007.',
           )}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
-          <a href="https://fps30.ru/images/biblioteka/MPPSS-72.pdf" target="_blank" rel="noopener noreferrer"
-             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
-            {tp('МППСС-72 PDF (рус.) ↓', 'COLREGS PDF (RU) ↓', 'COLREGS PDF (RU) ↓')}
-          </a>
-          <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
-             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
-            IMO (EN) →
-          </a>
-        </div>
+        {lang === 'ru' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://fps30.ru/images/biblioteka/MPPSS-72.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              МППСС-72 PDF (рус.) ↓
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO оригинал (англ.) →
+            </a>
+          </div>
+        )}
+        {lang === 'en' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO official text →
+            </a>
+            <a href="https://www.navcen.uscg.gov/sites/default/files/pdf/navRules/navrules.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              US Navigation Rules PDF ↓
+            </a>
+          </div>
+        )}
+        {lang === 'pl' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://pya.org.pl/polski-zwiazek-zeglarski/page/przepisy-zeglarskie/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Polski Zwiazek Zeglarski →
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO tekst oryginalny (ang.) →
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="mt-10 p-5 card" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
@@ -441,23 +471,63 @@ export default function RulesPage() {
             'Racing Rules of Sailing 2025-2028, wydawane przez World Sailing, obowiazuja od 1 stycznia 2025 do 31 grudnia 2028. Scenariusze powyzej to uproszczony wstep do tematu.',
           )}
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
-          <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
-             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
-            {tp('World Sailing (офиц.) →', 'World Sailing (official) →', 'World Sailing (oficjalne) →')}
-          </a>
-          <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
-             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
-            RRS 2025-2028 PDF ↓
-          </a>
-          <a href="https://www.ussailing.org/competition/rules-officiating/the-racing-rules-of-sailing-2025-2028/" target="_blank" rel="noopener noreferrer"
-             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
-             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
-            US Sailing + prescr. →
-          </a>
-        </div>
+        {lang === 'ru' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (офиц.) →
+            </a>
+            <a href="https://vfps.ru/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              ВФПС РФ (рус.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF ↓
+            </a>
+          </div>
+        )}
+        {lang === 'en' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (official) →
+            </a>
+            <a href="https://www.ussailing.org/competition/rules-officiating/the-racing-rules-of-sailing-2025-2028/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              US Sailing + prescr. →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF ↓
+            </a>
+          </div>
+        )}
+        {lang === 'pl' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (oficjalne) →
+            </a>
+            <a href="https://pya.org.pl/polski-zwiazek-zeglarski/page/przepisy-zeglarskie/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              PZZ / PYA (pol.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF (ang.) ↓
+            </a>
+          </div>
+        )}
         <p className="text-xs text-[var(--text-muted)] mt-3 text-center">
           {tp(
             'Если один из сайтов не открывается - попробуй следующий. Официальный текст одинаковый.',
