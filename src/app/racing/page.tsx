@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
+import { useI18n } from '@/lib/i18n';
 
 // ---------------------------------------------------------------------------
 // SVG sub-components for diagrams
@@ -307,8 +308,10 @@ const strategyDiagrams: Record<string, React.ReactNode> = {
   'mark-rounding': <MarkRoundingDiagram />,
 };
 
-function StrategyCard({ strategy }: { strategy: typeof racingStrategies[number] }) {
+function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[number]; lang: 'ru' | 'en' | 'pl' }) {
   const [open, setOpen] = useState(false);
+  const title = lang === 'pl' ? strategy.titlePl : lang === 'en' ? strategy.titleEn : strategy.titleRu;
+  const desc = lang === 'pl' ? strategy.descriptionPl : lang === 'en' ? strategy.descriptionEn : strategy.descriptionRu;
 
   return (
     <div className="card overflow-hidden">
@@ -317,9 +320,11 @@ function StrategyCard({ strategy }: { strategy: typeof racingStrategies[number] 
         className="w-full text-left p-5 flex items-start gap-4 cursor-pointer hover:bg-[rgba(255,255,255,0.02)] transition-colors"
       >
         <div className="flex-1 min-w-0">
-          <h3 className="text-base font-semibold leading-snug">{strategy.titleRu}</h3>
-          <p className="text-xs text-[var(--text-muted)] mt-0.5">{strategy.titleEn}</p>
-          <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">{strategy.descriptionRu}</p>
+          <h3 className="text-base font-semibold leading-snug">{title}</h3>
+          {lang !== 'en' && (
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{strategy.titleEn}</p>
+          )}
+          <p className="text-sm text-[var(--text-secondary)] mt-2 leading-relaxed">{desc}</p>
         </div>
         <svg
           width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -342,25 +347,35 @@ function StrategyCard({ strategy }: { strategy: typeof racingStrategies[number] 
 
           {/* Tips */}
           <div>
-            <h4 className="text-xs font-semibold text-[var(--accent-cyan)] uppercase tracking-wider mb-2">Советы / Tips</h4>
+            <h4 className="text-xs font-semibold text-[var(--accent-cyan)] uppercase tracking-wider mb-2">
+              {lang === 'ru' ? 'Советы / Tips' : lang === 'pl' ? 'Wskazowki / Tips' : 'Tips'}
+            </h4>
             <ul className="space-y-2">
               {strategy.tips.map((tip, i) => (
                 <li key={i} className="flex items-start gap-2 text-sm">
                   <span className="text-[var(--accent-cyan)] mt-0.5 shrink-0">&#9656;</span>
                   <span>
-                    <span className="text-[var(--text-primary)]">{tip.ru}</span>
-                    <br />
-                    <span className="text-[var(--text-muted)] text-xs">{tip.en}</span>
+                    <span className="text-[var(--text-primary)]">
+                      {lang === 'pl' ? tip.pl : lang === 'en' ? tip.en : tip.ru}
+                    </span>
+                    {lang !== 'en' && (
+                      <>
+                        <br />
+                        <span className="text-[var(--text-muted)] text-xs">{tip.en}</span>
+                      </>
+                    )}
                   </span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* EN description */}
-          <p className="text-xs text-[var(--text-muted)] italic border-t border-[rgba(0,212,255,0.08)] pt-3">
-            {strategy.descriptionEn}
-          </p>
+          {/* EN description shown as italic subtitle only in non-EN modes */}
+          {lang !== 'en' && (
+            <p className="text-xs text-[var(--text-muted)] italic border-t border-[rgba(0,212,255,0.08)] pt-3">
+              {strategy.descriptionEn}
+            </p>
+          )}
         </div>
       </div>
     </div>
@@ -471,7 +486,10 @@ function RulePriorityBadge({ priority }: { priority: number }) {
 interface KeyConcept {
   titleRu: string;
   titleEn: string;
+  titlePl: string;
   description: string;
+  descriptionEn: string;
+  descriptionPl: string;
   diagram: React.ReactNode;
 }
 
@@ -564,25 +582,37 @@ const keyConcepts: KeyConcept[] = [
   {
     titleRu: 'Лейлайн',
     titleEn: 'Layline',
+    titlePl: 'Layline (linia dojscia)',
     description: 'Оптимальный курс, при котором яхта может достичь знака одним галсом без дополнительных поворотов. Пересечение лейлайна означает лишние повороты.',
+    descriptionEn: 'Optimal course allowing the boat to reach the mark on one tack without extra turns. Crossing the layline means extra tacks.',
+    descriptionPl: 'Optymalny kurs, przy ktorym jacht moze osiagnac znak jednym halsem bez dodatkowych zwrotow. Przekroczenie layline oznacza zbedne zwroty.',
     diagram: <LaylineDiagram />,
   },
   {
     titleRu: 'VMG (Velocity Made Good)',
-    titleEn: 'Скорость к цели',
+    titleEn: 'VMG (Velocity Made Good)',
+    titlePl: 'VMG (Velocity Made Good)',
     description: 'Проекция скорости яхты на направление к цели. Даже если бакштаг быстрее фордевинда, VMG показывает реальное приближение к нижнему знаку.',
+    descriptionEn: 'The projection of boat speed onto the direction toward the target. Even if a broad reach is faster than a dead run, VMG shows the real rate of approach to the leeward mark.',
+    descriptionPl: 'Projekcja predkosci jachtu na kierunek do celu. Nawet jesli baksztag jest szybszy od fordewindu, VMG pokazuje rzeczywiste zblizanie do znaku zawietrznego.',
     diagram: <VMGDiagram />,
   },
   {
     titleRu: 'Свободная вода',
     titleEn: 'Clear Air',
+    titlePl: 'Czyste powietrze',
     description: 'Чистый, ненарушенный воздушный поток. Яхта в ветровой тени другой получает турбулентный и ослабленный ветер, теряя скорость.',
+    descriptionEn: 'Clean, undisturbed wind flow. A boat in another boat\'s wind shadow gets turbulent and weakened wind, losing speed.',
+    descriptionPl: 'Czysty, niezaklocony przeplyw powietrza. Jacht w cieniu wiatru innego otrzymuje turbulentny i oslabiony wiatr, tracac predkosc.',
     diagram: <ClearAirDiagram />,
   },
   {
     titleRu: 'Ветровая тень',
     titleEn: 'Wind Shadow',
+    titlePl: 'Cien wiatru',
     description: 'Зона за яхтой (по ветру), где воздушный поток ослаблен и турбулентен. Может распространяться на 3-7 корпусов позади.',
+    descriptionEn: 'Zone behind a boat (downwind) where airflow is weakened and turbulent. Can extend 3-7 boat-lengths behind.',
+    descriptionPl: 'Strefa za jachtem (z wiatrem), gdzie przeplyw powietrza jest oslabiony i turbulentny. Moze sie rozciagac 3-7 dlugosci kadluba za jachtem.',
     diagram: <WindShadowDiagram />,
   },
 ];
@@ -592,6 +622,7 @@ const keyConcepts: KeyConcept[] = [
 // ---------------------------------------------------------------------------
 
 export default function RacingPage() {
+  const { lang, tp } = useI18n();
   return (
     <div className="page-enter">
       {/* Shared SVG defs for arrow markers used across all diagrams */}
@@ -607,12 +638,15 @@ export default function RacingPage() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 pb-6">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2"
             style={{ background: 'linear-gradient(135deg, var(--text-primary), var(--warning))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Гоночные стратегии
+          {tp('Гоночные стратегии', 'Racing Strategy', 'Strategie regatowe')}
         </h1>
-        <p className="text-sm text-[var(--text-muted)] mb-3">Racing Strategy</p>
+        {lang !== 'en' && <p className="text-sm text-[var(--text-muted)] mb-3">Racing Strategy</p>}
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-3xl">
-          Всё о тактике парусных гонок: дистанция, стратегии лавировки и полных курсов,
-          правила расхождения и ключевые гоночные понятия.
+          {tp(
+            'Всё о тактике парусных гонок: дистанция, стратегии лавировки и полных курсов, правила расхождения и ключевые гоночные понятия.',
+            'Everything about sailing race tactics: the course, upwind and downwind strategies, right-of-way rules, and key racing concepts.',
+            'Wszystko o taktyce regat zeglarskich: trasa, strategie halsowania i kursow pelnych, przepisy drogowe i kluczowe pojecia regatowe.',
+          )}
         </p>
       </section>
 
@@ -631,14 +665,14 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">Стратегии</h2>
-            <p className="text-xs text-[var(--text-muted)]">Racing Strategies</p>
+            <h2 className="text-xl font-bold">{tp('Стратегии', 'Strategies', 'Strategie')}</h2>
+            {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Racing Strategies</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {racingStrategies.map((s) => (
-            <StrategyCard key={s.id} strategy={s} />
+            <StrategyCard key={s.id} strategy={s} lang={lang} />
           ))}
         </div>
       </section>
@@ -653,32 +687,36 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">Правила расхождения</h2>
-            <p className="text-xs text-[var(--text-muted)]">Right of Way Rules</p>
+            <h2 className="text-xl font-bold">{tp('Правила расхождения', 'Right of Way Rules', 'Przepisy drogowe')}</h2>
+            {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Right of Way Rules</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {racingRules
             .sort((a, b) => a.priority - b.priority)
-            .map((rule) => (
+            .map((rule) => {
+              const title = lang === 'pl' ? rule.titlePl : lang === 'en' ? rule.titleEn : rule.titleRu;
+              const desc = lang === 'pl' ? rule.descriptionPl : lang === 'en' ? rule.descriptionEn : rule.descriptionRu;
+              return (
               <div key={rule.id} className="card p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-base font-semibold leading-snug">{rule.titleRu}</h3>
-                    <p className="text-xs text-[var(--text-muted)] mt-0.5">{rule.titleEn}</p>
+                    <h3 className="text-base font-semibold leading-snug">{title}</h3>
+                    {lang !== 'en' && <p className="text-xs text-[var(--text-muted)] mt-0.5">{rule.titleEn}</p>}
                   </div>
                   <RulePriorityBadge priority={rule.priority} />
                 </div>
 
-                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{rule.descriptionRu}</p>
-                <p className="text-xs text-[var(--text-muted)] italic">{rule.descriptionEn}</p>
+                <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+                {lang !== 'en' && <p className="text-xs text-[var(--text-muted)] italic">{rule.descriptionEn}</p>}
 
                 <div className="max-w-[200px]">
                   {ruleDiagrams[rule.id]}
                 </div>
               </div>
-            ))}
+              );
+            })}
         </div>
       </section>
 
@@ -694,24 +732,30 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">Ключевые понятия</h2>
-            <p className="text-xs text-[var(--text-muted)]">Key Concepts</p>
+            <h2 className="text-xl font-bold">{tp('Ключевые понятия', 'Key Concepts', 'Kluczowe pojecia')}</h2>
+            {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Key Concepts</p>}
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {keyConcepts.map((concept) => (
+          {keyConcepts.map((concept) => {
+            const ctitle = lang === 'pl' ? concept.titlePl : lang === 'en' ? concept.titleEn : concept.titleRu;
+            const cdesc = lang === 'pl' ? concept.descriptionPl : lang === 'en' ? concept.descriptionEn : concept.description;
+            return (
             <div key={concept.titleRu} className="card p-5 space-y-3">
               <div>
-                <h3 className="text-base font-semibold">{concept.titleRu}</h3>
-                <p className="text-xs text-[var(--text-muted)]">{concept.titleEn}</p>
+                <h3 className="text-base font-semibold">{ctitle}</h3>
+                {lang !== 'en' && concept.titleEn !== ctitle && (
+                  <p className="text-xs text-[var(--text-muted)]">{concept.titleEn}</p>
+                )}
               </div>
-              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{concept.description}</p>
+              <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{cdesc}</p>
               <div className="max-w-[180px]">
                 {concept.diagram}
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

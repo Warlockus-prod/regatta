@@ -2,6 +2,19 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
+import { useI18n } from '@/lib/i18n';
+
+// Pick the point-of-sail display fields for the current language. EN stays as
+// the international anchor shown beneath the primary label in non-EN modes.
+function posName(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+  return lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu;
+}
+function posDescription(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+  return lang === 'pl' ? p.descriptionPl : lang === 'en' ? p.descriptionEn : p.description;
+}
+function posSailWork(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+  return lang === 'pl' ? p.sailWorkPl : lang === 'en' ? p.sailWorkEn : p.sailWork;
+}
 
 // --- Geometry helpers ---
 const DEG = Math.PI / 180;
@@ -219,9 +232,11 @@ function AngleTicks({ cx, cy, r }: { cx: number; cy: number; r: number }) {
 function WindDiagram({
   activeId,
   onSelect,
+  lang,
 }: {
   activeId: string | null;
   onSelect: (id: string | null) => void;
+  lang: 'ru' | 'en' | 'pl';
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const viewSize = 600;
@@ -374,7 +389,7 @@ function WindDiagram({
         letterSpacing={1.5}
         opacity={0.85}
       >
-        ЛЕВЫЙ ГАЛС
+        {lang === 'ru' ? 'ЛЕВЫЙ ГАЛС' : lang === 'pl' ? 'LEWY HALS' : 'PORT TACK'}
       </text>
       <text
         x={cx + mainR * 0.5}
@@ -386,7 +401,7 @@ function WindDiagram({
         letterSpacing={1.5}
         opacity={0.85}
       >
-        ПРАВЫЙ ГАЛС
+        {lang === 'ru' ? 'ПРАВЫЙ ГАЛС' : lang === 'pl' ? 'PRAWY HALS' : 'STARBOARD TACK'}
       </text>
 
       {/* Russian labels around the circle - horizontal, mirrored on both sides */}
@@ -403,7 +418,7 @@ function WindDiagram({
                 fontWeight={600}
                 style={{ transition: 'fill 0.25s' }}
               >
-                {p.nameRu}
+                {posName(p, lang)}
               </text>
             </g>
           );
@@ -426,7 +441,7 @@ function WindDiagram({
               fontWeight={600}
               style={{ transition: 'fill 0.25s' }}
             >
-              {p.nameRu}
+              {posName(p, lang)}
             </text>
             <text
               x={ptL.x}
@@ -438,7 +453,7 @@ function WindDiagram({
               fontWeight={600}
               style={{ transition: 'fill 0.25s' }}
             >
-              {p.nameRu}
+              {posName(p, lang)}
             </text>
           </g>
         );
@@ -610,10 +625,12 @@ function DetailCard({
   point,
   isActive,
   onSelect,
+  lang,
 }: {
   point: PointOfSail;
   isActive: boolean;
   onSelect: () => void;
+  lang: 'ru' | 'en' | 'pl';
 }) {
   return (
     <button
@@ -641,9 +658,11 @@ function DetailCard({
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
               <h3 className="text-lg font-bold leading-tight" style={{ color: point.color }}>
-                {point.nameRu}
+                {posName(point, lang)}
               </h3>
-              <p className="text-xs text-[var(--text-muted)] mt-0.5">{point.nameEn}</p>
+              {lang !== 'en' && (
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">{point.nameEn}</p>
+              )}
             </div>
             {/* Color-coded angle badge */}
             <span
@@ -662,7 +681,7 @@ function DetailCard({
 
           {/* Description */}
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-3">
-            {point.description}
+            {posDescription(point, lang)}
           </p>
 
           {/* Sail work */}
@@ -681,7 +700,7 @@ function DetailCard({
               <path d="M12 2L2 22h20L12 2z" />
             </svg>
             <span className="text-xs" style={{ color: point.color }}>
-              {point.sailWork}
+              {posSailWork(point, lang)}
             </span>
           </div>
 
@@ -695,6 +714,7 @@ function DetailCard({
 
 // --- Main page component ---
 export default function CoursesPage() {
+  const { lang } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const handleSelect = useCallback(
@@ -731,7 +751,7 @@ export default function CoursesPage() {
       {/* Diagram */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
         <div className="card p-6 sm:p-8 flex flex-col items-center">
-          <WindDiagram activeId={activeId} onSelect={handleSelect} />
+          <WindDiagram activeId={activeId} onSelect={handleSelect} lang={lang} />
 
           {/* Quick info strip below diagram when a sector is active */}
           {activePoint && (
@@ -743,10 +763,12 @@ export default function CoursesPage() {
               }}
             >
               <p className="text-base font-bold" style={{ color: activePoint.color }}>
-                {activePoint.nameRu}
+                {posName(activePoint, lang)}
               </p>
-              <p className="text-xs text-[var(--text-muted)] mt-0.5">{activePoint.nameEn}</p>
-              <p className="text-xs text-[var(--text-secondary)] mt-2">{activePoint.sailWork}</p>
+              {lang !== 'en' && (
+                <p className="text-xs text-[var(--text-muted)] mt-0.5">{activePoint.nameEn}</p>
+              )}
+              <p className="text-xs text-[var(--text-secondary)] mt-2">{posSailWork(activePoint, lang)}</p>
             </div>
           )}
         </div>
@@ -755,10 +777,12 @@ export default function CoursesPage() {
       {/* Detail cards */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-4">
         <h2 className="text-xl font-semibold mb-5 text-[var(--text-primary)]">
-          Все курсы
-          <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
-            All courses
-          </span>
+          {lang === 'ru' ? 'Все курсы' : lang === 'pl' ? 'Wszystkie kursy' : 'All courses'}
+          {lang !== 'en' && (
+            <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
+              All courses
+            </span>
+          )}
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {pointsOfSail.map((point) => (
@@ -767,6 +791,7 @@ export default function CoursesPage() {
               point={point}
               isActive={activeId === point.id}
               onSelect={() => handleSelect(point.id)}
+              lang={lang}
             />
           ))}
         </div>

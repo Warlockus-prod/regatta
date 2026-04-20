@@ -401,7 +401,7 @@ export default function SimulatorV3Page() {
 
   const resetAll = () => setUi(DEFAULT_UI);
 
-  const pointLabel = lang === 'ru' ? sim.pos.nameRu : sim.pos.nameEn;
+  const pointLabel = lang === 'pl' ? sim.pos.namePl : lang === 'en' ? sim.pos.nameEn : sim.pos.nameRu;
   const tackLabel = ui.tack === 'starboard'
     ? tp('правый галс', 'starboard tack', 'prawy hals')
     : tp('левый галс', 'port tack', 'lewy hals');

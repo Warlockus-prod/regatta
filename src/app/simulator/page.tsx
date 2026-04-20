@@ -446,7 +446,7 @@ export default function SimulatorPage() {
       ctx.fillStyle = 'rgba(0, 229, 255, 0.6)';
       const labelDist = arrowFromDist + w * 0.04;
       ctx.fillText(
-        'BETEP / WIND',
+        lang === 'en' ? 'WIND' : lang === 'pl' ? 'WIATR / WIND' : 'ВЕТЕР / WIND',
         Math.cos(windArrowRad) * labelDist,
         Math.sin(windArrowRad) * labelDist,
       );
@@ -773,10 +773,17 @@ export default function SimulatorPage() {
       ctx.font = `bold ${Math.max(12, w * 0.025)}px sans-serif`;
       ctx.textAlign = 'center';
       ctx.fillStyle = currentPOS.color;
-      ctx.fillText(currentPOS.nameRu, cx, h - 30);
+      ctx.fillText(
+        lang === 'pl' ? currentPOS.namePl : lang === 'en' ? currentPOS.nameEn : currentPOS.nameRu,
+        cx,
+        h - 30,
+      );
       ctx.font = `${Math.max(10, w * 0.018)}px sans-serif`;
       ctx.fillStyle = COLORS.textSecondary;
-      ctx.fillText(currentPOS.nameEn, cx, h - 14);
+      // In English mode the top label already IS English, skip the duplicate subtitle.
+      if (lang !== 'en') {
+        ctx.fillText(currentPOS.nameEn, cx, h - 14);
+      }
       ctx.restore();
 
       // ===== CURSOR HINT =====
@@ -785,7 +792,11 @@ export default function SimulatorPage() {
         ctx.font = `${Math.max(9, w * 0.016)}px sans-serif`;
         ctx.textAlign = 'center';
         ctx.fillStyle = 'rgba(139, 167, 184, 0.4)';
-        ctx.fillText('drag to rotate / strelki', cx, 18);
+        ctx.fillText(
+          lang === 'ru' ? 'перетащи / стрелки' : lang === 'pl' ? 'przeciagnij / strzalki' : 'drag / arrow keys',
+          cx,
+          18,
+        );
         ctx.restore();
       }
 
@@ -794,7 +805,7 @@ export default function SimulatorPage() {
 
     animFrameRef.current = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(animFrameRef.current);
-  }, [canvasSize, boatAngle, isDragging]);
+  }, [canvasSize, boatAngle, isDragging, lang]);
 
   // ---- Slider handler ----
   const onSliderChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -869,11 +880,13 @@ export default function SimulatorPage() {
             {tp('КУРС / POINT OF SAIL', 'POINT OF SAIL', 'KURS / POINT OF SAIL')}
           </div>
           <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
-            {pos.nameRu}
+            {lang === 'pl' ? pos.namePl : lang === 'en' ? pos.nameEn : pos.nameRu}
           </div>
-          <div className="text-sm" style={{ color: COLORS.textSecondary }}>
-            {pos.nameEn}
-          </div>
+          {lang !== 'en' && (
+            <div className="text-sm" style={{ color: COLORS.textSecondary }}>
+              {pos.nameEn}
+            </div>
+          )}
         </div>
 
         {/* Angle + Speed Row */}
@@ -945,11 +958,13 @@ export default function SimulatorPage() {
             {tp('РАБОТА ПАРУСОВ / SAIL TRIM', 'SAIL TRIM', 'USTAWIENIE ZAGLI / SAIL TRIM')}
           </div>
           <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
-            {pos.sailWork}
+            {lang === 'pl' ? pos.sailWorkPl : lang === 'en' ? pos.sailWorkEn : pos.sailWork}
           </div>
-          <div className="text-xs" style={{ color: COLORS.textSecondary }}>
-            {pos.sailWorkEn}
-          </div>
+          {lang !== 'en' && (
+            <div className="text-xs" style={{ color: COLORS.textSecondary }}>
+              {pos.sailWorkEn}
+            </div>
+          )}
           <div className="mt-3 flex items-center gap-2">
             <div className="text-xs px-2 py-0.5 rounded-full"
                  style={{
@@ -969,11 +984,13 @@ export default function SimulatorPage() {
             {tp('ОПИСАНИЕ / DESCRIPTION', 'DESCRIPTION', 'OPIS / DESCRIPTION')}
           </div>
           <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
-            {pos.description}
+            {lang === 'pl' ? pos.descriptionPl : lang === 'en' ? pos.descriptionEn : pos.description}
           </p>
-          <p className="text-xs leading-relaxed" style={{ color: COLORS.textSecondary }}>
-            {pos.descriptionEn}
-          </p>
+          {lang !== 'en' && (
+            <p className="text-xs leading-relaxed" style={{ color: COLORS.textSecondary }}>
+              {pos.descriptionEn}
+            </p>
+          )}
         </div>
 
         {/* Controls */}
@@ -1100,7 +1117,7 @@ export default function SimulatorPage() {
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
                 <div className="flex-1">
                   <span className="text-xs font-medium" style={{ color: pos.id === p.id ? p.color : COLORS.textPrimary }}>
-                    {p.nameRu}
+                    {lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu}
                   </span>
                   <span className="text-xs ml-2" style={{ color: COLORS.textMuted }}>
                     {p.angleMin}°-{p.angleMax}°

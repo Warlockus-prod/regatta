@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { glossaryTerms, glossaryCategories } from '@/data/sailing-data';
+import { useI18n } from '@/lib/i18n';
 
 const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
   boat:     { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
@@ -16,9 +17,23 @@ const categoryColors: Record<string, { color: string; bg: string; border: string
 const allCategories = ['all', ...Object.keys(glossaryCategories)] as const;
 
 export default function GlossaryPage() {
+  const { lang, tp } = useI18n();
   const [search, setSearch] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('all');
   const [animationKey, setAnimationKey] = useState(0);
+
+  // Pick the term / definition / category-name in the active language.
+  // Russian stays original; English is the international anchor; Polish uses
+  // its own terms where applicable (some are loanwords like "bajdewind").
+  const pickTerm = (t: typeof glossaryTerms[number]): string =>
+    lang === 'pl' ? t.termPl : lang === 'en' ? t.termEn : t.termRu;
+  const pickDef = (t: typeof glossaryTerms[number]): string =>
+    lang === 'pl' ? t.definitionPl : lang === 'en' ? t.definitionEn : t.definition;
+  const pickCat = (cat: string): string => {
+    const c = glossaryCategories[cat];
+    if (!c) return cat;
+    return lang === 'pl' ? c.namePl : lang === 'en' ? c.nameEn : c.nameRu;
+  };
 
   const filteredTerms = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -29,8 +44,10 @@ export default function GlossaryPage() {
       return (
         term.termRu.toLowerCase().includes(q) ||
         term.termEn.toLowerCase().includes(q) ||
+        term.termPl.toLowerCase().includes(q) ||
         term.definition.toLowerCase().includes(q) ||
-        term.definitionEn.toLowerCase().includes(q)
+        term.definitionEn.toLowerCase().includes(q) ||
+        term.definitionPl.toLowerCase().includes(q)
       );
     });
   }, [search, activeCategory]);
@@ -58,9 +75,9 @@ export default function GlossaryPage() {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            Глоссарий
+            {tp('Глоссарий', 'Glossary', 'Slownik')}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">Sailing Glossary</p>
+          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Slownik zeglarski')}</p>
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -87,7 +104,7 @@ export default function GlossaryPage() {
           </svg>
           <input
             type="text"
-            placeholder="Поиск терминов / Search terms..."
+            placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...')}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="search-input w-full pl-11 pr-4 py-3 text-sm"
@@ -145,7 +162,7 @@ export default function GlossaryPage() {
                       }
                 }
               >
-                {cat === 'all' ? 'Все' : glossaryCategories[cat].nameRu}
+                {cat === 'all' ? tp('Все', 'All', 'Wszystkie') : pickCat(cat)}
               </button>
             );
           })}
@@ -155,12 +172,20 @@ export default function GlossaryPage() {
         <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
           <span>
             {filteredTerms.length === glossaryTerms.length
-              ? `${glossaryTerms.length} терминов`
-              : `${filteredTerms.length} из ${glossaryTerms.length}`}
+              ? tp(
+                  `${glossaryTerms.length} терминов`,
+                  `${glossaryTerms.length} terms`,
+                  `${glossaryTerms.length} terminow`,
+                )
+              : tp(
+                  `${filteredTerms.length} из ${glossaryTerms.length}`,
+                  `${filteredTerms.length} of ${glossaryTerms.length}`,
+                  `${filteredTerms.length} z ${glossaryTerms.length}`,
+                )}
           </span>
           {activeCategory !== 'all' && (
             <span style={{ color: categoryColors[activeCategory]?.color }}>
-              {glossaryCategories[activeCategory]?.nameEn}
+              {pickCat(activeCategory)}
             </span>
           )}
         </div>
@@ -178,15 +203,19 @@ export default function GlossaryPage() {
                     animation: `cardFadeIn 0.3s ease-out ${index * 0.03}s both`,
                   }}
                 >
-                  {/* Top row: terms + badge */}
+                  {/* Top row: terms + badge. Show the active-lang term big,
+                      English stays as a small subtitle (the international
+                      anchor every sailor will recognise). */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <h2 className="text-base font-semibold leading-tight text-[var(--text-primary)]">
-                        {term.termRu}
+                        {pickTerm(term)}
                       </h2>
-                      <p className="text-sm mt-0.5" style={{ color: '#00d4ff' }}>
-                        {term.termEn}
-                      </p>
+                      {lang !== 'en' && (
+                        <p className="text-sm mt-0.5" style={{ color: '#00d4ff' }}>
+                          {term.termEn}
+                        </p>
+                      )}
                     </div>
                     <span
                       className="badge shrink-0 mt-0.5"
@@ -196,18 +225,21 @@ export default function GlossaryPage() {
                         border: `1px solid ${colors.border}`,
                       }}
                     >
-                      {glossaryCategories[term.category].nameRu}
+                      {pickCat(term.category)}
                     </span>
                   </div>
 
-                  {/* Definitions */}
+                  {/* Definition in active language. EN shown as faint subtitle
+                      only in non-EN modes (keeps cards compact for EN readers). */}
                   <div className="flex flex-col gap-1.5">
                     <p className="text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {term.definition}
+                      {pickDef(term)}
                     </p>
-                    <p className="text-xs leading-relaxed text-[var(--text-muted)]">
-                      {term.definitionEn}
-                    </p>
+                    {lang !== 'en' && (
+                      <p className="text-xs leading-relaxed text-[var(--text-muted)]">
+                        {term.definitionEn}
+                      </p>
+                    )}
                   </div>
                 </div>
               );
@@ -232,11 +264,13 @@ export default function GlossaryPage() {
               <line x1="8" y1="11" x2="14" y2="11" />
             </svg>
             <p className="text-sm text-[var(--text-muted)]">
-              Ничего не найдено
+              {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono')}
             </p>
-            <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
-              No terms match your search
-            </p>
+            {lang !== 'en' && (
+              <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
+                No terms match your search
+              </p>
+            )}
             <button
               onClick={() => {
                 setSearch('');
@@ -250,7 +284,7 @@ export default function GlossaryPage() {
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
             >
-              Сбросить фильтры
+              {tp('Сбросить фильтры', 'Clear filters', 'Wyczysc filtry')}
             </button>
           </div>
         )}
