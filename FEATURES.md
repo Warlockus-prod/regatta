@@ -366,7 +366,7 @@ resets at 00:00 UTC.
 ## 9. Admin / stats `/stats`
 
 Password-gated dashboard. HTTP Basic Auth via middleware, password from
-`ADMIN_PASSWORD` env var (default `regattA` only for local dev).
+`ADMIN_PASSWORD` env var. No fallback: if env is not set, `/stats` returns 503 (admin is hard-locked). Local dev: set `ADMIN_PASSWORD=dev` in `.env.local`.
 
 **Panels:**
 - Users: distinct sessions, returning users, geography (IP-derived).

@@ -12,7 +12,11 @@ import { NextResponse, type NextRequest } from 'next/server';
  * See https://nextjs.org/docs/messages/middleware-to-proxy
  */
 const BASIC_USER = 'admin';
-const BASIC_PASS = process.env.ADMIN_PASSWORD || 'regattA';
+// No fallback. In production `/stats` is locked out entirely if
+// ADMIN_PASSWORD is not set. Local dev can use ADMIN_PASSWORD=dev in .env.local.
+// Previously had an insecure `|| 'regattA'` fallback that leaked into
+// production runtime if the .env file was dropped.
+const BASIC_PASS = process.env.ADMIN_PASSWORD ?? '';
 
 const SESSION_COOKIE = 'regatta_sid';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
@@ -48,6 +52,12 @@ export function proxy(req: NextRequest) {
 
   if (!pathname.startsWith('/stats') && !pathname.startsWith('/api/admin')) {
     return NextResponse.next();
+  }
+
+  // Hard block: without ADMIN_PASSWORD set, admin is unreachable (503).
+  // No silent fallback to a weak default.
+  if (!BASIC_PASS) {
+    return new NextResponse('Admin auth not configured', { status: 503 });
   }
 
   const auth = req.headers.get('authorization');
