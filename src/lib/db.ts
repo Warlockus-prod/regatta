@@ -144,6 +144,35 @@ function detectDevice(ua: string | null | undefined): string {
   return 'desktop';
 }
 
+/** Best-effort browser detection from UA string.
+ *  Returns a human-readable label like "Chrome", "Safari", "Firefox", etc. */
+export function detectBrowser(ua: string | null | undefined): string {
+  if (!ua) return 'unknown';
+  const s = ua;
+  // Order matters - test more specific first.
+  if (/EdgA?\//i.test(s)) return 'Edge';
+  if (/YaBrowser/i.test(s)) return 'Yandex';
+  if (/OPR|Opera/i.test(s)) return 'Opera';
+  if (/Firefox/i.test(s)) return 'Firefox';
+  if (/SamsungBrowser/i.test(s)) return 'Samsung';
+  if (/CriOS|Chrome/i.test(s)) return 'Chrome';
+  if (/Safari/i.test(s) && !/Chrome|CriOS/i.test(s)) return 'Safari';
+  return 'other';
+}
+
+/** Best-effort OS detection from UA string. */
+export function detectOS(ua: string | null | undefined): string {
+  if (!ua) return 'unknown';
+  const s = ua;
+  if (/Windows NT/i.test(s)) return 'Windows';
+  if (/Mac OS X/i.test(s) && !/iPhone|iPad/i.test(s)) return 'macOS';
+  if (/iPhone|iPod/i.test(s)) return 'iOS';
+  if (/iPad/i.test(s)) return 'iPadOS';
+  if (/Android/i.test(s)) return 'Android';
+  if (/Linux/i.test(s)) return 'Linux';
+  return 'other';
+}
+
 // ============================================================================
 // Public API
 // ============================================================================
@@ -258,6 +287,45 @@ export interface Metrics {
   dailyEvents: Array<{ day: string; count: number }>;
 }
 
+export interface RangeMetrics {
+  range: { fromMs: number; toMs: number };
+  // Totals within range
+  events: number;
+  pageViews: number;
+  uniqueSessions: number;
+  uniqueIps: number;
+  feedbackNew: number;
+  bugsNew: number;
+  jsErrors: number;
+
+  // Breakdowns (top 15)
+  topPaths: Array<{ path: string; count: number }>;
+  topEvents: Array<{ evt: string; count: number }>;
+  topIps: Array<{ ip: string; count: number }>;       // raw IPs; mask in UI if exposed
+  topReferrers: Array<{ ref: string; count: number }>;
+  deviceSplit: Array<{ device: string; count: number }>;
+  browserSplit: Array<{ browser: string; count: number }>;
+  osSplit: Array<{ os: string; count: number }>;
+  viewportSplit: Array<{ viewport: string; count: number }>;
+  languageSplit: Array<{ language: string; count: number }>;
+
+  // Time-series
+  hourly: Array<{ hour: string; events: number; pageViews: number }>;
+  daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
+
+  // Session-quality metrics
+  avgPagesPerSession: number;
+  avgSessionSeconds: number;
+  bounceRate: number;       // fraction 0..1 of sessions with exactly 1 page.view
+  returningSessionPct: number; // sessions with > 1 visit_count over all sessions in range
+
+  // Recent events feed (live view)
+  recent: Array<{
+    ts: number; evt: string; path: string | null;
+    ip: string | null; device: string | null; lang: string | null;
+  }>;
+}
+
 export function getMetrics(): Metrics {
   const d = db();
   const now = Date.now();
@@ -313,6 +381,156 @@ export function getMetrics(): Metrics {
     feedbackCount: feedbackRow,
     bugCount: bugRow,
     dailyEvents,
+  };
+}
+
+/**
+ * Rich metrics for a given time range. Backs the date-picker-driven
+ * /stats dashboard. Returns totals, breakdowns, hourly + daily series,
+ * session-quality metrics, and a recent-events feed for the live view.
+ */
+export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
+  const d = db();
+  // Common filter params for prepared statements
+  const p = [fromMs, toMs] as const;
+  // Event counts
+  const events = (d.prepare('SELECT COUNT(*) c FROM events WHERE ts >= ? AND ts < ?').get(...p) as { c: number }).c;
+  const pageViews = (d.prepare("SELECT COUNT(*) c FROM events WHERE ts >= ? AND ts < ? AND evt = 'page.view'").get(...p) as { c: number }).c;
+  const uniqueSessions = (d.prepare('SELECT COUNT(DISTINCT session_id) c FROM events WHERE ts >= ? AND ts < ? AND session_id IS NOT NULL').get(...p) as { c: number }).c;
+  const uniqueIps = (d.prepare('SELECT COUNT(DISTINCT ip) c FROM events WHERE ts >= ? AND ts < ? AND ip IS NOT NULL').get(...p) as { c: number }).c;
+  const jsErrors = (d.prepare("SELECT COUNT(*) c FROM events WHERE ts >= ? AND ts < ? AND evt IN ('js.uncaught', 'js.rejection')").get(...p) as { c: number }).c;
+  const feedbackNew = (d.prepare("SELECT COUNT(*) c FROM feedback WHERE ts >= ? AND ts < ? AND kind = 'feedback' AND status = 'new'").get(...p) as { c: number }).c;
+  const bugsNew = (d.prepare("SELECT COUNT(*) c FROM feedback WHERE ts >= ? AND ts < ? AND kind = 'bug' AND status = 'new'").get(...p) as { c: number }).c;
+
+  // Breakdowns
+  const topPaths = d.prepare(`
+    SELECT path, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND path IS NOT NULL
+    GROUP BY path ORDER BY count DESC LIMIT 15
+  `).all(...p) as Array<{ path: string; count: number }>;
+
+  const topEvents = d.prepare(`
+    SELECT evt, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ?
+    GROUP BY evt ORDER BY count DESC LIMIT 15
+  `).all(...p) as Array<{ evt: string; count: number }>;
+
+  const topIps = d.prepare(`
+    SELECT ip, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND ip IS NOT NULL AND evt = 'page.view'
+    GROUP BY ip ORDER BY count DESC LIMIT 15
+  `).all(...p) as Array<{ ip: string; count: number }>;
+
+  const topReferrers = d.prepare(`
+    SELECT json_extract(meta_json, '$.referrer') ref, COUNT(*) count
+    FROM events WHERE ts >= ? AND ts < ? AND evt = 'page.view'
+    GROUP BY ref ORDER BY count DESC LIMIT 10
+  `).all(...p) as Array<{ ref: string | null; count: number }>;
+
+  const deviceSplit = d.prepare(`
+    SELECT device, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND device IS NOT NULL
+    GROUP BY device ORDER BY count DESC
+  `).all(...p) as Array<{ device: string; count: number }>;
+
+  const viewportSplit = d.prepare(`
+    SELECT viewport, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND viewport IS NOT NULL
+    GROUP BY viewport ORDER BY count DESC LIMIT 10
+  `).all(...p) as Array<{ viewport: string; count: number }>;
+
+  const languageSplit = d.prepare(`
+    SELECT language, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND language IS NOT NULL
+    GROUP BY language ORDER BY count DESC
+  `).all(...p) as Array<{ language: string; count: number }>;
+
+  // Browser / OS split - have to parse UA in-memory.
+  const uaRows = d.prepare(`
+    SELECT ua, COUNT(*) c FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND ua IS NOT NULL
+    GROUP BY ua
+  `).all(...p) as Array<{ ua: string; c: number }>;
+  const browserMap: Record<string, number> = {};
+  const osMap: Record<string, number> = {};
+  for (const row of uaRows) {
+    const b = detectBrowser(row.ua);
+    const o = detectOS(row.ua);
+    browserMap[b] = (browserMap[b] ?? 0) + row.c;
+    osMap[o] = (osMap[o] ?? 0) + row.c;
+  }
+  const browserSplit = Object.entries(browserMap).sort((a, b) => b[1] - a[1]).map(([browser, count]) => ({ browser, count }));
+  const osSplit = Object.entries(osMap).sort((a, b) => b[1] - a[1]).map(([os, count]) => ({ os, count }));
+
+  // Hourly (30 days back cap to keep query bounded)
+  const hourly = d.prepare(`
+    SELECT strftime('%Y-%m-%d %H:00', ts/1000, 'unixepoch') hour,
+           COUNT(*) events,
+           SUM(CASE WHEN evt = 'page.view' THEN 1 ELSE 0 END) pageViews
+    FROM events WHERE ts >= ? AND ts < ?
+    GROUP BY hour ORDER BY hour
+  `).all(...p) as Array<{ hour: string; events: number; pageViews: number }>;
+
+  // Daily
+  const daily = d.prepare(`
+    SELECT strftime('%Y-%m-%d', ts/1000, 'unixepoch') day,
+           COUNT(*) events,
+           SUM(CASE WHEN evt = 'page.view' THEN 1 ELSE 0 END) pageViews,
+           COUNT(DISTINCT session_id) uniqueSessions
+    FROM events WHERE ts >= ? AND ts < ?
+    GROUP BY day ORDER BY day
+  `).all(...p) as Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
+
+  // Session quality: pages per session, duration, bounce rate
+  const sessStats = d.prepare(`
+    SELECT session_id,
+           COUNT(*) pv_count,
+           MAX(ts) - MIN(ts) as dur_ms
+    FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND session_id IS NOT NULL
+    GROUP BY session_id
+  `).all(...p) as Array<{ session_id: string; pv_count: number; dur_ms: number }>;
+
+  const pagesPerSession = sessStats.length > 0
+    ? sessStats.reduce((s, r) => s + r.pv_count, 0) / sessStats.length
+    : 0;
+  const avgSessionSeconds = sessStats.length > 0
+    ? sessStats.reduce((s, r) => s + (r.dur_ms || 0), 0) / sessStats.length / 1000
+    : 0;
+  const bounces = sessStats.filter((r) => r.pv_count === 1).length;
+  const bounceRate = sessStats.length > 0 ? bounces / sessStats.length : 0;
+
+  // Returning sessions (visit_count > 1 in sessions table, among those seen in range)
+  const returningRow = d.prepare(`
+    SELECT
+      SUM(CASE WHEN visit_count > 1 THEN 1 ELSE 0 END) returning,
+      COUNT(*) total
+    FROM sessions
+    WHERE last_seen >= ? AND last_seen < ?
+  `).get(...p) as { returning: number | null; total: number };
+  const returningSessionPct = returningRow.total > 0
+    ? (returningRow.returning ?? 0) / returningRow.total
+    : 0;
+
+  // Recent events feed (last 30 inside range)
+  const recent = d.prepare(`
+    SELECT ts, evt, path, ip, device, language lang
+    FROM events WHERE ts >= ? AND ts < ?
+    ORDER BY ts DESC LIMIT 30
+  `).all(...p) as RangeMetrics['recent'];
+
+  return {
+    range: { fromMs, toMs },
+    events, pageViews, uniqueSessions, uniqueIps, feedbackNew, bugsNew, jsErrors,
+    topPaths, topEvents, topIps,
+    topReferrers: topReferrers.map((r) => ({ ref: r.ref ?? '(direct)', count: r.count })),
+    deviceSplit, browserSplit, osSplit, viewportSplit, languageSplit,
+    hourly, daily,
+    avgPagesPerSession: pagesPerSession,
+    avgSessionSeconds,
+    bounceRate,
+    returningSessionPct,
+    recent,
   };
 }
 
