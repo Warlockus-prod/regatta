@@ -295,7 +295,7 @@ export default function SailingScene(props: SceneProps) {
     <Canvas
       shadows
       dpr={[1, 2]}
-      camera={{ position: [8, 5, 9], fov: 45, near: 0.1, far: 500 }}
+      camera={{ position: [5, 4.5, 11], fov: 45, near: 0.1, far: 500 }}
       style={{ width: '100%', height: '100%' }}
       gl={{ alpha: false, antialias: true, powerPreference: 'high-performance' }}
     >

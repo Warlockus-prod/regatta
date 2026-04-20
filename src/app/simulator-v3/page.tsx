@@ -76,12 +76,18 @@ interface SimulationModel {
   primaryFeedbackTone: 'good' | 'warn' | 'danger' | 'info';
 }
 
+// Default state = properly-trimmed beam reach. The engine can starve into a
+// stalled equilibrium if we seed with bad trim (low bs -> AWA stays close to
+// TWA -> sail AoA in stall zone -> low drive -> low bs...). Picking sane
+// default sail angles avoids that bad-first-impression.
+// At TWA=90, TWS=12, a steady-state bs ~6 kn gives AWA ~65. Main at ~52 deg
+// and jib at ~54 deg put both AoA in the 12-14 deg sweet spot.
 const DEFAULT_UI: UiState = {
   twa: 90,
   tack: 'starboard',
   windSpeed: 12,
-  mainAngle: 50,
-  jibAngle: 42,
+  mainAngle: 52,
+  jibAngle: 54,
   jibFurlPct: 100,
   reefLevel: 0,
   mainTwistPct: 18,
@@ -327,7 +333,9 @@ export default function SimulatorV3Page() {
     const initial = createInitialState({
       tws: ui.windSpeed,
       twa: signedTwa,
-      boatSpeed: Math.max(1.8, ui.windSpeed * 0.28),
+      // Seed bs with a realistic beam-reach speed so the engine does not
+      // settle into a stalled-at-rest equilibrium when trim is sub-optimal.
+      boatSpeed: Math.max(3, ui.windSpeed * 0.45),
     });
 
     const result = settle(initial, controls, params, 45, 0.1);
