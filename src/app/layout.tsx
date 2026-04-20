@@ -21,6 +21,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Regatta - Sailing Simulator",
   description: "Interactive sailing education simulator. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.",
+  // metadataBase silences Next 16 warning on OG image generation and
+  // makes relative OG URLs resolve against the production origin.
+  metadataBase: new URL("https://regatta.icoffio.com"),
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

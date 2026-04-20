@@ -5,6 +5,11 @@ import { NextResponse, type NextRequest } from 'next/server';
  * Plus: anonymous session cookie issued on any page visit (so we can
  * correlate progress across reloads without any login / personal data).
  * Runs on Edge runtime - must not use Node APIs.
+ *
+ * File was src/middleware.ts before Next 16 renamed the convention to
+ * "proxy". Behaviour and config shape are unchanged; only the file
+ * name and the exported function name (middleware -> proxy) differ.
+ * See https://nextjs.org/docs/messages/middleware-to-proxy
  */
 const BASIC_USER = 'admin';
 const BASIC_PASS = process.env.ADMIN_PASSWORD || 'regattA';
@@ -26,7 +31,7 @@ function ensureSessionCookie(res: NextResponse, req: NextRequest) {
   });
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Issue session cookie for regular navigations (skip static assets & api)
