@@ -516,14 +516,24 @@ function SpeedBar({ factor, color }: { factor: number; color: string }) {
 }
 
 // --- Small sail angle illustration for detail cards ---
+//
+// The wind ALWAYS comes from the top of the thumbnail. What changes per point
+// of sail is the BOAT orientation relative to that wind: the bow rotates by
+// the course's TWA (mid of angleMin/angleMax). In-irons ~= bow pointing
+// straight up; beam reach ~= bow to the right; running ~= bow pointing down.
+//
+// The sail always sits on the leeward side of the boat at its trimmed angle.
 function SailAngleIllustration({
   sailAngle,
   color,
   speedFactor,
+  twa,
 }: {
   sailAngle: number;
   color: string;
   speedFactor: number;
+  /** Mid-angle of the point-of-sail range in degrees (0 = into wind, 180 = running). */
+  twa: number;
 }) {
   const size = 64;
   const cx = size / 2;
@@ -531,65 +541,73 @@ function SailAngleIllustration({
   const hullLen = 22;
   const mastTop = cy - hullLen * 0.6;
   const sailLen = 20;
-  // Main sail leeward (to the right)
+  // Main sail sits on the leeward side of the boat (in boat frame: starboard
+  // side when wind hits from port; we pick starboard for the illustration so
+  // rotation shows it swinging naturally).
   const sailEndX = cx + Math.sin(sailAngle * DEG) * sailLen;
   const sailEndY = mastTop + Math.cos(sailAngle * DEG) * sailLen * 0.4;
-  // For very downwind courses (sailAngle >= 75), show jib on opposite side
-  // (wing-on-wing) so the illustration clearly communicates fordewind geometry.
+  // Wing-on-wing for very deep downwind courses.
   const wingOnWing = sailAngle >= 75;
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className="shrink-0">
-      {/* Wind indicator */}
-      <line x1={cx} y1={4} x2={cx} y2={14} stroke="var(--wind-color)" strokeWidth={1.2} opacity={0.4} />
-      <polygon points={`${cx},16 ${cx - 3},10 ${cx + 3},10`} fill="var(--wind-color)" opacity={0.4} />
+      {/* Wind indicator - always at the top, wind blows DOWN into the scene. */}
+      <line x1={cx} y1={4} x2={cx} y2={14} stroke="var(--wind-color)" strokeWidth={1.2} opacity={0.5} />
+      <polygon points={`${cx},16 ${cx - 3},10 ${cx + 3},10`} fill="var(--wind-color)" opacity={0.5} />
 
-      {/* Hull */}
-      <ellipse
-        cx={cx}
-        cy={cy + 4}
-        rx={5}
-        ry={hullLen * 0.65}
-        fill="none"
-        stroke={color}
-        strokeWidth={1.5}
-        opacity={0.7}
-      />
-      {/* Mast */}
-      <line x1={cx} y1={cy - 2} x2={cx} y2={mastTop} stroke="#fff" strokeWidth={1.5} />
-      {/* Mainsail as a small triangle so it reads as a sail, not just a stick. */}
-      <path
-        d={`M ${cx} ${mastTop} L ${sailEndX} ${sailEndY} L ${cx} ${sailEndY} Z`}
-        fill={color}
-        fillOpacity={0.35}
-        stroke={color}
-        strokeWidth={1.8}
-        strokeLinejoin="round"
-      />
-      {/* Wing-on-wing jib on opposite side for running/broad-reach */}
-      {wingOnWing && (() => {
-        const jibEndX = cx - Math.sin(sailAngle * DEG) * sailLen * 0.7;
-        const jibEndY = mastTop + 4 + Math.cos(sailAngle * DEG) * sailLen * 0.4;
-        return (
-          <path
-            d={`M ${cx} ${mastTop + 4} L ${jibEndX} ${jibEndY} L ${cx} ${jibEndY} Z`}
-            fill={color}
-            fillOpacity={0.18}
-            stroke={color}
-            strokeWidth={1.2}
-            strokeLinejoin="round"
-            strokeDasharray="2 1.5"
-          />
-        );
-      })()}
+      {/* Boat + rig rotated by TWA so the relationship to the wind is visible.
+          twa in [0, 180], rotated clockwise from "bow-up". */}
+      <g transform={`rotate(${twa} ${cx} ${cy})`}>
+        {/* Hull */}
+        <ellipse
+          cx={cx}
+          cy={cy + 4}
+          rx={5}
+          ry={hullLen * 0.65}
+          fill="none"
+          stroke={color}
+          strokeWidth={1.5}
+          opacity={0.7}
+        />
+        {/* Bow marker - small dot at the bow so the user sees which end points where. */}
+        <circle cx={cx} cy={cy + 4 - hullLen * 0.65} r={1.3} fill={color} />
+        {/* Mast */}
+        <line x1={cx} y1={cy - 2} x2={cx} y2={mastTop} stroke="#fff" strokeWidth={1.5} />
+        {/* Mainsail as a small triangle so it reads as a sail, not just a stick. */}
+        <path
+          d={`M ${cx} ${mastTop} L ${sailEndX} ${sailEndY} L ${cx} ${sailEndY} Z`}
+          fill={color}
+          fillOpacity={0.35}
+          stroke={color}
+          strokeWidth={1.8}
+          strokeLinejoin="round"
+        />
+        {/* Wing-on-wing jib on opposite side for running / broad reach */}
+        {wingOnWing && (() => {
+          const jibEndX = cx - Math.sin(sailAngle * DEG) * sailLen * 0.7;
+          const jibEndY = mastTop + 4 + Math.cos(sailAngle * DEG) * sailLen * 0.4;
+          return (
+            <path
+              d={`M ${cx} ${mastTop + 4} L ${jibEndX} ${jibEndY} L ${cx} ${jibEndY} Z`}
+              fill={color}
+              fillOpacity={0.18}
+              stroke={color}
+              strokeWidth={1.2}
+              strokeLinejoin="round"
+              strokeDasharray="2 1.5"
+            />
+          );
+        })()}
+      </g>
 
-      {/* Speed indicator dots */}
+      {/* Speed indicator dots (stays in world frame so they read top-to-bottom
+          consistently regardless of boat orientation) */}
       {speedFactor > 0 && (
         <g>
           {[0, 1, 2, 3, 4].map((i) => (
             <circle
               key={i}
-              cx={cx + 20}
+              cx={size - 4}
               cy={size - 8 - i * 6}
               r={2}
               fill={i < Math.round(speedFactor * 5) ? color : 'rgba(255,255,255,0.1)'}
@@ -629,6 +647,7 @@ function DetailCard({
           sailAngle={point.sailAngle}
           color={point.color}
           speedFactor={point.speedFactor}
+          twa={(point.angleMin + point.angleMax) / 2}
         />
 
         <div className="flex-1 min-w-0">
