@@ -312,7 +312,7 @@ export default function RulesPage() {
       <div className="mb-6 flex items-center gap-3">
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(0, 212, 255, 0.12)', border: '1px solid rgba(0, 212, 255, 0.28)', color: 'var(--accent-cyan)' }}>
-          🌊 COLREGS / МППСС-72
+          🌊 {tp('COLREGS / МППСС-72', 'COLREGS / IRPCS', 'COLREGS')}
         </div>
         <h2 className="text-base sm:text-lg font-semibold">
           {tp(
