@@ -390,10 +390,14 @@ export default function SimulatorPage() {
                 'VPP · jedna scena · wszystkie sily')}
           </span>
         </div>
+        <div className="flex items-center gap-1">
+        <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+           style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}>V3 →</a>
         <a href="/simulator" className="text-xs font-semibold px-2.5 py-1 rounded-lg border transition hover:text-[var(--accent-cyan)]"
            style={{ borderColor: 'rgba(139, 167, 184, 0.25)', color: 'var(--text-secondary)' }}>
           {tp('← к V1', '← to V1', '← do V1')}
         </a>
+        </div>
       </div>
 
       {/* HERO SCENE - edge-to-edge, fills most of viewport */}

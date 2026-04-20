@@ -375,7 +375,11 @@ export default function SimulatorPage() {
           </div>
           <a href="/simulator2" className="text-xs px-2.5 py-1 rounded-full border transition hover:text-[var(--accent-cyan)]"
              style={{ borderColor: 'rgba(255, 170, 0, 0.3)', color: 'var(--warning)' }}>
-            {tp('Попробуй V2 (immersive)', 'Try V2 (immersive)', 'Sprobuj V2 (immersive)')} →
+            {tp('V2 immersive', 'V2 immersive', 'V2 immersive')} →
+          </a>
+          <a href="/simulator-v3" className="text-xs px-2.5 py-1 rounded-full border transition hover:text-[var(--accent-cyan)]"
+             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}>
+            {tp('V3 cockpit (новый)', 'V3 cockpit (new)', 'V3 cockpit (nowy)')} →
           </a>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
