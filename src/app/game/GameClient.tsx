@@ -1238,7 +1238,7 @@ export default function GamePage() {
             color: DIFFICULTY_CONFIG[difficulty].color,
             border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
           }}>
-            {DIFFICULTY_CONFIG[difficulty].label} · {windStrength === 'light' ? 'слабый' : windStrength === 'heavy' ? 'сильный' : 'средний'} ветер
+            {DIFFICULTY_CONFIG[difficulty].label} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
           </div>
         </div>
 
@@ -2410,8 +2410,15 @@ function GameMenu({
   pickMission: (m: Mission | null) => void;
   openBriefing: () => void;
 }) {
+  const { tp } = useI18n();
   const [tab, setTab] = useState<MenuTab>('learn');
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  // Wind-label helper used in several places in this menu.
+  const windLabel = (w: 'light' | 'medium' | 'heavy') =>
+    w === 'light' ? tp('слабый', 'light', 'slaby')
+    : w === 'heavy' ? tp('сильный', 'heavy', 'silny')
+    : tp('средний', 'medium', 'sredni');
 
   // When tab changes, apply defaults
   useEffect(() => {
@@ -2429,9 +2436,11 @@ function GameMenu({
   }, [tab]);
 
   const ctaLabel =
-    tab === 'learn' ? 'Начать - Учусь гоняю' :
-    tab === 'mission' ? (selectedMission ? `К миссии: ${selectedMission.titleRu}` : 'Выбери миссию') :
-    `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`;
+    tab === 'learn' ? tp('Начать - Учусь гоняю', 'Start - Learning mode', 'Start - Tryb nauki') :
+    tab === 'mission' ? (selectedMission
+      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn || selectedMission.titleRu}`, `Do misji: ${selectedMission.titleRu}`)
+      : tp('Выбери миссию', 'Pick a mission', 'Wybierz misje')) :
+    tp(`К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`, `To briefing · ${DIFFICULTY_CONFIG[difficulty].label}`, `Do briefingu · ${DIFFICULTY_CONFIG[difficulty].label}`);
 
   const ctaColor =
     tab === 'learn' ? DIFFICULTY_CONFIG.easy.color :
@@ -2445,9 +2454,11 @@ function GameMenu({
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-bold mb-2"
             style={{ background: 'linear-gradient(135deg, var(--text-primary), #ff6688)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Гонка
+          {tp('Гонка', 'Race', 'Wyscig')}
         </h1>
-        <p className="text-sm text-[var(--text-muted)]">Race · выбери режим</p>
+        <p className="text-sm text-[var(--text-muted)]">
+          {tp('Race · выбери режим', 'Race · pick a mode', 'Race · wybierz tryb')}
+        </p>
       </div>
 
       {/* Three big preset cards */}
@@ -2457,27 +2468,39 @@ function GameMenu({
           onClick={() => setTab('learn')}
           emoji="🎓"
           accent="#44ff88"
-          title="Учусь гоняю"
-          subtitle="Easy + средний ветер"
-          desc="Спокойные противники, плавные повороты. Для первого опыта гонки."
+          title={tp('Учусь гоняю', 'Learning to race', 'Ucze sie regat')}
+          subtitle={tp('Easy + средний ветер', 'Easy + medium wind', 'Latwy + sredni wiatr')}
+          desc={tp(
+            'Спокойные противники, плавные повороты. Для первого опыта гонки.',
+            'Calm opponents, gentle turns. For a first racing experience.',
+            'Spokojni rywale, lagodne zwroty. Na pierwsze doswiadczenie regat.',
+          )}
         />
         <PresetCard
           active={tab === 'free'}
           onClick={() => setTab('free')}
           emoji="🏁"
           accent="#00d4ff"
-          title="Свободная гонка"
-          subtitle="Сам выбираешь"
-          desc="Сложность, сила ветра, лодка - под тебя. Без конкретной цели."
+          title={tp('Свободная гонка', 'Free race', 'Wolny wyscig')}
+          subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz')}
+          desc={tp(
+            'Сложность, сила ветра, лодка - под тебя. Без конкретной цели.',
+            'Difficulty, wind, boat - all yours. No specific objective.',
+            'Trudnosc, sila wiatru, lodz - pod ciebie. Bez konkretnego celu.',
+          )}
         />
         <PresetCard
           active={tab === 'mission'}
           onClick={() => setTab('mission')}
           emoji="🎯"
           accent="#ffaa00"
-          title="Миссия"
-          subtitle="Конкретная задача"
-          desc="4 сценария: чистая гонка, под 90 сек, мин. галсов, слабый ветер."
+          title={tp('Миссия', 'Mission', 'Misja')}
+          subtitle={tp('Конкретная задача', 'Specific objective', 'Konkretny cel')}
+          desc={tp(
+            '4 сценария: чистая гонка, под 90 сек, мин. галсов, слабый ветер.',
+            '4 scenarios: clean race, under 90 sec, min tacks, light wind.',
+            '4 scenariusze: czysty wyscig, ponizej 90 s, min. halsow, slaby wiatr.',
+          )}
         />
       </div>
 
@@ -2514,7 +2537,7 @@ function GameMenu({
               <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{selectedMission.descRu}</div>
               <div className="text-[var(--accent-cyan)]">💡 {selectedMission.hintRu}</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                Автонастройки: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · ветер {selectedMission.windStrength === 'light' ? 'слабый' : selectedMission.windStrength === 'heavy' ? 'сильный' : 'средний'}
+                {tp('Автонастройки', 'Auto-settings', 'Autoustawienia')}: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · {tp('ветер', 'wind', 'wiatr')} {windLabel(selectedMission.windStrength)}
               </div>
             </div>
           )}

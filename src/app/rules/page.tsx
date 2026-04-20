@@ -20,25 +20,23 @@ function Boat({ x, y, rot = 0, color = '#ffffff', label }: { x: number; y: numbe
 }
 
 function WindArrow({ x, y, length = 40 }: { x: number; y: number; length?: number }) {
+  const { tp } = useI18n();
   return (
     <g>
       <line x1={x} y1={y} x2={x} y2={y + length} stroke="#00e5ff" strokeWidth="1.5" />
       <polygon points={`${x - 3},${y + length - 5} ${x + 3},${y + length - 5} ${x},${y + length}`} fill="#00e5ff" />
-      <text x={x} y={y - 5} textAnchor="middle" fontSize="9" fill="#00e5ff">ветер</text>
+      <text x={x} y={y - 5} textAnchor="middle" fontSize="9" fill="#00e5ff">{tp('ветер', 'wind', 'wiatr')}</text>
     </g>
   );
 }
 
 function PortVsStarboard() {
-  // Wind from top (down arrow). Close-hauled courses ~45° from wind.
-  // Starboard tack = wind from starboard (right) side → boat heads UP-LEFT (rot ≈ -45).
-  // Port tack     = wind from port  (left)  side → boat heads UP-RIGHT (rot ≈ +45).
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={10} length={30} />
-      <Boat x={140} y={85} rot={-45} color="#44ff88" label="правый галс ✓" />
-      <Boat x={60} y={85} rot={45} color="#ff6666" label="левый галс ✗" />
-      {/* Converging dashed lines to show they meet */}
+      <Boat x={140} y={85} rot={-45} color="#44ff88" label={tp('правый галс ✓', 'starboard ✓', 'prawy hals ✓')} />
+      <Boat x={60} y={85} rot={45} color="#ff6666" label={tp('левый галс ✗', 'port ✗', 'lewy hals ✗')} />
       <path d="M 75 80 Q 100 60 125 80" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" />
     </svg>
   );
@@ -47,110 +45,103 @@ function PortVsStarboard() {
 function WindwardLeeward() {
   // Both on same tack (starboard - wind from top-right). Heading roughly west-ish.
   // Windward = closer to wind = upper boat. Leeward = farther from wind = lower boat.
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={10} length={25} />
-      <Boat x={130} y={55} rot={-70} color="#ff6666" label="наветренный ✗" />
-      <Boat x={70} y={95} rot={-70} color="#44ff88" label="подветренный ✓" />
-      {/* Arrow showing both heading same direction */}
+      <Boat x={130} y={55} rot={-70} color="#ff6666" label={tp('наветренный ✗', 'windward ✗', 'nawietrzny ✗')} />
+      <Boat x={70} y={95} rot={-70} color="#44ff88" label={tp('подветренный ✓', 'leeward ✓', 'zawietrzny ✓')} />
       <path d="M 95 75 L 55 90" fill="none" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
     </svg>
   );
 }
 
 function Overtaking() {
-  // Both boats heading up. Catching boat is behind (lower on screen).
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={30} y={10} length={20} />
-      <Boat x={120} y={50} rot={0} color="#44ff88" label="впереди" />
-      <Boat x={100} y={100} rot={0} color="#ff6666" label="обгоняющий" />
+      <Boat x={120} y={50} rot={0} color="#44ff88" label={tp('впереди', 'ahead', 'z przodu')} />
+      <Boat x={100} y={100} rot={0} color="#ff6666" label={tp('обгоняющий', 'overtaker', 'wyprzedzajacy')} />
       <path d="M 105 95 Q 115 75 120 60" fill="none" stroke="#ffaa00" strokeWidth="1" strokeDasharray="3,3" markerEnd="url(#arr)" />
       <defs>
         <marker id="arr" markerWidth="6" markerHeight="6" refX="5" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#ffaa00" /></marker>
       </defs>
-      <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#8ba7b8">обгоняющий уступает</text>
+      <text x="100" y="130" textAnchor="middle" fontSize="9" fill="#8ba7b8">{tp('обгоняющий уступает', 'overtaker gives way', 'wyprzedzajacy ustepuje')}</text>
     </svg>
   );
 }
 
 function MarkRoom() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
-      {/* Mark */}
       <circle cx="100" cy="50" r="8" fill="#ffaa00" stroke="#ffffff" strokeWidth="1.5" />
-      <text x="100" y="35" textAnchor="middle" fontSize="8" fill="#ffaa00">знак</text>
-      {/* Zone circle (3 boat lengths) */}
+      <text x="100" y="35" textAnchor="middle" fontSize="8" fill="#ffaa00">{tp('знак', 'mark', 'znak')}</text>
       <circle cx="100" cy="50" r="35" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.6" />
-      {/* Inside boat - gets mark room */}
-      <Boat x={80} y={90} rot={-45} color="#44ff88" label="внутренняя ✓" />
-      {/* Outside boat */}
-      <Boat x={50} y={100} rot={-45} color="#ff6666" label="внешняя" />
-      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">внешняя даёт место</text>
+      <Boat x={80} y={90} rot={-45} color="#44ff88" label={tp('внутренняя ✓', 'inside ✓', 'wewnetrzna ✓')} />
+      <Boat x={50} y={100} rot={-45} color="#ff6666" label={tp('внешняя', 'outside', 'zewnetrzna')} />
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">{tp('внешняя даёт место', 'outside gives room', 'zewnetrzna daje miejsce')}</text>
     </svg>
   );
 }
 
 function Crossing() {
-  // Wind from top. Both boats on courses likely to meet.
-  // Left boat heading UP-RIGHT (port tack, wind on left) - "я"
-  // Right boat heading UP-LEFT (starboard tack, wind on right) - "соперник"
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={10} length={20} />
-      <Boat x={45} y={90} rot={45} color="#44ff88" label="я" />
-      <Boat x={155} y={90} rot={-45} color="#ff6666" label="соперник" />
+      <Boat x={45} y={90} rot={45} color="#44ff88" label={tp('я', 'me', 'ja')} />
+      <Boat x={155} y={90} rot={-45} color="#ff6666" label={tp('соперник', 'opponent', 'rywal')} />
       <line x1="55" y1="82" x2="145" y2="82" stroke="#8ba7b8" strokeWidth="0.5" strokeDasharray="2,2" />
       <text x="100" y="65" textAnchor="middle" fontSize="11" fill="#ffaa00" fontWeight="600">?</text>
-      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">избегай контакта!</text>
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">{tp('избегай контакта!', 'avoid contact!', 'unikaj kontaktu!')}</text>
     </svg>
   );
 }
 
 function StartLine() {
-  // Wind comes FROM above. Start line is at leeward end; boats head upwind after start.
-  // So: wind arrow ABOVE the line (pointing down toward line), boats BELOW line heading up.
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={100} y={5} length={20} />
-      {/* Start line */}
       <line x1="20" y1="60" x2="180" y2="60" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4,3" />
       <circle cx="20" cy="60" r="5" fill="#ffaa00" />
       <circle cx="180" cy="60" r="5" fill="#ffaa00" />
-      <text x="100" y="52" textAnchor="middle" fontSize="9" fill="#ffaa00" fontWeight="600">СТАРТ</text>
-      {/* Boats approaching the line from below, heading roughly up (close-hauled just after start) */}
+      <text x="100" y="52" textAnchor="middle" fontSize="9" fill="#ffaa00" fontWeight="600">{tp('СТАРТ', 'START', 'START')}</text>
       <Boat x={55} y={100} rot={-30} color="#44ff88" />
       <Boat x={85} y={105} rot={25} color="#ffffff" />
       <Boat x={120} y={100} rot={-15} color="#ffaa00" />
       <Boat x={155} y={105} rot={20} color="#44aaff" />
-      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">разгон + чистый ветер</text>
+      <text x="100" y="130" textAnchor="middle" fontSize="8" fill="#8ba7b8">{tp('разгон + чистый ветер', 'speed + clear air', 'rozped + czyste powietrze')}</text>
     </svg>
   );
 }
 
 function CollisionAvoid() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <Boat x={70} y={70} rot={45} color="#ff6666" />
       <Boat x={130} y={70} rot={-45} color="#ff6666" />
       <text x="100" y="50" textAnchor="middle" fontSize="16" fill="#ff4444">⚠️</text>
-      <text x="100" y="110" textAnchor="middle" fontSize="9" fill="#ffaa00">увалиться / затормозить</text>
-      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">безопасность &gt; правота</text>
+      <text x="100" y="110" textAnchor="middle" fontSize="9" fill="#ffaa00">{tp('увалиться / затормозить', 'bear away / slow down', 'odpadnij / zwolnij')}</text>
+      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">{tp('безопасность > правота', 'safety > being right', 'bezpieczenstwo > racja')}</text>
     </svg>
   );
 }
 
 function Penalty() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 140" className="w-full h-auto">
       <WindArrow x={30} y={10} length={20} />
-      {/* Circle path */}
       <path d="M 100 30 A 30 30 0 1 1 100 90 A 30 30 0 1 1 100 30" fill="none" stroke="#ffaa00" strokeWidth="1.5" strokeDasharray="4,3" />
       <Boat x={100} y={30} rot={0} color="#ff6666" label="1" />
       <Boat x={130} y={60} rot={90} color="#ffffff" label="2" />
       <Boat x={100} y={90} rot={180} color="#ffffff" label="3" />
       <Boat x={70} y={60} rot={-90} color="#44ff88" label="4" />
-      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">360° = оверштаг + фордевинд</text>
+      <text x="100" y="125" textAnchor="middle" fontSize="8" fill="#8ba7b8">{tp('360° = оверштаг + фордевинд', 'one turn = tack + gybe', 'jeden obrot = zwrot + jibe')}</text>
     </svg>
   );
 }

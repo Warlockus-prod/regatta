@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage } from '@/lib/mp-client';
 import { WORLD, makeStandardCourse, deg2rad } from '@/lib/race-physics';
 import { missions } from '@/data/missions';
+import { useI18n } from '@/lib/i18n';
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
@@ -14,6 +15,7 @@ interface Results { id: string; nickname: string; isBot: boolean; time: number |
 const COLORS = ['#00d4ff', '#ff6688', '#ffdd44', '#44ff88', '#aa88ff', '#ff8844', '#55ccee', '#ff99cc', '#c6f0a5', '#bb99ff'];
 
 export default function MultiplayerClient() {
+  const { tp } = useI18n();
   const [phase, setPhase] = useState<Phase>('menu');
   const [error, setError] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string>('');
@@ -110,27 +112,27 @@ export default function MultiplayerClient() {
   }, [handleServerMsg]);
 
   const createLobby = useCallback(async () => {
-    if (!nickname.trim()) { setError('Введи ник'); return; }
+    if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj ksywe')); return; }
     setError(null);
     try {
       const c = await ensureClient();
       c.send({ type: 'create', nickname: nickname.trim(), sid });
     } catch {
-      setError('Не удалось подключиться к серверу');
+      setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udalo sie polaczyc z serwerem'));
       setPhase('error');
     }
-  }, [nickname, sid, ensureClient]);
+  }, [nickname, sid, ensureClient, tp]);
 
   const joinLobby = useCallback(async () => {
-    if (!nickname.trim()) { setError('Введи ник'); return; }
-    if (joinCode.length !== 4) { setError('Код должен быть 4 символа'); return; }
+    if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj ksywe')); return; }
+    if (joinCode.length !== 4) { setError(tp('Код должен быть 4 символа', 'Code must be 4 characters', 'Kod musi miec 4 znaki')); return; }
     setError(null);
     try {
       const c = await ensureClient();
       c.send({ type: 'join', code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
       if (sid) c.rememberForResume({ code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
     } catch {
-      setError('Не удалось подключиться к серверу');
+      setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udalo sie polaczyc z serwerem'));
       setPhase('error');
     }
   }, [nickname, joinCode, sid, ensureClient]);
@@ -257,7 +259,7 @@ export default function MultiplayerClient() {
       ctx.fillStyle = '#ffffff';
       ctx.font = '11px system-ui, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`Ветер ${Math.round(windRef.current.dir)}°  ${windRef.current.gust.toFixed(2)}×`, 10, 18);
+      ctx.fillText(`${tp('Ветер', 'Wind', 'Wiatr')} ${Math.round(windRef.current.dir)}°  ${windRef.current.gust.toFixed(2)}×`, 10, 18);
 
       if (phase === 'countdown') {
         ctx.fillStyle = 'rgba(10, 22, 40, 0.6)';
@@ -265,7 +267,7 @@ export default function MultiplayerClient() {
         ctx.fillStyle = '#00d4ff';
         ctx.font = 'bold 72px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(countdown === 0 ? 'СТАРТ!' : String(countdown), W / 2, H / 2);
+        ctx.fillText(countdown === 0 ? tp('СТАРТ!', 'START!', 'START!') : String(countdown), W / 2, H / 2);
       }
 
       raf = requestAnimationFrame(render);
@@ -282,29 +284,35 @@ export default function MultiplayerClient() {
   if (phase === 'menu' || phase === 'error') {
     return (
       <div className="page-enter max-w-lg mx-auto px-4 py-10">
-        <Link href="/game" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">← Одиночная гонка</Link>
-        <h1 className="text-3xl font-bold mt-4 mb-2">Мультиплеер</h1>
+        <Link href="/game" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          ← {tp('Одиночная гонка', 'Single race', 'Wyscig solo')}
+        </Link>
+        <h1 className="text-3xl font-bold mt-4 mb-2">{tp('Мультиплеер', 'Multiplayer', 'Multiplayer')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mb-6">
-          До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. Можно добавить ботов.
+          {tp(
+            'До 10 игроков на одной трассе. Хост создаёт лобби и делится 4-символьным кодом. Можно добавить ботов.',
+            'Up to 10 players on one course. The host creates a lobby and shares the 4-character code. Bots can be added.',
+            'Do 10 graczy na jednej trasie. Host tworzy lobby i udostepnia 4-znakowy kod. Mozna dodac boty.',
+          )}
         </p>
         <div className="card p-4 mb-4">
-          <label className="text-xs text-[var(--text-muted)] block mb-1">Твой ник</label>
+          <label className="text-xs text-[var(--text-muted)] block mb-1">{tp('Твой ник', 'Your nickname', 'Twoja ksywa')}</label>
           <input
             type="text" value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
             className="w-full px-3 py-2 rounded text-sm"
             style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
-            placeholder="Введи ник"
+            placeholder={tp('Введи ник', 'Enter nickname', 'Podaj ksywe')}
           />
         </div>
         <button onClick={createLobby}
           className="w-full py-3 rounded-lg font-semibold text-sm mb-3"
           style={{ background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)', color: '#0a1628' }}>
-          Создать лобби
+          {tp('Создать лобби', 'Create lobby', 'Utworz lobby')}
         </button>
         <div className="card p-4 mb-3">
-          <div className="text-xs text-[var(--text-muted)] mb-2">Присоединиться по коду</div>
+          <div className="text-xs text-[var(--text-muted)] mb-2">{tp('Присоединиться по коду', 'Join by code', 'Dolacz po kodzie')}</div>
           <div className="flex gap-2">
             <input
               type="text" value={joinCode}
@@ -317,7 +325,7 @@ export default function MultiplayerClient() {
             <button onClick={joinLobby} disabled={joinCode.length !== 4}
               className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
               style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}>
-              Войти
+              {tp('Войти', 'Join', 'Dolacz')}
             </button>
           </div>
         </div>
@@ -327,7 +335,11 @@ export default function MultiplayerClient() {
           </div>
         )}
         <div className="text-[10px] text-[var(--text-muted)] mt-6 leading-relaxed">
-          Мультиплеер BETA. Физика authoritative на сервере. Reconnect 20 сек grace.
+          {tp(
+            'Мультиплеер BETA. Физика authoritative на сервере. Reconnect 20 сек grace.',
+            'Multiplayer BETA. Physics is server-authoritative. 20 sec reconnect grace.',
+            'Multiplayer BETA. Fizyka jest obliczana na serwerze. 20 sek okresu laski przy rozlaczeniu.',
+          )}
         </div>
       </div>
     );
@@ -343,25 +355,29 @@ export default function MultiplayerClient() {
     return (
       <div className="page-enter max-w-lg mx-auto px-4 py-10">
         <div className="flex items-center justify-between mb-4">
-          <button onClick={leaveLobby} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">← Выйти</button>
+          <button onClick={leaveLobby} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+            ← {tp('Выйти', 'Leave', 'Wyjdz')}
+          </button>
           <span className="text-[10px] px-2 py-0.5 rounded" style={{ background: 'rgba(0,212,255,0.15)', color: 'var(--accent-cyan)' }}>
-            {iAmHost ? 'Ты хост' : 'Игрок'}
+            {iAmHost ? tp('Ты хост', 'You are host', 'Jestes hostem') : tp('Игрок', 'Player', 'Gracz')}
           </span>
         </div>
         <div className="card p-5 text-center mb-4" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.3)' }}>
-          <div className="text-xs text-[var(--text-muted)] mb-1">КОД ЛОББИ</div>
+          <div className="text-xs text-[var(--text-muted)] mb-1">{tp('КОД ЛОББИ', 'LOBBY CODE', 'KOD LOBBY')}</div>
           <div className="text-5xl font-bold font-mono tracking-[0.2em]" style={{ color: 'var(--accent-cyan)' }}>
             {room.code}
           </div>
           <button onClick={() => navigator.clipboard?.writeText(shareUrl)}
             className="text-[11px] text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mt-2">
-            📋 Копировать ссылку
+            📋 {tp('Копировать ссылку', 'Copy link', 'Kopiuj link')}
           </button>
         </div>
 
         {iAmHost && (
           <div className="card p-3 mb-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">РЕЖИМ (только хост)</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">
+              {tp('РЕЖИМ (только хост)', 'MODE (host only)', 'TRYB (tylko host)')}
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               <button
                 onClick={() => pickMission(null)}
@@ -371,7 +387,7 @@ export default function MultiplayerClient() {
                   background: !room.missionId ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
                 }}
               >
-                🏁 Свободная
+                🏁 {tp('Свободная', 'Free', 'Swobodna')}
               </button>
               {missions.map((m) => (
                 <button
@@ -398,15 +414,15 @@ export default function MultiplayerClient() {
 
         <div className="card p-4 mb-4">
           <div className="flex items-center justify-between mb-2">
-            <div className="text-xs text-[var(--text-muted)]">ИГРОКИ · {totalCount} / {room.maxPlayers}</div>
+            <div className="text-xs text-[var(--text-muted)]">{tp('ИГРОКИ', 'PLAYERS', 'GRACZE')} · {totalCount} / {room.maxPlayers}</div>
             {iAmHost && (
               <div className="flex gap-1">
                 <button onClick={removeBot} disabled={botCount === 0}
                   className="text-[10px] px-2 py-0.5 rounded disabled:opacity-30"
-                  style={{ border: '1px solid rgba(139, 167, 184, 0.3)' }}>- бот</button>
+                  style={{ border: '1px solid rgba(139, 167, 184, 0.3)' }}>- {tp('бот', 'bot', 'bot')}</button>
                 <button onClick={addBot} disabled={totalCount >= room.maxPlayers}
                   className="text-[10px] px-2 py-0.5 rounded disabled:opacity-30"
-                  style={{ border: '1px solid rgba(0, 212, 255, 0.35)', color: 'var(--accent-cyan)' }}>+ бот</button>
+                  style={{ border: '1px solid rgba(0, 212, 255, 0.35)', color: 'var(--accent-cyan)' }}>+ {tp('бот', 'bot', 'bot')}</button>
               </div>
             )}
           </div>
@@ -417,15 +433,15 @@ export default function MultiplayerClient() {
                 <span className="flex-1 text-[var(--text-primary)]">
                   {p.nickname}
                   {p.isBot && <span className="text-[9px] text-[var(--text-muted)] ml-2">AI</span>}
-                  {!p.connected && !p.isBot && <span className="text-[9px] text-[var(--warning)] ml-2">разрыв</span>}
+                  {!p.connected && !p.isBot && <span className="text-[9px] text-[var(--warning)] ml-2">{tp('разрыв', 'disconnected', 'rozlaczony')}</span>}
                 </span>
-                {p.id === room.hostId && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--warning)' }}>хост</span>}
-                {p.id === room.myId && <span className="text-[10px] text-[var(--accent-cyan)]">ты</span>}
+                {p.id === room.hostId && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--warning)' }}>{tp('хост', 'host', 'host')}</span>}
+                {p.id === room.myId && <span className="text-[10px] text-[var(--accent-cyan)]">{tp('ты', 'you', 'ty')}</span>}
               </div>
             ))}
           </div>
           <div className="text-[10px] text-[var(--text-muted)] mt-2">
-            людей: {humanCount} · ботов: {botCount} · сложность: {room.difficulty} · ветер: {room.windStrength}
+            {tp('людей', 'humans', 'ludzi')}: {humanCount} · {tp('ботов', 'bots', 'botow')}: {botCount} · {tp('сложность', 'difficulty', 'trudnosc')}: {room.difficulty} · {tp('ветер', 'wind', 'wiatr')}: {room.windStrength}
           </div>
         </div>
 
@@ -433,17 +449,23 @@ export default function MultiplayerClient() {
           <button onClick={startRace} disabled={totalCount < 1}
             className="w-full py-3 rounded-lg font-semibold text-base disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #44ff88, #22cc66)', color: '#0a1628' }}>
-            Старт гонки · {totalCount} {totalCount === 1 ? 'лодка' : 'лодок'}
+            {tp('Старт гонки', 'Start race', 'Rozpocznij wyscig')} · {totalCount} {
+              tp(
+                totalCount === 1 ? 'лодка' : 'лодок',
+                totalCount === 1 ? 'boat' : 'boats',
+                totalCount === 1 ? 'lodz' : 'lodzi',
+              )
+            }
           </button>
         ) : (
           <div className="text-center text-sm text-[var(--text-muted)] py-3">
-            Ждём, когда хост нажмёт «Старт»…
+            {tp('Ждём, когда хост нажмёт «Старт»…', 'Waiting for host to press Start…', 'Czekamy, az host nacisnie Start…')}
           </div>
         )}
 
         {reconnecting && (
           <div className="mt-3 text-xs text-center px-3 py-2 rounded" style={{ background: 'rgba(255, 170, 0, 0.1)', color: 'var(--warning)' }}>
-            Переподключаюсь…
+            {tp('Переподключаюсь…', 'Reconnecting…', 'Lacze ponownie…')}
           </div>
         )}
       </div>
@@ -458,7 +480,7 @@ export default function MultiplayerClient() {
       {reconnecting && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(255,170,0,0.2)', color: 'var(--warning)', backdropFilter: 'blur(8px)' }}>
-          Переподключаюсь…
+          {tp('Переподключаюсь…', 'Reconnecting…', 'Lacze ponownie…')}
         </div>
       )}
 
@@ -485,7 +507,7 @@ export default function MultiplayerClient() {
         <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10,22,40,0.9)', backdropFilter: 'blur(8px)' }}>
           <div className="card p-6 max-w-md w-full my-4">
             <div className="text-center mb-4">
-              <div className="text-2xl font-bold mb-1">Гонка окончена</div>
+              <div className="text-2xl font-bold mb-1">{tp('Гонка окончена', 'Race finished', 'Wyscig zakonczony')}</div>
               <div className="text-xs text-[var(--text-muted)]">{room?.code}</div>
             </div>
             <div className="space-y-1 mb-4">
@@ -498,7 +520,7 @@ export default function MultiplayerClient() {
                     </span>
                     {r.nickname}
                     {r.isBot && <span className="text-[9px] text-[var(--text-muted)] ml-2">AI</span>}
-                    {r.id === room?.myId && <span className="text-[10px] text-[var(--accent-cyan)] ml-2">ты</span>}
+                    {r.id === room?.myId && <span className="text-[10px] text-[var(--accent-cyan)] ml-2">{tp('ты', 'you', 'ty')}</span>}
                   </span>
                   <span className="font-mono text-sm text-[var(--accent-cyan)]">
                     {r.time != null ? formatTime(r.time) : 'DNF'}
@@ -516,7 +538,9 @@ export default function MultiplayerClient() {
                   border: `1px solid ${mine.mission.passed ? 'rgba(68, 255, 136, 0.35)' : 'rgba(255, 170, 0, 0.35)'}`,
                 }}>
                   <div className="text-sm font-semibold" style={{ color: mine.mission.passed ? 'var(--success)' : 'var(--warning)' }}>
-                    {mine.mission.passed ? '✓ Миссия пройдена' : '⚠ Миссия провалена'}
+                    {mine.mission.passed
+                      ? tp('✓ Миссия пройдена', '✓ Mission passed', '✓ Misja zaliczona')
+                      : tp('⚠ Миссия провалена', '⚠ Mission failed', '⚠ Misja nieudana')}
                   </div>
                   <ul className="text-xs text-[var(--text-secondary)] mt-1 list-disc list-inside">
                     {mine.mission.reasons.map((r, idx) => <li key={idx}>{r}</li>)}
@@ -528,12 +552,12 @@ export default function MultiplayerClient() {
               <button onClick={leaveLobby}
                 className="flex-1 py-2 rounded-lg border text-sm"
                 style={{ borderColor: 'rgba(0,212,255,0.3)', color: 'var(--accent-cyan)' }}>
-                В меню
+                {tp('В меню', 'To menu', 'Do menu')}
               </button>
               <Link href="/leaderboard"
                 className="flex-1 py-2 rounded-lg border text-sm text-center"
                 style={{ borderColor: 'rgba(68,255,136,0.35)', color: 'var(--success)' }}>
-                Лидерборд
+                {tp('Лидерборд', 'Leaderboard', 'Ranking')}
               </Link>
             </div>
           </div>

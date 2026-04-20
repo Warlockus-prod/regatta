@@ -714,7 +714,7 @@ function DetailCard({
 
 // --- Main page component ---
 export default function CoursesPage() {
-  const { lang } = useI18n();
+  const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const handleSelect = useCallback(
@@ -811,73 +811,93 @@ export default function CoursesPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16">
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
-            Два паруса, а не один
-            <span className="text-sm font-normal text-[var(--text-muted)] ml-2">Two sails, not one</span>
+            {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa zagle, nie jeden')}
+            {lang !== 'en' && <span className="text-sm font-normal text-[var(--text-muted)] ml-2">Two sails, not one</span>}
           </h2>
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
-            Обычная круизная яхта (слуп) несёт два паруса: грот и стаксель. На диаграмме
-            каждый кораблик показан с обоими: треугольник за мачтой - грот, треугольник перед
-            мачтой - стаксель. На реальной лодке они работают вместе, а шкотов (верёвок управления) - два.
+            {tp(
+              'Обычная круизная яхта (слуп) несёт два паруса: грот и стаксель. На диаграмме каждый кораблик показан с обоими: треугольник за мачтой - грот, треугольник перед мачтой - стаксель. На реальной лодке они работают вместе, а шкотов (верёвок управления) - два.',
+              'A typical cruising yacht (sloop) carries two sails: mainsail and jib. In the diagram every boat shows both - triangle aft of the mast is the main, triangle forward of the mast is the jib. On a real boat they work together, and there are TWO sheets (control lines).',
+              'Typowy jacht turystyczny (slup) niesie dwa zagle: grot i fok. Na diagramie kazda lodz pokazana jest z obydwoma: trojkat za masztem to grot, przed masztem to fok. Na prawdziwej lodzi pracuja razem, a szotow (lin sterujacych) sa dwa.',
+            )}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-lg p-4" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
               <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                Грот / Mainsail
+                {tp('Грот / Mainsail', 'Mainsail', 'Grot / Mainsail')}
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Большой парус за мачтой. Главный двигатель на всех курсах кроме чистого фордевинда.
-                Управляется гика-шкотом. В сильный ветер рифится (уменьшается) первым.
+                {tp(
+                  'Большой парус за мачтой. Главный двигатель на всех курсах кроме чистого фордевинда. Управляется гика-шкотом. В сильный ветер рифится (уменьшается) первым.',
+                  'Big sail aft of the mast. The main engine on every course except a dead run. Controlled by the mainsheet. In strong wind it gets reefed (reduced) first.',
+                  'Duzy zagiel za masztem. Glowny naped na wszystkich kursach oprocz czystego fordewindu. Sterowany szotem grota. Przy silnym wietrze rifuje sie (zmniejsza) w pierwszej kolejnosci.',
+                )}
               </p>
             </div>
             <div className="rounded-lg p-4" style={{ background: 'rgba(255, 221, 68, 0.05)', border: '1px solid rgba(255, 221, 68, 0.15)' }}>
               <div className="text-sm font-semibold mb-1" style={{ color: '#ffdd44' }}>
-                Стаксель / Jib
+                {tp('Стаксель / Jib', 'Jib', 'Fok / Jib')}
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                Треугольный парус перед мачтой. Ускоряет воздух перед гротом (эффект щели),
-                даёт дополнительную тягу на острых курсах. У него свой шкот - шкотовый.
+                {tp(
+                  'Треугольный парус перед мачтой. Ускоряет воздух перед гротом (эффект щели), даёт дополнительную тягу на острых курсах. У него свой шкот - шкотовый.',
+                  'Triangular sail forward of the mast. Accelerates the airflow in front of the main (slot effect), adds drive on close courses. Has its own sheet - the jib sheet.',
+                  'Trojkatny zagiel przed masztem. Przyspiesza powietrze przed grotem (efekt szczeliny), daje dodatkowy ciag na ostrym kursie. Ma wlasny szot - szot foka.',
+                )}
               </p>
             </div>
           </div>
 
           <div className="mt-5 rounded-lg p-4" style={{ background: 'rgba(255, 136, 68, 0.04)', border: '1px solid rgba(255, 136, 68, 0.12)' }}>
             <div className="text-sm font-semibold mb-1" style={{ color: '#ff8844' }}>
-              Эффект щели / Slot effect
+              {tp('Эффект щели / Slot effect', 'Slot effect', 'Efekt szczeliny / Slot effect')}
             </div>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              Когда стаксель и грот работают вместе, между ними образуется суживающаяся щель.
-              Воздух в ней ускоряется и создаёт разрежение на подветренной стороне грота -
-              парус тянет лучше, чем если бы стоял один. Именно поэтому на бейдевинде лодка
-              со стакселем идёт заметно быстрее.
+              {tp(
+                'Когда стаксель и грот работают вместе, между ними образуется суживающаяся щель. Воздух в ней ускоряется и создаёт разрежение на подветренной стороне грота - парус тянет лучше, чем если бы стоял один. Именно поэтому на бейдевинде лодка со стакселем идёт заметно быстрее.',
+                'When jib and main work together, a narrowing slot forms between them. Air speeds up in it and creates low pressure on the leeward side of the main - the sail pulls harder than it would alone. That is why a boat with a jib sails noticeably faster close-hauled.',
+                'Gdy fok i grot pracuja razem, miedzy nimi powstaje zwezajaca sie szczelina. Powietrze w niej przyspiesza i tworzy podcisnienie po zawietrznej stronie grota - zagiel ciagnie lepiej niz samodzielnie. Dlatego na bajdewindzie jacht z fokiem plynie zauwazalnie szybciej.',
+              )}
             </p>
           </div>
 
           <div className="mt-5">
             <h3 className="text-base font-semibold mb-2 text-[var(--text-primary)]">
-              А что ещё бывает?
-              <span className="text-xs font-normal text-[var(--text-muted)] ml-2">What else is there?</span>
+              {tp('А что ещё бывает?', 'What else is there?', 'A co jeszcze?')}
+              {lang !== 'en' && <span className="text-xs font-normal text-[var(--text-muted)] ml-2">What else is there?</span>}
             </h3>
             <div className="space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">Генуя (genoa) </span>
-                - большой стаксель, чей задний край заходит за мачту. Даёт заметно больше тяги
-                на бейдевинде и галфвинде, но сложнее в работе при поворотах.
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Генуя (genoa)', 'Genoa', 'Genua')} </span>
+                {tp(
+                  '- большой стаксель, чей задний край заходит за мачту. Даёт заметно больше тяги на бейдевинде и галфвинде, но сложнее в работе при поворотах.',
+                  '- a large jib whose trailing edge overlaps the mast. Gives noticeably more drive on close-hauled and beam reach, but is harder to handle through tacks.',
+                  '- duzy fok, ktorego tylna krawedz wchodzi za maszt. Daje wyraznie wiecej ciagu na bajdewindzie i polwiatrze, ale trudniejszy w obsludze przy zwrotach.',
+                )}
               </p>
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">Геннакер (gennaker) </span>
-                - асимметричный лёгкий парус для попутных курсов (бакштаг, фордевинд).
-                Ставится вместо стакселя, надувается как шар. Проще спинакера, не требует
-                спинакер-гика.
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Геннакер (gennaker)', 'Gennaker', 'Gennaker')} </span>
+                {tp(
+                  '- асимметричный лёгкий парус для попутных курсов (бакштаг, фордевинд). Ставится вместо стакселя, надувается как шар. Проще спинакера, не требует спинакер-гика.',
+                  '- asymmetric light sail for downwind courses (broad reach, running). Set in place of the jib, inflates like a balloon. Simpler than a spinnaker, no spinnaker pole needed.',
+                  '- asymetryczny lekki zagiel na kursy pelne (baksztag, fordewind). Stawia sie zamiast foka, napelnia sie jak balon. Prostszy niz spinaker, nie wymaga bomu spinakerowego.',
+                )}
               </p>
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">Спинакер (spinnaker) </span>
-                - симметричный пузатый парус только для чистого фордевинда. Требует отдельного
-                гика и навыка. На круизёрах встречается редко.
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Спинакер (spinnaker)', 'Spinnaker', 'Spinaker')} </span>
+                {tp(
+                  '- симметричный пузатый парус только для чистого фордевинда. Требует отдельного гика и навыка. На круизёрах встречается редко.',
+                  '- symmetric balloon sail only for a dead run. Needs a dedicated spinnaker pole and practice. Rare on cruisers.',
+                  '- symetryczny baniasty zagiel tylko na czysty fordewind. Wymaga oddzielnego bomu spinakerowego i umiejetnosci. Rzadko spotykany na jachtach turystycznych.',
+                )}
               </p>
               <p className="text-[var(--text-muted)] pt-1">
-                В симуляторе показаны только грот + стаксель - базовая конфигурация слупа.
-                Остальные паруса - для продвинутых гонок.
+                {tp(
+                  'В симуляторе показаны только грот + стаксель - базовая конфигурация слупа. Остальные паруса - для продвинутых гонок.',
+                  'The simulator shows only main + jib - the basic sloop configuration. The other sails belong to advanced racing.',
+                  'W symulatorze pokazano tylko grot + fok - podstawowa konfiguracja slupa. Pozostale zagle to juz zaawansowane regaty.',
+                )}
               </p>
             </div>
           </div>

@@ -64,13 +64,19 @@ function YachtIcon({ x, y, rotation, color = '#ffffff' }: { x: number; y: number
 // ---------------------------------------------------------------------------
 
 function RaceCourseDiagram() {
+  const { tp, lang } = useI18n();
   return (
     <div className="card p-6">
       <h2 className="text-xl font-bold mb-1">
-        Дистанция гонки <span className="text-[var(--text-muted)] font-normal text-sm">(Race Course)</span>
+        {tp('Дистанция гонки', 'Race Course', 'Trasa wyscigu')}
+        {lang !== 'en' && <span className="text-[var(--text-muted)] font-normal text-sm"> (Race Course)</span>}
       </h2>
       <p className="text-sm text-[var(--text-secondary)] mb-5">
-        Типичная дистанция &laquo;туда-обратно&raquo; (windward-leeward) с верхним и нижним знаками.
+        {tp(
+          'Типичная дистанция «туда-обратно» (windward-leeward) с верхним и нижним знаками.',
+          'Typical windward-leeward course with a top mark and a bottom gate.',
+          'Typowa trasa "tam i z powrotem" (windward-leeward) ze znakiem gornym i dolnym.',
+        )}
       </p>
 
       <div className="w-full max-w-lg mx-auto">
@@ -81,7 +87,7 @@ function RaceCourseDiagram() {
           {/* Wind indication at top */}
           <g>
             <text x="180" y="24" fill="#00e5ff" fontSize="12" fontWeight="700" textAnchor="middle" letterSpacing="1">
-              ВЕТЕР / WIND
+              {tp('ВЕТЕР / WIND', 'WIND', 'WIATR / WIND')}
             </text>
             {/* Multiple wind arrows */}
             <WindArrow x={100} y={52} />
@@ -95,15 +101,17 @@ function RaceCourseDiagram() {
           <line x1="180" y1="110" x2="180" y2="440" stroke="#1a3a5c" strokeWidth="1" strokeDasharray="6,6" />
 
           {/* Windward mark */}
-          <BuoyMark cx={180} cy={110} label="Верхний знак" sublabel="(Windward Mark)" />
+          <BuoyMark cx={180} cy={110} label={tp('Верхний знак', 'Windward', 'Gorny znak')} sublabel="(Windward Mark)" />
 
           {/* Leeward gate marks */}
-          <BuoyMark cx={140} cy={440} label="Знак Л" sublabel="(Gate L)" labelPos="left" />
-          <BuoyMark cx={220} cy={440} label="Знак П" sublabel="(Gate R)" labelPos="right" />
+          <BuoyMark cx={140} cy={440} label={tp('Знак Л', 'Gate L', 'Znak L')} sublabel="(Gate L)" labelPos="left" />
+          <BuoyMark cx={220} cy={440} label={tp('Знак П', 'Gate R', 'Znak R')} sublabel="(Gate R)" labelPos="right" />
 
           {/* Gate line */}
           <line x1="140" y1="440" x2="220" y2="440" stroke="#ffaa00" strokeWidth="1" strokeDasharray="4,3" opacity="0.5" />
-          <text x="180" y="465" fill="#8ba7b8" fontSize="9" textAnchor="middle">Нижние знаки / Leeward Gate</text>
+          <text x="180" y="465" fill="#8ba7b8" fontSize="9" textAnchor="middle">
+            {tp('Нижние знаки / Leeward Gate', 'Leeward Gate', 'Dolne znaki / Leeward Gate')}
+          </text>
 
           {/* --- Upwind leg (tacking pattern) --- */}
           <g>
@@ -165,15 +173,15 @@ function RaceCourseDiagram() {
           {/* Laylines from windward mark */}
           <line x1="180" y1="110" x2="80" y2="280" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,5" opacity="0.35" />
           <line x1="180" y1="110" x2="280" y2="280" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,5" opacity="0.35" />
-          <text x="68" y="265" fill="#ff4444" fontSize="9" opacity="0.5">Лейлайн</text>
-          <text x="255" y="265" fill="#ff4444" fontSize="9" opacity="0.5">Лейлайн</text>
+          <text x="68" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline')}</text>
+          <text x="255" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline')}</text>
 
           {/* Legend */}
           <g transform="translate(16, 475)">
             <line x1="0" y1="5" x2="20" y2="5" stroke="#00d4ff" strokeWidth="1.5" strokeDasharray="6,4" />
-            <text x="26" y="9" fill="#8ba7b8" fontSize="9">Лавировка (Upwind)</text>
+            <text x="26" y="9" fill="#8ba7b8" fontSize="9">{tp('Лавировка (Upwind)', 'Upwind', 'Halsowanie (Upwind)')}</text>
             <line x1="140" y1="5" x2="160" y2="5" stroke="#44ff88" strokeWidth="1.5" strokeDasharray="6,4" />
-            <text x="166" y="9" fill="#8ba7b8" fontSize="9">Полный курс (Downwind)</text>
+            <text x="166" y="9" fill="#8ba7b8" fontSize="9">{tp('Полный курс (Downwind)', 'Downwind', 'Kurs pelny (Downwind)')}</text>
           </g>
 
           {/* Subtle pulse on marks */}
