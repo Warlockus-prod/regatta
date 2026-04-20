@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ClientErrorReporter from "@/components/ClientErrorReporter";
@@ -7,7 +8,30 @@ import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import { I18nProvider } from "@/lib/i18n";
+import { I18nProvider, type Lang } from "@/lib/i18n";
+
+// Tells Next not to statically cache the root layout - we read request cookies
+// to pick the user's language so every render is request-specific.
+export const dynamic = 'force-dynamic';
+
+async function resolveServerLang(): Promise<Lang> {
+  const c = await cookies();
+  const fromCookie = c.get('regatta_lang')?.value;
+  if (fromCookie === 'ru' || fromCookie === 'en' || fromCookie === 'pl') {
+    return fromCookie;
+  }
+  // Fallback: sniff accept-language on the very first request before
+  // middleware has written the cookie into the response stream.
+  const h = await headers();
+  const accept = (h.get('accept-language') ?? '').toLowerCase();
+  const first = accept.split(',')[0]?.trim() ?? '';
+  if (first.startsWith('ru')) return 'ru';
+  if (first.startsWith('pl')) return 'pl';
+  if (first.startsWith('en')) return 'en';
+  if (accept.includes('pl')) return 'pl';
+  if (accept.includes('ru')) return 'ru';
+  return 'en';
+}
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,33 +43,66 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "Regatta - Sailing Simulator",
-  description: "Interactive sailing education simulator. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.",
-  // metadataBase silences Next 16 warning on OG image generation and
-  // makes relative OG URLs resolve against the production origin.
-  metadataBase: new URL("https://regatta.icoffio.com"),
-  manifest: "/manifest.json",
-  appleWebApp: {
-    capable: true,
-    title: "Regatta",
-    statusBarStyle: "black-translucent",
-  },
-  // Icons are generated dynamically via src/app/icon.tsx + apple-icon.tsx
-  openGraph: {
-    title: "Regatta - Sailing Simulator",
-    description: "Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.",
-    url: "https://regatta.icoffio.com",
-    siteName: "Regatta",
-    locale: "ru_RU",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "Regatta - Sailing Simulator",
-    description: "До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.",
-  },
-};
+// Metadata is now request-specific (depends on the `regatta_lang` cookie),
+// so we use generateMetadata instead of a static `metadata` export. Shares
+// the same language-resolver used by the root HTML shell below.
+export async function generateMetadata(): Promise<Metadata> {
+  const lang = await resolveServerLang();
+  const ogByLang: Record<Lang, { title: string; description: string; locale: string; twitter: string }> = {
+    ru: {
+      title: 'Regatta - тренажёр парусного спорта',
+      description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.',
+      locale: 'ru_RU',
+      twitter: 'До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.',
+    },
+    en: {
+      title: 'Regatta - Sailing Simulator',
+      description: 'Interactive sailing trainer for people with a race next weekend. Wind, points of sail, sail trim, tactics in 45 minutes. AI coach reviews your race.',
+      locale: 'en_US',
+      twitter: 'Racing next week? You can still prep. AI coach + head-to-head race in your browser.',
+    },
+    pl: {
+      title: 'Regatta - symulator zeglarstwa',
+      description: 'Interaktywny trener dla tych, co w weekend maja regaty. Wiatr, kursy, zagle, taktyka w 45 minut. Trener AI analizuje twoj wyscig.',
+      locale: 'pl_PL',
+      twitter: 'Regaty za tydzien? Zdazysz sie przygotowac. Trener AI + wyscig z rywalami w przegladarce.',
+    },
+  };
+  const pick = ogByLang[lang];
+  return {
+    title: pick.title,
+    description: pick.description,
+    metadataBase: new URL('https://regatta.icoffio.com'),
+    manifest: '/manifest.json',
+    alternates: {
+      canonical: '/',
+      languages: {
+        ru: '/?lang=ru',
+        en: '/?lang=en',
+        pl: '/?lang=pl',
+      },
+    },
+    appleWebApp: {
+      capable: true,
+      title: 'Regatta',
+      statusBarStyle: 'black-translucent',
+    },
+    openGraph: {
+      title: pick.title,
+      description: pick.description,
+      url: 'https://regatta.icoffio.com',
+      siteName: 'Regatta',
+      locale: pick.locale,
+      alternateLocale: (['ru_RU', 'en_US', 'pl_PL'] as const).filter((l) => l !== pick.locale),
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: pick.title,
+      description: pick.twitter,
+    },
+  };
+}
 
 export const viewport = {
   width: "device-width",
@@ -54,19 +111,20 @@ export const viewport = {
   themeColor: "#0a1628",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const serverLang = await resolveServerLang();
   return (
     <html
-      lang="ru"
+      lang={serverLang}
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       style={{ background: '#0a1628' }}
     >
       <body className="min-h-full flex flex-col ocean-bg" style={{ background: '#0a1628' }}>
-        <I18nProvider>
+        <I18nProvider initialLang={serverLang}>
           <ClientErrorReporter />
           <OnboardingTour />
           <HelpOverlay />

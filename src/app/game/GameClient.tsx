@@ -56,7 +56,9 @@ interface Boat {
 interface CourseMark {
   pos: Vec2;
   radius: number;
-  label: string;
+  label: string;       // RU, kept for back-compat (e.g. replay sharing)
+  labelEn: string;
+  labelPl: string;
   type: 'start' | 'windward' | 'finish';
   roundSide?: 'port' | 'starboard'; // which side to leave the mark
 }
@@ -243,9 +245,9 @@ function makeCourse(): Course {
   };
   return {
     marks: [
-      { pos: { x: cx, y: windwardY }, radius: 14, label: 'Верхний знак', type: 'windward', roundSide: 'port' },
-      { pos: startLine.a, radius: 10, label: 'Старт/Финиш Л', type: 'start' },
-      { pos: startLine.b, radius: 10, label: 'Старт/Финиш П', type: 'start' },
+      { pos: { x: cx, y: windwardY }, radius: 14, label: 'Верхний знак', labelEn: 'Windward mark', labelPl: 'Znak nawietrzny', type: 'windward', roundSide: 'port' },
+      { pos: startLine.a, radius: 10, label: 'Старт/Финиш Л', labelEn: 'Start/Finish L', labelPl: 'Start/Meta L', type: 'start' },
+      { pos: startLine.b, radius: 10, label: 'Старт/Финиш П', labelEn: 'Start/Finish R', labelPl: 'Start/Meta P', type: 'start' },
     ],
     startLine,
     finishLine: startLine,
@@ -1117,7 +1119,8 @@ export default function GamePage() {
         ctx.fillStyle = '#ffaa00';
         ctx.font = 'bold 12px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(mark.label, p.x, p.y - mark.radius * scale * 1.8);
+        const markLabel = lang === 'pl' ? mark.labelPl : lang === 'en' ? mark.labelEn : mark.label;
+        ctx.fillText(markLabel, p.x, p.y - mark.radius * scale * 1.8);
       }
       ctx.restore();
     }
