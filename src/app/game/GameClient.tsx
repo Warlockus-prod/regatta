@@ -1387,8 +1387,8 @@ export default function GamePage() {
             <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center"
                  style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 230px)' }}>
               <span className="mr-1">{selectedMission.emoji}</span>
-              <span className="text-[var(--accent-cyan)] font-semibold">{t(selectedMission.titleRu, selectedMission.titleEn)}:</span>{' '}
-              <span className="text-[var(--text-secondary)]">{t(selectedMission.hintRu, selectedMission.hintEn)}</span>
+              <span className="text-[var(--accent-cyan)] font-semibold">{tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl)}:</span>{' '}
+              <span className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl)}</span>
             </div>
           )}
 
@@ -1569,7 +1569,10 @@ export default function GamePage() {
                 <div className="flex items-center gap-2 mb-1.5">
                   <span className="text-lg">{missionResult.mission.emoji}</span>
                   <div className="text-sm font-semibold flex-1" style={{ color: missionResult.passed ? 'var(--success)' : 'var(--warning)' }}>
-                    {missionResult.passed ? '✓ Миссия пройдена' : '⚠ Миссия провалена'}: {missionResult.mission.titleRu}
+                    {missionResult.passed
+                      ? tp('✓ Миссия пройдена', '✓ Mission passed', '✓ Misja zaliczona')
+                      : tp('⚠ Миссия провалена', '⚠ Mission failed', '⚠ Misja nieudana')
+                    }: {tp(missionResult.mission.titleRu, missionResult.mission.titleEn, missionResult.mission.titlePl)}
                   </div>
                 </div>
                 <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 list-disc list-inside">
@@ -2420,6 +2423,11 @@ function GameMenu({
     : w === 'heavy' ? tp('сильный', 'heavy', 'silny')
     : tp('средний', 'medium', 'sredni');
 
+  // Mission field pickers - mission titles / descriptions / hints are stored
+  // with *Ru/*En/*Pl variants on src/data/missions.ts.
+  const mTitle = (m: Mission) => tp(m.titleRu, m.titleEn, m.titlePl);
+  const mDesc = (m: Mission) => tp(m.descRu, m.descEn, m.descPl);
+
   // When tab changes, apply defaults
   useEffect(() => {
     if (tab === 'learn') {
@@ -2438,7 +2446,7 @@ function GameMenu({
   const ctaLabel =
     tab === 'learn' ? tp('Начать - Учусь гоняю', 'Start - Learning mode', 'Start - Tryb nauki') :
     tab === 'mission' ? (selectedMission
-      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn || selectedMission.titleRu}`, `Do misji: ${selectedMission.titleRu}`)
+      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`)
       : tp('Выбери миссию', 'Pick a mission', 'Wybierz misje')) :
     tp(`К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`, `To briefing · ${DIFFICULTY_CONFIG[difficulty].label}`, `Do briefingu · ${DIFFICULTY_CONFIG[difficulty].label}`);
 
@@ -2523,8 +2531,8 @@ function GameMenu({
                   }}
                 >
                   <div className="text-lg mb-1">{m.emoji}</div>
-                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{m.titleRu}</div>
-                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{m.descRu}</div>
+                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{mTitle(m)}</div>
+                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{mDesc(m)}</div>
                 </button>
               );
             })}
@@ -2532,10 +2540,10 @@ function GameMenu({
           {selectedMission && (
             <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
               <div className="text-[var(--text-primary)] font-semibold mb-1">
-                {selectedMission.emoji} {selectedMission.titleRu}
+                {selectedMission.emoji} {mTitle(selectedMission)}
               </div>
-              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{selectedMission.descRu}</div>
-              <div className="text-[var(--accent-cyan)]">💡 {selectedMission.hintRu}</div>
+              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{mDesc(selectedMission)}</div>
+              <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl)}</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">
                 {tp('Автонастройки', 'Auto-settings', 'Autoustawienia')}: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · {tp('ветер', 'wind', 'wiatr')} {windLabel(selectedMission.windStrength)}
               </div>

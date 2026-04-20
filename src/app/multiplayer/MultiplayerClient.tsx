@@ -398,15 +398,15 @@ export default function MultiplayerClient() {
                     borderColor: room.missionId === m.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
                     background: room.missionId === m.id ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
                   }}
-                  title={m.descRu}
+                  title={tp(m.descRu, m.descEn, m.descPl)}
                 >
-                  {m.emoji} {m.titleRu}
+                  {m.emoji} {tp(m.titleRu, m.titleEn, m.titlePl)}
                 </button>
               ))}
             </div>
             {activeMission && (
               <div className="mt-2 text-[10px] text-[var(--text-secondary)]">
-                💡 {activeMission.hintRu}
+                💡 {tp(activeMission.hintRu, activeMission.hintEn, activeMission.hintPl)}
               </div>
             )}
           </div>

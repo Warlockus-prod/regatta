@@ -6,6 +6,7 @@ import ClientErrorReporter from "@/components/ClientErrorReporter";
 import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { I18nProvider } from "@/lib/i18n";
 
 const geistSans = Geist({
@@ -79,6 +80,8 @@ export default function RootLayout({
               way on a specific route, hide per-route via `hideOn`. */}
           <FeedbackWidget />
         </I18nProvider>
+        {/* Google Analytics 4 - loads async after interactive, doesn't block paint. */}
+        <GoogleAnalytics />
       </body>
     </html>
   );
