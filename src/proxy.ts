@@ -21,6 +21,9 @@ const BASIC_PASS = process.env.ADMIN_PASSWORD ?? '';
 const SESSION_COOKIE = 'regatta_sid';
 const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
+const LANG_COOKIE = 'regatta_lang';
+const LANG_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
+
 function ensureSessionCookie(res: NextResponse, req: NextRequest) {
   if (req.cookies.get(SESSION_COOKIE)) return;
   // crypto.randomUUID is available on Edge runtime
@@ -35,10 +38,38 @@ function ensureSessionCookie(res: NextResponse, req: NextRequest) {
   });
 }
 
+function pickLangFromAccept(accept: string | null): 'ru' | 'en' | 'pl' {
+  if (!accept) return 'ru';
+  const first = accept.split(',')[0]?.trim().toLowerCase() ?? '';
+  if (first.startsWith('ru')) return 'ru';
+  if (first.startsWith('pl')) return 'pl';
+  if (first.startsWith('en')) return 'en';
+  const lower = accept.toLowerCase();
+  if (lower.includes('pl')) return 'pl';
+  if (lower.includes('ru')) return 'ru';
+  return 'en';
+}
+
+// Writes a `regatta_lang` cookie on the first visit so SSR can render in the
+// user's preferred language (RU / EN / PL). Without it, every SSR pass
+// defaults to RU and the client flashes the real language ~80ms later.
+function ensureLangCookie(res: NextResponse, req: NextRequest) {
+  const existing = req.cookies.get(LANG_COOKIE)?.value;
+  if (existing === 'ru' || existing === 'en' || existing === 'pl') return;
+  const picked = pickLangFromAccept(req.headers.get('accept-language'));
+  res.cookies.set({
+    name: LANG_COOKIE,
+    value: picked,
+    maxAge: LANG_MAX_AGE,
+    path: '/',
+    sameSite: 'lax',
+  });
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Issue session cookie for regular navigations (skip static assets & api)
+  // Issue session + lang cookies for regular navigations (skip static assets & api)
   if (
     !pathname.startsWith('/stats') &&
     !pathname.startsWith('/api/admin') &&
@@ -47,6 +78,7 @@ export function proxy(req: NextRequest) {
   ) {
     const res = NextResponse.next();
     ensureSessionCookie(res, req);
+    ensureLangCookie(res, req);
     return res;
   }
 
