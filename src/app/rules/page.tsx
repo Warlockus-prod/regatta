@@ -192,9 +192,9 @@ export default function RulesPage() {
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
           {tp(
-            '8 ситуаций - и ты не потеряешься',
-            '8 scenarios - and you won\'t get lost',
-            '8 sytuacji - i nie zgubisz sie',
+            '13 ситуаций - и ты не потеряешься',
+            '13 scenarios - and you won\'t get lost',
+            '13 sytuacji - i nie zgubisz sie',
           )}
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
