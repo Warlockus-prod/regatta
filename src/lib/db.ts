@@ -500,16 +500,18 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
   const bounces = sessStats.filter((r) => r.pv_count === 1).length;
   const bounceRate = sessStats.length > 0 ? bounces / sessStats.length : 0;
 
-  // Returning sessions (visit_count > 1 in sessions table, among those seen in range)
+  // Returning sessions (visit_count > 1 in sessions table, among those seen in range).
+  // `returning` is a reserved SQLite keyword (RETURNING clause), so alias
+  // as `returning_n` to avoid a parser error.
   const returningRow = d.prepare(`
     SELECT
-      SUM(CASE WHEN visit_count > 1 THEN 1 ELSE 0 END) returning,
-      COUNT(*) total
+      SUM(CASE WHEN visit_count > 1 THEN 1 ELSE 0 END) AS returning_n,
+      COUNT(*) AS total
     FROM sessions
     WHERE last_seen >= ? AND last_seen < ?
-  `).get(...p) as { returning: number | null; total: number };
+  `).get(...p) as { returning_n: number | null; total: number };
   const returningSessionPct = returningRow.total > 0
-    ? (returningRow.returning ?? 0) / returningRow.total
+    ? (returningRow.returning_n ?? 0) / returningRow.total
     : 0;
 
   // Recent events feed (last 30 inside range)
