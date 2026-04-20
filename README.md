@@ -1,24 +1,43 @@
 # Regatta - Sailing Yacht Simulator
 
-Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in Russian and English.
+Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in RU / EN / PL.
 
 **Live:** https://regatta.icoffio.com
 
-## Features
+For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 
-- **Interactive Simulator** - drag/arrow-key to rotate the yacht, watch sails trim automatically, see current point of sail in RU/EN.
-- **Points of Sail** - circular wind diagram with all sailing courses (Левентик, Бейдевинд, Галфвинд, Бакштаг, Фордевинд).
-- **Racing Strategy** - race course diagrams, upwind/downwind strategies, right-of-way rules, key concepts (layline, VMG, clear air).
-- **Race Game** - compete with AI opponents on three difficulty levels with real sailing physics.
-- **Glossary** - 51 bilingual sailing terms across 7 categories.
+## Highlights
+
+- **Three simulator versions** over a shared VPP-style physics engine:
+  V1 canvas (drag + keyboard), V2 Three.js (immersive 3D), V3 SVG
+  cockpit (teaching panel with pods + diagnostics).
+- **Physics engine** in `src/lib/sailing-physics/` - 8-step force-
+  balance tick, 8/8 verification tests green (see `DECISIONS.md`
+  ADR-0001).
+- **Race game** with AI opponents on 3 difficulty levels, Claude
+  Haiku coach on finish.
+- **Multiplayer** - WebSocket rooms, 2-8 players, 20 Hz authoritative
+  server.
+- **Replay viewer** - scrubbable timeline for any finished race.
+- **Learning content** - points of sail, racing tactics, rules of the
+  road (8 scenarios + 3 external RRS links), boat anatomy (17 hotspots),
+  checklist, glossary (51 terms), bootcamp, quick refresh, onboard.
+- **Leaderboard + daily challenge** - top times per bucket, one
+  mission per UTC day.
+- **Admin `/stats`** - auth-gated dashboard for users, sessions,
+  events, feedback.
 
 ## Stack
 
-- Next.js 16 (App Router) + TypeScript
-- Tailwind CSS v4
-- HTML5 Canvas for the simulator and game
-- SVG for static diagrams
-- Standalone output for small Docker images
+- Next.js 16 (App Router) + React 19 + TypeScript strict
+- Tailwind CSS v4, dark-ocean theme via CSS vars
+- HTML5 Canvas (V1 simulator, game)
+- Three.js + @react-three/fiber + drei (V2 simulator)
+- SVG (V3 simulator, static diagrams)
+- SQLite via better-sqlite3 (`/data/regatta-stats.db` on VPS)
+- Separate WebSocket server at `:4501` (multiplayer)
+- Claude Haiku 4.5 via `@anthropic-ai/sdk` (coach + AI chat)
+- Standalone Next build, Docker Compose on VPS, GitHub Actions CI/CD
 
 ## Develop
 

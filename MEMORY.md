@@ -18,6 +18,62 @@ status: active | superseded by YYYY-MM-DD
 
 ---
 
+## 2026-04-20 - Three-simulator line (V1 + V2 + V3) locked in; 6 bugs fixed; FEATURES.md written
+
+context: A/B between V1 (canvas) and V2 (3D immersive) ran for ~48 h.
+  User did not want to pick one; wanted a third teaching-focused panel.
+  Shipped V3 at `/simulator-v3`: SVG cockpit with 4 corner pods (WIND,
+  MAIN, JIB, VIEW), center top-view with inflated sails, metrics strip,
+  one-line commentary, optim button, glossary footer. All three read
+  the same `sailing-physics` engine.
+
+decision: keep all three live, each targeting a different user mode:
+  V1 = engineer's classic canvas (drag + arrow keys, maximum familiarity).
+  V2 = immersive 3D scene for vibe.
+  V3 = structured cockpit panel for learning.
+  No forced migration / deletion of either V1 or V2 at this point.
+
+bugs found + fixed this session (all verified in browser on prod):
+  1. V2 CSP blocked "page couldn't load" - removed Drei `<Environment>`
+     HDR fetch from raw.githack.com; kept local Sky + lights.
+  2. V3 defaults loaded into stall - bumped DEFAULT_UI jibAngle 42->54,
+     mainAngle 50->52; initial bs seed max(3, TWS*0.45).
+  3. /courses thumbnails all pointed up - wrapped boat in
+     `<g rotate(twa)>`; each course now visibly distinct.
+  4. /courses tack labels overlapping sector labels on mobile - moved
+     "ЛЕВЫЙ/ПРАВЫЙ ГАЛС" to bottom horizontal, clear of everything.
+  5. V1 sail rendered on WINDWARD side - `getTackSide` sign flipped:
+     `normalizeAngle(windDir - boatHeading)`, not the other way.
+  6. V3 jib drew flat - redrew both sails with two Q-curve belly + a
+     linear gradient (#dce7ee -> #ffffff -> #b9c9d4) across the fill.
+
+also this session:
+  - Per PATTERNS.md D5, ran two full Playwright audits (v1 + v2) and
+    a long-tail audit (v3). All in `docs/TEST_RUN_2026-04-20*.md`.
+  - /rules footer got 3 external RRS links (World Sailing, asiansailing
+    PDF mirror, US Sailing). All verified HTTP 200 server-side.
+  - /checklist converted from checkbox form to reading-reference with
+    8 sections; headers trilingual, section bodies EN fallback in PL.
+  - i18n audit written: `docs/I18N_AUDIT.md`. PL coverage mapped.
+  - FEATURES.md written at repo root as a single-source inventory of
+    what the app does today (distinct from AUDIT.md code-health,
+    TECH.md architecture, and ROADMAP.md plan).
+
+why: three simulators was the right move because each answers a
+  different question the user has ("show me," "let me feel it,"
+  "teach me the physics"). One simulator would compromise all three.
+  And fixing the 6 bugs one more time validated PATTERNS.md D5 -
+  browser-first testing catches what code review misses.
+
+status: active. Next session candidates:
+  - AUDIT.md rewrite (currently dated 2026-04-18, still calls simulator
+    physics "fake" which Phase 2 fixed).
+  - TECH.md update to describe V2 and V3 routes.
+  - Phase 3 per ROADMAP.md (migrate /game to sailing-physics, delete
+    race-physics.ts).
+
+---
+
 ## 2026-04-18 - A/B: /simulator V1 (cards) vs /simulator2 V2 (immersive)
 
 context: user asked for a visibly different "красивый" simulator design.

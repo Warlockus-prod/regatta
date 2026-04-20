@@ -55,9 +55,12 @@ export default function MultiplayerClient() {
   const handleServerMsg = useCallback((msg: MPMessage) => {
     switch (msg.type) {
       case 'joined':
+        // hostId stays empty for non-hosts until the first lobby-state arrives.
+        // Previously we set hostId: msg.id here which made guests briefly see
+        // the "хост" badge next to their own name until lobby-state overrode it.
         setRoom((r) => r
-          ? { ...r, code: msg.code, myId: msg.id, isHost: msg.isHost, hostId: r.hostId || msg.id }
-          : { code: msg.code, hostId: msg.id, myId: msg.id, isHost: msg.isHost, missionId: null, difficulty: 'medium', windStrength: 'medium', maxPlayers: 10 });
+          ? { ...r, code: msg.code, myId: msg.id, isHost: msg.isHost, hostId: r.hostId || (msg.isHost ? msg.id : '') }
+          : { code: msg.code, hostId: msg.isHost ? msg.id : '', myId: msg.id, isHost: msg.isHost, missionId: null, difficulty: 'medium', windStrength: 'medium', maxPlayers: 10 });
         setPhase((p) => p === 'menu' || p === 'error' ? 'lobby' : p);
         setReconnecting(false);
         break;

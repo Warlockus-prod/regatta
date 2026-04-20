@@ -1,12 +1,14 @@
 # Regatta - State Audit
 
-**Date:** 2026-04-18
+**Date:** 2026-04-20 (header refreshed; full rewrite still pending)
 **Live:** https://regatta.icoffio.com
 **Repo:** https://github.com/Warlockus-prod/regatta
-**Phase:** Phase 0 complete (cleanup + docs)
+**Phase:** Phase 0 + 1 + 2 complete. Phase 3 (migration/cleanup) pending.
 
 This document is a snapshot of the code as it stands. When it goes stale,
-rewrite it - don't patch.
+rewrite it - don't patch. See `FEATURES.md` for the current user-facing
+feature inventory and `docs/TEST_RUN_2026-04-20_*.md` for the recent
+browser-verified state.
 
 ---
 
@@ -66,17 +68,20 @@ Build passes cleanly after Phase 0.
 
 ## What's honestly broken (not hidden, not fixed yet)
 
-### B1. Simulator physics is fake
-**Severity:** core product claim is undermined.
-**Files:** `src/app/simulator/page.tsx`, `src/app/trim-trainer/TrimTrainerClient.tsx`,
-`src/lib/race-physics.ts`.
-**Plan:** Phase 1 (engine) + Phase 2 (new UI) + Phase 3 (migration).
-**Tracked:** DECISIONS.md ADR-0001, ROADMAP.md Phase 1-3.
+### B1. Simulator physics is fake [FIXED 2026-04-18, Phase 2]
+**Status:** resolved. `/simulator` now reads the `sailing-physics`
+engine (8/8 ADR-0001 tests green). V2 `/simulator2` and V3
+`/simulator-v3` also live, all three on the same engine.
+**Files:** `src/lib/sailing-physics/`, `src/app/simulator/page.tsx`,
+`src/app/simulator2/`, `src/app/simulator-v3/`.
+**Follow-up:** 6 UI bugs found + fixed in 2026-04-20 browser audits
+(see `docs/TEST_RUN_2026-04-20_v2.md`).
 
-### B2. Race uses same fake physics
-**Severity:** gameplay works because it's a game, but any claim of
-"realistic simulation" in `/game` is false.
-**Plan:** migrate to new engine after Phase 2 validates it.
+### B2. Race uses fake physics [STILL STANDING, by design for now]
+**Severity:** `/game` is an arcade, `/simulator` is the VPP surface.
+The abstraction is on purpose. Migration to `sailing-physics` is a
+Phase 3 candidate in ROADMAP.md, not a blocker.
+**Files:** `src/app/game/GameClient.tsx`, `src/lib/race-physics.ts`.
 
 ### B3. Middleware convention deprecated warning
 **Severity:** cosmetic in Next.js 16 build output. Needs rename
