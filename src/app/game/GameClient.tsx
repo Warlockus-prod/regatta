@@ -310,7 +310,7 @@ function computeAIHeading(boat: Boat, course: Course, dt: number): number {
 // ============================================================================
 
 export default function GamePage() {
-  const { t, tp } = useI18n();
+  const { t, tp, lang } = useI18n();
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -892,6 +892,7 @@ export default function GamePage() {
           totalBoats: sorted.length,
           samples: logSamplesRef.current,
           events: logEventsRef.current,
+          lang,
         };
         setCoachingLoading(true);
         fetch('/api/coach', {

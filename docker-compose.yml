@@ -19,8 +19,10 @@ services:
     volumes:
       - regatta_data:/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
-      interval: 60s
+      # Dedicated /api/health endpoint - cheap, no DB/render.
+      # wget ships with busybox in node:22-alpine.
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 30s
       timeout: 5s
       retries: 3
       start_period: 20s

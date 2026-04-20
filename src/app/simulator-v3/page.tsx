@@ -1227,13 +1227,24 @@ function MainPod(props: {
                     ]}
                     active={ui.reefLevel}
                     onSelect={(v) => setUi((p) => ({ ...p, reefLevel: v as ReefLevel }))} />
-      <StatusDot tone={sim.result.diag.mainStalled ? 'danger' : sim.result.diag.mainAoA < 5 ? 'warn' : 'good'}
-                 text={sim.result.diag.mainStalled
-                       ? tp('СРЫВ', 'STALL', 'STALL')
-                       : sim.result.diag.mainAoA < 5
-                         ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
-                         : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE')}
-                 compact={compact} />
+      {(() => {
+        // 4-state gradient (more pedagogically honest than binary stall):
+        //   AoA < 5   : LUFFING   - sail flapping, no lift
+        //   5-15      : ATTACHED  - healthy lift
+        //   15-20     : EDGE      - flow starting to separate, close to stall
+        //   >= 20     : STALL     - flow fully detached
+        const aoa = sim.result.diag.mainAoA;
+        const stalled = sim.result.diag.mainStalled; // computed in engine at >= 20
+        const state: 'luffing' | 'attached' | 'edge' | 'stall' =
+          stalled ? 'stall' : aoa < 5 ? 'luffing' : aoa >= 15 ? 'edge' : 'attached';
+        const tone = state === 'stall' ? 'danger' : state === 'attached' ? 'good' : 'warn';
+        const text =
+          state === 'stall' ? tp('СРЫВ', 'STALL', 'STALL')
+          : state === 'edge' ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ')
+          : state === 'luffing' ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
+          : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE');
+        return <StatusDot tone={tone} text={text} compact={compact} />;
+      })()}
     </PodCard>
   );
 }
@@ -1263,15 +1274,29 @@ function JibPod(props: {
                  min={0} max={100} step={5}
                  sliderValue={ui.jibFurlPct}
                  onChange={(v) => setUi((p) => ({ ...p, jibFurlPct: v }))} />
-      <StatusDot tone={ui.jibFurlPct < 10 ? 'warn' : sim.result.diag.jibStalled ? 'danger' : sim.result.diag.jibAoA < 5 ? 'warn' : 'good'}
-                 text={ui.jibFurlPct < 10
-                       ? tp('УБРАН', 'FURLED', 'ZWINIETY')
-                       : sim.result.diag.jibStalled
-                         ? tp('СРЫВ', 'STALL', 'STALL')
-                         : sim.result.diag.jibAoA < 5
-                           ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
-                           : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE')}
-                 compact={compact} />
+      {(() => {
+        // Same 4-state gradient as main pod, plus a prefix "FURLED" state
+        // when the jib is rolled up below 10%.
+        const aoa = sim.result.diag.jibAoA;
+        const stalled = sim.result.diag.jibStalled;
+        let state: 'furled' | 'luffing' | 'attached' | 'edge' | 'stall';
+        if (ui.jibFurlPct < 10) state = 'furled';
+        else if (stalled) state = 'stall';
+        else if (aoa < 5) state = 'luffing';
+        else if (aoa >= 15) state = 'edge';
+        else state = 'attached';
+        const tone: 'good' | 'warn' | 'danger' =
+          state === 'stall' ? 'danger'
+          : state === 'attached' ? 'good'
+          : 'warn';
+        const text =
+          state === 'furled' ? tp('УБРАН', 'FURLED', 'ZWINIETY')
+          : state === 'stall' ? tp('СРЫВ', 'STALL', 'STALL')
+          : state === 'edge' ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ')
+          : state === 'luffing' ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
+          : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE');
+        return <StatusDot tone={tone} text={text} compact={compact} />;
+      })()}
     </PodCard>
   );
 }

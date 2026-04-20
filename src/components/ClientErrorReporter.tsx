@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { clientError, clientInfo } from '@/lib/client-log';
+import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
 
 /**
  * Mounted once in the root layout - attaches listeners for uncaught errors
@@ -31,15 +31,23 @@ export default function ClientErrorReporter() {
     window.addEventListener('error', onError);
     window.addEventListener('unhandledrejection', onRejection);
 
+    // Replay any logs queued while offline on a previous page load.
+    flushBufferedLogs();
+    // Also flush when network comes back during this session.
+    const onOnline = () => flushBufferedLogs();
+    window.addEventListener('online', onOnline);
+
     clientInfo('page.view', {
       path: window.location.pathname,
       referrer: document.referrer || null,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
+      ua: navigator.userAgent.slice(0, 200),
     });
 
     return () => {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
+      window.removeEventListener('online', onOnline);
     };
   }, []);
 

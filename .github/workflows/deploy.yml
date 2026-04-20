@@ -34,6 +34,10 @@ jobs:
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
+      - name: Bundle-size budget check
+        run: node scripts/check-bundle-size.mjs
+      - name: Physics engine tests
+        run: npm run test:physics
 
   deploy:
     name: Deploy to VPS

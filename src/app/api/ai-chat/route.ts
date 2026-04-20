@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimit, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -10,6 +10,9 @@ export const maxDuration = 30;
 // Anti-abuse: 20 requests per hour per session.
 const CHAT_LIMIT = 20;
 const CHAT_WINDOW_MS = 60 * 60 * 1000;
+// Global wallet cap across all users per hour.
+const CHAT_GLOBAL_LIMIT = 200;
+const CHAT_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 
 // ============================================================================
 // AI assistant scoped to this app: yachting / sailing / racing only.
@@ -72,9 +75,16 @@ export async function POST(req: Request) {
   const sid = jar.get('regatta_sid')?.value;
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
   const rlKey = 'chat:' + (sid ?? ip);
-  const rl = rateLimit(rlKey, CHAT_LIMIT, CHAT_WINDOW_MS);
+  const rl = rateLimitWithGlobal({
+    key: rlKey,
+    perKeyLimit: CHAT_LIMIT,
+    perKeyWindowMs: CHAT_WINDOW_MS,
+    globalKey: 'chat',
+    globalLimit: CHAT_GLOBAL_LIMIT,
+    globalWindowMs: CHAT_GLOBAL_WINDOW_MS,
+  });
   if (!rl.ok) {
-    logWarn('ai-chat.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs });
+    logWarn('ai-chat.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
       { error: 'Слишком много запросов. Попробуй через час.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
       { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
