@@ -29,7 +29,7 @@ export const pointsOfSail: PointOfSail[] = [
     speedFactor: 0,
     description: 'Яхта стоит носом прямо против ветра. Паруса полощутся (заполаскивают), тяга отсутствует. Это "мёртвая зона" - яхта не может двигаться в этом направлении.',
     descriptionEn: 'Boat is pointed directly into the wind. Sails luff (flap) with no drive. This is the "no-go zone" - the boat cannot sail in this direction.',
-    descriptionPl: 'Jacht stoi dziobem prosto pod wiatr. Zagle lopocza (lewa), brak sily ciagu. To strefa martwa - jacht nie moze plynac w tym kierunku.',
+    descriptionPl: 'Jacht stoi dziobem prosto pod wiatr. Zagle lopocza (powietrze nie tworzy ciagu), brak sily napedowej. To strefa martwa - jacht nie moze plynac w tym kierunku.',
     color: '#ff4444',
     sailWork: 'Паруса не работают - заполаскивают',
     sailWorkEn: 'Sails not working - luffing',

@@ -15,9 +15,22 @@ type Difficulty = 'easy' | 'medium' | 'hard';
 type GameState = 'menu' | 'briefing' | 'countdown' | 'racing' | 'finished' | 'replay';
 type BoatStyle = 'cruiser' | 'racer';
 
-const BOAT_STYLES: { id: BoatStyle; labelRu: string; labelEn: string; descRu: string; hullScale: number; hullWidth: number; sailHue: string }[] = [
-  { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', descRu: 'Сбалансированная, для начала.',       hullScale: 1.0,  hullWidth: 1.0,  sailHue: '#ffffff' },
-  { id: 'racer',   labelRu: 'Гоночная', labelEn: 'Racer',   descRu: 'Узкий длинный корпус, быстрая.',     hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
+const BOAT_STYLES: {
+  id: BoatStyle;
+  labelRu: string; labelEn: string; labelPl: string;
+  descRu: string; descEn: string; descPl: string;
+  hullScale: number; hullWidth: number; sailHue: string;
+}[] = [
+  { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', labelPl: 'Jacht turystyczny',
+    descRu: 'Сбалансированная, для начала.',
+    descEn: 'Balanced, good for starting out.',
+    descPl: 'Zbalansowany, dobry na poczatek.',
+    hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
+  { id: 'racer', labelRu: 'Гоночная', labelEn: 'Racer', labelPl: 'Regatowy',
+    descRu: 'Узкий длинный корпус, быстрая.',
+    descEn: 'Narrow long hull, fast.',
+    descPl: 'Waski dlugi kadlub, szybki.',
+    hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
 ];
 
 interface Vec2 { x: number; y: number }
@@ -97,9 +110,12 @@ const ACCEL = 2.5;                              // speed lerp factor
 const MARK_ROUND_DIST = 28;                     // distance to count mark rounded
 
 const DIFFICULTY_CONFIG: Record<Difficulty, {
-  label: string;
+  label: string;      // RU (legacy field name, kept for compat)
   labelEn: string;
-  description: string;
+  labelPl: string;
+  description: string;      // RU
+  descriptionEn: string;
+  descriptionPl: string;
   opponents: number;
   aiSpeedMul: number;
   aiSkill: number;
@@ -108,7 +124,10 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   easy: {
     label: 'Лёгкий',
     labelEn: 'Easy',
+    labelPl: 'Latwy',
     description: 'Медленные противники, спокойные повороты. Хорошо для знакомства с управлением.',
+    descriptionEn: 'Slow opponents, gentle turns. Good for getting used to the controls.',
+    descriptionPl: 'Wolni rywale, lagodne zwroty. Dobre do zapoznania sie ze sterowaniem.',
     opponents: 2,
     aiSpeedMul: 0.78,
     aiSkill: 0.7,
@@ -117,7 +136,10 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   medium: {
     label: 'Средний',
     labelEn: 'Medium',
+    labelPl: 'Sredni',
     description: 'Соперники держат курс уверенно. Нужна тактика лавировки и точное огибание знаков.',
+    descriptionEn: 'Opponents sail a confident line. You need tacking tactics and precise mark rounding.',
+    descriptionPl: 'Rywale plyna pewnie. Potrzebna taktyka halsowania i precyzyjne oplywanie znakow.',
     opponents: 3,
     aiSpeedMul: 0.92,
     aiSkill: 0.9,
@@ -126,7 +148,10 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   hard: {
     label: 'Сложный',
     labelEn: 'Hard',
+    labelPl: 'Trudny',
     description: 'Агрессивные соперники идут почти оптимально. Каждая ошибка дорого стоит.',
+    descriptionEn: 'Aggressive opponents sail near-optimal lines. Every mistake is costly.',
+    descriptionPl: 'Agresywni rywale plyna niemal optymalnie. Kazdy blad jest kosztowny.',
     opponents: 4,
     aiSpeedMul: 1.02,
     aiSkill: 1.0,
@@ -1238,7 +1263,7 @@ export default function GamePage() {
             color: DIFFICULTY_CONFIG[difficulty].color,
             border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
           }}>
-            {DIFFICULTY_CONFIG[difficulty].label} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
+            {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl)} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
           </div>
         </div>
 
@@ -2428,6 +2453,11 @@ function GameMenu({
   const mTitle = (m: Mission) => tp(m.titleRu, m.titleEn, m.titlePl);
   const mDesc = (m: Mission) => tp(m.descRu, m.descEn, m.descPl);
 
+  // Difficulty label picker. DIFFICULTY_CONFIG has `label` (RU, legacy
+  // name), labelEn, labelPl.
+  const difficultyLabel = (d: Difficulty) =>
+    tp(DIFFICULTY_CONFIG[d].label, DIFFICULTY_CONFIG[d].labelEn, DIFFICULTY_CONFIG[d].labelPl);
+
   // When tab changes, apply defaults
   useEffect(() => {
     if (tab === 'learn') {
@@ -2448,7 +2478,11 @@ function GameMenu({
     tab === 'mission' ? (selectedMission
       ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`)
       : tp('Выбери миссию', 'Pick a mission', 'Wybierz misje')) :
-    tp(`К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`, `To briefing · ${DIFFICULTY_CONFIG[difficulty].label}`, `Do briefingu · ${DIFFICULTY_CONFIG[difficulty].label}`);
+    tp(
+      `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`,
+      `To briefing · ${DIFFICULTY_CONFIG[difficulty].labelEn}`,
+      `Do briefingu · ${DIFFICULTY_CONFIG[difficulty].labelPl}`,
+    );
 
   const ctaColor =
     tab === 'learn' ? DIFFICULTY_CONFIG.easy.color :
@@ -2545,7 +2579,7 @@ function GameMenu({
               <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{mDesc(selectedMission)}</div>
               <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl)}</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                {tp('Автонастройки', 'Auto-settings', 'Autoustawienia')}: {DIFFICULTY_CONFIG[selectedMission.difficulty].label} · {tp('ветер', 'wind', 'wiatr')} {windLabel(selectedMission.windStrength)}
+                {tp('Автонастройки', 'Auto-settings', 'Autoustawienia')}: {difficultyLabel(selectedMission.difficulty)} · {tp('ветер', 'wind', 'wiatr')} {windLabel(selectedMission.windStrength)}
               </div>
             </div>
           )}
@@ -2627,8 +2661,8 @@ function GameMenu({
                   >
                     <BoatStylePreview style={b.id} />
                     <div>
-                      <div className="font-semibold text-[var(--text-primary)]">{b.labelRu}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{b.descRu}</div>
+                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl)}</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl)}</div>
                     </div>
                   </button>
                 );
