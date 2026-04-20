@@ -5,30 +5,31 @@ import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcam
 import { useI18n } from '@/lib/i18n';
 
 export default function QuickRefreshPage() {
-  const { lang, t } = useI18n();
+  const { lang, tp } = useI18n();
 
   return (
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(68, 255, 136, 0.1)', border: '1px solid rgba(68, 255, 136, 0.25)', color: 'var(--success)' }}>
-          ⚡ {t('Быстрое освежение', 'Quick refresh')}
+          ⚡ {tp('Быстрое освежение', 'Quick refresh', 'Szybkie odswiezenie')}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {QUICK_REFRESH_TOTAL_MINUTES} {t('минут перед стартом', 'min before start')}
+          {QUICK_REFRESH_TOTAL_MINUTES} {tp('минут перед стартом', 'min before start', 'minut przed startem')}
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          {t(
+          {tp(
             'Для тех у кого опыт уже есть и регата - завтра. 6 ключевых тем без воды.',
             'For experienced sailors with a regatta tomorrow. 6 key topics, no filler.',
+            'Dla doswiadczonych zeglarzy, ktorzy maja regate jutro. 6 kluczowych tematow, bez ogolnikow.',
           )}
         </p>
       </div>
 
       <div className="space-y-3">
         {quickRefreshLessons.map((l, i) => {
-          const title = lang === 'ru' ? l.titleRu : l.titleEn;
-          const tip = lang === 'ru' ? l.tipRu : l.tipEn;
+          const title = lang === 'pl' ? l.titlePl : lang === 'en' ? l.titleEn : l.titleRu;
+          const tip = lang === 'pl' ? l.tipPl : lang === 'en' ? l.tipEn : l.tipRu;
           return (
             <Link
               key={l.id}
@@ -41,7 +42,7 @@ export default function QuickRefreshPage() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <h3 className="font-semibold">{title}</h3>
                   <span className="text-[10px] px-2 py-0.5 rounded-full" style={{ background: 'rgba(68, 255, 136, 0.15)', color: 'var(--success)' }}>
-                    {l.estMinutes} {t('мин', 'min')}
+                    {l.estMinutes} {tp('мин', 'min', 'min')}
                   </span>
                 </div>
                 <p className="text-xs text-[var(--text-secondary)] mt-1">{tip}</p>
@@ -55,12 +56,13 @@ export default function QuickRefreshPage() {
       </div>
 
       <div className="mt-6 p-4 card text-center text-sm text-[var(--text-secondary)]">
-        {t(
+        {tp(
           'Если хочешь полный маршрут на 45+ минут -',
           'If you want the full 45+ min path -',
+          'Jesli chcesz pelna sciezke na 45+ minut -',
         )}{' '}
         <Link href="/start" className="text-[var(--accent-cyan)] hover:underline">
-          {t('Bootcamp', 'Bootcamp')}
+          Bootcamp
         </Link>
       </div>
     </div>
