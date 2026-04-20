@@ -200,11 +200,11 @@ function RaceCourseDiagram() {
 // ---------------------------------------------------------------------------
 
 function UpwindDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Upwind tacking strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      {/* Wind */}
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">ВЕТЕР</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
       <line x1="90" y1="18" x2="90" y2="32" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       <line x1="110" y1="18" x2="110" y2="32" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Target point */}
@@ -224,11 +224,11 @@ function UpwindDiagram() {
 }
 
 function DownwindDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Downwind VMG strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      {/* Wind */}
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">ВЕТЕР</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
       <line x1="100" y1="18" x2="100" y2="30" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Dead run line (slow) */}
       <line x1="100" y1="35" x2="100" y2="115" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,3" opacity="0.5" />
@@ -248,17 +248,17 @@ function DownwindDiagram() {
 }
 
 function StartDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Start line strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      {/* Wind */}
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">ВЕТЕР</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
       <line x1="100" y1="18" x2="100" y2="30" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Start line */}
       <line x1="30" y1="85" x2="170" y2="85" stroke="#ffaa00" strokeWidth="2" />
       <circle cx="30" cy="85" r="5" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
       <circle cx="170" cy="85" r="5" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
-      <text x="100" y="100" fill="#ffaa00" fontSize="8" textAnchor="middle">Стартовая линия</text>
+      <text x="100" y="100" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Стартовая линия', 'Start line', 'Linia startu')}</text>
       {/* Committee boat */}
       <rect x="163" y="77" width="14" height="8" rx="2" fill="#8ba7b8" opacity="0.6" />
       {/* Boats approaching */}
@@ -270,39 +270,34 @@ function StartDiagram() {
       <path d="M90,111 L93,90" fill="none" stroke="#44ff88" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       <path d="M130,104 L128,90" fill="none" stroke="#fff" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       {/* Favored end indicator */}
-      <text x="28" y="75" fill="#44ff88" fontSize="7" textAnchor="middle">Выгодный</text>
-      <text x="28" y="82" fill="#44ff88" fontSize="7" textAnchor="middle">конец</text>
+      <text x="28" y="75" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('Выгодный', 'Favored', 'Korzystny')}</text>
+      <text x="28" y="82" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('конец', 'end', 'koniec')}</text>
     </svg>
   );
 }
 
 function MarkRoundingDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Mark rounding strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      {/* Mark */}
       <circle cx="100" cy="50" r="8" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
-      <text x="100" y="30" fill="#ffaa00" fontSize="8" textAnchor="middle">Знак</text>
-      {/* 3 boat-lengths zone */}
+      <text x="100" y="30" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Знак', 'Mark', 'Znak')}</text>
       <circle cx="100" cy="50" r="35" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="3,3" opacity="0.3" />
-      <text x="140" y="48" fill="#ffaa00" fontSize="7" opacity="0.5">3 корпуса</text>
-      {/* Optimal trajectory: wide approach, tight exit */}
+      <text x="140" y="48" fill="#ffaa00" fontSize="7" opacity="0.5">{tp('3 корпуса', '3 hull-lengths', '3 dlugosci kadluba')}</text>
       <path
         d="M60,115 Q55,80 80,55 Q95,42 110,50 Q120,58 115,75"
         fill="none" stroke="#44ff88" strokeWidth="2" strokeDasharray="5,3"
       />
-      {/* Approach label */}
-      <text x="38" y="105" fill="#44ff88" fontSize="7">Широкий</text>
-      <text x="38" y="113" fill="#44ff88" fontSize="7">подход</text>
-      {/* Exit label */}
-      <text x="120" y="72" fill="#44ff88" fontSize="7">Узкий</text>
-      <text x="120" y="80" fill="#44ff88" fontSize="7">выход</text>
-      {/* Bad trajectory */}
+      <text x="38" y="105" fill="#44ff88" fontSize="7">{tp('Широкий', 'Wide', 'Szeroki')}</text>
+      <text x="38" y="113" fill="#44ff88" fontSize="7">{tp('подход', 'approach', 'podejscie')}</text>
+      <text x="120" y="72" fill="#44ff88" fontSize="7">{tp('Узкий', 'Tight', 'Waski')}</text>
+      <text x="120" y="80" fill="#44ff88" fontSize="7">{tp('выход', 'exit', 'wyjscie')}</text>
       <path
         d="M85,115 Q92,80 96,58"
         fill="none" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,3" opacity="0.5"
       />
-      <text x="88" y="96" fill="#ff4444" fontSize="7" opacity="0.6">Плохо</text>
+      <text x="88" y="96" fill="#ff4444" fontSize="7" opacity="0.6">{tp('Плохо', 'Bad', 'Zle')}</text>
       {/* Yacht */}
       <YachtIcon x={65} y={100} rotation={-50} color="#44ff88" />
     </svg>
@@ -395,15 +390,15 @@ function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[nu
 // ---------------------------------------------------------------------------
 
 function StarboardPortDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 160 100" className="w-full h-auto" aria-label="Starboard over port rule">
       <rect width="160" height="100" rx="6" fill="#0d2847" />
       {/* Starboard tack boat (right of way) */}
       <YachtIcon x={55} y={65} rotation={-40} color="#44ff88" />
-      <text x="35" y="82" fill="#44ff88" fontSize="7" fontWeight="600">Правый галс</text>
-      {/* Port tack boat (must give way) */}
+      <text x="35" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Правый галс', 'Starboard', 'Prawy hals')}</text>
       <YachtIcon x={105} y={55} rotation={220} color="#ff4444" />
-      <text x="90" y="82" fill="#ff4444" fontSize="7">Левый галс</text>
+      <text x="90" y="82" fill="#ff4444" fontSize="7">{tp('Левый галс', 'Port', 'Lewy hals')}</text>
       {/* Collision paths */}
       <line x1="60" y1="60" x2="80" y2="48" stroke="#44ff88" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       <line x1="100" y1="50" x2="80" y2="48" stroke="#ff4444" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
@@ -417,18 +412,16 @@ function StarboardPortDiagram() {
 }
 
 function LeewardWindwardDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 160 100" className="w-full h-auto" aria-label="Leeward over windward rule">
       <rect width="160" height="100" rx="6" fill="#0d2847" />
-      {/* Wind from left */}
       <line x1="15" y1="20" x2="40" y2="20" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.5" />
       <text x="28" y="15" fill="#00e5ff" fontSize="7" textAnchor="middle">Wind</text>
-      {/* Leeward boat (right of way) */}
       <YachtIcon x={90} y={60} rotation={-30} color="#44ff88" />
-      <text x="80" y="82" fill="#44ff88" fontSize="7" fontWeight="600">Подветренная</text>
-      {/* Windward boat */}
+      <text x="80" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Подветренная', 'Leeward', 'Zawietrzny')}</text>
       <YachtIcon x={60} y={45} rotation={-30} color="#ff4444" />
-      <text x="42" y="35" fill="#ff4444" fontSize="7">Наветренная</text>
+      <text x="42" y="35" fill="#ff4444" fontSize="7">{tp('Наветренная', 'Windward', 'Nawietrzny')}</text>
       {/* Wind direction arrows between boats */}
       <line x1="30" y1="50" x2="50" y2="50" stroke="#00e5ff" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
     </svg>
@@ -436,38 +429,33 @@ function LeewardWindwardDiagram() {
 }
 
 function OvertakingDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 160 100" className="w-full h-auto" aria-label="Overtaking boat keeps clear rule">
       <rect width="160" height="100" rx="6" fill="#0d2847" />
-      {/* Leading boat */}
       <YachtIcon x={80} y={35} rotation={0} color="#44ff88" />
-      <text x="92" y="38" fill="#44ff88" fontSize="7" fontWeight="600">Впереди</text>
-      {/* Overtaking boat */}
+      <text x="92" y="38" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Впереди', 'Ahead', 'Z przodu')}</text>
       <YachtIcon x={80} y={70} rotation={-10} color="#ff4444" />
-      <text x="92" y="73" fill="#ff4444" fontSize="7">Обгоняющая</text>
-      {/* Direction arrow */}
+      <text x="92" y="73" fill="#ff4444" fontSize="7">{tp('Обгоняющая', 'Overtaking', 'Wyprzedzajaca')}</text>
       <line x1="80" y1="82" x2="80" y2="22" stroke="#8ba7b8" strokeWidth="0.8" strokeDasharray="3,3" opacity="0.3" />
-      <text x="100" y="90" fill="#8ba7b8" fontSize="7" opacity="0.5">Направление</text>
+      <text x="100" y="90" fill="#8ba7b8" fontSize="7" opacity="0.5">{tp('Направление', 'Direction', 'Kierunek')}</text>
     </svg>
   );
 }
 
 function MarkRoomDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 160 100" className="w-full h-auto" aria-label="Mark room rule">
       <rect width="160" height="100" rx="6" fill="#0d2847" />
-      {/* Mark */}
       <circle cx="80" cy="30" r="6" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
-      {/* Zone circle */}
       <circle cx="80" cy="30" r="30" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="3,2" opacity="0.35" />
-      <text x="115" y="28" fill="#ffaa00" fontSize="6" opacity="0.6">Зона</text>
-      <text x="115" y="35" fill="#ffaa00" fontSize="6" opacity="0.6">3 корп.</text>
-      {/* Inside boat (has rights) */}
+      <text x="115" y="28" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('Зона', 'Zone', 'Strefa')}</text>
+      <text x="115" y="35" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('3 корп.', '3 hulls', '3 kadluby')}</text>
       <YachtIcon x={65} y={60} rotation={-40} color="#44ff88" />
-      <text x="42" y="78" fill="#44ff88" fontSize="7" fontWeight="600">Внутренняя</text>
-      {/* Outside boat */}
+      <text x="42" y="78" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Внутренняя', 'Inside', 'Wewnetrzny')}</text>
       <YachtIcon x={95} y={65} rotation={-35} color="#ff4444" />
-      <text x="95" y="85" fill="#ff4444" fontSize="7">Внешняя</text>
+      <text x="95" y="85" fill="#ff4444" fontSize="7">{tp('Внешняя', 'Outside', 'Zewnetrzny')}</text>
     </svg>
   );
 }
@@ -541,6 +529,7 @@ function VMGDiagram() {
 }
 
 function ClearAirDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 140 90" className="w-full h-auto">
       <rect width="140" height="90" rx="6" fill="#0d2847" />
@@ -557,12 +546,13 @@ function ClearAirDiagram() {
       <path d="M55,45 L45,85 L85,85 Z" fill="#ff4444" opacity="0.08" />
       <path d="M55,45 L45,85" stroke="#ff4444" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
       <path d="M55,45 L85,85" stroke="#ff4444" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
-      <text x="55" y="83" fill="#ff4444" fontSize="7" opacity="0.7" textAnchor="middle">Тень</text>
+      <text x="55" y="83" fill="#ff4444" fontSize="7" opacity="0.7" textAnchor="middle">{tp('Тень', 'Shadow', 'Cien')}</text>
     </svg>
   );
 }
 
 function WindShadowDiagram() {
+  const { tp } = useI18n();
   return (
     <svg viewBox="0 0 140 90" className="w-full h-auto">
       <rect width="140" height="90" rx="6" fill="#0d2847" />
@@ -580,7 +570,7 @@ function WindShadowDiagram() {
       {[55, 70, 85].map((x) => (
         <line key={x} x1={x} y1="55" x2={x} y2="62" stroke="#5a7a8a" strokeWidth="0.6" strokeDasharray="1,2" opacity="0.4" />
       ))}
-      <text x="70" y="80" fill="#5a7a8a" fontSize="8" textAnchor="middle">Ветровая тень</text>
+      <text x="70" y="80" fill="#5a7a8a" fontSize="8" textAnchor="middle">{tp('Ветровая тень', 'Wind shadow', 'Cien wiatru')}</text>
       <text x="70" y="88" fill="#5a7a8a" fontSize="6" textAnchor="middle">(Wind Shadow)</text>
     </svg>
   );

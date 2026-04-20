@@ -495,10 +495,11 @@ function WindDiagram({
 
 // --- Speed bar ---
 function SpeedBar({ factor, color }: { factor: number; color: string }) {
+  const { tp } = useI18n();
   const pct = Math.round(factor * 100);
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">Скорость</span>
+      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Predkosc')}</span>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
         <div
           className="h-full rounded-full"

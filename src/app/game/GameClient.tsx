@@ -2635,7 +2635,10 @@ function GameMenu({
         onClick={() => setDetailsOpen(!detailsOpen)}
         className="w-full mb-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1 transition"
       >
-        <span>{detailsOpen ? 'Скрыть детали' : 'Показать управление и правила трассы'}</span>
+        <span>{detailsOpen
+          ? tp('Скрыть детали', 'Hide details', 'Ukryj szczegoly')
+          : tp('Показать управление и правила трассы', 'Show controls and course rules', 'Pokaz sterowanie i zasady trasy')
+        }</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
              style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
           <polyline points="6 9 12 15 18 9"/>
