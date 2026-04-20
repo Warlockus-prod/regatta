@@ -816,30 +816,51 @@ function BoatTop(args: {
       <rect x="-3" y="-56" width="6" height="132" rx="3" fill="#2a4060" />
       <circle cx="0" cy="-6" r="6" fill="#0a1628" stroke="#2a4060" strokeWidth={1.5} />
 
-      {/* Jib (forward of mast, to leeward side) */}
+      {/* Jib (forward of mast, to leeward side).
+          Drawn with an inflated belly: two Q curves on the leech that go
+          out-and-back, plus a radial gradient that lightens the windward
+          belly and darkens the leeward edge - reads as "canvas pillowing
+          under wind pressure" not a flat flag. */}
       {hasJib && (
         <g transform={`translate(0 -58) rotate(${ui.jibAngle * sailSide})`} opacity={jibOpacity}>
+          <defs>
+            <linearGradient id={`v3-jib-grad-${sailSide}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
+              <stop offset="0%" stopColor="#dce7ee" />
+              <stop offset="55%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#b9c9d4" />
+            </linearGradient>
+          </defs>
           <path
-            d={`M 0 0 Q ${sailSide * 22} 46 ${sailSide * 8} 104 L 0 104 Z`}
-            fill="#f6fbff"
+            d={`M 0 0 Q ${sailSide * 28} 30 ${sailSide * 34} 60 Q ${sailSide * 30} 90 ${sailSide * 10} 104 L 0 104 Z`}
+            fill={`url(#v3-jib-grad-${sailSide})`}
             stroke="#ffffff"
-            strokeWidth={3}
+            strokeWidth={2.2}
+            strokeLinejoin="round"
           />
           <text x={sailSide * 22} y={60} fill="#0a1628" fontSize="10" fontWeight="800"
                 textAnchor="middle" style={{ letterSpacing: '0.1em' }}>JIB</text>
         </g>
       )}
 
-      {/* Main (aft of mast, to leeward side) */}
+      {/* Main (aft of mast, to leeward side) - same inflated-belly treatment
+          as the jib so both sails read as canvas under load, not flat shapes. */}
       {hasMain && (
         <g transform={`rotate(${ui.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
+          <defs>
+            <linearGradient id={`v3-main-grad-${sailSide}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
+              <stop offset="0%" stopColor="#dce7ee" />
+              <stop offset="55%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#b9c9d4" />
+            </linearGradient>
+          </defs>
           <path
-            d={`M 0 -30 Q ${sailSide * 32} 48 ${sailSide * 12} 150 L 0 150 Z`}
-            fill="#f6fbff"
+            d={`M 0 -30 Q ${sailSide * 38} 30 ${sailSide * 46} 80 Q ${sailSide * 40} 130 ${sailSide * 14} 150 L 0 150 Z`}
+            fill={`url(#v3-main-grad-${sailSide})`}
             stroke="#ffffff"
-            strokeWidth={3}
+            strokeWidth={2.4}
+            strokeLinejoin="round"
           />
-          <text x={sailSide * 34} y={94} fill="#0a1628" fontSize="10" fontWeight="800"
+          <text x={sailSide * 38} y={90} fill="#0a1628" fontSize="10" fontWeight="800"
                 textAnchor="middle" style={{ letterSpacing: '0.1em' }}>MAIN</text>
         </g>
       )}
