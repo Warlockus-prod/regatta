@@ -740,11 +740,21 @@ export default function CoursesPage() {
             WebkitTextFillColor: 'transparent',
           }}
         >
-          Курсы относительно ветра
+          {lang === 'ru'
+            ? 'Курсы относительно ветра'
+            : lang === 'pl'
+            ? 'Kursy wzgledem wiatru'
+            : 'Points of Sail'}
         </h1>
-        <p className="text-sm text-[var(--text-muted)]">Points of Sail</p>
+        {lang !== 'en' && (
+          <p className="text-sm text-[var(--text-muted)]">Points of Sail</p>
+        )}
         <p className="max-w-xl mx-auto text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">
-          Нажми на сектор диаграммы или на карточку ниже, чтобы узнать подробности о каждом курсе.
+          {lang === 'ru'
+            ? 'Нажми на сектор диаграммы или на карточку ниже, чтобы узнать подробности о каждом курсе.'
+            : lang === 'pl'
+            ? 'Kliknij na sektor diagramu lub karte ponizej, aby poznac szczegoly kazdego kursu.'
+            : 'Click a diagram sector or a card below to see details of each course.'}
         </p>
       </section>
 
