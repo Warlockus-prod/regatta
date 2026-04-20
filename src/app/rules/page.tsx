@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
+import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
 // Scenario illustrations - pure SVG, stylized, readable on any background
@@ -170,7 +171,16 @@ const SVG_MAP: Record<RuleScenario['svg'], () => React.ReactElement> = {
 // ============================================================================
 
 export default function RulesPage() {
+  const { lang, tp } = useI18n();
   const [openId, setOpenId] = useState<string | null>(ruleScenarios[0].id);
+
+  // Pick field per lang. EN stays as the international subtitle.
+  const pickTitle = (r: RuleScenario) => lang === 'pl' ? r.titlePl : lang === 'en' ? r.titleEn : r.titleRu;
+  const pickScene = (r: RuleScenario) => lang === 'pl' ? r.scenePl : lang === 'en' ? r.sceneEn : r.sceneRu;
+  const pickQuestion = (r: RuleScenario) => lang === 'pl' ? r.questionPl : lang === 'en' ? r.questionEn : r.questionRu;
+  const pickAnswer = (r: RuleScenario) => lang === 'pl' ? r.answerPl : lang === 'en' ? r.answerEn : r.answerRu;
+  const pickWhy = (r: RuleScenario) => lang === 'pl' ? r.whyPl : lang === 'en' ? r.whyEn : r.whyRu;
+  const pickPractice = (r: RuleScenario) => lang === 'pl' ? r.inPracticePl : lang === 'en' ? r.inPracticeEn : r.inPracticeRu;
 
   return (
     <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
@@ -178,11 +188,21 @@ export default function RulesPage() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          📖 Простые правила
+          📖 {tp('Простые правила', 'Simple rules', 'Proste zasady')}
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">8 ситуаций - и ты не потеряешься</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+          {tp(
+            '8 ситуаций - и ты не потеряешься',
+            '8 scenarios - and you won\'t get lost',
+            '8 sytuacji - i nie zgubisz sie',
+          )}
+        </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          Не учебник правил, а базовые расклады с воды: сцена → вопрос → ответ → почему → что делать на практике. Открывай по одной.
+          {tp(
+            'Не учебник правил, а базовые расклады с воды: сцена → вопрос → ответ → почему → что делать на практике. Открывай по одной.',
+            'Not a rulebook, but the basic on-water situations: scene → question → answer → why → what to do in practice. Open one at a time.',
+            'Nie podrecznik zasad, lecz podstawowe sytuacje z wody: scena → pytanie → odpowiedz → dlaczego → co robic w praktyce. Otwieraj po jednej.',
+          )}
         </p>
       </div>
 
@@ -204,8 +224,10 @@ export default function RulesPage() {
                 <div className="flex items-center gap-3 min-w-0">
                   <span className="text-2xl shrink-0">{r.icon}</span>
                   <div className="min-w-0">
-                    <div className="text-base sm:text-lg font-semibold truncate">{r.titleRu}</div>
-                    <div className="text-xs text-[var(--text-muted)] truncate">{r.titleEn}</div>
+                    <div className="text-base sm:text-lg font-semibold truncate">{pickTitle(r)}</div>
+                    {lang !== 'en' && (
+                      <div className="text-xs text-[var(--text-muted)] truncate">{r.titleEn}</div>
+                    )}
                   </div>
                 </div>
                 <svg
@@ -228,32 +250,43 @@ export default function RulesPage() {
                   {/* Illustration */}
                   <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
                     <SvgComp />
-                    <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">схематично, не в масштабе</div>
+                    <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
+                      {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali')}
+                    </div>
                   </div>
 
                   {/* Content */}
                   <div className="space-y-4 text-sm">
                     <div>
-                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Сцена</div>
-                      <p className="text-[var(--text-secondary)]">{r.sceneRu}</p>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">
+                        {tp('Сцена', 'Scene', 'Scena')}
+                      </div>
+                      <p className="text-[var(--text-secondary)]">{pickScene(r)}</p>
                     </div>
 
                     <div className="p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent-cyan)' }}>Вопрос → Ответ</div>
-                      <p className="font-medium mb-2">{r.questionRu}</p>
-                      <p className="text-[var(--text-primary)]">{r.answerRu}</p>
+                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent-cyan)' }}>
+                        {tp('Вопрос → Ответ', 'Question → Answer', 'Pytanie → Odpowiedz')}
+                      </div>
+                      <p className="font-medium mb-2">{pickQuestion(r)}</p>
+                      <p className="text-[var(--text-primary)]">{pickAnswer(r)}</p>
                     </div>
 
                     <div>
-                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">Почему</div>
-                      <p className="text-[var(--text-secondary)]">{r.whyRu}</p>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">
+                        {tp('Почему', 'Why', 'Dlaczego')}
+                      </div>
+                      <p className="text-[var(--text-secondary)]">{pickWhy(r)}</p>
                     </div>
 
                     <div className="p-3 rounded-lg" style={{ background: 'rgba(68, 255, 136, 0.05)', border: '1px solid rgba(68, 255, 136, 0.15)' }}>
-                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--success)' }}>На практике</div>
-                      <p className="text-[var(--text-primary)]">{r.inPracticeRu}</p>
+                      <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--success)' }}>
+                        {tp('На практике', 'In practice', 'W praktyce')}
+                      </div>
+                      <p className="text-[var(--text-primary)]">{pickPractice(r)}</p>
                     </div>
 
+                    {lang !== 'en' && (
                     <details className="text-xs text-[var(--text-muted)]">
                       <summary className="cursor-pointer hover:text-[var(--text-secondary)]">English version</summary>
                       <div className="mt-2 space-y-2 pl-2 border-l border-[rgba(139,167,184,0.2)]">
@@ -264,6 +297,7 @@ export default function RulesPage() {
                         <p><strong>In practice:</strong> {r.inPracticeEn}</p>
                       </div>
                     </details>
+                    )}
                   </div>
                 </div>
               )}

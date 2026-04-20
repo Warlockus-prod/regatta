@@ -142,7 +142,7 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
 }
 
 export default function AnatomyPage() {
-  const { lang, t } = useI18n();
+  const { lang, t, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
@@ -176,44 +176,44 @@ export default function AnatomyPage() {
         <div className="lg:sticky lg:top-20 lg:self-start">
           {active ? (
             <div className="card p-5">
-              <div className="text-xs text-[var(--text-muted)] mb-1">{t('Деталь', 'Part')}</div>
+              <div className="text-xs text-[var(--text-muted)] mb-1">{tp('Деталь', 'Part', 'Element')}</div>
               <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                {lang === 'ru' ? active.nameRu : active.nameEn}
+                {lang === 'pl' ? active.namePl : lang === 'en' ? active.nameEn : active.nameRu}
               </h2>
               <div className="text-sm text-[var(--text-muted)] mb-4">
-                {lang === 'ru' ? active.nameEn : active.nameRu}
+                {active.nameEn}
               </div>
 
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                    {t('Что это', 'What it is')}
+                    {tp('Что это', 'What it is', 'Co to jest')}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
-                    {lang === 'ru' ? active.descRu : active.descEn}
+                    {lang === 'pl' ? active.descPl : lang === 'en' ? active.descEn : active.descRu}
                   </p>
                 </div>
 
                 <div className="p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
                   <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                    {t('На борту', 'On board')}
+                    {tp('На борту', 'On board', 'Na pokladzie')}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
-                    {lang === 'ru' ? active.useOnBoardRu : active.useOnBoardEn}
+                    {lang === 'pl' ? active.useOnBoardPl : lang === 'en' ? active.useOnBoardEn : active.useOnBoardRu}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
             <div className="card p-5 text-sm text-[var(--text-muted)]">
-              {t('Нажми на точку на диаграмме', 'Click a hotspot on the diagram')}
+              {tp('Нажми на точку на диаграмме', 'Click a hotspot on the diagram', 'Kliknij punkt na diagramie')}
             </div>
           )}
 
           {/* Quick jump list */}
           <div className="card p-3 mt-3">
             <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">
-              {t('Все детали', 'All parts')}
+              {tp('Все детали', 'All parts', 'Wszystkie elementy')}
             </div>
             <div className="grid grid-cols-2 gap-1">
               {anatomyParts.map((p) => (
@@ -226,7 +226,7 @@ export default function AnatomyPage() {
                     color: activeId === p.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                   }}
                 >
-                  {lang === 'ru' ? p.nameRu : p.nameEn}
+                  {lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu}
                 </button>
               ))}
             </div>
