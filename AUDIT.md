@@ -164,10 +164,6 @@ becomes a real usage cohort.
 **Severity:** cosmetic. Camera at `[5, 4.5, 11]` reads better than the
 old `[8, 5, 9]` but still shows sails flat at some TWA combinations.
 
-### R7. Legacy wave docs still in tree
-**Severity:** docs-hygiene. `PROBLEMS.md`, `WAVE6.md` - not updated
-since pre-Phase 0. Candidates for a delete sweep.
-
 ---
 
 ## Verified in this audit window (2026-04-20)

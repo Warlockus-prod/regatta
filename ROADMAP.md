@@ -134,7 +134,6 @@ Tasks:
 - Delete `src/lib/race-physics.ts`
 - `/courses` links: verify they still make sense with the new simulator
   (they likely do; page is conceptual, not physics)
-- Delete `PROBLEMS.md` and `WAVE6.md` (fold useful bits into MEMORY.md)
 - Run full Playwright smoke across all routes
 
 Exit criteria:
