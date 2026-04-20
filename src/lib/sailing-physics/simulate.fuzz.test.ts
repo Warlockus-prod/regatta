@@ -126,7 +126,8 @@ describe('physics engine: property-based invariants', () => {
     fc.assert(
       fc.property(normalWindArb, controlsArb, (wind, controls) => {
         const state = createInitialState({ tws: wind.tws, twa: wind.twa });
-        const result = settle(state, controls, params);
+        // 30 sim-seconds is enough for settle() to reach a stable velocity
+        const result = settle(state, controls, params, 30);
         expect(allFinite(result.state as unknown as Record<string, unknown>)).toBe(true);
         expect(allFinite(result.diag as unknown as Record<string, unknown>)).toBe(true);
         expect(result.state.boatSpeed).toBeGreaterThanOrEqual(0);
