@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 
 type Tab = 'ai' | 'feedback';
@@ -19,10 +20,14 @@ interface ChatMsg {
 
 export default function FeedbackWidget({ hideOn = [] }: Props) {
   const { tp, lang } = useI18n();
+  // usePathname() gives us reactive pathname that updates on every
+  // client-side navigation. Previously we read window.location once on
+  // mount, which meant hideOn and `path` froze at the first route.
+  const pathname = usePathname();
 
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>('ai');
-  const [shouldHide, setShouldHide] = useState(true);
+  const shouldHide = hideOn.some((p) => pathname.startsWith(p));
 
   // Feedback tab state
   const [kind, setKind] = useState<Kind>('feedback');
@@ -34,7 +39,9 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   const [sending, setSending] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [path, setPath] = useState<string>('');
+  // The actual current pathname (updated per-navigation), used when posting
+  // feedback so we know which route the user was on.
+  const path = pathname;
 
   // AI chat state
   const [chat, setChat] = useState<ChatMsg[]>([]);
@@ -42,13 +49,6 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      setPath(window.location.pathname);
-      setShouldHide(hideOn.some((p) => window.location.pathname.startsWith(p)));
-    }
-  }, [hideOn]);
 
   // Reset chat scroll on new message
   useEffect(() => {

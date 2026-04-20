@@ -1,16 +1,22 @@
 'use client';
 
 import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
 
 /**
  * Mounted once in the root layout - attaches listeners for uncaught errors
  * and unhandled promise rejections, sending them to /api/log.
  *
- * Also logs a lightweight "page-view" event for each navigation so we can
- * see in the server logs which pages are actually being used.
+ * Also logs a `page.view` event on every client-side navigation so the
+ * /stats dashboard actually reflects what the user browsed. Previously
+ * fired once on layout mount (i.e. one event per session), which made
+ * per-route analytics garbage.
  */
 export default function ClientErrorReporter() {
+  const pathname = usePathname();
+
+  // Error + online handlers - mount once.
   useEffect(() => {
     const onError = (e: ErrorEvent) => {
       clientError('js.uncaught', {
@@ -37,19 +43,23 @@ export default function ClientErrorReporter() {
     const onOnline = () => flushBufferedLogs();
     window.addEventListener('online', onOnline);
 
-    clientInfo('page.view', {
-      path: window.location.pathname,
-      referrer: document.referrer || null,
-      viewport: `${window.innerWidth}x${window.innerHeight}`,
-      ua: navigator.userAgent.slice(0, 200),
-    });
-
     return () => {
       window.removeEventListener('error', onError);
       window.removeEventListener('unhandledrejection', onRejection);
       window.removeEventListener('online', onOnline);
     };
   }, []);
+
+  // Page-view per navigation. usePathname() is reactive so this fires on
+  // every route change in the SPA, including the initial load.
+  useEffect(() => {
+    clientInfo('page.view', {
+      path: pathname,
+      referrer: document.referrer || null,
+      viewport: `${window.innerWidth}x${window.innerHeight}`,
+      ua: navigator.userAgent.slice(0, 200),
+    });
+  }, [pathname]);
 
   return null;
 }

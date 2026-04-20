@@ -1242,9 +1242,32 @@ export default function GamePage() {
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">Брифинг</h1>
+        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+          {tp('Брифинг', 'Briefing', 'Briefing')}
+        </h1>
+
+        {/* ARCADE badge - makes it explicit that /game uses simplified physics
+            (race-physics.ts lookup model), different from /simulator-v3 (VPP
+            force balance). Users who noticed "speed differs between /game and
+            /simulator" were confused; this banner explains why. */}
+        <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full text-xs font-semibold"
+             style={{ background: 'rgba(255, 170, 0, 0.12)', border: '1px solid rgba(255, 170, 0, 0.3)', color: 'var(--warning)' }}>
+          <span>🕹️</span>
+          <span>
+            {tp(
+              'АРКАДНЫЙ РЕЖИМ · физика упрощена для скорости игры. Настоящая - в /simulator-v3',
+              'ARCADE MODE · simplified physics for gameplay speed. Real physics lives in /simulator-v3',
+              'TRYB ARCADE · uproszczona fizyka dla szybkiej rozgrywki. Prawdziwa jest w /simulator-v3',
+            )}
+          </span>
+        </div>
+
         <p className="text-sm text-[var(--text-secondary)] mb-6">
-          Что делать и как не накосячить. Прочитай - старт через 3 секунды будет некогда разбираться.
+          {tp(
+            'Что делать и как не накосячить. Прочитай - старт через 3 секунды будет некогда разбираться.',
+            'What to do and how not to screw up. Read it - in 3 seconds you won\'t have time.',
+            'Co robic i jak sie nie pomylic. Przeczytaj - za 3 sekundy nie bedzie czasu.',
+          )}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">

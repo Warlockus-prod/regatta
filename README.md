@@ -35,7 +35,7 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 - Three.js + @react-three/fiber + drei (V2 simulator)
 - SVG (V3 simulator, static diagrams)
 - SQLite via better-sqlite3 (`/data/regatta-stats.db` on VPS)
-- Separate WebSocket server at `:4501` (multiplayer)
+- Separate WebSocket server at `:4502` (multiplayer)
 - Claude Haiku 4.5 via `@anthropic-ai/sdk` (coach + AI chat)
 - Standalone Next build, Docker Compose on VPS, GitHub Actions CI/CD
 
@@ -63,4 +63,4 @@ docker compose up -d --build
 
 ## Deployment
 
-Deployed on the shared `icoffio.com` VPS via Docker Compose + nginx reverse proxy. See `DEPLOY.md`.
+Deployed on the shared `icoffio.com` VPS via Docker Compose + nginx reverse proxy. CI/CD: `.github/workflows/deploy.yml` (push to main triggers build + SSH deploy + Playwright smoke on prod).

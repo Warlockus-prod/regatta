@@ -315,7 +315,7 @@ room, stress-tested 8 clients at 20.3 Hz.
 
 **Architecture:**
 - Client connects to `wss://regatta.icoffio.com/ws/` (reverse-proxied
-  to `:4501`).
+  to `:4502`).
 - Server (`ws-server/`) is a separate Node process, not part of the
   Next build.
 - Server is authoritative: client sends intent (heading, sheet), server
@@ -385,7 +385,7 @@ redeploys.
 **Helpers** from `src/lib/i18n.tsx`:
 - `t(ru, en)` for RU + EN strings.
 - `tp(ru, en, pl)` for full trilingual strings.
-- `useI18n()` hook reads `lang` cookie set by `src/middleware.ts`.
+- `useI18n()` reads `lang` from `localStorage.getItem('regatta.lang.v1')`, falls back to `navigator.language` parsing on first visit, defaults to `ru`. Persisted in `localStorage` only (no cookie).
 
 **Coverage (2026-04-20):**
 - Navigation: full PL (Glowna, Start, Kursy wiatru, Symulator, Regata,
@@ -468,7 +468,7 @@ All under rate-limit (per IP + per session, in-memory) and CSP.
 **3D (V2 only):** `@react-three/fiber` + `@react-three/drei` + three.js.
 **DB:** `better-sqlite3` at `/data/regatta-stats.db`.
 **AI:** `@anthropic-ai/sdk`, Claude Haiku 4.5, prompt caching on system.
-**Realtime:** separate `ws` process on `:4501`, 20 Hz authoritative.
+**Realtime:** separate `ws` process on `:4502`, 20 Hz authoritative.
 **Tests:** Vitest (physics engine only), Playwright MCP (manual browser
 tests, see `docs/TEST_RUN_*.md`).
 **PWA:** manifest + SVG icons, installable.
@@ -476,7 +476,7 @@ tests, see `docs/TEST_RUN_*.md`).
 **Infrastructure:**
 - VPS at `46.225.11.249` (Ubuntu).
 - Docker Compose: `regatta` container on `172.17.0.1:4500`,
-  `regatta-ws` on `172.17.0.1:4501`.
+  `regatta-ws` on `172.17.0.1:4502`.
 - Nginx with Let's Encrypt SSL. CSP in `regatta.nginx.conf` - only
   `'self'`, no external image / font / HDR sources. That CSP is why
   V2's original `<Environment preset="sunset">` was replaced (the HDR

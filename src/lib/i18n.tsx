@@ -42,6 +42,16 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Keep <html lang="..."> in sync with the current lang. Previously the
+  // root layout hardcoded lang="ru" and only setLang() updated it at runtime,
+  // which meant auto-picked EN/PL users had the wrong attribute for screen
+  // readers and search engine tooling.
+  useEffect(() => {
+    if (typeof document !== 'undefined') {
+      document.documentElement.lang = lang;
+    }
+  }, [lang]);
+
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     try { localStorage.setItem(STORAGE_KEY, l); } catch { /* ignore */ }

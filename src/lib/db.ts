@@ -181,13 +181,26 @@ export function insertEvent(e: EventInsert): void {
       e.meta ? JSON.stringify(e.meta) : null,
     );
 
-    // Upsert session
+    // Upsert session. visit_count only increments on actual page views,
+    // not on every telemetry event (which was the old bug - visit_count
+    // grew with every log/feedback/coach call and overstated traffic).
     if (e.sessionId) {
+      const isPageView = e.evt === 'page.view';
       d.prepare(`
         INSERT INTO sessions (id, first_seen, last_seen, device, language, visit_count)
-        VALUES (?, ?, ?, ?, ?, 1)
-        ON CONFLICT(id) DO UPDATE SET last_seen = excluded.last_seen, visit_count = visit_count + 1
-      `).run(e.sessionId, Date.now(), Date.now(), detectDevice(e.ua), e.language ?? null);
+        VALUES (?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+          last_seen = excluded.last_seen,
+          visit_count = visit_count + ?
+      `).run(
+        e.sessionId,
+        Date.now(),
+        Date.now(),
+        detectDevice(e.ua),
+        e.language ?? null,
+        isPageView ? 1 : 0,
+        isPageView ? 1 : 0,
+      );
     }
   } catch {
     // Don't crash on DB errors - best-effort telemetry
@@ -424,13 +437,27 @@ export interface LeaderboardRow {
 export function topByDifficulty(difficulty: string, wind: string, limit = 20): LeaderboardRow[] {
   try {
     const d = db();
-    // Best (shortest) finish time per player for the given bucket
+    // Pick ONE best race per sid - the row with the shortest finish_time_sec.
+    // Previously used MIN(time) + MAX(score) + MAX(ts) with GROUP BY sid,
+    // which synthesized a fake row from different races of the same player
+    // (best time from race A, best score from race B, latest ts from race C -
+    // a combination that never existed). Now we use a window function to
+    // select the actual winning row per sid.
     return d.prepare(`
-      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
-             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
-      FROM race_results r
-      WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL
-      GROUP BY r.sid
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.difficulty = ? AND r.wind_strength = ? AND r.mission_id IS NULL
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts
+      FROM ranked
+      WHERE rn = 1
       ORDER BY finish_time_sec ASC
       LIMIT ?
     `).all(difficulty, wind, limit) as LeaderboardRow[];
@@ -443,11 +470,20 @@ export function topByMission(missionId: string, limit = 20): LeaderboardRow[] {
   try {
     const d = db();
     return d.prepare(`
-      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
-             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
-      FROM race_results r
-      WHERE r.mission_id = ?
-      GROUP BY r.sid
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.mission_id = ?
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts
+      FROM ranked
+      WHERE rn = 1
       ORDER BY finish_time_sec ASC
       LIMIT ?
     `).all(missionId, limit) as LeaderboardRow[];
@@ -572,14 +608,23 @@ export function getDailyLeaderboard(day: string, limit = 10): LeaderboardRow[] {
     const dayStart = Date.parse(day + 'T00:00:00Z');
     const dayEnd = dayStart + 24 * 60 * 60 * 1000;
     return d.prepare(`
-      SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
-             MIN(r.finish_time_sec) as finish_time_sec, MAX(r.score) as score, MAX(r.ts) as ts
-      FROM race_results r
-      WHERE r.ts >= ? AND r.ts < ?
-        AND r.difficulty = ?
-        AND r.wind_strength = ?
-        AND r.mission_id IS NULL
-      GROUP BY r.sid
+      WITH ranked AS (
+        SELECT r.nickname, r.sid, r.difficulty, r.wind_strength, r.mission_id,
+               r.finish_time_sec, r.score, r.ts,
+               ROW_NUMBER() OVER (
+                 PARTITION BY r.sid
+                 ORDER BY r.finish_time_sec ASC, r.ts DESC
+               ) AS rn
+        FROM race_results r
+        WHERE r.ts >= ? AND r.ts < ?
+          AND r.difficulty = ?
+          AND r.wind_strength = ?
+          AND r.mission_id IS NULL
+      )
+      SELECT nickname, sid, difficulty, wind_strength, mission_id,
+             finish_time_sec, score, ts
+      FROM ranked
+      WHERE rn = 1
       ORDER BY finish_time_sec ASC
       LIMIT ?
     `).all(dayStart, dayEnd, daily.difficulty, daily.wind_strength, limit) as LeaderboardRow[];

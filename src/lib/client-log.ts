@@ -32,10 +32,14 @@ const dedupMap = new Map<string, number>(); // signature -> last emission ts
 let sessionCount = 0;
 
 function hashSig(level: Level, evt: string, fields: Record<string, unknown>): string {
-  // Use evt + msg + first stack line to collapse "same error, different timestamps"
+  // Use evt + msg + first stack line to collapse "same error, different timestamps".
+  // `path` is included so that page.view events for different routes are
+  // treated as distinct events (otherwise all page.views dedup to the same
+  // signature and analytics miss most navigations).
   const msg = String(fields.msg ?? fields.reason ?? '').slice(0, 120);
   const firstStackLine = String(fields.stack ?? '').split('|')[0]?.trim().slice(0, 80) ?? '';
-  return `${level}:${evt}:${msg}:${firstStackLine}`;
+  const path = String(fields.path ?? '').slice(0, 80);
+  return `${level}:${evt}:${path}:${msg}:${firstStackLine}`;
 }
 
 function send(body: string): void {

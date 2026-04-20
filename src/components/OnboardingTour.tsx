@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 const STORAGE_KEY = 'regatta.onboarding.v1';
 const HIDE_ON = ['/simulator', '/game', '/multiplayer'];
@@ -24,14 +25,22 @@ const STEPS = [
 ];
 
 export default function OnboardingTour() {
+  const pathname = usePathname();
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(0);
 
+  // Reactive hideOn: recompute when pathname changes. Previously the check
+  // happened once on mount, so navigating INTO an immersive page via client
+  // routing still showed the tour.
+  const onHiddenRoute = HIDE_ON.some((p) => pathname.startsWith(p));
+
   useEffect(() => {
+    if (onHiddenRoute) {
+      // If we're on an immersive route, make sure the tour is hidden.
+      setShow(false);
+      return;
+    }
     try {
-      if (typeof window !== 'undefined' && HIDE_ON.some((p) => window.location.pathname.startsWith(p))) {
-        return;
-      }
       if (!localStorage.getItem(STORAGE_KEY)) {
         // Delay slightly so page is rendered
         const t = setTimeout(() => setShow(true), 600);
@@ -40,7 +49,7 @@ export default function OnboardingTour() {
     } catch {
       // localStorage may throw in private browsing
     }
-  }, []);
+  }, [onHiddenRoute]);
 
   const finish = () => {
     try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* ignore */ }

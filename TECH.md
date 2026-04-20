@@ -29,7 +29,7 @@ architecture, modules, data flow, infrastructure.
 - **AI:** Claude Haiku 4.5 via `@anthropic-ai/sdk`, prompt caching on
   the system prompt
 - **Realtime:** separate WebSocket server (`ws` library, 20 Hz
-  authoritative) at `:4501` on VPS, consumed by `/multiplayer` page
+  authoritative) at `:4502` on VPS, consumed by `/multiplayer` page
 - **i18n:** custom hook `useI18n()` from `src/lib/i18n`, `t(ru, en)` or
   `tp(ru, en, pl)` helper; three languages RU / EN / PL
 - **Tests:** Vitest (physics engine only, `npm run test:physics`);
@@ -199,7 +199,7 @@ in `GameClient.tsx`.
 ## Multiplayer server (`ws-server/`, not in Next build)
 
 - Separate Node process with `ws` library
-- Port `:4501` bound to `172.17.0.1` on VPS
+- Port `:4502` bound to `172.17.0.1` on VPS
 - Authoritative 20 Hz tick: receives player intents (heading, sheet),
   simulates world, broadcasts state back
 - Stress-tested 8 clients at 20.3 Hz (single session, earlier)
@@ -223,7 +223,7 @@ backup -> status transitions in `/stats`.
 in `GameClient.tsx`. Race log accumulated; on finish POSTed to
 `/api/coach` which hands to Claude Haiku with a cached system prompt.
 
-**Multiplayer:** client -> WS `:4501` -> authoritative 20 Hz server
+**Multiplayer:** client -> WS `:4502` -> authoritative 20 Hz server
 -> broadcast world state back. Session identity via `regatta_sid`
 cookie set by `src/middleware.ts` (one session per browser, not per
 tab).
@@ -233,7 +233,7 @@ tab).
 `/api/replay/[code]`. Invalid codes render a clean error state, not
 a 500.
 
-**i18n:** `useI18n()` reads `lang` from cookie set by middleware;
+**i18n:** `useI18n()` reads `lang` from `localStorage.getItem('regatta.lang.v1')`, falling back to `navigator.language` on first visit. `setLang()` writes both `localStorage` and `document.documentElement.lang`. No cookie involved.
 components use `t('ru', 'en')` or `tp('ru', 'en', 'pl')`.
 
 ---
@@ -242,7 +242,7 @@ components use `t('ru', 'en')` or `tp('ru', 'en', 'pl')`.
 
 - VPS: `46.225.11.249` (Ubuntu)
 - Next app container: `172.17.0.1:4500`
-- WS container: `172.17.0.1:4501`
+- WS container: `172.17.0.1:4502`
 - Nginx: Let's Encrypt SSL, CSP in `regatta.nginx.conf` - only
   `'self'`, no external HDR / image / font sources (which is why V2's
   original `<Environment preset="sunset">` was replaced; its HDR was
