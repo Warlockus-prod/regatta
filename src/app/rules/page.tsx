@@ -272,13 +272,31 @@ export default function RulesPage() {
         })}
       </div>
 
-      <div className="mt-10 p-5 card text-center" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
-        <p className="text-sm text-[var(--text-secondary)]">
+      <div className="mt-10 p-5 card" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
+        <p className="text-sm text-[var(--text-secondary)] mb-3">
           <span className="font-semibold text-[var(--text-primary)]">Важно:</span>{' '}
-          это <em>упрощённая</em> версия правил для входа в тему. Полный официальный текст -{' '}
-          <a href="https://www.sailing.org/tools/documents/RRS20252028Finalv21-%5B29617%5D.pdf" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-cyan)] hover:underline">
-            Racing Rules of Sailing 2025-2028 (PDF)
-          </a>.
+          это <em>упрощённая</em> версия правил для входа в тему. Полный официальный текст -
+          Racing Rules of Sailing 2025-2028, выпускается World Sailing, действует с 1 января 2025 до 31 декабря 2028.
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+          <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+            World Sailing (офиц.) →
+          </a>
+          <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+            RRS 2025-2028 PDF ↓
+          </a>
+          <a href="https://www.ussailing.org/competition/rules-officiating/the-racing-rules-of-sailing-2025-2028/" target="_blank" rel="noopener noreferrer"
+             className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+            US Sailing + prescr. →
+          </a>
+        </div>
+        <p className="text-xs text-[var(--text-muted)] mt-3 text-center">
+          Если один из сайтов не открывается - попробуй следующий. Официальный текст одинаковый.
         </p>
       </div>
     </div>

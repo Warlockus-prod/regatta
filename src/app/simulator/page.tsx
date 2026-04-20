@@ -139,36 +139,76 @@ export default function SimulatorPage() {
   }, []);
 
   // ---- Mouse / Touch drag on canvas ----
-  const getAngleFromPointer = useCallback(
+  //
+  // Two drag targets:
+  //   - The boat (drag anywhere near center) rotates the boat heading.
+  //   - The wind arrow (drag near the arrow shaft, which runs from the
+  //     direction the wind blows FROM toward the boat center) rotates the
+  //     wind direction.
+  //
+  // Disambiguation on pointer-down: compute angular distance between the
+  // pointer (in scene polar coords) and the current wind-from vector. If
+  // within +-25 deg AND outside the inner radius (not on the boat), drag
+  // wind. Otherwise drag boat.
+  //
+  // This mirrors the user's mental model: "I grab where the wind symbol
+  // sits to turn wind; I grab where the boat sits to turn the boat."
+  const dragTargetRef = useRef<'boat' | 'wind'>('boat');
+
+  const getPointerPolar = useCallback(
     (clientX: number, clientY: number) => {
       const canvas = canvasRef.current;
-      if (!canvas) return 0;
+      if (!canvas) return { angle: 0, radius: 0 };
       const rect = canvas.getBoundingClientRect();
       const cx = rect.width / 2;
       const cy = rect.height / 2;
       const mx = clientX - rect.left;
       const my = clientY - rect.top;
-      return radToDeg(Math.atan2(mx - cx, -(my - cy)));
+      const angle = radToDeg(Math.atan2(mx - cx, -(my - cy)));
+      const radius = Math.hypot(mx - cx, my - cy) / Math.min(rect.width, rect.height);
+      return { angle: normalizeAngle(angle), radius };
     },
     [],
+  );
+
+  const getAngleFromPointer = useCallback(
+    (clientX: number, clientY: number) => getPointerPolar(clientX, clientY).angle,
+    [getPointerPolar],
   );
 
   const onPointerDown = useCallback(
     (e: React.PointerEvent) => {
       setIsDragging(true);
-      const angle = getAngleFromPointer(e.clientX, e.clientY);
+      const { angle, radius } = getPointerPolar(e.clientX, e.clientY);
+      // Wind from-direction in scene polar coords: same as windDir (wind
+      // arrow draws at windDir - 90 in radians-from-+x, which is "from"
+      // that bearing in our normalizeAngle space).
+      const windFromAngle = normalizeAngle(windDirRef.current);
+      let delta = Math.abs(angle - windFromAngle);
+      if (delta > 180) delta = 360 - delta;
+      // Hit test: if the pointer is far from center (radius > 0.25 of the
+      // canvas min side) AND within 25 deg of wind-from direction, grab
+      // the wind. Boat is near center so this leaves plenty of room.
+      const grabbingWind = radius > 0.25 && delta < 25;
+      dragTargetRef.current = grabbingWind ? 'wind' : 'boat';
       dragStartRef.current = { x: e.clientX, y: e.clientY, startAngle: angle };
       (e.target as HTMLElement).setPointerCapture(e.pointerId);
     },
-    [getAngleFromPointer],
+    [getPointerPolar],
   );
 
   const onPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!isDragging) return;
       const angle = getAngleFromPointer(e.clientX, e.clientY);
-      const delta = angle - dragStartRef.current.startAngle;
-      setBoatAngle((prev) => normalizeAngle(prev + delta));
+      let delta = angle - dragStartRef.current.startAngle;
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+      if (dragTargetRef.current === 'wind') {
+        setWindDir((prev) => normalizeAngle(prev + delta));
+      } else {
+        setBoatAngle((prev) => normalizeAngle(prev + delta));
+      }
       dragStartRef.current.startAngle = angle;
     },
     [isDragging, getAngleFromPointer],
@@ -1003,10 +1043,10 @@ export default function SimulatorPage() {
           </div>
 
           <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
-            Перетаскивайте по канвасу или используйте стрелки / слайдер.
+            Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.
             <br />
             <span style={{ color: COLORS.textSecondary }}>
-              Drag canvas or use arrow keys / slider.
+              Drag the boat to rotate it, or drag the wind arrow to change the wind direction. Sliders and arrow keys also work.
             </span>
           </div>
         </div>

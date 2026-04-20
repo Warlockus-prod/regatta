@@ -295,22 +295,27 @@ const SECTIONS: Section[] = [
 ];
 
 export default function ChecklistPage() {
-  const { lang, t } = useI18n();
+  const { lang, tp } = useI18n();
 
   return (
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          ⚓ {t('Готовимся к регате', 'Getting ready')}
+          ⚓ {tp('Готовимся к регате', 'Getting ready', 'Przygotowanie')}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {t('Что взять и как вести себя на яхте', 'What to pack and how to behave on a yacht')}
+          {tp(
+            'Что взять и как вести себя на яхте',
+            'What to pack and how to behave on a yacht',
+            'Co zabrac i jak zachowac sie na jachcie',
+          )}
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          {t(
+          {tp(
             'Это одна страница, которую новичку стоит прочитать ДО того как он впервые встанет на палубу. Не учит как управлять яхтой - учит не мешать, быть полезным и не пораниться.',
             'One page a first-timer should read BEFORE stepping on deck. It does not teach how to sail - it teaches how to not be in the way, be useful, and not get hurt.',
+            'Jedna strona, ktora nowicjusz powinien przeczytac PRZED wejsciem na poklad. Nie uczy jak zeglowac - uczy jak nie przeszkadzac, byc przydatnym i nie zranic sie.',
           )}
         </p>
       </div>
@@ -344,7 +349,7 @@ export default function ChecklistPage() {
                 <div className="mt-3 p-3 rounded-lg text-sm leading-relaxed"
                      style={{ background: 'rgba(255, 82, 82, 0.08)', border: '1px solid rgba(255, 82, 82, 0.25)' }}>
                   <span className="font-semibold" style={{ color: 'var(--danger)' }}>
-                    ⚠️ {t('Важно', 'Important')}:
+                    ⚠️ {tp('Важно', 'Important', 'Wazne')}:
                   </span>{' '}
                   <span className="text-[var(--text-primary)]">{warning}</span>
                 </div>
@@ -357,9 +362,10 @@ export default function ChecklistPage() {
       <div className="mt-8 p-5 card text-center"
            style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
-          {t(
+          {tp(
             'Это базовая подборка. Каждая яхта - свой маленький мир. Главное: не уверен - спроси, не трогай без команды.',
             'This is the basics. Each yacht is its own small world. Main rule: not sure - ask. Do not touch without a command.',
+            'To podstawa. Kazdy jacht jest innym malym swiatem. Glowna zasada: nie jestes pewien - pytaj, nie dotykaj bez polecenia.',
           )}
         </p>
       </div>

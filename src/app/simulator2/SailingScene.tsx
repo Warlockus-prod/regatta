@@ -1,7 +1,7 @@
 'use client';
 
 import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber';
-import { Environment, OrbitControls, Sky } from '@react-three/drei';
+import { OrbitControls, Sky } from '@react-three/drei';
 import { useRef, useMemo, Suspense } from 'react';
 import * as THREE from 'three';
 
@@ -313,13 +313,14 @@ export default function SailingScene(props: SceneProps) {
           rayleigh={2.5}
           turbidity={6}
         />
-        <Environment preset="sunset" />
       </Suspense>
 
-      <ambientLight intensity={0.5} />
+      {/* Lighting - all local, no external HDR fetch (CSP-safe) */}
+      <ambientLight intensity={0.7} />
+      <hemisphereLight intensity={0.5} color="#87ceeb" groundColor="#0a1628" />
       <directionalLight
         position={sunPos}
-        intensity={1.2}
+        intensity={1.4}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
