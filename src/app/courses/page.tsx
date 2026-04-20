@@ -359,49 +359,35 @@ function WindDiagram({
       {/* Angle ticks */}
       <AngleTicks cx={cx} cy={cy} r={mainR} />
 
-      {/* Tack labels in outer ring */}
-      {/* Starboard -- right side (Правый галс) */}
-      {(() => {
-        const labelAngle = 90;
-        const labelR = outerR + 48;
-        const pt = polarToCart(cx, cy, labelR, labelAngle);
-        return (
-          <text
-            x={pt.x}
-            y={pt.y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="var(--accent-cyan)"
-            fontSize={9}
-            fontWeight={600}
-            letterSpacing={1.8}
-            transform={`rotate(90, ${pt.x}, ${pt.y})`}
-          >
-            ПРАВЫЙ ГАЛС
-          </text>
-        );
-      })()}
-      {/* Port -- left side (Левый галс) */}
-      {(() => {
-        const labelAngle = 270;
-        const labelR = outerR + 48;
-        const pt = polarToCart(cx, cy, labelR, labelAngle);
-        return (
-          <text
-            x={pt.x}
-            y={pt.y}
-            textAnchor="middle"
-            dominantBaseline="central"
-            fill="var(--accent-cyan)"
-            fontSize={9}
-            fontWeight={600}
-            letterSpacing={1.8}
-            transform={`rotate(-90, ${pt.x}, ${pt.y})`}
-          >
-            ЛЕВЫЙ ГАЛС
-          </text>
-        );
-      })()}
+      {/* Tack labels along the bottom of the diagram (below Fordewind sector)
+          where there is no competing label. The previous layout put vertical
+          "ПРАВЫЙ ГАЛС" / "ЛЕВЫЙ ГАЛС" at east/west outside the circle which
+          overlapped the horizontal "Галфвинд" and "Бакштаг" labels on narrow
+          viewports. Horizontal placement at bottom is always unambiguous. */}
+      <text
+        x={cx - mainR * 0.5}
+        y={cy + mainR + 62}
+        textAnchor="middle"
+        fill="var(--accent-cyan)"
+        fontSize={10}
+        fontWeight={700}
+        letterSpacing={1.5}
+        opacity={0.85}
+      >
+        ЛЕВЫЙ ГАЛС
+      </text>
+      <text
+        x={cx + mainR * 0.5}
+        y={cy + mainR + 62}
+        textAnchor="middle"
+        fill="var(--accent-cyan)"
+        fontSize={10}
+        fontWeight={700}
+        letterSpacing={1.5}
+        opacity={0.85}
+      >
+        ПРАВЫЙ ГАЛС
+      </text>
 
       {/* Russian labels around the circle - horizontal, mirrored on both sides */}
       {pointsOfSail.map((p) => {
