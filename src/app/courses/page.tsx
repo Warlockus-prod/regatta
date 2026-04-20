@@ -123,7 +123,7 @@ function YachtIcon({
 }
 
 // --- Wind arrow pointing downward at the top of the diagram ---
-function WindArrow({ cx, topY }: { cx: number; topY: number }) {
+function WindArrow({ cx, topY, lang }: { cx: number; topY: number; lang: 'ru' | 'en' | 'pl' }) {
   const arrowLen = 48;
   const y0 = topY - 2;
   return (
@@ -180,7 +180,7 @@ function WindArrow({ cx, topY }: { cx: number; topY: number }) {
         fontWeight={700}
         letterSpacing={1.5}
       >
-        ВЕТЕР / WIND
+        {lang === 'ru' ? 'ВЕТЕР / WIND' : lang === 'pl' ? 'WIATR / WIND' : 'WIND'}
       </text>
     </g>
   );
@@ -477,7 +477,7 @@ function WindDiagram({
       <circle cx={cx} cy={cy} r={3} fill="var(--accent-cyan)" opacity={0.6} />
 
       {/* Wind arrow at top */}
-      <WindArrow cx={cx} topY={cy - mainR - 50} />
+      <WindArrow cx={cx} topY={cy - mainR - 50} lang={lang} />
 
       {/* Centerline dashed */}
       <line
