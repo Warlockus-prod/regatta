@@ -332,7 +332,7 @@ export default function HomePage() {
             </span>{' '}
             {tp('Начни с', 'Start with', 'Zacznij od')}{' '}
             <Link href="/courses" className="text-[var(--accent-cyan)] hover:underline font-medium">
-              {t('«Курсов относительно ветра»', '"Points of sail"')}
+              {tp('«Курсов относительно ветра»', '"Points of sail"', '"Kursy wzgledem wiatru"')}
             </Link>
             {' '}- {tp('это база всего парусного. Потом', "it's the foundation. Then", 'to fundament. Potem')}{' '}
             <Link href="/simulator" className="text-[var(--accent-cyan)] hover:underline font-medium">

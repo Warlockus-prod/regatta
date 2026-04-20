@@ -6,7 +6,7 @@ import { onboardSections } from '@/data/onboard';
 import { useI18n } from '@/lib/i18n';
 
 export default function OnboardPage() {
-  const { lang, t } = useI18n();
+  const { lang, tp } = useI18n();
   // Open all sections by default so everything is readable in one scroll.
   // Users expected to see the full "how to behave on a yacht" reference,
   // not a click-by-click accordion.
@@ -25,15 +25,16 @@ export default function OnboardPage() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'var(--accent-cyan)' }}>
-          ⚓ {t('Первая неделя на яхте', 'First week on board')}
+          ⚓ {tp('Первая неделя на яхте', 'First week on board', 'Pierwszy tydzien na jachcie')}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {t('Что происходит на борту и как не чувствовать себя потерянным', 'What happens on board and how to not feel lost')}
+          {tp('Что происходит на борту и как не чувствовать себя потерянным', 'What happens on board and how to not feel lost', 'Co dzieje sie na pokladzie i jak sie nie zagubic')}
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          {t(
+          {tp(
             'Для тех, кто впервые идёт на регату или чартер. Не учат как управлять яхтой, а как вести себя на борту, чтобы быть полезным и не мешать.',
             'For first-time regatta/charter crew. Not how to sail - how to behave on board so you\'re useful and not in the way.',
+            'Dla tych, ktorzy pierwszy raz ida na regate lub czarter. Nie uczymy jak sterowac - jak zachowac sie na pokladzie, aby byc pomocnym i nie przeszkadzac.',
           )}
         </p>
       </div>
@@ -41,9 +42,9 @@ export default function OnboardPage() {
       <div className="space-y-3">
         {onboardSections.map((section) => {
           const isOpen = openIds.has(section.id);
-          const items = lang === 'ru' ? section.itemsRu : section.itemsEn;
-          const title = lang === 'ru' ? section.titleRu : section.titleEn;
-          const warning = lang === 'ru' ? section.warningRu : section.warningEn;
+          const items = lang === 'pl' ? section.itemsPl : lang === 'en' ? section.itemsEn : section.itemsRu;
+          const title = lang === 'pl' ? section.titlePl : lang === 'en' ? section.titleEn : section.titleRu;
+          const warning = lang === 'pl' ? section.warningPl : lang === 'en' ? section.warningEn : section.warningRu;
           return (
             <div
               key={section.id}
@@ -88,7 +89,7 @@ export default function OnboardPage() {
                   {warning && (
                     <div className="p-3 rounded-lg text-sm leading-relaxed"
                          style={{ background: 'rgba(255, 170, 0, 0.08)', border: '1px solid rgba(255, 170, 0, 0.25)' }}>
-                      <span className="font-semibold" style={{ color: 'var(--warning)' }}>⚠️ {t('Важно', 'Important')}:</span>{' '}
+                      <span className="font-semibold" style={{ color: 'var(--warning)' }}>⚠️ {tp('Важно', 'Important', 'Wazne')}:</span>{' '}
                       <span className="text-[var(--text-primary)]">{warning}</span>
                     </div>
                   )}
@@ -102,29 +103,30 @@ export default function OnboardPage() {
       {/* Deep-dive chapters (linked standalone pages) */}
       <div className="mt-10 mb-4">
         <h2 className="text-xl font-semibold mb-2">
-          {t('Глубже по темам', 'Deeper by topic')}
+          {tp('Глубже по темам', 'Deeper by topic', 'Glebiej po tematach')}
         </h2>
         <p className="text-sm text-[var(--text-muted)] mb-4">
-          {t(
+          {tp(
             'Краткий обзор здесь - подробности в отдельных разделах.',
             'Overview here - details on dedicated pages.',
+            'Krotki przeglad tutaj - szczegoly w osobnych sekcjach.',
           )}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <Link href="/anatomy" className="card p-4 hover:border-[var(--accent-cyan)] transition">
             <div className="text-2xl mb-1">🔧</div>
-            <div className="font-semibold">{t('Устройство яхты', 'Yacht anatomy')}</div>
+            <div className="font-semibold">{tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu')}</div>
             <div className="text-[10px] text-[var(--text-muted)] mb-1">Bavaria 46</div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {t('17 деталей с описанием, 2D профиль.', '17 parts described, 2D profile.')}
+              {tp('17 деталей с описанием, 2D профиль.', '17 parts described, 2D profile.', '17 czesci z opisem, profil 2D.')}
             </p>
           </Link>
           <Link href="/checklist" className="card p-4 hover:border-[var(--accent-cyan)] transition">
             <div className="text-2xl mb-1">✅</div>
-            <div className="font-semibold">{t('Чек-лист к регате', 'Pre-race checklist')}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-1">{t('Что взять, что знать', 'Pack, know, do')}</div>
+            <div className="font-semibold">{tp('Чек-лист к регате', 'Pre-race checklist', 'Lista przed regata')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('Что взять, что знать', 'Pack, know, do', 'Co wziac, co wiedziec')}</div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {t('Прогресс по пунктам сохраняется в браузере.', 'Progress saved in the browser.')}
+              {tp('Прогресс по пунктам сохраняется в браузере.', 'Progress saved in the browser.', 'Postep zapisuje sie w przegladarce.')}
             </p>
           </Link>
         </div>
@@ -132,9 +134,10 @@ export default function OnboardPage() {
 
       <div className="mt-8 p-5 card text-center" style={{ background: 'rgba(68, 255, 136, 0.04)', borderColor: 'rgba(68, 255, 136, 0.2)' }}>
         <p className="text-sm text-[var(--text-secondary)]">
-          {t(
+          {tp(
             'Это базовая подборка. Каждая яхта - свой маленький мир. Главное правило: не уверен - спроси, не трогай без команды.',
             'This is the basics. Each yacht has its own quirks. Main rule: not sure - ask. Don\'t touch without a command.',
+            'To podstawy. Kazdy jacht ma swoje kwirki. Glowna zasada: nie jestes pewien - zapytaj, nie dotykaj bez komendy.',
           )}
         </p>
       </div>

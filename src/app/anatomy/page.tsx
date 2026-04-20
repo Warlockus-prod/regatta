@@ -152,13 +152,14 @@ export default function AnatomyPage() {
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(68, 255, 136, 0.1)', border: '1px solid rgba(68, 255, 136, 0.25)', color: 'var(--success)' }}>
-          ⚓ {t('Устройство яхты', 'Yacht anatomy')}
+          ⚓ {tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu')}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bavaria 46</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
-          {t(
+          {tp(
             'Нажми на точку на яхте - узнай название и зачем это нужно на борту.',
             'Click a point on the yacht to learn the name and why it matters on board.',
+            'Kliknij punkt na jachcie - poznasz nazwe i do czego sluzy na pokladzie.',
           )}
         </p>
       </div>

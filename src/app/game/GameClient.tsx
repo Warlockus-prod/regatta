@@ -335,7 +335,7 @@ function computeAIHeading(boat: Boat, course: Course, dt: number): number {
 // ============================================================================
 
 export default function GamePage() {
-  const { t, tp, lang } = useI18n();
+  const { tp, lang } = useI18n();
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -1256,7 +1256,7 @@ export default function GamePage() {
             onClick={backToMenu}
             className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
           >
-            ← Назад к выбору
+            ← {tp('Назад к выбору', 'Back to menu', 'Wroc do wyboru')}
           </button>
           <div className="text-xs px-2 py-1 rounded" style={{
             background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
@@ -1298,38 +1298,38 @@ export default function GamePage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
           {/* Course preview */}
           <div className="card p-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">ТРАССА</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('ТРАССА', 'COURSE', 'TRASA')}</div>
             <CoursePreview />
             <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
-              <li>Старт от оранжевой линии внизу.</li>
-              <li>Идёшь <span className="text-[var(--accent-cyan)] font-semibold">галсами</span> к верхнему знаку - прямо против ветра нельзя.</li>
-              <li>Обходишь верхний знак (подойди на ~30 м).</li>
-              <li>Возвращаешься полным курсом и пересекаешь финиш сверху вниз.</li>
+              <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line below.', 'Start od pomaranczowej linii na dole.')}</li>
+              <li>{tp('Идёшь', 'Go', 'Idziesz')} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'on tacks', 'halsami')}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t go straight into wind.', 'do znaku nawietrznego - pod wiatr nie mozna.')}</li>
+              <li>{tp('Обходишь верхний знак (подойди на ~30 м).', 'Round the windward mark (get within ~30 m).', 'Okrazasz znak nawietrzny (podejdz na ~30 m).')}</li>
+              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pelnym i przecinasz mete z gory w dol.')}</li>
             </ol>
           </div>
 
           {/* Controls */}
           <div className="card p-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">УПРАВЛЕНИЕ</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}</div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
                   <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
                   <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
                 </div>
-                <span className="text-sm text-[var(--text-secondary)]">Повернуть. На мобайле - кнопки внизу экрана.</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Повернуть. На мобайле - кнопки внизу экрана.', 'Turn. On mobile - buttons at the bottom of the screen.', 'Skret. Na mobilce - przyciski na dole ekranu.')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="px-2 py-1 rounded text-[10px] font-semibold border border-[rgba(0,212,255,0.3)] text-[var(--accent-cyan)]">▶ AUTO</div>
-                <span className="text-sm text-[var(--text-secondary)]">Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.', 'Autopilot - holds the current heading. Disengages on any turn. Handy on long tacks.', 'Autopilot - trzyma biezacy kurs. Wylacza sie przy kazdym skrecie. Przydatne na dlugich halsach.')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-base">🧭</span>
-                <span className="text-sm text-[var(--text-secondary)]">Левый HUD - TWA (угол к ветру) и скорость. Держи TWA &gt; 40° на лавировке.</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Левый HUD - TWA (угол к ветру) и скорость. Держи TWA > 40° на лавировке.', 'Left HUD - TWA (angle to wind) and speed. Keep TWA > 40° when tacking.', 'Lewy HUD - TWA (kat do wiatru) i predkosc. Trzymaj TWA > 40° przy halsowaniu.')}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-base">📍</span>
-                <span className="text-sm text-[var(--text-secondary)]">Стрелка на экране показывает направление к следующему знаку.</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Стрелка на экране показывает направление к следующему знаку.', 'The on-screen arrow points to the next mark.', 'Strzalka na ekranie pokazuje kierunek do nastepnego znaku.')}</span>
               </div>
             </div>
           </div>
@@ -1337,11 +1337,11 @@ export default function GamePage() {
 
         {/* Key rules */}
         <div className="card p-4 mb-6" style={{ borderColor: 'rgba(255, 170, 0, 0.3)', background: 'rgba(255, 170, 0, 0.04)' }}>
-          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ ВАЖНО</div>
+          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ {tp('ВАЖНО', 'IMPORTANT', 'WAZNE')}</div>
           <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 leading-relaxed">
-            <li>• В секторе ±30° от ветра паруса не работают - это <span className="text-[var(--danger)] font-semibold">мёртвая зона</span>. Если встал - отверни от ветра градусов на 50.</li>
-            <li>• Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.</li>
-            <li>• AI разберёт твою гонку после финиша и покажет, где ты терял время.</li>
+            <li>• {tp('В секторе ±30° от ветра паруса не работают - это', 'In the ±30° sector upwind sails don\'t work - this is the', 'W sektorze ±30° od wiatru zagle nie dzialaja - to')} <span className="text-[var(--danger)] font-semibold">{tp('мёртвая зона', 'dead zone', 'martwa strefa')}</span>. {tp('Если встал - отверни от ветра градусов на 50.', 'If stuck - bear off ~50° from the wind.', 'Jesli stanales - odpadnij od wiatru o jakies 50°.')}</li>
+            <li>• {tp('Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.', 'Tacking = long legs, not frequent turns. Every turn loses speed.', 'Halsowanie = dlugie halsy, nie czeste zwroty. Kazdy zwrot traci predkosc.')}</li>
+            <li>• {tp('AI разберёт твою гонку после финиша и покажет, где ты терял время.', 'AI reviews your race after the finish and shows where you lost time.', 'AI przeanalizuje twoj wyscig po mecie i pokaze, gdzie traciles czas.')}</li>
           </ul>
         </div>
 
@@ -1354,7 +1354,7 @@ export default function GamePage() {
             boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
           }}
         >
-          Готов - старт через 3·2·1
+          {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1')}
         </button>
       </div>
     );
@@ -1373,15 +1373,15 @@ export default function GamePage() {
           {/* Left HUD: course info - compact on mobile */}
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('КУРС', 'POS')}</span>
-              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{currentPoS.nameRu}</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('КУРС', 'POS', 'KURS')}</span>
+              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{lang === 'pl' ? currentPoS.namePl : lang === 'en' ? currentPoS.nameEn : currentPoS.nameRu}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">TWA</span>
               <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('СКОР.', 'SPD')}</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('СКОР.', 'SPD', 'PRED.')}</span>
               <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kts</span>
             </div>
             <div className="w-full h-1 sm:h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
@@ -1391,20 +1391,20 @@ export default function GamePage() {
 
           {/* Right HUD: position + time - compact */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{t('ПОЗИЦИЯ', 'PLACE')}</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('ПОЗИЦИЯ', 'PLACE', 'POZYCJA')}</div>
             <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
               {position.rank}<span className="text-[10px] sm:text-xs text-[var(--text-muted)]"> / {position.total}</span>
             </div>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{t('ВРЕМЯ', 'TIME')}</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{tp('ВРЕМЯ', 'TIME', 'CZAS')}</div>
             <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
           </div>
 
           {/* Mark progress indicator - above touch controls on mobile */}
           <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs whitespace-nowrap"
                style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${t('К верхнему знаку', 'To windward mark')}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${t('На финиш', 'To finish')}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${t('Финиш!', 'Finish!')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${tp('Финиш!', 'Finish!', 'Meta!')}`}
           </div>
 
           {/* Mission hint (if any) - under the mark progress, only during race */}
@@ -1446,7 +1446,7 @@ export default function GamePage() {
             className="absolute top-16 right-2 sm:top-auto sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
           >
-            ← {t('Меню', 'Menu')}
+            ← {tp('Меню', 'Menu', 'Menu')}
           </button>
 
           {/* Autopilot button - above touch controls, safe-area aware */}
@@ -1461,8 +1461,9 @@ export default function GamePage() {
                 setAutopilotOn(true);
               }
             }}
-            title={t('AUTO: удерживает текущий курс. Выключится от любого поворота.',
-                     'AUTO: holds current heading. Disengages on any turn input.')}
+            title={tp('AUTO: удерживает текущий курс. Выключится от любого поворота.',
+                     'AUTO: holds current heading. Disengages on any turn input.',
+                     'AUTO: trzyma biezacy kurs. Wylacza sie przy kazdym skrecie.')}
             className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition active:scale-95"
             style={{
               background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
@@ -1472,7 +1473,7 @@ export default function GamePage() {
               bottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)',
             }}
           >
-            {autopilotOn ? `⏸ ${t('AUTO вкл', 'AUTO on')}` : `▶ ${t('AUTO', 'AUTO')}`}
+            {autopilotOn ? `⏸ ${tp('AUTO вкл', 'AUTO on', 'AUTO wl')}` : `▶ ${tp('AUTO', 'AUTO', 'AUTO')}`}
           </button>
 
           {/* Touch controls - safe-area aware so they never hide behind mobile browser UI */}
@@ -1523,9 +1524,9 @@ export default function GamePage() {
         <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10, 22, 40, 0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="text-center">
             <div className="text-8xl font-bold mb-4 pulse-gentle" style={{ color: 'var(--accent-cyan)' }}>
-              {countdown === 0 ? 'СТАРТ!' : countdown}
+              {countdown === 0 ? tp('СТАРТ!', 'START!', 'START!') : countdown}
             </div>
-            <div className="text-[var(--text-secondary)]">Приготовься к старту...</div>
+            <div className="text-[var(--text-secondary)]">{tp('Приготовься к старту...', 'Get ready for the start...', 'Przygotuj sie do startu...')}</div>
           </div>
         </div>
       )}
@@ -1535,21 +1536,21 @@ export default function GamePage() {
         <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10, 22, 40, 0.9)', backdropFilter: 'blur(8px)' }}>
           <div className="card p-6 sm:p-8 max-w-lg w-full my-4">
             <div className="text-center mb-5">
-              <div className="text-sm text-[var(--text-muted)] mb-2">РЕЗУЛЬТАТ</div>
+              <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK')}</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
                 <>
                   <div className="text-5xl font-bold mb-2" style={{
                     color: playerRank === 1 ? 'var(--warning)' : playerRank <= 3 ? 'var(--success)' : 'var(--text-primary)',
                   }}>
                     {playerRank}
-                    <span className="text-2xl text-[var(--text-muted)]"> из {results.length}</span>
+                    <span className="text-2xl text-[var(--text-muted)]"> {tp('из', 'of', 'z')} {results.length}</span>
                   </div>
                   <div className="text-xl font-mono text-[var(--text-secondary)]">{formatTime(playerFinished.time)}</div>
                 </>
               ) : (
                 <>
-                  <div className="text-3xl font-bold mb-2" style={{ color: 'var(--danger)' }}>Не финишировал</div>
-                  <div className="text-sm text-[var(--text-secondary)]">Время вышло</div>
+                  <div className="text-3xl font-bold mb-2" style={{ color: 'var(--danger)' }}>{tp('Не финишировал', 'Did not finish', 'Nie ukonczyl')}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">{tp('Время вышло', 'Time\'s up', 'Czas minal')}</div>
                 </>
               )}
             </div>
@@ -1557,7 +1558,7 @@ export default function GamePage() {
             {/* Compact leaderboard - collapsed by default, only winner + you shown on mobile */}
             <details className="mb-5 card p-3">
               <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
-                <span>{t('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS')} ({results.length})</span>
+                <span>{tp('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS', 'WYNIKI WYSCIGU')} ({results.length})</span>
                 <span className="text-[var(--accent-cyan)]">▾</span>
               </summary>
               <div className="mt-3 space-y-1">
@@ -1612,7 +1613,7 @@ export default function GamePage() {
             <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xl">🧭</span>
-                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>AI-тренер</div>
+                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('AI-тренер', 'AI coach', 'Trener AI')}</div>
               </div>
               {coachingLoading && <AnalyzingProgress />}
               {coachingError && !coaching && (
@@ -1622,7 +1623,7 @@ export default function GamePage() {
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">Оценка</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{tp('Оценка', 'Score', 'Ocena')}</div>
                       <div className="text-lg font-bold" style={{
                         color: coaching.score >= 75 ? 'var(--success)' : coaching.score >= 50 ? 'var(--warning)' : 'var(--danger)',
                       }}>
@@ -1634,7 +1635,7 @@ export default function GamePage() {
 
                   {coaching.mistakes.length > 0 && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">Ошибки</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Bledy')}</div>
                       <div className="space-y-2">
                         {coaching.mistakes.map((m, i) => (
                           <div key={i} className="text-xs p-2 rounded" style={{ background: 'rgba(10, 22, 40, 0.5)' }}>
@@ -1657,7 +1658,7 @@ export default function GamePage() {
 
                   {coaching.strengths.length > 0 && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">Сильные стороны</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Сильные стороны', 'Strengths', 'Mocne strony')}</div>
                       <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
                         {coaching.strengths.map((s, i) => (
                           <li key={i} className="flex items-start gap-1">
@@ -1670,7 +1671,7 @@ export default function GamePage() {
                   )}
 
                   <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
-                    <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">Цель на следующую гонку</div>
+                    <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na nastepny wyscig')}</div>
                     <p className="text-xs text-[var(--accent-cyan)]">{coaching.nextGoalRu}</p>
                   </div>
                 </div>
@@ -1685,14 +1686,14 @@ export default function GamePage() {
                 onClick={backToMenu}
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
-                Меню
+                {tp('Меню', 'Menu', 'Menu')}
               </button>
               <button
                 onClick={() => setGameState('replay')}
                 disabled={logSamplesRef.current.length < 5}
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--accent-cyan)] hover:bg-[rgba(0,212,255,0.08)] transition disabled:opacity-40"
               >
-                ▶ Replay гонки
+                ▶ {tp('Replay гонки', 'Race replay', 'Replay wyscigu')}
               </button>
               <button
                 onClick={openBriefing}
@@ -1702,7 +1703,7 @@ export default function GamePage() {
                   color: '#0a1628',
                 }}
               >
-                Ещё раз
+                {tp('Ещё раз', 'Again', 'Jeszcze raz')}
               </button>
             </div>
           </div>
@@ -1880,11 +1881,16 @@ function ShareBlock({
   finishTime?: number; rank?: number; total?: number;
   missionTitle?: string;
 }) {
+  const { tp } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = typeof window !== 'undefined' ? `${window.location.origin}/r/${code}` : '';
   const shareText = finishTime
-    ? `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на regatta.icoffio.com - смотри replay`
-    : `Мой replay на regatta.icoffio.com`;
+    ? tp(
+        `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на regatta.icoffio.com - смотри replay`,
+        `Finished the race in ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} at regatta.icoffio.com - check the replay`,
+        `Ukonczylem regate w ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} na regatta.icoffio.com - zobacz replay`,
+      )
+    : tp('Мой replay на regatta.icoffio.com', 'My replay at regatta.icoffio.com', 'Moj replay na regatta.icoffio.com');
 
   const onShare = async () => {
     if (navigator.share) {
@@ -1920,14 +1926,14 @@ function ShareBlock({
             className="px-3 py-1.5 rounded text-xs font-semibold"
             style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
           >
-            {copied ? '✓ Скопировано' : '🔗 Поделиться'}
+            {copied ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano') : tp('🔗 Поделиться', '🔗 Share', '🔗 Udostepnij')}
           </button>
           <Link
             href={`/r/${code}`}
             className="px-3 py-1.5 rounded text-xs font-semibold border"
             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
           >
-            Открыть
+            {tp('Открыть', 'Open', 'Otworz')}
           </Link>
         </div>
       </div>
@@ -1948,13 +1954,13 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
 }
 
-function getPointOfSailName(twa: number): { nameRu: string; color: string } {
+function getPointOfSailName(twa: number): { nameRu: string; nameEn: string; namePl: string; color: string } {
   const a = Math.abs(twa);
-  if (a < 30) return { nameRu: 'Левентик', color: '#ff4444' };
-  if (a < 60) return { nameRu: 'Бейдевинд', color: '#ff8844' };
-  if (a < 110) return { nameRu: 'Галфвинд', color: '#44ff88' };
-  if (a < 160) return { nameRu: 'Бакштаг', color: '#44aaff' };
-  return { nameRu: 'Фордевинд', color: '#8844ff' };
+  if (a < 30) return { nameRu: 'Левентик', nameEn: 'In irons', namePl: 'Lewentyk', color: '#ff4444' };
+  if (a < 60) return { nameRu: 'Бейдевинд', nameEn: 'Close-hauled', namePl: 'Bajdewind', color: '#ff8844' };
+  if (a < 110) return { nameRu: 'Галфвинд', nameEn: 'Beam reach', namePl: 'Polwiatr', color: '#44ff88' };
+  if (a < 160) return { nameRu: 'Бакштаг', nameEn: 'Broad reach', namePl: 'Baksztag', color: '#44aaff' };
+  return { nameRu: 'Фордевинд', nameEn: 'Running', namePl: 'Fordewind', color: '#8844ff' };
 }
 
 function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats: Boat[], course: Course) {
@@ -2046,11 +2052,12 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats:
 // ============================================================================
 
 function AnalyzingProgress() {
+  const { tp } = useI18n();
   const stages = [
-    { icon: '📍', label: 'Сверяю трек с трассой' },
-    { icon: '🌬', label: 'Считаю время в мёртвой зоне' },
-    { icon: '↺', label: 'Анализирую повороты и лейлайны' },
-    { icon: '🧭', label: 'Формулирую советы' },
+    { icon: '📍', label: tp('Сверяю трек с трассой', 'Matching track to course', 'Sprawdzam tor z trasa') },
+    { icon: '🌬', label: tp('Считаю время в мёртвой зоне', 'Counting time in dead zone', 'Licze czas w martwej strefie') },
+    { icon: '↺', label: tp('Анализирую повороты и лейлайны', 'Analyzing turns and laylines', 'Analizuje zwroty i lejliny') },
+    { icon: '🧭', label: tp('Формулирую советы', 'Drafting advice', 'Formuluje rady') },
   ];
   const [stage, setStage] = useState(0);
   useEffect(() => {
@@ -2063,7 +2070,7 @@ function AnalyzingProgress() {
     <div className="space-y-2">
       <div className="flex items-center gap-2 mb-1">
         <span className="inline-block w-2.5 h-2.5 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-        <span className="text-sm text-[var(--text-secondary)]">AI разбирает твою гонку…</span>
+        <span className="text-sm text-[var(--text-secondary)]">{tp('AI разбирает твою гонку…', 'AI is reviewing your race…', 'AI analizuje twoj wyscig…')}</span>
       </div>
       <ul className="space-y-1.5 text-xs">
         {stages.map((s, i) => {
@@ -2170,6 +2177,7 @@ function ReplayOverlay({
   mistakes: Coaching['mistakes'];
   onClose: () => void;
 }) {
+  const { tp } = useI18n();
   const [idx, setIdx] = useState(0);
   const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
@@ -2330,9 +2338,9 @@ function ReplayOverlay({
       <div className="card w-full max-w-2xl p-4 sm:p-5" style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <div className="text-lg font-semibold">Replay гонки</div>
+            <div className="text-lg font-semibold">{tp('Replay гонки', 'Race replay', 'Replay wyscigu')}</div>
             <div className="text-[11px] text-[var(--text-muted)]">
-              Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.
+              {tp('Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.', 'Scrub the timeline - points on the track are events: turn, dead zone, mark.', 'Przewin os czasu - punkty na trasie to zdarzenia: zwrot, martwa strefa, znak.')}
             </div>
           </div>
           <button
@@ -2348,11 +2356,11 @@ function ReplayOverlay({
 
         {/* Legend */}
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[10px] text-[var(--text-muted)]">
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />твой трек</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />идеальный путь</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />поворот</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />мёртвая зона</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />знак / финиш</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />{tp('твой трек', 'your track', 'twoj tor')}</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />{tp('идеальный путь', 'ideal path', 'idealny tor')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />{tp('поворот', 'turn', 'zwrot')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />{tp('мёртвая зона', 'dead zone', 'martwa strefa')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />{tp('знак / финиш', 'mark / finish', 'znak / meta')}</span>
         </div>
 
         {/* Timeline slider */}
@@ -2379,7 +2387,7 @@ function ReplayOverlay({
 
         {/* Speed control */}
         <div className="mt-2 flex items-center gap-2 text-xs">
-          <span className="text-[var(--text-muted)]">Скорость</span>
+          <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Predkosc')}</span>
           {[0.5, 1, 2, 4].map((sp) => (
             <button
               key={sp}
@@ -2549,7 +2557,7 @@ function GameMenu({
       {/* Tab-specific controls */}
       {tab === 'mission' && (
         <div className="card p-4 mb-5">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ВЫБЕРИ МИССИЮ</div>
+          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ВЫБЕРИ МИССИЮ', 'PICK A MISSION', 'WYBIERZ MISJE')}</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {missions.map((m) => {
               const active = selectedMission?.id === m.id;
@@ -2590,7 +2598,7 @@ function GameMenu({
         <div className="card p-4 mb-5 space-y-4">
           {/* Difficulty */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">СЛОЖНОСТЬ</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'TRUDNOSC')}</div>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
                 const cfg = DIFFICULTY_CONFIG[d];
@@ -2608,9 +2616,9 @@ function GameMenu({
                   >
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                      <div className="font-semibold" style={{ color: cfg.color }}>{cfg.label}</div>
+                      <div className="font-semibold" style={{ color: cfg.color }}>{tp(cfg.label, cfg.labelEn, cfg.labelPl)}</div>
                     </div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} соперников</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперников', 'opponents', 'rywali')}</div>
                   </button>
                 );
               })}
@@ -2618,12 +2626,12 @@ function GameMenu({
           </div>
           {/* Wind */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">СИЛА ВЕТРА</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SILA WIATRU')}</div>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { id: 'light',  label: 'Слабый',  icon: '🌬', desc: '~5 kts'  },
-                { id: 'medium', label: 'Средний', icon: '💨', desc: '~10 kts' },
-                { id: 'heavy',  label: 'Сильный', icon: '🌪', desc: '~15 kts' },
+                { id: 'light',  label: tp('Слабый',  'Light',  'Slaby'),  icon: '🌬', desc: '~5 kts'  },
+                { id: 'medium', label: tp('Средний', 'Medium', 'Sredni'), icon: '💨', desc: '~10 kts' },
+                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny'),  icon: '🌪', desc: '~15 kts' },
               ] as const).map((w) => (
                 <button
                   key={w.id}
@@ -2644,7 +2652,7 @@ function GameMenu({
           </div>
           {/* Boat */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ЛОДКА</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'LODZ')}</div>
             <div className="grid grid-cols-2 gap-2">
               {BOAT_STYLES.map((b) => {
                 const active = boatStyle === b.id;
@@ -2690,28 +2698,28 @@ function GameMenu({
       {detailsOpen && (
         <div className="card p-4 mb-5 space-y-4">
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">УПРАВЛЕНИЕ</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}</div>
             <div className="flex flex-wrap gap-3 text-sm">
               <div className="flex items-center gap-2">
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-                <span className="text-[var(--text-secondary)]">Влево</span>
+                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-                <span className="text-[var(--text-secondary)]">Вправо</span>
+                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo')}</span>
               </div>
-              <div className="text-xs text-[var(--text-muted)]">На мобайле - кнопки внизу экрана.</div>
+              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na mobilce - przyciski na dole.')}</div>
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">ТРАССА</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA')}</div>
             <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
-              <li>Старт от нижней оранжевой линии (там же финиш).</li>
-              <li>Идёшь к верхнему знаку галсами - ветер сверху.</li>
-              <li>Огибаешь знак (ближе 30 метров).</li>
-              <li>Возвращаешься полным курсом и пересекаешь финиш сверху вниз.</li>
+              <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start od dolnej pomaranczowej linii (tam tez meta).')}</li>
+              <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Go to the windward mark on tacks - wind is from above.', 'Do znaku nawietrznego idziesz halsami - wiatr z gory.')}</li>
+              <li>{tp('Огибаешь знак (ближе 30 метров).', 'Round the mark (within 30 m).', 'Okrazasz znak (blizej 30 m).')}</li>
+              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pelnym i przecinasz mete z gory w dol.')}</li>
             </ol>
           </div>
         </div>
