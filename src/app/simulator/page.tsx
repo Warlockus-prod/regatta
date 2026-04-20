@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState, useCallback } from 'react';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
+import { useI18n } from '@/lib/i18n';
 
 // ---- Constants ----
 const DEFAULT_WIND_DIR = 180; // Wind blows FROM the top of the screen (180 = from south in screen coords means arrow points down)
@@ -94,6 +95,7 @@ type WakeParticle = { x: number; y: number; age: number; maxAge: number; size: n
 // Main Component
 // ============================================================
 export default function SimulatorPage() {
+  const { tp, lang } = useI18n();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
@@ -816,7 +818,11 @@ export default function SimulatorPage() {
             V1 · Canvas
           </span>
           <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
-            Простая лодка на круге: крути лодку и ветер, смотри что происходит.
+            {tp(
+              'Простая лодка на круге: крути лодку и ветер, смотри что происходит.',
+              'Simple boat on a circle: spin the boat and the wind, watch what happens.',
+              'Prosta lodka na kole: obracaj lodke i wiatr, zobacz co sie dzieje.',
+            )}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -860,7 +866,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            KYPC / POINT OF SAIL
+            {tp('КУРС / POINT OF SAIL', 'POINT OF SAIL', 'KURS / POINT OF SAIL')}
           </div>
           <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
             {pos.nameRu}
@@ -876,7 +882,7 @@ export default function SimulatorPage() {
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
                  style={{ color: COLORS.textMuted }}>
-              УГОЛ К ВЕТРУ
+              {tp('УГОЛ К ВЕТРУ', 'WIND ANGLE', 'KAT DO WIATRU')}
             </div>
             <div className="text-3xl font-bold font-mono" style={{ color: COLORS.accentCyan }}>
               {Math.round(wa)}°
@@ -890,11 +896,13 @@ export default function SimulatorPage() {
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
                  style={{ color: COLORS.textMuted }}>
-              ГАЛС / TACK
+              {tp('ГАЛС / TACK', 'TACK', 'HALS / TACK')}
             </div>
             <div className="text-lg font-bold"
                  style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
-              {tack === 'starboard' ? 'Правый' : 'Левый'}
+              {tack === 'starboard'
+                ? tp('Правый', 'Starboard', 'Prawy')
+                : tp('Левый', 'Port', 'Lewy')}
             </div>
             <div className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
               {tack === 'starboard' ? 'Starboard' : 'Port'}
@@ -907,7 +915,7 @@ export default function SimulatorPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-medium tracking-wider"
                  style={{ color: COLORS.textMuted }}>
-              СКОРОСТЬ / SPEED
+              {tp('СКОРОСТЬ / SPEED', 'SPEED', 'PREDKOSC / SPEED')}
             </div>
             <div className="text-sm font-bold font-mono" style={{ color: COLORS.accentCyan }}>
               {speed.toFixed(1)} kts
@@ -934,7 +942,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            РАБОТА ПАРУСОВ / SAIL TRIM
+            {tp('РАБОТА ПАРУСОВ / SAIL TRIM', 'SAIL TRIM', 'USTAWIENIE ZAGLI / SAIL TRIM')}
           </div>
           <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
             {pos.sailWork}
@@ -958,7 +966,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            ОПИСАНИЕ / DESCRIPTION
+            {tp('ОПИСАНИЕ / DESCRIPTION', 'DESCRIPTION', 'OPIS / DESCRIPTION')}
           </div>
           <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
             {pos.description}
@@ -972,13 +980,15 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
                style={{ color: COLORS.textMuted }}>
-            УПРАВЛЕНИЕ / CONTROLS
+            {tp('УПРАВЛЕНИЕ / CONTROLS', 'CONTROLS', 'STEROWANIE / CONTROLS')}
           </div>
 
           {/* Rotation slider */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>Курс яхты / Boat heading</span>
+              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+                {tp('Курс яхты / Boat heading', 'Boat heading', 'Kurs jachtu / Boat heading')}
+              </span>
               <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
                 {Math.round(boatAngle)}°
               </span>
@@ -990,6 +1000,7 @@ export default function SimulatorPage() {
               step="1"
               value={boatAngle}
               onChange={onSliderChange}
+              aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu')}
               className="w-full accent-[#00d4ff]"
               style={{ accentColor: COLORS.accentCyan }}
             />
@@ -1005,7 +1016,9 @@ export default function SimulatorPage() {
           {/* Wind direction slider */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>Откуда дует ветер / Wind from</span>
+              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+                {tp('Откуда дует ветер / Wind from', 'Wind from', 'Kierunek wiatru / Wind from')}
+              </span>
               <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
                 {Math.round(windDir)}°
               </span>
@@ -1017,6 +1030,7 @@ export default function SimulatorPage() {
               step="1"
               value={windDir}
               onChange={(e) => setWindDir(Number(e.target.value))}
+              aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru')}
               className="w-full"
               style={{ accentColor: COLORS.accentCyan }}
             />
@@ -1055,11 +1069,15 @@ export default function SimulatorPage() {
           </div>
 
           <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
-            Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.
-            <br />
-            <span style={{ color: COLORS.textSecondary }}>
-              Drag the boat to rotate it, or drag the wind arrow to change the wind direction. Sliders and arrow keys also work.
-            </span>
+            {lang === 'ru' && (
+              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.</>
+            )}
+            {lang === 'en' && (
+              <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
+            )}
+            {lang === 'pl' && (
+              <>Przeciagnij <span style={{ color: COLORS.accentCyan }}>lodke</span> aby ja obrocic, albo <span style={{ color: COLORS.accentCyan }}>strzalke wiatru</span> aby zmienic kierunek wiatru. Suwaki i strzalki na klawiaturze tez dzialaja.</>
+            )}
           </div>
         </div>
 
@@ -1067,7 +1085,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
                style={{ color: COLORS.textMuted }}>
-            КУРСЫ / COURSES
+            {tp('КУРСЫ / COURSES', 'COURSES', 'KURSY / COURSES')}
           </div>
           <div className="flex flex-col gap-1.5">
             {pointsOfSail.map((p) => (

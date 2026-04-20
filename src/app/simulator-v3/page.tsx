@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -559,6 +559,16 @@ function GlossaryFooter({ tp }: { tp: TpFn }) {
 // ---------------------------------------------------------------------------
 
 function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 'ru' | 'en' | 'pl' }) {
+  // Unique prefix per instance. SceneTop is rendered twice (desktop + mobile
+  // layouts; Tailwind's hidden keeps both in the DOM) so SVG def IDs must not
+  // collide across instances - duplicate IDs break aria-labelledby + screen
+  // readers, and browser console warnings surface them.
+  const uid = useId();
+  const glowId = `v3-scene-glow-${uid}`;
+  const nogoId = `v3-nogo-grad-${uid}`;
+  const arrowGlowId = `v3-arrow-glow-${uid}`;
+  const boatShadowId = `v3-boat-shadow-${uid}`;
+
   const width = 760;
   const height = 600;
   const cx = width / 2;
@@ -618,22 +628,22 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
       <defs>
-        <radialGradient id="v3-scene-glow" cx="50%" cy="42%" r="68%">
+        <radialGradient id={glowId} cx="50%" cy="42%" r="68%">
           <stop offset="0%" stopColor="rgba(0, 212, 255, 0.14)" />
           <stop offset="100%" stopColor="rgba(0, 212, 255, 0)" />
         </radialGradient>
-        <radialGradient id="v3-nogo-grad" cx="50%" cy="40%" r="65%">
+        <radialGradient id={nogoId} cx="50%" cy="40%" r="65%">
           <stop offset="0%" stopColor="rgba(255, 82, 82, 0.22)" />
           <stop offset="100%" stopColor="rgba(255, 82, 82, 0.05)" />
         </radialGradient>
-        <filter id="v3-arrow-glow" x="-40%" y="-40%" width="180%" height="180%">
+        <filter id={arrowGlowId} x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="2.4" result="blur" />
           <feMerge>
             <feMergeNode in="blur" />
             <feMergeNode in="SourceGraphic" />
           </feMerge>
         </filter>
-        <filter id="v3-boat-shadow" x="-20%" y="-20%" width="140%" height="140%">
+        <filter id={boatShadowId} x="-20%" y="-20%" width="140%" height="140%">
           <feGaussianBlur in="SourceAlpha" stdDeviation="5" />
           <feOffset dx="0" dy="4" />
           <feComponentTransfer>
@@ -647,7 +657,7 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
       </defs>
 
       {/* Scene glow */}
-      <rect x="0" y="0" width={width} height={height} fill="url(#v3-scene-glow)" />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#${glowId})`} />
 
       {/* Water wave bands */}
       <g className="sim-waves" opacity="0.35">
@@ -682,7 +692,7 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
 
       {/* Layer 3: no-go cone */}
       <path d={noGoPath}
-            fill="url(#v3-nogo-grad)"
+            fill={`url(#${nogoId})`}
             stroke="rgba(255, 82, 82, 0.3)"
             strokeDasharray="4 4"
             strokeWidth={1} />
@@ -747,7 +757,7 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
       )}
 
       {/* Layer 8-9: boat and current sails */}
-      <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} filter="url(#v3-boat-shadow)">
+      <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} filter={`url(#${boatShadowId})`}>
         <BoatTop
           ui={ui}
           sailSide={sailSide}
@@ -759,7 +769,7 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
       </g>
 
       {/* Layer 10: force vectors + wind arrows */}
-      <g filter="url(#v3-arrow-glow)">
+      <g filter={`url(#${arrowGlowId})`}>
         <Arrow from={tw.start} to={tw.end}
                color="#00d4ff" width={2.8}
                label={`TW ${ui.windSpeed} kts`}
@@ -798,6 +808,9 @@ function BoatTop(args: {
   mainVisualScale: number;
 }) {
   const { ui, sailSide, hasMain, hasJib, jibOpacity, mainVisualScale } = args;
+  // Unique prefix so jib/main gradient IDs don't collide across the twin
+  // SceneTop instances (desktop + mobile layouts both sit in the DOM).
+  const uid = useId();
 
   return (
     <>
@@ -824,7 +837,7 @@ function BoatTop(args: {
       {hasJib && (
         <g transform={`translate(0 -58) rotate(${ui.jibAngle * sailSide})`} opacity={jibOpacity}>
           <defs>
-            <linearGradient id={`v3-jib-grad-${sailSide}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
+            <linearGradient id={`v3-jib-grad-${sailSide}-${uid}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
               <stop offset="0%" stopColor="#dce7ee" />
               <stop offset="55%" stopColor="#ffffff" />
               <stop offset="100%" stopColor="#b9c9d4" />
@@ -832,7 +845,7 @@ function BoatTop(args: {
           </defs>
           <path
             d={`M 0 0 Q ${sailSide * 28} 30 ${sailSide * 34} 60 Q ${sailSide * 30} 90 ${sailSide * 10} 104 L 0 104 Z`}
-            fill={`url(#v3-jib-grad-${sailSide})`}
+            fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
             stroke="#ffffff"
             strokeWidth={2.2}
             strokeLinejoin="round"
@@ -847,7 +860,7 @@ function BoatTop(args: {
       {hasMain && (
         <g transform={`rotate(${ui.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
           <defs>
-            <linearGradient id={`v3-main-grad-${sailSide}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
+            <linearGradient id={`v3-main-grad-${sailSide}-${uid}`} x1="0" y1="0" x2={sailSide > 0 ? "1" : "0"} y2="0">
               <stop offset="0%" stopColor="#dce7ee" />
               <stop offset="55%" stopColor="#ffffff" />
               <stop offset="100%" stopColor="#b9c9d4" />
@@ -855,7 +868,7 @@ function BoatTop(args: {
           </defs>
           <path
             d={`M 0 -30 Q ${sailSide * 38} 30 ${sailSide * 46} 80 Q ${sailSide * 40} 130 ${sailSide * 14} 150 L 0 150 Z`}
-            fill={`url(#v3-main-grad-${sailSide})`}
+            fill={`url(#v3-main-grad-${sailSide}-${uid})`}
             stroke="#ffffff"
             strokeWidth={2.4}
             strokeLinejoin="round"
@@ -876,6 +889,11 @@ function BoatTop(args: {
 // ---------------------------------------------------------------------------
 
 function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; tp: TpFn }) {
+  // Unique prefix so def IDs don't collide with the other SceneRear instance
+  // rendered in the parallel (desktop / mobile) layout tree.
+  const uid = useId();
+  const rearBgId = `v3-rear-bg-${uid}`;
+
   const width = 760;
   const height = 600;
   const cx = width / 2;
@@ -897,14 +915,14 @@ function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; tp: TpF
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
       <defs>
-        <linearGradient id="v3-rear-bg" x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={rearBgId} x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#0a1b33" />
           <stop offset={`${(horizonY / height) * 100}%`} stopColor="#0c2340" />
           <stop offset={`${(horizonY / height) * 100}%`} stopColor="#09192d" />
           <stop offset="100%" stopColor="#06111f" />
         </linearGradient>
       </defs>
-      <rect x="0" y="0" width={width} height={height} fill="url(#v3-rear-bg)" />
+      <rect x="0" y="0" width={width} height={height} fill={`url(#${rearBgId})`} />
 
       {/* Horizon */}
       <line x1="0" x2={width} y1={horizonY} y2={horizonY}

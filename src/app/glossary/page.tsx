@@ -181,9 +181,9 @@ export default function GlossaryPage() {
                   {/* Top row: terms + badge */}
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <h3 className="text-base font-semibold leading-tight text-[var(--text-primary)]">
+                      <h2 className="text-base font-semibold leading-tight text-[var(--text-primary)]">
                         {term.termRu}
-                      </h3>
+                      </h2>
                       <p className="text-sm mt-0.5" style={{ color: '#00d4ff' }}>
                         {term.termEn}
                       </p>
