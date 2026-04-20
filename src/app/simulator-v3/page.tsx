@@ -782,12 +782,12 @@ function SceneTop({ ui, sim, lang }: { ui: UiState; sim: SimulationModel; lang: 
                labelAnchor="start" />
         <Arrow from={{ x: cx, y: cy }} to={driveEnd}
                color="#52ff8e" width={2.8}
-               label={lang === 'ru' ? 'тяга' : 'drive'}
+               label={lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciag' : 'drive'}
                labelPos={{ x: driveEnd.x + 10, y: driveEnd.y - 4 }}
                labelAnchor="start" />
         <Arrow from={{ x: cx, y: cy }} to={sideEnd}
                color="#f6b73c" width={2.2}
-               label={lang === 'ru' ? 'бок' : 'side'}
+               label={lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : 'side'}
                labelPos={{ x: sideEnd.x + (sim.result.diag.side >= 0 ? 10 : -10), y: sideEnd.y - 4 }}
                labelAnchor={sim.result.diag.side >= 0 ? 'start' : 'end'} />
       </g>
