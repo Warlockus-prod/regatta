@@ -897,7 +897,7 @@ export default function GamePage() {
             noGoEntries,
             topSpeed,
           };
-          const r = evaluateMission(selectedMission, metrics, 'ru');
+          const r = evaluateMission(selectedMission, metrics, lang);
           setMissionResult(r);
         } else {
           setMissionResult(null);
@@ -931,17 +931,17 @@ export default function GamePage() {
               setCoaching(data.coaching);
             } else {
               // Fall back to local rule-based analysis so the user still gets feedback
-              const local = analyseRaceLocally(payload);
+              const local = analyseRaceLocally(payload, lang);
               setCoaching(local);
               if (data.fallback) setCoachingError(null);
-              else setCoachingError('AI недоступен - показан локальный анализ');
+              else setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostepne - pokazuje analize lokalna'));
             }
           })
           .catch(() => {
             // Network error - use local analysis
-            const local = analyseRaceLocally(payload);
+            const local = analyseRaceLocally(payload, lang);
             setCoaching(local);
-            setCoachingError('AI недоступен - показан локальный анализ');
+            setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostepne - pokazuje analize lokalna'));
           })
           .finally(() => setCoachingLoading(false));
 
