@@ -25,22 +25,48 @@
 
 ## Parallel-chat coordination (2026-04-22)
 
-**Three chats run in parallel on this repo.** Stay in your lane:
+**Four chats run in parallel on this repo.** Stay in your lane:
 
-### This chat (shared / misc)
+### This chat (shared / misc / web)
 - i18n fixes, docs, content (`/rules`, `/onboard`, `/start`, `/checklist`), game HUD, navigation
-- small bug fixes across the app
-- **Do NOT edit** simulator-v2 or simulator-v3 code (see below)
+- small bug fixes across the web app
+- web API endpoints (`/api/*`)
+- **Do NOT edit** simulator-v2, simulator-v3 code, or mobile app scaffolding (see below)
 
 ### Simulator V2 chat
 - **Owns:** `src/app/simulator2/*`, `src/features/simulator-v2/*` (if it grows there)
 - **Shared deps it MAY read:** `src/lib/sailing-physics/*` (VPP engine), `src/data/sailing-data.ts` glossary/points-of-sail data
-- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), or `/src/app/simulator-v3/*`
+- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator-v3/*`, or mobile app
 
 ### Simulator V3 chat
 - **Owns:** `src/app/simulator-v3/*`, `src/features/simulator-v3/*`, `docs/design/simulator-v3/*.md`
 - **Shared deps it MAY read:** `src/lib/sailing-physics/*`, glossary, data files
-- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), or `/src/app/simulator2/*`
+- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator2/*`, or mobile app
+
+### Mobile app chat (design / scaffold)
+- **Owns:** `docs/design/mobile/*` (design docs, decisions, stack choice),
+  `mobile/**` if a native app directory gets created, OR a separate repo
+  (document the repo URL in `docs/design/mobile/README.md` so this repo
+  stays coherent).
+- **Shared deps it MAY read** (and extract into a shared package later):
+  - `src/data/*` (bootcamp, rules, onboard, sailing-data, missions, anatomy, gallery)
+    - **golden content asset**, keep one source of truth
+  - `src/lib/sailing-physics/*` (VPP engine - same physics on mobile)
+  - i18n keys and translations
+  - HTTP API schemas for `/api/coach`, `/api/log`, `/api/feedback`, `/api/leaderboard`, `/api/multiplayer/*`
+- **MUST hit the existing web API** - no separate mobile backend. The VPS
+  already serves the API at `regatta.icoffio.com/api/*`; mobile consumes it.
+- **Do NOT edit** any web route code (`src/app/*`), i18n plumbing, simulator V1/V2/V3,
+  or the nginx / docker / CI setup for the web app.
+
+#### Mobile cross-cutting decisions (for when the chat is ready)
+When the mobile chat makes a call that would duplicate or change existing
+assets (content, physics, i18n), the decision goes into
+`docs/design/mobile/DECISIONS.md` with a short ADR entry. Before any
+data/physics/i18n duplication happens, come back to THIS chat to plan
+shared-package extraction (e.g. move `src/data/*` to
+`packages/content/*` and publish so both web and mobile import it).
+This avoids content divergence.
 
 ### Shared files touched by multiple chats - ASK or LEAVE ALONE
 
@@ -88,6 +114,7 @@ git pull --rebase origin main
 - This chat: prod smoke = `curl -I https://regatta.icoffio.com/`, playwright cyrillic scan, `/stats` auth.
 - V2 chat: `/simulator2` routes, physics tests, browser console clean.
 - V3 chat: `/simulator-v3` routes, physics tests, spec compliance per `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md`.
+- Mobile chat: design docs in `docs/design/mobile/` stay current; any scaffold code builds in its own directory/repo; API contract docs stay in sync with web `src/app/api/*`.
 
 ## Server
 
