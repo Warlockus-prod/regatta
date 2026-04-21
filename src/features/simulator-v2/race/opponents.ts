@@ -148,8 +148,10 @@ export function stepOpponent(
 
   let nextMarkIndex = prev.nextMarkIndex;
   let roundedMarks = prev.roundedMarks;
-  let finished = prev.finished;
-  let finishedAtSimTime = prev.finishedAtSimTime;
+  // Explicit annotation so control-flow analysis does not narrow `finished`
+  // to `false` based on the early return above.
+  let finished: boolean = prev.finished;
+  let finishedAtSimTime: number | null = prev.finishedAtSimTime;
 
   if (nextMarkIndex < course.marks.length) {
     const mark = course.marks[nextMarkIndex];
