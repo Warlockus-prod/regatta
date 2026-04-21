@@ -66,8 +66,48 @@ function ensureLangCookie(res: NextResponse, req: NextRequest) {
   });
 }
 
+// Short lang shortcuts for shareable links. `/pl` / `/en` / `/ru` all
+// redirect to `/` but set the lang cookie first, so the recipient's browser
+// settings no longer matter - the home page renders in the chosen language
+// for ANY visitor. Useful for share links ("here's the sailing trainer -
+// https://regatta.icoffio.com/pl"). The recipient's URL bar ends up clean (`/`)
+// after the redirect; the cookie carries the language forward.
+const LANG_SHORTCUT_PATHS: Record<string, 'ru' | 'en' | 'pl'> = {
+  '/pl': 'pl',
+  '/en': 'en',
+  '/ru': 'ru',
+  '/pl/': 'pl',
+  '/en/': 'en',
+  '/ru/': 'ru',
+};
+
+function setLangCookie(res: NextResponse, value: 'ru' | 'en' | 'pl') {
+  res.cookies.set({
+    name: LANG_COOKIE,
+    value,
+    maxAge: LANG_MAX_AGE,
+    path: '/',
+    sameSite: 'lax',
+  });
+}
+
 export function proxy(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
+
+  // Short lang shortcuts: /pl /en /ru - redirect to / with cookie pinned.
+  const shortcutLang = LANG_SHORTCUT_PATHS[pathname];
+  if (shortcutLang) {
+    const redirect = NextResponse.redirect(new URL('/', req.url));
+    setLangCookie(redirect, shortcutLang);
+    return redirect;
+  }
+
+  // Explicit ?lang=xx override on any page - overwrites cookie so the
+  // recipient's SSR render uses the forced lang even if they had a different
+  // cookie from a previous visit. Client also strips ?lang= after consuming.
+  const urlLang = searchParams.get('lang');
+  const explicitLang: 'ru' | 'en' | 'pl' | null =
+    urlLang === 'ru' || urlLang === 'en' || urlLang === 'pl' ? urlLang : null;
 
   // Issue session + lang cookies for regular navigations (skip static assets & api)
   if (
@@ -78,7 +118,12 @@ export function proxy(req: NextRequest) {
   ) {
     const res = NextResponse.next();
     ensureSessionCookie(res, req);
-    ensureLangCookie(res, req);
+    if (explicitLang) {
+      // ?lang= always wins over existing cookie
+      setLangCookie(res, explicitLang);
+    } else {
+      ensureLangCookie(res, req);
+    }
     return res;
   }
 

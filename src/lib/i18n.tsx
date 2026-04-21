@@ -32,9 +32,39 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
   const [lang, setLangState] = useState<Lang>(initialLang ?? 'ru');
 
   useEffect(() => {
-    // localStorage takes priority over cookie - user's explicit choice via
-    // the lang picker wins over browser default. Cookie covers first visit.
+    // Priority order (highest first):
+    //  1. ?lang=pl|en|ru in the current URL - forced via a shared link.
+    //     Overrides localStorage so the recipient of a /pl link sees PL
+    //     even if they previously picked RU on their own device.
+    //  2. localStorage - user's explicit picker choice on this device.
+    //  3. initialLang from SSR - cookie set by proxy / Accept-Language.
+    //  4. navigator.language - absolute fallback.
     try {
+      if (typeof window !== 'undefined') {
+        const params = new URLSearchParams(window.location.search);
+        const urlLang = params.get('lang');
+        if (urlLang === 'en' || urlLang === 'ru' || urlLang === 'pl') {
+          // Adopt and persist - mirror to both localStorage and cookie so
+          // the choice survives navigation and future visits.
+          if (urlLang !== lang) setLangState(urlLang);
+          try { localStorage.setItem(STORAGE_KEY, urlLang); } catch { /* ignore */ }
+          try {
+            document.cookie = `${COOKIE_NAME}=${urlLang}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+          } catch { /* ignore */ }
+          // Strip ?lang= from the visible URL for cleanliness. No navigation.
+          try {
+            const clean = new URL(window.location.href);
+            clean.searchParams.delete('lang');
+            const newSearch = clean.searchParams.toString();
+            window.history.replaceState(
+              null,
+              '',
+              clean.pathname + (newSearch ? '?' + newSearch : '') + clean.hash,
+            );
+          } catch { /* ignore */ }
+          return;
+        }
+      }
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored === 'en' || stored === 'ru' || stored === 'pl') {
         if (stored !== lang) setLangState(stored);
