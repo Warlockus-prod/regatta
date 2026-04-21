@@ -10,6 +10,12 @@ rework of `/simulator`.
   `exports/` below.
 - `SPEC.md` - engineering spec for the V3 UI. Layout, overlays,
   interactions, verification checklist. Physics engine unchanged.
+- `PIPELINE.md` - V3-only product map and implementation pipeline for
+  developers. Use this as the delivery plan for the next rebuild wave.
+- `BACKLOG.md` - PR-sized engineering backlog with file ownership,
+  acceptance criteria, and recommended implementation order.
+- `BEHAVIORAL_CONTRACTS.md` - testable V3 behavior contracts. Use this
+  before calling any V3 phase "done".
 - `exports/` - Stitch exports go here (PNG per state variant, any
   SVG/Figma tokens Stitch provides). Created when first export arrives.
 
