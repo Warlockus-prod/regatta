@@ -26,25 +26,31 @@
 
 ## Parallel-chat coordination (2026-04-22)
 
-**Four chats run in parallel on this repo.** Stay in your lane:
+**Four chats run in parallel on this repo, one per lane.** Identify which
+lane you are in from the user's instructions (e.g. "we're working on V3
+here"), then stay in it. Lanes below use explicit names so "this chat"
+never has to resolve at read time - if you're in the V3 lane, read the
+"V3 lane" section; if Shared, read "Shared lane"; etc.
 
-### This chat (Simulator V2 - reassigned 2026-04-22)
+### V3 lane (Simulator V3)
+- **Owns:** `src/app/simulator-v3/*`, `src/features/simulator-v3/*`, `docs/design/simulator-v3/*.md`
+- **Shared deps it MAY read:** `src/lib/sailing-physics/*`, glossary, data files
+- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator2/*`, `/src/features/simulator-v2/*`, or mobile app
+- Follows `docs/design/simulator-v3/PIPELINE.md` + `BACKLOG.md`. QA via `docs/design/simulator-v3/QA_CHECKLIST.md`.
+
+### V2 lane (Simulator V2)
 - **Owns:** `src/app/simulator2/*`, `src/features/simulator-v2/*` (if it grows there), `docs/design/simulator2/*`
 - **Shared deps it MAY read:** `src/lib/sailing-physics/*` (VPP engine), `src/data/sailing-data.ts` glossary/points-of-sail data
 - **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator-v3/*`, `/src/features/simulator-v3/*`, mobile app, or shared web content routes
 - Follows the V2 roadmap in `docs/design/simulator2/ROADMAP.md` (PR-1..PR-7)
 
-### Shared / misc / web chat (separate conversation)
+### Shared lane (misc / web / i18n / content / CI)
 - i18n fixes, docs, content (`/rules`, `/onboard`, `/start`, `/checklist`), game HUD, navigation
 - small bug fixes across the web app
 - web API endpoints (`/api/*`)
+- Owns: `src/proxy.ts`, `src/lib/i18n.tsx`, `src/app/layout.tsx`, `src/components/Navigation.tsx`, all content routes, CI / deploy config
 
-### Simulator V3 chat
-- **Owns:** `src/app/simulator-v3/*`, `src/features/simulator-v3/*`, `docs/design/simulator-v3/*.md`
-- **Shared deps it MAY read:** `src/lib/sailing-physics/*`, glossary, data files
-- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator2/*`, or mobile app
-
-### Mobile app chat (design / scaffold)
+### Mobile lane (design / scaffold)
 - **Owns:** `docs/design/mobile/*` (design docs, decisions, stack choice),
   `mobile/**` if a native app directory gets created, OR a separate repo
   (document the repo URL in `docs/design/mobile/README.md` so this repo
@@ -60,35 +66,35 @@
 - **Do NOT edit** any web route code (`src/app/*`), i18n plumbing, simulator V1/V2/V3,
   or the nginx / docker / CI setup for the web app.
 
-#### Mobile cross-cutting decisions (for when the chat is ready)
-When the mobile chat makes a call that would duplicate or change existing
+#### Mobile cross-cutting decisions (for when the Mobile lane is ready)
+When the Mobile lane makes a call that would duplicate or change existing
 assets (content, physics, i18n), the decision goes into
 `docs/design/mobile/DECISIONS.md` with a short ADR entry. Before any
-data/physics/i18n duplication happens, come back to THIS chat to plan
-shared-package extraction (e.g. move `src/data/*` to
+data/physics/i18n duplication happens, come back to the Shared lane to
+plan shared-package extraction (e.g. move `src/data/*` to
 `packages/content/*` and publish so both web and mobile import it).
 This avoids content divergence.
 
-### Shared files touched by multiple chats - ASK or LEAVE ALONE
+### Shared files touched by multiple lanes - ASK or LEAVE ALONE
 
-Before editing any of these, check git log to see who touched them last. If unclear, post the change in the shared chat (this one) and wait:
+Before editing any of these, check git log to see who touched them last. If unclear, post the change in the Shared lane chat and wait:
 
 - `src/lib/sailing-physics/*.ts` (VPP engine - both V2 and V3 depend on this)
-- `src/proxy.ts` (lang + auth middleware - this chat owns)
-- `src/lib/i18n.tsx` (i18n hooks - this chat owns)
-- `src/app/layout.tsx` (root layout - this chat owns)
-- `src/components/Navigation.tsx` (shared nav - this chat owns)
-- `CLAUDE.md` (this file - any chat can update, but coordinate via commit)
+- `src/proxy.ts` (lang + auth middleware - Shared lane owns)
+- `src/lib/i18n.tsx` (i18n hooks - Shared lane owns)
+- `src/app/layout.tsx` (root layout - Shared lane owns)
+- `src/components/Navigation.tsx` (shared nav - Shared lane owns)
+- `CLAUDE.md` (this file - any lane can update, but coordinate via commit)
 - `docs/TECH.md`, `docs/I18N_AUDIT.md`, `README.md` (docs)
 
-### Don't-touch (hard rules, all chats)
+### Don't-touch (hard rules, all lanes)
 
-- **`src/app/simulator/*` is V1 - primary production simulator.** Do NOT refactor or "improve" it from V2/V3 chats. V1 may only change in this (shared) chat and only for isolated fixes, not physics rewrites. V2/V3 work does not touch V1.
-- **i18n plumbing** (`src/lib/i18n.tsx`, `src/proxy.ts` lang handling, `src/app/layout.tsx` `generateMetadata`) is owned by this chat. V2/V3 use it, don't redesign it.
-- **`/game`, `/multiplayer`, `/rules`, `/onboard`, `/start`, `/checklist`, `/anatomy`, `/courses`, `/racing`, `/glossary`, `/gallery`, `/leaderboard`** - content routes, this chat owns.
-- **CI / deploy** (GitHub Actions, nginx, Docker, .env on VPS) - this chat owns.
+- **`src/app/simulator/*` is V1 - primary production simulator.** Do NOT refactor or "improve" it from V2/V3 lanes. V1 may only change in the Shared lane and only for isolated fixes, not physics rewrites. V2/V3 work does not touch V1.
+- **i18n plumbing** (`src/lib/i18n.tsx`, `src/proxy.ts` lang handling, `src/app/layout.tsx` `generateMetadata`) is owned by the Shared lane. V2/V3 use it, don't redesign it.
+- **`/game`, `/multiplayer`, `/rules`, `/onboard`, `/start`, `/checklist`, `/anatomy`, `/courses`, `/racing`, `/glossary`, `/gallery`, `/leaderboard`** - content routes, Shared lane owns.
+- **CI / deploy** (GitHub Actions, nginx, Docker, .env on VPS) - Shared lane owns.
 
-### Before starting any significant change in any chat
+### Before starting any significant change in any lane
 
 ```
 git fetch origin
@@ -104,18 +110,18 @@ git pull --rebase origin main
 
 ### Commit / push etiquette
 
-- Commit only the files your chat owns. Use `git add <specific files>`, not `git add -A`.
-- Push to `main` directly is fine for this chat and for V2/V3 if files are isolated.
+- Commit only the files your lane owns. Use `git add <specific files>`, not `git add -A`.
+- Push to `main` directly is fine for any lane if files are isolated.
 - If a big V3 refactor touches many files at once, use a feature branch: `git checkout -b feature/simulator-v3-refactor-N` then merge later with `git merge --no-ff`.
 - Never `push --force` to `main`.
-- Never `git reset --hard` without the other chats knowing.
+- Never `git reset --hard` without the other lanes knowing.
 
-### Verification per chat
+### Verification per lane
 
-- This chat: prod smoke = `curl -I https://regatta.icoffio.com/`, playwright cyrillic scan, `/stats` auth.
-- V2 chat: `/simulator2` routes, physics tests, browser console clean.
-- V3 chat: `/simulator-v3` routes, physics tests, spec compliance per `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md`.
-- Mobile chat: design docs in `docs/design/mobile/` stay current; any scaffold code builds in its own directory/repo; API contract docs stay in sync with web `src/app/api/*`.
+- Shared lane: prod smoke = `curl -I https://regatta.icoffio.com/`, playwright cyrillic scan, `/stats` auth.
+- V2 lane: `/simulator2` routes, physics tests, browser console clean.
+- V3 lane: `/simulator-v3` routes, physics tests, spec compliance per `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md` + `QA_CHECKLIST.md`.
+- Mobile lane: design docs in `docs/design/mobile/` stay current; any scaffold code builds in its own directory/repo; API contract docs stay in sync with web `src/app/api/*`.
 
 ## Server
 
