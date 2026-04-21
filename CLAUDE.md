@@ -28,16 +28,16 @@
 
 **Four chats run in parallel on this repo.** Stay in your lane:
 
-### This chat (shared / misc / web)
+### This chat (Simulator V2 - reassigned 2026-04-22)
+- **Owns:** `src/app/simulator2/*`, `src/features/simulator-v2/*` (if it grows there), `docs/design/simulator2/*`
+- **Shared deps it MAY read:** `src/lib/sailing-physics/*` (VPP engine), `src/data/sailing-data.ts` glossary/points-of-sail data
+- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator-v3/*`, `/src/features/simulator-v3/*`, mobile app, or shared web content routes
+- Follows the V2 roadmap in `docs/design/simulator2/ROADMAP.md` (PR-1..PR-7)
+
+### Shared / misc / web chat (separate conversation)
 - i18n fixes, docs, content (`/rules`, `/onboard`, `/start`, `/checklist`), game HUD, navigation
 - small bug fixes across the web app
 - web API endpoints (`/api/*`)
-- **Do NOT edit** simulator-v2, simulator-v3 code, or mobile app scaffolding (see below)
-
-### Simulator V2 chat
-- **Owns:** `src/app/simulator2/*`, `src/features/simulator-v2/*` (if it grows there)
-- **Shared deps it MAY read:** `src/lib/sailing-physics/*` (VPP engine), `src/data/sailing-data.ts` glossary/points-of-sail data
-- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator-v3/*`, or mobile app
 
 ### Simulator V3 chat
 - **Owns:** `src/app/simulator-v3/*`, `src/features/simulator-v3/*`, `docs/design/simulator-v3/*.md`
