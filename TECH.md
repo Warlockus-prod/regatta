@@ -64,11 +64,13 @@ architecture, modules, data flow, infrastructure.
 - `/courses` points of sail with circular wind diagram (boat rotates
   by TWA; tack labels at bottom horizontal post 2026-04-20)
 - `/racing` tactics (start, marks, laylines, right-of-way)
-- `/rules` 8 scenario cards + 3 external RRS links in footer
+- `/rules` scenario cards (RRS + COLREGS) + language-specific official
+  source links per lang (RU: fps30.ru + ВФПС; EN: IMO + USCG + World Sailing
+  + US Sailing; PL: PZŻ / PYA + IMO + World Sailing)
 - `/anatomy` Bavaria 46 2D side profile, 17 clickable hotspots
 - `/checklist` reading reference, 8 sections (converted from a
   checkbox form)
-- `/glossary` 51 sailing terms RU + EN, search + filter
+- `/glossary` 51 sailing terms RU + EN + PL, search + filter
 
 **Interactive pages:**
 - `/game` race with AI opponents, Claude coach after finish. Arcade-
@@ -172,9 +174,11 @@ See `DECISIONS.md` ADR-0001 for the full spec. Snapshot:
 - Verification: 8/8 green per `npm run test:physics`. Table in
   `FEATURES.md` section 3.
 
-**Used by:** `/simulator` V1, `/simulator2` V2, `/simulator-v3` V3
-(all three wire `settle()` into their render loops). NOT used by
-`/game` (see `race-physics.ts` below) or `/multiplayer` (server has
+**Used by:** `/simulator2` V2, `/simulator-v3` V3 (both wire `settle()`
+into their render loops). NOT used by `/simulator` V1 (legacy -
+uses a simpler `pointOfSail -> speedFactor` lookup table in
+`src/data/sailing-data.ts` kept as the primary entry point for now),
+`/game` (see `race-physics.ts` below), or `/multiplayer` (server has
 its own physics tick).
 
 **Explicitly out of scope (V1):** ORC tables, CFD, dynamic sail shape

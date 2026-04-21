@@ -2,30 +2,55 @@
 
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { useI18n } from '@/lib/i18n';
 
 const STORAGE_KEY = 'regatta.onboarding.v1';
-const HIDE_ON = ['/simulator', '/game', '/multiplayer'];
 
-const STEPS = [
+// Routes where the tour must not appear - immersive sims / game UI. Covers
+// both V1 (/simulator), V2 (/simulator2), V3 (/simulator-v3), /game, and
+// /multiplayer. Previously V3/sim2 were missing from this list so foreign
+// visitors who landed on V3 first got a Russian welcome modal on top of it.
+const HIDE_ON = ['/simulator', '/simulator2', '/simulator-v3', '/game', '/multiplayer'];
+
+interface Step {
+  emoji: string;
+  titleRu: string; titleEn: string; titlePl: string;
+  bodyRu: string; bodyEn: string; bodyPl: string;
+}
+
+const STEPS: Step[] = [
   {
     emoji: '🧭',
-    title: 'Добро пожаловать в Regatta',
-    body: 'Это обучающий симулятор парусной яхты. Ты научишься понимать ветер, ставить паруса и проходить гоночные трассы.',
+    titleRu: 'Добро пожаловать в Regatta',
+    titleEn: 'Welcome to Regatta',
+    titlePl: 'Witaj w Regatta',
+    bodyRu: 'Это обучающий симулятор парусной яхты. Ты научишься понимать ветер, ставить паруса и проходить гоночные трассы.',
+    bodyEn: 'A sailing simulator for learners. You will get the feel for wind, sail trim, and racing courses.',
+    bodyPl: 'Symulator zeglarstwa dla poczatkujacych. Poznasz wiatr, trymowanie zagli i trase regat.',
   },
   {
     emoji: '🌬',
-    title: 'Ключевая идея: угол к ветру',
-    body: 'Яхта не может идти прямо против ветра (мёртвая зона). Поэтому в зависимости от угла к ветру парус работает по-разному - как крыло или как парус-парашют.',
+    titleRu: 'Ключевая идея: угол к ветру',
+    titleEn: 'Key idea: angle to the wind',
+    titlePl: 'Kluczowa idea: kat do wiatru',
+    bodyRu: 'Яхта не может идти прямо против ветра (мёртвая зона). Поэтому в зависимости от угла к ветру парус работает по-разному - как крыло или как парус-парашют.',
+    bodyEn: 'A yacht can\'t sail straight into the wind (the no-go zone). Depending on the angle, the sail works differently - as a wing close-hauled, as a parachute downwind.',
+    bodyPl: 'Jacht nie moze plynac prosto pod wiatr (martwa strefa). W zaleznosci od kata zagiel pracuje inaczej - jak skrzydlo na bajdewindzie, jak spadochron na fordewindzie.',
   },
   {
     emoji: '🗺',
-    title: 'С чего начать',
-    body: 'Открой "Курсы" - там все 5 курсов с диаграммой. Потом "Симулятор" для практики управления. Потом "Игра" - гонка с соперниками и AI-тренером, который разбирает твои ошибки.',
+    titleRu: 'С чего начать',
+    titleEn: 'Where to start',
+    titlePl: 'Od czego zaczac',
+    bodyRu: 'Открой «Курсы» - там все 5 курсов с диаграммой. Потом «Симулятор» для практики управления. Потом «Гонка» - с AI-тренером, который разбирает твои ошибки.',
+    bodyEn: 'Open "Points of sail" - all 5 courses on a diagram. Then "Simulator" for hands-on control. Then "Race" - with an AI coach that reviews your mistakes.',
+    bodyPl: 'Otworz "Kursy wiatru" - wszystkie 5 kursow na diagramie. Potem "Symulator" na praktyke. Potem "Regata" - z trenerem AI, ktory analizuje twoje bledy.',
   },
 ];
 
 export default function OnboardingTour() {
   const pathname = usePathname();
+  const { lang } = useI18n();
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(0);
 
@@ -64,6 +89,16 @@ export default function OnboardingTour() {
 
   if (!show) return null;
   const current = STEPS[step];
+  const pick = (ru: string, en: string, pl: string) =>
+    lang === 'pl' ? pl : lang === 'en' ? en : ru;
+  const title = pick(current.titleRu, current.titleEn, current.titlePl);
+  const body = pick(current.bodyRu, current.bodyEn, current.bodyPl);
+  const labelSkip = pick('Пропустить', 'Skip', 'Pomin');
+  const labelBack = pick('Назад', 'Back', 'Wstecz');
+  const labelNext = step < STEPS.length - 1
+    ? pick('Дальше', 'Next', 'Dalej')
+    : pick('Начать', 'Start', 'Start');
+  const ariaSkip = pick('Пропустить обзор', 'Skip tour', 'Pomin przewodnik');
 
   return (
     <div
@@ -78,15 +113,15 @@ export default function OnboardingTour() {
       >
         <button
           onClick={skip}
-          aria-label="Skip tour"
+          aria-label={ariaSkip}
           className="absolute top-3 right-3 text-[var(--text-muted)] hover:text-[var(--text-primary)] text-sm transition"
         >
-          Пропустить
+          {labelSkip}
         </button>
 
         <div className="text-5xl mb-4">{current.emoji}</div>
-        <h2 className="text-2xl font-bold mb-3 text-[var(--text-primary)]">{current.title}</h2>
-        <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed mb-6">{current.body}</p>
+        <h2 className="text-2xl font-bold mb-3 text-[var(--text-primary)]">{title}</h2>
+        <p className="text-sm sm:text-base text-[var(--text-secondary)] leading-relaxed mb-6">{body}</p>
 
         {/* Dots */}
         <div className="flex items-center justify-center gap-2 mb-6">
@@ -108,7 +143,7 @@ export default function OnboardingTour() {
               onClick={() => setStep(step - 1)}
               className="flex-1 py-2.5 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
             >
-              Назад
+              {labelBack}
             </button>
           )}
           <button
@@ -119,7 +154,7 @@ export default function OnboardingTour() {
               color: '#0a1628',
             }}
           >
-            {step < STEPS.length - 1 ? 'Дальше' : 'Начать'}
+            {labelNext}
           </button>
         </div>
       </div>

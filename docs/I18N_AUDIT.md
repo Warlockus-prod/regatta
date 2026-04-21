@@ -1,106 +1,109 @@
-# i18n audit - what's RU/EN/PL status across the app
+# i18n audit - RU/EN/PL status across the app
 
-**Date:** 2026-04-20
-**Stack:** `useI18n()` hook with `t(ru, en)` and `tp(ru, en, pl)` helpers.
-  `t()` is the legacy 2-arg form; PL falls back to EN there.
-
----
-
-## Language toggle (RU / EN / PL)
-
-- `src/components/LanguageToggle.tsx` - shows all 3. Works.
-- Default language: browser detect, falls to RU if no match.
-- Persisted in localStorage `regatta.lang.v1`.
+**Date:** 2026-04-20 (post-full-sweep).
+**Stack:** `useI18n()` hook with `tp(ru, en, pl)` (3-arg, preferred) and
+legacy `t(ru, en)` (2-arg, PL falls back to EN - being phased out).
 
 ---
 
-## Full PL coverage (no gap)
+## Language detection
 
-These routes / components use `tp()` for ALL strings and have PL strings
-where content exists:
+- Server: `proxy.ts` edge middleware reads `Accept-Language` on first
+  request, writes `regatta_lang` cookie (1 year, sameSite=lax).
+- `layout.tsx` reads the cookie server-side, passes `initialLang` to
+  `I18nProvider` and sets `<html lang={serverLang}>`. No first-paint flash.
+- Client: `localStorage.regatta.lang.v1` overrides on user-driven toggle
+  and mirrors back to the cookie so subsequent navigations stay in sync.
+- Fallback order: `localStorage` -> `regatta_lang` cookie -> `Accept-Language`
+  -> `ru`.
+- Toggle UI: `LanguageToggle.tsx` shows all 3 in the nav.
 
-- `src/components/Navigation.tsx` (primary + grouped nav items, labels)
+---
+
+## Full 3-lang coverage (RU + EN + PL)
+
+These components/routes use `tp()` throughout and have full Polish strings.
+
+**Components (site chrome):**
+- `src/components/Navigation.tsx`
 - `src/components/FeedbackWidget.tsx` (AI chat + feedback form UI)
-- `src/components/OnboardingTour.tsx` (wait - RU only, skip PL review)
-- `src/components/HelpOverlay.tsx` (if present)
-- `src/app/layout.tsx`
-- `src/app/page.tsx` (homepage cards - most labels; 1 string still on t())
-- `src/app/simulator2/page.tsx` (V2 eSail)
-- `src/app/simulator-v3/page.tsx` (V3 cockpit)
-- `src/app/rules/page.tsx` (scenario cards have 3 langs)
+- `src/components/OnboardingTour.tsx` *(after 2026-04-20 sweep; was RU-only)*
+- `src/components/HelpOverlay.tsx`
+- `src/components/GoogleAnalytics.tsx` (no strings)
+- `src/app/layout.tsx` + `generateMetadata()` (title / description / OG per lang)
+
+**Routes:**
+- `/` (home)
+- `/start` (bootcamp hub - all 8 lessons PL-complete in `src/data/bootcamp.ts`)
+- `/quick` (quick refresh - all 6 topics PL-complete)
+- `/courses` (points of sail - data + UI)
+- `/racing` (tactics + course diagram)
+- `/onboard` (first week on board - all 8 sections PL in `src/data/onboard.ts`)
+- `/anatomy` (Bavaria 46 parts - PL via `src/data/anatomy.ts`)
+- `/checklist` (crew reference - all 8 sections PL as of 2026-04-20)
+- `/glossary` (PL definitions via `src/data/sailing-data.ts`)
+- `/rules` (RRS + COLREGS scenarios; language-specific PDF links per lang)
+- `/simulator-v3` (V3 cockpit)
+- `/simulator2` (V2 eSail)
+- `/game` (race HUD, briefing, finish modal, AI coach labels, replay, share)
+- `/multiplayer` (lobby + race)
+- `/leaderboard`
+- `/gallery`
+
+**APIs:**
+- `/api/coach` accepts `lang` param, has 3 system prompts (RU/EN/PL).
+- `src/lib/fallback-coach.ts` (local race analysis) outputs in 3 langs.
 
 ---
 
-## Partial PL (UI shell on PL, content on EN fallback)
+## Known gaps (intentional)
 
-These routes have UI labels translated but CONTENT arrays in `src/data/*.ts`
-only carry RU + EN fields. When user is on PL, content renders in EN.
-
-- `/start` - bootcamp lessons. `src/data/bootcamp.ts` has 82 Ru/En field
-  pairs; no Pl fields. UI header uses `t()` (2-lang legacy).
-- `/onboard` - first week sections. `src/data/onboard.ts` has 44 Ru/En
-  field pairs; no Pl.
-- `/anatomy` - yacht parts. `src/data/anatomy.ts` has 108 Ru/En field
-  pairs (17 parts x ~6 fields); no Pl.
-- `/checklist` - NEW section content. The SECTIONS array in page.tsx
-  currently carries RU/EN only. Header/outer UI strings ARE fully
-  PL-ready (2026-04-20 pass). Section bodies still render EN on PL.
-- `/quick` - 4 t() calls, fall to EN
-- `/glossary` - term definitions. `src/data/sailing-data.ts` likely RU/EN
-  only for glossaryTerms.
-- `/game` - 11 t() calls. Game HUD shows RU or EN only on PL.
-- `/simulator` (V1 canvas) - current original labels are hard-coded RU/EN
-  in JSX (not even t() calls). PL users see RU labels. Needs full pass.
+- `/simulator` (V1): still being maintained as the primary simulator entry
+  point. V3 runs in parallel behind `/simulator-v3`. UI strings in V1 are
+  in RU+EN, PL falls back to EN. Will be fully translated when V3 promotion
+  happens.
+- `/stats` admin dashboard: RU-only by design - internal tool, not for
+  end users.
+- OpenGraph description in RU-centric meta: `generateMetadata()` now
+  returns the correct language per request, but `alternates.languages`
+  listing is still canonical-origin based.
+- Coach API prompt content (AI-generated mistakes / explanations): the
+  CONTENT is in the requested language thanks to the per-lang system
+  prompt, but the JSON FIELD NAMES are still `titleRu / explanationRu /
+  fixRu / nextGoalRu` for client back-compat. The strings inside are
+  always in the requested language.
 
 ---
 
-## How to close the remaining gaps (est. effort)
+## Current no-Cyrillic verification (as of 2026-04-20)
 
-Priority order (highest value first):
+Post-hydration scan via Playwright `document.body.innerText.match(/[а-яА-ЯёЁ]{3,}/g)`:
 
-1. **`/simulator` V1** - visible UI. ~15 label sites. 30 min.
-2. **`/checklist` SECTIONS array** - 8 sections x ~30 strings. Mostly
-   short. 2-3 hours with care.
-3. **`src/data/onboard.ts`** - 44 field pairs. 2 hours.
-4. **`src/data/bootcamp.ts`** - 82 fields. 3 hours.
-5. **`src/data/anatomy.ts`** - 108 fields (17 parts x 6 fields). 3 hours.
-6. **`src/app/game/GameClient.tsx`** - 11 t() sites. 1 hour.
-7. **`src/app/start/page.tsx`** - 19 t() sites. 1 hour.
-8. **`src/app/quick/page.tsx`** - 4 t() sites. 20 min.
-9. **`src/data/sailing-data.ts`** - pointsOfSail descriptions, glossary
-   terms. ~50 fields. 2 hours.
+- EN: 14/14 routes = 0 Cyrillic leaks.
+- PL: 14/14 routes = 0 Cyrillic leaks.
 
-Total ~14 hours of focused translation + review work to get to 100% PL
-coverage.
+Routes scanned: `/`, `/start`, `/quick`, `/courses`, `/racing`, `/onboard`,
+`/anatomy`, `/checklist`, `/glossary`, `/rules`, `/game`, `/multiplayer`,
+`/leaderboard`, `/gallery`.
+
+V1-specific canvas rendering in `/simulator` not scanned (V1 carries RU
+strings as documented above).
 
 ---
 
-## Recommendation
+## Contributing PL translations
 
-Current user is Russian-first with EN as solid fallback. PL support is
-"good enough" for UI chrome (navigation, buttons, key page headers) but
-long-form content (lessons, anatomy descriptions, glossary) stays in EN
-for PL users. That's an honest middle ground given translation cost.
+For new components:
+1. Destructure `tp` (not `t`): `const { tp } = useI18n();`
+2. Use the 3-arg form: `{tp('Русский', 'English', 'Polski')}`
+3. Per project rule: no Polish diacritics (no ą/ę/ż/ł) - they're stripped
+   for consistency with the em-dash / en-dash typography rule.
 
-When a Polish-speaking user shows up and reports confusion, we should
-prioritize the data files they hit first:
-- First stop usually: `/`, `/onboard`, `/simulator`
-- Second: `/rules`, `/game`
-
-Translating `onboard.ts` + `bootcamp.ts` + polishing the 2 simulator
-routes would put PL at ~90% coverage for the learning path.
-
----
-
-## How to contribute Polish translations
-
-1. Open the target file (e.g. `src/data/onboard.ts`).
-2. Add `titlePl`, `introPl`, `itemsPl`, `warningPl` fields next to the
-   existing `titleRu`/`titleEn` pairs.
-3. Update the consuming component to read `*Pl` when `lang === 'pl'`.
-4. Verify build passes + em-dash sweep clean.
-5. Ship.
-
-Short form quick convert of a component:
-- Find `t('...', '...')` - replace with `tp('...', '...', 'Polish text')`
-- Make sure useI18n() destructures `tp`.
+For data files (`src/data/*.ts`):
+1. Add `titlePl`, `introPl`, `itemsPl`, etc. next to existing `*Ru`/`*En` pairs.
+2. Consuming component picks with
+   `lang === 'pl' ? x.namePl : lang === 'en' ? x.nameEn : x.nameRu`.
+3. Run `npx tsc --noEmit` to ensure the interface update propagated.
+4. Keep strings terminology-accurate (see `docs/SAILING_TERMINOLOGY.md`
+   if it exists, or cross-check against World Sailing / USCG / PZŻ /
+   ВФПС sources for PL / EN / RU respectively).

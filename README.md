@@ -20,8 +20,15 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
   server.
 - **Replay viewer** - scrubbable timeline for any finished race.
 - **Learning content** - points of sail, racing tactics, rules of the
-  road (8 scenarios + 3 external RRS links), boat anatomy (17 hotspots),
-  checklist, glossary (51 terms), bootcamp, quick refresh, onboard.
+  road (21 RRS + COLREGS scenarios with language-specific external
+  sources: fps30.ru / ВФПС for RU, IMO / USCG / World Sailing / US Sailing
+  for EN, PZŻ / PYA for PL), boat anatomy (17 hotspots), checklist,
+  glossary (51 terms), bootcamp (8 lessons), quick refresh (6 topics),
+  onboard first-week reference (8 sections).
+- **i18n**: RU / EN / PL across every user-facing route. Lang detection
+  at edge (proxy.ts + Accept-Language cookie), SSR-rendered in the right
+  language (no first-paint flash), client override persists via
+  localStorage. AI coach + local fallback both respect the lang.
 - **Leaderboard + daily challenge** - top times per bucket, one
   mission per UTC day.
 - **Admin `/stats`** - auth-gated dashboard for users, sessions,
