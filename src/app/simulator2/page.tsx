@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import { useI18n } from '@/lib/i18n';
 import { useSimulatorV2 } from '@/features/simulator-v2/hooks/use-simulator-v2';
 import { type UiState } from '@/features/simulator-v2/runtime/create-runtime-state';
+import { WindCompass } from '@/features/simulator-v2/ui/WindCompass';
+import { Minimap } from '@/features/simulator-v2/ui/Minimap';
 
 // ============================================================================
 // SIMULATOR V2 - eSail-style 3D race view.
@@ -84,14 +86,14 @@ export default function SimulatorV2Page() {
 
       {/* HUD overlays and controls */}
       <div className="relative" style={{ zIndex: 10, pointerEvents: 'none' }}>
-        {/* HUD: speed + heel in top-left */}
+        {/* HUD: speed + heel in top-left (race-style) */}
         <div className="absolute top-3 left-3 sm:top-5 sm:left-5">
           <div className="rounded-xl p-3 sm:p-4 space-y-3"
                style={{ background: 'rgba(5, 11, 24, 0.65)', border: '1px solid rgba(0, 212, 255, 0.22)', backdropFilter: 'blur(12px)', pointerEvents: 'auto' }}>
             <HudNumber label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')} value={sim.boatSpeed.toFixed(1)} unit="kts" big color="var(--accent-cyan)" />
-            <HudNumber label={tp('КРЕН', 'HEEL', 'PRZECHYL')} value={Math.round(heelAbs).toString()} unit="°"
-                       color={heelAbs > 28 ? 'var(--danger)' : heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)'} />
-            <div className="grid grid-cols-2 gap-2 pt-2 border-t" style={{ borderColor: 'rgba(0, 212, 255, 0.12)' }}>
+            <div className="grid grid-cols-3 gap-2 pt-2 border-t" style={{ borderColor: 'rgba(0, 212, 255, 0.12)' }}>
+              <HudNumber label={tp('КРЕН', 'HEEL', 'PRZECHYL')} value={Math.round(heelAbs).toString()} unit="°" small
+                         color={heelAbs > 28 ? 'var(--danger)' : heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)'} />
               <HudNumber label="AWA" value={Math.round(sim.awa).toString()} unit="°" small color="var(--accent-cyan)" />
               <HudNumber label="AWS" value={sim.aws.toFixed(1)} unit="kts" small color="var(--accent-cyan)" />
             </div>
@@ -101,6 +103,17 @@ export default function SimulatorV2Page() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Top-right: wind compass + chart minimap */}
+        <div className="absolute top-3 right-3 sm:top-5 sm:right-5 flex flex-col gap-2">
+          <WindCompass
+            signedTwa={sim.signedTwa}
+            windSpeed={ui.windSpeed}
+            heading={sim.heading}
+            targetHeading={sim.targetHeading}
+          />
+          <Minimap heading={sim.heading} trueWindDir={sim.trueWindDir} />
         </div>
 
         {/* Bottom control strip */}

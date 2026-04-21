@@ -38,6 +38,7 @@ export interface SimulationSnapshot {
   noGo: boolean;
   targetHeading: number;
   heading: number;
+  trueWindDir: number;
   simTime: number;
 }
 
@@ -147,6 +148,7 @@ export function useSimulatorV2(ui: UiState): UseSimulatorV2Result {
       noGo,
       targetHeading: rt.targetHeading,
       heading: rt.boat.heading,
+      trueWindDir: rt.boat.trueWindDir,
       simTime: rt.simTime,
     };
     // `frame` forces recompute each advanced tick. Mutable ref makes ui
