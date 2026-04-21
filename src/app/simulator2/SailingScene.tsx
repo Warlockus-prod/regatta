@@ -17,9 +17,19 @@ import * as THREE from 'three';
 // Renders strictly from props passed in by the page.
 // ============================================================================
 
+export interface SceneCourseMark {
+  pos: { x: number; z: number };
+  radius: number;
+  label: string;
+}
+
 export interface SceneProps {
-  /** TWA in degrees, positive = starboard tack (wind from starboard). */
+  /** TWA in degrees, positive = starboard tack. Drives sail side and heel. */
   twaSigned: number;
+  /** Boat world compass heading (0-360). Drives yacht yaw and chase cam. */
+  heading: number;
+  /** True wind source in world compass (0-360). Places the wind marker. */
+  trueWindDir: number;
   /** Wind speed in knots (drives wave amplitude). */
   windSpeed: number;
   /** Boat speed in knots (drives wake length and chase distance). */
@@ -38,18 +48,30 @@ export interface SceneProps {
   reef: number;
   /** Slow-rotating camera drift for the preview / showroom feel. */
   autoRotate?: boolean;
+  /** Boat's world 2D position in course units. Lets the scene render marks
+   *  relative to the boat. */
+  boatWorldPos?: { x: number; z: number };
+  /** Course geometry for PR-4 race shell. If present, scene renders start
+   *  line and marks in world space. */
+  startLine?: { a: { x: number; z: number }; b: { x: number; z: number } } | null;
+  marks?: SceneCourseMark[];
+  /** Index of the mark the boat is currently heading for; used for the
+   *  target arrow and highlighted buoy. */
+  nextMarkIndex?: number;
+  /** When true, target arrow/highlight renders above the next mark. */
+  raceActive?: boolean;
 }
 
 // ---------------------------------------------------------------------------
 // ChaseCam - trails the stern using boat yaw. Smooth lerp, speed-aware pull.
 // ---------------------------------------------------------------------------
 
-function ChaseCam({ twaSigned, boatSpeed, autoDrift }: {
-  twaSigned: number;
+function ChaseCam({ heading, boatSpeed, autoDrift }: {
+  heading: number;
   boatSpeed: number;
   autoDrift: boolean;
 }) {
-  const yawRad = THREE.MathUtils.degToRad(-twaSigned);
+  const yawRad = THREE.MathUtils.degToRad(-heading);
   const tmpTarget = useRef(new THREE.Vector3());
   const tmpLook = useRef(new THREE.Vector3());
 
@@ -172,12 +194,12 @@ function Water({ windSpeed }: { windSpeed: number }) {
 // Wake - foam plane trailing the stern, length and alpha ride boat speed.
 // ---------------------------------------------------------------------------
 
-function Wake({ twaSigned, boatSpeed, active }: {
-  twaSigned: number;
+function Wake({ heading, boatSpeed, active }: {
+  heading: number;
   boatSpeed: number;
   active: boolean;
 }) {
-  const yawRad = THREE.MathUtils.degToRad(-twaSigned);
+  const yawRad = THREE.MathUtils.degToRad(-heading);
   const length = Math.max(3, Math.min(26, boatSpeed * 2.4));
   const intensity = active ? Math.min(1, boatSpeed / 7) : 0;
 
@@ -326,9 +348,11 @@ function Horizon() {
 // ---------------------------------------------------------------------------
 
 function Yacht(props: SceneProps) {
-  const { twaSigned, heel, mainAngle, jibAngle, mainOn, jibOn, reef } = props;
+  const { twaSigned, heading, heel, mainAngle, jibAngle, mainOn, jibOn, reef } = props;
 
-  const yawRad = THREE.MathUtils.degToRad(-twaSigned);
+  // Yaw comes from world heading; sail side and heel direction stay
+  // TWA-driven (they depend on which tack, not on compass bearing).
+  const yawRad = THREE.MathUtils.degToRad(-heading);
   const rollRad = THREE.MathUtils.degToRad(twaSigned >= 0 ? -heel : heel);
   const mainReefScale = 1 - 0.45 * reef;
   const sailSide = twaSigned >= 0 ? -1 : 1;
@@ -491,20 +515,132 @@ function JibSail({ sailSide = 1 }: { sailSide?: number }) {
 }
 
 // ---------------------------------------------------------------------------
+// Buoy / mark rendering. Buoys float on the water; the next mark is lit up
+// and wears a target arrow hovering above it.
+// ---------------------------------------------------------------------------
+
+function Buoy({ x, z, highlighted }: { x: number; z: number; highlighted: boolean }) {
+  const color = highlighted ? '#ffaa00' : '#ff4455';
+  const intensity = highlighted ? 1.1 : 0.6;
+  return (
+    <group position={[x, 0.4, z]}>
+      <mesh position={[0, 0, 0]}>
+        <cylinderGeometry args={[0.55, 0.75, 1.6, 12]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={intensity * 0.3} roughness={0.6} />
+      </mesh>
+      <mesh position={[0, 1.1, 0]}>
+        <sphereGeometry args={[0.3, 10, 8]} />
+        <meshStandardMaterial color={color} emissive={color} emissiveIntensity={intensity} />
+      </mesh>
+    </group>
+  );
+}
+
+function StartLinePins({ ax, az, bx, bz }: { ax: number; az: number; bx: number; bz: number }) {
+  return (
+    <group>
+      <Buoy x={ax} z={az} highlighted={false} />
+      <Buoy x={bx} z={bz} highlighted={false} />
+      {/* Connector strip on the water between pins so the line reads clearly */}
+      <mesh position={[(ax + bx) / 2, 0.08, (az + bz) / 2]}
+            rotation={[-Math.PI / 2, 0, Math.atan2(bx - ax, bz - az)]}>
+        <planeGeometry args={[0.6, Math.hypot(bx - ax, bz - az)]} />
+        <meshStandardMaterial color="#ffffff" emissive="#88c6e4" emissiveIntensity={0.4} transparent opacity={0.55} />
+      </mesh>
+    </group>
+  );
+}
+
+function TargetArrow({ x, z, time }: { x: number; z: number; time: number }) {
+  // Hovers and bobs above the target mark, visible from far away.
+  const bob = Math.sin(time * 2) * 0.3;
+  return (
+    <group position={[x, 6 + bob, z]}>
+      <mesh rotation={[Math.PI, 0, 0]}>
+        <coneGeometry args={[0.8, 1.6, 8]} />
+        <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={0.9} />
+      </mesh>
+      <mesh position={[0, 1.3, 0]}>
+        <ringGeometry args={[0.6, 0.9, 24]} />
+        <meshBasicMaterial color="#00d4ff" transparent opacity={0.3} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+function RaceObjects({
+  boatWorldPos,
+  startLine,
+  marks,
+  nextMarkIndex,
+  raceActive,
+}: {
+  boatWorldPos: { x: number; z: number };
+  startLine: { a: { x: number; z: number }; b: { x: number; z: number } } | null | undefined;
+  marks: SceneCourseMark[];
+  nextMarkIndex: number;
+  raceActive: boolean;
+}) {
+  const timeRef = useRef(0);
+  useFrame((_, delta) => {
+    timeRef.current += delta;
+  });
+
+  // Positions in the scene are world - boatPos. Far marks are clipped by
+  // fog so we don't need to cull explicitly for PR-4.
+  const sx = (wx: number) => wx - boatWorldPos.x;
+  const sz = (wz: number) => wz - boatWorldPos.z;
+
+  const activeMarkIdx = Math.min(nextMarkIndex, marks.length - 1);
+
+  return (
+    <group>
+      {startLine && (
+        <StartLinePins
+          ax={sx(startLine.a.x)} az={sz(startLine.a.z)}
+          bx={sx(startLine.b.x)} bz={sz(startLine.b.z)}
+        />
+      )}
+      {marks.map((m, i) => (
+        <Buoy
+          key={i}
+          x={sx(m.pos.x)}
+          z={sz(m.pos.z)}
+          highlighted={raceActive && i === activeMarkIdx}
+        />
+      ))}
+      {raceActive && marks[activeMarkIdx] && (
+        <TargetArrow
+          x={sx(marks[activeMarkIdx].pos.x)}
+          z={sz(marks[activeMarkIdx].pos.z)}
+          time={timeRef.current}
+        />
+      )}
+    </group>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // WindArrow - floating cyan marker above the scene.
 // ---------------------------------------------------------------------------
 
-function WindArrow({ windSpeed }: { windSpeed: number }) {
+function WindArrow({ windSpeed, trueWindDir }: { windSpeed: number; trueWindDir: number }) {
   const intensity = 0.4 + windSpeed / 40;
+  // Place the wind marker at the world compass direction where the wind is
+  // coming from, ~9 units out. Compass 0 = -z, 90 = +x.
+  const rad = (trueWindDir * Math.PI) / 180;
+  const dist = 9;
+  const x = Math.sin(rad) * dist;
+  const z = -Math.cos(rad) * dist;
   return (
-    <group position={[0, 9, 9]}>
+    <group position={[x, 9, z]}>
       <mesh position={[0, -0.5, 0]}>
         <cylinderGeometry args={[0.05, 0.05, 2.5, 8]} />
-        <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={intensity} />
+        <meshStandardMaterial color="#ffaa00" emissive="#ffaa00" emissiveIntensity={intensity} />
       </mesh>
       <mesh position={[0, -1.9, 0]} rotation={[Math.PI, 0, 0]}>
         <coneGeometry args={[0.22, 0.5, 8]} />
-        <meshStandardMaterial color="#00d4ff" emissive="#00d4ff" emissiveIntensity={intensity} />
+        <meshStandardMaterial color="#ffaa00" emissive="#ffaa00" emissiveIntensity={intensity} />
       </mesh>
     </group>
   );
@@ -567,13 +703,22 @@ export default function SailingScene(props: SceneProps) {
 
       <Water windSpeed={props.windSpeed} />
       <Horizon />
-      <Wake twaSigned={props.twaSigned}
+      <Wake heading={props.heading}
             boatSpeed={props.boatSpeed}
             active={props.mainOn || props.jibOn} />
+      {props.marks && props.marks.length > 0 && (
+        <RaceObjects
+          boatWorldPos={props.boatWorldPos ?? { x: 0, z: 0 }}
+          startLine={props.startLine}
+          marks={props.marks}
+          nextMarkIndex={props.nextMarkIndex ?? 0}
+          raceActive={props.raceActive ?? false}
+        />
+      )}
       <Yacht {...props} />
-      <WindArrow windSpeed={props.windSpeed} />
+      <WindArrow windSpeed={props.windSpeed} trueWindDir={props.trueWindDir} />
 
-      <ChaseCam twaSigned={props.twaSigned}
+      <ChaseCam heading={props.heading}
                 boatSpeed={props.boatSpeed}
                 autoDrift={autoRotate} />
     </Canvas>

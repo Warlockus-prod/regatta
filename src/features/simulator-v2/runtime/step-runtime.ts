@@ -1,7 +1,10 @@
 import { getBoatParams, tick, type Controls } from '@/lib/sailing-physics';
+import { DEFAULT_COURSE, distance, type Vec2 } from '../race/course';
+import { crossedLine, type RaceState } from '../race/race-state';
 import {
   CONTROL_RATES,
   HEADING_TURN_RATE_DEG_PER_S,
+  SPEED_TO_UNITS_PER_S,
   type RuntimeState,
 } from './runtime-types';
 
@@ -48,6 +51,82 @@ export function approachHeading(current: number, target: number, maxStep: number
   return normalizeAngle(c + Math.sign(delta) * maxStep);
 }
 
+// ---------------------------------------------------------------------------
+// Position integration: boat moves forward at boatSpeed * SPEED_TO_UNITS_PER_S
+// along its current heading. Compass convention: heading 0 = north = -z, 90 =
+// east = +x, so (vx, vz) = (sin h, -cos h) * speed.
+// ---------------------------------------------------------------------------
+
+function integratePosition(prev: Vec2, heading: number, boatSpeed: number, dt: number): Vec2 {
+  const h = (heading * Math.PI) / 180;
+  const speed = boatSpeed * SPEED_TO_UNITS_PER_S;
+  return {
+    x: prev.x + Math.sin(h) * speed * dt,
+    z: prev.z - Math.cos(h) * speed * dt,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Race progression: walk the countdown, flip to `racing` at 0, detect mark
+// rounding by proximity (boat enters mark radius), detect finish by
+// re-crossing the start line from the upwind side once all marks are done.
+// ---------------------------------------------------------------------------
+
+function progressRace(
+  race: RaceState,
+  prevPos: Vec2,
+  currPos: Vec2,
+  newSimTime: number,
+): RaceState {
+  let phase = race.phase;
+  let startedAt = race.startedAt;
+  let finishedAt = race.finishedAt;
+  let nextMarkIndex = race.nextMarkIndex;
+  let roundedMarks = race.roundedMarks;
+  let finishedLine = race.finishedLine;
+
+  if (phase === 'prestart') {
+    const remaining = race.countdownSec - (newSimTime - race.countdownStartedAt);
+    if (remaining <= 0) {
+      phase = 'racing';
+      startedAt = newSimTime;
+    }
+  }
+
+  if (phase === 'racing') {
+    const course = DEFAULT_COURSE;
+    // Mark rounding: whichever mark is next, if boat is within its radius
+    // we consider it rounded. Real rounding requires leaving the mark on
+    // the correct side, but for PR-4 proximity is enough.
+    if (nextMarkIndex < course.marks.length) {
+      const mark = course.marks[nextMarkIndex];
+      if (distance(currPos, mark.pos) <= mark.radius) {
+        roundedMarks = [...roundedMarks, nextMarkIndex];
+        nextMarkIndex += 1;
+      }
+    }
+    // Finish: all marks rounded AND boat crosses the start line. The pins
+    // stay pinned; crossing from north (z<0) to south (z>0) means finish.
+    if (!finishedLine && nextMarkIndex >= course.marks.length) {
+      if (crossedLine(prevPos, currPos, course.startLine.a, course.startLine.b)) {
+        finishedLine = true;
+        finishedAt = newSimTime;
+        phase = 'finished';
+      }
+    }
+  }
+
+  return {
+    ...race,
+    phase,
+    startedAt,
+    finishedAt,
+    nextMarkIndex,
+    roundedMarks,
+    finishedLine,
+  };
+}
+
 export function stepRuntime(
   prev: RuntimeState,
   target: Controls,
@@ -63,12 +142,20 @@ export function stepRuntime(
   );
   const steeredBoat = { ...prev.boat, heading: newHeading };
   const result = tick(steeredBoat, live, params, dt);
+  const newSimTime = prev.simTime + dt;
+  // Only move the boat through the world while we are actually racing.
+  // During the countdown the boat can still sail around for positioning,
+  // though; race shell PR-4 leaves boat-moves-during-prestart in for now.
+  const newPosition = integratePosition(prev.position, newHeading, result.state.boatSpeed, dt);
+  const newRace = progressRace(prev.race, prev.position, newPosition, newSimTime);
   return {
-    simTime: prev.simTime + dt,
+    simTime: newSimTime,
     boat: result.state,
     live,
     target,
     targetHeading,
     lastDiag: result.diag,
+    position: newPosition,
+    race: newRace,
   };
 }

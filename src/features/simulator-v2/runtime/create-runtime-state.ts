@@ -4,6 +4,7 @@ import {
   settle,
   type Controls,
 } from '@/lib/sailing-physics';
+import { initialRaceState } from '../race/race-state';
 import { type RuntimeState } from './runtime-types';
 
 // ---------------------------------------------------------------------------
@@ -90,5 +91,9 @@ export function createRuntimeState(args: {
     target: controls,
     targetHeading: settled.state.heading,
     lastDiag: settled.diag,
+    // Start the boat roughly on the start line (slightly behind the pin
+    // so the first maneuver after the gun is crossing it).
+    position: { x: 0, z: 8 },
+    race: initialRaceState(0),
   };
 }

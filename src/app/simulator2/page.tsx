@@ -1,12 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/lib/i18n';
 import { useSimulatorV2 } from '@/features/simulator-v2/hooks/use-simulator-v2';
 import { type UiState } from '@/features/simulator-v2/runtime/create-runtime-state';
 import { WindCompass } from '@/features/simulator-v2/ui/WindCompass';
 import { Minimap } from '@/features/simulator-v2/ui/Minimap';
+import { RaceHud } from '@/features/simulator-v2/ui/RaceHud';
+import { DEFAULT_COURSE, distance } from '@/features/simulator-v2/race/course';
 
 // ============================================================================
 // SIMULATOR V2 - eSail-style 3D race view.
@@ -45,6 +47,18 @@ export default function SimulatorV2Page() {
   const { sim } = useSimulatorV2(ui);
 
   const heelAbs = Math.abs(sim.heel);
+  const raceActive = sim.race.phase === 'racing' || sim.race.phase === 'finished';
+
+  // Scene-ready mark list; memoized so SailingScene gets a stable ref.
+  const sceneMarks = useMemo(
+    () => DEFAULT_COURSE.marks.map((m) => ({ pos: m.pos, radius: m.radius, label: m.label })),
+    [],
+  );
+
+  const activeMark = DEFAULT_COURSE.marks[sim.race.nextMarkIndex];
+  const distToNextMark = sim.race.phase === 'racing' && activeMark
+    ? distance(sim.position, activeMark.pos)
+    : null;
 
   return (
     <div className="page-enter relative" style={{ background: '#0b1e38', minHeight: 'calc(100vh - 56px)' }}>
@@ -52,6 +66,8 @@ export default function SimulatorV2Page() {
       <div className="fixed inset-0 top-14" style={{ zIndex: 1 }}>
         <SailingScene
           twaSigned={sim.signedTwa}
+          heading={sim.heading}
+          trueWindDir={sim.trueWindDir}
           windSpeed={ui.windSpeed}
           boatSpeed={sim.boatSpeed}
           heel={sim.heel}
@@ -61,6 +77,11 @@ export default function SimulatorV2Page() {
           jibOn={ui.jibOn}
           reef={REEF_SCENE_VALUES[ui.reefLevel]}
           autoRotate={ui.autoRotate}
+          boatWorldPos={sim.position}
+          startLine={DEFAULT_COURSE.startLine}
+          marks={sceneMarks}
+          nextMarkIndex={sim.race.nextMarkIndex}
+          raceActive={raceActive}
         />
       </div>
 
@@ -105,6 +126,16 @@ export default function SimulatorV2Page() {
           </div>
         </div>
 
+        {/* Top-center: race HUD (countdown / timer / next mark) */}
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 sm:top-5">
+          <RaceHud
+            race={sim.race}
+            simTime={sim.simTime}
+            distanceToNextMark={distToNextMark}
+            tp={tp}
+          />
+        </div>
+
         {/* Top-right: wind compass + chart minimap */}
         <div className="absolute top-3 right-3 sm:top-5 sm:right-5 flex flex-col gap-2">
           <WindCompass
@@ -113,7 +144,13 @@ export default function SimulatorV2Page() {
             heading={sim.heading}
             targetHeading={sim.targetHeading}
           />
-          <Minimap heading={sim.heading} trueWindDir={sim.trueWindDir} />
+          <Minimap
+            heading={sim.heading}
+            trueWindDir={sim.trueWindDir}
+            boatPos={sim.position}
+            nextMarkIndex={sim.race.nextMarkIndex}
+            raceActive={raceActive}
+          />
         </div>
 
         {/* Bottom control strip */}

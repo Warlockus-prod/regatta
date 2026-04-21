@@ -6,6 +6,8 @@ import {
   twaFromCompass,
   type Controls,
 } from '@/lib/sailing-physics';
+import { type Vec2 } from '../race/course';
+import { type RaceState } from '../race/race-state';
 import {
   createRuntimeState,
   uiToControls,
@@ -40,6 +42,8 @@ export interface SimulationSnapshot {
   heading: number;
   trueWindDir: number;
   simTime: number;
+  position: Vec2;
+  race: RaceState;
 }
 
 export interface UseSimulatorV2Result {
@@ -150,6 +154,8 @@ export function useSimulatorV2(ui: UiState): UseSimulatorV2Result {
       heading: rt.boat.heading,
       trueWindDir: rt.boat.trueWindDir,
       simTime: rt.simTime,
+      position: rt.position,
+      race: rt.race,
     };
     // `frame` forces recompute each advanced tick. Mutable ref makes ui
     // unnecessary in the dep list, but we keep params for correctness.

@@ -1,4 +1,6 @@
 import { type BoatState, type Controls, type TickDiagnostics } from '@/lib/sailing-physics';
+import { type Vec2 } from '../race/course';
+import { type RaceState } from '../race/race-state';
 
 // ---------------------------------------------------------------------------
 // V2 live-runtime state.
@@ -22,7 +24,16 @@ export interface RuntimeState {
   targetHeading: number;
   /** Diagnostics from the last tick - the scene reads this for AWA/AWS. */
   lastDiag: TickDiagnostics;
+  /** Boat's 2D world position in course units. Integrates boat velocity. */
+  position: Vec2;
+  /** Race-shell state: countdown, phase, mark progression. */
+  race: RaceState;
 }
+
+/** Scale from boatSpeed (knots) to world course units per second. Tuned so
+ *  a 15-kt sprint feels proportional to the course size in DEFAULT_COURSE
+ *  without waiting minutes for an upwind leg. */
+export const SPEED_TO_UNITS_PER_S = 0.9;
 
 /**
  * Max rate of change per second for each control while interpolating
