@@ -3,6 +3,7 @@
 import { useId } from 'react';
 import {
   clamp,
+  finite,
   polarPoint,
   REEF_VISUAL,
   sectorPath,
@@ -38,8 +39,12 @@ export function SceneTop({
   const cx = width / 2;
   const cy = height / 2;
   const sceneRadius = Math.min(width, height) * 0.42;
-  const boatRotation = -sim.signedTwa;
-  const sailSide: 1 | -1 = sim.signedTwa >= 0 ? -1 : 1;
+  // `finite` on rotations: an initial-hydration stale snapshot can briefly
+  // produce NaN in derived angles; React then logs per-attribute warnings
+  // even though the next frame writes valid numbers. Guarding here keeps
+  // the SSR/CSR boundary clean.
+  const boatRotation = finite(-sim.signedTwa);
+  const sailSide: 1 | -1 = finite(sim.signedTwa) >= 0 ? -1 : 1;
 
   // Scene decoration drivers. windIntensity=0 at the 4-kt lower slider bound
   // and =1 at the 25-kt upper bound; it shapes wave amplitude, streak count
@@ -295,7 +300,7 @@ export function SceneTop({
       {ui.showOptimal && (
         <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} opacity="0.42">
           {hasMain && (
-            <g transform={`rotate(${-sim.optimal.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
+            <g transform={`rotate(${-finite(sim.optimal.mainAngle) * sailSide}) scale(1 ${mainVisualScale})`}>
               <path
                 d="M 0 -30 Q -32 48 -10 150 L 0 150 Z"
                 fill="none"
@@ -307,7 +312,7 @@ export function SceneTop({
             </g>
           )}
           {hasJib && (
-            <g transform={`translate(0 -52) rotate(${-sim.optimal.jibAngle * sailSide})`}>
+            <g transform={`translate(0 -52) rotate(${-finite(sim.optimal.jibAngle) * sailSide})`}>
               <path
                 d="M 0 0 Q -18 42 -6 96 L 0 96 Z"
                 fill="none"
@@ -467,8 +472,10 @@ function BoatTop(args: {
   // windIntensity=1 (25 kts): 0.5 (flatter). mainVisualScale drops the main
   // further when reefed. Main reads flatter than jib at any wind because
   // a boom-set sail tensions flatter than a loose-luff jib.
-  const mainBelly = (1 - 0.5 * windIntensity) * mainVisualScale;
-  const jibBelly = 1 - 0.4 * windIntensity;
+  // finite() keeps the belly finite even if a transient derived number
+  // somewhere upstream briefly goes NaN during hydration.
+  const mainBelly = finite((1 - 0.5 * windIntensity) * mainVisualScale, 1);
+  const jibBelly = finite(1 - 0.4 * windIntensity, 1);
 
   const mainTint = mainStalled ? '#ffd7d7' : '#ffffff';
   const jibTint = jibStalled ? '#ffe3d2' : '#f7fbff';

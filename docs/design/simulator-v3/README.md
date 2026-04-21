@@ -3,6 +3,39 @@
 This folder is the single source of truth for the V3 cockpit-layout
 rework of `/simulator`.
 
+## Current status (2026-04-21)
+
+Shipped live at `/simulator-v3` on `main`:
+
+- PR-1 - feature-module split (route -> `src/features/simulator-v3/`).
+- PR-2 - live runtime loop (30 Hz fixed-step, control interpolation,
+  setInterval so hidden tabs still tick).
+- PR-3 - heading-intent steering + HelmPod compass. TWA / tack flip
+  drive `targetHeading`; boat heading walks there at
+  `HEADING_TURN_RATE_DEG_PER_S = 45`, so a tack takes ~4 s through the
+  wind instead of a teleport.
+- PR-4 - mode bar + scenarios + drills. Three modes (Free Sail / Drills
+  / Scenarios), 4 scenario presets, 3 drills with timer + hold-for
+  evaluation + win/fail.
+- Visual polish - animated waves, wind streaks, wake trail, distinct
+  main (boom + battens) and jib silhouettes, wind-responsive belly.
+- UX fixes - sail rotation sign corrected; mobile layout restructured
+  so the scene gets 55 vh of its own and pods live in a 2x2 grid
+  underneath.
+
+Remaining pipeline items (from `BACKLOG.md`):
+
+- PR-5 - feedback rewrite (4-level taxonomy + delta-sensitive msgs).
+  Partially done via colored drill-result border; the primary-feedback
+  priority table itself is still PR-1 shape.
+- PR-6 - QA hardening and release cleanup.
+
+Known minor notes:
+
+- Initial hydration can log transient React "NaN attribute" warnings
+  on some derived rotations. Guarded with `finite()` helpers so the
+  DOM is always valid; warnings are dev-only noise.
+
 ## Files
 
 - `STITCH_BRIEF.md` - copy-paste-ready prompts for Google Stitch. Run

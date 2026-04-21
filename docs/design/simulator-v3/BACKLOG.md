@@ -1,11 +1,12 @@
 # Simulator V3 - engineering backlog
 
-**Status:** ready for implementation
+**Status:** PR-1..PR-4 shipped on `main`. PR-5 partial. PR-6 open.
 **Scope:** V3 only
 **Related docs:**
 
 - `PIPELINE.md` - product map and delivery phases
 - `SPEC.md` - cockpit layout and interaction reference
+- `README.md` - current status snapshot
 
 This file translates the V3 plan into concrete PR-sized work for developers.
 
@@ -15,12 +16,12 @@ This file translates the V3 plan into concrete PR-sized work for developers.
 
 The safest sequence is:
 
-1. PR-1: split current V3 code without changing behavior
-2. PR-2: introduce V3-local runtime loop
-3. PR-3: add heading-intent control model
-4. PR-4: add drills and scenarios
-5. PR-5: feedback and UX polish
-6. PR-6: QA hardening and release cleanup
+1. PR-1: split current V3 code without changing behavior **[done, 7523d59]**
+2. PR-2: introduce V3-local runtime loop **[done, d5ca577]**
+3. PR-3: add heading-intent control model **[done, 22e914a]**
+4. PR-4: add drills and scenarios **[done, fae1ee4]**
+5. PR-5: feedback and UX polish **[partial - drill result visuals + NaN guards done; feedback taxonomy rewrite open]**
+6. PR-6: QA hardening and release cleanup **[open]**
 
 Do not combine PR-1 and PR-2. The route file is too large today, and runtime work on top of it will become noisy and hard to review.
 

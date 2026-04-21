@@ -108,7 +108,25 @@ export const COURSE_PRESETS = [
 // ---------------------------------------------------------------------------
 
 export function clamp(value: number, min: number, max: number): number {
+  // Guard NaN: if the input is not finite, fall back to `min`. Native
+  // Math.max/Math.min propagate NaN, which otherwise leaks into SVG
+  // attributes and triggers React "Received NaN" warnings on hydration.
+  if (!Number.isFinite(value)) return min;
   return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Return `n` if it is a finite number, otherwise `fallback`. Used as a
+ * defensive guard on values that feed into SVG attributes or CSS transforms,
+ * where NaN propagates into React "Received NaN for the `%s` attribute"
+ * warnings on hydration. The underlying engine settles with deterministic
+ * numbers, but a handful of derived expressions (optimal trim during a
+ * transient, rotations before the first runtime tick lands) can briefly
+ * produce NaN during the server render; this keeps the attribute strings
+ * clean.
+ */
+export function finite(n: number | undefined | null, fallback = 0): number {
+  return typeof n === 'number' && Number.isFinite(n) ? n : fallback;
 }
 
 export function degToRad(deg: number): number {

@@ -87,18 +87,39 @@ export function DrillCard({
       ? 'var(--danger)'
       : 'var(--accent-cyan)';
 
+  const cardBorder =
+    result === 'win'
+      ? '1px solid rgba(82, 255, 142, 0.55)'
+      : result === 'fail'
+      ? '1px solid rgba(255, 130, 110, 0.5)'
+      : '1px solid rgba(0, 212, 255, 0.22)';
+  const cardShadow =
+    result === 'win'
+      ? '0 0 24px rgba(82, 255, 142, 0.25)'
+      : result === 'fail'
+      ? '0 0 24px rgba(255, 130, 110, 0.2)'
+      : 'none';
+
   return (
     <div
-      className="rounded-xl p-3 space-y-2"
+      className="rounded-xl p-3 space-y-2 transition-all"
       style={{
         background: 'rgba(8, 24, 48, 0.72)',
-        border: '1px solid rgba(0, 212, 255, 0.22)',
+        border: cardBorder,
+        boxShadow: cardShadow,
       }}
     >
       <div className="flex items-start justify-between gap-2">
         <div
           className="text-[11px] uppercase tracking-wider font-bold"
-          style={{ color: 'var(--accent-cyan)' }}
+          style={{
+            color:
+              result === 'win'
+                ? 'var(--success)'
+                : result === 'fail'
+                ? 'var(--danger)'
+                : 'var(--accent-cyan)',
+          }}
         >
           {title}
         </div>

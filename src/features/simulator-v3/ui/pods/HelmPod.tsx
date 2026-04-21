@@ -3,12 +3,14 @@
 import {
   PodCard,
   PodLabel,
+  finite,
   type SimulationModel,
   type TpFn,
 } from '../shared';
 
 function normalizeDeg(deg: number): number {
-  return ((deg % 360) + 360) % 360;
+  const safe = finite(deg);
+  return ((safe % 360) + 360) % 360;
 }
 
 function shortestDelta(a: number, b: number): number {
