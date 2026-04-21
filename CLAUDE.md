@@ -13,6 +13,7 @@
 - Keep the dark-ocean CSS vars (`--accent-cyan`, `--bg-primary`, etc).
 - Client-only components must start with `'use client';`.
 - Every edit: `npx tsc --noEmit` should stay clean before commit.
+- Before push: `npm run build` must pass locally. Turbopack's production build is stricter than dev and catches issues that dev hides.
 - Tests: `npm run test:physics` = 16/16 green, `npx playwright test` = 9/9 green. Don't merge if red.
 
 ## i18n
