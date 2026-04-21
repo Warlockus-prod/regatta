@@ -16,7 +16,7 @@ import { type TickResult } from '@/lib/sailing-physics';
 
 export type Tack = 'starboard' | 'port';
 export type ReefLevel = 0 | 1 | 2;
-export type ViewMode = 'top' | 'rear';
+export type ViewMode = 'top' | 'rear' | 'side';
 export type SailsRaised = 'both' | 'main' | 'jib';
 export type TpFn = (ru: string, en: string, pl: string) => string;
 export type FeedbackTone = 'good' | 'warn' | 'danger' | 'info';

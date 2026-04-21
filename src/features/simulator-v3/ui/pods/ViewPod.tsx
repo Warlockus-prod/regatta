@@ -29,6 +29,7 @@ export function ViewPod(props: {
         options={[
           { value: 'top' as const, label: tp('Сверху', 'Top', 'Gora') },
           { value: 'rear' as const, label: tp('Сзади', 'Rear', 'Z tylu') },
+          { value: 'side' as const, label: tp('Сбоку', 'Side', 'Z boku') },
         ]}
         active={ui.view}
         onSelect={(v) => setUi((p) => ({ ...p, view: v as ViewMode }))}

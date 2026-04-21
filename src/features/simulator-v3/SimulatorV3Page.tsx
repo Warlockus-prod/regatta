@@ -14,10 +14,12 @@ import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
 import { SceneOverlayLabels } from './ui/SceneOverlayLabels';
 import { SceneRear } from './ui/SceneRear';
+import { SceneSide } from './ui/SceneSide';
 import { SceneTop } from './ui/SceneTop';
 import { DrillCard, type DrillResult } from './ui/panels/DrillCard';
 import { ModeBar, type ModeKind } from './ui/panels/ModeBar';
 import { ScenarioPicker } from './ui/panels/ScenarioPicker';
+import { TourOverlay } from './ui/panels/TourOverlay';
 import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
@@ -105,6 +107,9 @@ export default function SimulatorV3Page() {
   }, []);
   const [ui, setUi] = useState<UiState>(initialUi);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
+  // Tour visibility. forceTour > 0 triggers the overlay via effect inside
+  // TourOverlay; increment to re-open.
+  const [forceTour, setForceTour] = useState(0);
 
   const onShare = async () => {
     const url = buildShareUrl(ui);
@@ -275,6 +280,18 @@ export default function SimulatorV3Page() {
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
+            onClick={() => setForceTour((n) => n + 1)}
+            aria-label={tp('Показать обзор', 'Show tour', 'Pokaz przewodnik')}
+            className="w-7 h-7 rounded-md border text-[13px] font-bold transition flex items-center justify-center"
+            style={{
+              borderColor: 'rgba(0, 212, 255, 0.35)',
+              background: 'rgba(0, 212, 255, 0.08)',
+              color: 'var(--accent-cyan)',
+            }}
+          >
+            ?
+          </button>
+          <button
             onClick={onShare}
             className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
             style={{
@@ -365,6 +382,8 @@ export default function SimulatorV3Page() {
           >
             {ui.view === 'top' ? (
               <SceneTop ui={ui} sim={sim} lang={lang} />
+            ) : ui.view === 'side' ? (
+              <SceneSide ui={ui} sim={sim} tp={tp} />
             ) : (
               <SceneRear ui={ui} sim={sim} tp={tp} />
             )}
@@ -432,6 +451,8 @@ export default function SimulatorV3Page() {
         >
           {ui.view === 'top' ? (
             <SceneTop ui={ui} sim={sim} lang={lang} />
+          ) : ui.view === 'side' ? (
+            <SceneSide ui={ui} sim={sim} tp={tp} />
           ) : (
             <SceneRear ui={ui} sim={sim} tp={tp} />
           )}
@@ -464,6 +485,13 @@ export default function SimulatorV3Page() {
       </div>
 
       <GlossaryFooter tp={tp} />
+
+      <TourOverlay
+        key={forceTour}
+        lang={lang}
+        tp={tp}
+        forceOpen={forceTour > 0}
+      />
     </div>
   );
 }

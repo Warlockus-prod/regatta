@@ -91,30 +91,70 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
         <polygon points="60,-6 70,0 60,6" fill="#00d4ff" />
       </g>
 
+      {/* Distant coastline to give the horizon some depth so the scene
+          stops looking like a flat navy gradient. */}
+      <path
+        d={`M 0 ${horizonY - 4} Q 180 ${horizonY - 10} 340 ${horizonY - 6} T 620 ${horizonY - 8} T ${width} ${horizonY - 4} L ${width} ${horizonY} L 0 ${horizonY} Z`}
+        fill="rgba(40, 70, 100, 0.55)"
+      />
+
       {/* Boat + rig rotated by heel. Horizon stays level. */}
       <g transform={`translate(${cx} ${horizonY}) rotate(${heelVisual})`}>
         {/* Hull seen from behind: curved bottom, flat top at horizon */}
         <path
-          d="M -110 0 Q -92 -28 -62 -32 L 62 -32 Q 92 -28 110 0 Q 96 14 60 18 L -60 18 Q -96 14 -110 0 Z"
+          d="M -120 0 Q -100 -32 -68 -36 L 68 -36 Q 100 -32 120 0 Q 104 16 66 20 L -66 20 Q -104 16 -120 0 Z"
           fill="#e8f0f6"
           stroke="#6f8ba0"
           strokeWidth={2.2}
         />
+        {/* Cabin hump - low profile rectangle */}
+        <rect x="-54" y="-52" width="108" height="18" rx="4" fill="#dde7ee" stroke="#6f8ba0" strokeWidth={1.2} />
+        {/* Cabin windows */}
+        <rect x="-46" y="-48" width="24" height="10" rx="2" fill="rgba(50, 90, 130, 0.85)" />
+        <rect x="-10" y="-48" width="24" height="10" rx="2" fill="rgba(50, 90, 130, 0.85)" />
+        <rect x="22" y="-48" width="24" height="10" rx="2" fill="rgba(50, 90, 130, 0.85)" />
+        {/* Pulpit rail */}
+        <path
+          d="M -60 -36 L -64 -52 M -60 -52 L 60 -52 M 60 -36 L 64 -52"
+          stroke="rgba(111, 139, 160, 0.6)"
+          strokeWidth={1}
+          fill="none"
+        />
         {/* Rudder hint */}
-        <path d="M -8 18 L 10 18 L 4 64 L -4 64 Z" fill="rgba(10, 22, 40, 0.9)" />
+        <path d="M -8 20 L 10 20 L 4 70 L -4 70 Z" fill="rgba(10, 22, 40, 0.9)" />
 
         {/* Mast, vertical within the boat frame (so it tilts with the whole rotation) */}
-        <rect x="-3" y="-200" width="6" height="200" rx="3" fill="#d0d8e0" />
+        <rect x="-3" y="-224" width="6" height="224" rx="3" fill="#d0d8e0" />
+        {/* Mast cap */}
+        <circle cx="0" cy="-226" r="4" fill="#d0d8e0" />
+        {/* Spreaders - horizontal crossbar mid-mast */}
+        <line x1="-18" x2="18" y1="-130" y2="-130" stroke="#d0d8e0" strokeWidth={1.8} strokeLinecap="round" />
+        {/* Shrouds: port + starboard support cables running from spreader
+            to deck edge; they stay straight in boat frame so they tilt with
+            the boat along with the rig. */}
+        <line x1="-18" y1="-130" x2="-64" y2="-16" stroke="rgba(208, 216, 224, 0.4)" strokeWidth={1} />
+        <line x1="18" y1="-130" x2="64" y2="-16" stroke="rgba(208, 216, 224, 0.4)" strokeWidth={1} />
 
-        {/* Main (full shape, curved crescent) */}
+        {/* Main (full shape, curved crescent from behind) */}
         {hasMain && (
           <g transform={`scale(1 ${mainScale})`}>
             <path
-              d={`M 0 -200 Q ${heelSign * 48} -100 ${heelSign * 70} -12 L 0 -12 Z`}
+              d={`M 0 -216 Q ${heelSign * 52} -120 ${heelSign * 78} -14 L 0 -14 Z`}
               fill="#f6fbff"
               stroke="#ffffff"
               strokeWidth={2.5}
             />
+            {/* Battens: faint horizontal curves inside the sail */}
+            {[-180, -130, -80].map((y) => (
+              <path
+                key={y}
+                d={`M 0 ${y} Q ${heelSign * 32} ${y} ${heelSign * 58} ${y + 4}`}
+                fill="none"
+                stroke="rgba(160, 185, 205, 0.55)"
+                strokeWidth={0.8}
+                strokeLinecap="round"
+              />
+            ))}
           </g>
         )}
 
@@ -122,7 +162,7 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
         {hasJib && (
           <g opacity={jibOpacity}>
             <path
-              d={`M 0 -170 Q ${heelSign * 28} -100 ${heelSign * 82} -20 L 0 -20 Z`}
+              d={`M 0 -186 Q ${heelSign * 30} -116 ${heelSign * 90} -24 L 0 -24 Z`}
               fill="#f6fbff"
               stroke="#ffffff"
               strokeWidth={2.5}
