@@ -1,5 +1,6 @@
 import { type BoatState, type Controls, type TickDiagnostics } from '@/lib/sailing-physics';
 import { type Vec2 } from '../race/course';
+import { type Opponent } from '../race/opponents';
 import { type RaceState } from '../race/race-state';
 
 // ---------------------------------------------------------------------------
@@ -28,6 +29,8 @@ export interface RuntimeState {
   position: Vec2;
   /** Race-shell state: countdown, phase, mark progression. */
   race: RaceState;
+  /** Deterministic AI opponents racing the same course. */
+  opponents: Opponent[];
 }
 
 /** Scale from boatSpeed (knots) to world course units per second. Tuned so

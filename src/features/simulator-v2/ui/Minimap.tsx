@@ -1,6 +1,7 @@
 'use client';
 
 import { DEFAULT_COURSE, type Vec2 } from '../race/course';
+import { type Opponent } from '../race/opponents';
 
 // ---------------------------------------------------------------------------
 // Minimap - north-up tactical inset showing boat, wind, and course geometry.
@@ -14,12 +15,14 @@ export function Minimap({
   boatPos,
   nextMarkIndex,
   raceActive,
+  opponents = [],
 }: {
   heading: number;
   trueWindDir: number;
   boatPos?: Vec2;
   nextMarkIndex?: number;
   raceActive?: boolean;
+  opponents?: Opponent[];
 }) {
   const size = 128;
   const cx = size / 2;
@@ -30,9 +33,15 @@ export function Minimap({
   const course = DEFAULT_COURSE;
   const showCourse = raceActive ?? false;
 
-  // Pick a view radius that fits boat + all marks + start line with some
-  // padding. The chart is always centered on the boat.
-  const points: Vec2[] = [bp, course.startLine.a, course.startLine.b, ...course.marks.map((m) => m.pos)];
+  // Pick a view radius that fits boat + all marks + start line + opponents
+  // with some padding. Chart always centered on the boat.
+  const points: Vec2[] = [
+    bp,
+    course.startLine.a,
+    course.startLine.b,
+    ...course.marks.map((m) => m.pos),
+    ...opponents.map((o) => o.position),
+  ];
   const maxRadius = Math.max(
     40,
     ...points.map((p) => Math.hypot(p.x - bp.x, p.z - bp.z) * 1.15),
@@ -104,6 +113,21 @@ export function Minimap({
         <line x1={windTailX} y1={windTailY} x2={windHeadX} y2={windHeadY}
               stroke="#ffaa00" strokeWidth={1.8} strokeLinecap="round" />
         <circle cx={windHeadX} cy={windHeadY} r={2.6} fill="#ffaa00" />
+
+        {/* Opponents */}
+        {showCourse && opponents.map((o) => {
+          const p = toMap(o.position);
+          return (
+            <g key={o.id} transform={`rotate(${o.heading} ${p.x} ${p.y})`}>
+              <polygon
+                points={`${p.x},${p.y - 4} ${p.x - 2.5},${p.y + 3} ${p.x + 2.5},${p.y + 3}`}
+                fill={o.color}
+                stroke="rgba(5, 11, 24, 0.7)"
+                strokeWidth={0.7}
+              />
+            </g>
+          );
+        })}
 
         {/* Boat marker (always centered, oriented by heading) */}
         <g transform={`rotate(${heading} ${cx} ${cy})`}>

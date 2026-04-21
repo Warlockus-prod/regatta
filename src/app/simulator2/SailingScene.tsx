@@ -23,6 +23,13 @@ export interface SceneCourseMark {
   label: string;
 }
 
+export interface SceneOpponent {
+  id: string;
+  color: string;
+  pos: { x: number; z: number };
+  heading: number;
+}
+
 export interface SceneProps {
   /** TWA in degrees, positive = starboard tack. Drives sail side and heel. */
   twaSigned: number;
@@ -60,6 +67,8 @@ export interface SceneProps {
   nextMarkIndex?: number;
   /** When true, target arrow/highlight renders above the next mark. */
   raceActive?: boolean;
+  /** AI opponents to render as small boats in the world. */
+  opponents?: SceneOpponent[];
 }
 
 // ---------------------------------------------------------------------------
@@ -568,6 +577,47 @@ function TargetArrow({ x, z, time }: { x: number; z: number; time: number }) {
   );
 }
 
+function OpponentBoat({ x, z, yaw, color }: { x: number; z: number; yaw: number; color: string }) {
+  return (
+    <group position={[x, 0.4, z]} rotation={[0, yaw, 0]}>
+      {/* Hull */}
+      <mesh>
+        <boxGeometry args={[0.8, 0.25, 2.4]} />
+        <meshStandardMaterial color={color} roughness={0.55} metalness={0.15} />
+      </mesh>
+      {/* Mast */}
+      <mesh position={[0, 1.6, -0.2]}>
+        <cylinderGeometry args={[0.05, 0.06, 3.0, 8]} />
+        <meshStandardMaterial color="#2d4159" metalness={0.5} roughness={0.5} />
+      </mesh>
+      {/* Sail (simple triangle) */}
+      <mesh position={[0, 1.55, 0.3]} rotation={[0, Math.PI / 2, 0]}>
+        <planeGeometry args={[1.3, 2.4]} />
+        <meshStandardMaterial color="#f7fbff" side={THREE.DoubleSide} roughness={0.6} />
+      </mesh>
+    </group>
+  );
+}
+
+function Opponents({ boatWorldPos, opponents }: {
+  boatWorldPos: { x: number; z: number };
+  opponents: SceneOpponent[];
+}) {
+  return (
+    <group>
+      {opponents.map((o) => (
+        <OpponentBoat
+          key={o.id}
+          x={o.pos.x - boatWorldPos.x}
+          z={o.pos.z - boatWorldPos.z}
+          yaw={THREE.MathUtils.degToRad(-o.heading)}
+          color={o.color}
+        />
+      ))}
+    </group>
+  );
+}
+
 function RaceObjects({
   boatWorldPos,
   startLine,
@@ -713,6 +763,12 @@ export default function SailingScene(props: SceneProps) {
           marks={props.marks}
           nextMarkIndex={props.nextMarkIndex ?? 0}
           raceActive={props.raceActive ?? false}
+        />
+      )}
+      {props.opponents && props.opponents.length > 0 && (
+        <Opponents
+          boatWorldPos={props.boatWorldPos ?? { x: 0, z: 0 }}
+          opponents={props.opponents}
         />
       )}
       <Yacht {...props} />

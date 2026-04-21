@@ -1,5 +1,6 @@
 import { getBoatParams, tick, type Controls } from '@/lib/sailing-physics';
 import { DEFAULT_COURSE, distance, type Vec2 } from '../race/course';
+import { stepOpponent, type Opponent } from '../race/opponents';
 import { crossedLine, type RaceState } from '../race/race-state';
 import {
   CONTROL_RATES,
@@ -148,6 +149,21 @@ export function stepRuntime(
   // though; race shell PR-4 leaves boat-moves-during-prestart in for now.
   const newPosition = integratePosition(prev.position, newHeading, result.state.boatSpeed, dt);
   const newRace = progressRace(prev.race, prev.position, newPosition, newSimTime);
+
+  const racing = newRace.phase === 'racing';
+  const newOpponents: Opponent[] = prev.opponents.map((o) =>
+    stepOpponent(
+      o,
+      result.state.trueWindDir,
+      result.state.trueWindSpeed,
+      DEFAULT_COURSE,
+      racing,
+      prev.simTime,
+      newSimTime,
+      dt,
+    ),
+  );
+
   return {
     simTime: newSimTime,
     boat: result.state,
@@ -157,5 +173,6 @@ export function stepRuntime(
     lastDiag: result.diag,
     position: newPosition,
     race: newRace,
+    opponents: newOpponents,
   };
 }

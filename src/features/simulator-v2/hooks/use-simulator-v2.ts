@@ -7,6 +7,7 @@ import {
   type Controls,
 } from '@/lib/sailing-physics';
 import { type Vec2 } from '../race/course';
+import { type Opponent } from '../race/opponents';
 import { type RaceState } from '../race/race-state';
 import {
   createRuntimeState,
@@ -44,6 +45,7 @@ export interface SimulationSnapshot {
   simTime: number;
   position: Vec2;
   race: RaceState;
+  opponents: Opponent[];
 }
 
 export interface UseSimulatorV2Result {
@@ -156,6 +158,7 @@ export function useSimulatorV2(ui: UiState): UseSimulatorV2Result {
       simTime: rt.simTime,
       position: rt.position,
       race: rt.race,
+      opponents: rt.opponents,
     };
     // `frame` forces recompute each advanced tick. Mutable ref makes ui
     // unnecessary in the dep list, but we keep params for correctness.

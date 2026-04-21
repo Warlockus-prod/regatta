@@ -4,6 +4,7 @@ import {
   settle,
   type Controls,
 } from '@/lib/sailing-physics';
+import { createInitialOpponents } from '../race/opponents';
 import { initialRaceState } from '../race/race-state';
 import { type RuntimeState } from './runtime-types';
 
@@ -95,5 +96,6 @@ export function createRuntimeState(args: {
     // so the first maneuver after the gun is crossing it).
     position: { x: 0, z: 8 },
     race: initialRaceState(0),
+    opponents: createInitialOpponents(),
   };
 }

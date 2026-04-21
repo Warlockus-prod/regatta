@@ -8,6 +8,7 @@ import { type UiState } from '@/features/simulator-v2/runtime/create-runtime-sta
 import { WindCompass } from '@/features/simulator-v2/ui/WindCompass';
 import { Minimap } from '@/features/simulator-v2/ui/Minimap';
 import { RaceHud } from '@/features/simulator-v2/ui/RaceHud';
+import { Leaderboard } from '@/features/simulator-v2/ui/Leaderboard';
 import { DEFAULT_COURSE, distance } from '@/features/simulator-v2/race/course';
 
 // ============================================================================
@@ -55,6 +56,15 @@ export default function SimulatorV2Page() {
     [],
   );
 
+  // Scene-ready opponents. Mapping is cheap; bypass memo since opponents
+  // move every frame.
+  const sceneOpponents = sim.opponents.map((o) => ({
+    id: o.id,
+    color: o.color,
+    pos: o.position,
+    heading: o.heading,
+  }));
+
   const activeMark = DEFAULT_COURSE.marks[sim.race.nextMarkIndex];
   const distToNextMark = sim.race.phase === 'racing' && activeMark
     ? distance(sim.position, activeMark.pos)
@@ -82,6 +92,7 @@ export default function SimulatorV2Page() {
           marks={sceneMarks}
           nextMarkIndex={sim.race.nextMarkIndex}
           raceActive={raceActive}
+          opponents={raceActive ? sceneOpponents : undefined}
         />
       </div>
 
@@ -150,7 +161,19 @@ export default function SimulatorV2Page() {
             boatPos={sim.position}
             nextMarkIndex={sim.race.nextMarkIndex}
             raceActive={raceActive}
+            opponents={raceActive ? sim.opponents : []}
           />
+          {raceActive && (
+            <Leaderboard
+              player={{
+                position: sim.position,
+                nextMarkIndex: sim.race.nextMarkIndex,
+                finished: sim.race.phase === 'finished',
+              }}
+              opponents={sim.opponents}
+              tp={tp}
+            />
+          )}
         </div>
 
         {/* Bottom control strip */}
