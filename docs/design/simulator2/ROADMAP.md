@@ -379,6 +379,15 @@ This belongs after live runtime. Without live runtime, timed maneuvers are fake 
 
 ## PR-7 - Shared runtime extraction
 
+**Status: DEFERRED (2026-04-22).** V2 now has its own runtime under
+`src/features/simulator-v2/runtime/` that structurally mirrors V3's
+`src/features/simulator-v3/runtime/`. The duplication is intentional
+for now: neither lane is paying a maintenance cost yet, and extracting
+a shared module under `src/lib/sim-runtime/` would require coordinated
+changes in the V3 lane (touching V3 files), which violates the lane
+boundary rules in CLAUDE.md. Revisit when either V2 or V3 evolves a
+change that would be better implemented once than twice.
+
 ### Goal
 
 Only after V2 and V3 both prove they need it, extract the shared stepping logic.
