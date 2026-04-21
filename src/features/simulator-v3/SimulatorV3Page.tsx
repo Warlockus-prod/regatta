@@ -25,9 +25,62 @@ import { ViewPod } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
 import {
   DEFAULT_UI,
+  type ReefLevel,
   type SimulationModel,
   type UiState,
 } from './ui/shared';
+
+// ---------------------------------------------------------------------------
+// URL-state shareable setups.
+//
+// `/simulator-v3?twa=42&tws=16&tack=s&reef=1&main=24&jib=28` opens the page
+// with those values overriding DEFAULT_UI. Useful for "check out this setup"
+// links; mirrors the share-link convention already used by i18n shortcuts.
+// Invalid values are ignored silently; anything not in the whitelist is
+// dropped.
+// ---------------------------------------------------------------------------
+
+function readUiFromUrl(): Partial<UiState> | null {
+  if (typeof window === 'undefined') return null;
+  const p = new URLSearchParams(window.location.search);
+  if (!p.toString()) return null;
+  const out: Partial<UiState> = {};
+  const num = (k: string) => {
+    const v = p.get(k);
+    if (v === null) return undefined;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : undefined;
+  };
+  const twa = num('twa');
+  if (twa !== undefined && twa >= 30 && twa <= 180) out.twa = Math.round(twa);
+  const tws = num('tws');
+  if (tws !== undefined && tws >= 4 && tws <= 25) out.windSpeed = Math.round(tws);
+  const main = num('main');
+  if (main !== undefined && main >= 0 && main <= 85) out.mainAngle = main;
+  const jib = num('jib');
+  if (jib !== undefined && jib >= 5 && jib <= 55) out.jibAngle = jib;
+  const reef = p.get('reef');
+  if (reef === '0' || reef === '1' || reef === '2') {
+    out.reefLevel = Number(reef) as ReefLevel;
+  }
+  const tack = p.get('tack');
+  if (tack === 'p') out.tack = 'port';
+  if (tack === 's') out.tack = 'starboard';
+  return Object.keys(out).length ? out : null;
+}
+
+function buildShareUrl(ui: UiState): string {
+  const origin =
+    typeof window !== 'undefined' ? window.location.origin : 'https://regatta.icoffio.com';
+  const p = new URLSearchParams();
+  p.set('twa', String(ui.twa));
+  p.set('tws', String(ui.windSpeed));
+  p.set('tack', ui.tack === 'port' ? 'p' : 's');
+  p.set('reef', String(ui.reefLevel));
+  p.set('main', String(Math.round(ui.mainAngle)));
+  p.set('jib', String(Math.round(ui.jibAngle)));
+  return `${origin}/simulator-v3?${p.toString()}`;
+}
 
 // ============================================================================
 // SIMULATOR V3 - cockpit layout on the sailing-physics engine.
@@ -46,7 +99,31 @@ import {
 export default function SimulatorV3Page() {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
-  const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  const initialUi = useMemo<UiState>(() => {
+    const fromUrl = readUiFromUrl();
+    return fromUrl ? { ...DEFAULT_UI, ...fromUrl } : DEFAULT_UI;
+  }, []);
+  const [ui, setUi] = useState<UiState>(initialUi);
+  const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
+
+  const onShare = async () => {
+    const url = buildShareUrl(ui);
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else if (typeof window !== 'undefined') {
+        window.prompt(tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:'), url);
+      }
+      setShareState('copied');
+      setTimeout(() => setShareState('idle'), 1800);
+    } catch {
+      // Clipboard can fail in insecure / locked-down contexts. Fall back
+      // to a prompt so the user can still grab the URL.
+      if (typeof window !== 'undefined') {
+        window.prompt(tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:'), url);
+      }
+    }
+  };
   const { sim, reset } = useSimulatorV3({ ui, tp });
 
   // Mode machine (PR-4). Drives what sits above the metrics strip:
@@ -197,6 +274,26 @@ export default function SimulatorV3Page() {
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            onClick={onShare}
+            className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
+            style={{
+              borderColor:
+                shareState === 'copied'
+                  ? 'var(--success)'
+                  : 'rgba(0, 212, 255, 0.35)',
+              color:
+                shareState === 'copied' ? 'var(--success)' : 'var(--accent-cyan)',
+              background:
+                shareState === 'copied'
+                  ? 'rgba(82, 255, 142, 0.08)'
+                  : 'rgba(0, 212, 255, 0.08)',
+            }}
+          >
+            {shareState === 'copied'
+              ? tp('СКОПИРОВАНО', 'COPIED', 'SKOPIOWANO')
+              : tp('Поделиться', 'Share', 'Udostepnij')}
+          </button>
           <a
             href="/simulator"
             className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"

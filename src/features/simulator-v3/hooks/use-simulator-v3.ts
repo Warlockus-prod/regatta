@@ -79,6 +79,12 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const accumRef = useRef(0);
+  // Telemetry anchor for PR-5 delta-sensitive feedback. We capture
+  // (trimScore, heelAbs, t) at a stable point up to ~1.5 s in the past,
+  // then measure delta = current - anchor each frame. When the anchor
+  // expires, we rotate it forward. This reads the direction of travel
+  // (trim recovering / heel rising) without needing a full buffer.
+  const telemetryAnchorRef = useRef<{ trim: number; heelAbs: number; t: number } | null>(null);
   const [frame, setFrame] = useState(0);
 
   // Rebuild target controls when trim-related UI changes. Env-related fields
@@ -170,6 +176,9 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       targetHeadingRef.current = fresh.targetHeading;
       accumRef.current = 0;
       lastTimeRef.current = null;
+      // Drop telemetry anchor on reset so trim/heel deltas don't report
+      // a huge jump against a now-unrelated prior scenario.
+      telemetryAnchorRef.current = null;
       setFrame((f) => (f + 1) | 0);
     },
     [params],
@@ -254,7 +263,48 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       0,
       100,
     );
-    const picked = pickPrimaryFeedback({ ui, result, pos, absTwa, tp });
+
+    // Delta vs the telemetry anchor. Anchor is up to 1.5 s old; on expiry
+    // it rotates forward. Intentionally a ref-mutation inside useMemo: it
+    // is idempotent per render and avoids wiring another effect.
+    const heelAbsNow = Math.abs(rt.boat.heel);
+    const nowSec = typeof performance !== 'undefined' ? performance.now() / 1000 : 0;
+    const anchor = telemetryAnchorRef.current;
+    const windowSec = 1.5;
+    let trimDelta = 0;
+    let heelDelta = 0;
+    if (anchor) {
+      trimDelta = trimScore - anchor.trim;
+      heelDelta = heelAbsNow - anchor.heelAbs;
+      if (nowSec - anchor.t >= windowSec) {
+        telemetryAnchorRef.current = { trim: trimScore, heelAbs: heelAbsNow, t: nowSec };
+      }
+    } else {
+      telemetryAnchorRef.current = { trim: trimScore, heelAbs: heelAbsNow, t: nowSec };
+    }
+
+    const picked = pickPrimaryFeedback({
+      ui,
+      result,
+      pos,
+      absTwa,
+      tp,
+      trimDelta,
+      heelDelta,
+    });
+
+    // Ghost angles: cheap per-frame heuristic based on the LIVE AWA. Unlike
+    // `optimalModel.optimal` (which is target-TWA based and memoized), this
+    // slides as the boat turns so the dashed ghost on the scene always
+    // reads "here is where these sails should be for the wind you feel
+    // RIGHT NOW". No settle() call per frame - just the piecewise formula.
+    const ghostAngles = recommendedTrim(
+      Math.abs(rt.lastDiag.awa),
+      ui.windSpeed,
+      ui.reefLevel,
+      params,
+    );
+
     return {
       result,
       optimalResult: optimalModel.optimalResult,
@@ -263,6 +313,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       absTwa,
       trimScore,
       optimal: optimalModel.optimal,
+      ghostAngles,
       primaryFeedback: picked.text,
       primaryFeedbackTone: picked.tone,
       targetHeading: rt.targetHeading,

@@ -20,8 +20,11 @@ The safest sequence is:
 2. PR-2: introduce V3-local runtime loop **[done, d5ca577]**
 3. PR-3: add heading-intent control model **[done, 22e914a]**
 4. PR-4: add drills and scenarios **[done, fae1ee4]**
-5. PR-5: feedback and UX polish **[partial - drill result visuals + NaN guards done; feedback taxonomy rewrite open]**
-6. PR-6: QA hardening and release cleanup **[open]**
+5. PR-5: feedback 4-level taxonomy + delta-sensitive msgs + drill glow **[done]**
+6. PR-6: QA checklist + NaN-safe guards + docs sync **[done]**
+
+Pipeline-complete. Future work lands under the "Nice-to-haves" list
+below.
 
 Do not combine PR-1 and PR-2. The route file is too large today, and runtime work on top of it will become noisy and hard to review.
 

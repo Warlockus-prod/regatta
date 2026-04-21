@@ -300,7 +300,7 @@ export function SceneTop({
       {ui.showOptimal && (
         <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} opacity="0.42">
           {hasMain && (
-            <g transform={`rotate(${-finite(sim.optimal.mainAngle) * sailSide}) scale(1 ${mainVisualScale})`}>
+            <g transform={`rotate(${-finite(sim.ghostAngles.mainAngle) * sailSide}) scale(1 ${mainVisualScale})`}>
               <path
                 d="M 0 -30 Q -32 48 -10 150 L 0 150 Z"
                 fill="none"
@@ -312,7 +312,7 @@ export function SceneTop({
             </g>
           )}
           {hasJib && (
-            <g transform={`translate(0 -52) rotate(${-finite(sim.optimal.jibAngle) * sailSide})`}>
+            <g transform={`translate(0 -52) rotate(${-finite(sim.ghostAngles.jibAngle) * sailSide})`}>
               <path
                 d="M 0 0 Q -18 42 -6 96 L 0 96 Z"
                 fill="none"

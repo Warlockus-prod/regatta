@@ -3,9 +3,10 @@
 This folder is the single source of truth for the V3 cockpit-layout
 rework of `/simulator`.
 
-## Current status (2026-04-21)
+## Current status (2026-04-22)
 
-Shipped live at `/simulator-v3` on `main`:
+All six BACKLOG phases shipped to production at
+`https://regatta.icoffio.com/simulator-v3`:
 
 - PR-1 - feature-module split (route -> `src/features/simulator-v3/`).
 - PR-2 - live runtime loop (30 Hz fixed-step, control interpolation,
@@ -17,24 +18,31 @@ Shipped live at `/simulator-v3` on `main`:
 - PR-4 - mode bar + scenarios + drills. Three modes (Free Sail / Drills
   / Scenarios), 4 scenario presets, 3 drills with timer + hold-for
   evaluation + win/fail.
-- Visual polish - animated waves, wind streaks, wake trail, distinct
-  main (boom + battens) and jib silhouettes, wind-responsive belly.
-- UX fixes - sail rotation sign corrected; mobile layout restructured
-  so the scene gets 55 vh of its own and pods live in a 2x2 grid
-  underneath.
+- PR-5 - feedback rewrite (4-level taxonomy: healthy / edge / warning /
+  critical) with delta-sensitive suffixes ("recovering", "rising",
+  "settling"). Drill card gets a colored outline + glow on win/fail.
+  Telemetry anchor drops on reset so delta doesn't report a stale jump.
+- PR-6 - QA checklist (`QA_CHECKLIST.md`), docs sync, NaN-safe clamp +
+  `finite()` guards on SVG rotations.
 
-Remaining pipeline items (from `BACKLOG.md`):
+Also shipped in this wave:
 
-- PR-5 - feedback rewrite (4-level taxonomy + delta-sensitive msgs).
-  Partially done via colored drill-result border; the primary-feedback
-  priority table itself is still PR-1 shape.
-- PR-6 - QA hardening and release cleanup.
+- Visual polish - animated waves (SMIL), wind streaks scaling with
+  TWS, wake trail under the hull, distinct main (boom + battens) and
+  jib silhouettes, wind-responsive belly flattening at heavy air.
+- Sail rotation sign fix (rotate by `angle * -sailSide`, not
+  `angle * sailSide` - the old code swept the sail onto the windward
+  side).
+- Mobile layout restructured so the scene gets 55 vh of its own and
+  pods live in a 2x2 grid underneath.
+- Ghost optimal adapts to the CURRENT TWA (not the target) so the
+  dashed overlay slides with the boat during a turn.
+- URL state: `?twa=42&tws=16&tack=s&reef=1&main=24&jib=28` pre-seeds
+  the UI; Share button in the top bar copies the current setup URL
+  to the clipboard.
 
-Known minor notes:
-
-- Initial hydration can log transient React "NaN attribute" warnings
-  on some derived rotations. Guarded with `finite()` helpers so the
-  DOM is always valid; warnings are dev-only noise.
+See `QA_CHECKLIST.md` for the full verification sweep before any
+future V3 PR merges.
 
 ## Files
 

@@ -50,7 +50,14 @@ export interface SimulationModel {
   signedTwa: number;
   absTwa: number;
   trimScore: number;
+  /** Optimal trim at the USER's intended course (ui.twa). Used by the
+   *  "Apply optimal" button - clicking it applies the trim the user will
+   *  want once the turn completes. Memoized on target TWA. */
   optimal: OptimalTrim;
+  /** Optimal trim at the boat's CURRENT TWA, recomputed every frame from
+   *  the live apparent wind angle. Used by the ghost overlay on the scene
+   *  so it slides to match the boat as it turns, not the pre-turn target. */
+  ghostAngles: OptimalTrim;
   primaryFeedback: string;
   primaryFeedbackTone: FeedbackTone;
   /** Compass heading the boat is steering to, 0-360 deg. Set by the user's
