@@ -2,14 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import {
-  createInitialState,
-  getBoatParams,
-  settle,
-  type Controls,
-} from '@/lib/sailing-physics';
-import { pickPrimaryFeedback } from './runtime/feedback';
-import { recommendedTrim } from './runtime/trim-heuristics';
+import { getBoatParams } from '@/lib/sailing-physics';
+import { useSimulatorV3 } from './hooks/use-simulator-v3';
 import { CommentaryLine } from './ui/CommentaryLine';
 import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
@@ -20,16 +14,8 @@ import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
 import { ViewPod } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
-import {
-  clamp,
-  DEFAULT_UI,
-  pointOfSailFor,
-  REEF_VALUES,
-  toJibSheet,
-  toMainSheet,
-  type SimulationModel,
-  type UiState,
-} from './ui/shared';
+import { DEFAULT_UI, type UiState } from './ui/shared';
+import { recommendedTrim } from './runtime/trim-heuristics';
 
 // ============================================================================
 // SIMULATOR V3 - cockpit layout on the sailing-physics engine.
@@ -37,101 +23,19 @@ import {
 // See docs/design/simulator-v3/SPEC.md for the full design rationale and
 // docs/design/simulator-v3/PIPELINE.md for the delivery pipeline.
 //
-// This file composes the V3 surface: it owns the UI state, calls the steady-
-// state solver, and threads the resulting SimulationModel into the scene +
-// pod components. Runtime helpers (trim heuristics, feedback copy) live in
-// ./runtime/*; visual leaves live in ./ui/*.
+// This file composes the V3 surface. Runtime state (boat, live/target
+// controls, sim time) is owned by useSimulatorV3 which runs a fixed-step
+// rAF loop. UI state (slider positions) is owned here via useState.
 //
-// Scene layers (bottom to top) and behavior contracts are documented in
-// docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md.
+// See docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md for the testable
+// behaviors this page must deliver.
 // ============================================================================
 
 export default function SimulatorV3Page() {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
   const [ui, setUi] = useState<UiState>(DEFAULT_UI);
-
-  const sim = useMemo<SimulationModel>(() => {
-    const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
-
-    // sailsRaised control maps to jibFurl/reef via area zero-out.
-    const jibFurlEff = ui.sailsRaised === 'main' ? 1 : 1 - ui.jibFurlPct / 100;
-    const reefEff = ui.sailsRaised === 'jib' ? 1 : REEF_VALUES[ui.reefLevel];
-
-    const controls: Controls = {
-      mainSheet: toMainSheet(ui.mainAngle, params.mainMaxOff),
-      jibSheet: toJibSheet(ui.jibAngle, params.jibMinOff, params.jibMaxOff),
-      mainTwist: ui.mainTwistPct / 100,
-      jibTwist: ui.jibTwistPct / 100,
-      reef: reefEff,
-      jibFurl: jibFurlEff,
-      jibSide: 1,
-    };
-
-    const initial = createInitialState({
-      tws: ui.windSpeed,
-      twa: signedTwa,
-      // Seed bs with a realistic beam-reach speed so the engine does not
-      // settle into a stalled-at-rest equilibrium when trim is sub-optimal.
-      boatSpeed: Math.max(3, ui.windSpeed * 0.45),
-    });
-
-    const result = settle(initial, controls, params, 45, 0.1);
-
-    const firstOptimal = recommendedTrim(
-      Math.abs(result.diag.awa),
-      ui.windSpeed,
-      ui.reefLevel,
-      params,
-    );
-    const firstOptCtrls: Controls = {
-      ...controls,
-      mainSheet: toMainSheet(firstOptimal.mainAngle, params.mainMaxOff),
-      jibSheet: toJibSheet(firstOptimal.jibAngle, params.jibMinOff, params.jibMaxOff),
-      mainTwist: firstOptimal.mainTwistPct / 100,
-      jibTwist: firstOptimal.jibTwistPct / 100,
-    };
-    const firstOptRes = settle(initial, firstOptCtrls, params, 45, 0.1);
-
-    const optimal = recommendedTrim(
-      Math.abs(firstOptRes.diag.awa),
-      ui.windSpeed,
-      ui.reefLevel,
-      params,
-    );
-    const optCtrls: Controls = {
-      ...controls,
-      mainSheet: toMainSheet(optimal.mainAngle, params.mainMaxOff),
-      jibSheet: toJibSheet(optimal.jibAngle, params.jibMinOff, params.jibMaxOff),
-      mainTwist: optimal.mainTwistPct / 100,
-      jibTwist: optimal.jibTwistPct / 100,
-    };
-    const optimalResult = settle(initial, optCtrls, params, 45, 0.1);
-
-    const absTwa = Math.abs(signedTwa);
-    const pos = pointOfSailFor(absTwa);
-    const trimScore = clamp(
-      Math.round(
-        (result.state.boatSpeed / Math.max(0.1, optimalResult.state.boatSpeed)) * 100,
-      ),
-      0,
-      100,
-    );
-
-    const base: SimulationModel = {
-      result,
-      optimalResult,
-      pos,
-      signedTwa,
-      absTwa,
-      trimScore,
-      optimal,
-      primaryFeedback: '',
-      primaryFeedbackTone: 'info',
-    };
-    const picked = pickPrimaryFeedback({ ui, result, pos, absTwa, tp });
-    return { ...base, primaryFeedback: picked.text, primaryFeedbackTone: picked.tone };
-  }, [params, tp, ui]);
+  const { sim, reset } = useSimulatorV3({ ui, tp });
 
   const setPreset = (twa: number) => {
     const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);
@@ -155,7 +59,10 @@ export default function SimulatorV3Page() {
     }));
   };
 
-  const resetAll = () => setUi(DEFAULT_UI);
+  const resetAll = () => {
+    setUi(DEFAULT_UI);
+    reset(DEFAULT_UI);
+  };
 
   const pointLabel =
     lang === 'pl' ? sim.pos.namePl : lang === 'en' ? sim.pos.nameEn : sim.pos.nameRu;
@@ -191,9 +98,9 @@ export default function SimulatorV3Page() {
           </span>
           <span className="hidden sm:inline text-xs text-[var(--text-muted)] truncate">
             {tp(
-              'VPP engine · обучающий тренажёр',
-              'VPP engine · teaching trainer',
-              'VPP · trener',
+              'VPP engine · живой тренажёр',
+              'VPP engine · live trainer',
+              'VPP · trener na zywo',
             )}
           </span>
         </div>
