@@ -21,6 +21,10 @@ export interface RuntimeState {
   live: Controls;
   /** Controls the user last requested. `live` walks toward this. */
   target: Controls;
+  /** Compass heading the boat is steering toward (degrees, 0-360). The
+   *  actual `boat.heading` rotates toward this at HEADING_TURN_RATE each
+   *  tick. Derived from the user's TWA/tack intent by the hook. */
+  targetHeading: number;
   /** Diagnostics from the last tick - the UI reads this for AWA/forces/AoA. */
   lastDiag: TickDiagnostics;
 }
@@ -44,3 +48,12 @@ export const CONTROL_RATES: Record<keyof Controls, number> = {
   jibFurl: 0.4,
   jibSide: Infinity,
 };
+
+/**
+ * Max turn rate of the boat, degrees per second. A 40ft cruiser can round up
+ * at roughly this rate with helm hard over; we keep it deliberately modest
+ * so a tack through the wind takes ~4 seconds, which feels like a real tack
+ * rather than a snap rotation. PR-3 does not model rudder hydrodynamics -
+ * the heading just approaches the target at this rate.
+ */
+export const HEADING_TURN_RATE_DEG_PER_S = 45;

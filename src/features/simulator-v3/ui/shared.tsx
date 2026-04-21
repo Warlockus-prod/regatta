@@ -53,6 +53,10 @@ export interface SimulationModel {
   optimal: OptimalTrim;
   primaryFeedback: string;
   primaryFeedbackTone: FeedbackTone;
+  /** Compass heading the boat is steering to, 0-360 deg. Set by the user's
+   *  TWA/tack intent via the runtime hook. HelmPod reads this alongside the
+   *  live `result.state.heading` to visualize the turn. */
+  targetHeading: number;
 }
 
 // ---------------------------------------------------------------------------

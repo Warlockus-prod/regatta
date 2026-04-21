@@ -5,6 +5,7 @@ import {
   createInitialState,
   getBoatParams,
   settle,
+  twaFromCompass,
   type Controls,
 } from '@/lib/sailing-physics';
 import { pickPrimaryFeedback } from '../runtime/feedback';
@@ -72,6 +73,9 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   // frame (we only need one). `frame` is just a tick counter for React.
   const stateRef = useRef<RuntimeState>(createRuntimeState({ ui, params }));
   const targetRef = useRef<Controls>(stateRef.current.target);
+  // targetHeading kept in a ref so the env useEffect can update it without
+  // racing with the fixed-step loop (loop reads .current each tick).
+  const targetHeadingRef = useRef<number>(stateRef.current.targetHeading);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const accumRef = useRef(0);
@@ -94,20 +98,26 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     params,
   ]);
 
-  // Apply environment changes (TWA slider, wind speed, tack flip) straight
-  // to the boat state. TWA is derived from (trueWindDir - heading) so we
-  // rotate trueWindDir and leave heading alone; the live boat speed then
-  // catches up over the next few ticks.
+  // PR-3 heading intent: TWA/tack express the TARGET, not an instant TWA.
+  // TrueWindDir stays pinned at whatever createRuntimeState settled to - it
+  // is the world reference. The TWA slider and tack flip both move the
+  // targetHeading = trueWindDir - signedTwa; the boat's own heading
+  // interpolates there at HEADING_TURN_RATE each tick, so a tack/gybe now
+  // looks and feels like a real maneuver instead of a teleport.
+  //
+  // Wind SPEED is still applied instantly (wind gusts happen fast).
   useEffect(() => {
     const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
     const current = stateRef.current;
+    const newTarget = ((current.boat.trueWindDir - signedTwa) % 360 + 360) % 360;
+    targetHeadingRef.current = newTarget;
     stateRef.current = {
       ...current,
       boat: {
         ...current.boat,
-        trueWindDir: (current.boat.heading + signedTwa + 360) % 360,
         trueWindSpeed: ui.windSpeed,
       },
+      targetHeading: newTarget,
     };
   }, [ui.twa, ui.tack, ui.windSpeed]);
 
@@ -134,6 +144,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
         stateRef.current = stepRuntime(
           stateRef.current,
           targetRef.current,
+          targetHeadingRef.current,
           params,
           FIXED_DT,
         );
@@ -156,6 +167,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       const fresh = createRuntimeState({ ui: nextUi, params });
       stateRef.current = fresh;
       targetRef.current = fresh.target;
+      targetHeadingRef.current = fresh.targetHeading;
       accumRef.current = 0;
       lastTimeRef.current = null;
       setFrame((f) => (f + 1) | 0);
@@ -223,9 +235,15 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   // Derive SimulationModel from the live runtime snapshot. The heavy optimal
   // memo is reused; the feedback picker reads current state so it tracks
   // live stalls and heel in real time.
+  //
+  // PR-3 change: signedTwa now comes from the boat's *actual* heading vs
+  // trueWindDir, not from ui.twa directly. This is how the scene rotates
+  // smoothly during a tack - the boat's heading walks toward target, and
+  // the derived TWA follows. ui.twa remains the user's intent (what TWA
+  // they want), read by other systems like the course-preset buttons.
   const sim: SimulationModel = useMemo(() => {
     const rt = stateRef.current;
-    const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
+    const signedTwa = twaFromCompass(rt.boat.trueWindDir, rt.boat.heading);
     const absTwa = Math.abs(signedTwa);
     const pos = pointOfSailFor(absTwa);
     const result = { state: rt.boat, diag: rt.lastDiag };
@@ -247,6 +265,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       optimal: optimalModel.optimal,
       primaryFeedback: picked.text,
       primaryFeedbackTone: picked.tone,
+      targetHeading: rt.targetHeading,
     };
     // `frame` forces invalidation on every rAF-driven render so the memo
     // reads a fresh stateRef snapshot. `stateRef.current` itself is mutable.

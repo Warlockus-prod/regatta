@@ -53,6 +53,8 @@ export function createRuntimeState(args: {
     boat: settled.state,
     live: controls,
     target: controls,
+    // Boat starts aimed where it is - no spurious turn on mount.
+    targetHeading: settled.state.heading,
     lastDiag: settled.diag,
   };
 }

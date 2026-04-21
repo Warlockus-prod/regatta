@@ -1,6 +1,10 @@
 import { getBoatParams, tick, type Controls } from '@/lib/sailing-physics';
 import { clamp } from '../ui/shared';
-import { CONTROL_RATES, type RuntimeState } from './runtime-types';
+import {
+  CONTROL_RATES,
+  HEADING_TURN_RATE_DEG_PER_S,
+  type RuntimeState,
+} from './runtime-types';
 
 // ---------------------------------------------------------------------------
 // Control interpolation: walk live toward target at most CONTROL_RATES[k] per
@@ -30,25 +34,59 @@ export function interpolateControls(live: Controls, target: Controls, dt: number
 }
 
 // ---------------------------------------------------------------------------
+// Heading interpolation: walk boat.heading toward targetHeading at most
+// HEADING_TURN_RATE_DEG_PER_S * dt each tick, picking the shorter rotation
+// direction around the compass. This is what makes tack/gybe feel like a
+// real maneuver (~4 seconds through the wind) instead of a teleport.
+// ---------------------------------------------------------------------------
+
+function normalizeAngle(deg: number): number {
+  return ((deg % 360) + 360) % 360;
+}
+
+export function approachHeading(current: number, target: number, maxStep: number): number {
+  const c = normalizeAngle(current);
+  const t = normalizeAngle(target);
+  let delta = t - c;
+  if (delta > 180) delta -= 360;
+  if (delta < -180) delta += 360;
+  if (Math.abs(delta) <= maxStep) return t;
+  return normalizeAngle(c + Math.sign(delta) * maxStep);
+}
+
+// ---------------------------------------------------------------------------
 // One fixed-step simulation step. Takes the previous runtime, the latest
 // user targets, params, and dt. Produces the next runtime. Purely functional
 // (no mutation, no I/O) so it is safe to call from rAF, tests, or future
 // replay recorders.
+//
+// Order within the step:
+// 1. Live controls walk toward target controls (sheet/reef/twist).
+// 2. Boat heading walks toward targetHeading (steering).
+// 3. Physics tick with the steered heading, interpolated controls, dt.
 // ---------------------------------------------------------------------------
 
 export function stepRuntime(
   prev: RuntimeState,
   target: Controls,
+  targetHeading: number,
   params: ReturnType<typeof getBoatParams>,
   dt: number,
 ): RuntimeState {
   const live = interpolateControls(prev.live, target, dt);
-  const result = tick(prev.boat, live, params, dt);
+  const newHeading = approachHeading(
+    prev.boat.heading,
+    targetHeading,
+    HEADING_TURN_RATE_DEG_PER_S * dt,
+  );
+  const steeredBoat = { ...prev.boat, heading: newHeading };
+  const result = tick(steeredBoat, live, params, dt);
   return {
     simTime: prev.simTime + dt,
     boat: result.state,
     live,
     target,
+    targetHeading,
     lastDiag: result.diag,
   };
 }

@@ -10,6 +10,7 @@ import { MetricsStrip } from './ui/MetricsStrip';
 import { SceneOverlayLabels } from './ui/SceneOverlayLabels';
 import { SceneRear } from './ui/SceneRear';
 import { SceneTop } from './ui/SceneTop';
+import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
 import { ViewPod } from './ui/pods/ViewPod';
@@ -132,6 +133,7 @@ export default function SimulatorV3Page() {
       <div className="hidden lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-4 lg:px-5 lg:pt-4 flex-1">
         <div className="space-y-3">
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
+          <HelmPod sim={sim} tp={tp} />
           <ViewPod
             ui={ui}
             setUi={setUi}
@@ -217,6 +219,9 @@ export default function SimulatorV3Page() {
             setPreset={setPreset}
           />
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+          <div className="col-span-2">
+            <HelmPod sim={sim} tp={tp} />
+          </div>
         </div>
       </div>
 
