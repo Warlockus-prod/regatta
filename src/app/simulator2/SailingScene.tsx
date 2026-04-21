@@ -2,7 +2,7 @@
 
 import { Canvas, useFrame, type ThreeElements } from '@react-three/fiber';
 import { Sky } from '@react-three/drei';
-import { useRef, useMemo, Suspense } from 'react';
+import { useRef, useMemo, useEffect, Suspense } from 'react';
 import * as THREE from 'three';
 
 // ============================================================================
@@ -202,18 +202,21 @@ function Wake({ twaSigned, boatSpeed, active }: {
         uniform float uIntensity;
         varying vec2 vUv;
         void main() {
+          // UV convention: after plane rotation, vUv.y = 1 is the edge nearest
+          // the boat's stern and vUv.y = 0 is the far end of the wake.
           float along = vUv.y;
           float across = vUv.x;
-          float lengthFade = pow(1.0 - along, 1.4);
-          float edgeFade = smoothstep(0.0, 0.22, across) * smoothstep(1.0, 0.78, across);
-          float centreBoost = clamp(1.0 - abs(across - 0.5) * 1.4, 0.0, 1.0);
-          float scroll = fract(along * 2.4 - uTime * 0.35);
-          float streak = smoothstep(0.28, 0.5, scroll) * smoothstep(0.72, 0.5, scroll);
-          float cross = smoothstep(0.44, 0.56, fract(across * 9.0 + uTime * 0.3));
-          float noise = streak * 0.55 + cross * 0.2 + 0.25;
-          float alpha = lengthFade * edgeFade * centreBoost * noise * uIntensity * 0.9;
-          vec3 foam = mix(vec3(0.55, 0.75, 0.88), vec3(1.0, 1.0, 1.0), noise);
-          gl_FragColor = vec4(foam, alpha);
+          float lengthFade = pow(along, 1.3);
+          float edgeFade = smoothstep(0.0, 0.24, across) * smoothstep(1.0, 0.76, across);
+          float centreBoost = clamp(1.0 - abs(across - 0.5) * 1.3, 0.0, 1.0);
+          // Streaks scroll from near-boat toward far end.
+          float scroll = fract(along * 2.2 + uTime * 0.4);
+          float streak = smoothstep(0.22, 0.5, scroll) * smoothstep(0.78, 0.5, scroll);
+          float cross = smoothstep(0.42, 0.58, fract(across * 10.0 + uTime * 0.25));
+          float noise = streak * 0.6 + cross * 0.2 + 0.35;
+          float alpha = lengthFade * edgeFade * centreBoost * noise * uIntensity;
+          vec3 foam = mix(vec3(0.75, 0.88, 0.96), vec3(1.0, 1.0, 1.0), noise);
+          gl_FragColor = vec4(foam, clamp(alpha, 0.0, 1.0));
         }
       `,
     });
@@ -227,9 +230,11 @@ function Wake({ twaSigned, boatSpeed, active }: {
 
   return (
     <group rotation={[0, yawRad, 0]}>
-      <mesh position={[0, 0.05, 3.2 + length / 2]}
+      {/* Lift wake slightly above peak wave height so it reads as surface foam
+          rather than being occluded at wave crests. */}
+      <mesh position={[0, 0.45, 3.2 + length / 2]}
             rotation={[-Math.PI / 2, 0, 0]}>
-        <planeGeometry args={[2.6, length]} />
+        <planeGeometry args={[2.8, length]} />
         <primitive object={material} attach="material" />
       </mesh>
     </group>
@@ -237,42 +242,76 @@ function Wake({ twaSigned, boatSpeed, active }: {
 }
 
 // ---------------------------------------------------------------------------
-// Horizon - deterministic ring of low coast shapes to anchor the eye.
+// Horizon - ring of low irregular island silhouettes, varied sizes and gaps.
 // ---------------------------------------------------------------------------
 
+function makeIslandGeom() {
+  const shape = new THREE.Shape();
+  const outline: Array<[number, number]> = [
+    [-1.0, 0.0], [-0.85, 0.25], [-0.55, 0.42], [-0.2, 0.48],
+    [0.15, 0.4], [0.48, 0.45], [0.8, 0.28], [1.0, 0.05],
+    [0.85, -0.18], [0.55, -0.3], [0.2, -0.35], [-0.15, -0.32],
+    [-0.55, -0.28], [-0.85, -0.15],
+  ];
+  shape.moveTo(outline[0][0], outline[0][1]);
+  for (let i = 1; i < outline.length; i++) shape.lineTo(outline[i][0], outline[i][1]);
+  shape.closePath();
+  const geom = new THREE.ExtrudeGeometry(shape, {
+    depth: 1,
+    bevelEnabled: true,
+    bevelThickness: 0.35,
+    bevelSize: 0.28,
+    bevelSegments: 3,
+    curveSegments: 6,
+  });
+  geom.rotateX(-Math.PI / 2);
+  geom.computeVertexNormals();
+  return geom;
+}
+
 function Horizon() {
+  const islandGeom = useMemo(() => makeIslandGeom(), []);
+
   const items = useMemo(() => {
-    const arr: Array<{ x: number; z: number; sx: number; sy: number; sz: number; rotY: number; tint: number }> = [];
-    const count = 34;
-    const radius = 175;
-    for (let i = 0; i < count; i++) {
-      const baseAngle = (i / count) * Math.PI * 2;
-      const jitter = Math.sin(i * 13.7) * 0.08;
-      const angle = baseAngle + jitter;
-      const r = radius + Math.sin(i * 5.3) * 18;
+    // Hand-placed angular slots around the ring so gaps are natural, not regular.
+    const slots: Array<{ angle: number; variance: number; size: number }> = [
+      { angle: 0.1, variance: 0.08, size: 2.2 },
+      { angle: 0.55, variance: 0.05, size: 1.4 },
+      { angle: 1.05, variance: 0.1, size: 2.8 },
+      { angle: 1.9, variance: 0.08, size: 1.6 },
+      { angle: 2.45, variance: 0.06, size: 2.0 },
+      { angle: 3.0, variance: 0.09, size: 2.6 },
+      { angle: 3.7, variance: 0.05, size: 1.3 },
+      { angle: 4.2, variance: 0.07, size: 2.1 },
+      { angle: 4.8, variance: 0.05, size: 1.5 },
+      { angle: 5.35, variance: 0.08, size: 2.4 },
+      { angle: 5.95, variance: 0.06, size: 1.8 },
+    ];
+    return slots.map((slot, i) => {
+      const angle = slot.angle + Math.sin(i * 7.3) * slot.variance;
+      const r = 165 + Math.sin(i * 3.1) * 30;
       const x = Math.sin(angle) * r;
       const z = Math.cos(angle) * r;
-      const sx = 22 + Math.sin(i * 2.1) * 10;
-      const syRaw = 2.2 + Math.sin(i * 7.9) * 1.4;
-      const sz = 6 + Math.sin(i * 3.3) * 3;
-      const tint = 0.5 + Math.sin(i * 11.1) * 0.22;
-      arr.push({ x, z, sx, sy: Math.max(0.6, syRaw), sz, rotY: angle + Math.PI / 2, tint });
-    }
-    return arr;
+      const s = slot.size;
+      const sx = 18 * s + Math.sin(i * 2.4) * 6;
+      const sy = 2.8 * s + Math.sin(i * 5.7) * 1.2;
+      const sz = 9 * s + Math.sin(i * 8.3) * 4;
+      const shade = 0.55 + Math.sin(i * 11.7) * 0.2;
+      const rotY = angle + Math.PI / 2 + Math.sin(i * 1.7) * 0.4;
+      return { x, z, sx, sy: Math.max(1.2, sy), sz, rotY, shade };
+    });
   }, []);
-
-  const sharedGeom = useMemo(() => new THREE.BoxGeometry(1, 1, 1), []);
 
   return (
     <group>
       {items.map((it, i) => (
         <mesh key={i}
-              position={[it.x, it.sy / 2 - 0.25, it.z]}
+              position={[it.x, it.sy * 0.35 - 0.3, it.z]}
               rotation={[0, it.rotY, 0]}
               scale={[it.sx, it.sy, it.sz]}
-              geometry={sharedGeom}>
+              geometry={islandGeom}>
           <meshStandardMaterial
-            color={new THREE.Color().setHSL(0.58, 0.1 + it.tint * 0.1, 0.1 + it.tint * 0.08)}
+            color={new THREE.Color().setHSL(0.58, 0.14, 0.11 + it.shade * 0.07)}
             roughness={1}
             metalness={0}
           />
@@ -464,7 +503,21 @@ function WindArrow({ windSpeed }: { windSpeed: number }) {
 
 export default function SailingScene(props: SceneProps) {
   const { autoRotate = false } = props;
-  const sunPos: [number, number, number] = [120, 50, 80];
+  // Low sun for a dusk mood; warmer color mix against the cool ocean.
+  const sunPos: [number, number, number] = [-180, 30, -90];
+
+  // Nudge R3F's ResizeObserver on mount. Under Next.js dynamic import + Turbopack,
+  // the observer occasionally misses the initial non-zero container size and the
+  // canvas stays stuck at the HTML default of 300x150 until a resize fires.
+  // We fire over several timeouts to cover both the first paint and the moment
+  // the observer is actually attached.
+  useEffect(() => {
+    const timers: Array<ReturnType<typeof setTimeout>> = [];
+    for (const delay of [0, 50, 150, 400]) {
+      timers.push(setTimeout(() => window.dispatchEvent(new Event('resize')), delay));
+    }
+    return () => timers.forEach(clearTimeout);
+  }, []);
 
   return (
     <Canvas
@@ -474,28 +527,26 @@ export default function SailingScene(props: SceneProps) {
       style={{ width: '100%', height: '100%' }}
       gl={{ alpha: false, antialias: true, powerPreference: 'high-performance' }}
     >
-      <color attach="background" args={['#0a1c30']} />
-      <fog attach="fog" args={['#0a1c30', 70, 260]} />
+      <color attach="background" args={['#071423']} />
+      <fog attach="fog" args={['#1a324a', 70, 210]} />
 
       <Suspense fallback={null}>
         <Sky
           distance={450000}
           sunPosition={sunPos}
-          inclination={0.55}
-          azimuth={0.25}
-          mieCoefficient={0.005}
-          mieDirectionalG={0.8}
-          rayleigh={2.5}
-          turbidity={6}
+          mieCoefficient={0.006}
+          mieDirectionalG={0.88}
+          rayleigh={0.9}
+          turbidity={3}
         />
       </Suspense>
 
       {/* Local lights only, no external HDR (CSP-safe) */}
-      <ambientLight intensity={0.6} />
-      <hemisphereLight intensity={0.45} color="#bfe2f2" groundColor="#0a1628" />
+      <ambientLight intensity={0.4} />
+      <hemisphereLight intensity={0.5} color="#7aa1bf" groundColor="#05101c" />
       <directionalLight
         position={sunPos}
-        intensity={1.5}
+        intensity={1.35}
         castShadow
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
