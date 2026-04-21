@@ -1,22 +1,33 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
+import {
+  type DrillDefinition,
+  type ScenarioPreset,
+} from './runtime/scenario-presets';
+import { recommendedTrim } from './runtime/trim-heuristics';
 import { CommentaryLine } from './ui/CommentaryLine';
 import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
 import { SceneOverlayLabels } from './ui/SceneOverlayLabels';
 import { SceneRear } from './ui/SceneRear';
 import { SceneTop } from './ui/SceneTop';
+import { DrillCard, type DrillResult } from './ui/panels/DrillCard';
+import { ModeBar, type ModeKind } from './ui/panels/ModeBar';
+import { ScenarioPicker } from './ui/panels/ScenarioPicker';
 import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
 import { ViewPod } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
-import { DEFAULT_UI, type UiState } from './ui/shared';
-import { recommendedTrim } from './runtime/trim-heuristics';
+import {
+  DEFAULT_UI,
+  type SimulationModel,
+  type UiState,
+} from './ui/shared';
 
 // ============================================================================
 // SIMULATOR V3 - cockpit layout on the sailing-physics engine.
@@ -37,6 +48,84 @@ export default function SimulatorV3Page() {
   const params = useMemo(() => getBoatParams(), []);
   const [ui, setUi] = useState<UiState>(DEFAULT_UI);
   const { sim, reset } = useSimulatorV3({ ui, tp });
+
+  // Mode machine (PR-4). Drives what sits above the metrics strip:
+  // - free: the original sandbox (no overlay panel)
+  // - drill: DrillCard with timer + hold-counter + win/fail
+  // - scenario: ScenarioPicker - pick a starting condition, then sail
+  const [mode, setMode] = useState<ModeKind>('free');
+  const [activeDrill, setActiveDrill] = useState<DrillDefinition | null>(null);
+  const [activeScenarioId, setActiveScenarioId] = useState<string | null>(null);
+  const [drillElapsed, setDrillElapsed] = useState(0);
+  const [drillHeldFor, setDrillHeldFor] = useState(0);
+  const [drillResult, setDrillResult] = useState<DrillResult>('pending');
+
+  // Drill evaluator reads the live sim via a ref so the interval useEffect
+  // doesn't churn on every sim frame. Updated on every render.
+  const simRef = useRef<SimulationModel>(sim);
+  simRef.current = sim;
+
+  useEffect(() => {
+    if (mode !== 'drill' || !activeDrill || drillResult !== 'pending') return;
+    const start = performance.now();
+    let heldFor = 0;
+    const tickMs = 100;
+    const iv = setInterval(() => {
+      const s = simRef.current;
+      const elapsed = (performance.now() - start) / 1000;
+      const ok = activeDrill.evaluate({
+        trimScore: s.trimScore,
+        heel: s.result.state.heel,
+        slotHealth: s.result.diag.slotHealth,
+        mainStalled: s.result.diag.mainStalled,
+        jibStalled: s.result.diag.jibStalled,
+      });
+      heldFor = ok ? heldFor + tickMs / 1000 : 0;
+      setDrillElapsed(elapsed);
+      setDrillHeldFor(heldFor);
+      if (heldFor >= activeDrill.holdDuration) {
+        setDrillResult('win');
+        clearInterval(iv);
+      } else if (elapsed >= activeDrill.timeLimit) {
+        setDrillResult('fail');
+        clearInterval(iv);
+      }
+    }, tickMs);
+    return () => clearInterval(iv);
+  }, [mode, activeDrill, drillResult]);
+
+  const startDrill = (def: DrillDefinition) => {
+    setActiveDrill(def);
+    setDrillElapsed(0);
+    setDrillHeldFor(0);
+    setDrillResult('pending');
+    setUi(def.initialUi);
+    reset(def.initialUi);
+  };
+
+  const restartDrill = () => {
+    if (!activeDrill) return;
+    startDrill(activeDrill);
+  };
+
+  const exitDrill = () => {
+    setActiveDrill(null);
+    setDrillResult('pending');
+    setDrillElapsed(0);
+    setDrillHeldFor(0);
+  };
+
+  const pickScenario = (s: ScenarioPreset) => {
+    setActiveScenarioId(s.id);
+    setUi(s.ui);
+    reset(s.ui);
+  };
+
+  const handleModeChange = (next: ModeKind) => {
+    setMode(next);
+    if (next !== 'drill') exitDrill();
+    if (next !== 'scenario') setActiveScenarioId(null);
+  };
 
   const setPreset = (twa: number) => {
     const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);
@@ -63,6 +152,8 @@ export default function SimulatorV3Page() {
   const resetAll = () => {
     setUi(DEFAULT_UI);
     reset(DEFAULT_UI);
+    exitDrill();
+    setActiveScenarioId(null);
   };
 
   const pointLabel =
@@ -132,6 +223,28 @@ export default function SimulatorV3Page() {
       {/* Desktop layout (>= lg) */}
       <div className="hidden lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-4 lg:px-5 lg:pt-4 flex-1">
         <div className="space-y-3">
+          <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
+          {mode === 'drill' && (
+            <DrillCard
+              active={activeDrill}
+              elapsed={drillElapsed}
+              heldFor={drillHeldFor}
+              result={drillResult}
+              lang={lang}
+              tp={tp}
+              onStart={startDrill}
+              onRestart={restartDrill}
+              onExit={exitDrill}
+            />
+          )}
+          {mode === 'scenario' && (
+            <ScenarioPicker
+              activeId={activeScenarioId}
+              onPick={pickScenario}
+              lang={lang}
+              tp={tp}
+            />
+          )}
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
           <HelmPod sim={sim} tp={tp} />
           <ViewPod
@@ -182,6 +295,34 @@ export default function SimulatorV3Page() {
           Now the boat gets a proper 55vh stage and every control is
           thumb-reachable without overlap. */}
       <div className="lg:hidden flex-1 flex flex-col">
+        <div className="mx-2 mt-2">
+          <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
+        </div>
+        {mode === 'drill' && (
+          <div className="mx-2 mt-2">
+            <DrillCard
+              active={activeDrill}
+              elapsed={drillElapsed}
+              heldFor={drillHeldFor}
+              result={drillResult}
+              lang={lang}
+              tp={tp}
+              onStart={startDrill}
+              onRestart={restartDrill}
+              onExit={exitDrill}
+            />
+          </div>
+        )}
+        {mode === 'scenario' && (
+          <div className="mx-2 mt-2">
+            <ScenarioPicker
+              activeId={activeScenarioId}
+              onPick={pickScenario}
+              lang={lang}
+              tp={tp}
+            />
+          </div>
+        )}
         <div
           className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
           style={{
