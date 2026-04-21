@@ -174,7 +174,11 @@ export default function SimulatorV3Page() {
         </div>
       </div>
 
-      {/* Mobile layout (< lg): pods overlap scene corners */}
+      {/* Mobile layout (< lg): scene at full width on top, pods in a 2x2
+          grid underneath. The pre-fix layout overlapped pods on the scene
+          corners which left almost no visible scene on narrow viewports.
+          Now the boat gets a proper 55vh stage and every control is
+          thumb-reachable without overlap. */}
       <div className="lg:hidden flex-1 flex flex-col">
         <div
           className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
@@ -182,7 +186,8 @@ export default function SimulatorV3Page() {
             borderColor: 'rgba(0, 212, 255, 0.18)',
             background:
               'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
-            minHeight: '62vh',
+            height: '55vh',
+            minHeight: '360px',
           }}
         >
           {ui.view === 'top' ? (
@@ -197,30 +202,22 @@ export default function SimulatorV3Page() {
             tackLabel={tackLabel}
             tp={tp}
           />
-
-          <div className="absolute top-2 left-2 w-[44%] max-w-[180px]">
-            <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} compact />
-          </div>
-          <div className="absolute top-2 right-2 w-[44%] max-w-[180px]">
-            <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} compact />
-          </div>
-          <div className="absolute bottom-2 left-2 w-[44%] max-w-[180px]">
-            <ViewPod
-              ui={ui}
-              setUi={setUi}
-              tp={tp}
-              applyOptimal={applyOptimal}
-              resetAll={resetAll}
-              setPreset={setPreset}
-              compact
-            />
-          </div>
-          <div className="absolute bottom-2 right-2 w-[44%] max-w-[180px]">
-            <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} compact />
-          </div>
         </div>
         <MetricsStrip ui={ui} sim={sim} tp={tp} />
         <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
+        <div className="mx-2 grid grid-cols-2 gap-2 mb-2">
+          <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
+          <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+          <ViewPod
+            ui={ui}
+            setUi={setUi}
+            tp={tp}
+            applyOptimal={applyOptimal}
+            resetAll={resetAll}
+            setPreset={setPreset}
+          />
+          <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+        </div>
       </div>
 
       <GlossaryFooter tp={tp} />

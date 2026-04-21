@@ -226,11 +226,16 @@ export function SceneTop({
         />
       )}
 
-      {/* Layer 7: ghost optimal */}
+      {/* Layer 7: ghost optimal.
+          Rotation sign: the boom pivots around the mast. To keep the sail on
+          the leeward side after rotation, we rotate by `angle * -sailSide`.
+          Rotating by `angle * +sailSide` (the pre-2026-04 code) swept the
+          sail across the deck onto the windward side, which is physically
+          impossible and looked wrong from any boat-familiar viewer. */}
       {ui.showOptimal && (
         <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} opacity="0.42">
           {hasMain && (
-            <g transform={`rotate(${sim.optimal.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
+            <g transform={`rotate(${-sim.optimal.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
               <path
                 d="M 0 -30 Q -32 48 -10 150 L 0 150 Z"
                 fill="none"
@@ -242,7 +247,7 @@ export function SceneTop({
             </g>
           )}
           {hasJib && (
-            <g transform={`translate(0 -52) rotate(${sim.optimal.jibAngle * sailSide})`}>
+            <g transform={`translate(0 -52) rotate(${-sim.optimal.jibAngle * sailSide})`}>
               <path
                 d="M 0 0 Q -18 42 -6 96 L 0 96 Z"
                 fill="none"
@@ -352,9 +357,11 @@ function BoatTop(args: {
           Drawn with an inflated belly: two Q curves on the leech that go
           out-and-back, plus a radial gradient that lightens the windward
           belly and darkens the leeward edge - reads as "canvas pillowing
-          under wind pressure" not a flat flag. */}
+          under wind pressure" not a flat flag.
+          Rotation sign matches the ghost sail above: `angle * -sailSide`
+          keeps the clew on the leeward side. */}
       {hasJib && (
-        <g transform={`translate(0 -58) rotate(${ui.jibAngle * sailSide})`} opacity={jibOpacity}>
+        <g transform={`translate(0 -58) rotate(${-ui.jibAngle * sailSide})`} opacity={jibOpacity}>
           <defs>
             <linearGradient
               id={`v3-jib-grad-${sailSide}-${uid}`}
@@ -390,9 +397,11 @@ function BoatTop(args: {
       )}
 
       {/* Main (aft of mast, to leeward side) - same inflated-belly treatment
-          as the jib so both sails read as canvas under load, not flat shapes. */}
+          as the jib so both sails read as canvas under load, not flat shapes.
+          Same rotation-sign story: `-sailSide` so the boom swings to the
+          leeward side instead of across the deck. */}
       {hasMain && (
-        <g transform={`rotate(${ui.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
+        <g transform={`rotate(${-ui.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
           <defs>
             <linearGradient
               id={`v3-main-grad-${sailSide}-${uid}`}
