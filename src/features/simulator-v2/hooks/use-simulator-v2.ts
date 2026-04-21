@@ -71,7 +71,7 @@ export function useSimulatorV2(ui: UiState): UseSimulatorV2Result {
   // not rebuild controls unnecessarily.
   useEffect(() => {
     targetRef.current = uiToControls(ui, params);
-  }, [ui.twa, ui.tack, ui.mainOn, ui.jibOn, ui.reefLevel, params]);
+  }, [ui.twa, ui.tack, ui.mainOn, ui.jibOn, ui.reefLevel, ui.trimOffsetPct, params]);
 
   // Heading intent + wind speed. Changes to TWA/tack move the target
   // heading; the boat turns toward it at HEADING_TURN_RATE. Wind speed

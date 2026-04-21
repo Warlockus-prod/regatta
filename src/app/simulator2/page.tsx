@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/lib/i18n';
 import { useSimulatorV2 } from '@/features/simulator-v2/hooks/use-simulator-v2';
@@ -9,6 +9,7 @@ import { WindCompass } from '@/features/simulator-v2/ui/WindCompass';
 import { Minimap } from '@/features/simulator-v2/ui/Minimap';
 import { RaceHud } from '@/features/simulator-v2/ui/RaceHud';
 import { Leaderboard } from '@/features/simulator-v2/ui/Leaderboard';
+import { ActionButtons, type ActiveManeuver } from '@/features/simulator-v2/ui/ActionButtons';
 import { DEFAULT_COURSE, distance } from '@/features/simulator-v2/race/course';
 
 // ============================================================================
@@ -38,6 +39,12 @@ const DEFAULT_UI: UiState = {
   jibOn: true,
   reefLevel: 0,
   autoRotate: false,
+  trimOffsetPct: 0,
+};
+
+const MANEUVER_DURATION_MS: Record<'tack' | 'gybe', number> = {
+  tack: 4000,
+  gybe: 4000,
 };
 
 const REEF_SCENE_VALUES: Record<0 | 1 | 2, number> = { 0: 0, 1: 0.45, 2: 0.85 };
@@ -45,7 +52,33 @@ const REEF_SCENE_VALUES: Record<0 | 1 | 2, number> = { 0: 0, 1: 0.45, 2: 0.85 };
 export default function SimulatorV2Page() {
   const { tp } = useI18n();
   const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  const [maneuver, setManeuver] = useState<ActiveManeuver | null>(null);
   const { sim } = useSimulatorV2(ui);
+
+  // Maneuver resolver: when the countdown on an active maneuver expires,
+  // flip the tack and clear the state. Ease/Trim bypass this because they
+  // apply instantly in their handlers.
+  useEffect(() => {
+    if (!maneuver) return;
+    const msLeft = maneuver.durationMs - (performance.now() - maneuver.startedAtMs);
+    const timer = setTimeout(() => {
+      setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }));
+      setManeuver(null);
+    }, Math.max(0, msLeft));
+    return () => clearTimeout(timer);
+  }, [maneuver]);
+
+  const startManeuver = (kind: 'tack' | 'gybe') => {
+    if (maneuver) return;
+    setManeuver({
+      kind,
+      startedAtMs: performance.now(),
+      durationMs: MANEUVER_DURATION_MS[kind],
+    });
+  };
+
+  const ease = () => setUi((p) => ({ ...p, trimOffsetPct: Math.min(30, p.trimOffsetPct + 10) }));
+  const trim = () => setUi((p) => ({ ...p, trimOffsetPct: Math.max(-30, p.trimOffsetPct - 10) }));
 
   const heelAbs = Math.abs(sim.heel);
   const raceActive = sim.race.phase === 'racing' || sim.race.phase === 'finished';
@@ -174,6 +207,15 @@ export default function SimulatorV2Page() {
               tp={tp}
             />
           )}
+          <ActionButtons
+            maneuver={maneuver}
+            onTack={() => startManeuver('tack')}
+            onGybe={() => startManeuver('gybe')}
+            onEase={ease}
+            onTrim={trim}
+            trimOffsetPct={ui.trimOffsetPct}
+            tp={tp}
+          />
         </div>
 
         {/* Bottom control strip */}
@@ -193,8 +235,10 @@ export default function SimulatorV2Page() {
                        min={4} max={25} step={1}
                        sliderValue={ui.windSpeed}
                        onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))} />
-            {/* Sail toggles + tack + reef */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {/* Sail toggles + reef. Tack is now driven by the tactical
+                ActionButtons group on the right side so we do not expose
+                an instant flip here. */}
+            <div className="grid grid-cols-3 gap-2">
               <TogglePill
                 label={tp('Грот', 'Main', 'Grot')}
                 on={ui.mainOn}
@@ -203,10 +247,6 @@ export default function SimulatorV2Page() {
                 label={tp('Стаксель', 'Jib', 'Fok')}
                 on={ui.jibOn}
                 onClick={() => setUi((p) => ({ ...p, jibOn: !p.jibOn }))} />
-              <TogglePill
-                label={ui.tack === 'starboard' ? tp('Пр. галс', 'Stbd', 'Pr. hals') : tp('Лев. галс', 'Port', 'Lew. hals')}
-                on={ui.tack === 'starboard'}
-                onClick={() => setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }))} />
               <TogglePill
                 label={ui.reefLevel === 0 ? tp('Риф 0', 'Reef 0', 'Ref 0') : ui.reefLevel === 1 ? tp('Риф 1', 'Reef 1', 'Ref 1') : tp('Риф 2', 'Reef 2', 'Ref 2')}
                 on={ui.reefLevel > 0}

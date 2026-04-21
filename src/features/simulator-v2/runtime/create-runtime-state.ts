@@ -24,6 +24,9 @@ export interface UiState {
   jibOn: boolean;
   reefLevel: 0 | 1 | 2;
   autoRotate: boolean;
+  /** Ease/Trim offset in percent, -30..+30. Positive eases sails, negative
+   *  tightens. Applied on top of the TWA-based auto-trim in uiToControls. */
+  trimOffsetPct: number;
 }
 
 export const REEF_VALUES: Record<0 | 1 | 2, number> = { 0: 0, 1: 0.45, 2: 0.85 };
@@ -50,11 +53,17 @@ export function uiToControls(
     params.jibMinOff,
     Math.min(params.jibMaxOff, awaEstimate - 12),
   );
-  const mainSheet = Math.max(0, Math.min(1, 1 - mainAngle / params.mainMaxOff));
-  const jibSheet = Math.max(
+  const baseMainSheet = Math.max(0, Math.min(1, 1 - mainAngle / params.mainMaxOff));
+  const baseJibSheet = Math.max(
     0,
     Math.min(1, 1 - (jibAngle - params.jibMinOff) / (params.jibMaxOff - params.jibMinOff)),
   );
+  // trimOffsetPct: positive eases (reduces sheet), negative tightens (raises
+  // sheet). Scaled so a full +30% pushes the sheet ~0.3 toward eased, which
+  // is enough to visibly kill power without stalling the boat.
+  const offset = (ui.trimOffsetPct ?? 0) / 100;
+  const mainSheet = Math.max(0, Math.min(1, baseMainSheet - offset));
+  const jibSheet = Math.max(0, Math.min(1, baseJibSheet - offset));
   return {
     mainSheet,
     jibSheet,
