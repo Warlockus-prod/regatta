@@ -56,8 +56,8 @@ function ChaseCam({ twaSigned, boatSpeed, autoDrift }: {
   useFrame((state, delta) => {
     const camera = state.camera;
     const speedFactor = Math.min(1, boatSpeed / 10);
-    const chaseDist = 14 + speedFactor * 3;
-    const chaseHeight = 5.5 + speedFactor * 0.6;
+    const chaseDist = 16.5 + speedFactor * 3.5;
+    const chaseHeight = 6.2 + speedFactor * 0.8;
     const drift = autoDrift ? state.clock.elapsedTime * 0.08 : 0;
     const camYaw = yawRad + drift;
 
@@ -68,9 +68,9 @@ function ChaseCam({ twaSigned, boatSpeed, autoDrift }: {
     );
     // Look slightly ahead of the boat so the bow gets screen priority
     tmpLook.current.set(
-      -Math.sin(yawRad) * 1.8,
-      1.8,
-      -Math.cos(yawRad) * 1.8,
+      -Math.sin(yawRad) * 2.2,
+      1.9,
+      -Math.cos(yawRad) * 2.2,
     );
 
     const alpha = 1 - Math.pow(0.0025, delta);
@@ -455,24 +455,37 @@ function buildCamberedSail({ rows, cols, height, footLen, maxCamber, sailSide, b
 
 function MainSail({ scaleY = 1, sailSide = 1 }: { scaleY?: number; sailSide?: number }) {
   const geometry = useMemo(() => buildCamberedSail({
-    rows: 10, cols: 10, height: 5.7, footLen: 2.9, maxCamber: 0.38, sailSide,
+    rows: 12, cols: 12, height: 5.9, footLen: 3.0, maxCamber: 0.52, sailSide,
   }), [sailSide]);
 
   return (
     <mesh geometry={geometry} scale={[1, scaleY, 1]} castShadow>
-      <meshStandardMaterial color="#f7fbff" roughness={0.6} metalness={0} side={THREE.DoubleSide} />
+      <meshStandardMaterial
+        color="#f8fbfe"
+        roughness={0.55}
+        metalness={0}
+        side={THREE.DoubleSide}
+        emissive="#1a2838"
+        emissiveIntensity={0.05}
+      />
     </mesh>
   );
 }
 
 function JibSail({ sailSide = 1 }: { sailSide?: number }) {
   const geometry = useMemo(() => buildCamberedSail({
-    rows: 8, cols: 8, height: 4.5, footLen: 1.9, maxCamber: 0.3, sailSide, baseY: 0.3,
+    rows: 10, cols: 10, height: 4.6, footLen: 2.0, maxCamber: 0.42, sailSide, baseY: 0.3,
   }), [sailSide]);
 
   return (
     <mesh geometry={geometry} castShadow>
-      <meshStandardMaterial color="#f7fbff" roughness={0.6} side={THREE.DoubleSide} />
+      <meshStandardMaterial
+        color="#f8fbfe"
+        roughness={0.55}
+        side={THREE.DoubleSide}
+        emissive="#1a2838"
+        emissiveIntensity={0.05}
+      />
     </mesh>
   );
 }
