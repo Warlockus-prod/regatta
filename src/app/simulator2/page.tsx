@@ -1,24 +1,18 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useI18n } from '@/lib/i18n';
-import {
-  createInitialState,
-  getBoatParams,
-  settle,
-  type Controls,
-} from '@/lib/sailing-physics';
+import { useSimulatorV2 } from '@/features/simulator-v2/hooks/use-simulator-v2';
+import { type UiState } from '@/features/simulator-v2/runtime/create-runtime-state';
 
 // ============================================================================
-// SIMULATOR V2 - eSail-style 3D.
+// SIMULATOR V2 - eSail-style 3D race view.
 //
-// Real 3D scene via react-three-fiber (see ./SailingScene.tsx). Procedural
-// yacht + shader water + sky. Physics is the same sailing-physics engine
-// used by V1 and V3. This is the "experimental with graphics" version the
-// user asked for, where we try a more immersive visual direction.
-//
-// Dynamic import with ssr: false because three.js needs window/WebGL.
+// Live runtime (PR-2): the page holds the UI intent, the hook owns the
+// persistent boat state and runs the fixed-step loop. Scene props are
+// read from the runtime snapshot so a tack is a real turn, a trim change
+// builds speed over time, and a wind-speed bump has immediate effect.
 // ============================================================================
 
 const SailingScene = dynamic(() => import('./SailingScene'), {
@@ -31,16 +25,6 @@ const SailingScene = dynamic(() => import('./SailingScene'), {
   ),
 });
 
-interface UiState {
-  twa: number;
-  tack: 'starboard' | 'port';
-  windSpeed: number;
-  mainOn: boolean;
-  jibOn: boolean;
-  reefLevel: 0 | 1 | 2;
-  autoRotate: boolean;
-}
-
 const DEFAULT_UI: UiState = {
   twa: 90,
   tack: 'starboard',
@@ -51,67 +35,29 @@ const DEFAULT_UI: UiState = {
   autoRotate: false,
 };
 
-const REEF_VALUES: Record<0 | 1 | 2, number> = { 0: 0, 1: 0.45, 2: 0.85 };
+const REEF_SCENE_VALUES: Record<0 | 1 | 2, number> = { 0: 0, 1: 0.45, 2: 0.85 };
 
 export default function SimulatorV2Page() {
   const { tp } = useI18n();
-  const params = useMemo(() => getBoatParams(), []);
   const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  const { sim } = useSimulatorV2(ui);
 
-  const { boatSpeed, heel, awa, aws, mainAngle, jibAngle, noGo } = useMemo(() => {
-    const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
-    const noGoFlag = ui.twa < 30;
-    if (noGoFlag || (!ui.mainOn && !ui.jibOn)) {
-      return { boatSpeed: 0, heel: 0, awa: ui.twa, aws: ui.windSpeed, mainAngle: 45, jibAngle: 35, noGo: noGoFlag };
-    }
-    const awaEstimate = Math.max(20, ui.twa - 10);
-    const mainA = Math.max(0, Math.min(params.mainMaxOff, awaEstimate - 14));
-    const jibA = Math.max(params.jibMinOff, Math.min(params.jibMaxOff, awaEstimate - 12));
-
-    const controls: Controls = {
-      mainSheet: Math.max(0, Math.min(1, 1 - mainA / params.mainMaxOff)),
-      jibSheet: Math.max(0, Math.min(1, 1 - (jibA - params.jibMinOff) / (params.jibMaxOff - params.jibMinOff))),
-      mainTwist: 0.15,
-      jibTwist: 0.12,
-      reef: ui.mainOn ? REEF_VALUES[ui.reefLevel] : 1,
-      jibFurl: ui.jibOn ? 0 : 1,
-      jibSide: 1,
-    };
-
-    const initial = createInitialState({
-      tws: ui.windSpeed,
-      twa: signedTwa,
-      boatSpeed: Math.max(1.8, ui.windSpeed * 0.28),
-    });
-    const { state, diag } = settle(initial, controls, params, 45, 0.1);
-    return {
-      boatSpeed: state.boatSpeed,
-      heel: state.heel,
-      awa: Math.abs(diag.awa),
-      aws: diag.aws,
-      mainAngle: mainA,
-      jibAngle: jibA,
-      noGo: noGoFlag,
-    };
-  }, [ui, params]);
-
-  const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
-  const heelAbs = Math.abs(heel);
+  const heelAbs = Math.abs(sim.heel);
 
   return (
     <div className="page-enter relative" style={{ background: '#0b1e38', minHeight: 'calc(100vh - 56px)' }}>
       {/* Full-viewport 3D scene */}
       <div className="fixed inset-0 top-14" style={{ zIndex: 1 }}>
         <SailingScene
-          twaSigned={signedTwa}
+          twaSigned={sim.signedTwa}
           windSpeed={ui.windSpeed}
-          boatSpeed={boatSpeed}
-          heel={heel}
-          mainAngle={mainAngle}
-          jibAngle={jibAngle}
+          boatSpeed={sim.boatSpeed}
+          heel={sim.heel}
+          mainAngle={sim.mainAngle}
+          jibAngle={sim.jibAngle}
           mainOn={ui.mainOn}
           jibOn={ui.jibOn}
-          reef={REEF_VALUES[ui.reefLevel]}
+          reef={REEF_SCENE_VALUES[ui.reefLevel]}
           autoRotate={ui.autoRotate}
         />
       </div>
@@ -125,7 +71,7 @@ export default function SimulatorV2Page() {
             V2 · eSail 3D
           </span>
           <span className="hidden sm:inline text-xs text-[var(--text-muted)] truncate">
-            {tp('Экспериментальная. 3D сцена, шейдер воды, небо.', 'Experimental. 3D scene, water shader, sky.', 'Eksperymentalna.')}
+            {tp('Live runtime. Поворот и трим строятся во времени.', 'Live runtime. Turns and trim settle over time.', 'Live runtime.')}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
@@ -142,16 +88,16 @@ export default function SimulatorV2Page() {
         <div className="absolute top-3 left-3 sm:top-5 sm:left-5">
           <div className="rounded-xl p-3 sm:p-4 space-y-3"
                style={{ background: 'rgba(5, 11, 24, 0.65)', border: '1px solid rgba(0, 212, 255, 0.22)', backdropFilter: 'blur(12px)', pointerEvents: 'auto' }}>
-            <HudNumber label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')} value={boatSpeed.toFixed(1)} unit="kts" big color="var(--accent-cyan)" />
+            <HudNumber label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')} value={sim.boatSpeed.toFixed(1)} unit="kts" big color="var(--accent-cyan)" />
             <HudNumber label={tp('КРЕН', 'HEEL', 'PRZECHYL')} value={Math.round(heelAbs).toString()} unit="°"
                        color={heelAbs > 28 ? 'var(--danger)' : heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)'} />
             <div className="grid grid-cols-2 gap-2 pt-2 border-t" style={{ borderColor: 'rgba(0, 212, 255, 0.12)' }}>
-              <HudNumber label="AWA" value={Math.round(awa).toString()} unit="°" small color="var(--accent-cyan)" />
-              <HudNumber label="AWS" value={aws.toFixed(1)} unit="kts" small color="var(--accent-cyan)" />
+              <HudNumber label="AWA" value={Math.round(sim.awa).toString()} unit="°" small color="var(--accent-cyan)" />
+              <HudNumber label="AWS" value={sim.aws.toFixed(1)} unit="kts" small color="var(--accent-cyan)" />
             </div>
-            {noGo && (
+            {sim.noGo && (
               <div className="text-[10px] font-bold uppercase tracking-wider text-[var(--danger)]">
-                ⚠ {tp('мёртвая зона', 'no-go zone', 'strefa martwa')}
+                {tp('мёртвая зона', 'no-go zone', 'strefa martwa')}
               </div>
             )}
           </div>
@@ -162,7 +108,7 @@ export default function SimulatorV2Page() {
              style={{ pointerEvents: 'none', zIndex: 15 }}>
           <div className="max-w-3xl mx-auto rounded-2xl p-3 sm:p-4 space-y-3"
                style={{ background: 'rgba(5, 11, 24, 0.85)', border: '1px solid rgba(0, 212, 255, 0.22)', backdropFilter: 'blur(14px)', pointerEvents: 'auto' }}>
-            {/* Course slider */}
+            {/* Course slider (the intent - boat rotates toward it) */}
             <SliderRow label={tp('Курс к ветру', 'Angle to wind', 'Kat do wiatru')}
                        value={`${ui.twa}°`}
                        min={0} max={180} step={1}
