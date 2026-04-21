@@ -142,7 +142,7 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
 }
 
 export default function AnatomyPage() {
-  const { lang, t, tp } = useI18n();
+  const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
@@ -236,8 +236,9 @@ export default function AnatomyPage() {
       </div>
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
-        {t('Стилизованный профиль Bavaria 46.',
-           'Stylized Bavaria 46 profile.')}
+        {tp('Стилизованный профиль Bavaria 46.',
+            'Stylized Bavaria 46 profile.',
+            'Stylizowany profil Bavaria 46.')}
       </p>
     </div>
   );
