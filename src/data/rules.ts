@@ -3,34 +3,25 @@
 // Format: scene → question → answer → why → what to do in real life.
 // ============================================================================
 
-export interface RuleScenario {
-  id: string;
-  icon: string;
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
-  sceneRu: string;
-  sceneEn: string;
-  scenePl: string;
-  questionRu: string;
-  questionEn: string;
-  questionPl: string;
-  answerRu: string;
-  answerEn: string;
-  answerPl: string;
-  whyRu: string;
-  whyEn: string;
-  whyPl: string;
-  inPracticeRu: string;
-  inPracticeEn: string;
-  inPracticePl: string;
-  /** SVG for the visual illustration. Purely stylized, not to scale. */
-  svg: 'port-vs-starboard' | 'windward-leeward' | 'overtaking' | 'mark-room' | 'crossing' | 'start-line' | 'collision-avoid' | 'penalty';
-  /** Rule source: RRS (Racing Rules of Sailing) or COLREGS (МППСС-72,
-   *  International Rules of the Road for collision prevention). If omitted,
-   *  defaults to 'rrs' for backward compatibility. */
-  source?: 'rrs' | 'colregs';
-}
+import type { LegacyLocalized } from '@/lib/languages';
+
+export type RuleScenario =
+  & LegacyLocalized<'title'>
+  & LegacyLocalized<'scene'>
+  & LegacyLocalized<'question'>
+  & LegacyLocalized<'answer'>
+  & LegacyLocalized<'why'>
+  & LegacyLocalized<'inPractice'>
+  & {
+    id: string;
+    icon: string;
+    /** SVG for the visual illustration. Purely stylized, not to scale. */
+    svg: 'port-vs-starboard' | 'windward-leeward' | 'overtaking' | 'mark-room' | 'crossing' | 'start-line' | 'collision-avoid' | 'penalty';
+    /** Rule source: RRS (Racing Rules of Sailing) or COLREGS (МППСС-72,
+     *  International Rules of the Road for collision prevention). If omitted,
+     *  defaults to 'rrs' for backward compatibility. */
+    source?: 'rrs' | 'colregs';
+  };
 
 export const ruleScenarios: RuleScenario[] = [
   {

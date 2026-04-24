@@ -5,24 +5,20 @@
 // "focus this time" description.
 // ============================================================================
 
-export interface BootcampLesson {
-  id: string;
-  order: number;
-  emoji: string;
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
-  summaryRu: string;
-  summaryEn: string;
-  summaryPl: string;
-  estMinutes: number;
-  /** Route to open for this lesson */
-  route: string;
-  /** What to focus on when visiting that route */
-  focusRu: string;
-  focusEn: string;
-  focusPl: string;
-}
+import type { LegacyLocalized } from '@/lib/languages';
+
+export type BootcampLesson =
+  & LegacyLocalized<'title'>
+  & LegacyLocalized<'summary'>
+  & LegacyLocalized<'focus'>
+  & {
+    id: string;
+    order: number;
+    emoji: string;
+    estMinutes: number;
+    /** Route to open for this lesson */
+    route: string;
+  };
 
 export const bootcampLessons: BootcampLesson[] = [
   {
@@ -161,18 +157,15 @@ export const BOOTCAMP_TOTAL_MINUTES = bootcampLessons.reduce((sum, l) => sum + l
 // Quick refresh - 15 min condensed path for experienced sailors
 // ============================================================================
 
-export interface QuickLesson {
-  id: string;
-  emoji: string;
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
-  tipRu: string;
-  tipEn: string;
-  tipPl: string;
-  route: string;
-  estMinutes: number;
-}
+export type QuickLesson =
+  & LegacyLocalized<'title'>
+  & LegacyLocalized<'tip'>
+  & {
+    id: string;
+    emoji: string;
+    route: string;
+    estMinutes: number;
+  };
 
 export const quickRefreshLessons: QuickLesson[] = [
   {

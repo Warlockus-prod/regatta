@@ -9,9 +9,11 @@
 //   and www.youtube-nocookie.com iframe sources.
 // ============================================================================
 
+import type { LegacyLocalized } from '@/lib/languages';
+
 export type GalleryKind = 'image' | 'youtube';
 
-export interface GalleryItem {
+export type GalleryItem = LegacyLocalized<'title'> & {
   id: string;
   kind: GalleryKind;
   /** For images: relative path under /public. For YouTube: the 11-char video ID. */
@@ -19,15 +21,11 @@ export interface GalleryItem {
   /** Optional thumbnail override for videos. If omitted and kind==='youtube',
    *  we use YouTube's hqdefault thumbnail. */
   thumb?: string;
-  /** Short caption shown under the tile. */
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
   /** Year / event tag, e.g. '2025', shown as a badge. */
   badge?: string;
   /** Aspect ratio hint for the grid. Default = 'square'. Videos default to 16:9. */
   aspect?: 'square' | 'portrait' | 'landscape' | '16:9';
-}
+};
 
 export const galleryItems: GalleryItem[] = [
   // ---- 2025 season ----

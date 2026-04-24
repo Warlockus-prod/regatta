@@ -3,22 +3,19 @@
 // All positions are in a 1000x500 SVG viewBox for the side profile.
 // ============================================================================
 
-export interface AnatomyPart {
-  id: string;
-  nameRu: string;
-  nameEn: string;
-  namePl: string;
-  /** Side-view hotspot (x, y) in viewBox coords */
-  side: { x: number; y: number };
-  /** Top-view hotspot (x, y) - optional */
-  top?: { x: number; y: number };
-  descRu: string;
-  descEn: string;
-  descPl: string;
-  useOnBoardRu: string;
-  useOnBoardEn: string;
-  useOnBoardPl: string;
-}
+import type { LegacyLocalized } from '@/lib/languages';
+
+export type AnatomyPart =
+  & LegacyLocalized<'name'>
+  & LegacyLocalized<'desc'>
+  & LegacyLocalized<'useOnBoard'>
+  & {
+    id: string;
+    /** Side-view hotspot (x, y) in viewBox coords */
+    side: { x: number; y: number };
+    /** Top-view hotspot (x, y) - optional */
+    top?: { x: number; y: number };
+  };
 
 export const anatomyParts: AnatomyPart[] = [
   {

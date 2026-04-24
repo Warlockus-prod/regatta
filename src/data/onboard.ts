@@ -3,19 +3,30 @@
 // Focus: reducing stress before first yacht trip or regatta
 // ============================================================================
 
-export interface OnboardSection {
-  id: string;
-  icon: string;
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
-  itemsRu: string[];
-  itemsEn: string[];
-  itemsPl: string[];
-  warningRu?: string;
-  warningEn?: string;
-  warningPl?: string;
-}
+import type { LegacyLocalized } from '@/lib/languages';
+
+// `items*` arrays are kept as parallel fields (not via LegacyLocalized)
+// because the per-language suffix is needed for array-typed picks.
+export type OnboardSection =
+  & LegacyLocalized<'title'>
+  & {
+    id: string;
+    icon: string;
+    itemsRu: string[];
+    itemsEn: string[];
+    itemsPl: string[];
+    itemsEs?: string[];
+    itemsFr?: string[];
+    itemsDe?: string[];
+    itemsIt?: string[];
+    warningRu?: string;
+    warningEn?: string;
+    warningPl?: string;
+    warningEs?: string;
+    warningFr?: string;
+    warningDe?: string;
+    warningIt?: string;
+  };
 
 export const onboardSections: OnboardSection[] = [
   {

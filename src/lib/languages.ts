@@ -126,6 +126,75 @@ export type LocalizedText = Partial<Record<Lang, string>> & {
   en: string;
 };
 
+/**
+ * Utility type for data-file interfaces that use flat-shape translation
+ * fields (`titleRu / titleEn / titlePl / titleEs / titleFr / titleDe /
+ * titleIt`). Use alongside `legacyPick()` in consumers.
+ *
+ *   interface Mission extends LegacyLocalized<'title' | 'desc' | 'hint'> {
+ *     id: string;
+ *     ...
+ *   }
+ *
+ * Required: ru, en, pl (existing data). Optional: es, fr, de, it (added
+ * via translate-data-flat.mjs over time).
+ */
+export type LegacyLocalized<Field extends string> =
+  { [K in `${Field}Ru` | `${Field}En` | `${Field}Pl`]: string }
+  & { [K in `${Field}Es` | `${Field}Fr` | `${Field}De` | `${Field}It`]?: string };
+
 export function pickLocalized(lang: Lang, values: LocalizedText): string {
   return values[lang] ?? values.en ?? values.ru;
+}
+
+/**
+ * Legacy-shape picker for data files that still use flat `fooRu / fooEn /
+ * fooPl / fooEs / fooFr / fooDe / fooIt` properties.
+ *
+ *   legacyPick(anatomyPart, 'name', lang)
+ *   // looks up anatomyPart.nameIt -> falls back to nameEn -> falls back to nameRu
+ *
+ * Use instead of `lang === 'pl' ? x.namePl : lang === 'en' ? x.nameEn : x.nameRu`
+ * so adding new languages (ES / FR / DE / IT) just means appending matching
+ * `nameEs` / `nameFr` / etc fields, without touching the call site.
+ *
+ * Returns an empty string if the base field isn't on the object.
+ */
+// All catalog codes (including disabled), not narrowed to enabled Lang.
+type AnyLangCode = (typeof LANGUAGE_CATALOG)[number]['id'];
+const CAPITALIZE: Record<AnyLangCode, string> = {
+  ru: 'Ru', en: 'En', pl: 'Pl', es: 'Es', fr: 'Fr', de: 'De', it: 'It',
+};
+
+export function legacyPick(
+  obj: Record<string, unknown> | null | undefined,
+  field: string,
+  lang: Lang,
+): string {
+  if (!obj) return '';
+  const suffix = CAPITALIZE[lang as AnyLangCode] ?? 'En';
+  const primary = obj[`${field}${suffix}`];
+  if (typeof primary === 'string' && primary.length > 0) return primary;
+  const en = obj[`${field}En`];
+  if (typeof en === 'string' && en.length > 0) return en;
+  const ru = obj[`${field}Ru`];
+  return typeof ru === 'string' ? ru : '';
+}
+
+/**
+ * Array-valued variant of `legacyPick` for fields like `itemsRu: string[]`.
+ */
+export function legacyPickArray(
+  obj: Record<string, unknown> | null | undefined,
+  field: string,
+  lang: Lang,
+): string[] {
+  if (!obj) return [];
+  const suffix = CAPITALIZE[lang as AnyLangCode] ?? 'En';
+  const primary = obj[`${field}${suffix}`];
+  if (Array.isArray(primary) && primary.length > 0) return primary as string[];
+  const en = obj[`${field}En`];
+  if (Array.isArray(en) && en.length > 0) return en as string[];
+  const ru = obj[`${field}Ru`];
+  return Array.isArray(ru) ? (ru as string[]) : [];
 }
