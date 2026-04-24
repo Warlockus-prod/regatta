@@ -1,11 +1,15 @@
+// Ordered alphabetically by native name (Latin first, then Cyrillic last -
+// which is the standard convention language pickers use: users scan for
+// their native name in their own script). RU stays the default via
+// DEFAULT_LANG below, independent of list order.
 export const LANGUAGE_CATALOG = [
   {
-    id: 'ru',
-    short: 'RU',
-    name: 'Russian',
-    nativeName: 'Русский',
-    htmlLang: 'ru',
-    metadataLocale: 'ru_RU',
+    id: 'de',
+    short: 'DE',
+    name: 'German',
+    nativeName: 'Deutsch',
+    htmlLang: 'de',
+    metadataLocale: 'de_DE',
     enabled: true,
   },
   {
@@ -15,15 +19,6 @@ export const LANGUAGE_CATALOG = [
     nativeName: 'English',
     htmlLang: 'en',
     metadataLocale: 'en_US',
-    enabled: true,
-  },
-  {
-    id: 'pl',
-    short: 'PL',
-    name: 'Polish',
-    nativeName: 'Polski',
-    htmlLang: 'pl',
-    metadataLocale: 'pl_PL',
     enabled: true,
   },
   {
@@ -45,21 +40,30 @@ export const LANGUAGE_CATALOG = [
     enabled: true,
   },
   {
-    id: 'de',
-    short: 'DE',
-    name: 'German',
-    nativeName: 'Deutsch',
-    htmlLang: 'de',
-    metadataLocale: 'de_DE',
-    enabled: true,
-  },
-  {
     id: 'it',
     short: 'IT',
     name: 'Italian',
     nativeName: 'Italiano',
     htmlLang: 'it',
     metadataLocale: 'it_IT',
+    enabled: true,
+  },
+  {
+    id: 'pl',
+    short: 'PL',
+    name: 'Polish',
+    nativeName: 'Polski',
+    htmlLang: 'pl',
+    metadataLocale: 'pl_PL',
+    enabled: true,
+  },
+  {
+    id: 'ru',
+    short: 'RU',
+    name: 'Russian',
+    nativeName: 'Русский',
+    htmlLang: 'ru',
+    metadataLocale: 'ru_RU',
     enabled: true,
   },
 ] as const;

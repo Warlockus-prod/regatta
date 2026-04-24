@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { legacyPick } from '@/lib/languages';
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
 import {
@@ -238,8 +239,7 @@ export default function SimulatorV3Page() {
     setActiveScenarioId(null);
   };
 
-  const pointLabel =
-    lang === 'pl' ? sim.pos.namePl : lang === 'en' ? sim.pos.nameEn : sim.pos.nameRu;
+  const pointLabel = legacyPick(sim.pos, 'name', lang);
   const tackLabel =
     ui.tack === 'starboard'
       ? tp('правый галс', 'starboard tack', 'prawy hals')
