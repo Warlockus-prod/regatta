@@ -1,6 +1,6 @@
 # Regatta - Sailing Yacht Simulator
 
-Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in RU / EN / PL.
+Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in 7 languages: RU / EN / PL / ES / FR / DE / IT.
 
 **Live:** https://regatta.icoffio.com
 
@@ -21,14 +21,17 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 - **Replay viewer** - scrubbable timeline for any finished race.
 - **Learning content** - points of sail, racing tactics, rules of the
   road (21 RRS + COLREGS scenarios with language-specific external
-  sources: fps30.ru / ВФПС for RU, IMO / USCG / World Sailing / US Sailing
-  for EN, PZŻ / PYA for PL), boat anatomy (17 hotspots), checklist,
-  glossary (51 terms), bootcamp (8 lessons), quick refresh (6 topics),
+  sources: fps30.ru / ВФПС for RU, IMO / USCG / World Sailing / US
+  Sailing for EN, PZŻ / PYA for PL, RFEV for ES, FFVoile for FR, DSV
+  for DE, Federvela for IT), boat anatomy (17 hotspots), checklist,
+  glossary (52 terms), bootcamp (8 lessons), quick refresh (6 topics),
   onboard first-week reference (8 sections).
-- **i18n**: RU / EN / PL across every user-facing route. Lang detection
-  at edge (proxy.ts + Accept-Language cookie), SSR-rendered in the right
-  language (no first-paint flash), client override persists via
-  localStorage. AI coach + local fallback both respect the lang.
+- **i18n**: 7 languages (RU / EN / PL / ES / FR / DE / IT) across every
+  user-facing route. Lang detection at edge (proxy.ts + Accept-Language
+  cookie), SSR-rendered in the right language (no first-paint flash),
+  client override persists via localStorage. Post-hydration Cyrillic
+  scan confirms 0 leaks on all content routes. AI coach + local fallback
+  both respect the lang.
 - **Leaderboard + daily challenge** - top times per bucket, one
   mission per UTC day.
 - **Admin `/stats`** - auth-gated dashboard for users, sessions,

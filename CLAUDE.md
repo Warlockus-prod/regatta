@@ -3,9 +3,10 @@
 ## Typography
 
 - **Never use em-dash (unicode U+2014) or en-dash (U+2013) anywhere in the project.** Use a plain ASCII hyphen (`-`), or a comma/colon when a pause reads better. Applies to: TSX/TS string literals, comments, markdown docs, translations, commit messages, and AI prompts.
-- Same rule for every language: RU / EN / PL.
+- Same rule for every language: RU / EN / PL / ES / FR / DE / IT.
 - Double quotes for English strings. Russian text may use `«елочки»` where context fits.
 - Polish: no diacritics (no `ą ę ż ł ó ć ń ś ź`). Drop them for consistency with the ASCII-only typography rule.
+- Same principle for ES / FR / DE / IT: prefer plain ASCII letters. Diacritics ARE allowed in these languages (they carry meaning - e.g. `ñ` vs `n`, `é` vs `e`), but avoid unicode-escaped fancy punctuation (curly quotes, ellipsis, em-dashes). Use straight ASCII quotes.
 
 ## Code style
 
@@ -18,10 +19,13 @@
 
 ## i18n
 
-- 3-language app: RU / EN / PL. Source: RU.
+- 7-language app: RU / EN / PL / ES / FR / DE / IT. Source: RU.
 - Priority chain (see `src/lib/i18n.tsx`): `?lang=` in URL > localStorage > cookie (SSR) > Accept-Language > RU fallback.
-- Share-link shortcuts: `/pl`, `/en`, `/ru` -> redirect to `/` with cookie pinned.
+- Share-link shortcuts: `/pl`, `/en`, `/ru`, `/es`, `/fr`, `/de`, `/it` -> redirect to `/` with cookie pinned.
 - Server lang pipeline: `src/proxy.ts` writes `regatta_lang` cookie, `src/app/layout.tsx` reads it for `<html lang>` and `generateMetadata`. Do not break this.
+- Data-file rows use `LegacyLocalized<'field'>` adapter (`fieldRu/En/Pl` required + `fieldEs/Fr/De/It` optional). Consumers read via `legacyPick(obj, 'field', lang)`. New components prefer `tl({ru, en, pl, es, fr, de, it})` object form.
+- Bulk translation: `ANTHROPIC_API_KEY=sk-... node scripts/translate-data-flat.mjs --file <path> --lang es,fr,de,it`.
+- Cyrillic-leak scan: `npm run dev -- --port 3007 & node scripts/cyrillic-scan.mjs` (expects 0 leaks on content routes).
 - Route status in `docs/I18N_AUDIT.md`. Keep it in sync with reality if you change coverage.
 
 ## Parallel-chat coordination (2026-04-22)
