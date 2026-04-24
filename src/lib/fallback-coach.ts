@@ -8,7 +8,8 @@
  * nextGoalRu) are kept for client compatibility - values inside match lang.
  */
 
-type CoachLang = 'ru' | 'en' | 'pl';
+import type { Lang } from './languages';
+type CoachLang = Lang;
 
 interface LogSample {
   t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number;

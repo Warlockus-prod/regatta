@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import type { Lang } from '@/lib/languages';
 import { type TpFn } from '../shared';
 
 // ---------------------------------------------------------------------------
@@ -152,7 +153,7 @@ const STEPS: TourStep[] = [
 ];
 
 interface Props {
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
   tp: TpFn;
   /** When true, overlay is open (re-opened via "?" button). */
   forceOpen?: boolean;

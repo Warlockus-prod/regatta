@@ -15,7 +15,7 @@ import { DEFAULT_UI, type UiState } from '../ui/shared';
 // purely presentational.
 // ---------------------------------------------------------------------------
 
-export type TriLangText = { ru: string; en: string; pl: string };
+export type TriLangText = { ru: string; en: string; pl: string; es?: string; fr?: string; de?: string; it?: string };
 
 export interface ScenarioPreset {
   id: string;

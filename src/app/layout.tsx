@@ -67,6 +67,30 @@ export async function generateMetadata(): Promise<Metadata> {
       locale: 'pl_PL',
       twitter: 'Regaty za tydzien? Zdazysz sie przygotowac. Trener AI + wyscig z rywalami w przegladarce.',
     },
+    es: {
+      title: 'Regatta - simulador de vela',
+      description: 'Entrenador interactivo para quienes tienen una regata este fin de semana. Viento, rumbos, velas, tactica en 45 minutos. Entrenador IA analiza tu regata.',
+      locale: 'es_ES',
+      twitter: 'Regata la proxima semana? Aun tienes tiempo de prepararte. Entrenador IA + regata con rivales en el navegador.',
+    },
+    fr: {
+      title: 'Regatta - simulateur de voile',
+      description: 'Entraineur interactif pour ceux qui ont une regate ce week-end. Vent, allures, voiles, tactique en 45 minutes. Le coach IA analyse votre course.',
+      locale: 'fr_FR',
+      twitter: 'Regate la semaine prochaine ? Tu peux encore te preparer. Coach IA + course avec des rivaux dans le navigateur.',
+    },
+    de: {
+      title: 'Regatta - Segelsimulator',
+      description: 'Interaktiver Trainer fuer alle, die am Wochenende eine Regatta haben. Wind, Kurse, Segel, Taktik in 45 Minuten. KI-Coach analysiert dein Rennen.',
+      locale: 'de_DE',
+      twitter: 'Regatta naechste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Rivalen im Browser.',
+    },
+    it: {
+      title: 'Regatta - simulatore di vela',
+      description: 'Allenatore interattivo per chi ha una regata nel fine settimana. Vento, corsi, vele, tattica in 45 minuti. Il coach IA analizza la tua regata.',
+      locale: 'it_IT',
+      twitter: 'Regata la prossima settimana? Hai ancora tempo per prepararti. Coach IA + regata con rivali nel browser.',
+    },
   };
   const pick = ogByLang[lang];
   const languageAlternates = Object.fromEntries(

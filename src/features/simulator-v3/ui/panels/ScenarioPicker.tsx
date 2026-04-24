@@ -1,4 +1,5 @@
 'use client';
+import type { Lang } from '@/lib/languages';
 
 import {
   SCENARIO_PRESETS,
@@ -19,7 +20,7 @@ export function ScenarioPicker({
 }: {
   activeId: string | null;
   onPick: (s: ScenarioPreset) => void;
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
   tp: TpFn;
 }) {
   return (

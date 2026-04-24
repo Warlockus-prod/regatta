@@ -1,4 +1,5 @@
 'use client';
+import type { Lang } from '@/lib/languages';
 
 import {
   type DrillDefinition,
@@ -29,7 +30,7 @@ export function DrillCard({
   elapsed: number;
   heldFor: number;
   result: DrillResult;
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
   tp: TpFn;
   onStart: (d: DrillDefinition) => void;
   onRestart: () => void;

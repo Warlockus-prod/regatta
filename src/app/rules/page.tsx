@@ -458,6 +458,62 @@ export default function RulesPage() {
             </a>
           </div>
         )}
+        {lang === 'es' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://rfev.es/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Real Federacion Espanola de Vela →
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO texto original (ing.) →
+            </a>
+          </div>
+        )}
+        {lang === 'fr' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://www.ffvoile.fr/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Federation Francaise de Voile →
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO texte original (ang.) →
+            </a>
+          </div>
+        )}
+        {lang === 'de' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://www.dsv.org/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Deutscher Segler-Verband →
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO Originaltext (en.) →
+            </a>
+          </div>
+        )}
+        {lang === 'it' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+            <a href="https://www.federvela.it/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Federazione Italiana Vela →
+            </a>
+            <a href="https://www.imo.org/en/OurWork/Safety/Pages/Preventing-Collisions.aspx" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              IMO testo originale (ing.) →
+            </a>
+          </div>
+        )}
       </div>
 
       <div className="mt-10 p-5 card" style={{ background: 'rgba(255, 170, 0, 0.04)', borderColor: 'rgba(255, 170, 0, 0.2)' }}>
@@ -525,6 +581,82 @@ export default function RulesPage() {
                className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
                style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
               RRS 2025-2028 PDF (ang.) ↓
+            </a>
+          </div>
+        )}
+        {lang === 'es' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (oficial) →
+            </a>
+            <a href="https://rfev.es/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RFEV (es.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF (ing.) ↓
+            </a>
+          </div>
+        )}
+        {lang === 'fr' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (officiel) →
+            </a>
+            <a href="https://www.ffvoile.fr/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              FFVoile (fr.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF (ang.) ↓
+            </a>
+          </div>
+        )}
+        {lang === 'de' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (offiziell) →
+            </a>
+            <a href="https://www.dsv.org/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              DSV (de.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF (en.) ↓
+            </a>
+          </div>
+        )}
+        {lang === 'it' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm">
+            <a href="https://www.sailing.org/racingrules/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              World Sailing (ufficiale) →
+            </a>
+            <a href="https://www.federvela.it/" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              Federvela (it.) →
+            </a>
+            <a href="https://www.asiansailing.org/wp-content/uploads/2024/07/RRS-2025-2028-Final.pdf" target="_blank" rel="noopener noreferrer"
+               className="px-3 py-2 rounded-lg border text-center transition hover:text-[var(--accent-cyan)]"
+               style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}>
+              RRS 2025-2028 PDF (ing.) ↓
             </a>
           </div>
         )}

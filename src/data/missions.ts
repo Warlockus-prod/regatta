@@ -160,7 +160,11 @@ export interface RaceMetrics {
   topSpeed: number;
 }
 
-export type MissionLang = 'ru' | 'en' | 'pl';
+// MissionLang accepts any enabled language; `pick()` internally picks ru/pl
+// verbatim and falls through to EN for every other lang. New langs (ES/FR/
+// DE/IT) will see English evaluation strings until localized ones land.
+import type { Lang } from '@/lib/languages';
+export type MissionLang = Lang;
 
 /** Evaluate whether all mission constraints passed given race metrics. */
 export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: MissionLang = 'ru'): MissionResult {

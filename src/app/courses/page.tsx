@@ -1,18 +1,19 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import type { Lang } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
 // Pick the point-of-sail display fields for the current language. EN stays as
 // the international anchor shown beneath the primary label in non-EN modes.
-function posName(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+function posName(p: PointOfSail, lang: Lang): string {
   return lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu;
 }
-function posDescription(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+function posDescription(p: PointOfSail, lang: Lang): string {
   return lang === 'pl' ? p.descriptionPl : lang === 'en' ? p.descriptionEn : p.description;
 }
-function posSailWork(p: PointOfSail, lang: 'ru' | 'en' | 'pl'): string {
+function posSailWork(p: PointOfSail, lang: Lang): string {
   return lang === 'pl' ? p.sailWorkPl : lang === 'en' ? p.sailWorkEn : p.sailWork;
 }
 
@@ -123,7 +124,7 @@ function YachtIcon({
 }
 
 // --- Wind arrow pointing downward at the top of the diagram ---
-function WindArrow({ cx, topY, lang }: { cx: number; topY: number; lang: 'ru' | 'en' | 'pl' }) {
+function WindArrow({ cx, topY, lang }: { cx: number; topY: number; lang: Lang }) {
   const arrowLen = 48;
   const y0 = topY - 2;
   return (
@@ -236,7 +237,7 @@ function WindDiagram({
 }: {
   activeId: string | null;
   onSelect: (id: string | null) => void;
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
 }) {
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const viewSize = 600;
@@ -631,7 +632,7 @@ function DetailCard({
   point: PointOfSail;
   isActive: boolean;
   onSelect: () => void;
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
 }) {
   return (
     <button

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { Lang } from '@/lib/languages';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
@@ -311,7 +312,7 @@ const strategyDiagrams: Record<string, React.ReactNode> = {
   'mark-rounding': <MarkRoundingDiagram />,
 };
 
-function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[number]; lang: 'ru' | 'en' | 'pl' }) {
+function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[number]; lang: Lang }) {
   const [open, setOpen] = useState(false);
   const title = lang === 'pl' ? strategy.titlePl : lang === 'en' ? strategy.titleEn : strategy.titleRu;
   const desc = lang === 'pl' ? strategy.descriptionPl : lang === 'en' ? strategy.descriptionEn : strategy.descriptionRu;

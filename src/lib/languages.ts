@@ -33,7 +33,7 @@ export const LANGUAGE_CATALOG = [
     nativeName: 'Español',
     htmlLang: 'es',
     metadataLocale: 'es_ES',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'fr',
@@ -42,7 +42,7 @@ export const LANGUAGE_CATALOG = [
     nativeName: 'Français',
     htmlLang: 'fr',
     metadataLocale: 'fr_FR',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'de',
@@ -51,7 +51,7 @@ export const LANGUAGE_CATALOG = [
     nativeName: 'Deutsch',
     htmlLang: 'de',
     metadataLocale: 'de_DE',
-    enabled: false,
+    enabled: true,
   },
   {
     id: 'it',
@@ -60,7 +60,7 @@ export const LANGUAGE_CATALOG = [
     nativeName: 'Italiano',
     htmlLang: 'it',
     metadataLocale: 'it_IT',
-    enabled: false,
+    enabled: true,
   },
 ] as const;
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from 'react';
+import type { Lang } from '@/lib/languages';
 import {
   clamp,
   finite,
@@ -22,7 +23,7 @@ export function SceneTop({
 }: {
   ui: UiState;
   sim: SimulationModel;
-  lang: 'ru' | 'en' | 'pl';
+  lang: Lang;
 }) {
   // Unique prefix per instance. SceneTop is rendered twice (desktop + mobile
   // layouts; Tailwind's hidden keeps both in the DOM) so SVG def IDs must not
