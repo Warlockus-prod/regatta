@@ -5,7 +5,9 @@ import {
   DEFAULT_LANG,
   isLang,
   pickLangFromNavigator,
+  pickLocalized,
   type Lang,
+  type LocalizedText,
 } from './languages';
 
 export type { Lang } from './languages';
@@ -18,8 +20,24 @@ interface I18nContextValue {
   setLang: (l: Lang) => void;
   /** 2-arg form (ru, en) - legacy; pl falls back to en. */
   t: (ru: string, en: string) => string;
-  /** 3-arg form (ru, en, pl). */
+  /**
+   * 3-arg form (ru, en, pl). Legacy shape - works for a RU/EN/PL-only app.
+   * Hardcoded signature means adding IT/ES/FR/DE requires touching every
+   * call site. Prefer `tl(obj)` for new code.
+   */
   tp: (ru: string, en: string, pl: string) => string;
+  /**
+   * Object-based translation. Extensible: add any Lang key and it will be
+   * picked up automatically. Missing keys fall back to en, then ru, then
+   * the first value provided.
+   *
+   *   {tl({ ru: 'Привет', en: 'Hi', pl: 'Czesc' })}
+   *   // later:
+   *   {tl({ ru: 'Привет', en: 'Hi', pl: 'Czesc', es: 'Hola', it: 'Ciao' })}
+   *
+   * RU + EN are required by the `LocalizedText` type; other langs optional.
+   */
+  tl: (values: LocalizedText) => string;
 }
 
 const Ctx = createContext<I18nContextValue | null>(null);
@@ -113,7 +131,12 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
     [lang],
   );
 
-  return <Ctx.Provider value={{ lang, setLang, t, tp }}>{children}</Ctx.Provider>;
+  const tl = useCallback(
+    (values: LocalizedText) => pickLocalized(lang, values),
+    [lang],
+  );
+
+  return <Ctx.Provider value={{ lang, setLang, t, tp, tl }}>{children}</Ctx.Provider>;
 }
 
 export function useI18n(): I18nContextValue {
@@ -125,6 +148,7 @@ export function useI18n(): I18nContextValue {
       setLang: () => { /* noop on server */ },
       t: (ru: string) => ru,
       tp: (ru: string) => ru,
+      tl: (values: LocalizedText) => values.ru,
     };
   }
   return v;
