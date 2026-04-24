@@ -30,12 +30,18 @@ architecture, modules, data flow, infrastructure.
   the system prompt
 - **Realtime:** separate WebSocket server (`ws` library, 20 Hz
   authoritative) at `:4502` on VPS, consumed by `/multiplayer` page
-- **i18n:** custom hook `useI18n()` from `src/lib/i18n`, `t(ru, en)` or
-  `tp(ru, en, pl)` helper; three languages RU / EN / PL
+- **i18n:** custom hook `useI18n()` from `src/lib/i18n`. Call-site helpers:
+  `tp(ru, en, pl)` (hardcoded 3-arg, legacy), `tl({ ru, en, pl, ... })`
+  (object-based, extensible - preferred for new code). Language catalog in
+  `src/lib/languages.ts`; `enabled: true` flag controls which languages
+  render. Today: RU / EN / PL. Declared for future: ES / FR / DE / IT
+  (disabled). Migration scripts in `scripts/migrate-*.mjs` +
+  `scripts/translate-data.mjs` for bulk Claude API translation.
 - **Tests:** Vitest (physics engine only, `npm run test:physics`);
   Playwright MCP for manual browser audits
-- **Deploy:** Docker Compose on VPS (46.225.11.249), standalone Next
-  build, GitHub Actions CI/CD via SSH push
+- **Deploy:** Docker Compose on VPS (178.104.223.93 Hetzner FSN1), standalone
+  Next build, GitHub Actions CI/CD via SSH push. Old address 46.225.11.249
+  retired 2026-04-21.
 - **PWA:** manifest + SVG icons, installable on home screen
 
 ---
@@ -127,10 +133,11 @@ src/
 │   ├── bootcamp.ts             # 8 lessons
 │   ├── missions.ts             # 4 game missions
 │   ├── onboard.ts              # "first week" sections
-│   ├── rules.ts                # 8 rule scenarios
-│   └── sailing-data.ts         # points of sail + glossary
+│   ├── rules.ts                # 21 rule scenarios (RRS + COLREGS)
+│   └── sailing-data.ts         # points of sail + glossary (51 terms)
 └── lib/
-    ├── i18n.tsx                # useI18n + t / tp
+    ├── i18n.tsx                # useI18n + t / tp / tl helpers
+    ├── languages.ts            # language catalog + Lang type + helpers
     ├── storage.ts              # localStorage with versioning
     ├── db.ts                   # better-sqlite3 singleton
     ├── rate-limit.ts           # in-memory IP + session rate limits
@@ -237,14 +244,35 @@ tab).
 `/api/replay/[code]`. Invalid codes render a clean error state, not
 a 500.
 
-**i18n:** `useI18n()` reads `lang` from `localStorage.getItem('regatta.lang.v1')`, falling back to `navigator.language` on first visit. `setLang()` writes both `localStorage` and `document.documentElement.lang`. No cookie involved.
-components use `t('ru', 'en')` or `tp('ru', 'en', 'pl')`.
+**i18n:** SSR-aware language pipeline.
+
+1. Edge middleware (`src/proxy.ts`) writes `regatta_lang` cookie on first
+   visit based on `Accept-Language` header. Also handles `/pl`, `/en`,
+   `/ru` shortcut paths (307 redirect to `/` with cookie pinned) and
+   `?lang=xx` override that beats any existing cookie.
+2. `src/app/layout.tsx` reads the cookie server-side, passes `initialLang`
+   to `I18nProvider`, and sets `<html lang={serverLang}>`. No first-paint
+   flash between RU and the user's actual language.
+3. `src/lib/i18n.tsx`'s `useI18n()` priority chain: `?lang=` in URL ->
+   `localStorage.regatta.lang.v1` -> SSR `initialLang` from cookie ->
+   `navigator.language`. `setLang()` mirrors the choice into both
+   localStorage and the cookie so subsequent navigations stay in sync.
+4. `src/lib/languages.ts` is the single source of truth for the language
+   catalog. Each entry: `id / short / name / nativeName / htmlLang /
+   metadataLocale / enabled`. `Lang` type derives from `enabled: true`
+   entries, so TS narrows automatically. Flip `enabled: true` + add
+   translations -> the language appears in the dropdown and shortcut
+   paths with no other code change.
+5. Call-site helpers: `tp(ru, en, pl)` (legacy hardcoded 3-arg) and
+   `tl({ ru, en, pl, ...})` (extensible object-based; preferred for new
+   call sites). Both coexist via the `useI18n()` hook.
 
 ---
 
 ## Infrastructure
 
-- VPS: `46.225.11.249` (Ubuntu)
+- VPS: `178.104.223.93` (Ubuntu, Hetzner FSN1 16GB). Old `46.225.11.249`
+  retired 2026-04-21.
 - Next app container: `172.17.0.1:4500`
 - WS container: `172.17.0.1:4502`
 - Nginx: Let's Encrypt SSL, CSP in `regatta.nginx.conf` - only

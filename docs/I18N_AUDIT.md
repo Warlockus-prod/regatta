@@ -1,8 +1,22 @@
 # i18n audit - RU/EN/PL status across the app
 
-**Date:** 2026-04-20 (post-full-sweep).
-**Stack:** `useI18n()` hook with `tp(ru, en, pl)` (3-arg, preferred) and
-legacy `t(ru, en)` (2-arg, PL falls back to EN - being phased out).
+**Date:** 2026-04-24 (post-prep-infra).
+**Stack:** `useI18n()` hook with three call-site helpers:
+- `tl({ ru, en, pl, ... })` - object-based, extensible; preferred for new code.
+  Type: `LocalizedText` from `src/lib/languages.ts`. Missing langs fall back
+  to `en`, then `ru`, then the first provided value.
+- `tp(ru, en, pl)` - hardcoded 3-arg, legacy. 524 existing call sites across
+  35 files. Migration script in `scripts/migrate-tp-to-tl.mjs`.
+- `t(ru, en)` - legacy 2-arg (PL falls back to EN). Fully retired as of
+  2026-04-20; kept in the interface for type back-compat only. No call
+  sites remain.
+
+Language catalog lives in `src/lib/languages.ts`. Each entry has an
+`enabled: boolean` flag; `Lang` type derives from `enabled: true` entries.
+Flipping a new lang requires (1) translations in data + call sites, (2)
+`enabled: true`. No other code changes.
+
+Today active: RU / EN / PL. Declared but disabled: ES / FR / DE / IT.
 
 ---
 
@@ -91,18 +105,34 @@ strings as documented above).
 
 ---
 
-## Contributing PL translations
+## Contributing translations (PL or future langs)
 
-For new components:
-1. Destructure `tp` (not `t`): `const { tp } = useI18n();`
-2. Use the 3-arg form: `{tp('Русский', 'English', 'Polski')}`
-3. Per project rule: no Polish diacritics (no ą/ę/ż/ł) - they're stripped
-   for consistency with the em-dash / en-dash typography rule.
+For new components - prefer `tl()`:
+1. Destructure `tl` from the hook: `const { tl } = useI18n();`
+2. Use object-based form: `{tl({ ru: 'Привет', en: 'Hi', pl: 'Czesc' })}`
+3. Adding a new lang later = add that key to the object (or leave it out
+   and let the fallback chain en -> ru kick in).
+4. Per project rule: no Polish diacritics (no ą/ę/ż/ł/etc) - they're
+   stripped for consistency with the em-dash / en-dash typography rule.
 
-For data files (`src/data/*.ts`):
-1. Add `titlePl`, `introPl`, `itemsPl`, etc. next to existing `*Ru`/`*En` pairs.
-2. Consuming component picks with
-   `lang === 'pl' ? x.namePl : lang === 'en' ? x.nameEn : x.nameRu`.
+Existing `tp(ru, en, pl)` call sites stay functional and render correctly.
+Batch-migrate to `tl()` via `node scripts/migrate-tp-to-tl.mjs` (see
+`scripts/I18N_MIGRATION.md`).
+
+For data files (`src/data/*.ts`) - prefer `LocalizedText`:
+1. New fields use `title: { ru, en, pl }` shape (`LocalizedText` type).
+2. Consuming component picks with `pickLocalized(lang, x.title)` or the
+   hook-local `tl(x.title)`.
+3. Existing `titleRu/titleEn/titlePl` trios still work; migrate them via
+   `node scripts/migrate-data-fields.mjs` (267 trios detected as of
+   2026-04-24).
+
+Bulk-translating a data file into a new target language:
+`ANTHROPIC_API_KEY=sk-... node scripts/translate-data.mjs --file <path> --lang es,fr,de,it`
+- Uses `scripts/sailing-glossary.md` in the system prompt so MT doesn't
+  mangle sailing jargon.
+- Never overwrites an existing target-lang value.
+- See `scripts/I18N_MIGRATION.md` for full procedure + cost estimates.
 3. Run `npx tsc --noEmit` to ensure the interface update propagated.
 4. Keep strings terminology-accurate (see `docs/SAILING_TERMINOLOGY.md`
    if it exists, or cross-check against World Sailing / USCG / PZŻ /
