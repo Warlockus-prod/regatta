@@ -837,8 +837,6 @@ export default function SimulatorPage() {
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(255, 170, 0, 0.35)', color: '#ffaa00' }}>V2 eSail</a>
           <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
              style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>V3</a>
         </div>

@@ -1,8 +1,14 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import {
+  DEFAULT_LANG,
+  isLang,
+  pickLangFromNavigator,
+  type Lang,
+} from './languages';
 
-export type Lang = 'ru' | 'en' | 'pl';
+export type { Lang } from './languages';
 
 const STORAGE_KEY = 'regatta.lang.v1';
 const COOKIE_NAME = 'regatta_lang';
@@ -18,18 +24,10 @@ interface I18nContextValue {
 
 const Ctx = createContext<I18nContextValue | null>(null);
 
-function pickFromBrowser(): Lang {
-  if (typeof navigator === 'undefined') return 'ru';
-  const nav = navigator.language.toLowerCase();
-  if (nav.startsWith('ru')) return 'ru';
-  if (nav.startsWith('pl')) return 'pl';
-  return 'en';
-}
-
 export function I18nProvider({ children, initialLang }: { children: ReactNode; initialLang?: Lang }) {
   // Hydrate with SSR-provided language (from cookie / accept-language).
   // Falls back to 'ru' for SSR without middleware (dev preview of RSC, etc).
-  const [lang, setLangState] = useState<Lang>(initialLang ?? 'ru');
+  const [lang, setLangState] = useState<Lang>(initialLang ?? DEFAULT_LANG);
 
   useEffect(() => {
     // Priority order (highest first):
@@ -43,7 +41,7 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
       if (typeof window !== 'undefined') {
         const params = new URLSearchParams(window.location.search);
         const urlLang = params.get('lang');
-        if (urlLang === 'en' || urlLang === 'ru' || urlLang === 'pl') {
+        if (isLang(urlLang)) {
           // Adopt and persist - mirror to both localStorage and cookie so
           // the choice survives navigation and future visits.
           if (urlLang !== lang) setLangState(urlLang);
@@ -66,11 +64,11 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
         }
       }
       const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored === 'en' || stored === 'ru' || stored === 'pl') {
+      if (isLang(stored)) {
         if (stored !== lang) setLangState(stored);
       } else if (!initialLang) {
         // No cookie OR middleware, no localStorage - use navigator.
-        setLangState(pickFromBrowser());
+        setLangState(pickLangFromNavigator());
       }
     } catch {
       // ignore - stick with current lang

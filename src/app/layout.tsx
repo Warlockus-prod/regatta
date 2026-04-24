@@ -8,7 +8,13 @@ import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
-import { I18nProvider, type Lang } from "@/lib/i18n";
+import { I18nProvider } from "@/lib/i18n";
+import {
+  ENABLED_LANGUAGES,
+  isLang,
+  pickLangFromAccept,
+  type Lang,
+} from "@/lib/languages";
 
 // Tells Next not to statically cache the root layout - we read request cookies
 // to pick the user's language so every render is request-specific.
@@ -17,20 +23,13 @@ export const dynamic = 'force-dynamic';
 async function resolveServerLang(): Promise<Lang> {
   const c = await cookies();
   const fromCookie = c.get('regatta_lang')?.value;
-  if (fromCookie === 'ru' || fromCookie === 'en' || fromCookie === 'pl') {
+  if (isLang(fromCookie)) {
     return fromCookie;
   }
   // Fallback: sniff accept-language on the very first request before
   // middleware has written the cookie into the response stream.
   const h = await headers();
-  const accept = (h.get('accept-language') ?? '').toLowerCase();
-  const first = accept.split(',')[0]?.trim() ?? '';
-  if (first.startsWith('ru')) return 'ru';
-  if (first.startsWith('pl')) return 'pl';
-  if (first.startsWith('en')) return 'en';
-  if (accept.includes('pl')) return 'pl';
-  if (accept.includes('ru')) return 'ru';
-  return 'en';
+  return pickLangFromAccept(h.get('accept-language'));
 }
 
 const geistSans = Geist({
@@ -69,6 +68,9 @@ export async function generateMetadata(): Promise<Metadata> {
     },
   };
   const pick = ogByLang[lang];
+  const languageAlternates = Object.fromEntries(
+    ENABLED_LANGUAGES.map((language) => [language.id, `/?lang=${language.id}`]),
+  );
   return {
     title: pick.title,
     description: pick.description,
@@ -76,11 +78,7 @@ export async function generateMetadata(): Promise<Metadata> {
     manifest: '/manifest.json',
     alternates: {
       canonical: '/',
-      languages: {
-        ru: '/?lang=ru',
-        en: '/?lang=en',
-        pl: '/?lang=pl',
-      },
+      languages: languageAlternates,
     },
     appleWebApp: {
       capable: true,
@@ -93,7 +91,9 @@ export async function generateMetadata(): Promise<Metadata> {
       url: 'https://regatta.icoffio.com',
       siteName: 'Regatta',
       locale: pick.locale,
-      alternateLocale: (['ru_RU', 'en_US', 'pl_PL'] as const).filter((l) => l !== pick.locale),
+      alternateLocale: ENABLED_LANGUAGES
+        .map((language) => language.metadataLocale)
+        .filter((locale) => locale !== pick.locale),
       type: 'website',
     },
     twitter: {

@@ -1,4 +1,10 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import {
+  LANG_SHORTCUT_PATHS,
+  isLang,
+  pickLangFromAccept,
+  type Lang,
+} from './lib/languages';
 
 /**
  * HTTP Basic Auth for /stats admin.
@@ -38,24 +44,12 @@ function ensureSessionCookie(res: NextResponse, req: NextRequest) {
   });
 }
 
-function pickLangFromAccept(accept: string | null): 'ru' | 'en' | 'pl' {
-  if (!accept) return 'ru';
-  const first = accept.split(',')[0]?.trim().toLowerCase() ?? '';
-  if (first.startsWith('ru')) return 'ru';
-  if (first.startsWith('pl')) return 'pl';
-  if (first.startsWith('en')) return 'en';
-  const lower = accept.toLowerCase();
-  if (lower.includes('pl')) return 'pl';
-  if (lower.includes('ru')) return 'ru';
-  return 'en';
-}
-
 // Writes a `regatta_lang` cookie on the first visit so SSR can render in the
 // user's preferred language (RU / EN / PL). Without it, every SSR pass
 // defaults to RU and the client flashes the real language ~80ms later.
 function ensureLangCookie(res: NextResponse, req: NextRequest) {
   const existing = req.cookies.get(LANG_COOKIE)?.value;
-  if (existing === 'ru' || existing === 'en' || existing === 'pl') return;
+  if (isLang(existing)) return;
   const picked = pickLangFromAccept(req.headers.get('accept-language'));
   res.cookies.set({
     name: LANG_COOKIE,
@@ -72,16 +66,7 @@ function ensureLangCookie(res: NextResponse, req: NextRequest) {
 // for ANY visitor. Useful for share links ("here's the sailing trainer -
 // https://regatta.icoffio.com/pl"). The recipient's URL bar ends up clean (`/`)
 // after the redirect; the cookie carries the language forward.
-const LANG_SHORTCUT_PATHS: Record<string, 'ru' | 'en' | 'pl'> = {
-  '/pl': 'pl',
-  '/en': 'en',
-  '/ru': 'ru',
-  '/pl/': 'pl',
-  '/en/': 'en',
-  '/ru/': 'ru',
-};
-
-function setLangCookie(res: NextResponse, value: 'ru' | 'en' | 'pl') {
+function setLangCookie(res: NextResponse, value: Lang) {
   res.cookies.set({
     name: LANG_COOKIE,
     value,
@@ -106,8 +91,7 @@ export function proxy(req: NextRequest) {
   // recipient's SSR render uses the forced lang even if they had a different
   // cookie from a previous visit. Client also strips ?lang= after consuming.
   const urlLang = searchParams.get('lang');
-  const explicitLang: 'ru' | 'en' | 'pl' | null =
-    urlLang === 'ru' || urlLang === 'en' || urlLang === 'pl' ? urlLang : null;
+  const explicitLang: Lang | null = isLang(urlLang) ? urlLang : null;
 
   // Issue session + lang cookies for regular navigations (skip static assets & api)
   if (

@@ -9,10 +9,8 @@ import { redirect } from 'next/navigation';
 // be revived later by restoring this page's contents from git history (last
 // live version: commit be43938).
 //
-// Links to `/simulator2` in V1 (`src/app/simulator/page.tsx`) and V3
-// (`src/features/simulator-v3/SimulatorV3Page.tsx`) are owned by other lanes;
-// they still render but now bounce here and get redirected. Shared/V3 lanes
-// can remove those pills at their convenience.
+// Public V1/V3 headers no longer link here. If a stale external link opens
+// `/simulator2`, redirect it to the current simulator entry.
 // ============================================================================
 
 export default function SimulatorV2Page() {

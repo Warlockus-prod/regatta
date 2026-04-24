@@ -321,16 +321,6 @@ export default function SimulatorV3Page() {
           >
             V1
           </a>
-          <a
-            href="/simulator2"
-            className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-            style={{
-              borderColor: 'rgba(139, 167, 184, 0.22)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            V2
-          </a>
         </div>
       </div>
 
