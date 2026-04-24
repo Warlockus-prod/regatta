@@ -3,27 +3,15 @@ import type { LegacyLocalized } from '@/lib/languages';
 // ===== POINTS OF SAIL =====
 export type PointOfSail =
   & LegacyLocalized<'name'>
+  & LegacyLocalized<'description'>
+  & LegacyLocalized<'sailWork'>
   & {
     id: string;
     angleMin: number;
     angleMax: number;
     sailAngle: number; // degrees from centerline
     speedFactor: number; // 0-1, relative speed
-    description: string;
-    descriptionEn: string;
-    descriptionPl: string;
-    descriptionEs?: string;
-    descriptionFr?: string;
-    descriptionDe?: string;
-    descriptionIt?: string;
     color: string;
-    sailWork: string;
-    sailWorkEn: string;
-    sailWorkPl: string;
-    sailWorkEs?: string;
-    sailWorkFr?: string;
-    sailWorkDe?: string;
-    sailWorkIt?: string;
   };
 
 export const pointsOfSail: PointOfSail[] = [
@@ -40,13 +28,21 @@ export const pointsOfSail: PointOfSail[] = [
     angleMax: 30,
     sailAngle: 0,
     speedFactor: 0,
-    description: 'Яхта стоит носом прямо против ветра. Паруса полощутся (заполаскивают), тяга отсутствует. Это "мёртвая зона" - яхта не может двигаться в этом направлении.',
+    descriptionRu: 'Яхта стоит носом прямо против ветра. Паруса полощутся (заполаскивают), тяга отсутствует. Это "мёртвая зона" - яхта не может двигаться в этом направлении.',
     descriptionEn: 'Boat is pointed directly into the wind. Sails luff (flap) with no drive. This is the "no-go zone" - the boat cannot sail in this direction.',
     descriptionPl: 'Jacht stoi dziobem prosto pod wiatr. Zagle lopocza (powietrze nie tworzy ciagu), brak sily napedowej. To strefa martwa - jacht nie moze plynac w tym kierunku.',
+    descriptionEs: 'El yate apunta directamente contra el viento. Las velas flamean, no hay tracción. Esta es la "zona muerta" - el yate no puede navegar en esta dirección.',
+    descriptionFr: 'Le voilier est pointé droit dans le vent. Les voiles faseyent, il n\'y a pas de propulsion. C\'est la "zone morte" - le voilier ne peut pas avancer dans cette direction.',
+    descriptionDe: 'Die Jacht steht mit dem Bug direkt gegen den Wind. Die Segel killen (fangen an zu killen), es gibt keinen Vortrieb. Das ist die "Totzone" - die Jacht kann sich in diese Richtung nicht bewegen.',
+    descriptionIt: 'La barca sta con la prua direttamente contro il vento. Le vele sventano, non c\'è trazione. Questa è la "zona morta" - la barca non può muoversi in questa direzione.',
     color: '#ff4444',
-    sailWork: 'Паруса не работают - заполаскивают',
+    sailWorkRu: 'Паруса не работают - заполаскивают',
     sailWorkEn: 'Sails not working - luffing',
     sailWorkPl: 'Zagle nie pracuja - lopocza',
+    sailWorkEs: 'Las velas no funcionan - flamean',
+    sailWorkFr: 'Les voiles ne travaillent pas - elles faseillent',
+    sailWorkDe: 'Die Segel arbeiten nicht - sie killen',
+    sailWorkIt: 'Le vele non funzionano - stanno sventando',
   },
   {
     id: 'close-hauled',
@@ -61,13 +57,21 @@ export const pointsOfSail: PointOfSail[] = [
     angleMax: 60,
     sailAngle: 12,
     speedFactor: 0.65,
-    description: 'Курс под острым углом к ветру (30-60°). Паруса максимально выбраны (подтянуты к ДП). Парус работает как крыло самолёта, создавая аэродинамическую тягу. Самый "тесный" рабочий курс.',
+    descriptionRu: 'Курс под острым углом к ветру (30-60°). Паруса максимально выбраны (подтянуты к ДП). Парус работает как крыло самолёта, создавая аэродинамическую тягу. Самый "тесный" рабочий курс.',
     descriptionEn: 'Sailing at a sharp angle to the wind (30-60°). Sails trimmed tight to centerline. The sail works like an airplane wing, generating aerodynamic lift. The closest working angle to the wind.',
     descriptionPl: 'Kurs pod ostrym katem do wiatru (30-60°). Zagle maksymalnie wybrane (dociagniete do osi symetrii). Zagiel dziala jak skrzydlo samolotu, generujac sile aerodynamiczna. Najbardziej "ciasny" kurs roboczy.',
+    descriptionEs: 'Rumbo muy ceñido al viento (30-60°). Las velas están máximamente cazadas (tensadas hacia la línea de crujía). La vela funciona como un ala de avión, generando tracción aerodinámica. El rumbo de trabajo más "cerrado".',
+    descriptionFr: 'Cap au pres (30-60°). Voiles maximalement bordees (serrees vers l\'axe longitudinal). La voile fonctionne comme une aile d\'avion, creant une traction aerodynamique. Le cap de travail le plus "serre".',
+    descriptionDe: 'Am Wind (30-60°). Segel sind maximal dicht (straff zur Mittellinie). Das Segel arbeitet wie ein Flugzeugflügel und erzeugt aerodynamischen Auftrieb. Der "engste" Arbeitskurs.',
+    descriptionIt: 'Bolina - corso con angolo acuto al vento (30-60°). Vele cazzate al massimo (tirate verso la linea di centro). La vela funziona come un\'ala d\'aereo, creando una spinta aerodinamica. Il corso di lavoro più "stretto".',
     color: '#ff8844',
-    sailWork: 'Парус как крыло - аэродинамическая тяга',
+    sailWorkRu: 'Парус как крыло - аэродинамическая тяга',
     sailWorkEn: 'Sail as wing - aerodynamic lift',
     sailWorkPl: 'Zagiel jak skrzydlo - sila aerodynamiczna',
+    sailWorkEs: 'Vela como ala - tracción aerodinámica',
+    sailWorkFr: 'La voile comme une aile - la traction aérodynamique',
+    sailWorkDe: 'Segel wie ein Flügel - aerodynamischer Vortrieb',
+    sailWorkIt: 'Vela come ala - spinta aerodinamica',
   },
   {
     id: 'beam-reach',
@@ -82,13 +86,21 @@ export const pointsOfSail: PointOfSail[] = [
     angleMax: 110,
     sailAngle: 45,
     speedFactor: 1.0,
-    description: 'Ветер дует перпендикулярно борту (~90°). Самый быстрый и комфортный курс. Паруса выставлены на ~45° от ДП. Сочетание аэродинамической тяги и давления ветра.',
+    descriptionRu: 'Ветер дует перпендикулярно борту (~90°). Самый быстрый и комфортный курс. Паруса выставлены на ~45° от ДП. Сочетание аэродинамической тяги и давления ветра.',
     descriptionEn: 'Wind blows perpendicular to the beam (~90°). The fastest and most comfortable point of sail. Sails set at ~45° from centerline. Combination of lift and push.',
     descriptionPl: 'Wiatr wieje prostopadle do burty (~90°). Najszybszy i najbardziej komfortowy kurs. Zagle ustawione pod katem ~45° od osi. Polaczenie sily aerodynamicznej i naporu wiatru.',
+    descriptionEs: 'El viento sopla perpendicular al casco (~90°). El rumbo más rápido y cómodo. Las velas se orientan a ~45° de la línea de crujía. Combinación de tracción aerodinámica y presión del viento.',
+    descriptionFr: 'Le vent souffle perpendiculairement au bord (~90°). Le cap le plus rapide et confortable. Les voiles sont orientées à ~45° du plan de symétrie. Combinaison de la traînée aérodynamique et de la pression du vent.',
+    descriptionDe: 'Der Wind bläst senkrecht zur Bordseite (~90°). Der schnellste und komfortabelste Kurs. Segel sind auf ~45° von der Mittschiffsebene ausgerichtet. Eine Kombination aus aerodynamischem Auftrieb und Winddruck.',
+    descriptionIt: 'Il vento soffia perpendicolare al fianco (~90°). Il corso più veloce e confortevole. Le vele sono orientate a ~45° dalla linea di centro. Combinazione di trazione aerodinamica e pressione del vento.',
     color: '#44ff88',
-    sailWork: 'Баланс тяги и давления - максимальная скорость',
+    sailWorkRu: 'Баланс тяги и давления - максимальная скорость',
     sailWorkEn: 'Balance of lift and push - maximum speed',
     sailWorkPl: 'Balans sily i naporu - maksymalna predkosc',
+    sailWorkEs: 'Balance de tracción y presión - velocidad máxima',
+    sailWorkFr: 'Équilibre de la puissance et de la pression - vitesse maximale',
+    sailWorkDe: 'Traktions- und Druckausgleich - maximale Geschwindigkeit',
+    sailWorkIt: 'Equilibrio tra spinta e resistenza - velocità massima',
   },
   {
     id: 'broad-reach',
@@ -103,13 +115,21 @@ export const pointsOfSail: PointOfSail[] = [
     angleMax: 160,
     sailAngle: 70,
     speedFactor: 0.85,
-    description: 'Ветер дует сзади-сбоку (110-160°). Паруса сильно потравлены. Быстрый курс, но требует внимания к возможному непроизвольному повороту фордевинд.',
+    descriptionRu: 'Ветер дует сзади-сбоку (110-160°). Паруса сильно потравлены. Быстрый курс, но требует внимания к возможному непроизвольному повороту фордевинд.',
     descriptionEn: 'Wind from behind and to the side (110-160°). Sails eased out significantly. Fast course, but requires attention to accidental jibes.',
     descriptionPl: 'Wiatr wieje z tylu-boku (110-160°). Zagle mocno wyluzowane. Szybki kurs, ale wymaga uwagi ze wzgledu na mozliwosc nieoczekiwanego zwrotu przez rufe.',
+    descriptionEs: 'El viento sopla desde atrás-lateralmente (110-160°). Las velas están muy cazadas. Rumbo rápido, pero requiere atención al posible giro involuntario a popa.',
+    descriptionFr: 'Le vent souffle par l\'arrière-travers (110-160°). Les voiles sont très choquées. Un cours rapide, mais qui demande de l\'attention au risque d\'empannage involontaire.',
+    descriptionDe: 'Der Wind weht von hinten-seitlich (110-160°). Die Segel sind stark gefiert. Schneller Kurs, erfordert aber Aufmerksamkeit für mögliche ungewollte Halsen.',
+    descriptionIt: 'Il vento soffia da dietro-laterale (110-160°). Le vele sono molto lasciate. Corso veloce, ma richiede attenzione al possibile involontario passaggio a fil di ruota.',
     color: '#44aaff',
-    sailWork: 'Парус как препятствие - давление ветра',
+    sailWorkRu: 'Парус как препятствие - давление ветра',
     sailWorkEn: 'Sail as obstacle - wind pressure',
     sailWorkPl: 'Zagiel jako przeszkoda - napor wiatru',
+    sailWorkEs: 'La vela como obstáculo - la presión del viento',
+    sailWorkFr: 'Voile comme obstacle - pression du vent',
+    sailWorkDe: 'Segel als Hindernis - Winddruck',
+    sailWorkIt: 'Vela come ostacolo - pressione del vento',
   },
   {
     id: 'running',
@@ -124,28 +144,28 @@ export const pointsOfSail: PointOfSail[] = [
     angleMax: 180,
     sailAngle: 85,
     speedFactor: 0.6,
-    description: 'Ветер дует прямо в корму (170-180°). Паруса полностью потравлены перпендикулярно ДП. Парус работает только как парашют. Кажется простым, но опасен непроизвольным поворотом фордевинд.',
+    descriptionRu: 'Ветер дует прямо в корму (170-180°). Паруса полностью потравлены перпендикулярно ДП. Парус работает только как парашют. Кажется простым, но опасен непроизвольным поворотом фордевинд.',
     descriptionEn: 'Wind directly from behind (170-180°). Sails fully eased perpendicular to hull. Sail works only as a parachute. Seems easy but dangerous due to accidental jibes.',
     descriptionPl: 'Wiatr wieje prosto w rufe (170-180°). Zagle calkowicie wyluzowane prostopadle do osi kadluba. Zagiel dziala tylko jak spadochron. Wydaje sie proste, ale niebezpieczne ze wzgledu na nieoczekiwany zwrot przez rufe.',
+    descriptionEs: 'El viento sopla directo a la popa (170-180°). Las velas están completamente largadas perpendiculares a crujía. La vela funciona solo como paracaídas. Parece simple, pero es peligroso por la posibilidad de una involuntaria traslucha.',
+    descriptionFr: 'Le vent souffle directement dans la poupe (170-180°). Les voiles sont complètement choquées perpendiculairement au plan de dérive. La voile ne fonctionne que comme un parachute. Cela semble simple, mais c\'est dangereux à cause d\'une involontaire empannage.',
+    descriptionDe: 'Der Wind bläst direkt von achtern (170-180°). Die Segel sind vollständig perpendikular zur Mittschiffslinie abgelassen. Das Segel funktioniert nur als Fallschirm. Es scheint einfach, aber es besteht die Gefahr eines unbeabsichtigten Halsen vor dem Wind.',
+    descriptionIt: 'Il vento soffia direttamente in poppa (170-180°). Le vele sono completamente lascate perpendicolari alla linea di centro. La vela funziona solo come paracadute. Sembra semplice, ma è pericoloso per la virata accidentale in fil di ruota.',
     color: '#8844ff',
-    sailWork: 'Парус как парашют - только давление',
+    sailWorkRu: 'Парус как парашют - только давление',
     sailWorkEn: 'Sail as parachute - pressure only',
     sailWorkPl: 'Zagiel jak spadochron - tylko napor',
+    sailWorkEs: 'La vela como paracaídas - solo presión',
+    sailWorkFr: 'Voile comme parachute - seulement la pression',
+    sailWorkDe: 'Das Segel wie ein Fallschirm - nur Druck',
+    sailWorkIt: 'Vela come un paracadute - solo pressione',
   },
 ];
 
 // ===== TACK TYPES =====
 export type Tack =
   & LegacyLocalized<'name'>
-  & {
-    description: string;
-    descriptionEn: string;
-    descriptionPl: string;
-    descriptionEs?: string;
-    descriptionFr?: string;
-    descriptionDe?: string;
-    descriptionIt?: string;
-  };
+  & LegacyLocalized<'description'>;
 
 export const tacks: Record<string, Tack> = {
   port: {
@@ -156,9 +176,13 @@ export const tacks: Record<string, Tack> = {
     nameFr: 'babord amures',
     nameDe: 'Backbordbug',
     nameIt: 'mure a sinistra',
-    description: 'Ветер дует в левый борт. Паруса на правом борту.',
+    descriptionRu: 'Ветер дует в левый борт. Паруса на правом борту.',
     descriptionEn: 'Wind from port (left) side. Sails on starboard (right) side.',
     descriptionPl: 'Wiatr wieje w lewa burte. Zagle po prawej burcie.',
+    descriptionEs: 'El viento sopla en babor. Las velas están en estribor.',
+    descriptionFr: 'Le vent souffle par le babord. Les voiles sont sur le tribord.',
+    descriptionDe: 'Der Wind bläst auf Backbord. Die Segel sind auf Steuerbord.',
+    descriptionIt: 'Il vento soffia su babordo. Le vele sono sulla murata di dritta.',
   },
   starboard: {
     nameRu: 'Правый галс',
@@ -168,24 +192,22 @@ export const tacks: Record<string, Tack> = {
     nameFr: 'Tribord amures',
     nameDe: 'Steuerbordbug',
     nameIt: 'Mure a dritta',
-    description: 'Ветер дует в правый борт. Паруса на левом борту.',
+    descriptionRu: 'Ветер дует в правый борт. Паруса на левом борту.',
     descriptionEn: 'Wind from starboard (right) side. Sails on port (left) side.',
     descriptionPl: 'Wiatr wieje w prawa burte. Zagle po lewej burcie.',
+    descriptionEs: 'El viento sopla por estribor. Las velas están en el babor.',
+    descriptionFr: 'Le vent souffle sur le tribord. Les voiles sont sur le babord.',
+    descriptionDe: 'Der Wind bläst gegen das Steuerbord. Die Segel sind auf der Backbordseite.',
+    descriptionIt: 'Il vento soffia su tribordo. Le vele sono su babordo.',
   },
 };
 
 // ===== MANEUVERS =====
 export type Maneuver =
   & LegacyLocalized<'name'>
+  & LegacyLocalized<'description'>
   & {
     id: string;
-    description: string;
-    descriptionEn: string;
-    descriptionPl: string;
-    descriptionEs?: string;
-    descriptionFr?: string;
-    descriptionDe?: string;
-    descriptionIt?: string;
     category: 'basic' | 'racing';
   };
 
@@ -199,9 +221,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'Virer de bord (poavorot par virement de bord)',
     nameDe: 'Wenden (Wendemanöver)',
     nameIt: 'Virare (di bordo)',
-    description: 'Поворот, при котором нос яхты пересекает линию ветра. Яхта переходит с одного галса на другой через левентик. Безопасный, но медленный поворот.',
+    descriptionRu: 'Поворот, при котором нос яхты пересекает линию ветра. Яхта переходит с одного галса на другой через левентик. Безопасный, но медленный поворот.',
     descriptionEn: 'Turn where the bow crosses the wind line. Boat changes tack through head-to-wind. Safe but slow turn.',
     descriptionPl: 'Zwrot, w ktorym dziob jachtu przecina linie wiatru. Jacht przechodzi z jednego halsu na drugi przez wiatr. Bezpieczny, ale wolny zwrot.',
+    descriptionEs: 'Virada por avante, en la que la proa de la vela atraviesa la línea del viento. La vela pasa de una amura a otra a través de en facha. Una virada segura pero lenta.',
+    descriptionFr: 'Virer de bord, manoeuvre au cours de laquelle l\'etrave de la yacht franchit la ligne du vent. La yacht passe d\'une amure a l\'autre en passant par vent debout. Un virement securise mais lent.',
+    descriptionDe: 'Wenden, bei dem der Bug der Yacht die Windrichtung kreuzt. Die Yacht wechselt von einem Bug auf den anderen durch den Zustand im Wind. Ein sicherer, aber langsamer Wendemanöver.',
+    descriptionIt: 'Virare, durante la quale la prua della barca attraversa la linea del vento. La barca passa da un bordo all\'altro attraverso il panne. Una virata sicura, ma lenta.',
     category: 'basic',
   },
   {
@@ -213,9 +239,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'Empanner',
     nameDe: 'Halsen',
     nameIt: 'Strambare',
-    description: 'Поворот, при котором корма яхты пересекает линию ветра. Гик резко перебрасывается на другой борт. Быстрый, но потенциально опасный поворот - гик может травмировать экипаж.',
+    descriptionRu: 'Поворот, при котором корма яхты пересекает линию ветра. Гик резко перебрасывается на другой борт. Быстрый, но потенциально опасный поворот - гик может травмировать экипаж.',
     descriptionEn: 'Turn where the stern crosses the wind line. The boom swings violently to the other side. Fast but potentially dangerous - the boom can injure the crew.',
     descriptionPl: 'Zwrot, w ktorym rufa jachtu przecina linie wiatru. Bom gwaltownie przerzuca sie na druga burte. Szybki, ale potencjalnie niebezpieczny - bom moze zranic zaloge.',
+    descriptionEs: 'Trasluchar, giro en el que la popa del yate cruza la línea de viento. La botavara se desplaza bruscamente al otro lado. Un giro rápido pero potencialmente peligroso - la botavara puede lesionar a la tripulación.',
+    descriptionFr: 'Empannage, manœuvre durant laquelle la poupe du yacht traverse la ligne du vent. La bôme bascule brutalement sur l\'autre bord. Virage rapide mais potentiellement dangereux - la bôme peut blesser l\'équipage.',
+    descriptionDe: 'Ein Wendemanöver, bei dem das Heck der Yacht die Windlinie kreuzt. Der Baum schwenkt abrupt auf die andere Seite. Eine schnelle, aber potenziell gefährliche Wendung - der Baum kann die Besatzung verletzen.',
+    descriptionIt: 'Un\'evoluzione nella quale la poppa dell\'imbarcazione attraversa la linea del vento. La boma si sposta bruscamente sull\'altro bordo. Un\'evoluzione veloce, ma potenzialmente pericolosa - la boma può ferire l\'equipaggio.',
     category: 'basic',
   },
   {
@@ -227,9 +257,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'Vent debout',
     nameDe: 'Im Wind',
     nameIt: 'in panna',
-    description: 'Изменение курса ближе к ветру (уменьшение угла к ветру). Паруса нужно добирать (подтягивать).',
+    descriptionRu: 'Изменение курса ближе к ветру (уменьшение угла к ветру). Паруса нужно добирать (подтягивать).',
     descriptionEn: 'Turning the bow closer to the wind (decreasing angle to wind). Sails need to be trimmed in (tightened).',
     descriptionPl: 'Zmiana kursu blizej wiatru (zmniejszenie kata do wiatru). Zagle nalezy wybierac (dociagac).',
+    descriptionEs: 'Cambio de rumbo más hacia el viento (reducción del ángulo al viento). Hay que cazar las velas (tensarlas).',
+    descriptionFr: 'Modifier l\'allure plus près du vent (diminuer l\'angle vent reel). Les voiles doivent être bordées (tirées).',
+    descriptionDe: 'Kursänderung näher zum Wind (Verringerung des Windwinkels). Segel müssen dichter geholt werden.',
+    descriptionIt: 'Cambiamento di rotta più vicino al vento (riduzione dell\'angolo rispetto al vento). Le vele devono essere cazate (tirate).',
     category: 'basic',
   },
   {
@@ -241,9 +275,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'empannage',
     nameDe: 'Halsen',
     nameIt: 'Strambare',
-    description: 'Изменение курса дальше от ветра (увеличение угла к ветру). Паруса нужно потравливать (отпускать).',
+    descriptionRu: 'Изменение курса дальше от ветра (увеличение угла к ветру). Паруса нужно потравливать (отпускать).',
     descriptionEn: 'Turning the bow away from the wind (increasing angle to wind). Sails need to be eased out (loosened).',
     descriptionPl: 'Zmiana kursu dalej od wiatru (zwiekszenie kata do wiatru). Zagle nalezy wyluzowac (popuszczac).',
+    descriptionEs: 'Cambiar el rumbo más hacia la popa (aumentar el ángulo al viento). Las velas hay que lascar.',
+    descriptionFr: 'Changer de cap plus loin du vent (augmenter l\'angle au vent). Les voiles doivent être choqu­ées (laissées).',
+    descriptionDe: 'Kursänderung weg vom Wind (Windwinkel vergrößern). Segel müssen gefiert werden.',
+    descriptionIt: 'Alterare la rotta allontanandosi dal vento (aumento dell\'angolo rispetto al vento). Le vele vanno lascate (lasciate cadere).',
     category: 'basic',
   },
   {
@@ -255,9 +293,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'Louvoyer (croisement des amures)',
     nameDe: 'Kreuzen (Wenden)',
     nameIt: 'Bolinare (ceñir a prueba)',
-    description: 'Серия зигзагообразных манёвров (галсов) для движения к точке, находящейся против ветра. Яхта идёт курсом бейдевинд, меняя галсы поворотами оверштаг.',
+    descriptionRu: 'Серия зигзагообразных манёвров (галсов) для движения к точке, находящейся против ветра. Яхта идёт курсом бейдевинд, меняя галсы поворотами оверштаг.',
     descriptionEn: 'A series of zigzag maneuvers (tacks) to reach a point upwind. Boat sails close-hauled, changing tacks via tacking turns.',
     descriptionPl: 'Seria zygzakowych manewrow (halsow) w celu dotarcia do punktu lezacego pod wiatr. Jacht plynie kursem bajdewind, zmieniajac halsy przez zwroty przez sztag.',
+    descriptionEs: 'Lavorar hacia el barlovento mediante una serie de bordos en ceñida, realizando virajes por avante para cambiar de amura.',
+    descriptionFr: 'Série de manœuvres en zigzag (des bordées) pour avancer vers un point situé face au vent. Le voilier navigue au pres, changeant d\'amure par des virages de bord.',
+    descriptionDe: 'Eine Serie von zickzackförmigen Manövern (Halsen) zur Fortbewegung zu einem Punkt gegen den Wind. Die Yacht fährt Am Wind und wechselt die Halsen durch Wendungen.',
+    descriptionIt: 'Una serie di manovre a zigzag (virate di bordo) per raggiungere un punto controvento. Lo yacht naviga di bolina, cambiando mure con virate.',
     category: 'racing',
   },
   {
@@ -269,9 +311,13 @@ export const maneuvers: Maneuver[] = [
     nameFr: 'Contournement de la bouée',
     nameDe: 'Rund um die Tonne',
     nameIt: 'Girare attorno alla boa',
-    description: 'Прохождение яхтой вокруг буя (знака) на гоночной дистанции. Требует точного расчёта траектории и настройки парусов.',
+    descriptionRu: 'Прохождение яхтой вокруг буя (знака) на гоночной дистанции. Требует точного расчёта траектории и настройки парусов.',
     descriptionEn: 'Sailing around a buoy (mark) on the racecourse. Requires precise trajectory calculation and sail trim adjustment.',
     descriptionPl: 'Okrazanie boi (znaku) na trasie regatowej. Wymaga precyzyjnego obliczenia trajektorii i ustawienia zagli.',
+    descriptionEs: 'Navegación de la vela alrededor de la boya en la distancia de regata. Requiere un cálculo preciso de la trayectoria y el ajuste de las velas.',
+    descriptionFr: 'Passage d\'une bouee avec precision lors d\'une course - necessite le calcul exact de la trajectoire et l\'ajustement des voiles.',
+    descriptionDe: 'Passieren einer Bahn-Tonne mit der Yacht auf der Rennstrecke. Erfordert genaue Bahnberechnung und Segeltrimmung.',
+    descriptionIt: 'Navigazione della barca intorno alla boa (mark) sulla distanza di gara. Richiede un preciso calcolo della traiettoria e la regolazione delle vele.',
     category: 'racing',
   },
 ];
@@ -279,83 +325,77 @@ export const maneuvers: Maneuver[] = [
 // ===== GLOSSARY TERMS =====
 export type GlossaryTerm =
   & LegacyLocalized<'term'>
+  & LegacyLocalized<'definition'>
   & {
     id: string;
-    definition: string;
-    definitionEn: string;
-    definitionPl: string;
-    definitionEs?: string;
-    definitionFr?: string;
-    definitionDe?: string;
-    definitionIt?: string;
     category: 'boat' | 'sail' | 'course' | 'maneuver' | 'racing' | 'wind' | 'crew';
   };
 
 export const glossaryTerms: GlossaryTerm[] = [
   // Части яхты / Boat Parts / Czesci jachtu
-  { id: 'bow', termRu: 'Нос', termEn: 'Bow', termPl: 'Dziob', definition: 'Передняя часть яхты', definitionEn: 'Front of the boat', definitionPl: 'Przednia czesc jachtu', category: 'boat', termEs: 'Proa', termFr: 'Etrave', termDe: 'Bug', termIt: 'Prua', },
-  { id: 'stern', termRu: 'Корма', termEn: 'Stern', termPl: 'Rufa', definition: 'Задняя часть яхты', definitionEn: 'Back of the boat', definitionPl: 'Tylna czesc jachtu', category: 'boat', termEs: 'Popa', termFr: 'Poupe', termDe: 'Heck', termIt: 'poppa', },
-  { id: 'port', termRu: 'Левый борт', termEn: 'Port', termPl: 'Lewa burta', definition: 'Левая сторона яхты (если смотреть на нос)', definitionEn: 'Left side of the boat (facing forward)', definitionPl: 'Lewa strona jachtu (patrzac w kierunku dziobu)', category: 'boat', termEs: 'Babor', termFr: 'Babord', termDe: 'Backbord', termIt: 'Babordo', },
-  { id: 'starboard', termRu: 'Правый борт', termEn: 'Starboard', termPl: 'Prawa burta', definition: 'Правая сторона яхты (если смотреть на нос)', definitionEn: 'Right side of the boat (facing forward)', definitionPl: 'Prawa strona jachtu (patrzac w kierunku dziobu)', category: 'boat', termEs: 'Estribor', termFr: 'Tribord', termDe: 'Steuerbord', termIt: 'Tribordo', },
-  { id: 'hull', termRu: 'Корпус', termEn: 'Hull', termPl: 'Kadlub', definition: 'Основная часть яхты - тело лодки', definitionEn: 'Main body of the boat', definitionPl: 'Glowna czesc jachtu - cialo lodzi', category: 'boat', termEs: 'casco', termFr: 'Coque', termDe: 'Rumpf', termIt: 'scafo', },
-  { id: 'keel', termRu: 'Киль', termEn: 'Keel', termPl: 'Kil', definition: 'Подводный плавник под корпусом для остойчивости и противодействия дрейфу', definitionEn: 'Underwater fin for stability and lateral resistance', definitionPl: 'Podwodna pletwa pod kadlubem zapewniajaca statecznosc i przeciwdzialajaca dryfowi', category: 'boat', termEs: 'Quilla', termFr: 'quille', termDe: 'Kiel', termIt: 'chiglia', },
-  { id: 'rudder', termRu: 'Руль (перо руля)', termEn: 'Rudder', termPl: 'Ster (pletwa sterowa)', definition: 'Подводный элемент для управления направлением', definitionEn: 'Underwater blade for steering', definitionPl: 'Podwodny element sluzacy do sterowania kierunkiem', category: 'boat', termEs: 'Timón (pala del timón)', termFr: 'Gouvernail (pale de gouvernail)', termDe: 'Ruder (Ruderblatt)', termIt: 'Timone (pala del timone)', },
-  { id: 'tiller', termRu: 'Румпель', termEn: 'Tiller', termPl: 'Rumpel', definition: 'Рукоятка, соединённая с рулём, для управления яхтой', definitionEn: 'Handle connected to the rudder for steering', definitionPl: 'Raczka polaczona ze sterem, sluzaca do sterowania jachtem', category: 'boat', termEs: 'Timón', termFr: 'Gouvernail', termDe: 'Ruder', termIt: 'Timone', },
-  { id: 'cockpit', termRu: 'Кокпит', termEn: 'Cockpit', termPl: 'Kokpit', definition: 'Открытая рабочая область в корме, где находится экипаж', definitionEn: 'Open working area in the stern where crew sits', definitionPl: 'Otwarta przestrzen robocza w rufie, gdzie przebywa zaloga', category: 'boat', termEs: 'Cockpit', termFr: 'Cockpit', termDe: 'Cockpit', termIt: 'Cockpit', },
-  { id: 'deck', termRu: 'Палуба', termEn: 'Deck', termPl: 'Poklad', definition: 'Верхняя горизонтальная поверхность яхты', definitionEn: 'Upper horizontal surface of the boat', definitionPl: 'Gorna pozioma powierzchnia jachtu', category: 'boat', termEs: 'Cubierta', termFr: 'pont', termDe: 'Deck', termIt: 'Coperta', },
-  { id: 'centerline', termRu: 'Диаметральная плоскость (ДП)', termEn: 'Centerline', termPl: 'Plaszczyzna symetrii', definition: 'Воображаемая линия от носа до кормы, делящая яхту пополам', definitionEn: 'Imaginary line from bow to stern dividing the boat in half', definitionPl: 'Wyobrazona linia od dziobu do rufy dzielaca jacht na polowy', category: 'boat', termEs: 'Plano diametral (PD)', termFr: 'Plan de symétrie longitudinale (PSL)', termDe: 'Diametrale Ebene (DE)', termIt: 'Piano di simmetria longitudinale (PSL)', },
+  { id: 'bow', termRu: 'Нос', termEn: 'Bow', termPl: 'Dziob', definitionRu: 'Передняя часть яхты', definitionEn: 'Front of the boat', definitionPl: 'Przednia czesc jachtu', category: 'boat', termEs: 'Proa', termFr: 'Etrave', termDe: 'Bug', termIt: 'Prua', definitionEs: 'Proa', definitionFr: 'Étrave', definitionDe: 'Bug der Yacht', definitionIt: 'prua', },
+  { id: 'stern', termRu: 'Корма', termEn: 'Stern', termPl: 'Rufa', definitionRu: 'Задняя часть яхты', definitionEn: 'Back of the boat', definitionPl: 'Tylna czesc jachtu', category: 'boat', termEs: 'Popa', termFr: 'Poupe', termDe: 'Heck', termIt: 'poppa', definitionEs: 'popa', definitionFr: 'poupe', definitionDe: 'Heck', definitionIt: 'poppa', },
+  { id: 'port', termRu: 'Левый борт', termEn: 'Port', termPl: 'Lewa burta', definitionRu: 'Левая сторона яхты (если смотреть на нос)', definitionEn: 'Left side of the boat (facing forward)', definitionPl: 'Lewa strona jachtu (patrzac w kierunku dziobu)', category: 'boat', termEs: 'Babor', termFr: 'Babord', termDe: 'Backbord', termIt: 'Babordo', definitionEs: 'Babor', definitionFr: 'Babord (côté gauche du bateau vu de l\'avant)', definitionDe: 'Backbord (linke Seite der Yacht beim Blick nach vorne)', definitionIt: 'Sinistra / babordo', },
+  { id: 'starboard', termRu: 'Правый борт', termEn: 'Starboard', termPl: 'Prawa burta', definitionRu: 'Правая сторона яхты (если смотреть на нос)', definitionEn: 'Right side of the boat (facing forward)', definitionPl: 'Prawa strona jachtu (patrzac w kierunku dziobu)', category: 'boat', termEs: 'Estribor', termFr: 'Tribord', termDe: 'Steuerbord', termIt: 'Tribordo', definitionEs: 'Estribor', definitionFr: 'Tribord', definitionDe: 'Steuerbord', definitionIt: 'Tribordo', },
+  { id: 'hull', termRu: 'Корпус', termEn: 'Hull', termPl: 'Kadlub', definitionRu: 'Основная часть яхты - тело лодки', definitionEn: 'Main body of the boat', definitionPl: 'Glowna czesc jachtu - cialo lodzi', category: 'boat', termEs: 'casco', termFr: 'Coque', termDe: 'Rumpf', termIt: 'scafo', definitionEs: 'El casco es la parte principal de la vela - el cuerpo de la embarcación', definitionFr: 'La partie principale du yacht - la coque', definitionDe: 'Der Hauptteil der Yacht - der Rumpf der Segelyacht', definitionIt: 'La parte principale della barca - lo scafo', },
+  { id: 'keel', termRu: 'Киль', termEn: 'Keel', termPl: 'Kil', definitionRu: 'Подводный плавник под корпусом для остойчивости и противодействия дрейфу', definitionEn: 'Underwater fin for stability and lateral resistance', definitionPl: 'Podwodna pletwa pod kadlubem zapewniajaca statecznosc i przeciwdzialajaca dryfowi', category: 'boat', termEs: 'Quilla', termFr: 'quille', termDe: 'Kiel', termIt: 'chiglia', definitionEs: 'Quilla para estabilidad y contra el abatimiento', definitionFr: 'Quille pour la stabilité et la résistance à la dérive', definitionDe: 'Kiel zur Verbesserung der Stabilität und Verringerung der Abdrift', definitionIt: 'Chiglia per la stabilità e per contrastare lo scarroccio', },
+  { id: 'rudder', termRu: 'Руль (перо руля)', termEn: 'Rudder', termPl: 'Ster (pletwa sterowa)', definitionRu: 'Подводный элемент для управления направлением', definitionEn: 'Underwater blade for steering', definitionPl: 'Podwodny element sluzacy do sterowania kierunkiem', category: 'boat', termEs: 'Timón (pala del timón)', termFr: 'Gouvernail (pale de gouvernail)', termDe: 'Ruder (Ruderblatt)', termIt: 'Timone (pala del timone)', definitionEs: 'Elemento sumergido para el control de dirección', definitionFr: 'élément immergé de direction', definitionDe: 'Ruderanlage unter Wasser zur Richtungskontrolle', definitionIt: 'Timone', },
+  { id: 'tiller', termRu: 'Румпель', termEn: 'Tiller', termPl: 'Rumpel', definitionRu: 'Рукоятка, соединённая с рулём, для управления яхтой', definitionEn: 'Handle connected to the rudder for steering', definitionPl: 'Raczka polaczona ze sterem, sluzaca do sterowania jachtem', category: 'boat', termEs: 'Timón', termFr: 'Gouvernail', termDe: 'Ruder', termIt: 'Timone', definitionEs: 'Caña del timón', definitionFr: 'Barre du gouvernail', definitionDe: 'Ruderpinne', definitionIt: 'Barra del timone', },
+  { id: 'cockpit', termRu: 'Кокпит', termEn: 'Cockpit', termPl: 'Kokpit', definitionRu: 'Открытая рабочая область в корме, где находится экипаж', definitionEn: 'Open working area in the stern where crew sits', definitionPl: 'Otwarta przestrzen robocza w rufie, gdzie przebywa zaloga', category: 'boat', termEs: 'Cockpit', termFr: 'Cockpit', termDe: 'Cockpit', termIt: 'Cockpit', definitionEs: 'Zona de trabajo abierta en la popa donde se encuentra la tripulación', definitionFr: 'Zone de travail dégagée à l\'arrière où se tient l\'équipage', definitionDe: 'Offenes Arbeitsdeck im Heck, wo sich die Besatzung aufhält', definitionIt: 'Zona aperta in poppa dove si trova l\'equipaggio', },
+  { id: 'deck', termRu: 'Палуба', termEn: 'Deck', termPl: 'Poklad', definitionRu: 'Верхняя горизонтальная поверхность яхты', definitionEn: 'Upper horizontal surface of the boat', definitionPl: 'Gorna pozioma powierzchnia jachtu', category: 'boat', termEs: 'Cubierta', termFr: 'pont', termDe: 'Deck', termIt: 'Coperta', definitionEs: 'Cubierta de la eslora', definitionFr: 'Pont principal de la yacht', definitionDe: 'Oberfläche des Decks der Jacht', definitionIt: 'ponte di coperta della barca', },
+  { id: 'centerline', termRu: 'Диаметральная плоскость (ДП)', termEn: 'Centerline', termPl: 'Plaszczyzna symetrii', definitionRu: 'Воображаемая линия от носа до кормы, делящая яхту пополам', definitionEn: 'Imaginary line from bow to stern dividing the boat in half', definitionPl: 'Wyobrazona linia od dziobu do rufy dzielaca jacht na polowy', category: 'boat', termEs: 'Plano diametral (PD)', termFr: 'Plan de symétrie longitudinale (PSL)', termDe: 'Diametrale Ebene (DE)', termIt: 'Piano di simmetria longitudinale (PSL)', definitionEs: 'Línea imaginaria desde la proa hasta la popa que divide el yate por la mitad', definitionFr: 'Ligne imaginaire de l\'étrave à la poupe, divisant le yacht en deux', definitionDe: 'Mittellinie vom Bug bis zum Heck, die die Yacht in zwei Hälften teilt', definitionIt: 'Linea immaginaria dalla prua alla poppa che divide la barca a metà', },
 
   // Паруса / Sails / Zagle
-  { id: 'mainsail', termRu: 'Грот (грот-парус)', termEn: 'Mainsail', termPl: 'Grot', definition: 'Главный парус, крепится к мачте и гику', definitionEn: 'Main sail attached to the mast and boom', definitionPl: 'Glowny zagiel, mocowany do masztu i bomu', category: 'sail', termEs: 'Vela mayor (mayor)', termFr: 'Grand-voile (voile de grand-mât)', termDe: 'Grossegel (Grosssegel)', termIt: 'Randa (grand-voile)', },
-  { id: 'jib', termRu: 'Стаксель (передний парус)', termEn: 'Jib / Headsail', termPl: 'Fok (przedni zagiel)', definition: 'Передний парус перед мачтой', definitionEn: 'Front sail ahead of the mast', definitionPl: 'Przedni zagiel przed masztem', category: 'sail', termEs: 'Foque (vela delantera)', termFr: 'Foc (voile d\'avant)', termDe: 'Fock (Vorsegel)', termIt: 'Fiocco (vela di prua)', },
-  { id: 'spinnaker', termRu: 'Спинакер', termEn: 'Spinnaker', termPl: 'Spinaker', definition: 'Большой лёгкий парус-баллон для полных курсов', definitionEn: 'Large lightweight balloon sail for downwind sailing', definitionPl: 'Duzy lekki zagiel-balon do kursow z wiatrem', category: 'sail', termEs: 'Spinnaker', termFr: 'spi', termDe: 'Spinnaker', termIt: 'Spinnaker', },
-  { id: 'boom', termRu: 'Гик', termEn: 'Boom', termPl: 'Bom', definition: 'Горизонтальная балка у основания грота, крепится к мачте', definitionEn: 'Horizontal pole at the base of the mainsail, attached to mast', definitionPl: 'Pozioma belka u podstawy grota, mocowana do masztu', category: 'sail', termEs: 'Botón', termFr: 'bome', termDe: 'Baum', termIt: 'boma', },
-  { id: 'mast', termRu: 'Мачта', termEn: 'Mast', termPl: 'Maszt', definition: 'Вертикальная опора для парусов', definitionEn: 'Vertical pole supporting the sails', definitionPl: 'Pionowe podparcie dla zagli', category: 'sail', termEs: 'Mastil', termFr: 'Mat', termDe: 'Mast', termIt: 'Albero', },
-  { id: 'sheet', termRu: 'Шкот', termEn: 'Sheet', termPl: 'Szot', definition: 'Верёвка (снасть) для управления углом паруса', definitionEn: 'Rope (line) for controlling sail angle', definitionPl: 'Lina sluzaca do regulacji kata zagla', category: 'sail', termEs: 'escota', termFr: 'ecoute', termDe: 'Schot', termIt: 'scotta', },
-  { id: 'halyard', termRu: 'Фал', termEn: 'Halyard', termPl: 'Fal', definition: 'Верёвка для подъёма паруса', definitionEn: 'Rope for hoisting (raising) a sail', definitionPl: 'Lina do podnoszenia zagla', category: 'sail', termEs: 'Driza', termFr: 'drisse', termDe: 'Fall', termIt: 'drizza', },
-  { id: 'trim', termRu: 'Настройка парусов', termEn: 'Sail Trim', termPl: 'Trymowanie zagli', definition: 'Регулировка угла и формы паруса для оптимальной тяги', definitionEn: 'Adjusting sail angle and shape for optimal performance', definitionPl: 'Regulacja kata i ksztaltu zagla dla optymalnej wydajnosci', category: 'sail', termEs: 'Trimado de velas', termFr: 'Trimmer les voiles', termDe: 'Trimmen der Segel', termIt: 'Trimming delle vele', },
-  { id: 'luff-sail', termRu: 'Передняя шкаторина', termEn: 'Luff (sail edge)', termPl: 'Lik przedni', definition: 'Передний край паруса (ближе к ветру)', definitionEn: 'Leading edge of the sail (closest to wind)', definitionPl: 'Przednia krawedz zagla (najblizej wiatru)', category: 'sail', termEs: 'Baluma delantera', termFr: 'Guindant avant', termDe: 'Vorliekseite', termIt: 'Inferitura anteriore', },
-  { id: 'leech', termRu: 'Задняя шкаторина', termEn: 'Leech', termPl: 'Lik tylny', definition: 'Задний край паруса', definitionEn: 'Trailing edge of the sail', definitionPl: 'Tylna krawedz zagla', category: 'sail', termEs: 'Baluma de popa', termFr: 'Grand-voile arrière', termDe: 'Achterliek', termIt: 'Bugna della randa', },
+  { id: 'mainsail', termRu: 'Грот (грот-парус)', termEn: 'Mainsail', termPl: 'Grot', definitionRu: 'Главный парус, крепится к мачте и гику', definitionEn: 'Main sail attached to the mast and boom', definitionPl: 'Glowny zagiel, mocowany do masztu i bomu', category: 'sail', termEs: 'Vela mayor (mayor)', termFr: 'Grand-voile (voile de grand-mât)', termDe: 'Grossegel (Grosssegel)', termIt: 'Randa (grand-voile)', definitionEs: 'Vela mayor, se sujeta al mastil y al boton', definitionFr: 'Grand-voile, fixée au mat et à la bome', definitionDe: 'Grossegel, befestigt am Mast und Baum', definitionIt: 'Randa, fissata all\'albero e alla boma', },
+  { id: 'jib', termRu: 'Стаксель (передний парус)', termEn: 'Jib / Headsail', termPl: 'Fok (przedni zagiel)', definitionRu: 'Передний парус перед мачтой', definitionEn: 'Front sail ahead of the mast', definitionPl: 'Przedni zagiel przed masztem', category: 'sail', termEs: 'Foque (vela delantera)', termFr: 'Foc (voile d\'avant)', termDe: 'Fock (Vorsegel)', termIt: 'Fiocco (vela di prua)', definitionEs: 'Foque antes del mastil', definitionFr: 'foc en avant du mat', definitionDe: 'Fock vor dem Mast', definitionIt: 'Fiocco davanti all\'albero', },
+  { id: 'spinnaker', termRu: 'Спинакер', termEn: 'Spinnaker', termPl: 'Spinaker', definitionRu: 'Большой лёгкий парус-баллон для полных курсов', definitionEn: 'Large lightweight balloon sail for downwind sailing', definitionPl: 'Duzy lekki zagiel-balon do kursow z wiatrem', category: 'sail', termEs: 'Spinnaker', termFr: 'spi', termDe: 'Spinnaker', termIt: 'Spinnaker', definitionEs: 'Spinnaker ligero de gran tamaño para rumbos portantes', definitionFr: 'Grand voile légère de portante pour allures portantes', definitionDe: 'Großes leichtes Ballonsegel für offene Kurse', definitionIt: 'Grande vela leggera a pallone per i corsi pieni', },
+  { id: 'boom', termRu: 'Гик', termEn: 'Boom', termPl: 'Bom', definitionRu: 'Горизонтальная балка у основания грота, крепится к мачте', definitionEn: 'Horizontal pole at the base of the mainsail, attached to mast', definitionPl: 'Pozioma belka u podstawy grota, mocowana do masztu', category: 'sail', termEs: 'Botón', termFr: 'bome', termDe: 'Baum', termIt: 'boma', definitionEs: 'Botón', definitionFr: 'Bome', definitionDe: 'Baum (Gaffel am Mast befestigt)', definitionIt: 'Boma', },
+  { id: 'mast', termRu: 'Мачта', termEn: 'Mast', termPl: 'Maszt', definitionRu: 'Вертикальная опора для парусов', definitionEn: 'Vertical pole supporting the sails', definitionPl: 'Pionowe podparcie dla zagli', category: 'sail', termEs: 'Mastil', termFr: 'Mat', termDe: 'Mast', termIt: 'Albero', definitionEs: 'Mástil', definitionFr: 'mat', definitionDe: 'Mast', definitionIt: 'Albero', },
+  { id: 'sheet', termRu: 'Шкот', termEn: 'Sheet', termPl: 'Szot', definitionRu: 'Верёвка (снасть) для управления углом паруса', definitionEn: 'Rope (line) for controlling sail angle', definitionPl: 'Lina sluzaca do regulacji kata zagla', category: 'sail', termEs: 'escota', termFr: 'ecoute', termDe: 'Schot', termIt: 'scotta', definitionEs: 'Escota', definitionFr: 'écoute', definitionDe: 'Schot', definitionIt: 'Scotta', },
+  { id: 'halyard', termRu: 'Фал', termEn: 'Halyard', termPl: 'Fal', definitionRu: 'Верёвка для подъёма паруса', definitionEn: 'Rope for hoisting (raising) a sail', definitionPl: 'Lina do podnoszenia zagla', category: 'sail', termEs: 'Driza', termFr: 'drisse', termDe: 'Fall', termIt: 'drizza', definitionEs: 'Driza', definitionFr: 'Drisse', definitionDe: 'Fall für das Hochziehen des Segels', definitionIt: 'Drizza', },
+  { id: 'trim', termRu: 'Настройка парусов', termEn: 'Sail Trim', termPl: 'Trymowanie zagli', definitionRu: 'Регулировка угла и формы паруса для оптимальной тяги', definitionEn: 'Adjusting sail angle and shape for optimal performance', definitionPl: 'Regulacja kata i ksztaltu zagla dla optymalnej wydajnosci', category: 'sail', termEs: 'Trimado de velas', termFr: 'Trimmer les voiles', termDe: 'Trimmen der Segel', termIt: 'Trimming delle vele', definitionEs: 'Regulación del ángulo y forma de la vela para la tracción óptima', definitionFr: 'Ajustement de l\'angle et de la forme de la voile pour une poussée optimale', definitionDe: 'Anpassung des Winkels und der Form des Segels fur optimale Kraft', definitionIt: 'Regolazione dell\'angolo e della forma della vela per la trazione ottimale', },
+  { id: 'luff-sail', termRu: 'Передняя шкаторина', termEn: 'Luff (sail edge)', termPl: 'Lik przedni', definitionRu: 'Передний край паруса (ближе к ветру)', definitionEn: 'Leading edge of the sail (closest to wind)', definitionPl: 'Przednia krawedz zagla (najblizej wiatru)', category: 'sail', termEs: 'Baluma delantera', termFr: 'Guindant avant', termDe: 'Vorliekseite', termIt: 'Inferitura anteriore', definitionEs: 'Gratil (borde de ataque del vela)', definitionFr: 'Bord d\'attaque de la voile (plus proche du vent)', definitionDe: 'Vorderkante des Segels (näher zum Wind)', definitionIt: 'Bordo di entrata della vela (più vicino al vento)', },
+  { id: 'leech', termRu: 'Задняя шкаторина', termEn: 'Leech', termPl: 'Lik tylny', definitionRu: 'Задний край паруса', definitionEn: 'Trailing edge of the sail', definitionPl: 'Tylna krawedz zagla', category: 'sail', termEs: 'Baluma de popa', termFr: 'Grand-voile arrière', termDe: 'Achterliek', termIt: 'Bugna della randa', definitionEs: 'Caída de la vela', definitionFr: 'bord de fuite', definitionDe: 'Hinterkante des Segels', definitionIt: 'Caduta della vela', },
 
   // Курсы / Points of Sail / Kursy wzgledem wiatru
-  { id: 'course-in-irons', termRu: 'Левентик', termEn: 'In Irons / Head to Wind', termPl: 'Pod wiatr (lewentyk)', definition: 'Нос прямо против ветра, яхта не движется', definitionEn: 'Bow pointed directly into wind, boat stalled', definitionPl: 'Dziob skierowany prosto pod wiatr, jacht nie plynie', category: 'course', termEs: 'en facha', termFr: 'vent debout', termDe: 'im Wind', termIt: 'in panna', },
-  { id: 'course-close-hauled', termRu: 'Бейдевинд', termEn: 'Close-hauled', termPl: 'Bajdewind', definition: 'Курс под острым углом к ветру (30-60°)', definitionEn: 'Sailing at a sharp angle to wind (30-60°)', definitionPl: 'Kurs pod ostrym katem do wiatru (30-60°)', category: 'course', termEs: 'cenida', termFr: 'au pres', termDe: 'Am Wind', termIt: 'bolina', },
-  { id: 'course-beam-reach', termRu: 'Галфвинд', termEn: 'Beam Reach', termPl: 'Polwiatr', definition: 'Ветер перпендикулярно борту (~90°)', definitionEn: 'Wind perpendicular to beam (~90°)', definitionPl: 'Wiatr prostopadle do burty (~90°)', category: 'course', termEs: 'a un largo', termFr: 'vent de travers', termDe: 'Halbwind', termIt: 'Halbwind', },
-  { id: 'course-broad-reach', termRu: 'Бакштаг', termEn: 'Broad Reach', termPl: 'Baksztag', definition: 'Ветер сзади-сбоку (110-160°)', definitionEn: 'Wind from behind and to the side (110-160°)', definitionPl: 'Wiatr z tylu-boku (110-160°)', category: 'course', termEs: 'largo', termFr: 'grand largue', termDe: 'Raumwind', termIt: 'lasco', },
-  { id: 'course-running', termRu: 'Фордевинд', termEn: 'Running / Dead Run', termPl: 'Fordewind', definition: 'Ветер прямо в корму (170-180°)', definitionEn: 'Wind directly from behind (170-180°)', definitionPl: 'Wiatr prosto w rufe (170-180°)', category: 'course', termEs: 'popa', termFr: 'vent arriere', termDe: 'vor dem Wind', termIt: 'fil di ruota', },
-  { id: 'no-go-zone', termRu: 'Неходовая зона (мёртвая зона)', termEn: 'No-Go Zone', termPl: 'Strefa martwa', definition: 'Сектор ±30-45° к ветру, где яхта не может идти', definitionEn: 'Sector ±30-45° from wind where boat cannot sail', definitionPl: 'Sektor ±30-45° od wiatru, w ktorym jacht nie moze plynac', category: 'course', termEs: 'Zona muerta (no-go zone)', termFr: 'Zone morte (zone morte)', termDe: 'Totzone (Totzone)', termIt: 'Zona morta (no-go zone)', },
+  { id: 'course-in-irons', termRu: 'Левентик', termEn: 'In Irons / Head to Wind', termPl: 'Pod wiatr (lewentyk)', definitionRu: 'Нос прямо против ветра, яхта не движется', definitionEn: 'Bow pointed directly into wind, boat stalled', definitionPl: 'Dziob skierowany prosto pod wiatr, jacht nie plynie', category: 'course', termEs: 'en facha', termFr: 'vent debout', termDe: 'im Wind', termIt: 'in panna', definitionEs: 'Proa directamente contra el viento, el yate no se mueve', definitionFr: 'Vent debout, le bateau n\'avance pas', definitionDe: 'Bug direkt gegen den Wind, die Yacht bewegt sich nicht', definitionIt: 'Prua dritta contro il vento, la barca non si muove', },
+  { id: 'course-close-hauled', termRu: 'Бейдевинд', termEn: 'Close-hauled', termPl: 'Bajdewind', definitionRu: 'Курс под острым углом к ветру (30-60°)', definitionEn: 'Sailing at a sharp angle to wind (30-60°)', definitionPl: 'Kurs pod ostrym katem do wiatru (30-60°)', category: 'course', termEs: 'cenida', termFr: 'au pres', termDe: 'Am Wind', termIt: 'bolina', definitionEs: 'Rumbo ceñido a un ángulo cerrado al viento (30-60°)', definitionFr: 'Cours au près (30-60°)', definitionDe: 'Kurs in Halbwind-Amwind (30-60°)', definitionIt: 'Rotta con angolo acuto al vento (30-60°)', },
+  { id: 'course-beam-reach', termRu: 'Галфвинд', termEn: 'Beam Reach', termPl: 'Polwiatr', definitionRu: 'Ветер перпендикулярно борту (~90°)', definitionEn: 'Wind perpendicular to beam (~90°)', definitionPl: 'Wiatr prostopadle do burty (~90°)', category: 'course', termEs: 'a un largo', termFr: 'vent de travers', termDe: 'Halbwind', termIt: 'Halbwind', definitionEs: 'Viento perpendicular al costado (~90°)', definitionFr: 'Vent de travers (~90°)', definitionDe: 'Windquere zum Boot (~90°)', definitionIt: 'Vento perpendicolare al bordo (~90°)', },
+  { id: 'course-broad-reach', termRu: 'Бакштаг', termEn: 'Broad Reach', termPl: 'Baksztag', definitionRu: 'Ветер сзади-сбоку (110-160°)', definitionEn: 'Wind from behind and to the side (110-160°)', definitionPl: 'Wiatr z tylu-boku (110-160°)', category: 'course', termEs: 'largo', termFr: 'grand largue', termDe: 'Raumwind', termIt: 'lasco', definitionEs: 'Viento de aleta (110-160°)', definitionFr: 'Vent arriere-travers (110-160°)', definitionDe: 'Wind von hinten-von der Seite (110-160°)', definitionIt: 'Lasco (110-160°)', },
+  { id: 'course-running', termRu: 'Фордевинд', termEn: 'Running / Dead Run', termPl: 'Fordewind', definitionRu: 'Ветер прямо в корму (170-180°)', definitionEn: 'Wind directly from behind (170-180°)', definitionPl: 'Wiatr prosto w rufe (170-180°)', category: 'course', termEs: 'popa', termFr: 'vent arriere', termDe: 'vor dem Wind', termIt: 'fil di ruota', definitionEs: 'Viento directo en popa (170-180°)', definitionFr: 'Vent arriere (170-180°)', definitionDe: 'Wind direkt von achtern (170-180°)', definitionIt: 'Vento direttamente in poppa (170-180°)', },
+  { id: 'no-go-zone', termRu: 'Неходовая зона (мёртвая зона)', termEn: 'No-Go Zone', termPl: 'Strefa martwa', definitionRu: 'Сектор ±30-45° к ветру, где яхта не может идти', definitionEn: 'Sector ±30-45° from wind where boat cannot sail', definitionPl: 'Sektor ±30-45° od wiatru, w ktorym jacht nie moze plynac', category: 'course', termEs: 'Zona muerta (no-go zone)', termFr: 'Zone morte (zone morte)', termDe: 'Totzone (Totzone)', termIt: 'Zona morta (no-go zone)', definitionEs: 'Zona muerta de ±30-45° al viento, donde el yate no puede navegar', definitionFr: 'Zone morte de ±30-45° au vent, où le voilier ne peut pas naviguer', definitionDe: 'Totzone von etwa ±30-45° zum Wind, wo die Yacht nicht segeln kann', definitionIt: 'Zona morta di ±30-45° rispetto al vento, dove la barca non può andare', },
 
   // Маневры / Maneuvers / Manewry
-  { id: 'man-tacking', termRu: 'Оверштаг', termEn: 'Tacking', termPl: 'Zwrot przez sztag', definition: 'Поворот через нос (через линию ветра)', definitionEn: 'Turn through the bow (across the wind line)', definitionPl: 'Zwrot przez dziob (przez linie wiatru)', category: 'maneuver', termEs: 'Tacking', termFr: 'Virer', termDe: 'Wenden', termIt: 'Virare', },
-  { id: 'man-jibing', termRu: 'Поворот фордевинд', termEn: 'Jibing / Gybing', termPl: 'Zwrot przez rufe', definition: 'Поворот через корму (через линию ветра)', definitionEn: 'Turn through the stern (across the wind line)', definitionPl: 'Zwrot przez rufe (przez linie wiatru)', category: 'maneuver', termEs: 'gybe', termFr: 'Empanner', termDe: 'Halsen', termIt: 'Strambare', },
-  { id: 'man-luffing', termRu: 'Приведение (к ветру)', termEn: 'Luffing Up', termPl: 'Ostrzenie', definition: 'Поворот ближе к ветру', definitionEn: 'Turning closer to the wind', definitionPl: 'Zwrot blizej wiatru', category: 'maneuver', termEs: 'Ceñida (hacia el viento)', termFr: 'Remontée (au vent)', termDe: 'Anluven (zum Wind)', termIt: 'Portanza (dall\'orza)', },
-  { id: 'man-bearing-away', termRu: 'Уваливание', termEn: 'Bearing Away', termPl: 'Odpadanie', definition: 'Поворот дальше от ветра', definitionEn: 'Turning away from the wind', definitionPl: 'Zwrot dalej od wiatru', category: 'maneuver', termEs: 'Trasluche', termFr: 'Empannage', termDe: 'Halsen', termIt: 'Strambare', },
-  { id: 'man-heaving-to', termRu: 'Дрейф (лечь в дрейф)', termEn: 'Heaving To', termPl: 'Dryfowanie (pozycja dryfu)', definition: 'Остановка яхты стаксель выбран на ветер, руль на ветер', definitionEn: 'Stopping the boat: jib backed, tiller to windward', definitionPl: 'Zatrzymanie jachtu: fok wybrany na wiatr, ster na wiatr', category: 'maneuver', termEs: 'Abatimiento (ponerse a la deriva)', termFr: 'Dérive (mettre à la dérive)', termDe: 'Abdrift (abdriften)', termIt: 'Scarroccio (andare alla deriva)', },
+  { id: 'man-tacking', termRu: 'Оверштаг', termEn: 'Tacking', termPl: 'Zwrot przez sztag', definitionRu: 'Поворот через нос (через линию ветра)', definitionEn: 'Turn through the bow (across the wind line)', definitionPl: 'Zwrot przez dziob (przez linie wiatru)', category: 'maneuver', termEs: 'Tacking', termFr: 'Virer', termDe: 'Wenden', termIt: 'Virare', definitionEs: 'Virar por avante (por la línea del viento)', definitionFr: 'Virer (de bord)', definitionDe: 'Wenden (durch die Windeye)', definitionIt: 'Virare di bordo (attraverso la linea del vento)', },
+  { id: 'man-jibing', termRu: 'Поворот фордевинд', termEn: 'Jibing / Gybing', termPl: 'Zwrot przez rufe', definitionRu: 'Поворот через корму (через линию ветра)', definitionEn: 'Turn through the stern (across the wind line)', definitionPl: 'Zwrot przez rufe (przez linie wiatru)', category: 'maneuver', termEs: 'gybe', termFr: 'Empanner', termDe: 'Halsen', termIt: 'Strambare', definitionEs: 'Trasluchar (a través de la línea de viento)', definitionFr: 'Empanner (par la ligne de vent)', definitionDe: 'Halsen (durch die Linie des Windes)', definitionIt: 'Strambare', },
+  { id: 'man-luffing', termRu: 'Приведение (к ветру)', termEn: 'Luffing Up', termPl: 'Ostrzenie', definitionRu: 'Поворот ближе к ветру', definitionEn: 'Turning closer to the wind', definitionPl: 'Zwrot blizej wiatru', category: 'maneuver', termEs: 'Ceñida (hacia el viento)', termFr: 'Remontée (au vent)', termDe: 'Anluven (zum Wind)', termIt: 'Portanza (dall\'orza)', definitionEs: 'Virar por avante', definitionFr: 'Virer par le vent avant', definitionDe: 'Wenden am Wind', definitionIt: 'Virare di bordo', },
+  { id: 'man-bearing-away', termRu: 'Уваливание', termEn: 'Bearing Away', termPl: 'Odpadanie', definitionRu: 'Поворот дальше от ветра', definitionEn: 'Turning away from the wind', definitionPl: 'Zwrot dalej od wiatru', category: 'maneuver', termEs: 'Trasluche', termFr: 'Empannage', termDe: 'Halsen', termIt: 'Strambare', definitionEs: 'Trasluchar', definitionFr: 'Empanner', definitionDe: 'Halsen', definitionIt: 'Strambare', },
+  { id: 'man-heaving-to', termRu: 'Дрейф (лечь в дрейф)', termEn: 'Heaving To', termPl: 'Dryfowanie (pozycja dryfu)', definitionRu: 'Остановка яхты стаксель выбран на ветер, руль на ветер', definitionEn: 'Stopping the boat: jib backed, tiller to windward', definitionPl: 'Zatrzymanie jachtu: fok wybrany na wiatr, ster na wiatr', category: 'maneuver', termEs: 'Abatimiento (ponerse a la deriva)', termFr: 'Dérive (mettre à la dérive)', termDe: 'Abdrift (abdriften)', termIt: 'Scarroccio (andare alla deriva)', definitionEs: 'Parada de la embarcación con foque cazado hacia el viento y caña al viento', definitionFr: 'Arrêt de la navigation - foc bordé au vent, gouvernail au vent', definitionDe: 'Stopp der Yacht: Fock bevollständigt zum Wind, Ruder zum Wind', definitionIt: 'Arresto dello yacht, fiocco cazzato al vento, timone al vento', },
 
   // Ветер / Wind / Wiatr
-  { id: 'true-wind', termRu: 'Истинный ветер', termEn: 'True Wind', termPl: 'Wiatr rzeczywisty', definition: 'Ветер, который дует независимо от движения яхты', definitionEn: 'Wind that blows regardless of boat movement', definitionPl: 'Wiatr wiejacy niezaleznie od ruchu jachtu', category: 'wind', termEs: 'Viento real', termFr: 'vent réel', termDe: 'wahrer Wind', termIt: 'vento reale', },
-  { id: 'apparent-wind', termRu: 'Вымпельный (кажущийся) ветер', termEn: 'Apparent Wind', termPl: 'Wiatr pozorny', definition: 'Ветер, который ощущает экипаж - сумма истинного ветра и ветра от движения яхты', definitionEn: 'Wind felt by crew - sum of true wind and wind from boat movement', definitionPl: 'Wiatr odczuwany przez zaloge - suma wiatru rzeczywistego i wiatru z ruchu jachtu', category: 'wind', termEs: 'Viento aparente (AWS)', termFr: 'vent apparent (cense)', termDe: 'Scheinbarer (scheinhafter) Wind', termIt: 'Vento apparente (AWS)', },
-  { id: 'windward', termRu: 'Наветренная сторона', termEn: 'Windward', termPl: 'Strona nawietrzna', definition: 'Сторона, откуда дует ветер', definitionEn: 'Side from which the wind blows', definitionPl: 'Strona, z ktorej wieje wiatr', category: 'wind', termEs: 'Barlovento', termFr: 'côté au vent', termDe: 'Luvseite', termIt: 'Sopravvento', },
-  { id: 'leeward', termRu: 'Подветренная сторона', termEn: 'Leeward (Lee)', termPl: 'Strona zawietrzna', definition: 'Сторона, противоположная ветру (защищённая от ветра)', definitionEn: 'Side sheltered from the wind', definitionPl: 'Strona osloniete od wiatru', category: 'wind', termEs: 'sotavento', termFr: 'côté sous le vent', termDe: 'Leeseite', termIt: 'sottovento', },
-  { id: 'gust', termRu: 'Порыв', termEn: 'Gust', termPl: 'Poryw wiatru', definition: 'Кратковременное усиление ветра', definitionEn: 'Short burst of increased wind speed', definitionPl: 'Krotkotrwale nasilenie wiatru', category: 'wind', termEs: 'Racha', termFr: 'Rafale', termDe: 'Windstöße', termIt: 'Raffica', },
-  { id: 'lull', termRu: 'Затишье', termEn: 'Lull', termPl: 'Cisza wiatru', definition: 'Кратковременное ослабление ветра', definitionEn: 'Short period of decreased wind speed', definitionPl: 'Krotkotrwale oslabienie wiatru', category: 'wind', termEs: 'Calma', termFr: 'Bonace', termDe: 'Flaute', termIt: 'Bonaccia', },
-  { id: 'wind-shift', termRu: 'Заход/отход ветра', termEn: 'Wind Shift', termPl: 'Skret wiatru', definition: 'Изменение направления ветра', definitionEn: 'Change in wind direction', definitionPl: 'Zmiana kierunku wiatru', category: 'wind', termEs: 'Cambio/giro del viento', termFr: 'Variation/augmentation du vent', termDe: 'Winddrehung', termIt: 'Portata/scarico del vento', },
+  { id: 'true-wind', termRu: 'Истинный ветер', termEn: 'True Wind', termPl: 'Wiatr rzeczywisty', definitionRu: 'Ветер, который дует независимо от движения яхты', definitionEn: 'Wind that blows regardless of boat movement', definitionPl: 'Wiatr wiejacy niezaleznie od ruchu jachtu', category: 'wind', termEs: 'Viento real', termFr: 'vent réel', termDe: 'wahrer Wind', termIt: 'vento reale', definitionEs: 'Viento real', definitionFr: 'Le vent qui souffle indépendamment du mouvement du bateau', definitionDe: 'Der Wind, der unabhängig von der Bewegung der Yacht bläst', definitionIt: 'Il vento che soffia indipendentemente dal movimento della barca', },
+  { id: 'apparent-wind', termRu: 'Вымпельный (кажущийся) ветер', termEn: 'Apparent Wind', termPl: 'Wiatr pozorny', definitionRu: 'Ветер, который ощущает экипаж - сумма истинного ветра и ветра от движения яхты', definitionEn: 'Wind felt by crew - sum of true wind and wind from boat movement', definitionPl: 'Wiatr odczuwany przez zaloge - suma wiatru rzeczywistego i wiatru z ruchu jachtu', category: 'wind', termEs: 'Viento aparente (AWS)', termFr: 'vent apparent (cense)', termDe: 'Scheinbarer (scheinhafter) Wind', termIt: 'Vento apparente (AWS)', definitionEs: 'El viento que experimenta la tripulación es la suma del viento real y el viento generado por el movimiento del barco.', definitionFr: 'Le vent ressenti par l\'équipage est la somme du vent réel et du vent créé par le mouvement du bateau.', definitionDe: 'Der Wind, den die Besatzung spürt, ist die Summe des wahren Windes und des Windes aus der Bewegung der Yacht.', definitionIt: 'Il vento che sente l\'equipaggio - la somma del vento reale e del vento generato dal movimento dello yacht', },
+  { id: 'windward', termRu: 'Наветренная сторона', termEn: 'Windward', termPl: 'Strona nawietrzna', definitionRu: 'Сторона, откуда дует ветер', definitionEn: 'Side from which the wind blows', definitionPl: 'Strona, z ktorej wieje wiatr', category: 'wind', termEs: 'Barlovento', termFr: 'côté au vent', termDe: 'Luvseite', termIt: 'Sopravvento', definitionEs: 'lado de donde sopla el viento', definitionFr: 'côté au vent', definitionDe: 'die Seite, von der der Wind weht', definitionIt: 'lato da cui soffia il vento', },
+  { id: 'leeward', termRu: 'Подветренная сторона', termEn: 'Leeward (Lee)', termPl: 'Strona zawietrzna', definitionRu: 'Сторона, противоположная ветру (защищённая от ветра)', definitionEn: 'Side sheltered from the wind', definitionPl: 'Strona osloniete od wiatru', category: 'wind', termEs: 'sotavento', termFr: 'côté sous le vent', termDe: 'Leeseite', termIt: 'sottovento', definitionEs: 'sotavento', definitionFr: 'côté sous le vent', definitionDe: 'Lee', definitionIt: 'lato sottovento (protetto dal vento)', },
+  { id: 'gust', termRu: 'Порыв', termEn: 'Gust', termPl: 'Poryw wiatru', definitionRu: 'Кратковременное усиление ветра', definitionEn: 'Short burst of increased wind speed', definitionPl: 'Krotkotrwale nasilenie wiatru', category: 'wind', termEs: 'Racha', termFr: 'Rafale', termDe: 'Windstöße', termIt: 'Raffica', definitionEs: 'Ráfaga de viento', definitionFr: 'Rafale de vent', definitionDe: 'Böige', definitionIt: 'Raffica di vento', },
+  { id: 'lull', termRu: 'Затишье', termEn: 'Lull', termPl: 'Cisza wiatru', definitionRu: 'Кратковременное ослабление ветра', definitionEn: 'Short period of decreased wind speed', definitionPl: 'Krotkotrwale oslabienie wiatru', category: 'wind', termEs: 'Calma', termFr: 'Bonace', termDe: 'Flaute', termIt: 'Bonaccia', definitionEs: 'Debilitamiento temporal del viento', definitionFr: 'Accalmie', definitionDe: 'Vorübergehende Windschwäche', definitionIt: 'Un momentaneo calo di vento', },
+  { id: 'wind-shift', termRu: 'Заход/отход ветра', termEn: 'Wind Shift', termPl: 'Skret wiatru', definitionRu: 'Изменение направления ветра', definitionEn: 'Change in wind direction', definitionPl: 'Zmiana kierunku wiatru', category: 'wind', termEs: 'Cambio/giro del viento', termFr: 'Variation/augmentation du vent', termDe: 'Winddrehung', termIt: 'Portata/scarico del vento', definitionEs: 'Cambio de dirección del viento', definitionFr: 'Changement de direction du vent', definitionDe: 'Änderung der Windrichtung', definitionIt: 'Cambio di direzione del vento', },
 
   // Гонки / Racing / Regaty
-  { id: 'race-start-line', termRu: 'Стартовая линия', termEn: 'Start Line', termPl: 'Linia startowa', definition: 'Линия между двумя буями, от которой начинается гонка', definitionEn: 'Line between two marks where race begins', definitionPl: 'Linia miedzy dwoma boja, od ktorej rozpoczyna sie regata', category: 'racing', termEs: 'Linea de salida', termFr: 'Ligne de départ', termDe: 'Startlinie', termIt: 'linea di partenza', },
-  { id: 'race-mark', termRu: 'Знак дистанции (буй)', termEn: 'Course Mark / Buoy', termPl: 'Znak trasy (boja)', definition: 'Буй на воде, вокруг которого нужно пройти', definitionEn: 'Buoy on water to sail around', definitionPl: 'Boja na wodzie, ktora nalezy oplynac', category: 'racing', termEs: 'Boya de distancia (boya)', termFr: 'Bouée de distance', termDe: 'Bahnmarke (Boje)', termIt: 'Boa di distanza (gavitello)', },
-  { id: 'race-windward-mark', termRu: 'Верхний знак (наветренный)', termEn: 'Windward Mark', termPl: 'Znak nawietrzny (gorny)', definition: 'Знак, расположенный против ветра', definitionEn: 'Mark located upwind', definitionPl: 'Znak polozony pod wiatr', category: 'racing', termEs: 'Boya de barlovento', termFr: 'Bouée au vent (luvtonne)', termDe: 'Luvtonne (luv)', termIt: 'boa di bolina (sopravvento)', },
-  { id: 'race-leeward-mark', termRu: 'Нижний знак (подветренный)', termEn: 'Leeward Mark', termPl: 'Znak zawietrzny (dolny)', definition: 'Знак, расположенный по ветру', definitionEn: 'Mark located downwind', definitionPl: 'Znak polozony z wiatrem', category: 'racing', termEs: 'boya de sotavento (sotavento)', termFr: 'bouee sous le vent (leeward mark)', termDe: 'Leetonne (lee)', termIt: 'Boa di poppa (sottovento)', },
-  { id: 'race-layline', termRu: 'Лейлайн', termEn: 'Layline', termPl: 'Layline (linia dojscia)', definition: 'Курс, при котором яхта может достичь знака без дополнительных поворотов', definitionEn: 'Course allowing boat to reach mark without additional tacks', definitionPl: 'Kurs pozwalajacy jachtowi osiagnac znak bez dodatkowych zwrotow', category: 'racing', termEs: 'Layline', termFr: 'Layline', termDe: 'Layline', termIt: 'Layline', },
-  { id: 'race-protest', termRu: 'Протест', termEn: 'Protest', termPl: 'Protest', definition: 'Официальная жалоба на нарушение правил другой яхтой', definitionEn: 'Formal complaint about rule violation by another boat', definitionPl: 'Oficjalna skarga na naruszenie przepisow przez inny jacht', category: 'racing', termEs: 'Protesta', termFr: 'Protestation', termDe: 'Protest', termIt: 'Protesta', },
-  { id: 'race-right-of-way', termRu: 'Право дороги', termEn: 'Right of Way', termPl: 'Prawo drogi', definition: 'Приоритет прохода одной яхты над другой при сближении', definitionEn: 'Priority of one boat over another when converging', definitionPl: 'Priorytet jednego jachtu nad drugim przy zblizaniu', category: 'racing', termEs: 'Derecho de paso', termFr: 'Priorité', termDe: 'Wegerecht', termIt: 'Diritto di rotta', },
-  { id: 'race-overlap', termRu: 'Связка (overlap)', termEn: 'Overlap', termPl: 'Overlap (nakladanie)', definition: 'Когда корпуса двух яхт частично перекрываются по курсу', definitionEn: 'When hulls of two boats partially overlap along the course', definitionPl: 'Sytuacja, gdy kadluby dwoch jachtow czesciowo zachodza na siebie wzdluz kursu', category: 'racing', termEs: 'Superposición', termFr: 'Chevauchement (overlap)', termDe: 'Überlappung (Overlap)', termIt: 'Sovrapposizione (overlap)', },
+  { id: 'race-start-line', termRu: 'Стартовая линия', termEn: 'Start Line', termPl: 'Linia startowa', definitionRu: 'Линия между двумя буями, от которой начинается гонка', definitionEn: 'Line between two marks where race begins', definitionPl: 'Linia miedzy dwoma boja, od ktorej rozpoczyna sie regata', category: 'racing', termEs: 'Linea de salida', termFr: 'Ligne de départ', termDe: 'Startlinie', termIt: 'linea di partenza', definitionEs: 'Linea de salida entre dos boyas, desde donde comienza la carrera', definitionFr: 'Ligne entre deux bouées, à partir de laquelle commence la course', definitionDe: 'Startlinie zwischen zwei Tonnen, von der aus das Rennen beginnt', definitionIt: 'Linea tra due boe da cui inizia la gara', },
+  { id: 'race-mark', termRu: 'Знак дистанции (буй)', termEn: 'Course Mark / Buoy', termPl: 'Znak trasy (boja)', definitionRu: 'Буй на воде, вокруг которого нужно пройти', definitionEn: 'Buoy on water to sail around', definitionPl: 'Boja na wodzie, ktora nalezy oplynac', category: 'racing', termEs: 'Boya de distancia (boya)', termFr: 'Bouée de distance', termDe: 'Bahnmarke (Boje)', termIt: 'Boa di distanza (gavitello)', definitionEs: 'Boya que hay que rodear', definitionFr: 'Bouee a contourner', definitionDe: 'Bahnmarke auf dem Wasser, um die herum man fahren muss', definitionIt: 'Boa intorno alla quale bisogna passare', },
+  { id: 'race-windward-mark', termRu: 'Верхний знак (наветренный)', termEn: 'Windward Mark', termPl: 'Znak nawietrzny (gorny)', definitionRu: 'Знак, расположенный против ветра', definitionEn: 'Mark located upwind', definitionPl: 'Znak polozony pod wiatr', category: 'racing', termEs: 'Boya de barlovento', termFr: 'Bouée au vent (luvtonne)', termDe: 'Luvtonne (luv)', termIt: 'boa di bolina (sopravvento)', definitionEs: 'Boya de barlovento', definitionFr: 'Bouée au vent', definitionDe: 'Luvtonne', definitionIt: 'Boa di bolina', },
+  { id: 'race-leeward-mark', termRu: 'Нижний знак (подветренный)', termEn: 'Leeward Mark', termPl: 'Znak zawietrzny (dolny)', definitionRu: 'Знак, расположенный по ветру', definitionEn: 'Mark located downwind', definitionPl: 'Znak polozony z wiatrem', category: 'racing', termEs: 'boya de sotavento (sotavento)', termFr: 'bouee sous le vent (leeward mark)', termDe: 'Leetonne (lee)', termIt: 'Boa di poppa (sottovento)', definitionEs: 'Boya de barlovento', definitionFr: 'Bouée au vent', definitionDe: 'Luvtonne', definitionIt: 'Boa di bolina', },
+  { id: 'race-layline', termRu: 'Лейлайн', termEn: 'Layline', termPl: 'Layline (linia dojscia)', definitionRu: 'Курс, при котором яхта может достичь знака без дополнительных поворотов', definitionEn: 'Course allowing boat to reach mark without additional tacks', definitionPl: 'Kurs pozwalajacy jachtowi osiagnac znak bez dodatkowych zwrotow', category: 'racing', termEs: 'Layline', termFr: 'Layline', termDe: 'Layline', termIt: 'Layline', definitionEs: 'Layline', definitionFr: 'Layline vers la bouée que le bateau peut atteindre sans faire de virages supplémentaires', definitionDe: 'Ein Kurs, bei dem die Yacht die Bahnmarke ohne zusätzliche Wenden erreichen kann', definitionIt: 'Layline, il corso che la barca può seguire per raggiungere la boa senza virate aggiuntive', },
+  { id: 'race-protest', termRu: 'Протест', termEn: 'Protest', termPl: 'Protest', definitionRu: 'Официальная жалоба на нарушение правил другой яхтой', definitionEn: 'Formal complaint about rule violation by another boat', definitionPl: 'Oficjalna skarga na naruszenie przepisow przez inny jacht', category: 'racing', termEs: 'Protesta', termFr: 'Protestation', termDe: 'Protest', termIt: 'Protesta', definitionEs: 'Protesta oficial por infracción de reglas de otra vela', definitionFr: 'Réclamation officielle pour infraction aux règles d\'une autre voile', definitionDe: 'Offizielle Beschwerde über einen Regelverstoß durch ein anderes Segelboot', definitionIt: 'Reclamo ufficiale per violazione delle regole da parte di un\'altra imbarcazione', },
+  { id: 'race-right-of-way', termRu: 'Право дороги', termEn: 'Right of Way', termPl: 'Prawo drogi', definitionRu: 'Приоритет прохода одной яхты над другой при сближении', definitionEn: 'Priority of one boat over another when converging', definitionPl: 'Priorytet jednego jachtu nad drugim przy zblizaniu', category: 'racing', termEs: 'Derecho de paso', termFr: 'Priorité', termDe: 'Wegerecht', termIt: 'Diritto di rotta', definitionEs: 'Prioridad de paso de un yate sobre otro al aproximarse', definitionFr: 'Priorité de passage d\'un yacht sur un autre en cas de rapprochement', definitionDe: 'Wegerecht einer Yacht uber eine andere beim Aufeinandertreffen', definitionIt: 'Priorità di passaggio di uno yacht rispetto a un altro in caso di avvicinamento', },
+  { id: 'race-overlap', termRu: 'Связка (overlap)', termEn: 'Overlap', termPl: 'Overlap (nakladanie)', definitionRu: 'Когда корпуса двух яхт частично перекрываются по курсу', definitionEn: 'When hulls of two boats partially overlap along the course', definitionPl: 'Sytuacja, gdy kadluby dwoch jachtow czesciowo zachodza na siebie wzdluz kursu', category: 'racing', termEs: 'Superposición', termFr: 'Chevauchement (overlap)', termDe: 'Überlappung (Overlap)', termIt: 'Sovrapposizione (overlap)', definitionEs: 'Cuando los cascos de dos yates se solapan parcialmente en rumbo', definitionFr: 'Quand les coques de deux bateaux se chevauchent partiellement sur la route', definitionDe: 'Wenn die Rümpfe zweier Yachten sich teilweise auf Kurs überlappen', definitionIt: 'Quando gli scafi di due yacht si sovrappongono parzialmente sulla rotta', },
 
   // Экипаж / Crew / Zaloga
-  { id: 'skipper', termRu: 'Шкипер (рулевой)', termEn: 'Skipper / Helmsman', termPl: 'Szyper (sternik)', definition: 'Капитан или рулевой, управляющий яхтой', definitionEn: 'Captain or helmsman controlling the boat', definitionPl: 'Kapitan lub sternik kierujacy jachtem', category: 'crew', termEs: 'Patrón (timonel)', termFr: 'Skipper (barreur)', termDe: 'Skipper (Steuermann)', termIt: 'Timoniere (rullino)', },
-  { id: 'crew', termRu: 'Экипаж (матросы)', termEn: 'Crew', termPl: 'Zaloga', definition: 'Команда яхты, работающая с парусами и оснасткой', definitionEn: 'Team working with sails and rigging', definitionPl: 'Druzyna jachtu pracujaca z zaglami i olinowaniem', category: 'crew', termEs: 'Tripulación (marineros)', termFr: 'Équipage (matelots)', termDe: 'Mannschaft (Matrosen)', termIt: 'Equipaggio (membri dell\'equipaggio)', },
-  { id: 'hiking', termRu: 'Откренивание', termEn: 'Hiking / Hiking Out', termPl: 'Balastowanie cialem', definition: 'Вывешивание тела за борт для противодействия крену', definitionEn: 'Leaning body overboard to counteract heeling', definitionPl: 'Wychylanie ciala za burte w celu przeciwdzialania przechylowi', category: 'crew', termEs: 'Desorquillamiento', termFr: 'Décrengaison', termDe: 'Entkränkung', termIt: 'Raddrizzamento', },
-  { id: 'heeling', termRu: 'Крен', termEn: 'Heeling', termPl: 'Przechyl', definition: 'Наклон яхты под действием ветра', definitionEn: 'Tilting of the boat caused by wind pressure', definitionPl: 'Nachylenie jachtu pod wplywem wiatru', category: 'crew', termEs: 'Escora', termFr: 'Gîte', termDe: 'Krängung', termIt: 'Sbandamento', },
+  { id: 'skipper', termRu: 'Шкипер (рулевой)', termEn: 'Skipper / Helmsman', termPl: 'Szyper (sternik)', definitionRu: 'Капитан или рулевой, управляющий яхтой', definitionEn: 'Captain or helmsman controlling the boat', definitionPl: 'Kapitan lub sternik kierujacy jachtem', category: 'crew', termEs: 'Patrón (timonel)', termFr: 'Skipper (barreur)', termDe: 'Skipper (Steuermann)', termIt: 'Timoniere (rullino)', definitionEs: 'Capitán o timonel que governa el yate', definitionFr: 'Capitaine ou timonier, pilotant le yacht', definitionDe: 'Steuermann oder Skipper, der die Yacht steuert', definitionIt: 'Capitano o timoniere che governa lo yacht', },
+  { id: 'crew', termRu: 'Экипаж (матросы)', termEn: 'Crew', termPl: 'Zaloga', definitionRu: 'Команда яхты, работающая с парусами и оснасткой', definitionEn: 'Team working with sails and rigging', definitionPl: 'Druzyna jachtu pracujaca z zaglami i olinowaniem', category: 'crew', termEs: 'Tripulación (marineros)', termFr: 'Équipage (matelots)', termDe: 'Mannschaft (Matrosen)', termIt: 'Equipaggio (membri dell\'equipaggio)', definitionEs: 'Equipo de la vela, trabajando con velas y jarcia', definitionFr: 'Équipage travaillant avec les voiles et l\'gréement', definitionDe: 'Segelcrew, die mit Segeln und Takelage arbeitet', definitionIt: 'L\'equipaggio della barca che lavora con le vele e l\'attrezzatura', },
+  { id: 'hiking', termRu: 'Откренивание', termEn: 'Hiking / Hiking Out', termPl: 'Balastowanie cialem', definitionRu: 'Вывешивание тела за борт для противодействия крену', definitionEn: 'Leaning body overboard to counteract heeling', definitionPl: 'Wychylanie ciala za burte w celu przeciwdzialania przechylowi', category: 'crew', termEs: 'Desorquillamiento', termFr: 'Décrengaison', termDe: 'Entkränkung', termIt: 'Raddrizzamento', definitionEs: 'Trapecio para contrarrestar la escora', definitionFr: 'Déplacement du poids vers le vent pour diminuer la gite', definitionDe: 'Hängen des Körpers über Bord zur Bekämpfung der Krängung', definitionIt: 'Pendolarismo per contrastare lo sbandamento', },
+  { id: 'heeling', termRu: 'Крен', termEn: 'Heeling', termPl: 'Przechyl', definitionRu: 'Наклон яхты под действием ветра', definitionEn: 'Tilting of the boat caused by wind pressure', definitionPl: 'Nachylenie jachtu pod wplywem wiatru', category: 'crew', termEs: 'Escora', termFr: 'Gîte', termDe: 'Krängung', termIt: 'Sbandamento', definitionEs: 'Escora de la vela por la acción del viento', definitionFr: 'Gite de la yacht sous l\'action du vent', definitionDe: 'Krängung der Yacht durch Windeinfluss', definitionIt: 'Sbandamento della barca sotto l\'effetto del vento', },
 ];
 
 export const glossaryCategories: Record<string, LegacyLocalized<'name'>> = {
@@ -479,10 +519,10 @@ export const racingStrategies: RacingStrategy[] = [
     descriptionDe: 'Um einen Punkt gegen den Wind zu erreichen, musst du im Zickzack kreuzen - in Halsen - unter einem Winkel von etwa 45° zum Wind.',
     descriptionIt: 'Per raggiungere un punto controvento, devi navigare in zigzag - bolinare - con un angolo di circa 45° rispetto al vento.',
     tips: [
-      { ru: 'Старайся держать оптимальный угол бейдевинда (~40-45°)', en: 'Maintain optimal close-hauled angle (~40-45°)', pl: 'Staraj sie utrzymywac optymalny kat bajdewindu (~40-45°)' },
-      { ru: 'Делай повороты оверштаг при заходе ветра (wind shift) в твою пользу', en: 'Tack on favorable wind shifts', pl: 'Wykonuj zwroty przez sztag przy korzystnych skretach wiatru' },
-      { ru: 'Минимизируй количество поворотов - каждый поворот теряет скорость', en: 'Minimize tacks - each tack loses speed', pl: 'Minimalizuj liczbe zwrotow - kazdy zwrot traci predkosc' },
-      { ru: 'Держи "свободную воду" - не иди в тень другой яхты', en: 'Keep clear air - don\'t sail in another boat\'s wind shadow', pl: 'Trzymaj czyste powietrze - nie plyń w cieniu wiatru innego jachtu' },
+      { ru: 'Старайся держать оптимальный угол бейдевинда (~40-45°)', en: 'Maintain optimal close-hauled angle (~40-45°)', pl: 'Staraj sie utrzymywac optymalny kat bajdewindu (~40-45°)', es: 'Mantiene el angulo optimo de cenida (~40-45°)', fr: 'Maintiens l\'angle optimal au pres (~40-45°)', de: 'Halte den optimalen Am-Wind-Winkel (~40-45°)', it: 'Mantieni l\'angolo ottimale di bolina (~40-45°)' },
+      { ru: 'Делай повороты оверштаг при заходе ветра (wind shift) в твою пользу', en: 'Tack on favorable wind shifts', pl: 'Wykonuj zwroty przez sztag przy korzystnych skretach wiatru', es: 'Vira por avante cuando el viento salta a tu favor', fr: 'Vire lors des bascules de vent favorables', de: 'Wende bei guenstigen Winddrehern', it: 'Vira in presenza di salti di vento favorevoli' },
+      { ru: 'Минимизируй количество поворотов - каждый поворот теряет скорость', en: 'Minimize tacks - each tack loses speed', pl: 'Minimalizuj liczbe zwrotow - kazdy zwrot traci predkosc', es: 'Minimiza las viradas - cada virada pierde velocidad', fr: 'Minimise les virements - chaque virement fait perdre de la vitesse', de: 'Minimiere die Wenden - jede Wende kostet Geschwindigkeit', it: 'Riduci al minimo le virate - ogni virata fa perdere velocita' },
+      { ru: 'Держи "свободную воду" - не иди в тень другой яхты', en: 'Keep clear air - don\'t sail in another boat\'s wind shadow', pl: 'Trzymaj czyste powietrze - nie plyń w cieniu wiatru innego jachtu', es: 'Mantiene aire limpio - no navegues en la sombra de otro barco', fr: 'Garde de l\'air libre - ne navigue pas dans l\'ombre de vent d\'un autre voilier', de: 'Halte freien Wind - segle nicht im Windschatten eines anderen Bootes', it: 'Tieni aria libera - non navigare nell\'ombra di vento di un\'altra barca' },
     ],
   },
   {
@@ -502,10 +542,10 @@ export const racingStrategies: RacingStrategy[] = [
     descriptionDe: 'Bei Raumkurs und vor dem Wind baut die Yacht durch den Winddruck auf die Segel Geschwindigkeit auf.',
     descriptionIt: 'Sui corsi pieni (lasco, fil di ruota) lo yacht acquista velocita grazie alla pressione del vento sulle vele.',
     tips: [
-      { ru: 'Часто выгоднее идти бакштагом (VMG) чем чистым фордевинд', en: 'Often better to sail broad reach (VMG) than dead run', pl: 'Czesto oplaca sie plynac baksztagiem (VMG) niz czystym fordewindem' },
-      { ru: 'Используй спинакер на полных курсах', en: 'Use spinnaker on downwind legs', pl: 'Uzywaj spinakera na kursach pelnych' },
-      { ru: 'Следи за непроизвольным поворотом фордевинд', en: 'Watch for accidental jibes', pl: 'Uwazaj na nieoczekiwany zwrot przez rufe' },
-      { ru: 'Сёрфинг на волнах может значительно увеличить скорость', en: 'Wave surfing can significantly increase speed', pl: 'Surfowanie na falach moze znacznie zwiekszyc predkosc' },
+      { ru: 'Часто выгоднее идти бакштагом (VMG) чем чистым фордевинд', en: 'Often better to sail broad reach (VMG) than dead run', pl: 'Czesto oplaca sie plynac baksztagiem (VMG) niz czystym fordewindem', es: 'A menudo es mejor navegar a un largo (VMG) que popa pura', fr: 'Il est souvent plus rapide au grand largue (VMG) qu\'au vent arriere pur', de: 'Oft ist Raumwind (VMG) schneller als reiner Vor-dem-Wind-Kurs', it: 'Spesso e piu veloce al lasco (VMG) che al fil di ruota puro' },
+      { ru: 'Используй спинакер на полных курсах', en: 'Use spinnaker on downwind legs', pl: 'Uzywaj spinakera na kursach pelnych', es: 'Usa el spinnaker en las piernas portantes', fr: 'Utilise le spi aux allures portantes', de: 'Setze den Spinnaker auf Vorwindkursen', it: 'Usa lo spinnaker nelle bolne portanti' },
+      { ru: 'Следи за непроизвольным поворотом фордевинд', en: 'Watch for accidental jibes', pl: 'Uwazaj na nieoczekiwany zwrot przez rufe', es: 'Cuidado con las trasluchadas involuntarias', fr: 'Attention aux empannages involontaires', de: 'Achte auf ungewollte Patenthalsen', it: 'Attenzione alle strambate involontarie' },
+      { ru: 'Сёрфинг на волнах может значительно увеличить скорость', en: 'Wave surfing can significantly increase speed', pl: 'Surfowanie na falach moze znacznie zwiekszyc predkosc', es: 'Surfear las olas puede aumentar notablemente la velocidad', fr: 'Surfer les vagues peut augmenter considerablement la vitesse', de: 'Das Surfen auf Wellen kann die Geschwindigkeit deutlich erhoehen', it: 'Surfare le onde puo aumentare notevolmente la velocita' },
     ],
   },
   {
@@ -525,10 +565,10 @@ export const racingStrategies: RacingStrategy[] = [
     descriptionDe: 'Ein guter Start ist der Schlüssel zum Erfolg im Rennen. Du musst die Startlinie im Moment des Signals bei maximaler Geschwindigkeit überqueren.',
     descriptionIt: 'Un buon inizio è la chiave del successo in regata. Devi attraversare la linea di partenza al momento del segnale alla massima velocità.',
     tips: [
-      { ru: 'Определи "выгодный конец" стартовой линии (тот, что ближе к ветру)', en: 'Identify the favored end of the line (closest to wind)', pl: 'Okresl "korzystny koniec" linii startu (ten blizej wiatru)' },
-      { ru: 'Рассчитай время подхода к линии, чтобы набрать скорость', en: 'Time your approach to build speed before crossing', pl: 'Oblicz czas podejscia do linii, aby nabrac predkosci' },
-      { ru: 'Имей запасной план на случай столкновения или фальстарта', en: 'Have a backup plan for collisions or premature start', pl: 'Miej plan awaryjny na wypadek kolizji lub falszywego startu' },
-      { ru: 'Защищай свою "свободную воду" после старта', en: 'Protect your clear air after start', pl: 'Chron swoje czyste powietrze po starcie' },
+      { ru: 'Определи "выгодный конец" стартовой линии (тот, что ближе к ветру)', en: 'Identify the favored end of the line (closest to wind)', pl: 'Okresl "korzystny koniec" linii startu (ten blizej wiatru)', es: 'Identifica el extremo favorable de la linea (el mas cercano al viento)', fr: 'Identifie le bon cote de la ligne de depart (le plus pres du vent)', de: 'Finde das guenstige Ende der Startlinie (das luvseitige)', it: 'Individua l\'estremita favorevole della linea (la piu vicina al vento)' },
+      { ru: 'Рассчитай время подхода к линии, чтобы набрать скорость', en: 'Time your approach to build speed before crossing', pl: 'Oblicz czas podejscia do linii, aby nabrac predkosci', es: 'Calcula tu aproximacion para cruzar la linea con velocidad maxima', fr: 'Calcule ton approche pour franchir la ligne a pleine vitesse', de: 'Plane deinen Anlauf so, dass du die Linie mit voller Fahrt kreuzt', it: 'Pianifica l\'avvicinamento per attraversare la linea a piena velocita' },
+      { ru: 'Имей запасной план на случай столкновения или фальстарта', en: 'Have a backup plan for collisions or premature start', pl: 'Miej plan awaryjny na wypadek kolizji lub falszywego startu', es: 'Ten un plan B para colisiones o salida prematura', fr: 'Prevois un plan B en cas de collision ou de depart premature', de: 'Habe einen Plan B fuer Kollisionen oder Fruehstart', it: 'Prepara un piano B per collisioni o partenza anticipata' },
+      { ru: 'Защищай свою "свободную воду" после старта', en: 'Protect your clear air after start', pl: 'Chron swoje czyste powietrze po starcie', es: 'Protege tu aire limpio despues de la salida', fr: 'Protege ton air libre apres le depart', de: 'Schuetze deinen freien Wind nach dem Start', it: 'Proteggi la tua aria libera dopo la partenza' },
     ],
   },
   {
@@ -548,10 +588,10 @@ export const racingStrategies: RacingStrategy[] = [
     descriptionDe: 'Effizientes Runden der Bahnmarken kann in einem Rennen Positionen gewinnen oder verlieren.',
     descriptionIt: 'L\'aggancio efficace delle boe di percorso può guadagnare o perdere posizioni in regata.',
     tips: [
-      { ru: 'Подходи широко, выходи узко - для оптимальной траектории', en: 'Approach wide, exit tight - for optimal trajectory', pl: 'Podchodz szeroko, wychodz waski - dla optymalnej trajektorii' },
-      { ru: 'Перестрой паруса заранее, до знака', en: 'Adjust sails before reaching the mark', pl: 'Ustaw zagle wczesniej, przed dojsciem do znaku' },
-      { ru: 'При сближении с другими яхтами - устанавливай связку заранее', en: 'When approaching with other boats - establish overlap early', pl: 'Przy zblizaniu z innymi jachtami - ustanawiaj overlap wczesniej' },
-      { ru: 'Помни о правиле "места у знака" (3 корпуса)', en: 'Remember the mark room rule (3 boat-lengths)', pl: 'Pamietaj o zasadzie "miejsca przy znaku" (3 dlugosci kadluba)' },
+      { ru: 'Подходи широко, выходи узко - для оптимальной траектории', en: 'Approach wide, exit tight - for optimal trajectory', pl: 'Podchodz szeroko, wychodz waski - dla optymalnej trajektorii', es: 'Entra ancho, sal cerrado - para la trayectoria optima', fr: 'Aborde large, sors serre - pour la trajectoire optimale', de: 'Weit anlegen, eng herauskommen - fuer die optimale Bahn', it: 'Entra largo, esci stretto - per la traiettoria ottimale' },
+      { ru: 'Перестрой паруса заранее, до знака', en: 'Adjust sails before reaching the mark', pl: 'Ustaw zagle wczesniej, przed dojsciem do znaku', es: 'Trima las velas antes de alcanzar la boya', fr: 'Regle les voiles avant d\'atteindre la bouee', de: 'Segel rechtzeitig vor der Tonne trimmen', it: 'Regola le vele prima di raggiungere la boa' },
+      { ru: 'При сближении с другими яхтами - устанавливай связку заранее', en: 'When approaching with other boats - establish overlap early', pl: 'Przy zblizaniu z innymi jachtami - ustanawiaj overlap wczesniej', es: 'Al acercarte con otros barcos - establece el overlap con antelacion', fr: 'En approche avec d\'autres voiliers - etablis l\'engagement tot', de: 'Bei Annaeherung an andere Boote - Ueberlappung frueh herstellen', it: 'In avvicinamento con altre barche - stabilisci l\'overlap in anticipo' },
+      { ru: 'Помни о правиле "места у знака" (3 корпуса)', en: 'Remember the mark room rule (3 boat-lengths)', pl: 'Pamietaj o zasadzie "miejsca przy znaku" (3 dlugosci kadluba)', es: 'Recuerda la regla del "sitio en la boya" (3 esloras)', fr: 'N\'oublie pas la regle de la "place a la marque" (3 longueurs de coque)', de: 'Denk an die Raum-an-der-Bahnmarke-Regel (3 Bootslaengen)', it: 'Ricorda la regola dello "spazio alla boa" (3 lunghezze scafo)' },
     ],
   },
 ];

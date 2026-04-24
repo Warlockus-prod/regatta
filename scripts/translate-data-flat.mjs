@@ -145,6 +145,16 @@ while ((m = RU_FIELD_RE.exec(src)) !== null) {
   const enM = after.match(enRe);
   const plM = after.match(plRe);
   if (!enM || !plM) continue;
+  // Detect single-line objects: the Ru field is on a line that contains both
+  // an opening `{` before it AND a closing `}` (or `},`) after it. For these,
+  // existence checks + field insertion must target the whole line, not an
+  // arbitrary byte window.
+  const lineStart = src.lastIndexOf('\n', m.index) + 1;
+  const lineEnd = src.indexOf('\n', m.index);
+  const line = lineEnd === -1 ? src.slice(lineStart) : src.slice(lineStart, lineEnd);
+  const isSingleLine =
+    /\{/.test(line.slice(0, m.index - lineStart)) &&
+    /\}/.test(line.slice(m.index - lineStart));
   trios.push({
     baseField,
     ruValue,
@@ -152,6 +162,9 @@ while ((m = RU_FIELD_RE.exec(src)) !== null) {
     ruEnd: m.index + full.length,
     // Track where plPl closes so we know where to insert new-lang fields
     plEnd: m.index + full.length + (plM.index ?? 0) + plM[0].length,
+    isSingleLine,
+    lineStart,
+    lineEnd: lineEnd === -1 ? src.length : lineEnd,
   });
 }
 
@@ -162,11 +175,22 @@ console.log(`Translation trios detected: ${trios.length}`);
 // Filter: skip trios that already have all target-lang fields.
 const pending = [];
 for (const t of trios) {
+  // For single-line objects, scan the whole line. For multi-line, scan from
+  // ruStart to the next closing `},` (object end) - or 2000 chars, whichever
+  // is shorter, to avoid catching fields from the next sibling object.
+  const scanStart = t.isSingleLine ? t.lineStart : t.ruStart;
+  let scanEnd;
+  if (t.isSingleLine) {
+    scanEnd = t.lineEnd;
+  } else {
+    // Find the next closing `}` (end of this object) after the Pl field
+    const closingIdx = src.indexOf('}', t.plEnd);
+    scanEnd = closingIdx === -1 ? Math.min(src.length, t.plEnd + 2000) : closingIdx;
+  }
+  const scan = src.slice(scanStart, scanEnd);
   const missing = args.langs.filter((l) => {
     const fieldName = t.baseField + LANG_META[l].suffix;
-    const exists = new RegExp(`\\b${fieldName}:\\s*['"\`]`).test(
-      src.slice(t.ruStart, t.plEnd + 200),
-    );
+    const exists = new RegExp(`\\b${fieldName}:\\s*['"\`]`).test(scan);
     return !exists;
   });
   if (missing.length > 0) pending.push({ ...t, missing });
@@ -269,10 +293,27 @@ for (const p of pending) {
   }
 
   if (additions.length > 0) {
-    // Insert right after the Pl line. Need to find the end-of-line after plEnd.
-    const insertAt = working.indexOf('\n', p.plEnd);
-    const pos = insertAt === -1 ? p.plEnd : insertAt;
-    working = working.slice(0, pos) + '\n' + additions.join('\n') + working.slice(pos);
+    if (p.isSingleLine) {
+      // Single-line object - splice fields inline before the closing `}`.
+      // Recompute lineEnd in `working` (offsets shift as we splice earlier trios).
+      const lineStartW = working.lastIndexOf('\n', p.ruStart) + 1;
+      const lineEndW = working.indexOf('\n', p.ruStart);
+      const line = lineEndW === -1 ? working.slice(lineStartW) : working.slice(lineStartW, lineEndW);
+      // Find the last `}` on the line (before a trailing comma if any)
+      const closingBraceIdx = line.lastIndexOf('}');
+      if (closingBraceIdx === -1) continue;
+      // Build single-line additions: ` fieldEs: 'value', fieldFr: '...',`
+      const inline = additions
+        .map((s) => s.replace(/^\s+/, '').replace(/,$/, ',')) // trim indent, ensure comma
+        .join(' ');
+      const absIdx = lineStartW + closingBraceIdx;
+      working = working.slice(0, absIdx) + inline + ' ' + working.slice(absIdx);
+    } else {
+      // Multi-line object - insert a new line after the Pl line.
+      const insertAt = working.indexOf('\n', p.plEnd);
+      const pos = insertAt === -1 ? p.plEnd : insertAt;
+      working = working.slice(0, pos) + '\n' + additions.join('\n') + working.slice(pos);
+    }
   }
 }
 

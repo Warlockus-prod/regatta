@@ -355,22 +355,30 @@ function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[nu
               {lang === 'ru' ? 'Советы / Tips' : lang === 'pl' ? 'Wskazowki / Tips' : 'Tips'}
             </h4>
             <ul className="space-y-2">
-              {strategy.tips.map((tip, i) => (
-                <li key={i} className="flex items-start gap-2 text-sm">
-                  <span className="text-[var(--accent-cyan)] mt-0.5 shrink-0">&#9656;</span>
-                  <span>
-                    <span className="text-[var(--text-primary)]">
-                      {lang === 'pl' ? tip.pl : lang === 'en' ? tip.en : tip.ru}
+              {strategy.tips.map((tip, i) => {
+                const tipText =
+                  lang === 'ru' ? tip.ru
+                  : lang === 'pl' ? tip.pl
+                  : lang === 'es' ? (tip.es ?? tip.en)
+                  : lang === 'fr' ? (tip.fr ?? tip.en)
+                  : lang === 'de' ? (tip.de ?? tip.en)
+                  : lang === 'it' ? (tip.it ?? tip.en)
+                  : tip.en;
+                return (
+                  <li key={i} className="flex items-start gap-2 text-sm">
+                    <span className="text-[var(--accent-cyan)] mt-0.5 shrink-0">&#9656;</span>
+                    <span>
+                      <span className="text-[var(--text-primary)]">{tipText}</span>
+                      {lang !== 'en' && (
+                        <>
+                          <br />
+                          <span className="text-[var(--text-muted)] text-xs">{tip.en}</span>
+                        </>
+                      )}
                     </span>
-                    {lang !== 'en' && (
-                      <>
-                        <br />
-                        <span className="text-[var(--text-muted)] text-xs">{tip.en}</span>
-                      </>
-                    )}
-                  </span>
-                </li>
-              ))}
+                  </li>
+                );
+              })}
             </ul>
           </div>
 
@@ -484,9 +492,17 @@ interface KeyConcept {
   titleRu: string;
   titleEn: string;
   titlePl: string;
-  description: string;
+  titleEs?: string;
+  titleFr?: string;
+  titleDe?: string;
+  titleIt?: string;
+  descriptionRu: string;
   descriptionEn: string;
   descriptionPl: string;
+  descriptionEs?: string;
+  descriptionFr?: string;
+  descriptionDe?: string;
+  descriptionIt?: string;
   diagram: React.ReactNode;
 }
 
@@ -582,36 +598,68 @@ const keyConcepts: KeyConcept[] = [
     titleRu: 'Лейлайн',
     titleEn: 'Layline',
     titlePl: 'Layline (linia dojscia)',
-    description: 'Оптимальный курс, при котором яхта может достичь знака одним галсом без дополнительных поворотов. Пересечение лейлайна означает лишние повороты.',
+    titleEs: 'Layline',
+    titleFr: 'Layline',
+    titleDe: 'Layline',
+    titleIt: 'Layline',
+    descriptionRu: 'Оптимальный курс, при котором яхта может достичь знака одним галсом без дополнительных поворотов. Пересечение лейлайна означает лишние повороты.',
     descriptionEn: 'Optimal course allowing the boat to reach the mark on one tack without extra turns. Crossing the layline means extra tacks.',
     descriptionPl: 'Optymalny kurs, przy ktorym jacht moze osiagnac znak jednym halsem bez dodatkowych zwrotow. Przekroczenie layline oznacza zbedne zwroty.',
+    descriptionEs: 'Rumbo optimo que permite al barco alcanzar la boya en una sola amura sin virajes extra. Pasar la layline significa virajes innecesarios.',
+    descriptionFr: 'Cap optimal permettant au voilier d\'atteindre la bouee sur une seule amure sans virements supplementaires. Depasser la layline implique des virements en trop.',
+    descriptionDe: 'Optimaler Kurs, auf dem das Boot die Tonne in einem Schlag ohne zusaetzliche Wenden erreicht. Das Ueberschreiten der Layline bedeutet unnoetige Wenden.',
+    descriptionIt: 'Rotta ottimale che permette alla barca di raggiungere la boa in una sola mure senza virate aggiuntive. Superare la layline significa virate in piu.',
     diagram: <LaylineDiagram />,
   },
   {
     titleRu: 'VMG (Velocity Made Good)',
     titleEn: 'VMG (Velocity Made Good)',
     titlePl: 'VMG (Velocity Made Good)',
-    description: 'Проекция скорости яхты на направление к цели. Даже если бакштаг быстрее фордевинда, VMG показывает реальное приближение к нижнему знаку.',
+    titleEs: 'VMG (Velocity Made Good)',
+    titleFr: 'VMG (Velocity Made Good)',
+    titleDe: 'VMG (Velocity Made Good)',
+    titleIt: 'VMG (Velocity Made Good)',
+    descriptionRu: 'Проекция скорости яхты на направление к цели. Даже если бакштаг быстрее фордевинда, VMG показывает реальное приближение к нижнему знаку.',
     descriptionEn: 'The projection of boat speed onto the direction toward the target. Even if a broad reach is faster than a dead run, VMG shows the real rate of approach to the leeward mark.',
     descriptionPl: 'Projekcja predkosci jachtu na kierunek do celu. Nawet jesli baksztag jest szybszy od fordewindu, VMG pokazuje rzeczywiste zblizanie do znaku zawietrznego.',
+    descriptionEs: 'Proyeccion de la velocidad del barco sobre la direccion hacia el objetivo. Aunque el largo sea mas rapido que la popa pura, el VMG muestra el acercamiento real a la boya de sotavento.',
+    descriptionFr: 'Projection de la vitesse du voilier sur la direction de la cible. Meme si le grand largue est plus rapide que le vent arriere, le VMG montre le rapprochement reel vers la bouee sous le vent.',
+    descriptionDe: 'Projektion der Bootsgeschwindigkeit auf die Richtung zum Ziel. Selbst wenn Raumwind schneller ist als vor dem Wind, zeigt VMG die echte Annaeherung an die Leetonne.',
+    descriptionIt: 'Proiezione della velocita della barca sulla direzione verso l\'obiettivo. Anche se il lasco e piu veloce del fil di ruota, il VMG mostra l\'avvicinamento reale alla boa sottovento.',
     diagram: <VMGDiagram />,
   },
   {
     titleRu: 'Свободная вода',
     titleEn: 'Clear Air',
     titlePl: 'Czyste powietrze',
-    description: 'Чистый, ненарушенный воздушный поток. Яхта в ветровой тени другой получает турбулентный и ослабленный ветер, теряя скорость.',
+    titleEs: 'Aire limpio',
+    titleFr: 'Air libre',
+    titleDe: 'Freier Wind',
+    titleIt: 'Aria libera',
+    descriptionRu: 'Чистый, ненарушенный воздушный поток. Яхта в ветровой тени другой получает турбулентный и ослабленный ветер, теряя скорость.',
     descriptionEn: 'Clean, undisturbed wind flow. A boat in another boat\'s wind shadow gets turbulent and weakened wind, losing speed.',
     descriptionPl: 'Czysty, niezaklocony przeplyw powietrza. Jacht w cieniu wiatru innego otrzymuje turbulentny i oslabiony wiatr, tracac predkosc.',
+    descriptionEs: 'Flujo de aire limpio y no perturbado. Un barco en la sombra de viento de otro recibe viento turbulento y debilitado, perdiendo velocidad.',
+    descriptionFr: 'Flux d\'air propre et non perturbe. Un voilier dans l\'ombre de vent d\'un autre recoit un vent turbulent et affaibli, perdant de la vitesse.',
+    descriptionDe: 'Sauberer, ungestoerter Windfluss. Ein Boot im Windschatten eines anderen bekommt turbulenten und abgeschwaechten Wind und verliert Geschwindigkeit.',
+    descriptionIt: 'Flusso di vento pulito e non disturbato. Una barca nell\'ombra di vento di un\'altra riceve vento turbolento e indebolito, perdendo velocita.',
     diagram: <ClearAirDiagram />,
   },
   {
     titleRu: 'Ветровая тень',
     titleEn: 'Wind Shadow',
     titlePl: 'Cien wiatru',
-    description: 'Зона за яхтой (по ветру), где воздушный поток ослаблен и турбулентен. Может распространяться на 3-7 корпусов позади.',
+    titleEs: 'Sombra de viento',
+    titleFr: 'Ombre de vent',
+    titleDe: 'Windschatten',
+    titleIt: 'Ombra di vento',
+    descriptionRu: 'Зона за яхтой (по ветру), где воздушный поток ослаблен и турбулентен. Может распространяться на 3-7 корпусов позади.',
     descriptionEn: 'Zone behind a boat (downwind) where airflow is weakened and turbulent. Can extend 3-7 boat-lengths behind.',
     descriptionPl: 'Strefa za jachtem (z wiatrem), gdzie przeplyw powietrza jest oslabiony i turbulentny. Moze sie rozciagac 3-7 dlugosci kadluba za jachtem.',
+    descriptionEs: 'Zona detras de un barco (sotavento) donde el flujo de aire esta debilitado y es turbulento. Puede extenderse 3-7 esloras hacia atras.',
+    descriptionFr: 'Zone derriere un voilier (sous le vent) ou le flux d\'air est affaibli et turbulent. Peut s\'etendre sur 3-7 longueurs de coque en arriere.',
+    descriptionDe: 'Bereich hinter einem Boot (in Lee), in dem der Luftstrom abgeschwaecht und turbulent ist. Kann sich 3-7 Bootslaengen nach hinten erstrecken.',
+    descriptionIt: 'Zona dietro la barca (sottovento) dove il flusso d\'aria e indebolito e turbolento. Puo estendersi per 3-7 lunghezze di scafo dietro.',
     diagram: <WindShadowDiagram />,
   },
 ];
@@ -739,7 +787,7 @@ export default function RacingPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {keyConcepts.map((concept) => {
             const ctitle = legacyPick(concept, 'title', lang);
-            const cdesc = lang === 'pl' ? concept.descriptionPl : lang === 'en' ? concept.descriptionEn : concept.description;
+            const cdesc = legacyPick(concept, 'description', lang);
             return (
             <div key={concept.titleRu} className="card p-5 space-y-3">
               <div>

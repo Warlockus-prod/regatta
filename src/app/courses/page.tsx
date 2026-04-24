@@ -11,10 +11,10 @@ function posName(p: PointOfSail, lang: Lang): string {
   return legacyPick(p, 'name', lang);
 }
 function posDescription(p: PointOfSail, lang: Lang): string {
-  return lang === 'pl' ? p.descriptionPl : lang === 'en' ? p.descriptionEn : p.description;
+  return legacyPick(p, 'description', lang);
 }
 function posSailWork(p: PointOfSail, lang: Lang): string {
-  return lang === 'pl' ? p.sailWorkPl : lang === 'en' ? p.sailWorkEn : p.sailWork;
+  return legacyPick(p, 'sailWork', lang);
 }
 
 // --- Geometry helpers ---

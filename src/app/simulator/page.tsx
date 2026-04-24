@@ -957,7 +957,7 @@ export default function SimulatorPage() {
             {tp('РАБОТА ПАРУСОВ / SAIL TRIM', 'SAIL TRIM', 'USTAWIENIE ZAGLI / SAIL TRIM')}
           </div>
           <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
-            {lang === 'pl' ? pos.sailWorkPl : lang === 'en' ? pos.sailWorkEn : pos.sailWork}
+            {legacyPick(pos, 'sailWork', lang)}
           </div>
           {lang !== 'en' && (
             <div className="text-xs" style={{ color: COLORS.textSecondary }}>
@@ -983,7 +983,7 @@ export default function SimulatorPage() {
             {tp('ОПИСАНИЕ / DESCRIPTION', 'DESCRIPTION', 'OPIS / DESCRIPTION')}
           </div>
           <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
-            {lang === 'pl' ? pos.descriptionPl : lang === 'en' ? pos.descriptionEn : pos.description}
+            {legacyPick(pos, 'description', lang)}
           </p>
           {lang !== 'en' && (
             <p className="text-xs leading-relaxed" style={{ color: COLORS.textSecondary }}>

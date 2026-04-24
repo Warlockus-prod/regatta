@@ -29,7 +29,7 @@ export default function GlossaryPage() {
   const pickTerm = (t: typeof glossaryTerms[number]): string =>
     legacyPick(t, 'term', lang);
   const pickDef = (t: typeof glossaryTerms[number]): string =>
-    lang === 'pl' ? t.definitionPl : lang === 'en' ? t.definitionEn : t.definition;
+    legacyPick(t, 'definition', lang);
   const pickCat = (cat: string): string => {
     const c = glossaryCategories[cat];
     if (!c) return cat;
@@ -46,7 +46,7 @@ export default function GlossaryPage() {
         term.termRu.toLowerCase().includes(q) ||
         term.termEn.toLowerCase().includes(q) ||
         term.termPl.toLowerCase().includes(q) ||
-        term.definition.toLowerCase().includes(q) ||
+        term.definitionRu.toLowerCase().includes(q) ||
         term.definitionEn.toLowerCase().includes(q) ||
         term.definitionPl.toLowerCase().includes(q)
       );
