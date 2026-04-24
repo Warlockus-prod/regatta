@@ -133,3 +133,11 @@ git pull --rebase origin main
 - Deploy: push to `main` triggers GitHub Actions -> SSH to VPS -> `docker compose up -d --build regatta` -> serves via nginx on `regatta.icoffio.com`.
 - `/stats` password: `regattA` (admin:regattA). Stored in VPS `.env`, no fallback in code.
 - GA4 stream: `G-ZEWWJ4N31M` in `src/components/GoogleAnalytics.tsx`.
+
+## Analytics (custom SQLite + GA4)
+
+- Events table writes go through `insertEvent()` in `src/lib/db.ts`. As of 2026-04-25 events also store: `country`, `device_model`, `ms_since_start`, `utm_source/medium/campaign`, `referrer` (in addition to the original `device`, `viewport`, `language`).
+- Country detection in `/api/log` reads `cf-ipcountry` / `x-vercel-ip-country` / `x-country-code` headers. Setup of nginx geoip2 module is in `docs/OPS.md` (one-time VPS task).
+- Custom server-side events: `race.finish` (in `/api/race-result`) and `coach.requested` (in `/api/coach`) - both visible in /stats live feed.
+- Client-side events from `ClientErrorReporter`: `page.view` (every navigation, with utm + viewport bucket + ms_since_start), `page.engaged` (on unload or 30s idle, with msOnPage + maxScrollPct), `js.uncaught`, `js.rejection`.
+- Stats dashboard at `/stats` surfaces: Countries, Device models, Traffic sources (utm), Time-on-page KPIs in addition to legacy device/browser/OS/viewport/language splits. EmptyHint panels render when a metric has no data yet (e.g. before nginx geoip2 is wired).

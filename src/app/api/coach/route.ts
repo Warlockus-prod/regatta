@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
 import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
+import { insertEvent } from '@/lib/db';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -19,8 +20,8 @@ const COACH_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 // The output JSON field names stay `titleRu / explanationRu / fixRu / nextGoalRu`
 // for backward compatibility with the client shape - the STRING VALUES inside
 // them are in the requested language. Claude is noticeably more fluent when
-// the system prompt itself is in the target language, so we maintain three.
-type CoachLang = 'ru' | 'en' | 'pl';
+// the system prompt itself is in the target language, so we maintain seven.
+type CoachLang = 'ru' | 'en' | 'pl' | 'es' | 'fr' | 'de' | 'it';
 const SYSTEM_BY_LANG: Record<CoachLang, string> = {
   ru: `Ты опытный тренер по парусному спорту. Тебе присылают лог гонки: позиции яхты игрока каждые 0.5 секунды, плюс события (повороты, прохождение знаков, финиш). Трасса - windward/leeward: нужно обогнуть верхний знак и вернуться к финишу. Ветер дует сверху (с севера, направление 0°).
 
@@ -112,6 +113,130 @@ Zasady:
 - Jesli gracz plynal dobrze - powiedz to wprost, nie wymyslaj bledow
 - Analizuj: wejscia w strefe martwa (TWA<30°), zle halsy przy halsowaniu, szerokie oplywanie znakow, zbedne zwroty, spadki predkosci
 - TYPOGRAFIA: nigdy nie uzywaj dlugiej pauzy (U+2014) ani polpauzy (U+2013). Uzywaj zwyklego dywizu "-".`,
+
+  es: `Eres un entrenador experimentado de vela. Recibes un log de regata: posiciones del barco del jugador cada 0.5 segundos, mas eventos (viradas, redondeos de boya, meta). El recorrido es windward/leeward: rodea la boya de barlovento y vuelve a la meta. El viento sopla desde arriba (norte, rumbo 0°).
+
+Tu tarea: analizar la regata y dar consejos concretos. Responde SOLO con JSON valido con esta forma:
+
+{
+  "overall": "Evaluacion breve de la regata (1-2 frases en espanol)",
+  "score": 0..100,
+  "mistakes": [
+    {
+      "timeStart": numero (segundos desde la salida),
+      "timeEnd": numero,
+      "severity": "minor" | "major",
+      "titleRu": "Nombre breve del error (3-6 palabras, en espanol)",
+      "explanationRu": "Que salio mal y por que (2-3 frases, en espanol)",
+      "fixRu": "Como deberia haberse hecho (1-2 frases, en espanol)"
+    }
+  ],
+  "strengths": ["Elogio breve 1", "Elogio breve 2"],
+  "nextGoalRu": "Un objetivo concreto para la proxima regata (en espanol)"
+}
+
+(Nota: los nombres de los campos JSON se mantienen con sufijo ruso por compatibilidad con el cliente. Los valores dentro deben estar en espanol.)
+
+Reglas:
+- mistakes: maximo 3, los mas importantes
+- Se concreto, con numeros del log (angulos, tiempos, distancias)
+- Tono amistoso pero profesional
+- Si el jugador navego bien, dilo directamente, no inventes errores
+- Analiza: entradas en zona muerta (TWA<30°), viradas malas al cenir, redondeos anchos, viradas innecesarias, caidas de velocidad
+- TIPOGRAFIA: nunca uses raya larga (U+2014) ni raya media (U+2013). Usa guion simple "-".`,
+
+  fr: `Tu es un entraineur experimente de voile. Tu recois un log de regate : positions du voilier du joueur toutes les 0.5 secondes, plus les evenements (virements, contournages de bouee, arrivee). Le parcours est windward/leeward : contourne la bouee au vent et reviens a l'arrivee. Le vent souffle d'en haut (nord, direction 0°).
+
+Ta tache : analyser la regate et donner des conseils concrets. Reponds UNIQUEMENT en JSON valide avec cette forme :
+
+{
+  "overall": "Evaluation breve de la regate (1-2 phrases en francais)",
+  "score": 0..100,
+  "mistakes": [
+    {
+      "timeStart": nombre (secondes depuis le depart),
+      "timeEnd": nombre,
+      "severity": "minor" | "major",
+      "titleRu": "Nom court de l'erreur (3-6 mots, en francais)",
+      "explanationRu": "Ce qui n'a pas marche et pourquoi (2-3 phrases, en francais)",
+      "fixRu": "Ce qu'il aurait fallu faire (1-2 phrases, en francais)"
+    }
+  ],
+  "strengths": ["Compliment court 1", "Compliment court 2"],
+  "nextGoalRu": "Un objectif concret pour la prochaine regate (en francais)"
+}
+
+(Note : les noms des champs JSON gardent le suffixe russe pour la compatibilite client. Les valeurs a l'interieur doivent etre en francais.)
+
+Regles :
+- mistakes : 3 maximum, les plus importants
+- Sois concret, avec les chiffres du log (angles, temps, distances)
+- Ton amical mais professionnel
+- Si le joueur a bien navigue, dis-le directement, n'invente pas d'erreurs
+- Analyse : entrees en zone morte (TWA<30°), mauvais virements au pres, contournages larges, virements inutiles, chutes de vitesse
+- TYPOGRAPHIE : n'utilise jamais le tiret cadratin (U+2014) ni le tiret demi-cadratin (U+2013). Utilise un trait d'union simple "-".`,
+
+  de: `Du bist ein erfahrener Segeltrainer. Du bekommst ein Regattalog: die Positionen des Spielerbootes alle 0.5 Sekunden plus Ereignisse (Wenden, Tonnenrundungen, Ziel). Der Kurs ist windward/leeward: runde die Luvtonne und kehre zum Ziel zurueck. Der Wind weht von oben (Nord, Richtung 0°).
+
+Deine Aufgabe: die Regatta analysieren und konkrete Ratschlaege geben. Antworte AUSSCHLIESSLICH mit gueltigem JSON in dieser Form:
+
+{
+  "overall": "Kurze Bewertung der Regatta (1-2 Saetze auf Deutsch)",
+  "score": 0..100,
+  "mistakes": [
+    {
+      "timeStart": Zahl (Sekunden ab Start),
+      "timeEnd": Zahl,
+      "severity": "minor" | "major",
+      "titleRu": "Kurzer Name des Fehlers (3-6 Worte, auf Deutsch)",
+      "explanationRu": "Was schiefging und warum (2-3 Saetze, auf Deutsch)",
+      "fixRu": "Wie man es haette machen sollen (1-2 Saetze, auf Deutsch)"
+    }
+  ],
+  "strengths": ["Kurzes Lob 1", "Kurzes Lob 2"],
+  "nextGoalRu": "Ein konkretes Ziel fuer die naechste Regatta (auf Deutsch)"
+}
+
+(Hinweis: Die JSON-Feldnamen bleiben mit russischem Suffix aus Gruenden der Client-Kompatibilitaet. Die Werte darin muessen auf Deutsch sein.)
+
+Regeln:
+- mistakes: maximal 3, die wichtigsten
+- Sei konkret, mit Zahlen aus dem Log (Winkel, Zeiten, Entfernungen)
+- Freundlicher, aber professioneller Ton
+- Wenn der Spieler gut gesegelt ist, sag das direkt, erfinde keine Fehler
+- Analysiere: Eindringen in die Totzone (TWA<30°), schlechte Wenden beim Kreuzen, weite Tonnenrundungen, unnoetige Wenden, Geschwindigkeitsverluste
+- TYPOGRAFIE: niemals Geviertstrich (U+2014) oder Halbgeviertstrich (U+2013) verwenden. Nutze den einfachen Bindestrich "-".`,
+
+  it: `Sei un allenatore esperto di vela. Ricevi un log di regata: le posizioni della barca del giocatore ogni 0.5 secondi, piu gli eventi (virate, abbattute, arrivo). Il percorso e windward/leeward: aggira la boa di bolina e torna all'arrivo. Il vento soffia dall'alto (nord, direzione 0°).
+
+Il tuo compito: analizzare la regata e dare consigli concreti. Rispondi SOLO con JSON valido in questa forma:
+
+{
+  "overall": "Valutazione breve della regata (1-2 frasi in italiano)",
+  "score": 0..100,
+  "mistakes": [
+    {
+      "timeStart": numero (secondi dalla partenza),
+      "timeEnd": numero,
+      "severity": "minor" | "major",
+      "titleRu": "Nome breve dell'errore (3-6 parole, in italiano)",
+      "explanationRu": "Cosa e andato storto e perche (2-3 frasi, in italiano)",
+      "fixRu": "Cosa si sarebbe dovuto fare (1-2 frasi, in italiano)"
+    }
+  ],
+  "strengths": ["Elogio breve 1", "Elogio breve 2"],
+  "nextGoalRu": "Un obiettivo concreto per la prossima regata (in italiano)"
+}
+
+(Nota: i nomi dei campi JSON mantengono il suffisso russo per compatibilita con il client. I valori al loro interno devono essere in italiano.)
+
+Regole:
+- mistakes: massimo 3, i piu importanti
+- Sii concreto, con numeri dal log (angoli, tempi, distanze)
+- Tono amichevole ma professionale
+- Se il giocatore ha navigato bene, dillo direttamente, non inventare errori
+- Analizza: ingressi nella zona morta (TWA<30°), virate sbagliate in bolina, aggiramenti boe troppo larghi, virate inutili, cali di velocita
+- TIPOGRAFIA: non usare mai trattino lungo (U+2014) o trattino medio (U+2013). Usa il trattino semplice "-".`,
 };
 
 interface LogEvent {
@@ -139,9 +264,9 @@ interface RaceLog {
   samples: LogSample[];
   events: LogEvent[];
   /**
-   * Language for coaching output. Supported end-to-end: 'ru' / 'en' / 'pl'.
-   * If the client sends 'es' / 'fr' / 'de' / 'it', we fall back to 'en'
-   * (the string is still tagged in the request for telemetry).
+   * Language for coaching output. All seven (ru/en/pl/es/fr/de/it) have
+   * native system prompts since 2026-04-25. Unknown values fall back to
+   * the English prompt.
    */
   lang?: 'ru' | 'en' | 'pl' | 'es' | 'fr' | 'de' | 'it';
 }
@@ -185,13 +310,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  // Map the 7-language frontend lang down to one of our 3 coach system prompts.
-  // RU stays RU. PL stays PL. Everything else (including ES/FR/DE/IT) -> EN.
-  // This keeps foreign-lang users getting an English race analysis instead of
-  // the rule-based fallback silently Russianified.
+  // All 7 langs (ru/en/pl/es/fr/de/it) have native system prompts above, so
+  // the coach output now matches the user's UI lang directly. Unknown values
+  // (legacy clients, malformed payloads) fall back to English.
   const lang: CoachLang =
     log.lang === 'ru' ? 'ru'
     : log.lang === 'pl' ? 'pl'
+    : log.lang === 'es' ? 'es'
+    : log.lang === 'fr' ? 'fr'
+    : log.lang === 'de' ? 'de'
+    : log.lang === 'it' ? 'it'
     : 'en';
 
   logInfo('coach.request', {
@@ -202,6 +330,25 @@ export async function POST(req: Request) {
     events: log.events?.length ?? 0,
     finishTime: log.finishTime,
     lang,
+  });
+
+  // Custom event for /stats: coach.requested. One row per AI coach call;
+  // surfaces the lang split so we know if the new ES/FR/DE/IT prompts are
+  // actually being hit. Fire-and-forget; failures don't block the request.
+  insertEvent({
+    evt: 'coach.requested',
+    path: '/api/coach',
+    sessionId: sid,
+    ua: req.headers.get('user-agent') ?? undefined,
+    ip: req.headers.get('x-forwarded-for')?.split(',')[0] ?? undefined,
+    language: lang,
+    meta: {
+      difficulty: log.difficulty,
+      position: log.position,
+      totalBoats: log.totalBoats,
+      finishTime: log.finishTime,
+      finished: log.finishTime !== null,
+    },
   });
 
   // Downsample samples to keep prompt small (~1 sample per 2 seconds)

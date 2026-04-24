@@ -98,32 +98,30 @@ below):**
 
 **APIs:**
 - `/api/coach` accepts `lang` param ('ru' | 'en' | 'pl' | 'es' | 'fr'
-  | 'de' | 'it'). Internally maps ES/FR/DE/IT to EN system prompt (we
-  don't yet maintain 7 coaching prompts). AI output language always
-  matches the request.
+  | 'de' | 'it'). All seven have native system prompts (since
+  2026-04-25, commit landing alongside this doc update). AI output
+  language matches the request directly.
 - `src/lib/fallback-coach.ts` (local race analysis): CoachLang widened
   to all 7, pick() falls back to `en` for the new langs.
 
 ---
 
-## Current no-Cyrillic verification (2026-04-24)
+## Current no-Cyrillic verification (2026-04-25)
 
 Local Playwright scan via `node scripts/cyrillic-scan.mjs` against
-`npm run dev -- --port 3007`:
+`npm run dev -- --port 3007` (and prod re-confirmed via
+`SCAN_BASE=https://regatta.icoffio.com node scripts/cyrillic-scan.mjs`):
 
 ```
 Cyrillic leak scan (ES/FR/DE/IT across 16 routes):
 
-  [es] /simulator-v3: 21 words - sample: ГАЛФВИНД, Добро, пожаловать...
-  [fr] /simulator-v3: 21 words - sample: ГАЛФВИНД, Добро, пожаловать...
-  [de] /simulator-v3: 21 words - sample: ГАЛФВИНД, Добро, пожаловать...
-  [it] /simulator-v3: 21 words - sample: ГАЛФВИНД, Добро, пожаловать...
+ALL CLEAN - 0 leaks across all routes and target langs.
 ```
 
-- 15 of 16 routes: **0 leaks** for each of ES / FR / DE / IT.
-- `/simulator-v3` still shows 21 RU words in the TourOverlay welcome
-  panel. **Owned by the V3 lane** per CLAUDE.md - the Shared lane does
-  not edit `src/features/simulator-v3/*`.
+- 16 of 16 routes: **0 leaks** for each of ES / FR / DE / IT.
+- `/simulator-v3` translated as a one-off coordination from the V3
+  lane on 2026-04-25 (TourOverlay + point-of-sail label via
+  `legacyPick`); physics frozen, only i18n strings touched.
 
 Routes scanned: `/`, `/start`, `/onboard`, `/checklist`, `/courses`,
 `/racing`, `/glossary`, `/rules`, `/anatomy`, `/gallery`, `/simulator`,
@@ -142,7 +140,6 @@ lang and falls back to EN for ES/FR/DE/IT.
   leaks. Physics/UX frozen otherwise.
 - `/stats` admin dashboard: RU-only by design - internal tool, not for
   end users.
-- `/simulator-v3`: V3 lane owns translation of TourOverlay. Tracked.
 
 ---
 

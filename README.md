@@ -35,7 +35,10 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 - **Leaderboard + daily challenge** - top times per bucket, one
   mission per UTC day.
 - **Admin `/stats`** - auth-gated dashboard for users, sessions,
-  events, feedback.
+  events, feedback. Tracks country (via nginx geoip2 / Cloudflare),
+  device model (via ua-parser-js), UTM acquisition source, time-on-page,
+  scroll depth, plus the usual device/browser/OS/viewport breakdowns.
+  Custom events: `race.finish`, `coach.requested`, `page.engaged`.
 
 ## Stack
 

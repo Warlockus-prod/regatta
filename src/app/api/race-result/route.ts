@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { insertRaceResult, getPlayer } from '@/lib/db';
+import { insertRaceResult, getPlayer, insertEvent } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
 
 export const runtime = 'nodejs';
@@ -69,5 +69,28 @@ export async function POST(req: Request) {
     time: body.finishTimeSec,
     mission: body.missionId ?? 'free',
   });
+
+  // Custom event for /stats: race.finish with finish time + difficulty +
+  // mission, sticky-attached to the same session as the page.view that
+  // launched it. UA + ip captured server-side from headers so the recent
+  // feed shows them.
+  insertEvent({
+    evt: 'race.finish',
+    path: '/game',
+    sessionId: sid,
+    ua: req.headers.get('user-agent') ?? undefined,
+    ip: req.headers.get('x-forwarded-for')?.split(',')[0] ?? undefined,
+    meta: {
+      finishTimeSec: body.finishTimeSec,
+      difficulty: body.difficulty,
+      windStrength: body.windStrength,
+      missionId: body.missionId ?? null,
+      position: body.position ?? null,
+      totalBoats: body.totalBoats ?? null,
+      tacks: body.tacks ?? null,
+      score: body.score ?? null,
+    },
+  });
+
   return NextResponse.json({ ok: true, id });
 }

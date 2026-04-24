@@ -41,6 +41,14 @@ const SIBLINGS: Record<string, RelatedLink[]> = {
     { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzien na pokladzie', labelEs: 'Primera semana a bordo', labelFr: 'Premiere semaine a bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
     { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
   ],
+  '/rules': [
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Slownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+  ],
+  '/gallery': [
+    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+    { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy wzgledem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Windkurse', labelIt: 'Andature' },
+  ],
 };
 
 function pickLabel(link: RelatedLink, lang: string): string {
@@ -55,7 +63,7 @@ function pickLabel(link: RelatedLink, lang: string): string {
   }
 }
 
-export default function ContentFooterNav({ page }: { page: '/onboard' | '/anatomy' | '/checklist' }) {
+export default function ContentFooterNav({ page }: { page: '/onboard' | '/anatomy' | '/checklist' | '/rules' | '/gallery' }) {
   const { lang, tp } = useI18n();
   const siblings = SIBLINGS[page] ?? [];
 

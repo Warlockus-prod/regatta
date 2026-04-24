@@ -103,15 +103,74 @@ export default function ClientErrorReporter() {
   useEffect(() => {
     const startMs = getSessionStartMs();
     const utm = captureUtm();
+    const pageStart = Date.now();
+    let maxScrollPct = 0;
+    let scrollTimer: number | null = null;
+
     clientInfo('page.view', {
       path: pathname,
       referrer: document.referrer || null,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
+      viewportBucket: bucketViewport(window.innerWidth),
       ua: navigator.userAgent.slice(0, 200),
-      msSinceStart: Date.now() - startMs,
+      msSinceStart: pageStart - startMs,
       ...utm,
     });
+
+    // Track scroll depth - sample at most every 200ms while user scrolls,
+    // then emit ONE summary event when navigating away or after 30 s of
+    // idle. We don't need every wheel tick - just the deepest the user
+    // got.
+    const onScroll = () => {
+      const doc = document.documentElement;
+      const scrollable = Math.max(1, doc.scrollHeight - window.innerHeight);
+      const pct = Math.min(100, Math.round(((window.scrollY) / scrollable) * 100));
+      if (pct > maxScrollPct) maxScrollPct = pct;
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Engagement summary - on unload or after 30 s. Fires only if the page
+    // got more than a brief glance (>= 5 s) so we don't log on instant
+    // bounces. Includes maxScrollPct + ms_on_page so /stats can compute
+    // engagement-time and scroll-depth distributions per route.
+    const flushEngagement = () => {
+      const msOnPage = Date.now() - pageStart;
+      if (msOnPage < 5000) return;
+      clientInfo('page.engaged', {
+        path: pathname,
+        msOnPage,
+        maxScrollPct,
+      });
+    };
+
+    const onPageHide = () => flushEngagement();
+    window.addEventListener('pagehide', onPageHide);
+    // Late-snapshot in case the user just sits on the page for a minute
+    scrollTimer = window.setTimeout(flushEngagement, 30_000);
+
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('pagehide', onPageHide);
+      if (scrollTimer !== null) window.clearTimeout(scrollTimer);
+      // Try one last engagement flush for SPA route changes (the pagehide
+      // event doesn't fire on Next.js client-side navigations).
+      flushEngagement();
+    };
   }, [pathname]);
 
   return null;
+}
+
+/**
+ * Bucket viewport width into a small set of strings for /stats grouping.
+ * Avoids the long tail of unique viewport sizes when only the rough
+ * device class matters (mobile / tablet / laptop / desktop / wide).
+ */
+function bucketViewport(width: number): string {
+  if (width < 480) return 'mobile-sm';
+  if (width < 768) return 'mobile';
+  if (width < 1024) return 'tablet';
+  if (width < 1440) return 'laptop';
+  if (width < 1920) return 'desktop';
+  return 'wide';
 }

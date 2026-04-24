@@ -421,10 +421,12 @@ export default function MultiplayerClient() {
             {iAmHost && (
               <div className="flex gap-1">
                 <button onClick={removeBot} disabled={botCount === 0}
-                  className="text-[10px] px-2 py-0.5 rounded disabled:opacity-30"
+                  aria-label={tp('Убрать бота', 'Remove bot', 'Usun bota')}
+                  className="text-xs px-3 rounded disabled:opacity-30 min-h-[40px] min-w-[44px]"
                   style={{ border: '1px solid rgba(139, 167, 184, 0.3)' }}>- {tp('бот', 'bot', 'bot')}</button>
                 <button onClick={addBot} disabled={totalCount >= room.maxPlayers}
-                  className="text-[10px] px-2 py-0.5 rounded disabled:opacity-30"
+                  aria-label={tp('Добавить бота', 'Add bot', 'Dodaj bota')}
+                  className="text-xs px-3 rounded disabled:opacity-30 min-h-[40px] min-w-[44px]"
                   style={{ border: '1px solid rgba(0, 212, 255, 0.35)', color: 'var(--accent-cyan)' }}>+ {tp('бот', 'bot', 'bot')}</button>
               </div>
             )}
