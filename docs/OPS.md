@@ -26,27 +26,35 @@ the rest of the analytics still work.
 
 ### Setup (one-time on the VPS)
 
-1. Install the geoip2 module + MaxMind data on Debian/Ubuntu:
-   ```
-   sudo apt-get update
-   sudo apt-get install -y libnginx-mod-http-geoip2 mmdb-bin
-   ```
-2. Get a free MaxMind GeoLite2-Country DB
-   (https://www.maxmind.com/en/geolite2/signup), drop the
-   `GeoLite2-Country.mmdb` file under `/etc/nginx/geoip2/`.
-3. Add to `/etc/nginx/nginx.conf` (top of `http {}` block):
-   ```nginx
-   load_module modules/ngx_http_geoip2_module.so;
+**Fast path** (recommended): run the bundled script. It is idempotent
+and uses the dbip-country-lite mirror so no MaxMind license is needed:
+```
+ssh root@178.104.223.93
+curl -fsSL https://raw.githubusercontent.com/Warlockus-prod/regatta/main/scripts/setup-nginx-geoip2.sh | sudo bash
+```
 
-   http {
-     geoip2 /etc/nginx/geoip2/GeoLite2-Country.mmdb {
+The script:
+1. Installs `libnginx-mod-http-geoip2` + `mmdb-bin`
+2. Downloads `GeoLite2-Country.mmdb` (or fetches from MaxMind if you set
+   `MAXMIND_KEY` in env first)
+3. Injects geoip2 directives into `/etc/nginx/nginx.conf` (idempotent)
+4. Adds `proxy_set_header X-Country-Code $geoip2_country_code;` into
+   the regatta vhost
+5. `nginx -t && systemctl reload nginx`
+6. Smoke-checks `/api/health`
+
+**Manual path** if you'd rather verify each step:
+
+1. `sudo apt-get install -y libnginx-mod-http-geoip2 mmdb-bin`
+2. Drop `GeoLite2-Country.mmdb` (MaxMind sign-up free, or use dbip-lite
+   from `https://download.db-ip.com/free/`) into `/etc/nginx/geoip2/`.
+3. In `/etc/nginx/nginx.conf` `http { ... }`:
+   ```nginx
+   geoip2 /etc/nginx/geoip2/GeoLite2-Country.mmdb {
        $geoip2_country_code default=ZZ source=$remote_addr country iso_code;
-     }
-     # ... rest of http block
    }
    ```
-4. In the `server { ... location / { ... } }` block proxying to the
-   regatta container, inject the header:
+4. In the regatta vhost (probably under `/etc/nginx/sites-enabled/`):
    ```nginx
    proxy_set_header X-Country-Code $geoip2_country_code;
    ```
@@ -54,9 +62,9 @@ the rest of the analytics still work.
    then look at `/stats` - the Countries panel should populate within
    the next page-view.
 
-The MaxMind DB updates monthly. Add a cron:
+Monthly DB refresh cron (dbip-lite tracks the same iso2 codes):
 ```
-0 4 1 * * /usr/bin/mmdb-update GeoLite2-Country -d /etc/nginx/geoip2 && systemctl reload nginx
+0 4 1 * * root curl -fsSL https://download.db-ip.com/free/dbip-country-lite-$(date +%Y-%m).mmdb.gz | gunzip > /etc/nginx/geoip2/GeoLite2-Country.mmdb && systemctl reload nginx
 ```
 
 ---
