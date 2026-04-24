@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { legacyPick } from '@/lib/languages';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
@@ -1377,7 +1378,7 @@ export default function GamePage() {
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('КУРС', 'POS', 'KURS')}</span>
-              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{lang === 'pl' ? currentPoS.namePl : lang === 'en' ? currentPoS.nameEn : currentPoS.nameRu}</span>
+              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{legacyPick(currentPoS, 'name', lang)}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
               <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">TWA</span>

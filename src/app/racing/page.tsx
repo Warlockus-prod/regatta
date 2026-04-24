@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { Lang } from '@/lib/languages';
+import { legacyPick, type Lang } from '@/lib/languages';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
@@ -314,8 +314,8 @@ const strategyDiagrams: Record<string, React.ReactNode> = {
 
 function StrategyCard({ strategy, lang }: { strategy: typeof racingStrategies[number]; lang: Lang }) {
   const [open, setOpen] = useState(false);
-  const title = lang === 'pl' ? strategy.titlePl : lang === 'en' ? strategy.titleEn : strategy.titleRu;
-  const desc = lang === 'pl' ? strategy.descriptionPl : lang === 'en' ? strategy.descriptionEn : strategy.descriptionRu;
+  const title = legacyPick(strategy, 'title', lang);
+  const desc = legacyPick(strategy, 'description', lang);
 
   return (
     <div className="card overflow-hidden">
@@ -695,8 +695,8 @@ export default function RacingPage() {
           {racingRules
             .sort((a, b) => a.priority - b.priority)
             .map((rule) => {
-              const title = lang === 'pl' ? rule.titlePl : lang === 'en' ? rule.titleEn : rule.titleRu;
-              const desc = lang === 'pl' ? rule.descriptionPl : lang === 'en' ? rule.descriptionEn : rule.descriptionRu;
+              const title = legacyPick(rule, 'title', lang);
+              const desc = legacyPick(rule, 'description', lang);
               return (
               <div key={rule.id} className="card p-5 space-y-3">
                 <div className="flex items-start justify-between gap-2">
@@ -738,7 +738,7 @@ export default function RacingPage() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {keyConcepts.map((concept) => {
-            const ctitle = lang === 'pl' ? concept.titlePl : lang === 'en' ? concept.titleEn : concept.titleRu;
+            const ctitle = legacyPick(concept, 'title', lang);
             const cdesc = lang === 'pl' ? concept.descriptionPl : lang === 'en' ? concept.descriptionEn : concept.description;
             return (
             <div key={concept.titleRu} className="card p-5 space-y-3">

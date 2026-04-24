@@ -20,7 +20,8 @@ const COACH_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 // for backward compatibility with the client shape - the STRING VALUES inside
 // them are in the requested language. Claude is noticeably more fluent when
 // the system prompt itself is in the target language, so we maintain three.
-const SYSTEM_BY_LANG: Record<'ru' | 'en' | 'pl', string> = {
+type CoachLang = 'ru' | 'en' | 'pl';
+const SYSTEM_BY_LANG: Record<CoachLang, string> = {
   ru: `Ты опытный тренер по парусному спорту. Тебе присылают лог гонки: позиции яхты игрока каждые 0.5 секунды, плюс события (повороты, прохождение знаков, финиш). Трасса - windward/leeward: нужно обогнуть верхний знак и вернуться к финишу. Ветер дует сверху (с севера, направление 0°).
 
 Твоя задача - проанализировать как игрок прошёл гонку и дать конкретные советы. Отвечай ТОЛЬКО валидным JSON в формате:
@@ -137,8 +138,12 @@ interface RaceLog {
   totalBoats: number;
   samples: LogSample[];
   events: LogEvent[];
-  /** Language for coaching output (ru/en/pl). Defaults to ru for backward compat. */
-  lang?: 'ru' | 'en' | 'pl';
+  /**
+   * Language for coaching output. Supported end-to-end: 'ru' / 'en' / 'pl'.
+   * If the client sends 'es' / 'fr' / 'de' / 'it', we fall back to 'en'
+   * (the string is still tagged in the request for telemetry).
+   */
+  lang?: 'ru' | 'en' | 'pl' | 'es' | 'fr' | 'de' | 'it';
 }
 
 export async function POST(req: Request) {
@@ -180,7 +185,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  const lang: 'ru' | 'en' | 'pl' = log.lang === 'en' || log.lang === 'pl' ? log.lang : 'ru';
+  // Map the 7-language frontend lang down to one of our 3 coach system prompts.
+  // RU stays RU. PL stays PL. Everything else (including ES/FR/DE/IT) -> EN.
+  // This keeps foreign-lang users getting an English race analysis instead of
+  // the rule-based fallback silently Russianified.
+  const lang: CoachLang =
+    log.lang === 'ru' ? 'ru'
+    : log.lang === 'pl' ? 'pl'
+    : 'en';
 
   logInfo('coach.request', {
     difficulty: log.difficulty,

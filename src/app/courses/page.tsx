@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import type { Lang } from '@/lib/languages';
+import { legacyPick, type Lang } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
 // Pick the point-of-sail display fields for the current language. EN stays as
 // the international anchor shown beneath the primary label in non-EN modes.
 function posName(p: PointOfSail, lang: Lang): string {
-  return lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu;
+  return legacyPick(p, 'name', lang);
 }
 function posDescription(p: PointOfSail, lang: Lang): string {
   return lang === 'pl' ? p.descriptionPl : lang === 'en' ? p.descriptionEn : p.description;

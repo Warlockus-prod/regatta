@@ -47,8 +47,10 @@ export interface Coaching {
 }
 
 export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coaching {
+  // Pick strategy: RU -> ru arg, PL -> pl arg, everything else -> en arg.
+  // ES/FR/DE/IT visitors get English rule-based coaching instead of Russian.
   const pick = (ru: string, en: string, pl: string) =>
-    lang === 'pl' ? pl : lang === 'en' ? en : ru;
+    lang === 'ru' ? ru : lang === 'pl' ? pl : en;
 
   const mistakes: Coaching['mistakes'] = [];
   const strengths: string[] = [];

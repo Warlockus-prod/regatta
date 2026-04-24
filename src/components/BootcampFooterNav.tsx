@@ -14,6 +14,7 @@
 // ============================================================================
 
 import Link from 'next/link';
+import { legacyPick } from '@/lib/languages';
 import { usePathname, useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { bootcampLessons } from '@/data/bootcamp';
@@ -29,11 +30,14 @@ export default function BootcampFooterNav() {
   const { lang, tp } = useI18n();
   const pathname = usePathname();
   const router = useRouter();
+  // `progress === null` doubles as the "not mounted yet" signal. On first
+  // client render we have null (matches SSR output -> no hydration mismatch),
+  // then the mount effect reads localStorage and populates state. No separate
+  // `mounted` boolean needed - avoids the cascade-render lint.
   const [progress, setProgress] = useState<BootcampProgress | null>(null);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setProgress(getBootcampProgress());
     // Refresh from storage on focus in case user marked completion elsewhere
     const onFocus = () => setProgress(getBootcampProgress());
@@ -47,7 +51,7 @@ export default function BootcampFooterNav() {
 
   const refresh = useCallback(() => setProgress(getBootcampProgress()), []);
 
-  if (!mounted || !currentLesson || !progress) return null;
+  if (!currentLesson || !progress) return null;
 
   // Only show when the visible route matches the current lesson's route.
   // Otherwise the user wandered off-course and a nav-bar would be confusing.
@@ -60,12 +64,10 @@ export default function BootcampFooterNav() {
   const isDone = progress.completed.includes(currentLesson.id);
   const totalCompleted = progress.completed.length;
 
-  const title = lang === 'pl' ? currentLesson.titlePl
-    : lang === 'en' ? currentLesson.titleEn
-    : currentLesson.titleRu;
+  const title = legacyPick(currentLesson, 'title', lang);
 
   const nextTitle = nextLesson
-    ? (lang === 'pl' ? nextLesson.titlePl : lang === 'en' ? nextLesson.titleEn : nextLesson.titleRu)
+    ? (legacyPick(nextLesson, 'title', lang))
     : null;
 
   const handleMarkDone = () => {

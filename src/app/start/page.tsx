@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { legacyPick } from '@/lib/languages';
 import { useEffect, useRef, useState } from 'react';
 import { bootcampLessons, BOOTCAMP_TOTAL_MINUTES } from '@/data/bootcamp';
 import { getBootcampProgress, markLessonComplete, setCurrentLesson, resetBootcamp, type BootcampProgress } from '@/lib/storage';
@@ -287,9 +288,9 @@ function LessonAccordion({
 }) {
   const { lang, tp } = useI18n();
   const [open, setOpen] = useState(current);
-  const title = lang === 'pl' ? lesson.titlePl : lang === 'en' ? lesson.titleEn : lesson.titleRu;
-  const summary = lang === 'pl' ? lesson.summaryPl : lang === 'en' ? lesson.summaryEn : lesson.summaryRu;
-  const focus = lang === 'pl' ? lesson.focusPl : lang === 'en' ? lesson.focusEn : lesson.focusRu;
+  const title = legacyPick(lesson, 'title', lang);
+  const summary = legacyPick(lesson, 'summary', lang);
+  const focus = legacyPick(lesson, 'focus', lang);
 
   const scrollToLesson = (id: string) => {
     const el = document.getElementById(`lesson-${id}`);

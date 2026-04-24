@@ -92,8 +92,11 @@ export default function OnboardingTour() {
 
   if (!show) return null;
   const current = STEPS[step];
+  // Fallback chain: RU -> ru arg; PL -> pl arg; anything else (en / es / fr
+  // / de / it) -> en arg. Keeps the first-visit modal from leaking Russian
+  // to Spanish / French / German / Italian visitors.
   const pick = (ru: string, en: string, pl: string) =>
-    lang === 'pl' ? pl : lang === 'en' ? en : ru;
+    lang === 'ru' ? ru : lang === 'pl' ? pl : en;
   const title = pick(current.titleRu, current.titleEn, current.titlePl);
   const body = pick(current.bodyRu, current.bodyEn, current.bodyPl);
   const labelSkip = pick('Пропустить', 'Skip', 'Pomin');

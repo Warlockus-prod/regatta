@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { legacyPick } from '@/lib/languages';
 import { glossaryTerms, glossaryCategories } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
@@ -26,13 +27,13 @@ export default function GlossaryPage() {
   // Russian stays original; English is the international anchor; Polish uses
   // its own terms where applicable (some are loanwords like "bajdewind").
   const pickTerm = (t: typeof glossaryTerms[number]): string =>
-    lang === 'pl' ? t.termPl : lang === 'en' ? t.termEn : t.termRu;
+    legacyPick(t, 'term', lang);
   const pickDef = (t: typeof glossaryTerms[number]): string =>
     lang === 'pl' ? t.definitionPl : lang === 'en' ? t.definitionEn : t.definition;
   const pickCat = (cat: string): string => {
     const c = glossaryCategories[cat];
     if (!c) return cat;
-    return lang === 'pl' ? c.namePl : lang === 'en' ? c.nameEn : c.nameRu;
+    return legacyPick(c, 'name', lang);
   };
 
   const filteredTerms = useMemo(() => {

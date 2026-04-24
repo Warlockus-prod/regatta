@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect, useState, useCallback } from 'react';
+import { legacyPick } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 
@@ -774,7 +775,7 @@ export default function SimulatorPage() {
       ctx.textAlign = 'center';
       ctx.fillStyle = currentPOS.color;
       ctx.fillText(
-        lang === 'pl' ? currentPOS.namePl : lang === 'en' ? currentPOS.nameEn : currentPOS.nameRu,
+        legacyPick(currentPOS, 'name', lang),
         cx,
         h - 30,
       );
@@ -878,7 +879,7 @@ export default function SimulatorPage() {
             {tp('КУРС / POINT OF SAIL', 'POINT OF SAIL', 'KURS / POINT OF SAIL')}
           </div>
           <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
-            {lang === 'pl' ? pos.namePl : lang === 'en' ? pos.nameEn : pos.nameRu}
+            {legacyPick(pos, 'name', lang)}
           </div>
           {lang !== 'en' && (
             <div className="text-sm" style={{ color: COLORS.textSecondary }}>
@@ -1115,7 +1116,7 @@ export default function SimulatorPage() {
                 <div className="w-2 h-2 rounded-full shrink-0" style={{ background: p.color }} />
                 <div className="flex-1">
                   <span className="text-xs font-medium" style={{ color: pos.id === p.id ? p.color : COLORS.textPrimary }}>
-                    {lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu}
+                    {legacyPick(p, 'name', lang)}
                   </span>
                   <span className="text-xs ml-2" style={{ color: COLORS.textMuted }}>
                     {p.angleMin}°-{p.angleMax}°

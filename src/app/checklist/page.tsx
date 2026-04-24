@@ -1,6 +1,7 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n';
+import { legacyPick, legacyPickArray } from '@/lib/languages';
 
 // ============================================================================
 // CHECKLIST (/checklist) - reference page for beginners stepping on a yacht.
@@ -21,18 +22,14 @@ import { useI18n } from '@/lib/i18n';
 interface Section {
   id: string;
   icon: string;
-  titleRu: string;
-  titleEn: string;
-  titlePl: string;
-  introRu?: string;
-  introEn?: string;
-  introPl?: string;
-  itemsRu: string[];
-  itemsEn: string[];
-  itemsPl: string[];
-  warningRu?: string;
-  warningEn?: string;
-  warningPl?: string;
+  titleRu: string; titleEn: string; titlePl: string;
+  titleEs?: string; titleFr?: string; titleDe?: string; titleIt?: string;
+  introRu?: string; introEn?: string; introPl?: string;
+  introEs?: string; introFr?: string; introDe?: string; introIt?: string;
+  itemsRu: string[]; itemsEn: string[]; itemsPl: string[];
+  itemsEs?: string[]; itemsFr?: string[]; itemsDe?: string[]; itemsIt?: string[];
+  warningRu?: string; warningEn?: string; warningPl?: string;
+  warningEs?: string; warningFr?: string; warningDe?: string; warningIt?: string;
 }
 
 const SECTIONS: Section[] = [
@@ -42,9 +39,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Кого слушать и как себя вести',
     titleEn: 'Who to listen to and how to behave',
     titlePl: 'Kogo sluchac i jak sie zachowac',
+    titleEs: 'A quién escuchar y cómo comportarse',
+    titleFr: 'Qui écouter et comment se comporter',
+    titleDe: 'Wen man hören sollte und wie man sich verhalten sollte',
+    titleIt: 'Chi ascoltare e come comportarsi',
     introRu: 'На яхте всегда есть один главный: шкипер. Даже если кто-то крутой рядом стоит, решения принимает шкипер. Твоя задача - сделать то, что он сказал, быстро и тихо.',
     introEn: 'There is one captain on a yacht: the skipper. Even if a more experienced sailor is standing next to you, decisions come from the skipper. Your job is to do what he said, fast and quietly.',
     introPl: 'Na jachcie jest jeden szef: szyper. Nawet jesli stoi obok bardziej doswiadczony zeglarz, decyzje podejmuje szyper. Twoje zadanie - zrobic co powiedzial, szybko i cicho.',
+    introEs: 'En el velero siempre hay un jefe: el patrón. Aunque haya alguien muy capaz a su lado, es el patrón quien toma las decisiones. Tu tarea es hacer lo que te ordene, rápido y sin hablar.',
+    introFr: 'Sur un yacht, il y a toujours un seul chef : le skipper. Même si quelqu\'un de compétent se tient à proximité, c\'est le skipper qui prend les décisions. Ta tâche est de faire ce qu\'il a dit, vite et sans bruit.',
+    introDe: 'Auf einer Yacht gibt es immer einen Chef: den Skipper. Auch wenn jemand Erfahrenes daneben steht, Entscheidungen trifft der Skipper. Deine Aufgabe ist es, das zu tun, was er gesagt hat, schnell und leise.',
+    introIt: 'Su uno yacht c\'è sempre un solo capo: lo skipper. Anche se c\'è qualcuno di bravo accanto, è lo skipper che decide. Il tuo compito è fare quello che ha detto, veloce e in silenzio.',
     itemsRu: [
       'Шкипер - главный. Его слово финальное',
       'Боцман (первый помощник) - рулит палубой и парусами, после шкипера его слушаем',
@@ -82,9 +87,16 @@ const SECTIONS: Section[] = [
     titleRu: 'Первые 10 минут на борту',
     titleEn: 'First 10 minutes on board',
     titlePl: 'Pierwsze 10 minut na pokladzie',
+    titleEs: 'Los primeros 10 minutos a bordo',
+    titleFr: 'Les 10 premières minutes a bord',
+    titleDe: 'Die ersten 10 Minuten an Bord',
     introRu: 'Зашёл на лодку - не стой. Сразу найди несколько важных вещей сам, без напоминаний. Это сэкономит всем время.',
     introEn: 'Once you step on, do not just stand there. Find a few key things yourself without being told. It saves everyone time.',
     introPl: 'Wszedles na lodz - nie stoj. Znajdz pare waznych rzeczy sam, bez przypominania. Zaoszczedzi to wszystkim czas.',
+    introEs: 'Cuando subes a bordo, no te quedes parado. Busca enseguida varios elementos importantes por tu cuenta, sin que te lo recuerden. Así ahorrarás tiempo a todo el equipo.',
+    introFr: 'Monta a bord - ne reste pas inactif. Trouve immediatement plusieurs choses importantes par toi-meme, sans rappels. Cela fera gagner du temps a tout le monde.',
+    introDe: 'Geh an Bord - bleib nicht herum. Finde gleich selbst mehrere wichtige Dinge, ohne dass man dich daran erinnern muss. Das spart allen Zeit.',
+    introIt: 'Salito in barca - non stare fermo. Trova subito da solo alcuni elementi importanti, senza che te lo ricordino. Questo farà risparmiare tempo a tutti.',
     itemsRu: [
       'Найди свой спасжилет, примерь, подтяни лямки',
       'Запомни где запасные спасжилеты и спасательная "подкова" для "человек за бортом"',
@@ -122,9 +134,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Что есть на яхте и как работает',
     titleEn: 'What is on the yacht and how it works',
     titlePl: 'Co jest na jachcie i jak to dziala',
+    titleEs: 'Qué hay en un velero y cómo funciona',
+    titleFr: 'Qu\'est-ce qu\'il y a sur un yacht et comment ca fonctionne',
+    titleDe: 'Was ist auf einer Yacht und wie funktioniert es',
+    titleIt: 'Cosa c\'è su uno yacht e come funziona',
     introRu: 'Не обязательно знать всё. Но если шкипер говорит "выбери стаксель-шкот левого борта" - надо понимать где шкот, где стаксель, где левый борт. Вот минимум.',
     introEn: 'You do not need to know everything. But when the skipper says "trim the port jib sheet", you need to know where each of those things is. Here is the minimum.',
     introPl: 'Nie trzeba wiedziec wszystkiego. Ale gdy szyper mowi "wybieraj szot foka lewej burty" - musisz wiedziec, gdzie jest szot, gdzie fok, gdzie lewa burta. To minimum.',
+    introEs: 'No es necesario saberlo todo. Pero si el patrón dice "caza la escota del foque de babor" - tienes que entender dónde está la escota, dónde está el foque, dónde está babor. Ese es el mínimo.',
+    introFr: 'Ce n\'est pas nécessaire de tout savoir. Mais si le skipper dit "borde le foc babord" - tu dois comprendre où est l\'écoute, où est le foc, où est le babord. Voilà le minimum.',
+    introDe: 'Es ist nicht notwendig, alles zu wissen. Aber wenn der Skipper sagt "wahl die Fock-Schot auf Backbord" - musst du wissen, wo die Schot ist, wo die Fock ist, wo Backbord ist. Das ist das Minimum.',
+    introIt: 'Non è necessario sapere tutto. Ma se lo skipper dice "cazza la scotta del fiocco di sinistra" - devi capire dov\'è la scotta, dov\'è il fiocco, dov\'è il babordo. Ecco il minimo.',
     itemsRu: [
       'Мачта - вертикальная труба. Не опирайся, внутри идут фалы',
       'Гик - горизонтальная труба в основании грота. При повороте летит через палубу. Голова всегда ниже',
@@ -173,6 +193,10 @@ const SECTIONS: Section[] = [
     warningRu: 'Гик - главная опасность на яхте. Он быстрый и тяжёлый. Перед любым поворотом голова ВСЕГДА ниже гика.',
     warningEn: 'The boom is the main danger on a yacht. Fast and heavy. Before any maneuver, head ALWAYS below the boom.',
     warningPl: 'Bom to glowne zagrozenie na jachcie. Szybki i ciezki. Przed kazdym zwrotem glowa ZAWSZE pod bomem.',
+    warningEs: 'El botón es el principal peligro en el yate. Es rápido y pesado. Antes de cualquier maniobra la cabeza SIEMPRE por debajo del botón.',
+    warningFr: 'La bome - le principal danger sur un voilier. Elle est rapide et lourde. Avant tout virement, la tête TOUJOURS au-dessous de la bome.',
+    warningDe: 'Der Baum ist die Hauptgefahr auf der Yacht. Er ist schnell und schwer. Vor jeder Wende der Kopf IMMER unter dem Baum.',
+    warningIt: 'Il boma è il principale pericolo sulla barca. È veloce e pesante. Prima di qualsiasi manovra la testa SEMPRE sotto il boma.',
   },
   {
     id: 'maneuvers',
@@ -180,9 +204,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Как проходят повороты и что ты делаешь',
     titleEn: 'How tacks happen and what you do',
     titlePl: 'Jak przebiegaja zwroty i co robisz',
+    titleEs: 'Cómo funcionan los giros y qué haces tú',
+    titleFr: 'Comment se font les virages et ce que tu fais',
+    titleDe: 'Wie Wendungen ablaufen und was du tust',
+    titleIt: 'Come si effettuano le virate e cosa fai tu',
     introRu: 'Поворот = момент когда лодка меняет сторону, с которой дует ветер. Два вида: оверштаг (через ветер) и фордевинд (под ветер). Последовательность у обоих одинаковая по "хореографии" экипажа.',
     introEn: 'A maneuver is the moment the boat changes which side the wind comes from. Two kinds: tack (through the wind) and jibe (downwind). The crew choreography is the same in both.',
     introPl: 'Zwrot to moment, gdy lodz zmienia strone, z ktorej wieje wiatr. Dwa rodzaje: zwrot przez sztag (przez wiatr) i zwrot przez rufe (z wiatrem). Choreografia zalogi jest taka sama.',
+    introEs: 'Virada = momento cuando el barco cambia el lado desde el que sopla el viento. Dos tipos: virar por avante (a través del viento) y trasluchar (bajo el viento). La secuencia es igual en ambas para la "coreografía" de la tripulación.',
+    introFr: 'Un virement = le moment où le bateau change le côté duquel souffle le vent. Deux types : virer de bord (à travers le vent) et empanner (sous le vent). La séquence est identique pour les deux en termes de "chorégraphie" de l\'équipage.',
+    introDe: 'Eine Wende = der Moment, in dem das Boot die Seite wechselt, von der der Wind kommt. Es gibt zwei Arten: Wenden (durch den Wind) und Halsen (vor dem Wind). Die Abfolge ist bei beiden in Bezug auf die "Choreografie" der Crew gleich.',
+    introIt: 'La virata = il momento in cui la barca cambia il lato da cui soffia il vento. Due tipi: virare di bordo (attraverso il vento) e strambare (sottovento). La sequenza è la stessa per entrambe dal punto di vista della "coreografia" dell\'equipaggio.',
     itemsRu: [
       'Шкипер говорит "готовимся к повороту" (ready about) - встань на своё место',
       'Ответь "готов" ВСЛУХ - шкипер не читает мысли',
@@ -226,9 +258,17 @@ const SECTIONS: Section[] = [
     titleRu: 'На старте гонки',
     titleEn: 'At the race start',
     titlePl: 'Na starcie regat',
+    titleEs: 'En la salida de la regata',
+    titleFr: 'Au départ de la course',
+    titleDe: 'Am Start des Rennens',
+    titleIt: 'Alla partenza della gara',
     introRu: 'Старт гонки = минута тишины и сосредоточенности. Шкиперу нужно слышать ветер, таймер и своих ближайших соперников. Всё что делает новичок на старте полезного - это молчит и смотрит.',
     introEn: 'The race start is one minute of silence and focus. The skipper needs to hear wind, timer, and nearby competitors. The most useful thing a beginner can do at the start is shut up and watch.',
     introPl: 'Start regat to minuta ciszy i skupienia. Szyper musi slyszec wiatr, timer i rywali obok. Najlepsze, co nowicjusz moze zrobic na starcie - to milczec i patrzec.',
+    introEs: 'El inicio de la regata = un minuto de silencio y concentración. El patrón necesita escuchar el viento, el cronómetro y a sus competidores más cercanos. Todo lo útil que hace un principiante en la salida es quedarse callado y observar.',
+    introFr: 'Le départ de la course = une minute de silence et de concentration. Le skipper doit entendre le vent, le chrono et ses plus proches rivaux. Tout ce qu\'un débutant fait d\'utile au départ, c\'est de se taire et de regarder.',
+    introDe: 'Der Rennstart = eine Minute der Stille und Konzentration. Der Skipper muss den Wind, die Stoppuhr und seine unmittelbaren Gegner hören. Das Einzige, das ein Anfänger beim Start Sinnvolles tut, ist schweigen und schauen.',
+    introIt: 'La partenza della gara = un minuto di silenzio e concentrazione. Lo skipper deve sentire il vento, il timer e i suoi avversari più vicini. Tutto ciò che fa un principiante utile alla partenza è stare zitto e guardare.',
     itemsRu: [
       'Знай где стартовая линия и куда идёт первая нога гонки',
       'Стартовая последовательность: 5 минут, 4, 1, старт (обычно)',
@@ -266,9 +306,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Возвращение и швартовка',
     titleEn: 'Returning and docking',
     titlePl: 'Powrot i cumowanie',
+    titleEs: 'Regreso y amarre',
+    titleFr: 'Retour et amarrage',
+    titleDe: 'Rückkehr und Anlegemanöver',
+    titleIt: 'Ritorno e ormeggio',
     introRu: 'Подход к причалу - момент когда новичок чаще всего ломает что-то дорогое. Пара простых правил закрывают 90% проблем.',
     introEn: 'Docking is when a beginner most often breaks something expensive. A few simple rules cover 90 percent of the risk.',
     introPl: 'Podchodzenie do pomostu to moment, gdy nowicjusz najczesciej psuje cos drogiego. Kilka prostych zasad zamyka 90% problemow.',
+    introEs: 'Aproximación al muelle - el momento en el que los principiantes rompen algo caro con más frecuencia. Un par de reglas simples resuelven el 90% de los problemas.',
+    introFr: 'L\'approche de l\'appontement - le moment où le débutant casse le plus souvent quelque chose de coûteux. Quelques règles simples couvrent 90 % des problèmes.',
+    introDe: 'Annäherung an den Steg - der Moment, in dem Anfänger am häufigsten etwas Teures beschädigen. Ein paar einfache Regeln lösen 90% der Probleme.',
+    introIt: 'L\'avvicinamento alla banchina - il momento in cui il principiante più spesso rompe qualcosa di caro. Una coppia di semplici regole risolvono il 90% dei problemi.',
     itemsRu: [
       'Кранцы вывешены по борту, на правильной стороне (шкипер скажет)',
       'Швартовые концы подготовлены, собраны в аккуратную бухту не в клубок',
@@ -302,6 +350,10 @@ const SECTIONS: Section[] = [
     warningRu: 'Пальцы/ладони между бортом и причалом - самая частая серьёзная травма на яхтах. Один раз увидеть достаточно.',
     warningEn: 'Fingers or hand between the hull and the dock is the single most common serious injury on yachts. Seeing it once is enough.',
     warningPl: 'Palce lub dlon miedzy burta a pomostem - najczestszy powazny uraz na jachtach. Wystarczy raz zobaczyc.',
+    warningEs: 'Los dedos/palmas entre el casco y el muelle - la lesión grave más frecuente en los yates. Una vez es suficiente para verlo.',
+    warningFr: 'Les doigts ou la paume coincés entre la coque et le ponton - la blessure grave la plus fréquente sur les voiliers. Une fois suffit.',
+    warningDe: 'Finger und Handflächen zwischen Rumpf und Steg - die häufigste schwere Verletzung auf Yachten. Einmal gesehen reicht aus.',
+    warningIt: 'Le dita e i palmi schiacciati tra lo scafo e la banchina - l\'infortunio più grave e frequente sulle barche a vela. Una volta è sufficiente.',
   },
   {
     id: 'summer-tips',
@@ -309,9 +361,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Что взять на лето и что реально важно',
     titleEn: 'Summer kit and what really matters',
     titlePl: 'Co zabrac na lato i co naprawde jest wazne',
+    titleEs: 'Qué llevar en verano y qué es realmente importante',
+    titleFr: 'Qu\'emporter pour l\'été et ce qui compte vraiment',
+    titleDe: 'Was man für den Sommer mitnimmt und was wirklich wichtig ist',
+    titleIt: 'Cosa portare per l\'estate e cosa è davvero importante',
     introRu: 'Собирай небольшую мягкую сумку. Лодка не отель. Всё что не помещается в один duffel - оставь в машине. Вот что действительно нужно.',
     introEn: 'Pack a small soft duffel. A yacht is not a hotel. Anything that does not fit in one duffel - leave in the car. Here is what actually matters.',
     introPl: 'Pakuj male miekkie worki. Jacht to nie hotel. Wszystko, co nie miesci sie w jednym worku - zostaw w samochodzie. Oto, co naprawde jest potrzebne.',
+    introEs: 'Lleva una pequeña bolsa de lona. El barco no es un hotel. Todo lo que no quepa en un duffel, déjalo en el coche. Esto es lo que realmente necesitas.',
+    introFr: 'Apporte un petit sac souple. Le bateau n\'est pas un hôtel. Tout ce qui ne rentre pas dans un duffel - laisse-le dans la voiture. Voici ce qui est vraiment nécessaire.',
+    introDe: 'Packe eine kleine weiche Reisetasche. Das Boot ist kein Hotel. Alles, was nicht in einen Duffel passt, lässt du im Auto. Hier ist, was du wirklich brauchst.',
+    introIt: 'Prepara una piccola borsa morbida. La barca non è un albergo. Tutto ciò che non entra in un duffel - lascialo in macchina. Ecco cosa serve davvero.',
     itemsRu: [
       'Яхтенные перчатки (без пальцев или с неопреновыми накладками) - без них руки сотрёшь за день о шкоты',
       'Обувь с БЕЛОЙ или светло-серой подошвой - тёмная оставляет чёрные следы на палубе, шкипер будет расстроен',
@@ -388,9 +448,17 @@ const SECTIONS: Section[] = [
     titleRu: 'Золотые правила',
     titleEn: 'Golden rules',
     titlePl: 'Zlote zasady',
+    titleEs: 'Reglas de oro',
+    titleFr: 'Les règles d\'or',
+    titleDe: 'Goldene Regeln',
+    titleIt: 'Regole d\'oro',
     introRu: 'Если забудешь всё остальное - запомни эти пять.',
     introEn: 'If you forget everything else, remember these five.',
     introPl: 'Jesli zapomnisz wszystkiego innego - zapamietaj te piec.',
+    introEs: 'Si olvidas todo lo demás, recuerda estos cinco.',
+    introFr: 'Si tu oublies tout le reste - retiens ces cinq.',
+    introDe: 'Wenn du alles andere vergisst - merke dir diese fünf.',
+    introIt: 'Se dimentichi tutto il resto - ricorda questi cinque.',
     itemsRu: [
       'Одна рука для себя, одна для лодки. Всегда держись за что-то',
       'Не уверен - спроси. Спросить всегда безопаснее чем "додумать"',
@@ -443,10 +511,10 @@ export default function ChecklistPage() {
 
       <div className="space-y-4">
         {SECTIONS.map((section) => {
-          const title = lang === 'pl' ? section.titlePl : lang === 'en' ? section.titleEn : section.titleRu;
-          const intro = lang === 'pl' ? section.introPl : lang === 'en' ? section.introEn : section.introRu;
-          const items = lang === 'pl' ? section.itemsPl : lang === 'en' ? section.itemsEn : section.itemsRu;
-          const warning = lang === 'pl' ? section.warningPl : lang === 'en' ? section.warningEn : section.warningRu;
+          const title = legacyPick(section, 'title', lang);
+          const intro = legacyPick(section, 'intro', lang);
+          const items = legacyPickArray(section, 'items', lang);
+          const warning = legacyPick(section, 'warning', lang);
           return (
             <section key={section.id} className="card p-4 sm:p-5">
               <div className="flex items-center gap-3 mb-3">

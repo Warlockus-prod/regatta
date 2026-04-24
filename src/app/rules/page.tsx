@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
 import { useI18n } from '@/lib/i18n';
 
@@ -166,12 +167,12 @@ export default function RulesPage() {
   const [openId, setOpenId] = useState<string | null>(ruleScenarios[0].id);
 
   // Pick field per lang. EN stays as the international subtitle.
-  const pickTitle = (r: RuleScenario) => lang === 'pl' ? r.titlePl : lang === 'en' ? r.titleEn : r.titleRu;
-  const pickScene = (r: RuleScenario) => lang === 'pl' ? r.scenePl : lang === 'en' ? r.sceneEn : r.sceneRu;
-  const pickQuestion = (r: RuleScenario) => lang === 'pl' ? r.questionPl : lang === 'en' ? r.questionEn : r.questionRu;
-  const pickAnswer = (r: RuleScenario) => lang === 'pl' ? r.answerPl : lang === 'en' ? r.answerEn : r.answerRu;
-  const pickWhy = (r: RuleScenario) => lang === 'pl' ? r.whyPl : lang === 'en' ? r.whyEn : r.whyRu;
-  const pickPractice = (r: RuleScenario) => lang === 'pl' ? r.inPracticePl : lang === 'en' ? r.inPracticeEn : r.inPracticeRu;
+  const pickTitle = (r: RuleScenario) => legacyPick(r, 'title', lang);
+  const pickScene = (r: RuleScenario) => legacyPick(r, 'scene', lang);
+  const pickQuestion = (r: RuleScenario) => legacyPick(r, 'question', lang);
+  const pickAnswer = (r: RuleScenario) => legacyPick(r, 'answer', lang);
+  const pickWhy = (r: RuleScenario) => legacyPick(r, 'why', lang);
+  const pickPractice = (r: RuleScenario) => legacyPick(r, 'inPractice', lang);
 
   return (
     <div className="page-enter max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-10">

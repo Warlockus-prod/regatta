@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { legacyPick } from '@/lib/languages';
 import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcamp';
 import { useI18n } from '@/lib/i18n';
 
@@ -28,8 +29,8 @@ export default function QuickRefreshPage() {
 
       <div className="space-y-3">
         {quickRefreshLessons.map((l, i) => {
-          const title = lang === 'pl' ? l.titlePl : lang === 'en' ? l.titleEn : l.titleRu;
-          const tip = lang === 'pl' ? l.tipPl : lang === 'en' ? l.tipEn : l.tipRu;
+          const title = legacyPick(l, 'title', lang);
+          const tip = legacyPick(l, 'tip', lang);
           return (
             <Link
               key={l.id}

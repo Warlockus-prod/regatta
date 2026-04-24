@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 
@@ -179,7 +180,7 @@ export default function AnatomyPage() {
             <div className="card p-5">
               <div className="text-xs text-[var(--text-muted)] mb-1">{tp('Деталь', 'Part', 'Element')}</div>
               <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                {lang === 'pl' ? active.namePl : lang === 'en' ? active.nameEn : active.nameRu}
+                {legacyPick(active, 'name', lang)}
               </h2>
               <div className="text-sm text-[var(--text-muted)] mb-4">
                 {active.nameEn}
@@ -191,7 +192,7 @@ export default function AnatomyPage() {
                     {tp('Что это', 'What it is', 'Co to jest')}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
-                    {lang === 'pl' ? active.descPl : lang === 'en' ? active.descEn : active.descRu}
+                    {legacyPick(active, 'desc', lang)}
                   </p>
                 </div>
 
@@ -200,7 +201,7 @@ export default function AnatomyPage() {
                     {tp('На борту', 'On board', 'Na pokladzie')}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
-                    {lang === 'pl' ? active.useOnBoardPl : lang === 'en' ? active.useOnBoardEn : active.useOnBoardRu}
+                    {legacyPick(active, 'useOnBoard', lang)}
                   </p>
                 </div>
               </div>
@@ -227,7 +228,7 @@ export default function AnatomyPage() {
                     color: activeId === p.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                   }}
                 >
-                  {lang === 'pl' ? p.namePl : lang === 'en' ? p.nameEn : p.nameRu}
+                  {legacyPick(p, 'name', lang)}
                 </button>
               ))}
             </div>

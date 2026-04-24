@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { legacyPick } from '@/lib/languages';
 import { galleryItems, groupByBadge, youtubeThumb, type GalleryItem } from '@/data/gallery';
 import { useI18n } from '@/lib/i18n';
 
@@ -20,7 +21,7 @@ export default function GalleryPage() {
 
   const pickTitle = useCallback(
     (item: GalleryItem) =>
-      lang === 'pl' ? item.titlePl : lang === 'en' ? item.titleEn : item.titleRu,
+      legacyPick(item, 'title', lang),
     [lang],
   );
 

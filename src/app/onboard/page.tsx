@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { legacyPick, legacyPickArray } from '@/lib/languages';
 import { useState } from 'react';
 import { onboardSections } from '@/data/onboard';
 import { useI18n } from '@/lib/i18n';
@@ -42,9 +43,9 @@ export default function OnboardPage() {
       <div className="space-y-3">
         {onboardSections.map((section) => {
           const isOpen = openIds.has(section.id);
-          const items = lang === 'pl' ? section.itemsPl : lang === 'en' ? section.itemsEn : section.itemsRu;
-          const title = lang === 'pl' ? section.titlePl : lang === 'en' ? section.titleEn : section.titleRu;
-          const warning = lang === 'pl' ? section.warningPl : lang === 'en' ? section.warningEn : section.warningRu;
+          const items = legacyPickArray(section, 'items', lang);
+          const title = legacyPick(section, 'title', lang);
+          const warning = legacyPick(section, 'warning', lang);
           return (
             <div
               key={section.id}

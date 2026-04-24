@@ -167,17 +167,18 @@ const CAPITALIZE: Record<AnyLangCode, string> = {
 };
 
 export function legacyPick(
-  obj: Record<string, unknown> | null | undefined,
+  obj: unknown,
   field: string,
   lang: Lang,
 ): string {
-  if (!obj) return '';
+  if (!obj || typeof obj !== 'object') return '';
+  const o = obj as Record<string, unknown>;
   const suffix = CAPITALIZE[lang as AnyLangCode] ?? 'En';
-  const primary = obj[`${field}${suffix}`];
+  const primary = o[`${field}${suffix}`];
   if (typeof primary === 'string' && primary.length > 0) return primary;
-  const en = obj[`${field}En`];
+  const en = o[`${field}En`];
   if (typeof en === 'string' && en.length > 0) return en;
-  const ru = obj[`${field}Ru`];
+  const ru = o[`${field}Ru`];
   return typeof ru === 'string' ? ru : '';
 }
 
@@ -185,16 +186,17 @@ export function legacyPick(
  * Array-valued variant of `legacyPick` for fields like `itemsRu: string[]`.
  */
 export function legacyPickArray(
-  obj: Record<string, unknown> | null | undefined,
+  obj: unknown,
   field: string,
   lang: Lang,
 ): string[] {
-  if (!obj) return [];
+  if (!obj || typeof obj !== 'object') return [];
+  const o = obj as Record<string, unknown>;
   const suffix = CAPITALIZE[lang as AnyLangCode] ?? 'En';
-  const primary = obj[`${field}${suffix}`];
+  const primary = o[`${field}${suffix}`];
   if (Array.isArray(primary) && primary.length > 0) return primary as string[];
-  const en = obj[`${field}En`];
+  const en = o[`${field}En`];
   if (Array.isArray(en) && en.length > 0) return en as string[];
-  const ru = obj[`${field}Ru`];
+  const ru = o[`${field}Ru`];
   return Array.isArray(ru) ? (ru as string[]) : [];
 }
