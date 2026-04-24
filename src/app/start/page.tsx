@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { bootcampLessons, BOOTCAMP_TOTAL_MINUTES } from '@/data/bootcamp';
 import { getBootcampProgress, markLessonComplete, setCurrentLesson, resetBootcamp, type BootcampProgress } from '@/lib/storage';
 import { useI18n } from '@/lib/i18n';
@@ -9,10 +9,30 @@ import { useI18n } from '@/lib/i18n';
 export default function StartHerePage() {
   const { tp } = useI18n();
   const [progress, setProgress] = useState<BootcampProgress | null>(null);
+  const bootcampSectionRef = useRef<HTMLDivElement>(null);
+  const [highlightBootcamp, setHighlightBootcamp] = useState(false);
 
   useEffect(() => {
-    setProgress(getBootcampProgress());
+    const p = getBootcampProgress();
+    setProgress(p);
+
+    // Auto-scroll to current lesson on page load, not to top. Only if the
+    // user has already started the course. Deferred so hydration finishes.
+    if (p?.current) {
+      const t = setTimeout(() => {
+        const el = document.getElementById(`lesson-${p.current}`);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 250);
+      return () => clearTimeout(t);
+    }
   }, []);
+
+  const scrollToBootcamp = () => {
+    bootcampSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Brief highlight so the user notices what we scrolled to.
+    setHighlightBootcamp(true);
+    setTimeout(() => setHighlightBootcamp(false), 1400);
+  };
 
   if (!progress) {
     return <div className="max-w-3xl mx-auto px-4 py-10 text-center text-[var(--text-muted)]">…</div>;
@@ -65,13 +85,21 @@ export default function StartHerePage() {
           )}
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-2">
-          <div className="card p-4 ring-2" style={{ borderColor: 'var(--accent-cyan)', outlineColor: 'var(--accent-cyan)', background: 'rgba(0, 212, 255, 0.06)' }}>
+          <button
+            type="button"
+            onClick={scrollToBootcamp}
+            className="card p-4 ring-2 text-left transition hover:scale-[1.01]"
+            style={{ borderColor: 'var(--accent-cyan)', outlineColor: 'var(--accent-cyan)', background: 'rgba(0, 212, 255, 0.06)' }}
+            aria-label={tp('Открыть полный курс ниже', 'Open full course below', 'Otworz pelny kurs ponizej')}
+          >
             <div className="text-2xl mb-1">📚</div>
             <div className="font-semibold text-[var(--accent-cyan)]">{tp('Полный курс', 'Full course', 'Pelny kurs')}</div>
             <div className="text-[10px] text-[var(--text-muted)] mb-2">{BOOTCAMP_TOTAL_MINUTES} {tp('мин', 'min', 'min')} · 8 {tp('уроков', 'lessons', 'lekcji')}</div>
             <p className="text-xs text-[var(--text-secondary)]">{tp('Ты - совсем с нуля. Разберёшь всё по шагам.', 'From zero. Step by step.', 'Od zera. Krok po kroku.')}</p>
-            <div className="text-[10px] text-[var(--text-muted)] mt-2">↓ {tp('ниже на странице', 'below on this page', 'ponizej na stronie')}</div>
-          </div>
+            <div className="text-[10px] font-semibold mt-2" style={{ color: 'var(--accent-cyan)' }}>
+              {tp('Открыть курс', 'Open course', 'Otworz kurs')} ↓
+            </div>
+          </button>
           <Link href="/quick" className="card p-4 hover:border-[var(--success)] transition">
             <div className="text-2xl mb-1">⚡</div>
             <div className="font-semibold" style={{ color: 'var(--success)' }}>{tp('Освежить', 'Refresh', 'Odswiezyc')}</div>
@@ -88,7 +116,16 @@ export default function StartHerePage() {
       </div>
 
       {/* Bootcamp section header */}
-      <div className="mb-4 flex items-center gap-2">
+      <div
+        ref={bootcampSectionRef}
+        id="bootcamp-section"
+        className="mb-4 flex items-center gap-2 rounded-lg p-2 -mx-2 transition-all"
+        style={{
+          background: highlightBootcamp ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
+          boxShadow: highlightBootcamp ? '0 0 0 1px rgba(0, 212, 255, 0.4)' : 'none',
+          scrollMarginTop: '4rem',
+        }}
+      >
         <span className="text-xl">📚</span>
         <h2 className="text-xl font-semibold">
           {tp('Полный курс:', 'Full course:', 'Pelny kurs:')} <span style={{ color: 'var(--accent-cyan)' }}>{BOOTCAMP_TOTAL_MINUTES} {tp('минут', 'min', 'minut')}</span>
@@ -121,47 +158,99 @@ export default function StartHerePage() {
 
       {/* Lessons - accordion style, collapsed by default */}
       <div className="space-y-2">
-        {bootcampLessons.map((lesson) => (
+        {bootcampLessons.map((lesson, i) => (
           <LessonAccordion
             key={lesson.id}
             lesson={lesson}
             done={progress.completed.includes(lesson.id)}
             current={progress.current === lesson.id}
+            prevLesson={i > 0 ? bootcampLessons[i - 1] : null}
+            nextLesson={i < bootcampLessons.length - 1 ? bootcampLessons[i + 1] : null}
             onToggle={() => handleToggleComplete(lesson.id)}
             onStart={() => handleStartLesson(lesson.id)}
           />
         ))}
       </div>
 
-      {/* Completion card */}
+      {/* Completion card - rich "where to next" grid shown when all 8 lessons are done */}
       {allDone && (
         <div
-          className="mt-8 p-6 card text-center"
+          className="mt-8 p-6 card"
           style={{ background: 'linear-gradient(135deg, rgba(68, 255, 136, 0.1), rgba(0, 212, 255, 0.1))', borderColor: 'rgba(68, 255, 136, 0.3)' }}
         >
-          <div className="text-4xl mb-3">🎉</div>
-          <h3 className="text-xl font-bold mb-2">{tp('База пройдена!', 'Basics complete!', 'Podstawy ukonczone!')}</h3>
-          <p className="text-sm text-[var(--text-secondary)] mb-4">
-            {tp(
-              'Ты освоил основы парусного дела. На воде пригодится всё - ветер, курсы, правила, тактика.',
-              'You\'ve got the basics of sailing. Wind, courses, rules, tactics - all of it useful on the water.',
-              'Masz juz podstawy zeglarstwa. Na wodzie przyda sie wszystko - wiatr, kursy, zasady, taktyka.',
-            )}
-          </p>
-          <div className="flex flex-wrap gap-2 justify-center">
+          <div className="text-center mb-5">
+            <div className="text-5xl mb-3">🎉</div>
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-bold"
+              style={{ background: 'rgba(68, 255, 136, 0.2)', border: '1px solid rgba(68, 255, 136, 0.5)', color: 'var(--success)' }}
+            >
+              🎓 {tp('Базовый курс пройден', 'Bootcamp complete', 'Podstawowy kurs ukonczony')}
+            </div>
+            <h3 className="text-2xl font-bold mb-2">{tp('База пройдена!', 'Basics complete!', 'Podstawy ukonczone!')}</h3>
+            <p className="text-sm text-[var(--text-secondary)] max-w-xl mx-auto">
+              {tp(
+                'Ты освоил основы парусного дела. Что дальше - выбирай по вкусу:',
+                'You\'ve got the basics of sailing. What next - pick your path:',
+                'Masz juz podstawy zeglarstwa. Co dalej - wybierz po swojemu:',
+              )}
+            </p>
+          </div>
+
+          {/* Primary CTAs - race + simulator */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <Link
               href="/game"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm"
-              style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+              className="card p-4 text-center hover:scale-[1.02] transition"
+              style={{ borderColor: 'rgba(0, 212, 255, 0.4)', background: 'rgba(0, 212, 255, 0.08)' }}
             >
-              {tp('Гонка с AI', 'Race vs AI', 'Wyscig z AI')}
+              <div className="text-3xl mb-1">🏁</div>
+              <div className="font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Гонка с AI', 'Race vs AI', 'Wyscig z AI')}</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                {tp('Соперники + AI-тренер разберёт ошибки', 'Opponents + AI coach reviews mistakes', 'Rywale + trener AI analizuje bledy')}
+              </p>
+            </Link>
+            <Link
+              href="/multiplayer"
+              className="card p-4 text-center hover:scale-[1.02] transition"
+              style={{ borderColor: 'rgba(255, 170, 0, 0.4)', background: 'rgba(255, 170, 0, 0.06)' }}
+            >
+              <div className="text-3xl mb-1">🚣</div>
+              <div className="font-semibold" style={{ color: 'var(--warning)' }}>{tp('Мультиплеер', 'Multiplayer', 'Multiplayer')}</div>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">
+                {tp('Пригласи друзей в лобби по коду', 'Invite friends to a lobby by code', 'Zapros znajomych do lobby po kodzie')}
+              </p>
+            </Link>
+          </div>
+
+          {/* Secondary CTAs - practice + reference */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <Link
+              href="/simulator-v3"
+              className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
+            >
+              <div className="text-xl mb-0.5">🎮</div>
+              <div className="text-xs font-semibold">{tp('Симулятор', 'Simulator', 'Symulator')}</div>
             </Link>
             <Link
               href="/onboard"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-semibold text-sm border"
-              style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
+              className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
             >
-              {tp('Первая неделя на яхте', 'First week on board', 'Pierwszy tydzien na jachcie')}
+              <div className="text-xl mb-0.5">⚓</div>
+              <div className="text-xs font-semibold">{tp('На борту', 'On board', 'Na pokladzie')}</div>
+            </Link>
+            <Link
+              href="/checklist"
+              className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
+            >
+              <div className="text-xl mb-0.5">✅</div>
+              <div className="text-xs font-semibold">{tp('Чек-лист', 'Checklist', 'Lista')}</div>
+            </Link>
+            <Link
+              href="/glossary"
+              className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
+            >
+              <div className="text-xl mb-0.5">📖</div>
+              <div className="text-xs font-semibold">{tp('Глоссарий', 'Glossary', 'Slownik')}</div>
             </Link>
           </div>
         </div>
@@ -186,11 +275,13 @@ interface LessonLike {
 }
 
 function LessonAccordion({
-  lesson, done, current, onToggle, onStart,
+  lesson, done, current, prevLesson, nextLesson, onToggle, onStart,
 }: {
   lesson: LessonLike;
   done: boolean;
   current: boolean;
+  prevLesson: LessonLike | null;
+  nextLesson: LessonLike | null;
   onToggle: () => void;
   onStart: () => void;
 }) {
@@ -200,12 +291,19 @@ function LessonAccordion({
   const summary = lang === 'pl' ? lesson.summaryPl : lang === 'en' ? lesson.summaryEn : lesson.summaryRu;
   const focus = lang === 'pl' ? lesson.focusPl : lang === 'en' ? lesson.focusEn : lesson.focusRu;
 
+  const scrollToLesson = (id: string) => {
+    const el = document.getElementById(`lesson-${id}`);
+    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+
   return (
     <div
+      id={`lesson-${lesson.id}`}
       className="card overflow-hidden transition-all"
       style={{
         borderColor: done ? 'rgba(68, 255, 136, 0.3)' : current ? 'rgba(0, 212, 255, 0.3)' : undefined,
         background: done ? 'rgba(68, 255, 136, 0.04)' : undefined,
+        scrollMarginTop: '4rem',
       }}
     >
       <div className="flex items-center gap-3 p-3 sm:p-4">
@@ -253,10 +351,12 @@ function LessonAccordion({
         <div className="px-4 pb-4 pl-12">
           <p className="text-sm text-[var(--text-secondary)] mb-2">{summary}</p>
           <p className="text-xs text-[var(--text-muted)] italic mb-3">💡 {focus}</p>
+
+          {/* Main CTA: open the destination page */}
           <Link
             href={lesson.route}
             onClick={onStart}
-            className="inline-flex items-center gap-1 text-sm font-medium"
+            className="inline-flex items-center gap-1 text-sm font-medium mb-3"
             style={{ color: done ? 'var(--success)' : 'var(--accent-cyan)' }}
           >
             <span>{done ? tp('Повторить', 'Review', 'Powtorz') : current ? tp('Продолжить', 'Continue', 'Kontynuuj') : tp('Открыть раздел', 'Open section', 'Otworz lekcje')}</span>
@@ -264,6 +364,32 @@ function LessonAccordion({
               <polyline points="9 18 15 12 9 6"/>
             </svg>
           </Link>
+
+          {/* Prev/next chips for in-course browsing without visiting destination pages */}
+          {(prevLesson || nextLesson) && (
+            <div className="flex gap-2 flex-wrap text-[11px] pt-2 border-t border-[rgba(139,167,184,0.12)]">
+              {prevLesson && (
+                <button
+                  type="button"
+                  onClick={() => scrollToLesson(prevLesson.id)}
+                  className="px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                  style={{ borderColor: 'rgba(139, 167, 184, 0.25)', color: 'var(--text-muted)' }}
+                >
+                  ← {tp('Пред.', 'Prev', 'Pop.')}: #{prevLesson.order}
+                </button>
+              )}
+              {nextLesson && (
+                <button
+                  type="button"
+                  onClick={() => scrollToLesson(nextLesson.id)}
+                  className="px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                  style={{ borderColor: 'rgba(139, 167, 184, 0.25)', color: 'var(--text-muted)' }}
+                >
+                  {tp('След.', 'Next', 'Nast.')}: #{nextLesson.order} →
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

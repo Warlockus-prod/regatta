@@ -7,6 +7,7 @@ import ClientErrorReporter from "@/components/ClientErrorReporter";
 import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
+import BootcampFooterNav from "@/components/BootcampFooterNav";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { I18nProvider } from "@/lib/i18n";
 import {
@@ -138,6 +139,10 @@ export default async function RootLayout({
               2026-04-20: root layout previously mounted this without any
               hideOn prop so the bubble could overlap critical controls. */}
           <FeedbackWidget hideOn={['/game', '/multiplayer', '/simulator-v3']} />
+          {/* BootcampFooterNav: sticky bottom bar that auto-shows on
+              lesson-destination pages when the user is mid-bootcamp.
+              Client-only, reads localStorage; silent on all other routes. */}
+          <BootcampFooterNav />
         </I18nProvider>
         {/* Google Analytics 4 - loads async after interactive, doesn't block paint. */}
         <GoogleAnalytics />

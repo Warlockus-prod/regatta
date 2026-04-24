@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import LanguageToggle from './LanguageToggle';
+import BootcampProgressChip from './BootcampProgressChip';
 import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
@@ -208,6 +209,7 @@ export default function Navigation() {
           </div>
 
           <div className="flex items-center gap-2">
+            <BootcampProgressChip />
             <LanguageToggle />
 
             <button
