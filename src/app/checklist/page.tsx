@@ -2,6 +2,7 @@
 
 import { useI18n } from '@/lib/i18n';
 import { legacyPick, legacyPickArray } from '@/lib/languages';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 // ============================================================================
 // CHECKLIST (/checklist) - reference page for beginners stepping on a yacht.
@@ -558,6 +559,8 @@ export default function ChecklistPage() {
           )}
         </p>
       </div>
+
+      <ContentFooterNav page="/checklist" />
     </div>
   );
 }

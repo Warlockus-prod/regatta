@@ -17,17 +17,23 @@ interface RangeMetrics {
   topIps: Array<{ ip: string; count: number }>;
   topReferrers: Array<{ ref: string; count: number }>;
   deviceSplit: Array<{ device: string; count: number }>;
+  deviceModelSplit?: Array<{ device_model: string; count: number }>;
   browserSplit: Array<{ browser: string; count: number }>;
   osSplit: Array<{ os: string; count: number }>;
   viewportSplit: Array<{ viewport: string; count: number }>;
   languageSplit: Array<{ language: string; count: number }>;
+  countrySplit?: Array<{ country: string; count: number }>;
+  utmSourceSplit?: Array<{ utm_source: string; count: number }>;
+  utmCampaignSplit?: Array<{ utm_campaign: string; count: number }>;
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
   avgPagesPerSession: number;
   avgSessionSeconds: number;
   bounceRate: number;
   returningSessionPct: number;
-  recent: Array<{ ts: number; evt: string; path: string | null; ip: string | null; device: string | null; lang: string | null }>;
+  avgMsSinceStart?: number;
+  medianMsSinceStart?: number;
+  recent: Array<{ ts: number; evt: string; path: string | null; ip: string | null; device: string | null; lang: string | null; country?: string | null; device_model?: string | null }>;
 }
 
 type Preset = '1h' | '24h' | '7d' | '30d' | 'today' | 'custom';
@@ -253,6 +259,59 @@ export default function StatsDashboard() {
             <Panel title="Languages"><Distribution items={metrics.languageSplit.map((l) => ({ label: l.language, value: l.count }))} /></Panel>
           </div>
 
+          {/* Country / Device-model / UTM (2026-04-25) */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+            <Panel title="Countries (country code)">
+              {metrics.countrySplit && metrics.countrySplit.length > 0 ? (
+                <Distribution items={metrics.countrySplit.map((c) => ({ label: c.country, value: c.count }))} topN={15} />
+              ) : (
+                <EmptyHint text="No country data yet - configure proxy to inject cf-ipcountry or x-country-code headers." />
+              )}
+            </Panel>
+            <Panel title="Device models">
+              {metrics.deviceModelSplit && metrics.deviceModelSplit.length > 0 ? (
+                <Distribution items={metrics.deviceModelSplit.map((d) => ({ label: d.device_model, value: d.count }))} topN={15} />
+              ) : (
+                <EmptyHint text="Device models appear after the next deploy - ua-parser-js parses them from UA on every event." />
+              )}
+            </Panel>
+            <Panel title="Traffic sources (utm_source / campaign)">
+              {((metrics.utmSourceSplit && metrics.utmSourceSplit.length > 0) ||
+                (metrics.utmCampaignSplit && metrics.utmCampaignSplit.length > 0)) ? (
+                <>
+                  {metrics.utmSourceSplit && metrics.utmSourceSplit.length > 0 && (
+                    <div>
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">utm_source</div>
+                      <Distribution items={metrics.utmSourceSplit.map((u) => ({ label: u.utm_source, value: u.count }))} topN={10} />
+                    </div>
+                  )}
+                  {metrics.utmCampaignSplit && metrics.utmCampaignSplit.length > 0 && (
+                    <div className="mt-3">
+                      <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">utm_campaign</div>
+                      <Distribution items={metrics.utmCampaignSplit.map((u) => ({ label: u.utm_campaign, value: u.count }))} topN={10} />
+                    </div>
+                  )}
+                </>
+              ) : (
+                <EmptyHint text="No UTM-tagged visits yet. Share links with ?utm_source=twitter etc. to populate." />
+              )}
+            </Panel>
+          </div>
+
+          {/* Time-on-page (ms_since_start) */}
+          {(metrics.avgMsSinceStart !== undefined || metrics.medianMsSinceStart !== undefined) && (
+            <div className="grid grid-cols-2 gap-3">
+              <Kpi
+                label="Avg time into session (s)"
+                value={metrics.avgMsSinceStart && metrics.avgMsSinceStart > 0 ? (metrics.avgMsSinceStart / 1000).toFixed(1) : '-'}
+              />
+              <Kpi
+                label="Median time into session (s)"
+                value={metrics.medianMsSinceStart && metrics.medianMsSinceStart > 0 ? (metrics.medianMsSinceStart / 1000).toFixed(1) : '-'}
+              />
+            </div>
+          )}
+
           {/* Live event feed */}
           <Panel title={`Live events (most recent ${metrics.recent.length})`}>
             <LiveFeed items={metrics.recent} />
@@ -385,7 +444,9 @@ function LiveFeed({ items }: { items: RangeMetrics['recent'] }) {
             <th className="text-left py-1 pr-3">Event</th>
             <th className="text-left py-1 pr-3">Path</th>
             <th className="text-left py-1 pr-3">IP</th>
+            <th className="text-left py-1 pr-3">Country</th>
             <th className="text-left py-1 pr-3">Device</th>
+            <th className="text-left py-1 pr-3">Model</th>
             <th className="text-left py-1 pr-3">Lang</th>
           </tr>
         </thead>
@@ -396,12 +457,22 @@ function LiveFeed({ items }: { items: RangeMetrics['recent'] }) {
               <td className="py-1 pr-3" style={{ color: eventColor(r.evt) }}>{r.evt}</td>
               <td className="py-1 pr-3 text-[var(--text-secondary)] truncate max-w-[140px]" title={r.path ?? ''}>{r.path ?? '-'}</td>
               <td className="py-1 pr-3 text-[var(--text-muted)]">{r.ip ? maskIp(r.ip) : '-'}</td>
+              <td className="py-1 pr-3 text-[var(--text-muted)]">{r.country ?? '-'}</td>
               <td className="py-1 pr-3 text-[var(--text-muted)]">{r.device ?? '-'}</td>
+              <td className="py-1 pr-3 text-[var(--text-muted)] truncate max-w-[120px]" title={r.device_model ?? ''}>{r.device_model ?? '-'}</td>
               <td className="py-1 pr-3 text-[var(--text-muted)]">{r.lang ?? '-'}</td>
             </tr>
           ))}
         </tbody>
       </table>
+    </div>
+  );
+}
+
+function EmptyHint({ text }: { text: string }) {
+  return (
+    <div className="text-[11px] text-[var(--text-muted)] leading-relaxed py-2">
+      {text}
     </div>
   );
 }

@@ -55,7 +55,13 @@ export default function BootcampFooterNav() {
 
   // Only show when the visible route matches the current lesson's route.
   // Otherwise the user wandered off-course and a nav-bar would be confusing.
-  if (!pathname.startsWith(currentLesson.route)) return null;
+  // Use exact-or-child match (segment boundary) so `/simulator-v3` doesn't
+  // trigger when the current lesson points at `/simulator`.
+  const matchesRoute =
+    pathname === currentLesson.route ||
+    pathname.startsWith(currentLesson.route + '/') ||
+    pathname.startsWith(currentLesson.route + '?');
+  if (!matchesRoute) return null;
 
   const idx = bootcampLessons.findIndex((l) => l.id === currentLesson.id);
   const nextLesson = idx >= 0 && idx < bootcampLessons.length - 1

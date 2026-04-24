@@ -9,6 +9,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { promises as fs } from 'fs';
 import { mkdirSync } from 'fs';
+import { UAParser } from 'ua-parser-js';
 
 const DB_DIR = process.env.REGATTA_DB_DIR || '/tmp';
 const DB_PATH = path.join(DB_DIR, 'regatta-stats.db');
@@ -37,14 +38,21 @@ function db(): Database.Database {
       ip TEXT,
       country TEXT,
       device TEXT,
+      device_model TEXT,
       viewport TEXT,
       language TEXT,
       app_version TEXT,
+      ms_since_start INTEGER,
+      utm_source TEXT,
+      utm_medium TEXT,
+      utm_campaign TEXT,
+      referrer TEXT,
       meta_json TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
     CREATE INDEX IF NOT EXISTS idx_events_evt ON events(evt);
     CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
+    CREATE INDEX IF NOT EXISTS idx_events_country ON events(country);
 
     CREATE TABLE IF NOT EXISTS feedback (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,7 +79,11 @@ function db(): Database.Database {
       last_seen INTEGER NOT NULL,
       country TEXT,
       device TEXT,
+      device_model TEXT,
       language TEXT,
+      utm_source TEXT,
+      utm_medium TEXT,
+      utm_campaign TEXT,
       visit_count INTEGER NOT NULL DEFAULT 1
     );
 
@@ -133,6 +145,26 @@ function db(): Database.Database {
     );
   `);
 
+  // Progressive column additions for existing databases. Each ALTER TABLE
+  // ADD COLUMN is a no-op on fresh DBs where the column already exists
+  // (wrapped in try/catch because SQLite throws "duplicate column" otherwise).
+  const safeAlter = (sql: string) => {
+    try { _db!.exec(sql); } catch { /* column exists, skip */ }
+  };
+  // events columns (2026-04-25: analytics expansion)
+  safeAlter('ALTER TABLE events ADD COLUMN device_model TEXT');
+  safeAlter('ALTER TABLE events ADD COLUMN ms_since_start INTEGER');
+  safeAlter('ALTER TABLE events ADD COLUMN utm_source TEXT');
+  safeAlter('ALTER TABLE events ADD COLUMN utm_medium TEXT');
+  safeAlter('ALTER TABLE events ADD COLUMN utm_campaign TEXT');
+  safeAlter('ALTER TABLE events ADD COLUMN referrer TEXT');
+  safeAlter('CREATE INDEX IF NOT EXISTS idx_events_country ON events(country)');
+  // sessions columns
+  safeAlter('ALTER TABLE sessions ADD COLUMN device_model TEXT');
+  safeAlter('ALTER TABLE sessions ADD COLUMN utm_source TEXT');
+  safeAlter('ALTER TABLE sessions ADD COLUMN utm_medium TEXT');
+  safeAlter('ALTER TABLE sessions ADD COLUMN utm_campaign TEXT');
+
   return _db;
 }
 
@@ -142,6 +174,29 @@ function detectDevice(ua: string | null | undefined): string {
   if (/iphone|ipod|android.*mobile/.test(s)) return 'mobile';
   if (/ipad|tablet|android(?!.*mobile)/.test(s)) return 'tablet';
   return 'desktop';
+}
+
+/**
+ * Extract specific device model from UA via ua-parser-js. Useful to see
+ * "iPhone 15 Pro", "Samsung SM-S911B", "Pixel 8" vs just "mobile" bucket.
+ * Returns a stable, short label suitable for grouping.
+ */
+export function detectDeviceModel(ua: string | null | undefined): string | null {
+  if (!ua) return null;
+  try {
+    const p = new UAParser(ua);
+    const device = p.getDevice();
+    const os = p.getOS();
+    // Desktop UA: report OS vendor name (better than "undefined undefined")
+    if (!device.vendor && !device.model) {
+      return os.name ? `${os.name} Desktop` : null;
+    }
+    const parts = [device.vendor, device.model].filter(Boolean);
+    const label = parts.join(' ').trim();
+    return label || null;
+  } catch {
+    return null;
+  }
 }
 
 /** Best-effort browser detection from UA string.
@@ -183,18 +238,29 @@ export interface EventInsert {
   sessionId?: string;
   ua?: string;
   ip?: string;
+  country?: string;
   viewport?: string;
   language?: string;
   appVersion?: string;
+  msSinceStart?: number;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  referrer?: string;
   meta?: Record<string, unknown>;
 }
 
 export function insertEvent(e: EventInsert): void {
   try {
     const d = db();
+    const deviceModel = detectDeviceModel(e.ua);
     d.prepare(`
-      INSERT INTO events (ts, evt, path, session_id, ua, ip, country, device, viewport, language, app_version, meta_json)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO events (
+        ts, evt, path, session_id, ua, ip, country, device, device_model,
+        viewport, language, app_version, ms_since_start,
+        utm_source, utm_medium, utm_campaign, referrer, meta_json
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       Date.now(),
       e.evt,
@@ -202,31 +268,54 @@ export function insertEvent(e: EventInsert): void {
       e.sessionId ?? null,
       e.ua ?? null,
       e.ip ?? null,
-      null, // country - lookup deferred (would need geo-ip lib)
+      e.country ?? null,
       detectDevice(e.ua),
+      deviceModel,
       e.viewport ?? null,
       e.language ?? null,
       e.appVersion ?? null,
+      e.msSinceStart ?? null,
+      e.utmSource ?? null,
+      e.utmMedium ?? null,
+      e.utmCampaign ?? null,
+      e.referrer ?? null,
       e.meta ? JSON.stringify(e.meta) : null,
     );
 
     // Upsert session. visit_count only increments on actual page views,
     // not on every telemetry event (which was the old bug - visit_count
     // grew with every log/feedback/coach call and overstated traffic).
+    //
+    // UTM + country + device_model are sticky: set on first observed value,
+    // don't overwrite. This preserves the user's original acquisition source
+    // even if they later arrive via a different referral.
     if (e.sessionId) {
       const isPageView = e.evt === 'page.view';
       d.prepare(`
-        INSERT INTO sessions (id, first_seen, last_seen, device, language, visit_count)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO sessions (
+          id, first_seen, last_seen, country, device, device_model, language,
+          utm_source, utm_medium, utm_campaign, visit_count
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(id) DO UPDATE SET
           last_seen = excluded.last_seen,
-          visit_count = visit_count + ?
+          visit_count = visit_count + ?,
+          country = COALESCE(sessions.country, excluded.country),
+          device_model = COALESCE(sessions.device_model, excluded.device_model),
+          utm_source = COALESCE(sessions.utm_source, excluded.utm_source),
+          utm_medium = COALESCE(sessions.utm_medium, excluded.utm_medium),
+          utm_campaign = COALESCE(sessions.utm_campaign, excluded.utm_campaign)
       `).run(
         e.sessionId,
         Date.now(),
         Date.now(),
+        e.country ?? null,
         detectDevice(e.ua),
+        deviceModel,
         e.language ?? null,
+        e.utmSource ?? null,
+        e.utmMedium ?? null,
+        e.utmCampaign ?? null,
         isPageView ? 1 : 0,
         isPageView ? 1 : 0,
       );
@@ -304,10 +393,14 @@ export interface RangeMetrics {
   topIps: Array<{ ip: string; count: number }>;       // raw IPs; mask in UI if exposed
   topReferrers: Array<{ ref: string; count: number }>;
   deviceSplit: Array<{ device: string; count: number }>;
+  deviceModelSplit: Array<{ device_model: string; count: number }>;
   browserSplit: Array<{ browser: string; count: number }>;
   osSplit: Array<{ os: string; count: number }>;
   viewportSplit: Array<{ viewport: string; count: number }>;
   languageSplit: Array<{ language: string; count: number }>;
+  countrySplit: Array<{ country: string; count: number }>;
+  utmSourceSplit: Array<{ utm_source: string; count: number }>;
+  utmCampaignSplit: Array<{ utm_campaign: string; count: number }>;
 
   // Time-series
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
@@ -319,10 +412,15 @@ export interface RangeMetrics {
   bounceRate: number;       // fraction 0..1 of sessions with exactly 1 page.view
   returningSessionPct: number; // sessions with > 1 visit_count over all sessions in range
 
+  // Time-on-page (from ms_since_start)
+  avgMsSinceStart: number;      // avg time into session when page.view fires
+  medianMsSinceStart: number;   // more robust than avg for skewed distributions
+
   // Recent events feed (live view)
   recent: Array<{
     ts: number; evt: string; path: string | null;
     ip: string | null; device: string | null; lang: string | null;
+    country: string | null; device_model: string | null;
   }>;
 }
 
@@ -433,6 +531,30 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     GROUP BY device ORDER BY count DESC
   `).all(...p) as Array<{ device: string; count: number }>;
 
+  const deviceModelSplit = d.prepare(`
+    SELECT device_model, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND device_model IS NOT NULL
+    GROUP BY device_model ORDER BY count DESC LIMIT 20
+  `).all(...p) as Array<{ device_model: string; count: number }>;
+
+  const countrySplit = d.prepare(`
+    SELECT country, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND country IS NOT NULL
+    GROUP BY country ORDER BY count DESC LIMIT 30
+  `).all(...p) as Array<{ country: string; count: number }>;
+
+  const utmSourceSplit = d.prepare(`
+    SELECT utm_source, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND utm_source IS NOT NULL
+    GROUP BY utm_source ORDER BY count DESC LIMIT 15
+  `).all(...p) as Array<{ utm_source: string; count: number }>;
+
+  const utmCampaignSplit = d.prepare(`
+    SELECT utm_campaign, COUNT(*) count FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND utm_campaign IS NOT NULL
+    GROUP BY utm_campaign ORDER BY count DESC LIMIT 15
+  `).all(...p) as Array<{ utm_campaign: string; count: number }>;
+
   const viewportSplit = d.prepare(`
     SELECT viewport, COUNT(*) count FROM events
     WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND viewport IS NOT NULL
@@ -514,9 +636,23 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     ? (returningRow.returning_n ?? 0) / returningRow.total
     : 0;
 
+  // Time-on-page via ms_since_start on page.view events.
+  // Avg is cheap; median computed from sampled sorted array.
+  const msRows = d.prepare(`
+    SELECT ms_since_start FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND ms_since_start IS NOT NULL
+    ORDER BY ms_since_start ASC
+  `).all(...p) as Array<{ ms_since_start: number }>;
+  const avgMsSinceStart = msRows.length > 0
+    ? msRows.reduce((s, r) => s + r.ms_since_start, 0) / msRows.length
+    : 0;
+  const medianMsSinceStart = msRows.length > 0
+    ? msRows[Math.floor(msRows.length / 2)].ms_since_start
+    : 0;
+
   // Recent events feed (last 30 inside range)
   const recent = d.prepare(`
-    SELECT ts, evt, path, ip, device, language lang
+    SELECT ts, evt, path, ip, device, language lang, country, device_model
     FROM events WHERE ts >= ? AND ts < ?
     ORDER BY ts DESC LIMIT 30
   `).all(...p) as RangeMetrics['recent'];
@@ -526,12 +662,15 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     events, pageViews, uniqueSessions, uniqueIps, feedbackNew, bugsNew, jsErrors,
     topPaths, topEvents, topIps,
     topReferrers: topReferrers.map((r) => ({ ref: r.ref ?? '(direct)', count: r.count })),
-    deviceSplit, browserSplit, osSplit, viewportSplit, languageSplit,
+    deviceSplit, deviceModelSplit, browserSplit, osSplit, viewportSplit, languageSplit,
+    countrySplit, utmSourceSplit, utmCampaignSplit,
     hourly, daily,
     avgPagesPerSession: pagesPerSession,
     avgSessionSeconds,
     bounceRate,
     returningSessionPct,
+    avgMsSinceStart,
+    medianMsSinceStart,
     recent,
   };
 }

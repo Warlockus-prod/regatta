@@ -17,11 +17,17 @@ export default function StartHerePage() {
     const p = getBootcampProgress();
     setProgress(p);
 
-    // Auto-scroll to current lesson on page load, not to top. Only if the
-    // user has already started the course. Deferred so hydration finishes.
-    if (p?.current) {
+    // Auto-scroll to the next unstarted lesson on page load, not just the
+    // one the user last opened. After "Mark done" + back-to-course, the user
+    // expects to see what comes next - not the lesson they already finished.
+    // Priority chain: next-unstarted -> current -> top.
+    const nextUnstarted = bootcampLessons.find(
+      (l) => !(p?.completed ?? []).includes(l.id),
+    );
+    const targetId = nextUnstarted?.id ?? p?.current;
+    if (targetId) {
       const t = setTimeout(() => {
-        const el = document.getElementById(`lesson-${p.current}`);
+        const el = document.getElementById(`lesson-${targetId}`);
         if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }, 250);
       return () => clearTimeout(t);

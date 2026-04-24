@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 // ============================================================================
 // Yacht anatomy - 2D Bavaria 46 side-profile with clickable hotspots.
@@ -241,6 +242,8 @@ export default function AnatomyPage() {
             'Stylized Bavaria 46 profile.',
             'Stylizowany profil Bavaria 46.')}
       </p>
+
+      <ContentFooterNav page="/anatomy" />
     </div>
   );
 }
