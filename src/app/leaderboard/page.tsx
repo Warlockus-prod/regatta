@@ -34,6 +34,10 @@ export default function LeaderboardPage() {
   }, []);
 
   useEffect(() => {
+    // Preemptive loading state flashes "Loading..." while the fetch runs, which
+    // is better UX than stale rows. React Compiler flags setState as cascading;
+    // informational - the fetch settles on completion.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
     const url = mode === 'mission'
       ? `/api/leaderboard?mission=${encodeURIComponent(missionId)}`

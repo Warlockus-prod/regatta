@@ -62,6 +62,9 @@ export default function OnboardingTour() {
   useEffect(() => {
     if (onHiddenRoute) {
       // If we're on an immersive route, make sure the tour is hidden.
+      // React Compiler flags this; setState on pathname change is a correct
+      // reaction.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setShow(false);
       return;
     }

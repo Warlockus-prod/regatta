@@ -17,7 +17,6 @@ export function log(lvl: LogLevel, evt: string, fields: LogFields = {}): void {
     evt,
     ...fields,
   };
-  // eslint-disable-next-line no-console
   (lvl === 'error' ? console.error : console.log)(JSON.stringify(line));
 }
 

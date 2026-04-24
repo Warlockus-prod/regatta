@@ -46,11 +46,14 @@ export default function MultiplayerClient() {
     }).catch(() => {});
   }, []);
 
-  // URL code prefill (e.g. /multiplayer?code=ABCD)
+  // URL code prefill (e.g. /multiplayer?code=ABCD). One-time read of
+  // window.location on mount - deterministic, not a cascade. React Compiler
+  // flags the setJoinCode call but it's correct.
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
     const code = url.searchParams.get('code');
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (code) setJoinCode(code.toUpperCase().slice(0, 4));
   }, []);
 
@@ -135,7 +138,7 @@ export default function MultiplayerClient() {
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udalo sie polaczyc z serwerem'));
       setPhase('error');
     }
-  }, [nickname, joinCode, sid, ensureClient]);
+  }, [nickname, joinCode, sid, ensureClient, tp]);
 
   // Once we've joined, enable auto-resume on WS drop
   useEffect(() => {

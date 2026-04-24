@@ -36,7 +36,6 @@ describe('ADR-0001 V1 verification', () => {
     const state = createInitialState({ tws: 12, twa: 90, boatSpeed: 5 });
     const { state: s, diag } = settle(state, neutralBeamReachControls, params, 60);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 1 out: bs=${s.boatSpeed.toFixed(2)} kn, heel=${s.heel.toFixed(1)}°, ` +
       `leeway=${s.leeway.toFixed(1)}°, AWA=${diag.awa.toFixed(1)}°, AWS=${diag.aws.toFixed(1)} kn, ` +
       `mainAoA=${diag.mainAoA.toFixed(1)}°, jibAoA=${diag.jibAoA.toFixed(1)}°, ` +
@@ -64,7 +63,6 @@ describe('ADR-0001 V1 verification', () => {
     // Allow the sim to react. Use enough time to relax heel and adjust speed.
     const after3s = settle(settled.state, overTrim, params, 3);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 2 out: bs before=${bsBefore.toFixed(2)} kn, ` +
       `bs 3s after over-trim=${after3s.state.boatSpeed.toFixed(2)} kn, ` +
       `mainAoA=${after3s.diag.mainAoA.toFixed(1)}°, mainStalled=${after3s.diag.mainStalled}`);
@@ -83,7 +81,6 @@ describe('ADR-0001 V1 verification', () => {
     };
     const { state: s, diag } = settle(s0, closeHauled, params, 60);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 3 out: bs=${s.boatSpeed.toFixed(2)} kn, AWA=${diag.awa.toFixed(1)}°, ` +
       `AWS=${diag.aws.toFixed(1)} kn, TWA=40, TWS=12, mainAoA=${diag.mainAoA.toFixed(1)}°, ` +
       `jibAoA=${diag.jibAoA.toFixed(1)}°`);
@@ -101,7 +98,6 @@ describe('ADR-0001 V1 verification', () => {
     };
     const noReef = settle(s0, closeNoReef, params, 60);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 4a (no reef): bs=${noReef.state.boatSpeed.toFixed(2)} kn, ` +
       `heel=${noReef.state.heel.toFixed(1)}°`);
 
@@ -114,7 +110,6 @@ describe('ADR-0001 V1 verification', () => {
     const closeReefed: Controls = { ...closeNoReef, reef: 0.85, jibFurl: 0.65 };
     const reefed = settle(s0b, closeReefed, params, 60);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 4b (reefed): bs=${reefed.state.boatSpeed.toFixed(2)} kn, ` +
       `heel=${reefed.state.heel.toFixed(1)}°`);
 
@@ -143,10 +138,8 @@ describe('ADR-0001 V1 verification', () => {
     const wingControls: Controls = { ...normalControls, jibSide: -1 };
     const wingResult = settle(wingSide, wingControls, params, 60);
 
-    // eslint-disable-next-line no-console
     console.log(`  Test 5 same-side: bs=${sameResult.state.boatSpeed.toFixed(2)} kn, ` +
       `drive=${sameResult.diag.drive.toFixed(0)} N`);
-    // eslint-disable-next-line no-console
     console.log(`  Test 5 wing-on-wing: bs=${wingResult.state.boatSpeed.toFixed(2)} kn, ` +
       `drive=${wingResult.diag.drive.toFixed(0)} N`);
 

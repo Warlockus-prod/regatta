@@ -146,9 +146,12 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  // Close all menus on route change
+  // Close all menus on route change. React Compiler flags these setState
+  // calls, but reacting to a navigation event is a correct and idiomatic use.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMobileOpen(false);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMoreOpen(false);
   }, [pathname]);
 

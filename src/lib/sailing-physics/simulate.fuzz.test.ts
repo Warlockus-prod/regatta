@@ -152,7 +152,6 @@ describe('physics engine: property-based invariants', () => {
         } catch (err) {
           // Throwing is acceptable for truly malformed input, but log to
           // know about it.
-          // eslint-disable-next-line no-console
           console.warn('Engine threw on extreme input', { wind, controls, err: String(err) });
         }
       }),

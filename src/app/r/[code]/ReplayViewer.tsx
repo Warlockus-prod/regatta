@@ -34,6 +34,9 @@ export default function ReplayViewer() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    // Async data fetch with setError/setData. React Compiler flags the setState
+    // as cascading; acceptable for fetch-driven views.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!code) { setError('Код не задан'); return; }
     fetch(`/api/replay/${code}`)
       .then(async (r) => {

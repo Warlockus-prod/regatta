@@ -17,10 +17,14 @@ test.describe('Smoke: critical user flows', () => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Regatta/i);
 
-    // Language toggle (3 buttons) - language-agnostic assertions
-    await expect(page.getByRole('button', { name: 'Русский' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'English' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Polski' })).toBeVisible();
+    // Language toggle is now a dropdown. Opening it reveals the 3 enabled
+    // languages as role="menuitemradio" entries with native names.
+    const langTrigger = page.getByRole('button', { name: 'Choose language' });
+    await expect(langTrigger).toBeVisible();
+    await langTrigger.click();
+    await expect(page.getByRole('menuitemradio', { name: /Русский/ })).toBeVisible();
+    await expect(page.getByRole('menuitemradio', { name: /English/ })).toBeVisible();
+    await expect(page.getByRole('menuitemradio', { name: /Polski/ })).toBeVisible();
 
     // Primary nav - at least 4 nav entries should be wired to known routes
     const nav = page.locator('nav').first();
@@ -28,10 +32,12 @@ test.describe('Smoke: critical user flows', () => {
       await expect(nav.locator(`a[href="${href}"]`).first()).toBeVisible();
     }
 
-    // Clicking English swaps instantly on home
-    await page.getByRole('button', { name: 'English' }).click();
+    // Clicking English in the dropdown swaps instantly on home
+    await page.getByRole('menuitemradio', { name: /English/ }).click();
     await expect(nav.getByRole('link', { name: 'Home' })).toBeVisible({ timeout: 3_000 });
-    await page.getByRole('button', { name: 'Русский' }).click();
+    // Switch back to RU so subsequent tests keep their seeded language
+    await langTrigger.click();
+    await page.getByRole('menuitemradio', { name: /Русский/ }).click();
   });
 
   test('/game opens 3-preset menu and reaches briefing', async ({ page }) => {

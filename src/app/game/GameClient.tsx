@@ -182,7 +182,7 @@ function speedFactorFromTWA(twa: number): number {
 // windDir = direction the wind is COMING FROM (0 = from north).
 // TWA is the angle between the boat's bow and where the wind is coming from.
 function calcTWA(heading: number, windDir = 0): number {
-  let twa = ((heading - windDir + 540) % 360) - 180; // -180..180
+  const twa = ((heading - windDir + 540) % 360) - 180; // -180..180
   return twa; // signed: positive = wind from starboard (right), negative = port
 }
 
