@@ -1,0 +1,31 @@
+Bavaria 46 inspired low-poly yacht model
+
+Файлы:
+- bavaria_46_lowpoly_sloop.obj - основная геометрия
+- bavaria_46_lowpoly_sloop.mtl - материалы OBJ
+- bavaria_46_lowpoly_sloop.glb - GLB для Blender/Unity/Unreal/Web, если экспорт прошел успешно
+
+Единицы: метры.
+Ось X: корма (-) -> нос (+).
+Ось Y: левый/правый борт.
+Ось Z: вертикаль.
+
+Что внутри:
+- корпус, палуба, рубка
+- киль и руль
+- мачта, гик, краспицы
+- грот и стаксель/генуя
+- базовый такелаж и леера
+- окна, cockpit, два штурвала
+
+Это НЕ финальная production-модель, а стартовая болванка для симулятора.
+Следующий этап:
+1. Открыть OBJ/GLB в Blender.
+2. Исправить форму корпуса вручную или через Subdivision Surface.
+3. Разделить объекты на Hull / Keel / Rudder / Mast / Boom / MainSail / Jib.
+4. Сделать UV-развертку.
+5. Добавить PBR-материалы.
+6. Для симулятора: отдельные коллайдеры, pivot points, rudder rotation, sail bones/cloth или shape keys.
+7. Экспортировать в GLB/FBX для Unity или Unreal.
+
+Юридически безопаснее считать модель “Bavaria 46 inspired”, не точной копией CAD Bavaria Yachts.

@@ -34,9 +34,13 @@ import {
 const HULL_LEN = 360; // total hull length in scene px (-180..+180)
 const HULL_BOW = HULL_LEN * 0.5; // x of bow tip
 const HULL_STERN = -HULL_LEN * 0.5; // x of stern (transom)
-const FREEBOARD = 40; // height from waterline to deck at the sheer
-const KEEL_LEN = 80; // depth of keel below waterline
-const RUDDER_LEN = 50;
+// Real Bavaria 46 freeboard at the sheer is ~0.75 m above the waterline,
+// which lands at 19-20 px in our 25.9 px/m scale. This is half what the
+// old SceneSide assumed (40 = 1.5 m, way too tall) and lines up with the
+// hull silhouette extracted from the OBJ.
+const FREEBOARD = 20;
+const KEEL_LEN = 64; // depth of keel below waterline (matches OBJ ~1.87 m * 25.9 = 48, but keel root + fin combined renders deeper for visual mass)
+const RUDDER_LEN = 32;
 // Mast at 33% from the bow (so 16.5% from the boat center toward bow)
 const MAST_X = HULL_BOW - HULL_LEN * 0.33;
 const MAST_TOP = -260; // y above waterline at mast top
@@ -272,54 +276,66 @@ export function SceneSide({
 
       {/* Boat group anchored at waterline center, slight bow-up trim */}
       <g transform={`translate(${cx} ${waterY}) rotate(${bowTrim})`}>
-        {/* === UNDERWATER === */}
-        {/* Keel: tapered fin descending from mid-hull. Bow at right
-            means keel sits a bit forward of center. */}
+        {/* === UNDERWATER ===
+            Keel + rudder shapes ported from the Bavaria 46 lowpoly OBJ
+            at scale 25.9 px/m: keel is a deep fin (1.87 m draft = ~48
+            px below the hull bottom at midship), with a small ballast
+            bulb at the foot. Rudder is a spade rudder mounted aft. */}
+        {/* Deep fin keel - 8 sampled vertices from the OBJ */}
         <path
-          d={`
-            M ${-12} 0
-            L ${-14} ${KEEL_LEN * 0.85}
-            Q ${-10} ${KEEL_LEN} 0 ${KEEL_LEN}
-            L 0 ${KEEL_LEN + 4}
-            Q 14 ${KEEL_LEN} 14 ${KEEL_LEN * 0.85}
-            L 12 0
-            Z
-          `}
+          d="M -22.0 16.1 L -10.5 59.2 L -8.6 62.0 L -5.9 63.8 L -2.6 64.5 L 0.7 63.8 L 14.2 55.7 L 22.0 16.1 Z"
           fill="rgba(15, 28, 46, 0.92)"
         />
-        {/* Bulb at keel base */}
-        <ellipse cx="0" cy={KEEL_LEN + 2} rx="22" ry="5" fill="rgba(15, 28, 46, 0.95)" />
+        {/* Ballast bulb at the keel root */}
+        <ellipse cx="-2" cy="64" rx="22" ry="4.5" fill="rgba(15, 28, 46, 0.95)" />
 
-        {/* Rudder aft of keel */}
+        {/* Spade rudder - stern position from OBJ. Stem above water +
+            blade below. */}
         <path
-          d={`
-            M ${HULL_STERN + 32} 0
-            L ${HULL_STERN + 30} ${RUDDER_LEN}
-            L ${HULL_STERN + 36} ${RUDDER_LEN}
-            L ${HULL_STERN + 38} 0
-            Z
-          `}
-          fill="rgba(20, 36, 56, 0.85)"
+          d="M -161.9 42.7 L -148.9 45.3 L -143.7 16.8 L -156.7 14.2 Z"
+          fill="rgba(20, 36, 56, 0.92)"
+          stroke="rgba(207, 216, 224, 0.3)"
+          strokeWidth={0.6}
+        />
+        {/* Rudder stock above the waterline (the post the rudder pivots
+            on) - a thin vertical line */}
+        <line
+          x1="-152"
+          y1="14"
+          x2="-152"
+          y2="0"
+          stroke="rgba(20, 36, 56, 0.7)"
+          strokeWidth={2}
         />
 
-        {/* === HULL profile (from waterline up) ===
-            Bow on the right (positive x), stern on the left. Sheer line
-            curves up gently toward both ends, more at the bow. */}
+        {/* === HULL profile (waterline + sheer + cabin) ===
+            Real Bavaria 46 outline from the OBJ, scaled at 25.9 px/m.
+            The path traces:
+              - bow deck at +180,-19.4
+              - down to bow waterline at +180,-2.6
+              - aft along the U-curve hull bottom (12 sampled vertices)
+              - up the transom at -180,-2.6 -> -180,-19.4
+              - back across the deck to bow
+            Cabin sits as a separate path on top because it has a
+            distinct height step. */}
         <path
-          d={`
-            M ${HULL_STERN} 0
-            L ${HULL_STERN - 2} -${FREEBOARD * 0.55}
-            Q ${HULL_STERN + 30} -${FREEBOARD * 0.85} 0 -${FREEBOARD}
-            Q ${HULL_BOW - 50} -${FREEBOARD * 1.1} ${HULL_BOW - 6} -${FREEBOARD * 1.3}
-            L ${HULL_BOW + 2} -${FREEBOARD * 0.4}
-            L ${HULL_BOW + 4} 0
-            Q ${HULL_BOW - 30} 8 0 10
-            Q ${HULL_STERN + 60} 8 ${HULL_STERN} 0
-            Z
-          `}
+          d="M 180 -19.4 L 180 -2.6 L 169.1 1.8 L 136.4 6.3 L 92.7 9.6 L 49.1 11.4 L 0 12.1 L -49.1 11.4 L -92.7 9.6 L -136.4 6.3 L -169.1 1.8 L -180 -2.6 L -180 -19.4 Z"
           fill={`url(#${hullId})`}
           stroke="#5e7889"
           strokeWidth={2}
+          strokeLinejoin="round"
+        />
+
+        {/* Cabin (coachroof) on top of the deck. Real Bavaria 46 cabin
+            spans from x=-90.6 to x=+33.7 in our coord system, with a
+            slight slope down toward the bow. Height up to -39 above
+            waterline (1.5 m). */}
+        <path
+          d="M -90.6 -19.4 L -90.6 -39.0 L 33.7 -39.0 L 101 -31.2 L 101 -19.4 Z"
+          fill="#dde7ee"
+          stroke="#6f8ba0"
+          strokeWidth={1.2}
+          strokeLinejoin="round"
         />
 
         {/* Boot stripe along waterline */}

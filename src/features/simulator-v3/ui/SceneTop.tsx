@@ -551,22 +551,28 @@ function BoatTop(args: {
       {/* Hull shadow on the water (blurred ellipse beneath the boat) */}
       <ellipse cx="0" cy="60" rx="38" ry="12" fill="rgba(0,0,0,0.28)" />
 
-      {/* HULL silhouette. The shape is bow-pointed (top), wide amidships,
-          tapering toward the stern. */}
+      {/* HULL silhouette - real Bavaria 46 deck-plan proportions.
+          Extracted from the Bavaria 46 lowpoly OBJ (length 13.9 m,
+          beam 4.35 m, scale 18.42 px/m) so the deck shape matches a
+          real cruising sloop instead of a generic crescent: fine bow,
+          widest at ~30% from the stern, then a near-vertical transom
+          across the back. */}
       <path
-        d="M 0 -96 Q 38 -40 28 52 Q 24 116 0 160 Q -24 116 -28 52 Q -38 -40 0 -96 Z"
+        d="M -14.0 160.0 L -28.4 152.2 L -34.8 129.0 L -38.3 97.9 L -40.1 66.9 L -40.1 28.1 L -39.0 12.6 L -34.3 -34.3 L -14.3 -78.5 L -0.6 -96.0 L 0.6 -96.0 L 14.3 -78.5 L 34.3 -34.3 L 39.0 12.6 L 40.1 28.1 L 40.1 66.9 L 38.3 97.9 L 34.8 129.0 L 28.4 152.2 L 14.0 160.0 Z"
         fill="#e8f0f6"
         stroke="#6f8ba0"
         strokeWidth={4}
+        strokeLinejoin="round"
       />
 
-      {/* Inner deck outline (slightly inside the hull stroke) so the eye
-          reads "this is the deck edge, not just paint". */}
+      {/* Inner deck outline (slightly inset from the hull stroke) so
+          the eye reads "the deck edge has a lip", not just paint. */}
       <path
-        d="M 0 -86 Q 30 -30 22 50 Q 18 110 0 148 Q -18 110 -22 50 Q -30 -30 0 -86 Z"
+        d="M -12.0 156.0 L -25.5 148.0 L -31.5 126.0 L -34.5 96.0 L -36.0 65.0 L -36.0 30.0 L -34.5 12.0 L -30.5 -34.0 L -12.5 -76.0 L 0 -90.0 L 12.5 -76.0 L 30.5 -34.0 L 34.5 12.0 L 36.0 30.0 L 36.0 65.0 L 34.5 96.0 L 31.5 126.0 L 25.5 148.0 L 12.0 156.0 Z"
         fill="none"
         stroke="rgba(111, 139, 160, 0.45)"
         strokeWidth={1}
+        strokeLinejoin="round"
       />
 
       {/* Deck planks - faint thin lines from bow to stern. They follow the

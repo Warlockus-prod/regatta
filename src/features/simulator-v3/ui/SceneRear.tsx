@@ -234,24 +234,18 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
 
       {/* Boat + rig - rotated by heel around the waterline center */}
       <g transform={`translate(${cx} ${horizonY}) rotate(${heelVisual})`}>
-        {/* HULL from behind: U-shape that narrows toward the keel and
-            widens at the deck. Drawn as one closed path. */}
+        {/* HULL from behind - real Bavaria 46 transom silhouette.
+            Extracted from the Bavaria 46 lowpoly OBJ (beam 4.35 m,
+            scale 50 px/m). Wider at the deck, U-curve narrowing
+            toward the waterline, with a slight tumblehome typical of
+            cruising sloops. The path comes from 18 sampled vertices
+            of the actual transom, mirrored across centerline. */}
         <path
-          d={`
-            M -118 0
-            L -116 -8
-            Q -100 -34 -56 -42
-            L 56 -42
-            Q 100 -34 116 -8
-            L 118 0
-            Q 110 22 78 30
-            L -78 30
-            Q -110 22 -118 0
-            Z
-          `}
+          d="M -108.7 -36.1 L -106.9 -18.8 L -101.4 -7.7 L -92.5 1.3 L -80.3 8.6 L -65.5 14.5 L -48.4 18.9 L -29.8 21.9 L -10.1 23.3 L 10.1 23.3 L 29.8 21.9 L 48.4 18.9 L 65.5 14.5 L 80.3 8.6 L 92.5 1.3 L 101.4 -7.7 L 106.9 -18.8 L 108.7 -36.1 Z"
           fill={`url(#${hullId})`}
           stroke="#5e7889"
           strokeWidth={2}
+          strokeLinejoin="round"
         />
         {/* Boot stripe along the waterline */}
         <path
