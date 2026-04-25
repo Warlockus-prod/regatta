@@ -103,17 +103,20 @@ export default function BootcampFooterNav() {
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       role="region"
-      aria-label={tp('Навигация по курсу', 'Course navigation', 'Nawigacja kursu')}
+      aria-label={tp('Навигация по курсу', 'Course navigation', 'Nawigacja kursu',
+        { es: 'Navegacion del curso', fr: 'Navigation du cours', de: 'Kurs-Navigation', it: 'Navigazione del corso' })}
     >
       <div className="max-w-5xl mx-auto px-3 sm:px-5 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-xl shrink-0">{currentLesson.emoji}</span>
           <div className="min-w-0">
             <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Урок', 'Lesson', 'Lekcja')} {currentLesson.order}/{bootcampLessons.length}
+              {tp('Урок', 'Lesson', 'Lekcja',
+                { es: 'Leccion', fr: 'Lecon', de: 'Lektion', it: 'Lezione' })} {currentLesson.order}/{bootcampLessons.length}
               {' · '}
               <span className="text-[var(--text-muted)] font-normal">
-                {totalCompleted}/{bootcampLessons.length} {tp('пройдено', 'done', 'ukonczono')}
+                {totalCompleted}/{bootcampLessons.length} {tp('пройдено', 'done', 'ukonczono',
+                  { es: 'hecho', fr: 'fait', de: 'erledigt', it: 'fatto' })}
               </span>
             </div>
             <div className="text-sm font-semibold truncate">{title}</div>
@@ -126,7 +129,8 @@ export default function BootcampFooterNav() {
             className="text-xs px-3 py-1.5 rounded-md border transition hover:bg-[rgba(0,212,255,0.08)]"
             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: 'var(--text-secondary)' }}
           >
-            ← {tp('К курсу', 'Course', 'Kurs')}
+            ← {tp('К курсу', 'Course', 'Kurs',
+              { es: 'Al curso', fr: 'Au cours', de: 'Zum Kurs', it: 'Al corso' })}
           </Link>
 
           {!isDone && (
@@ -140,7 +144,8 @@ export default function BootcampFooterNav() {
                 background: 'rgba(68, 255, 136, 0.08)',
               }}
             >
-              ✓ {tp('Отметить пройденным', 'Mark done', 'Oznacz jako zrobione')}
+              ✓ {tp('Отметить пройденным', 'Mark done', 'Oznacz jako zrobione',
+                { es: 'Marcar hecho', fr: 'Marquer fait', de: 'Als erledigt markieren', it: 'Segna come fatto' })}
             </button>
           )}
 
@@ -155,7 +160,8 @@ export default function BootcampFooterNav() {
               }}
               title={nextTitle ?? ''}
             >
-              {tp('Следующий', 'Next', 'Nastepna')} →
+              {tp('Следующий', 'Next', 'Nastepna',
+                { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Avanti' })} →
             </button>
           ) : (
             <button
@@ -167,7 +173,8 @@ export default function BootcampFooterNav() {
                 color: '#0a1628',
               }}
             >
-              🎉 {tp('Завершить', 'Finish', 'Zakoncz')}
+              🎉 {tp('Завершить', 'Finish', 'Zakoncz',
+                { es: 'Terminar', fr: 'Terminer', de: 'Abschliessen', it: 'Concludi' })}
             </button>
           )}
         </div>

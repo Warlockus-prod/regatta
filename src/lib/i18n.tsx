@@ -15,17 +15,36 @@ export type { Lang } from './languages';
 const STORAGE_KEY = 'regatta.lang.v1';
 const COOKIE_NAME = 'regatta_lang';
 
+/**
+ * Optional 4th-arg overlay for `tp()` carrying ES/FR/DE/IT translations.
+ * Each key is independently optional; missing values fall through to the
+ * EN argument. This keeps the original 3-arg `tp(ru, en, pl)` calls
+ * source-compatible while letting new code (or migrations) opt in by
+ * passing the extras object.
+ */
+export type TpExtras = {
+  es?: string;
+  fr?: string;
+  de?: string;
+  it?: string;
+};
+
 interface I18nContextValue {
   lang: Lang;
   setLang: (l: Lang) => void;
   /** 2-arg form (ru, en) - legacy; pl falls back to en. */
   t: (ru: string, en: string) => string;
   /**
-   * 3-arg form (ru, en, pl). Legacy shape - works for a RU/EN/PL-only app.
-   * Hardcoded signature means adding IT/ES/FR/DE requires touching every
-   * call site. Prefer `tl(obj)` for new code.
+   * Translation picker. Backward compatible with the original 3-arg form:
+   *   tp('Привет', 'Hi', 'Czesc')                       // RU/EN/PL only
+   *   tp('Привет', 'Hi', 'Czesc', { es: 'Hola', ... })  // also covers ES/FR/DE/IT
+   *
+   * Without the 4th arg, ES/FR/DE/IT visitors see the EN string. With the
+   * 4th arg, each provided lang is returned natively. Prefer `tl(obj)` for
+   * brand-new strings - it's cleaner - but the 4-arg form is the safe
+   * incremental upgrade path for the ~500 existing 3-arg call sites.
    */
-  tp: (ru: string, en: string, pl: string) => string;
+  tp: (ru: string, en: string, pl: string, extras?: TpExtras) => string;
   /**
    * Object-based translation. Extensible: add any Lang key and it will be
    * picked up automatically. Missing keys fall back to en, then ru, then
@@ -127,7 +146,17 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
   );
 
   const tp = useCallback(
-    (ru: string, en: string, pl: string) => (lang === 'ru' ? ru : lang === 'pl' ? pl : en),
+    (ru: string, en: string, pl: string, extras?: TpExtras) => {
+      switch (lang) {
+        case 'ru': return ru;
+        case 'pl': return pl;
+        case 'es': return extras?.es ?? en;
+        case 'fr': return extras?.fr ?? en;
+        case 'de': return extras?.de ?? en;
+        case 'it': return extras?.it ?? en;
+        default:   return en;
+      }
+    },
     [lang],
   );
 

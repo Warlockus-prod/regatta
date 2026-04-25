@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import LanguageToggle from './LanguageToggle';
 import BootcampProgressChip from './BootcampProgressChip';
 import { useI18n } from '@/lib/i18n';
+import type { Lang } from '@/lib/languages';
 
 // ============================================================================
 // Menu model - primary items always visible on desktop,
@@ -15,11 +16,13 @@ import { useI18n } from '@/lib/i18n';
 interface NavItem {
   href: string;
   ru: string; en: string; pl: string;
+  es?: string; fr?: string; de?: string; it?: string;
   icon: React.ReactNode;
 }
 
 interface NavGroup {
   titleRu: string; titleEn: string; titlePl: string;
+  titleEs?: string; titleFr?: string; titleDe?: string; titleIt?: string;
   items: NavItem[];
 }
 
@@ -104,45 +107,75 @@ const Icon = {
 
 // Primary - always in the desktop bar
 const primary: NavItem[] = [
-  { href: '/', ru: 'Главная', en: 'Home', pl: 'Glowna', icon: Icon.home },
-  { href: '/start', ru: 'Старт', en: 'Start', pl: 'Start', icon: Icon.start },
-  { href: '/courses', ru: 'Курсы к ветру', en: 'Points of sail', pl: 'Kursy wiatru', icon: Icon.courses },
-  { href: '/simulator', ru: 'Симулятор', en: 'Simulator', pl: 'Symulator', icon: Icon.simulator },
-  { href: '/game', ru: 'Гонка', en: 'Race', pl: 'Regata', icon: Icon.race },
+  { href: '/',          ru: 'Главная',        en: 'Home',           pl: 'Glowna',        es: 'Inicio',           fr: 'Accueil',          de: 'Start',         it: 'Home',          icon: Icon.home },
+  { href: '/start',     ru: 'Старт',          en: 'Start',          pl: 'Start',         es: 'Empezar',          fr: 'Demarrer',         de: 'Los',           it: 'Inizia',        icon: Icon.start },
+  { href: '/courses',   ru: 'Курсы к ветру',  en: 'Points of sail', pl: 'Kursy wiatru',  es: 'Rumbos',           fr: 'Allures',          de: 'Windkurse',     it: 'Andature',      icon: Icon.courses },
+  { href: '/simulator', ru: 'Симулятор',      en: 'Simulator',      pl: 'Symulator',     es: 'Simulador',        fr: 'Simulateur',       de: 'Simulator',     it: 'Simulatore',    icon: Icon.simulator },
+  { href: '/game',      ru: 'Гонка',          en: 'Race',           pl: 'Regata',        es: 'Regata',           fr: 'Course',           de: 'Rennen',        it: 'Regata',        icon: Icon.race },
 ];
 
 // Grouped extras
 const groups: NavGroup[] = [
   {
     titleRu: 'Обучение', titleEn: 'Learn', titlePl: 'Nauka',
+    titleEs: 'Aprender', titleFr: 'Apprendre', titleDe: 'Lernen', titleIt: 'Imparare',
     items: [
-      { href: '/rules', ru: 'Правила', en: 'Rules', pl: 'Przepisy', icon: Icon.rules },
-      { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka', icon: Icon.tactics },
+      { href: '/rules',  ru: 'Правила', en: 'Rules',   pl: 'Przepisy', es: 'Reglas',     fr: 'Regles',     de: 'Regeln',  it: 'Regole',    icon: Icon.rules },
+      { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka',  es: 'Tactica',    fr: 'Tactique',   de: 'Taktik',  it: 'Tattica',   icon: Icon.tactics },
     ],
   },
   {
     titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokladzie',
+    titleEs: 'A bordo', titleFr: 'A bord', titleDe: 'An Bord', titleIt: 'A bordo',
     items: [
-      { href: '/anatomy', ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu', icon: Icon.anatomy },
-      { href: '/checklist', ru: 'Чек-лист', en: 'Checklist', pl: 'Lista kontrolna', icon: Icon.checklist },
+      { href: '/anatomy',   ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu',    es: 'Anatomia del velero', fr: 'Anatomie du voilier', de: 'Aufbau der Yacht', it: 'Anatomia della barca', icon: Icon.anatomy },
+      { href: '/checklist', ru: 'Чек-лист',         en: 'Checklist',     pl: 'Lista kontrolna', es: 'Checklist',           fr: 'Checklist',           de: 'Checkliste',       it: 'Checklist',            icon: Icon.checklist },
     ],
   },
   {
     titleRu: 'Ещё', titleEn: 'More', titlePl: 'Wiecej',
+    titleEs: 'Mas', titleFr: 'Plus', titleDe: 'Mehr', titleIt: 'Altro',
     items: [
-      { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', icon: Icon.race },
-      { href: '/glossary', ru: 'Глоссарий', en: 'Glossary', pl: 'Glosariusz', icon: Icon.glossary },
-      { href: '/gallery', ru: 'Галерея', en: 'Gallery', pl: 'Galeria', icon: Icon.gallery },
+      { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', es: 'Multijugador', fr: 'Multijoueur', de: 'Mehrspieler', it: 'Multigiocatore', icon: Icon.race },
+      { href: '/glossary',    ru: 'Глоссарий',   en: 'Glossary',    pl: 'Glosariusz',  es: 'Glosario',     fr: 'Glossaire',   de: 'Glossar',     it: 'Glossario',      icon: Icon.glossary },
+      { href: '/gallery',     ru: 'Галерея',     en: 'Gallery',     pl: 'Galeria',     es: 'Galeria',      fr: 'Galerie',     de: 'Galerie',     it: 'Galleria',       icon: Icon.gallery },
     ],
   },
 ];
+
+function pickNavLabel<T extends { ru: string; en: string; pl: string; es?: string; fr?: string; de?: string; it?: string }>(
+  obj: T, lang: Lang,
+): string {
+  switch (lang) {
+    case 'ru': return obj.ru;
+    case 'pl': return obj.pl;
+    case 'es': return obj.es ?? obj.en;
+    case 'fr': return obj.fr ?? obj.en;
+    case 'de': return obj.de ?? obj.en;
+    case 'it': return obj.it ?? obj.en;
+    default:   return obj.en;
+  }
+}
+
+function pickNavGroupTitle(g: NavGroup, lang: Lang): string {
+  switch (lang) {
+    case 'ru': return g.titleRu;
+    case 'pl': return g.titlePl;
+    case 'es': return g.titleEs ?? g.titleEn;
+    case 'fr': return g.titleFr ?? g.titleEn;
+    case 'de': return g.titleDe ?? g.titleEn;
+    case 'it': return g.titleIt ?? g.titleEn;
+    default:   return g.titleEn;
+  }
+}
 
 // ============================================================================
 
 export default function Navigation() {
   const pathname = usePathname();
   const { lang, tp } = useI18n();
-  const labelOf = (item: NavItem) => (lang === 'ru' ? item.ru : lang === 'pl' ? item.pl : item.en);
+  const labelOf = (item: NavItem) => pickNavLabel(item, lang);
+  const groupLabel = (g: NavGroup) => pickNavGroupTitle(g, lang);
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
@@ -203,8 +236,9 @@ export default function Navigation() {
               open={moreOpen}
               setOpen={setMoreOpen}
               labelOf={labelOf}
+              groupLabel={groupLabel}
               pathname={pathname}
-              moreLabel={tp('Ещё', 'More', 'Wiecej')}
+              moreLabel={tp('Ещё', 'More', 'Wiecej', { es: 'Mas', fr: 'Plus', de: 'Mehr', it: 'Altro' })}
             />
           </div>
 
@@ -214,7 +248,7 @@ export default function Navigation() {
 
             <button
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
-              title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skroty (?)')}
+              title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skroty (?)', { es: 'Atajos (?)', fr: 'Raccourcis (?)', de: 'Tastenkuerzel (?)', it: 'Scorciatoie (?)' })}
               aria-label="Open help"
               className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)] transition text-sm font-bold"
             >
@@ -226,6 +260,7 @@ export default function Navigation() {
               open={mobileOpen}
               setOpen={setMobileOpen}
               labelOf={labelOf}
+              groupLabel={groupLabel}
               pathname={pathname}
               tp={tp}
             />
@@ -244,12 +279,14 @@ function MoreDropdown({
   open,
   setOpen,
   labelOf,
+  groupLabel,
   pathname,
   moreLabel,
 }: {
   open: boolean;
   setOpen: (b: boolean) => void;
   labelOf: (i: NavItem) => string;
+  groupLabel: (g: NavGroup) => string;
   pathname: string;
   moreLabel: string;
 }) {
@@ -300,7 +337,7 @@ function MoreDropdown({
           {groups.map((g) => (
             <div key={g.titleEn} className="py-1.5">
               <div className="px-3 pb-1.5 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                {tp(g.titleRu, g.titleEn, g.titlePl)}
+                {groupLabel(g)}
               </div>
               <div className="grid grid-cols-1 gap-0.5">
                 {g.items.map((item) => {
@@ -337,14 +374,16 @@ function MobileMenu({
   open,
   setOpen,
   labelOf,
+  groupLabel,
   pathname,
   tp,
 }: {
   open: boolean;
   setOpen: (b: boolean) => void;
   labelOf: (i: NavItem) => string;
+  groupLabel: (g: NavGroup) => string;
   pathname: string;
-  tp: (ru: string, en: string, pl: string) => string;
+  tp: (ru: string, en: string, pl: string, extras?: { es?: string; fr?: string; de?: string; it?: string }) => string;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
@@ -415,7 +454,7 @@ function MobileMenu({
             {groups.map((g) => (
               <div key={g.titleEn} className="py-1 border-t border-[rgba(0,212,255,0.08)]">
                 <div className="px-3 pt-2 pb-1 text-[10px] font-semibold uppercase tracking-wider text-[var(--text-muted)]">
-                  {tp(g.titleRu, g.titleEn, g.titlePl)}
+                  {groupLabel(g)}
                 </div>
                 {g.items.map((item) => {
                   const isActive = pathname === item.href;

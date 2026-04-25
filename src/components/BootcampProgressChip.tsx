@@ -46,7 +46,8 @@ export default function BootcampProgressChip() {
         borderColor: 'rgba(0, 212, 255, 0.25)',
         color: 'var(--accent-cyan)',
       }}
-      title={tp('Вернуться к курсу', 'Back to course', 'Wroc do kursu')}
+      title={tp('Вернуться к курсу', 'Back to course', 'Wroc do kursu',
+        { es: 'Volver al curso', fr: 'Retour au cours', de: 'Zurueck zum Kurs', it: 'Torna al corso' })}
     >
       <span>📚</span>
       <span>{completedCount}/{bootcampLessons.length}</span>
