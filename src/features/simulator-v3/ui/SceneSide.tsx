@@ -69,8 +69,14 @@ export function SceneSide({
   const boomEndX = cx + boomLen * boomProj;
   const boomEndY = waterY - 90;
 
-  const sailColor = sim.result.diag.mainStalled ? '#ffd7d7' : '#ffffff';
-  const jibColor = sim.result.diag.jibStalled ? '#ffe3d2' : '#f7fbff';
+  const sailColor = sim.result.diag.mainStalled ? '#ffc8b0' : '#fffaee';
+  const jibColor = sim.result.diag.jibStalled ? '#ffd7c0' : '#eaf3fb';
+  const mainAccent = sim.result.diag.mainStalled
+    ? 'rgba(255, 140, 110, 0.65)'
+    : 'rgba(255, 235, 200, 0.6)';
+  const jibAccent = sim.result.diag.jibStalled
+    ? 'rgba(255, 160, 120, 0.6)'
+    : 'rgba(150, 220, 255, 0.55)';
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
@@ -329,6 +335,33 @@ export function SceneSide({
                   />
                 );
               })}
+              {/* Airflow streamlines along the main when attached.
+                  Pulse softly. */}
+              {!sim.result.diag.mainStalled && (
+                <g opacity={0.6}>
+                  {[-200, -150, -100, -50].map((y, i) => {
+                    const reach = ((y + 232) / 204) * (boomEndX - cx) * 0.85;
+                    return (
+                      <path
+                        key={y}
+                        d={`M 0 ${y + 4} Q ${reach * 0.5} ${y + 2} ${reach} ${y + 6}`}
+                        stroke={mainAccent}
+                        strokeWidth={1.3}
+                        strokeLinecap="round"
+                        fill="none"
+                      >
+                        <animate
+                          attributeName="opacity"
+                          values="0.1;0.7;0.1"
+                          dur={`${1.8 + i * 0.25}s`}
+                          begin={`${i * 0.4}s`}
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                    );
+                  })}
+                </g>
+              )}
               {/* Telltale at leech */}
               <line
                 x1={(boomEndX - cx) * 0.85}
@@ -364,6 +397,33 @@ export function SceneSide({
               stroke="rgba(208, 216, 224, 0.3)"
               strokeWidth={0.8}
             />
+            {/* Airflow streamlines along the jib */}
+            {!sim.result.diag.jibStalled && (
+              <g opacity={0.55}>
+                {[-180, -130, -80, -50].map((y, i) => {
+                  const factor = (y + 208) / 180;
+                  const reach = factor * 110;
+                  return (
+                    <path
+                      key={y}
+                      d={`M 0 ${y + 2} Q ${reach * 0.4} ${y + 1} ${reach} ${y + 4}`}
+                      stroke={jibAccent}
+                      strokeWidth={1.2}
+                      strokeLinecap="round"
+                      fill="none"
+                    >
+                      <animate
+                        attributeName="opacity"
+                        values="0.1;0.6;0.1"
+                        dur={`${1.6 + i * 0.2}s`}
+                        begin={`${i * 0.35}s`}
+                        repeatCount="indefinite"
+                      />
+                    </path>
+                  );
+                })}
+              </g>
+            )}
             {/* Telltale on jib leech */}
             <line
               x1={80}

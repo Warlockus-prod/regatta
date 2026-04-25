@@ -478,8 +478,14 @@ function BoatTop(args: {
   const mainBelly = finite((1 - 0.5 * windIntensity) * mainVisualScale, 1);
   const jibBelly = finite(1 - 0.4 * windIntensity, 1);
 
-  const mainTint = mainStalled ? '#ffd7d7' : '#ffffff';
-  const jibTint = jibStalled ? '#ffe3d2' : '#f7fbff';
+  // Color tint per sail so the user reads them apart at a glance: main is
+  // a warm white (slightly cream), jib is a cool white (slightly icy).
+  // When stalled, both shift toward red/orange - the eye catches the warm
+  // tone and that prompts a "this sail is in trouble" check.
+  const mainTint = mainStalled ? '#ffc8b0' : '#fffaee';
+  const jibTint = jibStalled ? '#ffd7c0' : '#eaf3fb';
+  const mainAccent = mainStalled ? 'rgba(255, 140, 110, 0.65)' : 'rgba(255, 235, 200, 0.65)';
+  const jibAccent = jibStalled ? 'rgba(255, 160, 120, 0.6)' : 'rgba(150, 220, 255, 0.6)';
 
   return (
     <>
@@ -535,6 +541,36 @@ function BoatTop(args: {
             strokeWidth={2.2}
             strokeLinejoin="round"
           />
+          {/* Airflow streamlines - 3 short curves on the leeward face that
+              show air sliding along the sail. When the sail is stalled,
+              the flow detaches and these vanish so the eye sees "no flow
+              = no drive". Animation is a soft pulse so the lines feel
+              alive without distracting. */}
+          {!jibStalled && (
+            <g opacity={0.7}>
+              {[24, 50, 80].map((y, i) => {
+                const reach = sailSide * (16 + (y / 100) * 8) * jibBelly;
+                return (
+                  <path
+                    key={i}
+                    d={`M 0 ${y} Q ${reach * 0.5} ${y - 1} ${reach} ${y + 1}`}
+                    stroke={jibAccent}
+                    strokeWidth={1.2}
+                    strokeLinecap="round"
+                    fill="none"
+                  >
+                    <animate
+                      attributeName="opacity"
+                      values="0.15;0.75;0.15"
+                      dur={`${1.6 + i * 0.25}s`}
+                      begin={`${i * 0.4}s`}
+                      repeatCount="indefinite"
+                    />
+                  </path>
+                );
+              })}
+            </g>
+          )}
           {/* Telltale at the leech - a short line that biases windward
               when flow is attached, flutters stall-side when detached.
               Single static draw is enough; user reads position at a
@@ -548,14 +584,23 @@ function BoatTop(args: {
             strokeWidth={1.6}
             strokeLinecap="round"
           />
+          {/* Label with pill background so it reads on any sail tint */}
+          <rect
+            x={sailSide * 18 * jibBelly - 14}
+            y={50}
+            width={28}
+            height={12}
+            rx={3}
+            fill="rgba(10, 22, 40, 0.78)"
+          />
           <text
             x={sailSide * 18 * jibBelly}
-            y={58}
-            fill="#0a1628"
+            y={59}
+            fill="#7fc8ff"
             fontSize="9"
             fontWeight="800"
             textAnchor="middle"
-            style={{ letterSpacing: '0.08em' }}
+            style={{ letterSpacing: '0.12em' }}
           >
             JIB
           </text>
@@ -616,16 +661,46 @@ function BoatTop(args: {
               />
             );
           })}
-          {/* Boom - dark line along the foot, from mast to clew region */}
+          {/* Airflow streamlines on the main. Same idea as the jib but
+              longer (the main is bigger) and aligned with the sail's
+              chord. Vanish on stall to make "no drive" readable. */}
+          {!mainStalled && (
+            <g opacity={0.65}>
+              {[20, 56, 92, 128].map((y, i) => {
+                const reach = sailSide * (28 + (y / 150) * 14) * mainBelly;
+                return (
+                  <path
+                    key={i}
+                    d={`M 0 ${y} Q ${reach * 0.5} ${y - 1.5} ${reach} ${y + 2}`}
+                    stroke={mainAccent}
+                    strokeWidth={1.3}
+                    strokeLinecap="round"
+                    fill="none"
+                  >
+                    <animate
+                      attributeName="opacity"
+                      values="0.1;0.65;0.1"
+                      dur={`${1.8 + i * 0.2}s`}
+                      begin={`${i * 0.35}s`}
+                      repeatCount="indefinite"
+                    />
+                  </path>
+                );
+              })}
+            </g>
+          )}
+          {/* Boom - thicker dark line along the foot, with a small bracket
+              at the gooseneck so it visually connects to the mast. */}
           <line
             x1={0}
             y1={150}
             x2={sailSide * 56 * mainBelly}
             y2={150}
-            stroke="#3a4656"
-            strokeWidth={2.5}
+            stroke="#1a2230"
+            strokeWidth={4}
             strokeLinecap="round"
           />
+          <circle cx={0} cy={150} r={3.5} fill="#2a4060" stroke="#0a1628" strokeWidth={1} />
           {/* Telltale at the leech of the main */}
           <line
             x1={sailSide * 50 * mainBelly}
@@ -636,10 +711,19 @@ function BoatTop(args: {
             strokeWidth={1.8}
             strokeLinecap="round"
           />
+          {/* Label with pill background */}
+          <rect
+            x={sailSide * 34 * mainBelly - 18}
+            y={86}
+            width={36}
+            height={14}
+            rx={3}
+            fill="rgba(10, 22, 40, 0.78)"
+          />
           <text
             x={sailSide * 34 * mainBelly}
-            y={94}
-            fill="#0a1628"
+            y={96}
+            fill="#ffd7a8"
             fontSize="10"
             fontWeight="800"
             textAnchor="middle"
