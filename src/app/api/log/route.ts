@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logError, logWarn, logInfo } from '@/lib/log';
 import { insertEvent } from '@/lib/db';
+import geoip from 'fast-geoip';
 
 export const runtime = 'nodejs';
 
@@ -54,15 +55,34 @@ export async function POST(req: Request) {
     const jar = await cookies();
     const sid = jar.get('regatta_sid')?.value;
 
-    // Country: prefer proxy-injected header, fall back to client-reported
-    // value (e.g. set via CloudFront or an earlier ip-api lookup).
+    // Country detection - three-tier fallback:
+    //   1. proxy-injected header (cf-ipcountry / x-vercel-ip-country /
+    //      x-country-code from a geoip2-aware nginx)
+    //   2. client-reported (rare; only set if a CDN or earlier endpoint
+    //      surfaced it to JS)
+    //   3. Node-side fast-geoip lookup against the request IP (covers
+    //      bare-VPS deploys with no proxy magic, like the current
+    //      regatta box). fast-geoip lazy-loads its tiered chunks the
+    //      first time it sees a new prefix, so the cold-start cost is
+    //      bounded and amortised.
     const countryHeader =
       req.headers.get('cf-ipcountry') ||
       req.headers.get('x-vercel-ip-country') ||
       req.headers.get('x-country-code');
-    const country =
-      (typeof countryHeader === 'string' && countryHeader.length === 2 ? countryHeader.toUpperCase() : null) ||
+    let country: string | undefined =
+      (typeof countryHeader === 'string' && countryHeader.length === 2 ? countryHeader.toUpperCase() : undefined) ??
       (typeof body.country === 'string' && body.country.length === 2 ? body.country.toUpperCase() : undefined);
+    if (!country && fields.ip && fields.ip !== 'unknown') {
+      try {
+        const lookup = await geoip.lookup(fields.ip as string);
+        if (lookup?.country && lookup.country.length === 2) {
+          country = lookup.country.toUpperCase();
+        }
+      } catch {
+        // fast-geoip failures are non-fatal - fall through with country
+        // staying undefined.
+      }
+    }
 
     // Persist to DB for /stats dashboard
     insertEvent({

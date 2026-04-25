@@ -11,61 +11,43 @@ forgotten between regattas.
 
 ---
 
-## Country tracking via nginx geoip2
+## Country tracking
 
-`/api/log` (see `src/app/api/log/route.ts`) reads the country from any
-of these request headers, in order:
+`/api/log` (see `src/app/api/log/route.ts`) resolves country in three
+tiers, in order:
 
-1. `cf-ipcountry` - Cloudflare front
-2. `x-vercel-ip-country` - Vercel deploys
-3. `x-country-code` - generic, set by nginx geoip2 below
+1. `cf-ipcountry` header (when fronted by Cloudflare)
+2. `x-vercel-ip-country` header (Vercel-style deploys)
+3. `x-country-code` header (custom, e.g. nginx geoip2)
+4. **fast-geoip lookup against the request IP** - Node-side, no infra
+   needed. Works on the bare-VPS deploy regatta.icoffio.com is on now.
 
-If none is present, `events.country` stores NULL and the /stats UI
-shows an "EmptyHint" panel until you wire one up. Without country data
-the rest of the analytics still work.
+The fast-geoip path was added 2026-04-25 after we discovered the
+production proxy is a Docker `nginx:latest` container without geoip2
+module support. Adding country lookup at the Node tier is simpler than
+rebuilding the proxy image.
 
-### Setup (one-time on the VPS)
+### When country is still NULL
 
-**Fast path** (recommended): run the bundled script. It is idempotent
-and uses the dbip-country-lite mirror so no MaxMind license is needed:
+- The request IP is loopback / private (`127.0.0.1`, `10.x`, `172.16-31`,
+  `192.168`) - common in local dev or behind a misconfigured reverse
+  proxy that strips X-Forwarded-For.
+- The IP isn't in the fast-geoip dataset (very rare; the dataset
+  covers all assigned IPv4 + IPv6 ranges).
+
+For a one-off audit:
 ```
-ssh root@178.104.223.93
-curl -fsSL https://raw.githubusercontent.com/Warlockus-prod/regatta/main/scripts/setup-nginx-geoip2.sh | sudo bash
+docker exec -it regatta sh -c "node -e \"
+  require('fast-geoip').lookup('8.8.8.8').then(r => console.log(r))
+\""
 ```
 
-The script:
-1. Installs `libnginx-mod-http-geoip2` + `mmdb-bin`
-2. Downloads `GeoLite2-Country.mmdb` (or fetches from MaxMind if you set
-   `MAXMIND_KEY` in env first)
-3. Injects geoip2 directives into `/etc/nginx/nginx.conf` (idempotent)
-4. Adds `proxy_set_header X-Country-Code $geoip2_country_code;` into
-   the regatta vhost
-5. `nginx -t && systemctl reload nginx`
-6. Smoke-checks `/api/health`
+### Optional: shift country resolution to nginx (faster, lower CPU)
 
-**Manual path** if you'd rather verify each step:
-
-1. `sudo apt-get install -y libnginx-mod-http-geoip2 mmdb-bin`
-2. Drop `GeoLite2-Country.mmdb` (MaxMind sign-up free, or use dbip-lite
-   from `https://download.db-ip.com/free/`) into `/etc/nginx/geoip2/`.
-3. In `/etc/nginx/nginx.conf` `http { ... }`:
-   ```nginx
-   geoip2 /etc/nginx/geoip2/GeoLite2-Country.mmdb {
-       $geoip2_country_code default=ZZ source=$remote_addr country iso_code;
-   }
-   ```
-4. In the regatta vhost (probably under `/etc/nginx/sites-enabled/`):
-   ```nginx
-   proxy_set_header X-Country-Code $geoip2_country_code;
-   ```
-5. `sudo nginx -t && sudo systemctl reload nginx`. Hit the site once,
-   then look at `/stats` - the Countries panel should populate within
-   the next page-view.
-
-Monthly DB refresh cron (dbip-lite tracks the same iso2 codes):
-```
-0 4 1 * * root curl -fsSL https://download.db-ip.com/free/dbip-country-lite-$(date +%Y-%m).mmdb.gz | gunzip > /etc/nginx/geoip2/GeoLite2-Country.mmdb && systemctl reload nginx
-```
+If we ever migrate to a self-built `nginx-with-geoip2` image, drop the
+node-side lookup and uncomment the header parsing path. The bundled
+`scripts/setup-nginx-geoip2.sh` walks through that setup; not needed
+for the current deploy.
 
 ---
 

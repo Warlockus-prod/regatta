@@ -60,13 +60,13 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   const categories: { id: Category; labelRu: string; labelEn: string; labelPl: string; emoji: string }[] = [
     { id: 'useful', labelRu: 'Полезно', labelEn: 'Useful', labelPl: 'Przydatne', emoji: '👍' },
     { id: 'unclear', labelRu: 'Непонятно', labelEn: 'Unclear', labelPl: 'Niejasne', emoji: '❓' },
-    { id: 'idea', labelRu: 'Идея', labelEn: 'Idea', labelPl: 'Pomysł', emoji: '💡' },
+    { id: 'idea', labelRu: 'Идея', labelEn: 'Idea', labelPl: 'Pomysl', emoji: '💡' },
     { id: 'other', labelRu: 'Другое', labelEn: 'Other', labelPl: 'Inne', emoji: '✏️' },
   ];
 
   const submitFeedback = useCallback(async () => {
     if (!message.trim()) {
-      setError(tp('Напиши пару слов, что улучшить', 'Write a couple of words', 'Napisz kilka słów'));
+      setError(tp('Напиши пару слов, что улучшить', 'Write a couple of words', 'Napisz kilka slow'));
       return;
     }
     setSending(true);
@@ -91,7 +91,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || tp('Не удалось отправить', 'Failed to send', 'Nie udało się wysłać'));
+        throw new Error(data.error || tp('Не удалось отправить', 'Failed to send', 'Nie udalo sie wyslac'));
       }
       setSent(true);
       setMessage('');
@@ -103,7 +103,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
         setSent(false);
       }, 1800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci'));
+      setError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Blad sieci'));
     } finally {
       setSending(false);
     }
@@ -130,7 +130,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       }
       setChat([...nextChat, { role: 'assistant', content: data.reply || '' }]);
     } catch (err) {
-      setChatError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci'));
+      setChatError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Blad sieci'));
     } finally {
       setChatLoading(false);
     }
@@ -144,7 +144,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label={tp('Открыть ассистента', 'Open assistant', 'Otwórz asystenta')}
+          aria-label={tp('Открыть ассистента', 'Open assistant', 'Otworz asystenta')}
           className="fixed bottom-4 right-4 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
           style={{
             background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)',
@@ -166,7 +166,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
           onClick={() => !sending && setOpen(false)}
         >
           <div
-            className="card w-full sm:max-w-md p-5 sm:p-6 rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-hidden flex flex-col"
+            className="card w-full max-w-[100vw] sm:max-w-md p-5 sm:p-6 rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-hidden flex flex-col min-w-0"
             onClick={(e) => e.stopPropagation()}
             style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}
           >
@@ -176,10 +176,10 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                 {tab === 'ai'
                   ? tp('AI-ассистент', 'AI assistant', 'Asystent AI')
                   : sent
-                    ? tp('Спасибо! ✨', 'Thanks! ✨', 'Dziękuję! ✨')
+                    ? tp('Спасибо! ✨', 'Thanks! ✨', 'Dziekuje! ✨')
                     : kind === 'feedback'
                       ? tp('Отзыв', 'Feedback', 'Opinia')
-                      : tp('Сообщить о проблеме', 'Report a problem', 'Zgłoś problem')}
+                      : tp('Сообщить о проблеме', 'Report a problem', 'Zglos problem')}
               </h2>
               <button
                 onClick={() => setOpen(false)}
@@ -228,11 +228,11 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {tp(
                         'Привет! Спроси что-нибудь про яхтинг: курсы к ветру, правила, трим парусов, как лавировать. Сначала направлю по разделам сайта - если там нет, отвечу сам.',
                         "Hi! Ask anything about sailing: points of sail, rules, sail trim, tacking. I'll point you to a section of the site first - if it's not there, I'll answer myself.",
-                        "Cześć! Zapytaj o cokolwiek z żeglarstwa: kursy, przepisy, trym żagli, halsowanie. Najpierw wskażę sekcję strony - jeśli tam nie ma, odpowiem sam."
+                        "Czesc! Zapytaj o cokolwiek z zeglarstwa: kursy, przepisy, trym zagli, halsowanie. Najpierw wskaze sekcje strony - jesli tam nie ma, odpowiem sam."
                       )}
                       <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
                         {([
-                          tp('Как начать лавировку?', 'How to start tacking?', 'Jak zacząć halsowanie?'),
+                          tp('Как начать лавировку?', 'How to start tacking?', 'Jak zaczac halsowanie?'),
                           tp('Что такое фордевинд?', 'What is running?', 'Co to fordewind?'),
                           tp('Что такое apparent wind?', 'What is apparent wind?', 'Co to apparent wind?'),
                         ]).map((q) => (
@@ -255,7 +255,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   {chatLoading && (
                     <div className="text-sm text-[var(--text-muted)] flex items-center gap-2 px-2">
                       <span className="inline-block w-2 h-2 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-                      {tp('Думаю...', 'Thinking...', 'Myślę...')}
+                      {tp('Думаю...', 'Thinking...', 'Mysle...')}
                     </div>
                   )}
 
@@ -268,15 +268,24 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
 
                 <form
                   onSubmit={(e) => { e.preventDefault(); sendChat(); }}
-                  className="mt-3 flex gap-2 shrink-0"
+                  className="mt-3 flex gap-2 shrink-0 w-full min-w-0"
                 >
+                  {/*
+                    `min-w-0` is critical here: a default `<input>` has an
+                    intrinsic content size driven by its `size` attribute
+                    (default 20em). On a flex parent, that intrinsic size
+                    refuses to shrink unless we override `min-width`. Without
+                    this, on a 320px viewport the input + button overflow the
+                    modal and force a horizontal scroll. Same pattern applied
+                    to the textareas + email input below for consistency.
+                  */}
                   <input
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o żeglarstwo...')}
+                    placeholder={tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o zeglarstwo...')}
                     disabled={chatLoading}
-                    className="flex-1 px-3 py-2 rounded-lg text-sm"
+                    className="flex-1 min-w-0 px-3 py-2 rounded-lg text-sm"
                     style={{
                       background: 'var(--bg-secondary)',
                       border: '1px solid rgba(0, 212, 255, 0.15)',
@@ -296,7 +305,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   </button>
                 </form>
                 <div className="text-[10px] text-[var(--text-muted)] mt-2 text-center">
-                  {tp('Только темы яхтинга. Powered by Claude.', 'Sailing topics only. Powered by Claude.', 'Tylko żeglarstwo. Powered by Claude.')}
+                  {tp('Только темы яхтинга. Powered by Claude.', 'Sailing topics only. Powered by Claude.', 'Tylko zeglarstwo. Powered by Claude.')}
                 </div>
               </div>
             )}
@@ -308,7 +317,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   <p className="text-sm text-[var(--text-secondary)]">
                     {tp('Получил, буду разбирать. Если указал контакт - отвечу.',
                         "Got it. I'll go through this. If you left a contact, I'll reply.",
-                        'Otrzymałem. Przejrzę. Jeśli zostawiłeś kontakt - odpowiem.')}
+                        'Otrzymalem. Przejrze. Jesli zostawiles kontakt - odpowiem.')}
                   </p>
                 ) : (
                   <>
@@ -333,7 +342,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                           color: kind === 'bug' ? 'var(--danger)' : 'var(--text-secondary)',
                         }}
                       >
-                        🐛 {tp('Проблема', 'Bug', 'Błąd')}
+                        🐛 {tp('Проблема', 'Bug', 'Blad')}
                       </button>
                     </div>
 
@@ -366,7 +375,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {kind === 'bug' && (
                         <>
                           <textarea
-                            placeholder={tp('Что ожидал увидеть?', 'What did you expect?', 'Czego się spodziewałeś?')}
+                            placeholder={tp('Что ожидал увидеть?', 'What did you expect?', 'Czego sie spodziewales?')}
                             value={expected}
                             onChange={(e) => setExpected(e.target.value)}
                             rows={2}
@@ -378,7 +387,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                             }}
                           />
                           <textarea
-                            placeholder={tp('Что произошло на самом деле?', 'What actually happened?', 'Co się właściwie stało?')}
+                            placeholder={tp('Что произошло на самом деле?', 'What actually happened?', 'Co sie wlasciwie stalo?')}
                             value={actual}
                             onChange={(e) => setActual(e.target.value)}
                             rows={2}
@@ -395,8 +404,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       <textarea
                         placeholder={
                           kind === 'feedback'
-                            ? tp('Расскажи подробнее (необязательно)', 'Tell me more (optional)', 'Opowiedz więcej (opcjonalnie)')
-                            : tp('Дополнительные детали (шаги воспроизведения)', 'More details (steps to reproduce)', 'Więcej szczegółów (kroki)')
+                            ? tp('Расскажи подробнее (необязательно)', 'Tell me more (optional)', 'Opowiedz wiecej (opcjonalnie)')
+                            : tp('Дополнительные детали (шаги воспроизведения)', 'More details (steps to reproduce)', 'Wiecej szczegolow (kroki)')
                         }
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -431,7 +440,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {tp(
                         'Автоматически приложим: страницу, размер экрана, браузер, язык, время.',
                         'We\'ll auto-attach: page, viewport, browser, language, time.',
-                        'Automatycznie dołączymy: stronę, rozmiar ekranu, przeglądarkę, język, czas.',
+                        'Automatycznie dolaczymy: strone, rozmiar ekranu, przegladarke, jezyk, czas.',
                       )}
                     </div>
 
@@ -451,10 +460,10 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       }}
                     >
                       {sending
-                        ? tp('Отправляю…', 'Sending…', 'Wysyłam…')
+                        ? tp('Отправляю…', 'Sending…', 'Wysylam…')
                         : kind === 'feedback'
-                          ? tp('Отправить отзыв', 'Send feedback', 'Wyślij opinię')
-                          : tp('Отправить репорт', 'Send report', 'Wyślij zgłoszenie')}
+                          ? tp('Отправить отзыв', 'Send feedback', 'Wyslij opinie')
+                          : tp('Отправить репорт', 'Send report', 'Wyslij zgloszenie')}
                     </button>
                   </>
                 )}
