@@ -1,10 +1,26 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
+
+// Three.js + r3f is heavy (~120 KB gzipped). Code-split it behind a dynamic
+// import so visitors who never toggle 3D don't pay the cost. ssr:false
+// because Three.js needs WebGL context that doesn't exist on the server.
+const YachtViewer3D = dynamic(() => import('@/components/YachtViewer3D'), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="w-full flex items-center justify-center text-xs"
+      style={{ aspectRatio: '16 / 10', background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.4), rgba(6, 20, 40, 0.7))', color: 'var(--text-muted)' }}
+    >
+      Loading 3D model...
+    </div>
+  ),
+});
 
 // ============================================================================
 // Yacht anatomy - 2D Bavaria 46 side-profile with clickable hotspots.
@@ -143,9 +159,12 @@ function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onS
   );
 }
 
+type ViewMode = '2d' | '3d';
+
 export default function AnatomyPage() {
   const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
+  const [viewMode, setViewMode] = useState<ViewMode>('2d');
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
 
@@ -167,9 +186,66 @@ export default function AnatomyPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-4 sm:gap-6">
-        {/* Model area (2D only) */}
+        {/* Model area: 2D side-profile (with hotspots) OR interactive 3D viewer.
+            2D stays the default because hotspots are coordinated with the data
+            file - 3D is a contextual orbit view of the boat shape. */}
         <div className="card p-3 sm:p-4">
-          <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
+          {/* View toggle */}
+          <div className="flex items-center justify-between mb-3">
+            <div className="inline-flex rounded-lg p-1" style={{ background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.18)' }}>
+              <button
+                onClick={() => setViewMode('2d')}
+                className="text-xs px-3 py-1.5 rounded font-medium transition"
+                style={{
+                  background: viewMode === '2d' ? 'rgba(0, 212, 255, 0.18)' : 'transparent',
+                  color: viewMode === '2d' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                }}
+                aria-pressed={viewMode === '2d'}
+              >
+                {tp('2D профиль', '2D profile', '2D profil',
+                  { es: 'Perfil 2D', fr: 'Profil 2D', de: '2D-Profil', it: 'Profilo 2D' })}
+              </button>
+              <button
+                onClick={() => setViewMode('3d')}
+                className="text-xs px-3 py-1.5 rounded font-medium transition"
+                style={{
+                  background: viewMode === '3d' ? 'rgba(0, 212, 255, 0.18)' : 'transparent',
+                  color: viewMode === '3d' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
+                }}
+                aria-pressed={viewMode === '3d'}
+              >
+                {tp('3D модель', '3D model', '3D model',
+                  { es: 'Modelo 3D', fr: 'Modele 3D', de: '3D-Modell', it: 'Modello 3D' })}
+              </button>
+            </div>
+            <div className="text-[10px] text-[var(--text-muted)] hidden sm:block">
+              {viewMode === '2d'
+                ? tp('Кликабельные точки', 'Clickable hotspots', 'Klikalne punkty',
+                    { es: 'Puntos clicables', fr: 'Points cliquables', de: 'Klickbare Punkte', it: 'Punti cliccabili' })
+                : tp('Тяни для вращения', 'Drag to rotate', 'Przeciagnij aby obrocic',
+                    { es: 'Arrastra para rotar', fr: 'Glisse pour pivoter', de: 'Ziehen zum Drehen', it: 'Trascina per ruotare' })}
+            </div>
+          </div>
+
+          {viewMode === '2d' ? (
+            <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
+          ) : (
+            <YachtViewer3D
+              loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
+                { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}
+              hintLabel={tp(
+                'Тяни мышкой для вращения · колесом для зума',
+                'Drag to rotate · scroll to zoom',
+                'Przeciagnij aby obrocic · scroll do zoom',
+                {
+                  es: 'Arrastra para rotar · scroll para zoom',
+                  fr: 'Glisse pour pivoter · molette pour zoomer',
+                  de: 'Ziehen zum Drehen · Scrollen zum Zoomen',
+                  it: 'Trascina per ruotare · scroll per zoom',
+                },
+              )}
+            />
+          )}
           <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
             Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
           </div>
@@ -238,9 +314,17 @@ export default function AnatomyPage() {
       </div>
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
-        {tp('Стилизованный профиль Bavaria 46.',
-            'Stylized Bavaria 46 profile.',
-            'Stylizowany profil Bavaria 46.')}
+        {tp(
+          'Стилизованная модель Bavaria 46. 3D - low-poly заготовка под симулятор.',
+          'Stylized Bavaria 46. 3D - low-poly placeholder for the simulator pipeline.',
+          'Stylizowana Bavaria 46. 3D - low-poly model do symulatora.',
+          {
+            es: 'Bavaria 46 estilizada. 3D - modelo low-poly para el pipeline del simulador.',
+            fr: 'Bavaria 46 stylisee. 3D - modele low-poly pour le pipeline du simulateur.',
+            de: 'Stilisierte Bavaria 46. 3D - Low-Poly-Modell fuer die Simulator-Pipeline.',
+            it: 'Bavaria 46 stilizzata. 3D - modello low-poly per la pipeline del simulatore.',
+          },
+        )}
       </p>
 
       <ContentFooterNav page="/anatomy" />
