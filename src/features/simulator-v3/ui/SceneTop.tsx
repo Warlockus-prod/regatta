@@ -116,6 +116,17 @@ export function SceneTop({
   const mainVisualScale = REEF_VISUAL[ui.reefLevel];
   const jibVisualOpacity = clamp(ui.jibFurlPct / 100, 0.18, 1);
 
+  // Wind-shadow factor from main onto jib. On broad reach (TWA > 130) the
+  // main sheets out wide and physically blocks wind reaching the jib if
+  // both sails are leeward. Past TWA 175 the shadow is full. Visual only -
+  // the engine's slot model already handles the physics; this just tells
+  // the eye "the jib is in dead air now".
+  const absTwaForShadow = Math.abs(finite(sim.signedTwa));
+  const mainShadowOnJib = hasMain
+    ? clamp((absTwaForShadow - 130) / 45, 0, 1)
+    : 0;
+  const jibVisualOpacityShadowed = jibVisualOpacity * (1 - mainShadowOnJib * 0.55);
+
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
       <defs>
@@ -373,7 +384,8 @@ export function SceneTop({
           sailSide={sailSide}
           hasMain={hasMain}
           hasJib={hasJib}
-          jibOpacity={jibVisualOpacity}
+          jibOpacity={jibVisualOpacityShadowed}
+          mainShadowOnJib={mainShadowOnJib}
           mainVisualScale={mainVisualScale}
           windIntensity={windIntensity}
           mainStalled={sim.result.diag.mainStalled}
@@ -449,6 +461,9 @@ function BoatTop(args: {
   hasMain: boolean;
   hasJib: boolean;
   jibOpacity: number;
+  /** 0..1 - amount of wind blanketed by the main onto the jib. Used to
+   *  paint a "dead air" haze around the jib at broad reach / run. */
+  mainShadowOnJib: number;
   mainVisualScale: number;
   windIntensity: number;
   mainStalled: boolean;
@@ -460,6 +475,7 @@ function BoatTop(args: {
     hasMain,
     hasJib,
     jibOpacity,
+    mainShadowOnJib,
     mainVisualScale,
     windIntensity,
     mainStalled,
@@ -533,14 +549,38 @@ function BoatTop(args: {
           {/* Jib silhouette: single smooth curve (looser than main). The
               luff line (from tack at 0,0 down the foredeck) is implicit
               via the closing Z; the leech curves out to the clew and
-              back in toward the foot. */}
-          <path
-            d={`M 0 0 Q ${sailSide * 32 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 22 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`}
-            fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
-            stroke="#ffffff"
-            strokeWidth={2.2}
-            strokeLinejoin="round"
-          />
+              back in toward the foot. When stalled, the leech control
+              points oscillate so the trailing edge visibly flaps. */}
+          {jibStalled ? (
+            <path
+              d={`M 0 0 Q ${sailSide * 32 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 22 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`}
+              fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
+              stroke="#ffffff"
+              strokeWidth={2.2}
+              strokeLinejoin="round"
+            >
+              <animate
+                attributeName="d"
+                dur="0.55s"
+                repeatCount="indefinite"
+                values={[
+                  `M 0 0 Q ${sailSide * 30 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 18 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${sailSide * 36 * jibBelly} ${35} ${sailSide * 22 * jibBelly} ${70} Q ${sailSide * 28 * jibBelly} ${98} ${sailSide * 8} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${sailSide * 28 * jibBelly} ${35} ${sailSide * 32 * jibBelly} ${70} Q ${sailSide * 16 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${sailSide * 34 * jibBelly} ${35} ${sailSide * 26 * jibBelly} ${70} Q ${sailSide * 24 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${sailSide * 30 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 18 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
+                ].join(';')}
+              />
+            </path>
+          ) : (
+            <path
+              d={`M 0 0 Q ${sailSide * 32 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 22 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`}
+              fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
+              stroke="#ffffff"
+              strokeWidth={2.2}
+              strokeLinejoin="round"
+            />
+          )}
           {/* Airflow streamlines - 3 short curves on the leeward face that
               show air sliding along the sail. When the sail is stalled,
               the flow detaches and these vanish so the eye sees "no flow
@@ -637,14 +677,40 @@ function BoatTop(args: {
             fill="rgba(0,0,0,0.3)"
           />
           {/* Main silhouette - triangular crescent, head near mast top,
-              clew near boom end. Belly scales with wind. */}
-          <path
-            d={`M 0 -34 Q ${sailSide * 42 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 44 * mainBelly} ${134} ${sailSide * 18 * mainBelly} ${150} L 0 150 Z`}
-            fill={`url(#v3-main-grad-${sailSide}-${uid})`}
-            stroke="#ffffff"
-            strokeWidth={2.4}
-            strokeLinejoin="round"
-          />
+              clew near boom end. Belly scales with wind. When stalled,
+              the leech flaps - SMIL animation oscillates the control
+              points so the user sees "this sail is luffing" without
+              having to read the badge. */}
+          {mainStalled ? (
+            <path
+              d={`M 0 -34 Q ${sailSide * 42 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 44 * mainBelly} ${134} ${sailSide * 18 * mainBelly} ${150} L 0 150 Z`}
+              fill={`url(#v3-main-grad-${sailSide}-${uid})`}
+              stroke="#ffffff"
+              strokeWidth={2.4}
+              strokeLinejoin="round"
+            >
+              <animate
+                attributeName="d"
+                dur="0.6s"
+                repeatCount="indefinite"
+                values={[
+                  `M 0 -34 Q ${sailSide * 38 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 38 * mainBelly} ${134} ${sailSide * 14 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${sailSide * 50 * mainBelly} ${28} ${sailSide * 42 * mainBelly} ${84} Q ${sailSide * 52 * mainBelly} ${134} ${sailSide * 22 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${sailSide * 36 * mainBelly} ${28} ${sailSide * 54 * mainBelly} ${84} Q ${sailSide * 36 * mainBelly} ${134} ${sailSide * 12 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${sailSide * 48 * mainBelly} ${28} ${sailSide * 44 * mainBelly} ${84} Q ${sailSide * 50 * mainBelly} ${134} ${sailSide * 24 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${sailSide * 38 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 38 * mainBelly} ${134} ${sailSide * 14 * mainBelly} ${150} L 0 150 Z`,
+                ].join(';')}
+              />
+            </path>
+          ) : (
+            <path
+              d={`M 0 -34 Q ${sailSide * 42 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 44 * mainBelly} ${134} ${sailSide * 18 * mainBelly} ${150} L 0 150 Z`}
+              fill={`url(#v3-main-grad-${sailSide}-${uid})`}
+              stroke="#ffffff"
+              strokeWidth={2.4}
+              strokeLinejoin="round"
+            />
+          )}
           {/* Battens - three horizontal lines from mast (luff) out toward
               the leech. They arch slightly with the sail's belly to show
               the curvature the sail is actually taking. */}

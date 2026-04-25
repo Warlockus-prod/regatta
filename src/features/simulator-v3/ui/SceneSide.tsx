@@ -11,21 +11,38 @@ import {
 } from './shared';
 
 // ---------------------------------------------------------------------------
-// Scene: side-on profile view. The third toggle alongside Top and Rear.
-// Shows the boat from the beam so heel, mast angle, boom swing, keel
-// depth, and bow wave are all legible at once. Complements:
-// - TOP  = course reading (where am I vs wind)
-// - REAR = heel magnitude (how hard am I leaning)
-// - SIDE = hull + rig profile (what am I moving through the water with)
+// Scene: side-on profile of the boat.
 //
-// Conventions for this view:
-// - Horizontal axis: boat forward direction. Bow right.
-// - Vertical axis: up.
-// - Wind arrives from astern or abeam depending on TWA; we show an
-//   apparent-wind ribbon across the top.
-// - Heel tilts the whole boat+rig group around the waterline so the hull
-//   banks left or right slightly even though we're "looking from port".
+// Rewritten 2026-04-25 with proper sailing-yacht anatomy. Conventions:
+// - Bow points RIGHT, stern LEFT.
+// - Mast at ~33% of LOA back from the bow (typical sloop / cruiser).
+// - Boom mounts at the gooseneck just above the cabin and runs aft over
+//   the cockpit; main sail attaches mast to boom, leech curves out.
+// - Jib hangs from the mast head down to the bow on the forestay.
+// - Forestay is the tensioned cable from mast top to bow tip; the jib's
+//   luff lives on it. Backstay runs from mast top to transom.
+// - Underwater: keel descends from mid-hull, rudder hangs aft of the
+//   keel, both clearly visible silhouettes.
+// - Heel from astern wouldn't show in pure side view; we apply only a
+//   subtle bow-up trim by speed, not heel rotation.
+// - Sails flap at the leech when stalled (animated d).
+//
+// Coordinate system: a single rotated group anchored at the waterline
+// midpoint. Positive x = forward, negative x = aft.
 // ---------------------------------------------------------------------------
+
+const HULL_LEN = 360; // total hull length in scene px (-180..+180)
+const HULL_BOW = HULL_LEN * 0.5; // x of bow tip
+const HULL_STERN = -HULL_LEN * 0.5; // x of stern (transom)
+const FREEBOARD = 40; // height from waterline to deck at the sheer
+const KEEL_LEN = 80; // depth of keel below waterline
+const RUDDER_LEN = 50;
+// Mast at 33% from the bow (so 16.5% from the boat center toward bow)
+const MAST_X = HULL_BOW - HULL_LEN * 0.33;
+const MAST_TOP = -260; // y above waterline at mast top
+const BOOM_Y = -34; // boom height above waterline (above cabin top)
+const BOOM_AFT = -120; // x of clew (aft end of boom)
+const BOOM_FWD = MAST_X; // boom mounts on mast (gooseneck)
 
 export function SceneSide({
   ui,
@@ -39,6 +56,8 @@ export function SceneSide({
   const uid = useId();
   const skyId = `v3-side-sky-${uid}`;
   const hullId = `v3-side-hull-${uid}`;
+  const mainSailId = `v3-side-main-${uid}`;
+  const jibSailId = `v3-side-jib-${uid}`;
 
   const width = 760;
   const height = 600;
@@ -52,31 +71,31 @@ export function SceneSide({
   const hasMain = ui.sailsRaised !== 'jib';
   const hasJib = ui.sailsRaised !== 'main' && ui.jibFurlPct > 10;
   const jibOpacity = clamp(ui.jibFurlPct / 100, 0.2, 1);
+  const mainStalled = sim.result.diag.mainStalled;
+  const jibStalled = sim.result.diag.jibStalled;
 
-  // Mild side-on rock from heel. Keep it subtle - this is not the rear view
-  // where heel is the hero. Side view reads best when the horizon stays
-  // anchored and the boat gets a gentle lean so it feels like it's working.
-  const sideRock = finite(heelAbs * 0.35, 0);
+  // Bow trim: at speed the bow lifts a hair. Heel is hidden in pure
+  // side-on view (you see it from astern); we don't rotate.
+  const bowTrim = -speedIntensity * 1.5;
 
-  // Boom swing in the side view. The boom's angle off centerline only
-  // reads as a small vertical bounce when seen from port - we project it:
-  // when the boom is straight aft (ui.mainAngle = 0), we look straight at
-  // the end. When the boom is swung out 60 deg, the projection shows
-  // ~60% of the length and the end is lower due to gravity / vang.
-  const mainOff = finite(ui.mainAngle, 45);
-  const boomProj = Math.abs(Math.cos((mainOff * Math.PI) / 180));
-  const boomLen = 180;
-  const boomEndX = cx + boomLen * boomProj;
-  const boomEndY = waterY - 90;
+  // Sail belly factors. Calm air = baggier. Reef + heavy wind = flatter.
+  const mainBelly = finite((1 - 0.45 * windIntensity) * mainVisualScale, 1);
+  const jibBelly = finite(1 - 0.4 * windIntensity, 1);
 
-  const sailColor = sim.result.diag.mainStalled ? '#ffc8b0' : '#fffaee';
-  const jibColor = sim.result.diag.jibStalled ? '#ffd7c0' : '#eaf3fb';
-  const mainAccent = sim.result.diag.mainStalled
+  // Sail tints
+  const mainColor = mainStalled ? '#ffc8b0' : '#fffaee';
+  const jibColor = jibStalled ? '#ffd7c0' : '#eaf3fb';
+  const mainAccent = mainStalled
     ? 'rgba(255, 140, 110, 0.65)'
     : 'rgba(255, 235, 200, 0.6)';
-  const jibAccent = sim.result.diag.jibStalled
+  const jibAccent = jibStalled
     ? 'rgba(255, 160, 120, 0.6)'
     : 'rgba(150, 220, 255, 0.55)';
+
+  // Pre-compute main sail belly path. The leech curves out from mast top
+  // to clew, with a Q control point pushed aft+down for billow.
+  const leechCtrlX = (MAST_X + BOOM_AFT) / 2 - 32 * mainBelly;
+  const leechCtrlY = MAST_TOP + (BOOM_Y - MAST_TOP) * 0.45 - 8 * mainBelly;
 
   return (
     <svg viewBox={`0 0 ${width} ${height}`} className="block w-full h-full">
@@ -89,9 +108,19 @@ export function SceneSide({
           <stop offset="100%" stopColor="#040e1e" />
         </linearGradient>
         <linearGradient id={hullId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#ffffff" />
-          <stop offset="40%" stopColor="#e8f0f6" />
-          <stop offset="100%" stopColor="#9fb4c4" />
+          <stop offset="0%" stopColor="#f4f8fb" />
+          <stop offset="35%" stopColor="#dde7ee" />
+          <stop offset="100%" stopColor="#8ea3b5" />
+        </linearGradient>
+        <linearGradient id={mainSailId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#e8eef4" />
+          <stop offset="60%" stopColor={mainColor} />
+          <stop offset="100%" stopColor="#c5d2dd" />
+        </linearGradient>
+        <linearGradient id={jibSailId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#dee9f1" />
+          <stop offset="60%" stopColor={jibColor} />
+          <stop offset="100%" stopColor="#bdcad6" />
         </linearGradient>
       </defs>
 
@@ -108,13 +137,13 @@ export function SceneSide({
         strokeWidth={1}
       />
 
-      {/* Small distant coast - just a faint ridge so the eye has distance */}
+      {/* Distant coast */}
       <path
-        d={`M 0 ${waterY - 6} Q 140 ${waterY - 14} 260 ${waterY - 8} T 520 ${waterY - 10} T ${width} ${waterY - 6} L ${width} ${waterY} L 0 ${waterY} Z`}
+        d={`M 0 ${waterY - 5} Q 140 ${waterY - 12} 260 ${waterY - 7} T 520 ${waterY - 9} T ${width} ${waterY - 5} L ${width} ${waterY} L 0 ${waterY} Z`}
         fill="rgba(40, 70, 100, 0.55)"
       />
 
-      {/* Animated water surface ripples under the boat */}
+      {/* Animated water surface */}
       <g opacity={0.6}>
         {Array.from({ length: 5 }).map((_, i) => {
           const y = waterY + 12 + i * 14;
@@ -142,9 +171,7 @@ export function SceneSide({
         })}
       </g>
 
-      {/* Apparent wind ribbon at top - short animated dashes flowing right
-          to left or left to right depending on whether AWA is forward of
-          beam (close-hauled = from forward) or aft (broad = from behind). */}
+      {/* AW ribbon at top, animated dashes */}
       <g opacity={0.45}>
         <text
           x={24}
@@ -185,18 +212,396 @@ export function SceneSide({
         ))}
       </g>
 
-      {/* Bow wave crest - crescent of foam in front of the hull when moving */}
+      {/* Boat group anchored at waterline center, slight bow-up trim */}
+      <g transform={`translate(${cx} ${waterY}) rotate(${bowTrim})`}>
+        {/* === UNDERWATER === */}
+        {/* Keel: tapered fin descending from mid-hull. Bow at right
+            means keel sits a bit forward of center. */}
+        <path
+          d={`
+            M ${-12} 0
+            L ${-14} ${KEEL_LEN * 0.85}
+            Q ${-10} ${KEEL_LEN} 0 ${KEEL_LEN}
+            L 0 ${KEEL_LEN + 4}
+            Q 14 ${KEEL_LEN} 14 ${KEEL_LEN * 0.85}
+            L 12 0
+            Z
+          `}
+          fill="rgba(15, 28, 46, 0.92)"
+        />
+        {/* Bulb at keel base */}
+        <ellipse cx="0" cy={KEEL_LEN + 2} rx="22" ry="5" fill="rgba(15, 28, 46, 0.95)" />
+
+        {/* Rudder aft of keel */}
+        <path
+          d={`
+            M ${HULL_STERN + 32} 0
+            L ${HULL_STERN + 30} ${RUDDER_LEN}
+            L ${HULL_STERN + 36} ${RUDDER_LEN}
+            L ${HULL_STERN + 38} 0
+            Z
+          `}
+          fill="rgba(20, 36, 56, 0.85)"
+        />
+
+        {/* === HULL profile (from waterline up) ===
+            Bow on the right (positive x), stern on the left. Sheer line
+            curves up gently toward both ends, more at the bow. */}
+        <path
+          d={`
+            M ${HULL_STERN} 0
+            L ${HULL_STERN - 2} -${FREEBOARD * 0.55}
+            Q ${HULL_STERN + 30} -${FREEBOARD * 0.85} 0 -${FREEBOARD}
+            Q ${HULL_BOW - 50} -${FREEBOARD * 1.1} ${HULL_BOW - 6} -${FREEBOARD * 1.3}
+            L ${HULL_BOW + 2} -${FREEBOARD * 0.4}
+            L ${HULL_BOW + 4} 0
+            Q ${HULL_BOW - 30} 8 0 10
+            Q ${HULL_STERN + 60} 8 ${HULL_STERN} 0
+            Z
+          `}
+          fill={`url(#${hullId})`}
+          stroke="#5e7889"
+          strokeWidth={2}
+        />
+
+        {/* Boot stripe along waterline */}
+        <line
+          x1={HULL_STERN + 6}
+          y1={-2}
+          x2={HULL_BOW - 4}
+          y2={-2}
+          stroke="#1f3852"
+          strokeWidth={1.6}
+        />
+
+        {/* Cabin: trunk roof aft of mast, with portholes */}
+        <rect
+          x={MAST_X - 10}
+          y={-FREEBOARD - 18}
+          width={MAST_X - HULL_STERN - 70}
+          height={18}
+          rx={5}
+          fill="#dde7ee"
+          stroke="#6f8ba0"
+          strokeWidth={1.2}
+        />
+        {/* Portholes: small round windows along the cabin side */}
+        {Array.from({ length: 4 }).map((_, i) => {
+          const px = MAST_X - 22 - i * 28;
+          if (px < HULL_STERN + 60) return null;
+          return (
+            <circle
+              key={i}
+              cx={px}
+              cy={-FREEBOARD - 9}
+              r={4}
+              fill="rgba(40, 70, 100, 0.85)"
+              stroke="rgba(207, 216, 224, 0.6)"
+              strokeWidth={0.8}
+            />
+          );
+        })}
+
+        {/* Cockpit hint: small dip in the deck aft of the cabin */}
+        <rect
+          x={HULL_STERN + 28}
+          y={-FREEBOARD - 2}
+          width={42}
+          height={4}
+          rx={1}
+          fill="rgba(40, 70, 100, 0.55)"
+        />
+
+        {/* Bow pulpit rail */}
+        <path
+          d={`
+            M ${HULL_BOW - 26} -${FREEBOARD * 1.18}
+            L ${HULL_BOW + 2} -${FREEBOARD * 1.45}
+            L ${HULL_BOW - 4} -${FREEBOARD * 0.35}
+          `}
+          fill="none"
+          stroke="rgba(111, 139, 160, 0.65)"
+          strokeWidth={1.2}
+        />
+
+        {/* === RIG === */}
+        {/* Mast: vertical from cabin top to mast head */}
+        <rect
+          x={MAST_X - 3}
+          y={MAST_TOP}
+          width={6}
+          height={Math.abs(MAST_TOP) - FREEBOARD - 10}
+          rx={3}
+          fill="#cfd8e0"
+        />
+        {/* Mast head cap */}
+        <circle cx={MAST_X} cy={MAST_TOP - 2} r={4} fill="#cfd8e0" />
+
+        {/* Forestay: from mast top to bow tip - this is what the jib
+            hangs on. */}
+        <line
+          x1={MAST_X}
+          y1={MAST_TOP}
+          x2={HULL_BOW}
+          y2={-FREEBOARD * 1.3}
+          stroke="rgba(207, 216, 224, 0.55)"
+          strokeWidth={1}
+        />
+        {/* Backstay: from mast top to transom corner */}
+        <line
+          x1={MAST_X}
+          y1={MAST_TOP}
+          x2={HULL_STERN + 4}
+          y2={-FREEBOARD * 0.55}
+          stroke="rgba(207, 216, 224, 0.45)"
+          strokeWidth={1}
+        />
+        {/* Spreader hint: small horizontal bar mid-mast */}
+        <line
+          x1={MAST_X - 18}
+          x2={MAST_X + 18}
+          y1={MAST_TOP * 0.55}
+          y2={MAST_TOP * 0.55}
+          stroke="#cfd8e0"
+          strokeWidth={1.4}
+          strokeLinecap="round"
+        />
+        {/* Shrouds: from spreader tips to deck */}
+        <line
+          x1={MAST_X - 18}
+          y1={MAST_TOP * 0.55}
+          x2={MAST_X - 60}
+          y2={-FREEBOARD * 0.4}
+          stroke="rgba(207, 216, 224, 0.4)"
+          strokeWidth={0.8}
+        />
+        <line
+          x1={MAST_X + 18}
+          y1={MAST_TOP * 0.55}
+          x2={MAST_X + 60}
+          y2={-FREEBOARD * 0.4}
+          stroke="rgba(207, 216, 224, 0.4)"
+          strokeWidth={0.8}
+        />
+
+        {/* Boom: from gooseneck on mast running aft. Reef shrinks vertically. */}
+        {hasMain && (
+          <line
+            x1={BOOM_FWD}
+            y1={BOOM_Y}
+            x2={BOOM_AFT}
+            y2={BOOM_Y}
+            stroke="#1a2230"
+            strokeWidth={4}
+            strokeLinecap="round"
+          />
+        )}
+        {/* Gooseneck */}
+        {hasMain && (
+          <circle cx={MAST_X} cy={BOOM_Y} r={3.5} fill="#2a4060" stroke="#0a1628" strokeWidth={1} />
+        )}
+
+        {/* === MAIN SAIL ===
+            Triangle from mast head (luff is implicit on the mast) down
+            to the boom. The leech curves out aft - that's the visible
+            belly of the sail. When stalled, the leech flaps. */}
+        {hasMain && (() => {
+          const idle = `M ${MAST_X} ${MAST_TOP} Q ${leechCtrlX} ${leechCtrlY} ${BOOM_AFT} ${BOOM_Y} L ${MAST_X} ${BOOM_Y} Z`;
+          const f1 = `M ${MAST_X} ${MAST_TOP} Q ${leechCtrlX - 16} ${leechCtrlY - 4} ${BOOM_AFT - 8} ${BOOM_Y} L ${MAST_X} ${BOOM_Y} Z`;
+          const f2 = `M ${MAST_X} ${MAST_TOP} Q ${leechCtrlX + 12} ${leechCtrlY + 6} ${BOOM_AFT + 6} ${BOOM_Y} L ${MAST_X} ${BOOM_Y} Z`;
+          const f3 = `M ${MAST_X} ${MAST_TOP} Q ${leechCtrlX - 8} ${leechCtrlY + 2} ${BOOM_AFT - 4} ${BOOM_Y} L ${MAST_X} ${BOOM_Y} Z`;
+          return (
+            <g transform={`translate(0 ${(BOOM_Y * (1 - mainVisualScale))}) scale(1 ${mainVisualScale})`}>
+              {mainStalled ? (
+                <path
+                  d={idle}
+                  fill={`url(#${mainSailId})`}
+                  stroke="#ffffff"
+                  strokeWidth={2.2}
+                  strokeLinejoin="round"
+                >
+                  <animate
+                    attributeName="d"
+                    dur="0.6s"
+                    repeatCount="indefinite"
+                    values={[idle, f1, f2, f3, idle].join(';')}
+                  />
+                </path>
+              ) : (
+                <path
+                  d={idle}
+                  fill={`url(#${mainSailId})`}
+                  stroke="#ffffff"
+                  strokeWidth={2.2}
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Battens: 4 horizontal-ish lines following the sail belly */}
+              {[0.2, 0.4, 0.6, 0.8].map((t, i) => {
+                const sailY = MAST_TOP + (BOOM_Y - MAST_TOP) * t;
+                const reachX = MAST_X + (BOOM_AFT - MAST_X) * (t * 0.95);
+                const sagY = sailY + 4 * mainBelly;
+                return (
+                  <path
+                    key={i}
+                    d={`M ${MAST_X + 2} ${sailY} Q ${(MAST_X + reachX) / 2} ${sagY} ${reachX} ${sailY + 1}`}
+                    fill="none"
+                    stroke="rgba(160, 185, 205, 0.55)"
+                    strokeWidth={0.7}
+                    strokeLinecap="round"
+                  />
+                );
+              })}
+
+              {/* Airflow streamlines along the main when attached */}
+              {!mainStalled && (
+                <g opacity={0.65}>
+                  {[0.25, 0.45, 0.65, 0.85].map((t, i) => {
+                    const sailY = MAST_TOP + (BOOM_Y - MAST_TOP) * t;
+                    const reachX = MAST_X + (BOOM_AFT - MAST_X) * (t * 0.9);
+                    return (
+                      <path
+                        key={i}
+                        d={`M ${MAST_X + 4} ${sailY + 2} Q ${(MAST_X + reachX) / 2} ${sailY + 5 * mainBelly} ${reachX} ${sailY + 3}`}
+                        stroke={mainAccent}
+                        strokeWidth={1.3}
+                        strokeLinecap="round"
+                        fill="none"
+                      >
+                        <animate
+                          attributeName="opacity"
+                          values="0.1;0.65;0.1"
+                          dur={`${1.8 + i * 0.2}s`}
+                          begin={`${i * 0.35}s`}
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                    );
+                  })}
+                </g>
+              )}
+
+              {/* Telltale at the leech */}
+              <line
+                x1={BOOM_AFT - 4}
+                y1={leechCtrlY}
+                x2={BOOM_AFT + (mainStalled ? 22 : 8)}
+                y2={mainStalled ? leechCtrlY - 8 : leechCtrlY + 6}
+                stroke={mainStalled ? '#ff8e6a' : '#8fffc2'}
+                strokeWidth={1.6}
+                strokeLinecap="round"
+              />
+            </g>
+          );
+        })()}
+
+        {/* === JIB SAIL ===
+            Triangle on the forestay - tack at bow, head at mast top,
+            clew aft along the deck. Smaller than the main. Belly
+            curves forward (toward us / windward). */}
+        {hasJib && (() => {
+          const tackX = HULL_BOW - 6;
+          const tackY = -FREEBOARD * 1.25;
+          const headX = MAST_X;
+          const headY = MAST_TOP + 26;
+          const clewX = MAST_X + 80;
+          const clewY = -FREEBOARD - 4;
+          // Belly: control points pulled forward (positive x) from the
+          // luff-leech chord.
+          const luffCtrlX = (tackX + headX) / 2 + 18 * jibBelly;
+          const luffCtrlY = (tackY + headY) / 2;
+          const leechCtrlJibX = (headX + clewX) / 2 + 14 * jibBelly;
+          const leechCtrlJibY = (headY + clewY) / 2;
+
+          const idle = `M ${tackX} ${tackY} Q ${luffCtrlX} ${luffCtrlY} ${headX} ${headY} Q ${leechCtrlJibX} ${leechCtrlJibY} ${clewX} ${clewY} L ${tackX} ${tackY} Z`;
+          const f1 = `M ${tackX} ${tackY} Q ${luffCtrlX - 12} ${luffCtrlY - 4} ${headX} ${headY} Q ${leechCtrlJibX - 10} ${leechCtrlJibY - 2} ${clewX - 6} ${clewY} L ${tackX} ${tackY} Z`;
+          const f2 = `M ${tackX} ${tackY} Q ${luffCtrlX + 8} ${luffCtrlY + 4} ${headX} ${headY} Q ${leechCtrlJibX + 8} ${leechCtrlJibY + 4} ${clewX + 6} ${clewY} L ${tackX} ${tackY} Z`;
+          const f3 = `M ${tackX} ${tackY} Q ${luffCtrlX - 6} ${luffCtrlY} ${headX} ${headY} Q ${leechCtrlJibX - 4} ${leechCtrlJibY + 2} ${clewX} ${clewY - 3} L ${tackX} ${tackY} Z`;
+
+          return (
+            <g opacity={jibOpacity}>
+              {jibStalled ? (
+                <path
+                  d={idle}
+                  fill={`url(#${jibSailId})`}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                >
+                  <animate
+                    attributeName="d"
+                    dur="0.55s"
+                    repeatCount="indefinite"
+                    values={[idle, f1, f2, f3, idle].join(';')}
+                  />
+                </path>
+              ) : (
+                <path
+                  d={idle}
+                  fill={`url(#${jibSailId})`}
+                  stroke="#ffffff"
+                  strokeWidth={2}
+                  strokeLinejoin="round"
+                />
+              )}
+
+              {/* Airflow streamlines along the jib */}
+              {!jibStalled && (
+                <g opacity={0.55}>
+                  {[0.3, 0.5, 0.7].map((t, i) => {
+                    const yLuff = tackY + (headY - tackY) * t;
+                    const yLeech = clewY + (headY - clewY) * t;
+                    const xMid = tackX + (clewX - tackX) * t * 0.6;
+                    return (
+                      <path
+                        key={i}
+                        d={`M ${tackX + (luffCtrlX - tackX) * t * 0.6} ${yLuff} Q ${xMid + 6} ${(yLuff + yLeech) / 2 + 3 * jibBelly} ${clewX - (clewX - leechCtrlJibX) * (1 - t) * 0.6} ${yLeech}`}
+                        stroke={jibAccent}
+                        strokeWidth={1.2}
+                        strokeLinecap="round"
+                        fill="none"
+                      >
+                        <animate
+                          attributeName="opacity"
+                          values="0.1;0.55;0.1"
+                          dur={`${1.6 + i * 0.2}s`}
+                          begin={`${i * 0.35}s`}
+                          repeatCount="indefinite"
+                        />
+                      </path>
+                    );
+                  })}
+                </g>
+              )}
+
+              {/* Telltale on the jib leech */}
+              <line
+                x1={leechCtrlJibX}
+                y1={leechCtrlJibY}
+                x2={leechCtrlJibX + (jibStalled ? 18 : 6)}
+                y2={leechCtrlJibY + (jibStalled ? -8 : 5)}
+                stroke={jibStalled ? '#ff9a7a' : '#8fffc2'}
+                strokeWidth={1.4}
+                strokeLinecap="round"
+              />
+            </g>
+          );
+        })()}
+      </g>
+
+      {/* Bow wave - small foam crescent in front of the boat */}
       {speedIntensity > 0.15 && (
-        <g opacity={speedIntensity * 0.75}>
+        <g transform={`translate(${cx} ${waterY})`} opacity={speedIntensity * 0.8}>
           <path
-            d={`M ${cx - 150} ${waterY + 4} Q ${cx - 120} ${waterY - 10 - speedIntensity * 8} ${cx - 90} ${waterY + 2}`}
+            d={`M ${HULL_BOW - 30} 4 Q ${HULL_BOW + 10} ${-2 - speedIntensity * 6} ${HULL_BOW + 36} 6`}
             fill="none"
             stroke="rgba(220, 240, 255, 0.85)"
             strokeWidth={2.5}
             strokeLinecap="round"
           />
           <path
-            d={`M ${cx - 180} ${waterY + 12} Q ${cx - 140} ${waterY - 2} ${cx - 100} ${waterY + 8}`}
+            d={`M ${HULL_BOW - 60} 14 Q ${HULL_BOW - 12} 2 ${HULL_BOW + 30} 12`}
             fill="none"
             stroke="rgba(180, 220, 255, 0.5)"
             strokeWidth={1.5}
@@ -205,240 +610,44 @@ export function SceneSide({
         </g>
       )}
 
-      {/* Stern wake: a trailing streak receding behind the boat */}
+      {/* Stern wake */}
       {speedIntensity > 0.15 && (
-        <g opacity={speedIntensity * 0.6}>
+        <g transform={`translate(${cx} ${waterY})`} opacity={speedIntensity * 0.6}>
           <path
-            d={`M ${cx + 140} ${waterY + 4} L ${Math.min(width, cx + 140 + speedIntensity * 220)} ${waterY + 18}`}
-            stroke="rgba(200, 230, 255, 0.6)"
+            d={`M ${HULL_STERN + 8} 4 L ${HULL_STERN - 80 - speedIntensity * 160} 22`}
+            stroke="rgba(200, 230, 255, 0.55)"
             strokeWidth={3}
             strokeLinecap="round"
           />
           <path
-            d={`M ${cx + 140} ${waterY + 10} L ${Math.min(width, cx + 140 + speedIntensity * 180)} ${waterY + 26}`}
-            stroke="rgba(180, 220, 255, 0.35)"
+            d={`M ${HULL_STERN + 8} 12 L ${HULL_STERN - 60 - speedIntensity * 130} 30`}
+            stroke="rgba(180, 220, 255, 0.32)"
             strokeWidth={2}
             strokeLinecap="round"
           />
         </g>
       )}
 
-      {/* Boat + rig as a group that banks slightly for heel.
-          Pivot: middle of the waterline. */}
-      <g transform={`translate(${cx} ${waterY}) rotate(${sideRock})`}>
-        {/* Underwater: keel fin + bulb + rudder. Darker so they read as
-            submerged silhouette, not hull paint. */}
-        <path
-          d="M -10 0 L -6 72 Q -2 80 0 80 L 0 84 Q 2 80 6 72 L 10 0 Z"
-          fill="rgba(10, 20, 35, 0.85)"
-        />
-        <ellipse cx="0" cy="86" rx="16" ry="4" fill="rgba(10, 20, 35, 0.9)" />
-        {/* Rudder aft */}
-        <path
-          d="M 118 0 L 122 52 L 126 52 L 124 0 Z"
-          fill="rgba(10, 20, 35, 0.85)"
-        />
+      {/* Heel readout - small note since heel is hard to show in pure side */}
+      {heelAbs > 1 && (
+        <g transform={`translate(${cx} ${waterY - 320})`}>
+          <text
+            x="0"
+            y="0"
+            fill="rgba(150, 200, 230, 0.75)"
+            fontSize="10"
+            fontWeight="700"
+            textAnchor="middle"
+            style={{ letterSpacing: '0.1em' }}
+          >
+            {tp(`КРЕН ${Math.round(heelAbs)}° (вид сзади покажет)`,
+                `HEEL ${Math.round(heelAbs)} (rear view shows it)`,
+                `PRZECHYL ${Math.round(heelAbs)}° (widok z tylu)`)}
+          </text>
+        </g>
+      )}
 
-        {/* Hull profile. Bow right (positive x), stern left, curved sheer
-            line. */}
-        <path
-          d="M -150 0 L -152 -14 Q -100 -28 0 -32 Q 80 -34 130 -24 Q 152 -18 150 0 Z"
-          fill={`url(#${hullId})`}
-          stroke="#6f8ba0"
-          strokeWidth={2}
-        />
-        {/* Deck shadow line */}
-        <path
-          d="M -150 0 L -152 -14 Q -100 -28 0 -32 Q 80 -34 130 -24 Q 152 -18 150 0"
-          fill="none"
-          stroke="rgba(111, 139, 160, 0.35)"
-          strokeWidth={1}
-        />
-        {/* Waterline stripe */}
-        <line
-          x1="-150"
-          x2="150"
-          y1="-4"
-          y2="-4"
-          stroke="rgba(30, 50, 75, 0.6)"
-          strokeWidth={1}
-        />
-
-        {/* Cabin hump - roof with small windows so the boat doesn't look
-            like a flat banana. */}
-        <rect x="-60" y="-56" width="120" height="24" rx="6" fill="#dde7ee" stroke="#6f8ba0" strokeWidth={1.2} />
-        <rect x="-52" y="-50" width="18" height="10" rx="2" fill="rgba(50, 90, 130, 0.8)" />
-        <rect x="-28" y="-50" width="18" height="10" rx="2" fill="rgba(50, 90, 130, 0.8)" />
-        <rect x="-4" y="-50" width="18" height="10" rx="2" fill="rgba(50, 90, 130, 0.8)" />
-        <rect x="20" y="-50" width="18" height="10" rx="2" fill="rgba(50, 90, 130, 0.8)" />
-
-        {/* Bow pulpit */}
-        <path
-          d="M 140 -24 L 148 -40 L 152 -22"
-          fill="none"
-          stroke="#6f8ba0"
-          strokeWidth={1.5}
-        />
-
-        {/* Mast: vertical line from deck up. Tiny lean from heel already
-            applied by the parent rotate, so the mast stays perpendicular
-            to the deck in boat frame, which is what you'd see from port. */}
-        <rect x="-3" y="-240" width="6" height="212" rx="3" fill="#d0d8e0" />
-        {/* Mast cap + backstay + forestay hints */}
-        <circle cx="0" cy="-240" r="4" fill="#d0d8e0" />
-        <line x1="0" y1="-240" x2="150" y2="-32" stroke="rgba(208, 216, 224, 0.45)" strokeWidth={1} />
-        <line x1="0" y1="-240" x2="-150" y2="-14" stroke="rgba(208, 216, 224, 0.45)" strokeWidth={1} />
-        {/* Shroud */}
-        <line x1="0" y1="-180" x2="-40" y2="-28" stroke="rgba(208, 216, 224, 0.35)" strokeWidth={1} />
-        <line x1="0" y1="-180" x2="40" y2="-28" stroke="rgba(208, 216, 224, 0.35)" strokeWidth={1} />
-
-        {/* Boom: from mast at deck level, swinging back + slightly down
-            toward the end. The projection collapses when the boom swings
-            far out of the side-view plane (close-hauled) so the visible
-            length shrinks naturally. */}
-        {hasMain && (
-          <>
-            <line
-              x1={0}
-              y1={-28}
-              x2={boomEndX - cx}
-              y2={boomEndY - waterY}
-              stroke="#3a4656"
-              strokeWidth={3}
-              strokeLinecap="round"
-            />
-            {/* Mainsail: triangle from mast top, around the belly, back to
-                the clew. Two Q curves give the belly leeward; we flatten
-                at high wind. Reef scales the whole sail vertically. */}
-            <g transform={`scale(1 ${mainVisualScale})`}>
-              <path
-                d={`M 0 -232 Q ${(boomEndX - cx) * 0.42} ${-160 - 22 * (1 - windIntensity)} ${(boomEndX - cx) * 0.85} ${-90 - 14 * (1 - windIntensity)} L ${boomEndX - cx} ${boomEndY - waterY} L 0 -28 Z`}
-                fill={sailColor}
-                stroke="#ffffff"
-                strokeWidth={2}
-                strokeLinejoin="round"
-                opacity={0.92}
-              />
-              {/* Battens: three horizontal stripes */}
-              {[-180, -130, -80].map((y) => {
-                const xAtY = ((y + 232) / 204) * (boomEndX - cx) * 0.9;
-                return (
-                  <line
-                    key={y}
-                    x1={0}
-                    y1={y}
-                    x2={xAtY}
-                    y2={y + 2}
-                    stroke="rgba(160, 185, 205, 0.55)"
-                    strokeWidth={0.8}
-                    strokeLinecap="round"
-                  />
-                );
-              })}
-              {/* Airflow streamlines along the main when attached.
-                  Pulse softly. */}
-              {!sim.result.diag.mainStalled && (
-                <g opacity={0.6}>
-                  {[-200, -150, -100, -50].map((y, i) => {
-                    const reach = ((y + 232) / 204) * (boomEndX - cx) * 0.85;
-                    return (
-                      <path
-                        key={y}
-                        d={`M 0 ${y + 4} Q ${reach * 0.5} ${y + 2} ${reach} ${y + 6}`}
-                        stroke={mainAccent}
-                        strokeWidth={1.3}
-                        strokeLinecap="round"
-                        fill="none"
-                      >
-                        <animate
-                          attributeName="opacity"
-                          values="0.1;0.7;0.1"
-                          dur={`${1.8 + i * 0.25}s`}
-                          begin={`${i * 0.4}s`}
-                          repeatCount="indefinite"
-                        />
-                      </path>
-                    );
-                  })}
-                </g>
-              )}
-              {/* Telltale at leech */}
-              <line
-                x1={(boomEndX - cx) * 0.85}
-                y1={-90}
-                x2={(boomEndX - cx) * 0.85 + (sim.result.diag.mainStalled ? 26 : 10)}
-                y2={sim.result.diag.mainStalled ? -96 : -82}
-                stroke={sim.result.diag.mainStalled ? '#ff8e6a' : '#8fffc2'}
-                strokeWidth={1.6}
-                strokeLinecap="round"
-              />
-            </g>
-          </>
-        )}
-
-        {/* Jib: smaller triangle forward of mast, from mast top-ish down
-            to the bow, with a belly forward. */}
-        {hasJib && (
-          <g opacity={jibOpacity}>
-            <path
-              d={`M 0 -208 Q ${60 + 30 * (1 - windIntensity)} ${-150} ${130} ${-28} L 0 -28 Z`}
-              fill={jibColor}
-              stroke="#ffffff"
-              strokeWidth={2}
-              strokeLinejoin="round"
-              opacity={0.9}
-            />
-            {/* Forestay line behind the jib */}
-            <line
-              x1={0}
-              y1={-208}
-              x2={148}
-              y2={-28}
-              stroke="rgba(208, 216, 224, 0.3)"
-              strokeWidth={0.8}
-            />
-            {/* Airflow streamlines along the jib */}
-            {!sim.result.diag.jibStalled && (
-              <g opacity={0.55}>
-                {[-180, -130, -80, -50].map((y, i) => {
-                  const factor = (y + 208) / 180;
-                  const reach = factor * 110;
-                  return (
-                    <path
-                      key={y}
-                      d={`M 0 ${y + 2} Q ${reach * 0.4} ${y + 1} ${reach} ${y + 4}`}
-                      stroke={jibAccent}
-                      strokeWidth={1.2}
-                      strokeLinecap="round"
-                      fill="none"
-                    >
-                      <animate
-                        attributeName="opacity"
-                        values="0.1;0.6;0.1"
-                        dur={`${1.6 + i * 0.2}s`}
-                        begin={`${i * 0.35}s`}
-                        repeatCount="indefinite"
-                      />
-                    </path>
-                  );
-                })}
-              </g>
-            )}
-            {/* Telltale on jib leech */}
-            <line
-              x1={80}
-              y1={-120}
-              x2={80 + (sim.result.diag.jibStalled ? 20 : 8)}
-              y2={sim.result.diag.jibStalled ? -126 : -114}
-              stroke={sim.result.diag.jibStalled ? '#ff9a7a' : '#8fffc2'}
-              strokeWidth={1.4}
-              strokeLinecap="round"
-            />
-          </g>
-        )}
-      </g>
-
-      {/* Top-left label */}
+      {/* Top-left scene label */}
       <g transform="translate(24 80)">
         <text
           x="0"
@@ -459,7 +668,7 @@ export function SceneSide({
         </text>
       </g>
 
-      {/* Bottom-right heel + speed readout pair */}
+      {/* Bottom-right speed readout */}
       <g transform={`translate(${width - 40} ${height - 50})`}>
         <text
           x="0"
