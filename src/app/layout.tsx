@@ -126,6 +126,14 @@ export async function generateMetadata(): Promise<Metadata> {
       title: pick.title,
       description: pick.twitter,
     },
+    // Search-engine verification tokens. Set GOOGLE_SITE_VERIFICATION /
+    // YANDEX_VERIFICATION env vars on the VPS once the property is added in
+    // the respective Search Console; falls back to undefined (no meta tag
+    // emitted) when not configured.
+    verification: {
+      google: process.env.GOOGLE_SITE_VERIFICATION,
+      yandex: process.env.YANDEX_VERIFICATION,
+    },
   };
 }
 
@@ -149,6 +157,63 @@ export default async function RootLayout({
       style={{ background: '#0a1628' }}
     >
       <body className="min-h-full flex flex-col ocean-bg" style={{ background: '#0a1628' }}>
+        {/*
+          Structured data (JSON-LD) for search engines. Two graphs at once:
+
+          1. WebSite - lets Google show a sitelinks search box and a
+             knowledge-panel-style site card.
+          2. EducationalOrganization - tells search engines this is a
+             learning resource (sailing education); Google may pick it for
+             "course"-style rich results when paired with the per-page
+             Course schema we'll add later.
+
+          Both reference the same canonical URL so they merge into one
+          entity on the search engine side. Multilingual `inLanguage` is
+          left as an array (matches the 7 enabled langs).
+        */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              '@context': 'https://schema.org',
+              '@graph': [
+                {
+                  '@type': 'WebSite',
+                  '@id': 'https://regatta.icoffio.com/#website',
+                  url: 'https://regatta.icoffio.com',
+                  name: 'Regatta',
+                  description:
+                    'Interactive sailing trainer for hobbyists with a regatta next weekend. Wind, points of sail, tactics, AI race coach. RU / EN / PL / ES / FR / DE / IT.',
+                  inLanguage: ENABLED_LANGUAGES.map((l) => l.htmlLang),
+                  potentialAction: {
+                    '@type': 'SearchAction',
+                    target: {
+                      '@type': 'EntryPoint',
+                      urlTemplate: 'https://regatta.icoffio.com/glossary?q={search_term_string}',
+                    },
+                    'query-input': 'required name=search_term_string',
+                  },
+                },
+                {
+                  '@type': 'EducationalOrganization',
+                  '@id': 'https://regatta.icoffio.com/#org',
+                  url: 'https://regatta.icoffio.com',
+                  name: 'Regatta - Sailing Trainer',
+                  logo: 'https://regatta.icoffio.com/icon-512.svg',
+                  sameAs: [],
+                  knowsAbout: [
+                    'Sailing',
+                    'Sailboat racing',
+                    'Points of sail',
+                    'Sail trim',
+                    'Racing Rules of Sailing',
+                    'COLREGS',
+                  ],
+                },
+              ],
+            }),
+          }}
+        />
         <I18nProvider initialLang={serverLang}>
           <ClientErrorReporter />
           <OnboardingTour />

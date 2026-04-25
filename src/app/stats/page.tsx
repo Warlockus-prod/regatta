@@ -1,9 +1,23 @@
+import type { Metadata } from 'next';
 import { listFeedback, type FeedbackRow } from '@/lib/db';
 import FeedbackAdmin from './FeedbackAdmin';
 import StatsDashboard from './StatsDashboard';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+
+// Admin dashboard - never expose to search engines. Even though it's
+// auth-gated by proxy.ts, defense-in-depth: emit explicit robots noindex
+// metadata so a misconfigured crawler that finds the URL (e.g. via leak)
+// still drops it from the index.
+export const metadata: Metadata = {
+  robots: {
+    index: false,
+    follow: false,
+    nocache: true,
+    googleBot: { index: false, follow: false },
+  },
+};
 
 export default function StatsPage() {
   let feedback: FeedbackRow[] = [];
