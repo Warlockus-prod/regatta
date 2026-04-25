@@ -62,10 +62,7 @@ export default function LeaderboardPage() {
         {tp('Таблица лучших', 'Leaderboard', 'Ranking')}
       </h1>
       <p className="text-sm text-[var(--text-muted)] mb-6">
-        {tp(
-          'Лучшее время по каждой сессии. Переключай режим / сложность / миссию.',
-          'Best time per session. Toggle mode / difficulty / mission.',
-          'Najlepszy czas na sesję. Przełącz tryb / poziom / misję.',
+        {tp('Лучшее время по каждой сессии. Переключай режим / сложность / миссию.', 'Best time per session. Toggle mode / difficulty / mission.', 'Najlepszy czas na sesje. Przelacz tryb / poziom / misje.',
         )}
       </p>
 
@@ -114,7 +111,7 @@ export default function LeaderboardPage() {
                       color: difficulty === d ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Łatwy') : d === 'medium' ? tp('Средний', 'Medium', 'Średni') : tp('Сложный', 'Hard', 'Trudny')}
+                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Latwy') : d === 'medium' ? tp('Средний', 'Medium', 'Sredni') : tp('Сложный', 'Hard', 'Trudny')}
                   </button>
                 ))}
               </div>
@@ -133,7 +130,7 @@ export default function LeaderboardPage() {
                       color: wind === w ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {w === 'light' ? tp('Слабый', 'Light', 'Słaby') : w === 'medium' ? tp('Средний', 'Medium', 'Średni') : tp('Сильный', 'Heavy', 'Silny')}
+                    {w === 'light' ? tp('Слабый', 'Light', 'Slaby') : w === 'medium' ? tp('Средний', 'Medium', 'Sredni') : tp('Сильный', 'Heavy', 'Silny')}
                   </button>
                 ))}
               </div>
@@ -167,14 +164,11 @@ export default function LeaderboardPage() {
       <div className="card p-3">
         {loading ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Загружаю…', 'Loading…', 'Ładowanie…')}
+            {tp('Загружаю…', 'Loading…', 'Ladowanie…')}
           </div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp(
-              'Пока никто не финишировал. Стань первым!',
-              'No results yet. Be the first!',
-              'Brak wyników. Bądź pierwszy!',
+            {tp('Пока никто не финишировал. Стань первым!', 'No results yet. Be the first!', 'Brak wynikow. Badz pierwszy!',
             )}
             <div className="mt-3">
               <Link href="/game" className="text-[var(--accent-cyan)] font-semibold hover:underline">
@@ -218,7 +212,7 @@ export default function LeaderboardPage() {
 
       <div className="text-center mt-6">
         <Link href="/game" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] transition">
-          ← {tp('Назад к гонке', 'Back to race', 'Powrót do regaty')}
+          ← {tp('Назад к гонке', 'Back to race', 'Powrot do regaty')}
         </Link>
       </div>
     </div>

@@ -24,7 +24,7 @@ const entryPoints: EntryPoint[] = [
     subtitleRu: 'Bootcamp', subtitleEn: 'Bootcamp', subtitlePl: 'Bootcamp',
     descRu: '8 уроков по 5 минут. От ветра до мини-гонки. Прогресс сохраняется.',
     descEn: '8 lessons, 5 minutes each. From wind basics to a mini-race. Progress saved.',
-    descPl: '8 lekcji po 5 minut. Od wiatru do mini-regaty. Postęp jest zapisywany.',
+    descPl: '8 lekcji po 5 minut. Od wiatru do mini-regaty. Postep jest zapisywany.',
     accent: 'var(--accent-cyan)',
     border: 'rgba(0, 212, 255, 0.3)',
     bg: 'rgba(0, 212, 255, 0.08)',
@@ -32,11 +32,11 @@ const entryPoints: EntryPoint[] = [
   {
     href: '/quick',
     emoji: '⚡',
-    titleRu: 'Освежить за 15 мин', titleEn: 'Refresh in 15 min', titlePl: 'Odśwież w 15 min',
-    subtitleRu: 'Quick refresh', subtitleEn: 'Quick refresh', subtitlePl: 'Szybkie powtórzenie',
+    titleRu: 'Освежить за 15 мин', titleEn: 'Refresh in 15 min', titlePl: 'Odswiez w 15 min',
+    subtitleRu: 'Quick refresh', subtitleEn: 'Quick refresh', subtitlePl: 'Szybkie powtorzenie',
     descRu: 'Опыт есть, но регата - завтра. 6 ключевых тем без воды, прямо к делу.',
     descEn: 'Got some experience but race is tomorrow. 6 key topics, no fluff.',
-    descPl: 'Masz doświadczenie, ale regata jutro. 6 kluczowych tematów bez zbędnych słów.',
+    descPl: 'Masz doswiadczenie, ale regata jutro. 6 kluczowych tematow bez zbednych slow.',
     accent: 'var(--success)',
     border: 'rgba(68, 255, 136, 0.3)',
     bg: 'rgba(68, 255, 136, 0.08)',
@@ -70,11 +70,11 @@ interface Tool {
 const secondaryTools: Tool[] = [
   {
     href: '/onboard',
-    titleRu: 'Первая неделя на яхте', titleEn: 'First week on board', titlePl: 'Pierwszy tydzień na jachcie',
-    subtitleRu: 'First week on board', subtitleEn: 'First week on board', subtitlePl: 'Pierwszy tydzień na jachcie',
+    titleRu: 'Первая неделя на яхте', titleEn: 'First week on board', titlePl: 'Pierwszy tydzien na jachcie',
+    subtitleRu: 'First week on board', subtitleEn: 'First week on board', subtitlePl: 'Pierwszy tydzien na jachcie',
     descRu: 'Не как управлять, а как вести себя на борту: команды, что опасно, что брать.',
     descEn: 'Not how to sail - how to behave aboard: commands, dangers, what to pack.',
-    descPl: 'Nie jak sterować - jak zachować się na pokładzie: komendy, zagrożenia, co zabrać.',
+    descPl: 'Nie jak sterowac - jak zachowac sie na pokladzie: komendy, zagrozenia, co zabrac.',
     accent: 'var(--success)',
     icon: '⚓',
   },
@@ -84,17 +84,17 @@ const secondaryTools: Tool[] = [
     subtitleRu: 'Yacht anatomy', subtitleEn: 'Yacht anatomy', subtitlePl: 'Budowa jachtu',
     descRu: 'Bavaria 46 с кликабельными деталями: нос, мачта, гик, шкоты, лебёдки.',
     descEn: 'Bavaria 46 with clickable parts: bow, mast, boom, sheets, winches.',
-    descPl: 'Bavaria 46 z klikalnymi elementami: dziób, maszt, bom, szoty, kabestany.',
+    descPl: 'Bavaria 46 z klikalnymi elementami: dziob, maszt, bom, szoty, kabestany.',
     accent: 'var(--success)',
     icon: '🔧',
   },
   {
     href: '/checklist',
-    titleRu: 'Чек-лист к регате', titleEn: 'Pre-race checklist', titlePl: 'Lista przed regatą',
-    subtitleRu: 'Pre-race checklist', subtitleEn: 'Pre-race checklist', subtitlePl: 'Lista przed regatą',
+    titleRu: 'Чек-лист к регате', titleEn: 'Pre-race checklist', titlePl: 'Lista przed regata',
+    subtitleRu: 'Pre-race checklist', subtitleEn: 'Pre-race checklist', subtitlePl: 'Lista przed regata',
     descRu: 'Что взять, что узнать, что сделать перед выходом. Прогресс сохраняется.',
     descEn: 'What to pack, learn, and do before casting off. Progress saved.',
-    descPl: 'Co zabrać, czego się dowiedzieć, co zrobić przed wyjściem. Postęp zapisywany.',
+    descPl: 'Co zabrac, czego sie dowiedziec, co zrobic przed wyjsciem. Postep zapisywany.',
     accent: 'var(--warning)',
     icon: '✅',
   },
@@ -104,7 +104,7 @@ const secondaryTools: Tool[] = [
     subtitleRu: 'Simulator', subtitleEn: 'Simulator', subtitlePl: 'Symulator',
     descRu: 'Интерактивная яхта: top-view + side-view с креном. Почувствуй ветер руками.',
     descEn: 'Interactive yacht: top view + side view with heel. Feel the wind.',
-    descPl: 'Interaktywny jacht: widok z góry + z boku z przechyłem. Poczuj wiatr.',
+    descPl: 'Interaktywny jacht: widok z gory + z boku z przechylem. Poczuj wiatr.',
     accent: 'var(--accent-cyan)',
     icon: '🎮',
   },
@@ -114,17 +114,17 @@ const secondaryTools: Tool[] = [
     subtitleRu: 'Tactics', subtitleEn: 'Tactics', subtitlePl: 'Taktyka',
     descRu: 'Лавировка, старт, огибание знаков, правила расхождения - диаграммы.',
     descEn: 'Upwind, start, mark rounding, right-of-way - diagrams.',
-    descPl: 'Halsowanie, start, opływanie znaków, pierwszeństwo - diagramy.',
+    descPl: 'Halsowanie, start, oplywanie znakow, pierwszenstwo - diagramy.',
     accent: 'var(--warning)',
     icon: '🎯',
   },
   {
     href: '/courses',
-    titleRu: 'Курсы относительно ветра', titleEn: 'Points of sail', titlePl: 'Kursy względem wiatru',
-    subtitleRu: 'Points of sail', subtitleEn: 'Points of sail', subtitlePl: 'Kursy względem wiatru',
+    titleRu: 'Курсы относительно ветра', titleEn: 'Points of sail', titlePl: 'Kursy wzgledem wiatru',
+    subtitleRu: 'Points of sail', subtitleEn: 'Points of sail', subtitlePl: 'Kursy wzgledem wiatru',
     descRu: 'Левентик, бейдевинд, галфвинд, бакштаг, фордевинд - интерактивная диаграмма.',
     descEn: 'In-irons, close-hauled, beam, broad, running - interactive diagram.',
-    descPl: 'W linii wiatru, ostry, półwiatr, baksztag, fordewind - interaktywny diagram.',
+    descPl: 'W linii wiatru, ostry, polwiatr, baksztag, fordewind - interaktywny diagram.',
     accent: 'var(--success)',
     icon: '🧭',
   },
@@ -134,7 +134,7 @@ const secondaryTools: Tool[] = [
     subtitleRu: 'Glossary', subtitleEn: 'Glossary', subtitlePl: 'Glosariusz',
     descRu: '51 термин RU/EN. Бейдевинд = close-hauled, связка = overlap. Ищи и фильтруй.',
     descEn: '51 terms RU/EN. Search and filter.',
-    descPl: '51 pojęć RU/EN. Szukaj i filtruj.',
+    descPl: '51 pojec RU/EN. Szukaj i filtruj.',
     accent: '#8844ff',
     icon: '📚',
   },
@@ -150,28 +150,28 @@ const whyBullets = [
     titleRu: 'За 45 минут', titleEn: 'In 45 minutes', titlePl: 'W 45 minut',
     textRu: 'От «я ничего не понимаю» до «я готов слушать брифинг».',
     textEn: 'From "I don\'t get any of this" to "I can follow the briefing".',
-    textPl: 'Od „nic nie rozumiem" do „jestem gotowy na odprawę".',
+    textPl: 'Od „nic nie rozumiem" do „jestem gotowy na odprawe".',
   },
   {
     icon: '🎯',
     titleRu: 'Через сценарии', titleEn: 'Via scenarios', titlePl: 'Przez scenariusze',
     textRu: 'Не учебник, а ситуации с воды. Действие → объяснение.',
     textEn: 'Not a textbook - real on-water situations. Action → explanation.',
-    textPl: 'Nie podręcznik - realne sytuacje z wody. Akcja → wyjaśnienie.',
+    textPl: 'Nie podrecznik - realne sytuacje z wody. Akcja → wyjasnienie.',
   },
   {
     icon: '🌐',
     titleRu: 'RU / EN / PL', titleEn: 'RU / EN / PL', titlePl: 'RU / EN / PL',
     textRu: 'Термины на 3 языках - учишь и язык тоже.',
     textEn: 'Terminology in 3 languages - you learn the language too.',
-    textPl: 'Terminologia w 3 językach - uczysz się też języka.',
+    textPl: 'Terminologia w 3 jezykach - uczysz sie tez jezyka.',
   },
   {
     icon: '📱',
-    titleRu: 'В браузере', titleEn: 'In the browser', titlePl: 'W przeglądarce',
+    titleRu: 'В браузере', titleEn: 'In the browser', titlePl: 'W przegladarce',
     textRu: 'Ничего не ставишь. Открыл ссылку - учишься.',
     textEn: 'Nothing to install. Open the link, start learning.',
-    textPl: 'Nic nie instalujesz. Otwierasz link, uczysz się.',
+    textPl: 'Nic nie instalujesz. Otwierasz link, uczysz sie.',
   },
 ];
 
@@ -190,28 +190,19 @@ export default function HomePage() {
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-bold tracking-tight mb-4 leading-[1.1]">
-            {tp(
-              'До регаты неделя?',
-              'Race in a week?',
-              'Regata za tydzień?',
+            {tp('До регаты неделя?', 'Race in a week?', 'Regata za tydzien?',
             ).split('?')[0]}{' '}
             <span style={{ color: 'var(--accent-cyan)' }}>?</span>
             <br />
-            {tp('Успеешь разобраться.', "You'll figure it out.", 'Zdążysz się ogarnąć.')}
+            {tp('Успеешь разобраться.', "You'll figure it out.", 'Zdazysz sie ogarnac.')}
           </h1>
 
           <p className="max-w-2xl mx-auto text-base sm:text-lg text-[var(--text-secondary)] leading-relaxed mb-3">
-            {tp(
-              'Интерактивный тренажёр для тех, кому скоро на регату, тренировку или первая неделя на яхте. Ветер, курсы, паруса, базовые правила - через короткие сценарии, не учебник.',
-              'Interactive trainer for anyone with a race, a training day, or a first week on board coming up. Wind, points of sail, sails, basic rules - via short scenarios, not a textbook.',
-              'Interaktywny trener dla osób, które mają przed sobą regatę, trening lub pierwszy tydzień na jachcie. Wiatr, kursy, żagle, podstawowe przepisy - przez krótkie scenariusze, nie podręcznik.',
+            {tp('Интерактивный тренажёр для тех, кому скоро на регату, тренировку или первая неделя на яхте. Ветер, курсы, паруса, базовые правила - через короткие сценарии, не учебник.', 'Interactive trainer for anyone with a race, a training day, or a first week on board coming up. Wind, points of sail, sails, basic rules - via short scenarios, not a textbook.', 'Interaktywny trener dla osob, ktore maja przed soba regate, trening lub pierwszy tydzien na jachcie. Wiatr, kursy, zagle, podstawowe przepisy - przez krotkie scenariusze, nie podrecznik.',
             )}
           </p>
           <p className="text-sm text-[var(--text-muted)] mb-10">
-            {tp(
-              'Тренажёр в браузере · RU / EN / PL',
-              'Browser-based sailing trainer · RU / EN / PL',
-              'Trener w przeglądarce · RU / EN / PL',
+            {tp('Тренажёр в браузере · RU / EN / PL', 'Browser-based sailing trainer · RU / EN / PL', 'Trener w przegladarce · RU / EN / PL',
             )}
           </p>
 
@@ -295,7 +286,7 @@ export default function HomePage() {
             {tp('Дополнительно', 'Extras', 'Dodatkowo')}
           </h2>
           <p className="text-xs text-[var(--text-muted)]">
-            {tp('Инструменты под руками', 'Tools at hand', 'Narzędzia pod ręką')}
+            {tp('Инструменты под руками', 'Tools at hand', 'Narzedzia pod reka')}
           </p>
         </div>
 
@@ -328,7 +319,7 @@ export default function HomePage() {
         <div className="card p-5 sm:p-6 text-center" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
             <span className="font-semibold text-[var(--text-primary)]">
-              {tp('Не знаешь куда идти?', "Not sure where to go?", 'Nie wiesz od czego zacząć?')}
+              {tp('Не знаешь куда идти?', "Not sure where to go?", 'Nie wiesz od czego zaczac?')}
             </span>{' '}
             {tp('Начни с', 'Start with', 'Zacznij od')}{' '}
             <Link href="/courses" className="text-[var(--accent-cyan)] hover:underline font-medium">
@@ -338,7 +329,7 @@ export default function HomePage() {
             <Link href="/simulator" className="text-[var(--accent-cyan)] hover:underline font-medium">
               {tp('Симулятор', 'Simulator', 'Symulator')}
             </Link>
-            {' '}{tp('для ощущения в руках, потом', 'to feel it, then', 'żeby poczuć, potem')}{' '}
+            {' '}{tp('для ощущения в руках, потом', 'to feel it, then', 'zeby poczuc, potem')}{' '}
             <Link href="/game" className="text-[var(--accent-cyan)] hover:underline font-medium">
               {tp('Гонка', 'Race', 'Regata')}
             </Link>

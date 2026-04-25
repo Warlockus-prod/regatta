@@ -104,7 +104,7 @@ const Icon = {
 
 // Primary - always in the desktop bar
 const primary: NavItem[] = [
-  { href: '/', ru: 'Главная', en: 'Home', pl: 'Główna', icon: Icon.home },
+  { href: '/', ru: 'Главная', en: 'Home', pl: 'Glowna', icon: Icon.home },
   { href: '/start', ru: 'Старт', en: 'Start', pl: 'Start', icon: Icon.start },
   { href: '/courses', ru: 'Курсы к ветру', en: 'Points of sail', pl: 'Kursy wiatru', icon: Icon.courses },
   { href: '/simulator', ru: 'Симулятор', en: 'Simulator', pl: 'Symulator', icon: Icon.simulator },
@@ -121,14 +121,14 @@ const groups: NavGroup[] = [
     ],
   },
   {
-    titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokładzie',
+    titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokladzie',
     items: [
       { href: '/anatomy', ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu', icon: Icon.anatomy },
       { href: '/checklist', ru: 'Чек-лист', en: 'Checklist', pl: 'Lista kontrolna', icon: Icon.checklist },
     ],
   },
   {
-    titleRu: 'Ещё', titleEn: 'More', titlePl: 'Więcej',
+    titleRu: 'Ещё', titleEn: 'More', titlePl: 'Wiecej',
     items: [
       { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', icon: Icon.race },
       { href: '/glossary', ru: 'Глоссарий', en: 'Glossary', pl: 'Glosariusz', icon: Icon.glossary },
@@ -204,7 +204,7 @@ export default function Navigation() {
               setOpen={setMoreOpen}
               labelOf={labelOf}
               pathname={pathname}
-              moreLabel={tp('Ещё', 'More', 'Więcej')}
+              moreLabel={tp('Ещё', 'More', 'Wiecej')}
             />
           </div>
 
@@ -214,7 +214,7 @@ export default function Navigation() {
 
             <button
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
-              title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skróty (?)')}
+              title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skroty (?)')}
               aria-label="Open help"
               className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)] transition text-sm font-bold"
             >
