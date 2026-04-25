@@ -161,6 +161,49 @@ export function SceneTop({
       {/* Scene glow */}
       <rect x="0" y="0" width={width} height={height} fill={`url(#${glowId})`} />
 
+      {/* Animated water sparkles. ~36 deterministic dots scattered over
+          the scene, each bobbing with a unique phase + speed - same idea
+          as V1's WaveDot loop but expressed as SVG circles with SMIL
+          translate animations. They give the surface a "living" feel
+          before any structural overlays sit on top. */}
+      <g opacity={0.5}>
+        {Array.from({ length: 36 }).map((_, i) => {
+          // Deterministic position from index so SSR + CSR agree
+          const dx = ((i * 79) % width);
+          const dy = ((i * 53 + 23) % (height - 60)) + 30;
+          const r = 0.6 + (i % 5) * 0.35;
+          const phaseSec = (i * 0.27) % 4.2;
+          const dur = (3.4 + (i % 4) * 0.45 - windIntensity * 0.6).toFixed(2);
+          const drift = 4 + (i % 3) * 1.5 + windIntensity * 3;
+          const sign = i % 2 === 0 ? 1 : -1;
+          return (
+            <circle key={i} cx={dx} cy={dy} r={r} fill="rgba(120, 190, 230, 0.55)">
+              <animate
+                attributeName="cx"
+                values={`${dx};${dx + sign * drift};${dx};${dx - sign * drift};${dx}`}
+                dur={`${dur}s`}
+                begin={`-${phaseSec.toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="cy"
+                values={`${dy};${dy + drift * 0.6};${dy};${dy - drift * 0.5};${dy}`}
+                dur={`${(Number(dur) * 1.3).toFixed(2)}s`}
+                begin={`-${phaseSec.toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+              <animate
+                attributeName="opacity"
+                values="0.2;0.6;0.2"
+                dur={`${(Number(dur) * 0.8).toFixed(2)}s`}
+                begin={`-${phaseSec.toFixed(2)}s`}
+                repeatCount="indefinite"
+              />
+            </circle>
+          );
+        })}
+      </g>
+
       {/* Water surface - undulating bands that actually look like swell,
           drifting at a rate scaled by wind intensity. The amplitude of the
           undulation also grows with wind so calm days read flat and blows
@@ -505,25 +548,108 @@ function BoatTop(args: {
 
   return (
     <>
-      {/* Hull */}
-      <ellipse cx="0" cy="60" rx="36" ry="10" fill="rgba(0,0,0,0.22)" />
+      {/* Hull shadow on the water (blurred ellipse beneath the boat) */}
+      <ellipse cx="0" cy="60" rx="38" ry="12" fill="rgba(0,0,0,0.28)" />
+
+      {/* HULL silhouette. The shape is bow-pointed (top), wide amidships,
+          tapering toward the stern. */}
       <path
         d="M 0 -96 Q 38 -40 28 52 Q 24 116 0 160 Q -24 116 -28 52 Q -38 -40 0 -96 Z"
         fill="#e8f0f6"
         stroke="#6f8ba0"
         strokeWidth={4}
       />
-      {/* Deck line + cockpit hint for more depth */}
+
+      {/* Inner deck outline (slightly inside the hull stroke) so the eye
+          reads "this is the deck edge, not just paint". */}
       <path
         d="M 0 -86 Q 30 -30 22 50 Q 18 110 0 148 Q -18 110 -22 50 Q -30 -30 0 -86 Z"
         fill="none"
-        stroke="rgba(111, 139, 160, 0.35)"
+        stroke="rgba(111, 139, 160, 0.45)"
         strokeWidth={1}
       />
-      <ellipse cx="0" cy="20" rx="12" ry="26" fill="rgba(0,0,0,0.18)" />
 
-      {/* Mast base (circle) + shroud hints fore/aft */}
+      {/* Deck planks - faint thin lines from bow to stern. They follow the
+          hull's curvature, so we draw a few near-parallel paths. */}
+      {[-18, -10, -4, 4, 10, 18].map((x) => (
+        <path
+          key={x}
+          d={`M ${x * 0.6} -88 Q ${x * 1.05} 0 ${x * 0.85} 144`}
+          fill="none"
+          stroke="rgba(160, 180, 200, 0.18)"
+          strokeWidth={0.6}
+        />
+      ))}
+
+      {/* Forward hatch (companionway) - rectangle just forward of mast */}
+      <rect
+        x="-9"
+        y="-50"
+        width="18"
+        height="22"
+        rx="2"
+        fill="rgba(50, 80, 110, 0.55)"
+        stroke="rgba(111, 139, 160, 0.45)"
+        strokeWidth={0.8}
+      />
+      {/* Hatch slit */}
+      <line
+        x1="0"
+        y1="-50"
+        x2="0"
+        y2="-28"
+        stroke="rgba(207, 216, 224, 0.35)"
+        strokeWidth={0.6}
+      />
+
+      {/* Cockpit pit aft of the mast - bigger, oval, with a darker recess. */}
+      <ellipse cx="0" cy="40" rx="14" ry="24" fill="rgba(0, 0, 0, 0.25)" />
+      <ellipse
+        cx="0"
+        cy="40"
+        rx="12"
+        ry="22"
+        fill="none"
+        stroke="rgba(111, 139, 160, 0.35)"
+        strokeWidth={0.6}
+      />
+
+      {/* HELM WHEEL inside the cockpit. A circle with cross-spokes - what
+          the helmsman steers with. Sits aft inside the cockpit. */}
+      <g transform="translate(0 52)">
+        <circle r="6.5" fill="rgba(8, 22, 40, 0.5)" stroke="rgba(160, 185, 210, 0.85)" strokeWidth={1.2} />
+        <line x1="-6.5" y1="0" x2="6.5" y2="0" stroke="rgba(160, 185, 210, 0.85)" strokeWidth={0.9} />
+        <line x1="0" y1="-6.5" x2="0" y2="6.5" stroke="rgba(160, 185, 210, 0.85)" strokeWidth={0.9} />
+        <line x1="-4.6" y1="-4.6" x2="4.6" y2="4.6" stroke="rgba(160, 185, 210, 0.85)" strokeWidth={0.7} />
+        <line x1="-4.6" y1="4.6" x2="4.6" y2="-4.6" stroke="rgba(160, 185, 210, 0.85)" strokeWidth={0.7} />
+        <circle r="1.5" fill="rgba(160, 185, 210, 0.95)" />
+      </g>
+
+      {/* CLEATS - small dark dots on the deck where lines secure. Give
+          the deck "boat hardware" texture. */}
+      <circle cx="-22" cy="-28" r="1.6" fill="rgba(40, 60, 80, 0.8)" />
+      <circle cx="22" cy="-28" r="1.6" fill="rgba(40, 60, 80, 0.8)" />
+      <circle cx="-20" cy="118" r="1.6" fill="rgba(40, 60, 80, 0.8)" />
+      <circle cx="20" cy="118" r="1.6" fill="rgba(40, 60, 80, 0.8)" />
+
+      {/* RUDDER - a tapered fin extending aft from the transom. This is
+          the single best "which end is the back?" signal in a top-down
+          view. Drawn just below the hull's stern. */}
+      <g>
+        {/* Rudder shadow on water */}
+        <ellipse cx="0" cy="178" rx="5" ry="2" fill="rgba(0, 0, 0, 0.3)" />
+        <path
+          d="M -3 160 L -4 174 Q -2 180 0 180 L 0 184 Q 2 180 4 174 L 3 160 Z"
+          fill="rgba(40, 60, 80, 0.92)"
+          stroke="rgba(207, 216, 224, 0.4)"
+          strokeWidth={0.6}
+        />
+      </g>
+
+      {/* Mast base (circle) at deck center - where the mast meets deck. */}
       <circle cx="0" cy="0" r="5" fill="#0a1628" stroke="#2a4060" strokeWidth={1.5} />
+      {/* Tiny halyard cluster around the mast base */}
+      <circle cx="0" cy="0" r="2" fill="rgba(207, 216, 224, 0.6)" />
 
       {/* ==============================================================
           JIB - forward of mast. Drawn BEFORE main so the main sits over
