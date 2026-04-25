@@ -15,6 +15,15 @@ export type AnatomyPart =
     side: { x: number; y: number };
     /** Top-view hotspot (x, y) - optional */
     top?: { x: number; y: number };
+    /**
+     * 3D hotspot in the GLB's LOCAL coordinate space (meters).
+     * Convention from the bundled README:
+     *   X: stern (-) -> bow (+)        (~ -7 ... +7 for LOA 13.99 m)
+     *   Y: port/starboard              (~ -2.15 ... +2.15 for beam 4.29 m)
+     *   Z: keel (-) -> mast top (+)    (~ -2 keel, +1 deck, +18 mast top)
+     * Optional - markers only render in 3D for parts that have it.
+     */
+    three?: { x: number; y: number; z: number };
   };
 
 export const anatomyParts: AnatomyPart[] = [
@@ -29,6 +38,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameIt: 'prua',
     side: { x: 160, y: 260 },
     top: { x: 500, y: 50 },
+    three: { x: 6.8, y: 0, z: 0.8 },
     descRu: 'Передняя часть яхты. На Bavaria 46 - наклонный форштевень, якорный рольганг.',
     descEn: 'Forward-most part. Bavaria 46 has a raked stem and an anchor roller.',
     descPl: 'Przednia czesc jachtu. Bavaria 46 ma nachylony dziobnik i rolke kotwiczna.',
@@ -55,6 +65,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameIt: 'poppa',
     side: { x: 820, y: 280 },
     top: { x: 500, y: 450 },
+    three: { x: -6.5, y: 0, z: 0.4 },
     descRu: 'Задняя часть. У Bavaria 46 - широкая транцевая платформа, часто с trap (ступенькой для купания).',
     descEn: 'Aft end. Bavaria 46 has a wide transom with bathing platform (swim steps).',
     descPl: 'Tylna czesc. Bavaria 46 ma szeroka platforme rufowa, czesto ze schodkami do kapieli.',
@@ -81,6 +92,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameIt: 'Albero',
     side: { x: 420, y: 90 },
     top: { x: 500, y: 220 },
+    three: { x: 0.5, y: 0, z: 9 },
     descRu: 'Вертикальная опора парусов. На Bavaria 46 обычно алюминиевая фрак-риг ~18м.',
     descEn: 'Vertical spar holding the sails. Bavaria 46 usually has a ~18m aluminum fractional rig.',
     descPl: 'Pionowe podparcie zagli. Bavaria 46 ma zwykle aluminiowy takielunek typu fractional ~18m.',
@@ -106,6 +118,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Baum',
     nameIt: 'Boma',
     side: { x: 490, y: 210 },
+    three: { x: -1.5, y: 0, z: 2 },
     descRu: 'Горизонтальная балка у основания грота. При поворотах фордевинд пересекает лодку.',
     descEn: 'Horizontal spar at the foot of the mainsail. Crosses the boat during jibes.',
     descPl: 'Pozioma belka u podstawy grota. Przeciska sie przez lodz podczas zwrotu przez rufe.',
@@ -131,6 +144,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Grossegel',
     nameIt: 'randa',
     side: { x: 450, y: 140 },
+    three: { x: -0.5, y: 0, z: 6 },
     descRu: 'Главный парус, крепится к мачте и гику.',
     descEn: 'Main sail, attached to mast and boom.',
     descPl: 'Glowny zagiel, mocowany do masztu i bomu.',
@@ -156,6 +170,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Fock',
     nameIt: 'fiocco',
     side: { x: 290, y: 190 },
+    three: { x: 3.5, y: 0, z: 5 },
     descRu: 'Передний парус. На Bavaria 46 обычно 105% от J (размер треугольника передка).',
     descEn: 'Forward sail. On Bavaria 46 usually 105% of the J triangle.',
     descPl: 'Przedni zagiel. Na Bavaria 46 zwykle 105% trojkata J.',
@@ -181,6 +196,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Wanten',
     nameIt: 'Stralli',
     side: { x: 420, y: 200 },
+    three: { x: 0.5, y: 1.5, z: 5 },
     descRu: 'Боковые тросы, удерживающие мачту. У Bavaria 46 - обычно двойные + lower shrouds.',
     descEn: 'Side wires holding the mast. Bavaria 46 usually has caps + lower shrouds.',
     descPl: 'Boczne liny utrzymujace maszt. Bavaria 46 ma zwykle wanty gorne + wanty dolne.',
@@ -206,6 +222,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Stag',
     nameIt: 'Drizza',
     side: { x: 290, y: 160 },
+    three: { x: 5.5, y: 0, z: 4.5 },
     descRu: 'Передний трос от верха мачты к носу. К нему крепится стаксель.',
     descEn: 'Forward wire from masthead to bow. Jib attaches to it.',
     descPl: 'Przednia lina od topu masztu do dziobu. Mocuje sie do niej fok.',
@@ -231,6 +248,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Großsegel-Schot',
     nameIt: 'scotta della randa',
     side: { x: 630, y: 280 },
+    three: { x: -2.8, y: 0, z: 1.6 },
     descRu: 'Снасть управления грота. Обычно тали из нескольких блоков.',
     descEn: 'Line controlling the mainsail. Usually a multi-part block and tackle.',
     descPl: 'Lina sterujaca grotem. Zwykle wielokrazek z kilku blokow.',
@@ -256,6 +274,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Fock-Schot',
     nameIt: 'scotta del fiocco',
     side: { x: 540, y: 295 },
+    three: { x: -1.0, y: 1.0, z: 1.4 },
     descRu: 'Шкот стакселя, проходит через лебёдку.',
     descEn: 'Jib sheet, runs through a winch.',
     descPl: 'Szot foka, przechodzi przez kabestan.',
@@ -281,6 +300,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Winsch',
     nameIt: 'Winsch',
     side: { x: 560, y: 285 },
+    three: { x: -1.5, y: 1.5, z: 1.2 },
     descRu: 'Круглый барабан для нагруженных шкотов. У Bavaria 46 обычно 4 winch в кокпите.',
     descEn: 'Drum for loaded sheets. Bavaria 46 typically has 4 cockpit winches.',
     descPl: 'Beben do obciazonych szotow. Bavaria 46 ma zwykle 4 kabestany w kokpicie.',
@@ -306,6 +326,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Klampe',
     nameIt: 'Galloccia',
     side: { x: 750, y: 290 },
+    three: { x: 5.5, y: 1.0, z: 1.0 },
     descRu: 'Деталь для крепления концов.',
     descEn: 'Fitting for securing lines.',
     descPl: 'Element do mocowania lin.',
@@ -331,6 +352,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Ruder',
     nameIt: 'timone',
     side: { x: 810, y: 400 },
+    three: { x: -5.8, y: 0, z: -1.0 },
     descRu: 'Подводный плавник. На Bavaria 46 - обычно два руля (twin rudders) для стабильности при крене.',
     descEn: 'Underwater blade. Bavaria 46 has twin rudders for heeled stability.',
     descPl: 'Podwodna pletwa. Bavaria 46 ma zwykle dwa stery (twin rudders) dla statecznosci przy przechyle.',
@@ -356,6 +378,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Kiel',
     nameIt: 'chiglia',
     side: { x: 480, y: 420 },
+    three: { x: 0, y: 0, z: -1.6 },
     descRu: 'Подводный плавник с грузом. Удерживает от опрокидывания и дрейфа. Bavaria 46 обычно 2.05м осадка.',
     descEn: 'Underwater fin with ballast. Prevents capsize and leeway. Bavaria 46 draft is usually 2.05m.',
     descPl: 'Podwodna pletwa z balastem. Zapobiega wywroceniu i dryfowi. Zanurzenie Bavarii 46 to zwykle 2.05m.',
@@ -381,6 +404,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Fender',
     nameIt: 'Parabordo',
     side: { x: 610, y: 325 },
+    three: { x: -2.5, y: 2.0, z: 0.2 },
     descRu: 'Мягкий буфер между бортом и причалом/другим судном.',
     descEn: 'Soft buffer between hull and dock or other vessel.',
     descPl: 'Miekki bufor miedzy kadlubem a nabrzezem lub innym jednostka.',
@@ -406,6 +430,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Ruder',
     nameIt: 'Timone',
     side: { x: 720, y: 260 },
+    three: { x: -3.6, y: 0, z: 1.5 },
     descRu: 'Рулевое колесо. У Bavaria 46 обычно ДВА штурвала - правый и левый в кокпите.',
     descEn: 'Steering wheel. Bavaria 46 usually has TWO wheels - port and starboard in cockpit.',
     descPl: 'Kolo sterowe. Bavaria 46 ma zwykle DWA kola - lewe i prawe w kokpicie.',
@@ -431,6 +456,7 @@ export const anatomyParts: AnatomyPart[] = [
     nameDe: 'Cockpit',
     nameIt: 'Cockpit',
     side: { x: 680, y: 255 },
+    three: { x: -3.2, y: 0, z: 0.7 },
     descRu: 'Рабочая и жилая зона на корме. У Bavaria 46 - просторный, с обеденным столом на качке опускаемым.',
     descEn: 'Working and living area aft. Bavaria 46 has a large cockpit with a drop-down dining table.',
     descPl: 'Strefa robocza i bytowa na rufie. Bavaria 46 ma duzy kokpit ze skladanym stolem.',

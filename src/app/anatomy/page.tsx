@@ -231,17 +231,21 @@ export default function AnatomyPage() {
             <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
           ) : (
             <YachtViewer3D
+              parts={anatomyParts}
+              activeId={activeId}
+              onSelect={setActiveId}
+              pickName={(p) => legacyPick(p, 'name', lang)}
               loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
                 { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}
               hintLabel={tp(
-                'Тяни мышкой для вращения · колесом для зума',
-                'Drag to rotate · scroll to zoom',
-                'Przeciagnij aby obrocic · scroll do zoom',
+                'Тяни для вращения · клик по точке - название и описание',
+                'Drag to rotate · click a hotspot for name & details',
+                'Przeciagnij aby obrocic · klik na punkt - nazwa i opis',
                 {
-                  es: 'Arrastra para rotar · scroll para zoom',
-                  fr: 'Glisse pour pivoter · molette pour zoomer',
-                  de: 'Ziehen zum Drehen · Scrollen zum Zoomen',
-                  it: 'Trascina per ruotare · scroll per zoom',
+                  es: 'Arrastra para rotar · clic en un punto - nombre y detalles',
+                  fr: 'Glisse pour pivoter · clique sur un point pour le nom et les details',
+                  de: 'Ziehen zum Drehen · Klick auf einen Punkt fuer Name und Details',
+                  it: 'Trascina per ruotare · clicca su un punto per nome e dettagli',
                 },
               )}
             />
