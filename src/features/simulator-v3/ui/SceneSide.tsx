@@ -41,8 +41,8 @@ const RUDDER_LEN = 50;
 const MAST_X = HULL_BOW - HULL_LEN * 0.33;
 const MAST_TOP = -260; // y above waterline at mast top
 const BOOM_Y = -34; // boom height above waterline (above cabin top)
-const BOOM_AFT = -120; // x of clew (aft end of boom)
 const BOOM_FWD = MAST_X; // boom mounts on mast (gooseneck)
+const MAX_BOOM_LEN = 130;
 
 export function SceneSide({
   ui,
@@ -78,9 +78,40 @@ export function SceneSide({
   // side-on view (you see it from astern); we don't rotate.
   const bowTrim = -speedIntensity * 1.5;
 
+  // Boom geometry: in a true port-abeam view the boom rotates AROUND
+  // the mast in a horizontal plane (perpendicular to our line of
+  // sight). Its visible projection foreshortens to the cosine of the
+  // sheet angle:
+  //   mainAngle=0  (boom along centerline, sheeted in tight)  -> full
+  //                length aft -> we see a long line.
+  //   mainAngle=90 (boom perpendicular, fully out)            -> the
+  //                boom points into/out of the page -> we see a stub
+  //                at the mast.
+  // This is what the user sees changing on the side view when they
+  // pull the main sheet.
+  const mainOffDeg = finite(ui.mainAngle, 45);
+  const boomCosAngle = Math.cos((mainOffDeg * Math.PI) / 180);
+  const boomVisibleLen = MAX_BOOM_LEN * Math.max(0.18, Math.abs(boomCosAngle));
+  const BOOM_AFT = MAST_X - boomVisibleLen;
+
   // Sail belly factors. Calm air = baggier. Reef + heavy wind = flatter.
   const mainBelly = finite((1 - 0.45 * windIntensity) * mainVisualScale, 1);
   const jibBelly = finite(1 - 0.4 * windIntensity, 1);
+
+  // Apparent-wind direction in side-view 2D. The boat moves toward the
+  // bow (positive x). Wind comes FROM ahead-of-the-bow on close-hauled
+  // (small AWA) and FROM astern on broad reach (AWA close to 180). We
+  // angle the AW indicator at the top so it always points down-and-
+  // somewhere, with the angle telling the user where the apparent
+  // wind sits relative to their bow.
+  const awaAbs = Math.abs(finite(sim.result.diag.awa));
+  // Map AWA in [0, 180] to a visible angle in degrees:
+  //   AWA 0   -> arrow points straight down toward the bow (right)
+  //   AWA 90  -> arrow points straight down (perpendicular)
+  //   AWA 180 -> arrow points down-and-toward-stern (left)
+  // We tilt around vertical: rotation = (90 - AWA) so AWA=0 -> +90deg,
+  // AWA=90 -> 0deg, AWA=180 -> -90deg.
+  const awArrowRot = 90 - awaAbs;
 
   // Sail tints
   const mainColor = mainStalled ? '#ffc8b0' : '#fffaee';
@@ -171,45 +202,72 @@ export function SceneSide({
         })}
       </g>
 
-      {/* AW ribbon at top, animated dashes */}
-      <g opacity={0.45}>
-        <text
-          x={24}
-          y={36}
-          fill="rgba(130, 200, 255, 0.75)"
-          fontSize="10"
-          fontWeight="700"
-          style={{ letterSpacing: '0.12em' }}
-        >
-          AW {Math.round(Math.abs(finite(sim.result.diag.awa)))}°
-        </text>
-        {Array.from({ length: 10 }).map((_, i) => (
-          <line
+      {/* AW direction indicator at top center. Rotates with AWA so the
+          user sees where the wind hits the bow. Animated streaks
+          stream in the same direction. */}
+      <g transform={`translate(${cx} 90) rotate(${awArrowRot})`}>
+        {/* Big arrow pointing toward the boat (downward in unrotated
+            frame). The arrow body is the wind direction line. */}
+        <line
+          x1="0"
+          y1={-44}
+          x2="0"
+          y2={36}
+          stroke="rgba(0, 212, 255, 0.7)"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+        />
+        <polygon points="-7,28 7,28 0,42" fill="rgba(0, 212, 255, 0.85)" />
+        {/* Animated wind streaks flowing along the arrow */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <circle
             key={i}
-            x1={40 + i * 64}
-            x2={40 + i * 64 + 24}
-            y1={48}
-            y2={48}
-            stroke="rgba(130, 200, 255, 0.45)"
-            strokeWidth={1.4}
-            strokeLinecap="round"
+            cx="0"
+            cy={-44 + i * 18}
+            r={1.5}
+            fill="rgba(130, 220, 255, 0.6)"
           >
             <animate
-              attributeName="x1"
-              from={-40 + i * 64}
-              to={width + 40 + i * 64}
-              dur={`${6 - windIntensity * 2.5}s`}
+              attributeName="cy"
+              from={-44}
+              to={42}
+              dur={`${1.5 - windIntensity * 0.6}s`}
+              begin={`${i * 0.18}s`}
               repeatCount="indefinite"
             />
             <animate
-              attributeName="x2"
-              from={-16 + i * 64}
-              to={width + 64 + i * 64}
-              dur={`${6 - windIntensity * 2.5}s`}
+              attributeName="opacity"
+              values="0;0.7;0"
+              dur={`${1.5 - windIntensity * 0.6}s`}
+              begin={`${i * 0.18}s`}
               repeatCount="indefinite"
             />
-          </line>
+          </circle>
         ))}
+      </g>
+      {/* AW label - kept upright (NOT rotated) so it always reads */}
+      <g>
+        <rect
+          x={cx - 38}
+          y={20}
+          width={76}
+          height={18}
+          rx={9}
+          fill="rgba(8, 24, 48, 0.7)"
+          stroke="rgba(0, 212, 255, 0.4)"
+          strokeWidth={1}
+        />
+        <text
+          x={cx}
+          y={32}
+          fill="rgba(130, 220, 255, 0.95)"
+          fontSize="11"
+          fontWeight="800"
+          textAnchor="middle"
+          style={{ letterSpacing: '0.1em' }}
+        >
+          AW {Math.round(awaAbs)}°
+        </text>
       </g>
 
       {/* Boat group anchored at waterline center, slight bow-up trim */}
@@ -588,6 +646,33 @@ export function SceneSide({
             </g>
           );
         })()}
+      </g>
+
+      {/* Direction-of-travel banner at deck level pointing forward
+          past the bow. Tells the user "this is where you're going" -
+          can't always read it from a static profile. */}
+      <g transform={`translate(${cx + HULL_BOW + 30} ${waterY - 30})`}>
+        <line
+          x1="0"
+          y1="0"
+          x2="40"
+          y2="0"
+          stroke="rgba(82, 255, 142, 0.65)"
+          strokeWidth={2.5}
+          strokeLinecap="round"
+        />
+        <polygon points="34,-6 48,0 34,6" fill="rgba(82, 255, 142, 0.85)" />
+        <text
+          x="-6"
+          y="4"
+          fill="rgba(150, 230, 180, 0.85)"
+          fontSize="10"
+          fontWeight="800"
+          textAnchor="end"
+          style={{ letterSpacing: '0.12em' }}
+        >
+          {tp('НОС', 'BOW', 'DZIOB')}
+        </text>
       </g>
 
       {/* Bow wave - small foam crescent in front of the boat */}

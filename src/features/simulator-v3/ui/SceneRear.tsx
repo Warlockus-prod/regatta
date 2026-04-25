@@ -67,11 +67,12 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
   const mainOffDeg = finite(ui.mainAngle, 45);
   const mainBoomLateral = (mainOffDeg / 60) * 22;  // 0..22 px sideways
   const mainBoomLong = 60 - mainOffDeg * 0.4;       // foreshortened
-  // From astern: leeward side is the side the wind PUSHES the sail
-  // toward. signedTwa>0 = starboard tack = leeward = port = our right.
-  // In screen coords (no flip), our right = positive x. So sailLeewardX
-  // is +1 for starboard tack and -1 for port.
-  const sailLeewardX: 1 | -1 = finite(sim.signedTwa) > 0 ? 1 : -1;
+  // From astern looking forward (same direction as the boat is moving),
+  // the observer's LEFT lines up with the boat's PORT side. So when
+  // wind comes from starboard (signedTwa > 0 = starboard tack), the
+  // sails get pushed to port = the observer's LEFT = NEGATIVE screen x.
+  // The previous version had this reversed (sails on the wrong side).
+  const sailLeewardX: 1 | -1 = finite(sim.signedTwa) > 0 ? -1 : 1;
 
   // Jib forward of mast - from astern most of it hides behind the main
   // when on the same tack. We render it slightly offset so the user can
@@ -173,6 +174,50 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
         <path d="M 0 0 L 60 0" stroke="#00d4ff" strokeWidth={2.2} />
         <polygon points="60,-6 70,0 60,6" fill="#00d4ff" />
       </g>
+
+      {/* Direction-of-travel indicator. From astern, the boat moves
+          AWAY from the viewer - into the page. We show this as a
+          stylized vanishing-point arrow at top-left that says "boat
+          goes that way". */}
+      <g transform={`translate(110 96)`}>
+        <text
+          x="0"
+          y="-10"
+          fill="rgba(82, 255, 142, 0.85)"
+          fontSize="10"
+          fontWeight="800"
+          textAnchor="middle"
+          style={{ letterSpacing: '0.12em' }}
+        >
+          {tp('ИДЁТ ТУДА', 'BOAT GOES', 'PLYNIE TAM')}
+        </text>
+        {/* Arrow stack getting smaller (vanishing into the distance) */}
+        <polygon points="-22,8 22,8 14,-2 -14,-2" fill="rgba(82, 255, 142, 0.7)" />
+        <polygon points="-14,-2 14,-2 8,-10 -8,-10" fill="rgba(82, 255, 142, 0.5)" />
+        <polygon points="-8,-10 8,-10 4,-16 -4,-16" fill="rgba(82, 255, 142, 0.32)" />
+      </g>
+
+      {/* Stern wake fanning out toward the viewer - the foam left
+          behind by the boat. This sells the "boat is moving away"
+          feeling. Speed-scaled. */}
+      {sim.result.state.boatSpeed > 1 && (
+        <g
+          transform={`translate(${cx} ${horizonY + 40})`}
+          opacity={clamp(sim.result.state.boatSpeed / 8, 0.15, 0.7)}
+        >
+          <path
+            d={`M -120 0 Q -60 ${20} 0 ${50} Q 60 ${20} 120 0 Z`}
+            fill="rgba(200, 230, 255, 0.5)"
+          />
+          <path
+            d={`M -60 -2 L 0 36 L 60 -2`}
+            fill="none"
+            stroke="rgba(220, 240, 255, 0.7)"
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+        </g>
+      )}
 
       {/* Vertical reference plumb line - in world frame, NOT rotated by
           heel. Anchored at the boat center. Helps the eye see how far
