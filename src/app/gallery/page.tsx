@@ -297,18 +297,11 @@ function Tile({
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
       </button>
 
-      {item.badge && (
-        <span
-          className="absolute top-2 left-2 text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded pointer-events-none"
-          style={{
-            background: 'rgba(0, 212, 255, 0.2)',
-            color: '#e8f4f8',
-            backdropFilter: 'blur(4px)',
-          }}
-        >
-          {item.badge}
-        </span>
-      )}
+      {/* Per-tile year badge intentionally NOT rendered here. The
+          section header above the masonry already shows the year for
+          the whole group, so a badge on every photo is redundant noise.
+          The `badge` field stays in the data model because we still
+          group-by it. */}
 
       {item.kind === 'youtube' && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
