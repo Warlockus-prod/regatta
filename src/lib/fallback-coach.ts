@@ -31,6 +31,20 @@ interface RaceLog {
   events: LogEvent[];
 }
 
+/**
+ * Coaching response shape.
+ *
+ * The legacy `*Ru` field names are kept as REQUIRED for backward
+ * compatibility - older replays and cached responses still use them. The
+ * non-suffixed aliases (`title`, `explanation`, `fix`, `nextGoal`) are
+ * NEW (2026-04-26) and OPTIONAL: every fresh response from /api/coach
+ * fills BOTH sets of names with the same content, but anything stored
+ * before the rename only has the `*Ru` versions.
+ *
+ * Consumers should prefer the non-suffixed name and fall back to `*Ru`,
+ * via the `pickCoachField` helper below. This lets us rename the
+ * confusing "RU" suffix without breaking a single downstream use.
+ */
 export interface Coaching {
   overall: string;
   score: number;
@@ -41,9 +55,27 @@ export interface Coaching {
     titleRu: string;
     explanationRu: string;
     fixRu: string;
+    title?: string;
+    explanation?: string;
+    fix?: string;
   }>;
   strengths: string[];
   nextGoalRu: string;
+  nextGoal?: string;
+}
+
+/** Read either the new (`title`) or legacy (`titleRu`) field. */
+export function coachTitle(m: Coaching['mistakes'][number]): string {
+  return m.title ?? m.titleRu;
+}
+export function coachExplanation(m: Coaching['mistakes'][number]): string {
+  return m.explanation ?? m.explanationRu;
+}
+export function coachFix(m: Coaching['mistakes'][number]): string {
+  return m.fix ?? m.fixRu;
+}
+export function coachNextGoal(c: Coaching): string {
+  return c.nextGoal ?? c.nextGoalRu;
 }
 
 export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coaching {
@@ -249,12 +281,32 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     );
   }
 
-  return {
+  return mirrorCoachKeys({
     overall,
     score,
     mistakes: topMistakes,
     strengths,
     nextGoalRu: nextGoal,
+  });
+}
+
+/**
+ * Copy each legacy `*Ru` field into its non-suffixed alias so a freshly
+ * produced response satisfies BOTH the old and new readers. Cheap, runs
+ * on every analyse call. The `*Ru` fields stay required for backward
+ * compat; the aliases are populated on first emit and persist into any
+ * future cache.
+ */
+export function mirrorCoachKeys(c: Coaching): Coaching {
+  return {
+    ...c,
+    nextGoal: c.nextGoal ?? c.nextGoalRu,
+    mistakes: c.mistakes.map((m) => ({
+      ...m,
+      title: m.title ?? m.titleRu,
+      explanation: m.explanation ?? m.explanationRu,
+      fix: m.fix ?? m.fixRu,
+    })),
   };
 }
 

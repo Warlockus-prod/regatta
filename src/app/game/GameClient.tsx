@@ -13,6 +13,8 @@ import {
   formatRecordTime,
   type BestRecord,
 } from '@/lib/best-times';
+import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
+import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
 
 // ============================================================================
 // TYPES
@@ -92,6 +94,11 @@ interface LogEvent {
   note?: string;
 }
 
+// Local Coaching type intentionally duplicates the runtime shape defined
+// in src/lib/fallback-coach.ts. Both old (`*Ru`) and new (no-suffix) field
+// names are present - new responses fill both, old replay caches only
+// have the `*Ru` form. Read via helpers (`coachTitle`, `coachExplanation`,
+// `coachFix`, `coachNextGoal`) imported above.
 interface Coaching {
   overall: string;
   score: number;
@@ -102,9 +109,13 @@ interface Coaching {
     titleRu: string;
     explanationRu: string;
     fixRu: string;
+    title?: string;
+    explanation?: string;
+    fix?: string;
   }>;
   strengths: string[];
   nextGoalRu: string;
+  nextGoal?: string;
 }
 
 // ============================================================================
@@ -441,6 +452,21 @@ export default function GamePage() {
   // Mission selection: null = free race
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
 
+  // Resume offer: when the user reloaded mid-race we drop them on the
+  // menu but show a "you were about to race" banner that takes them
+  // back to the briefing with their original setup. The lib only stores
+  // INTENT (difficulty / wind / mission), not the live race state, so
+  // an interrupted race restarts from the briefing screen rather than
+  // resuming mid-position. That's a deliberate trade: we lose the
+  // physics state but we never crash on schema skew.
+  const [resumeOffer, setResumeOffer] = useState<ReturnType<typeof loadRaceSetup>>(null);
+  useEffect(() => {
+    const saved = loadRaceSetup();
+    if (saved && (saved.phase === 'briefing' || saved.phase === 'countdown' || saved.phase === 'racing')) {
+      setResumeOffer(saved);
+    }
+  }, []);
+
   // Boat visual style
   const [boatStyle, setBoatStyle] = useState<BoatStyle>('cruiser');
   const boatStyleRef = useRef<BoatStyle>(boatStyle);
@@ -641,13 +667,29 @@ export default function GamePage() {
     // being competitive about it.
     setBestRecord(getBestRecord(difficulty, windStrength));
     setIsNewRecord(false); // reset from any previous race
+    // Persist the user's INTENT to localStorage so we can offer to resume
+    // after a reload. We refresh on every phase transition so the saved
+    // ts stays close to "now".
+    saveRaceSetup({
+      difficulty,
+      windStrength,
+      missionId: selectedMission?.id ?? null,
+      phase: 'briefing',
+    });
+    setResumeOffer(null);
     setGameState('briefing');
-  }, [difficulty, windStrength, initRace]);
+  }, [difficulty, windStrength, selectedMission, initRace]);
 
   const beginCountdown = useCallback(() => {
+    saveRaceSetup({
+      difficulty,
+      windStrength,
+      missionId: selectedMission?.id ?? null,
+      phase: 'countdown',
+    });
     setCountdown(3);
     setGameState('countdown');
-  }, []);
+  }, [difficulty, windStrength, selectedMission]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
   const startRace = openBriefing;
@@ -659,13 +701,21 @@ export default function GamePage() {
       playStart();
       startTimeRef.current = performance.now();
       lastTimeRef.current = performance.now();
+      // Mark the saved setup as "racing" so a reload knows the user
+      // was actively in a race, not just on the briefing page.
+      saveRaceSetup({
+        difficulty,
+        windStrength,
+        missionId: selectedMission?.id ?? null,
+        phase: 'racing',
+      });
       setGameState('racing');
       return;
     }
     playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [gameState, countdown]);
+  }, [gameState, countdown, difficulty, windStrength, selectedMission]);
 
   // -----------------------------------------------------------------------
   // Keyboard input
@@ -904,6 +954,9 @@ export default function GamePage() {
           .sort((a, b) => a.time - b.time);
         setResults(sorted);
         setGameState('finished');
+        // Race ended cleanly - drop the resume offer so the next reload
+        // starts from a fresh menu.
+        clearRaceSetup();
 
         // Save / compare against personal-best for this (difficulty, wind)
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
@@ -1260,17 +1313,47 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'menu') {
     return (
-      <GameMenu
-        difficulty={difficulty}
-        setDifficulty={setDifficulty}
-        windStrength={windStrength}
-        setWindStrength={setWindStrength}
-        boatStyle={boatStyle}
-        setBoatStyle={setBoatStyle}
-        selectedMission={selectedMission}
-        pickMission={pickMission}
-        openBriefing={openBriefing}
-      />
+      <>
+        {/* Resume banner: shown when we detect a saved setup from a
+            recent (≤30 min) interrupted race. Clicking "Resume" loads
+            those settings + opens the briefing; "Dismiss" clears the
+            saved record. The banner is intentionally a soft offer, not
+            a blocking modal - users mid-tab-tetris can ignore it. */}
+        {resumeOffer && (
+          <ResumeOffer
+            saved={resumeOffer}
+            tp={tp}
+            onResume={() => {
+              setDifficulty(resumeOffer.difficulty);
+              setWindStrength(resumeOffer.windStrength);
+              if (resumeOffer.missionId) {
+                const m = missions.find((x) => x.id === resumeOffer.missionId);
+                setSelectedMission(m ?? null);
+              } else {
+                setSelectedMission(null);
+              }
+              setResumeOffer(null);
+              // openBriefing will re-save the setup with a fresh ts
+              setTimeout(openBriefing, 0);
+            }}
+            onDismiss={() => {
+              clearRaceSetup();
+              setResumeOffer(null);
+            }}
+          />
+        )}
+        <GameMenu
+          difficulty={difficulty}
+          setDifficulty={setDifficulty}
+          windStrength={windStrength}
+          setWindStrength={setWindStrength}
+          boatStyle={boatStyle}
+          setBoatStyle={setBoatStyle}
+          selectedMission={selectedMission}
+          pickMission={pickMission}
+          openBriefing={openBriefing}
+        />
+      </>
     );
   }
 
@@ -1717,10 +1800,10 @@ export default function GamePage() {
                               }}>
                                 {formatTime(m.timeStart)}-{formatTime(m.timeEnd)}
                               </span>
-                              <div className="font-semibold text-[var(--text-primary)]">{m.titleRu}</div>
+                              <div className="font-semibold text-[var(--text-primary)]">{coachTitle(m)}</div>
                             </div>
-                            <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{m.explanationRu}</p>
-                            <p className="text-[var(--success)] leading-relaxed">💡 {m.fixRu}</p>
+                            <p className="text-[var(--text-secondary)] leading-relaxed mb-1">{coachExplanation(m)}</p>
+                            <p className="text-[var(--success)] leading-relaxed">💡 {coachFix(m)}</p>
                           </div>
                         ))}
                       </div>
@@ -1743,7 +1826,7 @@ export default function GamePage() {
 
                   <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
                     <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na nastepny wyscig')}</div>
-                    <p className="text-xs text-[var(--accent-cyan)]">{coaching.nextGoalRu}</p>
+                    <p className="text-xs text-[var(--accent-cyan)]">{coachNextGoal(coaching)}</p>
                   </div>
                 </div>
               )}
@@ -2934,4 +3017,91 @@ function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
+}
+
+// ============================================================================
+// Resume offer banner shown above the menu when a recent interrupted race
+// was found in localStorage. Reuses tp() for i18n; takes the saved setup
+// + a callback for the user's choice (resume / dismiss).
+// ============================================================================
+
+function ResumeOffer({
+  saved,
+  tp,
+  onResume,
+  onDismiss,
+}: {
+  saved: { difficulty: 'easy' | 'medium' | 'hard'; windStrength: 'light' | 'medium' | 'heavy'; phase: string; ts: number };
+  tp: (ru: string, en: string, pl: string, extras?: { es?: string; fr?: string; de?: string; it?: string }) => string;
+  onResume: () => void;
+  onDismiss: () => void;
+}) {
+  const minutesAgo = Math.max(1, Math.round((Date.now() - saved.ts) / 60000));
+  return (
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-4">
+      <div
+        className="rounded-xl p-4 sm:p-5 flex flex-wrap items-center gap-3"
+        style={{
+          background: 'rgba(255, 170, 0, 0.08)',
+          border: '1px solid rgba(255, 170, 0, 0.35)',
+        }}
+      >
+        <span className="text-xl">⏸️</span>
+        <div className="flex-1 min-w-[200px]">
+          <div className="text-sm font-semibold mb-0.5" style={{ color: 'var(--warning)' }}>
+            {tp(
+              'Гонка прервана. Продолжить?',
+              'A race was interrupted. Resume?',
+              'Wyscig przerwany. Wznowic?',
+              {
+                es: 'Una regata fue interrumpida. ?Continuar?',
+                fr: 'Une course a ete interrompue. Reprendre ?',
+                de: 'Ein Rennen wurde unterbrochen. Fortsetzen?',
+                it: 'Una regata e stata interrotta. Riprendere?',
+              },
+            )}
+          </div>
+          <div className="text-xs text-[var(--text-muted)]">
+            {tp(
+              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} мин назад`,
+              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min ago`,
+              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min temu`,
+              {
+                es: `${saved.difficulty} · ${saved.windStrength} · hace ${minutesAgo} min`,
+                fr: `${saved.difficulty} · ${saved.windStrength} · il y a ${minutesAgo} min`,
+                de: `${saved.difficulty} · ${saved.windStrength} · vor ${minutesAgo} Min`,
+                it: `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min fa`,
+              },
+            )}
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={onResume}
+            className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
+            style={{
+              background: 'var(--warning)',
+              color: '#0a1628',
+            }}
+          >
+            {tp('Продолжить', 'Resume', 'Wznow',
+              { es: 'Continuar', fr: 'Reprendre', de: 'Fortsetzen', it: 'Riprendere' })}
+          </button>
+          <button
+            type="button"
+            onClick={onDismiss}
+            className="text-xs px-3 py-1.5 rounded-md transition border"
+            style={{
+              borderColor: 'rgba(139, 167, 184, 0.3)',
+              color: 'var(--text-secondary)',
+            }}
+          >
+            {tp('Закрыть', 'Dismiss', 'Zamknij',
+              { es: 'Descartar', fr: 'Ignorer', de: 'Verwerfen', it: 'Ignora' })}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }

@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
 import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
 import { insertEvent } from '@/lib/db';
+import { mirrorCoachKeys, type Coaching } from '@/lib/fallback-coach';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -429,17 +430,25 @@ Analyse how the player did. Return ONLY JSON, with no commentary before or after
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     parsed = scrub(parsed) as any;
 
+    // Mirror legacy `*Ru` field names into clean aliases (`title`,
+    // `explanation`, `fix`, `nextGoal`). Each fresh response now has
+    // BOTH name forms, so old clients keep reading `titleRu` and new
+    // clients can read the cleaner `title`. Old replays / cached coach
+    // responses keep working - the legacy `*Ru` fields remain required
+    // and are still emitted by Claude.
+    const coaching: Coaching = mirrorCoachKeys(parsed as Coaching);
+
     logInfo('coach.success', {
       ms: Date.now() - started,
-      score: parsed.score,
-      mistakes: parsed.mistakes?.length ?? 0,
+      score: coaching.score,
+      mistakes: coaching.mistakes?.length ?? 0,
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
       cacheRead: response.usage.cache_read_input_tokens ?? 0,
     });
 
     return NextResponse.json({
-      coaching: parsed,
+      coaching,
       usage: {
         input: response.usage.input_tokens,
         output: response.usage.output_tokens,
