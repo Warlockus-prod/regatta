@@ -1,0 +1,60 @@
+{
+  "asset_name": "Andryu Yacht Production-Ready Prototype v3",
+  "style": "Bavaria 46 inspired modern cruising sloop",
+  "status": "advanced prototype, ready for Blender cleanup and engine import",
+  "units": "meters",
+  "dimensions_approx": {
+    "loa_m": 13.9,
+    "beam_m": 4.35,
+    "draft_m": 2.18,
+    "mast_height_approx_m": 18.2
+  },
+  "coordinate_system": {
+    "x": "stern negative to bow positive",
+    "y": "beam / port-starboard",
+    "z": "up"
+  },
+  "engine_groups": {
+    "visual_lod0_prefix": "LOD0_",
+    "visual_lod1_prefix": "LOD1_",
+    "collider_prefix": "COL_"
+  },
+  "animated_parts": {
+    "rudder": "LOD0_Rudder_Animated_Yaw_Pivot",
+    "boom": "LOD0_Boom_Animated_Yaw_Pivot",
+    "main_sail": "LOD0_MainSail_Grot_Animated_ClothSurface",
+    "jib": "LOD0_Jib_Staksel_Genoa_Animated_ClothSurface"
+  },
+  "suggested_pivots": {
+    "rudder_yaw_origin": [
+      -6.05,
+      0,
+      -0.45
+    ],
+    "boom_yaw_origin": [
+      -0.25,
+      0,
+      2.38
+    ],
+    "main_sail_mast_luff_origin": [
+      -0.25,
+      0,
+      2.32
+    ],
+    "jib_tack_origin": [
+      6.58,
+      0,
+      1.03
+    ],
+    "center_of_mass_approx": [
+      -0.4,
+      0,
+      0.12
+    ]
+  },
+  "recommended_engine_import": {
+    "unity": "Use GLB or OBJ. Create prefab. Use COL_* as colliders or replace with primitive colliders.",
+    "unreal": "Import GLB/FBX after Blender export. Use UCX style simplified collision if converting in Blender.",
+    "web_threejs": "Use GLB. Hide COL_* nodes by name."
+  }
+}

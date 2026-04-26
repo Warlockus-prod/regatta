@@ -3,14 +3,19 @@
 // ============================================================================
 // YachtViewer3D
 //
-// Interactive 3D viewer for the low-poly Bavaria 46 GLB on /anatomy.
-// Built on @react-three/fiber + @react-three/drei (already installed for V2
-// simulator). Lazy-loaded by the consumer so users who never toggle 3D
-// don't pay the Three.js bundle cost.
+// Interactive 3D viewer for the production-ready Bavaria-46-inspired GLB on
+// /anatomy. Built on @react-three/fiber + @react-three/drei (already
+// installed for V2 simulator). Lazy-loaded by the consumer so users who
+// never toggle 3D don't pay the Three.js bundle cost.
+//
+// Model: /public/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb
+//   ~176 KB. 142 objects, 4404 vertices, 7892 faces. Has LOD0_/LOD1_
+//   prefixes and COL_* debug colliders (we hide the colliders at load).
+//   See public/models/asset_metadata_v3.json for full coord conventions.
 //
 // Hotspots: each anatomy part with a `three: { x, y, z }` field gets a
 // clickable sphere + label rendered as a child of the same group as the
-// model. Local coordinate convention from the GLB README:
+// model. Local coordinate convention from the GLB metadata:
 //   X = stern -> bow (~ -7..+7), Y = port/starboard, Z = vertical.
 // We rotate the wrapper -90deg around X so Three.js Y-up is satisfied.
 //
@@ -19,13 +24,13 @@
 // so 2D and 3D share state.
 // ============================================================================
 
-import { Suspense, useRef } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls, Stage, useGLTF, ContactShadows, Environment, Html } from '@react-three/drei';
 import type { Group } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 
-const MODEL_URL = '/models/bavaria_46_lowpoly_sloop.glb';
+const MODEL_URL = '/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb';
 useGLTF.preload(MODEL_URL);
 
 interface MarkerProps {
@@ -98,6 +103,19 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   // -90deg around X to bring deck up, then the children's local positions
   // (defined in GLB-local coords) end up where they belong.
   const { scene } = useGLTF(MODEL_URL);
+
+  // Hide debug colliders (COL_*) and LOD1 mirror geometry so we don't
+  // double-render. Per asset_metadata_v3.json the production convention is
+  // to use COL_* for physics colliders and LOD0_* for the visible mesh; on
+  // the web we only need LOD0 visuals.
+  useEffect(() => {
+    scene.traverse((obj) => {
+      if (obj.name.startsWith('COL_') || obj.name.startsWith('LOD1_')) {
+        obj.visible = false;
+      }
+    });
+  }, [scene]);
+
   return (
     <group ref={ref} rotation={[-Math.PI / 2, 0, 0]}>
       <primitive object={scene} />
