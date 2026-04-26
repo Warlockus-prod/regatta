@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { glossaryTerms, glossaryCategories } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
   boat:     { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
@@ -291,6 +292,7 @@ export default function GlossaryPage() {
         )}
       </div>
 
+      <ContentFooterNav page="/glossary" />
     </div>
   );
 }

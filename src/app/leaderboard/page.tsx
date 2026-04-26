@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { missions } from '@/data/missions';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 type Difficulty = 'easy' | 'medium' | 'hard';
 type Wind = 'light' | 'medium' | 'heavy';
@@ -215,6 +216,8 @@ export default function LeaderboardPage() {
           ← {tp('Назад к гонке', 'Back to race', 'Powrot do regaty')}
         </Link>
       </div>
+
+      <ContentFooterNav page="/leaderboard" />
     </div>
   );
 }

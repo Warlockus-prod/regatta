@@ -49,6 +49,22 @@ const SIBLINGS: Record<string, RelatedLink[]> = {
     { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
     { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy wzgledem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Windkurse', labelIt: 'Andature' },
   ],
+  '/courses': [
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+  ],
+  '/glossary': [
+    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+  ],
+  '/racing': [
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Slownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+  ],
+  '/leaderboard': [
+    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+  ],
 };
 
 function pickLabel(link: RelatedLink, lang: string): string {
@@ -63,13 +79,28 @@ function pickLabel(link: RelatedLink, lang: string): string {
   }
 }
 
-export default function ContentFooterNav({ page }: { page: '/onboard' | '/anatomy' | '/checklist' | '/rules' | '/gallery' }) {
+export type ContentFooterNavPage =
+  | '/onboard'
+  | '/anatomy'
+  | '/checklist'
+  | '/rules'
+  | '/gallery'
+  | '/courses'
+  | '/glossary'
+  | '/racing'
+  | '/leaderboard';
+
+export default function ContentFooterNav({ page }: { page: ContentFooterNavPage }) {
   const { lang, tp } = useI18n();
   const siblings = SIBLINGS[page] ?? [];
 
   return (
+    // Bottom margin is intentionally generous (mb-12 = 48px) so the
+    // card never butts against either the screen edge or the
+    // BootcampFooterNav (which itself reserves matching scroll-room
+    // via the --bootcamp-footer-h CSS var on <main>).
     <div
-      className="max-w-4xl mx-auto px-4 sm:px-6 mt-12 mb-8"
+      className="max-w-4xl mx-auto px-4 sm:px-6 mt-12 mb-12"
     >
       <div
         className="rounded-2xl p-5 sm:p-6"

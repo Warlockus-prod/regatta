@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { legacyPick, type Lang } from '@/lib/languages';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 // ---------------------------------------------------------------------------
 // SVG sub-components for diagrams
@@ -805,6 +806,8 @@ export default function RacingPage() {
           })}
         </div>
       </section>
+
+      <ContentFooterNav page="/racing" />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { legacyPick, type Lang } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
+import ContentFooterNav from '@/components/ContentFooterNav';
 
 // Pick the point-of-sail display fields for the current language. EN stays as
 // the international anchor shown beneath the primary label in non-EN modes.
@@ -905,6 +906,8 @@ export default function CoursesPage() {
           </div>
         </div>
       </section>
+
+      <ContentFooterNav page="/courses" />
     </div>
   );
 }
