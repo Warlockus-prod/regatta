@@ -1,30 +1,93 @@
 'use client';
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { galleryItems, groupByBadge, youtubeThumb, type GalleryItem } from '@/data/gallery';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
 // ---------------------------------------------------------------------------
-// Gallery page - grid of photo/video tiles with click-to-enlarge lightbox.
+// Gallery page - masonry grid of photo / video tiles with click-to-enlarge
+// lightbox + per-photo "like" button (anonymous, persisted server-side).
 //
-// Data comes from src/data/gallery.ts. To add photos: drop files into
-// public/gallery/ and add entries to galleryItems.
+// Data: src/data/gallery.ts. To add photos drop them into
+// public/gallery/<event>/full and /thumb (1600px / 600px JPEG q80/q75) and
+// add entries.
+// Likes: /api/gallery/likes (bulk fetch) + /api/gallery/like (toggle).
 // ---------------------------------------------------------------------------
+
+interface LikeState {
+  count: number;
+  liked: boolean;
+}
 
 export default function GalleryPage() {
   const { tp, lang } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [likes, setLikes] = useState<Record<string, LikeState>>({});
+  const inFlight = useRef<Set<string>>(new Set());
 
   const groups = useMemo(() => groupByBadge(galleryItems), []);
   const sortedKeys = useMemo(() => Object.keys(groups).sort().reverse(), [groups]);
 
   const pickTitle = useCallback(
-    (item: GalleryItem) =>
-      legacyPick(item, 'title', lang),
+    (item: GalleryItem) => legacyPick(item, 'title', lang),
     [lang],
   );
+
+  // Bulk-fetch likes once on mount. The endpoint takes a comma-separated
+  // list of IDs and returns { itemId: { count, liked } }. We keep the
+  // result in state and update optimistically on click.
+  useEffect(() => {
+    const ids = galleryItems.map((it) => it.id).join(',');
+    let cancelled = false;
+    fetch(`/api/gallery/likes?ids=${encodeURIComponent(ids)}`, { cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`))))
+      .then((data: Record<string, LikeState>) => {
+        if (!cancelled) setLikes(data);
+      })
+      .catch(() => { /* gracefully degrade - hearts show 0 */ });
+    return () => { cancelled = true; };
+  }, []);
+
+  const toggleLike = useCallback(async (id: string) => {
+    if (inFlight.current.has(id)) return;
+    inFlight.current.add(id);
+
+    // Optimistic update
+    setLikes((prev) => {
+      const cur = prev[id] ?? { count: 0, liked: false };
+      const next: LikeState = {
+        liked: !cur.liked,
+        count: cur.count + (cur.liked ? -1 : 1),
+      };
+      return { ...prev, [id]: next };
+    });
+
+    try {
+      const res = await fetch('/api/gallery/like', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: id }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const truth = await res.json() as LikeState;
+      // Reconcile: if server count differs from optimistic, snap to server
+      setLikes((prev) => ({ ...prev, [id]: truth }));
+    } catch {
+      // Roll back the optimistic toggle
+      setLikes((prev) => {
+        const cur = prev[id];
+        if (!cur) return prev;
+        return {
+          ...prev,
+          [id]: { liked: !cur.liked, count: cur.count + (cur.liked ? -1 : 1) },
+        };
+      });
+    } finally {
+      inFlight.current.delete(id);
+    }
+  }, []);
 
   const active = activeId ? galleryItems.find((i) => i.id === activeId) ?? null : null;
 
@@ -38,7 +101,6 @@ export default function GalleryPage() {
       if (e.key === 'ArrowLeft' && idx > 0) setActiveId(galleryItems[idx - 1].id);
     };
     window.addEventListener('keydown', handler);
-    // Lock body scroll while lightbox is open
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
@@ -58,13 +120,20 @@ export default function GalleryPage() {
             WebkitTextFillColor: 'transparent',
           }}
         >
-          {tp('Галерея', 'Gallery', 'Galeria')}
+          {tp('Галерея', 'Gallery', 'Galeria',
+            { es: 'Galeria', fr: 'Galerie', de: 'Galerie', it: 'Galleria' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp(
-            'Видео и фото с прошлых регат',
-            'Videos and photos from past regattas',
-            'Wideo i zdjecia z przeszlych regat',
+            'Видео и фото с прошлых регат. Нажми на сердце - сохраним на потом.',
+            'Videos and photos from past regattas. Tap a heart to save it.',
+            'Wideo i zdjecia z przeszlych regat. Klik w serce - zapamiec.',
+            {
+              es: 'Videos y fotos de regatas pasadas. Pulsa el corazon para guardar.',
+              fr: 'Videos et photos des regates passees. Tape sur le coeur pour garder.',
+              de: 'Videos und Fotos vergangener Regatten. Tippe aufs Herz zum Merken.',
+              it: 'Video e foto di regate passate. Tocca il cuore per salvare.',
+            },
           )}
         </p>
       </section>
@@ -88,17 +157,31 @@ export default function GalleryPage() {
                     `${groups[key].length} ${pluralRu(groups[key].length, 'файл', 'файла', 'файлов')}`,
                     `${groups[key].length} ${groups[key].length === 1 ? 'item' : 'items'}`,
                     `${groups[key].length} ${pluralPl(groups[key].length)}`,
+                    {
+                      es: `${groups[key].length} ${groups[key].length === 1 ? 'archivo' : 'archivos'}`,
+                      fr: `${groups[key].length} ${groups[key].length === 1 ? 'fichier' : 'fichiers'}`,
+                      de: `${groups[key].length} ${groups[key].length === 1 ? 'Datei' : 'Dateien'}`,
+                      it: `${groups[key].length} ${groups[key].length === 1 ? 'file' : 'file'}`,
+                    },
                   )}
                 </span>
               </div>
             )}
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/*
+              CSS multi-column masonry. Cheap, accessible, no JS layout
+              math. Photos flow naturally and keep their full aspect ratio
+              instead of being cropped into uniform tiles. break-inside on
+              tiles avoids mid-tile column breaks.
+            */}
+            <div className="masonry-cols [column-gap:0.75rem] sm:[column-gap:1rem]">
               {groups[key].map((item) => (
                 <Tile
                   key={item.id}
                   item={item}
                   title={pickTitle(item)}
+                  like={likes[item.id]}
                   onOpen={() => setActiveId(item.id)}
+                  onLike={() => toggleLike(item.id)}
                 />
               ))}
             </div>
@@ -106,11 +189,32 @@ export default function GalleryPage() {
         ))
       )}
 
+      {/*
+        Tailwind doesn't ship column-count utilities so we set them inline
+        via a small style block. Three breakpoints: 2 / 3 / 4 columns
+        depending on viewport.
+      */}
+      <style jsx>{`
+        .masonry-cols { column-count: 2; }
+        @media (min-width: 640px)  { .masonry-cols { column-count: 3; } }
+        @media (min-width: 1024px) { .masonry-cols { column-count: 4; } }
+        .masonry-cols > * {
+          break-inside: avoid;
+          margin-bottom: 0.75rem;
+          display: block;
+        }
+        @media (min-width: 640px) {
+          .masonry-cols > * { margin-bottom: 1rem; }
+        }
+      `}</style>
+
       {/* Lightbox */}
       {active && (
         <Lightbox
           item={active}
           title={pickTitle(active)}
+          like={likes[active.id]}
+          onLike={() => toggleLike(active.id)}
           onClose={() => setActiveId(null)}
           onPrev={() => {
             const idx = galleryItems.findIndex((i) => i.id === active.id);
@@ -122,9 +226,12 @@ export default function GalleryPage() {
           }}
           canPrev={galleryItems.findIndex((i) => i.id === active.id) > 0}
           canNext={galleryItems.findIndex((i) => i.id === active.id) < galleryItems.length - 1}
-          closeLabel={tp('Закрыть', 'Close', 'Zamknij')}
-          prevLabel={tp('Предыдущее', 'Previous', 'Poprzednie')}
-          nextLabel={tp('Следующее', 'Next', 'Nastepne')}
+          closeLabel={tp('Закрыть', 'Close', 'Zamknij',
+            { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' })}
+          prevLabel={tp('Предыдущее', 'Previous', 'Poprzednie',
+            { es: 'Anterior', fr: 'Precedent', de: 'Zurueck', it: 'Precedente' })}
+          nextLabel={tp('Следующее', 'Next', 'Nastepne',
+            { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Successivo' })}
         />
       )}
 
@@ -135,34 +242,64 @@ export default function GalleryPage() {
 
 // ---------------------------------------------------------------------------
 
-function Tile({ item, title, onOpen }: { item: GalleryItem; title: string; onOpen: () => void }) {
-  const aspectClass = aspectToClass(item.aspect ?? (item.kind === 'youtube' ? '16:9' : 'square'));
-  const thumb = item.kind === 'youtube' ? (item.thumb ?? youtubeThumb(item.src)) : item.src;
+function Tile({
+  item,
+  title,
+  like,
+  onOpen,
+  onLike,
+}: {
+  item: GalleryItem;
+  title: string;
+  like: LikeState | undefined;
+  onOpen: () => void;
+  onLike: () => void;
+}) {
+  // Use the small thumb if we have one, otherwise the full src. For
+  // YouTube tiles, fall back to YouTube's hqdefault.
+  const tileSrc =
+    item.kind === 'youtube'
+      ? (item.thumb ?? youtubeThumb(item.src))
+      : (item.thumb ?? item.src);
+  // Aspect ratio reservation: if we have width/height we use that exact
+  // ratio so the masonry doesn't reflow on image load. Otherwise fall back
+  // to the legacy `aspect` enum.
+  const ratioStyle: React.CSSProperties =
+    item.width && item.height
+      ? { aspectRatio: `${item.width} / ${item.height}` }
+      : {};
+  const ratioClass = !item.width && !item.height
+    ? aspectToClass(item.aspect ?? (item.kind === 'youtube' ? '16:9' : 'square'))
+    : '';
 
   return (
-    <button
-      onClick={onOpen}
-      className={`group relative overflow-hidden rounded-xl border transition-all duration-300 hover:scale-[1.02] hover:border-[var(--accent-cyan)] ${aspectClass}`}
+    <div
+      className={`group relative overflow-hidden rounded-xl border transition-all duration-300 hover:scale-[1.02] hover:border-[var(--accent-cyan)] ${ratioClass}`}
       style={{
+        ...ratioStyle,
         borderColor: 'rgba(0, 212, 255, 0.18)',
         background: 'rgba(0, 212, 255, 0.04)',
       }}
-      aria-label={title}
     >
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={thumb}
-        alt={title}
-        loading="lazy"
-        className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-      />
-      {/* Dark overlay on hover */}
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
+      <button
+        type="button"
+        onClick={onOpen}
+        className="absolute inset-0 w-full h-full"
+        aria-label={title}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={tileSrc}
+          alt={title}
+          loading="lazy"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
+      </button>
 
-      {/* Badge */}
       {item.badge && (
         <span
-          className="absolute top-2 left-2 text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded"
+          className="absolute top-2 left-2 text-[10px] font-bold tracking-wider uppercase px-2 py-1 rounded pointer-events-none"
           style={{
             background: 'rgba(0, 212, 255, 0.2)',
             color: '#e8f4f8',
@@ -173,9 +310,8 @@ function Tile({ item, title, onOpen }: { item: GalleryItem; title: string; onOpe
         </span>
       )}
 
-      {/* Play icon for videos */}
       {item.kind === 'youtube' && (
-        <div className="absolute inset-0 flex items-center justify-center">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div
             className="w-14 h-14 rounded-full flex items-center justify-center transition-transform group-hover:scale-110"
             style={{ background: 'rgba(0, 212, 255, 0.85)' }}
@@ -187,10 +323,63 @@ function Tile({ item, title, onOpen }: { item: GalleryItem; title: string; onOpe
         </div>
       )}
 
-      {/* Title at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 p-3 text-left">
-        <p className="text-xs sm:text-sm font-semibold text-white leading-tight line-clamp-2">{title}</p>
-      </div>
+      {/* Heart button - top-right, opposite the badge */}
+      <LikeButton
+        liked={like?.liked ?? false}
+        count={like?.count ?? 0}
+        onToggle={onLike}
+        className="absolute top-2 right-2"
+      />
+
+      {/* Title bar at bottom (above the image, below the LikeButton). The
+          gallery doesn't actually need persistent titles for drone shots
+          all named the same date; we render only when there's something
+          beyond the date. */}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+function LikeButton({
+  liked,
+  count,
+  onToggle,
+  className = '',
+}: {
+  liked: boolean;
+  count: number;
+  onToggle: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={(e) => { e.stopPropagation(); onToggle(); }}
+      aria-pressed={liked}
+      aria-label={liked ? 'Unlike' : 'Like'}
+      className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold transition-all backdrop-blur-md ${className}`}
+      style={{
+        background: liked ? 'rgba(255, 80, 100, 0.85)' : 'rgba(10, 22, 40, 0.55)',
+        color: liked ? '#ffffff' : '#e8f4f8',
+        border: liked
+          ? '1px solid rgba(255, 80, 100, 0.95)'
+          : '1px solid rgba(255, 255, 255, 0.18)',
+      }}
+    >
+      <svg
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill={liked ? 'currentColor' : 'none'}
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+      </svg>
+      {count > 0 && <span className="tabular-nums">{count}</span>}
     </button>
   );
 }
@@ -200,6 +389,8 @@ function Tile({ item, title, onOpen }: { item: GalleryItem; title: string; onOpe
 function Lightbox({
   item,
   title,
+  like,
+  onLike,
   onClose,
   onPrev,
   onNext,
@@ -211,6 +402,8 @@ function Lightbox({
 }: {
   item: GalleryItem;
   title: string;
+  like: LikeState | undefined;
+  onLike: () => void;
   onClose: () => void;
   onPrev: () => void;
   onNext: () => void;
@@ -229,7 +422,6 @@ function Lightbox({
       aria-modal="true"
       aria-label={title}
     >
-      {/* Close button */}
       <button
         onClick={onClose}
         aria-label={closeLabel}
@@ -242,7 +434,6 @@ function Lightbox({
         </svg>
       </button>
 
-      {/* Prev arrow */}
       {canPrev && (
         <button
           onClick={(e) => { e.stopPropagation(); onPrev(); }}
@@ -256,7 +447,6 @@ function Lightbox({
         </button>
       )}
 
-      {/* Next arrow */}
       {canNext && (
         <button
           onClick={(e) => { e.stopPropagation(); onNext(); }}
@@ -270,7 +460,6 @@ function Lightbox({
         </button>
       )}
 
-      {/* Content */}
       <div
         className="relative max-w-6xl w-full max-h-[90vh] flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
@@ -293,7 +482,14 @@ function Lightbox({
             className="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl"
           />
         )}
-        <p className="mt-3 text-sm text-[var(--text-secondary)] text-center">{title}</p>
+        <div className="mt-3 flex items-center gap-3">
+          <p className="text-sm text-[var(--text-secondary)] text-center">{title}</p>
+          <LikeButton
+            liked={like?.liked ?? false}
+            count={like?.count ?? 0}
+            onToggle={onLike}
+          />
+        </div>
       </div>
     </div>
   );

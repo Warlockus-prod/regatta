@@ -7,6 +7,12 @@ import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isM
 import { analyseRaceLocally } from '@/lib/fallback-coach';
 import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
+import {
+  tryUpdateBestRecord,
+  getBestRecord,
+  formatRecordTime,
+  type BestRecord,
+} from '@/lib/best-times';
 
 // ============================================================================
 // TYPES
@@ -347,6 +353,11 @@ export default function GamePage() {
   const [elapsed, setElapsed] = useState(0);
   const [position, setPosition] = useState<{ rank: number; total: number }>({ rank: 1, total: 1 });
   const [results, setResults] = useState<{ name: string; time: number; color: string; isPlayer: boolean }[]>([]);
+  // Personal-best record for the current difficulty + wind bucket. Updated
+  // when the player finishes; surfaces as a "NEW RECORD" banner in the
+  // finish modal and a "Your best: 1:27" badge in the briefing.
+  const [bestRecord, setBestRecord] = useState<BestRecord | null>(null);
+  const [isNewRecord, setIsNewRecord] = useState(false);
   const [playerTWA, setPlayerTWA] = useState(0);
   const [playerSpeed, setPlayerSpeed] = useState(0);
 
@@ -625,8 +636,13 @@ export default function GamePage() {
   // -----------------------------------------------------------------------
   const openBriefing = useCallback(() => {
     initRace(difficulty);
+    // Look up the user's best for this (difficulty, wind) bucket so the
+    // briefing can show a "Your best: 1:27" badge - small motivator without
+    // being competitive about it.
+    setBestRecord(getBestRecord(difficulty, windStrength));
+    setIsNewRecord(false); // reset from any previous race
     setGameState('briefing');
-  }, [difficulty, initRace]);
+  }, [difficulty, windStrength, initRace]);
 
   const beginCountdown = useCallback(() => {
     setCountdown(3);
@@ -888,6 +904,15 @@ export default function GamePage() {
           .sort((a, b) => a.time - b.time);
         setResults(sorted);
         setGameState('finished');
+
+        // Save / compare against personal-best for this (difficulty, wind)
+        // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
+        // sets player.finishTime to undefined which the lib filters out.
+        if (player.finishTime != null) {
+          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime);
+          setBestRecord(rec.currentBest);
+          setIsNewRecord(rec.isNewRecord);
+        }
 
         // --- Evaluate selected mission ---
         if (selectedMission) {
@@ -1262,12 +1287,30 @@ export default function GamePage() {
           >
             ← {tp('Назад к выбору', 'Back to menu', 'Wroc do wyboru')}
           </button>
-          <div className="text-xs px-2 py-1 rounded" style={{
-            background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
-            color: DIFFICULTY_CONFIG[difficulty].color,
-            border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
-          }}>
-            {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl)} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
+          <div className="flex items-center gap-2">
+            {/* Personal best for this difficulty + wind bucket. Hidden if
+                the user hasn't finished a race in this combo yet. */}
+            {bestRecord && (
+              <div
+                className="text-xs px-2 py-1 rounded font-mono"
+                style={{
+                  background: 'rgba(255, 170, 0, 0.12)',
+                  color: 'var(--warning)',
+                  border: '1px solid rgba(255, 170, 0, 0.3)',
+                }}
+                title={tp('Твой рекорд', 'Your best', 'Twoj rekord',
+                  { es: 'Tu record', fr: 'Ton record', de: 'Dein Rekord', it: 'Tuo record' })}
+              >
+                🏆 {formatRecordTime(bestRecord.timeSec)}
+              </div>
+            )}
+            <div className="text-xs px-2 py-1 rounded" style={{
+              background: `${DIFFICULTY_CONFIG[difficulty].color}22`,
+              color: DIFFICULTY_CONFIG[difficulty].color,
+              border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
+            }}>
+              {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl)} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
+            </div>
           </div>
         </div>
 
@@ -1550,6 +1593,30 @@ export default function GamePage() {
                     <span className="text-2xl text-[var(--text-muted)]"> {tp('из', 'of', 'z')} {results.length}</span>
                   </div>
                   <div className="text-xl font-mono text-[var(--text-secondary)]">{formatTime(playerFinished.time)}</div>
+                  {/* New-personal-best banner. Only shows after the player
+                      finished AND beat their previous time on this
+                      difficulty + wind bucket. The lib has already saved
+                      the new value to localStorage by the time we render. */}
+                  {isNewRecord && (
+                    <div
+                      className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-bold"
+                      style={{
+                        background: 'linear-gradient(90deg, rgba(255,170,0,0.18), rgba(255,80,40,0.22))',
+                        border: '1px solid rgba(255, 170, 0, 0.55)',
+                        color: 'var(--warning)',
+                      }}
+                    >
+                      🏆 {tp('Новый рекорд!', 'New record!', 'Nowy rekord!',
+                        { es: 'Nuevo record!', fr: 'Nouveau record !', de: 'Neuer Rekord!', it: 'Nuovo record!' })}
+                    </div>
+                  )}
+                  {!isNewRecord && bestRecord && (
+                    <div className="mt-2 text-xs text-[var(--text-muted)]">
+                      {tp('Твой рекорд:', 'Your best:', 'Twoj rekord:',
+                        { es: 'Tu record:', fr: 'Ton record :', de: 'Dein Rekord:', it: 'Tuo record:' })}{' '}
+                      <span className="font-mono">{formatRecordTime(bestRecord.timeSec)}</span>
+                    </div>
+                  )}
                 </>
               ) : (
                 <>

@@ -143,6 +143,19 @@ function db(): Database.Database {
       mission_id TEXT,
       created_at INTEGER NOT NULL
     );
+
+    -- Gallery likes - one row per (item_id, sid) so the same anonymous
+    -- user can't like the same photo twice. Counts derive from
+    -- COUNT(*) GROUP BY item_id; the sid column lets us toggle off too.
+    CREATE TABLE IF NOT EXISTS gallery_likes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      item_id TEXT NOT NULL,
+      sid TEXT NOT NULL,
+      ts INTEGER NOT NULL,
+      UNIQUE(item_id, sid)
+    );
+    CREATE INDEX IF NOT EXISTS idx_gallery_likes_item ON gallery_likes(item_id);
+    CREATE INDEX IF NOT EXISTS idx_gallery_likes_sid ON gallery_likes(sid);
   `);
 
   // Progressive column additions for existing databases. Each ALTER TABLE
@@ -712,6 +725,77 @@ export function updateFeedbackStatus(id: number, status: string): boolean {
 
 export async function ensureDbDirExists() {
   try { await fs.mkdir(DB_DIR, { recursive: true }); } catch { /* ignore */ }
+}
+
+// ============================================================================
+// Gallery likes (anonymous, per-session)
+// ============================================================================
+
+/**
+ * Toggle a like for an anonymous session. Inserts on first like, deletes
+ * on second click. Returns the new state and the new total count for the
+ * item so the client can update without a second round-trip.
+ */
+export function toggleGalleryLike(itemId: string, sid: string): {
+  liked: boolean;
+  count: number;
+} {
+  try {
+    const d = db();
+    const existing = d.prepare(
+      'SELECT id FROM gallery_likes WHERE item_id = ? AND sid = ?',
+    ).get(itemId, sid);
+    if (existing) {
+      d.prepare('DELETE FROM gallery_likes WHERE item_id = ? AND sid = ?')
+        .run(itemId, sid);
+    } else {
+      d.prepare('INSERT INTO gallery_likes (item_id, sid, ts) VALUES (?, ?, ?)')
+        .run(itemId, sid, Date.now());
+    }
+    const row = d.prepare(
+      'SELECT COUNT(*) c FROM gallery_likes WHERE item_id = ?',
+    ).get(itemId) as { c: number };
+    return { liked: !existing, count: row.c };
+  } catch {
+    return { liked: false, count: 0 };
+  }
+}
+
+/**
+ * Bulk fetch like counts + the caller's per-item liked state. Used by the
+ * gallery page's first paint - one query for all 38 photos at once.
+ */
+export function getGalleryLikes(itemIds: string[], sid: string): Record<string, {
+  count: number;
+  liked: boolean;
+}> {
+  const out: Record<string, { count: number; liked: boolean }> = {};
+  if (itemIds.length === 0) return out;
+  try {
+    const d = db();
+    // Counts per id
+    const placeholders = itemIds.map(() => '?').join(',');
+    const counts = d.prepare(
+      `SELECT item_id, COUNT(*) c FROM gallery_likes
+       WHERE item_id IN (${placeholders})
+       GROUP BY item_id`,
+    ).all(...itemIds) as Array<{ item_id: string; c: number }>;
+    const countMap: Record<string, number> = {};
+    for (const r of counts) countMap[r.item_id] = r.c;
+    // Which ones THIS sid has liked
+    const myLikes = d.prepare(
+      `SELECT item_id FROM gallery_likes
+       WHERE sid = ? AND item_id IN (${placeholders})`,
+    ).all(sid, ...itemIds) as Array<{ item_id: string }>;
+    const mySet = new Set(myLikes.map((r) => r.item_id));
+    for (const id of itemIds) {
+      out[id] = { count: countMap[id] ?? 0, liked: mySet.has(id) };
+    }
+    return out;
+  } catch {
+    for (const id of itemIds) out[id] = { count: 0, liked: false };
+    return out;
+  }
 }
 
 // ============================================================================

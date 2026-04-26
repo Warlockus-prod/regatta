@@ -66,3 +66,7 @@ qa-*.png
 /test-results/
 /blob-report/
 /playwright/.cache/
+
+# Drop-zone for full-resolution drone photos before optimization (see
+# scripts in public/gallery/regatta-2025/ for the resize pipeline).
+/gallery/
