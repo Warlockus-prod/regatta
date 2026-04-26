@@ -235,17 +235,28 @@ export default function AnatomyPage() {
               activeId={activeId}
               onSelect={setActiveId}
               pickName={(p) => legacyPick(p, 'name', lang)}
+              viewLabels={{
+                threeQuarter: tp('3/4', '3/4', '3/4', { es: '3/4', fr: '3/4', de: '3/4', it: '3/4' }),
+                top: tp('Сверху', 'Top', 'Z gory',
+                  { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
+                side: tp('Сбоку', 'Side', 'Z boku',
+                  { es: 'Lateral', fr: 'Cote', de: 'Seitlich', it: 'Lato' }),
+                bow: tp('С носа', 'Bow', 'Z dziobu',
+                  { es: 'Proa', fr: 'Proue', de: 'Bug', it: 'Prua' }),
+                stern: tp('С кормы', 'Stern', 'Z rufy',
+                  { es: 'Popa', fr: 'Poupe', de: 'Heck', it: 'Poppa' }),
+              }}
               loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
                 { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}
               hintLabel={tp(
-                'Тяни для вращения · клик по точке - название и описание',
-                'Drag to rotate · click a hotspot for name & details',
-                'Przeciagnij aby obrocic · klik na punkt - nazwa i opis',
+                'Тяни для вращения · клик по точке - название и описание · кнопки сверху - проекции',
+                'Drag to rotate · click a hotspot for name + details · top buttons - projections',
+                'Przeciagnij aby obrocic · klik na punkt - nazwa i opis · gorne przyciski - rzuty',
                 {
-                  es: 'Arrastra para rotar · clic en un punto - nombre y detalles',
-                  fr: 'Glisse pour pivoter · clique sur un point pour le nom et les details',
-                  de: 'Ziehen zum Drehen · Klick auf einen Punkt fuer Name und Details',
-                  it: 'Trascina per ruotare · clicca su un punto per nome e dettagli',
+                  es: 'Arrastra para rotar · clic en un punto - nombre y detalles · botones - proyecciones',
+                  fr: 'Glisse pour pivoter · clique sur un point pour les details · boutons - projections',
+                  de: 'Ziehen zum Drehen · Klick auf einen Punkt fuer Details · Buttons - Projektionen',
+                  it: 'Trascina per ruotare · clicca su un punto per i dettagli · pulsanti - proiezioni',
                 },
               )}
             />

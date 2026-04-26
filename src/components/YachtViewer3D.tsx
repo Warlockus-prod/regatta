@@ -24,11 +24,25 @@
 // so 2D and 3D share state.
 // ============================================================================
 
-import { Suspense, useEffect, useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import { Suspense, useEffect, useRef, useState } from 'react';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, Stage, useGLTF, ContactShadows, Environment, Html } from '@react-three/drei';
 import type { Group } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+
+// Camera presets in world coords. Each one positions the camera at a
+// classic technical drawing angle so users can flip between "naval-arch"
+// projections of the model. r is the orbit radius and gets clamped by
+// OrbitControls min/maxDistance.
+type ViewPreset = 'three-quarter' | 'top' | 'side' | 'bow' | 'stern';
+const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
+  'three-quarter': [16, 10, 16],
+  'top':           [0, 30, 0.001],   // tiny z to avoid the gimbal-lock NaN
+  'side':          [0, 4, 22],
+  'bow':           [22, 5, 0.001],
+  'stern':         [-22, 5, 0.001],
+};
 
 const MODEL_URL = '/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb';
 useGLTF.preload(MODEL_URL);
@@ -135,6 +149,24 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   );
 }
 
+// Imperative camera handle used by the preset bar. Lives inside the canvas
+// so it can call useThree() to grab the active camera + the OrbitControls
+// installed via `makeDefault`. Re-runs when the parent toggles `view`.
+function CameraDriver({ view }: { view: ViewPreset }) {
+  const camera = useThree((s) => s.camera);
+  const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
+  useEffect(() => {
+    const [x, y, z] = VIEW_PRESETS[view];
+    camera.position.set(x, y, z);
+    camera.lookAt(0, 1, 0);
+    if (controls) {
+      controls.target.set(0, 1, 0);
+      controls.update();
+    }
+  }, [view, camera, controls]);
+  return null;
+}
+
 export interface YachtViewer3DProps {
   loadingLabel: string;
   hintLabel: string;
@@ -144,6 +176,14 @@ export interface YachtViewer3DProps {
   pickName: (p: AnatomyPart) => string;
   /** Auto-rotate while idle. Default true; pauses on hover via OrbitControls. */
   autoRotate?: boolean;
+  /** Localized labels for the view-preset toolbar. */
+  viewLabels?: {
+    threeQuarter: string;
+    top: string;
+    side: string;
+    bow: string;
+    stern: string;
+  };
 }
 
 export default function YachtViewer3D({
@@ -154,7 +194,17 @@ export default function YachtViewer3D({
   onSelect,
   pickName,
   autoRotate = true,
+  viewLabels,
 }: YachtViewer3DProps) {
+  const [view, setView] = useState<ViewPreset>('three-quarter');
+  const labels = viewLabels ?? {
+    threeQuarter: '3/4',
+    top: 'Top',
+    side: 'Side',
+    bow: 'Bow',
+    stern: 'Stern',
+  };
+
   return (
     <div
       className="relative w-full"
@@ -176,7 +226,7 @@ export default function YachtViewer3D({
             environment="sunset"
           >
             <Boat
-              spinning={autoRotate && !activeId}
+              spinning={autoRotate && !activeId && view === 'three-quarter'}
               parts={parts}
               activeId={activeId}
               onSelect={onSelect}
@@ -190,13 +240,14 @@ export default function YachtViewer3D({
           makeDefault
           enablePan={false}
           minDistance={8}
-          maxDistance={40}
-          minPolarAngle={0.15}
-          maxPolarAngle={Math.PI / 2 - 0.05}
+          maxDistance={45}
+          minPolarAngle={0.05}
+          maxPolarAngle={Math.PI / 2 - 0.02}
           autoRotate={false}
           enableDamping
           dampingFactor={0.08}
         />
+        <CameraDriver view={view} />
       </Canvas>
 
       <noscript>
@@ -207,6 +258,35 @@ export default function YachtViewer3D({
           {loadingLabel}
         </div>
       </noscript>
+
+      {/* View-preset toolbar - top-right floating chip */}
+      <div className="absolute top-2 right-2 flex flex-wrap gap-1 pointer-events-auto">
+        {(['three-quarter', 'top', 'side', 'bow', 'stern'] as const).map((v) => {
+          const active = v === view;
+          const label =
+            v === 'three-quarter' ? labels.threeQuarter
+            : v === 'top'  ? labels.top
+            : v === 'side' ? labels.side
+            : v === 'bow'  ? labels.bow
+            : labels.stern;
+          return (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className="text-[10px] sm:text-xs px-2 py-1 rounded transition font-medium"
+              style={{
+                background: active ? 'rgba(0, 212, 255, 0.25)' : 'rgba(10, 22, 40, 0.7)',
+                border: `1px solid ${active ? 'rgba(0, 212, 255, 0.6)' : 'rgba(139, 167, 184, 0.3)'}`,
+                color: active ? '#00d4ff' : 'rgba(255, 255, 255, 0.85)',
+                backdropFilter: 'blur(6px)',
+              }}
+              aria-pressed={active}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
 
       <div
         className="absolute bottom-2 left-2 right-2 text-[10px] sm:text-xs text-center pointer-events-none"
