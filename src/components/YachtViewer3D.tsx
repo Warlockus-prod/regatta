@@ -28,7 +28,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
-import { DoubleSide, MeshStandardMaterial, type Group, type Mesh } from 'three';
+import { DoubleSide, MeshBasicMaterial, MeshStandardMaterial, type Group, type Mesh, type Texture } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
@@ -139,33 +139,34 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   const { scene } = useGLTF(MODEL_URL);
 
   // v7.4 fix-up pass. The supplier's GLB ships with three rendering
-  // bugs that make the boat look broken in any glTF viewer including
-  // ours; we patch them at load time so we don't have to rebuild the
-  // GLB.
+  // bugs we have to patch at load time:
   //
-  //   1. Hide pivot-anchor cubes (`Rudder_Yaw_Pivot`, `Boom_Yaw_Pivot`,
-  //      `Mast_Base`) - 2 cm boxes meant for animation, no visual
-  //      payload.
+  //   1. Pivot-anchor cubes (Rudder_Yaw_Pivot, Boom_Yaw_Pivot, Mast_Base)
+  //      are 2 cm boxes meant for animation work, no visual payload.
   //
-  //   2. Sails (`MainSail_Animated_ClothSurface`,
-  //      `Jib_Genoa_Animated_ClothSurface`) ship with `material: NONE`
-  //      in the GLB, so the loader assigns a default opaque-white
-  //      MeshStandardMaterial with `side: FrontSide`. Cambered (curved)
-  //      cloth viewed from the inside of the curve is then invisible -
-  //      half the orbits show a missing sail. We replace the material
-  //      with our own DoubleSide MeshStandardMaterial, sail-cream
-  //      colour (the supplier's intended `[240,240,235,230]` vertex
-  //      colour) and matte roughness.
+  //   2. Sails (MainSail_Animated_ClothSurface, Jib_Genoa_Animated_-
+  //      ClothSurface) have material:NONE, so the loader assigns a
+  //      default opaque-white FrontSide material - half the orbits
+  //      show a missing sail because the cambered cloth's back face
+  //      is culled.
   //
-  //   3. Logo decals (`MainSail_Logo_Port`, `MainSail_Logo_Starboard`)
-  //      have `alphaMode: OPAQUE` and `baseColorFactor: [0.4,0.4,0.4]`,
-  //      so the alpha channel of the wordmark PNG is ignored (the
-  //      transparent PNG ends up as a flat grey rectangle around the
-  //      logo) AND the visible logo pixels are darkened to 40 %. Force
-  //      `transparent: true` + `alphaTest: 0.1`, reset the colour
-  //      multiplier to white, and switch to DoubleSide so the mirrored
-  //      starboard decal also shows from the port side when the boat
-  //      yaws.
+  //   3. Logo decals (MainSail_Logo_Port, MainSail_Logo_Starboard)
+  //      have alphaMode:OPAQUE plus baseColorFactor [0.4, 0.4, 0.4],
+  //      so the wordmark PNG's alpha channel is ignored (transparent
+  //      areas show as a flat rectangle around the logo) AND the
+  //      logo is darkened by 60 %.
+  //
+  // We patch by REPLACING the material entirely rather than mutating
+  // properties on the existing one. Mutating `transparent`/`alphaTest`
+  // on a material the GLTFLoader compiled with alphaMode:OPAQUE
+  // doesn't reliably retake effect even with `needsUpdate = true`,
+  // because some shader hooks were stripped at compile time. A fresh
+  // material gets a freshly compiled shader with the right blend mode.
+  //
+  // For the logo we also switch from MeshStandardMaterial (PBR, lit)
+  // to MeshBasicMaterial (unlit). A logo is a graphic, not a physical
+  // surface; with unlit it stays crisp from any angle regardless of
+  // where the key light is.
   useEffect(() => {
     scene.traverse((obj) => {
       const n = obj.name;
@@ -179,15 +180,19 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
         return;
       }
 
-      const mesh = obj as Mesh;
-      if (!('isMesh' in mesh) || !mesh.isMesh) return;
+      // GLTFLoader may store the descriptive name on the parent node
+      // (Group/Mesh) and a separate name on the mesh's geometry. Match
+      // both to be robust across loader versions.
+      const mesh = obj as Mesh & { isMesh?: boolean };
+      if (!mesh.isMesh) return;
+      const geomName = (mesh.geometry && (mesh.geometry as { name?: string }).name) || '';
 
-      if (
+      const isSail =
         n === 'MainSail_Animated_ClothSurface' ||
-        n === 'Jib_Genoa_Animated_ClothSurface'
-      ) {
-        // Drop whatever the loader assigned and install a sail-cloth
-        // material that renders both sides.
+        n === 'Jib_Genoa_Animated_ClothSurface' ||
+        n === 'MainSail' || n === 'Jib_Genoa' ||
+        geomName === 'MainSail' || geomName === 'Jib_Genoa';
+      if (isSail) {
         mesh.material = new MeshStandardMaterial({
           color: 0xf0f0eb,
           roughness: 0.9,
@@ -197,26 +202,25 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
         return;
       }
 
-      if (
-        n === 'MainSail_Logo_Port' ||
-        n === 'MainSail_Logo_Starboard'
-      ) {
-        // The decal mesh is mostly transparent PNG with the wordmark
-        // in the centre. Cast safely - the loader assigned a
-        // MeshStandardMaterial here.
-        const mat = mesh.material as MeshStandardMaterial | MeshStandardMaterial[] | undefined;
-        const apply = (m: MeshStandardMaterial) => {
-          m.transparent = true;
-          m.alphaTest = 0.1;
-          m.depthWrite = true;
-          m.side = DoubleSide;
-          // Cancel the supplier's `[0.4, 0.4, 0.4]` colour multiplier
-          // which was darkening the texture by 60 %.
-          if (m.color) m.color.setHex(0xffffff);
-          m.needsUpdate = true;
-        };
-        if (Array.isArray(mat)) mat.forEach(apply);
-        else if (mat) apply(mat);
+      const isLogo =
+        n === 'MainSail_Logo_Port' || n === 'MainSail_Logo_Starboard' ||
+        n === 'LogoDecalPort' || n === 'LogoDecalStarboard' ||
+        geomName === 'LogoDecalPort' || geomName === 'LogoDecalStarboard';
+      if (isLogo) {
+        // Carry over the texture from the supplier's material; throw
+        // away the rest (broken alphaMode + the 0.4 grey multiplier).
+        const old = mesh.material as MeshStandardMaterial | MeshStandardMaterial[];
+        const oldFirst = Array.isArray(old) ? old[0] : old;
+        const tex = oldFirst && (oldFirst.map as Texture | null);
+        mesh.material = new MeshBasicMaterial({
+          map: tex ?? null,
+          color: 0xffffff,
+          transparent: true,
+          alphaTest: 0.1,
+          side: DoubleSide,
+          depthWrite: true,
+          toneMapped: false,
+        });
       }
     });
   }, [scene]);
