@@ -26,22 +26,28 @@
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, Stage, useGLTF, ContactShadows, Environment, Html } from '@react-three/drei';
+import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
 import type { Group } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
 // Camera presets in world coords. Each one positions the camera at a
 // classic technical drawing angle so users can flip between "naval-arch"
-// projections of the model. r is the orbit radius and gets clamped by
-// OrbitControls min/maxDistance.
+// projections of the model. The model spans roughly:
+//   X: stern (-7) -> bow (+7)         (LOA 13.9m, half-length ~7m)
+//   Y: keel (-2) -> deck (+1) -> mast top (+18)  (Mast height 18.2m)
+//   Z: port/stbd  ~ +/- 2.2m
+// Target the camera at (0, 4, 0) - the visual centroid roughly at
+// mid-mast height - so all 5 presets show the whole boat without the
+// mast top being clipped.
 type ViewPreset = 'three-quarter' | 'top' | 'side' | 'bow' | 'stern';
+const TARGET: [number, number, number] = [0, 5, 0];
 const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
-  'three-quarter': [16, 10, 16],
-  'top':           [0, 30, 0.001],   // tiny z to avoid the gimbal-lock NaN
-  'side':          [0, 4, 22],
-  'bow':           [22, 5, 0.001],
-  'stern':         [-22, 5, 0.001],
+  'three-quarter': [28, 16, 28],
+  'top':           [0, 42, 0.001],   // tiny z to avoid the gimbal-lock NaN
+  'side':          [0, 6, 35],
+  'bow':           [35, 7, 0.001],
+  'stern':         [-35, 7, 0.001],
 };
 
 const MODEL_URL = '/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb';
@@ -105,17 +111,17 @@ interface BoatProps {
 }
 
 function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
-  const ref = useRef<Group>(null);
-  // Slow auto-rotate while idle so the user sees the model is interactive
-  // even before they click. Yaw on world Y after the X rotation.
+  // Outer group handles YAW (rotation around world-Y, i.e. vertical axis).
+  // Inner group converts GLB axis convention (Z-up) to Three.js (Y-up).
+  // Spinning the OUTER group rotates the boat the way a real boat yaws,
+  // not end-over-end like before.
+  const yawRef = useRef<Group>(null);
   useFrame((_, delta) => {
-    if (spinning && ref.current) {
-      ref.current.rotation.z += delta * 0.18;
+    if (spinning && yawRef.current) {
+      yawRef.current.rotation.y += delta * 0.25;
     }
   });
-  // GLB axis convention is X=stern->bow, Z=up. Three.js wants Y=up. Rotate
-  // -90deg around X to bring deck up, then the children's local positions
-  // (defined in GLB-local coords) end up where they belong.
+
   const { scene } = useGLTF(MODEL_URL);
 
   // Hide debug colliders (COL_*) and LOD1 mirror geometry so we don't
@@ -131,20 +137,29 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   }, [scene]);
 
   return (
-    <group ref={ref} rotation={[-Math.PI / 2, 0, 0]}>
-      <primitive object={scene} />
-      {parts.map((p) => {
-        if (!p.three) return null;
-        return (
-          <Hotspot
-            key={p.id}
-            position={[p.three.x, p.three.y, p.three.z]}
-            label={pickName(p)}
-            active={p.id === activeId}
-            onSelect={() => onSelect(p.id)}
-          />
-        );
-      })}
+    <group ref={yawRef}>
+      {/*
+        Inner group: -90deg around world X brings the GLB's local +Z (up)
+        into world +Y (Three.js up). Hotspot positions are in the GLB's
+        local coord space (X=stern->bow, Y=port/stbd, Z=up), so we put
+        them as children of THIS inner group and they ride along with the
+        rotation correctly.
+      */}
+      <group rotation={[-Math.PI / 2, 0, 0]}>
+        <primitive object={scene} />
+        {parts.map((p) => {
+          if (!p.three) return null;
+          return (
+            <Hotspot
+              key={p.id}
+              position={[p.three.x, p.three.y, p.three.z]}
+              label={pickName(p)}
+              active={p.id === activeId}
+              onSelect={() => onSelect(p.id)}
+            />
+          );
+        })}
+      </group>
     </group>
   );
 }
@@ -158,9 +173,9 @@ function CameraDriver({ view }: { view: ViewPreset }) {
   useEffect(() => {
     const [x, y, z] = VIEW_PRESETS[view];
     camera.position.set(x, y, z);
-    camera.lookAt(0, 1, 0);
+    camera.lookAt(...TARGET);
     if (controls) {
-      controls.target.set(0, 1, 0);
+      controls.target.set(...TARGET);
       controls.update();
     }
   }, [view, camera, controls]);
@@ -215,32 +230,45 @@ export default function YachtViewer3D({
     >
       <Canvas
         dpr={[1, 1.5]}
-        camera={{ position: [16, 10, 16], fov: 35, near: 0.1, far: 200 }}
+        camera={{ position: VIEW_PRESETS['three-quarter'], fov: 35, near: 0.1, far: 200 }}
         gl={{ antialias: true, alpha: true }}
       >
         <Suspense fallback={null}>
-          <Stage
-            adjustCamera={1.6}
-            intensity={0.45}
-            shadows={{ type: 'contact', opacity: 0.4, blur: 1.5 }}
-            environment="sunset"
-          >
-            <Boat
-              spinning={autoRotate && !activeId && view === 'three-quarter'}
-              parts={parts}
-              activeId={activeId}
-              onSelect={onSelect}
-              pickName={pickName}
-            />
-          </Stage>
-          <ContactShadows position={[0, -2, 0]} opacity={0.3} scale={30} blur={2} />
-          <Environment preset="sunset" background={false} />
+          {/*
+            Manual lighting rig (instead of drei's <Stage> + <Environment>).
+            Stage and Environment with preset="sunset" both fetch a HDR from
+            raw.githack.com, which our CSP `connect-src 'self'` blocks. The
+            low-poly model doesn't need HDR-quality reflections - a key
+            light, a fill, and a hemisphere give it readable shape.
+          */}
+          <ambientLight intensity={0.55} color="#cfe5ff" />
+          <directionalLight
+            position={[10, 18, 8]}
+            intensity={1.4}
+            color="#fff5e0"
+            castShadow={false}
+          />
+          <directionalLight
+            position={[-12, 6, -6]}
+            intensity={0.4}
+            color="#7faed8"
+          />
+          <hemisphereLight args={['#bfdfff', '#0a1628', 0.35]} />
+          <Boat
+            spinning={autoRotate && !activeId && view === 'three-quarter'}
+            parts={parts}
+            activeId={activeId}
+            onSelect={onSelect}
+            pickName={pickName}
+          />
+          <ContactShadows position={[0, -2.2, 0]} opacity={0.3} scale={30} blur={2} far={20} />
         </Suspense>
         <OrbitControls
           makeDefault
           enablePan={false}
-          minDistance={8}
-          maxDistance={45}
+          target={TARGET}
+          minDistance={10}
+          maxDistance={55}
           minPolarAngle={0.05}
           maxPolarAngle={Math.PI / 2 - 0.02}
           autoRotate={false}
