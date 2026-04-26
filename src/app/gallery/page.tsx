@@ -172,8 +172,15 @@ export default function GalleryPage() {
               math. Photos flow naturally and keep their full aspect ratio
               instead of being cropped into uniform tiles. break-inside on
               tiles avoids mid-tile column breaks.
+
+              Spacing: horizontal column-gap and vertical margin-bottom
+              are kept EQUAL via the .masonry-cols rules below so the
+              grid looks evenly spaced in both axes. Tailwind's
+              [column-gap:...] arbitrary classes were producing
+              inconsistent gaps between breakpoints; explicit CSS values
+              are simpler.
             */}
-            <div className="masonry-cols [column-gap:0.75rem] sm:[column-gap:1rem]">
+            <div className="masonry-cols">
               {groups[key].map((item) => (
                 <Tile
                   key={item.id}
@@ -195,16 +202,23 @@ export default function GalleryPage() {
         depending on viewport.
       */}
       <style jsx>{`
-        .masonry-cols { column-count: 2; }
-        @media (min-width: 640px)  { .masonry-cols { column-count: 3; } }
-        @media (min-width: 1024px) { .masonry-cols { column-count: 4; } }
+        /* Vertical and horizontal gaps are intentionally identical at
+           every breakpoint. column-gap controls horizontal spacing
+           between columns; margin-bottom on the children controls
+           vertical spacing within a column. The two were drifting
+           because of arbitrary Tailwind classes; using explicit CSS
+           variables locks them together. */
+        .masonry-cols {
+          --gap: 0.75rem;
+          column-count: 2;
+          column-gap: var(--gap);
+        }
+        @media (min-width: 640px)  { .masonry-cols { --gap: 1rem; column-count: 3; } }
+        @media (min-width: 1024px) { .masonry-cols { --gap: 1rem; column-count: 4; } }
         .masonry-cols > * {
           break-inside: avoid;
-          margin-bottom: 0.75rem;
           display: block;
-        }
-        @media (min-width: 640px) {
-          .masonry-cols > * { margin-bottom: 1rem; }
+          margin: 0 0 var(--gap) 0;
         }
       `}</style>
 

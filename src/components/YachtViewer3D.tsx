@@ -50,7 +50,12 @@ const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
   'stern':         [-35, 7, 0.001],
 };
 
-const MODEL_URL = '/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb';
+// Branded variant: Bavaria 46 production-ready GLB with the GIONO YACHTING
+// logo applied as an alpha-blended decal on the mainsail. The decal is a
+// separate ~1.6 m square plane parented to the mainsail mesh, so future
+// boom rotation animation can pivot the sail and the logo follows.
+// See public/brand/giono-yachting-transparent.png for the source PNG.
+const MODEL_URL = '/models/Andryu_Yacht_v3_branded.glb';
 useGLTF.preload(MODEL_URL);
 
 interface MarkerProps {
@@ -128,10 +133,24 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   // double-render. Per asset_metadata_v3.json the production convention is
   // to use COL_* for physics colliders and LOD0_* for the visible mesh; on
   // the web we only need LOD0 visuals.
+  //
+  // Also force the mainsail logo decal to render double-sided. Blender's
+  // `use_backface_culling = false` flag isn't always honored by three.js
+  // GLTFLoader, so we set THREE.DoubleSide on the material directly here.
   useEffect(() => {
     scene.traverse((obj) => {
       if (obj.name.startsWith('COL_') || obj.name.startsWith('LOD1_')) {
         obj.visible = false;
+      }
+      if (obj.name.includes('Logo_Decal')) {
+        // Three.js Mesh has a .material; cast safely.
+        // 2 = THREE.DoubleSide (avoids importing the constant just for this)
+        const mesh = obj as unknown as { material?: { side?: number; transparent?: boolean; depthWrite?: boolean } };
+        if (mesh.material) {
+          mesh.material.side = 2;
+          mesh.material.transparent = true;
+          mesh.material.depthWrite = false; // helps avoid z-fight at 3 cm gap
+        }
       }
     });
   }, [scene]);
