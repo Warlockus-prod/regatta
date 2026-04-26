@@ -70,6 +70,7 @@ export default function AnatomyPage() {
             activeId={activeId}
             onSelect={setActiveId}
             pickName={(p) => legacyPick(p, 'name', lang)}
+            pickAltName={(p) => p.nameEn}
             viewLabels={{
               threeQuarter: tp('3/4', '3/4', '3/4', { es: '3/4', fr: '3/4', de: '3/4', it: '3/4' }),
               top: tp('Сверху', 'Top', 'Z gory',
@@ -80,6 +81,10 @@ export default function AnatomyPage() {
                 { es: 'Proa', fr: 'Proue', de: 'Bug', it: 'Prua' }),
               stern: tp('С кормы', 'Stern', 'Z rufy',
                 { es: 'Popa', fr: 'Poupe', de: 'Heck', it: 'Poppa' }),
+              fullscreen: tp('Во весь экран', 'Fullscreen', 'Pelny ekran',
+                { es: 'Pantalla completa', fr: 'Plein ecran', de: 'Vollbild', it: 'Schermo intero' }),
+              exitFullscreen: tp('Свернуть', 'Exit fullscreen', 'Wyjdz z pelnego ekranu',
+                { es: 'Salir de pantalla completa', fr: 'Quitter le plein ecran', de: 'Vollbild verlassen', it: 'Esci da schermo intero' }),
             }}
             loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
               { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}

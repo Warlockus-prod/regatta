@@ -25,6 +25,7 @@
 // ============================================================================
 
 import { Suspense, useEffect, useRef, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
 import type { Group } from 'three';
@@ -208,6 +209,9 @@ export interface YachtViewer3DProps {
   activeId: string | null;
   onSelect: (id: string) => void;
   pickName: (p: AnatomyPart) => string;
+  /** Optional secondary name (e.g. English latin form) shown under the
+   *  primary name in the fullscreen info bar. Returns falsy to skip. */
+  pickAltName?: (p: AnatomyPart) => string | undefined;
   /** Auto-rotate while idle. Default true; pauses on hover via OrbitControls. */
   autoRotate?: boolean;
   /** Localized labels for the view-preset toolbar. */
@@ -217,6 +221,10 @@ export interface YachtViewer3DProps {
     side: string;
     bow: string;
     stern: string;
+    /** aria-label / tooltip for the "enter fullscreen" toggle. */
+    fullscreen?: string;
+    /** aria-label / tooltip for the "exit fullscreen" toggle. */
+    exitFullscreen?: string;
   };
 }
 
@@ -227,25 +235,67 @@ export default function YachtViewer3D({
   activeId,
   onSelect,
   pickName,
+  pickAltName,
   autoRotate = true,
   viewLabels,
 }: YachtViewer3DProps) {
   const [view, setView] = useState<ViewPreset>('three-quarter');
-  const labels = viewLabels ?? {
-    threeQuarter: '3/4',
-    top: 'Top',
-    side: 'Side',
-    bow: 'Bow',
-    stern: 'Stern',
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const labels = {
+    threeQuarter: viewLabels?.threeQuarter ?? '3/4',
+    top: viewLabels?.top ?? 'Top',
+    side: viewLabels?.side ?? 'Side',
+    bow: viewLabels?.bow ?? 'Bow',
+    stern: viewLabels?.stern ?? 'Stern',
+    fullscreen: viewLabels?.fullscreen ?? 'Fullscreen',
+    exitFullscreen: viewLabels?.exitFullscreen ?? 'Exit fullscreen',
   };
+
+  // Lock body scroll while the viewer is in fullscreen, otherwise pinch /
+  // swipe to rotate the model also scrolls the page underneath. Restore on
+  // exit (or on unmount) so we never leave the page in a stuck state.
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = prev; };
+  }, [isFullscreen]);
+
+  // ESC closes fullscreen on desktop; mobile users tap the close icon.
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsFullscreen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isFullscreen]);
+
+  const activePart = parts.find((p) => p.id === activeId) ?? null;
+  const altName = activePart && pickAltName ? pickAltName(activePart) : undefined;
+
+  // Fullscreen wrapper sits above the sticky nav (z-50) and the mobile menu
+  // overlay (z-[60]). 100dvh / 100dvw use the dynamic viewport so iOS
+  // Safari's auto-hiding URL bar doesn't crop the canvas at the bottom.
+  const wrapperStyle: CSSProperties = isFullscreen
+    ? {
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        width: '100dvw',
+        height: '100dvh',
+        zIndex: 100,
+        background: 'linear-gradient(180deg, rgba(6, 20, 40, 0.97) 0%, rgba(2, 8, 18, 0.99) 100%)',
+      }
+    : {
+        aspectRatio: '16 / 10',
+        background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.4) 0%, rgba(6, 20, 40, 0.7) 100%)',
+      };
 
   return (
     <div
-      className="relative w-full"
-      style={{
-        aspectRatio: '16 / 10',
-        background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.4) 0%, rgba(6, 20, 40, 0.7) 100%)',
-      }}
+      className={isFullscreen ? '' : 'relative w-full'}
+      style={wrapperStyle}
     >
       <Canvas
         dpr={[1, 1.5]}
@@ -306,8 +356,53 @@ export default function YachtViewer3D({
         </div>
       </noscript>
 
+      {/* Fullscreen toggle - top-left floating chip. Sits opposite the
+          view-preset bar so the toolbars never collide on small screens.
+          In fullscreen we offset top a touch more to clear iPhone notches. */}
+      <div
+        className="absolute left-2 pointer-events-auto"
+        style={{ top: isFullscreen ? 'max(0.5rem, env(safe-area-inset-top))' : '0.5rem' }}
+      >
+        <button
+          onClick={() => setIsFullscreen((v) => !v)}
+          aria-label={isFullscreen ? labels.exitFullscreen : labels.fullscreen}
+          aria-pressed={isFullscreen}
+          title={isFullscreen ? labels.exitFullscreen : labels.fullscreen}
+          className="flex items-center justify-center rounded transition"
+          style={{
+            width: 32,
+            height: 32,
+            background: 'rgba(10, 22, 40, 0.7)',
+            border: '1px solid rgba(139, 167, 184, 0.3)',
+            color: 'rgba(255, 255, 255, 0.85)',
+            backdropFilter: 'blur(6px)',
+          }}
+        >
+          {isFullscreen ? (
+            // Collapse: 4 corners pointing inward
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M8 3v5H3" />
+              <path d="M16 3v5h5" />
+              <path d="M8 21v-5H3" />
+              <path d="M16 21v-5h5" />
+            </svg>
+          ) : (
+            // Expand: 4 corners pointing outward
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M3 8V3h5" />
+              <path d="M21 8V3h-5" />
+              <path d="M3 16v5h5" />
+              <path d="M21 16v5h-5" />
+            </svg>
+          )}
+        </button>
+      </div>
+
       {/* View-preset toolbar - top-right floating chip */}
-      <div className="absolute top-2 right-2 flex flex-wrap gap-1 pointer-events-auto">
+      <div
+        className="absolute right-2 flex flex-wrap gap-1 pointer-events-auto justify-end"
+        style={{ top: isFullscreen ? 'max(0.5rem, env(safe-area-inset-top))' : '0.5rem', maxWidth: 'calc(100% - 56px)' }}
+      >
         {(['three-quarter', 'top', 'side', 'bow', 'stern'] as const).map((v) => {
           const active = v === view;
           const label =
@@ -335,12 +430,38 @@ export default function YachtViewer3D({
         })}
       </div>
 
-      <div
-        className="absolute bottom-2 left-2 right-2 text-[10px] sm:text-xs text-center pointer-events-none"
-        style={{ color: 'rgba(255, 255, 255, 0.55)' }}
-      >
-        {hintLabel}
-      </div>
+      {/* Bottom strip: in fullscreen + a part is selected, show its name in
+          a persistent card so users can read the label without hunting for
+          the (potentially small / occluded) hotspot text in the canvas.
+          Otherwise show the regular hint line. */}
+      {isFullscreen && activePart ? (
+        <div
+          className="absolute left-1/2 -translate-x-1/2 px-4 py-2 rounded-lg pointer-events-none text-center"
+          style={{
+            bottom: 'max(0.75rem, env(safe-area-inset-bottom))',
+            background: 'rgba(10, 22, 40, 0.85)',
+            border: '1px solid rgba(0, 212, 255, 0.3)',
+            backdropFilter: 'blur(8px)',
+            maxWidth: '90vw',
+          }}
+        >
+          <div className="text-sm sm:text-base font-semibold leading-tight" style={{ color: '#00d4ff' }}>
+            {pickName(activePart)}
+          </div>
+          {altName && altName !== pickName(activePart) && (
+            <div className="text-[11px] sm:text-xs mt-0.5" style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+              {altName}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div
+          className="absolute bottom-2 left-2 right-2 text-[10px] sm:text-xs text-center pointer-events-none"
+          style={{ color: 'rgba(255, 255, 255, 0.55)' }}
+        >
+          {hintLabel}
+        </div>
+      )}
     </div>
   );
 }
