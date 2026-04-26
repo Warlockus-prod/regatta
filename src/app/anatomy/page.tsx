@@ -101,7 +101,7 @@ export default function AnatomyPage() {
             )}
           />
           <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-            Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
+            Bavaria 46 Cruiser · LOA 14.00 m · Beam 4.31 m · Draft 2.18 m · Mast ~20.75 m
           </div>
         </div>
 

@@ -70,3 +70,9 @@ qa-*.png
 # Drop-zone for full-resolution drone photos before optimization (see
 # scripts in public/gallery/regatta-2025/ for the resize pipeline).
 /gallery/
+
+# Supplier 3D-asset drop folder. Contains raw deliverables (zips, OBJs,
+# 4K texture PNGs, Unity scripts) that are too large for the repo. Only
+# the GLBs we actually ship live in public/models/. To share the rest
+# with the V3 simulator / Mobile lanes, hand off the zip directly.
+/3d/
