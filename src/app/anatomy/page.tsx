@@ -7,9 +7,19 @@ import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
-// Three.js + r3f is heavy (~120 KB gzipped). Code-split it behind a dynamic
-// import so visitors who never toggle 3D don't pay the cost. ssr:false
-// because Three.js needs WebGL context that doesn't exist on the server.
+// ============================================================================
+// Yacht anatomy - interactive 3D Bavaria 46 with clickable hotspots.
+//
+// History: previously had a 2D side-profile SVG with a 2D/3D toggle. The
+// 3D viewer (Andryu Yacht v3 GLB, 17 hotspots, 5 projections) covered every
+// teaching need on its own and the 2D fallback added clutter, so the SVG
+// view + toggle were removed in 2026-04-26.
+//
+// Three.js + r3f is heavy (~120 KB gzipped). Code-split it with ssr:false
+// so the heavy bundle loads only after the initial paint, not as part of
+// the route's critical path.
+// ============================================================================
+
 const YachtViewer3D = dynamic(() => import('@/components/YachtViewer3D'), {
   ssr: false,
   loading: () => (
@@ -22,149 +32,9 @@ const YachtViewer3D = dynamic(() => import('@/components/YachtViewer3D'), {
   ),
 });
 
-// ============================================================================
-// Yacht anatomy - 2D Bavaria 46 side-profile with clickable hotspots.
-// 3D viewer removed in Phase 0 (CLEANUP). Rationale: GLB pipeline was never
-// real (placeholder Kenney model, no hotspots coordinated with data), and
-// the 2D profile already covers every part we teach. If 3D returns later,
-// it should come with a proper Bavaria 46 GLB and hotspot positions sourced
-// from the same data file as the 2D view.
-// ============================================================================
-
-// Bavaria 46 side-profile SVG - stylized, not photorealistic
-function Bavaria46Profile({ activeId, onSelect }: { activeId: string | null; onSelect: (id: string) => void }) {
-  return (
-    <svg viewBox="0 0 1000 500" className="w-full h-auto block" style={{ background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.3) 0%, rgba(13, 40, 71, 0.3) 70%, rgba(6, 20, 40, 0.8) 70%, rgba(6, 20, 40, 0.8) 100%)' }}>
-      {/* Water surface */}
-      <line x1="0" y1="350" x2="1000" y2="350" stroke="rgba(0, 212, 255, 0.2)" strokeWidth="1" strokeDasharray="4,4" />
-
-      {/* Hull - Bavaria 46 profile (sleek modern cruiser) */}
-      <defs>
-        <linearGradient id="hullGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#e8f0f6" />
-          <stop offset="1" stopColor="#8fa8bd" />
-        </linearGradient>
-        <linearGradient id="sailGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#ffffff" />
-          <stop offset="1" stopColor="#d0d8e0" />
-        </linearGradient>
-      </defs>
-
-      {/* Keel (underwater) */}
-      <path d="M 440 360 L 440 440 L 520 440 L 520 360 Z" fill="#1a2d4d" stroke="#5a7a8a" strokeWidth="1" />
-
-      {/* Twin rudders hint (one visible from side) */}
-      <path d="M 800 360 L 800 430 L 825 430 L 825 360 Z" fill="#1a2d4d" stroke="#5a7a8a" strokeWidth="1" />
-
-      {/* Hull above waterline - Bavaria 46 silhouette */}
-      <path d="M 140 340
-               C 140 320, 160 305, 200 295
-               L 250 280 L 720 275
-               C 780 275, 820 285, 840 310
-               L 840 350
-               L 140 350 Z"
-            fill="url(#hullGrad)"
-            stroke="#4a6b8a"
-            strokeWidth="1.5" />
-
-      {/* Hull below waterline (mostly underwater but we show top) */}
-      <path d="M 140 350
-               C 160 370, 200 380, 280 380
-               L 680 380
-               C 760 380, 810 370, 840 350"
-            fill="none"
-            stroke="rgba(74, 107, 138, 0.5)"
-            strokeWidth="1"
-            strokeDasharray="3,3" />
-
-      {/* Cabin / superstructure */}
-      <path d="M 300 275 L 310 240 L 560 240 L 580 275" fill="#2a4570" stroke="#5a7a8a" strokeWidth="1.5" />
-      {/* Cabin windows */}
-      <rect x="320" y="250" width="50" height="12" rx="2" fill="rgba(0, 40, 70, 0.8)" />
-      <rect x="385" y="250" width="50" height="12" rx="2" fill="rgba(0, 40, 70, 0.8)" />
-      <rect x="450" y="250" width="50" height="12" rx="2" fill="rgba(0, 40, 70, 0.8)" />
-      <rect x="515" y="250" width="40" height="12" rx="2" fill="rgba(0, 40, 70, 0.8)" />
-
-      {/* Cockpit */}
-      <rect x="600" y="255" width="180" height="25" rx="3" fill="rgba(30, 50, 80, 0.8)" stroke="#5a7a8a" strokeWidth="1" />
-      {/* Wheel binnacle */}
-      <rect x="710" y="240" width="20" height="40" rx="2" fill="#5a7a8a" />
-      <circle cx="720" cy="260" r="18" fill="none" stroke="#d0d8e0" strokeWidth="2" />
-
-      {/* Mast */}
-      <line x1="420" y1="275" x2="420" y2="40" stroke="#d0d8e0" strokeWidth="4" strokeLinecap="round" />
-
-      {/* Boom */}
-      <line x1="420" y1="215" x2="560" y2="210" stroke="#d0d8e0" strokeWidth="3" strokeLinecap="round" />
-      {/* Mainsail */}
-      <path d="M 420 50 L 560 210 L 420 215 Z" fill="url(#sailGrad)" stroke="#ffffff" strokeWidth="1.5" opacity="0.95" />
-      {/* Battens */}
-      <line x1="420" y1="90" x2="530" y2="200" stroke="rgba(139, 167, 184, 0.4)" strokeWidth="0.5" />
-      <line x1="420" y1="130" x2="510" y2="205" stroke="rgba(139, 167, 184, 0.4)" strokeWidth="0.5" />
-      <line x1="420" y1="170" x2="490" y2="210" stroke="rgba(139, 167, 184, 0.4)" strokeWidth="0.5" />
-
-      {/* Jib */}
-      <path d="M 420 60 L 180 280 L 420 220 Z" fill="url(#sailGrad)" stroke="#ffffff" strokeWidth="1.2" opacity="0.92" />
-
-      {/* Forestay */}
-      <line x1="420" y1="40" x2="180" y2="280" stroke="#c0c8d0" strokeWidth="1" />
-      {/* Backstay */}
-      <line x1="420" y1="40" x2="815" y2="280" stroke="#c0c8d0" strokeWidth="1" />
-      {/* Cap shrouds */}
-      <line x1="420" y1="60" x2="430" y2="275" stroke="#c0c8d0" strokeWidth="1" />
-      {/* Lower shrouds */}
-      <line x1="420" y1="160" x2="410" y2="275" stroke="#c0c8d0" strokeWidth="0.8" />
-      <line x1="420" y1="160" x2="435" y2="275" stroke="#c0c8d0" strokeWidth="0.8" />
-
-      {/* Winches (abstracted as circles) */}
-      <circle cx="560" cy="285" r="6" fill="#5a7a8a" stroke="#d0d8e0" strokeWidth="1" />
-      <circle cx="730" cy="285" r="6" fill="#5a7a8a" stroke="#d0d8e0" strokeWidth="1" />
-
-      {/* Main sheet (schematic) */}
-      <line x1="500" y1="215" x2="640" y2="280" stroke="rgba(0, 212, 255, 0.5)" strokeWidth="1" />
-
-      {/* Lifelines */}
-      <line x1="140" y1="265" x2="840" y2="265" stroke="#5a7a8a" strokeWidth="0.8" />
-      <line x1="140" y1="280" x2="840" y2="280" stroke="#5a7a8a" strokeWidth="0.8" />
-
-      {/* Fender */}
-      <ellipse cx="610" cy="320" rx="8" ry="18" fill="#d0d8e0" stroke="#5a7a8a" strokeWidth="0.8" />
-
-      {/* Hotspots */}
-      {anatomyParts.map((p) => {
-        const isActive = activeId === p.id;
-        return (
-          <g key={p.id} onClick={() => onSelect(p.id)} style={{ cursor: 'pointer' }}>
-            <circle
-              cx={p.side.x}
-              cy={p.side.y}
-              r={isActive ? 11 : 7}
-              fill={isActive ? 'var(--accent-cyan)' : 'rgba(0, 212, 255, 0.45)'}
-              stroke="#ffffff"
-              strokeWidth={isActive ? 2 : 1}
-            />
-            <circle
-              cx={p.side.x}
-              cy={p.side.y}
-              r={isActive ? 18 : 12}
-              fill="none"
-              stroke={isActive ? 'var(--accent-cyan)' : 'rgba(0, 212, 255, 0.25)'}
-              strokeWidth="1"
-              opacity={isActive ? 0.6 : 0.3}
-            />
-          </g>
-        );
-      })}
-    </svg>
-  );
-}
-
-type ViewMode = '2d' | '3d';
-
 export default function AnatomyPage() {
   const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>('mast');
-  const [viewMode, setViewMode] = useState<ViewMode>('2d');
 
   const active = anatomyParts.find((p) => p.id === activeId) ?? null;
 
@@ -173,7 +43,8 @@ export default function AnatomyPage() {
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(68, 255, 136, 0.1)', border: '1px solid rgba(68, 255, 136, 0.25)', color: 'var(--success)' }}>
-          ⚓ {tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu')}
+          ⚓ {tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu',
+            { es: 'Anatomia del velero', fr: 'Anatomie du voilier', de: 'Aufbau der Yacht', it: 'Anatomia della barca' })}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bavaria 46</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
@@ -181,86 +52,49 @@ export default function AnatomyPage() {
             'Нажми на точку на яхте - узнай название и зачем это нужно на борту.',
             'Click a point on the yacht to learn the name and why it matters on board.',
             'Kliknij punkt na jachcie - poznasz nazwe i do czego sluzy na pokladzie.',
+            {
+              es: 'Haz clic en un punto del velero para ver su nombre y para que sirve a bordo.',
+              fr: 'Clique sur un point du voilier pour son nom et pourquoi il importe a bord.',
+              de: 'Klicke auf einen Punkt der Yacht, um Name und Bordfunktion zu sehen.',
+              it: 'Clicca su un punto della barca per il nome e a cosa serve a bordo.',
+            },
           )}
         </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-4 sm:gap-6">
-        {/* Model area: 2D side-profile (with hotspots) OR interactive 3D viewer.
-            2D stays the default because hotspots are coordinated with the data
-            file - 3D is a contextual orbit view of the boat shape. */}
+        {/* 3D viewer with all 17 hotspots + 5 camera projections. */}
         <div className="card p-3 sm:p-4">
-          {/* View toggle */}
-          <div className="flex items-center justify-between mb-3">
-            <div className="inline-flex rounded-lg p-1" style={{ background: 'rgba(139, 167, 184, 0.08)', border: '1px solid rgba(139, 167, 184, 0.18)' }}>
-              <button
-                onClick={() => setViewMode('2d')}
-                className="text-xs px-3 py-1.5 rounded font-medium transition"
-                style={{
-                  background: viewMode === '2d' ? 'rgba(0, 212, 255, 0.18)' : 'transparent',
-                  color: viewMode === '2d' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                }}
-                aria-pressed={viewMode === '2d'}
-              >
-                {tp('2D профиль', '2D profile', '2D profil',
-                  { es: 'Perfil 2D', fr: 'Profil 2D', de: '2D-Profil', it: 'Profilo 2D' })}
-              </button>
-              <button
-                onClick={() => setViewMode('3d')}
-                className="text-xs px-3 py-1.5 rounded font-medium transition"
-                style={{
-                  background: viewMode === '3d' ? 'rgba(0, 212, 255, 0.18)' : 'transparent',
-                  color: viewMode === '3d' ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                }}
-                aria-pressed={viewMode === '3d'}
-              >
-                {tp('3D модель', '3D model', '3D model',
-                  { es: 'Modelo 3D', fr: 'Modele 3D', de: '3D-Modell', it: 'Modello 3D' })}
-              </button>
-            </div>
-            <div className="text-[10px] text-[var(--text-muted)] hidden sm:block">
-              {viewMode === '2d'
-                ? tp('Кликабельные точки', 'Clickable hotspots', 'Klikalne punkty',
-                    { es: 'Puntos clicables', fr: 'Points cliquables', de: 'Klickbare Punkte', it: 'Punti cliccabili' })
-                : tp('Тяни для вращения', 'Drag to rotate', 'Przeciagnij aby obrocic',
-                    { es: 'Arrastra para rotar', fr: 'Glisse pour pivoter', de: 'Ziehen zum Drehen', it: 'Trascina per ruotare' })}
-            </div>
-          </div>
-
-          {viewMode === '2d' ? (
-            <Bavaria46Profile activeId={activeId} onSelect={setActiveId} />
-          ) : (
-            <YachtViewer3D
-              parts={anatomyParts}
-              activeId={activeId}
-              onSelect={setActiveId}
-              pickName={(p) => legacyPick(p, 'name', lang)}
-              viewLabels={{
-                threeQuarter: tp('3/4', '3/4', '3/4', { es: '3/4', fr: '3/4', de: '3/4', it: '3/4' }),
-                top: tp('Сверху', 'Top', 'Z gory',
-                  { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
-                side: tp('Сбоку', 'Side', 'Z boku',
-                  { es: 'Lateral', fr: 'Cote', de: 'Seitlich', it: 'Lato' }),
-                bow: tp('С носа', 'Bow', 'Z dziobu',
-                  { es: 'Proa', fr: 'Proue', de: 'Bug', it: 'Prua' }),
-                stern: tp('С кормы', 'Stern', 'Z rufy',
-                  { es: 'Popa', fr: 'Poupe', de: 'Heck', it: 'Poppa' }),
-              }}
-              loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
-                { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}
-              hintLabel={tp(
-                'Тяни для вращения · клик по точке - название и описание · кнопки сверху - проекции',
-                'Drag to rotate · click a hotspot for name + details · top buttons - projections',
-                'Przeciagnij aby obrocic · klik na punkt - nazwa i opis · gorne przyciski - rzuty',
-                {
-                  es: 'Arrastra para rotar · clic en un punto - nombre y detalles · botones - proyecciones',
-                  fr: 'Glisse pour pivoter · clique sur un point pour les details · boutons - projections',
-                  de: 'Ziehen zum Drehen · Klick auf einen Punkt fuer Details · Buttons - Projektionen',
-                  it: 'Trascina per ruotare · clicca su un punto per i dettagli · pulsanti - proiezioni',
-                },
-              )}
-            />
-          )}
+          <YachtViewer3D
+            parts={anatomyParts}
+            activeId={activeId}
+            onSelect={setActiveId}
+            pickName={(p) => legacyPick(p, 'name', lang)}
+            viewLabels={{
+              threeQuarter: tp('3/4', '3/4', '3/4', { es: '3/4', fr: '3/4', de: '3/4', it: '3/4' }),
+              top: tp('Сверху', 'Top', 'Z gory',
+                { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
+              side: tp('Сбоку', 'Side', 'Z boku',
+                { es: 'Lateral', fr: 'Cote', de: 'Seitlich', it: 'Lato' }),
+              bow: tp('С носа', 'Bow', 'Z dziobu',
+                { es: 'Proa', fr: 'Proue', de: 'Bug', it: 'Prua' }),
+              stern: tp('С кормы', 'Stern', 'Z rufy',
+                { es: 'Popa', fr: 'Poupe', de: 'Heck', it: 'Poppa' }),
+            }}
+            loadingLabel={tp('Загружаю 3D...', 'Loading 3D...', 'Ladowanie 3D...',
+              { es: 'Cargando 3D...', fr: 'Chargement 3D...', de: '3D laden...', it: 'Caricamento 3D...' })}
+            hintLabel={tp(
+              'Тяни для вращения · клик по точке - название и описание · кнопки сверху - проекции',
+              'Drag to rotate · click a hotspot for name + details · top buttons - projections',
+              'Przeciagnij aby obrocic · klik na punkt - nazwa i opis · gorne przyciski - rzuty',
+              {
+                es: 'Arrastra para rotar · clic en un punto - nombre y detalles · botones - proyecciones',
+                fr: 'Glisse pour pivoter · clique sur un point pour les details · boutons - projections',
+                de: 'Ziehen zum Drehen · Klick auf einen Punkt fuer Details · Buttons - Projektionen',
+                it: 'Trascina per ruotare · clicca su un punto per i dettagli · pulsanti - proiezioni',
+              },
+            )}
+          />
           <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
             Bavaria 46 Cruiser · LOA 13.99 m · Beam 4.29 m · Draft 2.05 m · Mast ~18 m
           </div>
@@ -270,7 +104,10 @@ export default function AnatomyPage() {
         <div className="lg:sticky lg:top-20 lg:self-start">
           {active ? (
             <div className="card p-5">
-              <div className="text-xs text-[var(--text-muted)] mb-1">{tp('Деталь', 'Part', 'Element')}</div>
+              <div className="text-xs text-[var(--text-muted)] mb-1">
+                {tp('Деталь', 'Part', 'Element',
+                  { es: 'Parte', fr: 'Piece', de: 'Teil', it: 'Parte' })}
+              </div>
               <h2 className="text-2xl font-bold mb-1" style={{ color: 'var(--accent-cyan)' }}>
                 {legacyPick(active, 'name', lang)}
               </h2>
@@ -281,7 +118,8 @@ export default function AnatomyPage() {
               <div className="space-y-3 text-sm">
                 <div>
                   <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-1">
-                    {tp('Что это', 'What it is', 'Co to jest')}
+                    {tp('Что это', 'What it is', 'Co to jest',
+                      { es: 'Que es', fr: 'Qu\'est-ce que c\'est', de: 'Was ist das', it: 'Cosa e' })}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
                     {legacyPick(active, 'desc', lang)}
@@ -290,7 +128,8 @@ export default function AnatomyPage() {
 
                 <div className="p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
                   <div className="text-[10px] uppercase tracking-wider mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                    {tp('На борту', 'On board', 'Na pokladzie')}
+                    {tp('На борту', 'On board', 'Na pokladzie',
+                      { es: 'A bordo', fr: 'A bord', de: 'An Bord', it: 'A bordo' })}
                   </div>
                   <p className="text-[var(--text-primary)] leading-relaxed">
                     {legacyPick(active, 'useOnBoard', lang)}
@@ -300,14 +139,16 @@ export default function AnatomyPage() {
             </div>
           ) : (
             <div className="card p-5 text-sm text-[var(--text-muted)]">
-              {tp('Нажми на точку на диаграмме', 'Click a hotspot on the diagram', 'Kliknij punkt na diagramie')}
+              {tp('Нажми на точку на модели', 'Click a hotspot on the model', 'Kliknij punkt na modelu',
+                { es: 'Haz clic en un punto del modelo', fr: 'Clique sur un point du modele', de: 'Klicke einen Punkt am Modell an', it: 'Clicca un punto sul modello' })}
             </div>
           )}
 
           {/* Quick jump list */}
           <div className="card p-3 mt-3">
             <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)] mb-2">
-              {tp('Все детали', 'All parts', 'Wszystkie elementy')}
+              {tp('Все детали', 'All parts', 'Wszystkie elementy',
+                { es: 'Todas las partes', fr: 'Toutes les pieces', de: 'Alle Teile', it: 'Tutte le parti' })}
             </div>
             <div className="grid grid-cols-2 gap-1">
               {anatomyParts.map((p) => (
@@ -330,14 +171,14 @@ export default function AnatomyPage() {
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
         {tp(
-          'Стилизованная модель Bavaria 46. 3D - low-poly заготовка под симулятор.',
-          'Stylized Bavaria 46. 3D - low-poly placeholder for the simulator pipeline.',
-          'Stylizowana Bavaria 46. 3D - low-poly model do symulatora.',
+          'Стилизованная модель Bavaria 46. Low-poly заготовка под симулятор.',
+          'Stylized Bavaria 46. Low-poly placeholder for the simulator pipeline.',
+          'Stylizowana Bavaria 46. Low-poly model do symulatora.',
           {
-            es: 'Bavaria 46 estilizada. 3D - modelo low-poly para el pipeline del simulador.',
-            fr: 'Bavaria 46 stylisee. 3D - modele low-poly pour le pipeline du simulateur.',
-            de: 'Stilisierte Bavaria 46. 3D - Low-Poly-Modell fuer die Simulator-Pipeline.',
-            it: 'Bavaria 46 stilizzata. 3D - modello low-poly per la pipeline del simulatore.',
+            es: 'Bavaria 46 estilizada. Modelo low-poly para el pipeline del simulador.',
+            fr: 'Bavaria 46 stylisee. Modele low-poly pour le pipeline du simulateur.',
+            de: 'Stilisierte Bavaria 46. Low-Poly-Modell fuer die Simulator-Pipeline.',
+            it: 'Bavaria 46 stilizzata. Modello low-poly per la pipeline del simulatore.',
           },
         )}
       </p>

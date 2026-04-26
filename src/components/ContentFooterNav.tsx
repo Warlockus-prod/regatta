@@ -79,7 +79,8 @@ export default function ContentFooterNav({ page }: { page: '/onboard' | '/anatom
         }}
       >
         <div className="text-xs uppercase tracking-wider font-semibold mb-3" style={{ color: 'var(--accent-cyan)' }}>
-          {tp('Куда дальше', 'Where to next', 'Co dalej')}
+          {tp('Куда дальше', 'Where to next', 'Co dalej',
+            { es: 'Adonde sigues', fr: 'Et apres', de: 'Wohin als naechstes', it: 'Dove andare' })}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -94,10 +95,12 @@ export default function ContentFooterNav({ page }: { page: '/onboard' | '/anatom
             <span className="text-xl shrink-0">🎓</span>
             <div className="min-w-0">
               <div className="text-xs font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-                ← {tp('К курсу', 'Back to course', 'Do kursu')}
+                ← {tp('К курсу', 'Back to course', 'Do kursu',
+                  { es: 'Al curso', fr: 'Au cours', de: 'Zum Kurs', it: 'Al corso' })}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] truncate">
-                {tp('Полный курс с нуля', 'Full bootcamp', 'Pelny kurs od zera')}
+                {tp('Полный курс с нуля', 'Full bootcamp', 'Pelny kurs od zera',
+                  { es: 'Curso completo desde cero', fr: 'Bootcamp complet', de: 'Kompletter Bootcamp', it: 'Bootcamp completo' })}
               </div>
             </div>
           </Link>
