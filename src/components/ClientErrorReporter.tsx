@@ -107,12 +107,26 @@ export default function ClientErrorReporter() {
     let maxScrollPct = 0;
     let scrollTimer: number | null = null;
 
+    // Language: prefer the user's i18n cookie/localStorage (the UI language
+    // they actually picked) over `navigator.language` (their OS locale).
+    // Both are normalised to a 2-letter iso code so /stats can group cleanly.
+    let language: string | undefined;
+    try {
+      const fromStorage = window.localStorage?.getItem('regatta.lang.v1');
+      const fromCookie = document.cookie.match(/regatta_lang=([a-z]{2})/)?.[1];
+      const navLang = navigator.language?.slice(0, 2).toLowerCase();
+      language = fromStorage || fromCookie || navLang;
+    } catch {
+      language = navigator.language?.slice(0, 2).toLowerCase();
+    }
+
     clientInfo('page.view', {
       path: pathname,
       referrer: document.referrer || null,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
       viewportBucket: bucketViewport(window.innerWidth),
       ua: navigator.userAgent.slice(0, 200),
+      language,
       msSinceStart: pageStart - startMs,
       ...utm,
     });

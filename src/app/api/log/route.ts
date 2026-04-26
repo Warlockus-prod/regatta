@@ -39,10 +39,40 @@ export async function POST(req: Request) {
     const body = await req.json();
     const level = body?.level === 'error' || body?.level === 'warn' ? body.level : 'info';
     const evt = typeof body?.evt === 'string' ? body.evt : 'unknown';
+    // IP detection - try multiple proxy headers in priority order:
+    //   1. x-forwarded-for (first hop, the real client)
+    //   2. x-real-ip (nginx convention)
+    //   3. cf-connecting-ip (Cloudflare)
+    //
+    // Discard 127.0.0.1 / private-range values so we don't pollute the DB
+    // when the proxy chain is mis-set. Current production has nginx stream
+    // SNI routing that loses the client IP - until that's fixed (or
+    // Cloudflare is added in front), all values land NULL here. fast-geoip
+    // then no-ops gracefully and the /stats Countries panel renders the
+    // friendly EmptyHint.
+    const isUseful = (ip: string | null | undefined) =>
+      !!ip
+      && ip !== 'unknown'
+      && ip !== '127.0.0.1'
+      && ip !== '::1'
+      && !ip.startsWith('10.')
+      && !ip.startsWith('192.168.')
+      && !ip.startsWith('172.1')
+      && !ip.startsWith('172.2')
+      && !ip.startsWith('172.3');
+    const xff = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+    const xri = req.headers.get('x-real-ip')?.trim();
+    const cfi = req.headers.get('cf-connecting-ip')?.trim();
+    const detectedIp =
+      (isUseful(xff) ? xff : null) ??
+      (isUseful(xri) ? xri : null) ??
+      (isUseful(cfi) ? cfi : null) ??
+      'unknown';
+
     const fields = {
       ...body,
       ua: req.headers.get('user-agent') ?? 'unknown',
-      ip: req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown',
+      ip: detectedIp,
     };
     delete fields.level;
     delete fields.evt;
