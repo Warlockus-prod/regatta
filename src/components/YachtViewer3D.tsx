@@ -27,9 +27,8 @@
 import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, useTexture, ContactShadows, Html } from '@react-three/drei';
+import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
 import type { Group } from 'three';
-import { DoubleSide } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
@@ -53,20 +52,20 @@ const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
   'stern':         [-38, 9, 0.001],
 };
 
-// v7.2 visual-clean GLB: Bavaria-46-inspired hull with corrected mast
-// height (20.75 m) and sail-area constants matching the official spec
-// (main 56 m^2, genoa 51.7 m^2). The supplier ships their own geometric
-// "logo" (red + black mesh blobs as separate `MAT_Logo_*_Decal` nodes),
-// but those don't read as the GIONO YACHTING brand at all - we hide them
-// in the traverse below and overlay our own clean PNG decal via the
-// <MainsailLogo /> sub-component.
-const MODEL_URL = '/models/Andryu_Yacht_v7_2_visual_clean.glb';
+// v7.4 visual-clean GLB: same Bavaria-46 dimensions as v7.2 (mast 20.75 m,
+// LOA 14 m) but with cambered (curved) cloth surfaces for the mainsail
+// and jib + the YACHTING wordmark already baked in as two textured decal
+// meshes (`MainSail_Logo_Port` and `MainSail_Logo_Starboard`) that
+// follow the sail curvature and mirror their UVs so the text reads
+// correctly from both port and starboard.
+//
+// Top-level node naming switches from the v7.2 `MAT_*` scheme to
+// semantic names: `HullDeckRigging`, `MainSail_Animated_ClothSurface`,
+// `Jib_Genoa_Animated_ClothSurface`, plus three invisible
+// pivot-anchor cubes (`Rudder_Yaw_Pivot`, `Boom_Yaw_Pivot`,
+// `Mast_Base`) that we hide in the traverse below.
+const MODEL_URL = '/models/Andryu_Yacht_v7_4.glb';
 useGLTF.preload(MODEL_URL);
-
-// Logo PNG used by <MainsailLogo />. Preload via drei's useTexture.preload
-// so it's ready by the time the canvas mounts.
-const LOGO_URL = '/brand/giono-yachting-transparent.png';
-useTexture.preload(LOGO_URL);
 
 interface MarkerProps {
   position: [number, number, number];
@@ -139,27 +138,21 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
 
   const { scene } = useGLTF(MODEL_URL);
 
-  // v7.2 cleanup pass:
-  //
-  //   1. Hide the supplier's `MAT_Logo_Red_Decal` + `MAT_Logo_Black_Decal`
-  //      meshes. Those are the geometric "logo" they added to make the
-  //      brand visible without textures, but they render as flat red /
-  //      black blobs that don't read as the GIONO YACHTING wordmark. We
-  //      replace them with a single textured plane below (<MainsailLogo />).
-  //   2. Hide `MAT_Debug_Collider` if present. The visual_clean variant
-  //      doesn't ship one, but the simulation_v7_2 variant does, and the
-  //      blanket name match here keeps the viewer safe if someone swaps
-  //      MODEL_URL to the simulation file by mistake.
-  //   3. The legacy `LOD1_*` / `COL_*` / `Logo_Decal` rules from v3 are
-  //      gone - v7.2's node naming scheme groups everything by material
-  //      (`MAT_*`) so those prefixes no longer match anything.
+  // v7.4 cleanup pass: hide the three pivot-anchor cubes. The supplier
+  // ships them as 2 cm boxes with face_color alpha=0 (so they're already
+  // visually invisible in most renderers), but trimesh's GLB exporter
+  // doesn't always preserve the alpha-zero color reliably across loaders.
+  // Setting `obj.visible = false` is the bullet-proof way to keep them
+  // off the scene without losing their named transforms (still useful
+  // later if a future feature wants to read their positions for
+  // animation pivots).
   useEffect(() => {
     scene.traverse((obj) => {
       const n = obj.name;
       if (
-        n === 'MAT_Logo_Red_Decal' ||
-        n === 'MAT_Logo_Black_Decal' ||
-        n === 'MAT_Debug_Collider'
+        n === 'Rudder_Yaw_Pivot' ||
+        n === 'Boom_Yaw_Pivot' ||
+        n === 'Mast_Base'
       ) {
         obj.visible = false;
       }
@@ -177,7 +170,6 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
       */}
       <group rotation={[-Math.PI / 2, 0, 0]}>
         <primitive object={scene} />
-        <MainsailLogo />
         {parts.map((p) => {
           if (!p.three) return null;
           return (
@@ -192,39 +184,6 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
         })}
       </group>
     </group>
-  );
-}
-
-// Renders our crisp GIONO YACHTING wordmark on the mainsail as a 3.5 x 3.5 m
-// alpha-keyed plane. Lives inside the same Z-up inner group as the GLB,
-// so it shares the boat's coordinate frame.
-//
-// The mainsail is a triangle (luff at X=-0.25, leech sloping from clew at
-// X=-5.8 to head at X=-0.25 over Z 2.32..19.51). Sail width at Z=7.5 is
-// only ~3.9 m and shrinks to ~3.3 m at Z=9.25, so the plane is sized
-// 3.5 m square and centered at (X=-1.9, Z=7.5) to keep the visible logo
-// content fully inside the triangle (the PNG has ~0.35 m of transparent
-// border on each side which absorbs the leech overshoot at the top
-// corner).
-//
-// Y=0.095 = 5 cm to starboard of the sail centerline (sail itself is at
-// Y=0.045) so the plane avoids z-fighting with the sail-cloth mesh.
-//
-// DoubleSide so the logo reads from both port and starboard.
-function MainsailLogo() {
-  const tex = useTexture(LOGO_URL);
-  return (
-    <mesh
-      position={[-1.9, 0.095, 7.5]}
-      // Default <planeGeometry> sits in the local XY-plane with normal
-      // along +Z. We need normal along +Y (port-stbd axis) so the logo
-      // is parallel to the sail surface. Rotating PI/2 around X swings
-      // the plane into the local XZ plane (the sail's plane).
-      rotation={[Math.PI / 2, 0, 0]}
-    >
-      <planeGeometry args={[3.5, 3.5]} />
-      <meshBasicMaterial map={tex} transparent side={DoubleSide} toneMapped={false} />
-    </mesh>
   );
 }
 
