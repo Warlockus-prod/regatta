@@ -173,12 +173,12 @@ export default function GalleryPage() {
               instead of being cropped into uniform tiles. break-inside on
               tiles avoids mid-tile column breaks.
 
-              Spacing: horizontal column-gap and vertical margin-bottom
-              are kept EQUAL via the .masonry-cols rules below so the
-              grid looks evenly spaced in both axes. Tailwind's
-              [column-gap:...] arbitrary classes were producing
-              inconsistent gaps between breakpoints; explicit CSS values
-              are simpler.
+              Spacing: tiles butt edge-to-edge (column-gap and tile margin
+              are both 0). Earlier iterations tried small equal gaps but
+              the combination of rounded corners + the per-tile border
+              with portrait + landscape photos at different column counts
+              produced visually uneven whitespace. Zero-gap removes the
+              ambiguity entirely.
             */}
             <div className="masonry-cols">
               {groups[key].map((item) => (
@@ -202,23 +202,25 @@ export default function GalleryPage() {
         depending on viewport.
       */}
       <style jsx>{`
-        /* Vertical and horizontal gaps are intentionally identical at
-           every breakpoint. column-gap controls horizontal spacing
-           between columns; margin-bottom on the children controls
-           vertical spacing within a column. The two were drifting
-           because of arbitrary Tailwind classes; using explicit CSS
-           variables locks them together. */
+        /* Tight edge-to-edge masonry: zero gap horizontally and
+           vertically. Earlier we kept a small "--gap" but the rounded
+           corners and border on each tile combined with the gap to
+           create visually uneven whitespace around portrait vs
+           landscape photos. The cleaner answer is no gap at all -
+           every photo butts directly against its neighbors, so the
+           spacing is identical (zero) on every edge by definition.
+           The Tile itself drops its border and rounded corners to
+           match this look. */
         .masonry-cols {
-          --gap: 0.75rem;
           column-count: 2;
-          column-gap: var(--gap);
+          column-gap: 0;
         }
-        @media (min-width: 640px)  { .masonry-cols { --gap: 1rem; column-count: 3; } }
-        @media (min-width: 1024px) { .masonry-cols { --gap: 1rem; column-count: 4; } }
+        @media (min-width: 640px)  { .masonry-cols { column-count: 3; } }
+        @media (min-width: 1024px) { .masonry-cols { column-count: 4; } }
         .masonry-cols > * {
           break-inside: avoid;
           display: block;
-          margin: 0 0 var(--gap) 0;
+          margin: 0;
         }
       `}</style>
 
@@ -287,13 +289,15 @@ function Tile({
     : '';
 
   return (
+    // Tile is intentionally flush: no border, no border-radius, no
+    // outer hover scale. With masonry --gap = 0 (see <style jsx>), tiles
+    // sit edge-to-edge, so any radius / border / outer scale would create
+    // visible misalignment at the seams. The image inside still
+    // group-hover:scale-110 for the zoom-on-hover cue, contained by
+    // overflow-hidden.
     <div
-      className={`group relative overflow-hidden rounded-xl border transition-all duration-300 hover:scale-[1.02] hover:border-[var(--accent-cyan)] ${ratioClass}`}
-      style={{
-        ...ratioStyle,
-        borderColor: 'rgba(0, 212, 255, 0.18)',
-        background: 'rgba(0, 212, 255, 0.04)',
-      }}
+      className={`group relative overflow-hidden ${ratioClass}`}
+      style={ratioStyle}
     >
       <button
         type="button"
