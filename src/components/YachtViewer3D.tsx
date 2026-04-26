@@ -28,7 +28,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
-import type { Group } from 'three';
+import { DoubleSide, MeshStandardMaterial, type Group, type Mesh } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
@@ -138,23 +138,85 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
 
   const { scene } = useGLTF(MODEL_URL);
 
-  // v7.4 cleanup pass: hide the three pivot-anchor cubes. The supplier
-  // ships them as 2 cm boxes with face_color alpha=0 (so they're already
-  // visually invisible in most renderers), but trimesh's GLB exporter
-  // doesn't always preserve the alpha-zero color reliably across loaders.
-  // Setting `obj.visible = false` is the bullet-proof way to keep them
-  // off the scene without losing their named transforms (still useful
-  // later if a future feature wants to read their positions for
-  // animation pivots).
+  // v7.4 fix-up pass. The supplier's GLB ships with three rendering
+  // bugs that make the boat look broken in any glTF viewer including
+  // ours; we patch them at load time so we don't have to rebuild the
+  // GLB.
+  //
+  //   1. Hide pivot-anchor cubes (`Rudder_Yaw_Pivot`, `Boom_Yaw_Pivot`,
+  //      `Mast_Base`) - 2 cm boxes meant for animation, no visual
+  //      payload.
+  //
+  //   2. Sails (`MainSail_Animated_ClothSurface`,
+  //      `Jib_Genoa_Animated_ClothSurface`) ship with `material: NONE`
+  //      in the GLB, so the loader assigns a default opaque-white
+  //      MeshStandardMaterial with `side: FrontSide`. Cambered (curved)
+  //      cloth viewed from the inside of the curve is then invisible -
+  //      half the orbits show a missing sail. We replace the material
+  //      with our own DoubleSide MeshStandardMaterial, sail-cream
+  //      colour (the supplier's intended `[240,240,235,230]` vertex
+  //      colour) and matte roughness.
+  //
+  //   3. Logo decals (`MainSail_Logo_Port`, `MainSail_Logo_Starboard`)
+  //      have `alphaMode: OPAQUE` and `baseColorFactor: [0.4,0.4,0.4]`,
+  //      so the alpha channel of the wordmark PNG is ignored (the
+  //      transparent PNG ends up as a flat grey rectangle around the
+  //      logo) AND the visible logo pixels are darkened to 40 %. Force
+  //      `transparent: true` + `alphaTest: 0.1`, reset the colour
+  //      multiplier to white, and switch to DoubleSide so the mirrored
+  //      starboard decal also shows from the port side when the boat
+  //      yaws.
   useEffect(() => {
     scene.traverse((obj) => {
       const n = obj.name;
+
       if (
         n === 'Rudder_Yaw_Pivot' ||
         n === 'Boom_Yaw_Pivot' ||
         n === 'Mast_Base'
       ) {
         obj.visible = false;
+        return;
+      }
+
+      const mesh = obj as Mesh;
+      if (!('isMesh' in mesh) || !mesh.isMesh) return;
+
+      if (
+        n === 'MainSail_Animated_ClothSurface' ||
+        n === 'Jib_Genoa_Animated_ClothSurface'
+      ) {
+        // Drop whatever the loader assigned and install a sail-cloth
+        // material that renders both sides.
+        mesh.material = new MeshStandardMaterial({
+          color: 0xf0f0eb,
+          roughness: 0.9,
+          metalness: 0.0,
+          side: DoubleSide,
+        });
+        return;
+      }
+
+      if (
+        n === 'MainSail_Logo_Port' ||
+        n === 'MainSail_Logo_Starboard'
+      ) {
+        // The decal mesh is mostly transparent PNG with the wordmark
+        // in the centre. Cast safely - the loader assigned a
+        // MeshStandardMaterial here.
+        const mat = mesh.material as MeshStandardMaterial | MeshStandardMaterial[] | undefined;
+        const apply = (m: MeshStandardMaterial) => {
+          m.transparent = true;
+          m.alphaTest = 0.1;
+          m.depthWrite = true;
+          m.side = DoubleSide;
+          // Cancel the supplier's `[0.4, 0.4, 0.4]` colour multiplier
+          // which was darkening the texture by 60 %.
+          if (m.color) m.color.setHex(0xffffff);
+          m.needsUpdate = true;
+        };
+        if (Array.isArray(mat)) mat.forEach(apply);
+        else if (mat) apply(mat);
       }
     });
   }, [scene]);
