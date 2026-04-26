@@ -219,7 +219,14 @@ export default async function RootLayout({
           <OnboardingTour />
           <HelpOverlay />
           <Navigation />
-          <main className="flex-1">
+          {/*
+            padding-bottom matches the BootcampFooterNav's measured height
+            (it publishes --bootcamp-footer-h on <body> via a ResizeObserver
+            and clears the var when not visible). Without this, on mobile
+            where the sticky bar is tall, the last items of a page's content
+            stay trapped behind the bar with no way to scroll into view.
+          */}
+          <main className="flex-1" style={{ paddingBottom: 'var(--bootcamp-footer-h, 0px)' }}>
             {children}
           </main>
           {/* Feedback + AI chat widget - on most routes, but hidden on

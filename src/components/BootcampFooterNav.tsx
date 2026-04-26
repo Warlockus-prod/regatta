@@ -16,7 +16,7 @@
 import Link from 'next/link';
 import { legacyPick } from '@/lib/languages';
 import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { bootcampLessons } from '@/data/bootcamp';
 import {
   getBootcampProgress,
@@ -51,17 +51,48 @@ export default function BootcampFooterNav() {
 
   const refresh = useCallback(() => setProgress(getBootcampProgress()), []);
 
-  if (!currentLesson || !progress) return null;
+  // Match check moved up before the early `return null` so we can use the
+  // visibility flag in the ResizeObserver effect below (hooks must run in
+  // the same order on every render).
+  const matchesRoute = !!(
+    currentLesson && pathname && (
+      pathname === currentLesson.route ||
+      pathname.startsWith(currentLesson.route + '/') ||
+      pathname.startsWith(currentLesson.route + '?')
+    )
+  );
+  const isVisible = !!(currentLesson && progress && matchesRoute);
 
-  // Only show when the visible route matches the current lesson's route.
-  // Otherwise the user wandered off-course and a nav-bar would be confusing.
-  // Use exact-or-child match (segment boundary) so `/simulator-v3` doesn't
-  // trigger when the current lesson points at `/simulator`.
-  const matchesRoute =
-    pathname === currentLesson.route ||
-    pathname.startsWith(currentLesson.route + '/') ||
-    pathname.startsWith(currentLesson.route + '?');
-  if (!matchesRoute) return null;
+  // Publish the rendered height of the sticky bar to a CSS custom property
+  // on <body>. The root layout's <main> consumes it as padding-bottom so
+  // that on mobile, where the bar is fairly tall (two text lines + 3
+  // buttons + safe-area inset), the last items in the page content are
+  // never trapped behind the bar. ResizeObserver covers Mark-done -> Next
+  // transitions (button count changes height) and locale-driven text
+  // reflow.
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!isVisible || !el) {
+      document.body.style.removeProperty('--bootcamp-footer-h');
+      return;
+    }
+    const update = () => {
+      document.body.style.setProperty('--bootcamp-footer-h', `${el.offsetHeight}px`);
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => {
+      ro.disconnect();
+      document.body.style.removeProperty('--bootcamp-footer-h');
+    };
+  }, [isVisible]);
+
+  if (!isVisible) return null;
+  // From here on TypeScript needs the non-null assertions because the
+  // visibility flag isn't a type predicate.
+  if (!currentLesson || !progress) return null;
 
   const idx = bootcampLessons.findIndex((l) => l.id === currentLesson.id);
   const nextLesson = idx >= 0 && idx < bootcampLessons.length - 1
@@ -96,6 +127,7 @@ export default function BootcampFooterNav() {
 
   return (
     <div
+      ref={ref}
       className="fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-md"
       style={{
         background: 'rgba(10, 22, 40, 0.92)',
