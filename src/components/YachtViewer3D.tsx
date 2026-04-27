@@ -211,20 +211,26 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
         // away the rest (broken alphaMode + the 0.4 grey multiplier).
         //
         // Flip the texture vertically. The supplier's build_v7_4.py
-        // applies `uvs[:, 1] = 1 - uvs[:, 1]` to the decal mesh, but the
-        // glTF spec already inverts the V axis relative to image-space
-        // (glTF V=0 is at the bottom of the image, image-space V=0 is
-        // at the top). So that hand-flip combined with the spec flip
-        // ends up rendering the logo upside down (sailboat-point at
-        // the foot of the sail, red base block at the head). Setting
-        // texture.flipY = true cancels the spec flip, leaving only the
-        // builder's flip, and the logo lands right-side-up.
+        // applies `uvs[:, 1] = 1 - uvs[:, 1]` to the decal mesh, but
+        // the glTF spec inverts V relative to image-space, so that
+        // hand-flip combined with the spec flip ends up rendering
+        // the logo upside down (sailboat point at the foot, red base
+        // block at the head).
+        //
+        // Earlier attempt set `texture.flipY = true; needsUpdate = true`
+        // but Three.js had already uploaded the texture to the GPU
+        // when the GLTFLoader compiled the supplier's material, so
+        // the flipY change didn't always re-take effect. Use a UV
+        // transform via `repeat.y = -1` + `offset.y = 1` instead - it
+        // builds a transform matrix that flips V at sampling time, no
+        // re-upload required, works reliably regardless of when the
+        // texture was first uploaded.
         const old = mesh.material as MeshStandardMaterial | MeshStandardMaterial[];
         const oldFirst = Array.isArray(old) ? old[0] : old;
         const tex = oldFirst && (oldFirst.map as Texture | null);
         if (tex) {
-          tex.flipY = true;
-          tex.needsUpdate = true;
+          tex.repeat.set(1, -1);
+          tex.offset.set(0, 1);
         }
         mesh.material = new MeshBasicMaterial({
           map: tex ?? null,
