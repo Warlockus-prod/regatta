@@ -6,7 +6,6 @@ import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
-import AnatomyPosters from '@/components/AnatomyPosters';
 
 // ============================================================================
 // Yacht anatomy - interactive 3D Bavaria 46 with clickable hotspots.
@@ -188,10 +187,6 @@ export default function AnatomyPage() {
           },
         )}
       </p>
-
-      {/* Infographic posters in RU + EN. The component renders nothing
-          if the active locale isn't RU or EN. */}
-      <AnatomyPosters />
 
       <ContentFooterNav page="/anatomy" />
     </div>
