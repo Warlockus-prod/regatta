@@ -28,7 +28,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
-import type { Group, Mesh } from 'three';
+import { DoubleSide, MeshStandardMaterial, type Group, type Mesh } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
@@ -150,30 +150,44 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
 
   const { scene } = useGLTF(MODEL_URL);
 
-  // v8 cleanup pass. v8 is a much cleaner package than v7.4 - sail
-  // and logo materials already ship with `doubleSided: true` in the
-  // glTF JSON, hull/deck/rigging stay split across proper PBR
-  // materials, the stale 2x2 placeholder texture is gone, and the
-  // wordmark is baked into the dedicated mainsail UVs instead of
-  // two hand-UV-flipped decal meshes that v7.4 needed (and that
-  // ended up rendering upside-down).
+  // v8 cleanup pass. The supplier's GLB ships the YACHTING wordmark
+  // baked into the mainsail UVs (mesh `MAT_MainSail_BakedLogo_UV`
+  // with material `MAT_MainSail_BakedLogo_UV_Embedded` carrying the
+  // 2K PNG) plus two legacy flat-coloured "logo" blob meshes
+  // (`MAT_Logo_Red_Decal`, `MAT_Logo_Black_Decal`) the supplier kept
+  // for fallback compatibility.
   //
-  // The only thing left for us to do is hide the legacy
-  // `MAT_Logo_Red_Decal` and `MAT_Logo_Black_Decal` blob meshes -
-  // they're flat-coloured geometry approximations of the wordmark
-  // that the supplier kept in the GLB for compatibility but that
-  // we don't want competing with the real texture-baked logo on
-  // the mainsail. The texture-baked logo on
-  // `MAT_MainSail_BakedLogo_UV` (with `MAT_MainSail_BakedLogo_UV_-
-  // Embedded` material carrying the 2K PNG) is what we actually
-  // want to see.
+  // Per user's review of the v8 deploy on prod: the baked logo reads
+  // poorly at this camera distance (low-res-looking, fights with the
+  // sail texture, ends up looking like a smudge from any orbit).
+  // Decision: drop the wordmark entirely on /anatomy and just show
+  // a clean white mainsail. The brand lives on the page footer +
+  // metadata now (`SiteFooter.tsx`, `<title>`, OG tags), it doesn't
+  // need to be on the 3D model too.
+  //
+  // Implementation:
+  //   1. Hide the two flat-colour blob decals (they're redundant
+  //      regardless).
+  //   2. REPLACE the material on `MAT_MainSail_BakedLogo_UV` with a
+  //      plain white sail-cloth material that matches
+  //      `MAT_SailCloth_Plain_UV`'s look. Geometry stays - the
+  //      mainsail is still the same shape - but the wordmark texture
+  //      is gone.
   useEffect(() => {
     scene.traverse((obj) => {
-      if (
-        obj.name === 'MAT_Logo_Red_Decal' ||
-        obj.name === 'MAT_Logo_Black_Decal'
-      ) {
+      const n = obj.name;
+      if (n === 'MAT_Logo_Red_Decal' || n === 'MAT_Logo_Black_Decal') {
         obj.visible = false;
+        return;
+      }
+      const mesh = obj as Mesh & { isMesh?: boolean };
+      if (mesh.isMesh && n === 'MAT_MainSail_BakedLogo_UV') {
+        mesh.material = new MeshStandardMaterial({
+          color: 0xffffff,
+          roughness: 0.9,
+          metalness: 0.0,
+          side: DoubleSide,
+        });
       }
     });
   }, [scene]);
