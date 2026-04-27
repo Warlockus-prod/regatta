@@ -8,6 +8,7 @@ import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import BootcampFooterNav from "@/components/BootcampFooterNav";
+import SiteFooter from "@/components/SiteFooter";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import { I18nProvider } from "@/lib/i18n";
 import {
@@ -50,43 +51,43 @@ export async function generateMetadata(): Promise<Metadata> {
   const lang = await resolveServerLang();
   const ogByLang: Record<Lang, { title: string; description: string; locale: string; twitter: string }> = {
     ru: {
-      title: 'Regatta - тренажёр парусного спорта',
+      title: 'Week to Regatta - тренажёр парусного спорта',
       description: 'Интерактивный тренажёр для тех, кому скоро на регату. Ветер, курсы, паруса, тактика за 45 минут. AI-тренер разбирает твою гонку.',
       locale: 'ru_RU',
       twitter: 'До регаты неделя? Успеешь разобраться. AI-тренер + гонка с соперниками в браузере.',
     },
     en: {
-      title: 'Regatta - Sailing Simulator',
+      title: 'Week to Regatta - Sailing Simulator',
       description: 'Interactive sailing trainer for people with a race next weekend. Wind, points of sail, sail trim, tactics in 45 minutes. AI coach reviews your race.',
       locale: 'en_US',
       twitter: 'Racing next week? You can still prep. AI coach + head-to-head race in your browser.',
     },
     pl: {
-      title: 'Regatta - symulator zeglarstwa',
+      title: 'Week to Regatta - symulator zeglarstwa',
       description: 'Interaktywny trener dla tych, co w weekend maja regaty. Wiatr, kursy, zagle, taktyka w 45 minut. Trener AI analizuje twoj wyscig.',
       locale: 'pl_PL',
       twitter: 'Regaty za tydzien? Zdazysz sie przygotowac. Trener AI + wyscig z rywalami w przegladarce.',
     },
     es: {
-      title: 'Regatta - simulador de vela',
+      title: 'Week to Regatta - simulador de vela',
       description: 'Entrenador interactivo para quienes tienen una regata este fin de semana. Viento, rumbos, velas, tactica en 45 minutos. Entrenador IA analiza tu regata.',
       locale: 'es_ES',
       twitter: 'Regata la proxima semana? Aun tienes tiempo de prepararte. Entrenador IA + regata con rivales en el navegador.',
     },
     fr: {
-      title: 'Regatta - simulateur de voile',
+      title: 'Week to Regatta - simulateur de voile',
       description: 'Entraineur interactif pour ceux qui ont une regate ce week-end. Vent, allures, voiles, tactique en 45 minutes. Le coach IA analyse votre course.',
       locale: 'fr_FR',
       twitter: 'Regate la semaine prochaine ? Tu peux encore te preparer. Coach IA + course avec des rivaux dans le navigateur.',
     },
     de: {
-      title: 'Regatta - Segelsimulator',
+      title: 'Week to Regatta - Segelsimulator',
       description: 'Interaktiver Trainer fuer alle, die am Wochenende eine Regatta haben. Wind, Kurse, Segel, Taktik in 45 Minuten. KI-Coach analysiert dein Rennen.',
       locale: 'de_DE',
       twitter: 'Regatta naechste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Rivalen im Browser.',
     },
     it: {
-      title: 'Regatta - simulatore di vela',
+      title: 'Week to Regatta - simulatore di vela',
       description: 'Allenatore interattivo per chi ha una regata nel fine settimana. Vento, corsi, vele, tattica in 45 minuti. Il coach IA analizza la tua regata.',
       locale: 'it_IT',
       twitter: 'Regata la prossima settimana? Hai ancora tempo per prepararti. Coach IA + regata con rivali nel browser.',
@@ -107,14 +108,14 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     appleWebApp: {
       capable: true,
-      title: 'Regatta',
+      title: 'Week to Regatta',
       statusBarStyle: 'black-translucent',
     },
     openGraph: {
       title: pick.title,
       description: pick.description,
       url: 'https://regatta.icoffio.com',
-      siteName: 'Regatta',
+      siteName: 'Week to Regatta',
       locale: pick.locale,
       alternateLocale: ENABLED_LANGUAGES
         .map((language) => language.metadataLocale)
@@ -181,7 +182,8 @@ export default async function RootLayout({
                   '@type': 'WebSite',
                   '@id': 'https://regatta.icoffio.com/#website',
                   url: 'https://regatta.icoffio.com',
-                  name: 'Regatta',
+                  name: 'Week to Regatta',
+                  alternateName: 'Regatta',
                   description:
                     'Interactive sailing trainer for hobbyists with a regatta next weekend. Wind, points of sail, tactics, AI race coach. RU / EN / PL / ES / FR / DE / IT.',
                   inLanguage: ENABLED_LANGUAGES.map((l) => l.htmlLang),
@@ -198,7 +200,8 @@ export default async function RootLayout({
                   '@type': 'EducationalOrganization',
                   '@id': 'https://regatta.icoffio.com/#org',
                   url: 'https://regatta.icoffio.com',
-                  name: 'Regatta - Sailing Trainer',
+                  name: 'Week to Regatta',
+                  alternateName: 'Regatta - Sailing Tutor',
                   logo: 'https://regatta.icoffio.com/icon-512.svg',
                   sameAs: [],
                   knowsAbout: [
@@ -229,6 +232,12 @@ export default async function RootLayout({
           <main className="flex-1" style={{ paddingBottom: 'var(--bootcamp-footer-h, 0px)' }}>
             {children}
           </main>
+          {/* Brand footer: small "Week to Regatta - sailing tutor" line at
+              the bottom of every page (hidden on game / multiplayer /
+              simulator-v3 immersive surfaces). Owns the project's
+              long-form brand identity, while the top nav keeps the
+              short "Regatta" wordmark for compactness. */}
+          <SiteFooter />
           {/* Feedback + AI chat widget - on most routes, but hidden on
               fullscreen immersive surfaces (game HUD, V3 canvas) where the
               floating bubble would compete with touch controls. Per audit
