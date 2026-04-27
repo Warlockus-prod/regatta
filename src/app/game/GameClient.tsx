@@ -2956,6 +2956,19 @@ function BoatStylePreview({ style }: { style: BoatStyle }) {
 // ============================================================================
 
 function CoursePreview() {
+  const { tp } = useI18n();
+  // Hardcoded RU labels were leaking into PL / EN / etc. on the
+  // briefing screen. Localize all five SVG <text> nodes via tp().
+  const labelWind = tp('ветер', 'wind', 'wiatr',
+    { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' });
+  const labelTopMark = tp('верхний знак', 'windward mark', 'znak nawietrzny',
+    { es: 'baliza de barlovento', fr: 'bouee au vent', de: 'Luvtonne', it: 'boa al vento' });
+  const labelStartFinish = tp('старт / финиш', 'start / finish', 'start / meta',
+    { es: 'salida / llegada', fr: 'depart / arrivee', de: 'Start / Ziel', it: 'partenza / arrivo' });
+  const legendUpwind = tp('-- ходом против ветра (галсы)', '-- upwind (tacks)', '-- pod wiatr (halsy)',
+    { es: '-- contra el viento (bordadas)', fr: '-- au pres (bords)', de: '-- gegen den Wind (Schlaege)', it: '-- bolina (mure)' });
+  const legendDownwind = tp('-- попутно к финишу', '-- downwind to finish', '-- z wiatrem do mety',
+    { es: '-- a favor del viento al final', fr: '-- vent arriere a l\'arrivee', de: '-- mit dem Wind zum Ziel', it: '-- al lasco al traguardo' });
   return (
     <svg viewBox="0 0 200 260" className="w-full max-w-[220px] mx-auto block">
       {/* water */}
@@ -2970,16 +2983,16 @@ function CoursePreview() {
       <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
         <line x1="100" y1="10" x2="100" y2="40" />
         <polygon points="96,38 100,48 104,38" />
-        <text x="108" y="28" fill="#00d4ff" fontSize="11" fontFamily="system-ui">ветер</text>
+        <text x="108" y="28" fill="#00d4ff" fontSize="11" fontFamily="system-ui">{labelWind}</text>
       </g>
       {/* windward mark */}
       <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
-      <text x="112" y="64" fill="#ffaa00" fontSize="10" fontFamily="system-ui">верхний знак</text>
+      <text x="112" y="64" fill="#ffaa00" fontSize="10" fontFamily="system-ui">{labelTopMark}</text>
       {/* start/finish line */}
       <line x1="60" y1="220" x2="140" y2="220" stroke="#ffaa00" strokeWidth="2" strokeDasharray="4 3" />
       <circle cx="60" cy="220" r="4" fill="#ffaa00" />
       <circle cx="140" cy="220" r="4" fill="#ffaa00" />
-      <text x="85" y="240" fill="#ffaa00" fontSize="10" fontFamily="system-ui">старт / финиш</text>
+      <text x="85" y="240" fill="#ffaa00" fontSize="10" fontFamily="system-ui" textAnchor="middle">{labelStartFinish}</text>
       {/* route */}
       <polyline
         fill="none"
@@ -2998,8 +3011,8 @@ function CoursePreview() {
       <circle cx="100" cy="220" r="3" fill="#00d4ff" />
       {/* legend */}
       <g fontSize="9" fontFamily="system-ui">
-        <text x="10" y="250" fill="#00d4ff">-- ходом против ветра (галсы)</text>
-        <text x="10" y="260" fill="#44ff88">-- попутно к финишу</text>
+        <text x="10" y="250" fill="#00d4ff">{legendUpwind}</text>
+        <text x="10" y="260" fill="#44ff88">{legendDownwind}</text>
       </g>
     </svg>
   );
