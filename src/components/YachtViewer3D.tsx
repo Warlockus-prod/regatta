@@ -209,9 +209,23 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
       if (isLogo) {
         // Carry over the texture from the supplier's material; throw
         // away the rest (broken alphaMode + the 0.4 grey multiplier).
+        //
+        // Flip the texture vertically. The supplier's build_v7_4.py
+        // applies `uvs[:, 1] = 1 - uvs[:, 1]` to the decal mesh, but the
+        // glTF spec already inverts the V axis relative to image-space
+        // (glTF V=0 is at the bottom of the image, image-space V=0 is
+        // at the top). So that hand-flip combined with the spec flip
+        // ends up rendering the logo upside down (sailboat-point at
+        // the foot of the sail, red base block at the head). Setting
+        // texture.flipY = true cancels the spec flip, leaving only the
+        // builder's flip, and the logo lands right-side-up.
         const old = mesh.material as MeshStandardMaterial | MeshStandardMaterial[];
         const oldFirst = Array.isArray(old) ? old[0] : old;
         const tex = oldFirst && (oldFirst.map as Texture | null);
+        if (tex) {
+          tex.flipY = true;
+          tex.needsUpdate = true;
+        }
         mesh.material = new MeshBasicMaterial({
           map: tex ?? null,
           color: 0xffffff,
