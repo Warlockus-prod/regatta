@@ -47,7 +47,6 @@ export default function AnatomyPage() {
           ⚓ {tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu',
             { es: 'Anatomia del velero', fr: 'Anatomie du voilier', de: 'Aufbau der Yacht', it: 'Anatomia della barca' })}
         </div>
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">Bavaria 46</h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {tp(
             'Нажми на точку на яхте - узнай название и зачем это нужно на борту.',
@@ -102,7 +101,7 @@ export default function AnatomyPage() {
             )}
           />
           <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-            Bavaria 46 Cruiser · LOA 14.00 m · Beam 4.31 m · Draft 2.18 m · Mast ~20.75 m
+            LOA 14.00 m · Beam 4.31 m · Draft 2.18 m · Mast ~20.75 m
           </div>
         </div>
 
@@ -177,14 +176,14 @@ export default function AnatomyPage() {
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
         {tp(
-          'Стилизованная модель Bavaria 46. Low-poly заготовка под симулятор.',
-          'Stylized Bavaria 46. Low-poly placeholder for the simulator pipeline.',
-          'Stylizowana Bavaria 46. Low-poly model do symulatora.',
+          'Стилизованная модель круизной яхты. Low-poly заготовка под симулятор.',
+          'Stylized cruising yacht model. Low-poly placeholder for the simulator pipeline.',
+          'Stylizowany model jachtu turystycznego. Low-poly model do symulatora.',
           {
-            es: 'Bavaria 46 estilizada. Modelo low-poly para el pipeline del simulador.',
-            fr: 'Bavaria 46 stylisee. Modele low-poly pour le pipeline du simulateur.',
-            de: 'Stilisierte Bavaria 46. Low-Poly-Modell fuer die Simulator-Pipeline.',
-            it: 'Bavaria 46 stilizzata. Modello low-poly per la pipeline del simulatore.',
+            es: 'Modelo estilizado de yate de crucero. Modelo low-poly para el pipeline del simulador.',
+            fr: 'Modele stylise de voilier de croisiere. Modele low-poly pour le pipeline du simulateur.',
+            de: 'Stilisiertes Modell einer Fahrtenyacht. Low-Poly-Modell fuer die Simulator-Pipeline.',
+            it: 'Modello stilizzato di yacht da crociera. Modello low-poly per la pipeline del simulatore.',
           },
         )}
       </p>
