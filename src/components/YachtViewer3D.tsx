@@ -28,7 +28,7 @@ import { Suspense, useEffect, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
-import { DoubleSide, MeshBasicMaterial, MeshStandardMaterial, type Group, type Mesh, type Texture } from 'three';
+import type { Group, Mesh } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 
@@ -52,19 +52,31 @@ const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
   'stern':         [-38, 9, 0.001],
 };
 
-// v7.4 visual-clean GLB: same Bavaria-46 dimensions as v7.2 (mast 20.75 m,
-// LOA 14 m) but with cambered (curved) cloth surfaces for the mainsail
-// and jib + the YACHTING wordmark already baked in as two textured decal
-// meshes (`MainSail_Logo_Port` and `MainSail_Logo_Starboard`) that
-// follow the sail curvature and mirror their UVs so the text reads
-// correctly from both port and starboard.
+// v8 visual-clean GLB: cleanup of v7.3 with stable material naming for
+// web/app integration. Same Bavaria-46 dimensions as v7.2/v7.4 (mast
+// 20.75 m, LOA 14 m).
 //
-// Top-level node naming switches from the v7.2 `MAT_*` scheme to
-// semantic names: `HullDeckRigging`, `MainSail_Animated_ClothSurface`,
-// `Jib_Genoa_Animated_ClothSurface`, plus three invisible
-// pivot-anchor cubes (`Rudder_Yaw_Pivot`, `Boom_Yaw_Pivot`,
-// `Mast_Base`) that we hide in the traverse below.
-const MODEL_URL = '/models/Andryu_Yacht_v7_4.glb';
+// Key wins over v7.4:
+//   - Logo is a 2K texture baked into the dedicated mainsail UVs
+//     (mesh `MAT_MainSail_BakedLogo_UV` with material
+//     `MAT_MainSail_BakedLogo_UV_Embedded`), no more separate
+//     port/starboard geometric decal meshes that v7.4 needed UV
+//     hand-flips for - and that ended up rendering upside-down.
+//   - All sail + logo materials ship with `doubleSided: true` in the
+//     glTF JSON, so GLTFLoader hands us correctly two-sided materials
+//     out of the box - no more wholesale traverse replacement.
+//   - The stale 2x2 placeholder texture on `MAT_Sail_Seams` is gone.
+//   - Hull/deck/rigging stay split across separate materials
+//     (`MAT_TeakDeck_UV`, `MAT_HullWhite_UV`, `MAT_Aluminium_Mast`,
+//     etc.) - the v7.4 regression that collapsed everything into one
+//     `HullDeckRigging` mesh is reverted.
+//
+// Top-level node naming returns to the v7.2 `MAT_*` scheme (one node
+// per material). The legacy `MAT_Logo_Red_Decal` /
+// `MAT_Logo_Black_Decal` blob meshes are still in the GLB but the
+// real branded mainsail uses `MAT_MainSail_BakedLogo_UV` instead, so
+// we hide the blobs in the traverse below.
+const MODEL_URL = '/models/Andryu_Yacht_v8.glb';
 useGLTF.preload(MODEL_URL);
 
 interface MarkerProps {
@@ -138,112 +150,35 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
 
   const { scene } = useGLTF(MODEL_URL);
 
-  // v7.4 fix-up pass. The supplier's GLB ships with three rendering
-  // bugs we have to patch at load time:
+  // v8 cleanup pass. v8 is a much cleaner package than v7.4 - sail
+  // and logo materials already ship with `doubleSided: true` in the
+  // glTF JSON, hull/deck/rigging stay split across proper PBR
+  // materials, the stale 2x2 placeholder texture is gone, and the
+  // wordmark is baked into the dedicated mainsail UVs instead of
+  // two hand-UV-flipped decal meshes that v7.4 needed (and that
+  // ended up rendering upside-down).
   //
-  //   1. Pivot-anchor cubes (Rudder_Yaw_Pivot, Boom_Yaw_Pivot, Mast_Base)
-  //      are 2 cm boxes meant for animation work, no visual payload.
-  //
-  //   2. Sails (MainSail_Animated_ClothSurface, Jib_Genoa_Animated_-
-  //      ClothSurface) have material:NONE, so the loader assigns a
-  //      default opaque-white FrontSide material - half the orbits
-  //      show a missing sail because the cambered cloth's back face
-  //      is culled.
-  //
-  //   3. Logo decals (MainSail_Logo_Port, MainSail_Logo_Starboard)
-  //      have alphaMode:OPAQUE plus baseColorFactor [0.4, 0.4, 0.4],
-  //      so the wordmark PNG's alpha channel is ignored (transparent
-  //      areas show as a flat rectangle around the logo) AND the
-  //      logo is darkened by 60 %.
-  //
-  // We patch by REPLACING the material entirely rather than mutating
-  // properties on the existing one. Mutating `transparent`/`alphaTest`
-  // on a material the GLTFLoader compiled with alphaMode:OPAQUE
-  // doesn't reliably retake effect even with `needsUpdate = true`,
-  // because some shader hooks were stripped at compile time. A fresh
-  // material gets a freshly compiled shader with the right blend mode.
-  //
-  // For the logo we also switch from MeshStandardMaterial (PBR, lit)
-  // to MeshBasicMaterial (unlit). A logo is a graphic, not a physical
-  // surface; with unlit it stays crisp from any angle regardless of
-  // where the key light is.
+  // The only thing left for us to do is hide the legacy
+  // `MAT_Logo_Red_Decal` and `MAT_Logo_Black_Decal` blob meshes -
+  // they're flat-coloured geometry approximations of the wordmark
+  // that the supplier kept in the GLB for compatibility but that
+  // we don't want competing with the real texture-baked logo on
+  // the mainsail. The texture-baked logo on
+  // `MAT_MainSail_BakedLogo_UV` (with `MAT_MainSail_BakedLogo_UV_-
+  // Embedded` material carrying the 2K PNG) is what we actually
+  // want to see.
   useEffect(() => {
     scene.traverse((obj) => {
-      const n = obj.name;
-
       if (
-        n === 'Rudder_Yaw_Pivot' ||
-        n === 'Boom_Yaw_Pivot' ||
-        n === 'Mast_Base'
+        obj.name === 'MAT_Logo_Red_Decal' ||
+        obj.name === 'MAT_Logo_Black_Decal'
       ) {
         obj.visible = false;
-        return;
-      }
-
-      // GLTFLoader may store the descriptive name on the parent node
-      // (Group/Mesh) and a separate name on the mesh's geometry. Match
-      // both to be robust across loader versions.
-      const mesh = obj as Mesh & { isMesh?: boolean };
-      if (!mesh.isMesh) return;
-      const geomName = (mesh.geometry && (mesh.geometry as { name?: string }).name) || '';
-
-      const isSail =
-        n === 'MainSail_Animated_ClothSurface' ||
-        n === 'Jib_Genoa_Animated_ClothSurface' ||
-        n === 'MainSail' || n === 'Jib_Genoa' ||
-        geomName === 'MainSail' || geomName === 'Jib_Genoa';
-      if (isSail) {
-        mesh.material = new MeshStandardMaterial({
-          color: 0xf0f0eb,
-          roughness: 0.9,
-          metalness: 0.0,
-          side: DoubleSide,
-        });
-        return;
-      }
-
-      const isLogo =
-        n === 'MainSail_Logo_Port' || n === 'MainSail_Logo_Starboard' ||
-        n === 'LogoDecalPort' || n === 'LogoDecalStarboard' ||
-        geomName === 'LogoDecalPort' || geomName === 'LogoDecalStarboard';
-      if (isLogo) {
-        // Carry over the texture from the supplier's material; throw
-        // away the rest (broken alphaMode + the 0.4 grey multiplier).
-        //
-        // Flip the texture vertically. The supplier's build_v7_4.py
-        // applies `uvs[:, 1] = 1 - uvs[:, 1]` to the decal mesh, but
-        // the glTF spec inverts V relative to image-space, so that
-        // hand-flip combined with the spec flip ends up rendering
-        // the logo upside down (sailboat point at the foot, red base
-        // block at the head).
-        //
-        // Earlier attempt set `texture.flipY = true; needsUpdate = true`
-        // but Three.js had already uploaded the texture to the GPU
-        // when the GLTFLoader compiled the supplier's material, so
-        // the flipY change didn't always re-take effect. Use a UV
-        // transform via `repeat.y = -1` + `offset.y = 1` instead - it
-        // builds a transform matrix that flips V at sampling time, no
-        // re-upload required, works reliably regardless of when the
-        // texture was first uploaded.
-        const old = mesh.material as MeshStandardMaterial | MeshStandardMaterial[];
-        const oldFirst = Array.isArray(old) ? old[0] : old;
-        const tex = oldFirst && (oldFirst.map as Texture | null);
-        if (tex) {
-          tex.repeat.set(1, -1);
-          tex.offset.set(0, 1);
-        }
-        mesh.material = new MeshBasicMaterial({
-          map: tex ?? null,
-          color: 0xffffff,
-          transparent: true,
-          alphaTest: 0.1,
-          side: DoubleSide,
-          depthWrite: true,
-          toneMapped: false,
-        });
       }
     });
   }, [scene]);
+
+
 
   return (
     <group ref={yawRef}>
