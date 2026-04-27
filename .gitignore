@@ -76,3 +76,9 @@ qa-*.png
 # the GLBs we actually ship live in public/models/. To share the rest
 # with the V3 simulator / Mobile lanes, hand off the zip directly.
 /3d/
+
+# Drop-zone for high-res poster source PNGs (RU + EN infographics).
+# Optimized JPEG copies live in public/anatomy/posters/ - the originals
+# at 2-3 MB each are too heavy for the repo.
+/grafics/
+/graphics/
