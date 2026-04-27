@@ -119,11 +119,23 @@ export default function AnatomyPosters() {
     writeHashPosterId(activeId);
   }, [activeId]);
 
-  // Esc closes lightbox; lock body scroll while open.
+  // Lightbox key handlers + body scroll lock.
+  // Esc closes; arrow-left / -right step through the posters in order
+  // (wraps around so a 2-poster set always has somewhere to go).
   useEffect(() => {
     if (!activeId) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setActiveId(null);
+      if (e.key === 'Escape') {
+        setActiveId(null);
+        return;
+      }
+      const idx = POSTERS.findIndex((p) => p.id === activeId);
+      if (idx < 0) return;
+      if (e.key === 'ArrowRight') {
+        setActiveId(POSTERS[(idx + 1) % POSTERS.length].id);
+      } else if (e.key === 'ArrowLeft') {
+        setActiveId(POSTERS[(idx - 1 + POSTERS.length) % POSTERS.length].id);
+      }
     };
     window.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -174,6 +186,20 @@ export default function AnatomyPosters() {
     { es: 'Compartir', fr: 'Partager', de: 'Teilen', it: 'Condividi' });
   const copiedLabel = tp('Ссылка скопирована', 'Link copied', 'Skopiowano link',
     { es: 'Enlace copiado', fr: 'Lien copie', de: 'Link kopiert', it: 'Link copiato' });
+  const prevLabel = tp('Предыдущий', 'Previous', 'Poprzedni',
+    { es: 'Anterior', fr: 'Precedent', de: 'Zurueck', it: 'Precedente' });
+  const nextLabel = tp('Следующий', 'Next', 'Nastepny',
+    { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Successivo' });
+
+  const activeIdx = active ? POSTERS.findIndex((p) => p.id === active.id) : -1;
+  const goPrev = () => {
+    if (activeIdx < 0) return;
+    setActiveId(POSTERS[(activeIdx - 1 + POSTERS.length) % POSTERS.length].id);
+  };
+  const goNext = () => {
+    if (activeIdx < 0) return;
+    setActiveId(POSTERS[(activeIdx + 1) % POSTERS.length].id);
+  };
 
   return (
     <section className="mt-10">
@@ -188,6 +214,13 @@ export default function AnatomyPosters() {
         </span>
       </div>
 
+      {/* Preview cards. The original poster aspect is 941x1672 (a tall
+          portrait infographic); rendering the cards at that ratio in a
+          2-up grid makes them ~1000 px tall on desktop and the page
+          reads as "stretched". Use a compact 4:5 preview that crops to
+          the TOP of the poster (`object-position: top`) so the
+          recognizable title + headline graphic show. The full image is
+          one click away in the lightbox. */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {POSTERS.map((p) => (
           <button
@@ -198,7 +231,7 @@ export default function AnatomyPosters() {
             style={{
               borderColor: 'rgba(0, 212, 255, 0.18)',
               background: 'rgba(0, 212, 255, 0.04)',
-              aspectRatio: '941 / 1672',
+              aspectRatio: '4 / 5',
             }}
             aria-label={pickTitle(p)}
           >
@@ -207,16 +240,23 @@ export default function AnatomyPosters() {
               src={thumbSrc(p.stem, posterLang)}
               alt={pickTitle(p)}
               loading="lazy"
-              className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+              className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-[1.02]"
             />
             <div
-              className="absolute inset-x-0 bottom-0 px-3 py-2 text-xs font-semibold pointer-events-none"
+              className="absolute inset-x-0 bottom-0 px-3 py-2 text-xs font-semibold pointer-events-none flex items-center justify-between gap-2"
               style={{
-                background: 'linear-gradient(180deg, rgba(10, 22, 40, 0) 0%, rgba(10, 22, 40, 0.85) 100%)',
+                background: 'linear-gradient(180deg, rgba(10, 22, 40, 0) 0%, rgba(10, 22, 40, 0.92) 60%)',
                 color: 'var(--text-primary)',
               }}
             >
-              {pickTitle(p)}
+              <span className="truncate">{pickTitle(p)}</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ color: 'var(--accent-cyan)', flexShrink: 0 }}>
+                {/* arrows-out icon to hint "click to enlarge" */}
+                <path d="M3 8V3h5" />
+                <path d="M21 8V3h-5" />
+                <path d="M3 16v5h5" />
+                <path d="M21 16v5h-5" />
+              </svg>
             </div>
           </button>
         ))}
@@ -276,16 +316,60 @@ export default function AnatomyPosters() {
             </button>
           </div>
 
+          {/* Prev/Next chevrons. Only render when there's more than
+              one poster (1-poster set has nowhere to go). On mobile
+              they sit slightly inset so the user's thumb always
+              reaches them. */}
+          {POSTERS.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); goPrev(); }}
+                aria-label={prevLabel}
+                title={prevLabel}
+                className="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8f4f8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); goNext(); }}
+                aria-label={nextLabel}
+                title={nextLabel}
+                className="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full flex items-center justify-center transition-colors hover:bg-white/10"
+                style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8f4f8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+            </>
+          )}
+
           <div
-            className="relative max-w-5xl w-full max-h-[92vh] flex items-center justify-center"
+            className="relative max-w-5xl w-full max-h-[92vh] flex flex-col items-center justify-center gap-2"
             onClick={(e) => e.stopPropagation()}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={fullSrc(active.stem, posterLang)}
               alt={pickTitle(active)}
-              className="max-w-full max-h-[92vh] object-contain rounded-xl shadow-2xl"
+              className="max-w-full max-h-[88vh] object-contain rounded-xl shadow-2xl"
             />
+            {/* Index indicator - small chip below the image, e.g. "1 / 2" */}
+            {POSTERS.length > 1 && (
+              <div
+                className="text-[11px] font-mono tabular-nums px-2.5 py-1 rounded-full"
+                style={{
+                  background: 'rgba(10, 22, 40, 0.6)',
+                  border: '1px solid rgba(0, 212, 255, 0.25)',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                {activeIdx + 1} / {POSTERS.length}
+              </div>
+            )}
           </div>
         </div>
       )}
