@@ -1,4 +1,5 @@
 import { Stack } from 'expo-router';
+import Constants from 'expo-constants';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
@@ -11,6 +12,11 @@ import { colors, spacing } from '../src/design-system/tokens';
  */
 export default function Settings() {
   const { tp, lang, setLang } = useI18n();
+  const version = Constants.expoConfig?.version ?? 'dev';
+  const buildNumber =
+    Constants.expoConfig?.ios?.buildNumber ??
+    Constants.expoConfig?.android?.versionCode ??
+    '?';
 
   const title = tp('Настройки', 'Settings', 'Ustawienia', {
     es: 'Ajustes',
@@ -25,6 +31,26 @@ export default function Settings() {
     de: 'Sprache',
     it: 'Lingua',
   });
+
+  const aboutSectionLabel = tp('О приложении', 'About', 'O aplikacji', {
+    es: 'Acerca de',
+    fr: 'A propos',
+    de: 'Uber die App',
+    it: 'Informazioni',
+  });
+
+  const versionLabel = tp('Версия', 'Version', 'Wersja', {
+    es: 'Version',
+    fr: 'Version',
+    de: 'Version',
+    it: 'Versione',
+  });
+
+  const phaseLabel = tp(
+    'Phase 1 - Content shell',
+    'Phase 1 - Content shell',
+    'Phase 1 - Content shell',
+  );
 
   return (
     <Screen>
@@ -55,6 +81,22 @@ export default function Settings() {
             );
           })}
         </View>
+
+        <Text
+          variant="muted"
+          style={[styles.sectionLabel, styles.sectionLabelGap]}
+        >
+          {aboutSectionLabel.toUpperCase()}
+        </Text>
+        <Card style={styles.aboutCard}>
+          <Text variant="subtitle">Week to Regatta</Text>
+          <Text variant="caption" style={styles.aboutLine}>
+            {versionLabel} {version} (build {buildNumber})
+          </Text>
+          <Text variant="muted" style={styles.aboutLine}>
+            {phaseLabel}
+          </Text>
+        </Card>
       </ScrollView>
     </Screen>
   );
@@ -72,8 +114,17 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
     paddingHorizontal: spacing.xs,
   },
+  sectionLabelGap: {
+    marginTop: spacing.xl,
+  },
   langList: {
     gap: spacing.sm,
+  },
+  aboutCard: {
+    paddingVertical: spacing.md,
+  },
+  aboutLine: {
+    marginTop: 2,
   },
   langCard: {
     paddingVertical: spacing.md,

@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   },
   bordered: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0, 212, 255, 0.10)',
+    borderBottomColor: colors.borderCyanFaint,
   },
   pressed: {
     backgroundColor: colors.bgCardHover,

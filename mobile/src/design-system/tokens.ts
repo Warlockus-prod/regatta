@@ -24,6 +24,26 @@ export const colors = {
   sailColor: '#ffffff',
   waterLight: '#0d2847',
   waterDark: '#061428',
+  /** Hairline cyan border (10% alpha). Default Card border, ListRow separator. */
+  borderCyanFaint: 'rgba(0, 212, 255, 0.10)',
+  /** Soft cyan border (25% alpha). Pressed Card, secondary Button border. */
+  borderCyanSoft: 'rgba(0, 212, 255, 0.25)',
+  /** Strong cyan border (40% alpha). Outline ring, active badge. */
+  borderCyanStrong: 'rgba(0, 212, 255, 0.40)',
+  /** Cyan tint background (10% alpha). PulsePill, ghost surfaces. */
+  surfaceCyanFaint: 'rgba(0, 212, 255, 0.10)',
+  /** Cyan tint background (15% alpha). Active badge background. */
+  surfaceCyanSoft: 'rgba(0, 212, 255, 0.15)',
+} as const;
+
+/** Animation durations, ms. Centralized so motion stays consistent. */
+export const motion = {
+  /** Fast UI feedback (press, fade). */
+  fast: 150,
+  /** Default screen transitions. */
+  base: 250,
+  /** Pulse / ambient loops. */
+  pulse: 1000,
 } as const;
 
 /**

@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   secondaryContainer: {
     backgroundColor: colors.bgCard,
     borderWidth: 1,
-    borderColor: 'rgba(0, 212, 255, 0.25)',
+    borderColor: colors.borderCyanSoft,
   },
   secondaryLabel: {
     color: colors.accentCyan,

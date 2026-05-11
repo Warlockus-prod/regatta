@@ -1,9 +1,9 @@
 import { Stack } from 'expo-router';
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Screen } from './Screen';
 import { Text } from './Text';
-import { colors, radii, spacing } from '../tokens';
+import { PulsePill } from './PulsePill';
+import { colors, spacing } from '../tokens';
 
 interface PlaceholderScreenProps {
   /** Stack header title and the screen H1. */
@@ -60,68 +60,12 @@ export function PlaceholderScreen({
   );
 }
 
-function PulsePill({ label }: { label: string }) {
-  const opacity = useRef(new Animated.Value(1)).current;
-
-  useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, {
-          toValue: 0.4,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacity, {
-          toValue: 1,
-          duration: 1000,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: true,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
-  }, [opacity]);
-
-  return (
-    <View style={styles.pill}>
-      <Animated.View style={[styles.pillDot, { opacity }]} />
-      <Text style={styles.pillLabel}>{label}</Text>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
     paddingBottom: spacing.xxl,
     gap: spacing.lg,
-  },
-  pill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: 'rgba(0, 212, 255, 0.10)',
-    borderColor: 'rgba(0, 212, 255, 0.25)',
-    borderWidth: 1,
-  },
-  pillDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accentCyan,
-  },
-  pillLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.accentCyan,
-    letterSpacing: 0.3,
   },
   title: {
     fontSize: 36,

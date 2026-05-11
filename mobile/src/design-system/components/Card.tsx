@@ -57,13 +57,13 @@ export function Card({ children, onPress, accent, style }: CardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.bgCard,
-    borderColor: 'rgba(0, 212, 255, 0.10)',
+    borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
     padding: spacing.lg,
   },
   pressed: {
     backgroundColor: colors.bgCardHover,
-    borderColor: 'rgba(0, 212, 255, 0.25)',
+    borderColor: colors.borderCyanSoft,
   },
 });

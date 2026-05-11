@@ -3,6 +3,7 @@ export { Text, type TextVariant } from './Text';
 export { Card, type CardAccent } from './Card';
 export { Button, type ButtonVariant } from './Button';
 export { PlaceholderScreen } from './PlaceholderScreen';
+export { PulsePill } from './PulsePill';
 export { ListRow } from './ListRow';
 export { ErrorBoundary } from './ErrorBoundary';
 export { PointsOfSailDiagram } from './PointsOfSailDiagram';
