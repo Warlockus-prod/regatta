@@ -8,6 +8,9 @@ import {
   Screen,
   Text,
 } from '../src/design-system/components';
+import { useBootcampProgress } from '../src/persistence/bootcamp';
+import { summarizeContinue, TOTAL_DAYS } from '../src/bootcamp/days';
+import { legacyPick } from '../src/i18n/languages';
 import { colors, spacing } from '../src/design-system/tokens';
 
 const ACCENT_COLOR: Record<CardAccent, string> = {
@@ -27,8 +30,12 @@ const ACCENT_COLOR: Record<CardAccent, string> = {
  * uses 8% bg + 30% border on each entry card). Mobile inherits that.
  */
 export default function Home() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const router = useRouter();
+  const { completedIds, lastViewedLessonId, ready } = useBootcampProgress();
+  const continueState = summarizeContinue(completedIds, lastViewedLessonId);
+  const showContinue = ready && completedIds.size > 0 && !continueState.allDone;
+  const showCelebration = ready && continueState.allDone && completedIds.size > 0;
 
   const tagline = tp(
     'Учебник парусного спорта',
@@ -83,6 +90,82 @@ export default function Home() {
           <Text style={styles.brand}>Regatta</Text>
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
         </View>
+
+        {showContinue && continueState.nextLesson && continueState.nextDay ? (
+          <ContinueRow
+            day={continueState.nextDay}
+            doneInDay={continueState.doneInNextDay}
+            totalInDay={continueState.totalInNextDay}
+            lessonTitle={legacyPick(continueState.nextLesson, 'title', lang)}
+            kicker={tp(
+              `Продолжить День ${continueState.nextDay}`,
+              `Continue Day ${continueState.nextDay}`,
+              `Kontynuuj Dzien ${continueState.nextDay}`,
+              {
+                es: `Continuar Dia ${continueState.nextDay}`,
+                fr: `Continuer Jour ${continueState.nextDay}`,
+                de: `Tag ${continueState.nextDay} fortsetzen`,
+                it: `Continua Giorno ${continueState.nextDay}`,
+              },
+            )}
+            ctaLabel={tp('Продолжить', 'Continue', 'Kontynuuj', {
+              es: 'Continuar',
+              fr: 'Continuer',
+              de: 'Weiter',
+              it: 'Continua',
+            })}
+            dayCountLabel={tp(
+              `День ${continueState.nextDay} из ${TOTAL_DAYS}`,
+              `Day ${continueState.nextDay} of ${TOTAL_DAYS}`,
+              `Dzien ${continueState.nextDay} z ${TOTAL_DAYS}`,
+              {
+                es: `Dia ${continueState.nextDay} de ${TOTAL_DAYS}`,
+                fr: `Jour ${continueState.nextDay} sur ${TOTAL_DAYS}`,
+                de: `Tag ${continueState.nextDay} von ${TOTAL_DAYS}`,
+                it: `Giorno ${continueState.nextDay} di ${TOTAL_DAYS}`,
+              },
+            )}
+            dayProgressLabel={
+              continueState.totalInNextDay > 1
+                ? tp(
+                    `${continueState.doneInNextDay} из ${continueState.totalInNextDay} в этом дне`,
+                    `${continueState.doneInNextDay} of ${continueState.totalInNextDay} in this day`,
+                    `${continueState.doneInNextDay} z ${continueState.totalInNextDay} w tym dniu`,
+                    {
+                      es: `${continueState.doneInNextDay} de ${continueState.totalInNextDay} hoy`,
+                      fr: `${continueState.doneInNextDay} sur ${continueState.totalInNextDay} aujourdhui`,
+                      de: `${continueState.doneInNextDay} von ${continueState.totalInNextDay} heute`,
+                      it: `${continueState.doneInNextDay} di ${continueState.totalInNextDay} oggi`,
+                    },
+                  )
+                : null
+            }
+            onPress={() => router.push(`/bootcamp/${continueState.nextLesson!.id}`)}
+          />
+        ) : null}
+
+        {showCelebration ? (
+          <CelebrationRow
+            title={tp(
+              'Все 7 дней пройдены. Готов к регате.',
+              'All 7 days done. Ready for the regatta.',
+              'Wszystkie 7 dni gotowe. Gotowy do regat.',
+              {
+                es: 'Los 7 dias completados. Listo para la regata.',
+                fr: 'Les 7 jours sont faits. Prêt pour la regate.',
+                de: 'Alle 7 Tage geschafft. Bereit fuer die Regatta.',
+                it: 'Tutti i 7 giorni completati. Pronto per la regata.',
+              },
+            )}
+            ctaLabel={tp('К гонке', 'To the race', 'Do wyscigu', {
+              es: 'A la regata',
+              fr: 'A la course',
+              de: 'Zum Rennen',
+              it: 'Alla gara',
+            })}
+            onPress={() => router.push('/game')}
+          />
+        ) : null}
 
         <Text variant="muted" style={styles.sectionLabel}>
           {startSection.toUpperCase()}
@@ -288,6 +371,81 @@ export default function Home() {
   );
 }
 
+interface ContinueRowProps {
+  day: number;
+  doneInDay: number;
+  totalInDay: number;
+  lessonTitle: string;
+  kicker: string;
+  ctaLabel: string;
+  dayCountLabel: string;
+  dayProgressLabel: string | null;
+  onPress: () => void;
+}
+
+function ContinueRow({
+  lessonTitle,
+  kicker,
+  ctaLabel,
+  dayCountLabel,
+  dayProgressLabel,
+  onPress,
+}: ContinueRowProps) {
+  const accentColor = ACCENT_COLOR.cyan;
+  return (
+    <Card accent="cyan" onPress={onPress} style={styles.continueCard}>
+      <View style={styles.continueRow}>
+        <Text style={styles.continueEmoji}>🎓</Text>
+        <View style={styles.continueText}>
+          <Text style={[styles.continueKicker, { color: accentColor }]}>
+            {kicker.toUpperCase()}
+          </Text>
+          <Text variant="subtitle" style={styles.continueTitle}>
+            {lessonTitle}
+          </Text>
+          <Text variant="muted" style={styles.continueMeta}>
+            {dayProgressLabel
+              ? `${dayCountLabel}  ·  ${dayProgressLabel}`
+              : dayCountLabel}
+          </Text>
+        </View>
+        <Text style={[styles.continueArrow, { color: accentColor }]}>→</Text>
+      </View>
+      <View style={styles.continueCtaRow}>
+        <Text style={[styles.continueCtaLabel, { color: accentColor }]}>
+          {ctaLabel}
+        </Text>
+      </View>
+    </Card>
+  );
+}
+
+interface CelebrationRowProps {
+  title: string;
+  ctaLabel: string;
+  onPress: () => void;
+}
+
+function CelebrationRow({ title, ctaLabel, onPress }: CelebrationRowProps) {
+  const accentColor = ACCENT_COLOR.success;
+  return (
+    <Card accent="success" onPress={onPress} style={styles.continueCard}>
+      <View style={styles.continueRow}>
+        <Text style={styles.continueEmoji}>🏁</Text>
+        <View style={styles.continueText}>
+          <Text variant="subtitle" style={styles.continueTitle}>{title}</Text>
+        </View>
+        <Text style={[styles.continueArrow, { color: accentColor }]}>→</Text>
+      </View>
+      <View style={styles.continueCtaRow}>
+        <Text style={[styles.continueCtaLabel, { color: accentColor }]}>
+          {ctaLabel}
+        </Text>
+      </View>
+    </Card>
+  );
+}
+
 interface EntryCardProps {
   accent: CardAccent;
   emoji: string;
@@ -407,5 +565,48 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 212, 255, 0.10)',
     borderTopWidth: 1,
     borderBottomWidth: 1,
+  },
+  continueCard: {
+    marginHorizontal: spacing.lg,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+  },
+  continueRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+  },
+  continueEmoji: {
+    fontSize: 28,
+    lineHeight: 32,
+  },
+  continueText: {
+    flex: 1,
+  },
+  continueKicker: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1.4,
+    marginBottom: 2,
+  },
+  continueTitle: {
+    fontSize: 16,
+  },
+  continueMeta: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  continueArrow: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  continueCtaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  continueCtaLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
   },
 });

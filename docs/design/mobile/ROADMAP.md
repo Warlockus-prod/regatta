@@ -1,8 +1,18 @@
 # Mobile app roadmap
 
-Status: living document. Current as of 2026-04-22.
+Status: living document. Current as of 2026-05-12.
 
-This is the execution plan for the iOS-first React Native + Expo build of Regatta. Based on:
+**Where we are right now (2026-05-12):**
+**Phase 1 (content shell) shipped** as v0.2.0 / build 2, live in
+TestFlight Internal. Phase-2 simulator preview is in the same build
+with stub physics. The next milestone is **v0.3.0 sprint** (two-week,
+three parallel devs) covering Bootcamp Day-N arc + Home Continue,
+Pre-race Checklist, Settings privacy + first-launch language nudge.
+Plan + acceptance criteria + coordination matrix in
+[`audits/sprint2-pm.md`](./audits/sprint2-pm.md). Dev / QA / PM audit
+reports for v0.2.0 are in [`audits/`](./audits/).
+
+This is the execution plan for the iOS-first React Native + Expo build of **Week to Regatta** (codename / slug `regatta`). Based on:
 
 - ADR-0001 (stack: RN + Expo, accepted)
 - ADR-0002 (repo layout: monorepo with `mobile/`, accepted)
@@ -12,11 +22,86 @@ For decisions and trade-offs, see [DECISIONS.md](./DECISIONS.md). This file is a
 
 ## 0. Current state
 
-- `mobile/` scaffolded with `create-expo-app`, blank-typescript template.
-  - Expo SDK 54, React Native 0.81.5, React 19.1, TypeScript strict, New Architecture enabled.
-- `mobile/src/design-system/tokens.ts` mirrors `:root` colors and gradient stops from `src/app/globals.css`.
-- `mobile/App.tsx` rendering "Regatta" + dark-ocean fallback to verify the toolchain.
-- `npx tsc --noEmit` clean.
+Phase 0 (foundations) done. **Phase 1 (content shell) fully shipped as
+v0.2.0 / build 2** to TestFlight Internal on 2026-05-12. **Phase 2
+simulator preview** is live with stub physics, gestures, trail, and
+haptics. Real Phase 2 (full VPP, missions, replays) waits on ADR-0003
+acceptance and the Shared-lane workspace extraction.
+
+**Next milestone: v0.3.0 sprint** (two weeks, three parallel devs):
+Bootcamp Day-N arc + Home Continue, Pre-race Checklist, Settings
+privacy + first-launch language nudge. Spec, acceptance criteria, and
+coordination matrix in [`audits/sprint2-pm.md`](./audits/sprint2-pm.md).
+
+- **Stack runtime:** Expo SDK 54, React Native 0.81.5, React 19.1,
+  TypeScript strict, New Architecture (Fabric + TurboModules) on.
+- **Routing:** expo-router with 16 routes. **Real content** in 14
+  (Home, Settings, Bootcamp index + lesson detail, Quick, Glossary
+  with search, Rules index + reveal-style detail, Onboard, Anatomy,
+  Courses with polar diagram, Racing, Gallery online-first, Simulator
+  preview). **Placeholders** in 3 awaiting later phases: Game (Phase 2),
+  Multiplayer (Phase 4), Leaderboard (Phase 3).
+- **Design system:** tokens mirror `:root` vars from `src/app/globals.css`.
+  Eight components in `mobile/src/design-system/components/`: Screen,
+  Text (6 variants), Card, Button (3 variants), ListRow, PlaceholderScreen,
+  ErrorBoundary, PointsOfSailDiagram (SVG polar wedges).
+- **i18n:** 7 languages live. `Lang`, `LocalizedText`, `LegacyLocalized<>`,
+  `pickLocalized`, `legacyPick`, `legacyPickArray` ported from web. The
+  `I18nProvider` resolves AsyncStorage > device locale (`expo-localization`)
+  > `'ru'`. `tp(ru, en, pl, extras?)` and `tl({ ru, en, pl, ... })` match
+  web semantics; existing call patterns are copy-paste compatible.
+- **Content sync (bridging per ADR-0003):**
+  `mobile/scripts/sync-content.ts` reads `src/data/*.ts` (web source of
+  truth, all `import type` so type-only stripping works) and writes JSON
+  twins to `mobile/src/data/*.json` via Node `--experimental-strip-types`.
+  `npm run sync-content` rebuilds. `npm run sync-content:check` is the
+  parity guard for mobile CI. Self-removes once Shared lane extracts to
+  `packages/content`.
+- **Typed barrel:** `mobile/src/data/index.ts` exports
+  `bootcampLessons` / `quickRefreshLessons` / `BOOTCAMP_TOTAL_MINUTES` /
+  `onboardSections` / `ruleScenarios` / `glossaryTerms` /
+  `glossaryCategories` / `pointsOfSail` / `racingRules` /
+  `racingStrategies` / `anatomyParts` / `galleryItems` with matching
+  `LegacyLocalized<>` types from `mobile/src/data/types.ts`. Tacks /
+  maneuvers / missions present in JSON, typed when those screens land.
+- **Simulator preview:** `mobile/src/simulator/{types,tick,use-sim-loop}.ts`.
+  Stub physics (heading + speed integration, no VPP yet) at 30 Hz, Skia
+  rendering with boat sprite + wind arrow + 60-point wake (wrap-aware).
+  Pan gesture sets target heading from touch position. Reset button.
+  `expo-haptics` light impact on pan begin, medium on reset. Phase 2
+  proper swaps the stub for the shared physics package without changing
+  the rendering or HUD layer.
+- **App config:** `name = "Week to Regatta"`, `slug = "regatta"`, bundle
+  `com.icoffio.regatta`, scheme `regatta`, `userInterfaceStyle = "dark"`.
+  Plugins: `expo-router`, `expo-localization`. EAS profiles set:
+  `development` / `preview` / `production`.
+- **Splash:** `expo-splash-screen` integrated. `preventAutoHideAsync` at
+  module load; `SplashGate` inside `I18nProvider` calls `hideAsync` once
+  `useI18n().ready` flips true. No language flash on first paint.
+- **Error handling:** root `ErrorBoundary` catches uncaught render errors
+  and renders a brand-styled fallback. In `__DEV__` the error message
+  surfaces for triage; in prod the user sees a generic recovery hint.
+- **Brand assets:** `mobile/assets/brand/{icon.svg, wordmark.svg, README.md}`.
+  README documents `rsvg-convert` / ImageMagick / online conversion to
+  the PNG formats Expo needs. Existing `app.json` PNGs stay as the
+  current bundled icons until conversion runs.
+- **Tests:** `jest-expo` + `@testing-library/react-native`. **68 tests
+  across 14 suites**, all green:
+  - Logic: i18n helpers (15), bootcamp progress hook (9), simulator
+    tick (16).
+  - Screens: Home (3), Settings (3), Bootcamp (4), Quick (2), Rules (2),
+    Onboard (2), Anatomy (2), Courses (2), Racing (2), Gallery (3),
+    Glossary (3).
+  - Mocks: `expo-router`, `expo-localization`, AsyncStorage. Render
+    helper at `mobile/src/test-utils.tsx`.
+- **Single-command health check:** `npm run check` from `mobile/`
+  runs `sync-content:check` + `tsc --noEmit` + `jest`. Green today.
+- **ADRs:** 0001 (RN+Expo), 0002 (monorepo), 0005 (full parity) accepted.
+  0003 (shared-package extraction) and 0004 (offline strategy) proposed.
+  ADR-0003 needs Shared-lane review before workspace extraction proceeds.
+- **TESTING.md:** three paths (Expo Go / `expo run:ios` / TestFlight)
+  with one-time setup, each-release commands, and a 7-step smoke
+  checklist.
 
 ## 1. Guiding principles
 
@@ -154,7 +239,11 @@ Exit criteria:
 - `npx expo start` boots in iOS simulator, dark-ocean Home placeholder visible, language picker works, AsyncStorage persists across reload.
 - TestFlight build delivered to internal testers.
 
-### Phase 1: Content shell (4-6 weeks)
+### Phase 1: Content shell (4-6 weeks) - SHIPPED v0.2.0 / build 2
+
+Status: **shipped 2026-05-12 to TestFlight Internal.** Next iteration
+inside Phase 1 polish is the v0.3.0 sprint - see
+[`audits/sprint2-pm.md`](./audits/sprint2-pm.md).
 
 Goal: every reference screen working, offline, in 7 languages, with local progress. Submittable to App Store as a focused educational app if the rest slips.
 
