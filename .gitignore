@@ -82,3 +82,4 @@ qa-*.png
 # at 2-3 MB each are too heavy for the repo.
 /grafics/
 /graphics/
+key/
