@@ -2,25 +2,42 @@ import { type ReactNode } from 'react';
 import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { colors, radii, spacing } from '../tokens';
 
+export type CardAccent = 'cyan' | 'success' | 'warning';
+
 interface CardProps {
   children: ReactNode;
   onPress?: () => void;
+  /**
+   * Per-card tinted variant. Mirrors web home where each primary entry
+   * card gets its own accent (8% bg, 30% border). Pressed state lifts
+   * both. Omit for the default dark-card style.
+   */
+  accent?: CardAccent;
   style?: StyleProp<ViewStyle>;
 }
 
-/**
- * Dark-ocean card. Mirrors `.card` from `src/app/globals.css` (bg, border,
- * radius, hover/press feedback). Pass `onPress` for an interactive card,
- * omit it for a static surface.
- */
-export function Card({ children, onPress, style }: CardProps) {
+const ACCENT_RGB: Record<CardAccent, string> = {
+  cyan: '0, 212, 255',
+  success: '68, 255, 136',
+  warning: '255, 170, 0',
+};
+
+function tintedStyle(accent: CardAccent, pressed: boolean): ViewStyle {
+  const rgb = ACCENT_RGB[accent];
+  return {
+    backgroundColor: `rgba(${rgb}, ${pressed ? 0.14 : 0.08})`,
+    borderColor: `rgba(${rgb}, ${pressed ? 0.5 : 0.3})`,
+  };
+}
+
+export function Card({ children, onPress, accent, style }: CardProps) {
   if (onPress) {
     return (
       <Pressable
         onPress={onPress}
         style={({ pressed }) => [
           styles.card,
-          pressed && styles.pressed,
+          accent ? tintedStyle(accent, pressed) : pressed && styles.pressed,
           style,
         ]}
       >
@@ -28,7 +45,13 @@ export function Card({ children, onPress, style }: CardProps) {
       </Pressable>
     );
   }
-  return <View style={[styles.card, style]}>{children}</View>;
+  return (
+    <View
+      style={[styles.card, accent ? tintedStyle(accent, false) : null, style]}
+    >
+      {children}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({

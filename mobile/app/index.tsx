@@ -1,23 +1,30 @@
 import { Stack, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../src/i18n/context';
-import { Card, ListRow, Screen, Text } from '../src/design-system/components';
+import {
+  Card,
+  type CardAccent,
+  ListRow,
+  Screen,
+  Text,
+} from '../src/design-system/components';
 import { colors, spacing } from '../src/design-system/tokens';
 
+const ACCENT_COLOR: Record<CardAccent, string> = {
+  cyan: colors.accentCyan,
+  success: colors.success,
+  warning: colors.warning,
+};
+
 /**
- * Home v1. Layout mirrors the web home:
- *  - Brand + tagline header (no native header chrome)
- *  - "Where to start" - three primary Cards (Bootcamp / Quick / Rules)
- *  - "Reference" - secondary ListRows (Anatomy / Onboard / Glossary / Courses / Racing)
- *  - "Tools" - Simulator / Multiplayer / Leaderboard
- *  - "More" - Gallery / Settings
+ * Home v2. Mirrors the web home (`src/app/page.tsx`):
+ *  - Brand wordmark stack header (mobile-only, web uses a top nav strip)
+ *  - "Where to start" - three primary tinted Cards (Bootcamp / Quick / Rules)
+ *    with per-card accent (cyan / green / orange) matching the web signature
+ *  - Reference / Tools / More - secondary ListRows for visual hierarchy
  *
- * Card vs ListRow: primary CTAs use the heavier Card; secondary navigation
- * uses ListRow for visual hierarchy.
- *
- * All routes link to PlaceholderScreen until ADR-0003 lands content sync,
- * Phase 2 lands the simulator, Phase 3 lands the online layer, and Phase 4
- * lands multiplayer.
+ * The per-card tinted background is the deliberate brand signature (web
+ * uses 8% bg + 30% border on each entry card). Mobile inherits that.
  */
 export default function Home() {
   const { tp } = useI18n();
@@ -60,11 +67,19 @@ export default function Home() {
     it: 'Altro',
   });
 
+  const ctaStart = tp('Начать', 'Start', 'Start', {
+    es: 'Iniciar',
+    fr: 'Commencer',
+    de: 'Starten',
+    it: 'Inizia',
+  });
+
   return (
     <Screen>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
+          <Text style={styles.brandLead}>Week to</Text>
           <Text style={styles.brand}>Regatta</Text>
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
         </View>
@@ -73,70 +88,90 @@ export default function Home() {
           {startSection.toUpperCase()}
         </Text>
 
-        <Card onPress={() => router.push('/bootcamp')} style={styles.card}>
-          <Text variant="subtitle">Bootcamp</Text>
-          <Text variant="caption" style={styles.cardDesc}>
-            {tp(
-              '8 уроков по основам',
-              '8 fundamentals lessons',
-              '8 lekcji podstaw',
-              {
-                es: '8 lecciones basicas',
-                fr: '8 lecons fondamentales',
-                de: '8 Grundlagen-Lektionen',
-                it: '8 lezioni di base',
-              },
-            )}
-          </Text>
-        </Card>
+        <EntryCard
+          accent="cyan"
+          emoji="🎓"
+          title="Bootcamp"
+          subtitle={tp('С нуля', 'Start from zero', 'Od zera', {
+            es: 'Desde cero',
+            fr: 'Depuis zero',
+            de: 'Von null',
+            it: 'Da zero',
+          })}
+          description={tp(
+            '8 уроков по основам парусного спорта - примерно 50 минут от ветра до правил.',
+            '8 fundamentals lessons - around 50 min from wind to rules.',
+            '8 lekcji podstaw - okolo 50 min od wiatru do zasad.',
+            {
+              es: '8 lecciones basicas - unos 50 min, del viento a las reglas.',
+              fr: '8 lecons fondamentales - environ 50 min, du vent aux regles.',
+              de: '8 Grundlagen-Lektionen - rund 50 min, vom Wind bis zu den Regeln.',
+              it: '8 lezioni di base - circa 50 min, dal vento alle regole.',
+            },
+          )}
+          ctaLabel={ctaStart}
+          onPress={() => router.push('/bootcamp')}
+        />
 
-        <Card onPress={() => router.push('/quick')} style={styles.card}>
-          <Text variant="subtitle">
-            {tp('Быстрый разогрев', 'Quick refresh', 'Szybkie powtorzenie', {
-              es: 'Repaso rapido',
-              fr: 'Revision rapide',
-              de: 'Schnelle Auffrischung',
-              it: 'Ripasso rapido',
-            })}
-          </Text>
-          <Text variant="caption" style={styles.cardDesc}>
-            {tp(
-              '6 уроков для опытных',
-              '6 lessons for experienced sailors',
-              '6 lekcji dla doswiadczonych',
-              {
-                es: '6 lecciones para experimentados',
-                fr: '6 lecons pour confirmes',
-                de: '6 Lektionen fuer Erfahrene',
-                it: '6 lezioni per esperti',
-              },
-            )}
-          </Text>
-        </Card>
+        <EntryCard
+          accent="success"
+          emoji="⚡"
+          title={tp('Быстрый разогрев', 'Quick refresh', 'Szybkie powtorzenie', {
+            es: 'Repaso rapido',
+            fr: 'Revision rapide',
+            de: 'Schnelle Auffrischung',
+            it: 'Ripasso rapido',
+          })}
+          subtitle={tp('Для опытных', 'For experienced', 'Dla doswiadczonych', {
+            es: 'Para experimentados',
+            fr: 'Pour confirmes',
+            de: 'Fuer Erfahrene',
+            it: 'Per esperti',
+          })}
+          description={tp(
+            '6 коротких уроков для тех, кто уже ходил под парусом - быстро освежить ключевое.',
+            '6 short lessons for sailors who already know the ropes - refresh the essentials.',
+            '6 krotkich lekcji dla tych, ktorzy juz zeglowali - odswiez kluczowe.',
+            {
+              es: '6 lecciones cortas para quien ya ha navegado - lo esencial al dia.',
+              fr: '6 lecons courtes pour ceux qui ont deja navigue - rafraichir les bases.',
+              de: '6 kurze Lektionen fuer wer schon gesegelt ist - Wesentliches auffrischen.',
+              it: '6 lezioni brevi per chi ha gia navigato - rinfrescare lessenziale.',
+            },
+          )}
+          ctaLabel={ctaStart}
+          onPress={() => router.push('/quick')}
+        />
 
-        <Card onPress={() => router.push('/rules')} style={styles.card}>
-          <Text variant="subtitle">
-            {tp('Правила', 'Rules of the road', 'Zasady', {
-              es: 'Reglas',
-              fr: 'Regles',
-              de: 'Regeln',
-              it: 'Regole',
-            })}
-          </Text>
-          <Text variant="caption" style={styles.cardDesc}>
-            {tp(
-              '8 сценариев расхождения',
-              '8 collision scenarios',
-              '8 scenariuszy rozejscia',
-              {
-                es: '8 escenarios de colision',
-                fr: '8 scenarios de collision',
-                de: '8 Kollisions-Szenarien',
-                it: '8 scenari di collisione',
-              },
-            )}
-          </Text>
-        </Card>
+        <EntryCard
+          accent="warning"
+          emoji="📖"
+          title={tp('Правила', 'Rules of the road', 'Zasady', {
+            es: 'Reglas',
+            fr: 'Regles',
+            de: 'Regeln',
+            it: 'Regole',
+          })}
+          subtitle={tp('RRS + COLREGS', 'RRS + COLREGS', 'RRS + COLREGS', {
+            es: 'RRS + COLREGS',
+            fr: 'RRS + COLREGS',
+            de: 'RRS + COLREGS',
+            it: 'RRS + COLREGS',
+          })}
+          description={tp(
+            '8 сценариев расхождения с другими судами - кто кому уступает и почему.',
+            '8 collision scenarios - who gives way and why.',
+            '8 scenariuszy rozejscia - kto ustepuje i dlaczego.',
+            {
+              es: '8 escenarios de colision - quien cede paso y por que.',
+              fr: '8 scenarios de collision - qui cede le passage et pourquoi.',
+              de: '8 Kollisions-Szenarien - wer ausweicht und warum.',
+              it: '8 scenari di collisione - chi cede e perche.',
+            },
+          )}
+          ctaLabel={ctaStart}
+          onPress={() => router.push('/rules')}
+        />
 
         <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>
           {refSection.toUpperCase()}
@@ -253,6 +288,46 @@ export default function Home() {
   );
 }
 
+interface EntryCardProps {
+  accent: CardAccent;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  ctaLabel: string;
+  onPress: () => void;
+}
+
+function EntryCard({
+  accent,
+  emoji,
+  title,
+  subtitle,
+  description,
+  ctaLabel,
+  onPress,
+}: EntryCardProps) {
+  const accentColor = ACCENT_COLOR[accent];
+  return (
+    <Card accent={accent} onPress={onPress} style={styles.entryCard}>
+      <Text style={styles.entryEmoji}>{emoji}</Text>
+      <View>
+        <Text variant="subtitle" style={styles.entryTitle}>{title}</Text>
+        <Text variant="muted" style={styles.entrySubtitle}>{subtitle}</Text>
+      </View>
+      <Text variant="caption" style={styles.entryDescription}>
+        {description}
+      </Text>
+      <View style={styles.entryCta}>
+        <Text style={[styles.entryCtaLabel, { color: accentColor }]}>
+          {ctaLabel}
+        </Text>
+        <Text style={[styles.entryCtaArrow, { color: accentColor }]}>→</Text>
+      </View>
+    </Card>
+  );
+}
+
 const styles = StyleSheet.create({
   scroll: {
     paddingTop: spacing.lg,
@@ -263,6 +338,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
+  },
+  brandLead: {
+    color: colors.textSecondary,
+    fontSize: 18,
+    fontWeight: '500',
+    letterSpacing: 0.4,
+    marginBottom: 2,
   },
   brand: {
     color: colors.accentCyan,
@@ -285,12 +367,40 @@ const styles = StyleSheet.create({
   sectionLabelGap: {
     marginTop: spacing.xl,
   },
-  card: {
+  entryCard: {
     marginBottom: spacing.md,
     marginHorizontal: spacing.lg,
+    gap: spacing.md,
   },
-  cardDesc: {
+  entryEmoji: {
+    fontSize: 32,
+    lineHeight: 38,
+  },
+  entryTitle: {
+    fontSize: 18,
+    marginBottom: 2,
+  },
+  entrySubtitle: {
+    fontSize: 12,
+  },
+  entryDescription: {
+    fontSize: 13,
+    lineHeight: 19,
+  },
+  entryCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     marginTop: spacing.xs,
+  },
+  entryCtaLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
+  entryCtaArrow: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   list: {
     backgroundColor: colors.bgCard,
