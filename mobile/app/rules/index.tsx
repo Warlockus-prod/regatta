@@ -45,10 +45,13 @@ export default function Rules() {
         {ruleScenarios.map((scenario) => {
           const title = legacyPick(scenario, 'title', lang);
           const scene = legacyPick(scenario, 'scene', lang);
+          const sourceTag = scenario.source === 'colregs' ? 'COLREGS' : 'RRS';
           return (
             <Card
               key={scenario.id}
               onPress={() => router.push(`/rules/${scenario.id}`)}
+              accessibilityRole="button"
+              accessibilityLabel={`${title}, ${sourceTag}. ${scene}`}
               style={styles.card}
             >
               <View style={styles.cardHeader}>
@@ -56,7 +59,7 @@ export default function Rules() {
                 <View style={styles.cardText}>
                   <Text variant="subtitle">{title}</Text>
                   <Text variant="muted" style={styles.source}>
-                    {scenario.source === 'colregs' ? 'COLREGS' : 'RRS'}
+                    {sourceTag}
                   </Text>
                 </View>
               </View>

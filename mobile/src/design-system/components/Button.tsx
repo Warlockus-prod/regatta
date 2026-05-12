@@ -1,5 +1,10 @@
 import { type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text } from 'react-native';
+import {
+  type AccessibilityState,
+  Pressable,
+  StyleSheet,
+  Text,
+} from 'react-native';
 import { colors, radii, spacing } from '../tokens';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
@@ -9,6 +14,9 @@ interface ButtonProps {
   onPress: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
+  accessibilityState?: AccessibilityState;
 }
 
 /**
@@ -22,10 +30,21 @@ export function Button({
   onPress,
   variant = 'primary',
   disabled = false,
+  accessibilityLabel,
+  accessibilityHint,
+  accessibilityState,
 }: ButtonProps) {
+  const mergedState: AccessibilityState = {
+    ...accessibilityState,
+    disabled: disabled || accessibilityState?.disabled,
+  };
   return (
     <Pressable
       onPress={disabled ? undefined : onPress}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={mergedState}
       style={({ pressed }) => [
         styles.base,
         styles[`${variant}Container`],

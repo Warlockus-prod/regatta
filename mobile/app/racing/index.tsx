@@ -64,11 +64,31 @@ export default function Racing() {
         {sortedRules.map((rule) => {
           const title = legacyPick(rule, 'title', lang);
           const description = legacyPick(rule, 'description', lang);
+          const priorityLabel = tp(
+            `Приоритет ${rule.priority}`,
+            `Priority ${rule.priority}`,
+            `Priorytet ${rule.priority}`,
+            {
+              es: `Prioridad ${rule.priority}`,
+              fr: `Priorite ${rule.priority}`,
+              de: `Prioritaet ${rule.priority}`,
+              it: `Priorita ${rule.priority}`,
+            },
+          );
           return (
-            <Card key={rule.id} style={styles.card}>
+            <Card
+              key={rule.id}
+              style={styles.card}
+              accessibilityRole="text"
+              accessibilityLabel={`${priorityLabel}. ${title}. ${description}`}
+            >
               <View style={styles.ruleHeader}>
                 <View style={styles.priorityBadge}>
-                  <Text variant="muted" style={styles.priorityText}>
+                  <Text
+                    variant="muted"
+                    allowFontScaling={false}
+                    style={styles.priorityText}
+                  >
                     {rule.priority}
                   </Text>
                 </View>

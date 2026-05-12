@@ -158,7 +158,12 @@ export default function RuleScenarioDetail() {
           </>
         ) : (
           <View style={styles.cta}>
-            <Button onPress={() => setRevealed(true)} variant="primary">
+            <Button
+              onPress={() => setRevealed(true)}
+              variant="primary"
+              accessibilityLabel={revealLabel}
+              accessibilityState={{ expanded: revealed }}
+            >
               {revealLabel}
             </Button>
           </View>

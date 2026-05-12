@@ -42,7 +42,12 @@ export default function Onboard() {
           const items = legacyPickArray(section, 'items', lang);
           const warning = legacyPick(section, 'warning', lang);
           return (
-            <Card key={section.id} style={styles.card}>
+            <Card
+              key={section.id}
+              style={styles.card}
+              accessibilityRole="text"
+              accessibilityLabel={`${title}. ${items.join('. ')}${warning ? `. ${warningLabel}: ${warning}` : ''}`}
+            >
               <View style={styles.cardHeader}>
                 <Text style={styles.icon}>{section.icon}</Text>
                 <Text variant="subtitle" style={styles.title}>{title}</Text>
@@ -56,7 +61,10 @@ export default function Onboard() {
                 ))}
               </View>
               {warning ? (
-                <View style={styles.warning}>
+                <View
+                  style={styles.warning}
+                  accessibilityRole="alert"
+                >
                   <Text variant="muted" style={styles.warningLabel}>
                     {warningLabel.toUpperCase()}
                   </Text>

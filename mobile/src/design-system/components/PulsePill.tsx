@@ -11,6 +11,11 @@ interface PulsePillProps {
    * should keep visual parity without animating.
    */
   staticDot?: boolean;
+  /**
+   * Override the spoken label. Defaults to "<label>, live indicator" so
+   * the pulsing dot is communicated to screen readers.
+   */
+  accessibilityLabel?: string;
 }
 
 /**
@@ -19,7 +24,11 @@ interface PulsePillProps {
  * any screen that needs a small attention-getter without dominating the
  * hierarchy.
  */
-export function PulsePill({ label, staticDot = false }: PulsePillProps) {
+export function PulsePill({
+  label,
+  staticDot = false,
+  accessibilityLabel,
+}: PulsePillProps) {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -45,8 +54,17 @@ export function PulsePill({ label, staticDot = false }: PulsePillProps) {
   }, [opacity, staticDot]);
 
   return (
-    <View style={styles.pill}>
-      <Animated.View style={[styles.pillDot, { opacity }]} />
+    <View
+      style={styles.pill}
+      accessible
+      accessibilityRole="text"
+      accessibilityLabel={accessibilityLabel ?? `${label}, live indicator`}
+    >
+      <Animated.View
+        style={[styles.pillDot, { opacity }]}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+      />
       <Text style={styles.pillLabel}>{label}</Text>
     </View>
   );

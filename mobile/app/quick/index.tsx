@@ -51,7 +51,12 @@ export default function Quick() {
           const title = legacyPick(lesson, 'title', lang);
           const tip = legacyPick(lesson, 'tip', lang);
           return (
-            <Card key={lesson.id} style={styles.card}>
+            <Card
+              key={lesson.id}
+              style={styles.card}
+              accessibilityRole="text"
+              accessibilityLabel={`${title}. ${tip}`}
+            >
               <View style={styles.row}>
                 <Text style={styles.emoji}>{lesson.emoji}</Text>
                 <View style={styles.text}>

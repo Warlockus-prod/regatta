@@ -1,6 +1,11 @@
 import { useCallback, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
-import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
+import {
+  StyleSheet,
+  View,
+  type AccessibilityActionEvent,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { colors, radii, spacing } from '../tokens';
 import { Text } from './Text';
@@ -18,6 +23,12 @@ interface SliderProps {
   width?: number;
   height?: number;
   formatValue?: (value: number) => string;
+  /**
+   * Optional overriding accessibilityLabel. Defaults to the visible
+   * `label` prop. Useful when the visible label is a glyph or
+   * abbreviation that needs a fuller spoken form.
+   */
+  accessibilityLabel?: string;
 }
 
 function clamp(v: number, lo: number, hi: number): number {
@@ -46,9 +57,41 @@ export function Slider({
   width,
   height,
   formatValue = defaultFormat,
+  accessibilityLabel,
 }: SliderProps) {
   const trackLengthRef = useRef(0);
   const lastStepRef = useRef<number>(Math.round(value / step));
+
+  function clampRange(v: number): number {
+    return clamp(v, min, max);
+  }
+  const nudgeBy = (max - min) * 0.05;
+  const handleA11yAction = useCallback(
+    (e: AccessibilityActionEvent) => {
+      if (e.nativeEvent.actionName === 'increment') {
+        onChange(clampRange(value + nudgeBy));
+        Haptics.selectionAsync().catch(() => {});
+      } else if (e.nativeEvent.actionName === 'decrement') {
+        onChange(clampRange(value - nudgeBy));
+        Haptics.selectionAsync().catch(() => {});
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [onChange, value, nudgeBy, min, max],
+  );
+  const a11yRatio = clamp((value - min) / (max - min), 0, 1);
+  const a11yNow = Math.round(a11yRatio * 100);
+  const a11yProps = {
+    accessible: true,
+    accessibilityRole: 'adjustable' as const,
+    accessibilityLabel: accessibilityLabel ?? label,
+    accessibilityValue: { min: 0, max: 100, now: a11yNow },
+    accessibilityActions: [
+      { name: 'increment' as const },
+      { name: 'decrement' as const },
+    ],
+    onAccessibilityAction: handleA11yAction,
+  };
 
   const setFromCoord = useCallback(
     (coord: number) => {
@@ -96,9 +139,9 @@ export function Slider({
   if (orientation === 'vertical') {
     const trackH = height ?? 124;
     return (
-      <View style={[stylesV.wrap, { width: width ?? 56 }]}>
-        <Text style={stylesV.label}>{label}</Text>
-        <Text style={stylesV.value}>{formatValue(value)}</Text>
+      <View style={[stylesV.wrap, { width: width ?? 56 }]} {...a11yProps}>
+        <Text allowFontScaling={false} style={stylesV.label}>{label}</Text>
+        <Text allowFontScaling={false} style={stylesV.value}>{formatValue(value)}</Text>
         <GestureDetector gesture={pan}>
           <View
             style={[stylesV.track, { height: trackH }]}
@@ -120,10 +163,10 @@ export function Slider({
 
   const trackW = width ?? 160;
   return (
-    <View style={stylesH.wrap}>
+    <View style={stylesH.wrap} {...a11yProps}>
       <View style={stylesH.head}>
-        <Text style={stylesH.label}>{label}</Text>
-        <Text style={stylesH.value}>{formatValue(value)}</Text>
+        <Text allowFontScaling={false} style={stylesH.label}>{label}</Text>
+        <Text allowFontScaling={false} style={stylesH.value}>{formatValue(value)}</Text>
       </View>
       <GestureDetector gesture={pan}>
         <View style={[stylesH.track, { width: trackW }]} onLayout={onLayout}>
