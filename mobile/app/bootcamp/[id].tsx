@@ -2,11 +2,21 @@ import { useEffect } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Button, Card, Screen, Text } from '../../src/design-system/components';
+import {
+  Button,
+  Card,
+  LessonDiagram,
+  Screen,
+  Text,
+} from '../../src/design-system/components';
 import { bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
 import { getLessonDay } from '../../src/bootcamp/days';
+import {
+  buildSimulatorDrillRoute,
+  getDrillForLesson,
+} from '../../src/bootcamp/lesson-drill-map';
 import { colors, spacing } from '../../src/design-system/tokens';
 
 /**
@@ -103,6 +113,19 @@ export default function BootcampLesson() {
     },
   );
 
+  const drillId = getDrillForLesson(lesson.id);
+  const tryInSimulatorLabel = tp(
+    'Попробовать в симуляторе',
+    'Try this in the simulator',
+    'Sprobuj w symulatorze',
+    {
+      es: 'Pruebalo en el simulador',
+      fr: 'Essaie dans le simulateur',
+      de: 'Im Simulator ueben',
+      it: 'Prova nel simulatore',
+    },
+  );
+
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
@@ -112,6 +135,10 @@ export default function BootcampLesson() {
           <Text style={styles.emoji}>{lesson.emoji}</Text>
           <Text variant="title" style={styles.title}>{title}</Text>
           <Text variant="muted" style={styles.metaText}>{meta}</Text>
+        </View>
+
+        <View style={styles.diagramWrap}>
+          <LessonDiagram lessonId={lesson.id} />
         </View>
 
         <Text variant="body" style={styles.summary}>{summary}</Text>
@@ -134,6 +161,20 @@ export default function BootcampLesson() {
             {openLabel}
           </Button>
         </View>
+
+        {drillId ? (
+          <View style={styles.drillCta}>
+            <Button
+              onPress={() => {
+                markCompleted(lesson.id);
+                router.push(buildSimulatorDrillRoute(lesson.id, drillId));
+              }}
+              variant="secondary"
+            >
+              {tryInSimulatorLabel}
+            </Button>
+          </View>
+        ) : null}
       </ScrollView>
     </Screen>
   );
@@ -192,5 +233,14 @@ const styles = StyleSheet.create({
   cta: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.xl,
+  },
+  drillCta: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.xl,
+    marginTop: -spacing.lg,
+  },
+  diagramWrap: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.xs,
   },
 });
