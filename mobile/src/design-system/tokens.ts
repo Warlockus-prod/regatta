@@ -47,6 +47,67 @@ export const motion = {
 } as const;
 
 /**
+ * Soft cyan glow used by the brand surfaces (PulsePill, Continue card,
+ * Anatomy hotspot ring). Use as an iOS shadow on a `View`; on Android
+ * it falls back gracefully to no glow (Android does not render colored
+ * shadows pre-API-28). Keep it subtle - the dark-ocean base does the
+ * heavy lifting and a strong glow reads "kids' app".
+ */
+export const glow = {
+  /** Cyan halo for a primary-tinted card. */
+  primary: {
+    shadowColor: '#00d4ff',
+    shadowOpacity: 0.18,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  /** Subtle teal halo for a success-tinted celebration card. */
+  success: {
+    shadowColor: '#44ff88',
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+  },
+  /** Warm amber halo for a warning-tinted card or pill. */
+  warning: {
+    shadowColor: '#ffaa00',
+    shadowOpacity: 0.16,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 0 },
+  },
+} as const;
+
+/**
+ * Layered drop-shadow tokens for Card / Sheet / Toast.
+ * Designer scale: `card` (default surface), `lift` (pressed / floating),
+ * `sheet` (bottom-sheet, modal). Tuned for the dark-ocean base where a
+ * pure-black shadow disappears - the warm slate alpha gives definition.
+ */
+export const shadow = {
+  card: {
+    shadowColor: '#000',
+    shadowOpacity: 0.35,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  lift: {
+    shadowColor: '#000',
+    shadowOpacity: 0.45,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  sheet: {
+    shadowColor: '#000',
+    shadowOpacity: 0.55,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 12,
+  },
+} as const;
+
+/**
  * Ocean gradient stops, top to bottom. Matches the `.ocean-bg` class in
  * `src/app/globals.css`. Mobile renders this via `expo-linear-gradient`
  * (wired up in a later task).

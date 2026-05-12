@@ -46,6 +46,15 @@ table also gives direct screenshot URLs for quick sharing.
 | 1 | Lesson detail "Wind & Direction" | `55380beac48b4d9084bb27b5d86eddd6` | [PNG](https://lh3.googleusercontent.com/aida/ADBb0uj9BRVbVXtWrnZyOnGTMgbVMz-pfuNg8MXjRylOY1ToDg_uGQTUGyXY7o-VeYsJNFNrYk-oA5aIpMbWBeOkj4grs4hq_xjxa0UIee9wacmzfwy_tWbTfNxK_AVFFjJw080G8sGAtR8eXyqOuOGO27O6ISl95ziEkMDBHAm7UkLRgOp7dmyR-Y7Njp5OpcocRrx5g59oadFpuf3IioC5F7A-e4_e2LcnkuyVEP4DRaAv93EtppvDLSw-bA) |
 | 2 | Glossary search | `44f92ec7358e4079bf432e7fdd47fe38` | [PNG](https://lh3.googleusercontent.com/aida/ADBb0ujhSJssN_e8cPhpcSri7rVi6XQ9nAhQOV5Tr-1rs6UEVsbi8uEs3f_2vgYSprJCVfJKdvtcYxxwWzF1y_1kj9lLg8ecdI6qa54QAQfrCdgtBTwRzieahnx3ufj96XZbogvVBU0w_XWgV0S6EeMolsnooZ7dNIEHKT2nVk3-fI-P_GaD5V8SZz0p9LXQYXRDTJQxbvgqf69HdG3fpPjVLQD7oqEbAACvajRBKxeV3aVMsCBZKuGpoVa3rw) |
 | 3 | Settings (language picker + About) | `442d62d1d4b3490bb27b25e4161c7afd` | [PNG](https://lh3.googleusercontent.com/aida/ADBb0ugKc9OwrRrAVGhyu5xDxvuy1T0VTSAhnAFTvZSs7AFo1a-MpfRoLwE54D79Yz1Zt1vYi9KHRJoVQ-_nd-k0J2oEV7yrjbFnEE6pCBlJ18NypZ-qksBAFsQ6D-EdfWudyKQQGPYk4w9aWyK-7FstMaHc76MNZVX03hxxtoOqRb5UtQ_uzfA-2bjdkuwO-R9Dc85QqedMO4b_1ndUIMqIElaplc31LLDLoKfUdh4Plrw-vpleHR8YSVik) |
+| 4 | Simulator (Sprint 3 wind chrome) | `2132a8d771134b53887142452ad6329b` | [PNG](https://lh3.googleusercontent.com/aida/ADBb0ugSQKmuiiFh2A1yhNYQQ61MmjTEoAROvFWTPZG9jRnE6gaL_teC-G9m4R9WxwSomG4K46fhWzXqBWjhKDWseI_3WErqQ_xcj094jY82wRXqQ64s5xI3auMFRfneWWyBBniLu8T8VM_ocSytojH3-oW56AirBLNeA1YwcHDVmr-gavoUD6ar5ZOQZM7X7WaSAYCcVtaIIBSpOO-iNXeX_fKKhcF6rg_XNSHkk1RKuJlvRR5YXTvqDreUZw) |
+
+**2026-05-12 add (Sprint 4 designer pass):** Generated screen #4
+above as the visual brief for the rebuilt Simulator HUD per
+[sprint4-designer.md](./audits/sprint4-designer.md) Section 1.3
+(dock-style HUD, top-right wind compass with kt label, glass-blur
+cells, no-go wedge, apparent-wind ghost, mode pill switcher).
+Three more Stitch prompts (Bootcamp Day-N hub, Anatomy lightbox,
+App Store hero template) are queued in the audit Section 4.
 
 Each Stitch screen also has downloadable HTML
 (`projects/.../files/<id>` references in the API). The HTML is

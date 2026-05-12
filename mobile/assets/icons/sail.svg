@@ -1,0 +1,14 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Sailboat glyph used as the canonical brand mark inside the app
+    (anatomy, simulator, racing, gallery).
+    Side-view sloop: triangular main + jib over a soft hull curve.
+    Sized for 24x24 and aligned on the same baseline as the other glyphs.
+  -->
+  <path d="M12 3 L12 14" />
+  <path d="M12 4.5 C9.5 7 8 10 7.5 14 L12 14 Z" fill="currentColor" stroke="none" opacity="0.22" />
+  <path d="M12 4.5 C9.5 7 8 10 7.5 14 L12 14 Z" />
+  <path d="M12 6 C13.6 7.6 14.6 10 14.8 14 L12 14 Z" fill="currentColor" stroke="none" opacity="0.10" />
+  <path d="M12 6 C13.6 7.6 14.6 10 14.8 14 L12 14 Z" />
+  <path d="M4 16 C7 18 10 18.5 12 18.5 C14 18.5 17 18 20 16 L18.5 19.5 C18.2 20.2 17.5 20.5 16.7 20.5 L7.3 20.5 C6.5 20.5 5.8 20.2 5.5 19.5 Z" />
+</svg>
