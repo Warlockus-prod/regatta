@@ -2,41 +2,45 @@ import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
+import {
+  Canvas,
+  Circle,
+  Group,
+  Path,
+  Skia,
+} from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
 import { Screen, Text } from '../../src/design-system/components';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
+import {
+  buildArrowGrid,
+  buildWindArrowsPath,
+  buildNoGoPath,
+  buildApparentArrowPath,
+  buildCompassArrowPath,
+} from '../../src/simulator/skia-wind';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
 /**
- * Simulator route. Phase 2 preview: live Skia top-down scene driven by
- * the stub physics in `src/simulator/tick.ts`. Pan anywhere on the
- * canvas to set the heading target; the boat turns toward it at
- * `turnRate`, position integrates forward, the playfield wraps at the
- * edges, and a fading wake renders the last 60 positions.
+ * Sprint 3 simulator: real VPP physics + interactive wind.
  *
- * What this preview demonstrates:
- *   1. Skia toolchain works end-to-end on the user's device.
- *   2. Render-loop pattern (use-sim-loop hook + Skia Group transform).
- *   3. Gesture integration (`react-native-gesture-handler` v2 Pan).
- *   4. The HUD-over-canvas layout that Phase 2 proper will keep.
- *
- * What it does NOT yet do:
- *   - Real physics. The tick is a heading + speed integrator, not the
- *     full VPP from `src/lib/sailing-physics/*`.
- *   - Wind dynamics, sail trim, heel, leeway, missions, replay.
- *
- * Phase 2 proper (after ADR-0003 lands) replaces the stub with the
- * shared physics package and adds missions + wind variation per
- * ROADMAP §3.
+ * Drag the canvas to steer. The wind compass (top-right) rotates the
+ * true wind direction (snap to 15 deg). Tap the compass label to cycle
+ * through 6 / 10 / 14 / 20 kt presets. Boat speed responds to wind
+ * angle: head into the no-go zone and the sails luff, fall off to a
+ * reach and the boat fills in.
  */
 
 const CANVAS_W = 320;
-const CANVAS_H = 240;
+const CANVAS_H = 260;
 const CENTER_X = CANVAS_W / 2;
 const CENTER_Y = CANVAS_H / 2;
+
+const COMPASS_R = 28;
+const COMPASS_CX = CANVAS_W - COMPASS_R - 16;
+const COMPASS_CY = COMPASS_R + 16;
 
 // Top-down boat silhouette, centered at origin, pointing up (heading 0 = north).
 const boatPath = (() => {
@@ -49,21 +53,17 @@ const boatPath = (() => {
   return p;
 })();
 
-// Wind reference at top of the canvas: fixed wind from the north, pointing south.
-const windArrowPath = (() => {
-  const p = Skia.Path.Make();
-  p.moveTo(160, 22);
-  p.lineTo(160, 56);
-  p.moveTo(154, 48);
-  p.lineTo(160, 58);
-  p.lineTo(166, 48);
-  return p;
-})();
+const compassArrowPath = buildCompassArrowPath();
 
-/**
- * Build a Skia path from trail points, breaking the line at any segment
- * that crosses the playfield wrap (heuristic: large jump > half-canvas).
- */
+const SNAP_DEG = 15;
+const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
+
+function snapToStep(rad: number, step: number): number {
+  return Math.round(rad / step) * step;
+}
+
+/** Build a Skia path from trail points, breaking the line at any segment
+ * that crosses the playfield wrap (heuristic: large jump > half-canvas). */
 function buildTrailPath(trail: TrailPoint[]) {
   const p = Skia.Path.Make();
   if (trail.length === 0) return p;
@@ -86,25 +86,24 @@ export default function Simulator() {
   const { tp } = useI18n();
   const sim = useSimLoop({ bounds: { width: CANVAS_W, height: CANVAS_H } });
 
-  // Pan gesture: target heading = angle from canvas center to the touch
-  // point. Pan up = head north, pan right = head east, etc. `runOnJS(true)`
-  // keeps the worklet boundary simple; the hook setter is JS-thread.
-  const pan = useMemo(
+  // ---- Pan-to-steer (whole canvas except the compass corner) -----------
+  const steer = useMemo(
     () =>
       Gesture.Pan()
         .runOnJS(true)
         .minDistance(0)
         .onBegin((e) => {
-          // Subtle "touch registered" tap on the device. Once per gesture.
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
-            /* ignore on devices without taptic engine. */
-          });
+          if (insideCompass(e.x, e.y)) return;
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+            () => {},
+          );
           const dx = e.x - CENTER_X;
           const dy = e.y - CENTER_Y;
           if (dx === 0 && dy === 0) return;
           sim.setTargetHeading(Math.atan2(dx, -dy));
         })
         .onChange((e) => {
+          if (insideCompass(e.x, e.y)) return;
           const dx = e.x - CENTER_X;
           const dy = e.y - CENTER_Y;
           if (dx === 0 && dy === 0) return;
@@ -115,12 +114,69 @@ export default function Simulator() {
     [],
   );
 
+  // ---- Wind compass drag (snap to 15 deg) ------------------------------
+  const windDrag = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .minDistance(0)
+        .onBegin((e) => {
+          if (!insideCompass(e.x, e.y)) return;
+          const dx = e.x - COMPASS_CX;
+          const dy = e.y - COMPASS_CY;
+          const raw = Math.atan2(dx, -dy);
+          sim.setWindDir(snapToStep(raw, SNAP_RAD));
+        })
+        .onChange((e) => {
+          if (!insideCompass(e.x, e.y)) return;
+          const dx = e.x - COMPASS_CX;
+          const dy = e.y - COMPASS_CY;
+          const raw = Math.atan2(dx, -dy);
+          sim.setWindDir(snapToStep(raw, SNAP_RAD));
+        }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
+
+  const composedGesture = useMemo(
+    () => Gesture.Simultaneous(windDrag, steer),
+    [windDrag, steer],
+  );
+
+  // ---- Memoised Skia paths --------------------------------------------
+  const arrowGrid = useMemo(
+    () => buildArrowGrid(CANVAS_W, CANVAS_H, 56),
+    [],
+  );
+  const windArrowsPath = useMemo(
+    () => buildWindArrowsPath(arrowGrid, sim.wind.trueWindDirRad),
+    [arrowGrid, sim.wind.trueWindDirRad],
+  );
+
   const trailPath = useMemo(
     () => buildTrailPath(sim.trail),
     // Trail array reference changes on every tick.
     [sim.trail, sim.tickN],
   );
 
+  const noGoPath = useMemo(() => {
+    // No-go opens around the apparent wind FROM-direction, in screen-space.
+    // Boat heading is in screen-space (rad). AWA is signed degrees from bow.
+    const awaScreenRad =
+      sim.boat.heading + (sim.boatExt.awaDeg * Math.PI) / 180;
+    return buildNoGoPath(sim.boat.x, sim.boat.y, awaScreenRad, 90);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
+
+  const apparentArrowPath = useMemo(() => {
+    const awaScreenRad =
+      sim.boat.heading + (sim.boatExt.awaDeg * Math.PI) / 180;
+    // Anchor at the bow (a bit forward of boat center).
+    const bowX = sim.boat.x + Math.sin(sim.boat.heading) * -16;
+    const bowY = sim.boat.y - Math.cos(sim.boat.heading) * -16;
+    return buildApparentArrowPath(bowX, bowY, awaScreenRad);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
+
+  // ---- Labels ----------------------------------------------------------
   const title = tp('Симулятор', 'Simulator', 'Symulator', {
     es: 'Simulador',
     fr: 'Simulateur',
@@ -136,14 +192,14 @@ export default function Simulator() {
   });
 
   const previewNote = tp(
-    'Тяни пальцем по полю - задаёшь курс яхте. Кнопка справа сбрасывает позицию.',
-    'Drag a finger across the field to steer the boat. The button on the right resets the position.',
-    'Przeciagaj palcem po polu by sterowac jachtem. Przycisk po prawej resetuje pozycje.',
+    'Тяни пальцем чтобы рулить. Вращай компас справа чтобы менять ветер. Тапни кнопку kt чтобы переключить силу.',
+    'Drag a finger to steer. Rotate the compass on the right to change wind. Tap the kt button to cycle wind speed.',
+    'Przeciagaj palcem by sterowac. Obracaj kompas po prawej by zmieniac wiatr. Stuknij przycisk kt by przelaczyc sile.',
     {
-      es: 'Arrastra el dedo por el campo para gobernar el barco. El boton de la derecha reinicia la posicion.',
-      fr: 'Fais glisser le doigt sur le terrain pour barrer le bateau. Le bouton a droite reinitialise la position.',
-      de: 'Mit dem Finger uber das Feld ziehen, um das Boot zu steuern. Der Knopf rechts setzt die Position zurueck.',
-      it: 'Trascina il dito sul campo per timonare la barca. Il pulsante a destra reimposta la posizione.',
+      es: 'Arrastra el dedo para gobernar. Gira la brujula a la derecha para cambiar el viento. Toca el boton kt para cambiar la fuerza.',
+      fr: 'Glisse le doigt pour barrer. Tourne la boussole a droite pour changer le vent. Touche le bouton kt pour cycler la force.',
+      de: 'Ziehe den Finger zum Steuern. Drehe den Kompass rechts, um den Wind zu aendern. Tippe auf kt, um die Staerke umzuschalten.',
+      it: 'Trascina il dito per timonare. Ruota la bussola a destra per cambiare il vento. Tocca il pulsante kt per cambiare la forza.',
     },
   );
 
@@ -153,26 +209,27 @@ export default function Simulator() {
     de: 'KURS',
     it: 'ROTTA',
   });
-  const speedLabel = tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC', {
-    es: 'VELOCIDAD',
-    fr: 'VITESSE',
-    de: 'SPEED',
-    it: 'VELOCITA',
+  const speedLabel = tp('УЗЛЫ', 'SPEED', 'WEZLY', {
+    es: 'NUDOS',
+    fr: 'NOEUDS',
+    de: 'KNOTEN',
+    it: 'NODI',
   });
-  const targetLabel = tp('ЦЕЛЬ', 'TARGET', 'CEL', {
-    es: 'OBJETIVO',
-    fr: 'CIBLE',
-    de: 'ZIEL',
-    it: 'TARGET',
-  });
+  const twaLabel = 'TWA';
+  const awaLabel = 'AWA';
+  const twdLabel = 'TWD';
 
+  // ---- Derived values --------------------------------------------------
   const headingDeg = Math.round(
     (((sim.boat.heading * 180) / Math.PI) % 360 + 360) % 360,
   );
-  const targetDeg = Math.round(
-    (((sim.controls.targetHeading * 180) / Math.PI) % 360 + 360) % 360,
+  const twdDeg = Math.round(
+    (((sim.wind.trueWindDirRad * 180) / Math.PI) % 360 + 360) % 360,
   );
-  const speed = Math.round(sim.boat.speed);
+  const speedKn = sim.boatExt.boatSpeedKn.toFixed(1);
+  const twaDeg = Math.round(sim.boatExt.twaDeg);
+  const awaDeg = Math.round(sim.boatExt.awaDeg);
+  const windKts = Math.round(sim.wind.trueWindSpeedKts);
 
   return (
     <Screen>
@@ -188,7 +245,7 @@ export default function Simulator() {
           <Pressable
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
-                () => {/* ignore */},
+                () => {},
               );
               sim.reset();
             }}
@@ -208,17 +265,21 @@ export default function Simulator() {
           </Pressable>
         </View>
 
-        <GestureDetector gesture={pan}>
-          <View style={styles.canvasWrap}>
+        <View style={styles.canvasWrap}>
+          <GestureDetector gesture={composedGesture}>
             <Canvas style={styles.canvas}>
               <Group>
+                {/* Ambient wind arrows. */}
                 <Path
-                  path={windArrowPath}
+                  path={windArrowsPath}
                   color={colors.windColor}
                   style="stroke"
-                  strokeWidth={2}
+                  strokeWidth={1}
                   strokeCap="round"
+                  opacity={0.32}
                 />
+
+                {/* Wake. */}
                 <Path
                   path={trailPath}
                   color={colors.accentCyan}
@@ -228,6 +289,33 @@ export default function Simulator() {
                   strokeJoin="round"
                   opacity={0.4}
                 />
+
+                {/* No-go zone triangle. */}
+                <Path
+                  path={noGoPath}
+                  color={colors.danger}
+                  style="fill"
+                  opacity={0.12}
+                />
+                <Path
+                  path={noGoPath}
+                  color={colors.danger}
+                  style="stroke"
+                  strokeWidth={1}
+                  opacity={0.35}
+                />
+
+                {/* Apparent wind arrow at the bow. */}
+                <Path
+                  path={apparentArrowPath}
+                  color={colors.windColor}
+                  style="stroke"
+                  strokeWidth={2}
+                  strokeCap="round"
+                  opacity={0.95}
+                />
+
+                {/* Boat icon. */}
                 <Group
                   transform={[
                     { translateX: sim.boat.x },
@@ -237,21 +325,75 @@ export default function Simulator() {
                 >
                   <Path path={boatPath} color={colors.sailColor} />
                 </Group>
+
+                {/* Wind compass dial. */}
+                <Group
+                  transform={[
+                    { translateX: COMPASS_CX },
+                    { translateY: COMPASS_CY },
+                  ]}
+                >
+                  <Circle
+                    cx={0}
+                    cy={0}
+                    r={COMPASS_R}
+                    color={colors.bgCard}
+                    opacity={0.85}
+                  />
+                  <Circle
+                    cx={0}
+                    cy={0}
+                    r={COMPASS_R}
+                    color={colors.windColor}
+                    style="stroke"
+                    strokeWidth={1}
+                    opacity={0.5}
+                  />
+                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
+                    <Path
+                      path={compassArrowPath}
+                      color={colors.windColor}
+                      style="stroke"
+                      strokeWidth={2}
+                      strokeCap="round"
+                    />
+                  </Group>
+                </Group>
               </Group>
             </Canvas>
-          </View>
-        </GestureDetector>
+          </GestureDetector>
+
+          {/* Wind speed cycler overlaid on the canvas, just under the compass. */}
+          <Pressable
+            style={styles.windSpeedButton}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              sim.cycleWindSpeed();
+            }}
+          >
+            <Text style={styles.windSpeedValue}>{`${windKts} kt`}</Text>
+            <Text style={styles.windSpeedLabel}>{twdLabel}</Text>
+            <Text style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
+          </Pressable>
+        </View>
 
         <View style={styles.hud}>
           <HudCell label={headingLabel} value={`${headingDeg}°`} />
-          <HudCell label={targetLabel} value={`${targetDeg}°`} muted />
-          <HudCell label={speedLabel} value={String(speed)} />
+          <HudCell label={speedLabel} value={speedKn} />
+          <HudCell label={twaLabel} value={`${twaDeg}°`} muted />
+          <HudCell label={awaLabel} value={`${awaDeg}°`} muted />
         </View>
 
         <Text variant="caption" style={styles.note}>{previewNote}</Text>
       </View>
     </Screen>
   );
+}
+
+function insideCompass(x: number, y: number): boolean {
+  const dx = x - COMPASS_CX;
+  const dy = y - COMPASS_CY;
+  return dx * dx + dy * dy <= (COMPASS_R + 6) * (COMPASS_R + 6);
 }
 
 function HudCell({
@@ -324,15 +466,49 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 212, 255, 0.10)',
     borderWidth: 1,
     alignSelf: 'center',
+    position: 'relative',
   },
   canvas: {
     width: CANVAS_W,
     height: CANVAS_H,
   },
+  windSpeedButton: {
+    position: 'absolute',
+    right: 8,
+    top: COMPASS_CY + COMPASS_R + 6,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+    borderRadius: 4,
+    backgroundColor: 'rgba(15, 32, 53, 0.85)',
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+    alignItems: 'flex-end',
+    minWidth: 56,
+  },
+  windSpeedValue: {
+    color: colors.windColor,
+    fontSize: 13,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+    lineHeight: 16,
+  },
+  windSpeedLabel: {
+    color: colors.textMuted,
+    fontSize: 8,
+    letterSpacing: 1.2,
+    fontWeight: '700',
+    marginTop: 1,
+  },
+  windSpeedTwd: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '600',
+    fontVariant: ['tabular-nums'],
+  },
   hud: {
     flexDirection: 'row',
     marginTop: spacing.lg,
-    gap: spacing.lg,
+    gap: spacing.md,
   },
   hudCell: {
     flex: 1,
@@ -345,12 +521,13 @@ const styles = StyleSheet.create({
   },
   hudValue: {
     color: colors.accentCyan,
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   hudValueMuted: {
     color: colors.textSecondary,
+    fontSize: 18,
   },
   note: {
     marginTop: spacing.lg,

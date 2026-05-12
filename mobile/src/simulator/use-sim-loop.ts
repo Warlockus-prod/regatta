@@ -1,23 +1,46 @@
 /**
- * React hook that drives the Phase 2 simulator preview at 30 Hz.
+ * React hook driving the simulator at 30 Hz on top of the ported VPP
+ * engine in `./physics/*`.
  *
- * State is held in refs so the inner tick mutates without churning
- * React; a dedicated render counter forces a re-render once per tick
- * so Skia can repaint with fresh values. Phase 2 proper moves this
- * to a Reanimated worklet so the simulation runs on the UI thread
- * at 60 Hz with no JS-bridge cost. Shape of the public API stays
- * the same across that swap.
+ * Two state worlds run side by side:
  *
- * In addition to the live `BoatState`, the hook keeps a short trail
- * (last N positions) for the Skia wake render. Trail is gated by a
- * minimum delta so very-low-speed motion does not spam tightly-packed
- * points.
+ * 1. Screen-space (canvas px, radians, clockwise-from-north) -- exposed
+ *    via `boat: BoatState`. The Skia scene reads this and applies a
+ *    rotation transform.
+ * 2. Engine-space (compass degrees, knots) -- the real VPP `BoatState`.
+ *    Lives on a ref, surfaced via `boatExt: BoatStateExt` for the HUD
+ *    and the wind / no-go overlays.
+ *
+ * The two are synchronized once per tick: target heading is converted
+ * to compass degrees, fed to the engine, the engine runs `tick()`, then
+ * the resulting boat speed (knots) is converted to canvas px/s for the
+ * position integrator. Heading rotation is still done in screen-space
+ * (turn rate clamp), then echoed back to the engine. This keeps the UI
+ * smooth and the physics responsive without forcing the engine to model
+ * helm response.
  */
 
 import { useEffect, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
-import { tick } from './tick';
-import type { BoatState, Controls, SimParams } from './types';
+import {
+  tick as physicsTick,
+  createInitialState,
+  getBoatParams,
+  RAD_TO_DEG,
+  DEG_TO_RAD,
+} from './physics';
+import type {
+  BoatState as PhysicsBoatState,
+  Controls as PhysicsControls,
+} from './physics';
+import type {
+  BoatState,
+  BoatStateExt,
+  Controls,
+  SailSet,
+  SimParams,
+  WindState,
+} from './types';
 
 const TICK_HZ = 30;
 const DT = 1 / TICK_HZ;
@@ -26,24 +49,34 @@ const TRAIL_MAX = 60;
 /** Squared min distance between consecutive trail points (canvas px). */
 const TRAIL_MIN_DIST_SQ = 4;
 
+/**
+ * Rough conversion from real knots to canvas pixels per second. Tuned so a
+ * cruiser at 6 kn glides across the 320-wide playfield in ~10 sec, which
+ * reads as "moving" without leaving the visible field too quickly.
+ */
+const KN_TO_PX_PER_S = 6;
+
 const DEFAULT_PARAMS: SimParams = {
-  maxSpeed: 90, // canvas pixels per second
-  turnRate: 0.7, // ~40 deg/s
+  maxSpeed: 90,
+  turnRate: 0.7,
   drag: 0.5,
 };
 
-const DEFAULT_STATE: BoatState = {
+const DEFAULT_BOAT: BoatState = {
   heading: 0,
   speed: 0,
   x: 0,
   y: 0,
 };
 
+const DEFAULT_WIND: WindState = {
+  trueWindDirRad: 0,
+  trueWindSpeedKts: 12,
+};
+
 interface SimLoopOptions {
-  /** Starting boat position, defaults to canvas center. */
   initialX?: number;
   initialY?: number;
-  /** Width / height of the playfield. Boat wraps around the edges. */
   bounds: { width: number; height: number };
 }
 
@@ -53,28 +86,104 @@ export interface TrailPoint {
 }
 
 export interface SimLoopHandle {
-  /** Live reference to the boat. Read on every render for Skia transforms. */
+  /** Live screen-space boat. Read on every render for Skia transforms. */
   boat: BoatState;
-  /** Live controls reference. Mutate via setters. */
+  /** Real-units extended state for the HUD. */
+  boatExt: BoatStateExt;
+  /** Wind state. */
+  wind: WindState;
+  /** Live screen-space controls. */
   controls: Controls;
-  /** Recent boat positions, oldest first. Drops points beyond TRAIL_MAX. */
+  /** Recent boat positions, oldest first. */
   trail: TrailPoint[];
   /** Increments once per tick, used as a render trigger. */
   tickN: number;
-  /** Set the heading target (radians). Boat turns toward it at turnRate. */
+  /** Set the heading target (radians, screen-space). */
   setTargetHeading: (h: number) => void;
-  /** Set throttle 0..1. */
+  /** Set throttle 0..1 (kept for back-compat; engine ignores it). */
   setThrottle: (t: number) => void;
-  /** Reset boat to the initial position with zero velocity. Clears trail. */
+  /** Set true wind FROM-direction (radians, screen-space). */
+  setWindDir: (rad: number) => void;
+  /** Cycle wind speed through the preset 6/10/14/20 kt list. */
+  cycleWindSpeed: () => void;
+  /** Set wind speed in knots directly. */
+  setWindSpeed: (kts: number) => void;
+  /** Reset boat + trail. Wind preserved. */
   reset: () => void;
+}
+
+const WIND_SPEED_PRESETS_KTS = [6, 10, 14, 20] as const;
+
+/**
+ * Default trim numbers for an "auto-trim" sailor. They are good enough to
+ * drive across the wind range without the user having to think about
+ * sheeting in/out yet. Sprint 4 lifts these into a UI panel.
+ */
+const AUTO_CONTROLS: PhysicsControls = {
+  mainSheet: 0.5,
+  jibSheet: 0.4,
+  mainTwist: 0.15,
+  jibTwist: 0.15,
+  reef: 0,
+  jibFurl: 0,
+  jibSide: 1,
+};
+
+/** Pick the spinnaker / main+jib / main-only based on TWA. */
+function pickSailSet(twaAbs: number): SailSet {
+  if (twaAbs > 130) return 'spinnaker';
+  if (twaAbs > 35) return 'mainJib';
+  return 'mainOnly';
+}
+
+/** Tweak the auto-controls so the boat behaves sensibly across TWA. */
+function autoTrimFor(twaSigned: number): PhysicsControls {
+  const a = Math.abs(twaSigned);
+  // Upwind: hard sheeted in. Reach: medium. Downwind: ease out, set
+  // wing-on-wing once past 150.
+  let mainSheet: number;
+  let jibSheet: number;
+  let jibSide: 1 | -1 = 1;
+  if (a < 50) {
+    mainSheet = 0.85;
+    jibSheet = 0.85;
+  } else if (a < 100) {
+    mainSheet = 0.55;
+    jibSheet = 0.45;
+  } else if (a < 150) {
+    mainSheet = 0.30;
+    jibSheet = 0.25;
+  } else {
+    mainSheet = 0.15;
+    jibSheet = 0.10;
+    jibSide = -1;
+  }
+  return { ...AUTO_CONTROLS, mainSheet, jibSheet, jibSide };
+}
+
+/** Normalize a radians angle to [0, 2 PI). */
+function normalizeRad(r: number): number {
+  const TWO_PI = Math.PI * 2;
+  let n = r % TWO_PI;
+  if (n < 0) n += TWO_PI;
+  return n;
+}
+
+/** Shortest signed angular distance from a to b, radians. */
+function shortestRad(a: number, b: number): number {
+  const TWO_PI = Math.PI * 2;
+  let d = (b - a) % TWO_PI;
+  if (d > Math.PI) d -= TWO_PI;
+  if (d < -Math.PI) d += TWO_PI;
+  return d;
 }
 
 export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
   const initialX = options.initialX ?? options.bounds.width / 2;
   const initialY = options.initialY ?? options.bounds.height / 2;
 
-  const stateRef = useRef<BoatState>({
-    ...DEFAULT_STATE,
+  const screenStateRef = useRef<BoatState>({
+    ...DEFAULT_BOAT,
     x: initialX,
     y: initialY,
   });
@@ -82,8 +191,29 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     targetHeading: 0,
     throttle: 0.7,
   });
+  const windRef = useRef<WindState>({ ...DEFAULT_WIND });
+  const physicsRef = useRef<PhysicsBoatState>(
+    createInitialState({
+      tws: DEFAULT_WIND.trueWindSpeedKts,
+      heading: 0,
+      trueWindDir: 0,
+      boatSpeed: 0,
+    }),
+  );
+  const boatExtRef = useRef<BoatStateExt>({
+    boatSpeedKn: 0,
+    heelDeg: 0,
+    leewayDeg: 0,
+    twaDeg: 0,
+    awaDeg: 0,
+    awsKn: DEFAULT_WIND.trueWindSpeedKts,
+    vmgKn: 0,
+    sailSet: 'mainJib',
+  });
   const trailRef = useRef<TrailPoint[]>([{ x: initialX, y: initialY }]);
   const [tickN, advance] = useReducer((n: number) => n + 1, 0);
+
+  const params = getBoatParams();
 
   useEffect(() => {
     let id: ReturnType<typeof setInterval> | null = null;
@@ -91,21 +221,68 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     const start = () => {
       if (id !== null) return;
       id = setInterval(() => {
-        const next = tick(stateRef.current, controlsRef.current, DEFAULT_PARAMS, DT);
+        const screen = screenStateRef.current;
+        const controls = controlsRef.current;
+        const wind = windRef.current;
 
-        // Wrap around the playfield so the demo loops indefinitely
-        // without the boat sailing off-screen.
+        // 1. Heading rotation in screen-space, clamped per frame.
+        const dh = shortestRad(screen.heading, controls.targetHeading);
+        const maxStep = DEFAULT_PARAMS.turnRate * DT;
+        const turn = Math.max(-maxStep, Math.min(maxStep, dh));
+        const newHeadingRad = normalizeRad(screen.heading + turn);
+        const newHeadingDeg = (newHeadingRad * RAD_TO_DEG) % 360;
+
+        // 2. Sync engine state with current screen heading + wind.
+        const trueWindDirDeg =
+          (normalizeRad(wind.trueWindDirRad) * RAD_TO_DEG) % 360;
+        const engineIn: PhysicsBoatState = {
+          ...physicsRef.current,
+          heading: newHeadingDeg,
+          trueWindDir: trueWindDirDeg,
+          trueWindSpeed: wind.trueWindSpeedKts,
+        };
+
+        // 3. Auto-trim sails for the current TWA, then run one engine tick.
+        const twaPre =
+          ((trueWindDirDeg - newHeadingDeg + 540) % 360) - 180;
+        const trimmed = autoTrimFor(twaPre);
+        const result = physicsTick(engineIn, trimmed, params, DT);
+        physicsRef.current = result.state;
+
+        // 4. Position integration in screen-space, driven by real knots.
+        //    Canvas Y is screen-down so heading 0 (north) means -Y.
+        const speedPxPerS = result.state.boatSpeed * KN_TO_PX_PER_S;
+        const dx = Math.sin(newHeadingRad) * speedPxPerS * DT;
+        const dy = -Math.cos(newHeadingRad) * speedPxPerS * DT;
+
         const w = options.bounds.width;
         const h = options.bounds.height;
-        let { x, y } = next;
+        let x = screen.x + dx;
+        let y = screen.y + dy;
         if (x < 0) x += w;
         if (x > w) x -= w;
         if (y < 0) y += h;
         if (y > h) y -= h;
 
-        stateRef.current = { ...next, x, y };
+        screenStateRef.current = {
+          heading: newHeadingRad,
+          speed: speedPxPerS,
+          x,
+          y,
+        };
 
-        // Append to trail if moved enough. Cheap squared-distance gate.
+        boatExtRef.current = {
+          boatSpeedKn: result.state.boatSpeed,
+          heelDeg: result.state.heel,
+          leewayDeg: result.state.leeway,
+          twaDeg: twaPre,
+          awaDeg: result.diag.awa,
+          awsKn: result.diag.aws,
+          vmgKn: result.diag.vmg,
+          sailSet: pickSailSet(Math.abs(twaPre)),
+        };
+
+        // Append to trail if moved enough.
         const last = trailRef.current[trailRef.current.length - 1];
         if (!last || (x - last.x) ** 2 + (y - last.y) ** 2 >= TRAIL_MIN_DIST_SQ) {
           const nextTrail = [...trailRef.current, { x, y }];
@@ -126,8 +303,6 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
 
     if (AppState.currentState === 'active') start();
 
-    // Pause physics while backgrounded so we do not drain battery and
-    // keep ticking against a stale wind state. Resume on foreground.
     const sub = AppState.addEventListener('change', (next) => {
       if (next === 'active') start();
       else stop();
@@ -137,10 +312,15 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
       stop();
       sub.remove();
     };
+    // params is a fresh object every render but always ===-equivalent; the
+    // engine reads it by value each tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.bounds.width, options.bounds.height]);
 
   return {
-    boat: stateRef.current,
+    boat: screenStateRef.current,
+    boatExt: boatExtRef.current,
+    wind: windRef.current,
     controls: controlsRef.current,
     trail: trailRef.current,
     tickN,
@@ -150,10 +330,53 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     setThrottle: (t) => {
       controlsRef.current.throttle = Math.max(0, Math.min(1, t));
     },
+    setWindDir: (rad) => {
+      windRef.current = {
+        ...windRef.current,
+        trueWindDirRad: normalizeRad(rad),
+      };
+    },
+    cycleWindSpeed: () => {
+      const cur = windRef.current.trueWindSpeedKts;
+      const idx = WIND_SPEED_PRESETS_KTS.findIndex((k) => k === cur);
+      const next =
+        WIND_SPEED_PRESETS_KTS[(idx + 1) % WIND_SPEED_PRESETS_KTS.length] ?? 12;
+      windRef.current = { ...windRef.current, trueWindSpeedKts: next };
+    },
+    setWindSpeed: (kts) => {
+      windRef.current = {
+        ...windRef.current,
+        trueWindSpeedKts: Math.max(0, kts),
+      };
+    },
     reset: () => {
-      stateRef.current = { ...DEFAULT_STATE, x: initialX, y: initialY };
+      screenStateRef.current = {
+        ...DEFAULT_BOAT,
+        x: initialX,
+        y: initialY,
+      };
       controlsRef.current = { targetHeading: 0, throttle: 0.7 };
+      const wind = windRef.current;
+      physicsRef.current = createInitialState({
+        tws: wind.trueWindSpeedKts,
+        heading: 0,
+        trueWindDir:
+          (normalizeRad(wind.trueWindDirRad) * RAD_TO_DEG) % 360,
+        boatSpeed: 0,
+      });
+      boatExtRef.current = {
+        boatSpeedKn: 0,
+        heelDeg: 0,
+        leewayDeg: 0,
+        twaDeg: 0,
+        awaDeg: 0,
+        awsKn: wind.trueWindSpeedKts,
+        vmgKn: 0,
+        sailSet: 'mainJib',
+      };
       trailRef.current = [{ x: initialX, y: initialY }];
     },
   };
 }
+
+void DEG_TO_RAD;
