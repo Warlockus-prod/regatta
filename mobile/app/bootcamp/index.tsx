@@ -1,12 +1,35 @@
 import { Stack, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Screen, Text } from '../../src/design-system/components';
+import { Card, Icon, type IconName, Screen, Text } from '../../src/design-system/components';
 import { BOOTCAMP_TOTAL_MINUTES, bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
 import { groupLessonsByDay } from '../../src/bootcamp/days';
 import { colors, spacing } from '../../src/design-system/tokens';
+
+/**
+ * Map each lesson id to a designer icon. Bootcamp lessons cover the
+ * 8-step arc (wind -> rules -> mini race); quick refresh lessons reuse
+ * the same icon family. Lessons not in the map fall back to `compass`,
+ * which is the safe neutral.
+ */
+const LESSON_ICON: Record<string, IconName> = {
+  'wind-direction': 'wind',
+  'points-of-sail': 'compass',
+  'how-sail-works': 'sail-trim',
+  tacking: 'tack',
+  jibing: 'jibe',
+  'vmg-beating': 'vmg',
+  'simple-rules': 'book',
+  'mini-race': 'flag',
+  'q-wind': 'wind',
+  'q-courses': 'compass',
+  'q-maneuvers': 'tack',
+  'q-rules': 'book',
+  'q-start': 'flag',
+  'q-race': 'sail',
+};
 
 /**
  * Bootcamp index. The 8 lessons render under "Day N" headers - the
@@ -135,7 +158,14 @@ export default function BootcampIndex() {
                     accessibilityState={{ selected: completed }}
                   >
                     <View style={styles.lessonHeader}>
-                      <Text style={styles.emoji}>{lesson.emoji}</Text>
+                      <View style={styles.iconWrap}>
+                        <Icon
+                          name={LESSON_ICON[lesson.id] ?? 'compass'}
+                          size={20}
+                          color={completed ? colors.success : colors.textSecondary}
+                        />
+                        <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
+                      </View>
                       <View style={styles.lessonText}>
                         <Text variant="subtitle">{title}</Text>
                         <Text variant="muted" style={styles.meta}>{meta}</Text>
@@ -204,10 +234,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
   },
-  emoji: {
-    fontSize: 28,
+  iconWrap: {
     marginRight: spacing.md,
     marginTop: 2,
+    width: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emojiHidden: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    opacity: 0,
+    fontSize: 1,
   },
   lessonText: {
     flex: 1,

@@ -1,0 +1,11 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Race flag / finish glyph. A flag waving from a pole with a
+    checkered hint. Used for the mini-race / finish lesson.
+  -->
+  <path d="M5 3 L5 21" />
+  <path d="M5 4 L18 4 C18 4 16.5 6 16.5 7.5 C16.5 9 18 11 18 11 L5 11" />
+  <path d="M9 4 L9 7.5" opacity="0.55" />
+  <path d="M14 4 L14 7.5" opacity="0.55" />
+  <path d="M5 7.5 L18 7.5" opacity="0.45" />
+</svg>

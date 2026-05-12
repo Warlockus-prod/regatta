@@ -1,0 +1,11 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Leaderboard glyph. Trophy on a pedestal, with side handles.
+  -->
+  <path d="M8 4 L16 4 L16 9 C16 11.5 14.2 13.5 12 13.5 C9.8 13.5 8 11.5 8 9 Z" />
+  <path d="M8 6 L5.5 6 C5 6 4.5 6.5 4.5 7 L4.5 8 C4.5 9.7 6 11 8 11" />
+  <path d="M16 6 L18.5 6 C19 6 19.5 6.5 19.5 7 L19.5 8 C19.5 9.7 18 11 16 11" />
+  <path d="M12 13.5 L12 16" />
+  <path d="M9 16 L15 16 L15 18 L9 18 Z" />
+  <path d="M7 20 L17 20" />
+</svg>

@@ -9,11 +9,12 @@ import {
   ListRow,
   Screen,
   Text,
+  Wordmark,
 } from '../src/design-system/components';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
 import { summarizeContinue, TOTAL_DAYS } from '../src/bootcamp/days';
 import { legacyPick } from '../src/i18n/languages';
-import { colors, spacing } from '../src/design-system/tokens';
+import { colors, glow, spacing } from '../src/design-system/tokens';
 
 const ACCENT_COLOR: Record<CardAccent, string> = {
   cyan: colors.accentCyan,
@@ -88,8 +89,7 @@ export default function Home() {
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
-          <Text style={styles.brandLead}>Week to</Text>
-          <Text style={styles.brand}>Regatta</Text>
+          <Wordmark size="xl" />
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
         </View>
 
@@ -296,6 +296,7 @@ export default function Home() {
         </Text>
         <View style={styles.list}>
           <ListRow
+            icon="parts"
             title={tp('Анатомия яхты', 'Yacht anatomy', 'Anatomia jachtu', {
               es: 'Anatomia del yate',
               fr: 'Anatomie du yacht',
@@ -305,6 +306,7 @@ export default function Home() {
             onPress={() => router.push('/anatomy')}
           />
           <ListRow
+            icon="onboard"
             title={tp('На борту', 'On board', 'Na pokladzie', {
               es: 'A bordo',
               fr: 'A bord',
@@ -314,6 +316,7 @@ export default function Home() {
             onPress={() => router.push('/onboard')}
           />
           <ListRow
+            icon="glossary"
             title={tp('Глоссарий', 'Glossary', 'Glosariusz', {
               es: 'Glosario',
               fr: 'Glossaire',
@@ -323,6 +326,7 @@ export default function Home() {
             onPress={() => router.push('/glossary')}
           />
           <ListRow
+            icon="polar"
             title={tp('Курсы относительно ветра', 'Points of sail', 'Kursy', {
               es: 'Rumbos',
               fr: 'Allures',
@@ -332,6 +336,7 @@ export default function Home() {
             onPress={() => router.push('/courses')}
           />
           <ListRow
+            icon="tactics"
             title={tp('Тактика гонок', 'Racing tactics', 'Taktyka wyscigow', {
               es: 'Tactica de regata',
               fr: 'Tactique de regate',
@@ -348,6 +353,7 @@ export default function Home() {
         </Text>
         <View style={styles.list}>
           <ListRow
+            icon="simulator"
             title={tp('Симулятор', 'Simulator', 'Symulator', {
               es: 'Simulador',
               fr: 'Simulateur',
@@ -357,6 +363,7 @@ export default function Home() {
             onPress={() => router.push('/simulator')}
           />
           <ListRow
+            icon="multiplayer"
             title={tp('Мультиплеер', 'Multiplayer', 'Multiplayer', {
               es: 'Multijugador',
               fr: 'Multijoueur',
@@ -366,6 +373,7 @@ export default function Home() {
             onPress={() => router.push('/multiplayer')}
           />
           <ListRow
+            icon="leaderboard"
             title={tp('Таблица лидеров', 'Leaderboard', 'Tabela liderow', {
               es: 'Clasificacion',
               fr: 'Classement',
@@ -382,6 +390,7 @@ export default function Home() {
         </Text>
         <View style={styles.list}>
           <ListRow
+            icon="gallery"
             title={tp('Галерея', 'Gallery', 'Galeria', {
               es: 'Galeria',
               fr: 'Galerie',
@@ -391,6 +400,7 @@ export default function Home() {
             onPress={() => router.push('/gallery')}
           />
           <ListRow
+            icon="gear"
             title={tp('Настройки', 'Settings', 'Ustawienia', {
               es: 'Ajustes',
               fr: 'Reglages',
@@ -428,9 +438,9 @@ function ContinueRow({
 }: ContinueRowProps) {
   const accentColor = ACCENT_COLOR.cyan;
   return (
-    <Card accent="cyan" onPress={onPress} style={styles.continueCard}>
+    <Card accent="cyan" onPress={onPress} style={[styles.continueCard, glow.primary]}>
       <View style={styles.continueRow}>
-        <Text style={styles.continueEmoji}>🎓</Text>
+        <Icon name="cap" size={28} color={accentColor} />
         <View style={styles.continueText}>
           <Text style={[styles.continueKicker, { color: accentColor }]}>
             {kicker.toUpperCase()}
@@ -464,9 +474,9 @@ interface CelebrationRowProps {
 function CelebrationRow({ title, ctaLabel, onPress }: CelebrationRowProps) {
   const accentColor = ACCENT_COLOR.success;
   return (
-    <Card accent="success" onPress={onPress} style={styles.continueCard}>
+    <Card accent="success" onPress={onPress} style={[styles.continueCard, glow.success]}>
       <View style={styles.continueRow}>
-        <Text style={styles.continueEmoji}>🏁</Text>
+        <Icon name="flag" size={28} color={accentColor} />
         <View style={styles.continueText}>
           <Text variant="subtitle" style={styles.continueTitle}>{title}</Text>
         </View>
@@ -538,19 +548,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.lg,
   },
-  brandLead: {
-    color: colors.textSecondary,
-    fontSize: 18,
-    fontWeight: '500',
-    letterSpacing: 0.4,
-    marginBottom: 2,
-  },
-  brand: {
-    color: colors.accentCyan,
-    fontSize: 40,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
   tagline: {
     marginTop: spacing.xs,
     textAlign: 'center',
@@ -615,10 +612,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.md,
-  },
-  continueEmoji: {
-    fontSize: 28,
-    lineHeight: 32,
   },
   continueText: {
     flex: 1,

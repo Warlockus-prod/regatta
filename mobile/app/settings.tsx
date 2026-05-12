@@ -12,7 +12,7 @@ import {
 } from 'react-native';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
-import { Button, Card, Screen, Text } from '../src/design-system/components';
+import { Button, Card, Screen, Text, Wordmark } from '../src/design-system/components';
 import { colors, radii, spacing } from '../src/design-system/tokens';
 
 const SUPPORT_EMAIL = 'support@icoffio.com';
@@ -226,7 +226,7 @@ export default function Settings() {
           {aboutSectionLabel.toUpperCase()}
         </Text>
         <Card style={styles.aboutCard}>
-          <Text variant="subtitle">Week to Regatta</Text>
+          <Wordmark size="m" style={styles.aboutWordmark} />
           <Text variant="caption" style={styles.aboutLine}>
             {versionLabel} {version} (build {buildNumber})
           </Text>
@@ -446,6 +446,9 @@ const styles = StyleSheet.create({
   },
   aboutCard: {
     paddingVertical: spacing.md,
+  },
+  aboutWordmark: {
+    marginBottom: 4,
   },
   aboutLine: {
     marginTop: 2,

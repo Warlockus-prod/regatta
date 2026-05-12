@@ -1,5 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
+import { Icon, type IconName } from './Icon';
 import { colors, spacing } from '../tokens';
 
 interface ListRowProps {
@@ -8,6 +9,13 @@ interface ListRowProps {
   onPress: () => void;
   /** Hide bottom border (use for the last row in a group). */
   noBorder?: boolean;
+  /**
+   * Optional leading icon. Mirrors the iOS Settings pattern of a small
+   * tinted glyph to the left of the row title. Tints to
+   * `colors.textSecondary` unless `iconColor` overrides.
+   */
+  icon?: IconName;
+  iconColor?: string;
 }
 
 /**
@@ -15,7 +23,14 @@ interface ListRowProps {
  * indicator on the right. Lighter footprint than Card for secondary
  * tools and reference lists.
  */
-export function ListRow({ title, caption, onPress, noBorder = false }: ListRowProps) {
+export function ListRow({
+  title,
+  caption,
+  onPress,
+  noBorder = false,
+  icon,
+  iconColor,
+}: ListRowProps) {
   return (
     <Pressable
       onPress={onPress}
@@ -25,6 +40,11 @@ export function ListRow({ title, caption, onPress, noBorder = false }: ListRowPr
         pressed && styles.pressed,
       ]}
     >
+      {icon ? (
+        <View style={styles.iconWrap}>
+          <Icon name={icon} size={22} color={iconColor ?? colors.textSecondary} />
+        </View>
+      ) : null}
       <View style={styles.text}>
         <Text variant="subtitle" style={styles.title}>{title}</Text>
         {caption ? <Text variant="caption" style={styles.caption}>{caption}</Text> : null}
@@ -47,6 +67,12 @@ const styles = StyleSheet.create({
   },
   pressed: {
     backgroundColor: colors.bgCardHover,
+  },
+  iconWrap: {
+    marginRight: spacing.md,
+    width: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   text: {
     flex: 1,

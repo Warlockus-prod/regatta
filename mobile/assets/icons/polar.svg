@@ -1,0 +1,12 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Polar diagram / points-of-sail glyph. Two concentric circles with
+    cardinal cross + diagonal heading line, mirroring the Skia polar.
+  -->
+  <circle cx="12" cy="12" r="9" />
+  <circle cx="12" cy="12" r="5.2" opacity="0.55" />
+  <path d="M12 3 L12 21" />
+  <path d="M3 12 L21 12" />
+  <path d="M12 12 L18.4 5.6" />
+  <circle cx="12" cy="12" r="0.9" fill="currentColor" stroke="none" />
+</svg>
