@@ -18,7 +18,7 @@ import {
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Slider, Text } from '../../src/design-system/components';
+import { Screen, Slider, SkiaYacht, Text } from '../../src/design-system/components';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
 import {
@@ -35,7 +35,6 @@ import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 const COMPASS_R = 34;
 const SNAP_DEG = 15;
 const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
-const DEG_TO_RAD = Math.PI / 180;
 
 function snapToStep(rad: number, step: number): number {
   return Math.round(rad / step) * step;
@@ -91,90 +90,6 @@ function buildCoursePath(width: number, height: number) {
   p.lineTo(x + 54, height * 0.47);
   p.lineTo(x - 32, height * 0.28);
   p.lineTo(x, 54);
-  return p;
-}
-
-function buildHullPath() {
-  const p = Skia.Path.Make();
-  p.moveTo(0, -54);
-  p.lineTo(11, -38);
-  p.lineTo(15, 10);
-  p.lineTo(11, 48);
-  p.lineTo(0, 58);
-  p.lineTo(-11, 48);
-  p.lineTo(-15, 10);
-  p.lineTo(-11, -38);
-  p.close();
-  return p;
-}
-
-function buildDeckPath() {
-  const p = Skia.Path.Make();
-  p.moveTo(0, -38);
-  p.lineTo(7, -22);
-  p.lineTo(8, 28);
-  p.lineTo(0, 42);
-  p.lineTo(-8, 28);
-  p.lineTo(-7, -22);
-  p.close();
-  return p;
-}
-
-function buildCabinPath() {
-  const p = Skia.Path.Make();
-  p.moveTo(0, -18);
-  p.lineTo(6, -6);
-  p.lineTo(5, 18);
-  p.lineTo(0, 28);
-  p.lineTo(-5, 18);
-  p.lineTo(-6, -6);
-  p.close();
-  return p;
-}
-
-function buildMainSailPath(angleRad: number, reef: number) {
-  const p = Skia.Path.Make();
-  const mastY = -10;
-  const boomLen = 48 * (1 - reef * 0.35);
-  const boomX = Math.sin(angleRad) * boomLen;
-  const boomY = mastY + Math.cos(angleRad) * boomLen;
-  p.moveTo(0, mastY - 30);
-  p.lineTo(boomX, boomY);
-  p.lineTo(0, mastY);
-  p.close();
-  return p;
-}
-
-function buildJibPath(angleRad: number, reef: number) {
-  const p = Skia.Path.Make();
-  const clewLen = 38 * (1 - reef * 0.25);
-  const clewX = Math.sin(angleRad) * clewLen;
-  const clewY = -18 + Math.cos(angleRad) * clewLen;
-  p.moveTo(0, -48);
-  p.lineTo(0, -12);
-  p.lineTo(clewX, clewY);
-  p.close();
-  return p;
-}
-
-function buildSpinnakerPath(side: number) {
-  const p = Skia.Path.Make();
-  p.moveTo(0, -55);
-  p.lineTo(side * 34, -22);
-  p.lineTo(side * 18, 14);
-  p.lineTo(0, -10);
-  p.lineTo(side * -18, 14);
-  p.lineTo(side * -34, -22);
-  p.close();
-  return p;
-}
-
-function buildBoomPath(angleRad: number, reef: number) {
-  const p = Skia.Path.Make();
-  const mastY = -10;
-  const boomLen = 50 * (1 - reef * 0.35);
-  p.moveTo(0, mastY);
-  p.lineTo(Math.sin(angleRad) * boomLen, mastY + Math.cos(angleRad) * boomLen);
   return p;
 }
 
@@ -305,36 +220,12 @@ export default function Simulator() {
     return buildApparentArrowPath(bowX, bowY, awaScreenRad);
   }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
 
-  const tackSide = sim.boatExt.twaDeg >= 0 ? -1 : 1;
   const autoTrim = sim.controls.autoTrim !== false;
   const mainSheet = sim.controls.mainSheet ?? 0.5;
   const jibSheet = sim.controls.jibSheet ?? 0.4;
   const twist = sim.controls.twist ?? 0.15;
   const reef = sim.controls.reef ?? 0;
-  const mainAngle =
-    tackSide * (8 + (1 - mainSheet) * 72) * DEG_TO_RAD;
-  const jibAngle =
-    tackSide * (12 + (1 - jibSheet) * 58) * DEG_TO_RAD;
 
-  const hullPath = useMemo(() => buildHullPath(), []);
-  const deckPath = useMemo(() => buildDeckPath(), []);
-  const cabinPath = useMemo(() => buildCabinPath(), []);
-  const mainSailPath = useMemo(
-    () => buildMainSailPath(mainAngle, reef),
-    [mainAngle, reef],
-  );
-  const jibSailPath = useMemo(
-    () => buildJibPath(jibAngle, reef),
-    [jibAngle, reef],
-  );
-  const spinnakerPath = useMemo(
-    () => buildSpinnakerPath(tackSide),
-    [tackSide],
-  );
-  const boomPath = useMemo(
-    () => buildBoomPath(mainAngle, reef),
-    [mainAngle, reef],
-  );
   const compassArrowPath = useMemo(() => buildCompassArrowPath(), []);
 
   const title = tp('Симулятор', 'Simulator', 'Symulator', {
@@ -577,10 +468,8 @@ export default function Simulator() {
   const windKts = Math.round(sim.wind.trueWindSpeedKts);
   const trimScore = sim.boatExt.trimScore;
   const trimColor = scoreColor(trimScore);
-  const boatScale = sceneW < 360 ? 0.82 : 0.95;
+  const boatLength = sceneW < 360 ? 30 : 36;
   const heelOffset = Math.max(-8, Math.min(8, sim.boatExt.heelDeg / 4));
-  const mainFill = sim.boatExt.mainStalled ? colors.warning : colors.sailColor;
-  const jibFill = sim.boatExt.jibStalled ? colors.warning : colors.sailColor;
   const showSpinnaker = sim.boatExt.sailSet === 'spinnaker';
   const commentary = commentaryFor({
     mainStalled: sim.boatExt.mainStalled,
@@ -639,6 +528,8 @@ export default function Simulator() {
               );
               sim.reset();
             }}
+            accessibilityRole="button"
+            accessibilityLabel={resetLabel}
             style={({ pressed }) => [
               styles.resetButton,
               pressed && styles.resetPressed,
@@ -674,10 +565,10 @@ export default function Simulator() {
                 {formatTime(missionState.elapsedSec)}
               </Text>
             </View>
-            <Text style={styles.missionHudTitle} numberOfLines={2}>
+            <Text style={styles.missionHudTitle} numberOfLines={3}>
               {activeMission.title(tp)}
             </Text>
-            <Text variant="caption" style={styles.missionHudHint} numberOfLines={2}>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
               {activeMission.hint(tp)}
             </Text>
             {missionState.distanceToNextPx != null &&
@@ -695,10 +586,10 @@ export default function Simulator() {
         {mode === 'drill' && activeDrill && drillState ? (
           <View style={styles.missionHud}>
             <Text style={styles.missionHudKicker}>{modeDrillLabel.toUpperCase()}</Text>
-            <Text style={styles.missionHudTitle} numberOfLines={2}>
+            <Text style={styles.missionHudTitle} numberOfLines={3}>
               {activeDrill.title(tp)}
             </Text>
-            <Text variant="caption" style={styles.missionHudHint} numberOfLines={2}>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
               {activeDrill.hint(tp)}
             </Text>
             <View style={styles.missionHudMeta}>
@@ -833,49 +724,20 @@ export default function Simulator() {
                   opacity={0.95}
                 />
 
-                <Group
-                  transform={[
-                    { translateX: sim.boat.x },
-                    { translateY: sim.boat.y },
-                    { rotate: sim.boat.heading },
-                    { scale: boatScale },
-                  ]}
-                >
-                  <Circle
-                    cx={heelOffset}
-                    cy={8}
-                    r={46}
-                    color="rgba(0, 0, 0, 0.30)"
-                  />
-                  {showSpinnaker ? (
-                    <Path
-                      path={spinnakerPath}
-                      color="rgba(68, 255, 136, 0.36)"
-                      style="fill"
-                    />
-                  ) : null}
-                  <Path
-                    path={jibSailPath}
-                    color={jibFill}
-                    opacity={showSpinnaker ? 0.18 : 0.58}
-                  />
-                  <Path
-                    path={mainSailPath}
-                    color={mainFill}
-                    opacity={0.68}
-                  />
-                  <Path
-                    path={boomPath}
-                    color="rgba(232, 244, 248, 0.88)"
-                    style="stroke"
-                    strokeWidth={2}
-                    strokeCap="round"
-                  />
-                  <Path path={hullPath} color="rgba(232, 244, 248, 0.96)" />
-                  <Path path={deckPath} color="rgba(10, 22, 40, 0.82)" />
-                  <Path path={cabinPath} color="rgba(0, 212, 255, 0.26)" />
-                  <Circle cx={0} cy={-10} r={3} color={colors.accentCyan} />
-                </Group>
+                <SkiaYacht
+                  centerX={sim.boat.x}
+                  centerY={sim.boat.y}
+                  headingRad={sim.boat.heading}
+                  awaDeg={sim.boatExt.awaDeg}
+                  mainSheet={mainSheet}
+                  jibSheet={jibSheet}
+                  sailSet={sim.boatExt.sailSet}
+                  luffMain={sim.sailFeedback.main === 'luff'}
+                  luffJib={sim.sailFeedback.jib === 'luff'}
+                  length={boatLength}
+                  heelOffsetPx={heelOffset}
+                  tickN={sim.tickN}
+                />
 
                 <Group
                   transform={[
@@ -918,16 +780,29 @@ export default function Simulator() {
               Haptics.selectionAsync().catch(() => {});
               sim.cycleWindSpeed();
             }}
+            accessibilityRole="button"
+            accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windKts} kt, ${twdDeg}°`}
+            accessibilityHint={tp(
+              'Нажми, чтобы поменять силу ветра',
+              'Tap to cycle wind speed',
+              'Stuknij, aby zmienic predkosc wiatru',
+              {
+                es: 'Toca para cambiar la velocidad del viento',
+                fr: 'Touche pour changer la vitesse du vent',
+                de: 'Tippen, um Windstaerke zu wechseln',
+                it: 'Tocca per cambiare la velocita del vento',
+              },
+            )}
           >
-            <Text style={styles.windSpeedValue}>{`${windKts} kt`}</Text>
-            <Text style={styles.windSpeedLabel}>TWD</Text>
-            <Text style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedValue}>{`${windKts} kt`}</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedLabel}>TWD</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
           </Pressable>
 
           <View style={styles.sceneReadout}>
-            <Text style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
-            <Text style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
-            <Text style={styles.sceneReadoutText}>{`VMG ${vmgKn}`}</Text>
+            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
+            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
+            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgKn}`}</Text>
           </View>
 
           {!showSpinnaker ? (
@@ -950,7 +825,7 @@ export default function Simulator() {
           {missionState?.done && activeMission ? (
             <View style={styles.resultPanel}>
               <Text style={styles.resultKicker}>{missionDoneLabel}</Text>
-              <Text style={styles.resultTitle} numberOfLines={2}>
+              <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeMission.title(tp)}
               </Text>
               <View style={styles.resultRow}>
@@ -970,6 +845,8 @@ export default function Simulator() {
               <View style={styles.resultActions}>
                 <Pressable
                   onPress={() => sim.reset()}
+                  accessibilityRole="button"
+                  accessibilityLabel={tryAgainLabel}
                   style={({ pressed }) => [
                     styles.resultButton,
                     pressed && styles.resultButtonPressed,
@@ -979,6 +856,8 @@ export default function Simulator() {
                 </Pressable>
                 <Pressable
                   onPress={handleNextMission}
+                  accessibilityRole="button"
+                  accessibilityLabel={nextMissionLabel}
                   style={({ pressed }) => [
                     styles.resultButton,
                     styles.resultButtonPrimary,
@@ -996,12 +875,14 @@ export default function Simulator() {
           {drillState?.done && activeDrill ? (
             <View style={styles.resultPanel}>
               <Text style={styles.resultKicker}>{drillDoneLabel}</Text>
-              <Text style={styles.resultTitle} numberOfLines={2}>
+              <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeDrill.title(tp)}
               </Text>
               <View style={styles.resultActions}>
                 <Pressable
                   onPress={() => sim.reset()}
+                  accessibilityRole="button"
+                  accessibilityLabel={tryAgainLabel}
                   style={({ pressed }) => [
                     styles.resultButton,
                     styles.resultButtonPrimary,
@@ -1021,26 +902,32 @@ export default function Simulator() {
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{drillSelectLabel}</Text>
             <View style={styles.pickerChips}>
-              {DRILLS.map((d) => (
+              {DRILLS.map((d) => {
+                const isActive = drillState?.drillId === d.id;
+                return (
                 <Pressable
                   key={d.id}
                   onPress={() => handlePickDrill(d.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={d.title(tp)}
+                  accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
-                    drillState?.drillId === d.id && styles.pickerChipActive,
+                    isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
                   <Text
                     style={[
                       styles.pickerChipText,
-                      drillState?.drillId === d.id && styles.pickerChipTextActive,
+                      isActive && styles.pickerChipTextActive,
                     ]}
                   >
                     {d.title(tp)}
                   </Text>
                 </Pressable>
-              ))}
+              );
+              })}
             </View>
           </View>
         ) : null}
@@ -1049,27 +936,32 @@ export default function Simulator() {
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{missionSelectLabel}</Text>
             <View style={styles.pickerChips}>
-              {MISSIONS.map((m) => (
+              {MISSIONS.map((m) => {
+                const isActive = missionState?.missionId === m.id;
+                return (
                 <Pressable
                   key={m.id}
                   onPress={() => handlePickMission(m.id)}
+                  accessibilityRole="button"
+                  accessibilityLabel={m.title(tp)}
+                  accessibilityState={{ selected: isActive }}
                   style={({ pressed }) => [
                     styles.pickerChip,
-                    missionState?.missionId === m.id && styles.pickerChipActive,
+                    isActive && styles.pickerChipActive,
                     pressed && styles.pickerChipPressed,
                   ]}
                 >
                   <Text
                     style={[
                       styles.pickerChipText,
-                      missionState?.missionId === m.id &&
-                        styles.pickerChipTextActive,
+                      isActive && styles.pickerChipTextActive,
                     ]}
                   >
                     {m.title(tp)}
                   </Text>
                 </Pressable>
-              ))}
+                );
+              })}
             </View>
           </View>
         ) : null}
@@ -1091,6 +983,9 @@ export default function Simulator() {
                 Haptics.selectionAsync().catch(() => {});
                 sim.setAutoTrim(!autoTrim);
               }}
+              accessibilityRole="switch"
+              accessibilityLabel={autoLabel}
+              accessibilityState={{ checked: autoTrim }}
               style={({ pressed }) => [
                 styles.autoButton,
                 autoTrim && styles.autoButtonActive,
@@ -1111,6 +1006,7 @@ export default function Simulator() {
           <View style={styles.sliderRow}>
             <Slider
               label={mainLabel}
+              accessibilityLabel={`${mainLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'ecoute', de: 'Schot', it: 'scotta' })}`}
               value={mainSheet}
               onChange={sim.setMainSheet}
               orientation="vertical"
@@ -1118,6 +1014,7 @@ export default function Simulator() {
             />
             <Slider
               label={jibLabel}
+              accessibilityLabel={`${jibLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'ecoute', de: 'Schot', it: 'scotta' })}`}
               value={jibSheet}
               onChange={sim.setJibSheet}
               orientation="vertical"
@@ -1125,6 +1022,7 @@ export default function Simulator() {
             />
             <Slider
               label={twistLabel}
+              accessibilityLabel={twistLabel}
               value={twist}
               onChange={sim.setTwist}
               orientation="vertical"
@@ -1132,6 +1030,7 @@ export default function Simulator() {
             />
             <Slider
               label={reefLabel}
+              accessibilityLabel={reefLabel}
               value={reef}
               onChange={sim.setReef}
               orientation="vertical"
@@ -1272,6 +1171,9 @@ function ModeChip({
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
       style={({ pressed }) => [
         styles.modeChip,
         active && styles.modeChipActive,
@@ -1311,6 +1213,9 @@ function SailBadge({
   return (
     <Animated.View
       pointerEvents="none"
+      accessible={visible}
+      accessibilityRole="text"
+      accessibilityLabel={label}
       style={[
         styles.sailBadge,
         {
@@ -1323,7 +1228,7 @@ function SailBadge({
       ]}
     >
       <View style={[styles.sailBadgeDot, { backgroundColor: bg }]} />
-      <Text style={[styles.sailBadgeText, { color: bg }]}>{label}</Text>
+      <Text allowFontScaling={false} style={[styles.sailBadgeText, { color: bg }]}>{label}</Text>
     </Animated.View>
   );
 }

@@ -12,6 +12,8 @@ export { RacingCourseDiagram, RacingStrategyDiagram } from './RacingDiagrams';
 export { Slider, type SliderOrientation } from './Slider';
 export { LessonDiagram } from './LessonDiagram';
 export { Icon, type IconName } from './Icon';
+export { Wordmark, type WordmarkSize } from './Wordmark';
 export { EmptyState } from './EmptyState';
 export { Skeleton } from './Skeleton';
 export { OfflineBanner } from './OfflineBanner';
+export { SkiaYacht, type SkiaYachtProps } from './SkiaYacht';
