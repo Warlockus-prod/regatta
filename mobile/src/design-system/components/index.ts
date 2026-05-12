@@ -7,3 +7,5 @@ export { PulsePill } from './PulsePill';
 export { ListRow } from './ListRow';
 export { ErrorBoundary } from './ErrorBoundary';
 export { PointsOfSailDiagram } from './PointsOfSailDiagram';
+export { RuleScenarioDiagram } from './RuleScenarioDiagram';
+export { RacingCourseDiagram, RacingStrategyDiagram } from './RacingDiagrams';
