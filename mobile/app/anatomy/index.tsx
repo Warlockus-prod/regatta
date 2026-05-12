@@ -2,6 +2,7 @@ import { Stack } from 'expo-router';
 import {
   Animated,
   Easing,
+  Image,
   Modal,
   PanResponder,
   Pressable,
@@ -77,6 +78,18 @@ export default function Anatomy() {
     },
   );
 
+  const photoCaption = tp(
+    'Современная гоночная яхта - вид сверху.',
+    'Modern racing yacht - top-down view.',
+    'Wspolczesny jacht regatowy - widok z gory.',
+    {
+      es: 'Yate de regatas moderno - vista cenital.',
+      fr: 'Yacht de regate moderne - vue de dessus.',
+      de: 'Moderne Regattayacht - Blick von oben.',
+      it: 'Yacht da regata moderno - vista dallalto.',
+    },
+  );
+
   const posterWidth = Math.max(280, screenWidth - POSTER_HORIZONTAL_PADDING);
   const posterHeight = (posterWidth * YACHT_VIEWBOX.height) / YACHT_VIEWBOX.width;
 
@@ -106,6 +119,17 @@ export default function Anatomy() {
           <Text variant="caption">{intro}</Text>
           <Text variant="muted" style={styles.summary}>{summary}</Text>
         </View>
+
+        <View style={styles.photoFrame}>
+          <Image
+            source={require('../../assets/anatomy/yacht-top.png')}
+            style={styles.photo}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel={photoCaption}
+          />
+        </View>
+        <Text variant="muted" style={styles.photoCaption}>{photoCaption}</Text>
 
         <YachtPoster
           width={posterWidth}
@@ -475,6 +499,30 @@ const styles = StyleSheet.create({
   summary: {
     fontSize: 11,
     letterSpacing: 1,
+  },
+  photoFrame: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.sm,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.bgCard,
+    borderWidth: 1,
+    borderColor: colors.borderCyanFaint,
+    aspectRatio: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photo: {
+    width: '100%',
+    height: '100%',
+  },
+  photoCaption: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.xs,
+    paddingBottom: spacing.md,
+    fontSize: 11,
+    letterSpacing: 0.5,
+    textAlign: 'center',
   },
   chipsHeader: {
     paddingHorizontal: spacing.lg,
