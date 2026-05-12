@@ -54,11 +54,17 @@ export interface I18nContextValue {
 
 const Ctx = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({
+  children,
+  initialLang = DEFAULT_LANG,
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
   // Start with DEFAULT_LANG ('ru') and rehydrate asynchronously from storage
   // and device locale. `ready` flips to true after the first pass so
   // screens that care can avoid a lang-flicker on first paint.
-  const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
+  const [lang, setLangState] = useState<Lang>(initialLang);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
