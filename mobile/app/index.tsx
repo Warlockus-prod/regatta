@@ -4,6 +4,8 @@ import { useI18n } from '../src/i18n/context';
 import {
   Card,
   type CardAccent,
+  Icon,
+  type IconName,
   ListRow,
   Screen,
   Text,
@@ -173,7 +175,7 @@ export default function Home() {
 
         <EntryCard
           accent="cyan"
-          emoji="🎓"
+          iconName="cap"
           title="Bootcamp"
           subtitle={tp('С нуля', 'Start from zero', 'Od zera', {
             es: 'Desde cero',
@@ -193,12 +195,23 @@ export default function Home() {
             },
           )}
           ctaLabel={ctaStart}
+          ctaA11yLabel={tp(
+            'Открыть Bootcamp',
+            'Open Bootcamp',
+            'Otworz Bootcamp',
+            {
+              es: 'Abrir Bootcamp',
+              fr: 'Ouvrir Bootcamp',
+              de: 'Bootcamp oeffnen',
+              it: 'Apri Bootcamp',
+            },
+          )}
           onPress={() => router.push('/bootcamp')}
         />
 
         <EntryCard
           accent="success"
-          emoji="⚡"
+          iconName="bolt"
           title={tp('Быстрый разогрев', 'Quick refresh', 'Szybkie powtorzenie', {
             es: 'Repaso rapido',
             fr: 'Revision rapide',
@@ -223,12 +236,23 @@ export default function Home() {
             },
           )}
           ctaLabel={ctaStart}
+          ctaA11yLabel={tp(
+            'Открыть быстрый разогрев',
+            'Open Quick refresh',
+            'Otworz szybkie powtorzenie',
+            {
+              es: 'Abrir repaso rapido',
+              fr: 'Ouvrir Revision rapide',
+              de: 'Schnelle Auffrischung oeffnen',
+              it: 'Apri Ripasso rapido',
+            },
+          )}
           onPress={() => router.push('/quick')}
         />
 
         <EntryCard
           accent="warning"
-          emoji="📖"
+          iconName="book"
           title={tp('Правила', 'Rules of the road', 'Zasady', {
             es: 'Reglas',
             fr: 'Regles',
@@ -253,6 +277,17 @@ export default function Home() {
             },
           )}
           ctaLabel={ctaStart}
+          ctaA11yLabel={tp(
+            'Открыть правила расхождения',
+            'Open Rules of the road',
+            'Otworz zasady',
+            {
+              es: 'Abrir Reglas',
+              fr: 'Ouvrir Regles',
+              de: 'Regeln oeffnen',
+              it: 'Apri Regole',
+            },
+          )}
           onPress={() => router.push('/rules')}
         />
 
@@ -448,28 +483,34 @@ function CelebrationRow({ title, ctaLabel, onPress }: CelebrationRowProps) {
 
 interface EntryCardProps {
   accent: CardAccent;
-  emoji: string;
+  iconName: IconName;
   title: string;
   subtitle: string;
   description: string;
   ctaLabel: string;
+  ctaA11yLabel: string;
   onPress: () => void;
 }
 
 function EntryCard({
   accent,
-  emoji,
+  iconName,
   title,
   subtitle,
   description,
   ctaLabel,
+  ctaA11yLabel,
   onPress,
 }: EntryCardProps) {
   const accentColor = ACCENT_COLOR[accent];
   return (
-    <Card accent={accent} onPress={onPress} style={styles.entryCard}>
-      <Text style={styles.entryEmoji}>{emoji}</Text>
-      <View>
+    <Card
+      accent={accent}
+      onPress={onPress}
+      style={styles.entryCard}
+    >
+      <Icon name={iconName} size={36} color={accentColor} style={styles.entryIcon} />
+      <View accessible accessibilityRole="button" accessibilityLabel={ctaA11yLabel}>
         <Text variant="subtitle" style={styles.entryTitle}>{title}</Text>
         <Text variant="muted" style={styles.entrySubtitle}>{subtitle}</Text>
       </View>
@@ -530,9 +571,8 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     gap: spacing.md,
   },
-  entryEmoji: {
-    fontSize: 32,
-    lineHeight: 38,
+  entryIcon: {
+    marginBottom: spacing.xs,
   },
   entryTitle: {
     fontSize: 18,

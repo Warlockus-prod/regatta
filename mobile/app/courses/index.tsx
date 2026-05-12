@@ -131,6 +131,44 @@ export default function Courses() {
     [],
   );
 
+  const polarA11y = tp(
+    'Полярная диаграмма ходкости. Тяните чтобы развернуть лодку.',
+    'Polar performance diagram. Drag to turn the boat.',
+    'Diagram polarny. Przeciagnij aby obrocic lodz.',
+    {
+      es: 'Diagrama polar. Arrastra para girar el barco.',
+      fr: 'Diagramme polaire. Glissez pour tourner le bateau.',
+      de: 'Polardiagramm. Ziehen, um das Boot zu wenden.',
+      it: 'Diagramma polare. Trascina per virare la barca.',
+    },
+  );
+
+  const windChipA11y = (knots: number) =>
+    tp(
+      `Ветер ${knots} узлов`,
+      `Wind ${knots} knots`,
+      `Wiatr ${knots} wezlow`,
+      {
+        es: `Viento ${knots} nudos`,
+        fr: `Vent ${knots} noeuds`,
+        de: `Wind ${knots} Knoten`,
+        it: `Vento ${knots} nodi`,
+      },
+    );
+
+  const courseCardA11y = (name: string, pct: number) =>
+    tp(
+      `Курс ${name}, скорость ${pct} процентов от целевой`,
+      `Point of sail ${name}, ${pct} percent of target speed`,
+      `Kurs ${name}, ${pct} procent predkosci`,
+      {
+        es: `Rumbo ${name}, ${pct} por ciento de velocidad`,
+        fr: `Allure ${name}, ${pct} pour cent de vitesse`,
+        de: `Kurs ${name}, ${pct} Prozent Geschwindigkeit`,
+        it: `Andatura ${name}, ${pct} per cento di velocita`,
+      },
+    );
+
   const animateTo = useCallback((target: number) => {
     if (tweenRef.current.raf !== null) {
       cancelAnimationFrame(tweenRef.current.raf);
@@ -195,7 +233,13 @@ export default function Courses() {
     <Screen>
       <Stack.Screen options={{ title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.diagramArea}>
+        <View
+          style={styles.diagramArea}
+          accessible
+          accessibilityRole="adjustable"
+          accessibilityLabel={polarA11y}
+          accessibilityValue={{ text: `${Math.round(heading)}°` }}
+        >
           <PointsOfSailDiagram
             windLabel={windLabel}
             windSpeedKn={windSpeed}
@@ -231,6 +275,9 @@ export default function Courses() {
                 <Pressable
                   key={value}
                   onPress={() => cycleWind(value)}
+                  accessibilityRole="button"
+                  accessibilityLabel={windChipA11y(value)}
+                  accessibilityState={{ selected: active }}
                   style={({ pressed }) => [
                     styles.windChip,
                     active && styles.windChipActive,
@@ -264,7 +311,8 @@ export default function Courses() {
               key={point.id}
               onPress={() => snapToCard(point.id)}
               accessibilityRole="button"
-              accessibilityLabel={name}
+              accessibilityLabel={courseCardA11y(name, speedPct)}
+              accessibilityState={{ selected: isActive }}
             >
               <Card
                 style={[

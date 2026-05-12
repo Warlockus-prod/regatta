@@ -1,5 +1,13 @@
 import { type ReactNode } from 'react';
-import { Pressable, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  type AccessibilityRole,
+  type AccessibilityState,
+  Pressable,
+  StyleSheet,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import { colors, radii, spacing } from '../tokens';
 
 export type CardAccent = 'cyan' | 'success' | 'warning';
@@ -14,6 +22,10 @@ interface CardProps {
    */
   accent?: CardAccent;
   style?: StyleProp<ViewStyle>;
+  /** A11y forwarded to the inner Pressable / View. */
+  accessibilityRole?: AccessibilityRole;
+  accessibilityLabel?: string;
+  accessibilityState?: AccessibilityState;
 }
 
 const ACCENT_RGB: Record<CardAccent, string> = {
@@ -30,11 +42,22 @@ function tintedStyle(accent: CardAccent, pressed: boolean): ViewStyle {
   };
 }
 
-export function Card({ children, onPress, accent, style }: CardProps) {
+export function Card({
+  children,
+  onPress,
+  accent,
+  style,
+  accessibilityRole,
+  accessibilityLabel,
+  accessibilityState,
+}: CardProps) {
   if (onPress) {
     return (
       <Pressable
         onPress={onPress}
+        accessibilityRole={accessibilityRole ?? 'button'}
+        accessibilityLabel={accessibilityLabel}
+        accessibilityState={accessibilityState}
         style={({ pressed }) => [
           styles.card,
           accent ? tintedStyle(accent, pressed) : pressed && styles.pressed,
@@ -47,6 +70,9 @@ export function Card({ children, onPress, accent, style }: CardProps) {
   }
   return (
     <View
+      accessibilityRole={accessibilityRole}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityState={accessibilityState}
       style={[styles.card, accent ? tintedStyle(accent, false) : null, style]}
     >
       {children}

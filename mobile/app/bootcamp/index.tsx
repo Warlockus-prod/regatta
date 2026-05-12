@@ -115,11 +115,24 @@ export default function BootcampIndex() {
                     it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
                   },
                 );
+                const lessonA11y = tp(
+                  `Урок ${lesson.order}: ${title}${completed ? ', пройден' : ''}`,
+                  `Lesson ${lesson.order}: ${title}${completed ? ', completed' : ''}`,
+                  `Lekcja ${lesson.order}: ${title}${completed ? ', ukonczona' : ''}`,
+                  {
+                    es: `Leccion ${lesson.order}: ${title}${completed ? ', completada' : ''}`,
+                    fr: `Lecon ${lesson.order} : ${title}${completed ? ', terminee' : ''}`,
+                    de: `Lektion ${lesson.order}: ${title}${completed ? ', abgeschlossen' : ''}`,
+                    it: `Lezione ${lesson.order}: ${title}${completed ? ', completata' : ''}`,
+                  },
+                );
                 return (
                   <Card
                     key={lesson.id}
                     onPress={() => router.push(`/bootcamp/${lesson.id}`)}
                     style={styles.lesson}
+                    accessibilityLabel={lessonA11y}
+                    accessibilityState={{ selected: completed }}
                   >
                     <View style={styles.lessonHeader}>
                       <Text style={styles.emoji}>{lesson.emoji}</Text>

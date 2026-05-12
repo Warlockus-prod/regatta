@@ -111,10 +111,36 @@ export default function Gallery() {
         {galleryItems.map((item) => {
           const itemTitle = legacyPick(item, 'title', lang);
           const ratio = aspectRatio(item.kind === 'youtube' ? '16:9' : item.aspect);
+          const kindLabel = item.kind === 'youtube'
+            ? tp('видео', 'video', 'wideo', {
+                es: 'video',
+                fr: 'video',
+                de: 'Video',
+                it: 'video',
+              })
+            : tp('фото', 'photo', 'zdjecie', {
+                es: 'foto',
+                fr: 'photo',
+                de: 'Foto',
+                it: 'foto',
+              });
+          const tileA11y = tp(
+            `Открыть ${kindLabel}: ${itemTitle}`,
+            `Open ${kindLabel}: ${itemTitle}`,
+            `Otworz ${kindLabel}: ${itemTitle}`,
+            {
+              es: `Abrir ${kindLabel}: ${itemTitle}`,
+              fr: `Ouvrir ${kindLabel} : ${itemTitle}`,
+              de: `${kindLabel} oeffnen: ${itemTitle}`,
+              it: `Apri ${kindLabel}: ${itemTitle}`,
+            },
+          );
           return (
             <Pressable
               key={item.id}
               onPress={() => { void openItem(item); }}
+              accessibilityRole="button"
+              accessibilityLabel={tileA11y}
               style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
             >
               <View style={[styles.imageWrap, { aspectRatio: ratio }]}>

@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Button, Card, Screen, Text } from '../../src/design-system/components';
+import { Button, Card, EmptyState, Screen, Text } from '../../src/design-system/components';
 import { checklistSections } from '../../src/data';
 import { legacyPick, legacyPickArray } from '../../src/i18n/languages';
 import { itemKey, useChecklistProgress } from '../../src/persistence/checklist';
@@ -78,6 +78,24 @@ export default function Checklist() {
     it: 'Annulla',
   });
 
+  const emptyTitle = tp('Чек-лист пуст', 'Checklist empty', 'Lista pusta', {
+    es: 'Lista vacia',
+    fr: 'Liste vide',
+    de: 'Liste leer',
+    it: 'Lista vuota',
+  });
+  const emptySubtitle = tp(
+    'Контент еще не загружен. Попробуйте обновить экран позже.',
+    'Content has not loaded yet. Try again in a moment.',
+    'Tresc nie zostala zaladowana. Sprobuj pozniej.',
+    {
+      es: 'El contenido aun no se ha cargado. Intentalo de nuevo en un momento.',
+      fr: 'Le contenu n a pas encore charge. Reessayez dans un instant.',
+      de: 'Inhalt noch nicht geladen. Versuchen Sie es spaeter erneut.',
+      it: 'Il contenuto non e stato caricato. Riprova tra poco.',
+    },
+  );
+
   const sectionsView = useMemo(() => {
     return checklistSections.map((section) => {
       const items = legacyPickArray(section, 'items', lang);
@@ -147,6 +165,10 @@ export default function Checklist() {
           </View>
         </View>
 
+        {sectionsView.length === 0 ? (
+          <EmptyState title={emptyTitle} subtitle={emptySubtitle} icon="book" />
+        ) : null}
+
         {sectionsView.map(({ section, items, checked }) => {
           const title = legacyPick(section, 'title', lang);
           const intro = legacyPick(section, 'intro', lang);
@@ -179,6 +201,7 @@ export default function Checklist() {
                       ]}
                       accessibilityRole="checkbox"
                       accessibilityState={{ checked: done }}
+                      accessibilityLabel={item}
                     >
                       <View
                         style={[

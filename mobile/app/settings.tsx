@@ -185,11 +185,25 @@ export default function Settings() {
         <View style={styles.langList}>
           {ENABLED_LANGUAGES.map((langMeta) => {
             const isSelected = langMeta.id === lang;
+            const langA11y = tp(
+              `Выбрать язык: ${langMeta.nativeName}`,
+              `Select language: ${langMeta.name}`,
+              `Wybierz jezyk: ${langMeta.nativeName}`,
+              {
+                es: `Elegir idioma: ${langMeta.nativeName}`,
+                fr: `Choisir la langue : ${langMeta.nativeName}`,
+                de: `Sprache waehlen: ${langMeta.nativeName}`,
+                it: `Scegli la lingua: ${langMeta.nativeName}`,
+              },
+            );
             return (
               <Card
                 key={langMeta.id}
                 onPress={() => setLang(langMeta.id)}
                 style={[styles.langCard, isSelected && styles.langCardSelected]}
+                accessibilityRole="button"
+                accessibilityLabel={langA11y}
+                accessibilityState={{ selected: isSelected }}
               >
                 <View style={styles.langRow}>
                   <View style={styles.langText}>
@@ -231,6 +245,7 @@ export default function Settings() {
           <Card
             onPress={() => setPrivacyOpen(true)}
             style={styles.privacyCard}
+            accessibilityLabel={privacyRowLabel}
           >
             <View style={styles.privacyRow}>
               <Text variant="subtitle">{privacyRowLabel}</Text>
@@ -240,6 +255,7 @@ export default function Settings() {
           <Card
             onPress={() => { void openSupportMail(); }}
             style={styles.privacyCard}
+            accessibilityLabel={supportRowLabel}
           >
             <View style={styles.privacyRow}>
               <View style={styles.privacyText}>
@@ -251,7 +267,10 @@ export default function Settings() {
               <Text variant="accent" style={styles.chevron}>{'>'}</Text>
             </View>
           </Card>
-          <Card style={styles.privacyCard}>
+          <Card
+            style={styles.privacyCard}
+            accessibilityLabel={telemetryLabel}
+          >
             <View style={styles.privacyText}>
               <Text variant="subtitle">{telemetryLabel}</Text>
               <Text variant="caption" style={styles.privacyHint}>
@@ -380,6 +399,8 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
             <Pressable
               onPress={onClose}
               hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel={closeLabel}
               style={({ pressed }) => [
                 privacyStyles.closeBtn,
                 pressed && privacyStyles.closePressed,

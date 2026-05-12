@@ -148,10 +148,14 @@ export default function Anatomy() {
         <View style={styles.chipsGrid}>
           {anatomyParts.map((p) => {
             const active = activeId === p.id;
+            const partName = legacyPick(p, 'name', lang);
             return (
               <Pressable
                 key={p.id}
                 onPress={() => setActiveId(p.id)}
+                accessibilityRole="button"
+                accessibilityLabel={partName}
+                accessibilityState={{ selected: active }}
                 style={({ pressed }) => [
                   styles.chip,
                   active && styles.chipActive,
@@ -163,7 +167,7 @@ export default function Anatomy() {
                   style={[styles.chipText, active && styles.chipTextActive]}
                   numberOfLines={1}
                 >
-                  {legacyPick(p, 'name', lang)}
+                  {partName}
                 </Text>
               </Pressable>
             );
@@ -272,7 +276,9 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
               key={part.id}
               onPress={() => onSelect(part.id)}
               hitSlop={14}
+              accessibilityRole="button"
               accessibilityLabel={pickName(part)}
+              accessibilityState={{ selected: active }}
               style={[posterStyles.hotspotHit, { left: left - 18, top: top - 18 }]}
             >
               <View pointerEvents="none">
@@ -388,6 +394,18 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
     de: 'Teil',
     it: 'Pezzo',
   });
+  const prevLabel = tp('Предыдущая деталь', 'Previous part', 'Poprzedni element', {
+    es: 'Pieza anterior',
+    fr: 'Piece precedente',
+    de: 'Vorheriges Teil',
+    it: 'Pezzo precedente',
+  });
+  const nextLabel = tp('Следующая деталь', 'Next part', 'Nastepny element', {
+    es: 'Pieza siguiente',
+    fr: 'Piece suivante',
+    de: 'Naechstes Teil',
+    it: 'Pezzo successivo',
+  });
   const swipeHint = tp(
     'Свайп влево / вправо для соседних деталей.',
     'Swipe left / right for adjacent parts.',
@@ -461,6 +479,8 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
               <Pressable
                 onPress={onPrev}
                 hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={prevLabel}
                 style={({ pressed }) => [
                   sheetStyles.navBtn,
                   pressed && sheetStyles.navPressed,
@@ -471,6 +491,8 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
               <Pressable
                 onPress={onNext}
                 hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={nextLabel}
                 style={({ pressed }) => [
                   sheetStyles.navBtn,
                   pressed && sheetStyles.navPressed,
