@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
+  Animated,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -17,7 +18,7 @@ import {
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Text } from '../../src/design-system/components';
+import { Screen, Slider, Text } from '../../src/design-system/components';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
 import {
@@ -27,6 +28,8 @@ import {
   buildApparentArrowPath,
   buildCompassArrowPath,
 } from '../../src/simulator/skia-wind';
+import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
+import type { SailState } from '../../src/simulator/sail-feedback';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 const COMPASS_R = 34;
@@ -36,14 +39,6 @@ const DEG_TO_RAD = Math.PI / 180;
 
 function snapToStep(rad: number, step: number): number {
   return Math.round(rad / step) * step;
-}
-
-function clamp01(value: number): number {
-  return Math.max(0, Math.min(1, value));
-}
-
-function pct(value: number): string {
-  return `${Math.round(clamp01(value) * 100)}%`;
 }
 
 function scoreColor(score: number): string {
@@ -181,6 +176,23 @@ function buildBoomPath(angleRad: number, reef: number) {
   p.moveTo(0, mastY);
   p.lineTo(Math.sin(angleRad) * boomLen, mastY + Math.cos(angleRad) * boomLen);
   return p;
+}
+
+function sailStateColor(state: SailState): string {
+  switch (state) {
+    case 'luff': return colors.danger;
+    case 'stall': return colors.warning;
+    case 'overtrim': return '#f5e26b';
+    case 'good': return colors.accentCyan;
+    default: return colors.textMuted;
+  }
+}
+
+function formatTime(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
 function insideCompassAt(
@@ -414,6 +426,142 @@ export default function Simulator() {
       it: 'Trascina sullacqua per timonare. La bussola cambia vento. MAIN/JIB mostrano velocita, sbandamento e stall.',
     },
   );
+  const modeFreeLabel = tp('Свободно', 'Free', 'Swobodnie', {
+    es: 'Libre',
+    fr: 'Libre',
+    de: 'Frei',
+    it: 'Libero',
+  });
+  const modeDrillLabel = tp('Тренировка', 'Drill', 'Cwiczenie', {
+    es: 'Ejercicio',
+    fr: 'Exercice',
+    de: 'Drill',
+    it: 'Esercizio',
+  });
+  const modeMissionLabel = tp('Миссия', 'Mission', 'Misja', {
+    es: 'Mision',
+    fr: 'Mission',
+    de: 'Mission',
+    it: 'Missione',
+  });
+  const missionLabel = tp('МИССИЯ', 'MISSION', 'MISJA', {
+    es: 'MISION',
+    fr: 'MISSION',
+    de: 'MISSION',
+    it: 'MISSIONE',
+  });
+  const drillSelectLabel = tp(
+    'Выбери тренировку',
+    'Pick a drill',
+    'Wybierz cwiczenie',
+    {
+      es: 'Elige un ejercicio',
+      fr: 'Choisis un exercice',
+      de: 'Drill waehlen',
+      it: 'Scegli un esercizio',
+    },
+  );
+  const missionSelectLabel = tp(
+    'Выбери миссию',
+    'Pick a mission',
+    'Wybierz misje',
+    {
+      es: 'Elige una mision',
+      fr: 'Choisis une mission',
+      de: 'Mission waehlen',
+      it: 'Scegli una missione',
+    },
+  );
+  const tryAgainLabel = tp('Ещё раз', 'Try again', 'Jeszcze raz', {
+    es: 'Otra vez',
+    fr: 'Recommencer',
+    de: 'Nochmal',
+    it: 'Ancora',
+  });
+  const nextMissionLabel = tp(
+    'Следующая миссия',
+    'Next mission',
+    'Nastepna misja',
+    {
+      es: 'Siguiente mision',
+      fr: 'Mission suivante',
+      de: 'Naechste Mission',
+      it: 'Prossima missione',
+    },
+  );
+  const drillDoneLabel = tp(
+    'Готово!',
+    'Done!',
+    'Gotowe!',
+    {
+      es: 'Hecho!',
+      fr: 'Fini!',
+      de: 'Geschafft!',
+      it: 'Fatto!',
+    },
+  );
+  const missionDoneLabel = tp(
+    'Финиш!',
+    'Finish!',
+    'Meta!',
+    {
+      es: 'Meta!',
+      fr: 'Arrivee!',
+      de: 'Ziel!',
+      it: 'Traguardo!',
+    },
+  );
+  const elapsedLabel = tp('Время', 'Time', 'Czas', {
+    es: 'Tiempo',
+    fr: 'Temps',
+    de: 'Zeit',
+    it: 'Tempo',
+  });
+  const scoreLabel = tp('Очки', 'Score', 'Wynik', {
+    es: 'Puntos',
+    fr: 'Score',
+    de: 'Punkte',
+    it: 'Punti',
+  });
+  const distanceLabel = tp('До знака', 'To mark', 'Do znaku', {
+    es: 'A la baliza',
+    fr: 'Vers la bouee',
+    de: 'Zur Tonne',
+    it: 'Alla boa',
+  });
+  const luffLabel = tp('ХЛОПАЕТ', 'LUFF', 'LUFF', {
+    es: 'FLAMEA',
+    fr: 'FASEILLE',
+    de: 'KILLT',
+    it: 'FILEGGIA',
+  });
+  const stallLabel = tp('СРЫВ', 'STALL', 'STALL', {
+    es: 'STALL',
+    fr: 'DECROCH',
+    de: 'STALL',
+    it: 'STALLO',
+  });
+  const overtrimLabel = tp('ПЕРЕТЯНУТ', 'OVERTRIM', 'PRZECIAG', {
+    es: 'TENSO',
+    fr: 'TROP BORD',
+    de: 'ZU DICHT',
+    it: 'TROPPO',
+  });
+  const goodLabel = tp('ОК', 'GOOD', 'OK', {
+    es: 'OK',
+    fr: 'OK',
+    de: 'GUT',
+    it: 'OK',
+  });
+  const sailStateLabel = (s: SailState): string => {
+    switch (s) {
+      case 'luff': return luffLabel;
+      case 'stall': return stallLabel;
+      case 'overtrim': return overtrimLabel;
+      case 'good': return goodLabel;
+      default: return '';
+    }
+  };
 
   const headingDeg = Math.round(
     (((sim.boat.heading * 180) / Math.PI) % 360 + 360) % 360,
@@ -443,6 +591,37 @@ export default function Simulator() {
     tp,
   });
 
+  const mode: SimMode = sim.mode;
+  const drillState = sim.drill;
+  const missionState = sim.mission;
+  const activeDrill = drillState
+    ? DRILLS.find((d) => d.id === drillState.drillId)
+    : undefined;
+  const activeMission = missionState
+    ? MISSIONS.find((m) => m.id === missionState.missionId)
+    : undefined;
+
+  const handlePickMode = (next: SimMode) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+    sim.setMode(next);
+  };
+  const handlePickDrill = (id: typeof DRILLS[number]['id']) => {
+    Haptics.selectionAsync().catch(() => {});
+    sim.setDrillId(id);
+    sim.reset();
+  };
+  const handlePickMission = (id: typeof MISSIONS[number]['id']) => {
+    Haptics.selectionAsync().catch(() => {});
+    sim.setMissionId(id);
+    sim.reset();
+  };
+  const handleNextMission = () => {
+    if (!activeMission) return;
+    const idx = MISSIONS.findIndex((m) => m.id === activeMission.id);
+    const next = MISSIONS[(idx + 1) % MISSIONS.length]!;
+    handlePickMission(next.id);
+  };
+
   return (
     <Screen noTopInset>
       <Stack.Screen options={{ title }} />
@@ -469,6 +648,91 @@ export default function Simulator() {
           </Pressable>
         </View>
 
+        <View style={styles.modeBar}>
+          <ModeChip
+            label={modeFreeLabel}
+            active={mode === 'free'}
+            onPress={() => handlePickMode('free')}
+          />
+          <ModeChip
+            label={modeDrillLabel}
+            active={mode === 'drill'}
+            onPress={() => handlePickMode('drill')}
+          />
+          <ModeChip
+            label={modeMissionLabel}
+            active={mode === 'mission'}
+            onPress={() => handlePickMode('mission')}
+          />
+        </View>
+
+        {mode === 'mission' && activeMission && missionState ? (
+          <View style={styles.missionHud}>
+            <View style={styles.missionHudRow}>
+              <Text style={styles.missionHudKicker}>{missionLabel}</Text>
+              <Text style={styles.missionHudClock}>
+                {formatTime(missionState.elapsedSec)}
+              </Text>
+            </View>
+            <Text style={styles.missionHudTitle} numberOfLines={2}>
+              {activeMission.title(tp)}
+            </Text>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={2}>
+              {activeMission.hint(tp)}
+            </Text>
+            {missionState.distanceToNextPx != null &&
+              !missionState.done && (
+              <View style={styles.missionHudMeta}>
+                <Text style={styles.missionHudMetaLabel}>{distanceLabel}</Text>
+                <Text style={styles.missionHudMetaValue}>
+                  {`${Math.round(missionState.distanceToNextPx)} px`}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : null}
+
+        {mode === 'drill' && activeDrill && drillState ? (
+          <View style={styles.missionHud}>
+            <Text style={styles.missionHudKicker}>{modeDrillLabel.toUpperCase()}</Text>
+            <Text style={styles.missionHudTitle} numberOfLines={2}>
+              {activeDrill.title(tp)}
+            </Text>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={2}>
+              {activeDrill.hint(tp)}
+            </Text>
+            <View style={styles.missionHudMeta}>
+              <Text style={styles.missionHudMetaLabel}>
+                {activeDrill.progressLabel(
+                  drillState.progressSec,
+                  drillState.targetSec,
+                  tp,
+                )}
+              </Text>
+              <View style={styles.drillBarTrack}>
+                <View
+                  style={[
+                    styles.drillBarFill,
+                    {
+                      width: `${Math.min(
+                        100,
+                        Math.round(
+                          (drillState.progressSec / drillState.targetSec) * 100,
+                        ),
+                      )}%`,
+                      backgroundColor: drillState.done
+                        ? colors.success
+                        : drillState.active
+                        ? colors.accentCyan
+                        : colors.textMuted,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        ) : null}
+
         <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
           <GestureDetector gesture={composedGesture}>
             <Canvas style={{ width: sceneW, height: sceneH }}>
@@ -488,17 +752,53 @@ export default function Simulator() {
                   strokeCap="round"
                   opacity={0.34}
                 />
-                <Path
-                  path={coursePath}
-                  color="rgba(68, 255, 136, 0.55)"
-                  style="stroke"
-                  strokeWidth={1.5}
-                  strokeCap="round"
-                  opacity={0.7}
-                />
-                <Circle cx={centerX} cy={54} r={8} color={colors.warning} />
-                <Circle cx={centerX - 8} cy={sceneH - 34} r={7} color={colors.warning} />
-                <Circle cx={centerX + 30} cy={sceneH - 34} r={7} color={colors.warning} />
+                {mode === 'free' ? (
+                  <>
+                    <Path
+                      path={coursePath}
+                      color="rgba(68, 255, 136, 0.55)"
+                      style="stroke"
+                      strokeWidth={1.5}
+                      strokeCap="round"
+                      opacity={0.7}
+                    />
+                    <Circle cx={centerX} cy={54} r={8} color={colors.warning} />
+                    <Circle cx={centerX - 8} cy={sceneH - 34} r={7} color={colors.warning} />
+                    <Circle cx={centerX + 30} cy={sceneH - 34} r={7} color={colors.warning} />
+                  </>
+                ) : null}
+                {mode === 'mission' && missionState
+                  ? missionState.marks.map((m) => (
+                      <Group key={m.id}>
+                        <Circle
+                          cx={m.x}
+                          cy={m.y}
+                          r={m.captureRadius}
+                          color={
+                            m.cleared
+                              ? 'rgba(68, 255, 136, 0.10)'
+                              : m.active
+                              ? 'rgba(0, 212, 255, 0.18)'
+                              : 'rgba(255, 170, 0, 0.10)'
+                          }
+                          style="stroke"
+                          strokeWidth={1}
+                        />
+                        <Circle
+                          cx={m.x}
+                          cy={m.y}
+                          r={m.radius}
+                          color={
+                            m.cleared
+                              ? colors.success
+                              : m.active
+                              ? colors.accentCyan
+                              : colors.warning
+                          }
+                        />
+                      </Group>
+                    ))
+                  : null}
 
                 <Path
                   path={trailPath}
@@ -629,7 +929,150 @@ export default function Simulator() {
             <Text style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
             <Text style={styles.sceneReadoutText}>{`VMG ${vmgKn}`}</Text>
           </View>
+
+          {!showSpinnaker ? (
+            <SailBadge
+              state={sim.sailFeedback.main}
+              label={`MAIN ${sailStateLabel(sim.sailFeedback.main)}`}
+              left={Math.max(8, sim.boat.x - 92)}
+              top={Math.max(8, sim.boat.y - 26)}
+            />
+          ) : null}
+          {!showSpinnaker ? (
+            <SailBadge
+              state={sim.sailFeedback.jib}
+              label={`JIB ${sailStateLabel(sim.sailFeedback.jib)}`}
+              left={Math.min(sceneW - 96, sim.boat.x + 36)}
+              top={Math.max(8, sim.boat.y - 26)}
+            />
+          ) : null}
+
+          {missionState?.done && activeMission ? (
+            <View style={styles.resultPanel}>
+              <Text style={styles.resultKicker}>{missionDoneLabel}</Text>
+              <Text style={styles.resultTitle} numberOfLines={2}>
+                {activeMission.title(tp)}
+              </Text>
+              <View style={styles.resultRow}>
+                <View style={styles.resultStat}>
+                  <Text style={styles.resultStatLabel}>{elapsedLabel}</Text>
+                  <Text style={styles.resultStatValue}>
+                    {formatTime(missionState.elapsedSec)}
+                  </Text>
+                </View>
+                <View style={styles.resultStat}>
+                  <Text style={styles.resultStatLabel}>{scoreLabel}</Text>
+                  <Text style={styles.resultStatValue}>
+                    {missionState.score}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.resultActions}>
+                <Pressable
+                  onPress={() => sim.reset()}
+                  style={({ pressed }) => [
+                    styles.resultButton,
+                    pressed && styles.resultButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.resultButtonText}>{tryAgainLabel}</Text>
+                </Pressable>
+                <Pressable
+                  onPress={handleNextMission}
+                  style={({ pressed }) => [
+                    styles.resultButton,
+                    styles.resultButtonPrimary,
+                    pressed && styles.resultButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.resultButtonTextPrimary}>
+                    {nextMissionLabel}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
+
+          {drillState?.done && activeDrill ? (
+            <View style={styles.resultPanel}>
+              <Text style={styles.resultKicker}>{drillDoneLabel}</Text>
+              <Text style={styles.resultTitle} numberOfLines={2}>
+                {activeDrill.title(tp)}
+              </Text>
+              <View style={styles.resultActions}>
+                <Pressable
+                  onPress={() => sim.reset()}
+                  style={({ pressed }) => [
+                    styles.resultButton,
+                    styles.resultButtonPrimary,
+                    pressed && styles.resultButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.resultButtonTextPrimary}>
+                    {tryAgainLabel}
+                  </Text>
+                </Pressable>
+              </View>
+            </View>
+          ) : null}
         </View>
+
+        {mode === 'drill' ? (
+          <View style={styles.pickerRow}>
+            <Text style={styles.pickerLabel}>{drillSelectLabel}</Text>
+            <View style={styles.pickerChips}>
+              {DRILLS.map((d) => (
+                <Pressable
+                  key={d.id}
+                  onPress={() => handlePickDrill(d.id)}
+                  style={({ pressed }) => [
+                    styles.pickerChip,
+                    drillState?.drillId === d.id && styles.pickerChipActive,
+                    pressed && styles.pickerChipPressed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.pickerChipText,
+                      drillState?.drillId === d.id && styles.pickerChipTextActive,
+                    ]}
+                  >
+                    {d.title(tp)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
+        {mode === 'mission' ? (
+          <View style={styles.pickerRow}>
+            <Text style={styles.pickerLabel}>{missionSelectLabel}</Text>
+            <View style={styles.pickerChips}>
+              {MISSIONS.map((m) => (
+                <Pressable
+                  key={m.id}
+                  onPress={() => handlePickMission(m.id)}
+                  style={({ pressed }) => [
+                    styles.pickerChip,
+                    missionState?.missionId === m.id && styles.pickerChipActive,
+                    pressed && styles.pickerChipPressed,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.pickerChipText,
+                      missionState?.missionId === m.id &&
+                        styles.pickerChipTextActive,
+                    ]}
+                  >
+                    {m.title(tp)}
+                  </Text>
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
 
         <View style={styles.hud}>
           <HudCell label={headingLabel} value={`${headingDeg}°`} />
@@ -654,41 +1097,44 @@ export default function Simulator() {
                 pressed && styles.autoButtonPressed,
               ]}
             >
-              <Text style={[
-                styles.autoButtonText,
-                autoTrim && styles.autoButtonTextActive,
-              ]}
+              <Text
+                style={[
+                  styles.autoButtonText,
+                  autoTrim && styles.autoButtonTextActive,
+                ]}
               >
                 {autoTrim ? 'ON' : 'OFF'}
               </Text>
             </Pressable>
           </View>
 
-          <TrimStepper
-            label={mainLabel}
-            value={mainSheet}
-            onChange={sim.setMainSheet}
-            step={0.1}
-          />
-          <TrimStepper
-            label={jibLabel}
-            value={jibSheet}
-            onChange={sim.setJibSheet}
-            step={0.1}
-          />
-          <View style={styles.trimTwoCol}>
-            <TrimStepper
-              compact
+          <View style={styles.sliderRow}>
+            <Slider
+              label={mainLabel}
+              value={mainSheet}
+              onChange={sim.setMainSheet}
+              orientation="vertical"
+              step={0.1}
+            />
+            <Slider
+              label={jibLabel}
+              value={jibSheet}
+              onChange={sim.setJibSheet}
+              orientation="vertical"
+              step={0.1}
+            />
+            <Slider
               label={twistLabel}
               value={twist}
               onChange={sim.setTwist}
+              orientation="vertical"
               step={0.1}
             />
-            <TrimStepper
-              compact
+            <Slider
               label={reefLabel}
               value={reef}
               onChange={sim.setReef}
+              orientation="vertical"
               step={0.25}
             />
           </View>
@@ -814,56 +1260,71 @@ function HudCell({
   );
 }
 
-function TrimStepper({
+function ModeChip({
   label,
-  value,
-  onChange,
-  step,
-  compact = false,
+  active,
+  onPress,
 }: {
   label: string;
-  value: number;
-  onChange: (value: number) => void;
-  step: number;
-  compact?: boolean;
+  active: boolean;
+  onPress: () => void;
 }) {
-  const nextDown = () => {
-    Haptics.selectionAsync().catch(() => {});
-    onChange(clamp01(value - step));
-  };
-  const nextUp = () => {
-    Haptics.selectionAsync().catch(() => {});
-    onChange(clamp01(value + step));
-  };
   return (
-    <View style={[styles.trimRow, compact && styles.trimRowCompact]}>
-      <View style={styles.trimLabelWrap}>
-        <Text style={styles.trimLabel}>{label}</Text>
-        <Text style={styles.trimValue}>{pct(value)}</Text>
-      </View>
-      <Pressable
-        onPress={nextDown}
-        style={({ pressed }) => [
-          styles.trimButton,
-          pressed && styles.trimButtonPressed,
-        ]}
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.modeChip,
+        active && styles.modeChipActive,
+        pressed && styles.modeChipPressed,
+      ]}
+    >
+      <Text
+        style={[styles.modeChipText, active && styles.modeChipTextActive]}
       >
-        <Text style={styles.trimButtonText}>-</Text>
-      </Pressable>
-      <View style={styles.trimTrack}>
-        <View style={[styles.trimFill, { flex: clamp01(value) }]} />
-        <View style={{ flex: 1 - clamp01(value) }} />
-      </View>
-      <Pressable
-        onPress={nextUp}
-        style={({ pressed }) => [
-          styles.trimButton,
-          pressed && styles.trimButtonPressed,
-        ]}
-      >
-        <Text style={styles.trimButtonText}>+</Text>
-      </Pressable>
-    </View>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function SailBadge({
+  state,
+  label,
+  left,
+  top,
+}: {
+  state: SailState;
+  label: string;
+  left: number;
+  top: number;
+}) {
+  const opacity = useRef(new Animated.Value(0)).current;
+  const visible = state !== 'idle';
+  useEffect(() => {
+    Animated.timing(opacity, {
+      toValue: visible ? 1 : 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+  }, [visible, opacity]);
+  const bg = sailStateColor(state);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[
+        styles.sailBadge,
+        {
+          left,
+          top,
+          opacity,
+          borderColor: bg,
+          backgroundColor: 'rgba(10, 22, 40, 0.78)',
+        },
+      ]}
+    >
+      <View style={[styles.sailBadgeDot, { backgroundColor: bg }]} />
+      <Text style={[styles.sailBadgeText, { color: bg }]}>{label}</Text>
+    </Animated.View>
   );
 }
 
@@ -1062,66 +1523,248 @@ const styles = StyleSheet.create({
   autoButtonTextActive: {
     color: colors.accentCyan,
   },
-  trimRow: {
+  sliderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'flex-start',
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.xs,
+  },
+  modeBar: {
+    flexDirection: 'row',
+    backgroundColor: 'rgba(15, 32, 53, 0.78)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    borderRadius: radii.pill,
+    padding: 3,
+    marginBottom: spacing.sm,
+    alignSelf: 'center',
+    gap: 2,
+  },
+  modeChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    minWidth: 76,
+    alignItems: 'center',
+  },
+  modeChipActive: {
+    backgroundColor: colors.surfaceCyanSoft,
+  },
+  modeChipPressed: {
+    opacity: 0.78,
+  },
+  modeChipText: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  modeChipTextActive: {
+    color: colors.accentCyan,
+  },
+  missionHud: {
+    backgroundColor: 'rgba(21, 37, 64, 0.74)',
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    padding: spacing.md,
+    marginBottom: spacing.sm,
+    gap: 4,
+  },
+  missionHudRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.sm,
-    minHeight: 36,
+    justifyContent: 'space-between',
   },
-  trimRowCompact: {
-    flex: 1,
-  },
-  trimTwoCol: {
-    flexDirection: 'row',
-    gap: spacing.md,
-  },
-  trimLabelWrap: {
-    width: 74,
-  },
-  trimLabel: {
-    color: colors.textSecondary,
+  missionHudKicker: {
+    color: colors.accentCyan,
     fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
-  trimValue: {
+  missionHudClock: {
+    color: colors.textPrimary,
+    fontSize: 14,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+  },
+  missionHudTitle: {
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  missionHudHint: {
+    color: colors.textSecondary,
+    marginTop: 1,
+  },
+  missionHudMeta: {
+    marginTop: spacing.xs,
+    gap: 4,
+  },
+  missionHudMetaLabel: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  missionHudMetaValue: {
     color: colors.accentCyan,
     fontSize: 12,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
-    marginTop: 1,
   },
-  trimButton: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+  drillBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: 'rgba(232, 244, 248, 0.10)',
+    overflow: 'hidden',
+  },
+  drillBarFill: {
+    height: 6,
+    borderRadius: 3,
+  },
+  pickerRow: {
+    marginTop: spacing.sm,
+    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    gap: spacing.xs,
+  },
+  pickerLabel: {
+    color: colors.textMuted,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  pickerChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  pickerChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 5,
+    borderRadius: radii.sm,
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    backgroundColor: 'rgba(10, 22, 40, 0.62)',
+  },
+  pickerChipActive: {
+    borderColor: colors.borderCyanStrong,
+    backgroundColor: colors.surfaceCyanSoft,
+  },
+  pickerChipPressed: {
+    opacity: 0.82,
+  },
+  pickerChipText: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  pickerChipTextActive: {
+    color: colors.accentCyan,
+  },
+  sailBadge: {
+    position: 'absolute',
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 212, 255, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: radii.sm,
+    borderWidth: 1,
+    minWidth: 56,
+  },
+  sailBadgeDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 5,
+  },
+  sailBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0.6,
+  },
+  resultPanel: {
+    position: 'absolute',
+    left: spacing.md,
+    right: spacing.md,
+    top: '22%',
+    backgroundColor: 'rgba(15, 32, 53, 0.96)',
+    borderColor: colors.borderCyanStrong,
+    borderWidth: 1,
+    borderRadius: radii.lg,
+    padding: spacing.md,
+    gap: spacing.sm,
+    ...shadow.lift,
+  },
+  resultKicker: {
+    color: colors.accentCyan,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1.4,
+  },
+  resultTitle: {
+    color: colors.textPrimary,
+    fontSize: 16,
+    fontWeight: '800',
+  },
+  resultRow: {
+    flexDirection: 'row',
+    gap: spacing.md,
+  },
+  resultStat: {
+    flex: 1,
+    backgroundColor: 'rgba(10, 22, 40, 0.66)',
+    borderRadius: radii.sm,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+  },
+  resultStatLabel: {
+    color: colors.textMuted,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  resultStatValue: {
+    color: colors.accentCyan,
+    fontSize: 22,
+    fontWeight: '800',
+    fontVariant: ['tabular-nums'],
+  },
+  resultActions: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  resultButton: {
+    flex: 1,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
+    borderRadius: radii.sm,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
   },
-  trimButtonPressed: {
-    backgroundColor: 'rgba(0, 212, 255, 0.18)',
+  resultButtonPrimary: {
+    backgroundColor: colors.surfaceCyanSoft,
+    borderColor: colors.borderCyanStrong,
   },
-  trimButtonText: {
-    color: colors.accentCyan,
-    fontSize: 17,
+  resultButtonPressed: {
+    opacity: 0.82,
+  },
+  resultButtonText: {
+    color: colors.textSecondary,
+    fontSize: 12,
     fontWeight: '800',
-    lineHeight: 20,
+    letterSpacing: 0.6,
   },
-  trimTrack: {
-    flex: 1,
-    flexDirection: 'row',
-    height: 8,
-    borderRadius: 4,
-    overflow: 'hidden',
-    backgroundColor: 'rgba(232, 244, 248, 0.10)',
-  },
-  trimFill: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.accentCyan,
+  resultButtonTextPrimary: {
+    color: colors.accentCyan,
+    fontSize: 12,
+    fontWeight: '800',
+    letterSpacing: 0.6,
   },
   commentary: {
     marginTop: spacing.md,

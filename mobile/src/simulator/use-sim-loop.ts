@@ -41,6 +41,17 @@ import type {
   SimParams,
   WindState,
 } from './types';
+import {
+  DRILLS,
+  MISSIONS,
+  findDrill,
+  findMission,
+  scoreMission,
+  type DrillDef,
+  type MissionDef,
+  type SimMode,
+} from './missions';
+import { deriveSailFeedback, type SailFeedback } from './sail-feedback';
 
 const TICK_HZ = 30;
 const DT = 1 / TICK_HZ;
@@ -85,6 +96,41 @@ export interface TrailPoint {
   y: number;
 }
 
+export interface MarkScreen {
+  id: string;
+  x: number;
+  y: number;
+  radius: number;
+  captureRadius: number;
+  /** Index in mission.marks. */
+  index: number;
+  /** True once this mark has been rounded. */
+  cleared: boolean;
+  /** True if it is the next mark to round. */
+  active: boolean;
+  /** True for the final mark (finish). */
+  finish: boolean;
+}
+
+export interface DrillProgress {
+  drillId: DrillDef['id'];
+  progressSec: number;
+  targetSec: number;
+  done: boolean;
+  active: boolean;
+}
+
+export interface MissionProgress {
+  missionId: MissionDef['id'];
+  elapsedSec: number;
+  marks: ReadonlyArray<MarkScreen>;
+  done: boolean;
+  /** 0..100, only meaningful when `done`. */
+  score: number;
+  /** Distance to next mark in canvas px, or null if done. */
+  distanceToNextPx: number | null;
+}
+
 export interface SimLoopHandle {
   /** Live screen-space boat. Read on every render for Skia transforms. */
   boat: BoatState;
@@ -98,6 +144,14 @@ export interface SimLoopHandle {
   trail: TrailPoint[];
   /** Increments once per tick, used as a render trigger. */
   tickN: number;
+  /** Sail-state badges derived per-tick from physics. */
+  sailFeedback: SailFeedback;
+  /** Active mode. */
+  mode: SimMode;
+  /** Active drill state when mode === 'drill'. */
+  drill: DrillProgress | null;
+  /** Active mission state when mode === 'mission'. */
+  mission: MissionProgress | null;
   /** Set the heading target (radians, screen-space). */
   setTargetHeading: (h: number) => void;
   /** Set throttle 0..1 (kept for back-compat; engine ignores it). */
@@ -115,7 +169,13 @@ export interface SimLoopHandle {
   setReef: (value: number) => void;
   /** Enable or disable auto-trim. */
   setAutoTrim: (enabled: boolean) => void;
-  /** Reset boat + trail. Wind preserved. */
+  /** Switch mode. Resets boat + drill/mission state for the new mode. */
+  setMode: (mode: SimMode) => void;
+  /** Pick a drill (only meaningful in 'drill' mode). */
+  setDrillId: (id: DrillDef['id']) => void;
+  /** Pick a mission (only meaningful in 'mission' mode). */
+  setMissionId: (id: MissionDef['id']) => void;
+  /** Reset boat + trail + drill/mission timers. Wind preserved. */
   reset: () => void;
 }
 
@@ -179,6 +239,31 @@ function autoTrimFor(twaSigned: number): PhysicsControls {
 
 function clamp01(value: number): number {
   return Math.max(0, Math.min(1, value));
+}
+
+function buildMissionProgress(
+  mission: MissionDef,
+  bounds: { width: number; height: number },
+): MissionProgress {
+  const marks: MarkScreen[] = mission.marks.map((m, i) => ({
+    id: m.id,
+    x: m.fx * bounds.width,
+    y: m.fy * bounds.height,
+    radius: m.radius,
+    captureRadius: m.captureRadius,
+    index: i,
+    cleared: false,
+    active: i === 0,
+    finish: i === mission.marks.length - 1,
+  }));
+  return {
+    missionId: mission.id,
+    elapsedSec: 0,
+    marks,
+    done: false,
+    score: 0,
+    distanceToNextPx: marks.length > 0 ? Infinity : null,
+  };
 }
 
 function controlsToPhysics(
@@ -257,6 +342,20 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     trimScore: 100,
   });
   const trailRef = useRef<TrailPoint[]>([{ x: initialX, y: initialY }]);
+  const sailFeedbackRef = useRef<SailFeedback>({ main: 'idle', jib: 'idle' });
+  const modeRef = useRef<SimMode>('free');
+  const drillIdRef = useRef<DrillDef['id']>(DRILLS[0]!.id);
+  const missionIdRef = useRef<MissionDef['id']>(MISSIONS[0]!.id);
+  const drillStateRef = useRef<DrillProgress>({
+    drillId: DRILLS[0]!.id,
+    progressSec: 0,
+    targetSec: DRILLS[0]!.targetSec,
+    done: false,
+    active: false,
+  });
+  const missionStateRef = useRef<MissionProgress>(
+    buildMissionProgress(MISSIONS[0]!, options.bounds),
+  );
   const [tickN, advance] = useReducer((n: number) => n + 1, 0);
 
   const params = getBoatParams();
@@ -351,6 +450,87 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
             : nextTrail;
         }
 
+        sailFeedbackRef.current = deriveSailFeedback({
+          awaDeg: result.diag.awa,
+          twaDeg: twaPre,
+          mainSheet: clamp01(controlsRef.current.mainSheet ?? 0.5),
+          jibSheet: clamp01(controlsRef.current.jibSheet ?? 0.4),
+          mainStalled: result.diag.mainStalled,
+          jibStalled: result.diag.jibStalled,
+          spinnaker: pickSailSet(Math.abs(twaPre)) === 'spinnaker',
+        });
+
+        if (modeRef.current === 'drill') {
+          const drill = findDrill(drillIdRef.current);
+          if (drill) {
+            const prev = drillStateRef.current;
+            const ok = drill.check({
+              twaDeg: twaPre,
+              boatSpeedKn: result.state.boatSpeed,
+              trimScore: trimScoreFor(result),
+              elapsedSec: prev.progressSec,
+            });
+            const nextProgress = ok && !prev.done
+              ? Math.min(prev.progressSec + DT, drill.targetSec)
+              : prev.progressSec;
+            drillStateRef.current = {
+              drillId: drill.id,
+              progressSec: nextProgress,
+              targetSec: drill.targetSec,
+              active: ok,
+              done: nextProgress >= drill.targetSec,
+            };
+          }
+        } else if (modeRef.current === 'mission') {
+          const mission = findMission(missionIdRef.current);
+          const prev = missionStateRef.current;
+          if (mission && !prev.done) {
+            const elapsed = prev.elapsedSec + DT;
+            let nextDone = false;
+            let active = -1;
+            const nextMarks = prev.marks.map((m) => ({ ...m }));
+            for (let i = 0; i < nextMarks.length; i++) {
+              if (!nextMarks[i]!.cleared) {
+                active = i;
+                break;
+              }
+            }
+            let distance: number | null = null;
+            if (active >= 0) {
+              const m = nextMarks[active]!;
+              const dxm = x - m.x;
+              const dym = y - m.y;
+              distance = Math.sqrt(dxm * dxm + dym * dym);
+              if (distance <= m.captureRadius) {
+                m.cleared = true;
+                m.active = false;
+                if (active + 1 < nextMarks.length) {
+                  nextMarks[active + 1]!.active = true;
+                  active = active + 1;
+                  const m2 = nextMarks[active]!;
+                  const dxm2 = x - m2.x;
+                  const dym2 = y - m2.y;
+                  distance = Math.sqrt(dxm2 * dxm2 + dym2 * dym2);
+                } else {
+                  nextDone = true;
+                  distance = 0;
+                  active = -1;
+                }
+              } else {
+                m.active = true;
+              }
+            }
+            missionStateRef.current = {
+              missionId: mission.id,
+              elapsedSec: nextDone ? elapsed : elapsed,
+              marks: nextMarks,
+              done: nextDone,
+              score: nextDone ? scoreMission(elapsed, mission.parSec) : 0,
+              distanceToNextPx: nextDone ? null : distance,
+            };
+          }
+        }
+
         advance();
       }, 1000 / TICK_HZ);
     };
@@ -377,6 +557,51 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [options.bounds.width, options.bounds.height]);
 
+  const resetCore = () => {
+    screenStateRef.current = {
+      ...DEFAULT_BOAT,
+      x: initialX,
+      y: initialY,
+    };
+    controlsRef.current = { ...DEFAULT_CONTROL_STATE };
+    const wind = windRef.current;
+    physicsRef.current = createInitialState({
+      tws: wind.trueWindSpeedKts,
+      heading: 0,
+      trueWindDir:
+        (normalizeRad(wind.trueWindDirRad) * RAD_TO_DEG) % 360,
+      boatSpeed: 0,
+    });
+    boatExtRef.current = {
+      boatSpeedKn: 0,
+      heelDeg: 0,
+      leewayDeg: 0,
+      twaDeg: 0,
+      awaDeg: 0,
+      awsKn: wind.trueWindSpeedKts,
+      vmgKn: 0,
+      sailSet: 'mainJib',
+      mainStalled: false,
+      jibStalled: false,
+      slotHealth: 1,
+      trimScore: 100,
+    };
+    trailRef.current = [{ x: initialX, y: initialY }];
+    sailFeedbackRef.current = { main: 'idle', jib: 'idle' };
+    const drill = findDrill(drillIdRef.current);
+    drillStateRef.current = {
+      drillId: drillIdRef.current,
+      progressSec: 0,
+      targetSec: drill ? drill.targetSec : 30,
+      done: false,
+      active: false,
+    };
+    const mission = findMission(missionIdRef.current);
+    if (mission) {
+      missionStateRef.current = buildMissionProgress(mission, options.bounds);
+    }
+  };
+
   return {
     boat: screenStateRef.current,
     boatExt: boatExtRef.current,
@@ -384,6 +609,10 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     controls: controlsRef.current,
     trail: trailRef.current,
     tickN,
+    sailFeedback: sailFeedbackRef.current,
+    mode: modeRef.current,
+    drill: modeRef.current === 'drill' ? drillStateRef.current : null,
+    mission: modeRef.current === 'mission' ? missionStateRef.current : null,
     setTargetHeading: (h) => {
       controlsRef.current.targetHeading = h;
     },
@@ -443,36 +672,30 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         autoTrim: enabled,
       };
     },
+    setMode: (mode) => {
+      modeRef.current = mode;
+      resetCore();
+    },
+    setDrillId: (id) => {
+      drillIdRef.current = id;
+      const drill = findDrill(id);
+      drillStateRef.current = {
+        drillId: id,
+        progressSec: 0,
+        targetSec: drill ? drill.targetSec : 30,
+        done: false,
+        active: false,
+      };
+    },
+    setMissionId: (id) => {
+      missionIdRef.current = id;
+      const mission = findMission(id);
+      if (mission) {
+        missionStateRef.current = buildMissionProgress(mission, options.bounds);
+      }
+    },
     reset: () => {
-      screenStateRef.current = {
-        ...DEFAULT_BOAT,
-        x: initialX,
-        y: initialY,
-      };
-      controlsRef.current = { ...DEFAULT_CONTROL_STATE };
-      const wind = windRef.current;
-      physicsRef.current = createInitialState({
-        tws: wind.trueWindSpeedKts,
-        heading: 0,
-        trueWindDir:
-          (normalizeRad(wind.trueWindDirRad) * RAD_TO_DEG) % 360,
-        boatSpeed: 0,
-      });
-      boatExtRef.current = {
-        boatSpeedKn: 0,
-        heelDeg: 0,
-        leewayDeg: 0,
-        twaDeg: 0,
-        awaDeg: 0,
-        awsKn: wind.trueWindSpeedKts,
-        vmgKn: 0,
-        sailSet: 'mainJib',
-        mainStalled: false,
-        jibStalled: false,
-        slotHealth: 1,
-        trimScore: 100,
-      };
-      trailRef.current = [{ x: initialX, y: initialY }];
+      resetCore();
     },
   };
 }
