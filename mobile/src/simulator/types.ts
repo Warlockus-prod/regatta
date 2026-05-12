@@ -30,6 +30,16 @@ export interface Controls {
   targetHeading: number;
   /** Throttle, 0..1. Multiplies `maxSpeed` to get the speed setpoint. */
   throttle: number;
+  /** When true the hook keeps sheets matched to the current wind angle. */
+  autoTrim?: boolean;
+  /** User-facing main sheet tension. 0 = eased, 1 = hard sheeted. */
+  mainSheet?: number;
+  /** User-facing jib sheet tension. 0 = eased, 1 = hard sheeted. */
+  jibSheet?: number;
+  /** Shared sail twist control. 0 = flat, 1 = twisted open. */
+  twist?: number;
+  /** Reef depth. 0 = full main, 1 = deeply reefed. */
+  reef?: number;
 }
 
 export interface SimParams {
@@ -74,6 +84,14 @@ export interface BoatStateExt {
   vmgKn: number;
   /** Currently selected sail set, for UI hints / future trim panels. */
   sailSet: SailSet;
+  /** Main sail stalled flag from the VPP diagnostics. */
+  mainStalled: boolean;
+  /** Jib stalled flag from the VPP diagnostics. */
+  jibStalled: boolean;
+  /** Slot health in [0, 1]. */
+  slotHealth: number;
+  /** Teaching score in [0, 100], derived from stall + slot diagnostics. */
+  trimScore: number;
 }
 
 /** High-level sail picker. The hook auto-selects this from TWA. */

@@ -108,6 +108,13 @@ export interface SimLoopHandle {
   cycleWindSpeed: () => void;
   /** Set wind speed in knots directly. */
   setWindSpeed: (kts: number) => void;
+  /** User trim controls. Calling these leaves auto-trim mode. */
+  setMainSheet: (value: number) => void;
+  setJibSheet: (value: number) => void;
+  setTwist: (value: number) => void;
+  setReef: (value: number) => void;
+  /** Enable or disable auto-trim. */
+  setAutoTrim: (enabled: boolean) => void;
   /** Reset boat + trail. Wind preserved. */
   reset: () => void;
 }
@@ -116,8 +123,7 @@ const WIND_SPEED_PRESETS_KTS = [6, 10, 14, 20] as const;
 
 /**
  * Default trim numbers for an "auto-trim" sailor. They are good enough to
- * drive across the wind range without the user having to think about
- * sheeting in/out yet. Sprint 4 lifts these into a UI panel.
+ * drive across the wind range before the user takes manual control.
  */
 const AUTO_CONTROLS: PhysicsControls = {
   mainSheet: 0.5,
@@ -127,6 +133,16 @@ const AUTO_CONTROLS: PhysicsControls = {
   reef: 0,
   jibFurl: 0,
   jibSide: 1,
+};
+
+const DEFAULT_CONTROL_STATE: Controls = {
+  targetHeading: 0,
+  throttle: 0.7,
+  autoTrim: true,
+  mainSheet: AUTO_CONTROLS.mainSheet,
+  jibSheet: AUTO_CONTROLS.jibSheet,
+  twist: AUTO_CONTROLS.mainTwist,
+  reef: AUTO_CONTROLS.reef,
 };
 
 /** Pick the spinnaker / main+jib / main-only based on TWA. */
@@ -161,6 +177,35 @@ function autoTrimFor(twaSigned: number): PhysicsControls {
   return { ...AUTO_CONTROLS, mainSheet, jibSheet, jibSide };
 }
 
+function clamp01(value: number): number {
+  return Math.max(0, Math.min(1, value));
+}
+
+function controlsToPhysics(
+  controls: Controls,
+  auto: PhysicsControls,
+): PhysicsControls {
+  if (controls.autoTrim !== false) return auto;
+  return {
+    ...auto,
+    mainSheet: clamp01(controls.mainSheet ?? auto.mainSheet),
+    jibSheet: clamp01(controls.jibSheet ?? auto.jibSheet),
+    mainTwist: clamp01(controls.twist ?? auto.mainTwist),
+    jibTwist: clamp01(controls.twist ?? auto.jibTwist),
+    reef: clamp01(controls.reef ?? auto.reef),
+    jibFurl: clamp01((controls.reef ?? auto.reef) * 0.25),
+  };
+}
+
+function trimScoreFor(result: {
+  diag: { mainStalled: boolean; jibStalled: boolean; slotHealth: number };
+}): number {
+  let score = result.diag.slotHealth * 100;
+  if (result.diag.mainStalled) score -= 28;
+  if (result.diag.jibStalled) score -= 18;
+  return Math.round(Math.max(0, Math.min(100, score)));
+}
+
 /** Normalize a radians angle to [0, 2 PI). */
 function normalizeRad(r: number): number {
   const TWO_PI = Math.PI * 2;
@@ -187,10 +232,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     x: initialX,
     y: initialY,
   });
-  const controlsRef = useRef<Controls>({
-    targetHeading: 0,
-    throttle: 0.7,
-  });
+  const controlsRef = useRef<Controls>({ ...DEFAULT_CONTROL_STATE });
   const windRef = useRef<WindState>({ ...DEFAULT_WIND });
   const physicsRef = useRef<PhysicsBoatState>(
     createInitialState({
@@ -209,6 +251,10 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     awsKn: DEFAULT_WIND.trueWindSpeedKts,
     vmgKn: 0,
     sailSet: 'mainJib',
+    mainStalled: false,
+    jibStalled: false,
+    slotHealth: 1,
+    trimScore: 100,
   });
   const trailRef = useRef<TrailPoint[]>([{ x: initialX, y: initialY }]);
   const [tickN, advance] = useReducer((n: number) => n + 1, 0);
@@ -245,7 +291,17 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         // 3. Auto-trim sails for the current TWA, then run one engine tick.
         const twaPre =
           ((trueWindDirDeg - newHeadingDeg + 540) % 360) - 180;
-        const trimmed = autoTrimFor(twaPre);
+        const autoControls = autoTrimFor(twaPre);
+        const trimmed = controlsToPhysics(controls, autoControls);
+        if (controls.autoTrim !== false) {
+          controlsRef.current = {
+            ...controls,
+            mainSheet: autoControls.mainSheet,
+            jibSheet: autoControls.jibSheet,
+            twist: autoControls.mainTwist,
+            reef: autoControls.reef,
+          };
+        }
         const result = physicsTick(engineIn, trimmed, params, DT);
         physicsRef.current = result.state;
 
@@ -280,6 +336,10 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
           awsKn: result.diag.aws,
           vmgKn: result.diag.vmg,
           sailSet: pickSailSet(Math.abs(twaPre)),
+          mainStalled: result.diag.mainStalled,
+          jibStalled: result.diag.jibStalled,
+          slotHealth: result.diag.slotHealth,
+          trimScore: trimScoreFor(result),
         };
 
         // Append to trail if moved enough.
@@ -349,13 +409,47 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         trueWindSpeedKts: Math.max(0, kts),
       };
     },
+    setMainSheet: (value) => {
+      controlsRef.current = {
+        ...controlsRef.current,
+        autoTrim: false,
+        mainSheet: clamp01(value),
+      };
+    },
+    setJibSheet: (value) => {
+      controlsRef.current = {
+        ...controlsRef.current,
+        autoTrim: false,
+        jibSheet: clamp01(value),
+      };
+    },
+    setTwist: (value) => {
+      controlsRef.current = {
+        ...controlsRef.current,
+        autoTrim: false,
+        twist: clamp01(value),
+      };
+    },
+    setReef: (value) => {
+      controlsRef.current = {
+        ...controlsRef.current,
+        autoTrim: false,
+        reef: clamp01(value),
+      };
+    },
+    setAutoTrim: (enabled) => {
+      controlsRef.current = {
+        ...controlsRef.current,
+        autoTrim: enabled,
+      };
+    },
     reset: () => {
       screenStateRef.current = {
         ...DEFAULT_BOAT,
         x: initialX,
         y: initialY,
       };
-      controlsRef.current = { targetHeading: 0, throttle: 0.7 };
+      controlsRef.current = { ...DEFAULT_CONTROL_STATE };
       const wind = windRef.current;
       physicsRef.current = createInitialState({
         tws: wind.trueWindSpeedKts,
@@ -373,6 +467,10 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         awsKn: wind.trueWindSpeedKts,
         vmgKn: 0,
         sailSet: 'mainJib',
+        mainStalled: false,
+        jibStalled: false,
+        slotHealth: 1,
+        trimScore: 100,
       };
       trailRef.current = [{ x: initialX, y: initialY }];
     },
