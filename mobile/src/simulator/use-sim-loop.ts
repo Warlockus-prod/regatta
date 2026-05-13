@@ -48,6 +48,7 @@ import {
   findMission,
   scoreMission,
   type DrillDef,
+  type DrillWindMode,
   type MissionDef,
   type SimMode,
 } from './missions';
@@ -114,10 +115,18 @@ export interface MarkScreen {
 
 export interface DrillProgress {
   drillId: DrillDef['id'];
+  /** Seconds the drill `check()` has been satisfied. */
   progressSec: number;
+  /** Total seconds since the drill started, regardless of success. */
+  elapsedSec: number;
+  /** Drill total duration, seconds. */
   targetSec: number;
   done: boolean;
   active: boolean;
+  /** 0..100, computed from the drill's `goal.kind`. Updates live. */
+  score: number;
+  /** When set, the simulator screen pins the wind-mode pill. */
+  windMode?: DrillWindMode;
 }
 
 export interface MissionProgress {
@@ -349,10 +358,20 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
   const drillStateRef = useRef<DrillProgress>({
     drillId: DRILLS[0]!.id,
     progressSec: 0,
+    elapsedSec: 0,
     targetSec: DRILLS[0]!.targetSec,
     done: false,
     active: false,
+    score: 0,
+    windMode: DRILLS[0]!.windMode,
   });
+  /** Wind direction captured the moment a drill started. Drives the
+   *  step-shift schedule and lets `check()` reason about how far the
+   *  wind has drifted from its starting point. */
+  const drillStartWindRef = useRef<number>(0);
+  /** Wind speed captured the moment a drill started. Drives the gust
+   *  cycle so the boat sees a reproducible 8-sec gust pattern. */
+  const drillStartWindSpeedRef = useRef<number>(DEFAULT_WIND.trueWindSpeedKts);
   const missionStateRef = useRef<MissionProgress>(
     buildMissionProgress(MISSIONS[0]!, options.bounds),
   );
@@ -368,6 +387,55 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
       id = setInterval(() => {
         const screen = screenStateRef.current;
         const controls = controlsRef.current;
+
+        // 0. If a drill is active and owns the wind regime, drive the
+        //    schedule BEFORE the engine reads windRef. Step shifts for
+        //    `windMode === 'shift'`, square-ish gust cycle for `'gust'`.
+        //    Steady drills leave the wind alone so the screen-level
+        //    wind-mode pill behaves normally.
+        if (modeRef.current === 'drill') {
+          const drill = findDrill(drillIdRef.current);
+          if (drill && drill.windMode && drill.windMode !== 'steady') {
+            const elapsed = drillStateRef.current.elapsedSec;
+            if (drill.windMode === 'shift') {
+              // 6 step shifts of 30 deg over 60 sec, alternating sides
+              // around the captured starting wind direction.
+              const stepIdx = Math.min(5, Math.floor(elapsed / 10));
+              const sign = stepIdx % 2 === 0 ? 1 : -1;
+              const offsetRad =
+                (sign * (15 + 15 * Math.floor(stepIdx / 2)) * Math.PI) /
+                180;
+              const next = drillStartWindRef.current + offsetRad;
+              if (
+                Math.abs(
+                  shortestRad(windRef.current.trueWindDirRad, next),
+                ) > 1e-3
+              ) {
+                windRef.current = {
+                  ...windRef.current,
+                  trueWindDirRad: normalizeRad(next),
+                };
+              }
+            } else if (drill.windMode === 'gust') {
+              // 8-sec cycle: first 5 sec steady at base, next 3 sec gust
+              // bumped by ~6 kt. Repeats.
+              const phase = elapsed % 8;
+              const target =
+                phase >= 5
+                  ? drillStartWindSpeedRef.current + 6
+                  : drillStartWindSpeedRef.current;
+              if (
+                Math.abs(windRef.current.trueWindSpeedKts - target) > 1e-3
+              ) {
+                windRef.current = {
+                  ...windRef.current,
+                  trueWindSpeedKts: target,
+                };
+              }
+            }
+          }
+        }
+
         const wind = windRef.current;
 
         // 1. Heading rotation in screen-space, clamped per frame.
@@ -464,21 +532,74 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
           const drill = findDrill(drillIdRef.current);
           if (drill) {
             const prev = drillStateRef.current;
+            const trim = trimScoreFor(result);
             const ok = drill.check({
               twaDeg: twaPre,
               boatSpeedKn: result.state.boatSpeed,
-              trimScore: trimScoreFor(result),
-              elapsedSec: prev.progressSec,
+              trimScore: trim,
+              elapsedSec: prev.elapsedSec,
+              windDirRad: wind.trueWindDirRad,
+              windSpeedKn: wind.trueWindSpeedKts,
+              windDirAtStartRad: drillStartWindRef.current,
             });
-            const nextProgress = ok && !prev.done
-              ? Math.min(prev.progressSec + DT, drill.targetSec)
-              : prev.progressSec;
+            const wasDone = prev.done;
+            const nextElapsed = wasDone
+              ? prev.elapsedSec
+              : Math.min(prev.elapsedSec + DT, drill.targetSec);
+            const nextProgress =
+              ok && !wasDone
+                ? Math.min(prev.progressSec + DT, drill.targetSec)
+                : prev.progressSec;
+            const goalKind = drill.goal?.kind ?? 'time-in-range';
+            let nextDone = wasDone;
+            let nextScore = prev.score;
+            if (!wasDone) {
+              if (goalKind === 'recover-speed') {
+                if (ok) {
+                  nextDone = true;
+                  const remaining = Math.max(
+                    0,
+                    drill.targetSec - prev.elapsedSec,
+                  );
+                  nextScore = Math.round(
+                    (remaining / drill.targetSec) * 100,
+                  );
+                } else if (nextElapsed >= drill.targetSec) {
+                  nextDone = true;
+                  nextScore = 0;
+                } else {
+                  nextScore = 0;
+                }
+              } else if (goalKind === 'trim-hold') {
+                nextScore = Math.round(
+                  (nextProgress / drill.targetSec) * 100,
+                );
+                if (nextElapsed >= drill.targetSec) {
+                  nextDone = true;
+                }
+              } else {
+                nextScore = Math.round(
+                  (nextProgress / drill.targetSec) * 100,
+                );
+                if (
+                  nextProgress >= drill.targetSec ||
+                  nextElapsed >= drill.targetSec
+                ) {
+                  nextDone =
+                    nextProgress >= drill.targetSec ||
+                    nextElapsed >= drill.targetSec;
+                }
+              }
+            }
             drillStateRef.current = {
               drillId: drill.id,
               progressSec: nextProgress,
+              elapsedSec: nextElapsed,
               targetSec: drill.targetSec,
               active: ok,
-              done: nextProgress >= drill.targetSec,
+              done: nextDone,
+              score: nextScore,
+              windMode: drill.windMode,
             };
           }
         } else if (modeRef.current === 'mission') {
@@ -564,10 +685,50 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
       y: initialY,
     };
     controlsRef.current = { ...DEFAULT_CONTROL_STATE };
-    const wind = windRef.current;
+    let wind = windRef.current;
+    let initialHeadingRad = 0;
+    let drillForReset: DrillDef | undefined;
+    if (modeRef.current === 'drill') {
+      drillForReset = findDrill(drillIdRef.current);
+      if (drillForReset?.setup) {
+        const baseWindDir = wind.trueWindDirRad;
+        const baseWindSpeed = wind.trueWindSpeedKts;
+        const setupResult = drillForReset.setup({
+          windDirRad: baseWindDir,
+          windSpeedKn: baseWindSpeed,
+        });
+        drillStartWindRef.current =
+          setupResult.windDirAtStartRad ?? baseWindDir;
+        drillStartWindSpeedRef.current = baseWindSpeed;
+        if (setupResult.disableAutoTrim) {
+          controlsRef.current = {
+            ...controlsRef.current,
+            autoTrim: false,
+          };
+        }
+        if (setupResult.initialHeadingRad != null) {
+          initialHeadingRad = normalizeRad(setupResult.initialHeadingRad);
+          screenStateRef.current = {
+            ...screenStateRef.current,
+            heading: initialHeadingRad,
+          };
+          controlsRef.current = {
+            ...controlsRef.current,
+            targetHeading: initialHeadingRad,
+          };
+        }
+      } else {
+        drillStartWindRef.current = wind.trueWindDirRad;
+        drillStartWindSpeedRef.current = wind.trueWindSpeedKts;
+      }
+      wind = windRef.current;
+    } else {
+      drillStartWindRef.current = wind.trueWindDirRad;
+      drillStartWindSpeedRef.current = wind.trueWindSpeedKts;
+    }
     physicsRef.current = createInitialState({
       tws: wind.trueWindSpeedKts,
-      heading: 0,
+      heading: (initialHeadingRad * RAD_TO_DEG) % 360,
       trueWindDir:
         (normalizeRad(wind.trueWindDirRad) * RAD_TO_DEG) % 360,
       boatSpeed: 0,
@@ -588,13 +749,16 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     };
     trailRef.current = [{ x: initialX, y: initialY }];
     sailFeedbackRef.current = { main: 'idle', jib: 'idle' };
-    const drill = findDrill(drillIdRef.current);
+    const drill = drillForReset ?? findDrill(drillIdRef.current);
     drillStateRef.current = {
       drillId: drillIdRef.current,
       progressSec: 0,
+      elapsedSec: 0,
       targetSec: drill ? drill.targetSec : 30,
       done: false,
       active: false,
+      score: 0,
+      windMode: drill?.windMode,
     };
     const mission = findMission(missionIdRef.current);
     if (mission) {
@@ -682,9 +846,12 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
       drillStateRef.current = {
         drillId: id,
         progressSec: 0,
+        elapsedSec: 0,
         targetSec: drill ? drill.targetSec : 30,
         done: false,
         active: false,
+        score: 0,
+        windMode: drill?.windMode,
       };
     },
     setMissionId: (id) => {

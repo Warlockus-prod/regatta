@@ -43,6 +43,7 @@ import Svg, {
 } from 'react-native-svg';
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
 import type { SailState } from '../../src/simulator/sail-feedback';
+import { leewayAngleDeg } from '../../src/simulator/sail-geometry';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 const COMPASS_R = 34;
@@ -63,6 +64,7 @@ interface SceneLabels {
   twist: string;
   gust: string;
   shift: string;
+  leeway: string;
 }
 
 function snapToStep(rad: number, step: number): number {
@@ -217,8 +219,25 @@ export default function Simulator() {
   const windBaseRef = useRef(sim.wind.trueWindDirRad);
   const windSpeedBaseRef = useRef(sim.wind.trueWindSpeedKts);
 
+  // Sprint 8: a drill can pin the wind regime. When the active drill
+  // declares a `windMode`, we adopt it for the screen pill so the user
+  // sees the matching ambient effect, and the simulator loop drives the
+  // schedule itself (so the screen-level `useEffect` below should NOT
+  // double-drive shift/gust during a drill).
+  const drillWindMode = sim.drill?.windMode;
+  useEffect(() => {
+    if (drillWindMode && drillWindMode !== windMapMode) {
+      windBaseRef.current = sim.wind.trueWindDirRad;
+      windSpeedBaseRef.current = sim.wind.trueWindSpeedKts;
+      setWindMapMode(drillWindMode);
+    }
+    // Intentionally only react to drillWindMode flips, not every tick.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drillWindMode]);
+
   useEffect(() => {
     if (windMapMode === 'steady') return;
+    if (drillWindMode) return;
     const phase = sim.tickN / 30;
     if (windMapMode === 'shift') {
       const swingRad = (15 * Math.PI) / 180;
@@ -227,7 +246,7 @@ export default function Simulator() {
     }
     const gust = Math.max(0, Math.sin(phase * 0.78));
     sim.setWindSpeed(windSpeedBaseRef.current + gust * 4);
-  }, [sim, windMapMode]);
+  }, [sim, windMapMode, drillWindMode]);
 
   const steer = useMemo(
     () =>
@@ -631,6 +650,12 @@ export default function Simulator() {
       de: 'Winddreher',
       it: 'salto di vento',
     }),
+    leeway: tp('дрейф', 'leeway', 'dryf', {
+      es: 'abatimiento',
+      fr: 'derive',
+      de: 'Abdrift',
+      it: 'scarroccio',
+    }),
   };
   const luffLabel = tp('ХЛОПАЕТ', 'LUFF', 'LUFF', {
     es: 'FLAMEA',
@@ -674,6 +699,7 @@ export default function Simulator() {
   );
   const speedKn = sim.boatExt.boatSpeedKn.toFixed(1);
   const heelDeg = Math.round(sim.boatExt.heelDeg);
+  const leewayDegVisual = leewayAngleDeg(sim.boatExt);
   const twaDeg = Math.round(sim.boatExt.twaDeg);
   const awaDeg = Math.round(sim.boatExt.awaDeg);
   const vmgKn = sim.boatExt.vmgKn.toFixed(1);
@@ -1075,6 +1101,7 @@ export default function Simulator() {
               twaDeg={twaDeg}
               awaDeg={awaDeg}
               heelDeg={heelDeg}
+              leewayDeg={leewayDegVisual}
               speedKn={Number(speedKn)}
               mainSheet={mainSheet}
               jibSheet={jibSheet}
@@ -1093,6 +1120,7 @@ export default function Simulator() {
               twaDeg={twaDeg}
               awaDeg={awaDeg}
               heelDeg={heelDeg}
+              leewayDeg={leewayDegVisual}
               trimScore={trimScore}
               mainSheet={mainSheet}
               jibSheet={jibSheet}
@@ -1607,6 +1635,7 @@ function SideProfileScene({
   twaDeg,
   awaDeg,
   heelDeg,
+  leewayDeg,
   speedKn,
   mainSheet,
   jibSheet,
@@ -1623,6 +1652,7 @@ function SideProfileScene({
   twaDeg: number;
   awaDeg: number;
   heelDeg: number;
+  leewayDeg: number;
   speedKn: number;
   mainSheet: number;
   jibSheet: number;
@@ -1778,6 +1808,37 @@ function SideProfileScene({
       <SvgText x={cx + 8} y={waterY - 94} fill={colors.success} fontSize={10} fontWeight="800">
         {labels.drive.toUpperCase()}
       </SvgText>
+      {Math.abs(leewayDeg) > 1 ? (
+        <G>
+          <Line
+            x1={cx}
+            y1={waterY + 56}
+            x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * 70}
+            y2={waterY + 56 + Math.cos((leewayDeg * Math.PI) / 180) * 36}
+            stroke={colors.warning}
+            strokeWidth={2}
+            strokeLinecap="round"
+          />
+          <Line
+            x1={cx}
+            y1={waterY + 56}
+            x2={cx}
+            y2={waterY + 92}
+            stroke="rgba(232,244,248,0.46)"
+            strokeWidth={1}
+            strokeLinecap="round"
+          />
+          <SvgText
+            x={cx + 12}
+            y={waterY + 88}
+            fill={colors.warning}
+            fontSize={10}
+            fontWeight="800"
+          >
+            {`${labels.leeway.toUpperCase()} ${Math.abs(Math.round(leewayDeg))}°`}
+          </SvgText>
+        </G>
+      ) : null}
       <SvgText x={14} y={height - 44} fill={colors.textPrimary} fontSize={11} fontWeight="800">
         {`TWA ${Math.abs(twaDeg)}°  ${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
       </SvgText>
@@ -1794,6 +1855,7 @@ function RearScene({
   twaDeg,
   awaDeg,
   heelDeg,
+  leewayDeg,
   trimScore,
   mainSheet,
   jibSheet,
@@ -1809,6 +1871,7 @@ function RearScene({
   twaDeg: number;
   awaDeg: number;
   heelDeg: number;
+  leewayDeg: number;
   trimScore: number;
   mainSheet: number;
   jibSheet: number;
@@ -1917,11 +1980,42 @@ function RearScene({
         points={`${cx + sailSide * (sideArrowLen + 8)},${baseY + 66} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 59} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 73}`}
         fill={colors.warning}
       />
+      {Math.abs(leewayDeg) > 1 ? (
+        <G>
+          <Line
+            x1={cx}
+            y1={baseY + 92}
+            x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * (38 + Math.abs(leewayDeg) * 3)}
+            y2={baseY + 92}
+            stroke={colors.danger}
+            strokeWidth={2}
+            strokeLinecap="round"
+            opacity={0.85}
+          />
+          <Line
+            x1={cx - 8}
+            y1={baseY + 92}
+            x2={cx + 8}
+            y2={baseY + 92}
+            stroke="rgba(232,244,248,0.40)"
+            strokeWidth={1}
+          />
+          <SvgText
+            x={cx + (leewayDeg >= 0 ? 22 : -78)}
+            y={baseY + 108}
+            fill={colors.danger}
+            fontSize={9}
+            fontWeight="800"
+          >
+            {`${labels.leeway.toUpperCase()} ${Math.abs(Math.round(leewayDeg))}°`}
+          </SvgText>
+        </G>
+      ) : null}
       <SvgText x={14} y={height - 45} fill={colors.textPrimary} fontSize={11} fontWeight="800">
-        {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
+        {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°  ${labels.heel.toUpperCase()} ${heelDeg}°`}
       </SvgText>
       <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
-        {`${labels.heel.toUpperCase()} ${heelDeg}°  ${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
+        {`${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
       </SvgText>
       <SvgCircle cx={width - 24} cy={height - 28} r={8} fill={trimColor} />
     </Svg>

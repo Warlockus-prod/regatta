@@ -139,3 +139,109 @@ export const SAIL_TUNING = {
   BOOM_MAX_DEG,
   BOOM_OFFSET_FROM_AWA_DEG,
 } as const;
+
+/**
+ * Sprint 8 visual-physics extensions. These are pure-math helpers consumed
+ * by the renderer so the same numbers drive the side / rear projections
+ * and the SkiaYacht top-down view. Keep all of them PURE (no React, no
+ * Skia, no globals) so they stay testable.
+ */
+
+/** Max additional rotation, radians, the sail HEAD gets relative to the
+ *  boom when twist is fully open. ~22 deg matches a powered-up dinghy
+ *  twist photograph well enough for the schematic view. */
+const TWIST_HEAD_OFFSET_MAX_DEG = 22;
+/** Visibility threshold for twist - below this we return 0 so the renderer
+ *  can keep the head locked to the boom and avoid jitter. */
+const TWIST_VISIBLE_THRESHOLD = 0.05;
+/** Reef depth past which twist is suppressed entirely (less area, less
+ *  fabric to twist). */
+const TWIST_REEF_CUTOFF = 0.5;
+
+/** Sail-area multiplier at full reef (reef = 1). 0.4 keeps the sprite
+ *  visible while telling the user "deep reef = a lot less power". */
+const REEF_AREA_AT_FULL = 0.4;
+
+const HEEL_VISUAL_CLAMP_DEG = 25;
+const LEEWAY_VISUAL_CLAMP_DEG = 10;
+
+/**
+ * Radians the sail HEAD is offset from the BOOM angle, signed the same
+ * way as the boom. Visible only when `twist > TWIST_VISIBLE_THRESHOLD`.
+ * Returns 0 when reefed past `TWIST_REEF_CUTOFF` because there is less
+ * fabric to twist when the sail is rolled / dropped down.
+ *
+ * The sign is independent of AWA: the head twists OFF in the same
+ * direction the boom is swung, just further. The renderer can read the
+ * boom angle and add this offset to derive the head angle.
+ *
+ * Tuning: at twist = 1 and reef = 0 the head opens by ~22 deg, which is
+ * what a well-twisted main looks like in light air on a beam reach.
+ */
+export function twistOffsetRad(twist: number, sheet: number): number {
+  void sheet;
+  const t = clamp(twist, 0, 1);
+  if (t < TWIST_VISIBLE_THRESHOLD) return 0;
+  const reefScale = 1;
+  const eased = (t - TWIST_VISIBLE_THRESHOLD) / (1 - TWIST_VISIBLE_THRESHOLD);
+  return eased * reefScale * TWIST_HEAD_OFFSET_MAX_DEG * DEG_TO_RAD;
+}
+
+/**
+ * Same as `twistOffsetRad` but takes the reef value into account. Pulled
+ * out so callers that already gate on reef themselves can use the cheap
+ * version. `reef >= TWIST_REEF_CUTOFF` => 0.
+ */
+export function twistOffsetReefedRad(
+  twist: number,
+  sheet: number,
+  reef: number,
+): number {
+  if (clamp(reef, 0, 1) >= TWIST_REEF_CUTOFF) return 0;
+  return twistOffsetRad(twist, sheet);
+}
+
+/**
+ * Multiplier in [0, 1] for visible sail area as a function of reef depth.
+ * `reef = 0` returns 1.0 (full sail), `reef = 1` returns
+ * `REEF_AREA_AT_FULL` (deep reef leaves ~40% of the area visible). The
+ * curve is linear because the reef slider step is coarse (0.25) and a
+ * straight ramp matches the user's mental model "more reef = less sail".
+ */
+export function reefedAreaScale(reef: number): number {
+  const r = clamp(reef, 0, 1);
+  return 1 - r * (1 - REEF_AREA_AT_FULL);
+}
+
+/**
+ * Visual heel angle in degrees, clamped to a sensible draw range so the
+ * SVG / Skia projections do not flip the sprite around. Reads
+ * `boatExt.heelDeg` directly. Sign convention is preserved: positive =
+ * leeward, negative = windward.
+ */
+export function heelAngleDeg(boatExt: { heelDeg: number }): number {
+  return clamp(boatExt.heelDeg, -HEEL_VISUAL_CLAMP_DEG, HEEL_VISUAL_CLAMP_DEG);
+}
+
+/**
+ * Visual leeway angle in degrees, clamped to the small range a cruiser
+ * actually drifts (typically 0-10 deg, rarely past 8). The arrow that
+ * consumes this should be hidden when `Math.abs(leewayAngleDeg(...)) <= 1`
+ * because a 1-deg arrow is just visual noise.
+ */
+export function leewayAngleDeg(boatExt: { leewayDeg: number }): number {
+  return clamp(
+    boatExt.leewayDeg,
+    -LEEWAY_VISUAL_CLAMP_DEG,
+    LEEWAY_VISUAL_CLAMP_DEG,
+  );
+}
+
+export const VISUAL_TUNING = {
+  TWIST_HEAD_OFFSET_MAX_DEG,
+  TWIST_VISIBLE_THRESHOLD,
+  TWIST_REEF_CUTOFF,
+  REEF_AREA_AT_FULL,
+  HEEL_VISUAL_CLAMP_DEG,
+  LEEWAY_VISUAL_CLAMP_DEG,
+} as const;

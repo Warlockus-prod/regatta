@@ -4,11 +4,25 @@ export type SimMode = 'free' | 'drill' | 'mission';
 
 type Tp = (ru: string, en: string, pl: string, extras?: TpExtras) => string;
 
+/**
+ * Wind regime auto-set by a drill on start. The simulator screen reads
+ * the active drill's `windMode` and pins the wind-mode pill so the
+ * exercise matches the curriculum description (e.g. shift drill always
+ * runs in shift mode).
+ */
+export type DrillWindMode = 'steady' | 'shift' | 'gust';
+
 export interface DrillContext {
   twaDeg: number;
   boatSpeedKn: number;
   trimScore: number;
   elapsedSec: number;
+  /** Optional fields surfaced for Sprint 8 drills. Older drills ignore them. */
+  windDirRad?: number;
+  windSpeedKn?: number;
+  /** True wind FROM-direction at drill start, captured in setup(). Lets a
+   *  shift drill measure how much the user has corrected for the change. */
+  windDirAtStartRad?: number;
 }
 
 export interface DrillTickResult {
@@ -20,8 +34,54 @@ export interface DrillTickResult {
   done: boolean;
 }
 
+/**
+ * Scoring kinds for Sprint 8 drills.
+ * - `time-in-range`: legacy behaviour, target = total seconds spent in the
+ *   "success window" defined by `check()`.
+ * - `trim-hold`: the loop accumulates seconds where `check()` is true AND
+ *   the failure penalty grows when the user drops below threshold (used by
+ *   gust-trim).
+ * - `recover-speed`: success once `boatSpeedKn >= speedTargetKn`. Score is
+ *   `(targetSec - elapsedAtSuccess) / targetSec * 100`.
+ */
+export type DrillGoalKind = 'time-in-range' | 'trim-hold' | 'recover-speed';
+
+export interface DrillGoal {
+  kind: DrillGoalKind;
+  /** For `trim-hold`: the trim-score floor the user must stay above. */
+  trimThreshold?: number;
+  /** For `recover-speed`: the boat-speed target in knots. */
+  speedTargetKn?: number;
+  /** Total drill duration in seconds. */
+  duration: number;
+}
+
+export interface DrillSetupContext {
+  /** Current wind direction (radians, screen-space). */
+  windDirRad: number;
+  /** Current wind speed (knots). */
+  windSpeedKn: number;
+}
+
+export interface DrillSetupResult {
+  /** If set, the loop forces this initial heading (radians, screen-space).
+   *  Used by no-go-recovery to point the bow into the no-go zone. */
+  initialHeadingRad?: number;
+  /** If set, the loop disables auto-trim. Used by gust-trim. */
+  disableAutoTrim?: boolean;
+  /** Captured wind dir at drill start; passed back into ctx as
+   *  `windDirAtStartRad` for use by `check()`. */
+  windDirAtStartRad?: number;
+}
+
 export interface DrillDef {
-  id: 'twa45' | 'noGo' | 'reach90';
+  id:
+    | 'twa45'
+    | 'noGo'
+    | 'reach90'
+    | 'shiftReact'
+    | 'gustTrim'
+    | 'noGoRecovery';
   title: (tp: Tp) => string;
   hint: (tp: Tp) => string;
   /** Target seconds spent in the success window. */
@@ -31,6 +91,14 @@ export interface DrillDef {
   check: (ctx: DrillContext) => boolean;
   /** Live progress label, e.g. "TWA held: 22 / 30 sec". */
   progressLabel: (progressSec: number, targetSec: number, tp: Tp) => string;
+  /** Sprint 8: structured goal description for richer scoring. Optional so
+   *  the existing 3 drills work without modification. */
+  goal?: DrillGoal;
+  /** Sprint 8: wind regime to pin while this drill is active. */
+  windMode?: DrillWindMode;
+  /** Sprint 8: optional one-shot setup callback. Returns initial state
+   *  hints the loop applies (heading override, auto-trim toggle, etc). */
+  setup?: (ctx: DrillSetupContext) => DrillSetupResult;
 }
 
 const DRILL_TWA45: DrillDef = {
@@ -160,10 +228,171 @@ const DRILL_REACH90: DrillDef = {
     ),
 };
 
+/**
+ * Sprint 8 drill: react to a wind shift. The simulator pins wind mode to
+ * `shift` so the wind direction sweeps across the screen. The user must
+ * keep the boat within +/- 5 deg of optimal close-hauled (TWA = 45 deg
+ * on whichever tack the wind has just rolled into).
+ */
+const DRILL_SHIFT_REACT: DrillDef = {
+  id: 'shiftReact',
+  targetSec: 60,
+  windMode: 'shift',
+  goal: { kind: 'time-in-range', duration: 60 },
+  title: (tp) =>
+    tp(
+      'Реагируй на заход',
+      'React to the shift',
+      'Reaguj na zmiane wiatru',
+      {
+        es: 'Reacciona al role',
+        fr: 'Reagis a la bascule',
+        de: 'Reagiere auf den Dreher',
+        it: 'Reagisci al salto',
+      },
+    ),
+  hint: (tp) =>
+    tp(
+      'Ветер ходит каждые 10 сек. Держи TWA 40-50 на новом галсе.',
+      'Wind shifts every 10 sec. Hold TWA 40-50 on the new tack.',
+      'Wiatr zmienia sie co 10 sek. Trzymaj TWA 40-50 na nowym halsie.',
+      {
+        es: 'El viento cambia cada 10 seg. Manten TWA 40-50 en la nueva amura.',
+        fr: 'Le vent bascule toutes les 10 sec. Tiens TWA 40-50 sur la nouvelle amure.',
+        de: 'Der Wind dreht alle 10 Sek. Halte TWA 40-50 auf dem neuen Bug.',
+        it: 'Il vento ruota ogni 10 sec. Tieni TWA 40-50 sulla nuova mura.',
+      },
+    ),
+  check: (ctx) => {
+    const a = Math.abs(ctx.twaDeg);
+    return a >= 40 && a <= 50;
+  },
+  progressLabel: (p, t, tp) =>
+    tp(
+      `На курсе: ${Math.floor(p)} / ${t} сек`,
+      `On target: ${Math.floor(p)} / ${t} sec`,
+      `Na kursie: ${Math.floor(p)} / ${t} sek`,
+      {
+        es: `En objetivo: ${Math.floor(p)} / ${t} seg`,
+        fr: `Sur objectif: ${Math.floor(p)} / ${t} sec`,
+        de: `Auf Ziel: ${Math.floor(p)} / ${t} Sek.`,
+        it: `In rotta: ${Math.floor(p)} / ${t} sec`,
+      },
+    ),
+  setup: (ctx) => ({ windDirAtStartRad: ctx.windDirRad }),
+};
+
+/**
+ * Sprint 8 drill: trim through a gust cycle. Wind cycles steady -> gust
+ * -> steady every 8 sec. Auto-trim is disabled so the user must ease the
+ * sheets manually when the gust hits. Score = seconds with trim score
+ * >= 75 (drill threshold).
+ */
+const DRILL_GUST_TRIM: DrillDef = {
+  id: 'gustTrim',
+  targetSec: 60,
+  windMode: 'gust',
+  goal: { kind: 'trim-hold', trimThreshold: 75, duration: 60 },
+  title: (tp) =>
+    tp(
+      'Триммингуй порывы',
+      'Trim through the gusts',
+      'Reguluj w podmuchach',
+      {
+        es: 'Ajusta en las rachas',
+        fr: 'Regle dans les rafales',
+        de: 'Trimme durch die Boen',
+        it: 'Regola nelle raffiche',
+      },
+    ),
+  hint: (tp) =>
+    tp(
+      'Авто-trim выключен. В порыв отдай шкот, удержи TRIM выше 75.',
+      'Auto-trim off. Ease the sheet in the gust, keep TRIM above 75.',
+      'Auto-trim wylaczony. W podmuchu poluzuj szot, trzymaj TRIM ponad 75.',
+      {
+        es: 'Auto-trim apagado. En la racha suelta escota, manten TRIM sobre 75.',
+        fr: 'Auto-trim coupe. Dans la rafale choque, garde TRIM au-dessus de 75.',
+        de: 'Auto-Trim aus. In der Boe Schot fieren, TRIM ueber 75 halten.',
+        it: 'Auto-trim spento. Nella raffica lasca, tieni TRIM sopra 75.',
+      },
+    ),
+  check: (ctx) => ctx.trimScore >= 75,
+  progressLabel: (p, t, tp) =>
+    tp(
+      `TRIM удержан: ${Math.floor(p)} / ${t} сек`,
+      `TRIM held: ${Math.floor(p)} / ${t} sec`,
+      `TRIM utrzymany: ${Math.floor(p)} / ${t} sek`,
+      {
+        es: `TRIM mantenido: ${Math.floor(p)} / ${t} seg`,
+        fr: `TRIM tenu: ${Math.floor(p)} / ${t} sec`,
+        de: `TRIM gehalten: ${Math.floor(p)} / ${t} Sek.`,
+        it: `TRIM tenuto: ${Math.floor(p)} / ${t} sec`,
+      },
+    ),
+  setup: () => ({ disableAutoTrim: true }),
+};
+
+/**
+ * Sprint 8 drill: recover from the no-go zone. The bow is forced into
+ * the no-go on start. The user must steer out and accelerate to 4 kt
+ * within 30 sec. Score = remaining seconds when 4 kt is reached, scaled
+ * to 100 (so faster recovery = higher score).
+ */
+const DRILL_NO_GO_RECOVERY: DrillDef = {
+  id: 'noGoRecovery',
+  targetSec: 30,
+  windMode: 'steady',
+  goal: { kind: 'recover-speed', speedTargetKn: 4, duration: 30 },
+  title: (tp) =>
+    tp(
+      'Выход из no-go',
+      'Recover from no-go',
+      'Wyjscie z no-go',
+      {
+        es: 'Salida de no-go',
+        fr: 'Sortie de no-go',
+        de: 'Aus dem No-go heraus',
+        it: 'Uscita dal no-go',
+      },
+    ),
+  hint: (tp) =>
+    tp(
+      'Нос в ветер. Увались и разгонись до 4 узлов за 30 сек.',
+      'Bow into the wind. Bear away and accelerate to 4 kt in 30 sec.',
+      'Dziob w wiatr. Odpadnij i rozpedz do 4 wezlow w 30 sek.',
+      {
+        es: 'Proa al viento. Arriba y acelera a 4 nudos en 30 seg.',
+        fr: 'Etrave dans le vent. Abats et acceleres a 4 nd en 30 sec.',
+        de: 'Bug in den Wind. Falle ab und beschleunige in 30 Sek auf 4 kt.',
+        it: 'Prua al vento. Poggia e accelera a 4 nd in 30 sec.',
+      },
+    ),
+  check: (ctx) => ctx.boatSpeedKn >= 4,
+  progressLabel: (p, t, tp) =>
+    tp(
+      `Время до 4 уз: ${Math.floor(p)} / ${t} сек`,
+      `Time to 4 kt: ${Math.floor(p)} / ${t} sec`,
+      `Czas do 4 wezlow: ${Math.floor(p)} / ${t} sek`,
+      {
+        es: `Tiempo a 4 nudos: ${Math.floor(p)} / ${t} seg`,
+        fr: `Temps jusqu a 4 nd: ${Math.floor(p)} / ${t} sec`,
+        de: `Zeit bis 4 kt: ${Math.floor(p)} / ${t} Sek.`,
+        it: `Tempo fino a 4 nd: ${Math.floor(p)} / ${t} sec`,
+      },
+    ),
+  setup: (ctx) => ({
+    initialHeadingRad: ctx.windDirRad,
+  }),
+};
+
 export const DRILLS: ReadonlyArray<DrillDef> = [
   DRILL_TWA45,
   DRILL_NO_GO,
   DRILL_REACH90,
+  DRILL_SHIFT_REACT,
+  DRILL_GUST_TRIM,
+  DRILL_NO_GO_RECOVERY,
 ];
 
 /** Mission marks expressed as fractions of the canvas (0..1) so they scale
