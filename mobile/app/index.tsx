@@ -1,4 +1,5 @@
 import { Stack, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../src/i18n/context';
 import {
@@ -15,6 +16,8 @@ import { useBootcampProgress } from '../src/persistence/bootcamp';
 import { summarizeContinue, TOTAL_DAYS } from '../src/bootcamp/days';
 import { legacyPick } from '../src/i18n/languages';
 import { colors, glow, spacing } from '../src/design-system/tokens';
+import { fetchDaily, type DailyChallenge } from '../src/api/daily';
+import { findCourse } from '../src/game/course';
 
 const ACCENT_COLOR: Record<CardAccent, string> = {
   cyan: colors.accentCyan,
@@ -39,6 +42,21 @@ export default function Home() {
   const continueState = summarizeContinue(completedIds, lastViewedLessonId);
   const showContinue = ready && completedIds.size > 0 && !continueState.allDone;
   const showCelebration = ready && continueState.allDone && completedIds.size > 0;
+
+  // Daily challenge: opportunistic fetch (cached 1h via daily.ts). The
+  // banner only renders if the API returned a valid response for today.
+  // 404 / network failure = nothing rendered, never an empty state.
+  const [daily, setDaily] = useState<DailyChallenge | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetchDaily().then((res) => {
+      if (cancelled) return;
+      if (res.ok && res.data) setDaily(res.data);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const tagline = tp(
     'Учебник парусного спорта',
@@ -92,6 +110,37 @@ export default function Home() {
           <Wordmark size="xl" />
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
         </View>
+
+        {daily ? (
+          <DailyBanner
+            challenge={daily}
+            badgeLabel={tp('Дневной', 'Daily', 'Dzienny', {
+              es: 'Diario',
+              fr: 'Du jour',
+              de: 'Taeglich',
+              it: 'Giornaliero',
+            })}
+            titleLabel={findCourse(daily.challenge.missionId ?? 'daily').title(tp)}
+            parLabel={tp('Par', 'Par', 'Par', {
+              es: 'Par',
+              fr: 'Par',
+              de: 'Par',
+              it: 'Par',
+            })}
+            ctaLabel={tp(
+              'Сыграть дневной',
+              'Try the daily',
+              'Zagraj dzienny',
+              {
+                es: 'Jugar el diario',
+                fr: 'Tenter le defi du jour',
+                de: 'Tagesziel spielen',
+                it: 'Prova la giornaliera',
+              },
+            )}
+            onPress={() => router.push('/game?course=daily')}
+          />
+        ) : null}
 
         {showContinue && continueState.nextLesson && continueState.nextDay ? (
           <ContinueRow
@@ -414,6 +463,71 @@ export default function Home() {
       </ScrollView>
     </Screen>
   );
+}
+
+interface DailyBannerProps {
+  challenge: DailyChallenge;
+  badgeLabel: string;
+  titleLabel: string;
+  parLabel: string;
+  ctaLabel: string;
+  onPress: () => void;
+}
+
+/**
+ * Daily challenge surface. Cyan-tinted Card variant, matches the
+ * dark-ocean signature. Includes a small "Daily" badge, course name,
+ * a par-time hint when the leaderboard is populated, and a CTA that
+ * routes to `/game?course=daily` (Game screen aliases that to the
+ * shared "daily" course definition).
+ */
+function DailyBanner({
+  challenge,
+  badgeLabel,
+  titleLabel,
+  parLabel,
+  ctaLabel,
+  onPress,
+}: DailyBannerProps) {
+  const accentColor = ACCENT_COLOR.cyan;
+  const topTime = challenge.top[0]?.finishTimeSec;
+  return (
+    <Card
+      accent="cyan"
+      onPress={onPress}
+      style={[styles.continueCard, glow.primary]}
+    >
+      <View style={styles.continueRow}>
+        <Icon name="bolt" size={28} color={accentColor} />
+        <View style={styles.continueText}>
+          <Text style={[styles.continueKicker, { color: accentColor }]}>
+            {badgeLabel.toUpperCase()}
+          </Text>
+          <Text variant="subtitle" style={styles.continueTitle}>
+            {titleLabel}
+          </Text>
+          {topTime ? (
+            <Text variant="muted" style={styles.continueMeta}>
+              {`${parLabel}: ${formatSeconds(topTime)}`}
+            </Text>
+          ) : null}
+        </View>
+        <Text style={[styles.continueArrow, { color: accentColor }]}>→</Text>
+      </View>
+      <View style={styles.continueCtaRow}>
+        <Text style={[styles.continueCtaLabel, { color: accentColor }]}>
+          {ctaLabel}
+        </Text>
+      </View>
+    </Card>
+  );
+}
+
+function formatSeconds(sec: number): string {
+  const s = Math.max(0, Math.round(sec));
+  const m = Math.floor(s / 60);
+  const r = s % 60;
+  return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
 interface ContinueRowProps {

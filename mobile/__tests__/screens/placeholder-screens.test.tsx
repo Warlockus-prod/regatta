@@ -20,10 +20,7 @@ jest.mock('expo-localization', () => ({
 }));
 
 // PlaceholderScreen runs an `Animated.loop` for the pulse pill which keeps
-// the Jest worker alive after the test finishes. We don't need the
-// animation to assert layout/text, so stub the loop to a noop. This keeps
-// the suite under the default timeout and stops the "worker process has
-// failed to exit gracefully" warning.
+// the Jest worker alive after the test finishes. Stub the loop to a noop.
 jest.mock('react-native/Libraries/Animated/Animated', () => {
   const actual = jest.requireActual('react-native/Libraries/Animated/Animated');
   return {
@@ -33,7 +30,6 @@ jest.mock('react-native/Libraries/Animated/Animated', () => {
 });
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Game from '../../app/game/index';
 import Leaderboard from '../../app/leaderboard/index';
 import Multiplayer from '../../app/multiplayer/index';
 import { renderWithProviders } from '../../src/test-utils';
@@ -42,13 +38,11 @@ beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
-describe('Placeholder screens (Game / Leaderboard / Multiplayer)', () => {
-  it('Game renders the title + Phase 2 badge in EN', async () => {
-    const view = renderWithProviders(<Game />);
-    await waitFor(() => view.getByText('Phase 2'));
-    view.getByText(/^Race/);
-  });
-
+// Game has graduated past the placeholder shape in Sprint 9 (Dev-A) and now
+// renders a real Skia race; its tests live in a dedicated game suite once
+// the Skia jest mock grows path methods. Leaderboard and Multiplayer remain
+// placeholders for v1 so they stay covered here.
+describe('Placeholder screens (Leaderboard / Multiplayer)', () => {
   it('Leaderboard renders the title + Phase 3 badge in EN', async () => {
     const view = renderWithProviders(<Leaderboard />);
     await waitFor(() => view.getByText('Phase 3'));
@@ -61,17 +55,9 @@ describe('Placeholder screens (Game / Leaderboard / Multiplayer)', () => {
     view.getByText(/^Multiplayer/);
   });
 
-  it('Game renders all 3 highlight bullet items', async () => {
-    const view = renderWithProviders(<Game />);
-    await waitFor(() => view.getByText(/Countdown start, timed finish/i));
-    view.getByText(/AI coach hints on the fly/i);
-    view.getByText(/Replay recording, publish to leaderboard/i);
-  });
-
   it('honors the persisted lang on placeholder screens (PL)', async () => {
     await AsyncStorage.setItem('regatta.lang.v1', 'pl');
     const view = renderWithProviders(<Multiplayer />);
-    // Polish translation of "real-time races" begins with "Wyscigi".
     await waitFor(() => view.getByText(/Wyscigi/));
   });
 });
