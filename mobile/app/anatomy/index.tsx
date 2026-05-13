@@ -1,6 +1,7 @@
 import { Stack } from 'expo-router';
 import {
   Animated,
+  AppState,
   Easing,
   Image,
   Modal,
@@ -252,25 +253,48 @@ interface YachtPosterProps {
 function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: YachtPosterProps) {
   const pulse = useRef(new Animated.Value(0)).current;
 
+  // The pulse must run on the JS driver because it animates SVG attributes
+  // (radius / opacity) which the native driver does not support. Pause the
+  // loop while the app is backgrounded so we don't burn JS-bridge cycles
+  // updating animations on a screen the user can't see.
   useEffect(() => {
-    const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulse, {
-          toValue: 1,
-          duration: motion.pulse,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-        Animated.timing(pulse, {
-          toValue: 0,
-          duration: motion.pulse,
-          easing: Easing.inOut(Easing.ease),
-          useNativeDriver: false,
-        }),
-      ]),
-    );
-    loop.start();
-    return () => loop.stop();
+    const buildLoop = () =>
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(pulse, {
+            toValue: 1,
+            duration: motion.pulse,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
+          }),
+          Animated.timing(pulse, {
+            toValue: 0,
+            duration: motion.pulse,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: false,
+          }),
+        ]),
+      );
+
+    let loop: Animated.CompositeAnimation | null = null;
+    const start = () => {
+      if (loop) return;
+      loop = buildLoop();
+      loop.start();
+    };
+    const stop = () => {
+      loop?.stop();
+      loop = null;
+    };
+    if (AppState.currentState === 'active') start();
+    const sub = AppState.addEventListener('change', (next) => {
+      if (next === 'active') start();
+      else stop();
+    });
+    return () => {
+      stop();
+      sub.remove();
+    };
   }, [pulse]);
 
   const pulseRadius = pulse.interpolate({ inputRange: [0, 1], outputRange: [10, 16] });

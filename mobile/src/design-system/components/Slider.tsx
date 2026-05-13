@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import * as Haptics from 'expo-haptics';
 import {
   StyleSheet,
@@ -110,18 +110,26 @@ export function Slider({
     [orientation, min, max, step, onChange],
   );
 
-  const pan = Gesture.Pan()
-    .runOnJS(true)
-    .minDistance(0)
-    .onBegin((e) => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-      const c = orientation === 'vertical' ? e.y : e.x;
-      setFromCoord(c);
-    })
-    .onChange((e) => {
-      const c = orientation === 'vertical' ? e.y : e.x;
-      setFromCoord(c);
-    });
+  // Memoize the gesture object so we don't re-attach the gesture detector
+  // on every parent render. The internal `setFromCoord` closure already
+  // captures the latest `onChange` via its useCallback dep list, so the
+  // gesture only needs to rebuild when the axis or that callback changes.
+  const pan = useMemo(
+    () =>
+      Gesture.Pan()
+        .runOnJS(true)
+        .minDistance(0)
+        .onBegin((e) => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
+          const c = orientation === 'vertical' ? e.y : e.x;
+          setFromCoord(c);
+        })
+        .onChange((e) => {
+          const c = orientation === 'vertical' ? e.y : e.x;
+          setFromCoord(c);
+        }),
+    [orientation, setFromCoord],
+  );
 
   const ratio = clamp((value - min) / (max - min), 0, 1);
   const fillPct = Math.round(ratio * 100);

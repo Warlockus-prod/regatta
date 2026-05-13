@@ -12,7 +12,7 @@
  * onboarding story changes (e.g. v2 = post-feature-flag retest).
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'regatta.firstLaunch.v1';
@@ -62,5 +62,10 @@ export function useFirstLaunch(): FirstLaunchState {
     });
   }, []);
 
-  return { ready, done, markDone };
+  // Stable returned object so consumers do not re-render on unrelated
+  // ancestor renders.
+  return useMemo(
+    () => ({ ready, done, markDone }),
+    [ready, done, markDone],
+  );
 }

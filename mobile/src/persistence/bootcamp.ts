@@ -12,7 +12,7 @@
  *   value = JSON-encoded string (the last opened lesson id) or absent
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'regatta.progress.bootcamp.v1';
@@ -122,12 +122,24 @@ export function useBootcampProgress(): BootcampProgress {
     });
   }, []);
 
-  return {
-    completedIds,
-    ready,
-    markCompleted,
-    isCompleted,
-    lastViewedLessonId,
-    markLastViewed,
-  };
+  // Stable returned object: re-renders only when one of the inputs flips,
+  // not on every render of the consumer's parent.
+  return useMemo(
+    () => ({
+      completedIds,
+      ready,
+      markCompleted,
+      isCompleted,
+      lastViewedLessonId,
+      markLastViewed,
+    }),
+    [
+      completedIds,
+      ready,
+      markCompleted,
+      isCompleted,
+      lastViewedLessonId,
+      markLastViewed,
+    ],
+  );
 }

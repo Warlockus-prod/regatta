@@ -9,7 +9,7 @@
  *   value = JSON-encoded string[] of item IDs
  */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'regatta.checklist.v1';
@@ -97,5 +97,11 @@ export function useChecklistProgress(): ChecklistProgress {
     });
   }, []);
 
-  return { checkedIds, ready, toggle, isChecked, reset };
+  // Memoize so consumers receive a stable object reference between renders
+  // when the checked set has not actually changed. Without this, every
+  // ancestor re-render would force a re-render of every checklist row.
+  return useMemo(
+    () => ({ checkedIds, ready, toggle, isChecked, reset }),
+    [checkedIds, ready, toggle, isChecked, reset],
+  );
 }
