@@ -16,4 +16,4 @@ export { Wordmark, type WordmarkSize } from './Wordmark';
 export { EmptyState } from './EmptyState';
 export { Skeleton } from './Skeleton';
 export { OfflineBanner } from './OfflineBanner';
-export { SkiaYacht, type SkiaYachtProps } from './SkiaYacht';
+export { SkiaYacht, type SkiaYachtMode, type SkiaYachtProps } from './SkiaYacht';

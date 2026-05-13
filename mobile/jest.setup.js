@@ -74,11 +74,13 @@ jest.mock('@shopify/react-native-skia', () => {
     Line: passthrough,
     Rect: passthrough,
     Text: passthrough,
+    Image: passthrough,
     Skia: {
       Path: { Make: NoopPath },
       Color: () => 0,
       Matrix: () => ({ identity() {} }),
     },
+    useImage: () => null,
     useValue: () => ({ current: 0 }),
     useComputedValue: () => ({ current: 0 }),
     useTiming: () => ({ current: 0 }),

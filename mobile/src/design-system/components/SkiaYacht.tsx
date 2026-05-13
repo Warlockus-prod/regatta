@@ -2,8 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Circle,
   Group,
+  Image as SkiaImage,
   Path,
   Skia,
+  useImage,
   type SkPath,
 } from '@shopify/react-native-skia';
 import {
@@ -16,6 +18,10 @@ import {
 } from '../../simulator/sail-geometry';
 import type { SailSet } from '../../simulator/types';
 import { colors } from '../tokens';
+
+const YACHT_PHOTO_SOURCE = require('../../../assets/anatomy/yacht-top.png');
+
+export type SkiaYachtMode = 'vector' | 'photo';
 
 export interface SkiaYachtProps {
   centerX: number;
@@ -44,6 +50,20 @@ export interface SkiaYachtProps {
   heelOffsetPx?: number;
   /** Tick counter from the sim loop, used to drive the luff flutter. */
   tickN?: number;
+  /**
+   * Render style for the hull/deck.
+   * - 'vector' (default): the original layered Skia paths.
+   * - 'photo': a top-down yacht photograph rotated as a Skia Image, with the
+   *   vector sails (main / jib / spinnaker) overlaid so trim still reads.
+   *   Falls back to 'vector' silently if the image asset cannot be loaded.
+   */
+  mode?: SkiaYachtMode;
+  /**
+   * Pixel size of the hull image in photo mode. Defaults to `length * 2.6`,
+   * which makes a 36 px half-length hull render at ~94 px - close to the
+   * vector silhouette but heavy enough to read as a real boat.
+   */
+  photoSizePx?: number;
 }
 
 const HULL_WHITE = '#f7f9fb';
@@ -251,7 +271,14 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     length = 36,
     heelOffsetPx = 0,
     tickN,
+    mode = 'vector',
+    photoSizePx,
   } = props;
+
+  const yachtPhoto = useImage(YACHT_PHOTO_SOURCE);
+  const photoMode = mode === 'photo' && yachtPhoto != null;
+  const photoSize = photoSizePx ?? Math.max(48, length * 2.6);
+  const photoHalf = photoSize / 2;
 
   const L = hullScale(length);
   const twist = Math.max(0, Math.min(1, twistRaw));
@@ -499,22 +526,35 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         strokeCap="round"
         opacity={0.75}
       />
-      <Path path={hullPath} color={HULL_WHITE} />
-      <Path
-        path={hullPath}
-        color={HULL_OUTLINE}
-        style="stroke"
-        strokeWidth={Math.max(1, L * 0.04)}
-      />
-      <Path path={deckPath} color={DECK} />
-      <Path
-        path={deckDetailPath}
-        color="rgba(232, 244, 248, 0.16)"
-        style="stroke"
-        strokeWidth={Math.max(0.6, L * 0.01)}
-        strokeCap="round"
-      />
-      <Path path={cabinPath} color={CABIN} />
+      {photoMode ? (
+        <SkiaImage
+          image={yachtPhoto}
+          x={-photoHalf}
+          y={-photoHalf}
+          width={photoSize}
+          height={photoSize}
+          fit="contain"
+        />
+      ) : (
+        <>
+          <Path path={hullPath} color={HULL_WHITE} />
+          <Path
+            path={hullPath}
+            color={HULL_OUTLINE}
+            style="stroke"
+            strokeWidth={Math.max(1, L * 0.04)}
+          />
+          <Path path={deckPath} color={DECK} />
+          <Path
+            path={deckDetailPath}
+            color="rgba(232, 244, 248, 0.16)"
+            style="stroke"
+            strokeWidth={Math.max(0.6, L * 0.01)}
+            strokeCap="round"
+          />
+          <Path path={cabinPath} color={CABIN} />
+        </>
+      )}
       <Circle cx={0} cy={mastY} r={Math.max(2, L * 0.085)} color={colors.accentCyan} />
 
       {noGo ? (
