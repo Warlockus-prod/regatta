@@ -2,6 +2,8 @@ import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { colors, spacing } from '../tokens';
+import { detectDeviceLang } from '../../i18n/device-locale';
+import { type Lang } from '../../i18n/languages';
 
 /**
  * Single-name monospace font per platform. RN's StyleSheet `fontFamily`
@@ -9,6 +11,54 @@ import { colors, spacing } from '../tokens';
  * time. iOS ships Menlo system-wide; Android Material has `monospace`.
  */
 const MONO_FONT = Platform.select({ ios: 'Menlo', default: 'monospace' });
+
+/**
+ * The ErrorBoundary lives ABOVE `<I18nProvider>` in the tree (it has to
+ * - the provider itself could throw on first hydration). We can't call
+ * `useI18n()` from a class component above the provider, so we resolve
+ * the device locale once at render time and hand-roll a tiny lookup for
+ * the only two strings rendered in the fallback.
+ *
+ * Source RU is included so a Russian-locale device sees a familiar
+ * string instead of EN. Other locales fall back to EN. This duplicates
+ * the i18n machinery but keeps the safety net dependency-free.
+ */
+const FALLBACK_COPY: Record<Lang, { title: string; body: string }> = {
+  ru: {
+    title: 'Что-то пошло не так',
+    body: 'Приложение столкнулось с ошибкой. Закройте его и откройте снова. Если повторяется - стек в dev-консоли.',
+  },
+  en: {
+    title: 'Something went wrong',
+    body: 'The app hit an error and stopped rendering. Force-quit and reopen to continue. If it keeps happening, the dev console has the stack.',
+  },
+  pl: {
+    title: 'Cos poszlo nie tak',
+    body: 'Aplikacja napotkala blad. Zamknij i uruchom ponownie. Jesli sie powtarza - stos w konsoli dev.',
+  },
+  es: {
+    title: 'Algo salio mal',
+    body: 'La app tuvo un error y dejo de renderizar. Cierrala y vuelve a abrir. Si persiste, mira la consola dev.',
+  },
+  fr: {
+    title: 'Une erreur est survenue',
+    body: 'L application a rencontre une erreur. Fermez et rouvrez. Si cela persiste, la console dev a la pile.',
+  },
+  de: {
+    title: 'Etwas ist schiefgelaufen',
+    body: 'Die App hatte einen Fehler. Beenden und neu oeffnen. Bei Wiederholung steht der Stack in der Dev-Konsole.',
+  },
+  it: {
+    title: 'Qualcosa e andato storto',
+    body: 'L app ha avuto un errore. Chiudila e riaprila. Se persiste, lo stack e nella console dev.',
+  },
+};
+
+function resolveFallbackCopy(): { title: string; body: string } {
+  const detected = detectDeviceLang();
+  // detectDeviceLang returns DEFAULT_LANG ('ru') as the safe fallback.
+  return FALLBACK_COPY[detected] ?? FALLBACK_COPY.en;
+}
 
 interface Props {
   children: ReactNode;
@@ -44,13 +94,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
   render(): ReactNode {
     if (!this.state.hasError) return this.props.children;
+    const copy = resolveFallbackCopy();
     return (
       <View style={styles.root}>
-        <Text style={styles.title}>Something went wrong</Text>
-        <Text variant="muted" style={styles.body}>
-          The app hit an error and stopped rendering. Force-quit and reopen
-          to continue. If it keeps happening, the dev console has the stack.
-        </Text>
+        <Text style={styles.title}>{copy.title}</Text>
+        <Text variant="muted" style={styles.body}>{copy.body}</Text>
         {__DEV__ && this.state.error ? (
           <View style={styles.devBox}>
             <Text variant="muted" style={styles.devText}>

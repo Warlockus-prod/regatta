@@ -1,29 +1,54 @@
 /**
- * First-launch flag for the language nudge.
+ * First-launch flag for the language nudge + onboarding tour.
  *
  * Storage shape:
  *   key   = `regatta.firstLaunch.v1`
- *   value = `'done'` once the user has completed the first-launch pass
- *           (either via auto-resolve from device locale or explicit pick
- *           in the nudge modal). Absence means we still owe them the
- *           nudge.
+ *   value = one of:
+ *     - absent       : pristine first launch, owe the user the nudge + tour
+ *     - 'in-tour'    : language step finished, but the rest of the tour
+ *                      did not complete (e.g. app killed mid-tour). Resume.
+ *     - 'done'       : the user has finished the onboarding pass. Skip
+ *                      the tour entirely on subsequent launches.
  *
  * The bump suffix (`v1`) reserves room for a future re-prompt if the
  * onboarding story changes (e.g. v2 = post-feature-flag retest).
+ *
+ * Backward compatibility: prior builds wrote only `'done'` here. Any
+ * stored value other than `'in-tour'` or `'done'` is treated as `null`
+ * (pristine). A bare `'done'` from an older build correctly skips the
+ * tour, matching the existing user expectation that they already
+ * completed onboarding.
  */
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const STORAGE_KEY = 'regatta.firstLaunch.v1';
+
+export type FirstLaunchStage = 'pending' | 'in-tour' | 'done';
+
+const IN_TOUR_VALUE = 'in-tour';
 const DONE_VALUE = 'done';
 
 export interface FirstLaunchState {
   /** True after the storage read finishes (regardless of value). */
   ready: boolean;
-  /** True when the flag is set; false until the user finishes the nudge. */
+  /** Tri-state: pending = not yet shown, in-tour = mid-flow, done = finished. */
+  stage: FirstLaunchStage;
+  /**
+   * Convenience boolean: true once the entire onboarding pass is complete.
+   * Equivalent to `stage === 'done'`. Existing call sites used this name.
+   */
   done: boolean;
-  /** Mark the flag as done. Idempotent, fire-and-forget. */
+  /**
+   * Mark the language step finished. Subsequent launches resume directly
+   * at Screen 2 (welcome). Idempotent, fire-and-forget.
+   */
+  markInTour: () => void;
+  /**
+   * Mark the entire onboarding pass complete. Idempotent, fire-and-forget.
+   * Backward-compatible name preserved from sprint 1.
+   */
   markDone: () => void;
 }
 
@@ -34,7 +59,7 @@ export interface FirstLaunchState {
  * still respects the in-memory choice.
  */
 export function useFirstLaunch(): FirstLaunchState {
-  const [done, setDone] = useState(false);
+  const [stage, setStage] = useState<FirstLaunchStage>('pending');
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -42,10 +67,16 @@ export function useFirstLaunch(): FirstLaunchState {
     AsyncStorage.getItem(STORAGE_KEY)
       .then((raw) => {
         if (cancelled) return;
-        setDone(raw === DONE_VALUE);
+        if (raw === DONE_VALUE) {
+          setStage('done');
+        } else if (raw === IN_TOUR_VALUE) {
+          setStage('in-tour');
+        } else {
+          setStage('pending');
+        }
       })
       .catch(() => {
-        /* ignore - keep done=false */
+        /* ignore - keep stage='pending' */
       })
       .finally(() => {
         if (!cancelled) setReady(true);
@@ -55,8 +86,15 @@ export function useFirstLaunch(): FirstLaunchState {
     };
   }, []);
 
+  const markInTour = useCallback(() => {
+    setStage((prev) => (prev === 'done' ? prev : 'in-tour'));
+    AsyncStorage.setItem(STORAGE_KEY, IN_TOUR_VALUE).catch(() => {
+      /* ignore - keep in-memory state */
+    });
+  }, []);
+
   const markDone = useCallback(() => {
-    setDone(true);
+    setStage('done');
     AsyncStorage.setItem(STORAGE_KEY, DONE_VALUE).catch(() => {
       /* ignore - keep in-memory state */
     });
@@ -65,7 +103,13 @@ export function useFirstLaunch(): FirstLaunchState {
   // Stable returned object so consumers do not re-render on unrelated
   // ancestor renders.
   return useMemo(
-    () => ({ ready, done, markDone }),
-    [ready, done, markDone],
+    () => ({
+      ready,
+      stage,
+      done: stage === 'done',
+      markInTour,
+      markDone,
+    }),
+    [ready, stage, markInTour, markDone],
   );
 }

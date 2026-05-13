@@ -145,11 +145,38 @@ function PortVsStarboard() {
   return (
     <G>
       <WindArrow x={100} y={10} length={28} />
-      <Boat x={140} y={86} rot={-45} color={colors.success} label={tp('правый', 'stbd', 'prawy')} />
-      <Boat x={60} y={86} rot={45} color={colors.danger} label={tp('левый', 'port', 'lewy')} />
+      <Boat
+        x={140}
+        y={86}
+        rot={-45}
+        color={colors.success}
+        label={tp('правый', 'stbd', 'prawy', {
+          es: 'est',
+          fr: 'tri',
+          de: 'stb',
+          it: 'dr',
+        })}
+      />
+      <Boat
+        x={60}
+        y={86}
+        rot={45}
+        color={colors.danger}
+        label={tp('левый', 'port', 'lewy', {
+          es: 'bab',
+          fr: 'bab',
+          de: 'bb',
+          it: 'sin',
+        })}
+      />
       <Path d="M76 78 Q100 58 124 78" fill="none" stroke={colors.warning} strokeWidth={1.4} strokeDasharray="4 3" />
       <SvgText x={100} y={124} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('левый уступает', 'port gives way', 'lewy ustepuje')}
+        {tp('левый уступает', 'port gives way', 'lewy ustepuje', {
+          es: 'babor cede',
+          fr: 'babord cede',
+          de: 'Backbord weicht',
+          it: 'sinistra cede',
+        })}
       </SvgText>
     </G>
   );
@@ -160,11 +187,38 @@ function WindwardLeeward() {
   return (
     <G>
       <WindArrow x={100} y={10} length={24} />
-      <Boat x={130} y={55} rot={-70} color={colors.danger} label={tp('наветр.', 'windward', 'naw.')} />
-      <Boat x={70} y={95} rot={-70} color={colors.success} label={tp('подветр.', 'leeward', 'zaw.')} />
+      <Boat
+        x={130}
+        y={55}
+        rot={-70}
+        color={colors.danger}
+        label={tp('наветр.', 'windward', 'naw.', {
+          es: 'barlov.',
+          fr: 'au vent',
+          de: 'Luv',
+          it: 'soprav.',
+        })}
+      />
+      <Boat
+        x={70}
+        y={95}
+        rot={-70}
+        color={colors.success}
+        label={tp('подветр.', 'leeward', 'zaw.', {
+          es: 'sotav.',
+          fr: 'sous le vent',
+          de: 'Lee',
+          it: 'sottov.',
+        })}
+      />
       <Line x1={95} y1={74} x2={55} y2={91} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" />
       <SvgText x={100} y={124} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('подветренная имеет право', 'leeward has right', 'zawietrzny ma prawo')}
+        {tp('подветренная имеет право', 'leeward has right', 'zawietrzny ma prawo', {
+          es: 'sotavento tiene preferencia',
+          fr: 'sous le vent a priorite',
+          de: 'Lee hat Vorrang',
+          it: 'sottovento ha precedenza',
+        })}
       </SvgText>
     </G>
   );
@@ -175,11 +229,38 @@ function Overtaking() {
   return (
     <G>
       <WindArrow x={32} y={12} length={20} />
-      <Boat x={120} y={50} rot={0} color={colors.success} label={tp('впереди', 'ahead', 'przod')} />
-      <Boat x={100} y={100} rot={0} color={colors.danger} label={tp('сзади', 'astern', 'tyl')} />
+      <Boat
+        x={120}
+        y={50}
+        rot={0}
+        color={colors.success}
+        label={tp('впереди', 'ahead', 'przod', {
+          es: 'delante',
+          fr: 'devant',
+          de: 'voraus',
+          it: 'davanti',
+        })}
+      />
+      <Boat
+        x={100}
+        y={100}
+        rot={0}
+        color={colors.danger}
+        label={tp('сзади', 'astern', 'tyl', {
+          es: 'detras',
+          fr: 'arriere',
+          de: 'achtern',
+          it: 'dietro',
+        })}
+      />
       <Path d="M104 92 L112 72 L118 60" fill="none" stroke={colors.warning} strokeWidth={1.5} strokeDasharray="4 3" />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('обгоняющий уступает', 'overtaker keeps clear', 'wyprzedzajacy ustepuje')}
+        {tp('обгоняющий уступает', 'overtaker keeps clear', 'wyprzedzajacy ustepuje', {
+          es: 'el que adelanta cede',
+          fr: 'le poursuivant degage',
+          de: 'Ueberholer haelt frei',
+          it: 'chi sorpassa cede',
+        })}
       </SvgText>
     </G>
   );
@@ -191,11 +272,38 @@ function MarkRoom() {
     <G>
       <Circle cx={100} cy={50} r={8} fill={colors.warning} stroke="#ffffff" strokeWidth={1.4} />
       <Circle cx={100} cy={50} r={35} fill="none" stroke={colors.warning} strokeWidth={0.9} strokeDasharray="3 3" opacity={0.7} />
-      <Boat x={80} y={90} rot={-45} color={colors.success} label={tp('внутр.', 'inside', 'wewn.')} />
-      <Boat x={50} y={100} rot={-45} color={colors.danger} label={tp('внеш.', 'outside', 'zewn.')} />
+      <Boat
+        x={80}
+        y={90}
+        rot={-45}
+        color={colors.success}
+        label={tp('внутр.', 'inside', 'wewn.', {
+          es: 'interior',
+          fr: 'interieur',
+          de: 'innen',
+          it: 'interno',
+        })}
+      />
+      <Boat
+        x={50}
+        y={100}
+        rot={-45}
+        color={colors.danger}
+        label={tp('внеш.', 'outside', 'zewn.', {
+          es: 'exterior',
+          fr: 'exterieur',
+          de: 'aussen',
+          it: 'esterno',
+        })}
+      />
       <Path d="M72 82 Q98 54 132 67" fill="none" stroke={colors.success} strokeWidth={1.4} />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('место у знака', 'room at the mark', 'miejsce przy znaku')}
+        {tp('место у знака', 'room at the mark', 'miejsce przy znaku', {
+          es: 'espacio en la baliza',
+          fr: 'place a la marque',
+          de: 'Raum an der Marke',
+          it: 'spazio alla boa',
+        })}
       </SvgText>
     </G>
   );
@@ -206,12 +314,39 @@ function Crossing() {
   return (
     <G>
       <WindArrow x={100} y={10} length={22} />
-      <Boat x={45} y={92} rot={45} color={colors.success} label={tp('я', 'me', 'ja')} />
-      <Boat x={155} y={92} rot={-45} color={colors.danger} label={tp('он', 'opp', 'rywal')} />
+      <Boat
+        x={45}
+        y={92}
+        rot={45}
+        color={colors.success}
+        label={tp('я', 'me', 'ja', {
+          es: 'yo',
+          fr: 'moi',
+          de: 'ich',
+          it: 'io',
+        })}
+      />
+      <Boat
+        x={155}
+        y={92}
+        rot={-45}
+        color={colors.danger}
+        label={tp('он', 'opp', 'rywal', {
+          es: 'rival',
+          fr: 'adv',
+          de: 'Gegner',
+          it: 'avv',
+        })}
+      />
       <Line x1={57} y1={84} x2={143} y2={84} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" />
       <SvgText x={100} y={66} textAnchor="middle" fontSize={16} fontWeight="800" fill={colors.warning}>?</SvgText>
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('избегай контакта', 'avoid contact', 'unikaj kontaktu')}
+        {tp('избегай контакта', 'avoid contact', 'unikaj kontaktu', {
+          es: 'evita el contacto',
+          fr: 'evitez le contact',
+          de: 'Kontakt vermeiden',
+          it: 'evita il contatto',
+        })}
       </SvgText>
     </G>
   );
@@ -230,10 +365,20 @@ function StartLine() {
       <Boat x={122} y={102} rot={-15} color={colors.warning} />
       <Boat x={155} y={106} rot={22} color={colors.accentCyan} />
       <SvgText x={100} y={51} textAnchor="middle" fontSize={9} fontWeight="800" fill={colors.warning}>
-        {tp('СТАРТ', 'START', 'START')}
+        {tp('СТАРТ', 'START', 'START', {
+          es: 'SALIDA',
+          fr: 'DEPART',
+          de: 'START',
+          it: 'PARTENZA',
+        })}
       </SvgText>
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('разгон и чистый ветер', 'speed and clear air', 'predkosc i czysty wiatr')}
+        {tp('разгон и чистый ветер', 'speed and clear air', 'predkosc i czysty wiatr', {
+          es: 'velocidad y aire limpio',
+          fr: 'vitesse et air clair',
+          de: 'Tempo und freier Wind',
+          it: 'velocita e aria pulita',
+        })}
       </SvgText>
     </G>
   );
@@ -248,7 +393,12 @@ function CollisionAvoid() {
       <Circle cx={100} cy={70} r={12} fill="rgba(255, 68, 68, 0.18)" stroke={colors.danger} strokeWidth={1.2} />
       <SvgText x={100} y={74} textAnchor="middle" fontSize={13} fontWeight="800" fill={colors.danger}>!</SvgText>
       <SvgText x={100} y={118} textAnchor="middle" fontSize={9} fill={colors.warning}>
-        {tp('безопасность важнее правоты', 'safety beats being right', 'bezpieczenstwo ponad racja')}
+        {tp('безопасность важнее правоты', 'safety beats being right', 'bezpieczenstwo ponad racja', {
+          es: 'la seguridad supera la razon',
+          fr: 'la securite prime sur le droit',
+          de: 'Sicherheit vor Recht',
+          it: 'sicurezza prima della ragione',
+        })}
       </SvgText>
     </G>
   );
@@ -265,7 +415,12 @@ function Penalty() {
       <Boat x={100} y={90} rot={180} color={colors.sailColor} label="3" />
       <Boat x={70} y={60} rot={-90} color={colors.success} label="4" />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('штрафной оборот', 'penalty turn', 'obrot karny')}
+        {tp('штрафной оборот', 'penalty turn', 'obrot karny', {
+          es: 'giro de penalizacion',
+          fr: 'tour de penalite',
+          de: 'Strafdrehung',
+          it: 'giro di penalita',
+        })}
       </SvgText>
     </G>
   );

@@ -33,7 +33,16 @@ export function RacingCourseDiagram() {
         <Rect x={0} y={0} width={360} height={360} rx={14} fill="#0d2847" />
         <WindArrow x={180} y={20} length={42} />
         <Line x1={180} y1={76} x2={180} y2={308} stroke="rgba(232,244,248,0.20)" strokeWidth={1} strokeDasharray="6 6" />
-        <Buoy cx={180} cy={76} label={tp('верхний', 'windward', 'gorny')} />
+        <Buoy
+          cx={180}
+          cy={76}
+          label={tp('верхний', 'windward', 'gorny', {
+            es: 'barlovento',
+            fr: 'au vent',
+            de: 'Luv',
+            it: 'sopravento',
+          })}
+        />
         <Buoy cx={132} cy={308} label="L" />
         <Buoy cx={228} cy={308} label="R" />
         <Line x1={132} y1={308} x2={228} y2={308} stroke={colors.warning} strokeWidth={1.4} strokeDasharray="5 4" opacity={0.7} />
@@ -131,7 +140,12 @@ function Upwind() {
       <Boat x={112} y={72} rot={40} color={colors.accentCyan} />
       <SvgText x={58} y={112} fill={colors.textSecondary} fontSize={8}>45 deg</SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('лавировка к знаку', 'tack toward the mark', 'halsuj do znaku')}
+        {tp('лавировка к знаку', 'tack toward the mark', 'halsuj do znaku', {
+          es: 'voltejea hacia la baliza',
+          fr: 'tirez des bords vers la marque',
+          de: 'kreuze zur Marke',
+          it: 'bordeggia verso la boa',
+        })}
       </SvgText>
     </G>
   );
@@ -148,7 +162,12 @@ function Downwind() {
       <Boat x={86} y={86} rot={210} color={colors.success} />
       <SvgText x={121} y={82} fill={colors.danger} fontSize={8}>dead run</SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('VMG лучше зигзагом', 'better VMG by angles', 'lepsze VMG katami')}
+        {tp('VMG лучше зигзагом', 'better VMG by angles', 'lepsze VMG katami', {
+          es: 'mejor VMG en angulos',
+          fr: 'meilleur VMG en zig-zag',
+          de: 'besseres VMG ueber Winkel',
+          it: 'miglior VMG con angoli',
+        })}
       </SvgText>
     </G>
   );
@@ -167,10 +186,20 @@ function Start() {
       <Boat x={132} y={106} rot={-16} color={colors.warning} />
       <Boat x={166} y={110} rot={20} color={colors.accentCyan} />
       <SvgText x={110} y={73} textAnchor="middle" fill={colors.warning} fontSize={9} fontWeight="800">
-        {tp('СТАРТ', 'START', 'START')}
+        {tp('СТАРТ', 'START', 'START', {
+          es: 'SALIDA',
+          fr: 'DEPART',
+          de: 'START',
+          it: 'PARTENZA',
+        })}
       </SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('чистый ветер и скорость', 'clear air and speed', 'czysty wiatr i predkosc')}
+        {tp('чистый ветер и скорость', 'clear air and speed', 'czysty wiatr i predkosc', {
+          es: 'aire limpio y velocidad',
+          fr: 'air clair et vitesse',
+          de: 'freier Wind und Speed',
+          it: 'aria pulita e velocita',
+        })}
       </SvgText>
     </G>
   );
@@ -187,7 +216,12 @@ function MarkRounding() {
       <Boat x={76} y={106} rot={-45} color={colors.success} />
       <Boat x={134} y={82} rot={-10} color={colors.success} />
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('широкий вход, узкий выход', 'wide in, tight out', 'szeroko wejsc, ciasno wyjsc')}
+        {tp('широкий вход, узкий выход', 'wide in, tight out', 'szeroko wejsc, ciasno wyjsc', {
+          es: 'entrada amplia, salida ajustada',
+          fr: 'entree large, sortie serree',
+          de: 'weit hinein, eng heraus',
+          it: 'entrata larga, uscita stretta',
+        })}
       </SvgText>
     </G>
   );
