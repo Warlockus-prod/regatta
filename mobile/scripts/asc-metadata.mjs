@@ -322,15 +322,27 @@ async function patchAppInfoLocalization(id, attrs) {
 }
 
 async function createAppInfoLocalization(appInfoId, asc_locale, attrs) {
-  await asc('POST', '/v1/appInfoLocalizations', {
-    data: {
-      type: 'appInfoLocalizations',
-      attributes: { locale: asc_locale, ...attrs },
-      relationships: {
-        appInfo: { data: { type: 'appInfos', id: appInfoId } },
+  try {
+    await asc('POST', '/v1/appInfoLocalizations', {
+      data: {
+        type: 'appInfoLocalizations',
+        attributes: { locale: asc_locale, ...attrs },
+        relationships: {
+          appInfo: { data: { type: 'appInfos', id: appInfoId } },
+        },
       },
-    },
-  });
+    });
+  } catch (err) {
+    if (!String(err).includes('409') || !String(err).includes('DUPLICATE')) throw err;
+    // Locale already exists; re-fetch + PATCH instead of giving up. ASC
+    // sometimes pre-creates a localization (e.g. en-US on app create) that
+    // our initial fetch missed due to caching.
+    const existing = (await fetchAppInfoLocalizations(appInfoId)).find(
+      (l) => l.attributes.locale === asc_locale,
+    );
+    if (!existing) throw err;
+    await patchAppInfoLocalization(existing.id, attrs);
+  }
 }
 
 // ---------- Main ----------
