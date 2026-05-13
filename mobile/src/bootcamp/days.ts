@@ -12,6 +12,12 @@
  */
 
 import { bootcampLessons, type BootcampLesson } from '../data';
+import {
+  getQuizForLesson,
+  hasQuiz,
+  isQuizPassed,
+} from './quiz-data';
+import type { QuizResult, QuizResultsMap } from '../persistence/bootcamp-quiz';
 
 export const TOTAL_DAYS = 7 as const;
 
@@ -91,6 +97,38 @@ export interface BootcampContinueState {
   doneInNextDay: number;
   /** Within `nextDay`, the total lesson count. */
   totalInNextDay: number;
+}
+
+/**
+ * Sprint 11 helper: a lesson is "fully complete" only when both the
+ * lesson is marked viewed (in `completedIds`) AND the quiz attached to
+ * it has been passed (>=70% correct, see `QUIZ_PASS_THRESHOLD`).
+ *
+ * Lessons without a quiz fall back to the legacy rule (viewed = done)
+ * so we do not regress when the quiz bank is missing entries.
+ *
+ * Pure helper, additive: existing call sites of `completedIds.has(id)`
+ * keep their old behaviour.
+ */
+export function isLessonFullyComplete(
+  lessonId: string,
+  completedIds: Set<string>,
+  quizResults: QuizResultsMap,
+): boolean {
+  if (!completedIds.has(lessonId)) return false;
+  if (!hasQuiz(lessonId)) return true;
+  const result: QuizResult | undefined = quizResults[lessonId];
+  if (!result) return false;
+  return isQuizPassed(result.score, result.total);
+}
+
+/**
+ * Sprint 11 helper: how many quiz questions a lesson has. Useful for
+ * the bootcamp index "X of N quiz" affordance once it lands. Returns 0
+ * when the lesson has no quiz bank entry.
+ */
+export function quizLength(lessonId: string): number {
+  return getQuizForLesson(lessonId).length;
 }
 
 export function summarizeContinue(
