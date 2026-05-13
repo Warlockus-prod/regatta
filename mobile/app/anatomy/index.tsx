@@ -10,6 +10,7 @@ import {
   StyleSheet,
   View,
   useWindowDimensions,
+  type ImageSourcePropType,
 } from 'react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Svg, {
@@ -35,10 +36,54 @@ const AnimatedCircle = Animated.createAnimatedComponent(SvgCircle);
 
 const POSTER_HORIZONTAL_PADDING = spacing.lg * 2;
 
+type PosterLang = 'ru' | 'en';
+
+interface AnatomyPosterAsset {
+  id: string;
+  titleRu: string;
+  titleEn: string;
+  thumb: Record<PosterLang, ImageSourcePropType>;
+  full: Record<PosterLang, ImageSourcePropType>;
+}
+
+const ANATOMY_POSTERS: AnatomyPosterAsset[] = [
+  {
+    id: 'main-elements',
+    titleRu: 'Парусная яхта - основные элементы',
+    titleEn: 'Sailing Yacht - Main Elements',
+    thumb: {
+      ru: require('../../assets/anatomy/posters/main-elements-ru-thumb.jpg'),
+      en: require('../../assets/anatomy/posters/main-elements-en-thumb.jpg'),
+    },
+    full: {
+      ru: require('../../assets/anatomy/posters/main-elements-ru.jpg'),
+      en: require('../../assets/anatomy/posters/main-elements-en.jpg'),
+    },
+  },
+  {
+    id: 'deck-cockpit',
+    titleRu: 'Палуба и кокпит',
+    titleEn: 'Deck and Cockpit',
+    thumb: {
+      ru: require('../../assets/anatomy/posters/deck-cockpit-ru-thumb.jpg'),
+      en: require('../../assets/anatomy/posters/deck-cockpit-en-thumb.jpg'),
+    },
+    full: {
+      ru: require('../../assets/anatomy/posters/deck-cockpit-ru.jpg'),
+      en: require('../../assets/anatomy/posters/deck-cockpit-en.jpg'),
+    },
+  },
+];
+
+function posterTitle(poster: AnatomyPosterAsset, posterLang: PosterLang): string {
+  return posterLang === 'ru' ? poster.titleRu : poster.titleEn;
+}
+
 export default function Anatomy() {
   const { tp, lang } = useI18n();
   const { width: screenWidth } = useWindowDimensions();
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [activePosterId, setActivePosterId] = useState<string | null>(null);
 
   const headerTitle = tp('Анатомия яхты', 'Yacht anatomy', 'Anatomia jachtu', {
     es: 'Anatomia del yate',
@@ -92,6 +137,7 @@ export default function Anatomy() {
 
   const posterWidth = Math.max(280, screenWidth - POSTER_HORIZONTAL_PADDING);
   const posterHeight = (posterWidth * YACHT_VIEWBOX.height) / YACHT_VIEWBOX.width;
+  const posterLang: PosterLang | null = lang === 'ru' ? 'ru' : lang === 'en' ? 'en' : null;
 
   const partsWithHotspot = useMemo(
     () => anatomyParts.filter((p) => HOTSPOTS[p.id]),
@@ -139,6 +185,15 @@ export default function Anatomy() {
           onSelect={setActiveId}
           pickName={(p) => legacyPick(p, 'name', lang)}
         />
+
+        {posterLang ? (
+          <PosterGallery
+            posterLang={posterLang}
+            activePosterId={activePosterId}
+            onOpen={setActivePosterId}
+            onClose={() => setActivePosterId(null)}
+          />
+        ) : null}
 
         <View style={styles.chipsHeader}>
           <Text variant="muted" style={styles.chipsHeaderText}>
@@ -313,6 +368,125 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
           );
         })}
       </View>
+    </View>
+  );
+}
+
+interface PosterGalleryProps {
+  posterLang: PosterLang;
+  activePosterId: string | null;
+  onOpen: (id: string) => void;
+  onClose: () => void;
+}
+
+function PosterGallery({
+  posterLang,
+  activePosterId,
+  onOpen,
+  onClose,
+}: PosterGalleryProps) {
+  const { tp } = useI18n();
+  const activePoster = activePosterId
+    ? ANATOMY_POSTERS.find((p) => p.id === activePosterId) ?? null
+    : null;
+
+  const sectionTitle = tp('Графика', 'Graphics', 'Graphics', {
+    es: 'Graficos',
+    fr: 'Graphiques',
+    de: 'Grafiken',
+    it: 'Grafiche',
+  });
+  const sectionMeta = tp('Постеры с сайта', 'Website posters', 'Postery ze strony', {
+    es: 'Posters del sitio',
+    fr: 'Affiches du site',
+    de: 'Website-Poster',
+    it: 'Poster del sito',
+  });
+  const closeLabel = tp('Закрыть', 'Close', 'Zamknij', {
+    es: 'Cerrar',
+    fr: 'Fermer',
+    de: 'Schliessen',
+    it: 'Chiudi',
+  });
+
+  return (
+    <View style={posterGalleryStyles.section}>
+      <View style={posterGalleryStyles.header}>
+        <Text variant="subtitle">{sectionTitle}</Text>
+        <Text variant="muted" style={posterGalleryStyles.meta}>{sectionMeta}</Text>
+      </View>
+
+      <View style={posterGalleryStyles.grid}>
+        {ANATOMY_POSTERS.map((poster) => {
+          const title = posterTitle(poster, posterLang);
+          return (
+            <Pressable
+              key={poster.id}
+              onPress={() => onOpen(poster.id)}
+              accessibilityRole="imagebutton"
+              accessibilityLabel={title}
+              style={({ pressed }) => [
+                posterGalleryStyles.card,
+                pressed && posterGalleryStyles.cardPressed,
+              ]}
+            >
+              <Image
+                source={poster.thumb[posterLang]}
+                style={posterGalleryStyles.thumb}
+                resizeMode="cover"
+                accessible
+                accessibilityLabel={title}
+              />
+              <View style={posterGalleryStyles.cardCaption}>
+                <Text style={posterGalleryStyles.cardTitle} numberOfLines={2}>
+                  {title}
+                </Text>
+              </View>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Modal
+        visible={!!activePoster}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={onClose}
+      >
+        <Pressable style={posterLightboxStyles.backdrop} onPress={onClose}>
+          {activePoster ? (
+            <Pressable style={posterLightboxStyles.body} onPress={() => {}}>
+              <Image
+                source={activePoster.full[posterLang]}
+                style={posterLightboxStyles.image}
+                resizeMode="contain"
+                accessible
+                accessibilityLabel={posterTitle(activePoster, posterLang)}
+              />
+              <View style={posterLightboxStyles.footer}>
+                <Text style={posterLightboxStyles.title} numberOfLines={2}>
+                  {posterTitle(activePoster, posterLang)}
+                </Text>
+                <Pressable
+                  onPress={onClose}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel={closeLabel}
+                  style={({ pressed }) => [
+                    posterLightboxStyles.closeBtn,
+                    pressed && posterLightboxStyles.closeBtnPressed,
+                  ]}
+                >
+                  <Text variant="accent" style={posterLightboxStyles.closeText}>
+                    {closeLabel}
+                  </Text>
+                </Pressable>
+              </View>
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -606,6 +780,108 @@ const posterStyles = StyleSheet.create({
     height: 36,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+});
+
+const posterGalleryStyles = StyleSheet.create({
+  section: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  meta: {
+    fontSize: 11,
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+  },
+  grid: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  card: {
+    flex: 1,
+    minHeight: 178,
+    borderRadius: radii.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.bgCard,
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+  },
+  cardPressed: {
+    opacity: 0.84,
+    borderColor: colors.borderCyanStrong,
+  },
+  thumb: {
+    width: '100%',
+    height: 142,
+  },
+  cardCaption: {
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.sm,
+    justifyContent: 'center',
+    backgroundColor: 'rgba(10, 22, 40, 0.86)',
+  },
+  cardTitle: {
+    color: colors.textPrimary,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+  },
+});
+
+const posterLightboxStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(5, 11, 24, 0.94)',
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+    justifyContent: 'center',
+  },
+  body: {
+    flex: 1,
+    justifyContent: 'center',
+    gap: spacing.md,
+  },
+  image: {
+    flex: 1,
+    width: '100%',
+    borderRadius: radii.lg,
+  },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    padding: spacing.md,
+    borderRadius: radii.lg,
+    backgroundColor: 'rgba(15, 32, 53, 0.92)',
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+  },
+  title: {
+    flex: 1,
+    color: colors.textPrimary,
+    fontSize: 14,
+    lineHeight: 19,
+    fontWeight: '700',
+  },
+  closeBtn: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+    borderRadius: radii.sm,
+  },
+  closeBtnPressed: {
+    opacity: 0.7,
+  },
+  closeText: {
+    fontSize: 14,
   },
 });
 
