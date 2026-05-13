@@ -13,9 +13,17 @@ import {
   boomAngleRad,
   hullScale,
   isLuffing,
+  reefedAreaScale,
   sailCurveRatio,
   SAIL_TUNING,
+  twistOffsetReefedRad,
+  VISUAL_TUNING,
 } from '../../simulator/sail-geometry';
+import {
+  clothWaveDisplacement,
+  shouldRenderClothWave,
+  SAIL_CLOTH_TUNING,
+} from '../../simulator/sail-cloth';
 import type { SailSet } from '../../simulator/types';
 import { colors } from '../tokens';
 
@@ -64,6 +72,25 @@ export interface SkiaYachtProps {
    * vector silhouette but heavy enough to read as a real boat.
    */
   photoSizePx?: number;
+  /**
+   * Heel angle in degrees (signed). When non-zero the entire boat group
+   * is tilted around its anchor point so the hull visually leans. The
+   * value is clamped at the `VISUAL_TUNING.HEEL_VISUAL_CLAMP_DEG` ceiling.
+   * Default 0 = no shear (top view stays flat).
+   */
+  heelDeg?: number;
+  /**
+   * When true, draw a faint dashed ghost line behind the boat showing
+   * the actual track vs heading offset by `leewayDeg`. Hidden when the
+   * leeway magnitude is below 1 deg even if the flag is on (a 1-deg
+   * arrow is just visual noise).
+   */
+  showLeewayGhost?: boolean;
+  /**
+   * Leeway angle in degrees (signed). Positive = boat slips to leeward
+   * relative to its heading. Only consumed when `showLeewayGhost` is on.
+   */
+  leewayDeg?: number;
 }
 
 const HULL_WHITE = '#f7f9fb';
@@ -165,9 +192,24 @@ function buildSailPath(args: {
   clewY: number;
   curveRatio: number;
   flutter: number;
+  /** When > 0, draw the leech as a 5-segment polyline instead of a
+   *  single quadratic curve, with a sin-wave perpendicular displacement
+   *  driven by this clock value. Used for the "sail is alive" cue when
+   *  the sail is powered up. */
+  clothWaveClock?: number;
 }): SkPath {
   const p = Skia.Path.Make();
-  const { headX, headY, tackX, tackY, clewX, clewY, curveRatio, flutter } = args;
+  const {
+    headX,
+    headY,
+    tackX,
+    tackY,
+    clewX,
+    clewY,
+    curveRatio,
+    flutter,
+    clothWaveClock = 0,
+  } = args;
 
   // Direction perpendicular to the leech (head -> clew), pointing AWAY
   // from the mast - this is the "bulge" axis.
@@ -208,7 +250,35 @@ function buildSailPath(args: {
     p.lineTo(tackX, tackY);
   }
   p.lineTo(clewX, clewY);
-  p.quadTo(ctrlX, ctrlY, headX, headY);
+  if (clothWaveClock !== 0) {
+    // Powered-up cloth wave on the leech. We start at the clew (already
+    // on the path) and walk to the head, displacing perpendicular to
+    // the leech direction. The head is the LAST point so the curve
+    // continues to close cleanly via the lineTo below.
+    const segs = 6;
+    for (let i = 1; i < segs; i++) {
+      const t = 1 - i / segs;
+      const baseX = headX + (clewX - headX) * t;
+      const baseY = headY + (clewY - headY) * t;
+      const dispPx = clothWaveDisplacement({
+        t,
+        clock: clothWaveClock,
+        lengthPx: lLen,
+      });
+      // Bias the wave toward the natural bulge side so it does not
+      // visibly cross through the sail body.
+      const dx = -nx * dispPx * sign;
+      const dy = -ny * dispPx * sign;
+      // Add the curve's natural control-point offset at this `t` so the
+      // wave rides on top of the bulge instead of replacing it.
+      const curveX = baseX + nx * bulge * 4 * t * (1 - t);
+      const curveY = baseY + ny * bulge * 4 * t * (1 - t);
+      p.lineTo(curveX + dx, curveY + dy);
+    }
+    p.lineTo(headX, headY);
+  } else {
+    p.quadTo(ctrlX, ctrlY, headX, headY);
+  }
   p.close();
   return p;
 }
@@ -273,6 +343,9 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     tickN,
     mode = 'vector',
     photoSizePx,
+    heelDeg = 0,
+    showLeewayGhost = false,
+    leewayDeg = 0,
   } = props;
 
   const yachtPhoto = useImage(YACHT_PHOTO_SOURCE);
@@ -320,13 +393,42 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
   const jibCurve = sailCurveRatio(awaDeg, jibSheet);
   const spiCurve = Math.max(0.6, sailCurveRatio(awaDeg, 0.4));
 
+  // Sprint 9: visible reef (geometry scale, not opacity) + visible twist
+  // (head opens off the boom). Both come from the Sprint 8 helpers in
+  // sail-geometry so the renderer and tests share one source of truth.
+  const reefScale = reefedAreaScale(reef);
+  const mainTwistRad = twistOffsetReefedRad(twist, mainSheet, reef);
+  const jibTwistRad = twistOffsetReefedRad(twist, jibSheet, reef);
+
+  // Mast position is fixed; only the cloth shrinks with reef.
   const mastY = HULL_LAYOUT.mastY * L;
-  const mainHeadBaseY = HULL_LAYOUT.bowY * L * 1.08;
-  const headMainY = mastY + (mainHeadBaseY - mastY) * (1 - reef * 0.36);
-  const mainHeadX = Math.sin(mainBoomRad) * L * 0.1 * twist;
-  const boomLen = (1.08 + (1 - mainSheet) * 0.32) * L * (1 - reef * 0.12);
+  // Mast TOP (rig height); the sail head sits BELOW it when reefed so
+  // the user sees the mast sticking out above a reefed main.
+  const mastTopY = HULL_LAYOUT.bowY * L * 1.08;
+  // Effective sail head Y: linear interpolation between the mast base
+  // and the mast top, scaled by `reefScale`.
+  const headMainY = mastY + (mastTopY - mastY) * reefScale;
+  // Head X: rotates around the mast by the boom angle PLUS the twist
+  // offset. The arm length is the distance from the mast to the head,
+  // so a deep reef shrinks the swing radius too.
+  const headArm = Math.abs(mastTopY - mastY) * reefScale;
+  const mainHeadAngleRad = mainBoomRad + mainTwistRad;
+  const mainHeadX = Math.sin(mainHeadAngleRad) * headArm * 0.32;
+  const boomLen = (1.08 + (1 - mainSheet) * 0.32) * L * reefScale;
   const mainClewX = Math.sin(mainBoomRad) * boomLen;
   const mainClewY = mastY + Math.cos(mainBoomRad) * boomLen;
+
+  const mainClothWave = useMemo(
+    () => ({
+      enabled: shouldRenderClothWave({
+        luffing: mainLuffing,
+        reef,
+        awaDeg,
+      }),
+      clock: flutterClock * SAIL_CLOTH_TUNING.CLOTH_WAVE_RATE,
+    }),
+    [mainLuffing, reef, awaDeg, flutterClock],
+  );
 
   const mainSailPath = useMemo(
     () =>
@@ -339,16 +441,43 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         clewY: mainClewY,
         curveRatio: mainCurve * (1 - reef * 0.12),
         flutter: mainLuffing ? flutterClock : 0,
+        clothWaveClock: mainClothWave.enabled ? mainClothWave.clock : 0,
       }),
-    [mainHeadX, headMainY, mastY, mainClewX, mainClewY, mainCurve, reef, mainLuffing, flutterClock],
+    [
+      mainHeadX,
+      headMainY,
+      mastY,
+      mainClewX,
+      mainClewY,
+      mainCurve,
+      reef,
+      mainLuffing,
+      flutterClock,
+      mainClothWave,
+    ],
   );
 
   const forestayY = HULL_LAYOUT.bowY * L * 1.02;
   const jibTackY = HULL_LAYOUT.bowY * L * 0.92;
-  const jibHeadX = Math.sin(jibBoomRad) * L * 0.05 * twist;
+  const jibHeadAngleRad = jibBoomRad + jibTwistRad;
+  const jibHeadX = Math.sin(jibHeadAngleRad) * L * 0.08;
   const jibClewLen = (0.92 + (1 - jibSheet) * 0.28) * L;
   const jibClewX = Math.sin(jibBoomRad) * jibClewLen;
   const jibClewY = mastY + Math.cos(jibBoomRad) * jibClewLen * 0.82;
+
+  const jibClothWave = useMemo(
+    () => ({
+      enabled: shouldRenderClothWave({
+        luffing: jibLuffing,
+        reef: 0,
+        awaDeg,
+      }),
+      // Jib wave runs at a slightly different phase so the two sails do
+      // not visually beat in lockstep.
+      clock: flutterClock * SAIL_CLOTH_TUNING.CLOTH_WAVE_RATE + 0.7,
+    }),
+    [jibLuffing, awaDeg, flutterClock],
+  );
 
   const jibSailPath = useMemo(
     () =>
@@ -361,8 +490,19 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         clewY: jibClewY,
         curveRatio: jibCurve,
         flutter: jibLuffing ? flutterClock + 1.4 : 0,
+        clothWaveClock: jibClothWave.enabled ? jibClothWave.clock : 0,
       }),
-    [jibHeadX, forestayY, jibTackY, jibClewX, jibClewY, jibCurve, jibLuffing, flutterClock],
+    [
+      jibHeadX,
+      forestayY,
+      jibTackY,
+      jibClewX,
+      jibClewY,
+      jibCurve,
+      jibLuffing,
+      flutterClock,
+      jibClothWave,
+    ],
   );
 
   const mainBattenPath = useMemo(
@@ -431,6 +571,38 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     [L],
   );
 
+  // Sprint 9: heel transform. Clamp to the visual ceiling shared with
+  // sail-geometry so wide engine values do not flip the sprite. Convert
+  // to radians here because Skia's rotateZ takes radians.
+  const heelClamped = Math.max(
+    -VISUAL_TUNING.HEEL_VISUAL_CLAMP_DEG,
+    Math.min(VISUAL_TUNING.HEEL_VISUAL_CLAMP_DEG, heelDeg),
+  );
+  const heelRad = (heelClamped * Math.PI) / 180;
+
+  // Sprint 9: leeway ghost. A short dashed line trailing astern, rotated
+  // by `leewayDeg` so it points along the actual track instead of the
+  // bow heading. Hidden when |leeway| < 1 deg (visual noise).
+  const leewayClamped = Math.max(
+    -VISUAL_TUNING.LEEWAY_VISUAL_CLAMP_DEG,
+    Math.min(VISUAL_TUNING.LEEWAY_VISUAL_CLAMP_DEG, leewayDeg),
+  );
+  const showGhost = showLeewayGhost && Math.abs(leewayClamped) > 1;
+  const ghostPath = useMemo(() => {
+    if (!showGhost) return null;
+    const len = L * (1.2 + Math.abs(leewayClamped) * 0.06);
+    const angle = (leewayClamped * Math.PI) / 180;
+    // Stern of the boat in local coords is +Y. Travel away from stern
+    // along the heading rotated by `leewayClamped` so the ghost reads
+    // as "where the boat just came from".
+    const ex = Math.sin(angle) * len;
+    const ey = Math.cos(angle) * len + HULL_LAYOUT.sternY * L * 0.6;
+    return buildLinePath([
+      [0, HULL_LAYOUT.sternY * L * 0.6],
+      [ex, ey],
+    ]);
+  }, [showGhost, L, leewayClamped]);
+
   return (
     <Group
       transform={[
@@ -439,6 +611,17 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         { rotate: headingRad },
       ]}
     >
+      {showGhost && ghostPath ? (
+        <Path
+          path={ghostPath}
+          color={colors.warning}
+          style="stroke"
+          strokeWidth={Math.max(1, L * 0.022)}
+          strokeCap="round"
+          opacity={0.5}
+        />
+      ) : null}
+      <Group transform={[{ rotate: heelRad }]}>
       <Circle cx={heelOffsetPx} cy={L * 0.18} r={L * 1.06} color={SHADOW} opacity={0.42} />
 
       {showSpi ? (
@@ -568,6 +751,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
           strokeWidth={1.4}
         />
       ) : null}
+      </Group>
     </Group>
   );
 }
