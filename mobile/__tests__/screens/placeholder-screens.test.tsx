@@ -31,33 +31,20 @@ jest.mock('react-native/Libraries/Animated/Animated', () => {
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Leaderboard from '../../app/leaderboard/index';
-import Multiplayer from '../../app/multiplayer/index';
 import { renderWithProviders } from '../../src/test-utils';
 
 beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
-// Game has graduated past the placeholder shape in Sprint 9 (Dev-A) and now
-// renders a real Skia race; its tests live in a dedicated game suite once
-// the Skia jest mock grows path methods. Leaderboard and Multiplayer remain
-// placeholders for v1 so they stay covered here.
-describe('Placeholder screens (Leaderboard / Multiplayer)', () => {
+// Game (Sprint 9 Dev-A) and Multiplayer (Sprint 10 Dev-B) have both
+// graduated past the PlaceholderScreen shape - they ship as real flows
+// now. Leaderboard remains the only Phase-3 placeholder until the
+// online layer lands; that one stays covered here.
+describe('Placeholder screens (Leaderboard)', () => {
   it('Leaderboard renders the title + Phase 3 badge in EN', async () => {
     const view = renderWithProviders(<Leaderboard />);
     await waitFor(() => view.getByText('Phase 3'));
     view.getByText(/^Leaderboard/);
-  });
-
-  it('Multiplayer renders the title + Phase 4 badge in EN', async () => {
-    const view = renderWithProviders(<Multiplayer />);
-    await waitFor(() => view.getByText('Phase 4'));
-    view.getByText(/^Multiplayer/);
-  });
-
-  it('honors the persisted lang on placeholder screens (PL)', async () => {
-    await AsyncStorage.setItem('regatta.lang.v1', 'pl');
-    const view = renderWithProviders(<Multiplayer />);
-    await waitFor(() => view.getByText(/Wyscigi/));
   });
 });
