@@ -18,6 +18,7 @@ import { legacyPick } from '../src/i18n/languages';
 import { colors, glow, spacing } from '../src/design-system/tokens';
 import { fetchDaily, type DailyChallenge } from '../src/api/daily';
 import { findCourse } from '../src/game/course';
+import { useRaceHistory } from '../src/persistence/race-history';
 
 const ACCENT_COLOR: Record<CardAccent, string> = {
   cyan: colors.accentCyan,
@@ -39,6 +40,12 @@ export default function Home() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const { completedIds, lastViewedLessonId, ready } = useBootcampProgress();
+  // Sprint 10: Race history entry only renders once the user has a race
+  // saved on device. We don't gate behind `raceHistory.ready` because
+  // the row is OK to flicker in - it's quieter than rendering nothing
+  // for half a second when there's actually content to show.
+  const raceHistory = useRaceHistory();
+  const hasRaceHistory = raceHistory.races.length > 0;
   const continueState = summarizeContinue(completedIds, lastViewedLessonId);
   const showContinue = ready && completedIds.size > 0 && !continueState.allDone;
   const showCelebration = ready && continueState.allDone && completedIds.size > 0;
@@ -438,6 +445,34 @@ export default function Home() {
           {moreSection.toUpperCase()}
         </Text>
         <View style={styles.list}>
+          {hasRaceHistory ? (
+            <ListRow
+              icon="flag"
+              title={tp(
+                'История гонок',
+                'Race history',
+                'Historia wyscigow',
+                {
+                  es: 'Historial de regatas',
+                  fr: 'Historique des courses',
+                  de: 'Rennverlauf',
+                  it: 'Cronologia gare',
+                },
+              )}
+              caption={tp(
+                `${raceHistory.races.length} гонок`,
+                `${raceHistory.races.length} races`,
+                `${raceHistory.races.length} wyscigow`,
+                {
+                  es: `${raceHistory.races.length} regatas`,
+                  fr: `${raceHistory.races.length} courses`,
+                  de: `${raceHistory.races.length} Rennen`,
+                  it: `${raceHistory.races.length} gare`,
+                },
+              )}
+              onPress={() => router.push('/history')}
+            />
+          ) : null}
           <ListRow
             icon="gallery"
             title={tp('Галерея', 'Gallery', 'Galeria', {

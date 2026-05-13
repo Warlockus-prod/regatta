@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import {
   Button,
@@ -265,11 +265,44 @@ export default function Coach() {
     de: 'schwer',
     it: 'grave',
   });
+  // Sprint 10: "Watch replay" CTA at the top of the coach page so the
+  // user can jump from the AI feedback into the Replay viewer with the
+  // same raceId. Hidden on the race-missing branch since there's no id
+  // to route to.
+  const watchReplayLabel = tp(
+    'Смотреть повтор',
+    'Watch replay',
+    'Obejrzyj powtorke',
+    {
+      es: 'Ver repeticion',
+      fr: 'Voir le replay',
+      de: 'Wiedergabe ansehen',
+      it: 'Guarda il replay',
+    },
+  );
+  const handleWatchReplay = useCallback(() => {
+    if (!raceId) return;
+    router.push(`/replay/${encodeURIComponent(raceId)}`);
+  }, [raceId, router]);
 
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
+        {raceId && state.kind !== 'race-missing' ? (
+          <Pressable
+            onPress={handleWatchReplay}
+            accessibilityRole="button"
+            accessibilityLabel={watchReplayLabel}
+            style={({ pressed }) => [
+              styles.replayCta,
+              pressed && styles.replayCtaPressed,
+            ]}
+          >
+            <Text style={styles.replayCtaText}>{watchReplayLabel}</Text>
+            <Text style={styles.replayCtaArrow}>→</Text>
+          </Pressable>
+        ) : null}
         {state.kind === 'loading-race' || state.kind === 'loading-coach' ? (
           <View style={styles.loadingWrap}>
             <Text variant="caption" style={styles.loadingLabel}>
@@ -582,5 +615,32 @@ const styles = StyleSheet.create({
   actions: {
     gap: spacing.sm,
     marginTop: spacing.md,
+  },
+  // Sprint 10: Watch-replay CTA at the top of the coach page.
+  replayCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.borderCyanSoft,
+    backgroundColor: 'rgba(0, 212, 255, 0.08)',
+    marginBottom: spacing.md,
+  },
+  replayCtaPressed: {
+    opacity: 0.84,
+  },
+  replayCtaText: {
+    color: colors.accentCyan,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  replayCtaArrow: {
+    color: colors.accentCyan,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

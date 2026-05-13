@@ -25,6 +25,19 @@ export interface ReplayPoint {
   y: number;
   /** Seconds since the start signal. */
   t: number;
+  /**
+   * Optional bow heading at sample time, screen-space radians (0 = up,
+   * +CW). Sprint 10: included when the recorder knows it; the Replay
+   * viewer derives it from neighbouring samples when absent so legacy
+   * Sprint 9 rows still play back.
+   */
+  headingRad?: number;
+  /**
+   * Optional boat speed at sample time, knots. Same fallback story as
+   * `headingRad` - the Replay viewer estimates speed from the
+   * positional delta when the channel is missing.
+   */
+  speedKn?: number;
 }
 
 export interface RaceRecord {
@@ -106,6 +119,12 @@ export interface UseRaceHistory {
   clear: () => Promise<void>;
   /** Synchronous lookup against the in-memory list. */
   findById: (id: string) => RaceRecord | undefined;
+  /**
+   * Synchronous lookup that returns `null` (not `undefined`) when the id
+   * is unknown. Sprint 10: simplifies callers like the Replay viewer that
+   * branch on a "missing" empty-state vs the loaded record.
+   */
+  getRaceById: (id: string) => RaceRecord | null;
 }
 
 /**
@@ -172,7 +191,57 @@ export function useRaceHistory(): UseRaceHistory {
     [races],
   );
 
-  return { races, ready, save, clear, findById };
+  const getRaceById = useCallback(
+    (id: string): RaceRecord | null =>
+      racesRef.current.find((r) => r.id === id) ?? null,
+    // Same dependency pattern as findById.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [races],
+  );
+
+  return { races, ready, save, clear, findById, getRaceById };
+}
+
+/**
+ * Sprint 10: deterministic 4-char share code derived from a race id.
+ *
+ * The code is a base32 (RFC 4648 lowercase, digits + a-z, 32 chars)
+ * fold of an FNV-1a 32-bit hash of the input string. We pick base32 over
+ * base36 because the alphabet has no `0/O` or `1/l/I` look-alikes once
+ * collapsed to lowercase, which keeps the code readable when texted.
+ *
+ * Properties:
+ *  - Deterministic: same id -> same code, every device, every install.
+ *  - Local-only in v1: the receiver cannot resolve the code without the
+ *    sender's race already on their device. Phase 2 will POST a small
+ *    "shared race" record to a backend keyed by this code so the friend
+ *    can pull the replay payload.
+ *  - Collision rate: 4 base32 chars = 32^4 = 1,048,576 buckets. Good
+ *    enough for the local "tell my friend" workflow at this scale.
+ */
+export function shareCode(id: string): string {
+  // FNV-1a 32-bit hash of the id. Cheap, deterministic, no deps.
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < id.length; i++) {
+    hash ^= id.charCodeAt(i);
+    // Math.imul keeps us in 32-bit signed land (avoids JS double-precision
+    // drift on large products).
+    hash = Math.imul(hash, 0x01000193);
+  }
+  // Force unsigned for the bit-shift step below.
+  let v = hash >>> 0;
+  // Lowercase RFC 4648-ish alphabet. We dropped the digits/letters that
+  // look alike when typed (0/O, 1/l/I) so the code reads clean in SMS.
+  const ALPHABET = 'abcdefghjkmnpqrstuvwxyz23456789';
+  // ALPHABET length is 31; treat as base31. Slightly fewer buckets than a
+  // pure base32 fold (31^4 = 923,521 vs 1M), but the readability win is
+  // worth it.
+  let out = '';
+  for (let i = 0; i < 4; i++) {
+    out += ALPHABET.charAt(v % ALPHABET.length);
+    v = Math.floor(v / ALPHABET.length);
+  }
+  return out;
 }
 
 /**
