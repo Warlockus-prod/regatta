@@ -30,6 +30,10 @@ export interface SkiaYachtProps {
   jibSheet: number;
   /** Which set of sails to draw. */
   sailSet: SailSet;
+  /** Shared twist control 0..1. Higher values open the leech visually. */
+  twist?: number;
+  /** Reef control 0..1. Higher values shorten the main visually. */
+  reef?: number;
   /** Override for the main sail luff visualization. The component still
    *  forces luff on if AWA is in the no-go zone. */
   luffMain?: boolean;
@@ -43,14 +47,17 @@ export interface SkiaYachtProps {
 }
 
 const HULL_WHITE = '#f7f9fb';
-const SAIL_WHITE = 'rgba(255, 255, 255, 0.92)';
-const SAIL_OUTLINE = 'rgba(0, 212, 255, 0.42)';
-const SPINNAKER = 'rgba(0, 212, 255, 0.55)';
+const MAIN_SAIL = 'rgba(255, 250, 238, 0.96)';
+const JIB_SAIL = 'rgba(234, 243, 251, 0.94)';
+const SAIL_OUTLINE = 'rgba(232, 244, 248, 0.86)';
+const SAIL_DETAIL = 'rgba(10, 22, 40, 0.34)';
+const SPINNAKER = 'rgba(0, 212, 255, 0.62)';
 const SPINNAKER_OUTLINE = 'rgba(0, 229, 255, 0.78)';
 const HULL_OUTLINE = 'rgba(0, 212, 255, 0.30)';
 const SHADOW = 'rgba(0, 0, 0, 0.32)';
 const DECK = 'rgba(10, 22, 40, 0.78)';
 const CABIN = 'rgba(0, 212, 255, 0.20)';
+const RIG = 'rgba(232, 244, 248, 0.72)';
 
 interface BuildArgs {
   L: number;
@@ -93,6 +100,30 @@ function buildCabinPath({ L }: BuildArgs): SkPath {
   p.cubicTo(beam * 0.3, aft + L * 0.04, -beam * 0.3, aft + L * 0.04, -beam * 0.6, aft);
   p.cubicTo(-beam * 1.1, aft - L * 0.16, -beam * 1.1, fwd + L * 0.1, 0, fwd);
   p.close();
+  return p;
+}
+
+function buildDeckDetailPath({ L }: BuildArgs): SkPath {
+  const p = Skia.Path.Make();
+  const bow = HULL_LAYOUT.bowY * L * 0.72;
+  const stern = HULL_LAYOUT.sternY * L * 0.68;
+  [-0.12, -0.06, 0.06, 0.12].forEach((xNorm) => {
+    const x = xNorm * L;
+    p.moveTo(x * 0.35, bow);
+    p.cubicTo(x * 0.75, -L * 0.2, x * 0.95, L * 0.28, x * 0.72, stern);
+  });
+  return p;
+}
+
+function buildLinePath(points: Array<[number, number]>): SkPath {
+  const p = Skia.Path.Make();
+  if (points.length === 0) return p;
+  const [firstX, firstY] = points[0]!;
+  p.moveTo(firstX, firstY);
+  for (let i = 1; i < points.length; i++) {
+    const [x, y] = points[i]!;
+    p.lineTo(x, y);
+  }
   return p;
 }
 
@@ -162,12 +193,35 @@ function buildSailPath(args: {
   return p;
 }
 
+function buildSailBattenPath(args: {
+  headX: number;
+  headY: number;
+  tackX: number;
+  tackY: number;
+  clewX: number;
+  clewY: number;
+  ratios: number[];
+  reach: number;
+}): SkPath {
+  const p = Skia.Path.Make();
+  const { headX, headY, tackX, tackY, clewX, clewY, ratios, reach } = args;
+  for (const t of ratios) {
+    const sx = headX + (tackX - headX) * t;
+    const sy = headY + (tackY - headY) * t;
+    const ex = sx + (clewX - sx) * reach;
+    const ey = sy + (clewY - sy) * reach;
+    p.moveTo(sx, sy);
+    p.lineTo(ex, ey);
+  }
+  return p;
+}
+
 /** Spinnaker as a symmetric balloon forward of the bow. */
 function buildSpinnakerPath({ L }: BuildArgs, curveRatio: number): SkPath {
   const p = Skia.Path.Make();
-  const head = -1.18 * L;
-  const foot = -0.34 * L;
-  const half = (0.62 + curveRatio * 0.18) * L;
+  const head = -1.3 * L;
+  const foot = -0.22 * L;
+  const half = (0.78 + curveRatio * 0.22) * L;
   p.moveTo(0, head);
   p.cubicTo(half, head + L * 0.18, half, foot - L * 0.06, half * 0.45, foot);
   p.cubicTo(half * 0.18, foot + L * 0.04, -half * 0.18, foot + L * 0.04, -half * 0.45, foot);
@@ -190,6 +244,8 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     mainSheet,
     jibSheet,
     sailSet,
+    twist: twistRaw = 0.15,
+    reef: reefRaw = 0,
     luffMain = false,
     luffJib = false,
     length = 36,
@@ -198,6 +254,8 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
   } = props;
 
   const L = hullScale(length);
+  const twist = Math.max(0, Math.min(1, twistRaw));
+  const reef = Math.max(0, Math.min(1, reefRaw));
 
   // Drive luff flutter from the tick counter or a local raf if not provided.
   const rafTickRef = useRef(0);
@@ -222,6 +280,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
 
   const hullPath = useMemo(() => buildHullPath({ L }), [L]);
   const deckPath = useMemo(() => buildDeckPath({ L }), [L]);
+  const deckDetailPath = useMemo(() => buildDeckDetailPath({ L }), [L]);
   const cabinPath = useMemo(() => buildCabinPath({ L }), [L]);
 
   const noGo = Math.abs(awaDeg) < SAIL_TUNING.NO_GO_AWA_DEG;
@@ -235,36 +294,39 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
   const spiCurve = Math.max(0.6, sailCurveRatio(awaDeg, 0.4));
 
   const mastY = HULL_LAYOUT.mastY * L;
-  const headMainY = HULL_LAYOUT.bowY * L * 0.62;
-  const boomLen = (0.82 + (1 - mainSheet) * 0.18) * L;
+  const mainHeadBaseY = HULL_LAYOUT.bowY * L * 1.08;
+  const headMainY = mastY + (mainHeadBaseY - mastY) * (1 - reef * 0.36);
+  const mainHeadX = Math.sin(mainBoomRad) * L * 0.1 * twist;
+  const boomLen = (1.08 + (1 - mainSheet) * 0.32) * L * (1 - reef * 0.12);
   const mainClewX = Math.sin(mainBoomRad) * boomLen;
   const mainClewY = mastY + Math.cos(mainBoomRad) * boomLen;
 
   const mainSailPath = useMemo(
     () =>
       buildSailPath({
-        headX: 0,
+        headX: mainHeadX,
         headY: headMainY,
         tackX: 0,
         tackY: mastY,
         clewX: mainClewX,
         clewY: mainClewY,
-        curveRatio: mainCurve,
+        curveRatio: mainCurve * (1 - reef * 0.12),
         flutter: mainLuffing ? flutterClock : 0,
       }),
-    [headMainY, mastY, mainClewX, mainClewY, mainCurve, mainLuffing, flutterClock],
+    [mainHeadX, headMainY, mastY, mainClewX, mainClewY, mainCurve, reef, mainLuffing, flutterClock],
   );
 
-  const forestayY = HULL_LAYOUT.forestayY * L;
-  const jibTackY = HULL_LAYOUT.bowY * L * 0.7;
-  const jibClewLen = (0.62 + (1 - jibSheet) * 0.18) * L;
+  const forestayY = HULL_LAYOUT.bowY * L * 1.02;
+  const jibTackY = HULL_LAYOUT.bowY * L * 0.92;
+  const jibHeadX = Math.sin(jibBoomRad) * L * 0.05 * twist;
+  const jibClewLen = (0.92 + (1 - jibSheet) * 0.28) * L;
   const jibClewX = Math.sin(jibBoomRad) * jibClewLen;
-  const jibClewY = mastY - L * 0.05 + Math.cos(jibBoomRad) * jibClewLen * 0.95;
+  const jibClewY = mastY + Math.cos(jibBoomRad) * jibClewLen * 0.82;
 
   const jibSailPath = useMemo(
     () =>
       buildSailPath({
-        headX: 0,
+        headX: jibHeadX,
         headY: forestayY,
         tackX: 0,
         tackY: jibTackY,
@@ -273,7 +335,37 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         curveRatio: jibCurve,
         flutter: jibLuffing ? flutterClock + 1.4 : 0,
       }),
-    [forestayY, jibTackY, jibClewX, jibClewY, jibCurve, jibLuffing, flutterClock],
+    [jibHeadX, forestayY, jibTackY, jibClewX, jibClewY, jibCurve, jibLuffing, flutterClock],
+  );
+
+  const mainBattenPath = useMemo(
+    () =>
+      buildSailBattenPath({
+        headX: mainHeadX,
+        headY: headMainY,
+        tackX: 0,
+        tackY: mastY,
+        clewX: mainClewX,
+        clewY: mainClewY,
+        ratios: [0.3, 0.52, 0.74],
+        reach: 0.44 + twist * 0.12,
+      }),
+    [mainHeadX, headMainY, mastY, mainClewX, mainClewY, twist],
+  );
+
+  const jibBattenPath = useMemo(
+    () =>
+      buildSailBattenPath({
+        headX: jibHeadX,
+        headY: forestayY,
+        tackX: 0,
+        tackY: jibTackY,
+        clewX: jibClewX,
+        clewY: jibClewY,
+        ratios: [0.42, 0.68],
+        reach: 0.5,
+      }),
+    [jibHeadX, forestayY, jibTackY, jibClewX, jibClewY],
   );
 
   const spinnakerPath = useMemo(
@@ -283,7 +375,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
 
   const showJib = sailSet === 'mainJib';
   const showSpi = sailSet === 'spinnaker';
-  const showMain = sailSet !== 'spinnaker';
+  const showMain = true;
 
   // Boom line (drawn as a stroke for definition).
   const boomLinePath = useMemo(() => {
@@ -292,6 +384,25 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     p.lineTo(mainClewX, mainClewY);
     return p;
   }, [mastY, mainClewX, mainClewY]);
+
+  const mastStayPath = useMemo(
+    () =>
+      buildLinePath([
+        [0, forestayY],
+        [0, mastY],
+        [0, HULL_LAYOUT.sternY * L * 0.72],
+      ]),
+    [forestayY, mastY, L],
+  );
+
+  const spinnakerSeamPath = useMemo(
+    () =>
+      buildLinePath([
+        [0, -1.24 * L],
+        [0, -0.26 * L],
+      ]),
+    [L],
+  );
 
   return (
     <Group
@@ -313,6 +424,13 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
             strokeWidth={1.2}
             opacity={0.85}
           />
+          <Path
+            path={spinnakerSeamPath}
+            color="rgba(232, 244, 248, 0.48)"
+            style="stroke"
+            strokeWidth={Math.max(0.8, L * 0.018)}
+            strokeCap="round"
+          />
         </>
       ) : null}
 
@@ -320,15 +438,23 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         <>
           <Path
             path={jibSailPath}
-            color={SAIL_WHITE}
-            opacity={jibLuffing ? 0.65 : 0.92}
+            color={JIB_SAIL}
+            opacity={jibLuffing ? 0.68 : 0.96}
           />
           <Path
             path={jibSailPath}
             color={SAIL_OUTLINE}
             style="stroke"
-            strokeWidth={1}
-            opacity={0.7}
+            strokeWidth={Math.max(1.1, L * 0.025)}
+            opacity={0.95}
+          />
+          <Path
+            path={jibBattenPath}
+            color={SAIL_DETAIL}
+            style="stroke"
+            strokeWidth={Math.max(0.7, L * 0.014)}
+            strokeCap="round"
+            opacity={0.75}
           />
         </>
       ) : null}
@@ -337,26 +463,42 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         <>
           <Path
             path={mainSailPath}
-            color={SAIL_WHITE}
-            opacity={mainLuffing ? 0.62 : 0.92}
+            color={MAIN_SAIL}
+            opacity={mainLuffing ? 0.68 : 0.98}
           />
           <Path
             path={mainSailPath}
             color={SAIL_OUTLINE}
             style="stroke"
-            strokeWidth={1}
-            opacity={0.7}
+            strokeWidth={Math.max(1.2, L * 0.026)}
+            opacity={0.96}
+          />
+          <Path
+            path={mainBattenPath}
+            color={SAIL_DETAIL}
+            style="stroke"
+            strokeWidth={Math.max(0.7, L * 0.014)}
+            strokeCap="round"
+            opacity={0.75}
           />
           <Path
             path={boomLinePath}
-            color="rgba(232, 244, 248, 0.85)"
+            color={RIG}
             style="stroke"
-            strokeWidth={Math.max(1.2, L * 0.05)}
+            strokeWidth={Math.max(1.5, L * 0.045)}
             strokeCap="round"
           />
         </>
       ) : null}
 
+      <Path
+        path={mastStayPath}
+        color={RIG}
+        style="stroke"
+        strokeWidth={Math.max(0.9, L * 0.018)}
+        strokeCap="round"
+        opacity={0.75}
+      />
       <Path path={hullPath} color={HULL_WHITE} />
       <Path
         path={hullPath}
@@ -365,6 +507,13 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
         strokeWidth={Math.max(1, L * 0.04)}
       />
       <Path path={deckPath} color={DECK} />
+      <Path
+        path={deckDetailPath}
+        color="rgba(232, 244, 248, 0.16)"
+        style="stroke"
+        strokeWidth={Math.max(0.6, L * 0.01)}
+        strokeCap="round"
+      />
       <Path path={cabinPath} color={CABIN} />
       <Circle cx={0} cy={mastY} r={Math.max(2, L * 0.085)} color={colors.accentCyan} />
 

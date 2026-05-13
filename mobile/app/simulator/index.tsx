@@ -1,6 +1,6 @@
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Pressable,
@@ -28,6 +28,19 @@ import {
   buildApparentArrowPath,
   buildCompassArrowPath,
 } from '../../src/simulator/skia-wind';
+import Svg, {
+  Circle as SvgCircle,
+  Defs,
+  Ellipse,
+  G,
+  Line,
+  LinearGradient as SvgLinearGradient,
+  Path as SvgPath,
+  Polygon,
+  Rect,
+  Stop,
+  Text as SvgText,
+} from 'react-native-svg';
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
 import type { SailState } from '../../src/simulator/sail-feedback';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
@@ -35,6 +48,22 @@ import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 const COMPASS_R = 34;
 const SNAP_DEG = 15;
 const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
+const WIND_SPEED_PRESETS = [6, 10, 14, 20] as const;
+
+type SimView = 'top' | 'side' | 'rear';
+type WindMapMode = 'steady' | 'shift' | 'gust';
+
+interface SceneLabels {
+  apparentWind: string;
+  trueWind: string;
+  drive: string;
+  sideForce: string;
+  heel: string;
+  reef: string;
+  twist: string;
+  gust: string;
+  shift: string;
+}
 
 function snapToStep(rad: number, step: number): number {
   return Math.round(rad / step) * step;
@@ -64,6 +93,68 @@ function buildTrailPath(trail: TrailPoint[], width: number, height: number) {
   return p;
 }
 
+function buildWakePath(
+  boatX: number,
+  boatY: number,
+  heading: number,
+  boatLength: number,
+  speedKn: number,
+) {
+  const p = Skia.Path.Make();
+  if (speedKn < 0.6) return p;
+  const c = Math.cos(heading);
+  const s = Math.sin(heading);
+  const toScreen = (localX: number, localY: number) => ({
+    x: boatX + localX * c - localY * s,
+    y: boatY + localX * s + localY * c,
+  });
+  const stern = boatLength * 0.9;
+  const len = boatLength * (0.8 + Math.min(1.5, speedKn / 5));
+  const spread = boatLength * (0.22 + Math.min(0.22, speedKn / 26));
+  const startL = toScreen(-boatLength * 0.18, stern);
+  const startR = toScreen(boatLength * 0.18, stern);
+  const ctrlL = toScreen(-spread, stern + len * 0.5);
+  const ctrlR = toScreen(spread, stern + len * 0.5);
+  const endL = toScreen(-spread * 1.35, stern + len);
+  const endR = toScreen(spread * 1.35, stern + len);
+  p.moveTo(startL.x, startL.y);
+  p.quadTo(ctrlL.x, ctrlL.y, endL.x, endL.y);
+  p.moveTo(startR.x, startR.y);
+  p.quadTo(ctrlR.x, ctrlR.y, endR.x, endR.y);
+  return p;
+}
+
+function buildGustBandPath(width: number, height: number, tickN: number) {
+  const p = Skia.Path.Make();
+  const phase = (tickN % 210) / 210;
+  const x = width * (0.12 + phase * 0.86);
+  const lean = width * 0.16;
+  const band = Math.max(34, width * 0.11);
+  p.moveTo(x - band, 0);
+  p.lineTo(x + band, 0);
+  p.lineTo(x + band + lean, height);
+  p.lineTo(x - band + lean, height);
+  p.close();
+  return p;
+}
+
+function buildShiftPath(width: number, height: number, tickN: number) {
+  const p = Skia.Path.Make();
+  const phase = (tickN % 160) / 160;
+  for (let i = 0; i < 3; i++) {
+    const y = height * (0.24 + i * 0.2);
+    const amp = 18 + i * 5;
+    const x0 = width * 0.08;
+    const x1 = width * 0.35;
+    const x2 = width * 0.68;
+    const x3 = width * 0.94;
+    const offset = Math.sin(phase * Math.PI * 2 + i * 0.9) * amp;
+    p.moveTo(x0, y + offset);
+    p.cubicTo(x1, y - amp, x2, y + amp, x3, y - offset);
+  }
+  return p;
+}
+
 function buildWavePath(width: number, height: number, tickN: number) {
   const p = Skia.Path.Make();
   const phase = (tickN % 90) / 90;
@@ -79,17 +170,6 @@ function buildWavePath(width: number, height: number, tickN: number) {
       }
     }
   }
-  return p;
-}
-
-function buildCoursePath(width: number, height: number) {
-  const p = Skia.Path.Make();
-  const x = width / 2;
-  p.moveTo(x - 8, height - 34);
-  p.lineTo(x - 64, height * 0.68);
-  p.lineTo(x + 54, height * 0.47);
-  p.lineTo(x - 32, height * 0.28);
-  p.lineTo(x, 54);
   return p;
 }
 
@@ -125,12 +205,29 @@ export default function Simulator() {
   const { tp } = useI18n();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
-  const sceneH = Math.min(Math.max(windowHeight * 0.43, 320), 500);
+  const sceneH = Math.min(Math.max(windowHeight * 0.46, 340), 520);
   const centerX = sceneW / 2;
   const centerY = sceneH / 2;
   const compassCx = sceneW - COMPASS_R - 18;
   const compassCy = COMPASS_R + 18;
   const sim = useSimLoop({ bounds: { width: sceneW, height: sceneH } });
+  const boatLength = sceneW < 360 ? 48 : 56;
+  const [simView, setSimView] = useState<SimView>('top');
+  const [windMapMode, setWindMapMode] = useState<WindMapMode>('steady');
+  const windBaseRef = useRef(sim.wind.trueWindDirRad);
+  const windSpeedBaseRef = useRef(sim.wind.trueWindSpeedKts);
+
+  useEffect(() => {
+    if (windMapMode === 'steady') return;
+    const phase = sim.tickN / 30;
+    if (windMapMode === 'shift') {
+      const swingRad = (15 * Math.PI) / 180;
+      sim.setWindDir(windBaseRef.current + Math.sin(phase * 0.42) * swingRad);
+      return;
+    }
+    const gust = Math.max(0, Math.sin(phase * 0.78));
+    sim.setWindSpeed(windSpeedBaseRef.current + gust * 4);
+  }, [sim, windMapMode]);
 
   const steer = useMemo(
     () =>
@@ -168,13 +265,17 @@ export default function Simulator() {
           if (!insideCompassAt(e.x, e.y, compassCx, compassCy)) return;
           const dx = e.x - compassCx;
           const dy = e.y - compassCy;
-          sim.setWindDir(snapToStep(Math.atan2(dx, -dy), SNAP_RAD));
+          const next = snapToStep(Math.atan2(dx, -dy), SNAP_RAD);
+          windBaseRef.current = next;
+          sim.setWindDir(next);
         })
         .onChange((e) => {
           if (!insideCompassAt(e.x, e.y, compassCx, compassCy)) return;
           const dx = e.x - compassCx;
           const dy = e.y - compassCy;
-          sim.setWindDir(snapToStep(Math.atan2(dx, -dy), SNAP_RAD));
+          const next = snapToStep(Math.atan2(dx, -dy), SNAP_RAD);
+          windBaseRef.current = next;
+          sim.setWindDir(next);
         }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [compassCx, compassCy],
@@ -186,7 +287,7 @@ export default function Simulator() {
   );
 
   const arrowGrid = useMemo(
-    () => buildArrowGrid(sceneW, sceneH, 58),
+    () => buildArrowGrid(sceneW, sceneH, 54),
     [sceneW, sceneH],
   );
   const windArrowsPath = useMemo(
@@ -197,14 +298,26 @@ export default function Simulator() {
     () => buildWavePath(sceneW, sceneH, sim.tickN),
     [sceneW, sceneH, sim.tickN],
   );
-  const coursePath = useMemo(
-    () => buildCoursePath(sceneW, sceneH),
-    [sceneW, sceneH],
-  );
   const trailPath = useMemo(
     () => buildTrailPath(sim.trail, sceneW, sceneH),
     [sim.trail, sim.tickN, sceneW, sceneH],
   );
+  const wakePath = useMemo(
+    () =>
+      buildWakePath(
+        sim.boat.x,
+        sim.boat.y,
+        sim.boat.heading,
+        boatLength,
+        sim.boatExt.boatSpeedKn,
+      ),
+    [sim.boat.x, sim.boat.y, sim.boat.heading, boatLength, sim.boatExt.boatSpeedKn, sim.tickN],
+  );
+  const windEffectPath = useMemo(() => {
+    if (windMapMode === 'gust') return buildGustBandPath(sceneW, sceneH, sim.tickN);
+    if (windMapMode === 'shift') return buildShiftPath(sceneW, sceneH, sim.tickN);
+    return Skia.Path.Make();
+  }, [windMapMode, sceneW, sceneH, sim.tickN]);
 
   const noGoPath = useMemo(() => {
     const awaScreenRad =
@@ -215,10 +328,10 @@ export default function Simulator() {
   const apparentArrowPath = useMemo(() => {
     const awaScreenRad =
       sim.boat.heading + (sim.boatExt.awaDeg * Math.PI) / 180;
-    const bowX = sim.boat.x + Math.sin(sim.boat.heading) * 36;
-    const bowY = sim.boat.y - Math.cos(sim.boat.heading) * 36;
+    const bowX = sim.boat.x + Math.sin(sim.boat.heading) * boatLength * 0.96;
+    const bowY = sim.boat.y - Math.cos(sim.boat.heading) * boatLength * 0.96;
     return buildApparentArrowPath(bowX, bowY, awaScreenRad);
-  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, sim.tickN]);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, boatLength, sim.tickN]);
 
   const autoTrim = sim.controls.autoTrim !== false;
   const mainSheet = sim.controls.mainSheet ?? 0.5;
@@ -335,6 +448,42 @@ export default function Simulator() {
     de: 'Mission',
     it: 'Missione',
   });
+  const viewTopLabel = tp('Сверху', 'Top', 'Gora', {
+    es: 'Arriba',
+    fr: 'Dessus',
+    de: 'Oben',
+    it: 'Alto',
+  });
+  const viewSideLabel = tp('Сбоку', 'Side', 'Bok', {
+    es: 'Lado',
+    fr: 'Cote',
+    de: 'Seite',
+    it: 'Lato',
+  });
+  const viewRearLabel = tp('С кормы', 'Rear', 'Rufa', {
+    es: 'Popa',
+    fr: 'Arriere',
+    de: 'Heck',
+    it: 'Poppa',
+  });
+  const windSteadyLabel = tp('Ровный', 'Steady', 'Staly', {
+    es: 'Estable',
+    fr: 'Stable',
+    de: 'Stetig',
+    it: 'Stabile',
+  });
+  const windShiftLabel = tp('Заход', 'Shift', 'Zmiana', {
+    es: 'Role',
+    fr: 'Bascule',
+    de: 'Dreher',
+    it: 'Salto',
+  });
+  const windGustLabel = tp('Порыв', 'Gust', 'Podmuch', {
+    es: 'Racha',
+    fr: 'Rafale',
+    de: 'Boe',
+    it: 'Raffica',
+  });
   const missionLabel = tp('МИССИЯ', 'MISSION', 'MISJA', {
     es: 'MISION',
     fr: 'MISSION',
@@ -420,6 +569,69 @@ export default function Simulator() {
     de: 'Zur Tonne',
     it: 'Alla boa',
   });
+  const windMapLabel = tp('КАРТА ВЕТРА', 'WIND MAP', 'MAPA WIATRU', {
+    es: 'MAPA DE VIENTO',
+    fr: 'CARTE DU VENT',
+    de: 'WINDKARTE',
+    it: 'MAPPA VENTO',
+  });
+  const trackLabel = tp('ТРЕК', 'TRACK', 'SLAD', {
+    es: 'TRAZA',
+    fr: 'TRACE',
+    de: 'SPUR',
+    it: 'TRACCIA',
+  });
+  const sceneLabels: SceneLabels = {
+    apparentWind: tp('вымпельный', 'apparent', 'pozorny', {
+      es: 'aparente',
+      fr: 'apparent',
+      de: 'scheinbar',
+      it: 'apparente',
+    }),
+    trueWind: tp('истинный', 'true wind', 'wiatr realny', {
+      es: 'viento real',
+      fr: 'vent reel',
+      de: 'wahrer Wind',
+      it: 'vento reale',
+    }),
+    drive: tp('тяга', 'drive', 'ciag', {
+      es: 'empuje',
+      fr: 'poussee',
+      de: 'Vortrieb',
+      it: 'spinta',
+    }),
+    sideForce: tp('боковая', 'side force', 'sila boczna', {
+      es: 'lateral',
+      fr: 'lateral',
+      de: 'Seitkraft',
+      it: 'laterale',
+    }),
+    heel: tp('крен', 'heel', 'przechyl', {
+      es: 'escora',
+      fr: 'gite',
+      de: 'Krangung',
+      it: 'sbandamento',
+    }),
+    reef: tp('риф', 'reef', 'ref', {
+      es: 'rizo',
+      fr: 'ris',
+      de: 'Reff',
+      it: 'terzaroli',
+    }),
+    twist: 'twist',
+    gust: tp('порыв', 'gust', 'podmuch', {
+      es: 'racha',
+      fr: 'rafale',
+      de: 'Boe',
+      it: 'raffica',
+    }),
+    shift: tp('заход ветра', 'wind shift', 'zmiana wiatru', {
+      es: 'role de viento',
+      fr: 'bascule de vent',
+      de: 'Winddreher',
+      it: 'salto di vento',
+    }),
+  };
   const luffLabel = tp('ХЛОПАЕТ', 'LUFF', 'LUFF', {
     es: 'FLAMEA',
     fr: 'FASEILLE',
@@ -468,9 +680,15 @@ export default function Simulator() {
   const windKts = Math.round(sim.wind.trueWindSpeedKts);
   const trimScore = sim.boatExt.trimScore;
   const trimColor = scoreColor(trimScore);
-  const boatLength = sceneW < 360 ? 30 : 36;
   const heelOffset = Math.max(-8, Math.min(8, sim.boatExt.heelDeg / 4));
   const showSpinnaker = sim.boatExt.sailSet === 'spinnaker';
+  const showTrack = sim.trail.length > 5;
+  const activeWindModeLabel =
+    windMapMode === 'gust'
+      ? windGustLabel
+      : windMapMode === 'shift'
+      ? windShiftLabel
+      : windSteadyLabel;
   const commentary = commentaryFor({
     mainStalled: sim.boatExt.mainStalled,
     jibStalled: sim.boatExt.jibStalled,
@@ -489,6 +707,32 @@ export default function Simulator() {
   const activeMission = missionState
     ? MISSIONS.find((m) => m.id === missionState.missionId)
     : undefined;
+
+  const handlePickView = (next: SimView) => {
+    Haptics.selectionAsync().catch(() => {});
+    setSimView(next);
+  };
+
+  const handlePickWindMode = (next: WindMapMode) => {
+    Haptics.selectionAsync().catch(() => {});
+    if (next !== 'steady') {
+      windBaseRef.current = sim.wind.trueWindDirRad;
+      windSpeedBaseRef.current = sim.wind.trueWindSpeedKts;
+    } else {
+      sim.setWindDir(windBaseRef.current);
+      sim.setWindSpeed(windSpeedBaseRef.current);
+    }
+    setWindMapMode(next);
+  };
+
+  const handleCycleWindSpeed = () => {
+    const currentBase = windSpeedBaseRef.current;
+    const currentIdx = WIND_SPEED_PRESETS.findIndex((k) => k === Math.round(currentBase));
+    const next =
+      WIND_SPEED_PRESETS[(currentIdx + 1) % WIND_SPEED_PRESETS.length] ?? WIND_SPEED_PRESETS[0];
+    windSpeedBaseRef.current = next;
+    sim.setWindSpeed(next);
+  };
 
   const handlePickMode = (next: SimMode) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
@@ -554,6 +798,42 @@ export default function Simulator() {
             label={modeMissionLabel}
             active={mode === 'mission'}
             onPress={() => handlePickMode('mission')}
+          />
+        </View>
+
+        <View style={styles.viewBar}>
+          <ViewChip
+            label={viewTopLabel}
+            active={simView === 'top'}
+            onPress={() => handlePickView('top')}
+          />
+          <ViewChip
+            label={viewSideLabel}
+            active={simView === 'side'}
+            onPress={() => handlePickView('side')}
+          />
+          <ViewChip
+            label={viewRearLabel}
+            active={simView === 'rear'}
+            onPress={() => handlePickView('rear')}
+          />
+        </View>
+
+        <View style={styles.windModeBar}>
+          <WindModeChip
+            label={windSteadyLabel}
+            active={windMapMode === 'steady'}
+            onPress={() => handlePickWindMode('steady')}
+          />
+          <WindModeChip
+            label={windShiftLabel}
+            active={windMapMode === 'shift'}
+            onPress={() => handlePickWindMode('shift')}
+          />
+          <WindModeChip
+            label={windGustLabel}
+            active={windMapMode === 'gust'}
+            onPress={() => handlePickWindMode('gust')}
           />
         </View>
 
@@ -625,7 +905,8 @@ export default function Simulator() {
         ) : null}
 
         <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
-          <GestureDetector gesture={composedGesture}>
+          {simView === 'top' ? (
+            <GestureDetector gesture={composedGesture}>
             <Canvas style={{ width: sceneW, height: sceneH }}>
               <Group>
                 <Path
@@ -635,6 +916,24 @@ export default function Simulator() {
                   strokeWidth={1}
                   strokeCap="round"
                 />
+                {windMapMode === 'gust' ? (
+                  <Path
+                    path={windEffectPath}
+                    color={colors.success}
+                    style="fill"
+                    opacity={0.14}
+                  />
+                ) : null}
+                {windMapMode === 'shift' ? (
+                  <Path
+                    path={windEffectPath}
+                    color={colors.warning}
+                    style="stroke"
+                    strokeWidth={2}
+                    strokeCap="round"
+                    opacity={0.42}
+                  />
+                ) : null}
                 <Path
                   path={windArrowsPath}
                   color={colors.windColor}
@@ -643,21 +942,6 @@ export default function Simulator() {
                   strokeCap="round"
                   opacity={0.34}
                 />
-                {mode === 'free' ? (
-                  <>
-                    <Path
-                      path={coursePath}
-                      color="rgba(68, 255, 136, 0.55)"
-                      style="stroke"
-                      strokeWidth={1.5}
-                      strokeCap="round"
-                      opacity={0.7}
-                    />
-                    <Circle cx={centerX} cy={54} r={8} color={colors.warning} />
-                    <Circle cx={centerX - 8} cy={sceneH - 34} r={7} color={colors.warning} />
-                    <Circle cx={centerX + 30} cy={sceneH - 34} r={7} color={colors.warning} />
-                  </>
-                ) : null}
                 {mode === 'mission' && missionState
                   ? missionState.marks.map((m) => (
                       <Group key={m.id}>
@@ -693,12 +977,21 @@ export default function Simulator() {
 
                 <Path
                   path={trailPath}
-                  color={colors.accentCyan}
+                  color="rgba(82, 255, 142, 0.70)"
+                  style="stroke"
+                  strokeWidth={1.4}
+                  strokeCap="round"
+                  strokeJoin="round"
+                  opacity={0.34}
+                />
+
+                <Path
+                  path={wakePath}
+                  color="rgba(232, 244, 248, 0.42)"
                   style="stroke"
                   strokeWidth={2}
                   strokeCap="round"
-                  strokeJoin="round"
-                  opacity={0.45}
+                  opacity={0.55}
                 />
 
                 <Path
@@ -731,6 +1024,8 @@ export default function Simulator() {
                   awaDeg={sim.boatExt.awaDeg}
                   mainSheet={mainSheet}
                   jibSheet={jibSheet}
+                  twist={twist}
+                  reef={reef}
                   sailSet={sim.boatExt.sailSet}
                   luffMain={sim.sailFeedback.main === 'luff'}
                   luffJib={sim.sailFeedback.jib === 'luff'}
@@ -772,13 +1067,49 @@ export default function Simulator() {
                 </Group>
               </Group>
             </Canvas>
-          </GestureDetector>
+            </GestureDetector>
+          ) : simView === 'side' ? (
+            <SideProfileScene
+              width={sceneW}
+              height={sceneH}
+              twaDeg={twaDeg}
+              awaDeg={awaDeg}
+              heelDeg={heelDeg}
+              speedKn={Number(speedKn)}
+              mainSheet={mainSheet}
+              jibSheet={jibSheet}
+              twist={twist}
+              reef={reef}
+              windKts={windKts}
+              windMode={windMapMode}
+              showSpinnaker={showSpinnaker}
+              tickN={sim.tickN}
+              labels={sceneLabels}
+            />
+          ) : (
+            <RearScene
+              width={sceneW}
+              height={sceneH}
+              twaDeg={twaDeg}
+              awaDeg={awaDeg}
+              heelDeg={heelDeg}
+              trimScore={trimScore}
+              mainSheet={mainSheet}
+              jibSheet={jibSheet}
+              reef={reef}
+              windKts={windKts}
+              windMode={windMapMode}
+              showSpinnaker={showSpinnaker}
+              tickN={sim.tickN}
+              labels={sceneLabels}
+            />
+          )}
 
           <Pressable
             style={[styles.windSpeedButton, { top: compassCy + COMPASS_R + 8 }]}
             onPress={() => {
               Haptics.selectionAsync().catch(() => {});
-              sim.cycleWindSpeed();
+              handleCycleWindSpeed();
             }}
             accessibilityRole="button"
             accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windKts} kt, ${twdDeg}°`}
@@ -803,6 +1134,21 @@ export default function Simulator() {
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgKn}`}</Text>
+          </View>
+
+          <View pointerEvents="none" style={styles.mapLegend}>
+            <View style={styles.mapLegendRow}>
+              <View style={[styles.mapLegendDot, { backgroundColor: colors.windColor }]} />
+              <Text allowFontScaling={false} style={styles.mapLegendText}>
+                {`${windMapLabel} ${activeWindModeLabel.toUpperCase()}`}
+              </Text>
+            </View>
+            {showTrack ? (
+              <View style={styles.mapLegendRow}>
+                <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                <Text allowFontScaling={false} style={styles.mapLegendText}>{trackLabel}</Text>
+              </View>
+            ) : null}
           </View>
 
           {!showSpinnaker ? (
@@ -1189,6 +1535,399 @@ function ModeChip({
   );
 }
 
+function ViewChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      style={({ pressed }) => [
+        styles.viewChip,
+        active && styles.viewChipActive,
+        pressed && styles.viewChipPressed,
+      ]}
+    >
+      <Text
+        style={[styles.viewChipText, active && styles.viewChipTextActive]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function WindModeChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ selected: active }}
+      style={({ pressed }) => [
+        styles.windModeChip,
+        active && styles.windModeChipActive,
+        pressed && styles.windModeChipPressed,
+      ]}
+    >
+      <Text
+        style={[styles.windModeChipText, active && styles.windModeChipTextActive]}
+        numberOfLines={1}
+      >
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function clampNum(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+function SideProfileScene({
+  width,
+  height,
+  twaDeg,
+  awaDeg,
+  heelDeg,
+  speedKn,
+  mainSheet,
+  jibSheet,
+  twist,
+  reef,
+  windKts,
+  windMode,
+  showSpinnaker,
+  tickN,
+  labels,
+}: {
+  width: number;
+  height: number;
+  twaDeg: number;
+  awaDeg: number;
+  heelDeg: number;
+  speedKn: number;
+  mainSheet: number;
+  jibSheet: number;
+  twist: number;
+  reef: number;
+  windKts: number;
+  windMode: WindMapMode;
+  showSpinnaker: boolean;
+  tickN: number;
+  labels: SceneLabels;
+}) {
+  const waterY = height * 0.66;
+  const cx = width * 0.48;
+  const hullLen = Math.min(width * 0.78, 340);
+  const sternX = cx - hullLen * 0.5;
+  const bowX = cx + hullLen * 0.5;
+  const mastX = cx + hullLen * 0.08;
+  const mastTopY = waterY - Math.min(height * 0.47, 224) * (1 - reef * 0.18);
+  const boomY = waterY - 38;
+  const boomAngle = (8 + (1 - mainSheet) * 68) * (Math.PI / 180);
+  const boomLen = hullLen * (0.33 + (1 - mainSheet) * 0.08);
+  const boomEndX = mastX - Math.cos(boomAngle) * boomLen;
+  const boomEndY = boomY + Math.sin(boomAngle) * 22;
+  const mainBelly = (18 + twist * 22) * (1 - reef * 0.24);
+  const jibClewX = mastX + hullLen * (0.1 + (1 - jibSheet) * 0.1);
+  const jibClewY = boomY - 8 + twist * 8;
+  const windPhase = (tickN % 90) / 90;
+  const heelText = `${labels.heel} ${heelDeg}°`;
+  const reefText = `${labels.reef} ${Math.round(reef * 100)}%`;
+  const twistText = `${labels.twist} ${Math.round(twist * 100)}%`;
+  const windText =
+    windMode === 'gust'
+      ? `${labels.gust} ${windKts} kt`
+      : windMode === 'shift'
+      ? labels.shift
+      : `${labels.trueWind} ${windKts} kt`;
+
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Defs>
+        <SvgLinearGradient id="sideSky" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#0a2040" />
+          <Stop offset="0.62" stopColor="#123355" />
+          <Stop offset="0.63" stopColor="#092139" />
+          <Stop offset="1" stopColor="#061428" />
+        </SvgLinearGradient>
+        <SvgLinearGradient id="sideHull" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#f8fbff" />
+          <Stop offset="1" stopColor="#8ba7b8" />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={width} height={height} fill="url(#sideSky)" />
+      {windMode === 'gust' ? (
+        <Rect
+          x={width * (0.1 + windPhase * 0.7)}
+          y={0}
+          width={width * 0.18}
+          height={height}
+          fill="rgba(68, 255, 136, 0.12)"
+        />
+      ) : null}
+      {Array.from({ length: 5 }).map((_, i) => {
+        const y = waterY + 12 + i * 18;
+        const amp = 3 + Math.min(6, windKts / 4);
+        return (
+          <SvgPath
+            key={i}
+            d={`M 0 ${y} Q ${width * 0.24} ${y - amp} ${width * 0.48} ${y} T ${width} ${y}`}
+            fill="none"
+            stroke="rgba(130, 200, 255, 0.18)"
+            strokeWidth={1}
+          />
+        );
+      })}
+      <G opacity={windMode === 'shift' ? 0.58 : 0.36}>
+        {Array.from({ length: 7 }).map((_, i) => {
+          const x = 28 + i * (width / 6.5);
+          const drift = windMode === 'shift' ? Math.sin(windPhase * Math.PI * 2 + i) * 13 : 0;
+          return (
+            <Line
+              key={i}
+              x1={x + drift}
+              y1={38}
+              x2={x + drift + 20}
+              y2={84}
+              stroke={colors.windColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </G>
+      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+        {windText.toUpperCase()}
+      </SvgText>
+      <G>
+        <SvgPath
+          d={`M ${sternX} ${waterY - 10} Q ${cx - 38} ${waterY - 34} ${bowX - 6} ${waterY - 26} Q ${bowX + 8} ${waterY - 16} ${bowX - 6} ${waterY - 4} Q ${cx - 12} ${waterY + 18} ${sternX + 12} ${waterY + 8} Z`}
+          fill="url(#sideHull)"
+          stroke="rgba(232, 244, 248, 0.75)"
+          strokeWidth={1.5}
+        />
+        <SvgPath
+          d={`M ${cx - 34} ${waterY + 7} Q ${cx - 12} ${waterY + 70} ${cx + 8} ${waterY + 8} Z`}
+          fill="rgba(5, 11, 24, 0.78)"
+          stroke="rgba(0, 212, 255, 0.34)"
+          strokeWidth={1}
+        />
+        <SvgPath
+          d={`M ${sternX + 34} ${waterY + 4} Q ${sternX + 44} ${waterY + 42} ${sternX + 20} ${waterY + 48} Q ${sternX + 24} ${waterY + 20} ${sternX + 34} ${waterY + 4} Z`}
+          fill="rgba(5, 11, 24, 0.78)"
+          stroke="rgba(0, 212, 255, 0.28)"
+          strokeWidth={1}
+        />
+        <Line x1={mastX} y1={mastTopY} x2={mastX} y2={waterY - 12} stroke="#e8f4f8" strokeWidth={3} />
+        <Line x1={mastX} y1={mastTopY} x2={bowX - 10} y2={waterY - 22} stroke="rgba(232,244,248,0.6)" strokeWidth={1} />
+        <Line x1={mastX} y1={mastTopY} x2={sternX + 8} y2={waterY - 8} stroke="rgba(232,244,248,0.45)" strokeWidth={1} />
+        <SvgPath
+          d={`M ${mastX} ${mastTopY} L ${mastX} ${boomY} Q ${boomEndX - mainBelly} ${(mastTopY + boomEndY) / 2} ${boomEndX} ${boomEndY} Z`}
+          fill={showSpinnaker ? 'rgba(255,250,238,0.82)' : 'rgba(255,250,238,0.96)'}
+          stroke="rgba(232,244,248,0.9)"
+          strokeWidth={1.3}
+        />
+        {[0.35, 0.55, 0.75].map((t) => (
+          <Line
+            key={t}
+            x1={mastX}
+            y1={mastTopY + (boomY - mastTopY) * t}
+            x2={mastX + (boomEndX - mastX) * 0.54}
+            y2={mastTopY + (boomEndY - mastTopY) * t}
+            stroke="rgba(10,22,40,0.34)"
+            strokeWidth={1}
+          />
+        ))}
+        <Line x1={mastX} y1={boomY} x2={boomEndX} y2={boomEndY} stroke="rgba(232,244,248,0.78)" strokeWidth={3} strokeLinecap="round" />
+        <SvgPath
+          d={`M ${mastX} ${mastTopY} L ${bowX - 10} ${waterY - 22} Q ${jibClewX + 28} ${jibClewY - 20} ${jibClewX} ${jibClewY} Z`}
+          fill="rgba(234,243,251,0.92)"
+          stroke="rgba(232,244,248,0.86)"
+          strokeWidth={1.1}
+        />
+        {showSpinnaker ? (
+          <SvgPath
+            d={`M ${mastX + 8} ${mastTopY + 26} C ${bowX + 70} ${mastTopY + 72} ${bowX + 76} ${waterY - 80} ${bowX - 2} ${waterY - 36} C ${bowX + 8} ${waterY - 66} ${mastX + 24} ${waterY - 110} ${mastX + 8} ${mastTopY + 26} Z`}
+            fill="rgba(0, 212, 255, 0.38)"
+            stroke="rgba(0, 229, 255, 0.82)"
+            strokeWidth={1.4}
+          />
+        ) : null}
+      </G>
+      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={colors.success} strokeWidth={3} strokeLinecap="round" />
+      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={colors.success} />
+      <SvgText x={cx + 8} y={waterY - 94} fill={colors.success} fontSize={10} fontWeight="800">
+        {labels.drive.toUpperCase()}
+      </SvgText>
+      <SvgText x={14} y={height - 44} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+        {`TWA ${Math.abs(twaDeg)}°  ${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
+      </SvgText>
+      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+        {`${heelText.toUpperCase()}  ${reefText.toUpperCase()}  ${twistText.toUpperCase()}`}
+      </SvgText>
+    </Svg>
+  );
+}
+
+function RearScene({
+  width,
+  height,
+  twaDeg,
+  awaDeg,
+  heelDeg,
+  trimScore,
+  mainSheet,
+  jibSheet,
+  reef,
+  windKts,
+  windMode,
+  showSpinnaker,
+  tickN,
+  labels,
+}: {
+  width: number;
+  height: number;
+  twaDeg: number;
+  awaDeg: number;
+  heelDeg: number;
+  trimScore: number;
+  mainSheet: number;
+  jibSheet: number;
+  reef: number;
+  windKts: number;
+  windMode: WindMapMode;
+  showSpinnaker: boolean;
+  tickN: number;
+  labels: SceneLabels;
+}) {
+  const cx = width / 2;
+  const baseY = height * 0.64;
+  const mastH = Math.min(height * 0.48, 220) * (1 - reef * 0.2);
+  const heel = clampNum(heelDeg, -32, 32);
+  const sailSide = twaDeg >= 0 ? -1 : 1;
+  const mainSpread = 34 + (1 - mainSheet) * 54;
+  const jibSpread = 24 + (1 - jibSheet) * 42;
+  const gustX = width * (0.18 + ((tickN % 150) / 150) * 0.62);
+  const sideArrowLen = 44 + Math.min(46, Math.abs(heelDeg) * 1.4);
+  const trimColor = scoreColor(trimScore);
+  const windText =
+    windMode === 'gust'
+      ? `${labels.gust} ${windKts} kt`
+      : windMode === 'shift'
+      ? labels.shift
+      : `${labels.trueWind} ${windKts} kt`;
+
+  return (
+    <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
+      <Defs>
+        <SvgLinearGradient id="rearBg" x1="0" y1="0" x2="0" y2="1">
+          <Stop offset="0" stopColor="#09203d" />
+          <Stop offset="1" stopColor="#061428" />
+        </SvgLinearGradient>
+      </Defs>
+      <Rect x={0} y={0} width={width} height={height} fill="url(#rearBg)" />
+      {windMode === 'gust' ? (
+        <Rect x={gustX} y={0} width={width * 0.2} height={height} fill="rgba(68,255,136,0.12)" />
+      ) : null}
+      <Line x1={0} y1={baseY} x2={width} y2={baseY} stroke="rgba(0,212,255,0.22)" strokeWidth={1} />
+      <G opacity={windMode === 'shift' ? 0.62 : 0.34}>
+        {Array.from({ length: 6 }).map((_, i) => {
+          const x = 35 + i * (width / 5.8);
+          const nudge = windMode === 'shift' ? Math.sin(tickN / 24 + i) * 14 : 0;
+          return (
+            <Line
+              key={i}
+              x1={x + nudge}
+              y1={34}
+              x2={x + nudge + sailSide * 22}
+              y2={82}
+              stroke={colors.windColor}
+              strokeWidth={2}
+              strokeLinecap="round"
+            />
+          );
+        })}
+      </G>
+      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+        {windText.toUpperCase()}
+      </SvgText>
+      <G transform={`translate(${cx} ${baseY}) rotate(${heel * 0.7})`}>
+        <Ellipse cx={0} cy={16} rx={58} ry={18} fill="rgba(0,0,0,0.32)" />
+        <SvgPath
+          d="M -72 -6 Q -44 -30 0 -34 Q 44 -30 72 -6 L 48 26 Q 0 42 -48 26 Z"
+          fill="#f4f8fb"
+          stroke="rgba(232,244,248,0.78)"
+          strokeWidth={1.4}
+        />
+        <SvgPath
+          d="M -40 0 Q 0 18 40 0 Q 18 22 -18 22 Z"
+          fill="rgba(10,22,40,0.48)"
+        />
+        <Line x1={0} y1={-mastH} x2={0} y2={-18} stroke="#e8f4f8" strokeWidth={4} strokeLinecap="round" />
+        <SvgPath
+          d={`M 0 ${-mastH} L 0 -34 Q ${sailSide * mainSpread} ${-mastH * 0.46} ${sailSide * (mainSpread * 0.72)} 14 Z`}
+          fill={showSpinnaker ? 'rgba(255,250,238,0.78)' : 'rgba(255,250,238,0.96)'}
+          stroke="rgba(232,244,248,0.9)"
+          strokeWidth={1.2}
+        />
+        <SvgPath
+          d={`M 0 ${-mastH * 0.88} L ${sailSide * jibSpread} -8 Q ${sailSide * (jibSpread * 1.34)} ${-mastH * 0.42} 0 ${-mastH * 0.88} Z`}
+          fill="rgba(234,243,251,0.9)"
+          stroke="rgba(232,244,248,0.82)"
+          strokeWidth={1}
+        />
+        {showSpinnaker ? (
+          <SvgPath
+            d={`M 0 ${-mastH * 0.9} C ${-sailSide * 98} ${-mastH * 0.72} ${-sailSide * 106} ${-mastH * 0.18} ${-sailSide * 26} -4 C ${-sailSide * 56} ${-mastH * 0.36} ${-sailSide * 38} ${-mastH * 0.68} 0 ${-mastH * 0.9} Z`}
+            fill="rgba(0,212,255,0.42)"
+            stroke="rgba(0,229,255,0.84)"
+            strokeWidth={1.3}
+          />
+        ) : null}
+      </G>
+      <Line
+        x1={cx}
+        y1={baseY + 66}
+        x2={cx + sailSide * sideArrowLen}
+        y2={baseY + 66}
+        stroke={colors.warning}
+        strokeWidth={3}
+        strokeLinecap="round"
+      />
+      <Polygon
+        points={`${cx + sailSide * (sideArrowLen + 8)},${baseY + 66} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 59} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 73}`}
+        fill={colors.warning}
+      />
+      <SvgText x={14} y={height - 45} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+        {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
+      </SvgText>
+      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+        {`${labels.heel.toUpperCase()} ${heelDeg}°  ${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
+      </SvgText>
+      <SvgCircle cx={width - 24} cy={height - 28} r={8} fill={trimColor} />
+    </Svg>
+  );
+}
+
 function SailBadge({
   state,
   label,
@@ -1351,6 +2090,34 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
+  mapLegend: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 6,
+    borderRadius: radii.sm,
+    backgroundColor: 'rgba(15, 32, 53, 0.72)',
+    borderColor: 'rgba(232, 244, 248, 0.10)',
+    borderWidth: 1,
+  },
+  mapLegendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  mapLegendDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  mapLegendText: {
+    color: colors.textSecondary,
+    fontSize: 9,
+    fontWeight: '800',
+    letterSpacing: 0,
+  },
   hud: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -1467,6 +2234,70 @@ const styles = StyleSheet.create({
   },
   modeChipTextActive: {
     color: colors.accentCyan,
+  },
+  viewBar: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  viewChip: {
+    minWidth: 82,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radii.sm,
+    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  viewChipActive: {
+    backgroundColor: 'rgba(232, 244, 248, 0.10)',
+    borderColor: 'rgba(232, 244, 248, 0.32)',
+  },
+  viewChipPressed: {
+    opacity: 0.78,
+  },
+  viewChipText: {
+    color: colors.textSecondary,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0,
+  },
+  viewChipTextActive: {
+    color: colors.textPrimary,
+  },
+  windModeBar: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  windModeChip: {
+    minWidth: 76,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: 'rgba(15, 32, 53, 0.46)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  windModeChipActive: {
+    backgroundColor: 'rgba(0, 229, 255, 0.10)',
+    borderColor: colors.borderCyanSoft,
+  },
+  windModeChipPressed: {
+    opacity: 0.78,
+  },
+  windModeChipText: {
+    color: colors.textSecondary,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0,
+  },
+  windModeChipTextActive: {
+    color: colors.windColor,
   },
   missionHud: {
     backgroundColor: 'rgba(21, 37, 64, 0.74)',
