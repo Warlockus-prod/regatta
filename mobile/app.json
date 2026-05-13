@@ -3,7 +3,7 @@
     "name": "Week to Regatta",
     "slug": "regatta",
     "scheme": "regatta",
-    "version": "0.8.0",
+    "version": "0.9.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -16,11 +16,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "8"
+      "buildNumber": "9"
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 8,
+      "versionCode": 9,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"
