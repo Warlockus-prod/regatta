@@ -35,6 +35,11 @@ import {
   type CoachLogEvent,
   type CoachLogSample,
 } from '../../src/api/coach';
+import {
+  formatSpeed,
+  speedUnitLabel,
+  useUnits,
+} from '../../src/persistence/units';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 type Phase = 'countdown' | 'racing' | 'finished';
@@ -124,6 +129,7 @@ export default function Game() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ course?: string }>();
+  const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
   const sceneH = Math.min(Math.max(windowHeight * 0.55, 380), 560);
@@ -377,9 +383,11 @@ export default function Game() {
   const headingLabel = tp('КУРС', 'HEADING', 'KURS', {
     es: 'RUMBO', fr: 'CAP', de: 'KURS', it: 'ROTTA',
   });
-  const speedLabel = tp('УЗЛЫ', 'SPEED', 'WEZLY', {
-    es: 'NUDOS', fr: 'NOEUDS', de: 'KNOTEN', it: 'NODI',
-  });
+  // Speed-cell heading reflects the current speed unit so the value
+  // beneath reads correctly (kt vs m/s). Sprint 11: was a static
+  // "KNOTS" / "NUDOS" label that lied when the user picked m/s.
+  const speedUnitWord = speedUnitLabel(units.speed).toUpperCase();
+  const speedLabel = speedUnitWord;
   const twaLabel = 'TWA';
   const awaLabel = 'AWA';
   const timeLabel = tp('ВРЕМЯ', 'TIME', 'CZAS', {
@@ -451,7 +459,7 @@ export default function Game() {
   const headingDeg = Math.round(
     (((sim.boat.heading * 180) / Math.PI) % 360 + 360) % 360,
   );
-  const speedKn = sim.boatExt.boatSpeedKn.toFixed(1);
+  const speedDisplay = formatSpeed(sim.boatExt.boatSpeedKn, units.speed);
   const twaDeg = Math.round(sim.boatExt.twaDeg);
   const awaDeg = Math.round(sim.boatExt.awaDeg);
   const score = useMemo(
@@ -713,7 +721,7 @@ export default function Game() {
           {/* HUD strip: heading / speed / TWA / AWA / time. */}
           <View pointerEvents="none" style={styles.hud}>
             <HudStat label={headingLabel} value={`${headingDeg}°`} />
-            <HudStat label={speedLabel} value={`${speedKn}`} />
+            <HudStat label={speedLabel} value={speedDisplay} />
             <HudStat label={twaLabel} value={`${twaDeg}°`} />
             <HudStat label={awaLabel} value={`${awaDeg}°`} />
             <HudStat label={timeLabel} value={formatTime(raceTimeSec)} />

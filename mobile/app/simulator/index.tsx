@@ -44,6 +44,13 @@ import Svg, {
 import { DRILLS, MISSIONS, type SimMode } from '../../src/simulator/missions';
 import type { SailState } from '../../src/simulator/sail-feedback';
 import { leewayAngleDeg } from '../../src/simulator/sail-geometry';
+import {
+  formatSpeed,
+  formatWindSpeed,
+  speedUnitLabel,
+  windSpeedUnitLabel,
+  useUnits,
+} from '../../src/persistence/units';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 const COMPASS_R = 34;
@@ -205,6 +212,7 @@ function insideCompassAt(
 
 export default function Simulator() {
   const { tp } = useI18n();
+  const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
   const sceneH = Math.min(Math.max(windowHeight * 0.46, 340), 520);
@@ -396,12 +404,12 @@ export default function Simulator() {
     de: 'KURS',
     it: 'ROTTA',
   });
-  const speedLabel = tp('УЗЛЫ', 'SPEED', 'WEZLY', {
-    es: 'NUDOS',
-    fr: 'NOEUDS',
-    de: 'KNOTEN',
-    it: 'NODI',
-  });
+  // Sprint 11: Speed-cell heading reflects the chosen speed unit so
+  // the value beneath reads as the right kind of speed (kt vs m/s).
+  // The original `tp('УЗЛЫ', 'SPEED', 'WEZLY', ...)` was a static
+  // "knots" label that lied when the user picked metric units.
+  const speedUnitWord = speedUnitLabel(units.speed).toUpperCase();
+  const speedLabel = speedUnitWord;
   const heelLabel = tp('КРЕН', 'HEEL', 'PRZECHYL', {
     es: 'ESCORA',
     fr: 'GITE',
@@ -697,13 +705,30 @@ export default function Simulator() {
   const twdDeg = Math.round(
     (((sim.wind.trueWindDirRad * 180) / Math.PI) % 360 + 360) % 360,
   );
+  // `speedKn` retains the raw .toFixed(1) string for legacy SVG scenes
+  // (TopScene speedometer needle). `speedDisplay` is the unit-formatted
+  // value the HUD cell reads.
   const speedKn = sim.boatExt.boatSpeedKn.toFixed(1);
+  const speedDisplay = formatSpeed(sim.boatExt.boatSpeedKn, units.speed);
   const heelDeg = Math.round(sim.boatExt.heelDeg);
   const leewayDegVisual = leewayAngleDeg(sim.boatExt);
   const twaDeg = Math.round(sim.boatExt.twaDeg);
   const awaDeg = Math.round(sim.boatExt.awaDeg);
-  const vmgKn = sim.boatExt.vmgKn.toFixed(1);
+  // VMG is a speed - format per the speed-unit choice. We append the
+  // unit suffix because the readout sits next to TWA/AWA so a unit-less
+  // number could be mistaken for an angle.
+  const vmgDisplay = `${formatSpeed(sim.boatExt.vmgKn, units.speed)} ${speedUnitLabel(units.speed)}`;
+  // The wind compass and SVG scenes render a wind-speed label. Beaufort
+  // ('F4') has no decimal, kt/m/s show 1 decimal. The cycle button
+  // toggles preset wind speeds (6/10/14/20 kt) - we still pass through
+  // the live windKts in knots to the engine; it only affects display.
   const windKts = Math.round(sim.wind.trueWindSpeedKts);
+  const windDisplay = formatWindSpeed(sim.wind.trueWindSpeedKts, units.windSpeed);
+  const windDisplaySuffix =
+    units.windSpeed === 'beaufort'
+      ? '' // Beaufort already contains the F prefix, no suffix needed
+      : ` ${windSpeedUnitLabel(units.windSpeed)}`;
+  const windDisplayWithUnit = `${windDisplay}${windDisplaySuffix}`;
   const trimScore = sim.boatExt.trimScore;
   const trimColor = scoreColor(trimScore);
   const heelOffset = Math.max(-8, Math.min(8, sim.boatExt.heelDeg / 4));
@@ -1108,6 +1133,7 @@ export default function Simulator() {
               twist={twist}
               reef={reef}
               windKts={windKts}
+              windDisplayLabel={windDisplayWithUnit}
               windMode={windMapMode}
               showSpinnaker={showSpinnaker}
               tickN={sim.tickN}
@@ -1125,7 +1151,7 @@ export default function Simulator() {
               mainSheet={mainSheet}
               jibSheet={jibSheet}
               reef={reef}
-              windKts={windKts}
+              windDisplayLabel={windDisplayWithUnit}
               windMode={windMapMode}
               showSpinnaker={showSpinnaker}
               tickN={sim.tickN}
@@ -1140,7 +1166,7 @@ export default function Simulator() {
               handleCycleWindSpeed();
             }}
             accessibilityRole="button"
-            accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windKts} kt, ${twdDeg}°`}
+            accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windDisplayWithUnit}, ${twdDeg}°`}
             accessibilityHint={tp(
               'Нажми, чтобы поменять силу ветра',
               'Tap to cycle wind speed',
@@ -1153,7 +1179,7 @@ export default function Simulator() {
               },
             )}
           >
-            <Text allowFontScaling={false} style={styles.windSpeedValue}>{`${windKts} kt`}</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedValue}>{windDisplayWithUnit}</Text>
             <Text allowFontScaling={false} style={styles.windSpeedLabel}>TWD</Text>
             <Text allowFontScaling={false} style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
           </Pressable>
@@ -1161,7 +1187,7 @@ export default function Simulator() {
           <View style={styles.sceneReadout}>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
-            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgKn}`}</Text>
+            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
           </View>
 
           <View pointerEvents="none" style={styles.mapLegend}>
@@ -1342,7 +1368,7 @@ export default function Simulator() {
 
         <View style={styles.hud}>
           <HudCell label={headingLabel} value={`${headingDeg}°`} />
-          <HudCell label={speedLabel} value={speedKn} />
+          <HudCell label={speedLabel} value={speedDisplay} />
           <HudCell label={heelLabel} value={`${heelDeg}°`} muted={Math.abs(heelDeg) < 18} />
           <HudCell label={trimLabel} value={`${trimScore}`} color={trimColor} />
         </View>
@@ -1642,6 +1668,7 @@ function SideProfileScene({
   twist,
   reef,
   windKts,
+  windDisplayLabel,
   windMode,
   showSpinnaker,
   tickN,
@@ -1658,7 +1685,10 @@ function SideProfileScene({
   jibSheet: number;
   twist: number;
   reef: number;
+  /** Raw wind speed in knots; drives wave amplitude / particle visuals. */
   windKts: number;
+  /** Pre-formatted wind label for the user, e.g. "12.0 kt" / "6.2 m/s" / "F4". */
+  windDisplayLabel: string;
   windMode: WindMapMode;
   showSpinnaker: boolean;
   tickN: number;
@@ -1685,10 +1715,10 @@ function SideProfileScene({
   const twistText = `${labels.twist} ${Math.round(twist * 100)}%`;
   const windText =
     windMode === 'gust'
-      ? `${labels.gust} ${windKts} kt`
+      ? `${labels.gust} ${windDisplayLabel}`
       : windMode === 'shift'
       ? labels.shift
-      : `${labels.trueWind} ${windKts} kt`;
+      : `${labels.trueWind} ${windDisplayLabel}`;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
@@ -1860,7 +1890,7 @@ function RearScene({
   mainSheet,
   jibSheet,
   reef,
-  windKts,
+  windDisplayLabel,
   windMode,
   showSpinnaker,
   tickN,
@@ -1876,7 +1906,8 @@ function RearScene({
   mainSheet: number;
   jibSheet: number;
   reef: number;
-  windKts: number;
+  /** Pre-formatted wind label, e.g. "12.0 kt" / "6.2 m/s" / "F4". */
+  windDisplayLabel: string;
   windMode: WindMapMode;
   showSpinnaker: boolean;
   tickN: number;
@@ -1894,10 +1925,10 @@ function RearScene({
   const trimColor = scoreColor(trimScore);
   const windText =
     windMode === 'gust'
-      ? `${labels.gust} ${windKts} kt`
+      ? `${labels.gust} ${windDisplayLabel}`
       : windMode === 'shift'
       ? labels.shift
-      : `${labels.trueWind} ${windKts} kt`;
+      : `${labels.trueWind} ${windDisplayLabel}`;
 
   return (
     <Svg width={width} height={height} viewBox={`0 0 ${width} ${height}`}>
