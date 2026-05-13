@@ -1,4 +1,4 @@
-import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { Text } from './Text';
 import { colors } from '../tokens';
 
@@ -6,19 +6,20 @@ export type WordmarkSize = 'xl' | 'm' | 's';
 
 interface WordmarkProps {
   size?: WordmarkSize;
-  style?: StyleProp<ViewStyle>;
+  style?: StyleProp<ViewStyle | TextStyle>;
 }
 
 interface SizePreset {
   lead: number;
   brand: number;
-  letterSpacing: number;
+  leadLineHeight: number;
+  brandLineHeight: number;
 }
 
 const SIZE_PRESETS: Record<WordmarkSize, SizePreset> = {
-  xl: { lead: 18, brand: 40, letterSpacing: 0.5 },
-  m: { lead: 12, brand: 24, letterSpacing: 0.4 },
-  s: { lead: 10, brand: 18, letterSpacing: 0.3 },
+  xl: { lead: 18, brand: 40, leadLineHeight: 24, brandLineHeight: 50 },
+  m: { lead: 12, brand: 24, leadLineHeight: 32, brandLineHeight: 32 },
+  s: { lead: 10, brand: 18, leadLineHeight: 24, brandLineHeight: 24 },
 };
 
 /**
@@ -44,8 +45,7 @@ export function Wordmark({ size = 'xl', style }: WordmarkProps) {
             styles.lead,
             {
               fontSize: preset.lead,
-              letterSpacing: preset.letterSpacing - 0.1,
-              marginBottom: 2,
+              lineHeight: preset.leadLineHeight,
             },
           ]}
         >
@@ -54,7 +54,7 @@ export function Wordmark({ size = 'xl', style }: WordmarkProps) {
         <Text
           style={[
             styles.brand,
-            { fontSize: preset.brand, letterSpacing: preset.letterSpacing },
+            { fontSize: preset.brand, lineHeight: preset.brandLineHeight },
           ]}
         >
           Regatta
@@ -69,16 +69,16 @@ export function Wordmark({ size = 'xl', style }: WordmarkProps) {
         styles.lead,
         {
           fontSize: preset.lead,
-          letterSpacing: preset.letterSpacing - 0.1,
+          lineHeight: preset.leadLineHeight,
         },
-        style as never,
+        style as StyleProp<TextStyle>,
       ]}
     >
       {'Week to '}
       <Text
         style={[
           styles.brand,
-          { fontSize: preset.brand, letterSpacing: preset.letterSpacing },
+          { fontSize: preset.brand, lineHeight: preset.brandLineHeight },
         ]}
       >
         Regatta
@@ -90,13 +90,18 @@ export function Wordmark({ size = 'xl', style }: WordmarkProps) {
 const styles = StyleSheet.create({
   stack: {
     alignItems: 'center',
+    paddingVertical: 2,
   },
   lead: {
     color: colors.textSecondary,
     fontWeight: '500',
+    letterSpacing: 0,
+    includeFontPadding: true,
   },
   brand: {
     color: colors.accentCyan,
     fontWeight: '700',
+    letterSpacing: 0,
+    includeFontPadding: true,
   },
 });
