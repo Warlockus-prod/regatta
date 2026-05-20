@@ -1,266 +1,140 @@
 # Что делать вам, по шагам
 
-Я уже сделал автоматом:
+## Что я уже сделал автоматом
 
-- [x] Залит build 13 (0.13.0) в TestFlight Internal Testing.
-- [x] Metadata 7 локалей синхронизирована в App Store Connect через API
-      (`node scripts/asc-metadata.mjs` -> 0 diff'ов).
-- [x] Privacy Policy текст готов в [PRIVACY_POLICY.md](./PRIVACY_POLICY.md).
-- [x] App Store Connect ссылки и тексты подготовлены.
-- [x] Notes for Review текст готов (см. ниже шаг 6.6).
+App Store Connect через API уже заполнен на ~95%:
 
-Что нужно сделать вам - всё остальное требует ручного клика в ASC web UI
-(Apple не разрешает submit через API).
+- [x] Build 13 (0.13.0) в TestFlight Internal Testing, привязан к Self group.
+- [x] **Metadata 7 локалей** (name / subtitle / description / keywords /
+      promotional / support_url / marketing_url) - `node scripts/asc-metadata.mjs`,
+      0 diff'ов.
+- [x] **Primary Category** = Education, **Secondary** = Sports.
+- [x] **Content Rights** = "Does not use third-party content".
+- [x] **Age Rating** = 4+ (все 24 поля = NONE / false).
+- [x] **Pricing** = Free, baseTerritory USA, авто-распространение на все рынки.
+- [x] **Privacy Policy URL** = `https://regatta.icoffio.com/privacy` на всех
+      7 локализациях.
+- [x] **Privacy Policy текст** готов в [PRIVACY_POLICY.md](./PRIVACY_POLICY.md).
 
-## ШАГ 1 - выложить Privacy Policy на сайт (5 минут)
+Все эти настройки идемпотентны - запустите `node scripts/asc-bootstrap.mjs`
+или `--dry-run` чтобы проверить состояние в любой момент.
 
-Нужен публичный URL вида `https://regatta.icoffio.com/privacy`,
-доступный без логина. Apple Review это проверяет.
+## Что осталось вам - 3 шага
 
-Самый быстрый вариант: скопируйте содержимое
-[PRIVACY_POLICY.md](./PRIVACY_POLICY.md) в новую страницу на
-regatta.icoffio.com. Если у сайта Next.js (web лейн), создайте
-`src/app/privacy/page.tsx` с этим текстом, deploy.
+### Шаг 1 - выложить Privacy Policy на сайт (5 минут)
 
-Если деплой долго - временно положите на icoffio.com (любой ваш сайт),
-например `https://icoffio.com/regatta-privacy`. Главное чтобы открылось
-с обычного браузера без логина.
+Apple Review проверяет что URL `https://regatta.icoffio.com/privacy`
+открывается без логина и возвращает читаемый текст.
 
-URL потом нужен в Шаге 2.
+Самый быстрый способ - создайте страницу в web лейне (Next.js):
 
-## ШАГ 2 - залогиниться в App Store Connect
+1. Скопируйте содержимое [PRIVACY_POLICY.md](./PRIVACY_POLICY.md).
+2. Создайте файл `src/app/privacy/page.tsx` в web проекте (Shared лейн).
+3. Поместите туда `<article className="prose">...</article>` с этим текстом.
+4. Push -> CI deploy через GitHub Actions -> URL станет доступен.
 
-Откройте: https://appstoreconnect.apple.com/apps/6768134329/distribution
+Если деплой долго - можно временно положить на любую сабдомейн вашего
+сайта, главное чтобы открылось без логина и не 404'ило. URL уже привязан
+в ASC, менять не надо.
 
-Логин `andrlock@gmail.com` + пароль + 2FA на iPhone.
+### Шаг 2 - снять 5 screenshots с реального iPhone
 
-Должны увидеть страницу приложения "Week to Regatta". В левом меню
-будут разделы: App Information, App Privacy, Pricing and Availability,
-1.0 Prepare for Submission и т.д.
+Apple требует screenshots по 5 штук для каждого размера (6.7" + 6.5").
+Минимум - на одном языке (EN). Идеал - на всех 7.
 
-## ШАГ 3 - заполнить App Information
-
-Левое меню -> **App Information**.
-
-Большая часть уже заполнена скриптом, осталось:
-
-- **Privacy Policy URL**: вставьте URL из Шага 1 (например
-  `https://regatta.icoffio.com/privacy`).
-- **Category**: Primary = **Education**, Secondary = **Sports**.
-- **Content Rights**: "Does Your App Contain, Show, or Access
-  Third-Party Content?" -> **No**.
-
-Нажмите **Save** в правом верхнем углу.
-
-## ШАГ 4 - App Privacy
-
-Левое меню -> **App Privacy**:
-https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy
-
-Нажмите **Get Started** (или **Edit** если уже начинали).
-
-Вопрос: "Do you or your third-party partners collect data from this
-app?" -> **No** (мы реально ничего не собираем).
-
-Нажмите **Save**.
-
-## ШАГ 5 - Pricing and Availability
-
-Левое меню -> **Pricing and Availability**.
-
-- **Price Schedule**: **Free** (или ваша цена).
-- **Availability**: All countries and regions (или выбрать ваши).
-
-**Save**.
-
-## ШАГ 6 - страница версии 1.0
-
-Левое меню -> в разделе **iOS App** выберите **1.0 Prepare for Submission**.
-
-Прямой URL: https://appstoreconnect.apple.com/apps/6768134329/distribution/version/1.0
-
-### 6.1 Screenshots (самое долгое; делайте сами на iPhone или через Simulator)
-
-Apple требует screenshots для двух размеров: **6.7" Display** (1290 x 2796)
-и **6.5" Display** (1284 x 2778). По 5 штук на каждый.
-
-**Самый простой способ - на вашем настоящем iPhone:**
+**Самый простой способ - на вашем iPhone через TestFlight:**
 
 1. Откройте Week to Regatta в TestFlight.
-2. Снимите скриншоты (кнопка Volume Up + Side button одновременно):
-   - **Frame 1**: главный экран Home (с Continue Day N - сначала пройдите
-     1 урок в Bootcamp чтобы появился Continue).
-   - **Frame 2**: Bootcamp index с Day-N разделителями.
-   - **Frame 3**: Simulator (Top view) с яхтой + ветром + sliders.
-   - **Frame 4**: Anatomy с фото-яхтой + hotspots.
-   - **Frame 5**: Pre-race Checklist с прогресс-баром.
-3. Скриншоты автоматически в Photos. Откройте Photos на Mac (sync через
-   iCloud), выгрузите 5 PNG.
-4. Если у вас не iPhone Pro Max (6.7"), Apple примёт также 6.5" - снимайте
-   на любом современном iPhone.
+2. Сделайте 5 скриншотов (Volume Up + Side button одновременно):
+   - **Frame 1** - **Home** с Continue Day N (сначала откройте хотя бы
+     один урок Bootcamp чтобы появился Continue).
+   - **Frame 2** - **Bootcamp** index с Day-N разделителями.
+   - **Frame 3** - **Simulator** (Top view) с яхтой + ветром + sliders.
+   - **Frame 4** - **Anatomy** с фото-яхтой + hotspots.
+   - **Frame 5** - **Pre-race Checklist** с прогресс-баром.
+3. Скриншоты автоматом в Photos. Через iCloud sync они появятся на Mac
+   в приложении Photos.
+4. Выгрузите 5 PNG.
 
-**Альтернатива - автоматом через Simulator** (требует чтобы dev server
-работал):
+В ASC web UI - страница версии 1.0:
+https://appstoreconnect.apple.com/apps/6768134329/distribution/version/1.0
+
+В разделе "App Previews and Screenshots":
+- "iPhone 6.7" Display" -> drag-drop 5 PNG.
+- "iPhone 6.5" Display" -> drag-drop 5 PNG (можно те же если у вас
+  iPhone 16 Pro Max, Apple это примёт).
+- Если делаете на нескольких языках - переключите Language в выпадающем
+  меню сверху страницы.
+
+### Шаг 3 - Submit for Review
+
+После того как screenshots загружены, на той же странице 1.0:
+
+1. Привязать Build: в разделе "Build" нажмите **+** -> выберите
+   **0.13.0 (13)** (или новее).
+2. Прокрутите вниз до "General App Information":
+   - **Copyright**: `2026 icoffio`
+   - **Sign-In Required**: галочка **Sign-in is not required**.
+   - **Contact Information**: ваше имя + `andrlock@gmail.com` + телефон.
+   - **Notes for Review** - скопируйте этот текст:
 
 ```
-cd /Users/Andrey/App/all/regatta/mobile
-npx expo run:ios --device "iPhone 16 Pro Max"
-# Когда приложение запустилось:
-node scripts/asc-screenshots.mjs --device iphone-6.7 --lang en
-# Скрипт спросит подтверждение перед каждой локалью.
-# PNG сохранятся в mobile/asc-metadata/screenshots/iphone-6.7/en/
+Week to Regatta is a sailing tutor app aimed at people preparing for
+their first regatta within a week. The 7-day Bootcamp arc walks the
+user from wind basics to mini-race rules. The Simulator uses a real
+VPP physics engine with adjustable sail trim, wind direction, and
+three drill modes (TWA hold, no-go avoidance, gust trim). The Anatomy
+screen has tap-able hotspots over a photo yacht. The Pre-race
+Checklist persists tick state locally.
+
+No sign-in is required. All data is stored locally on the device via
+AsyncStorage. There are no analytics SDKs, no third-party trackers,
+no advertising identifier. The Multiplayer feature in this version is
+local practice with simulated ghost boats; real network multiplayer
+ships in a later version.
+
+Test account: not required.
 ```
 
-Для остальных 6 языков переключите язык в Settings приложения на iPhone и
-снимите ещё раз. Apple минимум: только EN. Идеально - все 7.
+3. Нажмите **Add for Review** или **Submit for Review** в правом
+   верхнем углу.
+4. Apple задаст 3 финальных вопроса - все **No**:
+   - Encryption -> No
+   - Third-party content -> No
+   - Advertising Identifier -> No
+5. **Submit**.
 
-После того как PNG готовы, в ASC web UI на странице 1.0:
-1. В разделе "App Previews and Screenshots" -> "iPhone 6.7" Display"
-   нажмите **Choose File** или drag-drop 5 PNG.
-2. Аналогично "iPhone 6.5" Display".
-3. Если делаете несколько локалей - в выпадающем "Language" сверху
-   страницы переключите и загрузите для каждой.
+Статус: **Waiting for Review**. Apple обычно отвечает 24-48 часов.
 
-### 6.2 Promotional Text / Description / Keywords / URLs
-
-Уже заполнены скриптом! Проверьте что в EN-версии написано:
-- **Promotional Text**: "A calm sailing tutor in your pocket..."
-- **Description**: длинный текст про 7-day arc, Bootcamp, Simulator etc.
-- **Keywords**: `sailing,regatta,yacht,race,wind,tactics,bootcamp,...`
-- **Marketing URL**: `https://regatta.icoffio.com`
-- **Support URL**: `https://regatta.icoffio.com/support` (нужен тоже -
-  можно сделать в один редирект на mailto:support@icoffio.com или на
-  главную regatta.icoffio.com).
-
-В выпадающем "Language" проверьте каждую из 7 локалей.
-
-### 6.3 Build
-
-В разделе **Build** на той же странице:
-1. Нажмите **+** (плюс) рядом с заголовком Build.
-2. Выберите **0.13.0 (13)** или последний доступный.
-3. Если build не появляется - подождите 5-10 минут, ASC обрабатывает.
-
-### 6.4 General App Information
-
-- **Copyright**: `2026 icoffio`
-- **Routing App Coverage File**: пропустите.
-- **Sign-In Information**: галочка **Sign-in is not required**.
-- **Contact Information**: ваше имя + email `andrlock@gmail.com` +
-  телефон.
-- **Notes for Review** - скопируйте этот текст:
-
-  ```
-  Week to Regatta is a sailing tutor app aimed at people preparing for
-  their first regatta within a week. The 7-day Bootcamp arc walks the
-  user from wind basics to mini-race rules. The Simulator uses a real
-  VPP physics engine with adjustable sail trim, wind direction, and
-  three drill modes (TWA hold, no-go avoidance, gust trim). The
-  Anatomy screen has tap-able hotspots over a photo yacht. The
-  Pre-race Checklist persists tick state locally.
-
-  No sign-in is required. All data is stored locally on the device
-  via AsyncStorage. There are no analytics SDKs, no third-party
-  trackers, no advertising identifier. The Multiplayer feature in
-  this version is local practice with simulated ghost boats; real
-  network multiplayer ships in a later version.
-
-  Test account: not required.
-  ```
-
-### 6.5 Age Rating
-
-Левое меню -> **App Information** -> прокрутите до **Age Rating** ->
-**Edit**.
-
-Все ответы - **None** или **No**:
-- Cartoon or Fantasy Violence: None
-- Realistic Violence: None
-- Sexual Content: None
-- Profanity or Crude Humor: None
-- Mature/Suggestive Themes: None
-- Horror/Fear Themes: None
-- Medical/Treatment Information: None
-- Alcohol/Tobacco/Drugs: None
-- Simulated Gambling: None
-- Contests: None
-- Unrestricted Web Access: **No**
-
-Получите **4+ Made for Everyone**. **Save**.
-
-## ШАГ 7 - Submit for Review
-
-Когда все секции на странице 1.0 зеленые (нет красных warning'ов
-сверху страницы):
-
-1. Нажмите **Add for Review** или **Submit for Review** (правый верхний
-   угол).
-2. Apple задаст 3 финальных вопроса:
-   - **Export Compliance**: "Does your app use encryption?" -> **No**
-     (мы это уже отметили в TestFlight для каждого build).
-   - **Content Rights**: "Does your app contain third-party content?"
-     -> **No**.
-   - **Advertising Identifier**: "Does this app use the Advertising
-     Identifier?" -> **No**.
-3. **Submit**.
-
-Статус приложения: **Waiting for Review**.
-
-Apple review обычно 24-48 часов. Получите email с результатом.
-
-## ШАГ 8 - после одобрения
+## После одобрения
 
 Email "Your app has been approved":
-
-- Если на странице 1.0 выбрали **Manual Release** - нужно нажать
+- Если на странице 1.0 выбран **Manual Release** - надо нажать
   **Release this version**.
-- Если **Automatic Release** - выйдет в App Store автоматически.
+- Если **Automatic Release** - выйдет автоматом.
 
-После релиза приложение доступно по
-https://apps.apple.com/app/id6768134329 на любой стране где доступно
-по Шагу 5.
+После релиза: https://apps.apple.com/app/id6768134329 будет открываться.
 
-## Если Apple отклонил
+## Если что-то сломалось
 
-Email от Apple Review с указанием что не так. Самые частые причины:
+Запустите `node scripts/asc-bootstrap.mjs --dry-run` - покажет что
+именно не в синхроне сейчас. Без `--dry-run` починит автоматом.
 
-- **"App crashes on launch"**: Apple запускает на симе или iPhone у
-  ревьюера. Если у нас в TestFlight всё работало - reply через
-  Resolution Center с видео что у нас работает.
-- **"Privacy Policy URL not accessible"**: проверьте что URL из Шага 1
-  открывается в incognito без логина.
-- **"Missing screenshots"**: ASC не показал что вы загрузили; пере-загрузите.
-- **"Metadata mismatch with app"**: если описание упоминает фичу
-  которой нет в build (например вы написали "real WS multiplayer" а в
-  build только ghost boats) - перепишите description.
-
-Resolution Center: https://appstoreconnect.apple.com/apps/6768134329/messages
-
-## Полезные ссылки одним списком
+## Полезные ссылки
 
 - App Store Connect:
   https://appstoreconnect.apple.com/apps/6768134329/distribution
-- App Privacy:
-  https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy
-- 1.0 версия:
+- Версия 1.0 (где привязать build + загрузить screenshots):
   https://appstoreconnect.apple.com/apps/6768134329/distribution/version/1.0
-- Apple Review Guidelines:
-  https://developer.apple.com/app-store/review/guidelines/
-- Resolution Center:
-  https://appstoreconnect.apple.com/apps/6768134329/messages
+- App Privacy (уже сконфигурировано через API, но можно проверить):
+  https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy
+- Pricing & Availability (уже сконфигурировано):
+  https://appstoreconnect.apple.com/apps/6768134329/distribution/pricing
 
-## Чеклист в одном месте
+## Чеклист в одну строку
 
-- [ ] Privacy Policy URL опубликован
-- [ ] App Information: Privacy URL, Category Education+Sports, Content Rights No
-- [ ] App Privacy: "No data collection"
-- [ ] Pricing: Free + регионы
-- [ ] 1.0 Screenshots для 6.7" и 6.5" (минимум 5 EN)
-- [ ] 1.0 Build = 0.13.0 (13)
-- [ ] 1.0 Copyright + Sign-in not required + Contact + Notes for Review
-- [ ] Age Rating = 4+
-- [ ] Submit for Review (3 No на финальных вопросах)
-- [ ] Через 24-48ч ждать email от Apple
-
-Если зашлите на review и вернётся отказ - пришлите мне email от Apple,
-быстро починим и пере-submit'нем.
+- [ ] Privacy Policy опубликован на `https://regatta.icoffio.com/privacy`
+- [ ] 5 screenshots с iPhone загружены в ASC (6.7" + 6.5")
+- [ ] Build 0.13.0(13) привязан + Copyright + Contact + Notes for Review
+- [ ] Submit for Review (3 No)
+- [ ] Через 24-48ч email от Apple
