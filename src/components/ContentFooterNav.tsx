@@ -65,6 +65,10 @@ const SIBLINGS: Record<string, RelatedLink[]> = {
     { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
     { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
   ],
+  '/quick': [
+    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regata', labelEs: 'Checklist pre-regata', labelFr: 'Checklist pre-regate', labelDe: 'Pre-Race-Checkliste', labelIt: 'Checklist pre-regata' },
+    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
+  ],
 };
 
 function pickLabel(link: RelatedLink, lang: string): string {
@@ -88,7 +92,8 @@ export type ContentFooterNavPage =
   | '/courses'
   | '/glossary'
   | '/racing'
-  | '/leaderboard';
+  | '/leaderboard'
+  | '/quick';
 
 export default function ContentFooterNav({ page }: { page: ContentFooterNavPage }) {
   const { lang, tp } = useI18n();

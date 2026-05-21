@@ -762,7 +762,7 @@ export default function CoursesPage() {
       </section>
 
       {/* Diagram */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pb-4">
+      <section id="wind" className="max-w-7xl mx-auto px-4 sm:px-6 pb-4 scroll-mt-24">
         <div className="card p-6 sm:p-8 flex flex-col items-center">
           <WindDiagram activeId={activeId} onSelect={handleSelect} lang={lang} />
 
@@ -788,7 +788,7 @@ export default function CoursesPage() {
       </section>
 
       {/* Detail cards */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-4">
+      <section id="points-of-sail" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-4 scroll-mt-24">
         <h2 className="text-xl font-semibold mb-5 text-[var(--text-primary)]">
           {lang === 'ru' ? 'Все курсы' : lang === 'pl' ? 'Wszystkie kursy' : 'All courses'}
           {lang !== 'en' && (

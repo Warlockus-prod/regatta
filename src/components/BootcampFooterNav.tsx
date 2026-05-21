@@ -54,11 +54,14 @@ export default function BootcampFooterNav() {
   // Match check moved up before the early `return null` so we can use the
   // visibility flag in the ResizeObserver effect below (hooks must run in
   // the same order on every render).
+  // Strip the hash before comparing - lessons can route to /courses#wind etc,
+  // but pathname never contains the hash, so we compare base paths only.
+  const baseRoute = currentLesson?.route.split('#')[0] ?? '';
   const matchesRoute = !!(
-    currentLesson && pathname && (
-      pathname === currentLesson.route ||
-      pathname.startsWith(currentLesson.route + '/') ||
-      pathname.startsWith(currentLesson.route + '?')
+    currentLesson && pathname && baseRoute && (
+      pathname === baseRoute ||
+      pathname.startsWith(baseRoute + '/') ||
+      pathname.startsWith(baseRoute + '?')
     )
   );
   const isVisible = !!(currentLesson && progress && matchesRoute);
@@ -118,6 +121,16 @@ export default function BootcampFooterNav() {
     if (!isDone) markLessonComplete(currentLesson.id);
     setCurrentLesson(nextLesson.id);
     router.push(nextLesson.route);
+    // router.push() with a hash on the same pathname won't scroll the page
+    // by itself - the URL updates but no scroll fires. Manually scroll to the
+    // anchor element on the next tick so the user lands on the right section
+    // (e.g. /courses#points-of-sail jumps to the points-of-sail section).
+    const hash = nextLesson.route.split('#')[1];
+    if (hash) {
+      setTimeout(() => {
+        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 80);
+    }
   };
 
   const handleFinish = () => {

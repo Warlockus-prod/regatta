@@ -42,9 +42,9 @@ const STEPS: Step[] = [
     titleRu: 'С чего начать',
     titleEn: 'Where to start',
     titlePl: 'Od czego zaczac',
-    bodyRu: 'Открой «Курсы» - там все 5 курсов с диаграммой. Потом «Симулятор» для практики управления. Потом «Гонка» - с AI-тренером, который разбирает твои ошибки.',
-    bodyEn: 'Open "Points of sail" - all 5 courses on a diagram. Then "Simulator" for hands-on control. Then "Race" - with an AI coach that reviews your mistakes.',
-    bodyPl: 'Otworz "Kursy wiatru" - wszystkie 5 kursow na diagramie. Potem "Symulator" na praktyke. Potem "Regata" - z trenerem AI, ktory analizuje twoje bledy.',
+    bodyRu: 'Лучший путь: открой «Начать» - 8 уроков по 5 минут, по порядку (ветер -> курсы -> повороты -> практика -> гонка). Хочешь сам полазить - заходи в «Курсы», «Симулятор», «Гонка».',
+    bodyEn: 'Best path: open "Start here" - 8 lessons of ~5 min each, in order (wind -> points of sail -> turns -> simulator practice -> race). Prefer to explore? Try "Points of sail", "Simulator", "Race" from the top nav.',
+    bodyPl: 'Najlepsza droga: otworz "Start" - 8 lekcji po ~5 min, w kolejnosci (wiatr -> kursy -> zwroty -> symulator -> regata). Wolisz sam? Wejdz w "Kursy wiatru", "Symulator", "Regata".',
   },
 ];
 
