@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "test:physics": "vitest run src/lib/sailing-physics",
-    "test:physics:watch": "vitest src/lib/sailing-physics"
+    "test:physics:watch": "vitest src/lib/sailing-physics",
+    "test:api": "vitest run src/app/api",
+    "test": "vitest run",
+    "check:dash": "node scripts/check-no-dash.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

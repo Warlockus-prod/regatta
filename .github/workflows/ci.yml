@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Typecheck + Lint + Typography
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci --no-audit --no-fund
+
+      - name: TypeScript check
+        run: npx tsc --noEmit
+
+      - name: Next lint
+        run: npm run lint
+
+      - name: Typography check (no em-dash / en-dash)
+        run: npm run check:dash
+
+      - name: Physics engine tests
+        run: npm run test:physics
+
+      - name: API contract tests
+        run: npm run test:api
