@@ -9,6 +9,9 @@ export const runtime = 'nodejs';
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const mission = url.searchParams.get('mission');
+  if (mission && (mission.length > 40 || !/^[a-z0-9_-]+$/i.test(mission))) {
+    return NextResponse.json({ error: 'bad mission' }, { status: 400 });
+  }
   if (mission) {
     const rows = topByMission(mission, 20);
     return NextResponse.json({ rows, mode: 'mission', mission });

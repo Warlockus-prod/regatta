@@ -111,7 +111,19 @@ export async function POST(req: Request) {
       content: String(m.content ?? '').slice(0, 2000),
     }));
 
-  logInfo('ai-chat.request', { turns: truncated.length, lang: body.lang ?? 'ru' });
+  const lang = body.lang === 'en' ? 'en' : body.lang === 'pl' ? 'pl' : 'ru';
+  logInfo('ai-chat.request', { turns: truncated.length, lang });
+
+  // Steer the reply language. SYSTEM_RU rule #4 already asks to mirror the
+  // user's language, but an explicit directive derived from body.lang makes
+  // the UI-selected language authoritative. Kept as a separate uncached block
+  // so the large base prompt stays a stable cache key.
+  const LANG_NAME: Record<'ru' | 'en' | 'pl', string> = {
+    ru: 'Russian',
+    en: 'English',
+    pl: 'Polish',
+  };
+  const langDirective = `Reply in the user's language: ${LANG_NAME[lang]}.`;
 
   try {
     const client = new Anthropic({ apiKey });
@@ -123,6 +135,10 @@ export async function POST(req: Request) {
           type: 'text',
           text: SYSTEM_RU,
           cache_control: { type: 'ephemeral' },
+        },
+        {
+          type: 'text',
+          text: langDirective,
         },
       ],
       messages: truncated,
