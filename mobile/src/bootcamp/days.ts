@@ -1,7 +1,7 @@
 /**
  * 7-day "race-ready in a week" mapping for the 8 bootcamp lessons.
  *
- * Day 4 pairs the two turning maneuvers (tacking + jibing) so the user
+ * Day 3 pairs the two turning maneuvers (tacking + jibing) so the user
  * learns both sides of the same skill in one sitting; the rest is 1:1.
  * Day 7 is the regatta day (mini race) - the product narrative anchor.
  *
@@ -24,9 +24,9 @@ export const TOTAL_DAYS = 7 as const;
 const LESSON_TO_DAY: Record<string, number> = {
   'wind-direction': 1,
   'points-of-sail': 2,
-  'how-sail-works': 3,
-  'tacking': 4,
-  'jibing': 4,
+  'tacking': 3,
+  'jibing': 3,
+  'how-sail-works': 4,
   'vmg-beating': 5,
   'simple-rules': 6,
   'mini-race': 7,
