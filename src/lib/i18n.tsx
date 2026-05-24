@@ -171,7 +171,11 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
 export function useI18n(): I18nContextValue {
   const v = useContext(Ctx);
   if (!v) {
-    // SSR fallback: return ru-mode noop so server render doesn't crash
+    // No-provider fallback (an RSC or dev preview rendered outside the
+    // I18nProvider): there is no language context to read here, so default to
+    // RU and a no-op setLang. Real per-language SSR (all 7 langs) is handled by
+    // the Provider's initialLang, resolved from the cookie / Accept-Language in
+    // the server pipeline - not by this safety net.
     return {
       lang: 'ru',
       setLang: () => { /* noop on server */ },
@@ -183,10 +187,34 @@ export function useI18n(): I18nContextValue {
   return v;
 }
 
-/** Inline helper component: <T ru="..." en="..." pl="..." />. Prefer `t()` hook when possible. */
-export function T({ ru, en, pl }: { ru: string; en: string; pl?: string }) {
+/**
+ * Inline helper component: <T ru="..." en="..." pl="..." es="..." fr="..." de="..." it="..." />.
+ * pl/es/fr/de/it are optional and fall back to en. Prefer the `t()`/`tp()`/`tl()`
+ * hooks when possible; this is for static JSX where a hook call is awkward.
+ */
+export function T({
+  ru,
+  en,
+  pl,
+  es,
+  fr,
+  de,
+  it,
+}: {
+  ru: string;
+  en: string;
+  pl?: string;
+  es?: string;
+  fr?: string;
+  de?: string;
+  it?: string;
+}) {
   const { lang } = useI18n();
   if (lang === 'ru') return <>{ru}</>;
   if (lang === 'pl' && pl) return <>{pl}</>;
+  if (lang === 'es' && es) return <>{es}</>;
+  if (lang === 'fr' && fr) return <>{fr}</>;
+  if (lang === 'de' && de) return <>{de}</>;
+  if (lang === 'it' && it) return <>{it}</>;
   return <>{en}</>;
 }

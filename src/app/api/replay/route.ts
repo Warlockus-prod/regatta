@@ -44,6 +44,18 @@ export async function POST(req: Request) {
   if (body.samples.length > 5000) {
     return NextResponse.json({ error: 'Race too long' }, { status: 400 });
   }
+  // Length alone does not bound size: a few fat sample objects or a huge course
+  // blob can still bloat the DB. Cap the serialized payload. ~600KB covers a
+  // full 5000-sample race comfortably; the course blob is small by nature.
+  if (JSON.stringify(body.samples).length > 600000) {
+    return NextResponse.json({ error: 'Replay payload too large' }, { status: 400 });
+  }
+  if (Array.isArray(body.events) && body.events.length > 2000) {
+    return NextResponse.json({ error: 'Too many events' }, { status: 400 });
+  }
+  if (body.course != null && JSON.stringify(body.course).length > 50000) {
+    return NextResponse.json({ error: 'Course payload too large' }, { status: 400 });
+  }
   if (!['easy', 'medium', 'hard'].includes(body.difficulty)) {
     return NextResponse.json({ error: 'Bad difficulty' }, { status: 400 });
   }
