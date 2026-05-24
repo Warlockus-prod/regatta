@@ -32,6 +32,11 @@
         "appleTeamId": "547PA2PLLB"
       }
     },
-    "production": {}
+    "production": {
+      "ios": {
+        "ascAppId": "6768134329",
+        "appleTeamId": "547PA2PLLB"
+      }
+    }
   }
 }
