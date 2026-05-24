@@ -9,7 +9,7 @@ Each entry: short context + decision + consequences. Newest on top.
 ## ADR-0004: Offline strategy - per-screen tier matrix
 
 **Date:** 2026-04-22
-**Status:** proposed
+**Status:** accepted
 
 **Context.** ADR-0005 commits to full parity with web. Some web features depend on the network (multiplayer, AI coach, leaderboard submit, replay upload, daily challenges, auth, cloud sync); most do not (content, solo simulator, local replays, settings). Mobile needs an explicit per-screen contract for which screens are offline-first, which are network-only, and how each degrades when the network fails. The "premium UX" target rules out silent failures and blocking spinners.
 
@@ -67,7 +67,7 @@ Each entry: short context + decision + consequences. Newest on top.
 ## ADR-0003: Shared-package extraction plan
 
 **Date:** 2026-04-22
-**Status:** proposed
+**Status:** accepted (Mobile-lane sign-off); execution pending in Shared lane
 
 **Context.** ADR-0001 (RN+Expo) and ADR-0005 (full parity with web) commit mobile to consuming the same content (`src/data/*`) and physics (`src/lib/sailing-physics/*`) the web client uses. The "one source of truth per asset" rule from CLAUDE.md forbids parallel copies that drift. Per CLAUDE.md, any data/physics/i18n duplication triggers Shared-lane planning to extract assets into shared packages.
 
