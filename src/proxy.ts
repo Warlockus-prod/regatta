@@ -30,6 +30,31 @@ const SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 const LANG_COOKIE = 'regatta_lang';
 const LANG_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 
+/**
+ * Constant-time string compare. The Edge runtime has no
+ * `crypto.timingSafeEqual`, so we roll a manual length-padded XOR: walk a
+ * fixed number of iterations regardless of where the first mismatch is, and
+ * fold the length difference into the accumulator. This avoids leaking the
+ * admin password length or a matching prefix via response-time differences.
+ *
+ * Note: JS short-circuits nothing here - every iteration runs - and we never
+ * return early, so timing depends only on `max(a.length, b.length)`, not on
+ * the contents.
+ */
+function timingSafeEqualStr(a: string, b: string): boolean {
+  const len = Math.max(a.length, b.length);
+  // Seed with the length delta so unequal-length inputs can never compare equal.
+  let diff = a.length ^ b.length;
+  for (let i = 0; i < len; i++) {
+    // charCodeAt past the end returns NaN; (NaN | 0) === 0, giving a stable
+    // padded value so the loop count never depends on input length.
+    const ca = a.charCodeAt(i) | 0;
+    const cb = b.charCodeAt(i) | 0;
+    diff |= ca ^ cb;
+  }
+  return diff === 0;
+}
+
 function ensureSessionCookie(res: NextResponse, req: NextRequest) {
   if (req.cookies.get(SESSION_COOKIE)) return;
   // crypto.randomUUID is available on Edge runtime
@@ -134,8 +159,16 @@ export function proxy(req: NextRequest) {
   } catch {
     return new NextResponse('Bad auth', { status: 401 });
   }
-  const [user, pass] = decoded.split(':');
-  if (user !== BASIC_USER || pass !== BASIC_PASS) {
+  // basic-auth value is `user:pass`; the password itself may contain ':',
+  // so split only on the first colon.
+  const sep = decoded.indexOf(':');
+  const user = sep === -1 ? decoded : decoded.slice(0, sep);
+  const pass = sep === -1 ? '' : decoded.slice(sep + 1);
+  // Evaluate BOTH comparisons (no short-circuit on the per-field check) before
+  // combining, so the response time does not reveal which field was wrong.
+  const okUser = timingSafeEqualStr(user, BASIC_USER);
+  const okPass = timingSafeEqualStr(pass, BASIC_PASS);
+  if (!(okUser && okPass)) {
     return new NextResponse('Wrong credentials', {
       status: 401,
       headers: { 'WWW-Authenticate': 'Basic realm="Regatta admin"' },
