@@ -311,6 +311,19 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
+  // Validate shape before touching log.samples / log.courseInfo, so a malformed
+  // body returns a clean 400 instead of throwing into the generic 500 handler.
+  if (
+    !log ||
+    typeof log !== 'object' ||
+    !Array.isArray(log.samples) ||
+    !log.courseInfo ||
+    typeof log.courseInfo !== 'object'
+  ) {
+    logWarn('coach.bad-request');
+    return NextResponse.json({ error: 'bad request' }, { status: 400 });
+  }
+
   // All 7 langs (ru/en/pl/es/fr/de/it) have native system prompts above, so
   // the coach output now matches the user's UI lang directly. Unknown values
   // (legacy clients, malformed payloads) fall back to English.
