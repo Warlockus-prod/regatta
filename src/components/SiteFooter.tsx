@@ -12,6 +12,7 @@
 // canvas owns the screen and any persistent UI competes with controls.
 // ============================================================================
 
+import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 
@@ -46,6 +47,11 @@ export default function SiteFooter() {
       <span className="font-semibold tracking-wide">Week to Regatta</span>
       <span className="mx-2 opacity-50">·</span>
       <span>{tagline}</span>
+      <span className="mx-2 opacity-50">·</span>
+      <Link href="/privacy" className="hover:text-[var(--accent-cyan)] transition">
+        {tp('Конфиденциальность', 'Privacy', 'Prywatnosc',
+          { es: 'Privacidad', fr: 'Confidentialite', de: 'Datenschutz', it: 'Privacy' })}
+      </Link>
     </footer>
   );
 }

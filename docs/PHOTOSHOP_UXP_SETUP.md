@@ -6,7 +6,7 @@ need automated.
 
 ---
 
-## Approach A — `.jsx` scripts (simplest, no setup)
+## Approach A - `.jsx` scripts (simplest, no setup)
 
 **Use when:** you need batch image processing (resize, export layers,
 rename, watermark, color profile conversion). One-off jobs.
@@ -31,7 +31,7 @@ rename, watermark, color profile conversion). One-off jobs.
 
 ---
 
-## Approach B — UXP Plugin Panel (mid effort, daily-driver)
+## Approach B - UXP Plugin Panel (mid effort, daily-driver)
 
 **Use when:** you do Photoshop work most days and want a panel inside
 Photoshop where you can paste prompts, click buttons, and have Claude
@@ -76,7 +76,7 @@ because you already have Photoshop.
 
 ---
 
-## Approach C — Adobe MCP Server (most ambitious)
+## Approach C - Adobe MCP Server (most ambitious)
 
 **Use when:** you want Claude inside Claude Code (this chat tool) to be
 able to read/edit a Photoshop document the same way it edits files.

@@ -7,6 +7,11 @@
 - Double quotes for English strings. Russian text may use `«елочки»` where context fits.
 - Polish: no diacritics (no `ą ę ż ł ó ć ń ś ź`). Drop them for consistency with the ASCII-only typography rule.
 - Same principle for ES / FR / DE / IT: prefer plain ASCII letters. Diacritics ARE allowed in these languages (they carry meaning - e.g. `ñ` vs `n`, `é` vs `e`), but avoid unicode-escaped fancy punctuation (curly quotes, ellipsis, em-dashes). Use straight ASCII quotes.
+- **Enforcement:** there is a pre-commit hook at `.githooks/pre-commit` that blocks commits containing em/en-dash in staged source files (TSX/TS/MD/JSON/YAML/CSS/HTML). To enable it once per clone:
+  ```
+  git config core.hooksPath .githooks
+  ```
+  The hook runs Node (already a project requirement). It checks the staged content, not the working tree, so it sees exactly what is about to be committed. Output includes file:line and which dash. Existing files with old dashes are not flagged unless re-staged.
 
 ## Code style
 

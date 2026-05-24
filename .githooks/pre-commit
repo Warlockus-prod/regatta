@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+// Pre-commit hook: block em-dash (U+2014) and en-dash (U+2013) in staged source files.
+// CLAUDE.md typography rule: only ASCII hyphen is allowed in this repo.
+// Runs on the STAGED content (`git show :path`), not the working tree,
+// so the check matches exactly what is about to be committed.
+//
+// All dash chars are written as \uXXXX escapes so this hook file itself
+// stays ASCII-clean (otherwise it would block its own commit).
+
+import { execSync } from 'node:child_process';
+
+const FILE_RE = /\.(tsx?|jsx?|mjs|cjs|md|mdx|json|ya?ml|css|html|txt)$/i;
+const EN_DASH = String.fromCharCode(0x2013);
+const EM_DASH = String.fromCharCode(0x2014);
+const DASH_RE = new RegExp(`[${EN_DASH}${EM_DASH}]`);
+const DASH_RE_G = new RegExp(`[${EN_DASH}${EM_DASH}]`, 'g');
+
+let stagedList;
+try {
+  stagedList = execSync('git diff --cached --name-only --diff-filter=ACM', { encoding: 'utf8' });
+} catch (err) {
+  console.error('pre-commit: failed to list staged files:', err.message);
+  process.exit(0);
+}
+
+const staged = stagedList.split('\n').filter((f) => f && FILE_RE.test(f));
+if (staged.length === 0) process.exit(0);
+
+let bad = false;
+for (const file of staged) {
+  let content;
+  try {
+    content = execSync(`git show :${JSON.stringify(file)}`, { encoding: 'utf8' });
+  } catch {
+    continue;
+  }
+  const lines = content.split('\n');
+  lines.forEach((line, i) => {
+    if (DASH_RE.test(line)) {
+      if (!bad) {
+        console.error('ERROR: em-dash (U+2014) or en-dash (U+2013) found in staged content.');
+        console.error('CLAUDE.md typography rule: only ASCII hyphen (-) is allowed.');
+        console.error('');
+      }
+      bad = true;
+      const hl = line.replace(DASH_RE_G, (m) => `[${m === EM_DASH ? 'EM-DASH' : 'EN-DASH'}]`);
+      console.error(`  ${file}:${i + 1}: ${hl}`);
+    }
+  });
+}
+
+if (bad) {
+  console.error('');
+  console.error('Replace the typographic dash with ASCII hyphen and re-stage.');
+  process.exit(1);
+}
+process.exit(0);
