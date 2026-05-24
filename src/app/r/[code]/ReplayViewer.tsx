@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { deg2rad, makeStandardCourse } from '@/lib/race-physics';
+import { useI18n } from '@/lib/i18n';
 
 interface Sample { t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number }
 interface Event { type: string; t: number; note?: string }
@@ -22,6 +23,7 @@ interface ReplayData {
 }
 
 export default function ReplayViewer() {
+  const { tp } = useI18n();
   const params = useParams();
   const rawCode = Array.isArray(params?.code) ? params.code[0] : params?.code;
   const code = (typeof rawCode === 'string' ? rawCode : '').toUpperCase();
@@ -37,15 +39,15 @@ export default function ReplayViewer() {
     // Async data fetch with setError/setData. React Compiler flags the setState
     // as cascading; acceptable for fetch-driven views.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!code) { setError('Код не задан'); return; }
+    if (!code) { setError(tp('Код не задан', 'No code provided', 'Brak kodu', { es: 'No se ha indicado codigo', fr: 'Aucun code fourni', de: 'Kein Code angegeben', it: 'Nessun codice fornito' })); return; }
     fetch(`/api/replay/${code}`)
       .then(async (r) => {
         if (!r.ok) { throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`); }
         return r.json();
       })
       .then((d) => setData(d))
-      .catch((e) => setError(e.message || 'Ошибка'));
-  }, [code]);
+      .catch((e) => setError(e.message || tp('Ошибка', 'Error', 'Blad', { es: 'Error', fr: 'Erreur', de: 'Fehler', it: 'Errore' })));
+  }, [code, tp]);
 
   // Auto-advance
   useEffect(() => {
@@ -146,14 +148,18 @@ export default function ReplayViewer() {
   if (error) {
     return (
       <div className="max-w-lg mx-auto px-4 py-10">
-        <Link href="/" className="text-xs text-[var(--text-muted)]">← Главная</Link>
-        <h1 className="text-2xl font-bold mt-4 mb-2">Replay не найден</h1>
+        <Link href="/" className="text-xs text-[var(--text-muted)]">
+          ← {tp('Главная', 'Home', 'Strona glowna', { es: 'Inicio', fr: 'Accueil', de: 'Startseite', it: 'Home' })}
+        </Link>
+        <h1 className="text-2xl font-bold mt-4 mb-2">
+          {tp('Replay не найден', 'Replay not found', 'Nie znaleziono powtorki', { es: 'Repeticion no encontrada', fr: 'Rejeu introuvable', de: 'Replay nicht gefunden', it: 'Replay non trovato' })}
+        </h1>
         <p className="text-sm text-[var(--text-secondary)]">{error}</p>
       </div>
     );
   }
   if (!data) {
-    return <div className="min-h-[50vh] flex items-center justify-center text-sm text-[var(--text-muted)]">Загружаю…</div>;
+    return <div className="min-h-[50vh] flex items-center justify-center text-sm text-[var(--text-muted)]">{tp('Загружаю…', 'Loading...', 'Ladowanie...', { es: 'Cargando...', fr: 'Chargement...', de: 'Laedt...', it: 'Caricamento...' })}</div>;
   }
 
   const date = new Date(data.ts).toISOString().slice(0, 16).replace('T', ' ');
@@ -161,22 +167,26 @@ export default function ReplayViewer() {
   return (
     <div className="page-enter max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-4">
-        <Link href="/" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">← Главная</Link>
+        <Link href="/" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+          ← {tp('Главная', 'Home', 'Strona glowna', { es: 'Inicio', fr: 'Accueil', de: 'Startseite', it: 'Home' })}
+        </Link>
         <button
           onClick={() => navigator.clipboard?.writeText(window.location.href)}
           className="text-[11px] text-[var(--accent-cyan)] hover:underline"
         >
-          📋 Копировать ссылку
+          📋 {tp('Копировать ссылку', 'Copy link', 'Kopiuj link', { es: 'Copiar enlace', fr: 'Copier le lien', de: 'Link kopieren', it: 'Copia link' })}
         </button>
       </div>
 
       <h1 className="text-2xl font-bold mb-1">
-        Replay {data.nickname ? `от ${data.nickname}` : ''} · <span className="font-mono text-[var(--accent-cyan)]">{data.code}</span>
+        Replay {data.nickname ? tp(`от ${data.nickname}`, `by ${data.nickname}`, `od ${data.nickname}`, { es: `de ${data.nickname}`, fr: `par ${data.nickname}`, de: `von ${data.nickname}`, it: `di ${data.nickname}` }) : ''} · <span className="font-mono text-[var(--accent-cyan)]">{data.code}</span>
       </h1>
       <div className="text-xs text-[var(--text-muted)] mb-4">
-        {date} · {data.difficulty} · ветер {data.windStrength}
-        {data.finishTimeSec ? ` · финиш ${formatTime(data.finishTimeSec)}` : ' · не финишировал'}
-        {data.views ? ` · ${data.views} просмотров` : ''}
+        {date} · {data.difficulty} · {tp('ветер', 'wind', 'wiatr', { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' })} {data.windStrength}
+        {data.finishTimeSec
+          ? ` · ${tp('финиш', 'finish', 'meta', { es: 'meta', fr: 'arrivee', de: 'Ziel', it: 'arrivo' })} ${formatTime(data.finishTimeSec)}`
+          : ` · ${tp('не финишировал', 'did not finish', 'nie ukonczono', { es: 'no finalizo', fr: 'non termine', de: 'nicht beendet', it: 'non terminata' })}`}
+        {data.views ? ` · ${data.views} ${tp('просмотров', 'views', 'wyswietlen', { es: 'vistas', fr: 'vues', de: 'Aufrufe', it: 'visualizzazioni' })}` : ''}
       </div>
 
       <div className="card p-2 sm:p-3 mb-4">
@@ -208,7 +218,7 @@ export default function ReplayViewer() {
         </span>
       </div>
       <div className="flex gap-2 text-xs">
-        <span className="text-[var(--text-muted)]">Скорость</span>
+        <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Predkosc', { es: 'Velocidad', fr: 'Vitesse', de: 'Geschwindigkeit', it: 'Velocita' })}</span>
         {[0.5, 1, 2, 4].map((sp) => (
           <button
             key={sp}
@@ -227,7 +237,7 @@ export default function ReplayViewer() {
 
       <div className="mt-4 text-center text-xs">
         <Link href="/game" className="text-[var(--accent-cyan)] hover:underline">
-          Попробовать самому →
+          {tp('Попробовать самому', 'Try it yourself', 'Sprobuj sam', { es: 'Pruebalo tu mismo', fr: 'Essayez vous-meme', de: 'Selbst ausprobieren', it: 'Provaci tu stesso' })} →
         </Link>
       </div>
     </div>
