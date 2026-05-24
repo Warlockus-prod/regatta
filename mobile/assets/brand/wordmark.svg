@@ -1,0 +1,34 @@
+<svg viewBox="0 0 800 240" xmlns="http://www.w3.org/2000/svg">
+  <!--
+    Week to Regatta wordmark. Use for splash, share cards, marketing.
+    Stack: small "WEEK TO" muted, big "Regatta" cyan. Dark-ocean
+    background. Convert to PNG via rsvg-convert / ImageMagick. See
+    README.md.
+  -->
+  <rect width="800" height="240" fill="#0a1628"/>
+
+  <!-- subtle horizon glow behind the type -->
+  <ellipse cx="400" cy="170" rx="350" ry="40" fill="#00d4ff" opacity="0.06"/>
+
+  <text
+    x="400"
+    y="80"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="32"
+    fill="#8ba7b8"
+    text-anchor="middle"
+    font-weight="500"
+    letter-spacing="6"
+  >WEEK TO</text>
+
+  <text
+    x="400"
+    y="180"
+    font-family="-apple-system, BlinkMacSystemFont, 'SF Pro', 'Segoe UI', Helvetica, Arial, sans-serif"
+    font-size="96"
+    fill="#00d4ff"
+    text-anchor="middle"
+    font-weight="700"
+    letter-spacing="2"
+  >Regatta</text>
+</svg>
