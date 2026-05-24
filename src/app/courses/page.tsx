@@ -676,7 +676,7 @@ function DetailCard({
                 border: `1px solid ${point.color}33`,
               }}
             >
-              {point.angleMin === 0 && point.angleMax === 30
+              {point.angleMin === 0 && point.angleMax === 45
                 ? `0-${point.angleMax}\u00B0`
                 : `${point.angleMin}-${point.angleMax}\u00B0`}
             </span>

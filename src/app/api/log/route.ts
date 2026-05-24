@@ -7,6 +7,65 @@ import geoip from 'fast-geoip';
 export const runtime = 'nodejs';
 
 /**
+ * Truncate a client IP before it ever touches storage / logs, for privacy.
+ *   - IPv4: zero the last octet      1.2.3.4        -> 1.2.3.0
+ *   - IPv6: keep the first 3 hextets 2001:db8:1:2:: -> 2001:db8:1::
+ * Country detection relies on CF/Vercel headers (and a /24-accurate geoip
+ * fallback), so masking the host part does not affect country granularity
+ * but does prevent /stats from surfacing per-visitor IPs.
+ */
+function truncateIp(ip: string): string {
+  if (!ip || ip === 'unknown') return ip;
+  if (ip.includes('.') && !ip.includes(':')) {
+    // IPv4
+    const parts = ip.split('.');
+    if (parts.length === 4) return `${parts[0]}.${parts[1]}.${parts[2]}.0`;
+    return ip;
+  }
+  if (ip.includes(':')) {
+    // IPv6 - keep first 3 hextets, collapse the rest with ::
+    const hextets = ip.split(':').filter((h) => h.length > 0);
+    if (hextets.length >= 3) return `${hextets[0]}:${hextets[1]}:${hextets[2]}::`;
+    return ip;
+  }
+  return ip;
+}
+
+// Allow-list of body fields persisted into the event meta_json blob. The raw
+// request body is attacker-controlled and unbounded, so we never store it
+// wholesale. Anything not on this list is dropped.
+const META_ALLOW = [
+  'path', 'evt', 'level', 'sessionId', 'viewport', 'language', 'appVersion',
+  'msSinceStart', 'utm_source', 'utm_medium', 'utm_campaign', 'referrer',
+  'msOnPage', 'maxScrollPct', 'country', 'message', 'stack', 'reason',
+] as const;
+const META_MAX_BYTES = 4096;
+
+/**
+ * Build a bounded meta object from the request body: keep only allow-listed
+ * keys, then hard-cap the serialized size. If the trimmed object still
+ * exceeds the byte budget we drop it entirely (null) rather than store a
+ * truncated, invalid JSON fragment.
+ */
+function buildMeta(body: Record<string, unknown>): Record<string, unknown> | undefined {
+  const out: Record<string, unknown> = {};
+  for (const key of META_ALLOW) {
+    const v = body[key];
+    if (v === undefined || v === null) continue;
+    // Only primitives - never nested objects/arrays from the client.
+    if (typeof v === 'string') out[key] = v.length > 512 ? v.slice(0, 512) : v;
+    else if (typeof v === 'number' || typeof v === 'boolean') out[key] = v;
+  }
+  if (Object.keys(out).length === 0) return undefined;
+  try {
+    if (JSON.stringify(out).length > META_MAX_BYTES) return undefined;
+  } catch {
+    return undefined;
+  }
+  return out;
+}
+
+/**
  * Client-side error/event reporter.
  * POST body: { level: "error"|"warn"|"info", evt: string, ...any }
  * Fire-and-forget from the browser - should always return 204 even on
@@ -63,11 +122,13 @@ export async function POST(req: Request) {
     const xff = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
     const xri = req.headers.get('x-real-ip')?.trim();
     const cfi = req.headers.get('cf-connecting-ip')?.trim();
-    const detectedIp =
+    const rawIp =
       (isUseful(xff) ? xff : null) ??
       (isUseful(xri) ? xri : null) ??
       (isUseful(cfi) ? cfi : null) ??
       'unknown';
+    // Mask the host part at ingest - no full client IP is ever stored or logged.
+    const detectedIp = truncateIp(rawIp);
 
     const fields = {
       ...body,
@@ -130,7 +191,7 @@ export async function POST(req: Request) {
       utmMedium: typeof body.utm_medium === 'string' ? body.utm_medium : undefined,
       utmCampaign: typeof body.utm_campaign === 'string' ? body.utm_campaign : undefined,
       referrer: typeof body.referrer === 'string' ? body.referrer : undefined,
-      meta: body,
+      meta: buildMeta(body),
     });
   } catch {
     // Swallow - never 500 to the client for a log report

@@ -7,7 +7,6 @@
 
 import Database from 'better-sqlite3';
 import path from 'path';
-import { promises as fs } from 'fs';
 import { mkdirSync } from 'fs';
 import { UAParser } from 'ua-parser-js';
 
@@ -374,21 +373,6 @@ export function insertFeedback(f: FeedbackInsert): number | null {
 // Query helpers (for /stats page)
 // ============================================================================
 
-export interface Metrics {
-  eventsTotal: number;
-  eventsToday: number;
-  eventsLast7d: number;
-  sessionsTotal: number;
-  sessionsToday: number;
-  topPaths: Array<{ path: string; count: number }>;
-  topEvents: Array<{ evt: string; count: number }>;
-  deviceSplit: Array<{ device: string; count: number }>;
-  languageSplit: Array<{ language: string; count: number }>;
-  feedbackCount: { total: number; new: number };
-  bugCount: { total: number; new: number };
-  dailyEvents: Array<{ day: string; count: number }>;
-}
-
 export interface RangeMetrics {
   range: { fromMs: number; toMs: number };
   // Totals within range
@@ -435,64 +419,6 @@ export interface RangeMetrics {
     ip: string | null; device: string | null; lang: string | null;
     country: string | null; device_model: string | null;
   }>;
-}
-
-export function getMetrics(): Metrics {
-  const d = db();
-  const now = Date.now();
-  const today = now - 24 * 3600 * 1000;
-  const week = now - 7 * 24 * 3600 * 1000;
-
-  const eventsTotal = (d.prepare('SELECT COUNT(*) as c FROM events').get() as { c: number }).c;
-  const eventsToday = (d.prepare('SELECT COUNT(*) as c FROM events WHERE ts >= ?').get(today) as { c: number }).c;
-  const eventsLast7d = (d.prepare('SELECT COUNT(*) as c FROM events WHERE ts >= ?').get(week) as { c: number }).c;
-  const sessionsTotal = (d.prepare('SELECT COUNT(*) as c FROM sessions').get() as { c: number }).c;
-  const sessionsToday = (d.prepare('SELECT COUNT(*) as c FROM sessions WHERE last_seen >= ?').get(today) as { c: number }).c;
-
-  const topPaths = d.prepare(`
-    SELECT path, COUNT(*) as count FROM events
-    WHERE evt = 'page.view' AND path IS NOT NULL AND ts >= ?
-    GROUP BY path ORDER BY count DESC LIMIT 10
-  `).all(week) as Array<{ path: string; count: number }>;
-
-  const topEvents = d.prepare(`
-    SELECT evt, COUNT(*) as count FROM events
-    WHERE ts >= ?
-    GROUP BY evt ORDER BY count DESC LIMIT 10
-  `).all(week) as Array<{ evt: string; count: number }>;
-
-  const deviceSplit = d.prepare(`
-    SELECT device, COUNT(*) as count FROM events
-    WHERE ts >= ? GROUP BY device
-  `).all(week) as Array<{ device: string; count: number }>;
-
-  const languageSplit = d.prepare(`
-    SELECT language, COUNT(*) as count FROM events
-    WHERE language IS NOT NULL AND ts >= ? GROUP BY language
-  `).all(week) as Array<{ language: string; count: number }>;
-
-  const feedbackRow = d.prepare(`
-    SELECT COUNT(*) as total, SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new FROM feedback WHERE kind = 'feedback'
-  `).get() as { total: number; new: number };
-  const bugRow = d.prepare(`
-    SELECT COUNT(*) as total, SUM(CASE WHEN status = 'new' THEN 1 ELSE 0 END) as new FROM feedback WHERE kind = 'bug'
-  `).get() as { total: number; new: number };
-
-  const dailyEvents = d.prepare(`
-    SELECT strftime('%Y-%m-%d', ts/1000, 'unixepoch') as day, COUNT(*) as count
-    FROM events WHERE ts >= ?
-    GROUP BY day ORDER BY day ASC
-  `).all(now - 30 * 24 * 3600 * 1000) as Array<{ day: string; count: number }>;
-
-  return {
-    eventsTotal, eventsToday, eventsLast7d,
-    sessionsTotal, sessionsToday,
-    topPaths, topEvents,
-    deviceSplit, languageSplit,
-    feedbackCount: feedbackRow,
-    bugCount: bugRow,
-    dailyEvents,
-  };
 }
 
 /**
@@ -721,10 +647,6 @@ export function updateFeedbackStatus(id: number, status: string): boolean {
   } catch {
     return false;
   }
-}
-
-export async function ensureDbDirExists() {
-  try { await fs.mkdir(DB_DIR, { recursive: true }); } catch { /* ignore */ }
 }
 
 // ============================================================================

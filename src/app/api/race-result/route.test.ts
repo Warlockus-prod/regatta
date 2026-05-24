@@ -98,6 +98,62 @@ describe('POST /api/race-result - validation', () => {
   });
 });
 
+describe('POST /api/race-result - value bounds (leaderboard poisoning)', () => {
+  const base = { finishTimeSec: 90, difficulty: 'easy', windStrength: 'light' };
+
+  it('400 when finishTimeSec exceeds 24h (86400s)', async () => {
+    const res = await POST(makeReq({ ...base, finishTimeSec: 86401 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when score is above the cap (1e7)', async () => {
+    const res = await POST(makeReq({ ...base, score: 1e7 + 1 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when score is negative', async () => {
+    const res = await POST(makeReq({ ...base, score: -5 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when position is below 1', async () => {
+    const res = await POST(makeReq({ ...base, position: 0 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when position is above 1000', async () => {
+    const res = await POST(makeReq({ ...base, position: 1001 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when topSpeed is above 100', async () => {
+    const res = await POST(makeReq({ ...base, topSpeed: 101 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when tacks is above 1000', async () => {
+    const res = await POST(makeReq({ ...base, tacks: 1001 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('200 when all bounded fields are at their valid edges', async () => {
+    const res = await POST(makeReq({
+      ...base,
+      finishTimeSec: 86400,
+      score: 1e7,
+      position: 1000,
+      topSpeed: 100,
+      tacks: 1000,
+    }));
+    expect(res.status).toBe(200);
+  });
+
+  it('200 when optional bounded fields are omitted (null/undefined allowed)', async () => {
+    const res = await POST(makeReq(base));
+    expect(res.status).toBe(200);
+  });
+});
+
 describe('POST /api/race-result - happy path', () => {
   it('200 when payload is valid', async () => {
     const res = await POST(makeReq({
