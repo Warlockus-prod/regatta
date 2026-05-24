@@ -131,6 +131,13 @@ V1 `/simulator` passes the scan because the 2 field reads it does against
 `sailing-data.ts` now go through `legacyPick`, which fetches the right
 lang and falls back to EN for ES/FR/DE/IT.
 
+**Replay viewer fix (2026-05-24).** A code review found `/r/[code]` (the
+shared-replay viewer) was hardcoded Russian. It is not in the 16-route
+scan above because it needs a valid replay code, so the scan never caught
+it. Now localized via `useI18n()` / `tp()` and re-confirmed live (EN
+renders with no Cyrillic). Add `/r/<fixture-code>` to the scan list once a
+stable fixture code exists.
+
 ---
 
 ## Known gaps (intentional)
