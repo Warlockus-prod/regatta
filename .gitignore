@@ -83,3 +83,7 @@ qa-*.png
 /grafics/
 /graphics/
 key/
+
+# Stitch (Google Stitch) design-export scratch dir: raw HTML/PNG screen
+# exports + zip, kept locally for reference only - not version controlled.
+/app-graf/
