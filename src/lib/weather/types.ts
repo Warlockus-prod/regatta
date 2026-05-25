@@ -29,6 +29,18 @@ export interface WeatherNow {
     /** Mean wave period in seconds. */
     periodS: number;
   } | null;
+  /**
+   * Ocean / tidal current snapshot, or null when the marine model gives no
+   * current for this point (inland, no coverage, or zero velocity). Optional
+   * and additive (Phase 3 of docs/design/live-weather/DESIGN.md): older
+   * clients ignore it, the synthetic sim is unaffected.
+   */
+  current?: {
+    /** Current speed in knots. */
+    setKn: number;
+    /** Compass direction the current flows TOWARD, degrees true (0-360). */
+    dirDeg: number;
+  } | null;
   /** Required attribution string clients must display. */
   attribution: string;
 }

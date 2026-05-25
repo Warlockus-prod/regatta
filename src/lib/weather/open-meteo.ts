@@ -31,8 +31,13 @@ interface MarineResponse {
     wave_height?: number;
     wave_direction?: number;
     wave_period?: number;
+    ocean_current_velocity?: number;
+    ocean_current_direction?: number;
   };
 }
+
+// Open-Meteo reports ocean current velocity in km/h; convert to knots.
+const KMH_TO_KN = 0.539957;
 
 /** fetch with an AbortController timeout. Rejects if the request runs long. */
 async function fetchWithTimeout(url: string): Promise<Response> {
@@ -54,12 +59,13 @@ export class OpenMeteoProvider implements WeatherProvider {
 
   async getNow(lat: number, lon: number): Promise<WeatherNow> {
     const wind = await this.fetchWind(lat, lon);
-    const wave = await this.fetchWave(lat, lon);
+    const marine = await this.fetchMarine(lat, lon);
     return {
       provider: this.id,
       ts: wind.ts,
       wind: { speedKn: wind.speedKn, dirDeg: wind.dirDeg, gustKn: wind.gustKn },
-      wave,
+      wave: marine.wave,
+      current: marine.current,
       attribution: ATTRIBUTION,
     };
   }
@@ -105,33 +111,56 @@ export class OpenMeteoProvider implements WeatherProvider {
   }
 
   /**
-   * Best-effort wave leg. Never throws: any failure, non-OK status, parse
-   * error or missing field yields null (inland points, no marine coverage).
+   * Best-effort marine leg (waves + ocean current). Never throws: any failure,
+   * non-OK status, parse error or missing field yields nulls (inland points,
+   * no marine coverage). Wave and current are resolved independently from the
+   * one marine response, so a point can have waves but no current or vice
+   * versa.
    */
-  private async fetchWave(lat: number, lon: number): Promise<WeatherNow['wave']> {
+  private async fetchMarine(
+    lat: number,
+    lon: number,
+  ): Promise<{ wave: WeatherNow['wave']; current: WeatherNow['current'] }> {
     const url =
       `${MARINE_URL}?latitude=${lat}&longitude=${lon}` +
-      '&current=wave_height,wave_direction,wave_period';
+      '&current=wave_height,wave_direction,wave_period,ocean_current_velocity,ocean_current_direction';
     try {
       const res = await fetchWithTimeout(url);
-      if (!res.ok) return null;
+      if (!res.ok) return { wave: null, current: null };
       const data = (await res.json()) as MarineResponse;
-      const current = data.current;
+      const cur = data.current;
+      if (!cur) return { wave: null, current: null };
+
+      let wave: WeatherNow['wave'] = null;
       if (
-        !current ||
-        !isFiniteNumber(current.wave_height) ||
-        !isFiniteNumber(current.wave_direction) ||
-        !isFiniteNumber(current.wave_period)
+        isFiniteNumber(cur.wave_height) &&
+        isFiniteNumber(cur.wave_direction) &&
+        isFiniteNumber(cur.wave_period)
       ) {
-        return null;
+        wave = {
+          heightM: cur.wave_height,
+          dirDeg: cur.wave_direction,
+          periodS: cur.wave_period,
+        };
       }
-      return {
-        heightM: current.wave_height,
-        dirDeg: current.wave_direction,
-        periodS: current.wave_period,
-      };
+
+      // Ocean current: velocity in km/h -> knots. Only surface a current when
+      // the model gives a finite direction and a velocity strictly above 0.
+      let current: WeatherNow['current'] = null;
+      if (
+        isFiniteNumber(cur.ocean_current_velocity) &&
+        cur.ocean_current_velocity > 0 &&
+        isFiniteNumber(cur.ocean_current_direction)
+      ) {
+        current = {
+          setKn: cur.ocean_current_velocity * KMH_TO_KN,
+          dirDeg: cur.ocean_current_direction,
+        };
+      }
+
+      return { wave, current };
     } catch {
-      return null;
+      return { wave: null, current: null };
     }
   }
 }

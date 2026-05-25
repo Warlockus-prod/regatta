@@ -13,9 +13,11 @@ import type { TpFn } from './shared';
 // left it.
 
 // Minimal slice of the /api/weather response (shape: src/lib/weather/types.ts).
-// We only read the wind speed/direction and the required attribution string.
+// We read the wind speed/direction, the optional ocean current (Phase 3,
+// display-only), and the required attribution string.
 interface WeatherNow {
   wind: { speedKn: number; dirDeg: number; gustKn: number | null };
+  current?: { setKn: number; dirDeg: number } | null;
   attribution: string;
 }
 
@@ -115,6 +117,21 @@ export function LiveWindButton(props: {
           {tp('град', 'deg', 'st')})
           {spotName ? ` - ${spotName}` : ''}
           {'. '}
+          {data.current && (
+            <>
+              <span style={{ color: 'var(--accent-cyan)' }}>
+                {tp('Течение', 'Current', 'Prad')}:
+              </span>{' '}
+              {Math.round(data.current.setKn)} {tp('уз', 'kn', 'w')} {'->'}{' '}
+              {cardinal(data.current.dirDeg)}
+              {'. '}
+              {tp(
+                'Течение сносит лодку, поэтому путь над грунтом отличается от курса.',
+                'A current sets the boat, so course over ground differs from heading.',
+                'Prad znosi lodke, wiec kurs nad dnem rozni sie od kursu.',
+              )}{' '}
+            </>
+          )}
           {tp(
             'Для тренировки, не для навигации.',
             'For training, not for navigation.',
