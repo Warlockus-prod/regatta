@@ -1,13 +1,23 @@
 # Live Weather - design
 
 Cross-lane design doc (Shared + V2/V3 + Mobile). Anchor for both chats.
-Status: **Phase 1 SHIPPED** (web + mobile) 2026-05-25; Phases 2-4 proposed.
+Status: **Phases 1-4 SHIPPED** (web + mobile) 2026-05-25.
 
-Phase 1 done: `src/lib/weather/` (WeatherProvider + OpenMeteoProvider),
-`/api/weather` (live in prod, validated/rate-limited/cached, 503 fallback),
-web `WindNowCard` on the home "Live wind" section, and a mobile `WindNowCard`
-(preset spots, no geolocation) consuming `/api/weather`. Synthetic wind
-unchanged. Next: Phase 2 (live-spot mode in a chosen simulator).
+- Phase 1: `src/lib/weather/` (WeatherProvider + OpenMeteoProvider),
+  `/api/weather` (validated, rate-limited, 15-min cache, 503 fallback),
+  web + mobile `WindNowCard`.
+- Phase 2: opt-in live-wind in the V3 simulator (`LiveWindButton`) and the
+  mobile simulator (preset spots). Synthetic Steady/Shift/Gust stays default.
+- Phase 3: additive `velocityOverGround()` current helper (the 16 physics
+  tests are unchanged), global ocean current in `/api/weather`, web + mobile
+  current readouts. No VPP internals touched.
+- Phase 4: `/spots` OpenSeaMap charts + live wind (web page + mobile screen),
+  labelled "not for navigation".
+
+Follow-ons (proposed, not built): NOAA CO-OPS US tide predictions;
+current-driven drift wired into a simulator's position integration; Garmin
+Navionics SDK premium charts; Open-Meteo commercial tier or self-host once the
+app is monetized.
 
 ## Guiding principle (non-negotiable)
 
