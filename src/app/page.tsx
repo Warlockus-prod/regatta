@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import type { Lang } from '@/lib/languages';
+import { WindNowCard } from '@/components/WindNowCard';
 
 // ============================================================================
 // Three primary entry points - matches the "who are you" framing
@@ -510,6 +511,21 @@ export default function HomePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* ===== LIVE WIND ===== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold mb-1">
+            {tp('Живой ветер', 'Live wind', 'Wiatr na zywo',
+              { es: 'Viento en vivo', fr: 'Vent en direct', de: 'Live-Wind', it: 'Vento dal vivo' })}
+          </h2>
+          <p className="text-xs text-[var(--text-muted)]">
+            {tp('Свяжи теорию с реальной погодой', 'Connect the theory to real weather', 'Polacz teorie z prawdziwa pogoda',
+              { es: 'Conecta la teoria con el clima real', fr: 'Relie la theorie a la meteo reelle', de: 'Verbinde die Theorie mit echtem Wetter', it: 'Collega la teoria al meteo reale' })}
+          </p>
+        </div>
+        <WindNowCard />
       </section>
 
       {/* ===== SECONDARY TOOLS ===== */}
