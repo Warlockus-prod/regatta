@@ -27,6 +27,28 @@ When web changes a payload, both lanes update this file in the same PR.
   ping in Phase 3 sync queue.
 - **Response**: `{ ok: true, version: string }`.
 
+### `/api/weather` - GET
+
+- **Auth**: none; cookie session ID used for rate limiting. **Tier**: T2
+  (cached fallback; the client falls back to synthetic wind if unavailable).
+- Live wind/wave snapshot from Open-Meteo (models ECMWF/GFS/ICON), cached
+  server-side ~15 min per ~11km cell, rate-limited 120/hr/session. Part of
+  the live-weather initiative (see `docs/design/live-weather/DESIGN.md`).
+- **Request**: query `?lat={-90..90}&lon={-180..180}`. Missing or out-of-range
+  coords return 400.
+- **Response** (200):
+  ```ts
+  {
+    provider: 'open-meteo';
+    ts: string;                                                 // forecast time
+    wind: { speedKn: number; dirDeg: number; gustKn: number | null };
+    wave: { heightM: number; dirDeg: number; periodS: number } | null;  // null inland
+    attribution: string;                                        // CC BY 4.0, must display
+  }
+  ```
+  429 when rate limited; 503 when the provider is down (client falls back to
+  synthetic wind). Mobile client: `mobile/src/api/weather.ts`.
+
 ### `/api/log` - POST
 
 - **Auth**: none. Cookie session ID accepted opportunistically.

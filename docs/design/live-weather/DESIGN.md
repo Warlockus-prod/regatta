@@ -1,7 +1,13 @@
 # Live Weather - design
 
 Cross-lane design doc (Shared + V2/V3 + Mobile). Anchor for both chats.
-Status: proposed. Date: 2026-05-25.
+Status: **Phase 1 SHIPPED** (web + mobile) 2026-05-25; Phases 2-4 proposed.
+
+Phase 1 done: `src/lib/weather/` (WeatherProvider + OpenMeteoProvider),
+`/api/weather` (live in prod, validated/rate-limited/cached, 503 fallback),
+web `WindNowCard` on the home "Live wind" section, and a mobile `WindNowCard`
+(preset spots, no geolocation) consuming `/api/weather`. Synthetic wind
+unchanged. Next: Phase 2 (live-spot mode in a chosen simulator).
 
 ## Guiding principle (non-negotiable)
 
