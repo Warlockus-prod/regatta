@@ -200,6 +200,28 @@ const secondaryTools: Tool[] = [
     icon: '🎮',
   },
   {
+    href: '/spots',
+    title: {
+      ru: 'Споты: где ходить', en: 'Spots: where to sail', pl: 'Spoty: gdzie plywac',
+      es: 'Spots: donde navegar', fr: 'Spots : ou naviguer', de: 'Spots: wo segeln', it: 'Spot: dove navigare',
+    },
+    subtitle: {
+      ru: 'Where to sail', en: 'Where to sail', pl: 'Where to sail',
+      es: 'Where to sail', fr: 'Where to sail', de: 'Where to sail', it: 'Where to sail',
+    },
+    desc: {
+      ru: 'Морская карта и живой ветер для известных парусных точек. Для тренировки, не для навигации.',
+      en: 'Nautical chart and live wind for well-known sailing venues. For training, not for navigation.',
+      pl: 'Mapa morska i wiatr na zywo dla znanych miejscowek zeglarskich. Do treningu, nie do nawigacji.',
+      es: 'Carta nautica y viento en vivo para lugares conocidos de navegacion. Para entrenamiento, no para navegacion.',
+      fr: 'Carte marine et vent en direct pour des spots de voile connus. Pour l\'entrainement, pas pour la navigation.',
+      de: 'Seekarte und Live-Wind fuer bekannte Segelreviere. Zum Training, nicht zur Navigation.',
+      it: 'Carta nautica e vento dal vivo per localita veliche note. Per allenamento, non per navigazione.',
+    },
+    accent: 'var(--accent-cyan)',
+    icon: '📍',
+  },
+  {
     href: '/racing',
     title: {
       ru: 'Тактика', en: 'Tactics', pl: 'Taktyka',
