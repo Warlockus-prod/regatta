@@ -421,6 +421,22 @@ export default function Home() {
         </Text>
         <View style={styles.list}>
           <ListRow
+            icon="compass"
+            title={tp('Споты: где ходить', 'Spots: where to sail', 'Spoty: gdzie plywac', {
+              es: 'Spots: donde navegar',
+              fr: 'Spots : ou naviguer',
+              de: 'Spots: wo segeln',
+              it: 'Spot: dove navigare',
+            })}
+            caption={tp('Карта + ветер', 'Chart + wind', 'Mapa + wiatr', {
+              es: 'Carta + viento',
+              fr: 'Carte + vent',
+              de: 'Karte + Wind',
+              it: 'Carta + vento',
+            })}
+            onPress={() => router.push('/spots')}
+          />
+          <ListRow
             icon="simulator"
             title={tp('Симулятор', 'Simulator', 'Symulator', {
               es: 'Simulador',
