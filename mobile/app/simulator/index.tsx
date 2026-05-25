@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Animated,
   Pressable,
   ScrollView,
@@ -19,6 +20,7 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
 import { Screen, Slider, SkiaYacht, Text } from '../../src/design-system/components';
+import { fetchWeatherNow, type WeatherNow } from '../../src/api/weather';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
 import {
@@ -57,6 +59,52 @@ const COMPASS_R = 34;
 const SNAP_DEG = 15;
 const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
 const WIND_SPEED_PRESETS = [6, 10, 14, 20] as const;
+
+// The synthetic wind-speed control on this screen cycles the presets
+// above, so its effective range is 6..20 kt. Live wind only SETS the
+// existing wind speed, so we clamp a fetched value into that same band -
+// no physics or default behavior changes, just a starting value the user
+// can keep tweaking with the normal controls.
+const WIND_SPEED_MIN_KTS = WIND_SPEED_PRESETS[0];
+const WIND_SPEED_MAX_KTS = WIND_SPEED_PRESETS[WIND_SPEED_PRESETS.length - 1];
+
+/** Clamp a wind speed (knots) into the simulator's wind-speed range. */
+function clampWindSpeedKts(kts: number): number {
+  return Math.max(WIND_SPEED_MIN_KTS, Math.min(WIND_SPEED_MAX_KTS, kts));
+}
+
+// Preset venues only (no geolocation, no Location permission). Same list
+// as the home WindNowCard - well-known sailing spots. The user picks one
+// from the chip row; we never read device location.
+interface LiveSpot {
+  key: string;
+  /** Place name - identical in every locale. */
+  label: string;
+  lat: number;
+  lon: number;
+}
+const LIVE_SPOTS: readonly LiveSpot[] = [
+  { key: 'palma', label: 'Palma', lat: 39.57, lon: 2.65 },
+  { key: 'tarifa', label: 'Tarifa', lat: 36.01, lon: -5.6 },
+  { key: 'cowes', label: 'Cowes', lat: 50.76, lon: -1.3 },
+  { key: 'hyeres', label: 'Hyeres', lat: 43.07, lon: 6.15 },
+] as const;
+
+const LIVE_FALLBACK_ATTRIBUTION = 'Weather data by Open-Meteo.com (CC BY 4.0).';
+
+/** 8-point cardinal - mirrors WindNowCard's `toCardinal`. */
+const LIVE_CARDINALS = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] as const;
+function liveCardinal(dirDeg: number): string {
+  const normalized = ((dirDeg % 360) + 360) % 360;
+  const index = Math.round(normalized / 45) % 8;
+  return LIVE_CARDINALS[index]!;
+}
+
+type LiveWindState =
+  | { status: 'idle' }
+  | { status: 'loading'; spotKey: string }
+  | { status: 'ok'; spotKey: string; data: WeatherNow }
+  | { status: 'error'; spotKey: string };
 
 type SimView = 'top' | 'side' | 'rear';
 type WindMapMode = 'steady' | 'shift' | 'gust';
@@ -888,6 +936,20 @@ export default function Simulator() {
           />
         </View>
 
+        <LiveWindControl
+          onApply={(speedKts, dirRad) => {
+            // Live wind only SETS the existing wind. The synthetic
+            // wind-map mode stays whatever the user chose; we just feed a
+            // real starting value into the same setters the sliders use.
+            sim.setWindSpeed(speedKts);
+            sim.setWindDir(dirRad);
+            // Keep the steady/shift/gust base refs in sync so toggling
+            // wind-map modes does not snap back to the old synthetic value.
+            windBaseRef.current = dirRad;
+            windSpeedBaseRef.current = speedKts;
+          }}
+        />
+
         {mode === 'mission' && activeMission && missionState ? (
           <View style={styles.missionHud}>
             <View style={styles.missionHudRow}>
@@ -1653,6 +1715,226 @@ function WindModeChip({
 
 function clampNum(value: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, value));
+}
+
+/**
+ * Opt-in "Live wind" control for the simulator.
+ *
+ * The synthetic wind controls (the steady / shift / gust wind-map mode and
+ * the trim sliders) remain the default and stay fully usable - this is
+ * purely additive. Tapping a preset spot fetches a single real wind
+ * snapshot from the existing web `/api/weather` endpoint and SETS the
+ * simulator's wind speed + direction via the callback. It never changes
+ * physics or any default behavior, and on failure it does nothing harmful:
+ * the wind is left exactly as it was and an inline retry is offered.
+ *
+ * No geolocation and no new permission/dependency: the venue is chosen
+ * from a chip row (same preset list as the home WindNowCard).
+ */
+function LiveWindControl({
+  onApply,
+}: {
+  /** Apply a fetched snapshot: speed already clamped to the sim range
+   *  (knots), direction converted to radians for `setWindDir`. */
+  onApply: (speedKts: number, dirRad: number) => void;
+}) {
+  const { tp } = useI18n();
+  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [state, setState] = useState<LiveWindState>({ status: 'idle' });
+  // Track the in-flight request's spot so a slow earlier response can't
+  // overwrite a newer tap (last-tap-wins) or apply to the wrong spot.
+  const requestKeyRef = useRef<string | null>(null);
+
+  const load = useCallback(
+    async (spot: LiveSpot) => {
+      requestKeyRef.current = spot.key;
+      setState({ status: 'loading', spotKey: spot.key });
+      const res = await fetchWeatherNow(spot.lat, spot.lon);
+      // Ignore a response the user has since superseded with another tap.
+      if (requestKeyRef.current !== spot.key) return;
+      if (res.ok && res.data) {
+        const speedKts = clampWindSpeedKts(Math.round(res.data.wind.speedKn));
+        const dirRad = (res.data.wind.dirDeg * Math.PI) / 180;
+        onApply(speedKts, dirRad);
+        setState({ status: 'ok', spotKey: spot.key, data: res.data });
+      } else {
+        // Failure path: leave the wind untouched, surface a retry CTA.
+        setState({ status: 'error', spotKey: spot.key });
+      }
+    },
+    [onApply],
+  );
+
+  const onSelect = useCallback(
+    (spot: LiveSpot) => {
+      Haptics.selectionAsync().catch(() => {});
+      setSelectedKey(spot.key);
+      void load(spot);
+    },
+    [load],
+  );
+
+  const selectedSpot =
+    LIVE_SPOTS.find((s) => s.key === selectedKey) ?? null;
+
+  const heading = tp('Живой ветер', 'Live wind', 'Wiatr na zywo', {
+    es: 'Viento real',
+    fr: 'Vent reel',
+    de: 'Echter Wind',
+    it: 'Vento reale',
+  });
+  const subtitle = tp(
+    'По желанию: задать ветер по реальным данным.',
+    'Optional: set the wind from real data.',
+    'Opcjonalnie: ustaw wiatr z realnych danych.',
+    {
+      es: 'Opcional: ajusta el viento con datos reales.',
+      fr: 'Optionnel: regle le vent avec des donnees reelles.',
+      de: 'Optional: Wind aus echten Daten setzen.',
+      it: 'Opzionale: imposta il vento da dati reali.',
+    },
+  );
+  const fromWord = tp('с', 'from', 'z', {
+    es: 'del',
+    fr: 'de',
+    de: 'aus',
+    it: 'da',
+  });
+  const appliedWord = tp('задан', 'set', 'ustawiony', {
+    es: 'aplicado',
+    fr: 'applique',
+    de: 'gesetzt',
+    it: 'impostato',
+  });
+  const unitKn = tp('уз', 'kn', 'w', {
+    es: 'kn',
+    fr: 'nd',
+    de: 'kn',
+    it: 'kn',
+  });
+  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ladowanie...', {
+    es: 'Cargando...',
+    fr: 'Chargement...',
+    de: 'Laden...',
+    it: 'Caricamento...',
+  });
+  const errorLabel = tp(
+    'Не удалось загрузить ветер.',
+    'Could not load wind.',
+    'Nie udalo sie pobrac wiatru.',
+    {
+      es: 'No se pudo cargar el viento.',
+      fr: 'Impossible de charger le vent.',
+      de: 'Wind konnte nicht geladen werden.',
+      it: 'Impossibile caricare il vento.',
+    },
+  );
+  const retryLabel = tp('Повторить', 'Retry', 'Ponow', {
+    es: 'Reintentar',
+    fr: 'Reessayer',
+    de: 'Erneut',
+    it: 'Riprova',
+  });
+  const disclaimer = tp(
+    'Для тренировки, не для навигации.',
+    'For training, not for navigation.',
+    'Do treningu, nie do nawigacji.',
+    {
+      es: 'Para entrenar, no para navegar.',
+      fr: "Pour l'entrainement, pas pour la navigation.",
+      de: 'Zum Training, nicht zur Navigation.',
+      it: "Per l'allenamento, non per la navigazione.",
+    },
+  );
+
+  return (
+    <View style={styles.liveWind}>
+      <View style={styles.liveWindHeaderRow}>
+        <View style={styles.liveWindDot} />
+        <Text style={styles.liveWindTitle}>{heading.toUpperCase()}</Text>
+      </View>
+      <Text variant="caption" style={styles.liveWindSubtitle}>
+        {subtitle}
+      </Text>
+
+      <View style={styles.liveWindChips}>
+        {LIVE_SPOTS.map((spot) => {
+          const active = spot.key === selectedKey;
+          return (
+            <Pressable
+              key={spot.key}
+              onPress={() => onSelect(spot)}
+              accessibilityRole="button"
+              accessibilityState={{ selected: active }}
+              style={({ pressed }) => [
+                styles.liveWindChip,
+                active && styles.liveWindChipActive,
+                pressed && !active && styles.liveWindChipPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.liveWindChipText,
+                  active && styles.liveWindChipTextActive,
+                ]}
+                numberOfLines={1}
+              >
+                {spot.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      {state.status === 'loading' ? (
+        <View style={styles.liveWindStatusRow}>
+          <ActivityIndicator color={colors.accentCyan} />
+          <Text variant="caption" style={styles.liveWindStatusText}>
+            {loadingLabel}
+          </Text>
+        </View>
+      ) : null}
+
+      {state.status === 'error' ? (
+        <View style={styles.liveWindStatusRow}>
+          <Text variant="caption" style={styles.liveWindError}>
+            {errorLabel}
+          </Text>
+          {selectedSpot ? (
+            <Pressable
+              onPress={() => onSelect(selectedSpot)}
+              accessibilityRole="button"
+              accessibilityLabel={retryLabel}
+              style={({ pressed }) => [
+                styles.liveWindRetry,
+                pressed && styles.liveWindRetryPressed,
+              ]}
+            >
+              <Text style={styles.liveWindRetryText}>{retryLabel}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
+
+      {state.status === 'ok' && selectedSpot ? (
+        <Text style={styles.liveWindReadout}>
+          {`${selectedSpot.label}: ${fromWord} ${liveCardinal(
+            state.data.wind.dirDeg,
+          )} (${Math.round(state.data.wind.dirDeg)} deg), ${clampWindSpeedKts(
+            Math.round(state.data.wind.speedKn),
+          )} ${unitKn} ${appliedWord}`}
+        </Text>
+      ) : null}
+
+      <Text variant="muted" style={styles.liveWindFooter}>
+        {`${disclaimer} ${
+          state.status === 'ok'
+            ? state.data.attribution || LIVE_FALLBACK_ATTRIBUTION
+            : LIVE_FALLBACK_ATTRIBUTION
+        }`}
+      </Text>
+    </View>
+  );
 }
 
 function SideProfileScene({
@@ -2423,6 +2705,106 @@ const styles = StyleSheet.create({
   },
   windModeChipTextActive: {
     color: colors.windColor,
+  },
+  liveWind: {
+    marginBottom: spacing.sm,
+    backgroundColor: 'rgba(15, 32, 53, 0.62)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    padding: spacing.sm,
+    gap: spacing.xs,
+  },
+  liveWindHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+  },
+  liveWindDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.windColor,
+  },
+  liveWindTitle: {
+    color: colors.windColor,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 1,
+  },
+  liveWindSubtitle: {
+    color: colors.textMuted,
+    marginTop: 1,
+  },
+  liveWindChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 2,
+  },
+  liveWindChip: {
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: radii.pill,
+    backgroundColor: 'rgba(15, 32, 53, 0.46)',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+  },
+  liveWindChipActive: {
+    backgroundColor: 'rgba(0, 229, 255, 0.10)',
+    borderColor: colors.borderCyanSoft,
+  },
+  liveWindChipPressed: {
+    opacity: 0.78,
+  },
+  liveWindChipText: {
+    color: colors.textSecondary,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  liveWindChipTextActive: {
+    color: colors.windColor,
+  },
+  liveWindStatusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: 2,
+  },
+  liveWindStatusText: {
+    color: colors.textSecondary,
+  },
+  liveWindError: {
+    color: colors.warning,
+  },
+  liveWindRetry: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: 5,
+    borderRadius: radii.sm,
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+    backgroundColor: colors.bgCard,
+  },
+  liveWindRetryPressed: {
+    backgroundColor: colors.bgCardHover,
+  },
+  liveWindRetryText: {
+    color: colors.accentCyan,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  liveWindReadout: {
+    color: colors.textPrimary,
+    fontSize: 13,
+    fontWeight: '600',
+    marginTop: 2,
+    fontVariant: ['tabular-nums'],
+  },
+  liveWindFooter: {
+    color: colors.textMuted,
+    fontSize: 10,
+    lineHeight: 14,
+    marginTop: 2,
   },
   missionHud: {
     backgroundColor: 'rgba(21, 37, 64, 0.74)',
