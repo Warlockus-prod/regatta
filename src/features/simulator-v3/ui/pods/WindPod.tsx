@@ -1,5 +1,6 @@
 'use client';
 
+import { LiveWindButton } from '../LiveWindButton';
 import { PodCard, PodLabel, PodSlider, type TpFn, type UiState } from '../shared';
 
 export function WindPod(props: {
@@ -32,6 +33,12 @@ export function WindPod(props: {
         step={1}
         sliderValue={ui.windSpeed}
         onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))}
+      />
+      <LiveWindButton
+        tp={tp}
+        onApply={(speedKn) =>
+          setUi((p) => ({ ...p, windSpeed: Math.max(4, Math.min(25, Math.round(speedKn))) }))
+        }
       />
       <button
         onClick={() =>
