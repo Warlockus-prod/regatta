@@ -128,6 +128,13 @@ export function WindNowCard() {
     it: 'onde',
   });
 
+  const currentLabel = tp('течение', 'current', 'prad', {
+    es: 'corriente',
+    fr: 'courant',
+    de: 'Stroemung',
+    it: 'corrente',
+  });
+
   const loadingLabel = tp('Загрузка...', 'Loading...', 'Ladowanie...', {
     es: 'Cargando...',
     fr: 'Chargement...',
@@ -233,6 +240,7 @@ export function WindNowCard() {
             unitKn={unitKn}
             gustLabel={gustLabel}
             waveLabel={waveLabel}
+            currentLabel={currentLabel}
           />
         ) : null}
       </View>
@@ -253,9 +261,10 @@ interface WindReadoutProps {
   unitKn: string;
   gustLabel: string;
   waveLabel: string;
+  currentLabel: string;
 }
 
-function WindReadout({ data, unitKn, gustLabel, waveLabel }: WindReadoutProps) {
+function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindReadoutProps) {
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
   const cardinal = toCardinal(data.wind.dirDeg);
@@ -276,6 +285,13 @@ function WindReadout({ data, unitKn, gustLabel, waveLabel }: WindReadoutProps) {
           {`${waveLabel}: ${data.wave.heightM.toFixed(1)} m / ${Math.round(
             data.wave.periodS,
           )} s`}
+        </Text>
+      ) : null}
+      {data.current != null ? (
+        <Text variant="caption" style={styles.metaText}>
+          {`${currentLabel}: ${data.current.setKn.toFixed(1)} ${unitKn} -> ${toCardinal(
+            data.current.dirDeg,
+          )}`}
         </Text>
       ) : null}
     </View>

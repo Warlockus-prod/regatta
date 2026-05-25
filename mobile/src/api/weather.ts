@@ -42,6 +42,9 @@ export interface WeatherNow {
     /** Mean wave period in seconds. */
     periodS: number;
   } | null;
+  /** Surface ocean current, or null/absent when unavailable. setKn = speed
+   *  in knots flowing toward dirDeg (degrees true). */
+  current?: { setKn: number; dirDeg: number } | null;
   /** Required attribution string clients must display. */
   attribution: string;
 }
