@@ -10,6 +10,7 @@ import {
   ListRow,
   Screen,
   Text,
+  WindNowCard,
   Wordmark,
 } from '../src/design-system/components';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
@@ -100,6 +101,12 @@ export default function Home() {
     fr: 'Plus',
     de: 'Mehr',
     it: 'Altro',
+  });
+  const liveWindSection = tp('Ветер сейчас', 'Live wind', 'Wiatr teraz', {
+    es: 'Viento en vivo',
+    fr: 'Vent en direct',
+    de: 'Wind live',
+    it: 'Vento in diretta',
   });
 
   const ctaStart = tp('Начать', 'Start', 'Start', {
@@ -226,6 +233,11 @@ export default function Home() {
         ) : null}
 
         <Text variant="muted" style={styles.sectionLabel}>
+          {liveWindSection.toUpperCase()}
+        </Text>
+        <WindNowCard />
+
+        <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>
           {startSection.toUpperCase()}
         </Text>
 

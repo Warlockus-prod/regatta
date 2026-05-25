@@ -18,3 +18,4 @@ export { Skeleton } from './Skeleton';
 export { OfflineBanner } from './OfflineBanner';
 export { QuizCard, type QuizCardProps } from './QuizCard';
 export { SkiaYacht, type SkiaYachtMode, type SkiaYachtProps } from './SkiaYacht';
+export { WindNowCard } from './WindNowCard';
