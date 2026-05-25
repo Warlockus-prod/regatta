@@ -18,6 +18,12 @@
   --sail-color: #ffffff;
   --water-light: #0d2847;
   --water-dark: #061428;
+
+  /* Motion easing - calm, with a touch of spring. Shared across cards,
+     buttons and entrances so the whole UI moves on one curve. */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 }
 
 @theme inline {
@@ -67,16 +73,23 @@ html {
   }
 }
 
-/* Card styles */
+/* Card styles - a subtle top-light / bottom-shade gradient adds depth, and the
+   hover gives a calm shadow lift. transform is in the transition list so cards
+   that add their own hover transform (e.g. scale) ease on the same curve. */
 .card {
-  background: var(--bg-card);
-  border: 1px solid rgba(0, 212, 255, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.05)),
+    var(--bg-card);
+  border: 1px solid rgba(0, 212, 255, 0.12);
   border-radius: 12px;
-  transition: all 0.3s ease;
+  transition: border-color 0.25s var(--ease-out-quart),
+              box-shadow 0.25s var(--ease-out-quart),
+              transform 0.25s var(--ease-out-quart);
 }
 .card:hover {
-  border-color: rgba(0, 212, 255, 0.25);
-  box-shadow: 0 4px 20px rgba(0, 212, 255, 0.08);
+  border-color: rgba(0, 212, 255, 0.3);
+  box-shadow: 0 8px 28px rgba(2, 12, 27, 0.5),
+              inset 0 1px 0 rgba(0, 212, 255, 0.12);
 }
 
 /* Glow effect */
@@ -251,8 +264,86 @@ html {
   transform-box: fill-box;
 }
 
-/* Respect reduced-motion preference - disable all decorative animation. */
+/* Keyboard focus ring - shows only on keyboard navigation, not mouse clicks.
+   Scoped to interactive elements so static text never gets an outline. */
+a:focus-visible,
+button:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent-cyan);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+button:not(:disabled),
+[role="button"] {
+  cursor: pointer;
+}
+
+/* Instrument numbers - mono + tabular so live readouts (wind kn, gusts,
+   coordinates, timers, scores) stay aligned and do not jitter as digits
+   change. Opt-in via class="num". */
+.num {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+/* Hover lift - opt-in for tiles/cards that do not set their own hover
+   transform. Pairs with .card or stands alone. */
+.lift {
+  transition: transform 0.25s var(--ease-out-quart),
+              box-shadow 0.25s var(--ease-out-quart);
+}
+.lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Entrance: .fade-up animates a single element in; a container marked
+   .stagger fades its direct children in sequence. Both opt-in. */
+.fade-up {
+  animation: cardFadeIn 0.4s var(--ease-out-quart) both;
+}
+.stagger > * {
+  animation: cardFadeIn 0.45s var(--ease-out-quart) both;
+}
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.08s; }
+.stagger > *:nth-child(3) { animation-delay: 0.12s; }
+.stagger > *:nth-child(4) { animation-delay: 0.16s; }
+.stagger > *:nth-child(5) { animation-delay: 0.20s; }
+.stagger > *:nth-child(6) { animation-delay: 0.24s; }
+.stagger > *:nth-child(7) { animation-delay: 0.28s; }
+.stagger > *:nth-child(8) { animation-delay: 0.32s; }
+
+/* Glass surface - opt-in translucent panel for overlays and HUD chrome. */
+.glass {
+  background: rgba(21, 37, 64, 0.6);
+  backdrop-filter: blur(12px) saturate(1.1);
+  -webkit-backdrop-filter: blur(12px) saturate(1.1);
+  border: 1px solid rgba(0, 212, 255, 0.14);
+}
+
+/* Respect reduced-motion preference - disable all decorative motion. */
 @media (prefers-reduced-motion: reduce) {
-  .sim-waves { animation: none; }
+  .sim-waves,
+  .animate-wave,
+  .pulse-gentle,
+  .fade-up,
+  .stagger > *,
+  .page-enter {
+    animation: none !important;
+  }
+  .card,
+  .lift {
+    transition: none;
+  }
+  .lift:hover {
+    transform: none;
+  }
 }
 
