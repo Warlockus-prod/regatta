@@ -45,3 +45,8 @@ export {
   twaFromCompass,
   vmg,
 } from './wind';
+export {
+  velocityOverGround,
+  type Current,
+  type OverGround,
+} from './current';
