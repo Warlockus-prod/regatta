@@ -11,7 +11,6 @@ import { ENABLED_LANGUAGES } from '@/lib/languages';
 //   - /api/* (data endpoints, not pages)
 //   - /r/[code] (per-replay, infinite combinatorial space; expose via OG when
 //     shared, no need to crawl)
-//   - /quick (currently not in the public nav)
 //
 // Update PUBLIC_ROUTES whenever we add a new top-level user-facing page.
 // ============================================================================
@@ -41,6 +40,9 @@ const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/game',       changeFrequency: 'weekly',  priority: 0.95 },
   { path: '/multiplayer', changeFrequency: 'weekly', priority: 0.80 },
   { path: '/leaderboard', changeFrequency: 'daily',  priority: 0.75 },
+  { path: '/spots',      changeFrequency: 'daily',   priority: 0.70 },
+  { path: '/quick',      changeFrequency: 'weekly',  priority: 0.60 },
+  { path: '/privacy',    changeFrequency: 'yearly',  priority: 0.30 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
