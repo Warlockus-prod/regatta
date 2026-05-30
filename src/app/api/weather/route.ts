@@ -70,6 +70,9 @@ export async function GET(req: Request) {
   if (cached && now - cached.at < CACHE_TTL_MS) {
     return NextResponse.json(cached.data);
   }
+  // Drop the entry if it exists but is stale, so the map does not retain dead
+  // cells indefinitely (the key space is attacker-controllable via lat/lon).
+  if (cached) CACHE.delete(key);
 
   let data: WeatherNow;
   try {
@@ -78,6 +81,13 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'weather provider unavailable' }, { status: 503 });
   }
 
+  // Bound the cache so a client iterating coordinates cannot grow it without
+  // limit. ~2000 coarse cells is far more than any real usage; when exceeded,
+  // evict the oldest entry (Map preserves insertion order).
+  if (CACHE.size >= 2000) {
+    const oldest = CACHE.keys().next().value;
+    if (oldest !== undefined) CACHE.delete(oldest);
+  }
   CACHE.set(key, { at: now, data });
   return NextResponse.json(data);
 }
