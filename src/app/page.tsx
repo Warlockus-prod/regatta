@@ -493,12 +493,12 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="stagger grid grid-cols-1 md:grid-cols-3 gap-4">
           {entryPoints.map((ep) => (
             <Link
               key={ep.href}
               href={ep.href}
-              className="group card p-6 hover:scale-[1.02] transition-all duration-300 flex flex-col gap-4"
+              className="group card lift p-6 flex flex-col gap-4"
               style={{ borderColor: ep.border, background: ep.bg }}
             >
               <div className="text-4xl">{ep.emoji}</div>
@@ -524,7 +524,7 @@ export default function HomePage() {
 
       {/* ===== WHY BULLETS ===== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="stagger grid grid-cols-2 md:grid-cols-4 gap-3">
           {whyBullets.map((b) => (
             <div key={b.title.en} className="card p-4">
               <div className="text-2xl mb-2">{b.icon}</div>
@@ -563,7 +563,7 @@ export default function HomePage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="stagger grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {secondaryTools.map((t2) => (
             <Link
               key={t2.href}
