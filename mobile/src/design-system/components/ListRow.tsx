@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
+    minHeight: 44, // Apple HIG minimum tappable target
   },
   bordered: {
     borderBottomWidth: StyleSheet.hairlineWidth,
