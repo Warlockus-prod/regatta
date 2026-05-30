@@ -50,13 +50,13 @@ export function WindNowCard() {
 
   function showWind() {
     if (typeof navigator === 'undefined' || !navigator.geolocation) {
-      fetchAt(DEFAULT_SPOT.lat, DEFAULT_SPOT.lon, DEFAULT_SPOT.name);
+      void fetchAt(DEFAULT_SPOT.lat, DEFAULT_SPOT.lon, DEFAULT_SPOT.name);
       return;
     }
     setState('loading');
     navigator.geolocation.getCurrentPosition(
-      (pos) => fetchAt(pos.coords.latitude, pos.coords.longitude, null),
-      () => fetchAt(DEFAULT_SPOT.lat, DEFAULT_SPOT.lon, DEFAULT_SPOT.name),
+      (pos) => void fetchAt(pos.coords.latitude, pos.coords.longitude, null),
+      () => void fetchAt(DEFAULT_SPOT.lat, DEFAULT_SPOT.lon, DEFAULT_SPOT.name),
       { timeout: 8000, maximumAge: 600000 },
     );
   }
@@ -126,12 +126,12 @@ export function WindNowCard() {
               </svg>
               <div>
                 <div className="text-3xl font-bold leading-none">
-                  {Math.round(data.wind.speedKn)}<span className="text-base font-normal text-[var(--text-muted)]"> kn</span>
+                  <span className="num">{Math.round(data.wind.speedKn)}</span><span className="text-base font-normal text-[var(--text-muted)]"> kn</span>
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mt-1">
                   {tp('от', 'from', 'z',
                     { es: 'desde', fr: 'de', de: 'aus', it: 'da' })}{' '}
-                  {cardinal(data.wind.dirDeg)} ({Math.round(data.wind.dirDeg)}&deg;)
+                  {cardinal(data.wind.dirDeg)} (<span className="num">{Math.round(data.wind.dirDeg)}</span>&deg;)
                 </div>
               </div>
             </div>
@@ -142,7 +142,7 @@ export function WindNowCard() {
                   {tp('Порывы', 'Gusts', 'Porywy',
                     { es: 'Rachas', fr: 'Rafales', de: 'Boeen', it: 'Raffiche' })}
                 </div>
-                <div className="text-lg font-semibold">{Math.round(data.wind.gustKn)} kn</div>
+                <div className="text-lg font-semibold"><span className="num">{Math.round(data.wind.gustKn)}</span> kn</div>
               </div>
             )}
 
@@ -153,8 +153,8 @@ export function WindNowCard() {
                     { es: 'Olas', fr: 'Vagues', de: 'Wellen', it: 'Onde' })}
                 </div>
                 <div className="text-lg font-semibold">
-                  {data.wave.heightM.toFixed(1)} m
-                  <span className="text-xs font-normal text-[var(--text-muted)]"> / {Math.round(data.wave.periodS)} s</span>
+                  <span className="num">{data.wave.heightM.toFixed(1)}</span> m
+                  <span className="text-xs font-normal text-[var(--text-muted)]"> / <span className="num">{Math.round(data.wave.periodS)}</span> s</span>
                 </div>
               </div>
             )}
