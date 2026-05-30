@@ -176,6 +176,8 @@ export default function SpotsPage() {
                 },
               )}
               loading="lazy"
+              sandbox="allow-scripts allow-same-origin allow-popups"
+              referrerPolicy="no-referrer"
               style={{ width: '100%', height: 360, border: 'none', display: 'block' }}
             />
           </div>
@@ -271,7 +273,7 @@ export default function SpotsPage() {
                     </div>
                     <div className="font-semibold">
                       {data.current.setKn.toFixed(1)} kn
-                      <span className="text-xs font-normal text-[var(--text-muted)]"> {cardinal(data.current.dirDeg)}</span>
+                      <span className="text-xs font-normal text-[var(--text-muted)]"> {tp('к', 'toward', 'ku', { es: 'hacia', fr: 'vers', de: 'Richtung', it: 'verso' })} {cardinal(data.current.dirDeg)}</span>
                     </div>
                   </div>
                 )}
