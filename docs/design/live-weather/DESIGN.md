@@ -79,6 +79,7 @@ GET /api/weather?lat={lat}&lon={lon}
      ts: <iso8601>,                // forecast time used
      wind: { speedKn, dirDeg, gustKn },
      wave?: { heightM, dirDeg, periodS },
+     current?: { setKn, dirDeg } | null,   // ocean current; null when unavailable
      attribution: "Weather data by Open-Meteo.com (CC BY 4.0)"
    }
    400 bad lat/lon | 429 rate limited | 503 provider down (client falls back)
@@ -87,6 +88,9 @@ GET /api/weather?lat={lat}&lon={lon}
   limits and keep it fast.
 - Rate-limit per session/IP like the other write/AI endpoints.
 - Always return an `attribution` string; clients must display it.
+- `current.dirDeg` is the direction the current flows TOWARD (the opposite
+  convention from wind, where `dirDeg` is the direction it comes FROM).
+  `current` is `null` when no current data is available for the cell.
 
 ## Phases (safe -> risky)
 

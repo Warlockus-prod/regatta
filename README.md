@@ -24,7 +24,7 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
   sources: fps30.ru / ВФПС for RU, IMO / USCG / World Sailing / US
   Sailing for EN, PZŻ / PYA for PL, RFEV for ES, FFVoile for FR, DSV
   for DE, Federvela for IT), boat anatomy (17 hotspots), checklist,
-  glossary (52 terms), bootcamp (8 lessons), quick refresh (6 topics),
+  glossary (64 terms), bootcamp (8 lessons), quick refresh (6 topics),
   onboard first-week reference (8 sections).
 - **i18n**: 7 languages (RU / EN / PL / ES / FR / DE / IT) across every
   user-facing route. Lang detection at edge (proxy.ts + Accept-Language

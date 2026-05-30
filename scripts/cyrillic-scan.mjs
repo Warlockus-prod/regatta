@@ -8,6 +8,7 @@ const ROUTES = [
   '/', '/start', '/onboard', '/checklist', '/courses', '/racing',
   '/glossary', '/rules', '/anatomy', '/gallery', '/simulator',
   '/simulator-v3', '/simulator2', '/leaderboard', '/game', '/multiplayer',
+  '/spots', '/privacy', '/quick',
 ];
 
 const browser = await chromium.launch();

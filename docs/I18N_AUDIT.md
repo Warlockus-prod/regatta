@@ -85,7 +85,7 @@ below):**
   `src/data/onboard.ts`)
 - `/anatomy` (Bavaria 46 parts)
 - `/checklist` (crew reference - all 8 sections)
-- `/glossary` (all 52 glossary definitions + terms)
+- `/glossary` (all 64 glossary definitions + terms)
 - `/rules` (RRS + COLREGS scenarios; per-language official links: RFEV
   for ES, FFVoile for FR, DSV for DE, Federvela for IT, plus IMO
   COLREGS and World Sailing RRS for everyone)
@@ -118,14 +118,21 @@ Cyrillic leak scan (ES/FR/DE/IT across 16 routes):
 ALL CLEAN - 0 leaks across all routes and target langs.
 ```
 
-- 16 of 16 routes: **0 leaks** for each of ES / FR / DE / IT.
+- The last full run covered 16 routes: **0 leaks** for each of ES / FR /
+  DE / IT.
+- Routes now covered by the scan: `/spots`, `/privacy`, and `/quick` were
+  added to the scanner's `ROUTES` array (2026-05-30), bringing it to 19
+  routes. They have not yet been through a fresh run; rerun
+  `node scripts/cyrillic-scan.mjs` to confirm they are clean.
 - `/simulator-v3` translated as a one-off coordination from the V3
   lane on 2026-04-25 (TourOverlay + point-of-sail label via
   `legacyPick`); physics frozen, only i18n strings touched.
 
-Routes scanned: `/`, `/start`, `/onboard`, `/checklist`, `/courses`,
-`/racing`, `/glossary`, `/rules`, `/anatomy`, `/gallery`, `/simulator`,
-`/simulator-v3`, `/simulator2`, `/leaderboard`, `/game`, `/multiplayer`.
+Routes scanned in the last full run: `/`, `/start`, `/onboard`,
+`/checklist`, `/courses`, `/racing`, `/glossary`, `/rules`, `/anatomy`,
+`/gallery`, `/simulator`, `/simulator-v3`, `/simulator2`, `/leaderboard`,
+`/game`, `/multiplayer`. Now also in the scan list: `/spots`, `/privacy`,
+`/quick`.
 
 V1 `/simulator` passes the scan because the 2 field reads it does against
 `sailing-data.ts` now go through `legacyPick`, which fetches the right
