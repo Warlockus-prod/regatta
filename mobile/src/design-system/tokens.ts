@@ -16,7 +16,7 @@ export const colors = {
   accentTeal: '#00ffcc',
   textPrimary: '#e8f4f8',
   textSecondary: '#8ba7b8',
-  textMuted: '#5a7a8a',
+  textMuted: '#7593a6',
   danger: '#ff4444',
   success: '#44ff88',
   warning: '#ffaa00',
