@@ -10,7 +10,7 @@
   --accent-teal: #00ffcc;
   --text-primary: #e8f4f8;
   --text-secondary: #8ba7b8;
-  --text-muted: #5a7a8a;
+  --text-muted: #7593a6;
   --danger: #ff4444;
   --success: #44ff88;
   --warning: #ffaa00;
@@ -82,6 +82,10 @@ html {
     var(--bg-card);
   border: 1px solid rgba(0, 212, 255, 0.12);
   border-radius: 12px;
+  /* Resting depth so cards read as raised surfaces, not flat outlines
+     (matches the mobile design-system, which ships a default card shadow). */
+  box-shadow: 0 1px 2px rgba(2, 12, 27, 0.4),
+              inset 0 1px 0 rgba(255, 255, 255, 0.03);
   transition: border-color 0.25s var(--ease-out-quart),
               box-shadow 0.25s var(--ease-out-quart),
               transform 0.25s var(--ease-out-quart);
