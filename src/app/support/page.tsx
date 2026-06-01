@@ -9,7 +9,7 @@ import ContentFooterNav from '@/components/ContentFooterNav';
 // to get help, otherwise the submission is metadata-rejected. Keep the support
 // email here in sync with the App Review contact in App Store Connect.
 
-const SUPPORT_EMAIL = 'support@icoffio.com';
+const SUPPORT_EMAIL = 'support@gtframe.io';
 
 export default function SupportPage() {
   const { tp } = useI18n();
