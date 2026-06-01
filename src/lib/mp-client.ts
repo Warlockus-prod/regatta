@@ -193,12 +193,19 @@ export class SnapshotBuffer {
       };
     });
 
+    // Wind direction wraps at 0/360 - interpolate along the shortest arc,
+    // otherwise the arrow spins ~180deg backwards whenever the wind crosses north.
+    let dWindDir = next.wind.dir - prev.wind.dir;
+    if (dWindDir > 180) dWindDir -= 360;
+    else if (dWindDir < -180) dWindDir += 360;
+    const windDir = ((prev.wind.dir + dWindDir * alpha) % 360 + 360) % 360;
+
     return {
       t: prev.t + (next.t - prev.t) * alpha,
       recvAt: targetRecv,
       boats: interpBoats,
       wind: {
-        dir: prev.wind.dir + (next.wind.dir - prev.wind.dir) * alpha,
+        dir: windDir,
         gust: prev.wind.gust + (next.wind.gust - prev.wind.gust) * alpha,
       },
     };

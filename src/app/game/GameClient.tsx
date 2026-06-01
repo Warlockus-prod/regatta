@@ -922,7 +922,14 @@ export default function GamePage() {
       const playerTwa = calcTWA(player.heading, windDirRef.current);
       setPlayerTWA(playerTwa);
       setPlayerSpeed(player.speed);
-      if (isRacing) setElapsed((now - startTimeRef.current) / 1000);
+      // Live race time read from the clock each frame. Do NOT use the `elapsed`
+      // state here or in the finish checks below: this loop effect closes over
+      // `elapsed` at mount (deps are [gameState, difficulty]) and setElapsed does
+      // not retrigger it, so the captured value would stay frozen at 0 and the
+      // 5-minute timeout / post-finish race-end paths would never fire (a stuck
+      // AI in the no-go zone could hang the race forever).
+      const elapsedSec = isRacing ? (now - startTimeRef.current) / 1000 : 0;
+      if (isRacing) setElapsed(elapsedSec);
 
       // Calculate position (rank)
       const progress = boats.map((b) => ({
@@ -946,9 +953,9 @@ export default function GamePage() {
       // Check race end: all boats finished OR player finished - only when racing
       const allFinished = boats.every((b) => b.lapDone === 2);
       const playerFinished = player.lapDone === 2;
-      const tooLong = elapsed > 300; // 5 minutes max
+      const tooLong = elapsedSec > 300; // 5 minutes max
 
-      if (isRacing && (allFinished || (playerFinished && elapsed > (player.finishTime ?? 0) + 15) || tooLong)) {
+      if (isRacing && (allFinished || (playerFinished && elapsedSec > (player.finishTime ?? 0) + 15) || tooLong)) {
         const sorted = [...boats]
           .map((b) => ({ name: b.name, time: b.finishTime ?? Infinity, color: b.color, isPlayer: b.isPlayer }))
           .sort((a, b) => a.time - b.time);

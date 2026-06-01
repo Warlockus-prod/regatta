@@ -18,7 +18,7 @@ const GameClient = dynamic(() => import('./GameClient'), {
           className="w-10 h-10 rounded-full pulse-gentle"
           style={{ background: 'rgba(0, 212, 255, 0.25)', border: '2px solid var(--accent-cyan)' }}
         />
-        <div>Загружаю гонку…</div>
+        <div>Загрузка гонки / Loading race</div>
       </div>
     </div>
   ),
