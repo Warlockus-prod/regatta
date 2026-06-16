@@ -20,9 +20,9 @@
  * source. See `docs/design/mobile/audits/sprint11-dev-b.md` for the
  * sketch of the online architecture.
  */
-import { Stack, useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Stack, useRouter, useLocalSearchParams } from 'expo-router';
+import { useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import {
   Card,
@@ -44,6 +44,12 @@ import { useRaceHistory, type RaceRecord } from '../../src/persistence/race-hist
 import { findCourse } from '../../src/game/course';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
+import {
+  fetchGlobalLeaderboard,
+  type Difficulty,
+  type Wind,
+  type GlobalLeaderboardRow,
+} from '../../src/api/leaderboard';
 
 const SCORE_TIER_COLOR: Record<ScoreTier, string> = {
   gold: colors.success,
@@ -65,6 +71,44 @@ export default function Leaderboard() {
   const [courseFilter, setCourseFilter] = useState<LeaderboardCourseFilter>('all');
   const [periodFilter, setPeriodFilter] = useState<LeaderboardPeriodFilter>('all');
 
+  // Global board: a tab over the local PBs. Segmented by difficulty + wind to
+  // match how the web /api/leaderboard keys the board. Deep-linkable via
+  // `?tab=global` (e.g. from a "you made the board" notification later).
+  const params = useLocalSearchParams<{ tab?: string }>();
+  const [tab, setTab] = useState<'local' | 'global'>(
+    params.tab === 'global' ? 'global' : 'local',
+  );
+  useEffect(() => {
+    if (params.tab === 'global') setTab('global');
+    else if (params.tab === 'local') setTab('local');
+  }, [params.tab]);
+  const [gDiff, setGDiff] = useState<Difficulty>('medium');
+  const [gWind, setGWind] = useState<Wind>('medium');
+  const [gRows, setGRows] = useState<GlobalLeaderboardRow[] | null>(null);
+  const [gLoading, setGLoading] = useState(false);
+  const [gError, setGError] = useState<string | null>(null);
+  const [gNonce, setGNonce] = useState(0);
+
+  useEffect(() => {
+    if (tab !== 'global') return;
+    let cancelled = false;
+    setGLoading(true);
+    setGError(null);
+    fetchGlobalLeaderboard(gDiff, gWind).then((res) => {
+      if (cancelled) return;
+      setGLoading(false);
+      if (res.ok && res.data) {
+        setGRows(res.data.rows);
+      } else {
+        setGRows(null);
+        setGError(res.error ?? 'error');
+      }
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [tab, gDiff, gWind, gNonce]);
+
   const screenTitle = tp('Таблица лидеров', 'Leaderboard', 'Tabela liderow', {
     es: 'Clasificacion',
     fr: 'Classement',
@@ -72,14 +116,14 @@ export default function Leaderboard() {
     it: 'Classifica',
   });
   const subtitle = tp(
-    'Личные рекорды по каждой трассе. Глобальная таблица появится позже.',
-    'Personal bests per course. The global board lands later.',
-    'Rekordy osobiste na kazdej trasie. Globalna tabela pozniej.',
+    'Личные рекорды по трассам и глобальная таблица по классам гонок.',
+    'Your bests per course, plus the global board by race class.',
+    'Rekordy osobiste i globalna tabela wedlug klas wyscigu.',
     {
-      es: 'Mejores marcas personales por recorrido. La tabla global llegara despues.',
-      fr: 'Meilleurs temps personnels par parcours. Le classement global arrive plus tard.',
-      de: 'Persoenliche Bestzeiten pro Kurs. Die globale Liste folgt spaeter.',
-      it: 'Record personali per ogni percorso. La classifica globale arrivera dopo.',
+      es: 'Tus mejores marcas por recorrido y la tabla global por clase de regata.',
+      fr: 'Tes meilleurs temps par parcours et le classement global par classe.',
+      de: 'Deine Bestzeiten pro Kurs und die globale Liste nach Rennklasse.',
+      it: 'I tuoi record per percorso e la classifica globale per classe di gara.',
     },
   );
 
@@ -219,6 +263,35 @@ export default function Leaderboard() {
     it: 'Cancella filtri',
   });
 
+  const localTabLabel = tp('Личные', 'Personal', 'Osobiste', { es: 'Personal', fr: 'Perso', de: 'Persoenlich', it: 'Personale' });
+  const globalTabLabel = tp('Глобальная', 'Global', 'Globalna', { es: 'Global', fr: 'Global', de: 'Global', it: 'Globale' });
+  const difficultyLabel = tp('Сложность', 'Difficulty', 'Trudnosc', { es: 'Dificultad', fr: 'Difficulte', de: 'Schwierigkeit', it: 'Difficolta' });
+  const windLabelText = tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' });
+  const diffLabels: Record<Difficulty, string> = {
+    easy: tp('Легко', 'Easy', 'Latwo', { es: 'Facil', fr: 'Facile', de: 'Leicht', it: 'Facile' }),
+    medium: tp('Средне', 'Medium', 'Srednio', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
+    hard: tp('Сложно', 'Hard', 'Trudno', { es: 'Dificil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' }),
+  };
+  const windLabels: Record<Wind, string> = {
+    light: tp('Слабый', 'Light', 'Slaby', { es: 'Flojo', fr: 'Faible', de: 'Leicht', it: 'Leggero' }),
+    medium: tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
+    heavy: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),
+  };
+  const globalEmptyTitle = tp('Пока пусто', 'No entries yet', 'Jeszcze pusto', { es: 'Aun vacio', fr: 'Encore vide', de: 'Noch leer', it: 'Ancora vuoto' });
+  const globalEmptySub = tp(
+    'Никто ещё не финишировал в этом классе. Сыграй гонку - и попадёшь сюда.',
+    'No finishes in this class yet. Play a race to land here.',
+    'Brak finiszow w tej klasie. Zagraj wyscig, by tu trafic.',
+    {
+      es: 'Sin llegadas en esta clase. Juega una regata para aparecer aqui.',
+      fr: 'Aucune arrivee dans cette classe. Joue une course pour y figurer.',
+      de: 'Noch keine Zieleinlaeufe in dieser Klasse. Spiele ein Rennen, um hier zu landen.',
+      it: 'Nessun arrivo in questa classe. Gioca una gara per comparire qui.',
+    },
+  );
+  const globalErrorTitle = tp('Не загрузилось', 'Could not load', 'Nie udalo sie', { es: 'No se pudo cargar', fr: 'Echec du chargement', de: 'Laden fehlgeschlagen', it: 'Caricamento fallito' });
+  const retryLabel = tp('Повторить', 'Retry', 'Ponow', { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut', it: 'Riprova' });
+
   const rows = useMemo(() => {
     const filteredByCourse = filterByCourse(history.races, courseFilter);
     const filteredByPeriod = filterByPeriod(filteredByCourse, periodFilter);
@@ -242,81 +315,147 @@ export default function Leaderboard() {
           </Text>
         </View>
 
-        <View style={styles.filterBlock}>
-          <Text variant="muted" style={styles.filterLabel}>
-            {courseFilterLabel.toUpperCase()}
-          </Text>
-          <View style={styles.chipRow}>
-            {courseFilters.map((id) => (
-              <FilterChip
-                key={id}
-                label={courseLabels[id]}
-                active={courseFilter === id}
-                onPress={() => setCourseFilter(id)}
-              />
-            ))}
-          </View>
-        </View>
-        <View style={styles.filterBlock}>
-          <Text variant="muted" style={styles.filterLabel}>
-            {periodFilterLabel.toUpperCase()}
-          </Text>
-          <View style={styles.chipRow}>
-            {periodFilters.map((id) => (
-              <FilterChip
-                key={id}
-                label={periodLabels[id]}
-                active={periodFilter === id}
-                onPress={() => setPeriodFilter(id)}
-              />
-            ))}
-          </View>
+        {/* Personal / Global tabs */}
+        <View style={[styles.chipRow, styles.tabRow]}>
+          <FilterChip label={localTabLabel} active={tab === 'local'} onPress={() => setTab('local')} />
+          <FilterChip label={globalTabLabel} active={tab === 'global'} onPress={() => setTab('global')} />
         </View>
 
-        {showEmptyAll ? (
-          <EmptyState
-            icon="leaderboard"
-            title={emptyTitle}
-            subtitle={emptySubtitle}
-            cta={{
-              label: emptyCtaLabel,
-              onPress: () => router.push('/game'),
-            }}
-          />
-        ) : null}
+        {tab === 'local' ? (
+          <>
+            <View style={styles.filterBlock}>
+              <Text variant="muted" style={styles.filterLabel}>
+                {courseFilterLabel.toUpperCase()}
+              </Text>
+              <View style={styles.chipRow}>
+                {courseFilters.map((id) => (
+                  <FilterChip
+                    key={id}
+                    label={courseLabels[id]}
+                    active={courseFilter === id}
+                    onPress={() => setCourseFilter(id)}
+                  />
+                ))}
+              </View>
+            </View>
+            <View style={styles.filterBlock}>
+              <Text variant="muted" style={styles.filterLabel}>
+                {periodFilterLabel.toUpperCase()}
+              </Text>
+              <View style={styles.chipRow}>
+                {periodFilters.map((id) => (
+                  <FilterChip
+                    key={id}
+                    label={periodLabels[id]}
+                    active={periodFilter === id}
+                    onPress={() => setPeriodFilter(id)}
+                  />
+                ))}
+              </View>
+            </View>
 
-        {showEmptyFiltered ? (
-          <EmptyState
-            icon="leaderboard"
-            title={emptyFilteredTitle}
-            subtitle={emptyFilteredSubtitle}
-            cta={
-              filtersActive
-                ? {
-                    label: clearFiltersLabel,
-                    onPress: () => {
-                      setCourseFilter('all');
-                      setPeriodFilter('all');
-                    },
-                  }
-                : undefined
-            }
-          />
-        ) : null}
+            {showEmptyAll ? (
+              <EmptyState
+                icon="leaderboard"
+                title={emptyTitle}
+                subtitle={emptySubtitle}
+                cta={{ label: emptyCtaLabel, onPress: () => router.push('/game') }}
+              />
+            ) : null}
 
-        {rows.map((race, idx) => (
-          <LeaderboardRow
-            key={race.id}
-            rank={idx + 1}
-            race={race}
-            tp={tp}
-            lang={lang}
-            personalBestLabel={personalBestLabel}
-            timeLabel={timeLabel}
-            scoreLabel={scoreLabel}
-            onPress={() => router.push(`/replay/${encodeURIComponent(race.id)}`)}
-          />
-        ))}
+            {showEmptyFiltered ? (
+              <EmptyState
+                icon="leaderboard"
+                title={emptyFilteredTitle}
+                subtitle={emptyFilteredSubtitle}
+                cta={
+                  filtersActive
+                    ? {
+                        label: clearFiltersLabel,
+                        onPress: () => {
+                          setCourseFilter('all');
+                          setPeriodFilter('all');
+                        },
+                      }
+                    : undefined
+                }
+              />
+            ) : null}
+
+            {rows.map((race, idx) => (
+              <LeaderboardRow
+                key={race.id}
+                rank={idx + 1}
+                race={race}
+                tp={tp}
+                lang={lang}
+                personalBestLabel={personalBestLabel}
+                timeLabel={timeLabel}
+                scoreLabel={scoreLabel}
+                onPress={() => router.push(`/replay/${encodeURIComponent(race.id)}`)}
+              />
+            ))}
+          </>
+        ) : (
+          <>
+            <View style={styles.filterBlock}>
+              <Text variant="muted" style={styles.filterLabel}>
+                {difficultyLabel.toUpperCase()}
+              </Text>
+              <View style={styles.chipRow}>
+                {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
+                  <FilterChip key={d} label={diffLabels[d]} active={gDiff === d} onPress={() => setGDiff(d)} />
+                ))}
+              </View>
+            </View>
+            <View style={styles.filterBlock}>
+              <Text variant="muted" style={styles.filterLabel}>
+                {windLabelText.toUpperCase()}
+              </Text>
+              <View style={styles.chipRow}>
+                {(['light', 'medium', 'heavy'] as Wind[]).map((w) => (
+                  <FilterChip key={w} label={windLabels[w]} active={gWind === w} onPress={() => setGWind(w)} />
+                ))}
+              </View>
+            </View>
+
+            {gLoading ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator color={colors.accentCyan} />
+              </View>
+            ) : null}
+
+            {!gLoading && gError ? (
+              <EmptyState
+                icon="leaderboard"
+                title={globalErrorTitle}
+                subtitle={gError}
+                cta={{ label: retryLabel, onPress: () => setGNonce((n) => n + 1) }}
+              />
+            ) : null}
+
+            {!gLoading && !gError && gRows && gRows.length === 0 ? (
+              <EmptyState
+                icon="leaderboard"
+                title={globalEmptyTitle}
+                subtitle={globalEmptySub}
+                cta={{ label: emptyCtaLabel, onPress: () => router.push('/game') }}
+              />
+            ) : null}
+
+            {!gLoading && !gError && gRows
+              ? gRows.map((r, idx) => (
+                  <GlobalRow
+                    key={`${r.sid}-${idx}`}
+                    rank={idx + 1}
+                    row={r}
+                    timeLabel={timeLabel}
+                    scoreLabel={scoreLabel}
+                  />
+                ))
+              : null}
+          </>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -385,6 +524,49 @@ function LeaderboardRow({
   );
 }
 
+function GlobalRow({
+  rank,
+  row,
+  timeLabel,
+  scoreLabel,
+}: {
+  rank: number;
+  row: GlobalLeaderboardRow;
+  timeLabel: string;
+  scoreLabel: string;
+}) {
+  const tier = scoreTier(row.score ?? 0);
+  const tierColor = SCORE_TIER_COLOR[tier];
+  const name = row.nickname && row.nickname.trim().length > 0 ? row.nickname : 'anon';
+  return (
+    <Card
+      style={styles.row}
+      accessibilityLabel={`#${rank} ${name}, ${formatTime(row.finish_time_sec)}, ${row.score ?? 0}`}
+    >
+      <View style={styles.rowHeader}>
+        <View style={styles.rankBlock}>
+          <Text style={styles.rank}>{`#${rank}`}</Text>
+        </View>
+        <View style={styles.titleBlock}>
+          <Text variant="subtitle" style={styles.courseTitle} numberOfLines={1}>
+            {name}
+          </Text>
+        </View>
+      </View>
+      <View style={styles.statsRow}>
+        <View style={styles.statCell}>
+          <Text style={styles.statLabel}>{timeLabel.toUpperCase()}</Text>
+          <Text style={styles.statValue}>{formatTime(row.finish_time_sec)}</Text>
+        </View>
+        <View style={styles.statCell}>
+          <Text style={styles.statLabel}>{scoreLabel.toUpperCase()}</Text>
+          <Text style={[styles.statValue, { color: tierColor }]}>{row.score ?? 0}</Text>
+        </View>
+      </View>
+    </Card>
+  );
+}
+
 interface FilterChipProps {
   label: string;
   active: boolean;
@@ -423,6 +605,13 @@ const styles = StyleSheet.create({
   },
   header: {
     marginBottom: spacing.sm,
+  },
+  tabRow: {
+    marginBottom: spacing.xs,
+  },
+  loadingBox: {
+    paddingVertical: spacing.xxl,
+    alignItems: 'center',
   },
   subtitle: {
     fontSize: 13,

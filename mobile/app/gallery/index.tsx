@@ -15,8 +15,10 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
  * item to open the full-resolution image or the YouTube video in the
  * default browser / YouTube app.
  *
- * v1 renders a single-column scrollable list. A masonry / 2-column grid
- * is a polish item for v1.x.
+ * Layout: videos and photos are split into separate sections so a video
+ * never reads as just another photo. Photos are grouped by year, and the
+ * year is shown once on the section header instead of as a badge on every
+ * tile (which was redundant noise).
  */
 
 const WEB_BASE = 'https://regatta.icoffio.com';
@@ -47,6 +49,8 @@ function aspectRatio(aspect: GalleryAspect | undefined): number {
   }
 }
 
+const NO_YEAR = 'misc'; // group key for photos without a year badge
+
 export default function Gallery() {
   const { tp, lang } = useI18n();
 
@@ -57,17 +61,24 @@ export default function Gallery() {
     it: 'Galleria',
   });
 
-  const summary = tp(
-    `${galleryItems.length} элементов, загрузка из сети`,
-    `${galleryItems.length} items, loaded over the network`,
-    `${galleryItems.length} elementow, ladowanie z sieci`,
+  const intro = tp(
+    'Видео и фото с прошлых регат. Нажми, чтобы открыть.',
+    'Videos and photos from past regattas. Tap to open.',
+    'Wideo i zdjecia z przeszlych regat. Kliknij, aby otworzyc.',
     {
-      es: `${galleryItems.length} elementos, carga desde la red`,
-      fr: `${galleryItems.length} elements, charges depuis le reseau`,
-      de: `${galleryItems.length} Elemente, Netzwerk-Laden`,
-      it: `${galleryItems.length} elementi, caricamento dalla rete`,
+      es: 'Videos y fotos de regatas pasadas. Pulsa para abrir.',
+      fr: 'Videos et photos des regates passees. Touchez pour ouvrir.',
+      de: 'Videos und Fotos vergangener Regatten. Zum Oeffnen tippen.',
+      it: 'Video e foto di regate passate. Tocca per aprire.',
     },
   );
+
+  const videosLabel = tp('Видео', 'Videos', 'Wideo', {
+    es: 'Videos',
+    fr: 'Videos',
+    de: 'Videos',
+    it: 'Video',
+  });
 
   const openErrorTitle = tp('Не получилось открыть', 'Could not open', 'Nie mozna otworzyc', {
     es: 'No se pudo abrir',
@@ -87,6 +98,31 @@ export default function Gallery() {
     },
   );
 
+  const photoCountLabel = (n: number) =>
+    tp(
+      `${n} фото`,
+      `${n} ${n === 1 ? 'photo' : 'photos'}`,
+      `${n} ${n === 1 ? 'zdjecie' : 'zdjec'}`,
+      {
+        es: `${n} ${n === 1 ? 'foto' : 'fotos'}`,
+        fr: `${n} ${n === 1 ? 'photo' : 'photos'}`,
+        de: `${n} ${n === 1 ? 'Foto' : 'Fotos'}`,
+        it: `${n} foto`,
+      },
+    );
+  const videoCountLabel = (n: number) =>
+    tp(
+      `${n} видео`,
+      `${n} ${n === 1 ? 'video' : 'videos'}`,
+      `${n} wideo`,
+      {
+        es: `${n} ${n === 1 ? 'video' : 'videos'}`,
+        fr: `${n} ${n === 1 ? 'video' : 'videos'}`,
+        de: `${n} ${n === 1 ? 'Video' : 'Videos'}`,
+        it: `${n} video`,
+      },
+    );
+
   const openItem = async (item: GalleryItem) => {
     const url = urlForItem(item);
     try {
@@ -101,69 +137,94 @@ export default function Gallery() {
     }
   };
 
+  // Split videos out, then group the photos by year (badge), newest first.
+  const videos = galleryItems.filter((i) => i.kind === 'youtube');
+  const photos = galleryItems.filter((i) => i.kind !== 'youtube');
+  const photosByYear = new Map<string, GalleryItem[]>();
+  for (const p of photos) {
+    const key = p.badge ?? NO_YEAR;
+    const arr = photosByYear.get(key);
+    if (arr) arr.push(p);
+    else photosByYear.set(key, [p]);
+  }
+  const years = Array.from(photosByYear.keys()).sort().reverse();
+
+  const renderTile = (item: GalleryItem) => {
+    const itemTitle = legacyPick(item, 'title', lang);
+    const ratio = aspectRatio(item.kind === 'youtube' ? '16:9' : item.aspect);
+    const kindLabel = item.kind === 'youtube'
+      ? tp('видео', 'video', 'wideo', { es: 'video', fr: 'video', de: 'Video', it: 'video' })
+      : tp('фото', 'photo', 'zdjecie', { es: 'foto', fr: 'photo', de: 'Foto', it: 'foto' });
+    const tileA11y = tp(
+      `Открыть ${kindLabel}: ${itemTitle}`,
+      `Open ${kindLabel}: ${itemTitle}`,
+      `Otworz ${kindLabel}: ${itemTitle}`,
+      {
+        es: `Abrir ${kindLabel}: ${itemTitle}`,
+        fr: `Ouvrir ${kindLabel} : ${itemTitle}`,
+        de: `${kindLabel} oeffnen: ${itemTitle}`,
+        it: `Apri ${kindLabel}: ${itemTitle}`,
+      },
+    );
+    return (
+      <Pressable
+        key={item.id}
+        onPress={() => { void openItem(item); }}
+        accessibilityRole="button"
+        accessibilityLabel={tileA11y}
+        style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
+      >
+        <View style={[styles.imageWrap, { aspectRatio: ratio }]}>
+          <Image
+            source={{ uri: imageUrl(item) }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          {item.kind === 'youtube' ? (
+            <View style={styles.playOverlay}>
+              <View style={styles.playCircle}>
+                <View style={styles.playTriangle} />
+              </View>
+            </View>
+          ) : null}
+        </View>
+        <Text variant="caption" style={styles.title} numberOfLines={2}>
+          {itemTitle}
+        </Text>
+      </Pressable>
+    );
+  };
+
+  const SectionHeader = ({ label, count }: { label: string; count: string }) => (
+    <View style={styles.sectionHeader}>
+      <Text variant="subtitle" style={styles.sectionTitle}>{label}</Text>
+      <Text variant="caption" style={styles.sectionCount}>{count}</Text>
+    </View>
+  );
+
   return (
     <Screen>
       <Stack.Screen options={{ title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.intro}>
-          <Text variant="caption">{summary}</Text>
+          <Text variant="caption">{intro}</Text>
         </View>
-        {galleryItems.map((item) => {
-          const itemTitle = legacyPick(item, 'title', lang);
-          const ratio = aspectRatio(item.kind === 'youtube' ? '16:9' : item.aspect);
-          const kindLabel = item.kind === 'youtube'
-            ? tp('видео', 'video', 'wideo', {
-                es: 'video',
-                fr: 'video',
-                de: 'Video',
-                it: 'video',
-              })
-            : tp('фото', 'photo', 'zdjecie', {
-                es: 'foto',
-                fr: 'photo',
-                de: 'Foto',
-                it: 'foto',
-              });
-          const tileA11y = tp(
-            `Открыть ${kindLabel}: ${itemTitle}`,
-            `Open ${kindLabel}: ${itemTitle}`,
-            `Otworz ${kindLabel}: ${itemTitle}`,
-            {
-              es: `Abrir ${kindLabel}: ${itemTitle}`,
-              fr: `Ouvrir ${kindLabel} : ${itemTitle}`,
-              de: `${kindLabel} oeffnen: ${itemTitle}`,
-              it: `Apri ${kindLabel}: ${itemTitle}`,
-            },
-          );
+
+        {videos.length > 0 ? (
+          <View style={styles.section}>
+            <SectionHeader label={videosLabel} count={videoCountLabel(videos.length)} />
+            {videos.map(renderTile)}
+          </View>
+        ) : null}
+
+        {years.map((year) => {
+          const items = photosByYear.get(year) ?? [];
+          const label = year === NO_YEAR ? headerTitle : year;
           return (
-            <Pressable
-              key={item.id}
-              onPress={() => { void openItem(item); }}
-              accessibilityRole="button"
-              accessibilityLabel={tileA11y}
-              style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
-            >
-              <View style={[styles.imageWrap, { aspectRatio: ratio }]}>
-                <Image
-                  source={{ uri: imageUrl(item) }}
-                  style={styles.image}
-                  resizeMode="cover"
-                />
-                {item.kind === 'youtube' ? (
-                  <View style={styles.playOverlay}>
-                    <View style={styles.playTriangle} />
-                  </View>
-                ) : null}
-                {item.badge ? (
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{item.badge}</Text>
-                  </View>
-                ) : null}
-              </View>
-              <Text variant="caption" style={styles.title} numberOfLines={2}>
-                {itemTitle}
-              </Text>
-            </Pressable>
+            <View key={year} style={styles.section}>
+              <SectionHeader label={label} count={photoCountLabel(items.length)} />
+              {items.map(renderTile)}
+            </View>
           );
         })}
       </ScrollView>
@@ -178,6 +239,25 @@ const styles = StyleSheet.create({
   intro: {
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+  },
+  section: {
+    marginTop: spacing.sm,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: spacing.sm,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.textPrimary,
+  },
+  sectionCount: {
+    color: colors.textMuted,
   },
   tile: {
     marginHorizontal: spacing.lg,
@@ -206,33 +286,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  playCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: 'rgba(0, 212, 255, 0.88)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   playTriangle: {
     width: 0,
     height: 0,
     borderLeftWidth: 22,
     borderTopWidth: 14,
     borderBottomWidth: 14,
-    borderLeftColor: 'rgba(255, 255, 255, 0.95)',
+    borderLeftColor: '#0a1628',
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
     marginLeft: 6,
-  },
-  badge: {
-    position: 'absolute',
-    top: spacing.sm,
-    right: spacing.sm,
-    backgroundColor: 'rgba(10, 22, 40, 0.85)',
-    borderColor: 'rgba(0, 212, 255, 0.40)',
-    borderWidth: 1,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  badgeText: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
   title: {
     marginTop: spacing.sm,

@@ -741,12 +741,14 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
       <Circle cx={0} cy={mastY} r={Math.max(2, L * 0.085)} color={colors.accentCyan} />
 
       {noGo ? (
+        // No-go ring: an amber CAUTION that the bow is too close to the wind,
+        // not a red error. (Was colors.danger, which read as a fault.)
         <Circle
           cx={0}
           cy={mastY}
           r={Math.max(3, L * 0.13)}
-          color={colors.danger}
-          opacity={0.55}
+          color={colors.warning}
+          opacity={0.45}
           style="stroke"
           strokeWidth={1.4}
         />

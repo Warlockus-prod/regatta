@@ -8,6 +8,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider, useI18n } from '../src/i18n/context';
 import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
+import { AnalyticsProvider } from '../src/analytics';
 import { colors } from '../src/design-system/tokens';
 
 // Block the native splash from auto-hiding before the JS bundle has
@@ -34,20 +35,22 @@ export default function RootLayout() {
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider>
           <I18nProvider>
-            <SplashGate>
-              <FirstLaunchGate>
-                <Stack
-                  screenOptions={{
-                    contentStyle: { backgroundColor: colors.bgPrimary },
-                    headerStyle: { backgroundColor: colors.bgPrimary },
-                    headerTintColor: colors.textPrimary,
-                    headerTitleStyle: { color: colors.textPrimary },
-                    animation: 'slide_from_right',
-                  }}
-                />
-                <StatusBar style="light" />
-              </FirstLaunchGate>
-            </SplashGate>
+            <AnalyticsProvider>
+              <SplashGate>
+                <FirstLaunchGate>
+                  <Stack
+                    screenOptions={{
+                      contentStyle: { backgroundColor: colors.bgPrimary },
+                      headerStyle: { backgroundColor: colors.bgPrimary },
+                      headerTintColor: colors.textPrimary,
+                      headerTitleStyle: { color: colors.textPrimary },
+                      animation: 'slide_from_right',
+                    }}
+                  />
+                  <StatusBar style="light" />
+                </FirstLaunchGate>
+              </SplashGate>
+            </AnalyticsProvider>
           </I18nProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>

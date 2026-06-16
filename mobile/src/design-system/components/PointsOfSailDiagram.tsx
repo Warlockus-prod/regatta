@@ -18,7 +18,21 @@ interface PointsOfSailDiagramProps {
   onHeadingChange: (heading: number, commit: boolean) => void;
   /** Cardinal labels shown around the rim. English convention (N/E/S/W). */
   cardinalLabels: { N: string; E: string; S: string; W: string };
+  /** Localized point-of-sail names by id, shown around the rim (like the web). */
+  sectorLabels?: { id: string; name: string }[];
+  /** Port / starboard captions shown along the bottom. */
+  tackLabels?: { port: string; starboard: string };
 }
+
+// Midpoint angle (deg off the wind) of each point-of-sail sector, for placing
+// the course name + boat glyph. Mirrors the colored sector wedges below.
+const SECTOR_MIDS: Record<string, number> = {
+  'in-irons': 0,
+  'close-hauled': 45,
+  'beam-reach': 85,
+  'broad-reach': 135,
+  running: 172,
+};
 
 export function PointsOfSailDiagram({
   size = 300,
@@ -27,10 +41,12 @@ export function PointsOfSailDiagram({
   heading,
   onHeadingChange,
   cardinalLabels,
+  sectorLabels,
+  tackLabels,
 }: PointsOfSailDiagramProps) {
   const cx = size / 2;
   const cy = size / 2;
-  const outerR = size * 0.42;
+  const outerR = size * 0.39;
 
   const polar = useMemo(() => getPolar(windSpeedKn), [windSpeedKn]);
   const peak = useMemo(() => Math.max(0.01, maxSpeed(polar)), [polar]);
@@ -179,8 +195,58 @@ export function PointsOfSailDiagram({
 
   const activeSectorId = pointOfSailAt(heading);
 
+  // Course names placed around the rim at each sector midpoint, mirrored on both
+  // tacks (in-irons sits once inside the top no-go sector, like the web).
+  const sectorNamePositions = useMemo(() => {
+    if (!sectorLabels) return [];
+    const r = outerR + 30;
+    const out: { key: string; name: string; x: number; y: number; muted: boolean }[] = [];
+    for (const s of sectorLabels) {
+      const mid = SECTOR_MIDS[s.id];
+      if (mid === undefined) continue;
+      if (mid === 0) {
+        out.push({ key: s.id, name: s.name, x: cx, y: cy - outerR * 0.56, muted: true });
+        continue;
+      }
+      for (const sign of [1, -1] as const) {
+        const rad = ((sign * mid - 90) * Math.PI) / 180;
+        out.push({
+          key: `${s.id}-${sign}`,
+          name: s.name,
+          x: cx + r * Math.cos(rad),
+          y: cy + r * Math.sin(rad),
+          muted: false,
+        });
+      }
+    }
+    return out;
+  }, [sectorLabels, cx, cy, outerR]);
+
+  // Small boat glyph in each sector (both tacks) - shows there is a boat sailing
+  // that course, like the web diagram.
+  const sectorBoats = useMemo(() => {
+    if (!sectorLabels) return [];
+    const r = outerR * 0.66;
+    const out: { key: string; x: number; y: number; rot: number }[] = [];
+    for (const s of sectorLabels) {
+      const mid = SECTOR_MIDS[s.id];
+      if (mid === undefined || mid === 0) continue;
+      for (const sign of [1, -1] as const) {
+        const deg = sign * mid;
+        const rad = ((deg - 90) * Math.PI) / 180;
+        out.push({
+          key: `b-${s.id}-${sign}`,
+          x: cx + r * Math.cos(rad),
+          y: cy + r * Math.sin(rad),
+          rot: (deg * Math.PI) / 180,
+        });
+      }
+    }
+    return out;
+  }, [sectorLabels, cx, cy, outerR]);
+
   return (
-    <View style={[styles.wrap, { width: size, height: size + 32 }]}>
+    <View style={[styles.wrap, { width: size, height: size + 52 }]}>
       <GestureDetector gesture={pan}>
         <View style={[styles.canvasBox, { width: size, height: size }]}>
           <Canvas style={{ width: size, height: size }}>
@@ -243,6 +309,24 @@ export function PointsOfSailDiagram({
                 style="stroke"
                 strokeWidth={1.5}
               />
+              {sectorBoats.map((b) => (
+                <Group
+                  key={b.key}
+                  transform={[
+                    { translateX: b.x },
+                    { translateY: b.y },
+                    { rotate: b.rot },
+                    { scale: 0.62 },
+                  ]}
+                >
+                  <Path
+                    path={boatPath}
+                    color={'rgba(232, 244, 248, 0.42)'}
+                    style="stroke"
+                    strokeWidth={1.8}
+                  />
+                </Group>
+              ))}
               <Group transform={[{ translateX: boatX }, { translateY: boatY }, { rotate: (heading * Math.PI) / 180 }]}>
                 <Path path={boatPath} color={colors.accentCyan} opacity={0.95} />
                 <Path
@@ -264,6 +348,8 @@ export function PointsOfSailDiagram({
         outerR={outerR}
         windLabel={windLabel}
         cardinalPositions={cardinalPositions}
+        sectorNamePositions={sectorNamePositions}
+        tackLabels={tackLabels}
       />
       <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
     </View>
@@ -277,6 +363,8 @@ function DiagramLabels({
   outerR,
   windLabel,
   cardinalPositions,
+  sectorNamePositions,
+  tackLabels,
 }: {
   size: number;
   cx: number;
@@ -284,10 +372,14 @@ function DiagramLabels({
   outerR: number;
   windLabel: string;
   cardinalPositions: { label: string; x: number; y: number }[];
+  sectorNamePositions: { key: string; name: string; x: number; y: number; muted: boolean }[];
+  tackLabels?: { port: string; starboard: string };
 }) {
+  const h = size + 44;
+  const hasNames = sectorNamePositions.length > 0;
   return (
-    <View pointerEvents="none" style={[styles.svgOverlay, { width: size, height: size }]}>
-      <Svg width={size} height={size}>
+    <View pointerEvents="none" style={[styles.svgOverlay, { width: size, height: h }]}>
+      <Svg width={size} height={h}>
         <SvgText
           x={cx}
           y={cy - outerR - 36}
@@ -299,20 +391,35 @@ function DiagramLabels({
         >
           {windLabel.toUpperCase()}
         </SvgText>
-        {cardinalPositions.map((c) => (
-          <SvgText
-            key={c.label}
-            x={c.x}
-            y={c.y + 4}
-            fill={colors.textSecondary}
-            fontSize={11}
-            fontWeight="700"
-            textAnchor="middle"
-            letterSpacing={1}
-          >
-            {c.label}
-          </SvgText>
-        ))}
+        {/* Course names around the rim replace the N/E/S/W cardinals when given. */}
+        {hasNames
+          ? sectorNamePositions.map((c) => (
+              <SvgText
+                key={c.key}
+                x={c.x}
+                y={c.y + 4}
+                fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
+                fontSize={10}
+                fontWeight="700"
+                textAnchor="middle"
+              >
+                {c.name}
+              </SvgText>
+            ))
+          : cardinalPositions.map((c) => (
+              <SvgText
+                key={c.label}
+                x={c.x}
+                y={c.y + 4}
+                fill={colors.textSecondary}
+                fontSize={11}
+                fontWeight="700"
+                textAnchor="middle"
+                letterSpacing={1}
+              >
+                {c.label}
+              </SvgText>
+            ))}
         {[30, 60, 90, 120, 150, 210, 240, 270, 300, 330].map((deg) => {
           const rad = ((deg - 90) * Math.PI) / 180;
           const r = outerR + 14;
@@ -332,6 +439,32 @@ function DiagramLabels({
             </SvgText>
           );
         })}
+        {tackLabels ? (
+          <>
+            <SvgText
+              x={cx - outerR * 0.52}
+              y={cy + outerR + 34}
+              fill={colors.accentCyan}
+              fontSize={10}
+              fontWeight="800"
+              textAnchor="middle"
+              letterSpacing={0.6}
+            >
+              {tackLabels.port.toUpperCase()}
+            </SvgText>
+            <SvgText
+              x={cx + outerR * 0.52}
+              y={cy + outerR + 34}
+              fill={colors.accentCyan}
+              fontSize={10}
+              fontWeight="800"
+              textAnchor="middle"
+              letterSpacing={0.6}
+            >
+              {tackLabels.starboard.toUpperCase()}
+            </SvgText>
+          </>
+        ) : null}
       </Svg>
     </View>
   );

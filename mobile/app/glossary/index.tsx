@@ -1,9 +1,10 @@
 import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, EmptyState, Screen, Text } from '../../src/design-system/components';
-import { glossaryTerms } from '../../src/data';
+import { glossaryTerms, glossaryCategories } from '../../src/data';
+import type { GlossaryCategoryId } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
@@ -13,9 +14,12 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
  * case-insensitive plain-substring; v2 may add fuzzy matching and
  * category chips (boat / sail / course / maneuver / racing / wind / crew).
  */
+const CATEGORY_ORDER: GlossaryCategoryId[] = ['boat', 'sail', 'course', 'maneuver', 'racing', 'wind', 'crew'];
+
 export default function Glossary() {
   const { tp, lang } = useI18n();
   const [query, setQuery] = useState('');
+  const [activeCat, setActiveCat] = useState<GlossaryCategoryId | 'all'>('all');
 
   const headerTitle = tp('Глоссарий', 'Glossary', 'Glosariusz', {
     es: 'Glosario',
@@ -33,13 +37,14 @@ export default function Glossary() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return glossaryTerms;
     return glossaryTerms.filter((term) => {
+      if (activeCat !== 'all' && term.category !== activeCat) return false;
+      if (!q) return true;
       const t = legacyPick(term, 'term', lang).toLowerCase();
       const d = legacyPick(term, 'definition', lang).toLowerCase();
       return t.includes(q) || d.includes(q);
     });
-  }, [query, lang]);
+  }, [query, lang, activeCat]);
 
   const counter = tp(
     `${filtered.length} из ${glossaryTerms.length}`,
@@ -127,6 +132,28 @@ export default function Glossary() {
         />
         <Text variant="muted" style={styles.counter}>{counter}</Text>
       </View>
+      <View>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.chipRow}
+          keyboardShouldPersistTaps="handled"
+        >
+          <CategoryChip
+            label={tp('Все', 'All', 'Wszystkie', { es: 'Todas', fr: 'Toutes', de: 'Alle', it: 'Tutte' })}
+            active={activeCat === 'all'}
+            onPress={() => setActiveCat('all')}
+          />
+          {CATEGORY_ORDER.map((cat) => (
+            <CategoryChip
+              key={cat}
+              label={legacyPick(glossaryCategories[cat], 'name', lang)}
+              active={activeCat === cat}
+              onPress={() => setActiveCat(cat)}
+            />
+          ))}
+        </ScrollView>
+      </View>
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
@@ -168,6 +195,27 @@ export default function Glossary() {
   );
 }
 
+function CategoryChip({
+  label,
+  active,
+  onPress,
+}: {
+  label: string;
+  active: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
+      style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.chipPressed]}
+    >
+      <Text style={[styles.chipText, active && styles.chipTextActive]}>{label}</Text>
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   searchRow: {
     paddingHorizontal: spacing.lg,
@@ -198,5 +246,32 @@ const styles = StyleSheet.create({
   def: {
     marginTop: spacing.xs,
     lineHeight: 18,
+  },
+  chipRow: {
+    paddingHorizontal: spacing.lg,
+    paddingBottom: spacing.sm,
+    gap: spacing.sm,
+  },
+  chip: {
+    borderWidth: 1,
+    borderColor: colors.borderCyanSoft,
+    borderRadius: 999,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+  },
+  chipActive: {
+    backgroundColor: colors.surfaceCyanSoft,
+    borderColor: colors.accentCyan,
+  },
+  chipPressed: {
+    opacity: 0.7,
+  },
+  chipText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  chipTextActive: {
+    color: colors.accentCyan,
   },
 });

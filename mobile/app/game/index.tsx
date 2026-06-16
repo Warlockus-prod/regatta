@@ -29,6 +29,7 @@ import {
   buildApparentArrowPath,
 } from '../../src/simulator/skia-wind';
 import { findCourse, type CourseId, type CourseMarkScreen, projectCourse, scoreCourse, buildFinishLine, crossedFinishLine } from '../../src/game/course';
+import { useRaceAi, type RaceDifficulty } from '../../src/game/ai-boats';
 import { useRaceHistory, type ReplayPoint } from '../../src/persistence/race-history';
 import {
   submitRaceResult,
@@ -41,6 +42,7 @@ import {
   useUnits,
 } from '../../src/persistence/units';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 
 type Phase = 'countdown' | 'racing' | 'finished';
 
@@ -130,6 +132,7 @@ export default function Game() {
   const router = useRouter();
   const params = useLocalSearchParams<{ course?: string }>();
   const { units } = useUnits();
+  const analytics = useAnalytics();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
   const sceneH = Math.min(Math.max(windowHeight * 0.55, 380), 560);
@@ -163,11 +166,19 @@ export default function Game() {
     sim.setWindDir(course.initialWindDirRad);
     sim.setWindSpeed(course.initialWindKn);
     windInitedRef.current = true;
-    // Aim the bow at the windward mark from the start.
+    // Aim close-hauled toward the windward mark, NOT dead into the wind, so
+    // the boat carries way from the gun and can actually race the AI rivals
+    // (a bow pointed straight upwind would sit in irons until the player tacks).
     const wm = initialMarks[1]!;
-    const dx = wm.x - startMark.x;
-    const dy = wm.y - startMark.y;
-    sim.setTargetHeading(Math.atan2(dx, -dy));
+    const bearing = Math.atan2(wm.x - startMark.x, -(wm.y - startMark.y));
+    const wind = course.initialWindDirRad;
+    const off = ((bearing - wind + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+    const CLOSE_HAULED = (52 * Math.PI) / 180; // clear of the no-go so sails fill
+    sim.setTargetHeading(
+      Math.abs(off) < CLOSE_HAULED
+        ? wind + (off >= 0 ? CLOSE_HAULED : -CLOSE_HAULED)
+        : bearing,
+    );
     // sim is captured by ref, no need to track in deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course, initialMarks, startMark]);
@@ -180,6 +191,7 @@ export default function Game() {
   const [raceTimeSec, setRaceTimeSec] = useState(0);
   const startTimestampRef = useRef<number | null>(null);
   const finishTimeRef = useRef<number | null>(null);
+  const positionRef = useRef<number>(1);
 
   // Live mark tracking. Marks are mutated in-place per tick once the
   // boat enters their capture radius. The Result panel reads the final
@@ -190,6 +202,31 @@ export default function Game() {
     () => buildFinishLine(initialMarks, { width: sceneW, height: sceneH }),
     [initialMarks, sceneW, sceneH],
   );
+
+  // AI opponents: kinematic rivals racing the windward + finish marks. The
+  // fleet size and skill come from the course's difficulty tier. resetKey
+  // bumps on Try-again to rebuild the fleet.
+  const [aiNonce, setAiNonce] = useState(0);
+  const aiMarks = useMemo(
+    () =>
+      initialMarks
+        .slice(1)
+        .map((m) => ({ x: m.x, y: m.y, captureRadius: m.captureRadius, finish: m.finish })),
+    [initialMarks],
+  );
+  const ai = useRaceAi({
+    bounds: { width: sceneW, height: sceneH },
+    marks: aiMarks,
+    getWind: () => ({
+      dirRad: sim.wind.trueWindDirRad,
+      speedKts: sim.wind.trueWindSpeedKts,
+    }),
+    difficulty: (course.difficulty as RaceDifficulty) ?? 'medium',
+    running: phase === 'racing',
+    startX: startMark.x,
+    startY: startMark.y,
+    resetKey: `${courseId}-${aiNonce}`,
+  });
 
   // Sample buffer for the AI coach. We capture ~1Hz position rows so
   // the coach has enough resolution to spot tactical mistakes.
@@ -209,6 +246,12 @@ export default function Game() {
           setPhase('racing');
           startTimestampRef.current = Date.now();
           eventsRef.current.push({ t: 0, type: 'start' });
+          analytics.capture(AnalyticsEvent.RaceStarted, {
+            course: courseId,
+            difficulty: course.difficulty,
+            wind_kn: Math.round(sim.wind.trueWindSpeedKts),
+            opponents: ai.boats.length,
+          });
           // Mild haptic on the start signal.
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
           return 0;
@@ -217,6 +260,9 @@ export default function Game() {
       });
     }, 1000);
     return () => clearInterval(id);
+    // `analytics`, `sim`, `ai`, `course` are read once at start; they're stable
+    // refs/memo or change only on a new race, so the interval keys on `phase`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   // Race timer + sample/event capture. Driven off the simulator tick
@@ -304,6 +350,19 @@ export default function Game() {
       ).catch(() => {});
       if (m.id === 'finish') {
         finishTimeRef.current = elapsedSec;
+        const ahead = ai.boats.filter(
+          (b) => b.finished && b.finishSec != null && b.finishSec <= elapsedSec,
+        ).length;
+        positionRef.current = 1 + ahead;
+        const totalBoats = 1 + ai.boats.length;
+        analytics.capture(AnalyticsEvent.RaceFinished, {
+          course: courseId,
+          difficulty: course.difficulty,
+          time_sec: Math.round(elapsedSec),
+          position: positionRef.current,
+          total_boats: totalBoats,
+          won: positionRef.current === 1,
+        });
         setPhase('finished');
       }
     }
@@ -346,6 +405,18 @@ export default function Game() {
     () => buildArrowGrid(sceneW, sceneH, 56),
     [sceneW, sceneH],
   );
+
+  // Simple rival-boat silhouette (bow at -Y), drawn per AI boat under a
+  // rotate transform. Lighter than the player's full SkiaYacht.
+  const aiHullPath = useMemo(() => {
+    const L = boatLength * 0.4;
+    const p = Skia.Path.Make();
+    p.moveTo(0, -L);
+    p.lineTo(L * 0.52, L * 0.72);
+    p.quadTo(0, L * 0.96, -L * 0.52, L * 0.72);
+    p.close();
+    return p;
+  }, [boatLength]);
   const windArrowsPath = useMemo(
     () => buildWindArrowsPath(arrowGrid, sim.wind.trueWindDirRad),
     [arrowGrid, sim.wind.trueWindDirRad],
@@ -410,6 +481,9 @@ export default function Game() {
   });
   const parLabel = tp('Par', 'Par', 'Par', {
     es: 'Par', fr: 'Par', de: 'Par', it: 'Par',
+  });
+  const placeLabel = tp('Место', 'Place', 'Miejsce', {
+    es: 'Puesto', fr: 'Place', de: 'Platz', it: 'Posto',
   });
   const saveLabel = tp('Сохранить', 'Save', 'Zapisz', {
     es: 'Guardar', fr: 'Enregistrer', de: 'Speichern', it: 'Salva',
@@ -500,11 +574,18 @@ export default function Game() {
       windStrength: course.windStrength,
       missionId: course.id,
       finishTimeSec: finishTime,
+      position: positionRef.current,
+      totalBoats: 1 + ai.boats.length,
       score: computedScore,
       nicknameFallback: 'Sailor',
     });
     setSaving(false);
-    if (!result.ok) {
+    // /api/race-result needs a regatta_sid cookie that the mobile fetch does
+    // not send yet, so it returns 400 (leaderboard sync lands with the auth
+    // model in ADR-0006). The race is already saved on-device above, so a 400
+    // is not worth interrupting the user with an alert - only surface it on a
+    // genuine network failure (timeout / 5xx / no response).
+    if (!result.ok && result.status !== 400) {
       Alert.alert(networkErrorTitle, offlineSavedLabel, [{ text: okLabel }]);
     }
   }, [
@@ -557,6 +638,8 @@ export default function Game() {
     eventsRef.current = [];
     lastSampleSecRef.current = -1;
     finishTimeRef.current = null;
+    positionRef.current = 1;
+    setAiNonce((n) => n + 1);
     startTimestampRef.current = null;
     setRaceTimeSec(0);
     setSavedRaceId(null);
@@ -671,6 +754,26 @@ export default function Game() {
                   opacity={0.95}
                 />
 
+                {/* AI rivals (drawn under the player boat). */}
+                {ai.boats.map((b) => (
+                  <Group
+                    key={b.id}
+                    transform={[
+                      { translateX: b.x },
+                      { translateY: b.y },
+                      { rotate: b.heading },
+                    ]}
+                  >
+                    <Path path={aiHullPath} color={b.color} opacity={b.finished ? 0.5 : 0.92} />
+                    <Path
+                      path={aiHullPath}
+                      color="rgba(8, 18, 32, 0.6)"
+                      style="stroke"
+                      strokeWidth={1.2}
+                    />
+                  </Group>
+                ))}
+
                 <SkiaYacht
                   centerX={sim.boat.x}
                   centerY={sim.boat.y}
@@ -747,6 +850,12 @@ export default function Game() {
                 {title}
               </Text>
               <View style={styles.resultRow}>
+                <View style={styles.resultStat}>
+                  <Text style={styles.resultStatLabel}>{placeLabel}</Text>
+                  <Text style={[styles.resultStatValue, positionRef.current === 1 && { color: colors.success }]}>
+                    {`${positionRef.current}/${1 + ai.boats.length}`}
+                  </Text>
+                </View>
                 <View style={styles.resultStat}>
                   <Text style={styles.resultStatLabel}>{elapsedLabel}</Text>
                   <Text style={styles.resultStatValue}>

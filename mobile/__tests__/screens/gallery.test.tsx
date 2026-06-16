@@ -30,11 +30,10 @@ beforeEach(async () => {
 });
 
 describe('Gallery screen', () => {
-  it('renders the count summary', async () => {
+  it('renders the gallery intro', async () => {
     const view = renderWithProviders(<Gallery />);
-    await waitFor(() =>
-      view.getByText(new RegExp(`${galleryItems.length} items`)),
-    );
+    // The flat "N items" summary was replaced by an intro + sectioned layout.
+    await waitFor(() => view.getByText(/Videos and photos from past regattas/));
   });
 
   it('renders the first item title', async () => {

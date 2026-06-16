@@ -51,7 +51,7 @@ describe('Leaderboard screen (real, was Phase 3)', () => {
     // Stack.Screen is mocked away, so we assert on body content rather
     // than the route title. The subtitle copy is stable for v1.
     await waitFor(() =>
-      view.getByText(/Personal bests per course/i),
+      view.getByText(/bests per course/i),
     );
   });
 

@@ -29,21 +29,20 @@ beforeEach(async () => {
 });
 
 describe('Rules index screen', () => {
-  it('renders the count summary', async () => {
+  it('renders the RRS and COLREGS standard sections', async () => {
     const view = renderWithProviders(<Rules />);
-    await waitFor(() =>
-      view.getByText(new RegExp(`${ruleScenarios.length} collision scenarios`)),
-    );
+    // Scenarios are now grouped under two standard section headers.
+    await waitFor(() => view.getByText('🏁 RRS'));
+    view.getByText('🌊 COLREGS');
+    // The data splits into both standards.
+    expect(ruleScenarios.some((r) => r.source === 'colregs')).toBe(true);
+    expect(ruleScenarios.some((r) => r.source !== 'colregs')).toBe(true);
   });
 
-  it('shows source badge (RRS or COLREGS) on every scenario', async () => {
+  it('links to the official COLREGS source', async () => {
     const view = renderWithProviders(<Rules />);
-    await waitFor(() =>
-      view.getByText(new RegExp(`${ruleScenarios.length} collision scenarios`)),
-    );
-    // Every scenario tile has either "RRS" or "COLREGS" badge.
-    const rrs = view.queryAllByText('RRS').length;
-    const colregs = view.queryAllByText('COLREGS').length;
-    expect(rrs + colregs).toBeGreaterThanOrEqual(ruleScenarios.length);
+    await waitFor(() => view.getByText('🏁 RRS'));
+    // The COLREGS block surfaces an official source link (IMO / national PDF).
+    expect(view.queryAllByText(/IMO|PDF/).length).toBeGreaterThan(0);
   });
 });

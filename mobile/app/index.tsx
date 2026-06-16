@@ -125,36 +125,8 @@ export default function Home() {
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
         </View>
 
-        {daily ? (
-          <DailyBanner
-            challenge={daily}
-            badgeLabel={tp('Дневной', 'Daily', 'Dzienny', {
-              es: 'Diario',
-              fr: 'Du jour',
-              de: 'Taeglich',
-              it: 'Giornaliero',
-            })}
-            titleLabel={findCourse(daily.challenge.missionId ?? 'daily').title(tp)}
-            parLabel={tp('Par', 'Par', 'Par', {
-              es: 'Par',
-              fr: 'Par',
-              de: 'Par',
-              it: 'Par',
-            })}
-            ctaLabel={tp(
-              'Сыграть дневной',
-              'Try the daily',
-              'Zagraj dzienny',
-              {
-                es: 'Jugar el diario',
-                fr: 'Tenter le defi du jour',
-                de: 'Tagesziel spielen',
-                it: 'Prova la giornaliera',
-              },
-            )}
-            onPress={() => router.push('/game?course=daily')}
-          />
-        ) : null}
+        {/* Daily challenge is rendered lower now - below the "Where to start"
+            cards - so the primary learning path leads. See below. */}
 
         {showContinue && continueState.nextLesson && continueState.nextDay ? (
           <ContinueRow
@@ -358,6 +330,78 @@ export default function Home() {
           )}
           onPress={() => router.push('/rules')}
         />
+
+        <EntryCard
+          accent="cyan"
+          iconName="compass"
+          title={tp('Спросить ассистента', 'Ask the assistant', 'Zapytaj asystenta', {
+            es: 'Pregunta al asistente',
+            fr: 'Demander a l assistant',
+            de: 'Assistent fragen',
+            it: 'Chiedi all assistente',
+          })}
+          subtitle={tp('ИИ-помощник по парусу', 'AI sailing helper', 'Pomocnik AI', {
+            es: 'Asistente IA de vela',
+            fr: 'Assistant voile IA',
+            de: 'KI-Segelhelfer',
+            it: 'Assistente vela IA',
+          })}
+          description={tp(
+            'Задай вопрос про парус, гонки, правила или термины - ассистент ответит и подскажет нужный раздел.',
+            'Ask anything about sailing, racing, rules or terms - the assistant answers and points you to a section.',
+            'Zapytaj o zeglarstwo, regaty, zasady lub terminy - asystent odpowie i wskaze sekcje.',
+            {
+              es: 'Pregunta sobre vela, regatas, reglas o terminos: el asistente responde y te indica la seccion.',
+              fr: 'Demande sur la voile, les regates, les regles ou les termes : l assistant repond et oriente vers une section.',
+              de: 'Frag zu Segeln, Regatten, Regeln oder Begriffen - der Assistent antwortet und zeigt den Bereich.',
+              it: 'Chiedi di vela, regate, regole o termini: l assistente risponde e ti indica la sezione.',
+            },
+          )}
+          ctaLabel={tp('Спросить', 'Ask', 'Zapytaj', {
+            es: 'Preguntar',
+            fr: 'Demander',
+            de: 'Fragen',
+            it: 'Chiedi',
+          })}
+          ctaA11yLabel={tp('Открыть ассистента', 'Open the assistant', 'Otworz asystenta', {
+            es: 'Abrir asistente',
+            fr: 'Ouvrir l assistant',
+            de: 'Assistent oeffnen',
+            it: 'Apri assistente',
+          })}
+          onPress={() => router.push('/ask')}
+        />
+
+        {daily ? (
+          <DailyBanner
+            challenge={daily}
+            badgeLabel={tp('Дневной', 'Daily', 'Dzienny', {
+              es: 'Diario',
+              fr: 'Du jour',
+              de: 'Taeglich',
+              it: 'Giornaliero',
+            })}
+            titleLabel={findCourse(daily.challenge.missionId ?? 'daily').title(tp)}
+            parLabel={tp('Par', 'Par', 'Par', {
+              es: 'Par',
+              fr: 'Par',
+              de: 'Par',
+              it: 'Par',
+            })}
+            ctaLabel={tp(
+              'Сыграть дневной',
+              'Try the daily',
+              'Zagraj dzienny',
+              {
+                es: 'Jugar el diario',
+                fr: 'Tenter le defi du jour',
+                de: 'Tagesziel spielen',
+                it: 'Prova la giornaliera',
+              },
+            )}
+            onPress={() => router.push('/game?course=daily')}
+          />
+        ) : null}
 
         <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>
           {refSection.toUpperCase()}

@@ -22,6 +22,7 @@ import {
 } from '../../src/api/coach';
 import { findCourse } from '../../src/game/course';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 
 type LoadState =
   | { kind: 'idle' }
@@ -39,6 +40,7 @@ type LoadState =
  */
 export default function Coach() {
   const { tp, lang } = useI18n();
+  const analytics = useAnalytics();
   const router = useRouter();
   const params = useLocalSearchParams<{ raceId?: string }>();
   const raceId = typeof params.raceId === 'string' ? params.raceId : undefined;
@@ -115,6 +117,10 @@ export default function Coach() {
 
   const fetchCoach = useCallback(async () => {
     if (!coachPayload) return;
+    analytics.capture(AnalyticsEvent.CoachRequested, {
+      difficulty: coachPayload.difficulty,
+      finish_time_sec: Math.round(coachPayload.finishTime),
+    });
     setState({ kind: 'loading-coach' });
     const result = await requestCoaching(coachPayload);
     if (!result.ok || !result.data) {
@@ -125,7 +131,7 @@ export default function Coach() {
       return;
     }
     setState({ kind: 'loaded', coaching: result.data.coaching });
-  }, [coachPayload]);
+  }, [coachPayload, analytics]);
 
   useEffect(() => {
     if (state.kind === 'loading-coach') {

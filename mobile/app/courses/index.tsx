@@ -131,6 +131,33 @@ export default function Courses() {
     [],
   );
 
+  // Short localized course names for the rim (drop the "/ alias" tail).
+  const sectorLabels = useMemo(
+    () =>
+      pointsOfSail.map((p) => ({
+        id: p.id,
+        name: (legacyPick(p, 'name', lang).split('/')[0] ?? '').trim(),
+      })),
+    [lang],
+  );
+  const tackLabels = useMemo(
+    () => ({
+      port: tp('Левый галс', 'Port tack', 'Lewy hals', {
+        es: 'Amura de babor',
+        fr: 'Bord babord',
+        de: 'Backbordbug',
+        it: 'Mure a sinistra',
+      }),
+      starboard: tp('Правый галс', 'Starboard tack', 'Prawy hals', {
+        es: 'Amura de estribor',
+        fr: 'Bord tribord',
+        de: 'Steuerbordbug',
+        it: 'Mure a dritta',
+      }),
+    }),
+    [lang], // eslint-disable-line react-hooks/exhaustive-deps
+  );
+
   const polarA11y = tp(
     'Полярная диаграмма ходкости. Тяните чтобы развернуть лодку.',
     'Polar performance diagram. Drag to turn the boat.',
@@ -246,6 +273,8 @@ export default function Courses() {
             heading={heading}
             onHeadingChange={handleHeadingChange}
             cardinalLabels={cardinalLabels}
+            sectorLabels={sectorLabels}
+            tackLabels={tackLabels}
           />
         </View>
 

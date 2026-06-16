@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -13,12 +13,17 @@ import {
 import {
   Canvas,
   Circle,
+  Fill,
   Group,
   Path,
+  RadialGradient,
   Skia,
+  vec,
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
+import { pointsOfSail } from '../../src/data';
+import { legacyPick } from '../../src/i18n/languages';
 import { Screen, Slider, SkiaYacht, Text } from '../../src/design-system/components';
 import { fetchWeatherNow, type WeatherNow } from '../../src/api/weather';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
@@ -55,7 +60,7 @@ import {
 } from '../../src/persistence/units';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
-const COMPASS_R = 34;
+const COMPASS_R = 48;
 const SNAP_DEG = 15;
 const SNAP_RAD = (SNAP_DEG * Math.PI) / 180;
 const WIND_SPEED_PRESETS = [6, 10, 14, 20] as const;
@@ -214,11 +219,20 @@ function buildShiftPath(width: number, height: number, tickN: number) {
 
 function buildWavePath(width: number, height: number, tickN: number) {
   const p = Skia.Path.Make();
-  const phase = (tickN % 90) / 90;
-  for (let y = 34; y < height; y += 42) {
+  // Slow 6s drift. Each row gets its OWN phase + amplitude so the surface does
+  // not move in lockstep (the old single-phase version read as a flat grid).
+  const t = (tickN % 180) / 180;
+  let row = 0;
+  for (let y = 30; y < height; y += 30) {
+    const rowPhase = t * Math.PI * 2 + row * 0.6;
+    const amp = 3 + (row % 3); // 3..5 px swell, varies by row
     let first = true;
-    for (let x = -20; x <= width + 20; x += 24) {
-      const yy = y + Math.sin(x / 28 + phase * Math.PI * 2) * 4;
+    for (let x = -24; x <= width + 24; x += 18) {
+      // Two harmonics -> an organic, non-uniform swell instead of a clean sine.
+      const yy =
+        y +
+        Math.sin(x / 30 + rowPhase) * amp +
+        Math.sin(x / 13 - rowPhase * 1.7) * (amp * 0.35);
       if (first) {
         p.moveTo(x, yy);
         first = false;
@@ -226,14 +240,78 @@ function buildWavePath(width: number, height: number, tickN: number) {
         p.lineTo(x, yy);
       }
     }
+    row++;
   }
   return p;
 }
 
+// Finer, faster ripple layer drawn over the swells for surface sparkle + depth.
+function buildWaveShimmerPath(width: number, height: number, tickN: number) {
+  const p = Skia.Path.Make();
+  const t = (tickN % 75) / 75; // ~2.5s, faster than the swells
+  let row = 0;
+  for (let y = 46; y < height; y += 38) {
+    const rowPhase = t * Math.PI * 2 + row * 1.3;
+    let first = true;
+    for (let x = -24; x <= width + 24; x += 14) {
+      const yy = y + Math.sin(x / 17 + rowPhase) * 1.8;
+      if (first) {
+        p.moveTo(x, yy);
+        first = false;
+      } else {
+        p.lineTo(x, yy);
+      }
+    }
+    row++;
+  }
+  return p;
+}
+
+/**
+ * Wind-rose wedge for a point-of-sail sector, centred at (0,0) (the compass
+ * Group is already translated to the compass centre). Degrees measured from
+ * "up" (0 = toward the wind-from arrow once the sector group is rotated by the
+ * wind direction); +deg sweeps clockwise (starboard), -deg anticlockwise (port).
+ */
+function roseWedgePath(r: number, minDeg: number, maxDeg: number) {
+  const p = Skia.Path.Make();
+  let a0 = minDeg;
+  let a1 = maxDeg;
+  if (a1 < a0) [a0, a1] = [a1, a0];
+  p.moveTo(0, 0);
+  const rad0 = ((a0 - 90) * Math.PI) / 180;
+  p.lineTo(r * Math.cos(rad0), r * Math.sin(rad0));
+  const steps = 18;
+  for (let i = 1; i <= steps; i++) {
+    const t = a0 + ((a1 - a0) * i) / steps;
+    const rad = ((t - 90) * Math.PI) / 180;
+    p.lineTo(r * Math.cos(rad), r * Math.sin(rad));
+  }
+  p.close();
+  return p;
+}
+
+/**
+ * Points of sail by |TWA|, drawn as faint coloured zones on the wind rose so
+ * the user can read which way they can sail and which point of sail they are on
+ * (same tints as the Courses diagram). `hi` is the highlighted fill used when
+ * the boat is currently sailing that point of sail.
+ */
+const ROSE_SECTORS: { id: string; min: number; max: number; tint: string; hi: string }[] = [
+  { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 80, 80, 0.22)', hi: 'rgba(255, 104, 104, 0.70)' },
+  { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 176, 40, 0.20)', hi: 'rgba(255, 196, 84, 0.68)' },
+  { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(60, 216, 255, 0.19)', hi: 'rgba(96, 230, 255, 0.66)' },
+  { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(96, 182, 255, 0.20)', hi: 'rgba(128, 202, 255, 0.66)' },
+  { id: 'running', min: 160, max: 180, tint: 'rgba(80, 255, 150, 0.21)', hi: 'rgba(120, 255, 182, 0.66)' },
+];
+
 function sailStateColor(state: SailState): string {
   switch (state) {
-    case 'luff': return colors.danger;
-    case 'stall': return colors.warning;
+    // Luffing is the normal cold-start / pinching state (head to wind = both
+    // sails luff), so it reads as an amber CAUTION, not a red error. Red is
+    // reserved for stall - the genuinely-bad over-trim where flow detaches.
+    case 'luff': return colors.warning;
+    case 'stall': return colors.danger;
     case 'overtrim': return '#f5e26b';
     case 'good': return colors.accentCyan;
     default: return colors.textMuted;
@@ -259,7 +337,7 @@ function insideCompassAt(
 }
 
 export default function Simulator() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
@@ -270,7 +348,17 @@ export default function Simulator() {
   const compassCy = COMPASS_R + 18;
   const sim = useSimLoop({ bounds: { width: sceneW, height: sceneH } });
   const boatLength = sceneW < 360 ? 48 : 56;
-  const [simView, setSimView] = useState<SimView>('top');
+  const viewParam = useLocalSearchParams<{ view?: string }>().view;
+  const [simView, setSimView] = useState<SimView>(
+    viewParam === 'side' || viewParam === 'rear' ? viewParam : 'top',
+  );
+  // Deep-link a view: regatta://simulator?view=side|rear. Re-applies when the
+  // param changes; a manual tab tap still wins (the param stays put).
+  useEffect(() => {
+    if (viewParam === 'top' || viewParam === 'side' || viewParam === 'rear') {
+      setSimView(viewParam);
+    }
+  }, [viewParam]);
   const [windMapMode, setWindMapMode] = useState<WindMapMode>('steady');
   const windBaseRef = useRef(sim.wind.trueWindDirRad);
   const windSpeedBaseRef = useRef(sim.wind.trueWindSpeedKts);
@@ -373,6 +461,10 @@ export default function Simulator() {
     () => buildWavePath(sceneW, sceneH, sim.tickN),
     [sceneW, sceneH, sim.tickN],
   );
+  const waveShimmerPath = useMemo(
+    () => buildWaveShimmerPath(sceneW, sceneH, sim.tickN),
+    [sceneW, sceneH, sim.tickN],
+  );
   const trailPath = useMemo(
     () => buildTrailPath(sim.trail, sceneW, sceneH),
     [sim.trail, sim.tickN, sceneW, sceneH],
@@ -415,6 +507,39 @@ export default function Simulator() {
   const reef = sim.controls.reef ?? 0;
 
   const compassArrowPath = useMemo(() => buildCompassArrowPath(), []);
+  // Wind-rose point-of-sail sectors (static geometry; the group is rotated by
+  // the live wind direction at render time).
+  const roseSectorPaths = useMemo(
+    () =>
+      ROSE_SECTORS.map((s) => ({
+        id: s.id,
+        tint: s.tint,
+        hi: s.hi,
+        stb: roseWedgePath(COMPASS_R - 3, s.min, s.max),
+        port: roseWedgePath(COMPASS_R - 3, -s.max, -s.min),
+      })),
+    [],
+  );
+  // Which point of sail the boat is currently on (|TWA|), so its sector lights up.
+  const activeRoseId = useMemo(() => {
+    const a = Math.abs(sim.boatExt.twaDeg);
+    return ROSE_SECTORS.find((s) => a >= s.min && a <= s.max)?.id ?? null;
+  }, [sim.boatExt.twaDeg]);
+  // The localized point-of-sail NAME for the active sector (the "understand the
+  // wind" payoff). Short form: drop the "/ ..." alias from the data name.
+  const pointOfSailName = useMemo(() => {
+    if (!activeRoseId) return '';
+    const p = pointsOfSail.find((x) => x.id === activeRoseId);
+    return p ? (legacyPick(p, 'name', lang).split('/')[0] ?? '').trim() : '';
+  }, [activeRoseId, lang]);
+  // Bow-heading marker position on the rose (world frame, 0 = north = up).
+  const boatMarkerXY = useMemo(
+    () => ({
+      x: (COMPASS_R - 7) * Math.sin(sim.boat.heading),
+      y: -(COMPASS_R - 7) * Math.cos(sim.boat.heading),
+    }),
+    [sim.boat.heading],
+  );
 
   const title = tp('Симулятор', 'Simulator', 'Symulator', {
     es: 'Simulador',
@@ -1022,11 +1147,28 @@ export default function Simulator() {
             <GestureDetector gesture={composedGesture}>
             <Canvas style={{ width: sceneW, height: sceneH }}>
               <Group>
+                {/* Water depth: radial gradient, lighter near the boat,
+                    darkening toward the edges so the playfield reads as
+                    open water with depth instead of a flat panel. */}
+                <Fill>
+                  <RadialGradient
+                    c={vec(centerX, centerY)}
+                    r={Math.max(sceneW, sceneH) * 0.78}
+                    colors={['#1b3f60', '#0d2238', '#060e18']}
+                  />
+                </Fill>
                 <Path
                   path={wavePath}
-                  color="rgba(232, 244, 248, 0.10)"
+                  color="rgba(150, 210, 235, 0.18)"
                   style="stroke"
-                  strokeWidth={1}
+                  strokeWidth={1.3}
+                  strokeCap="round"
+                />
+                <Path
+                  path={waveShimmerPath}
+                  color="rgba(196, 236, 255, 0.10)"
+                  style="stroke"
+                  strokeWidth={0.8}
                   strokeCap="round"
                 />
                 {windMapMode === 'gust' ? (
@@ -1107,18 +1249,20 @@ export default function Simulator() {
                   opacity={0.55}
                 />
 
+                {/* No-go zone: amber CAUTION sector ("can't point here"), not
+                    a red fault. Unified with the luff/no-go-ring caution color. */}
                 <Path
                   path={noGoPath}
-                  color={colors.danger}
+                  color={colors.warning}
                   style="fill"
-                  opacity={0.13}
+                  opacity={0.12}
                 />
                 <Path
                   path={noGoPath}
-                  color={colors.danger}
+                  color={colors.warning}
                   style="stroke"
                   strokeWidth={1}
-                  opacity={0.38}
+                  opacity={0.34}
                 />
 
                 <Path
@@ -1153,12 +1297,21 @@ export default function Simulator() {
                     { translateY: compassCy },
                   ]}
                 >
-                  <Circle
-                    cx={0}
-                    cy={0}
-                    r={COMPASS_R}
-                    color="rgba(15, 32, 53, 0.92)"
-                  />
+                  <Circle cx={0} cy={0} r={COMPASS_R} color="rgba(15, 32, 53, 0.92)" />
+                  {/* Points-of-sail sectors, rotated so the no-go zone sits
+                      under the wind-from arrow. The boat's current point of
+                      sail lights up - this is the "understand the wind" part. */}
+                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
+                    {roseSectorPaths.map((s) => {
+                      const on = s.id === activeRoseId;
+                      return (
+                        <Group key={s.id}>
+                          <Path path={s.stb} color={on ? s.hi : s.tint} />
+                          <Path path={s.port} color={on ? s.hi : s.tint} />
+                        </Group>
+                      );
+                    })}
+                  </Group>
                   <Circle
                     cx={0}
                     cy={0}
@@ -1168,6 +1321,9 @@ export default function Simulator() {
                     strokeWidth={1.2}
                     opacity={0.6}
                   />
+                  {/* Bow-heading marker: whichever sector it falls in is the
+                      current point of sail. */}
+                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
                   <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
                     <Path
                       path={compassArrowPath}
@@ -1247,6 +1403,11 @@ export default function Simulator() {
           </Pressable>
 
           <View style={styles.sceneReadout}>
+            {pointOfSailName ? (
+              <Text allowFontScaling={false} style={styles.sceneReadoutPos}>
+                {pointOfSailName.toUpperCase()}
+              </Text>
+            ) : null}
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
             <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
@@ -2026,13 +2187,18 @@ function SideProfileScene({
           fill="rgba(68, 255, 136, 0.12)"
         />
       ) : null}
-      {Array.from({ length: 5 }).map((_, i) => {
-        const y = waterY + 12 + i * 18;
-        const amp = 3 + Math.min(6, windKts / 4);
+      {Array.from({ length: 6 }).map((_, i) => {
+        // Animated swell: each line bobs and its crest pulses at its own phase,
+        // so the sea surface rolls instead of sitting as static curves.
+        const baseY = waterY + 10 + i * 15;
+        const ph = windPhase * Math.PI * 2 + i * 0.8;
+        const amp = 2.5 + Math.min(6, windKts / 4);
+        const y = baseY + Math.sin(ph) * 1.8;
+        const bump = amp * (0.55 + 0.45 * Math.sin(ph + 0.6));
         return (
           <SvgPath
             key={i}
-            d={`M 0 ${y} Q ${width * 0.24} ${y - amp} ${width * 0.48} ${y} T ${width} ${y}`}
+            d={`M -10 ${y} Q ${width * 0.26} ${y - bump} ${width * 0.5} ${y} T ${width + 10} ${y}`}
             fill="none"
             stroke="rgba(130, 200, 255, 0.18)"
             strokeWidth={1}
@@ -2225,6 +2391,21 @@ function RearScene({
         <Rect x={gustX} y={0} width={width * 0.2} height={height} fill="rgba(68,255,136,0.12)" />
       ) : null}
       <Line x1={0} y1={baseY} x2={width} y2={baseY} stroke="rgba(0,212,255,0.22)" strokeWidth={1} />
+      {Array.from({ length: 5 }).map((_, i) => {
+        // Animated swell below the waterline so the rear view reads as moving sea.
+        const ph = ((tickN % 90) / 90) * Math.PI * 2 + i * 0.9;
+        const wy = baseY + 12 + i * 16 + Math.sin(ph) * 1.6;
+        const bump = 2.2 * (0.5 + 0.5 * Math.sin(ph + 0.5));
+        return (
+          <SvgPath
+            key={`w${i}`}
+            d={`M -10 ${wy} Q ${width * 0.27} ${wy - bump} ${width * 0.5} ${wy} T ${width + 10} ${wy}`}
+            fill="none"
+            stroke="rgba(130, 200, 255, 0.16)"
+            strokeWidth={1}
+          />
+        );
+      })}
       <G opacity={windMode === 'shift' ? 0.62 : 0.34}>
         {Array.from({ length: 6 }).map((_, i) => {
           const x = 35 + i * (width / 5.8);
@@ -2483,6 +2664,19 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     flexWrap: 'wrap',
     maxWidth: 240,
+  },
+  sceneReadoutPos: {
+    color: colors.accentCyan,
+    backgroundColor: 'rgba(0, 212, 255, 0.12)',
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+    borderRadius: radii.sm,
+    overflow: 'hidden',
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   sceneReadoutText: {
     color: colors.textSecondary,
