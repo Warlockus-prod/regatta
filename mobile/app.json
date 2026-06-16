@@ -3,7 +3,7 @@
     "name": "Week to Regatta",
     "slug": "regatta",
     "scheme": "regatta",
-    "version": "0.14.0",
+    "version": "1.2.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
