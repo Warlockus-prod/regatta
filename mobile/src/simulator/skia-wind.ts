@@ -139,6 +139,76 @@ export function buildApparentArrowPath(
   return path;
 }
 
+/**
+ * A force vector drawn from the boat center along a screen direction
+ * (0 = up/north, +CW), used for the cockpit drive (тяга) and side (бок)
+ * vectors. Same arrow style as the apparent-wind indicator, but the head
+ * scales down on short vectors so a near-zero force still reads cleanly.
+ */
+export function buildForceVectorPath(
+  x: number,
+  y: number,
+  dirRad: number,
+  length: number,
+): SkPath {
+  const tipX = x + Math.sin(dirRad) * length;
+  const tipY = y - Math.cos(dirRad) * length;
+  const dx = Math.sin(dirRad);
+  const dy = -Math.cos(dirRad);
+  const px = -dy;
+  const py = dx;
+  const back = Math.min(9, length * 0.34);
+  const flare = Math.min(6, length * 0.24);
+
+  const path = Skia.Path.Make();
+  path.moveTo(x, y);
+  path.lineTo(tipX, tipY);
+  path.moveTo(tipX - dx * back + px * flare, tipY - dy * back + py * flare);
+  path.lineTo(tipX, tipY);
+  path.lineTo(tipX - dx * back - px * flare, tipY - dy * back - py * flare);
+  return path;
+}
+
+/**
+ * An annular sector (radar arc) centered on the boat, spanning [startDeg,
+ * endDeg] measured from "up" (0 = north, +CW). Used to draw the
+ * points-of-sail halo ring around the boat so the cockpit reads as a radar:
+ * the boat sits inside the band for its current point of sail.
+ */
+export function buildSectorRingPath(
+  cx: number,
+  cy: number,
+  rInner: number,
+  rOuter: number,
+  startDeg: number,
+  endDeg: number,
+): SkPath {
+  let a0 = startDeg;
+  let a1 = endDeg;
+  if (a1 < a0) [a0, a1] = [a1, a0];
+  const steps = Math.max(6, Math.round((a1 - a0) / 6));
+  const pt = (a: number, r: number): [number, number] => {
+    const rad = (a * Math.PI) / 180;
+    return [cx + Math.sin(rad) * r, cy - Math.cos(rad) * r];
+  };
+
+  const path = Skia.Path.Make();
+  const [sx, sy] = pt(a0, rOuter);
+  path.moveTo(sx, sy);
+  for (let i = 1; i <= steps; i++) {
+    const a = a0 + ((a1 - a0) * i) / steps;
+    const [x, y] = pt(a, rOuter);
+    path.lineTo(x, y);
+  }
+  for (let i = steps; i >= 0; i--) {
+    const a = a0 + ((a1 - a0) * i) / steps;
+    const [x, y] = pt(a, rInner);
+    path.lineTo(x, y);
+  }
+  path.close();
+  return path;
+}
+
 /** Wind compass dial arrow, length ~28 px, centered at origin, pointing -y. */
 export function buildCompassArrowPath(): SkPath {
   const path = Skia.Path.Make();

@@ -11,6 +11,26 @@ Goal: bring `mobile/app/simulator/index.tsx` up to the full web V3 simulator
 > readout, a `?view=` deep-link, and the red->amber caution recolor. Remaining
 > items below are OPTIONAL polish the user declined for now (telltales, richer
 > wake, Side/Rear readout crowding, deeper coaching).
+>
+> **UPDATE 2026-06-17 (v1.3): RADAR-COCKPIT UPGRADE LANDED.** The user compared
+> the top view against the web V3 "COCKPIT" (boat-centred radar: points-of-sail
+> sectors + force vectors on the boat + a combined trim/course/tack header) and
+> asked to match it. Added, all in `mobile/app/simulator/index.tsx` +
+> `mobile/src/simulator/skia-wind.ts`:
+> - **Force vectors on the boat (top view):** drive (тяга, green, forward,
+>   length ~ boat speed) and side/heel (бок, amber, to leeward, length ~ heel).
+>   New `buildForceVectorPath`. A top-left legend names them (NAPED / BOK).
+> - **Points-of-sail halo:** the rose sectors drawn as an annular radar band
+>   AROUND the boat (anchored on true wind), active band brightens on the live
+>   tack. New `buildSectorRingPath`.
+> - **Combined hero readout** (web's header pill): `TRIM% . point-of-sail . tack`,
+>   placed at the BOTTOM (the phone top band is taken by the legend + compass;
+>   centred top collides on narrow screens - verified and moved). Folds in the
+>   old standalone point-of-sail pill.
+> Verified on the iOS Simulator (iPhone 17): all elements render, the pill +
+> vectors + sectors track the physics live (close-hauled -> beam reach -> tack
+> flips PRAWY/LEWY HALS, luff=amber / stall=red), Side/Rear views unaffected.
+> Engine still untouched (UI only). Ships in v1.3.
 
 ## Baseline (already at parity - do NOT redo)
 

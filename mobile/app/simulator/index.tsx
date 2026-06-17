@@ -34,6 +34,8 @@ import {
   buildNoGoPath,
   buildApparentArrowPath,
   buildCompassArrowPath,
+  buildForceVectorPath,
+  buildSectorRingPath,
 } from '../../src/simulator/skia-wind';
 import Svg, {
   Circle as SvgCircle,
@@ -500,6 +502,43 @@ export default function Simulator() {
     return buildApparentArrowPath(bowX, bowY, awaScreenRad);
   }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.awaDeg, boatLength, sim.tickN]);
 
+  // --- Radar cockpit (v1.3): force vectors + point-of-sail halo on the boat ---
+  // Drive (тяга): forward along the bow, length ~ boat speed. Side (бок): to
+  // leeward (perpendicular), length ~ heel. Together they show the core
+  // trade-off the web cockpit teaches: point too high and drive collapses while
+  // the side/heeling force grows.
+  const driveVectorPath = useMemo(() => {
+    const mag = Math.max(0, Math.min(1, sim.boatExt.boatSpeedKn / 7.5));
+    const len = boatLength * 0.6 + mag * boatLength * 1.5;
+    return buildForceVectorPath(sim.boat.x, sim.boat.y, sim.boat.heading, len);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.boatSpeedKn, boatLength, sim.tickN]);
+
+  const sideVectorPath = useMemo(() => {
+    const mag = Math.max(0, Math.min(1, Math.abs(sim.boatExt.heelDeg) / 26));
+    const len = boatLength * 0.32 + mag * boatLength * 1.28;
+    // Leeward side: apparent wind from starboard (awaDeg >= 0) heels/pushes the
+    // boat to port, so the side force points to port (heading - 90 deg).
+    const sideDir =
+      sim.boat.heading + (sim.boatExt.awaDeg >= 0 ? -Math.PI / 2 : Math.PI / 2);
+    return buildForceVectorPath(sim.boat.x, sim.boat.y, sideDir, len);
+  }, [sim.boat.x, sim.boat.y, sim.boat.heading, sim.boatExt.heelDeg, sim.boatExt.awaDeg, boatLength, sim.tickN]);
+
+  // Points-of-sail halo: the same sectors as the corner rose, but drawn as an
+  // annular band around the boat (anchored on the true-wind direction) so the
+  // top view reads as a radar - the boat sits inside its point-of-sail band.
+  const sectorHaloPaths = useMemo(() => {
+    const haloRi = boatLength * 1.5;
+    const haloRo = boatLength * 2.1;
+    const twd = (sim.wind.trueWindDirRad * 180) / Math.PI;
+    return ROSE_SECTORS.map((s) => ({
+      id: s.id,
+      tint: s.tint,
+      hi: s.hi,
+      stb: buildSectorRingPath(sim.boat.x, sim.boat.y, haloRi, haloRo, twd + s.min, twd + s.max),
+      port: buildSectorRingPath(sim.boat.x, sim.boat.y, haloRi, haloRo, twd - s.max, twd - s.min),
+    }));
+  }, [sim.boat.x, sim.boat.y, sim.wind.trueWindDirRad, boatLength, sim.tickN]);
+
   const autoTrim = sim.controls.autoTrim !== false;
   const mainSheet = sim.controls.mainSheet ?? 0.5;
   const jibSheet = sim.controls.jibSheet ?? 0.4;
@@ -904,6 +943,48 @@ export default function Simulator() {
   const windDisplayWithUnit = `${windDisplay}${windDisplaySuffix}`;
   const trimScore = sim.boatExt.trimScore;
   const trimColor = scoreColor(trimScore);
+  // Cockpit header pill: TRIM% . point-of-sail . tack (mirrors the web V3).
+  // Starboard tack = apparent wind over the starboard side (TWA >= 0).
+  const isStarboardTack = sim.boatExt.twaDeg >= 0;
+  const tackName = isStarboardTack
+    ? tp('ПРАВЫЙ ГАЛС', 'STARBOARD', 'PRAWY HALS', {
+        es: 'ESTRIBOR',
+        fr: 'TRIBORD',
+        de: 'STEUERBORD',
+        it: 'MURA DRITTA',
+      })
+    : tp('ЛЕВЫЙ ГАЛС', 'PORT', 'LEWY HALS', {
+        es: 'BABOR',
+        fr: 'BABORD',
+        de: 'BACKBORD',
+        it: 'MURA SINISTRA',
+      });
+  const cockpitTrimWord = tp('ТРИМ', 'TRIM', 'TRIM', {
+    es: 'TRIM',
+    fr: 'TRIM',
+    de: 'TRIM',
+    it: 'TRIM',
+  });
+  const cockpitPillText = [
+    `${cockpitTrimWord} ${trimScore}%`,
+    pointOfSailName ? pointOfSailName.toUpperCase() : '',
+    tackName,
+  ]
+    .filter(Boolean)
+    .join('  ·  ');
+  // Force-vector legend words (тяга / бок), matching the web cockpit.
+  const driveWord = tp('ТЯГА', 'DRIVE', 'NAPED', {
+    es: 'EMPUJE',
+    fr: 'POUSSEE',
+    de: 'VORTRIEB',
+    it: 'SPINTA',
+  });
+  const sideWord = tp('БОК', 'SIDE', 'BOK', {
+    es: 'LATERAL',
+    fr: 'LATERAL',
+    de: 'SEITE',
+    it: 'LATERALE',
+  });
   const heelOffset = Math.max(-8, Math.min(8, sim.boatExt.heelDeg / 4));
   const showSpinnaker = sim.boatExt.sailSet === 'spinnaker';
   const showTrack = sim.trail.length > 5;
@@ -1249,6 +1330,22 @@ export default function Simulator() {
                   opacity={0.55}
                 />
 
+                {/* Points-of-sail halo (radar band around the boat). The band
+                    the boat sits in is its current point of sail; it brightens
+                    on the active tack side so the top view reads as a cockpit
+                    radar, like the web V3. */}
+                {sectorHaloPaths.map((s) => {
+                  const on = s.id === activeRoseId;
+                  const stbOn = on && isStarboardTack;
+                  const portOn = on && !isStarboardTack;
+                  return (
+                    <Group key={s.id}>
+                      <Path path={s.stb} color={stbOn ? s.hi : s.tint} opacity={stbOn ? 0.85 : 0.4} />
+                      <Path path={s.port} color={portOn ? s.hi : s.tint} opacity={portOn ? 0.85 : 0.4} />
+                    </Group>
+                  );
+                })}
+
                 {/* No-go zone: amber CAUTION sector ("can't point here"), not
                     a red fault. Unified with the luff/no-go-ring caution color. */}
                 <Path
@@ -1289,6 +1386,26 @@ export default function Simulator() {
                   length={boatLength}
                   heelOffsetPx={heelOffset}
                   tickN={sim.tickN}
+                />
+
+                {/* Force vectors on the boat (cockpit): side/heeling force
+                    (бок, amber) under the forward drive (тяга, green), so the
+                    point-too-high trade-off is visible at a glance. */}
+                <Path
+                  path={sideVectorPath}
+                  color={colors.warning}
+                  style="stroke"
+                  strokeWidth={3}
+                  strokeCap="round"
+                  opacity={0.9}
+                />
+                <Path
+                  path={driveVectorPath}
+                  color={colors.success}
+                  style="stroke"
+                  strokeWidth={3.4}
+                  strokeCap="round"
+                  opacity={0.96}
                 />
 
                 <Group
@@ -1402,15 +1519,24 @@ export default function Simulator() {
             <Text allowFontScaling={false} style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
           </Pressable>
 
+          {/* Cockpit hero readout: TRIM% . point-of-sail . tack (the web V3
+              header pill), placed at the bottom where it is unobstructed on a
+              phone, with the raw TWA/AWA/VMG chips beneath it. */}
           <View style={styles.sceneReadout}>
-            {pointOfSailName ? (
-              <Text allowFontScaling={false} style={styles.sceneReadoutPos}>
-                {pointOfSailName.toUpperCase()}
-              </Text>
-            ) : null}
-            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
-            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
-            <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.75}
+              style={[styles.cockpitPill, { maxWidth: sceneW - 20 }]}
+            >
+              {cockpitPillText}
+            </Text>
+            <View style={styles.sceneReadoutRow}>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
+            </View>
           </View>
 
           <View pointerEvents="none" style={styles.mapLegend}>
@@ -1420,6 +1546,22 @@ export default function Simulator() {
                 {`${windMapLabel} ${activeWindModeLabel.toUpperCase()}`}
               </Text>
             </View>
+            {simView === 'top' ? (
+              <>
+                <View style={styles.mapLegendRow}>
+                  <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                  <Text allowFontScaling={false} style={styles.mapLegendText}>
+                    {driveWord.toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.mapLegendRow}>
+                  <View style={[styles.mapLegendDot, { backgroundColor: colors.warning }]} />
+                  <Text allowFontScaling={false} style={styles.mapLegendText}>
+                    {sideWord.toUpperCase()}
+                  </Text>
+                </View>
+              </>
+            ) : null}
             {showTrack ? (
               <View style={styles.mapLegendRow}>
                 <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
@@ -2656,14 +2798,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
+  cockpitPill: {
+    color: colors.textPrimary,
+    backgroundColor: 'rgba(8, 18, 32, 0.9)',
+    borderColor: colors.borderCyanSoft,
+    borderWidth: 1,
+    borderRadius: radii.sm,
+    overflow: 'hidden',
+    paddingHorizontal: 9,
+    paddingVertical: 4,
+    fontSize: 11,
+    fontWeight: '800',
+    letterSpacing: 0.3,
+  },
   sceneReadout: {
     position: 'absolute',
     left: 10,
     bottom: 10,
+    alignItems: 'flex-start',
+    gap: 5,
+  },
+  sceneReadoutRow: {
     flexDirection: 'row',
     gap: spacing.xs,
     flexWrap: 'wrap',
-    maxWidth: 240,
   },
   sceneReadoutPos: {
     color: colors.accentCyan,
