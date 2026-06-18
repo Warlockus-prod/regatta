@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
@@ -13,6 +12,8 @@ const CHAT_WINDOW_MS = 60 * 60 * 1000;
 // Global wallet cap across all users per hour.
 const CHAT_GLOBAL_LIMIT = 200;
 const CHAT_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
+// OpenAI chat model. Override via env (OPENAI_MODEL) without a code change.
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 // ============================================================================
 // AI assistant scoped to this app: yachting / sailing / racing only.
@@ -61,7 +62,11 @@ interface Payload {
 
 export async function POST(req: Request) {
   const started = Date.now();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // OpenAI key. During the Anthropic->OpenAI migration the key may still live
+  // in the old ANTHROPIC_API_KEY var on the server; fall back to it so the
+  // deploy alone restores the bot. Rename the env var to OPENAI_API_KEY when
+  // convenient and drop the fallback.
+  const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     logWarn('ai-chat.no-api-key');
     return NextResponse.json(
@@ -125,51 +130,67 @@ export async function POST(req: Request) {
   };
   const langDirective = `Reply in the user's language: ${LANG_NAME[lang]}.`;
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 25_000);
   try {
-    const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 600,
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_RU,
-          cache_control: { type: 'ephemeral' },
-        },
-        {
-          type: 'text',
-          text: langDirective,
-        },
-      ],
-      messages: truncated,
+    // OpenAI Chat Completions. The system prompt + the per-request language
+    // directive go in a single system message; the conversation turns follow.
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        max_tokens: 600,
+        messages: [
+          { role: 'system', content: `${SYSTEM_RU}\n\n${langDirective}` },
+          ...truncated,
+        ],
+      }),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
 
-    const textBlock = response.content.find((b) => b.type === 'text');
-    // Enforce project typography rule: no em-dash / en-dash anywhere in user-facing text.
-    const raw = textBlock && textBlock.type === 'text' ? textBlock.text : '';
-    const text = raw.replace(/\u2014/g, '-').replace(/\u2013/g, '-');
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      logError('ai-chat.upstream-error', {
+        ms: Date.now() - started,
+        status: response.status,
+        detail: detail.slice(0, 300),
+      });
+      // Never echo upstream detail to the client.
+      return NextResponse.json({ error: 'AI service unavailable' }, { status: 502 });
+    }
+
+    const data = await response.json();
+    const rawText = data?.choices?.[0]?.message?.content ?? '';
+    // Enforce project typography rule: no em-dash / en-dash in user-facing text.
+    const text = String(rawText).replace(/\u2014/g, '-').replace(/\u2013/g, '-');
+    const usage = data?.usage ?? {};
 
     logInfo('ai-chat.success', {
       ms: Date.now() - started,
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      cacheRead: response.usage.cache_read_input_tokens ?? 0,
+      inputTokens: usage.prompt_tokens ?? 0,
+      outputTokens: usage.completion_tokens ?? 0,
     });
 
     return NextResponse.json({
       reply: text,
       usage: {
-        input: response.usage.input_tokens,
-        output: response.usage.output_tokens,
-        cacheRead: response.usage.cache_read_input_tokens ?? 0,
+        input: usage.prompt_tokens ?? 0,
+        output: usage.completion_tokens ?? 0,
+        cacheRead: usage.prompt_tokens_details?.cached_tokens ?? 0,
       },
     });
   } catch (err) {
+    clearTimeout(timer);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logError('ai-chat.exception', {
       ms: Date.now() - started,
       err: msg,
     });
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'AI service unavailable' }, { status: 500 });
   }
 }

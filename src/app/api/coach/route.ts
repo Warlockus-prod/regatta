@@ -1,4 +1,3 @@
-import Anthropic from '@anthropic-ai/sdk';
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
@@ -16,6 +15,8 @@ const COACH_WINDOW_MS = 60 * 60 * 1000;
 // per-sid limit is bypassed by cookie rotation.
 const COACH_GLOBAL_LIMIT = 300;
 const COACH_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
+// OpenAI model. Override via env (OPENAI_MODEL) without a code change.
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
 
 // System prompts per language - cached so repeated requests are cheap.
 // The output JSON field names stay `titleRu / explanationRu / fixRu / nextGoalRu`
@@ -274,7 +275,9 @@ interface RaceLog {
 
 export async function POST(req: Request) {
   const started = Date.now();
-  const apiKey = process.env.ANTHROPIC_API_KEY;
+  // OpenAI key, with a transition fallback to the old ANTHROPIC_API_KEY var so
+  // the deploy alone restores the coach. Rename to OPENAI_API_KEY when convenient.
+  const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
     logWarn('coach.no-api-key');
     return NextResponse.json(
@@ -388,29 +391,47 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
 
 Analyse how the player did. Return ONLY JSON, with no commentary before or after.`;
 
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 28_000);
   try {
-    const client = new Anthropic({ apiKey });
-    const response = await client.messages.create({
-      model: 'claude-haiku-4-5',
-      max_tokens: 1500,
-      system: [
-        {
-          type: 'text',
-          text: SYSTEM_BY_LANG[lang],
-          cache_control: { type: 'ephemeral' },
-        },
-      ],
-      messages: [{ role: 'user', content: userMsg }],
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: OPENAI_MODEL,
+        max_tokens: 1500,
+        response_format: { type: 'json_object' },
+        messages: [
+          { role: 'system', content: SYSTEM_BY_LANG[lang] },
+          { role: 'user', content: userMsg },
+        ],
+      }),
+      signal: controller.signal,
     });
+    clearTimeout(timer);
 
-    const textBlock = response.content.find((b) => b.type === 'text');
-    if (!textBlock || textBlock.type !== 'text') {
-      logError('coach.no-text-response', { ms: Date.now() - started });
-      return NextResponse.json({ error: 'No text response' }, { status: 500 });
+    if (!response.ok) {
+      const detail = await response.text().catch(() => '');
+      logError('coach.upstream-error', {
+        ms: Date.now() - started,
+        status: response.status,
+        detail: detail.slice(0, 300),
+      });
+      return NextResponse.json({ error: 'AI service unavailable', fallback: true }, { status: 502 });
     }
 
-    // Try to parse JSON from response (may include ```json fences)
-    let jsonText = textBlock.text.trim();
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content;
+    if (!content || typeof content !== 'string') {
+      logError('coach.no-text-response', { ms: Date.now() - started });
+      return NextResponse.json({ error: 'No response', fallback: true }, { status: 500 });
+    }
+
+    // json_object mode returns clean JSON; keep the fence-strip as a safety net.
+    let jsonText = content.trim();
     const fence = jsonText.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
     if (fence) jsonText = fence[1];
 
@@ -421,12 +442,9 @@ Analyse how the player did. Return ONLY JSON, with no commentary before or after
       logError('coach.non-json', {
         ms: Date.now() - started,
         err: err instanceof Error ? err.message : 'unknown',
-        rawPreview: textBlock.text.slice(0, 200),
+        rawPreview: content.slice(0, 200),
       });
-      return NextResponse.json({
-        error: 'Model returned non-JSON',
-        raw: textBlock.text,
-      }, { status: 500 });
+      return NextResponse.json({ error: 'Model returned non-JSON', fallback: true }, { status: 500 });
     }
 
     // Enforce typography rule: scrub em-dashes / en-dashes from all string fields.
@@ -451,30 +469,31 @@ Analyse how the player did. Return ONLY JSON, with no commentary before or after
     // and are still emitted by Claude.
     const coaching: Coaching = mirrorCoachKeys(parsed as Coaching);
 
+    const usage = data?.usage ?? {};
     logInfo('coach.success', {
       ms: Date.now() - started,
       score: coaching.score,
       mistakes: coaching.mistakes?.length ?? 0,
-      inputTokens: response.usage.input_tokens,
-      outputTokens: response.usage.output_tokens,
-      cacheRead: response.usage.cache_read_input_tokens ?? 0,
+      inputTokens: usage.prompt_tokens ?? 0,
+      outputTokens: usage.completion_tokens ?? 0,
     });
 
     return NextResponse.json({
       coaching,
       usage: {
-        input: response.usage.input_tokens,
-        output: response.usage.output_tokens,
-        cacheRead: response.usage.cache_read_input_tokens ?? 0,
+        input: usage.prompt_tokens ?? 0,
+        output: usage.completion_tokens ?? 0,
+        cacheRead: usage.prompt_tokens_details?.cached_tokens ?? 0,
       },
     });
   } catch (err) {
+    clearTimeout(timer);
     const msg = err instanceof Error ? err.message : 'Unknown error';
     logError('coach.exception', {
       ms: Date.now() - started,
       err: msg,
       stack: err instanceof Error ? err.stack?.split('\n').slice(0, 3).join(' | ') : undefined,
     });
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: 'AI service unavailable', fallback: true }, { status: 500 });
   }
 }
