@@ -1,31 +1,28 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing } from '../tokens';
-import { getPolar, maxSpeed, pointOfSailAt, speedAtAngle } from '../../courses/polar';
+import { pointOfSailAt } from '../../courses/polar';
 
 interface PointsOfSailDiagramProps {
   size?: number;
+  /** Label shown above the wind arrow ("WIND"). */
   windLabel: string;
-  /** True wind speed, knots. Polar redraws when this changes. */
-  windSpeedKn: number;
-  /** Current heading the boat icon sits at (deg, 0..360 clockwise from wind). */
-  heading: number;
-  /** Called as the user drags. Pass `commit=true` on release for snap + haptic. */
-  onHeadingChange: (heading: number, commit: boolean) => void;
-  /** Cardinal labels shown around the rim. English convention (N/E/S/W). */
-  cardinalLabels: { N: string; E: string; S: string; W: string };
+  /** Currently selected point-of-sail id (its sector lights up). */
+  activeId: string | null;
+  /** Tap a sector to select it. */
+  onSelect: (id: string) => void;
   /** Localized point-of-sail names by id, shown around the rim (like the web). */
-  sectorLabels?: { id: string; name: string }[];
-  /** Port / starboard captions shown along the bottom. */
+  sectorLabels: { id: string; name: string }[];
+  /** Port / starboard captions along the bottom. */
   tackLabels?: { port: string; starboard: string };
 }
 
-// Midpoint angle (deg off the wind) of each point-of-sail sector, for placing
-// the course name + boat glyph. Mirrors the colored sector wedges below.
+// Midpoint angle (deg off the wind) of each point-of-sail sector, for placing the
+// course name + boat glyph. Mirrors the colored sector wedges.
 const SECTOR_MIDS: Record<string, number> = {
   'in-irons': 0,
   'close-hauled': 45,
@@ -34,61 +31,42 @@ const SECTOR_MIDS: Record<string, number> = {
   running: 172,
 };
 
+// Sector wedges by |TWA|. Static, like the web Points-of-Sail wheel: colored
+// zones (no polar/VPP curve, no speed rings). Tints chosen to read clearly on
+// the dark-ocean bg - red no-go, amber close-hauled, cyan reaches, green run.
+const SECTOR_META: { id: string; min: number; max: number; tint: string; hi: string }[] = [
+  { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 80, 80, 0.18)', hi: 'rgba(255, 96, 96, 0.34)' },
+  { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 176, 48, 0.16)', hi: 'rgba(255, 190, 80, 0.34)' },
+  { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(64, 220, 255, 0.18)', hi: 'rgba(96, 230, 255, 0.36)' },
+  { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(96, 170, 255, 0.18)', hi: 'rgba(128, 196, 255, 0.36)' },
+  { id: 'running', min: 160, max: 180, tint: 'rgba(72, 230, 150, 0.20)', hi: 'rgba(104, 240, 176, 0.38)' },
+];
+
 export function PointsOfSailDiagram({
   size = 300,
   windLabel,
-  windSpeedKn,
-  heading,
-  onHeadingChange,
-  cardinalLabels,
+  activeId,
+  onSelect,
   sectorLabels,
   tackLabels,
 }: PointsOfSailDiagramProps) {
   const cx = size / 2;
   const cy = size / 2;
-  const outerR = size * 0.39;
+  const outerR = size * 0.34;
 
-  const polar = useMemo(() => getPolar(windSpeedKn), [windSpeedKn]);
-  const peak = useMemo(() => Math.max(0.01, maxSpeed(polar)), [polar]);
-
-  const polarPath = useMemo(() => {
-    const p = Skia.Path.Make();
-    const ringR = outerR;
-    const toXY = (twa: number, kn: number) => {
-      const r = (kn / peak) * ringR;
-      const rad = ((twa - 90) * Math.PI) / 180;
-      return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
-    };
-    const first = polar.samples[0];
-    if (!first) return p;
-    const stbStart = toXY(first.twa, first.knots);
-    p.moveTo(stbStart.x, stbStart.y);
-    for (let i = 1; i < polar.samples.length; i++) {
-      const s = polar.samples[i]!;
-      const xy = toXY(s.twa, s.knots);
-      p.lineTo(xy.x, xy.y);
-    }
-    for (let i = polar.samples.length - 1; i >= 0; i--) {
-      const s = polar.samples[i]!;
-      const mirroredTwa = 360 - s.twa;
-      const xy = toXY(mirroredTwa, s.knots);
-      p.lineTo(xy.x, xy.y);
-    }
-    p.close();
-    return p;
-  }, [polar, peak, cx, cy, outerR]);
+  const sectorPaths = useMemo(
+    () =>
+      SECTOR_META.map((s) => ({
+        ...s,
+        stb: wedgePath(cx, cy, outerR, s.min, s.max),
+        port: wedgePath(cx, cy, outerR, -s.max, -s.min),
+      })),
+    [cx, cy, outerR],
+  );
 
   const ringPath = useMemo(() => {
     const p = Skia.Path.Make();
     p.addCircle(cx, cy, outerR);
-    return p;
-  }, [cx, cy, outerR]);
-
-  const innerRingPath = useMemo(() => {
-    const p = Skia.Path.Make();
-    for (const f of [0.25, 0.5, 0.75]) {
-      p.addCircle(cx, cy, outerR * f);
-    }
     return p;
   }, [cx, cy, outerR]);
 
@@ -98,29 +76,10 @@ export function PointsOfSailDiagram({
       const rad = ((deg - 90) * Math.PI) / 180;
       const isCardinal = deg % 90 === 0;
       const inner = outerR - (isCardinal ? 12 : 6);
-      const x1 = cx + inner * Math.cos(rad);
-      const y1 = cy + inner * Math.sin(rad);
-      const x2 = cx + outerR * Math.cos(rad);
-      const y2 = cy + outerR * Math.sin(rad);
-      p.moveTo(x1, y1);
-      p.lineTo(x2, y2);
+      p.moveTo(cx + inner * Math.cos(rad), cy + inner * Math.sin(rad));
+      p.lineTo(cx + outerR * Math.cos(rad), cy + outerR * Math.sin(rad));
     }
     return p;
-  }, [cx, cy, outerR]);
-
-  const sectorPaths = useMemo(() => {
-    const sectorMeta: { id: string; min: number; max: number; tint: string }[] = [
-      { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 68, 68, 0.08)' },
-      { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 170, 0, 0.08)' },
-      { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(0, 212, 255, 0.08)' },
-      { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(0, 212, 255, 0.12)' },
-      { id: 'running', min: 160, max: 180, tint: 'rgba(68, 255, 136, 0.12)' },
-    ];
-    return sectorMeta.map((s) => {
-      const stb = wedgePath(cx, cy, outerR, s.min, s.max);
-      const port = wedgePath(cx, cy, outerR, -s.max, -s.min);
-      return { ...s, stb, port };
-    });
   }, [cx, cy, outerR]);
 
   const windArrowPath = useMemo(() => {
@@ -135,12 +94,8 @@ export function PointsOfSailDiagram({
     return p;
   }, [cx, cy, outerR]);
 
-  const boatSpeed = useMemo(() => speedAtAngle(polar, heading), [polar, heading]);
-  const boatRingR = useMemo(() => {
-    const norm = boatSpeed / peak;
-    return outerR * Math.max(0.05, Math.min(1, norm));
-  }, [boatSpeed, peak, outerR]);
-
+  // A small boat glyph (pointing down its sector's heading) in each sector, both
+  // tacks - "there is a boat sailing this course", like the web.
   const boatPath = useMemo(() => {
     const p = Skia.Path.Make();
     p.moveTo(0, -10);
@@ -151,69 +106,60 @@ export function PointsOfSailDiagram({
     return p;
   }, []);
 
-  const lastCommitRef = useRef(heading);
-  useEffect(() => {
-    lastCommitRef.current = heading;
-  }, [heading]);
-
-  const pan = useMemo(
-    () =>
-      Gesture.Pan()
-        .runOnJS(true)
-        .minDistance(0)
-        .onBegin((e) => {
-          Haptics.selectionAsync().catch(() => {});
-          onHeadingChange(angleFromTouch(e.x, e.y, cx, cy), false);
-        })
-        .onChange((e) => {
-          onHeadingChange(angleFromTouch(e.x, e.y, cx, cy), false);
-        })
-        .onEnd((e) => {
-          const raw = angleFromTouch(e.x, e.y, cx, cy);
-          const snapped = Math.round(raw / 5) * 5;
-          if (snapped !== lastCommitRef.current) {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
-          }
-          onHeadingChange(snapped, true);
-        }),
-    [cx, cy, onHeadingChange],
-  );
-
-  const headingRad = ((heading - 90) * Math.PI) / 180;
-  const boatX = cx + boatRingR * Math.cos(headingRad);
-  const boatY = cy + boatRingR * Math.sin(headingRad);
-
-  const cardinalPositions: { label: string; x: number; y: number }[] = useMemo(() => {
-    const r = outerR + 18;
-    return [
-      { label: cardinalLabels.N, x: cx, y: cy - r },
-      { label: cardinalLabels.E, x: cx + r, y: cy },
-      { label: cardinalLabels.S, x: cx, y: cy + r },
-      { label: cardinalLabels.W, x: cx - r, y: cy },
-    ];
-  }, [cx, cy, outerR, cardinalLabels]);
-
-  const activeSectorId = pointOfSailAt(heading);
-
-  // Course names placed around the rim at each sector midpoint, mirrored on both
-  // tacks (in-irons sits once inside the top no-go sector, like the web).
-  const sectorNamePositions = useMemo(() => {
-    if (!sectorLabels) return [];
-    const r = outerR + 30;
-    const out: { key: string; name: string; x: number; y: number; muted: boolean }[] = [];
-    for (const s of sectorLabels) {
+  const sectorBoats = useMemo(() => {
+    const r = outerR * 0.66;
+    const out: { key: string; x: number; y: number; rot: number; id: string }[] = [];
+    for (const s of SECTOR_META) {
       const mid = SECTOR_MIDS[s.id];
-      if (mid === undefined) continue;
-      if (mid === 0) {
-        out.push({ key: s.id, name: s.name, x: cx, y: cy - outerR * 0.56, muted: true });
+      if (mid === undefined || mid === 0) continue;
+      for (const sign of [1, -1] as const) {
+        const deg = sign * mid;
+        const rad = ((deg - 90) * Math.PI) / 180;
+        out.push({
+          key: `b-${s.id}-${sign}`,
+          id: s.id,
+          x: cx + r * Math.cos(rad),
+          y: cy + r * Math.sin(rad),
+          rot: (deg * Math.PI) / 180,
+        });
+      }
+    }
+    return out;
+  }, [cx, cy, outerR]);
+
+  // Course names around the rim at each sector midpoint, mirrored on both tacks
+  // (in-irons sits once inside the top no-go sector, like the web).
+  const sectorNamePositions = useMemo(() => {
+    const r = outerR + 20;
+    const pad = 14;
+    const maxX = cx * 2 - pad;
+    // Label angles fanned out from the sector mids so the rim names sit like the
+    // web (close-hauled / beam / broad / run spread evenly, not bunched at the
+    // bottom or clipped at the horizontal edges).
+    const labelMid: Record<string, number> = {
+      'close-hauled': 48,
+      'beam-reach': 90,
+      'broad-reach': 132,
+      running: 158,
+    };
+    const byId = new Map(sectorLabels.map((s) => [s.id, s.name]));
+    const out: { key: string; name: string; x: number; y: number; muted: boolean }[] = [];
+    for (const s of SECTOR_META) {
+      const name = byId.get(s.id);
+      if (!name) continue;
+      if (s.id === 'in-irons') {
+        out.push({ key: s.id, name, x: cx, y: cy - outerR * 0.56, muted: true });
         continue;
       }
+      const mid = labelMid[s.id];
+      if (mid === undefined) continue;
       for (const sign of [1, -1] as const) {
         const rad = ((sign * mid - 90) * Math.PI) / 180;
+        const x = Math.max(pad, Math.min(maxX, cx + r * Math.cos(rad)));
         out.push({
           key: `${s.id}-${sign}`,
-          name: s.name,
-          x: cx + r * Math.cos(rad),
+          name,
+          x,
           y: cy + r * Math.sin(rad),
           muted: false,
         });
@@ -222,121 +168,51 @@ export function PointsOfSailDiagram({
     return out;
   }, [sectorLabels, cx, cy, outerR]);
 
-  // Small boat glyph in each sector (both tacks) - shows there is a boat sailing
-  // that course, like the web diagram.
-  const sectorBoats = useMemo(() => {
-    if (!sectorLabels) return [];
-    const r = outerR * 0.66;
-    const out: { key: string; x: number; y: number; rot: number }[] = [];
-    for (const s of sectorLabels) {
-      const mid = SECTOR_MIDS[s.id];
-      if (mid === undefined || mid === 0) continue;
-      for (const sign of [1, -1] as const) {
-        const deg = sign * mid;
-        const rad = ((deg - 90) * Math.PI) / 180;
-        out.push({
-          key: `b-${s.id}-${sign}`,
-          x: cx + r * Math.cos(rad),
-          y: cy + r * Math.sin(rad),
-          rot: (deg * Math.PI) / 180,
-        });
-      }
-    }
-    return out;
-  }, [sectorLabels, cx, cy, outerR]);
+  // Tap a sector to select it (replaces the old drag-to-steer polar).
+  const tap = useMemo(
+    () =>
+      Gesture.Tap()
+        .runOnJS(true)
+        .onEnd((e) => {
+          const id = pointOfSailAt(angleFromTouch(e.x, e.y, cx, cy));
+          Haptics.selectionAsync().catch(() => {});
+          onSelect(id);
+        }),
+    [cx, cy, onSelect],
+  );
 
   return (
     <View style={[styles.wrap, { width: size, height: size + 52 }]}>
-      <GestureDetector gesture={pan}>
+      <GestureDetector gesture={tap}>
         <View style={[styles.canvasBox, { width: size, height: size }]}>
           <Canvas style={{ width: size, height: size }}>
             <Group>
               {sectorPaths.map((s) => {
-                const isActive = s.id === activeSectorId;
-                const tint = isActive ? boostAlpha(s.tint, 1.6) : s.tint;
+                const on = s.id === activeId;
+                const fill = on ? s.hi : s.tint;
                 return (
                   <Group key={s.id}>
-                    <Path path={s.stb} color={tint} />
-                    <Path path={s.port} color={tint} />
+                    <Path path={s.stb} color={fill} />
+                    <Path path={s.port} color={fill} />
                   </Group>
                 );
               })}
-              <Path
-                path={ringPath}
-                color={colors.borderCyanSoft}
-                style="stroke"
-                strokeWidth={1}
-              />
-              <Path
-                path={innerRingPath}
-                color={'rgba(0, 212, 255, 0.10)'}
-                style="stroke"
-                strokeWidth={1}
-              />
-              <Path
-                path={tickPath}
-                color={'rgba(232, 244, 248, 0.30)'}
-                style="stroke"
-                strokeWidth={1}
-              />
-              <Path
-                path={polarPath}
-                color={colors.accentCyan}
-                style="stroke"
-                strokeWidth={2}
-                strokeJoin="round"
-                opacity={0.95}
-              />
-              <Path
-                path={polarPath}
-                color={colors.accentCyan}
-                style="stroke"
-                strokeWidth={6}
-                strokeJoin="round"
-                opacity={0.18}
-              />
-              <Path
-                path={windArrowPath}
-                color={colors.windColor}
-                style="stroke"
-                strokeWidth={2.5}
-                strokeCap="round"
-                strokeJoin="round"
-              />
-              <Path
-                path={ringPath}
-                color={colors.borderCyanStrong}
-                style="stroke"
-                strokeWidth={1.5}
-              />
+              <Path path={tickPath} color={'rgba(232, 244, 248, 0.30)'} style="stroke" strokeWidth={1} />
+              <Path path={windArrowPath} color={colors.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
+              <Path path={ringPath} color={colors.borderCyanStrong} style="stroke" strokeWidth={1.5} />
               {sectorBoats.map((b) => (
                 <Group
                   key={b.key}
-                  transform={[
-                    { translateX: b.x },
-                    { translateY: b.y },
-                    { rotate: b.rot },
-                    { scale: 0.62 },
-                  ]}
+                  transform={[{ translateX: b.x }, { translateY: b.y }, { rotate: b.rot }, { scale: 0.66 }]}
                 >
                   <Path
                     path={boatPath}
-                    color={'rgba(232, 244, 248, 0.42)'}
+                    color={b.id === activeId ? colors.accentCyan : 'rgba(232, 244, 248, 0.5)'}
                     style="stroke"
                     strokeWidth={1.8}
                   />
                 </Group>
               ))}
-              <Group transform={[{ translateX: boatX }, { translateY: boatY }, { rotate: (heading * Math.PI) / 180 }]}>
-                <Path path={boatPath} color={colors.accentCyan} opacity={0.95} />
-                <Path
-                  path={boatPath}
-                  color={colors.sailColor}
-                  style="stroke"
-                  strokeWidth={1.2}
-                  opacity={0.9}
-                />
-              </Group>
             </Group>
           </Canvas>
         </View>
@@ -347,11 +223,9 @@ export function PointsOfSailDiagram({
         cy={cy}
         outerR={outerR}
         windLabel={windLabel}
-        cardinalPositions={cardinalPositions}
         sectorNamePositions={sectorNamePositions}
         tackLabels={tackLabels}
       />
-      <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" />
     </View>
   );
 }
@@ -362,7 +236,6 @@ function DiagramLabels({
   cy,
   outerR,
   windLabel,
-  cardinalPositions,
   sectorNamePositions,
   tackLabels,
 }: {
@@ -371,12 +244,10 @@ function DiagramLabels({
   cy: number;
   outerR: number;
   windLabel: string;
-  cardinalPositions: { label: string; x: number; y: number }[];
   sectorNamePositions: { key: string; name: string; x: number; y: number; muted: boolean }[];
   tackLabels?: { port: string; starboard: string };
 }) {
   const h = size + 44;
-  const hasNames = sectorNamePositions.length > 0;
   return (
     <View pointerEvents="none" style={[styles.svgOverlay, { width: size, height: h }]}>
       <Svg width={size} height={h}>
@@ -391,50 +262,26 @@ function DiagramLabels({
         >
           {windLabel.toUpperCase()}
         </SvgText>
-        {/* Course names around the rim replace the N/E/S/W cardinals when given. */}
-        {hasNames
-          ? sectorNamePositions.map((c) => (
-              <SvgText
-                key={c.key}
-                x={c.x}
-                y={c.y + 4}
-                fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
-                fontSize={10}
-                fontWeight="700"
-                textAnchor="middle"
-              >
-                {c.name}
-              </SvgText>
-            ))
-          : cardinalPositions.map((c) => (
-              <SvgText
-                key={c.label}
-                x={c.x}
-                y={c.y + 4}
-                fill={colors.textSecondary}
-                fontSize={11}
-                fontWeight="700"
-                textAnchor="middle"
-                letterSpacing={1}
-              >
-                {c.label}
-              </SvgText>
-            ))}
+        {sectorNamePositions.map((c) => (
+          <SvgText
+            key={c.key}
+            x={c.x}
+            y={c.y + 4}
+            fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
+            fontSize={10}
+            fontWeight="700"
+            textAnchor="middle"
+          >
+            {c.name}
+          </SvgText>
+        ))}
         {[30, 60, 90, 120, 150, 210, 240, 270, 300, 330].map((deg) => {
           const rad = ((deg - 90) * Math.PI) / 180;
           const r = outerR + 14;
           const x = cx + r * Math.cos(rad);
           const y = cy + r * Math.sin(rad) + 3;
           return (
-            <SvgText
-              key={deg}
-              x={x}
-              y={y}
-              fill={colors.textMuted}
-              fontSize={9}
-              fontWeight="500"
-              textAnchor="middle"
-            >
+            <SvgText key={deg} x={x} y={y} fill={colors.textMuted} fontSize={9} fontWeight="500" textAnchor="middle">
               {`${deg}`}
             </SvgText>
           );
@@ -496,16 +343,6 @@ function wedgePath(cx: number, cy: number, r: number, minDeg: number, maxDeg: nu
   }
   p.close();
   return p;
-}
-
-function boostAlpha(rgba: string, factor: number): string {
-  const m = rgba.match(/rgba\(([^,]+),([^,]+),([^,]+),([^)]+)\)/);
-  if (!m) return rgba;
-  const r = m[1]!.trim();
-  const g = m[2]!.trim();
-  const b = m[3]!.trim();
-  const a = Math.min(0.9, parseFloat(m[4]!) * factor);
-  return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
 
 const styles = StyleSheet.create({
