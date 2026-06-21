@@ -132,7 +132,7 @@ export default function Anatomy() {
       es: 'Yate de regatas moderno - vista cenital.',
       fr: 'Yacht de regate moderne - vue de dessus.',
       de: 'Moderne Regattayacht - Blick von oben.',
-      it: 'Yacht da regata moderno - vista dallalto.',
+      it: 'Yacht da regata moderno - vista dall\'alto.',
     },
   );
 

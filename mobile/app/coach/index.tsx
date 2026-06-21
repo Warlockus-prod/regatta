@@ -150,14 +150,14 @@ export default function Coach() {
     it: 'Coach IA',
   });
   const loadingLabel = tp(
-    'Тренер анализирует гонку…',
-    'Coach is analysing the race…',
-    'Trener analizuje wyscig…',
+    'Тренер анализирует гонку...',
+    'Coach is analysing the race...',
+    'Trener analizuje wyscig...',
     {
-      es: 'El coach analiza la regata…',
-      fr: 'Le coach analyse la course…',
-      de: 'Der Coach analysiert das Rennen…',
-      it: 'Il coach analizza la gara…',
+      es: 'El coach analiza la regata...',
+      fr: 'Le coach analyse la course...',
+      de: 'Der Coach analysiert das Rennen...',
+      it: 'Il coach analizza la gara...',
     },
   );
   const errorTitle = tp(

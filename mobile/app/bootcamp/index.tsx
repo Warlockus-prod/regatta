@@ -172,7 +172,7 @@ export default function BootcampIndex() {
                       </View>
                       {completed ? (
                         <View style={styles.checkBadge}>
-                          <Text style={styles.checkText}>OK</Text>
+                          <Icon name="check" size={14} color={colors.success} />
                         </View>
                       ) : null}
                     </View>

@@ -58,10 +58,12 @@ const SCORE_TIER_COLOR: Record<ScoreTier, string> = {
 };
 
 function formatTime(sec: number): string {
-  const s = Math.max(0, Math.round(sec));
-  const m = Math.floor(s / 60);
-  const r = s % 60;
-  return `${m}:${r.toString().padStart(2, '0')}`;
+  // m:ss.x with tenths, matching the web - distinct web times must not collapse.
+  const tenths = Math.max(0, Math.round(sec * 10));
+  const m = Math.floor(tenths / 600);
+  const r = Math.floor((tenths % 600) / 10);
+  const t = tenths % 10;
+  return `${m}:${r.toString().padStart(2, '0')}.${t}`;
 }
 
 export default function Leaderboard() {
