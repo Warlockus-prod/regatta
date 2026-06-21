@@ -275,9 +275,7 @@ interface RaceLog {
 
 export async function POST(req: Request) {
   const started = Date.now();
-  // OpenAI key, with a transition fallback to the old ANTHROPIC_API_KEY var so
-  // the deploy alone restores the coach. Rename to OPENAI_API_KEY when convenient.
-  const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     logWarn('coach.no-api-key');
     return NextResponse.json(

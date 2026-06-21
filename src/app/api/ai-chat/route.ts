@@ -62,11 +62,7 @@ interface Payload {
 
 export async function POST(req: Request) {
   const started = Date.now();
-  // OpenAI key. During the Anthropic->OpenAI migration the key may still live
-  // in the old ANTHROPIC_API_KEY var on the server; fall back to it so the
-  // deploy alone restores the bot. Rename the env var to OPENAI_API_KEY when
-  // convenient and drop the fallback.
-  const apiKey = process.env.OPENAI_API_KEY || process.env.ANTHROPIC_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) {
     logWarn('ai-chat.no-api-key');
     return NextResponse.json(
