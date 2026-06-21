@@ -304,6 +304,7 @@ const styles = StyleSheet.create({
   itemRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
+    minHeight: 44,
     paddingVertical: spacing.xs,
     borderRadius: radii.sm,
   },

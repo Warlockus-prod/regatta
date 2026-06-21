@@ -1071,12 +1071,14 @@ const styles = StyleSheet.create({
   },
   resultButton: {
     flex: 1,
+    minHeight: 44,
     backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   resultButtonPrimary: {
     backgroundColor: colors.accentCyan,

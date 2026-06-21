@@ -2742,9 +2742,12 @@ const styles = StyleSheet.create({
   resetButton: {
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
+    minHeight: 44,
     borderRadius: radii.sm,
     borderColor: 'rgba(232, 244, 248, 0.20)',
     borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   resetPressed: {
     backgroundColor: colors.bgCard,
@@ -2977,7 +2980,9 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: radii.pill,
     minWidth: 76,
+    minHeight: 44,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   modeChipActive: {
     backgroundColor: colors.surfaceCyanSoft,
@@ -3002,6 +3007,7 @@ const styles = StyleSheet.create({
   },
   viewChip: {
     minWidth: 82,
+    minHeight: 44,
     paddingHorizontal: spacing.md,
     paddingVertical: 7,
     borderRadius: radii.sm,
@@ -3009,6 +3015,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   viewChipActive: {
     backgroundColor: 'rgba(232, 244, 248, 0.10)',
@@ -3034,6 +3041,7 @@ const styles = StyleSheet.create({
   },
   windModeChip: {
     minWidth: 76,
+    minHeight: 44,
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radii.pill,
@@ -3041,6 +3049,7 @@ const styles = StyleSheet.create({
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   windModeChipActive: {
     backgroundColor: 'rgba(0, 229, 255, 0.10)',
@@ -3242,10 +3251,13 @@ const styles = StyleSheet.create({
   pickerChip: {
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
+    minHeight: 44,
     borderRadius: radii.sm,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     backgroundColor: 'rgba(10, 22, 40, 0.62)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   pickerChipActive: {
     borderColor: colors.borderCyanStrong,

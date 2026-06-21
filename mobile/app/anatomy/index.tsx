@@ -762,6 +762,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   chip: {
+    minHeight: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radii.pill,
