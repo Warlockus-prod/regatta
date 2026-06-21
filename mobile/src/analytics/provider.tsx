@@ -2,6 +2,7 @@ import Constants from 'expo-constants';
 import PostHog, { PostHogProvider } from 'posthog-react-native';
 import { type ReactNode, useEffect, useMemo } from 'react';
 import { useI18n } from '../i18n/context';
+import { useAnalyticsConsent } from '../persistence/analytics-consent';
 import { AnalyticsClientContext } from './context';
 import { analyticsEnabled, posthogApiKey, posthogHost } from './config';
 
@@ -24,6 +25,7 @@ import { analyticsEnabled, posthogApiKey, posthogHost } from './config';
  */
 export function AnalyticsProvider({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
+  const { enabled: analyticsConsent, ready: consentReady } = useAnalyticsConsent();
 
   const client = useMemo(() => {
     if (!analyticsEnabled) return null;
@@ -47,6 +49,19 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       app_version: Constants.expoConfig?.version ?? 'unknown',
     });
   }, [client, lang]);
+
+  // Honor the user's opt-out. PostHog persists its own opt-out state, so a
+  // returning opted-out user is suppressed even before this runs; we re-assert
+  // the stored choice once it is read so the two layers always agree.
+  useEffect(() => {
+    if (!client || !consentReady) return;
+    try {
+      if (analyticsConsent) client.optIn();
+      else client.optOut();
+    } catch {
+      /* best-effort; never break mount over an analytics toggle */
+    }
+  }, [client, consentReady, analyticsConsent]);
 
   if (!client) {
     return (

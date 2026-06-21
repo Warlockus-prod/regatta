@@ -9,9 +9,12 @@ import {
   ScrollView,
   Share,
   StyleSheet,
+  Switch,
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAnalyticsConsent } from '../src/persistence/analytics-consent';
+import { useAnalyticsClient } from '../src/analytics/context';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
 import { Button, Card, Icon, Screen, Text, Wordmark } from '../src/design-system/components';
@@ -129,28 +132,44 @@ export default function Settings() {
     },
   );
 
-  const telemetryLabel = tp(
-    'Телеметрия: выкл',
-    'Telemetry: off',
-    'Telemetria: wylaczona',
+  const analyticsLabel = tp(
+    'Анонимная аналитика',
+    'Anonymous analytics',
+    'Anonimowa analityka',
     {
-      es: 'Telemetria: desactivada',
-      fr: 'Telemetrie : desactivee',
-      de: 'Telemetrie: aus',
-      it: 'Telemetria: disattivata',
+      es: 'Analitica anonima',
+      fr: 'Analyse anonyme',
+      de: 'Anonyme Analyse',
+      it: 'Analisi anonima',
     },
   );
 
-  const telemetryHelp = tp(
-    'В этой версии телеметрия отключена. Переключатель появится в будущих сборках.',
-    'Telemetry is disabled in this build. A toggle will appear in a future version.',
-    'Telemetria jest wylaczona w tej wersji. Przelacznik pojawi sie w przyszlych wydaniach.',
+  const analyticsHelp = tp(
+    'Помогает улучшать приложение: просмотры экранов и события гонки, без привязки к вам и без межсервисного трекинга. Можно выключить в любой момент.',
+    'Helps improve the app: screen views and race events, not linked to you and never used for cross-app tracking. You can turn it off anytime.',
+    'Pomaga ulepszac aplikacje: odslony ekranow i zdarzenia wyscigu, bez powiazania z Toba i bez sledzenia miedzy aplikacjami. Mozesz to wylaczyc w kazdej chwili.',
     {
-      es: 'La telemetria esta desactivada en esta version. Habra un interruptor en una futura compilacion.',
-      fr: 'La telemetrie est desactivee dans cette version. Un commutateur arrivera dans une future build.',
-      de: 'Telemetrie ist in dieser Version deaktiviert. Ein Schalter folgt in einem spaeteren Build.',
-      it: 'La telemetria e disattivata in questa versione. Un interruttore arrivera in una build futura.',
+      es: 'Ayuda a mejorar la app: vistas de pantalla y eventos de regata, sin vincularse a ti ni rastreo entre apps. Puedes desactivarlo cuando quieras.',
+      fr: 'Aide a ameliorer l\'app : vues d\'ecran et evenements de course, sans lien avec vous ni suivi entre applications. Vous pouvez le desactiver a tout moment.',
+      de: 'Hilft, die App zu verbessern: Bildschirmaufrufe und Rennereignisse, nicht mit Ihnen verknuepft und kein App-uebergreifendes Tracking. Jederzeit abschaltbar.',
+      it: 'Aiuta a migliorare l\'app: visualizzazioni delle schermate ed eventi di gara, senza legami con te ne tracciamento tra app. Puoi disattivarlo quando vuoi.',
     },
+  );
+
+  const { enabled: analyticsOn, ready: analyticsReady, setEnabled: setAnalyticsOn } =
+    useAnalyticsConsent();
+  const analyticsClient = useAnalyticsClient();
+  const toggleAnalytics = useCallback(
+    (next: boolean) => {
+      setAnalyticsOn(next);
+      try {
+        if (next) analyticsClient?.optIn();
+        else analyticsClient?.optOut();
+      } catch {
+        /* best-effort; the stored choice is the source of truth */
+      }
+    },
+    [analyticsClient, setAnalyticsOn],
   );
 
   const supportHint = tp(
@@ -300,15 +319,23 @@ export default function Settings() {
               <Text variant="accent" style={styles.chevron}>{'>'}</Text>
             </View>
           </Card>
-          <Card
-            style={styles.privacyCard}
-            accessibilityLabel={telemetryLabel}
-          >
-            <View style={styles.privacyText}>
-              <Text variant="subtitle">{telemetryLabel}</Text>
-              <Text variant="caption" style={styles.privacyHint}>
-                {telemetryHelp}
-              </Text>
+          <Card style={styles.privacyCard} accessibilityLabel={analyticsLabel}>
+            <View style={styles.privacyRow}>
+              <View style={styles.privacyText}>
+                <Text variant="subtitle">{analyticsLabel}</Text>
+                <Text variant="caption" style={styles.privacyHint}>
+                  {analyticsHelp}
+                </Text>
+              </View>
+              <Switch
+                value={analyticsOn}
+                onValueChange={toggleAnalytics}
+                disabled={!analyticsReady}
+                trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
+                thumbColor={colors.textPrimary}
+                ios_backgroundColor={colors.bgCardHover}
+                accessibilityLabel={analyticsLabel}
+              />
             </View>
           </Card>
         </View>
@@ -1188,26 +1215,30 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   });
 
   const intro = tp(
-    'Week to Regatta уважает вашу приватность. Это приложение не отслеживает вас и не собирает персональные данные.',
-    'Week to Regatta respects your privacy. This app does not track you and does not collect personal data.',
-    'Week to Regatta szanuje Twoja prywatnosc. Aplikacja nie sledzi uzytkownikow ani nie zbiera danych osobowych.',
+    'Week to Regatta уважает вашу приватность. Приложение не отслеживает вас между сервисами и не собирает данные, которые вас идентифицируют.',
+    'Week to Regatta respects your privacy. The app does not track you across services and does not collect data that identifies you personally.',
+    'Week to Regatta szanuje Twoja prywatnosc. Aplikacja nie sledzi Cie miedzy uslugami i nie zbiera danych, ktore Cie identyfikuja.',
     {
-      es: 'Week to Regatta respeta tu privacidad. Esta app no te rastrea y no recopila datos personales.',
-      fr: 'Week to Regatta respecte votre vie privee. Cette application ne vous suit pas et ne collecte aucune donnee personnelle.',
-      de: 'Week to Regatta respektiert Ihre Privatsphaere. Diese App verfolgt Sie nicht und sammelt keine personenbezogenen Daten.',
-      it: 'Week to Regatta rispetta la tua privacy. Questa app non ti traccia e non raccoglie dati personali.',
+      es: 'Week to Regatta respeta tu privacidad. La app no te rastrea entre servicios y no recopila datos que te identifiquen personalmente.',
+      fr: 'Week to Regatta respecte votre vie privee. L\'application ne vous suit pas entre services et ne collecte pas de donnees qui vous identifient personnellement.',
+      de: 'Week to Regatta respektiert Ihre Privatsphaere. Die App verfolgt Sie nicht ueber Dienste hinweg und sammelt keine Daten, die Sie persoenlich identifizieren.',
+      it: 'Week to Regatta rispetta la tua privacy. L\'app non ti traccia tra servizi e non raccoglie dati che ti identificano personalmente.',
     },
   );
 
+  // Honest disclosure of the anonymous PostHog product analytics that the app
+  // actually ships (key in app.json -> analyticsEnabled true). Matches the
+  // ASC App Privacy label "Data Collected: Analytics / Product Interaction,
+  // not linked to identity, not used for tracking" and NSPrivacyTracking=false.
   const noAnalytics = tp(
-    'Никакие данные не отправляются во внешние аналитические сервисы из мобильного приложения. Telemetry: off в этой версии.',
-    'No data is sent to external analytics services from the mobile app. Telemetry is off in this build.',
-    'Aplikacja nie wysyla zadnych danych do zewnetrznych uslug analitycznych. Telemetria w tej wersji jest wylaczona.',
+    'Приложение отправляет анонимную продуктовую аналитику в PostHog: просмотры экранов и ключевые события (например, старт и финиш гонки), помеченные языком и версией приложения. Эти данные не привязаны к вашей личности и никогда не используются для межсервисного трекинга.',
+    'The app sends anonymous product analytics to PostHog: screen views and key events (such as race start and finish), tagged with your app language and version. This data is not linked to your identity and is never used for cross-app tracking.',
+    'Aplikacja wysyla anonimowa analityke produktowa do PostHog: odslony ekranow i kluczowe zdarzenia (np. start i meta wyscigu), oznaczone jezykiem i wersja aplikacji. Te dane nie sa powiazane z Twoja tozsamoscia i nigdy nie sluza do sledzenia miedzy aplikacjami.',
     {
-      es: 'La app no envia datos a servicios de analitica externos. La telemetria esta desactivada en esta version.',
-      fr: 'Lapplication nenvoie aucune donnee a des services danalyse externes. La telemetrie est desactivee dans cette build.',
-      de: 'Es werden keine Daten an externe Analysedienste gesendet. Telemetrie ist in dieser Version deaktiviert.',
-      it: 'Lapp non invia dati a servizi di analisi esterni. La telemetria e disattivata in questa versione.',
+      es: 'La app envia analitica de producto anonima a PostHog: vistas de pantalla y eventos clave (como el inicio y el final de la regata), etiquetados con tu idioma y version de la app. Estos datos no se vinculan a tu identidad y nunca se usan para rastreo entre apps.',
+      fr: 'L\'application envoie des analyses produit anonymes a PostHog : vues d\'ecran et evenements cles (comme le depart et l\'arrivee de la course), associes a votre langue et version de l\'app. Ces donnees ne sont pas liees a votre identite et ne servent jamais au suivi entre applications.',
+      de: 'Die App sendet anonyme Produktanalysen an PostHog: Bildschirmaufrufe und wichtige Ereignisse (z. B. Start und Ziel des Rennens), versehen mit Ihrer App-Sprache und -Version. Diese Daten sind nicht mit Ihrer Identitaet verknuepft und werden nie fuer App-uebergreifendes Tracking verwendet.',
+      it: 'L\'app invia analisi di prodotto anonime a PostHog: visualizzazioni delle schermate ed eventi chiave (come partenza e arrivo della gara), contrassegnati con la lingua e la versione dell\'app. Questi dati non sono collegati alla tua identita e non vengono mai usati per il tracciamento tra app.',
     },
   );
 
