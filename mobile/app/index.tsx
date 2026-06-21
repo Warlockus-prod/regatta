@@ -465,6 +465,16 @@ export default function Home() {
         </Text>
         <View style={styles.list}>
           <ListRow
+            icon="check"
+            title={tp('Чек-лист перед стартом', 'Pre-race checklist', 'Lista przed startem', {
+              es: 'Lista pre-regata',
+              fr: 'Checklist avant course',
+              de: 'Pre-Race-Checkliste',
+              it: 'Checklist pre-gara',
+            })}
+            onPress={() => router.push('/checklist')}
+          />
+          <ListRow
             icon="compass"
             title={tp('Споты: где ходить', 'Spots: where to sail', 'Spoty: gdzie plywac', {
               es: 'Spots: donde navegar',

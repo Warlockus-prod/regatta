@@ -1,13 +1,13 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import {
-  Clipboard,
   Pressable,
   ScrollView,
   Share,
   StyleSheet,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useI18n } from '../../src/i18n/context';
 import { Screen, Text } from '../../src/design-system/components';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
@@ -110,7 +110,7 @@ export default function MultiplayerHost() {
   );
 
   const handleCopy = useCallback(() => {
-    Clipboard.setString(code);
+    void Clipboard.setStringAsync(code);
     setCopied(true);
     // Reset the "Copied" pill after 2 sec so the button can be pressed
     // again with visible feedback.

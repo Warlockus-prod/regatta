@@ -1,13 +1,13 @@
 import { Stack, useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef, useState } from 'react';
 import {
-  Clipboard,
   Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 import { useI18n } from '../../src/i18n/context';
 import { Screen, Text } from '../../src/design-system/components';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
@@ -158,7 +158,7 @@ export default function MultiplayerJoin() {
 
   const handlePaste = useCallback(async () => {
     try {
-      const raw = await Clipboard.getString();
+      const raw = await Clipboard.getStringAsync();
       if (!raw) return;
       setFromString(raw);
     } catch {
