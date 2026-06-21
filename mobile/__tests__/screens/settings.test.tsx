@@ -63,7 +63,8 @@ describe('Settings screen', () => {
     // so we just assert the shape (Version <semver> (build <n>)) rather
     // than pinning a literal that drifts on every release.
     view.getByText(/\d+\.\d+\.\d+\s+\(build\s+\d+\)/);
-    view.getByText(/Phase 1/);
+    // The stale "Phase 1 - Content shell" placeholder was removed in the
+    // 2026-06 audit; the About card is now just brand + version.
   });
 
   it('persists the selected language to AsyncStorage', async () => {

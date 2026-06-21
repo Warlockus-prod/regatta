@@ -293,6 +293,7 @@ export default function Leaderboard() {
   );
   const globalErrorTitle = tp('Не загрузилось', 'Could not load', 'Nie udalo sie', { es: 'No se pudo cargar', fr: 'Echec du chargement', de: 'Laden fehlgeschlagen', it: 'Caricamento fallito' });
   const retryLabel = tp('Повторить', 'Retry', 'Ponow', { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut', it: 'Riprova' });
+  const anonLabel = tp('Аноним', 'Anon', 'Anonim', { es: 'Anonimo', fr: 'Anonyme', de: 'Anonym', it: 'Anonimo' });
 
   const rows = useMemo(() => {
     const filteredByCourse = filterByCourse(history.races, courseFilter);
@@ -453,6 +454,7 @@ export default function Leaderboard() {
                     row={r}
                     timeLabel={timeLabel}
                     scoreLabel={scoreLabel}
+                    anonLabel={anonLabel}
                   />
                 ))
               : null}
@@ -531,15 +533,17 @@ function GlobalRow({
   row,
   timeLabel,
   scoreLabel,
+  anonLabel,
 }: {
   rank: number;
   row: GlobalLeaderboardRow;
   timeLabel: string;
   scoreLabel: string;
+  anonLabel: string;
 }) {
   const tier = scoreTier(row.score ?? 0);
   const tierColor = SCORE_TIER_COLOR[tier];
-  const name = row.nickname && row.nickname.trim().length > 0 ? row.nickname : 'anon';
+  const name = row.nickname && row.nickname.trim().length > 0 ? row.nickname : anonLabel;
   return (
     <Card
       style={styles.row}

@@ -258,11 +258,11 @@ export default function Home() {
             de: 'Schnelle Auffrischung',
             it: 'Ripasso rapido',
           })}
-          subtitle={tp('Для опытных', 'For experienced', 'Dla doswiadczonych', {
-            es: 'Para experimentados',
-            fr: 'Pour confirmes',
-            de: 'Fuer Erfahrene',
-            it: 'Per esperti',
+          subtitle={tp('Освежить за ~15 мин', 'Refresh in ~15 min', 'Odswiez w ~15 min', {
+            es: 'Repasar en ~15 min',
+            fr: 'Reviser en ~15 min',
+            de: 'Auffrischen in ~15 Min',
+            it: 'Ripassare in ~15 min',
           })}
           description={tp(
             '6 коротких уроков для тех, кто уже ходил под парусом - быстро освежить ключевое.',

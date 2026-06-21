@@ -19,9 +19,15 @@
  *
  * Share affordance:
  *  - Generates a deterministic 4-char code via `shareCode(raceId)`.
- *  - Tries the RN core `Share.share` sheet first (gives the user a
- *    native iOS/Android pick-a-target prompt). Phase 2 will resolve the
- *    code against a backend; for v1 the code is a label only.
+ *  - Tries the RN core `Share.share` sheet (native iOS/Android target
+ *    picker) with a usable replay link `${API_BASE}/r/{code}`, mirroring
+ *    the web ShareCard. The link plus a one-line summary (course, time,
+ *    score) goes out, not a bare code.
+ *
+ * Event markers:
+ *  - Tacks, mark roundings and no-go stalls from `race.events` are pinned
+ *    to where they happened on the track via `frameAt(event.t)` and drawn
+ *    as colour-coded dots, with a small legend under the canvas.
  */
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -59,6 +65,8 @@ import {
   summarizeReplay,
   type PlaybackFrame,
 } from '../../src/replay/playback';
+import { API_BASE, type CoachLogEvent } from '../../src/api/coach';
+import type { ReplayPoint } from '../../src/persistence/race-history';
 import {
   buildFinishLine,
   findCourse,
@@ -66,7 +74,7 @@ import {
   scoreCourse,
   type CourseMarkScreen,
 } from '../../src/game/course';
-import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { colors, glow, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 const SPEED_OPTIONS: ReadonlyArray<1 | 2 | 4> = [1, 2, 4];
 
@@ -122,6 +130,55 @@ function buildWakePath(
   p.moveTo(startR.x, startR.y);
   p.quadTo(ctrlR.x, ctrlR.y, endR.x, endR.y);
   return p;
+}
+
+/** A race event resolved to a screen position on the sailed track. */
+interface EventMarker {
+  key: string;
+  x: number;
+  y: number;
+  t: number;
+  /** Marker fill colour, from the dark-ocean token palette. */
+  color: string;
+}
+
+/**
+ * Resolve each race event to an (x, y) on the recorded track by sampling
+ * the playback at the event's timestamp. Start / finish carry no useful
+ * position context for the player and are skipped so the timeline stays
+ * legible; we surface the three "moments that cost time" - tacks, mark
+ * roundings, and no-go (head-to-wind stall) entries - colour-coded:
+ *   - mark rounding  -> accent cyan (a checkpoint cleared)
+ *   - tack           -> teal (a manoeuvre)
+ *   - no-go entered  -> overtrim amber (a stall, time lost)
+ */
+function buildEventMarkers(
+  events: ReadonlyArray<CoachLogEvent>,
+  replay: ReadonlyArray<ReplayPoint>,
+): EventMarker[] {
+  if (events.length === 0 || replay.length === 0) return [];
+  const out: EventMarker[] = [];
+  const mutableReplay = replay as ReplayPoint[];
+  events.forEach((ev, idx) => {
+    let color: string;
+    switch (ev.type) {
+      case 'mark-rounded':
+        color = colors.accentCyan;
+        break;
+      case 'tack':
+        color = colors.accentTeal;
+        break;
+      case 'no-go-entered':
+        color = colors.overtrim;
+        break;
+      default:
+        // start / finish - no on-track marker.
+        return;
+    }
+    const f = frameAt(mutableReplay, ev.t);
+    out.push({ key: `${ev.type}-${idx}-${ev.t}`, x: f.x, y: f.y, t: ev.t, color });
+  });
+  return out;
 }
 
 export default function Replay() {
@@ -300,6 +357,14 @@ export default function Replay() {
     [frame.x, frame.y, frame.headingRad, frame.speedKn, boatLength],
   );
 
+  // Colour-coded event markers pinned to where they happened on the
+  // track: tacks, mark roundings and no-go stalls. We rebuild whenever
+  // the record (and therefore the scene-projected track) changes.
+  const eventMarkers = useMemo(
+    () => buildEventMarkers(race?.events ?? [], race?.replay ?? []),
+    [race?.events, race?.replay],
+  );
+
   // Localised chrome.
   const screenTitle = tp('Повтор', 'Replay', 'Powtorka', {
     es: 'Repeticion',
@@ -399,6 +464,35 @@ export default function Replay() {
       it: 'La mia gara in Regatta',
     },
   );
+  const legendMarkLabel = tp('Знак', 'Mark', 'Znak', {
+    es: 'Baliza',
+    fr: 'Bouee',
+    de: 'Tonne',
+    it: 'Boa',
+  });
+  const legendTackLabel = tp('Поворот', 'Tack', 'Zwrot', {
+    es: 'Virada',
+    fr: 'Virement',
+    de: 'Wende',
+    it: 'Virata',
+  });
+  const legendNoGoLabel = tp('В лавировку', 'No-go', 'Martwy kat', {
+    es: 'Zona muerta',
+    fr: 'Zone morte',
+    de: 'Tote Zone',
+    it: 'Zona morta',
+  });
+  const tryItLabel = tp(
+    'Попробуй сам',
+    'Try it yourself',
+    'Sprobuj sam',
+    {
+      es: 'Pruebalo tu mismo',
+      fr: 'Essaie toi-meme',
+      de: 'Probier es selbst',
+      it: 'Provaci tu',
+    },
+  );
 
   const code = useMemo(
     () => (race ? shareCode(race.id) : ''),
@@ -406,17 +500,19 @@ export default function Replay() {
   );
   const handleShare = useCallback(async () => {
     if (!race) return;
-    // Compose a friendly one-liner. Phase 2: append a deep-link to the
-    // backend-resolved replay URL once the server side ships.
+    // Compose a friendly one-liner with a usable replay link. The web
+    // serves shared replays at `/r/{code}` (see GameClient ShareCard), so
+    // we point the recipient there rather than emitting a bare code.
     const courseTitle = course.title(tp);
-    const message = `${shareTitleLabel}\n${courseTitle}: ${formatTime(race.timeSec)} (${race.score})\n${codePrefixLabel}: ${code}`;
+    const replayUrl = `${API_BASE}/r/${code}`;
+    const message = `${shareTitleLabel}\n${courseTitle}: ${formatTime(race.timeSec)} (${race.score})\n${replayUrl}`;
     try {
-      await Share.share({ message, title: shareTitleLabel });
+      await Share.share({ message, title: shareTitleLabel, url: replayUrl });
     } catch {
       // Share sheet was dismissed or unavailable. We don't surface a
-      // toast in v1 - the code is also visible inline on the screen.
+      // toast in v1 - the code and link are also visible inline.
     }
-  }, [race, course, tp, code, shareTitleLabel, codePrefixLabel]);
+  }, [race, course, tp, code, shareTitleLabel]);
 
   // Empty / loading states - render before the full Skia scene below so
   // we never flash an empty canvas while history is hydrating.
@@ -531,6 +627,16 @@ export default function Replay() {
                 strokeJoin="round"
                 opacity={0.5}
               />
+              {/* Colour-coded event markers along the track: tacks,
+                  mark roundings, no-go stalls. A faint halo plus a solid
+                  dot reads at small sizes on the dark-ocean base. */}
+              {eventMarkers.map((m) => (
+                <Group key={m.key}>
+                  <Circle cx={m.x} cy={m.y} r={7} color={m.color} opacity={0.18} />
+                  <Circle cx={m.x} cy={m.y} r={3.5} color={m.color} />
+                </Group>
+              ))}
+
               {/* Wake at the boat. */}
               <Path
                 path={wakePath}
@@ -554,6 +660,31 @@ export default function Replay() {
             </Group>
           </Canvas>
         </View>
+
+        {/* Event-marker legend - only shown when the race carries events
+            worth pinning to the track. */}
+        {eventMarkers.length > 0 ? (
+          <View style={styles.legendRow}>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: colors.accentCyan }]}
+              />
+              <Text style={styles.legendText}>{legendMarkLabel}</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: colors.accentTeal }]}
+              />
+              <Text style={styles.legendText}>{legendTackLabel}</Text>
+            </View>
+            <View style={styles.legendItem}>
+              <View
+                style={[styles.legendDot, { backgroundColor: colors.overtrim }]}
+              />
+              <Text style={styles.legendText}>{legendNoGoLabel}</Text>
+            </View>
+          </View>
+        ) : null}
 
         {/* Scrubber + clock readout */}
         <View style={styles.scrubWrap}>
@@ -629,6 +760,21 @@ export default function Replay() {
             <Text style={styles.shareButtonText}>
               {`${shareLabel}: ${code}`}
             </Text>
+          </Pressable>
+        </View>
+
+        {/* Convert the viewer into a player: jump straight to a new race. */}
+        <View style={styles.tryItRow}>
+          <Pressable
+            onPress={() => router.push('/game')}
+            accessibilityRole="button"
+            accessibilityLabel={tryItLabel}
+            style={({ pressed }) => [
+              styles.tryItButton,
+              pressed && styles.controlButtonPressed,
+            ]}
+          >
+            <Text style={styles.tryItButtonText}>{`${tryItLabel} ->`}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -772,6 +918,29 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
   },
+  legendRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.md,
+    marginTop: spacing.sm,
+    alignItems: 'center',
+  },
+  legendItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  legendDot: {
+    width: 9,
+    height: 9,
+    borderRadius: 4.5,
+  },
+  legendText: {
+    color: colors.textMuted,
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.3,
+  },
   shareRow: {
     marginTop: spacing.md,
   },
@@ -788,6 +957,27 @@ const styles = StyleSheet.create({
   shareButtonText: {
     color: colors.accentCyan,
     fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+  },
+  tryItRow: {
+    marginTop: spacing.md,
+  },
+  tryItButton: {
+    minHeight: 44,
+    backgroundColor: colors.accentCyan,
+    borderColor: colors.accentCyan,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...glow.primary,
+  },
+  tryItButtonText: {
+    color: colors.bgPrimary,
+    fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.3,
   },

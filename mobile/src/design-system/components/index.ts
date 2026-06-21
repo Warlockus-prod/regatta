@@ -8,7 +8,7 @@ export { ListRow } from './ListRow';
 export { ErrorBoundary } from './ErrorBoundary';
 export { PointsOfSailDiagram } from './PointsOfSailDiagram';
 export { RuleScenarioDiagram } from './RuleScenarioDiagram';
-export { RacingCourseDiagram, RacingStrategyDiagram } from './RacingDiagrams';
+export { RacingCourseDiagram, RacingStrategyDiagram, RacingConceptDiagram } from './RacingDiagrams';
 export { Slider, type SliderOrientation } from './Slider';
 export { LessonDiagram } from './LessonDiagram';
 export { Icon, type IconName } from './Icon';

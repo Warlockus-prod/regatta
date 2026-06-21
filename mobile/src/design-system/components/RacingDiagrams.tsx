@@ -70,6 +70,41 @@ export function RacingStrategyDiagram({ strategyId }: StrategyDiagramProps) {
   );
 }
 
+interface ConceptDiagramProps {
+  conceptId: string;
+}
+
+/**
+ * Small native SVG diagrams for the "Key Concepts" cards: layline, VMG,
+ * clear air, wind shadow. Mirrors the web `/racing` SVG sub-components so
+ * the concept text is backed by the same race geometry on both clients.
+ */
+export function RacingConceptDiagram({ conceptId }: ConceptDiagramProps) {
+  return (
+    <View style={styles.conceptFrame}>
+      <Svg viewBox="0 0 220 132" width="100%" height={132}>
+        <Rect x={0} y={0} width={220} height={132} rx={10} fill="#0d2847" />
+        <ConceptSvg id={conceptId} />
+      </Svg>
+    </View>
+  );
+}
+
+function ConceptSvg({ id }: { id: string }) {
+  switch (id) {
+    case 'layline':
+      return <Layline />;
+    case 'vmg':
+      return <Vmg />;
+    case 'clear-air':
+      return <ClearAir />;
+    case 'wind-shadow':
+      return <WindShadow />;
+    default:
+      return <Layline />;
+  }
+}
+
 function StrategySvg({ id }: { id: string }) {
   switch (id) {
     case 'upwind':
@@ -227,6 +262,113 @@ function MarkRounding() {
   );
 }
 
+function Layline() {
+  return (
+    <G>
+      {/* Mark */}
+      <Circle cx={110} cy={26} r={6} fill={colors.warning} stroke="#ffffff" strokeWidth={1.2} />
+      {/* Left + right laylines */}
+      <Line x1={110} y1={26} x2={36} y2={116} stroke={colors.danger} strokeWidth={1.6} strokeDasharray="5 4" />
+      <Line x1={110} y1={26} x2={184} y2={116} stroke={colors.danger} strokeWidth={1.6} strokeDasharray="5 4" />
+      {/* Boat on layline */}
+      <Boat x={74} y={74} rot={-40} color={colors.accentCyan} />
+      <SvgText x={22} y={110} fill={colors.danger} fontSize={9} fontWeight="700">Layline</SvgText>
+      <SvgText x={158} y={110} fill={colors.danger} fontSize={9} fontWeight="700">Layline</SvgText>
+    </G>
+  );
+}
+
+function Vmg() {
+  return (
+    <G>
+      {/* Wind from top */}
+      <WindArrow x={110} y={10} length={22} />
+      {/* Target axis toward leeward mark */}
+      <Line x1={110} y1={36} x2={110} y2={120} stroke={colors.textSecondary} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.4} />
+      {/* Boat speed vector (diagonal) */}
+      <Line x1={110} y1={58} x2={172} y2={112} stroke={colors.accentCyan} strokeWidth={2} />
+      <SvgText x={150} y={88} fill={colors.accentCyan} fontSize={9} fontWeight="700">V boat</SvgText>
+      {/* VMG component (vertical projection) */}
+      <Line x1={110} y1={58} x2={110} y2={112} stroke={colors.success} strokeWidth={2.6} />
+      <SvgText x={60} y={92} fill={colors.success} fontSize={9} fontWeight="800">VMG</SvgText>
+      {/* Projection */}
+      <Line x1={110} y1={112} x2={172} y2={112} stroke={colors.textSecondary} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.45} />
+    </G>
+  );
+}
+
+function ClearAir() {
+  const { tp } = useI18n();
+  return (
+    <G>
+      {/* Wind arrows from top */}
+      <Line x1={50} y1={10} x2={50} y2={26} stroke={colors.windColor} strokeWidth={1.2} opacity={0.55} />
+      <Polygon points="46,21 54,21 50,27" fill={colors.windColor} opacity={0.55} />
+      <Line x1={95} y1={10} x2={95} y2={26} stroke={colors.windColor} strokeWidth={1.2} opacity={0.55} />
+      <Polygon points="91,21 99,21 95,27" fill={colors.windColor} opacity={0.55} />
+      <Line x1={140} y1={10} x2={140} y2={26} stroke={colors.windColor} strokeWidth={1.2} opacity={0.55} />
+      <Polygon points="136,21 144,21 140,27" fill={colors.windColor} opacity={0.55} />
+      {/* Wind shadow cone behind leading boat */}
+      <Path d="M86 56 L66 124 L130 124 Z" fill={colors.danger} opacity={0.1} />
+      <Path d="M86 56 L66 124" stroke={colors.danger} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.35} />
+      <Path d="M86 56 L130 124" stroke={colors.danger} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.35} />
+      {/* Leading boat in clean air */}
+      <Boat x={86} y={52} rot={-30} color={colors.success} />
+      <SvgText x={100} y={50} fill={colors.success} fontSize={9} fontWeight="700">
+        {tp('чистый ветер', 'clean air', 'czysty wiatr', {
+          es: 'aire limpio',
+          fr: 'air libre',
+          de: 'freier Wind',
+          it: 'aria libera',
+        })}
+      </SvgText>
+      {/* Trailing boat in shadow */}
+      <Boat x={106} y={102} rot={-30} color={colors.danger} />
+      <SvgText x={98} y={122} textAnchor="middle" fill={colors.danger} fontSize={8} opacity={0.85}>
+        {tp('тень', 'shadow', 'cien', {
+          es: 'sombra',
+          fr: 'ombre',
+          de: 'Schatten',
+          it: 'ombra',
+        })}
+      </SvgText>
+    </G>
+  );
+}
+
+function WindShadow() {
+  const { tp } = useI18n();
+  return (
+    <G>
+      {/* Clean wind arrows from top */}
+      {[40, 75, 110, 145, 180].map((x) => (
+        <G key={x}>
+          <Line x1={x} y1={8} x2={x} y2={22} stroke={colors.windColor} strokeWidth={1} opacity={0.45} />
+          <Polygon points={`${x - 3.5},${17} ${x + 3.5},${17} ${x},${23}`} fill={colors.windColor} opacity={0.45} />
+        </G>
+      ))}
+      {/* Boat creating the shadow */}
+      <Boat x={110} y={50} rot={-18} color={colors.sailColor} />
+      {/* Shadow zone */}
+      <Path d="M110 56 L62 126 L158 126 Z" fill={colors.textMuted} opacity={0.16} />
+      <Path d="M110 56 L62 126" stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.45} />
+      <Path d="M110 56 L158 126" stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.45} />
+      {/* Disturbed wind inside shadow */}
+      {[92, 110, 128].map((x) => (
+        <Line key={x} x1={x} y1={82} x2={x} y2={92} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="1 3" opacity={0.5} />
+      ))}
+      <SvgText x={110} y={120} textAnchor="middle" fill={colors.textMuted} fontSize={9} fontWeight="700">
+        {tp('ветровая тень', 'wind shadow', 'cien wiatru', {
+          es: 'sombra de viento',
+          fr: 'ombre de vent',
+          de: 'Windschatten',
+          it: 'ombra di vento',
+        })}
+      </SvgText>
+    </G>
+  );
+}
+
 const styles = StyleSheet.create({
   courseFrame: {
     marginHorizontal: spacing.lg,
@@ -244,6 +386,14 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   strategyFrame: {
+    marginTop: spacing.md,
+    borderRadius: radii.md,
+    overflow: 'hidden',
+    borderColor: colors.borderCyanFaint,
+    borderWidth: 1,
+    backgroundColor: '#0d2847',
+  },
+  conceptFrame: {
     marginTop: spacing.md,
     borderRadius: radii.md,
     overflow: 'hidden',

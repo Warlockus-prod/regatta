@@ -314,7 +314,7 @@ function sailStateColor(state: SailState): string {
     // reserved for stall - the genuinely-bad over-trim where flow detaches.
     case 'luff': return colors.warning;
     case 'stall': return colors.danger;
-    case 'overtrim': return '#f5e26b';
+    case 'overtrim': return colors.overtrim;
     case 'good': return colors.accentCyan;
     default: return colors.textMuted;
   }
@@ -1003,6 +1003,23 @@ export default function Simulator() {
     tp,
   });
 
+  // VoiceOver label for the interactive top-view control. Drag on the water
+  // steers the boat (heading); drag on the compass rose changes the wind
+  // direction. We fold the live heading + wind-from values into the label so
+  // a screen reader announces the current state, mirroring the web sliders'
+  // "Boat heading" / "Wind direction" aria-labels.
+  const sceneA11yLabel = tp(
+    `Управление ветром и рулём. Тяни по воде - руль, компас меняет ветер. Курс ${headingDeg} градусов, ветер с ${twdDeg} градусов.`,
+    `Wind and steering control. Drag on the water to steer, the compass changes the wind. Heading ${headingDeg} degrees, wind from ${twdDeg} degrees.`,
+    `Sterowanie wiatrem i sterem. Przeciagaj po wodzie - ster, kompas zmienia wiatr. Kurs ${headingDeg} stopni, wiatr z ${twdDeg} stopni.`,
+    {
+      es: `Control de viento y timon. Arrastra sobre el agua para gobernar, la brujula cambia el viento. Rumbo ${headingDeg} grados, viento desde ${twdDeg} grados.`,
+      fr: `Controle du vent et de la barre. Glisse sur l'eau pour barrer, la boussole change le vent. Cap ${headingDeg} degres, vent de ${twdDeg} degres.`,
+      de: `Wind- und Steuerregler. Ziehe ueber das Wasser zum Steuern, der Kompass aendert den Wind. Kurs ${headingDeg} Grad, Wind aus ${twdDeg} Grad.`,
+      it: `Controllo vento e timone. Trascina sull'acqua per timonare, la bussola cambia il vento. Rotta ${headingDeg} gradi, vento da ${twdDeg} gradi.`,
+    },
+  );
+
   const mode: SimMode = sim.mode;
   const drillState = sim.drill;
   const missionState = sim.mission;
@@ -1226,7 +1243,12 @@ export default function Simulator() {
         <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
           {simView === 'top' ? (
             <GestureDetector gesture={composedGesture}>
-            <Canvas style={{ width: sceneW, height: sceneH }}>
+            <Canvas
+              style={{ width: sceneW, height: sceneH }}
+              accessible
+              accessibilityRole="adjustable"
+              accessibilityLabel={sceneA11yLabel}
+            >
               <Group>
                 {/* Water depth: radial gradient, lighter near the boat,
                     darkening toward the edges so the playfield reads as

@@ -491,6 +491,9 @@ export default function Game() {
   const coachLabel = tp('AI тренер', 'AI coach', 'Trener AI', {
     es: 'Coach IA', fr: 'Coach IA', de: 'KI-Coach', it: 'Coach IA',
   });
+  const replayLabel = tp('Повтор гонки', 'Race replay', 'Replay wyscigu', {
+    es: 'Repeticion', fr: 'Revoir la course', de: 'Wiederholung', it: 'Replay gara',
+  });
   const tryAgainLabel = tp('Ещё раз', 'Try again', 'Jeszcze raz', {
     es: 'Otra vez', fr: 'Recommencer', de: 'Nochmal', it: 'Ancora',
   });
@@ -500,8 +503,8 @@ export default function Game() {
   const savedLabel = tp('Сохранено', 'Saved', 'Zapisano', {
     es: 'Guardado', fr: 'Enregistre', de: 'Gespeichert', it: 'Salvato',
   });
-  const savingLabel = tp('Сохраняем…', 'Saving…', 'Zapisywanie…', {
-    es: 'Guardando…', fr: 'Sauvegarde…', de: 'Speichern…', it: 'Salvataggio…',
+  const savingLabel = tp('Сохраняем...', 'Saving...', 'Zapisywanie...', {
+    es: 'Guardando...', fr: 'Sauvegarde...', de: 'Speichern...', it: 'Salvataggio...',
   });
   const offlineSavedLabel = tp(
     'Сохранили локально, без сети.',
@@ -623,6 +626,42 @@ export default function Game() {
       setSavedRaceId(id);
     }
     router.push(`/coach?raceId=${encodeURIComponent(id)}`);
+  }, [
+    course,
+    history,
+    router,
+    savedRaceId,
+    sim.wind.trueWindDirRad,
+    sim.wind.trueWindSpeedKts,
+  ]);
+
+  const handleReplay = useCallback(async () => {
+    // The replay viewer hydrates a saved RaceRecord by id, so make sure the
+    // race is persisted before navigating (mirrors handleCoach). The position
+    // track lives in replayRef.current, already captured at 1Hz during the race.
+    let id = savedRaceId;
+    if (!id) {
+      const finishTime = finishTimeRef.current ?? 0;
+      const computedScore = scoreCourse(finishTime, course.parSec);
+      const record = await history.save({
+        courseId: course.id,
+        timeSec: finishTime,
+        score: computedScore,
+        replay: replayRef.current,
+        events: eventsRef.current,
+        samples: samplesRef.current,
+        parSec: course.parSec,
+        windDirDeg: Math.round(
+          (((sim.wind.trueWindDirRad * 180) / Math.PI) % 360 + 360) % 360,
+        ),
+        windSpeedKn: sim.wind.trueWindSpeedKts,
+        difficulty: course.difficulty,
+        windStrength: course.windStrength,
+      });
+      id = record.id;
+      setSavedRaceId(id);
+    }
+    router.push(`/replay/${encodeURIComponent(id)}`);
   }, [
     course,
     history,
@@ -899,6 +938,19 @@ export default function Game() {
                   ]}
                 >
                   <Text style={styles.resultButtonTextPrimary}>{coachLabel}</Text>
+                </Pressable>
+              </View>
+              <View style={styles.resultActions}>
+                <Pressable
+                  onPress={handleReplay}
+                  accessibilityRole="button"
+                  accessibilityLabel={replayLabel}
+                  style={({ pressed }) => [
+                    styles.resultButton,
+                    pressed && styles.resultButtonPressed,
+                  ]}
+                >
+                  <Text style={styles.resultButtonText}>{replayLabel}</Text>
                 </Pressable>
               </View>
               <View style={styles.resultActions}>

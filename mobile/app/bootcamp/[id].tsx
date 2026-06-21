@@ -669,7 +669,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
-    backgroundColor: 'rgba(68, 255, 136, 0.15)',
+    backgroundColor: colors.surfaceSuccess,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: 4,

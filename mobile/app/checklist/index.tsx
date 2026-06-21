@@ -2,7 +2,7 @@ import { Stack } from 'expo-router';
 import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Button, Card, EmptyState, Screen, Text } from '../../src/design-system/components';
+import { Button, Card, Screen, Text } from '../../src/design-system/components';
 import { checklistSections } from '../../src/data';
 import { legacyPick, legacyPickArray } from '../../src/i18n/languages';
 import { itemKey, useChecklistProgress } from '../../src/persistence/checklist';
@@ -78,21 +78,15 @@ export default function Checklist() {
     it: 'Annulla',
   });
 
-  const emptyTitle = tp('Чек-лист пуст', 'Checklist empty', 'Lista pusta', {
-    es: 'Lista vacia',
-    fr: 'Liste vide',
-    de: 'Liste leer',
-    it: 'Lista vuota',
-  });
-  const emptySubtitle = tp(
-    'Контент еще не загружен. Попробуйте обновить экран позже.',
-    'Content has not loaded yet. Try again in a moment.',
-    'Tresc nie zostala zaladowana. Sprobuj pozniej.',
+  const closingText = tp(
+    'Это базовая подборка. Каждая яхта - свой маленький мир. Главное: не уверен - спроси, не трогай без команды.',
+    'This is the basics. Each yacht is its own small world. Main rule: not sure - ask. Do not touch without a command.',
+    'To podstawa. Kazdy jacht jest innym malym swiatem. Glowna zasada: nie jestes pewien - pytaj, nie dotykaj bez polecenia.',
     {
-      es: 'El contenido aun no se ha cargado. Intentalo de nuevo en un momento.',
-      fr: 'Le contenu n a pas encore charge. Reessayez dans un instant.',
-      de: 'Inhalt noch nicht geladen. Versuchen Sie es spaeter erneut.',
-      it: 'Il contenuto non e stato caricato. Riprova tra poco.',
+      es: 'Esto es lo basico. Cada velero es su propio pequeno mundo. Regla principal: si no estas seguro, pregunta. No toques sin una orden.',
+      fr: "C'est la base. Chaque voilier est son propre petit monde. Regle principale : pas sur, demande. Ne touche a rien sans ordre.",
+      de: 'Das sind die Grundlagen. Jede Yacht ist ihre eigene kleine Welt. Hauptregel: nicht sicher - frag. Nichts ohne Kommando anfassen.',
+      it: 'Queste sono le basi. Ogni barca e il suo piccolo mondo. Regola principale: se non sei sicuro, chiedi. Non toccare senza un comando.',
     },
   );
 
@@ -165,10 +159,6 @@ export default function Checklist() {
           </View>
         </View>
 
-        {sectionsView.length === 0 ? (
-          <EmptyState title={emptyTitle} subtitle={emptySubtitle} icon="book" />
-        ) : null}
-
         {sectionsView.map(({ section, items, checked }) => {
           const title = legacyPick(section, 'title', lang);
           const intro = legacyPick(section, 'intro', lang);
@@ -232,6 +222,10 @@ export default function Checklist() {
             </Card>
           );
         })}
+
+        <Card style={styles.closingCard}>
+          <Text variant="caption" style={styles.closingText}>{closingText}</Text>
+        </Card>
 
         <View style={styles.footer}>
           <Button variant="ghost" onPress={onResetPress}>{resetLabel}</Button>
@@ -360,6 +354,16 @@ const styles = StyleSheet.create({
   },
   warningText: {
     color: colors.textPrimary,
+  },
+  closingCard: {
+    marginHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    backgroundColor: colors.surfaceCyanFaint,
+    borderColor: colors.borderCyanSoft,
+  },
+  closingText: {
+    textAlign: 'center',
+    lineHeight: 20,
   },
   footer: {
     marginTop: spacing.lg,

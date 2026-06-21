@@ -34,6 +34,12 @@ export const colors = {
   surfaceCyanFaint: 'rgba(0, 212, 255, 0.10)',
   /** Cyan tint background (15% alpha). Active badge background. */
   surfaceCyanSoft: 'rgba(0, 212, 255, 0.15)',
+  /** Caution yellow: simulator overtrim sail state (between optimal green and luff). */
+  overtrim: '#f5e26b',
+  /** Success tint background (15% alpha). Completed badges, success surfaces. */
+  surfaceSuccess: 'rgba(68, 255, 136, 0.15)',
+  /** Success border (40% alpha). Completed-badge ring. */
+  borderSuccess: 'rgba(68, 255, 136, 0.40)',
 } as const;
 
 /** Animation durations, ms. Centralized so motion stays consistent. */

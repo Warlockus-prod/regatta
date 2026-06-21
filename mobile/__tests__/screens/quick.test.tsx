@@ -32,11 +32,10 @@ beforeEach(async () => {
 describe('Quick refresh screen', () => {
   it('renders the count summary', async () => {
     const view = renderWithProviders(<Quick />);
-    await waitFor(() =>
-      view.getByText(
-        new RegExp(`${quickRefreshLessons.length} quick tips`),
-      ),
-    );
+    // Header mirrors the web copy: a "<minutes> min before start" kicker
+    // plus a "<N> key topics" subtitle (replaced the old "<N> quick tips").
+    await waitFor(() => view.getByText(/min before start/));
+    view.getByText(new RegExp(`${quickRefreshLessons.length} key topics`));
   });
 
   it('renders all quick lesson titles in EN', async () => {

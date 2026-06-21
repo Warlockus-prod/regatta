@@ -16,6 +16,22 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
  */
 const CATEGORY_ORDER: GlossaryCategoryId[] = ['boat', 'sail', 'course', 'maneuver', 'racing', 'wind', 'crew'];
 
+/**
+ * Per-category badge colors. Mirrors the web `categoryColors` map in
+ * `src/app/glossary/page.tsx`. Cyan / green / amber / teal align with the
+ * shared tokens; crew uses purple, which has no token yet, so it is kept as
+ * a literal here to match the web source of truth.
+ */
+const CATEGORY_COLORS: Record<GlossaryCategoryId, { fg: string; bg: string; border: string }> = {
+  boat: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
+  sail: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
+  course: { fg: colors.success, bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
+  maneuver: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
+  racing: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
+  wind: { fg: colors.accentTeal, bg: 'rgba(0, 255, 204, 0.12)', border: 'rgba(0, 255, 204, 0.25)' },
+  crew: { fg: '#8844ff', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
+};
+
 export default function Glossary() {
   const { tp, lang } = useI18n();
   const [query, setQuery] = useState('');
@@ -173,6 +189,9 @@ export default function Glossary() {
           filtered.map((term) => {
             const t = legacyPick(term, 'term', lang);
             const d = legacyPick(term, 'definition', lang);
+            const catColors = CATEGORY_COLORS[term.category];
+            const catName = legacyPick(glossaryCategories[term.category], 'name', lang);
+            const showEn = lang !== 'en';
             return (
               <Card
                 key={term.id}
@@ -183,8 +202,30 @@ export default function Glossary() {
                   accessibilityRole="text"
                   accessibilityLabel={cardA11y(t)}
                 >
-                  <Text variant="subtitle">{t}</Text>
+                  {/* Top row: localized term + EN anchor + category badge.
+                      The EN term is the international anchor every sailor
+                      recognises, kept as a small cyan subtitle on non-EN
+                      langs. Mirrors web src/app/glossary/page.tsx. */}
+                  <View style={styles.cardHead}>
+                    <View style={styles.cardHeadText}>
+                      <Text variant="subtitle">{t}</Text>
+                      {showEn ? (
+                        <Text style={styles.termEn}>{term.termEn}</Text>
+                      ) : null}
+                    </View>
+                    <View
+                      style={[
+                        styles.badge,
+                        { backgroundColor: catColors.bg, borderColor: catColors.border },
+                      ]}
+                    >
+                      <Text style={[styles.badgeText, { color: catColors.fg }]}>{catName}</Text>
+                    </View>
+                  </View>
                   <Text variant="caption" style={styles.def}>{d}</Text>
+                  {showEn ? (
+                    <Text variant="muted" style={styles.defEn}>{term.definitionEn}</Text>
+                  ) : null}
                 </View>
               </Card>
             );
@@ -243,9 +284,40 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginBottom: spacing.sm,
   },
+  cardHead: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  cardHeadText: {
+    flex: 1,
+    minWidth: 0,
+  },
+  termEn: {
+    marginTop: 2,
+    color: colors.accentCyan,
+    fontSize: 13,
+    fontWeight: '500',
+  },
+  badge: {
+    borderWidth: 1,
+    borderRadius: radii.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs - 1,
+    marginTop: 2,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+  },
   def: {
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
     lineHeight: 18,
+  },
+  defEn: {
+    marginTop: spacing.xs,
+    lineHeight: 17,
   },
   chipRow: {
     paddingHorizontal: spacing.lg,
