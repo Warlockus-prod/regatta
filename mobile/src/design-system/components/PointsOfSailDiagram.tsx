@@ -6,6 +6,7 @@ import Svg, { Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing } from '../tokens';
 import { pointOfSailAt } from '../../courses/polar';
+import { pointsOfSail } from '../../data';
 
 interface PointsOfSailDiagramProps {
   size?: number;
@@ -23,24 +24,42 @@ interface PointsOfSailDiagramProps {
 
 // Midpoint angle (deg off the wind) of each point-of-sail sector, for placing the
 // course name + boat glyph. Mirrors the colored sector wedges.
+// Convert a #rrggbb hex to an rgba() string with the given alpha.
+function hexToRgba(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+const POS_IDS = ['in-irons', 'close-hauled', 'beam-reach', 'broad-reach', 'running'] as const;
+
+// Boat-glyph angle (deg off the wind) per sector = the sector mid (from data).
 const SECTOR_MIDS: Record<string, number> = {
   'in-irons': 0,
-  'close-hauled': 45,
+  'close-hauled': 52,
   'beam-reach': 85,
   'broad-reach': 135,
-  running: 172,
+  running: 170,
 };
 
-// Sector wedges by |TWA|. Static, like the web Points-of-Sail wheel: colored
-// zones (no polar/VPP curve, no speed rings). Tints chosen to read clearly on
-// the dark-ocean bg - red no-go, amber close-hauled, cyan reaches, green run.
-const SECTOR_META: { id: string; min: number; max: number; tint: string; hi: string }[] = [
-  { id: 'in-irons', min: 0, max: 30, tint: 'rgba(255, 80, 80, 0.18)', hi: 'rgba(255, 96, 96, 0.34)' },
-  { id: 'close-hauled', min: 30, max: 60, tint: 'rgba(255, 176, 48, 0.16)', hi: 'rgba(255, 190, 80, 0.34)' },
-  { id: 'beam-reach', min: 60, max: 110, tint: 'rgba(64, 220, 255, 0.18)', hi: 'rgba(96, 230, 255, 0.36)' },
-  { id: 'broad-reach', min: 110, max: 160, tint: 'rgba(96, 170, 255, 0.18)', hi: 'rgba(128, 196, 255, 0.36)' },
-  { id: 'running', min: 160, max: 180, tint: 'rgba(72, 230, 150, 0.20)', hi: 'rgba(104, 240, 176, 0.38)' },
-];
+// Sector wedges derived from the CANONICAL `pointsOfSail` data: the same angle
+// boundaries the tap handler (`pointOfSailAt`) uses, and the same `color` the
+// course cards use - so the wheel never drifts from the data or the web (and a
+// tapped wedge always selects the course it is painted as).
+const SECTOR_META: { id: string; min: number; max: number; tint: string; hi: string }[] =
+  POS_IDS.map((id) => {
+    const p = pointsOfSail.find((x) => x.id === id);
+    const color = p?.color ?? '#888888';
+    return {
+      id,
+      min: p?.angleMin ?? 0,
+      max: p?.angleMax ?? 0,
+      tint: hexToRgba(color, 0.2),
+      hi: hexToRgba(color, 0.44),
+    };
+  });
 
 export function PointsOfSailDiagram({
   size = 300,
