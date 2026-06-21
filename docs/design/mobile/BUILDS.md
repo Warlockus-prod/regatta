@@ -7,6 +7,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 21 | 1.3.0 | `d569d4d` | Self (attached 2026-06-21) | Content-parity ports + polish, closing the 2026-06 audit (all 37 findings fixed across b20+b21). racing Key Concepts + 4 SVG diagrams; courses theory + EN anchors; rules es/fr/de/it + official/federation links; onboard sections (+ web `src/data/onboard.ts` es/fr/de/it backfill so sync-content guard is green); glossary anchors; quick header/minutes/footer; checklist summary; game watch-replay; replay markers/CTA/share-link; simulator Skia a11y + overtrim token; leaderboard tp(); bootcamp/home polish; game ellipsis -> ASCII. Each screen verified by an adversarial parity/typography/7-lang reviewer. Gate green: sync-content + lint + tsc + 108/108 jest. |
 | 20 | 1.3.0 | `5ce2561` | Self (attached 2026-06-21) | Audit fixes: courses clean wheel from canonical data; tappable quick lessons; support email -> gtframe.io; 1-liner i18n/typography (ellipsis, IT apostrophe, leaderboard tenths, check icon); 44pt touch targets; working clipboard (expo-clipboard); home -> /checklist link. |
 | 19 | 1.3.0 | `9e3da40` | Self (attached 2026-06-21, retroactively) | Radar cockpit (force vectors, sectors, readout). Was never attached on upload - the distribution bug. |
 | 18 | 1.2.0 | v1.2 | NOT attached | AI opponents, animated sim + wind rose, global leaderboard, PostHog. Never reached testers (attach gap). |
