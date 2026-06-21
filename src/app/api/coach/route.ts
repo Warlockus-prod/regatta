@@ -325,6 +325,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'bad request' }, { status: 400 });
   }
 
+  // Bound input size: cap arrays and clamp each event note. Limits prompt
+  // token-burn against the wallet and shrinks the prompt-injection surface a
+  // free-text `note` would otherwise open. Also normalizes events into a safe
+  // array so the prompt builder below can't throw on a missing/!array field.
+  const MAX_SAMPLES = 4000;
+  const MAX_EVENTS = 200;
+  if (
+    log.samples.length > MAX_SAMPLES ||
+    (Array.isArray(log.events) && log.events.length > MAX_EVENTS)
+  ) {
+    logWarn('coach.input-too-large', {
+      samples: log.samples.length,
+      events: Array.isArray(log.events) ? log.events.length : 0,
+    });
+    return NextResponse.json({ error: 'Race log too large', fallback: true }, { status: 413 });
+  }
+  log.events = (Array.isArray(log.events) ? log.events : [])
+    .slice(0, MAX_EVENTS)
+    .map((e) => ({
+      type: e.type,
+      t: e.t,
+      note: typeof e.note === 'string' ? e.note.slice(0, 80) : undefined,
+    }));
+
   // All 7 langs (ru/en/pl/es/fr/de/it) have native system prompts above, so
   // the coach output now matches the user's UI lang directly. Unknown values
   // (legacy clients, malformed payloads) fall back to English.

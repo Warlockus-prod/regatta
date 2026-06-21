@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getMetricsRange } from '@/lib/db';
+import { logError } from '@/lib/log';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -33,9 +34,7 @@ export async function GET(req: Request) {
       headers: { 'Cache-Control': 'no-store' },
     });
   } catch (err) {
-    return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Unknown error' },
-      { status: 500 },
-    );
+    logError('stats-range.exception', { err: err instanceof Error ? err.message : 'unknown' });
+    return NextResponse.json({ error: 'Internal error' }, { status: 500 });
   }
 }

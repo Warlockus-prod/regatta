@@ -140,6 +140,32 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
+  // CSRF guard: admin mutations must be same-origin. A browser auto-attaches
+  // the Basic-Auth credentials to cross-site requests once an admin has authed
+  // in that browser, so without this a malicious page could silently drive
+  // admin POSTs. Reads (GET/HEAD) are not state-changing and are exempt. A real
+  // cross-site browser request always carries Origin or Sec-Fetch-Site, so we
+  // block when either marks it cross-origin and otherwise allow.
+  const method = req.method.toUpperCase();
+  const isMutation = method !== 'GET' && method !== 'HEAD' && method !== 'OPTIONS';
+  if (pathname.startsWith('/api/admin') && isMutation) {
+    const secFetchSite = req.headers.get('sec-fetch-site');
+    const origin = req.headers.get('origin');
+    const host = req.headers.get('host');
+    let crossOrigin = false;
+    if (secFetchSite && secFetchSite !== 'same-origin') crossOrigin = true;
+    if (origin) {
+      try {
+        if (new URL(origin).host !== host) crossOrigin = true;
+      } catch {
+        crossOrigin = true;
+      }
+    }
+    if (crossOrigin) {
+      return new NextResponse('Cross-origin admin request blocked', { status: 403 });
+    }
+  }
+
   // Hard block: without ADMIN_PASSWORD set, admin is unreachable (503).
   // No silent fallback to a weak default.
   if (!BASIC_PASS) {

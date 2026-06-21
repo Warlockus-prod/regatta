@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
   },
   // Native addons need to be external so Next doesn't try to bundle them
   serverExternalPackages: ["better-sqlite3"],
+  // Don't advertise the framework in X-Powered-By. The other security headers
+  // (CSP with frame-ancestors, HSTS, nosniff, referrer-policy,
+  // permissions-policy) are set by the production nginx layer - verified live -
+  // so we do not duplicate them here (duplicate X-Frame-Options / CSP can
+  // weaken or conflict).
+  poweredByHeader: false,
 };
 
 export default nextConfig;
