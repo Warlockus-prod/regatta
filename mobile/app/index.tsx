@@ -8,6 +8,7 @@ import {
   Icon,
   type IconName,
   ListRow,
+  NavMenuButton,
   Screen,
   Text,
   WindNowCard,
@@ -120,6 +121,9 @@ export default function Home() {
     <Screen>
       <Stack.Screen options={{ headerShown: false }} />
       <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.menuRow}>
+          <NavMenuButton />
+        </View>
         <View style={styles.header}>
           <Wordmark size="xl" />
           <Text variant="caption" style={styles.tagline}>{tagline}</Text>
@@ -772,6 +776,13 @@ const styles = StyleSheet.create({
   scroll: {
     paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
+  },
+  menuRow: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: spacing.sm,
+    paddingTop: spacing.xs,
   },
   header: {
     alignItems: 'center',

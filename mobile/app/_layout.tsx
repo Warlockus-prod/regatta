@@ -6,7 +6,7 @@ import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider, useI18n } from '../src/i18n/context';
-import { ErrorBoundary } from '../src/design-system/components';
+import { ErrorBoundary, NavMenuButton } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { colors } from '../src/design-system/tokens';
@@ -45,6 +45,7 @@ export default function RootLayout() {
                       headerTintColor: colors.textPrimary,
                       headerTitleStyle: { color: colors.textPrimary },
                       animation: 'slide_from_right',
+                      headerRight: () => <NavMenuButton />,
                     }}
                   />
                   <StatusBar style="light" />

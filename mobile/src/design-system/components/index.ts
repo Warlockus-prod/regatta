@@ -13,6 +13,7 @@ export { Slider, type SliderOrientation } from './Slider';
 export { LessonDiagram } from './LessonDiagram';
 export { Icon, type IconName } from './Icon';
 export { Wordmark, type WordmarkSize } from './Wordmark';
+export { NavMenuButton } from './NavMenu';
 export { EmptyState } from './EmptyState';
 export { Skeleton } from './Skeleton';
 export { OfflineBanner } from './OfflineBanner';

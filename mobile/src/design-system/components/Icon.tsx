@@ -52,7 +52,9 @@ export type IconName =
   | 'flag'
   | 'check'
   | 'warning'
-  | 'info';
+  | 'info'
+  | 'menu'
+  | 'home';
 
 interface IconProps {
   name: IconName | string;
@@ -430,6 +432,26 @@ function InfoPaths({ color }: { color: string }) {
   );
 }
 
+function MenuPaths({ color }: { color: string }) {
+  return (
+    <>
+      <Path d="M4 7 L20 7" stroke={color} {...STROKE} />
+      <Path d="M4 12 L20 12" stroke={color} {...STROKE} />
+      <Path d="M4 17 L20 17" stroke={color} {...STROKE} />
+    </>
+  );
+}
+
+function HomePaths({ color }: { color: string }) {
+  return (
+    <>
+      <Path d="M4 11 L12 4 L20 11" stroke={color} {...STROKE} />
+      <Path d="M6 10 L6 20 L18 20 L18 10" stroke={color} {...STROKE} />
+      <Path d="M10 20 L10 14 L14 14 L14 20" stroke={color} {...STROKE} />
+    </>
+  );
+}
+
 const REGISTRY: Record<IconName, (props: { color: string }) => React.ReactElement> = {
   cap: CapPaths,
   bolt: BoltPaths,
@@ -455,6 +477,8 @@ const REGISTRY: Record<IconName, (props: { color: string }) => React.ReactElemen
   check: CheckPaths,
   warning: WarningPaths,
   info: InfoPaths,
+  menu: MenuPaths,
+  home: HomePaths,
 };
 
 const FALLBACK_EMOJI: Record<string, string> = {
