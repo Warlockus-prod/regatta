@@ -14,7 +14,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
-import { Button, Card, Screen, Text, Wordmark } from '../src/design-system/components';
+import { Button, Card, Icon, Screen, Text, Wordmark } from '../src/design-system/components';
 import { colors, radii, spacing } from '../src/design-system/tokens';
 import { useRaceHistory } from '../src/persistence/race-history';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
@@ -30,7 +30,7 @@ import {
   useUnits,
 } from '../src/persistence/units';
 
-const SUPPORT_EMAIL = 'support@icoffio.com';
+const SUPPORT_EMAIL = 'support@gtframe.io';
 
 /**
  * Settings screen.
@@ -85,12 +85,6 @@ export default function Settings() {
     de: 'Version',
     it: 'Versione',
   });
-
-  const phaseLabel = tp(
-    'Phase 1 - Content shell',
-    'Phase 1 - Content shell',
-    'Phase 1 - Content shell',
-  );
 
   const privacySectionLabel = tp(
     'Приватность',
@@ -160,14 +154,14 @@ export default function Settings() {
   );
 
   const supportHint = tp(
-    'support@icoffio.com - откроется ваш почтовый клиент',
-    'support@icoffio.com - opens your mail app',
-    'support@icoffio.com - otworzy aplikacje pocztowa',
+    `${SUPPORT_EMAIL} - откроется ваш почтовый клиент`,
+    `${SUPPORT_EMAIL} - opens your mail app`,
+    `${SUPPORT_EMAIL} - otworzy aplikacje pocztowa`,
     {
-      es: 'support@icoffio.com - abrira tu cliente de correo',
-      fr: 'support@icoffio.com - ouvrira votre messagerie',
-      de: 'support@icoffio.com - oeffnet Ihre Mail-App',
-      it: 'support@icoffio.com - aprira il tuo client email',
+      es: `${SUPPORT_EMAIL} - abrira tu cliente de correo`,
+      fr: `${SUPPORT_EMAIL} - ouvrira votre messagerie`,
+      de: `${SUPPORT_EMAIL} - oeffnet Ihre Mail-App`,
+      it: `${SUPPORT_EMAIL} - aprira il tuo client email`,
     },
   );
 
@@ -245,7 +239,7 @@ export default function Settings() {
                     <Text variant="caption">{langMeta.name}</Text>
                   </View>
                   {isSelected ? (
-                    <Text variant="accent" style={styles.check}>OK</Text>
+                    <Icon name="check" size={18} color={colors.accentCyan} />
                   ) : null}
                 </View>
               </Card>
@@ -271,9 +265,6 @@ export default function Settings() {
           <Wordmark size="m" style={styles.aboutWordmark} />
           <Text variant="caption" style={styles.aboutLine}>
             {versionLabel} {version} (build {buildNumber})
-          </Text>
-          <Text variant="muted" style={styles.aboutLine}>
-            {phaseLabel}
           </Text>
         </Card>
 

@@ -1,5 +1,5 @@
-import { Stack } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Stack, router } from 'expo-router';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import { Card, Screen, Text } from '../../src/design-system/components';
 import { quickRefreshLessons } from '../../src/data';
@@ -7,10 +7,9 @@ import { legacyPick } from '../../src/i18n/languages';
 import { spacing } from '../../src/design-system/tokens';
 
 /**
- * Quick refresh. 6 short tips (30 sec each) for experienced sailors.
- * Non-tappable Cards because each tip is a single-line refresher; the
- * deeper "open the practice route" affordance lives on Bootcamp lesson
- * detail, not here.
+ * Quick refresh. 6 short tips (30 sec each) for experienced sailors. Each tip
+ * links to its practice route (simulator / courses / checklist / rules /
+ * racing / game), mirroring the web, so a refresher is one tap from practice.
  */
 export default function Quick() {
   const { tp, lang } = useI18n();
@@ -51,20 +50,22 @@ export default function Quick() {
           const title = legacyPick(lesson, 'title', lang);
           const tip = legacyPick(lesson, 'tip', lang);
           return (
-            <Card
+            <Pressable
               key={lesson.id}
-              style={styles.card}
-              accessibilityRole="text"
+              onPress={() => router.push(lesson.route as never)}
+              accessibilityRole="button"
               accessibilityLabel={`${title}. ${tip}`}
             >
-              <View style={styles.row}>
-                <Text style={styles.emoji}>{lesson.emoji}</Text>
-                <View style={styles.text}>
-                  <Text variant="subtitle">{title}</Text>
-                  <Text variant="caption" style={styles.tip}>{tip}</Text>
+              <Card style={styles.card}>
+                <View style={styles.row}>
+                  <Text style={styles.emoji}>{lesson.emoji}</Text>
+                  <View style={styles.text}>
+                    <Text variant="subtitle">{title}</Text>
+                    <Text variant="caption" style={styles.tip}>{tip}</Text>
+                  </View>
                 </View>
-              </View>
-            </Card>
+              </Card>
+            </Pressable>
           );
         })}
       </ScrollView>
