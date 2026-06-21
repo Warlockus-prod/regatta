@@ -6,10 +6,40 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0006: App Store submission readiness (2026-05-24)
+
+**Status:** accepted
+
+**Context.** Sync pass merged the web curriculum reorder + content fixes into
+the mobile bundle and audited App Store readiness for v0.13.0 / build 13.
+
+**Decision / state.**
+- Config hardened: app.json gains `ios.infoPlist.ITSAppUsesNonExemptEncryption=false`
+  (removes the recurring "Missing Compliance" gate); eas.json `submit.production.ios`
+  now carries ascAppId 6768134329 + appleTeamId 547PA2PLLB so production submits do
+  not prompt interactively.
+- Content: JSON twins regenerated from web `src/data`; lesson order is now
+  wind -> points -> how-sail-works -> tacking -> jibing -> vmg -> rules -> race;
+  LESSON_TO_DAY realigned (how-sail-works Day 3, tacking+jibing paired Day 4).
+- Verified: mobile tsc clean, sync-content:check parity, jest 102 passing.
+
+**Remaining blockers (human, needs Mac + Xcode).**
+1. Screenshots: 0 in repo. Run `scripts/asc-screenshots.mjs` on a Mac (minimum the
+   EN 6.7" set), then upload per-locale in ASC.
+2. App icon has an alpha channel - re-export `assets/icon.png` as flat RGB (no
+   transparency) or Apple rejects the binary.
+3. In ASC: select build 13, answer export-compliance (No), confirm privacy/age/pricing,
+   then Submit for Review (see DO_THIS_NOW.md).
+
+**Consequences.** Privacy policy is hosted live (regatta.icoffio.com/privacy returns
+200). Once screenshots + an alpha-free icon land, the app is submit-ready.
+
+---
+
 ## ADR-0004: Offline strategy - per-screen tier matrix
 
 **Date:** 2026-04-22
-**Status:** proposed
+**Status:** accepted
 
 **Context.** ADR-0005 commits to full parity with web. Some web features depend on the network (multiplayer, AI coach, leaderboard submit, replay upload, daily challenges, auth, cloud sync); most do not (content, solo simulator, local replays, settings). Mobile needs an explicit per-screen contract for which screens are offline-first, which are network-only, and how each degrades when the network fails. The "premium UX" target rules out silent failures and blocking spinners.
 
@@ -67,7 +97,7 @@ Each entry: short context + decision + consequences. Newest on top.
 ## ADR-0003: Shared-package extraction plan
 
 **Date:** 2026-04-22
-**Status:** proposed
+**Status:** accepted (Mobile-lane sign-off); execution pending in Shared lane
 
 **Context.** ADR-0001 (RN+Expo) and ADR-0005 (full parity with web) commit mobile to consuming the same content (`src/data/*`) and physics (`src/lib/sailing-physics/*`) the web client uses. The "one source of truth per asset" rule from CLAUDE.md forbids parallel copies that drift. Per CLAUDE.md, any data/physics/i18n duplication triggers Shared-lane planning to extract assets into shared packages.
 

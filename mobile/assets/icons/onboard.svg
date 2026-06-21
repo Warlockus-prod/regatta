@@ -1,0 +1,13 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    On board / safety briefing glyph. Clipboard with three lines, used
+    for the on-board reference list on Home.
+  -->
+  <path d="M6 5 L6 21 C6 21.55 6.45 22 7 22 L17 22 C17.55 22 18 21.55 18 21 L18 5" />
+  <path d="M9 4 L15 4 L15 6 L9 6 Z" />
+  <path d="M9 5 L6 5" />
+  <path d="M15 5 L18 5" />
+  <path d="M9 11 L15 11" />
+  <path d="M9 14 L15 14" />
+  <path d="M9 17 L13 17" />
+</svg>

@@ -1,0 +1,11 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Bootcamp / lesson glyph. A graduation cap drawn in a single thin line.
+    Replaces the emoji at mobile/app/index.tsx:177 (Bootcamp entry card)
+    and the bootcamp/index.tsx hero. Use at 24x24 base, tints via currentColor.
+  -->
+  <path d="M2 9 L12 4 L22 9 L12 14 Z" />
+  <path d="M6 11 L6 16 C6 17.1 8.7 18.5 12 18.5 C15.3 18.5 18 17.1 18 16 L18 11" />
+  <path d="M22 9 L22 14" />
+  <circle cx="22" cy="15.2" r="0.6" fill="currentColor" stroke="none" />
+</svg>

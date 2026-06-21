@@ -1,0 +1,11 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Tacking glyph. A boat track that turns through the wind upwind:
+    starboard tack curve into port tack curve, with the wind dot up top.
+  -->
+  <circle cx="12" cy="3.5" r="1" fill="currentColor" stroke="none" opacity="0.6" />
+  <path d="M12 5 L12 8" stroke-dasharray="1.5 1.5" />
+  <path d="M5 21 C7 17 9.5 14 11.5 11.5" />
+  <path d="M19 21 C17 17 14.5 14 12.5 11.5" />
+  <path d="M9 14.5 L11.5 11.5 L14.5 13.5" />
+</svg>

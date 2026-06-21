@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useMemo,
   useState,
   type ReactNode,
 } from 'react';
@@ -54,11 +55,17 @@ export interface I18nContextValue {
 
 const Ctx = createContext<I18nContextValue | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({
+  children,
+  initialLang = DEFAULT_LANG,
+}: {
+  children: ReactNode;
+  initialLang?: Lang;
+}) {
   // Start with DEFAULT_LANG ('ru') and rehydrate asynchronously from storage
   // and device locale. `ready` flips to true after the first pass so
   // screens that care can avoid a lang-flicker on first paint.
-  const [lang, setLangState] = useState<Lang>(DEFAULT_LANG);
+  const [lang, setLangState] = useState<Lang>(initialLang);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
@@ -119,11 +126,17 @@ export function I18nProvider({ children }: { children: ReactNode }) {
     [lang],
   );
 
-  return (
-    <Ctx.Provider value={{ lang, setLang, ready, t, tp, tl }}>
-      {children}
-    </Ctx.Provider>
+  // Memoize the context value so consumers do not re-render on unrelated
+  // provider re-renders. Without this, every component that calls
+  // `useI18n()` would re-render whenever any state inside the provider
+  // changed (or the parent re-rendered for any reason), because the value
+  // object would be a fresh reference each time.
+  const value = useMemo(
+    () => ({ lang, setLang, ready, t, tp, tl }),
+    [lang, setLang, ready, t, tp, tl],
   );
+
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useI18n(): I18nContextValue {

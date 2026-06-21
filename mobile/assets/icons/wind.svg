@@ -1,0 +1,9 @@
+<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!--
+    Wind glyph. Three horizontal flow lines with curl ends, suggesting
+    moving air. Used for the wind / direction lesson.
+  -->
+  <path d="M3 7 L13 7 C14.7 7 16 5.7 16 4.2 C16 2.9 14.9 2 13.7 2 C12.5 2 11.5 2.9 11.5 4" />
+  <path d="M3 12 L17 12 C18.7 12 20 13.3 20 14.8 C20 16.1 18.9 17 17.7 17 C16.5 17 15.5 16.1 15.5 15" />
+  <path d="M3 17 L11 17" />
+</svg>

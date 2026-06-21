@@ -1,0 +1,575 @@
+{
+  "onboardSections": [
+    {
+      "id": "hierarchy",
+      "icon": "👤",
+      "titleRu": "Кто главный на борту",
+      "titleEn": "Who's in charge",
+      "titlePl": "Kto rzadzi na pokladzie",
+      "titleEs": "Quién manda a bordo",
+      "titleFr": "Qui commande a bord",
+      "titleDe": "Wer ist der Kapitän an Bord",
+      "titleIt": "Chi comanda a bordo",
+      "itemsRu": [
+        "Шкипер - главный. Его слово последнее, особенно в опасных ситуациях.",
+        "Помощник шкипера или опытный член экипажа - второй в иерархии. Может отдавать команды от имени шкипера.",
+        "Остальной экипаж - выполняет команды. В хорошей команде ты знаешь свою роль и не лезешь в чужую.",
+        "На учебных регатах часто есть тренер - его слушают всегда, он приоритет над шкипером по обучению."
+      ],
+      "itemsEn": [
+        "Skipper is in charge. Their word is final, especially in dangerous situations.",
+        "First mate or experienced crew - second in command. Can relay orders on the skipper's behalf.",
+        "Rest of the crew - executes commands. In a good team you know your role and don't step on others.",
+        "On training regattas there's often a coach - always listen to them; they have teaching priority."
+      ],
+      "itemsPl": [
+        "Szyper jest glownodowodzacy. Jego slowo jest ostateczne, szczegolnie w niebezpiecznych sytuacjach.",
+        "Zastepca szypra lub doswiadczony czlonek zalogi - drugi w hierarchii. Moze przekazywac rozkazy w imieniu szypra.",
+        "Reszta zalogi - wykonuje polecenia. W dobrej zalodze znasz swoja role i nie wchodzisz w czyjas.",
+        "Na regatach szkoleniowych czesto jest trener - jego sluchaj zawsze, ma priorytet nauczania nad szyprem."
+      ],
+      "itemsEs": [
+        "El patrón manda. Su palabra es la última, especialmente en situaciones peligrosas.",
+        "El primer oficial o un tripulante experimentado - segundo al mando. Puede transmitir órdenes en nombre del patrón.",
+        "El resto de la tripulación - ejecuta las órdenes. En un buen equipo conoces tu rol y no te metes en el de los demás.",
+        "En las regatas de formación a menudo hay un entrenador - escúchalo siempre; tiene prioridad sobre el patrón en lo que respecta a la enseñanza."
+      ],
+      "itemsFr": [
+        "Le skipper commande. Sa parole est la dernière, surtout dans les situations dangereuses.",
+        "Le second ou un équipier expérimenté - deuxième dans la hiérarchie. Peut transmettre les ordres au nom du skipper.",
+        "Le reste de l'équipage - exécute les ordres. Dans une bonne équipe tu connais ton rôle et tu n'empiètes pas sur celui des autres.",
+        "Sur les régates de formation il y a souvent un entraîneur - écoute-le toujours; il a la priorité sur le skipper pour la formation."
+      ],
+      "itemsDe": [
+        "Der Skipper hat das Kommando. Sein Wort ist das letzte, besonders in gefährlichen Situationen.",
+        "Der Erste Maat oder ein erfahrenes Crewmitglied - der Zweite in der Hierarchie. Kann Befehle im Namen des Skippers weitergeben.",
+        "Der Rest der Crew - führt die Befehle aus. In einer guten Crew kennst du deine Rolle und mischst dich nicht in die der anderen ein.",
+        "Bei Ausbildungsregatten gibt es oft einen Trainer - hör immer auf ihn; er hat beim Lernen Vorrang vor dem Skipper."
+      ],
+      "itemsIt": [
+        "Lo skipper comanda. La sua parola è l'ultima, soprattutto nelle situazioni pericolose.",
+        "Il primo ufficiale o un membro dell'equipaggio esperto - secondo nella gerarchia. Può trasmettere gli ordini a nome dello skipper.",
+        "Il resto dell'equipaggio - esegue gli ordini. In una buona squadra conosci il tuo ruolo e non ti intrometti in quello degli altri.",
+        "Nelle regate di addestramento c'è spesso un istruttore - ascoltalo sempre; ha la priorità sullo skipper per quanto riguarda l'insegnamento."
+      ],
+      "warningRu": "Не спорь на ходу. Если не согласен - обсуди после маневра, не во время.",
+      "warningEn": "Don't argue mid-maneuver. Discuss after, not during.",
+      "warningPl": "Nie dyskutuj w trakcie manewru. Omow po, nie podczas.",
+      "warningEs": "No discutas durante el maniobra. Si no estás de acuerdo, discútelo después del maniobra, no durante.",
+      "warningFr": "Ne discute pas en manoeuvre. Si tu n'es pas d'accord - discute après la manoeuvre, pas pendant.",
+      "warningDe": "Streite dich nicht während des Manövers. Wenn du nicht einverstanden bist - diskutiere nach dem Manöver, nicht während.",
+      "warningIt": "Non discutere mentre navighi. Se non sei d'accordo - discuti dopo la manovra, non durante."
+    },
+    {
+      "id": "commands",
+      "icon": "📣",
+      "titleRu": "Команды на борту",
+      "titleEn": "Commands on board",
+      "titlePl": "Komendy na pokladzie",
+      "titleEs": "Comandos a bordo",
+      "titleFr": "Commandes a bord",
+      "titleDe": "Befehle an Bord",
+      "titleIt": "Comandi a bordo",
+      "itemsRu": [
+        "«Приготовиться к повороту» / «Ready about» - займи позицию, приготовь руки к шкотам, крикни «готов» когда готов.",
+        "«Поворот» / «Tacking» / «Lee-ho» - момент поворота. Шкот рабочего борта травится, второй выбирается.",
+        "«Трави» / «Ease» - отпустить шкот, парус уходит дальше от ДП.",
+        "«Выбирай» / «Trim» или «Sheet in» - подтянуть шкот, парус ближе к ДП.",
+        "«Отдать/принять швартов» / «Cast off / make fast» - швартовка и отшвартовка.",
+        "«Кранец на борт/за борт» / «Fender in / out» - кранцы убрать или достать.",
+        "«Фордевинд» / «Jibe-ho» - поворот через корму, ГИК перебрасывается."
+      ],
+      "itemsEn": [
+        "\"Ready about\" - get in position, hands on sheets, respond \"ready\" when set.",
+        "\"Tacking\" / \"Lee-ho\" - the turn begins. Release working sheet, trim the other.",
+        "\"Ease\" - let out the sheet, sail moves away from centerline.",
+        "\"Trim\" or \"Sheet in\" - pull the sheet in, sail closer to centerline.",
+        "\"Cast off\" / \"Make fast\" - docking and undocking lines.",
+        "\"Fender in / out\" - deploy or stow fenders.",
+        "\"Jibe-ho\" - turn through stern, BOOM swings across."
+      ],
+      "itemsPl": [
+        "\"Gotowi do zwrotu\" / \"Ready about\" - zajmij pozycje, rece na szotach, krzyknij \"gotowy\" gdy gotowy.",
+        "\"Zwrot\" / \"Tacking\" / \"Lee-ho\" - moment zwrotu. Szot pracujacej burty luzowany, drugi wybierany.",
+        "\"Luzuj\" / \"Ease\" - puszczaj szot, zagiel idzie dalej od osi.",
+        "\"Wybieraj\" / \"Trim\" - dociagnij szot, zagiel blizej osi.",
+        "\"Rzuc / zabierz cume\" / \"Cast off / make fast\" - cumowanie i odcumowanie.",
+        "\"Odbijacz do srodka / na zewnatrz\" / \"Fender in / out\" - schowaj lub wystaw odbijacze.",
+        "\"Zwrot przez rufe\" / \"Jibe-ho\" - zwrot przez rufe, BOM przeskakuje."
+      ],
+      "itemsEs": [
+        "\"Listos para virar\" / \"Ready about\" - ponte en posición, manos en las escotas, responde \"listo\" cuando lo estés.",
+        "\"Virando\" / \"Tacking\" / \"Lee-ho\" - empieza la virada. Larga la escota que trabaja, cobra la otra.",
+        "\"Larga\" / \"Ease\" - suelta la escota, la vela se aleja de la crujía.",
+        "\"Cobra\" / \"Trim\" o \"Sheet in\" - cobra la escota, la vela más cerca de la crujía.",
+        "\"Larga / amarra\" / \"Cast off / make fast\" - cabos de atraque y desatraque.",
+        "\"Defensa dentro / fuera\" / \"Fender in / out\" - recoge o saca las defensas.",
+        "\"Trasluchada\" / \"Jibe-ho\" - virada por avante en popa, la botavara cruza de un lado a otro."
+      ],
+      "itemsFr": [
+        "\"Parés à virer\" / \"Ready about\" - mets-toi en position, mains sur les écoutes, réponds \"paré\" quand tu l'es.",
+        "\"On vire\" / \"Tacking\" / \"Lee-ho\" - le virement commence. Choque l'écoute qui travaille, borde l'autre.",
+        "\"Choque\" / \"Ease\" - laisse filer l'écoute, la voile s'écarte de l'axe.",
+        "\"Borde\" / \"Trim\" ou \"Sheet in\" - borde l'écoute, la voile plus près de l'axe.",
+        "\"Largue / amarre\" / \"Cast off / make fast\" - aussières d'accostage et de départ.",
+        "\"Pare-battage dedans / dehors\" / \"Fender in / out\" - rentre ou sors les pare-battages.",
+        "\"Empannage\" / \"Jibe-ho\" - virement vent arrière, la bôme passe d'un bord à l'autre."
+      ],
+      "itemsDe": [
+        "\"Klar zur Wende\" / \"Ready about\" - geh in Position, Hände an die Schoten, antworte \"klar\", wenn du bereit bist.",
+        "\"Wende\" / \"Tacking\" / \"Lee-ho\" - die Wende beginnt. Fier die arbeitende Schot, hol die andere dicht.",
+        "\"Fier\" / \"Ease\" - lass die Schot los, das Segel geht weiter von der Mittellinie weg.",
+        "\"Dichtholen\" / \"Trim\" oder \"Sheet in\" - hol die Schot dicht, das Segel näher zur Mittellinie.",
+        "\"Los / fest\" / \"Cast off / make fast\" - Festmacherleinen beim An- und Ablegen.",
+        "\"Fender rein / raus\" / \"Fender in / out\" - Fender wegräumen oder ausbringen.",
+        "\"Halse\" / \"Jibe-ho\" - Wende über das Heck, der BAUM schlägt herüber."
+      ],
+      "itemsIt": [
+        "\"Pronti a virare\" / \"Ready about\" - mettiti in posizione, mani sulle scotte, rispondi \"pronto\" quando lo sei.",
+        "\"Si vira\" / \"Tacking\" / \"Lee-ho\" - la virata inizia. Molla la scotta che lavora, cazza l'altra.",
+        "\"Molla\" / \"Ease\" - lascia andare la scotta, la vela si allontana dalla mezzeria.",
+        "\"Cazza\" / \"Trim\" o \"Sheet in\" - cazza la scotta, la vela più vicina alla mezzeria.",
+        "\"Mollare / dare volta\" / \"Cast off / make fast\" - cime di ormeggio e disormeggio.",
+        "\"Parabordo dentro / fuori\" / \"Fender in / out\" - ritira o metti fuori i parabordi.",
+        "\"Strambata\" / \"Jibe-ho\" - virata in poppa, il BOMA passa da un lato all'altro."
+      ],
+      "warningRu": "Если не понял команду - кричи «не понял» / «say again», не угадывай. Тишина при «jibe-ho» = сломанные кости.",
+      "warningEn": "If you didn't catch a command - shout \"say again\". Don't guess. Silence on \"jibe-ho\" = broken bones.",
+      "warningPl": "Jesli nie zrozumiales komendy - krzycz \"say again\", nie zgaduj. Cisza przy \"jibe-ho\" = zlamane kosci.",
+      "warningEs": "Si no entiendes la orden - grita \"no entiendo\" / \"say again\", no adivines. Silencio en \"jibe-ho\" = huesos rotos.",
+      "warningFr": "Si tu ne comprends pas la commande - crie « pas compris » / « say again », ne devine pas. Le silence lors du « jibe-ho » = os casses.",
+      "warningDe": "Wenn du einen Befehl nicht verstanden hast - schrei \"nicht verstanden\" / \"say again\", rate nicht. Stille bei \"jibe-ho\" = gebrochene Knochen.",
+      "warningIt": "Se non capisci il comando - grida \"non capito\" / \"say again\", non indovinare. Silenzio a \"jibe-ho\" = ossa rotte."
+    },
+    {
+      "id": "danger-zones",
+      "icon": "⚠️",
+      "titleRu": "Что опасно и куда не лезть",
+      "titleEn": "What's dangerous and where NOT to put your hands",
+      "titlePl": "Co jest niebezpieczne i gdzie NIE wkladac rak",
+      "titleEs": "Qué es peligroso y dónde no meterse",
+      "titleFr": "Ce qui est dangereux et où ne pas aller",
+      "titleDe": "Was ist gefährlich und wo man nicht hingehen sollte",
+      "titleIt": "Cosa è pericoloso e dove non andare",
+      "itemsRu": [
+        "ГИК - главная опасность. При фордевинде перелетает через лодку на уровне головы. Всегда следи глазами, где он.",
+        "Шкоты под нагрузкой - могут содрать кожу, заломать пальцы. Никогда не держи шкот намоткой на руке.",
+        "Лебёдка (winch) - работает как мясорубка. Пальцы внутрь не попадают. Перед работой убери кольца и браслеты.",
+        "Якорная цепь - при постановке якоря стой в стороне. Якорь уходит быстро, цепь может сорвать с палубы.",
+        "Форштаг и ванты - ими держится мачта. Не нагружай, не виси, не пристёгивай к ним страховку если не сказали.",
+        "Откидная плита ванной / носовой туалет / камбуз на качке - держись двумя точками."
+      ],
+      "itemsEn": [
+        "The BOOM - main hazard. On jibes it flies across at head level. Always know where it is.",
+        "Loaded sheets - can flay skin, break fingers. Never wrap a sheet around your hand.",
+        "Winch - works like a meat grinder. Keep fingers clear. Remove rings and bracelets before working one.",
+        "Anchor chain - stand clear during anchor drop. Anchor goes fast, chain can rip off deck.",
+        "Forestay and shrouds - they hold up the mast. Don't load them, don't hang on them, don't clip safety tethers to them unless told.",
+        "Heads, galley, open hatches in waves - two points of contact always."
+      ],
+      "itemsPl": [
+        "BOM - glowne zagrozenie. Przy zwrocie przez rufe przeskakuje nad lodzia na wysokosci glowy. Zawsze wiedz gdzie jest.",
+        "Szoty pod obciazeniem - moga obedrzec skore, zlamac palce. Nigdy nie owijaj szota wokol reki.",
+        "Kabestan (winch) - dziala jak maszynka do mielenia miesa. Palce z dala. Przed praca zdejm pierscionki i bransoletki.",
+        "Lancuch kotwicy - podczas rzucania kotwicy stoj z boku. Kotwica idzie szybko, lancuch moze zerwac z pokladu.",
+        "Sztag i wanty - trzymaja maszt. Nie obciazaj, nie wis, nie przypinaj sie do nich asekuracja jesli nie kazano.",
+        "Toalety, kambuz, otwarte luki przy fali - zawsze dwa punkty kontaktu."
+      ],
+      "itemsEs": [
+        "La BOTAVARA - el principal peligro. En las trasluchadas cruza la embarcación a la altura de la cabeza. Saca siempre dónde está.",
+        "Las escotas en carga - pueden arrancarte la piel, romperte los dedos. Nunca te enrolles una escota en la mano.",
+        "El winche - funciona como una picadora de carne. Mantén los dedos lejos. Quítate anillos y pulseras antes de usarlo.",
+        "La cadena del ancla - apártate durante el fondeo. El ancla cae rápido y la cadena puede salir disparada de la cubierta.",
+        "El estay y los obenques - sujetan el palo. No los cargues, no te cuelgues, no enganches el arnés de seguridad a ellos salvo que te lo digan.",
+        "Aseos, cocina, escotillas abiertas con olas - siempre dos puntos de apoyo."
+      ],
+      "itemsFr": [
+        "La BÔME - le danger principal. Lors des empannages elle traverse le bateau à hauteur de tête. Sache toujours où elle est.",
+        "Les écoutes en charge - peuvent arracher la peau, casser les doigts. N'enroule jamais une écoute autour de ta main.",
+        "Le winch - fonctionne comme un hachoir à viande. Garde les doigts à l'écart. Enlève bagues et bracelets avant de t'en servir.",
+        "La chaîne de mouillage - reste à l'écart pendant le mouillage. L'ancre file vite, la chaîne peut s'arracher du pont.",
+        "L'étai et les haubans - ils tiennent le mât. Ne les charge pas, ne t'y suspends pas, n'y accroche pas ta longe de sécurité sauf si on te le dit.",
+        "Toilettes, cuisine, panneaux ouverts dans les vagues - toujours deux points de contact."
+      ],
+      "itemsDe": [
+        "Der BAUM - die Hauptgefahr. Bei Halsen schlägt er auf Kopfhöhe über das Boot. Wisse immer, wo er ist.",
+        "Schoten unter Last - können die Haut aufreißen, Finger brechen. Wickle eine Schot niemals um deine Hand.",
+        "Die Winsch - arbeitet wie ein Fleischwolf. Halte die Finger fern. Nimm Ringe und Armbänder ab, bevor du an ihr arbeitest.",
+        "Die Ankerkette - halte beim Ankerwerfen Abstand. Der Anker geht schnell, die Kette kann vom Deck gerissen werden.",
+        "Vorstag und Wanten - sie halten den Mast. Belaste sie nicht, häng dich nicht dran, klink die Sicherungsleine nicht ein, wenn es nicht gesagt wurde.",
+        "Toiletten, Pantry, offene Luken bei Wellen - immer zwei Kontaktpunkte."
+      ],
+      "itemsIt": [
+        "Il BOMA - il pericolo principale. Nelle strambate attraversa la barca all'altezza della testa. Sappi sempre dov'è.",
+        "Le scotte in carico - possono strapparti la pelle, romperti le dita. Non avvolgere mai una scotta intorno alla mano.",
+        "Il verricello - funziona come un tritacarne. Tieni le dita lontane. Togli anelli e braccialetti prima di usarlo.",
+        "La catena dell'ancora - stai lontano durante il fondo dell'ancora. L'ancora va giù in fretta, la catena può strapparsi dalla coperta.",
+        "Lo strallo e le sartie - reggono l'albero. Non caricarli, non appenderti, non agganciarci la cima di sicurezza se non te lo dicono.",
+        "Bagni, cambusa, boccaporti aperti con onde - sempre due punti di contatto."
+      ],
+      "warningRu": "Правило \"one hand for yourself, one for the boat\" - всегда одна рука должна держаться за что-то надёжное.",
+      "warningEn": "Rule: \"one hand for yourself, one for the boat\" - always one hand on something solid.",
+      "warningPl": "Zasada \"one hand for yourself, one for the boat\" - zawsze jedna reka na czyms solidnym.",
+      "warningEs": "La regla \"una mano para ti, una para el barco\" - siempre una mano debe agarrarse a algo seguro.",
+      "warningFr": "La règle « une main pour toi, une pour le bateau » - une main doit toujours tenir quelque chose de solide.",
+      "warningDe": "Die Regel \"one hand for yourself, one for the boat\" - immer eine Hand muss sich an etwas Zuverlässigem festhalten.",
+      "warningIt": "La regola \"una mano per te, una per la barca\" - sempre una mano deve aggrapparsi a qualcosa di sicuro."
+    },
+    {
+      "id": "rigging",
+      "icon": "⚓",
+      "titleRu": "Что такое шкоты, фалы, лебёдка",
+      "titleEn": "Sheets, halyards, winches - what's what",
+      "titlePl": "Szoty, faly, kabestany - co jest co",
+      "titleEs": "¿Qué son las escotas, las drizas, el winche?",
+      "titleFr": "Qu'est-ce que les ecoutes, les drisses, la winch",
+      "titleDe": "Was sind Schoten, Falle und Winsch",
+      "titleIt": "Cosa sono le scotte, le drisse, il verricello",
+      "itemsRu": [
+        "Фал (halyard) - идёт вертикально, поднимает парус вверх по мачте.",
+        "Шкот (sheet) - идёт к тебе в кокпит, управляет углом паруса. Гротшкот = mainsheet, стаксель-шкоты = jib sheets (их два, по одному на каждый галс).",
+        "Лебёдка (winch) - круглый барабан. Шкот на ней в 3-4 оборота по часовой, рукояткой (handle) тянешь.",
+        "Утка (cleat) - зажимает конец. Восьмёркой, потом хвост.",
+        "Стопор (clutch) - рычаг, держит фал или шкот, чтобы не тянуть лебёдкой постоянно.",
+        "Гик (boom) - горизонтальный шест у основания грота. На него крепится мейншит."
+      ],
+      "itemsEn": [
+        "Halyard - runs vertically, hoists a sail up the mast.",
+        "Sheet - runs into the cockpit, controls sail angle. Mainsheet, jib sheets (two - one per tack).",
+        "Winch - circular drum. Wrap sheet 3-4 turns clockwise, crank with handle.",
+        "Cleat - clamps a line. Figure-eight, then tail.",
+        "Clutch - lever that holds a halyard or sheet so you're not loaded on the winch forever.",
+        "Boom - horizontal spar at the foot of the mainsail. Mainsheet attaches to it."
+      ],
+      "itemsPl": [
+        "Fal (halyard) - idzie pionowo, podnosi zagiel po maszcie.",
+        "Szot (sheet) - idzie do ciebie do kokpitu, kontroluje kat zagla. Szot grota = mainsheet, szoty foka = jib sheets (dwa - po jednym na kazdy hals).",
+        "Kabestan (winch) - okragly beben. Szot 3-4 zwoje zgodnie ze wskazowkami zegara, korba ciagniesz.",
+        "Knaga (cleat) - zaciska line. Osemka, potem ogon.",
+        "Stoper (clutch) - dzwignia, trzyma fal lub szot zebys nie byl wiecznie obciazony na kabestanie.",
+        "Bom (boom) - poziomy drag u podstawy grota. Mocuje sie do niego mainsheet."
+      ],
+      "itemsEs": [
+        "Driza (halyard) - va en vertical, iza la vela por el palo.",
+        "Escota (sheet) - llega a la bañera, controla el ángulo de la vela. Escota mayor = mainsheet, escotas de foque = jib sheets (dos - una por cada amura).",
+        "Winche (winch) - tambor circular. La escota da 3-4 vueltas en sentido horario, tiras con la maneta (handle).",
+        "Cornamusa (cleat) - amarra un cabo. En ocho, y luego el chicote.",
+        "Mordaza (clutch) - palanca que sujeta una driza o escota para que no quedes cargado en el winche todo el rato.",
+        "Botavara (boom) - percha horizontal en el pie de la mayor. La escota mayor se amarra a ella."
+      ],
+      "itemsFr": [
+        "Drisse (halyard) - va à la verticale, hisse une voile le long du mât.",
+        "Écoute (sheet) - arrive dans le cockpit, règle l'angle de la voile. Grand-voile = mainsheet, écoutes de foc = jib sheets (deux - une par bord).",
+        "Winch (winch) - tambour circulaire. Enroule l'écoute 3-4 tours dans le sens horaire, tu tournes avec la manivelle (handle).",
+        "Taquet (cleat) - bloque un cordage. En huit, puis le dormant.",
+        "Coinceur (clutch) - levier qui retient une drisse ou une écoute pour ne pas rester chargé sur le winch en permanence.",
+        "Bôme (boom) - espar horizontal au pied de la grand-voile. La grand-écoute s'y amarre."
+      ],
+      "itemsDe": [
+        "Fall (halyard) - läuft senkrecht, zieht ein Segel am Mast hoch.",
+        "Schot (sheet) - läuft in die Plicht, steuert den Segelwinkel. Großschot = mainsheet, Fockschoten = jib sheets (zwei - eine pro Bug).",
+        "Winsch (winch) - runde Trommel. Schot 3-4 Umdrehungen im Uhrzeigersinn auflegen, mit der Kurbel (handle) durchsetzen.",
+        "Klampe (cleat) - belegt eine Leine. Achtknoten, dann das Tampenende.",
+        "Stopper (clutch) - Hebel, der ein Fall oder eine Schot hält, damit du nicht dauernd auf der Winsch unter Last bist.",
+        "Baum (boom) - waagerechter Spierenbaum am Fuß des Großsegels. Die Großschot wird daran befestigt."
+      ],
+      "itemsIt": [
+        "Drizza (halyard) - va in verticale, issa una vela lungo l'albero.",
+        "Scotta (sheet) - arriva in pozzetto, regola l'angolo della vela. Randa = mainsheet, scotte del fiocco = jib sheets (due - una per ogni mura).",
+        "Verricello (winch) - tamburo circolare. La scotta fa 3-4 giri in senso orario, tiri con la manovella (handle).",
+        "Galloccia (cleat) - blocca una cima. A otto, poi il codino.",
+        "Stopper (clutch) - leva che trattiene una drizza o una scotta così non resti carico sul verricello in continuazione.",
+        "Boma (boom) - asta orizzontale al piede della randa. La scotta della randa si fissa ad esso."
+      ]
+    },
+    {
+      "id": "start-routine",
+      "icon": "🏁",
+      "titleRu": "Что происходит на старте регаты",
+      "titleEn": "What happens at the race start",
+      "titlePl": "Co dzieje sie na starcie regat",
+      "titleEs": "Qué ocurre en la salida de la regata",
+      "titleFr": "Que se passe-t-il au depart de la regatte",
+      "titleDe": "Was geschieht beim Start der Regatta",
+      "titleIt": "Cosa accade alla partenza della regata",
+      "itemsRu": [
+        "Стартовая процедура по RRS Rule 26 - это 5-4-1-0: 5, 4, 1 минуты до старта и сам старт.",
+        "5 минут до старта - ПРЕДУПРЕДИТЕЛЬНЫЙ сигнал (warning). Поднимается класс-флаг, 1 звуковой сигнал. С этого момента ты официально в стартовой процедуре.",
+        "4 минуты - ПОДГОТОВИТЕЛЬНЫЙ сигнал (preparatory). Поднимается флаг P (или I/Z/U/чёрный в зависимости от правил стартового контроля), 1 звуковой сигнал. Активно маневрируешь у линии.",
+        "1 минута - OMS (one-minute signal). Подготовительный флаг спускается, 1 длинный звуковой сигнал.",
+        "Старт - 0 минут. Класс-флаг спускается, 1 звуковой сигнал. Пересёкший раньше обязан вернуться за линию и пересечь её снова.",
+        "Твоя роль как новичка: не мешать, держаться в стороне от зон, где шкипер маневрирует."
+      ],
+      "itemsEn": [
+        "Start sequence per RRS Rule 26 is 5-4-1-0: 5, 4, 1 minutes to start and the start itself.",
+        "5 minutes to start - WARNING signal. Class flag goes up, 1 sound. You are now officially in the start sequence.",
+        "4 minutes - PREPARATORY signal. Flag P (or I/Z/U/black depending on start control regime) goes up, 1 sound. Active manoeuvring near the line.",
+        "1 minute - OMS (one-minute signal). Preparatory flag down, 1 long sound.",
+        "Start - 0 minutes. Class flag down, 1 sound. Anyone who crossed early must return behind the line and cross again.",
+        "Your role as a beginner: don't get in the way, stay clear of where the skipper is manoeuvring."
+      ],
+      "itemsPl": [
+        "Procedura startu wedlug RRS zasada 26 to 5-4-1-0: 5, 4, 1 minut do startu i sam start.",
+        "5 minut do startu - sygnal OSTRZEGAWCZY (warning). Podnosi sie flaga klasy, 1 sygnal dzwiekowy. Od tego momentu jestes oficjalnie w procedurze startu.",
+        "4 minuty - sygnal PRZYGOTOWAWCZY (preparatory). Podnosi sie flaga P (lub I/Z/U/czarna w zaleznosci od regimu startu), 1 sygnal dzwiekowy. Aktywnie manewrujesz przy linii.",
+        "1 minuta - OMS (one-minute signal). Flaga przygotowawcza opuszczana, 1 dlugi sygnal dzwiekowy.",
+        "Start - 0 minut. Flaga klasy opuszczana, 1 sygnal dzwiekowy. Kto przekroczyl wczesniej musi wrocic za linie i przekroczyc ja ponownie.",
+        "Twoja rola jako poczatkujacego: nie przeszkadzaj, trzymaj sie z dala od stref gdzie szyper manewruje."
+      ],
+      "itemsEs": [
+        "La secuencia de salida según la RRS regla 26 es 5-4-1-0: 5, 4, 1 minutos para la salida y la salida misma.",
+        "5 minutos para la salida - señal de ATENCIÓN (warning). Se iza la bandera de la clase, 1 señal acústica. A partir de este momento estás oficialmente en la secuencia de salida.",
+        "4 minutos - señal PREPARATORIA (preparatory). Se iza la bandera P (o I/Z/U/negra según el régimen de control de salida), 1 señal acústica. Maniobras de forma activa cerca de la línea.",
+        "1 minuto - OMS (one-minute signal). Se arría la bandera preparatoria, 1 señal acústica larga.",
+        "Salida - 0 minutos. Se arría la bandera de la clase, 1 señal acústica. Quien haya cruzado antes debe regresar por detrás de la línea y volver a cruzarla.",
+        "Tu papel como principiante: no estorbes, mantente apartado de las zonas donde el patrón está maniobrando."
+      ],
+      "itemsFr": [
+        "La séquence de départ selon la règle 26 des RCV est 5-4-1-0: 5, 4, 1 minutes avant le départ et le départ lui-même.",
+        "5 minutes avant le départ - signal d'AVERTISSEMENT (warning). Le pavillon de classe est hissé, 1 signal sonore. À partir de cet instant tu es officiellement dans la séquence de départ.",
+        "4 minutes - signal PRÉPARATOIRE (preparatory). Le pavillon P (ou I/Z/U/noir selon le régime de contrôle du départ) est hissé, 1 signal sonore. Manoeuvres actives près de la ligne.",
+        "1 minute - OMS (one-minute signal). Le pavillon préparatoire est affalé, 1 signal sonore long.",
+        "Départ - 0 minute. Le pavillon de classe est affalé, 1 signal sonore. Celui qui a franchi trop tôt doit revenir derrière la ligne et la franchir à nouveau.",
+        "Ton rôle en tant que débutant: ne gêne pas, reste à l'écart des zones où le skipper manoeuvre."
+      ],
+      "itemsDe": [
+        "Die Startsequenz nach RRS Regel 26 ist 5-4-1-0: 5, 4, 1 Minuten bis zum Start und der Start selbst.",
+        "5 Minuten bis zum Start - ANKÜNDIGUNGSsignal (warning). Die Klassenflagge geht hoch, 1 Schallsignal. Ab jetzt bist du offiziell in der Startsequenz.",
+        "4 Minuten - VORBEREITUNGSsignal (preparatory). Die Flagge P (oder I/Z/U/schwarz je nach Startkontrollregime) geht hoch, 1 Schallsignal. Aktives Manövrieren nahe der Linie.",
+        "1 Minute - OMS (one-minute signal). Die Vorbereitungsflagge wird niedergeholt, 1 langes Schallsignal.",
+        "Start - 0 Minuten. Die Klassenflagge wird niedergeholt, 1 Schallsignal. Wer zu früh gekreuzt hat, muss hinter die Linie zurück und sie erneut kreuzen.",
+        "Deine Rolle als Anfänger: steh nicht im Weg, halte dich von den Bereichen fern, wo der Skipper manövriert."
+      ],
+      "itemsIt": [
+        "La sequenza di partenza secondo la RRS regola 26 è 5-4-1-0: 5, 4, 1 minuti alla partenza e la partenza stessa.",
+        "5 minuti alla partenza - segnale di AVVISO (warning). Si issa la bandiera di classe, 1 segnale acustico. Da questo momento sei ufficialmente nella sequenza di partenza.",
+        "4 minuti - segnale PREPARATORIO (preparatory). Si issa la bandiera P (o I/Z/U/nera a seconda del regime di controllo della partenza), 1 segnale acustico. Manovri attivamente vicino alla linea.",
+        "1 minuto - OMS (one-minute signal). La bandiera preparatoria viene ammainata, 1 segnale acustico lungo.",
+        "Partenza - 0 minuti. La bandiera di classe viene ammainata, 1 segnale acustico. Chi ha attraversato in anticipo deve tornare dietro la linea e attraversarla di nuovo.",
+        "Il tuo ruolo da principiante: non intralciare, stai lontano dalle zone dove lo skipper sta manovrando."
+      ]
+    },
+    {
+      "id": "docking",
+      "icon": "⚓",
+      "titleRu": "Швартовка - что делать",
+      "titleEn": "Docking - what to do",
+      "titlePl": "Cumowanie - co robic",
+      "titleEs": "Atraque - qué hacer",
+      "titleFr": "Amarrage - que faire",
+      "titleDe": "Anlegen - was tun",
+      "titleIt": "Ormeggio - cosa fare",
+      "itemsRu": [
+        "Кранцы наружу заранее. С того борта, которым подойдёте к причалу.",
+        "Приготовь швартовы (линии) на носу и корме. Узнай заранее - какой у тебя узел (обычно бочка на утку).",
+        "На причал сходи ТОЛЬКО когда шкипер скажет или когда борт яхты уже у стенки. Не прыгай.",
+        "Первым подаётся носовой или кормовой конец - шкипер скажет.",
+        "После швартовки - шпринги (диагональные линии) против движения вперёд-назад."
+      ],
+      "itemsEn": [
+        "Fenders out beforehand, on the side you're approaching the dock from.",
+        "Prepare bow and stern lines. Know your knot in advance (usually bowline onto a cleat).",
+        "Step onto the dock ONLY when the skipper says or the hull is already touching. Don't jump.",
+        "First line ashore is bow or stern - skipper decides.",
+        "After docking - springs (diagonal lines) to prevent fore-aft drift."
+      ],
+      "itemsPl": [
+        "Odbijacze na zewnatrz wczesniej. Z tej burty, ktora podejdziecie do nabrzeza.",
+        "Przygotuj cumy dziobowa i rufowa. Wiedz wczesniej jaki masz wezel (zwykle bowlinka na knage).",
+        "Na nabrzeze schodz TYLKO gdy szyper powie lub gdy burta jachtu juz dotyka. Nie skacz.",
+        "Pierwsza cuma na lad to dziobowa lub rufowa - szyper decyduje.",
+        "Po cumowaniu - szpringi (ukosne cumy) przeciw ruchowi do przodu / do tylu."
+      ],
+      "itemsEs": [
+        "Las defensas fuera con antelación, por la banda con la que vas a atracar al muelle.",
+        "Prepara los cabos de proa y de popa. Saca de antemano qué nudo te toca (normalmente as de guía a una cornamusa).",
+        "Salta al muelle SOLO cuando el patrón lo diga o cuando el casco ya esté tocando. No saltes.",
+        "El primer cabo a tierra es el de proa o el de popa - lo decide el patrón.",
+        "Después del atraque - los esprines (cabos en diagonal) contra el desplazamiento hacia proa y popa."
+      ],
+      "itemsFr": [
+        "Les pare-battages dehors à l'avance, du bord par lequel tu accostes l'appontement.",
+        "Prépare les aussières d'avant et d'arrière. Sache à l'avance quel noeud tu fais (en général un noeud de chaise sur un taquet).",
+        "Descends sur l'appontement SEULEMENT quand le skipper le dit ou quand la coque touche déjà. Ne saute pas.",
+        "La première aussière à terre est celle d'avant ou d'arrière - le skipper décide.",
+        "Après l'accostage - les gardes (aussières en diagonale) pour empêcher le mouvement avant-arrière."
+      ],
+      "itemsDe": [
+        "Die Fender im Voraus außenbords, an der Seite, mit der du am Steg anlegst.",
+        "Bereite Bug- und Heckleine vor. Wisse vorab, welchen Knoten du machst (meist Palstek auf eine Klampe).",
+        "Geh erst dann auf den Steg, wenn der Skipper es sagt oder der Rumpf schon anliegt. Spring nicht.",
+        "Die erste Leine an Land ist Bug- oder Heckleine - der Skipper entscheidet.",
+        "Nach dem Anlegen - Springs (diagonale Leinen) gegen die Vor- und Zurückbewegung."
+      ],
+      "itemsIt": [
+        "I parabordi fuori in anticipo, dalla banda con cui ti accosti alla banchina.",
+        "Prepara le cime di prua e di poppa. Sappi in anticipo che nodo fare (di solito gassa d'amante su una galloccia).",
+        "Scendi in banchina SOLO quando lo skipper lo dice o quando lo scafo sta già toccando. Non saltare.",
+        "La prima cima a terra è quella di prua o di poppa - decide lo skipper.",
+        "Dopo l'ormeggio - gli spring (cime in diagonale) contro il movimento avanti-indietro."
+      ],
+      "warningRu": "Никогда не суй руку между бортом и причалом. Любая волна - и пальцы.",
+      "warningEn": "Never put your hand between hull and dock. One wave - and goodbye fingers.",
+      "warningPl": "Nigdy nie wkladaj reki miedzy kadlub a nabrzeze. Jedna fala - i zegnaj palce.",
+      "warningEs": "Nunca metas la mano entre el casco y el muelle. Una ola cualquiera y pierdes los dedos.",
+      "warningFr": "Ne mets jamais ta main entre la coque et l'appontement. Une vague - et c'est les doigts.",
+      "warningDe": "Stecke deine Hand niemals zwischen den Rumpf und den Steg. Eine beliebige Welle - und die Finger sind weg.",
+      "warningIt": "Non mettere mai la mano tra lo scafo e la banchina. Una qualsiasi onda - e le dita."
+    },
+    {
+      "id": "pack-list",
+      "icon": "🎒",
+      "titleRu": "Что взять с собой",
+      "titleEn": "What to bring",
+      "titlePl": "Co zabrac ze soba",
+      "titleEs": "Qué llevar contigo",
+      "titleFr": "Qu'apporter avec soi",
+      "titleDe": "Was mitnehmen",
+      "titleIt": "Cosa portare con sé",
+      "itemsRu": [
+        "Непромокаемая куртка и штаны (oilskins / foulies) - если дождь или брызги.",
+        "Обувь с белой подошвой, нескользящей - чтобы не царапать палубу.",
+        "Солнцезащитные очки с ремешком, крем SPF 50+.",
+        "Шапка / кепка - обязательно, на воде солнце бьёт с двух сторон.",
+        "Перчатки с открытыми пальцами - для шкотов.",
+        "Вода и лёгкие перекусы - морская болезнь усиливается на голодный желудок, но переедать тоже нельзя.",
+        "Таблетки от морской болезни (Dramamine, Bonine) - принять ЗА час до выхода.",
+        "Тёплый слой - на воде всегда холоднее чем на берегу.",
+        "Маленький сухой мешок для телефона/документов."
+      ],
+      "itemsEn": [
+        "Waterproof jacket and pants (foulies) - for rain or spray.",
+        "Shoes with white non-marking soles - to not scratch the deck.",
+        "Sunglasses with retainer strap, SPF 50+ sunscreen.",
+        "Hat - mandatory, sun hits from two sides on water.",
+        "Fingerless gloves - for sheets.",
+        "Water and light snacks - seasickness worsens on empty stomach, but don't overeat.",
+        "Motion sickness tablets (Dramamine, Bonine) - take ONE HOUR before departure.",
+        "Warm layer - always colder on water than ashore.",
+        "Small dry bag for phone and documents."
+      ],
+      "itemsPl": [
+        "Nieprzemakalna kurtka i spodnie (sztormiak / foulies) - na deszcz lub bryzgi.",
+        "Buty z biala, nieslizga podeszwa - zeby nie rysowac pokladu.",
+        "Okulary przeciwsloneczne z paskiem, krem SPF 50+.",
+        "Czapka - obowiazkowo, na wodzie slonce bije z dwoch stron.",
+        "Rekawiczki bez palcow - do szotow.",
+        "Woda i lekkie przekaski - choroba morska nasila sie na czczo, ale przejesc tez nie mozna.",
+        "Tabletki na chorobe morska (Dramamine, Bonine) - wziasc GODZINE przed wyjsciem.",
+        "Cieplsza warstwa - na wodzie zawsze chlodniej niz na ladzie.",
+        "Maly suchy worek na telefon i dokumenty."
+      ],
+      "itemsEs": [
+        "Chaqueta y pantalón impermeables (foulies) - para lluvia o salpicaduras.",
+        "Calzado de suela blanca que no deje marcas - para no rayar la cubierta.",
+        "Gafas de sol con cinta de sujeción, crema solar SPF 50+.",
+        "Gorra - obligatoria, en el agua el sol pega por dos lados.",
+        "Guantes sin dedos - para las escotas.",
+        "Agua y algo ligero de picar - el mareo empeora con el estómago vacío, pero tampoco comas en exceso.",
+        "Pastillas para el mareo (Dramamine, Bonine) - tómalas UNA HORA antes de salir.",
+        "Una capa de abrigo - en el agua siempre hace más frío que en tierra.",
+        "Una bolsa estanca pequeña para el móvil y los documentos."
+      ],
+      "itemsFr": [
+        "Veste et pantalon imperméables (foulies) - pour la pluie ou les embruns.",
+        "Chaussures à semelle blanche non marquante - pour ne pas rayer le pont.",
+        "Lunettes de soleil avec cordon, crème solaire SPF 50+.",
+        "Casquette - obligatoire, sur l'eau le soleil tape des deux côtés.",
+        "Gants sans doigts - pour les écoutes.",
+        "De l'eau et des en-cas légers - le mal de mer empire le ventre vide, mais ne mange pas trop non plus.",
+        "Comprimés contre le mal de mer (Dramamine, Bonine) - à prendre UNE HEURE avant le départ.",
+        "Une couche chaude - sur l'eau il fait toujours plus froid qu'à terre.",
+        "Un petit sac étanche pour le téléphone et les papiers."
+      ],
+      "itemsDe": [
+        "Wasserdichte Jacke und Hose (Foulies) - bei Regen oder Spritzwasser.",
+        "Schuhe mit weißer, nicht abfärbender Sohle - um das Deck nicht zu zerkratzen.",
+        "Sonnenbrille mit Halteband, Sonnencreme SPF 50+.",
+        "Mütze - Pflicht, auf dem Wasser kommt die Sonne von zwei Seiten.",
+        "Fingerlose Handschuhe - für die Schoten.",
+        "Wasser und leichte Snacks - Seekrankheit wird auf leeren Magen schlimmer, aber iss auch nicht zu viel.",
+        "Tabletten gegen Seekrankheit (Dramamine, Bonine) - EINE STUNDE vor dem Ablegen einnehmen.",
+        "Eine warme Schicht - auf dem Wasser ist es immer kälter als an Land.",
+        "Ein kleiner wasserdichter Sack für Handy und Dokumente."
+      ],
+      "itemsIt": [
+        "Giacca e pantaloni impermeabili (cerata / foulies) - per pioggia o spruzzi.",
+        "Scarpe con suola bianca che non lascia segni - per non graffiare la coperta.",
+        "Occhiali da sole con laccetto, crema solare SPF 50+.",
+        "Cappello - obbligatorio, in acqua il sole batte da due lati.",
+        "Guanti senza dita - per le scotte.",
+        "Acqua e snack leggeri - il mal di mare peggiora a stomaco vuoto, ma non mangiare troppo.",
+        "Pastiglie contro il mal di mare (Dramamine, Bonine) - da prendere UN'ORA prima di partire.",
+        "Uno strato caldo - in acqua fa sempre più freddo che a terra.",
+        "Un piccolo sacco stagno per telefono e documenti."
+      ]
+    },
+    {
+      "id": "quiet-crew",
+      "icon": "🤐",
+      "titleRu": "Как быть полезным, а не мешать",
+      "titleEn": "How to be helpful, not in the way",
+      "titlePl": "Jak byc pomocnym, a nie przeszkadzac",
+      "titleEs": "Cómo ser útil sin estorbar",
+      "titleFr": "Comment être utile sans gêner",
+      "titleDe": "Wie man hilfreicht ist, ohne im Weg zu sein",
+      "titleIt": "Come essere utile e non intralciare",
+      "itemsRu": [
+        "Молчание - золото. На старте и поворотах не болтай.",
+        "Предвосхищай. Если видишь что скоро поворот - сам переходи на другой борт (ballast).",
+        "Без команды не делай большие вещи. Но мелочи - кранцы, вода экипажу - можно.",
+        "Если не знаешь - спроси ОДИН раз, запомни ответ. Не переспрашивай каждые 5 минут.",
+        "Держи палубу чистой. Шкот на колёсах = поворот провален.",
+        "Если тебя укачало - не герой. Скажи шкиперу, сядь на подветренный борт, смотри на горизонт."
+      ],
+      "itemsEn": [
+        "Silence is golden. Don't chatter during start or tacks.",
+        "Anticipate. See a tack coming - cross to the other side (ballast) yourself.",
+        "Don't do big things without a command. Small things - fenders, water for crew - fine.",
+        "If you don't know - ask ONCE, remember the answer. Don't re-ask every 5 minutes.",
+        "Keep the deck clear. A sheet under a foot = a blown tack.",
+        "If you're seasick - not a hero. Tell the skipper, sit on the leeward side, look at the horizon."
+      ],
+      "itemsPl": [
+        "Milczenie jest zlotem. Przy starcie i zwrotach nie gadaj.",
+        "Przewiduj. Jesli widzisz ze zaraz zwrot - sam przejdz na druga burte (balast).",
+        "Bez polecenia nie rob duzych rzeczy. Ale drobiazgi - odbijacze, woda dla zalogi - mozna.",
+        "Jesli nie wiesz - pytaj RAZ, zapamietaj odpowiedz. Nie pytaj ponownie co 5 minut.",
+        "Utrzymuj poklad czysty. Szot pod noga = spalony zwrot.",
+        "Jesli masz morska chorobe - nie bohateruj. Powiedz szyprowi, usiadz po zawietrznej, patrz na horyzont."
+      ],
+      "itemsEs": [
+        "El silencio es oro. En la salida y las viradas no parlotees.",
+        "Anticípate. Si ves que se acerca una virada - pásate tú mismo a la otra banda (lastre).",
+        "No hagas cosas grandes sin una orden. Las pequeñas - defensas, agua para la tripulación - sí.",
+        "Si no sabes - pregunta UNA vez y memoriza la respuesta. No vuelvas a preguntar cada 5 minutos.",
+        "Mantén la cubierta despejada. Una escota bajo el pie = virada arruinada.",
+        "Si te mareas - no te hagas el héroe. Díselo al patrón, siéntate en la banda de sotavento, mira al horizonte."
+      ],
+      "itemsFr": [
+        "Le silence est d'or. Au départ et dans les virements ne bavarde pas.",
+        "Anticipe. Si tu vois qu'un virement approche - passe toi-même de l'autre bord (lest).",
+        "Ne fais pas de grandes choses sans ordre. Les petites - pare-battages, eau pour l'équipage - d'accord.",
+        "Si tu ne sais pas - demande UNE fois, retiens la réponse. Ne redemande pas toutes les 5 minutes.",
+        "Garde le pont dégagé. Une écoute sous le pied = un virement raté.",
+        "Si tu as le mal de mer - pas de héros. Dis-le au skipper, assieds-toi sous le vent, regarde l'horizon."
+      ],
+      "itemsDe": [
+        "Schweigen ist Gold. Beim Start und bei Wenden nicht quatschen.",
+        "Antizipiere. Siehst du eine Wende kommen - wechsle selbst auf die andere Seite (Ballast).",
+        "Mach keine großen Dinge ohne Befehl. Kleinigkeiten - Fender, Wasser für die Crew - in Ordnung.",
+        "Wenn du etwas nicht weißt - frag EINMAL, merk dir die Antwort. Frag nicht alle 5 Minuten nach.",
+        "Halte das Deck frei. Eine Schot unter dem Fuß = eine vermasselte Wende.",
+        "Wenn du seekrank bist - kein Held sein. Sag es dem Skipper, setz dich auf die Leeseite, schau zum Horizont."
+      ],
+      "itemsIt": [
+        "Il silenzio è d'oro. Alla partenza e nelle virate non chiacchierare.",
+        "Anticipa. Se vedi arrivare una virata - passa tu stesso sull'altra banda (zavorra).",
+        "Non fare cose grandi senza un ordine. Le piccole - parabordi, acqua per l'equipaggio - va bene.",
+        "Se non sai - chiedi UNA volta, memorizza la risposta. Non richiedere ogni 5 minuti.",
+        "Tieni la coperta libera. Una scotta sotto il piede = una virata rovinata.",
+        "Se hai il mal di mare - niente eroismi. Dillo allo skipper, siediti sottovento, guarda l'orizzonte."
+      ]
+    }
+  ]
+}
