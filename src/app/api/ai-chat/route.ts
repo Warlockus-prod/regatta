@@ -13,7 +13,7 @@ const CHAT_WINDOW_MS = 60 * 60 * 1000;
 const CHAT_GLOBAL_LIMIT = 200;
 const CHAT_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 // OpenAI chat model. Override via env (OPENAI_MODEL) without a code change.
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 
 // ============================================================================
 // AI assistant scoped to this app: yachting / sailing / racing only.
@@ -139,7 +139,10 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         model: OPENAI_MODEL,
-        max_tokens: 600,
+        // GPT-5 family uses max_completion_tokens (not max_tokens) and consumes
+        // reasoning tokens; keep effort low so the chat stays fast + cheap.
+        max_completion_tokens: 1200,
+        reasoning_effort: 'low',
         messages: [
           { role: 'system', content: `${SYSTEM_RU}\n\n${langDirective}` },
           ...truncated,

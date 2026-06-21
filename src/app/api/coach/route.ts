@@ -16,7 +16,7 @@ const COACH_WINDOW_MS = 60 * 60 * 1000;
 const COACH_GLOBAL_LIMIT = 300;
 const COACH_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 // OpenAI model. Override via env (OPENAI_MODEL) without a code change.
-const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini';
+const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 
 // System prompts per language - cached so repeated requests are cheap.
 // The output JSON field names stay `titleRu / explanationRu / fixRu / nextGoalRu`
@@ -424,7 +424,10 @@ Analyse how the player did. Return ONLY JSON, with no commentary before or after
       },
       body: JSON.stringify({
         model: OPENAI_MODEL,
-        max_tokens: 1500,
+        // GPT-5 needs max_completion_tokens (not max_tokens); leave headroom for
+        // reasoning tokens. Low effort keeps coach latency + cost reasonable.
+        max_completion_tokens: 3000,
+        reasoning_effort: 'low',
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: SYSTEM_BY_LANG[lang] },
