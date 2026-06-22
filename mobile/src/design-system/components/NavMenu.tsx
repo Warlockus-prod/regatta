@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../i18n/context';
+import { ENABLED_LANGUAGES } from '../../i18n/languages';
 import { colors, radii, spacing } from '../tokens';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
@@ -94,13 +95,18 @@ const GROUPS: NavGroup[] = [
 const SETTINGS: NavItem = { href: '/settings', icon: 'gear', ru: 'Настройки', en: 'Settings', pl: 'Ustawienia', es: 'Ajustes', fr: 'Reglages', de: 'Einstellungen', it: 'Impostazioni' };
 
 export function NavMenuButton() {
-  const { lang, tp } = useI18n();
+  const { lang, tp, setLang } = useI18n();
   const router = useRouter();
   const pathname = usePathname();
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
-  const close = useCallback(() => setOpen(false), []);
+  const close = useCallback(() => {
+    setOpen(false);
+    setLangOpen(false);
+  }, []);
+  const currentLangName = ENABLED_LANGUAGES.find((l) => l.id === lang)?.nativeName ?? 'English';
   const go = useCallback(
     (href: string) => {
       setOpen(false);
@@ -111,6 +117,7 @@ export function NavMenuButton() {
 
   const menuLabel = tp('Меню', 'Menu', 'Menu', { es: 'Menu', fr: 'Menu', de: 'Menue', it: 'Menu' });
   const closeLabel = tp('Закрыть', 'Close', 'Zamknij', { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' });
+  const languagesLabel = tp('Язык', 'Language', 'Jezyk', { es: 'Idioma', fr: 'Langue', de: 'Sprache', it: 'Lingua' });
 
   const renderItem = (item: NavItem) => {
     const active = pathname === item.href;
@@ -132,7 +139,10 @@ export function NavMenuButton() {
   return (
     <>
       <Pressable
-        onPress={() => setOpen(true)}
+        onPress={() => {
+          setLangOpen(false);
+          setOpen(true);
+        }}
         accessibilityRole="button"
         accessibilityLabel={menuLabel}
         hitSlop={10}
@@ -174,6 +184,46 @@ export function NavMenuButton() {
                   {g.items.map(renderItem)}
                 </View>
               ))}
+
+              <View style={styles.divider} />
+
+              {/* Language - a collapsible row (like the website's dropdown),
+                  not the full list inline. */}
+              <Pressable
+                onPress={() => setLangOpen((v) => !v)}
+                accessibilityRole="button"
+                accessibilityState={{ expanded: langOpen }}
+                accessibilityLabel={`${languagesLabel}: ${currentLangName}`}
+                style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}
+              >
+                <Icon name="globe" size={22} color={colors.textSecondary} />
+                <Text style={styles.rowLabel}>{languagesLabel}</Text>
+                <View style={styles.langRight}>
+                  <Text style={styles.langCurrent}>{currentLangName}</Text>
+                  <Text style={styles.caret}>{langOpen ? '▾' : '▸'}</Text>
+                </View>
+              </Pressable>
+              {langOpen
+                ? ENABLED_LANGUAGES.map((l) => {
+                    const active = l.id === lang;
+                    return (
+                      <Pressable
+                        key={l.id}
+                        onPress={() => {
+                          setLang(l.id);
+                          close();
+                        }}
+                        accessibilityRole="button"
+                        accessibilityState={{ selected: active }}
+                        accessibilityLabel={l.nativeName}
+                        style={({ pressed }) => [styles.langRow, active && styles.rowActive, pressed && styles.rowPressed]}
+                      >
+                        <Text style={[styles.langName, active && styles.rowLabelActive]}>{l.nativeName}</Text>
+                        {active ? <Icon name="check" size={18} color={colors.accentCyan} /> : null}
+                      </Pressable>
+                    );
+                  })
+                : null}
 
               <View style={styles.divider} />
               {renderItem(SETTINGS)}
@@ -257,10 +307,39 @@ const styles = StyleSheet.create({
   rowLabel: {
     color: colors.textSecondary,
     fontSize: 16,
+    flex: 1,
   },
   rowLabelActive: {
     color: colors.accentCyan,
     fontWeight: '600',
+  },
+  langRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
+  langCurrent: {
+    color: colors.textMuted,
+    fontSize: 14,
+  },
+  caret: {
+    color: colors.textMuted,
+    fontSize: 14,
+    width: 14,
+    textAlign: 'center',
+  },
+  langRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    minHeight: 44,
+    paddingHorizontal: spacing.sm,
+    marginLeft: spacing.xl,
+    borderRadius: radii.md,
+  },
+  langName: {
+    color: colors.textSecondary,
+    fontSize: 15,
   },
   divider: {
     height: 1,

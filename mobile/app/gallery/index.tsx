@@ -1,133 +1,91 @@
 import { Stack } from 'expo-router';
-import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
+import {
+  Alert,
+  Image,
+  Linking,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../src/i18n/context';
 import { Screen, Text } from '../../src/design-system/components';
 import { galleryItems } from '../../src/data';
-import type { GalleryAspect, GalleryItem } from '../../src/data';
+import type { GalleryItem } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 
 /**
- * Gallery: photos and videos from past regattas, served from the web
- * client at `regatta.icoffio.com`. Per ADR-0004 this is a Tier 2 screen
- * (network read with cached fallback): images load from the network on
- * first view and RN's image cache serves them on repeat visits. Tap an
- * item to open the full-resolution image or the YouTube video in the
- * default browser / YouTube app.
- *
- * Layout: videos and photos are split into separate sections so a video
- * never reads as just another photo. Photos are grouped by year, and the
- * year is shown once on the section header instead of as a badge on every
- * tile (which was redundant noise).
+ * Gallery: photos and videos from past regattas, served from the web client at
+ * `regatta.icoffio.com`. Mirrors the website: a small-thumbnail collage grouped
+ * by year (the year shown once per section header, never per tile), photos open
+ * in an in-app lightbox (tap to enlarge + pinch to zoom), videos open in
+ * YouTube. Per ADR-0004 this is a Tier 2 screen (network read with the RN image
+ * cache serving repeat visits).
  */
 
 const WEB_BASE = 'https://regatta.icoffio.com';
-
-function imageUrl(item: GalleryItem): string {
-  if (item.kind === 'youtube') {
-    // hqdefault is widely available, ~480x360.
-    return `https://img.youtube.com/vi/${item.src}/hqdefault.jpg`;
-  }
-  // Prefer the smaller thumb for the list to save bandwidth.
-  const path = item.thumb ?? item.src;
-  return `${WEB_BASE}${path}`;
-}
-
-function urlForItem(item: GalleryItem): string {
-  return item.kind === 'youtube'
-    ? `https://www.youtube.com/watch?v=${item.src}`
-    : `${WEB_BASE}${item.src}`;
-}
-
-function aspectRatio(aspect: GalleryAspect | undefined): number {
-  switch (aspect) {
-    case '16:9': return 16 / 9;
-    case 'landscape': return 4 / 3;
-    case 'portrait': return 3 / 4;
-    case 'square':
-    default: return 1;
-  }
-}
-
 const NO_YEAR = 'misc'; // group key for photos without a year badge
+
+function thumbUrl(item: GalleryItem): string {
+  if (item.kind === 'youtube') return `https://img.youtube.com/vi/${item.src}/hqdefault.jpg`;
+  return `${WEB_BASE}${item.thumb ?? item.src}`;
+}
+function fullUrl(item: GalleryItem): string {
+  return `${WEB_BASE}${item.src}`;
+}
+function youtubeUrl(item: GalleryItem): string {
+  return `https://www.youtube.com/watch?v=${item.src}`;
+}
 
 export default function Gallery() {
   const { tp, lang } = useI18n();
+  const { width, height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const [lightbox, setLightbox] = useState<GalleryItem | null>(null);
 
-  const headerTitle = tp('Галерея', 'Gallery', 'Galeria', {
-    es: 'Galeria',
-    fr: 'Galerie',
-    de: 'Galerie',
-    it: 'Galleria',
-  });
+  // 3-column square grid for photos, 2-column 16:9 for videos.
+  const gap = spacing.xs;
+  const padH = spacing.lg;
+  const photoSize = Math.floor((width - padH * 2 - gap * 2) / 3);
+  const videoW = Math.floor((width - padH * 2 - gap) / 2);
+  const videoH = Math.round((videoW * 9) / 16);
 
+  const headerTitle = tp('Галерея', 'Gallery', 'Galeria', { es: 'Galeria', fr: 'Galerie', de: 'Galerie', it: 'Galleria' });
   const intro = tp(
-    'Видео и фото с прошлых регат. Нажми, чтобы открыть.',
-    'Videos and photos from past regattas. Tap to open.',
-    'Wideo i zdjecia z przeszlych regat. Kliknij, aby otworzyc.',
+    'Видео и фото с прошлых регат. Нажми на фото, чтобы увеличить.',
+    'Videos and photos from past regattas. Tap a photo to enlarge.',
+    'Wideo i zdjecia z przeszlych regat. Kliknij zdjecie, aby powiekszyc.',
     {
-      es: 'Videos y fotos de regatas pasadas. Pulsa para abrir.',
-      fr: 'Videos et photos des regates passees. Touchez pour ouvrir.',
-      de: 'Videos und Fotos vergangener Regatten. Zum Oeffnen tippen.',
-      it: 'Video e foto di regate passate. Tocca per aprire.',
+      es: 'Videos y fotos de regatas pasadas. Pulsa una foto para ampliar.',
+      fr: 'Videos et photos des regates passees. Touchez une photo pour agrandir.',
+      de: 'Videos und Fotos vergangener Regatten. Tippe ein Foto zum Vergroessern.',
+      it: 'Video e foto di regate passate. Tocca una foto per ingrandire.',
     },
   );
-
-  const videosLabel = tp('Видео', 'Videos', 'Wideo', {
-    es: 'Videos',
-    fr: 'Videos',
-    de: 'Videos',
-    it: 'Video',
-  });
-
-  const openErrorTitle = tp('Не получилось открыть', 'Could not open', 'Nie mozna otworzyc', {
-    es: 'No se pudo abrir',
-    fr: 'Impossible douvrir',
-    de: 'Konnte nicht oeffnen',
-    it: 'Impossibile aprire',
-  });
+  const videosLabel = tp('Видео', 'Videos', 'Wideo', { es: 'Videos', fr: 'Videos', de: 'Videos', it: 'Video' });
+  const closeLabel = tp('Закрыть', 'Close', 'Zamknij', { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' });
+  const openErrorTitle = tp('Не получилось открыть', 'Could not open', 'Nie mozna otworzyc', { es: 'No se pudo abrir', fr: 'Impossible d\'ouvrir', de: 'Konnte nicht oeffnen', it: 'Impossibile aprire' });
   const openErrorBody = tp(
-    'Браузер или YouTube не отвечает. Проверьте интернет и попробуйте ещё раз.',
-    'Browser or YouTube did not respond. Check your connection and try again.',
-    'Przegladarka lub YouTube nie odpowiada. Sprawdz internet i sprobuj ponownie.',
+    'YouTube не отвечает. Проверьте интернет и попробуйте ещё раз.',
+    'YouTube did not respond. Check your connection and try again.',
+    'YouTube nie odpowiada. Sprawdz internet i sprobuj ponownie.',
     {
-      es: 'El navegador o YouTube no respondio. Comprueba la conexion e intenta de nuevo.',
-      fr: 'Le navigateur ou YouTube ne repond pas. Verifiez la connexion et reessayez.',
-      de: 'Browser oder YouTube reagiert nicht. Verbindung pruefen und erneut versuchen.',
-      it: 'Browser o YouTube non risponde. Controlla la connessione e riprova.',
+      es: 'YouTube no respondio. Comprueba la conexion e intenta de nuevo.',
+      fr: 'YouTube ne repond pas. Verifiez la connexion et reessayez.',
+      de: 'YouTube reagiert nicht. Verbindung pruefen und erneut versuchen.',
+      it: 'YouTube non risponde. Controlla la connessione e riprova.',
     },
   );
 
-  const photoCountLabel = (n: number) =>
-    tp(
-      `${n} фото`,
-      `${n} ${n === 1 ? 'photo' : 'photos'}`,
-      `${n} ${n === 1 ? 'zdjecie' : 'zdjec'}`,
-      {
-        es: `${n} ${n === 1 ? 'foto' : 'fotos'}`,
-        fr: `${n} ${n === 1 ? 'photo' : 'photos'}`,
-        de: `${n} ${n === 1 ? 'Foto' : 'Fotos'}`,
-        it: `${n} foto`,
-      },
-    );
-  const videoCountLabel = (n: number) =>
-    tp(
-      `${n} видео`,
-      `${n} ${n === 1 ? 'video' : 'videos'}`,
-      `${n} wideo`,
-      {
-        es: `${n} ${n === 1 ? 'video' : 'videos'}`,
-        fr: `${n} ${n === 1 ? 'video' : 'videos'}`,
-        de: `${n} ${n === 1 ? 'Video' : 'Videos'}`,
-        it: `${n} video`,
-      },
-    );
-
-  const openItem = async (item: GalleryItem) => {
-    const url = urlForItem(item);
+  const openVideo = async (item: GalleryItem) => {
+    const url = youtubeUrl(item);
     try {
-      const ok = await Linking.canOpenURL(url);
-      if (!ok) {
+      if (!(await Linking.canOpenURL(url))) {
         Alert.alert(openErrorTitle, openErrorBody);
         return;
       }
@@ -137,7 +95,6 @@ export default function Gallery() {
     }
   };
 
-  // Split videos out, then group the photos by year (badge), newest first.
   const videos = galleryItems.filter((i) => i.kind === 'youtube');
   const photos = galleryItems.filter((i) => i.kind !== 'youtube');
   const photosByYear = new Map<string, GalleryItem[]>();
@@ -149,58 +106,40 @@ export default function Gallery() {
   }
   const years = Array.from(photosByYear.keys()).sort().reverse();
 
-  const renderTile = (item: GalleryItem) => {
-    const itemTitle = legacyPick(item, 'title', lang);
-    const ratio = aspectRatio(item.kind === 'youtube' ? '16:9' : item.aspect);
-    const kindLabel = item.kind === 'youtube'
-      ? tp('видео', 'video', 'wideo', { es: 'video', fr: 'video', de: 'Video', it: 'video' })
-      : tp('фото', 'photo', 'zdjecie', { es: 'foto', fr: 'photo', de: 'Foto', it: 'foto' });
-    const tileA11y = tp(
-      `Открыть ${kindLabel}: ${itemTitle}`,
-      `Open ${kindLabel}: ${itemTitle}`,
-      `Otworz ${kindLabel}: ${itemTitle}`,
-      {
-        es: `Abrir ${kindLabel}: ${itemTitle}`,
-        fr: `Ouvrir ${kindLabel} : ${itemTitle}`,
-        de: `${kindLabel} oeffnen: ${itemTitle}`,
-        it: `Apri ${kindLabel}: ${itemTitle}`,
-      },
-    );
+  const photoThumb = (item: GalleryItem) => {
+    const title = legacyPick(item, 'title', lang);
     return (
       <Pressable
         key={item.id}
-        onPress={() => { void openItem(item); }}
-        accessibilityRole="button"
-        accessibilityLabel={tileA11y}
-        style={({ pressed }) => [styles.tile, pressed && styles.tilePressed]}
+        onPress={() => setLightbox(item)}
+        accessibilityRole="imagebutton"
+        accessibilityLabel={title}
+        style={({ pressed }) => [{ width: photoSize, height: photoSize }, styles.thumb, pressed && styles.pressed]}
       >
-        <View style={[styles.imageWrap, { aspectRatio: ratio }]}>
-          <Image
-            source={{ uri: imageUrl(item) }}
-            style={styles.image}
-            resizeMode="cover"
-          />
-          {item.kind === 'youtube' ? (
-            <View style={styles.playOverlay}>
-              <View style={styles.playCircle}>
-                <View style={styles.playTriangle} />
-              </View>
-            </View>
-          ) : null}
-        </View>
-        <Text variant="caption" style={styles.title} numberOfLines={2}>
-          {itemTitle}
-        </Text>
+        <Image source={{ uri: thumbUrl(item) }} style={styles.thumbImg} resizeMode="cover" />
       </Pressable>
     );
   };
 
-  const SectionHeader = ({ label, count }: { label: string; count: string }) => (
-    <View style={styles.sectionHeader}>
-      <Text variant="subtitle" style={styles.sectionTitle}>{label}</Text>
-      <Text variant="caption" style={styles.sectionCount}>{count}</Text>
-    </View>
-  );
+  const videoThumb = (item: GalleryItem) => {
+    const title = legacyPick(item, 'title', lang);
+    return (
+      <Pressable
+        key={item.id}
+        onPress={() => { void openVideo(item); }}
+        accessibilityRole="button"
+        accessibilityLabel={title}
+        style={({ pressed }) => [{ width: videoW, height: videoH }, styles.thumb, pressed && styles.pressed]}
+      >
+        <Image source={{ uri: thumbUrl(item) }} style={styles.thumbImg} resizeMode="cover" />
+        <View style={styles.playOverlay}>
+          <View style={styles.playCircle}>
+            <View style={styles.playTriangle} />
+          </View>
+        </View>
+      </Pressable>
+    );
+  };
 
   return (
     <Screen>
@@ -212,8 +151,8 @@ export default function Gallery() {
 
         {videos.length > 0 ? (
           <View style={styles.section}>
-            <SectionHeader label={videosLabel} count={videoCountLabel(videos.length)} />
-            {videos.map(renderTile)}
+            <Text variant="subtitle" style={styles.sectionTitle}>{videosLabel}</Text>
+            <View style={[styles.grid, { paddingHorizontal: padH, gap }]}>{videos.map(videoThumb)}</View>
           </View>
         ) : null}
 
@@ -222,12 +161,49 @@ export default function Gallery() {
           const label = year === NO_YEAR ? headerTitle : year;
           return (
             <View key={year} style={styles.section}>
-              <SectionHeader label={label} count={photoCountLabel(items.length)} />
-              {items.map(renderTile)}
+              {/* Year shown once here - never on each tile. */}
+              <Text variant="subtitle" style={styles.sectionTitle}>{label}</Text>
+              <View style={[styles.grid, { paddingHorizontal: padH, gap }]}>{items.map(photoThumb)}</View>
             </View>
           );
         })}
       </ScrollView>
+
+      <Modal visible={lightbox !== null} transparent animationType="fade" onRequestClose={() => setLightbox(null)}>
+        <View style={styles.lightboxRoot}>
+          <ScrollView
+            style={styles.lightboxScroll}
+            contentContainerStyle={styles.lightboxContent}
+            maximumZoomScale={3}
+            minimumZoomScale={1}
+            centerContent
+          >
+            <Pressable style={styles.lightboxTap} onPress={() => setLightbox(null)} accessibilityRole="button" accessibilityLabel={closeLabel}>
+              {lightbox ? (
+                <Image
+                  source={{ uri: fullUrl(lightbox) }}
+                  style={{ width, height: Math.round(height * 0.85) }}
+                  resizeMode="contain"
+                />
+              ) : null}
+            </Pressable>
+          </ScrollView>
+          {lightbox ? (
+            <Text variant="caption" style={[styles.lightboxTitle, { bottom: insets.bottom + spacing.lg }]} numberOfLines={2}>
+              {legacyPick(lightbox, 'title', lang)}
+            </Text>
+          ) : null}
+          <Pressable
+            onPress={() => setLightbox(null)}
+            accessibilityRole="button"
+            accessibilityLabel={closeLabel}
+            hitSlop={12}
+            style={[styles.lightboxClose, { top: insets.top + spacing.sm }]}
+          >
+            <Text style={styles.lightboxCloseGlyph}>{'×'}</Text>
+          </Pressable>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -241,39 +217,30 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   section: {
-    marginTop: spacing.sm,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: spacing.sm,
-    paddingHorizontal: spacing.lg,
-    marginTop: spacing.lg,
-    marginBottom: spacing.sm,
+    marginTop: spacing.md,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.textPrimary,
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.md,
+    marginBottom: spacing.sm,
   },
-  sectionCount: {
-    color: colors.textMuted,
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
   },
-  tile: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  tilePressed: {
-    opacity: 0.85,
-  },
-  imageWrap: {
-    width: '100%',
-    borderRadius: radii.lg,
+  thumb: {
+    borderRadius: radii.md,
     overflow: 'hidden',
     backgroundColor: colors.bgCard,
     position: 'relative',
   },
-  image: {
+  pressed: {
+    opacity: 0.8,
+  },
+  thumbImg: {
     width: '100%',
     height: '100%',
   },
@@ -287,9 +254,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     backgroundColor: 'rgba(0, 212, 255, 0.88)',
     alignItems: 'center',
     justifyContent: 'center',
@@ -297,16 +264,48 @@ const styles = StyleSheet.create({
   playTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 22,
-    borderTopWidth: 14,
-    borderBottomWidth: 14,
+    borderLeftWidth: 18,
+    borderTopWidth: 11,
+    borderBottomWidth: 11,
     borderLeftColor: '#0a1628',
     borderTopColor: 'transparent',
     borderBottomColor: 'transparent',
-    marginLeft: 6,
+    marginLeft: 5,
   },
-  title: {
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.xs,
+  lightboxRoot: {
+    flex: 1,
+    backgroundColor: 'rgba(2, 8, 18, 0.97)',
+  },
+  lightboxScroll: {
+    flex: 1,
+  },
+  lightboxContent: {
+    flexGrow: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lightboxTap: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lightboxTitle: {
+    position: 'absolute',
+    left: spacing.lg,
+    right: spacing.lg,
+    textAlign: 'center',
+    color: colors.textSecondary,
+  },
+  lightboxClose: {
+    position: 'absolute',
+    right: spacing.md,
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  lightboxCloseGlyph: {
+    color: colors.textPrimary,
+    fontSize: 30,
+    lineHeight: 32,
   },
 });

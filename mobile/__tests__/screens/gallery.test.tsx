@@ -22,7 +22,6 @@ jest.mock('expo-localization', () => ({
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Gallery from '../../app/gallery/index';
 import { galleryItems } from '../../src/data';
-import { legacyPick } from '../../src/i18n/languages';
 import { renderWithProviders } from '../../src/test-utils';
 
 beforeEach(async () => {
@@ -36,10 +35,13 @@ describe('Gallery screen', () => {
     await waitFor(() => view.getByText(/Videos and photos from past regattas/));
   });
 
-  it('renders the first item title', async () => {
+  it('renders the videos section header', async () => {
     const view = renderWithProviders(<Gallery />);
-    const firstTitle = legacyPick(galleryItems[0]!, 'title', 'en');
-    await waitFor(() => view.getByText(firstTitle));
+    // Per-tile titles were removed (collage of thumbnails, captions only as
+    // section headers). With at least one video present, the Videos header
+    // proves the sectioned layout renders.
+    if (!galleryItems.some((i) => i.kind === 'youtube')) return;
+    await waitFor(() => view.getByText('Videos'));
   });
 
   it('shows year badges for items that carry one', async () => {

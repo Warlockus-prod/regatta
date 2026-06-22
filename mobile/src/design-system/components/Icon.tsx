@@ -54,7 +54,8 @@ export type IconName =
   | 'warning'
   | 'info'
   | 'menu'
-  | 'home';
+  | 'home'
+  | 'globe';
 
 interface IconProps {
   name: IconName | string;
@@ -452,6 +453,16 @@ function HomePaths({ color }: { color: string }) {
   );
 }
 
+function GlobePaths({ color }: { color: string }) {
+  return (
+    <>
+      <Circle cx={12} cy={12} r={9} stroke={color} {...STROKE} />
+      <Path d="M3 12 L21 12" stroke={color} {...STROKE} />
+      <Path d="M12 3 C15.5 6.5 15.5 17.5 12 21 C8.5 17.5 8.5 6.5 12 3 Z" stroke={color} {...STROKE} />
+    </>
+  );
+}
+
 const REGISTRY: Record<IconName, (props: { color: string }) => React.ReactElement> = {
   cap: CapPaths,
   bolt: BoltPaths,
@@ -479,6 +490,7 @@ const REGISTRY: Record<IconName, (props: { color: string }) => React.ReactElemen
   info: InfoPaths,
   menu: MenuPaths,
   home: HomePaths,
+  globe: GlobePaths,
 };
 
 const FALLBACK_EMOJI: Record<string, string> = {
