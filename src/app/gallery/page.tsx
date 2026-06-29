@@ -196,31 +196,10 @@ export default function GalleryPage() {
         ))
       )}
 
-      {/*
-        Tailwind doesn't ship column-count utilities so we set them inline
-        via a small style block. Three breakpoints: 2 / 3 / 4 columns
-        depending on viewport.
-      */}
-      <style jsx>{`
-        /* Masonry with small, uniform gaps. The trick that keeps spacing
-           even across portrait + landscape photos is that EVERY tile has
-           the same gap and the same rounded corners - no per-tile borders.
-           column-gap is the horizontal gutter; margin-bottom the vertical
-           one. Gaps scale up slightly on wider viewports. */
-        .masonry-cols {
-          column-count: 2;
-          column-gap: 10px;
-        }
-        @media (min-width: 640px)  { .masonry-cols { column-count: 3; column-gap: 12px; } }
-        @media (min-width: 1024px) { .masonry-cols { column-count: 4; column-gap: 14px; } }
-        .masonry-cols > * {
-          break-inside: avoid;
-          display: block;
-          margin: 0 0 10px;
-        }
-        @media (min-width: 640px)  { .masonry-cols > * { margin-bottom: 12px; } }
-        @media (min-width: 1024px) { .masonry-cols > * { margin-bottom: 14px; } }
-      `}</style>
+      {/* Masonry layout (.masonry-cols) is defined globally in globals.css so
+          the column-gap AND the per-tile vertical margin both apply - the
+          tiles are rendered by the separate <Tile> component, which a scoped
+          <style jsx> rule would not reach. */}
 
       {/* Lightbox */}
       {active && (
@@ -313,18 +292,18 @@ function Tile({
   }, []);
 
   return (
-    // Rounded card: shadow deepens on hover, the image zooms on hover, and the
-    // whole tile fades/rises in on scroll. Uniform masonry gap + radius keep
-    // spacing even across portrait/landscape, so no seam misalignment.
+    // Flat tile (no rounding, no shadow) to match the clean masonry reference.
+    // The image zooms on hover (contained by overflow-hidden) and the whole
+    // tile fades/rises in on scroll. The uniform masonry gap separates tiles.
     <div
       ref={tileRef}
-      className={`group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl ${ratioClass}`}
+      className={`group relative overflow-hidden ${ratioClass}`}
       style={{
         ...ratioStyle,
         opacity: shown ? 1 : 0,
         transform: shown ? 'none' : 'translateY(16px)',
         transition:
-          'opacity 0.55s var(--ease-out-quart), transform 0.55s var(--ease-out-quart), box-shadow 0.3s var(--ease-out-quart)',
+          'opacity 0.55s var(--ease-out-quart), transform 0.55s var(--ease-out-quart)',
       }}
     >
       <button

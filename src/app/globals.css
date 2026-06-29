@@ -395,6 +395,23 @@ button:not(:disabled),
   border: 1px solid rgba(0, 212, 255, 0.14);
 }
 
+/* Photo gallery masonry. Global (not scoped) so BOTH the container column-gap
+   and the per-tile vertical margin apply - the tiles render in a separate
+   <Tile> component that a scoped <style jsx> rule would not reach. A single
+   --masonry-gap keeps horizontal and vertical gaps identical per breakpoint. */
+.masonry-cols {
+  --masonry-gap: 8px;
+  column-count: 2;
+  column-gap: var(--masonry-gap);
+}
+@media (min-width: 640px)  { .masonry-cols { --masonry-gap: 10px; column-count: 3; } }
+@media (min-width: 1024px) { .masonry-cols { --masonry-gap: 12px; column-count: 4; } }
+.masonry-cols > * {
+  break-inside: avoid;
+  display: block;
+  margin: 0 0 var(--masonry-gap);
+}
+
 /* Respect reduced-motion preference - disable all decorative motion. */
 @media (prefers-reduced-motion: reduce) {
   .sim-waves,
