@@ -269,13 +269,13 @@ export default function GalleryPage() {
         </p>
       </section>
 
-      {/* Collage strip: the 14 torn-paper cutouts glued edge-to-edge IN ORDER
-          (1..14) into one long collage. Static - scroll horizontally to see it
-          all; no animation, no duplication, so it always reads 1 -> 14. */}
+      {/* Collage strip: the 14 cutouts glued edge-to-edge in order (1..14),
+          slowly drifting and looping (see globals.css .photo-strip). The set
+          is rendered twice so the loop is seamless; pauses on hover. */}
       <section className="w-full mb-8">
-        <div className="overflow-x-auto scrollbar-none">
-          <div className="flex w-max">
-            {collageStrip.map((src, i) => (
+        <div className="photo-strip">
+          <div className="photo-strip-track">
+            {[...collageStrip, ...collageStrip].map((src, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 key={i}

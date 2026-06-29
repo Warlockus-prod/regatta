@@ -395,6 +395,26 @@ button:not(:disabled),
   border: 1px solid rgba(0, 212, 255, 0.14);
 }
 
+/* Photo strip: the cutouts are glued edge-to-edge (no gaps) into one long
+   collage that slowly drifts and loops forever. The track holds the images
+   twice and translateX(-50%) loops seamlessly (no gaps -> period is exactly
+   one set). Pauses on hover; reduced-motion -> manual horizontal scroller. */
+@keyframes strip-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.photo-strip { overflow: hidden; }
+.photo-strip-track {
+  display: flex;
+  width: max-content;
+  animation: strip-scroll 90s linear infinite;
+}
+.photo-strip:hover .photo-strip-track { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .photo-strip { overflow-x: auto; }
+  .photo-strip-track { animation: none; }
+}
+
 
 
 /* Respect reduced-motion preference - disable all decorative motion. */
