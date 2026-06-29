@@ -587,6 +587,50 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ===== GET THE iOS APP ===== */}
+      <section className="max-w-5xl mx-auto px-4 sm:px-6 py-10">
+        <div
+          className="card p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 sm:gap-8 text-center sm:text-left"
+          style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}
+        >
+          <div className="text-5xl sm:text-6xl shrink-0">📱</div>
+          <div className="flex-1 min-w-0">
+            <h2 className="text-lg sm:text-xl font-semibold mb-1">
+              {tp('Скачай приложение', 'Get the app', 'Pobierz aplikacje',
+                { es: 'Descarga la app', fr: 'Telecharge l\'application', de: 'Hol dir die App', it: 'Scarica l\'app' })}
+            </h2>
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+              {tp(
+                'Week to Regatta теперь и на iPhone и iPad. Уроки, симулятор и гонка - офлайн, прогресс с собой.',
+                'Week to Regatta is on iPhone and iPad too. Lessons, simulator and race - offline, your progress in your pocket.',
+                'Week to Regatta jest tez na iPhone i iPad. Lekcje, symulator i regata - offline, postep zawsze przy sobie.',
+                {
+                  es: 'Week to Regatta tambien en iPhone y iPad. Lecciones, simulador y regata - sin conexion, con tu progreso siempre contigo.',
+                  fr: 'Week to Regatta aussi sur iPhone et iPad. Lecons, simulateur et course - hors ligne, ta progression dans ta poche.',
+                  de: 'Week to Regatta jetzt auch auf iPhone und iPad. Lektionen, Simulator und Rennen - offline, dein Fortschritt immer dabei.',
+                  it: 'Week to Regatta anche su iPhone e iPad. Lezioni, simulatore e regata - offline, i tuoi progressi sempre con te.',
+                },
+              )}
+            </p>
+          </div>
+          <a
+            href="https://apps.apple.com/app/id6768134329"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="shrink-0 inline-flex items-center gap-2.5 px-5 py-3 rounded-xl font-medium transition-transform hover:scale-[1.03]"
+            style={{ background: 'var(--accent-cyan)', color: '#06121f' }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M16.365 1.43c0 1.14-.42 2.2-1.13 2.99-.83.92-2.2 1.64-3.34 1.55-.13-1.1.42-2.27 1.08-3 .76-.85 2.13-1.5 3.39-1.54zM20.7 17.06c-.55 1.27-.82 1.84-1.53 2.97-.99 1.57-2.39 3.53-4.12 3.54-1.54.02-1.93-1-4.02-.99-2.09.01-2.52 1.01-4.06.99-1.73-.03-3.06-1.79-4.05-3.36C-.07 16.86-.3 11.74 1.4 9.05c1.2-1.93 3.1-3.06 4.88-3.06 1.81 0 2.95 1 4.45 1 1.45 0 2.34-1 4.44-1 1.58 0 3.26.86 4.45 2.35-3.91 2.14-3.27 7.72.68 8.72z" />
+            </svg>
+            <span className="text-sm whitespace-nowrap">
+              {tp('App Store', 'App Store', 'App Store',
+                { es: 'App Store', fr: 'App Store', de: 'App Store', it: 'App Store' })}
+            </span>
+          </a>
+        </div>
+      </section>
+
       {/* ===== CALL-TO-ACTION / TIP ===== */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 pb-16">
         <div className="card p-5 sm:p-6 text-center" style={{ background: 'rgba(0, 212, 255, 0.04)', borderColor: 'rgba(0, 212, 255, 0.2)' }}>

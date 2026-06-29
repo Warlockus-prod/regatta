@@ -2064,11 +2064,11 @@ function ShareBlock({
   const url = typeof window !== 'undefined' ? `${window.location.origin}/r/${code}` : '';
   const shareText = finishTime
     ? tp(
-        `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на regatta.icoffio.com - смотри replay`,
-        `Finished the race in ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} at regatta.icoffio.com - check the replay`,
-        `Ukonczylem regate w ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} na regatta.icoffio.com - zobacz replay`,
+        `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на weektoregatta.com - смотри replay`,
+        `Finished the race in ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} at weektoregatta.com - check the replay`,
+        `Ukonczylem regate w ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} na weektoregatta.com - zobacz replay`,
       )
-    : tp('Мой replay на regatta.icoffio.com', 'My replay at regatta.icoffio.com', 'Moj replay na regatta.icoffio.com');
+    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moj replay na weektoregatta.com');
 
   const onShare = async () => {
     if (navigator.share) {

@@ -102,7 +102,7 @@ export async function GET(req: Request) {
           color: '#5a7a8a',
         }}>
           <span style={{ display: 'flex' }}>интерактивный тренажёр яхтинга</span>
-          <span style={{ display: 'flex', fontFamily: 'ui-monospace, monospace' }}>regatta.icoffio.com</span>
+          <span style={{ display: 'flex', fontFamily: 'ui-monospace, monospace' }}>weektoregatta.com</span>
         </div>
       </div>
     ),

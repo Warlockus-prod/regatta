@@ -15,7 +15,7 @@ import { ENABLED_LANGUAGES } from '@/lib/languages';
 // Update PUBLIC_ROUTES whenever we add a new top-level user-facing page.
 // ============================================================================
 
-const SITE_URL = 'https://regatta.icoffio.com';
+const SITE_URL = 'https://weektoregatta.com';
 
 interface RouteSpec {
   path: string;

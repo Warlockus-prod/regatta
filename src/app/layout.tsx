@@ -100,7 +100,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: pick.title,
     description: pick.description,
-    metadataBase: new URL('https://regatta.icoffio.com'),
+    metadataBase: new URL('https://weektoregatta.com'),
     manifest: '/manifest.json',
     alternates: {
       canonical: '/',
@@ -114,7 +114,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: pick.title,
       description: pick.description,
-      url: 'https://regatta.icoffio.com',
+      url: 'https://weektoregatta.com',
       siteName: 'Week to Regatta',
       locale: pick.locale,
       alternateLocale: ENABLED_LANGUAGES
@@ -180,8 +180,8 @@ export default async function RootLayout({
               '@graph': [
                 {
                   '@type': 'WebSite',
-                  '@id': 'https://regatta.icoffio.com/#website',
-                  url: 'https://regatta.icoffio.com',
+                  '@id': 'https://weektoregatta.com/#website',
+                  url: 'https://weektoregatta.com',
                   name: 'Week to Regatta',
                   alternateName: 'Regatta',
                   description:
@@ -191,18 +191,18 @@ export default async function RootLayout({
                     '@type': 'SearchAction',
                     target: {
                       '@type': 'EntryPoint',
-                      urlTemplate: 'https://regatta.icoffio.com/glossary?q={search_term_string}',
+                      urlTemplate: 'https://weektoregatta.com/glossary?q={search_term_string}',
                     },
                     'query-input': 'required name=search_term_string',
                   },
                 },
                 {
                   '@type': 'EducationalOrganization',
-                  '@id': 'https://regatta.icoffio.com/#org',
-                  url: 'https://regatta.icoffio.com',
+                  '@id': 'https://weektoregatta.com/#org',
+                  url: 'https://weektoregatta.com',
                   name: 'Week to Regatta',
                   alternateName: 'Regatta - Sailing Tutor',
-                  logo: 'https://regatta.icoffio.com/icon-512.svg',
+                  logo: 'https://weektoregatta.com/icon-512.svg',
                   sameAs: [],
                   knowsAbout: [
                     'Sailing',
