@@ -26,7 +26,7 @@ interface LikeState {
 // point coverSrc at any photo under /gallery/regatta-2026/full/.
 const albumMeta: Record<string, { coverSrc: string; place: string }> = {
   '2026': {
-    coverSrc: '/gallery/regatta-2026/full/r26-01.jpg',
+    coverSrc: '/gallery/regatta-2026/full/r26-23.jpg',
     place: 'Gocek · Fethiye · Dalaman',
   },
 };
