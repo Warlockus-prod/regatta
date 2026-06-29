@@ -22,8 +22,8 @@ Each locale folder under `mobile/asc-metadata/<lang>/` ships:
                      Max 4000 chars.
 - `keywords.txt`     comma-separated, max 100 chars.
 - `promotional.txt`  above-the-fold editorial copy, max 170 chars.
-- `support_url.txt`  https://regatta.icoffio.com/support.
-- `marketing_url.txt` https://regatta.icoffio.com.
+- `support_url.txt`  https://weektoregatta.com/support.
+- `marketing_url.txt` https://weektoregatta.com.
 
 All seven locales are within ASC limits. Final character counts:
 
@@ -285,9 +285,9 @@ human action by design.
   files were touched. The Sprint 9 follow-up to add a `?lang=` deep
   link to settings should land in their lane.
 - Web lane is unaffected.
-- The `https://regatta.icoffio.com/support` URL is a placeholder; if
+- The `https://weektoregatta.com/support` URL is a placeholder; if
   the web team needs a real `/support` page, that lands in the Shared
-  lane, not Mobile. The marketing URL `https://regatta.icoffio.com`
+  lane, not Mobile. The marketing URL `https://weektoregatta.com`
   is the existing web app and serves as-is.
 - All 7 locales were authored against the same source of truth (EN);
   if PM commissions a translator pass, the script handles re-uploads

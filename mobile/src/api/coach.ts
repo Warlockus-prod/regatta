@@ -2,8 +2,8 @@
  * HTTP clients for the AI coach + race-result endpoints.
  *
  * The web routes live at:
- *   POST https://regatta.icoffio.com/api/coach        - returns AI coaching JSON
- *   POST https://regatta.icoffio.com/api/race-result  - persists a finished race
+ *   POST https://weektoregatta.com/api/coach        - returns AI coaching JSON
+ *   POST https://weektoregatta.com/api/race-result  - persists a finished race
  *
  * Per ADR-0001 the mobile app consumes the existing web backend as-is.
  * No new dependencies; we use `fetch` and an `AbortController` for the
@@ -12,7 +12,7 @@
  */
 import type { Lang } from '../i18n/languages';
 
-export const API_BASE = 'https://regatta.icoffio.com';
+export const API_BASE = 'https://weektoregatta.com';
 export const REQUEST_TIMEOUT_MS = 8000;
 
 /**

@@ -6,7 +6,7 @@ rework of `/simulator`.
 ## Current status (2026-04-22)
 
 All six BACKLOG phases shipped to production at
-`https://regatta.icoffio.com/simulator-v3`:
+`https://weektoregatta.com/simulator-v3`:
 
 - PR-1 - feature-module split (route -> `src/features/simulator-v3/`).
 - PR-2 - live runtime loop (30 Hz fixed-step, control interpolation,

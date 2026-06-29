@@ -1,7 +1,7 @@
 # Multiplayer stress test - first run
 
 **Date:** 2026-04-18
-**Target:** `wss://regatta.icoffio.com/ws` (prod v13.0)
+**Target:** `wss://weektoregatta.com/ws` (prod v13.0)
 **Tool:** `scripts/stress-mp.js`
 
 ## Setup

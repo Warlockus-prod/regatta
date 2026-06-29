@@ -28,7 +28,7 @@
  *   ASC_ISSUER_ID     c646a296-d7f1-418a-ac78-4ede7aacd995
  *   ASC_KEY_PATH      ~/.appstoreconnect/private_keys/AuthKey_<KEY_ID>.p8
  *   ASC_APP_ID        6768134329
- *   ASC_PRIVACY_URL   https://regatta.icoffio.com/privacy
+ *   ASC_PRIVACY_URL   https://weektoregatta.com/privacy
  *   ASC_BASE_TERRITORY USA
  */
 
@@ -45,7 +45,7 @@ const KEY_PATH =
   join(homedir(), '.appstoreconnect', 'private_keys', `AuthKey_${KEY_ID}.p8`);
 const APP_ID = process.env.ASC_APP_ID || '6768134329';
 const PRIVACY_URL =
-  process.env.ASC_PRIVACY_URL || 'https://regatta.icoffio.com/privacy';
+  process.env.ASC_PRIVACY_URL || 'https://weektoregatta.com/privacy';
 const BASE_TERRITORY = process.env.ASC_BASE_TERRITORY || 'USA';
 const DRY_RUN = process.argv.includes('--dry-run');
 

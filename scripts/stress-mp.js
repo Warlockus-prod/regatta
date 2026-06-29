@@ -9,7 +9,7 @@
 //   - finished vs. unfinished boats
 //   - server /health deltas before/after
 //
-// Usage:  node scripts/stress-mp.js [--url=wss://regatta.icoffio.com/ws] [--n=8] [--time=120]
+// Usage:  node scripts/stress-mp.js [--url=wss://weektoregatta.com/ws] [--n=8] [--time=120]
 
 import WebSocket from 'ws';
 
@@ -17,7 +17,7 @@ const args = Object.fromEntries(
   process.argv.slice(2).map((a) => a.replace(/^--/, '').split('=')).map(([k, v]) => [k, v ?? true]),
 );
 
-const WS_URL = args.url || process.env.WS_URL || 'wss://regatta.icoffio.com/ws';
+const WS_URL = args.url || process.env.WS_URL || 'wss://weektoregatta.com/ws';
 const HEALTH_URL = args.health || (WS_URL.startsWith('wss') ? WS_URL.replace('wss', 'https').replace('/ws', '') + '/health' : '');
 const N = Number(args.n || 8);
 const RACE_DURATION_SEC = Number(args.time || 120);

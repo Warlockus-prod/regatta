@@ -1,7 +1,7 @@
 /**
  * HTTP client for the sailing AI assistant.
  *
- * Web route: POST https://regatta.icoffio.com/api/ai-chat
+ * Web route: POST https://weektoregatta.com/api/ai-chat
  *   request:  { messages: ChatMessage[], lang }   (last item is the new user turn)
  *   response: { reply: string }
  *

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import LanguageToggle from './LanguageToggle';
+import ThemeToggle from './ThemeToggle';
 import BootcampProgressChip from './BootcampProgressChip';
 import { useI18n } from '@/lib/i18n';
 import type { Lang } from '@/lib/languages';
@@ -191,7 +192,7 @@ export default function Navigation() {
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[rgba(0,212,255,0.1)] backdrop-blur-md"
-         style={{ background: 'rgba(10, 22, 40, 0.9)' }}>
+         style={{ background: 'var(--nav-bg)' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
@@ -245,6 +246,7 @@ export default function Navigation() {
           <div className="flex items-center gap-2">
             <BootcampProgressChip />
             <LanguageToggle />
+            <ThemeToggle />
 
             <button
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}

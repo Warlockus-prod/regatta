@@ -12,7 +12,7 @@ This repo holds TWO apps:
 
 | App | Lives in | Branch | Ships via | URL / target |
 |---|---|---|---|---|
-| **Web** (the website) | `src/` | **`main`** | push to `main` -> GitHub Actions -> VPS Docker | regatta.icoffio.com |
+| **Web** (the website) | `src/` | **`main`** | push to `main` -> GitHub Actions -> VPS Docker | weektoregatta.com |
 | **Mobile** (iOS "Week to Regatta") | `mobile/` | **`app`** ONLY | LOCAL Xcode archive -> altool -> TestFlight | App Store / TestFlight |
 
 **Critical traps:**
@@ -115,7 +115,7 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | Dir | Purpose |
 |---|---|
 | `analytics/` | PostHog (provider, hook, events, config). No-ops when key absent. |
-| `api/` | HTTP clients to the **shared web backend** (`regatta.icoffio.com/api/*`): `chat.ts`, `coach.ts`, `daily.ts`, `leaderboard.ts`, `weather.ts`. No separate mobile backend. |
+| `api/` | HTTP clients to the **shared web backend** (`weektoregatta.com/api/*`): `chat.ts`, `coach.ts`, `daily.ts`, `leaderboard.ts`, `weather.ts`. No separate mobile backend. |
 | `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (ported VPP engine, pure TS). |
 | `courses/` | `polar.ts` - polar/VPP curve builder. **Used by the Points-of-Sail diagram.** |
 | `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents). |

@@ -10,6 +10,7 @@ import FeedbackWidget from "@/components/FeedbackWidget";
 import BootcampFooterNav from "@/components/BootcampFooterNav";
 import SiteFooter from "@/components/SiteFooter";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import ThemeManager from "@/components/ThemeManager";
 import { I18nProvider } from "@/lib/i18n";
 import {
   ENABLED_LANGUAGES,
@@ -100,7 +101,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: pick.title,
     description: pick.description,
-    metadataBase: new URL('https://regatta.icoffio.com'),
+    metadataBase: new URL('https://weektoregatta.com'),
     manifest: '/manifest.json',
     alternates: {
       canonical: '/',
@@ -114,7 +115,7 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: pick.title,
       description: pick.description,
-      url: 'https://regatta.icoffio.com',
+      url: 'https://weektoregatta.com',
       siteName: 'Week to Regatta',
       locale: pick.locale,
       alternateLocale: ENABLED_LANGUAGES
@@ -142,7 +143,10 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#0a1628",
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0a1628' },
+    { media: '(prefers-color-scheme: light)', color: '#f4f8fc' },
+  ],
 };
 
 export default async function RootLayout({
@@ -154,10 +158,18 @@ export default async function RootLayout({
   return (
     <html
       lang={serverLang}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      style={{ background: '#0a1628' }}
     >
-      <body className="min-h-full flex flex-col ocean-bg" style={{ background: '#0a1628' }}>
+      <body className="min-h-full flex flex-col ocean-bg">
+        {/* No-flash theme: resolve the saved preference ('auto' follows the
+            OS) and set <html data-theme> before first paint, so there is no
+            light/dark flicker on load. Mirrors src/components/ThemeToggle. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var p=location.pathname;var im=['/game','/multiplayer','/simulator','/simulator2','/simulator-v3'].some(function(x){return p===x||p.indexOf(x+'/')===0;});var t=localStorage.getItem('regatta_theme')||'auto';var d=im||t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
+          }}
+        />
         {/*
           Structured data (JSON-LD) for search engines. Two graphs at once:
 
@@ -180,8 +192,8 @@ export default async function RootLayout({
               '@graph': [
                 {
                   '@type': 'WebSite',
-                  '@id': 'https://regatta.icoffio.com/#website',
-                  url: 'https://regatta.icoffio.com',
+                  '@id': 'https://weektoregatta.com/#website',
+                  url: 'https://weektoregatta.com',
                   name: 'Week to Regatta',
                   alternateName: 'Regatta',
                   description:
@@ -191,18 +203,18 @@ export default async function RootLayout({
                     '@type': 'SearchAction',
                     target: {
                       '@type': 'EntryPoint',
-                      urlTemplate: 'https://regatta.icoffio.com/glossary?q={search_term_string}',
+                      urlTemplate: 'https://weektoregatta.com/glossary?q={search_term_string}',
                     },
                     'query-input': 'required name=search_term_string',
                   },
                 },
                 {
                   '@type': 'EducationalOrganization',
-                  '@id': 'https://regatta.icoffio.com/#org',
-                  url: 'https://regatta.icoffio.com',
+                  '@id': 'https://weektoregatta.com/#org',
+                  url: 'https://weektoregatta.com',
                   name: 'Week to Regatta',
                   alternateName: 'Regatta - Sailing Tutor',
-                  logo: 'https://regatta.icoffio.com/icon-512.svg',
+                  logo: 'https://weektoregatta.com/icon-512.svg',
                   sameAs: [],
                   knowsAbout: [
                     'Sailing',
@@ -218,6 +230,7 @@ export default async function RootLayout({
           }}
         />
         <I18nProvider initialLang={serverLang}>
+          <ThemeManager />
           <ClientErrorReporter />
           <OnboardingTour />
           <HelpOverlay />

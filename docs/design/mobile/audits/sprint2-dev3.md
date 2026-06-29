@@ -31,7 +31,7 @@ Sprint: v0.3.0.
   1. Intro: app respects privacy, no tracking, no PII collection.
   2. No external analytics; telemetry is off in this build.
   3. Local-only persistence (AsyncStorage); user can clear via system app settings.
-  4. Gallery loads images/video from regatta.icoffio.com; server does not receive identifiers.
+  4. Gallery loads images/video from weektoregatta.com; server does not receive identifiers.
   5. Web version has its own privacy section; mobile uses the same baseline.
 - Contact line: `Privacy questions: support@icoffio.com.`
 - ASCII typography only. Polish/ES/FR/DE/IT have no diacritics or curly quotes per project rules.
@@ -110,6 +110,6 @@ Other keys we read (do not own):
 ## Out of scope (intentionally)
 
 - A real telemetry toggle. v1 ships with telemetry hard-off; no opt-in plumbing exists. Adding the toggle would require server endpoints + opt-in copy + a privacy review pass. Phase 5 work.
-- An external "Open privacy on web" link. The modal is self-contained; if QA wants a deeplink to the web privacy page, that is a one-line `Linking.openURL('https://regatta.icoffio.com/privacy')` add and can land in v0.3.1.
+- An external "Open privacy on web" link. The modal is self-contained; if QA wants a deeplink to the web privacy page, that is a one-line `Linking.openURL('https://weektoregatta.com/privacy')` add and can land in v0.3.1.
 - Re-prompt mechanism (`v2` of the flag). Not needed in this sprint.
 - Tests for the new components - QA lane owns tests per CLAUDE.md.

@@ -83,7 +83,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
           for path in / /game /leaderboard /anatomy /simulator /courses; do
-            code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://regatta.icoffio.com$path")
+            code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://weektoregatta.com$path")
             echo "HTTP $code  $path"
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
           done
@@ -106,7 +106,7 @@ jobs:
       - name: Run E2E smoke tests
         run: npx playwright test
         env:
-          BASE_URL: https://regatta.icoffio.com
+          BASE_URL: https://weektoregatta.com
       - name: Upload HTML report on failure
         if: failure()
         uses: actions/upload-artifact@v4

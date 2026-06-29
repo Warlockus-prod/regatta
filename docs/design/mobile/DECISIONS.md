@@ -31,7 +31,7 @@ the mobile bundle and audited App Store readiness for v0.13.0 / build 13.
 3. In ASC: select build 13, answer export-compliance (No), confirm privacy/age/pricing,
    then Submit for Review (see DO_THIS_NOW.md).
 
-**Consequences.** Privacy policy is hosted live (regatta.icoffio.com/privacy returns
+**Consequences.** Privacy policy is hosted live (weektoregatta.com/privacy returns
 200). Once screenshots + an alpha-free icon land, the app is submit-ready.
 
 ---
@@ -166,7 +166,7 @@ The web today has roughly 18 user-facing routes (Home, Bootcamp, QuickRefresh, R
 - **ADR-0003 (shared-package extraction) becomes mandatory.** Maintaining content and physics in two places for a 7-language, 18-screen app is not sustainable. Coordinate with the Shared lane to extract `packages/content` and `packages/physics` once mobile starts consuming them.
 - **ADR-0004 (offline strategy) needs a per-screen matrix.** Content + solo simulator are offline-first; multiplayer, leaderboard submit, AI coach, replay upload, daily challenges require network. Graceful degradation policy goes into that ADR.
 - **ADR-0006 (auth) becomes priority.** Cross-device sync of progress + replays argues for a real account model. Sign in with Apple is the natural first option on iOS and is App Review-friendly. Resolved in coordination with the Shared lane (web also needs a real auth model for sync to work both ways).
-- **Backend impact.** Existing `regatta.icoffio.com/api/*` plus `ws-server/` already supports the gameplay surface we need. The main gap is real auth: today it is cookie-based session IDs without accounts. Shared lane will introduce accounts when ADR-0006 lands.
+- **Backend impact.** Existing `weektoregatta.com/api/*` plus `ws-server/` already supports the gameplay surface we need. The main gap is real auth: today it is cookie-based session IDs without accounts. Shared lane will introduce accounts when ADR-0006 lands.
 - **Scope discipline.** "Full parity" is the v1 target. If a milestone slips by more than 50%, descope rather than ship a half-broken v1. Quality over surface area.
 - **Reference simulator.** Mobile uses `simulator-v3` as the behavioral spec. V1 (`/simulator`) and V2 (`/simulator2`) are not duplicated on mobile; they remain web-only experiments.
 
@@ -222,7 +222,7 @@ The web today has roughly 18 user-facing routes (Home, Bootcamp, QuickRefresh, R
 **Context.** Pick a mobile stack for the Regatta app. Constraints from `CLAUDE.md`:
 
 - "One source of truth per asset" across web and mobile.
-- Mobile hits the existing `regatta.icoffio.com/api/*` backend. No separate server.
+- Mobile hits the existing `weektoregatta.com/api/*` backend. No separate server.
 - The web app is a 7-language product: RU / EN / PL / ES / FR / DE / IT, source RU. Data files use the `LegacyLocalized<'field'>` adapter with `fieldRu/En/Pl` required and `fieldEs/Fr/De/It` optional. New components prefer `tl({ru, en, pl, es, fr, de, it})` object form. Consumers read via `legacyPick(obj, 'field', lang)`. Bulk translation runs through `scripts/translate-data-flat.mjs`. Cyrillic-leak verification via `scripts/cyrillic-scan.mjs`.
 - Shared deps that mobile may read (and later extract into a shared package): `src/data/*` (content with 7-language fields), `src/lib/sailing-physics/*` (pure-TS VPP engine, 16 green tests, deterministic `tick(state, controls, params, dt) -> state`), i18n helpers (`tp`, `tl`, `legacyPick`), API schemas.
 
@@ -242,7 +242,7 @@ The stack choice determines how much of this we reuse verbatim vs re-implement i
 - **Web**: no immediate changes. `src/data/*`, `src/lib/sailing-physics/*`, `/api/*`, and i18n plumbing stay as-is. Any shared-package extraction (e.g. `packages/content`, `packages/physics`) is coordinated through the Shared lane when mobile actually starts consuming these assets, per CLAUDE.md rules on cross-cutting changes.
 - **Mobile scaffold**: TypeScript + React + Expo. The web team's React/TS skills transfer directly, which keeps the learning surface small and makes AI-assisted work more reliable.
 - **Repo layout**: resolved by ADR-0002 (monorepo with `mobile/` subdirectory).
-- **API contract**: mobile consumes `regatta.icoffio.com/api/*` as-is. Endpoints and payload shapes get documented in `docs/design/mobile/API_CONTRACT.md` so web and mobile evolve together. No mobile-specific backend changes for v1.
+- **API contract**: mobile consumes `weektoregatta.com/api/*` as-is. Endpoints and payload shapes get documented in `docs/design/mobile/API_CONTRACT.md` so web and mobile evolve together. No mobile-specific backend changes for v1.
 - **Simulator rendering**: expected default is `@shopify/react-native-skia` for a Skia-backed 60 FPS canvas. The shared physics `tick` stays pure TS and runs on the JS thread or a worklet. Fallback if Skia proves insufficient: native module (SpriteKit/Metal on iOS, matching module on Android) for the scene only; HUD and controls remain RN.
 - **Multiplayer**: RN's built-in `WebSocket` API covers the existing `ws-server` protocol with no server changes.
 - **Offline strategy**: content JSON bundled in the app (extracted from `src/data/*` with all 7 language fields where present), physics runs locally, AI coach and multiplayer are online-only. Full plan in ADR-0004.

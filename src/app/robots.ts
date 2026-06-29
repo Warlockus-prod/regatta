@@ -12,7 +12,7 @@ import type { MetadataRoute } from 'next';
 // here.
 // ============================================================================
 
-const SITE_URL = 'https://regatta.icoffio.com';
+const SITE_URL = 'https://weektoregatta.com';
 
 export default function robots(): MetadataRoute.Robots {
   return {

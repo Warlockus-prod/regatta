@@ -522,7 +522,7 @@ with bullet tips.
 ### 5.11 Gallery
 
 Photo / video grid. Today engineering ships a basic implementation
-that fetches images from `regatta.icoffio.com/...` and shows YouTube
+that fetches images from `weektoregatta.com/...` and shows YouTube
 thumbnails with a play overlay.
 
 **Design needs**:

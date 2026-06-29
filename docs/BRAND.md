@@ -63,8 +63,8 @@ Recommended:
 Once purchased, point it at the existing VPS:
 - `A` record `weektoregatta.com` -> `178.104.223.93`
 - `A` record `www.weektoregatta.com` -> `178.104.223.93`
-- nginx_server on the VPS gets a vhost like `/opt/repos/nginx_server/conf.d/weektoregatta.conf` mirroring the `regatta.icoffio.com` block (TLS via certbot, proxy to `172.17.0.1:4500`).
-- Add a 301 from the old `regatta.icoffio.com` to the new domain (or vice versa, depending on which you want as canonical), and update `metadataBase` in `src/app/layout.tsx`.
+- nginx_server on the VPS gets a vhost like `/opt/repos/nginx_server/conf.d/weektoregatta.conf` mirroring the `weektoregatta.com` block (TLS via certbot, proxy to `172.17.0.1:4500`).
+- Add a 301 from the old `weektoregatta.com` to the new domain (or vice versa, depending on which you want as canonical), and update `metadataBase` in `src/app/layout.tsx`.
 
 This work is in the **Shared lane** (nginx + DNS + layout metadata).
 

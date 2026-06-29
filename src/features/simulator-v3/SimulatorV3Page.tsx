@@ -74,7 +74,7 @@ function readUiFromUrl(): Partial<UiState> | null {
 
 function buildShareUrl(ui: UiState): string {
   const origin =
-    typeof window !== 'undefined' ? window.location.origin : 'https://regatta.icoffio.com';
+    typeof window !== 'undefined' ? window.location.origin : 'https://weektoregatta.com';
   const p = new URLSearchParams();
   p.set('twa', String(ui.twa));
   p.set('tws', String(ui.windSpeed));

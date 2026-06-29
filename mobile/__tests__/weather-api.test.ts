@@ -33,7 +33,7 @@ describe('fetchWeatherNow', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     const [url, init] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe(
-      'https://regatta.icoffio.com/api/weather?lat=39.57&lon=2.65',
+      'https://weektoregatta.com/api/weather?lat=39.57&lon=2.65',
     );
     expect(init).toMatchObject({ method: 'GET' });
     // AbortController signal is wired for the timeout.

@@ -1,7 +1,7 @@
 # FEATURES
 
 **Last updated:** 2026-04-20 (after V1/V2/V3 simulator split + physics engine live)
-**Live:** https://regatta.icoffio.com
+**Live:** https://weektoregatta.com
 
 Inventory of everything the app does today. This is the user-facing
 counterpart to `TECH.md` (architecture) and `AUDIT.md` (code-health).
@@ -314,7 +314,7 @@ WebSocket rooms with authoritative 20 Hz server. Up to 8 players per
 room, stress-tested 8 clients at 20.3 Hz.
 
 **Architecture:**
-- Client connects to `wss://regatta.icoffio.com/ws/` (reverse-proxied
+- Client connects to `wss://weektoregatta.com/ws/` (reverse-proxied
   to `:4502`).
 - Server (`ws-server/`) is a separate Node process, not part of the
   Next build.

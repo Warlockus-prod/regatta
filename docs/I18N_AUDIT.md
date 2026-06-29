@@ -110,7 +110,7 @@ below):**
 
 Local Playwright scan via `node scripts/cyrillic-scan.mjs` against
 `npm run dev -- --port 3007` (and prod re-confirmed via
-`SCAN_BASE=https://regatta.icoffio.com node scripts/cyrillic-scan.mjs`):
+`SCAN_BASE=https://weektoregatta.com node scripts/cyrillic-scan.mjs`):
 
 ```
 Cyrillic leak scan (ES/FR/DE/IT across 16 routes):

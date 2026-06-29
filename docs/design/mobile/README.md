@@ -66,7 +66,7 @@ extracted into a shared package if both platforms need it.
 | Content | `src/data/*` | bootcamp, rules, onboard, anatomy, sailing-data, missions, gallery |
 | Physics | `src/lib/sailing-physics/*` | VPP engine, 16 tests, proven |
 | i18n helpers | `tl()` / `tp()` / `legacyPick()` from `src/lib/i18n.tsx`; data rows are `LegacyLocalized<'field'>` with `*Ru/*En/*Pl` required + `*Es/*Fr/*De/*It` optional. Bulk translation via `scripts/translate-data-flat.mjs`. | 7-language: RU / EN / PL / ES / FR / DE / IT. Extraction plan in ADR-0003. |
-| API endpoints | `src/app/api/*` routes on `regatta.icoffio.com/api/*` | mobile uses the same backend, no separate server |
+| API endpoints | `src/app/api/*` routes on `weektoregatta.com/api/*` | mobile uses the same backend, no separate server |
 
 ## Decided
 

@@ -39,7 +39,7 @@ A concise overview of how the Regatta web app is built and shipped.
 
 - Pushing to `main` triggers **GitHub Actions** -> SSH to the **VPS** ->
   `docker compose up -d --build regatta` -> served via **nginx** on
-  `regatta.icoffio.com`.
+  `weektoregatta.com`.
 - nginx itself is a separate container at `/opt/repos/nginx_server` and its
   config is applied manually (not part of the app's CI).
 

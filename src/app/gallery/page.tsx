@@ -21,6 +21,136 @@ interface LikeState {
   liked: boolean;
 }
 
+// Album cover metadata: albums listed here get a hero banner (cover photo +
+// place + year) instead of a plain text header. To change the 2026 cover,
+// point coverSrc at any photo under /gallery/regatta-2026/full/.
+const albumMeta: Record<string, { coverSrc: string; place: string }> = {
+  '2026': {
+    coverSrc: '/gallery/regatta-2026/full/r26-23.jpg',
+    place: 'Gocek · Fethiye · Dalaman',
+  },
+};
+
+// Collage strip: 14 torn-paper photo cutouts (built by
+// scripts/build-gallery-strip.mjs from gallery/2026/kolaz). Drifts as a band
+// at the top of the gallery.
+const collageStrip = Array.from(
+  { length: 14 },
+  (_, i) => `/gallery/regatta-2026/strip/strip-${String(i + 1).padStart(2, '0')}.jpg`,
+);
+
+// Masonry tuning (px): a small base grid-row unit + a uniform gap. The grid
+// flows row-major (left-to-right, top-to-bottom) so photos read in the order
+// they are stored - which is by capture date. Each tile spans the number of
+// base rows that matches its aspect ratio, giving the varied-height collage.
+const MASONRY_GAP = 10;
+const MASONRY_ROW = 8;
+
+function colsForWidth(w: number): number {
+  return w >= 1024 ? 4 : w >= 640 ? 3 : 2;
+}
+
+function AlbumHero({
+  year,
+  place,
+  coverSrc,
+  eyebrow,
+}: {
+  year: string;
+  place: string;
+  coverSrc: string;
+  eyebrow: string;
+}) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl mb-6" style={{ aspectRatio: '16 / 7' }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={coverSrc} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      <div
+        className="absolute inset-0"
+        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.18) 48%, rgba(0,0,0,0) 72%)' }}
+      />
+      <div className="absolute left-5 sm:left-7 bottom-5 sm:bottom-6">
+        <div className="text-xs sm:text-sm font-medium tracking-[0.18em] uppercase text-white/70">
+          {eyebrow}
+        </div>
+        <div
+          className="text-white font-bold tracking-tight"
+          style={{ fontSize: 'clamp(2.25rem, 6vw, 3.5rem)', lineHeight: 1 }}
+        >
+          {year}
+        </div>
+        <div className="mt-2 text-sm sm:text-base text-white/85">{place}</div>
+      </div>
+    </div>
+  );
+}
+
+function MasonryGrid({
+  items,
+  likes,
+  pickTitle,
+  onOpen,
+  onLike,
+}: {
+  items: GalleryItem[];
+  likes: Record<string, LikeState>;
+  pickTitle: (item: GalleryItem) => string;
+  onOpen: (id: string) => void;
+  onLike: (id: string) => void;
+}) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [cols, setCols] = useState(3);
+  const [colW, setColW] = useState(300);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const measure = () => {
+      const c = colsForWidth(window.innerWidth);
+      setCols(c);
+      setColW(Math.max(1, (el.clientWidth - (c - 1) * MASONRY_GAP) / c));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
+        gridAutoRows: `${MASONRY_ROW}px`,
+        gap: `${MASONRY_GAP}px`,
+      }}
+    >
+      {items.map((item) => {
+        const aspect =
+          item.width && item.height
+            ? item.width / item.height
+            : item.kind === 'youtube'
+            ? 16 / 9
+            : 1;
+        const cellH = colW / aspect;
+        const span = Math.max(1, Math.round((cellH + MASONRY_GAP) / (MASONRY_ROW + MASONRY_GAP)));
+        return (
+          <Tile
+            key={item.id}
+            item={item}
+            title={pickTitle(item)}
+            like={likes[item.id]}
+            gridStyle={{ gridRowEnd: `span ${span}` }}
+            onOpen={() => onOpen(item.id)}
+            onLike={() => onLike(item.id)}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
 export default function GalleryPage() {
   const { tp, lang } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -138,6 +268,28 @@ export default function GalleryPage() {
         </p>
       </section>
 
+      {/* Collage strip: the 14 torn-paper cutouts glued edge-to-edge IN ORDER
+          (1..14) into one long collage. Static - scroll horizontally to see it
+          all; no animation, no duplication, so it always reads 1 -> 14. */}
+      <section className="w-full mb-8">
+        <div className="overflow-x-auto scrollbar-none">
+          <div className="flex w-max">
+            {collageStrip.map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                draggable={false}
+                className="h-[clamp(170px,25vw,270px)] w-auto object-cover block select-none"
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
       {sortedKeys.length === 0 || galleryItems.length === 0 ? (
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
           <div className="card p-12 text-center">
@@ -147,82 +299,54 @@ export default function GalleryPage() {
           </div>
         </section>
       ) : (
-        sortedKeys.map((key) => (
-          <section key={key} className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
-            {key !== 'misc' && (
-              <div className="flex items-baseline gap-3 mb-5">
-                <h2 className="text-2xl font-bold">{key}</h2>
-                <span className="text-sm text-[var(--text-muted)]">
-                  {tp(
-                    `${groups[key].length} ${pluralRu(groups[key].length, 'файл', 'файла', 'файлов')}`,
-                    `${groups[key].length} ${groups[key].length === 1 ? 'item' : 'items'}`,
-                    `${groups[key].length} ${pluralPl(groups[key].length)}`,
-                    {
-                      es: `${groups[key].length} ${groups[key].length === 1 ? 'archivo' : 'archivos'}`,
-                      fr: `${groups[key].length} ${groups[key].length === 1 ? 'fichier' : 'fichiers'}`,
-                      de: `${groups[key].length} ${groups[key].length === 1 ? 'Datei' : 'Dateien'}`,
-                      it: `${groups[key].length} ${groups[key].length === 1 ? 'file' : 'file'}`,
-                    },
-                  )}
-                </span>
-              </div>
-            )}
-            {/*
-              CSS multi-column masonry. Cheap, accessible, no JS layout
-              math. Photos flow naturally and keep their full aspect ratio
-              instead of being cropped into uniform tiles. break-inside on
-              tiles avoids mid-tile column breaks.
-
-              Spacing: tiles butt edge-to-edge (column-gap and tile margin
-              are both 0). Earlier iterations tried small equal gaps but
-              the combination of rounded corners + the per-tile border
-              with portrait + landscape photos at different column counts
-              produced visually uneven whitespace. Zero-gap removes the
-              ambiguity entirely.
-            */}
-            <div className="masonry-cols">
-              {groups[key].map((item) => (
-                <Tile
-                  key={item.id}
-                  item={item}
-                  title={pickTitle(item)}
-                  like={likes[item.id]}
-                  onOpen={() => setActiveId(item.id)}
-                  onLike={() => toggleLike(item.id)}
+        sortedKeys.map((key) => {
+          const meta = albumMeta[key];
+          const countText = tp(
+            `${groups[key].length} ${pluralRu(groups[key].length, 'файл', 'файла', 'файлов')}`,
+            `${groups[key].length} ${groups[key].length === 1 ? 'item' : 'items'}`,
+            `${groups[key].length} ${pluralPl(groups[key].length)}`,
+            {
+              es: `${groups[key].length} ${groups[key].length === 1 ? 'archivo' : 'archivos'}`,
+              fr: `${groups[key].length} ${groups[key].length === 1 ? 'fichier' : 'fichiers'}`,
+              de: `${groups[key].length} ${groups[key].length === 1 ? 'Datei' : 'Dateien'}`,
+              it: `${groups[key].length} ${groups[key].length === 1 ? 'file' : 'file'}`,
+            },
+          );
+          return (
+            <section key={key} className="max-w-6xl mx-auto px-4 sm:px-6 pb-10">
+              {meta ? (
+                <AlbumHero
+                  year={key}
+                  place={meta.place}
+                  coverSrc={meta.coverSrc}
+                  eyebrow={tp('Регата', 'Regatta', 'Regata',
+                    { es: 'Regata', fr: 'Regate', de: 'Regatta', it: 'Regata' })}
                 />
-              ))}
-            </div>
-          </section>
-        ))
+              ) : key !== 'misc' ? (
+                <div className="flex items-baseline gap-3 mb-5">
+                  <h2 className="text-2xl font-bold">{key}</h2>
+                  <span className="text-sm text-[var(--text-muted)]">{countText}</span>
+                </div>
+              ) : null}
+              {/* CSS-grid masonry: flows row-major so photos read left-to-right
+                  in stored (capture-date) order; each tile spans rows by its
+                  aspect ratio for the varied-height collage. See MasonryGrid. */}
+              <MasonryGrid
+                items={groups[key]}
+                likes={likes}
+                pickTitle={pickTitle}
+                onOpen={(id) => setActiveId(id)}
+                onLike={(id) => toggleLike(id)}
+              />
+            </section>
+          );
+        })
       )}
 
-      {/*
-        Tailwind doesn't ship column-count utilities so we set them inline
-        via a small style block. Three breakpoints: 2 / 3 / 4 columns
-        depending on viewport.
-      */}
-      <style jsx>{`
-        /* Tight edge-to-edge masonry: zero gap horizontally and
-           vertically. Earlier we kept a small "--gap" but the rounded
-           corners and border on each tile combined with the gap to
-           create visually uneven whitespace around portrait vs
-           landscape photos. The cleaner answer is no gap at all -
-           every photo butts directly against its neighbors, so the
-           spacing is identical (zero) on every edge by definition.
-           The Tile itself drops its border and rounded corners to
-           match this look. */
-        .masonry-cols {
-          column-count: 2;
-          column-gap: 0;
-        }
-        @media (min-width: 640px)  { .masonry-cols { column-count: 3; } }
-        @media (min-width: 1024px) { .masonry-cols { column-count: 4; } }
-        .masonry-cols > * {
-          break-inside: avoid;
-          display: block;
-          margin: 0;
-        }
-      `}</style>
+      {/* Masonry layout (.masonry-cols) is defined globally in globals.css so
+          the column-gap AND the per-tile vertical margin both apply - the
+          tiles are rendered by the separate <Tile> component, which a scoped
+          <style jsx> rule would not reach. */}
 
       {/* Lightbox */}
       {active && (
@@ -230,6 +354,8 @@ export default function GalleryPage() {
           item={active}
           title={pickTitle(active)}
           like={likes[active.id]}
+          index={galleryItems.findIndex((i) => i.id === active.id)}
+          total={galleryItems.length}
           onLike={() => toggleLike(active.id)}
           onClose={() => setActiveId(null)}
           onPrev={() => {
@@ -262,12 +388,14 @@ function Tile({
   item,
   title,
   like,
+  gridStyle,
   onOpen,
   onLike,
 }: {
   item: GalleryItem;
   title: string;
   like: LikeState | undefined;
+  gridStyle?: React.CSSProperties;
   onOpen: () => void;
   onLike: () => void;
 }) {
@@ -277,27 +405,45 @@ function Tile({
     item.kind === 'youtube'
       ? (item.thumb ?? youtubeThumb(item.src))
       : (item.thumb ?? item.src);
-  // Aspect ratio reservation: if we have width/height we use that exact
-  // ratio so the masonry doesn't reflow on image load. Otherwise fall back
-  // to the legacy `aspect` enum.
-  const ratioStyle: React.CSSProperties =
-    item.width && item.height
-      ? { aspectRatio: `${item.width} / ${item.height}` }
-      : {};
-  const ratioClass = !item.width && !item.height
-    ? aspectToClass(item.aspect ?? (item.kind === 'youtube' ? '16:9' : 'square'))
-    : '';
+
+  // Scroll-reveal: fade + rise each tile in as it first enters the viewport.
+  // Honors reduced-motion by showing immediately.
+  const tileRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = tileRef.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShown(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShown(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: '0px 0px -6% 0px', threshold: 0.04 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   return (
-    // Tile is intentionally flush: no border, no border-radius, no
-    // outer hover scale. With masonry --gap = 0 (see <style jsx>), tiles
-    // sit edge-to-edge, so any radius / border / outer scale would create
-    // visible misalignment at the seams. The image inside still
-    // group-hover:scale-110 for the zoom-on-hover cue, contained by
-    // overflow-hidden.
+    // Flat tile (no rounding, no shadow) to match the clean masonry reference.
+    // The image zooms on hover (contained by overflow-hidden) and the whole
+    // tile fades/rises in on scroll. The uniform masonry gap separates tiles.
     <div
-      className={`group relative overflow-hidden ${ratioClass}`}
-      style={ratioStyle}
+      ref={tileRef}
+      className="group relative overflow-hidden"
+      style={{
+        ...gridStyle,
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'none' : 'translateY(16px)',
+        transition:
+          'opacity 0.55s var(--ease-out-quart), transform 0.55s var(--ease-out-quart)',
+      }}
     >
       <button
         type="button"
@@ -312,7 +458,10 @@ function Tile({
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
+        {/* Photos are crisp by default; a soft gradient fades in only on
+            hover so the heart/controls stay legible without dimming the
+            image the rest of the time. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </button>
 
       {/* Per-tile year badge intentionally NOT rendered here. The
@@ -410,6 +559,8 @@ function Lightbox({
   closeLabel,
   prevLabel,
   nextLabel,
+  index,
+  total,
 }: {
   item: GalleryItem;
   title: string;
@@ -423,7 +574,11 @@ function Lightbox({
   closeLabel: string;
   prevLabel: string;
   nextLabel: string;
+  index: number;
+  total: number;
 }) {
+  // Horizontal swipe (touch) navigates prev/next.
+  const touchX = useRef<number | null>(null);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -474,6 +629,15 @@ function Lightbox({
       <div
         className="relative max-w-6xl w-full max-h-[90vh] flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => { touchX.current = e.touches[0]?.clientX ?? null; }}
+        onTouchEnd={(e) => {
+          if (touchX.current == null) return;
+          const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+          touchX.current = null;
+          if (Math.abs(dx) < 48) return;
+          if (dx < 0 && canNext) onNext();
+          else if (dx > 0 && canPrev) onPrev();
+        }}
       >
         {item.kind === 'youtube' ? (
           <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl" style={{ maxHeight: '80vh' }}>
@@ -494,6 +658,9 @@ function Lightbox({
           />
         )}
         <div className="mt-3 flex items-center gap-3">
+          {total > 1 && (
+            <span className="text-xs text-[var(--text-muted)] num">{index + 1} / {total}</span>
+          )}
           <p className="text-sm text-[var(--text-secondary)] text-center">{title}</p>
           <LikeButton
             liked={like?.liked ?? false}
@@ -507,15 +674,6 @@ function Lightbox({
 }
 
 // ---------------------------------------------------------------------------
-
-function aspectToClass(a: NonNullable<GalleryItem['aspect']>): string {
-  switch (a) {
-    case 'square':    return 'aspect-square';
-    case 'portrait':  return 'aspect-[3/4]';
-    case 'landscape': return 'aspect-[4/3]';
-    case '16:9':      return 'aspect-video';
-  }
-}
 
 function pluralRu(n: number, one: string, few: string, many: string): string {
   const mod10 = n % 10;

@@ -45,7 +45,7 @@ node scripts/asc-metadata.mjs              # реальный upload
 
 Заполните:
 - **Subtitle** (если еще не заполнено скриптом): "Sailing tutor in 7 days"
-- **Privacy Policy URL**: https://regatta.icoffio.com/privacy (или адрес вашей реальной политики; если её нет - быстро создайте страницу на icoffio.com или сделайте mailto)
+- **Privacy Policy URL**: https://weektoregatta.com/privacy (или адрес вашей реальной политики; если её нет - быстро создайте страницу на icoffio.com или сделайте mailto)
 - **Category**: Primary = **Education**, Secondary = **Sports**
 - **Content Rights**: "Does Your App Contain, Show, or Access Third-Party Content?" - **No**
 
@@ -195,7 +195,7 @@ Apple пришлёт email "Your app has been approved". После этого:
 Самые частые причины и фиксы:
 
 - **"App crashes on launch"** - Apple запускает на iPhone, у вас в TestFlight всё работало = 99% не наша проблема, в feedback они приложат скрин/видео. Reply через Resolution Center, пришлите видео что у нас работает.
-- **"Privacy Policy URL not accessible"** - проверьте что https://regatta.icoffio.com/privacy открывается с публичной странички. Если нет - сделайте простой landing.
+- **"Privacy Policy URL not accessible"** - проверьте что https://weektoregatta.com/privacy открывается с публичной странички. Если нет - сделайте простой landing.
 - **"Missing screenshots"** - запустите `asc-screenshots.mjs` ещё раз, проверьте загруженные размеры.
 - **"Metadata mismatch with app"** - если описание упоминает фичу которой нет (например multiplayer был в описании, а в build 11 он placeholder) - уберите упоминания. Я писал copy чтобы упоминать только то что в build.
 

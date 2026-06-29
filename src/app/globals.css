@@ -1,6 +1,7 @@
 @import "tailwindcss";
 
 :root {
+  color-scheme: dark;
   --bg-primary: #0a1628;
   --bg-secondary: #0f2035;
   --bg-card: #152540;
@@ -18,12 +19,43 @@
   --sail-color: #ffffff;
   --water-light: #0d2847;
   --water-dark: #061428;
+  /* Translucent surface for the sticky nav bar (flips in light theme). */
+  --nav-bg: rgba(10, 22, 40, 0.9);
 
   /* Motion easing - calm, with a touch of spring. Shared across cards,
      buttons and entrances so the whole UI moves on one curve. */
   --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+/* ---- Light theme ----------------------------------------------------------
+   Applied when <html data-theme="light">. The ThemeToggle (and the no-flash
+   script in app/layout.tsx) resolves the 'auto' mode against the OS
+   prefers-color-scheme and always writes an explicit data-theme, so we only
+   need two states here. Everything built on the CSS variables below adapts
+   automatically; a few var-free surfaces (.ocean-bg / .card / .glass) get
+   explicit light treatments further down. */
+[data-theme="light"] {
+  color-scheme: light;
+  --bg-primary: #f4f8fc;
+  --bg-secondary: #e9f1f8;
+  --bg-card: #ffffff;
+  --bg-card-hover: #eef5fb;
+  --accent-cyan: #0096c7;
+  --accent-cyan-dim: #0077a3;
+  --accent-teal: #00a78e;
+  --text-primary: #0c2233;
+  --text-secondary: #45606f;
+  --text-muted: #6a8190;
+  --danger: #d92d2d;
+  --success: #1f9d57;
+  --warning: #b7791f;
+  --wind-color: #0096c7;
+  --sail-color: #1a2d4d;
+  --water-light: #cfe6f5;
+  --water-dark: #aacbe6;
+  --nav-bg: rgba(255, 255, 255, 0.85);
 }
 
 @theme inline {
@@ -71,6 +103,37 @@ html {
     background: linear-gradient(180deg, var(--bg-primary) 0%, #071a30 50%, #0d2847 100%);
     pointer-events: none;
   }
+}
+
+/* ---- Light-theme surface treatments --------------------------------------
+   The page background gradient and the card/glass surfaces use literal
+   colors (not just vars), so they need explicit light variants. */
+[data-theme="light"] .ocean-bg {
+  background: var(--bg-primary) linear-gradient(180deg, #ffffff 0%, #eef5fb 55%, #e2eef8 100%) no-repeat;
+  background-attachment: fixed;
+  background-size: 100% 100%;
+}
+@supports (-webkit-touch-callout: none) {
+  [data-theme="light"] .ocean-bg::before {
+    background: linear-gradient(180deg, #ffffff 0%, #eef5fb 55%, #e2eef8 100%);
+  }
+}
+[data-theme="light"] .card {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(12, 34, 51, 0.02)),
+    var(--bg-card);
+  border-color: rgba(12, 34, 51, 0.10);
+  box-shadow: 0 1px 2px rgba(12, 34, 51, 0.06),
+              inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-theme="light"] .card:hover {
+  border-color: rgba(0, 150, 199, 0.35);
+  box-shadow: 0 8px 28px rgba(12, 34, 51, 0.12),
+              inset 0 1px 0 rgba(0, 150, 199, 0.10);
+}
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(12, 34, 51, 0.10);
 }
 
 /* Card styles - a subtle top-light / bottom-shade gradient adds depth, and the
@@ -331,6 +394,8 @@ button:not(:disabled),
   -webkit-backdrop-filter: blur(12px) saturate(1.1);
   border: 1px solid rgba(0, 212, 255, 0.14);
 }
+
+
 
 /* Respect reduced-motion preference - disable all decorative motion. */
 @media (prefers-reduced-motion: reduce) {

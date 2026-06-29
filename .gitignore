@@ -87,3 +87,7 @@ key/
 # Stitch (Google Stitch) design-export scratch dir: raw HTML/PNG screen
 # exports + zip, kept locally for reference only - not version controlled.
 /app-graf/
+
+# Gallery raw originals - optimized into full/ + thumb/ by scripts/build-gallery-year.mjs
+public/gallery/*/_incoming/*
+!public/gallery/*/_incoming/README.txt

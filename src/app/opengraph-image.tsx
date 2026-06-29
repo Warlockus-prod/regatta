@@ -97,7 +97,7 @@ export default function OpenGraphImage() {
           color: '#5a7a8a',
           fontFamily: 'ui-monospace, monospace',
         }}>
-          regatta.icoffio.com
+          weektoregatta.com
         </div>
       </div>
     ),

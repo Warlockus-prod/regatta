@@ -71,7 +71,7 @@ never has to resolve at read time - if you're in the V3 lane, read the
   - i18n keys and translations
   - HTTP API schemas for `/api/coach`, `/api/log`, `/api/feedback`, `/api/leaderboard`, `/api/multiplayer/*`
 - **MUST hit the existing web API** - no separate mobile backend. The VPS
-  already serves the API at `regatta.icoffio.com/api/*`; mobile consumes it.
+  already serves the API at `weektoregatta.com/api/*`; mobile consumes it.
 - **Do NOT edit** any web route code (`src/app/*`), i18n plumbing, simulator V1/V2/V3,
   or the nginx / docker / CI setup for the web app.
 
@@ -127,7 +127,7 @@ git pull --rebase origin main
 
 ### Verification per lane
 
-- Shared lane: prod smoke = `curl -I https://regatta.icoffio.com/`, playwright cyrillic scan, `/stats` auth.
+- Shared lane: prod smoke = `curl -I https://weektoregatta.com/`, playwright cyrillic scan, `/stats` auth.
 - V2 lane: `/simulator2` routes, physics tests, browser console clean.
 - V3 lane: `/simulator-v3` routes, physics tests, spec compliance per `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md` + `QA_CHECKLIST.md`.
 - Mobile lane: design docs in `docs/design/mobile/` stay current; any scaffold code builds in its own directory/repo; API contract docs stay in sync with web `src/app/api/*`.
@@ -135,7 +135,7 @@ git pull --rebase origin main
 ## Server
 
 - Next.js 16 (Turbopack) dev sometimes emits a noisy `Can't resolve 'tailwindcss' in /Users/Andrey/App/all` error that is cosmetic (tailwind lives in `regatta/node_modules`). Ignore unless the `/` route 500s.
-- Deploy: push to `main` triggers GitHub Actions -> SSH to VPS -> `docker compose up -d --build regatta` -> serves via nginx on `regatta.icoffio.com`.
+- Deploy: push to `main` triggers GitHub Actions -> SSH to VPS -> `docker compose up -d --build regatta` -> serves via nginx on `weektoregatta.com`.
 - `/stats` password: `regattA` (admin:regattA). Stored in VPS `.env`, no fallback in code.
 - GA4 stream: `G-ZEWWJ4N31M` in `src/components/GoogleAnalytics.tsx`.
 

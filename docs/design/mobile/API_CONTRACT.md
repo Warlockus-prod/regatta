@@ -1,7 +1,7 @@
 # Mobile API contract
 
 Status: **skeleton** (2026-05-03). The contract reflects today's web
-backend at `regatta.icoffio.com/api/*` plus the `ws-server` running on
+backend at `weektoregatta.com/api/*` plus the `ws-server` running on
 the same VPS. Per ADR-0001, mobile consumes this backend as-is; no
 mobile-specific server.
 
@@ -166,7 +166,7 @@ When web changes a payload, both lanes update this file in the same PR.
 ## WebSocket protocol (`ws-server`)
 
 Phase 4 dependency. Today web's `/multiplayer` connects to
-`wss://regatta.icoffio.com/ws/`. The protocol is JSON over
+`wss://weektoregatta.com/ws/`. The protocol is JSON over
 `react-native`'s built-in `WebSocket`. Definitive shapes are in
 `ws-server/server.js` on the VPS.
 

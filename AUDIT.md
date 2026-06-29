@@ -1,7 +1,7 @@
 # Regatta - State Audit
 
 **Date:** 2026-04-20
-**Live:** https://regatta.icoffio.com
+**Live:** https://weektoregatta.com
 **Repo:** https://github.com/Warlockus-prod/regatta
 **Status:** Phase 0 + 1 + 2 landed. Three simulators (V1/V2/V3) live
 over one physics engine. 6 post-audit bugs fixed + verified in browser.

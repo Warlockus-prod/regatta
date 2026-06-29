@@ -1255,26 +1255,26 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   );
 
   const network = tp(
-    'Изображения и видео в галерее загружаются из сети с regatta.icoffio.com. Сервер не получает идентификаторов и не строит профиль пользователя.',
-    'Images and videos in the gallery load from regatta.icoffio.com over the network. The server does not receive identifiers and does not build a user profile.',
-    'Obrazy i wideo w galerii laduja sie z regatta.icoffio.com przez siec. Serwer nie otrzymuje identyfikatorow i nie buduje profilu uzytkownika.',
+    'Изображения и видео в галерее загружаются из сети с weektoregatta.com. Сервер не получает идентификаторов и не строит профиль пользователя.',
+    'Images and videos in the gallery load from weektoregatta.com over the network. The server does not receive identifiers and does not build a user profile.',
+    'Obrazy i wideo w galerii laduja sie z weektoregatta.com przez siec. Serwer nie otrzymuje identyfikatorow i nie buduje profilu uzytkownika.',
     {
-      es: 'Las imagenes y los videos de la galeria se cargan desde regatta.icoffio.com por red. El servidor no recibe identificadores ni crea un perfil de usuario.',
-      fr: 'Les images et videos de la galerie sont chargees depuis regatta.icoffio.com via le reseau. Le serveur ne recoit pas didentifiants et ne construit pas de profil utilisateur.',
-      de: 'Bilder und Videos in der Galerie werden ueber das Netzwerk von regatta.icoffio.com geladen. Der Server erhaelt keine Kennungen und legt kein Nutzerprofil an.',
-      it: 'Immagini e video della galleria si caricano da regatta.icoffio.com tramite rete. Il server non riceve identificatori e non crea un profilo utente.',
+      es: 'Las imagenes y los videos de la galeria se cargan desde weektoregatta.com por red. El servidor no recibe identificadores ni crea un perfil de usuario.',
+      fr: 'Les images et videos de la galerie sont chargees depuis weektoregatta.com via le reseau. Le serveur ne recoit pas didentifiants et ne construit pas de profil utilisateur.',
+      de: 'Bilder und Videos in der Galerie werden ueber das Netzwerk von weektoregatta.com geladen. Der Server erhaelt keine Kennungen und legt kein Nutzerprofil an.',
+      it: 'Immagini e video della galleria si caricano da weektoregatta.com tramite rete. Il server non riceve identificatori e non crea un profilo utente.',
     },
   );
 
   const webNote = tp(
-    'У сайта regatta.icoffio.com есть собственный раздел приватности. Мобильное приложение использует те же базовые принципы.',
-    'The website regatta.icoffio.com has its own privacy section. The mobile app uses the same baseline.',
-    'Strona regatta.icoffio.com ma wlasna sekcje prywatnosci. Aplikacja mobilna stosuje te same zasady.',
+    'У сайта weektoregatta.com есть собственный раздел приватности. Мобильное приложение использует те же базовые принципы.',
+    'The website weektoregatta.com has its own privacy section. The mobile app uses the same baseline.',
+    'Strona weektoregatta.com ma wlasna sekcje prywatnosci. Aplikacja mobilna stosuje te same zasady.',
     {
-      es: 'El sitio regatta.icoffio.com tiene su propia seccion de privacidad. La app movil sigue los mismos principios.',
-      fr: 'Le site regatta.icoffio.com possede sa propre section confidentialite. Lapplication mobile applique les memes principes.',
-      de: 'Die Website regatta.icoffio.com hat einen eigenen Datenschutzbereich. Die mobile App folgt denselben Grundsaetzen.',
-      it: 'Il sito regatta.icoffio.com ha una propria sezione privacy. Lapp mobile applica gli stessi principi.',
+      es: 'El sitio weektoregatta.com tiene su propia seccion de privacidad. La app movil sigue los mismos principios.',
+      fr: 'Le site weektoregatta.com possede sa propre section confidentialite. Lapplication mobile applique les memes principes.',
+      de: 'Die Website weektoregatta.com hat einen eigenen Datenschutzbereich. Die mobile App folgt denselben Grundsaetzen.',
+      it: 'Il sito weektoregatta.com ha una propria sezione privacy. Lapp mobile applica gli stessi principi.',
     },
   );
 
