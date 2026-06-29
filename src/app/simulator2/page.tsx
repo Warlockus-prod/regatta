@@ -1,18 +1,20 @@
 import { redirect } from 'next/navigation';
+import SimulatorV2 from '@/features/simulator-3d/SimulatorV2';
+import { SIM_V2_ENABLED } from '@/features/simulator-3d/config';
 
 // ============================================================================
-// SIMULATOR V2 - hidden 2026-04-22.
+// SIMULATOR V2 route.
 //
-// The V2 race-view build (PR-1..PR-6) did not match the product direction the
-// user wanted, so the route is redirected to V1 for now. The underlying code
-// stays in `src/features/simulator-v2/*` and `./SailingScene.tsx` so it can
-// be revived later by restoring this page's contents from git history (last
-// live version: commit be43938).
+// V2 is now the new 3D sloop module (src/features/simulator-3d). It is gated by
+// a feature flag so it can be turned off without code changes: set
+// NEXT_PUBLIC_SIM_V2=0 and the route falls back to V1.
 //
-// Public V1/V3 headers no longer link here. If a stale external link opens
-// `/simulator2`, redirect it to the current simulator entry.
+// The old V2 race-view build (PR-1..PR-6) still lives in
+// src/features/simulator-v2/* and ./SailingScene.tsx (unused, kept in git
+// history, last live at commit be43938) and can be removed once V2-3D is final.
 // ============================================================================
 
 export default function SimulatorV2Page() {
-  redirect('/simulator');
+  if (!SIM_V2_ENABLED) redirect('/simulator');
+  return <SimulatorV2 />;
 }
