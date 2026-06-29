@@ -121,7 +121,7 @@ Open devtools, reload:
 ## Prod smoke (after deploy)
 
 ```
-curl -H 'Accept-Language: en' https://regatta.icoffio.com/simulator-v3
+curl -H 'Accept-Language: en' https://weektoregatta.com/simulator-v3
 ```
 
 - [ ] HTTP 200

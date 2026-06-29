@@ -9,7 +9,7 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
 
 /**
  * Gallery: photos and videos from past regattas, served from the web
- * client at `regatta.icoffio.com`. Per ADR-0004 this is a Tier 2 screen
+ * client at `weektoregatta.com`. Per ADR-0004 this is a Tier 2 screen
  * (network read with cached fallback): images load from the network on
  * first view and RN's image cache serves them on repeat visits. Tap an
  * item to open the full-resolution image or the YouTube video in the
@@ -21,7 +21,7 @@ import { colors, radii, spacing } from '../../src/design-system/tokens';
  * tile (which was redundant noise).
  */
 
-const WEB_BASE = 'https://regatta.icoffio.com';
+const WEB_BASE = 'https://weektoregatta.com';
 
 function imageUrl(item: GalleryItem): string {
   if (item.kind === 'youtube') {

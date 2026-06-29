@@ -202,7 +202,7 @@ spamming the API on repeated Home renders.
   windKn; expiresAt }`). The mobile client adapts to the actual server
   shape. `API_CONTRACT.md` should be updated by the Shared lane in a
   follow-up PR.
-- All three helpers use `https://regatta.icoffio.com/api/*` as the base.
+- All three helpers use `https://weektoregatta.com/api/*` as the base.
   No `EXPO_PUBLIC_API_BASE` env wiring this round; we'll thread one in
   Phase 3 when the staging vs prod split lands.
 

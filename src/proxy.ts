@@ -89,7 +89,7 @@ function ensureLangCookie(res: NextResponse, req: NextRequest) {
 // redirect to `/` but set the lang cookie first, so the recipient's browser
 // settings no longer matter - the home page renders in the chosen language
 // for ANY visitor. Useful for share links ("here's the sailing trainer -
-// https://regatta.icoffio.com/pl"). The recipient's URL bar ends up clean (`/`)
+// https://weektoregatta.com/pl"). The recipient's URL bar ends up clean (`/`)
 // after the redirect; the cookie carries the language forward.
 function setLangCookie(res: NextResponse, value: Lang) {
   res.cookies.set({

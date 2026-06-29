@@ -73,7 +73,7 @@ regatta-date + track-picker flow is descoped).
 
 Acceptance:
 - `mobile/app/settings.tsx` grows a "Privacy" section above About:
-  privacy policy link (URL on regatta.icoffio.com - placeholder if
+  privacy policy link (URL on weektoregatta.com - placeholder if
   the Shared-lane URL is not live yet, tracked as a risk), terms
   link, support contact (mailto), telemetry opt-in toggle (default
   OFF, AsyncStorage key `regatta.settings.telemetry.v1`, no

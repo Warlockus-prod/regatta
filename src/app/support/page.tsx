@@ -5,7 +5,7 @@ import ContentFooterNav from '@/components/ContentFooterNav';
 import { useState, useEffect } from 'react';
 
 // Support page at /support. This is the URL set as the App Store "Support URL"
-// (mobile/asc-metadata/<lang>/support_url.txt -> regatta.icoffio.com/support).
+// (mobile/asc-metadata/<lang>/support_url.txt -> weektoregatta.com/support).
 // Apple requires the Support URL to resolve (HTTP 200) and to offer a real way
 // to get help, otherwise the submission is metadata-rejected.
 //

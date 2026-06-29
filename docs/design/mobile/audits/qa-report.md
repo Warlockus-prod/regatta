@@ -199,7 +199,7 @@ Net: 0 real leaks. The codebase's `tp/tl` discipline is solid.
   `completedIds.size === 0`. Good UX.
 
 ### Offline mode
-- Gallery requires network for thumbnails (`regatta.icoffio.com`).
+- Gallery requires network for thumbnails (`weektoregatta.com`).
   No offline placeholder or `Image onError` handler. P2 polish.
   Currently bundles a gray `bgCard` background while loading.
 - All other screens are offline-safe (synced JSON bundles).

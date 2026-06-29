@@ -59,19 +59,19 @@ Besides the anonymous analytics above, the app makes network requests in these
 cases, all initiated by you:
 
 1. **Gallery** loads photos and YouTube thumbnails from
-   regatta.icoffio.com. The request includes only what your browser /
+   weektoregatta.com. The request includes only what your browser /
    YouTube would normally see (User-Agent, IP). No identifier of you or
    the device is attached.
 2. **AI coach** (after a race, when you tap "AI coach"): sends the race log
-   (boat positions, time, score) to regatta.icoffio.com/api/coach to generate
+   (boat positions, time, score) to weektoregatta.com/api/coach to generate
    post-race coaching text. The race log does not contain personal data, only
    physics samples. We do not store the request beyond what is needed to
    compute the reply.
 3. **Daily challenge banner** on Home: a small GET to
-   regatta.icoffio.com/api/daily to fetch today's optional challenge.
+   weektoregatta.com/api/daily to fetch today's optional challenge.
    No identifier of you or the device is sent.
 4. **Leaderboard**: when you finish a race the score (time + course, no
-   identity) may be posted to regatta.icoffio.com so the global board can show
+   identity) may be posted to weektoregatta.com so the global board can show
    it. No personal identifier is attached.
 
 If you are offline, all of the above are silently skipped.

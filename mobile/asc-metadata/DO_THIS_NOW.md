@@ -12,7 +12,7 @@ App Store Connect через API уже заполнен на ~95%:
 - [x] **Content Rights** = "Does not use third-party content".
 - [x] **Age Rating** = 4+ (все 24 поля = NONE / false).
 - [x] **Pricing** = Free, baseTerritory USA, авто-распространение на все рынки.
-- [x] **Privacy Policy URL** = `https://regatta.icoffio.com/privacy` на всех
+- [x] **Privacy Policy URL** = `https://weektoregatta.com/privacy` на всех
       7 локализациях.
 - [x] **Privacy Policy текст** готов в [PRIVACY_POLICY.md](./PRIVACY_POLICY.md).
 
@@ -23,7 +23,7 @@ App Store Connect через API уже заполнен на ~95%:
 
 ### Шаг 1 - выложить Privacy Policy на сайт (5 минут)
 
-Apple Review проверяет что URL `https://regatta.icoffio.com/privacy`
+Apple Review проверяет что URL `https://weektoregatta.com/privacy`
 открывается без логина и возвращает читаемый текст.
 
 Самый быстрый способ - создайте страницу в web лейне (Next.js):
@@ -133,7 +133,7 @@ Email "Your app has been approved":
 
 ## Чеклист в одну строку
 
-- [ ] Privacy Policy опубликован на `https://regatta.icoffio.com/privacy`
+- [ ] Privacy Policy опубликован на `https://weektoregatta.com/privacy`
 - [ ] 5 screenshots с iPhone загружены в ASC (6.7" + 6.5")
 - [ ] Build 0.13.0(13) привязан + Copyright + Contact + Notes for Review
 - [ ] Submit for Review (3 No)

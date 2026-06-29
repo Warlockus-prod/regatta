@@ -2,7 +2,7 @@
  * HTTP client for `/api/weather`.
  *
  * The web route returns a single live wind/wave snapshot from Open-Meteo:
- *   GET https://regatta.icoffio.com/api/weather?lat={lat}&lon={lon}
+ *   GET https://weektoregatta.com/api/weather?lat={lat}&lon={lon}
  *
  * Per ADR-0001 the mobile app consumes the existing web backend as-is.
  * No new dependencies; we use `fetch` and an `AbortController` for the

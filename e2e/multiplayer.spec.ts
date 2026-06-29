@@ -27,7 +27,7 @@ test.describe('Multiplayer smoke', () => {
     // the path responds at least (bad request because GET /ws without upgrade
     // headers returns 400/404 on different servers - so we just check the
     // server is reachable from outside).
-    const probe = await request.get('https://regatta.icoffio.com/ws', { timeout: 5_000 }).catch(() => null);
+    const probe = await request.get('https://weektoregatta.com/ws', { timeout: 5_000 }).catch(() => null);
     // nginx returns 400 for plain GET on a WS location, or 404 depending on setup.
     // Key thing: not 502 / 503 / 504.
     if (probe) {

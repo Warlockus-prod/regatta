@@ -171,7 +171,7 @@ believe the app gets them race-ready.
   consent toggle. ATT (App Tracking Transparency) prompt is also
   required if telemetry is on by default.
 - Action: Add a "Privacy" section with: Privacy policy link (URL on
-  regatta.icoffio.com), Terms link, support contact (mailto), telemetry
+  weektoregatta.com), Terms link, support contact (mailto), telemetry
   opt-in toggle (default off until ADR-0007 lands), reset progress
   destructive action with confirm. Per DESIGN_BRIEF section 5.14.
 

@@ -14,7 +14,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: process.env.BASE_URL ?? 'https://regatta.icoffio.com',
+    baseURL: process.env.BASE_URL ?? 'https://weektoregatta.com',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',

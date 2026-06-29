@@ -173,5 +173,5 @@ splash polish).
    sections.
 6. **Simulator (Path 2 / 3 only):** Skia canvas renders three colored
    circles plus a tiny boat path. Confirms Skia toolchain works.
-7. **Gallery:** thumbnails from `regatta.icoffio.com` load (needs
+7. **Gallery:** thumbnails from `weektoregatta.com` load (needs
    network). Tap a YouTube tile to confirm it opens YouTube.

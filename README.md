@@ -2,7 +2,7 @@
 
 Interactive sailing education app. Learn points of sail, sail trim, racing strategy and sailing terminology in 7 languages: RU / EN / PL / ES / FR / DE / IT.
 
-**Live:** https://regatta.icoffio.com
+**Live:** https://weektoregatta.com
 
 For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 
