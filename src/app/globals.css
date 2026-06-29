@@ -395,10 +395,10 @@ button:not(:disabled),
   border: 1px solid rgba(0, 212, 255, 0.14);
 }
 
-/* Homepage photo strip: a slowly drifting horizontal collage band. The track
-   holds the images twice and translateX(-50%) loops seamlessly (each image
-   carries its own right margin, so the period is exactly one set). Pauses on
-   hover; reduced-motion turns it into a normal horizontal scroller. */
+/* Photo strip: the cutouts are glued edge-to-edge (no gaps) into one long
+   collage that drifts horizontally. The track holds the images twice and
+   translateX(-50%) loops seamlessly (no gaps -> the period is exactly one
+   set). Pauses on hover; reduced-motion turns it into a manual scroller. */
 @keyframes strip-scroll {
   from { transform: translateX(0); }
   to   { transform: translateX(-50%); }

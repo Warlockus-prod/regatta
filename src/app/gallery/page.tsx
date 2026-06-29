@@ -284,7 +284,6 @@ export default function GalleryPage() {
                 loading="lazy"
                 draggable={false}
                 className="h-[clamp(170px,25vw,270px)] w-auto object-cover block select-none"
-                style={{ marginRight: 6 }}
               />
             ))}
           </div>
