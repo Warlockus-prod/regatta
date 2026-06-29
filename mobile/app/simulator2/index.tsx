@@ -3,13 +3,11 @@ import { SimWebView } from '../../src/simulator/SimWebView';
 // ============================================================================
 // Simulator V2 (3D) screen.
 //
-// Embeds the web R3F + GLB 3D simulator via WebView (native three.js does not
-// render on this RN New-Architecture stack - see SimWebView for the why).
-//
-// Target is /simulator2 once the web V2 ships to prod. Until then it loads
-// /anatomy (a live R3F + GLB 3D page) so the pipeline is verifiable on device.
+// Embeds the deployed web V2 simulator (/simulator2) via WebView: an R3F + GLB
+// sloop with morph-target sails and VPP sail physics. Native three.js does not
+// render on this RN New-Architecture stack - see SimWebView for the why.
 // ============================================================================
 
 export default function SimulatorV2Screen() {
-  return <SimWebView path="/anatomy" title="3D" />;
+  return <SimWebView path="/simulator2" title="3D" />;
 }

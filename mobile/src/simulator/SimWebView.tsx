@@ -34,7 +34,9 @@ import { colors } from '../design-system/tokens';
 // fall-through to the offline native V1 simulator.
 // ============================================================================
 
-const ORIGIN = 'https://regatta.icoffio.com';
+// Matches the app-wide origin (mobile/src/api/coach.ts API_BASE) after the
+// weektoregatta.com rebrand.
+const ORIGIN = 'https://weektoregatta.com';
 const LOAD_TIMEOUT_MS = 12000;
 
 // localStorage flags that gate first-visit tours across the web app. Keep in
