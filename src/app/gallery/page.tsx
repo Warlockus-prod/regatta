@@ -228,6 +228,8 @@ export default function GalleryPage() {
           item={active}
           title={pickTitle(active)}
           like={likes[active.id]}
+          index={galleryItems.findIndex((i) => i.id === active.id)}
+          total={galleryItems.length}
           onLike={() => toggleLike(active.id)}
           onClose={() => setActiveId(null)}
           onPrev={() => {
@@ -286,14 +288,44 @@ function Tile({
     ? aspectToClass(item.aspect ?? (item.kind === 'youtube' ? '16:9' : 'square'))
     : '';
 
+  // Scroll-reveal: fade + rise each tile in as it first enters the viewport.
+  // Honors reduced-motion by showing immediately.
+  const tileRef = useRef<HTMLDivElement>(null);
+  const [shown, setShown] = useState(false);
+  useEffect(() => {
+    const el = tileRef.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setShown(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting) {
+          setShown(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: '0px 0px -6% 0px', threshold: 0.04 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
   return (
-    // Rounded card with a soft shadow and a gentle hover lift. Because every
-    // tile is spaced (uniform masonry gap, see <style jsx>) and rounded
-    // identically, the radius no longer causes seam misalignment. The image
-    // zooms on hover, contained by overflow-hidden.
+    // Rounded card: shadow deepens on hover, the image zooms on hover, and the
+    // whole tile fades/rises in on scroll. Uniform masonry gap + radius keep
+    // spacing even across portrait/landscape, so no seam misalignment.
     <div
-      className={`group relative overflow-hidden rounded-xl shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${ratioClass}`}
-      style={ratioStyle}
+      ref={tileRef}
+      className={`group relative overflow-hidden rounded-xl shadow-lg hover:shadow-2xl ${ratioClass}`}
+      style={{
+        ...ratioStyle,
+        opacity: shown ? 1 : 0,
+        transform: shown ? 'none' : 'translateY(16px)',
+        transition:
+          'opacity 0.55s var(--ease-out-quart), transform 0.55s var(--ease-out-quart), box-shadow 0.3s var(--ease-out-quart)',
+      }}
     >
       <button
         type="button"
@@ -409,6 +441,8 @@ function Lightbox({
   closeLabel,
   prevLabel,
   nextLabel,
+  index,
+  total,
 }: {
   item: GalleryItem;
   title: string;
@@ -422,7 +456,11 @@ function Lightbox({
   closeLabel: string;
   prevLabel: string;
   nextLabel: string;
+  index: number;
+  total: number;
 }) {
+  // Horizontal swipe (touch) navigates prev/next.
+  const touchX = useRef<number | null>(null);
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -473,6 +511,15 @@ function Lightbox({
       <div
         className="relative max-w-6xl w-full max-h-[90vh] flex flex-col items-center"
         onClick={(e) => e.stopPropagation()}
+        onTouchStart={(e) => { touchX.current = e.touches[0]?.clientX ?? null; }}
+        onTouchEnd={(e) => {
+          if (touchX.current == null) return;
+          const dx = (e.changedTouches[0]?.clientX ?? touchX.current) - touchX.current;
+          touchX.current = null;
+          if (Math.abs(dx) < 48) return;
+          if (dx < 0 && canNext) onNext();
+          else if (dx > 0 && canPrev) onPrev();
+        }}
       >
         {item.kind === 'youtube' ? (
           <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl" style={{ maxHeight: '80vh' }}>
@@ -493,6 +540,9 @@ function Lightbox({
           />
         )}
         <div className="mt-3 flex items-center gap-3">
+          {total > 1 && (
+            <span className="text-xs text-[var(--text-muted)] num">{index + 1} / {total}</span>
+          )}
           <p className="text-sm text-[var(--text-secondary)] text-center">{title}</p>
           <LikeButton
             liked={like?.liked ?? false}
