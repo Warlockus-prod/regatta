@@ -31,6 +31,14 @@ const albumMeta: Record<string, { coverSrc: string; place: string }> = {
   },
 };
 
+// Collage strip: 14 torn-paper photo cutouts (built by
+// scripts/build-gallery-strip.mjs from gallery/2026/kolaz). Drifts as a band
+// at the top of the gallery.
+const collageStrip = Array.from(
+  { length: 14 },
+  (_, i) => `/gallery/regatta-2026/strip/strip-${String(i + 1).padStart(2, '0')}.jpg`,
+);
+
 // Masonry tuning (px): a small base grid-row unit + a uniform gap. The grid
 // flows row-major (left-to-right, top-to-bottom) so photos read in the order
 // they are stored - which is by capture date. Each tile spans the number of
@@ -258,6 +266,29 @@ export default function GalleryPage() {
             },
           )}
         </p>
+      </section>
+
+      {/* Collage strip: a slow drifting band of torn-paper cutouts (see
+          globals.css .photo-strip). Decorative; pauses on hover, becomes a
+          manual scroller under reduced-motion. */}
+      <section className="w-full mb-8">
+        <div className="photo-strip">
+          <div className="photo-strip-track">
+            {[...collageStrip, ...collageStrip].map((src, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={src}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                draggable={false}
+                className="h-[clamp(170px,25vw,270px)] w-auto object-cover block select-none"
+                style={{ marginRight: 6 }}
+              />
+            ))}
+          </div>
+        </div>
       </section>
 
       {sortedKeys.length === 0 || galleryItems.length === 0 ? (

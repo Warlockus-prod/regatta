@@ -378,13 +378,6 @@ function pickL(obj: Localized, lang: Lang): string {
   }
 }
 
-// Homepage collage strip: 14 torn-paper photo cutouts (built by
-// scripts/build-gallery-strip.mjs from gallery/2026/kolaz).
-const galleryStrip = Array.from(
-  { length: 14 },
-  (_, i) => `/gallery/regatta-2026/strip/strip-${String(i + 1).padStart(2, '0')}.jpg`,
-);
-
 export default function HomePage() {
   const { lang, tp } = useI18n();
 
@@ -409,32 +402,6 @@ export default function HomePage() {
           style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0) 28%, var(--bg-primary) 100%)' }}
         />
       </section>
-
-      {/* ===== PHOTO STRIP: drifting torn-paper collage band, links to gallery ===== */}
-      <Link
-        href="/gallery"
-        aria-label={tp('Открыть галерею', 'Open the gallery', 'Otworz galerie',
-          { es: 'Abrir la galeria', fr: 'Ouvrir la galerie', de: 'Galerie oeffnen', it: 'Apri la galleria' })}
-        className="block w-full mb-2"
-      >
-        <div className="photo-strip">
-          <div className="photo-strip-track">
-            {[...galleryStrip, ...galleryStrip].map((src, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={src}
-                alt=""
-                aria-hidden="true"
-                loading="lazy"
-                draggable={false}
-                className="h-[clamp(170px,25vw,270px)] w-auto object-cover block select-none"
-                style={{ marginRight: 6 }}
-              />
-            ))}
-          </div>
-        </div>
-      </Link>
 
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden">
