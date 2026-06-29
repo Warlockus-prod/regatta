@@ -31,12 +31,13 @@ const albumMeta: Record<string, { coverSrc: string; place: string }> = {
   },
 };
 
-// Collage strip: 14 torn-paper photo cutouts (built by
-// scripts/build-gallery-strip.mjs from gallery/2026/kolaz). Drifts as a band
-// at the top of the gallery.
+// Collage strip: 14 torn-paper cutouts (scripts/build-gallery-strip.mjs from
+// gallery/2026/kolaz), glued edge-to-edge at the top of the gallery. Rendered
+// in reverse filename order (strip-14 -> strip-01) so it reads left-to-right
+// in the intended sequence (SCRL_0014 is "first", SCRL_0001 is "last").
 const collageStrip = Array.from(
   { length: 14 },
-  (_, i) => `/gallery/regatta-2026/strip/strip-${String(i + 1).padStart(2, '0')}.jpg`,
+  (_, i) => `/gallery/regatta-2026/strip/strip-${String(14 - i).padStart(2, '0')}.jpg`,
 );
 
 // Masonry tuning (px): a small base grid-row unit + a uniform gap. The grid
