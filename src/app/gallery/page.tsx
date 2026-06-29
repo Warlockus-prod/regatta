@@ -202,26 +202,24 @@ export default function GalleryPage() {
         depending on viewport.
       */}
       <style jsx>{`
-        /* Tight edge-to-edge masonry: zero gap horizontally and
-           vertically. Earlier we kept a small "--gap" but the rounded
-           corners and border on each tile combined with the gap to
-           create visually uneven whitespace around portrait vs
-           landscape photos. The cleaner answer is no gap at all -
-           every photo butts directly against its neighbors, so the
-           spacing is identical (zero) on every edge by definition.
-           The Tile itself drops its border and rounded corners to
-           match this look. */
+        /* Masonry with small, uniform gaps. The trick that keeps spacing
+           even across portrait + landscape photos is that EVERY tile has
+           the same gap and the same rounded corners - no per-tile borders.
+           column-gap is the horizontal gutter; margin-bottom the vertical
+           one. Gaps scale up slightly on wider viewports. */
         .masonry-cols {
           column-count: 2;
-          column-gap: 0;
+          column-gap: 10px;
         }
-        @media (min-width: 640px)  { .masonry-cols { column-count: 3; } }
-        @media (min-width: 1024px) { .masonry-cols { column-count: 4; } }
+        @media (min-width: 640px)  { .masonry-cols { column-count: 3; column-gap: 12px; } }
+        @media (min-width: 1024px) { .masonry-cols { column-count: 4; column-gap: 14px; } }
         .masonry-cols > * {
           break-inside: avoid;
           display: block;
-          margin: 0;
+          margin: 0 0 10px;
         }
+        @media (min-width: 640px)  { .masonry-cols > * { margin-bottom: 12px; } }
+        @media (min-width: 1024px) { .masonry-cols > * { margin-bottom: 14px; } }
       `}</style>
 
       {/* Lightbox */}
@@ -289,14 +287,12 @@ function Tile({
     : '';
 
   return (
-    // Tile is intentionally flush: no border, no border-radius, no
-    // outer hover scale. With masonry --gap = 0 (see <style jsx>), tiles
-    // sit edge-to-edge, so any radius / border / outer scale would create
-    // visible misalignment at the seams. The image inside still
-    // group-hover:scale-110 for the zoom-on-hover cue, contained by
-    // overflow-hidden.
+    // Rounded card with a soft shadow and a gentle hover lift. Because every
+    // tile is spaced (uniform masonry gap, see <style jsx>) and rounded
+    // identically, the radius no longer causes seam misalignment. The image
+    // zooms on hover, contained by overflow-hidden.
     <div
-      className={`group relative overflow-hidden ${ratioClass}`}
+      className={`group relative overflow-hidden rounded-xl shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-2xl ${ratioClass}`}
       style={ratioStyle}
     >
       <button
@@ -312,7 +308,10 @@ function Tile({
           loading="lazy"
           className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent opacity-70 group-hover:opacity-90 transition-opacity" />
+        {/* Photos are crisp by default; a soft gradient fades in only on
+            hover so the heart/controls stay legible without dimming the
+            image the rest of the time. */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       </button>
 
       {/* Per-tile year badge intentionally NOT rendered here. The

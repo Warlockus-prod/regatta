@@ -142,7 +142,10 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  themeColor: "#0a1628",
+  themeColor: [
+    { media: '(prefers-color-scheme: dark)', color: '#0a1628' },
+    { media: '(prefers-color-scheme: light)', color: '#f4f8fc' },
+  ],
 };
 
 export default async function RootLayout({
@@ -154,10 +157,18 @@ export default async function RootLayout({
   return (
     <html
       lang={serverLang}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-      style={{ background: '#0a1628' }}
     >
-      <body className="min-h-full flex flex-col ocean-bg" style={{ background: '#0a1628' }}>
+      <body className="min-h-full flex flex-col ocean-bg">
+        {/* No-flash theme: resolve the saved preference ('auto' follows the
+            OS) and set <html data-theme> before first paint, so there is no
+            light/dark flicker on load. Mirrors src/components/ThemeToggle. */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('regatta_theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
+          }}
+        />
         {/*
           Structured data (JSON-LD) for search engines. Two graphs at once:
 
