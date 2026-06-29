@@ -52,6 +52,11 @@ export default function SiteFooter() {
         {tp('Конфиденциальность', 'Privacy', 'Prywatnosc',
           { es: 'Privacidad', fr: 'Confidentialite', de: 'Datenschutz', it: 'Privacy' })}
       </Link>
+      <span className="mx-2 opacity-50">·</span>
+      <Link href="/support" className="hover:text-[var(--accent-cyan)] transition">
+        {tp('Контакты', 'Contact', 'Kontakt',
+          { es: 'Contacto', fr: 'Contact', de: 'Kontakt', it: 'Contatti' })}
+      </Link>
     </footer>
   );
 }

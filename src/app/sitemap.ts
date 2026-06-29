@@ -43,6 +43,7 @@ const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/spots',      changeFrequency: 'daily',   priority: 0.70 },
   { path: '/quick',      changeFrequency: 'weekly',  priority: 0.60 },
   { path: '/privacy',    changeFrequency: 'yearly',  priority: 0.30 },
+  { path: '/support',    changeFrequency: 'yearly',  priority: 0.40 },
 ];
 
 export default function sitemap(): MetadataRoute.Sitemap {
