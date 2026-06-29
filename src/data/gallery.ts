@@ -10,7 +10,7 @@
 // ============================================================================
 
 import type { LegacyLocalized } from '@/lib/languages';
-import { items2026 } from './gallery-2026.generated';
+import { items2026 } from './gallery-2026.generated.ts';
 
 export type GalleryKind = 'image' | 'youtube';
 
