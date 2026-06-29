@@ -10,6 +10,7 @@ import FeedbackWidget from "@/components/FeedbackWidget";
 import BootcampFooterNav from "@/components/BootcampFooterNav";
 import SiteFooter from "@/components/SiteFooter";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
+import ThemeManager from "@/components/ThemeManager";
 import { I18nProvider } from "@/lib/i18n";
 import {
   ENABLED_LANGUAGES,
@@ -166,7 +167,7 @@ export default async function RootLayout({
             light/dark flicker on load. Mirrors src/components/ThemeToggle. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('regatta_theme')||'auto';var d=t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
+            __html: `(function(){try{var p=location.pathname;var im=['/game','/multiplayer','/simulator','/simulator2','/simulator-v3'].some(function(x){return p===x||p.indexOf(x+'/')===0;});var t=localStorage.getItem('regatta_theme')||'auto';var d=im||t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
           }}
         />
         {/*
@@ -229,6 +230,7 @@ export default async function RootLayout({
           }}
         />
         <I18nProvider initialLang={serverLang}>
+          <ThemeManager />
           <ClientErrorReporter />
           <OnboardingTour />
           <HelpOverlay />

@@ -1,60 +1,41 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
+import { applyTheme, readMode, THEME_KEY, type ThemeMode } from '@/lib/theme';
 
 // ============================================================================
 // Theme toggle: cycles Auto -> Light -> Dark -> Auto.
 //
-// - 'auto' follows the OS via prefers-color-scheme (and live-updates if the
-//   system flips while in auto).
-// - The chosen mode is stored in localStorage('regatta_theme'); a no-flash
-//   inline script in app/layout.tsx reads it before first paint and sets
-//   <html data-theme="light|dark">, so there is no theme flicker on load.
-// - The actual colors live in globals.css ([data-theme="light"] overrides).
+// - 'auto' follows the OS via prefers-color-scheme.
+// - The chosen mode is stored in localStorage; a no-flash inline script in
+//   app/layout.tsx applies it (and pins immersive routes to dark) before first
+//   paint. ThemeManager re-applies on route changes.
+// - Resolution logic + immersive-route handling live in src/lib/theme.ts.
 // ============================================================================
-
-type Mode = 'auto' | 'light' | 'dark';
-const KEY = 'regatta_theme';
-
-function systemDark(): boolean {
-  return typeof window !== 'undefined'
-    && window.matchMedia('(prefers-color-scheme: dark)').matches;
-}
-
-function applyMode(mode: Mode) {
-  const dark = mode === 'dark' || (mode === 'auto' && systemDark());
-  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-}
 
 export default function ThemeToggle() {
   const { tp } = useI18n();
-  const [mode, setMode] = useState<Mode>('auto');
+  const pathname = usePathname();
+  const [mode, setMode] = useState<ThemeMode>('auto');
 
-  // Read the saved preference on mount (the no-flash script already applied
-  // it to <html>; here we just sync React state to drive the icon).
   useEffect(() => {
-    const saved = (localStorage.getItem(KEY) as Mode | null) ?? 'auto';
-    setMode(saved);
+    setMode(readMode());
   }, []);
-
-  // While in auto, follow OS theme changes live.
-  useEffect(() => {
-    if (mode !== 'auto') return;
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const onChange = () => applyMode('auto');
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, [mode]);
 
   const cycle = useCallback(() => {
     setMode((prev) => {
-      const next: Mode = prev === 'auto' ? 'light' : prev === 'light' ? 'dark' : 'auto';
-      localStorage.setItem(KEY, next);
-      applyMode(next);
+      const next: ThemeMode = prev === 'auto' ? 'light' : prev === 'light' ? 'dark' : 'auto';
+      try {
+        localStorage.setItem(THEME_KEY, next);
+      } catch {
+        /* ignore */
+      }
+      applyTheme(next, pathname);
       return next;
     });
-  }, []);
+  }, [pathname]);
 
   const label =
     mode === 'auto'
