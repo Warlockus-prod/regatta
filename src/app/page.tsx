@@ -383,26 +383,6 @@ export default function HomePage() {
 
   return (
     <div className="page-enter">
-      {/* ===== AERIAL BANNER: boats from above (Gocek 2026) ===== */}
-      {/* Full-bleed drone shot at the top; fades into the page background at
-          the bottom so the headline below feels connected. To swap the photo,
-          change the src to any frame under /gallery/regatta-2026/full/. */}
-      <section className="relative w-full overflow-hidden" style={{ height: 'clamp(200px, 40vw, 440px)' }}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="/gallery/regatta-2026/full/r26-14.jpg"
-          alt={tp('Яхты с высоты птичьего полёта', 'Yachts from above', 'Jachty z lotu ptaka',
-            { es: 'Yates desde arriba', fr: 'Yachts vus du ciel', de: 'Yachten von oben', it: 'Yacht dall\'alto' })}
-          fetchPriority="high"
-          className="absolute inset-0 w-full h-full object-cover"
-          style={{ objectPosition: 'center 40%' }}
-        />
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0) 28%, var(--bg-primary) 100%)' }}
-        />
-      </section>
-
       {/* ===== HERO ===== */}
       <section className="relative overflow-hidden">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-12 sm:pt-20 pb-10 text-center">
