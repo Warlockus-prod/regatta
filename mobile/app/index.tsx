@@ -498,7 +498,8 @@ export default function Home() {
               de: 'Simulator',
               it: 'Simulatore',
             })}
-            onPress={() => router.push('/simulator')}
+            caption="V1 / 3D / V3"
+            onPress={() => router.push('/simulators')}
           />
           <ListRow
             icon="multiplayer"
