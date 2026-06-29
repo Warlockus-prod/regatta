@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import type { Lang } from '@/lib/languages';
 import { WindNowCard } from '@/components/WindNowCard';
-import { AppDownloadBanner } from '@/components/AppDownloadBanner';
 
 // ============================================================================
 // Three primary entry points - matches the "who are you" framing
@@ -500,9 +499,6 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-px"
              style={{ background: 'linear-gradient(90deg, transparent, rgba(0, 212, 255, 0.3), transparent)' }} />
       </section>
-
-      {/* ===== iOS APP DOWNLOAD ===== */}
-      <AppDownloadBanner />
 
       {/* ===== THREE ENTRY POINTS ===== */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
