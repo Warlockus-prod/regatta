@@ -131,6 +131,7 @@ git pull --rebase origin main
 - V2 lane: `/simulator2` routes, physics tests, browser console clean.
 - V3 lane: `/simulator-v3` routes, physics tests, spec compliance per `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md` + `QA_CHECKLIST.md`.
 - Mobile lane: design docs in `docs/design/mobile/` stay current; any scaffold code builds in its own directory/repo; API contract docs stay in sync with web `src/app/api/*`.
+- **Mobile release (MANDATORY): before ANY App Store submission, pass the pre-release gate in `docs/design/mobile/RELEASE_CHECKLIST.md` - no submit if any gate is red.** In order: (G1) LocaleLint / `scripts/i18n-audit.mjs` = translations complete; (G2) XcodeBuildMCP build + iOS-simulator visual verify (light/dark/auto); (G3) Codemagic `cancel_previous_submissions` + strictly increasing build number; (G4) `fastlane precheck` = zero metadata errors (the fix for our metadata-rejection class); then (G5) submit. This gate is optimization-by-prevention; do not skip it.
 
 ## Server
 

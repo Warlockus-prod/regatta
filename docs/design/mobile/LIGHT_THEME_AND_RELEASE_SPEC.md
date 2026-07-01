@@ -194,6 +194,10 @@ Appearance: Settings > Developer > Dark Appearance, or Features menu):
 Take screenshots in both modes for the record.
 
 ## 7. Build + submit (ship-expo-ios-appstore skill)
+- **MANDATORY first: run the full pre-release gate in `RELEASE_CHECKLIST.md`**
+  (LocaleLint/i18n-audit -> XcodeBuildMCP simulator verify -> Codemagic
+  cancel_previous_submissions -> `fastlane precheck` green). No submit if any
+  gate is red.
 - Bump `mobile/app.json`: `expo.version` -> `1.4.0`, `ios.buildNumber` -> `"23"`.
 - Follow the `ship-expo-ios-appstore` skill end-to-end (archive -> altool -> ASC).
 - App Store Connect "What's New" (7 langs), suggested EN:
