@@ -436,7 +436,11 @@ function allowMessage(ip) {
   const now = Date.now();
   const b = ipHits.get(ip) || { connects: [], msgs: [] };
   b.msgs = b.msgs.filter(t => now - t < 1000);
-  if (b.msgs.length >= 60) return false;              // 60 msg/sec (20Hz input + buffer)
+  // Per-IP cap. Each client sends input at ~20Hz, so 60/s throttled legit play
+  // for 3+ players behind one NAT (household / club / classroom WiFi - the
+  // primary room-code use case). 240/s allows ~12 shared-IP players while
+  // still bounding a single abusive source.
+  if (b.msgs.length >= 240) return false;
   b.msgs.push(now);
   ipHits.set(ip, b);
   return true;
