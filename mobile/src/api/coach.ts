@@ -14,6 +14,10 @@ import type { Lang } from '../i18n/languages';
 
 export const API_BASE = 'https://weektoregatta.com';
 export const REQUEST_TIMEOUT_MS = 8000;
+// The /api/coach route runs a full LLM completion (server maxDuration = 30s);
+// an 8s client timeout aborted valid responses mid-generation. Coaching gets
+// its own longer budget; race-result keeps the fast 8s default.
+export const COACH_TIMEOUT_MS = 30000;
 
 /**
  * Generic envelope every API helper resolves to. Network failures and
@@ -133,9 +137,10 @@ export interface RaceResultResponse {
 async function postJson<TReq, TRes>(
   url: string,
   body: TReq,
+  timeoutMs: number = REQUEST_TIMEOUT_MS,
 ): Promise<ApiResult<TRes>> {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const resp = await fetch(url, {
       method: 'POST',
@@ -201,6 +206,7 @@ export async function requestCoaching(
   const res = await postJson<CoachRequest, CoachResponse & { fallback?: boolean }>(
     `${API_BASE}/api/coach`,
     payload,
+    COACH_TIMEOUT_MS,
   );
   if (res.ok && res.data && 'fallback' in res.data && res.data.fallback === true) {
     return { ok: false, status: res.status, error: 'Coach unavailable' };
