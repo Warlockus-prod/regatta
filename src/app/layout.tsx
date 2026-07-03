@@ -155,6 +155,10 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const serverLang = await resolveServerLang();
+  const skipLabel = ({
+    ru: 'К содержимому', en: 'Skip to content', pl: 'Przejdz do tresci',
+    es: 'Ir al contenido', fr: 'Aller au contenu', de: 'Zum Inhalt', it: 'Vai al contenuto',
+  } as Record<string, string>)[serverLang] ?? 'Skip to content';
   return (
     <html
       lang={serverLang}
@@ -162,6 +166,13 @@ export default async function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col ocean-bg">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[200] focus:px-3 focus:py-2 focus:rounded-lg focus:bg-[var(--bg-card)] focus:text-[var(--text-primary)] focus:shadow-lg"
+          style={{ border: '1px solid var(--accent-cyan)' }}
+        >
+          {skipLabel}
+        </a>
         {/* No-flash theme: resolve the saved preference ('auto' follows the
             OS) and set <html data-theme> before first paint, so there is no
             light/dark flicker on load. Mirrors src/components/ThemeToggle. */}
@@ -242,7 +253,7 @@ export default async function RootLayout({
             where the sticky bar is tall, the last items of a page's content
             stay trapped behind the bar with no way to scroll into view.
           */}
-          <main className="flex-1" style={{ paddingBottom: 'var(--bootcamp-footer-h, 0px)' }}>
+          <main id="main-content" className="flex-1" style={{ paddingBottom: 'var(--bootcamp-footer-h, 0px)' }}>
             {children}
           </main>
           {/* Brand footer: small "Week to Regatta - sailing tutor" line at

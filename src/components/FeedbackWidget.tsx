@@ -49,6 +49,9 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
   const chatScrollRef = useRef<HTMLDivElement>(null);
+  const closeBtnRef = useRef<HTMLButtonElement>(null);
+  const sendingRef = useRef(sending);
+  sendingRef.current = sending;
 
   // Reset chat scroll on new message
   useEffect(() => {
@@ -56,6 +59,22 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
     }
   }, [chat, chatLoading]);
+
+  // Dialog behavior: move focus into the modal on open, close on Escape, and
+  // restore focus to whatever was focused before (the trigger) on close.
+  useEffect(() => {
+    if (!open) return;
+    const prev = document.activeElement as HTMLElement | null;
+    closeBtnRef.current?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !sendingRef.current) setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      prev?.focus?.();
+    };
+  }, [open]);
 
   const categories: { id: Category; labelRu: string; labelEn: string; labelPl: string; emoji: string }[] = [
     { id: 'useful', labelRu: 'Полезно', labelEn: 'Useful', labelPl: 'Przydatne', emoji: '👍' },
@@ -164,6 +183,10 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
           className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
           style={{ background: 'rgba(5, 12, 24, 0.75)', backdropFilter: 'blur(6px)' }}
           onClick={() => !sending && setOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tp('Ассистент и обратная связь', 'Assistant and feedback', 'Asystent i opinie',
+            { es: 'Asistente y comentarios', fr: 'Assistant et retours', de: 'Assistent und Feedback', it: 'Assistente e feedback' })}
         >
           <div
             className="card w-full max-w-[100vw] sm:max-w-md p-5 sm:p-6 rounded-t-2xl sm:rounded-2xl max-h-[92vh] overflow-hidden flex flex-col min-w-0"
@@ -182,9 +205,11 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       : tp('Сообщить о проблеме', 'Report a problem', 'Zglos problem')}
               </h2>
               <button
+                ref={closeBtnRef}
                 onClick={() => setOpen(false)}
                 disabled={sending}
-                aria-label="Close"
+                aria-label={tp('Закрыть', 'Close', 'Zamknij',
+                  { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' })}
                 className="text-[var(--text-muted)] hover:text-[var(--text-primary)] w-8 h-8 flex items-center justify-center"
               >
                 ✕
