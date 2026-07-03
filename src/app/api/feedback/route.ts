@@ -3,6 +3,7 @@ import { cookies } from 'next/headers';
 import { logInfo, logError, logWarn } from '@/lib/log';
 import { insertFeedback } from '@/lib/db';
 import { rateLimit } from '@/lib/rate-limit';
+import { truncateIp, clientIp } from '@/lib/net';
 import { promises as fs } from 'fs';
 import path from 'path';
 
@@ -80,7 +81,7 @@ export async function POST(req: Request) {
     appVersion: body.appVersion,
     releaseId: body.releaseId,
     ts: Date.now(),
-    ip: req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'unknown',
+    ip: truncateIp(clientIp(req)),
     uaHeader: req.headers.get('user-agent') ?? 'unknown',
   };
 

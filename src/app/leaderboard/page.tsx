@@ -12,7 +12,7 @@ type Wind = 'light' | 'medium' | 'heavy';
 
 interface Row {
   nickname: string;
-  sid: string;
+  isMe: boolean;
   difficulty: string;
   wind_strength: string;
   mission_id: string | null;
@@ -29,11 +29,6 @@ export default function LeaderboardPage() {
   const [missionId, setMissionId] = useState<string>(missions[0]?.id ?? '');
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mySid, setMySid] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetch('/api/player').then((r) => r.json()).then((d) => setMySid(d.sid ?? null)).catch(() => {});
-  }, []);
 
   useEffect(() => {
     // Preemptive loading state flashes "Loading..." while the fetch runs, which
@@ -185,10 +180,10 @@ export default function LeaderboardPage() {
         ) : (
           <div className="space-y-1">
             {rows.map((r, i) => {
-              const isMe = mySid && r.sid === mySid;
+              const isMe = r.isMe;
               return (
                 <div
-                  key={`${r.sid}-${i}`}
+                  key={`${r.nickname}-${i}`}
                   className="flex items-center gap-3 py-2 px-3 rounded"
                   style={{
                     background: isMe ? 'rgba(0, 212, 255, 0.1)' : i === 0 ? 'rgba(255, 170, 0, 0.06)' : 'transparent',

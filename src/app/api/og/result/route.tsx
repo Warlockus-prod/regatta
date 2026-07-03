@@ -1,17 +1,31 @@
 import { ImageResponse } from 'next/og';
+import { rateLimitWithGlobal } from '@/lib/rate-limit';
+import { clientIp } from '@/lib/net';
 
 export const runtime = 'nodejs';
 
 export async function GET(req: Request) {
+  // Satori/next-og vector rendering is CPU-heavy; cap it per IP + globally so a
+  // single source (or a burst) cannot spin the box up on this unauthenticated GET.
+  const rl = rateLimitWithGlobal({
+    key: 'og:' + clientIp(req),
+    perKeyLimit: 120,
+    perKeyWindowMs: 60 * 60 * 1000,
+    globalKey: 'og',
+    globalLimit: 2000,
+    globalWindowMs: 60 * 60 * 1000,
+  });
+  if (!rl.ok) return new Response('Too many requests', { status: 429 });
+
   const url = new URL(req.url);
   const nick = (url.searchParams.get('nick') || 'Player').slice(0, 20);
-  const time = url.searchParams.get('time') || '-';
-  const place = url.searchParams.get('place') || '';
-  const of = url.searchParams.get('of') || '';
-  const code = url.searchParams.get('code') || '';
+  const time = (url.searchParams.get('time') || '-').slice(0, 12);
+  const place = (url.searchParams.get('place') || '').slice(0, 6);
+  const of = (url.searchParams.get('of') || '').slice(0, 6);
+  const code = (url.searchParams.get('code') || '').slice(0, 16);
   const difficulty = url.searchParams.get('difficulty') || 'medium';
   const wind = url.searchParams.get('wind') || 'medium';
-  const mission = url.searchParams.get('mission') || '';
+  const mission = (url.searchParams.get('mission') || '').slice(0, 40);
 
   const accent = difficulty === 'easy' ? '#44ff88' : difficulty === 'hard' ? '#ff4444' : '#ffaa00';
 
