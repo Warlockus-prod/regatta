@@ -64,7 +64,13 @@ export default function BootcampFooterNav() {
       pathname.startsWith(baseRoute + '?')
     )
   );
-  const isVisible = !!(currentLesson && progress && matchesRoute);
+  // Immersive surfaces (game / multiplayer / V3 canvas) own the screen; the
+  // sticky bar would cover the game's touch controls during the lesson-8
+  // mini-race, so never show it there even when a lesson routes to /game.
+  const onImmersive = !!pathname && ['/game', '/multiplayer', '/simulator-v3'].some(
+    (p) => pathname === p || pathname.startsWith(p + '/'),
+  );
+  const isVisible = !!(currentLesson && progress && matchesRoute && !onImmersive);
 
   // Publish the rendered height of the sticky bar to a CSS custom property
   // on <body>. The root layout's <main> consumes it as padding-bottom so
@@ -143,8 +149,8 @@ export default function BootcampFooterNav() {
       ref={ref}
       className="fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-md"
       style={{
-        background: 'rgba(10, 22, 40, 0.92)',
-        borderColor: 'rgba(0, 212, 255, 0.25)',
+        background: 'var(--nav-bg)',
+        borderColor: 'var(--border-cyan-soft, rgba(0, 212, 255, 0.25))',
         paddingBottom: 'env(safe-area-inset-bottom, 0px)',
       }}
       role="region"

@@ -246,7 +246,7 @@ export default function AnatomyPosters() {
               className="absolute inset-x-0 bottom-0 px-3 py-2 text-xs font-semibold pointer-events-none flex items-center justify-between gap-2"
               style={{
                 background: 'linear-gradient(180deg, rgba(10, 22, 40, 0) 0%, rgba(10, 22, 40, 0.92) 60%)',
-                color: 'var(--text-primary)',
+                color: '#e8f4f8',
               }}
             >
               <span className="truncate">{pickTitle(p)}</span>

@@ -6,6 +6,23 @@ import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
+// Map the neon points-of-sail palette (tuned for the dark ocean) to
+// theme-aware CSS vars, so the compass + detail cards stay legible on the
+// light theme's white cards. Unknown colors pass through unchanged.
+const NEON_TO_CAT: Record<string, string> = {
+  '#44ff88': 'var(--cat-green)',
+  '#44aaff': 'var(--cat-blue)',
+  '#ff8844': 'var(--cat-orange)',
+  '#ffdd44': 'var(--cat-amber)',
+  '#ffaa00': 'var(--cat-amber)',
+  '#8844ff': 'var(--cat-purple)',
+  '#ff4444': 'var(--cat-red)',
+  '#00d4ff': 'var(--cat-cyan)',
+};
+function tc(hex: string): string {
+  return NEON_TO_CAT[(hex || '').toLowerCase()] ?? hex;
+}
+
 // Pick the point-of-sail display fields for the current language. EN stays as
 // the international anchor shown beneath the primary label in non-EN modes.
 function posName(p: PointOfSail, lang: Lang): string {
@@ -86,7 +103,7 @@ function YachtIcon({
         opacity={0.7}
       />
       {/* Mast */}
-      <line x1={0} y1={-size * 0.15} x2={0} y2={mastTop} stroke="#fff" strokeWidth={1.2} />
+      <line x1={0} y1={-size * 0.15} x2={0} y2={mastTop} stroke="var(--sail-color)" strokeWidth={1.2} />
       {/* Jib (стаксель) - triangle forward of mast (OR on opposite side when wing-on-wing) */}
       {wingOnWing ? (
         <path
@@ -356,9 +373,9 @@ function WindDiagram({
           <path
             key={i}
             d={d}
-            fill={s.point.color}
+            fill={tc(s.point.color)}
             fillOpacity={isActive ? 0.32 : 0.12}
-            stroke={s.point.color}
+            stroke={tc(s.point.color)}
             strokeWidth={isActive ? 2 : 0.8}
             strokeOpacity={isActive ? 0.9 : 0.35}
             style={{
@@ -415,7 +432,7 @@ function WindDiagram({
                 x={cx}
                 y={cy - mainR + 28}
                 textAnchor="middle"
-                fill={effectiveId === p.id ? p.color : 'var(--text-secondary)'}
+                fill={effectiveId === p.id ? tc(p.color) : 'var(--text-secondary)'}
                 fontSize={11}
                 fontWeight={600}
                 style={{ transition: 'fill 0.25s' }}
@@ -430,7 +447,7 @@ function WindDiagram({
         const labelR = mainR + 32;
         const ptR = polarToCart(cx, cy, labelR, midAngle);        // starboard
         const ptL = polarToCart(cx, cy, labelR, 360 - midAngle);  // port (mirror)
-        const fill = effectiveId === p.id ? p.color : 'var(--text-secondary)';
+        const fill = effectiveId === p.id ? tc(p.color) : 'var(--text-secondary)';
         return (
           <g key={p.id}>
             <text
@@ -469,7 +486,7 @@ function WindDiagram({
           cy={y.cy}
           angle={y.angle}
           sailAngle={y.sailAngle}
-          color={effectiveId === y.id ? y.color : 'rgba(255,255,255,0.45)'}
+          color={effectiveId === y.id ? tc(y.color) : 'rgba(127,127,127,0.55)'}
           size={effectiveId === y.id ? 30 : 24}
           mirror={y.mirror}
         />
@@ -502,7 +519,7 @@ function SpeedBar({ factor, color }: { factor: number; color: string }) {
   return (
     <div className="flex items-center gap-3">
       <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Predkosc')}</span>
-      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.06)' }}>
+      <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(127,127,127,0.18)' }}>
         <div
           className="h-full rounded-full"
           style={{
@@ -576,7 +593,7 @@ function SailAngleIllustration({
         {/* Bow marker - small dot at the bow so the user sees which end points where. */}
         <circle cx={cx} cy={cy + 4 - hullLen * 0.65} r={1.3} fill={color} />
         {/* Mast */}
-        <line x1={cx} y1={cy - 2} x2={cx} y2={mastTop} stroke="#fff" strokeWidth={1.5} />
+        <line x1={cx} y1={cy - 2} x2={cx} y2={mastTop} stroke="var(--sail-color)" strokeWidth={1.5} />
         {/* Mainsail as a small triangle so it reads as a sail, not just a stick. */}
         <path
           d={`M ${cx} ${mastTop} L ${sailEndX} ${sailEndY} L ${cx} ${sailEndY} Z`}
@@ -614,7 +631,7 @@ function SailAngleIllustration({
               cx={size - 4}
               cy={size - 8 - i * 6}
               r={2}
-              fill={i < Math.round(speedFactor * 5) ? color : 'rgba(255,255,255,0.1)'}
+              fill={i < Math.round(speedFactor * 5) ? color : 'rgba(127,127,127,0.25)'}
             />
           ))}
         </g>
@@ -642,16 +659,16 @@ function DetailCard({
         isActive ? 'ring-1 scale-[1.01]' : ''
       }`}
       style={{
-        borderColor: isActive ? point.color : undefined,
+        borderColor: isActive ? tc(point.color) : undefined,
         boxShadow: isActive ? `0 4px 24px ${point.color}22` : undefined,
-        outlineColor: isActive ? point.color : undefined,
+        outlineColor: isActive ? tc(point.color) : undefined,
       }}
     >
       <div className="flex gap-4">
         {/* Sail angle illustration */}
         <SailAngleIllustration
           sailAngle={point.sailAngle}
-          color={point.color}
+          color={tc(point.color)}
           speedFactor={point.speedFactor}
           twa={(point.angleMin + point.angleMax) / 2}
         />
@@ -660,7 +677,7 @@ function DetailCard({
           {/* Header */}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
-              <h3 className="text-lg font-bold leading-tight" style={{ color: point.color }}>
+              <h3 className="text-lg font-bold leading-tight" style={{ color: tc(point.color)}}>
                 {posName(point, lang)}
               </h3>
               {lang !== 'en' && (
@@ -672,7 +689,7 @@ function DetailCard({
               className="badge shrink-0"
               style={{
                 background: `${point.color}1a`,
-                color: point.color,
+                color: tc(point.color),
                 border: `1px solid ${point.color}33`,
               }}
             >
@@ -694,7 +711,7 @@ function DetailCard({
               height="14"
               viewBox="0 0 24 24"
               fill="none"
-              stroke={point.color}
+              stroke={tc(point.color)}
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -702,13 +719,13 @@ function DetailCard({
             >
               <path d="M12 2L2 22h20L12 2z" />
             </svg>
-            <span className="text-xs" style={{ color: point.color }}>
+            <span className="text-xs" style={{ color: tc(point.color)}}>
               {posSailWork(point, lang)}
             </span>
           </div>
 
           {/* Speed bar */}
-          <SpeedBar factor={point.speedFactor} color={point.color} />
+          <SpeedBar factor={point.speedFactor} color={tc(point.color)} />
         </div>
       </div>
     </button>
@@ -775,7 +792,7 @@ export default function CoursesPage() {
                 border: `1px solid ${activePoint.color}22`,
               }}
             >
-              <p className="text-base font-bold" style={{ color: activePoint.color }}>
+              <p className="text-base font-bold" style={{ color: tc(activePoint.color) }}>
                 {posName(activePoint, lang)}
               </p>
               {lang !== 'en' && (

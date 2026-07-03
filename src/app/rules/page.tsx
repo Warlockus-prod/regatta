@@ -252,7 +252,7 @@ export default function RulesPage() {
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
                   {/* Illustration */}
-                  <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
+                  <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali')}
@@ -366,7 +366,7 @@ export default function RulesPage() {
 
               {isOpen && (
                 <div className="px-4 sm:px-5 pb-5 grid grid-cols-1 md:grid-cols-[200px,1fr] gap-5">
-                  <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.5)' }}>
+                  <div className="rounded-lg p-2" style={{ background: 'rgba(11, 30, 56, 0.9)' }}>
                     <SvgComp />
                     <div className="text-[9px] text-center text-[var(--text-muted)] mt-1">
                       {tp('схематично, не в масштабе', 'schematic, not to scale', 'schematycznie, nie w skali')}

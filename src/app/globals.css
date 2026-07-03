@@ -21,6 +21,19 @@
   --water-dark: #061428;
   /* Translucent surface for the sticky nav bar (flips in light theme). */
   --nav-bg: rgba(10, 22, 40, 0.9);
+  /* Theme-neutral interaction surfaces (hover tint, hairline border). */
+  --hover-bg: rgba(255, 255, 255, 0.06);
+  --border-subtle: rgba(255, 255, 255, 0.10);
+  /* Categorical accents (glossary chips, points-of-sail headings). Neon on
+     dark; darkened to AA-legible values on light. */
+  --cat-cyan: #00d4ff;
+  --cat-green: #44ff88;
+  --cat-amber: #ffaa00;
+  --cat-teal: #00ffcc;
+  --cat-purple: #a98bff;
+  --cat-blue: #44aaff;
+  --cat-red: #ff6b6b;
+  --cat-orange: #ff8844;
 
   /* Motion easing - calm, with a touch of spring. Shared across cards,
      buttons and entrances so the whole UI moves on one curve. */
@@ -42,20 +55,30 @@
   --bg-secondary: #e9f1f8;
   --bg-card: #ffffff;
   --bg-card-hover: #eef5fb;
-  --accent-cyan: #0096c7;
-  --accent-cyan-dim: #0077a3;
+  --accent-cyan: #0072a3;
+  --accent-cyan-dim: #005f88;
   --accent-teal: #00a78e;
   --text-primary: #0c2233;
   --text-secondary: #45606f;
-  --text-muted: #6a8190;
+  --text-muted: #57707f;
   --danger: #d92d2d;
   --success: #1f9d57;
   --warning: #b7791f;
-  --wind-color: #0096c7;
+  --wind-color: #0072a3;
   --sail-color: #1a2d4d;
   --water-light: #cfe6f5;
   --water-dark: #aacbe6;
   --nav-bg: rgba(255, 255, 255, 0.85);
+  --hover-bg: rgba(12, 34, 51, 0.05);
+  --border-subtle: rgba(12, 34, 51, 0.12);
+  --cat-cyan: #0072a3;
+  --cat-green: #1f9d57;
+  --cat-amber: #b7791f;
+  --cat-teal: #0f8a76;
+  --cat-purple: #6d51c7;
+  --cat-blue: #1d6fd1;
+  --cat-red: #c62f2f;
+  --cat-orange: #c05a1d;
 }
 
 @theme inline {

@@ -223,7 +223,7 @@ export default function Navigation() {
                   className={`flex items-center gap-2 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-all
                     ${isActive
                       ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                      : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                     }`}
                 >
                   {item.icon}
@@ -252,7 +252,7 @@ export default function Navigation() {
               onClick={() => (window as unknown as { __openHelp?: () => void }).__openHelp?.()}
               title={tp('Горячие клавиши (?)', 'Shortcuts (?)', 'Skroty (?)', { es: 'Atajos (?)', fr: 'Raccourcis (?)', de: 'Tastenkuerzel (?)', it: 'Scorciatoie (?)' })}
               aria-label="Open help"
-              className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)] transition text-sm font-bold"
+              className="hidden md:flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)] transition text-sm font-bold"
             >
               ?
             </button>
@@ -320,7 +320,7 @@ function MoreDropdown({
         className={`flex items-center gap-1.5 px-2 py-2 lg:px-3 rounded-lg text-sm font-medium transition-all
           ${open
             ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+            : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
           }`}
       >
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -351,7 +351,7 @@ function MoreDropdown({
                       className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-all
                         ${isActive
                           ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                         }`}
                     >
                       {item.icon}
@@ -403,7 +403,7 @@ function MobileMenu({
         onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-label="Open menu"
-        className="p-2 rounded-lg hover:bg-[rgba(255,255,255,0.04)] text-[var(--text-secondary)]"
+        className="p-2 rounded-lg hover:bg-[var(--hover-bg)] text-[var(--text-secondary)]"
       >
         {open ? (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -442,7 +442,7 @@ function MobileMenu({
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition
                       ${isActive
                         ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                        : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                       }`}
                   >
                     {item.icon}
@@ -467,7 +467,7 @@ function MobileMenu({
                       className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition
                         ${isActive
                           ? 'text-[var(--accent-cyan)] bg-[rgba(0,212,255,0.1)]'
-                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(255,255,255,0.04)]'
+                          : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--hover-bg)]'
                         }`}
                     >
                       {item.icon}

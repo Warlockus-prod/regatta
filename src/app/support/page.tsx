@@ -267,7 +267,7 @@ function ContactForm({ lang }: { lang: string }) {
           rows={5}
           maxLength={4000}
           className="w-full rounded-md px-3 py-2 text-sm"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255, 255, 255, 0.12)', color: 'var(--text-primary)' }}
+          style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
           placeholder={tp(
             'Опиши вопрос, баг или идею. Если про баг - укажи модель устройства и iOS.',
             'Describe a question, bug, or idea. If a bug, please add device model and iOS version.',
@@ -294,7 +294,7 @@ function ContactForm({ lang }: { lang: string }) {
           onChange={(e) => setContact(e.target.value)}
           maxLength={200}
           className="w-full rounded-md px-3 py-2 text-sm"
-          style={{ background: 'rgba(0, 0, 0, 0.25)', border: '1px solid rgba(255, 255, 255, 0.12)', color: 'var(--text-primary)' }}
+          style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-subtle)', color: 'var(--text-primary)' }}
           placeholder="email / @telegram"
         />
       </div>

@@ -41,7 +41,7 @@ export default function SiteFooter() {
   return (
     <footer
       className="text-center text-[11px] py-6 px-4"
-      style={{ color: 'rgba(139, 167, 184, 0.55)' }}
+      style={{ color: 'var(--text-muted)' }}
       aria-label="Site brand"
     >
       <span className="font-semibold tracking-wide">Week to Regatta</span>

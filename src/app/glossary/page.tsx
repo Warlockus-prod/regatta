@@ -7,13 +7,13 @@ import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
 const categoryColors: Record<string, { color: string; bg: string; border: string }> = {
-  boat:     { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
-  sail:     { color: '#00d4ff', bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
-  course:   { color: '#44ff88', bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
-  maneuver: { color: '#ffaa00', bg: 'rgba(255, 170, 0, 0.12)',  border: 'rgba(255, 170, 0, 0.25)' },
-  wind:     { color: '#00ffcc', bg: 'rgba(0, 255, 204, 0.12)',  border: 'rgba(0, 255, 204, 0.25)' },
-  racing:   { color: '#ffaa00', bg: 'rgba(255, 170, 0, 0.12)',  border: 'rgba(255, 170, 0, 0.25)' },
-  crew:     { color: '#8844ff', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
+  boat:     { color: 'var(--cat-cyan)',   bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
+  sail:     { color: 'var(--cat-cyan)',   bg: 'rgba(0, 212, 255, 0.12)',  border: 'rgba(0, 212, 255, 0.25)' },
+  course:   { color: 'var(--cat-green)',  bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
+  maneuver: { color: 'var(--cat-amber)',  bg: 'rgba(255, 170, 0, 0.12)',  border: 'rgba(255, 170, 0, 0.25)' },
+  wind:     { color: 'var(--cat-teal)',   bg: 'rgba(0, 255, 204, 0.12)',  border: 'rgba(0, 255, 204, 0.25)' },
+  racing:   { color: 'var(--cat-amber)',  bg: 'rgba(255, 170, 0, 0.12)',  border: 'rgba(255, 170, 0, 0.25)' },
+  crew:     { color: 'var(--cat-purple)', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
 };
 
 const allCategories = ['all', ...Object.keys(glossaryCategories)] as const;
@@ -69,7 +69,7 @@ export default function GlossaryPage() {
           <h1
             className="text-3xl sm:text-4xl font-bold tracking-tight mb-2"
             style={{
-              background: 'linear-gradient(135deg, var(--text-primary), #8844ff)',
+              background: 'linear-gradient(135deg, var(--text-primary), var(--accent-cyan))',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -146,7 +146,7 @@ export default function GlossaryPage() {
                     ? cat === 'all'
                       ? {
                           background: 'rgba(0, 212, 255, 0.15)',
-                          color: '#00d4ff',
+                          color: 'var(--accent-cyan)',
                           border: '1px solid rgba(0, 212, 255, 0.3)',
                         }
                       : {
@@ -155,9 +155,9 @@ export default function GlossaryPage() {
                           border: `1px solid ${colors!.border}`,
                         }
                     : {
-                        background: 'rgba(255,255,255,0.04)',
+                        background: 'var(--hover-bg)',
                         color: 'var(--text-muted)',
-                        border: '1px solid rgba(255,255,255,0.06)',
+                        border: '1px solid var(--border-subtle)',
                       }
                 }
               >
@@ -211,7 +211,7 @@ export default function GlossaryPage() {
                         {pickTerm(term)}
                       </h2>
                       {lang !== 'en' && (
-                        <p className="text-sm mt-0.5" style={{ color: '#00d4ff' }}>
+                        <p className="text-sm mt-0.5" style={{ color: 'var(--accent-cyan)' }}>
                           {term.termEn}
                         </p>
                       )}
@@ -278,7 +278,7 @@ export default function GlossaryPage() {
               }}
               className="mt-2 text-xs px-4 py-1.5 rounded-full transition-colors"
               style={{
-                color: '#00d4ff',
+                color: 'var(--accent-cyan)',
                 background: 'rgba(0, 212, 255, 0.1)',
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
