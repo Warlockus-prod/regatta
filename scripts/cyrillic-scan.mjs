@@ -8,7 +8,7 @@ const ROUTES = [
   '/', '/start', '/onboard', '/checklist', '/courses', '/racing',
   '/glossary', '/rules', '/anatomy', '/gallery', '/simulator',
   '/simulator-v3', '/simulator2', '/leaderboard', '/game', '/multiplayer',
-  '/spots', '/privacy', '/quick',
+  '/spots', '/privacy', '/quick', '/support',
 ];
 
 const browser = await chromium.launch();
@@ -53,3 +53,11 @@ if (report.length === 0) {
   }
 }
 console.log('');
+
+// Fail the process on real leaks so CI (or a manual run) can gate on it.
+// Fetch/render errors are reported but do not fail the run (transient).
+const leaks = report.filter((r) => !r.error && r.count > 0);
+if (leaks.length > 0) {
+  console.error(`FAIL: Cyrillic leaks in ${leaks.length} route/language combination(s).`);
+  process.exit(1);
+}

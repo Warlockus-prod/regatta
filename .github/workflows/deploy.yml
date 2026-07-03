@@ -30,6 +30,10 @@ jobs:
       - run: npm ci --no-audit --no-fund
       - name: TypeScript check
         run: npx tsc --noEmit
+      - name: Typography (no em/en-dash)
+        run: npm run check:dash
+      - name: API contract tests
+        run: npm run test:api
       - name: Next build
         run: npm run build
         env:
