@@ -43,14 +43,11 @@ export default function GlossaryPage() {
       const matchesCategory = activeCategory === 'all' || term.category === activeCategory;
       if (!matchesCategory) return false;
       if (!q) return true;
-      return (
-        term.termRu.toLowerCase().includes(q) ||
-        term.termEn.toLowerCase().includes(q) ||
-        term.termPl.toLowerCase().includes(q) ||
-        term.definitionRu.toLowerCase().includes(q) ||
-        term.definitionEn.toLowerCase().includes(q) ||
-        term.definitionPl.toLowerCase().includes(q)
-      );
+      return [
+        term.termRu, term.termEn, term.termPl, term.termEs, term.termFr, term.termDe, term.termIt,
+        term.definitionRu, term.definitionEn, term.definitionPl,
+        term.definitionEs, term.definitionFr, term.definitionDe, term.definitionIt,
+      ].some((v) => v?.toLowerCase().includes(q));
     });
   }, [search, activeCategory]);
 

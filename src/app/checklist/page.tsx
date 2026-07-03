@@ -194,7 +194,7 @@ const SECTIONS: Section[] = [
     warningRu: 'Гик - главная опасность на яхте. Он быстрый и тяжёлый. Перед любым поворотом голова ВСЕГДА ниже гика.',
     warningEn: 'The boom is the main danger on a yacht. Fast and heavy. Before any maneuver, head ALWAYS below the boom.',
     warningPl: 'Bom to glowne zagrozenie na jachcie. Szybki i ciezki. Przed kazdym zwrotem glowa ZAWSZE pod bomem.',
-    warningEs: 'El botón es el principal peligro en el yate. Es rápido y pesado. Antes de cualquier maniobra la cabeza SIEMPRE por debajo del botón.',
+    warningEs: 'La botavara es el principal peligro en el velero. Es rapida y pesada. Antes de cualquier maniobra la cabeza SIEMPRE por debajo de la botavara.',
     warningFr: 'La bome - le principal danger sur un voilier. Elle est rapide et lourde. Avant tout virement, la tête TOUJOURS au-dessous de la bome.',
     warningDe: 'Der Baum ist die Hauptgefahr auf der Yacht. Er ist schnell und schwer. Vor jeder Wende der Kopf IMMER unter dem Baum.',
     warningIt: 'Il boma è il principale pericolo sulla barca. È veloce e pesante. Prima di qualsiasi manovra la testa SEMPRE sotto il boma.',

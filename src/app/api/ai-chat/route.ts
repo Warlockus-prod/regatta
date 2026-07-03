@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
 import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
+import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -43,7 +44,7 @@ const SYSTEM_RU = `Ты дружелюбный ассистент яхтенно
 1. Если вопрос НЕ про яхтинг/парусный спорт - вежливо откажись и напомни тему. Один раз.
 2. Если ответ есть в разделах сайта - сначала направь пользователя в подходящий раздел (дай короткую ссылку вида "/simulator" - фронтенд сам сделает её кликабельной), потом дай короткое объяснение (1-3 предложения).
 3. Если темы нет в разделах - отвечай сам из общих знаний о парусном спорте, коротко и по делу.
-4. Отвечай на том языке, на котором задан вопрос (ru/en/pl), даже если раздел помечен по-русски.
+4. Отвечай на том языке, на котором задан вопрос (ru/en/pl/es/fr/de/it), даже если раздел помечен по-русски.
 5. Максимум 4-6 коротких предложений. Без многословия. Используй markdown умеренно.
 6. Не выдумывай факты. Если не знаешь - скажи прямо.
 7. ТИПОГРАФИКА: никогда не используй длинное тире (U+2014) или среднее тире (U+2013). Пиши обычный дефис "-". Это жёсткое правило проекта.
@@ -57,7 +58,7 @@ interface ChatMessage {
 
 interface Payload {
   messages: ChatMessage[];
-  lang?: 'ru' | 'en' | 'pl';
+  lang?: Lang;
 }
 
 export async function POST(req: Request) {
@@ -112,17 +113,21 @@ export async function POST(req: Request) {
       content: String(m.content ?? '').slice(0, 2000),
     }));
 
-  const lang = body.lang === 'en' ? 'en' : body.lang === 'pl' ? 'pl' : 'ru';
+  const lang: Lang = isLang(body.lang) ? body.lang : 'en';
   logInfo('ai-chat.request', { turns: truncated.length, lang });
 
   // Steer the reply language. SYSTEM_RU rule #4 already asks to mirror the
   // user's language, but an explicit directive derived from body.lang makes
   // the UI-selected language authoritative. Kept as a separate uncached block
   // so the large base prompt stays a stable cache key.
-  const LANG_NAME: Record<'ru' | 'en' | 'pl', string> = {
+  const LANG_NAME: Record<Lang, string> = {
     ru: 'Russian',
     en: 'English',
     pl: 'Polish',
+    es: 'Spanish',
+    fr: 'French',
+    de: 'German',
+    it: 'Italian',
   };
   const langDirective = `Reply in the user's language: ${LANG_NAME[lang]}.`;
 

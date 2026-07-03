@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
+import { legacyPick } from '@/lib/languages';
 import { missions } from '@/data/missions';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
@@ -21,7 +22,7 @@ interface Row {
 }
 
 export default function LeaderboardPage() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const [mode, setMode] = useState<'free' | 'mission'>('free');
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [wind, setWind] = useState<Wind>('medium');
@@ -40,14 +41,18 @@ export default function LeaderboardPage() {
     // informational - the fetch settles on completion.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
+    // Guard against out-of-order responses: rapidly toggling filters can resolve
+    // an older request after a newer one; the cancelled flag drops stale writes.
+    let cancelled = false;
     const url = mode === 'mission'
       ? `/api/leaderboard?mission=${encodeURIComponent(missionId)}`
       : `/api/leaderboard?difficulty=${difficulty}&wind=${wind}`;
     fetch(url)
       .then((r) => r.json())
-      .then((d) => setRows(d.rows ?? []))
-      .catch(() => setRows([]))
-      .finally(() => setLoading(false));
+      .then((d) => { if (!cancelled) setRows(d.rows ?? []); })
+      .catch(() => { if (!cancelled) setRows([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [mode, difficulty, wind, missionId]);
 
   const formatTime = (s: number) => {
@@ -153,7 +158,7 @@ export default function LeaderboardPage() {
                   }}
                 >
                   <span className="mr-1">{m.emoji}</span>
-                  {tp(m.titleRu, m.titleEn, m.titleRu)}
+                  {legacyPick(m, 'title', lang)}
                 </button>
               ))}
             </div>
