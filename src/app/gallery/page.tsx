@@ -282,7 +282,8 @@ export default function GalleryPage() {
                 src={src}
                 alt=""
                 aria-hidden="true"
-                loading="lazy"
+                loading="eager"
+                fetchPriority={i < 6 ? 'high' : 'auto'}
                 draggable={false}
                 className="h-[clamp(170px,25vw,270px)] w-auto object-cover block select-none"
               />

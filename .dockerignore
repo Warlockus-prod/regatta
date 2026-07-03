@@ -1,6 +1,8 @@
 node_modules
 .next
 .git
+# Raw gallery originals (optimized into full/ + thumb/ by build scripts; not shipped)
+public/gallery/*/_incoming
 .env*
 npm-debug.log
 .DS_Store
