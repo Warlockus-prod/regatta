@@ -165,7 +165,7 @@ export default function SupportPage() {
         </Section>
       </div>
 
-      <ContentFooterNav page="/onboard" />
+      <ContentFooterNav page="/support" />
     </div>
   );
 }

@@ -69,6 +69,14 @@ const SIBLINGS: Record<string, RelatedLink[]> = {
     { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regata', labelEs: 'Checklist pre-regata', labelFr: 'Checklist pre-regate', labelDe: 'Pre-Race-Checkliste', labelIt: 'Checklist pre-regata' },
     { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
   ],
+  '/support': [
+    { href: '/privacy', icon: '🔒', labelRu: 'Конфиденциальность', labelEn: 'Privacy', labelPl: 'Prywatnosc', labelEs: 'Privacidad', labelFr: 'Confidentialite', labelDe: 'Datenschutz', labelIt: 'Privacy' },
+    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona glowna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
+  ],
+  '/privacy': [
+    { href: '/support', icon: '✉️', labelRu: 'Контакты', labelEn: 'Contact', labelPl: 'Kontakt', labelEs: 'Contacto', labelFr: 'Contact', labelDe: 'Kontakt', labelIt: 'Contatti' },
+    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona glowna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
+  ],
 };
 
 function pickLabel(link: RelatedLink, lang: string): string {
@@ -93,7 +101,9 @@ export type ContentFooterNavPage =
   | '/glossary'
   | '/racing'
   | '/leaderboard'
-  | '/quick';
+  | '/quick'
+  | '/support'
+  | '/privacy';
 
 export default function ContentFooterNav({ page }: { page: ContentFooterNavPage }) {
   const { lang, tp } = useI18n();

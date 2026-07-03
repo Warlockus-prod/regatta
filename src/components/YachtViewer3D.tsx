@@ -327,7 +327,7 @@ export default function YachtViewer3D({
       }
     : {
         aspectRatio: '16 / 10',
-        background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.4) 0%, rgba(6, 20, 40, 0.7) 100%)',
+        background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.9) 0%, rgba(6, 20, 40, 0.96) 100%)',
       };
 
   return (

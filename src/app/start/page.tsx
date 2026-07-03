@@ -232,7 +232,7 @@ export default function StartHerePage() {
           {/* Secondary CTAs - practice + reference */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <Link
-              href="/simulator-v3"
+              href="/simulator"
               className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
             >
               <div className="text-xl mb-0.5">🎮</div>

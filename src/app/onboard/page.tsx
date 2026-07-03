@@ -120,7 +120,7 @@ export default function OnboardPage() {
             <div className="font-semibold">{tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu')}</div>
             <div className="text-[10px] text-[var(--text-muted)] mb-1">Bavaria 46</div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {tp('17 деталей с описанием, 2D профиль.', '17 parts described, 2D profile.', '17 czesci z opisem, profil 2D.')}
+              {tp('17 деталей с описанием, интерактивная 3D модель.', '17 parts described, interactive 3D model.', '17 czesci z opisem, interaktywny model 3D.')}
             </p>
           </Link>
           <Link href="/checklist" className="card p-4 hover:border-[var(--accent-cyan)] transition">
@@ -128,7 +128,7 @@ export default function OnboardPage() {
             <div className="font-semibold">{tp('Чек-лист к регате', 'Pre-race checklist', 'Lista przed regata')}</div>
             <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('Что взять, что знать', 'Pack, know, do', 'Co wziac, co wiedziec')}</div>
             <p className="text-xs text-[var(--text-secondary)]">
-              {tp('Прогресс по пунктам сохраняется в браузере.', 'Progress saved in the browser.', 'Postep zapisuje sie w przegladarce.')}
+              {tp('Что взять и проверить перед выходом. Читается за пару минут.', 'What to pack and check before casting off. A two-minute read.', 'Co zabrac i sprawdzic przed wyjsciem. Czyta sie w pare minut.')}
             </p>
           </Link>
         </div>

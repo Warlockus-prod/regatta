@@ -282,7 +282,7 @@ export default function PrivacyPage() {
         </Section>
       </div>
 
-      <ContentFooterNav page="/onboard" />
+      <ContentFooterNav page="/privacy" />
     </div>
   );
 }

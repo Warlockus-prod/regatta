@@ -149,9 +149,9 @@ export default function StatsDashboard() {
               onClick={() => setPreset(p)}
               className="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
               style={{
-                background: preset === p ? 'rgba(0, 212, 255, 0.18)' : 'rgba(255,255,255,0.04)',
+                background: preset === p ? 'rgba(0, 212, 255, 0.18)' : 'var(--hover-bg)',
                 color: preset === p ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                border: `1px solid ${preset === p ? 'rgba(0, 212, 255, 0.32)' : 'rgba(255,255,255,0.08)'}`,
+                border: `1px solid ${preset === p ? 'rgba(0, 212, 255, 0.32)' : 'var(--border-subtle)'}`,
               }}
             >
               {presetLabel(p)}
@@ -183,7 +183,7 @@ export default function StatsDashboard() {
               type="datetime-local"
               value={fromInput}
               onChange={(e) => { setFromInput(e.target.value); setPreset('custom'); }}
-              className="bg-[rgba(0,0,0,0.3)] border border-[rgba(0,212,255,0.15)] rounded px-2 py-1 text-xs"
+              className="bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded px-2 py-1 text-xs"
             />
           </label>
           <label className="flex items-center gap-1.5">
@@ -192,7 +192,7 @@ export default function StatsDashboard() {
               type="datetime-local"
               value={toInput}
               onChange={(e) => { setToInput(e.target.value); setPreset('custom'); }}
-              className="bg-[rgba(0,0,0,0.3)] border border-[rgba(0,212,255,0.15)] rounded px-2 py-1 text-xs"
+              className="bg-[var(--bg-primary)] border border-[var(--border-subtle)] rounded px-2 py-1 text-xs"
             />
           </label>
           {lastFetch && (
