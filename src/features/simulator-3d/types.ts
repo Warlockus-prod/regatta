@@ -18,6 +18,8 @@ export interface YachtState {
   rudderAngle: number;
   /** Visual heel, signed deg (sign leans toward the lee side). */
   heel: number;
+  /** Boat speed, knots (drives wake/foam intensity; 0 in free-trim mode). */
+  speedKn?: number;
 }
 
 export const NEUTRAL_YACHT: YachtState = {
@@ -29,6 +31,7 @@ export const NEUTRAL_YACHT: YachtState = {
   reef: 0,
   rudderAngle: 0,
   heel: 0,
+  speedKn: 0,
 };
 
 /** UI strings, injectable so the core has no i18n dependency. */

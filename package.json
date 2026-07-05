@@ -17,6 +17,7 @@
     "@anthropic-ai/sdk": "^0.90.0",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.6.0",
+    "@react-three/postprocessing": "^3.0.4",
     "better-sqlite3": "^12.9.0",
     "fast-geoip": "^1.1.88",
     "next": "16.2.4",

@@ -75,6 +75,7 @@ function toYacht(step: StepResult, controls: Controls): YachtState {
     reef: controls.reef,
     rudderAngle: controls.rudder * 35,
     heel: step.boat.heel * (side === -1 ? 1 : -1),
+    speedKn: step.boat.speedKn,
   };
 }
 

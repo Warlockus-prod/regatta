@@ -3,9 +3,11 @@
 import { Suspense, type MutableRefObject } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls, Sky, ContactShadows, Html, Environment, Lightformer } from '@react-three/drei';
+import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { Yacht } from './Yacht';
 import { Ocean } from './ocean/Ocean';
+import { Wake } from './ocean/Wake';
 import type { YachtState } from './types';
 
 // ============================================================================
@@ -42,10 +44,14 @@ function YachtLoading() {
 export function RegattaScene({
   stateRef,
   maxDpr = 2,
+  postFx = false,
 }: {
   stateRef: MutableRefObject<YachtState>;
   /** Cap devicePixelRatio (1.5 in the mobile WebView embed to save fill rate). */
   maxDpr?: number;
+  /** Subtle Bloom + Vignette. Desktop only - the extra full-res passes are
+   *  exactly what tanks iOS WebView FPS, so the embed never enables this. */
+  postFx?: boolean;
 }) {
   return (
     <Canvas
@@ -96,7 +102,15 @@ export function RegattaScene({
       </Suspense>
 
       <Ocean />
+      <Wake stateRef={stateRef} />
       <ContactShadows position={[0, 0.02, 0]} scale={44} blur={2.4} far={8} opacity={0.35} frames={1} />
+
+      {postFx && (
+        <EffectComposer multisampling={0}>
+          <Bloom intensity={0.35} luminanceThreshold={0.85} luminanceSmoothing={0.2} mipmapBlur />
+          <Vignette eskil={false} offset={0.18} darkness={0.55} />
+        </EffectComposer>
+      )}
 
       <OrbitControls
         target={[0, 6.5, 0]}

@@ -180,7 +180,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
           className="relative overflow-hidden rounded-xl border border-[rgba(255,255,255,0.08)]"
           style={embed ? { flex: '1 1 0%', minHeight: 0 } : { height: '68vh', minHeight: 420 }}
         >
-          <RegattaScene stateRef={yachtRef} maxDpr={embed ? 1.5 : 2} />
+          <RegattaScene stateRef={yachtRef} maxDpr={embed ? 1.5 : 2} postFx={!embed && typeof window !== 'undefined' && window.innerWidth >= 1024} />
           <div className="pointer-events-none absolute bottom-2 left-3 text-xs text-[rgba(255,255,255,0.55)]">{L.orbitHint}</div>
 
           {mode === 'sail' && (
