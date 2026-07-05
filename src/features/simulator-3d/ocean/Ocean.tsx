@@ -3,85 +3,96 @@
 import { useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-import { sampleWave } from './waves';
+import { WAVES } from './waves';
 
 // ============================================================================
-// Ocean - a segmented plane whose vertices ride the shared wave field each
-// frame (CPU displacement + analytic normals). Replaces the flat water plane
-// so the boat sits on a living, moving sea. Procedural and CSP-safe (no HDR,
-// no external textures).
+// Ocean - a segmented plane displaced ON THE GPU by the shared wave field.
+//
+// The previous version sampled all (seg+1)^2 vertices on the CPU every frame
+// and re-uploaded both position and normal buffers - the single biggest
+// WebView FPS risk found by the 2026-07 render audit. Now the same 4-wave
+// sum-of-sines (generated from the SAME `WAVES` table the Yacht uses to ride
+// the swell, so hull and water stay in phase) runs in the vertex shader via
+// onBeforeCompile; per frame the CPU writes exactly one float (the time
+// uniform). That also lets us afford a denser grid for smoother swells.
+// Procedural and CSP-safe (no HDR, no external textures).
 // ============================================================================
+
+/** GLSL for the wave field, generated from WAVES so there is one source of
+ * truth. Returns vec3(height, ddx, ddz) - matching waves.ts sampleWave(). */
+function waveGlsl(): string {
+  const terms = WAVES.map((w) => {
+    const k = (2 * Math.PI) / w.len;
+    return `
+  {
+    float phase = ${k.toFixed(6)} * (${w.dirX.toFixed(3)} * p.x + ${w.dirZ.toFixed(3)} * p.z) + t * ${w.speed.toFixed(3)};
+    h += ${w.amp.toFixed(3)} * sin(phase);
+    float d = ${w.amp.toFixed(3)} * ${k.toFixed(6)} * cos(phase);
+    nx -= ${w.dirX.toFixed(3)} * d;
+    nz -= ${w.dirZ.toFixed(3)} * d;
+  }`;
+  }).join('');
+  return `
+vec3 regattaWave(vec3 p, float t) {
+  float h = 0.0;
+  float nx = 0.0;
+  float nz = 0.0;
+  ${terms}
+  return vec3(h, nx, nz);
+}
+`;
+}
 
 export function Ocean({
   size = 700,
-  seg = 72,
-  color = '#0c3a4c',
+  seg = 128,
+  color = '#0e4256',
 }: {
   size?: number;
   seg?: number;
   color?: string;
 }) {
-  const meshRef = useRef<THREE.Mesh>(null);
+  const timeRef = useRef({ value: 0 });
 
-  const { geometry, xs, zs } = useMemo(() => {
-    const N = seg + 1;
-    const count = N * N;
-    const positions = new Float32Array(count * 3);
-    const normals = new Float32Array(count * 3);
-    const xs = new Float32Array(count);
-    const zs = new Float32Array(count);
-    let p = 0;
-    for (let j = 0; j < N; j++) {
-      for (let i = 0; i < N; i++) {
-        const x = (i / seg - 0.5) * size;
-        const z = (j / seg - 0.5) * size;
-        positions[p * 3] = x;
-        positions[p * 3 + 2] = z;
-        normals[p * 3 + 1] = 1;
-        xs[p] = x;
-        zs[p] = z;
-        p++;
-      }
-    }
-    const indices: number[] = [];
-    for (let j = 0; j < seg; j++) {
-      for (let i = 0; i < seg; i++) {
-        const a = j * N + i;
-        const b = a + 1;
-        const c = a + N;
-        const d = c + 1;
-        indices.push(a, c, b, b, c, d);
-      }
-    }
-    const g = new THREE.BufferGeometry();
-    g.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    g.setAttribute('normal', new THREE.BufferAttribute(normals, 3));
-    g.setIndex(indices);
-    return { geometry: g, xs, zs };
+  const geometry = useMemo(() => {
+    const g = new THREE.PlaneGeometry(size, size, seg, seg);
+    g.rotateX(-Math.PI / 2); // XZ plane, +Y up, matching the wave field axes
+    return g;
   }, [size, seg]);
 
+  const material = useMemo(() => {
+    const m = new THREE.MeshStandardMaterial({
+      color,
+      metalness: 0.07,
+      // Low roughness so the sun/environment breaks into a specular path on
+      // the moving surface (the "premium water" read).
+      roughness: 0.14,
+      envMapIntensity: 1.15,
+    });
+    m.onBeforeCompile = (shader) => {
+      shader.uniforms.uTime = timeRef.current;
+      shader.vertexShader =
+        `uniform float uTime;\n` +
+        waveGlsl() +
+        shader.vertexShader
+          .replace(
+            '#include <beginnormal_vertex>',
+            `#include <beginnormal_vertex>
+  vec3 regattaW = regattaWave(position, uTime);
+  objectNormal = normalize(vec3(regattaW.y, 1.0, regattaW.z));`,
+          )
+          .replace(
+            '#include <begin_vertex>',
+            `#include <begin_vertex>
+  transformed.y += regattaW.x;`,
+          );
+    };
+    return m;
+  }, [color]);
+
   useFrame(({ clock }) => {
-    const mesh = meshRef.current;
-    if (!mesh) return;
-    // Mutate through the mesh ref (not the memoized geometry) so the per-frame
-    // surface update does not trip the react-hooks immutability rule.
-    const geom = mesh.geometry;
-    const pos = geom.attributes.position as THREE.BufferAttribute;
-    const nor = geom.attributes.normal as THREE.BufferAttribute;
-    const t = clock.elapsedTime;
-    for (let i = 0; i < xs.length; i++) {
-      const s = sampleWave(xs[i], zs[i], t);
-      pos.setY(i, s.y);
-      const inv = 1 / Math.hypot(s.nx, 1, s.nz);
-      nor.setXYZ(i, s.nx * inv, inv, s.nz * inv);
-    }
-    pos.needsUpdate = true;
-    nor.needsUpdate = true;
+    timeRef.current.value = clock.elapsedTime;
   });
 
-  return (
-    <mesh ref={meshRef} geometry={geometry} receiveShadow>
-      <meshStandardMaterial color={color} metalness={0.0} roughness={0.18} />
-    </mesh>
-  );
+  return <mesh geometry={geometry} material={material} receiveShadow />;
 }

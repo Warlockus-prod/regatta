@@ -2,7 +2,7 @@
 
 import { Suspense, type MutableRefObject } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, ContactShadows, Html } from '@react-three/drei';
+import { OrbitControls, Sky, ContactShadows, Html, Environment, Lightformer } from '@react-three/drei';
 import * as THREE from 'three';
 import { Yacht } from './Yacht';
 import { Ocean } from './ocean/Ocean';
@@ -59,24 +59,37 @@ export function RegattaScene({
         gl.outputColorSpace = THREE.SRGBColorSpace;
       }}
     >
-      <color attach="background" args={['#bcd6e4']} />
-      <fog attach="fog" args={['#bcd6e4', 80, 320]} />
+      <color attach="background" args={['#aecfdf']} />
+      <fog attach="fog" args={['#aecfdf', 110, 340]} />
 
-      <hemisphereLight args={['#cfe6ff', '#33454f', 0.55]} />
+      <hemisphereLight args={['#cfe6ff', '#33454f', 0.4]} />
       <directionalLight
         position={[28, 36, 14]}
-        intensity={2.4}
+        intensity={2.2}
         color={'#fff2dc'}
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={[1536, 1536]}
         shadow-camera-near={1}
-        shadow-camera-far={120}
-        shadow-camera-left={-40}
-        shadow-camera-right={40}
-        shadow-camera-top={40}
-        shadow-camera-bottom={-40}
+        shadow-camera-far={90}
+        shadow-camera-left={-22}
+        shadow-camera-right={22}
+        shadow-camera-top={22}
+        shadow-camera-bottom={-22}
       />
       <Sky sunPosition={[28, 14, 14]} turbidity={6} rayleigh={1.4} mieCoefficient={0.005} />
+
+      {/* Image-based lighting WITHOUT any external HDR (CSP-safe): a small
+          procedural env scene - sun disc + sky/horizon gradient panels -
+          prefiltered once. This is what makes stainless, gelcoat, glass and
+          the water actually reflect something instead of a void (the audit's
+          number-one visual finding). */}
+      <Environment resolution={256} frames={1} background={false}>
+        <Lightformer form="rect" intensity={4} color="#fff3da" position={[30, 22, 12]} scale={[14, 14, 1]} target={[0, 0, 0]} />
+        <Lightformer form="rect" intensity={0.9} color="#bfe0f2" position={[0, 40, 0]} rotation-x={Math.PI / 2} scale={[120, 120, 1]} />
+        <Lightformer form="rect" intensity={0.35} color="#9dc4d8" position={[0, 6, -60]} scale={[160, 30, 1]} />
+        <Lightformer form="rect" intensity={0.35} color="#9dc4d8" position={[0, 6, 60]} rotation-y={Math.PI} scale={[160, 30, 1]} />
+        <Lightformer form="rect" intensity={0.22} color="#274a5a" position={[0, -12, 0]} rotation-x={-Math.PI / 2} scale={[160, 160, 1]} />
+      </Environment>
 
       <Suspense fallback={<YachtLoading />}>
         <Yacht stateRef={stateRef} />
