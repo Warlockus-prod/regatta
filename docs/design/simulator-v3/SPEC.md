@@ -1,11 +1,14 @@
 # Simulator V3 spec - cockpit layout with layered overlays
 
-**Status:** proposed, awaiting go
+**Status:** cockpit-layout reference; the supersession clause below is
+RESOLVED OTHERWISE - see docs/design/SIMULATORS.md (2026-07-05). Decision:
+two-tier model. /simulator stays as the "Basics" tier, /simulator2 stays as
+the "3D boat view"; V3 is the "Trainer" tier. Nothing is deleted.
 **Note:** this file remains the cockpit-layout and interaction reference.
 For the current V3 rebuild plan, product map, and delivery phases, see
 `PIPELINE.md` in the same folder.
-**Supersedes:** /simulator (V1), /simulator2 (V2). Once V3 lands and wins,
-both V1 and V2 are deleted.
+**Supersedes (historical, not executed):** the original proposal to delete
+V1 and V2 once V3 wins.
 
 ---
 

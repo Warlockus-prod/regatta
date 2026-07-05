@@ -1,6 +1,17 @@
 # Simulator2 roadmap
 
-**Status:** proposed
+**Status:** SUPERSEDED 2026-07-05 by docs/design/SIMULATORS.md
+**Decision:** /simulator2 is the "3D boat view" of the two-tier model
+(Basics + Trainer), NOT a race surface. No second race sim will be built here;
+physics upgrades come from adopting the golden VPP engine. The 3D-quality
+items below (water, lighting, telltales, wake) remain valid as the visual
+upgrade backlog; the race-shell items (marks, AI, countdown) are cancelled.
+
+The original text is kept below for reference.
+
+---
+
+**Status (original):** proposed
 **Scope:** `/simulator2` only
 **Goal:** evolve V2 from a basic 3D preview into a browser-first premium 3D sailing and race surface
 

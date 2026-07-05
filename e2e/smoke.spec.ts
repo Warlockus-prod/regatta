@@ -116,4 +116,29 @@ test.describe('Smoke: critical user flows', () => {
     }
     expect(errors, 'page threw JS error: ' + errors.join(' | ')).toEqual([]);
   });
+
+  test('simulators: Trainer (/simulator-v3) and 3D boat (/simulator2) render without JS errors', async ({ page }) => {
+    // Guards the two-tier simulator model (docs/design/SIMULATORS.md): both
+    // routes are embedded by the iOS app, so a broken render here means a
+    // broken App Store feature, not just a web page.
+    const errors: string[] = [];
+    page.on('pageerror', (e) => errors.push(e.message));
+
+    await page.goto('/simulator-v3');
+    await expect(page.locator('canvas, svg').first()).toBeVisible({ timeout: 15_000 });
+
+    await page.goto('/simulator2');
+    // The 3D scene mounts client-side only; wait for its canvas.
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
+
+    expect(errors, 'page threw JS error: ' + errors.join(' | ')).toEqual([]);
+  });
+
+  test('embed mode hides the sim switcher (iOS WebView contract)', async ({ page }) => {
+    await page.goto('/simulator2?embed=1');
+    await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
+    // No cross-sim links may render inside the chromeless app embed.
+    await expect(page.locator('a[href="/simulator-v3"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
+  });
 });

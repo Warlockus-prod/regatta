@@ -90,7 +90,7 @@ below):**
 - `/rules` (RRS + COLREGS scenarios; per-language official links: RFEV
   for ES, FFVoile for FR, DSV for DE, Federvela for IT, plus IMO
   COLREGS and World Sailing RRS for everyone)
-- `/simulator2` (V2 eSail)
+- `/simulator2` (3D boat view; see docs/design/SIMULATORS.md)
 - `/game` (race HUD, briefing, finish modal, AI coach labels, replay,
   share)
 - `/multiplayer` (lobby + race)

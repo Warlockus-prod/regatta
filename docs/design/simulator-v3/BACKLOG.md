@@ -1,6 +1,6 @@
 # Simulator V3 - engineering backlog
 
-**Status:** PR-1..PR-4 shipped on `main`. PR-5 partial. PR-6 open.
+**Status:** PR-1..PR-6 all shipped on `main`. Pipeline complete; new work lands under "Nice-to-haves".
 **Scope:** V3 only
 **Related docs:**
 

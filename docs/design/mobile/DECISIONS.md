@@ -6,6 +6,70 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0008: Two-tier simulator model
+
+**Date:** 2026-07-05
+**Status:** accepted
+
+**Context.** The simulators hub listed three near-equal cards (V1 native, 3D
+WebView, V3 WebView beta) with no learning order. New users have no signal
+about where to start, and the V3 beta card duplicated the trainer's role
+without adding a distinct value on mobile.
+
+**Decision.** The product moves to a two-tier simulator model, matching web
+(docs/design/SIMULATORS.md):
+
+- **Step 1 - Basics** (`/simulator-basics`): a new simple native screen
+  teaching wind, turns, and the angle to the wind. The entry point.
+- **Step 2 - Trainer** (`/simulator`): the existing full native simulator -
+  real VPP physics, sail trim, drills, missions, live wind, works offline.
+- **3D boat view** (`/simulator2`): the WebView 3D module stays as a
+  secondary "look at the boat" card, clearly marked as needing internet.
+
+The V3 WebView card is removed from the hub. The `/simulator-v3` route file
+stays so existing deep links keep working; it is just not advertised.
+
+**Consequences.** The hub (`mobile/app/simulators/index.tsx`) renders two
+primary cards (STEP 1 cyan, STEP 2 green) and one smaller secondary card.
+The home quick-card caption changes from "V1 / 3D / V3" to
+"Basics / Trainer / 3D" in all 7 languages. Basics is built as its own
+native screen by a separate work lane.
+
+---
+
+## ADR-0007: No Swift rewrite
+
+**Date:** 2026-07-05
+**Status:** accepted
+
+**Context.** The question was raised whether the app should be rewritten in
+Swift (native iOS) to lift performance ceilings and get native 3D rendering,
+given the New-Architecture bug that keeps three.js from rendering inside RN.
+
+**Decision.** No. The whole cross-platform strategy is shared TypeScript
+physics and content between web and app (packages extraction per ADR-0003).
+A Swift rewrite would:
+
+- fork the physics a third time (web TS, mobile TS, Swift) and reintroduce
+  exactly the drift that the shared-package plan exists to prevent;
+- lose OTA JS updates (EAS Update) - every content or logic fix would go
+  through App Review again;
+- lose the 7-language i18n infrastructure (`tp`/`tl` helpers, translation
+  tooling, Cyrillic-leak scans) that is pure TS;
+- not solve the 3D problem: native 3D on Swift (SceneKit) is a separate 3D
+  codebase diverging from the web React-Three-Fiber one, and the New-Arch
+  three.js rendering bug is a JS-runtime issue that Swift does not fix -
+  the WebView route to `/simulator2` already works around it.
+
+**Consequences.** Performance ceilings are addressed inside RN instead:
+focus gating (pause loops when the screen is unfocused), memoization of
+Skia paths and derived state, and moving hot values to Reanimated/Skia
+shared values off the JS thread. The Swift option remains only as the
+ADR-0001 fallback: a single native module for one performance-critical
+screen, never an app rewrite.
+
+---
+
 ## ADR-0006: App Store submission readiness (2026-05-24)
 
 **Status:** accepted

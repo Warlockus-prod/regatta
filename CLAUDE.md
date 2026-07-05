@@ -47,11 +47,11 @@ never has to resolve at read time - if you're in the V3 lane, read the
 - **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator2/*`, `/src/features/simulator-v2/*`, or mobile app
 - Follows `docs/design/simulator-v3/PIPELINE.md` + `BACKLOG.md`. QA via `docs/design/simulator-v3/QA_CHECKLIST.md`.
 
-### V2 lane (Simulator V2)
-- **Owns:** `src/app/simulator2/*`, `src/features/simulator-v2/*` (if it grows there), `docs/design/simulator2/*`
+### V2 lane (3D boat view, /simulator2)
+- **Owns:** `src/app/simulator2/*`, `src/features/simulator-3d/*`, `docs/design/simulator2/*`
 - **Shared deps it MAY read:** `src/lib/sailing-physics/*` (VPP engine), `src/data/sailing-data.ts` glossary/points-of-sail data
-- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (V1), `/src/app/simulator-v3/*`, `/src/features/simulator-v3/*`, mobile app, or shared web content routes
-- Follows the V2 roadmap in `docs/design/simulator2/ROADMAP.md` (PR-1..PR-7)
+- **Do NOT edit** shared i18n system, `/src/app/simulator/*` (Basics), `/src/app/simulator-v3/*`, `/src/features/simulator-v3/*`, mobile app, or shared web content routes
+- Role + naming: `docs/design/SIMULATORS.md` (two-tier model; /simulator2 is the 3D view, not a race surface). The old `src/features/simulator-v2/*` race build was deleted 2026-07-05 (git be43938); `docs/design/simulator2/ROADMAP.md` is superseded except its 3D-visual backlog.
 
 ### Shared lane (misc / web / i18n / content / CI)
 - i18n fixes, docs, content (`/rules`, `/onboard`, `/start`, `/checklist`), game HUD, navigation
