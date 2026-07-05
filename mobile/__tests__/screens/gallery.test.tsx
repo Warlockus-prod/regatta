@@ -39,7 +39,12 @@ describe('Gallery screen', () => {
   it('renders the first item title', async () => {
     const view = renderWithProviders(<Gallery />);
     const firstTitle = legacyPick(galleryItems[0]!, 'title', 'en');
-    await waitFor(() => view.getByText(firstTitle));
+    // The 2026 album sync introduced items sharing the same title
+    // (e.g. "Regatta 2026"), so assert at least one match instead of
+    // exactly one (getByText throws on duplicates).
+    await waitFor(() => {
+      expect(view.getAllByText(firstTitle).length).toBeGreaterThanOrEqual(1);
+    });
   });
 
   it('shows year badges for items that carry one', async () => {

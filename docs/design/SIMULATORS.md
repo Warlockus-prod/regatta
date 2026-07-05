@@ -90,9 +90,24 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 
 ## Roadmap after this restructure
 
-1. `packages/physics` extraction (web+native Trainer on one engine, CI guard).
-2. 3D view upgrades: self-hosted HDRI (IBL), GPU ocean, animated telltales
-   (meshes already in the GLB), sail backlight, wake; DRACO-compress the GLB.
-3. Gusts/shifts in the web Trainer (native already has Zmiana/Podmuch).
-4. Lesson deep-links (`?drill=`) into Trainer/3D; revive leaderboard loops.
-5. Unify drill/scenario catalogs into `src/data/*` for native + web Trainer.
+1. [x] One physics engine (2026-07-05): the native trainer consumes
+   src/lib/sailing-physics via the `@regatta/physics` alias (metro
+   watchFolders + tsconfig paths + jest mapper); the mobile fork is a shim;
+   CI blocks a second copy. See DECISIONS.md ADR-0009.
+2. [x] 3D view upgrades (2026-07-05): procedural IBL via drei Environment +
+   Lightformers (no external HDR, CSP-safe), GPU ocean (waves moved from a
+   5.3k-vertex CPU loop into the vertex shader, generated from the same
+   WAVES table the hull rides), sail cloth sheen material, animated
+   telltales + luff flutter (GLB nodes Main_Telltales/Jib_Telltales),
+   tightened shadow frustum. Still open: wake/bow spray, desktop-only bloom.
+   GLB compression EVALUATED AND SKIPPED: draco 2.35->1.81 MB, meshopt
+   2.35->1.85 MB - morph targets dominate and barely compress; decoder
+   runtime + morph risk not worth ~20%.
+3. [x] Gusts/shifts in the web Trainer (Steady/Shifts/Gusts wind modes in the
+   V3 runtime, deterministic + tested).
+4. [~] Leaderboard loop revived on /game (nickname prompt + replay ShareBlock
+   re-enabled). Deep-link MECHANISM exists (V3 share-state URLs + the app
+   SimWebView `query` prop); wiring lesson content to specific drills is the
+   next content task. Mobile leaderboard auth still waits on ADR-0006.
+5. [ ] Unify drill/scenario catalogs into `src/data/*` for native + web
+   Trainer (schedule as its own pass; touches content sync).

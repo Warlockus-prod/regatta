@@ -443,7 +443,8 @@ export default function GamePage() {
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2 || player.finishTime == null) {
       setSaveState('error');
-      setSaveError('Не финишировал');
+      setSaveError(tp('Не финишировал', 'Did not finish', 'Nie ukonczyl',
+        { es: 'No termino', fr: 'Pas fini', de: 'Nicht beendet', it: 'Non ha finito' }));
       return;
     }
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
@@ -497,18 +498,19 @@ export default function GamePage() {
       }
     };
     void doSave();
-  }, [nickname, results, difficulty, windStrength, selectedMission, coaching]);
+  }, [nickname, results, difficulty, windStrength, selectedMission, coaching, tp]);
 
-  // Auto-save when finished (once). We don't prompt for a nickname during the
-  // friends-testing phase; if there's no stored nickname we just skip saving.
+  // Auto-save when finished (once). With a stored nickname this saves
+  // silently; without one saveResult() flips saveState to 'prompting' and
+  // the finish overlay shows a skippable nickname prompt.
   useEffect(() => {
     if (gameState !== 'finished') return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
     saveAttemptedRef.current = true;
-    if (nickname) saveResult();
-  }, [gameState, nickname, saveResult]);
+    saveResult();
+  }, [gameState, saveResult]);
 
   // Reset save state on new race
   useEffect(() => {
@@ -1811,8 +1813,92 @@ export default function GamePage() {
               )}
             </div>
 
-            {/* Nickname prompt + Share block hidden while we are testing with friends.
-                Save-to-leaderboard auto-happens silently in the background via saveResult(). */}
+            {/* Nickname prompt: first finish without a stored nickname. The
+                nickname is stored server-side per session via POST /api/player
+                (same flow /multiplayer uses), API validates 2-20 chars.
+                Non-blocking: "skip" dismisses without saving. */}
+            {saveState === 'prompting' && (
+              <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
+                <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
+                  {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisac wynik w rankingu?',
+                    { es: 'Guardar tu resultado en la clasificacion?', fr: 'Enregistrer ton resultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
+                </div>
+                <div className="text-xs text-[var(--text-muted)] mb-2">
+                  {tp('Введи ник (2-20 символов) - он будет виден в общем рейтинге.', 'Enter a nickname (2-20 chars) - it will show on the public leaderboard.', 'Podaj ksywe (2-20 znakow) - bedzie widoczna w publicznym rankingu.',
+                    { es: 'Escribe un apodo (2-20 caracteres) - se vera en la clasificacion publica.', fr: 'Entre un pseudo (2-20 caracteres) - il sera visible au classement public.', de: 'Gib einen Nickname ein (2-20 Zeichen) - er ist in der oeffentlichen Bestenliste sichtbar.', it: 'Inserisci un nickname (2-20 caratteri) - sara visibile nella classifica pubblica.' })}
+                </div>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={nicknameInput}
+                    onChange={(e) => setNicknameInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && nicknameInput.trim().length >= 2) saveResult(nicknameInput); }}
+                    maxLength={20}
+                    className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
+                    style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
+                    placeholder={tp('Введи ник', 'Enter nickname', 'Podaj ksywe',
+                      { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
+                  />
+                  <button
+                    onClick={() => saveResult(nicknameInput)}
+                    disabled={nicknameInput.trim().length < 2}
+                    className="px-4 py-2 rounded text-sm font-semibold disabled:opacity-40"
+                    style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+                  >
+                    {tp('Сохранить', 'Save', 'Zapisz',
+                      { es: 'Guardar', fr: 'Enregistrer', de: 'Speichern', it: 'Salva' })}
+                  </button>
+                </div>
+                {saveError && (
+                  <div className="text-xs mt-2" style={{ color: 'var(--danger)' }}>{saveError}</div>
+                )}
+                <button
+                  onClick={() => setSaveState('idle')}
+                  className="mt-2 text-xs text-[var(--text-muted)] underline hover:text-[var(--text-secondary)] transition"
+                >
+                  {tp('Пропустить', 'Skip', 'Pomin',
+                    { es: 'Omitir', fr: 'Passer', de: 'Ueberspringen', it: 'Salta' })}
+                </button>
+              </div>
+            )}
+
+            {/* Save status feedback (auto-save with stored nickname or after the prompt) */}
+            {saveState === 'saving' && (
+              <div className="mb-4 text-xs text-[var(--text-muted)]">
+                {tp('Сохраняю результат...', 'Saving result...', 'Zapisywanie wyniku...',
+                  { es: 'Guardando resultado...', fr: 'Enregistrement du resultat...', de: 'Ergebnis wird gespeichert...', it: 'Salvataggio del risultato...' })}
+              </div>
+            )}
+            {saveState === 'saved' && (
+              <div className="mb-4 text-xs" style={{ color: 'var(--success)' }}>
+                ✓ {tp('Результат сохранён в лидерборд', 'Result saved to the leaderboard', 'Wynik zapisany w rankingu',
+                  { es: 'Resultado guardado en la clasificacion', fr: 'Resultat enregistre au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}
+              </div>
+            )}
+            {saveState === 'error' && saveError && (
+              <div className="mb-4 text-xs flex items-center gap-2 flex-wrap" style={{ color: 'var(--danger)' }}>
+                <span>{saveError}</span>
+                <button onClick={() => saveResult(nicknameInput || undefined)} className="underline">
+                  {tp('Повторить', 'Retry', 'Ponow',
+                    { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut versuchen', it: 'Riprova' })}
+                </button>
+              </div>
+            )}
+
+            {/* Share replay: replay uploads on every finish; show the code +
+                share link once the prompt is out of the way (saved or skipped). */}
+            {replayCode && saveState !== 'prompting' && (
+              <ShareBlock
+                code={replayCode}
+                nickname={nickname}
+                difficulty={difficulty}
+                windStrength={windStrength}
+                finishTime={playerFinished && playerFinished.time !== Infinity ? playerFinished.time : undefined}
+                rank={playerRank > 0 ? playerRank : undefined}
+                total={results.length || undefined}
+                missionTitle={selectedMission ? tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl) : undefined}
+              />
+            )}
 
             <div className="flex gap-2 flex-wrap">
               <button
@@ -2024,13 +2110,21 @@ function ShareBlock({
   const { tp, lang } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = typeof window !== 'undefined' ? `${window.location.origin}/r/${code}` : '';
+  const timePart = finishTime ? `${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''}` : '';
   const shareText = finishTime
     ? tp(
-        `Прошёл регату за ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} на weektoregatta.com - смотри replay`,
-        `Finished the race in ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} at weektoregatta.com - check the replay`,
-        `Ukonczylem regate w ${formatTime(finishTime)}${rank && total ? ` (${rank}/${total})` : ''} na weektoregatta.com - zobacz replay`,
+        `Прошёл регату за ${timePart} на weektoregatta.com - смотри replay`,
+        `Finished the race in ${timePart} at weektoregatta.com - check the replay`,
+        `Ukonczylem regate w ${timePart} na weektoregatta.com - zobacz replay`,
+        {
+          es: `Termine la regata en ${timePart} en weektoregatta.com - mira el replay`,
+          fr: `Course terminee en ${timePart} sur weektoregatta.com - regarde le replay`,
+          de: `Regatta in ${timePart} beendet auf weektoregatta.com - schau dir das Replay an`,
+          it: `Regata finita in ${timePart} su weektoregatta.com - guarda il replay`,
+        },
       )
-    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moj replay na weektoregatta.com');
+    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moj replay na weektoregatta.com',
+        { es: 'Mi replay en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Mein Replay auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
 
   const onShare = async () => {
     if (navigator.share) {
@@ -2055,7 +2149,10 @@ function ShareBlock({
          style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
-          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">SHARE REPLAY</div>
+          <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
+            {tp('ПОДЕЛИТЬСЯ REPLAY', 'SHARE REPLAY', 'UDOSTEPNIJ REPLAY',
+              { es: 'COMPARTIR REPLAY', fr: 'PARTAGER LE REPLAY', de: 'REPLAY TEILEN', it: 'CONDIVIDI REPLAY' })}
+          </div>
           <div className="text-sm font-mono font-semibold text-[var(--accent-cyan)] mt-0.5">
             {code}
           </div>
@@ -2066,14 +2163,19 @@ function ShareBlock({
             className="px-3 py-1.5 rounded text-xs font-semibold"
             style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
           >
-            {copied ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano') : tp('🔗 Поделиться', '🔗 Share', '🔗 Udostepnij')}
+            {copied
+              ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano',
+                  { es: '✓ Copiado', fr: '✓ Copie', de: '✓ Kopiert', it: '✓ Copiato' })
+              : tp('🔗 Поделиться', '🔗 Share', '🔗 Udostepnij',
+                  { es: '🔗 Compartir', fr: '🔗 Partager', de: '🔗 Teilen', it: '🔗 Condividi' })}
           </button>
           <Link
             href={`/r/${code}`}
             className="px-3 py-1.5 rounded text-xs font-semibold border"
             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
           >
-            {tp('Открыть', 'Open', 'Otworz')}
+            {tp('Открыть', 'Open', 'Otworz',
+              { es: 'Abrir', fr: 'Ouvrir', de: 'Oeffnen', it: 'Apri' })}
           </Link>
         </div>
       </div>
