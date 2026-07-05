@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build-check:
-    name: Build + Type check
+    name: Build, checks + pre-deploy E2E
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
@@ -42,6 +42,44 @@ jobs:
         run: node scripts/check-bundle-size.mjs
       - name: Physics engine tests
         run: npm run test:physics
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Pre-deploy E2E (boot the build, run smoke against localhost)
+        env:
+          NEXT_TELEMETRY_DISABLED: '1'
+          BASE_URL: http://localhost:3000
+        run: |
+          # Boot the production build we just made and run the smoke suite
+          # against it BEFORE we ship - so a broken build never reaches prod.
+          npx next start -p 3000 &
+          APP_PID=$!
+          # Wait for the app to answer /api/health (up to ~40s)
+          up=0
+          for i in $(seq 1 40); do
+            if curl -sf http://localhost:3000/api/health >/dev/null 2>&1; then
+              echo "app up after ${i}s"; up=1; break
+            fi
+            sleep 1
+          done
+          if [ "$up" != "1" ]; then
+            echo "FAIL: app did not become healthy in 40s"; kill $APP_PID 2>/dev/null || true; exit 1
+          fi
+          set +e
+          # Full smoke suite minus the AI chat test (needs a live LLM key -
+          # covered post-deploy on prod) and multiplayer.spec (needs the ws
+          # server + prod nginx /ws upgrade, also covered post-deploy).
+          npx playwright test e2e/smoke.spec.ts --grep-invert "AI chat"
+          RESULT=$?
+          set -e
+          kill $APP_PID 2>/dev/null || true
+          exit $RESULT
+      - name: Upload pre-deploy E2E report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-predeploy
+          path: playwright-report/
+          retention-days: 14
 
   deploy:
     name: Deploy to VPS
