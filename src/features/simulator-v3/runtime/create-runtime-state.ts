@@ -6,6 +6,7 @@ import {
 } from '@/lib/sailing-physics';
 import { REEF_VALUES, toJibSheet, toMainSheet, type UiState } from '../ui/shared';
 import { type RuntimeState } from './runtime-types';
+import { createWindState } from './wind-dynamics';
 
 // ---------------------------------------------------------------------------
 // Build the engine-facing Controls from the UI state. Mapping lives in one
@@ -56,5 +57,12 @@ export function createRuntimeState(args: {
     // Boat starts aimed where it is - no spurious turn on mount.
     targetHeading: settled.state.heading,
     lastDiag: settled.diag,
+    // Wind base = whatever the settle produced (slider TWS, settled dir).
+    // Modulation starts neutral; the fixed seed keeps gust timing
+    // deterministic across resets and tests.
+    wind: createWindState({
+      baseTws: ui.windSpeed,
+      baseDir: settled.state.trueWindDir,
+    }),
   };
 }

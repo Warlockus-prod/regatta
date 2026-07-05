@@ -26,10 +26,11 @@ export function SceneTop({
   sim: SimulationModel;
   lang: Lang;
 }) {
-  // Unique prefix per instance. SceneTop is rendered twice (desktop + mobile
-  // layouts; Tailwind's hidden keeps both in the DOM) so SVG def IDs must not
-  // collide across instances - duplicate IDs break aria-labelledby + screen
-  // readers, and browser console warnings surface them.
+  // Unique prefix per instance. The page now mounts a single layout tree
+  // (desktop OR mobile, picked via matchMedia), so only one SceneTop is in
+  // the DOM at a time - but we keep useId as a guard: duplicate SVG def IDs
+  // would break aria-labelledby + screen readers if this component is ever
+  // mounted twice again (docs pages, a future compare view).
   const uid = useId();
   const glowId = `v3-scene-glow-${uid}`;
   const nogoId = `v3-nogo-grad-${uid}`;
@@ -53,7 +54,11 @@ export function SceneTop({
   // and speed, and sail belly flatness. speedIntensity scales the wake so
   // a stopped boat has no foam while a hull-speed boat leaves a strong
   // trail.
-  const windIntensity = clamp((ui.windSpeed - 4) / 21, 0, 1);
+  // Live (gust/shift-modulated) TWS from the runtime - waves, streaks and
+  // the TW arrow label all breathe with gusts instead of sitting on the
+  // slider's base value.
+  const liveTws = finite(sim.result.state.trueWindSpeed, ui.windSpeed);
+  const windIntensity = clamp((liveTws - 4) / 21, 0, 1);
   const speedIntensity = clamp(sim.result.state.boatSpeed / 8, 0, 1);
 
   // Wind direction in scene coords: TW comes from the top in the world frame,
@@ -456,7 +461,7 @@ export function SceneTop({
           to={tw.end}
           color="#00d4ff"
           width={2.8}
-          label={`TW ${ui.windSpeed} ${lang === 'ru' ? 'уз' : 'kts'}`}
+          label={`TW ${Math.round(liveTws)} ${lang === 'ru' ? 'уз' : 'kts'}`}
           labelPos={{ x: cx, y: cy - sceneRadius * 1.06 }}
           labelAnchor="middle"
         />

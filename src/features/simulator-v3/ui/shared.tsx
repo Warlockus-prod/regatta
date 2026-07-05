@@ -2,6 +2,9 @@
 
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { type TickResult } from '@/lib/sailing-physics';
+import { type WindMode } from '../runtime/wind-dynamics';
+
+export { type WindMode } from '../runtime/wind-dynamics';
 
 // ============================================================================
 // V3 shared types, constants, math, and small UI primitives.
@@ -28,6 +31,10 @@ export interface UiState {
   twa: number;
   tack: Tack;
   windSpeed: number;
+  /** Wind dynamics: steady (base wind only), shift (TWA wander), gust
+   *  (episodic TWS bursts). The TWA/TWS sliders always set the BASE wind;
+   *  shift/gust modulate around it inside the runtime. */
+  windMode: WindMode;
   mainAngle: number;
   jibAngle: number;
   jibFurlPct: number;
@@ -89,6 +96,7 @@ export const DEFAULT_UI: UiState = {
   twa: 90,
   tack: 'starboard',
   windSpeed: 12,
+  windMode: 'steady',
   mainAngle: 52,
   jibAngle: 54,
   jibFurlPct: 100,

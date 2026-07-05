@@ -1,4 +1,5 @@
 import { type BoatState, type Controls, type TickDiagnostics } from '@/lib/sailing-physics';
+import { type WindState } from './wind-dynamics';
 
 // ---------------------------------------------------------------------------
 // V3 live-runtime state.
@@ -27,6 +28,10 @@ export interface RuntimeState {
   targetHeading: number;
   /** Diagnostics from the last tick - the UI reads this for AWA/forces/AoA. */
   lastDiag: TickDiagnostics;
+  /** Wind dynamics state (base wind + steady/shift/gust modulation). The
+   *  step applies baseTws * twsFactor and baseDir + dirOffset to the boat
+   *  each tick; the user's sliders only ever move the base. */
+  wind: WindState;
 }
 
 /** Max rate of change per second for each control while interpolating live

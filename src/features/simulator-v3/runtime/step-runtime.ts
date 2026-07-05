@@ -5,6 +5,7 @@ import {
   HEADING_TURN_RATE_DEG_PER_S,
   type RuntimeState,
 } from './runtime-types';
+import { stepWind, type WindMode } from './wind-dynamics';
 
 // ---------------------------------------------------------------------------
 // Control interpolation: walk live toward target at most CONTROL_RATES[k] per
@@ -61,9 +62,10 @@ export function approachHeading(current: number, target: number, maxStep: number
 // replay recorders.
 //
 // Order within the step:
-// 1. Live controls walk toward target controls (sheet/reef/twist).
-// 2. Boat heading walks toward targetHeading (steering).
-// 3. Physics tick with the steered heading, interpolated controls, dt.
+// 1. Wind dynamics advance (steady/shift/gust modulation around the base).
+// 2. Live controls walk toward target controls (sheet/reef/twist).
+// 3. Boat heading walks toward targetHeading (steering).
+// 4. Physics tick with the steered heading, modulated wind, controls, dt.
 // ---------------------------------------------------------------------------
 
 export function stepRuntime(
@@ -72,14 +74,24 @@ export function stepRuntime(
   targetHeading: number,
   params: ReturnType<typeof getBoatParams>,
   dt: number,
+  windMode: WindMode = 'steady',
 ): RuntimeState {
+  const wind = stepWind(prev.wind, windMode, dt);
   const live = interpolateControls(prev.live, target, dt);
   const newHeading = approachHeading(
     prev.boat.heading,
     targetHeading,
     HEADING_TURN_RATE_DEG_PER_S * dt,
   );
-  const steeredBoat = { ...prev.boat, heading: newHeading };
+  // Effective wind = base modulated by the dynamics layer. In steady mode
+  // twsFactor === 1 and dirOffset === 0, so this reduces to the base wind
+  // (previous behavior). Heel/AWA/feedback all derive from these fields.
+  const steeredBoat = {
+    ...prev.boat,
+    heading: newHeading,
+    trueWindSpeed: wind.baseTws * wind.twsFactor,
+    trueWindDir: normalizeAngle(wind.baseDir + wind.dirOffset),
+  };
   const result = tick(steeredBoat, live, params, dt);
   return {
     simTime: prev.simTime + dt,
@@ -88,5 +100,6 @@ export function stepRuntime(
     target,
     targetHeading,
     lastDiag: result.diag,
+    wind,
   };
 }

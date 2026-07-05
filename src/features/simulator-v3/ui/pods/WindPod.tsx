@@ -1,7 +1,15 @@
 'use client';
 
 import { LiveWindButton } from '../LiveWindButton';
-import { PodCard, PodLabel, PodSlider, type TpFn, type UiState } from '../shared';
+import {
+  PodCard,
+  PodLabel,
+  PodSegmented,
+  PodSlider,
+  type TpFn,
+  type UiState,
+  type WindMode,
+} from '../shared';
 
 export function WindPod(props: {
   ui: UiState;
@@ -57,6 +65,43 @@ export function WindPod(props: {
         onApply={(speedKn) =>
           setUi((p) => ({ ...p, windSpeed: Math.max(4, Math.min(25, Math.round(speedKn))) }))
         }
+      />
+      {/* Wind dynamics selector. The sliders above always set the BASE
+          wind; shift/gust modes modulate around that base in the runtime,
+          so moving a slider mid-gust just re-anchors the modulation. */}
+      <PodSegmented<WindMode>
+        compact={compact}
+        options={[
+          {
+            value: 'steady',
+            label: tp('Ровный', 'Steady', 'Rowny', {
+              es: 'Estable',
+              fr: 'Regulier',
+              de: 'Stetig',
+              it: 'Costante',
+            }),
+          },
+          {
+            value: 'shift',
+            label: tp('Заходы', 'Shifts', 'Zmiany', {
+              es: 'Roles',
+              fr: 'Adonnantes',
+              de: 'Dreher',
+              it: 'Salti',
+            }),
+          },
+          {
+            value: 'gust',
+            label: tp('Порывы', 'Gusts', 'Podmuchy', {
+              es: 'Rachas',
+              fr: 'Rafales',
+              de: 'Boen',
+              it: 'Raffiche',
+            }),
+          },
+        ]}
+        active={ui.windMode}
+        onSelect={(v) => setUi((p) => ({ ...p, windMode: v }))}
       />
       <button
         onClick={() =>

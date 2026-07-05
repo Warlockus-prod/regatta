@@ -78,6 +78,13 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   // targetHeading kept in a ref so the env useEffect can update it without
   // racing with the fixed-step loop (loop reads .current each tick).
   const targetHeadingRef = useRef<number>(stateRef.current.targetHeading);
+  // Wind mode read by the fixed-step loop each tick. A ref (not a loop
+  // dependency) so flipping Steady/Shifts/Gusts never restarts the
+  // interval or resets the accumulated wind phase.
+  const windModeRef = useRef(ui.windMode);
+  useEffect(() => {
+    windModeRef.current = ui.windMode;
+  }, [ui.windMode]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastTimeRef = useRef<number | null>(null);
   const accumRef = useRef(0);
@@ -117,14 +124,20 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   useEffect(() => {
     const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
     const current = stateRef.current;
-    const newTarget = ((current.boat.trueWindDir - signedTwa) % 360 + 360) % 360;
+    // Heading target anchors to the BASE wind direction, not the shift-
+    // modulated one: the user's TWA slider expresses intent relative to
+    // the base breeze, and shift/gust modulation wanders around it.
+    const newTarget = ((current.wind.baseDir - signedTwa) % 360 + 360) % 360;
     targetHeadingRef.current = newTarget;
     stateRef.current = {
       ...current,
       boat: {
         ...current.boat,
-        trueWindSpeed: ui.windSpeed,
+        // Apply the slider immediately, preserving any active modulation
+        // so a mid-gust slider move doesn't snap the felt wind.
+        trueWindSpeed: ui.windSpeed * current.wind.twsFactor,
       },
+      wind: { ...current.wind, baseTws: ui.windSpeed },
       targetHeading: newTarget,
     };
   }, [ui.twa, ui.tack, ui.windSpeed]);
@@ -155,6 +168,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
           targetHeadingRef.current,
           params,
           FIXED_DT,
+          windModeRef.current,
         );
         accumRef.current -= FIXED_DT;
         advanced = true;

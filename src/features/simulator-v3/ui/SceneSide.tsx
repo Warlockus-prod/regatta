@@ -69,7 +69,9 @@ export function SceneSide({
   const waterY = height * 0.62;
   const boatSpeed = sim.result.state.boatSpeed;
   const heelAbs = Math.abs(sim.result.state.heel);
-  const windIntensity = clamp((ui.windSpeed - 4) / 21, 0, 1);
+  // Live (gust/shift-modulated) TWS from the runtime, not the slider base.
+  const liveTws = finite(sim.result.state.trueWindSpeed, ui.windSpeed);
+  const windIntensity = clamp((liveTws - 4) / 21, 0, 1);
   const speedIntensity = clamp(boatSpeed / 8, 0, 1);
   const mainVisualScale = REEF_VISUAL[ui.reefLevel];
   const hasMain = ui.sailsRaised !== 'jib';

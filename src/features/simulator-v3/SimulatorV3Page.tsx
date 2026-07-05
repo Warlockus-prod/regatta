@@ -117,6 +117,21 @@ export default function SimulatorV3Page() {
   // Tour visibility. forceTour > 0 triggers the overlay via effect inside
   // TourOverlay; increment to re-open.
   const [forceTour, setForceTour] = useState(0);
+  // Which layout tree to mount. Previously BOTH desktop and mobile trees
+  // stayed in the DOM (Tailwind hidden/lg:hidden) and re-rendered at 30 Hz,
+  // doubling the SVG scene work - the main jank source on phones. Now we
+  // render exactly one tree, picked with matchMedia at Tailwind's lg
+  // breakpoint. Starts false (mobile tree) on the server and on the first
+  // client render so hydration matches; measured after mount, same
+  // convention as the `embed` flag below.
+  const [isDesktop, setIsDesktop] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)');
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   const shareLinkLabel = tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:', {
     es: 'Enlace del setup:',
@@ -431,11 +446,13 @@ export default function SimulatorV3Page() {
         </div>
       </div>
 
-      {/* Desktop layout (>= lg). In embed mode the grid is clamped to the
-          viewport and each side column scrolls internally. */}
+      {/* Desktop layout (>= 1024px), mounted ONLY when isDesktop. In embed
+          mode the grid is clamped to the viewport and each side column
+          scrolls internally. */}
+      {isDesktop && (
       <div
-        className={`hidden lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-4 lg:px-5 lg:pt-4 flex-1 ${
-          embed ? 'min-h-0 lg:overflow-hidden' : ''
+        className={`grid grid-cols-[260px_minmax(0,1fr)_260px] gap-4 px-5 pt-4 flex-1 ${
+          embed ? 'min-h-0 overflow-hidden' : ''
         }`}
       >
         <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
@@ -506,19 +523,22 @@ export default function SimulatorV3Page() {
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
         </div>
       </div>
+      )}
 
-      {/* Mobile layout (< lg): scene at full width on top, pods in a 2x2
-          grid underneath. The pre-fix layout overlapped pods on the scene
-          corners which left almost no visible scene on narrow viewports.
-          Now the boat gets a proper 55vh stage and every control is
-          thumb-reachable without overlap.
+      {/* Mobile layout (< 1024px), mounted ONLY when !isDesktop (also the
+          SSR/first-render tree until matchMedia is measured): scene at full
+          width on top, pods in a 2x2 grid underneath. The pre-fix layout
+          overlapped pods on the scene corners which left almost no visible
+          scene on narrow viewports. Now the boat gets a proper 55vh stage
+          and every control is thumb-reachable without overlap.
 
           Embed mode (iOS WebView, page scroll disabled): the column is
           clamped by the 100dvh root and scrolls INTERNALLY (overflow-y-auto)
           so every control stays reachable; the scene is trimmed to 42dvh so
           the metrics and first pods are visible without scrolling. */}
+      {!isDesktop && (
       <div
-        className={`lg:hidden flex-1 flex flex-col ${
+        className={`flex-1 flex flex-col ${
           embed ? 'min-h-0 overflow-y-auto' : ''
         }`}
       >
@@ -594,6 +614,7 @@ export default function SimulatorV3Page() {
           </div>
         </div>
       </div>
+      )}
 
       {!embed && <GlossaryFooter tp={tp} />}
 

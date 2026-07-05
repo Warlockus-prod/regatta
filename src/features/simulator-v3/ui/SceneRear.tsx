@@ -170,7 +170,7 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
           textAnchor="start"
           style={{ letterSpacing: '0.1em' }}
         >
-          TWS {ui.windSpeed} {tp('уз', 'kts', 'kts')}
+          TWS {Math.round(finite(sim.result.state.trueWindSpeed, ui.windSpeed))} {tp('уз', 'kts', 'kts')}
         </text>
         <path d="M 0 0 L 60 0" stroke="#00d4ff" strokeWidth={2.2} />
         <polygon points="60,-6 70,0 60,6" fill="#00d4ff" />
