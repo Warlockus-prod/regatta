@@ -66,7 +66,9 @@ describe('Home screen', () => {
   it('honors the lang persisted in AsyncStorage', async () => {
     await AsyncStorage.setItem('regatta.lang.v1', 'pl');
     const view = renderWithProviders(<Home />);
-    // Polish tagline contains "Trener"
-    await waitFor(() => view.getByText(/Trener/));
+    // Polish tagline is "Trener zeglarstwa". Match the full phrase: the
+    // simulators quick-card caption ("Podstawy / Trener / 3D") also
+    // contains the bare word "Trener".
+    await waitFor(() => view.getByText(/Trener zeglarstwa/));
   });
 });

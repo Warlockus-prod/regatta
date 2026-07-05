@@ -498,7 +498,12 @@ export default function Home() {
               de: 'Simulator',
               it: 'Simulatore',
             })}
-            caption="V1 / 3D / V3"
+            caption={tp('Основы / Тренажёр / 3D', 'Basics / Trainer / 3D', 'Podstawy / Trener / 3D', {
+              es: 'Basico / Entrenador / 3D',
+              fr: 'Bases / Entraineur / 3D',
+              de: 'Grundlagen / Trainer / 3D',
+              it: 'Base / Trainer / 3D',
+            })}
             onPress={() => router.push('/simulators')}
           />
           <ListRow

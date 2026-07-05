@@ -44,6 +44,27 @@ type Phase = 'countdown' | 'racing' | 'finished';
 const COMPASS_R = 30;
 const COUNTDOWN_SEC = 5;
 
+/** Close-hauled angle off the wind: clear of the no-go so sails fill. */
+const CLOSE_HAULED_RAD = (52 * Math.PI) / 180;
+
+/**
+ * Initial heading for the start: aim close-hauled toward the windward
+ * mark, NOT dead into the wind, so the boat carries way from the gun
+ * and can actually race the ghosts (a bow pointed straight upwind
+ * would sit in irons until the player tacks). Mirrors game/index.tsx.
+ */
+function startHeadingRad(
+  start: { x: number; y: number },
+  windward: { x: number; y: number },
+  windDirRad: number,
+): number {
+  const bearing = Math.atan2(windward.x - start.x, -(windward.y - start.y));
+  const off = ((bearing - windDirRad + Math.PI * 3) % (Math.PI * 2)) - Math.PI;
+  return Math.abs(off) < CLOSE_HAULED_RAD
+    ? windDirRad + (off >= 0 ? CLOSE_HAULED_RAD : -CLOSE_HAULED_RAD)
+    : bearing;
+}
+
 function formatTime(sec: number): string {
   const s = Math.max(0, Math.round(sec));
   const m = Math.floor(s / 60);
@@ -179,9 +200,9 @@ export default function MultiplayerRace() {
     sim.setWindSpeed(course.initialWindKn);
     windInitedRef.current = true;
     const wm = initialMarks[1]!;
-    const dx = wm.x - startMark.x;
-    const dy = wm.y - startMark.y;
-    sim.setTargetHeading(Math.atan2(dx, -dy));
+    sim.setTargetHeading(
+      startHeadingRad(startMark, wm, course.initialWindDirRad),
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [course, initialMarks, startMark]);
 
@@ -517,7 +538,7 @@ export default function MultiplayerRace() {
     sim.setWindSpeed(course.initialWindKn);
     const wm = fresh[1]!;
     const sm = fresh[0]!;
-    sim.setTargetHeading(Math.atan2(wm.x - sm.x, -(wm.y - sm.y)));
+    sim.setTargetHeading(startHeadingRad(sm, wm, course.initialWindDirRad));
     setCountdownSec(COUNTDOWN_SEC);
     setPhase('countdown');
   }, [course, sceneW, sceneH, sim]);

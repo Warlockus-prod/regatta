@@ -42,7 +42,8 @@ export interface DrillTickResult {
  *   the failure penalty grows when the user drops below threshold (used by
  *   gust-trim).
  * - `recover-speed`: success once `boatSpeedKn >= speedTargetKn`. Score is
- *   `(targetSec - elapsedAtSuccess) / targetSec * 100`.
+ *   `(targetSec - elapsedAtSuccess) / targetSec * 100`. The loop reports
+ *   elapsed seconds as `progressSec` so the label counts toward the timeout.
  */
 export type DrillGoalKind = 'time-in-range' | 'trim-hold' | 'recover-speed';
 
@@ -89,7 +90,9 @@ export interface DrillDef {
   /** Per-tick predicate. Returns true when the current state satisfies the
    *  objective and the timer should advance. */
   check: (ctx: DrillContext) => boolean;
-  /** Live progress label, e.g. "TWA held: 22 / 30 sec". */
+  /** Live progress label, e.g. "TWA held: 22 / 30 sec". For
+   *  `recover-speed` drills `progressSec` is elapsed seconds toward the
+   *  timeout (see DrillGoalKind docs), so the label counts up. */
   progressLabel: (progressSec: number, targetSec: number, tp: Tp) => string;
   /** Sprint 8: structured goal description for richer scoring. Optional so
    *  the existing 3 drills work without modification. */

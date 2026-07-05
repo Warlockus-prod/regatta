@@ -779,6 +779,23 @@ export default function Simulator() {
       it: 'Fatto!',
     },
   );
+  const drillFailLabel = tp(
+    'Не получилось',
+    'Not this time',
+    'Nie udalo sie',
+    {
+      es: 'No salio',
+      fr: 'Pas cette fois',
+      de: 'Nicht geschafft',
+      it: 'Non stavolta',
+    },
+  );
+  const drillScoreLabel = tp('Счёт', 'Score', 'Wynik', {
+    es: 'Puntuacion',
+    fr: 'Score',
+    de: 'Punktzahl',
+    it: 'Punteggio',
+  });
   const missionDoneLabel = tp(
     'Финиш!',
     'Finish!',
@@ -1661,10 +1678,29 @@ export default function Simulator() {
 
           {drillState?.done && activeDrill ? (
             <View style={styles.resultPanel}>
-              <Text style={styles.resultKicker}>{drillDoneLabel}</Text>
+              <Text
+                style={[
+                  styles.resultKicker,
+                  !drillState.passed && styles.resultKickerFail,
+                ]}
+              >
+                {drillState.passed ? drillDoneLabel : drillFailLabel}
+              </Text>
               <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeDrill.title(tp)}
               </Text>
+              {drillState.passed ? (
+                <View style={styles.resultRow}>
+                  <View style={styles.resultStat}>
+                    <Text style={styles.resultStatLabel}>
+                      {drillScoreLabel}
+                    </Text>
+                    <Text style={styles.resultStatValue}>
+                      {drillState.score}
+                    </Text>
+                  </View>
+                </View>
+              ) : null}
               <View style={styles.resultActions}>
                 <Pressable
                   onPress={() => sim.reset()}
@@ -3335,6 +3371,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
+  },
+  resultKickerFail: {
+    color: colors.warning,
   },
   resultTitle: {
     color: colors.textPrimary,

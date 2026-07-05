@@ -13,95 +13,112 @@ import { colors } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
 
 // ============================================================================
-// Simulators hub - one entry point for all three simulators, mirroring the
-// web V1 / V2 / V3 switcher. V1 is the native Skia trainer; V2 (3D) and V3 run
-// the web modules in a WebView for byte-identical parity with the website.
+// Simulators hub - two-tier learning path plus the 3D boat view.
+// Step 1 "Basics" is the new simple native screen, Step 2 "Trainer" is the
+// full native sim, and the 3D boat runs the web module in a WebView.
+// (The V3 route still exists for deep links but is not listed here.)
 // ============================================================================
 
 type LocalizedText = { ru: string; en: string; pl: string; es: string; fr: string; de: string; it: string };
 
 interface SimEntry {
-  route: '/simulator' | '/simulator2' | '/simulator-v3';
+  route: '/simulator-basics' | '/simulator' | '/simulator2';
   icon: IconName;
-  badge: string;
+  badge?: LocalizedText;
   accent?: CardAccent;
   title: LocalizedText;
   desc: LocalizedText;
 }
 
-const ENTRIES: SimEntry[] = [
+const PRIMARY_ENTRIES: SimEntry[] = [
   {
-    route: '/simulator2',
-    icon: 'sail',
-    badge: '3D',
+    route: '/simulator-basics',
+    icon: 'compass',
     accent: 'cyan',
+    badge: {
+      ru: 'ШАГ 1',
+      en: 'STEP 1',
+      pl: 'KROK 1',
+      es: 'PASO 1',
+      fr: 'ETAPE 1',
+      de: 'SCHRITT 1',
+      it: 'PASSO 1',
+    },
     title: {
-      ru: '3D Симулятор',
-      en: '3D Simulator',
-      pl: 'Symulator 3D',
-      es: 'Simulador 3D',
-      fr: 'Simulateur 3D',
-      de: '3D-Simulator',
-      it: 'Simulatore 3D',
+      ru: 'Основы',
+      en: 'Basics',
+      pl: 'Podstawy',
+      es: 'Basicos',
+      fr: 'Bases',
+      de: 'Grundlagen',
+      it: 'Basi',
     },
     desc: {
-      ru: 'Лодка и паруса в 3D. Орбита 360, трим парусов вживую.',
-      en: 'Boat and sails in 3D. Orbit 360, live sail trim.',
-      pl: 'Lodka i zagle w 3D. Orbita 360, trym zagli na zywo.',
-      es: 'Barco y velas en 3D. Orbita 360, trimado en vivo.',
-      fr: 'Bateau et voiles en 3D. Orbite 360, reglage en direct.',
-      de: 'Boot und Segel in 3D. Orbit 360, Live-Trimm.',
-      it: 'Barca e vele in 3D. Orbita 360, regolazione dal vivo.',
+      ru: 'Ветер, повороты и угол к ветру. Начни здесь.',
+      en: 'Wind, turns and the angle to the wind. Start here.',
+      pl: 'Wiatr, zwroty i kat do wiatru. Zacznij tutaj.',
+      es: 'Viento, viradas y el angulo al viento. Empieza aqui.',
+      fr: 'Vent, virements et angle au vent. Commence ici.',
+      de: 'Wind, Wenden und der Winkel zum Wind. Starte hier.',
+      it: 'Vento, virate e angolo al vento. Inizia qui.',
     },
   },
   {
     route: '/simulator',
     icon: 'simulator',
-    badge: 'V1',
-    title: {
-      ru: 'Симулятор',
-      en: 'Simulator',
-      pl: 'Symulator',
-      es: 'Simulador',
-      fr: 'Simulateur',
-      de: 'Simulator',
-      it: 'Simulatore',
-    },
-    desc: {
-      ru: 'Классический тренажёр трима и гонок.',
-      en: 'Classic trim and racing trainer.',
-      pl: 'Klasyczny trener trymu i wyscigow.',
-      es: 'Entrenador clasico de trimado y regatas.',
-      fr: 'Entraineur classique de reglage et de course.',
-      de: 'Klassischer Trimm- und Renntrainer.',
-      it: 'Allenatore classico di regolazione e regate.',
-    },
-  },
-  {
-    route: '/simulator-v3',
-    icon: 'vmg',
-    badge: 'V3',
     accent: 'success',
+    badge: {
+      ru: 'ШАГ 2',
+      en: 'STEP 2',
+      pl: 'KROK 2',
+      es: 'PASO 2',
+      fr: 'ETAPE 2',
+      de: 'SCHRITT 2',
+      it: 'PASSO 2',
+    },
     title: {
-      ru: 'Симулятор V3',
-      en: 'Simulator V3',
-      pl: 'Symulator V3',
-      es: 'Simulador V3',
-      fr: 'Simulateur V3',
-      de: 'Simulator V3',
-      it: 'Simulatore V3',
+      ru: 'Тренажёр',
+      en: 'Trainer',
+      pl: 'Trener',
+      es: 'Entrenador',
+      fr: 'Entraineur',
+      de: 'Trainer',
+      it: 'Trainer',
     },
     desc: {
-      ru: 'Новый движок физики. Бета.',
-      en: 'New physics engine. Beta.',
-      pl: 'Nowy silnik fizyki. Beta.',
-      es: 'Nuevo motor de fisica. Beta.',
-      fr: 'Nouveau moteur physique. Beta.',
-      de: 'Neue Physik-Engine. Beta.',
-      it: 'Nuovo motore fisico. Beta.',
+      ru: 'Реальная физика, трим, упражнения и миссии, живой ветер. Работает офлайн.',
+      en: 'Real physics, sail trim, drills and missions, live wind. Works offline.',
+      pl: 'Prawdziwa fizyka, trym, cwiczenia i misje, zywy wiatr. Dziala offline.',
+      es: 'Fisica real, trimado, ejercicios y misiones, viento vivo. Funciona sin conexion.',
+      fr: 'Physique reelle, reglage, exercices et missions, vent vivant. Marche hors ligne.',
+      de: 'Echte Physik, Trimm, Uebungen und Missionen, Live-Wind. Funktioniert offline.',
+      it: 'Fisica reale, regolazione, esercizi e missioni, vento vivo. Funziona offline.',
     },
   },
 ];
+
+const SECONDARY_ENTRY: SimEntry = {
+  route: '/simulator2',
+  icon: 'sail',
+  title: {
+    ru: 'Лодка 3D',
+    en: '3D Boat',
+    pl: 'Lodka 3D',
+    es: 'Barco 3D',
+    fr: 'Bateau 3D',
+    de: 'Boot 3D',
+    it: 'Barca 3D',
+  },
+  desc: {
+    ru: 'Орбита 360 и паруса вживую. Нужен интернет.',
+    en: 'Orbit the boat, live sails. Needs internet.',
+    pl: 'Orbita 360 i zagle na zywo. Wymaga internetu.',
+    es: 'Orbita 360 y velas en vivo. Requiere internet.',
+    fr: 'Orbite 360 et voiles en direct. Internet requis.',
+    de: 'Orbit 360 und Segel live. Internet noetig.',
+    it: 'Orbita 360 e vele dal vivo. Serve internet.',
+  },
+};
 
 const ACCENT_COLOR: Record<CardAccent, string> = {
   cyan: colors.accentCyan,
@@ -116,6 +133,45 @@ function pick(text: LocalizedText, lang: Lang): string {
 export default function SimulatorsHub() {
   const { lang, tp } = useI18n();
   const router = useRouter();
+
+  const renderCard = (e: SimEntry, small: boolean) => {
+    const accentColor = e.accent ? ACCENT_COLOR[e.accent] : colors.textSecondary;
+    return (
+      <Card
+        key={e.route}
+        accent={e.accent}
+        onPress={() => router.push(e.route)}
+        style={small ? styles.cardSmall : styles.card}
+        accessibilityRole="button"
+        accessibilityLabel={pick(e.title, lang)}
+      >
+        <View style={styles.row}>
+          <Icon name={e.icon} size={small ? 22 : 28} color={accentColor} />
+          <View style={styles.textCol}>
+            <View style={styles.titleRow}>
+              <Text
+                variant="subtitle"
+                style={[styles.title, small && styles.titleSmall]}
+              >
+                {pick(e.title, lang)}
+              </Text>
+              {e.badge ? (
+                <View style={[styles.badge, { borderColor: accentColor }]}>
+                  <Text style={[styles.badgeText, { color: accentColor }]}>
+                    {pick(e.badge, lang)}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <Text variant="muted" style={styles.desc}>
+              {pick(e.desc, lang)}
+            </Text>
+          </View>
+          <Text style={[styles.arrow, { color: accentColor }]}>→</Text>
+        </View>
+      </Card>
+    );
+  };
 
   return (
     <Screen noBottomInset>
@@ -135,51 +191,21 @@ export default function SimulatorsHub() {
       >
         <Text variant="muted" style={styles.intro}>
           {tp(
-            'Три версии тренажёра. Попробуйте каждую.',
-            'Three versions of the trainer. Try each one.',
-            'Trzy wersje trenera. Wyprobuj kazda.',
+            'Два шага обучения и 3D-вид лодки.',
+            'Two learning steps plus a 3D boat view.',
+            'Dwa kroki nauki i widok lodki w 3D.',
             {
-              es: 'Tres versiones del entrenador. Prueba cada una.',
-              fr: 'Trois versions de l\'entraineur. Essayez chacune.',
-              de: 'Drei Versionen des Trainers. Probiere jede aus.',
-              it: 'Tre versioni dell\'allenatore. Prova ognuna.',
+              es: 'Dos pasos de aprendizaje y una vista 3D del barco.',
+              fr: 'Deux etapes d apprentissage et une vue 3D du bateau.',
+              de: 'Zwei Lernschritte und eine 3D-Ansicht des Boots.',
+              it: 'Due passi di apprendimento e una vista 3D della barca.',
             },
           )}
         </Text>
 
-        {ENTRIES.map((e) => {
-          const accentColor = e.accent ? ACCENT_COLOR[e.accent] : colors.textSecondary;
-          return (
-            <Card
-              key={e.route}
-              accent={e.accent}
-              onPress={() => router.push(e.route)}
-              style={styles.card}
-              accessibilityRole="button"
-              accessibilityLabel={pick(e.title, lang)}
-            >
-              <View style={styles.row}>
-                <Icon name={e.icon} size={28} color={accentColor} />
-                <View style={styles.textCol}>
-                  <View style={styles.titleRow}>
-                    <Text variant="subtitle" style={styles.title}>
-                      {pick(e.title, lang)}
-                    </Text>
-                    <View style={[styles.badge, { borderColor: accentColor }]}>
-                      <Text style={[styles.badgeText, { color: accentColor }]}>
-                        {e.badge}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text variant="muted" style={styles.desc}>
-                    {pick(e.desc, lang)}
-                  </Text>
-                </View>
-                <Text style={[styles.arrow, { color: accentColor }]}>→</Text>
-              </View>
-            </Card>
-          );
-        })}
+        {PRIMARY_ENTRIES.map((e) => renderCard(e, false))}
+
+        {renderCard(SECONDARY_ENTRY, true)}
       </ScrollView>
     </Screen>
   );
@@ -195,6 +221,10 @@ const styles = StyleSheet.create({
   },
   card: {
     padding: 16,
+  },
+  cardSmall: {
+    padding: 12,
+    opacity: 0.92,
   },
   row: {
     flexDirection: 'row',
@@ -212,6 +242,9 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
+  },
+  titleSmall: {
+    fontSize: 15,
   },
   badge: {
     borderWidth: 1,

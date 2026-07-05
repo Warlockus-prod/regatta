@@ -27,7 +27,6 @@ import {
   createInitialState,
   getBoatParams,
   RAD_TO_DEG,
-  DEG_TO_RAD,
 } from './physics';
 import type {
   BoatState as PhysicsBoatState,
@@ -115,7 +114,9 @@ export interface MarkScreen {
 
 export interface DrillProgress {
   drillId: DrillDef['id'];
-  /** Seconds the drill `check()` has been satisfied. */
+  /** Seconds the drill `check()` has been satisfied. For `recover-speed`
+   *  drills this reports elapsed seconds toward the timeout instead, so
+   *  the progress label counts up while the user races the deadline. */
   progressSec: number;
   /** Total seconds since the drill started, regardless of success. */
   elapsedSec: number;
@@ -123,6 +124,9 @@ export interface DrillProgress {
   targetSec: number;
   done: boolean;
   active: boolean;
+  /** True once `done` and the drill goal was actually met. False when the
+   *  drill ended by timeout with nothing achieved (fail state). */
+  passed: boolean;
   /** 0..100, computed from the drill's `goal.kind`. Updates live. */
   score: number;
   /** When set, the simulator screen pins the wind-mode pill. */
@@ -163,12 +167,8 @@ export interface SimLoopHandle {
   mission: MissionProgress | null;
   /** Set the heading target (radians, screen-space). */
   setTargetHeading: (h: number) => void;
-  /** Set throttle 0..1 (kept for back-compat; engine ignores it). */
-  setThrottle: (t: number) => void;
   /** Set true wind FROM-direction (radians, screen-space). */
   setWindDir: (rad: number) => void;
-  /** Cycle wind speed through the preset 6/10/14/20 kt list. */
-  cycleWindSpeed: () => void;
   /** Set wind speed in knots directly. */
   setWindSpeed: (kts: number) => void;
   /** User trim controls. Calling these leaves auto-trim mode. */
@@ -187,8 +187,6 @@ export interface SimLoopHandle {
   /** Reset boat + trail + drill/mission timers. Wind preserved. */
   reset: () => void;
 }
-
-const WIND_SPEED_PRESETS_KTS = [6, 10, 14, 20] as const;
 
 /**
  * Default trim numbers for an "auto-trim" sailor. They are good enough to
@@ -362,6 +360,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     targetSec: DRILLS[0]!.targetSec,
     done: false,
     active: false,
+    passed: false,
     score: 0,
     windMode: DRILLS[0]!.windMode,
   });
@@ -546,17 +545,24 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
             const nextElapsed = wasDone
               ? prev.elapsedSec
               : Math.min(prev.elapsedSec + DT, drill.targetSec);
+            const goalKind = drill.goal?.kind ?? 'time-in-range';
+            // `recover-speed` drills race a deadline, so their progress
+            // label tracks elapsed seconds toward the timeout. The
+            // accumulating kinds track seconds inside the success window.
             const nextProgress =
-              ok && !wasDone
+              goalKind === 'recover-speed'
+                ? nextElapsed
+                : ok && !wasDone
                 ? Math.min(prev.progressSec + DT, drill.targetSec)
                 : prev.progressSec;
-            const goalKind = drill.goal?.kind ?? 'time-in-range';
             let nextDone = wasDone;
             let nextScore = prev.score;
+            let nextPassed = prev.passed;
             if (!wasDone) {
               if (goalKind === 'recover-speed') {
                 if (ok) {
                   nextDone = true;
+                  nextPassed = true;
                   const remaining = Math.max(
                     0,
                     drill.targetSec - prev.elapsedSec,
@@ -566,6 +572,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
                   );
                 } else if (nextElapsed >= drill.targetSec) {
                   nextDone = true;
+                  nextPassed = false;
                   nextScore = 0;
                 } else {
                   nextScore = 0;
@@ -576,6 +583,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
                 );
                 if (nextElapsed >= drill.targetSec) {
                   nextDone = true;
+                  nextPassed = nextScore > 0;
                 }
               } else {
                 nextScore = Math.round(
@@ -585,9 +593,8 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
                   nextProgress >= drill.targetSec ||
                   nextElapsed >= drill.targetSec
                 ) {
-                  nextDone =
-                    nextProgress >= drill.targetSec ||
-                    nextElapsed >= drill.targetSec;
+                  nextDone = true;
+                  nextPassed = nextScore > 0;
                 }
               }
             }
@@ -598,6 +605,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
               targetSec: drill.targetSec,
               active: ok,
               done: nextDone,
+              passed: nextPassed,
               score: nextScore,
               windMode: drill.windMode,
             };
@@ -757,6 +765,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
       targetSec: drill ? drill.targetSec : 30,
       done: false,
       active: false,
+      passed: false,
       score: 0,
       windMode: drill?.windMode,
     };
@@ -780,21 +789,11 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     setTargetHeading: (h) => {
       controlsRef.current.targetHeading = h;
     },
-    setThrottle: (t) => {
-      controlsRef.current.throttle = Math.max(0, Math.min(1, t));
-    },
     setWindDir: (rad) => {
       windRef.current = {
         ...windRef.current,
         trueWindDirRad: normalizeRad(rad),
       };
-    },
-    cycleWindSpeed: () => {
-      const cur = windRef.current.trueWindSpeedKts;
-      const idx = WIND_SPEED_PRESETS_KTS.findIndex((k) => k === cur);
-      const next =
-        WIND_SPEED_PRESETS_KTS[(idx + 1) % WIND_SPEED_PRESETS_KTS.length] ?? 12;
-      windRef.current = { ...windRef.current, trueWindSpeedKts: next };
     },
     setWindSpeed: (kts) => {
       windRef.current = {
@@ -850,6 +849,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         targetSec: drill ? drill.targetSec : 30,
         done: false,
         active: false,
+        passed: false,
         score: 0,
         windMode: drill?.windMode,
       };
@@ -866,5 +866,3 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     },
   };
 }
-
-void DEG_TO_RAD;
