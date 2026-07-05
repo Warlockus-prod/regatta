@@ -5,6 +5,7 @@ import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
+import { resolveTrainerDeepLink } from './runtime/deep-link';
 import {
   type DrillDefinition,
   type ScenarioPreset,
@@ -40,7 +41,8 @@ import {
 // with those values overriding DEFAULT_UI. Useful for "check out this setup"
 // links; mirrors the share-link convention already used by i18n shortcuts.
 // Invalid values are ignored silently; anything not in the whitelist is
-// dropped.
+// dropped. Lesson deep-links (?drill=<id> / ?scenario=<id>) are resolved
+// separately by resolveTrainerDeepLink in runtime/deep-link.ts.
 // ---------------------------------------------------------------------------
 
 function readUiFromUrl(): Partial<UiState> | null {
@@ -159,23 +161,6 @@ export default function SimulatorV3Page() {
   };
   const { sim, reset } = useSimulatorV3({ ui, tp });
 
-  // Apply share-link URL params + embed flag after mount (see the useState
-  // comments above). reset() reseeds the runtime so a shared setup opens
-  // already settled instead of easing there from the defaults.
-  useEffect(() => {
-    try {
-      const fromUrl = readUiFromUrl();
-      if (fromUrl) {
-        const next = { ...DEFAULT_UI, ...fromUrl };
-        setUi(next);
-        reset(next);
-      }
-      setEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
-    } catch {
-      // Malformed URL or blocked APIs - keep defaults.
-    }
-  }, [reset]);
-
   // Mode machine (PR-4). Drives what sits above the metrics strip:
   // - free: the original sandbox (no overlay panel)
   // - drill: DrillCard with timer + hold-counter + win/fail
@@ -253,6 +238,47 @@ export default function SimulatorV3Page() {
     if (next !== 'drill') exitDrill();
     if (next !== 'scenario') setActiveScenarioId(null);
   };
+
+  // Apply URL params + embed flag after mount (see the useState comments
+  // above). Declared below the mode handlers so lesson deep-links can reuse
+  // startDrill/pickScenario - the exact activation path DrillCard and
+  // ScenarioPicker use - instead of duplicating it.
+  //
+  // ?drill=<id> / ?scenario=<id> (bootcamp lessons, app deep-links, works
+  // together with ?embed=1) switch the mode machine and activate the match;
+  // a resolved deep-link carries its own full UiState, so plain share-state
+  // numbers (?twa=...) only apply when no deep-link resolves. Unknown ids
+  // are ignored silently. reset() reseeds the runtime so the target setup
+  // opens already settled instead of easing there from the defaults.
+  //
+  // Runs once: `reset` is a stable useCallback keyed on boat params, and
+  // startDrill/pickScenario close over stable setters only, so they are
+  // intentionally left out of the deps (adding them would rerun the effect
+  // every render and restart the drill).
+  useEffect(() => {
+    try {
+      const search = new URLSearchParams(window.location.search);
+      const deepLink = resolveTrainerDeepLink(search);
+      if (deepLink?.kind === 'drill') {
+        setMode('drill');
+        startDrill(deepLink.drill);
+      } else if (deepLink?.kind === 'scenario') {
+        setMode('scenario');
+        pickScenario(deepLink.scenario);
+      } else {
+        const fromUrl = readUiFromUrl();
+        if (fromUrl) {
+          const next = { ...DEFAULT_UI, ...fromUrl };
+          setUi(next);
+          reset(next);
+        }
+      }
+      setEmbed(search.get('embed') === '1');
+    } catch {
+      // Malformed URL or blocked APIs - keep defaults.
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reset]);
 
   const setPreset = (twa: number) => {
     const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);

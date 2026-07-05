@@ -54,9 +54,10 @@ export default function BootcampFooterNav() {
   // Match check moved up before the early `return null` so we can use the
   // visibility flag in the ResizeObserver effect below (hooks must run in
   // the same order on every render).
-  // Strip the hash before comparing - lessons can route to /courses#wind etc,
-  // but pathname never contains the hash, so we compare base paths only.
-  const baseRoute = currentLesson?.route.split('#')[0] ?? '';
+  // Strip the hash and query before comparing - lessons can route to
+  // /courses#wind or /simulator-v3?drill=hold-trim, but pathname contains
+  // neither, so we compare base paths only.
+  const baseRoute = currentLesson?.route.split(/[#?]/)[0] ?? '';
   const matchesRoute = !!(
     currentLesson && pathname && baseRoute && (
       pathname === baseRoute ||

@@ -99,15 +99,20 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
    5.3k-vertex CPU loop into the vertex shader, generated from the same
    WAVES table the hull rides), sail cloth sheen material, animated
    telltales + luff flutter (GLB nodes Main_Telltales/Jib_Telltales),
-   tightened shadow frustum. Still open: wake/bow spray, desktop-only bloom.
+   tightened shadow frustum; wake + bow spray particle system driven by
+   telemetry speed (2026-07-05, later pass); desktop-only Bloom + Vignette
+   via @react-three/postprocessing (never in the WebView embed).
    GLB compression EVALUATED AND SKIPPED: draco 2.35->1.81 MB, meshopt
    2.35->1.85 MB - morph targets dominate and barely compress; decoder
    runtime + morph risk not worth ~20%.
 3. [x] Gusts/shifts in the web Trainer (Steady/Shifts/Gusts wind modes in the
    V3 runtime, deterministic + tested).
-4. [~] Leaderboard loop revived on /game (nickname prompt + replay ShareBlock
-   re-enabled). Deep-link MECHANISM exists (V3 share-state URLs + the app
-   SimWebView `query` prop); wiring lesson content to specific drills is the
-   next content task. Mobile leaderboard auth still waits on ADR-0006.
+4. [x] Leaderboard loop revived on /game (nickname prompt + replay
+   ShareBlock). Trainer deep-links live: /simulator-v3?drill=<id> and
+   ?scenario=<id> activate the panel (runtime/deep-link.ts, tested), and
+   bootcamp lessons 2/3 now point at Basics / the hold-trim drill. Also the
+   web yacht anatomy 3D is embedded 1:1 in the app (/anatomy via WebView,
+   scroll enabled; native schema kept at /anatomy-offline as the offline
+   fallback). Mobile leaderboard auth still waits on ADR-0006.
 5. [ ] Unify drill/scenario catalogs into `src/data/*` for native + web
    Trainer (schedule as its own pass; touches content sync).
