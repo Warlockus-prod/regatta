@@ -70,11 +70,18 @@ export function apparentWind(twsKn: number, twaDeg: number, boatKn: number) {
 // ---------------------------------------------------------------------------
 export function angleEfficiency(cfg: BoatConfig, twaAbs: number) {
   if (twaAbs < cfg.noGoDeg) return 0;
-  // A real beat (42-50 deg) must make useful speed, not ~11 percent of hull
-  // speed: ramp from 0.35 just outside the no-go up to ~0.9 by ~8 deg past it.
-  if (twaAbs < cfg.noGoDeg + 8) return clamp(0.35 + 0.55 * (twaAbs - cfg.noGoDeg) / 8, 0, 0.9);
-  if (twaAbs <= 150) return 1;
-  return clamp(1 - 0.45 * (twaAbs - 150) / 30, 0, 1);
+  // Close-hauled build: a real beat must make useful speed quickly, and the
+  // rise must be steep enough that the best upwind VMG lands ~46-48 deg
+  // (real cruiser numbers). The old flat 50-150 plateau made vmgTarget()
+  // return the plateau CORNER (50 up / 150 down) - an artifact the HUD then
+  // taught as "Best VMG".
+  if (twaAbs < cfg.noGoDeg + 6) return lerp(0.55, 0.9, (twaAbs - cfg.noGoDeg) / 6);
+  // Gentle build to the reaching peak (~105 deg).
+  if (twaAbs <= 105) return lerp(0.9, 1.0, (twaAbs - (cfg.noGoDeg + 6)) / (105 - (cfg.noGoDeg + 6)));
+  // Roll off toward a dead run: slow at first (so best downwind VMG sits
+  // ~150-158), steeper deep; a dead run is ~62 percent of peak.
+  const t = (twaAbs - 105) / 75;
+  return 1 - 0.38 * Math.pow(t, 1.6);
 }
 
 export function targetSpeedKn(
@@ -149,6 +156,11 @@ export function heelAngleDeg(
 export function optimalBoomAngle(awaDeg: number) {
   // Boom roughly tracks AWA minus the sail's angle of attack (~15-18 deg).
   return clamp(Math.abs(awaDeg) - 16, 0, 85);
+}
+
+/** Optimal jib sheet angle (deg): the headsail trims slightly tighter than the main. */
+export function optimalJibAngle(awaDeg: number) {
+  return clamp(Math.abs(awaDeg) - 18, 0, 70);
 }
 
 /**
@@ -282,8 +294,19 @@ export function stepBoat(
 
   const trim = evaluateTrim(awaDeg, boomAngle, twaAbs, cfg.noGoDeg);
 
+  // The jib drives the boat too. The main dominates, but a flogging or
+  // over-sheeted jib now costs real speed (the 2026-07 physics audit found
+  // jibSheet had zero physical effect - a mis-teaching for beginners).
+  const jibOpt = optimalJibAngle(awaDeg);
+  const jibErr = jibAngle - jibOpt;
+  const inNoGo = twaAbs < cfg.noGoDeg;
+  const jibLuffing = inNoGo || jibErr > 16;
+  const jibQuality = inNoGo ? 0 : clamp(1 - Math.abs(jibErr) / 28, 0, 1);
+  const quality = 0.65 * trim.quality + 0.35 * jibQuality;
+  const luffing = trim.luffing || jibLuffing;
+
   // Speed: ease toward the polar target (time constant ~ a few seconds).
-  const targetSpeed = targetSpeedKn(cfg, wind.twsKn, twaAbs, trim.quality, controls.reef);
+  const targetSpeed = targetSpeedKn(cfg, wind.twsKn, twaAbs, quality, controls.reef);
   const speedKn = lerp(boat.speedKn, targetSpeed, clamp(dt / 2.5, 0, 1));
 
   // Heading: rudder authority scales with speed, with a small floor so a boat
@@ -294,7 +317,7 @@ export function stepBoat(
   const heading = (boat.heading + turnRate * dt + 360) % 360;
 
   // Heel: target from the model, eased with a ~2 s lag.
-  const targetHeel = heelAngleDeg(cfg, awsKn, twaAbs, trim.quality, controls.reef);
+  const targetHeel = heelAngleDeg(cfg, awsKn, twaAbs, quality, controls.reef);
   const heel = lerp(boat.heel, targetHeel, clamp(dt / 2, 0, 1));
 
   // Leeway: course over water slips to leeward (side = -1 on starboard tack,
@@ -315,9 +338,9 @@ export function stepBoat(
     awsKn,
     boomAngle, // magnitude; the lee side is applied in the view from twaSigned
     jibAngle,
-    trimQuality: trim.quality,
-    luffing: trim.luffing,
+    trimQuality: quality,
+    luffing,
     leeway,
-    coach: coachHint(twaAbs, trim, cfg.noGoDeg),
+    coach: coachHint(twaAbs, { ...trim, quality, luffing }, cfg.noGoDeg),
   };
 }

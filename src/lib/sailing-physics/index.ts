@@ -50,3 +50,4 @@ export {
   type Current,
   type OverGround,
 } from './current';
+export { NO_GO_HALF_DEG } from './constants';
