@@ -60,16 +60,19 @@ export default function LeaderboardPage() {
   return (
     <div className="page-enter max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-        {tp('Таблица лучших', 'Leaderboard', 'Ranking')}
+        {tp('Таблица лучших', 'Leaderboard', 'Ranking',
+          { es: 'Clasificacion', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
       </h1>
       <p className="text-sm text-[var(--text-muted)] mb-6">
         {tp('Лучшее время по каждой сессии. Переключай режим / сложность / миссию.', 'Best time per session. Toggle mode / difficulty / mission.', 'Najlepszy czas na sesje. Przelacz tryb / poziom / misje.',
+          { es: 'Mejor tiempo por sesion. Cambia modo / dificultad / mision.', fr: 'Meilleur temps par session. Change le mode / la difficulte / la mission.', de: 'Beste Zeit pro Sitzung. Wechsle Modus / Schwierigkeit / Mission.', it: 'Miglior tempo per sessione. Cambia modalita / difficolta / missione.' },
         )}
       </p>
 
       {/* Mode toggle */}
       <div className="card p-3 mb-4 flex flex-wrap gap-2 items-center">
-        <div className="text-xs text-[var(--text-muted)] mr-2">{tp('РЕЖИМ', 'MODE', 'TRYB')}:</div>
+        <div className="text-xs text-[var(--text-muted)] mr-2">{tp('РЕЖИМ', 'MODE', 'TRYB',
+          { es: 'MODO', fr: 'MODE', de: 'MODUS', it: 'MODALITA' })}:</div>
         <button
           onClick={() => setMode('free')}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
@@ -79,7 +82,8 @@ export default function LeaderboardPage() {
             border: `1px solid ${mode === 'free' ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
           }}
         >
-          🏁 {tp('Свободная гонка', 'Free race', 'Wolna regata')}
+          🏁 {tp('Свободная гонка', 'Free race', 'Wolna regata',
+            { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
         </button>
         <button
           onClick={() => setMode('mission')}
@@ -90,7 +94,8 @@ export default function LeaderboardPage() {
             border: `1px solid ${mode === 'mission' ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
           }}
         >
-          🎯 {tp('Миссии', 'Missions', 'Misje')}
+          🎯 {tp('Миссии', 'Missions', 'Misje',
+            { es: 'Misiones', fr: 'Missions', de: 'Missionen', it: 'Missioni' })}
         </button>
       </div>
 
@@ -99,7 +104,8 @@ export default function LeaderboardPage() {
         {mode === 'free' ? (
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM')}</div>
+              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM',
+                { es: 'DIFICULTAD', fr: 'DIFFICULTE', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTA' })}</div>
               <div className="flex gap-1">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <button
@@ -112,13 +118,14 @@ export default function LeaderboardPage() {
                       color: difficulty === d ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Latwy') : d === 'medium' ? tp('Средний', 'Medium', 'Sredni') : tp('Сложный', 'Hard', 'Trudny')}
+                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Latwy', { es: 'Facil', fr: 'Facile', de: 'Leicht', it: 'Facile' }) : d === 'medium' ? tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сложный', 'Hard', 'Trudny', { es: 'Dificil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' })}
                   </button>
                 ))}
               </div>
             </div>
             <div>
-              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('ВЕТЕР', 'WIND', 'WIATR')}</div>
+              <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('ВЕТЕР', 'WIND', 'WIATR',
+                { es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO' })}</div>
               <div className="flex gap-1">
                 {(['light', 'medium', 'heavy'] as Wind[]).map((w) => (
                   <button
@@ -131,7 +138,7 @@ export default function LeaderboardPage() {
                       color: wind === w ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {w === 'light' ? tp('Слабый', 'Light', 'Slaby') : w === 'medium' ? tp('Средний', 'Medium', 'Sredni') : tp('Сильный', 'Heavy', 'Silny')}
+                    {w === 'light' ? tp('Слабый', 'Light', 'Slaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }) : w === 'medium' ? tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сильный', 'Heavy', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' })}
                   </button>
                 ))}
               </div>
@@ -139,7 +146,8 @@ export default function LeaderboardPage() {
           </div>
         ) : (
           <div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('МИССИЯ', 'MISSION', 'MISJA')}</div>
+            <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('МИССИЯ', 'MISSION', 'MISJA',
+              { es: 'MISION', fr: 'MISSION', de: 'MISSION', it: 'MISSIONE' })}</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {missions.map((m) => (
                 <button
@@ -165,15 +173,18 @@ export default function LeaderboardPage() {
       <div className="card p-3">
         {loading ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Загружаю…', 'Loading…', 'Ladowanie…')}
+            {tp('Загружаю…', 'Loading…', 'Ladowanie…',
+              { es: 'Cargando…', fr: 'Chargement…', de: 'Laedt…', it: 'Caricamento…' })}
           </div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
             {tp('Пока никто не финишировал. Стань первым!', 'No results yet. Be the first!', 'Brak wynikow. Badz pierwszy!',
+              { es: 'Aun no hay resultados. Se el primero!', fr: 'Pas encore de resultats. Sois le premier !', de: 'Noch keine Ergebnisse. Sei der Erste!', it: 'Ancora nessun risultato. Sii il primo!' },
             )}
             <div className="mt-3">
               <Link href="/game" className="text-[var(--accent-cyan)] font-semibold hover:underline">
-                {tp('К гонке →', 'To the race →', 'Do regaty →')}
+                {tp('К гонке →', 'To the race →', 'Do regaty →',
+                  { es: 'A la regata →', fr: 'Vers la course →', de: 'Zum Rennen →', it: 'Alla regata →' })}
               </Link>
             </div>
           </div>
@@ -213,7 +224,8 @@ export default function LeaderboardPage() {
 
       <div className="text-center mt-6">
         <Link href="/game" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] transition">
-          ← {tp('Назад к гонке', 'Back to race', 'Powrot do regaty')}
+          ← {tp('Назад к гонке', 'Back to race', 'Powrot do regaty',
+            { es: 'Volver a la regata', fr: 'Retour a la course', de: 'Zurueck zum Rennen', it: 'Torna alla regata' })}
         </Link>
       </div>
 

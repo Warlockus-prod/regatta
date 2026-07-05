@@ -74,9 +74,9 @@ export default function GlossaryPage() {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            {tp('Глоссарий', 'Glossary', 'Slownik')}
+            {tp('Глоссарий', 'Glossary', 'Slownik', { es: 'Glosario', fr: 'Glossaire', de: 'Glossar', it: 'Glossario' })}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Slownik zeglarski')}</p>
+          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Slownik zeglarski', { es: 'Glosario de vela', fr: 'Glossaire de voile', de: 'Segel-Glossar', it: 'Glossario velico' })}</p>
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -103,7 +103,7 @@ export default function GlossaryPage() {
           </svg>
           <input
             type="text"
-            placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...')}
+            placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar terminos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="search-input w-full pl-11 pr-4 py-3 text-sm"
@@ -161,7 +161,7 @@ export default function GlossaryPage() {
                       }
                 }
               >
-                {cat === 'all' ? tp('Все', 'All', 'Wszystkie') : pickCat(cat)}
+                {cat === 'all' ? tp('Все', 'All', 'Wszystkie', { es: 'Todos', fr: 'Tous', de: 'Alle', it: 'Tutti' }) : pickCat(cat)}
               </button>
             );
           })}
@@ -175,11 +175,23 @@ export default function GlossaryPage() {
                   `${glossaryTerms.length} терминов`,
                   `${glossaryTerms.length} terms`,
                   `${glossaryTerms.length} terminow`,
+                  {
+                    es: `${glossaryTerms.length} terminos`,
+                    fr: `${glossaryTerms.length} termes`,
+                    de: `${glossaryTerms.length} Begriffe`,
+                    it: `${glossaryTerms.length} termini`,
+                  },
                 )
               : tp(
                   `${filteredTerms.length} из ${glossaryTerms.length}`,
                   `${filteredTerms.length} of ${glossaryTerms.length}`,
                   `${filteredTerms.length} z ${glossaryTerms.length}`,
+                  {
+                    es: `${filteredTerms.length} de ${glossaryTerms.length}`,
+                    fr: `${filteredTerms.length} sur ${glossaryTerms.length}`,
+                    de: `${filteredTerms.length} von ${glossaryTerms.length}`,
+                    it: `${filteredTerms.length} di ${glossaryTerms.length}`,
+                  },
                 )}
           </span>
           {activeCategory !== 'all' && (
@@ -263,7 +275,7 @@ export default function GlossaryPage() {
               <line x1="8" y1="11" x2="14" y2="11" />
             </svg>
             <p className="text-sm text-[var(--text-muted)]">
-              {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono')}
+              {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'No se encontro nada', fr: 'Aucun resultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
             </p>
             {lang !== 'en' && (
               <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
@@ -283,7 +295,7 @@ export default function GlossaryPage() {
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
             >
-              {tp('Сбросить фильтры', 'Clear filters', 'Wyczysc filtry')}
+              {tp('Сбросить фильтры', 'Clear filters', 'Wyczysc filtry', { es: 'Borrar filtros', fr: 'Effacer les filtres', de: 'Filter zurucksetzen', it: 'Azzera i filtri' })}
             </button>
           </div>
         )}

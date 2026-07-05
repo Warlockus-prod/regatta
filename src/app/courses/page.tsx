@@ -518,7 +518,12 @@ function SpeedBar({ factor, color }: { factor: number; color: string }) {
   const pct = Math.round(factor * 100);
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Predkosc')}</span>
+      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Predkosc', {
+        es: 'Velocidad',
+        fr: 'Vitesse',
+        de: 'Geschwindigkeit',
+        it: 'Velocita',
+      })}</span>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(127,127,127,0.18)' }}>
         <div
           className="h-full rounded-full"
@@ -831,7 +836,12 @@ export default function CoursesPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16">
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
-            {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa zagle, nie jeden')}
+            {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa zagle, nie jeden', {
+              es: 'Dos velas, no una',
+              fr: 'Deux voiles, pas une',
+              de: 'Zwei Segel, nicht eins',
+              it: 'Due vele, non una',
+            })}
             {lang !== 'en' && <span className="text-sm font-normal text-[var(--text-muted)] ml-2">Two sails, not one</span>}
           </h2>
           <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-5">
@@ -839,31 +849,59 @@ export default function CoursesPage() {
               'Обычная круизная яхта (слуп) несёт два паруса: грот и стаксель. На диаграмме каждый кораблик показан с обоими: треугольник за мачтой - грот, треугольник перед мачтой - стаксель. На реальной лодке они работают вместе, а шкотов (верёвок управления) - два.',
               'A typical cruising yacht (sloop) carries two sails: mainsail and jib. In the diagram every boat shows both - triangle aft of the mast is the main, triangle forward of the mast is the jib. On a real boat they work together, and there are TWO sheets (control lines).',
               'Typowy jacht turystyczny (slup) niesie dwa zagle: grot i fok. Na diagramie kazda lodz pokazana jest z obydwoma: trojkat za masztem to grot, przed masztem to fok. Na prawdziwej lodzi pracuja razem, a szotow (lin sterujacych) sa dwa.',
+              {
+                es: 'Un yate de crucero tipico (balandro) lleva dos velas: la mayor y el foque. En el diagrama cada barco muestra ambas: el triangulo a popa del mastil es la mayor, el triangulo a proa del mastil es el foque. En un barco real trabajan juntas, y hay DOS escotas (cabos de control).',
+                fr: 'Un yacht de croisiere typique (sloop) porte deux voiles: la grand-voile et le foc. Sur le diagramme chaque bateau montre les deux: le triangle en arriere du mat est la grand-voile, le triangle en avant du mat est le foc. Sur un vrai bateau elles travaillent ensemble, et il y a DEUX ecoutes (cordages de reglage).',
+                de: 'Eine typische Fahrtenyacht (Slup) fuehrt zwei Segel: Grossegel und Fock. Im Diagramm zeigt jedes Boot beide: das Dreieck achtern vom Mast ist das Grossegel, das Dreieck vor dem Mast ist die Fock. Auf einem echten Boot arbeiten sie zusammen, und es gibt ZWEI Schoten (Steuerleinen).',
+                it: 'Un tipico yacht da crociera (sloop) porta due vele: la randa e il fiocco. Nel diagramma ogni barca mostra entrambe: il triangolo a poppa dell\'albero e la randa, quello a prua dell\'albero e il fiocco. Su una barca vera lavorano insieme, e ci sono DUE scotte (cime di regolazione).',
+              },
             )}
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="rounded-lg p-4" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
               <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                {tp('Грот / Mainsail', 'Mainsail', 'Grot / Mainsail')}
+                {tp('Грот / Mainsail', 'Mainsail', 'Grot / Mainsail', {
+                  es: 'Vela mayor / Mainsail',
+                  fr: 'Grand-voile / Mainsail',
+                  de: 'Grossegel / Mainsail',
+                  it: 'Randa / Mainsail',
+                })}
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {tp(
                   'Большой парус за мачтой. Главный двигатель на всех курсах кроме чистого фордевинда. Управляется гика-шкотом. В сильный ветер рифится (уменьшается) первым.',
                   'Big sail aft of the mast. The main engine on every course except a dead run. Controlled by the mainsheet. In strong wind it gets reefed (reduced) first.',
                   'Duzy zagiel za masztem. Glowny naped na wszystkich kursach oprocz czystego fordewindu. Sterowany szotem grota. Przy silnym wietrze rifuje sie (zmniejsza) w pierwszej kolejnosci.',
+                  {
+                    es: 'Vela grande a popa del mastil. El motor principal en todos los rumbos salvo la empopada pura. Se controla con la escota de mayor. Con viento fuerte se riza (se reduce) primero.',
+                    fr: 'Grande voile en arriere du mat. Le moteur principal sur toutes les allures sauf le vent arriere pur. Reglee par l\'ecoute de grand-voile. Par vent fort on la prend en premier (on reduit).',
+                    de: 'Grosses Segel achtern vom Mast. Der Hauptantrieb auf allen Kursen ausser dem reinen Vor-dem-Wind. Wird ueber die Grossschot gesteuert. Bei starkem Wind wird es zuerst gerefft (verkleinert).',
+                    it: 'Vela grande a poppa dell\'albero. Il motore principale su tutte le andature tranne la poppa piena. Si controlla con la scotta della randa. Con vento forte si terzarola (si riduce) per prima.',
+                  },
                 )}
               </p>
             </div>
             <div className="rounded-lg p-4" style={{ background: 'rgba(255, 221, 68, 0.05)', border: '1px solid rgba(255, 221, 68, 0.15)' }}>
               <div className="text-sm font-semibold mb-1" style={{ color: '#ffdd44' }}>
-                {tp('Стаксель / Jib', 'Jib', 'Fok / Jib')}
+                {tp('Стаксель / Jib', 'Jib', 'Fok / Jib', {
+                  es: 'Foque / Jib',
+                  fr: 'Foc / Jib',
+                  de: 'Fock / Jib',
+                  it: 'Fiocco / Jib',
+                })}
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {tp(
                   'Треугольный парус перед мачтой. Ускоряет воздух перед гротом (эффект щели), даёт дополнительную тягу на острых курсах. У него свой шкот - шкотовый.',
                   'Triangular sail forward of the mast. Accelerates the airflow in front of the main (slot effect), adds drive on close courses. Has its own sheet - the jib sheet.',
                   'Trojkatny zagiel przed masztem. Przyspiesza powietrze przed grotem (efekt szczeliny), daje dodatkowy ciag na ostrym kursie. Ma wlasny szot - szot foka.',
+                  {
+                    es: 'Vela triangular a proa del mastil. Acelera el aire delante de la mayor (efecto de ranura), aporta empuje en los rumbos cenidos. Tiene su propia escota - la del foque.',
+                    fr: 'Voile triangulaire en avant du mat. Accelere l\'air devant la grand-voile (effet de fente), ajoute de la puissance aux allures pres. Il a sa propre ecoute - l\'ecoute de foc.',
+                    de: 'Dreieckiges Segel vor dem Mast. Beschleunigt die Luft vor dem Grossegel (Duesenwirkung), gibt zusaetzlichen Vortrieb auf hoch am Wind Kursen. Hat seine eigene Schot - die Fockschot.',
+                    it: 'Vela triangolare a prua dell\'albero. Accelera l\'aria davanti alla randa (effetto fessura), aggiunge spinta alle andature strette. Ha la sua scotta - quella del fiocco.',
+                  },
                 )}
               </p>
             </div>
@@ -871,45 +909,94 @@ export default function CoursesPage() {
 
           <div className="mt-5 rounded-lg p-4" style={{ background: 'rgba(255, 136, 68, 0.04)', border: '1px solid rgba(255, 136, 68, 0.12)' }}>
             <div className="text-sm font-semibold mb-1" style={{ color: '#ff8844' }}>
-              {tp('Эффект щели / Slot effect', 'Slot effect', 'Efekt szczeliny / Slot effect')}
+              {tp('Эффект щели / Slot effect', 'Slot effect', 'Efekt szczeliny / Slot effect', {
+                es: 'Efecto de ranura / Slot effect',
+                fr: 'Effet de fente / Slot effect',
+                de: 'Duesenwirkung / Slot effect',
+                it: 'Effetto fessura / Slot effect',
+              })}
             </div>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
               {tp(
                 'Когда стаксель и грот работают вместе, между ними образуется суживающаяся щель. Воздух в ней ускоряется и создаёт разрежение на подветренной стороне грота - парус тянет лучше, чем если бы стоял один. Именно поэтому на бейдевинде лодка со стакселем идёт заметно быстрее.',
                 'When jib and main work together, a narrowing slot forms between them. Air speeds up in it and creates low pressure on the leeward side of the main - the sail pulls harder than it would alone. That is why a boat with a jib sails noticeably faster close-hauled.',
                 'Gdy fok i grot pracuja razem, miedzy nimi powstaje zwezajaca sie szczelina. Powietrze w niej przyspiesza i tworzy podcisnienie po zawietrznej stronie grota - zagiel ciagnie lepiej niz samodzielnie. Dlatego na bajdewindzie jacht z fokiem plynie zauwazalnie szybciej.',
+                {
+                  es: 'Cuando el foque y la mayor trabajan juntos, entre ellos se forma una ranura que se estrecha. El aire se acelera alli y crea una baja presion en la cara de sotavento de la mayor - la vela tira mas que si estuviera sola. Por eso, en cenida un barco con foque navega notablemente mas rapido.',
+                  fr: 'Quand le foc et la grand-voile travaillent ensemble, une fente qui se retrecit se forme entre eux. L\'air y accelere et cree une depression sur la face sous le vent de la grand-voile - la voile tire plus fort que seule. C\'est pourquoi au pres un bateau avec foc avance nettement plus vite.',
+                  de: 'Wenn Fock und Grossegel zusammenarbeiten, bildet sich zwischen ihnen ein sich verengender Spalt. Die Luft beschleunigt darin und erzeugt Unterdruck auf der Leeseite des Grossegels - das Segel zieht staerker als allein. Deshalb segelt ein Boot mit Fock am Wind spuerbar schneller.',
+                  it: 'Quando fiocco e randa lavorano insieme, tra loro si forma una fessura che si restringe. L\'aria vi accelera e crea una depressione sul lato sottovento della randa - la vela tira piu che da sola. Ecco perche di bolina una barca con fiocco naviga sensibilmente piu veloce.',
+                },
               )}
             </p>
           </div>
 
           <div className="mt-5">
             <h3 className="text-base font-semibold mb-2 text-[var(--text-primary)]">
-              {tp('А что ещё бывает?', 'What else is there?', 'A co jeszcze?')}
+              {tp('А что ещё бывает?', 'What else is there?', 'A co jeszcze?', {
+                es: 'Que mas hay?',
+                fr: 'Quoi d\'autre?',
+                de: 'Was gibt es noch?',
+                it: 'Cos\'altro c\'e?',
+              })}
               {lang !== 'en' && <span className="text-xs font-normal text-[var(--text-muted)] ml-2">What else is there?</span>}
             </h3>
             <div className="space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">{tp('Генуя (genoa)', 'Genoa', 'Genua')} </span>
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Генуя (genoa)', 'Genoa', 'Genua', {
+                  es: 'Genoa',
+                  fr: 'Genois',
+                  de: 'Genua',
+                  it: 'Genoa',
+                })} </span>
                 {tp(
                   '- большой стаксель, чей задний край заходит за мачту. Даёт заметно больше тяги на бейдевинде и галфвинде, но сложнее в работе при поворотах.',
                   '- a large jib whose trailing edge overlaps the mast. Gives noticeably more drive on close-hauled and beam reach, but is harder to handle through tacks.',
                   '- duzy fok, ktorego tylna krawedz wchodzi za maszt. Daje wyraznie wiecej ciagu na bajdewindzie i polwiatrze, ale trudniejszy w obsludze przy zwrotach.',
+                  {
+                    es: '- un foque grande cuyo puno de escota solapa el mastil. Da bastante mas empuje en cenida y traves, pero es mas dificil de manejar en las viradas.',
+                    fr: '- un grand foc dont le bord de fuite recouvre le mat. Donne nettement plus de puissance au pres et au travers, mais plus difficile a manoeuvrer dans les virements.',
+                    de: '- eine grosse Fock, deren Achterliek den Mast ueberlappt. Gibt spuerbar mehr Vortrieb am Wind und auf halbem Wind, ist aber bei Wenden schwieriger zu handhaben.',
+                    it: '- un fiocco grande la cui balumina supera l\'albero. Da molta piu spinta di bolina e al traverso, ma e piu difficile da gestire nelle virate.',
+                  },
                 )}
               </p>
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">{tp('Геннакер (gennaker)', 'Gennaker', 'Gennaker')} </span>
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Геннакер (gennaker)', 'Gennaker', 'Gennaker', {
+                  es: 'Gennaker',
+                  fr: 'Gennaker',
+                  de: 'Gennaker',
+                  it: 'Gennaker',
+                })} </span>
                 {tp(
                   '- асимметричный лёгкий парус для попутных курсов (бакштаг, фордевинд). Ставится вместо стакселя, надувается как шар. Проще спинакера, не требует спинакер-гика.',
                   '- asymmetric light sail for downwind courses (broad reach, running). Set in place of the jib, inflates like a balloon. Simpler than a spinnaker, no spinnaker pole needed.',
                   '- asymetryczny lekki zagiel na kursy pelne (baksztag, fordewind). Stawia sie zamiast foka, napelnia sie jak balon. Prostszy niz spinaker, nie wymaga bomu spinakerowego.',
+                  {
+                    es: '- vela ligera asimetrica para rumbos portantes (largo, empopada). Se iza en lugar del foque, se infla como un globo. Mas sencilla que el spinnaker, no necesita tangon.',
+                    fr: '- voile legere asymetrique pour les allures portantes (grand largue, vent arriere). Etablie a la place du foc, elle se gonfle comme un ballon. Plus simple qu\'un spi, sans tangon.',
+                    de: '- asymmetrisches Leichtwindsegel fuer Vorwindkurse (Raumschots, Vor-dem-Wind). Wird statt der Fock gesetzt, blaeht sich wie ein Ballon. Einfacher als ein Spinnaker, ohne Spinnakerbaum.',
+                    it: '- vela leggera asimmetrica per andature portanti (lasco, poppa). Si issa al posto del fiocco, si gonfia come un pallone. Piu semplice dello spinnaker, non serve il tangone.',
+                  },
                 )}
               </p>
               <p>
-                <span className="font-semibold text-[var(--text-primary)]">{tp('Спинакер (spinnaker)', 'Spinnaker', 'Spinaker')} </span>
+                <span className="font-semibold text-[var(--text-primary)]">{tp('Спинакер (spinnaker)', 'Spinnaker', 'Spinaker', {
+                  es: 'Spinnaker',
+                  fr: 'Spinnaker',
+                  de: 'Spinnaker',
+                  it: 'Spinnaker',
+                })} </span>
                 {tp(
                   '- симметричный пузатый парус только для чистого фордевинда. Требует отдельного гика и навыка. На круизёрах встречается редко.',
                   '- symmetric balloon sail only for a dead run. Needs a dedicated spinnaker pole and practice. Rare on cruisers.',
                   '- symetryczny baniasty zagiel tylko na czysty fordewind. Wymaga oddzielnego bomu spinakerowego i umiejetnosci. Rzadko spotykany na jachtach turystycznych.',
+                  {
+                    es: '- vela simetrica y abombada solo para la empopada pura. Necesita un tangon propio y practica. Poco frecuente en barcos de crucero.',
+                    fr: '- voile symetrique et ballonnee uniquement pour le vent arriere pur. Necessite un tangon dedie et de la pratique. Rare sur les bateaux de croisiere.',
+                    de: '- symmetrisches, bauchiges Segel nur fuer den reinen Vor-dem-Wind-Kurs. Braucht einen eigenen Spinnakerbaum und Uebung. Auf Fahrtenbooten selten.',
+                    it: '- vela simmetrica e panciuta solo per la poppa piena. Richiede un tangone dedicato e pratica. Rara sulle barche da crociera.',
+                  },
                 )}
               </p>
               <p className="text-[var(--text-muted)] pt-1">
@@ -917,6 +1004,12 @@ export default function CoursesPage() {
                   'В симуляторе показаны только грот + стаксель - базовая конфигурация слупа. Остальные паруса - для продвинутых гонок.',
                   'The simulator shows only main + jib - the basic sloop configuration. The other sails belong to advanced racing.',
                   'W symulatorze pokazano tylko grot + fok - podstawowa konfiguracja slupa. Pozostale zagle to juz zaawansowane regaty.',
+                  {
+                    es: 'El simulador muestra solo mayor + foque - la configuracion basica del balandro. Las demas velas son para regatas avanzadas.',
+                    fr: 'Le simulateur ne montre que grand-voile + foc - la configuration de base du sloop. Les autres voiles relevent de la regate avancee.',
+                    de: 'Der Simulator zeigt nur Grossegel + Fock - die Grundkonfiguration der Slup. Die anderen Segel gehoeren zum fortgeschrittenen Regattasport.',
+                    it: 'Il simulatore mostra solo randa + fiocco - la configurazione base dello sloop. Le altre vele sono per le regate avanzate.',
+                  },
                 )}
               </p>
             </div>

@@ -329,7 +329,12 @@ export default function GalleryPage() {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
           <div className="card p-12 text-center">
             <p className="text-[var(--text-muted)]">
-              {tp('Пока пусто, скоро будет материал.', 'Empty for now, content coming soon.', 'Jeszcze pusto, zawartosc wkrotce.')}
+              {tp('Пока пусто, скоро будет материал.', 'Empty for now, content coming soon.', 'Jeszcze pusto, zawartosc wkrotce.', {
+                es: 'Vacio por ahora, pronto habra contenido.',
+                fr: 'Vide pour le moment, du contenu arrive bientot.',
+                de: 'Noch leer, Inhalte kommen bald.',
+                it: 'Vuoto per ora, contenuti in arrivo.',
+              })}
             </p>
           </div>
         </section>

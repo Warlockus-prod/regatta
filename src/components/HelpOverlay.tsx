@@ -189,8 +189,10 @@ export default function HelpOverlay() {
 
   if (!open) return null;
 
-  const title = tp('Горячие клавиши', 'Keyboard shortcuts', 'Skroty klawiszowe');
-  const closeLabel = tp('Закрыть', 'Close', 'Zamknij');
+  const title = tp('Горячие клавиши', 'Keyboard shortcuts', 'Skroty klawiszowe',
+    { es: 'Atajos de teclado', fr: 'Raccourcis clavier', de: 'Tastenkuerzel', it: 'Scorciatoie da tastiera' });
+  const closeLabel = tp('Закрыть', 'Close', 'Zamknij',
+    { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' });
 
   return (
     <div

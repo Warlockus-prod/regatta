@@ -70,7 +70,8 @@ function RaceCourseDiagram() {
   return (
     <div className="card p-6">
       <h2 className="text-xl font-bold mb-1">
-        {tp('Дистанция гонки', 'Race Course', 'Trasa wyscigu')}
+        {tp('Дистанция гонки', 'Race Course', 'Trasa wyscigu',
+          { es: 'Recorrido de regata', fr: 'Parcours de course', de: 'Regattabahn', it: 'Percorso di regata' })}
         {lang !== 'en' && <span className="text-[var(--text-muted)] font-normal text-sm"> (Race Course)</span>}
       </h2>
       <p className="text-sm text-[var(--text-secondary)] mb-5">
@@ -78,6 +79,12 @@ function RaceCourseDiagram() {
           'Типичная дистанция «туда-обратно» (windward-leeward) с верхним и нижним знаками.',
           'Typical windward-leeward course with a top mark and a bottom gate.',
           'Typowa trasa "tam i z powrotem" (windward-leeward) ze znakiem gornym i dolnym.',
+          {
+            es: 'Recorrido tipico barlovento-sotavento con una boya superior y una puerta inferior.',
+            fr: 'Parcours au vent-sous le vent typique avec une bouee superieure et une porte inferieure.',
+            de: 'Typische Luv-Lee-Bahn mit einer oberen Tonne und einem unteren Tor.',
+            it: 'Percorso tipico bolina-poppa con una boa superiore e una porta inferiore.',
+          },
         )}
       </p>
 
@@ -89,7 +96,8 @@ function RaceCourseDiagram() {
           {/* Wind indication at top */}
           <g>
             <text x="180" y="24" fill="#00e5ff" fontSize="12" fontWeight="700" textAnchor="middle" letterSpacing="1">
-              {tp('ВЕТЕР / WIND', 'WIND', 'WIATR / WIND')}
+              {tp('ВЕТЕР / WIND', 'WIND', 'WIATR / WIND',
+                { es: 'VIENTO / WIND', fr: 'VENT / WIND', de: 'WIND', it: 'VENTO / WIND' })}
             </text>
             {/* Multiple wind arrows */}
             <WindArrow x={100} y={52} />
@@ -103,16 +111,20 @@ function RaceCourseDiagram() {
           <line x1="180" y1="110" x2="180" y2="440" stroke="#1a3a5c" strokeWidth="1" strokeDasharray="6,6" />
 
           {/* Windward mark */}
-          <BuoyMark cx={180} cy={110} label={tp('Верхний знак', 'Windward', 'Gorny znak')} sublabel="(Windward Mark)" />
+          <BuoyMark cx={180} cy={110} label={tp('Верхний знак', 'Windward', 'Gorny znak',
+            { es: 'Barlovento', fr: 'Au vent', de: 'Luv', it: 'Sopravento' })} sublabel="(Windward Mark)" />
 
           {/* Leeward gate marks */}
-          <BuoyMark cx={140} cy={440} label={tp('Знак Л', 'Gate L', 'Znak L')} sublabel="(Gate L)" labelPos="left" />
-          <BuoyMark cx={220} cy={440} label={tp('Знак П', 'Gate R', 'Znak R')} sublabel="(Gate R)" labelPos="right" />
+          <BuoyMark cx={140} cy={440} label={tp('Знак Л', 'Gate L', 'Znak L',
+            { es: 'Puerta I', fr: 'Porte G', de: 'Tor L', it: 'Porta S' })} sublabel="(Gate L)" labelPos="left" />
+          <BuoyMark cx={220} cy={440} label={tp('Знак П', 'Gate R', 'Znak R',
+            { es: 'Puerta D', fr: 'Porte D', de: 'Tor R', it: 'Porta D' })} sublabel="(Gate R)" labelPos="right" />
 
           {/* Gate line */}
           <line x1="140" y1="440" x2="220" y2="440" stroke="#ffaa00" strokeWidth="1" strokeDasharray="4,3" opacity="0.5" />
           <text x="180" y="465" fill="#8ba7b8" fontSize="9" textAnchor="middle">
-            {tp('Нижние знаки / Leeward Gate', 'Leeward Gate', 'Dolne znaki / Leeward Gate')}
+            {tp('Нижние знаки / Leeward Gate', 'Leeward Gate', 'Dolne znaki / Leeward Gate',
+              { es: 'Puerta de sotavento', fr: 'Porte sous le vent', de: 'Leetor', it: 'Porta di poppa' })}
           </text>
 
           {/* --- Upwind leg (tacking pattern) --- */}
@@ -175,15 +187,19 @@ function RaceCourseDiagram() {
           {/* Laylines from windward mark */}
           <line x1="180" y1="110" x2="80" y2="280" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,5" opacity="0.35" />
           <line x1="180" y1="110" x2="280" y2="280" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,5" opacity="0.35" />
-          <text x="68" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline')}</text>
-          <text x="255" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline')}</text>
+          <text x="68" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline',
+            { es: 'Layline', fr: 'Layline', de: 'Layline', it: 'Layline' })}</text>
+          <text x="255" y="265" fill="#ff4444" fontSize="9" opacity="0.5">{tp('Лейлайн', 'Layline', 'Layline',
+            { es: 'Layline', fr: 'Layline', de: 'Layline', it: 'Layline' })}</text>
 
           {/* Legend */}
           <g transform="translate(16, 475)">
             <line x1="0" y1="5" x2="20" y2="5" stroke="#00d4ff" strokeWidth="1.5" strokeDasharray="6,4" />
-            <text x="26" y="9" fill="#8ba7b8" fontSize="9">{tp('Лавировка (Upwind)', 'Upwind', 'Halsowanie (Upwind)')}</text>
+            <text x="26" y="9" fill="#8ba7b8" fontSize="9">{tp('Лавировка (Upwind)', 'Upwind', 'Halsowanie (Upwind)',
+              { es: 'Cenida (Upwind)', fr: 'Pres (Upwind)', de: 'Am Wind (Upwind)', it: 'Bolina (Upwind)' })}</text>
             <line x1="140" y1="5" x2="160" y2="5" stroke="#44ff88" strokeWidth="1.5" strokeDasharray="6,4" />
-            <text x="166" y="9" fill="#8ba7b8" fontSize="9">{tp('Полный курс (Downwind)', 'Downwind', 'Kurs pelny (Downwind)')}</text>
+            <text x="166" y="9" fill="#8ba7b8" fontSize="9">{tp('Полный курс (Downwind)', 'Downwind', 'Kurs pelny (Downwind)',
+              { es: 'Empopada (Downwind)', fr: 'Portant (Downwind)', de: 'Vor dem Wind (Downwind)', it: 'Poppa (Downwind)' })}</text>
           </g>
 
           {/* Subtle pulse on marks */}
@@ -206,7 +222,7 @@ function UpwindDiagram() {
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Upwind tacking strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR', { es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO' })}</text>
       <line x1="90" y1="18" x2="90" y2="32" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       <line x1="110" y1="18" x2="110" y2="32" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Target point */}
@@ -230,7 +246,7 @@ function DownwindDiagram() {
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Downwind VMG strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR', { es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO' })}</text>
       <line x1="100" y1="18" x2="100" y2="30" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Dead run line (slow) */}
       <line x1="100" y1="35" x2="100" y2="115" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,3" opacity="0.5" />
@@ -254,13 +270,14 @@ function StartDiagram() {
   return (
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Start line strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
-      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR')}</text>
+      <text x="100" y="14" fill="#00e5ff" fontSize="9" textAnchor="middle" fontWeight="600">{tp('ВЕТЕР', 'WIND', 'WIATR', { es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO' })}</text>
       <line x1="100" y1="18" x2="100" y2="30" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.6" />
       {/* Start line */}
       <line x1="30" y1="85" x2="170" y2="85" stroke="#ffaa00" strokeWidth="2" />
       <circle cx="30" cy="85" r="5" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
       <circle cx="170" cy="85" r="5" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
-      <text x="100" y="100" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Стартовая линия', 'Start line', 'Linia startu')}</text>
+      <text x="100" y="100" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Стартовая линия', 'Start line', 'Linia startu',
+        { es: 'Linea de salida', fr: 'Ligne de depart', de: 'Startlinie', it: 'Linea di partenza' })}</text>
       {/* Committee boat */}
       <rect x="163" y="77" width="14" height="8" rx="2" fill="#8ba7b8" opacity="0.6" />
       {/* Boats approaching */}
@@ -272,8 +289,10 @@ function StartDiagram() {
       <path d="M90,111 L93,90" fill="none" stroke="#44ff88" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       <path d="M130,104 L128,90" fill="none" stroke="#fff" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       {/* Favored end indicator */}
-      <text x="28" y="75" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('Выгодный', 'Favored', 'Korzystny')}</text>
-      <text x="28" y="82" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('конец', 'end', 'koniec')}</text>
+      <text x="28" y="75" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('Выгодный', 'Favored', 'Korzystny',
+        { es: 'Favorecido', fr: 'Favorable', de: 'Bevorzugt', it: 'Favorito' })}</text>
+      <text x="28" y="82" fill="#44ff88" fontSize="7" textAnchor="middle">{tp('конец', 'end', 'koniec',
+        { es: 'extremo', fr: 'bout', de: 'Ende', it: 'estremo' })}</text>
     </svg>
   );
 }
@@ -284,22 +303,29 @@ function MarkRoundingDiagram() {
     <svg viewBox="0 0 200 130" className="w-full h-auto" aria-label="Mark rounding strategy">
       <rect width="200" height="130" rx="8" fill="#0d2847" />
       <circle cx="100" cy="50" r="8" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
-      <text x="100" y="30" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Знак', 'Mark', 'Znak')}</text>
+      <text x="100" y="30" fill="#ffaa00" fontSize="8" textAnchor="middle">{tp('Знак', 'Mark', 'Znak',
+        { es: 'Boya', fr: 'Bouee', de: 'Tonne', it: 'Boa' })}</text>
       <circle cx="100" cy="50" r="35" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="3,3" opacity="0.3" />
-      <text x="140" y="48" fill="#ffaa00" fontSize="7" opacity="0.5">{tp('3 корпуса', '3 hull-lengths', '3 dlugosci kadluba')}</text>
+      <text x="140" y="48" fill="#ffaa00" fontSize="7" opacity="0.5">{tp('3 корпуса', '3 hull-lengths', '3 dlugosci kadluba',
+        { es: '3 esloras', fr: '3 longueurs de coque', de: '3 Rumpflaengen', it: '3 lunghezze di scafo' })}</text>
       <path
         d="M60,115 Q55,80 80,55 Q95,42 110,50 Q120,58 115,75"
         fill="none" stroke="#44ff88" strokeWidth="2" strokeDasharray="5,3"
       />
-      <text x="38" y="105" fill="#44ff88" fontSize="7">{tp('Широкий', 'Wide', 'Szeroki')}</text>
-      <text x="38" y="113" fill="#44ff88" fontSize="7">{tp('подход', 'approach', 'podejscie')}</text>
-      <text x="120" y="72" fill="#44ff88" fontSize="7">{tp('Узкий', 'Tight', 'Waski')}</text>
-      <text x="120" y="80" fill="#44ff88" fontSize="7">{tp('выход', 'exit', 'wyjscie')}</text>
+      <text x="38" y="105" fill="#44ff88" fontSize="7">{tp('Широкий', 'Wide', 'Szeroki',
+        { es: 'Amplio', fr: 'Large', de: 'Weit', it: 'Ampio' })}</text>
+      <text x="38" y="113" fill="#44ff88" fontSize="7">{tp('подход', 'approach', 'podejscie',
+        { es: 'aproximacion', fr: 'approche', de: 'Anfahrt', it: 'avvicinamento' })}</text>
+      <text x="120" y="72" fill="#44ff88" fontSize="7">{tp('Узкий', 'Tight', 'Waski',
+        { es: 'Cerrado', fr: 'Serre', de: 'Eng', it: 'Stretto' })}</text>
+      <text x="120" y="80" fill="#44ff88" fontSize="7">{tp('выход', 'exit', 'wyjscie',
+        { es: 'salida', fr: 'sortie', de: 'Ausfahrt', it: 'uscita' })}</text>
       <path
         d="M85,115 Q92,80 96,58"
         fill="none" stroke="#ff4444" strokeWidth="1" strokeDasharray="3,3" opacity="0.5"
       />
-      <text x="88" y="96" fill="#ff4444" fontSize="7" opacity="0.6">{tp('Плохо', 'Bad', 'Zle')}</text>
+      <text x="88" y="96" fill="#ff4444" fontSize="7" opacity="0.6">{tp('Плохо', 'Bad', 'Zle',
+        { es: 'Mal', fr: 'Mauvais', de: 'Schlecht', it: 'Male' })}</text>
       {/* Yacht */}
       <YachtIcon x={65} y={100} rotation={-50} color="#44ff88" />
     </svg>
@@ -406,9 +432,11 @@ function StarboardPortDiagram() {
       <rect width="160" height="100" rx="6" fill="#0d2847" />
       {/* Starboard tack boat (right of way) */}
       <YachtIcon x={55} y={65} rotation={-40} color="#44ff88" />
-      <text x="35" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Правый галс', 'Starboard', 'Prawy hals')}</text>
+      <text x="35" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Правый галс', 'Starboard', 'Prawy hals',
+        { es: 'Amura estribor', fr: 'Tribord amures', de: 'Steuerbordbug', it: 'Mure a dritta' })}</text>
       <YachtIcon x={105} y={55} rotation={220} color="#ff4444" />
-      <text x="90" y="82" fill="#ff4444" fontSize="7">{tp('Левый галс', 'Port', 'Lewy hals')}</text>
+      <text x="90" y="82" fill="#ff4444" fontSize="7">{tp('Левый галс', 'Port', 'Lewy hals',
+        { es: 'Amura babor', fr: 'Babord amures', de: 'Backbordbug', it: 'Mure a sinistra' })}</text>
       {/* Collision paths */}
       <line x1="60" y1="60" x2="80" y2="48" stroke="#44ff88" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
       <line x1="100" y1="50" x2="80" y2="48" stroke="#ff4444" strokeWidth="0.8" strokeDasharray="2,2" opacity="0.5" />
@@ -429,9 +457,11 @@ function LeewardWindwardDiagram() {
       <line x1="15" y1="20" x2="40" y2="20" stroke="#00e5ff" strokeWidth="1" markerEnd="url(#windHead)" opacity="0.5" />
       <text x="28" y="15" fill="#00e5ff" fontSize="7" textAnchor="middle">Wind</text>
       <YachtIcon x={90} y={60} rotation={-30} color="#44ff88" />
-      <text x="80" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Подветренная', 'Leeward', 'Zawietrzny')}</text>
+      <text x="80" y="82" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Подветренная', 'Leeward', 'Zawietrzny',
+        { es: 'Sotavento', fr: 'Sous le vent', de: 'Lee', it: 'Sottovento' })}</text>
       <YachtIcon x={60} y={45} rotation={-30} color="#ff4444" />
-      <text x="42" y="35" fill="#ff4444" fontSize="7">{tp('Наветренная', 'Windward', 'Nawietrzny')}</text>
+      <text x="42" y="35" fill="#ff4444" fontSize="7">{tp('Наветренная', 'Windward', 'Nawietrzny',
+        { es: 'Barlovento', fr: 'Au vent', de: 'Luv', it: 'Sopravento' })}</text>
       {/* Wind direction arrows between boats */}
       <line x1="30" y1="50" x2="50" y2="50" stroke="#00e5ff" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
     </svg>
@@ -444,11 +474,14 @@ function OvertakingDiagram() {
     <svg viewBox="0 0 160 100" className="w-full h-auto" aria-label="Overtaking boat keeps clear rule">
       <rect width="160" height="100" rx="6" fill="#0d2847" />
       <YachtIcon x={80} y={35} rotation={0} color="#44ff88" />
-      <text x="92" y="38" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Впереди', 'Ahead', 'Z przodu')}</text>
+      <text x="92" y="38" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Впереди', 'Ahead', 'Z przodu',
+        { es: 'Delante', fr: 'Devant', de: 'Voraus', it: 'Davanti' })}</text>
       <YachtIcon x={80} y={70} rotation={-10} color="#ff4444" />
-      <text x="92" y="73" fill="#ff4444" fontSize="7">{tp('Обгоняющая', 'Overtaking', 'Wyprzedzajaca')}</text>
+      <text x="92" y="73" fill="#ff4444" fontSize="7">{tp('Обгоняющая', 'Overtaking', 'Wyprzedzajaca',
+        { es: 'Que alcanza', fr: 'Qui rattrape', de: 'Ueberholend', it: 'Che raggiunge' })}</text>
       <line x1="80" y1="82" x2="80" y2="22" stroke="#8ba7b8" strokeWidth="0.8" strokeDasharray="3,3" opacity="0.3" />
-      <text x="100" y="90" fill="#8ba7b8" fontSize="7" opacity="0.5">{tp('Направление', 'Direction', 'Kierunek')}</text>
+      <text x="100" y="90" fill="#8ba7b8" fontSize="7" opacity="0.5">{tp('Направление', 'Direction', 'Kierunek',
+        { es: 'Direccion', fr: 'Direction', de: 'Richtung', it: 'Direzione' })}</text>
     </svg>
   );
 }
@@ -460,12 +493,16 @@ function MarkRoomDiagram() {
       <rect width="160" height="100" rx="6" fill="#0d2847" />
       <circle cx="80" cy="30" r="6" fill="#ffaa00" stroke="#fff" strokeWidth="1" />
       <circle cx="80" cy="30" r="30" fill="none" stroke="#ffaa00" strokeWidth="0.8" strokeDasharray="3,2" opacity="0.35" />
-      <text x="115" y="28" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('Зона', 'Zone', 'Strefa')}</text>
-      <text x="115" y="35" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('3 корп.', '3 hulls', '3 kadluby')}</text>
+      <text x="115" y="28" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('Зона', 'Zone', 'Strefa',
+        { es: 'Zona', fr: 'Zone', de: 'Zone', it: 'Zona' })}</text>
+      <text x="115" y="35" fill="#ffaa00" fontSize="6" opacity="0.6">{tp('3 корп.', '3 hulls', '3 kadluby',
+        { es: '3 esloras', fr: '3 coques', de: '3 Rumpfe', it: '3 scafi' })}</text>
       <YachtIcon x={65} y={60} rotation={-40} color="#44ff88" />
-      <text x="42" y="78" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Внутренняя', 'Inside', 'Wewnetrzny')}</text>
+      <text x="42" y="78" fill="#44ff88" fontSize="7" fontWeight="600">{tp('Внутренняя', 'Inside', 'Wewnetrzny',
+        { es: 'Interior', fr: 'Interieur', de: 'Innen', it: 'Interno' })}</text>
       <YachtIcon x={95} y={65} rotation={-35} color="#ff4444" />
-      <text x="95" y="85" fill="#ff4444" fontSize="7">{tp('Внешняя', 'Outside', 'Zewnetrzny')}</text>
+      <text x="95" y="85" fill="#ff4444" fontSize="7">{tp('Внешняя', 'Outside', 'Zewnetrzny',
+        { es: 'Exterior', fr: 'Exterieur', de: 'Aussen', it: 'Esterno' })}</text>
     </svg>
   );
 }
@@ -564,7 +601,8 @@ function ClearAirDiagram() {
       <path d="M55,45 L45,85 L85,85 Z" fill="#ff4444" opacity="0.08" />
       <path d="M55,45 L45,85" stroke="#ff4444" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
       <path d="M55,45 L85,85" stroke="#ff4444" strokeWidth="0.6" strokeDasharray="2,2" opacity="0.3" />
-      <text x="55" y="83" fill="#ff4444" fontSize="7" opacity="0.7" textAnchor="middle">{tp('Тень', 'Shadow', 'Cien')}</text>
+      <text x="55" y="83" fill="#ff4444" fontSize="7" opacity="0.7" textAnchor="middle">{tp('Тень', 'Shadow', 'Cien',
+        { es: 'Sombra', fr: 'Ombre', de: 'Schatten', it: 'Ombra' })}</text>
     </svg>
   );
 }
@@ -588,7 +626,8 @@ function WindShadowDiagram() {
       {[55, 70, 85].map((x) => (
         <line key={x} x1={x} y1="55" x2={x} y2="62" stroke="#5a7a8a" strokeWidth="0.6" strokeDasharray="1,2" opacity="0.4" />
       ))}
-      <text x="70" y="80" fill="#5a7a8a" fontSize="8" textAnchor="middle">{tp('Ветровая тень', 'Wind shadow', 'Cien wiatru')}</text>
+      <text x="70" y="80" fill="#5a7a8a" fontSize="8" textAnchor="middle">{tp('Ветровая тень', 'Wind shadow', 'Cien wiatru',
+        { es: 'Sombra de viento', fr: 'Ombre de vent', de: 'Windschatten', it: 'Ombra di vento' })}</text>
       <text x="70" y="88" fill="#5a7a8a" fontSize="6" textAnchor="middle">(Wind Shadow)</text>
     </svg>
   );
@@ -686,7 +725,8 @@ export default function RacingPage() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 pt-10 pb-6">
         <h1 className="text-3xl sm:text-4xl font-bold tracking-tight mb-2"
             style={{ background: 'linear-gradient(135deg, var(--text-primary), var(--warning))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          {tp('Гоночные стратегии', 'Racing Strategy', 'Strategie regatowe')}
+          {tp('Гоночные стратегии', 'Racing Strategy', 'Strategie regatowe',
+            { es: 'Estrategia de regata', fr: 'Strategie de course', de: 'Regattastrategie', it: 'Strategia di regata' })}
         </h1>
         {lang !== 'en' && <p className="text-sm text-[var(--text-muted)] mb-3">Racing Strategy</p>}
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-3xl">
@@ -694,6 +734,12 @@ export default function RacingPage() {
             'Всё о тактике парусных гонок: дистанция, стратегии лавировки и полных курсов, правила расхождения и ключевые гоночные понятия.',
             'Everything about sailing race tactics: the course, upwind and downwind strategies, right-of-way rules, and key racing concepts.',
             'Wszystko o taktyce regat zeglarskich: trasa, strategie halsowania i kursow pelnych, przepisy drogowe i kluczowe pojecia regatowe.',
+            {
+              es: 'Todo sobre la tactica de regata a vela: el recorrido, estrategias de cenida y empopada, reglas de paso y conceptos clave de regata.',
+              fr: 'Tout sur la tactique de course a la voile : le parcours, les strategies au pres et au portant, les regles de priorite et les concepts cles de course.',
+              de: 'Alles zur Taktik im Segelsport: die Bahn, Am-Wind- und Vor-dem-Wind-Strategien, Vorfahrtsregeln und zentrale Regattabegriffe.',
+              it: 'Tutto sulla tattica di regata a vela: il percorso, le strategie di bolina e di poppa, le regole di precedenza e i concetti chiave di regata.',
+            },
           )}
         </p>
       </section>
@@ -713,7 +759,8 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">{tp('Стратегии', 'Strategies', 'Strategie')}</h2>
+            <h2 className="text-xl font-bold">{tp('Стратегии', 'Strategies', 'Strategie',
+              { es: 'Estrategias', fr: 'Strategies', de: 'Strategien', it: 'Strategie' })}</h2>
             {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Racing Strategies</p>}
           </div>
         </div>
@@ -735,7 +782,8 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">{tp('Правила расхождения', 'Right of Way Rules', 'Przepisy drogowe')}</h2>
+            <h2 className="text-xl font-bold">{tp('Правила расхождения', 'Right of Way Rules', 'Przepisy drogowe',
+              { es: 'Reglas de paso', fr: 'Regles de priorite', de: 'Vorfahrtsregeln', it: 'Regole di precedenza' })}</h2>
             {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Right of Way Rules</p>}
           </div>
         </div>
@@ -780,7 +828,8 @@ export default function RacingPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-bold">{tp('Ключевые понятия', 'Key Concepts', 'Kluczowe pojecia')}</h2>
+            <h2 className="text-xl font-bold">{tp('Ключевые понятия', 'Key Concepts', 'Kluczowe pojecia',
+              { es: 'Conceptos clave', fr: 'Concepts cles', de: 'Zentrale Begriffe', it: 'Concetti chiave' })}</h2>
             {lang !== 'en' && <p className="text-xs text-[var(--text-muted)]">Key Concepts</p>}
           </div>
         </div>
