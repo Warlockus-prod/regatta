@@ -156,6 +156,7 @@ export default function GalleryPage() {
   const { tp, lang } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [likes, setLikes] = useState<Record<string, LikeState>>({});
+  const [likedOnly, setLikedOnly] = useState(false);
   const inFlight = useRef<Set<string>>(new Set());
 
   const groups = useMemo(() => groupByBadge(galleryItems), []);
@@ -221,6 +222,23 @@ export default function GalleryPage() {
   }, []);
 
   const active = activeId ? galleryItems.find((i) => i.id === activeId) ?? null : null;
+  const likedCount = useMemo(
+    () => Object.values(likes).filter((l) => l.liked).length,
+    [likes],
+  );
+
+  // Deep-link: open a photo from ?photo=<id> on first load, and keep the URL
+  // in sync as the lightbox opens/closes so a photo can be shared directly.
+  useEffect(() => {
+    const id = new URLSearchParams(window.location.search).get('photo');
+    if (id && galleryItems.some((i) => i.id === id)) setActiveId(id);
+  }, []);
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    if (activeId) url.searchParams.set('photo', activeId);
+    else url.searchParams.delete('photo');
+    window.history.replaceState(null, '', url.toString());
+  }, [activeId]);
 
   // Close on Escape, navigate with arrows
   useEffect(() => {
@@ -267,6 +285,21 @@ export default function GalleryPage() {
             },
           )}
         </p>
+        {likedCount > 0 && (
+          <button
+            onClick={() => setLikedOnly((v) => !v)}
+            aria-pressed={likedOnly}
+            className="mt-3 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition"
+            style={{
+              background: likedOnly ? 'rgba(255, 80, 100, 0.85)' : 'var(--hover-bg)',
+              color: likedOnly ? '#ffffff' : 'var(--text-secondary)',
+              border: `1px solid ${likedOnly ? 'rgba(255, 80, 100, 0.95)' : 'var(--border-subtle)'}`,
+            }}
+          >
+            {'♥'} {tp('Понравившиеся', 'Liked', 'Polubione',
+              { es: 'Favoritas', fr: 'Aimees', de: 'Gemerkt', it: 'Preferite' })} ({likedCount})
+          </button>
+        )}
       </section>
 
       {/* Collage strip: the 14 cutouts glued edge-to-edge in order (1..14),
@@ -303,15 +336,18 @@ export default function GalleryPage() {
       ) : (
         sortedKeys.map((key) => {
           const meta = albumMeta[key];
+          const items = likedOnly ? groups[key].filter((it) => likes[it.id]?.liked) : groups[key];
+          if (items.length === 0) return null;
+          const n = items.length;
           const countText = tp(
-            `${groups[key].length} ${pluralRu(groups[key].length, 'файл', 'файла', 'файлов')}`,
-            `${groups[key].length} ${groups[key].length === 1 ? 'item' : 'items'}`,
-            `${groups[key].length} ${pluralPl(groups[key].length)}`,
+            `${n} ${pluralRu(n, 'файл', 'файла', 'файлов')}`,
+            `${n} ${n === 1 ? 'item' : 'items'}`,
+            `${n} ${pluralPl(n)}`,
             {
-              es: `${groups[key].length} ${groups[key].length === 1 ? 'archivo' : 'archivos'}`,
-              fr: `${groups[key].length} ${groups[key].length === 1 ? 'fichier' : 'fichiers'}`,
-              de: `${groups[key].length} ${groups[key].length === 1 ? 'Datei' : 'Dateien'}`,
-              it: `${groups[key].length} ${groups[key].length === 1 ? 'file' : 'file'}`,
+              es: `${n} ${n === 1 ? 'archivo' : 'archivos'}`,
+              fr: `${n} ${n === 1 ? 'fichier' : 'fichiers'}`,
+              de: `${n} ${n === 1 ? 'Datei' : 'Dateien'}`,
+              it: `${n} ${n === 1 ? 'file' : 'file'}`,
             },
           );
           return (
@@ -334,7 +370,7 @@ export default function GalleryPage() {
                   in stored (capture-date) order; each tile spans rows by its
                   aspect ratio for the varied-height collage. See MasonryGrid. */}
               <MasonryGrid
-                items={groups[key]}
+                items={items}
                 likes={likes}
                 pickTitle={pickTitle}
                 onOpen={(id) => setActiveId(id)}

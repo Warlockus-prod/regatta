@@ -1,9 +1,12 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import type { Lang } from '@/lib/languages';
 import { WindNowCard } from '@/components/WindNowCard';
+import { getBootcampProgress } from '@/lib/storage';
+import { bootcampLessons } from '@/data/bootcamp';
 
 // ============================================================================
 // Three primary entry points - matches the "who are you" framing
@@ -381,6 +384,42 @@ function pickL(obj: Localized, lang: Lang): string {
 export default function HomePage() {
   const { lang, tp } = useI18n();
 
+  // Progress-aware first card: when bootcamp is underway (1..N-1 lessons
+  // done), the "Start from zero" card becomes "Continue the course" with the
+  // live lesson counter, so returning visitors resume instead of restarting.
+  // Read on mount only (localStorage is client-side).
+  const [completedCount, setCompletedCount] = useState(0);
+  useEffect(() => {
+    setCompletedCount(getBootcampProgress().completed.length);
+  }, []);
+  const totalLessons = bootcampLessons.length;
+  const inProgress = completedCount > 0 && completedCount < totalLessons;
+  const displayEntryPoints = entryPoints.map((ep) => {
+    if (ep.href !== '/start' || !inProgress) return ep;
+    const n = completedCount;
+    return {
+      ...ep,
+      emoji: '▶️',
+      title: {
+        ru: 'Продолжить курс', en: 'Continue the course', pl: 'Kontynuuj kurs',
+        es: 'Continuar el curso', fr: 'Continuer le cours', de: 'Kurs fortsetzen', it: 'Continua il corso',
+      },
+      subtitle: {
+        ru: `Урок ${n + 1} из ${totalLessons}`, en: `Lesson ${n + 1} of ${totalLessons}`, pl: `Lekcja ${n + 1} z ${totalLessons}`,
+        es: `Leccion ${n + 1} de ${totalLessons}`, fr: `Lecon ${n + 1} sur ${totalLessons}`, de: `Lektion ${n + 1} von ${totalLessons}`, it: `Lezione ${n + 1} di ${totalLessons}`,
+      },
+      desc: {
+        ru: `Пройдено ${n} из ${totalLessons}. Продолжай с того места, где остановился.`,
+        en: `${n} of ${totalLessons} done. Pick up right where you left off.`,
+        pl: `Ukonczono ${n} z ${totalLessons}. Kontynuuj od miejsca, w ktorym skonczyles.`,
+        es: `${n} de ${totalLessons} completadas. Continua donde lo dejaste.`,
+        fr: `${n} sur ${totalLessons} terminees. Reprends la ou tu t'es arrete.`,
+        de: `${n} von ${totalLessons} geschafft. Mach genau da weiter.`,
+        it: `${n} di ${totalLessons} completate. Riprendi da dove eri rimasto.`,
+      },
+    };
+  });
+
   return (
     <div className="page-enter">
       {/* ===== HERO ===== */}
@@ -494,7 +533,7 @@ export default function HomePage() {
         </div>
 
         <div className="stagger grid grid-cols-1 md:grid-cols-3 gap-4">
-          {entryPoints.map((ep) => (
+          {displayEntryPoints.map((ep) => (
             <Link
               key={ep.href}
               href={ep.href}

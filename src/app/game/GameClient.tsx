@@ -1873,6 +1873,13 @@ export default function GamePage() {
               >
                 ▶ {tp('Replay гонки', 'Race replay', 'Replay wyscigu')}
               </button>
+              <Link
+                href="/leaderboard"
+                className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
+              >
+                🏆 {tp('Лидерборд', 'Leaderboard', 'Ranking',
+                  { es: 'Clasificacion', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
+              </Link>
               <button
                 onClick={openBriefing}
                 className="flex-1 min-w-[100px] py-2 rounded-lg font-semibold text-sm"

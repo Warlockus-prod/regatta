@@ -121,6 +121,7 @@ const groups: NavGroup[] = [
     titleRu: 'Обучение', titleEn: 'Learn', titlePl: 'Nauka',
     titleEs: 'Aprender', titleFr: 'Apprendre', titleDe: 'Lernen', titleIt: 'Imparare',
     items: [
+      { href: '/quick',  ru: 'За 15 минут', en: 'Quick refresh', pl: 'W 15 minut', es: 'En 15 minutos', fr: 'En 15 minutes', de: 'In 15 Minuten', it: 'In 15 minuti', icon: Icon.start },
       { href: '/rules',  ru: 'Правила', en: 'Rules',   pl: 'Przepisy', es: 'Reglas',     fr: 'Regles',     de: 'Regeln',  it: 'Regole',    icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka',  es: 'Tactica',    fr: 'Tactique',   de: 'Taktik',  it: 'Tattica',   icon: Icon.tactics },
     ],
@@ -129,6 +130,7 @@ const groups: NavGroup[] = [
     titleRu: 'На борту', titleEn: 'On board', titlePl: 'Na pokladzie',
     titleEs: 'A bordo', titleFr: 'A bord', titleDe: 'An Bord', titleIt: 'A bordo',
     items: [
+      { href: '/onboard',   ru: 'Первая неделя',    en: 'First week',    pl: 'Pierwszy tydzien', es: 'Primera semana',      fr: 'Premiere semaine',    de: 'Erste Woche',      it: 'Prima settimana',      icon: Icon.anatomy },
       { href: '/anatomy',   ru: 'Устройство яхты', en: 'Yacht anatomy', pl: 'Budowa jachtu',    es: 'Anatomia del velero', fr: 'Anatomie du voilier', de: 'Aufbau der Yacht', it: 'Anatomia della barca', icon: Icon.anatomy },
       { href: '/checklist', ru: 'Чек-лист',         en: 'Checklist',     pl: 'Lista kontrolna', es: 'Checklist',           fr: 'Checklist',           de: 'Checkliste',       it: 'Checklist',            icon: Icon.checklist },
     ],
@@ -138,6 +140,8 @@ const groups: NavGroup[] = [
     titleEs: 'Mas', titleFr: 'Plus', titleDe: 'Mehr', titleIt: 'Altro',
     items: [
       { href: '/multiplayer', ru: 'Мультиплеер', en: 'Multiplayer', pl: 'Multiplayer', es: 'Multijugador', fr: 'Multijoueur', de: 'Mehrspieler', it: 'Multigiocatore', icon: Icon.race },
+      { href: '/leaderboard', ru: 'Лидерборд',   en: 'Leaderboard', pl: 'Ranking',     es: 'Clasificacion', fr: 'Classement', de: 'Bestenliste', it: 'Classifica',    icon: Icon.race },
+      { href: '/spots',       ru: 'Где ходить',  en: 'Spots',       pl: 'Gdzie plywac', es: 'Donde navegar', fr: 'Ou naviguer', de: 'Reviere',    it: 'Dove navigare', icon: Icon.courses },
       { href: '/glossary',    ru: 'Глоссарий',   en: 'Glossary',    pl: 'Glosariusz',  es: 'Glosario',     fr: 'Glossaire',   de: 'Glossar',     it: 'Glossario',      icon: Icon.glossary },
       { href: '/gallery',     ru: 'Галерея',     en: 'Gallery',     pl: 'Galeria',     es: 'Galeria',      fr: 'Galerie',     de: 'Galerie',     it: 'Galleria',       icon: Icon.gallery },
     ],
