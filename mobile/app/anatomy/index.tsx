@@ -27,9 +27,11 @@ import { useI18n } from '../../src/i18n/context';
 import { Card } from '../../src/design-system/components/Card';
 import { Screen } from '../../src/design-system/components/Screen';
 import { Text } from '../../src/design-system/components/Text';
+import { useColors, useThemedStyles } from '../../src/design-system/components';
 import { anatomyParts, type AnatomyPart } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, motion, radii, spacing } from '../../src/design-system/tokens';
+import { motion, radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { HOTSPOTS } from '../../src/anatomy/hotspots';
 import { YACHT_PATHS, YACHT_VIEWBOX } from '../../src/anatomy/yacht-svg';
 
@@ -82,6 +84,7 @@ function posterTitle(poster: AnatomyPosterAsset, posterLang: PosterLang): string
 
 export default function Anatomy() {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const { width: screenWidth } = useWindowDimensions();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activePosterId, setActivePosterId] = useState<string | null>(null);
@@ -251,6 +254,8 @@ interface YachtPosterProps {
 }
 
 function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: YachtPosterProps) {
+  const c = useColors();
+  const posterStyles = useThemedStyles(makePosterStyles);
   const pulse = useRef(new Animated.Value(0)).current;
 
   // The pulse must run on the JS driver because it animates SVG attributes
@@ -316,8 +321,8 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
             <Stop offset="1" stopColor="#06182d" stopOpacity="1" />
           </LinearGradient>
           <RadialGradient id="poster-glow" cx="50%" cy="55%" r="60%">
-            <Stop offset="0" stopColor="#00d4ff" stopOpacity="0.10" />
-            <Stop offset="1" stopColor="#00d4ff" stopOpacity="0" />
+            <Stop offset="0" stopColor={c.accentCyan} stopOpacity="0.10" />
+            <Stop offset="1" stopColor={c.accentCyan} stopOpacity="0" />
           </RadialGradient>
         </Defs>
 
@@ -332,7 +337,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
             <SvgPath
               key={path.id}
               d={path.d}
-              stroke={isWater ? colors.borderCyanSoft : colors.textSecondary}
+              stroke={isWater ? c.borderCyanSoft : c.textSecondary}
               strokeWidth={isWater ? 1 : 1.5}
               strokeOpacity={isWater ? 0.6 : 1}
               fill={isSail ? 'rgba(232, 244, 248, 0.06)' : isFoil ? 'rgba(0, 212, 255, 0.05)' : 'none'}
@@ -367,7 +372,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                       cx={18}
                       cy={18}
                       r={pulseRadius}
-                      fill={colors.accentCyan}
+                      fill={c.accentCyan}
                       fillOpacity={pulseOpacity}
                     />
                   ) : null}
@@ -375,8 +380,8 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                     cx={18}
                     cy={18}
                     r={active ? 11 : 8}
-                    fill={active ? colors.accentCyan : 'transparent'}
-                    stroke={colors.accentCyan}
+                    fill={active ? c.accentCyan : 'transparent'}
+                    stroke={c.accentCyan}
                     strokeWidth={active ? 2 : 1.5}
                     strokeOpacity={active ? 1 : 0.85}
                   />
@@ -384,7 +389,7 @@ function YachtPoster({ width, height, parts, activeId, onSelect, pickName }: Yac
                     cx={18}
                     cy={18}
                     r={active ? 5 : 3}
-                    fill={active ? colors.bgPrimary : colors.accentCyan}
+                    fill={active ? c.bgPrimary : c.accentCyan}
                   />
                 </Svg>
               </View>
@@ -410,6 +415,8 @@ function PosterGallery({
   onClose,
 }: PosterGalleryProps) {
   const { tp } = useI18n();
+  const posterGalleryStyles = useThemedStyles(makePosterGalleryStyles);
+  const posterLightboxStyles = useThemedStyles(makePosterLightboxStyles);
   const activePoster = activePosterId
     ? ANATOMY_POSTERS.find((p) => p.id === activePosterId) ?? null
     : null;
@@ -524,6 +531,7 @@ interface PartSheetProps {
 
 function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
   const { tp, lang } = useI18n();
+  const sheetStyles = useThemedStyles(makeSheetStyles);
   const dragY = useRef(new Animated.Value(0)).current;
 
   const panResponder = useMemo(
@@ -706,7 +714,7 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -725,9 +733,9 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     borderRadius: radii.lg,
     overflow: 'hidden',
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     aspectRatio: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -753,7 +761,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   chipsGrid: {
     paddingHorizontal: spacing.lg,
@@ -767,33 +775,33 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radii.pill,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
   },
   chipActive: {
-    backgroundColor: colors.surfaceCyanSoft,
-    borderColor: colors.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
   },
   chipPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   chipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   chipTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
   },
 });
 
-const posterStyles = StyleSheet.create({
+const makePosterStyles = (c: ThemeColors) => StyleSheet.create({
   frame: {
     borderRadius: radii.lg,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     overflow: 'hidden',
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
   },
   hotspotLayer: {
     position: 'absolute',
@@ -809,7 +817,7 @@ const posterStyles = StyleSheet.create({
   },
 });
 
-const posterGalleryStyles = StyleSheet.create({
+const makePosterGalleryStyles = (c: ThemeColors) => StyleSheet.create({
   section: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -835,13 +843,13 @@ const posterGalleryStyles = StyleSheet.create({
     minHeight: 178,
     borderRadius: radii.lg,
     overflow: 'hidden',
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
   },
   cardPressed: {
     opacity: 0.84,
-    borderColor: colors.borderCyanStrong,
+    borderColor: c.borderCyanStrong,
   },
   thumb: {
     width: '100%',
@@ -855,14 +863,14 @@ const posterGalleryStyles = StyleSheet.create({
     backgroundColor: 'rgba(10, 22, 40, 0.86)',
   },
   cardTitle: {
-    color: colors.textPrimary,
+    color: '#e8f4f8',
     fontSize: 12,
     lineHeight: 16,
     fontWeight: '700',
   },
 });
 
-const posterLightboxStyles = StyleSheet.create({
+const makePosterLightboxStyles = (c: ThemeColors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(5, 11, 24, 0.94)',
@@ -888,12 +896,12 @@ const posterLightboxStyles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: radii.lg,
     backgroundColor: 'rgba(15, 32, 53, 0.92)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
   },
   title: {
     flex: 1,
-    color: colors.textPrimary,
+    color: '#e8f4f8',
     fontSize: 14,
     lineHeight: 19,
     fontWeight: '700',
@@ -911,7 +919,7 @@ const posterLightboxStyles = StyleSheet.create({
   },
 });
 
-const sheetStyles = StyleSheet.create({
+const makeSheetStyles = (c: ThemeColors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(6, 18, 36, 0.78)',
@@ -921,11 +929,11 @@ const sheetStyles = StyleSheet.create({
     width: '100%',
   },
   sheet: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderTopWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.lg,
@@ -936,7 +944,7 @@ const sheetStyles = StyleSheet.create({
     width: 44,
     height: 4,
     borderRadius: 2,
-    backgroundColor: colors.borderCyanSoft,
+    backgroundColor: c.borderCyanSoft,
     marginBottom: spacing.md,
   },
   headerRow: {
@@ -952,17 +960,17 @@ const sheetStyles = StyleSheet.create({
   badge: {
     fontSize: 10,
     letterSpacing: 1.5,
-    color: colors.accentCyan,
+    color: c.accentCyan,
     marginBottom: spacing.xs,
   },
   title: {
     fontSize: 24,
-    color: colors.accentCyan,
+    color: c.accentCyan,
     marginBottom: 2,
   },
   altName: {
     fontSize: 12,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   closeBtn: {
     paddingHorizontal: spacing.sm,
@@ -986,7 +994,7 @@ const sheetStyles = StyleSheet.create({
   useLabel: {
     fontSize: 10,
     letterSpacing: 1.5,
-    color: colors.accentCyan,
+    color: c.accentCyan,
     marginBottom: spacing.xs,
   },
   useText: {
@@ -994,7 +1002,7 @@ const sheetStyles = StyleSheet.create({
   },
   swipeHint: {
     fontSize: 11,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
     marginTop: spacing.sm,
   },
@@ -1003,7 +1011,7 @@ const sheetStyles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.borderCyanFaint,
+    borderTopColor: c.borderCyanFaint,
   },
   navBtn: {
     paddingHorizontal: spacing.lg,
@@ -1011,12 +1019,12 @@ const sheetStyles = StyleSheet.create({
     borderRadius: radii.md,
     minWidth: 56,
     alignItems: 'center',
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
   },
   navPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   navArrow: {
     fontSize: 18,

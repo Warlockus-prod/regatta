@@ -2,17 +2,27 @@ import { Stack } from 'expo-router';
 import { useMemo } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Button, Card, Screen, Text } from '../../src/design-system/components';
+import {
+  Button,
+  Card,
+  Screen,
+  Text,
+  useColors,
+  useThemedStyles,
+} from '../../src/design-system/components';
 import { checklistSections } from '../../src/data';
 import { legacyPick, legacyPickArray } from '../../src/i18n/languages';
 import { itemKey, useChecklistProgress } from '../../src/persistence/checklist';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 const PROGRESS_TINT_THRESHOLD = 0.8;
 
 export default function Checklist() {
   const { tp, lang } = useI18n();
   const { isChecked, toggle, reset } = useChecklistProgress();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp('Чек-лист', 'Checklist', 'Lista', {
     es: 'Lista',
@@ -105,7 +115,7 @@ export default function Checklist() {
   const totalChecked = sectionsView.reduce((acc, s) => acc + s.checked, 0);
   const fraction = totalItems > 0 ? totalChecked / totalItems : 0;
   const progressColor =
-    fraction >= PROGRESS_TINT_THRESHOLD ? colors.success : colors.accentCyan;
+    fraction >= PROGRESS_TINT_THRESHOLD ? c.success : c.accentCyan;
 
   const totalLabel = tp(
     `Готово ${totalChecked} из ${totalItems}`,
@@ -237,7 +247,7 @@ export default function Checklist() {
 
 const CHECKBOX_SIZE = 22;
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
@@ -257,7 +267,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
     height: 4,
     borderRadius: radii.pill,
-    backgroundColor: colors.borderCyanFaint,
+    backgroundColor: c.borderCyanFaint,
     overflow: 'hidden',
   },
   progressFill: {
@@ -303,7 +313,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.sm,
   },
   itemRowPressed: {
-    backgroundColor: colors.surfaceCyanFaint,
+    backgroundColor: c.surfaceCyanFaint,
   },
   checkbox: {
     width: CHECKBOX_SIZE,
@@ -316,15 +326,15 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   checkboxEmpty: {
-    borderColor: colors.accentCyan,
+    borderColor: c.accentCyan,
     backgroundColor: 'transparent',
   },
   checkboxChecked: {
-    borderColor: colors.accentCyan,
-    backgroundColor: colors.accentCyan,
+    borderColor: c.accentCyan,
+    backgroundColor: c.accentCyan,
   },
   checkmark: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 13,
     fontWeight: '700',
     lineHeight: 13,
@@ -334,7 +344,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   itemTextDone: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     textDecorationLine: 'line-through',
   },
   warning: {
@@ -349,17 +359,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    color: colors.danger,
+    color: c.danger,
     marginBottom: spacing.xs,
   },
   warningText: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   closingCard: {
     marginHorizontal: spacing.lg,
     marginTop: spacing.md,
-    backgroundColor: colors.surfaceCyanFaint,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.surfaceCyanFaint,
+    borderColor: c.borderCyanSoft,
   },
   closingText: {
     textAlign: 'center',

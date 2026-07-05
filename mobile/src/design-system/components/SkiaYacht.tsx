@@ -25,7 +25,7 @@ import {
   SAIL_CLOTH_TUNING,
 } from '../../simulator/sail-cloth';
 import type { SailSet } from '../../simulator/types';
-import { colors } from '../tokens';
+import { useColors } from '../theme';
 
 const YACHT_PHOTO_SOURCE = require('../../../assets/anatomy/yacht-top.png');
 
@@ -348,6 +348,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
     leewayDeg = 0,
   } = props;
 
+  const c = useColors();
   const yachtPhoto = useImage(YACHT_PHOTO_SOURCE);
   const photoMode = mode === 'photo' && yachtPhoto != null;
   const photoSize = photoSizePx ?? Math.max(48, length * 2.6);
@@ -614,7 +615,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
       {showGhost && ghostPath ? (
         <Path
           path={ghostPath}
-          color={colors.warning}
+          color={c.warning}
           style="stroke"
           strokeWidth={Math.max(1, L * 0.022)}
           strokeCap="round"
@@ -738,7 +739,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
           <Path path={cabinPath} color={CABIN} />
         </>
       )}
-      <Circle cx={0} cy={mastY} r={Math.max(2, L * 0.085)} color={colors.accentCyan} />
+      <Circle cx={0} cy={mastY} r={Math.max(2, L * 0.085)} color={c.accentCyan} />
 
       {noGo ? (
         // No-go ring: an amber CAUTION that the bow is too close to the wind,
@@ -747,7 +748,7 @@ export function SkiaYacht(props: SkiaYachtProps): React.JSX.Element {
           cx={0}
           cy={mastY}
           r={Math.max(3, L * 0.13)}
-          color={colors.warning}
+          color={c.warning}
           opacity={0.45}
           style="stroke"
           strokeWidth={1.4}

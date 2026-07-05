@@ -1,10 +1,17 @@
 import { Stack, useRouter } from 'expo-router';
 import { Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Screen, Text } from '../../src/design-system/components';
+import {
+  Card,
+  Screen,
+  Text,
+  useColors,
+  useThemedStyles,
+} from '../../src/design-system/components';
 import { ruleScenarios } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Rules of the road. Mirrors the web /rules page: the scenarios are split
@@ -19,6 +26,8 @@ type Scenario = (typeof ruleScenarios)[number];
 
 export default function Rules() {
   const { tp, lang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
 
   const headerTitle = tp('Правила', 'Rules of the road', 'Zasady', {
@@ -233,7 +242,7 @@ export default function Rules() {
         {/* RRS section */}
         <View style={styles.sectionHeader}>
           <View style={[styles.badge, styles.badgeRrs]}>
-            <Text style={[styles.badgeText, { color: colors.warning }]}>🏁 RRS</Text>
+            <Text style={[styles.badgeText, { color: c.warning }]}>🏁 RRS</Text>
           </View>
           <Text variant="subtitle" style={styles.sectionTitle}>{rrsTitle}</Text>
         </View>
@@ -242,7 +251,7 @@ export default function Rules() {
         {/* COLREGS section */}
         <View style={[styles.sectionHeader, styles.sectionHeaderGap]}>
           <View style={[styles.badge, styles.badgeColregs]}>
-            <Text style={[styles.badgeText, { color: colors.accentCyan }]}>🌊 COLREGS</Text>
+            <Text style={[styles.badgeText, { color: c.accentCyan }]}>🌊 COLREGS</Text>
           </View>
           <Text variant="subtitle" style={styles.sectionTitle}>{colregsTitle}</Text>
         </View>
@@ -286,7 +295,7 @@ export default function Rules() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -297,7 +306,7 @@ const styles = StyleSheet.create({
   },
   introText: {
     lineHeight: 21,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   sectionHeader: {
     paddingHorizontal: spacing.lg,
@@ -335,7 +344,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     marginBottom: spacing.md,
     lineHeight: 19,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   card: {
     marginHorizontal: spacing.lg,
@@ -356,7 +365,7 @@ const styles = StyleSheet.create({
   scene: {
     marginTop: spacing.xs,
     lineHeight: 18,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   linksCard: {
     marginHorizontal: spacing.lg,
@@ -365,22 +374,22 @@ const styles = StyleSheet.create({
   },
   officialText: {
     lineHeight: 19,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     marginBottom: spacing.sm,
   },
   linkRow: {
     borderWidth: 1,
-    borderColor: colors.borderCyanStrong,
+    borderColor: c.borderCyanStrong,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
   },
   linkRowPressed: {
-    backgroundColor: colors.surfaceCyanFaint,
+    backgroundColor: c.surfaceCyanFaint,
   },
   linkText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
     textAlign: 'center',
   },
@@ -396,14 +405,14 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 170, 0, 0.10)',
   },
   linkTextAmber: {
-    color: colors.warning,
+    color: c.warning,
     fontWeight: '600',
     textAlign: 'center',
   },
   linksNote: {
     marginTop: spacing.md,
     lineHeight: 17,
-    color: colors.textMuted,
+    color: c.textMuted,
     textAlign: 'center',
   },
 });

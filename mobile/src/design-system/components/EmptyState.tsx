@@ -2,7 +2,8 @@ import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import { useColors } from '../theme';
 
 interface EmptyStateCta {
   label: string;
@@ -32,9 +33,10 @@ export function EmptyState({
   cta,
   style,
 }: EmptyStateProps) {
+  const c = useColors();
   return (
     <View style={[styles.wrap, style]} accessible>
-      <Icon name={icon} size={32} color={colors.accentCyan} style={styles.icon} />
+      <Icon name={icon} size={32} color={c.accentCyan} style={styles.icon} />
       <Text variant="subtitle" style={styles.title}>{title}</Text>
       {subtitle ? (
         <Text variant="caption" style={styles.subtitle}>{subtitle}</Text>

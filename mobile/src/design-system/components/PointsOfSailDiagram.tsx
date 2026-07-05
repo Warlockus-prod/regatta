@@ -4,7 +4,8 @@ import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Svg, { Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import { useColors } from '../theme';
 import { pointOfSailAt } from '../../courses/polar';
 import { pointsOfSail } from '../../data';
 
@@ -69,6 +70,7 @@ export function PointsOfSailDiagram({
   sectorLabels,
   tackLabels,
 }: PointsOfSailDiagramProps) {
+  const c = useColors();
   const cx = size / 2;
   const cy = size / 2;
   const outerR = size * 0.34;
@@ -217,8 +219,8 @@ export function PointsOfSailDiagram({
                 );
               })}
               <Path path={tickPath} color={'rgba(232, 244, 248, 0.30)'} style="stroke" strokeWidth={1} />
-              <Path path={windArrowPath} color={colors.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
-              <Path path={ringPath} color={colors.borderCyanStrong} style="stroke" strokeWidth={1.5} />
+              <Path path={windArrowPath} color={c.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
+              <Path path={ringPath} color={c.borderCyanStrong} style="stroke" strokeWidth={1.5} />
               {sectorBoats.map((b) => (
                 <Group
                   key={b.key}
@@ -226,7 +228,7 @@ export function PointsOfSailDiagram({
                 >
                   <Path
                     path={boatPath}
-                    color={b.id === activeId ? colors.accentCyan : 'rgba(232, 244, 248, 0.5)'}
+                    color={b.id === activeId ? c.accentCyan : 'rgba(232, 244, 248, 0.5)'}
                     style="stroke"
                     strokeWidth={1.8}
                   />
@@ -266,6 +268,7 @@ function DiagramLabels({
   sectorNamePositions: { key: string; name: string; x: number; y: number; muted: boolean }[];
   tackLabels?: { port: string; starboard: string };
 }) {
+  const c = useColors();
   const h = size + 44;
   return (
     <View pointerEvents="none" style={[styles.svgOverlay, { width: size, height: h }]}>
@@ -273,7 +276,7 @@ function DiagramLabels({
         <SvgText
           x={cx}
           y={cy - outerR - 36}
-          fill={colors.windColor}
+          fill={c.windColor}
           fontSize={11}
           fontWeight="700"
           textAnchor="middle"
@@ -281,17 +284,17 @@ function DiagramLabels({
         >
           {windLabel.toUpperCase()}
         </SvgText>
-        {sectorNamePositions.map((c) => (
+        {sectorNamePositions.map((pos) => (
           <SvgText
-            key={c.key}
-            x={c.x}
-            y={c.y + 4}
-            fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
+            key={pos.key}
+            x={pos.x}
+            y={pos.y + 4}
+            fill={pos.muted ? 'rgba(255, 120, 120, 0.85)' : c.textSecondary}
             fontSize={10}
             fontWeight="700"
             textAnchor="middle"
           >
-            {c.name}
+            {pos.name}
           </SvgText>
         ))}
         {[30, 60, 90, 120, 150, 210, 240, 270, 300, 330].map((deg) => {
@@ -300,7 +303,7 @@ function DiagramLabels({
           const x = cx + r * Math.cos(rad);
           const y = cy + r * Math.sin(rad) + 3;
           return (
-            <SvgText key={deg} x={x} y={y} fill={colors.textMuted} fontSize={9} fontWeight="500" textAnchor="middle">
+            <SvgText key={deg} x={x} y={y} fill={c.textMuted} fontSize={9} fontWeight="500" textAnchor="middle">
               {`${deg}`}
             </SvgText>
           );
@@ -310,7 +313,7 @@ function DiagramLabels({
             <SvgText
               x={cx - outerR * 0.52}
               y={cy + outerR + 34}
-              fill={colors.accentCyan}
+              fill={c.accentCyan}
               fontSize={10}
               fontWeight="800"
               textAnchor="middle"
@@ -321,7 +324,7 @@ function DiagramLabels({
             <SvgText
               x={cx + outerR * 0.52}
               y={cy + outerR + 34}
-              fill={colors.accentCyan}
+              fill={c.accentCyan}
               fontSize={10}
               fontWeight="800"
               textAnchor="middle"

@@ -12,20 +12,26 @@ import {
   Text,
   WindNowCard,
   Wordmark,
+  useColors,
+  useGlow,
+  useThemedStyles,
 } from '../src/design-system/components';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
 import { summarizeContinue, TOTAL_DAYS } from '../src/bootcamp/days';
 import { legacyPick } from '../src/i18n/languages';
-import { colors, glow, spacing } from '../src/design-system/tokens';
+import { spacing } from '../src/design-system/tokens';
+import type { ThemeColors } from '../src/design-system/tokens';
 import { fetchDaily, type DailyChallenge } from '../src/api/daily';
 import { findCourse } from '../src/game/course';
 import { useRaceHistory } from '../src/persistence/race-history';
 
-const ACCENT_COLOR: Record<CardAccent, string> = {
-  cyan: colors.accentCyan,
-  success: colors.success,
-  warning: colors.warning,
-};
+function accentColorFor(accent: CardAccent, c: ThemeColors): string {
+  return accent === 'success'
+    ? c.success
+    : accent === 'warning'
+    ? c.warning
+    : c.accentCyan;
+}
 
 /**
  * Home v2. Mirrors the web home (`src/app/page.tsx`):
@@ -40,6 +46,7 @@ const ACCENT_COLOR: Record<CardAccent, string> = {
 export default function Home() {
   const { tp, lang } = useI18n();
   const router = useRouter();
+  const styles = useThemedStyles(makeStyles);
   const { completedIds, lastViewedLessonId, ready } = useBootcampProgress();
   // Sprint 10: Race history entry only renders once the user has a race
   // saved on device. We don't gate behind `raceHistory.ready` because
@@ -607,13 +614,16 @@ function DailyBanner({
   ctaLabel,
   onPress,
 }: DailyBannerProps) {
-  const accentColor = ACCENT_COLOR.cyan;
+  const c = useColors();
+  const glows = useGlow();
+  const styles = useThemedStyles(makeStyles);
+  const accentColor = accentColorFor('cyan', c);
   const topTime = challenge.top[0]?.finishTimeSec;
   return (
     <Card
       accent="cyan"
       onPress={onPress}
-      style={[styles.continueCard, glow.primary]}
+      style={[styles.continueCard, glows.primary]}
     >
       <View style={styles.continueRow}>
         <Icon name="bolt" size={28} color={accentColor} />
@@ -668,9 +678,12 @@ function ContinueRow({
   dayProgressLabel,
   onPress,
 }: ContinueRowProps) {
-  const accentColor = ACCENT_COLOR.cyan;
+  const c = useColors();
+  const glows = useGlow();
+  const styles = useThemedStyles(makeStyles);
+  const accentColor = accentColorFor('cyan', c);
   return (
-    <Card accent="cyan" onPress={onPress} style={[styles.continueCard, glow.primary]}>
+    <Card accent="cyan" onPress={onPress} style={[styles.continueCard, glows.primary]}>
       <View style={styles.continueRow}>
         <Icon name="cap" size={28} color={accentColor} />
         <View style={styles.continueText}>
@@ -704,9 +717,12 @@ interface CelebrationRowProps {
 }
 
 function CelebrationRow({ title, ctaLabel, onPress }: CelebrationRowProps) {
-  const accentColor = ACCENT_COLOR.success;
+  const c = useColors();
+  const glows = useGlow();
+  const styles = useThemedStyles(makeStyles);
+  const accentColor = accentColorFor('success', c);
   return (
-    <Card accent="success" onPress={onPress} style={[styles.continueCard, glow.success]}>
+    <Card accent="success" onPress={onPress} style={[styles.continueCard, glows.success]}>
       <View style={styles.continueRow}>
         <Icon name="flag" size={28} color={accentColor} />
         <View style={styles.continueText}>
@@ -744,7 +760,9 @@ function EntryCard({
   ctaA11yLabel,
   onPress,
 }: EntryCardProps) {
-  const accentColor = ACCENT_COLOR[accent];
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const accentColor = accentColorFor(accent, c);
   return (
     <Card
       accent={accent}
@@ -769,7 +787,7 @@ function EntryCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
@@ -830,7 +848,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   list: {
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderColor: 'rgba(0, 212, 255, 0.10)',
     borderTopWidth: 1,
     borderBottomWidth: 1,

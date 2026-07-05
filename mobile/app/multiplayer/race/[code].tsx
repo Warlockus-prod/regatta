@@ -18,7 +18,14 @@ import {
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../../src/i18n/context';
-import { Screen, SkiaYacht, Text } from '../../../src/design-system/components';
+import {
+  Screen,
+  SkiaYacht,
+  Text,
+  useColors,
+  useShadows,
+  useThemedStyles,
+} from '../../../src/design-system/components';
 import { useSimLoop } from '../../../src/simulator/use-sim-loop';
 import {
   buildArrowGrid,
@@ -37,7 +44,8 @@ import { useRaceHistory, type ReplayPoint } from '../../../src/persistence/race-
 import { useRecentRooms } from '../../../src/persistence/recent-rooms';
 import { useMockRoom, type GhostBoat } from '../../../src/multiplayer/mock-client';
 import { isValidRoomCode } from '../../../src/multiplayer/room-code';
-import { colors, radii, shadow, spacing } from '../../../src/design-system/tokens';
+import { radii, spacing } from '../../../src/design-system/tokens';
+import type { ThemeColors } from '../../../src/design-system/tokens';
 
 type Phase = 'countdown' | 'racing' | 'finished';
 
@@ -141,6 +149,9 @@ function rankProgress(progress: ParticipantProgress[]): ParticipantProgress[] {
 export default function MultiplayerRace() {
   const { tp } = useI18n();
   const router = useRouter();
+  const c = useColors();
+  const shadows = useShadows();
+  const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ code?: string }>();
   const rawCode = (params.code ?? '').toString().toUpperCase();
   const validCode = isValidRoomCode(rawCode);
@@ -549,7 +560,7 @@ export default function MultiplayerRace() {
               <Group>
                 <Path
                   path={windArrowsPath}
-                  color={colors.windColor}
+                  color={c.windColor}
                   style="stroke"
                   strokeWidth={1}
                   strokeCap="round"
@@ -578,10 +589,10 @@ export default function MultiplayerRace() {
                       r={m.radius}
                       color={
                         m.cleared
-                          ? colors.success
+                          ? c.success
                           : m.active
-                          ? colors.accentCyan
-                          : colors.warning
+                          ? c.accentCyan
+                          : c.warning
                       }
                     />
                   </Group>
@@ -591,7 +602,7 @@ export default function MultiplayerRace() {
                   <SkiaLine
                     p1={{ x: finishLine.x1, y: finishLine.y1 }}
                     p2={{ x: finishLine.x2, y: finishLine.y2 }}
-                    color={colors.accentCyan}
+                    color={c.accentCyan}
                     strokeWidth={2.5}
                     opacity={0.86}
                   />
@@ -636,7 +647,7 @@ export default function MultiplayerRace() {
                 />
                 <Path
                   path={apparentArrowPath}
-                  color={colors.windColor}
+                  color={c.windColor}
                   style="stroke"
                   strokeWidth={2.4}
                   strokeCap="round"
@@ -671,7 +682,7 @@ export default function MultiplayerRace() {
                     cx={0}
                     cy={0}
                     r={COMPASS_R}
-                    color={colors.windColor}
+                    color={c.windColor}
                     style="stroke"
                     strokeWidth={1.2}
                     opacity={0.6}
@@ -679,7 +690,7 @@ export default function MultiplayerRace() {
                   <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
                     <Path
                       path={compassArrowPath}
-                      color={colors.windColor}
+                      color={c.windColor}
                       style="stroke"
                       strokeWidth={2.5}
                       strokeCap="round"
@@ -699,7 +710,7 @@ export default function MultiplayerRace() {
           {phase === 'countdown' ? (
             <View pointerEvents="none" style={styles.overlay}>
               <Text style={styles.countdownLabel}>{getReadyLabel}</Text>
-              <Text style={styles.countdownNumber}>{countdownSec}</Text>
+              <Text style={[styles.countdownNumber, shadows.lift]}>{countdownSec}</Text>
             </View>
           ) : null}
 
@@ -710,7 +721,7 @@ export default function MultiplayerRace() {
           ) : null}
 
           {phase === 'finished' ? (
-            <View style={styles.resultPanel}>
+            <View style={[styles.resultPanel, shadows.lift]}>
               <Text style={styles.resultKicker}>{finishedLabel}</Text>
               <Text variant="subtitle" style={styles.resultTitle} numberOfLines={2}>
                 {placeFmt(finishPlace ?? myRank, totalRacers)}
@@ -831,6 +842,7 @@ function ghostProgressFor(
 }
 
 function HudStat({ label, value }: { label: string; value: string }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.hudStat}>
       <Text allowFontScaling={false} style={styles.hudLabel}>{label}</Text>
@@ -839,7 +851,7 @@ function HudStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -863,8 +875,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   codePill: {
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
@@ -873,13 +885,13 @@ const styles = StyleSheet.create({
     minWidth: 86,
   },
   codePillKicker: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 1.2,
   },
   codePillValue: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 3,
@@ -887,8 +899,8 @@ const styles = StyleSheet.create({
   },
   canvasWrap: {
     alignSelf: 'center',
-    backgroundColor: colors.bgSecondary,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgSecondary,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
     overflow: 'hidden',
@@ -901,7 +913,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: spacing.sm,
     backgroundColor: 'rgba(10, 22, 40, 0.74)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.sm,
@@ -912,13 +924,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hudLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   hudValue: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -931,21 +943,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(10, 22, 40, 0.45)',
   },
   countdownLabel: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 14,
     fontWeight: '600',
     letterSpacing: 0.6,
     marginBottom: spacing.sm,
   },
   countdownNumber: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 96,
     fontWeight: '800',
     letterSpacing: -2,
-    ...shadow.lift,
   },
   goLabel: {
-    color: colors.success,
+    color: c.success,
     fontSize: 56,
     fontWeight: '800',
     letterSpacing: -1,
@@ -956,15 +967,14 @@ const styles = StyleSheet.create({
     right: spacing.md,
     bottom: spacing.md,
     backgroundColor: 'rgba(10, 22, 40, 0.95)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.lg,
     padding: spacing.md,
     gap: spacing.sm,
-    ...shadow.lift,
   },
   resultKicker: {
-    color: colors.success,
+    color: c.success,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1.4,
@@ -981,13 +991,13 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   resultStatLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   resultStatValue: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -997,28 +1007,28 @@ const styles = StyleSheet.create({
   },
   resultButton: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   resultButtonPrimary: {
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
+    borderColor: c.accentCyan,
   },
   resultButtonPressed: {
     opacity: 0.84,
   },
   resultButtonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   resultButtonTextPrimary: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,

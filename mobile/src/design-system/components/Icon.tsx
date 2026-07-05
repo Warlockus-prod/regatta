@@ -1,6 +1,6 @@
 import { type StyleProp, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
-import { colors } from '../tokens';
+import { useColors } from '../theme';
 
 /**
  * Brand icon registry. Each name maps to one of the SVGs hand-drawn by
@@ -22,7 +22,7 @@ import { colors } from '../tokens';
  *   States:    `check`, `warning`, `info`
  *
  * Usage:
- *   <Icon name="cap" size={36} color={colors.accentCyan} />
+ *   <Icon name="cap" size={36} color={c.accentCyan} />
  *
  * Unknown names log a warning and render a neutral fallback glyph
  * (a thin question-mark) instead of crashing - we never want a missing
@@ -58,7 +58,7 @@ interface IconProps {
   name: IconName | string;
   /** Square edge length in pt. Default 24. */
   size?: number;
-  /** Stroke / fill colour. Default `colors.textPrimary`. */
+  /** Stroke / fill colour. Default `c.textPrimary`. */
   color?: string;
   style?: StyleProp<ViewStyle>;
 }
@@ -466,7 +466,8 @@ const FALLBACK_EMOJI: Record<string, string> = {
 };
 
 export function Icon({ name, size = 24, color, style }: IconProps) {
-  const tint = color ?? colors.textPrimary;
+  const c = useColors();
+  const tint = color ?? c.textPrimary;
   const Renderer = REGISTRY[name as IconName];
 
   if (!Renderer) {

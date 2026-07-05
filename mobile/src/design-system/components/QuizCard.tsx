@@ -22,7 +22,9 @@ import { Text } from './Text';
 import { useI18n } from '../../i18n/context';
 import type { QuizQuestion } from '../../bootcamp/quiz-data';
 import { pickPrompt } from '../../bootcamp/quiz-data';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 export interface QuizCardProps {
   question: QuizQuestion;
@@ -60,6 +62,10 @@ export function QuizCard({
   correctId,
 }: QuizCardProps) {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
+  const toneStyles = useThemedStyles(makeToneStyles);
+  const bulletStyles = useThemedStyles(makeBulletStyles);
+  const bulletTextStyles = useThemedStyles(makeBulletTextStyles);
 
   const correctBadge = tp('Верно', 'Correct', 'Dobrze', {
     es: 'Correcto',
@@ -150,129 +156,133 @@ export function QuizCard({
   );
 }
 
-const toneStyles = StyleSheet.create({
-  idle: {
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
-  },
-  picked: {
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: colors.accentCyan,
-  },
-  correct: {
-    backgroundColor: 'rgba(68, 255, 136, 0.12)',
-    borderColor: colors.success,
-  },
-  wrong: {
-    backgroundColor: 'rgba(255, 68, 68, 0.12)',
-    borderColor: colors.danger,
-  },
-});
+const makeToneStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    idle: {
+      backgroundColor: c.bgCard,
+      borderColor: c.borderCyanFaint,
+    },
+    picked: {
+      backgroundColor: 'rgba(0, 212, 255, 0.12)',
+      borderColor: c.accentCyan,
+    },
+    correct: {
+      backgroundColor: 'rgba(68, 255, 136, 0.12)',
+      borderColor: c.success,
+    },
+    wrong: {
+      backgroundColor: 'rgba(255, 68, 68, 0.12)',
+      borderColor: c.danger,
+    },
+  });
 
-const bulletStyles = StyleSheet.create({
-  idle: {
-    backgroundColor: colors.bgSecondary,
-    borderColor: colors.borderCyanFaint,
-  },
-  picked: {
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
-  },
-  correct: {
-    backgroundColor: colors.success,
-    borderColor: colors.success,
-  },
-  wrong: {
-    backgroundColor: colors.danger,
-    borderColor: colors.danger,
-  },
-});
+const makeBulletStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    idle: {
+      backgroundColor: c.bgSecondary,
+      borderColor: c.borderCyanFaint,
+    },
+    picked: {
+      backgroundColor: c.accentCyan,
+      borderColor: c.accentCyan,
+    },
+    correct: {
+      backgroundColor: c.success,
+      borderColor: c.success,
+    },
+    wrong: {
+      backgroundColor: c.danger,
+      borderColor: c.danger,
+    },
+  });
 
-const bulletTextStyles = StyleSheet.create({
-  idle: { color: colors.textSecondary },
-  picked: { color: colors.bgPrimary },
-  correct: { color: colors.bgPrimary },
-  wrong: { color: colors.textPrimary },
-});
+const makeBulletTextStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    idle: { color: c.textSecondary },
+    picked: { color: c.bgPrimary },
+    correct: { color: c.bgPrimary },
+    wrong: { color: c.textPrimary },
+  });
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
-    borderWidth: 1,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-  },
-  prompt: {
-    marginBottom: spacing.lg,
-    lineHeight: 24,
-  },
-  options: {
-    gap: spacing.sm,
-  },
-  option: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
-    borderWidth: 1,
-    borderRadius: radii.md,
-  },
-  optionPressed: {
-    opacity: 0.85,
-  },
-  bullet: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  bulletText: {
-    fontSize: 13,
-    fontWeight: '700',
-  },
-  optionLabelWrap: {
-    flex: 1,
-  },
-  optionLabel: {
-    lineHeight: 20,
-  },
-  explanation: {
-    marginTop: spacing.lg,
-    padding: spacing.md,
-    borderRadius: radii.md,
-    borderWidth: 1,
-  },
-  explanationCorrect: {
-    backgroundColor: 'rgba(68, 255, 136, 0.08)',
-    borderColor: 'rgba(68, 255, 136, 0.35)',
-  },
-  explanationWrong: {
-    backgroundColor: 'rgba(255, 170, 0, 0.08)',
-    borderColor: 'rgba(255, 170, 0, 0.35)',
-  },
-  badge: {
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    marginBottom: spacing.sm,
-  },
-  badgeCorrect: {
-    color: colors.success,
-  },
-  badgeWrong: {
-    color: colors.warning,
-  },
-  whyLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    letterSpacing: 1.2,
-    marginBottom: spacing.xs,
-  },
-  explanationBody: {
-    lineHeight: 22,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.bgCard,
+      borderColor: c.borderCyanFaint,
+      borderWidth: 1,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+    },
+    prompt: {
+      marginBottom: spacing.lg,
+      lineHeight: 24,
+    },
+    options: {
+      gap: spacing.sm,
+    },
+    option: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.md,
+      borderWidth: 1,
+      borderRadius: radii.md,
+    },
+    optionPressed: {
+      opacity: 0.85,
+    },
+    bullet: {
+      width: 28,
+      height: 28,
+      borderRadius: 14,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginRight: spacing.md,
+    },
+    bulletText: {
+      fontSize: 13,
+      fontWeight: '700',
+    },
+    optionLabelWrap: {
+      flex: 1,
+    },
+    optionLabel: {
+      lineHeight: 20,
+    },
+    explanation: {
+      marginTop: spacing.lg,
+      padding: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+    },
+    explanationCorrect: {
+      backgroundColor: 'rgba(68, 255, 136, 0.08)',
+      borderColor: 'rgba(68, 255, 136, 0.35)',
+    },
+    explanationWrong: {
+      backgroundColor: 'rgba(255, 170, 0, 0.08)',
+      borderColor: 'rgba(255, 170, 0, 0.35)',
+    },
+    badge: {
+      fontSize: 11,
+      fontWeight: '700',
+      letterSpacing: 1.2,
+      marginBottom: spacing.sm,
+    },
+    badgeCorrect: {
+      color: c.success,
+    },
+    badgeWrong: {
+      color: c.warning,
+    },
+    whyLabel: {
+      fontSize: 11,
+      fontWeight: '600',
+      letterSpacing: 1.2,
+      marginBottom: spacing.xs,
+    },
+    explanationBody: {
+      lineHeight: 22,
+    },
+  });

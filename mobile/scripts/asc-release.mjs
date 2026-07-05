@@ -46,13 +46,13 @@ const BUILD = val('--build') || '14';
 // What's New, per ASC locale. ASCII-clean per the project typography rule
 // (no em/en-dash); es/fr/de/it keep their meaningful diacritics.
 const WHATS_NEW = {
-  'en-US': "What's new in 1.3: a redesigned simulator cockpit with live force vectors and wind sectors. New on-the-water tactics - laylines, VMG, clear air, wind shadow - with diagrams. A clearer points-of-sail course wheel. Fuller rules, onboarding and glossary across 7 languages. New: a Settings switch to turn anonymous analytics off. Plus many fixes and polish.",
-  ru: 'Что нового в 1.3: переработанная панель симулятора с живыми векторами сил и секторами ветра. Новая тактика на воде - лейлайны, VMG, чистый ветер, ветровая тень - с диаграммами. Более наглядное колесо курсов относительно ветра. Полнее правила, онбординг и глоссарий на 7 языках. Новое: переключатель в настройках для отключения анонимной аналитики. Плюс множество исправлений.',
-  pl: 'Co nowego w 1.3: przeprojektowany kokpit symulatora z zywymi wektorami sil i sektorami wiatru. Nowa taktyka na wodzie - linie zwrotu, VMG, czysty wiatr, cien wiatrowy - z diagramami. Czytelniejsze kolo kursow wzgledem wiatru. Pelniejsze zasady, onboarding i slownik w 7 jezykach. Nowosc: przelacznik w ustawieniach do wylaczenia anonimowej analityki. Plus wiele poprawek.',
-  'es-ES': 'Novedades en 1.3: una cabina de simulador rediseñada con vectores de fuerza en vivo y sectores de viento. Nueva táctica en el agua - laylines, VMG, aire limpio, sombra de viento - con diagramas. Rosa de rumbos más clara. Reglas, onboarding y glosario más completos en 7 idiomas. Nuevo: un interruptor en Ajustes para desactivar la analítica anónima. Además muchas correcciones.',
-  'fr-FR': "Nouveautés de la 1.3 : un cockpit de simulateur repensé avec vecteurs de force en direct et secteurs de vent. Nouvelle tactique sur l'eau - laylines, VMG, air clair, ombre de vent - avec schémas. Rose des allures plus claire. Règles, prise en main et glossaire plus complets en 7 langues. Nouveau : un interrupteur dans Réglages pour désactiver l'analyse anonyme. Plus de nombreuses corrections.",
-  'de-DE': 'Neu in 1.3: ein ueberarbeitetes Simulator-Cockpit mit Live-Kraftvektoren und Windsektoren. Neue Taktik auf dem Wasser - Laylines, VMG, klare Luft, Windschatten - mit Diagrammen. Klarere Kurs-Windrose. Umfangreichere Regeln, Onboarding und Glossar in 7 Sprachen. Neu: ein Schalter in den Einstellungen zum Abschalten der anonymen Analyse. Dazu viele Korrekturen.',
-  it: "Novità nella 1.3: una cabina del simulatore ridisegnata con vettori di forza dal vivo e settori di vento. Nuova tattica in acqua - laylines, VMG, aria pulita, ombra del vento - con diagrammi. Rosa delle andature più chiara. Regole, onboarding e glossario più completi in 7 lingue. Novità: un interruttore nelle Impostazioni per disattivare l'analisi anonima. Più molte correzioni.",
+  'en-US': "New 2026 regatta photo gallery, plus a light theme with automatic day/night switching.",
+  ru: 'Новая фотогалерея регаты 2026, плюс светлая тема с автоматическим переключением день/ночь.',
+  pl: 'Nowa galeria zdjec z regat 2026 oraz jasny motyw z automatycznym przelaczaniem dzien/noc.',
+  'es-ES': 'Nueva galería de fotos de la regata 2026, además de un tema claro con cambio automático día/noche.',
+  'fr-FR': 'Nouvelle galerie photo de la régate 2026, plus un thème clair avec bascule automatique jour/nuit.',
+  'de-DE': 'Neue Fotogalerie der Regatta 2026, plus ein helles Design mit automatischem Tag/Nacht-Wechsel.',
+  it: 'Nuova galleria fotografica della regata 2026, più un tema chiaro con passaggio automatico giorno/notte.',
 };
 
 function jwt() {

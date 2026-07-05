@@ -1,7 +1,9 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
-import { colors, motion, radii } from '../tokens';
+import { motion, radii } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 interface PulsePillProps {
   /** Visible label text, rendered uppercase via styling, not transform. */
@@ -29,6 +31,7 @@ export function PulsePill({
   staticDot = false,
   accessibilityLabel,
 }: PulsePillProps) {
+  const styles = useThemedStyles(makeStyles);
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -70,29 +73,30 @@ export function PulsePill({
   );
 }
 
-const styles = StyleSheet.create({
-  pill: {
-    alignSelf: 'flex-start',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: radii.pill,
-    backgroundColor: colors.surfaceCyanFaint,
-    borderColor: colors.borderCyanSoft,
-    borderWidth: 1,
-  },
-  pillDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.accentCyan,
-  },
-  pillLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-    color: colors.accentCyan,
-    letterSpacing: 0.3,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    pill: {
+      alignSelf: 'flex-start',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      paddingHorizontal: 12,
+      paddingVertical: 6,
+      borderRadius: radii.pill,
+      backgroundColor: c.surfaceCyanFaint,
+      borderColor: c.borderCyanSoft,
+      borderWidth: 1,
+    },
+    pillDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: c.accentCyan,
+    },
+    pillLabel: {
+      fontSize: 12,
+      fontWeight: '500',
+      color: c.accentCyan,
+      letterSpacing: 0.3,
+    },
+  });

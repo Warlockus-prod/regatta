@@ -39,7 +39,10 @@ describe('Gallery screen', () => {
   it('renders the first item title', async () => {
     const view = renderWithProviders(<Gallery />);
     const firstTitle = legacyPick(galleryItems[0]!, 'title', 'en');
-    await waitFor(() => view.getByText(firstTitle));
+    // The 2026 album shares one title across many photos, so the first
+    // title legitimately appears more than once - assert it renders at
+    // least once rather than requiring a unique match.
+    await waitFor(() => view.getAllByText(firstTitle));
   });
 
   it('shows year badges for items that carry one', async () => {

@@ -19,7 +19,9 @@ import { useI18n } from '../i18n/context';
 import { detectDeviceLang } from '../i18n/device-locale';
 import { ENABLED_LANGUAGES, isLang, type Lang } from '../i18n/languages';
 import { Button, Card, Icon, type IconName, Text } from '../design-system/components';
-import { colors, motion, radii, spacing } from '../design-system/tokens';
+import { motion, radii, spacing } from '../design-system/tokens';
+import type { ThemeColors } from '../design-system/tokens';
+import { useColors, useThemedStyles } from '../design-system/theme';
 import { useFirstLaunch, type FirstLaunchStage } from '../persistence/firstLaunch';
 
 /**
@@ -150,6 +152,7 @@ function OnboardingTourModal({
   onStartBack,
   onFinish,
 }: OnboardingTourModalProps) {
+  const modalStyles = useThemedStyles(makeModalStyles);
   const router = useRouter();
   const { tp } = useI18n();
   const stepIndex = TOUR_ORDER.indexOf(step);
@@ -251,6 +254,7 @@ interface SlideStageProps {
 }
 
 function SlideStage({ stepKey, children }: SlideStageProps) {
+  const modalStyles = useThemedStyles(makeModalStyles);
   // Cross-fade between steps. We deliberately stay with Animated (not
   // reanimated) here because the worklet runtime isn't always ready
   // during the very first frame of a cold launch.
@@ -299,6 +303,7 @@ function LanguageStep({
   onPick,
   onContinue,
 }: LanguageStepProps) {
+  const modalStyles = useThemedStyles(makeModalStyles);
   const { tp } = useI18n();
 
   const title = tp('Выберите язык', 'Pick your language', 'Wybierz jezyk', {
@@ -375,6 +380,8 @@ interface WelcomeStepProps {
 }
 
 function WelcomeStep({ onBack, onNext }: WelcomeStepProps) {
+  const modalStyles = useThemedStyles(makeModalStyles);
+  const c = useColors();
   const { tp } = useI18n();
 
   const title = tp(
@@ -495,7 +502,7 @@ function WelcomeStep({ onBack, onNext }: WelcomeStepProps) {
               <Icon
                 name={feat.icon}
                 size={32}
-                color={colors.accentCyan}
+                color={c.accentCyan}
                 style={modalStyles.featureIcon}
               />
               <View style={modalStyles.featureText}>
@@ -533,6 +540,8 @@ function StartStep({
   onPickBootcamp,
   onPickSimulator,
 }: StartStepProps) {
+  const modalStyles = useThemedStyles(makeModalStyles);
+  const c = useColors();
   const { tp } = useI18n();
 
   const title = tp(
@@ -650,7 +659,7 @@ function StartStep({
               <Icon
                 name={opt.icon}
                 size={36}
-                color={colors.accentCyan}
+                color={c.accentCyan}
                 style={modalStyles.featureIcon}
               />
               <View style={modalStyles.featureText}>
@@ -680,7 +689,8 @@ function StartStep({
 
 const screenHeight = Dimensions.get('window').height;
 
-const modalStyles = StyleSheet.create({
+const makeModalStyles = (c: ThemeColors) =>
+  StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(6, 18, 36, 0.96)',
@@ -690,10 +700,10 @@ const modalStyles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
     paddingBottom: spacing.lg,
@@ -714,10 +724,10 @@ const modalStyles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.borderCyanSoft,
+    backgroundColor: c.borderCyanSoft,
   },
   dotActive: {
-    backgroundColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
   },
   skipBtn: {
     paddingHorizontal: spacing.sm,
@@ -753,7 +763,7 @@ const modalStyles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   langCardSelected: {
-    borderColor: colors.accentCyan,
+    borderColor: c.accentCyan,
   },
   langRow: {
     flexDirection: 'row',
@@ -811,7 +821,7 @@ const modalStyles = StyleSheet.create({
   footerHalf: {
     flex: 1,
   },
-});
+  });
 
 // Re-export the stage type so other modules can reference it without
 // re-importing from `persistence/firstLaunch`.

@@ -11,9 +11,10 @@ import {
   View,
 } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Text } from '../../src/design-system/components';
+import { Screen, Text, useColors, useThemedStyles } from '../../src/design-system/components';
 import { sendChat, type ChatMessage } from '../../src/api/chat';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 
 /**
@@ -29,6 +30,8 @@ import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
  */
 export default function Ask() {
   const { tp, lang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const analytics = useAnalytics();
 
   const headerTitle = tp('Спросить', 'Ask', 'Zapytaj', {
@@ -234,7 +237,7 @@ export default function Ask() {
 
           {loading ? (
             <View style={[styles.bubble, styles.bubbleAssistant, styles.thinkingRow]}>
-              <ActivityIndicator color={colors.accentCyan} />
+              <ActivityIndicator color={c.accentCyan} />
               <Text variant="muted" style={styles.thinkingText}>{thinkingLabel}</Text>
             </View>
           ) : null}
@@ -263,7 +266,7 @@ export default function Ask() {
             value={input}
             onChangeText={setInput}
             placeholder={inputPlaceholder}
-            placeholderTextColor={colors.textMuted}
+            placeholderTextColor={c.textMuted}
             multiline
             editable={!loading}
             onSubmitEditing={() => { void ask(input); }}
@@ -289,7 +292,7 @@ export default function Ask() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   flex: { flex: 1 },
   scroll: {
     padding: spacing.lg,
@@ -304,22 +307,22 @@ const styles = StyleSheet.create({
   },
   bubbleAssistant: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
   },
   bubbleUser: {
     alignSelf: 'flex-end',
-    backgroundColor: colors.surfaceCyanSoft,
+    backgroundColor: c.surfaceCyanSoft,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
   },
   bubbleText: {
     lineHeight: 21,
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   bubbleTextUser: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   suggestions: {
     gap: spacing.sm,
@@ -327,17 +330,17 @@ const styles = StyleSheet.create({
   chip: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderRadius: 999,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
-    backgroundColor: colors.surfaceCyanFaint,
+    backgroundColor: c.surfaceCyanFaint,
   },
   chipPressed: {
     opacity: 0.7,
   },
   chipText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '600',
   },
@@ -364,13 +367,13 @@ const styles = StyleSheet.create({
   retryBtn: {
     alignSelf: 'flex-start',
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
   },
   retryText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
   },
   inputRow: {
@@ -381,28 +384,28 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.borderCyanFaint,
-    backgroundColor: colors.bgPrimary,
+    borderTopColor: c.borderCyanFaint,
+    backgroundColor: c.bgPrimary,
   },
   textInput: {
     flex: 1,
     maxHeight: 120,
     minHeight: 44,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderRadius: radii.lg,
     paddingHorizontal: spacing.md,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
-    color: colors.textPrimary,
-    backgroundColor: colors.bgCard,
+    color: c.textPrimary,
+    backgroundColor: c.bgCard,
     fontSize: 15,
   },
   sendBtn: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -410,7 +413,7 @@ const styles = StyleSheet.create({
     opacity: 0.4,
   },
   sendArrow: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 22,
     fontWeight: '800',
     lineHeight: 24,

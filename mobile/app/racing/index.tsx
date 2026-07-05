@@ -8,10 +8,12 @@ import {
   RacingStrategyDiagram,
   Screen,
   Text,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import { racingRules, racingStrategies } from '../../src/data';
 import { legacyPick, pickLocalized, type Lang } from '../../src/i18n/languages';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * "Key Concepts" cards. Mirrors the keyConcepts array defined inline on the
@@ -122,6 +124,7 @@ const keyConcepts: KeyConcept[] = [
  */
 export default function Racing() {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp(
     'Тактика гонок',
@@ -254,7 +257,7 @@ export default function Racing() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -289,7 +292,7 @@ const styles = StyleSheet.create({
     marginRight: spacing.md,
   },
   priorityText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '700',
     fontSize: 13,
     fontVariant: ['tabular-nums'],

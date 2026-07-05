@@ -19,3 +19,17 @@ export { OfflineBanner } from './OfflineBanner';
 export { QuizCard, type QuizCardProps } from './QuizCard';
 export { SkiaYacht, type SkiaYachtMode, type SkiaYachtProps } from './SkiaYacht';
 export { WindNowCard } from './WindNowCard';
+
+// Theme system: provider + hooks. Re-exported here so screens can pull theme
+// helpers from the same barrel as the components they already import.
+export {
+  ThemeProvider,
+  useTheme,
+  useColors,
+  useThemedStyles,
+  useShadows,
+  useGlow,
+  useOceanGradient,
+  type ThemeMode,
+  type Scheme,
+} from '../theme';

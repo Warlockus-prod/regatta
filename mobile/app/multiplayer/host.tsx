@@ -9,8 +9,9 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Text } from '../../src/design-system/components';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { Screen, Text, useThemedStyles } from '../../src/design-system/components';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { generateRoomCode } from '../../src/multiplayer/room-code';
 import { useRecentRooms } from '../../src/persistence/recent-rooms';
 
@@ -31,6 +32,7 @@ import { useRecentRooms } from '../../src/persistence/recent-rooms';
  */
 export default function MultiplayerHost() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { push } = useRecentRooms();
   // Generate the code ONCE per mount so a re-render does not roll a
@@ -205,7 +207,7 @@ export default function MultiplayerHost() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
@@ -221,10 +223,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   codeText: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 64,
     fontWeight: '800',
     letterSpacing: 8,
@@ -242,8 +244,8 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.md,
@@ -253,7 +255,7 @@ const styles = StyleSheet.create({
     opacity: 0.84,
   },
   buttonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -265,22 +267,22 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
     borderRadius: radii.md,
     alignItems: 'center',
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
   },
   ctaPrimary: {
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
+    borderColor: c.accentCyan,
   },
   ctaPrimaryText: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   ctaText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 15,
     fontWeight: '600',
     letterSpacing: 0.3,

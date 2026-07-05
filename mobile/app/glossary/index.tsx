@@ -2,11 +2,19 @@ import { Stack } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, EmptyState, Screen, Text } from '../../src/design-system/components';
+import {
+  Card,
+  EmptyState,
+  Screen,
+  Text,
+  useColors,
+  useThemedStyles,
+} from '../../src/design-system/components';
 import { glossaryTerms, glossaryCategories } from '../../src/data';
 import type { GlossaryCategoryId } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Glossary index. 51 sailing terms, searchable in the user's current
@@ -20,20 +28,29 @@ const CATEGORY_ORDER: GlossaryCategoryId[] = ['boat', 'sail', 'course', 'maneuve
  * Per-category badge colors. Mirrors the web `categoryColors` map in
  * `src/app/glossary/page.tsx`. Cyan / green / amber / teal align with the
  * shared tokens; crew uses purple, which has no token yet, so it is kept as
- * a literal here to match the web source of truth.
+ * a literal here to match the web source of truth. Built from the active
+ * palette so the badge foregrounds follow the theme; the soft rgba bg/border
+ * tints stay fixed (they read fine on both light and dark cards).
  */
-const CATEGORY_COLORS: Record<GlossaryCategoryId, { fg: string; bg: string; border: string }> = {
-  boat: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
-  sail: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
-  course: { fg: colors.success, bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
-  maneuver: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
-  racing: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
-  wind: { fg: colors.accentTeal, bg: 'rgba(0, 255, 204, 0.12)', border: 'rgba(0, 255, 204, 0.25)' },
-  crew: { fg: '#8844ff', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
-};
+function makeCategoryColors(
+  c: ThemeColors,
+): Record<GlossaryCategoryId, { fg: string; bg: string; border: string }> {
+  return {
+    boat: { fg: c.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
+    sail: { fg: c.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
+    course: { fg: c.success, bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
+    maneuver: { fg: c.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
+    racing: { fg: c.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
+    wind: { fg: c.accentTeal, bg: 'rgba(0, 255, 204, 0.12)', border: 'rgba(0, 255, 204, 0.25)' },
+    crew: { fg: '#8844ff', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
+  };
+}
 
 export default function Glossary() {
   const { tp, lang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const categoryColors = useMemo(() => makeCategoryColors(c), [c]);
   const [query, setQuery] = useState('');
   const [activeCat, setActiveCat] = useState<GlossaryCategoryId | 'all'>('all');
 
@@ -138,7 +155,7 @@ export default function Glossary() {
           value={query}
           onChangeText={setQuery}
           placeholder={placeholder}
-          placeholderTextColor={colors.textMuted}
+          placeholderTextColor={c.textMuted}
           style={styles.search}
           clearButtonMode="while-editing"
           autoCorrect={false}
@@ -189,7 +206,7 @@ export default function Glossary() {
           filtered.map((term) => {
             const t = legacyPick(term, 'term', lang);
             const d = legacyPick(term, 'definition', lang);
-            const catColors = CATEGORY_COLORS[term.category];
+            const catColors = categoryColors[term.category];
             const catName = legacyPick(glossaryCategories[term.category], 'name', lang);
             const showEn = lang !== 'en';
             return (
@@ -245,6 +262,7 @@ function CategoryChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -257,20 +275,20 @@ function CategoryChip({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   searchRow: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
     paddingBottom: spacing.sm,
   },
   search: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
     borderColor: 'rgba(0, 212, 255, 0.15)',
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm + 2,
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 16,
   },
   counter: {
@@ -296,7 +314,7 @@ const styles = StyleSheet.create({
   },
   termEn: {
     marginTop: 2,
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '500',
   },
@@ -326,24 +344,24 @@ const styles = StyleSheet.create({
   },
   chip: {
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderRadius: 999,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
   },
   chipActive: {
-    backgroundColor: colors.surfaceCyanSoft,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.surfaceCyanSoft,
+    borderColor: c.accentCyan,
   },
   chipPressed: {
     opacity: 0.7,
   },
   chipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 13,
     fontWeight: '600',
   },
   chipTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
 });

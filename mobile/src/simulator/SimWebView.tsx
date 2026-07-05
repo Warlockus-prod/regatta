@@ -11,7 +11,8 @@ import {
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
-import { colors } from '../design-system/tokens';
+import type { ThemeColors } from '../design-system/tokens';
+import { useColors, useThemedStyles } from '../design-system/theme';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -78,6 +79,8 @@ export interface SimWebViewProps {
 }
 
 export function SimWebView({ path, title, query }: SimWebViewProps) {
+  const styles = useThemedStyles(makeStyles);
+  const c = useColors();
   const { lang, tp } = useI18n();
   const router = useRouter();
   const webRef = useRef<WebView>(null);
@@ -147,7 +150,7 @@ export function SimWebView({ path, title, query }: SimWebViewProps) {
       />
       {loading && !failed && (
         <View style={styles.overlay} pointerEvents="none">
-          <ActivityIndicator color={colors.accentCyan} size="large" />
+          <ActivityIndicator color={c.accentCyan} size="large" />
         </View>
       )}
       {failed && (
@@ -201,18 +204,19 @@ export function SimWebView({ path, title, query }: SimWebViewProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  web: { flex: 1, backgroundColor: colors.bgPrimary },
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+  web: { flex: 1, backgroundColor: c.bgPrimary },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.bgPrimary,
+    backgroundColor: c.bgPrimary,
     paddingHorizontal: 32,
     gap: 20,
   },
   errText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     textAlign: 'center',
     fontSize: 15,
     lineHeight: 22,
@@ -232,10 +236,10 @@ const styles = StyleSheet.create({
   btnPressed: { opacity: 0.7 },
   btnPrimary: {
     backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: colors.accentCyan,
+    borderColor: c.accentCyan,
   },
   btnPrimaryText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -244,8 +248,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(139, 167, 184, 0.4)',
   },
   btnGhostText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontWeight: '600',
     fontSize: 15,
   },
-});
+  });

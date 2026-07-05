@@ -3,7 +3,9 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { Screen } from './Screen';
 import { Text } from './Text';
 import { PulsePill } from './PulsePill';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 interface PlaceholderScreenProps {
   /** Stack header title and the screen H1. */
@@ -35,6 +37,7 @@ export function PlaceholderScreen({
   badge = 'Coming soon',
   highlights,
 }: PlaceholderScreenProps) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Screen>
       <Stack.Screen options={{ title }} />
@@ -60,46 +63,47 @@ export function PlaceholderScreen({
   );
 }
 
-const styles = StyleSheet.create({
-  scroll: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.xxl,
-    gap: spacing.lg,
-  },
-  title: {
-    fontSize: 36,
-    fontWeight: '700',
-    letterSpacing: -0.5,
-    lineHeight: 42,
-    color: colors.textPrimary,
-  },
-  titleAccent: {
-    color: colors.accentCyan,
-  },
-  note: {
-    fontSize: 15,
-    lineHeight: 22,
-  },
-  highlights: {
-    marginTop: spacing.sm,
-    gap: spacing.sm,
-  },
-  highlightRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: spacing.sm,
-  },
-  highlightDot: {
-    width: 4,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: colors.accentCyan,
-    marginTop: 8,
-  },
-  highlightText: {
-    flex: 1,
-    fontSize: 14,
-    lineHeight: 20,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    scroll: {
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.xl,
+      paddingBottom: spacing.xxl,
+      gap: spacing.lg,
+    },
+    title: {
+      fontSize: 36,
+      fontWeight: '700',
+      letterSpacing: -0.5,
+      lineHeight: 42,
+      color: c.textPrimary,
+    },
+    titleAccent: {
+      color: c.accentCyan,
+    },
+    note: {
+      fontSize: 15,
+      lineHeight: 22,
+    },
+    highlights: {
+      marginTop: spacing.sm,
+      gap: spacing.sm,
+    },
+    highlightRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+    },
+    highlightDot: {
+      width: 4,
+      height: 4,
+      borderRadius: 2,
+      backgroundColor: c.accentCyan,
+      marginTop: 8,
+    },
+    highlightText: {
+      flex: 1,
+      fontSize: 14,
+      lineHeight: 20,
+    },
+  });

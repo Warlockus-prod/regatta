@@ -23,13 +23,15 @@ import {
   EmptyState,
   Screen,
   Text,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import {
   useRaceHistory,
   type RaceRecord,
 } from '../../src/persistence/race-history';
 import { findCourse } from '../../src/game/course';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 function formatTime(sec: number): string {
   const s = Math.max(0, Math.round(sec));
@@ -55,6 +57,7 @@ export default function History() {
   const { tp } = useI18n();
   const router = useRouter();
   const history = useRaceHistory();
+  const styles = useThemedStyles(makeStyles);
 
   const screenTitle = tp('История гонок', 'Race history', 'Historia wyscigow', {
     es: 'Historial de regatas',
@@ -254,6 +257,7 @@ function RaceCard({
   timeLabel,
   scoreLabel,
 }: RaceCardProps) {
+  const styles = useThemedStyles(makeStyles);
   const course = findCourse(race.courseId);
   const courseTitle = course.title(tp);
   return (
@@ -305,7 +309,7 @@ function RaceCard({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -337,13 +341,13 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   raceStatLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   raceStatValue: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
@@ -354,28 +358,28 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   actionButtonPrimary: {
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
+    borderColor: c.accentCyan,
   },
   actionButtonPressed: {
     opacity: 0.84,
   },
   actionButtonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   actionButtonTextPrimary: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -396,7 +400,7 @@ const styles = StyleSheet.create({
     opacity: 0.84,
   },
   clearButtonText: {
-    color: colors.danger,
+    color: c.danger,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 0.3,

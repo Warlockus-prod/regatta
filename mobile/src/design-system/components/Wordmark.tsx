@@ -1,6 +1,7 @@
 import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { Text } from './Text';
-import { colors } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 export type WordmarkSize = 'xl' | 'm' | 's';
 
@@ -35,6 +36,7 @@ const SIZE_PRESETS: Record<WordmarkSize, SizePreset> = {
  * sizes.
  */
 export function Wordmark({ size = 'xl', style }: WordmarkProps) {
+  const styles = useThemedStyles(makeStyles);
   const preset = SIZE_PRESETS[size];
 
   if (size === 'xl') {
@@ -87,21 +89,22 @@ export function Wordmark({ size = 'xl', style }: WordmarkProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  stack: {
-    alignItems: 'center',
-    paddingVertical: 2,
-  },
-  lead: {
-    color: colors.textSecondary,
-    fontWeight: '500',
-    letterSpacing: 0,
-    includeFontPadding: true,
-  },
-  brand: {
-    color: colors.accentCyan,
-    fontWeight: '700',
-    letterSpacing: 0,
-    includeFontPadding: true,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    stack: {
+      alignItems: 'center',
+      paddingVertical: 2,
+    },
+    lead: {
+      color: c.textSecondary,
+      fontWeight: '500',
+      letterSpacing: 0,
+      includeFontPadding: true,
+    },
+    brand: {
+      color: c.accentCyan,
+      fontWeight: '700',
+      letterSpacing: 0,
+      includeFontPadding: true,
+    },
+  });

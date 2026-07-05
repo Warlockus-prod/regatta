@@ -1,7 +1,9 @@
 import { StyleSheet, View } from 'react-native';
 import { useI18n } from '../../i18n/context';
 import { Text } from './Text';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 interface OfflineBannerProps {
   visible: boolean;
@@ -20,6 +22,7 @@ interface OfflineBannerProps {
  */
 export function OfflineBanner({ visible }: OfflineBannerProps) {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   if (!visible) return null;
 
   const label = tp(
@@ -45,20 +48,21 @@ export function OfflineBanner({ visible }: OfflineBannerProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  bar: {
-    height: 32,
-    paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(255, 170, 0, 0.14)',
-    borderBottomColor: 'rgba(255, 170, 0, 0.30)',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    color: colors.warning,
-    fontSize: 12,
-    fontWeight: '600',
-    letterSpacing: 0.3,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    bar: {
+      height: 32,
+      paddingHorizontal: spacing.md,
+      backgroundColor: 'rgba(255, 170, 0, 0.14)',
+      borderBottomColor: 'rgba(255, 170, 0, 0.30)',
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    text: {
+      color: c.warning,
+      fontSize: 12,
+      fontWeight: '600',
+      letterSpacing: 0.3,
+    },
+  });

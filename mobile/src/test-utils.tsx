@@ -7,6 +7,7 @@ import type { ReactElement } from 'react';
 import { render, type RenderResult } from '@testing-library/react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider } from './i18n/context';
+import { ThemeProvider } from './design-system/theme';
 
 const initialMetrics = {
   insets: { top: 0, bottom: 0, left: 0, right: 0 },
@@ -21,6 +22,9 @@ const initialMetrics = {
  *    via AsyncStorage and rely on `waitFor` for hydration. EN is used as
  *    the deterministic first render language because most screen tests
  *    assert English copy.
+ *  - `ThemeProvider` so `useColors` / `useThemedStyles` resolve. Defaults to
+ *    `auto` -> dark (useColorScheme returns null under test), matching the
+ *    dark palette the screen assertions were written against.
  *
  * Tests still need to mock `expo-router`, `expo-localization`, and
  * `@react-native-async-storage/async-storage`. See `__tests__/screens/`
@@ -28,8 +32,10 @@ const initialMetrics = {
  */
 export function renderWithProviders(ui: ReactElement): RenderResult {
   return render(
-    <SafeAreaProvider initialMetrics={initialMetrics}>
-      <I18nProvider initialLang="en">{ui}</I18nProvider>
-    </SafeAreaProvider>,
+    <ThemeProvider>
+      <SafeAreaProvider initialMetrics={initialMetrics}>
+        <I18nProvider initialLang="en">{ui}</I18nProvider>
+      </SafeAreaProvider>
+    </ThemeProvider>,
   );
 }

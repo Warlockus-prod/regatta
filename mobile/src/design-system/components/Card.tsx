@@ -8,7 +8,9 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useTheme, useThemedStyles, type Scheme } from '../theme';
 
 export type CardAccent = 'cyan' | 'success' | 'warning';
 
@@ -28,14 +30,23 @@ interface CardProps {
   accessibilityState?: AccessibilityState;
 }
 
-const ACCENT_RGB: Record<CardAccent, string> = {
-  cyan: '0, 212, 255',
-  success: '68, 255, 136',
-  warning: '255, 170, 0',
+// Accent tint bases per scheme. Light uses the muted light-theme accents so an
+// 8% tint on a white card still reads on-brand instead of neon.
+const ACCENT_RGB: Record<Scheme, Record<CardAccent, string>> = {
+  dark: {
+    cyan: '0, 212, 255',
+    success: '68, 255, 136',
+    warning: '255, 170, 0',
+  },
+  light: {
+    cyan: '0, 150, 199',
+    success: '31, 157, 87',
+    warning: '183, 121, 31',
+  },
 };
 
-function tintedStyle(accent: CardAccent, pressed: boolean): ViewStyle {
-  const rgb = ACCENT_RGB[accent];
+function tintedStyle(accent: CardAccent, pressed: boolean, scheme: Scheme): ViewStyle {
+  const rgb = ACCENT_RGB[scheme][accent];
   return {
     backgroundColor: `rgba(${rgb}, ${pressed ? 0.14 : 0.08})`,
     borderColor: `rgba(${rgb}, ${pressed ? 0.5 : 0.3})`,
@@ -51,6 +62,8 @@ export function Card({
   accessibilityLabel,
   accessibilityState,
 }: CardProps) {
+  const styles = useThemedStyles(makeStyles);
+  const { scheme } = useTheme();
   if (onPress) {
     return (
       <Pressable
@@ -60,7 +73,7 @@ export function Card({
         accessibilityState={accessibilityState}
         style={({ pressed }) => [
           styles.card,
-          accent ? tintedStyle(accent, pressed) : pressed && styles.pressed,
+          accent ? tintedStyle(accent, pressed, scheme) : pressed && styles.pressed,
           style,
         ]}
       >
@@ -73,23 +86,24 @@ export function Card({
       accessibilityRole={accessibilityRole}
       accessibilityLabel={accessibilityLabel}
       accessibilityState={accessibilityState}
-      style={[styles.card, accent ? tintedStyle(accent, false) : null, style]}
+      style={[styles.card, accent ? tintedStyle(accent, false, scheme) : null, style]}
     >
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
-    borderWidth: 1,
-    borderRadius: radii.lg,
-    padding: spacing.lg,
-  },
-  pressed: {
-    backgroundColor: colors.bgCardHover,
-    borderColor: colors.borderCyanSoft,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      backgroundColor: c.bgCard,
+      borderColor: c.borderCyanFaint,
+      borderWidth: 1,
+      borderRadius: radii.lg,
+      padding: spacing.lg,
+    },
+    pressed: {
+      backgroundColor: c.bgCardHover,
+      borderColor: c.borderCyanSoft,
+    },
+  });

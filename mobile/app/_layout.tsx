@@ -9,7 +9,7 @@ import { I18nProvider, useI18n } from '../src/i18n/context';
 import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
-import { colors } from '../src/design-system/tokens';
+import { ThemeProvider, useTheme } from '../src/design-system/theme';
 
 // Block the native splash from auto-hiding before the JS bundle has
 // hydrated language preferences. The Gate below hides it once
@@ -21,6 +21,8 @@ SplashScreen.preventAutoHideAsync().catch(() => {
 
 /**
  * Root layout. Provider stack from outside-in:
+ *  - ThemeProvider: resolves Auto/Light/Dark, exposes the active palette.
+ *    Outermost so every provider + screen below can read the theme.
  *  - GestureHandlerRootView: required for any react-native-gesture-handler usage.
  *  - SafeAreaProvider: feeds insets to <Screen> and any other inset-aware code.
  *  - I18nProvider: hydrates language from AsyncStorage / device locale.
@@ -31,30 +33,44 @@ SplashScreen.preventAutoHideAsync().catch(() => {
  */
 export default function RootLayout() {
   return (
-    <ErrorBoundary>
-      <GestureHandlerRootView style={styles.root}>
-        <SafeAreaProvider>
-          <I18nProvider>
-            <AnalyticsProvider>
-              <SplashGate>
-                <FirstLaunchGate>
-                  <Stack
-                    screenOptions={{
-                      contentStyle: { backgroundColor: colors.bgPrimary },
-                      headerStyle: { backgroundColor: colors.bgPrimary },
-                      headerTintColor: colors.textPrimary,
-                      headerTitleStyle: { color: colors.textPrimary },
-                      animation: 'slide_from_right',
-                    }}
-                  />
-                  <StatusBar style="light" />
-                </FirstLaunchGate>
-              </SplashGate>
-            </AnalyticsProvider>
-          </I18nProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </ErrorBoundary>
+    <ThemeProvider>
+      <ErrorBoundary>
+        <ThemedApp />
+      </ErrorBoundary>
+    </ThemeProvider>
+  );
+}
+
+/**
+ * Reads the resolved theme and applies it to the root view, the stack's
+ * default screen options, and the StatusBar. Split out so it sits below
+ * ThemeProvider and can call `useTheme()`.
+ */
+function ThemedApp() {
+  const { colors, scheme } = useTheme();
+  return (
+    <GestureHandlerRootView style={[styles.root, { backgroundColor: colors.bgPrimary }]}>
+      <SafeAreaProvider>
+        <I18nProvider>
+          <AnalyticsProvider>
+            <SplashGate>
+              <FirstLaunchGate>
+                <Stack
+                  screenOptions={{
+                    contentStyle: { backgroundColor: colors.bgPrimary },
+                    headerStyle: { backgroundColor: colors.bgPrimary },
+                    headerTintColor: colors.textPrimary,
+                    headerTitleStyle: { color: colors.textPrimary },
+                    animation: 'slide_from_right',
+                  }}
+                />
+                <StatusBar style={scheme === 'light' ? 'dark' : 'light'} />
+              </FirstLaunchGate>
+            </SplashGate>
+          </AnalyticsProvider>
+        </I18nProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
 
@@ -80,6 +96,5 @@ function SplashGate({ children }: { children: ReactNode }) {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.bgPrimary,
   },
 });

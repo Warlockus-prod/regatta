@@ -1,7 +1,8 @@
 import { type ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { colors } from '../tokens';
+import { useThemedStyles } from '../theme';
+import type { ThemeColors } from '../tokens';
 
 interface ScreenProps {
   children: ReactNode;
@@ -13,7 +14,7 @@ interface ScreenProps {
 }
 
 /**
- * Root view for any route. Applies the dark-ocean background and respects
+ * Root view for any route. Applies the themed ocean background and respects
  * top + bottom safe-area insets by default. Pair with `<Stack.Screen options>`
  * to set per-route header behavior.
  */
@@ -24,6 +25,7 @@ export function Screen({
   style,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View
       style={[
@@ -40,9 +42,10 @@ export function Screen({
   );
 }
 
-const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-    backgroundColor: colors.bgPrimary,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    root: {
+      flex: 1,
+      backgroundColor: c.bgPrimary,
+    },
+  });

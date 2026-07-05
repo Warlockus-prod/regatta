@@ -1,12 +1,21 @@
 import { Stack, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Icon, type IconName, Screen, Text } from '../../src/design-system/components';
+import {
+  Card,
+  Icon,
+  type IconName,
+  Screen,
+  Text,
+  useColors,
+  useThemedStyles,
+} from '../../src/design-system/components';
 import { BOOTCAMP_TOTAL_MINUTES, bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
 import { groupLessonsByDay } from '../../src/bootcamp/days';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Map each lesson id to a designer icon. Bootcamp lessons cover the
@@ -44,6 +53,8 @@ export default function BootcampIndex() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const { isCompleted, completedIds, ready } = useBootcampProgress();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp('Bootcamp', 'Bootcamp', 'Bootcamp');
 
@@ -162,7 +173,7 @@ export default function BootcampIndex() {
                         <Icon
                           name={LESSON_ICON[lesson.id] ?? 'compass'}
                           size={20}
-                          color={completed ? colors.success : colors.textSecondary}
+                          color={completed ? c.success : c.textSecondary}
                         />
                         <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
                       </View>
@@ -172,7 +183,7 @@ export default function BootcampIndex() {
                       </View>
                       {completed ? (
                         <View style={styles.checkBadge}>
-                          <Icon name="check" size={14} color={colors.success} />
+                          <Icon name="check" size={14} color={c.success} />
                         </View>
                       ) : null}
                     </View>
@@ -188,7 +199,7 @@ export default function BootcampIndex() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -198,7 +209,7 @@ const styles = StyleSheet.create({
   },
   progress: {
     marginTop: spacing.xs,
-    color: colors.success,
+    color: c.success,
   },
   dayBlock: {
     marginTop: spacing.md,
@@ -212,19 +223,19 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   dayLabel: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
   },
   dayCount: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.4,
   },
   dayCountDone: {
-    color: colors.success,
+    color: c.success,
   },
   lesson: {
     marginHorizontal: spacing.lg,
@@ -259,8 +270,8 @@ const styles = StyleSheet.create({
     height: 22,
     paddingHorizontal: 8,
     borderRadius: 11,
-    backgroundColor: colors.surfaceSuccess,
-    borderColor: colors.borderSuccess,
+    backgroundColor: c.surfaceSuccess,
+    borderColor: c.borderSuccess,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -268,7 +279,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   checkText: {
-    color: colors.success,
+    color: c.success,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.5,

@@ -8,13 +8,18 @@ import {
   PointsOfSailDiagram,
   Screen,
   Text,
+  useColors,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import { pointsOfSail } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 export default function Courses() {
   const { tp, lang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
 
   // Selected point of sail. Defaults to beam reach (the fastest, "hero" course -
   // matches the web, where Polwiatr is highlighted on load).
@@ -269,7 +274,7 @@ export default function Courses() {
               { backgroundColor: 'rgba(0, 212, 255, 0.05)', borderColor: 'rgba(0, 212, 255, 0.15)' },
             ]}
           >
-            <Text variant="caption" style={[styles.subCardTitle, { color: colors.accentCyan }]}>
+            <Text variant="caption" style={[styles.subCardTitle, { color: c.accentCyan }]}>
               {tp('Грот / Mainsail', 'Mainsail', 'Grot / Mainsail', {
                 es: 'Mayor / Mainsail',
                 fr: 'Grand-voile / Mainsail',
@@ -298,7 +303,7 @@ export default function Courses() {
               { backgroundColor: 'rgba(245, 226, 107, 0.06)', borderColor: 'rgba(245, 226, 107, 0.20)' },
             ]}
           >
-            <Text variant="caption" style={[styles.subCardTitle, { color: colors.overtrim }]}>
+            <Text variant="caption" style={[styles.subCardTitle, { color: c.overtrim }]}>
               {tp('Стаксель / Jib', 'Jib', 'Fok / Jib', {
                 es: 'Foque / Jib',
                 fr: 'Foc / Jib',
@@ -327,7 +332,7 @@ export default function Courses() {
               { backgroundColor: 'rgba(255, 170, 0, 0.05)', borderColor: 'rgba(255, 170, 0, 0.15)' },
             ]}
           >
-            <Text variant="caption" style={[styles.subCardTitle, { color: colors.warning }]}>
+            <Text variant="caption" style={[styles.subCardTitle, { color: c.warning }]}>
               {tp('Эффект щели / Slot effect', 'Slot effect', 'Efekt szczeliny / Slot effect', {
                 es: 'Efecto rendija / Slot effect',
                 fr: 'Effet de fente / Slot effect',
@@ -451,7 +456,7 @@ export default function Courses() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
@@ -463,11 +468,11 @@ const styles = StyleSheet.create({
     marginHorizontal: spacing.lg,
     marginTop: spacing.sm,
     padding: spacing.md,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderRadius: radii.lg,
     borderLeftWidth: 4,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
   },
   activeRow: {
     flexDirection: 'row',
@@ -505,7 +510,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
   },
   cardActive: {
-    borderColor: colors.borderCyanStrong,
+    borderColor: c.borderCyanStrong,
     borderWidth: 1,
   },
   metaRow: {
@@ -539,7 +544,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     letterSpacing: 1,
     marginBottom: spacing.xs,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   sailText: {
     lineHeight: 20,
@@ -583,7 +588,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   theorySubhead: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontWeight: '700',
     fontSize: 15,
   },
@@ -593,7 +598,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   extraName: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontWeight: '700',
     fontSize: 13,
   },

@@ -9,15 +9,12 @@ import {
   type IconName,
   Screen,
   Text,
+  useColors,
+  useThemedStyles,
 } from '../../src/design-system/components';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { useRecentRooms, type RecentRoom } from '../../src/persistence/recent-rooms';
-
-const ACCENT_COLOR: Record<CardAccent, string> = {
-  cyan: colors.accentCyan,
-  success: colors.success,
-  warning: colors.warning,
-};
 
 /**
  * Multiplayer lobby. Replaces the Phase-4 PlaceholderScreen with three
@@ -33,6 +30,7 @@ const ACCENT_COLOR: Record<CardAccent, string> = {
  */
 export default function Multiplayer() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { rooms, ready } = useRecentRooms();
 
@@ -289,7 +287,14 @@ function EntryCard({
   ctaA11yLabel,
   onPress,
 }: EntryCardProps) {
-  const accentColor = ACCENT_COLOR[accent];
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const accentMap: Record<CardAccent, string> = {
+    cyan: c.accentCyan,
+    success: c.success,
+    warning: c.warning,
+  };
+  const accentColor = accentMap[accent];
   return (
     <Card
       accent={accent}
@@ -326,6 +331,7 @@ function RecentRoomRow({
   onPress,
   noBorder,
 }: RecentRoomRowProps) {
+  const styles = useThemedStyles(makeStyles);
   const role = room.role === 'host' ? roleHostLabel : roleJoinLabel;
   return (
     <Card
@@ -346,7 +352,7 @@ function RecentRoomRow({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingTop: spacing.lg,
     paddingBottom: spacing.xxl,
@@ -432,7 +438,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   recentArrow: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 18,
     fontWeight: '600',
   },

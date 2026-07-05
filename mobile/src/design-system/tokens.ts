@@ -1,12 +1,24 @@
 /**
  * Design tokens for Regatta mobile.
  *
- * Colors mirror `src/app/globals.css` :root vars so web and mobile stay in sync.
- * Source of truth is web for now; ADR-0003 defines extraction into a shared
- * package once both clients consume the same tokens.
+ * Colors mirror `src/app/globals.css` :root (dark) and `[data-theme="light"]`
+ * (light) vars so web and mobile stay in sync. Source of truth is web for now;
+ * ADR-0003 defines extraction into a shared package once both clients consume
+ * the same tokens.
+ *
+ * `radii`, `spacing`, `motion` are theme-independent. `colors` is split into
+ * `darkColors` / `lightColors` with identical keys; the active palette is
+ * resolved at runtime by the ThemeProvider (see `./theme.tsx`). New code reads
+ * `useColors()` / `useThemedStyles()`; the module-level `colors` export below
+ * stays pinned to the dark palette purely for back-compat with any not-yet
+ * themed reference.
+ *
+ * Note: the palette / glow / shadow base objects are intentionally NOT `as
+ * const` - their `typeof` is used as the shared shape type, so the values must
+ * widen to `string` / `number` for the light variants to be assignable.
  */
 
-export const colors = {
+export const darkColors = {
   bgPrimary: '#0a1628',
   bgSecondary: '#0f2035',
   bgCard: '#152540',
@@ -40,7 +52,49 @@ export const colors = {
   surfaceSuccess: 'rgba(68, 255, 136, 0.15)',
   /** Success border (40% alpha). Completed-badge ring. */
   borderSuccess: 'rgba(68, 255, 136, 0.40)',
-} as const;
+};
+
+export type ThemeColors = typeof darkColors;
+export type ColorToken = keyof ThemeColors;
+
+/**
+ * Light palette. Mirrors the web `[data-theme="light"]` block in
+ * `src/app/globals.css`; keep them in sync. Same keys as `darkColors`.
+ */
+export const lightColors: ThemeColors = {
+  bgPrimary: '#f4f8fc',
+  bgSecondary: '#e9f1f8',
+  bgCard: '#ffffff',
+  bgCardHover: '#eef5fb',
+  accentCyan: '#0096c7',
+  accentCyanDim: '#0077a3',
+  accentTeal: '#00a78e',
+  textPrimary: '#0c2233',
+  textSecondary: '#45606f',
+  textMuted: '#6a8190',
+  danger: '#d92d2d',
+  success: '#1f9d57',
+  warning: '#b7791f',
+  windColor: '#0096c7',
+  sailColor: '#1a2d4d',
+  waterLight: '#cfe6f5',
+  waterDark: '#aacbe6',
+  borderCyanFaint: 'rgba(12, 34, 51, 0.10)',
+  borderCyanSoft: 'rgba(0, 150, 199, 0.30)',
+  borderCyanStrong: 'rgba(0, 150, 199, 0.45)',
+  surfaceCyanFaint: 'rgba(0, 150, 199, 0.08)',
+  surfaceCyanSoft: 'rgba(0, 150, 199, 0.14)',
+  overtrim: '#b8932a',
+  surfaceSuccess: 'rgba(31, 157, 87, 0.14)',
+  borderSuccess: 'rgba(31, 157, 87, 0.40)',
+};
+
+/**
+ * Back-compat: `colors` stays pinned to the dark palette so any not-yet-themed
+ * reference still resolves. New/refactored code must read the active palette
+ * via `useColors()` / `useThemedStyles()` (see `./theme.tsx`).
+ */
+export const colors = darkColors;
 
 /** Animation durations, ms. Centralized so motion stays consistent. */
 export const motion = {
@@ -81,7 +135,21 @@ export const glow = {
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 0 },
   },
-} as const;
+};
+
+export type GlowSet = typeof glow;
+
+/**
+ * Light-mode glow: near-zero. A cyan halo on a white surface reads muddy, so
+ * the ThemeProvider hands consumers this zeroed set in light mode (same keys,
+ * so `useGlow().primary` spreads safely in either theme). Gate glow behind
+ * `scheme === 'dark'` via `useGlow()`.
+ */
+export const glowLight: GlowSet = {
+  primary: { shadowColor: '#00d4ff', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
+  success: { shadowColor: '#44ff88', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
+  warning: { shadowColor: '#ffaa00', shadowOpacity: 0, shadowRadius: 0, shadowOffset: { width: 0, height: 0 } },
+};
 
 /**
  * Layered drop-shadow tokens for Card / Sheet / Toast.
@@ -111,14 +179,46 @@ export const shadow = {
     shadowOffset: { width: 0, height: -8 },
     elevation: 12,
   },
-} as const;
+};
+
+export type ShadowSet = typeof shadow;
+
+/**
+ * Light-mode shadows. Same offsets/elevation as `shadow` but far lower opacity:
+ * a 0.35+ black shadow reads too heavy on a white card. The ThemeProvider hands
+ * consumers this set in light mode via `useShadows()`.
+ */
+export const shadowLight: ShadowSet = {
+  card: {
+    shadowColor: '#000',
+    shadowOpacity: 0.10,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 2,
+  },
+  lift: {
+    shadowColor: '#000',
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
+  },
+  sheet: {
+    shadowColor: '#000',
+    shadowOpacity: 0.20,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: -8 },
+    elevation: 12,
+  },
+};
 
 /**
  * Ocean gradient stops, top to bottom. Matches the `.ocean-bg` class in
- * `src/app/globals.css`. Mobile renders this via `expo-linear-gradient`
- * (wired up in a later task).
+ * `src/app/globals.css`. Mobile renders this via `expo-linear-gradient`.
+ * `oceanGradientLight` is the light-theme counterpart (soft sky-to-water).
  */
 export const oceanGradient = ['#0a1628', '#071a30', '#0d2847'] as const;
+export const oceanGradientLight = ['#ffffff', '#eef5fb', '#e2eef8'] as const;
 
 /**
  * Border radius scale, RN-native pixel values. Aligned with the most
@@ -144,5 +244,3 @@ export const spacing = {
   xl: 24,
   xxl: 32,
 } as const;
-
-export type ColorToken = keyof typeof colors;

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
-import { colors } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 interface SkeletonProps {
   width: number | `${number}%`;
@@ -16,6 +17,7 @@ interface SkeletonProps {
  * placeholder while a Tier-2 surface (gallery, leaderboard) hydrates.
  */
 export function Skeleton({ width, height, radius = 6, style }: SkeletonProps) {
+  const styles = useThemedStyles(makeStyles);
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -52,8 +54,9 @@ export function Skeleton({ width, height, radius = 6, style }: SkeletonProps) {
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    backgroundColor: colors.bgCard,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    base: {
+      backgroundColor: c.bgCard,
+    },
+  });

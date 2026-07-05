@@ -1,10 +1,11 @@
 import { Stack, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Screen, Text } from '../../src/design-system/components';
+import { Card, Screen, Text, useThemedStyles } from '../../src/design-system/components';
 import { onboardSections } from '../../src/data';
 import { legacyPick, legacyPickArray } from '../../src/i18n/languages';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * On board: shipboard culture, commands, and etiquette across 8
@@ -18,6 +19,7 @@ import { colors, spacing } from '../../src/design-system/tokens';
 export default function Onboard() {
   const { tp, lang } = useI18n();
   const router = useRouter();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp('На борту', 'On board', 'Na pokladzie', {
     es: 'A bordo',
@@ -212,7 +214,7 @@ export default function Onboard() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
@@ -270,11 +272,11 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    color: colors.warning,
+    color: c.warning,
     marginBottom: spacing.xs,
   },
   warningText: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   deeper: {
     marginHorizontal: spacing.lg,
@@ -316,6 +318,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 19,
     textAlign: 'center',
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
 });

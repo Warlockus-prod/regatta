@@ -9,6 +9,7 @@ import {
   Screen,
   Skeleton,
   Text,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import {
   loadRaceById,
@@ -21,7 +22,8 @@ import {
   type CoachResponse,
 } from '../../src/api/coach';
 import { findCourse } from '../../src/game/course';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 
 type LoadState =
@@ -40,6 +42,7 @@ type LoadState =
  */
 export default function Coach() {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const analytics = useAnalytics();
   const router = useRouter();
   const params = useLocalSearchParams<{ raceId?: string }>();
@@ -478,7 +481,7 @@ export default function Coach() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -507,7 +510,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   overall: {
     fontSize: 15,
@@ -521,22 +524,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: 1,
-    borderTopColor: colors.borderCyanFaint,
+    borderTopColor: c.borderCyanFaint,
   },
   scoreLabel: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.3,
   },
   scoreValue: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 28,
     fontWeight: '700',
     letterSpacing: -0.4,
   },
   scoreOutOf: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -569,10 +572,10 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   severityTextMinor: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   severityTextMajor: {
-    color: colors.danger,
+    color: c.danger,
   },
   mistakeTime: {
     fontSize: 11,
@@ -592,7 +595,7 @@ const styles = StyleSheet.create({
   mistakeBody: {
     fontSize: 14,
     lineHeight: 20,
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   strengthRow: {
     flexDirection: 'row',
@@ -604,19 +607,19 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.success,
+    backgroundColor: c.success,
     marginTop: 9,
   },
   strengthText: {
     flex: 1,
     fontSize: 14,
     lineHeight: 20,
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   nextGoal: {
     fontSize: 15,
     lineHeight: 22,
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   actions: {
     gap: spacing.sm,
@@ -631,7 +634,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     backgroundColor: 'rgba(0, 212, 255, 0.08)',
     marginBottom: spacing.md,
   },
@@ -639,13 +642,13 @@ const styles = StyleSheet.create({
     opacity: 0.84,
   },
   replayCtaText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   replayCtaArrow: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 16,
     fontWeight: '700',
   },

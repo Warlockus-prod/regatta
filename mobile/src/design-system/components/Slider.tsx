@@ -7,7 +7,9 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 import { Text } from './Text';
 
 export type SliderOrientation = 'horizontal' | 'vertical';
@@ -59,6 +61,8 @@ export function Slider({
   formatValue = defaultFormat,
   accessibilityLabel,
 }: SliderProps) {
+  const stylesV = useThemedStyles(makeStylesV);
+  const stylesH = useThemedStyles(makeStylesH);
   const trackLengthRef = useRef(0);
   const lastStepRef = useRef<number>(Math.round(value / step));
 
@@ -192,124 +196,126 @@ export function Slider({
 
 const KNOB = 18;
 
-const stylesV = StyleSheet.create({
-  wrap: {
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    gap: spacing.xs,
-  },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  value: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-  },
-  track: {
-    width: 22,
-    borderRadius: radii.pill,
-    justifyContent: 'flex-end',
-    alignItems: 'center',
-    overflow: 'visible',
-    marginTop: 2,
-  },
-  trackBg: {
-    position: 'absolute',
-    left: 9,
-    right: 9,
-    top: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(232, 244, 248, 0.12)',
-    borderRadius: radii.pill,
-  },
-  fill: {
-    position: 'absolute',
-    left: 9,
-    right: 9,
-    bottom: 0,
-    backgroundColor: colors.accentCyan,
-    borderRadius: radii.pill,
-    opacity: 0.85,
-  },
-  knob: {
-    position: 'absolute',
-    width: KNOB,
-    height: KNOB,
-    borderRadius: KNOB / 2,
-    backgroundColor: colors.bgPrimary,
-    borderColor: colors.accentCyan,
-    borderWidth: 2,
-    marginBottom: -KNOB / 2,
-    shadowColor: colors.accentCyan,
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
-  },
-});
+const makeStylesV = (c: ThemeColors) =>
+  StyleSheet.create({
+    wrap: {
+      alignItems: 'center',
+      justifyContent: 'flex-start',
+      gap: spacing.xs,
+    },
+    label: {
+      color: c.textSecondary,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+    },
+    value: {
+      color: c.accentCyan,
+      fontSize: 11,
+      fontWeight: '800',
+      fontVariant: ['tabular-nums'],
+    },
+    track: {
+      width: 22,
+      borderRadius: radii.pill,
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      overflow: 'visible',
+      marginTop: 2,
+    },
+    trackBg: {
+      position: 'absolute',
+      left: 9,
+      right: 9,
+      top: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(232, 244, 248, 0.12)',
+      borderRadius: radii.pill,
+    },
+    fill: {
+      position: 'absolute',
+      left: 9,
+      right: 9,
+      bottom: 0,
+      backgroundColor: c.accentCyan,
+      borderRadius: radii.pill,
+      opacity: 0.85,
+    },
+    knob: {
+      position: 'absolute',
+      width: KNOB,
+      height: KNOB,
+      borderRadius: KNOB / 2,
+      backgroundColor: c.bgPrimary,
+      borderColor: c.accentCyan,
+      borderWidth: 2,
+      marginBottom: -KNOB / 2,
+      shadowColor: c.accentCyan,
+      shadowOpacity: 0.6,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 4,
+    },
+  });
 
-const stylesH = StyleSheet.create({
-  wrap: {
-    gap: spacing.xs,
-  },
-  head: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  label: {
-    color: colors.textSecondary,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  value: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '800',
-    fontVariant: ['tabular-nums'],
-  },
-  track: {
-    height: 22,
-    borderRadius: radii.pill,
-    justifyContent: 'center',
-  },
-  trackBg: {
-    position: 'absolute',
-    top: 9,
-    bottom: 9,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(232, 244, 248, 0.12)',
-    borderRadius: radii.pill,
-  },
-  fill: {
-    position: 'absolute',
-    top: 9,
-    bottom: 9,
-    left: 0,
-    backgroundColor: colors.accentCyan,
-    borderRadius: radii.pill,
-    opacity: 0.85,
-  },
-  knob: {
-    position: 'absolute',
-    width: KNOB,
-    height: KNOB,
-    borderRadius: KNOB / 2,
-    backgroundColor: colors.bgPrimary,
-    borderColor: colors.accentCyan,
-    borderWidth: 2,
-    marginLeft: -KNOB / 2,
-    shadowColor: colors.accentCyan,
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 0 },
-    elevation: 4,
-  },
-});
+const makeStylesH = (c: ThemeColors) =>
+  StyleSheet.create({
+    wrap: {
+      gap: spacing.xs,
+    },
+    head: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+    },
+    label: {
+      color: c.textSecondary,
+      fontSize: 10,
+      fontWeight: '800',
+      letterSpacing: 1,
+    },
+    value: {
+      color: c.accentCyan,
+      fontSize: 11,
+      fontWeight: '800',
+      fontVariant: ['tabular-nums'],
+    },
+    track: {
+      height: 22,
+      borderRadius: radii.pill,
+      justifyContent: 'center',
+    },
+    trackBg: {
+      position: 'absolute',
+      top: 9,
+      bottom: 9,
+      left: 0,
+      right: 0,
+      backgroundColor: 'rgba(232, 244, 248, 0.12)',
+      borderRadius: radii.pill,
+    },
+    fill: {
+      position: 'absolute',
+      top: 9,
+      bottom: 9,
+      left: 0,
+      backgroundColor: c.accentCyan,
+      borderRadius: radii.pill,
+      opacity: 0.85,
+    },
+    knob: {
+      position: 'absolute',
+      width: KNOB,
+      height: KNOB,
+      borderRadius: KNOB / 2,
+      backgroundColor: c.bgPrimary,
+      borderColor: c.accentCyan,
+      borderWidth: 2,
+      marginLeft: -KNOB / 2,
+      shadowColor: c.accentCyan,
+      shadowOpacity: 0.6,
+      shadowRadius: 6,
+      shadowOffset: { width: 0, height: 0 },
+      elevation: 4,
+    },
+  });

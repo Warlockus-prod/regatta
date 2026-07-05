@@ -5,11 +5,11 @@ import {
   Icon,
   Screen,
   Text,
+  useColors,
   type CardAccent,
   type IconName,
 } from '../../src/design-system/components';
 import { useI18n } from '../../src/i18n/context';
-import { colors } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
 
 // ============================================================================
@@ -103,19 +103,20 @@ const ENTRIES: SimEntry[] = [
   },
 ];
 
-const ACCENT_COLOR: Record<CardAccent, string> = {
-  cyan: colors.accentCyan,
-  success: colors.success,
-  warning: colors.warning,
-};
-
 function pick(text: LocalizedText, lang: Lang): string {
   return text[lang] ?? text.en;
 }
 
 export default function SimulatorsHub() {
   const { lang, tp } = useI18n();
+  const c = useColors();
   const router = useRouter();
+
+  const ACCENT_COLOR: Record<CardAccent, string> = {
+    cyan: c.accentCyan,
+    success: c.success,
+    warning: c.warning,
+  };
 
   return (
     <Screen noBottomInset>
@@ -148,7 +149,7 @@ export default function SimulatorsHub() {
         </Text>
 
         {ENTRIES.map((e) => {
-          const accentColor = e.accent ? ACCENT_COLOR[e.accent] : colors.textSecondary;
+          const accentColor = e.accent ? ACCENT_COLOR[e.accent] : c.textSecondary;
           return (
             <Card
               key={e.route}

@@ -1,11 +1,12 @@
 import { Stack } from 'expo-router';
 import { Alert, Image, Linking, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Text } from '../../src/design-system/components';
+import { Screen, Text, useThemedStyles } from '../../src/design-system/components';
 import { galleryItems } from '../../src/data';
 import type { GalleryAspect, GalleryItem } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Gallery: photos and videos from past regattas, served from the web
@@ -53,6 +54,7 @@ const NO_YEAR = 'misc'; // group key for photos without a year badge
 
 export default function Gallery() {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp('Галерея', 'Gallery', 'Galeria', {
     es: 'Galeria',
@@ -232,7 +234,7 @@ export default function Gallery() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -254,10 +256,10 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   sectionCount: {
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   tile: {
     marginHorizontal: spacing.lg,
@@ -270,7 +272,7 @@ const styles = StyleSheet.create({
     width: '100%',
     borderRadius: radii.lg,
     overflow: 'hidden',
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     position: 'relative',
   },
   image: {

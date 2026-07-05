@@ -29,6 +29,8 @@ import {
   EmptyState,
   Screen,
   Text,
+  useColors,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import {
   bestPerCourse,
@@ -42,7 +44,8 @@ import {
 } from '../../src/leaderboard/local';
 import { useRaceHistory, type RaceRecord } from '../../src/persistence/race-history';
 import { findCourse } from '../../src/game/course';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
 import {
   fetchGlobalLeaderboard,
@@ -51,11 +54,13 @@ import {
   type GlobalLeaderboardRow,
 } from '../../src/api/leaderboard';
 
-const SCORE_TIER_COLOR: Record<ScoreTier, string> = {
-  gold: colors.success,
-  silver: colors.accentCyan,
-  bronze: colors.warning,
-};
+function makeScoreTierColor(c: ThemeColors): Record<ScoreTier, string> {
+  return {
+    gold: c.success,
+    silver: c.accentCyan,
+    bronze: c.warning,
+  };
+}
 
 function formatTime(sec: number): string {
   // m:ss.x with tenths, matching the web - distinct web times must not collapse.
@@ -68,6 +73,8 @@ function formatTime(sec: number): string {
 
 export default function Leaderboard() {
   const { tp, lang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const history = useRaceHistory();
   const [courseFilter, setCourseFilter] = useState<LeaderboardCourseFilter>('all');
@@ -424,7 +431,7 @@ export default function Leaderboard() {
 
             {gLoading ? (
               <View style={styles.loadingBox}>
-                <ActivityIndicator color={colors.accentCyan} />
+                <ActivityIndicator color={c.accentCyan} />
               </View>
             ) : null}
 
@@ -486,10 +493,12 @@ function LeaderboardRow({
   scoreLabel,
   onPress,
 }: LeaderboardRowProps) {
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const course = findCourse(race.courseId);
   const courseTitle = course.title(tp);
   const tier = scoreTier(race.score);
-  const tierColor = SCORE_TIER_COLOR[tier];
+  const tierColor = makeScoreTierColor(c)[tier];
   const date = relativeDate(race.finishedAt, lang);
 
   return (
@@ -541,8 +550,10 @@ function GlobalRow({
   scoreLabel: string;
   anonLabel: string;
 }) {
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const tier = scoreTier(row.score ?? 0);
-  const tierColor = SCORE_TIER_COLOR[tier];
+  const tierColor = makeScoreTierColor(c)[tier];
   const name = row.nickname && row.nickname.trim().length > 0 ? row.nickname : anonLabel;
   return (
     <Card
@@ -580,6 +591,7 @@ interface FilterChipProps {
 }
 
 function FilterChip({ label, active, onPress }: FilterChipProps) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -602,7 +614,7 @@ function FilterChip({ label, active, onPress }: FilterChipProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
@@ -630,7 +642,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   chipRow: {
     flexDirection: 'row',
@@ -641,23 +653,23 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs + 2,
     borderRadius: radii.pill,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
   },
   chipActive: {
-    backgroundColor: colors.surfaceCyanSoft,
-    borderColor: colors.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
   },
   chipPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   chipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 13,
   },
   chipTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
   },
   row: {
@@ -673,7 +685,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   rank: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 22,
     fontWeight: '700',
     letterSpacing: 0.4,
@@ -699,7 +711,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 170, 0, 0.4)',
   },
   pbPillText: {
-    color: colors.warning,
+    color: c.warning,
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.8,
@@ -713,13 +725,13 @@ const styles = StyleSheet.create({
     flex: 0,
   },
   statLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   statValue: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 18,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],

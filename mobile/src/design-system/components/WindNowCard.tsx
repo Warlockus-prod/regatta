@@ -8,7 +8,9 @@ import {
 import { Card } from './Card';
 import { Text } from './Text';
 import { Icon } from './Icon';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useColors, useThemedStyles } from '../theme';
 import { useI18n } from '../../i18n/context';
 import { fetchWeatherNow, type WeatherNow } from '../../api/weather';
 
@@ -64,6 +66,8 @@ function toCardinal(dirDeg: number): string {
 
 export function WindNowCard() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
+  const c = useColors();
   const [selectedKey, setSelectedKey] = useState<string>(SPOTS[0].key);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   // Track the in-flight request's spot so a slow earlier response can't
@@ -176,7 +180,7 @@ export function WindNowCard() {
   return (
     <Card style={styles.card}>
       <View style={styles.headerRow}>
-        <Icon name="wind" size={22} color={colors.windColor} />
+        <Icon name="wind" size={22} color={c.windColor} />
         <Text style={styles.title}>{title}</Text>
       </View>
 
@@ -208,7 +212,7 @@ export function WindNowCard() {
       <View style={styles.body}>
         {state.status === 'loading' ? (
           <View style={styles.centerRow}>
-            <ActivityIndicator color={colors.accentCyan} />
+            <ActivityIndicator color={c.accentCyan} />
             <Text variant="muted" style={styles.loadingText}>
               {loadingLabel}
             </Text>
@@ -265,6 +269,7 @@ interface WindReadoutProps {
 }
 
 function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindReadoutProps) {
+  const styles = useThemedStyles(makeStyles);
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
   const cardinal = toCardinal(data.wind.dirDeg);
@@ -298,108 +303,109 @@ function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindR
   );
 }
 
-const styles = StyleSheet.create({
-  card: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-    gap: spacing.md,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textPrimary,
-  },
-  chipsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.sm,
-  },
-  chip: {
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.pill,
-    borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
-    backgroundColor: colors.bgSecondary,
-  },
-  chipActive: {
-    borderColor: colors.borderCyanStrong,
-    backgroundColor: colors.surfaceCyanSoft,
-  },
-  chipPressed: {
-    backgroundColor: colors.bgCardHover,
-  },
-  chipLabel: {
-    fontSize: 13,
-    color: colors.textSecondary,
-  },
-  chipLabelActive: {
-    color: colors.accentCyan,
-    fontWeight: '600',
-  },
-  body: {
-    minHeight: 44,
-    justifyContent: 'center',
-  },
-  centerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
-  loadingText: {
-    fontSize: 13,
-  },
-  errorText: {
-    marginBottom: spacing.sm,
-  },
-  retryBtn: {
-    alignSelf: 'flex-start',
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
-    borderRadius: radii.md,
-    borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
-    backgroundColor: colors.bgCard,
-  },
-  retryBtnPressed: {
-    backgroundColor: colors.bgCardHover,
-  },
-  retryLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: colors.accentCyan,
-  },
-  readoutRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    flexWrap: 'wrap',
-  },
-  speedValue: {
-    fontSize: 30,
-    fontWeight: '700',
-    color: colors.textPrimary,
-  },
-  speedUnit: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-  },
-  dirText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.windColor,
-  },
-  metaText: {
-    marginTop: spacing.xs,
-  },
-  footer: {
-    fontSize: 11,
-    lineHeight: 15,
-    color: colors.textMuted,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    card: {
+      marginHorizontal: spacing.lg,
+      marginBottom: spacing.md,
+      gap: spacing.md,
+    },
+    headerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    title: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.textPrimary,
+    },
+    chipsRow: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: spacing.sm,
+    },
+    chip: {
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.pill,
+      borderWidth: 1,
+      borderColor: c.borderCyanFaint,
+      backgroundColor: c.bgSecondary,
+    },
+    chipActive: {
+      borderColor: c.borderCyanStrong,
+      backgroundColor: c.surfaceCyanSoft,
+    },
+    chipPressed: {
+      backgroundColor: c.bgCardHover,
+    },
+    chipLabel: {
+      fontSize: 13,
+      color: c.textSecondary,
+    },
+    chipLabelActive: {
+      color: c.accentCyan,
+      fontWeight: '600',
+    },
+    body: {
+      minHeight: 44,
+      justifyContent: 'center',
+    },
+    centerRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+    },
+    loadingText: {
+      fontSize: 13,
+    },
+    errorText: {
+      marginBottom: spacing.sm,
+    },
+    retryBtn: {
+      alignSelf: 'flex-start',
+      paddingVertical: spacing.xs,
+      paddingHorizontal: spacing.md,
+      borderRadius: radii.md,
+      borderWidth: 1,
+      borderColor: c.borderCyanSoft,
+      backgroundColor: c.bgCard,
+    },
+    retryBtnPressed: {
+      backgroundColor: c.bgCardHover,
+    },
+    retryLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: c.accentCyan,
+    },
+    readoutRow: {
+      flexDirection: 'row',
+      alignItems: 'baseline',
+      flexWrap: 'wrap',
+    },
+    speedValue: {
+      fontSize: 30,
+      fontWeight: '700',
+      color: c.textPrimary,
+    },
+    speedUnit: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.textSecondary,
+    },
+    dirText: {
+      fontSize: 16,
+      fontWeight: '600',
+      color: c.windColor,
+    },
+    metaText: {
+      marginTop: spacing.xs,
+    },
+    footer: {
+      fontSize: 11,
+      lineHeight: 15,
+      color: c.textMuted,
+    },
+  });

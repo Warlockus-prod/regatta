@@ -5,7 +5,9 @@ import {
   StyleSheet,
   Text,
 } from 'react-native';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useThemedStyles } from '../theme';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost';
 
@@ -34,6 +36,7 @@ export function Button({
   accessibilityHint,
   accessibilityState,
 }: ButtonProps) {
+  const styles = useThemedStyles(makeStyles);
   const mergedState: AccessibilityState = {
     ...accessibilityState,
     disabled: disabled || accessibilityState?.disabled,
@@ -57,44 +60,45 @@ export function Button({
   );
 }
 
-const styles = StyleSheet.create({
-  base: {
-    borderRadius: radii.md,
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xl,
-    minHeight: 44, // Apple HIG minimum tappable target
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: '600',
-    letterSpacing: 0.2,
-  },
-  primaryContainer: {
-    backgroundColor: colors.accentCyan,
-  },
-  primaryLabel: {
-    color: colors.bgPrimary,
-  },
-  secondaryContainer: {
-    backgroundColor: colors.bgCard,
-    borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
-  },
-  secondaryLabel: {
-    color: colors.accentCyan,
-  },
-  ghostContainer: {
-    backgroundColor: 'transparent',
-  },
-  ghostLabel: {
-    color: colors.accentCyan,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  disabled: {
-    opacity: 0.4,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    base: {
+      borderRadius: radii.md,
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.xl,
+      minHeight: 44, // Apple HIG minimum tappable target
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    label: {
+      fontSize: 16,
+      fontWeight: '600',
+      letterSpacing: 0.2,
+    },
+    primaryContainer: {
+      backgroundColor: c.accentCyan,
+    },
+    primaryLabel: {
+      color: c.bgPrimary,
+    },
+    secondaryContainer: {
+      backgroundColor: c.bgCard,
+      borderWidth: 1,
+      borderColor: c.borderCyanSoft,
+    },
+    secondaryLabel: {
+      color: c.accentCyan,
+    },
+    ghostContainer: {
+      backgroundColor: 'transparent',
+    },
+    ghostLabel: {
+      color: c.accentCyan,
+    },
+    pressed: {
+      opacity: 0.85,
+    },
+    disabled: {
+      opacity: 0.4,
+    },
+  });

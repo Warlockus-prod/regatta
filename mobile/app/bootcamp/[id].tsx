@@ -9,6 +9,7 @@ import {
   QuizCard,
   Screen,
   Text,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import { bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
@@ -23,7 +24,8 @@ import {
   getQuizForLesson,
   isQuizPassed,
 } from '../../src/bootcamp/quiz-data';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Bootcamp lesson detail. Resolves the lesson by id from the synced
@@ -45,6 +47,7 @@ export default function BootcampLesson() {
   const router = useRouter();
   const { markCompleted, markLastViewed } = useBootcampProgress();
   const { results: quizResults, recordResult } = useBootcampQuiz();
+  const styles = useThemedStyles(makeStyles);
 
   const lesson = bootcampLessons.find((l) => l.id === params.id);
   const lessonId = lesson?.id ?? null;
@@ -248,6 +251,7 @@ function QuizSection({
   onRecord,
 }: QuizSectionProps) {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const [phase, setPhase] = useState<Phase>({ kind: 'intro' });
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
 
@@ -578,7 +582,7 @@ function QuizSection({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -594,7 +598,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   dayBadge: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
@@ -665,11 +669,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   passedBadge: {
-    color: colors.success,
+    color: c.success,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.2,
-    backgroundColor: colors.surfaceSuccess,
+    backgroundColor: c.surfaceSuccess,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: 4,
@@ -682,14 +686,14 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
-    color: colors.accentCyan,
+    color: c.accentCyan,
     marginBottom: spacing.sm,
   },
   resultCardPass: {
-    borderColor: colors.success,
+    borderColor: c.success,
   },
   resultCardFail: {
-    borderColor: colors.warning,
+    borderColor: c.warning,
   },
   resultHeadline: {
     marginBottom: spacing.sm,

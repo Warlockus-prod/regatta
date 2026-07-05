@@ -1,10 +1,11 @@
 import { Stack, router } from 'expo-router';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Screen, Text } from '../../src/design-system/components';
+import { Card, Screen, Text, useThemedStyles } from '../../src/design-system/components';
 import { quickRefreshLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /** Total minutes across the quick-refresh set. Mirrors web QUICK_REFRESH_TOTAL_MINUTES. */
 const QUICK_REFRESH_TOTAL_MINUTES = quickRefreshLessons.reduce(
@@ -20,6 +21,7 @@ const QUICK_REFRESH_TOTAL_MINUTES = quickRefreshLessons.reduce(
  */
 export default function Quick() {
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
 
   const headerTitle = tp(
     'Быстрый разогрев',
@@ -146,7 +148,7 @@ export default function Quick() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -160,13 +162,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radii.pill,
-    backgroundColor: colors.surfaceSuccess,
+    backgroundColor: c.surfaceSuccess,
     borderWidth: 1,
-    borderColor: colors.borderSuccess,
+    borderColor: c.borderSuccess,
     marginBottom: spacing.sm,
   },
   badgeText: {
-    color: colors.success,
+    color: c.success,
     fontSize: 12,
     fontWeight: '600',
   },
@@ -186,7 +188,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   index: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 12,
     fontVariant: ['tabular-nums'],
     marginRight: spacing.sm,
@@ -213,10 +215,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
     borderRadius: radii.pill,
-    backgroundColor: colors.surfaceSuccess,
+    backgroundColor: c.surfaceSuccess,
   },
   minPillText: {
-    color: colors.success,
+    color: c.success,
     fontSize: 11,
     fontWeight: '600',
   },
@@ -234,7 +236,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   footerLink: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
   },
 });

@@ -54,6 +54,10 @@ import {
   Screen,
   SkiaYacht,
   Text,
+  useColors,
+  useGlow,
+  useShadows,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import {
   shareCode,
@@ -74,7 +78,8 @@ import {
   scoreCourse,
   type CourseMarkScreen,
 } from '../../src/game/course';
-import { colors, glow, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 const SPEED_OPTIONS: ReadonlyArray<1 | 2 | 4> = [1, 2, 4];
 
@@ -155,6 +160,7 @@ interface EventMarker {
 function buildEventMarkers(
   events: ReadonlyArray<CoachLogEvent>,
   replay: ReadonlyArray<ReplayPoint>,
+  c: ThemeColors,
 ): EventMarker[] {
   if (events.length === 0 || replay.length === 0) return [];
   const out: EventMarker[] = [];
@@ -163,13 +169,13 @@ function buildEventMarkers(
     let color: string;
     switch (ev.type) {
       case 'mark-rounded':
-        color = colors.accentCyan;
+        color = c.accentCyan;
         break;
       case 'tack':
-        color = colors.accentTeal;
+        color = c.accentTeal;
         break;
       case 'no-go-entered':
-        color = colors.overtrim;
+        color = c.overtrim;
         break;
       default:
         // start / finish - no on-track marker.
@@ -184,6 +190,10 @@ function buildEventMarkers(
 export default function Replay() {
   const { tp } = useI18n();
   const router = useRouter();
+  const c = useColors();
+  const glows = useGlow();
+  const shadows = useShadows();
+  const styles = useThemedStyles(makeStyles);
   const params = useLocalSearchParams<{ id?: string }>();
   const raceId = typeof params.id === 'string' ? params.id : undefined;
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -361,8 +371,8 @@ export default function Replay() {
   // track: tacks, mark roundings and no-go stalls. We rebuild whenever
   // the record (and therefore the scene-projected track) changes.
   const eventMarkers = useMemo(
-    () => buildEventMarkers(race?.events ?? [], race?.replay ?? []),
-    [race?.events, race?.replay],
+    () => buildEventMarkers(race?.events ?? [], race?.replay ?? [], c),
+    [race?.events, race?.replay, c],
   );
 
   // Localised chrome.
@@ -602,7 +612,7 @@ export default function Replay() {
                     cx={m.x}
                     cy={m.y}
                     r={m.radius}
-                    color={colors.success}
+                    color={c.success}
                   />
                 </Group>
               ))}
@@ -611,7 +621,7 @@ export default function Replay() {
                 <SkiaLine
                   p1={{ x: finishLine.x1, y: finishLine.y1 }}
                   p2={{ x: finishLine.x2, y: finishLine.y2 }}
-                  color={colors.accentCyan}
+                  color={c.accentCyan}
                   strokeWidth={2.5}
                   opacity={0.86}
                 />
@@ -667,19 +677,19 @@ export default function Replay() {
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: colors.accentCyan }]}
+                style={[styles.legendDot, { backgroundColor: c.accentCyan }]}
               />
               <Text style={styles.legendText}>{legendMarkLabel}</Text>
             </View>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: colors.accentTeal }]}
+                style={[styles.legendDot, { backgroundColor: c.accentTeal }]}
               />
               <Text style={styles.legendText}>{legendTackLabel}</Text>
             </View>
             <View style={styles.legendItem}>
               <View
-                style={[styles.legendDot, { backgroundColor: colors.overtrim }]}
+                style={[styles.legendDot, { backgroundColor: c.overtrim }]}
               />
               <Text style={styles.legendText}>{legendNoGoLabel}</Text>
             </View>
@@ -754,6 +764,7 @@ export default function Replay() {
             accessibilityLabel={shareLabel}
             style={({ pressed }) => [
               styles.shareButton,
+              shadows.card,
               pressed && styles.controlButtonPressed,
             ]}
           >
@@ -771,6 +782,7 @@ export default function Replay() {
             accessibilityLabel={tryItLabel}
             style={({ pressed }) => [
               styles.tryItButton,
+              glows.primary,
               pressed && styles.controlButtonPressed,
             ]}
           >
@@ -782,7 +794,7 @@ export default function Replay() {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -806,7 +818,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -817,20 +829,20 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   summaryStatLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 0.5,
   },
   summaryStatValue: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 18,
     fontWeight: '700',
   },
   canvasWrap: {
     alignSelf: 'center',
-    backgroundColor: colors.bgSecondary,
-    borderColor: colors.borderCyanFaint,
+    backgroundColor: c.bgSecondary,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
     overflow: 'hidden',
@@ -841,7 +853,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
   },
   scrubClock: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 12,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
@@ -865,7 +877,7 @@ const styles = StyleSheet.create({
     top: 14,
     bottom: 14,
     left: 0,
-    backgroundColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
     borderRadius: radii.pill,
     opacity: 0.85,
   },
@@ -874,12 +886,12 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     borderRadius: 9,
-    backgroundColor: colors.bgPrimary,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.bgPrimary,
+    borderColor: c.accentCyan,
     borderWidth: 2,
     marginLeft: -9,
     top: 7,
-    shadowColor: colors.accentCyan,
+    shadowColor: c.accentCyan,
     shadowOpacity: 0.6,
     shadowRadius: 6,
     shadowOffset: { width: 0, height: 0 },
@@ -892,28 +904,28 @@ const styles = StyleSheet.create({
   },
   controlButton: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   controlButtonPrimary: {
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
+    borderColor: c.accentCyan,
   },
   controlButtonPressed: {
     opacity: 0.84,
   },
   controlButtonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   controlButtonTextPrimary: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -936,7 +948,7 @@ const styles = StyleSheet.create({
     borderRadius: 4.5,
   },
   legendText: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 0.3,
@@ -945,17 +957,16 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   shareButton: {
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
-    ...shadow.card,
   },
   shareButtonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -965,18 +976,17 @@ const styles = StyleSheet.create({
   },
   tryItButton: {
     minHeight: 44,
-    backgroundColor: colors.accentCyan,
-    borderColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
+    borderColor: c.accentCyan,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
-    ...glow.primary,
   },
   tryItButtonText: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.3,

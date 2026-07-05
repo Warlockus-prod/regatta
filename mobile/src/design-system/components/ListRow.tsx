@@ -1,7 +1,9 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text } from './Text';
 import { Icon, type IconName } from './Icon';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import type { ThemeColors } from '../tokens';
+import { useColors, useThemedStyles } from '../theme';
 
 interface ListRowProps {
   title: string;
@@ -12,7 +14,7 @@ interface ListRowProps {
   /**
    * Optional leading icon. Mirrors the iOS Settings pattern of a small
    * tinted glyph to the left of the row title. Tints to
-   * `colors.textSecondary` unless `iconColor` overrides.
+   * `c.textSecondary` unless `iconColor` overrides.
    */
   icon?: IconName;
   iconColor?: string;
@@ -31,6 +33,8 @@ export function ListRow({
   icon,
   iconColor,
 }: ListRowProps) {
+  const styles = useThemedStyles(makeStyles);
+  const c = useColors();
   return (
     <Pressable
       onPress={onPress}
@@ -42,7 +46,7 @@ export function ListRow({
     >
       {icon ? (
         <View style={styles.iconWrap}>
-          <Icon name={icon} size={22} color={iconColor ?? colors.textSecondary} />
+          <Icon name={icon} size={22} color={iconColor ?? c.textSecondary} />
         </View>
       ) : null}
       <View style={styles.text}>
@@ -54,40 +58,41 @@ export function ListRow({
   );
 }
 
-const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: spacing.md,
-    paddingHorizontal: spacing.lg,
-    minHeight: 44, // Apple HIG minimum tappable target
-  },
-  bordered: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.borderCyanFaint,
-  },
-  pressed: {
-    backgroundColor: colors.bgCardHover,
-  },
-  iconWrap: {
-    marginRight: spacing.md,
-    width: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  text: {
-    flex: 1,
-  },
-  title: {
-    fontSize: 16,
-  },
-  caption: {
-    marginTop: 2,
-  },
-  chevron: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginLeft: spacing.sm,
-    color: colors.textMuted,
-  },
-});
+const makeStyles = (c: ThemeColors) =>
+  StyleSheet.create({
+    row: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: spacing.md,
+      paddingHorizontal: spacing.lg,
+      minHeight: 44, // Apple HIG minimum tappable target
+    },
+    bordered: {
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.borderCyanFaint,
+    },
+    pressed: {
+      backgroundColor: c.bgCardHover,
+    },
+    iconWrap: {
+      marginRight: spacing.md,
+      width: 22,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    text: {
+      flex: 1,
+    },
+    title: {
+      fontSize: 16,
+    },
+    caption: {
+      marginTop: 2,
+    },
+    chevron: {
+      fontSize: 18,
+      fontWeight: '600',
+      marginLeft: spacing.sm,
+      color: c.textMuted,
+    },
+  });

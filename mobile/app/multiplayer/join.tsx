@@ -9,8 +9,14 @@ import {
 } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, Text } from '../../src/design-system/components';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import {
+  Screen,
+  Text,
+  useColors,
+  useThemedStyles,
+} from '../../src/design-system/components';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import {
   isValidRoomCode,
   normaliseRoomCodeInput,
@@ -36,6 +42,7 @@ import { useRecentRooms } from '../../src/persistence/recent-rooms';
  */
 export default function MultiplayerJoin() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const router = useRouter();
   const { push } = useRecentRooms();
   const [chars, setChars] = useState<string[]>(() =>
@@ -272,6 +279,8 @@ interface CodeCellProps {
  * code mid-type.
  */
 function CodeCell({ value, inputRef, onChange, onKey }: CodeCellProps) {
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={[styles.cell, value ? styles.cellFilled : null]}>
       <TextInput
@@ -286,14 +295,14 @@ function CodeCell({ value, inputRef, onChange, onKey }: CodeCellProps) {
         textContentType="none"
         keyboardType="default"
         style={styles.cellInput}
-        selectionColor={colors.accentCyan}
+        selectionColor={c.accentCyan}
         accessibilityRole="text"
       />
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.xl,
@@ -308,7 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 1.4,
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   cellRow: {
     flexDirection: 'row',
@@ -320,19 +329,19 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
-    backgroundColor: colors.bgCard,
+    borderColor: c.borderCyanSoft,
+    backgroundColor: c.bgCard,
     alignItems: 'center',
     justifyContent: 'center',
   },
   cellFilled: {
-    borderColor: colors.accentCyan,
-    backgroundColor: colors.bgCardHover,
+    borderColor: c.accentCyan,
+    backgroundColor: c.bgCardHover,
   },
   cellInput: {
     width: 50,
     height: 50,
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 22,
     fontWeight: '700',
     textAlign: 'center',
@@ -345,7 +354,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   error: {
-    color: colors.danger,
+    color: c.danger,
     fontSize: 13,
     textAlign: 'center',
     paddingHorizontal: spacing.md,
@@ -356,8 +365,8 @@ const styles = StyleSheet.create({
   },
   button: {
     flex: 1,
-    backgroundColor: colors.bgCard,
-    borderColor: colors.borderCyanSoft,
+    backgroundColor: c.bgCard,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingVertical: spacing.md,
@@ -367,7 +376,7 @@ const styles = StyleSheet.create({
     opacity: 0.84,
   },
   buttonText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -378,21 +387,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   ctaPrimary: {
-    backgroundColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
   },
   ctaPrimaryText: {
-    color: colors.bgPrimary,
+    color: c.bgPrimary,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,
   },
   ctaDisabled: {
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
   },
   ctaDisabledText: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 16,
     fontWeight: '700',
     letterSpacing: 0.3,

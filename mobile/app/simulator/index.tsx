@@ -24,7 +24,15 @@ import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
 import { pointsOfSail } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { Screen, Slider, SkiaYacht, Text } from '../../src/design-system/components';
+import {
+  Screen,
+  Slider,
+  SkiaYacht,
+  Text,
+  useColors,
+  useShadows,
+  useThemedStyles,
+} from '../../src/design-system/components';
 import { fetchWeatherNow, type WeatherNow } from '../../src/api/weather';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
@@ -60,7 +68,8 @@ import {
   windSpeedUnitLabel,
   useUnits,
 } from '../../src/persistence/units';
-import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 const COMPASS_R = 48;
 const SNAP_DEG = 15;
@@ -133,10 +142,10 @@ function snapToStep(rad: number, step: number): number {
   return Math.round(rad / step) * step;
 }
 
-function scoreColor(score: number): string {
-  if (score >= 78) return colors.success;
-  if (score >= 52) return colors.accentCyan;
-  return colors.warning;
+function scoreColor(score: number, c: ThemeColors): string {
+  if (score >= 78) return c.success;
+  if (score >= 52) return c.accentCyan;
+  return c.warning;
 }
 
 function buildTrailPath(trail: TrailPoint[], width: number, height: number) {
@@ -307,16 +316,16 @@ const ROSE_SECTORS: { id: string; min: number; max: number; tint: string; hi: st
   { id: 'running', min: 160, max: 180, tint: 'rgba(80, 255, 150, 0.21)', hi: 'rgba(120, 255, 182, 0.66)' },
 ];
 
-function sailStateColor(state: SailState): string {
+function sailStateColor(state: SailState, c: ThemeColors): string {
   switch (state) {
     // Luffing is the normal cold-start / pinching state (head to wind = both
     // sails luff), so it reads as an amber CAUTION, not a red error. Red is
     // reserved for stall - the genuinely-bad over-trim where flow detaches.
-    case 'luff': return colors.warning;
-    case 'stall': return colors.danger;
-    case 'overtrim': return colors.overtrim;
-    case 'good': return colors.accentCyan;
-    default: return colors.textMuted;
+    case 'luff': return c.warning;
+    case 'stall': return c.danger;
+    case 'overtrim': return c.overtrim;
+    case 'good': return c.accentCyan;
+    default: return c.textMuted;
   }
 }
 
@@ -341,6 +350,9 @@ function insideCompassAt(
 export default function Simulator() {
   const { tp, lang } = useI18n();
   const { units } = useUnits();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
+  const shadows = useShadows();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
   const sceneH = Math.min(Math.max(windowHeight * 0.46, 340), 520);
@@ -942,7 +954,7 @@ export default function Simulator() {
       : ` ${windSpeedUnitLabel(units.windSpeed)}`;
   const windDisplayWithUnit = `${windDisplay}${windDisplaySuffix}`;
   const trimScore = sim.boatExt.trimScore;
-  const trimColor = scoreColor(trimScore);
+  const trimColor = scoreColor(trimScore, c);
   // Cockpit header pill: TRIM% . point-of-sail . tack (mirrors the web V3).
   // Starboard tack = apparent wind over the starboard side (TWA >= 0).
   const isStarboardTack = sim.boatExt.twaDeg >= 0;
@@ -1228,10 +1240,10 @@ export default function Simulator() {
                         ),
                       )}%`,
                       backgroundColor: drillState.done
-                        ? colors.success
+                        ? c.success
                         : drillState.active
-                        ? colors.accentCyan
-                        : colors.textMuted,
+                        ? c.accentCyan
+                        : c.textMuted,
                     },
                   ]}
                 />
@@ -1240,7 +1252,7 @@ export default function Simulator() {
           </View>
         ) : null}
 
-        <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
+        <View style={[styles.canvasWrap, shadows.card, { width: sceneW, height: sceneH }]}>
           {simView === 'top' ? (
             <GestureDetector gesture={composedGesture}>
             <Canvas
@@ -1277,7 +1289,7 @@ export default function Simulator() {
                 {windMapMode === 'gust' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.success}
+                    color={c.success}
                     style="fill"
                     opacity={0.14}
                   />
@@ -1285,7 +1297,7 @@ export default function Simulator() {
                 {windMapMode === 'shift' ? (
                   <Path
                     path={windEffectPath}
-                    color={colors.warning}
+                    color={c.warning}
                     style="stroke"
                     strokeWidth={2}
                     strokeCap="round"
@@ -1294,7 +1306,7 @@ export default function Simulator() {
                 ) : null}
                 <Path
                   path={windArrowsPath}
-                  color={colors.windColor}
+                  color={c.windColor}
                   style="stroke"
                   strokeWidth={1}
                   strokeCap="round"
@@ -1323,10 +1335,10 @@ export default function Simulator() {
                           r={m.radius}
                           color={
                             m.cleared
-                              ? colors.success
+                              ? c.success
                               : m.active
-                              ? colors.accentCyan
-                              : colors.warning
+                              ? c.accentCyan
+                              : c.warning
                           }
                         />
                       </Group>
@@ -1372,13 +1384,13 @@ export default function Simulator() {
                     a red fault. Unified with the luff/no-go-ring caution color. */}
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={c.warning}
                   style="fill"
                   opacity={0.12}
                 />
                 <Path
                   path={noGoPath}
-                  color={colors.warning}
+                  color={c.warning}
                   style="stroke"
                   strokeWidth={1}
                   opacity={0.34}
@@ -1386,7 +1398,7 @@ export default function Simulator() {
 
                 <Path
                   path={apparentArrowPath}
-                  color={colors.windColor}
+                  color={c.windColor}
                   style="stroke"
                   strokeWidth={2.4}
                   strokeCap="round"
@@ -1415,7 +1427,7 @@ export default function Simulator() {
                     point-too-high trade-off is visible at a glance. */}
                 <Path
                   path={sideVectorPath}
-                  color={colors.warning}
+                  color={c.warning}
                   style="stroke"
                   strokeWidth={3}
                   strokeCap="round"
@@ -1423,7 +1435,7 @@ export default function Simulator() {
                 />
                 <Path
                   path={driveVectorPath}
-                  color={colors.success}
+                  color={c.success}
                   style="stroke"
                   strokeWidth={3.4}
                   strokeCap="round"
@@ -1455,18 +1467,18 @@ export default function Simulator() {
                     cx={0}
                     cy={0}
                     r={COMPASS_R}
-                    color={colors.windColor}
+                    color={c.windColor}
                     style="stroke"
                     strokeWidth={1.2}
                     opacity={0.6}
                   />
                   {/* Bow-heading marker: whichever sector it falls in is the
                       current point of sail. */}
-                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
+                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={c.textPrimary} />
                   <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
                     <Path
                       path={compassArrowPath}
-                      color={colors.windColor}
+                      color={c.windColor}
                       style="stroke"
                       strokeWidth={2.5}
                       strokeCap="round"
@@ -1563,7 +1575,7 @@ export default function Simulator() {
 
           <View pointerEvents="none" style={styles.mapLegend}>
             <View style={styles.mapLegendRow}>
-              <View style={[styles.mapLegendDot, { backgroundColor: colors.windColor }]} />
+              <View style={[styles.mapLegendDot, { backgroundColor: c.windColor }]} />
               <Text allowFontScaling={false} style={styles.mapLegendText}>
                 {`${windMapLabel} ${activeWindModeLabel.toUpperCase()}`}
               </Text>
@@ -1571,13 +1583,13 @@ export default function Simulator() {
             {simView === 'top' ? (
               <>
                 <View style={styles.mapLegendRow}>
-                  <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                  <View style={[styles.mapLegendDot, { backgroundColor: c.success }]} />
                   <Text allowFontScaling={false} style={styles.mapLegendText}>
                     {driveWord.toUpperCase()}
                   </Text>
                 </View>
                 <View style={styles.mapLegendRow}>
-                  <View style={[styles.mapLegendDot, { backgroundColor: colors.warning }]} />
+                  <View style={[styles.mapLegendDot, { backgroundColor: c.warning }]} />
                   <Text allowFontScaling={false} style={styles.mapLegendText}>
                     {sideWord.toUpperCase()}
                   </Text>
@@ -1586,7 +1598,7 @@ export default function Simulator() {
             ) : null}
             {showTrack ? (
               <View style={styles.mapLegendRow}>
-                <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                <View style={[styles.mapLegendDot, { backgroundColor: c.success }]} />
                 <Text allowFontScaling={false} style={styles.mapLegendText}>{trackLabel}</Text>
               </View>
             ) : null}
@@ -1610,7 +1622,7 @@ export default function Simulator() {
           ) : null}
 
           {missionState?.done && activeMission ? (
-            <View style={styles.resultPanel}>
+            <View style={[styles.resultPanel, shadows.lift]}>
               <Text style={styles.resultKicker}>{missionDoneLabel}</Text>
               <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeMission.title(tp)}
@@ -1660,7 +1672,7 @@ export default function Simulator() {
           ) : null}
 
           {drillState?.done && activeDrill ? (
-            <View style={styles.resultPanel}>
+            <View style={[styles.resultPanel, shadows.lift]}>
               <Text style={styles.resultKicker}>{drillDoneLabel}</Text>
               <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeDrill.title(tp)}
@@ -1930,6 +1942,7 @@ function HudCell({
   muted?: boolean;
   color?: string;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <View style={styles.hudCell}>
       <Text variant="muted" style={styles.hudLabel}>{label}</Text>
@@ -1955,6 +1968,7 @@ function ModeChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -1985,6 +1999,7 @@ function ViewChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -2016,6 +2031,7 @@ function WindModeChip({
   active: boolean;
   onPress: () => void;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Pressable
       onPress={onPress}
@@ -2064,6 +2080,8 @@ function LiveWindControl({
   onApply: (speedKts: number, dirRad: number) => void;
 }) {
   const { tp } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [state, setState] = useState<LiveWindState>({ status: 'idle' });
   // Track the in-flight request's spot so a slow earlier response can't
@@ -2213,7 +2231,7 @@ function LiveWindControl({
 
       {state.status === 'loading' ? (
         <View style={styles.liveWindStatusRow}>
-          <ActivityIndicator color={colors.accentCyan} />
+          <ActivityIndicator color={c.accentCyan} />
           <Text variant="caption" style={styles.liveWindStatusText}>
             {loadingLabel}
           </Text>
@@ -2301,6 +2319,7 @@ function SideProfileScene({
   tickN: number;
   labels: SceneLabels;
 }) {
+  const c = useColors();
   const waterY = height * 0.66;
   const cx = width * 0.48;
   const hullLen = Math.min(width * 0.78, 340);
@@ -2380,14 +2399,14 @@ function SideProfileScene({
               y1={38}
               x2={x + drift + 20}
               y2={84}
-              stroke={colors.windColor}
+              stroke={c.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={c.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G>
@@ -2445,9 +2464,9 @@ function SideProfileScene({
           />
         ) : null}
       </G>
-      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={colors.success} strokeWidth={3} strokeLinecap="round" />
-      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={colors.success} />
-      <SvgText x={cx + 8} y={waterY - 94} fill={colors.success} fontSize={10} fontWeight="800">
+      <Line x1={cx} y1={waterY - 86} x2={cx + 86 + speedKn * 5} y2={waterY - 86} stroke={c.success} strokeWidth={3} strokeLinecap="round" />
+      <Polygon points={`${cx + 92 + speedKn * 5},${waterY - 86} ${cx + 78 + speedKn * 5},${waterY - 92} ${cx + 78 + speedKn * 5},${waterY - 80}`} fill={c.success} />
+      <SvgText x={cx + 8} y={waterY - 94} fill={c.success} fontSize={10} fontWeight="800">
         {labels.drive.toUpperCase()}
       </SvgText>
       {Math.abs(leewayDeg) > 1 ? (
@@ -2457,7 +2476,7 @@ function SideProfileScene({
             y1={waterY + 56}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * 70}
             y2={waterY + 56 + Math.cos((leewayDeg * Math.PI) / 180) * 36}
-            stroke={colors.warning}
+            stroke={c.warning}
             strokeWidth={2}
             strokeLinecap="round"
           />
@@ -2473,7 +2492,7 @@ function SideProfileScene({
           <SvgText
             x={cx + 12}
             y={waterY + 88}
-            fill={colors.warning}
+            fill={c.warning}
             fontSize={10}
             fontWeight="800"
           >
@@ -2481,10 +2500,10 @@ function SideProfileScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 44} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 44} fill={c.textPrimary} fontSize={11} fontWeight="800">
         {`TWA ${Math.abs(twaDeg)}°  ${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°`}
       </SvgText>
-      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 24} fill={Math.abs(heelDeg) > 24 ? c.warning : c.textSecondary} fontSize={11} fontWeight="800">
         {`${heelText.toUpperCase()}  ${reefText.toUpperCase()}  ${twistText.toUpperCase()}`}
       </SvgText>
     </Svg>
@@ -2525,6 +2544,7 @@ function RearScene({
   tickN: number;
   labels: SceneLabels;
 }) {
+  const c = useColors();
   const cx = width / 2;
   const baseY = height * 0.64;
   const mastH = Math.min(height * 0.48, 220) * (1 - reef * 0.2);
@@ -2534,7 +2554,7 @@ function RearScene({
   const jibSpread = 24 + (1 - jibSheet) * 42;
   const gustX = width * (0.18 + ((tickN % 150) / 150) * 0.62);
   const sideArrowLen = 44 + Math.min(46, Math.abs(heelDeg) * 1.4);
-  const trimColor = scoreColor(trimScore);
+  const trimColor = scoreColor(trimScore, c);
   const windText =
     windMode === 'gust'
       ? `${labels.gust} ${windDisplayLabel}`
@@ -2581,14 +2601,14 @@ function RearScene({
               y1={34}
               x2={x + nudge + sailSide * 22}
               y2={82}
-              stroke={colors.windColor}
+              stroke={c.windColor}
               strokeWidth={2}
               strokeLinecap="round"
             />
           );
         })}
       </G>
-      <SvgText x={14} y={28} fill={colors.textSecondary} fontSize={10} fontWeight="800">
+      <SvgText x={14} y={28} fill={c.textSecondary} fontSize={10} fontWeight="800">
         {windText.toUpperCase()}
       </SvgText>
       <G transform={`translate(${cx} ${baseY}) rotate(${heel * 0.7})`}>
@@ -2630,13 +2650,13 @@ function RearScene({
         y1={baseY + 66}
         x2={cx + sailSide * sideArrowLen}
         y2={baseY + 66}
-        stroke={colors.warning}
+        stroke={c.warning}
         strokeWidth={3}
         strokeLinecap="round"
       />
       <Polygon
         points={`${cx + sailSide * (sideArrowLen + 8)},${baseY + 66} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 59} ${cx + sailSide * (sideArrowLen - 6)},${baseY + 73}`}
-        fill={colors.warning}
+        fill={c.warning}
       />
       {Math.abs(leewayDeg) > 1 ? (
         <G>
@@ -2645,7 +2665,7 @@ function RearScene({
             y1={baseY + 92}
             x2={cx + Math.sin((leewayDeg * Math.PI) / 180) * (38 + Math.abs(leewayDeg) * 3)}
             y2={baseY + 92}
-            stroke={colors.danger}
+            stroke={c.danger}
             strokeWidth={2}
             strokeLinecap="round"
             opacity={0.85}
@@ -2661,7 +2681,7 @@ function RearScene({
           <SvgText
             x={cx + (leewayDeg >= 0 ? 22 : -78)}
             y={baseY + 108}
-            fill={colors.danger}
+            fill={c.danger}
             fontSize={9}
             fontWeight="800"
           >
@@ -2669,10 +2689,10 @@ function RearScene({
           </SvgText>
         </G>
       ) : null}
-      <SvgText x={14} y={height - 45} fill={colors.textPrimary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 45} fill={c.textPrimary} fontSize={11} fontWeight="800">
         {`${labels.apparentWind.toUpperCase()} ${Math.abs(awaDeg)}°  ${labels.heel.toUpperCase()} ${heelDeg}°`}
       </SvgText>
-      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? colors.warning : colors.textSecondary} fontSize={11} fontWeight="800">
+      <SvgText x={14} y={height - 25} fill={Math.abs(heelDeg) > 24 ? c.warning : c.textSecondary} fontSize={11} fontWeight="800">
         {`${labels.sideForce.toUpperCase()}  TRIM ${trimScore}`}
       </SvgText>
       <SvgCircle cx={width - 24} cy={height - 28} r={8} fill={trimColor} />
@@ -2691,6 +2711,8 @@ function SailBadge({
   left: number;
   top: number;
 }) {
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const opacity = useRef(new Animated.Value(0)).current;
   const visible = state !== 'idle';
   useEffect(() => {
@@ -2700,7 +2722,7 @@ function SailBadge({
       useNativeDriver: true,
     }).start();
   }, [visible, opacity]);
-  const bg = sailStateColor(state);
+  const bg = sailStateColor(state, c);
   return (
     <Animated.View
       pointerEvents="none"
@@ -2724,7 +2746,7 @@ function SailBadge({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
@@ -2752,11 +2774,11 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.accentCyan,
+    backgroundColor: c.accentCyan,
     marginRight: 7,
   },
   badgeText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
@@ -2772,24 +2794,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   resetPressed: {
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
     borderColor: 'rgba(232, 244, 248, 0.40)',
   },
   resetText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
   canvasWrap: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
     borderRadius: radii.lg,
     overflow: 'hidden',
     borderColor: 'rgba(0, 212, 255, 0.16)',
     borderWidth: 1,
     alignSelf: 'center',
     position: 'relative',
-    ...shadow.card,
   },
   windSpeedButton: {
     position: 'absolute',
@@ -2798,35 +2819,35 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: radii.sm,
     backgroundColor: 'rgba(15, 32, 53, 0.90)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     alignItems: 'flex-end',
     minWidth: 62,
   },
   windSpeedValue: {
-    color: colors.windColor,
+    color: c.windColor,
     fontSize: 14,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
     lineHeight: 17,
   },
   windSpeedLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 8,
     letterSpacing: 1,
     fontWeight: '800',
     marginTop: 1,
   },
   windSpeedTwd: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 10,
     fontWeight: '700',
     fontVariant: ['tabular-nums'],
   },
   cockpitPill: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     backgroundColor: 'rgba(8, 18, 32, 0.9)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     overflow: 'hidden',
@@ -2849,9 +2870,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   sceneReadoutPos: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     overflow: 'hidden',
@@ -2862,7 +2883,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   sceneReadoutText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     backgroundColor: 'rgba(15, 32, 53, 0.78)',
     borderColor: 'rgba(232, 244, 248, 0.10)',
     borderWidth: 1,
@@ -2897,7 +2918,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   mapLegendText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 0,
@@ -2913,7 +2934,7 @@ const styles = StyleSheet.create({
     flexBasis: '22%',
     minWidth: 74,
     backgroundColor: 'rgba(21, 37, 64, 0.72)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
@@ -2926,18 +2947,18 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   hudValue: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 22,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },
   hudValueMuted: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   trimPanel: {
     marginTop: spacing.md,
     backgroundColor: 'rgba(21, 37, 64, 0.70)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.lg,
     padding: spacing.md,
@@ -2950,13 +2971,13 @@ const styles = StyleSheet.create({
   },
   trimHeaderTitle: {
     flex: 1,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
   autoButton: {
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     paddingHorizontal: spacing.sm,
@@ -2964,20 +2985,20 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 212, 255, 0.04)',
   },
   autoButtonActive: {
-    backgroundColor: colors.surfaceCyanSoft,
-    borderColor: colors.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
   },
   autoButtonPressed: {
     opacity: 0.82,
   },
   autoButtonText: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
   autoButtonTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   sliderRow: {
     flexDirection: 'row',
@@ -2989,7 +3010,7 @@ const styles = StyleSheet.create({
   modeBar: {
     flexDirection: 'row',
     backgroundColor: 'rgba(15, 32, 53, 0.78)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.pill,
     padding: 3,
@@ -3007,19 +3028,19 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   modeChipActive: {
-    backgroundColor: colors.surfaceCyanSoft,
+    backgroundColor: c.surfaceCyanSoft,
   },
   modeChipPressed: {
     opacity: 0.78,
   },
   modeChipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
   },
   modeChipTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   viewBar: {
     flexDirection: 'row',
@@ -3034,7 +3055,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: radii.sm,
     backgroundColor: 'rgba(15, 32, 53, 0.62)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -3047,13 +3068,13 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
   viewChipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0,
   },
   viewChipTextActive: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   windModeBar: {
     flexDirection: 'row',
@@ -3068,31 +3089,31 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: radii.pill,
     backgroundColor: 'rgba(15, 32, 53, 0.46)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   windModeChipActive: {
     backgroundColor: 'rgba(0, 229, 255, 0.10)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
   },
   windModeChipPressed: {
     opacity: 0.78,
   },
   windModeChipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 0,
   },
   windModeChipTextActive: {
-    color: colors.windColor,
+    color: c.windColor,
   },
   liveWind: {
     marginBottom: spacing.sm,
     backgroundColor: 'rgba(15, 32, 53, 0.62)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     padding: spacing.sm,
@@ -3107,16 +3128,16 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: colors.windColor,
+    backgroundColor: c.windColor,
   },
   liveWindTitle: {
-    color: colors.windColor,
+    color: c.windColor,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
   },
   liveWindSubtitle: {
-    color: colors.textMuted,
+    color: c.textMuted,
     marginTop: 1,
   },
   liveWindChips: {
@@ -3130,23 +3151,23 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: radii.pill,
     backgroundColor: 'rgba(15, 32, 53, 0.46)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
   },
   liveWindChipActive: {
     backgroundColor: 'rgba(0, 229, 255, 0.10)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
   },
   liveWindChipPressed: {
     opacity: 0.78,
   },
   liveWindChipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 12,
     fontWeight: '700',
   },
   liveWindChipTextActive: {
-    color: colors.windColor,
+    color: c.windColor,
   },
   liveWindStatusRow: {
     flexDirection: 'row',
@@ -3155,43 +3176,43 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   liveWindStatusText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   liveWindError: {
-    color: colors.warning,
+    color: c.warning,
   },
   liveWindRetry: {
     paddingHorizontal: spacing.md,
     paddingVertical: 5,
     borderRadius: radii.sm,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
-    backgroundColor: colors.bgCard,
+    backgroundColor: c.bgCard,
   },
   liveWindRetryPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   liveWindRetryText: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 12,
     fontWeight: '700',
   },
   liveWindReadout: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 13,
     fontWeight: '600',
     marginTop: 2,
     fontVariant: ['tabular-nums'],
   },
   liveWindFooter: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     lineHeight: 14,
     marginTop: 2,
   },
   missionHud: {
     backgroundColor: 'rgba(21, 37, 64, 0.74)',
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.md,
     padding: spacing.md,
@@ -3204,25 +3225,25 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   missionHudKicker: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
   },
   missionHudClock: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 14,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },
   missionHudTitle: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 15,
     fontWeight: '700',
     marginTop: 2,
   },
   missionHudHint: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     marginTop: 1,
   },
   missionHudMeta: {
@@ -3230,12 +3251,12 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   missionHudMetaLabel: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '700',
   },
   missionHudMetaValue: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 12,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
@@ -3253,14 +3274,14 @@ const styles = StyleSheet.create({
   pickerRow: {
     marginTop: spacing.sm,
     backgroundColor: 'rgba(15, 32, 53, 0.62)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     padding: spacing.sm,
     gap: spacing.xs,
   },
   pickerLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
@@ -3275,26 +3296,26 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     minHeight: 44,
     borderRadius: radii.sm,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     backgroundColor: 'rgba(10, 22, 40, 0.62)',
     alignItems: 'center',
     justifyContent: 'center',
   },
   pickerChipActive: {
-    borderColor: colors.borderCyanStrong,
-    backgroundColor: colors.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
   },
   pickerChipPressed: {
     opacity: 0.82,
   },
   pickerChipText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 11,
     fontWeight: '700',
   },
   pickerChipTextActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   sailBadge: {
     position: 'absolute',
@@ -3323,21 +3344,20 @@ const styles = StyleSheet.create({
     right: spacing.md,
     top: '22%',
     backgroundColor: 'rgba(15, 32, 53, 0.96)',
-    borderColor: colors.borderCyanStrong,
+    borderColor: c.borderCyanStrong,
     borderWidth: 1,
     borderRadius: radii.lg,
     padding: spacing.md,
     gap: spacing.sm,
-    ...shadow.lift,
   },
   resultKicker: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1.4,
   },
   resultTitle: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 16,
     fontWeight: '800',
   },
@@ -3353,13 +3373,13 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   resultStatLabel: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 9,
     fontWeight: '800',
     letterSpacing: 1,
   },
   resultStatValue: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 22,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
@@ -3370,27 +3390,27 @@ const styles = StyleSheet.create({
   },
   resultButton: {
     flex: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
     paddingVertical: spacing.sm,
     alignItems: 'center',
   },
   resultButtonPrimary: {
-    backgroundColor: colors.surfaceCyanSoft,
-    borderColor: colors.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
   },
   resultButtonPressed: {
     opacity: 0.82,
   },
   resultButtonText: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.6,
   },
   resultButtonTextPrimary: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 12,
     fontWeight: '800',
     letterSpacing: 0.6,
@@ -3400,7 +3420,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     backgroundColor: 'rgba(10, 22, 40, 0.74)',
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     padding: spacing.md,
@@ -3414,12 +3434,12 @@ const styles = StyleSheet.create({
   },
   commentaryText: {
     flex: 1,
-    color: colors.textPrimary,
+    color: c.textPrimary,
     lineHeight: 19,
   },
   note: {
     marginTop: spacing.md,
-    color: colors.textMuted,
+    color: c.textMuted,
     lineHeight: 18,
   },
 });

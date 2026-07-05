@@ -8,10 +8,12 @@ import {
   RuleScenarioDiagram,
   Screen,
   Text,
+  useThemedStyles,
 } from '../../src/design-system/components';
 import { ruleScenarios } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 
 /**
  * Rule scenario detail. Reveal-style: scene + question are shown up
@@ -24,6 +26,7 @@ import { colors, spacing } from '../../src/design-system/tokens';
 export default function RuleScenarioDetail() {
   const params = useLocalSearchParams<{ id: string }>();
   const { tp, lang } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const [revealed, setRevealed] = useState(false);
 
   const scenario = ruleScenarios.find((s) => s.id === params.id);
@@ -182,6 +185,7 @@ function Section({
   accent?: boolean;
   children: ReactNode;
 }) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Card style={[styles.section, accent ? styles.sectionAccent : null]}>
       <Text variant="muted" style={styles.sectionLabel}>{label.toUpperCase()}</Text>
@@ -190,7 +194,7 @@ function Section({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -221,8 +225,8 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '600',
     letterSpacing: 1,
-    color: colors.textSecondary,
-    backgroundColor: colors.bgSecondary,
+    color: c.textSecondary,
+    backgroundColor: c.bgSecondary,
     borderRadius: 4,
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,
@@ -236,7 +240,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   sectionAccent: {
-    borderColor: colors.accentCyan,
+    borderColor: c.accentCyan,
   },
   sectionLabel: {
     fontSize: 11,

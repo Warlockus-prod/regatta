@@ -16,8 +16,11 @@ import {
   Icon,
   Screen,
   Text,
+  useColors,
+  useThemedStyles,
 } from '../../src/design-system/components';
-import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { radii, spacing } from '../../src/design-system/tokens';
+import type { ThemeColors } from '../../src/design-system/tokens';
 import { fetchWeatherNow, type WeatherNow } from '../../src/api/weather';
 
 /**
@@ -91,6 +94,8 @@ type LoadState =
 
 export default function Spots() {
   const { tp } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
   // Track the in-flight request's index so a slow earlier response can't
@@ -367,7 +372,7 @@ export default function Spots() {
           <View style={styles.weatherBody}>
             {state.status === 'loading' ? (
               <View style={styles.centerRow}>
-                <ActivityIndicator color={colors.accentCyan} />
+                <ActivityIndicator color={c.accentCyan} />
                 <Text variant="muted" style={styles.loadingText}>
                   {loadingLabel}
                 </Text>
@@ -450,12 +455,14 @@ function WindReadout({
   waveLabel,
   currentLabel,
 }: WindReadoutProps) {
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
   return (
     <View>
       <View style={styles.windRow}>
-        <Icon name="wind" size={28} color={colors.windColor} />
+        <Icon name="wind" size={28} color={c.windColor} />
         <View style={styles.windText}>
           <View style={styles.speedRow}>
             <Text style={styles.speedValue}>{`${speed}`}</Text>
@@ -503,7 +510,7 @@ function WindReadout({
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -527,22 +534,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.pill,
     borderWidth: 1,
-    borderColor: colors.borderCyanFaint,
-    backgroundColor: colors.bgSecondary,
+    borderColor: c.borderCyanFaint,
+    backgroundColor: c.bgSecondary,
   },
   chipActive: {
-    borderColor: colors.borderCyanStrong,
-    backgroundColor: colors.surfaceCyanSoft,
+    borderColor: c.borderCyanStrong,
+    backgroundColor: c.surfaceCyanSoft,
   },
   chipPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   chipLabel: {
     fontSize: 13,
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   chipLabelActive: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontWeight: '600',
   },
   card: {
@@ -580,7 +587,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   errorText: {
-    color: colors.warning,
+    color: c.warning,
     marginBottom: spacing.sm,
   },
   retryBtn: {
@@ -589,16 +596,16 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
-    backgroundColor: colors.bgCard,
+    borderColor: c.borderCyanSoft,
+    backgroundColor: c.bgCard,
   },
   retryBtnPressed: {
-    backgroundColor: colors.bgCardHover,
+    backgroundColor: c.bgCardHover,
   },
   retryLabel: {
     fontSize: 13,
     fontWeight: '600',
-    color: colors.accentCyan,
+    color: c.accentCyan,
   },
   windRow: {
     flexDirection: 'row',
@@ -615,12 +622,12 @@ const styles = StyleSheet.create({
   speedValue: {
     fontSize: 30,
     fontWeight: '700',
-    color: colors.textPrimary,
+    color: c.textPrimary,
   },
   speedUnit: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: c.textSecondary,
   },
   dirText: {
     fontSize: 13,
@@ -641,7 +648,7 @@ const styles = StyleSheet.create({
   metaValue: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.textPrimary,
+    color: c.textPrimary,
     marginTop: 2,
   },
   chartBtn: {
@@ -655,17 +662,17 @@ const styles = StyleSheet.create({
   footerStrong: {
     fontSize: 11,
     lineHeight: 15,
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontWeight: '600',
   },
   footerText: {
     fontSize: 11,
     lineHeight: 15,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
   footerFallback: {
     fontSize: 11,
     lineHeight: 15,
-    color: colors.textMuted,
+    color: c.textMuted,
   },
 });

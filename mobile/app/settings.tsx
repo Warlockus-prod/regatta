@@ -17,8 +17,20 @@ import { useAnalyticsConsent } from '../src/persistence/analytics-consent';
 import { useAnalyticsClient } from '../src/analytics/context';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
-import { Button, Card, Icon, Screen, Text, Wordmark } from '../src/design-system/components';
-import { colors, radii, spacing } from '../src/design-system/tokens';
+import {
+  Button,
+  Card,
+  Icon,
+  Screen,
+  Text,
+  Wordmark,
+  useColors,
+  useTheme,
+  useThemedStyles,
+  type ThemeMode,
+} from '../src/design-system/components';
+import { radii, spacing } from '../src/design-system/tokens';
+import type { ThemeColors } from '../src/design-system/tokens';
 import { useRaceHistory } from '../src/persistence/race-history';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
 import { useChecklistProgress, itemKey } from '../src/persistence/checklist';
@@ -46,6 +58,8 @@ const SUPPORT_EMAIL = 'support@gtframe.io';
  */
 export default function Settings() {
   const { tp, lang, setLang } = useI18n();
+  const c = useColors();
+  const styles = useThemedStyles(makeStyles);
   const version = Constants.expoConfig?.version ?? 'dev';
   const buildNumber =
     Constants.expoConfig?.ios?.buildNumber ??
@@ -66,6 +80,13 @@ export default function Settings() {
     fr: 'Langue',
     de: 'Sprache',
     it: 'Lingua',
+  });
+
+  const appearanceSectionLabel = tp('Оформление', 'Appearance', 'Wyglad', {
+    es: 'Apariencia',
+    fr: 'Apparence',
+    de: 'Darstellung',
+    it: 'Aspetto',
   });
 
   const unitsSectionLabel = tp('Единицы', 'Units', 'Jednostki', {
@@ -258,13 +279,21 @@ export default function Settings() {
                     <Text variant="caption">{langMeta.name}</Text>
                   </View>
                   {isSelected ? (
-                    <Icon name="check" size={18} color={colors.accentCyan} />
+                    <Icon name="check" size={18} color={c.accentCyan} />
                   ) : null}
                 </View>
               </Card>
             );
           })}
         </View>
+
+        <Text
+          variant="muted"
+          style={[styles.sectionLabel, styles.sectionLabelGap]}
+        >
+          {appearanceSectionLabel.toUpperCase()}
+        </Text>
+        <ThemeSection />
 
         <Text
           variant="muted"
@@ -331,9 +360,9 @@ export default function Settings() {
                 value={analyticsOn}
                 onValueChange={toggleAnalytics}
                 disabled={!analyticsReady}
-                trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
-                thumbColor={colors.textPrimary}
-                ios_backgroundColor={colors.bgCardHover}
+                trackColor={{ true: c.accentCyan, false: c.bgCardHover }}
+                thumbColor={c.textPrimary}
+                ios_backgroundColor={c.bgCardHover}
                 accessibilityLabel={analyticsLabel}
               />
             </View>
@@ -354,11 +383,89 @@ export default function Settings() {
 }
 
 // ---------------------------------------------------------------------------
+//  Appearance / theme section
+// ---------------------------------------------------------------------------
+
+/**
+ * Auto / Light / Dark segmented control. `auto` follows the OS; the choice
+ * persists via the ThemeProvider (`regatta_theme` in AsyncStorage). Labels
+ * mirror the web ThemeToggle across all 7 languages.
+ */
+function ThemeSection() {
+  const { tp } = useI18n();
+  const { mode, setMode } = useTheme();
+  const styles = useThemedStyles(makeStyles);
+
+  const options: { key: ThemeMode; label: string }[] = [
+    {
+      key: 'auto',
+      label: tp('Авто', 'Auto', 'Auto', { es: 'Auto', fr: 'Auto', de: 'Auto', it: 'Auto' }),
+    },
+    {
+      key: 'light',
+      label: tp('Светлая', 'Light', 'Jasny', {
+        es: 'Claro',
+        fr: 'Clair',
+        de: 'Hell',
+        it: 'Chiaro',
+      }),
+    },
+    {
+      key: 'dark',
+      label: tp('Тёмная', 'Dark', 'Ciemny', {
+        es: 'Oscuro',
+        fr: 'Sombre',
+        de: 'Dunkel',
+        it: 'Scuro',
+      }),
+    },
+  ];
+
+  const a11y = (label: string, selected: boolean) =>
+    tp(
+      `Тема: ${label}${selected ? ', выбрано' : ''}`,
+      `Theme: ${label}${selected ? ', selected' : ''}`,
+      `Motyw: ${label}${selected ? ', wybrano' : ''}`,
+      {
+        es: `Tema: ${label}${selected ? ', seleccionado' : ''}`,
+        fr: `Theme: ${label}${selected ? ', selectionne' : ''}`,
+        de: `Thema: ${label}${selected ? ', ausgewaehlt' : ''}`,
+        it: `Tema: ${label}${selected ? ', selezionato' : ''}`,
+      },
+    );
+
+  return (
+    <Card style={styles.themeCard}>
+      <View style={styles.themeRow}>
+        {options.map((opt) => {
+          const selected = mode === opt.key;
+          return (
+            <Pressable
+              key={opt.key}
+              onPress={() => setMode(opt.key)}
+              accessibilityRole="button"
+              accessibilityState={{ selected }}
+              accessibilityLabel={a11y(opt.label, selected)}
+              style={[styles.themeOption, selected && styles.themeOptionActive]}
+            >
+              <Text variant={selected ? 'accent' : 'body'} style={styles.themeOptionText}>
+                {opt.label}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </View>
+    </Card>
+  );
+}
+
+// ---------------------------------------------------------------------------
 //  Units section
 // ---------------------------------------------------------------------------
 
 function UnitsSection() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const {
     units,
     setSpeedUnit,
@@ -577,6 +684,7 @@ interface UnitRowProps {
 }
 
 function UnitRow({ label, hint, chip, a11y, onPress, onLongPress }: UnitRowProps) {
+  const styles = useThemedStyles(makeStyles);
   return (
     <Card
       onPress={onPress}
@@ -610,6 +718,7 @@ function UnitRow({ label, hint, chip, a11y, onPress, onLongPress }: UnitRowProps
 
 function DataSection() {
   const { tp } = useI18n();
+  const styles = useThemedStyles(makeStyles);
   const { races, ready: racesReady, clear: clearRaces } = useRaceHistory();
   const {
     completedIds: bootcampDone,
@@ -1194,6 +1303,7 @@ interface PrivacyModalProps {
 
 function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   const { tp } = useI18n();
+  const privacyStyles = useThemedStyles(makePrivacyStyles);
 
   const heading = tp(
     'Политика конфиденциальности',
@@ -1332,10 +1442,34 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   );
 }
 
-const styles = StyleSheet.create({
+const makeStyles = (c: ThemeColors) => StyleSheet.create({
   scroll: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,
+  },
+  themeCard: {
+    paddingVertical: spacing.md,
+  },
+  themeRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+  },
+  themeOption: {
+    flex: 1,
+    paddingVertical: spacing.sm,
+    alignItems: 'center',
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: c.borderCyanFaint,
+    backgroundColor: c.surfaceCyanFaint,
+  },
+  themeOptionActive: {
+    borderColor: c.accentCyan,
+    backgroundColor: c.surfaceCyanSoft,
+  },
+  themeOptionText: {
+    fontSize: 14,
+    fontWeight: '600',
   },
   sectionLabel: {
     fontSize: 11,
@@ -1363,7 +1497,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.md,
   },
   langCardSelected: {
-    borderColor: colors.accentCyan,
+    borderColor: c.accentCyan,
   },
   langRow: {
     flexDirection: 'row',
@@ -1404,9 +1538,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.xs,
     borderRadius: radii.pill,
-    backgroundColor: colors.surfaceCyanFaint,
+    backgroundColor: c.surfaceCyanFaint,
     borderWidth: 1,
-    borderColor: colors.borderCyanSoft,
+    borderColor: c.borderCyanSoft,
   },
   unitChipLabel: {
     fontSize: 13,
@@ -1428,22 +1562,22 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   dangerLabel: {
-    color: colors.danger,
+    color: c.danger,
   },
 });
 
-const privacyStyles = StyleSheet.create({
+const makePrivacyStyles = (c: ThemeColors) => StyleSheet.create({
   backdrop: {
     flex: 1,
     backgroundColor: 'rgba(6, 18, 36, 0.92)',
     justifyContent: 'flex-end',
   },
   sheet: {
-    backgroundColor: colors.bgSecondary,
+    backgroundColor: c.bgSecondary,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderTopWidth: 1,
-    borderColor: colors.borderCyanFaint,
+    borderColor: c.borderCyanFaint,
     paddingTop: spacing.lg,
     paddingHorizontal: spacing.lg,
     paddingBottom: spacing.lg,
