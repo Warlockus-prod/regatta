@@ -1,20 +1,20 @@
-import { redirect } from 'next/navigation';
 import SimulatorV2 from '@/features/simulator-3d/SimulatorV2';
-import { SIM_V2_ENABLED } from '@/features/simulator-3d/config';
 
 // ============================================================================
-// SIMULATOR V2 route.
+// "3D Boat" route (historically Simulator V2).
 //
-// V2 is now the new 3D sloop module (src/features/simulator-3d). It is gated by
-// a feature flag so it can be turned off without code changes: set
-// NEXT_PUBLIC_SIM_V2=0 and the route falls back to V1.
+// Renders the 3D sloop module (src/features/simulator-3d). In the two-tier
+// simulator model (docs/design/SIMULATORS.md) this is NOT a third simulator:
+// it is the 3D visual layer / boat view, linked from Basics (/simulator) and
+// the Trainer (/simulator-v3), and embedded in the iOS app's "3D" tab
+// (mobile/app/simulator2). Always on: the iOS App Store build depends on this
+// route, so there is deliberately no feature flag (the old NEXT_PUBLIC_SIM_V2
+// kill switch was build-time inlined and never worked in prod; removed).
 //
-// The old V2 race-view build (PR-1..PR-6) still lives in
-// src/features/simulator-v2/* and ./SailingScene.tsx (unused, kept in git
-// history, last live at commit be43938) and can be removed once V2-3D is final.
+// The old V2 race-view build was deleted 2026-07-05; recover from git history
+// at commit be43938 if ever needed.
 // ============================================================================
 
 export default function SimulatorV2Page() {
-  if (!SIM_V2_ENABLED) redirect('/simulator');
   return <SimulatorV2 />;
 }

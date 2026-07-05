@@ -8,10 +8,10 @@
 // installed for V2 simulator). Lazy-loaded by the consumer so users who
 // never toggle 3D don't pay the Three.js bundle cost.
 //
-// Model: /public/models/Andryu_Yacht_ProductionReadyPrototype_v3.glb
-//   ~176 KB. 142 objects, 4404 vertices, 7892 faces. Has LOD0_/LOD1_
+// Model: /public/models/Andryu_Yacht_v8.glb (~830 KB). Has LOD0_/LOD1_
 //   prefixes and COL_* debug colliders (we hide the colliders at load).
-//   See public/models/asset_metadata_v3.json for full coord conventions.
+//   Earlier prototype GLBs + asset_metadata_v3.json were removed 2026-07-05
+//   (recoverable from git history).
 //
 // Hotspots: each anatomy part with a `three: { x, y, z }` field gets a
 // clickable sphere + label rendered as a child of the same group as the

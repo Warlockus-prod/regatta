@@ -13,6 +13,6 @@ export { Ocean } from './ocean/Ocean';
 export { WindDial } from './ui/WindDial';
 export { useSailAudio } from './audio/useSailAudio';
 export { useSailingSim, type SimTelemetry } from './physics/useSailingSim';
-export { SIM_V2_ENABLED, YACHT_MODEL_URL } from './config';
+export { YACHT_MODEL_URL } from './config';
 export { DEFAULT_LABELS, NEUTRAL_YACHT, type YachtState, type SimLabels } from './types';
 export * as sailModel from './physics/sailModel';

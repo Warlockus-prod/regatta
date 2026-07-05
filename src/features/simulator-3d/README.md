@@ -49,10 +49,12 @@ Host the model so it is reachable at the URL in `config.ts`
 - Sailing: the physics model sails the boat. You steer (helm) and sheet
   (main/jib), set wind speed/direction, and get live telemetry + a trim coach.
 
-## Toggle
+## Route
 
-Set `NEXT_PUBLIC_SIM_V2=0` to disable the `/simulator2` route in this app (it
-redirects to V1). The module itself is inert until mounted.
+`/simulator2` is always on: the iOS app's "3D" tab embeds it via WebView, so a
+kill switch would break the shipped app (the old NEXT_PUBLIC_SIM_V2 flag was
+removed 2026-07-05). The module itself is inert until mounted. Product role:
+see docs/design/SIMULATORS.md ("3D boat view", not a third simulator).
 
 ## Asset
 
