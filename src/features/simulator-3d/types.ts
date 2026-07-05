@@ -38,6 +38,8 @@ export const NEUTRAL_YACHT: YachtState = {
 export interface SimLabels {
   badge: string;
   orbitHint: string;
+  /** Shown in free-trim mode: where steering lives. */
+  freeModeHint: string;
   modeFree: string;
   modeSail: string;
   pointOfSail: string;
@@ -71,6 +73,7 @@ export interface SimLabels {
 export const DEFAULT_LABELS: SimLabels = {
   badge: 'SIMULATOR V2 - 3D',
   orbitHint: 'drag to orbit, wheel to zoom',
+  freeModeHint: 'Free trim poses the rig. To steer and turn the boat, switch to Sailing.',
   modeFree: 'Free trim',
   modeSail: 'Sailing',
   pointOfSail: 'Point of sail',

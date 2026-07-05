@@ -34,6 +34,17 @@ function SimulatorV2Inner() {
       badge: tp('ЛОДКА 3D', '3D BOAT', 'LODKA 3D', {
         es: 'BARCO 3D', fr: 'BATEAU 3D', de: 'BOOT 3D', it: 'BARCA 3D',
       }),
+      freeModeHint: tp(
+        'Здесь ты позируешь такелаж. Повернуть лодку и рулить - в режиме "Ход под парусом".',
+        'Free trim poses the rig. To steer and turn the boat, switch to "Sailing".',
+        'Tu ustawiasz takielunek. Aby sterowac i obracac lodke, przelacz na "Zeglowanie".',
+        {
+          es: 'Aqui posas el aparejo. Para gobernar y girar el barco, cambia a "Navegando".',
+          fr: 'Ici tu poses le greement. Pour barrer et virer, passe en "En navigation".',
+          de: 'Hier posierst du das Rigg. Zum Steuern und Wenden wechsle zu "Segeln".',
+          it: 'Qui metti in posa l\'attrezzatura. Per governare e virare passa ad "A vela".',
+        },
+      ),
       orbitHint: tp('тяни мышью - орбита, колесо - зум', 'drag to orbit, wheel to zoom', 'przeciagnij - orbita, kolko - zoom', {
         es: 'arrastra - orbita, rueda - zoom', fr: 'glisser - orbite, molette - zoom', de: 'ziehen - Orbit, Rad - Zoom', it: 'trascina - orbita, rotella - zoom',
       }),
@@ -161,7 +172,7 @@ function SimulatorV2Inner() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary,#0a1118)] text-[var(--text-primary,#e7f1f7)]">
-      <Simulator3D labels={labels} headerSlot={switcher} embed={embed} />
+      <Simulator3D labels={labels} headerSlot={switcher} embed={embed} initialMode="sail" />
     </div>
   );
 }

@@ -222,6 +222,9 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
         >
           {mode === 'free' ? (
             <>
+              <div className="rounded-md border border-[rgba(0,212,255,0.2)] bg-[rgba(0,212,255,0.06)] px-2.5 py-2 text-xs leading-relaxed text-[var(--text-secondary,#9fb6c4)]">
+                {L.freeModeHint}
+              </div>
               <div>
                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary,#9fb6c4)]">{L.pointOfSail}</div>
                 <div className="flex flex-wrap gap-1.5">
