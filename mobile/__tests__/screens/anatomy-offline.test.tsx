@@ -20,7 +20,7 @@ jest.mock('expo-localization', () => ({
 }));
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import Anatomy from '../../app/anatomy/index';
+import Anatomy from '../../app/anatomy-offline/index';
 import { anatomyParts } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { renderWithProviders } from '../../src/test-utils';
@@ -29,7 +29,7 @@ beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
-describe('Anatomy screen', () => {
+describe('Anatomy offline schema screen', () => {
   it('renders the parts count summary', async () => {
     const view = renderWithProviders(<Anatomy />);
     await waitFor(() =>

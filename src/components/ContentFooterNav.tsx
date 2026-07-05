@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 
 // ---------------------------------------------------------------------------
@@ -108,6 +109,16 @@ export type ContentFooterNavPage =
 export default function ContentFooterNav({ page }: { page: ContentFooterNavPage }) {
   const { lang, tp } = useI18n();
   const siblings = SIBLINGS[page] ?? [];
+
+  // The iOS app embeds content pages via WebView with ?embed=1: cross-page
+  // way-finding must not render there (the app has its own navigation and the
+  // WebView blocks link taps anyway). Same contract as Navigation.tsx.
+  const [embed, setEmbed] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
+  }, []);
+  if (embed) return null;
 
   return (
     // Bottom margin is intentionally generous (mb-12 = 48px) so the

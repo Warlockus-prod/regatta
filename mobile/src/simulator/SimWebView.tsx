@@ -75,9 +75,27 @@ export interface SimWebViewProps {
   title: string;
   /** Extra query params appended after lang/embed. */
   query?: Record<string, string>;
+  /**
+   * Allow page scrolling. Off for the simulators (they fit 100dvh by the
+   * embed contract); on for content pages like /anatomy where natural scroll
+   * is the right UX (OrbitControls sets touch-action:none on its canvas, so
+   * orbit drags do not fight the scroll view).
+   */
+  scrollEnabled?: boolean;
+  /** Offline fallback route (default: the native Basics/Trainer entry). */
+  fallbackRoute?: string;
+  /** 7-language label for the offline fallback button. */
+  fallbackLabel?: string;
 }
 
-export function SimWebView({ path, title, query }: SimWebViewProps) {
+export function SimWebView({
+  path,
+  title,
+  query,
+  scrollEnabled = false,
+  fallbackRoute = '/simulator',
+  fallbackLabel,
+}: SimWebViewProps) {
   const { lang, tp } = useI18n();
   const router = useRouter();
   const webRef = useRef<WebView>(null);
@@ -119,7 +137,7 @@ export function SimWebView({ path, title, query }: SimWebViewProps) {
         domStorageEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
-        scrollEnabled={false}
+        scrollEnabled={scrollEnabled}
         bounces={false}
         injectedJavaScriptBeforeContentLoaded={BEFORE_LOAD}
         injectedJavaScript={AFTER_LOAD}
@@ -181,17 +199,18 @@ export function SimWebView({ path, title, query }: SimWebViewProps) {
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => router.replace('/simulator')}
+              onPress={() => router.replace(fallbackRoute)}
               style={({ pressed }) => [styles.btn, styles.btnGhost, pressed && styles.btnPressed]}
               accessibilityRole="button"
             >
               <Text style={styles.btnGhostText}>
-                {tp('Открыть V1 (офлайн)', 'Open V1 (offline)', 'Otworz V1 (offline)', {
-                  es: 'Abrir V1 (sin conexion)',
-                  fr: 'Ouvrir V1 (hors ligne)',
-                  de: 'V1 offnen (offline)',
-                  it: 'Apri V1 (offline)',
-                })}
+                {fallbackLabel ??
+                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otworz Trener (offline)', {
+                    es: 'Abrir el Entrenador (sin conexion)',
+                    fr: "Ouvrir l'Entraineur (hors ligne)",
+                    de: 'Trainer offnen (offline)',
+                    it: 'Apri il Trainer (offline)',
+                  })}
               </Text>
             </Pressable>
           </View>
