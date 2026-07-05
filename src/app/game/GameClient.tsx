@@ -15,6 +15,15 @@ import {
 } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
 import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
+// Single source of truth for the arcade race physics. The ws-server keeps a
+// hand-synced JS mirror (ws-server/race-physics.js) guarded by a drift test
+// (src/lib/race-physics.drift.test.ts) so the 3 copies can no longer diverge.
+import {
+  WORLD, MAX_SPEED, TURN_RATE, ACCEL, MARK_ROUND_DIST,
+  WIND_DIRECTION_BASE as WIND_DIRECTION,
+  speedFactorFromTWA, calcTWA, deg2rad, distance, bearing,
+  normalizeAngle, angleDiff, segmentCrossed,
+} from '@/lib/race-physics';
 
 // ============================================================================
 // TYPES
@@ -122,12 +131,8 @@ interface Coaching {
 // CONSTANTS & CONFIG
 // ============================================================================
 
-const WORLD = { width: 800, height: 1200 };   // logical world coords
-const WIND_DIRECTION = 0;                       // degrees; 0 = wind from top (coming DOWN screen)
-const MAX_SPEED = 8.0;                          // knots
-const TURN_RATE = 90;                           // deg/sec player
-const ACCEL = 2.5;                              // speed lerp factor
-const MARK_ROUND_DIST = 28;                     // distance to count mark rounded
+// WORLD, WIND_DIRECTION, MAX_SPEED, TURN_RATE, ACCEL and MARK_ROUND_DIST are
+// imported from '@/lib/race-physics' (see top of file) - do not redefine here.
 
 const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string;      // RU (legacy field name, kept for compat)
@@ -183,71 +188,11 @@ const AI_NAMES = ['Nautilus', 'Mistral', 'Trident', 'Aurora', 'Kraken', 'Boreali
 const AI_COLORS = ['#ff6688', '#88ddff', '#ffdd44', '#aa88ff', '#ff8844', '#66ffbb'];
 
 // ============================================================================
-// SAILING PHYSICS
+// SAILING PHYSICS + GEOMETRY HELPERS
 // ============================================================================
-
-// Speed factor based on true wind angle (TWA, absolute, 0-180)
-function speedFactorFromTWA(twa: number): number {
-  const a = Math.abs(twa);
-  if (a < 30) return 0;                                            // no-go zone
-  if (a < 45) return ((a - 30) / 15) * 0.65;                       // ramp up to close-hauled
-  if (a < 90) return 0.65 + ((a - 45) / 45) * 0.35;                // close-hauled → beam reach
-  if (a < 160) return 1.0 - ((a - 90) / 70) * 0.15;                // beam → broad reach
-  return 0.85 - ((a - 160) / 20) * 0.25;                           // broad → running
-}
-
-// True wind angle from boat heading, given current wind source direction.
-// windDir = direction the wind is COMING FROM (0 = from north).
-// TWA is the angle between the boat's bow and where the wind is coming from.
-function calcTWA(heading: number, windDir = 0): number {
-  const twa = ((heading - windDir + 540) % 360) - 180; // -180..180
-  return twa; // signed: positive = wind from starboard (right), negative = port
-}
-
-// Tack: port (left) or starboard (right)
-function calcTack(heading: number): 'port' | 'starboard' {
-  const twa = calcTWA(heading);
-  return twa > 0 ? 'port' : 'starboard'; // if wind from starboard, sailing port tack
-}
-
-// ============================================================================
-// GEOMETRY HELPERS
-// ============================================================================
-
-const deg2rad = (d: number) => (d * Math.PI) / 180;
-const rad2deg = (r: number) => (r * 180) / Math.PI;
-
-function distance(a: Vec2, b: Vec2): number {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  return Math.sqrt(dx * dx + dy * dy);
-}
-
-// Bearing from point a to point b (0 = up/north, clockwise)
-function bearing(a: Vec2, b: Vec2): number {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  const rad = Math.atan2(dx, -dy); // note: y is inverted (up = negative dy)
-  return (rad2deg(rad) + 360) % 360;
-}
-
-function normalizeAngle(deg: number): number {
-  return ((deg % 360) + 360) % 360;
-}
-
-// Shortest angle difference from a to b (signed, -180..180)
-function angleDiff(a: number, b: number): number {
-  let d = normalizeAngle(b) - normalizeAngle(a);
-  if (d > 180) d -= 360;
-  if (d < -180) d += 360;
-  return d;
-}
-
-// Check if a segment (p1, p2) was crossed between prev and curr (for line-crossing detection)
-function segmentCrossed(prev: Vec2, curr: Vec2, a: Vec2, b: Vec2): boolean {
-  const ccw = (A: Vec2, B: Vec2, C: Vec2) => (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
-  return ccw(a, prev, curr) !== ccw(b, prev, curr) && ccw(a, b, prev) !== ccw(a, b, curr);
-}
+// speedFactorFromTWA, calcTWA, deg2rad, distance, bearing, normalizeAngle,
+// angleDiff and segmentCrossed are imported from '@/lib/race-physics' (single
+// source of truth shared with the ws-server). Do not redefine them here.
 
 // ============================================================================
 // COURSE SETUP
@@ -438,6 +383,12 @@ export default function GamePage() {
   // Autopilot: holds a target heading; any input turns it off
   const [autopilotOn, setAutopilotOn] = useState(false);
   const autopilotHeadingRef = useRef<number>(0);
+  // Mirror autopilot state into a ref. The rAF game-loop effect closes over its
+  // deps at setup ([gameState, difficulty]) and is intentionally NOT restarted
+  // on toggle, so reading `autopilotOn` directly inside it was a stale closure -
+  // the button engaged/disengaged nothing. The loop reads autopilotOnRef.current.
+  const autopilotOnRef = useRef(false);
+  useEffect(() => { autopilotOnRef.current = autopilotOn; }, [autopilotOn]);
 
   // Sound state (for UI toggle; actual playback reads live from lib)
   const [muted, setMutedState] = useState(false);
@@ -787,10 +738,12 @@ export default function GamePage() {
           const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeldRef.current;
           const turnInput = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
           if (turnInput !== 0) {
-            // Any input turns off autopilot
-            if (autopilotOn) setAutopilotOn(false);
+            // Any input turns off autopilot. Update the ref immediately so the
+            // hold branch below stops steering this same frame (setState only
+            // lands next render).
+            if (autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
             boat.heading = normalizeAngle(boat.heading + turnInput * TURN_RATE * dt);
-          } else if (autopilotOn) {
+          } else if (autopilotOnRef.current) {
             // Smoothly hold target heading (stops drift caused by wind / wave ~ n/a but future-proofed)
             const diff = angleDiff(boat.heading, autopilotHeadingRef.current);
             const maxTurn = TURN_RATE * 0.5 * dt;
@@ -1593,9 +1546,11 @@ export default function GamePage() {
               if (!player) return;
               if (autopilotOn) {
                 setAutopilotOn(false);
+                autopilotOnRef.current = false;
               } else {
                 autopilotHeadingRef.current = player.heading;
                 setAutopilotOn(true);
+                autopilotOnRef.current = true;
               }
             }}
             title={tp('AUTO: удерживает текущий курс. Выключится от любого поворота.',
@@ -2066,7 +2021,7 @@ function ShareBlock({
   finishTime?: number; rank?: number; total?: number;
   missionTitle?: string;
 }) {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const [copied, setCopied] = useState(false);
   const url = typeof window !== 'undefined' ? `${window.location.origin}/r/${code}` : '';
   const shareText = finishTime
@@ -2092,7 +2047,7 @@ function ShareBlock({
   };
 
   const ogUrl = finishTime
-    ? `/api/og/result?nick=${encodeURIComponent(nickname ?? 'Player')}&time=${encodeURIComponent(formatTime(finishTime))}&place=${rank ?? ''}&of=${total ?? ''}&code=${code}&difficulty=${difficulty}&wind=${windStrength}&mission=${encodeURIComponent(missionTitle ?? '')}`
+    ? `/api/og/result?nick=${encodeURIComponent(nickname ?? 'Player')}&time=${encodeURIComponent(formatTime(finishTime))}&place=${rank ?? ''}&of=${total ?? ''}&code=${code}&difficulty=${difficulty}&wind=${windStrength}&mission=${encodeURIComponent(missionTitle ?? '')}&lang=${lang}`
     : null;
 
   return (
@@ -2459,7 +2414,7 @@ function ReplayOverlay({
     ctx.font = '600 9px system-ui, sans-serif';
     ctx.fillStyle = 'rgba(68, 255, 136, 0.85)';
     ctx.textAlign = 'left';
-    ctx.fillText('идеал', gMid.x + 6, gMid.y - 4);
+    ctx.fillText(tp('идеал', 'ideal', 'idealny'), gMid.x + 6, gMid.y - 4);
     ctx.restore();
 
     // Track trail up to current idx (player track)
@@ -2508,7 +2463,7 @@ function ReplayOverlay({
       ctx.stroke();
       ctx.restore();
     }
-  }, [idx, total, samples, events, course, current]);
+  }, [idx, total, samples, events, course, current, tp]);
 
   // Active mistake at current time (from AI coach) - for overlay comment
   const activeMistake = current
@@ -2593,13 +2548,13 @@ function ReplayOverlay({
         {activeMistake && (
           <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(255, 68, 68, 0.08)', border: '1px solid rgba(255, 68, 68, 0.2)' }}>
             <div className="text-xs font-semibold mb-1" style={{ color: 'var(--danger)' }}>
-              ⚠ {activeMistake.titleRu}
+              ⚠ {coachTitle(activeMistake)}
             </div>
             <div className="text-xs text-[var(--text-secondary)] leading-relaxed mb-1">
-              {activeMistake.explanationRu}
+              {coachExplanation(activeMistake)}
             </div>
             <div className="text-xs text-[var(--success)] leading-relaxed">
-              💡 {activeMistake.fixRu}
+              💡 {coachFix(activeMistake)}
             </div>
           </div>
         )}

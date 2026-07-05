@@ -46,13 +46,21 @@ const http = createServer((req, res) => {
 
 const rooms = new Map();
 const clients = new Map();       // ws -> roomCode
-const disconnected = new Map();  // sid -> { roomCode, timeout }
 
 function randCode() {
   const alpha = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
   let s = '';
   for (let i = 0; i < 4; i++) s += alpha[Math.floor(Math.random() * alpha.length)];
   return s;
+}
+
+function genPlayerId() {
+  // Opaque per-room player id - broadcast as the public boat/player id.
+  // NEVER the client's sid: the sid is the unauthenticated write key for
+  // /api/race-result and must stay server-side only (it used to leak as this
+  // id, letting any room peer impersonate you). Kept private on the Player.
+  return 'p_' + Math.random().toString(36).slice(2, 10)
+             + Math.random().toString(36).slice(2, 6);
 }
 
 function newRoom(hostSid, hostId) {
@@ -79,6 +87,18 @@ function newRoom(hostSid, hostId) {
   };
   rooms.set(code, room);
   return room;
+}
+
+// Delete a room and cancel any pending reconnect-grace timers it still holds,
+// so a long-running process cannot accumulate orphan rooms or orphan timers.
+function destroyRoom(code) {
+  const r = rooms.get(code);
+  if (r) {
+    for (const p of r.players.values()) {
+      if (p.graceTimer) { clearTimeout(p.graceTimer); p.graceTimer = null; }
+    }
+  }
+  rooms.delete(code);
 }
 
 function sendJson(ws, obj) {
@@ -180,22 +200,25 @@ function evaluateMissionForPlayer(room, playerId) {
   const stats = room.stats.get(playerId);
   const player = room.players.get(playerId);
   const finishTime = player?.boat?.finishTime ?? null;
-  if (finishTime === null) return { passed: false, reasons: ['Не финишировал'] };
+  // Reasons are stable machine-readable CODES (+ params), localized on the
+  // client - the server must not ship a single hardcoded language to a
+  // 7-language app. See missionReasonText() in MultiplayerClient.tsx.
+  if (finishTime === null) return { passed: false, reasons: [{ code: 'dnf' }] };
   const reasons = [];
   let passed = true;
   for (const c of m.constraints) {
     if (c.type === 'no-no-go' && (stats?.noGoEntries ?? 0) > 0) {
       passed = false;
-      reasons.push(`Вошёл в мёртвую зону ${stats.noGoEntries}×`);
+      reasons.push({ code: 'no-go', count: stats.noGoEntries });
     } else if (c.type === 'finish-under-sec' && finishTime > (c.value ?? Infinity)) {
       passed = false;
-      reasons.push(`Время ${finishTime.toFixed(1)}с > ${c.value}с`);
+      reasons.push({ code: 'time-over', time: Math.round(finishTime * 10) / 10, limit: c.value });
     } else if (c.type === 'max-tacks' && (stats?.tacks ?? 0) > (c.value ?? Infinity)) {
       passed = false;
-      reasons.push(`Поворотов ${stats.tacks}, нужно <= ${c.value}`);
+      reasons.push({ code: 'tacks-over', count: stats.tacks, max: c.value });
     }
   }
-  if (passed) reasons.push('Все условия выполнены');
+  if (passed) reasons.push({ code: 'passed' });
   return { passed, reasons };
 }
 
@@ -249,7 +272,7 @@ setInterval(() => {
   for (const [code, room] of rooms) {
     // GC idle rooms
     if (now - room.lastActivity > ROOM_IDLE_TIMEOUT_MS && room.players.size === 0) {
-      rooms.delete(code);
+      destroyRoom(code);
       continue;
     }
 
@@ -446,6 +469,17 @@ function allowMessage(ip) {
   return true;
 }
 
+// Periodic sweep so ipHits cannot grow unbounded on a long-running process:
+// prune each bucket's expired timestamps and drop buckets that went quiet.
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, b] of ipHits) {
+    b.connects = b.connects.filter((t) => now - t < 60_000);
+    b.msgs = b.msgs.filter((t) => now - t < 1000);
+    if (b.connects.length === 0 && b.msgs.length === 0) ipHits.delete(ip);
+  }
+}, 60_000);
+
 // ------------------------------ WS handlers ------------------------------
 
 const wss = new WebSocketServer({ server: http });
@@ -473,7 +507,7 @@ wss.on('connection', (ws, req) => {
     switch (msg.type) {
       case 'create': {
         sid = String(msg.sid || ('s' + Math.random().toString(36).slice(2, 10)));
-        playerId = sid;
+        playerId = genPlayerId();
         const nickname = String(msg.nickname || 'Player').slice(0, 20);
         const r = newRoom(sid, playerId);
         const boat = spawnBoat(r, playerId, nickname, 0);
@@ -499,6 +533,8 @@ wss.on('connection', (ws, req) => {
         if (existing) {
           existing.ws = ws;
           existing.connectedOrGrace = true;
+          // Reconnected inside the grace window: cancel the pending auto-drop.
+          if (existing.graceTimer) { clearTimeout(existing.graceTimer); existing.graceTimer = null; }
           playerId = existing.id;
           roomCode = r.code;
           clients.set(ws, r.code);
@@ -511,7 +547,7 @@ wss.on('connection', (ws, req) => {
         if (r.players.size + r.aiBots.length >= MAX_PLAYERS_PER_ROOM) {
           sendJson(ws, { type: 'error', message: 'Комната полна' }); return;
         }
-        playerId = sid;
+        playerId = genPlayerId();
         const nickname = String(msg.nickname || 'Player').slice(0, 20);
         const idx = r.players.size + r.aiBots.length;
         const boat = spawnBoat(r, playerId, nickname, idx);
@@ -596,7 +632,7 @@ wss.on('connection', (ws, req) => {
         if (room && playerId) {
           room.players.delete(playerId);
           room.lastActivity = Date.now();
-          if (room.players.size === 0) rooms.delete(room.code);
+          if (room.players.size === 0) destroyRoom(room.code);
           else {
             if (room.hostId === playerId) room.hostId = room.players.keys().next().value;
             broadcast(room, lobbyState(room));
@@ -627,10 +663,11 @@ wss.on('connection', (ws, req) => {
       if (!room2) return;
       const q = room2.players.get(pid);
       if (!q || q.ws) return;   // reconnected
+      q.graceTimer = null;
       room2.players.delete(pid);
       room2.lastActivity = Date.now();
       if (room2.players.size === 0 && room2.aiBots.length === 0) {
-        rooms.delete(rc);
+        destroyRoom(rc);
       } else {
         if (room2.hostId === pid) {
           const next = room2.players.keys().next().value;
@@ -639,7 +676,9 @@ wss.on('connection', (ws, req) => {
         broadcast(room2, lobbyState(room2));
       }
     }, RECONNECT_GRACE_MS);
-    disconnected.set(sid ?? pid, { roomCode: rc, timeout: timer });
+    // Grace timer lives on the Player so a reconnect can cancel it and a room
+    // teardown can clear it (was a write-only `disconnected` map that leaked).
+    p.graceTimer = timer;
   });
 });
 

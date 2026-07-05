@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage } from '@/lib/mp-client';
+import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason } from '@/lib/mp-client';
 import { WORLD, makeStandardCourse, deg2rad } from '@/lib/race-physics';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
@@ -10,9 +10,30 @@ import { useI18n } from '@/lib/i18n';
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
 interface LobbyPlayer { id: string; nickname: string; ready: boolean; isBot: boolean; connected: boolean }
-interface Results { id: string; nickname: string; isBot: boolean; time: number | null; mission: { passed: boolean; reasons: string[] } | null }
+interface Results { id: string; nickname: string; isBot: boolean; time: number | null; mission: { passed: boolean; reasons: MissionReason[] } | null }
 
 const COLORS = ['#00d4ff', '#ff6688', '#ffdd44', '#44ff88', '#aa88ff', '#ff8844', '#55ccee', '#ff99cc', '#c6f0a5', '#bb99ff'];
+
+// Localize a mission-evaluation reason code from the (language-agnostic) server.
+// RU / EN / PL via tp(); ES/FR/DE/IT fall back to EN, matching the rest of this
+// screen's tp() call sites.
+function missionReasonText(
+  tp: (ru: string, en: string, pl: string) => string,
+  r: MissionReason,
+): string {
+  switch (r.code) {
+    case 'dnf':
+      return tp('Не финишировал', 'Did not finish', 'Nie ukonczono');
+    case 'no-go':
+      return tp(`Вошёл в мёртвую зону ${r.count}x`, `Entered the no-go zone ${r.count}x`, `Wejscie w martwa strefe ${r.count}x`);
+    case 'time-over':
+      return tp(`Время ${r.time}с > ${r.limit}с`, `Time ${r.time}s > ${r.limit}s`, `Czas ${r.time}s > ${r.limit}s`);
+    case 'tacks-over':
+      return tp(`Поворотов ${r.count}, нужно <= ${r.max}`, `Tacks ${r.count}, need <= ${r.max}`, `Zwrotow ${r.count}, trzeba <= ${r.max}`);
+    case 'passed':
+      return tp('Все условия выполнены', 'All conditions met', 'Wszystkie warunki spelnione');
+  }
+}
 
 export default function MultiplayerClient() {
   const { tp } = useI18n();
@@ -60,6 +81,9 @@ export default function MultiplayerClient() {
   const handleServerMsg = useCallback((msg: MPMessage) => {
     switch (msg.type) {
       case 'joined':
+        // msg.id is the server-assigned OPAQUE player id (never our sid). We
+        // identify "me" everywhere by room.myId === boat/player.id - never by
+        // assuming id === sid - so the server can keep sid fully private.
         // hostId stays empty for non-hosts until the first lobby-state arrives.
         // Previously we set hostId: msg.id here which made guests briefly see
         // the "хост" badge next to their own name until lobby-state overrode it.
@@ -548,7 +572,7 @@ export default function MultiplayerClient() {
                       : tp('⚠ Миссия провалена', '⚠ Mission failed', '⚠ Misja nieudana')}
                   </div>
                   <ul className="text-xs text-[var(--text-secondary)] mt-1 list-disc list-inside">
-                    {mine.mission.reasons.map((r, idx) => <li key={idx}>{r}</li>)}
+                    {mine.mission.reasons.map((r, idx) => <li key={idx}>{missionReasonText(tp, r)}</li>)}
                   </ul>
                 </div>
               );

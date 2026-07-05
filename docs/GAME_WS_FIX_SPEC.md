@@ -1,5 +1,9 @@
 # Game + ws-server fix spec (deferred from the 2026-07 audit)
 
+> STATUS (2026-07-05): all 5 fixes DONE and live-tested (ws-server + next start +
+> two protocol/browser clients). See the "Fixed (game / ws-server lane)" section
+> in docs/AUDIT_2026-07.md for the per-fix verification.
+
 These need a LIVE multiplayer test, so they were not blind-shipped from the web
 worktree. Do them in a session that can run the ws-server + the app + two browser
 clients (a fresh worktree with `npm ci` works: `next start` resolves once

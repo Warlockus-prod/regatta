@@ -1,7 +1,8 @@
 // Pure JS mirror of src/lib/race-physics.ts (kept manually in sync).
 // Server runs plain ESM, no bundler, so we duplicate the tiny module here
 // instead of pulling in a whole TS toolchain. If the TS version is updated,
-// update this file too - there is a CI check (TODO) that would catch drift.
+// update this file too - src/lib/race-physics.drift.test.ts (run by
+// `npm run test:physics`) fails if the two copies diverge numerically.
 
 export const WORLD = { width: 800, height: 1200 };
 export const WIND_DIRECTION_BASE = 0;

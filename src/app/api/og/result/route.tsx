@@ -26,6 +26,24 @@ export async function GET(req: Request) {
   const difficulty = url.searchParams.get('difficulty') || 'medium';
   const wind = url.searchParams.get('wind') || 'medium';
   const mission = (url.searchParams.get('mission') || '').slice(0, 40);
+  // Share card was hardcoded Russian; localize by ?lang= (defaults to ru so
+  // pre-existing share links keep rendering as before). ASCII-clean per the
+  // project typography rule; ES/FR/DE/IT drop diacritics for reliable glyphs.
+  const lang = (url.searchParams.get('lang') || 'ru').toLowerCase().slice(0, 2);
+  const STR: Record<string, {
+    place: string; mission: string; settings: string; wind: string; tagline: string;
+    windVal: Record<string, string>;
+  }> = {
+    ru: { place: 'место', mission: 'миссия', settings: 'НАСТРОЙКИ', wind: 'ветер', tagline: 'интерактивный тренажёр яхтинга', windVal: { light: 'слабый', medium: 'средний', heavy: 'сильный' } },
+    en: { place: 'place', mission: 'mission', settings: 'SETTINGS', wind: 'wind', tagline: 'interactive sailing trainer', windVal: { light: 'light', medium: 'medium', heavy: 'heavy' } },
+    pl: { place: 'miejsce', mission: 'misja', settings: 'USTAWIENIA', wind: 'wiatr', tagline: 'interaktywny trener zeglarstwa', windVal: { light: 'slaby', medium: 'sredni', heavy: 'silny' } },
+    es: { place: 'puesto', mission: 'mision', settings: 'AJUSTES', wind: 'viento', tagline: 'entrenador interactivo de vela', windVal: { light: 'flojo', medium: 'medio', heavy: 'fuerte' } },
+    fr: { place: 'place', mission: 'mission', settings: 'REGLAGES', wind: 'vent', tagline: 'simulateur interactif de voile', windVal: { light: 'faible', medium: 'moyen', heavy: 'fort' } },
+    de: { place: 'Platz', mission: 'Mission', settings: 'EINSTELLUNGEN', wind: 'Wind', tagline: 'interaktiver Segeltrainer', windVal: { light: 'leicht', medium: 'mittel', heavy: 'stark' } },
+    it: { place: 'posto', mission: 'missione', settings: 'IMPOSTAZIONI', wind: 'vento', tagline: 'simulatore di vela interattivo', windVal: { light: 'leggero', medium: 'medio', heavy: 'forte' } },
+  };
+  const tr = STR[lang] || STR.en;
+  const windLabel = tr.windVal[wind] || wind;
 
   const accent = difficulty === 'easy' ? '#44ff88' : difficulty === 'hard' ? '#ff4444' : '#ffaa00';
 
@@ -59,20 +77,20 @@ export async function GET(req: Request) {
         {/* main */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 60, marginTop: 40 }}>
           <div style={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
-            <div style={{ fontSize: 30, color: '#8ba7b8', marginBottom: 8 }}>
+            <div style={{ display: 'flex', fontSize: 30, color: '#8ba7b8', marginBottom: 8 }}>
               {nick} · finish
             </div>
             <div style={{ fontSize: 120, fontWeight: 800, lineHeight: 1, color: '#ffffff', letterSpacing: '-0.03em' }}>
               {time}
             </div>
             {place && of && (
-              <div style={{ fontSize: 34, color: accent, marginTop: 18, fontWeight: 700 }}>
-                место {place} / {of}
+              <div style={{ display: 'flex', fontSize: 34, color: accent, marginTop: 18, fontWeight: 700 }}>
+                {tr.place} {place} / {of}
               </div>
             )}
             {mission && (
               <div style={{ fontSize: 22, color: '#ffdd44', marginTop: 12, display: 'flex' }}>
-                🎯 миссия: {mission}
+                🎯 {tr.mission}: {mission}
               </div>
             )}
           </div>
@@ -88,12 +106,12 @@ export async function GET(req: Request) {
             borderRadius: 24,
             minWidth: 240,
           }}>
-            <div style={{ fontSize: 16, color: '#5a7a8a', display: 'flex' }}>НАСТРОЙКИ</div>
+            <div style={{ fontSize: 16, color: '#5a7a8a', display: 'flex' }}>{tr.settings}</div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <div style={{ display: 'flex', fontSize: 24, color: accent, fontWeight: 700 }}>
                 {difficulty.toUpperCase()}
               </div>
-              <div style={{ display: 'flex', fontSize: 20, color: '#e8f4f8' }}>ветер: {wind}</div>
+              <div style={{ display: 'flex', fontSize: 20, color: '#e8f4f8' }}>{tr.wind}: {windLabel}</div>
               {code && (
                 <div style={{ display: 'flex', fontSize: 16, color: '#5a7a8a', fontFamily: 'ui-monospace, monospace' }}>
                   replay: {code}
@@ -115,7 +133,7 @@ export async function GET(req: Request) {
           fontSize: 20,
           color: '#5a7a8a',
         }}>
-          <span style={{ display: 'flex' }}>интерактивный тренажёр яхтинга</span>
+          <span style={{ display: 'flex' }}>{tr.tagline}</span>
           <span style={{ display: 'flex', fontFamily: 'ui-monospace, monospace' }}>weektoregatta.com</span>
         </div>
       </div>

@@ -2,6 +2,19 @@
  * Multiplayer WebSocket client with auto-reconnect + typed message bus.
  */
 
+/**
+ * Mission-evaluation reason as a stable machine-readable CODE (+ params).
+ * The ws-server is language-agnostic; the client localizes these (see
+ * missionReasonText() in MultiplayerClient.tsx) so a 7-language app never
+ * receives a hardcoded Russian string from the socket.
+ */
+export type MissionReason =
+  | { code: 'dnf' }
+  | { code: 'no-go'; count: number }
+  | { code: 'time-over'; time: number; limit: number }
+  | { code: 'tacks-over'; count: number; max: number }
+  | { code: 'passed' };
+
 export type MPMessage =
   | { type: 'joined'; code: string; id: string; isHost: boolean }
   | { type: 'lobby-state'; code: string; hostId: string; phase: string;
@@ -17,7 +30,7 @@ export type MPMessage =
       events: { id: string; type: string; t: number }[] }
   | { type: 'finished'; results: {
         id: string; nickname: string; isBot: boolean; time: number | null;
-        mission: { passed: boolean; reasons: string[] } | null;
+        mission: { passed: boolean; reasons: MissionReason[] } | null;
       }[] }
   | { type: 'error'; message: string };
 
