@@ -6,6 +6,22 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0009: One golden physics engine via @regatta/physics (2026-07-05)
+
+Decision: the native trainer consumes the web's canonical VPP engine
+(src/lib/sailing-physics) directly through the '@regatta/physics' alias
+(metro watchFolders + extraNodeModules, tsconfig paths, jest moduleNameMapper).
+The mobile fork in mobile/src/simulator/physics was deleted down to a shim
+index.ts that re-exports the alias.
+
+Why: the fork had silently diverged (91 diff lines in forces.ts, missing
+current.ts, zero tests) - exactly the per-platform behavior drift the
+cross-platform plan warns about. The engine is pure TS (no React/DOM), so a
+virtual package needs no npm workspaces and no publish step.
+
+Guard: CI fails if mobile/src/simulator/physics contains anything besides the
+shim ("No duplicate physics engine" step in .github/workflows/ci.yml).
+
 ## ADR-0008: Two-tier simulator model
 
 **Date:** 2026-07-05

@@ -4,7 +4,16 @@
     "strict": true,
     "resolveJsonModule": true,
     "noFallthroughCasesInSwitch": true,
-    "noImplicitReturns": true
+    "noImplicitReturns": true,
+    "baseUrl": ".",
+    "paths": {
+      "@regatta/physics": [
+        "../src/lib/sailing-physics/index.ts"
+      ]
+    }
   },
-  "exclude": ["node_modules", "scripts"]
+  "exclude": [
+    "node_modules",
+    "scripts"
+  ]
 }

@@ -42,5 +42,16 @@ jobs:
       - name: Simulator feature tests (V3 runtime etc.)
         run: npx vitest run src/features
 
+      # One golden physics engine (docs/design/SIMULATORS.md): the mobile
+      # trainer consumes src/lib/sailing-physics via the @regatta/physics
+      # alias. Fail if anyone re-forks the engine into mobile/.
+      - name: No duplicate physics engine
+        run: |
+          extra=$(ls mobile/src/simulator/physics | grep -v '^index.ts$' || true)
+          if [ -n "$extra" ]; then
+            echo "mobile/src/simulator/physics must contain only the shim index.ts, found: $extra"
+            exit 1
+          fi
+
       - name: API contract tests
         run: npm run test:api

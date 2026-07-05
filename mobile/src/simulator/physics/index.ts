@@ -1,32 +1,14 @@
 // ============================================================================
-// Sailing physics - public API (mobile).
+// Sailing physics - mobile entry.
 //
-// Mirror of the web entry at src/lib/sailing-physics/index.ts. Same surface,
-// same conventions. Engine is pure TS - no React, no DOM. Safe in worklets,
-// safe in node tests.
+// This is a SHIM: the native trainer runs the exact same golden VPP engine as
+// the web (src/lib/sailing-physics), resolved via the '@regatta/physics'
+// alias (metro.config.js + tsconfig paths + jest moduleNameMapper). The old
+// verbatim fork that used to live in this folder silently diverged (91 diff
+// lines in forces.ts, missing current.ts, zero tests) and was deleted
+// 2026-07-05 - see docs/design/SIMULATORS.md and DECISIONS.md ADR-0009.
+//
+// Do NOT re-add engine files here; CI guards against a second copy.
 // ============================================================================
 
-export type {
-  BoatState,
-  BoatParams,
-  Controls,
-  TickDiagnostics,
-  TickResult,
-} from './types';
-
-export { DEFAULT_BOAT, getBoatParams } from './boat';
-export {
-  createInitialState,
-  tick,
-  settle,
-  type InitArgs,
-} from './simulate';
-export {
-  KN_TO_MPS,
-  MPS_TO_KN,
-  DEG_TO_RAD,
-  RAD_TO_DEG,
-  apparentWind,
-  twaFromCompass,
-  vmg,
-} from './wind';
+export * from '@regatta/physics';
