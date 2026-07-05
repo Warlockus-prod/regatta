@@ -45,9 +45,33 @@ export function ModeBar({
         border: '1px solid rgba(0, 212, 255, 0.12)',
       }}
     >
-      {btn('free', tp('Свободно', 'Free Sail', 'Wolna jazda'))}
-      {btn('drill', tp('Упражнения', 'Drills', 'Cwiczenia'))}
-      {btn('scenario', tp('Сценарии', 'Scenarios', 'Scenariusze'))}
+      {btn(
+        'free',
+        tp('Свободно', 'Free Sail', 'Wolna jazda', {
+          es: 'Libre',
+          fr: 'Libre',
+          de: 'Frei',
+          it: 'Libera',
+        }),
+      )}
+      {btn(
+        'drill',
+        tp('Упражнения', 'Drills', 'Cwiczenia', {
+          es: 'Ejercicios',
+          fr: 'Exercices',
+          de: 'Drills',
+          it: 'Esercizi',
+        }),
+      )}
+      {btn(
+        'scenario',
+        tp('Сценарии', 'Scenarios', 'Scenariusze', {
+          es: 'Escenarios',
+          fr: 'Scénarios',
+          de: 'Szenarien',
+          it: 'Scenari',
+        }),
+      )}
     </div>
   );
 }

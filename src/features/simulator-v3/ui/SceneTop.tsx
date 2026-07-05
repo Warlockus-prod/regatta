@@ -2,6 +2,7 @@
 
 import { useId } from 'react';
 import type { Lang } from '@/lib/languages';
+import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
 import {
   clamp,
   finite,
@@ -81,8 +82,16 @@ export function SceneTop({
   const sideEnd = polarPoint(cx, cy, 26 + sideScale * 70, boatRotation + sideSignAngle);
 
   // Sector angles in world frame
-  // No-go: 60 deg centered on north (wind from direction)
-  const noGoPath = sectorPath(cx, cy, sceneRadius * 0.58, sceneRadius * 0.98, -30, 30);
+  // No-go: 2 * NO_GO_HALF_DEG centered on north (wind from direction).
+  // Shared constant so every simulator surface teaches the same cone.
+  const noGoPath = sectorPath(
+    cx,
+    cy,
+    sceneRadius * 0.58,
+    sceneRadius * 0.98,
+    -NO_GO_HALF_DEG,
+    NO_GO_HALF_DEG,
+  );
   // Wind from sector 120 deg at top
   const windFromPath = sectorPath(cx, cy, sceneRadius * 0.58, sceneRadius * 0.98, -60, 60);
 
@@ -420,10 +429,14 @@ export function SceneTop({
         </g>
       )}
 
-      {/* Layer 8-9: boat and current sails */}
+      {/* Layer 8-9: boat and current sails. Sail rotations use the runtime's
+          LIVE angles (sim.liveMainAngle / sim.liveJibAngle) so the drawn sail
+          eases at winch speed like the physics, instead of snapping to the
+          slider target. */}
       <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} filter={`url(#${boatShadowId})`}>
         <BoatTop
-          ui={ui}
+          mainAngleDeg={finite(sim.liveMainAngle, ui.mainAngle)}
+          jibAngleDeg={finite(sim.liveJibAngle, ui.jibAngle)}
           sailSide={sailSide}
           hasMain={hasMain}
           hasJib={hasJib}
@@ -443,7 +456,7 @@ export function SceneTop({
           to={tw.end}
           color="#00d4ff"
           width={2.8}
-          label={`TW ${ui.windSpeed} kts`}
+          label={`TW ${ui.windSpeed} ${lang === 'ru' ? 'уз' : 'kts'}`}
           labelPos={{ x: cx, y: cy - sceneRadius * 1.06 }}
           labelAnchor="middle"
         />
@@ -499,7 +512,10 @@ export function SceneTop({
 // ---------------------------------------------------------------------------
 
 function BoatTop(args: {
-  ui: UiState;
+  /** LIVE main sheet angle (deg) from the runtime - eases like the physics. */
+  mainAngleDeg: number;
+  /** LIVE jib sheet angle (deg) from the runtime. */
+  jibAngleDeg: number;
   sailSide: 1 | -1;
   hasMain: boolean;
   hasJib: boolean;
@@ -513,7 +529,8 @@ function BoatTop(args: {
   jibStalled: boolean;
 }) {
   const {
-    ui,
+    mainAngleDeg,
+    jibAngleDeg,
     sailSide,
     hasMain,
     hasJib,
@@ -662,7 +679,7 @@ function BoatTop(args: {
           it in z-order (real slot behavior: main overlaps jib's lee). */}
       {hasJib && (
         <g
-          transform={`translate(0 -58) rotate(${-ui.jibAngle * sailSide})`}
+          transform={`translate(0 -58) rotate(${-jibAngleDeg * sailSide})`}
           opacity={jibOpacity}
         >
           <defs>
@@ -786,7 +803,7 @@ function BoatTop(args: {
           WIND-RESPONSIVE belly. Reef shrinks everything via the outer
           scale(1, mainVisualScale). */}
       {hasMain && (
-        <g transform={`rotate(${-ui.mainAngle * sailSide}) scale(1 ${mainVisualScale})`}>
+        <g transform={`rotate(${-mainAngleDeg * sailSide}) scale(1 ${mainVisualScale})`}>
           <defs>
             <linearGradient
               id={`v3-main-grad-${sailSide}-${uid}`}

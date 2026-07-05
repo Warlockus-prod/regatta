@@ -60,11 +60,12 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
 
   // Sail drawing helpers. Main is centered on mast at x=0; from BEHIND we
   // see its back side as a curved triangle whose foot follows the boom.
-  // The boom angles slightly off centerline as ui.mainAngle grows, but
+  // The boom angles slightly off centerline as the sheet eases, but
   // from directly astern that mostly looks like a foreshortened length
   // rather than a sideways swing. We model it as a small lateral offset
   // of the clew so the boom is "pointing slightly to leeward".
-  const mainOffDeg = finite(ui.mainAngle, 45);
+  // Uses the runtime's LIVE angle so the boom eases like the physics.
+  const mainOffDeg = finite(sim.liveMainAngle, 45);
   const mainBoomLateral = (mainOffDeg / 60) * 22;  // 0..22 px sideways
   const mainBoomLong = 60 - mainOffDeg * 0.4;       // foreshortened
   // From astern looking forward (same direction as the boat is moving),
@@ -169,7 +170,7 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
           textAnchor="start"
           style={{ letterSpacing: '0.1em' }}
         >
-          TWS {ui.windSpeed} kts
+          TWS {ui.windSpeed} {tp('уз', 'kts', 'kts')}
         </text>
         <path d="M 0 0 L 60 0" stroke="#00d4ff" strokeWidth={2.2} />
         <polygon points="60,-6 70,0 60,6" fill="#00d4ff" />
@@ -189,7 +190,12 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
           textAnchor="middle"
           style={{ letterSpacing: '0.12em' }}
         >
-          {tp('ИДЁТ ТУДА', 'BOAT GOES', 'PLYNIE TAM')}
+          {tp('ИДЁТ ТУДА', 'BOAT GOES', 'PLYNIE TAM', {
+            es: 'VA HACIA ALLA',
+            fr: 'IL VA PAR LA',
+            de: 'FAEHRT DORTHIN',
+            it: 'VA DI LA',
+          })}
         </text>
         {/* Arrow stack getting smaller (vanishing into the distance) */}
         <polygon points="-22,8 22,8 14,-2 -14,-2" fill="rgba(82, 255, 142, 0.7)" />
@@ -472,7 +478,12 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
           textAnchor="end"
           style={{ letterSpacing: '0.2em', opacity: 0.75 }}
         >
-          {tp('КРЕН', 'HEEL', 'PRZECHYL')}
+          {tp('КРЕН', 'HEEL', 'PRZECHYL', {
+            es: 'ESCORA',
+            fr: 'GITE',
+            de: 'KRAENGUNG',
+            it: 'SBANDAMENTO',
+          })}
         </text>
       </g>
 
@@ -486,10 +497,20 @@ export function SceneRear({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; 
           fontWeight="800"
           style={{ letterSpacing: '0.02em' }}
         >
-          {tp('ВИД СЗАДИ', 'REAR VIEW', 'WIDOK Z TYLU')}
+          {tp('ВИД СЗАДИ', 'REAR VIEW', 'WIDOK Z TYLU', {
+            es: 'VISTA DE POPA',
+            fr: 'VUE ARRIERE',
+            de: 'HECKANSICHT',
+            it: 'VISTA DA POPPA',
+          })}
         </text>
         <text x="0" y="18" fill="rgba(139, 167, 184, 0.75)" fontSize="11">
-          {tp('как видит соседняя яхта', 'as another boat sees you', 'jak widzi cie inny jacht')}
+          {tp('как видит соседняя яхта', 'as another boat sees you', 'jak widzi cie inny jacht', {
+            es: 'como te ve otro barco',
+            fr: "comme un autre bateau te voit",
+            de: 'wie dich ein anderes Boot sieht',
+            it: 'come ti vede un\'altra barca',
+          })}
         </text>
       </g>
     </svg>

@@ -2,7 +2,7 @@
 
 import { Suspense, type MutableRefObject } from 'react';
 import { Canvas } from '@react-three/fiber';
-import { OrbitControls, Sky, ContactShadows } from '@react-three/drei';
+import { OrbitControls, Sky, ContactShadows, Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { Yacht } from './Yacht';
 import { Ocean } from './ocean/Ocean';
@@ -12,15 +12,45 @@ import type { YachtState } from './types';
 // RegattaScene - the R3F canvas for the V2 3D simulator.
 //
 // Manual sun + hemisphere rig plus drei <Sky>. We do NOT use drei
-// <Environment preset>, which fetches an external HDR blocked by the app CSP.
+// <Environment preset>, which fetches an external HDR from a CDN blocked by
+// the app CSP (a SELF-HOSTED .hdr under /public would pass - planned upgrade).
 // OrbitControls let the user spin the boat; water is a glossy plane at y = 0.
 // ============================================================================
 
-export function RegattaScene({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
+// Shown while the 2.3 MB GLB downloads/parses. Before this existed the user
+// stared at an empty ocean for up to tens of seconds with no feedback (live
+// testing measured 26 s on a cold dev load).
+function YachtLoading() {
+  return (
+    <Html center>
+      <div
+        aria-label="Loading 3D boat"
+        style={{
+          width: 46,
+          height: 46,
+          border: '3px solid rgba(0,212,255,0.25)',
+          borderTopColor: '#00d4ff',
+          borderRadius: '50%',
+          animation: 'regatta-spin 0.9s linear infinite',
+        }}
+      />
+      <style>{'@keyframes regatta-spin { to { transform: rotate(360deg); } }'}</style>
+    </Html>
+  );
+}
+
+export function RegattaScene({
+  stateRef,
+  maxDpr = 2,
+}: {
+  stateRef: MutableRefObject<YachtState>;
+  /** Cap devicePixelRatio (1.5 in the mobile WebView embed to save fill rate). */
+  maxDpr?: number;
+}) {
   return (
     <Canvas
       shadows
-      dpr={[1, 2]}
+      dpr={[1, maxDpr]}
       camera={{ position: [18, 9, 22], fov: 42, near: 0.5, far: 400 }}
       gl={{ antialias: true, powerPreference: 'high-performance' }}
       onCreated={({ gl }) => {
@@ -48,7 +78,7 @@ export function RegattaScene({ stateRef }: { stateRef: MutableRefObject<YachtSta
       />
       <Sky sunPosition={[28, 14, 14]} turbidity={6} rayleigh={1.4} mieCoefficient={0.005} />
 
-      <Suspense fallback={null}>
+      <Suspense fallback={<YachtLoading />}>
         <Yacht stateRef={stateRef} />
       </Suspense>
 

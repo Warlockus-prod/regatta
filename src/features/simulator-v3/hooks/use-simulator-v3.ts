@@ -18,6 +18,8 @@ import { type RuntimeState } from '../runtime/runtime-types';
 import { recommendedTrim } from '../runtime/trim-heuristics';
 import {
   clamp,
+  fromJibSheet,
+  fromMainSheet,
   pointOfSailFor,
   toJibSheet,
   toMainSheet,
@@ -305,6 +307,12 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       params,
     );
 
+    // Live sail angles in degrees, recovered from the runtime's interpolated
+    // controls. Scenes draw these instead of ui.mainAngle/ui.jibAngle so the
+    // drawn sail eases at winch speed exactly like the physics does.
+    const liveMainAngle = fromMainSheet(rt.live.mainSheet, params.mainMaxOff);
+    const liveJibAngle = fromJibSheet(rt.live.jibSheet, params.jibMinOff, params.jibMaxOff);
+
     return {
       result,
       optimalResult: optimalModel.optimalResult,
@@ -314,6 +322,8 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       trimScore,
       optimal: optimalModel.optimal,
       ghostAngles,
+      liveMainAngle,
+      liveJibAngle,
       primaryFeedback: picked.text,
       primaryFeedbackTone: picked.tone,
       targetHeading: rt.targetHeading,

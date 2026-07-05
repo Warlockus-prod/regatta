@@ -34,21 +34,34 @@ export function JibPod(props: {
     state === 'stall' ? 'danger' : state === 'attached' ? 'good' : 'warn';
   const text =
     state === 'furled'
-      ? tp('УБРАН', 'FURLED', 'ZWINIETY')
+      ? tp('УБРАН', 'FURLED', 'ZWINIETY', { es: 'ENROLLADO', fr: 'ENROULE', de: 'GEROLLT', it: 'AVVOLTO' })
       : state === 'stall'
-      ? tp('СРЫВ', 'STALL', 'STALL')
+      ? tp('СРЫВ', 'STALL', 'STALL', { es: 'STALL', fr: 'DECROCHE', de: 'STALL', it: 'STALLO' })
       : state === 'edge'
-      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ')
+      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ', { es: 'AL LIMITE', fr: 'A LA LIMITE', de: 'GRENZE', it: 'AL LIMITE' })
       : state === 'luffing'
-      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
-      : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE');
+      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
+      : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE', { es: 'TIRA', fr: 'PORTE', de: 'ZIEHT', it: 'PORTA' });
 
   return (
     <PodCard compact={compact}>
-      <PodLabel text={tp('СТАКСЕЛЬ', 'JIB', 'FOK')} compact={compact} />
+      <PodLabel
+        text={tp('СТАКСЕЛЬ', 'JIB', 'FOK', {
+          es: 'FOQUE',
+          fr: 'FOC',
+          de: 'FOCK',
+          it: 'FIOCCO',
+        })}
+        compact={compact}
+      />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kat')}
+        label={tp('Угол', 'Angle', 'Kat', {
+          es: 'Angulo',
+          fr: 'Angle',
+          de: 'Winkel',
+          it: 'Angolo',
+        })}
         value={`${Math.round(ui.jibAngle)}°`}
         min={Math.round(params.jibMinOff)}
         max={Math.round(params.jibMaxOff)}
@@ -59,7 +72,12 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Раскрытие', 'Furl', 'Zwiniecie')}
+        label={tp('Раскрытие', 'Furl', 'Zwiniecie', {
+          es: 'Enrollador',
+          fr: 'Enrouleur',
+          de: 'Rollanlage',
+          it: 'Avvolgitore',
+        })}
         value={`${ui.jibFurlPct}%`}
         min={0}
         max={100}

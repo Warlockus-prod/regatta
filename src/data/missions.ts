@@ -73,7 +73,7 @@ export const missions: Mission[] = [
     titleIt: 'Sotto i 90 secondi',
     descRu: 'Финишируй быстрее чем за 90 секунд.',
     descEn: 'Finish under 90 seconds.',
-    descPl: 'Ukoncz poniewaj 90 sekund.',
+    descPl: 'Ukoncz ponizej 90 sekund.',
     descEs: 'Termina en menos de 90 segundos.',
     descFr: 'Franchis en moins de 90 secondes.',
     descDe: 'Finishe schneller als in 90 Sekunden.',
@@ -103,7 +103,7 @@ export const missions: Mission[] = [
     descEn: 'Reach windward mark in 4 tacks or fewer.',
     descPl: 'Dojdz do znaku nawietrznego w 4 zwrotach lub mniej.',
     descEs: 'Llega a la boya de barlovento en no más de 4 viradas.',
-    descFr: 'Reach the windward mark in no more than 4 tacks.',
+    descFr: 'Atteins la bouée au vent en 4 virements de bord au maximum.',
     descDe: 'Erreiche die Luvtonne in maximal 4 Wendungen.',
     descIt: 'Raggiungi la boa di bolina in non più di 4 virate.',
     difficulty: 'medium',
@@ -124,7 +124,7 @@ export const missions: Mission[] = [
     titleEn: 'Light wind',
     titlePl: 'Slaby wiatr',
     titleEs: 'Viento débil',
-    titleFr: 'vent faible',
+    titleFr: 'Vent faible',
     titleDe: 'Schwacher Wind',
     titleIt: 'Vento debole',
     descRu: 'Финишируй на слабом ветре. Любая позиция засчитывается.',
@@ -143,7 +143,7 @@ export const missions: Mission[] = [
     hintEs: 'Con viento débil, cada virada pierde velocidad. La suavidad es más importante que la brusquedad.',
     hintFr: 'Avec peu de vent, chaque virement perd de la vitesse. La fluidité est plus importante que l\'agressivité.',
     hintDe: 'Bei schwachem Wind verliert jede Wende an Geschwindigkeit. Geschmeidigkeit ist wichtiger als Heftigkeit.',
-    hintIt: 'Con vento leggero ogni virata fa perdere velocità. La fluidità è più importante della bruschez­za.',
+    hintIt: 'Con vento leggero ogni virata fa perdere velocità. La fluidità è più importante della bruschezza.',
   },
 ];
 
@@ -171,8 +171,12 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
   const reasons: string[] = [];
   let passed = true;
 
+  // RU and PL verbatim; every other lang (EN/ES/FR/DE/IT) gets the EN string,
+  // matching the fallback contract documented above. These evaluation strings
+  // are hardcoded trios (not mission rows), so there are no es/fr/de/it fields
+  // to prefer here.
   const pick = (ru: string, en: string, pl: string) =>
-    lang === 'pl' ? pl : lang === 'en' ? en : ru;
+    lang === 'ru' ? ru : lang === 'pl' ? pl : en;
 
   if (metrics.finishTimeSec === null) {
     passed = false;

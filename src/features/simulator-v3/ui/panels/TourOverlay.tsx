@@ -365,7 +365,12 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
       >
         <button
           onClick={finish}
-          aria-label={tp('Закрыть обзор', 'Close tour', 'Zamknij przewodnik')}
+          aria-label={tp('Закрыть обзор', 'Close tour', 'Zamknij przewodnik', {
+            es: 'Cerrar la guia',
+            fr: 'Fermer le guide',
+            de: 'Tour schliessen',
+            it: 'Chiudi il tour',
+          })}
           className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-lg transition"
           style={{
             color: 'var(--text-muted)',
@@ -408,6 +413,12 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
                 `Шаг ${i + 1}`,
                 `Step ${i + 1}`,
                 `Krok ${i + 1}`,
+                {
+                  es: `Paso ${i + 1}`,
+                  fr: `Etape ${i + 1}`,
+                  de: `Schritt ${i + 1}`,
+                  it: `Passo ${i + 1}`,
+                },
               )}
             />
           ))}
@@ -423,7 +434,12 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
                 color: 'var(--text-secondary)',
               }}
             >
-              {tp('Назад', 'Back', 'Wstecz')}
+              {tp('Назад', 'Back', 'Wstecz', {
+                es: 'Atras',
+                fr: 'Retour',
+                de: 'Zurueck',
+                it: 'Indietro',
+              })}
             </button>
           )}
           <button
@@ -435,8 +451,18 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
             }}
           >
             {isLast
-              ? tp('Поехали', 'Go sailing', 'Do dziela')
-              : tp('Дальше', 'Next', 'Dalej')}
+              ? tp('Поехали', 'Go sailing', 'Do dziela', {
+                  es: 'A navegar',
+                  fr: "Au plan d'eau",
+                  de: 'Leinen los',
+                  it: 'Si salpa',
+                })
+              : tp('Дальше', 'Next', 'Dalej', {
+                  es: 'Siguiente',
+                  fr: 'Suivant',
+                  de: 'Weiter',
+                  it: 'Avanti',
+                })}
           </button>
         </div>
 
@@ -448,6 +474,12 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
             `Шаг ${step + 1} из ${STEPS.length}`,
             `Step ${step + 1} of ${STEPS.length}`,
             `Krok ${step + 1} z ${STEPS.length}`,
+            {
+              es: `Paso ${step + 1} de ${STEPS.length}`,
+              fr: `Etape ${step + 1} sur ${STEPS.length}`,
+              de: `Schritt ${step + 1} von ${STEPS.length}`,
+              it: `Passo ${step + 1} di ${STEPS.length}`,
+            },
           )}
         </div>
       </div>

@@ -4,6 +4,7 @@ import type { Lang } from '@/lib/languages';
 import {
   type DrillDefinition,
   DRILLS,
+  pickText,
 } from '../../runtime/scenario-presets';
 import { type TpFn } from '../shared';
 
@@ -49,7 +50,12 @@ export function DrillCard({
           className="text-[10px] uppercase tracking-wider font-bold"
           style={{ color: 'var(--accent-cyan)' }}
         >
-          {tp('Выбери упражнение', 'Pick a drill', 'Wybierz cwiczenie')}
+          {tp('Выбери упражнение', 'Pick a drill', 'Wybierz cwiczenie', {
+            es: 'Elige un ejercicio',
+            fr: 'Choisis un exercice',
+            de: 'Waehle eine Uebung',
+            it: 'Scegli un esercizio',
+          })}
         </div>
         <div className="grid gap-2">
           {DRILLS.map((d) => (
@@ -65,10 +71,10 @@ export function DrillCard({
                 className="text-[11px] font-bold"
                 style={{ color: 'var(--accent-cyan)' }}
               >
-                {d.title[lang]}
+                {pickText(d.title, lang)}
               </div>
               <div className="text-[10px] text-[var(--text-secondary)] mt-0.5 leading-snug">
-                {d.goal[lang]}
+                {pickText(d.goal, lang)}
               </div>
             </button>
           ))}
@@ -77,8 +83,8 @@ export function DrillCard({
     );
   }
 
-  const title = active.title[lang];
-  const goal = active.goal[lang];
+  const title = pickText(active.title, lang);
+  const goal = pickText(active.goal, lang);
   const progress = Math.min(100, (heldFor / active.holdDuration) * 100);
   const timeLeft = Math.max(0, active.timeLimit - elapsed);
   const barColor =
@@ -155,15 +161,36 @@ export function DrillCard({
       </div>
       <div className="flex items-center justify-between text-[9px] text-[var(--text-muted)]">
         <span>
-          {tp('удержание', 'hold', 'utrzymanie')} {heldFor.toFixed(1)}
+          {tp('удержание', 'hold', 'utrzymanie', {
+            es: 'mantenido',
+            fr: 'maintien',
+            de: 'gehalten',
+            it: 'tenuta',
+          })}{' '}
+          {heldFor.toFixed(1)}
           /{active.holdDuration}s
         </span>
         <span>
           {result === 'pending'
-            ? tp('в процессе', 'in progress', 'w toku')
+            ? tp('в процессе', 'in progress', 'w toku', {
+                es: 'en curso',
+                fr: 'en cours',
+                de: 'laeuft',
+                it: 'in corso',
+              })
             : result === 'win'
-            ? tp('ГОТОВО', 'DONE', 'GOTOWE')
-            : tp('НЕ УСПЕЛ', 'FAILED', 'PORAZKA')}
+            ? tp('ГОТОВО', 'DONE', 'GOTOWE', {
+                es: 'HECHO',
+                fr: 'FAIT',
+                de: 'GESCHAFFT',
+                it: 'FATTO',
+              })
+            : tp('НЕ УСПЕЛ', 'FAILED', 'PORAZKA', {
+                es: 'FALLIDO',
+                fr: 'RATE',
+                de: 'GESCHEITERT',
+                it: 'FALLITO',
+              })}
         </span>
       </div>
 
@@ -177,7 +204,12 @@ export function DrillCard({
               color: 'var(--accent-cyan)',
             }}
           >
-            {tp('Ещё раз', 'Retry', 'Ponow')}
+            {tp('Ещё раз', 'Retry', 'Ponow', {
+              es: 'Otra vez',
+              fr: 'Encore',
+              de: 'Nochmal',
+              it: 'Di nuovo',
+            })}
           </button>
           <button
             onClick={onExit}
@@ -187,7 +219,12 @@ export function DrillCard({
               color: 'var(--text-muted)',
             }}
           >
-            {tp('Выбрать другое', 'Pick another', 'Wybierz inne')}
+            {tp('Выбрать другое', 'Pick another', 'Wybierz inne', {
+              es: 'Elegir otro',
+              fr: 'En choisir un autre',
+              de: 'Andere waehlen',
+              it: 'Scegline un altro',
+            })}
           </button>
         </div>
       )}

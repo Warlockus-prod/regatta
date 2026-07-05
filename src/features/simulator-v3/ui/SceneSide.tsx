@@ -92,8 +92,9 @@ export function SceneSide({
   //                boom points into/out of the page -> we see a stub
   //                at the mast.
   // This is what the user sees changing on the side view when they
-  // pull the main sheet.
-  const mainOffDeg = finite(ui.mainAngle, 45);
+  // pull the main sheet. Uses the runtime's LIVE angle so the boom
+  // eases at winch speed like the physics does.
+  const mainOffDeg = finite(sim.liveMainAngle, 45);
   const boomCosAngle = Math.cos((mainOffDeg * Math.PI) / 180);
   const boomVisibleLen = MAX_BOOM_LEN * Math.max(0.18, Math.abs(boomCosAngle));
   const BOOM_AFT = MAST_X - boomVisibleLen;
@@ -687,7 +688,12 @@ export function SceneSide({
           textAnchor="end"
           style={{ letterSpacing: '0.12em' }}
         >
-          {tp('НОС', 'BOW', 'DZIOB')}
+          {tp('НОС', 'BOW', 'DZIOB', {
+            es: 'PROA',
+            fr: 'PROUE',
+            de: 'BUG',
+            it: 'PRUA',
+          })}
         </text>
       </g>
 
@@ -742,8 +748,14 @@ export function SceneSide({
             style={{ letterSpacing: '0.1em' }}
           >
             {tp(`КРЕН ${Math.round(heelAbs)}° (вид сзади покажет)`,
-                `HEEL ${Math.round(heelAbs)} (rear view shows it)`,
-                `PRZECHYL ${Math.round(heelAbs)}° (widok z tylu)`)}
+                `HEEL ${Math.round(heelAbs)}° (rear view shows it)`,
+                `PRZECHYL ${Math.round(heelAbs)}° (widok z tylu)`,
+                {
+                  es: `ESCORA ${Math.round(heelAbs)}° (se ve en vista de popa)`,
+                  fr: `GITE ${Math.round(heelAbs)}° (visible en vue arriere)`,
+                  de: `KRAENGUNG ${Math.round(heelAbs)}° (Heckansicht zeigt sie)`,
+                  it: `SBANDAMENTO ${Math.round(heelAbs)}° (vista da poppa)`,
+                })}
           </text>
         </g>
       )}
@@ -758,13 +770,24 @@ export function SceneSide({
           fontWeight="800"
           style={{ letterSpacing: '0.02em' }}
         >
-          {tp('ВИД СБОКУ', 'SIDE VIEW', 'WIDOK Z BOKU')}
+          {tp('ВИД СБОКУ', 'SIDE VIEW', 'WIDOK Z BOKU', {
+            es: 'VISTA LATERAL',
+            fr: 'VUE DE COTE',
+            de: 'SEITENANSICHT',
+            it: 'VISTA LATERALE',
+          })}
         </text>
         <text x="0" y="18" fill="rgba(139, 167, 184, 0.75)" fontSize="11">
           {tp(
             'профиль корпуса и рангоута',
             'hull and rig profile',
             'profil kadluba i olinowania',
+            {
+              es: 'perfil del casco y del aparejo',
+              fr: 'profil de coque et de greement',
+              de: 'Rumpf- und Riggprofil',
+              it: 'profilo di scafo e attrezzatura',
+            },
           )}
         </text>
       </g>
@@ -791,7 +814,13 @@ export function SceneSide({
           textAnchor="end"
           style={{ letterSpacing: '0.15em' }}
         >
-          {tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')} kts
+          {tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC', {
+            es: 'VELOCIDAD',
+            fr: 'VITESSE',
+            de: 'FAHRT',
+            it: 'VELOCITA',
+          })}{' '}
+          {tp('уз', 'kts', 'kts')}
         </text>
       </g>
     </svg>

@@ -13,10 +13,23 @@ export function WindPod(props: {
   const { ui, setUi, tp, tackLabel, compact } = props;
   return (
     <PodCard compact={compact}>
-      <PodLabel text={tp('ВЕТЕР', 'WIND', 'WIATR')} compact={compact} />
+      <PodLabel
+        text={tp('ВЕТЕР', 'WIND', 'WIATR', {
+          es: 'VIENTO',
+          fr: 'VENT',
+          de: 'WIND',
+          it: 'VENTO',
+        })}
+        compact={compact}
+      />
       <PodSlider
         compact={compact}
-        label={tp('Угол TWA', 'Angle TWA', 'Kat TWA')}
+        label={tp('Угол TWA', 'Angle TWA', 'Kat TWA', {
+          es: 'Angulo TWA',
+          fr: 'Angle TWA',
+          de: 'Winkel TWA',
+          it: 'Angolo TWA',
+        })}
         value={`${ui.twa}°`}
         min={30}
         max={180}
@@ -26,8 +39,13 @@ export function WindPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Сила', 'Speed', 'Sila')}
-        value={`${ui.windSpeed} kts`}
+        label={tp('Сила', 'Speed', 'Sila', {
+          es: 'Fuerza',
+          fr: 'Force',
+          de: 'Staerke',
+          it: 'Forza',
+        })}
+        value={`${ui.windSpeed} ${tp('уз', 'kts', 'kts')}`}
         min={4}
         max={25}
         step={1}

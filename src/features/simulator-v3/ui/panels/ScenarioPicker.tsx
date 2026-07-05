@@ -3,6 +3,7 @@ import type { Lang } from '@/lib/languages';
 
 import {
   SCENARIO_PRESETS,
+  pickText,
   type ScenarioPreset,
 } from '../../runtime/scenario-presets';
 import { type TpFn } from '../shared';
@@ -35,7 +36,12 @@ export function ScenarioPicker({
         className="text-[10px] uppercase tracking-wider font-bold"
         style={{ color: 'var(--accent-cyan)' }}
       >
-        {tp('Ситуации', 'Situations', 'Sytuacje')}
+        {tp('Ситуации', 'Situations', 'Sytuacje', {
+          es: 'Situaciones',
+          fr: 'Situations',
+          de: 'Situationen',
+          it: 'Situazioni',
+        })}
       </div>
       <div className="grid gap-2">
         {SCENARIO_PRESETS.map((s) => {
@@ -60,10 +66,10 @@ export function ScenarioPicker({
                     : 'var(--text-secondary)',
                 }}
               >
-                {s.title[lang]}
+                {pickText(s.title, lang)}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] mt-0.5 leading-snug">
-                {s.summary[lang]}
+                {pickText(s.summary, lang)}
               </div>
             </button>
           );

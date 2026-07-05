@@ -50,7 +50,15 @@ export function HelmPod({
 
   return (
     <PodCard compact={compact}>
-      <PodLabel text={tp('РУЛЬ', 'HELM', 'STER')} compact={compact} />
+      <PodLabel
+        text={tp('РУЛЬ', 'HELM', 'STER', {
+          es: 'TIMON',
+          fr: 'BARRE',
+          de: 'RUDER',
+          it: 'TIMONE',
+        })}
+        compact={compact}
+      />
       <div className="flex items-center gap-3">
         <svg
           width={size}
@@ -146,7 +154,12 @@ export function HelmPod({
           <div
             className={`${compact ? 'text-[9px]' : 'text-[10px]'} uppercase tracking-wider font-bold text-[var(--text-muted)]`}
           >
-            {tp('Курс', 'HDG', 'Kurs')}
+            {tp('Курс', 'HDG', 'Kurs', {
+              es: 'Rumbo',
+              fr: 'Cap',
+              de: 'Kurs',
+              it: 'Rotta',
+            })}
           </div>
           <div
             className={`font-mono font-black tabular-nums leading-none mt-0.5 ${compact ? 'text-lg' : 'text-2xl'}`}
@@ -165,7 +178,12 @@ export function HelmPod({
             <div
               className={`mt-1 ${compact ? 'text-[9px]' : 'text-[10px]'} text-[var(--text-muted)]`}
             >
-              {tp('на курсе', 'on course', 'na kursie')}
+              {tp('на курсе', 'on course', 'na kursie', {
+                es: 'a rumbo',
+                fr: 'en route',
+                de: 'auf Kurs',
+                it: 'in rotta',
+              })}
             </div>
           )}
         </div>

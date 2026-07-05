@@ -18,7 +18,10 @@ export type Tack = 'starboard' | 'port';
 export type ReefLevel = 0 | 1 | 2;
 export type ViewMode = 'top' | 'rear' | 'side';
 export type SailsRaised = 'both' | 'main' | 'jib';
-export type TpFn = (ru: string, en: string, pl: string) => string;
+/** Optional 4th-language pack, mirrors TpExtras in src/lib/i18n.tsx so the
+ *  global useI18n().tp is directly assignable to this type. */
+export type TpExtras = { es?: string; fr?: string; de?: string; it?: string };
+export type TpFn = (ru: string, en: string, pl: string, extras?: TpExtras) => string;
 export type FeedbackTone = 'good' | 'warn' | 'danger' | 'info';
 
 export interface UiState {
@@ -58,6 +61,12 @@ export interface SimulationModel {
    *  the live apparent wind angle. Used by the ghost overlay on the scene
    *  so it slides to match the boat as it turns, not the pre-turn target. */
   ghostAngles: OptimalTrim;
+  /** Live main sheet angle in degrees, derived from runtime.live each frame.
+   *  Scenes draw THIS (not ui.mainAngle, which is the slider target) so the
+   *  drawn sail eases at winch speed exactly like the physics does. */
+  liveMainAngle: number;
+  /** Live jib sheet angle in degrees - see liveMainAngle. */
+  liveJibAngle: number;
   primaryFeedback: string;
   primaryFeedbackTone: FeedbackTone;
   /** Compass heading the boat is steering to, 0-360 deg. Set by the user's
@@ -155,6 +164,17 @@ export function toJibSheet(angle: number, minOff: number, maxOff: number): numbe
   const span = maxOff - minOff;
   if (span <= 0) return 0;
   return clamp(1 - (angle - minOff) / span, 0, 1);
+}
+
+// Inverse of toMainSheet / toJibSheet: recover the sheet angle in degrees
+// from a normalized 0..1 sheet value. Used to draw the runtime's LIVE
+// (interpolated) controls on the scenes.
+export function fromMainSheet(sheet: number, maxOff: number): number {
+  return clamp(1 - sheet, 0, 1) * maxOff;
+}
+
+export function fromJibSheet(sheet: number, minOff: number, maxOff: number): number {
+  return minOff + clamp(1 - sheet, 0, 1) * (maxOff - minOff);
 }
 
 // Convert (centerX, centerY, radius, angleFromNorthCW) to Cartesian.

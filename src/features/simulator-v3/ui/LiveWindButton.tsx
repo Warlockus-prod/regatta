@@ -171,21 +171,20 @@ export function LiveWindButton(props: {
             {tp('Живой', 'Live', 'Zywy', { es: 'En vivo', fr: 'En direct', de: 'Echt', it: 'Dal vivo' })}:
           </span>{' '}
           {tp('от', 'from', 'z', { es: 'desde', fr: 'de', de: 'aus', it: 'da' })}{' '}
-          {cardinal(data.wind.dirDeg)} ({Math.round(data.wind.dirDeg)}{' '}
-          {tp('град', 'deg', 'st', { es: 'grad', fr: 'deg', de: 'Grad', it: 'gradi' })})
+          {cardinal(data.wind.dirDeg)} ({Math.round(data.wind.dirDeg)}°)
           {spotName ? ` - ${spotName}` : ''}
           {'. '}
           {capped && fetchedKn !== null && (
             <span style={{ color: 'var(--warning)' }}>
               {tp(
                 `Живой ${fetchedKn} уз, ограничен до ${cappedTo} для этого симулятора.`,
-                `Live ${fetchedKn} kn, capped to ${cappedTo} for this sim.`,
-                `Zywy ${fetchedKn} w, ograniczony do ${cappedTo} dla tego symulatora.`,
+                `Live ${fetchedKn} kts, capped to ${cappedTo} for this sim.`,
+                `Zywy ${fetchedKn} kts, ograniczony do ${cappedTo} dla tego symulatora.`,
                 {
-                  es: `En vivo ${fetchedKn} nudos, limitado a ${cappedTo} para este simulador.`,
-                  fr: `En direct ${fetchedKn} noeuds, limite a ${cappedTo} pour ce simulateur.`,
-                  de: `Echt ${fetchedKn} kn, begrenzt auf ${cappedTo} fuer diesen Simulator.`,
-                  it: `Dal vivo ${fetchedKn} nodi, limitato a ${cappedTo} per questo simulatore.`,
+                  es: `En vivo ${fetchedKn} kts, limitado a ${cappedTo} para este simulador.`,
+                  fr: `En direct ${fetchedKn} kts, limite a ${cappedTo} pour ce simulateur.`,
+                  de: `Echt ${fetchedKn} kts, begrenzt auf ${cappedTo} fuer diesen Simulator.`,
+                  it: `Dal vivo ${fetchedKn} kts, limitato a ${cappedTo} per questo simulatore.`,
                 },
               )}{' '}
             </span>
@@ -202,7 +201,7 @@ export function LiveWindButton(props: {
                 :
               </span>{' '}
               {Math.round(data.current.setKn)}{' '}
-              {tp('уз', 'kn', 'w', { es: 'nudos', fr: 'noeuds', de: 'kn', it: 'nodi' })} {'->'}{' '}
+              {tp('уз', 'kts', 'kts', { es: 'kts', fr: 'kts', de: 'kts', it: 'kts' })} {'->'}{' '}
               {cardinal(data.current.dirDeg)}
               {'. '}
               {tp(

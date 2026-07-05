@@ -24,13 +24,23 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
       style={{ background: 'rgba(8, 24, 48, 0.6)', border: '1px solid rgba(0, 212, 255, 0.18)' }}
     >
       <MetricChip
-        label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')}
+        label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC', {
+          es: 'VELOCIDAD',
+          fr: 'VITESSE',
+          de: 'FAHRT',
+          it: 'VELOCITA',
+        })}
         value={sim.result.state.boatSpeed.toFixed(1)}
-        unit="kts"
+        unit={tp('уз', 'kts', 'kts')}
         color="var(--accent-cyan)"
       />
       <MetricChip
-        label={tp('КРЕН', 'HEEL', 'PRZECHYL')}
+        label={tp('КРЕН', 'HEEL', 'PRZECHYL', {
+          es: 'ESCORA',
+          fr: 'GITE',
+          de: 'KRAENGUNG',
+          it: 'SBANDAM.',
+        })}
         value={Math.round(sim.result.state.heel).toString()}
         unit="°"
         color={heelColor}
@@ -44,7 +54,12 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         divider
       />
       <MetricChip
-        label={tp('ТРИМ', 'TRIM', 'TRIM')}
+        label={tp('ТРИМ', 'TRIM', 'TRIM', {
+          es: 'TRIM',
+          fr: 'TRIM',
+          de: 'TRIMM',
+          it: 'TRIM',
+        })}
         value={sim.trimScore.toString()}
         unit="%"
         color={trimColor}

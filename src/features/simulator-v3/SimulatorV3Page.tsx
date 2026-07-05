@@ -102,23 +102,35 @@ function buildShareUrl(ui: UiState): string {
 export default function SimulatorV3Page() {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
-  const initialUi = useMemo<UiState>(() => {
-    const fromUrl = readUiFromUrl();
-    return fromUrl ? { ...DEFAULT_UI, ...fromUrl } : DEFAULT_UI;
-  }, []);
-  const [ui, setUi] = useState<UiState>(initialUi);
+  // Start from DEFAULT_UI on both server and client so hydration matches;
+  // URL params (share links) are applied in a mount effect below. Reading
+  // window.location.search during render made the client's first render
+  // differ from the SSR HTML on /simulator-v3?twa=... and threw React
+  // hydration errors. The 1-frame settle after mount is acceptable.
+  const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  // ?embed=1 (sent by the iOS app's WebView) strips the in-page chrome
+  // (tier switcher, Share, glossary footer) and locks the layout to 100dvh
+  // with the controls scrolling internally, because the WKWebView disables
+  // page scrolling. Same convention as /simulator and /simulator2.
+  const [embed, setEmbed] = useState(false);
   const [shareState, setShareState] = useState<'idle' | 'copied'>('idle');
   // Tour visibility. forceTour > 0 triggers the overlay via effect inside
   // TourOverlay; increment to re-open.
   const [forceTour, setForceTour] = useState(0);
 
+  const shareLinkLabel = tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:', {
+    es: 'Enlace del setup:',
+    fr: 'Lien du setup:',
+    de: 'Setup-Link:',
+    it: 'Link del setup:',
+  });
   const onShare = async () => {
     const url = buildShareUrl(ui);
     try {
       if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
       } else if (typeof window !== 'undefined') {
-        window.prompt(tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:'), url);
+        window.prompt(shareLinkLabel, url);
       }
       setShareState('copied');
       setTimeout(() => setShareState('idle'), 1800);
@@ -126,11 +138,28 @@ export default function SimulatorV3Page() {
       // Clipboard can fail in insecure / locked-down contexts. Fall back
       // to a prompt so the user can still grab the URL.
       if (typeof window !== 'undefined') {
-        window.prompt(tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:'), url);
+        window.prompt(shareLinkLabel, url);
       }
     }
   };
   const { sim, reset } = useSimulatorV3({ ui, tp });
+
+  // Apply share-link URL params + embed flag after mount (see the useState
+  // comments above). reset() reseeds the runtime so a shared setup opens
+  // already settled instead of easing there from the defaults.
+  useEffect(() => {
+    try {
+      const fromUrl = readUiFromUrl();
+      if (fromUrl) {
+        const next = { ...DEFAULT_UI, ...fromUrl };
+        setUi(next);
+        reset(next);
+      }
+      setEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
+    } catch {
+      // Malformed URL or blocked APIs - keep defaults.
+    }
+  }, [reset]);
 
   // Mode machine (PR-4). Drives what sits above the metrics strip:
   // - free: the original sandbox (no overlay panel)
@@ -242,17 +271,33 @@ export default function SimulatorV3Page() {
   const pointLabel = legacyPick(sim.pos, 'name', lang);
   const tackLabel =
     ui.tack === 'starboard'
-      ? tp('правый галс', 'starboard tack', 'prawy hals')
-      : tp('левый галс', 'port tack', 'lewy hals');
+      ? tp('правый галс', 'starboard tack', 'prawy hals', {
+          es: 'amura a estribor',
+          fr: 'tribord amures',
+          de: 'Steuerbordbug',
+          it: 'mure a dritta',
+        })
+      : tp('левый галс', 'port tack', 'lewy hals', {
+          es: 'amura a babor',
+          fr: 'babord amures',
+          de: 'Backbordbug',
+          it: 'mure a sinistra',
+        });
 
   return (
     <div
-      className="page-enter min-h-[calc(100vh-56px)] flex flex-col"
+      className={`page-enter flex flex-col ${
+        embed
+          ? 'h-[100dvh] overflow-hidden'
+          : 'min-h-[calc(100vh-56px)]'
+      }`}
       style={{ background: '#050b18' }}
     >
-      {/* Top bar with V3 badge + A/B cross-links */}
+      {/* Top bar with V3 badge + two-tier switcher (Basics / Trainer / 3D).
+          Cross-links and Share are hidden under ?embed=1 - the iOS app
+          embeds this page chromelessly and provides its own navigation. */}
       <div
-        className="sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
+        className="sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b shrink-0"
         style={{
           background: 'rgba(5, 11, 24, 0.92)',
           borderColor: 'rgba(0, 212, 255, 0.16)',
@@ -275,13 +320,24 @@ export default function SimulatorV3Page() {
               'VPP engine · живой тренажёр',
               'VPP engine · live trainer',
               'VPP · trener na zywo',
+              {
+                es: 'Motor VPP · entrenador en vivo',
+                fr: 'Moteur VPP · entraineur en direct',
+                de: 'VPP-Engine · Live-Trainer',
+                it: 'Motore VPP · trainer dal vivo',
+              },
             )}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <button
             onClick={() => setForceTour((n) => n + 1)}
-            aria-label={tp('Показать обзор', 'Show tour', 'Pokaz przewodnik')}
+            aria-label={tp('Показать обзор', 'Show tour', 'Pokaz przewodnik', {
+              es: 'Mostrar la guia',
+              fr: 'Afficher le guide',
+              de: 'Tour anzeigen',
+              it: 'Mostra il tour',
+            })}
             className="w-7 h-7 rounded-md border text-[13px] font-bold transition flex items-center justify-center"
             style={{
               borderColor: 'rgba(0, 212, 255, 0.35)',
@@ -291,42 +347,98 @@ export default function SimulatorV3Page() {
           >
             ?
           </button>
-          <button
-            onClick={onShare}
-            className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
-            style={{
-              borderColor:
-                shareState === 'copied'
-                  ? 'var(--success)'
-                  : 'rgba(0, 212, 255, 0.35)',
-              color:
-                shareState === 'copied' ? 'var(--success)' : 'var(--accent-cyan)',
-              background:
-                shareState === 'copied'
-                  ? 'rgba(82, 255, 142, 0.08)'
-                  : 'rgba(0, 212, 255, 0.08)',
-            }}
-          >
-            {shareState === 'copied'
-              ? tp('СКОПИРОВАНО', 'COPIED', 'SKOPIOWANO')
-              : tp('Поделиться', 'Share', 'Udostepnij')}
-          </button>
-          <a
-            href="/simulator"
-            className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
-            style={{
-              borderColor: 'rgba(139, 167, 184, 0.22)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            V1
-          </a>
+          {!embed && (
+            <>
+              <button
+                onClick={onShare}
+                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
+                style={{
+                  borderColor:
+                    shareState === 'copied'
+                      ? 'var(--success)'
+                      : 'rgba(0, 212, 255, 0.35)',
+                  color:
+                    shareState === 'copied' ? 'var(--success)' : 'var(--accent-cyan)',
+                  background:
+                    shareState === 'copied'
+                      ? 'rgba(82, 255, 142, 0.08)'
+                      : 'rgba(0, 212, 255, 0.08)',
+                }}
+              >
+                {shareState === 'copied'
+                  ? tp('СКОПИРОВАНО', 'COPIED', 'SKOPIOWANO', {
+                      es: 'COPIADO',
+                      fr: 'COPIE',
+                      de: 'KOPIERT',
+                      it: 'COPIATO',
+                    })
+                  : tp('Поделиться', 'Share', 'Udostepnij', {
+                      es: 'Compartir',
+                      fr: 'Partager',
+                      de: 'Teilen',
+                      it: 'Condividi',
+                    })}
+              </button>
+              {/* Two-tier naming shared with /simulator: Basics -> Trainer
+                  (this page) -> 3D Boat. */}
+              <a
+                href="/simulator"
+                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                style={{
+                  borderColor: 'rgba(139, 167, 184, 0.22)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {tp('Основы', 'Basics', 'Podstawy', {
+                  es: 'Basico',
+                  fr: 'Bases',
+                  de: 'Grundlagen',
+                  it: 'Base',
+                })}
+              </a>
+              <span
+                className="text-[11px] font-semibold px-2 py-1 rounded-md border"
+                style={{
+                  background: 'rgba(0, 212, 255, 0.14)',
+                  borderColor: 'rgba(0, 212, 255, 0.35)',
+                  color: 'var(--accent-cyan)',
+                }}
+              >
+                {tp('Тренажёр', 'Trainer', 'Trener', {
+                  es: 'Entrenador',
+                  fr: 'Entraineur',
+                  de: 'Trainer',
+                  it: 'Trainer',
+                })}
+              </span>
+              <a
+                href="/simulator2"
+                className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
+                style={{
+                  borderColor: 'rgba(139, 167, 184, 0.22)',
+                  color: 'var(--text-secondary)',
+                }}
+              >
+                {tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
+                  es: 'Barco 3D',
+                  fr: 'Bateau 3D',
+                  de: 'Boot 3D',
+                  it: 'Barca 3D',
+                })}
+              </a>
+            </>
+          )}
         </div>
       </div>
 
-      {/* Desktop layout (>= lg) */}
-      <div className="hidden lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-4 lg:px-5 lg:pt-4 flex-1">
-        <div className="space-y-3">
+      {/* Desktop layout (>= lg). In embed mode the grid is clamped to the
+          viewport and each side column scrolls internally. */}
+      <div
+        className={`hidden lg:grid lg:grid-cols-[260px_minmax(0,1fr)_260px] lg:gap-4 lg:px-5 lg:pt-4 flex-1 ${
+          embed ? 'min-h-0 lg:overflow-hidden' : ''
+        }`}
+      >
+        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
           <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
           {mode === 'drill' && (
             <DrillCard
@@ -389,7 +501,7 @@ export default function SimulatorV3Page() {
           <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
         </div>
 
-        <div className="space-y-3">
+        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
           <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
         </div>
@@ -399,8 +511,17 @@ export default function SimulatorV3Page() {
           grid underneath. The pre-fix layout overlapped pods on the scene
           corners which left almost no visible scene on narrow viewports.
           Now the boat gets a proper 55vh stage and every control is
-          thumb-reachable without overlap. */}
-      <div className="lg:hidden flex-1 flex flex-col">
+          thumb-reachable without overlap.
+
+          Embed mode (iOS WebView, page scroll disabled): the column is
+          clamped by the 100dvh root and scrolls INTERNALLY (overflow-y-auto)
+          so every control stays reachable; the scene is trimmed to 42dvh so
+          the metrics and first pods are visible without scrolling. */}
+      <div
+        className={`lg:hidden flex-1 flex flex-col ${
+          embed ? 'min-h-0 overflow-y-auto' : ''
+        }`}
+      >
         <div className="mx-2 mt-2">
           <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
         </div>
@@ -430,13 +551,13 @@ export default function SimulatorV3Page() {
           </div>
         )}
         <div
-          className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
+          className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)] shrink-0"
           style={{
             borderColor: 'rgba(0, 212, 255, 0.18)',
             background:
               'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
-            height: '55vh',
-            minHeight: '360px',
+            height: embed ? '42dvh' : '55vh',
+            minHeight: embed ? '280px' : '360px',
           }}
         >
           {ui.view === 'top' ? (
@@ -474,7 +595,7 @@ export default function SimulatorV3Page() {
         </div>
       </div>
 
-      <GlossaryFooter tp={tp} />
+      {!embed && <GlossaryFooter tp={tp} />}
 
       <TourOverlay
         key={forceTour}

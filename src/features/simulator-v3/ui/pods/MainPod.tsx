@@ -40,19 +40,32 @@ export function MainPod(props: {
     state === 'stall' ? 'danger' : state === 'attached' ? 'good' : 'warn';
   const text =
     state === 'stall'
-      ? tp('СРЫВ', 'STALL', 'STALL')
+      ? tp('СРЫВ', 'STALL', 'STALL', { es: 'STALL', fr: 'DECROCHE', de: 'STALL', it: 'STALLO' })
       : state === 'edge'
-      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ')
+      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ', { es: 'AL LIMITE', fr: 'A LA LIMITE', de: 'GRENZE', it: 'AL LIMITE' })
       : state === 'luffing'
-      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE')
-      : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE');
+      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
+      : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE', { es: 'TIRA', fr: 'PORTE', de: 'ZIEHT', it: 'PORTA' });
 
   return (
     <PodCard compact={compact}>
-      <PodLabel text={tp('ГРОТ', 'MAIN', 'GROT')} compact={compact} />
+      <PodLabel
+        text={tp('ГРОТ', 'MAIN', 'GROT', {
+          es: 'MAYOR',
+          fr: 'GRAND-VOILE',
+          de: 'GROSS',
+          it: 'RANDA',
+        })}
+        compact={compact}
+      />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kat')}
+        label={tp('Угол', 'Angle', 'Kat', {
+          es: 'Angulo',
+          fr: 'Angle',
+          de: 'Winkel',
+          it: 'Angolo',
+        })}
         value={`${Math.round(ui.mainAngle)}°`}
         min={0}
         max={Math.round(params.mainMaxOff)}
@@ -64,7 +77,15 @@ export function MainPod(props: {
       <PodSegmented
         compact={compact}
         options={[
-          { value: 0 as const, label: tp('Полный', 'Full', 'Pelny') },
+          {
+            value: 0 as const,
+            label: tp('Полный', 'Full', 'Pelny', {
+              es: 'Entera',
+              fr: 'Pleine',
+              de: 'Voll',
+              it: 'Piena',
+            }),
+          },
           { value: 1 as const, label: 'R1' },
           { value: 2 as const, label: 'R2' },
         ]}

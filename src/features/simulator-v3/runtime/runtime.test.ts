@@ -7,7 +7,7 @@ import { CONTROL_RATES, HEADING_TURN_RATE_DEG_PER_S } from './runtime-types';
 import { recommendedTrim } from './trim-heuristics';
 import { pickPrimaryFeedback } from './feedback';
 import { DEFAULT_UI } from '../ui/shared';
-import { DRILLS, SCENARIO_PRESETS } from './scenario-presets';
+import { DRILLS, SCENARIO_PRESETS, pickText } from './scenario-presets';
 
 // ---------------------------------------------------------------------------
 // Integration tests for the V3 runtime layer. Engine tests live next to
@@ -307,15 +307,34 @@ describe('pickPrimaryFeedback', () => {
 });
 
 describe('scenario + drill data integrity', () => {
-  it('every scenario has RU/EN/PL strings', () => {
+  const LANGS = ['ru', 'en', 'pl', 'es', 'fr', 'de', 'it'] as const;
+
+  it('every scenario has strings in all 7 languages', () => {
     for (const s of SCENARIO_PRESETS) {
-      expect(s.title.ru).toBeTruthy();
-      expect(s.title.en).toBeTruthy();
-      expect(s.title.pl).toBeTruthy();
-      expect(s.summary.ru).toBeTruthy();
-      expect(s.summary.en).toBeTruthy();
-      expect(s.summary.pl).toBeTruthy();
+      for (const l of LANGS) {
+        expect(s.title[l], `scenario ${s.id} title.${l}`).toBeTruthy();
+        expect(s.summary[l], `scenario ${s.id} summary.${l}`).toBeTruthy();
+      }
     }
+  });
+
+  it('every drill has strings in all 7 languages', () => {
+    for (const d of DRILLS) {
+      for (const l of LANGS) {
+        expect(d.title[l], `drill ${d.id} title.${l}`).toBeTruthy();
+        expect(d.goal[l], `drill ${d.id} goal.${l}`).toBeTruthy();
+      }
+    }
+  });
+
+  it('pickText falls back to EN when a language string is missing', () => {
+    const partial = { ru: 'рус', en: 'eng', pl: 'pol' };
+    expect(pickText(partial, 'es')).toBe('eng');
+    expect(pickText(partial, 'fr')).toBe('eng');
+    expect(pickText(partial, 'de')).toBe('eng');
+    expect(pickText(partial, 'it')).toBe('eng');
+    expect(pickText(partial, 'ru')).toBe('рус');
+    expect(pickText({ ...partial, it: 'ita' }, 'it')).toBe('ita');
   });
 
   it('every drill has timeLimit > holdDuration', () => {

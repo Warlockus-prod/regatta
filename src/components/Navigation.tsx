@@ -185,6 +185,15 @@ export default function Navigation() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [moreOpen, setMoreOpen] = useState(false);
 
+  // The iOS app embeds simulator pages via WebView with ?embed=1: the site
+  // chrome must not render there (docs/design/SIMULATORS.md, embed contract).
+  // Read on mount to avoid the useSearchParams Suspense requirement.
+  const [embed, setEmbed] = useState(false);
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
+  }, [pathname]);
+
   // Close all menus on route change. React Compiler flags these setState
   // calls, but reacting to a navigation event is a correct and idiomatic use.
   useEffect(() => {
@@ -193,6 +202,8 @@ export default function Navigation() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setMoreOpen(false);
   }, [pathname]);
+
+  if (embed) return null;
 
   return (
     <nav className="sticky top-0 z-50 border-b border-[rgba(0,212,255,0.1)] backdrop-blur-md"
