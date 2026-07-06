@@ -1,6 +1,10 @@
 # SIMULATORS.md - the single source of truth
 
-Status: ACTIVE (2026-07-05). This document supersedes the simulator-role
+Status: ACTIVE (2026-07-06). Roadmap items 1-5 below are ALL SHIPPED;
+TestFlight build 26 (version 1.4.0) carries the full state of this document.
+Remaining known gaps: mobile leaderboard auth (ADR-0006) and monetization
+(needs owner accounts: RevenueCat API key + IAP products in ASC - see
+docs/design/mobile/APPSTORE_GROWTH.md). This document supersedes the simulator-role
 statements in docs/design/simulator-v3/SPEC.md ("V1 and V2 are deleted") and
 docs/design/simulator2/ROADMAP.md ("V2 = premium race surface"). Any doc that
 contradicts this one is stale; update it or link here.
