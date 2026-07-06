@@ -26,10 +26,15 @@ import type {
   RacingStrategy,
   RuleScenario,
   RuleScenarioSvg,
+  TrainerCatalogEntry,
+  TrainerEntryKind,
+  TrainerPlatform,
+  TrainerText,
 } from './types';
 import anatomyJson from './anatomy.json';
 import bootcampJson from './bootcamp.json';
 import checklistJson from './checklist.json';
+import drillsJson from './drills.json';
 import galleryJson from './gallery.json';
 import onboardJson from './onboard.json';
 import rulesJson from './rules.json';
@@ -47,6 +52,10 @@ interface BootcampBundle {
 
 interface ChecklistBundle {
   checklistSections: ChecklistSection[];
+}
+
+interface DrillsBundle {
+  trainerCatalog: TrainerCatalogEntry[];
 }
 
 interface GalleryBundle {
@@ -73,6 +82,7 @@ interface SailingDataBundle {
 const anatomy = anatomyJson as unknown as AnatomyBundle;
 const bootcamp = bootcampJson as unknown as BootcampBundle;
 const checklist = checklistJson as unknown as ChecklistBundle;
+const drills = drillsJson as unknown as DrillsBundle;
 const gallery = galleryJson as unknown as GalleryBundle;
 const onboard = onboardJson as unknown as OnboardBundle;
 const rules = rulesJson as unknown as RulesBundle;
@@ -83,6 +93,7 @@ export const bootcampLessons: BootcampLesson[] = bootcamp.bootcampLessons;
 export const quickRefreshLessons: QuickLesson[] = bootcamp.quickRefreshLessons;
 export const BOOTCAMP_TOTAL_MINUTES: number = bootcamp.BOOTCAMP_TOTAL_MINUTES;
 export const checklistSections: ChecklistSection[] = checklist.checklistSections;
+export const trainerCatalog: TrainerCatalogEntry[] = drills.trainerCatalog;
 export const galleryItems: GalleryItem[] = gallery.galleryItems;
 export const onboardSections: OnboardSection[] = onboard.onboardSections;
 export const ruleScenarios: RuleScenario[] = rules.ruleScenarios;
@@ -109,4 +120,8 @@ export type {
   RacingStrategy,
   RuleScenario,
   RuleScenarioSvg,
+  TrainerCatalogEntry,
+  TrainerEntryKind,
+  TrainerPlatform,
+  TrainerText,
 };

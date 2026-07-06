@@ -194,6 +194,37 @@ export type RacingStrategy =
     tips: LocalizedText[];
   };
 
+/**
+ * Cross-platform trainer catalog entry (drills / scenarios / missions).
+ * Mirrors `TrainerCatalogEntry` in web `src/data/drills.ts`: stable id,
+ * kind, target platforms, and title/goal complete in all 7 languages.
+ * Check/scoring logic stays platform-local keyed by `id`
+ * (`mobile/src/simulator/missions.ts` on this side).
+ */
+export type TrainerEntryKind = 'drill' | 'scenario' | 'mission';
+
+export type TrainerPlatform = 'web' | 'mobile';
+
+export interface TrainerText {
+  ru: string;
+  en: string;
+  pl: string;
+  es: string;
+  fr: string;
+  de: string;
+  it: string;
+}
+
+export interface TrainerCatalogEntry {
+  id: string;
+  kind: TrainerEntryKind;
+  platforms: TrainerPlatform[];
+  title: TrainerText;
+  /** For scenarios: the one-line summary; for drills/missions: the goal/hint. */
+  goal: TrainerText;
+  params?: Record<string, number>;
+}
+
 /** A gallery entry: photo from `public/gallery/...` or YouTube video. */
 export type GalleryKind = 'image' | 'youtube';
 

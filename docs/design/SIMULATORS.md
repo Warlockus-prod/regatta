@@ -42,7 +42,7 @@ found this was the single biggest source of confusion. The tier names fix it.
 |---|---|---|
 | Golden VPP (`src/lib/sailing-physics`) | web Trainer (V3) | Canonical. 23 unit tests + V3's 33 runtime tests. |
 | Native fork (`mobile/src/simulator/physics`) | native Trainer | DIVERGED from golden (91 diff lines in forces.ts, missing current.ts, zero tests). To be replaced by `packages/physics` extraction (ADR-0003 step 5). |
-| 3D sail model (`src/features/simulator-3d/physics/sailModel.ts`) | 3D boat view | Kinematic stand-in (scripted polar). Smooth polar + jib coupling fixed 2026-07-05; full adoption of the golden VPP is the planned upgrade. |
+| 3D boat view | /simulator2 sailing mode | GOLDEN VPP since 2026-07-06: useSailingSim ticks src/lib/sailing-physics (steering integrated caller-side, same split as the Trainer); TGT and best-VMG come from throttled engine settles at optimal trim, not a lookup. sailModel.ts is now only UI/coach helpers. |
 | Arcade (`src/lib/race-physics.ts`) | /game, /multiplayer, /r replays | Intentionally simple race model; shared by all three consumers. GameClient still carries an inline duplicate - fold it in when /game is next touched. |
 | Basics lookup | web /simulator, app /simulator-basics | Point-of-sail speed-factor lookup, no dynamics - by design for tier 1. |
 
@@ -114,5 +114,14 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
    web yacht anatomy 3D is embedded 1:1 in the app (/anatomy via WebView,
    scroll enabled; native schema kept at /anatomy-offline as the offline
    fallback). Mobile leaderboard auth still waits on ADR-0006.
-5. [ ] Unify drill/scenario catalogs into `src/data/*` for native + web
-   Trainer (schedule as its own pass; touches content sync).
+5. [x] Unified drill/scenario catalog (2026-07-06): `src/data/drills.ts` is
+   the single source of truth for all 16 trainer exercises (3 web drills +
+   4 web scenarios + 6 native drills + 3 native missions) - stable id, kind,
+   platforms, and title/goal complete in all 7 languages. Web V3
+   (runtime/scenario-presets.ts) imports it directly and keeps its UiState
+   templates + evaluate() logic; mobile gets it as drills.json via
+   sync-content.ts (checked in CI by sync-content:check) and
+   mobile/src/simulator/missions.ts reads the synced text while keeping
+   check()/marks/scoring local, keyed by the same ids. Completeness (7-lang
+   non-empty text, unique ids, web id coverage) is guarded by
+   src/features/simulator-v3/runtime/trainer-catalog.test.ts.

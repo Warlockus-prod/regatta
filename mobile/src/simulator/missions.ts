@@ -1,8 +1,29 @@
+import { trainerCatalog } from '../data';
 import type { TpExtras } from '../i18n/context';
 
 export type SimMode = 'free' | 'drill' | 'mission';
 
 type Tp = (ru: string, en: string, pl: string, extras?: TpExtras) => string;
+
+/**
+ * Title/goal text comes from the cross-platform trainer catalog
+ * (web `src/data/drills.ts`, synced here as `src/data/drills.json` by
+ * `mobile/scripts/sync-content.ts`). This module keeps everything
+ * runtime-specific: check() predicates, progress labels, wind modes,
+ * marks and scoring - keyed by the same ids.
+ * Throws on a missing id so a catalog/sync drift fails loudly at module
+ * load (and in jest) instead of rendering blank labels.
+ */
+function catalogText(id: string, field: 'title' | 'goal'): (tp: Tp) => string {
+  const entry = trainerCatalog.find((e) => e.id === id);
+  if (!entry) {
+    throw new Error(
+      `[missions] trainer catalog has no entry "${id}" - run: npm run sync-content`,
+    );
+  }
+  const t = entry[field];
+  return (tp) => tp(t.ru, t.en, t.pl, { es: t.es, fr: t.fr, de: t.de, it: t.it });
+}
 
 /**
  * Wind regime auto-set by a drill on start. The simulator screen reads
@@ -107,25 +128,8 @@ export interface DrillDef {
 const DRILL_TWA45: DrillDef = {
   id: 'twa45',
   targetSec: 30,
-  title: (tp) =>
-    tp('Удерживай TWA 45 град', 'Hold TWA 45 deg', 'Utrzymaj TWA 45 st.', {
-      es: 'Manten TWA 45 deg',
-      fr: 'Tiens un TWA 45 deg',
-      de: 'Halte TWA 45 Grad',
-      it: 'Tieni TWA 45 deg',
-    }),
-  hint: (tp) =>
-    tp(
-      'Курс крутой бейдевинд: TWA в коридоре 40-50 град.',
-      'Close-hauled: keep TWA in the 40-50 deg window.',
-      'Bejdewind: TWA w przedziale 40-50 st.',
-      {
-        es: 'Cenida: TWA entre 40 y 50 grados.',
-        fr: 'Pres bon plein: TWA entre 40 et 50 deg.',
-        de: 'Am Wind: TWA zwischen 40 und 50 Grad.',
-        it: 'Bolina stretta: TWA tra 40 e 50 deg.',
-      },
-    ),
+  title: catalogText('twa45', 'title'),
+  hint: catalogText('twa45', 'goal'),
   check: (ctx) => {
     const a = Math.abs(ctx.twaDeg);
     return a >= 40 && a <= 50;
@@ -147,30 +151,8 @@ const DRILL_TWA45: DrillDef = {
 const DRILL_NO_GO: DrillDef = {
   id: 'noGo',
   targetSec: 60,
-  title: (tp) =>
-    tp(
-      'Избегай no-go зону',
-      'Avoid the no-go zone',
-      'Unikaj strefy no-go',
-      {
-        es: 'Evita la zona no-go',
-        fr: 'Evite la zone no-go',
-        de: 'Meide die No-go-Zone',
-        it: 'Evita la zona no-go',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Не подходи ближе 30 град к ветру 60 секунд.',
-      'Stay outside 30 deg from the wind for 60 seconds.',
-      'Trzymaj sie ponad 30 st. od wiatru przez 60 sek.',
-      {
-        es: 'Mantente a mas de 30 grados del viento durante 60 seg.',
-        fr: 'Reste a plus de 30 deg du vent pendant 60 sec.',
-        de: 'Bleib mehr als 30 Grad vom Wind weg, 60 Sekunden.',
-        it: 'Resta oltre 30 gradi dal vento per 60 sec.',
-      },
-    ),
+  title: catalogText('noGo', 'title'),
+  hint: catalogText('noGo', 'goal'),
   check: (ctx) => Math.abs(ctx.twaDeg) >= 30,
   progressLabel: (p, t, tp) =>
     tp(
@@ -189,30 +171,8 @@ const DRILL_NO_GO: DrillDef = {
 const DRILL_REACH90: DrillDef = {
   id: 'reach90',
   targetSec: 30,
-  title: (tp) =>
-    tp(
-      'Галфвинд 90 град на скорость',
-      'Beam reach 90 deg for max speed',
-      'Polwiatr 90 st. na predkosc',
-      {
-        es: 'Traves 90 deg para velocidad maxima',
-        fr: 'Largue 90 deg pour vitesse max',
-        de: 'Halbwindkurs 90 Grad fuer Topspeed',
-        it: 'Traverso 90 deg per max velocita',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Держи TWA около 90 град и подбирай шкоты до высокого TRIM.',
-      'Keep TWA near 90 deg and trim sheets for high TRIM.',
-      'Trzymaj TWA blisko 90 st. i wybierz szoty na wysoki TRIM.',
-      {
-        es: 'Manten TWA cerca de 90 deg y ajusta velas para TRIM alto.',
-        fr: 'Tiens un TWA proche de 90 deg et regle pour un TRIM eleve.',
-        de: 'Halte TWA nahe 90 Grad und trimme auf hohen TRIM.',
-        it: 'Tieni TWA vicino a 90 deg e regola per TRIM alto.',
-      },
-    ),
+  title: catalogText('reach90', 'title'),
+  hint: catalogText('reach90', 'goal'),
   check: (ctx) => {
     const a = Math.abs(ctx.twaDeg);
     return a >= 80 && a <= 100 && ctx.trimScore >= 70;
@@ -242,30 +202,8 @@ const DRILL_SHIFT_REACT: DrillDef = {
   targetSec: 60,
   windMode: 'shift',
   goal: { kind: 'time-in-range', duration: 60 },
-  title: (tp) =>
-    tp(
-      'Реагируй на заход',
-      'React to the shift',
-      'Reaguj na zmiane wiatru',
-      {
-        es: 'Reacciona al role',
-        fr: 'Reagis a la bascule',
-        de: 'Reagiere auf den Dreher',
-        it: 'Reagisci al salto',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Ветер ходит каждые 10 сек. Держи TWA 40-50 на новом галсе.',
-      'Wind shifts every 10 sec. Hold TWA 40-50 on the new tack.',
-      'Wiatr zmienia sie co 10 sek. Trzymaj TWA 40-50 na nowym halsie.',
-      {
-        es: 'El viento cambia cada 10 seg. Manten TWA 40-50 en la nueva amura.',
-        fr: 'Le vent bascule toutes les 10 sec. Tiens TWA 40-50 sur la nouvelle amure.',
-        de: 'Der Wind dreht alle 10 Sek. Halte TWA 40-50 auf dem neuen Bug.',
-        it: 'Il vento ruota ogni 10 sec. Tieni TWA 40-50 sulla nuova mura.',
-      },
-    ),
+  title: catalogText('shiftReact', 'title'),
+  hint: catalogText('shiftReact', 'goal'),
   check: (ctx) => {
     const a = Math.abs(ctx.twaDeg);
     return a >= 40 && a <= 50;
@@ -296,30 +234,8 @@ const DRILL_GUST_TRIM: DrillDef = {
   targetSec: 60,
   windMode: 'gust',
   goal: { kind: 'trim-hold', trimThreshold: 75, duration: 60 },
-  title: (tp) =>
-    tp(
-      'Триммингуй порывы',
-      'Trim through the gusts',
-      'Reguluj w podmuchach',
-      {
-        es: 'Ajusta en las rachas',
-        fr: 'Regle dans les rafales',
-        de: 'Trimme durch die Boen',
-        it: 'Regola nelle raffiche',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Авто-trim выключен. В порыв отдай шкот, удержи TRIM выше 75.',
-      'Auto-trim off. Ease the sheet in the gust, keep TRIM above 75.',
-      'Auto-trim wylaczony. W podmuchu poluzuj szot, trzymaj TRIM ponad 75.',
-      {
-        es: 'Auto-trim apagado. En la racha suelta escota, manten TRIM sobre 75.',
-        fr: 'Auto-trim coupe. Dans la rafale choque, garde TRIM au-dessus de 75.',
-        de: 'Auto-Trim aus. In der Boe Schot fieren, TRIM ueber 75 halten.',
-        it: 'Auto-trim spento. Nella raffica lasca, tieni TRIM sopra 75.',
-      },
-    ),
+  title: catalogText('gustTrim', 'title'),
+  hint: catalogText('gustTrim', 'goal'),
   check: (ctx) => ctx.trimScore >= 75,
   progressLabel: (p, t, tp) =>
     tp(
@@ -347,30 +263,8 @@ const DRILL_NO_GO_RECOVERY: DrillDef = {
   targetSec: 30,
   windMode: 'steady',
   goal: { kind: 'recover-speed', speedTargetKn: 4, duration: 30 },
-  title: (tp) =>
-    tp(
-      'Выход из no-go',
-      'Recover from no-go',
-      'Wyjscie z no-go',
-      {
-        es: 'Salida de no-go',
-        fr: 'Sortie de no-go',
-        de: 'Aus dem No-go heraus',
-        it: 'Uscita dal no-go',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Нос в ветер. Увались и разгонись до 4 узлов за 30 сек.',
-      'Bow into the wind. Bear away and accelerate to 4 kt in 30 sec.',
-      'Dziob w wiatr. Odpadnij i rozpedz do 4 wezlow w 30 sek.',
-      {
-        es: 'Proa al viento. Arriba y acelera a 4 nudos en 30 seg.',
-        fr: 'Etrave dans le vent. Abats et acceleres a 4 nd en 30 sec.',
-        de: 'Bug in den Wind. Falle ab und beschleunige in 30 Sek auf 4 kt.',
-        it: 'Prua al vento. Poggia e accelera a 4 nd in 30 sec.',
-      },
-    ),
+  title: catalogText('noGoRecovery', 'title'),
+  hint: catalogText('noGoRecovery', 'goal'),
   check: (ctx) => ctx.boatSpeedKn >= 4,
   progressLabel: (p, t, tp) =>
     tp(
@@ -425,30 +319,8 @@ export interface MissionDef {
 const MISSION_WINDWARD: MissionDef = {
   id: 'windwardReturn',
   parSec: 90,
-  title: (tp) =>
-    tp(
-      'Обогни верхний знак',
-      'Round the windward mark',
-      'Okraz znak nawietrzny',
-      {
-        es: 'Redondea la baliza de barlovento',
-        fr: 'Contourne la bouee au vent',
-        de: 'Umrunde die Luvtonne',
-        it: 'Gira la boa di bolina',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Старт - верхний знак - финиш. Лавируй до знака.',
-      'Start, windward mark, finish. Tack up to the mark.',
-      'Start, znak nawietrzny, meta. Halsuj do znaku.',
-      {
-        es: 'Salida, baliza barlovento, meta. Vira hasta la baliza.',
-        fr: 'Depart, bouee au vent, arrivee. Louvoie jusqu a la bouee.',
-        de: 'Start, Luvtonne, Ziel. Kreuze zur Tonne hoch.',
-        it: 'Partenza, boa al vento, arrivo. Bordeggia fino alla boa.',
-      },
-    ),
+  title: catalogText('windwardReturn', 'title'),
+  hint: catalogText('windwardReturn', 'goal'),
   marks: [
     { id: 'mark1', fx: 0.5, fy: 0.18, radius: 8, captureRadius: 32 },
     { id: 'finish', fx: 0.5, fy: 0.88, radius: 7, captureRadius: 36 },
@@ -458,30 +330,8 @@ const MISSION_WINDWARD: MissionDef = {
 const MISSION_BEAM: MissionDef = {
   id: 'beamRun',
   parSec: 60,
-  title: (tp) =>
-    tp(
-      'Галфвинд через канал',
-      'Beam reach across the channel',
-      'Trasa polwiatrem',
-      {
-        es: 'Cruce a traves',
-        fr: 'Traversee au largue',
-        de: 'Halbwind quer',
-        it: 'Attraversata al traverso',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Старт слева, знак справа - один галс на галфвинде.',
-      'Start left, mark right. One leg on a beam reach.',
-      'Start z lewej, znak z prawej. Jeden hals polwiatrem.',
-      {
-        es: 'Salida izquierda, baliza derecha. Una pierna al traves.',
-        fr: 'Depart a gauche, bouee a droite. Une bordee au largue.',
-        de: 'Start links, Tonne rechts. Ein Schenkel auf Halbwind.',
-        it: 'Partenza a sinistra, boa a destra. Un lato al traverso.',
-      },
-    ),
+  title: catalogText('beamRun', 'title'),
+  hint: catalogText('beamRun', 'goal'),
   marks: [
     { id: 'mark1', fx: 0.85, fy: 0.50, radius: 8, captureRadius: 32 },
     { id: 'finish', fx: 0.15, fy: 0.50, radius: 7, captureRadius: 36 },
@@ -491,30 +341,8 @@ const MISSION_BEAM: MissionDef = {
 const MISSION_TACK_TWICE: MissionDef = {
   id: 'tackTwice',
   parSec: 110,
-  title: (tp) =>
-    tp(
-      'Лавировка до знака',
-      'Tack twice to the mark',
-      'Dwa zwroty do znaku',
-      {
-        es: 'Dos viradas hasta la baliza',
-        fr: 'Deux virements vers la bouee',
-        de: 'Zweimal wenden zur Tonne',
-        it: 'Due virate fino alla boa',
-      },
-    ),
-  hint: (tp) =>
-    tp(
-      'Лево, право, верх - три ноги до финиша.',
-      'Port, starboard, top. Three legs to the finish.',
-      'Lewy, prawy, gora. Trzy odcinki do mety.',
-      {
-        es: 'Babor, estribor, arriba. Tres piernas hasta la meta.',
-        fr: 'Babord, tribord, haut. Trois bords jusqu a l arrivee.',
-        de: 'Backbord, Steuerbord, oben. Drei Schenkel bis ins Ziel.',
-        it: 'Babordo, tribordo, alto. Tre lati fino al traguardo.',
-      },
-    ),
+  title: catalogText('tackTwice', 'title'),
+  hint: catalogText('tackTwice', 'goal'),
   marks: [
     { id: 'mark1', fx: 0.20, fy: 0.55, radius: 7, captureRadius: 30 },
     { id: 'mark2', fx: 0.80, fy: 0.45, radius: 7, captureRadius: 30 },

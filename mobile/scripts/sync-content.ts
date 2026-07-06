@@ -30,6 +30,7 @@ import {
   quickRefreshLessons,
 } from '../../src/data/bootcamp.ts';
 import { anatomyParts } from '../../src/data/anatomy.ts';
+import { trainerCatalog } from '../../src/data/drills.ts';
 import { galleryItems } from '../../src/data/gallery.ts';
 import { missions } from '../../src/data/missions.ts';
 import { onboardSections } from '../../src/data/onboard.ts';
@@ -64,6 +65,11 @@ const bundles: Bundle[] = [
     filename: 'anatomy.json',
     data: { anatomyParts },
     count: anatomyParts.length,
+  },
+  {
+    filename: 'drills.json',
+    data: { trainerCatalog },
+    count: trainerCatalog.length,
   },
   {
     filename: 'gallery.json',

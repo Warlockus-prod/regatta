@@ -10,7 +10,8 @@ out of this app and reused.
 ```
 config.ts              feature flag + GLB url
 types.ts               YachtState, SimLabels (English defaults)
-physics/sailModel.ts   pure physics (no React/three) - apparent wind, heel,
+physics/sailModel.ts   slim UI/coach helpers (the GOLDEN VPP engine in
+                       src/lib/sailing-physics does the physics since 2026-07-06),
                        polar speed, trim quality, leeway, coaching
 physics/useSailingSim.ts  rAF loop hook: steps the model, writes a rig-state ref
 Yacht.tsx              loads the GLB, drives morphs + rig nodes from the ref
