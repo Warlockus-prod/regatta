@@ -104,10 +104,17 @@ function setLangCookie(res: NextResponse, value: Lang) {
 export function proxy(req: NextRequest) {
   const { pathname, searchParams } = req.nextUrl;
 
-  // Short lang shortcuts: /pl /en /ru - redirect to / with cookie pinned.
+  // Short lang shortcuts: /pl /en /ru - redirect to /?lang=xx with cookie pinned.
+  // The lang MUST stay in the redirect target URL (not a bare /): link-preview
+  // crawlers (Telegram/WhatsApp/etc.) send no cookie and run no JS, so the only
+  // way they land in the right language is if the URL carries it. On the
+  // follow-up request the ?lang= branch below sets the SSR header and the client
+  // strips ?lang= after consuming it, leaving a clean URL bar for humans.
   const shortcutLang = LANG_SHORTCUT_PATHS[pathname];
   if (shortcutLang) {
-    const redirect = NextResponse.redirect(new URL('/', req.url));
+    const target = new URL('/', req.url);
+    target.searchParams.set('lang', shortcutLang);
+    const redirect = NextResponse.redirect(target);
     setLangCookie(redirect, shortcutLang);
     return redirect;
   }
@@ -125,7 +132,19 @@ export function proxy(req: NextRequest) {
     !pathname.startsWith('/_next') &&
     !pathname.startsWith('/api/')
   ) {
-    const res = NextResponse.next();
+    // Resolve the language for THIS request (URL ?lang= > existing cookie >
+    // Accept-Language) and forward it to the server render via a request header.
+    // Server components (layout generateMetadata + <html lang>) read this header,
+    // so the SSR output - including the OpenGraph tags a link-preview crawler
+    // scrapes - matches the URL on the very FIRST request, without depending on a
+    // cookie the crawler never sends or JS it never runs. Set (not append) so any
+    // inbound spoofed x-regatta-lang is overwritten.
+    const existingCookie = req.cookies.get(LANG_COOKIE)?.value;
+    const effectiveLang: Lang = explicitLang
+      ?? (isLang(existingCookie) ? existingCookie : pickLangFromAccept(req.headers.get('accept-language')));
+    const reqHeaders = new Headers(req.headers);
+    reqHeaders.set('x-regatta-lang', effectiveLang);
+    const res = NextResponse.next({ request: { headers: reqHeaders } });
     ensureSessionCookie(res, req);
     if (explicitLang) {
       // ?lang= always wins over existing cookie

@@ -24,14 +24,23 @@ import {
 export const dynamic = 'force-dynamic';
 
 async function resolveServerLang(): Promise<Lang> {
+  // The proxy resolves the request language (URL ?lang= > cookie > Accept-Language)
+  // and forwards it as the `x-regatta-lang` request header, so the SSR language
+  // matches the URL on the very first request - even for cookie-less, JS-less
+  // link-preview crawlers (Telegram/WhatsApp/etc.). This is what makes a shared
+  // /?lang=pl (or /pl) render a Polish OpenGraph preview instead of the RU default.
+  const h = await headers();
+  const fromHeader = h.get('x-regatta-lang');
+  if (isLang(fromHeader)) {
+    return fromHeader;
+  }
+  // Fallbacks if the header is somehow absent (e.g. a path the proxy skipped):
+  // the cookie, then a raw Accept-Language sniff.
   const c = await cookies();
   const fromCookie = c.get('regatta_lang')?.value;
   if (isLang(fromCookie)) {
     return fromCookie;
   }
-  // Fallback: sniff accept-language on the very first request before
-  // middleware has written the cookie into the response stream.
-  const h = await headers();
   return pickLangFromAccept(h.get('accept-language'));
 }
 
