@@ -451,6 +451,45 @@ export default function Simulator() {
     [windDrag, steer],
   );
 
+  // Live mirror of the sim handle: its identity changes every tick, so the
+  // hold-steer interval must read through a ref to avoid a stale closure.
+  const simLive = useRef(sim);
+  useEffect(() => {
+    simLive.current = sim;
+  });
+
+  // Boat-relative hold-to-steer (the round < > buttons on the scene). While
+  // held, keep the heading target ~20 deg ahead of the bow on the chosen side
+  // so the loop's turn-rate limiter produces a smooth continuous turn; on
+  // release, hold the current course. Refs, not state: no re-render per tick.
+  const steerHoldRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startHoldSteer = (dir: -1 | 1) => {
+    if (steerHoldRef.current) clearInterval(steerHoldRef.current);
+    const push = () => simLive.current.setTargetHeading(simLive.current.boat.heading + dir * 0.35);
+    push();
+    steerHoldRef.current = setInterval(push, 80);
+  };
+  const stopHoldSteer = () => {
+    if (steerHoldRef.current) clearInterval(steerHoldRef.current);
+    steerHoldRef.current = null;
+    simLive.current.setTargetHeading(simLive.current.boat.heading);
+  };
+  useEffect(() => () => {
+    if (steerHoldRef.current) clearInterval(steerHoldRef.current);
+  }, []);
+  const steerPortLabel = tp('Руль влево (левый борт)', 'Steer to port', 'Ster w lewo (lewa burta)', {
+    es: 'Timon a babor',
+    fr: 'Barre a babord',
+    de: 'Ruder nach Backbord',
+    it: 'Timone a sinistra',
+  });
+  const steerStbdLabel = tp('Руль вправо (правый борт)', 'Steer to starboard', 'Ster w prawo (prawa burta)', {
+    es: 'Timon a estribor',
+    fr: 'Barre a tribord',
+    de: 'Ruder nach Steuerbord',
+    it: 'Timone a dritta',
+  });
+
   const arrowGrid = useMemo(
     () => buildArrowGrid(sceneW, sceneH, 54),
     [sceneW, sceneH],
@@ -1625,6 +1664,31 @@ export default function Simulator() {
               top={Math.max(8, sim.boat.y - 26)}
             />
           ) : null}
+
+          {/* Hold-to-steer: port/starboard relative to the BOAT (like a real
+              helm), regardless of which way the bow points on screen. The
+              drag-to-steer gesture aims at an absolute screen direction, which
+              reads inverted when the boat points down - these buttons fix that
+              (user feedback, 2026-07-07). Hold = keep turning; release = hold
+              course. */}
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={steerPortLabel}
+            onPressIn={() => startHoldSteer(-1)}
+            onPressOut={stopHoldSteer}
+            style={({ pressed }) => [styles.steerBtn, styles.steerBtnLeft, pressed && styles.steerBtnActive]}
+          >
+            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u2039'}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={steerStbdLabel}
+            onPressIn={() => startHoldSteer(1)}
+            onPressOut={stopHoldSteer}
+            style={({ pressed }) => [styles.steerBtn, styles.steerBtnRight, pressed && styles.steerBtnActive]}
+          >
+            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u203a'}</Text>
+          </Pressable>
 
           {missionState?.done && activeMission ? (
             <View style={styles.resultPanel}>
@@ -2816,6 +2880,30 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 1,
+  },
+  steerBtn: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -28,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 212, 255, 0.45)',
+    backgroundColor: 'rgba(4, 22, 30, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
+  },
+  steerBtnLeft: { left: 10 },
+  steerBtnRight: { right: 10 },
+  steerBtnActive: { backgroundColor: 'rgba(0, 212, 255, 0.28)', transform: [{ scale: 0.95 }] },
+  steerBtnText: {
+    color: colors.accentCyan,
+    fontSize: 30,
+    fontWeight: '700',
+    lineHeight: 34,
+    marginTop: -2,
   },
   canvasWrap: {
     backgroundColor: colors.bgSecondary,
