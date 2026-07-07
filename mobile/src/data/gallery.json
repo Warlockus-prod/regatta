@@ -1,6 +1,20 @@
 {
   "galleryItems": [
     {
+      "id": "regata-2026-video",
+      "kind": "youtube",
+      "src": "fznWV-brCl8",
+      "titleRu": "Регата 2026 - видео",
+      "titleEn": "Regatta 2026 - video",
+      "titlePl": "Regata 2026 - wideo",
+      "titleEs": "Regata 2026 - video",
+      "titleFr": "Regatta 2026 - vidéo",
+      "titleDe": "Regatta 2026 - Video",
+      "titleIt": "Regatta 2026 - video",
+      "badge": "2026",
+      "aspect": "16:9"
+    },
+    {
       "id": "r26-01",
       "kind": "image",
       "src": "/gallery/regatta-2026/full/r26-01.jpg",

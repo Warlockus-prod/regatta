@@ -35,7 +35,22 @@ export type GalleryItem = LegacyLocalized<'title'> & {
 };
 
 export const galleryItems: GalleryItem[] = [
-  // ---- 2026 season (auto-generated, see scripts/build-gallery-year.mjs) ----
+  // ---- 2026 season ----
+  {
+    id: 'regata-2026-video',
+    kind: 'youtube',
+    src: 'fznWV-brCl8',
+    titleRu: 'Регата 2026 - видео',
+    titleEn: 'Regatta 2026 - video',
+    titlePl: 'Regata 2026 - wideo',
+    titleEs: 'Regata 2026 - video',
+    titleFr: 'Regatta 2026 - vidéo',
+    titleDe: 'Regatta 2026 - Video',
+    titleIt: 'Regatta 2026 - video',
+    badge: '2026',
+    aspect: '16:9',
+  },
+  // ---- 2026 photos (auto-generated, see scripts/build-gallery-year.mjs) ----
   ...items2026,
 
   // ---- 2025 season ----
