@@ -93,6 +93,90 @@ function SimulatorV2Inner() {
         broad: tp('Бакштаг', 'Broad reach', 'Baksztag', { es: 'Largo', fr: 'Largue', de: 'Raumschots', it: 'Lasco' }),
         run: tp('Фордевинд', 'Run', 'Forderwind', { es: 'Empopada', fr: 'Vent arriere', de: 'Vorwind', it: 'Poppa' }),
       },
+      steerLeft: tp('Руль влево', 'Steer left', 'Ster w lewo', {
+        es: 'Timon a babor', fr: 'Barre a gauche', de: 'Ruder nach links', it: 'Timone a sinistra',
+      }),
+      steerRight: tp('Руль вправо', 'Steer right', 'Ster w prawo', {
+        es: 'Timon a estribor', fr: 'Barre a droite', de: 'Ruder nach rechts', it: 'Timone a destra',
+      }),
+      tour: {
+        open: tp('Гид', 'Guide', 'Przewodnik', { es: 'Guia', fr: 'Guide', de: 'Anleitung', it: 'Guida' }),
+        next: tp('Дальше', 'Next', 'Dalej', { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Avanti' }),
+        back: tp('Назад', 'Back', 'Wstecz', { es: 'Atras', fr: 'Retour', de: 'Zurueck', it: 'Indietro' }),
+        done: tp('Понятно', 'Got it', 'Rozumiem', { es: 'Entendido', fr: 'Compris', de: 'Verstanden', it: 'Capito' }),
+        steps: [
+          {
+            title: tp('Лодка 3D', '3D Boat', 'Lodka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: 'Boot 3D', it: 'Barca 3D' }),
+            body: tp(
+              'Тяни сцену - орбита вокруг лодки, колесо или щипок - зум. Паруса, колдунчики и море - живые.',
+              'Drag the scene to orbit the boat, pinch or scroll to zoom. Sails, telltales and the sea are live.',
+              'Przeciagnij scene - orbita wokol lodki, kolko lub uszczypniecie - zoom. Zagle i morze sa zywe.',
+              {
+                es: 'Arrastra la escena para orbitar el barco, pellizca o rueda para zoom. Velas y mar estan vivos.',
+                fr: 'Glisse la scene pour orbiter, pince ou molette pour zoomer. Voiles et mer sont vivantes.',
+                de: 'Ziehe die Szene fuer den Orbit, kneifen oder Rad fuer Zoom. Segel und Meer sind lebendig.',
+                it: 'Trascina la scena per orbitare, pizzica o rotella per lo zoom. Vele e mare sono vivi.',
+              },
+            ),
+          },
+          {
+            title: tp('Руль', 'Steering', 'Ster', { es: 'Timon', fr: 'Barre', de: 'Ruder', it: 'Timone' }),
+            body: tp(
+              'Держи круглые кнопки по краям сцены (или стрелки влево/вправо на клавиатуре), чтобы поворачивать. Отпустишь - руль вернётся в 0. Слайдер - для точной настройки.',
+              'Hold the round buttons at the scene edges (or the left/right arrow keys) to turn. Release and the helm returns to 0. The slider is for fine trim.',
+              'Trzymaj okragle przyciski przy krawedziach sceny (lub strzalki na klawiaturze), aby skrecac. Po puszczeniu ster wraca do 0.',
+              {
+                es: 'Manten los botones redondos en los bordes (o las flechas del teclado) para girar. Al soltar, el timon vuelve a 0.',
+                fr: 'Maintiens les boutons ronds aux bords (ou les fleches du clavier) pour virer. Relache et la barre revient a 0.',
+                de: 'Halte die runden Knoepfe am Rand (oder die Pfeiltasten), um zu drehen. Loslassen - Ruder geht auf 0.',
+                it: 'Tieni premuti i pulsanti rotondi ai bordi (o le frecce della tastiera) per virare. Al rilascio il timone torna a 0.',
+              },
+            ),
+          },
+          {
+            title: tp('Шкоты', 'Sheets', 'Szoty', { es: 'Escotas', fr: 'Ecoutes', de: 'Schoten', it: 'Scotte' }),
+            body: tp(
+              'Трави грота- и стаксель-шкот, пока парус не начнёт полоскать, потом чуть подбери. Подсказка коуча - внизу сцены.',
+              'Ease the main and jib sheets until the sail just starts to luff, then sheet back in a touch. The coach hint sits at the bottom.',
+              'Luzuj szoty, az zagiel zacznie lopotac, potem lekko wybierz. Podpowiedz trenera jest na dole sceny.',
+              {
+                es: 'Amolla las escotas hasta que la vela flamee, luego caza un poco. El consejo del coach esta abajo.',
+                fr: 'Choque les ecoutes jusqu au faseyement, puis borde un peu. Le conseil du coach est en bas.',
+                de: 'Fiere die Schoten bis das Segel killt, dann etwas dichtholen. Der Coach-Hinweis steht unten.',
+                it: 'Lasca le scotte finche la vela fileggia, poi caccia un poco. Il consiglio del coach e in basso.',
+              },
+            ),
+          },
+          {
+            title: tp('Приборы', 'Instruments', 'Przyrzady', { es: 'Instrumentos', fr: 'Instruments', de: 'Instrumente', it: 'Strumenti' }),
+            body: tp(
+              'СКОРОСТЬ - твоя, TGT - цель при идеальном триме, VMG - продвижение к ветру. «Лучший VMG» - угол, на который стоит идти.',
+              'SPEED is yours, TGT is the target at perfect trim, VMG is progress toward the wind. "Best VMG" is the angle worth sailing.',
+              'PREDKOSC jest twoja, TGT to cel przy idealnym trymie, VMG to postep pod wiatr. "Najlepszy VMG" to kat, ktorym warto plynac.',
+              {
+                es: 'VELOCIDAD es la tuya, TGT el objetivo con trimado ideal, VMG el avance hacia el viento.',
+                fr: 'VITESSE est la tienne, TGT la cible au reglage ideal, VMG la progression vers le vent.',
+                de: 'FAHRT ist deine, TGT das Ziel bei idealem Trimm, VMG der Fortschritt gegen den Wind.',
+                it: 'VELOCITA e la tua, TGT il target col trim ideale, VMG il progresso verso il vento.',
+              },
+            ),
+          },
+          {
+            title: tp('Свободный трим', 'Free trim', 'Wolny trym', { es: 'Trimado libre', fr: 'Reglage libre', de: 'Freier Trimm', it: 'Regolazione libera' }),
+            body: tp(
+              'Второй режим - позирование такелажа: камбер, твист, риф. Вернуться к этому гиду можно кнопкой «?».',
+              'The second mode poses the rig: camber, twist, reef. Reopen this guide anytime with the "?" button.',
+              'Drugi tryb to ustawianie takielunku: brzuch, twist, ref. Wroc do przewodnika przyciskiem "?".',
+              {
+                es: 'El segundo modo posa el aparejo: bolsa, twist, rizo. Reabre esta guia con el boton "?".',
+                fr: 'Le second mode pose le greement : creux, vrillage, ris. Rouvre ce guide avec le bouton "?".',
+                de: 'Der zweite Modus posiert das Rigg: Bauch, Twist, Reff. Oeffne die Anleitung mit "?" erneut.',
+                it: 'La seconda modalita mette in posa l attrezzatura: grasso, twist, terzaroli. Riapri la guida con "?".',
+              },
+            ),
+          },
+        ],
+      },
       coach: {
         inIrons: tp('В левентике - увались, чтобы наполнить паруса', 'In irons - bear away to fill the sails', 'W leventiku - odpadnij, by napelnic zagle', {
           es: 'Proa al viento - arriba para llenar las velas', fr: 'Bout au vent - abats pour remplir les voiles', de: 'Im Wind - abfallen, um die Segel zu fuellen', it: 'Prua al vento - poggia per riempire le vele',

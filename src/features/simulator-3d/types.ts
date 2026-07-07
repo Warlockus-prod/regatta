@@ -68,6 +68,17 @@ export interface SimLabels {
     reachOn: string;
     run: string;
   };
+  /** Hold-to-steer buttons (touch + mouse) and keyboard steering. */
+  steerLeft: string;
+  steerRight: string;
+  /** Onboarding tour: auto-opens on first visit, reopenable via the ? button. */
+  tour: {
+    open: string;
+    next: string;
+    back: string;
+    done: string;
+    steps: { title: string; body: string }[];
+  };
 }
 
 export const DEFAULT_LABELS: SimLabels = {
@@ -101,5 +112,20 @@ export const DEFAULT_LABELS: SimLabels = {
     good: 'Well trimmed - both sails pulling',
     reachOn: 'Trim for the reach',
     run: 'Running - sails eased right out',
+  },
+  steerLeft: 'Steer left',
+  steerRight: 'Steer right',
+  tour: {
+    open: 'Guide',
+    next: 'Next',
+    back: 'Back',
+    done: 'Got it',
+    steps: [
+      { title: '3D Boat', body: 'Drag the scene to orbit the boat, pinch or scroll to zoom. Sails, telltales and the sea are live.' },
+      { title: 'Steering', body: 'Hold the round buttons at the scene edges (or the left/right arrow keys) to turn. Release and the helm returns to 0. The slider is for fine trim of the rudder.' },
+      { title: 'Sheets', body: 'Ease the main and jib sheets until the sail just starts to luff, then sheet back in a touch. The coach hint at the bottom tells you what the sails feel.' },
+      { title: 'Instruments', body: 'SPEED is yours, TGT is the target at perfect trim, VMG is progress toward the wind. "Best VMG" is the angle worth sailing.' },
+      { title: 'Free trim', body: 'The second mode poses the rig: camber, twist, reef. Reopen this guide anytime with the ? button.' },
+    ],
   },
 };

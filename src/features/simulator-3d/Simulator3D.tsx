@@ -100,6 +100,35 @@ function ModeBtn({ active, label, onClick }: { active: boolean; label: string; o
   );
 }
 
+const TOUR_SEEN_KEY = 'regatta.3d.tour.v1';
+
+/** Big semi-transparent hold-to-steer button overlaid on the scene edge. */
+function SteerButton(props: { dir: -1 | 1; label: string; onHold: (dir: -1 | 1) => void; onRelease: () => void }) {
+  const { dir, label, onHold, onRelease } = props;
+  return (
+    <button
+      aria-label={label}
+      style={{ touchAction: 'none' }}
+      onPointerDown={(e) => {
+        e.currentTarget.setPointerCapture(e.pointerId);
+        onHold(dir);
+      }}
+      onPointerUp={onRelease}
+      onPointerCancel={onRelease}
+      onLostPointerCapture={onRelease}
+      onContextMenu={(e) => e.preventDefault()}
+      className={
+        'absolute bottom-12 z-10 flex h-16 w-16 select-none items-center justify-center rounded-full border ' +
+        'border-[rgba(0,212,255,0.45)] bg-[rgba(4,22,30,0.55)] text-2xl font-bold text-[var(--accent-cyan,#00d4ff)] ' +
+        'backdrop-blur-sm transition active:scale-95 active:bg-[rgba(0,212,255,0.25)] ' +
+        (dir === -1 ? 'left-3' : 'right-3')
+      }
+    >
+      {dir === -1 ? '\u2039' : '\u203a'}
+    </button>
+  );
+}
+
 export interface Simulator3DProps {
   labels?: Partial<SimLabels>;
   headerSlot?: ReactNode;
@@ -120,6 +149,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
       ...labels,
       presets: { ...DEFAULT_LABELS.presets, ...(labels?.presets ?? {}) },
       coach: { ...DEFAULT_LABELS.coach, ...(labels?.coach ?? {}) },
+      tour: { ...DEFAULT_LABELS.tour, ...(labels?.tour ?? {}) },
     }),
     [labels],
   );
@@ -154,6 +184,57 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
     audioUpdate(t.awsKn, twsKn, t.speedKn, luffing, performance.now() / 1000);
   }, [mode, audioEnabled, audioUpdate, twsKn, t.awsKn, t.speedKn, t.coach]);
 
+  // Onboarding tour: auto-open on the first visit, reopen anytime via "?".
+  const [tourStep, setTourStep] = useState<number | null>(null);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem(TOUR_SEEN_KEY)) setTourStep(0);
+    } catch {
+      /* private browsing */
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const closeTour = () => {
+    setTourStep(null);
+    try {
+      localStorage.setItem(TOUR_SEEN_KEY, '1');
+    } catch {
+      /* ignore */
+    }
+  };
+
+  // Momentary steering: hold a button (touch or mouse) to turn, release to
+  // center the helm. Keyboard: hold the left/right arrows (desktop).
+  const setControlRef = useRef(sim.setControl);
+  useEffect(() => {
+    setControlRef.current = sim.setControl;
+  });
+  const holdSteer = (dir: -1 | 1) => setControlRef.current('rudder', dir * 0.7);
+  const releaseSteer = () => setControlRef.current('rudder', 0);
+  useEffect(() => {
+    if (mode !== 'sail') return;
+    const down = (e: KeyboardEvent) => {
+      if (e.repeat) return;
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        holdSteer(-1);
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        holdSteer(1);
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') releaseSteer();
+    };
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
   return (
     <div
       className={
@@ -171,6 +252,14 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
           )}
           <ModeBtn active={mode === 'free'} label={L.modeFree} onClick={() => setMode('free')} />
           <ModeBtn active={mode === 'sail'} label={L.modeSail} onClick={() => setMode('sail')} />
+          <button
+            onClick={() => setTourStep(0)}
+            aria-label={L.tour.open}
+            title={L.tour.open}
+            className="rounded-md border border-[rgba(255,255,255,0.12)] px-2.5 py-1 text-sm font-semibold text-[var(--text-secondary,#9fb6c4)] hover:border-[rgba(0,212,255,0.4)]"
+          >
+            ?
+          </button>
         </div>
         {headerSlot}
       </div>
@@ -185,6 +274,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
 
           {mode === 'sail' && (
             <>
+              <SteerButton dir={-1} label={L.steerLeft} onHold={holdSteer} onRelease={releaseSteer} />
+              <SteerButton dir={1} label={L.steerRight} onHold={holdSteer} onRelease={releaseSteer} />
               <button
                 onClick={audioToggle}
                 aria-label={L.sound}
@@ -256,7 +347,11 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
           ) : (
             <>
               <div className="space-y-3">
-                <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} onChange={(v) => sim.setControl('rudder', v)} fmt={(v) => (v === 0 ? '0' : `${(v * 35).toFixed(0)}°`)} />
+                <div className="relative">
+                  <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} onChange={(v) => sim.setControl('rudder', v)} fmt={(v) => (v === 0 ? '0' : `${(v * 35).toFixed(0)}°`)} />
+                  {/* zero mark under the thumb track so centered helm is visible at a glance */}
+                  <div aria-hidden className="pointer-events-none absolute bottom-[7px] left-1/2 h-3 w-[2px] -translate-x-1/2 bg-[rgba(0,212,255,0.55)]" />
+                </div>
                 <div className="flex gap-1.5">
                   <button onClick={() => sim.setControl('rudder', 0)} className="flex-1 rounded-md border border-[rgba(255,255,255,0.15)] py-1 text-xs text-[var(--text-secondary,#9fb6c4)] hover:border-[rgba(0,212,255,0.4)]">
                     {L.helm} 0
@@ -281,6 +376,59 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = 'free
           )}
         </div>
       </div>
+
+      {tourStep !== null && L.tour.steps[tourStep] && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(2,12,18,0.72)] p-5 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          onClick={closeTour}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-[rgba(0,212,255,0.3)] bg-[var(--bg-primary,#0a1628)] p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-[var(--accent-cyan,#00d4ff)]">
+              {tourStep + 1} / {L.tour.steps.length}
+            </div>
+            <h2 className="mb-2 text-xl font-bold text-[var(--text-primary,#e7f1f7)]">{L.tour.steps[tourStep].title}</h2>
+            <p className="mb-5 text-sm leading-relaxed text-[var(--text-secondary,#9fb6c4)]">{L.tour.steps[tourStep].body}</p>
+            <div className="mb-4 flex justify-center gap-1.5">
+              {L.tour.steps.map((_, i) => (
+                <span
+                  key={i}
+                  className={'h-1.5 rounded-full transition-all ' + (i === tourStep ? 'w-6 bg-[var(--accent-cyan,#00d4ff)]' : 'w-1.5 bg-[rgba(255,255,255,0.2)]')}
+                />
+              ))}
+            </div>
+            <div className="flex gap-2">
+              {tourStep > 0 && (
+                <button
+                  onClick={() => setTourStep(tourStep - 1)}
+                  className="rounded-lg border border-[rgba(255,255,255,0.15)] px-4 py-2 text-sm font-semibold text-[var(--text-secondary,#9fb6c4)] hover:border-[rgba(0,212,255,0.4)]"
+                >
+                  {L.tour.back}
+                </button>
+              )}
+              {tourStep < L.tour.steps.length - 1 ? (
+                <button
+                  onClick={() => setTourStep(tourStep + 1)}
+                  className="flex-1 rounded-lg bg-[var(--accent-cyan,#00d4ff)] px-4 py-2 text-sm font-bold text-[#04222d] hover:brightness-110"
+                >
+                  {L.tour.next}
+                </button>
+              ) : (
+                <button
+                  onClick={closeTour}
+                  className="flex-1 rounded-lg bg-[var(--accent-cyan,#00d4ff)] px-4 py-2 text-sm font-bold text-[#04222d] hover:brightness-110"
+                >
+                  {L.tour.done}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

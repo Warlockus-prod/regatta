@@ -78,7 +78,11 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 
 - Web Basics: first-visit canvas hints + localized help paragraph.
 - Web Trainer: 10-step 7-language tour (TourOverlay).
-- Web 3D: one-line orbit hint (loading spinner while the GLB streams).
+- Web 3D: 5-step 7-language tour (auto on first visit, reopen via the "?"
+  button; localStorage regatta.3d.tour.v1 - deliberately NOT suppressed in the
+  app embed) + one-line orbit hint + loading spinner while the GLB streams.
+  Steering: hold-to-steer buttons on the scene edges (touch + mouse) and
+  left/right arrow keys on desktop; helm slider carries a zero mark.
 - App hub: STEP 1 / STEP 2 badges encode the learning order.
 - App Basics: 3-step first-open overlay (AsyncStorage `regatta.basics.hint.v1`).
 - App Trainer: native drills with pass/fail + score.
