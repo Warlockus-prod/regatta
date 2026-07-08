@@ -145,9 +145,9 @@ export default function SternikHubPage() {
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
             {tp(
-              '12 разделов со схемами: правила, огни, знаки, двигатели, манёвры, спасание.',
-              '12 sections with diagrams: rules, lights, marks, engines, maneuvers, rescue.',
-              '12 rozdzialow ze schematami: przepisy, swiatla, znaki, silniki, manewry, ratownictwo.',
+              '14 разделов со схемами: патент, правила, огни, знаки, двигатели, манёвры, спасание.',
+              '14 sections with diagrams: licence, rules, lights, marks, engines, maneuvers, rescue.',
+              '14 rozdzialow ze schematami: patent, przepisy, swiatla, znaki, silniki, manewry, ratownictwo.',
             )}
           </p>
         </Link>
