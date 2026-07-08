@@ -4,9 +4,9 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import {
-  STERNIK_BASE_COUNTS,
   STERNIK_CATEGORY_BY_ID,
   STERNIK_EXAM,
+  STERNIK_EXAM_BASE_COUNTS,
   STERNIK_EXAM_POOL,
   filterByBase,
 } from '@/data/sternik';
@@ -132,12 +132,12 @@ export default function SternikExamPage() {
           )}
         </p>
         <div className="mb-5">
-          <BaseToggle counts={STERNIK_BASE_COUNTS} />
+          <BaseToggle counts={STERNIK_EXAM_BASE_COUNTS} />
           <p className="mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
             {tp(
-              'Материалы - оригинальные 77 вопросов из конспекта; Интернет - собранные из открытых источников; Общая - всё вместе.',
-              'Materials - the original 77 konspekt questions; Internet - harvested from open sources; All - everything.',
-              'Materialy - oryginalne 77 pytan z konspektu; Internet - zebrane ze zrodel otwartych; Wszystkie - razem.',
+              `Экзамен берёт ${STERNIK_EXAM.questions} случайных 3-вариантных вопросов из выбранной базы (числа выше - сколько таких доступно). Материалы - оригинальные из конспекта; Интернет - из открытых источников; Общая - всё вместе.`,
+              `The exam draws ${STERNIK_EXAM.questions} random 3-option questions from the chosen base (the numbers above are how many are available). Materials - from the konspekt; Internet - open sources; All - everything.`,
+              `Egzamin bierze ${STERNIK_EXAM.questions} losowych pytan 3-wariantowych z wybranej bazy (liczby wyzej - ile jest dostepnych). Materialy - z konspektu; Internet - ze zrodel otwartych; Wszystkie - razem.`,
             )}
           </p>
         </div>
@@ -292,6 +292,8 @@ export default function SternikExamPage() {
 
   return (
     <main className="relative">
+      {/* Everything behind a modal is inert (removed from tab order + a11y tree). */}
+      <div inert={paused || confirmFinish || undefined}>
       {/* Top bar: timer + finish (sticky so the clock stays visible on mobile) */}
       <div
         className="sticky z-30 -mx-4 mb-3 flex items-center justify-between gap-3 px-4 py-2 text-sm"
@@ -312,7 +314,7 @@ export default function SternikExamPage() {
             type="button"
             onClick={() => setPaused(true)}
             aria-label={tp('Пауза', 'Pause', 'Pauza')}
-            className="rounded-lg px-2 py-1"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg"
             style={{ background: 'var(--hover-bg)', color: 'var(--text-primary)' }}
           >
             ⏸
@@ -324,7 +326,7 @@ export default function SternikExamPage() {
         <button
           type="button"
           onClick={() => setConfirmFinish(true)}
-          className="rounded-lg px-3 py-1 font-semibold"
+          className="flex min-h-[44px] items-center rounded-lg px-3 font-semibold"
           style={{ background: 'var(--success)', color: '#042e14' }}
         >
           {tp('Завершить', 'Finish', 'Zakoncz')}
@@ -353,7 +355,7 @@ export default function SternikExamPage() {
                   key={i}
                   type="button"
                   onClick={() => { setPos(i); setShowNav(false); }}
-                  className="flex aspect-square min-h-[36px] items-center justify-center rounded text-xs font-semibold transition"
+                  className="flex aspect-square min-h-[44px] items-center justify-center rounded text-xs font-semibold transition"
                   style={{
                     background: isCurrent
                       ? 'var(--accent-cyan)'
@@ -394,7 +396,7 @@ export default function SternikExamPage() {
                 return nf;
               })
             }
-            className="rounded-lg px-2 py-1"
+            className="flex min-h-[44px] items-center rounded-lg px-3"
             style={{
               background: flags.has(pos) ? 'rgba(255,170,0,0.2)' : 'var(--hover-bg)',
               color: flags.has(pos) ? 'var(--warning)' : 'var(--text-muted)',
@@ -449,7 +451,7 @@ export default function SternikExamPage() {
             type="button"
             disabled={pos === 0}
             onClick={() => setPos((p) => Math.max(0, p - 1))}
-            className="rounded-xl px-4 py-2 text-sm disabled:opacity-30"
+            className="flex min-h-[44px] items-center rounded-xl px-4 text-sm disabled:opacity-30"
             style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           >
             ← {tp('Назад', 'Back', 'Wstecz')}
@@ -458,12 +460,13 @@ export default function SternikExamPage() {
             type="button"
             disabled={pos + 1 >= questions.length}
             onClick={() => setPos((p) => Math.min(questions.length - 1, p + 1))}
-            className="rounded-xl px-5 py-2 text-sm font-semibold disabled:opacity-30"
+            className="flex min-h-[44px] items-center rounded-xl px-5 text-sm font-semibold disabled:opacity-30"
             style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
           >
             {tp('Дальше', 'Next', 'Dalej')} →
           </button>
         </div>
+      </div>
       </div>
 
       {/* Pause overlay */}

@@ -88,7 +88,7 @@ export function ExplLangToggle() {
             key={o.id}
             type="button"
             onClick={() => setExplLang(o.id)}
-            className="flex min-h-[36px] items-center rounded-full px-3 py-1.5 text-sm font-medium transition"
+            className="flex min-h-[44px] items-center rounded-full px-3 py-1.5 text-sm font-medium transition"
             style={
               active
                 ? { background: 'var(--accent-cyan)', color: '#04222e' }
