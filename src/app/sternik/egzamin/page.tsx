@@ -245,6 +245,11 @@ export default function SternikExamPage() {
                     <div className="text-sm" style={{ color: 'var(--success)' }}>
                       ✓ {q.options.find((o) => o.ok)?.text}
                     </div>
+                    {q.whyPl && (
+                      <div className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                        {q.whyPl}
+                      </div>
+                    )}
                     <div className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
                       {q.whyRu}
                     </div>

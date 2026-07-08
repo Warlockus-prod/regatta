@@ -415,6 +415,11 @@ function TrainerInner() {
                   <div className="text-sm" style={{ color: 'var(--success)' }}>
                     ✓ {r.q.options.find((o) => o.ok)?.text}
                   </div>
+                  {r.q.whyPl && (
+                    <div className="mt-1 text-sm" style={{ color: 'var(--text-primary)' }}>
+                      {r.q.whyPl}
+                    </div>
+                  )}
                   <div className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
                     {r.q.whyRu}
                   </div>
@@ -538,6 +543,11 @@ function TrainerInner() {
                 ? `✓ ${tp('Верно!', 'Correct!', 'Dobrze!')}`
                 : `✗ ${tp('Неверно.', 'Wrong.', 'Zle.')} ${tp('Правильно', 'Correct', 'Poprawna')}: ${current.options.find((o) => o.ok)?.text}`}
             </div>
+            {current.whyPl && (
+              <p className="mt-1 leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                {current.whyPl}
+              </p>
+            )}
             <p className="mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
               {current.whyRu}
             </p>
