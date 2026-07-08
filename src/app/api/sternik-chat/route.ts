@@ -50,6 +50,8 @@ interface ChatMessage {
 interface Payload {
   messages: ChatMessage[];
   lang?: Lang;
+  /** Which language the explanation should be in: Polish / Russian / both. */
+  explLang?: 'pl' | 'ru' | 'both';
   /** Optional current-question context from the trainer UI. */
   context?: string;
 }
@@ -105,17 +107,28 @@ export async function POST(req: Request) {
     }));
 
   const lang: Lang = isLang(body.lang) ? body.lang : 'ru';
+  const explLang: 'pl' | 'ru' | 'both' =
+    body.explLang === 'pl' || body.explLang === 'ru' || body.explLang === 'both' ? body.explLang : 'both';
   // Optional question context from the trainer - bounded, single block.
   const context = typeof body.context === 'string' ? body.context.slice(0, 1200) : '';
 
-  logInfo('sternik-chat.request', { turns: truncated.length, lang, hasContext: Boolean(context) });
+  logInfo('sternik-chat.request', { turns: truncated.length, lang, explLang, hasContext: Boolean(context) });
 
   const LANG_NAME: Record<Lang, string> = {
     ru: 'Russian', en: 'English', pl: 'Polish', es: 'Spanish',
     fr: 'French', de: 'German', it: 'Italian',
   };
+  // The explanation-language preference wins over the UI language for the
+  // reply, so the chat matches what the learner set in the section toggle.
+  const langDirective =
+    explLang === 'pl'
+      ? 'Reply in Polish. Keep exam terms exactly as they appear.'
+      : explLang === 'ru'
+        ? 'Reply in Russian, but keep every Polish exam term in parentheses in Polish so the learner recognizes it on the test.'
+        : 'Reply in BOTH Polish and Russian: first a short Polish explanation, then the Russian one below it.';
   const directives = [
-    `Reply in the user's language: ${LANG_NAME[lang]} (unless the user writes in another language).`,
+    langDirective,
+    `(UI language is ${LANG_NAME[lang]}; if the user clearly writes in another language, mirror it.)`,
     context ? `Aktualne pytanie testowe, ktorego dotyczy rozmowa:\n${context}` : '',
   ].filter(Boolean).join('\n\n');
 
