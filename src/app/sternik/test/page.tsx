@@ -7,8 +7,10 @@ import { useI18n } from '@/lib/i18n';
 import {
   STERNIK_BANK,
   STERNIK_BANK_BY_ID,
+  STERNIK_BASE_COUNTS,
   STERNIK_CATEGORIES,
   STERNIK_CATEGORY_BY_ID,
+  filterByBase,
   type SternikCatId,
 } from '@/data/sternik';
 import {
@@ -19,7 +21,7 @@ import {
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
-import { Explanation, useSternikPrefs } from '../prefs';
+import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
 
 /** teoria section anchor per category - "read the theory" deep links. */
@@ -44,7 +46,9 @@ interface SessionResult {
 
 function TrainerInner() {
   const { tp } = useI18n();
-  const { explLang } = useSternikPrefs();
+  const { explLang, examBase } = useSternikPrefs();
+  // The pool the whole trainer works from, honoring the selected base.
+  const bank = filterByBase(STERNIK_BANK, examBase);
   const params = useSearchParams();
   const catParam = params.get('cat');
   const modeParam = params.get('mode');
@@ -92,12 +96,12 @@ function TrainerInner() {
     setPhase('quiz');
   };
 
-  const startAll = () => begin(STERNIK_BANK, tp('Все вопросы', 'All questions', 'Wszystkie pytania'));
+  const startAll = () => begin(bank, tp('Все вопросы', 'All questions', 'Wszystkie pytania'));
   const startQuick = () =>
-    begin(shuffled(STERNIK_BANK).slice(0, 20), tp('Быстрые 20', 'Quick 20', 'Szybkie 20'));
+    begin(shuffled(bank).slice(0, 20), tp('Быстрые 20', 'Quick 20', 'Szybkie 20'));
   const startCat = (cat: SternikCatId) =>
     begin(
-      STERNIK_BANK.filter((q) => q.cat === cat),
+      bank.filter((q) => q.cat === cat),
       STERNIK_CATEGORY_BY_ID[cat].pl,
     );
   const startErrors = () => {
@@ -110,7 +114,7 @@ function TrainerInner() {
   const startHard = () => {
     const weakSet = new Set(sternikWeakIds(loadSternikProgress()));
     const seen = new Set<string>();
-    const pool = STERNIK_BANK.filter((q) => {
+    const pool = bank.filter((q) => {
       if (seen.has(q.id)) return false;
       if (q.difficulty === 'hard' || weakSet.has(q.id)) { seen.add(q.id); return true; }
       return false;
@@ -122,10 +126,10 @@ function TrainerInner() {
   const startSmart = () => {
     const p = loadSternikProgress();
     const weakSet = new Set(sternikWeakIds(p));
-    const weak = STERNIK_BANK.filter((q) => weakSet.has(q.id));
-    const unseen = STERNIK_BANK.filter((q) => !p.q[q.id]);
+    const weak = bank.filter((q) => weakSet.has(q.id));
+    const unseen = bank.filter((q) => !p.q[q.id]);
     const catAcc: Record<string, { c: number; t: number }> = {};
-    for (const q of STERNIK_BANK) {
+    for (const q of bank) {
       const s = p.q[q.id];
       if (s && s.seen > 0) {
         const a = (catAcc[q.cat] ??= { c: 0, t: 0 });
@@ -138,7 +142,7 @@ function TrainerInner() {
         .filter(([, a]) => a.t >= 3 && a.c / a.t < 0.87)
         .map(([c]) => c),
     );
-    const fromWeakCats = STERNIK_BANK.filter(
+    const fromWeakCats = bank.filter(
       (q) => weakCats.has(q.cat) && !weakSet.has(q.id) && p.q[q.id],
     );
     const seen = new Set<string>();
@@ -148,7 +152,7 @@ function TrainerInner() {
         return q;
       });
     let pool = [...pick(weak, 10), ...pick(unseen, 6), ...pick(fromWeakCats, 4)];
-    if (pool.length < 20) pool = [...pool, ...pick(STERNIK_BANK, 20 - pool.length)];
+    if (pool.length < 20) pool = [...pool, ...pick(bank, 20 - pool.length)];
     begin(shuffled(pool), tp('Умная тренировка', 'Smart session', 'Inteligentny trening'));
   };
 
@@ -230,6 +234,10 @@ function TrainerInner() {
           )}
         </p>
 
+        <div className="mb-6">
+          <BaseToggle counts={STERNIK_BASE_COUNTS} />
+        </div>
+
         <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <button
             type="button"
@@ -270,7 +278,7 @@ function TrainerInner() {
           >
             <div className="text-2xl">📚</div>
             <div className="mt-1 font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Вся база', 'Full bank', 'Cala baza')} ({STERNIK_BANK.length})
+              {tp('Вся база', 'Full bank', 'Cala baza')} ({bank.length})
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {tp('Все вопросы вперемешку', 'All questions shuffled', 'Wszystkie pytania wymieszane')}
@@ -317,7 +325,7 @@ function TrainerInner() {
         </h2>
         <div className="grid gap-2 sm:grid-cols-2">
           {STERNIK_CATEGORIES.map((cat) => {
-            const count = STERNIK_BANK.filter((q) => q.cat === cat.id).length;
+            const count = bank.filter((q) => q.cat === cat.id).length;
             return (
               <button
                 key={cat.id}

@@ -3,7 +3,13 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { STERNIK_CATEGORY_BY_ID, STERNIK_EXAM, STERNIK_EXAM_POOL } from '@/data/sternik';
+import {
+  STERNIK_BASE_COUNTS,
+  STERNIK_CATEGORY_BY_ID,
+  STERNIK_EXAM,
+  STERNIK_EXAM_POOL,
+  filterByBase,
+} from '@/data/sternik';
 import {
   loadSternikProgress,
   recordSternikAnswer,
@@ -12,7 +18,7 @@ import {
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
-import { Explanation } from '../prefs';
+import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
 
 // ============================================================================
@@ -25,6 +31,7 @@ type Phase = 'intro' | 'exam' | 'result';
 
 export default function SternikExamPage() {
   const { tp } = useI18n();
+  const { examBase } = useSternikPrefs();
   const [phase, setPhase] = useState<Phase>('intro');
   const [questions, setQuestions] = useState<PreparedQuestion[]>([]);
   const [answers, setAnswers] = useState<(number | null)[]>([]);
@@ -33,6 +40,7 @@ export default function SternikExamPage() {
   const [secondsLeft, setSecondsLeft] = useState(STERNIK_EXAM.minutes * 60);
   const [paused, setPaused] = useState(false);
   const [confirmFinish, setConfirmFinish] = useState(false);
+  const [showNav, setShowNav] = useState(false); // question grid collapsed by default (mobile-friendly)
   const [attempts, setAttempts] = useState<SternikExamAttempt[]>([]);
   const [lastAttempt, setLastAttempt] = useState<SternikExamAttempt | null>(null);
   const timedOutRef = useRef(false);
@@ -65,7 +73,8 @@ export default function SternikExamPage() {
   }, [secondsLeft, phase]);
 
   const start = () => {
-    const qs = shuffled(STERNIK_EXAM_POOL).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
+    const pool = filterByBase(STERNIK_EXAM_POOL, examBase);
+    const qs = shuffled(pool).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
     setQuestions(qs);
     setAnswers(new Array(qs.length).fill(null));
     setFlags(new Set());
@@ -119,6 +128,16 @@ export default function SternikExamPage() {
             `${STERNIK_EXAM.questions} losowych pytan w formacie egzaminu (3 warianty A/B/C), ${STERNIK_EXAM.minutes} minut, prog ${STERNIK_EXAM.passCorrect}. Bez natychmiastowej odpowiedzi - wynik i powtorka na koncu. Mozna flagowac pytania i wracac.`,
           )}
         </p>
+        <div className="mb-5">
+          <BaseToggle counts={STERNIK_BASE_COUNTS} />
+          <p className="mt-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+            {tp(
+              'Материалы - оригинальные 77 вопросов из конспекта; Интернет - собранные из открытых источников; Общая - всё вместе.',
+              'Materials - the original 77 konspekt questions; Internet - harvested from open sources; All - everything.',
+              'Materialy - oryginalne 77 pytan z konspektu; Internet - zebrane ze zrodel otwartych; Wszystkie - razem.',
+            )}
+          </p>
+        </div>
         <button
           type="button"
           onClick={start}
@@ -309,35 +328,48 @@ export default function SternikExamPage() {
         </button>
       </div>
 
-      {/* Navigator */}
-      <div className="mb-4 flex flex-wrap gap-1">
-        {questions.map((_, i) => {
-          const isCurrent = i === pos;
-          const done = answers[i] !== null;
-          const flagged = flags.has(i);
-          return (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setPos(i)}
-              className="h-7 w-7 rounded text-[11px] font-semibold transition"
-              style={{
-                background: isCurrent
-                  ? 'var(--accent-cyan)'
-                  : flagged
-                    ? 'rgba(255,170,0,0.25)'
-                    : done
-                      ? 'rgba(68,255,136,0.18)'
-                      : 'var(--bg-card)',
-                color: isCurrent ? '#04222e' : flagged ? 'var(--warning)' : done ? 'var(--success)' : 'var(--text-muted)',
-                border: '1px solid var(--border-subtle)',
-              }}
-              aria-label={`${tp('Вопрос', 'Question', 'Pytanie')} ${i + 1}`}
-            >
-              {i + 1}
-            </button>
-          );
-        })}
+      {/* Navigator - collapsed by default so it does not eat the first screen */}
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={() => setShowNav((v) => !v)}
+          className="flex min-h-[40px] w-full items-center justify-between rounded-xl px-3 text-sm"
+          style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}
+        >
+          <span>🧭 {tp('Все вопросы', 'All questions', 'Wszystkie pytania')} ({answers.length - unansweredCount}/{questions.length})</span>
+          <span>{showNav ? '▲' : '▼'}</span>
+        </button>
+        {showNav && (
+          <div className="mt-2 grid grid-cols-8 gap-1.5 sm:grid-cols-12">
+            {questions.map((_, i) => {
+              const isCurrent = i === pos;
+              const done = answers[i] !== null;
+              const flagged = flags.has(i);
+              return (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => { setPos(i); setShowNav(false); }}
+                  className="flex aspect-square min-h-[36px] items-center justify-center rounded text-xs font-semibold transition"
+                  style={{
+                    background: isCurrent
+                      ? 'var(--accent-cyan)'
+                      : flagged
+                        ? 'rgba(255,170,0,0.25)'
+                        : done
+                          ? 'rgba(68,255,136,0.18)'
+                          : 'var(--bg-card)',
+                    color: isCurrent ? '#04222e' : flagged ? 'var(--warning)' : done ? 'var(--success)' : 'var(--text-muted)',
+                    border: '1px solid var(--border-subtle)',
+                  }}
+                  aria-label={`${tp('Вопрос', 'Question', 'Pytanie')} ${i + 1}`}
+                >
+                  {i + 1}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Question card */}
