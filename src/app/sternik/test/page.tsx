@@ -23,6 +23,7 @@ import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQu
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
+import { useFocusTrap } from '../useFocusTrap';
 
 /** teoria section anchor per category - "read the theory" deep links. */
 const THEORY_ANCHOR: Record<string, string> = {
@@ -177,6 +178,7 @@ function TrainerInner() {
   const pct = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
   const feedbackRef = useRef<HTMLDivElement | null>(null);
+  const pauseTrapRef = useFocusTrap<HTMLDivElement>(paused, () => setPaused(false));
   const answer = (i: number) => {
     if (answered || !current) return;
     const ok = current.options[i].ok;
@@ -654,7 +656,9 @@ function TrainerInner() {
           style={{ background: 'rgba(4,12,22,0.85)', backdropFilter: 'blur(4px)' }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 text-center"
+            ref={pauseTrapRef}
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-2xl p-6 text-center outline-none"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
             <div className="text-4xl">⏸</div>
