@@ -18,7 +18,7 @@ import {
   sternikWeakIds,
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
-import QuestionFigure from '../QuestionFigure';
+import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
 
@@ -502,6 +502,7 @@ function TrainerInner() {
         </div>
 
         {current.figure && <QuestionFigure id={current.figure} />}
+        {current.photo && <QuestionPhoto photo={current.photo} alt={current.q} />}
 
         <div className="space-y-2">
           {current.options.map((o, i) => {

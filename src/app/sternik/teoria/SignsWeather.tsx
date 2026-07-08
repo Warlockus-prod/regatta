@@ -266,6 +266,52 @@ export function FrontsPressureGallery() {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Real cloud photos (open licenses; credited below). Reading the sky is a
+// key on-water skill and the exam shows real weather photos.
+// ---------------------------------------------------------------------------
+
+const CLOUD_PHOTOS: { file: string; pl: string; ru: string; danger?: boolean }[] = [
+  { file: 'cumulus', pl: 'Cumulus - ladna pogoda', ru: 'кучевые: хорошая погода' },
+  { file: 'cirrus', pl: 'Cirrus - nadchodzi front cieply', ru: 'перистые: идёт тёплый фронт' },
+  { file: 'altocumulus', pl: 'Altocumulus - zmiana pogody w ciagu doby', ru: '«барашки»: смена погоды за сутки' },
+  { file: 'stratus', pl: 'Stratus - mzawka, slaba widocznosc', ru: 'слоистые: морось, плохая видимость' },
+  { file: 'nimbostratus', pl: 'Nimbostratus - ciagly deszcz', ru: 'слоисто-дождевые: обложной дождь' },
+  { file: 'cumulonimbus', pl: 'Cumulonimbus - burza i szkwaly', ru: 'кучево-дождевые: гроза и шквалы', danger: true },
+  { file: 'shelf', pl: 'Shelf cloud - nadchodzi szkwal, wracaj', ru: 'вал шквала: к берегу немедленно', danger: true },
+  { file: 'fog', pl: 'Mgla - ograniczona widzialnosc', ru: 'туман: включи огни и сигналы' },
+];
+
+export function CloudPhotos() {
+  return (
+    <div>
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {CLOUD_PHOTOS.map((c) => (
+          <figure
+            key={c.file}
+            className="overflow-hidden rounded-xl"
+            style={{ background: 'var(--bg-card)', border: `1px solid ${c.danger ? 'rgba(227,59,59,0.5)' : 'var(--border-subtle)'}` }}
+          >
+            <img
+              src={`/sternik/clouds/${c.file}.jpg`}
+              alt={c.pl}
+              loading="lazy"
+              className="block h-28 w-full object-cover sm:h-32"
+            />
+            <figcaption className="px-2 py-1.5">
+              <div className="text-xs font-semibold" style={{ color: c.danger ? RED : 'var(--text-primary)' }}>{c.pl}</div>
+              <div className="text-[11px] leading-tight" style={{ color: 'var(--text-muted)' }}>{c.ru}</div>
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+      <p className="mt-2 text-[11px]" style={{ color: 'var(--text-muted)' }}>
+        Zdjecia: Wikimedia Commons - Kamil Nowacki, W.carter, Medium69, GerritR, Simon Eugster, A.O Mapping, Ken Lund (CC0 / CC BY / CC BY-SA).
+      </p>
+    </div>
+  );
+}
+
 export function BreezeGallery() {
   const Scene = ({ day }: { day: boolean }) => (
     <svg viewBox="0 0 140 90" className="h-24 w-auto">

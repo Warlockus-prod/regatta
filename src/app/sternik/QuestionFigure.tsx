@@ -7,6 +7,24 @@ import type { SternikFigureId } from '@/data/sternik';
 // Deliberately label-free - the whole point is recognition.
 // ============================================================================
 
+/** Real photo shown above a weather question. File in /public/sternik/clouds. */
+export function QuestionPhoto({ photo, alt }: { photo: string; alt?: string }) {
+  return (
+    <div
+      className="mb-3 overflow-hidden rounded-xl"
+      style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+    >
+      {/* plain img: served same-origin from public/, lazy, fixed aspect */}
+      <img
+        src={`/sternik/clouds/${photo}.jpg`}
+        alt={alt || 'photo'}
+        loading="lazy"
+        className="block h-44 w-full object-cover sm:h-56"
+      />
+    </div>
+  );
+}
+
 const BLACK = '#101418';
 const YELLOW = '#ffd24a';
 const RED = '#e33';

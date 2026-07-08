@@ -15,6 +15,7 @@ export interface PreparedQuestion {
   whyRu: string;
   whyPl?: string;
   figure?: SternikQuestion['figure'];
+  photo?: SternikQuestion['photo'];
 }
 
 /** Fisher-Yates shuffle, returns a new array. */
@@ -30,7 +31,7 @@ export function shuffled<T>(arr: readonly T[]): T[] {
 /** Shuffle answer options while remembering which one is correct. */
 export function prepareQuestion(q: SternikQuestion): PreparedQuestion {
   const options = shuffled(q.options.map((text, i) => ({ text, ok: i === q.correct })));
-  return { id: q.id, cat: q.cat, q: q.q, options, whyRu: q.whyRu, whyPl: q.whyPl, figure: q.figure };
+  return { id: q.id, cat: q.cat, q: q.q, options, whyRu: q.whyRu, whyPl: q.whyPl, figure: q.figure, photo: q.photo };
 }
 
 /** mm:ss or h:mm:ss for countdowns and timers. */

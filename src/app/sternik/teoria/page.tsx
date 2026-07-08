@@ -21,6 +21,7 @@ import {
 } from './diagrams';
 import {
   BreezeGallery,
+  CloudPhotos,
   CloudsGallery,
   FrontsPressureGallery,
   IalaGallery,
@@ -473,7 +474,19 @@ export default function SternikTheoryPage() {
         </Card>
 
         <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
-          ☁️ {tp('Облака - что предвещают', 'Clouds and what they mean', 'Chmury i co zwiastuja')}
+          📷 {tp('Как читать небо (реальные фото)', 'Read the sky (real photos)', 'Jak czytac niebo (zdjecia)')}
+        </h3>
+        <CloudPhotos />
+        <DiagramCaption>
+          {tp(
+            'Слева направо - от хорошей погоды к опасной. Cumulonimbus и вал шквала (shelf cloud) = уходи к берегу; туман = включай огни и сигналы.',
+            'Left to right - from fair to dangerous. Cumulonimbus and a shelf cloud mean head to shore; fog means lights and signals on.',
+            'Od lewej do prawej - od ladnej do groznej pogody. Cumulonimbus i shelf cloud = wracaj do brzegu; mgla = swiatla i sygnaly.',
+          )}
+        </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          ☁️ {tp('Схемы облаков', 'Cloud diagrams', 'Schematy chmur')}
         </h3>
         <CloudsGallery />
         <DiagramCaption>
