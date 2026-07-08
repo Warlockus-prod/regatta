@@ -10,22 +10,33 @@ import { useI18n } from '@/lib/i18n';
 // ============================================================================
 
 export type ExplLang = 'pl' | 'ru' | 'both';
+/** Which question base the trainer/exam draws from. */
+export type ExamBase = 'all' | 'materialy' | 'internet';
 const KEY = 'sternik.explLang.v1';
+const BASE_KEY = 'sternik.examBase.v1';
 
 interface Ctx {
   explLang: ExplLang;
   setExplLang: (v: ExplLang) => void;
+  examBase: ExamBase;
+  setExamBase: (v: ExamBase) => void;
 }
 
-const PrefsContext = createContext<Ctx>({ explLang: 'both', setExplLang: () => {} });
+const PrefsContext = createContext<Ctx>({
+  explLang: 'both', setExplLang: () => {},
+  examBase: 'all', setExamBase: () => {},
+});
 
 export function SternikPrefsProvider({ children }: { children: ReactNode }) {
   const [explLang, setExplLangState] = useState<ExplLang>('both');
+  const [examBase, setExamBaseState] = useState<ExamBase>('all');
 
   useEffect(() => {
     try {
       const raw = window.localStorage.getItem(KEY);
       if (raw === 'pl' || raw === 'ru' || raw === 'both') setExplLangState(raw);
+      const b = window.localStorage.getItem(BASE_KEY);
+      if (b === 'all' || b === 'materialy' || b === 'internet') setExamBaseState(b);
     } catch {
       // ignore
     }
@@ -33,14 +44,19 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
 
   const setExplLang = useCallback((v: ExplLang) => {
     setExplLangState(v);
-    try {
-      window.localStorage.setItem(KEY, v);
-    } catch {
-      // ignore
-    }
+    try { window.localStorage.setItem(KEY, v); } catch { /* ignore */ }
   }, []);
 
-  return <PrefsContext.Provider value={{ explLang, setExplLang }}>{children}</PrefsContext.Provider>;
+  const setExamBase = useCallback((v: ExamBase) => {
+    setExamBaseState(v);
+    try { window.localStorage.setItem(BASE_KEY, v); } catch { /* ignore */ }
+  }, []);
+
+  return (
+    <PrefsContext.Provider value={{ explLang, setExplLang, examBase, setExamBase }}>
+      {children}
+    </PrefsContext.Provider>
+  );
 }
 
 export function useSternikPrefs(): Ctx {
@@ -84,6 +100,49 @@ export function ExplLangToggle() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * Exam-base selector: which question base the trainer / exam draws from.
+ * Materials (original konspekt) / Internet (harvested) / All.
+ */
+export function BaseToggle({ counts }: { counts: { all: number; materialy: number; internet: number } }) {
+  const { examBase, setExamBase } = useSternikPrefs();
+  const { tp } = useI18n();
+  const opts: { id: ExamBase; label: string; n: number }[] = [
+    { id: 'all', label: tp('Общая', 'All', 'Wszystkie'), n: counts.all },
+    { id: 'materialy', label: tp('Материалы', 'Materials', 'Materialy'), n: counts.materialy },
+    { id: 'internet', label: tp('Интернет', 'Internet', 'Internet'), n: counts.internet },
+  ];
+  return (
+    <div>
+      <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+        {tp('База вопросов', 'Question base', 'Baza pytan')}
+      </div>
+      <div className="flex flex-wrap gap-1.5">
+        {opts.map((o) => {
+          const active = examBase === o.id;
+          return (
+            <button
+              key={o.id}
+              type="button"
+              onClick={() => setExamBase(o.id)}
+              className="flex min-h-[36px] items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition"
+              style={
+                active
+                  ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                  : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }
+              }
+              aria-pressed={active}
+            >
+              {o.label}
+              <span className="text-xs opacity-70">{o.n}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
