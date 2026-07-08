@@ -440,8 +440,11 @@ function TrainerInner() {
 
   return (
     <main className="relative">
-      {/* Top bar */}
-      <div className="mb-3 flex items-center justify-between gap-3 text-sm">
+      {/* Top bar (sticky so score + timer stay visible while scrolling on mobile) */}
+      <div
+        className="sticky z-30 -mx-4 mb-3 flex items-center justify-between gap-3 px-4 py-2 text-sm"
+        style={{ top: 56, background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-subtle)' }}
+      >
         <button
           type="button"
           onClick={() => setPhase('menu')}
