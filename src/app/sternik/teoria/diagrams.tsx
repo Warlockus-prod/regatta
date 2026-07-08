@@ -277,8 +277,8 @@ export function NabieznikDiagram() {
       <polygon points="228,60 223,70 233,70" fill={RED} />
       <rect x="227" y="70" width="2" height="10" fill={TXT2} />
       <Boat x={222} y={150} rot={12} color={YELLOW} />
-      <path d="M 226 134 Q 240 100 252 62" fill="none" stroke={YELLOW} strokeWidth="1.3" strokeDasharray="4,3" markerEnd="url(#nab)" />
-      <text x="240" y="174" textAnchor="middle" fontSize="8" fill={TXT2}>znaki rozjechane - skrec ku WYZSZEMU</text>
+      <path d="M 218 134 Q 224 100 228 82" fill="none" stroke={YELLOW} strokeWidth="1.3" strokeDasharray="4,3" markerEnd="url(#nab)" />
+      <text x="240" y="174" textAnchor="middle" fontSize="8" fill={TXT2}>znaki rozjechane - wyrownaj (wyzszy nad nizszym)</text>
     </svg>
   );
 }
