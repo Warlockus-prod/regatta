@@ -489,6 +489,8 @@ function TrainerInner() {
 
   return (
     <main className="relative">
+      {/* Content is inert while the pause modal is open (a11y + keyboard). */}
+      <div inert={paused || undefined}>
       {/* Top bar (sticky so score + timer stay visible while scrolling on mobile) */}
       <div
         className="sticky z-30 -mx-4 mb-3 flex items-center justify-between gap-3 px-4 py-2 text-sm"
@@ -497,6 +499,7 @@ function TrainerInner() {
         <button
           type="button"
           onClick={() => setPhase('menu')}
+          className="flex min-h-[44px] items-center pr-2"
           style={{ color: 'var(--text-muted)' }}
         >
           ← {tp('Выйти', 'Exit', 'Wyjdz')}
@@ -514,7 +517,7 @@ function TrainerInner() {
             type="button"
             onClick={() => setPaused(true)}
             aria-label={tp('Пауза', 'Pause', 'Pauza')}
-            className="rounded-lg px-2 py-1"
+            className="flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg"
             style={{ background: 'var(--hover-bg)', color: 'var(--text-primary)' }}
           >
             ⏸
@@ -644,6 +647,7 @@ function TrainerInner() {
             </button>
           </div>
         )}
+      </div>
       </div>
 
       {/* Pause overlay */}

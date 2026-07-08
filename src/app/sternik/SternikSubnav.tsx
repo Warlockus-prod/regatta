@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
@@ -8,6 +9,7 @@ import { ExplLangToggle } from './prefs';
 export default function SternikSubnav() {
   const pathname = usePathname();
   const { tp } = useI18n();
+  const activeRef = useRef<HTMLAnchorElement | null>(null);
 
   const tabs = [
     { href: '/sternik', label: tp('Обзор', 'Overview', 'Przeglad'), icon: '⚓' },
@@ -15,6 +17,11 @@ export default function SternikSubnav() {
     { href: '/sternik/test', label: tp('Тренажёр', 'Trainer', 'Trening'), icon: '🎯' },
     { href: '/sternik/egzamin', label: tp('Экзамен', 'Exam', 'Egzamin'), icon: '⏱️' },
   ];
+
+  // Keep the active tab in view (Egzamin was cut off on the right on mobile).
+  useEffect(() => {
+    activeRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [pathname]);
 
   return (
     <nav className="mb-6 flex flex-wrap items-center gap-2 pb-1" aria-label="Sternik">
@@ -25,6 +32,7 @@ export default function SternikSubnav() {
             <Link
               key={t.href}
               href={t.href}
+              ref={active ? activeRef : undefined}
               className="flex min-h-[44px] items-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition"
               style={
                 active
