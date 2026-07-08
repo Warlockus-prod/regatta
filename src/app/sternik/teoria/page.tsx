@@ -22,11 +22,13 @@ import {
 import {
   BreezeGallery,
   CloudPhotos,
+  CloudTiers,
   CloudsGallery,
   FrontsPressureGallery,
   IalaGallery,
   InlandSignsGallery,
 } from './SignsWeather';
+import TheorySearch from './TheorySearch';
 
 // ============================================================================
 // /sternik/teoria - the full theory konspekt: Polish exam terms + Russian
@@ -130,7 +132,7 @@ export default function SternikTheoryPage() {
   const { tp } = useI18n();
 
   return (
-    <main>
+    <main id="sternik-theory">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
         📖 {tp('Теория', 'Theory', 'Teoria')}: sternik motorowodny
       </h1>
@@ -141,6 +143,8 @@ export default function SternikTheoryPage() {
           'Konspekt wszystkich dzialow egzaminu: terminy po polsku + komentarz po rosyjsku + schematy.',
         )}
       </p>
+
+      <TheorySearch />
 
       {/* Last-minute quick access */}
       <div className="mb-5 flex flex-wrap gap-2">
@@ -490,6 +494,18 @@ export default function SternikTheoryPage() {
           <Fact q="Bryza dzienna / nocna" a="dniem od wody na lad, noca od ladu na wode" ru="Днём с воды на сушу, ночью наоборот." />
           <Fact q="Cumulonimbus (Cb)" a="szkwaly, burza, ulewa" ru="Кучево-дождевое: увидел «наковальню» - к берегу." />
         </Card>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🗻 {tp('Ярусы облаков', 'Cloud altitude tiers', 'Pietra chmur')}
+        </h3>
+        <CloudTiers />
+        <DiagramCaption>
+          {tp(
+            'Niskie pietro (< 2 km): Stratus, Stratocumulus, Nimbostratus. Srednie (2-6 km): Altostratus, Altocumulus. Wysokie (> 6 km): Cirrus, Cirrostratus, Cirrocumulus. Pionowej rozbudowy: Cumulus, Cumulonimbus. / Низкий ярус (до 2 км): слоистые; средний (2-6 км): высоко-; высокий (свыше 6 км): перистые; вертикального развития: кучевые и кучево-дождевые.',
+            'Low (< 2 km): Stratus/Stratocumulus/Nimbostratus. Mid (2-6 km): Altostratus/Altocumulus. High (> 6 km): Cirrus/Cirrostratus/Cirrocumulus. Vertical: Cumulus/Cumulonimbus.',
+            'Niskie (< 2 km): Stratus, Stratocumulus, Nimbostratus. Srednie (2-6 km): Altostratus, Altocumulus. Wysokie (> 6 km): Cirrus, Cirrostratus, Cirrocumulus. Pionowe: Cumulus, Cumulonimbus.',
+          )}
+        </DiagramCaption>
 
         <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
           📷 {tp('Как читать небо (реальные фото)', 'Read the sky (real photos)', 'Jak czytac niebo (zdjecia)')}

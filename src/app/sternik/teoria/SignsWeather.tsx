@@ -282,6 +282,93 @@ const CLOUD_PHOTOS: { file: string; pl: string; ru: string; danger?: boolean }[]
   { file: 'fog', pl: 'Mgla - ograniczona widzialnosc', ru: 'туман: включи огни и сигналы' },
 ];
 
+// ---------------------------------------------------------------------------
+// Cloud tiers infographic: which clouds live at which altitude (a common exam
+// question - "chmury niskiego pietra to..."). Vertical altitude scale.
+// ---------------------------------------------------------------------------
+
+function Puff({ x, y, s = 1, fill = '#e9eef4' }: { x: number; y: number; s?: number; fill?: string }) {
+  return (
+    <g transform={`translate(${x},${y}) scale(${s})`} fill={fill} opacity="0.95">
+      <circle cx="0" cy="4" r="9" />
+      <circle cx="12" cy="0" r="12" />
+      <circle cx="26" cy="4" r="9" />
+      <rect x="-2" y="4" width="30" height="10" rx="4" />
+    </g>
+  );
+}
+
+export function CloudTiers() {
+  const W = 360, H = 430;
+  const groundY = 392;
+  return (
+    <div className="overflow-x-auto">
+      <svg viewBox={`0 0 ${W} ${H}`} className="mx-auto block h-auto" style={{ minWidth: 320, maxWidth: 460, width: '100%' }}>
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#2b5c96" />
+            <stop offset="0.55" stopColor="#5b8fc9" />
+            <stop offset="1" stopColor="#a9cdec" />
+          </linearGradient>
+        </defs>
+        <rect x="20" y="8" width={W - 28} height={groundY - 8} rx="8" fill="url(#sky)" />
+        {/* tier boundaries */}
+        <line x1="20" y1="150" x2={W - 8} y2="150" stroke="#fff" strokeWidth="1" strokeDasharray="5,4" opacity="0.6" />
+        <line x1="20" y1="270" x2={W - 8} y2="270" stroke="#fff" strokeWidth="1" strokeDasharray="5,4" opacity="0.6" />
+        {/* altitude axis labels (left) */}
+        <text x="8" y="20" fontSize="9" fill="var(--text-muted)">km</text>
+        <text x="6" y="153" fontSize="9" fill="var(--text-secondary)">6</text>
+        <text x="6" y="273" fontSize="9" fill="var(--text-secondary)">2</text>
+        <text x="6" y="392" fontSize="9" fill="var(--text-secondary)">0</text>
+
+        {/* HIGH tier (>6 km) */}
+        <text x="30" y="30" fontSize="11" fontWeight="700" fill="#fff">Wysokie pietro (&gt; 6 km)</text>
+        <text x="30" y="43" fontSize="9" fill="#dbe8f5">высокий ярус</text>
+        <g stroke="#eef4fa" strokeWidth="2.4" fill="none" opacity="0.9" strokeLinecap="round">
+          <path d="M40 66 Q70 58 96 64 Q78 66 104 72" />
+          <path d="M120 60 Q150 52 178 58" />
+        </g>
+        <Puff x={210} y={70} s={0.5} />
+        <Puff x={260} y={64} s={0.45} />
+        <text x="40" y="96" fontSize="9" fill="#fff">Cirrus, Cirrostratus, Cirrocumulus</text>
+        <text x="40" y="108" fontSize="8.5" fill="#dbe8f5">перистые</text>
+
+        {/* MID tier (2-6 km) */}
+        <text x="30" y="172" fontSize="11" fontWeight="700" fill="#fff">Srednie pietro (2-6 km)</text>
+        <text x="30" y="185" fontSize="9" fill="#eef4fa">средний ярус</text>
+        <Puff x={44} y={205} s={0.7} />
+        <Puff x={120} y={210} s={0.7} />
+        <rect x="180" y="200" width="120" height="12" rx="6" fill="#e9eef4" opacity="0.85" />
+        <rect x="196" y="216" width="90" height="10" rx="5" fill="#e9eef4" opacity="0.8" />
+        <text x="40" y="248" fontSize="9" fill="#fff">Altostratus, Altocumulus</text>
+        <text x="40" y="260" fontSize="8.5" fill="#eef4fa">высоко-слоистые / -кучевые</text>
+
+        {/* LOW tier (<2 km) */}
+        <text x="30" y="290" fontSize="11" fontWeight="700" fill="#fff">Niskie pietro (&lt; 2 km)</text>
+        <text x="30" y="303" fontSize="9" fill="#f6fafd">низкий ярус</text>
+        <rect x="34" y="312" width="150" height="16" rx="7" fill="#cfd8e2" opacity="0.9" />
+        <rect x="40" y="330" width="130" height="12" rx="6" fill="#c3cdd8" opacity="0.85" />
+        <Puff x={210} y={330} s={0.7} fill="#cfd8e2" />
+        <text x="34" y="360" fontSize="9" fill="#fff">Stratus, Stratocumulus, Nimbostratus</text>
+        <text x="34" y="372" fontSize="8.5" fill="#f6fafd">слоистые / слоисто-дождевые</text>
+
+        {/* VERTICAL development - Cumulonimbus tower spanning tiers (right side) */}
+        <g opacity="0.95">
+          <path d="M300 70 Q330 66 344 82 L344 96 Q328 88 306 92 Z" fill="#f2f6fb" />
+          <rect x="308" y="88" width="30" height="250" fill="#e3e9f0" />
+          <circle cx="308" cy="330" r="16" fill="#cfd8e2" />
+          <circle cx="340" cy="330" r="16" fill="#cfd8e2" />
+        </g>
+        <text x="352" y="210" fontSize="9" fill="#fff" transform="rotate(90 352 210)">Cumulonimbus</text>
+
+        {/* ground / water */}
+        <rect x="20" y={groundY} width={W - 28} height={H - groundY - 4} rx="6" fill="rgba(40,120,200,0.5)" />
+        <text x={W / 2} y={groundY + 22} textAnchor="middle" fontSize="9" fill="#eaf3fb">woda / вода</text>
+      </svg>
+    </div>
+  );
+}
+
 export function CloudPhotos() {
   return (
     <div>

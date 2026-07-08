@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Sternik theory full-text search highlight (CSS Custom Highlight API). */
+::highlight(sternik-search) {
+  background-color: #ffd23a;
+  color: #14181d;
+}
+
 :root {
   color-scheme: dark;
   --bg-primary: #0a1628;

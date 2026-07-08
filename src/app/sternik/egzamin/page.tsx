@@ -20,6 +20,7 @@ import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQu
 import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
+import { useFocusTrap } from '../useFocusTrap';
 
 // ============================================================================
 // /sternik/egzamin - mock exam in real format: 75 questions, 90 minutes,
@@ -44,6 +45,8 @@ export default function SternikExamPage() {
   const [attempts, setAttempts] = useState<SternikExamAttempt[]>([]);
   const [lastAttempt, setLastAttempt] = useState<SternikExamAttempt | null>(null);
   const timedOutRef = useRef(false);
+  const pauseTrapRef = useFocusTrap<HTMLDivElement>(paused, () => setPaused(false));
+  const confirmTrapRef = useFocusTrap<HTMLDivElement>(confirmFinish, () => setConfirmFinish(false));
 
   useEffect(() => {
     setAttempts(loadSternikProgress().exams.slice().reverse());
@@ -473,7 +476,9 @@ export default function SternikExamPage() {
           style={{ background: 'rgba(4,12,22,0.92)', backdropFilter: 'blur(6px)' }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 text-center"
+            ref={pauseTrapRef}
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-2xl p-6 text-center outline-none"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
             <div className="text-4xl">⏸</div>
@@ -507,7 +512,9 @@ export default function SternikExamPage() {
           style={{ background: 'rgba(4,12,22,0.85)', backdropFilter: 'blur(4px)' }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 text-center"
+            ref={confirmTrapRef}
+            tabIndex={-1}
+            className="w-full max-w-sm rounded-2xl p-6 text-center outline-none"
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
             <div className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
