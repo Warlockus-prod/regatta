@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sternik motorowodny - подготовка к экзамену</title>
+<style>
+  :root{--nb:#00337a;--nb2:#0a58c2;--bg:#f5f7fb;--card:#fff;--ok:#0a7d3a;--ru:#8a4b00;--line:#dbe3ef;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#14213d;line-height:1.5;font-size:16px}
+  header{background:linear-gradient(135deg,var(--nb),var(--nb2));color:#fff;padding:22px 18px}
+  header h1{margin:0 0 4px;font-size:21px}
+  header p{margin:0;opacity:.9;font-size:14px}
+  .wrap{max-width:820px;margin:0 auto;padding:16px}
+  nav{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:16px 0}
+  nav h2{margin:0 0 8px;font-size:15px;color:var(--nb)}
+  nav a{display:block;color:var(--nb2);text-decoration:none;padding:5px 0;border-bottom:1px dashed var(--line);font-size:15px}
+  nav a:last-child{border:0}
+  section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:16px 0}
+  h2.sec{color:var(--nb);border-bottom:2px solid var(--nb);padding-bottom:6px;margin-top:0;font-size:19px}
+  h3{color:var(--nb2);font-size:16px;margin:18px 0 6px}
+  .ru{color:var(--ru);background:#fff7ec;border-left:3px solid #e0a44a;padding:8px 12px;border-radius:6px;margin:8px 0;font-size:15px}
+  .pl{margin:6px 0}
+  .fact{background:#eef4ff;border-radius:6px;padding:8px 12px;margin:6px 0}
+  table{width:100%;border-collapse:collapse;margin:10px 0;font-size:14.5px}
+  th,td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
+  th{background:#eef4ff;color:var(--nb)}
+  details{margin:9px 0;border:1px solid var(--line);border-radius:8px;padding:2px 4px;background:#fbfcfe}
+  summary{cursor:pointer;padding:9px 8px;font-weight:600;font-size:15px}
+  details[open]{background:#f4f9f4}
+  .ans{color:var(--ok);font-weight:600;padding:2px 10px 10px}
+  .ans small{display:block;color:var(--ru);font-weight:400;margin-top:4px}
+  .tip{background:#eafaf0;border-left:4px solid var(--ok);padding:10px 14px;border-radius:6px;margin:10px 0}
+  .warn{background:#fdeef0;border-left:4px solid #c0392b;padding:10px 14px;border-radius:6px;margin:10px 0}
+  ul{margin:6px 0 6px 2px;padding-left:20px}
+  li{margin:3px 0}
+  .kicker{font-size:13px;color:#6b7896;text-transform:uppercase;letter-spacing:.5px}
+  code{background:#eaeef6;padding:1px 5px;border-radius:4px;font-size:14px}
+  figure{margin:16px 0;text-align:center}
+  figure svg{max-width:100%;height:auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px}
+  figcaption{font-size:13px;color:#6b7896;margin-top:6px;font-style:italic}
+  .svgt{font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+  footer{text-align:center;color:#8894ab;font-size:13px;padding:24px 12px}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚓ Sternik motorowodny - экзамен</h1>
+  <p>Konspekt + testy (PL) z komentarzem po rosyjsku · подготовка на завтра</p>
+</header>
+<div class="wrap">
+
+<section>
+  <h2 class="sec">📋 Format egzaminu</h2>
+  <table>
+    <tr><th>Element</th><th>Szczegół</th></tr>
+    <tr><td>Test teoretyczny</td><td><b>75 pytań</b>, jednokrotny wybór (A/B/C)</td></tr>
+    <tr><td>Czas</td><td><b>90 minut</b></td></tr>
+    <tr><td>Próg zdania</td><td><b>65 / 75</b> poprawnych (86,7%)</td></tr>
+    <tr><td>Część praktyczna</td><td>manewry łodzią, 20-30 min, łódź min. 3,5 m / silnik min. 10 KM</td></tr>
+    <tr><td>Wiek</td><td>od 14 lat (poniżej 18 - zgoda opiekuna)</td></tr>
+  </table>
+  <div class="ru"><b>По-русски:</b> тест - 75 вопросов за 90 минут, нужно минимум <b>65 правильных</b>. Порог высокий: допустимо ошибиться максимум в 10 вопросах. Один неверный ответ примерно на каждые 7 вопросов - твой предел. Вопросы берутся из официальной базы PZMWiNW (~337 вопросов для SM, есть в открытом доступе), поэтому чем больше прорешаешь - тем больше узнаешь на экзамене. Больше всего баллов теряют на <b>przepisy żeglugowe</b> (правила движения) - это 30-40% теста, учи их до автоматизма.</div>
+  <div class="tip"><b>Стратегия на вечер:</b> 1) правила расхождения и приоритета, 2) звуковые сигналы и огни (секторы/цвета), 3) навигационные знаки (кардинальные/боковые), 4) «человек за бортом» и первая помощь. Это самые частые и «дешёвые» баллы.</div>
+  <p style="text-align:center;margin:16px 0 2px"><a href="test.html" style="display:inline-block;background:#0a58c2;color:#fff;text-decoration:none;padding:13px 22px;border-radius:10px;font-weight:700;font-size:16px">▶ Otwórz test egzaminacyjny (77 pytań) →</a></p>
+  <p style="text-align:center;margin:2px 0 0;font-size:13px;color:#8894ab">Tryb „jak na prawo jazdy": od razu dobrze/źle + wyjaśnienie</p>
+</section>
+
+<nav>
+  <h2>Spis treści / Содержание</h2>
+  <a href="#p1">1. Przepisy i prawo drogi - правила расхождения</a>
+  <a href="#p2">2. Sygnały dźwiękowe i światła - сигналы и огни</a>
+  <a href="#p3">3. Znaki nawigacyjne - навигационные знаки</a>
+  <a href="#p3b">3b. Nawigacja w praktyce - створ, река, море, порт</a>
+  <a href="#p4">4. Budowa jachtu - устройство лодки</a>
+  <a href="#p5">5. Silniki - двигатели</a>
+  <a href="#p6">6. Manewrowanie i cumowanie - манёвры и швартовка</a>
+  <a href="#p7">7. Locja i nawigacja - лоция и навигация</a>
+  <a href="#p8">8. Meteorologia - метеорология</a>
+  <a href="#p9">9. Ratownictwo - спасание и первая помощь</a>
+  <a href="#p10">10. Ochrona środowiska - экология</a>
+  <a href="#p11">11. Część praktyczna + węzły - практика и узлы</a>
+  <a href="#p12">12. Ściąga na ostatnią chwilę - шпаргалка</a>
+</nav>
+
+<!-- 1 -->
+<section id="p1">
+  <h2 class="sec">1. Przepisy i prawo drogi</h2>
+  <div class="ru"><b>Логика приоритета (от кого уступают):</b> моторная лодка уступает всем; парусник уступает вёсельным/тихоходным и терпящим бедствие. Проще: <b>кто маневреннее - тот уступает</b>. На встречных курсах два моторных судна расходятся <b>левыми бортами</b> (оба отворачивают вправо). При пересечении курсов - пропускает тот, у кого другой справа.</div>
+
+  <figure><svg viewBox="0 0 660 238" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Sytuacje prawa drogi">
+    <line x1="220" y1="10" x2="220" y2="214" stroke="#dbe3ef"/>
+    <line x1="440" y1="10" x2="440" y2="214" stroke="#dbe3ef"/>
+    <!-- Panel 1: crossing -->
+    <text x="110" y="22" font-size="12.5" fill="#14213d" text-anchor="middle" font-weight="bold">Kursy przecinające</text>
+    <polygon points="150,100 178,88 178,112" fill="#1a9e4b"/>
+    <line x1="150" y1="100" x2="112" y2="100" stroke="#1a9e4b" stroke-width="2"/>
+    <polygon points="112,100 122,95 122,105" fill="#1a9e4b"/>
+    <text x="164" y="80" font-size="10.5" fill="#0a5a2c" text-anchor="middle" font-weight="bold">pierwsz.</text>
+    <polygon points="75,150 63,180 87,180" fill="#d9342b"/>
+    <path d="M75,150 C75,130 98,122 120,122" fill="none" stroke="#d9342b" stroke-width="2" stroke-dasharray="5 4"/>
+    <polygon points="120,122 110,118 110,127" fill="#d9342b"/>
+    <text x="75" y="204" font-size="10.5" fill="#a11b16" text-anchor="middle" font-weight="bold">USTĘPUJE</text>
+    <text x="110" y="228" font-size="10.5" fill="#6b7896" text-anchor="middle">masz go z PRAWEJ → ustępujesz</text>
+    <!-- Panel 2: head-on -->
+    <text x="330" y="22" font-size="12.5" fill="#14213d" text-anchor="middle" font-weight="bold">Kurs wprost na siebie</text>
+    <polygon points="315,110 303,80 327,80" fill="#0a58c2"/>
+    <polygon points="345,124 333,154 357,154" fill="#0a58c2"/>
+    <path d="M315,110 C305,124 300,138 300,152" fill="none" stroke="#a11b16" stroke-width="2"/>
+    <polygon points="300,152 306,142 293,146" fill="#a11b16"/>
+    <path d="M345,124 C355,110 360,96 360,82" fill="none" stroke="#a11b16" stroke-width="2"/>
+    <polygon points="360,82 354,92 367,88" fill="#a11b16"/>
+    <text x="330" y="228" font-size="10.5" fill="#6b7896" text-anchor="middle">oba w PRAWO → lewymi burtami</text>
+    <!-- Panel 3: overtaking -->
+    <text x="550" y="22" font-size="12.5" fill="#14213d" text-anchor="middle" font-weight="bold">Wyprzedzanie</text>
+    <polygon points="550,96 538,126 562,126" fill="#1a9e4b"/>
+    <text x="550" y="80" font-size="10.5" fill="#0a5a2c" text-anchor="middle" font-weight="bold">wyprzedzany</text>
+    <polygon points="512,176 500,206 524,206" fill="#d9342b"/>
+    <path d="M512,176 C535,152 585,150 600,134" fill="none" stroke="#d9342b" stroke-width="2" stroke-dasharray="5 4"/>
+    <polygon points="600,134 592,142 604,144" fill="#d9342b"/>
+    <text x="550" y="228" font-size="10.5" fill="#6b7896" text-anchor="middle">wyprzedzający ustępuje</text>
+  </svg><figcaption>Prawo drogi: kto ustępuje (czerwony) i kto ma pierwszeństwo (zielony)</figcaption></figure>
+
+  <h3>Hierarchia pierwszeństwa</h3>
+  <div class="fact"><b>Statek o napędzie mechanicznym</b> ustępuje: żaglowym, wiosłowym, rybackim w trakcie połowu, statkom bez możliwości manewru. <br><span class="ru">Моторное судно уступает парусным, вёсельным, рыболовным и неманевроспособным.</span></div>
+
+  <details><summary>Kto ma pierwszeństwo przy spotkaniu dwóch jachtów motorowych na kursach przecinających się?</summary>
+  <div class="ans">✅ Mający prawą wolną (ustępuje ten, kto ma drugiego po prawej burcie).<small>Пропускает тот, у кого встречный справа. «Правило правой руки».</small></div></details>
+
+  <details><summary>Dwa statki idą wprost na siebie (kurs kolizyjny) - co robią?</summary>
+  <div class="ans">✅ Oba wyraźnie zmieniają kurs w prawo, aby minąć się lewymi burtami.<small>Оба отворачивают вправо, расходятся левыми бортами.</small></div></details>
+
+  <details><summary>Który jacht ma pierwszeństwo podczas wyprzedzania?</summary>
+  <div class="ans">✅ Wyprzedzany (ten, którego wyprzedzają).<small>Приоритет у обгоняемого; обгоняющий обязан держаться в стороне.</small></div></details>
+
+  <details><summary>Windsurfing i motorówka na kursach kolizyjnych - kto ma pierwszeństwo?</summary>
+  <div class="ans">✅ Windsurfing (traktowany jak jacht żaglowy).<small>Виндсёрфер = парусное судно, моторка уступает.</small></div></details>
+
+  <details><summary>Jacht płynący jednocześnie na żaglach i na silniku traktowany jest jako…</summary>
+  <div class="ans">✅ Statek o napędzie mechanicznym.<small>Если работает мотор - судно считается моторным, даже с поднятыми парусами.</small></div></details>
+
+  <details><summary>Jacht żaglowy vs jacht motorowy - kto ustępuje?</summary>
+  <div class="ans">✅ Pierwszeństwo ma jacht żaglowy; motorowy ustępuje.<small>Парусник имеет приоритет над моторным.</small></div></details>
+
+  <details><summary>Przy wejściu/wyjściu z portu pierwszeństwo ma…</summary>
+  <div class="ans">✅ Wychodzący z portu.<small>Выходящий из порта имеет приоритет над входящим.</small></div></details>
+
+  <details><summary>Za bezpieczeństwo żeglugi odpowiada…</summary>
+  <div class="ans">✅ Kapitan / kierownik statku.<small>За безопасность отвечает капитан (рулевой), а не судовладелец.</small></div></details>
+
+  <div class="tip"><b>Śródlądzie:</b> na rzece statek płynący <b>z prądem (w dół)</b> ma pierwszeństwo - trudniej mu hamować i manewrować. <span class="ru">На реке идущий вниз по течению имеет приоритет.</span></div>
+</section>
+
+<!-- 2 -->
+<section id="p2">
+  <h2 class="sec">2. Sygnały dźwiękowe i światła</h2>
+  <h3>Długość dźwięków</h3>
+  <table>
+    <tr><th>Sygnał</th><th>Czas</th><th>Комментарий</th></tr>
+    <tr><td>Krótki dźwięk</td><td><b>ok. 1 s</b></td><td>короткий (~1 сек)</td></tr>
+    <tr><td>Długi dźwięk</td><td><b>4-6 s</b></td><td>длинный</td></tr>
+  </table>
+
+  <details><summary>Sygnał „niebezpieczeństwo zderzenia / nie rozumiem Twoich zamiarów"</summary>
+  <div class="ans">✅ Seria (co najmniej 5) krótkich dźwięków.<small>Серия коротких = «опасность столкновения / не понимаю твоих намерений».</small></div></details>
+
+  <details><summary>Sygnał wzywania pomocy (dźwiękowy)</summary>
+  <div class="ans">✅ Powtarzające się długie dźwięki / jeden ciągły sygnał (dźwiękowo-świetlny SOS · · · - - - · · ·).<small>Сигнал бедствия: длинные повторяющиеся звуки или непрерывный сигнал; SOS = три коротких, три длинных, три коротких.</small></div></details>
+
+  <details><summary>Dwa krótkie dźwięki oznaczają…</summary>
+  <div class="ans">✅ „Zmieniam swój kurs w lewo".<small>1 короткий = поворачиваю вправо; 2 коротких = поворачиваю влево; 3 коротких = pracuję maszyną wstecz (даю задний ход).</small></div></details>
+
+  <figure><svg viewBox="0 0 470 250" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Sygnały dźwiękowe">
+    <!-- legend -->
+    <rect x="18" y="14" width="20" height="20" rx="3" fill="#1a6fc4"/>
+    <text x="44" y="29" font-size="11.5" fill="#14213d">krótki ~1 s</text>
+    <rect x="150" y="14" width="52" height="20" rx="3" fill="#8aa0c2"/>
+    <text x="208" y="29" font-size="11.5" fill="#14213d">długi 4-6 s</text>
+    <line x1="18" y1="46" x2="452" y2="46" stroke="#dbe3ef"/>
+    <!-- row 1 -->
+    <rect x="18" y="62" width="22" height="22" rx="3" fill="#1a6fc4"/>
+    <text x="170" y="79" font-size="12" fill="#14213d" font-weight="bold">1 krótki → w prawo <tspan fill="#8a4b00" font-weight="normal">· вправо</tspan></text>
+    <!-- row 2 -->
+    <rect x="18" y="98" width="22" height="22" rx="3" fill="#1a6fc4"/><rect x="46" y="98" width="22" height="22" rx="3" fill="#1a6fc4"/>
+    <text x="170" y="115" font-size="12" fill="#14213d" font-weight="bold">2 krótkie → w lewo <tspan fill="#8a4b00" font-weight="normal">· влево</tspan></text>
+    <!-- row 3 -->
+    <rect x="18" y="134" width="22" height="22" rx="3" fill="#1a6fc4"/><rect x="46" y="134" width="22" height="22" rx="3" fill="#1a6fc4"/><rect x="74" y="134" width="22" height="22" rx="3" fill="#1a6fc4"/>
+    <text x="170" y="151" font-size="12" fill="#14213d" font-weight="bold">3 krótkie → wstecz <tspan fill="#8a4b00" font-weight="normal">· задний ход</tspan></text>
+    <!-- row 4 -->
+    <rect x="18" y="170" width="20" height="22" rx="3" fill="#d9342b"/><rect x="44" y="170" width="20" height="22" rx="3" fill="#d9342b"/><rect x="70" y="170" width="20" height="22" rx="3" fill="#d9342b"/><rect x="96" y="170" width="20" height="22" rx="3" fill="#d9342b"/><rect x="122" y="170" width="20" height="22" rx="3" fill="#d9342b"/>
+    <text x="170" y="187" font-size="12" fill="#a11b16" font-weight="bold">≥5 krótkich → niebezpiecz. <tspan fill="#8a4b00" font-weight="normal">· опасность</tspan></text>
+    <!-- row 5 -->
+    <rect x="18" y="206" width="52" height="22" rx="3" fill="#8aa0c2"/><rect x="78" y="206" width="52" height="22" rx="3" fill="#8aa0c2"/>
+    <text x="170" y="223" font-size="12" fill="#14213d" font-weight="bold">długie powt. → pomoc <tspan fill="#8a4b00" font-weight="normal">· бедствие</tspan></text>
+  </svg><figcaption>Sygnały dźwiękowe - szpargał wzrokowy</figcaption></figure>
+
+  <h3>Światła nawigacyjne - sektory i barwy</h3>
+  <table>
+    <tr><th>Światło</th><th>Sektor</th><th>Barwa</th></tr>
+    <tr><td>Burtowe lewe (bakburta)</td><td>112,5°</td><td><b>czerwone</b> / красный</td></tr>
+    <tr><td>Burtowe prawe (sterburta)</td><td>112,5°</td><td><b>zielone</b> / зелёный</td></tr>
+    <tr><td>Masztowe (topowe, dziobowe)</td><td>225°</td><td>białe / белый</td></tr>
+    <tr><td>Rufowe</td><td>135°</td><td>białe / белый</td></tr>
+  </table>
+  <div class="ru"><b>Мнемоника:</b> левый = <b>к</b>расный (лев=<b>L</b>eft, но помни «red port wine left»), правый = зелёный. 112,5° + 112,5° + 135° (корма) = 360°. Мачтовый 225° = 2×112,5° (перекрывает оба борта спереди).</div>
+
+  <figure><svg viewBox="0 0 300 312" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Sektory świateł nawigacyjnych">
+    <path d="M150,150 L150,40 A110,110 0 0 1 251.6,192.1 Z" fill="#1a9e4b" fill-opacity="0.8"/>
+    <path d="M150,150 L150,40 A110,110 0 0 0 48.4,192.1 Z" fill="#d9342b" fill-opacity="0.85"/>
+    <path d="M150,150 L251.6,192.1 A110,110 0 0 1 48.4,192.1 Z" fill="#eef1f6" stroke="#c3ccda"/>
+    <circle cx="150" cy="150" r="110" fill="none" stroke="#c3ccda"/>
+    <path d="M150,108 C161,124 161,176 150,192 C139,176 139,124 150,108 Z" fill="#14213d"/>
+    <text x="150" y="30" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">DZIÓB ↑ nos</text>
+    <text x="230" y="118" font-size="13" fill="#0a5a2c" font-weight="bold">zielone</text>
+    <text x="230" y="133" font-size="12" fill="#0a5a2c">112,5°</text>
+    <text x="230" y="150" font-size="11" fill="#0a5a2c">прав. борт</text>
+    <text x="12" y="118" font-size="13" fill="#a11b16" font-weight="bold">czerwone</text>
+    <text x="12" y="133" font-size="12" fill="#a11b16">112,5°</text>
+    <text x="12" y="150" font-size="11" fill="#a11b16">лев. борт</text>
+    <text x="150" y="228" font-size="13" fill="#333" text-anchor="middle" font-weight="bold">białe rufowe 135°</text>
+    <text x="150" y="244" font-size="11" fill="#333" text-anchor="middle">кормовой белый</text>
+    <text x="150" y="300" font-size="11.5" fill="#14213d" text-anchor="middle">masztowe białe 225° = 2×112,5° z przodu</text>
+  </svg><figcaption>Sektory świateł - вид сверху (нос вверху)</figcaption></figure>
+
+  <details><summary>Kiedy światła nawigacyjne powinny być zapalone?</summary>
+  <div class="ans">✅ Od zachodu do wschodu słońca oraz przy ograniczonej widzialności.<small>От заката до рассвета И при ограниченной видимости (туман).</small></div></details>
+</section>
+
+<!-- 3 -->
+<section id="p3">
+  <h2 class="sec">3. Znaki nawigacyjne (IALA + śródlądowe)</h2>
+  <div class="ru">Знаки бывают <b>картинками</b> - на экзамене их показывают. Ниже - как их читать. IALA <b>region A</b> (Европа/Польша).</div>
+
+  <h3>Znaki boczne (laterne) - region A</h3>
+  <table>
+    <tr><th>Znak</th><th>Strona</th><th>Значение</th></tr>
+    <tr><td><b>Czerwony</b>, kształt walca/puszki</td><td>lewa strona toru</td><td>красный, «банка» - левая кромка фарватера (при входе с моря)</td></tr>
+    <tr><td><b>Zielony</b>, kształt stożka</td><td>prawa strona toru</td><td>зелёный, «конус» - правая кромка</td></tr>
+  </table>
+  <figure><svg viewBox="0 0 420 210" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Znaki boczne region A">
+    <text x="210" y="20" font-size="12.5" fill="#14213d" text-anchor="middle" font-weight="bold">Kierunek: od morza w górę rzeki ↑ / вход с моря</text>
+    <!-- port: red can left -->
+    <rect x="70" y="70" width="46" height="78" rx="6" fill="#d9342b" stroke="#8a1712"/>
+    <line x1="93" y1="148" x2="93" y2="190" stroke="#555" stroke-width="4"/>
+    <text x="93" y="60" font-size="12" fill="#a11b16" text-anchor="middle" font-weight="bold">LEWA</text>
+    <text x="93" y="206" font-size="11.5" fill="#14213d" text-anchor="middle">czerwony walec · левая</text>
+    <!-- starboard: green cone right -->
+    <polygon points="327,70 350,148 304,148" fill="#1a9e4b" stroke="#0a5a2c"/>
+    <line x1="327" y1="148" x2="327" y2="190" stroke="#555" stroke-width="4"/>
+    <text x="327" y="60" font-size="12" fill="#0a5a2c" text-anchor="middle" font-weight="bold">PRAWA</text>
+    <text x="327" y="206" font-size="11.5" fill="#14213d" text-anchor="middle">zielony stożek · правая</text>
+    <!-- channel arrows -->
+    <line x1="150" y1="120" x2="270" y2="120" stroke="#1a6fc4" stroke-width="2" stroke-dasharray="6 5"/>
+    <polygon points="270,120 260,115 260,125" fill="#1a6fc4"/>
+    <text x="210" y="112" font-size="11" fill="#1a6fc4" text-anchor="middle">tor wodny / фарватер</text>
+  </svg><figcaption>Znaki boczne (laterne) - region A: czerwony po lewej, zielony po prawej</figcaption></figure>
+
+  <div class="fact"><b>Nabieżnik (створ):</b> płyń tak, by widzieć znak wyższy nad niższym → <b>w kierunku wyższego znaku</b>. <span class="ru">Идёшь «в створ», направляя нос к более высокому знаку - так держишь ось фарватера.</span></div>
+
+  <h3>Znaki kardynalne - mnemonik zegarowy</h3>
+  <table>
+    <tr><th>Znak</th><th>Stożki (topmark)</th><th>Bezpieczna woda</th></tr>
+    <tr><td><b>N</b> (północ)</td><td>▲▲ oba w górę</td><td>omijaj od strony N (12:00)</td></tr>
+    <tr><td><b>E</b> (wschód)</td><td>▲▼ podstawami razem (jajko)</td><td>od strony E (3:00)</td></tr>
+    <tr><td><b>S</b> (południe)</td><td>▼▼ oba w dół</td><td>od strony S (6:00)</td></tr>
+    <tr><td><b>W</b> (zachód)</td><td>▼▲ wierzchołkami razem (kieliszek)</td><td>od strony W (9:00)</td></tr>
+  </table>
+  <figure><svg viewBox="0 0 640 235" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Znaki kardynalne">
+    <!-- N cx=80 : cones up-up, black over yellow -->
+    <polygon points="80,13 67,35 93,35" fill="#222"/>
+    <polygon points="80,35 67,57 93,57" fill="#222"/>
+    <rect x="65" y="66" width="30" height="43" fill="#222"/>
+    <rect x="65" y="109" width="30" height="43" fill="#f2c200"/>
+    <text x="80" y="174" font-size="16" fill="#14213d" text-anchor="middle" font-weight="bold">N</text>
+    <text x="80" y="192" font-size="11" fill="#14213d" text-anchor="middle">▲▲ w górę</text>
+    <text x="80" y="208" font-size="11" fill="#0a7d3a" text-anchor="middle">mijaj od N</text>
+    <text x="80" y="223" font-size="11" fill="#6b7896" text-anchor="middle">12:00</text>
+    <!-- E cx=240 : base-to-base (diamond), black-yellow-black -->
+    <polygon points="240,13 227,35 253,35" fill="#222"/>
+    <polygon points="227,35 253,35 240,57" fill="#222"/>
+    <rect x="225" y="66" width="30" height="28" fill="#222"/>
+    <rect x="225" y="94" width="30" height="30" fill="#f2c200"/>
+    <rect x="225" y="124" width="30" height="28" fill="#222"/>
+    <text x="240" y="174" font-size="16" fill="#14213d" text-anchor="middle" font-weight="bold">E</text>
+    <text x="240" y="192" font-size="11" fill="#14213d" text-anchor="middle">◆ „jajko"</text>
+    <text x="240" y="208" font-size="11" fill="#0a7d3a" text-anchor="middle">mijaj od E</text>
+    <text x="240" y="223" font-size="11" fill="#6b7896" text-anchor="middle">3:00</text>
+    <!-- S cx=400 : cones down-down, yellow over black -->
+    <polygon points="387,13 413,13 400,35" fill="#222"/>
+    <polygon points="387,35 413,35 400,57" fill="#222"/>
+    <rect x="385" y="66" width="30" height="43" fill="#f2c200"/>
+    <rect x="385" y="109" width="30" height="43" fill="#222"/>
+    <text x="400" y="174" font-size="16" fill="#14213d" text-anchor="middle" font-weight="bold">S</text>
+    <text x="400" y="192" font-size="11" fill="#14213d" text-anchor="middle">▼▼ w dół</text>
+    <text x="400" y="208" font-size="11" fill="#0a7d3a" text-anchor="middle">mijaj od S</text>
+    <text x="400" y="223" font-size="11" fill="#6b7896" text-anchor="middle">6:00</text>
+    <!-- W cx=560 : point-to-point (hourglass), yellow-black-yellow -->
+    <polygon points="547,13 573,13 560,35" fill="#222"/>
+    <polygon points="560,35 547,57 573,57" fill="#222"/>
+    <rect x="545" y="66" width="30" height="28" fill="#f2c200"/>
+    <rect x="545" y="94" width="30" height="30" fill="#222"/>
+    <rect x="545" y="124" width="30" height="28" fill="#f2c200"/>
+    <text x="560" y="174" font-size="16" fill="#14213d" text-anchor="middle" font-weight="bold">W</text>
+    <text x="560" y="192" font-size="11" fill="#14213d" text-anchor="middle">▽△ „kieliszek"</text>
+    <text x="560" y="208" font-size="11" fill="#0a7d3a" text-anchor="middle">mijaj od W</text>
+    <text x="560" y="223" font-size="11" fill="#6b7896" text-anchor="middle">9:00</text>
+  </svg><figcaption>Znaki kardynalne - stożki „patrzą" w stronę czarnego pasa · обходи со стороны названия</figcaption></figure>
+
+  <figure><svg viewBox="0 0 360 398" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Zegar kardynalny">
+    <circle cx="180" cy="180" r="130" fill="#fbfcfe" stroke="#c3ccda" stroke-width="2"/>
+    <line x1="180" y1="180" x2="271.9" y2="88.1" stroke="#e6ebf3"/>
+    <line x1="180" y1="180" x2="271.9" y2="271.9" stroke="#e6ebf3"/>
+    <line x1="180" y1="180" x2="88.1" y2="271.9" stroke="#e6ebf3"/>
+    <line x1="180" y1="180" x2="88.1" y2="88.1" stroke="#e6ebf3"/>
+    <circle cx="180" cy="180" r="14" fill="#f2c200" stroke="#14213d" stroke-width="2"/>
+    <line x1="171" y1="171" x2="189" y2="189" stroke="#14213d" stroke-width="2"/>
+    <line x1="189" y1="171" x2="171" y2="189" stroke="#14213d" stroke-width="2"/>
+    <text x="180" y="205" font-size="9" text-anchor="middle" fill="#8a1712">danger</text>
+    <line x1="180" y1="162" x2="180" y2="122" stroke="#1a9e4b" stroke-width="3"/><polygon points="180,113 173,126 187,126" fill="#1a9e4b"/>
+    <line x1="198" y1="180" x2="238" y2="180" stroke="#1a9e4b" stroke-width="3"/><polygon points="247,180 234,173 234,187" fill="#1a9e4b"/>
+    <line x1="180" y1="198" x2="180" y2="238" stroke="#1a9e4b" stroke-width="3"/><polygon points="180,247 173,234 187,234" fill="#1a9e4b"/>
+    <line x1="162" y1="180" x2="122" y2="180" stroke="#1a9e4b" stroke-width="3"/><polygon points="113,180 126,173 126,187" fill="#1a9e4b"/>
+    <polygon points="180,60 172,76 188,76" fill="#222"/><polygon points="180,76 172,92 188,92" fill="#222"/>
+    <polygon points="172,268 188,268 180,284" fill="#222"/><polygon points="172,284 188,284 180,300" fill="#222"/>
+    <polygon points="282,158 274,180 290,180" fill="#222"/><polygon points="274,180 290,180 282,202" fill="#222"/>
+    <polygon points="70,158 86,158 78,180" fill="#222"/><polygon points="70,202 86,202 78,180" fill="#222"/>
+    <text x="180" y="34" font-size="18" text-anchor="middle" font-weight="bold" fill="#14213d">N</text>
+    <text x="180" y="50" font-size="11" text-anchor="middle" fill="#6b7896">12:00</text>
+    <text x="342" y="176" font-size="18" text-anchor="middle" font-weight="bold" fill="#14213d">E</text>
+    <text x="342" y="192" font-size="11" text-anchor="middle" fill="#6b7896">3:00</text>
+    <text x="180" y="338" font-size="18" text-anchor="middle" font-weight="bold" fill="#14213d">S</text>
+    <text x="180" y="354" font-size="11" text-anchor="middle" fill="#6b7896">6:00</text>
+    <text x="18" y="176" font-size="18" text-anchor="middle" font-weight="bold" fill="#14213d">W</text>
+    <text x="18" y="192" font-size="11" text-anchor="middle" fill="#6b7896">9:00</text>
+    <text x="180" y="380" font-size="10.5" text-anchor="middle" fill="#8a4b00">zielona strzałka = bezpieczna woda</text>
+    <text x="180" y="394" font-size="10.5" text-anchor="middle" fill="#8a4b00">czarny pas: N u góry · S u dołu · E góra+dół · W w środku</text>
+  </svg><figcaption>„Zegar" kardynalny: N=12, E=3, S=6, W=9 - безопасная вода со стороны названия знака</figcaption></figure>
+
+  <div class="fact"><b>Światła kardynalne - liczba błysków = godzina na zegarze!</b> (wszystkie białe, Q = szybkie / VQ = bardzo szybkie)
+  <table>
+    <tr><th>Znak</th><th>Rytm światła</th><th>Мнемоника</th></tr>
+    <tr><td><b>N</b> (12:00)</td><td>Q lub VQ - błyski CIĄGŁE</td><td>непрерывные, «часов нет» = 12</td></tr>
+    <tr><td><b>E</b> (3:00)</td><td>VQ(3) co 5 s / Q(3) co 10 s</td><td>3 вспышки = 3 часа</td></tr>
+    <tr><td><b>S</b> (6:00)</td><td>VQ(6) + 1 długi / Q(6) + LFl</td><td>6 вспышек + длинная (внизу «6»)</td></tr>
+    <tr><td><b>W</b> (9:00)</td><td>VQ(9) co 10 s / Q(9) co 15 s</td><td>9 вспышек = 9 часов</td></tr>
+  </table>
+  <span class="ru">Число белых вспышек = час на «циферблате»: E=3, S=6, W=9; N - непрерывные. У South добавлена одна <b>длинная</b> вспышка, чтобы не спутать с West в тумане.</span></div>
+
+  <div class="ru"><b>Правило:</b> обходи кардинальный знак со стороны его названия - безопасная вода там. Топовые конусы: N - оба вверх, S - оба вниз, E - «яйцо» (расходятся), W - «бокал/wine» (сходятся). Цвета чёрно-жёлтые: конусы «смотрят» в сторону ЧЁРНОЙ полосы (N - чёрный сверху, S - снизу, E - сверху и снизу, W - в середине).</div>
+
+  <h3>Znaki śródlądowe (tablice)</h3>
+  <ul>
+    <li><b>Zakazu</b> - czerwona obwódka + przekreślenie (красный кант, перечёркнуто - запрет).</li>
+    <li><b>Nakazu</b> - czerwona obwódka, biały środek (красный кант - предписание).</li>
+    <li><b>Ograniczenia</b> - czerwony kant + liczba (ограничение, напр. глубина/ширина/скорость).</li>
+    <li><b>Zalecenia / informacyjne</b> - <b>niebieskie</b> tablice (синие - рекомендация/информация).</li>
+  </ul>
+  <figure><svg viewBox="0 0 480 150" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Kształty znaków śródlądowych">
+    <!-- Zakaz: red border square, red diagonal -->
+    <rect x="20" y="20" width="70" height="70" fill="#fff" stroke="#d9342b" stroke-width="7"/>
+    <line x1="24" y1="86" x2="86" y2="24" stroke="#d9342b" stroke-width="7"/>
+    <text x="55" y="112" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">ZAKAZ</text>
+    <text x="55" y="128" font-size="10.5" fill="#8a4b00" text-anchor="middle">запрет</text>
+    <!-- Nakaz: red border, symbol arrow -->
+    <rect x="140" y="20" width="70" height="70" fill="#fff" stroke="#d9342b" stroke-width="7"/>
+    <polygon points="163,68 163,42 187,55" fill="#14213d"/>
+    <text x="175" y="112" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">NAKAZ</text>
+    <text x="175" y="128" font-size="10.5" fill="#8a4b00" text-anchor="middle">предписание</text>
+    <!-- Ograniczenie: red border + number -->
+    <rect x="260" y="20" width="70" height="70" fill="#fff" stroke="#d9342b" stroke-width="7"/>
+    <text x="295" y="66" font-size="26" fill="#14213d" text-anchor="middle" font-weight="bold">5</text>
+    <text x="295" y="112" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">OGRANICZ.</text>
+    <text x="295" y="128" font-size="10.5" fill="#8a4b00" text-anchor="middle">ограничение</text>
+    <!-- Informacja: blue -->
+    <rect x="380" y="20" width="70" height="70" fill="#1a6fc4" stroke="#0f4b86" stroke-width="3"/>
+    <rect x="398" y="38" width="34" height="34" fill="#fff"/>
+    <text x="415" y="112" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">INFORMACJA</text>
+    <text x="415" y="128" font-size="10.5" fill="#8a4b00" text-anchor="middle">инфо / синий</text>
+  </svg><figcaption>Kształty znaków śródlądowych: czerwona obwódka = zakaz/nakaz/ograniczenie · niebieski = informacja</figcaption></figure>
+</section>
+
+<!-- 3b: nawigacja w praktyce -->
+<section id="p3b">
+  <h2 class="sec">3b. Nawigacja w praktyce - schematy</h2>
+  <div class="ru">Как реально ходить по створам, рекам, озёрам/морю и заходить в порт. Красный/зелёный всегда относительно <b>направления знакования</b> (обычно: с моря в реку / вверх по течению).</div>
+
+  <h3>Nabieżnik (створ / leading marks)</h3>
+  <figure><svg viewBox="0 0 660 320" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Nabieznik">
+    <line x1="330" y1="12" x2="330" y2="308" stroke="#dbe3ef"/>
+    <text x="165" y="22" font-size="12.5" text-anchor="middle" font-weight="bold" fill="#14213d">Na osi (dobrze)</text>
+    <rect x="20" y="40" width="290" height="250" fill="#dbeafe"/>
+    <polygon points="165,44 154,62 176,62" fill="#c0392b"/><rect x="161" y="62" width="8" height="16" fill="#c0392b"/>
+    <polygon points="165,92 156,106 174,106" fill="#c0392b"/><rect x="161" y="106" width="8" height="12" fill="#c0392b"/>
+    <line x1="165" y1="118" x2="165" y2="256" stroke="#0a58c2" stroke-width="1.5" stroke-dasharray="6 5"/>
+    <polygon points="165,258 155,280 175,280" fill="#14213d"/>
+    <text x="165" y="304" font-size="10.5" text-anchor="middle" fill="#6b7896">znaki w jednej pionowej linii = na osi</text>
+    <text x="495" y="22" font-size="12.5" text-anchor="middle" font-weight="bold" fill="#14213d">Zejscie z osi</text>
+    <rect x="350" y="40" width="290" height="250" fill="#dbeafe"/>
+    <polygon points="478,44 467,62 489,62" fill="#c0392b"/><rect x="474" y="62" width="8" height="16" fill="#c0392b"/>
+    <polygon points="512,92 503,106 521,106" fill="#c0392b"/><rect x="508" y="106" width="8" height="12" fill="#c0392b"/>
+    <polygon points="470,258 460,280 480,280" fill="#14213d"/>
+    <line x1="470" y1="258" x2="478" y2="78" stroke="#8aa0c2" stroke-width="1" stroke-dasharray="3 3"/>
+    <line x1="470" y1="258" x2="512" y2="118" stroke="#8aa0c2" stroke-width="1" stroke-dasharray="3 3"/>
+    <path d="M470,250 C452,230 452,210 468,196" fill="none" stroke="#1a9e4b" stroke-width="2"/>
+    <polygon points="468,196 456,200 464,208" fill="#1a9e4b"/>
+    <text x="495" y="304" font-size="10.5" text-anchor="middle" fill="#6b7896">znaki rozjechane → skręć ku wyższemu</text>
+  </svg><figcaption>Nabieżnik: ustaw wyższy (rufowy) znak dokładnie nad niższym → jesteś na osi toru</figcaption></figure>
+
+  <h3>Rzeka - prąd i strona szlaku</h3>
+  <figure><svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Rzeka">
+    <rect x="0" y="70" width="660" height="150" fill="#dbeafe"/>
+    <line x1="0" y1="70" x2="660" y2="70" stroke="#b6c2d6" stroke-width="2"/>
+    <line x1="0" y1="220" x2="660" y2="220" stroke="#b6c2d6" stroke-width="2"/>
+    <text x="330" y="30" font-size="12.5" text-anchor="middle" font-weight="bold" fill="#14213d">Rzeka - prąd i pierwszeństwo</text>
+    <line x1="250" y1="147" x2="410" y2="147" stroke="#0a58c2" stroke-width="2" opacity="0.55"/>
+    <polygon points="410,147 398,141 398,153" fill="#0a58c2" opacity="0.55"/>
+    <text x="330" y="140" font-size="11" text-anchor="middle" fill="#0a58c2">prąd / течение →</text>
+    <polygon points="150,100 174,90 174,110" fill="#1a9e4b"/>
+    <text x="150" y="86" font-size="10" text-anchor="middle" fill="#0a5a2c">pod prąd</text>
+    <polygon points="470,195 446,185 446,205" fill="#d9342b"/>
+    <text x="482" y="190" font-size="10" text-anchor="start" fill="#a11b16">z prądem = PIERWSZEŃSTWO</text>
+    <text x="330" y="252" font-size="11" text-anchor="middle" fill="#6b7896">trzymaj się PRAWEJ strony szlaku; mijasz lewymi burtami</text>
+    <text x="330" y="274" font-size="10.5" text-anchor="middle" fill="#8a4b00">идущий вниз по течению имеет приоритет</text>
+  </svg><figcaption>Rzeka: trzymaj prawej strony toru; jednostka płynąca z prądem ma pierwszeństwo</figcaption></figure>
+
+  <h3>Jezioro / morze - mielizna z kardynalnymi</h3>
+  <figure><svg viewBox="0 0 660 352" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Mielizna">
+    <rect x="0" y="34" width="660" height="318" fill="#dbeafe"/>
+    <text x="330" y="24" font-size="12.5" text-anchor="middle" font-weight="bold" fill="#14213d">Otwarta woda - omijanie mielizny</text>
+    <ellipse cx="330" cy="182" rx="95" ry="52" fill="#ece0b4" stroke="#c9b26a"/>
+    <text x="330" y="186" font-size="11" text-anchor="middle" fill="#8a6d1e">mielizna / скала</text>
+    <polygon points="330,70 322,84 338,84" fill="#222"/><polygon points="330,84 322,98 338,98" fill="#222"/>
+    <rect x="323" y="100" width="14" height="12" fill="#222"/><rect x="323" y="112" width="14" height="12" fill="#f2c200"/>
+    <text x="348" y="96" font-size="10.5" text-anchor="start" fill="#14213d">N - mijaj od N</text>
+    <rect x="323" y="248" width="14" height="12" fill="#f2c200"/><rect x="323" y="260" width="14" height="12" fill="#222"/>
+    <polygon points="322,276 338,276 330,290" fill="#222"/><polygon points="322,290 338,290 330,304" fill="#222"/>
+    <text x="348" y="300" font-size="10.5" text-anchor="start" fill="#14213d">S - mijaj od S</text>
+    <path d="M60,64 C200,50 460,50 600,64" fill="none" stroke="#1a9e4b" stroke-width="2" stroke-dasharray="7 5"/>
+    <polygon points="600,64 588,58 589,70" fill="#1a9e4b"/>
+    <path d="M60,298 C200,312 460,312 600,298" fill="none" stroke="#1a9e4b" stroke-width="2" stroke-dasharray="7 5"/>
+    <polygon points="600,298 589,292 588,304" fill="#1a9e4b"/>
+    <text x="330" y="344" font-size="10.5" text-anchor="middle" fill="#8a4b00">обходи знак со стороны его названия (N - с севера, S - с юга)</text>
+  </svg><figcaption>Otwarta woda: znak N mijaj od północy, znak S od południa (zielona trasa = bezpiecznie)</figcaption></figure>
+
+  <h3>Wejście do portu (region A)</h3>
+  <figure><svg viewBox="0 0 660 332" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Port">
+    <rect x="0" y="30" width="660" height="302" fill="#dbeafe"/>
+    <text x="330" y="22" font-size="12.5" text-anchor="middle" font-weight="bold" fill="#14213d">Wejście do portu - trzymaj PRAWEJ</text>
+    <rect x="60" y="34" width="540" height="46" fill="#c9d6ea"/>
+    <text x="330" y="62" font-size="11" text-anchor="middle" fill="#4a5a76">basen portu</text>
+    <rect x="250" y="80" width="30" height="70" fill="#9aa6bd"/>
+    <rect x="380" y="80" width="30" height="70" fill="#9aa6bd"/>
+    <circle cx="265" cy="86" r="7" fill="#d9342b"/>
+    <circle cx="395" cy="86" r="7" fill="#1a9e4b"/>
+    <rect x="284" y="180" width="14" height="18" fill="#d9342b"/>
+    <rect x="284" y="240" width="14" height="18" fill="#d9342b"/>
+    <polygon points="374,180 364,198 384,198" fill="#1a9e4b"/>
+    <polygon points="374,240 364,258 384,258" fill="#1a9e4b"/>
+    <polygon points="345,300 335,320 355,320" fill="#14213d"/>
+    <line x1="345" y1="300" x2="345" y2="160" stroke="#0a58c2" stroke-width="2" stroke-dasharray="6 4"/>
+    <polygon points="345,152 338,166 352,166" fill="#0a58c2"/>
+    <text x="150" y="200" font-size="10.5" text-anchor="middle" fill="#a11b16" font-weight="bold">CZERWONY = LEWA</text>
+    <text x="520" y="200" font-size="10.5" text-anchor="middle" fill="#0a5a2c" font-weight="bold">ZIELONY = PRAWA</text>
+    <text x="150" y="222" font-size="10" text-anchor="middle" fill="#6b7896">mała prędkość</text>
+  </svg><figcaption>Wejście z morza (region A): czerwony po LEWEJ, zielony po PRAWEJ, wolno, trzymaj się prawej</figcaption></figure>
+
+  <div class="warn"><b>Częste błędy z czerwonym/zielonym:</b>
+    <ul>
+      <li><b>Region A vs B.</b> W Polsce/Europie (region A) wracając <b>z morza masz CZERWONY po LEWEJ</b>. W USA (region B) odwrotnie - „Red Right Returning". <span class="ru">Не путай: в Европе красный слева при заходе, в США - справа.</span></li>
+      <li><b>Kierunek oznakowania.</b> „Lewa/prawa" liczy się względem <b>kierunku znakowania</b> (z morza w górę rzeki) - sprawdzaj strzałkę na mapie. <span class="ru">«Лево/право» - относительно направления знакования, а не твоего курса.</span></li>
+      <li><b>Zakręt i szeroki tor.</b> Zawsze trzymaj się <b>prawej</b> strony szlaku, także na łuku. <span class="ru">На повороте и в широком канале - держись правой стороны.</span></li>
+      <li><b>Kardynalne.</b> Znak mijaj <b>od strony jego nazwy</b>, nie „ścinaj" nad mielizną. <span class="ru">Кардинальный обходи со стороны названия.</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="p4">
+  <h2 class="sec">4. Budowa jachtu motorowego</h2>
+
+  <figure><svg viewBox="-55 0 440 435" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Części jachtu">
+    <path d="M165,22 C125,52 105,102 105,152 L105,382 L225,382 L225,152 C225,102 205,52 165,22 Z" fill="#eef4ff" stroke="#0a58c2" stroke-width="2"/>
+    <line x1="165" y1="60" x2="165" y2="378" stroke="#8894ab" stroke-width="1.5" stroke-dasharray="7 5"/>
+    <rect x="132" y="205" width="66" height="110" rx="6" fill="#fff" stroke="#c3ccda"/>
+    <text x="165" y="265" font-size="12" fill="#6b7896" text-anchor="middle">kokpit</text>
+    <!-- engine at stern -->
+    <rect x="150" y="382" width="30" height="18" rx="3" fill="#14213d"/>
+    <!-- labels -->
+    <text x="165" y="14" font-size="12.5" fill="#14213d" text-anchor="middle" font-weight="bold">DZIÓB / nos</text>
+    <line x1="55" y1="240" x2="105" y2="240" stroke="#a11b16" stroke-width="1.2"/>
+    <text x="50" y="232" font-size="12" fill="#a11b16" text-anchor="end" font-weight="bold">BAKBURTA</text>
+    <text x="50" y="247" font-size="10.5" fill="#a11b16" text-anchor="end">lewy · красный</text>
+    <line x1="275" y1="240" x2="225" y2="240" stroke="#0a5a2c" stroke-width="1.2"/>
+    <text x="280" y="232" font-size="12" fill="#0a5a2c" text-anchor="start" font-weight="bold">STERBURTA</text>
+    <text x="280" y="247" font-size="10.5" fill="#0a5a2c" text-anchor="start">prawy · зелёный</text>
+    <line x1="205" y1="150" x2="255" y2="150" stroke="#6b7896" stroke-width="1"/>
+    <text x="258" y="147" font-size="10.5" fill="#6b7896" text-anchor="start">burta</text>
+    <line x1="180" y1="120" x2="255" y2="110" stroke="#6b7896" stroke-width="1"/>
+    <text x="258" y="107" font-size="10.5" fill="#6b7896" text-anchor="start">kil/stępka</text>
+    <text x="165" y="415" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">RUFA · PAWĘŻ + silnik</text>
+    <text x="165" y="428" font-size="10.5" fill="#6b7896" text-anchor="middle">корма · транец · мотор</text>
+  </svg><figcaption>Nazewnictwo - вид сверху: bakburta = лев (красный), sterburta = прав (зелёный)</figcaption></figure>
+
+  <table>
+    <tr><th>Termin PL</th><th>Значение</th><th>Przykład (PL)</th></tr>
+    <tr><td>Dziób / Rufa</td><td>нос / корма</td><td>Idź na <b>dziób</b> rzucić cumę</td></tr>
+    <tr><td>Sterburta / Bakburta</td><td>правый борт / левый борт</td><td>Mijamy się lewą burtą (<b>bakburtą</b>)</td></tr>
+    <tr><td>Kadłub</td><td>корпус</td><td><b>Kadłub</b> z laminatu</td></tr>
+    <tr><td>Pawęż</td><td>транец (задняя стенка кормы)</td><td>Silnik zaburtowy wisi na <b>pawęży</b></td></tr>
+    <tr><td>Kil / Stępka</td><td>киль</td><td><b>Stępka</b> chroni dno przy sztrandowaniu</td></tr>
+    <tr><td>Zęza</td><td>трюм/льяло - самое низкое место, куда стекает вода</td><td>Wypompuj wodę z <b>zęzy</b> przed rejsem</td></tr>
+    <tr><td>Forpik / Achterpik</td><td>носовой / кормовой отсек-пик</td><td>Kotwica leży w <b>forpiku</b></td></tr>
+    <tr><td>Denniki</td><td>флоры - связывают киль с шпангоутами (wręgi)</td><td><b>Denniki</b> wzmacniają dno</td></tr>
+    <tr><td>Pokładniki</td><td>бимсы - связывают палубу со шпангоутами</td><td><b>Pokładniki</b> podtrzymują pokład</td></tr>
+    <tr><td>Nadburcie</td><td>фальшборт (борт выше палубы)</td><td><b>Nadburcie</b> chroni przed zalaniem</td></tr>
+    <tr><td>Kluza</td><td>клюз - отверстие в борту для швартова/якорной цепи</td><td>Cuma przechodzi przez <b>kluzę</b></td></tr>
+    <tr><td>Knaga / Poler</td><td>утка / пал - для крепления концов</td><td>Zawiąż cumę na <b>knadze</b></td></tr>
+    <tr><td>Handreling</td><td>леер-поручень</td><td>Trzymaj się <b>handrelingu</b> na fali</td></tr>
+    <tr><td>Koja</td><td>койка (спальное место). Не путать с <b>keja</b> = причал!</td><td>Śpisz w <b>koi</b>, cumujesz przy <b>kei</b></td></tr>
+    <tr><td>Mesa</td><td>кают-компания (где едят)</td><td>Obiad jemy w <b>mesie</b></td></tr>
+    <tr><td>Kambuz</td><td>камбуз (кухня)</td><td>Gotujemy w <b>kambuzie</b></td></tr>
+    <tr><td>Gretingi</td><td>деревянный настил-решётка на палубе</td><td><b>Gretingi</b> odprowadzają wodę z kokpitu</td></tr>
+    <tr><td>Katamaran</td><td>катамаран (два корпуса)</td><td><b>Katamaran</b> = dwa kadłuby</td></tr>
+  </table>
+
+  <figure><svg viewBox="0 0 660 320" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Przekrój jachtu">
+    <line x1="0" y1="168" x2="660" y2="168" stroke="#0a58c2" stroke-dasharray="7 5" opacity="0.5"/>
+    <text x="6" y="162" font-size="9.5" fill="#0a58c2" text-anchor="start">linia wody</text>
+    <path d="M60,112 Q52,98 74,98 L520,98 Q600,98 622,150 Q600,210 520,210 L80,210 Q56,210 56,192 Z" fill="#eef4ff" stroke="#0a58c2" stroke-width="2"/>
+    <rect x="300" y="72" width="160" height="28" rx="4" fill="#dce6f6" stroke="#0a58c2"/>
+    <line x1="176" y1="98" x2="176" y2="205" stroke="#8aa0c2" stroke-dasharray="4 3"/>
+    <line x1="300" y1="100" x2="300" y2="205" stroke="#8aa0c2" stroke-dasharray="4 3"/>
+    <line x1="460" y1="100" x2="460" y2="205" stroke="#8aa0c2" stroke-dasharray="4 3"/>
+    <rect x="34" y="118" width="24" height="34" rx="3" fill="#14213d"/>
+    <rect x="150" y="196" width="60" height="12" fill="#bcd0ec"/>
+    <line x1="56" y1="212" x2="622" y2="214" stroke="#8a6d1e" stroke-width="4"/>
+    <text x="118" y="150" font-size="11" text-anchor="middle" fill="#14213d">achterpik</text>
+    <text x="238" y="150" font-size="11" text-anchor="middle" fill="#14213d">kokpit</text>
+    <text x="380" y="140" font-size="11" text-anchor="middle" fill="#14213d">mesa · koja</text>
+    <text x="380" y="90" font-size="10" text-anchor="middle" fill="#4a5a76">kabina</text>
+    <text x="540" y="150" font-size="11" text-anchor="middle" fill="#14213d">forpik</text>
+    <text x="180" y="230" font-size="10.5" text-anchor="middle" fill="#8a6d1e">zęza (najniżej)</text>
+    <text x="380" y="230" font-size="10.5" text-anchor="middle" fill="#8a6d1e">kil / stępka</text>
+    <text x="34" y="112" font-size="10" text-anchor="start" fill="#a11b16">silnik</text>
+    <text x="330" y="252" font-size="10.5" text-anchor="middle" fill="#6b7896">RUFA ←</text>
+    <text x="600" y="252" font-size="10.5" text-anchor="middle" fill="#6b7896">→ DZIÓB</text>
+  </svg><figcaption>Przekrój jachtu (bok): rozmieszczenie pomieszczeń - форпик спереди, ахтерпик сзади, зэза внизу</figcaption></figure>
+  <div class="tip">На экзамене любят пары-ловушки: <b>koja</b> (койка) ≠ <b>keja</b> (причал); <b>zęza</b> (льяло) ≠ <b>stewa</b> (штевень). <span class="ru">Запомни именно эти.</span></div>
+</section>
+
+<!-- 5 -->
+<section id="p5">
+  <h2 class="sec">5. Silniki i mechanika</h2>
+  <div class="fact"><b>1 kW = 1,36 KM</b> (koni mechanicznych). <span class="ru">Обратно: 1 л.с. ≈ 0,735 кВт.</span></div>
+
+  <details><summary>„Four stroke" na silniku oznacza…</summary>
+  <div class="ans">✅ Silnik czterosuwowy.<small>Four stroke = 4-тактный (льёшь чистый бензин). Two stroke = 2-тактный (смесь бензина с маслом).</small></div></details>
+
+  <details><summary>Czy silnik dwusuwowy ma miskę olejową?</summary>
+  <div class="ans">✅ Nie.<small>У 2-тактного нет масляного картера - масло идёт в смеси с топливом.</small></div></details>
+
+  <details><summary>Paliwo do silnika zaburtowego to…</summary>
+  <div class="ans">✅ Czysta benzyna lub mieszanka benzyny z olejem - zależnie od typu silnika.<small>4-такт - чистый бензин; 2-такт - смесь бензина с маслом.</small></div></details>
+
+  <details><summary>Podczas pracy typowego silnika zaburtowego z otworu kontrolnego…</summary>
+  <div class="ans">✅ Powinna delikatnie kapać/sikać ciepła woda.<small>Струйка тёплой воды из контрольного отверстия = система охлаждения работает. Нет воды - глуши двигатель!</small></div></details>
+
+  <details><summary>Układ chłodzenia większości silników zaburtowych…</summary>
+  <div class="ans">✅ Chłodzenie wodą, po której płynie jednostka (zaburtową).<small>Охлаждение забортной водой.</small></div></details>
+
+  <details><summary>Przełączenie od razu z „naprzód" na „wstecz" jest…</summary>
+  <div class="ans">✅ Bezwzględnie zabronione - uszkadza przekładnię.<small>Резко с «вперёд» на «назад» нельзя - сломаешь редуктор; сначала нейтраль.</small></div></details>
+
+  <details><summary>Przed wyłączeniem silnika należy…</summary>
+  <div class="ans">✅ Zredukować obroty do minimum i ustawić bieg jałowy.<small>Перед выключением - сбросить обороты и нейтраль.</small></div></details>
+
+  <details><summary>Trymowanie silnika (trim) to…</summary>
+  <div class="ans">✅ Ustawienie silnika pod odpowiednim kątem do pawęży.<small>Трим - угол наклона мотора к транцу (влияет на дифферент и скорость).</small></div></details>
+
+  <div class="fact"><b>Manetka</b> = рычаг газа/реверса. <b>Kill switch / linka bezpieczeństwa</b> - шнур аварийной остановки, крепится к запястью рулевого. <span class="ru">Перед пуском: нейтраль, открыть сапун бака, опустить мотор чтобы винт был под водой.</span></div>
+</section>
+
+<!-- 6 -->
+<section id="p6">
+  <h2 class="sec">6. Manewrowanie i cumowanie</h2>
+  <details><summary>Manewry portowe wykonujemy z prędkością…</summary>
+  <div class="ans">✅ Minimalną, zapewniającą jeszcze sterowność.<small>В порту - минимальная скорость, при которой лодка ещё слушается руля.</small></div></details>
+
+  <details><summary>Przy silnym wietrze manewry portowe wykonujemy…</summary>
+  <div class="ans">✅ Stosunkowo szybko/zdecydowanie - wraz ze wzrostem prędkości maleje dryf.<small>При сильном ветре манёвр делают решительнее: чем выше скорость, тем меньше снос (dryf).</small></div></details>
+
+  <h3>Efekt śruby (wint) na biegu wstecznym</h3>
+  <table>
+    <tr><th>Śruba</th><th>Wstecz - rufę zarzuca…</th></tr>
+    <tr><td>Prawoskrętna (правого вращения)</td><td>w <b>lewo</b> / влево</td></tr>
+    <tr><td>Lewoskrętna (левого вращения)</td><td>w <b>prawo</b> / вправо</td></tr>
+  </table>
+  <div class="ru">На заднем ходу корма «уводится» из-за бокового упора винта. Правый винт → корма влево. Это используют при швартовке.</div>
+
+  <figure><svg viewBox="0 0 380 210" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Efekt śruby wstecz">
+    <line x1="190" y1="12" x2="190" y2="198" stroke="#dbe3ef"/>
+    <!-- Panel 1: right-hand prop -> stern to left -->
+    <text x="95" y="24" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">Śruba prawoskrętna</text>
+    <text x="95" y="40" font-size="11" fill="#6b7896" text-anchor="middle">bieg WSTECZ</text>
+    <rect x="55" y="52" width="80" height="62" rx="8" fill="#eef4ff" stroke="#0a58c2"/>
+    <circle cx="95" cy="128" r="15" fill="#fff" stroke="#14213d" stroke-width="2"/>
+    <line x1="84" y1="128" x2="106" y2="128" stroke="#14213d" stroke-width="2"/>
+    <line x1="95" y1="117" x2="95" y2="139" stroke="#14213d" stroke-width="2"/>
+    <line x1="90" y1="170" x2="35" y2="170" stroke="#a11b16" stroke-width="3"/>
+    <polygon points="35,170 47,163 47,177" fill="#a11b16"/>
+    <text x="95" y="196" font-size="12" fill="#a11b16" text-anchor="middle" font-weight="bold">rufa → w LEWO</text>
+    <!-- Panel 2: left-hand prop -> stern to right -->
+    <text x="285" y="24" font-size="12" fill="#14213d" text-anchor="middle" font-weight="bold">Śruba lewoskrętna</text>
+    <text x="285" y="40" font-size="11" fill="#6b7896" text-anchor="middle">bieg WSTECZ</text>
+    <rect x="245" y="52" width="80" height="62" rx="8" fill="#eef4ff" stroke="#0a58c2"/>
+    <circle cx="285" cy="128" r="15" fill="#fff" stroke="#14213d" stroke-width="2"/>
+    <line x1="274" y1="128" x2="296" y2="128" stroke="#14213d" stroke-width="2"/>
+    <line x1="285" y1="117" x2="285" y2="139" stroke="#14213d" stroke-width="2"/>
+    <line x1="290" y1="170" x2="345" y2="170" stroke="#0a5a2c" stroke-width="3"/>
+    <polygon points="345,170 333,163 333,177" fill="#0a5a2c"/>
+    <text x="285" y="196" font-size="12" fill="#0a5a2c" text-anchor="middle" font-weight="bold">rufa → w PRAWO</text>
+  </svg><figcaption>Efekt śruby (prop walk) na biegu wstecznym - widok od rufy</figcaption></figure>
+
+  <h3>Liny cumownicze (швартовы)</h3>
+  <table>
+    <tr><th>Lina</th><th>Что это</th></tr>
+    <tr><td>Cuma dziobowa / rufowa</td><td>носовой/кормовой швартов (на пал впереди/сзади)</td></tr>
+    <tr><td>Szpring</td><td>шпринг - идёт вдоль борта, держит от продольного смещения</td></tr>
+    <tr><td>Brest</td><td>прижимной конец - перпендикулярно борту, прижимает к причалу</td></tr>
+  </table>
+
+  <details><summary>Sztrandowanie to…</summary>
+  <div class="ans">✅ Celowe, kontrolowane osadzenie jachtu na mieliźnie.<small>Намеренная посадка на мель (напр. в аварии). Отличай от plażowania/sztormowania.</small></div></details>
+
+  <details><summary>O prędkości zestawu holowniczego decyduje…</summary>
+  <div class="ans">✅ Kapitan jednostki holującej.<small>Скорость буксировки определяет капитан буксирующего судна.</small></div></details>
+
+  <details><summary>Ster strumieniowy (thruster) to…</summary>
+  <div class="ans">✅ Pędnik poprzeczny na dziobie, pomagający w manewrach portowych.<small>Носовое подруливающее устройство.</small></div></details>
+
+  <details><summary>Długość łańcucha kotwicznego przy głębokości 3 m…</summary>
+  <div class="ans">✅ Ok. 9-15 m (3-5× głębokość).<small>Длина якорной цепи ≈ 3-5 глубин. Больше цепи - лучше держит.</small></div></details>
+</section>
+
+<!-- 7 -->
+<section id="p7">
+  <h2 class="sec">7. Locja i nawigacja</h2>
+  <div class="fact"><b>Mila morska = 1852 m.</b> · 1° = 60′ (minut) · od równika do bieguna = 90° szerokości.<br><span class="ru">Морская миля 1852 м; 1° = 60 морских минут; 1 минута широты = 1 миля.</span></div>
+  <table>
+    <tr><th>Termin</th><th>Значение / прибор</th></tr>
+    <tr><td>Echosonda</td><td>эхолот - измеряет глубину</td></tr>
+    <tr><td>Log</td><td>лаг - измеряет скорость по воде</td></tr>
+    <tr><td>Namiar</td><td>пеленг - направление от наблюдателя на объект</td></tr>
+    <tr><td>Kurs</td><td>курс - направление движения судна</td></tr>
+    <tr><td>Kardynalne kierunki róży</td><td>N, E, S, W (главные румбы)</td></tr>
+    <tr><td>Śluza</td><td>шлюз - соединяет водоёмы с разным уровнем воды</td></tr>
+  </table>
+  <details><summary>Co można odczytać z typowego GPS?</summary>
+  <div class="ans">✅ Długość i szerokość geograficzną, kąt drogi nad dnem (COG), prędkość nad dnem (SOG).<small>GPS даёт координаты, путевой угол и скорость ОТНОСИТЕЛЬНО ДНА, а не курс/скорость по воде.</small></div></details>
+  <details><summary>Czy nawigację można oprzeć wyłącznie na GPS?</summary>
+  <div class="ans">✅ Nie - pozycja może być obarczona błędem; nie polegaj tylko na GPS.<small>Нельзя полагаться только на GPS - возможны ошибки; дублируй визуально/картой.</small></div></details>
+</section>
+
+<!-- 8 -->
+<section id="p8">
+  <h2 class="sec">8. Meteorologia</h2>
+  <div class="fact"><b>Skala Beauforta</b> - сила ветра (0-12°B). Wiatr wieje od wyżu do niżu (od wysokiego do niskiego ciśnienia).<br><span class="ru">Ветер дует из области высокого давления в область низкого.</span></div>
+  <table>
+    <tr><th>Przyrząd/Termin</th><th>Значение</th></tr>
+    <tr><td>Barometr</td><td>барометр - давление</td></tr>
+    <tr><td>Anemometr</td><td>анемометр - скорость ветра</td></tr>
+    <tr><td>Flauta (sztil)</td><td>штиль - полное безветрие</td></tr>
+    <tr><td>Front atmosferyczny</td><td>атмосферный фронт - граница двух воздушных масс</td></tr>
+  </table>
+  <details><summary>Nagły, stały spadek ciśnienia zapowiada…</summary>
+  <div class="ans">✅ Ryzyko nadejścia sztormu / pogorszenie pogody.<small>Резкое устойчивое падение давления = приближается шторм.</small></div></details>
+  <details><summary>Cumulonimbus (Cb) to chmura zapowiadająca…</summary>
+  <div class="ans">✅ Silny wiatr, szkwały, burzę.<small>Кучево-дождевые (Cb) = шквалы, гроза. Cirrus/Cirrostratus/Altostratus → тёплый фронт.</small></div></details>
+  <details><summary>Bryza nocna wieje…</summary>
+  <div class="ans">✅ Od lądu w kierunku wody.<small>Ночной бриз - с суши на воду (днём наоборот, с воды на сушу).</small></div></details>
+  <details><summary>Wiatr 6°B to prędkość…</summary>
+  <div class="ans">✅ Ok. 22-27 węzłów.<small>6 баллов ≈ 22-27 узлов (сильный ветер).</small></div></details>
+</section>
+
+<!-- 9 -->
+<section id="p9">
+  <h2 class="sec">9. Ratownictwo i pierwsza pomoc</h2>
+
+  <figure><svg viewBox="0 0 480 250" xmlns="http://www.w3.org/2000/svg" class="svgt" role="img" aria-label="Manewr człowiek za burtą">
+    <rect x="8" y="8" width="464" height="234" rx="10" fill="#eaf3fb"/>
+    <!-- wind arrow -->
+    <line x1="60" y1="35" x2="140" y2="35" stroke="#0a58c2" stroke-width="2"/>
+    <polygon points="140,35 128,29 128,41" fill="#0a58c2"/>
+    <text x="70" y="27" font-size="11" fill="#0a58c2">wiatr / ветер</text>
+    <!-- person overboard -->
+    <circle cx="250" cy="150" r="13" fill="#d9342b"/>
+    <circle cx="250" cy="150" r="21" fill="none" stroke="#d9342b" stroke-dasharray="4 4"/>
+    <text x="250" y="188" font-size="12" fill="#a11b16" text-anchor="middle" font-weight="bold">MOB</text>
+    <!-- boat path: notice, turn, approach from leeward -->
+    <path d="M50,90 C160,70 300,70 380,110 C430,135 360,200 285,170" fill="none" stroke="#14213d" stroke-width="2.5" stroke-dasharray="8 5"/>
+    <polygon points="285,170 298,168 293,179" fill="#14213d"/>
+    <!-- start boat -->
+    <polygon points="50,82 40,98 62,94" fill="#1a9e4b"/>
+    <text x="55" y="76" font-size="10.5" fill="#0a5a2c">start</text>
+    <text x="250" y="30" font-size="13" fill="#14213d" text-anchor="middle" font-weight="bold">Manewr „człowiek za burtą"</text>
+    <!-- steps -->
+    <text x="20" y="214" font-size="11" fill="#14213d">1. alarm + rzuć koło · 2. obserwator nie spuszcza z oka</text>
+    <text x="20" y="230" font-size="11" fill="#14213d">3. podejście od ZAWIETRZNEJ, wolno · с подветра, медленно</text>
+  </svg><figcaption>MOB: nie tracić kontaktu wzrokowego, podejście od strony zawietrznej na małym gazie</figcaption></figure>
+
+  <details><summary>Co zrobić natychmiast po wypadnięciu człowieka za burtę (MOB)?</summary>
+  <div class="ans">✅ Ogłosić alarm, rzucić koło ratunkowe, nie tracić kontaktu wzrokowego i wykonać manewr „człowiek za burtą".<small>Крик «человек за бортом», бросить круг, НЕ терять из виду, назначить наблюдателя, манёвр возврата. Не прыгать за борт без нужды.</small></div></details>
+  <details><summary>Resuscytacja (RKO) - jeden cykl to…</summary>
+  <div class="ans">✅ 30 uciśnięć (ok. 100/min) + 2 wdechy.<small>СЛР: 30 нажатий на грудину : 2 вдоха, частота ~100-120/мин.</small></div></details>
+  <details><summary>Osoba nieprzytomna - pierwsza czynność?</summary>
+  <div class="ans">✅ Sprawdzić oddech (i drożność dróg oddechowych).<small>Сначала проверить дыхание; удержание дыхательных путей - запрокинуть голову, поднять подбородок.</small></div></details>
+  <details><summary>Rana z tkwiącym przedmiotem (np. nóż)…</summary>
+  <div class="ans">✅ Nie usuwać przedmiotu, zabezpieczyć wokół, transport do lekarza.<small>Инородный предмет НЕ вынимать - зафиксировать и везти к врачу.</small></div></details>
+  <details><summary>Krwotok tętniczy poznajemy po…</summary>
+  <div class="ans">✅ Intensywnym wypływie jasnej (jasnoczerwonej) krwi, tętniącym.<small>Артериальное кровотечение - яркая пульсирующая кровь.</small></div></details>
+  <details><summary>Poparzenie skóry - co robić?</summary>
+  <div class="ans">✅ Schładzać wodą, przykryć jałowym opatrunkiem, do lekarza.<small>Ожог - охлаждать водой, стерильная повязка, к врачу. Не мазать спиртом.</small></div></details>
+  <details><summary>Człowiek trzymający koło ratunkowe powinien…</summary>
+  <div class="ans">✅ Założyć je przez głowę, pod ramiona.<small>Круг надеть через голову под мышки.</small></div></details>
+  <details><summary>Po podjęciu człowieka z wody…</summary>
+  <div class="ans">✅ Nie podawać alkoholu - ciepły napój, suche ubranie, ogrzać.<small>Алкоголь нельзя (усиливает переохлаждение) - тёплое питьё и сухая одежда.</small></div></details>
+  <table>
+    <tr><th>Termin</th><th>Значение</th></tr>
+    <tr><td>SAR</td><td>морская поисково-спасательная служба</td></tr>
+    <tr><td>WOPR</td><td>водное спасание на внутренних водах (Польша)</td></tr>
+    <tr><td>Kanał 16 VHF</td><td>международный канал вызова и бедствия</td></tr>
+    <tr><td>Sygnał SOS</td><td>· · · - - - · · · (świetlny/dźwiękowy)</td></tr>
+    <tr><td>Defibrylator (AED)</td><td>восстановление работы сердца</td></tr>
+    <tr><td>Ratowanie życia na wodzie</td><td>bezpłatne / бесплатно</td></tr>
+  </table>
+</section>
+
+<!-- 10 -->
+<section id="p10">
+  <h2 class="sec">10. Ochrona środowiska</h2>
+  <div class="ru">С 2025 в базе больше вопросов по экологии: заправка, отходы, охранные зоны. Общий принцип - <b>ничего за борт</b>.</div>
+  <details><summary>Uzupełnianie paliwa przy pracującym silniku jest…</summary>
+  <div class="ans">✅ Zabronione.<small>Заправка при работающем двигателе запрещена (риск пожара).</small></div></details>
+  <details><summary>Zawartość WC chemicznego opróżnia się…</summary>
+  <div class="ans">✅ Tylko w miejscach do tego przeznaczonych w portach.<small>Химический туалет сливать только в специальных точках порта, не за борт.</small></div></details>
+  <details><summary>Odpompowanie zęzy za burtę w porcie…</summary>
+  <div class="ans">✅ Niedozwolone.<small>Откачивать льяльные воды за борт в порту нельзя (там могут быть нефтепродукты).</small></div></details>
+  <details><summary>Śmieci z rejsu należy…</summary>
+  <div class="ans">✅ Oddać do punktu selektywnej zbiórki na lądzie.<small>Мусор - в раздельный сбор на берегу, не за борт.</small></div></details>
+  <details><summary>Środki czystości na jachcie powinny być…</summary>
+  <div class="ans">✅ Biodegradowalne.<small>Использовать биоразлагаемые средства; мыть палубу детергентами за бортом - вредно.</small></div></details>
+</section>
+
+<!-- 11 -->
+<section id="p11">
+  <h2 class="sec">11. Część praktyczna + węzły</h2>
+  <h3>Co sprawdza egzaminator</h3>
+  <ul>
+    <li>Sprawdzenie łodzi przed wypłynięciem (paliwo, wyposażenie, kill switch, kamizelki).</li>
+    <li>Odejście od nabrzeża i podejście / cumowanie.</li>
+    <li>Manewrowanie w ograniczonej przestrzeni, jazda po torze.</li>
+    <li><b>Człowiek za burtą</b> - najważniejszy element.</li>
+    <li>Kotwiczenie, węzły.</li>
+  </ul>
+  <div class="ru"><b>Ключевое на практике:</b> безопасность важнее красоты. Малый газ в порту, всегда пристёгнут kill switch, надета kamizelka. При «człowiek za burtą» - не терять из виду, подходить с подветра на малом ходу.</div>
+  <h3>Podstawowe węzły (узлы)</h3>
+  <table>
+    <tr><th>Węzeł PL</th><th>Русский / применение</th></tr>
+    <tr><td>Ósemka</td><td>восьмёрка - стопорный на конце линя</td></tr>
+    <tr><td>Ratowniczy (skrajny tatrzykowy)</td><td>булинь - незатягивающаяся петля, «спасательный»</td></tr>
+    <tr><td>Cumowniczy / knagowy</td><td>крепление к утке (knaga)</td></tr>
+    <tr><td>Refowy (płaski)</td><td>рифовый/прямой - связать два конца</td></tr>
+    <tr><td>Buchta / knagowanie</td><td>укладка и крепление конца на утке</td></tr>
+  </table>
+</section>
+
+<!-- 12 -->
+<section id="p12">
+  <h2 class="sec">12. Ściąga na ostatnią chwilę</h2>
+  <div class="tip">
+    <ul>
+      <li><b>Расхождение:</b> моторка уступает всем; встречные моторки - вправо, левыми бортами; при пересечении пропускаешь того, кто справа.</li>
+      <li><b>Огни:</b> лев = красный, прав = зелёный (112,5°); мачтовый 225°; кормовой 135° белый.</li>
+      <li><b>Сигналы:</b> 1 короткий = вправо, 2 = влево, 3 = задний ход; 5+ коротких = опасность.</li>
+      <li><b>Кардинальные:</b> обходи со стороны названия; N ▲▲, S ▼▼, E «яйцо», W «бокал».</li>
+      <li><b>Мера:</b> 1 миля = 1852 м; 1° = 60′; 1 кВт = 1,36 л.с.</li>
+      <li><b>СЛР:</b> 30:2, ~100/мин.</li>
+      <li><b>Винт назад:</b> правый → корма влево.</li>
+      <li><b>Течение:</b> идущий вниз имеет приоритет; выходящий из порта - приоритет.</li>
+      <li><b>Экология:</b> ничего за борт, заправка при заглушённом моторе.</li>
+    </ul>
+  </div>
+  <div class="warn"><b>На самом экзамене:</b> читай вопрос до конца (часто ключевое слово «nie/zabronione»). Сомневаешься между двумя - выбирай более осторожный/безопасный вариант. Отмечай пропущенные и возвращайся: 90 минут на 75 вопросов - времени достаточно. Powodzenia! 🍀</div>
+</section>
+
+<footer>
+  Materiał przygotowany na podstawie bazy pytań PZMWiNW (sternik motorowodny) i poradników 2026.<br>
+  Konspekt pomocniczy - sprawdź aktualną bazę u organizatora egzaminu.
+</footer>
+</div>
+</body>
+</html>
