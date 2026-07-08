@@ -176,12 +176,17 @@ function TrainerInner() {
   const answeredCount = results.length;
   const pct = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
+  const feedbackRef = useRef<HTMLDivElement | null>(null);
   const answer = (i: number) => {
     if (answered || !current) return;
     const ok = current.options[i].ok;
     setPicked(i);
     setResults((r) => [...r, { q: current, pickedIndex: i, ok }]);
     recordSternikAnswer(current.id, ok);
+    // On mobile the feedback + Next button land below the fold; bring them up.
+    requestAnimationFrame(() => {
+      feedbackRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
   };
 
   const next = () => {
@@ -580,7 +585,8 @@ function TrainerInner() {
 
         {answered && (
           <div
-            className="mt-4 rounded-xl p-4 text-sm"
+            ref={feedbackRef}
+            className="mt-4 scroll-mt-16 rounded-xl p-4 text-sm"
             style={{
               background: current.options[picked!].ok ? 'rgba(68,255,136,0.08)' : 'rgba(255,68,68,0.08)',
               border: `1px solid ${current.options[picked!].ok ? 'rgba(68,255,136,0.4)' : 'rgba(255,68,68,0.35)'}`,
@@ -629,8 +635,8 @@ function TrainerInner() {
             <button
               type="button"
               onClick={askAI}
-              className="text-xs"
-              style={{ color: 'var(--text-muted)' }}
+              className="flex min-h-[40px] items-center rounded-lg px-3 text-sm"
+              style={{ color: 'var(--accent-cyan)', background: 'var(--hover-bg)', border: '1px solid var(--border-subtle)' }}
             >
               🎓 {tp('Перевести / объяснить (AI)', 'Translate / explain (AI)', 'Przetlumacz / wyjasnij (AI)')}
             </button>
@@ -641,6 +647,9 @@ function TrainerInner() {
       {/* Pause overlay */}
       {paused && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={tp('Пауза', 'Paused', 'Pauza')}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(4,12,22,0.85)', backdropFilter: 'blur(4px)' }}
         >

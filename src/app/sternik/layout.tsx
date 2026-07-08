@@ -17,7 +17,7 @@ export const metadata: Metadata = {
 export default function SternikLayout({ children }: { children: ReactNode }) {
   return (
     <SternikPrefsProvider>
-      <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-6">
+      <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
         <SternikSubnav />
         {children}
         <SternikChat />
