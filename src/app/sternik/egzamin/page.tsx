@@ -466,6 +466,9 @@ export default function SternikExamPage() {
       {/* Pause overlay */}
       {paused && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={tp('Экзамен на паузе', 'Exam paused', 'Egzamin wstrzymany')}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(4,12,22,0.92)', backdropFilter: 'blur(6px)' }}
         >
@@ -497,6 +500,9 @@ export default function SternikExamPage() {
       {/* Finish confirmation */}
       {confirmFinish && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={tp('Завершить экзамен?', 'Finish the exam?', 'Zakonczyc egzamin?')}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(4,12,22,0.85)', backdropFilter: 'blur(4px)' }}
         >

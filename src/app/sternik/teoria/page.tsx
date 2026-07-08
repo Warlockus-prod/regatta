@@ -142,6 +142,24 @@ export default function SternikTheoryPage() {
         )}
       </p>
 
+      {/* Last-minute quick access */}
+      <div className="mb-5 flex flex-wrap gap-2">
+        <a
+          href="#sciaga"
+          className="flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold"
+          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: '#04222e' }}
+        >
+          ⚡ {tp('Шпаргалка на завтра', 'Last-minute cheat sheet', 'Sciaga na ostatnia chwile')}
+        </a>
+        <a
+          href="/sternik/test"
+          className="flex min-h-[44px] items-center rounded-xl px-4 text-sm font-medium"
+          style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+        >
+          🎯 {tp('К тренажёру', 'To the trainer', 'Do treningu')}
+        </a>
+      </div>
+
       {/* TOC */}
       <nav
         className="mb-8 grid gap-1 rounded-2xl p-4 sm:grid-cols-2"
@@ -149,9 +167,9 @@ export default function SternikTheoryPage() {
         aria-label={tp('Содержание', 'Contents', 'Spis tresci')}
       >
         {SECTIONS.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className="rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
-            <span style={{ color: 'var(--accent-cyan)' }}>{s.num}.</span> {s.pl}{' '}
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>· {s.ru}</span>
+          <a key={s.id} href={`#${s.id}`} className="flex min-h-[40px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+            <span style={{ color: 'var(--accent-cyan)' }}>{s.num}.</span>&nbsp;{s.pl}{' '}
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>&nbsp;· {s.ru}</span>
           </a>
         ))}
       </nav>
