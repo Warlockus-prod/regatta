@@ -10,6 +10,7 @@ import {
   type SternikProgress,
 } from '@/lib/sternik-progress';
 import { formatClock } from './quiz-utils';
+import PersonalReport from './PersonalReport';
 
 // ============================================================================
 // /sternik - hub: exam format, live progress, entry points.
@@ -140,6 +141,13 @@ export default function SternikHubPage() {
           </p>
         )}
       </section>
+
+      {/* Personalized analysis (only once there is enough data) */}
+      {progress && (
+        <section className="mb-8">
+          <PersonalReport progress={progress} compact />
+        </section>
+      )}
 
       {/* Entry cards */}
       <section className="mb-8 grid gap-4 sm:grid-cols-3">

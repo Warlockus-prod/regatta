@@ -20,6 +20,7 @@ import {
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure from '../QuestionFigure';
 import { Explanation, useSternikPrefs } from '../prefs';
+import PersonalReport from '../PersonalReport';
 
 /** teoria section anchor per category - "read the theory" deep links. */
 const THEORY_ANCHOR: Record<string, string> = {
@@ -377,6 +378,10 @@ function TrainerInner() {
               ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Probny egzamin')}
             </Link>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <PersonalReport progress={loadSternikProgress()} />
         </div>
 
         {catBreakdown.length > 1 && (

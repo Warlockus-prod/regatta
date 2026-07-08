@@ -13,6 +13,7 @@ import {
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure from '../QuestionFigure';
 import { Explanation } from '../prefs';
+import PersonalReport from '../PersonalReport';
 
 // ============================================================================
 // /sternik/egzamin - mock exam in real format: 75 questions, 90 minutes,
@@ -215,6 +216,10 @@ export default function SternikExamPage() {
               {tp('На главную раздела', 'Section home', 'Strona glowna')}
             </Link>
           </div>
+        </div>
+
+        <div className="mb-6">
+          <PersonalReport progress={loadSternikProgress()} />
         </div>
 
         {wrongQuestions.length > 0 && (
