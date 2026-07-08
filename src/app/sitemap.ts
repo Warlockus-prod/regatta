@@ -42,6 +42,10 @@ const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/leaderboard', changeFrequency: 'daily',  priority: 0.75 },
   { path: '/spots',      changeFrequency: 'daily',   priority: 0.70 },
   { path: '/quick',      changeFrequency: 'weekly',  priority: 0.60 },
+  { path: '/sternik',        changeFrequency: 'weekly',  priority: 0.85 },
+  { path: '/sternik/teoria', changeFrequency: 'monthly', priority: 0.80 },
+  { path: '/sternik/test',   changeFrequency: 'weekly',  priority: 0.80 },
+  { path: '/sternik/egzamin', changeFrequency: 'weekly', priority: 0.80 },
   { path: '/privacy',    changeFrequency: 'yearly',  priority: 0.30 },
   { path: '/support',    changeFrequency: 'yearly',  priority: 0.40 },
 ];

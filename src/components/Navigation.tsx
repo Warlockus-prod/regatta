@@ -124,6 +124,7 @@ const groups: NavGroup[] = [
       { href: '/quick',  ru: 'За 15 минут', en: 'Quick refresh', pl: 'W 15 minut', es: 'En 15 minutos', fr: 'En 15 minutes', de: 'In 15 Minuten', it: 'In 15 minuti', icon: Icon.start },
       { href: '/rules',  ru: 'Правила', en: 'Rules',   pl: 'Przepisy', es: 'Reglas',     fr: 'Regles',     de: 'Regeln',  it: 'Regole',    icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka',  es: 'Tactica',    fr: 'Tactique',   de: 'Taktik',  it: 'Tattica',   icon: Icon.tactics },
+      { href: '/sternik', ru: 'Sternik (экзамен PL)', en: 'Sternik exam (PL)', pl: 'Sternik motorowodny', es: 'Examen sternik (PL)', fr: 'Examen sternik (PL)', de: 'Sternik-Pruefung (PL)', it: 'Esame sternik (PL)', icon: Icon.rules },
     ],
   },
   {
