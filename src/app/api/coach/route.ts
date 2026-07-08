@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT } from '@/lib/rate-limit';
 import { insertEvent } from '@/lib/db';
 import { mirrorCoachKeys, type Coaching } from '@/lib/fallback-coach';
 
@@ -287,6 +287,17 @@ export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+
+  // Site-wide per-user daily AI cap (shared across all AI endpoints).
+  const daily = checkUserDailyBudget(sid ?? ip);
+  if (!daily.ok) {
+    logWarn('coach.daily-cap', { resetMs: daily.resetMs });
+    return NextResponse.json(
+      { error: `Daily AI limit (${USER_DAILY_AI_LIMIT}) reached. Try again tomorrow.`, fallback: true, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
+    );
+  }
+
   const rlKey = 'coach:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
     key: rlKey,

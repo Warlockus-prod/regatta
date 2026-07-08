@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -71,6 +71,17 @@ export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
   const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+
+  // Site-wide per-user daily AI cap (all AI endpoints share this budget).
+  const daily = checkUserDailyBudget(sid ?? ip);
+  if (!daily.ok) {
+    logWarn('sternik-chat.daily-cap', { resetMs: daily.resetMs });
+    return NextResponse.json(
+      { error: `Dzienny limit ${USER_DAILY_AI_LIMIT} zapytan AI wyczerpany. Sprobuj jutro.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
+      { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
+    );
+  }
+
   const rlKey = 'sternik-chat:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
     key: rlKey,
