@@ -128,3 +128,22 @@ export function rateLimitHeaders(res: RateResult, limit: number): Record<string,
     'X-RateLimit-Reset': String(Math.ceil(res.resetMs / 1000)),
   };
 }
+
+// ---------------------------------------------------------------------------
+// Site-wide per-user daily safety cap across ALL AI endpoints combined.
+// A single user (session, or IP fallback) may make at most this many AI-backed
+// requests per rolling 24h, no matter which endpoint. Blunt wallet backstop.
+// ---------------------------------------------------------------------------
+const USER_DAILY_STORE = new Map<string, Bucket>();
+export const USER_DAILY_AI_LIMIT = 100;
+const USER_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+export function checkUserDailyBudget(userKey: string): RateResult {
+  const now = Date.now();
+  // opportunistic prune of the daily store
+  for (const [key, bucket] of USER_DAILY_STORE) {
+    bucket.hits = bucket.hits.filter((t) => now - t < USER_DAILY_WINDOW_MS);
+    if (bucket.hits.length === 0) USER_DAILY_STORE.delete(key);
+  }
+  return checkBucket(USER_DAILY_STORE, 'ai:' + userKey, USER_DAILY_AI_LIMIT, now, USER_DAILY_WINDOW_MS);
+}

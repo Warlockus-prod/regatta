@@ -94,16 +94,20 @@ export default function SternikChat() {
       const next: Msg[] = [...loadSession().slice(-20), { role: 'user', content: clean }];
       setMsgs(next);
       saveSession(next);
+      // Never hang: abort the request after 30s and surface a retryable error.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 30_000);
       try {
         const res = await fetch('/api/sternik-chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            messages: next.slice(-10),
+            messages: next.slice(-10), // conversation history (last 10 turns)
             lang,
             explLang: explLangRef.current,
             context: context || contextRef.current || undefined,
           }),
+          signal: controller.signal,
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok || (data.error && !data.reply)) {
@@ -116,9 +120,14 @@ export default function SternikChat() {
           setMsgs(withReply);
           saveSession(withReply);
         }
-      } catch {
-        setError(tp('Ошибка сети', 'Network error', 'Blad sieci'));
+      } catch (e) {
+        setError(
+          e instanceof Error && e.name === 'AbortError'
+            ? tp('Ответ занял слишком долго. Попробуй ещё раз.', 'The reply took too long. Try again.', 'Odpowiedz trwala za dlugo. Sprobuj jeszcze raz.')
+            : tp('Ошибка сети. Попробуй ещё раз.', 'Network error. Try again.', 'Blad sieci. Sprobuj jeszcze raz.'),
+        );
       } finally {
+        clearTimeout(timer);
         setBusy(false);
       }
     },
