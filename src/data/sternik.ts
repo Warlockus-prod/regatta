@@ -58,18 +58,32 @@ export const STERNIK_CATEGORY_BY_ID: Record<SternikCatId, SternikCategory> = Obj
   STERNIK_CATEGORIES.map((c) => [c.id, c]),
 ) as Record<SternikCatId, SternikCategory>;
 
+/** Ids of small figures rendered above a question (see QuestionFigure.tsx). */
+export type SternikFigureId =
+  | 'cardinal-n' | 'cardinal-e' | 'cardinal-s' | 'cardinal-w'
+  | 'lateral-red' | 'lateral-green'
+  | 'isolated-danger' | 'safe-water'
+  | 'flag-a';
+
 export interface SternikQuestion {
   /** Stable id - localStorage stats key. Never renumber existing ids. */
   id: string;
   cat: SternikCatId;
   /** Question text, Polish (exam language). */
   q: string;
-  /** Exactly 3 options (A/B/C), like the real exam. */
-  options: [string, string, string];
-  /** Index of the correct option BEFORE shuffling (0..2). */
-  correct: 0 | 1 | 2;
+  /**
+   * 3 or 4 options. The circulating PZMWiNW-derived base (337 questions) is
+   * a/b/c/d; freshly authored questions are A/B/C. The engine handles both.
+   */
+  options: string[];
+  /** Index of the correct option BEFORE shuffling. */
+  correct: number;
   /** Russian explanation shown after answering. */
   whyRu: string;
+  /** Provenance, e.g. 'baza CZ #12' for questions from the open bank PDF. */
+  source?: string;
+  /** Optional figure shown above the question (znaki recognition etc). */
+  figure?: SternikFigureId;
 }
 
 /** Real exam format: rozporzadzenie MSiT z 9.04.2013 (Dz.U. 2013 poz. 460). */
@@ -1145,6 +1159,71 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Gaśnicę', 'Radar', 'Tratwę ratunkową'],
     correct: 0,
     whyRu: 'Огнетушитель обязателен на судне с ДВС (бензин + пары = риск пожара). Плюс спассредства для каждого и аптечка.',
+  },
+
+  // ===== PYTANIA OBRAZKOWE (rozpoznawanie znakow) ==========================
+  {
+    id: 'fig-01', cat: 'znaki', figure: 'cardinal-n',
+    q: 'Widzisz ten znak. Z której strony należy go minąć?',
+    options: ['Od północy', 'Od południa', 'Od wschodu'],
+    correct: 0,
+    whyRu: 'Оба конуса вершинами вверх, чёрное над жёлтым = северный (N). Обходи с севера - безопасная вода со стороны названия.',
+  },
+  {
+    id: 'fig-02', cat: 'znaki', figure: 'cardinal-e',
+    q: 'Co to za znak?',
+    options: ['Kardynalny wschodni (E)', 'Kardynalny zachodni (W)', 'Znak bezpiecznej wody'],
+    correct: 0,
+    whyRu: 'Конусы основаниями вместе («яйцо»), чёрный-жёлтый-чёрный = восточный (E). Обходить с востока, свет VQ(3).',
+  },
+  {
+    id: 'fig-03', cat: 'znaki', figure: 'cardinal-s',
+    q: 'Widzisz ten znak. Jak się zachowasz?',
+    options: ['Minę go od strony południowej', 'Minę go od strony północnej', 'Przepłynę tuż przy nim z dowolnej strony'],
+    correct: 0,
+    whyRu: 'Оба конуса вниз, жёлтое над чёрным = южный (S). Опасность к северу от знака - обходи с юга.',
+  },
+  {
+    id: 'fig-04', cat: 'znaki', figure: 'cardinal-w',
+    q: 'Widzisz ten znak. Z której strony go ominąć?',
+    options: ['Od zachodu', 'Od wschodu', 'Obojętnie, byle daleko'],
+    correct: 0,
+    whyRu: 'Конусы вершинами вместе («бокал», W = wine), жёлтый-чёрный-жёлтый = западный (W). Обходи с запада, свет VQ(9).',
+  },
+  {
+    id: 'fig-05', cat: 'znaki', figure: 'lateral-red',
+    q: 'Wchodzisz do portu od strony morza (region A). Po której burcie zostawiasz ten znak?',
+    options: ['Po lewej burcie', 'Po prawej burcie', 'Przechodzę dokładnie nad nim'],
+    correct: 0,
+    whyRu: 'Красный цилиндр = левая кромка фарватера (регион A, вход с моря). Оставляй его слева по борту.',
+  },
+  {
+    id: 'fig-06', cat: 'znaki', figure: 'lateral-green',
+    q: 'Wchodzisz od morza (region A). Co oznacza ten znak?',
+    options: ['Prawą stronę toru wodnego - zostaw go po prawej burcie', 'Lewą stronę toru wodnego', 'Środek toru wodnego'],
+    correct: 0,
+    whyRu: 'Зелёный конус = правая кромка фарватера при входе с моря. Оставляй справа.',
+  },
+  {
+    id: 'fig-07', cat: 'znaki', figure: 'isolated-danger',
+    q: 'Co to za znak?',
+    options: ['Znak odosobnionego niebezpieczeństwa - przejdź w bezpiecznej odległości', 'Znak bezpiecznej wody - można podpłynąć', 'Znak kardynalny północny'],
+    correct: 0,
+    whyRu: 'Чёрный с красной полосой, две чёрные шары = отдельная опасность (рэк, камень). Вода вокруг чистая - обходи на дистанции с любой стороны. Свет Fl(2).',
+  },
+  {
+    id: 'fig-08', cat: 'znaki', figure: 'safe-water',
+    q: 'Co oznacza ten znak?',
+    options: ['Bezpieczną wodę (oś toru) - można przechodzić z każdej strony', 'Odosobnione niebezpieczeństwo', 'Zakaz wejścia'],
+    correct: 0,
+    whyRu: 'Красно-белые вертикальные полосы, красный шар = знак чистой воды (осевой). Часто первый буй при подходе с моря.',
+  },
+  {
+    id: 'fig-09', cat: 'przepisy', figure: 'flag-a',
+    q: 'Jednostka obok pokazuje tę flagę. Co robisz?',
+    options: ['Trzymam się z dala i płynę z minimalną prędkością - nurek pod wodą', 'Podpływam pomóc', 'Nic - to bandera klubowa'],
+    correct: 0,
+    whyRu: 'Флаг «A» (Alfa): под водой водолаз. Обходи широко, малым ходом, следи за пузырями.',
   },
 ];
 

@@ -18,6 +18,14 @@ import {
   sternikWeakIds,
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
+import QuestionFigure from '../QuestionFigure';
+
+/** teoria section anchor per category - "read the theory" deep links. */
+const THEORY_ANCHOR: Record<string, string> = {
+  przepisy: 'przepisy', sygnaly: 'sygnaly', znaki: 'znaki', budowa: 'budowa',
+  silniki: 'silniki', manewry: 'manewry', locja: 'locja', meteo: 'meteo',
+  ratownictwo: 'ratownictwo', srodowisko: 'srodowisko', prawo: 'patent',
+};
 
 // ============================================================================
 // /sternik/test - driving-school style trainer: answer, instantly see
@@ -94,6 +102,40 @@ function TrainerInner() {
     const qs = ids.map((id) => STERNIK_BANK_BY_ID[id]).filter(Boolean);
     begin(qs, tp('Работа над ошибками', 'Error review', 'Powtorka bledow'));
   };
+  // Adaptive session: weak questions first, then unseen, then extra questions
+  // from categories where accuracy is below the exam pass mark.
+  const startSmart = () => {
+    const p = loadSternikProgress();
+    const weakSet = new Set(sternikWeakIds(p));
+    const weak = STERNIK_BANK.filter((q) => weakSet.has(q.id));
+    const unseen = STERNIK_BANK.filter((q) => !p.q[q.id]);
+    const catAcc: Record<string, { c: number; t: number }> = {};
+    for (const q of STERNIK_BANK) {
+      const s = p.q[q.id];
+      if (s && s.seen > 0) {
+        const a = (catAcc[q.cat] ??= { c: 0, t: 0 });
+        a.c += s.correct;
+        a.t += s.seen;
+      }
+    }
+    const weakCats = new Set(
+      Object.entries(catAcc)
+        .filter(([, a]) => a.t >= 3 && a.c / a.t < 0.87)
+        .map(([c]) => c),
+    );
+    const fromWeakCats = STERNIK_BANK.filter(
+      (q) => weakCats.has(q.cat) && !weakSet.has(q.id) && p.q[q.id],
+    );
+    const seen = new Set<string>();
+    const pick = (qs: typeof STERNIK_BANK, n: number) =>
+      shuffled(qs).filter((q) => !seen.has(q.id)).slice(0, n).map((q) => {
+        seen.add(q.id);
+        return q;
+      });
+    let pool = [...pick(weak, 10), ...pick(unseen, 6), ...pick(fromWeakCats, 4)];
+    if (pool.length < 20) pool = [...pool, ...pick(STERNIK_BANK, 20 - pool.length)];
+    begin(shuffled(pool), tp('Умная тренировка', 'Smart session', 'Inteligentny trening'));
+  };
 
   // Auto-start from URL (?cat=..., ?mode=errors) once.
   const autoStarted = useRef(false);
@@ -166,7 +208,24 @@ function TrainerInner() {
           )}
         </p>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-3">
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <button
+            type="button"
+            onClick={startSmart}
+            className="rounded-2xl p-4 text-left transition hover:-translate-y-0.5"
+            style={{
+              background: 'linear-gradient(140deg, var(--bg-card), rgba(0,212,255,0.10))',
+              border: '1px solid var(--border-subtle)',
+            }}
+          >
+            <div className="text-2xl">🧠</div>
+            <div className="mt-1 font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {tp('Умная тренировка', 'Smart session', 'Inteligentny trening')}
+            </div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {tp('20 вопросов: ошибки + новые + слабые темы', '20 questions: mistakes + unseen + weak topics', '20 pytan: bledy + nowe + slabe tematy')}
+            </div>
+          </button>
           <button
             type="button"
             onClick={startQuick}
@@ -427,6 +486,8 @@ function TrainerInner() {
           {current.q}
         </div>
 
+        {current.figure && <QuestionFigure id={current.figure} />}
+
         <div className="space-y-2">
           {current.options.map((o, i) => {
             let bg = 'var(--bg-secondary)';
@@ -499,6 +560,13 @@ function TrainerInner() {
               >
                 🎓 {tp('Спросить AI', 'Ask AI', 'Zapytaj AI')}
               </button>
+              <Link
+                href={`/sternik/teoria#${THEORY_ANCHOR[current.cat] ?? ''}`}
+                className="rounded-xl px-4 py-2 text-sm"
+                style={{ background: 'var(--hover-bg)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+              >
+                📖 {tp('Теория по теме', 'Topic theory', 'Teoria tematu')}
+              </Link>
             </div>
           </div>
         )}

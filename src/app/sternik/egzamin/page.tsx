@@ -11,6 +11,7 @@ import {
   type SternikExamAttempt,
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
+import QuestionFigure from '../QuestionFigure';
 
 // ============================================================================
 // /sternik/egzamin - mock exam in real format: 75 questions, 90 minutes,
@@ -364,6 +365,8 @@ export default function SternikExamPage() {
         <div className="mb-4 text-lg font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
           {current.q}
         </div>
+
+        {current.figure && <QuestionFigure id={current.figure} />}
 
         <div className="space-y-2">
           {current.options.map((o, i) => {

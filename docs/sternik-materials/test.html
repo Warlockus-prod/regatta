@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sternik motorowodny - test egzaminacyjny</title>
+<style>
+  :root{--nb:#00337a;--nb2:#0a58c2;--bg:#f5f7fb;--card:#fff;--ok:#0a7d3a;--bad:#c0392b;--ru:#8a4b00;--line:#dbe3ef;}
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:#14213d;line-height:1.5}
+  header{background:linear-gradient(135deg,var(--nb),var(--nb2));color:#fff;padding:18px 16px}
+  header h1{margin:0;font-size:19px}
+  header a{color:#cfe0ff;font-size:13px;text-decoration:none}
+  .wrap{max-width:760px;margin:0 auto;padding:16px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px;margin:14px 0;box-shadow:0 1px 3px rgba(20,40,80,.05)}
+  h2{color:var(--nb);margin:0 0 10px;font-size:18px}
+  button{font-family:inherit;font-size:15px;cursor:pointer}
+  .btn{background:var(--nb2);color:#fff;border:0;border-radius:10px;padding:12px 18px;font-weight:600}
+  .btn:hover{background:#084bb0}
+  .btn.sec{background:#eaf0fb;color:var(--nb)}
+  .cats{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .cats button{background:#eef4ff;border:1px solid var(--line);border-radius:20px;padding:8px 14px;color:var(--nb);font-size:14px}
+  .cats button:hover{background:#dbe7fb}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:14px;color:#4a5a76;margin-bottom:8px}
+  .prog{height:8px;background:#e6ecf5;border-radius:6px;overflow:hidden;margin-bottom:14px}
+  .prog>i{display:block;height:100%;background:var(--nb2);width:0;transition:width .25s}
+  .catlabel{display:inline-block;background:#eef4ff;color:var(--nb);border-radius:6px;padding:2px 9px;font-size:12.5px;margin-bottom:8px}
+  .q{font-size:17px;font-weight:600;margin:6px 0 14px}
+  .opt{display:block;width:100%;text-align:left;background:#fff;border:2px solid var(--line);border-radius:10px;padding:13px 15px;margin:9px 0;transition:.12s}
+  .opt:hover{border-color:var(--nb2)}
+  .opt .k{display:inline-block;width:24px;height:24px;line-height:24px;text-align:center;background:#eef4ff;border-radius:6px;margin-right:10px;font-weight:700;color:var(--nb)}
+  .opt.correct{border-color:var(--ok);background:#eafaf0}
+  .opt.correct .k{background:var(--ok);color:#fff}
+  .opt.wrong{border-color:var(--bad);background:#fdeef0}
+  .opt.wrong .k{background:var(--bad);color:#fff}
+  .opt:disabled{cursor:default}
+  .fb{border-radius:10px;padding:12px 15px;margin:12px 0;font-size:15px}
+  .fb.ok{background:#eafaf0;border-left:4px solid var(--ok)}
+  .fb.no{background:#fdeef0;border-left:4px solid var(--bad)}
+  .fb b{display:block;margin-bottom:3px}
+  .fb .why{color:var(--ru);font-size:14px;margin-top:5px}
+  .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:14px}
+  .spacer{flex:1}
+  .stat{font-variant-numeric:tabular-nums}
+  .pct{font-weight:700;color:var(--nb)}
+  .overlay{position:fixed;inset:0;background:rgba(10,25,60,.82);color:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:24px;z-index:9}
+  .overlay.show{display:flex}
+  .overlay h2{color:#fff}
+  .big{font-size:42px;font-weight:800;margin:6px 0}
+  .miss{background:#fbfcfe;border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin:8px 0;font-size:14px}
+  .miss .qq{font-weight:600}
+  .miss .aa{color:var(--ok);margin-top:3px}
+  small.muted{color:#8894ab}
+</style>
+</head>
+<body>
+<header>
+  <h1>⚓ Test na sternika motorowodnego</h1>
+  <a href="index.html">← wróć do ściągi / konspektu</a>
+</header>
+<div class="wrap">
+
+  <div class="card" id="start">
+    <h2>Tryb nauki „jak na prawo jazdy"</h2>
+    <p style="margin:6px 0 2px">Po każdej odpowiedzi od razu widzisz <b>dobrze/źle</b> i <b>dlaczego</b> - analizujesz błąd na miejscu. Bez powtórek w jednej sesji, z licznikiem procentów. Możesz zrobić <b>Pauzę</b> na przerwę.</p>
+    <div class="row">
+      <button class="btn" onclick="start('ALL',75)">Egzamin próbny (75 pytań)</button>
+      <button class="btn sec" onclick="start('ALL',0)">Wszystkie pytania po kolei</button>
+    </div>
+    <p style="margin:16px 0 4px;font-weight:600;color:var(--nb)">albo ćwicz jedną kategorię:</p>
+    <div class="cats" id="catbtns"></div>
+    <p style="margin-top:14px"><small class="muted">Baza pytań: reprezentatywny zestaw z bazy PZMWiNW (sternik motorowodny). Pytania obrazkowe (znaki) ćwicz w konspekcie.</small></p>
+  </div>
+
+  <div class="card" id="quiz" style="display:none">
+    <div class="topbar">
+      <span class="stat">Pytanie <b id="idx">1</b> / <span id="total">75</span></span>
+      <span class="stat">Wynik: <b id="score">0</b> · <span class="pct" id="pct">0%</span></span>
+    </div>
+    <div class="prog"><i id="bar"></i></div>
+    <span class="catlabel" id="cat">-</span>
+    <div class="q" id="qtext">…</div>
+    <div id="opts"></div>
+    <div id="feedback"></div>
+    <div class="row">
+      <button class="btn" id="next" style="display:none" onclick="nextQ()">Dalej ▶</button>
+      <div class="spacer"></div>
+      <button class="btn sec" onclick="pause()">⏸ Pauza</button>
+      <button class="btn sec" onclick="finish()">Zakończ</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="overlay" id="pauseOv">
+  <h2>⏸ Przerwa</h2>
+  <p>Odpocznij. Twój postęp jest zachowany.</p>
+  <button class="btn" onclick="resume()">▶ Wróć do testu</button>
+</div>
+
+<div class="overlay" id="endOv" style="overflow:auto;align-items:stretch">
+  <div style="max-width:640px;margin:auto;width:100%">
+    <h2 id="endTitle">Wynik</h2>
+    <div class="big" id="endBig">0%</div>
+    <p id="endMsg"></p>
+    <div id="missList"></div>
+    <div class="row" style="justify-content:center">
+      <button class="btn" onclick="location.reload()">↻ Jeszcze raz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const BANK = [
+ // Przepisy i prawo drogi
+ {c:"Przepisy",q:"Za bezpieczeństwo żeglugi odpowiada:",o:["Armator","Kapitan lub kierownik statku","Nikt nie odpowiada"],a:1,w:"За безопасность отвечает капитан (рулевой), а не судовладелец."},
+ {c:"Przepisy",q:"Kto ma pierwszeństwo przy wejściu i wyjściu z portu?",o:["Wchodzący do portu","Wychodzący z portu","Kuter rybacki"],a:1,w:"Выходящий из порта имеет приоритет над входящим."},
+ {c:"Przepisy",q:"Który jacht ma pierwszeństwo podczas wyprzedzania?",o:["Wyprzedzany","Większy","Wyprzedzający"],a:0,w:"Приоритет у обгоняемого; обгоняющий держится в стороне."},
+ {c:"Przepisy",q:"Dwa jachty motorowe na kursach przecinających się - pierwszeństwo ma:",o:["Większy","Mający lewą wolną","Mający prawą wolną"],a:2,w:"Приоритет у того, у кого справа никого; уступает тот, у кого судно справа."},
+ {c:"Przepisy",q:"Małe statki o napędzie mechanicznym:",o:["Ustępują statkom żaglowym, wiosłowym itp.","Nie ustępują nikomu","Ustępują tylko większym motorowym"],a:0,w:"Моторка уступает парусным, вёсельным, рыболовным, неманевроспособным."},
+ {c:"Przepisy",q:"Windsurfing i motorówka na kursach kolizyjnych - pierwszeństwo ma:",o:["Szybszy","Motorówka","Windsurfing"],a:2,w:"Виндсёрфер = парусное судно, моторка уступает."},
+ {c:"Przepisy",q:"Jacht płynący na żaglach i na silniku jest traktowany jako:",o:["Statek żaglowy","Statek o napędzie mechanicznym","Statek uprzywilejowany"],a:1,w:"Если работает мотор - судно моторное, даже с парусами."},
+ {c:"Przepisy",q:"Dwa statki idą wprost na siebie (kurs kolizyjny). Powinny:",o:["Zmienić kurs w prawo, minąć się lewymi burtami","Zmienić kurs w lewo, minąć się prawymi burtami","Zatrzymać się"],a:0,w:"Оба отворачивают вправо и расходятся левыми бортами."},
+ {c:"Przepisy",q:"Jacht żaglowy i jacht motorowy - kto ustępuje?",o:["Motorowy ma pierwszeństwo","Żaglowy ma pierwszeństwo","Są równorzędni"],a:1,w:"Парусник имеет приоритет над моторным."},
+ {c:"Przepisy",q:"Na rzece pierwszeństwo ma jednostka:",o:["Płynąca z prądem (w dół)","Płynąca pod prąd","Większa"],a:0,w:"Идущему вниз по течению труднее тормозить - у него приоритет."},
+ // Światła i sygnały
+ {c:"Światła i sygnały",q:"Kiedy światła nawigacyjne powinny być zapalone?",o:["Od zachodu do wschodu słońca oraz przy ograniczonej widzialności","Tylko od zachodu do wschodu słońca","Od 18:00 do 6:00"],a:0,w:"От заката до рассвета И при ограниченной видимости (туман)."},
+ {c:"Światła i sygnały",q:"Długi dźwięk trwa:",o:["4-6 sekund","1-2 sekundy","10-12 sekund"],a:0,w:"Длинный сигнал 4-6 с."},
+ {c:"Światła i sygnały",q:"Krótki dźwięk trwa:",o:["10-12 sekund","ok. 1 sekundy","4-6 sekund"],a:1,w:"Короткий сигнал ~1 с."},
+ {c:"Światła i sygnały",q:"Sygnał „niebezpieczeństwo zderzenia / wątpliwość” to:",o:["Seria (≥5) krótkich dźwięków","Seria długich dźwięków","Dwa krótkie dźwięki"],a:0,w:"Серия коротких (5+) = опасность / не понимаю намерений."},
+ {c:"Światła i sygnały",q:"Dwa krótkie dźwięki oznaczają:",o:["Zmieniam kurs w prawo","Zmieniam kurs w lewo","Pracuję maszyną wstecz"],a:1,w:"1 короткий=вправо, 2=влево, 3=задний ход."},
+ {c:"Światła i sygnały",q:"Sektor świecenia światła burtowego wynosi:",o:["112,5°","90°","130°"],a:0,w:"Бортовые огни по 112,5°."},
+ {c:"Światła i sygnały",q:"Sektor świecenia światła masztowego (topowego):",o:["225°","215°","235°"],a:0,w:"Мачтовый 225° = 2×112,5° спереди."},
+ {c:"Światła i sygnały",q:"Sektor świecenia światła rufowego:",o:["145°","135°","180°"],a:1,w:"Кормовой 135°. 112,5+112,5+135=360."},
+ {c:"Światła i sygnały",q:"Jakiego koloru jest prawe światło burtowe (sterburta)?",o:["Czerwone","Zielone","Białe"],a:1,w:"Правый борт - зелёный, левый - красный."},
+ {c:"Światła i sygnały",q:"Jakiego koloru jest lewe światło burtowe (bakburta)?",o:["Czerwone","Zielone","Białe"],a:0,w:"Левый борт - красный."},
+ // Budowa
+ {c:"Budowa",q:"Miejsce do spania na jachcie to:",o:["Koja","Keja","Kingston"],a:0,w:"Койка = koja; keja = причал (ловушка!)."},
+ {c:"Budowa",q:"Jacht składający się z dwóch kadłubów to:",o:["Katamaran","Trimaran","Skuter wodny"],a:0,w:"Катамаран = два корпуса."},
+ {c:"Budowa",q:"Handreling to:",o:["Pokładniki","Listwy odbojowe","Uchwyty ułatwiające poruszanie się po jachcie"],a:2,w:"Леер-поручень, за него держатся на волне."},
+ {c:"Budowa",q:"Kluza to:",o:["Element do mocowania flagsztoku","Osprzęt do mocowania cum","Otwór w burcie do cumy lub łańcucha kotwicznego"],a:2,w:"Клюз - отверстие в борту для швартова/цепи."},
+ {c:"Budowa",q:"Denniki to konstrukcja łącząca:",o:["Pokład z wręgami","Stępkę (kil) z wręgami","Elementy ozdobne"],a:1,w:"Флоры связывают киль со шпангоутами."},
+ {c:"Budowa",q:"Pokładniki to konstrukcja łącząca:",o:["Pokład z wręgami","Stępkę z wręgami","Elementy ozdobne"],a:0,w:"Бимсы связывают палубу со шпангоутами."},
+ {c:"Budowa",q:"Achterpik to:",o:["Drewniana podłoga","Przestrzeń dziobowa","Przestrzeń w rufowej części kadłuba"],a:2,w:"Ахтерпик - кормовой отсек."},
+ {c:"Budowa",q:"Forpik to:",o:["Drewniana podłoga","Przestrzeń w dziobowej części kadłuba","Przestrzeń rufowa"],a:1,w:"Форпик - носовой отсек (часто якорь)."},
+ {c:"Budowa",q:"Najniższa przestrzeń w kadłubie, gdzie zbiera się woda, to:",o:["Dennik","Stewa","Zęza"],a:2,w:"Зэза (льяло) - самое низкое место; воду откачивают."},
+ {c:"Budowa",q:"Kambuz to:",o:["Pomieszczenie WC","Przestrzeń dziobowa","Kuchnia na jachcie"],a:2,w:"Камбуз - кухня; mesa - где едят."},
+ {c:"Budowa",q:"Najczęstsze zakończenie rufy motorówki to:",o:["Półpokład","Pawęż","Dziobnica"],a:1,w:"Транец (pawęż) - на нём висит подвесной мотор."},
+ // Silniki
+ {c:"Silniki",q:"Ile koni mechanicznych (KM) ma 1 kW?",o:["1,85 KM","1,56 KM","1,36 KM"],a:2,w:"1 кВт = 1,36 л.с."},
+ {c:"Silniki",q:"Czy silnik dwusuwowy jest wyposażony w miskę olejową?",o:["Nie","Tak","Zależnie od modelu"],a:0,w:"У 2-тактного масло в смеси, картера нет."},
+ {c:"Silniki",q:"Napis „four stroke” na silniku oznacza, że silnik jest:",o:["O mocy 4 KM","Dwusuwowy","Czterosuwowy"],a:2,w:"Four stroke = 4-тактный (чистый бензин)."},
+ {c:"Silniki",q:"Paliwo do silnika zaburtowego to:",o:["Zawsze czysta benzyna","Zawsze mieszanka benzyny z olejem","Czysta benzyna lub mieszanka - zależnie od typu"],a:2,w:"4-такт - чистый бензин, 2-такт - смесь."},
+ {c:"Silniki",q:"Podczas pracy typowego silnika zaburtowego z otworu kontrolnego:",o:["Powinna delikatnie kapać/sikać ciepła woda","Powinien lać się równy strumień","Nic nie powinno wypływać"],a:0,w:"Струйка тёплой воды = охлаждение работает."},
+ {c:"Silniki",q:"Przełączenie od razu z „naprzód” na „wstecz” jest:",o:["Dozwolone","Bezwzględnie zabronione - uszkadza przekładnię","Zalecane w ciasnym porcie"],a:1,w:"Резко нельзя - сломаешь редуктор; сначала нейтраль."},
+ {c:"Silniki",q:"Przed wyłączeniem (odstawieniem) silnika należy:",o:["Zakręcić dopływ paliwa","Przegazować na wysokich obrotach","Zredukować obroty do minimum i ustawić bieg jałowy"],a:2,w:"Сбросить обороты и нейтраль."},
+ {c:"Silniki",q:"Trymowanie silnika to:",o:["Konserwacja i czyszczenie","Ustawienie kąta silnika do pawęży","Wymiana oleju w przekładni"],a:1,w:"Трим - угол наклона мотора к транцу."},
+ {c:"Silniki",q:"Układ chłodzenia większości silników zaburtowych działa:",o:["Powietrzem","Płynem w osobnym zbiorniku","Wodą, po której płynie jednostka"],a:2,w:"Охлаждение забортной водой."},
+ // Manewry
+ {c:"Manewry",q:"Manewry portowe należy wykonywać z prędkością:",o:["Minimalną, zapewniającą sterowność","Większą niż 5 węzłów","Mniejszą niż 2 węzły"],a:0,w:"Минимальная скорость, при которой лодка ещё слушается руля."},
+ {c:"Manewry",q:"Przy silnym wietrze manewry portowe wykonujemy:",o:["Bardzo powoli","Stosunkowo szybko - wraz z prędkością maleje dryf","Tylko na biegu wstecznym"],a:1,w:"Решительнее: выше скорость - меньше снос (dryf)."},
+ {c:"Manewry",q:"Śruba prawoskrętna na biegu wstecznym zarzuca rufę:",o:["W lewo","W prawo","Nie zarzuca"],a:0,w:"Правый винт назад - корма влево."},
+ {c:"Manewry",q:"Sztrandowanie to:",o:["Sztormowanie","Plażowanie","Celowe, kontrolowane osadzenie na mieliźnie"],a:2,w:"Намеренная посадка на мель (напр. в аварии)."},
+ {c:"Manewry",q:"O prędkości zestawu holowniczego decyduje:",o:["Kapitan jednostki holującej","Kapitan jednostki holowanej","Przepisy lokalne"],a:0,w:"Скорость буксировки определяет буксировщик."},
+ {c:"Manewry",q:"Jaką długość łańcucha kotwicznego wydać przy głębokości 3 m?",o:["Całą dostępną długość","Ok. 4 m","Od 9 do 15 m"],a:2,w:"Длина цепи ≈ 3-5 глубин."},
+ {c:"Manewry",q:"Ster strumieniowy (thruster) to:",o:["Pędnik poprzeczny na dziobie, pomaga w porcie","Rodzaj skutera","Urządzenie dla jednostek bez napędu"],a:0,w:"Носовое подруливающее устройство."},
+ {c:"Manewry",q:"Lina biegnąca z dziobu prostopadle do nabrzeża to:",o:["Cuma dziobowa","Szpring dziobowy","Brest dziobowy"],a:2,w:"Brest - прижимной, перпендикулярно борту."},
+ // Locja
+ {c:"Locja",q:"IALA to:",o:["Międzynarodowy system oznakowania nawigacyjnego","System ratownictwa morskiego","System bezpieczeństwa portowego"],a:0,w:"Система навигационного знакования."},
+ {c:"Locja",q:"Mila morska to:",o:["1752 m","1852 m","2052 m"],a:1,w:"1 морская миля = 1852 м."},
+ {c:"Locja",q:"Aby wejść w nabieżnik (створ), należy płynąć:",o:["Pomiędzy znaki","W kierunku niższego znaku","W kierunku wyższego znaku"],a:2,w:"Веди нос к более высокому знаку - держишь ось."},
+ {c:"Locja",q:"Do pomiaru głębokości używa się:",o:["Echosondy","Namiernika","Logu"],a:0,w:"Эхолот - глубина; лаг - скорость."},
+ {c:"Locja",q:"Ile minut ma jeden stopień?",o:["100′","90′","60′"],a:2,w:"1° = 60′; 1′ широты = 1 миля."},
+ {c:"Locja",q:"Z typowego odbiornika GPS odczytasz:",o:["Współrzędne, kąt drogi nad dnem, prędkość nad dnem","Współrzędne i prędkość po wodzie","Współrzędne i kurs kompasowy"],a:0,w:"GPS: координаты, путевой угол и скорость ОТНОСИТЕЛЬНО ДНА."},
+ {c:"Locja",q:"Śluza jest budowlą służącą do:",o:["Regulacji ruchu na szlaku","Połączenia zbiorników o różnym poziomie wody","Spiętrzenia wody"],a:1,w:"Шлюз соединяет водоёмы с разным уровнем."},
+ // Meteo
+ {c:"Meteorologia",q:"Ciśnienie atmosferyczne mierzy:",o:["Anemometr","Barometr","Batyskaf"],a:1,w:"Барометр - давление; анемометр - ветер."},
+ {c:"Meteorologia",q:"Nagły, stały spadek ciśnienia zapowiada:",o:["Pogodę słoneczną","Ryzyko nadejścia sztormu","Ciszę"],a:1,w:"Резкое падение давления = шторм."},
+ {c:"Meteorologia",q:"Flauta (sztil) oznacza:",o:["Falę posztormową","Zupełny brak wiatru","Zbliżający się sztorm"],a:1,w:"Штиль - полное безветрие."},
+ {c:"Meteorologia",q:"Wiatr o sile 6°B wieje z prędkością:",o:["7-10 węzłów","22-27 węzłów","34-40 węzłów"],a:1,w:"6 баллов ≈ 22-27 узлов."},
+ {c:"Meteorologia",q:"Skala Beauforta służy do określania:",o:["Stanu morza","Siły wiatru","Kierunku wiatru"],a:1,w:"Шкала Бофорта - сила ветра."},
+ {c:"Meteorologia",q:"Podczas bryzy nocnej wiatr wieje:",o:["Od akwenu w kierunku lądu","Od lądu w kierunku wody","Wzdłuż brzegu"],a:1,w:"Ночной бриз - с суши на воду."},
+ {c:"Meteorologia",q:"Chmura Cumulonimbus (Cb) zapowiada:",o:["Ładną pogodę","Silny wiatr, szkwały, burzę","Brak wiatru"],a:1,w:"Cb - шквалы и гроза."},
+ {c:"Meteorologia",q:"Wiatr wieje:",o:["Od wyżu do niżu","Od niżu do wyżu","Równolegle do izobar"],a:0,w:"Из области высокого давления в область низкого."},
+ // Ratownictwo
+ {c:"Ratownictwo",q:"Co zrobić natychmiast po wypadnięciu człowieka za burtę?",o:["Ogłosić alarm, rzucić koło i wykonać manewr MOB","Niezwłocznie tylko wzywać pomocy","Skoczyć za nim z kapokiem"],a:0,w:"Крик, круг, не терять из виду, манёвр возврата."},
+ {c:"Ratownictwo",q:"Jeden cykl resuscytacji (RKO) to:",o:["10 uciśnięć (60/min) + 3 wdechy","30 uciśnięć (ok. 100/min) + 2 wdechy","20 uciśnięć (100/min) + 2 wdechy"],a:1,w:"СЛР 30:2, ~100/мин."},
+ {c:"Ratownictwo",q:"Mając osobę nieprzytomną, w pierwszej kolejności należy:",o:["Sprawdzić oddech","Rozpocząć sztuczne oddychanie","Czekać na lekarza"],a:0,w:"Сначала проверить дыхание."},
+ {c:"Ratownictwo",q:"Rana z tkwiącym przedmiotem (np. nóż) - należy:",o:["Nie usuwać przedmiotu, zabezpieczyć, do lekarza","Usunąć i zabezpieczyć ranę","Usunąć i podać środki przeciwbólowe"],a:0,w:"Инородный предмет НЕ вынимать."},
+ {c:"Ratownictwo",q:"Krwotok tętniczy charakteryzuje się:",o:["Intensywnym wypływem jasnej, tętniącej krwi","Powolnym wypływem ciemnej krwi","Krwawieniem do wnętrza ciała"],a:0,w:"Артериальное - яркая пульсирующая кровь."},
+ {c:"Ratownictwo",q:"Ratownictwem morskim zajmuje się:",o:["SAR","WOPR","SAS"],a:0,w:"SAR - морское спасание (на внутр. водах - WOPR)."},
+ {c:"Ratownictwo",q:"Głównym przeznaczeniem kanału 16 VHF jest:",o:["Wywoływanie innych stacji","Wzywanie pomocy (i kanał wywoławczy)","Swobodne rozmowy"],a:1,w:"Канал 16 - вызов и бедствие."},
+ {c:"Ratownictwo",q:"Po podjęciu wychłodzonego człowieka z wody:",o:["Podać 20-50 g alkoholu","Nie podawać alkoholu - ciepły napój i suche ubranie","Nie podawać niczego"],a:1,w:"Алкоголь нельзя - тёплое питьё, сухая одежда."},
+ {c:"Ratownictwo",q:"W przypadku poparzenia skóry należy:",o:["Zdezynfekować spirytusem","Schładzać wodą, przykryć jałowym opatrunkiem, do lekarza","Nic nie robić"],a:1,w:"Ожог - охлаждать водой, стерильная повязка."},
+ // Środowisko
+ {c:"Środowisko",q:"Uzupełnianie paliwa przy pracującym silniku jest:",o:["Dozwolone","Zabronione","Dozwolone na biegu jałowym"],a:1,w:"Заправка при работающем моторе запрещена."},
+ {c:"Środowisko",q:"Odpompowanie zęzy silnikowej za burtę w porcie jest:",o:["Zalecane przed wyjściem","Niedozwolone","Wskazane w razie potrzeby"],a:1,w:"Нельзя (могут быть нефтепродукты)."},
+ {c:"Środowisko",q:"Zawartość WC chemicznego można opróżnić:",o:["Za burtę min. 50 m od brzegu","Do dowolnej toalety lądowej","Tylko w wyznaczonych miejscach w portach"],a:2,w:"Только в спецточках порта, не за борт."},
+ {c:"Środowisko",q:"Odpadki powstające na jachcie podczas rejsu należy:",o:["Wyrzucić za burtę >200 m od brzegu","Oddać do selektywnej zbiórki na lądzie","Wyrzucić do pojemników w porcie bez segregacji"],a:1,w:"Мусор - в раздельный сбор на берегу."},
+ {c:"Środowisko",q:"Środki czystości używane na jachcie powinny być:",o:["Powierzchniowo czynne","Biodegradowalne","Silnie pieniące"],a:1,w:"Биоразлагаемые средства."}
+];
+
+let queue=[], pos=0, correct=0, answered=false, curCat="ALL", curLimit=0;
+
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+// build category buttons
+const cats=[...new Set(BANK.map(x=>x.c))];
+document.getElementById('catbtns').innerHTML=cats.map(c=>`<button onclick="start('${c}',0)">${c} <small class="muted">(${BANK.filter(x=>x.c===c).length})</small></button>`).join('');
+
+function start(cat,limit){
+  curCat=cat; curLimit=limit;
+  let pool=BANK.map((q,i)=>({...q,_i:i})).filter(q=>cat==='ALL'||q.c===cat);
+  shuffle(pool);
+  if(limit>0) pool=pool.slice(0,Math.min(limit,pool.length));
+  // shuffle options within each question, keep correct value
+  queue=pool.map(q=>{
+    const opts=q.o.map((t,i)=>({t,ok:i===q.a}));
+    shuffle(opts);
+    return {c:q.c,q:q.q,opts,w:q.w};
+  });
+  pos=0; correct=0;
+  document.getElementById('start').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  document.getElementById('total').textContent=queue.length;
+  render();
+}
+
+function render(){
+  answered=false;
+  const q=queue[pos];
+  document.getElementById('idx').textContent=pos+1;
+  document.getElementById('cat').textContent=q.c;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('feedback').innerHTML='';
+  document.getElementById('next').style.display='none';
+  const bar=document.getElementById('bar'); bar.style.width=(pos/queue.length*100)+'%';
+  updateScore();
+  const letters=['A','B','C','D'];
+  document.getElementById('opts').innerHTML=q.opts.map((o,i)=>
+    `<button class="opt" onclick="answer(${i})"><span class="k">${letters[i]}</span>${o.t}</button>`).join('');
+}
+
+function answer(i){
+  if(answered) return; answered=true;
+  const q=queue[pos];
+  const btns=[...document.querySelectorAll('#opts .opt')];
+  const chosen=q.opts[i];
+  btns.forEach((b,j)=>{b.disabled=true; if(q.opts[j].ok)b.classList.add('correct'); if(j===i&&!q.opts[j].ok)b.classList.add('wrong');});
+  const ok=chosen.ok; if(ok){correct++;}else{q._wrong=true;}
+  const right=q.opts.find(o=>o.ok).t;
+  document.getElementById('feedback').innerHTML=
+    `<div class="fb ${ok?'ok':'no'}"><b>${ok?'✓ Dobrze!':'✗ Źle'}</b>`+
+    (ok?'':`Poprawna odpowiedź: <b>${right}</b>`)+
+    `<div class="why">${q.w}</div></div>`;
+  document.getElementById('next').style.display='inline-block';
+  updateScore();
+  document.getElementById('bar').style.width=((pos+1)/queue.length*100)+'%';
+}
+
+function updateScore(){
+  document.getElementById('score').textContent=correct;
+  const done=answered?pos+1:pos;
+  const pct=done?Math.round(correct/done*100):0;
+  document.getElementById('pct').textContent=pct+'%';
+}
+
+function nextQ(){ pos++; if(pos>=queue.length){finish();return;} render(); }
+
+function pause(){ document.getElementById('pauseOv').classList.add('show'); }
+function resume(){ document.getElementById('pauseOv').classList.remove('show'); }
+
+function finish(){
+  const done=pos+(answered?1:0);
+  const total=queue.length;
+  const pct=Math.round(correct/total*100);
+  const passPct=Math.round(65/75*100); // 87%
+  const pass=pct>=passPct;
+  document.getElementById('endTitle').textContent=pass?'✓ Zdane (próg 65/75 = 87%)':'✗ Poniżej progu (potrzeba 87%)';
+  document.getElementById('endBig').textContent=pct+'%';
+  document.getElementById('endBig').style.color=pass?'#5ee08a':'#ff9aa2';
+  document.getElementById('endMsg').textContent=`Poprawne: ${correct} / ${total}. `+(pass?'Gotowy na egzamin - tak trzymaj!':'Powtórz błędy poniżej i spróbuj jeszcze raz.');
+  // missed list
+  const missed=queue.slice(0,done).filter(q=>{return q._wrong;});
+  let ml='';
+  queue.slice(0,done).forEach(q=>{ if(q._wrong){ ml+=`<div class="miss"><div class="qq">${q.q}</div><div class="aa">✓ ${q.opts.find(o=>o.ok).t}</div><div class="why" style="color:#f0c98a;font-size:13px">${q.w}</div></div>`; }});
+  document.getElementById('missList').innerHTML=ml?('<h3 style="text-align:center">Do powtórki:</h3>'+ml):'';
+  document.getElementById('endOv').classList.add('show');
+}
+</script>
+</body>
+</html>
