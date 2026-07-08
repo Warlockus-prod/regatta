@@ -129,7 +129,7 @@ export function BaseToggle({ counts }: { counts: { all: number; materialy: numbe
               key={o.id}
               type="button"
               onClick={() => setExamBase(o.id)}
-              className="flex min-h-[36px] items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition"
+              className="flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition"
               style={
                 active
                   ? { background: 'var(--accent-cyan)', color: '#04222e' }
