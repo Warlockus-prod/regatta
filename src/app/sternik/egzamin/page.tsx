@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { STERNIK_BANK, STERNIK_CATEGORY_BY_ID, STERNIK_EXAM } from '@/data/sternik';
+import { STERNIK_CATEGORY_BY_ID, STERNIK_EXAM, STERNIK_EXAM_POOL } from '@/data/sternik';
 import {
   loadSternikProgress,
   recordSternikAnswer,
@@ -63,7 +63,7 @@ export default function SternikExamPage() {
   }, [secondsLeft, phase]);
 
   const start = () => {
-    const qs = shuffled(STERNIK_BANK).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
+    const qs = shuffled(STERNIK_EXAM_POOL).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
     setQuestions(qs);
     setAnswers(new Array(qs.length).fill(null));
     setFlags(new Set());
@@ -112,9 +112,9 @@ export default function SternikExamPage() {
         </h1>
         <p className="mb-5 max-w-2xl text-sm" style={{ color: 'var(--text-secondary)' }}>
           {tp(
-            `${STERNIK_EXAM.questions} случайных вопросов, ${STERNIK_EXAM.minutes} минут, порог ${STERNIK_EXAM.passCorrect}. Без мгновенной проверки - результат и разбор в конце, как на настоящем экзамене. Можно ставить флажки и возвращаться к вопросам. Пауза останавливает таймер (на реальном экзамене её нет).`,
-            `${STERNIK_EXAM.questions} random questions, ${STERNIK_EXAM.minutes} minutes, pass mark ${STERNIK_EXAM.passCorrect}. No instant feedback - score and review at the end, like the real exam. Flag questions and come back. Pause stops the clock (the real exam has none).`,
-            `${STERNIK_EXAM.questions} losowych pytan, ${STERNIK_EXAM.minutes} minut, prog ${STERNIK_EXAM.passCorrect}. Bez natychmiastowej odpowiedzi - wynik i powtorka na koncu. Mozna flagowac pytania i wracac.`,
+            `${STERNIK_EXAM.questions} случайных вопросов формата экзамена (3 варианта A/B/C), ${STERNIK_EXAM.minutes} минут, порог ${STERNIK_EXAM.passCorrect}. Без мгновенной проверки - результат и разбор в конце, как на настоящем экзамене. Можно ставить флажки и возвращаться к вопросам. Пауза останавливает таймер (на реальном экзамене её нет).`,
+            `${STERNIK_EXAM.questions} random exam-format questions (3 options A/B/C), ${STERNIK_EXAM.minutes} minutes, pass mark ${STERNIK_EXAM.passCorrect}. No instant feedback - score and review at the end, like the real exam. Flag questions and come back. Pause stops the clock (the real exam has none).`,
+            `${STERNIK_EXAM.questions} losowych pytan w formacie egzaminu (3 warianty A/B/C), ${STERNIK_EXAM.minutes} minut, prog ${STERNIK_EXAM.passCorrect}. Bez natychmiastowej odpowiedzi - wynik i powtorka na koncu. Mozna flagowac pytania i wracac.`,
           )}
         </p>
         <button

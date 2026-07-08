@@ -42,6 +42,8 @@ export default function SternikHubPage() {
   const answered = progress?.totalAnswered ?? 0;
   const accuracy = answered > 0 ? Math.round(((progress?.totalCorrect ?? 0) / answered) * 100) : 0;
   const weak = progress ? sternikWeakIds(progress).length : 0;
+  const examPoolSize = STERNIK_BANK.filter((q) => q.options.length === 3).length;
+  const extendedSize = STERNIK_BANK.length - examPoolSize;
   const exams = progress?.exams ?? [];
   const passedExams = exams.filter((e) => e.passed).length;
   const lastExam = exams.length > 0 ? exams[exams.length - 1] : null;
@@ -97,6 +99,13 @@ export default function SternikHubPage() {
             'Плюс практическая часть: манёвры на лодке (отход/подход к причалу, «человек за бортом», якорь). Минимальный возраст - 14 лет. Стоимость: экзамен 250 zl + патент 50 zl (ученикам и студентам до 26 лет - скидка 50%). Основание: rozporzadzenie MSiT z 9.04.2013 (tekst jednolity 2026).',
             'Plus a practical part: boat maneuvers (dock departure/approach, man overboard, anchoring). Minimum age 14. Fees: exam 250 zl + licence 50 zl (50% off for pupils/students under 26). Legal basis: MSiT regulation of 9.04.2013 (2026 consolidated text).',
             'Do tego czesc praktyczna: manewry (odejscie/dojscie do kei, czlowiek za burta, kotwiczenie). Minimalny wiek: 14 lat. Oplaty: egzamin 250 zl + patent 50 zl (uczniowie i studenci do 26 lat: 50%).',
+          )}
+        </p>
+        <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+          {tp(
+            `База: ${STERNIK_BANK.length} вопросов из открытых источников (моя выборка + база Centrum Zeglarskie с ключом + школьные тесты Wind / motosternik / h2o), дубли убраны. У PZMWiNW нет единой публичной базы - вопросы составляет комиссия из тем экзамена; в сети циркулирует набор ~286-337 в вариантах разных школ. Реальный экзамен - 3 варианта A/B/C: пробный экзамен берёт ${examPoolSize} вопросов такого формата, тренажёр даёт все ${STERNIK_BANK.length} (включая ${extendedSize} расширенных на 4 варианта для более глубокой проработки).`,
+            `Bank: ${STERNIK_BANK.length} questions from open sources (my set + Centrum Zeglarskie bank with key + Wind / motosternik / h2o school tests), deduplicated. PZMWiNW has no single public bank - a commission draws questions from the exam topics; a ~286-337 set circulates in school variants. The real exam is 3-option A/B/C: the mock exam uses ${examPoolSize} such questions, the trainer offers all ${STERNIK_BANK.length} (including ${extendedSize} extended 4-option ones for deeper practice).`,
+            `Baza: ${STERNIK_BANK.length} pytan ze zrodel otwartych (moj zestaw + baza Centrum Zeglarskie z kluczem + testy szkol Wind / motosternik / h2o), bez duplikatow. PZMWiNW nie ma jednej publicznej bazy - pytania uklada komisja z zakresu egzaminu; w sieci krazy zestaw ~286-337 w wariantach szkol. Prawdziwy egzamin ma 3 warianty A/B/C: probny egzamin bierze ${examPoolSize} takich pytan, trening daje wszystkie ${STERNIK_BANK.length} (w tym ${extendedSize} rozszerzonych 4-wariantowych).`,
           )}
         </p>
       </section>
