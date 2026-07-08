@@ -534,6 +534,39 @@ export default function SternikTheoryPage() {
         <DiagramCaption>
           {tp('Днём суша теплее - бриз с воды на сушу; ночью наоборот - с суши на воду.', 'By day land is warmer - breeze from water to land; by night the reverse.', 'W dzien lad cieplejszy - bryza od wody na lad; noca odwrotnie.')}
         </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🌪️ {tp('Шкала Бофорта (0-12)', 'Beaufort scale (0-12)', 'Skala Beauforta (0-12)')}
+        </h3>
+        <p className="mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {tp(
+            'Skala Beauforta (0-12) opisuje siłę wiatru. Шкала Бофорта (0-12) описывает силу ветра по его действию на воду. Для малых лодок 6 баллов - уже предел, при 8+ на воду не выходят.',
+            'The Beaufort scale (0-12) describes wind force by its effect on the water. For small boats 6 is already the limit; at 8+ you do not go out.',
+            'Skala Beauforta (0-12) opisuje sile wiatru wg jego dzialania na wode. Dla malych lodzi 6 to juz granica, przy 8+ nie wyplywa sie.',
+          )}
+        </p>
+        <Table
+          head={['B', 'Nazwa (PL / RU)', 'Wezly / m/s', 'Morze / Море']}
+          rows={[
+            ['0', 'Cisza / штиль', '< 1 kn', 'lustro wody / гладь'],
+            ['1', 'Powiew / тихий', '1-3 kn', 'zmarszczki / рябь'],
+            ['2', 'Slaby / лёгкий', '4-6 kn', 'male fale / мелкие волны'],
+            ['3', 'Lagodny / слабый', '7-10 kn', 'grzywacze zaczynaja sie lamac / барашки'],
+            ['4', 'Umiarkowany / умеренный', '11-16 kn', 'male fale, biale grzywy / белые гребни'],
+            ['5', 'Dosc silny / свежий', '17-21 kn', 'umiarkowane fale / умеренные волны'],
+            ['6', 'Silny / сильный', '22-27 kn', 'duze fale, piana / крупные волны, пена'],
+            ['7', 'Bardzo silny / крепкий', '28-33 kn', 'morze się piętrzy / волны громоздятся'],
+            ['8', 'Sztormowy / очень крепкий', '34-40 kn', 'wichura, wysokie fale / шторм'],
+            ['9', 'Silnie sztormowy / шторм', '41-47 kn', 'bardzo wysokie fale / очень высокие'],
+            ['10', 'Sztorm / сильный шторм', '48-55 kn', 'ogromne fale / огромные волны'],
+            ['11', 'Gwaltowny sztorm / жестокий', '56-63 kn', 'wyjatkowo wysokie fale / исключит.'],
+            ['12', 'Huragan / ураган', '> 64 kn', 'powietrze pelne piany / всё в пене'],
+          ]}
+        />
+        <Tip>
+          Запомни ключевое для теста: 6°B = 22-27 узлов (сильный ветер, для малой лодки уже опасно). Резкий рост
+          силы ветра + Cumulonimbus/вал шквала = немедленно к берегу.
+        </Tip>
       </Section>
 
       {/* 11. RATOWNICTWO ------------------------------------------------------------ */}
