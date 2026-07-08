@@ -105,6 +105,18 @@ function TrainerInner() {
     const qs = ids.map((id) => STERNIK_BANK_BY_ID[id]).filter(Boolean);
     begin(qs, tp('Работа над ошибками', 'Error review', 'Powtorka bledow'));
   };
+  // Hard mode: questions flagged 'hard' by the source, plus the learner's own
+  // stubborn misses (personal difficulty), deduped.
+  const startHard = () => {
+    const weakSet = new Set(sternikWeakIds(loadSternikProgress()));
+    const seen = new Set<string>();
+    const pool = STERNIK_BANK.filter((q) => {
+      if (seen.has(q.id)) return false;
+      if (q.difficulty === 'hard' || weakSet.has(q.id)) { seen.add(q.id); return true; }
+      return false;
+    });
+    begin(shuffled(pool), tp('Трудные вопросы', 'Hard questions', 'Trudne pytania'));
+  };
   // Adaptive session: weak questions first, then unseen, then extra questions
   // from categories where accuracy is below the exam pass mark.
   const startSmart = () => {
@@ -282,6 +294,23 @@ function TrainerInner() {
             </div>
           </button>
         </div>
+
+        <button
+          type="button"
+          onClick={startHard}
+          className="mb-6 flex w-full items-center gap-3 rounded-2xl p-4 text-left transition hover:-translate-y-0.5"
+          style={{ background: 'linear-gradient(140deg, var(--bg-card), rgba(255,68,68,0.10))', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="text-2xl">🔥</div>
+          <div>
+            <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {tp('Трудные вопросы', 'Hard questions', 'Trudne pytania')}
+            </div>
+            <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {tp('Помеченные как сложные + твои упорные ошибки', 'Flagged hard + your stubborn mistakes', 'Oznaczone jako trudne + twoje uporczywe bledy')}
+            </div>
+          </div>
+        </button>
 
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
           {tp('По категориям', 'By category', 'Wedlug kategorii')}

@@ -91,6 +91,8 @@ export interface SternikQuestion {
    * /public/sternik/clouds (e.g. 'cumulonimbus'). Used for weather questions.
    */
   photo?: string;
+  /** Difficulty where the source provides it (akademiasternika). */
+  difficulty?: 'easy' | 'medium' | 'hard';
 }
 
 /** Real exam format: rozporzadzenie MSiT z 9.04.2013 (Dz.U. 2013 poz. 460). */
@@ -3402,6 +3404,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Bez uprawnień motorowodnych można prowadzić jachty motorowe o mocy silnika do 10 kW; powyżej tej wartości wymagany jest patent sternika motorowodnego.',
     whyRu: 'Без прав (uprawnienia motorowodne) можно управлять моторными яхтами с мощностью двигателя до 10 kW; выше этого значения нужен патент рулевого (patent sternika motorowodnego).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-001',
   },
   {
@@ -3411,6 +3414,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Oprócz Policji dokumenty kontrolują i mandaty nakładają inspektorzy żeglugi śródlądowej; WOPR i straż miejska nie mają takich uprawnień.',
     whyRu: 'Кроме полиции документы проверяют и штрафы налагают инспекторы судоходства (inspektorzy żeglugi śródlądowej); WOPR и муниципальная полиция (straż miejska) таких полномочий не имеют.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-004',
   },
   {
@@ -3420,6 +3424,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jeden krótki sygnał dźwiękowy oznacza \'zmieniam kurs w prawo\', czyli skręt na sterburtę.',
     whyRu: 'Один короткий звуковой сигнал (jeden krótki sygnał) означает \'меняю курс вправо\' (zmieniam kurs w prawo).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-005',
   },
   {
@@ -3429,6 +3434,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Trzy krótkie sygnały oznaczają \'moje maszyny pracują wstecz\', czyli napęd działa do tyłu.',
     whyRu: 'Три коротких сигнала (trzy krótkie) означают \'мои машины работают назад\' (moje maszyny pracują wstecz).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-006',
   },
   {
@@ -3438,6 +3444,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Seria bardzo krótkich dźwięków (co najmniej sześć) to sygnał ostrzegawczy oznaczający niebezpieczeństwo zderzenia.',
     whyRu: 'Серия очень коротких звуков (co najmniej sześć) - это предупреждающий сигнал, означающий опасность столкновения (niebezpieczeństwo zderzenia).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-007',
   },
   {
@@ -3447,6 +3454,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Sygnał dźwiękowy \'człowiek za burtą\' nadaje się jako seria podwójnych krótkich dźwięków.',
     whyRu: 'Звуковой сигнал \'человек за бортом\' (człowiek za burtą) подаётся как серия двойных коротких звуков (seria podwójnych krótkich dźwięków).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-008',
   },
   {
@@ -3456,6 +3464,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek o napędzie mechanicznym o długości do 50 m w drodze pokazuje na morzu światło masztowe, rufowe i światła burtowe; drugie światło masztowe jest wymagane dopiero od 50 m.',
     whyRu: 'Судно с механическим двигателем длиной до 50 m на ходу показывает в море топовый (masztowe), кормовой (rufowe) и бортовые огни (burtowe); второй топовый огонь обязателен только от 50 m.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-009',
   },
   {
@@ -3465,6 +3474,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Mały statek motorowy o długości do 7 m osiągający prędkość poniżej około 10 km/h może w nocy pokazywać jedno białe światło widoczne dookoła widnokręgu zamiast pełnego zestawu świateł.',
     whyRu: 'Малое моторное судно длиной до 7 m со скоростью менее примерно 10 km/h ночью может показывать один белый огонь, видимый по всему горизонту (jedno białe światło dookoła widnokręgu), вместо полного набора огней.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-010',
   },
   {
@@ -3474,6 +3484,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwie czarne kule zawieszone jedna nad drugą to znak dzienny statku, który utracił zdolność manewrowania (nie jest w stanie manewrować).',
     whyRu: 'Два чёрных шара один над другим - это дневной знак (znak dzienny) судна, потерявшего способность управляться (utracił zdolność manewrowania).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-011',
   },
   {
@@ -3483,6 +3494,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Morze terytorialne RP to pas wód przybrzeżnych o szerokości 12 mil morskich, liczony od linii podstawowej.',
     whyRu: 'Территориальное море Польши (morze terytorialne RP) - это полоса прибрежных вод шириной 12 морских миль, отсчитываемая от исходной линии.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-012',
   },
   {
@@ -3492,6 +3504,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wezwanie pomocy w Międzynarodowym Kodzie Sygnałowym oznacza się flagami NC (potrzebuję natychmiastowej pomocy).',
     whyRu: 'Призыв о помощи в Международном своде сигналов (Międzynarodowy Kod Sygnałowy) обозначается флагами NC (нужна немедленная помощь).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-014',
   },
   {
@@ -3501,6 +3514,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jeden długi dźwięk nadany przez statek to sygnał \'uwaga\', czyli sygnał ostrzegawczy.',
     whyRu: 'Один продолжительный звук (jeden długi dźwięk) - это сигнал \'внимание\' (uwaga), предупреждающий сигнал.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-016',
   },
   {
@@ -3510,6 +3524,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Cztery krótkie dźwięki oznaczają \'nie mogę manewrować\', czyli nie jestem w stanie manewrować.',
     whyRu: 'Четыре коротких звука (cztery krótkie) означают \'не могу маневрировать\' (nie mogę manewrować).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-020',
   },
   {
@@ -3519,6 +3534,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Sześć krótkich sygnałów (seria bardzo krótkich dźwięków) oznacza niebezpieczeństwo zderzenia.',
     whyRu: 'Шесть коротких сигналов (sześć krótkich sygnałów) означают опасность столкновения (niebezpieczeństwo zderzenia).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-021',
   },
   {
@@ -3528,6 +3544,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Lewa burta ma światło koloru czerwonego, a prawa burta zielone.',
     whyRu: 'Левый борт (lewa burta) имеет красный огонь, а правый - зелёный.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-023',
   },
   {
@@ -3537,6 +3554,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Światło masztowe ma kolor biały.',
     whyRu: 'Топовый огонь (światło masztowe) имеет белый цвет.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-024',
   },
   {
@@ -3546,6 +3564,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Sygnal wzywania pomocy S.O.S. w alfabecie Morse\'a to trzy kropki, trzy kreski, trzy kropki (... --- ...), nadawane bez przerw jako jedna grupa.',
     whyRu: 'Сигнал бедствия S.O.S. в азбуке Морзе - это три точки, три тире, три точки (... --- ...), передаваемые слитно как одна группа.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-028',
   },
   {
@@ -3555,6 +3574,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Maly statek to jednostka o dlugosci mniejszej niz 20 metrow, ktora moze przewozic nie wiecej niz 12 osob. Definicja pochodzi z przepisow zeglugowych na srodladowych drogach wodnych.',
     whyRu: 'Малое судно (maly statek) - это судно длиной менее 20 метров, которое может перевозить не более 12 человек. Определение взято из правил плавания по внутренним водным путям.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-030',
   },
   {
@@ -3564,6 +3584,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek wchodzacy do portu ma obowiazek ustapic drogi statkowi wychodzacemu z portu, dlatego odpowiedz brzmi: tak.',
     whyRu: 'Судно, входящее в порт, обязано уступить дорогу судну, выходящему из порта, поэтому ответ - да (Tak).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-032',
   },
   {
@@ -3573,6 +3594,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zolta kula wystawiana w dzien to sygnal dzienny oznaczajacy statek holowany.',
     whyRu: 'Желтый шар (zolta kula), выставленный днем, - это дневной сигнал, обозначающий буксируемое судно (statek holowany).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-033',
   },
   {
@@ -3582,6 +3604,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Odstapienie od przepisow zeglugowych jest dozwolone tylko wtedy, gdy istnieje bezposrednie niebezpieczenstwo i trzeba go uniknac.',
     whyRu: 'Отступление от правил плавания разрешено только тогда, когда существует непосредственная опасность (bezposrednie niebezpieczenstwo) и ее необходимо избежать.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-034',
   },
   {
@@ -3591,6 +3614,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Szybkie bicie w dzwon przez okolo 5 sekund, powtarzane w odstepach nieprzekraczajacych 1 minuty, to sygnal mglowy statku stojacego na kotwicy.',
     whyRu: 'Частые удары в колокол в течение примерно 5 секунд с интервалом не более 1 минуты - это туманный сигнал судна, стоящего на якоре (statek na kotwicy).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-035',
   },
   {
@@ -3600,6 +3624,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Trzy czerwone swiatla w linii pionowej, widoczne ze wszystkich stron, oznaczaja statek ograniczony swoim zanurzeniem.',
     whyRu: 'Три красных огня, расположенных вертикально и видимых со всех сторон, обозначают судно, стесненное своей осадкой (statek ograniczony swym zanurzeniem).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-036',
   },
   {
@@ -3609,6 +3634,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Swiatlo zielone nad bialym, widoczne dookola widnokregu, nosi statek zajety tralowaniem (tralujacy).',
     whyRu: 'Зеленый огонь над белым несет судно, занятое тралением (statek tralujacy).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-037',
   },
   {
@@ -3618,6 +3644,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwa czarne stozki zlaczone wierzcholkami to dzienny znak statku zajetego polowem (innym niz tralowanie).',
     whyRu: 'Два черных конуса, соединенных вершинами, - это дневной знак судна, занятого ловом рыбы (statek zajety polowem).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-038',
   },
   {
@@ -3627,6 +3654,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek pozbawiony mozliwosci manewrowania pokazuje dwa czerwone swiatla umieszczone jedno nad drugim, widoczne ze wszystkich stron.',
     whyRu: 'Судно, лишенное возможности управляться (utracilo manewrowosc), несет два красных огня один над другим, видимых со всех сторон.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-039',
   },
   {
@@ -3636,6 +3664,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Trzy swiatla w pionie: czerwone, biale, czerwone, widoczne ze wszystkich stron, oznaczaja statek o ograniczonej zdolnosci manewrowej.',
     whyRu: 'Три огня по вертикали - красный, белый, красный - видимые со всех сторон, обозначают судно, ограниченное в возможности маневрировать (o ograniczonej zdolnosci manewrowej).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-040',
   },
   {
@@ -3645,6 +3674,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Windsurfing traktowany jest jak jednostka zaglowa, a statek o napedzie mechanicznym (jacht motorowy) ustepuje drogi jednostce zaglowej, dlatego pierwszenstwo ma windsurfing.',
     whyRu: 'Виндсерфинг рассматривается как парусное судно, а судно с механическим двигателем (jacht motorowy) уступает дорогу парусному, поэтому преимущество у виндсерфинга (windsurfing).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-041',
   },
   {
@@ -3654,6 +3684,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Czarny walec wywieszony pod salingiem to dzienny znak statku ograniczonego swoim zanurzeniem.',
     whyRu: 'Черный цилиндр (czarny walec), поднятый под краспицей (saling), - это дневной знак судна, стесненного осадкой (statek ograniczony swym zanurzeniem).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-042',
   },
   {
@@ -3663,6 +3694,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwie czarne kule z czarnym podwojnym stozkiem (romb) miedzy nimi, ustawione pionowo, to dzienny znak statku o ograniczonej zdolnosci manewrowej.',
     whyRu: 'Два черных шара с двойным конусом (ромбом) между ними, расположенные вертикально, - это дневной знак судна, ограниченного в возможности маневрировать (o ograniczonej manewrowosci).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-043',
   },
   {
@@ -3672,6 +3704,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Drugie swiatlo masztowe (topowe) obowiazkowo nosi statek o napedzie mechanicznym o dlugosci 50 m i wiekszej.',
     whyRu: 'Второй топовый огонь обязательно несет судно с механическим двигателем длиной 50 м и более.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-044',
   },
   {
@@ -3681,6 +3714,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Ustawienie swiatel jest odwrotne do burtowych: zielone swiatla wskazuja strone wolna do przejscia, a czerwone strone zamknieta. Skoro dwa zielone swiatla sa po lewej burcie tego statku, przeplyniesz z jego lewej burty.',
     whyRu: 'Расположение огней обратно бортовому: зеленые огни указывают свободную для прохода сторону, а красный - закрытую. Поскольку два зеленых огня на левом борту этого судна, вы пройдете с его левого борта (z lewej burty).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-045',
   },
   {
@@ -3690,6 +3724,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Opaska to podłużne umocnienie brzegu (faszyną, kamieniem lub betonem) biegnące wzdłuż linii brzegowej; główka i ostroga to budowle regulacyjne poprzeczne, wystające w nurt.',
     whyRu: 'Опаска (opaska) - продольное укрепление берега (фашиной, камнем или бетоном) вдоль береговой линии; головка (główka) и острога (ostroga) - поперечные регуляционные сооружения, выступающие в поток.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-046',
   },
   {
@@ -3699,6 +3734,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Nabieżnik tworzą dwa znaki: niższy (bliższy) z przodu i wyższy z tyłu; aby wejść na linię prowadzącą, płyniemy w kierunku niższego znaku, trzymając oba znaki w jednej linii.',
     whyRu: 'Створ (nabieżnik) образуют два знака: нижний (ближний) впереди и высший сзади; чтобы войти на ведущую линию, идём в сторону нижнего знака (niższy znak), удерживая оба знака на одной линии.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-047',
   },
   {
@@ -3708,6 +3744,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Południk to koło wielkie na powierzchni Ziemi przechodzące przez oba bieguny, czyli przez oś Ziemi; łączy punkty o tej samej długości geograficznej.',
     whyRu: 'Меридиан (południk) - большой круг на поверхности Земли, проходящий через оба полюса, то есть через ось Земли; соединяет точки одинаковой долготы.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-048',
   },
   {
@@ -3717,6 +3754,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Stępka (kil) to główna, wzdłużna belka konstrukcyjna kadłuba, biegnąca od dziobu do rufy, do której mocuje się wręgi.',
     whyRu: 'Штевень-киль (stępka) - главная продольная конструктивная балка корпуса, идущая от носа к корме, к которой крепятся шпангоуты (wręgi).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-049',
   },
   {
@@ -3726,6 +3764,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Poler to pokładowy słupek (pachoł) służący do obkładania i mocowania cum; odbijacz chroni burtę, a sztagownik to okucie sztagu.',
     whyRu: 'Полер (poler) - палубная тумба (кнехт) для крепления швартовых (cumy); отбойник-кранец (odbijacz) защищает борт, а штаговник (sztagownik) - оковка штага.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-050',
   },
   {
@@ -3735,6 +3774,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Pych to długie, okute i ostro zakończone wiosło (drąg) do odpychania się od dna na płytkiej wodzie; pagaj to krótkie wiosło kajakowe, a bojrep to linka boi kotwicznej.',
     whyRu: 'Пых (pych) - длинное окованное, остро заканчивающееся весло (шест) для отталкивания от дна на мелководье; пагай (pagaj) - короткое байдарочное весло, а бойреп (bojrep) - трос якорного буя.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-051',
   },
   {
@@ -3744,6 +3784,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Listwa odbojowa to stałe wzmocnienie biegnące wzdłuż górnej krawędzi burty, chroniące kadłub przy kontakcie z nabrzeżem; odbijacz jest ruchomy, a nie stały.',
     whyRu: 'Отбойная планка (listwa odbojowa) - постоянное усиление вдоль верхней кромки борта, защищающее корпус при контакте с причалом; кранец (odbijacz) - подвижный, а не постоянный.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-052',
   },
   {
@@ -3753,6 +3794,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Forpik to dziobowa, skrajna część kadłuba (przedni skrajnik); achterpik jest na rufie, a kokpit to zagłębienie robocze załogi.',
     whyRu: 'Форпик (forpik) - носовая крайняя часть корпуса (передний отсек); ахтерпик (achterpik) - на корме, а кокпит (kokpit) - рабочее углубление для экипажа.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-053',
   },
   {
@@ -3762,6 +3804,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Denniki to poprzeczne elementy usztywniające dno, które wzmacniają połączenie kilu (stępki) z wręgami; kątnice łączą pokład z burtą.',
     whyRu: 'Днищевые флоры (denniki) - поперечные элементы, усиливающие соединение киля (kil/stępka) со шпангоутами (wręgi); кницы (kątnice) соединяют палубу с бортом.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-054',
   },
   {
@@ -3771,6 +3814,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zęza to najniższa część wnętrza kadłuba, w której gromadzi się woda zęzowa; gródź to przegroda poprzeczna dzieląca wnętrze na przedziały.',
     whyRu: 'Льяло (zęza) - самая нижняя часть внутри корпуса, где собирается трюмная вода; переборка (gródź) - поперечная перегородка, делящая корпус на отсеки.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-055',
   },
   {
@@ -3780,6 +3824,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Powolne, powtarzane zataczanie kręgów (machanie) rozłożonymi ramionami lub jaskrawym przedmiotem, np. ręcznikiem, to uznany sygnał wzywania pomocy (sygnał niebezpieczeństwa).',
     whyRu: 'Медленное повторяющееся круговое размахивание разведёнными руками или ярким предметом (например, полотенцем) - признанный сигнал бедствия (sygnał wzywania pomocy).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-056',
   },
   {
@@ -3789,6 +3834,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Podczas sztormu załoga wpina szelki (pasy bezpieczeństwa) karabińczykami w rozpiętą wzdłuż pokładu sztormlinę (linę życia), co zapobiega wypadnięciu za burtę.',
     whyRu: 'В шторм экипаж пристёгивает страховочные пояса (pasy bezpieczeństwa) карабинами к натянутому вдоль палубы штормлиню (sztormlina), что предотвращает падение за борт.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-057',
   },
   {
@@ -3798,6 +3844,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gdy człowiek wypadł z lewej burty, natychmiast skręcamy w lewo (w stronę poszkodowanego), aby rufa i pracująca śruba odchyliły się od niego i go nie zraniły.',
     whyRu: 'Если человек упал с левого борта, немедленно поворачиваем влево (в сторону упавшего), чтобы корма и работающий винт отвернулись от него и не поранили.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-058',
   },
   {
@@ -3807,6 +3854,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy prawdopodobnym złamaniu przedramienia unieruchamiamy dwa sąsiednie stawy (nadgarstkowy i łokciowy) i podwieszamy kończynę na temblaku.',
     whyRu: 'При вероятном переломе предплечья обездвиживаем два соседних сустава (лучезапястный и локтевой) и подвешиваем руку на косынке (temblak).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-059',
   },
   {
@@ -3816,6 +3864,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Drogi oddechowe udrażnia się przez odchylenie głowy do tyłu i uniesienie żuchwy do góry, co odsuwa zapadnięty język od tylnej ściany gardła.',
     whyRu: 'Дыхательные пути открывают запрокидыванием головы назад и подъёмом нижней челюсти (odchylenie głowy i uniesienie żuchwy), что отодвигает запавший язык от задней стенки глотки.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-060',
   },
   {
@@ -3825,6 +3874,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gdy ktoś wypadnie za burtę, natychmiast rzucamy koło ratunkowe (aby utrzymać go na powierzchni i oznaczyć pozycję) i wykonujemy manewr "człowiek za burtą", aby po niego wrócić.',
     whyRu: 'Когда человек упал за борт, немедленно бросаем спасательный круг (koło ratunkowe), чтобы удержать его на воде и обозначить место, и выполняем манёвр "человек за бортом" (człowiek za burtą), чтобы вернуться к нему.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-061',
   },
   {
@@ -3834,6 +3884,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Prom poruszający się na uwięzi (przy użyciu liny) niesie w nocy zielone światło widoczne ze wszystkich stron umieszczone nad białym takim samym światłem, co odróżnia go od pozostałych jednostek.',
     whyRu: 'Паром на привязи (prom na uwięzi), идущий по канату, ночью несёт зелёный круговой огонь над белым круговым огнём, что отличает его от других судов.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-063',
   },
   {
@@ -3843,6 +3894,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Sygnał dźwiękowy krótki-długi-krótki-krótki to na drodze wodnej żądanie natychmiastowego zatrzymania statku.',
     whyRu: 'Звуковой сигнал короткий-длинный-короткий-короткий на водном пути означает требование немедленно остановить судно (zatrzymajcie natychmiast wasz statek).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-067',
   },
   {
@@ -3852,6 +3904,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek stojący na kotwicy pokazuje białe światło kotwiczne widoczne dookoła widnokręgu.',
     whyRu: 'Судно, стоящее на якоре, показывает белый якорный огонь (światło kotwiczne), видимый со всех сторон.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-069',
   },
   {
@@ -3861,6 +3914,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Mały statek to jednostka o długości kadłuba poniżej 20 m, nieprzeznaczona do przewozu więcej niż 12 osób.',
     whyRu: 'Малое судно (mały statek) - это судно с длиной корпуса менее 20 м, не предназначенное для перевозки более 12 человек.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-070',
   },
   {
@@ -3870,6 +3924,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Patent sternika motorowodnego może uzyskać osoba, która ukończyła 14 rok życia.',
     whyRu: 'Патент рулевого моторного судна (patent sternika motorowodnego) может получить лицо, достигшее 14 лет.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-072',
   },
   {
@@ -3879,6 +3934,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zielone romby (podwójny stożek) oznaczają burtę, po której można bezpiecznie przepłynąć, a czerwona kula burtę, po której przejście jest zabronione.',
     whyRu: 'Зелёные ромбы (romby, двойной конус) указывают борт, с которого можно безопасно пройти, а красный шар (czerwona kula) - борт, с которого проход запрещён.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-074',
   },
   {
@@ -3888,6 +3944,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W świetle przerywanym czas zaciemnienia jest krótszy od czasu świecenia, czyli światło pali się dłużej, niż jest zgaszone.',
     whyRu: 'У прерывистого огня (światło przerywane) время затемнения короче времени свечения, то есть огонь горит дольше, чем гаснет.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-076',
   },
   {
@@ -3897,6 +3954,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Największym jeziorem w Polsce są Śniardwy o powierzchni około 113 km2.',
     whyRu: 'Крупнейшее озеро Польши - Снярдвы (Śniardwy), площадью около 113 км2.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-077',
   },
   {
@@ -3906,6 +3964,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przemiał to płycizna (mielizna) leżąca między plosami, czyli głębszymi odcinkami koryta rzeki.',
     whyRu: 'Перемель (przemiał) - это мелководье между плёсами (plosa), то есть более глубокими участками русла реки.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-078',
   },
   {
@@ -3915,6 +3974,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Do gaszenia urządzeń pod napięciem używa się gaśnicy proszkowej, ponieważ proszek nie przewodzi prądu, w przeciwieństwie do wody i piany.',
     whyRu: 'Для тушения электрооборудования под напряжением применяют порошковый огнетушитель (gaśnica proszkowa), так как порошок не проводит ток, в отличие от воды и пены.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-079',
   },
   {
@@ -3924,6 +3984,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W świetle izofazowym czas świecenia równa się czasowi zaciemnienia.',
     whyRu: 'У изофазного огня (światło izofazowe) время свечения равно времени затемнения.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-080',
   },
   {
@@ -3933,6 +3994,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwa żółte romby umieszczone na moście oznaczają zalecenie przejścia w jednym kierunku; pojedynczy romb oznacza ruch w obu kierunkach.',
     whyRu: 'Два жёлтых ромба (dwa żółte romby) на мосту означают рекомендованный проход в одном направлении; один ромб - движение в обе стороны.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-081',
   },
   {
@@ -3942,6 +4004,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy kursach przecinających się pierwszeństwo ma statek, który ma prawą burtę wolną, czyli widzi drugą jednostkę po swojej lewej burcie; ustępuje ten, kto ma statek po prawej stronie.',
     whyRu: 'При пересекающихся курсах преимущество имеет судно, у которого свободен правый борт (mający prawą wolną), то есть другое судно у него слева; уступает тот, у кого судно справа.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-083',
   },
   {
@@ -3951,6 +4014,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Windsurfing traktowany jest jak jednostka żaglowa, a żagle mają pierwszeństwo przed napędem mechanicznym, więc pierwszeństwo ma windsurfing.',
     whyRu: 'Виндсёрфинг (windsurfing) считается парусным судном, а парус имеет преимущество перед механическим двигателем, поэтому преимущество у виндсёрфинга.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-085',
   },
   {
@@ -3960,6 +4024,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Prawidłowa kolejność pierwszeństwa drogi to: 1. jacht wiosłowy, 2. jacht żaglowy, 3. jacht motorowy.',
     whyRu: 'Правильный порядок преимущества: 1. вёсельный (wiosłowy), 2. парусный (żaglowy), 3. моторный (motorowy).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-086',
   },
   {
@@ -3969,6 +4034,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zakaz wyprzedzania obowiązuje przed śluzami, w kanałach dla jednostek tego samego typu, pod mostami oraz na drogach wodnych oznaczonych znakiem zakazu wyprzedzania albo mijania i wyprzedzania.',
     whyRu: 'Запрет обгона действует перед шлюзами, в каналах для судов одного типа, под мостами и на водных путях, обозначенных знаком запрета обгона либо расхождения и обгона.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-088',
   },
   {
@@ -3978,6 +4044,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy kursach wprost na siebie i ryzyku zderzenia oba statki wykonują wyraźny zwrot w prawo (na sterburtę), aby wyminąć się lewymi burtami.',
     whyRu: 'При встречных курсах и риске столкновения оба судна отчётливо отворачивают вправо (zmienić kurs w prawo), чтобы разойтись левыми бортами (minąć się lewymi burtami).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-089',
   },
   {
@@ -3987,6 +4054,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek nieuprzywilejowany płynący z prędkością powyżej 40 km/h musi pozostawić pozostałym statkom akwen pozwalający im zachować kurs; wysoka prędkość nie daje pierwszeństwa.',
     whyRu: 'Непривилегированное судно, идущее со скоростью свыше 40 km/h, обязано оставить остальным судам достаточно акватории для сохранения курса (zachować kurs); высокая скорость не даёт преимущества.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-090',
   },
   {
@@ -3996,6 +4064,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wezwanie pomocy sygnalizuje się powtarzającymi się długimi dźwiękami lub jednym ciągłym sygnałem dźwiękowym.',
     whyRu: 'Сигнал вызова помощи (wezwanie pomocy) - повторяющиеся длинные звуки или один непрерывный сигнал.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-093',
   },
   {
@@ -4005,6 +4074,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jeden krótki dźwięk oznacza manewr „zmieniam kurs w prawo” (na sterburtę).',
     whyRu: 'Один короткий звук означает «меняю курс вправо» (zmieniam kurs w prawo).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-094',
   },
   {
@@ -4014,6 +4084,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Niebezpieczeństwo zderzenia lub wątpliwość co do zamiarów drugiego statku sygnalizuje się serią krótkich dźwięków (co najmniej pięć).',
     whyRu: 'Опасность столкновения (niebezpieczeństwo zderzenia) - серия коротких звуков (seria krótkich dźwięków), не менее пяти.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-098',
   },
   {
@@ -4023,6 +4094,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek na kotwicy podaje we mgle co około minutę kilkusekundowy sygnał dzwonem.',
     whyRu: 'Судно на якоре (statek na kotwicy) в тумане подаёт колоколом несколько секунд звона примерно каждую минуту.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-099',
   },
   {
@@ -4032,6 +4104,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Kolor biały mają światła: rufowe, masztowe oraz kotwiczne; światła burtowe są czerwone i zielone.',
     whyRu: 'Белого цвета огни: кормовой (rufowe), топовый (masztowe) и якорный (kotwiczne); бортовые - красный и зелёный.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-PRZEPIS-102',
   },
   {
@@ -4041,6 +4114,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jacht żaglowy o długości 12 m w drodze nosi światła burtowe czerwone i zielone oraz światło rufowe, bez światła masztowego, które ma statek motorowy.',
     whyRu: 'Парусная яхта длиной 12 m на ходу несёт бортовые красный и зелёный и кормовой огонь (rufowe); топового огня нет - он у моторного судна.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-103',
   },
   {
@@ -4050,6 +4124,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Mała łódź motorowa o długości 6 m płynąca z prędkością do 10 km/h może nosić jedno białe światło widoczne dookoła widnokręgu.',
     whyRu: 'Малое моторное судно длиной 6 m на скорости до 10 km/h несёт один белый круговой огонь (światło białe widoczne dookoła widnokręgu).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-105',
   },
   {
@@ -4059,6 +4134,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Drugie (dodatkowe) światło masztowe na śródlądziu noszą statki o długości 110 m i więcej.',
     whyRu: 'Второй топовый огонь (drugie światło masztowe) на внутренних водах несут суда длиной 110 m и более.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-106',
   },
   {
@@ -4068,6 +4144,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Prom przemieszczający się swobodnie i mający pierwszeństwo przejścia oznacza się w dzień zieloną kulą nad białym walcem.',
     whyRu: 'Свободно перемещающийся паром с правом преимущества (prom z pierwszeństwem) днём обозначается зелёным шаром над белым цилиндром (zielona kula nad białym walcem).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-107',
   },
   {
@@ -4077,6 +4154,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na prawej burcie podnosi się banderę państwa, w którego obszarze celnym aktualnie przebywamy; przed odprawą graniczną nosi się żółtą flagę Q Międzynarodowego Kodu Sygnałowego.',
     whyRu: 'На правом борту поднимают флаг страны, в таможенной зоне которой находимся; до пограничного оформления - жёлтый флаг Q (żółta flaga Q MKS).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-PRZEPIS-109',
   },
   {
@@ -4086,6 +4164,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W systemie IALA Region A znaki boczne lewej strony szlaku żeglownego są koloru czerwonego, a prawej strony zielone.',
     whyRu: 'В системе IALA Region A боковые знаки левой стороны фарватера (znaki boczne lewej strony) - красные, правой - зелёные.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-001',
   },
   {
@@ -4095,6 +4174,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Umowny kierunek szlaku żeglownego na rzece biegnie z prądem, czyli w dół rzeki; względem niego określa się lewy i prawy brzeg.',
     whyRu: 'Условное направление судового хода на реке (kierunek szlaku) идёт с течением, то есть вниз по реке; относительно него определяют левый и правый берег.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-002',
   },
   {
@@ -4104,6 +4184,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Znak kardynalny północny (N) ma znak szczytowy z dwóch stożków ustawionych jeden nad drugim, oba skierowane wierzchołkami do góry.',
     whyRu: 'Северный кардинальный знак (znak kardynalny północny N) имеет топовую фигуру из двух конусов, направленных вершинами вверх.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-003',
   },
   {
@@ -4113,6 +4194,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Znak kardynalny wschodni (E) świeci światłem białym o charakterystyce Q(3) 10s lub VQ(3) 5s, czyli 3 błyski w grupie.',
     whyRu: 'Восточный кардинальный знак (znak kardynalny wschodni E) даёт белый свет группами по 3 проблеска (Q(3) 10s или VQ(3) 5s).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-LOCJA-004',
   },
   {
@@ -4122,6 +4204,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Znak kardynalny zachodni (W) ma charakterystykę Q(9) 15s lub VQ(9) 10s, czyli 9 błysków w grupie.',
     whyRu: 'Западный кардинальный знак (znak kardynalny zachodni W) имеет характеристику 9 проблесков в группе (Q(9) 15s или VQ(9) 10s).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-LOCJA-005',
   },
   {
@@ -4131,6 +4214,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W systemie IALA region A, wchodząc do portu, prawa (sterburta) główka mola oznaczona jest kolorem zielonym, a lewa czerwonym.',
     whyRu: 'По системе IALA (регион A) при входе в порт правая (по борту) оконечность мола (prawa główka) обозначается зелёным цветом, левая - красным.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-007',
   },
   {
@@ -4140,6 +4224,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W opisie Fl(2) R 20s litera R (red) oznacza światło czerwone.',
     whyRu: 'В описании Fl(2) R 20s буква R (red) означает красный свет.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-008',
   },
   {
@@ -4149,6 +4234,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gdy w opisie latarni nie podano litery koloru, światło jest domyślnie białe (W).',
     whyRu: 'Если в описании маяка не указана буква цвета, свет по умолчанию белый (biały, W).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-009',
   },
   {
@@ -4158,6 +4244,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Światło izofazowe (Iso) ma fazy świecenia i zaciemnienia o równej długości.',
     whyRu: 'Изофазный свет (światło izofazowe, Iso) имеет равные по длительности фазы свечения и затемнения.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-010',
   },
   {
@@ -4167,6 +4254,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Światło błyskowe (Fl) to takie, w którym błyski powtarzają się z częstotliwością mniejszą niż 50 na minutę, a faza światła jest krótsza od fazy ciemności.',
     whyRu: 'Проблесковый свет (światło błyskowe, Fl) даёт проблески с частотой менее 50 в минуту, при этом фаза света короче фазы темноты.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-011',
   },
   {
@@ -4176,6 +4264,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W opisie Fl W 3s 83m 26M oznaczenie 26M to zasięg nominalny światła równy 26 mil morskich (M = mila morska).',
     whyRu: 'В описании Fl W 3s 83m 26M обозначение 26M - это номинальная дальность света 26 морских миль (M = морская миля).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-014',
   },
   {
@@ -4185,6 +4274,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wypukły brzeg zakola rzeki nazywa się rogiem; to strona, po której osadza się rumowisko i woda jest płytsza.',
     whyRu: 'Выпуклый берег речной излучины называется róg; здесь откладываются наносы и вода мельче.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-039',
   },
   {
@@ -4194,6 +4284,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jednoczesne światło zielone i czerwone przed śluzą oznacza przygotowanie do śluzowania (wrota wkrótce się otworzą), ale jeszcze nie wolno wpływać.',
     whyRu: 'Одновременно горящие зелёный и красный огни перед шлюзом означают подготовку к шлюзованию (przygotowanie do śluzowania); входить пока нельзя.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-040',
   },
   {
@@ -4203,6 +4294,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Morze terytorialne Rzeczypospolitej Polskiej ma szerokość 12 mil morskich liczonych od linii podstawowej.',
     whyRu: 'Территориальное море Польши (morze terytorialne RP) имеет ширину 12 морских миль от исходной линии.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-041',
   },
   {
@@ -4212,6 +4304,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Strony szlaku określa się patrząc w dół rzeki (z prądem), więc płynąc w dół rzeki prawa strona szlaku to brzeg po prawej ręce.',
     whyRu: 'Стороны фарватера (szlak) определяют, глядя вниз по течению, поэтому при движении вниз по реке правая сторона - это берег справа по ходу.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-042',
   },
   {
@@ -4221,6 +4314,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na jeziorach zamkniętych za umowny kierunek szlaku żeglownego przyjmuje się płynięcie z południa na północ i wtedy określa się prawą stronę szlaku.',
     whyRu: 'На замкнутых озёрах условным направлением фарватера (szlak żeglowny) считается движение с юга на север, и тогда определяется правая сторона фарватера.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-043',
   },
   {
@@ -4230,6 +4324,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jedna żółta tablica (romb) lub jedno żółte światło na przęśle mostu oznacza zalecane przejście w obu kierunkach; dwie tablice oznaczają przejście w jednym kierunku.',
     whyRu: 'Один жёлтый щит (ромб) или один жёлтый огонь на пролёте моста означает рекомендованный проход в обе стороны (przejście w obu kierunkach); два щита - проход в одном направлении.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-044',
   },
   {
@@ -4239,6 +4334,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przekładnia typu Z (pędnik typu Z) może obracać się zarówno w płaszczyźnie poziomej (sterowanie), jak i pionowej (trym).',
     whyRu: 'Передача типа Z (przekładnia typu Z) может поворачиваться как в горизонтальной плоскости (управление), так и в вертикальной (трим/дифферент).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-045',
   },
   {
@@ -4248,6 +4344,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Farwater to szlak żeglowny, czyli żeglowna droga wodna prowadząca najgłębszym torem. Nie jest to podwodny próg ani kanał spławny.',
     whyRu: 'Фарватер (farwater) - это судоходный путь (szlak żeglowny), проходящий по самой глубокой части. Это не подводный порог и не сплавной канал.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-046',
   },
   {
@@ -4257,6 +4354,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Ploso to najgłębsze miejsce w zakolu rzeki, powstałe wskutek podmywania wklęsłego (wypukłego od strony nurtu) brzegu przez nurt.',
     whyRu: 'Плесо (ploso) - самое глубокое место в излучине реки (zakole), образованное подмывом берега течением.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-047',
   },
   {
@@ -4266,6 +4364,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Rzeka dzika to rzeka naturalna, nieuregulowana budowlami hydrotechnicznymi, o swobodnym biegu. Starorzecze i rzeka wysychająca to co innego.',
     whyRu: 'Дикая река (rzeka dzika) - естественная, неурегулированная гидросооружениями река со свободным течением. Старица (starorzecze) - это иное.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-048',
   },
   {
@@ -4275,6 +4374,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Liczba w czerwonej ramce to nakaz nieprzekraczania podanej prędkości; na śródlądziu prędkość podaje się w km/h, więc tu 12 km/h, a nie w węzłach ani milach.',
     whyRu: 'Число в красной рамке - предписание не превышать указанную скорость; на внутренних водах скорость в км/ч, значит здесь 12 км/ч, а не узлы и не мили.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-049',
   },
   {
@@ -4284,6 +4384,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Czarna pionowa kreska w czerwonej ramce oznacza nakaz zachowania szczególnej ostrożności na danym odcinku drogi wodnej.',
     whyRu: 'Черная вертикальная черта в красной рамке - предписание соблюдать особую осторожность (szczególna ostrożność) на данном участке.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-051',
   },
   {
@@ -4293,6 +4394,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Znak nakazuje szczególną ostrożność przy wychodzeniu na drogę główną; wyjście jest dozwolone tylko wtedy, gdy nie zmusi statków płynących główną drogą do zmiany kursu lub prędkości.',
     whyRu: 'Знак предписывает особую осторожность при выходе на главный путь; выход разрешен, только если это не заставит суда на главном пути менять курс или скорость.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-052',
   },
   {
@@ -4302,6 +4404,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwa żółte światła migające nakazują statkom idącym główną drogą wodną zmianę kursu lub prędkości, gdy z portu lub bocznej drogi wodnej wychodzą inne statki.',
     whyRu: 'Два желтых мигающих огня предписывают судам, идущим по главному водному пути, изменить курс или скорость, когда из порта или бокового пути выходят другие суда.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-054',
   },
   {
@@ -4311,6 +4414,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Liczba 2,20 z trójkątem skierowanym wierzchołkiem w dół oznacza ograniczoną głębokość - tutaj do 2,2 m. Nie dotyczy prędkości ani wysokości.',
     whyRu: 'Число 2,20 с треугольником вершиной вниз - ограниченная глубина (ograniczona głębokość), здесь до 2,2 м. Не скорость и не высота.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-057',
   },
   {
@@ -4320,6 +4424,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Liczba 45 z dwoma czarnymi grotami skierowanymi do środka oznacza ograniczoną szerokość szlaku lub kanału żeglownego do 45 m.',
     whyRu: 'Число 45 с двумя черными стрелками, направленными внутрь - ограниченная ширина судового хода или канала (szlak, kanał żeglowny) до 45 м.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-059',
   },
   {
@@ -4329,6 +4434,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Pusta biała tablica w czerwonej ramce oznacza inne ograniczenia ruchu żeglugowego; należy zapoznać się z ich treścią, zwykle podaną na tablicy dodatkowej.',
     whyRu: 'Пустая белая табличка в красной рамке - иные ограничения судоходства; нужно ознакомиться с их содержанием, обычно указанным на дополнительной табличке.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-060',
   },
   {
@@ -4338,6 +4444,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Czarna przekątna z liczbą 40 wskazuje granicę szlaku żeglownego oddaloną o 40 m od prawego brzegu; statki powinny przechodzić w odległości od brzegu większej niż 40 m.',
     whyRu: 'Черная диагональ с числом 40 - граница судового хода в 40 м от правого берега; суда должны проходить дальше 40 м от берега.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-061',
   },
   {
@@ -4347,6 +4454,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Tablica lub żółte światło stałe zaleca przejście w obu kierunkach, na przykład pod przęsłem mostu.',
     whyRu: 'Табличка или желтый постоянный огонь - рекомендация прохода в обе стороны, например под пролетом моста.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-LOCJA-062',
   },
   {
@@ -4356,6 +4464,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Dwie tablice lub dwa zielone światła stałe zalecają trzymanie się we wskazanym (bezpiecznym) obszarze żeglugi.',
     whyRu: 'Две таблички или два зеленых постоянных огня - рекомендация держаться в указанной (безопасной) зоне плавания.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-064',
   },
   {
@@ -4365,6 +4474,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Tablica zielono-biało-zielona lub zielone światło oznacza zezwolenie na przejście, np. przez śluzę lub pod mostem.',
     whyRu: 'Зелено-бело-зеленая табличка или зеленый огонь - разрешение на проход (zezwolenie przejścia), например через шлюз или под мостом.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-066',
   },
   {
@@ -4374,6 +4484,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Znak z symbolem pioruna i liczbą 12 informuje o linii napowietrznej przebiegającej 12 m nad drogą wodną (prześwit pionowy), a nie o napięciu 12 kV.',
     whyRu: 'Знак с символом молнии и числом 12 - воздушная линия (linia napowietrzna), проходящая на высоте 12 м над водным путем (вертикальный габарит), а не напряжение 12 кВ.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-LOCJA-067',
   },
   {
@@ -4383,6 +4494,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wg przepisów żeglugowych małym statkiem (mały statek) jest statek o długości kadłuba mniejszej niż 20 m, poza wyjątkami (np. statki przeznaczone do przewozu lub pchania większych statków).',
     whyRu: 'По правилам судоходства малым судном (mały statek) считается судно с длиной корпуса менее 20 м, кроме исключений (например суда для перевозки или толкания более крупных судов).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-MANEWR-001',
   },
   {
@@ -4392,6 +4504,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Za statek o dużej prędkości uznaje się jednostkę z napędem mechanicznym mogącą płynąć szybciej niż 40 km/h; progi 20 lub 60 km/h nie odpowiadają definicji.',
     whyRu: 'Судном большой скорости (statek o dużej prędkości) считается моторное судно, способное идти быстрее 40 km/h; варианты 20 или 60 km/h определению не соответствуют.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-MANEWR-002',
   },
   {
@@ -4401,6 +4514,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Małe statki ustępują drogi wszystkim innym jednostkom, ale nie statkom o dużej prędkości, ponieważ to właśnie statki szybkie mają obowiązek ustępować wszystkim pozostałym.',
     whyRu: 'Малые суда (małe statki) уступают дорогу всем прочим судам, кроме судов большой скорости (statki o dużej prędkości), потому что именно быстрые суда обязаны уступать всем остальным.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-003',
   },
   {
@@ -4410,6 +4524,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gdy dwa jachty żaglowe idą tym samym halsem, pierwszeństwo ma jacht zawietrzny, a jacht nawietrzny ustępuje mu drogi (COLREG prawidło 12).',
     whyRu: 'Когда две парусные яхты идут одним галсом, преимущество у подветренной яхты (zawietrzny), а наветренная (nawietrzny) уступает дорогу (COLREG правило 12).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-004',
   },
   {
@@ -4419,6 +4534,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Statek na lewym halsie ustępuje pierwszeństwa statkowi na prawym halsie: jednostka mająca wiatr z lewej burty ustępuje tej z wiatrem z prawej burty.',
     whyRu: 'Судно на левом галсе (lewy hals) уступает дорогу судну на правом галсе (prawy hals): у кого ветер с левого борта, тот и уступает.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-005',
   },
   {
@@ -4428,6 +4544,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zgodnie z zasadą na wodach śródlądowych inną jednostkę mechaniczną wyprzedza się z jej lewej burty.',
     whyRu: 'По правилам на внутренних водах моторное судно обгоняют с его левого борта (lewa burta).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-006',
   },
   {
@@ -4437,6 +4554,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na drogach wodnych z określonymi kierunkami pierwszeństwo ma jednostka idąca w dół (z prądem), bo jest mniej sterowna niż płynąca w górę.',
     whyRu: 'На водных путях с обозначенными направлениями преимущество у судна, идущего вниз по течению (w dół), так как оно менее управляемо, чем идущее вверх (w górę).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-MANEWR-007',
   },
   {
@@ -4446,6 +4564,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jednostka trzymająca się prawej strony szlaku żeglownego lub prawego brzegu zachowuje swój kurs i nie musi ustępować nadpływającym z naprzeciwka.',
     whyRu: 'Судно, идущее по правой стороне судового хода или у правого берега, сохраняет свой курс и не обязано уступать встречным.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-MANEWR-008',
   },
   {
@@ -4455,6 +4574,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Inny jacht żaglowy wyprzedza się od strony nawietrznej, aby zachować kontrolę i mieć drogę ucieczki na zawietrzną, gdy zabierze się wiatr wyprzedzanemu.',
     whyRu: 'Другую парусную яхту обгоняют с наветренной стороны (nawietrzna), чтобы сохранить контроль и иметь путь отхода под ветер, забирая ветер у обгоняемого.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-MANEWR-010',
   },
   {
@@ -4464,6 +4584,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na Mazurach statki pasażerskie przystosowane do przewozu ponad 12 osób mają pierwszeństwo przed jachtami turystycznymi.',
     whyRu: 'На Мазурах пассажирские суда, рассчитанные на перевозку более 12 человек, имеют преимущество перед туристическими яхтами (jachty turystyczne).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-011',
   },
   {
@@ -4473,6 +4594,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W wąskim przejściu bez kierunków w górę i w dół ustępuje ta jednostka, dla której przeszkoda lub brzeg wypukły znajduje się po prawej burcie, oddając czystą wodę drugiej jednostce.',
     whyRu: 'В узком проходе без направлений вверх/вниз уступает то судно, у которого препятствие или выпуклый берег (brzeg wypukły) находится с правого борта (prawa burta), оставляя чистую воду другому.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-MANEWR-012',
   },
   {
@@ -4482,6 +4604,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gdy dwie jednostki mechaniczne tego samego typu zbliżają się na kursach zbieżnych, pierwszeństwo ma statek znajdujący się z prawej strony (COLREG prawidło 15).',
     whyRu: 'Когда два моторных судна одного типа сближаются на пересекающихся курсах, преимущество у судна справа (z prawej strony) (COLREG правило 15).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-013',
   },
   {
@@ -4491,6 +4614,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Procedura ASO przy człowieku za burtą to: Alarm (ogłoszenie alarmu), Środki (rzucenie środków ratunkowych) i Obserwator (osoba nieustannie wskazująca tonącego).',
     whyRu: 'Процедура ASO при человеке за бортом: Alarm (объявить тревогу), Środki (бросить спасательные средства) и Obserwator (наблюдатель, постоянно указывающий на упавшего).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-014',
   },
   {
@@ -4500,6 +4624,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Koło ratunkowe rzuca się osobie za burtą od strony nawietrznej, aby wiatr i fale zniosły je w stronę poszkodowanego.',
     whyRu: 'Спасательный круг бросают человеку за бортом с наветренной стороны (nawietrzna), чтобы ветер и волны сносили его к пострадавшему.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-015',
   },
   {
@@ -4509,6 +4634,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na kursach kolizyjnych ustępuje ten jacht motorowy, który ma drugą jednostkę po swojej prawej burcie (COLREG prawidło 15).',
     whyRu: 'На пересекающихся курсах уступает та моторная яхта, у которой другое судно с правого борта (z prawej strony) (COLREG правило 15).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-MANEWR-016',
   },
   {
@@ -4518,6 +4644,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy śrubie lewoskrętnej pracującej wstecz rufa jest zarzucana w prawą stronę - to efekt strumienia śrubowego (prop walk).',
     whyRu: 'При левовращающемся винте (śruba lewoskrętna) на заднем ходу корма забрасывается вправо (w prawą stronę) - эффект винтового потока (prop walk).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-MANEWR-017',
   },
   {
@@ -4527,6 +4654,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Komendy kapitana powinny być przede wszystkim zrozumiałe i jednoznaczne dla załogi; bezpieczne wykonanie jest ważniejsze niż formalna zgodność z żeglarskim nazewnictwem.',
     whyRu: 'Команды капитана должны быть прежде всего понятными и однозначными для экипажа; безопасное выполнение важнее формального соответствия парусной терминологии.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-MANEWR-018',
   },
   {
@@ -4536,6 +4664,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W ciagu dnia lad nagrzewa sie szybciej niz woda, cieple powietrze nad ladem unosi sie, a jego miejsce zajmuje chlodniejsze powietrze znad morza, dlatego bryza dzienna (morska) wieje z morza na lad.',
     whyRu: 'Днём суша нагревается быстрее воды, тёплый воздух над сушей поднимается, а на его место идёт более холодный воздух с моря, поэтому дневной бриз (bryza dzienna / morska) дует с моря на сушу.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-001',
   },
   {
@@ -4545,6 +4674,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Noca lad wychladza sie szybciej niz woda, powietrze nad cieplejszym morzem unosi sie, a chlodniejsze znad ladu splywa ku morzu, dlatego bryza nocna (ladowa) wieje z ladu na morze.',
     whyRu: 'Ночью суша остывает быстрее воды, воздух над более тёплым морем поднимается, а более холодный с суши стекает к морю, поэтому ночной бриз (bryza nocna / ladowa) дует с суши на море.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-002',
   },
   {
@@ -4554,6 +4684,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W skali Beauforta 6°B to wiatr silny (silny, ang. strong breeze) o predkosci ok. 22-27 wezlow.',
     whyRu: 'По шкале Бофорта 6 баллов (6°B) - это сильный ветер (silny), около 22-27 узлов.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-003',
   },
   {
@@ -4563,6 +4694,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wiatr umiarkowany to 4°B; jego predkosc miesci sie w przedziale ok. 11-16 wezlow, czyli do 16 wezlow.',
     whyRu: 'Умеренный ветер (umiarkowany) - это 4 балла (4°B), скорость примерно 11-16 узлов, то есть до 16 узлов.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-004',
   },
   {
@@ -4572,6 +4704,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Sztorm w zeglarskiej skali Beauforta odpowiada sile 8°B (wiatr sztormowy).',
     whyRu: 'Шторм (sztorm) по шкале Бофорта соответствует силе 8 баллов (8°B).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-005',
   },
   {
@@ -4581,6 +4714,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W polskich komunikatach meteorologicznych okreslenie silny wiatr odnosi sie do sily 6-7°B.',
     whyRu: 'В польских метеосводках \'сильный ветер\' (silny wiatr) означает силу 6-7 баллов (6-7°B).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-006',
   },
   {
@@ -4590,6 +4724,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Angielskie ostrzezenie Gale warning oznacza wiatr o sile 8-9°B (sztormowy).',
     whyRu: 'Английское предупреждение \'Gale warning\' означает ветер силой 8-9 баллов (8-9°B).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-METEO-007',
   },
   {
@@ -4599,6 +4734,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Chmury wysokie (pietro cirro, np. cirrus, cirrostratus, cirrocumulus) wystepuja na wysokosci ok. 5-13 km.',
     whyRu: 'Высокие облака (cirro) находятся на высоте примерно 5-13 км.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-008',
   },
   {
@@ -4608,6 +4744,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Stan morza 0 w skali Douglasa to gladz, czyli powierzchnia wody zupelnie gladka, bez zafalowania.',
     whyRu: 'Состояние моря 0 по шкале Дугласа - это гладь (gladz), совершенно ровная поверхность без волнения.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-009',
   },
   {
@@ -4617,6 +4754,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Stan morza umiarkowany (moderate) w skali Douglasa (stopien 4) odpowiada wysokosci fali 1,25-2,5 m.',
     whyRu: 'Умеренное волнение (umiarkowane / moderate) по шкале Дугласа (4 балла) соответствует высоте волны 1,25-2,5 м.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-METEO-010',
   },
   {
@@ -4626,6 +4764,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Widzialnosc okreslana jako dobra oznacza zasieg widzenia 5-11 Mm (mil morskich).',
     whyRu: 'Видимость \'хорошая\' (dobra) означает дальность 5-11 морских миль (Mm).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-011',
   },
   {
@@ -4635,6 +4774,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wiatr termiczny (bryza) osiaga maksimum sily w okolicach godziny 13-14, gdy roznica temperatur lad-morze jest najwieksza.',
     whyRu: 'Термический ветер (wiatr termiczny / bryza) достигает максимума около 13-14 часов, когда разница температур суша-море наибольшая.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-012',
   },
   {
@@ -4644,6 +4784,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Pasaty to stale wiatry o umiarkowanej sile wiejace w strefie miedzyzwrotnikowej, mniej wiecej miedzy 35°N a 35°S.',
     whyRu: 'Пассаты (pasaty) - постоянные ветры умеренной силы в межтропической зоне, примерно между 35°N и 35°S.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-METEO-013',
   },
   {
@@ -4653,6 +4794,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Za frontem chlodnym naplywa chlodne, suche powietrze, dlatego po jego przejsciu widzialnosc jest bardzo dobra.',
     whyRu: 'За холодным фронтом (front zimny) приходит холодный сухой воздух, поэтому после его прохождения видимость очень хорошая.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-METEO-014',
   },
   {
@@ -4662,6 +4804,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W cieplym wycinku nizu barycznego naplywa wilgotne, cieple powietrze, wiec widzialnosc jest slaba, ze sklonnoscia do mgly.',
     whyRu: 'В тёплом секторе барического минимума (cieply wycinek nizu) поступает влажный тёплый воздух, поэтому видимость слабая, со склонностью к туману.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-METEO-015',
   },
   {
@@ -4671,6 +4814,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zolte swiatlo rytmiczne o czestotliwosci ok. 90 blyskow na minute to sygnal ostrzegajacy przed naglym, gwaltownym zjawiskiem meteorologicznym (wyzszy stopien niz ok. 40 blyskow na minute).',
     whyRu: 'Жёлтый ритмичный свет частотой около 90 проблесков в минуту - сигнал предупреждения о внезапном опасном метеоявлении (более высокая ступень, чем около 40 проблесков в минуту).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-016',
   },
   {
@@ -4680,6 +4824,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy przejsciu frontu cieplego opady zwiazane z chmurami warstwowymi (nimbostratus) sa dlugotrwale i po przejsciu frontu slabna stopniowo, czyli wolno zanikaja.',
     whyRu: 'При прохождении тёплого фронта (front cieply) осадки от слоистых облаков (nimbostratus) длительные и после прохода фронта постепенно ослабевают, то есть медленно затухают (wolno zanikaja).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-017',
   },
   {
@@ -4689,6 +4834,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W skali Beauforta wiatr o predkosci 50 wezlow miesci sie w przedziale 48-55 wezlow, co odpowiada sile 10 stopni (bardzo silny sztorm).',
     whyRu: 'По шкале Бофорта ветер 50 узлов попадает в диапазон 48-55 узлов, что соответствует 10 баллам (bardzo silny sztorm).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-019',
   },
   {
@@ -4698,6 +4844,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Aneroid i barograf to przyrzady mierzace cisnienie atmosferyczne (barograf dodatkowo zapisuje jego zmiany w czasie).',
     whyRu: 'Анероид и барограф (aneroid, barograf) - приборы для измерения атмосферного давления (cisnienie); барограф ещё и записывает его изменения во времени.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-020',
   },
   {
@@ -4707,6 +4854,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Chmura Cumulonimbus (chmura burzowa) sygnalizuje silne wiatry, gwaltowne szkwaly i burze.',
     whyRu: 'Кучево-дождевое облако (Cumulonimbus) - грозовое, предвещает сильный ветер и резкие шквалы (szkwaly).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-022',
   },
   {
@@ -4716,6 +4864,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Chmury wysokie - Cirrus, cirrocumulus i altocumulus - zbudowane z krysztalkow lodu lub cienkie, nie daja opadow siegajacych powierzchni.',
     whyRu: 'Высокие облака (Cirrus, cirrocumulus, altocumulus) состоят из ледяных кристаллов или тонкие и не дают осадков, достигающих земли.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-023',
   },
   {
@@ -4725,6 +4874,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zblizanie sie frontu cieplego zwiastuja kolejno chmury Cirrus, Cirrostratus i Altostratus (Ci, Cs, As).',
     whyRu: 'Приближение тёплого фронта (front cieply) предвещают последовательно облака Cirrus, Cirrostratus, Altostratus (Ci, Cs, As).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-024',
   },
   {
@@ -4734,6 +4884,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W nizu cisnienie spada w kierunku srodka ukladu, wiec najnizsze panuje w centrum nizu.',
     whyRu: 'В циклоне (niz) давление падает к центру системы, поэтому самое низкое - в центре циклона (centrum nizu).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-METEO-025',
   },
   {
@@ -4743,6 +4894,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Do chmur niskiego pietra naleza Stratus, Stratocumulus i Nimbostratus (podstawa ponizej okolo 2 km).',
     whyRu: 'К облакам нижнего яруса (niskie pietro) относятся Stratus, Stratocumulus, Nimbostratus (основание ниже примерно 2 км).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-METEO-026',
   },
   {
@@ -4752,6 +4904,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Silnik czterosuwowy posiada miske olejowa, w ktorej gromadzi sie olej smarujacy uklad.',
     whyRu: 'Четырёхтактный двигатель (silnik czterosuwowy) имеет масляный поддон (miska olejowa), где собирается смазочное масло.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-001',
   },
   {
@@ -4761,6 +4914,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W silniku dwusuwowym caly cykl pracy zamyka sie w 2 suwach tloka (przy jednym obrocie walu korbowego).',
     whyRu: 'В двухтактном двигателе (silnik dwusuwowy) весь рабочий цикл укладывается в 2 такта поршня (за один оборот коленвала).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-002',
   },
   {
@@ -4770,6 +4924,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W silniku dwusuwowym smarowanie odbywa sie przez mieszanke paliwa z olejem (olej dolewany do benzyny lub podawany osobno do gaznika).',
     whyRu: 'В двухтактном двигателе смазка идёт через топливно-масляную смесь (mieszanka paliwa z olejem) - масло добавляется в бензин.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-003',
   },
   {
@@ -4779,6 +4934,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Pokrywe komory silnika nalezy tylko lekko uchylic i przez szpare gasic ogien, aby nie wpuscic duzej ilosci tlenu, ktory podsyca pozar.',
     whyRu: 'Крышку моторного отсека нужно лишь слегка приоткрыть (lekko uchylic) и тушить огонь через щель, чтобы не впустить много кислорода, раздувающего пожар.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-004',
   },
   {
@@ -4788,6 +4944,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Silnik wysokoprezny (diesel) zasilany jest olejem napedowym, a nie benzyna.',
     whyRu: 'Дизельный двигатель (silnik wysokoprezny, diesel) работает на дизтопливе (olej napedowy), а не на бензине.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-005',
   },
   {
@@ -4797,6 +4954,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przekladnia typu Z (z-drive), laczaca silnik stacjonarny z pednikiem na pawezi, stosowana jest najczesciej na jachtach motorowych.',
     whyRu: 'Z-образная передача (przekladnia typu Z), соединяющая стационарный двигатель с движителем на транце, чаще всего применяется на моторных яхтах (jachty motorowe).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-006',
   },
   {
@@ -4806,6 +4964,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W silniku czterosuwowym nalezy regularnie sprawdzac poziom oleju w misce olejowej.',
     whyRu: 'В четырёхтактном двигателе регулярно проверяют уровень масла в поддоне (miska olejowa).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-007',
   },
   {
@@ -4815,6 +4974,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: '1 kW to okolo 1,36 KM, wiec 10 kW daje w przyblizeniu 13,6 KM.',
     whyRu: '1 кВт - это около 1,36 л.с., поэтому 10 кВт дают примерно 13,6 л.с. (KM).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-008',
   },
   {
@@ -4824,6 +4984,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Silnik dwusuwowy nie posiada miski olejowej, ponieważ olej dodaje się do benzyny (mieszanka paliwowo-olejowa) i smaruje on silnik razem z paliwem. Silniki czterosuwowe benzynowe oraz diesla mają osobną miskę olejową.',
     whyRu: 'Двухтактный двигатель (silnik dwusuwowy) не имеет масляного поддона, потому что масло добавляется в бензин (mieszanka paliwowo-olejowa) и смазывает двигатель вместе с топливом. Четырёхтактные и дизельные двигатели имеют отдельный масляный поддон (miska olejowa).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-009',
   },
   {
@@ -4833,6 +4994,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Silniki zaburtowe o większej mocy (powyżej 15 KM) chłodzone są wodą pobieraną bezpośrednio z akwenu, czyli w układzie otwartym (bezpośrednim). Woda po przejściu przez silnik jest wyrzucana za burtę.',
     whyRu: 'Подвесные моторы большей мощности (свыше 15 л.с.) охлаждаются водой, забираемой прямо из водоёма, то есть по открытой (прямой) схеме (uklad otwarty / bezposredni). Вода после прохождения через двигатель выбрасывается за борт.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-SILNIK-010',
   },
   {
@@ -4842,6 +5004,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Płonące na człowieku ubranie najlepiej ugasić kocem gaśniczym, który odcina dopływ tlenu i dusi płomień, nie raniąc poszkodowanego. Gaśnicy proszkowej nie kieruje się na twarz człowieka, a woda z wiadra jest mało skuteczna.',
     whyRu: 'Горящую на человеке одежду лучше всего тушить противопожарным одеялом (koc gasniczy), которое перекрывает доступ кислорода и сбивает пламя, не травмируя пострадавшего. Порошковый огнетушитель нельзя направлять в лицо человеку, а вода из ведра малоэффективна.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-011',
   },
   {
@@ -4851,6 +5014,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Gaz propan-butan używany na jachtach jest cięższy od powietrza, dlatego przy nieszczelności gromadzi się w najniższych miejscach kadłuba (zęza), tworząc ryzyko wybuchu.',
     whyRu: 'Газ пропан-бутан, используемый на яхтах, тяжелее воздуха, поэтому при утечке он скапливается в самых низких местах корпуса (трюм, zeza), создавая угрозу взрыва.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-012',
   },
   {
@@ -4860,6 +5024,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jacht kategorii projektowej A (oceaniczny) jest przeznaczony do żeglugi w warunkach z wysokością fali ponad 4 m i wiatrem powyżej 8 stopni w skali Beauforta. Kategorie B, C i D dotyczą lżejszych warunków.',
     whyRu: 'Яхта проектной категории A (океанская) предназначена для плавания при высоте волны свыше 4 м и ветре более 8 баллов по шкале Бофорта. Категории B, C и D относятся к более лёгким условиям.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-SILNIK-013',
   },
   {
@@ -4869,6 +5034,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zbiorniki paliwa napełnia się maksymalnie do około 90% pojemności, aby zostawić miejsce na rozszerzalność cieplną paliwa i uniknąć jego wylania się przy wzroście temperatury.',
     whyRu: 'Топливные баки заполняют максимум примерно до 90% объёма, чтобы оставить место для теплового расширения топлива и избежать его перелива при повышении температуры.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-SILNIK-015',
   },
   {
@@ -4878,6 +5044,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Bez patentu motorowodnego można prowadzić motorówkę z silnikiem o mocy do 10 kW. Prowadzenie jednostki z mocniejszym silnikiem wymaga patentu sternika motorowodnego.',
     whyRu: 'Без моторного патента (patent motorowodny) можно управлять моторной лодкой с двигателем мощностью до 10 кВт. Управление судном с более мощным двигателем требует патента sternika motorowodnego.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-016',
   },
   {
@@ -4887,6 +5054,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jacht płynący pod silnikiem nosi banderę na flagsztoku umieszczonym na rufie. Na maszcie podnosi się inne flagi (sygnałowe, proporzec), ale nie banderę.',
     whyRu: 'Яхта, идущая под мотором, несёт кормовой флаг (bandera) на флагштоке (flagsztok) на корме. На мачте поднимают другие флаги (сигнальные, вымпел), но не bandera.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-018',
   },
   {
@@ -4896,6 +5064,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Główne parametry śruby napędowej to skok śruby (H), czyli teoretyczna droga pokonywana w jednym obrocie, oraz średnica (D), czyli średnica okręgu zakreślanego przez końce łopat.',
     whyRu: 'Основные параметры гребного винта - это шаг винта (skok sruby, H), то есть теоретический путь за один оборот, и диаметр (srednica, D), то есть диаметр окружности, описываемой концами лопастей.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-019',
   },
   {
@@ -4905,6 +5074,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy rozruchu silnika stacjonarnego manetka powinna być ustawiona na biegu jałowym (luz), aby silnik ruszył bez obciążenia i napęd nie zaskoczył niespodziewanie.',
     whyRu: 'При запуске стационарного двигателя рычаг газа (manetka) должен стоять на холостом ходу / нейтрали (bieg jalowy), чтобы двигатель запустился без нагрузки и привод не включился внезапно.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-022',
   },
   {
@@ -4914,6 +5084,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Kuchenkę gazową wyłącza się, zamykając najpierw zawór na butli, a dopiero po wypaleniu się gazu z przewodu i zgaśnięciu płomienia gasi się palnik. Dzięki temu w instalacji nie pozostaje gaz.',
     whyRu: 'Газовую плиту выключают, сначала закрывая вентиль на баллоне, и только после того, как газ из шланга выгорит и пламя погаснет, выключают конфорку. Благодаря этому в системе не остаётся газа.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-023',
   },
   {
@@ -4923,6 +5094,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Manetka to dźwignia służąca do sterowania obrotami silnika (często również do zmiany kierunku napędu). Nie jest to pława ani linka rozruchowa.',
     whyRu: 'Manetka - это рычаг для управления оборотами двигателя (часто также для смены направления хода). Это не буй и не пусковой шнур.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-024',
   },
   {
@@ -4932,6 +5104,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zaraz po uruchomieniu silnika sprawdza się, czy działa chłodzenie, czyli czy z wylotu (tzw. sikawki) wypływa woda chłodząca. Brak przepływu wody grozi przegrzaniem silnika.',
     whyRu: 'Сразу после запуска двигателя проверяют, работает ли охлаждение, то есть выходит ли из контрольного отверстия (sikawka) охлаждающая вода. Отсутствие потока воды грозит перегревом двигателя.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-025',
   },
   {
@@ -4941,6 +5114,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Silnik wysokoprężny (diesel) odstawia się na minimalnych obrotach biegu jałowego, aby przed zatrzymaniem nieco ostygł, a ciśnienie i temperatura opadły. Chroni to silnik przed uszkodzeniem.',
     whyRu: 'Дизельный двигатель (silnik wysokoprezny) глушат на минимальных оборотах холостого хода (bieg jalowy), чтобы перед остановкой он немного остыл, а давление и температура снизились. Это защищает двигатель от повреждений.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-SILNIK-026',
   },
   {
@@ -4950,6 +5124,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Skrót BLS (Basic Life Support) oznacza podstawowe zabiegi resuscytacyjne, czyli czynności ratujące życie bez specjalistycznego sprzętu (uciski klatki piersiowej i oddechy ratownicze).',
     whyRu: 'Аббревиатура BLS (Basic Life Support) означает базовые реанимационные мероприятия (podstawowe zabiegi resuscytacyjne), то есть спасающие жизнь действия без специального оборудования (компрессии грудной клетки и искусственное дыхание).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-001',
   },
   {
@@ -4959,6 +5134,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W resuscytacji krążeniowo-oddechowej (RKO) u dorosłego stosunek uciśnięć klatki piersiowej do oddechów ratowniczych wynosi 30:2, czyli 30 uciśnięć, a następnie 2 wdechy.',
     whyRu: 'В сердечно-лёгочной реанимации (RKO) у взрослого соотношение компрессий грудной клетки к спасательным вдохам составляет 30:2, то есть 30 компрессий, затем 2 вдоха.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-002',
   },
   {
@@ -4968,6 +5144,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zgodnie z wytycznymi RKO uciśnięcia klatki piersiowej u dorosłego powinny mieć głębokość 5-6 cm; płytsze są nieskuteczne, a głębsze grożą urazem.',
     whyRu: 'По правилам сердечно-легочной реанимации (RKO) глубина компрессий грудной клетки у взрослого 5-6 см; меньше - неэффективно, больше - риск травмы.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-003',
   },
   {
@@ -4977,6 +5154,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Ocenę oddechu prowadzimy przez maksymalnie 10 sekund, obserwując ruchy klatki piersiowej, słuchając i czując oddech; jego brak oznacza rozpoczęcie RKO.',
     whyRu: 'Оценку дыхания проводят не более 10 секунд (10 sekund), наблюдая движения грудной клетки, слушая и ощущая дыхание; его отсутствие - начало RKO.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-005',
   },
   {
@@ -4986,6 +5164,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Po zauważeniu tonącego najpierw ogłaszamy alarm człowiek za burtą, aby cała załoga natychmiast podjęła akcję ratunkową; skok do wody to ostateczność.',
     whyRu: 'Заметив тонущего, сначала объявляют тревогу человек за бортом (człowiek za burtą), чтобы весь экипаж немедленно начал спасательные действия; прыжок в воду - крайняя мера.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-006',
   },
   {
@@ -4995,6 +5174,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Osoba w wodzie kładzie się na kole ratunkowym i trzyma je oburącz albo zakłada przez głowę pod ramiona, co utrzymuje ją na powierzchni i chroni drogi oddechowe.',
     whyRu: 'Человек в воде ложится на спасательный круг и держит его обеими руками либо надевает через голову под мышки, что удерживает его на плаву и защищает дыхательные пути.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-007',
   },
   {
@@ -5004,6 +5184,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'W wodzie o temperaturze 10°C dorosły przeżywa około 2-3 godzin, zanim postępująca hipotermia doprowadzi do utraty przytomności.',
     whyRu: 'В воде с температурой 10°C взрослый выживает примерно 2-3 часа, прежде чем нарастающая гипотермия приведет к потере сознания.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-008',
   },
   {
@@ -5013,6 +5194,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Kamizelka asekuracyjna nie ma kołnierza, dlatego nie gwarantuje odwrócenia nieprzytomnego twarzą do góry; taką funkcję pełni dopiero kamizelka ratunkowa.',
     whyRu: 'Страховочный жилет (kamizelka asekuracyjna) не имеет воротника, поэтому не гарантирует переворот человека лицом вверх; это делает только спасательный жилет (kamizelka ratunkowa).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-009',
   },
   {
@@ -5022,6 +5204,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jasnoczerwona krew wypływająca intensywnie i pulsująco to krwawienie tętnicze, najgroźniejsze i wymagające szybkiego ucisku rany.',
     whyRu: 'Ярко-красная кровь, вытекающая интенсивно и пульсирующе, - это артериальное кровотечение (tętnicze), самое опасное, требующее быстрого прижатия раны.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-010',
   },
   {
@@ -5031,6 +5214,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'U osoby nieprzytomnej tętno najpewniej bada się na tętnicy szyjnej, bo jest ona duża i wyczuwalna nawet przy niskim ciśnieniu.',
     whyRu: 'У пострадавшего пульс надежнее всего проверять на сонной артерии (tętnica szyjna), так как она крупная и прощупывается даже при низком давлении.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-011',
   },
   {
@@ -5040,6 +5224,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Poparzenie meduzą przemywamy octem lub wodą morską; słodka woda nasila wyrzut parzydełek, dlatego jej nie używamy.',
     whyRu: 'Ожог медузы промывают уксусом или морской водой (ocet lub woda morska); пресная вода усиливает выброс стрекательных клеток, поэтому её не применяют.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-RATOWN-012',
   },
   {
@@ -5049,6 +5234,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Przy udarze słonecznym folię termiczną zakładamy srebrną stroną na zewnątrz (do góry), aby odbijała promienie słoneczne i chłodziła poszkodowanego.',
     whyRu: 'При солнечном ударе термическое одеяло накладывают серебристой стороной наружу (вверх), чтобы она отражала солнечные лучи и охлаждала пострадавшего.',
+    difficulty: 'hard',
     source: 'akademiasternika SM-RATOWN-013',
   },
   {
@@ -5058,6 +5244,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Wyznaczony obserwator ma bez przerwy patrzeć na człowieka za burtą i wskazywać go wyprostowaną ręką, aby sternik nie stracił z oczu pozycji rozbitka.',
     whyRu: 'Назначенный наблюдатель должен непрерывно смотреть на человека за бортом и указывать на него вытянутой рукой, чтобы рулевой не потерял его из виду.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-014',
   },
   {
@@ -5067,6 +5254,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Do pirotechnicznych środków wzywania pomocy na morzu należą flary, rakiety spadochronowe, pochodnie ręczne oraz pławki dymne (dymy pomarańczowe).',
     whyRu: 'К пиротехническим средствам подачи сигнала бедствия на море относятся фальшфейеры (flary), парашютные ракеты, ручные факелы и оранжевые дымы (dymy pomarańczowe).',
+    difficulty: 'hard',
     source: 'akademiasternika SM-RATOWN-015',
   },
   {
@@ -5076,6 +5264,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Po wywrotce jachtu najpierw liczymy załogę i zakładamy pasy (kamizelki) ratunkowe, bo priorytetem jest bezpieczeństwo ludzi, a nie ratowanie sprzętu.',
     whyRu: 'После опрокидывания яхты сначала пересчитывают экипаж и надевают спасательные жилеты, потому что приоритет - безопасность людей, а не спасение снаряжения.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-016',
   },
   {
@@ -5085,6 +5274,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Jeden cykl RKO to 30 uciśnięć z częstotliwością 100-120 na minutę, a po nich 2 wdmuchnięcia (stosunek 30:2).',
     whyRu: 'Один цикл RKO - это 30 компрессий с частотой 100-120 в минуту и затем 2 вдоха (соотношение 30:2).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-017',
   },
   {
@@ -5094,6 +5284,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Rakiety wyrzucające czerwone gwiazdy, wystrzeliwane w krótkich odstępach czasu, to międzynarodowy sygnał wzywania pomocy (wzywanie pomocy).',
     whyRu: 'Ракеты, выбрасывающие красные звёзды, выпускаемые с короткими промежутками, - это международный сигнал бедствия (sygnał wzywania pomocy).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-018',
   },
   {
@@ -5103,6 +5294,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Standardowa kamizelka asekuracyjna dla osoby dorosłej ma wyporność około 100 N, mniejszą niż kamizelka ratunkowa (150 N i więcej).',
     whyRu: 'Стандартный страховочный жилет (kamizelka asekuracyjna) для взрослого имеет плавучесть около 100 N, меньше, чем спасательный жилет (150 N и более).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-019',
   },
   {
@@ -5112,6 +5304,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Osoby nieumiejące pływać muszą mieć kamizelkę ratunkową (kamizelka ratunkowa) założoną przez cały czas przebywania na pokładzie, bo dla nich ryzyko utonięcia po wpadnięciu do wody jest największe. Pozostali zakładają ją w sytuacjach zagrożenia (zła pogoda, prace przy burcie).',
     whyRu: 'Люди, не умеющие плавать, обязаны постоянно носить спасательный жилет (kamizelka ratunkowa), пока находятся на борту, так как для них риск утонуть при падении в воду наибольший. Остальные надевают его в опасных ситуациях (плохая погода, работы у борта).',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-020',
   },
   {
@@ -5121,6 +5314,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Pozycja CLINCH oznacza, że kilka osób w wodzie jest razem ciasno objętych, co ogranicza utratę ciepła i ułatwia ich odnalezienie. Pojedyncza osoba w pozycji embrionalnej to natomiast pozycja HELP.',
     whyRu: 'Позиция CLINCH означает, что несколько человек в воде тесно прижаты друг к другу, что уменьшает потерю тепла и облегчает их обнаружение. Одиночная поза эмбриона - это уже позиция HELP.',
+    difficulty: 'medium',
     source: 'akademiasternika SM-RATOWN-023',
   },
   {
@@ -5130,6 +5324,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Na pokładzie musi być tyle kamizelek ratunkowych (kamizelka ratunkowa), ile osób znajduje się na jednostce, aby w razie zagrożenia każdy miał własną kamizelkę. Liczba nie zależy od umiejętności pływania ani od decyzji prowadzącego.',
     whyRu: 'На борту должно быть столько спасательных жилетов (kamizelka ratunkowa), сколько человек находится на судне, чтобы в случае опасности у каждого был свой жилет. Их число не зависит от умения плавать или от решения рулевого.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-024',
   },
   {
@@ -5139,6 +5334,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Podczas RKO u osoby dorosłej klatkę piersiową uciska się z częstotliwością 100-120 razy na minutę, zgodnie z wytycznymi resuscytacji. Wolniejsze (60/min) lub szybsze (powyżej 120/min) uciski są nieskuteczne.',
     whyRu: 'Во время СЛР (RKO) у взрослого грудную клетку сжимают с частотой 100-120 раз в минуту согласно рекомендациям по реанимации. Более медленные (60/мин) или более быстрые (свыше 120/мин) компрессии неэффективны.',
+    difficulty: 'easy',
     source: 'akademiasternika SM-RATOWN-025',
   },
   {
@@ -5148,6 +5344,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     correct: 0,
     whyPl: 'Zamiar wyprzedzania wzdłuż prawej burty sygnalizuje się dwoma długimi i jednym krótkim dźwiękiem.',
     whyRu: 'Намерение обгона вдоль правого борта - два длинных и один короткий звук (dwa długie i jeden krótki).',
+    difficulty: 'medium',
     source: 'akademiasternika SM-PRZEPIS-096',
   },
 
