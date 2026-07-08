@@ -175,6 +175,14 @@ export default function SternikTheoryPage() {
           на море - корпус до 12 м, до 2 миль от берега, днём. Без патента можно до 10 кВт, а также хаусботы до 75 кВт
           (корпус до 13 м, скорость конструктивно до 15 км/ч). Гидроцикл - только с патентом. Буксировка лыжника - отдельная лицензия.
         </Tip>
+        <Card title="Na pokladzie / Что на борту и по закону">
+          <Fact q="Dokumenty na pokladzie" a="patent, dokument rejestracyjny (jesli jednostka podlega rejestracji), dowod tozsamosci" ru="Держи на борту: патент, регистрационный документ (если судно подлежит регистрации) и удостоверение личности." />
+          <Fact q="Obowiazkowe wyposazenie" a="kamizelka dla kazdej osoby, kolo/pas ratunkowy, gasnica (silnik spalinowy), apteczka, kotwica, cumy, czerpak" ru="Спассредство на каждого, круг/пояс, огнетушитель (для ДВС), аптечка, якорь, швартовы, черпак." />
+          <Fact q="Skuter wodny" a="wymaga patentu (co najmniej SM), kamizelki i linki zrywkowej (kill switch)" ru="Гидроцикл - только с патентом, в жилете и с аварийным шнуром (зрывка)." />
+          <Fact q="Holowanie narciarza / obiektow" a="osobna licencja (od 18 lat), na pokladzie obserwator" ru="Буксировка лыжника или «банана» - отдельная лицензия (с 18 лет), на борту нужен наблюдатель." />
+          <Fact q="Alkohol" a="0,2-0,5 promila = stan po uzyciu (wykroczenie); powyzej 0,5 = nietrzezwosc (przestepstwo)" ru="0,2-0,5 промилле - «состояние после употребления» (правонарушение); свыше 0,5 - опьянение (уголовно)." />
+          <Fact q="Kto kontroluje na wodzie" a="Policja, Straz Graniczna, inspektorzy zeglugi srodladowej, w portach kapitanat" ru="Контролируют полиция, погранслужба, инспекторы внутреннего судоходства; в портах - капитанат." />
+        </Card>
       </Section>
 
       {/* 2. PRZEPISY -------------------------------------------------------- */}
@@ -234,6 +242,13 @@ export default function SternikTheoryPage() {
           <Fact q="Masztowe (topowe) / rufowe" a="biale 225 / biale 135" ru="Мачтовый 225 = 2 x 112,5 спереди; кормовой 135. Сумма 360." />
           <Fact q="Na kotwicy w nocy" a="biale swiatlo widoczne dookola (360)" ru="Белый круговой якорный огонь." />
           <Fact q="Maly statek do 7 m" a="moze pokazywac jedno biale swiatlo dookola" ru="Малое судно до 7 м - один белый круговой огонь." />
+        </Card>
+        <Card title="Znaki dzienne (czarne ksztalty) / Дневные знаки">
+          <Fact q="Kula (czarna)" a="statek na kotwicy / na postoju" ru="Чёрный шар - судно на якоре (днём). На носу." />
+          <Fact q="Stozek wierzcholkiem w dol" a="jacht zaglowy plynacy takze na silniku" ru="Конус вершиной вниз - парусник, идущий ещё и под мотором (считается моторным)." />
+          <Fact q="Niebieski stozek w dol / niebieskie swiatlo" a="material niebezpieczny palny" ru="Синий конус вершиной вниз (ночью синий огонь) - опасный груз." />
+          <Fact q="Dwie czarne kule" a="statek bez mozliwosci manewru" ru="Два чёрных шара - судно, лишённое возможности управляться." />
+          <Fact q="Walec (cylinder) czarny" a="pierwszenstwo przejazdu (duza jednostka)" ru="Чёрный цилиндр - судно с преимуществом прохода (обычно крупное)." />
         </Card>
       </Section>
 
@@ -325,6 +340,15 @@ export default function SternikTheoryPage() {
           3) срезают над мелью у кардинального знака - обходи со стороны его названия; 4) на повороте реки уходят на левую
           сторону - держись правой кромки фарватера.
         </Tip>
+        <Card title="Sluzowanie krok po kroku / Шлюзование по шагам">
+          <ol className="list-decimal space-y-1 pl-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <li>Подойди к шлюзу медленно, жди перед воротами (czekaj przed sluza).</li>
+            <li>Входи только на зелёный сигнал (zielone swiatlo). Красный - стоп.</li>
+            <li>В камере пришвартуйся к стенке (cumowanie), заглуши двигатель, надень жилет.</li>
+            <li>При изменении уровня воды подбирай/потравливай концы (trzymaj cumy), не крепи наглухо.</li>
+            <li>Якорь в шлюзе запрещён. Выходи по сигналу, по очереди прибытия (уступая уполномоченным).</li>
+          </ol>
+        </Card>
       </Section>
 
       {/* 6. BUDOWA ------------------------------------------------------------ */}
@@ -505,10 +529,16 @@ export default function SternikTheoryPage() {
             ['601 100 100', 'numer ratunkowy nad woda (oraz 112) / номер спасения на воде'],
             ['Kanal 16 VHF', 'wywolawczy i alarmowy / вызов и бедствие'],
             ['MAYDAY', 'bezposrednie zagrozenie zycia lub statku / прямая угроза жизни'],
+            ['PAN-PAN', 'pilnosc, ale bez zagrozenia zycia / срочность без угрозы жизни'],
+            ['SECURITE', 'komunikat o bezpieczenstwie (pogoda, przeszkoda) / сообщение о безопасности'],
             ['SOS', '. . . - - - . . . (swietlny/dzwiekowy)'],
             ['Ratowanie zycia na wodzie', 'bezplatne / бесплатно'],
           ]}
         />
+        <Tip>
+          MAYDAY - три раза на 16 канале, затем название судна, позиция, характер опасности, число людей, нужна ли помощь.
+          PAN-PAN - когда срочно, но жизни ничто не угрожает (поломка, буксировка). SECURITE - предупреждение (погода, препятствие).
+        </Tip>
       </Section>
 
       {/* 12. SRODOWISKO --------------------------------------------------------------- */}
