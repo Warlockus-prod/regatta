@@ -205,35 +205,54 @@ function CardinalPole({
   );
 }
 
-export function CardinalClockDiagram() {
+/**
+ * One cardinal station stacked vertically from a top y:
+ * label (outer) -> topmark cones -> striped pole -> light rhythm caption.
+ * labelBelow flips the label under the pole (used for the S station so its
+ * text points outward, downward).
+ */
+function CardinalStation({
+  cx, top, type, label, rhythm, labelBelow = false,
+}: { cx: number; top: number; type: 'N' | 'E' | 'S' | 'W'; label: string; rhythm: string; labelBelow?: boolean }) {
+  const poleY = top + (labelBelow ? 4 : 30);      // where the striped pole begins
+  const poleBottom = poleY + 34;
   return (
-    <svg viewBox="0 0 320 320" className="h-auto w-full" style={{ maxWidth: 420, margin: '0 auto', display: 'block' }}>
-      {/* danger */}
-      <circle cx="160" cy="160" r="26" fill="rgba(255,85,102,0.18)" stroke={RED} strokeWidth="1" strokeDasharray="4,3" />
-      <text x="160" y="157" textAnchor="middle" fontSize="9" fill={RED}>mielizna</text>
-      <text x="160" y="168" textAnchor="middle" fontSize="8" fill={RED}>опасность</text>
-      {/* N */}
-      <CardinalPole x={160} y={42} type="N" />
-      <text x="160" y="30" textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--text-primary)">N · 12:00</text>
-      <text x="160" y="92" textAnchor="middle" fontSize="8" fill={TXT2}>Q ciagle / непрерывные</text>
-      {/* E */}
-      <CardinalPole x={268} y={140} type="E" />
-      <text x="268" y="120" textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--text-primary)">E · 3:00</text>
-      <text x="268" y="192" textAnchor="middle" fontSize="8" fill={TXT2}>VQ(3) - 3 blyski</text>
-      {/* S */}
-      <CardinalPole x={160} y={238} type="S" />
-      <text x="160" y="296" textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--text-primary)">S · 6:00</text>
-      <text x="160" y="308" textAnchor="middle" fontSize="8" fill={TXT2}>VQ(6) + 1 dlugi</text>
-      {/* W */}
-      <CardinalPole x={52} y={140} type="W" />
-      <text x="52" y="120" textAnchor="middle" fontSize="10" fontWeight="700" fill="var(--text-primary)">W · 9:00</text>
-      <text x="52" y="192" textAnchor="middle" fontSize="8" fill={TXT2}>VQ(9) - 9 blyskow</text>
-      {/* safe-passage arrows */}
+    <g>
+      {!labelBelow && (
+        <text x={cx} y={top} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-primary)">{label}</text>
+      )}
+      <CardinalPole x={cx} y={poleY} type={type} />
+      {labelBelow ? (
+        <>
+          <text x={cx} y={poleBottom + 16} textAnchor="middle" fontSize="12" fontWeight="700" fill="var(--text-primary)">{label}</text>
+          <text x={cx} y={poleBottom + 30} textAnchor="middle" fontSize="8.5" fill={TXT2}>{rhythm}</text>
+        </>
+      ) : (
+        <text x={cx} y={poleBottom + 14} textAnchor="middle" fontSize="8.5" fill={TXT2}>{rhythm}</text>
+      )}
+    </g>
+  );
+}
+
+export function CardinalClockDiagram() {
+  const CX = 180, CY = 190, R = 30;
+  return (
+    <svg viewBox="0 0 360 380" className="h-auto w-full" style={{ maxWidth: 440, margin: '0 auto', display: 'block' }}>
       <defs><ArrowDef id="card" color={GREEN} /></defs>
-      <path d="M 120 96 Q 160 76 200 96" fill="none" stroke={GREEN} strokeWidth="1.6" markerEnd="url(#card)" />
-      <path d="M 120 226 Q 160 246 200 226" fill="none" stroke={GREEN} strokeWidth="1.6" markerEnd="url(#card)" />
-      <path d="M 106 120 Q 88 160 106 200" fill="none" stroke={GREEN} strokeWidth="1.6" markerEnd="url(#card)" />
-      <path d="M 214 120 Q 232 160 214 200" fill="none" stroke={GREEN} strokeWidth="1.6" markerEnd="url(#card)" />
+      {/* safe-water arrows in the 4 diagonal gaps, pointing outward (away from danger) */}
+      <path d={`M ${CX + 22} ${CY - 22} L ${CX + 66} ${CY - 66}`} stroke={GREEN} strokeWidth="2" markerEnd="url(#card)" opacity="0.7" />
+      <path d={`M ${CX + 22} ${CY + 22} L ${CX + 66} ${CY + 66}`} stroke={GREEN} strokeWidth="2" markerEnd="url(#card)" opacity="0.7" />
+      <path d={`M ${CX - 22} ${CY + 22} L ${CX - 66} ${CY + 66}`} stroke={GREEN} strokeWidth="2" markerEnd="url(#card)" opacity="0.7" />
+      <path d={`M ${CX - 22} ${CY - 22} L ${CX - 66} ${CY - 66}`} stroke={GREEN} strokeWidth="2" markerEnd="url(#card)" opacity="0.7" />
+      {/* danger in the middle */}
+      <circle cx={CX} cy={CY} r={R} fill="rgba(255,85,102,0.18)" stroke={RED} strokeWidth="1.2" strokeDasharray="4,3" />
+      <text x={CX} y={CY - 3} textAnchor="middle" fontSize="9.5" fill={RED}>mielizna</text>
+      <text x={CX} y={CY + 9} textAnchor="middle" fontSize="8.5" fill={RED}>опасность</text>
+      {/* stations */}
+      <CardinalStation cx={CX} top={20} type="N" label="N · 12:00" rhythm="Q ciagle / непрерывно" />
+      <CardinalStation cx={320} top={128} type="E" label="E · 3:00" rhythm="VQ(3) - 3 blyski" />
+      <CardinalStation cx={40} top={128} type="W" label="W · 9:00" rhythm="VQ(9) - 9 blyskow" />
+      <CardinalStation cx={CX} top={262} type="S" label="S · 6:00" rhythm="VQ(6) + 1 dlugi" labelBelow />
     </svg>
   );
 }

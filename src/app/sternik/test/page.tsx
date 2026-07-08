@@ -19,6 +19,7 @@ import {
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure from '../QuestionFigure';
+import { Explanation, useSternikPrefs } from '../prefs';
 
 /** teoria section anchor per category - "read the theory" deep links. */
 const THEORY_ANCHOR: Record<string, string> = {
@@ -42,6 +43,7 @@ interface SessionResult {
 
 function TrainerInner() {
   const { tp } = useI18n();
+  const { explLang } = useSternikPrefs();
   const params = useSearchParams();
   const catParam = params.get('cat');
   const modeParam = params.get('mode');
@@ -177,14 +179,21 @@ function TrainerInner() {
   const askAI = () => {
     if (!current) return;
     const correctText = current.options.find((o) => o.ok)?.text ?? '';
+    const question =
+      explLang === 'pl'
+        ? 'Wyjasnij to pytanie egzaminacyjne po polsku.'
+        : explLang === 'ru'
+          ? 'Объясни этот вопрос экзамена по-русски (переведи вопрос и варианты).'
+          : tp(
+              'Объясни этот вопрос экзамена. Дай ответ и по-польски, и по-русски.',
+              'Explain this exam question in both Polish and Russian.',
+              'Wyjasnij to pytanie egzaminacyjne po polsku i po rosyjsku.',
+            );
     window.dispatchEvent(
       new CustomEvent('sternik:ask', {
         detail: {
-          question: tp(
-            'Объясни этот вопрос экзамена и переведи его на русский.',
-            'Explain this exam question and translate it.',
-            'Wyjasnij to pytanie egzaminacyjne.',
-          ),
+          question,
+          explLang,
           context: `Pytanie: ${current.q}\nOdpowiedzi: ${current.options.map((o, i) => `${OPTION_LETTERS[i]}) ${o.text}`).join(' ')}\nPoprawna: ${correctText}`,
         },
       }),
@@ -415,14 +424,7 @@ function TrainerInner() {
                   <div className="text-sm" style={{ color: 'var(--success)' }}>
                     ✓ {r.q.options.find((o) => o.ok)?.text}
                   </div>
-                  {r.q.whyPl && (
-                    <div className="mt-1 text-sm" style={{ color: 'var(--text-primary)' }}>
-                      {r.q.whyPl}
-                    </div>
-                  )}
-                  <div className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                    {r.q.whyRu}
-                  </div>
+                  <Explanation whyPl={r.q.whyPl} whyRu={r.q.whyRu} size="sm" />
                 </div>
               ))}
             </div>
@@ -543,14 +545,7 @@ function TrainerInner() {
                 ? `✓ ${tp('Верно!', 'Correct!', 'Dobrze!')}`
                 : `✗ ${tp('Неверно.', 'Wrong.', 'Zle.')} ${tp('Правильно', 'Correct', 'Poprawna')}: ${current.options.find((o) => o.ok)?.text}`}
             </div>
-            {current.whyPl && (
-              <p className="mt-1 leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-                {current.whyPl}
-              </p>
-            )}
-            <p className="mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-              {current.whyRu}
-            </p>
+            <Explanation whyPl={current.whyPl} whyRu={current.whyRu} />
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
@@ -570,13 +565,15 @@ function TrainerInner() {
               >
                 🎓 {tp('Спросить AI', 'Ask AI', 'Zapytaj AI')}
               </button>
-              <Link
+              <a
                 href={`/sternik/teoria#${THEORY_ANCHOR[current.cat] ?? ''}`}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="rounded-xl px-4 py-2 text-sm"
                 style={{ background: 'var(--hover-bg)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
               >
-                📖 {tp('Теория по теме', 'Topic theory', 'Teoria tematu')}
-              </Link>
+                📖 {tp('Теория по теме ↗', 'Topic theory ↗', 'Teoria tematu ↗')}
+              </a>
             </div>
           </div>
         )}

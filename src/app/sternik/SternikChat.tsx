@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { useSternikPrefs, type ExplLang } from './prefs';
 
 // ============================================================================
 // Floating AI instructor chat for the /sternik section.
@@ -61,6 +62,9 @@ function RichText({ text }: { text: string }) {
 
 export default function SternikChat() {
   const { tp, lang } = useI18n();
+  const { explLang } = useSternikPrefs();
+  const explLangRef = useRef<ExplLang>(explLang);
+  explLangRef.current = explLang;
   const [open, setOpen] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState('');
@@ -97,6 +101,7 @@ export default function SternikChat() {
           body: JSON.stringify({
             messages: next.slice(-10),
             lang,
+            explLang: explLangRef.current,
             context: context || contextRef.current || undefined,
           }),
         });
@@ -123,8 +128,9 @@ export default function SternikChat() {
   // Programmatic asks from the trainer/exam pages.
   useEffect(() => {
     const onAsk = (e: Event) => {
-      const detail = (e as CustomEvent<{ question?: string; context?: string }>).detail || {};
+      const detail = (e as CustomEvent<{ question?: string; context?: string; explLang?: ExplLang }>).detail || {};
       contextRef.current = detail.context || '';
+      if (detail.explLang) explLangRef.current = detail.explLang;
       setOpen(true);
       if (detail.question) {
         void send(detail.question, detail.context);

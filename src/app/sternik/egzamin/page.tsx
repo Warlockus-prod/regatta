@@ -12,6 +12,7 @@ import {
 } from '@/lib/sternik-progress';
 import { OPTION_LETTERS, formatClock, prepareQuestion, shuffled, type PreparedQuestion } from '../quiz-utils';
 import QuestionFigure from '../QuestionFigure';
+import { Explanation } from '../prefs';
 
 // ============================================================================
 // /sternik/egzamin - mock exam in real format: 75 questions, 90 minutes,
@@ -245,14 +246,7 @@ export default function SternikExamPage() {
                     <div className="text-sm" style={{ color: 'var(--success)' }}>
                       ✓ {q.options.find((o) => o.ok)?.text}
                     </div>
-                    {q.whyPl && (
-                      <div className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-                        {q.whyPl}
-                      </div>
-                    )}
-                    <div className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                      {q.whyRu}
-                    </div>
+                    <Explanation whyPl={q.whyPl} whyRu={q.whyRu} />
                   </div>
                 );
               })}
