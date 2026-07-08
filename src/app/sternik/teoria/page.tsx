@@ -19,6 +19,13 @@ import {
   PropWalkDiagram,
   RiverDiagram,
 } from './diagrams';
+import {
+  BreezeGallery,
+  CloudsGallery,
+  FrontsPressureGallery,
+  IalaGallery,
+  InlandSignsGallery,
+} from './SignsWeather';
 
 // ============================================================================
 // /sternik/teoria - the full theory konspekt: Polish exam terms + Russian
@@ -267,6 +274,30 @@ export default function SternikTheoryPage() {
           <Fact q="Znak «zakaz fali»" a="plyn tak wolno, by nie wytwarzac falowania" ru="Сбрось скорость до отсутствия волны." />
           <Fact q="Sluza - wjazd" a="tylko na zielone swiatlo" ru="В шлюз - только на зелёный." />
         </Card>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🚦 {tp('Как выглядят знаки (IALA, регион A)', 'What the marks look like (IALA region A)', 'Jak wygladaja znaki (IALA region A)')}
+        </h3>
+        <IalaGallery />
+        <DiagramCaption>
+          {tp(
+            'Боковые (красный цилиндр слева / зелёный конус справа при входе с моря), кардинальные N/E/S/W, отдельная опасность, чистая вода, специальный.',
+            'Lateral (red can to port / green cone to starboard entering from sea), cardinal N/E/S/W, isolated danger, safe water, special.',
+            'Boczne (czerwony walec po lewej / zielony stozek po prawej od morza), kardynalne N/E/S/W, odosobnione niebezpieczenstwo, bezpieczna woda, specjalny.',
+          )}
+        </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🪧 {tp('Береговые таблички (внутренние воды)', 'Inland shore signs', 'Tablice srodladowe')}
+        </h3>
+        <InlandSignsGallery />
+        <DiagramCaption>
+          {tp(
+            'Красный кант = запрет/предписание/ограничение; синий фон = информация. Форму и символ надо узнавать на экзамене.',
+            'Red border = prohibition/mandatory/restriction; blue ground = information. You must recognize shape + symbol on the exam.',
+            'Czerwona obwodka = zakaz/nakaz/ograniczenie; niebieskie tlo = informacja.',
+          )}
+        </DiagramCaption>
       </Section>
 
       {/* 5. NAWIGACJA W PRAKTYCE --------------------------------------------- */}
@@ -340,7 +371,7 @@ export default function SternikTheoryPage() {
       <Section {...SECTIONS[6]}>
         <Card title="Fakty / Факты">
           <Fact q="1 kW = ?" a="1,36 KM (konia mechanicznego)" ru="1 кВт = 1,36 л.с.; обратно 1 л.с. = 0,735 кВт." />
-          <Fact q="Four stroke / two stroke" a="czterosuwowy (czysta benzyna) / dwusuwowy (mieszanka)" ru="4-тактный - чистый бензин; 2-тактный - смесь с маслом, картера нет." />
+          <Fact q="Four stroke / two stroke" a="czterosuwowy (czysta benzyna) / dwusuwowy (mieszanka)" ru="4-тактный - чистый бензин; 2-тактный - смесь бензина с маслом, нет масляного поддона (miski olejowej)." />
           <Fact q="Otwor kontrolny przy pracy" a="delikatnie sika ciepla woda" ru="Струйка воды = охлаждение работает. Нет струйки - глуши!" />
           <Fact q="Chlodzenie silnika zaburtowego" a="woda zaburtowa (pompa z wirnikiem)" ru="Охлаждение забортной водой." />
           <Fact q="Naprzod -> wstecz od razu" a="zabronione - najpierw luz (neutral)" ru="Резкий реверс ломает редуктор: нейтраль, пауза, назад." />
@@ -416,6 +447,38 @@ export default function SternikTheoryPage() {
           <Fact q="Bryza dzienna / nocna" a="dniem od wody na lad, noca od ladu na wode" ru="Днём с воды на сушу, ночью наоборот." />
           <Fact q="Cumulonimbus (Cb)" a="szkwaly, burza, ulewa" ru="Кучево-дождевое: увидел «наковальню» - к берегу." />
         </Card>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          ☁️ {tp('Облака - что предвещают', 'Clouds and what they mean', 'Chmury i co zwiastuja')}
+        </h3>
+        <CloudsGallery />
+        <DiagramCaption>
+          {tp(
+            'Cumulus - хорошая погода; Cumulonimbus («наковальня») - гроза и шквалы, уходи к берегу; Cirrus - приближается тёплый фронт; Stratus/Nimbostratus - обложной дождь.',
+            'Cumulus - fair weather; Cumulonimbus (anvil) - storm and squalls, head to shore; Cirrus - warm front approaching; Stratus/Nimbostratus - steady rain.',
+            'Cumulus - ladna pogoda; Cumulonimbus (kowadlo) - burza i szkwaly, wracaj do brzegu; Cirrus - nadchodzi front cieply; Stratus/Nimbostratus - opady ciagle.',
+          )}
+        </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🌡️ {tp('Фронты и давление', 'Fronts and pressure', 'Fronty i cisnienie')}
+        </h3>
+        <FrontsPressureGallery />
+        <DiagramCaption>
+          {tp(
+            'Тёплый фронт (красные полукруги) - медленное потепление; холодный (синие треугольники) - шквалы; W (wyz) = высокое давление, ясно; N (niz) = низкое, ветер и осадки. Ветер дует из W в N.',
+            'Warm front (red semicircles) slow warming; cold (blue triangles) squalls; W (high) clear; N (low) wind and rain. Wind blows from high to low.',
+            'Front cieply (czerwone polkola) - powolne ocieplenie; chlodny (niebieskie trojkaty) - szkwaly; W (wyz) - wysokie cisnienie, pogodnie; N (niz) - niskie, wiatr i opady. Wiatr wieje od wyzu do nizu.',
+          )}
+        </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🌬️ {tp('Бризы', 'Breezes', 'Bryzy')}
+        </h3>
+        <BreezeGallery />
+        <DiagramCaption>
+          {tp('Днём суша теплее - бриз с воды на сушу; ночью наоборот - с суши на воду.', 'By day land is warmer - breeze from water to land; by night the reverse.', 'W dzien lad cieplejszy - bryza od wody na lad; noca odwrotnie.')}
+        </DiagramCaption>
       </Section>
 
       {/* 11. RATOWNICTWO ------------------------------------------------------------ */}
