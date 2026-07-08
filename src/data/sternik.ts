@@ -86,6 +86,11 @@ export interface SternikQuestion {
   source?: string;
   /** Optional figure shown above the question (znaki recognition etc). */
   figure?: SternikFigureId;
+  /**
+   * Optional real photo shown above the question, basename of a file in
+   * /public/sternik/clouds (e.g. 'cumulonimbus'). Used for weather questions.
+   */
+  photo?: string;
 }
 
 /** Real exam format: rozporzadzenie MSiT z 9.04.2013 (Dz.U. 2013 poz. 460). */
@@ -5144,6 +5149,74 @@ export const STERNIK_BANK: SternikQuestion[] = [
     whyPl: 'Zamiar wyprzedzania wzdłuż prawej burty sygnalizuje się dwoma długimi i jednym krótkim dźwiękiem.',
     whyRu: 'Намерение обгона вдоль правого борта - два длинных и один короткий звук (dwa długie i jeden krótki).',
     source: 'akademiasternika SM-PRZEPIS-096',
+  },
+
+  // ===== PYTANIA ZE ZDJECIAMI (chmury / pogoda) ============================
+  // Real photographs in /public/sternik/clouds (open licenses, credits on the
+  // theory page). Teach reading the sky - key skill on the water.
+  {
+    id: 'photo-cb', cat: 'meteo', photo: 'cumulonimbus',
+    q: 'Widzisz taka chmure (kowadlo). Co zapowiada?',
+    options: ['Burze, szkwaly i ulewe - wracaj do brzegu', 'Ladna, stabilna pogode', 'Slaby wiatr do wieczora'],
+    correct: 0,
+    whyPl: 'Chmura Cumulonimbus (kowadlo) zwiastuje burze, szkwaly i ulewe. Zejdz z wody zanim nadejdzie.',
+    whyRu: 'Кучево-дождевое облако (Cumulonimbus, «наковальня») - гроза, шквалы, ливень. Уходи к берегу заранее.',
+  },
+  {
+    id: 'photo-cu', cat: 'meteo', photo: 'cumulus',
+    q: 'Male, puszyste, oddzielone chmury w sloneczny dzien to:',
+    options: ['Cumulus - oznaka ladnej pogody', 'Zapowiedz natychmiastowej burzy', 'Front chlodny nad glowa'],
+    correct: 0,
+    whyPl: 'Cumulus humilis (male kompaktowe chmurki) to typowa oznaka ladnej, stabilnej pogody.',
+    whyRu: 'Cumulus (кучевые «хорошей погоды») - маленькие обособлённые облачка, признак ясной устойчивой погоды.',
+  },
+  {
+    id: 'photo-ci', cat: 'meteo', photo: 'cirrus',
+    q: 'Wysokie, delikatne, pierzaste chmury (cirrus) czesto zapowiadaja:',
+    options: ['Nadejscie frontu cieplego i zmiane pogody', 'Natychmiastowy sztorm', 'Dlugotrwala mgle'],
+    correct: 0,
+    whyPl: 'Cirrus (pierzaste) na czystym niebie czesto poprzedzaja front cieply - pogoda zacznie sie psuc w ciagu kilkunastu godzin.',
+    whyRu: 'Cirrus (перистые) на ясном небе часто предвещают тёплый фронт - погода начнёт портиться в ближайшие полсуток.',
+  },
+  {
+    id: 'photo-ns', cat: 'meteo', photo: 'nimbostratus',
+    q: 'Jednolita, ciemna warstwa chmur dajaca ciagly deszcz to:',
+    options: ['Nimbostratus - opady ciagle', 'Cumulus ladnej pogody', 'Znak slabnacego wiatru'],
+    correct: 0,
+    whyPl: 'Nimbostratus to gruba, jednolita warstwa dajaca dlugotrwaly, ciagly deszcz i slaba widzialnosc.',
+    whyRu: 'Nimbostratus - плотный однородный слой, даёт продолжительный обложной дождь и плохую видимость.',
+  },
+  {
+    id: 'photo-shelf', cat: 'meteo', photo: 'shelf',
+    q: 'Ten nadciagajacy walec chmury na czole burzy oznacza:',
+    options: ['Nadchodzacy szkwal - natychmiast wracaj do brzegu', 'Poprawe pogody', 'Zwykle zachmurzenie bez znaczenia'],
+    correct: 0,
+    whyPl: 'Walcowa chmura szkwalowa (shelf cloud) na czole burzy zwiastuje gwaltowny szkwal i skok wiatru. Reaguj natychmiast.',
+    whyRu: 'Вал шквалового облака (shelf cloud) на фронте грозы - предвестник резкого шквала и скачка ветра. Реагируй немедленно.',
+  },
+  {
+    id: 'photo-fog', cat: 'meteo', photo: 'fog',
+    q: 'Mgla nad woda. Jak sie zachowasz?',
+    options: ['Zwolnij, wlacz swiatla i sygnaly, sluchaj otoczenia', 'Przyspiesz, by szybciej z niej wyplynac', 'Nic nie zmieniaj'],
+    correct: 0,
+    whyPl: 'Mgla to ograniczona widzialnosc: zwolnij, wlacz swiatla nawigacyjne, nadawaj sygnaly mglowe i uwaznie nasluchuj.',
+    whyRu: 'Туман = ограниченная видимость: сбрось скорость, включи ходовые огни, подавай туманные сигналы, внимательно слушай.',
+  },
+  {
+    id: 'photo-ac', cat: 'meteo', photo: 'altocumulus',
+    q: 'Niebo pokryte "barankami" (altocumulus). To czesto zapowiedz:',
+    options: ['Zmiany pogody / frontu w ciagu doby', 'Natychmiastowej burzy', 'Trwalej suszy'],
+    correct: 0,
+    whyPl: 'Altocumulus ("baranki") czesto zapowiadaja zmiane pogody i nadejscie frontu w ciagu kilkunastu do dwudziestu kilku godzin.',
+    whyRu: 'Altocumulus («барашки», mackerel sky) часто предвещают смену погоды и приход фронта в ближайшие сутки.',
+  },
+  {
+    id: 'photo-st', cat: 'meteo', photo: 'stratus',
+    q: 'Niska, jednolita, szara warstwa chmur (stratus) to zwykle:',
+    options: ['Zachmurzenie z mzawka, slaba widzialnosc', 'Zapowiedz silnych szkwalow', 'Oznaka slonecznej pogody'],
+    correct: 0,
+    whyPl: 'Stratus to niska, jednolita warstwa dajaca mzawke i obnizona widzialnosc, zwykle bez gwaltownych zjawisk.',
+    whyRu: 'Stratus - низкий однородный слой, даёт морось и пониженную видимость, обычно без резких явлений.',
   },
 ];
 
