@@ -3,6 +3,8 @@ import type { Vessel } from '@/app/radio/symulator/radioModel';
 export const VOICE_KINDS = [
   'mayday-fire', 'panpan-mob', 'panpan-engine',
   'securite-hazard', 'radio-check', 'cancel-false',
+  'routine-marina', 'routine-ship', 'routine-group',
+  'panpan-medico', 'vts-report', 'mayday-relay',
 ] as const;
 export type VoiceKind = (typeof VOICE_KINDS)[number];
 
@@ -168,6 +170,55 @@ function buildChecks(input: VoiceGradeInput): Check[] {
         { id: 'when', label: 'data i czas UTC', test: (t) => /(today|date)/.test(t) && /utc/.test(t) },
         { id: 'order', label: 'kolejnosc: ALL STATIONS -> identyfikacja -> odwolanie', test: (t) => ordered(t, [/all (?:stations|ships)/, /this is/, /cancel my distress alert/]) },
         { id: 'out', label: 'OUT na koncu', test: (t) => /out$/.test(t) },
+      ];
+    case 'routine-marina':
+      return [
+        { id: 'station', label: 'MARINA GDYNIA x2', test: (t) => count(t, /marina gdynia/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'request', label: 'tresc: prosba (miejsce/wejscie/postoj)', test: (t) => /(berth|mooring|moorage|slip|enter|entry|permission|space|place|water|fuel)/.test(t) },
+        { id: 'order', label: 'kolejnosc: stacja -> THIS IS -> prosba', test: (t) => ordered(t, [/marina gdynia/, /this is/, /(berth|mooring|enter|permission|space|place|water|fuel)/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'routine-ship':
+      return [
+        { id: 'station', label: 'wywolywana jednostka (TRAINING SHIP) x2', test: (t) => count(t, /training ship/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejnosc: wywolywany -> THIS IS', test: (t) => ordered(t, [/training ship/, /this is/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'routine-group':
+      return [
+        { id: 'group', label: 'wywolanie grupowe (REGATTA FLEET x2)', test: (t) => count(t, /(regatta fleet|regatta group|fleet)/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejnosc: grupa -> THIS IS', test: (t) => ordered(t, [/(regatta fleet|fleet)/, /this is/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'panpan-medico':
+      return [
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => count(t, /pan\s?pan/g) >= 3 },
+        { id: 'allstations', label: 'ALL STATIONS x3 (lub stacja brzegowa)', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 || /(polish rescue radio|coast|radio medico)/.test(t) },
+        ...identity, position,
+        { id: 'medico', label: 'prosba o porade/pomoc medyczna', test: (t) => /(medical|medico|doctor|injur|casualty|ambulance|unconscious|bleeding)/.test(t) },
+        { id: 'order', label: 'kolejnosc: PAN PAN -> identyfikacja -> pozycja -> medyczne', test: (t) => ordered(t, [/pan\s?pan/, /this is/, /position/, /(medical|medico|doctor|injur|casualty)/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'vts-report':
+      return [
+        { id: 'station', label: 'VTS ZATOKA GDANSKA x2', test: (t) => count(t, /(vts zatoka|zatoka gdansk|vts gdansk|traffic gdansk)/g) >= 2 },
+        ...identity.slice(0, 2), position,
+        { id: 'report', label: 'meldunek (wejscie/wyjscie/kurs/zamiar)', test: (t) => /(inbound|outbound|proceeding|entering|leaving|departing|course|bound for|report)/.test(t) },
+        { id: 'order', label: 'kolejnosc: VTS -> THIS IS -> pozycja', test: (t) => ordered(t, [/(vts|zatoka|traffic)/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'mayday-relay':
+      return [
+        { id: 'relay3', label: 'MAYDAY RELAY x3', test: (t) => count(t, /may\s?day relay/g) >= 3 },
+        ...identity.slice(0, 2),
+        { id: 'casualty', label: 'nazwa jednostki w niebezpieczenstwie', test: (t) => /(neptun|casualty|distressed|the vessel|the yacht)/.test(t) },
+        { id: 'position', label: 'pozycja jednostki w niebezpieczenstwie', test: (t) => /position/.test(t) },
+        { id: 'nature', label: 'rodzaj zagrozenia', test: (t) => /(sinking|fire|flooding|aground|grounding|collision|abandon|taking water|help)/.test(t) },
+        { id: 'order', label: 'kolejnosc: MAYDAY RELAY -> THIS IS -> pozycja', test: (t) => ordered(t, [/may\s?day relay/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
       ];
   }
 }
