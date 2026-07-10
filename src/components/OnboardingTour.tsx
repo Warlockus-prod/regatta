@@ -10,7 +10,7 @@ const STORAGE_KEY = 'regatta.onboarding.v1';
 // both V1 (/simulator), V2 (/simulator2), V3 (/simulator-v3), /game, and
 // /multiplayer. Previously V3/sim2 were missing from this list so foreign
 // visitors who landed on V3 first got a Russian welcome modal on top of it.
-const HIDE_ON = ['/simulator', '/simulator2', '/simulator-v3', '/game', '/multiplayer', '/sternik'];
+const HIDE_ON = ['/simulator', '/simulator2', '/simulator-v3', '/game', '/multiplayer', '/sternik', '/radio'];
 
 interface Step {
   emoji: string;
