@@ -10,7 +10,7 @@
     "test:physics": "vitest run src/lib/sailing-physics src/lib/race-physics.drift.test.ts",
     "test:physics:watch": "vitest src/lib/sailing-physics src/lib/race-physics.drift.test.ts",
     "test:api": "vitest run src/app/api",
-    "test:radio": "vitest run src/app/radio/symulator",
+    "test:radio": "vitest run src/app/radio",
     "test": "vitest run",
     "check:dash": "node scripts/check-no-dash.mjs"
   },
