@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useI18n } from '@/lib/i18n';
+import { I18nScope, useI18n } from '@/lib/i18n';
 
 // ============================================================================
 // Sternik section preferences: which language the answer explanations are
@@ -72,6 +72,19 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
 
 export function useSternikPrefs(): Ctx {
   return useContext(PrefsContext);
+}
+
+/**
+ * The motorowodny section (sternik + radio) exists only in Polish (the exam
+ * language, and the default) and Russian (an opt-in aid). Any other site
+ * language is rendered in Polish rather than a half-translated mix - there is
+ * no EN/ES/FR/DE/IT version of a Polish licence exam. This forces the section's
+ * effective language to PL for every non-RU visitor; the global language picker
+ * (outside the section) still switches the real site language.
+ */
+export function SternikLangScope({ children }: { children: ReactNode }) {
+  const { lang } = useI18n();
+  return <I18nScope lang={lang === 'ru' ? 'ru' : 'pl'}>{children}</I18nScope>;
 }
 
 /** Segmented toggle: PL / RU / Oba. Compact, fits the subnav.

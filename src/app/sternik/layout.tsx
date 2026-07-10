@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import SternikChat from './SternikChat';
 import SternikSubnav from './SternikSubnav';
-import { SternikPrefsProvider } from './prefs';
+import { SternikPrefsProvider, SternikLangScope } from './prefs';
 
 export const metadata: Metadata = {
   title: 'Sternik motorowodny - przygotowanie do egzaminu | Week to Regatta',
@@ -16,12 +16,14 @@ export const metadata: Metadata = {
 
 export default function SternikLayout({ children }: { children: ReactNode }) {
   return (
-    <SternikPrefsProvider>
-      <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
-        <SternikSubnav />
-        {children}
-        <SternikChat />
-      </div>
-    </SternikPrefsProvider>
+    <SternikLangScope>
+      <SternikPrefsProvider>
+        <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
+          <SternikSubnav />
+          {children}
+          <SternikChat />
+        </div>
+      </SternikPrefsProvider>
+    </SternikLangScope>
   );
 }

@@ -285,6 +285,18 @@ smoke step warns (does not fail) when the header is still missing.
 
 ## Language policy (2026-07)
 
+- The whole motorowodny section (sternik + radio) exists in exactly **two
+  languages: Polish (default) and Russian (opt-in aid)**. There is no
+  EN/ES/FR/DE/IT version of a Polish licence exam, so every non-RU visitor
+  is shown Polish - chrome included, not a half-translated mix.
+- Enforced structurally by `SternikLangScope` (in `prefs.tsx`) wrapping both
+  section layouts: it nests `I18nScope` (a new additive export in
+  `src/lib/i18n.tsx`) that forces the section's effective language to `ru` on
+  the RU site and `pl` everywhere else. Every existing `tp(ru,en,pl)` call in
+  the section then resolves to PL for non-RU with zero per-page edits; the
+  global language picker (outside the section) still switches the real site
+  language, so a non-RU visitor sees English global nav around Polish section
+  content.
 - Exam questions are ALWAYS Polish (they are the exam).
 - RU commentary is an opt-in aid **only on the Russian site version**:
   `SternikPrefsProvider` forces `explLang='pl'` when `lang !== 'ru'` and
