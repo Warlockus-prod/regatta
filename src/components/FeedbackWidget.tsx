@@ -29,6 +29,14 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   const [tab, setTab] = useState<Tab>('ai');
   const shouldHide = hideOn.some((p) => pathname.startsWith(p));
 
+  // The iOS app embeds content via WebView with ?embed=1. The floating widget
+  // must not render there - it overlaps the embedded controls (e.g. the radio
+  // simulator's 16/C and PTT). Matches the Navigation embed contract.
+  const [embed, setEmbed] = useState(false);
+  useEffect(() => {
+    setEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
+  }, []);
+
   // Feedback tab state
   const [kind, setKind] = useState<Kind>('feedback');
   const [category, setCategory] = useState<Category>('useful');
@@ -159,7 +167,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
     }
   }, [chatInput, chat, chatLoading, lang, tp]);
 
-  if (shouldHide) return null;
+  if (shouldHide || embed) return null;
 
   return (
     <>
