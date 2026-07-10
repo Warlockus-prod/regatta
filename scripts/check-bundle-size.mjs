@@ -24,7 +24,12 @@ import path from 'node:path';
 // Total size of all JS chunks in .next/static/chunks/. Tight-ish so we catch
 // "someone imported moment.js" or "some vendor got un-tree-shaken".
 // Current (2026-04-20): ~2 MB. Budget allows ~2.5x growth before failing.
-const BUDGET_MB_TOTAL = 5;
+// 2026-07-10: raised 5 -> 5.5 MB after landing the /radio learning section
+// (SRC guide + ICOM simulator + the official 324-question UKE bank in
+// src/data/src-radio.ts). Inspected: growth is legitimate feature content,
+// largest single chunk stays ~0.95 MB (well under BUDGET_MB_SINGLE), no
+// stray heavy dependency. Baseline after this change: ~5.02 MB.
+const BUDGET_MB_TOTAL = 5.5;
 
 // Single largest chunk. If one chunk balloons past this, something got
 // bundled into a non-code-split vendor blob (often three.js / drei).
