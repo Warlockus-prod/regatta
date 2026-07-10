@@ -5,10 +5,17 @@ import { test, expect } from '@playwright/test';
 // These run against prod by default (see playwright.config.ts).
 // ============================================================================
 
-// Pin language to Russian for deterministic string matches.
+// Pin language to Russian for deterministic string matches, and mark the
+// first-visit onboarding tour as seen. The tour (OnboardingTour.tsx, a
+// full-screen z-[100] overlay) pops up ~600 ms after load on a fresh context
+// and otherwise intercepts clicks (e.g. the language toggle), which made the
+// home-page test flaky. Seeding its localStorage flag keeps it from appearing.
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
-    try { window.localStorage.setItem('regatta.lang.v1', 'ru'); } catch { /* ignore */ }
+    try {
+      window.localStorage.setItem('regatta.lang.v1', 'ru');
+      window.localStorage.setItem('regatta.onboarding.v1', '1');
+    } catch { /* ignore */ }
   });
 });
 
