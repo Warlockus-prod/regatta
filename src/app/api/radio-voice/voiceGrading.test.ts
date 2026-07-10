@@ -108,4 +108,10 @@ describe('routine / test / medical / relay call grading', () => {
       'TRAINING SHIP TRAINING SHIP THIS IS BALTIC STAR BALTIC STAR GO AHEAD OVER');
     expect(g.score).toBe(100);
   });
+
+  it('accepts a correct group call to the regatta fleet', () => {
+    const g = grade('routine-group',
+      'REGATTA FLEET REGATTA FLEET THIS IS BALTIC STAR BALTIC STAR ASSEMBLE AT THE START LINE OVER');
+    expect(g.score).toBe(100);
+  });
 });

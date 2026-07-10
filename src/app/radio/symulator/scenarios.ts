@@ -873,6 +873,52 @@ const relayScenario: Scenario = {
   },
 };
 
+// --- scenario 15: group call to a regatta fleet -----------------------------
+
+const GROUP_LINES = (v: VariantData) => [
+  'REGATTA FLEET, REGATTA FLEET',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  'ASSEMBLE AT THE START LINE, START IN TEN MINUTES',
+  'OVER',
+];
+
+const groupScenario: Scenario = {
+  id: 'group-call',
+  icon: '⛵',
+  title: { pl: 'Wywolanie grupowe - flota regatowa', ru: 'Групповой вызов - гоночная флотилия' },
+  brief: {
+    pl: 'Przed startem chcesz przekazac komunikat calej swojej grupie regatowej naraz. Sluzy do tego wywolanie grupowe DSC (Group) - dociera do jednostek z tym samym numerem grupowym, a tresc podajesz glosem na kanale roboczym.',
+    ru: 'Перед стартом хочешь передать сообщение всей гоночной группе сразу. Для этого есть групповой вызов DSC (Group) - доходит до судов с тем же групповым номером, а текст передаёшь голосом на рабочем канале.',
+  },
+  steps: [
+    stepPower(),
+    stepChooseType('Group',
+      { pl: 'Wybierz Group Call (M330: [OTHER DSC] > Type: Group; M323: DSC Calls > Group Call)', ru: 'Выбери Group Call (M330: [OTHER DSC] > Type: Group; M323: DSC Calls > Group Call)' },
+      { pl: 'Group to wywolanie do zaprogramowanej grupy jednostek (wspolny numer grupowy MMSI). Nie jest potwierdzane ACK - jak All Ships.', ru: 'Group - вызов запрограммированной группы судов (общий групповой MMSI). Не подтверждается ACK - как All Ships.' },
+    ),
+    {
+      id: 'group-sent',
+      todo: { pl: 'Ustaw kanal roboczy i wyslij wywolanie grupowe (Send)', ru: 'Выставь рабочий канал и отправь групповой вызов (Send)' },
+      why: {
+        pl: 'Zapowiedz grupowa na kanale 70 kieruje cala grupe na wskazany kanal roboczy. Grupa nie odpowiada cyfrowo - od razu przechodzisz do glosu.',
+        ru: 'Групповое объявление на 70 канале направляет всю группу на указанный рабочий канал. Группа не отвечает цифро - сразу переходишь к голосу.',
+      },
+      check: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'Group',
+    },
+    {
+      id: 'group-voice',
+      todo: { pl: 'Nadaj komunikat do floty glosem (PTT)', ru: 'Передай сообщение флотилии голосом (PTT)' },
+      why: {
+        pl: 'Schemat: [nazwa grupy] x2 -> THIS IS + nazwa x2 -> tresc komunikatu -> OVER.',
+        ru: 'Схема: [название группы] x2 -> THIS IS + название x2 -> текст сообщения -> OVER.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && next.ptt && ch(next) !== '70',
+      voice: { kind: 'routine-group', lines: GROUP_LINES },
+    },
+  ],
+  mistakes: [],
+};
+
 // ===========================================================================
 // Receiving side: the radio starts already showing an inbound DSC call (via
 // init, like false-cancel). No new events - the reducer renders the received
@@ -1002,6 +1048,7 @@ export const SCENARIOS: Scenario[] = [
   medicoScenario,
   dscTestScenario,
   shipScenario,
+  groupScenario,
   relayScenario,
   receiveDistressScenario,
   receiveCallScenario,
