@@ -30,6 +30,15 @@ built for a user who is actually taking the UKE exam. Four parts:
 4. **Voice grading** (`src/app/api/radio-voice/route.ts`) - Whisper
    transcription + a strict deterministic checklist scoring of spoken
    MAYDAY / PAN-PAN / SECURITE / radio-check / cancel transmissions.
+5. **26 official UKE tasks** (`src/app/radio/zadania/*`) - the complete
+   verbatim list of the SRC practical exam tasks from
+   `materialy_do_testu_src.pdf`, each with the correct GMDSS/ICOM procedure
+   (PL+RU) and a link to the simulator scenario or course lesson that trains
+   it. The published materials have NO answer key, so this is a procedure
+   reference, not a graded A/B/C quiz. Groups: device operation (10, tasks
+   1-7,14-16), voice (6, tasks 8-13), DSC (6, tasks 17-22), EPIRB/SART (4,
+   tasks 23-26). Data + a coverage test in `zadania/tasks.ts` +
+   `tasks.test.ts` (asserts 26 tasks and that every scenario link resolves).
 
 ## Fact base (verified July 2026)
 
@@ -343,21 +352,35 @@ smoke step warns (does not fail) when the header is still missing.
   `<text>` nodes is now conditional on the RU site version (agent-edited,
   0 unconditional Cyrillic renders).
 
-## Roadmap (next versions)
+## Coverage of the official 26 UKE tasks
 
-- **15 scenarios ship today** covering all four DSC call types (Individual,
+All 26 published SRC practical tasks are covered across three surfaces
+(see `/radio/zadania` for the full mapping):
+
+- **15 simulator scenarios** (`/radio/symulator`) demonstrate the
+  radiotelephony + DSC procedures - all four DSC call types (Individual,
   Group, All Ships, Test) and all three categories: distress, the three
   urgency calls, safety, routine marina/VTS/ship/group, DSC test, distress
-  cancel, MAYDAY relay, plus the receiving side (received distress + received
-  individual call). Remaining
-  nice-to-haves: a timed incoming call that arrives mid-standby (today the
-  receiving scenarios start already ringing via `init`), an on-device MMSI
-  address book, distress-relay via DSC (not just voice), and EPIRB/SART
-  dummies. None are core to the SRC practical.
-- OTHER DSC free MMSI address book (today: fixed 3-entry list), Distress
-  relay, EPIRB/SART dummies (exam card includes them).
+  cancel, MAYDAY relay, and the receiving side (received distress + call).
+  Maps to tasks 8-13, 17-22.
+- **14-lesson interactive course** (`/radio/obsluga`) drills the device
+  operations - power, squelch, channels, dual watch, backlight, power
+  reduction, menu, DSC compose, PTT, DISTRESS. Maps to tasks 1-5, 7.
+- **26-task reference** (`/radio/zadania`) lists every task verbatim with its
+  correct procedure - the single place that also covers the tasks not
+  demonstrable on the VHF panel: position/time entry (14), MMSI address book
+  (15-16), scan memory (6), and EPIRB/SART handling and testing (23-26).
+
+## Roadmap (next versions)
+
+- Make the device-only tasks demonstrable on the panel too: manual
+  position/time entry, an editable MMSI address book, and scan-list tagging
+  (today these live only in the `/radio/zadania` procedure reference).
+- A timed incoming call that arrives mid-standby (today the receiving
+  scenarios start already ringing via `init`); distress-relay via DSC.
+- A small EPIRB/SART interactive widget (today text procedure only).
 - Voice-first exam mode, GPT feedback on transcripts.
 - Apply `regatta.nginx.conf` on the shared proxy so the voice trainer works
   on prod, then flip the deploy smoke check back to hard-fail.
-- Per-question drill from the official UKE PDF (324 questions) - answer
-  key being authored via a verified multi-agent workflow.
+- Per-question drill from the official UKE PDF (324 written questions) -
+  answer key being authored via a verified multi-agent workflow.

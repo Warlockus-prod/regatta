@@ -13,6 +13,7 @@ export default function RadioSubnav() {
     { href: '/radio', label: tp('Рация и SRC', 'Radio and SRC', 'Radio i SRC'), icon: '📻' },
     { href: '/radio/obsluga', label: tp('Путеводитель', 'Guide', 'Poradnik'), icon: '🛠️' },
     { href: '/radio/symulator', label: tp('Симулятор', 'Simulator', 'Symulator'), icon: '🎙️' },
+    { href: '/radio/zadania', label: tp('26 заданий', '26 tasks', '26 zadan'), icon: '📋' },
     { href: '/radio/test', label: tp('Тренажёр UKE', 'UKE trainer', 'Trening UKE'), icon: '✅' },
   ];
 

@@ -126,7 +126,7 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
-          for path in / /game /leaderboard /anatomy /simulator /courses /radio /radio/obsluga /radio/symulator /radio/test; do
+          for path in / /game /leaderboard /anatomy /simulator /courses /radio /radio/obsluga /radio/symulator /radio/zadania /radio/test; do
             code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://weektoregatta.com$path")
             echo "HTTP $code  $path"
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
