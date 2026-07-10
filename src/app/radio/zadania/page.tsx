@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
+import { useSternikPrefs } from '../../sternik/prefs';
 import { GROUP_LABEL, PRACTICAL_TASKS, type TaskGroup } from './tasks';
 
 // ============================================================================
@@ -19,8 +20,11 @@ const GROUP_ICON: Record<TaskGroup, string> = {
 };
 
 export default function RadioTasksPage() {
-  const { tp, lang } = useI18n();
-  const showRu = lang === 'ru';
+  const { tp } = useI18n();
+  const { explLang } = useSternikPrefs();
+  // RU commentary honours the PL/RU/both toggle; the section scope already
+  // forces explLang to 'pl' for every non-RU visitor.
+  const showRu = explLang !== 'pl';
 
   return (
     <main id="radio-zadania">

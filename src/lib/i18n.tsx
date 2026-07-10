@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, useMemo, type ReactNode } from 'react';
 import {
   DEFAULT_LANG,
   isLang,
@@ -166,6 +166,37 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
   );
 
   return <Ctx.Provider value={{ lang, setLang, t, tp, tl }}>{children}</Ctx.Provider>;
+}
+
+/**
+ * Nests a provider that FORCES the effective display language for its subtree,
+ * while `setLang` still drives the real site-wide language (the global picker
+ * keeps working - it lives outside any scope). Use for a section that only
+ * exists in a subset of languages: e.g. the motorowodny section (sternik +
+ * radio) is authored in Polish (default) and Russian, so any non-RU visitor is
+ * shown Polish rather than a half-translated mix. All existing `tp(ru,en,pl)`
+ * calls inside resolve against the forced language automatically.
+ */
+export function I18nScope({ lang: forced, children }: { lang: Lang; children: ReactNode }) {
+  const parent = useI18n();
+  const value = useMemo<I18nContextValue>(() => ({
+    lang: forced,
+    setLang: parent.setLang,
+    t: (ru: string, en: string) => (forced === 'ru' ? ru : en),
+    tp: (ru: string, en: string, pl: string, extras?: TpExtras) => {
+      switch (forced) {
+        case 'ru': return ru;
+        case 'pl': return pl;
+        case 'es': return extras?.es ?? en;
+        case 'fr': return extras?.fr ?? en;
+        case 'de': return extras?.de ?? en;
+        case 'it': return extras?.it ?? en;
+        default:   return en;
+      }
+    },
+    tl: (values: LocalizedText) => pickLocalized(forced, values),
+  }), [parent.setLang, forced]);
+  return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }
 
 export function useI18n(): I18nContextValue {

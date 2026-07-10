@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import RadioSubnav from './RadioSubnav';
-import { SternikPrefsProvider } from '../sternik/prefs';
+import { SternikPrefsProvider, SternikLangScope } from '../sternik/prefs';
 
 export const metadata: Metadata = {
   title: 'Radio VHF i swiadectwo SRC - symulator ICOM | Week to Regatta',
@@ -17,11 +17,13 @@ export default function RadioLayout({ children }: { children: ReactNode }) {
   // The radio section shares the sternik explanation-language preferences
   // (PL/RU/both on the RU site version; PL-only elsewhere).
   return (
-    <SternikPrefsProvider>
-      <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
-        <RadioSubnav />
-        {children}
-      </div>
-    </SternikPrefsProvider>
+    <SternikLangScope>
+      <SternikPrefsProvider>
+        <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
+          <RadioSubnav />
+          {children}
+        </div>
+      </SternikPrefsProvider>
+    </SternikLangScope>
   );
 }
