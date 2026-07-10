@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { VoiceSpec } from './scenarios';
 import MicCheck from '../MicCheck';
 
@@ -27,16 +27,28 @@ interface Props {
   lines: string[];
   /** which vessel identity the grader should expect (index into VESSEL_POOL). */
   vesselIdx: number;
+  positionIdx: number;
+  pob: number;
   /** 'ru' shows RU helper copy; PL otherwise (language policy). */
   ru: boolean;
   /** exam integrity: hide the scripted lines, the user must speak from memory. */
   hideScript?: boolean;
+  allowLinePractice?: boolean;
+  minimumScore?: number;
   onComplete: (result: VoiceResult | null) => void;
+}
+
+export interface VoicePttHandle {
+  startRecording: () => void;
+  stopRecording: () => void;
 }
 
 const MAX_RECORD_MS = 45_000;
 
-export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = false, onComplete }: Props) {
+const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
+  kind, lines, vesselIdx, positionIdx, pob, ru, hideScript = false,
+  allowLinePractice = true, minimumScore = 70, onComplete,
+}, ref) {
   const [linesRead, setLinesRead] = useState(0);
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -80,11 +92,12 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
 
   const startRecording = useCallback(async () => {
     // Reentrancy + release-before-grant guards (permission prompt race).
-    if (starting.current || mediaRef.current?.state === 'recording') return;
+    if (busy || starting.current || mediaRef.current?.state === 'recording') return;
     starting.current = true;
     wantRecording.current = true;
     if (stopTimer.current) clearTimeout(stopTimer.current);
     setError(null);
+    setResult(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       if (!wantRecording.current) {
@@ -110,11 +123,15 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
           fd.append('audio', blob, 'ptt');
           fd.append('kind', kind);
           fd.append('vessel', String(vesselIdx));
+          fd.append('position', String(positionIdx));
+          fd.append('pob', String(pob));
           const res = await fetch('/api/radio-voice', { method: 'POST', body: fd });
           const data = await res.json();
           if (data.fallback) {
             setVoiceUnavailable(true);
-            setError(ru ? 'Голосовой режим недоступен (нет ключа API) - пройди передачу по строкам.' : 'Tryb glosowy niedostepny - przejdz transmisje liniami.');
+            setError(allowLinePractice
+              ? (ru ? 'Голосовой режим недоступен - пройди передачу по строкам.' : 'Tryb glosowy niedostepny - przejdz transmisje liniami.')
+              : (ru ? 'Голосовой экзамен сейчас недоступен.' : 'Egzamin glosowy jest teraz niedostepny.'));
             return;
           }
           if (!res.ok) {
@@ -123,7 +140,8 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
           }
           const r = data as VoiceResult;
           setResult(r);
-          finish(r);
+          if (r.score >= minimumScore) finish(r);
+          else setError(ru ? `Нужно минимум ${minimumScore}%. Повтори передачу.` : `Wymagane minimum ${minimumScore}%. Powtorz transmisje.`);
         } catch {
           setError(ru ? 'Сеть недоступна.' : 'Brak polaczenia.');
         } finally {
@@ -137,11 +155,18 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
       stopTimer.current = setTimeout(stopRecording, MAX_RECORD_MS);
     } catch {
       setVoiceUnavailable(true);
-      setError(ru ? 'Нет доступа к микрофону - пройди передачу по строкам.' : 'Brak dostepu do mikrofonu - przejdz transmisje liniami.');
+      setError(allowLinePractice
+        ? (ru ? 'Нет доступа к микрофону - пройди передачу по строкам.' : 'Brak dostepu do mikrofonu - przejdz transmisje liniami.')
+        : (ru ? 'Нет доступа к микрофону. Голосовой экзамен нельзя завершить.' : 'Brak dostepu do mikrofonu. Nie mozna ukonczyc egzaminu glosowego.'));
     } finally {
       starting.current = false;
     }
-  }, [kind, vesselIdx, ru, stopRecording, finish]);
+  }, [allowLinePractice, busy, kind, minimumScore, pob, positionIdx, vesselIdx, ru, stopRecording, finish]);
+
+  useImperativeHandle(ref, () => ({
+    startRecording: () => { void startRecording(); },
+    stopRecording,
+  }), [startRecording, stopRecording]);
 
   useEffect(() => () => {
     if (stopTimer.current) clearTimeout(stopTimer.current);
@@ -155,43 +180,36 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
         🎙️ {ru ? 'Передача голосом - канал открыт' : 'Transmisja glosem - kanal otwarty'}
       </div>
 
-      {/* the message to transmit; in exam mode the script is hidden and the
-          user transmits from memory (like at UKE) */}
-      <ol className="mb-3 space-y-0.5 font-mono text-xs leading-relaxed">
-        {lines.map((line, i) => (
-          <li key={i} style={{ color: i < linesRead ? 'var(--success)' : 'var(--text-secondary)', opacity: i < linesRead ? 1 : 0.85 }}>
-            {i < linesRead ? '✓ ' : '· '}{hideScript ? (ru ? `линия ${i + 1} - скажи сам` : `linia ${i + 1} - nadaj z pamieci`) : line}
-          </li>
-        ))}
-      </ol>
+      {!hideScript ? (
+        <ol className="mb-3 space-y-0.5 font-mono text-xs leading-relaxed">
+          {lines.map((line, i) => (
+            <li key={i} style={{ color: i < linesRead ? 'var(--success)' : 'var(--text-secondary)', opacity: i < linesRead ? 1 : 0.85 }}>
+              {i < linesRead ? '✓ ' : '· '}{line}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <p className="mb-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
+          {ru ? `Экзамен: сценарий скрыт. Удерживай физическую PTT и передай сообщение с памяти. Проходной балл ${minimumScore}%.` : `Egzamin: tekst jest ukryty. Trzymaj fizyczny PTT i nadaj komunikat z pamieci. Prog zaliczenia ${minimumScore}%.`}
+        </p>
+      )}
 
       <div className="flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          data-testid="voice-line"
-          onClick={readNext}
-          disabled={linesRead >= lines.length}
-          className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40"
-          style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
-        >
-          {ru ? 'PTT: следующая строка' : 'PTT: kolejna linia'} ({linesRead}/{lines.length})
-        </button>
-
-        {!voiceUnavailable && (
+        {allowLinePractice && (
           <button
             type="button"
-            data-testid="voice-record"
-            onPointerDown={startRecording}
-            onPointerUp={stopRecording}
-            onPointerLeave={stopRecording}
-            onPointerCancel={stopRecording}
-            disabled={busy || result !== null}
-            className="min-h-[44px] select-none rounded-xl px-4 text-sm font-bold text-white transition active:scale-95 disabled:opacity-40"
-            style={{ background: recording ? 'linear-gradient(180deg,#e84c3d,#a81f14)' : 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: recording ? '#fff' : '#04222e', touchAction: 'none' }}
+            data-testid="voice-line"
+            onClick={readNext}
+            disabled={linesRead >= lines.length}
+            className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40"
+            style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           >
-            {busy ? (ru ? 'Оцениваю...' : 'Oceniam...') : recording ? (ru ? '● ЗАПИСЬ - отпусти чтобы отправить' : '● NAGRYWAM - pusc, aby wyslac') : (ru ? '🎤 Скажи это вслух (держи)' : '🎤 Powiedz to na glos (trzymaj)')}
+            {ru ? 'Репетиция: следующая строка' : 'Proba: kolejna linia'} ({linesRead}/{lines.length})
           </button>
         )}
+        <div data-testid="voice-record-status" className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: recording ? '#a81f14' : 'var(--bg-secondary)', color: recording ? '#fff' : 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
+          {busy ? (ru ? 'Оцениваю передачу...' : 'Oceniam transmisje...') : recording ? (ru ? 'ЗАПИСЬ: говори и отпусти PTT' : 'NAGRYWANIE: mow i pusc PTT') : voiceUnavailable ? (ru ? 'Голосовой режим недоступен' : 'Tryb glosowy niedostepny') : (ru ? 'Удерживай PTT на рации' : 'Trzymaj PTT na radiu')}
+        </div>
       </div>
 
       {error && <div className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{error}</div>}
@@ -231,4 +249,6 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
       )}
     </div>
   );
-}
+});
+
+export default VoicePtt;

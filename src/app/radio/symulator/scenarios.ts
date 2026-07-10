@@ -215,7 +215,7 @@ const mobScenario: Scenario = {
     stepPower(),
     {
       id: 'otherdsc',
-      todo: { pl: 'Otworz [OTHER DSC] (albo Menu > Other DSC)', ru: 'Открой [OTHER DSC] (или Menu > Other DSC)' },
+      todo: { pl: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call', ru: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call' },
       why: {
         pl: 'PAN-PAN to NIE czerwony przycisk - ten jest tylko dla DISTRESS. Wywolania pilnosci i bezpieczenstwa sklada sie z menu Other DSC jako "All Ships".',
         ru: 'PAN-PAN - это НЕ красная кнопка, она только для DISTRESS. Вызовы срочности и безопасности собираются в меню Other DSC как «All Ships».',
@@ -286,7 +286,7 @@ const engineScenario: Scenario = {
     stepPower(),
     {
       id: 'otherdsc',
-      todo: { pl: 'Otworz [OTHER DSC]', ru: 'Открой [OTHER DSC]' },
+      todo: { pl: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call', ru: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call' },
       why: {
         pl: 'Awaria bez zagrozenia zycia = pilnosc, nie distress. Skladamy wywolanie z menu DSC, nie czerwonym klawiszem.',
         ru: 'Поломка без угрозы жизни = срочность, не бедствие. Вызов собирается в меню DSC, не красной кнопкой.',
@@ -351,7 +351,7 @@ const securiteScenario: Scenario = {
     stepPower(),
     {
       id: 'safety-sent',
-      todo: { pl: '[OTHER DSC]: All Ships / Safety -> Send', ru: '[OTHER DSC]: All Ships / Safety -> Send' },
+      todo: { pl: 'M330: [OTHER DSC]. M323: DSC Calls > All Ships. Ustaw Safety -> Send', ru: 'M330: [OTHER DSC]. M323: DSC Calls > All Ships. Выбери Safety -> Send' },
       why: {
         pl: 'Zapowiedz Safety na kanale 70 uprzedza wszystkich, ze zaraz na 16 poleci komunikat o bezpieczenstwie. Jak przy pilnosci - bez potwierdzenia DSC.',
         ru: 'Объявление Safety на 70 канале предупреждает всех, что сейчас на 16 будет сообщение о безопасности. Как и срочность - без подтверждения по DSC.',
@@ -502,10 +502,10 @@ const cancelScenario: Scenario = {
     },
     {
       id: 'finish',
-      todo: { pl: 'Zakoncz procedure: [FINISH], potem [STBY]', ru: 'Заверши процедуру: [FINISH], затем [STBY]' },
+      todo: { pl: 'M330: [FINISH], potem [STBY]. M323: [FINISH]', ru: 'M330: [FINISH], затем [STBY]. M323: [FINISH]' },
       why: {
-        pl: 'Jak w instrukcji ICOM: FINISH zamyka czesc glosowa, a STBY konczy cala procedure Distress Cancel i wraca do normalnej pracy. Zostan na nasluchu 16 - stacja brzegowa moze miec pytania.',
-        ru: 'Как в инструкции ICOM: FINISH закрывает голосовую часть, а STBY завершает всю процедуру Distress Cancel и возвращает к обычной работе. Останься на вахте 16 - у береговой станции могут быть вопросы.',
+        pl: 'Na M330 FINISH zamyka czesc glosowa, a STBY konczy cala procedure. Na M323 FINISH od razu wraca do pracy. Zostan na nasluchu 16.',
+        ru: 'На M330 FINISH закрывает голосовую часть, а STBY завершает процедуру. На M323 FINISH сразу возвращает к работе. Останься на вахте 16.',
       },
       // Durable: reaching standby with the distress mode closed counts, even
       // if the user pressed [FINISH] earlier than scripted.
@@ -527,4 +527,3 @@ export const SCENARIOS: Scenario[] = [
   radioCheckScenario,
   cancelScenario,
 ];
-

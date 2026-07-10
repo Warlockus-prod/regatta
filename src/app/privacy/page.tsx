@@ -25,8 +25,8 @@ export default function PrivacyPage() {
             { es: 'Politica de privacidad', fr: 'Politique de confidentialite', de: 'Datenschutzerklaerung', it: 'Politica sulla privacy' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
-          {tp('Обновлено: 2026-05-21', 'Updated: 2026-05-21', 'Aktualizacja: 2026-05-21',
-            { es: 'Actualizado: 2026-05-21', fr: 'Mis a jour : 2026-05-21', de: 'Aktualisiert: 2026-05-21', it: 'Aggiornato: 2026-05-21' })}
+          {tp('Обновлено: 2026-07-10', 'Updated: 2026-07-10', 'Aktualizacja: 2026-07-10',
+            { es: 'Actualizado: 2026-07-10', fr: 'Mis a jour : 2026-07-10', de: 'Aktualisiert: 2026-07-10', it: 'Aggiornato: 2026-07-10' })}
         </p>
       </div>
 
@@ -120,6 +120,19 @@ export default function PrivacyPage() {
                 },
               )}
             </li>
+            <li>
+              {tp(
+                'Запись голоса только по твоей команде в голосовом режиме тренажера рации. Аудио отправляется на наш сервер для распознавания и оценки, не сохраняется в нашей базе и удаляется после обработки запроса.',
+                'A voice recording only when you start it in the radio trainer voice mode. Audio is sent to our server for transcription and grading, is not stored in our database, and is discarded after the request is processed.',
+                'Nagranie glosu tylko po Twoim uruchomieniu w trybie glosowym trenera radia. Audio jest wysylane na nasz serwer do transkrypcji i oceny, nie jest zapisywane w naszej bazie i jest usuwane po obsludze zadania.',
+                {
+                  es: 'Una grabacion de voz solo cuando la inicias en el modo de voz del simulador de radio. El audio se envia a nuestro servidor para transcripcion y evaluacion, no se guarda en nuestra base y se descarta tras procesar la solicitud.',
+                  fr: 'Un enregistrement vocal uniquement lorsque tu le lances dans le mode vocal du simulateur radio. L audio est envoye a notre serveur pour transcription et evaluation, n est pas stocke dans notre base et est supprime apres traitement.',
+                  de: 'Eine Sprachaufnahme nur, wenn du sie im Sprachmodus des Funktrainers startest. Das Audio wird zur Transkription und Bewertung an unseren Server gesendet, nicht in unserer Datenbank gespeichert und nach der Anfrage verworfen.',
+                  it: 'Una registrazione vocale solo quando la avvii nella modalita vocale del simulatore radio. L audio viene inviato al nostro server per trascrizione e valutazione, non viene salvato nel nostro database e viene eliminato dopo la richiesta.',
+                },
+              )}
+            </li>
           </ul>
         </Section>
 
@@ -134,8 +147,8 @@ export default function PrivacyPage() {
               { es: 'Geolocalizacion precisa.', fr: 'Geolocalisation precise.', de: 'Genaue Standortdaten.', it: 'Geolocalizzazione precisa.' })}</li>
             <li>{tp('Контент с других приложений или сайтов (мы не отслеживаем тебя вне regatta).', 'Content from other apps or websites (we do not track you outside regatta).', 'Tresci z innych aplikacji ani stron (nie sledzimy cie poza regatta).',
               { es: 'Contenido de otras aplicaciones o sitios web (no te rastreamos fuera de regatta).', fr: 'Contenu provenant d\'autres applis ou sites (nous ne te suivons pas hors de regatta).', de: 'Inhalte aus anderen Apps oder Webseiten (wir verfolgen dich nicht ausserhalb von regatta).', it: 'Contenuti da altre app o siti web (non ti tracciamo fuori da regatta).' })}</li>
-            <li>{tp('Биометрию, контакты, фото, микрофон.', 'Biometrics, contacts, photos, microphone.', 'Biometria, kontakty, zdjecia, mikrofon.',
-              { es: 'Biometria, contactos, fotos, microfono.', fr: 'Donnees biometriques, contacts, photos, microphone.', de: 'Biometrie, Kontakte, Fotos, Mikrofon.', it: 'Biometria, contatti, foto, microfono.' })}</li>
+            <li>{tp('Биометрию, контакты и фото. Доступ к микрофону запрашивается только для выбранного тобой голосового упражнения.', 'Biometrics, contacts, or photos. Microphone access is requested only for a voice exercise you choose to start.', 'Biometrii, kontaktow ani zdjec. Dostep do mikrofonu jest wymagany tylko dla cwiczenia glosowego, ktore sam uruchomisz.',
+              { es: 'Biometria, contactos ni fotos. El acceso al microfono se solicita solo para un ejercicio de voz que decidas iniciar.', fr: 'Donnees biometriques, contacts ou photos. L acces au microphone est demande uniquement pour un exercice vocal que tu choisis de lancer.', de: 'Biometrie, Kontakte oder Fotos. Der Mikrofonzugriff wird nur fuer eine von dir gestartete Sprachuebung angefordert.', it: 'Biometria, contatti o foto. L accesso al microfono viene richiesto solo per un esercizio vocale che scegli di avviare.' })}</li>
           </ul>
         </Section>
 
@@ -167,6 +180,19 @@ export default function PrivacyPage() {
                   fr: 'lorsque tu demandes l\'analyse IA, ton log de course (sans donnees personnelles) est envoye a Anthropic. Anthropic n\'utilise pas nos requetes pour entrainer ses modeles.',
                   de: 'wenn du die KI-Auswertung anforderst, wird dein Rennlog (ohne personenbezogene Daten) an Anthropic gesendet. Anthropic nutzt unsere Anfragen nicht zum Trainieren der Modelle.',
                   it: 'quando richiedi l\'analisi AI, il tuo log di gara (senza dati personali) viene inviato ad Anthropic. Anthropic non utilizza le nostre richieste per addestrare i modelli.',
+                },
+              )}
+            </li>
+            <li>
+              <strong>OpenAI (Radio voice trainer)</strong>: {tp(
+                'когда ты отправляешь голосовое упражнение, аудио передается через наш сервер в OpenAI для распознавания речи. Затем текст оценивается на нашем сервере по учебному чек-листу.',
+                'when you submit a radio voice exercise, the audio is relayed through our server to OpenAI for speech transcription. The transcript is then graded on our server against the training checklist.',
+                'gdy wysylasz cwiczenie glosowe, audio jest przekazywane przez nasz serwer do OpenAI w celu transkrypcji mowy. Tekst jest nastepnie oceniany na naszym serwerze wedlug listy kontrolnej cwiczenia.',
+                {
+                  es: 'cuando envias un ejercicio de voz, el audio se transmite a traves de nuestro servidor a OpenAI para transcribir el habla. El texto se evalua despues en nuestro servidor con la lista de control del ejercicio.',
+                  fr: 'lorsque tu envoies un exercice vocal, l audio passe par notre serveur vers OpenAI pour la transcription. Le texte est ensuite evalue sur notre serveur selon la liste de controle de l exercice.',
+                  de: 'wenn du eine Sprachuebung sendest, wird das Audio ueber unseren Server zur Spracherkennung an OpenAI weitergeleitet. Der Text wird danach auf unserem Server anhand der Uebungscheckliste bewertet.',
+                  it: 'quando invii un esercizio vocale, l audio viene inoltrato tramite il nostro server a OpenAI per la trascrizione. Il testo viene poi valutato sul nostro server in base alla checklist dell esercizio.',
                 },
               )}
             </li>
