@@ -46,7 +46,7 @@ interface SessionResult {
 }
 
 function TrainerInner() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const { explLang, examBase } = useSternikPrefs();
   // The pool the whole trainer works from, honoring the selected base.
   const bank = filterByBase(STERNIK_BANK, examBase);
@@ -346,9 +346,11 @@ function TrainerInner() {
                   <span className="block truncate text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                     {cat.pl}
                   </span>
-                  <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {cat.ru}
-                  </span>
+                  {lang === 'ru' && (
+                    <span className="block text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {cat.ru}
+                    </span>
+                  )}
                 </span>
                 <span
                   className="rounded-full px-2 py-0.5 text-xs"
@@ -542,7 +544,7 @@ function TrainerInner() {
           <span className="rounded-full px-2 py-0.5" style={{ background: 'var(--hover-bg)', color: cat.color }}>
             {cat.icon} {cat.pl}
           </span>
-          <span style={{ color: 'var(--text-muted)' }}>{cat.ru}</span>
+          {lang === 'ru' && <span style={{ color: 'var(--text-muted)' }}>{cat.ru}</span>}
         </div>
         <div className="mb-4 text-lg font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
           {current.q}

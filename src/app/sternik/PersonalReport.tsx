@@ -36,7 +36,7 @@ function Bar({ pct, color }: { pct: number; color: string }) {
 }
 
 function CatRow({ c, onAskAI }: { c: CatAnalysis; onAskAI: (catId: string) => void }) {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const pct = Math.round(c.accuracy * 100);
   return (
     <div className="rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
@@ -48,7 +48,7 @@ function CatRow({ c, onAskAI }: { c: CatAnalysis; onAskAI: (catId: string) => vo
           {pct}%
         </span>
       </div>
-      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{c.cat.ru}</div>
+      {lang === 'ru' && <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{c.cat.ru}</div>}
       <Bar pct={pct} color={LEVEL_COLOR[c.level]} />
       <div className="mt-2 flex flex-wrap gap-1.5">
         <Link

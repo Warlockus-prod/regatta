@@ -3,20 +3,27 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
+import { CYRILLIC_RE, usePlOnly } from '../plOnly';
 import {
+  BridgeClearanceDiagram,
   BoatSideDiagram,
   BoatTopDiagram,
+  CableFerryDiagram,
   CardinalClockDiagram,
   CrossingDiagram,
+  DredgerPassDiagram,
+  FuelSystemDiagram,
   HeadOnDiagram,
   LateralMarksDiagram,
   LightSectorsDiagram,
+  LockDiagram,
   MobDiagram,
   NabieznikDiagram,
   OpenWaterDiagram,
   OvertakingDiagram,
   PortEntryDiagram,
   PropWalkDiagram,
+  RiverBendDiagram,
   RiverDiagram,
 } from './diagrams';
 import {
@@ -26,6 +33,7 @@ import {
   CloudsGallery,
   FrontsPressureGallery,
   IalaGallery,
+  InlandLightSignalsGallery,
   InlandSignsGallery,
 } from './SignsWeather';
 import TheorySearch from './TheorySearch';
@@ -54,22 +62,24 @@ const SECTIONS = [
 ];
 
 function Section({ id, num, pl, ru, children }: { id: string; num: number; pl: string; ru: string; children: ReactNode }) {
+  const { lang } = useI18n();
   return (
     <section id={id} className="mb-10 scroll-mt-24">
       <h2 className="mb-1 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
         {num}. {pl}
       </h2>
-      <div className="mb-3 text-sm" style={{ color: 'var(--text-muted)' }}>{ru}</div>
+      {lang === 'ru' && <div className="mb-3 text-sm" style={{ color: 'var(--text-muted)' }}>{ru}</div>}
       {children}
     </section>
   );
 }
 
 function Card({ children, title }: { children: ReactNode; title?: string }) {
+  const plOnly = usePlOnly();
   return (
     <div className="mb-4 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
       {title && (
-        <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{title}</div>
+        <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{plOnly(title)}</div>
       )}
       {children}
     </div>
@@ -88,28 +98,39 @@ function Tip({ children }: { children: ReactNode }) {
 }
 
 function Fact({ q, a, ru }: { q: string; a: string; ru: string }) {
+  // Russian commentary is shown only on the Russian site version (language
+  // policy: the Polish site stays fully Polish).
+  const { lang } = useI18n();
   return (
     <div className="border-b py-2 last:border-b-0" style={{ borderColor: 'var(--border-subtle)' }}>
       <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{q}</div>
       <div className="text-sm" style={{ color: 'var(--success)' }}>✓ {a}</div>
-      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{ru}</div>
+      {lang === 'ru' && <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{ru}</div>}
     </div>
   );
 }
 
 function Table({ head, rows }: { head: string[]; rows: string[][] }) {
+  // Language policy: on non-RU site versions drop dictionary columns whose
+  // header is Russian (e.g. "По-русски") together with their cells, and
+  // strip "PL / RU" bilingual tails inside the remaining cells.
+  const { lang } = useI18n();
+  const plOnly = usePlOnly();
+  const keep = head.map((h) => (lang === 'ru' ? true : !CYRILLIC_RE.test(h)));
+  const fHead = head.filter((_, i) => keep[i]);
+  const fRows = rows.map((r) => r.filter((_, i) => keep[i]).map((c) => plOnly(c)));
   return (
     <div className="mb-4 overflow-x-auto rounded-xl" style={{ border: '1px solid var(--border-subtle)' }}>
       <table className="w-full text-sm">
         <thead>
           <tr style={{ background: 'var(--bg-secondary)' }}>
-            {head.map((h) => (
+            {fHead.map((h) => (
               <th key={h} className="px-3 py-2 text-left font-semibold" style={{ color: 'var(--accent-cyan)' }}>{h}</th>
             ))}
           </tr>
         </thead>
         <tbody>
-          {rows.map((r, i) => (
+          {fRows.map((r, i) => (
             <tr key={i} style={{ background: i % 2 ? 'var(--bg-secondary)' : 'transparent' }}>
               {r.map((c, j) => (
                 <td key={j} className="px-3 py-2 align-top" style={{ color: j === 0 ? 'var(--text-primary)' : 'var(--text-secondary)' }}>
@@ -125,11 +146,13 @@ function Table({ head, rows }: { head: string[]; rows: string[][] }) {
 }
 
 function DiagramCaption({ children }: { children: ReactNode }) {
-  return <div className="mt-1 text-center text-xs" style={{ color: 'var(--text-muted)' }}>{children}</div>;
+  const plOnly = usePlOnly();
+  const content = typeof children === 'string' ? plOnly(children) : children;
+  return <div className="mt-1 text-center text-xs" style={{ color: 'var(--text-muted)' }}>{content}</div>;
 }
 
 export default function SternikTheoryPage() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
 
   return (
     <main id="sternik-theory">
@@ -173,7 +196,7 @@ export default function SternikTheoryPage() {
         {SECTIONS.map((s) => (
           <a key={s.id} href={`#${s.id}`} className="flex min-h-[40px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
             <span style={{ color: 'var(--accent-cyan)' }}>{s.num}.</span>&nbsp;{s.pl}{' '}
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>&nbsp;· {s.ru}</span>
+            {lang === 'ru' && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>&nbsp;· {s.ru}</span>}
           </a>
         ))}
       </nav>
@@ -194,9 +217,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          По-русски: патент даёт право водить моторные лодки на внутренних водах без лимита мощности (до 16 лет - до 60 кВт),
-          на море - корпус до 12 м, до 2 миль от берега, днём. Без патента можно до 10 кВт, а также хаусботы до 75 кВт
-          (корпус до 13 м, скорость конструктивно до 15 км/ч). Гидроцикл - только с патентом. Буксировка лыжника - отдельная лицензия.
+          {tp(
+            'Патент даёт право водить моторные лодки на внутренних водах без лимита мощности (до 16 лет - до 60 кВт), на море - корпус до 12 м, до 2 миль от берега, днём. Без патента можно до 10 кВт, а также хаусботы до 75 кВт (корпус до 13 м, скорость конструктивно до 15 км/ч). Гидроцикл - только с патентом. Буксировка лыжника - отдельная лицензия.',
+            'The patent lets you drive motorboats on inland waters with no power limit (under 16 - up to 60 kW); at sea - hull up to 12 m, up to 2 NM offshore, daytime. Without a patent: up to 10 kW, plus houseboats up to 75 kW (hull up to 13 m, speed limited by design to 15 km/h). Jet ski - patent only. Towing a water skier - separate licence.',
+            'Patent uprawnia do prowadzenia lodzi motorowych na wodach srodladowych bez limitu mocy (do 16 lat - do 60 kW); na morzu - kadlub do 12 m, do 2 Mm od brzegu, w dzien. Bez patentu: do 10 kW oraz houseboaty do 75 kW (kadlub do 13 m, predkosc konstrukcyjnie do 15 km/h). Skuter wodny - tylko z patentem. Holowanie narciarza - osobna licencja.',
+          )}
         </Tip>
         <Card title="Na pokladzie / Что на борту и по закону">
           <Fact q="Dokumenty na pokladzie" a="patent, dokument rejestracyjny (jesli jednostka podlega rejestracji), dowod tozsamosci" ru="Держи на борту: патент, регистрационный документ (если судно подлежит регистрации) и удостоверение личности." />
@@ -211,9 +236,11 @@ export default function SternikTheoryPage() {
       {/* 2. PRZEPISY -------------------------------------------------------- */}
       <Section {...SECTIONS[1]}>
         <Tip>
-          Логика приоритета: кто маневреннее - тот уступает. Моторная лодка уступает парусным, вёсельным, рыболовным за ловом
-          и неманевроспособным. Малые суда (до 20 м) уступают большим коммерческим. На встречных курсах моторные расходятся
-          левыми бортами (оба отворачивают вправо). При пересечении курсов уступает тот, у кого встречный СПРАВА.
+          {tp(
+            'Логика приоритета: кто маневреннее - тот уступает. Моторная лодка уступает парусным, вёсельным, рыболовным за ловом и неманевроспособным. Малые суда (до 20 м) уступают большим коммерческим. На встречных курсах моторные расходятся левыми бортами (оба отворачивают вправо). При пересечении курсов уступает тот, у кого встречный СПРАВА.',
+            'Priority logic: the more manoeuvrable gives way. A motorboat gives way to sailing, rowing, fishing (engaged in fishing) and not-under-command vessels. Small craft (under 20 m) give way to large commercial ships. Head-on, power boats pass port to port (both turn right). Crossing: the one who sees the other to STARBOARD gives way.',
+            'Logika pierwszenstwa: ustepuje ten, kto latwiej manewruje. Motorowka ustepuje zaglowkom, wioslowym, rybackim podczas polowu i jednostkom bez zdolnosci manewrowej. Male statki (do 20 m) ustepuja duzym handlowym. Na kursach przeciwnych motorowe mijaja sie lewymi burtami (oba w prawo). Przy przecinaniu kursow ustepuje ten, kto ma drugiego z PRAWEJ.',
+          )}
         </Tip>
         <div className="mb-2 grid gap-3 sm:grid-cols-3">
           <Card><CrossingDiagram /></Card>
@@ -251,9 +278,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          Длительности: короткий - около 1 с; длинный - на внутренних водах около 4 с, на море (COLREG) 4-6 с.
-          В тестовом банке правильный вариант «4-6 sekund». Серия «опасность» на внутренних водах - минимум 6 очень
-          коротких (по 0,25 с).
+          {tp(
+            'Длительности: короткий - около 1 с; длинный - на внутренних водах около 4 с, на море (COLREG) 4-6 с. В тестовом банке правильный вариант «4-6 sekund». Серия «опасность» на внутренних водах - минимум 6 очень коротких (по 0,25 с).',
+            'Durations: short blast about 1 s; prolonged - on inland waters about 4 s, at sea (COLREG) 4-6 s. In the question bank the correct option is "4-6 sekund". The inland danger series is at least 6 very short blasts (0.25 s each).',
+            'Dlugosci: krotki - okolo 1 s; dlugi - na srodladziu okolo 4 s, na morzu (COLREG) 4-6 s. W bazie pytan poprawna odpowiedz to "4-6 sekund". Seria "niebezpieczenstwo" na srodladziu - minimum 6 bardzo krotkich (po 0,25 s).',
+          )}
         </Tip>
         <Card>
           <LightSectorsDiagram />
@@ -282,12 +311,19 @@ export default function SternikTheoryPage() {
           <DiagramCaption>Znaki boczne (IALA region A): czerwony walec po LEWEJ, zielony stozek po PRAWEJ - wchodzac od morza</DiagramCaption>
         </Card>
         <Tip>
-          В Европе (регион A) при входе с моря красный - СЛЕВА, зелёный - СПРАВА. В США (регион B) наоборот («Red Right
-          Returning») - любимая ловушка теста. «Лево/право» считается по направлению знакования (с моря вверх по реке).
+          {tp(
+            'В Европе (регион A) при входе с моря красный - СЛЕВА, зелёный - СПРАВА. В США (регион B) наоборот («Red Right Returning») - любимая ловушка теста. «Лево/право» считается по направлению знакования (с моря вверх по реке).',
+            'In Europe (region A), entering from sea: red to PORT, green to STARBOARD. In the USA (region B) it is reversed ("Red Right Returning") - a favourite exam trap. Left/right follows the buoyage direction (from sea up the river).',
+            'W Europie (region A) przy wejsciu od morza czerwony - z LEWEJ, zielony - z PRAWEJ. W USA (region B) odwrotnie ("Red Right Returning") - ulubiona pulapka testu. "Lewa/prawa" liczy sie wzgledem kierunku oznakowania (od morza w gore rzeki).',
+          )}
         </Tip>
         <Card>
           <CardinalClockDiagram />
-          <DiagramCaption>«Часы» кардинальных знаков: обходи со стороны названия; вспышки = час (E=3, S=6+длинная, W=9, N=непрерывно)</DiagramCaption>
+          <DiagramCaption>{tp(
+            '«Часы» кардинальных знаков: обходи со стороны названия; вспышки = час (E=3, S=6+длинная, W=9, N=непрерывно)',
+            'Cardinal "clock": pass on the side of the name; flashes = clock hour (E=3, S=6+long, W=9, N=continuous)',
+            '"Zegar" znakow kardynalnych: mijaj od strony nazwy; blyski = godzina (E=3, S=6+dlugi, W=9, N-ciagle)',
+          )}</DiagramCaption>
         </Card>
         <Table
           head={['Znak', 'Topmark', 'Swiatlo (biale)', 'Mijaj od']}
@@ -299,8 +335,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          Мнемоника: конусы «смотрят» на чёрную полосу: N - чёрный сверху (конусы вверх), S - снизу (вниз), E - сверху и снизу
-          («яйцо»), W - в середине («бокал», W = wine). Юг получил дополнительную длинную вспышку, чтобы в тумане не спутать с W.
+          {tp(
+            'Мнемоника: конусы «смотрят» на чёрную полосу: N - чёрный сверху (конусы вверх), S - снизу (вниз), E - сверху и снизу («яйцо»), W - в середине («бокал», W = wine). Юг получил дополнительную длинную вспышку, чтобы в тумане не спутать с W.',
+            'Mnemonic: the cones "point at" the black band: N - black on top (cones up), S - bottom (down), E - top and bottom ("egg"), W - middle ("wineglass", W = wine). South got an extra long flash so it is not confused with W in fog.',
+            'Mnemotechnika: stozki "patrza" na czarny pas: N - czarny u gory (stozki w gore), S - na dole (w dol), E - u gory i u dolu ("jajko"), W - w srodku ("kieliszek", W = wino). Poludnie ma dodatkowy dlugi blysk, zeby we mgle nie mylic z W.',
+          )}
         </Tip>
         <Card title="Inne znaki / Другие знаки">
           <Fact q="Znak odosobnionego niebezpieczenstwa" a="czarno-czerwony, 2 czarne kule, swiatlo Fl(2)" ru="Отдельная опасность: обходить с любой стороны на расстоянии." />
@@ -336,6 +375,18 @@ export default function SternikTheoryPage() {
             'Czerwona obwodka = zakaz/nakaz/ograniczenie; niebieskie tlo = informacja.',
           )}
         </DiagramCaption>
+
+        <h3 className="mb-2 mt-6 text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          🚥 {tp('Световые сигналы шлюза и препятствий', 'Lock and obstruction light signals', 'Swiatla sluz i przeszkod')}
+        </h3>
+        <InlandLightSignalsGallery />
+        <DiagramCaption>
+          {tp(
+            'В шлюз входи только на зелёный. У земснаряда или препятствия проходи со стороны двух зелёных огней/ромбов; красная сторона закрыта.',
+            'Enter a lock only on green. At a dredger or obstruction, pass on the side with two green lights/diamonds; the red side is closed.',
+            'Do sluzy wchodz tylko na zielone. Przy poglebiarce lub przeszkodzie mijaj strona dwoch zielonych swiatel/rombow; czerwona strona jest zamknieta.',
+          )}
+        </DiagramCaption>
       </Section>
 
       {/* 5. NAWIGACJA W PRAKTYCE --------------------------------------------- */}
@@ -343,11 +394,31 @@ export default function SternikTheoryPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Card>
             <NabieznikDiagram />
-            <DiagramCaption>Nabieznik (створ): wyzszy znak nad nizszym = jestes na osi</DiagramCaption>
+            <DiagramCaption>{tp(
+              'Nabieznik (створ): wyzszy znak nad nizszym = jestes na osi',
+              'Leading marks: higher mark above the lower = you are on the axis',
+              'Nabieznik: wyzszy znak nad nizszym = jestes na osi',
+            )}</DiagramCaption>
           </Card>
           <Card>
             <RiverDiagram />
             <DiagramCaption>Rzeka: trzymaj prawej strony; z pradem = pierwszenstwo</DiagramCaption>
+          </Card>
+          <Card>
+            <RiverBendDiagram />
+            <DiagramCaption>Zakret: glebia i prad przy brzegu wkleslym, plycizna przy wypuklym</DiagramCaption>
+          </Card>
+          <Card>
+            <BridgeClearanceDiagram />
+            <DiagramCaption>Most: przed przejsciem sprawdz wysokosc, szerokosc i aktualny stan wody</DiagramCaption>
+          </Card>
+          <Card>
+            <DredgerPassDiagram />
+            <DiagramCaption>Poglebiarka/przeszkoda: mijaj po stronie dwoch zielonych swiatel albo rombow</DiagramCaption>
+          </Card>
+          <Card>
+            <CableFerryDiagram />
+            <DiagramCaption>Prom linowy: przepusc prom, nie przechodz nad lina pod woda</DiagramCaption>
           </Card>
           <Card>
             <OpenWaterDiagram />
@@ -359,17 +430,21 @@ export default function SternikTheoryPage() {
           </Card>
         </div>
         <Tip>
-          Частые ошибки: 1) путают регион A и B; 2) считают «лево/право» по своему курсу, а не по направлению знакования;
-          3) срезают над мелью у кардинального знака - обходи со стороны его названия; 4) на повороте реки уходят на левую
-          сторону - держись правой кромки фарватера.
+          {tp(
+            'Частые ошибки: 1) путают регион A и B; 2) считают «лево/право» по своему курсу, а не по направлению знакования; 3) срезают над мелью у кардинального знака - обходи со стороны его названия; 4) на повороте реки уходят на левую сторону - держись правой кромки фарватера; 5) у препятствия идут на красную сторону вместо двух зелёных; 6) у канатного парома забывают про трос под водой.',
+            'Common mistakes: 1) mixing region A and B; 2) counting left/right by your own course instead of the buoyage direction; 3) cutting over the shoal at a cardinal mark - pass on the side of its name; 4) drifting left on a river bend - keep to the right edge of the fairway; 5) passing an obstruction on the red side instead of the two-green side; 6) forgetting the underwater rope at a cable ferry.',
+            'Czeste bledy: 1) mylenie regionu A i B; 2) liczenie "lewa/prawa" wzgledem wlasnego kursu, a nie kierunku oznakowania; 3) sciecie nad mielizna przy znaku kardynalnym - mijaj od strony jego nazwy; 4) na zakrecie rzeki schodzenie na lewa strone - trzymaj sie prawej krawedzi szlaku; 5) mijanie przeszkody po czerwonej stronie zamiast dwoch zielonych; 6) zapominanie o linie pod woda przy promie linowym.',
+          )}
         </Tip>
         <Card title="Sluzowanie krok po kroku / Шлюзование по шагам">
-          <ol className="list-decimal space-y-1 pl-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            <li>Подойди к шлюзу медленно, жди перед воротами (czekaj przed sluza).</li>
-            <li>Входи только на зелёный сигнал (zielone swiatlo). Красный - стоп.</li>
-            <li>В камере пришвартуйся к стенке (cumowanie), заглуши двигатель, надень жилет.</li>
-            <li>При изменении уровня воды подбирай/потравливай концы (trzymaj cumy), не крепи наглухо.</li>
-            <li>Якорь в шлюзе запрещён. Выходи по сигналу, по очереди прибытия (уступая уполномоченным).</li>
+          <LockDiagram />
+          <DiagramCaption>Wejscie tylko na zielone; w komorze cumy trzymaj luzno, bez kotwicy</DiagramCaption>
+          <ol className="mt-3 list-decimal space-y-1 pl-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            <li>{tp('Подойди к шлюзу медленно, жди перед воротами (czekaj przed sluza).', 'Approach the lock slowly, wait before the gates.', 'Podplyn do sluzy powoli, czekaj przed wrotami.')}</li>
+            <li>{tp('Входи только на зелёный сигнал (zielone swiatlo). Красный - стоп.', 'Enter only on the green light. Red = stop.', 'Wjezdzaj tylko na zielone swiatlo. Czerwone - stop.')}</li>
+            <li>{tp('В камере пришвартуйся к стенке (cumowanie), заглуши двигатель, надень жилет.', 'In the chamber moor to the wall, stop the engine, put on a lifejacket.', 'W komorze zacumuj do sciany, zgas silnik, zaloz kamizelke.')}</li>
+            <li>{tp('При изменении уровня воды подбирай/потравливай концы (trzymaj cumy), не крепи наглухо.', 'As the water level changes, tend the lines - never make them fast.', 'Przy zmianie poziomu wody obsluguj cumy - nie mocuj na glucho.')}</li>
+            <li>{tp('Якорь в шлюзе запрещён. Выходи по сигналу, по очереди прибытия (уступая уполномоченным).', 'Anchoring in the lock is forbidden. Leave on the signal, in order of arrival (privileged vessels first).', 'Kotwiczenie w sluzie zabronione. Wychodz na sygnal, wedlug kolejnosci przybycia (uprzywilejowani pierwsi).')}</li>
           </ol>
         </Card>
       </Section>
@@ -379,7 +454,11 @@ export default function SternikTheoryPage() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Card>
             <BoatTopDiagram />
-            <DiagramCaption>Widok z gory: bakburta = лево (красный), sterburta = право (зелёный)</DiagramCaption>
+            <DiagramCaption>{tp(
+              'Widok z gory: bakburta = лево (красный), sterburta = право (зелёный)',
+              'Top view: bakburta = port (red), sterburta = starboard (green)',
+              'Widok z gory: bakburta = lewa (czerwony), sterburta = prawa (zielony)',
+            )}</DiagramCaption>
           </Card>
           <Card>
             <BoatSideDiagram />
@@ -409,13 +488,20 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          Пары-ловушки, которые любит экзамен: koja (койка) ≠ keja (причал); zeza (льяло) ≠ stewa (штевень);
-          denniki (киль-шпангоуты) ≠ pokladniki (палуба-шпангоуты). Выучи именно эти пары.
+          {tp(
+            'Пары-ловушки, которые любит экзамен: koja (койка) ≠ keja (причал); zeza (льяло) ≠ stewa (штевень); denniki (киль-шпангоуты) ≠ pokladniki (палуба-шпангоуты). Выучи именно эти пары.',
+            'Trap pairs the exam loves: koja (bunk) vs keja (quay); zeza (bilge) vs stewa (stem); denniki (floor frames) vs pokladniki (deck beams). Learn exactly these pairs.',
+            'Pary-pulapki, ktore lubi egzamin: koja (miejsce do spania) vs keja (nabrzeze); zeza (najnizsze miejsce w kadlubie) vs stewa (belka dziobowa/rufowa); denniki (wzmocnienia dna) vs pokladniki (belki pokladu). Naucz sie wlasnie tych par.',
+          )}
         </Tip>
       </Section>
 
       {/* 7. SILNIKI ------------------------------------------------------------ */}
       <Section {...SECTIONS[6]}>
+        <Card>
+          <FuelSystemDiagram />
+          <DiagramCaption>Zbiornik przenosny: odpowietrznik odkrecony, gruszka napompowana, zawor otwarty; potem luz + linka i start</DiagramCaption>
+        </Card>
         <Card title="Fakty / Факты">
           <Fact q="1 kW = ?" a="1,36 KM (konia mechanicznego)" ru="1 кВт = 1,36 л.с.; обратно 1 л.с. = 0,735 кВт." />
           <Fact q="Four stroke / two stroke" a="czterosuwowy (czysta benzyna) / dwusuwowy (mieszanka)" ru="4-тактный - чистый бензин; 2-тактный - смесь бензина с маслом, нет масляного поддона (miski olejowej)." />
@@ -460,8 +546,11 @@ export default function SternikTheoryPage() {
       {/* 9. LOCJA ---------------------------------------------------------------- */}
       <Section {...SECTIONS[8]}>
         <Tip>
-          Mila morska = 1852 m = 1 minuta szerokosci. 1 stopien = 60 minut. Wezel = 1 Mm/h.
-          По-русски: миля 1852 м; узел = миля в час; 1 градус = 60 минут; 1 минута широты = 1 миля.
+          {tp(
+            'Миля 1852 м; узел = миля в час; 1 градус = 60 минут; 1 минута широты = 1 миля. Mila morska = 1852 m = 1 minuta szerokosci.',
+            'Nautical mile = 1852 m = 1 minute of latitude. 1 degree = 60 minutes. Knot = 1 NM per hour.',
+            'Mila morska = 1852 m = 1 minuta szerokosci. 1 stopien = 60 minut. Wezel = 1 Mm/h.',
+          )}
         </Tip>
         <Table
           head={['Termin / przyrzad', 'Znaczenie', 'По-русски']}
@@ -477,8 +566,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          GPS не заменяет глаза и карту: позиция может врать, COG/SOG - относительно дна, а не воды. На тесте:
-          «Czy nawigacje mozna oprzec wylacznie na GPS?» - NIE.
+          {tp(
+            'GPS не заменяет глаза и карту: позиция может врать, COG/SOG - относительно дна, а не воды. На тесте: «Czy nawigacje mozna oprzec wylacznie na GPS?» - NIE.',
+            'GPS does not replace eyes and chart: the fix can be wrong, COG/SOG are over ground, not through water. On the test: "Czy nawigacje mozna oprzec wylacznie na GPS?" - NIE.',
+            'GPS nie zastepuje oczu i mapy: pozycja moze klamac, COG/SOG sa wzgledem dna, nie wody. Na tescie: "Czy nawigacje mozna oprzec wylacznie na GPS?" - NIE.',
+          )}
         </Tip>
       </Section>
 
@@ -525,9 +617,9 @@ export default function SternikTheoryPage() {
         <CloudsGallery />
         <DiagramCaption>
           {tp(
-            'Cumulus - хорошая погода; Cumulonimbus («наковальня») - гроза и шквалы, уходи к берегу; Cirrus - приближается тёплый фронт; Stratus/Nimbostratus - обложной дождь.',
-            'Cumulus - fair weather; Cumulonimbus (anvil) - storm and squalls, head to shore; Cirrus - warm front approaching; Stratus/Nimbostratus - steady rain.',
-            'Cumulus - ladna pogoda; Cumulonimbus (kowadlo) - burza i szkwaly, wracaj do brzegu; Cirrus - nadchodzi front cieply; Stratus/Nimbostratus - opady ciagle.',
+            'Cumulus - хорошая погода; Altocumulus - «барашки» и смена погоды; Cumulonimbus/Shelf cloud - гроза и шквалы, уходи к берегу; Stratus/Nimbostratus - обложной дождь; Mgla - огни и звуковые сигналы.',
+            'Cumulus - fair weather; Altocumulus - mackerel sky and changing weather; Cumulonimbus/Shelf cloud - storm and squalls, head to shore; Stratus/Nimbostratus - steady rain; fog means lights and sound signals.',
+            'Cumulus - ladna pogoda; Altocumulus - baranki i zmiana pogody; Cumulonimbus/Shelf cloud - burza i szkwaly, wracaj do brzegu; Stratus/Nimbostratus - opady ciagle; mgla - swiatla i sygnaly dzwiekowe.',
           )}
         </DiagramCaption>
 
@@ -580,8 +672,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          Запомни ключевое для теста: 6°B = 22-27 узлов (сильный ветер, для малой лодки уже опасно). Резкий рост
-          силы ветра + Cumulonimbus/вал шквала = немедленно к берегу.
+          {tp(
+            'Запомни ключевое для теста: 6°B = 22-27 узлов (сильный ветер, для малой лодки уже опасно). Резкий рост силы ветра + Cumulonimbus/вал шквала = немедленно к берегу.',
+            'Key for the test: 6 Bft = 22-27 kn (strong wind, already risky for a small boat). Rapidly rising wind + Cumulonimbus / shelf cloud = head for shore immediately.',
+            'Kluczowe na test: 6 B = 22-27 w (silny wiatr, dla malej lodzi juz grozny). Szybki wzrost sily wiatru + Cumulonimbus / wal szkwalowy = natychmiast do brzegu.',
+          )}
         </Tip>
       </Section>
 
@@ -616,8 +711,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          MAYDAY - три раза на 16 канале, затем название судна, позиция, характер опасности, число людей, нужна ли помощь.
-          PAN-PAN - когда срочно, но жизни ничто не угрожает (поломка, буксировка). SECURITE - предупреждение (погода, препятствие).
+          {tp(
+            'MAYDAY - три раза на 16 канале, затем название судна, позиция, характер опасности, число людей, нужна ли помощь. PAN-PAN - когда срочно, но жизни ничто не угрожает (поломка, буксировка). SECURITE - предупреждение (погода, препятствие).',
+            'MAYDAY - three times on channel 16, then vessel name, position, nature of distress, persons on board, assistance required. PAN-PAN - urgent but no danger to life (breakdown, tow). SECURITE - safety warning (weather, obstruction).',
+            'MAYDAY - trzy razy na kanale 16, potem nazwa jednostki, pozycja, rodzaj zagrozenia, liczba osob, potrzebna pomoc. PAN-PAN - pilne, ale zycie niezagrozone (awaria, holowanie). SECURITE - ostrzezenie (pogoda, przeszkoda).',
+          )}
         </Tip>
       </Section>
 
@@ -644,8 +742,11 @@ export default function SternikTheoryPage() {
             <li>Przygotowanie lodzi: paliwo, kamizelki, kill switch, srodki ratunkowe.</li>
           </ul>
           <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-            Zle wykonany element mozna powtorzyc JEDEN raz (par. 17 ust. 11). Nie ma ustawowego minimum mocy/dlugosci lodzi
-            egzaminacyjnej - to zalezy od osrodka. / Неудавшийся манёвр можно повторить один раз; параметры лодки закон не задаёт.
+            {tp(
+              'Zle wykonany element mozna powtorzyc JEDEN raz (par. 17 ust. 11). Неудавшийся манёвр можно повторить один раз; параметры лодки закон не задаёт.',
+              'A failed element may be repeated ONCE (par. 17 sec. 11). There is no statutory minimum power/length of the exam boat - it depends on the centre.',
+              'Zle wykonany element mozna powtorzyc JEDEN raz (par. 17 ust. 11). Nie ma ustawowego minimum mocy/dlugosci lodzi egzaminacyjnej - to zalezy od osrodka.',
+            )}
           </p>
         </Card>
         <Table
@@ -659,8 +760,11 @@ export default function SternikTheoryPage() {
           ]}
         />
         <Tip>
-          На практике безопасность важнее красоты: малый газ в порту, kill switch пристёгнут, жилет надет,
-          у человека в воде - мотор на нейтраль. Экзаменатор прощает кривую швартовку, но не винт у пловца.
+          {tp(
+            'На практике безопасность важнее красоты: малый газ в порту, kill switch пристёгнут, жилет надет, у человека в воде - мотор на нейтраль. Экзаменатор прощает кривую швартовку, но не винт у пловца.',
+            'In the practical, safety beats style: low throttle in port, kill switch clipped on, lifejacket on, engine in neutral near a person in the water. The examiner forgives clumsy mooring but not a propeller near a swimmer.',
+            'Na praktyce bezpieczenstwo wazniejsze niz elegancja: maly gaz w porcie, kill switch przypiety, kamizelka zalozona, przy osobie w wodzie - silnik na luz. Egzaminator wybaczy krzywe cumowanie, ale nie srube przy plywaku.',
+          )}
         </Tip>
       </Section>
 
@@ -668,23 +772,25 @@ export default function SternikTheoryPage() {
       <Section {...SECTIONS[13]}>
         <Card>
           <ul className="list-disc space-y-1.5 pl-5 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-            <li>Расхождение: моторка уступает всем; встречные - вправо, левыми бортами; при пересечении уступаешь тому, кто справа.</li>
-            <li>Огни: левый красный, правый зелёный (112,5); мачтовый 225; кормовой белый 135; на якоре - белый круговой.</li>
-            <li>Сигналы: 1 короткий - вправо, 2 - влево, 3 - задний ход, 5+ - опасность; длинные повторяющиеся - бедствие.</li>
-            <li>Кардинальные: обходи со стороны названия; N ▲▲ (непрерывные), E «яйцо» (3), S ▼▼ (6+длинная), W «бокал» (9).</li>
-            <li>Боковые (регион A): красный цилиндр - слева, зелёный конус - справа (вход с моря). В США наоборот.</li>
-            <li>Меры: 1 миля = 1852 м; узел = миля/час; 1 градус = 60 минут; 1 кВт = 1,36 л.с.</li>
-            <li>Винт назад: правый - корма влево. Река: вниз по течению - приоритет; держись правой стороны.</li>
-            <li>Порт: выходящий имеет приоритет; манёвры на минимальной скорости со сохранением управляемости.</li>
-            <li>СЛР 30:2 (100-120/мин); предмет в ране не вынимать; алкоголь переохлаждённому нельзя; 601 100 100 / 112.</li>
-            <li>Экология: ничего за борт; заправка при выключенном моторе; химтуалет - в спецточки.</li>
-            <li>Патент: internal без лимита (до 16 лет - 60 кВт); море - 12 м / 2 Mm / день. Без патента: до 10 кВт (или хаусбот до 75 кВт / 13 м / 15 км/ч).</li>
+            <li>{tp('Расхождение: моторка уступает всем; встречные - вправо, левыми бортами; при пересечении уступаешь тому, кто справа.', 'Right of way: a motorboat gives way to everyone; head-on - turn right, pass port to port; crossing - give way to the one on your starboard.', 'Prawo drogi: motorowka ustepuje wszystkim; kursy przeciwne - w prawo, lewymi burtami; przy przecinaniu ustepujesz temu z prawej.')}</li>
+            <li>{tp('Огни: левый красный, правый зелёный (112,5); мачтовый 225; кормовой белый 135; на якоре - белый круговой.', 'Lights: port red, starboard green (112.5); masthead 225; stern white 135; at anchor - all-round white.', 'Swiatla: lewa czerwone, prawa zielone (112,5); masztowe 225; rufowe biale 135; na kotwicy - biale dookolne.')}</li>
+            <li>{tp('Сигналы: 1 короткий - вправо, 2 - влево, 3 - задний ход, 5+ - опасность; длинные повторяющиеся - бедствие.', 'Sound signals: 1 short - right, 2 - left, 3 - astern, 5+ - danger; repeated long blasts - distress.', 'Sygnaly: 1 krotki - w prawo, 2 - w lewo, 3 - wstecz, 5+ - niebezpieczenstwo; dlugie powtarzane - wzywanie pomocy.')}</li>
+            <li>{tp('Кардинальные: обходи со стороны названия; N ▲▲ (непрерывные), E «яйцо» (3), S ▼▼ (6+длинная), W «бокал» (9).', 'Cardinals: pass on the side of the name; N ▲▲ (continuous), E "egg" (3), S ▼▼ (6+long), W "wineglass" (9).', 'Kardynalne: mijaj od strony nazwy; N ▲▲ (ciagle), E "jajko" (3), S ▼▼ (6+dlugi), W "kieliszek" (9).')}</li>
+            <li>{tp('Боковые (регион A): красный цилиндр - слева, зелёный конус - справа (вход с моря). В США наоборот.', 'Lateral (region A): red can to port, green cone to starboard (entering from sea). Reversed in the USA.', 'Boczne (region A): czerwony walec - z lewej, zielony stozek - z prawej (od morza). W USA odwrotnie.')}</li>
+            <li>{tp('Меры: 1 миля = 1852 м; узел = миля/час; 1 градус = 60 минут; 1 кВт = 1,36 л.с.', 'Units: 1 NM = 1852 m; knot = NM/h; 1 degree = 60 minutes; 1 kW = 1.36 hp.', 'Miary: 1 Mm = 1852 m; wezel = Mm/h; 1 stopien = 60 minut; 1 kW = 1,36 KM.')}</li>
+            <li>{tp('Винт назад: правый - корма влево. Река: вниз по течению - приоритет; держись правой стороны.', 'Prop astern: right-handed - stern to port. River: downstream has priority; keep to the right side.', 'Sruba wstecz: prawoskretna - rufa w lewo. Rzeka: z pradem - pierwszenstwo; trzymaj sie prawej strony.')}</li>
+            <li>{tp('Порт: выходящий имеет приоритет; манёвры на минимальной скорости со сохранением управляемости.', 'Port: the outbound vessel has priority; manoeuvre at minimum steerage speed.', 'Port: wychodzacy ma pierwszenstwo; manewry z minimalna predkoscia zapewniajaca sterownosc.')}</li>
+            <li>{tp('СЛР 30:2 (100-120/мин); предмет в ране не вынимать; алкоголь переохлаждённому нельзя; 601 100 100 / 112.', 'CPR 30:2 (100-120/min); never pull an object out of a wound; no alcohol for hypothermia; 601 100 100 / 112.', 'RKO 30:2 (100-120/min); przedmiotu z rany nie wyjmuj; alkohol przy wychlodzeniu zabroniony; 601 100 100 / 112.')}</li>
+            <li>{tp('Экология: ничего за борт; заправка при выключенном моторе; химтуалет - в спецточки.', 'Environment: nothing overboard; refuel with the engine off; chemical toilet - only to disposal points.', 'Srodowisko: nic za burte; tankowanie przy zgaszonym silniku; toaleta chemiczna - do punktow zlewnych.')}</li>
+            <li>{tp('Патент: internal без лимита (до 16 лет - 60 кВт); море - 12 м / 2 Mm / день. Без патента: до 10 кВт (или хаусбот до 75 кВт / 13 м / 15 км/ч).', 'Patent: inland no power limit (under 16 - 60 kW); sea - 12 m / 2 NM / daytime. Without a patent: up to 10 kW (or houseboat up to 75 kW / 13 m / 15 km/h).', 'Patent: srodladzie bez limitu (do 16 lat - 60 kW); morze - 12 m / 2 Mm / dzien. Bez patentu: do 10 kW (lub houseboat do 75 kW / 13 m / 15 km/h).')}</li>
           </ul>
         </Card>
         <Tip>
-          На экзамене: читай вопрос до конца - часто решает слово «nie / zabronione». Сомневаешься - выбирай более
-          осторожный, безопасный вариант. Помечай сложные вопросы и возвращайся: 90 минут на 75 вопросов - времени хватает.
-          Powodzenia! 🍀
+          {tp(
+            'На экзамене: читай вопрос до конца - часто решает слово «nie / zabronione». Сомневаешься - выбирай более осторожный, безопасный вариант. Помечай сложные вопросы и возвращайся: 90 минут на 75 вопросов - времени хватает. Powodzenia! 🍀',
+            'On the exam: read each question to the end - the word "nie / zabronione" often decides. When in doubt pick the more cautious, safer option. Flag hard questions and come back: 90 minutes for 75 questions is plenty. Powodzenia! 🍀',
+            'Na egzaminie: czytaj pytanie do konca - czesto decyduje slowo "nie / zabronione". W razie watpliwosci wybieraj ostrozniejsza, bezpieczniejsza opcje. Zaznaczaj trudne pytania i wracaj: 90 minut na 75 pytan - czasu wystarczy. Powodzenia! 🍀',
+          )}
         </Tip>
         <div className="mt-4 flex flex-wrap gap-2">
           <Link

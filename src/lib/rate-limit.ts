@@ -48,6 +48,21 @@ export interface RateResult {
   rejectedBy?: 'per-key' | 'global';
 }
 
+/**
+ * Anti-spoofing client key for rate limiting. The FIRST X-Forwarded-For
+ * entry is client-controlled (nginx APPENDS to the incoming header rather
+ * than replacing it), so limits keyed on it can be bypassed by rotating a
+ * fake header value. The LAST entry is the peer address our own nginx saw -
+ * not spoofable from outside. Use this for limiter keys; keep the first hop
+ * only for analytics/geo where "claimed client" is the right semantic.
+ */
+export function clientIpKey(req: Request): string {
+  const xff = req.headers.get('x-forwarded-for');
+  if (!xff) return 'ip:unknown';
+  const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : 'ip:unknown';
+}
+
 function checkBucket(store: Map<string, Bucket>, key: string, limit: number, now: number, windowMs: number): RateResult {
   let bucket = store.get(key);
   if (!bucket) { bucket = { hits: [] }; store.set(key, bucket); }

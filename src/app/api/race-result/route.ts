@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { insertRaceResult, getPlayer, insertEvent } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimit, clientIpKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No session cookie' }, { status: 400 });
   }
 
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
   const rl = rateLimit('race-result:' + (sid ?? ip), RESULT_LIMIT, RESULT_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json({ error: 'Too many results, wait' }, { status: 429 });

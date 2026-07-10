@@ -16,6 +16,7 @@ export default function SternikSubnav() {
     { href: '/sternik/teoria', label: tp('Теория', 'Theory', 'Teoria'), icon: '📖' },
     { href: '/sternik/test', label: tp('Тренажёр', 'Trainer', 'Trening'), icon: '🎯' },
     { href: '/sternik/egzamin', label: tp('Экзамен', 'Exam', 'Egzamin'), icon: '⏱️' },
+    { href: '/radio', label: tp('Рация SRC', 'Radio SRC', 'Radio SRC'), icon: '📻' },
   ];
 
   // Keep the active tab in view (Egzamin was cut off on the right on mobile).

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logError, logWarn } from '@/lib/log';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimit, clientIpKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 15;
@@ -108,7 +108,7 @@ async function sendToTelegram(record: {
 export async function POST(req: Request): Promise<NextResponse> {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'ip:unknown';
+  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
 
   // Truncate IPv4 last octet to keep parity with /api/log privacy policy.
   const ipTrunc = ip.includes('.') ? ip.replace(/\.\d+$/, '.0') : ip;

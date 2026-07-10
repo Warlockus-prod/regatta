@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -75,7 +75,7 @@ export async function POST(req: Request) {
   // Rate-limit: 20 requests / hour per session. Falls back to IP if no cookie.
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
 
   // Site-wide per-user daily AI cap (shared across all AI endpoints).
   const daily = checkUserDailyBudget(sid ?? ip);
