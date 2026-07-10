@@ -1,0 +1,374 @@
+'use client';
+
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useI18n } from '@/lib/i18n';
+import RadioFront from '../symulator/RadioFront';
+import {
+  CHANNELS, OTHERDSC_CATEGORIES, createInitialRadio, otherDscRows, radioProfile, radioReducer,
+  type RadioEvent, type RadioModel, type RadioState,
+} from '../symulator/radioModel';
+
+const COURSE_KEY = 'sternik.radio.guide.v2';
+
+interface Lesson {
+  id: string;
+  title: string;
+  instruction: string;
+  why: string;
+  highlight: (state: RadioState) => string;
+  check: (event: RadioEvent, prev: RadioState, next: RadioState) => boolean;
+}
+
+function channelNumber(state: RadioState): string {
+  return CHANNELS[state.channelIndex].num;
+}
+
+export default function InteractiveRadioCourse() {
+  const { tp } = useI18n();
+  const [model, setModel] = useState<RadioModel>('M330');
+  const stateRef = useRef<RadioState>(createInitialRadio('M330'));
+  const [, render] = useState(0);
+  const state = stateRef.current;
+  const [lessonIndex, setLessonIndex] = useState(0);
+  const [lessonDone, setLessonDone] = useState(false);
+  const [savedProgress, setSavedProgress] = useState<Record<RadioModel, number>>({ M330: 0, M323: 0 });
+  const [holdPct, setHoldPct] = useState(0);
+  const holdRaf = useRef<number | null>(null);
+  const audioRef = useRef<AudioContext | null>(null);
+  const soundTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const lessons = useMemo<Lesson[]>(() => [
+    {
+      id: 'power',
+      title: tp('1. Питание', '1. Power', '1. Zasilanie'),
+      instruction: tp('Удерживай центр ручки DIAL ровно 1 секунду.', 'Hold the center of DIAL for one second.', 'Przytrzymaj srodek DIAL przez 1 sekunde.'),
+      why: tp('Короткое нажатие не включает рацию: оно открывает настройку громкости. На экзамене важно именно удержание.', 'A short press does not power the set: it opens volume adjustment. The one second hold matters in the exam.', 'Krotkie nacisniecie nie wlacza radia: otwiera regulacje glosnosci. Na egzaminie liczy sie przytrzymanie.'),
+      highlight: () => 'dial-center',
+      check: (event, prev, next) => event.type === 'dial-hold' && !prev.power && next.power,
+    },
+    {
+      id: 'volume',
+      title: tp('2. Громкость', '2. Volume', '2. Glosnosc'),
+      instruction: tp('Поверни DIAL стрелкой сбоку и измени громкость.', 'Rotate DIAL with a side arrow and change the volume.', 'Obroc DIAL boczna strzalka i zmien glosnosc.'),
+      why: tp('У рации 20 уровней и OFF. Громкость влияет только на динамик, но не на дальность передачи.', 'The set has 20 levels plus OFF. Volume affects the speaker, not transmission range.', 'Radio ma 20 poziomow i OFF. Glosnosc wplywa na glosnik, nie na zasieg nadawania.'),
+      highlight: () => 'dial-cw',
+      check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'volume' && next.volume !== prev.volume,
+    },
+    {
+      id: 'squelch',
+      title: tp('3. Шумоподавитель SQL', '3. Squelch SQL', '3. Blokada szumow SQL'),
+      instruction: tp('Нажми DIAL, пока не появится SQL, затем поверни ручку.', 'Push DIAL until SQL appears, then rotate it.', 'Naciskaj DIAL, az pojawi sie SQL, potem obroc pokretlo.'),
+      why: tp('Слишком высокий SQL скрывает слабые вызовы. Настрой порог сразу после исчезновения постоянного шума.', 'Too much squelch hides weak calls. Set it just above the point where steady noise disappears.', 'Zbyt wysoki SQL ukrywa slabe wywolania. Ustaw go tuz po zaniku stalego szumu.'),
+      highlight: (s) => s.screen === 'squelch' ? 'dial-cw' : 'dial-center',
+      check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'squelch' && next.squelch !== prev.squelch,
+    },
+    {
+      id: 'channel',
+      title: tp('4. Рабочий канал', '4. Working channel', '4. Kanal roboczy'),
+      instruction: tp('Клавишами вверх/вниз выбери канал 12.', 'Use the up/down keys to select channel 12.', 'Klawiszami gora/dol wybierz kanal 12.'),
+      why: tp('На M330 каналы выбирают стрелками, не вращением DIAL в режиме ожидания. Канал 12 используется портом и мариной Гдыня.', 'On M330, standby channels use the arrow keys, not DIAL rotation. Channel 12 is used by Gdynia port and marina.', 'Na M330 kanaly w trybie czuwania wybiera sie strzalkami, nie DIAL. Kanal 12 jest uzywany przez port i marine Gdynia.'),
+      highlight: (s) => ['volume', 'squelch', 'channel-select', 'backlight'].includes(s.screen) ? 'key-clr' : 'key-down',
+      check: (_event, prev, next) => channelNumber(prev) !== '12' && channelNumber(next) === '12',
+    },
+    {
+      id: 'channel16',
+      title: tp('5. Аварийный канал 16', '5. Distress channel 16', '5. Kanal alarmowy 16'),
+      instruction: tp('Коротко нажми 16/C.', 'Press 16/C briefly.', 'Nacisnij krotko 16/C.'),
+      why: tp('Короткое нажатие из любого обычного экрана немедленно возвращает на канал бедствия и вызова 16.', 'A short press from any normal screen immediately selects distress and calling channel 16.', 'Krotkie nacisniecie z normalnego ekranu natychmiast wybiera kanal alarmowy i wywolawczy 16.'),
+      highlight: () => 'key-16c',
+      check: (event, _prev, next) => event.type === 'key-16c' && channelNumber(next) === '16',
+    },
+    {
+      id: 'call-channel',
+      title: tp('6. Call Channel', '6. Call Channel', '6. Kanal wywolawczy'),
+      instruction: tp('Теперь удерживай 16/C 1 секунду.', 'Now hold 16/C for one second.', 'Teraz przytrzymaj 16/C przez 1 sekunde.'),
+      why: tp('Длинное нажатие выбирает запрограммированный Call Channel. В тренажере это канал 06.', 'The long press selects the programmed Call Channel. In this trainer it is channel 06.', 'Dlugie nacisniecie wybiera zaprogramowany kanal wywolawczy. W trenerze jest to kanal 06.'),
+      highlight: () => 'key-16c',
+      check: (event, _prev, next) => event.type === 'key-16c-hold' && channelNumber(next) === '06',
+    },
+    {
+      id: 'power-level',
+      title: tp('7. Мощность 25W / 1W', '7. Power 25W / 1W', '7. Moc 25W / 1W'),
+      instruction: tp('Перейди на первую страницу софтклавиш и нажми HI/LO.', 'Return to the first softkey page and press HI/LO.', 'Wroc do pierwszej strony klawiszy i nacisnij HI/LO.'),
+      why: tp('В порту выбирай 1W, на большой дистанции 25W. Каналы 15, 17, 75 и 76 принудительно ограничены малой мощностью.', 'Use 1W in port and 25W for longer range. Channels 15, 17, 75 and 76 are limited to low power.', 'W porcie uzywaj 1W, na duzym dystansie 25W. Kanaly 15, 17, 75 i 76 sa ograniczone do malej mocy.'),
+      highlight: (s) => s.softPage === 0 ? 'soft-2' : 'key-left',
+      check: (event, prev, next) => event.type === 'soft' && prev.hiPower && !next.hiPower,
+    },
+    {
+      id: 'dual-watch',
+      title: tp('8. Dual Watch', '8. Dual Watch', '8. Nasluch podwojny'),
+      instruction: tp('Стрелкой вправо открой страницу DW и нажми клавишу под DW.', 'Use the right arrow to reveal DW, then press the key below DW.', 'Strzalka w prawo pokaz DW, potem nacisnij klawisz pod DW.'),
+      why: tp('Dual Watch попеременно слушает выбранный рабочий канал и 16, чтобы не пропустить бедствие.', 'Dual Watch alternates between the working channel and channel 16, so distress traffic is not missed.', 'Nasluch podwojny sprawdza kanal roboczy i 16, aby nie przegapic ruchu alarmowego.'),
+      highlight: (s) => s.model === 'M323' || s.softPage === 1 ? 'soft-1' : 'key-right',
+      check: (event, _prev, next) => event.type === 'soft' && next.dualWatch,
+    },
+    {
+      id: 'backlight',
+      title: tp('9. Подсветка', '9. Backlight', '9. Podswietlenie'),
+      instruction: tp('На странице DW нажми BKLT, затем поверни DIAL.', 'On the DW page press BKLT, then rotate DIAL.', 'Na stronie DW nacisnij BKLT, potem obroc DIAL.'),
+      why: tp('Подсветка экрана и клавиш регулируется от OFF до 7. Ночью используй минимальный читаемый уровень.', 'Display and key backlight runs from OFF to 7. At night use the lowest readable level.', 'Podswietlenie ekranu i klawiszy ma zakres OFF do 7. W nocy uzyj najnizszego czytelnego poziomu.'),
+      highlight: (s) => s.screen === 'backlight' ? 'dial-cw' : s.softPage === 1 ? 'soft-3' : 'key-right',
+      check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'backlight' && next.backlight !== prev.backlight,
+    },
+    {
+      id: 'menu',
+      title: tp('10. Главное меню', '10. Main menu', '10. Menu glowne'),
+      instruction: tp('Вернись кнопкой CLEAR/CLR и открой MENU.', 'Return with CLEAR/CLR and open MENU.', 'Wroc przyciskiem CLEAR/CLR i otworz MENU.'),
+      why: tp('M330 и M323 имеют разное дерево меню. Тренажер переключает не только надпись на панели, но и набор пунктов.', 'M330 and M323 have different menu trees. The trainer changes both the faceplate and the available items.', 'M330 i M323 maja rozne drzewa menu. Trener zmienia panel i dostepne pozycje.'),
+      highlight: (s) => s.screen === 'standby' ? 'key-menu' : 'key-clr',
+      check: (_event, prev, next) => prev.screen !== 'menu' && next.screen === 'menu',
+    },
+    {
+      id: 'other-dsc',
+      title: tp('11. Меню вызовов DSC', '11. DSC calls menu', '11. Menu wywolan DSC'),
+      instruction: tp('M330: выбери Other DSC. M323: ENT на DSC Calls, затем выбери All Ships Call.', 'M330: select Other DSC. M323: press ENT on DSC Calls, then select All Ships Call.', 'M330: wybierz Other DSC. M323: ENT na DSC Calls, potem wybierz All Ships Call.'),
+      why: tp('Здесь создаются Individual, Group, All Ships и Test вызовы. Красная DISTRESS для них не используется.', 'This is where Individual, Group, All Ships and Test calls are composed. The red DISTRESS key is not used.', 'Tutaj tworzysz wywolania Individual, Group, All Ships i Test. Czerwony DISTRESS nie jest do tego uzywany.'),
+      highlight: (s) => {
+        if (s.model === 'M323') {
+          if (s.screen === 'menu') return s.menuCursor === 0 ? 'key-ent' : 'key-up';
+          if (s.screen === 'm323-dsc-calls') return s.m323CallCursor === 2 ? 'key-ent' : 'key-down';
+          return 'key-menu';
+        }
+        return s.screen === 'menu' && s.menuCursor === 1 ? 'key-ent' : 'key-down';
+      },
+      check: (_event, prev, next) => prev.screen !== 'otherdsc-compose' && next.screen === 'otherdsc-compose',
+    },
+    {
+      id: 'safety-dsc',
+      title: tp('12. All Ships Safety', '12. All Ships Safety', '12. All Ships Safety'),
+      instruction: tp('Выбери Category: Safety, оставь рабочий канал 16 и отправь Send.', 'Select Category: Safety, keep working channel 16, and send.', 'Wybierz Category: Safety, zostaw kanal roboczy 16 i wyslij Send.'),
+      why: tp('Цифровое объявление уходит на 70 канале, после чего голосовое SECURITE передают на 16 или указанном рабочем канале.', 'The digital announcement goes on channel 70, followed by the spoken SECURITE on 16 or a stated working channel.', 'Zapowiedz cyfrowa idzie na kanale 70, potem glosowe SECURITE na 16 lub wskazanym kanale roboczym.'),
+      highlight: (s) => {
+        if (s.screen === 'otherdsc-field') return s.odFieldCursor === 1 ? 'key-ent' : 'key-down';
+        const rows = otherDscRows(s);
+        const categoryIndex = rows.indexOf('category');
+        if (OTHERDSC_CATEGORIES[s.odCategory] !== 'Safety') return s.odCursor === categoryIndex ? 'key-ent' : 'key-down';
+        return s.odCursor === otherDscSendIndex(s) ? 'key-ent' : 'key-down';
+      },
+      check: (event, _prev, next) => event.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'All Ships' && next.odSent?.category === 'Safety',
+    },
+    {
+      id: 'ptt',
+      title: tp('13. Физическая PTT', '13. Physical PTT', '13. Fizyczny PTT'),
+      instruction: tp('Удержи PTT на ручном микрофоне, затем отпусти.', 'Hold PTT on the fist microphone, then release it.', 'Przytrzymaj PTT na mikrofonie recznym, potem pusc.'),
+      why: tp('Пока PTT нажата, рация передает и не принимает. Говори короткими фразами и отпускай кнопку для ответа.', 'While PTT is held, the set transmits and cannot receive. Use short phrases and release to listen.', 'Gdy PTT jest wcisniety, radio nadaje i nie odbiera. Mow krotko i puszczaj, aby sluchac.'),
+      highlight: () => 'ptt',
+      check: (event, _prev, next) => event.type === 'ptt-down' && next.ptt,
+    },
+    {
+      id: 'distress',
+      title: tp('14. DISTRESS под крышкой', '14. DISTRESS under the cover', '14. DISTRESS pod oslona'),
+      instruction: tp('Вернись STBY, открой защитную крышку и удерживай красную DISTRESS 3 секунды.', 'Return to STBY, open the cover, and hold red DISTRESS for three seconds.', 'Wroc do STBY, otworz oslone i trzymaj czerwony DISTRESS przez 3 sekundy.'),
+      why: tp('Три коротких сигнала переходят в непрерывный. Только после полного удержания DSC-алерт уходит на канале 70.', 'Three short beeps become a continuous tone. Only after the full hold is the DSC alert sent on channel 70.', 'Trzy krotkie sygnaly przechodza w ciagly. Dopiero po pelnym przytrzymaniu alert DSC idzie na kanale 70.'),
+      highlight: (s) => s.screen === 'otherdsc-sent' ? 'soft-0' : 'distress-cover',
+      check: (event) => event.type === 'distress-held',
+    },
+  ], [tp]);
+
+  const currentLesson = lessons[lessonIndex];
+
+  useEffect(() => {
+    try {
+      const parsed = JSON.parse(window.localStorage.getItem(COURSE_KEY) ?? '{}') as Partial<Record<RadioModel, number>>;
+      setSavedProgress({ M330: parsed.M330 ?? 0, M323: parsed.M323 ?? 0 });
+    } catch { /* ignore */ }
+  }, []);
+
+  const playTone = useCallback((frequency: number, durationMs: number) => {
+    try {
+      if (!audioRef.current) audioRef.current = new AudioContext();
+      const context = audioRef.current;
+      void context.resume();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = frequency;
+      gain.gain.value = 0.035;
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start();
+      setTimeout(() => { oscillator.stop(); oscillator.disconnect(); gain.disconnect(); }, durationMs);
+    } catch { /* audio is optional */ }
+  }, []);
+
+  const dispatch = useCallback((event: RadioEvent) => {
+    const prev = stateRef.current;
+    const next = radioReducer(prev, event);
+    stateRef.current = next;
+    if (next.beeps > prev.beeps) playTone(1350, 80);
+    if (!lessonDone && currentLesson.check(event, prev, next)) {
+      setLessonDone(true);
+      setSavedProgress((old) => {
+        const updated = { ...old, [model]: Math.max(old[model], lessonIndex + 1) };
+        try { window.localStorage.setItem(COURSE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
+        return updated;
+      });
+    }
+    render((value) => value + 1);
+  }, [currentLesson, lessonDone, lessonIndex, model, playTone]);
+
+  const clearHold = useCallback(() => {
+    if (holdRaf.current !== null) cancelAnimationFrame(holdRaf.current);
+    holdRaf.current = null;
+    setHoldPct(0);
+    soundTimers.current.forEach(clearTimeout);
+    soundTimers.current = [];
+  }, []);
+
+  const onDistressDown = useCallback(() => {
+    dispatch({ type: 'distress-down' });
+    if (stateRef.current.screen !== 'distress-hold') return;
+    clearHold();
+    [0, 900, 1800].forEach((delay) => {
+      soundTimers.current.push(setTimeout(() => playTone(1500, 100), delay));
+    });
+    soundTimers.current.push(setTimeout(() => playTone(1500, 500), 2700));
+    const started = performance.now();
+    const tick = () => {
+      const progress = Math.min(1, (performance.now() - started) / 3000);
+      setHoldPct(progress);
+      if (progress >= 1) {
+        holdRaf.current = null;
+        setHoldPct(0);
+        dispatch({ type: 'distress-held' });
+      } else {
+        holdRaf.current = requestAnimationFrame(tick);
+      }
+    };
+    holdRaf.current = requestAnimationFrame(tick);
+  }, [clearHold, dispatch, playTone]);
+
+  const onDistressUp = useCallback(() => {
+    if (holdRaf.current !== null) {
+      clearHold();
+      dispatch({ type: 'distress-up' });
+    }
+  }, [clearHold, dispatch]);
+
+  useEffect(() => () => {
+    clearHold();
+    void audioRef.current?.close().catch(() => {});
+  }, [clearHold]);
+
+  const chooseModel = (nextModel: RadioModel) => {
+    setModel(nextModel);
+    stateRef.current = createInitialRadio(nextModel);
+    setLessonIndex(0);
+    setLessonDone(false);
+    clearHold();
+    render((value) => value + 1);
+  };
+
+  const resetCourse = () => {
+    stateRef.current = createInitialRadio(model);
+    setLessonIndex(0);
+    setLessonDone(false);
+    clearHold();
+    setSavedProgress((old) => {
+      const updated = { ...old, [model]: 0 };
+      try { window.localStorage.setItem(COURSE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
+      return updated;
+    });
+    render((value) => value + 1);
+  };
+
+  const nextLesson = () => {
+    if (!lessonDone) return;
+    if (lessonIndex < lessons.length - 1) {
+      setLessonIndex((index) => index + 1);
+      setLessonDone(false);
+    }
+  };
+
+  const highlight = currentLesson.highlight(state);
+  const complete = lessonIndex === lessons.length - 1 && lessonDone;
+
+  return (
+    <section id="interaktywny-kurs" className="mb-10 scroll-mt-24" data-testid="interactive-radio-course">
+      <div className="mb-3 flex flex-wrap items-center gap-3">
+        <div>
+          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+            {tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania')}
+          </h2>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynnosci na radiu. Nastepna lekcja odblokuje sie dopiero po prawidlowym nacisnieciu lub obrocie.')}
+          </p>
+        </div>
+        <div className="ml-auto inline-flex overflow-hidden rounded-lg" role="group" aria-label="Radio model" style={{ border: '1px solid var(--border-subtle)' }}>
+          {(['M330', 'M323'] as RadioModel[]).map((item) => (
+            <button
+              key={item}
+              type="button"
+              onClick={() => chooseModel(item)}
+              className="min-h-[44px] px-4 text-sm font-semibold"
+              style={model === item ? { background: 'var(--accent-cyan)', color: '#04222e' } : { background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+            >
+              IC-{item}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mb-3 flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+        <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--bg-secondary)' }}>
+          <div className="h-full transition-[width]" style={{ width: `${(savedProgress[model] / lessons.length) * 100}%`, background: 'var(--accent-cyan)' }} />
+        </div>
+        <span>{savedProgress[model]}/{lessons.length}</span>
+        <button type="button" onClick={resetCourse} className="min-h-[44px] px-2 underline" style={{ color: 'var(--text-muted)' }}>
+          {tp('Сбросить', 'Reset', 'Resetuj')}
+        </button>
+      </div>
+
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,520px)_1fr]">
+        <div className="min-w-0">
+          <RadioFront
+            s={state}
+            dispatch={dispatch}
+            model={model}
+            holdPct={holdPct}
+            onDistressDown={onDistressDown}
+            onDistressUp={onDistressUp}
+            onPttDown={() => dispatch({ type: 'ptt-down' })}
+            onPttUp={() => dispatch({ type: 'ptt-up' })}
+            clock="12:00"
+            nextTxSec={radioProfile(model).retxSeconds}
+            highlightControl={highlight}
+          />
+        </div>
+
+        <div className="min-w-0 rounded-lg p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>
+              {tp('Урок', 'Lesson', 'Lekcja')} {lessonIndex + 1}/{lessons.length}
+            </span>
+            <span aria-live="polite" className="text-sm font-semibold" style={{ color: lessonDone ? 'var(--success)' : 'var(--text-muted)' }}>
+              {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na dzialanie')}
+            </span>
+          </div>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{currentLesson.title}</h3>
+          <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{currentLesson.instruction}</p>
+          <div className="mt-4 border-l-2 pl-3 text-sm leading-relaxed" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--text-muted)' }}>
+            {currentLesson.why}
+          </div>
+          {complete ? (
+            <div className="mt-5 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
+              {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obslugi ukonczony. Przejdz teraz do scenariuszy egzaminacyjnych.')}
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={nextLesson}
+              disabled={!lessonDone}
+              className="mt-5 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
+              style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+            >
+              {tp('Следующий урок', 'Next lesson', 'Nastepna lekcja')} {'>'}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function otherDscSendIndex(state: RadioState): number {
+  return otherDscRows(state).length;
+}

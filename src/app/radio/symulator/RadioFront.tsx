@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useI18n } from '@/lib/i18n';
 import {
-  CHANNELS, MENU_ITEMS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
-  channel, effectivePower, softkeys,
-  type RadioEvent, type RadioState,
+  DSC_ADDRESSES, DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
+  channel, dscFieldValues, effectivePower, menuItems, otherDscRows, radioProfile, softkeys,
+  type OtherDscField, type RadioEvent, type RadioModel, type RadioState,
 } from './radioModel';
 
 // ============================================================================
@@ -20,12 +20,10 @@ const AMBER = '#ffb84d';
 const AMBER_DIM = 'rgba(255,184,77,0.55)';
 const LCD_BG = 'radial-gradient(120% 130% at 50% 0%, #3a2a10, #241806 70%)';
 
-export type RadioModel = 'M330' | 'M323';
-
 interface Props {
   s: RadioState;
   dispatch: (e: RadioEvent) => void;
-  /** which ICOM faceplate to render (same state machine underneath). */
+  /** Which ICOM faceplate is active. It should match s.model. */
   model?: RadioModel;
   /** 0..1 progress of the 3 s DISTRESS hold. */
   holdPct: number;
@@ -37,14 +35,18 @@ interface Props {
   clock: string;
   /** seconds until next auto re-TX while waiting for ACK. */
   nextTxSec: number;
+  /** Training course spotlight target, matched against data-testid. */
+  highlightControl?: string;
 }
 
 function Key({
   id, children, onClick, onPointerDown, onPointerUp, onPointerLeave,
-  wide, round, tone = 'grey', disabled, small, ariaLabel,
+  onKeyDown, onKeyUp, wide, round, tone = 'grey', disabled, small, ariaLabel,
 }: {
   id: string; children: ReactNode; onClick?: () => void;
   onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
+  onKeyUp?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   wide?: boolean; round?: boolean; tone?: 'grey' | 'blue' | 'red' | 'soft'; disabled?: boolean; small?: boolean;
   ariaLabel?: string;
 }) {
@@ -64,9 +66,11 @@ function Key({
       onPointerUp={onPointerUp}
       onPointerLeave={onPointerLeave}
       onPointerCancel={onPointerUp}
+      onKeyDown={onKeyDown}
+      onKeyUp={onKeyUp}
       className={`select-none font-bold text-white/85 transition active:scale-95 disabled:opacity-35 ${
         round ? 'rounded-full' : 'rounded-md'
-      } ${wide ? 'col-span-2' : ''} ${small ? 'min-h-[42px] px-1 text-[10px]' : 'min-h-[44px] px-2 text-[11px]'}`}
+      } ${wide ? 'col-span-2' : ''} ${small ? 'min-h-[44px] min-w-[44px] px-1 text-[10px]' : 'min-h-[44px] px-2 text-[11px]'}`}
       style={{ background: bg, border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 4px rgba(0,0,0,0.5)', touchAction: 'none' }}
     >
       {children}
@@ -101,21 +105,45 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
   } else {
     switch (s.screen) {
       case 'volume':
-        body = <CenterGauge label="Volume" value={s.volume} />;
+        body = <CenterGauge label="Volume" value={s.volume} max={radioProfile(s.model).maxVolume} />;
         break;
       case 'squelch':
         body = <CenterGauge label="SQL" value={s.squelch} />;
+        break;
+      case 'channel-select':
+        body = (
+          <>
+            <LcdLine big>CHANNEL SELECT</LcdLine>
+            <div style={{ fontSize: 46, fontWeight: 800, textAlign: 'center', color: AMBER }}>{ch16.num}</div>
+            <LcdLine dim>Use [^]/[v]{s.model === 'M323' ? ' or rotate [DIAL]' : ''}</LcdLine>
+          </>
+        );
+        break;
+      case 'backlight':
+        body = <CenterGauge label="Backlight" value={s.backlight} max={radioProfile(s.model).maxBacklight} />;
         break;
       case 'menu':
         body = (
           <>
             <LcdLine big>MENU</LcdLine>
-            {MENU_ITEMS.map((m, i) => (
+            {menuItems(s).map((m, i) => (
               <LcdLine key={m} dim={i !== s.menuCursor}>{i === s.menuCursor ? '> ' : '  '}{m}</LcdLine>
             ))}
           </>
         );
         break;
+      case 'm323-dsc-calls': {
+        const calls = ['Individual Call', 'Group Call', 'All Ships Call', 'Distress Call', 'Test Call'];
+        body = (
+          <>
+            <LcdLine big>DSC CALLS</LcdLine>
+            {calls.map((call, i) => (
+              <LcdLine key={call} dim={i !== s.m323CallCursor}>{i === s.m323CallCursor ? '> ' : '  '}{call}</LcdLine>
+            ))}
+          </>
+        );
+        break;
+      }
       case 'gps-info':
         body = (
           <>
@@ -261,21 +289,33 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
           </>
         );
         break;
-      case 'otherdsc-compose':
+      case 'otherdsc-compose': {
+        const rows = otherDscRows(s);
+        const rowValue = (field: OtherDscField) => {
+          if (field === 'type') return OTHERDSC_TYPES[s.odType];
+          if (field === 'address') return DSC_ADDRESSES[s.odAddress].label;
+          if (field === 'category') return OTHERDSC_CATEGORIES[s.odCategory];
+          return `CH ${DSC_VOICE_CHANNELS[s.odChannel]}`;
+        };
         body = (
           <>
             <LcdLine big>OTHER DSC</LcdLine>
-            <LcdLine dim={s.odCursor !== 0}>{s.odCursor === 0 ? '> ' : '  '}Type: {OTHERDSC_TYPES[s.odType]}</LcdLine>
-            <LcdLine dim={s.odCursor !== 1}>{s.odCursor === 1 ? '> ' : '  '}Category: {OTHERDSC_CATEGORIES[s.odCategory]}</LcdLine>
-            <LcdLine dim={s.odCursor !== 2}>{s.odCursor === 2 ? '> ' : '  '}[ Send on CH 70 ]</LcdLine>
+            {s.model === 'M330' && <LcdLine dim>Mode: Radio Telephone</LcdLine>}
+            {rows.map((field, i) => (
+              <LcdLine key={field} dim={s.odCursor !== i}>
+                {s.odCursor === i ? '> ' : '  '}{field[0].toUpperCase() + field.slice(1)}: {rowValue(field)}
+              </LcdLine>
+            ))}
+            <LcdLine dim={s.odCursor !== rows.length}>{s.odCursor === rows.length ? '> ' : '  '}[ Send on CH 70 ]</LcdLine>
           </>
         );
         break;
+      }
       case 'otherdsc-field': {
-        const list = s.odField === 'type' ? OTHERDSC_TYPES : OTHERDSC_CATEGORIES;
+        const list = dscFieldValues(s);
         body = (
           <>
-            <LcdLine big>{s.odField === 'type' ? 'CALL TYPE' : 'CATEGORY'}</LcdLine>
+            <LcdLine big>{(s.odField ?? 'field').toUpperCase()}</LcdLine>
             {list.map((n, i) => (
               <LcdLine key={n} dim={i !== s.odFieldCursor}>{i === s.odFieldCursor ? '> ' : '  '}{n}</LcdLine>
             ))}
@@ -288,8 +328,19 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
           <>
             <LcdLine big>DSC SENT</LcdLine>
             <LcdLine>{s.odSent?.type} / {s.odSent?.category}</LcdLine>
-            <LcdLine>CH 16 selected for voice</LcdLine>
-            <LcdLine dim>Hold [PTT] to transmit</LcdLine>
+            <LcdLine dim>{s.odSent?.address}</LcdLine>
+            <LcdLine>CH {s.odSent?.channel} {s.odAwaitingAck ? '- WAIT ACK' : 'selected'}</LcdLine>
+            <LcdLine dim>{s.odAwaitingAck ? 'Do not transmit before ACK' : 'Hold [PTT] to transmit'}</LcdLine>
+          </>
+        );
+        break;
+      case 'otherdsc-ack':
+        body = (
+          <>
+            <LcdLine big>RCVD DSC ACK</LcdLine>
+            <LcdLine>{s.odSent?.address}</LcdLine>
+            <LcdLine>VOICE CH {s.odSent?.channel}</LcdLine>
+            <LcdLine color="#ff8a7a">♪ ALARM ♪</LcdLine>
           </>
         );
         break;
@@ -303,15 +354,15 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
                 <div>{s.gpsValid ? `${clock} UTC` : 'NO TIME'}</div>
               </div>
               <div style={{ fontSize: 10, color: AMBER_DIM, textAlign: 'right' }}>
-                <div>{s.ptt ? 'TX' : 'STBY'} · INT</div>
-                <div>{effectivePower(s)}{s.gpsValid ? ' · GPS' : ''}</div>
+                <div>{s.ptt ? 'TX' : s.aquaActive ? 'AQUA' : 'STBY'} · INT</div>
+                <div>{effectivePower(s)}{s.gpsValid ? ' · GPS' : ''}{s.dualWatch ? ' · DW' : ''}{s.scanActive ? ' · SCAN' : ''}</div>
               </div>
             </div>
             <div style={{ fontSize: 44, fontWeight: 800, textAlign: 'center', color: s.ptt ? '#ff8a7a' : AMBER, letterSpacing: 2, lineHeight: 1.15 }}>
               {ch16.num}
             </div>
             <div style={{ fontSize: 10, color: AMBER_DIM, textAlign: 'center' }}>
-              {ch16.label ?? (ch16.lowOnly ? 'LOW POWER ONLY' : 'SIMPLEX')}
+              {s.favoriteChannels.includes(ch16.num) ? '★ ' : ''}{ch16.label ?? (ch16.lowOnly ? 'LOW POWER ONLY' : 'SIMPLEX')}
             </div>
           </>
         );
@@ -336,12 +387,12 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
   );
 }
 
-function CenterGauge({ label, value }: { label: string; value: number }) {
+function CenterGauge({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
   return (
     <div style={{ paddingTop: 26 }}>
       <LcdLine big>{label}: {value}</LcdLine>
       <div className="mt-2 h-3 w-full overflow-hidden rounded" style={{ background: 'rgba(255,255,255,0.12)' }}>
-        <div style={{ width: `${value * 10}%`, height: '100%', background: AMBER }} />
+        <div style={{ width: `${(value / max) * 100}%`, height: '100%', background: AMBER }} />
       </div>
       <LcdLine dim>rotate [DIAL] · push = next</LcdLine>
     </div>
@@ -351,24 +402,23 @@ function CenterGauge({ label, value }: { label: string; value: number }) {
 // ------------------------------------------------------------- panel -------
 
 export default function RadioFront({
-  s, dispatch, model = 'M330', holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
+  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec, highlightControl,
 }: Props) {
   const { tp } = useI18n();
   const [coverOpen, setCoverOpen] = useState(false);
-  // Faceplate differences (IC-M323 manual): the clear key is silkscreened
-  // CLEAR, not CLR. DSC procedures modeled after the IC-M330 firmware.
-  const clrLabel = model === 'M323' ? 'CLEAR' : 'CLR';
-  const nameplate = model === 'M323' ? 'ICOM · IC-M323' : 'ICOM · IC-M330GE';
+  const profile = radioProfile(model);
   const dialTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialFiredHold = useRef(false);
+  const callTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const callFiredHold = useRef(false);
 
-  // [DIAL]: short press = volume/squelch, hold >= 600 ms = power (manual: 1 s).
+  // Both manuals specify a one second hold for power and Call Channel.
   const dialDown = useCallback(() => {
     dialFiredHold.current = false;
     dialTimer.current = setTimeout(() => {
       dialFiredHold.current = true;
       dispatch({ type: 'dial-hold' });
-    }, 600);
+    }, 1000);
   }, [dispatch]);
   const dialUp = useCallback(() => {
     if (dialTimer.current) clearTimeout(dialTimer.current);
@@ -378,12 +428,47 @@ export default function RadioFront({
     if (dialTimer.current) clearTimeout(dialTimer.current);
     dialFiredHold.current = true; // a cancelled gesture must not fire dial-push later
   }, []);
-  useEffect(() => () => { if (dialTimer.current) clearTimeout(dialTimer.current); }, []);
+  const callDown = useCallback(() => {
+    callFiredHold.current = false;
+    callTimer.current = setTimeout(() => {
+      callFiredHold.current = true;
+      dispatch({ type: 'key-16c-hold' });
+    }, 1000);
+  }, [dispatch]);
+  const callUp = useCallback(() => {
+    if (callTimer.current) clearTimeout(callTimer.current);
+    if (!callFiredHold.current) dispatch({ type: 'key-16c' });
+  }, [dispatch]);
+  const callCancel = useCallback(() => {
+    if (callTimer.current) clearTimeout(callTimer.current);
+    callFiredHold.current = true;
+  }, []);
+  const isActivationKey = (key: string) => key === ' ' || key === 'Enter';
+  useEffect(() => () => {
+    if (dialTimer.current) clearTimeout(dialTimer.current);
+    if (callTimer.current) clearTimeout(callTimer.current);
+  }, []);
 
   return (
-    <div className="rounded-2xl p-4" style={{ background: 'linear-gradient(180deg,#2b333c,#171d24)', border: '1px solid var(--border-subtle)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
+    <div data-radio-highlight={highlightControl} className="radio-front rounded-2xl p-4" style={{ background: 'linear-gradient(180deg,#2b333c,#171d24)', border: '1px solid var(--border-subtle)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
+      {highlightControl && (
+        <style>{`
+          [data-radio-highlight="${highlightControl}"] [data-testid="${highlightControl}"] {
+            outline: 3px solid var(--accent-cyan);
+            outline-offset: 3px;
+            animation: radio-control-pulse 1.35s ease-in-out infinite;
+          }
+          @keyframes radio-control-pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.2); }
+            50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
+          }
+          @media (prefers-reduced-motion: reduce) {
+            [data-radio-highlight="${highlightControl}"] [data-testid="${highlightControl}"] { animation: none; }
+          }
+        `}</style>
+      )}
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] font-bold tracking-widest text-white/60">{nameplate}</span>
+        <span className="text-[11px] font-bold tracking-widest text-white/60">{profile.nameplate}</span>
         <span className="text-[10px] text-white/40">VHF MARINE TRANSCEIVER</span>
       </div>
 
@@ -407,6 +492,12 @@ export default function RadioFront({
               onPointerUp={onDistressUp}
               onPointerLeave={onDistressUp}
               onPointerCancel={onDistressUp}
+              onKeyDown={(e) => {
+                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
+              }}
+              onKeyUp={(e) => {
+                if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
+              }}
               className="flex min-h-[54px] w-full select-none flex-col items-center justify-center rounded-md text-[10px] font-extrabold text-white transition active:scale-95 disabled:opacity-100"
               style={{ background: 'linear-gradient(180deg,#e84c3d,#a81f14)', border: '1px solid rgba(0,0,0,0.4)', boxShadow: '0 2px 6px rgba(0,0,0,0.5)', touchAction: 'none' }}
             >
@@ -450,7 +541,23 @@ export default function RadioFront({
           <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} />
           <div className="mt-2 grid grid-cols-4 gap-2">
             {softkeys(s).map((k, i) => (
-              <Key key={i} id={`soft-${i}`} small tone="soft" disabled={!s.power || !k} onClick={() => dispatch({ type: 'soft', index: i })}>
+              <Key
+                key={i}
+                id={`soft-${i}`}
+                small
+                tone="soft"
+                disabled={!s.power || !k}
+                onClick={k === 'AQUA' ? undefined : () => dispatch({ type: 'soft', index: i })}
+                onPointerDown={k === 'AQUA' ? () => dispatch({ type: 'aqua-down' }) : undefined}
+                onPointerUp={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
+                onPointerLeave={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
+                onKeyDown={k === 'AQUA' ? (e) => {
+                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
+                } : undefined}
+                onKeyUp={k === 'AQUA' ? (e) => {
+                  if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
+                } : undefined}
+              >
                 {k || '·'}
               </Key>
             ))}
@@ -458,17 +565,31 @@ export default function RadioFront({
         </div>
 
         {/* right column: nav cluster + 16/C + DIAL */}
-        <div className="order-3 flex w-[118px] flex-1 flex-col items-center gap-1.5 sm:max-w-[130px] sm:flex-none">
+        <div className="order-3 flex min-w-[156px] flex-1 flex-col items-center gap-1.5 sm:max-w-[156px] sm:flex-none">
           <div className="grid w-full grid-cols-3 gap-1">
             <Key id="key-left" small ariaLabel="Softkey page left" onClick={() => dispatch({ type: 'soft-page', dir: -1 })}>◀</Key>
             <Key id="key-up" small ariaLabel="Up / channel up" onClick={() => dispatch({ type: 'up' })}>▲</Key>
             <Key id="key-right" small ariaLabel="Softkey page right" onClick={() => dispatch({ type: 'soft-page', dir: 1 })}>▶</Key>
-            <Key id="key-clr" small ariaLabel="Clear / back" onClick={() => dispatch({ type: 'clr' })}>{clrLabel}</Key>
+            <Key id="key-clr" small ariaLabel="Clear / back" onClick={() => dispatch({ type: 'clr' })}>{profile.clearLabel}</Key>
             <Key id="key-down" small ariaLabel="Down / channel down" onClick={() => dispatch({ type: 'down' })}>▼</Key>
             <Key id="key-menu" small ariaLabel="Menu" onClick={() => dispatch({ type: 'menu' })}>MENU</Key>
           </div>
           <Key id="key-ent" small wide ariaLabel="Enter" onClick={() => dispatch({ type: 'ent' })}>ENT</Key>
-          <Key id="key-16c" round tone="blue" ariaLabel="Channel 16" onClick={() => dispatch({ type: 'key-16c' })}>
+          <Key
+            id="key-16c"
+            round
+            tone="blue"
+            ariaLabel="Channel 16, hold for Call Channel"
+            onPointerDown={callDown}
+            onPointerUp={callUp}
+            onPointerLeave={callCancel}
+            onKeyDown={(e) => {
+              if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
+            }}
+            onKeyUp={(e) => {
+              if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
+            }}
+          >
             <span className="px-2 py-1">16/C</span>
           </Key>
           {/* DIAL: rotate via side arrows, push/hold via center */}
@@ -482,6 +603,12 @@ export default function RadioFront({
               onPointerUp={dialUp}
               onPointerLeave={dialCancel}
               onPointerCancel={dialCancel}
+              onKeyDown={(e) => {
+                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dialDown(); }
+              }}
+              onKeyUp={(e) => {
+                if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
+              }}
               className="flex h-[52px] w-[52px] select-none items-center justify-center rounded-full text-[8px] font-bold text-white/70 transition active:scale-95"
               style={{ background: 'radial-gradient(circle at 35% 30%, #4a545f, #20262d 70%)', border: '2px solid rgba(255,255,255,0.12)', boxShadow: '0 3px 8px rgba(0,0,0,0.6)', touchAction: 'none' }}
             >
@@ -505,6 +632,12 @@ export default function RadioFront({
           onPointerUp={onPttUp}
           onPointerLeave={onPttUp}
           onPointerCancel={onPttUp}
+          onKeyDown={(e) => {
+            if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
+          }}
+          onKeyUp={(e) => {
+            if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
+          }}
           className="flex min-h-[52px] flex-1 select-none items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white transition active:scale-[0.98]"
           style={{
             background: s.ptt ? 'linear-gradient(180deg,#e84c3d,#a81f14)' : 'linear-gradient(180deg,#39424c,#232b33)',

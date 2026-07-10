@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { CYRILLIC_RE, usePlOnly } from '../../sternik/plOnly';
 import MicCheck from '../MicCheck';
+import InteractiveRadioCourse from './InteractiveRadioCourse';
 
 // ============================================================================
 // /radio/obsluga - a full operating + maintenance guide to a marine VHF set:
@@ -114,9 +115,12 @@ export default function RadioGuidePage() {
         )}
       </p>
 
+      <InteractiveRadioCourse />
+
       {/* TOC */}
       <nav className="mb-8 grid gap-1 rounded-2xl p-4 sm:grid-cols-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
         {[
+          ['interaktywny-kurs', 'Kurs interaktywny', 'Интерактивный курс'],
           ['mikrofon', '0. Sprawdz mikrofon', 'Проверка микрофона'],
           ['budowa', '1. Budowa radia - co i po co', 'Устройство рации'],
           ['squelch', '2. Squelch (blokada szumow)', 'Шумоподавитель'],

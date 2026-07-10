@@ -124,11 +124,24 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
-          for path in / /game /leaderboard /anatomy /simulator /courses; do
+          for path in / /game /leaderboard /anatomy /simulator /courses /radio /radio/obsluga /radio/symulator /radio/test; do
             code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://weektoregatta.com$path")
             echo "HTTP $code  $path"
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
           done
+          # Microphone must be same-origin allowed for the radio voice trainer.
+          # The header comes from the SHARED nginx_server reverse proxy, which is
+          # external to this repo's docker-compose and is NOT applied by this
+          # deploy. Until regatta.nginx.conf is copied to the shared proxy and it
+          # is reloaded (see docs/design/sternik-radio.md), warn instead of fail
+          # so an un-reloaded proxy never blocks an otherwise-good deploy.
+          policy=$(curl -sSI -m 15 "https://weektoregatta.com/radio/symulator" | tr -d '\r' | grep -i '^permissions-policy:' || true)
+          echo "$policy"
+          if echo "$policy" | grep -Fq 'microphone=(self)'; then
+            echo "OK: microphone is allowed for same-origin radio training"
+          else
+            echo "WARN: microphone is not allowed yet - reload the shared nginx_server with the updated regatta.nginx.conf to enable the voice trainer on prod"
+          fi
 
   e2e:
     name: Playwright E2E on prod

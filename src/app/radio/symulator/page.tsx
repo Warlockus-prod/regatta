@@ -5,11 +5,11 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs } from '../../sternik/prefs';
 import { useFocusTrap } from '../../sternik/useFocusTrap';
-import RadioFront, { type RadioModel } from './RadioFront';
-import VoicePtt, { type VoiceResult } from './VoicePtt';
+import RadioFront from './RadioFront';
+import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
 import {
-  DEFAULT_VARIANT, INITIAL_RADIO, POSITION_POOL, VESSEL_POOL, radioReducer,
-  type RadioEvent, type RadioState, type Variant,
+  DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
+  type RadioEvent, type RadioModel, type RadioState, type Variant,
 } from './radioModel';
 import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios';
 
@@ -26,8 +26,6 @@ const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 
 const PROGRESS_KEY = 'sternik.radio.progress.v1';
 const ONBOARD_KEY = 'sternik.radio.onboard.v1';
 const MODEL_KEY = 'sternik.radio.model.v1';
-/** manual: "Next TX after 4 min 6 sec." */
-const RETX_SECONDS = 246;
 /** simulated coast station answers this fast (real world: up to minutes). */
 const ACK_DELAY_MS = 7000;
 
@@ -64,7 +62,7 @@ export default function RadioSimulatorPage() {
 
   // --- radio state (imperative ref + render tick: avoids StrictMode double
   // side-effects that a reducer-with-effects would suffer) -------------------
-  const rsRef = useRef<RadioState>(INITIAL_RADIO);
+  const rsRef = useRef<RadioState>(createInitialRadio());
   const [, force] = useState(0);
   const rs = rsRef.current;
 
@@ -77,8 +75,8 @@ export default function RadioSimulatorPage() {
   const [pageLog, setPageLog] = useState<LogRow[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [finishedAt, setFinishedAt] = useState<number | null>(null);
-  const [voiceArmed, setVoiceArmed] = useState(false);
   const [voiceResult, setVoiceResult] = useState<VoiceResult | null>(null);
+  const voicePttRef = useRef<VoicePttHandle | null>(null);
   const [progress, setProgress] = useState<ProgressMap>({});
   const [onboardStep, setOnboardStep] = useState<number | null>(null);
   /** randomized per-run scenario variant: vessel identity, position, POB. */
@@ -88,11 +86,19 @@ export default function RadioSimulatorPage() {
   useEffect(() => {
     try {
       const m = window.localStorage.getItem(MODEL_KEY);
-      if (m === 'M323' || m === 'M330') setModel(m);
+      if (m === 'M323' || m === 'M330') {
+        setModel(m);
+        rsRef.current = createInitialRadio(m);
+        force((n) => n + 1);
+      }
     } catch { /* ignore */ }
   }, []);
   const pickModel = useCallback((m: RadioModel) => {
     setModel(m);
+    if (!scenarioRef.current) {
+      rsRef.current = createInitialRadio(m);
+      force((n) => n + 1);
+    }
     try { window.localStorage.setItem(MODEL_KEY, m); } catch { /* ignore */ }
   }, []);
   const variantData: VariantData = {
@@ -163,7 +169,8 @@ export default function RadioSimulatorPage() {
         doneRef.current.add(step.id);
         if (!isExam) setPageLog((l) => [...l, { t: Date.now(), text: `✓ ${bi(step.todo)}`, kind: 'step' }]);
         if (step.voice) {
-          setVoiceArmed(true); // scenario waits for the voice phase to finish
+          // The step advances only after VoicePtt returns a passing grade, or
+          // after line practice in learning mode.
         } else if (idx + 1 >= sc.steps.length) {
           setFinishedAt(Date.now());
         } else {
@@ -178,14 +185,41 @@ export default function RadioSimulatorPage() {
   // --- device timers -----------------------------------------------------------
   const [holdPct, setHoldPct] = useState(0);
   const holdRaf = useRef<number | null>(null);
+  const audioCtx = useRef<AudioContext | null>(null);
+  const distressSoundTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  const playTone = useCallback((frequency: number, durationMs: number, gainValue = 0.03) => {
+    try {
+      type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
+      const Ctor = window.AudioContext ?? (window as AudioWindow).webkitAudioContext;
+      if (!Ctor) return;
+      if (!audioCtx.current) audioCtx.current = new Ctor();
+      const context = audioCtx.current;
+      void context.resume?.();
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = frequency;
+      gain.gain.value = gainValue;
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start();
+      setTimeout(() => {
+        try { oscillator.stop(); oscillator.disconnect(); gain.disconnect(); } catch { /* ignore */ }
+      }, durationMs);
+    } catch { /* audio is optional */ }
+  }, []);
   const stopHold = useCallback(() => {
     if (holdRaf.current !== null) cancelAnimationFrame(holdRaf.current);
     holdRaf.current = null;
+    distressSoundTimers.current.forEach(clearTimeout);
+    distressSoundTimers.current = [];
     setHoldPct(0);
   }, []);
   const onDistressDown = useCallback(() => {
     dispatch({ type: 'distress-down' });
     if (rsRef.current.screen !== 'distress-hold') return;
+    [0, 900, 1800].forEach((delay) => {
+      distressSoundTimers.current.push(setTimeout(() => playTone(1500, 100), delay));
+    });
+    distressSoundTimers.current.push(setTimeout(() => playTone(1500, 500), 2700));
     const t0 = performance.now();
     const tick = () => {
       const p = Math.min(1, (performance.now() - t0) / 3000);
@@ -194,7 +228,7 @@ export default function RadioSimulatorPage() {
       holdRaf.current = requestAnimationFrame(tick);
     };
     holdRaf.current = requestAnimationFrame(tick);
-  }, [dispatch]);
+  }, [dispatch, playTone]);
   const onDistressUp = useCallback(() => {
     if (holdRaf.current !== null) { stopHold(); dispatch({ type: 'distress-up' }); }
   }, [dispatch, stopHold]);
@@ -210,6 +244,10 @@ export default function RadioSimulatorPage() {
       const id = setTimeout(() => dispatch({ type: 'cancel-txdone' }), 1600);
       return () => clearTimeout(id);
     }
+    if (screen === 'otherdsc-sent' && rsRef.current.odAwaitingAck) {
+      const id = setTimeout(() => dispatch({ type: 'otherdsc-ack' }), 2500);
+      return () => clearTimeout(id);
+    }
     if (screen === 'distress-wait' && scenarioRef.current?.id !== 'false-cancel') {
       const id = setTimeout(() => dispatch({ type: 'coast-ack' }), ACK_DELAY_MS);
       return () => clearTimeout(id);
@@ -221,14 +259,15 @@ export default function RadioSimulatorPage() {
   // The counter lives in a ref and dispatch happens in the interval callback,
   // never inside a state updater (updaters must stay pure - StrictMode
   // double-invokes them).
-  const [nextTxSec, setNextTxSec] = useState(RETX_SECONDS);
-  const nextTxRef = useRef(RETX_SECONDS);
+  const retxSeconds = radioProfile(rs.model).retxSeconds;
+  const [nextTxSec, setNextTxSec] = useState(retxSeconds);
+  const nextTxRef = useRef(retxSeconds);
   useEffect(() => {
-    if (screen !== 'distress-wait') { nextTxRef.current = RETX_SECONDS; setNextTxSec(RETX_SECONDS); return undefined; }
+    if (screen !== 'distress-wait') { nextTxRef.current = retxSeconds; setNextTxSec(retxSeconds); return undefined; }
     const id = setInterval(() => {
       if (rsRef.current.retxPaused) return;
       if (nextTxRef.current <= 1) {
-        nextTxRef.current = RETX_SECONDS;
+        nextTxRef.current = retxSeconds;
         dispatch({ type: 'auto-retx' });
       } else {
         nextTxRef.current -= 1;
@@ -236,32 +275,43 @@ export default function RadioSimulatorPage() {
       setNextTxSec(nextTxRef.current);
     }, 1000);
     return () => clearInterval(id);
-  }, [screen, dispatch]);
+  }, [screen, dispatch, retxSeconds]);
 
   useEffect(() => () => stopHold(), [stopHold]);
 
-  // beep on state machine beeps counter - one shared AudioContext, reused
+  // Key confirmation beep. Distress and received-call alarms have their own
+  // manual-derived patterns below.
   const lastBeep = useRef(0);
-  const audioCtx = useRef<AudioContext | null>(null);
   useEffect(() => {
     if (rs.beeps === lastBeep.current) return;
     lastBeep.current = rs.beeps;
-    try {
-      type AudioWindow = Window & { webkitAudioContext?: typeof AudioContext };
-      const Ctor = window.AudioContext ?? (window as AudioWindow).webkitAudioContext;
-      if (!Ctor) return;
-      if (!audioCtx.current) audioCtx.current = new Ctor();
-      const ctx = audioCtx.current;
-      void ctx.resume?.();
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.frequency.value = 1400;
-      gain.gain.value = 0.03;
-      osc.connect(gain).connect(ctx.destination);
-      osc.start();
-      setTimeout(() => { try { osc.stop(); osc.disconnect(); gain.disconnect(); } catch { /* ignore */ } }, 90);
-    } catch { /* no audio - fine */ }
-  }, [rs.beeps]);
+    playTone(1350, 80);
+  }, [playTone, rs.beeps]);
+
+  useEffect(() => {
+    if (screen !== 'distress-ack' && screen !== 'otherdsc-ack') return undefined;
+    const alarm = () => {
+      playTone(1250, 180, 0.045);
+      setTimeout(() => playTone(900, 220, 0.045), 230);
+    };
+    alarm();
+    const id = setInterval(alarm, 1100);
+    return () => clearInterval(id);
+  }, [playTone, screen]);
+
+  useEffect(() => {
+    if (!rs.aquaActive) return undefined;
+    const pulse = () => playTone(165, 150, 0.06);
+    pulse();
+    const id = setInterval(pulse, 190);
+    return () => clearInterval(id);
+  }, [playTone, rs.aquaActive]);
+
+  useEffect(() => {
+    if (!rs.scanActive) return undefined;
+    const id = setInterval(() => dispatch({ type: 'scan-tick' }), 900);
+    return () => clearInterval(id);
+  }, [dispatch, rs.scanActive]);
   useEffect(() => () => { void audioCtx.current?.close().catch(() => {}); }, []);
 
   // 1 s stopwatch tick while a scenario is running (elapsed is derived from
@@ -296,11 +346,10 @@ export default function RadioSimulatorPage() {
     setVariant(v);
     const vessel = VESSEL_POOL[v.vesselIdx];
     const posDef = POSITION_POOL[v.posIdx];
-    rsRef.current = {
-      ...(sc.init ? sc.init(vessel) : INITIAL_RADIO),
-      vessel,
-      pos: { lat: posDef.lat, lon: posDef.lon },
-    };
+    const initial = createInitialRadio(model, vessel, { lat: posDef.lat, lon: posDef.lon });
+    rsRef.current = sc.init
+      ? { ...initial, ...sc.init(vessel), model, vessel, pos: { lat: posDef.lat, lon: posDef.lon } }
+      : initial;
     doneRef.current = new Set();
     setScenario(sc);
     setMode(m);
@@ -309,24 +358,22 @@ export default function RadioSimulatorPage() {
     setPageLog(sc.init ? rsRef.current.deviceLog.map((d) => ({ t: d.t, text: d.text, kind: d.kind as LogRow['kind'] })) : []);
     setStartedAt(Date.now());
     setFinishedAt(null);
-    setVoiceArmed(false);
     setVoiceResult(null);
     stopHold();
     force((n) => n + 1);
-  }, [stopHold]);
+  }, [model, stopHold]);
 
   const exitScenario = useCallback(() => {
     setScenario(null);
     setFinishedAt(null);
     setStartedAt(null);
-    rsRef.current = INITIAL_RADIO;
+    rsRef.current = createInitialRadio(model);
     stopHold();
     force((n) => n + 1);
-  }, [stopHold]);
+  }, [model, stopHold]);
 
   const onVoiceComplete = useCallback((r: VoiceResult | null) => {
     setVoiceResult(r);
-    setVoiceArmed(false);
     const sc = scenarioRef.current;
     if (!sc) return;
     const idx = stepIdxRef.current;
@@ -337,6 +384,7 @@ export default function RadioSimulatorPage() {
   // score + persistence on finish
   const doneCount = scenario ? scenario.steps.filter((s) => doneRef.current.has(s.id)).length : 0;
   const procScore = scenario ? Math.max(0, Math.round((doneCount / scenario.steps.length) * 100) - mistakes.length * 10) : 0;
+  const finalScore = voiceResult ? Math.round(procScore * 0.65 + voiceResult.score * 0.35) : procScore;
   useEffect(() => {
     if (!scenario || finishedAt === null || startedAt === null) return;
     const timeSec = Math.round((finishedAt - startedAt) / 1000);
@@ -346,8 +394,8 @@ export default function RadioSimulatorPage() {
         ...p,
         [scenario.id]: {
           attempts: prev.attempts + 1,
-          best: Math.max(prev.best, procScore),
-          lastScore: procScore,
+          best: Math.max(prev.best, finalScore),
+          lastScore: finalScore,
           bestTimeSec: prev.bestTimeSec === null ? timeSec : Math.min(prev.bestTimeSec, timeSec),
         },
       };
@@ -413,9 +461,9 @@ export default function RadioSimulatorPage() {
           {model === 'M323' && (
             <div className="mb-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               {tp(
-                'Вид панели IC-M323 (второй аппарат на практике UKE). Процедуры DSC смоделированы по прошивке IC-M330 - на M323 клавиша подписана CLEAR, ручка по умолчанию крутит громкость, а отмена алерта заканчивается без шага STBY.',
-                'IC-M323 faceplate (the other UKE set). DSC procedures follow the IC-M330 firmware - on a real M323 the key is CLEAR, the dial rotates volume by default and the cancel flow ends without the STBY step.',
-                'Widok panelu IC-M323 (drugi zestaw na praktyce UKE). Procedury DSC wg IC-M330 - na prawdziwym M323 klawisz to CLEAR, pokretlo domyslnie zmienia glosnosc, a odwolanie alertu konczy sie bez kroku STBY.',
+                'Профиль IC-M323: клавиша CLEAR, отдельное дерево меню, цикл ручки VOL -> SQL -> CH -> подсветка, таймер повтора 3:42 и завершение отмены без отдельного STBY.',
+                'IC-M323 profile: CLEAR key, its own menu tree, VOL -> SQL -> CH -> backlight dial cycle, 3:42 repeat timer, and cancel completion without a separate STBY step.',
+                'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokretla VOL -> SQL -> CH -> podswietlenie, czas powtorki 3:42 i zakonczenie odwolania bez osobnego STBY.',
               )}
             </div>
           )}
@@ -493,8 +541,14 @@ export default function RadioSimulatorPage() {
                 holdPct={holdPct}
                 onDistressDown={onDistressDown}
                 onDistressUp={onDistressUp}
-                onPttDown={() => dispatch({ type: 'ptt-down' })}
-                onPttUp={() => dispatch({ type: 'ptt-up' })}
+                onPttDown={() => {
+                  dispatch({ type: 'ptt-down' });
+                  voicePttRef.current?.startRecording();
+                }}
+                onPttUp={() => {
+                  dispatch({ type: 'ptt-up' });
+                  voicePttRef.current?.stopRecording();
+                }}
                 clock={clock}
                 nextTxSec={nextTxSec}
               />
@@ -521,7 +575,7 @@ export default function RadioSimulatorPage() {
                 <div data-testid="debrief" className="mb-3 rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
                   <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Разбор', 'Debrief', 'Omowienie')}</div>
                   <div className="flex flex-wrap items-baseline gap-3">
-                    <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 ? 'var(--success)' : 'var(--text-primary)' }}>{procScore}%</span>
+                    <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{finalScore}%</span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                       {tp('шаги', 'steps', 'kroki')} {doneCount}/{scenario.steps.length} · ⏱ {fmtTime(elapsedSec)}
                       {voiceResult && <> · 🎙️ {voiceResult.score}%</>}
@@ -587,14 +641,19 @@ export default function RadioSimulatorPage() {
                   </div>
 
                   {/* voice phase */}
-                  {voiceArmed && currentStep?.voice && (
+                  {currentStep?.voice && (
                     <div className="mb-3">
                       <VoicePtt
+                        ref={voicePttRef}
                         kind={currentStep.voice.kind}
                         lines={currentStep.voice.lines(variantData)}
                         vesselIdx={variant.vesselIdx}
+                        positionIdx={variant.posIdx}
+                        pob={variant.pob}
                         ru={showRu}
                         hideScript={!learning}
+                        allowLinePractice={learning}
+                        minimumScore={70}
                         onComplete={onVoiceComplete}
                       />
                     </div>
