@@ -230,6 +230,58 @@ export default function Rules() {
           <Text variant="body" style={styles.introText}>{intro}</Text>
         </View>
 
+        {/* Kursy (patenty) - Polish licence courses embedded from the web */}
+        <View style={styles.sectionHeader}>
+          <View style={[styles.badge, styles.badgeColregs]}>
+            <Text style={[styles.badgeText, { color: colors.accentCyan }]}>🎓 KURSY</Text>
+          </View>
+          <Text variant="subtitle" style={styles.sectionTitle}>
+            {tp('Курсы (патенты PL)', 'Courses (PL licences)', 'Kursy (patenty PL)', {
+              es: 'Cursos (licencias PL)', fr: 'Cours (permis PL)', de: 'Kurse (PL-Patente)', it: 'Corsi (patenti PL)',
+            })}
+          </Text>
+        </View>
+        <Card
+          onPress={() => router.push('/kursy/motorowodny')}
+          accessibilityRole="button"
+          accessibilityLabel="Sternik motorowodny"
+          style={styles.card}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={styles.icon}>⚓</Text>
+            <View style={styles.cardText}>
+              <Text variant="subtitle">Sternik motorowodny</Text>
+              <Text variant="caption" style={styles.scene} numberOfLines={2}>
+                {tp(
+                  'Теория, тренажёр вопросов и пробный экзамен - на польском.',
+                  'Theory, question trainer and mock exam - in Polish.',
+                  'Teoria, trening pytan i egzamin probny - po polsku.',
+                )}
+              </Text>
+            </View>
+          </View>
+        </Card>
+        <Card
+          onPress={() => router.push('/kursy/radio')}
+          accessibilityRole="button"
+          accessibilityLabel="SRC Radio"
+          style={styles.card}
+        >
+          <View style={styles.cardHeader}>
+            <Text style={styles.icon}>📻</Text>
+            <View style={styles.cardText}>
+              <Text variant="subtitle">SRC Radio</Text>
+              <Text variant="caption" style={styles.scene} numberOfLines={2}>
+                {tp(
+                  'Свидетельство SRC, симулятор ICOM с голосом, 26 заданий UKE - на польском.',
+                  'SRC certificate, ICOM voice simulator, 26 UKE tasks - in Polish.',
+                  'Swiadectwo SRC, symulator ICOM z glosem, 26 zadan UKE - po polsku.',
+                )}
+              </Text>
+            </View>
+          </View>
+        </Card>
+
         {/* RRS section */}
         <View style={styles.sectionHeader}>
           <View style={[styles.badge, styles.badgeRrs]}>
