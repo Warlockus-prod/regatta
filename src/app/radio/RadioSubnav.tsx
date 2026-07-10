@@ -11,6 +11,7 @@ export default function RadioSubnav() {
 
   const tabs = [
     { href: '/radio', label: tp('Рация и SRC', 'Radio and SRC', 'Radio i SRC'), icon: '📻' },
+    { href: '/radio/obsluga', label: tp('Путеводитель', 'Guide', 'Poradnik'), icon: '🛠️' },
     { href: '/radio/symulator', label: tp('Симулятор', 'Simulator', 'Symulator'), icon: '🎙️' },
     { href: '/radio/test', label: tp('Тренажёр UKE', 'UKE trainer', 'Trening UKE'), icon: '✅' },
   ];

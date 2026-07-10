@@ -261,6 +261,28 @@ export default function SternikRadioPage() {
         <div className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>{tp('Открыть', 'Open', 'Otworz')} {'->'}</div>
       </Link>
 
+      {/* Guide CTA */}
+      <Link
+        href="/radio/obsluga"
+        className="mb-6 flex items-center gap-4 rounded-2xl p-4 transition hover:-translate-y-0.5"
+        style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
+      >
+        <div className="text-3xl">🛠️</div>
+        <div className="flex-1">
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {tp('Путеводитель по рации', 'Radio guide', 'Poradnik radia')}
+          </div>
+          <p className="mt-0.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {tp(
+              'Что делает каждая кнопка и зачем, как выйти в эфир, как обслуживать рацию. Плюс проверка микрофона для голосового режима.',
+              'What each control does and why, how to get on air, how to maintain the radio. Plus a microphone check for voice mode.',
+              'Co robi kazdy przycisk i po co, jak nadawac, jak konserwowac radio. Plus sprawdzenie mikrofonu do trybu glosowego.',
+            )}
+          </p>
+        </div>
+        <div className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>{tp('Открыть', 'Open', 'Otworz')} {'->'}</div>
+      </Link>
+
       {/* TOC */}
       <nav className="mb-8 grid gap-1 rounded-2xl p-4 sm:grid-cols-2" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
         {[

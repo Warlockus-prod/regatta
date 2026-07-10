@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { VoiceSpec } from './scenarios';
+import MicCheck from '../MicCheck';
 
 type VoiceKind = VoiceSpec['kind'];
 
@@ -42,6 +43,7 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<VoiceResult | null>(null);
   const [voiceUnavailable, setVoiceUnavailable] = useState(false);
+  const [showMicCheck, setShowMicCheck] = useState(false);
 
   const mediaRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
@@ -193,6 +195,19 @@ export default function VoicePtt({ kind, lines, vesselIdx, ru, hideScript = fals
       </div>
 
       {error && <div className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{error}</div>}
+
+      {/* mic check - lets the user verify the browser hears them before/after
+          a failed recording, and diagnose permission problems */}
+      <button
+        type="button"
+        data-testid="voice-miccheck-toggle"
+        onClick={() => setShowMicCheck((v) => !v)}
+        className="mt-2 text-xs underline"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        {ru ? (showMicCheck ? 'Скрыть проверку микрофона' : 'Проверить микрофон') : (showMicCheck ? 'Ukryj sprawdzenie mikrofonu' : 'Sprawdz mikrofon')}
+      </button>
+      {showMicCheck && <div className="mt-2"><MicCheck compact /></div>}
 
       {result && (
         <div data-testid="voice-result" className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
