@@ -96,4 +96,16 @@ describe('routine / test / medical / relay call grading', () => {
       'MAYDAY MAYDAY MAYDAY THIS IS BALTIC STAR BALTIC STAR BALTIC STAR POSITION FIVE FOUR NORTH NEPTUN IS SINKING OVER');
     expect(g.checks.find((c) => c.id === 'relay3')?.ok).toBe(false);
   });
+
+  it('accepts a correct MAYDAY acknowledgement of a received distress', () => {
+    const g = grade('mayday-ack',
+      'MAYDAY NEPTUN NEPTUN NEPTUN THIS IS BALTIC STAR BALTIC STAR BALTIC STAR RECEIVED MAYDAY OVER');
+    expect(g.score).toBe(100);
+  });
+
+  it('accepts a correct answer to an incoming individual call', () => {
+    const g = grade('answer-call',
+      'TRAINING SHIP TRAINING SHIP THIS IS BALTIC STAR BALTIC STAR GO AHEAD OVER');
+    expect(g.score).toBe(100);
+  });
 });

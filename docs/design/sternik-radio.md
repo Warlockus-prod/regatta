@@ -178,14 +178,24 @@ not a 1:1 radio. Honest limits:
     on the agreed working channel; mistake detector for designating CH 16.
 12. `mayday-relay` - relay another vessel's MAYDAY by voice on 16 (MAYDAY
     RELAY), NOT the red key; grader checks the relay proword and casualty data.
+13. `receive-distress` - RECEIVING side: the radio starts (via `init`)
+    already showing an inbound DSC distress from NEPTUN. Alarm off -> watch
+    on 16 -> acknowledge by voice ("RECEIVED MAYDAY") only when the coast
+    station is silent; mistake detector for transmitting your own distress.
+14. `receive-call` - RECEIVING side: an inbound routine Individual DSC call
+    proposing CH 72. Accept -> auto-switch to the working channel -> answer
+    by voice.
 
-Scenarios 7-12 follow the standard SRC/GMDSS practical task categories
+Scenarios 7-14 follow the standard SRC/GMDSS practical task categories
 (routine correspondence, DSC test/individual, medical urgency, distress
-relay) rather than a verbatim UKE numbered list, which is not published in
-the exam materials we could verify. They run on the same reducer; each is
-covered by a completability walkthrough in `scenarios.test.ts` (M330 + an
-M323 cross-model check) and, where voiced, a grader test in
-`voiceGrading.test.ts`.
+relay, receiving a call/distress) rather than a verbatim UKE numbered list,
+which is not published in the exam materials we could verify. They run on the
+same reducer; the receiving pair (13-14) starts already showing the inbound
+call via `init` (the `false-cancel` pattern) and adds two read-only screens
+(`rx-distress-alert`, `rx-individual-call`) plus `[ALARM OFF]`/`[ACCEPT]`
+softkeys - no new events, no page timers. Each scenario has a completability
+walkthrough in `scenarios.test.ts` (M330 + an M323 cross-model check) and,
+where voiced, a grader test in `voiceGrading.test.ts`.
 
 Modes: **nauka** (step instructions + WHY shown live) and **egzamin**
 (situation only; the full WHY walkthrough appears in the debrief).
@@ -332,12 +342,13 @@ smoke step warns (does not fail) when the header is still missing.
 
 ## Roadmap (next versions)
 
-- **Receiving side**: 12 transmit scenarios ship today (distress, the three
-  urgency calls, safety, routine marina/VTS/ship, DSC test, distress cancel,
-  MAYDAY relay). The remaining gap is the RECEIVE side - answering an
-  incoming DSC individual call and acknowledging a received distress by
-  voice - which needs an incoming-DSC event/screen in the reducer (the
-  current model only injects coast/DSC ACKs to your own calls).
+- **14 scenarios ship today**: distress, the three urgency calls, safety,
+  routine marina/VTS/ship, DSC test, distress cancel, MAYDAY relay, plus the
+  receiving side (received distress + received individual call). Remaining
+  nice-to-haves: a timed incoming call that arrives mid-standby (today the
+  receiving scenarios start already ringing via `init`), an on-device MMSI
+  address book, distress-relay via DSC (not just voice), and EPIRB/SART
+  dummies. None are core to the SRC practical.
 - OTHER DSC free MMSI address book (today: fixed 3-entry list), Distress
   relay, EPIRB/SART dummies (exam card includes them).
 - Voice-first exam mode, GPT feedback on transcripts.
