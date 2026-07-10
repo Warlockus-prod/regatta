@@ -122,7 +122,20 @@ export type ScreenId =
   | 'distress-compose' | 'distress-nature' | 'distress-hold' | 'distress-tx'
   | 'distress-wait' | 'distress-ack' | 'distress-ack-done'
   | 'cancel-confirm' | 'cancel-tx' | 'cancel-voice' | 'cancel-done'
-  | 'otherdsc-compose' | 'otherdsc-field' | 'otherdsc-sent' | 'otherdsc-ack';
+  | 'otherdsc-compose' | 'otherdsc-field' | 'otherdsc-sent' | 'otherdsc-ack'
+  | 'rx-distress-alert' | 'rx-individual-call';
+
+/** A distress alert received FROM another vessel (receiving-side scenarios). */
+export const RX_DISTRESS = {
+  name: 'NEPTUN',
+  mmsi: '261099999',
+  pos: { lat: '54°40.0N', lon: '018°50.0E' },
+  spoken: '54 40 NORTH, 018 50 EAST',
+  nature: 'Sinking',
+  pob: 3,
+} as const;
+/** An incoming routine individual DSC call, proposing a working channel. */
+export const RX_CALLER = { label: 'TRAINING SHIP', mmsi: '261111111', channel: '72' } as const;
 
 export interface DeviceLogEntry {
   t: number;
@@ -172,6 +185,10 @@ export interface RadioState {
   odFieldCursor: number;
   odAwaitingAck: boolean;
   odSent: { type: string; address: string; category: string; channel: string } | null;
+  /** an inbound distress alert being displayed (receive-side scenarios). */
+  rxDistress: { name: string; mmsi: string; spoken: string; nature: string; pob: number } | null;
+  /** an inbound routine individual DSC call being displayed. */
+  rxCall: { label: string; mmsi: string; channel: string } | null;
   deviceLog: DeviceLogEntry[];
   beeps: number;
 }
@@ -212,7 +229,7 @@ export function createInitialRadio(
     odType: 2, odAddress: 0, odCategory: 0,
     odChannel: DSC_VOICE_CHANNELS.findIndex((c) => c === '16'),
     odCursor: 0, odField: null, odFieldCursor: 0, odAwaitingAck: false,
-    odSent: null, deviceLog: [], beeps: 0,
+    odSent: null, rxDistress: null, rxCall: null, deviceLog: [], beeps: 0,
   };
 }
 
@@ -249,6 +266,8 @@ export function softkeys(s: RadioState): string[] {
     case 'cancel-done': return ['STBY', '', '', ''];
     case 'otherdsc-sent': return ['STBY', '', '', ''];
     case 'otherdsc-ack': return ['ALARM OFF', 'STBY', '', ''];
+    case 'rx-distress-alert': return ['ALARM OFF', '', '', ''];
+    case 'rx-individual-call': return ['ACCEPT', 'REFUSE', '', ''];
     case 'standby': {
       const pages = standbySoftkeyPages(s);
       const page = pages[s.softPage % pages.length];
@@ -495,7 +514,15 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         case 'CONTINUE': return { ...s, screen: 'cancel-tx', deviceLog: log(s, 'TX DSC Distress Cancel (CH 70)', 'tx') };
         case 'ALARM OFF':
           if (s.screen === 'otherdsc-ack') return { ...s, screen: 'otherdsc-sent', odAwaitingAck: false };
+          if (s.screen === 'rx-distress-alert') return { ...toStandby(s), channelIndex: CH16_INDEX, deviceLog: log(s, 'Alarm off - watch on CH 16. Listen; acknowledge by voice only if no coast station replies.') };
           return { ...s, screen: 'distress-ack-done', channelIndex: CH16_INDEX, deviceLog: log(s, 'Alarm off - CH 16 selected. Hold PTT and explain the situation.') };
+        case 'ACCEPT': {
+          if (s.screen !== 'rx-individual-call' || !s.rxCall) return s;
+          const idx = CHANNELS.findIndex((c) => c.num === s.rxCall!.channel);
+          return { ...toStandby(s), channelIndex: idx >= 0 ? idx : s.channelIndex, deviceLog: log(s, `Accepted call from ${s.rxCall.label} - CH ${s.rxCall.channel} selected`) };
+        }
+        case 'REFUSE':
+          return s.screen === 'rx-individual-call' ? { ...toStandby(s), deviceLog: log(s, 'Individual call refused') } : s;
         case 'FINISH':
           if (radioProfile(s.model).cancelRequiresStandby) return { ...s, screen: 'cancel-done' };
           return { ...toStandby(s), distressActive: false, ackReceived: false, retxCount: 0 };

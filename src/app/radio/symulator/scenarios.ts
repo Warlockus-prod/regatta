@@ -8,6 +8,7 @@
 
 import {
   CHANNELS, INITIAL_RADIO, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
+  RX_CALLER, RX_DISTRESS,
   type RadioEvent, type RadioState, type Vessel,
 } from './radioModel';
 
@@ -27,7 +28,8 @@ export interface VoiceSpec {
   kind:
     | 'mayday-fire' | 'panpan-mob' | 'panpan-engine' | 'securite-hazard'
     | 'radio-check' | 'cancel-false' | 'routine-marina' | 'routine-ship'
-    | 'routine-group' | 'panpan-medico' | 'vts-report' | 'mayday-relay';
+    | 'routine-group' | 'panpan-medico' | 'vts-report' | 'mayday-relay'
+    | 'mayday-ack' | 'answer-call';
   /** lines the user "reads" when stepping through with PTT clicks. */
   lines: (v: VariantData) => string[];
 }
@@ -871,6 +873,123 @@ const relayScenario: Scenario = {
   },
 };
 
+// ===========================================================================
+// Receiving side: the radio starts already showing an inbound DSC call (via
+// init, like false-cancel). No new events - the reducer renders the received
+// call and the softkeys ([ALARM OFF] / [ACCEPT]) drive the response.
+// ===========================================================================
+
+// --- scenario 13: receive another vessel's MAYDAY ---------------------------
+
+const MAYDAY_ACK_LINES = (v: VariantData) => [
+  'MAYDAY NEPTUN, NEPTUN, NEPTUN',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
+  'RECEIVED MAYDAY',
+  'OVER',
+];
+
+const receiveDistressScenario: Scenario = {
+  id: 'receive-distress',
+  icon: '📥',
+  init: (vessel) => ({
+    ...INITIAL_RADIO,
+    power: true,
+    screen: 'rx-distress-alert',
+    rxDistress: { name: RX_DISTRESS.name, mmsi: RX_DISTRESS.mmsi, spoken: RX_DISTRESS.spoken, nature: RX_DISTRESS.nature, pob: RX_DISTRESS.pob },
+    deviceLog: [
+      { t: Date.now() - 3000, text: 'Power ON - watch on CH 16 / CH 70 (DSC)', kind: 'ui' },
+      { t: Date.now() - 1000, text: `RX DSC DISTRESS from ${RX_DISTRESS.name} MMSI ${RX_DISTRESS.mmsi}, nature ${RX_DISTRESS.nature}`, kind: 'rx' },
+    ],
+  }),
+  title: { pl: 'Odbior cudzego MAYDAY', ru: 'Приём чужого MAYDAY' },
+  brief: {
+    pl: 'Twoje radio odebralo cyfrowy alarm DISTRESS z jachtu NEPTUN (tonie, 3 osoby) - rozlega sie alarm. Jako jacht NIE potwierdzasz cudzego DISTRESS przez DSC (to rola stacji brzegowej): wyciszasz alarm, sluchasz 16 i potwierdzasz GLOSEM dopiero, gdy stacja brzegowa nie odpowiada.',
+    ru: 'Твоя рация приняла цифровой DISTRESS с яхты NEPTUN (тонет, 3 человека) - звучит сигнал. Как яхта ты НЕ подтверждаешь чужой DISTRESS по DSC (это роль береговой станции): глушишь сигнал, слушаешь 16 и подтверждаешь ГОЛОСОМ только если береговая станция молчит.',
+  },
+  steps: [
+    {
+      id: 'alarm-off',
+      todo: { pl: 'Wycisz alarm ([ALARM OFF]) - radio ustawi kanal 16 do nasluchu', ru: 'Заглуши сигнал ([ALARM OFF]) - рация встанет на 16 для прослушивания' },
+      why: {
+        pl: 'Nie potwierdzaj cudzego DISTRESS przez DSC - to zadanie stacji brzegowej, a przedwczesny ACK jachtu wstrzymuje powtorki alarmu. Wycisz i sluchaj: kto sie zglasza?',
+        ru: 'Не подтверждай чужой DISTRESS по DSC - это задача береговой станции, а преждевременный ACK с яхты останавливает повторы. Заглуши и слушай: кто отвечает?',
+      },
+      check: (e, prev, next) => e.type === 'soft' && prev.screen === 'rx-distress-alert' && next.screen === 'standby' && ch(next) === '16',
+    },
+    {
+      id: 'ack-voice',
+      todo: { pl: 'Brak odpowiedzi stacji brzegowej - potwierdz odbior GLOSEM na 16', ru: 'Береговая станция молчит - подтверди приём ГОЛОСОМ на 16' },
+      why: {
+        pl: 'Gdy nikt nie potwierdza, a jestes w zasiegu: MAYDAY + nazwa jednostki w niebezpieczenstwie x3 -> THIS IS + TWOJA nazwa x3 -> RECEIVED MAYDAY. Potem rozwaz retransmisje i pomoc.',
+        ru: 'Когда никто не подтверждает, а ты в зоне: MAYDAY + название судна в беде x3 -> THIS IS + ТВОЁ название x3 -> RECEIVED MAYDAY. Затем рассмотри ретрансляцию и помощь.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+      voice: { kind: 'mayday-ack', lines: MAYDAY_ACK_LINES },
+    },
+  ],
+  mistakes: [
+    {
+      id: 'own-distress-on-receive',
+      text: { pl: 'Nadales WLASNY alarm DISTRESS - tobie nic nie grozi. Cudzy MAYDAY sie potwierdza/retransmituje, nie dubluje wlasnym alarmem.', ru: 'Ты подал СВОЙ DISTRESS - тебе ничего не грозит. Чужой MAYDAY подтверждают/ретранслируют, а не дублируют своим алертом.' },
+      detect: (e) => e.type === 'distress-held',
+    },
+  ],
+  debrief: {
+    pl: 'Kolejnosc przy odbiorze cudzego MAYDAY: 1) sluchaj, czy stacja brzegowa potwierdza; 2) jesli nie i jestes w zasiegu - potwierdz glosem RECEIVED MAYDAY; 3) rozwaz MAYDAY RELAY i pomoc. Jacht nie nadaje ACK przez DSC.',
+    ru: 'Порядок при приёме чужого MAYDAY: 1) слушай, подтверждает ли береговая станция; 2) если нет и ты в зоне - подтверди голосом RECEIVED MAYDAY; 3) рассмотри MAYDAY RELAY и помощь. Яхта не даёт ACK по DSC.',
+  },
+};
+
+// --- scenario 14: receive a routine individual DSC call ---------------------
+
+const ANSWER_LINES = (v: VariantData) => [
+  'TRAINING SHIP, TRAINING SHIP',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  'GO AHEAD, OVER',
+];
+
+const receiveCallScenario: Scenario = {
+  id: 'receive-call',
+  icon: '📲',
+  init: (vessel) => ({
+    ...INITIAL_RADIO,
+    power: true,
+    screen: 'rx-individual-call',
+    rxCall: { label: RX_CALLER.label, mmsi: RX_CALLER.mmsi, channel: RX_CALLER.channel },
+    deviceLog: [
+      { t: Date.now() - 2000, text: 'Power ON - watch on CH 16 / CH 70 (DSC)', kind: 'ui' },
+      { t: Date.now() - 500, text: `RX DSC individual call from ${RX_CALLER.label} MMSI ${RX_CALLER.mmsi}, proposed CH ${RX_CALLER.channel}`, kind: 'rx' },
+    ],
+  }),
+  title: { pl: 'Odbior wywolania indywidualnego DSC', ru: 'Приём индивидуального вызова DSC' },
+  brief: {
+    pl: 'Radio "dzwoni": jednostka szkolna (TRAINING SHIP) wywoluje cie indywidualnie przez DSC i proponuje kanal roboczy 72. Przyjmij wywolanie i odpowiedz glosem na uzgodnionym kanale.',
+    ru: 'Рация «звонит»: учебное судно (TRAINING SHIP) вызывает тебя индивидуально по DSC и предлагает рабочий канал 72. Прими вызов и ответь голосом на согласованном канале.',
+  },
+  steps: [
+    {
+      id: 'accept',
+      todo: { pl: 'Przyjmij wywolanie ([ACCEPT]) - radio przejdzie na proponowany kanal 72', ru: 'Прими вызов ([ACCEPT]) - рация перейдёт на предложенный канал 72' },
+      why: {
+        pl: 'ACCEPT potwierdza przyjecie i automatycznie przelacza na kanal roboczy zaproponowany przez wywolujacego - nie trzeba szukac kanalu recznie.',
+        ru: 'ACCEPT подтверждает приём и автоматически переключает на рабочий канал, предложенный вызывающим - искать канал вручную не нужно.',
+      },
+      check: (e, prev, next) => e.type === 'soft' && prev.screen === 'rx-individual-call' && next.screen === 'standby' && ch(next) === RX_CALLER.channel,
+    },
+    {
+      id: 'answer-voice',
+      todo: { pl: 'Odpowiedz glosem na kanale roboczym (PTT)', ru: 'Ответь голосом на рабочем канале (PTT)' },
+      why: {
+        pl: 'Odpowiadasz na kanale roboczym: [wywolujacy] x2 -> THIS IS + nazwa x2 -> tresc (GO AHEAD / odpowiedz) -> OVER.',
+        ru: 'Отвечаешь на рабочем канале: [вызывающий] x2 -> THIS IS + название x2 -> суть (GO AHEAD / ответ) -> OVER.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === RX_CALLER.channel && next.ptt,
+      voice: { kind: 'answer-call', lines: ANSWER_LINES },
+    },
+  ],
+  mistakes: [],
+};
+
 export const SCENARIOS: Scenario[] = [
   fireScenario,
   mobScenario,
@@ -884,4 +1003,6 @@ export const SCENARIOS: Scenario[] = [
   dscTestScenario,
   shipScenario,
   relayScenario,
+  receiveDistressScenario,
+  receiveCallScenario,
 ];

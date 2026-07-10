@@ -5,6 +5,7 @@ export const VOICE_KINDS = [
   'securite-hazard', 'radio-check', 'cancel-false',
   'routine-marina', 'routine-ship', 'routine-group',
   'panpan-medico', 'vts-report', 'mayday-relay',
+  'mayday-ack', 'answer-call',
 ] as const;
 export type VoiceKind = (typeof VOICE_KINDS)[number];
 
@@ -218,6 +219,21 @@ function buildChecks(input: VoiceGradeInput): Check[] {
         { id: 'position', label: 'pozycja jednostki w niebezpieczenstwie', test: (t) => /position/.test(t) },
         { id: 'nature', label: 'rodzaj zagrozenia', test: (t) => /(sinking|fire|flooding|aground|grounding|collision|abandon|taking water|help)/.test(t) },
         { id: 'order', label: 'kolejnosc: MAYDAY RELAY -> THIS IS -> pozycja', test: (t) => ordered(t, [/may\s?day relay/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'mayday-ack':
+      return [
+        { id: 'casualty', label: 'MAYDAY + nazwa jednostki w niebezpieczenstwie x3', test: (t) => count(t, /neptun/g) >= 3 },
+        ...identity.slice(0, 2),
+        { id: 'received', label: 'RECEIVED MAYDAY', test: (t) => /received may\s?day/.test(t) },
+        { id: 'order', label: 'kolejnosc: nazwa -> THIS IS -> RECEIVED MAYDAY', test: (t) => ordered(t, [/neptun/, /this is/, /received may\s?day/]) },
+        { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
+      ];
+    case 'answer-call':
+      return [
+        { id: 'station', label: 'wywolujaca jednostka (TRAINING SHIP) x2', test: (t) => count(t, /training ship/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejnosc: wywolujacy -> THIS IS', test: (t) => ordered(t, [/training ship/, /this is/]) },
         { id: 'over', label: 'OVER na koncu', test: (t) => /over$/.test(t) },
       ];
   }

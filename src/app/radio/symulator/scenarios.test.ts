@@ -53,8 +53,8 @@ describe('scenario catalogue integrity', () => {
     }
   });
 
-  it('ships the expected count (6 originals + 6 new)', () => {
-    expect(SCENARIOS.length).toBe(12);
+  it('ships the expected count (6 originals + 6 transmit + 2 receive)', () => {
+    expect(SCENARIOS.length).toBe(14);
   });
 });
 
@@ -113,6 +113,32 @@ describe('new scenarios are completable (M330)', () => {
     ]);
     expect(done.size).toBe(3);
     expect(mistakes.size).toBe(0);
+  });
+});
+
+describe('receiving-side scenarios (start via init)', () => {
+  it('receive-distress: alarm off -> watch 16 -> voice acknowledge', () => {
+    const { done } = play('receive-distress', [
+      { type: 'soft', index: 0 },  // ALARM OFF -> standby on 16
+      { type: 'ptt-down' },        // RECEIVED MAYDAY voice
+    ]);
+    expect(done.size).toBe(2);
+  });
+
+  it('receive-call: accept -> working channel -> voice answer', () => {
+    const { done, state } = play('receive-call', [
+      { type: 'soft', index: 0 },  // ACCEPT -> switch to proposed CH 72
+      { type: 'ptt-down' },        // answer on the working channel
+    ]);
+    expect(done.size).toBe(2);
+    expect(state.channelIndex).toBeGreaterThan(0); // moved off the default
+  });
+
+  it('receive-distress: transmitting your OWN distress is flagged', () => {
+    const { mistakes } = play('receive-distress', [
+      { type: 'distress-down' }, { type: 'distress-held' },
+    ]);
+    expect(mistakes.has('own-distress-on-receive')).toBe(true);
   });
 });
 

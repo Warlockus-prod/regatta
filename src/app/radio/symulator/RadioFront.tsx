@@ -344,6 +344,29 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
           </>
         );
         break;
+      case 'rx-distress-alert':
+        body = (
+          <>
+            <LcdLine big color="#ff8a7a">RCVD DISTRESS</LcdLine>
+            <LcdLine>FROM: {s.rxDistress?.name}</LcdLine>
+            <LcdLine dim>MMSI {s.rxDistress?.mmsi}</LcdLine>
+            <LcdLine dim>{s.rxDistress?.spoken}</LcdLine>
+            <LcdLine dim>Nature: {s.rxDistress?.nature}</LcdLine>
+            <LcdLine color="#ff8a7a">♪ ALARM ♪</LcdLine>
+          </>
+        );
+        break;
+      case 'rx-individual-call':
+        body = (
+          <>
+            <LcdLine big>RCVD DSC CALL</LcdLine>
+            <LcdLine>FROM: {s.rxCall?.label}</LcdLine>
+            <LcdLine dim>MMSI {s.rxCall?.mmsi}</LcdLine>
+            <LcdLine dim>Proposed CH {s.rxCall?.channel}</LcdLine>
+            <LcdLine dim>[ACCEPT] switches channel</LcdLine>
+          </>
+        );
+        break;
       default: {
         // standby
         body = (

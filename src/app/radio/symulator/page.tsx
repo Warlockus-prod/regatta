@@ -289,7 +289,7 @@ export default function RadioSimulatorPage() {
   }, [playTone, rs.beeps]);
 
   useEffect(() => {
-    if (screen !== 'distress-ack' && screen !== 'otherdsc-ack') return undefined;
+    if (screen !== 'distress-ack' && screen !== 'otherdsc-ack' && screen !== 'rx-distress-alert') return undefined;
     const alarm = () => {
       playTone(1250, 180, 0.045);
       setTimeout(() => playTone(900, 220, 0.045), 230);
