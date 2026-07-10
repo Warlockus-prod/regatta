@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { insertReplay, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
-import { rateLimit } from '@/lib/rate-limit';
+import { rateLimit, clientIpKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +24,7 @@ interface Payload {
 export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value ?? null;
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0] ?? 'ip:unknown';
+  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
   const rl = rateLimit('replay:' + (sid ?? ip), REPLAY_LIMIT, REPLAY_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json({ error: 'Too many replays, wait' }, { status: 429 });

@@ -7,6 +7,11 @@ import { useI18n } from '@/lib/i18n';
 // Sternik section preferences: which language the answer explanations are
 // shown in (Polish exam language / Russian / both). Persisted in localStorage,
 // shared across the subnav toggle, trainer, exam review and the AI chat.
+//
+// Language policy (2026-07): Russian commentary is an OPT-IN aid for the
+// Russian site version only. On every other site language (PL/EN/...) the
+// explanations are forced to Polish and the RU toggle is hidden - the exam
+// itself is in Polish, and the Polish site must never show Russian text.
 // ============================================================================
 
 export type ExplLang = 'pl' | 'ru' | 'both';
@@ -28,6 +33,7 @@ const PrefsContext = createContext<Ctx>({
 });
 
 export function SternikPrefsProvider({ children }: { children: ReactNode }) {
+  const { lang } = useI18n();
   const [explLang, setExplLangState] = useState<ExplLang>('both');
   const [examBase, setExamBaseState] = useState<ExamBase>('all');
 
@@ -52,8 +58,13 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
     try { window.localStorage.setItem(BASE_KEY, v); } catch { /* ignore */ }
   }, []);
 
+  // Policy: RU commentary is available only on the Russian site version.
+  // The stored preference is kept intact so switching the site back to RU
+  // restores the user's choice.
+  const effectiveExplLang: ExplLang = lang === 'ru' ? explLang : 'pl';
+
   return (
-    <PrefsContext.Provider value={{ explLang, setExplLang, examBase, setExamBase }}>
+    <PrefsContext.Provider value={{ explLang: effectiveExplLang, setExplLang, examBase, setExamBase }}>
       {children}
     </PrefsContext.Provider>
   );
@@ -63,10 +74,13 @@ export function useSternikPrefs(): Ctx {
   return useContext(PrefsContext);
 }
 
-/** Segmented toggle: PL / RU / Oba. Compact, fits the subnav. */
+/** Segmented toggle: PL / RU / Oba. Compact, fits the subnav.
+ *  Rendered only on the Russian site version - everywhere else the
+ *  explanations are locked to Polish (see SternikPrefsProvider). */
 export function ExplLangToggle() {
   const { explLang, setExplLang } = useSternikPrefs();
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
+  if (lang !== 'ru') return null;
   const opts: { id: ExplLang; label: string }[] = [
     { id: 'pl', label: 'PL' },
     { id: 'ru', label: 'RU' },

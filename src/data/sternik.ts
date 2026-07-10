@@ -6944,6 +6944,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Armator', 'Kapitan lub kierownik statku', 'Nikt nie odpowiada'],
     correct: 1,
     whyRu: 'За безопасность отвечает капитан (рулевой), а не судовладелец.',
+    whyPl: 'Za bezpieczeństwo żeglugi odpowiada kapitan (sternik), a nie armator.',
     source: 'materialy #1',
   },
   {
@@ -6952,6 +6953,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Wchodzący do portu', 'Wychodzący z portu', 'Kuter rybacki'],
     correct: 1,
     whyRu: 'Выходящий из порта имеет приоритет над входящим.',
+    whyPl: 'Jednostka wychodząca z portu ma pierwszeństwo przed wchodzącą.',
     source: 'materialy #2',
   },
   {
@@ -6960,6 +6962,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Wyprzedzany', 'Większy', 'Wyprzedzający'],
     correct: 0,
     whyRu: 'Приоритет у обгоняемого; обгоняющий держится в стороне.',
+    whyPl: 'Pierwszeństwo ma jacht wyprzedzany; wyprzedzający ustępuje z drogi.',
     source: 'materialy #3',
   },
   {
@@ -6968,6 +6971,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Większy', 'Mający lewą wolną', 'Mający prawą wolną'],
     correct: 2,
     whyRu: 'Приоритет у того, у кого справа никого; уступает тот, у кого судно справа.',
+    whyPl: 'Pierwszeństwo ma ten, kto nie ma nikogo z prawej; ustępuje ten, kto ma jednostkę z prawej burty.',
     source: 'materialy #4',
   },
   {
@@ -6976,6 +6980,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Ustępują statkom żaglowym, wiosłowym itp.', 'Nie ustępują nikomu', 'Ustępują tylko większym motorowym'],
     correct: 0,
     whyRu: 'Моторка уступает парусным, вёсельным, рыболовным, неманевроспособным.',
+    whyPl: 'Motorówka ustępuje jednostkom żaglowym, wiosłowym, rybackim oraz niezdolnym do manewru.',
     source: 'materialy #5',
   },
   {
@@ -6984,6 +6989,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Szybszy', 'Motorówka', 'Windsurfing'],
     correct: 2,
     whyRu: 'Виндсёрфер = парусное судно, моторка уступает.',
+    whyPl: 'Windsurfer to statek żaglowy, więc motorówka ustępuje.',
     source: 'materialy #6',
   },
   {
@@ -6992,6 +6998,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Statek żaglowy', 'Statek o napędzie mechanicznym', 'Statek uprzywilejowany'],
     correct: 1,
     whyRu: 'Если работает мотор - судно моторное, даже с парусами.',
+    whyPl: 'Gdy pracuje silnik, jacht jest traktowany jako motorowy, nawet z postawionymi żaglami.',
     source: 'materialy #7',
   },
   {
@@ -7000,6 +7007,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zmienić kurs w prawo, minąć się lewymi burtami', 'Zmienić kurs w lewo, minąć się prawymi burtami', 'Zatrzymać się'],
     correct: 0,
     whyRu: 'Оба отворачивают вправо и расходятся левыми бортами.',
+    whyPl: 'Oba statki zmieniają kurs w prawo i mijają się lewymi burtami.',
     source: 'materialy #8',
   },
   {
@@ -7008,6 +7016,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Motorowy ma pierwszeństwo', 'Żaglowy ma pierwszeństwo', 'Są równorzędni'],
     correct: 1,
     whyRu: 'Парусник имеет приоритет над моторным.',
+    whyPl: 'Jacht żaglowy ma pierwszeństwo przed motorowym.',
     source: 'materialy #9',
   },
   {
@@ -7016,6 +7025,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Płynąca z prądem (w dół)', 'Płynąca pod prąd', 'Większa'],
     correct: 0,
     whyRu: 'Идущему вниз по течению труднее тормозить - у него приоритет.',
+    whyPl: 'Jednostka płynąca z prądem trudniej hamuje, dlatego ma pierwszeństwo.',
     source: 'materialy #10',
   },
   {
@@ -7024,6 +7034,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Od zachodu do wschodu słońca oraz przy ograniczonej widzialności', 'Tylko od zachodu do wschodu słońca', 'Od 18:00 do 6:00'],
     correct: 0,
     whyRu: 'От заката до рассвета И при ограниченной видимости (туман).',
+    whyPl: 'Od zachodu do wschodu słońca ORAZ przy ograniczonej widzialności (mgła).',
     source: 'materialy #11',
   },
   {
@@ -7032,6 +7043,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['4-6 sekund', '1-2 sekundy', '10-12 sekund'],
     correct: 0,
     whyRu: 'Длинный сигнал 4-6 с.',
+    whyPl: 'Długi dźwięk trwa 4-6 sekund.',
     source: 'materialy #12',
   },
   {
@@ -7040,6 +7052,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['10-12 sekund', 'ok. 1 sekundy', '4-6 sekund'],
     correct: 1,
     whyRu: 'Короткий сигнал ~1 с.',
+    whyPl: 'Krótki dźwięk trwa około 1 sekundy.',
     source: 'materialy #13',
   },
   {
@@ -7048,6 +7061,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Seria (≥5) krótkich dźwięków', 'Seria długich dźwięków', 'Dwa krótkie dźwięki'],
     correct: 0,
     whyRu: 'Серия коротких (5+) = опасность / не понимаю намерений.',
+    whyPl: 'Seria krótkich dźwięków (co najmniej 5) oznacza niebezpieczeństwo lub niezrozumienie zamiarów.',
     source: 'materialy #14',
   },
   {
@@ -7056,6 +7070,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zmieniam kurs w prawo', 'Zmieniam kurs w lewo', 'Pracuję maszyną wstecz'],
     correct: 1,
     whyRu: '1 короткий=вправо, 2=влево, 3=задний ход.',
+    whyPl: '1 krótki - zmiana kursu w prawo, 2 - w lewo, 3 - bieg wsteczny.',
     source: 'materialy #15',
   },
   {
@@ -7064,6 +7079,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['112,5°', '90°', '130°'],
     correct: 0,
     whyRu: 'Бортовые огни по 112,5°.',
+    whyPl: 'Światła burtowe świecą w sektorze po 112,5°.',
     source: 'materialy #16',
   },
   {
@@ -7072,6 +7088,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['225°', '215°', '235°'],
     correct: 0,
     whyRu: 'Мачтовый 225° = 2×112,5° спереди.',
+    whyPl: 'Światło masztowe ma sektor 225°, czyli 2 x 112,5° skierowane do przodu.',
     source: 'materialy #17',
   },
   {
@@ -7080,6 +7097,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['145°', '135°', '180°'],
     correct: 1,
     whyRu: 'Кормовой 135°. 112,5+112,5+135=360.',
+    whyPl: 'Światło rufowe ma sektor 135°; razem 112,5 + 112,5 + 135 = 360°.',
     source: 'materialy #18',
   },
   {
@@ -7088,6 +7106,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Czerwone', 'Zielone', 'Białe'],
     correct: 1,
     whyRu: 'Правый борт - зелёный, левый - красный.',
+    whyPl: 'Prawa burta - światło zielone, lewa - czerwone.',
     source: 'materialy #19',
   },
   {
@@ -7096,6 +7115,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Czerwone', 'Zielone', 'Białe'],
     correct: 0,
     whyRu: 'Левый борт - красный.',
+    whyPl: 'Lewa burta (bakburta) - światło czerwone.',
     source: 'materialy #20',
   },
   {
@@ -7104,6 +7124,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Koja', 'Keja', 'Kingston'],
     correct: 0,
     whyRu: 'Койка = koja; keja = причал (ловушка!).',
+    whyPl: 'Miejsce do spania to koja; keja to nabrzeże do cumowania (pułapka!).',
     source: 'materialy #21',
   },
   {
@@ -7112,6 +7133,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Katamaran', 'Trimaran', 'Skuter wodny'],
     correct: 0,
     whyRu: 'Катамаран = два корпуса.',
+    whyPl: 'Katamaran to jacht o dwóch kadłubach.',
     source: 'materialy #22',
   },
   {
@@ -7120,6 +7142,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pokładniki', 'Listwy odbojowe', 'Uchwyty ułatwiające poruszanie się po jachcie'],
     correct: 2,
     whyRu: 'Леер-поручень, за него держатся на волне.',
+    whyPl: 'Handreling to poręcz, której trzymamy się podczas przechyłów na fali.',
     source: 'materialy #23',
   },
   {
@@ -7128,6 +7151,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Element do mocowania flagsztoku', 'Osprzęt do mocowania cum', 'Otwór w burcie do cumy lub łańcucha kotwicznego'],
     correct: 2,
     whyRu: 'Клюз - отверстие в борту для швартова/цепи.',
+    whyPl: 'Kluza to otwór w burcie do prowadzenia cumy lub łańcucha kotwicznego.',
     source: 'materialy #24',
   },
   {
@@ -7136,6 +7160,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pokład z wręgami', 'Stępkę (kil) z wręgami', 'Elementy ozdobne'],
     correct: 1,
     whyRu: 'Флоры связывают киль со шпангоутами.',
+    whyPl: 'Denniki łączą stępkę (kil) z wręgami.',
     source: 'materialy #25',
   },
   {
@@ -7144,6 +7169,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pokład z wręgami', 'Stępkę z wręgami', 'Elementy ozdobne'],
     correct: 0,
     whyRu: 'Бимсы связывают палубу со шпангоутами.',
+    whyPl: 'Pokładniki łączą pokład z wręgami.',
     source: 'materialy #26',
   },
   {
@@ -7152,6 +7178,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Drewniana podłoga', 'Przestrzeń dziobowa', 'Przestrzeń w rufowej części kadłuba'],
     correct: 2,
     whyRu: 'Ахтерпик - кормовой отсек.',
+    whyPl: 'Achterpik to skrajny przedział rufowy jachtu.',
     source: 'materialy #27',
   },
   {
@@ -7160,6 +7187,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Drewniana podłoga', 'Przestrzeń w dziobowej części kadłuba', 'Przestrzeń rufowa'],
     correct: 1,
     whyRu: 'Форпик - носовой отсек (часто якорь).',
+    whyPl: 'Forpik to przedział dziobowy, często trzyma się tam kotwicę.',
     source: 'materialy #28',
   },
   {
@@ -7168,6 +7196,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Dennik', 'Stewa', 'Zęza'],
     correct: 2,
     whyRu: 'Зэза (льяло) - самое низкое место; воду откачивают.',
+    whyPl: 'Zęza to najniższe miejsce w kadłubie; zbierającą się tam wodę trzeba odpompowywać.',
     source: 'materialy #29',
   },
   {
@@ -7176,6 +7205,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pomieszczenie WC', 'Przestrzeń dziobowa', 'Kuchnia na jachcie'],
     correct: 2,
     whyRu: 'Камбуз - кухня; mesa - где едят.',
+    whyPl: 'Kambuz to kuchnia jachtowa, a mesa to miejsce spożywania posiłków.',
     source: 'materialy #30',
   },
   {
@@ -7184,6 +7214,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Półpokład', 'Pawęż', 'Dziobnica'],
     correct: 1,
     whyRu: 'Транец (pawęż) - на нём висит подвесной мотор.',
+    whyPl: 'Pawęż to płaskie zakończenie rufy, na niej zawiesza się silnik zaburtowy.',
     source: 'materialy #31',
   },
   {
@@ -7192,6 +7223,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['1,85 KM', '1,56 KM', '1,36 KM'],
     correct: 2,
     whyRu: '1 кВт = 1,36 л.с.',
+    whyPl: '1 kW to 1,36 KM.',
     source: 'materialy #32',
   },
   {
@@ -7200,6 +7232,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Nie', 'Tak', 'Zależnie od modelu'],
     correct: 0,
     whyRu: 'У 2-тактного масло в смеси, картера нет.',
+    whyPl: 'W dwusuwie olej jest w mieszance paliwowej, silnik nie ma miski olejowej.',
     source: 'materialy #33',
   },
   {
@@ -7208,6 +7241,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['O mocy 4 KM', 'Dwusuwowy', 'Czterosuwowy'],
     correct: 2,
     whyRu: 'Four stroke = 4-тактный (чистый бензин).',
+    whyPl: 'Four stroke oznacza silnik czterosuwowy, tankuje się czystą benzynę.',
     source: 'materialy #34',
   },
   {
@@ -7216,6 +7250,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zawsze czysta benzyna', 'Zawsze mieszanka benzyny z olejem', 'Czysta benzyna lub mieszanka - zależnie od typu'],
     correct: 2,
     whyRu: '4-такт - чистый бензин, 2-такт - смесь.',
+    whyPl: 'Czterosuw tankuje czystą benzynę, dwusuw mieszankę benzyny z olejem.',
     source: 'materialy #35',
   },
   {
@@ -7224,6 +7259,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Powinna delikatnie kapać/sikać ciepła woda', 'Powinien lać się równy strumień', 'Nic nie powinno wypływać'],
     correct: 0,
     whyRu: 'Струйка тёплой воды = охлаждение работает.',
+    whyPl: 'Strumyczek ciepłej wody z otworu kontrolnego oznacza, że chłodzenie działa.',
     source: 'materialy #36',
   },
   {
@@ -7232,6 +7268,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Dozwolone', 'Bezwzględnie zabronione - uszkadza przekładnię', 'Zalecane w ciasnym porcie'],
     correct: 1,
     whyRu: 'Резко нельзя - сломаешь редуктор; сначала нейтраль.',
+    whyPl: 'Gwałtowne przełączenie uszkodzi przekładnię - najpierw bieg jałowy.',
     source: 'materialy #37',
   },
   {
@@ -7240,6 +7277,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zakręcić dopływ paliwa', 'Przegazować na wysokich obrotach', 'Zredukować obroty do minimum i ustawić bieg jałowy'],
     correct: 2,
     whyRu: 'Сбросить обороты и нейтраль.',
+    whyPl: 'Przed wyłączeniem silnika zmniejsz obroty i włącz bieg jałowy.',
     source: 'materialy #38',
   },
   {
@@ -7248,6 +7286,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Konserwacja i czyszczenie', 'Ustawienie kąta silnika do pawęży', 'Wymiana oleju w przekładni'],
     correct: 1,
     whyRu: 'Трим - угол наклона мотора к транцу.',
+    whyPl: 'Trymowanie to regulacja kąta nachylenia silnika względem pawęży.',
     source: 'materialy #39',
   },
   {
@@ -7256,6 +7295,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Powietrzem', 'Płynem w osobnym zbiorniku', 'Wodą, po której płynie jednostka'],
     correct: 2,
     whyRu: 'Охлаждение забортной водой.',
+    whyPl: 'Większość silników zaburtowych chłodzona jest wodą zaburtową.',
     source: 'materialy #40',
   },
   {
@@ -7264,6 +7304,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Minimalną, zapewniającą sterowność', 'Większą niż 5 węzłów', 'Mniejszą niż 2 węzły'],
     correct: 0,
     whyRu: 'Минимальная скорость, при которой лодка ещё слушается руля.',
+    whyPl: 'Manewrujemy z najmniejszą prędkością, przy której łódź jeszcze słucha steru.',
     source: 'materialy #41',
   },
   {
@@ -7272,6 +7313,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Bardzo powoli', 'Stosunkowo szybko - wraz z prędkością maleje dryf', 'Tylko na biegu wstecznym'],
     correct: 1,
     whyRu: 'Решительнее: выше скорость - меньше снос (dryf).',
+    whyPl: 'Przy silnym wietrze manewrujemy zdecydowanie: większa prędkość to mniejszy dryf.',
     source: 'materialy #42',
   },
   {
@@ -7280,6 +7322,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['W lewo', 'W prawo', 'Nie zarzuca'],
     correct: 0,
     whyRu: 'Правый винт назад - корма влево.',
+    whyPl: 'Śruba prawoskrętna na biegu wstecznym zarzuca rufę w lewo.',
     source: 'materialy #43',
   },
   {
@@ -7288,6 +7331,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Sztormowanie', 'Plażowanie', 'Celowe, kontrolowane osadzenie na mieliźnie'],
     correct: 2,
     whyRu: 'Намеренная посадка на мель (напр. в аварии).',
+    whyPl: 'Sztrandowanie to celowe wejście na mieliznę, np. w sytuacji awaryjnej.',
     source: 'materialy #44',
   },
   {
@@ -7296,6 +7340,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Kapitan jednostki holującej', 'Kapitan jednostki holowanej', 'Przepisy lokalne'],
     correct: 0,
     whyRu: 'Скорость буксировки определяет буксировщик.',
+    whyPl: 'O prędkości holowania decyduje jednostka holująca.',
     source: 'materialy #45',
   },
   {
@@ -7304,6 +7349,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Całą dostępną długość', 'Ok. 4 m', 'Od 9 do 15 m'],
     correct: 2,
     whyRu: 'Длина цепи ≈ 3-5 глубин.',
+    whyPl: 'Długość łańcucha to około 3-5 głębokości, przy 3 m wychodzi 9-15 m.',
     source: 'materialy #46',
   },
   {
@@ -7312,6 +7358,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pędnik poprzeczny na dziobie, pomaga w porcie', 'Rodzaj skutera', 'Urządzenie dla jednostek bez napędu'],
     correct: 0,
     whyRu: 'Носовое подруливающее устройство.',
+    whyPl: 'Ster strumieniowy to dziobowe urządzenie wspomagające manewrowanie.',
     source: 'materialy #47',
   },
   {
@@ -7320,6 +7367,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Cuma dziobowa', 'Szpring dziobowy', 'Brest dziobowy'],
     correct: 2,
     whyRu: 'Brest - прижимной, перпендикулярно борту.',
+    whyPl: 'Brest to cuma dociskowa, biegnie prostopadle do burty i nabrzeża.',
     source: 'materialy #48',
   },
   {
@@ -7328,6 +7376,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Międzynarodowy system oznakowania nawigacyjnego', 'System ratownictwa morskiego', 'System bezpieczeństwa portowego'],
     correct: 0,
     whyRu: 'Система навигационного знакования.',
+    whyPl: 'IALA to system oznakowania nawigacyjnego.',
     source: 'materialy #49',
   },
   {
@@ -7336,6 +7385,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['1752 m', '1852 m', '2052 m'],
     correct: 1,
     whyRu: '1 морская миля = 1852 м.',
+    whyPl: '1 mila morska to 1852 m.',
     source: 'materialy #50',
   },
   {
@@ -7344,6 +7394,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pomiędzy znaki', 'W kierunku niższego znaku', 'W kierunku wyższego znaku'],
     correct: 2,
     whyRu: 'Веди нос к более высокому знаку - держишь ось.',
+    whyPl: 'Prowadź dziób na wyższy znak - utrzymasz się w osi nabieżnika.',
     source: 'materialy #51',
   },
   {
@@ -7352,6 +7403,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Echosondy', 'Namiernika', 'Logu'],
     correct: 0,
     whyRu: 'Эхолот - глубина; лаг - скорость.',
+    whyPl: 'Echosonda mierzy głębokość, a log prędkość.',
     source: 'materialy #52',
   },
   {
@@ -7360,6 +7412,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['100′', '90′', '60′'],
     correct: 2,
     whyRu: '1° = 60′; 1′ широты = 1 миля.',
+    whyPl: '1° = 60\'; 1\' szerokości geograficznej = 1 mila morska.',
     source: 'materialy #53',
   },
   {
@@ -7368,6 +7421,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Współrzędne, kąt drogi nad dnem, prędkość nad dnem', 'Współrzędne i prędkość po wodzie', 'Współrzędne i kurs kompasowy'],
     correct: 0,
     whyRu: 'GPS: координаты, путевой угол и скорость ОТНОСИТЕЛЬНО ДНА.',
+    whyPl: 'GPS podaje współrzędne, kąt drogi i prędkość WZGLĘDEM DNA.',
     source: 'materialy #54',
   },
   {
@@ -7376,6 +7430,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Regulacji ruchu na szlaku', 'Połączenia zbiorników o różnym poziomie wody', 'Spiętrzenia wody'],
     correct: 1,
     whyRu: 'Шлюз соединяет водоёмы с разным уровнем.',
+    whyPl: 'Śluza łączy akweny o różnych poziomach wody.',
     source: 'materialy #55',
   },
   {
@@ -7384,6 +7439,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Anemometr', 'Barometr', 'Batyskaf'],
     correct: 1,
     whyRu: 'Барометр - давление; анемометр - ветер.',
+    whyPl: 'Barometr mierzy ciśnienie; anemometr - wiatr.',
     source: 'materialy #56',
   },
   {
@@ -7392,6 +7448,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Pogodę słoneczną', 'Ryzyko nadejścia sztormu', 'Ciszę'],
     correct: 1,
     whyRu: 'Резкое падение давления = шторм.',
+    whyPl: 'Nagły, stały spadek ciśnienia zapowiada sztorm.',
     source: 'materialy #57',
   },
   {
@@ -7400,6 +7457,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Falę posztormową', 'Zupełny brak wiatru', 'Zbliżający się sztorm'],
     correct: 1,
     whyRu: 'Штиль - полное безветрие.',
+    whyPl: 'Flauta (sztil) to całkowity brak wiatru.',
     source: 'materialy #58',
   },
   {
@@ -7408,6 +7466,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['7-10 węzłów', '22-27 węzłów', '34-40 węzłów'],
     correct: 1,
     whyRu: '6 баллов ≈ 22-27 узлов.',
+    whyPl: '6°B to ok. 22-27 węzłów.',
     source: 'materialy #59',
   },
   {
@@ -7416,6 +7475,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Stanu morza', 'Siły wiatru', 'Kierunku wiatru'],
     correct: 1,
     whyRu: 'Шкала Бофорта - сила ветра.',
+    whyPl: 'Skala Beauforta określa siłę wiatru.',
     source: 'materialy #60',
   },
   {
@@ -7424,6 +7484,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Od akwenu w kierunku lądu', 'Od lądu w kierunku wody', 'Wzdłuż brzegu'],
     correct: 1,
     whyRu: 'Ночной бриз - с суши на воду.',
+    whyPl: 'Bryza nocna wieje z lądu na wodę.',
     source: 'materialy #61',
   },
   {
@@ -7432,6 +7493,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Ładną pogodę', 'Silny wiatr, szkwały, burzę', 'Brak wiatru'],
     correct: 1,
     whyRu: 'Cb - шквалы и гроза.',
+    whyPl: 'Cb zapowiada szkwały i burzę.',
     source: 'materialy #62',
   },
   {
@@ -7440,6 +7502,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Od wyżu do niżu', 'Od niżu do wyżu', 'Równolegle do izobar'],
     correct: 0,
     whyRu: 'Из области высокого давления в область низкого.',
+    whyPl: 'Wiatr wieje z obszaru wysokiego ciśnienia do obszaru niskiego.',
     source: 'materialy #63',
   },
   {
@@ -7448,6 +7511,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Ogłosić alarm, rzucić koło i wykonać manewr MOB', 'Niezwłocznie tylko wzywać pomocy', 'Skoczyć za nim z kapokiem'],
     correct: 0,
     whyRu: 'Крик, круг, не терять из виду, манёвр возврата.',
+    whyPl: 'Okrzyk, koło ratunkowe, nie tracić z oczu, manewr powrotu.',
     source: 'materialy #64',
   },
   {
@@ -7456,6 +7520,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['10 uciśnięć (60/min) + 3 wdechy', '30 uciśnięć (ok. 100/min) + 2 wdechy', '20 uciśnięć (100/min) + 2 wdechy'],
     correct: 1,
     whyRu: 'СЛР 30:2, ~100/мин.',
+    whyPl: 'RKO 30:2, tempo ok. 100/min.',
     source: 'materialy #65',
   },
   {
@@ -7464,6 +7529,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Sprawdzić oddech', 'Rozpocząć sztuczne oddychanie', 'Czekać na lekarza'],
     correct: 0,
     whyRu: 'Сначала проверить дыхание.',
+    whyPl: 'Najpierw sprawdzić oddech.',
     source: 'materialy #66',
   },
   {
@@ -7472,6 +7538,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Nie usuwać przedmiotu, zabezpieczyć, do lekarza', 'Usunąć i zabezpieczyć ranę', 'Usunąć i podać środki przeciwbólowe'],
     correct: 0,
     whyRu: 'Инородный предмет НЕ вынимать.',
+    whyPl: 'Tkwiącego przedmiotu NIE wyjmować z rany.',
     source: 'materialy #67',
   },
   {
@@ -7480,6 +7547,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Intensywnym wypływem jasnej, tętniącej krwi', 'Powolnym wypływem ciemnej krwi', 'Krwawieniem do wnętrza ciała'],
     correct: 0,
     whyRu: 'Артериальное - яркая пульсирующая кровь.',
+    whyPl: 'Krwotok tętniczy - jasna, pulsująca krew.',
     source: 'materialy #68',
   },
   {
@@ -7488,6 +7556,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['SAR', 'WOPR', 'SAS'],
     correct: 0,
     whyRu: 'SAR - морское спасание (на внутр. водах - WOPR).',
+    whyPl: 'Ratownictwem morskim zajmuje się SAR (na wodach śródlądowych - WOPR).',
     source: 'materialy #69',
   },
   {
@@ -7496,6 +7565,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Wywoływanie innych stacji', 'Wzywanie pomocy (i kanał wywoławczy)', 'Swobodne rozmowy'],
     correct: 1,
     whyRu: 'Канал 16 - вызов и бедствие.',
+    whyPl: 'Kanał 16 służy do wywoływania i alarmowania w niebezpieczeństwie.',
     source: 'materialy #70',
   },
   {
@@ -7504,6 +7574,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Podać 20-50 g alkoholu', 'Nie podawać alkoholu - ciepły napój i suche ubranie', 'Nie podawać niczego'],
     correct: 1,
     whyRu: 'Алкоголь нельзя - тёплое питьё, сухая одежда.',
+    whyPl: 'Alkoholu nie podawać - ciepły napój, sucha odzież.',
     source: 'materialy #71',
   },
   {
@@ -7512,6 +7583,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zdezynfekować spirytusem', 'Schładzać wodą, przykryć jałowym opatrunkiem, do lekarza', 'Nic nie robić'],
     correct: 1,
     whyRu: 'Ожог - охлаждать водой, стерильная повязка.',
+    whyPl: 'Oparzenie chłodzić wodą, założyć jałowy opatrunek.',
     source: 'materialy #72',
   },
   {
@@ -7520,6 +7592,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Dozwolone', 'Zabronione', 'Dozwolone na biegu jałowym'],
     correct: 1,
     whyRu: 'Заправка при работающем моторе запрещена.',
+    whyPl: 'Tankowanie przy pracującym silniku jest zabronione.',
     source: 'materialy #73',
   },
   {
@@ -7528,6 +7601,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Zalecane przed wyjściem', 'Niedozwolone', 'Wskazane w razie potrzeby'],
     correct: 1,
     whyRu: 'Нельзя (могут быть нефтепродукты).',
+    whyPl: 'Zabronione (zęza może zawierać produkty ropopochodne).',
     source: 'materialy #74',
   },
   {
@@ -7536,6 +7610,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Za burtę min. 50 m od brzegu', 'Do dowolnej toalety lądowej', 'Tylko w wyznaczonych miejscach w portach'],
     correct: 2,
     whyRu: 'Только в спецточках порта, не за борт.',
+    whyPl: 'Tylko w wyznaczonych punktach w porcie, nigdy za burtę.',
     source: 'materialy #75',
   },
   {
@@ -7544,6 +7619,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Wyrzucić za burtę >200 m od brzegu', 'Oddać do selektywnej zbiórki na lądzie', 'Wyrzucić do pojemników w porcie bez segregacji'],
     correct: 1,
     whyRu: 'Мусор - в раздельный сбор на берегу.',
+    whyPl: 'Śmieci segregować i oddać na brzegu.',
     source: 'materialy #76',
   },
   {
@@ -7552,6 +7628,7 @@ export const STERNIK_BANK: SternikQuestion[] = [
     options: ['Powierzchniowo czynne', 'Biodegradowalne', 'Silnie pieniące'],
     correct: 1,
     whyRu: 'Биоразлагаемые средства.',
+    whyPl: 'Środki biodegradowalne.',
     source: 'materialy #77',
   },
 

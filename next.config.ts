@@ -17,6 +17,14 @@ const nextConfig: NextConfig = {
   // so we do not duplicate them here (duplicate X-Frame-Options / CSP can
   // weaken or conflict).
   poweredByHeader: false,
+  async redirects() {
+    return [
+      // The radio/SRC section moved from /sternik/radio to top-level /radio
+      // (2026-07-10). Keep old links working.
+      { source: "/sternik/radio", destination: "/radio", permanent: true },
+      { source: "/sternik/radio/:path*", destination: "/radio/:path*", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

@@ -33,7 +33,7 @@ function StatTile({ value, label, accent }: { value: string; label: string; acce
 }
 
 export default function SternikHubPage() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const [progress, setProgress] = useState<SternikProgress | null>(null);
 
   useEffect(() => {
@@ -207,6 +207,32 @@ export default function SternikHubPage() {
         </Link>
       </section>
 
+      {/* Radio / SRC feature banner */}
+      <section className="mb-8">
+        <Link
+          href="/radio"
+          className="flex flex-col gap-1 rounded-2xl p-5 transition hover:-translate-y-0.5 sm:flex-row sm:items-center sm:gap-4"
+          style={{ background: 'linear-gradient(140deg, var(--bg-card), rgba(0,212,255,0.10))', border: '1px solid var(--border-subtle)' }}
+        >
+          <div className="text-3xl">📻</div>
+          <div className="flex-1">
+            <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {tp('Рация и сертификат SRC', 'Radio and the SRC certificate', 'Radio i swiadectwo SRC')}
+            </div>
+            <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+              {tp(
+                'Отдельный раздел про морскую УКВ-рацию: как получить SRC в UKE, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
+                'A dedicated section on the marine VHF radio: how to get the SRC at UKE, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
+                'Osobny dzial o radiu VHF: jak zdobyc SRC w UKE, kanaly, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
+              )}
+            </p>
+          </div>
+          <div className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
+            {tp('Открыть', 'Open', 'Otworz')} {'->'}
+          </div>
+        </Link>
+      </section>
+
       {/* Categories overview */}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
@@ -226,7 +252,7 @@ export default function SternikHubPage() {
                   {cat.pl}
                 </span>
                 <span className="block truncate text-xs" style={{ color: 'var(--text-muted)' }}>
-                  {cat.ru} · {total} {tp('вопр.', 'q.', 'pyt.')}
+                  {lang === 'ru' ? `${cat.ru} · ` : ''}{total} {tp('вопр.', 'q.', 'pyt.')}
                 </span>
                 <span className="mt-1 block h-1.5 overflow-hidden rounded-full" style={{ background: 'var(--hover-bg)' }}>
                   <span
