@@ -53,8 +53,19 @@ describe('scenario catalogue integrity', () => {
     }
   });
 
-  it('ships the expected count (6 originals + 6 transmit + 2 receive)', () => {
-    expect(SCENARIOS.length).toBe(14);
+  it('ships the expected count (6 originals + 7 transmit + 2 receive)', () => {
+    expect(SCENARIOS.length).toBe(15);
+  });
+
+  it('covers all four DSC call types across the catalogue', () => {
+    const sends = SCENARIOS.flatMap((s) => s.steps).map((st) => st.id);
+    // type-selection steps exist for Individual / Group / Test; All Ships is
+    // the default used by the urgency/safety scenarios.
+    expect(SCENARIOS.some((s) => s.id === 'routine-ship')).toBe(true);   // Individual
+    expect(SCENARIOS.some((s) => s.id === 'group-call')).toBe(true);     // Group
+    expect(SCENARIOS.some((s) => s.id === 'dsc-test')).toBe(true);       // Test
+    expect(SCENARIOS.some((s) => s.id === 'mob-panpan')).toBe(true);     // All Ships
+    expect(sends.length).toBeGreaterThan(0);
   });
 });
 
@@ -103,6 +114,16 @@ describe('new scenarios are completable (M330)', () => {
       { type: 'down' }, { type: 'down' }, { type: 'down' }, { type: 'ent' }, // -> Send row, send
       { type: 'otherdsc-ack' },
       { type: 'soft', index: 0 },              // ALARM OFF -> working channel
+      { type: 'ptt-down' },
+    ])).toBe(true);
+  });
+
+  it('group-call: choose Group, send, voice (no ACK)', () => {
+    expect(complete('group-call', [
+      { type: 'dial-hold' },
+      { type: 'soft', index: 1 },              // OTHER DSC
+      { type: 'ent' }, { type: 'up' }, { type: 'ent' },    // type field -> Group
+      { type: 'down' }, { type: 'down' }, { type: 'down' }, { type: 'ent' }, // -> Send row, send
       { type: 'ptt-down' },
     ])).toBe(true);
   });

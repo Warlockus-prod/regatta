@@ -176,21 +176,24 @@ not a 1:1 radio. Honest limits:
     voice phase (digital-only); mistake detector for sending it as All Ships.
 11. `routine-ship` - Individual DSC call to another vessel, ACK, then voice
     on the agreed working channel; mistake detector for designating CH 16.
-12. `mayday-relay` - relay another vessel's MAYDAY by voice on 16 (MAYDAY
+12. `group-call` - Group DSC call to a regatta fleet, then voice on the
+    working channel (no ACK). With 10, 11 and the All-Ships urgency/safety
+    calls, the catalogue now exercises all four DSC call types.
+13. `mayday-relay` - relay another vessel's MAYDAY by voice on 16 (MAYDAY
     RELAY), NOT the red key; grader checks the relay proword and casualty data.
-13. `receive-distress` - RECEIVING side: the radio starts (via `init`)
+14. `receive-distress` - RECEIVING side: the radio starts (via `init`)
     already showing an inbound DSC distress from NEPTUN. Alarm off -> watch
     on 16 -> acknowledge by voice ("RECEIVED MAYDAY") only when the coast
     station is silent; mistake detector for transmitting your own distress.
-14. `receive-call` - RECEIVING side: an inbound routine Individual DSC call
+15. `receive-call` - RECEIVING side: an inbound routine Individual DSC call
     proposing CH 72. Accept -> auto-switch to the working channel -> answer
     by voice.
 
-Scenarios 7-14 follow the standard SRC/GMDSS practical task categories
-(routine correspondence, DSC test/individual, medical urgency, distress
+Scenarios 7-15 follow the standard SRC/GMDSS practical task categories
+(routine correspondence, DSC test/individual/group, medical urgency, distress
 relay, receiving a call/distress) rather than a verbatim UKE numbered list,
 which is not published in the exam materials we could verify. They run on the
-same reducer; the receiving pair (13-14) starts already showing the inbound
+same reducer; the receiving pair (14-15) starts already showing the inbound
 call via `init` (the `false-cancel` pattern) and adds two read-only screens
 (`rx-distress-alert`, `rx-individual-call`) plus `[ALARM OFF]`/`[ACCEPT]`
 softkeys - no new events, no page timers. Each scenario has a completability
@@ -342,9 +345,11 @@ smoke step warns (does not fail) when the header is still missing.
 
 ## Roadmap (next versions)
 
-- **14 scenarios ship today**: distress, the three urgency calls, safety,
-  routine marina/VTS/ship, DSC test, distress cancel, MAYDAY relay, plus the
-  receiving side (received distress + received individual call). Remaining
+- **15 scenarios ship today** covering all four DSC call types (Individual,
+  Group, All Ships, Test) and all three categories: distress, the three
+  urgency calls, safety, routine marina/VTS/ship/group, DSC test, distress
+  cancel, MAYDAY relay, plus the receiving side (received distress + received
+  individual call). Remaining
   nice-to-haves: a timed incoming call that arrives mid-standby (today the
   receiving scenarios start already ringing via `init`), an on-device MMSI
   address book, distress-relay via DSC (not just voice), and EPIRB/SART
