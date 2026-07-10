@@ -42,6 +42,8 @@ jobs:
         run: node scripts/check-bundle-size.mjs
       - name: Physics engine tests
         run: npm run test:physics
+      - name: Radio trainer tests (state machine + scenarios)
+        run: npm run test:radio
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Pre-deploy E2E (boot the build, run smoke against localhost)

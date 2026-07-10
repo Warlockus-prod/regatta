@@ -103,7 +103,7 @@ export async function POST(req: Request) {
     wf.append('model', 'whisper-1');
     // Radio English with a fixed vocabulary - the prompt biases proper nouns.
     wf.append('language', 'en');
-    wf.append('prompt', `Marine VHF radio transmission. MAYDAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, CANCEL MY DISTRESS ALERT, OVER, OUT.`);
+    wf.append('prompt', `Marine VHF radio transmission. MAYDAY, MAYDAY RELAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, MARINA GDYNIA, VTS ZATOKA GDANSKA, TRAINING SHIP, REGATTA FLEET, REQUEST A BERTH, REQUEST MEDICAL ADVICE, CANCEL MY DISTRESS ALERT, OVER, OUT.`);
 
     const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',

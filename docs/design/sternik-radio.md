@@ -166,6 +166,26 @@ not a 1:1 radio. Honest limits:
    (mistake detector for PTT on 16), readability scale in the WHY.
 6. `false-cancel` - starts with an accidental alert already sent
    (scenario init state); CANCEL -> CONTINUE -> voice cancel -> FINISH.
+7. `routine-marina` - routine correspondence: call Marina Gdynia on CH 12
+   (not 16) to request a berth; mistake detector for keying on 16.
+8. `vts-report` - routine traffic report to VTS Zatoka Gdanska on CH 71
+   with position and intent.
+9. `panpan-medico` - medical urgency: All Ships / Urgency + voice
+   "REQUEST MEDICAL ADVICE"; debrief on the Urgency -> MAYDAY escalation.
+10. `dsc-test` - DSC Test call to a coast station with automatic ACK; no
+    voice phase (digital-only); mistake detector for sending it as All Ships.
+11. `routine-ship` - Individual DSC call to another vessel, ACK, then voice
+    on the agreed working channel; mistake detector for designating CH 16.
+12. `mayday-relay` - relay another vessel's MAYDAY by voice on 16 (MAYDAY
+    RELAY), NOT the red key; grader checks the relay proword and casualty data.
+
+Scenarios 7-12 follow the standard SRC/GMDSS practical task categories
+(routine correspondence, DSC test/individual, medical urgency, distress
+relay) rather than a verbatim UKE numbered list, which is not published in
+the exam materials we could verify. They run on the same reducer; each is
+covered by a completability walkthrough in `scenarios.test.ts` (M330 + an
+M323 cross-model check) and, where voiced, a grader test in
+`voiceGrading.test.ts`.
 
 Modes: **nauka** (step instructions + WHY shown live) and **egzamin**
 (situation only; the full WHY walkthrough appears in the debrief).
@@ -312,10 +332,12 @@ smoke step warns (does not fail) when the header is still missing.
 
 ## Roadmap (next versions)
 
-- **More UKE practical tasks**: the official card lists 26; 6 scenarios
-  ship today. Highest-value gaps: Individual/Test call with position
-  request, MAYDAY relay, MAYDAY acknowledgement, routine correspondence,
-  DSC receive/answer.
+- **Receiving side**: 12 transmit scenarios ship today (distress, the three
+  urgency calls, safety, routine marina/VTS/ship, DSC test, distress cancel,
+  MAYDAY relay). The remaining gap is the RECEIVE side - answering an
+  incoming DSC individual call and acknowledging a received distress by
+  voice - which needs an incoming-DSC event/screen in the reducer (the
+  current model only injects coast/DSC ACKs to your own calls).
 - OTHER DSC free MMSI address book (today: fixed 3-entry list), Distress
   relay, EPIRB/SART dummies (exam card includes them).
 - Voice-first exam mode, GPT feedback on transcripts.

@@ -24,7 +24,10 @@ export interface VariantData {
 
 export interface VoiceSpec {
   /** id understood by /api/radio-voice grading. */
-  kind: 'mayday-fire' | 'panpan-mob' | 'panpan-engine' | 'securite-hazard' | 'radio-check' | 'cancel-false';
+  kind:
+    | 'mayday-fire' | 'panpan-mob' | 'panpan-engine' | 'securite-hazard'
+    | 'radio-check' | 'cancel-false' | 'routine-marina' | 'routine-ship'
+    | 'routine-group' | 'panpan-medico' | 'vts-report' | 'mayday-relay';
   /** lines the user "reads" when stepping through with PTT clicks. */
   lines: (v: VariantData) => string[];
 }
@@ -519,6 +522,355 @@ const cancelScenario: Scenario = {
   },
 };
 
+// ===========================================================================
+// Routine / test / medical / relay scenarios (second batch). These reuse the
+// same reducer: routine correspondence on a working channel, Individual/Test
+// DSC calls with ACK, an All-Ships medical urgency, and a spoken MAYDAY RELAY.
+// ===========================================================================
+
+/** Open Other DSC and land in compose with the requested call type selected.
+ *  Model-agnostic: M330 opens Other DSC (All Ships) then changes Type; M323
+ *  picks the type inside DSC Calls. Both end in compose with that type. */
+const stepChooseType = (type: 'Individual' | 'Group' | 'Test', todo: Bi, why: Bi): ScenarioStep => ({
+  id: 'type',
+  todo,
+  why,
+  check: (_e, _prev, next) => next.screen === 'otherdsc-compose' && OTHERDSC_TYPES[next.odType] === type,
+});
+
+const stepDscAck = (): ScenarioStep => ({
+  id: 'dsc-ack',
+  todo: { pl: 'Czekaj na cyfrowe potwierdzenie (ACK) wywolywanej stacji', ru: 'Жди цифровое подтверждение (ACK) вызываемой станции' },
+  why: {
+    pl: 'Wywolania Individual i Test potwierdza cyfrowo stacja wywolywana. Po ACK radio wskaze uzgodniony kanal roboczy - kanaly 16 i 70 zostaja wolne.',
+    ru: 'Вызовы Individual и Test подтверждаются цифро вызываемой станцией. После ACK рация укажет согласованный рабочий канал - каналы 16 и 70 остаются свободными.',
+  },
+  check: (_e, _prev, next) => next.screen === 'otherdsc-ack',
+});
+
+const stepDscAlarmOff = (): ScenarioStep => ({
+  id: 'dsc-alarmoff',
+  todo: { pl: 'Wylacz sygnal ([ALARM OFF]) - radio przejdzie na kanal roboczy', ru: 'Отключи сигнал ([ALARM OFF]) - рация перейдёт на рабочий канал' },
+  why: {
+    pl: 'Po ACK obie stacje sa na uzgodnionym kanale roboczym i mozna zaczac rozmowe glosem.',
+    ru: 'После ACK обе станции на согласованном рабочем канале, и можно начинать разговор голосом.',
+  },
+  check: (e, prev, next) => e.type === 'soft' && prev.screen === 'otherdsc-ack' && next.screen === 'otherdsc-sent',
+});
+
+// --- scenario 7: routine call to a marina -----------------------------------
+
+const MARINA_LINES = (v: VariantData) => [
+  'MARINA GDYNIA, MARINA GDYNIA',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  'REQUEST A BERTH FOR TONIGHT',
+  `${v.pobWord} PERSONS ON BOARD, YACHT ELEVEN METRES`,
+  'OVER',
+];
+
+const marinaScenario: Scenario = {
+  id: 'routine-marina',
+  icon: '⚓',
+  title: { pl: 'Wywolanie mariny - miejsce w porcie', ru: 'Вызов марины - место в порту' },
+  brief: {
+    pl: 'Podchodzisz do Mariny Gdynia i chcesz zarezerwowac miejsce na noc. To zwykla korespondencja - na kanale roboczym mariny (12), nie na 16.',
+    ru: 'Подходишь к марине Гдыня и хочешь место на ночь. Это обычная корреспонденция - на рабочем канале марины (12), не на 16.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'ch12',
+      todo: { pl: 'Ustaw kanal roboczy mariny - 12', ru: 'Выставь рабочий канал марины - 12' },
+      why: {
+        pl: 'Sprawy portowe zalatwia sie na kanale roboczym mariny. W Trojmiescie: Gdynia 12, Gdansk 14. Kanal 16 zostaje wolny dla wywolan i niebezpieczenstwa.',
+        ru: 'Портовые дела решают на рабочем канале марины. В Труймясте: Гдыня 12, Гданьск 14. Канал 16 остаётся свободным для вызовов и бедствия.',
+      },
+      check: (_e, prev, next) => ch(next) === '12' && ch(prev) !== '12',
+    },
+    {
+      id: 'marina-voice',
+      todo: { pl: 'Wywolaj marine i popros o miejsce (PTT)', ru: 'Вызови марину и попроси место (PTT)' },
+      why: {
+        pl: 'Schemat: [stacja] x2 -> THIS IS + nazwa x2 -> tresc (prosba) -> OVER. Krotko i konkretnie: czego potrzebujesz, jaka jednostka, ile osob.',
+        ru: 'Схема: [станция] x2 -> THIS IS + название x2 -> суть (просьба) -> OVER. Коротко и по делу: что нужно, какое судно, сколько людей.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '12' && next.ptt,
+      voice: { kind: 'routine-marina', lines: MARINA_LINES },
+    },
+  ],
+  mistakes: [
+    {
+      id: 'marina-on-16',
+      text: { pl: 'Wywolanie portowe na kanale 16 - uzyj kanalu roboczego mariny (12).', ru: 'Портовый вызов на 16 - используй рабочий канал марины (12).' },
+      detect: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+    },
+  ],
+};
+
+// --- scenario 8: traffic report to VTS --------------------------------------
+
+const VTS_LINES = (v: VariantData) => [
+  'VTS ZATOKA GDANSKA, VTS ZATOKA GDANSKA',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  `CALL SIGN ${v.vessel.call}`,
+  `POSITION ${v.posSpoken}`,
+  'INBOUND TO GDYNIA, REQUEST PERMISSION TO ENTER THE TRAFFIC ZONE',
+  'OVER',
+];
+
+const vtsScenario: Scenario = {
+  id: 'vts-report',
+  icon: '🗼',
+  title: { pl: 'Meldunek do VTS Zatoka Gdanska', ru: 'Доклад в VTS Гданьский залив' },
+  brief: {
+    pl: 'Wchodzisz w rejon ruchu Zatoki Gdanskiej. Sluzba VTS Zatoka Gdanska (kanal 71) porzadkuje ruch - zglos sie z pozycja i zamiarem. To korespondencja rutynowa.',
+    ru: 'Входишь в зону движения Гданьского залива. Служба VTS (канал 71) управляет трафиком - доложись с позицией и намерением. Рутинная корреспонденция.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'ch71',
+      todo: { pl: 'Ustaw kanal VTS - 71', ru: 'Выставь канал VTS - 71' },
+      why: {
+        pl: 'VTS Zatoka Gdanska pracuje na kanale 71. Meldujesz sie tam, nie na 16 - 16 zostaje dla wywolan i niebezpieczenstwa.',
+        ru: 'VTS Гданьского залива работает на 71 канале. Докладываешься там, не на 16 - 16 остаётся для вызовов и бедствия.',
+      },
+      check: (_e, prev, next) => ch(next) === '71' && ch(prev) !== '71',
+    },
+    {
+      id: 'vts-voice',
+      todo: { pl: 'Zglos sie do VTS z pozycja i zamiarem (PTT)', ru: 'Доложись в VTS с позицией и намерением (PTT)' },
+      why: {
+        pl: 'Podaj: kogo wolasz, twoja nazwa i znak, pozycja, zamiar (wejscie/wyjscie, dokad). VTS potrzebuje pozycji i intencji, zeby rozdzielic ruch.',
+        ru: 'Сообщи: кого вызываешь, своё название и позывной, позицию, намерение (вход/выход, куда). VTS нужны позиция и намерение, чтобы разводить трафик.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '71' && next.ptt,
+      voice: { kind: 'vts-report', lines: VTS_LINES },
+    },
+  ],
+  mistakes: [],
+};
+
+// --- scenario 9: medical urgency (PAN-PAN medico) ---------------------------
+
+const MEDICO_LINES = (v: VariantData) => [
+  'PAN PAN, PAN PAN, PAN PAN',
+  'ALL STATIONS, ALL STATIONS, ALL STATIONS',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
+  `MMSI ${v.vessel.mmsi}, CALL SIGN ${v.vessel.call}`,
+  `POSITION ${v.posSpoken}`,
+  'ONE CREW MEMBER INJURED, DEEP CUT TO THE HAND, HEAVY BLEEDING',
+  'REQUEST MEDICAL ADVICE',
+  `${v.pobWord} PERSONS ON BOARD`,
+  'OVER',
+];
+
+const medicoScenario: Scenario = {
+  id: 'panpan-medico',
+  icon: '🩹',
+  title: { pl: 'Kontuzja zalogi - PAN-PAN medyczny', ru: 'Травма экипажа - PAN-PAN медицинский' },
+  brief: {
+    pl: 'Czlonek zalogi mocno rozcial dlon, krwawienie trudno opanowac. Zycie nie jest jeszcze bezposrednio zagrozone, ale potrzebujesz porady medycznej. To PILNOSC medyczna: PAN-PAN.',
+    ru: 'Член экипажа сильно порезал руку, кровотечение трудно остановить. Жизнь пока не под прямой угрозой, но нужна медицинская консультация. Это медицинская СРОЧНОСТЬ: PAN-PAN.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'otherdsc',
+      todo: { pl: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call', ru: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call' },
+      why: {
+        pl: 'Zapowiedz pilnosci sklada sie jako All Ships - jak przy kazdym PAN-PAN. Czerwony DISTRESS to tylko bezposrednie zagrozenie zycia.',
+        ru: 'Объявление срочности собирается как All Ships - как при любом PAN-PAN. Красная DISTRESS - только прямая угроза жизни.',
+      },
+      check: (_e, prev, next) => prev.screen !== 'otherdsc-compose' && next.screen === 'otherdsc-compose',
+    },
+    {
+      id: 'urgency-sent',
+      todo: { pl: 'All Ships / Urgency -> Send', ru: 'All Ships / Urgency -> Send' },
+      why: {
+        pl: 'Kategoria Urgency obejmuje takze sprawy medyczne. Zapowiedz na 70 kieruje wszystkich na 16 - odpowiedziec moze lekarz przez stacje brzegowa (RADIO MEDICO).',
+        ru: 'Категория Urgency включает и медицинские дела. Объявление на 70 направляет всех на 16 - ответить может врач через береговую станцию (RADIO MEDICO).',
+      },
+      check: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'All Ships' && next.odSent?.category === 'Urgency',
+    },
+    {
+      id: 'medico-voice',
+      todo: { pl: 'Nadaj PAN-PAN medyczny glosem na 16', ru: 'Передай PAN-PAN медицинский голосом на 16' },
+      why: {
+        pl: 'Struktura jak PAN-PAN: PAN PAN x3 -> ALL STATIONS x3 -> THIS IS + nazwa -> pozycja -> uraz -> REQUEST MEDICAL ADVICE -> liczba osob -> OVER.',
+        ru: 'Структура как PAN-PAN: PAN PAN x3 -> ALL STATIONS x3 -> THIS IS + название -> позиция -> травма -> REQUEST MEDICAL ADVICE -> число людей -> OVER.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+      voice: { kind: 'panpan-medico', lines: MEDICO_LINES },
+    },
+  ],
+  mistakes: [
+    {
+      id: 'red-button-medico',
+      text: { pl: 'Czerwony DISTRESS przy kontuzji bez zagrozenia zycia = falszywy alarm. Gdyby zycie bylo zagrozone (zawal, utrata przytomnosci) - wtedy MAYDAY.', ru: 'Красная DISTRESS при травме без угрозы жизни = ложная тревога. Если жизнь под угрозой (инфаркт, потеря сознания) - тогда MAYDAY.' },
+      detect: (e) => e.type === 'distress-held',
+    },
+  ],
+  debrief: {
+    pl: 'Sprawy medyczne to Urgency, dopoki zycie nie jest bezposrednio zagrozone. Zawal, utrata przytomnosci, masywny krwotok - to juz MAYDAY. Porady medycznej udziela stacja brzegowa (RADIO MEDICO / sluzba SAR).',
+    ru: 'Медицинские дела - это Urgency, пока жизнь не под прямой угрозой. Инфаркт, потеря сознания, массивное кровотечение - это уже MAYDAY. Медконсультацию даёт береговая станция (RADIO MEDICO / служба SAR).',
+  },
+};
+
+// --- scenario 10: DSC test call (no voice) ----------------------------------
+
+const dscTestScenario: Scenario = {
+  id: 'dsc-test',
+  icon: '🧪',
+  title: { pl: 'Test DSC do stacji brzegowej', ru: 'DSC-тест на береговую станцию' },
+  brief: {
+    pl: 'Chcesz sprawdzic, czy caly lancuch DSC dziala (MMSI, GPS, nadawanie na 70). Sluzy do tego wywolanie Test do stacji brzegowej - bez alarmowania kogokolwiek glosem.',
+    ru: 'Хочешь проверить, что вся цепочка DSC работает (MMSI, GPS, передача на 70). Для этого есть Test-вызов на береговую станцию - без голосового беспокойства.',
+  },
+  steps: [
+    stepPower(),
+    stepChooseType('Test',
+      { pl: 'Wybierz Test Call do stacji brzegowej (M330: [OTHER DSC] > Type: Test; M323: DSC Calls > Test Call)', ru: 'Выбери Test Call на береговую станцию (M330: [OTHER DSC] > Type: Test; M323: DSC Calls > Test Call)' },
+      { pl: 'Test to specjalny typ DSC - stacja brzegowa odpowiada automatycznym ACK. Adresuj do stacji brzegowej (Polish Rescue Radio), nie do All Ships.', ru: 'Test - специальный тип DSC: береговая станция отвечает автоматическим ACK. Адресуй на береговую станцию (Polish Rescue Radio), не на All Ships.' },
+    ),
+    {
+      id: 'test-sent',
+      todo: { pl: 'Wyslij wywolanie Test (Send)', ru: 'Отправь Test-вызов (Send)' },
+      why: {
+        pl: 'Radio nadaje krotka ramke testowa na kanale 70. Nie idzie zaden glos - to czysto cyfrowa kontrola.',
+        ru: 'Рация шлёт короткий тестовый кадр на 70 канале. Голоса нет - это чисто цифровая проверка.',
+      },
+      check: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'Test',
+    },
+    stepDscAck(),
+    {
+      id: 'test-done',
+      todo: { pl: 'Potwierdz ([ALARM OFF]) - test zaliczony', ru: 'Подтверди ([ALARM OFF]) - тест засчитан' },
+      why: {
+        pl: 'ACK potwierdza, ze twoj MMSI i tor nadawczo-odbiorczy dzialaja. To najlepszy sposob sprawdzenia DSC bez falszywego alarmu - nie ma czesci glosowej.',
+        ru: 'ACK подтверждает, что твой MMSI и приёмо-передающий тракт работают. Лучший способ проверить DSC без ложной тревоги - голосовой части нет.',
+      },
+      check: (e, prev) => e.type === 'soft' && prev.screen === 'otherdsc-ack',
+    },
+  ],
+  mistakes: [
+    {
+      id: 'test-all-ships',
+      text: { pl: 'Test wyslany jako All Ships - test kieruje sie do konkretnej stacji brzegowej, ktora odpowie ACK.', ru: 'Test отправлен как All Ships - тест адресуют конкретной береговой станции, которая ответит ACK.' },
+      detect: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'All Ships',
+    },
+  ],
+};
+
+// --- scenario 11: routine Individual DSC call to another vessel --------------
+
+const SHIP_LINES = (v: VariantData) => [
+  'TRAINING SHIP, TRAINING SHIP',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  'GOOD MORNING, WHAT IS YOUR POSITION AND E T A',
+  'OVER',
+];
+
+const shipScenario: Scenario = {
+  id: 'routine-ship',
+  icon: '📻',
+  title: { pl: 'Wywolanie innej jednostki przez DSC', ru: 'Вызов другого судна через DSC' },
+  brief: {
+    pl: 'Chcesz porozmawiac z jednostka szkolna (TRAINING SHIP). Nowoczesnie robi sie to wywolaniem Individual DSC: radio "dzwoni" do konkretnego MMSI i proponuje kanal roboczy, a rozmowa idzie glosem - nie zajmujesz 16.',
+    ru: 'Хочешь связаться с учебным судном (TRAINING SHIP). Современно это делают вызовом Individual DSC: рация «звонит» на конкретный MMSI и предлагает рабочий канал, а разговор идёт голосом - ты не занимаешь 16.',
+  },
+  steps: [
+    stepPower(),
+    stepChooseType('Individual',
+      { pl: 'Wybierz Individual Call (M330: [OTHER DSC] > Type: Individual; M323: DSC Calls > Individual Call)', ru: 'Выбери Individual Call (M330: [OTHER DSC] > Type: Individual; M323: DSC Calls > Individual Call)' },
+      { pl: 'Individual to wywolanie do jednego, konkretnego MMSI - jak telefon. Grupowe i All Ships to inne typy.', ru: 'Individual - вызов одного конкретного MMSI, как телефон. Групповой и All Ships - другие типы.' },
+    ),
+    {
+      id: 'ship-sent',
+      todo: { pl: 'Ustaw adresata (TRAINING SHIP) i kanal roboczy (np. 72), potem Send', ru: 'Выставь адресата (TRAINING SHIP) и рабочий канал (напр. 72), затем Send' },
+      why: {
+        pl: 'W wywolaniu Individual wskazujesz MMSI odbiorcy i proponowany kanal roboczy. Nigdy nie proponuj 16 do rozmowy - to kanal wywolan i niebezpieczenstwa.',
+        ru: 'В вызове Individual указываешь MMSI получателя и предлагаемый рабочий канал. Никогда не предлагай 16 для разговора - это канал вызовов и бедствия.',
+      },
+      check: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'Individual',
+    },
+    stepDscAck(),
+    stepDscAlarmOff(),
+    {
+      id: 'ship-voice',
+      todo: { pl: 'Rozmawiaj na uzgodnionym kanale roboczym (PTT)', ru: 'Говори на согласованном рабочем канале (PTT)' },
+      why: {
+        pl: 'Po ACK obie stacje sa na kanale roboczym. Wywolanie glosem: [jednostka] x2 -> THIS IS + nazwa x2 -> tresc -> OVER.',
+        ru: 'После ACK обе станции на рабочем канале. Голосовой вызов: [судно] x2 -> THIS IS + название x2 -> суть -> OVER.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && next.ptt && ch(next) !== '70',
+      voice: { kind: 'routine-ship', lines: SHIP_LINES },
+    },
+  ],
+  mistakes: [
+    {
+      id: 'routine-designate-16',
+      text: { pl: 'Wywolanie rutynowe wskazalo kanal 16 do rozmowy - wybierz kanal roboczy (np. 72).', ru: 'Рутинный вызов назначил канал 16 для разговора - выбери рабочий канал (напр. 72).' },
+      detect: (e, _prev, next) => e.type === 'ent' && next.screen === 'otherdsc-sent' && next.odSent?.type === 'Individual' && next.odSent?.channel === '16',
+    },
+  ],
+};
+
+// --- scenario 12: relay another vessel's MAYDAY -----------------------------
+
+const RELAY_LINES = (v: VariantData) => [
+  'MAYDAY RELAY, MAYDAY RELAY, MAYDAY RELAY',
+  'ALL STATIONS, ALL STATIONS, ALL STATIONS',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
+  'RECEIVED THE FOLLOWING MAYDAY FROM YACHT NEPTUN',
+  'POSITION FIVE FOUR FOUR ZERO NORTH, ZERO ONE EIGHT FIVE ZERO EAST',
+  'NEPTUN IS SINKING, THREE PERSONS ON BOARD, TAKING TO THE LIFERAFT',
+  'OVER',
+];
+
+const relayScenario: Scenario = {
+  id: 'mayday-relay',
+  icon: '📡',
+  title: { pl: 'Retransmisja cudzego MAYDAY', ru: 'Ретрансляция чужого MAYDAY' },
+  brief: {
+    pl: 'Slyszysz na 16 slaby MAYDAY jachtu NEPTUN (tonie, 3 osoby), ale stacja brzegowa nie odpowiada - twoj sygnal siega dalej. Twoim obowiazkiem jest retransmitowac ten alarm: MAYDAY RELAY. NIE nadajesz wlasnego MAYDAY (tobie nic nie grozi) ani nie uzywasz czerwonego przycisku.',
+    ru: 'Слышишь на 16 слабый MAYDAY яхты NEPTUN (тонет, 3 человека), но береговая станция не отвечает - твой сигнал добивает дальше. Твоя обязанность - ретранслировать: MAYDAY RELAY. НЕ передаёшь свой MAYDAY (тебе ничего не грозит) и не жмёшь красную кнопку.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'ch16-relay',
+      todo: { pl: 'Upewnij sie, ze jestes na kanale 16 (krotko [16/C])', ru: 'Убедись, что ты на 16 канале (коротко [16/C])' },
+      why: {
+        pl: 'Retransmisja MAYDAY idzie glosem na 16 - tam slychac ruch w niebezpieczenstwie. Krotkie [16/C] zawsze wraca na 16.',
+        ru: 'Ретрансляция MAYDAY идёт голосом на 16 - там слышен обмен по бедствию. Короткое [16/C] всегда возвращает на 16.',
+      },
+      check: (e, _prev, next) => e.type === 'key-16c' && ch(next) === '16',
+    },
+    {
+      id: 'relay-voice',
+      todo: { pl: 'Nadaj MAYDAY RELAY glosem na 16', ru: 'Передай MAYDAY RELAY голосом на 16' },
+      why: {
+        pl: 'Formula: MAYDAY RELAY x3 -> ALL STATIONS x3 -> THIS IS + TWOJA nazwa x3 -> "RECEIVED FOLLOWING MAYDAY FROM..." -> nazwa, pozycja, rodzaj zagrozenia i liczba osob jednostki w niebezpieczenstwie -> OVER. Retransmitujesz CUDZE dane, nie swoje.',
+        ru: 'Формула: MAYDAY RELAY x3 -> ALL STATIONS x3 -> THIS IS + ТВОЁ название x3 -> "RECEIVED FOLLOWING MAYDAY FROM..." -> название, позиция, род бедствия и число людей судна в беде -> OVER. Ретранслируешь ЧУЖИЕ данные, не свои.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+      voice: { kind: 'mayday-relay', lines: RELAY_LINES },
+    },
+  ],
+  mistakes: [
+    {
+      id: 'relay-red-button',
+      text: { pl: 'Czerwony DISTRESS przy retransmisji = nadanie WLASNEGO alarmu. Tobie nic nie grozi - MAYDAY RELAY idzie tylko glosem.', ru: 'Красная DISTRESS при ретрансляции = отправка СВОЕГО алерта. Тебе ничего не грозит - MAYDAY RELAY идёт только голосом.' },
+      detect: (e) => e.type === 'distress-held',
+    },
+  ],
+  debrief: {
+    pl: 'MAYDAY RELAY nadaje stacja, ktora ODEBRALA cudzy MAYDAY i widzi, ze nikt go nie potwierdza - typowo stacja brzegowa, ale takze statek z lepszym zasiegiem. Nie mylic z wlasnym MAYDAY.',
+    ru: 'MAYDAY RELAY передаёт станция, которая ПРИНЯЛА чужой MAYDAY и видит, что его никто не подтверждает - обычно береговая станция, но и судно с лучшей связью. Не путать со своим MAYDAY.',
+  },
+};
+
 export const SCENARIOS: Scenario[] = [
   fireScenario,
   mobScenario,
@@ -526,4 +878,10 @@ export const SCENARIOS: Scenario[] = [
   securiteScenario,
   radioCheckScenario,
   cancelScenario,
+  marinaScenario,
+  vtsScenario,
+  medicoScenario,
+  dscTestScenario,
+  shipScenario,
+  relayScenario,
 ];
