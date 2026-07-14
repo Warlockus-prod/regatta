@@ -29,7 +29,16 @@ import path from 'node:path';
 // src/data/src-radio.ts). Inspected: growth is legitimate feature content,
 // largest single chunk stays ~0.95 MB (well under BUDGET_MB_SINGLE), no
 // stray heavy dependency. Baseline after this change: ~5.02 MB.
-const BUDGET_MB_TOTAL = 5.5;
+//
+// 2026-07-14: raised 5.5 -> 6.5 MB. The radio section grew again, and every bit
+// of it is text and data rather than code: per-button inspect (27 entries), deep
+// what/why/when for 15 lessons, the printable crib, the 26 UKE tasks, and now six
+// live conversations with their checklists. Inspected before raising: the largest
+// single chunk is still ~0.95 MB, no new dependency, and the WebAudio engine ships
+// zero audio files (every sound is synthesized). Baseline after this change:
+// ~5.47 MB. If this creeps again, the answer is to split the section's data out
+// of the client bundle - not to keep nudging the number.
+const BUDGET_MB_TOTAL = 6.5;
 
 // Single largest chunk. If one chunk balloons past this, something got
 // bundled into a non-code-split vendor blob (often three.js / drei).
