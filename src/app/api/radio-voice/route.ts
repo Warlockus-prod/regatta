@@ -94,17 +94,30 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Recording too long' }, { status: 413 });
   }
 
-  // --- Whisper transcription -------------------------------------------------
-  let transcript = '';
-  try {
-    const wf = new FormData();
-    const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
-    wf.append('file', audio, `ptt.${ext}`);
-    wf.append('model', 'whisper-1');
-    // Radio English with a fixed vocabulary - the prompt biases proper nouns.
-    wf.append('language', 'en');
-    wf.append('prompt', `Marine VHF radio transmission. MAYDAY, MAYDAY RELAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, MARINA GDYNIA, VTS ZATOKA GDANSKA, TRAINING SHIP, REGATTA FLEET, REQUEST A BERTH, REQUEST MEDICAL ADVICE, RECEIVED MAYDAY, NEPTUN, CANCEL MY DISTRESS ALERT, OVER, OUT.`);
+  // --- transcription ---------------------------------------------------------
+  //
+  // gpt-4o-transcribe replaced whisper-1 (2026-07): same endpoint, same
+  // multipart shape, same ~$0.006/min, materially better on accented and noisy
+  // speech - which is exactly what a browser PTT recording is. It also actually
+  // FOLLOWS the vocabulary prompt below, where whisper-1 only looked at the last
+  // 224 tokens of it as a style prefix.
+  //
+  // The trap: gpt-4o-transcribe does NOT support response_format=verbose_json or
+  // timestamp_granularities[] (whisper-1 only). We ask for neither - we read
+  // data.text and grade it against a deterministic checklist - so the migration
+  // is a one-word change. Do not add them here without switching the model back.
+  const STT_PRIMARY = process.env.OPENAI_STT_MODEL || 'gpt-4o-transcribe';
+  const STT_FALLBACK = 'whisper-1';
 
+  const promptHint = `Marine VHF radio transmission. MAYDAY, MAYDAY RELAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, MARINA GDYNIA, VTS ZATOKA GDANSKA, TRAINING SHIP, REGATTA FLEET, REQUEST A BERTH, REQUEST MEDICAL ADVICE, RECEIVED MAYDAY, NEPTUN, CANCEL MY DISTRESS ALERT, OVER, OUT.`;
+  const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
+
+  async function transcribe(model: string): Promise<string> {
+    const wf = new FormData();
+    wf.append('file', audio as Blob, `ptt.${ext}`);
+    wf.append('model', model);
+    wf.append('language', 'en');   // radio English, fixed vocabulary
+    wf.append('prompt', promptHint);
     const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${apiKey}` },
@@ -113,14 +126,25 @@ export async function POST(req: Request) {
     });
     if (!res.ok) {
       const detail = await res.text().catch(() => '');
-      logError('radio-voice.whisper-error', { status: res.status, detail: detail.slice(0, 200) });
-      return NextResponse.json({ error: 'Transcription failed' }, { status: 502 });
+      throw new Error(`${model} ${res.status}: ${detail.slice(0, 160)}`);
     }
     const data = (await res.json()) as { text?: string };
-    transcript = String(data.text ?? '');
+    return String(data.text ?? '');
+  }
+
+  let transcript = '';
+  try {
+    transcript = await transcribe(STT_PRIMARY);
   } catch (err) {
-    logError('radio-voice.whisper-exception', { err: err instanceof Error ? err.message : 'unknown' });
-    return NextResponse.json({ error: 'Transcription failed' }, { status: 502 });
+    // A model rollout should never take the trainer down: fall back to whisper-1
+    // rather than telling the learner their transmission failed.
+    logWarn('radio-voice.stt-primary-failed', { err: err instanceof Error ? err.message : 'unknown' });
+    try {
+      transcript = await transcribe(STT_FALLBACK);
+    } catch (err2) {
+      logError('radio-voice.stt-failed', { err: err2 instanceof Error ? err2.message : 'unknown' });
+      return NextResponse.json({ error: 'Transcription failed' }, { status: 502 });
+    }
   }
 
   const grade = gradeVoiceTransmission({

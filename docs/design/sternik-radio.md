@@ -438,6 +438,79 @@ real device). See the panel restyle in `RadioFront.tsx`.
   - The radio device itself stays dark metal in both themes. It is a physical
     object, not a UI surface.
 
+## V4 additions (2026-07-14, "teach it, do not just show it")
+
+Driven by a blunt piece of user feedback on lesson 7 (HI/LO): *"there is no
+explanation of WHAT this is and WHY, it is just a button - and that goes for
+every button."* He was right, and the fixes below all follow from it.
+
+- **Per-button inspect.** `RadioFront` used to lump the entire keypad into one
+  inspect key (`keypad`) and all four softkeys into another (`softkeys`), so
+  tapping MENU produced a paragraph about "the keypad". Every control now carries
+  its own key: `inspectData.ts` grew from 13 entries to **27** (each arrow, MENU,
+  ENT, CLR, 16/C, the channel readout, each softkey function, the DISTRESS cover
+  and key, the mic, every status indicator). A softkey resolves its entry by its
+  CURRENT label (`softIk()`), because a softkey has no fixed meaning.
+- **What / why / when, everywhere.** Both the inspect entries and all 14 course
+  lessons (`obsluga/lessonData.ts`) now answer four questions instead of one:
+  WHAT it is, WHY it exists (the physical reason - 25 W in a marina blocks the
+  channel for everyone out to the radio horizon; the 1 W restriction on 15/17/75/76
+  protects channel 16), WHEN you use it, and what the examiner watches for.
+  Content was generated and then adversarially fact-checked by a 12-agent
+  workflow; the reviewers caught real errors (ENT does not send a distress alert,
+  the EU IC-M330GE has no USA/CAN channel groups, ITU-R M.541 repeats the alert
+  at 3.5-4.5 min not "about 4", and a Cyrillic homoglyph hiding inside a Polish
+  word).
+- **Inspect in the course.** The course is where a learner first meets the
+  buttons, and it had no inspect at all - the one place the question gets asked.
+- **The radio has sound** (`symulator/audio/*`, `symulator/radioTraffic.ts`).
+  The simulator was silent, which quietly made the squelch lesson meaningless:
+  "set SQL just above where the steady noise disappears" is not teachable when
+  there is no noise. Everything is synthesized in WebAudio (no assets: strict CSP,
+  bundle budget):
+  - a breathing noise floor (bounded random walk) on a 0..10 S-scale shared with
+    the squelch setting and every carrier, so the threshold is a REGION you hunt
+    for by ear rather than a number that flips;
+  - FM quieting: a carrier does not just add voice, it kills the hiss under it,
+    so a weak call SOUNDS weak;
+  - **set the squelch too high and the weak distant call is simply never heard.**
+    Nothing on screen says so. That is the exam point, made audible. A "weak
+    distant call" button in lesson 3 puts a 1 W station on the air to prove it;
+  - a keypress and a REFUSED PTT on channel 70 no longer make the same sound;
+  - the DSC alarm rings on the real two tones (2200 Hz / 1300 Hz, 250 ms each,
+    ITU-R M.493);
+  - `radioModel.ts` is untouched: `radioSounds.ts` is a pure `(event, prev, next)
+    -> Cue[]` mapper, and the squelch threshold is pinned by unit tests
+    (`at SQL 5 a S=4 call must NOT open the gate; at SQL 4 it must`).
+  - On the VOL screen the gate is forced open (the MON affordance real sets have):
+    with the factory squelch of 4 the radio is silent, and you cannot set a volume
+    you cannot hear. The SQL screen is deliberately NOT monitored - that is the
+    screen the lesson lives on.
+- **Voice, both directions.**
+  - STT moved from `whisper-1` to **`gpt-4o-transcribe`** (same endpoint, same
+    multipart shape, same ~$0.006/min, materially better on accented and noisy
+    speech, and it actually follows the vocabulary prompt). `whisper-1` stays as
+    an automatic fallback so a model rollout cannot take the trainer down.
+    Do NOT add `response_format=verbose_json` or `timestamp_granularities[]`:
+    they are whisper-1 only and would 400.
+  - New `/api/radio-tts` (**`gpt-4o-mini-tts`**, the only OpenAI speech model that
+    accepts an `instructions` field - which is exactly what a clipped, flat
+    coast-station delivery needs). The reply is played through a 300 Hz - 3 kHz
+    band with soft clipping and a carrier click, so it arrives sounding like a
+    radio, not a podcast. Station lines are a fixed pool (`stationReply.ts`) and
+    are cached, so each phrase is generated about once.
+  - **The Dziennik now records what you SAID**: the transcript verbatim, one line
+    per missing checklist item, and the score. A score with no transcript told the
+    learner nothing about which words were missing - and the missing words are the
+    lesson.
+- **Onboarding is fuller and replayable**: 6 cards (up from 4, adding inspect,
+  sound/squelch and the two-way voice), and a "How this works" button, because the
+  tour used to be a one-shot locked behind a localStorage flag with no way back.
+- **The site chat bot knows radio** (`/api/ai-chat`): its SITE_SECTIONS listed no
+  `/radio` and no `/sternik`, and its scope line restricted it to sailing - so a
+  question about a DSC alert was answered as off-topic or without pointing at our
+  own section. Both fixed, plus a short list of load-bearing facts it may repeat.
+
 ## Coverage of the official 26 UKE tasks
 
 All 26 published SRC practical tasks are covered across three surfaces
