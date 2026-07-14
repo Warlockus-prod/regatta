@@ -46,6 +46,16 @@ const PUBLIC_ROUTES: RouteSpec[] = [
   { path: '/sternik/teoria', changeFrequency: 'monthly', priority: 0.80 },
   { path: '/sternik/test',   changeFrequency: 'weekly',  priority: 0.80 },
   { path: '/sternik/egzamin', changeFrequency: 'weekly', priority: 0.80 },
+  { path: '/sternik/ustny',  changeFrequency: 'monthly', priority: 0.75 },
+  // The whole radio section was missing from the sitemap, not just the new pages.
+  { path: '/radio',           changeFrequency: 'weekly',  priority: 0.85 },
+  { path: '/radio/obsluga',   changeFrequency: 'monthly', priority: 0.80 },
+  { path: '/radio/symulator', changeFrequency: 'weekly',  priority: 0.80 },
+  { path: '/radio/rozmowa',   changeFrequency: 'monthly', priority: 0.75 },
+  { path: '/radio/pozycja',   changeFrequency: 'monthly', priority: 0.75 },
+  { path: '/radio/zadania',   changeFrequency: 'monthly', priority: 0.80 },
+  { path: '/radio/test',      changeFrequency: 'weekly',  priority: 0.75 },
+  { path: '/radio/sciaga',    changeFrequency: 'monthly', priority: 0.70 },
   { path: '/privacy',    changeFrequency: 'yearly',  priority: 0.30 },
   { path: '/support',    changeFrequency: 'yearly',  priority: 0.40 },
 ];
