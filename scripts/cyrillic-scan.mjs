@@ -3,7 +3,10 @@
 import { chromium } from 'playwright';
 
 const BASE = process.env.SCAN_BASE || 'http://localhost:3007';
-const LANGS = ['es', 'fr', 'de', 'it'];
+// PL and EN were NOT scanned, which is how "МППСС-72" sat inside the Polish
+// rules blurb unnoticed: the Russian abbreviation for COLREGS, on the Polish
+// page. Every non-Russian language is checked now.
+const LANGS = ['pl', 'en', 'es', 'fr', 'de', 'it'];
 const ROUTES = [
   '/', '/start', '/onboard', '/checklist', '/courses', '/racing',
   '/glossary', '/rules', '/anatomy', '/gallery', '/simulator',

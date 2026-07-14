@@ -201,7 +201,7 @@ export default function RulesPage() {
           {tp(
             'Две системы правил: RRS (гоночные правила World Sailing, действуют только между гонщиками на дистанции) и МППСС-72 (международные правила предупреждения столкновений, действуют ВСЕГДА для каждого судна). Знать надо обе.',
             'Two rule systems: RRS (World Sailing racing rules, apply only between racing boats on the course) and COLREGS / IRPCS (International Regulations for Preventing Collisions at Sea, apply ALWAYS to every vessel). Both are essential.',
-            'Dwa systemy zasad: RRS (przepisy regatowe World Sailing, obowiazuja tylko miedzy zawodnikami na trasie) i COLREGS / МППСС-72 (miedzynarodowe przepisy o zapobieganiu zderzeniom na morzu, obowiazuja ZAWSZE dla kazdej jednostki). Oba sa konieczne.',
+            'Dwa systemy zasad: RRS (przepisy regatowe World Sailing, obowiazuja tylko miedzy zawodnikami na trasie) i COLREGS / MPZZM (miedzynarodowe przepisy o zapobieganiu zderzeniom na morzu, obowiazuja ZAWSZE dla kazdej jednostki). Oba sa konieczne.',
             {
               es: 'Dos sistemas de reglas: RRS (reglas de regata de World Sailing, se aplican solo entre barcos que compiten en el recorrido) y RIPA / COLREG (Reglamento Internacional para Prevenir los Abordajes, se aplica SIEMPRE a toda embarcacion). Ambos son esenciales.',
               fr: 'Deux systemes de regles: RRS (regles de course de World Sailing, s\'appliquent seulement entre bateaux en regate sur le parcours) et RIPAM / COLREG (Reglement International pour Prevenir les Abordages en Mer, s\'applique TOUJOURS a tout navire). Les deux sont essentiels.',
