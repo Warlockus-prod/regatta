@@ -184,10 +184,13 @@ export default async function RootLayout({
         </a>
         {/* No-flash theme: resolve the saved preference ('auto' follows the
             OS) and set <html data-theme> before first paint, so there is no
-            light/dark flicker on load. Mirrors src/components/ThemeToggle. */}
+            light/dark flicker on load. Mirrors src/components/ThemeToggle.
+            Pinned to dark on the immersive surfaces, and on ?embed=1 - that is
+            the mobile app's WebView, and the app itself is dark-only, so an OS
+            light preference must not light up a page inside a dark shell. */}
         <script
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var p=location.pathname;var im=['/game','/multiplayer','/simulator','/simulator2','/simulator-v3'].some(function(x){return p===x||p.indexOf(x+'/')===0;});var t=localStorage.getItem('regatta_theme')||'auto';var d=im||t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
+            __html: `(function(){try{var p=location.pathname;var im=['/game','/multiplayer','/simulator','/simulator2','/simulator-v3'].some(function(x){return p===x||p.indexOf(x+'/')===0;})||/[?&]embed=1/.test(location.search);var t=localStorage.getItem('regatta_theme')||'auto';var d=im||t==='dark'||(t==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.dataset.theme=d?'dark':'light';}catch(e){document.documentElement.dataset.theme='dark';}})();`,
           }}
         />
         {/*
