@@ -78,6 +78,26 @@ describe('traffic', () => {
     clearTraffic();
     expect(signalOn('12', 123_456)).toBe(signalOn('12', 123_456));
   });
+
+  it('channel 16 is quiet the great majority of the time', () => {
+    // A distress and calling channel that chattered constantly would teach the
+    // learner to tune it out - the exact opposite of the point. (The first hash
+    // had correlated low bits and left 16 busy about a third of the time.)
+    clearTraffic();
+    let busy = 0;
+    const N = 4000;
+    for (let i = 0; i < N; i++) if (signalOn('16', i * 1000) > 0) busy++;
+    expect(busy / N).toBeLessThan(0.10);
+  });
+
+  it('a port channel carries real traffic - but is not permanently occupied', () => {
+    clearTraffic();
+    let busy = 0;
+    const N = 4000;
+    for (let i = 0; i < N; i++) if (signalOn('12', i * 1000) > 0) busy++;
+    expect(busy / N).toBeGreaterThan(0.05);
+    expect(busy / N).toBeLessThan(0.35);
+  });
 });
 
 describe('cues', () => {
