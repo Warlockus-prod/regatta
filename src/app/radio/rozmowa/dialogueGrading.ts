@@ -25,6 +25,24 @@ export interface MustItem {
   label: string;
   /** the turn passes this item if the transcript contains ANY of these */
   anyOf: string[];
+  /**
+   * For facts a substring cannot express. "Green is on the RIGHT" is not a
+   * keyword - both "zielony" and "prawa" appear in the sentence that gets it
+   * backwards too, and any fixed phrase ("prawa strona zielona") is defeated by
+   * the words Polish puts in between ("prawa strona toru wodnego jest zielona").
+   * When present, this replaces the keyword check.
+   *
+   * It receives the RAW transcript, not the normalized one: punctuation and
+   * conjunctions mark the clause boundaries, and those boundaries are exactly
+   * what says which colour belongs to which side.
+   */
+  test?: (raw: string) => boolean;
+  /**
+   * An element that cannot be traded away by the one-miss allowance below.
+   * Fumbling a supporting detail is human; stating the rule backwards is not the
+   * same kind of mistake, and must not pass.
+   */
+  critical?: boolean;
 }
 
 export interface TurnResult {
@@ -49,6 +67,7 @@ export function normalize(text: string): string {
 
 /** does the transcript satisfy this required element? */
 export function hits(transcript: string, item: MustItem): boolean {
+  if (item.test) return item.test(transcript);
   const t = normalize(transcript);
   return item.anyOf.some((phrase) => t.includes(normalize(phrase)));
 }
@@ -64,5 +83,15 @@ export function gradeTurn(transcript: string, must: MustItem[]): {
   // A turn passes when nothing is missing but at most one element - a real
   // examiner does not fail a transmission for one fumbled word, and neither
   // does an unforgiving trainer teach anything except despair.
-  return { checks, score, passed: okCount >= must.length - 1 && okCount >= Math.ceil(must.length * 0.6) };
+  //
+  // The exception is an element marked `critical`. The slack exists to forgive a
+  // dropped detail, not to let someone state the rule backwards and still be told
+  // they passed - which is what happened when the IALA question could be answered
+  // with the colours swapped and still score 3 out of 4.
+  const criticalOk = must.every((m, i) => !m.critical || checks[i].ok);
+  return {
+    checks,
+    score,
+    passed: criticalOk && okCount >= must.length - 1 && okCount >= Math.ceil(must.length * 0.6),
+  };
 }

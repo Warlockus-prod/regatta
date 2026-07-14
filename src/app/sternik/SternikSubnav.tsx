@@ -16,6 +16,7 @@ export default function SternikSubnav() {
     { href: '/sternik/teoria', label: tp('Теория', 'Theory', 'Teoria'), icon: '📖' },
     { href: '/sternik/test', label: tp('Тренажёр', 'Trainer', 'Trening'), icon: '🎯' },
     { href: '/sternik/egzamin', label: tp('Экзамен', 'Exam', 'Egzamin'), icon: '⏱️' },
+    { href: '/sternik/ustny', label: tp('Устный ответ', 'Oral answer', 'Odpowiedz ustna'), icon: '🎓' },
     { href: '/radio', label: tp('Рация SRC', 'Radio SRC', 'Radio SRC'), icon: '📻' },
   ];
 

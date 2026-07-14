@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { CYRILLIC_RE, usePlOnly } from '../sternik/plOnly';
+import WeakSpotsPanel from './WeakSpotsPanel';
 import { PHONETIC, PROWORDS } from './cheatData';
 
 // ============================================================================
@@ -228,6 +229,10 @@ export default function SternikRadioPage() {
           'Wszystko o radiu VHF i swiadectwie operatora SRC: po co, jak zdac egzamin w UKE, kanaly, wywolania alarmowe i alfabet fonetyczny.',
         )}
       </p>
+
+      {/* What you keep getting wrong, across every trainer. Only appears once
+          there is actually a pattern. */}
+      <WeakSpotsPanel />
 
       <Warn>
         {tp(

@@ -13,6 +13,7 @@ import {
 } from '../symulator/radioModel';
 import { DIALOGUES, type Dialogue } from './dialogues';
 import { gradeTurn, type TurnResult } from './dialogueGrading';
+import { record as recordWeak } from '../weakSpots';
 
 // ============================================================================
 // A live radio conversation. You hold PTT and speak; the audio is transcribed;
@@ -138,6 +139,11 @@ export default function LiveDialogue() {
 
           const graded = gradeTurn(text, turn.must);
           setChecks(graded.checks);
+          recordWeak(
+            'dialogue',
+            graded.checks.filter((c) => !c.ok).map((c) => ({ id: c.id, label: c.label })),
+            graded.checks.filter((c) => c.ok).map((c) => ({ id: c.id })),
+          );
           push(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${text}"`, 'tx');
           for (const c of graded.checks.filter((x) => !x.ok)) {
             push(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
