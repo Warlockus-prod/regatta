@@ -579,6 +579,26 @@ not documented in either manual, so we do not assert one; and CH 70's speaker
 silence is inferred (no DSC set feeds data audio to the AF stage) rather than
 quoted.
 
+### The guide gets the journal and the voice too (2026-07-14)
+
+The Dziennik, the voice practice and the spoken station replies existed only in
+the simulator - so the learner meeting the radio for the FIRST time, in the guide,
+had no record of what the set did, no way to hear their own transmission graded,
+and never once heard a station speak. All three now live in
+`obsluga/InteractiveRadioCourse.tsx` as well:
+
+- **Dziennik**: mirrors the radio's own `deviceLog` (power, channel changes, DSC
+  transmissions) and, after a voice practice, the learner's transcript **word for
+  word** plus one line per missing checklist item and the score.
+- **Voice practice at the PTT lesson**: a radio check with the marina - the safest
+  first transmission there is. Same `VoicePtt` component and the same
+  `/api/radio-voice` grading as the simulator, so the two surfaces cannot drift.
+- **Two station transmissions to just LISTEN to** (Marina Gdynia, and a SECURITE
+  broadcast from the coast station), before ever keying the mic. Both arrive as a
+  **carrier on the current channel**: they open your squelch, quiet the hiss, and
+  are scaled by your volume. Set the squelch too high and you will not hear the
+  station either - which is the lesson, not a bug.
+
 ## Coverage of the official 26 UKE tasks
 
 All 26 published SRC practical tasks are covered across three surfaces
