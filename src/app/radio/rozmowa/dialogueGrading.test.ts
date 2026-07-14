@@ -55,6 +55,16 @@ describe('the punctuation trap', () => {
     expect(gradeTurn(asHeard, panpan.must).checks.find((c) => c.id === 'panpan')?.ok).toBe(true);
   });
 
+  it('grades the EXACT transcript prod returned when we spoke a MAYDAY at it', () => {
+    // Not a guess. Our own TTS read the distress call, our own STT heard it back,
+    // and this is verbatim what came out - digits, hyphens and all. It is here so
+    // that this shape can never silently stop matching.
+    const fromProd = 'MAYDAY, MAYDAY, MAYDAY, THIS IS, WIND DANCER, WIND DANCER, WIND DANCER, CALL SIGN, SIERRA PAPA 9012, MY POSITION IS, 5-4 DEGREES, 3-0-DECIMAL-5 MINUTES NORTH, I AM ON FIRE IN THE ENGINE COMPARTMENT, I REQUIRE IMMEDIATE ASSISTANCE, THREE PERSONS ON BOARD, OVER.';
+    const { score, checks } = gradeTurn(fromProd, find('mayday-dialogue').turns[0].must);
+    expect(checks.filter((c) => !c.ok)).toEqual([]);
+    expect(score).toBe(100);
+  });
+
   it('accepts the vessel name however a Polish speaker gets rendered', () => {
     const turn = find('radio-check').turns[0];
     const identity = turn.must.find((m) => m.id === 'identity')!;
