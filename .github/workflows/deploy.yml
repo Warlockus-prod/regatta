@@ -44,6 +44,11 @@ jobs:
         run: npm run test:physics
       - name: Radio trainer tests (state machine + scenarios)
         run: npm run test:radio
+      # test:radio does not cover src/app/sternik. The oral trainer's grader tests
+      # are the guard against telling a candidate they passed with the rule stated
+      # backwards - run them or the guard cannot fail a deploy.
+      - name: Sternik trainer tests (oral grader)
+        run: npx vitest run src/app/sternik
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Pre-deploy E2E (boot the build, run smoke against localhost)

@@ -11,6 +11,7 @@ import BootcampFooterNav from "@/components/BootcampFooterNav";
 import SiteFooter from "@/components/SiteFooter";
 import GoogleAnalytics from "@/components/GoogleAnalytics";
 import ThemeManager from "@/components/ThemeManager";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import { I18nProvider } from "@/lib/i18n";
 import {
   ENABLED_LANGUAGES,
@@ -254,6 +255,7 @@ export default async function RootLayout({
         />
         <I18nProvider initialLang={serverLang}>
           <ThemeManager />
+          <ServiceWorkerRegistrar />
           <ClientErrorReporter />
           <OnboardingTour />
           <HelpOverlay />

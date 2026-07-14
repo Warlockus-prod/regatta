@@ -17,6 +17,12 @@ const nextConfig: NextConfig = {
   // so we do not duplicate them here (duplicate X-Frame-Options / CSP can
   // weaken or conflict).
   poweredByHeader: false,
+  env: {
+    // The service worker's cache version. It has to change every deploy, or the
+    // browser (which compares sw.js byte-for-byte) never installs a new worker and
+    // the old caches live forever. GITHUB_SHA on CI; a build timestamp locally.
+    NEXT_PUBLIC_SW_VERSION: (process.env.GITHUB_SHA ?? `local-${Date.now()}`).slice(0, 12),
+  },
   async redirects() {
     return [
       // The radio/SRC section moved from /sternik/radio to top-level /radio

@@ -135,6 +135,18 @@ function LcdLine({ children, big, dim, color }: { children: ReactNode; big?: boo
   );
 }
 
+/**
+ * Backlight 0..7 -> a CSS brightness multiplier.
+ *
+ * OFF is not black: a real LCD stays legible in daylight with the backlight off,
+ * and at night your dark-adapted eye reads it fine. What the level 7 screen does
+ * is destroy that adaptation - which is the whole point of the lesson, and it can
+ * only be felt if the screen actually changes.
+ */
+function backlightBrightness(level: number): number {
+  return 0.42 + (Math.max(0, Math.min(7, level)) / 7) * 0.78;   // 0.42 .. 1.20
+}
+
 function CenterGauge({ label, value, max = 10, zeroLabel }: { label: string; value: number; max?: number; zeroLabel?: string }) {
   return (
     <div style={{ paddingTop: 22 }}>
@@ -270,7 +282,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         );
         break;
       case 'backlight':
-        body = <CenterGauge label="Backlight" value={s.backlight} max={radioProfile(s.model).maxBacklight} />;
+        body = <CenterGauge label="Backlight" value={s.backlight} max={radioProfile(s.model).maxBacklight} zeroLabel="OFF" />;
         break;
       case 'menu':
         body = (
@@ -581,6 +593,13 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,240,207,.06)',
         overflow: 'hidden',
         cursor: ins?.on ? 'pointer' : undefined,
+        // The backlight actually dims the screen. The lesson says a bright display
+        // at night destroys the dark adaptation you need to see other vessels'
+        // lights - and a lesson about brightness on a screen whose brightness never
+        // changes is a lesson nobody feels. At OFF the LCD is still readable, just
+        // barely, which is exactly how a real one behaves in the dark.
+        filter: s.power ? `brightness(${backlightBrightness(s.backlight)})` : undefined,
+        transition: 'filter 220ms ease',
       }}
     >
       {s.power && <StatusBar s={s} ins={ins} busy={busy} />}

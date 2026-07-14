@@ -12,6 +12,7 @@ import { useRadioAudio } from './audio/useRadioAudio';
 import { fetchStationVoice } from './audio/stationVoice';
 import { SIG_STRONG, opensGate, scriptOver, signalOn } from './radioTraffic';
 import { stationReply } from './stationReply';
+import { record as recordWeak } from '../weakSpots';
 import { hintFor } from './hints';
 import {
   CHANNELS, DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
@@ -78,6 +79,9 @@ export default function RadioSimulatorPage() {
   const [mode, setMode] = useState<Mode>('nauka');
   const [stepIdx, setStepIdx] = useState(0);
   const doneRef = useRef<Set<string>>(new Set());
+  // Mistakes already tallied into weakSpots, so the tally survives StrictMode's
+  // double-invoked render without counting one slip twice.
+  const weakedRef = useRef<Set<string>>(new Set());
   const [mistakes, setMistakes] = useState<{ id: string; text: Bi }[]>([]);
   const [pageLog, setPageLog] = useState<LogRow[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -184,6 +188,12 @@ export default function RadioSimulatorPage() {
       if (prev.power || next.power) {
         for (const m of sc.mistakes) {
           if (m.detect(e, prev, next, doneRef.current)) {
+            // Record the weak spot outside the state updater: an updater must be
+            // pure, and StrictMode runs it twice, which double-counted the miss.
+            if (!weakedRef.current.has(m.id)) {
+              weakedRef.current.add(m.id);
+              recordWeak('procedure', [{ id: m.id, label: m.text.pl }]);
+            }
             setMistakes((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms, { id: m.id, text: m.text }]));
             // exam integrity: no live mistake feedback in exam mode - it all
             // surfaces in the debrief
@@ -405,6 +415,7 @@ export default function RadioSimulatorPage() {
       ? { ...initial, ...sc.init(vessel), model, vessel, pos: { lat: posDef.lat, lon: posDef.lon } }
       : initial;
     doneRef.current = new Set();
+    weakedRef.current = new Set();
     setScenario(sc);
     setMode(m);
     setStepIdx(0);
@@ -451,6 +462,12 @@ export default function RadioSimulatorPage() {
       for (const c of r.checks.filter((x) => !x.ok)) {
         pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
       }
+      // remember it: a thing failed eight times is a pattern, not eight incidents
+      recordWeak(
+        'voice',
+        r.checks.filter((c) => !c.ok).map((c) => ({ id: c.id, label: c.label })),
+        r.checks.filter((c) => c.ok).map((c) => ({ id: c.id })),
+      );
       pushLog(`${tp('Оценка передачи', 'Transmission graded', 'Ocena nadania')}: ${r.score}%`, r.score >= 70 ? 'step' : 'ui');
 
       // and the station answers OUT LOUD - as a carrier on the channel you are
@@ -510,6 +527,39 @@ export default function RadioSimulatorPage() {
   }, [finishedAt]);
 
   const elapsedSec = startedAt ? Math.round(((finishedAt ?? Date.now()) - startedAt) / 1000) : 0;
+
+  // The model transmission for this scenario's voice step, if it has one.
+  const modelLines: string[] = (() => {
+    const step = scenario?.steps.find((s) => s.voice);
+    return step?.voice ? step.voice.lines(variantData) : [];
+  })();
+
+  const [playingModel, setPlayingModel] = useState(false);
+  const playModel = useCallback(async () => {
+    if (modelLines.length === 0 || playingModel) return;
+    setPlayingModel(true);
+    try {
+      const a = audioRef.current;
+      a.unlock();
+      const say = modelLines.join(' ');
+      const raw = await fetchStationVoice(say);
+      // No audio (offline, no TTS key) means no transmission. Marking the channel
+      // BUSY for 25 seconds of silence would be the simulator lying about the air
+      // in the one trainer whose whole claim is that it never fakes anything.
+      if (!raw) return;
+      const s = rsRef.current;
+      // Length the carrier to the actual speech (~0.38s a word), not a flat 25s,
+      // so the squelch closes when the voice stops. It comes over the air like any
+      // other transmission, not out of a speaker bolted onto the page.
+      const durMs = Math.min(30_000, Math.max(4_000, say.split(/\s+/).length * 380));
+      scriptOver(CHANNELS[s.channelIndex].num, {
+        startMs: Date.now(), durMs, signal: SIG_STRONG, voice: 'male',
+      });
+      await a.speak(raw);
+    } finally {
+      setPlayingModel(false);
+    }
+  }, [modelLines, playingModel]);
   const fmtTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
   const currentStep = scenario?.steps[stepIdx];
@@ -768,6 +818,39 @@ export default function RadioSimulatorPage() {
                       ))}
                     </ol>
                   </details>
+                  {/* "This is how it should have sounded." The debrief listed the
+                      misses but never showed the target - and a learner who is
+                      told what they got wrong, without ever hearing what right
+                      sounds like, has to invent it. The model transmission plays
+                      out loud, through the receiver, in a radio voice. */}
+                  {modelLines.length > 0 && (
+                    <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                      <div className="mb-1 flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                          {tp('Как надо было', 'How it should have sounded', 'Jak to mialo brzmiec')}
+                        </span>
+                        <button
+                          type="button"
+                          data-testid="play-model"
+                          disabled={playingModel}
+                          onClick={() => void playModel()}
+                          className="min-h-[36px] rounded-lg px-3 text-xs font-semibold disabled:opacity-50"
+                          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+                        >
+                          {playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posluchaj wzorca')}
+                        </button>
+                      </div>
+                      <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+{modelLines.join('\n')}
+                      </pre>
+                      {voiceResult && (
+                        <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                          {tp('Ты сказал', 'You said', 'Powiedziales')}: &quot;{voiceResult.transcript.trim().slice(0, 220)}&quot;
+                        </p>
+                      )}
+                    </div>
+                  )}
+
                   <div className="mt-3 flex gap-2">
                     <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[42px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
                       {tp('Ещё раз', 'Again', 'Jeszcze raz')}

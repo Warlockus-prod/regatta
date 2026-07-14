@@ -55,3 +55,12 @@ jobs:
 
       - name: API contract tests
         run: npm run test:api
+
+      # The radio + sternik grader tests are the guardrail against a trainer
+      # telling a learner they passed when they stated the rule backwards. They
+      # were shipping untested by any CI job; without this step a reversed keyword
+      # list is a green build.
+      - name: Radio and sternik course tests
+        run: |
+          npx vitest run src/app/radio
+          npx vitest run src/app/sternik
