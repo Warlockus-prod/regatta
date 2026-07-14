@@ -97,11 +97,19 @@ src/app/radio/symulator/
   scenarios.ts    data-driven scenarios: steps with check(event,prev,next),
                   WHY explanations (PL+RU), mistake detectors, optional
                   init() for pre-seeded states (false-cancel)
-  RadioFront.tsx  visual panel following the manual's layout: speaker + red
-                  DISTRESS under a flip cover, amber dot-matrix LCD with
-                  softkey label row, ENT/arrows/CLR/MENU cluster, round
-                  16/C, PWR/VOL/SQL dial, fist-mic PTT bar; per-model
-                  faceplate + control-highlight hook for the guide course
+  RadioFront.tsx  visual panel following the manual's layout: red DISTRESS
+                  under a hazard-striped flip cover, LCD with a softkey label
+                  row, ENT/arrows/CLR/MENU cluster, 16/C, PWR/VOL/SQL knob,
+                  fist-mic PTT bar; per-model faceplate + control-highlight
+                  hook for the guide course.
+                  LOOK (2026-07, `vhf-trainer` design handoff): green phosphor
+                  LCD (#79f0cf on #062a26) with scanlines and a self-hosted
+                  Share Tech Mono face (next/font - no external request, CSP
+                  untouched), a persistent status bar (band / GPS / watch /
+                  power / battery) above the screen and a TX + signal meter
+                  below it, a machined knob with a pointer, and an amber
+                  (#ffce4d) pulse for the course spotlight. The DEVICE is
+                  still the real exam hardware - only the styling changed.
   VoicePtt.tsx    voice phase: step-through (PTT clicks per line) or real
                   recording via MediaRecorder -> /api/radio-voice
   page.tsx        wiring: imperative dispatch (ref + render tick, avoids

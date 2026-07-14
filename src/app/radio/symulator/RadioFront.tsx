@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { Share_Tech_Mono } from 'next/font/google';
 import { useI18n } from '@/lib/i18n';
 import {
   DSC_ADDRESSES, DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
@@ -9,16 +10,33 @@ import {
 } from './radioModel';
 
 // ============================================================================
-// Visual front panel of the IC-M330GE. Layout follows the manual's panel
-// description: speaker + red DISTRESS under a flip cover (left), dot-matrix
-// LCD (center), ENT/arrows/CLR/MENU cluster + round 16/C + PWR/VOL/SQL dial
-// (right), 4 softkeys under the display. The PTT lives on the fist mic - here
-// a separate hold-button below the panel.
+// Visual front panel of the ICOM IC-M330GE / IC-M323.
+//
+// Layout follows the manuals: speaker + red DISTRESS under a flip cover, LCD,
+// softkeys, ENT/arrows/CLR/MENU cluster, round 16/C, PWR/VOL/SQL dial, and the
+// fist-mic PTT.
+//
+// The look follows the 2026-07 `vhf-trainer` design handoff: green phosphor LCD
+// (#79f0cf on #062a26) with scanlines and a Share Tech Mono face, a persistent
+// status bar (band / GPS / watch / power / battery) above the screen and a
+// TX + signal meter below it, a machined PWR-VOL-SQL knob, hazard-striped
+// DISTRESS cover, and an amber (#ffce4d) pulse for the guided-course spotlight.
+// The DEVICE stays the real exam hardware - only the styling is new.
 // ============================================================================
 
-const AMBER = '#ffb84d';
-const AMBER_DIM = 'rgba(255,184,77,0.55)';
-const LCD_BG = 'radial-gradient(120% 130% at 50% 0%, #3a2a10, #241806 70%)';
+// Self-hosted by next/font (no external request, so the CSP stays untouched).
+const lcdFont = Share_Tech_Mono({ weight: '400', subsets: ['latin'], display: 'swap' });
+
+// --- LCD phosphor palette (design tokens) -----------------------------------
+const LCD_FG = '#79f0cf';
+const LCD_DIM = '#4fae9c';
+const LCD_FAINT = '#3f9184';
+const LCD_WARN = '#e6c14a';
+const LCD_ALERT = '#ff6b52';
+const LCD_BG = 'linear-gradient(180deg,#062a26,#04201d)';
+const LCD_SCAN = 'repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)';
+/** guided-course spotlight colour */
+const HL = '#ffce4d';
 
 interface Props {
   s: RadioState;
@@ -51,10 +69,11 @@ function Key({
   ariaLabel?: string;
 }) {
   const bg =
-    tone === 'red' ? 'linear-gradient(180deg,#e84c3d,#b02418)'
-    : tone === 'blue' ? 'linear-gradient(180deg,#3d6f8e,#27506b)'
-    : tone === 'soft' ? 'linear-gradient(180deg,#3a4550,#252e38)'
-    : 'linear-gradient(180deg,#39424c,#232b33)';
+    tone === 'red' ? 'linear-gradient(180deg,#4a5060,#343947)'
+    : tone === 'blue' ? 'linear-gradient(180deg,#4a5060,#343947)'
+    : tone === 'soft' ? 'linear-gradient(180deg,#3f4552,#2c313c)'
+    : 'linear-gradient(180deg,#4a5060,#343947)';
+  const fg = tone === 'red' ? '#ff5f52' : tone === 'blue' ? '#9fd8ff' : '#dfe5ee';
   return (
     <button
       type="button"
@@ -68,10 +87,17 @@ function Key({
       onPointerCancel={onPointerUp}
       onKeyDown={onKeyDown}
       onKeyUp={onKeyUp}
-      className={`select-none font-bold text-white/85 transition active:scale-95 disabled:opacity-35 ${
-        round ? 'rounded-full' : 'rounded-md'
+      className={`select-none font-semibold transition active:translate-y-px active:brightness-95 disabled:opacity-35 ${
+        round ? 'rounded-full' : 'rounded-lg'
       } ${wide ? 'col-span-2' : ''} ${small ? 'min-h-[44px] min-w-[44px] px-1 text-[10px]' : 'min-h-[44px] px-2 text-[11px]'}`}
-      style={{ background: bg, border: '1px solid rgba(255,255,255,0.10)', boxShadow: '0 1px 0 rgba(255,255,255,0.08) inset, 0 2px 4px rgba(0,0,0,0.5)', touchAction: 'none' }}
+      style={{
+        background: bg,
+        color: fg,
+        border: 'none',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.14), 0 2px 5px rgba(0,0,0,0.45)',
+        touchAction: 'none',
+        letterSpacing: 0.4,
+      }}
     >
       {children}
     </button>
@@ -83,25 +109,89 @@ function Key({
 function LcdLine({ children, big, dim, color }: { children: ReactNode; big?: boolean; dim?: boolean; color?: string }) {
   return (
     <div style={{
-      color: color ?? (dim ? AMBER_DIM : AMBER),
+      color: color ?? (dim ? LCD_DIM : LCD_FG),
       fontSize: big ? 15 : 11,
-      fontWeight: big ? 700 : 500,
       lineHeight: 1.45,
-      letterSpacing: 0.3,
+      letterSpacing: 0.4,
     }}>
       {children}
     </div>
   );
 }
 
+function CenterGauge({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
+  return (
+    <div style={{ paddingTop: 22 }}>
+      <LcdLine big>{label}: {value}</LcdLine>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.16)' }}>
+        <div style={{ width: `${(value / max) * 100}%`, height: '100%', background: LCD_FG }} />
+      </div>
+      <LcdLine dim>rotate [DIAL] · push = next</LcdLine>
+    </div>
+  );
+}
+
+/** Persistent top row of the LCD: band, GPS, watch mode, power, battery. */
+function StatusBar({ s }: { s: RadioState }) {
+  const watch = s.scanActive ? 'SCAN' : s.dualWatch ? 'DW' : s.aquaActive ? 'AQUA' : '';
+  return (
+    <div
+      className="flex items-center justify-between"
+      style={{
+        fontSize: 10.5,
+        letterSpacing: 0.5,
+        borderBottom: '1px solid rgba(121,240,207,0.16)',
+        paddingBottom: 5,
+        color: LCD_DIM,
+      }}
+    >
+      <span>INT</span>
+      <span style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</span>
+      <span style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch}</span>
+      <span style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</span>
+      <span>▮▮▮</span>
+    </div>
+  );
+}
+
+/** Persistent bottom row of the LCD: TX/RX state + signal meter. */
+function TxMeter({ s }: { s: RadioState }) {
+  const tx = s.ptt;
+  const label = tx ? 'TX' : 'RX';
+  const pct = tx ? '86%' : s.power ? '22%' : '0%';
+  return (
+    <div className="mt-2 flex items-center gap-2 border-t pt-1.5" style={{ borderColor: 'rgba(121,240,207,0.16)' }}>
+      <span
+        className={tx ? 'animate-pulse' : undefined}
+        style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: tx ? LCD_ALERT : LCD_DIM, minWidth: 24 }}
+      >
+        {label}
+      </span>
+      <div className="h-1.5 flex-1 overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.14)' }}>
+        <div
+          style={{
+            height: '100%',
+            width: pct,
+            background: 'linear-gradient(90deg,#79f0cf 0%,#e6c14a 72%,#ff6b52 100%)',
+            transition: 'width .12s',
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number }) {
-  const mono = 'ui-monospace, SFMono-Regular, Menlo, monospace';
   const ch16 = channel(s);
   const keys = softkeys(s);
 
   let body: ReactNode;
   if (!s.power) {
-    body = <div style={{ color: 'rgba(255,184,77,0.25)', textAlign: 'center', paddingTop: 52, fontSize: 11 }}>&nbsp;</div>;
+    body = (
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#12463f', fontSize: 12, letterSpacing: 2 }}>
+        {'- OFF -'}
+      </div>
+    );
   } else {
     switch (s.screen) {
       case 'volume':
@@ -114,7 +204,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
         body = (
           <>
             <LcdLine big>CHANNEL SELECT</LcdLine>
-            <div style={{ fontSize: 46, fontWeight: 800, textAlign: 'center', color: AMBER }}>{ch16.num}</div>
+            <div style={{ fontSize: 46, textAlign: 'center', color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>{ch16.num}</div>
             <LcdLine dim>Use [^]/[v]{s.model === 'M323' ? ' or rotate [DIAL]' : ''}</LcdLine>
           </>
         );
@@ -125,7 +215,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'menu':
         body = (
           <>
-            <LcdLine big>MENU</LcdLine>
+            <LcdLine big>{'▸'} MENU</LcdLine>
             {menuItems(s).map((m, i) => (
               <LcdLine key={m} dim={i !== s.menuCursor}>{i === s.menuCursor ? '> ' : '  '}{m}</LcdLine>
             ))}
@@ -136,7 +226,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
         const calls = ['Individual Call', 'Group Call', 'All Ships Call', 'Distress Call', 'Test Call'];
         body = (
           <>
-            <LcdLine big>DSC CALLS</LcdLine>
+            <LcdLine big>{'▸'} DSC CALLS</LcdLine>
             {calls.map((call, i) => (
               <LcdLine key={call} dim={i !== s.m323CallCursor}>{i === s.m323CallCursor ? '> ' : '  '}{call}</LcdLine>
             ))}
@@ -186,7 +276,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'distress-compose':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">DISTRESS</LcdLine>
+            <LcdLine big color={LCD_ALERT}>{'⚠'} DISTRESS</LcdLine>
             <LcdLine dim>Push [DISTRESS] for 3 sec.</LcdLine>
             <LcdLine dim={s.composeCursor !== 0}>{s.composeCursor === 0 ? '> ' : '  '}Nature: {NATURES[s.natureIndex]} &gt;</LcdLine>
             <LcdLine dim={s.composeCursor !== 1}>{s.composeCursor === 1 ? '> ' : '  '}Position: {s.gpsValid ? 'GPS' : 'NO GPS - enter!'}</LcdLine>
@@ -196,7 +286,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'distress-nature':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">NATURE OF DISTRESS</LcdLine>
+            <LcdLine big color={LCD_ALERT}>NATURE OF DISTRESS</LcdLine>
             {NATURES.slice(Math.max(0, s.natureCursor - 2), Math.max(0, s.natureCursor - 2) + 5).map((n) => {
               const idx = NATURES.indexOf(n);
               return <LcdLine key={n} dim={idx !== s.natureCursor}>{idx === s.natureCursor ? '> ' : '  '}{n}</LcdLine>;
@@ -206,20 +296,20 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
         break;
       case 'distress-hold':
         body = (
-          <>
-            <LcdLine big color="#ff8a7a">!! DISTRESS !!</LcdLine>
-            <LcdLine>Hold Down for 3 sec.</LcdLine>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded" style={{ background: 'rgba(255,255,255,0.12)' }}>
-              <div style={{ width: `${Math.round(holdPct * 100)}%`, height: '100%', background: '#ff6a5a', transition: 'width 60ms linear' }} />
+          <div style={{ textAlign: 'center' }}>
+            <LcdLine big color={LCD_ALERT}>{'⚠'} DISTRESS</LcdLine>
+            <LcdLine color={LCD_WARN}>Hold Down for 3 sec.</LcdLine>
+            <div className="mt-2 h-2.5 w-full overflow-hidden rounded" style={{ background: 'rgba(255,107,82,.18)' }}>
+              <div style={{ width: `${Math.round(holdPct * 100)}%`, height: '100%', background: 'linear-gradient(90deg,#e6c14a,#ff6b52)', transition: 'width 60ms linear' }} />
             </div>
-            <LcdLine dim>{(holdPct * 3).toFixed(1)} s</LcdLine>
-          </>
+            <div style={{ fontSize: 20, marginTop: 3, color: LCD_ALERT }}>{(holdPct * 3).toFixed(1)}</div>
+          </div>
         );
         break;
       case 'distress-tx':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">!! DISTRESS !!</LcdLine>
+            <LcdLine big color={LCD_ALERT}>{'⚠'} DISTRESS</LcdLine>
             <LcdLine>Transmitting Distress Alert</LcdLine>
             <LcdLine dim>CH 70 · {NATURES[s.natureIndex]}</LcdLine>
           </>
@@ -228,7 +318,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'distress-wait':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">!! DISTRESS !!</LcdLine>
+            <LcdLine big color={LCD_ALERT}>{'⚠'} DISTRESS</LcdLine>
             <LcdLine>Waiting for ACK</LcdLine>
             <LcdLine dim>{s.retxPaused ? 'Re-TX paused' : `Next TX after ${Math.floor(nextTxSec / 60)} min ${String(nextTxSec % 60).padStart(2, '0')} sec.`}</LcdLine>
             <LcdLine dim>{NATURES[s.natureIndex]} · MMSI {s.vessel.mmsi}</LcdLine>
@@ -241,7 +331,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
             <LcdLine big>RCVD DTRS ACK</LcdLine>
             <LcdLine>FROM: 002618102</LcdLine>
             <LcdLine>POLISH RESCUE RADIO</LcdLine>
-            <LcdLine color="#ff8a7a">♪ ALARM ♪</LcdLine>
+            <LcdLine color={LCD_ALERT}>{'♪'} ALARM {'♪'}</LcdLine>
           </>
         );
         break;
@@ -257,7 +347,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'cancel-confirm':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">DISTRESS CANCEL</LcdLine>
+            <LcdLine big color={LCD_ALERT}>DISTRESS CANCEL</LcdLine>
             <LcdLine>will transmit DSC cancel.</LcdLine>
           </>
         );
@@ -265,7 +355,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       case 'cancel-tx':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">DISTRESS CANCEL</LcdLine>
+            <LcdLine big color={LCD_ALERT}>DISTRESS CANCEL</LcdLine>
             <LcdLine>Transmitting Distress Cancel</LcdLine>
           </>
         );
@@ -299,7 +389,7 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
         };
         body = (
           <>
-            <LcdLine big>OTHER DSC</LcdLine>
+            <LcdLine big>{'▸'} OTHER DSC</LcdLine>
             {s.model === 'M330' && <LcdLine dim>Mode: Radio Telephone</LcdLine>}
             {rows.map((field, i) => (
               <LcdLine key={field} dim={s.odCursor !== i}>
@@ -340,19 +430,19 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
             <LcdLine big>RCVD DSC ACK</LcdLine>
             <LcdLine>{s.odSent?.address}</LcdLine>
             <LcdLine>VOICE CH {s.odSent?.channel}</LcdLine>
-            <LcdLine color="#ff8a7a">♪ ALARM ♪</LcdLine>
+            <LcdLine color={LCD_ALERT}>{'♪'} ALARM {'♪'}</LcdLine>
           </>
         );
         break;
       case 'rx-distress-alert':
         body = (
           <>
-            <LcdLine big color="#ff8a7a">RCVD DISTRESS</LcdLine>
+            <LcdLine big color={LCD_ALERT}>RCVD DISTRESS</LcdLine>
             <LcdLine>FROM: {s.rxDistress?.name}</LcdLine>
             <LcdLine dim>MMSI {s.rxDistress?.mmsi}</LcdLine>
             <LcdLine dim>{s.rxDistress?.spoken}</LcdLine>
             <LcdLine dim>Nature: {s.rxDistress?.nature}</LcdLine>
-            <LcdLine color="#ff8a7a">♪ ALARM ♪</LcdLine>
+            <LcdLine color={LCD_ALERT}>{'♪'} ALARM {'♪'}</LcdLine>
           </>
         );
         break;
@@ -370,54 +460,65 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
       default: {
         // standby
         body = (
-          <>
-            <div className="flex items-start justify-between">
-              <div style={{ fontSize: 10, color: AMBER_DIM }}>
-                <div>{s.gpsValid ? `${s.pos.lat} ${s.pos.lon}` : 'NO POS'}</div>
-                <div>{s.gpsValid ? `${clock} UTC` : 'NO TIME'}</div>
+          <div className="flex items-start justify-between" style={{ marginTop: 2 }}>
+            <div>
+              <div style={{ fontSize: 9, letterSpacing: 1, color: LCD_DIM }}>CH</div>
+              <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>
+                {ch16.num}
               </div>
-              <div style={{ fontSize: 10, color: AMBER_DIM, textAlign: 'right' }}>
-                <div>{s.ptt ? 'TX' : s.aquaActive ? 'AQUA' : 'STBY'} · INT</div>
-                <div>{effectivePower(s)}{s.gpsValid ? ' · GPS' : ''}{s.dualWatch ? ' · DW' : ''}{s.scanActive ? ' · SCAN' : ''}</div>
+              <div style={{ fontSize: 9.5, letterSpacing: 0.5, color: LCD_DIM, marginTop: 6 }}>
+                {s.gpsValid ? `${s.pos.lat} ${s.pos.lon}` : 'NO POS'}
+              </div>
+              <div style={{ fontSize: 9.5, letterSpacing: 0.5, color: LCD_FAINT }}>
+                {s.gpsValid ? `${clock} UTC` : 'NO TIME'}
               </div>
             </div>
-            <div style={{ fontSize: 44, fontWeight: 800, textAlign: 'center', color: s.ptt ? '#ff8a7a' : AMBER, letterSpacing: 2, lineHeight: 1.15 }}>
-              {ch16.num}
+            <div style={{ textAlign: 'right', paddingTop: 6, maxWidth: 140 }}>
+              <div style={{
+                display: 'inline-block', fontSize: 11, fontWeight: 700, letterSpacing: 1,
+                color: '#04201d', background: ch16.num === '16' ? LCD_ALERT : LCD_FG,
+                borderRadius: 4, padding: '2px 7px',
+              }}>
+                {ch16.num === '16' ? 'DISTRESS' : ch16.noVoice ? 'DSC' : ch16.lowOnly ? '1W ONLY' : 'SIMPLEX'}
+              </div>
+              <div style={{ fontSize: 9.5, color: LCD_DIM, marginTop: 6 }}>
+                {s.favoriteChannels.includes(ch16.num) ? '★ ' : ''}{ch16.label ?? ''}
+              </div>
             </div>
-            <div style={{ fontSize: 10, color: AMBER_DIM, textAlign: 'center' }}>
-              {s.favoriteChannels.includes(ch16.num) ? '★ ' : ''}{ch16.label ?? (ch16.lowOnly ? 'LOW POWER ONLY' : 'SIMPLEX')}
-            </div>
-          </>
+          </div>
         );
       }
     }
   }
 
   return (
-    <div data-testid="lcd" className="rounded-md px-3 py-2" style={{ background: LCD_BG, border: '2px solid #0d0a05', minHeight: 158, fontFamily: mono, boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.65)' }}>
-      {body}
+    <div
+      data-testid="lcd"
+      className={`${lcdFont.className} relative rounded-lg px-3 py-2`}
+      style={{
+        background: LCD_BG,
+        backgroundImage: `${LCD_SCAN}, ${LCD_BG}`,
+        border: '2px solid #0c0f13',
+        borderRadius: 9,
+        minHeight: 168,
+        color: LCD_FG,
+        boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,240,207,.06)',
+        overflow: 'hidden',
+      }}
+    >
+      {s.power && <StatusBar s={s} />}
+      <div style={{ minHeight: 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
+      {s.power && <TxMeter s={s} />}
       {/* softkey labels - bottom row, like on the device */}
       {s.power && (
-        <div className="mt-2 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(255,184,77,0.25)' }}>
+        <div className="mt-1 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(121,240,207,0.25)' }}>
           {keys.map((k, i) => (
-            <div key={i} style={{ fontSize: 8.5, textAlign: 'center', color: k ? AMBER : 'transparent', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+            <div key={i} style={{ fontSize: 8.5, textAlign: 'center', color: k ? LCD_FG : 'transparent', overflow: 'hidden', whiteSpace: 'nowrap' }}>
               {k || '.'}
             </div>
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function CenterGauge({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
-  return (
-    <div style={{ paddingTop: 26 }}>
-      <LcdLine big>{label}: {value}</LcdLine>
-      <div className="mt-2 h-3 w-full overflow-hidden rounded" style={{ background: 'rgba(255,255,255,0.12)' }}>
-        <div style={{ width: `${(value / max) * 100}%`, height: '100%', background: AMBER }} />
-      </div>
-      <LcdLine dim>rotate [DIAL] · push = next</LcdLine>
     </div>
   );
 }
@@ -473,151 +574,101 @@ export default function RadioFront({
   }, []);
 
   return (
-    <div data-radio-highlight={highlightControl} className="radio-front rounded-2xl p-4" style={{ background: 'linear-gradient(180deg,#2b333c,#171d24)', border: '1px solid var(--border-subtle)', boxShadow: '0 10px 30px rgba(0,0,0,0.4)' }}>
+    // device stage: the radio sits on a lit deck, as in the design handoff
+    <div
+      data-radio-highlight={highlightControl}
+      className="radio-stage rounded-2xl"
+      style={{
+        background: 'radial-gradient(120% 100% at 50% 0%,#26527e 0%,#183a5c 45%,#0e263f 100%)',
+        padding: 'clamp(12px,2.2vw,22px)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -20px rgba(6,26,50,.8)',
+      }}
+    >
       {highlightControl && (
         <style>{`
           [data-radio-highlight="${highlightControl}"] [data-testid="${highlightControl}"] {
-            outline: 3px solid var(--accent-cyan);
-            outline-offset: 3px;
-            animation: radio-control-pulse 1.35s ease-in-out infinite;
+            animation: radio-hl 1.25s ease-in-out infinite;
+            border-radius: 9px;
+            position: relative;
+            z-index: 3;
           }
-          @keyframes radio-control-pulse {
-            0%, 100% { box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.2); }
-            50% { box-shadow: 0 0 0 8px rgba(0, 212, 255, 0); }
+          @keyframes radio-hl {
+            0%, 100% { box-shadow: 0 0 0 3px ${HL}, 0 0 12px 2px rgba(255,196,54,.55); }
+            50%      { box-shadow: 0 0 0 4px ${HL}, 0 0 22px 5px rgba(255,196,54,.9); }
           }
           @media (prefers-reduced-motion: reduce) {
-            [data-radio-highlight="${highlightControl}"] [data-testid="${highlightControl}"] { animation: none; }
+            [data-radio-highlight="${highlightControl}"] [data-testid="${highlightControl}"] {
+              animation: none;
+              box-shadow: 0 0 0 3px ${HL};
+            }
           }
         `}</style>
       )}
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-[11px] font-bold tracking-widest text-white/60">{profile.nameplate}</span>
-        <span className="text-[10px] text-white/40">VHF MARINE TRANSCEIVER</span>
-      </div>
 
-      {/* Mobile: LCD block first at full width, control columns wrap below.
-          Desktop (sm+): manual layout - speaker/DISTRESS | LCD | key cluster. */}
-      <div className="flex flex-wrap gap-3">
-        {/* left column: speaker + DISTRESS under cover */}
-        <div className="order-2 flex w-[86px] flex-1 flex-col items-center gap-2 sm:order-1 sm:max-w-[86px] sm:flex-none">
-          <div className="grid grid-cols-6 gap-[3px] pt-1 opacity-50">
-            {Array.from({ length: 36 }, (_, i) => (
-              <span key={i} className="h-[5px] w-[5px] rounded-full" style={{ background: '#0c0f13' }} />
-            ))}
-          </div>
-          <div className="relative mt-1 w-full">
-            {/* the red key */}
-            <button
-              type="button"
-              data-testid="distress-key"
-              disabled={!coverOpen}
-              onPointerDown={onDistressDown}
-              onPointerUp={onDistressUp}
-              onPointerLeave={onDistressUp}
-              onPointerCancel={onDistressUp}
-              onKeyDown={(e) => {
-                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
-              }}
-              onKeyUp={(e) => {
-                if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
-              }}
-              className="flex min-h-[54px] w-full select-none flex-col items-center justify-center rounded-md text-[10px] font-extrabold text-white transition active:scale-95 disabled:opacity-100"
-              style={{ background: 'linear-gradient(180deg,#e84c3d,#a81f14)', border: '1px solid rgba(0,0,0,0.4)', boxShadow: '0 2px 6px rgba(0,0,0,0.5)', touchAction: 'none' }}
-            >
-              DISTRESS
-              <span className="text-[8px] font-medium opacity-80">hold 3 sec</span>
-            </button>
-            {/* flip cover */}
-            <button
-              type="button"
-              data-testid="distress-cover"
-              aria-label={coverOpen ? 'Close DISTRESS cover' : 'Open DISTRESS cover'}
-              onClick={() => setCoverOpen((v) => !v)}
-              className="absolute inset-0 flex items-end justify-center rounded-md text-[9px] font-bold transition-transform"
+      {/* radio body */}
+      <div
+        className="radio-front mx-auto"
+        style={{
+          maxWidth: 440,
+          background: 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
+          borderRadius: 16,
+          padding: '16px 15px 18px',
+          border: '1px solid #171a20',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
+        }}
+      >
+        {/* brand row */}
+        <div className="mb-3 flex items-center justify-between px-0.5">
+          <div className="flex items-center gap-2">
+            <span
               style={{
-                background: coverOpen ? 'transparent' : 'linear-gradient(180deg, rgba(200,60,45,0.35), rgba(120,20,12,0.45))',
-                border: coverOpen ? 'none' : '1px solid rgba(255,120,100,0.5)',
-                color: coverOpen ? 'transparent' : '#ffd9d3',
-                transform: coverOpen ? 'translateY(-110%) scaleY(0.12)' : 'none',
-                transformOrigin: 'top',
-                pointerEvents: coverOpen ? 'none' : 'auto',
-                backdropFilter: coverOpen ? 'none' : 'blur(1.5px)',
+                width: 15, height: 15, borderRadius: 4,
+                background: 'conic-gradient(from 210deg,#0a58c2,#39b0e5,#0a58c2)',
+                boxShadow: '0 0 6px rgba(57,176,229,.5)',
               }}
+            />
+            <span>
+              <span className="block whitespace-nowrap text-[12px] font-bold leading-none tracking-wide text-[#eef3fa]">{profile.nameplate}</span>
+              <span className="block text-[7.5px] font-medium leading-tight tracking-[1.5px] text-[#8b97a8]">DSC CLASS D</span>
+            </span>
+          </div>
+          <span className="text-right text-[7.5px] font-medium leading-tight tracking-[1.4px] text-[#7d8899]">
+            VHF MARINE<br />TRANSCEIVER
+          </span>
+        </div>
+
+        {/* LCD */}
+        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} />
+
+        {/* softkeys */}
+        <div className="mt-2.5 grid grid-cols-4 gap-1.5">
+          {softkeys(s).map((k, i) => (
+            <Key
+              key={i}
+              id={`soft-${i}`}
+              small
+              tone="soft"
+              disabled={!s.power || !k}
+              onClick={k === 'AQUA' ? undefined : () => dispatch({ type: 'soft', index: i })}
+              onPointerDown={k === 'AQUA' ? () => dispatch({ type: 'aqua-down' }) : undefined}
+              onPointerUp={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
+              onPointerLeave={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
+              onKeyDown={k === 'AQUA' ? (e) => {
+                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
+              } : undefined}
+              onKeyUp={k === 'AQUA' ? (e) => {
+                if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
+              } : undefined}
             >
-              {!coverOpen && <span className="pb-1">COVER · {tp('открой', 'open', 'otworz')}</span>}
-            </button>
-            {coverOpen && (
-              <button
-                type="button"
-                onClick={() => setCoverOpen(false)}
-                className="mt-1 w-full rounded text-[8px] text-white/50"
-                style={{ background: 'rgba(255,255,255,0.06)' }}
-              >
-                {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
-              </button>
-            )}
-          </div>
+              {k || '·'}
+            </Key>
+          ))}
         </div>
 
-        {/* center: LCD + softkeys */}
-        <div className="order-1 w-full min-w-0 sm:order-2 sm:w-auto sm:flex-1">
-          <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} />
-          <div className="mt-2 grid grid-cols-4 gap-2">
-            {softkeys(s).map((k, i) => (
-              <Key
-                key={i}
-                id={`soft-${i}`}
-                small
-                tone="soft"
-                disabled={!s.power || !k}
-                onClick={k === 'AQUA' ? undefined : () => dispatch({ type: 'soft', index: i })}
-                onPointerDown={k === 'AQUA' ? () => dispatch({ type: 'aqua-down' }) : undefined}
-                onPointerUp={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
-                onPointerLeave={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
-                onKeyDown={k === 'AQUA' ? (e) => {
-                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
-                } : undefined}
-                onKeyUp={k === 'AQUA' ? (e) => {
-                  if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
-                } : undefined}
-              >
-                {k || '·'}
-              </Key>
-            ))}
-          </div>
-        </div>
-
-        {/* right column: nav cluster + 16/C + DIAL */}
-        <div className="order-3 flex min-w-[156px] flex-1 flex-col items-center gap-1.5 sm:max-w-[156px] sm:flex-none">
-          <div className="grid w-full grid-cols-3 gap-1">
-            <Key id="key-left" small ariaLabel="Softkey page left" onClick={() => dispatch({ type: 'soft-page', dir: -1 })}>◀</Key>
-            <Key id="key-up" small ariaLabel="Up / channel up" onClick={() => dispatch({ type: 'up' })}>▲</Key>
-            <Key id="key-right" small ariaLabel="Softkey page right" onClick={() => dispatch({ type: 'soft-page', dir: 1 })}>▶</Key>
-            <Key id="key-clr" small ariaLabel="Clear / back" onClick={() => dispatch({ type: 'clr' })}>{profile.clearLabel}</Key>
-            <Key id="key-down" small ariaLabel="Down / channel down" onClick={() => dispatch({ type: 'down' })}>▼</Key>
-            <Key id="key-menu" small ariaLabel="Menu" onClick={() => dispatch({ type: 'menu' })}>MENU</Key>
-          </div>
-          <Key id="key-ent" small wide ariaLabel="Enter" onClick={() => dispatch({ type: 'ent' })}>ENT</Key>
-          <Key
-            id="key-16c"
-            round
-            tone="blue"
-            ariaLabel="Channel 16, hold for Call Channel"
-            onPointerDown={callDown}
-            onPointerUp={callUp}
-            onPointerLeave={callCancel}
-            onKeyDown={(e) => {
-              if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
-            }}
-            onKeyUp={(e) => {
-              if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
-            }}
-          >
-            <span className="px-2 py-1">16/C</span>
-          </Key>
-          {/* DIAL: rotate via side arrows, push/hold via center */}
-          <div className="mt-1 flex items-center gap-1">
-            <Key id="dial-ccw" small ariaLabel="Rotate dial counter-clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: -1 })}>↺</Key>
+        {/* controls: knob + keypad */}
+        <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: '1fr 1.15fr' }}>
+          {/* knob */}
+          <div className="flex flex-col items-center gap-1.5">
             <button
               type="button"
               data-testid="dial-center"
@@ -632,22 +683,134 @@ export default function RadioFront({
               onKeyUp={(e) => {
                 if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
               }}
-              className="flex h-[52px] w-[52px] select-none items-center justify-center rounded-full text-[8px] font-bold text-white/70 transition active:scale-95"
-              style={{ background: 'radial-gradient(circle at 35% 30%, #4a545f, #20262d 70%)', border: '2px solid rgba(255,255,255,0.12)', boxShadow: '0 3px 8px rgba(0,0,0,0.6)', touchAction: 'none' }}
+              className="relative select-none"
+              style={{
+                width: 76, height: 76, borderRadius: '50%', border: 'none',
+                background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
+                boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
+                touchAction: 'none',
+              }}
             >
-              PWR·VOL·SQL
+              {/* pointer indicator */}
+              <span style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: 16, borderRadius: 2, background: '#cfd6e0' }} />
+              <span style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
             </button>
-            <Key id="dial-cw" small ariaLabel="Rotate dial clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: 1 })}>↻</Key>
+            <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">
+              PWR·VOL·SQL
+              <br />
+              <span className="text-[#6b7686]">
+                {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}
+                {' · '}
+                {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
+              </span>
+            </div>
+            {/* rotate rockers */}
+            <div className="flex gap-1.5">
+              <Key id="dial-ccw" small ariaLabel="Rotate dial counter-clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: -1 })}>↺</Key>
+              <Key id="dial-cw" small ariaLabel="Rotate dial clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: 1 })}>↻</Key>
+            </div>
           </div>
-          <div className="text-center text-[9px] leading-tight text-white/50">
-            {tp('коротко = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}<br />
-            {tp('удержи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
+
+          {/* keypad */}
+          <div className="flex flex-col gap-1.5">
+            <Key
+              id="key-16c"
+              tone="red"
+              ariaLabel="Channel 16, hold for Call Channel"
+              onPointerDown={callDown}
+              onPointerUp={callUp}
+              onPointerLeave={callCancel}
+              onKeyDown={(e) => {
+                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
+              }}
+              onKeyUp={(e) => {
+                if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
+              }}
+            >
+              16 · C
+            </Key>
+            <div className="grid grid-cols-3 gap-1.5">
+              <Key id="key-left" small ariaLabel="Softkey page left" onClick={() => dispatch({ type: 'soft-page', dir: -1 })}>◀</Key>
+              <Key id="key-up" small ariaLabel="Up / channel up" onClick={() => dispatch({ type: 'up' })}>▲</Key>
+              <Key id="key-right" small ariaLabel="Softkey page right" onClick={() => dispatch({ type: 'soft-page', dir: 1 })}>▶</Key>
+              <Key id="key-clr" small ariaLabel="Clear / back" onClick={() => dispatch({ type: 'clr' })}>{profile.clearLabel}</Key>
+              <Key id="key-down" small ariaLabel="Down / channel down" onClick={() => dispatch({ type: 'down' })}>▼</Key>
+              <Key id="key-menu" small ariaLabel="Menu" onClick={() => dispatch({ type: 'menu' })}>MENU</Key>
+            </div>
+            <Key id="key-ent" small ariaLabel="Enter" onClick={() => dispatch({ type: 'ent' })}>ENT</Key>
           </div>
+        </div>
+
+        {/* DISTRESS under a hazard-striped cover */}
+        <div className="mt-3 border-t pt-3" style={{ borderColor: '#1b1e25' }}>
+          {!coverOpen ? (
+            <button
+              type="button"
+              data-testid="distress-cover"
+              aria-label="Open DISTRESS cover"
+              onClick={() => setCoverOpen(true)}
+              className="relative w-full select-none"
+              style={{
+                height: 46, borderRadius: 9, border: '2px solid #b23524',
+                background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
+                color: '#ffe8e2', fontWeight: 700, fontSize: 12, letterSpacing: 2,
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
+              }}
+            >
+              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 16 }}>⬒</span>
+              DISTRESS · {tp('открой крышку', 'open the cover', 'otworz oslone')}
+            </button>
+          ) : (
+            <div style={{ borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}>
+              <button
+                type="button"
+                data-testid="distress-key"
+                onPointerDown={onDistressDown}
+                onPointerUp={onDistressUp}
+                onPointerLeave={onDistressUp}
+                onPointerCancel={onDistressUp}
+                onKeyDown={(e) => {
+                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
+                }}
+                onKeyUp={(e) => {
+                  if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
+                }}
+                className="w-full select-none"
+                style={{
+                  height: 44, borderRadius: 7, border: 'none',
+                  background: 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)',
+                  color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 2,
+                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px rgba(180,30,20,.55)',
+                  touchAction: 'none',
+                }}
+              >
+                DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setCoverOpen(false)}
+                className="mt-1.5 w-full"
+                style={{ height: 22, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
+              >
+                {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
       {/* fist mic PTT */}
-      <div className="mt-3 flex items-center gap-3">
+      <div
+        className="mx-auto mt-3 flex items-center gap-3"
+        style={{
+          maxWidth: 440,
+          background: 'linear-gradient(165deg,#33383f,#1f2229)',
+          border: '1px solid #14171d',
+          borderRadius: 12,
+          padding: '11px 13px',
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1)',
+        }}
+      >
         <button
           type="button"
           data-testid="ptt"
@@ -661,19 +824,32 @@ export default function RadioFront({
           onKeyUp={(e) => {
             if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
           }}
-          className="flex min-h-[52px] flex-1 select-none items-center justify-center gap-2 rounded-xl text-sm font-extrabold text-white transition active:scale-[0.98]"
+          className="flex-1 select-none"
           style={{
-            background: s.ptt ? 'linear-gradient(180deg,#e84c3d,#a81f14)' : 'linear-gradient(180deg,#39424c,#232b33)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            boxShadow: '0 3px 8px rgba(0,0,0,0.5)',
+            height: 54, borderRadius: 9, border: 'none',
+            background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
+            color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 1.5,
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',
             touchAction: 'none',
+            transition: 'background .1s',
           }}
         >
-          🎙️ PTT {s.ptt ? '· TX' : ''}
-          <span className="text-[9px] font-medium opacity-70">{tp('держи = передача', 'hold = transmit', 'trzymaj = nadajesz')}</span>
+          PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mowisz')}
         </button>
-        <div className="text-[9px] leading-tight text-white/50">
-          {tp('ручной', 'fist', 'mikrofon')}<br />{tp('микрофон', 'mic', 'reczny')}
+        <div style={{ flex: '0 0 96px' }}>
+          <div style={{ height: 8, background: '#12151b', borderRadius: 4, overflow: 'hidden', border: '1px solid #0a0c10' }}>
+            <div
+              style={{
+                height: '100%',
+                width: s.ptt ? '88%' : '0%',
+                background: 'linear-gradient(90deg,#3ec98a,#e6c14a,#ff6b52)',
+                transition: 'width .12s',
+              }}
+            />
+          </div>
+          <div className="mt-1 text-center text-[7.5px] font-medium tracking-widest text-[#7d8899]">
+            {tp('ПЕРЕДАЧА', 'TRANSMIT', 'NADAWANIE')}
+          </div>
         </div>
       </div>
     </div>
