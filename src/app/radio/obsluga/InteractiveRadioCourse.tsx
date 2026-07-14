@@ -5,15 +5,54 @@ import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
 import { InspectPanel } from '../symulator/InspectPanel';
+import VoicePtt, { type VoiceResult } from '../symulator/VoicePtt';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
-import { SIG_WEAK, scriptOver } from '../symulator/radioTraffic';
+import { fetchStationVoice } from '../symulator/audio/stationVoice';
+import { SIG_STRONG, SIG_WEAK, scriptOver } from '../symulator/radioTraffic';
+import { stationReply } from '../symulator/stationReply';
+import type { VariantData } from '../symulator/scenarios';
 import { LESSON_TEXT } from './lessonData';
 import {
-  CHANNELS, OTHERDSC_CATEGORIES, createInitialRadio, otherDscRows, radioProfile, radioReducer,
+  CHANNELS, DEFAULT_VARIANT, OTHERDSC_CATEGORIES, POSITION_POOL, VESSEL_POOL,
+  createInitialRadio, otherDscRows, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState,
 } from '../symulator/radioModel';
 
 const COURSE_KEY = 'sternik.radio.guide.v2';
+
+interface JournalRow { t: number; text: string; kind: 'tx' | 'rx' | 'ui' | 'step' | 'bad' }
+
+/** the identity the learner speaks as during the guide's voice practice */
+const VARIANT: VariantData = {
+  vessel: VESSEL_POOL[DEFAULT_VARIANT.vesselIdx],
+  posSpoken: POSITION_POOL[DEFAULT_VARIANT.posIdx].spoken,
+  pobWord: 'FOUR',
+  pob: DEFAULT_VARIANT.pob,
+};
+
+/** what the learner says at the PTT lesson - a radio check, the safest first transmission */
+const CHECK_LINES = (v: VariantData) => [
+  'MARINA GDYNIA, MARINA GDYNIA',
+  `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
+  'RADIO CHECK, OVER',
+];
+
+/**
+ * Two station transmissions the learner can just LISTEN to, before ever keying
+ * the mic. Hearing what a radio voice actually sounds like - clipped, band-limited,
+ * arriving out of the hiss - is a skill of its own, and it is the half of the
+ * exam that a text-only trainer never touches.
+ */
+const LISTEN_LINES = [
+  {
+    station: 'MARINA GDYNIA',
+    say: 'WIND DANCER, THIS IS MARINA GDYNIA, READING YOU LOUD AND CLEAR. BERTH AVAILABLE ON PONTOON C. OVER.',
+  },
+  {
+    station: 'POLISH RESCUE RADIO',
+    say: 'ALL STATIONS, ALL STATIONS, THIS IS POLISH RESCUE RADIO. SECURITE. NAVIGATIONAL WARNING FOLLOWS ON CHANNEL SIX SEVEN. OUT.',
+  },
+];
 
 interface Lesson {
   id: string;
@@ -195,6 +234,55 @@ export default function InteractiveRadioCourse() {
   const currentLesson = lessons[lessonIndex];
   const audio = useRadioAudio(stateRef.current);
 
+  // The Dziennik. The simulator had one and the guide did not - so the learner
+  // meeting the radio for the FIRST time got no record of what the set actually
+  // did, and no record of what they said. Same panel, same rules, here too.
+  const [journal, setJournal] = useState<JournalRow[]>([]);
+  const pushJournal = useCallback((text: string, kind: JournalRow['kind'] = 'ui') => {
+    setJournal((l) => [...l.slice(-60), { t: Date.now(), text, kind }]);
+  }, []);
+  const audioApi = useRef(audio);
+  audioApi.current = audio;
+
+  const [speaking, setSpeaking] = useState(false);
+
+  /**
+   * A station comes on the air. The voice is a CARRIER on the channel you are
+   * sitting on - so it opens your squelch, quiets the hiss, and is scaled by your
+   * volume, exactly like every other signal. Set the squelch too high and you
+   * will not hear it, which is the lesson rather than a bug.
+   */
+  const stationSpeaks = useCallback(async (station: string, say: string) => {
+    const a = audioApi.current;
+    a.unlock();
+    pushJournal(`📻 ${station}: ${say}`, 'rx');
+    setSpeaking(true);
+    try {
+      const raw = await fetchStationVoice(say);
+      const s = stateRef.current;
+      scriptOver(CHANNELS[s.channelIndex].num, {
+        startMs: Date.now(), durMs: 14_000, signal: SIG_STRONG, voice: 'male',
+      });
+      if (raw) await a.speak(raw);
+    } finally {
+      setSpeaking(false);
+    }
+  }, [pushJournal]);
+
+  const onVoiceDone = useCallback((r: VoiceResult | null) => {
+    if (!r) return;
+    // the whole point of the journal: you see YOUR OWN words, and what was missing
+    pushJournal(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${r.transcript.trim()}"`, 'tx');
+    for (const c of r.checks.filter((x) => !x.ok)) {
+      pushJournal(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+    }
+    pushJournal(`${tp('Оценка передачи', 'Transmission graded', 'Ocena nadania')}: ${r.score}%`, r.score >= 70 ? 'step' : 'ui');
+    if (r.score >= 40) {
+      const reply = stationReply('radio-check', VARIANT.vessel.name);
+      if (reply) void stationSpeaks(reply.station, reply.say);
+    }
+  }, [pushJournal, stationSpeaks, tp]);
+
   useEffect(() => {
     try {
       const parsed = JSON.parse(window.localStorage.getItem(COURSE_KEY) ?? '{}') as Partial<Record<RadioModel, number>>;
@@ -224,6 +312,12 @@ export default function InteractiveRadioCourse() {
     // The radio's own sounds: a keypress, a refusal, a dial detent, the hiss
     // behind the squelch. A refused PTT on CH 70 must not sound like success.
     audio.onEvent(event, prev, next);
+
+    // whatever the radio itself logged goes into the Dziennik
+    if (next.deviceLog.length > prev.deviceLog.length) {
+      const added = next.deviceLog.slice(prev.deviceLog.length);
+      setJournal((l) => [...l.slice(-60), ...added.map((d) => ({ t: d.t, text: d.text, kind: d.kind as JournalRow['kind'] }))]);
+    }
     if (!lessonDone && currentLesson.check(event, prev, next)) {
       setLessonDone(true);
       setSavedProgress((old) => {
@@ -446,7 +540,69 @@ export default function InteractiveRadioCourse() {
             </div>
           )}
 
+          {/* Listen before you speak. Hearing what a station actually sounds like -
+              clipped, band-limited, coming out of the hiss - is half the exam, and
+              a text-only trainer never touches it. */}
+          <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+            <div className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+              {tp('Послушай станцию', 'Listen to a station', 'Posluchaj stacji')}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {LISTEN_LINES.map((l) => (
+                <button
+                  key={l.station}
+                  type="button"
+                  data-testid={`listen-${l.station.split(' ')[0].toLowerCase()}`}
+                  disabled={speaking}
+                  onClick={() => void stationSpeaks(l.station, l.say)}
+                  className="min-h-[40px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
+                  style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                >
+                  📻 {l.station}
+                </button>
+              ))}
+            </div>
+            <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {tp(
+                'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Задерёшь SQL - не услышишь и станцию.',
+                'The voice arrives like any other signal: through your squelch and your volume. Turn the squelch up too far and you will not hear the station either.',
+                'Glos przychodzi jak kazdy inny sygnal: przez twoja blokade szumow i twoja glosnosc. Podkrec SQL za wysoko, a nie uslyszysz nawet stacji.',
+              )}
+            </p>
+          </div>
+
           {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} />}
+
+          {/* The Dziennik - the same one the simulator has. It records what the
+              radio did AND what you said, word for word, plus what was missing. */}
+          <div className="mt-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+            <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
+              📋 {tp('Дневник', 'Journal', 'Dziennik')}
+            </div>
+            {journal.length === 0 ? (
+              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od wlaczenia radia')}
+              </p>
+            ) : (
+              <ol data-testid="course-journal" className="max-h-56 space-y-1 overflow-y-auto">
+                {journal.map((r, i) => {
+                  const color = r.kind === 'bad' ? 'var(--danger)'
+                    : r.kind === 'step' ? 'var(--success)'
+                    : r.kind === 'tx' ? 'var(--warning)'
+                    : r.kind === 'rx' ? 'var(--accent-cyan)'
+                    : 'var(--text-secondary)';
+                  return (
+                    <li key={i} className="flex gap-2 text-xs leading-relaxed" style={{ color }}>
+                      <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>
+                        {new Date(r.t).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                      </span>
+                      <span>{r.text}</span>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
         </div>
 
         <div className="min-w-0 rounded-lg p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
@@ -476,6 +632,35 @@ export default function InteractiveRadioCourse() {
               <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
             </div>
           )}
+          {/* Say it out loud. The PTT lesson is where the learner first keys the
+              mic, so it is where they first find out that a transmission is
+              graded on the WORDS, not on the button - and the Dziennik shows them
+              exactly which words they left out. */}
+          {currentLesson.id === 'ptt' && (
+            <div className="mt-4 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+              <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                🎙 {tp('Скажи в эфир', 'Say it on air', 'Powiedz do eteru')}
+              </div>
+              <p className="mb-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                {tp(
+                  'Проверка связи с мариной - самая безопасная первая передача. Наговори её, и марина ответит голосом. Всё, что ты сказал, попадёт в дневник.',
+                  'A radio check with the marina is the safest first transmission. Speak it and the marina answers out loud. Everything you said goes into the journal.',
+                  'Sprawdzenie lacznosci z marina to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie glosem. Wszystko, co powiedziales, trafi do dziennika.',
+                )}
+              </p>
+              <VoicePtt
+                kind="radio-check"
+                lines={CHECK_LINES(VARIANT)}
+                vesselIdx={DEFAULT_VARIANT.vesselIdx}
+                positionIdx={DEFAULT_VARIANT.posIdx}
+                pob={DEFAULT_VARIANT.pob}
+                ru={showRu}
+                minimumScore={50}
+                onComplete={onVoiceDone}
+              />
+            </div>
+          )}
+
           {complete ? (
             <div className="mt-5 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
               {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obslugi ukonczony. Przejdz teraz do scenariuszy egzaminacyjnych.')}
