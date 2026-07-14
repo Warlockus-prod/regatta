@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import Constants from 'expo-constants';
+import * as Application from 'expo-application';
 import { useCallback, useMemo, useState } from 'react';
 import {
   Alert,
@@ -347,6 +348,13 @@ export default function Settings() {
           {dataSectionLabel.toUpperCase()}
         </Text>
         <DataSection />
+
+        {/* Version footer: makes "which build am I on?" answerable at a
+            glance (user feedback 2026-07-08 - TestFlight testers could not
+            tell an old build from a new one inside the app). */}
+        <Text variant="muted" style={styles.versionFooter}>
+          {`Week to Regatta ${Application.nativeApplicationVersion ?? '?'} (${Application.nativeBuildVersion ?? '?'})`}
+        </Text>
       </ScrollView>
       <PrivacyModal visible={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </Screen>
@@ -1333,6 +1341,13 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
 }
 
 const styles = StyleSheet.create({
+  versionFooter: {
+    textAlign: 'center',
+    marginTop: spacing.lg,
+    marginBottom: spacing.md,
+    fontSize: 12,
+    opacity: 0.7,
+  },
   scroll: {
     padding: spacing.lg,
     paddingBottom: spacing.xxl,

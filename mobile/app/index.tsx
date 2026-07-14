@@ -215,6 +215,47 @@ export default function Home() {
 
         <EntryCard
           accent="cyan"
+          iconName="simulator"
+          title={tp('Симуляторы', 'Simulators', 'Symulatory', {
+            es: 'Simuladores',
+            fr: 'Simulateurs',
+            de: 'Simulatoren',
+            it: 'Simulatori',
+          })}
+          subtitle={tp('Основы · Тренажёр · Лодка 3D', 'Basics · Trainer · 3D Boat', 'Podstawy · Trener · Lodka 3D', {
+            es: 'Basico · Entrenador · Barco 3D',
+            fr: 'Bases · Entraineur · Bateau 3D',
+            de: 'Grundlagen · Trainer · Boot 3D',
+            it: 'Base · Trainer · Barca 3D',
+          })}
+          description={tp(
+            'Два шага обучения: ветер и повороты, затем настоящая физика и трим. Плюс живая лодка в 3D.',
+            'Two learning steps: wind and turns, then real physics and trim. Plus a living 3D boat.',
+            'Dwa kroki nauki: wiatr i zwroty, potem prawdziwa fizyka i trym. Plus zywa lodka 3D.',
+            {
+              es: 'Dos pasos: viento y giros, luego fisica real y trimado. Y un barco 3D vivo.',
+              fr: 'Deux etapes : vent et virements, puis physique reelle et reglage. Et un bateau 3D vivant.',
+              de: 'Zwei Schritte: Wind und Wenden, dann echte Physik und Trimm. Plus ein lebendiges 3D-Boot.',
+              it: 'Due passi: vento e virate, poi fisica reale e regolazione. E una barca 3D viva.',
+            },
+          )}
+          ctaLabel={ctaStart}
+          ctaA11yLabel={tp(
+            'Открыть симуляторы',
+            'Open the simulators',
+            'Otworz symulatory',
+            {
+              es: 'Abrir los simuladores',
+              fr: 'Ouvrir les simulateurs',
+              de: 'Simulatoren oeffnen',
+              it: 'Apri i simulatori',
+            },
+          )}
+          onPress={() => router.push('/simulators')}
+        />
+
+        <EntryCard
+          accent="cyan"
           iconName="cap"
           title="Bootcamp"
           subtitle={tp('С нуля', 'Start from zero', 'Od zera', {
