@@ -38,6 +38,13 @@ const LCD_SCAN = 'repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transpare
 /** guided-course spotlight colour */
 const HL = '#ffce4d';
 
+/** Inspect-mode wiring handed down to the LCD indicators. */
+interface Inspect {
+  on: boolean;
+  key: string | null;
+  pick: (k: string) => void;
+}
+
 interface Props {
   s: RadioState;
   dispatch: (e: RadioEvent) => void;
@@ -55,13 +62,19 @@ interface Props {
   nextTxSec: number;
   /** Training course spotlight target, matched against data-testid. */
   highlightControl?: string;
+  /** Inspect ("Rozbior") mode: taps explain a part instead of operating it. */
+  inspect?: boolean;
+  /** Called with the `data-ik` key of the tapped part while inspecting. */
+  onInspect?: (key: string) => void;
+  /** Currently explained part - gets a ring so the user sees what they picked. */
+  inspectKey?: string | null;
 }
 
 function Key({
-  id, children, onClick, onPointerDown, onPointerUp, onPointerLeave,
+  id, ik, children, onClick, onPointerDown, onPointerUp, onPointerLeave,
   onKeyDown, onKeyUp, wide, round, tone = 'grey', disabled, small, ariaLabel,
 }: {
-  id: string; children: ReactNode; onClick?: () => void;
+  id: string; ik?: string; children: ReactNode; onClick?: () => void;
   onPointerDown?: () => void; onPointerUp?: () => void; onPointerLeave?: () => void;
   onKeyDown?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
   onKeyUp?: (e: React.KeyboardEvent<HTMLButtonElement>) => void;
@@ -78,6 +91,7 @@ function Key({
     <button
       type="button"
       data-testid={id}
+      data-ik={ik}
       aria-label={ariaLabel}
       disabled={disabled}
       onClick={onClick}
@@ -131,12 +145,36 @@ function CenterGauge({ label, value, max = 10 }: { label: string; value: number;
   );
 }
 
+/** An LCD indicator: plain text normally, a tappable target while inspecting. */
+function Ind({ ik, ins, style, children }: { ik: string; ins?: Inspect; style?: React.CSSProperties; children: ReactNode }) {
+  if (!ins?.on) return <span style={style}>{children}</span>;
+  const picked = ins.key === ik;
+  return (
+    <button
+      type="button"
+      data-ik={ik}
+      onClick={() => ins.pick(ik)}
+      style={{
+        ...style,
+        background: 'transparent',
+        border: picked ? `1px solid ${HL}` : '1px dashed rgba(121,240,207,0.35)',
+        borderRadius: 4,
+        padding: '0 3px',
+        cursor: 'pointer',
+        font: 'inherit',
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
 /** Persistent top row of the LCD: band, GPS, watch mode, power, battery. */
-function StatusBar({ s }: { s: RadioState }) {
+function StatusBar({ s, ins }: { s: RadioState; ins?: Inspect }) {
   const watch = s.scanActive ? 'SCAN' : s.dualWatch ? 'DW' : s.aquaActive ? 'AQUA' : '';
   return (
     <div
-      className="flex items-center justify-between"
+      className="flex items-center justify-between gap-1"
       style={{
         fontSize: 10.5,
         letterSpacing: 0.5,
@@ -145,28 +183,29 @@ function StatusBar({ s }: { s: RadioState }) {
         color: LCD_DIM,
       }}
     >
-      <span>INT</span>
-      <span style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</span>
-      <span style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch}</span>
-      <span style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</span>
-      <span>▮▮▮</span>
+      <Ind ik="status-band" ins={ins}>INT</Ind>
+      <Ind ik="status-gps" ins={ins} style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</Ind>
+      <Ind ik="status-watch" ins={ins} style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch || '·'}</Ind>
+      <Ind ik="status-power" ins={ins} style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</Ind>
+      <Ind ik="status-batt" ins={ins}>▮▮▮</Ind>
     </div>
   );
 }
 
 /** Persistent bottom row of the LCD: TX/RX state + signal meter. */
-function TxMeter({ s }: { s: RadioState }) {
+function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
   const tx = s.ptt;
   const label = tx ? 'TX' : 'RX';
   const pct = tx ? '86%' : s.power ? '22%' : '0%';
   return (
     <div className="mt-2 flex items-center gap-2 border-t pt-1.5" style={{ borderColor: 'rgba(121,240,207,0.16)' }}>
-      <span
-        className={tx ? 'animate-pulse' : undefined}
+      <Ind
+        ik="tx-meter"
+        ins={ins}
         style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: tx ? LCD_ALERT : LCD_DIM, minWidth: 24 }}
       >
         {label}
-      </span>
+      </Ind>
       <div className="h-1.5 flex-1 overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.14)' }}>
         <div
           style={{
@@ -181,7 +220,7 @@ function TxMeter({ s }: { s: RadioState }) {
   );
 }
 
-function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number }) {
+function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect }) {
   const ch16 = channel(s);
   const keys = softkeys(s);
 
@@ -494,21 +533,27 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
   return (
     <div
       data-testid="lcd"
+      data-ik="lcd"
+      onClick={ins?.on ? (e) => {
+        // Only claim the tap if it did not land on a more specific indicator.
+        if ((e.target as HTMLElement).closest('[data-ik]') === e.currentTarget) ins.pick('lcd');
+      } : undefined}
       className={`${lcdFont.className} relative rounded-lg px-3 py-2`}
       style={{
         background: LCD_BG,
         backgroundImage: `${LCD_SCAN}, ${LCD_BG}`,
-        border: '2px solid #0c0f13',
+        border: ins?.on && ins.key === 'lcd' ? `2px solid ${HL}` : '2px solid #0c0f13',
         borderRadius: 9,
         minHeight: 168,
         color: LCD_FG,
         boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,240,207,.06)',
         overflow: 'hidden',
+        cursor: ins?.on ? 'pointer' : undefined,
       }}
     >
-      {s.power && <StatusBar s={s} />}
+      {s.power && <StatusBar s={s} ins={ins} />}
       <div style={{ minHeight: 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
-      {s.power && <TxMeter s={s} />}
+      {s.power && <TxMeter s={s} ins={ins} />}
       {/* softkey labels - bottom row, like on the device */}
       {s.power && (
         <div className="mt-1 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(121,240,207,0.25)' }}>
@@ -526,11 +571,25 @@ function Lcd({ s, clock, holdPct, nextTxSec }: { s: RadioState; clock: string; h
 // ------------------------------------------------------------- panel -------
 
 export default function RadioFront({
-  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec, highlightControl,
+  s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
+  highlightControl, inspect = false, onInspect, inspectKey = null,
 }: Props) {
   const { tp } = useI18n();
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
+
+  // Inspect mode: a tap EXPLAINS the part instead of operating the radio, so no
+  // event reaches the state machine. Off by default -> behaviour is unchanged.
+  const ins: Inspect | undefined = inspect
+    ? { on: true, key: inspectKey, pick: (k: string) => onInspect?.(k) }
+    : undefined;
+  /** wrap a control action so inspect mode intercepts it */
+  const act = (ikKey: string, run: () => void) => () => {
+    if (inspect) { onInspect?.(ikKey); return; }
+    run();
+  };
+  /** pointer handlers are dropped entirely while inspecting (no holds fire) */
+  const hold = <T,>(handler: T): T | undefined => (inspect ? undefined : handler);
   const dialTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const dialFiredHold = useRef(false);
   const callTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -638,31 +697,35 @@ export default function RadioFront({
         </div>
 
         {/* LCD */}
-        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} />
+        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} />
 
         {/* softkeys */}
         <div className="mt-2.5 grid grid-cols-4 gap-1.5">
-          {softkeys(s).map((k, i) => (
-            <Key
-              key={i}
-              id={`soft-${i}`}
-              small
-              tone="soft"
-              disabled={!s.power || !k}
-              onClick={k === 'AQUA' ? undefined : () => dispatch({ type: 'soft', index: i })}
-              onPointerDown={k === 'AQUA' ? () => dispatch({ type: 'aqua-down' }) : undefined}
-              onPointerUp={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
-              onPointerLeave={k === 'AQUA' ? () => dispatch({ type: 'aqua-up' }) : undefined}
-              onKeyDown={k === 'AQUA' ? (e) => {
-                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
-              } : undefined}
-              onKeyUp={k === 'AQUA' ? (e) => {
-                if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
-              } : undefined}
-            >
-              {k || '·'}
-            </Key>
-          ))}
+          {softkeys(s).map((k, i) => {
+            const aqua = k === 'AQUA' && !inspect;
+            return (
+              <Key
+                key={i}
+                id={`soft-${i}`}
+                ik="softkeys"
+                small
+                tone="soft"
+                disabled={inspect ? false : (!s.power || !k)}
+                onClick={aqua ? undefined : act('softkeys', () => dispatch({ type: 'soft', index: i }))}
+                onPointerDown={aqua ? () => dispatch({ type: 'aqua-down' }) : undefined}
+                onPointerUp={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
+                onPointerLeave={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
+                onKeyDown={aqua ? (e) => {
+                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
+                } : undefined}
+                onKeyUp={aqua ? (e) => {
+                  if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
+                } : undefined}
+              >
+                {k || '·'}
+              </Key>
+            );
+          })}
         </div>
 
         {/* controls: knob + keypad */}
@@ -672,20 +735,23 @@ export default function RadioFront({
             <button
               type="button"
               data-testid="dial-center"
+              data-ik="dial"
               aria-label="Dial: press for volume/squelch, hold for power"
-              onPointerDown={dialDown}
-              onPointerUp={dialUp}
-              onPointerLeave={dialCancel}
-              onPointerCancel={dialCancel}
-              onKeyDown={(e) => {
+              onClick={inspect ? () => onInspect?.('dial') : undefined}
+              onPointerDown={hold(dialDown)}
+              onPointerUp={hold(dialUp)}
+              onPointerLeave={hold(dialCancel)}
+              onPointerCancel={hold(dialCancel)}
+              onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dialDown(); }
-              }}
-              onKeyUp={(e) => {
+              })}
+              onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
-              }}
+              })}
               className="relative select-none"
               style={{
-                width: 76, height: 76, borderRadius: '50%', border: 'none',
+                width: 76, height: 76, borderRadius: '50%',
+                border: inspect && inspectKey === 'dial' ? `2px solid ${HL}` : 'none',
                 background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
                 boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
                 touchAction: 'none',
@@ -706,8 +772,8 @@ export default function RadioFront({
             </div>
             {/* rotate rockers */}
             <div className="flex gap-1.5">
-              <Key id="dial-ccw" small ariaLabel="Rotate dial counter-clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: -1 })}>↺</Key>
-              <Key id="dial-cw" small ariaLabel="Rotate dial clockwise" onClick={() => dispatch({ type: 'dial-rotate', dir: 1 })}>↻</Key>
+              <Key id="dial-ccw" ik="dial" small ariaLabel="Rotate dial counter-clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
+              <Key id="dial-cw" ik="dial" small ariaLabel="Rotate dial clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
             </div>
           </div>
 
@@ -715,29 +781,31 @@ export default function RadioFront({
           <div className="flex flex-col gap-1.5">
             <Key
               id="key-16c"
+              ik="sixteen"
               tone="red"
               ariaLabel="Channel 16, hold for Call Channel"
-              onPointerDown={callDown}
-              onPointerUp={callUp}
-              onPointerLeave={callCancel}
-              onKeyDown={(e) => {
+              onClick={inspect ? () => onInspect?.('sixteen') : undefined}
+              onPointerDown={hold(callDown)}
+              onPointerUp={hold(callUp)}
+              onPointerLeave={hold(callCancel)}
+              onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
-              }}
-              onKeyUp={(e) => {
+              })}
+              onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                 if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
-              }}
+              })}
             >
               16 · C
             </Key>
             <div className="grid grid-cols-3 gap-1.5">
-              <Key id="key-left" small ariaLabel="Softkey page left" onClick={() => dispatch({ type: 'soft-page', dir: -1 })}>◀</Key>
-              <Key id="key-up" small ariaLabel="Up / channel up" onClick={() => dispatch({ type: 'up' })}>▲</Key>
-              <Key id="key-right" small ariaLabel="Softkey page right" onClick={() => dispatch({ type: 'soft-page', dir: 1 })}>▶</Key>
-              <Key id="key-clr" small ariaLabel="Clear / back" onClick={() => dispatch({ type: 'clr' })}>{profile.clearLabel}</Key>
-              <Key id="key-down" small ariaLabel="Down / channel down" onClick={() => dispatch({ type: 'down' })}>▼</Key>
-              <Key id="key-menu" small ariaLabel="Menu" onClick={() => dispatch({ type: 'menu' })}>MENU</Key>
+              <Key id="key-left" ik="keypad" small ariaLabel="Softkey page left" onClick={act('keypad', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>
+              <Key id="key-up" ik="keypad" small ariaLabel="Up / channel up" onClick={act('keypad', () => dispatch({ type: 'up' }))}>▲</Key>
+              <Key id="key-right" ik="keypad" small ariaLabel="Softkey page right" onClick={act('keypad', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>
+              <Key id="key-clr" ik="keypad" small ariaLabel="Clear / back" onClick={act('keypad', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>
+              <Key id="key-down" ik="keypad" small ariaLabel="Down / channel down" onClick={act('keypad', () => dispatch({ type: 'down' }))}>▼</Key>
+              <Key id="key-menu" ik="keypad" small ariaLabel="Menu" onClick={act('keypad', () => dispatch({ type: 'menu' }))}>MENU</Key>
             </div>
-            <Key id="key-ent" small ariaLabel="Enter" onClick={() => dispatch({ type: 'ent' })}>ENT</Key>
+            <Key id="key-ent" ik="keypad" small ariaLabel="Enter" onClick={act('keypad', () => dispatch({ type: 'ent' }))}>ENT</Key>
           </div>
         </div>
 
@@ -747,11 +815,13 @@ export default function RadioFront({
             <button
               type="button"
               data-testid="distress-cover"
+              data-ik="distress"
               aria-label="Open DISTRESS cover"
-              onClick={() => setCoverOpen(true)}
+              onClick={act('distress', () => setCoverOpen(true))}
               className="relative w-full select-none"
               style={{
-                height: 46, borderRadius: 9, border: '2px solid #b23524',
+                height: 46, borderRadius: 9,
+                border: inspect && inspectKey === 'distress' ? `2px solid ${HL}` : '2px solid #b23524',
                 background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
                 color: '#ffe8e2', fontWeight: 700, fontSize: 12, letterSpacing: 2,
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
@@ -765,16 +835,18 @@ export default function RadioFront({
               <button
                 type="button"
                 data-testid="distress-key"
-                onPointerDown={onDistressDown}
-                onPointerUp={onDistressUp}
-                onPointerLeave={onDistressUp}
-                onPointerCancel={onDistressUp}
-                onKeyDown={(e) => {
+                data-ik="distress"
+                onClick={inspect ? () => onInspect?.('distress') : undefined}
+                onPointerDown={hold(onDistressDown)}
+                onPointerUp={hold(onDistressUp)}
+                onPointerLeave={hold(onDistressUp)}
+                onPointerCancel={hold(onDistressUp)}
+                onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                   if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
-                }}
-                onKeyUp={(e) => {
+                })}
+                onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
                   if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
-                }}
+                })}
                 className="w-full select-none"
                 style={{
                   height: 44, borderRadius: 7, border: 'none',
@@ -814,19 +886,22 @@ export default function RadioFront({
         <button
           type="button"
           data-testid="ptt"
-          onPointerDown={onPttDown}
-          onPointerUp={onPttUp}
-          onPointerLeave={onPttUp}
-          onPointerCancel={onPttUp}
-          onKeyDown={(e) => {
+          data-ik="ptt"
+          onClick={inspect ? () => onInspect?.('ptt') : undefined}
+          onPointerDown={hold(onPttDown)}
+          onPointerUp={hold(onPttUp)}
+          onPointerLeave={hold(onPttUp)}
+          onPointerCancel={hold(onPttUp)}
+          onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
             if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
-          }}
-          onKeyUp={(e) => {
+          })}
+          onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
             if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
-          }}
+          })}
           className="flex-1 select-none"
           style={{
-            height: 54, borderRadius: 9, border: 'none',
+            height: 54, borderRadius: 9,
+            border: inspect && inspectKey === 'ptt' ? `2px solid ${HL}` : 'none',
             background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
             color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 1.5,
             boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',

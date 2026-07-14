@@ -7,6 +7,7 @@ import { useSternikPrefs } from '../../sternik/prefs';
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
+import { INSPECT } from './inspectData';
 import {
   DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState, type Variant,
@@ -83,6 +84,10 @@ export default function RadioSimulatorPage() {
   const [variant, setVariant] = useState<Variant>(DEFAULT_VARIANT);
   /** faceplate model (both UKE sets); DSC procedures follow the M330 manual. */
   const [model, setModel] = useState<RadioModel>('M330');
+  /** Inspect ("Rozbior") mode: tap any control or display indicator to learn it.
+   *  While on, taps never reach the state machine - the radio is not operated. */
+  const [inspect, setInspect] = useState(false);
+  const [inspectKey, setInspectKey] = useState<string | null>(null);
   useEffect(() => {
     try {
       const m = window.localStorage.getItem(MODEL_KEY);
@@ -534,6 +539,31 @@ export default function RadioSimulatorPage() {
 
           <div className="grid gap-4 lg:grid-cols-[minmax(0,460px)_1fr]">
             <div>
+              {/* Inspect ("Rozbior") toggle - tap any part of the radio to learn it */}
+              <div className="mb-2 flex items-center gap-2">
+                <button
+                  type="button"
+                  data-testid="inspect-toggle"
+                  onClick={() => { setInspect((v) => !v); setInspectKey(null); }}
+                  aria-pressed={inspect}
+                  className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+                  style={inspect
+                    ? { background: '#ffce4d', color: '#3a2a00' }
+                    : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+                >
+                  🔍 {tp('Разбор', 'Inspect', 'Rozbior')}
+                </button>
+                <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                  {inspect
+                    ? tp(
+                        'Нажми на любую кнопку или индикатор экрана - объясню, что это. Рация не управляется.',
+                        'Tap any control or display indicator - it explains itself. The radio is not operated.',
+                        'Dotknij dowolnego przycisku lub wskaznika na ekranie - wyjasni sie sam. Radio nie dziala.',
+                      )
+                    : tp('Не знаешь, что за кнопка? Включи разбор.', 'Not sure what a control does? Turn on Inspect.', 'Nie wiesz, co robi przycisk? Wlacz Rozbior.')}
+                </span>
+              </div>
+
               <RadioFront
                 s={rs}
                 dispatch={dispatch}
@@ -551,7 +581,45 @@ export default function RadioSimulatorPage() {
                 }}
                 clock={clock}
                 nextTxSec={nextTxSec}
+                inspect={inspect}
+                onInspect={setInspectKey}
+                inspectKey={inspectKey}
               />
+
+              {/* what the tapped part is */}
+              {inspect && (
+                <div
+                  data-testid="inspect-panel"
+                  className="mt-3 rounded-2xl p-4"
+                  style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,206,77,0.35)' }}
+                >
+                  {inspectKey && INSPECT[inspectKey] ? (
+                    <>
+                      <div className="mb-1 text-sm font-bold" style={{ color: '#ffce4d' }}>
+                        {showRu && !showPl ? INSPECT[inspectKey].titleRu : INSPECT[inspectKey].titlePl}
+                      </div>
+                      {showPl && (
+                        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                          {INSPECT[inspectKey].pl}
+                        </p>
+                      )}
+                      {showRu && (
+                        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                          {INSPECT[inspectKey].ru}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
+                      {tp(
+                        'Ткни в любую часть рации: экран, индикатор GPS, мощность, крутилку, 16/C, DISTRESS, PTT...',
+                        'Tap any part of the radio: the screen, the GPS indicator, power, the knob, 16/C, DISTRESS, PTT...',
+                        'Dotknij dowolnej czesci radia: ekranu, wskaznika GPS, mocy, pokretla, 16/C, DISTRESS, PTT...',
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="min-w-0">

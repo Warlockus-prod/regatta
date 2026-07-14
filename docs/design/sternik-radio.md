@@ -110,6 +110,14 @@ src/app/radio/symulator/
                   below it, a machined knob with a pointer, and an amber
                   (#ffce4d) pulse for the course spotlight. The DEVICE is
                   still the real exam hardware - only the styling changed.
+  inspectData.ts  inspect ("Rozbior") copy: 13 tappable parts of the panel -
+                  every control AND every display indicator (lcd, status-band /
+                  gps / watch / power / batt, tx-meter, softkeys, dial, sixteen,
+                  keypad, distress, ptt), each explained in PL + RU. Idea from
+                  the `vhf-trainer` design, mapped onto the real ICOM controls.
+                  While inspect is ON the taps NEVER reach the state machine -
+                  the radio is explained, not operated (verified in-browser:
+                  the DISTRESS cover stays shut and the channel does not move).
   VoicePtt.tsx    voice phase: step-through (PTT clicks per line) or real
                   recording via MediaRecorder -> /api/radio-voice
   page.tsx        wiring: imperative dispatch (ref + render tick, avoids
