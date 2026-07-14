@@ -124,7 +124,11 @@ const groups: NavGroup[] = [
       { href: '/quick',  ru: 'За 15 минут', en: 'Quick refresh', pl: 'W 15 minut', es: 'En 15 minutos', fr: 'En 15 minutes', de: 'In 15 Minuten', it: 'In 15 minuti', icon: Icon.start },
       { href: '/rules',  ru: 'Правила', en: 'Rules',   pl: 'Przepisy', es: 'Reglas',     fr: 'Regles',     de: 'Regeln',  it: 'Regole',    icon: Icon.rules },
       { href: '/racing', ru: 'Тактика', en: 'Tactics', pl: 'Taktyka',  es: 'Tactica',    fr: 'Tactique',   de: 'Taktik',  it: 'Tattica',   icon: Icon.tactics },
-      { href: '/sternik', ru: 'Sternik (экзамен PL)', en: 'Sternik exam (PL)', pl: 'Sternik motorowodny', es: 'Examen sternik (PL)', fr: 'Examen sternik (PL)', de: 'Sternik-Pruefung (PL)', it: 'Esame sternik (PL)', icon: Icon.rules },
+      // The two Polish licence courses. /radio used to be reachable only through
+      // a link inside /sternik, so a visitor who came for the radio exam could
+      // not find it from the navigation at all.
+      { href: '/sternik', ru: 'Курс: sternik motorowodny', en: 'Course: sternik motorowodny (PL)', pl: 'Kurs: sternik motorowodny', es: 'Curso: sternik motorowodny (PL)', fr: 'Cours: sternik motorowodny (PL)', de: 'Kurs: sternik motorowodny (PL)', it: 'Corso: sternik motorowodny (PL)', icon: Icon.rules },
+      { href: '/radio', ru: 'Курс: radio SRC', en: 'Course: SRC radio (PL)', pl: 'Kurs: radio SRC', es: 'Curso: radio SRC (PL)', fr: 'Cours: radio SRC (PL)', de: 'Kurs: SRC-Funk (PL)', it: 'Corso: radio SRC (PL)', icon: Icon.rules },
     ],
   },
   {

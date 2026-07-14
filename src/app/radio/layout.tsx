@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { ReactNode } from 'react';
 import RadioSubnav from './RadioSubnav';
-import { SternikPrefsProvider, SternikLangScope } from '../sternik/prefs';
+import { SternikPrefsProvider, SternikLangScope, ExplLangHint } from '../sternik/prefs';
 
 export const metadata: Metadata = {
   title: 'Radio VHF i swiadectwo SRC - symulator ICOM | Week to Regatta',
@@ -21,6 +21,7 @@ export default function RadioLayout({ children }: { children: ReactNode }) {
       <SternikPrefsProvider>
         <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-6">
           <RadioSubnav />
+          <ExplLangHint />
           {children}
         </div>
       </SternikPrefsProvider>
