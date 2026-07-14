@@ -79,6 +79,9 @@ export default function RadioSimulatorPage() {
   const [mode, setMode] = useState<Mode>('nauka');
   const [stepIdx, setStepIdx] = useState(0);
   const doneRef = useRef<Set<string>>(new Set());
+  // Mistakes already tallied into weakSpots, so the tally survives StrictMode's
+  // double-invoked render without counting one slip twice.
+  const weakedRef = useRef<Set<string>>(new Set());
   const [mistakes, setMistakes] = useState<{ id: string; text: Bi }[]>([]);
   const [pageLog, setPageLog] = useState<LogRow[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -185,11 +188,13 @@ export default function RadioSimulatorPage() {
       if (prev.power || next.power) {
         for (const m of sc.mistakes) {
           if (m.detect(e, prev, next, doneRef.current)) {
-            setMistakes((ms) => {
-              if (ms.some((x) => x.id === m.id)) return ms;
+            // Record the weak spot outside the state updater: an updater must be
+            // pure, and StrictMode runs it twice, which double-counted the miss.
+            if (!weakedRef.current.has(m.id)) {
+              weakedRef.current.add(m.id);
               recordWeak('procedure', [{ id: m.id, label: m.text.pl }]);
-              return [...ms, { id: m.id, text: m.text }];
-            });
+            }
+            setMistakes((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms, { id: m.id, text: m.text }]));
             // exam integrity: no live mistake feedback in exam mode - it all
             // surfaces in the debrief
             if (!isExam) setPageLog((l) => [...l, { t: Date.now(), text: bi(m.text), kind: 'bad' }]);
@@ -410,6 +415,7 @@ export default function RadioSimulatorPage() {
       ? { ...initial, ...sc.init(vessel), model, vessel, pos: { lat: posDef.lat, lon: posDef.lon } }
       : initial;
     doneRef.current = new Set();
+    weakedRef.current = new Set();
     setScenario(sc);
     setMode(m);
     setStepIdx(0);
@@ -537,13 +543,19 @@ export default function RadioSimulatorPage() {
       a.unlock();
       const say = modelLines.join(' ');
       const raw = await fetchStationVoice(say);
+      // No audio (offline, no TTS key) means no transmission. Marking the channel
+      // BUSY for 25 seconds of silence would be the simulator lying about the air
+      // in the one trainer whose whole claim is that it never fakes anything.
+      if (!raw) return;
       const s = rsRef.current;
-      // it comes over the air like any other transmission, not out of a speaker
-      // bolted onto the page
+      // Length the carrier to the actual speech (~0.38s a word), not a flat 25s,
+      // so the squelch closes when the voice stops. It comes over the air like any
+      // other transmission, not out of a speaker bolted onto the page.
+      const durMs = Math.min(30_000, Math.max(4_000, say.split(/\s+/).length * 380));
       scriptOver(CHANNELS[s.channelIndex].num, {
-        startMs: Date.now(), durMs: 25_000, signal: SIG_STRONG, voice: 'male',
+        startMs: Date.now(), durMs, signal: SIG_STRONG, voice: 'male',
       });
-      if (raw) await a.speak(raw);
+      await a.speak(raw);
     } finally {
       setPlayingModel(false);
     }

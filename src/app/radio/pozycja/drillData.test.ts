@@ -45,6 +45,36 @@ describe('the drill actually discriminates', () => {
     expect(r.passed).toBe(false);
   });
 
+  it('does NOT pass a merged MINUTES reading either - the hole the first fix left open', () => {
+    // "THIRTY DECIMAL FIVE" is rule 1 broken, and it transcribes to "30 decimal 5".
+    // The first version of this data listed that in anyOf, so the drill's own subject
+    // scored 100%. Degrees were guarded; minutes were not.
+    const heard = '5-4 degrees 30 decimal 5 minutes north, 018 degrees 45 decimal 2 minutes east';
+    const r = gradePosition(heard, p1.must);
+    expect(r.checks.find((c) => c.id === 'lat-min')!.status).toBe('warn');
+    expect(r.checks.find((c) => c.id === 'lon-min')!.status).toBe('warn');
+    expect(r.passed).toBe(false);
+  });
+
+  it('keeps a ZERO-led merged run as a pass - it is not ambiguous', () => {
+    // "07" can only come from ZERO SEVEN: the error we hunt drops the zero ("seven" -> "7").
+    const p2 = POSITIONS.find((p) => p.id === 'p2-leading-zero-lon')!;
+    const r = gradePosition('5 5 degrees 07 decimal 4 minutes north, 008 degrees 3 0 decimal 9 minutes east', p2.must);
+    expect(r.checks.find((c) => c.id === 'lat-min')!.status).toBe('ok');
+    expect(r.checks.find((c) => c.id === 'lon-deg')!.status).toBe('ok');
+  });
+
+  it('fails a reading that puts longitude before latitude', () => {
+    // Every element can be word-perfect and the position still be wrong.
+    const backwards = '018 degrees 4 5 decimal 2 minutes east, 5 4 degrees 3 0 decimal 5 minutes north';
+    const r = gradePosition(backwards, p1.must);
+    expect(r.checks.find((c) => c.id === 'order')!.status).toBe('miss');
+    expect(r.passed).toBe(false);
+    // ...and the elements themselves are all still correct, which is exactly why
+    // set-membership checks alone could never catch this.
+    expect(r.checks.filter((c) => c.id !== 'order').every((c) => c.status === 'ok')).toBe(true);
+  });
+
   it('does not accept a bare "18 degrees" for a three-digit longitude', () => {
     const r = gradePosition('0 1 8 degrees', p1.must);
     expect(r.checks.find((c) => c.id === 'lon-deg')!.status).toBe('ok');
@@ -73,6 +103,19 @@ describe('every item is internally consistent', () => {
         for (const w of el.warnOf ?? []) {
           const alwaysInsideCorrect = el.anyOf.every((a) => normalize(a).includes(normalize(w)));
           expect(`${item.id}/${el.id}/${w}: ${alwaysInsideCorrect}`).toContain('false');
+        }
+      }
+    }
+  });
+
+  it('no anyOf entry accepts a merged reading of a NONZERO-led digit group', () => {
+    // The structural form of the bug: "30 decimal 5" in anyOf grades the merged
+    // reading as unambiguously correct. A zero-led run ("018", "07", "00") is fine -
+    // the error we hunt drops the leading zero, so it cannot produce one.
+    for (const item of POSITIONS) {
+      for (const el of item.must) {
+        for (const a of el.anyOf) {
+          expect(`${item.id}/${el.id}/"${a}"`).not.toMatch(/(?<!\d)[1-9]\d/);
         }
       }
     }

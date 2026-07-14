@@ -811,7 +811,21 @@ inside out is not the same kind of mistake.
 
 ### For the app
 
-Courses are a WebView of the live site, so all of this reaches the app with no
-rebuild. The service worker also caches inside the WebView, which is what finally
-makes the courses usable on a boat with no signal - see
-`docs/design/mobile/COURSES_OFFLINE.md`.
+Courses are a WebView of the live site, so all of the CONTENT and grading reaches
+the app with no rebuild.
+
+The offline caching does NOT reach the iOS app for free, and the first draft of
+this section wrongly implied it did. iOS WKWebView runs no service worker unless
+the app opts every course URL into `WKAppBoundDomains` in Info.plist AND sets
+`configuration.limitsNavigationsToAppBoundDomains = true` - and app-bound domains
+disable other things the app relies on, so it is a real decision, not a checkbox.
+Until that is done, the service worker simply does not register inside the app:
+the browser web experience is offline-capable, the iOS WebView is not. Android
+System WebView does run service workers, so the app is offline-capable there.
+
+The honest status, to carry into `docs/design/mobile/COURSES_OFFLINE.md`:
+- Web (Safari/Chrome/Firefox on any device): offline works.
+- Android app WebView: offline works.
+- iOS app WebView: online only, until WKAppBoundDomains is configured and its
+  trade-offs are accepted. Do not tell a user the iOS app works offline until it
+  is verified in Airplane mode on a device.

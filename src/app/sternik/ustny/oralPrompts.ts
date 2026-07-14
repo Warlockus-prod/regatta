@@ -27,57 +27,103 @@ import { normalize, type MustItem } from '../../radio/rozmowa/dialogueGrading';
 
 // --- binding a fact to a side ------------------------------------------------
 //
-// Two of these questions turn entirely on WHICH side, and no keyword can express
-// that. "zielony" and "prawa" both appear in the answer that swaps the colours;
-// "prawa strona zielona" as a fixed phrase is defeated by the words Polish puts
-// in between ("prawa strona toru wodnego JEST zielona"); and a loose gap lets
-// "prawa strona czerwona, lewa zielona" through on adjacency.
+// Several of these questions turn entirely on WHICH side, and no keyword can
+// express that. Both colours appear in the answer that swaps them. A fixed phrase
+// ("prawa strona zielona") is defeated by the words Polish puts in between
+// ("prawa strona toru wodnego JEST zielona"). A loose word-gap lets "prawa strona
+// czerwona, lewa zielona" through on adjacency. And nearest-word proximity fails
+// in the most misleading way of all: in "...w prawo, a na wstecznym... w lewo",
+// the word "prawo" sits four words BEFORE "wstecznym" while "lewo" sits five
+// words after it, so the astern element scores the starboard answer.
 //
-// So instead: of the two candidate words, which one is CLOSER to the side? That
-// is what pairing means in a sentence, and it survives inflection, filler words
-// and clause order alike.
+// What works is reading it the way a person does: by CLAUSE. Clauses survive an
+// unpunctuated transcript, because Polish marks the contrast with a word - "a",
+// "ale", "natomiast", "tylko".
+//
+// THREE THINGS A NAIVE CLAUSE READER STILL GETS WRONG, all found by review:
+//
+//   1. NEGATION. "Na wstecznym rufa nie idzie w prawo, tylko w lewo" is correct,
+//      and the clause naming the side names the WRONG direction. Read literally it
+//      scores as the reversed rule. A denial asserts nothing: it contributes
+//      neither evidence nor disqualification.
+//
+//   2. THE SUBJECT CARRIES. Once the denial is skipped, the clause that does the
+//      asserting ("tylko w lewo") has no side word of its own. It inherits the
+//      subject from the clause before it - and drops it the moment the OTHER side
+//      is named, or the answer's second half would be scored against its first.
+//
+//   3. THE COUNTERFACTUAL. "W regionie IALA B jest odwrotnie: prawa strona jest
+//      czerwona" is a sentence a GOOD candidate adds - and it states the reversed
+//      rule out loud. The better the learner, the more certainly they failed. A
+//      sentence that flags itself as the other region is not evidence about this
+//      one, so it is dropped whole.
 
-// The trick is to read it the way a person does: by CLAUSE.
-//
-// "Do przodu rufa idzie w prawo, a na wstecznym rufa scaga w lewo" pairs each
-// gear with the direction in its own clause. Nearest-word proximity gets this
-// exactly backwards - "prawo" sits four words before "wstecznym" while "lewo"
-// sits five words after it, so the astern element would score the starboard
-// answer. The clause boundary is the thing that carries the meaning.
-//
-// Clauses survive even a transcript with no punctuation at all, because Polish
-// marks the contrast with a word: "a", "ale", "natomiast". We split on both.
+// A comma BETWEEN DIGITS is a decimal point, not a clause boundary: splitting on it
+// tore "0,2 do 0,5" into pieces and lost the threshold the alcohol question grades.
+const SPLIT = /(?<!\d)[,.;:!?]+(?!\d)|\s+(?:a|ale|oraz|natomiast|zas|wiec|czyli|tylko|lecz|jedynie)\s+/i;
+const SENTENCE = /(?<=[.!?])\s+/;
 
-const SPLIT = /[,.;:!?]+|\s+(?:a|ale|oraz|natomiast|zas|wiec|czyli)\s+/i;
+/** A denial. "nie jest zielona" does not assert red - it asserts nothing. */
+const NEG = /^(nie|nigdy)$/;
+
+/** A sentence about the OTHER buoyage region says nothing about ours. */
+const COUNTERFACTUAL = /\b(iala b|region b|regionie b|regionu b|odwrotnie|na odwrot)\b/;
 
 const positions = (words: string[], re: RegExp): number[] =>
   words.reduce<number[]>((acc, w, i) => (re.test(w) ? [...acc, i] : acc), []);
 
+/** Sentences that are evidence about THIS rule, split into clauses. */
+function evidence(raw: string): string[][] {
+  return raw
+    .split(SENTENCE)
+    .filter((sent) => !COUNTERFACTUAL.test(normalize(sent)))
+    .flatMap((sent) => sent.split(SPLIT))
+    .map((c) => normalize(c).split(' ').filter(Boolean))
+    .filter((c) => c.length > 0);
+}
+
 /**
  * Is `side` paired with `right` rather than with `wrong`?
  *
- * A clause naming the side and the right word, and not the wrong one, is the
- * evidence. A clause naming the side and the WRONG word is disqualifying - that
- * is the reversed rule, stated. If no clause settles it (a terse "prawa zielona
- * lewa czerwona" with no separator anywhere), fall back to which word sits
- * closer, with ties going to the learner.
+ * `other` is the opposing side (lewa for prawa, wstecz for przod). It is what
+ * stops the subject from carrying across the answer's second half.
+ *
+ * A clause that names the side and the right word, and not the wrong one, is
+ * evidence. A clause that names the side and the WRONG word is the reversed rule,
+ * stated, and disqualifying. If nothing settles it - a terse "prawa zielona lewa
+ * czerwona" with no separator anywhere - fall back to which word sits closer, with
+ * ties going to the learner. That fallback is refused outright when the transcript
+ * contains a denial, because word distance cannot see a "nie".
  */
-function binds(raw: string, side: RegExp, right: RegExp, wrong: RegExp): boolean {
-  const cls = raw.split(SPLIT).map((c) => normalize(c).split(' ').filter(Boolean)).filter((c) => c.length > 0);
-
+function binds(raw: string, side: RegExp, other: RegExp, right: RegExp, wrong: RegExp): boolean {
   let good = 0;
   let bad = 0;
-  for (const words of cls) {
-    if (!words.some((w) => side.test(w))) continue;
+  // A denied clause leaves its subject hanging for exactly ONE clause - the one that
+  // does the asserting ("...nie idzie w prawo, TYLKO W LEWO"). It must not carry
+  // further than that: a subject that survived to the next sentence picked up the
+  // "dwa czarne stozki" of the topmark and scored it as the mark's body colour.
+  let pending = false;
+
+  for (const words of evidence(raw)) {
+    const own = words.some((w) => side.test(w));
+    const neg = words.some((w) => NEG.test(w));
+
+    if (!own && words.some((w) => other.test(w))) { pending = false; continue; }
+    if (own && neg) { pending = true; continue; }       // a denial asserts nothing
+    if (!own && !pending) continue;
+    if (neg) { pending = false; continue; }
+
     const r = words.some((w) => right.test(w));
     const x = words.some((w) => wrong.test(w));
     if (r && !x) good++;
     else if (x && !r) bad++;
+    pending = false;                                    // the subject is spent
   }
   if (good > 0 || bad > 0) return good > 0 && bad === 0;
 
-  // inconclusive: no clause pairs the side with either word
   const words = normalize(raw).split(' ');
+  if (words.some((w) => NEG.test(w))) return false;   // unproven beats guessed
+
   const s = positions(words, side);
   const r = positions(words, right);
   const w = positions(words, wrong);
@@ -87,14 +133,28 @@ function binds(raw: string, side: RegExp, right: RegExp, wrong: RegExp): boolean
   return gap(s, r) <= (w.length ? gap(s, w) : Infinity);
 }
 
+/** Does a clause mentioning `subject` also carry `needs`, and stay clear of `banned`? */
+function clauseSays(raw: string, subject: RegExp, needs: RegExp, banned?: RegExp): boolean {
+  return evidence(raw).some((words) => {
+    const t = words.join(' ');
+    if (!subject.test(t)) return false;
+    if (banned && banned.test(t)) return false;
+    return needs.test(t);
+  });
+}
+
 // Whole words only: "prawoskretnej" is the propeller, not a side, and matching it
 // as one would pair every right-handed prop with itself.
-const RIGHT = /^praw(a|o|e|ej|ym|ych|ej)?$/;
+const RIGHT = /^praw(a|o|e|ej|ym|ych)?$/;
 const LEFT = /^lew(a|o|e|ej|ym|ych)?$/;
 const GREEN = /^zielon/;
 const RED = /^czerwon/;
 const AHEAD = /^(przod|przodu|przedni\w*)$/;
 const ASTERN = /^wstecz\w*$/;
+const TOP = /^gor(a|y|ze|na|nej|ne)?$/;
+const BOTTOM = /^dol(u|e|na|nej|ne)?$/;
+const BLACK = /^czarn/;
+const YELLOW = /^zolt/;
 
 export interface OralPrompt {
   id: string;
@@ -119,8 +179,17 @@ export const ORAL_PROMPTS: OralPrompt[] = [
     must: [
       {
         id: 'q1-e1',
-        label: 'Kto ustepuje: ten, kto ma druga jednostke po prawej burcie',
-        anyOf: ['po prawej burcie', 'po swojej prawej', 'z prawej burty', 'z prawej strony', 'prawej burcie', 'prawa burta', 'po prawej'],
+        label: 'Kto ustepuje: ten, kto ma druga jednostke po PRAWEJ burcie (widzi jej czerwone swiatlo)',
+        anyOf: [
+          'po prawej burcie', 'po swojej prawej', 'z prawej burty', 'z prawej strony',
+          'prawej burcie', 'prawa burta', 'po prawej',
+          // seeing the other vessel's RED sidelight means she is on your starboard:
+          // the same fact, and a candidate is entitled to state it that way
+          'czerwone swiatlo', 'czerwona lampa',
+        ],
+        // Say "lewej" here and the rule is inverted. That is not a fumbled detail
+        // that the one-miss allowance may forgive - it is the rule, backwards.
+        critical: true,
       },
       {
         id: 'q1-e2',
@@ -151,8 +220,22 @@ export const ORAL_PROMPTS: OralPrompt[] = [
     must: [
       {
         id: 'q2-e1',
-        label: 'Wyprzedzajacy ustepuje wyprzedzanemu',
-        anyOf: ['wyprzedzajac', 'wyprzedza', 'kto wyprzedza', 'ustepuje wyprzedzanemu', 'ustepuje wyprzedzanej', 'ustepuje jednostce wyprzedzanej'],
+        label: 'WYPRZEDZAJACY ustepuje wyprzedzanemu (nie odwrotnie)',
+        anyOf: ['wyprzedzajac', 'ustepuje wyprzedzanemu', 'ustepuje wyprzedzanej'],
+        // Both participles appear in the sentence that reverses the rule, so the
+        // keyword is useless: what decides it is WHICH ONE IS THE SUBJECT. In Polish
+        // that is word order - the giver-way comes before "ustepuje", the vessel
+        // given way to comes after it.
+        test: (raw) => {
+          const w = normalize(raw).split(' ');
+          const gives = w.findIndex((x) => /^ustepuj/.test(x));
+          if (gives < 0) return false;
+          const overtaking = w.findIndex((x) => /^wyprzedzaj/.test(x) || x === 'wyprzedza' || x === 'wyprzedzam');
+          const overtaken = w.findIndex((x) => /^wyprzedzan/.test(x));
+          if (overtaken >= 0 && overtaken < gives) return false;   // "wyprzedzana ustepuje" = backwards
+          return (overtaking >= 0 && overtaking < gives) || overtaken > gives;
+        },
+        critical: true,
       },
       {
         id: 'q2-e2',
@@ -183,13 +266,25 @@ export const ORAL_PROMPTS: OralPrompt[] = [
     must: [
       {
         id: 'q3-e1',
-        label: 'Kolory: czarny u gory, zolty na dole',
-        anyOf: ['czarny', 'czarno', 'czarny u gory', 'czarny na gorze', 'zolty', 'zolto', 'czarny nad zoltym'],
+        label: 'CZARNY u gory, ZOLTY na dole (odwrotnie to znak poludniowy)',
+        anyOf: ['czarny nad zoltym', 'czarny u gory'],
+        // Naming both colours proves nothing: the south cardinal has the same two,
+        // the other way up. What is graded is which colour is on which half.
+        test: (raw) => /czarny nad zoltym/.test(normalize(raw))
+          || (binds(raw, TOP, BOTTOM, BLACK, YELLOW) && binds(raw, BOTTOM, TOP, YELLOW, BLACK)),
+        critical: true,
       },
       {
         id: 'q3-e2',
-        label: 'Dwa stozki wierzcholkami do gory',
-        anyOf: ['stozk', 'stozek', '2 stozki', 'dwa stozki', 'wierzcholkami do gory', 'skierowane do gory', 'do gory', 'w gore'],
+        label: 'Dwa stozki wierzcholkami DO GORY (do dolu to znak poludniowy)',
+        anyOf: ['wierzcholkami do gory', 'stozki do gory'],
+        test: (raw) => {
+          const t = normalize(raw);
+          if (!/stozk|stozek/.test(t)) return false;
+          if (/do dolu|w dol|ku dolowi|wierzcholkami w dol/.test(t)) return false;   // that is the south mark
+          return /do gory|w gore|ku gorze|skierowane do gory/.test(t);
+        },
+        critical: true,
       },
       {
         id: 'q3-e3',
@@ -198,8 +293,15 @@ export const ORAL_PROMPTS: OralPrompt[] = [
       },
       {
         id: 'q3-e4',
-        label: 'Mijamy od strony polnocnej',
-        anyOf: ['od polnocy', 'po polnocnej', 'polnocnej stronie', 'na polnoc od znaku', 'polnoc'],
+        label: 'Mijamy go od strony POLNOCNEJ (bezpieczna woda na polnoc od znaku)',
+        // A bare "polnoc" was satisfied by the word "polnocny" in the mark's own
+        // NAME, so the one thing this question tests could never be missed. The
+        // phrase has to be about passing, not about what the mark is called.
+        anyOf: [
+          'od polnocy', 'od strony polnocnej', 'po polnocnej stronie', 'polnocnej stronie',
+          'na polnoc od', 'z polnocy', 'na polnocy',
+        ],
+        critical: true,
       },
     ],
     whyPl: 'Kandydaci myla znaki kardynalne z bocznymi i nie potrafia powiedziec, ze bezpieczna woda jest po tej stronie, ktora nazywa sie znak.',
@@ -219,7 +321,7 @@ export const ORAL_PROMPTS: OralPrompt[] = [
         anyOf: ['zielony po prawej', 'czerwony po lewej'],
         // Both colours are named in the answer that swaps them, so the keyword is
         // useless here: what is graded is which colour each side is paired WITH.
-        test: (t) => binds(t, RIGHT, GREEN, RED) && binds(t, LEFT, RED, GREEN),
+        test: (raw) => binds(raw, RIGHT, LEFT, GREEN, RED) && binds(raw, LEFT, RIGHT, RED, GREEN),
         critical: true,
       },
       {
@@ -330,13 +432,23 @@ export const ORAL_PROMPTS: OralPrompt[] = [
       },
       {
         id: 'q7-e2',
-        label: 'Morze: do 12 m kadluba, 2 Mm od brzegu, w dzien',
-        anyOf: ['12 m', '12 metrow', '12', '2 mile', '2 mil', '2 mm', 'dwie mile', 'w porze dziennej', 'za dnia', 'dzienn'],
+        label: 'Morze: kadlub do 12 METROW i strefa do 2 MIL MORSKICH od brzegu',
+        anyOf: ['12 metrow', '2 mile morskie'],
+        // A bare "12" and a bare "2 mil" matched "do 12 mil morskich od brzegu" -
+        // an answer that garbles both limits into one wrong one - and scored it
+        // correct. The number has to be bound to its unit, on a word boundary.
+        test: (raw) => {
+          const t = normalize(raw);
+          const hull = /\b12\s+(m\b|metr)/.test(t);
+          const zone = /\b2\s+(mile|mil|mm)\b/.test(t) || /\bdwie mile\b/.test(t);
+          return hull && zone;
+        },
+        critical: true,
       },
       {
         id: 'q7-e3',
-        label: 'Ponizej 16 lat: moc do 60 kW',
-        anyOf: ['60', '60 kw', '60 kilowat', '16 lat', 'ponizej 16', 'szesnastu'],
+        label: 'Ponizej 16 lat: moc silnika do 60 kW',
+        anyOf: ['60 kw', '60 kilowat', '60 kilowatow'],
       },
       {
         id: 'q7-e4',
@@ -357,18 +469,27 @@ export const ORAL_PROMPTS: OralPrompt[] = [
     must: [
       {
         id: 'q8-e1',
-        label: '0,2 - 0,5 promila = stan po uzyciu alkoholu',
-        anyOf: ['0 2', '02', 'zero dwa', 'dwie dziesiate', 'po uzyciu alkoholu', 'po uzyciu'],
+        label: 'Stan PO UZYCIU alkoholu: od 0,2 do 0,5 promila',
+        anyOf: ['po uzyciu alkoholu'],
+        // "po uzyciu" and "0 5" both appear in the answer that swaps the two states.
+        // What is graded is which THRESHOLD sits in the clause that names the state.
+        test: (raw) => clauseSays(raw, /po uzyciu/, /\b0 2\b|zero dwa|dwie dziesiate/, /powyzej/),
+        critical: true,
       },
       {
         id: 'q8-e2',
-        label: 'Powyzej 0,5 promila = stan nietrzezwosci',
-        anyOf: ['0 5', '05', 'zero piec', 'piec dziesiatych', 'nietrzezw', 'powyzej 0 5'],
+        label: 'Stan NIETRZEZWOSCI: powyzej 0,5 promila',
+        anyOf: ['nietrzezw'],
+        test: (raw) => clauseSays(raw, /nietrzezw/, /powyzej/) && clauseSays(raw, /nietrzezw/, /\b0 5\b|zero piec|piec dziesiatych/),
+        critical: true,
       },
       {
         id: 'q8-e3',
-        label: 'Rejestracja: powyzej 7,5 m lub silnik powyzej 15 kW',
-        anyOf: ['7 5', '75', 'siedem i pol', '15 kw', '15 kilowat', 'rejestracj'],
+        label: 'Rejestracja: kadlub powyzej 7,5 m lub silnik powyzej 15 kW',
+        // "rejestracj" was in this list, so "Nie pamietam progow rejestracji" -
+        // an explicit "I do not know" - ticked the element green. A topic word is
+        // not an answer. Only the numbers are.
+        anyOf: ['7 5', 'siedem i pol', '15 kw', '15 kilowat', '15 kilowatow'],
       },
       {
         id: 'q8-e4',
@@ -436,14 +557,16 @@ export const ORAL_PROMPTS: OralPrompt[] = [
         // "rufa idzie lekko w prawo" has two words inside the phrase, and a
         // reversed answer contains every keyword the correct one does. Only the
         // pairing of the gear with the direction says anything.
-        test: (t) => binds(t, AHEAD, RIGHT, LEFT),
-        critical: true,
+        // NOT critical: the question asks what happens ON THE ASTERN GEAR, and a
+        // complete answer to the question as asked may never mention going ahead.
+        // Requiring it made the question unpassable for a correct candidate.
+        test: (raw) => binds(raw, AHEAD, ASTERN, RIGHT, LEFT),
       },
       {
         id: 'q10-e3',
         label: 'Na WSTECZNYM: rufa w LEWO',
         anyOf: ['wstecznym w lewo', 'rufa w lewo', 'scaga w lewo'],
-        test: (t) => binds(t, ASTERN, LEFT, RIGHT),
+        test: (raw) => binds(raw, ASTERN, AHEAD, LEFT, RIGHT),
         critical: true,
       },
       {

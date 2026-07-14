@@ -82,8 +82,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: THREE ZERO DECIMAL FIVE MINUTES',
-        anyOf: ['3 0 decimal 5 minutes', '3 0 decimal 5 minute', '30 decimal 5 minutes', 'three zero decimal five minutes'],
-        warnOf: ['30 5 minutes', '3 0 5 minutes', 'thirty point five'],
+        anyOf: ['3 0 decimal 5 minutes', '3 0 decimal 5 minute', 'three zero decimal five minutes'],
+        warnOf: ['30 decimal 5 minutes', 'thirty decimal five', '30 5 minutes', '3 0 5 minutes', 'thirty point five'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
       {
@@ -95,8 +95,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: FOUR FIVE DECIMAL TWO MINUTES',
-        anyOf: ['4 5 decimal 2 minutes', '4 5 decimal 2 minute', '45 decimal 2 minutes', 'four five decimal two minutes'],
-        warnOf: ['45 2 minutes', '4 5 2 minutes', 'forty five point two'],
+        anyOf: ['4 5 decimal 2 minutes', '4 5 decimal 2 minute', 'four five decimal two minutes'],
+        warnOf: ['45 decimal 2 minutes', 'forty five decimal two', '45 2 minutes', '4 5 2 minutes', 'forty five point two'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
     ],
@@ -131,8 +131,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: THREE ZERO DECIMAL NINE MINUTES',
-        anyOf: ['3 0 decimal 9 minutes', '3 0 decimal 9 minute', '30 decimal 9 minutes', 'three zero decimal nine minutes'],
-        warnOf: ['30 9 minutes', '3 0 9 minutes', 'thirty point nine'],
+        anyOf: ['3 0 decimal 9 minutes', '3 0 decimal 9 minute', 'three zero decimal nine minutes'],
+        warnOf: ['30 decimal 9 minutes', 'thirty decimal nine', '30 9 minutes', '3 0 9 minutes', 'thirty point nine'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
     ],
@@ -154,8 +154,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: TWO FOUR DECIMAL ZERO MINUTES',
-        anyOf: ['2 4 decimal 0 minutes', '2 4 decimal zero minutes', '24 decimal 0 minutes', '24 decimal zero minutes', 'two four decimal zero minutes'],
-        warnOf: ['24 minutes', '24 0 minutes', '2 4 minutes', 'twenty four minutes'],
+        anyOf: ['2 4 decimal 0 minutes', '2 4 decimal zero minutes', 'two four decimal zero minutes'],
+        warnOf: ['24 decimal 0 minutes', '24 decimal zero minutes', 'twenty four decimal zero', '24 minutes', '24 0 minutes', '2 4 minutes', 'twenty four minutes'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
       {
@@ -167,8 +167,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: THREE NINE DECIMAL ZERO MINUTES',
-        anyOf: ['3 9 decimal 0 minutes', '3 9 decimal zero minutes', '39 decimal 0 minutes', '39 decimal zero minutes', 'three nine decimal zero minutes'],
-        warnOf: ['39 minutes', '39 0 minutes', 'thirty nine minutes'],
+        anyOf: ['3 9 decimal 0 minutes', '3 9 decimal zero minutes', 'three nine decimal zero minutes'],
+        warnOf: ['39 decimal 0 minutes', '39 decimal zero minutes', 'thirty nine decimal zero', '39 minutes', '39 0 minutes', 'thirty nine minutes'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
     ],
@@ -190,8 +190,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: ONE EIGHT DECIMAL TWO MINUTES',
-        anyOf: ['1 8 decimal 2 minutes', '1 8 decimal 2 minute', '18 decimal 2 minutes', 'one eight decimal two minutes'],
-        warnOf: ['18 2 minutes', '1 8 2 minutes', 'eighteen point two'],
+        anyOf: ['1 8 decimal 2 minutes', '1 8 decimal 2 minute', 'one eight decimal two minutes'],
+        warnOf: ['18 decimal 2 minutes', 'eighteen decimal two', '18 2 minutes', '1 8 2 minutes', 'eighteen point two'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
       {
@@ -203,8 +203,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: FIVE EIGHT DECIMAL SEVEN MINUTES',
-        anyOf: ['5 8 decimal 7 minutes', '5 8 decimal 7 minute', '58 decimal 7 minutes', 'five eight decimal seven minutes'],
-        warnOf: ['58 7 minutes', '5 8 7 minutes', 'fifty eight point seven'],
+        anyOf: ['5 8 decimal 7 minutes', '5 8 decimal 7 minute', 'five eight decimal seven minutes'],
+        warnOf: ['58 decimal 7 minutes', 'fifty eight decimal seven', '58 7 minutes', '5 8 7 minutes', 'fifty eight point seven'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
     ],
@@ -226,8 +226,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: FIVE FIVE DECIMAL FIVE MINUTES',
-        anyOf: ['5 5 decimal 5 minutes', '5 5 decimal 5 minute', '55 decimal 5 minutes', 'five five decimal five minutes'],
-        warnOf: ['55 5 minutes', '5 5 5 minutes', 'fifty five point five', 'double five'],
+        anyOf: ['5 5 decimal 5 minutes', '5 5 decimal 5 minute', 'five five decimal five minutes'],
+        warnOf: ['55 decimal 5 minutes', 'fifty five decimal five', '55 5 minutes', '5 5 5 minutes', 'fifty five point five', 'double five'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
       {
@@ -239,8 +239,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: ONE FIVE DECIMAL FIVE MINUTES',
-        anyOf: ['1 5 decimal 5 minutes', '1 5 decimal 5 minute', '15 decimal 5 minutes', 'one five decimal five minutes'],
-        warnOf: ['15 5 minutes', '1 5 5 minutes', 'fifteen point five'],
+        anyOf: ['1 5 decimal 5 minutes', '1 5 decimal 5 minute', 'one five decimal five minutes'],
+        warnOf: ['15 decimal 5 minutes', 'fifteen decimal five', '15 5 minutes', '1 5 5 minutes', 'fifteen point five'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
     ],
@@ -262,8 +262,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: FIVE FIVE DECIMAL EIGHT MINUTES',
-        anyOf: ['5 5 decimal 8 minutes', '5 5 decimal 8 minute', '55 decimal 8 minutes', 'five five decimal eight minutes'],
-        warnOf: ['55 8 minutes', '5 5 8 minutes', 'fifty five point eight'],
+        anyOf: ['5 5 decimal 8 minutes', '5 5 decimal 8 minute', 'five five decimal eight minutes'],
+        warnOf: ['55 decimal 8 minutes', 'fifty five decimal eight', '55 8 minutes', '5 5 8 minutes', 'fifty five point eight'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: SOUTH (nie NORTH)', anyOf: ['south'] },
       {
@@ -275,8 +275,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lon-min',
         label: 'minuty dlugosci: TWO FIVE DECIMAL THREE MINUTES',
-        anyOf: ['2 5 decimal 3 minutes', '2 5 decimal 3 minute', '25 decimal 3 minutes', 'two five decimal three minutes'],
-        warnOf: ['25 3 minutes', '2 5 3 minutes', 'twenty five point three'],
+        anyOf: ['2 5 decimal 3 minutes', '2 5 decimal 3 minute', 'two five decimal three minutes'],
+        warnOf: ['25 decimal 3 minutes', 'twenty five decimal three', '25 3 minutes', '2 5 3 minutes', 'twenty five point three'],
       },
       { id: 'lon-hem', label: 'polkula dlugosci: WEST (nie EAST)', anyOf: ['west'] },
     ],
@@ -298,8 +298,8 @@ export const POSITIONS: PosItem[] = [
       {
         id: 'lat-min',
         label: 'minuty szerokosci: FOUR ZERO DECIMAL ZERO MINUTES',
-        anyOf: ['4 0 decimal 0 minutes', '4 0 decimal zero minutes', '40 decimal 0 minutes', '40 decimal zero minutes', 'four zero decimal zero minutes'],
-        warnOf: ['40 minutes', '40 0 minutes', 'forty minutes'],
+        anyOf: ['4 0 decimal 0 minutes', '4 0 decimal zero minutes', 'four zero decimal zero minutes'],
+        warnOf: ['40 decimal 0 minutes', '40 decimal zero minutes', 'forty decimal zero', '40 minutes', '40 0 minutes', 'forty minutes'],
       },
       { id: 'lat-hem', label: 'polkula szerokosci: SOUTH', anyOf: ['south'] },
       {
@@ -376,6 +376,32 @@ export interface PosResult {
   passed: boolean;
 }
 
+/**
+ * Latitude first, then longitude. Always, in that order.
+ *
+ * Every element could be word-perfect and the position still be wrong: read the
+ * longitude first and a receiver who trusts the order plots a different sea. The
+ * per-element checks are set-membership tests and cannot see order at all, so it
+ * is checked separately, off the hemisphere words that terminate each half.
+ */
+function orderCheck(said: string, must: PosElement[]): PosCheck {
+  const label = 'kolejnosc: najpierw szerokosc (N/S), potem dlugosc (E/W)';
+  const find = (id: string) => {
+    const el = must.find((m) => m.id === id);
+    if (!el) return -1;
+    return Math.min(...el.anyOf.map((k) => {
+      const i = said.indexOf(normalize(k));
+      return i < 0 ? Number.POSITIVE_INFINITY : i;
+    }));
+  };
+  const lat = find('lat-hem');
+  const lon = find('lon-hem');
+  // If a hemisphere is missing the element itself already fails; we cannot judge
+  // the order, and claiming it was right would be inventing a verdict.
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) return { id: 'order', label, status: 'miss' };
+  return { id: 'order', label, status: lat < lon ? 'ok' : 'miss' };
+}
+
 export function gradePosition(transcript: string, must: PosElement[]): PosResult {
   const said = ` ${normalize(transcript)} `;
 
@@ -388,10 +414,12 @@ export function gradePosition(transcript: string, must: PosElement[]): PosResult
     return { id: el.id, label: el.label, status: 'miss' as const };
   });
 
+  checks.push(orderCheck(said, must));
+
   const ok = checks.filter((c) => c.status === 'ok').length;
   return {
     checks,
-    score: Math.round((ok / must.length) * 100),
-    passed: ok === must.length,
+    score: Math.round((ok / checks.length) * 100),
+    passed: ok === checks.length,
   };
 }

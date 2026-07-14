@@ -1,9 +1,10 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs } from '../prefs';
 import { gradeTurn, type TurnResult } from '../../radio/rozmowa/dialogueGrading';
+import { usePushToTalk } from '../../radio/usePushToTalk';
 import { record as recordWeak } from '../../radio/weakSpots';
 import { ORAL_PROMPTS, type OralPrompt } from './oralPrompts';
 
@@ -20,8 +21,6 @@ import { ORAL_PROMPTS, type OralPrompt } from './oralPrompts';
 // model answer. Reading the model first is how you learn to recognise it, not to
 // produce it, and recognition is the thing you already have.
 // ============================================================================
-
-type Phase = 'idle' | 'recording' | 'grading' | 'graded';
 
 const TOPICS: OralPrompt['topic'][] = ['prawo drogi', 'znaki', 'bezpieczenstwo', 'przepisy', 'manewrowanie', 'locja'];
 
@@ -40,87 +39,72 @@ export default function OralTrainer() {
   const showRu = lang === 'ru' && explLang !== 'pl';
 
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState<Phase>('idle');
   const [heard, setHeard] = useState<string | null>(null);
   const [checks, setChecks] = useState<TurnResult[] | null>(null);
   const [score, setScore] = useState(0);
   const [passed, setPassed] = useState(false);
+  const [graded, setGraded] = useState(false);
   const [showModel, setShowModel] = useState(false);
   const [sttOff, setSttOff] = useState(false);
   const [cleared, setCleared] = useState<string[]>([]);
 
-  const recRef = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<BlobPart[]>([]);
-
   const p = ORAL_PROMPTS[idx];
 
+  const grade = useCallback(async (blob: Blob, isCurrent: () => boolean) => {
+    setHeard(null);
+    setChecks(null);
+    setGraded(false);
+    try {
+      const fd = new FormData();
+      fd.append('audio', blob, 'answer.webm');
+      const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
+      // A 429 / 502 must not be graded as "you missed every element" and written
+      // into weakSpots. Only a real transcript is ever graded.
+      if (!res.ok) { if (isCurrent()) setSttOff(true); return; }
+      const data = (await res.json()) as { transcript?: string; fallback?: boolean };
+      if (data.fallback) { if (isCurrent()) setSttOff(true); return; }
+      if (!isCurrent()) return;
+
+      const text = (data.transcript ?? '').trim();
+      if (!text) { setHeard(''); return; }   // silence is not a wrong answer
+
+      setHeard(text);
+      const result = gradeTurn(text, p.must);
+      setChecks(result.checks);
+      setScore(result.score);
+      setPassed(result.passed);
+      setGraded(true);
+      setShowModel(true);   // the model answer is the point of the debrief
+
+      recordWeak(
+        'oral',
+        result.checks.filter((c) => !c.ok).map((c) => ({ id: `${p.id}:${c.id}`, label: c.label })),
+        result.checks.filter((c) => c.ok).map((c) => ({ id: `${p.id}:${c.id}` })),
+      );
+      if (result.passed) setCleared((c) => (c.includes(p.id) ? c : [...c, p.id]));
+    } catch {
+      /* network gone mid-request: say nothing false */
+    }
+  }, [p]);
+
+  const { phase, handlers, cancel } = usePushToTalk({ onAudio: grade });
+  const recording = phase === 'recording';
+  const working = phase === 'working';
+
   const reset = useCallback(() => {
-    setPhase('idle');
+    cancel();
     setHeard(null);
     setChecks(null);
     setScore(0);
     setPassed(false);
+    setGraded(false);
     setShowModel(false);
-  }, []);
+  }, [cancel]);
 
   const go = useCallback((n: number) => {
     setIdx(((n % ORAL_PROMPTS.length) + ORAL_PROMPTS.length) % ORAL_PROMPTS.length);
     reset();
   }, [reset]);
-
-  const stopRecording = useCallback(() => {
-    try { recRef.current?.stop(); } catch { /* already stopped */ }
-  }, []);
-
-  const startRecording = useCallback(async () => {
-    if (phase === 'recording' || phase === 'grading') return;
-    setHeard(null);
-    setChecks(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      const rec = new MediaRecorder(stream);
-      recRef.current = rec;
-      chunks.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
-      rec.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' });
-        if (blob.size === 0) { setPhase('idle'); return; }
-        setPhase('grading');
-        try {
-          const fd = new FormData();
-          fd.append('audio', blob, 'answer.webm');
-          const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
-          const data = (await res.json()) as { transcript?: string; fallback?: boolean };
-          if (data.fallback) { setSttOff(true); setPhase('idle'); return; }
-
-          const text = (data.transcript ?? '').trim();
-          setHeard(text);
-          const graded = gradeTurn(text, p.must);
-          setChecks(graded.checks);
-          setScore(graded.score);
-          setPassed(graded.passed);
-          setPhase('graded');
-          setShowModel(true);   // the model answer is the point of the debrief
-
-          recordWeak(
-            'oral',
-            graded.checks.filter((c) => !c.ok).map((c) => ({ id: `${p.id}:${c.id}`, label: c.label })),
-            graded.checks.filter((c) => c.ok).map((c) => ({ id: `${p.id}:${c.id}` })),
-          );
-          if (graded.passed) setCleared((c) => (c.includes(p.id) ? c : [...c, p.id]));
-        } catch {
-          setPhase('idle');
-        }
-      };
-      rec.start();
-      setPhase('recording');
-    } catch {
-      setPhase('idle');
-    }
-  }, [p, phase]);
-
-  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* noop */ } }, []);
 
   return (
     <main>
@@ -136,23 +120,35 @@ export default function OralTrainer() {
       </p>
 
       {/* the twelve */}
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        {ORAL_PROMPTS.map((q, i) => (
-          <button
-            key={q.id}
-            type="button"
-            data-testid={`oral-${q.id}`}
-            onClick={() => go(i)}
-            className="min-h-[36px] min-w-[36px] rounded-lg px-2 text-xs font-semibold"
-            style={i === idx
-              ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
-              : cleared.includes(q.id)
-                ? { background: 'rgba(68,255,136,0.12)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.3)' }
-                : { background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}
-          >
-            {cleared.includes(q.id) && i !== idx ? '✓' : i + 1}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap gap-1.5" role="list">
+        {ORAL_PROMPTS.map((q, i) => {
+          const done = cleared.includes(q.id);
+          const label = tp(
+            `Вопрос ${i + 1}${done ? ', пройден' : ''}`,
+            `Question ${i + 1}${done ? ', done' : ''}`,
+            `Pytanie ${i + 1}${done ? ', zaliczone' : ''}`,
+          );
+          return (
+            <button
+              key={q.id}
+              type="button"
+              role="listitem"
+              data-testid={`oral-${q.id}`}
+              onClick={() => go(i)}
+              aria-current={i === idx ? 'true' : undefined}
+              aria-label={label}
+              title={label}
+              className="min-h-[36px] min-w-[36px] rounded-lg px-2 text-xs font-semibold"
+              style={i === idx
+                ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
+                : done
+                  ? { background: 'rgba(68,255,136,0.12)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.3)' }
+                  : { background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}
+            >
+              <span aria-hidden="true">{done && i !== idx ? '✓' : i + 1}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -168,7 +164,9 @@ export default function OralTrainer() {
             </span>
           </div>
 
-          <p data-testid="oral-question" className="mb-1 text-base font-semibold leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+          {/* Polish content on the RU page: mark it lang="pl" so a screen reader
+              switches to a Polish voice instead of reading it with a Russian one. */}
+          <p lang="pl" data-testid="oral-question" className="mb-1 text-base font-semibold leading-relaxed" style={{ color: 'var(--text-primary)' }}>
             {p.questionPl}
           </p>
           {showRu && (
@@ -180,17 +178,20 @@ export default function OralTrainer() {
           <button
             type="button"
             data-testid="oral-ptt"
-            onPointerDown={() => void startRecording()}
-            onPointerUp={stopRecording}
-            onPointerLeave={stopRecording}
-            className="mt-3 min-h-[52px] w-full rounded-xl px-4 text-sm font-bold"
-            style={phase === 'recording'
+            {...handlers}
+            aria-label={tp(
+              'Держать и отвечать: зажми, ответь вслух, отпусти. Работает с клавиши пробел или Enter.',
+              'Hold to answer: press and hold, answer aloud, release. Works with Space or Enter.',
+              'Trzymaj i odpowiadaj: przytrzymaj, odpowiedz na glos, pusc. Dziala tez klawiszem spacja lub Enter.',
+            )}
+            className="mt-3 min-h-[52px] w-full touch-none rounded-xl px-4 text-sm font-bold"
+            style={recording
               ? { background: 'var(--danger)', color: '#fff' }
               : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            {phase === 'recording'
+            {recording
               ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mow...')
-              : phase === 'grading'
+              : working
                 ? tp('Слушаю...', 'Listening...', 'Slucham...')
                 : tp('🎙 Держи и отвечай', '🎙 Hold and answer', '🎙 Trzymaj i odpowiadaj')}
           </button>
@@ -203,7 +204,7 @@ export default function OralTrainer() {
             )}
           </p>
 
-          {!showModel && phase !== 'graded' && (
+          {!showModel && !graded && (
             <button
               type="button"
               data-testid="oral-give-up"
@@ -217,12 +218,13 @@ export default function OralTrainer() {
 
           <p className="mt-3 rounded-xl p-2.5 text-xs leading-relaxed"
              style={{ background: 'rgba(255,206,77,0.06)', color: 'var(--text-secondary)' }}>
-            ⚠ {showRu ? p.whyRu : p.whyPl}
+            ⚠ {p.whyPl}
+            {showRu && <span className="mt-1 block" style={{ color: 'var(--text-muted)' }}>{p.whyRu}</span>}
           </p>
         </div>
 
         {/* the verdict + model */}
-        <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+        <div className="rounded-2xl p-4" aria-live="polite" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
               {tp('Что ты сказал', 'What you said', 'Co powiedziales')}
@@ -241,6 +243,14 @@ export default function OralTrainer() {
                 'Пока пусто. Держи кнопку и отвечай своими словами - зубрить формулировку не нужно, нужно назвать все пункты.',
                 'Nothing yet. Hold the button and answer in your own words - you do not have to recite the model, you have to cover every element.',
                 'Na razie pusto. Trzymaj przycisk i odpowiadaj wlasnymi slowami - nie musisz recytowac wzoru, musisz wymienic wszystkie punkty.',
+              )}
+            </p>
+          ) : heard === '' ? (
+            <p data-testid="oral-silence" className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {tp(
+                'Я ничего не услышала. Проверь микрофон и ответь ещё раз - это не засчитано как ошибка.',
+                'I heard nothing. Check the mic and answer again - this was not counted against you.',
+                'Nic nie uslyszalem. Sprawdz mikrofon i odpowiedz jeszcze raz - to nie zostalo policzone jako blad.',
               )}
             </p>
           ) : (
@@ -266,7 +276,7 @@ export default function OralTrainer() {
               <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--accent-cyan)' }}>
                 {tp('Как надо было', 'How it should have gone', 'Jak to mialo brzmiec')}
               </div>
-              <p data-testid="oral-model" className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+              <p lang="pl" data-testid="oral-model" className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                 {p.modelPl}
               </p>
               {showRu && (
@@ -277,7 +287,7 @@ export default function OralTrainer() {
             </div>
           )}
 
-          {(phase === 'graded' || showModel) && (
+          {(graded || showModel) && (
             <div className="mt-3 flex gap-2">
               <button
                 type="button"

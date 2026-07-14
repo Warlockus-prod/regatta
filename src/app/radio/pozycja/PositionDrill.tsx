@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs } from '../../sternik/prefs';
 import { fetchStationVoice } from '../symulator/audio/stationVoice';
+import { playVoice, stopVoice } from '../plainVoice';
+import { usePushToTalk } from '../usePushToTalk';
 import { record as recordWeak } from '../weakSpots';
 import {
   POSITIONS, POS_RULES_PL, POS_RULES_RU, gradePosition,
@@ -18,112 +20,99 @@ import {
 // through as 54 instead of FIVE FOUR sends the lifeboat to the wrong sea.
 // ============================================================================
 
-type Phase = 'idle' | 'recording' | 'grading' | 'graded';
-
 export default function PositionDrill() {
   const { tp, lang } = useI18n();
   const { explLang } = useSternikPrefs();
   const showRu = lang === 'ru' && explLang !== 'pl';
 
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState<Phase>('idle');
   const [heard, setHeard] = useState<string | null>(null);
   const [checks, setChecks] = useState<PosCheck[] | null>(null);
   const [score, setScore] = useState(0);
+  const [graded, setGraded] = useState(false);
   const [sttOff, setSttOff] = useState(false);
+  const [voiceOff, setVoiceOff] = useState(false);   // TTS failed - not the same as grading failing
   const [reveal, setReveal] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [cleared, setCleared] = useState<string[]>([]);
 
-  const recRef = useRef<MediaRecorder | null>(null);
-  const chunks = useRef<BlobPart[]>([]);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
   const item: PosItem = POSITIONS[idx];
 
+  const grade = useCallback(async (blob: Blob, isCurrent: () => boolean) => {
+    setHeard(null);
+    setChecks(null);
+    setGraded(false);
+    try {
+      const fd = new FormData();
+      fd.append('audio', blob, 'position.webm');
+      const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
+      // A 429 / 413 / 502 must NOT be graded as "you missed everything" - that
+      // writes phantom failures into weakSpots and tells a correct learner they
+      // were wrong. Only a real transcript is ever graded.
+      if (!res.ok) { if (isCurrent()) setSttOff(true); return; }
+      const data = (await res.json()) as { transcript?: string; fallback?: boolean };
+      if (data.fallback) { if (isCurrent()) setSttOff(true); return; }
+      if (!isCurrent()) return;
+
+      const text = (data.transcript ?? '').trim();
+      if (!text) {
+        // Silence (muted mic, headset not routed) is not eight wrong answers.
+        setHeard('');
+        return;
+      }
+      setHeard(text);
+      const result = gradePosition(text, item.must);
+      setChecks(result.checks);
+      setScore(result.score);
+      setGraded(true);
+
+      recordWeak(
+        'position',
+        result.checks.filter((c) => c.status !== 'ok').map((c) => ({ id: `${item.id}:${c.id}`, label: c.label })),
+        result.checks.filter((c) => c.status === 'ok').map((c) => ({ id: `${item.id}:${c.id}` })),
+      );
+      if (result.passed) setCleared((c) => (c.includes(item.id) ? c : [...c, item.id]));
+    } catch {
+      /* network gone mid-request: leave the panel as it was, say nothing false */
+    }
+  }, [item]);
+
+  const { phase, handlers, cancel } = usePushToTalk({ onAudio: grade });
+  const recording = phase === 'recording';
+  const working = phase === 'working';
+
   const reset = useCallback(() => {
-    setPhase('idle');
+    cancel();
     setHeard(null);
     setChecks(null);
     setScore(0);
+    setGraded(false);
     setReveal(false);
-  }, []);
+  }, [cancel]);
 
   const go = useCallback((n: number) => {
+    stopVoice();
     setIdx(((n % POSITIONS.length) + POSITIONS.length) % POSITIONS.length);
     reset();
   }, [reset]);
 
-  /** the model reading, spoken. Plain playback: there is no receiver in this drill. */
+  /** the model reading, spoken. WebAudio, not <audio blob:> - prod CSP forbids the latter. */
   const playModel = useCallback(async () => {
     if (playing) return;
     setPlaying(true);
     try {
       const raw = await fetchStationVoice(item.say);
-      if (!raw) { setSttOff(true); return; }
-      const url = URL.createObjectURL(new Blob([raw], { type: 'audio/mpeg' }));
-      const a = new Audio(url);
-      audioRef.current = a;
-      a.onended = () => URL.revokeObjectURL(url);
-      await a.play();
+      // TTS being down does not mean GRADING is down. Saying so would wrongly
+      // discourage the learner from recording, which still works.
+      if (!raw) { setVoiceOff(true); return; }
+      setVoiceOff(false);
+      await playVoice(raw);
     } catch {
-      /* no voice, no drama - the written model is on screen */
+      setVoiceOff(true);   // the written model is still on screen
     } finally {
       setPlaying(false);
     }
   }, [item.say, playing]);
-
-  const stopRecording = useCallback(() => {
-    try { recRef.current?.stop(); } catch { /* already stopped */ }
-  }, []);
-
-  const startRecording = useCallback(async () => {
-    if (phase === 'recording' || phase === 'grading') return;
-    setHeard(null);
-    setChecks(null);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      const rec = new MediaRecorder(stream);
-      recRef.current = rec;
-      chunks.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
-      rec.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' });
-        if (blob.size === 0) { setPhase('idle'); return; }
-        setPhase('grading');
-        try {
-          const fd = new FormData();
-          fd.append('audio', blob, 'position.webm');
-          const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
-          const data = (await res.json()) as { transcript?: string; fallback?: boolean };
-          if (data.fallback) { setSttOff(true); setPhase('idle'); return; }
-
-          const text = (data.transcript ?? '').trim();
-          setHeard(text);
-          const graded = gradePosition(text, item.must);
-          setChecks(graded.checks);
-          setScore(graded.score);
-          setPhase('graded');
-
-          recordWeak(
-            'position',
-            graded.checks.filter((c) => c.status !== 'ok').map((c) => ({ id: `${item.id}:${c.id}`, label: c.label })),
-            graded.checks.filter((c) => c.status === 'ok').map((c) => ({ id: `${item.id}:${c.id}` })),
-          );
-          if (graded.passed) setCleared((c) => (c.includes(item.id) ? c : [...c, item.id]));
-        } catch {
-          setPhase('idle');
-        }
-      };
-      rec.start();
-      setPhase('recording');
-    } catch {
-      setPhase('idle');
-    }
-  }, [item, phase]);
-
-  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* noop */ } }, []);
 
   const rules = showRu ? POS_RULES_RU : POS_RULES_PL;
 
@@ -140,35 +129,51 @@ export default function PositionDrill() {
         )}
       </p>
 
-      {/* the five rules, always in view: they are the whole syllabus */}
+      {/* the five rules, always in view: they are the whole syllabus. Polish is the
+          content (the exam is Polish); Russian is added as commentary when enabled. */}
       <ol className="mb-5 space-y-1 rounded-2xl p-4 text-xs leading-relaxed"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
-        {rules.map((r, i) => (
+        {POS_RULES_PL.map((r, i) => (
           <li key={i} className="flex gap-2">
             <span className="shrink-0 font-mono" style={{ color: 'var(--accent-cyan)' }}>{i + 1}.</span>
-            <span>{r}</span>
+            <span>
+              {r}
+              {showRu && <span className="block" style={{ color: 'var(--text-muted)' }}>{POS_RULES_RU[i]}</span>}
+            </span>
           </li>
         ))}
       </ol>
 
       {/* which of the eight are behind you */}
-      <div className="mb-4 flex flex-wrap gap-1.5">
-        {POSITIONS.map((p, i) => (
-          <button
-            key={p.id}
-            type="button"
-            data-testid={`pos-${p.id}`}
-            onClick={() => go(i)}
-            className="min-h-[36px] min-w-[36px] rounded-lg px-2 text-xs font-semibold"
-            style={i === idx
-              ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
-              : cleared.includes(p.id)
-                ? { background: 'rgba(68,255,136,0.12)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.3)' }
-                : { background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}
-          >
-            {cleared.includes(p.id) && i !== idx ? '✓' : i + 1}
-          </button>
-        ))}
+      <div className="mb-4 flex flex-wrap gap-1.5" role="list">
+        {POSITIONS.map((p, i) => {
+          const done = cleared.includes(p.id);
+          const label = tp(
+            `Позиция ${i + 1}${done ? ', пройдена' : ''}`,
+            `Position ${i + 1}${done ? ', done' : ''}`,
+            `Pozycja ${i + 1}${done ? ', zaliczona' : ''}`,
+          );
+          return (
+            <button
+              key={p.id}
+              type="button"
+              role="listitem"
+              data-testid={`pos-${p.id}`}
+              onClick={() => go(i)}
+              aria-current={i === idx ? 'true' : undefined}
+              aria-label={label}
+              title={label}
+              className="min-h-[36px] min-w-[36px] rounded-lg px-2 text-xs font-semibold"
+              style={i === idx
+                ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
+                : done
+                  ? { background: 'rgba(68,255,136,0.12)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.3)' }
+                  : { background: 'var(--bg-card)', color: 'var(--text-muted)', border: '1px solid var(--border-subtle)' }}
+            >
+              <span aria-hidden="true">{done && i !== idx ? '✓' : i + 1}</span>
+            </button>
+          );
+        })}
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -183,24 +188,28 @@ export default function PositionDrill() {
 
           <p className="mb-3 rounded-xl p-2.5 text-xs leading-relaxed"
              style={{ background: 'rgba(255,206,77,0.06)', color: 'var(--text-secondary)' }}>
-            ⚠ {showRu ? item.trapRu : item.trapPl}
+            ⚠ {item.trapPl}
+            {showRu && <span className="mt-1 block" style={{ color: 'var(--text-muted)' }}>{item.trapRu}</span>}
           </p>
 
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
               data-testid="pos-ptt"
-              onPointerDown={() => void startRecording()}
-              onPointerUp={stopRecording}
-              onPointerLeave={stopRecording}
-              className="min-h-[52px] flex-1 rounded-xl px-4 text-sm font-bold"
-              style={phase === 'recording'
+              {...handlers}
+              aria-label={tp(
+                'Держать и говорить: зажми, продиктуй позицию, отпусти. Работает с клавиши пробел или Enter.',
+                'Hold to talk: press and hold, dictate the position, release. Works with Space or Enter.',
+                'Trzymaj i mow: przytrzymaj, podyktuj pozycje, pusc. Dziala tez klawiszem spacja lub Enter.',
+              )}
+              className="min-h-[52px] flex-1 touch-none rounded-xl px-4 text-sm font-bold"
+              style={recording
                 ? { background: 'var(--danger)', color: '#fff' }
                 : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
-              {phase === 'recording'
+              {recording
                 ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mow...')
-                : phase === 'grading'
+                : working
                   ? tp('Слушаю...', 'Listening...', 'Slucham...')
                   : tp('🎙 Держи и говори', '🎙 Hold and speak', '🎙 Trzymaj i mow')}
             </button>
@@ -236,7 +245,7 @@ export default function PositionDrill() {
         </div>
 
         {/* what was heard */}
-        <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+        <div className="rounded-2xl p-4" aria-live="polite" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
               {tp('Что услышала модель', 'What the model heard', 'Co uslyszal model')}
@@ -255,6 +264,14 @@ export default function PositionDrill() {
                 'Держи кнопку и читай позицию вслух по-английски. Ничего не отправляется никуда, кроме распознавания.',
                 'Hold the button and read the position aloud in English. Nothing is sent anywhere except to be transcribed.',
                 'Trzymaj przycisk i przeczytaj pozycje na glos po angielsku. Nic nie idzie nigdzie poza rozpoznaniem mowy.',
+              )}
+            </p>
+          ) : heard === '' ? (
+            <p data-testid="pos-silence" className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {tp(
+                'Я ничего не услышала. Проверь, что микрофон не выключен, и продиктуй ещё раз - это не засчитано как ошибка.',
+                'I heard nothing. Check the mic is not muted and dictate again - this was not counted against you.',
+                'Nic nie uslyszalem. Sprawdz, czy mikrofon nie jest wyciszony, i podyktuj jeszcze raz - to nie zostalo policzone jako blad.',
               )}
             </p>
           ) : (
@@ -285,7 +302,7 @@ export default function PositionDrill() {
                 ))}
               </ul>
 
-              {phase === 'graded' && (
+              {graded && (
                 <div className="mt-3 flex gap-2">
                   <button
                     type="button"
@@ -313,9 +330,18 @@ export default function PositionDrill() {
           {sttOff && (
             <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               {tp(
-                'Голос сейчас недоступен (нет сети или ключа). Позиции и правила читаются офлайн, а проверка произношения - нет: подделывать её было бы враньём.',
-                'Voice is unavailable right now (no network, or no key). The positions and the rules read fine offline; grading your speech does not, and faking it would be a lie.',
-                'Glos jest teraz niedostepny (brak sieci albo klucza). Pozycje i zasady czytaja sie offline, ocena wymowy nie - a udawanie jej byloby klamstwem.',
+                'Распознавание речи сейчас недоступно (нет сети или лимит). Позиции и правила читаются офлайн, а проверка произношения требует модели: подделывать её было бы враньём.',
+                'Speech recognition is unavailable right now (no network, or a rate limit). The positions and rules read fine offline; grading your speech needs a model, and faking it would be a lie.',
+                'Rozpoznawanie mowy jest teraz niedostepne (brak sieci albo limit). Pozycje i zasady czytaja sie offline, ocena wymowy wymaga modelu, a udawanie jej byloby klamstwem.',
+              )}
+            </p>
+          )}
+          {voiceOff && !sttOff && (
+            <p className="mt-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {tp(
+                'Озвучку эталона сейчас не получить, но текст выше на месте, и записать свой ответ по-прежнему можно.',
+                'The spoken model is unavailable right now, but the text above is there, and you can still record your own answer.',
+                'Nagrania wzorca teraz nie ma, ale tekst powyzej jest, a swoja odpowiedz nadal mozesz nagrac.',
               )}
             </p>
           )}
