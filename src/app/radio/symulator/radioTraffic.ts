@@ -60,19 +60,35 @@ export function clearTraffic(): void {
 }
 
 /**
+ * A proper avalanche mix. The first version multiplied and shifted without one,
+ * and the low bits stayed correlated: channel 16 came out busy about 30% of the
+ * time instead of the ~3% it is supposed to be, which is a bad lie to tell about
+ * the distress and calling channel.
+ */
+function hash32(a: number, b: number): number {
+  let h = (a * 0x9e3779b1) ^ (b * 0x85ebca6b);
+  h = Math.imul(h ^ (h >>> 16), 0x2545f491);
+  h = Math.imul(h ^ (h >>> 13), 0x27d4eb2f);
+  return (h ^ (h >>> 16)) >>> 0;
+}
+
+/**
  * Ambient background traffic: a deterministic, seeded pattern per channel.
  * No Math.random - the same channel at the same second always sounds the same,
  * so the behaviour is reproducible and testable.
+ *
+ * CH 16 is quiet the great majority of the time. That is not a shortcut: a
+ * distress and calling channel that chattered constantly would teach the learner
+ * to tune it out, which is the opposite of the point.
  */
 function ambient(channelNum: string, tMs: number): number {
   // CH 70 is data only: it NEVER makes audio, not even noise.
   if (channelNum === '70') return 0;
 
   const slot = Math.floor(tMs / 1000);
-  // cheap deterministic hash of (channel, 12-second slot)
-  const seed = (Number(channelNum) * 2654435761 + Math.floor(slot / 12) * 40503) >>> 0;
-  const r = ((seed >>> 8) & 0xffff) / 0xffff;      // 0..1, stable within the slot
-  const phase = slot % 12;                          // where we are inside the slot
+  const block = Math.floor(slot / 12);              // a 12-second block
+  const r = hash32(Number(channelNum), block) / 0xffffffff;  // 0..1, stable in the block
+  const phase = slot % 12;                          // where we are inside it
 
   // busy channels: port / marina / VTS chatter comes and goes
   const busy = channelNum === '12' || channelNum === '14' || channelNum === '71';
