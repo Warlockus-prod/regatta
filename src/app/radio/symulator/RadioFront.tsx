@@ -908,7 +908,13 @@ export default function RadioFront({
       <div
         className="mx-auto mt-3 flex items-center gap-3"
         data-ik="mic"
-        onClick={inspect ? () => onInspect?.('mic') : undefined}
+        // The PTT lever sits INSIDE the housing, so its click bubbles up here.
+        // Resolve to the innermost part that names itself: a tap on the lever
+        // must explain the lever, not the handset it is bolted to.
+        onClick={inspect ? (e) => {
+          const hit = (e.target as HTMLElement).closest('[data-ik]');
+          onInspect?.(hit?.getAttribute('data-ik') ?? 'mic');
+        } : undefined}
         style={{
           maxWidth: 440,
           background: 'linear-gradient(165deg,#33383f,#1f2229)',
