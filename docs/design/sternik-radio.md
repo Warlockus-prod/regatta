@@ -740,3 +740,78 @@ All 26 published SRC practical tasks are covered across three surfaces
   on prod, then flip the deploy smoke check back to hard-fail.
 - Per-question drill from the official UKE PDF (324 written questions) -
   answer key being authored via a verified multi-agent workflow.
+
+## V6: offline, spoken answers, and two grading bugs worth remembering
+
+Six additions (2026-07-15), and two lessons about grading that cost more thought
+than the features did.
+
+### What was added
+
+| Surface | What it is |
+|---|---|
+| `public/sw.js` | Service worker. Offline for everything that does not need a model. |
+| `/offline` | The honest fallback page: what works with no signal, and what cannot. |
+| `/radio/pozycja` | Eight positions to dictate aloud, graded element by element. |
+| `/sternik/ustny` | Twelve exam questions answered aloud, graded, then the model answer. |
+| `WeakSpotsPanel` | What you keep getting wrong, across every trainer. |
+| Backlight 0-7 | Now actually dims the LCD (`brightness(0.42 .. 1.20)`). |
+
+### Offline: what is cached, and what must never be
+
+The course was always *able* to run offline. The question bank is static data,
+the ICOM simulator is a pure reducer, and its sound is synthesized in WebAudio
+with no audio files at all. Nothing about it needed a network - it simply had no
+cache. So: a cache.
+
+- **HTML: network-first.** A stale *course* is worse than no course. Somebody
+  could revise last month's procedure for an exam they take tomorrow.
+- **`/_next/static/**`: cache-first.** The filename changes when the content
+  does, so a hit is always correct and always fast.
+- **`/api/*`: never cached.** Transcription and speech synthesis run on a server.
+  A cached answer to "grade my MAYDAY" would be a lie inside a safety trainer, so
+  the voice trainers state plainly that they need a network rather than
+  degrading into something that looks like grading and is not.
+
+### Grading lesson 1: three states, not two
+
+`FIVE FOUR` comes back from `gpt-4o-transcribe` as `5-4`. The forbidden
+`fifty four` comes back as `54`. That single difference is what makes the position
+drill gradeable at all - and the first draft of the data accepted **both forms**,
+so a textbook reading and a disqualifying one scored identically.
+
+The obvious fix (strike the merged form) is also wrong: it fails a correct speaker
+whose digits the transcriber happened to merge. In a drill whose entire subject is
+precision, neither false verdict is acceptable. So an element is `ok`, `miss`, or
+`warn` - and `warn` says *"heard as 54; I cannot tell whether you merged it or the
+transcriber did"* instead of inventing a verdict it does not have.
+
+### Grading lesson 2: a keyword cannot express "green is on the RIGHT"
+
+Both colours appear in the answer that swaps them. `IALA B` - the reversed system -
+scored full marks on the `IALA A` question, which is precisely the error the
+question exists to catch.
+
+Nor can a fixed phrase fix it. `prawa strona zielona` dies on the words Polish puts
+in between (`prawa strona toru wodnego JEST zielona`), and a loose word-gap lets
+`prawa strona czerwona, lewa zielona` through on adjacency. Nearest-word proximity
+fails too, and fails in the most misleading way: in `...w prawo, a na wstecznym...
+w lewo`, the word `prawo` sits four words *before* `wstecznym` while `lewo` sits
+five words *after* it, so the astern element scores the starboard answer.
+
+What works is reading it the way a person does: **by clause**. A clause naming the
+side and the right colour, and not the wrong one, is the evidence; a clause naming
+the side and the *wrong* colour is the reversed rule, stated, and disqualifying.
+Clauses survive an unpunctuated transcript because Polish marks the contrast with a
+word - `a`, `ale`, `natomiast`. See `binds()` in `src/app/sternik/ustny/oralPrompts.ts`.
+
+A `critical` flag on `MustItem` stops the one-miss allowance from trading away a
+rule stated backwards. Fumbling a supporting detail is human; getting the rule
+inside out is not the same kind of mistake.
+
+### For the app
+
+Courses are a WebView of the live site, so all of this reaches the app with no
+rebuild. The service worker also caches inside the WebView, which is what finally
+makes the courses usable on a boat with no signal - see
+`docs/design/mobile/COURSES_OFFLINE.md`.
