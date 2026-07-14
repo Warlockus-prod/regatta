@@ -130,7 +130,7 @@ export default function SrcTrainerPage() {
             onClick={() => { setPart(p); setQueue([]); }}
             className="min-h-[40px] rounded-full px-4 text-sm font-medium"
             style={part === p
-              ? { background: 'var(--accent-cyan)', color: '#04222e' }
+              ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
               : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
           >
             {p === 'all' ? tp('Все', 'All', 'Wszystkie') : `${tp('Раздел', 'Part', 'Dzial')} ${p}`}
@@ -165,7 +165,7 @@ export default function SrcTrainerPage() {
             data-testid="start-training"
             onClick={start}
             className="mt-4 min-h-[44px] rounded-xl px-6 text-sm font-semibold"
-            style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             {queue.length > 0 && idx >= queue.length ? tp('Ещё раз', 'Again', 'Jeszcze raz') : tp('Начать', 'Start', 'Start')}
           </button>
@@ -178,7 +178,7 @@ export default function SrcTrainerPage() {
             </span>
             <span>{idx + 1}/{queue.length}</span>
             {current.confidence === 'unsure' && (
-              <span title={tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz watpliwy - sprawdz w zrodlach')} style={{ color: '#ffd24a' }}>
+              <span title={tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz watpliwy - sprawdz w zrodlach')} style={{ color: 'var(--warning)' }}>
                 ⚠️ {tp('спорный ключ', 'uncertain key', 'watpliwy klucz')}
               </span>
             )}
@@ -226,7 +226,7 @@ export default function SrcTrainerPage() {
                 data-testid="next-question"
                 onClick={next}
                 className="mt-3 min-h-[44px] w-full rounded-xl text-sm font-semibold"
-                style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+                style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
                 {tp('Дальше', 'Next', 'Dalej')} →
               </button>

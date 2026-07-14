@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { CYRILLIC_RE, usePlOnly } from '../sternik/plOnly';
+import { PHONETIC, PROWORDS } from './cheatData';
 
 // ============================================================================
 // /radio - dedicated section on the marine VHF radio + the Polish
@@ -13,10 +14,12 @@ import { CYRILLIC_RE, usePlOnly } from '../sternik/plOnly';
 // BIP UKE) and sailing-school guides. See the "Zrodla" block at the bottom.
 // ============================================================================
 
-const GREEN = '#44ff88';
-const RED = '#ff5566';
-const ORANGE = '#ff9f43';
-const YELLOW = '#ffd24a';
+// Semantic colors come from the CSS vars so the page stays readable in the
+// light theme too (the neon originals only worked on dark navy).
+const GREEN = 'var(--success)';
+const RED = 'var(--danger)';
+const ORANGE = 'var(--cat-orange)';
+const YELLOW = 'var(--warning)';
 const CYAN = 'var(--accent-cyan)';
 const TXT = 'var(--text-secondary)';
 const TXT2 = 'var(--text-muted)';
@@ -205,13 +208,8 @@ function DscDistressDiagram() {
 
 // ------------------------------------------------------------------ data ---
 
-const PHONETIC: [string, string][] = [
-  ['A', 'Alfa'], ['B', 'Bravo'], ['C', 'Charlie'], ['D', 'Delta'], ['E', 'Echo'], ['F', 'Foxtrot'],
-  ['G', 'Golf'], ['H', 'Hotel'], ['I', 'India'], ['J', 'Juliett'], ['K', 'Kilo'], ['L', 'Lima'],
-  ['M', 'Mike'], ['N', 'November'], ['O', 'Oscar'], ['P', 'Papa'], ['Q', 'Quebec'], ['R', 'Romeo'],
-  ['S', 'Sierra'], ['T', 'Tango'], ['U', 'Uniform'], ['V', 'Victor'], ['W', 'Whiskey'], ['X', 'X-ray'],
-  ['Y', 'Yankee'], ['Z', 'Zulu'],
-];
+// PHONETIC / PROWORDS live in cheatData so this page and the printable sheet
+// (/radio/sciaga) can never drift apart.
 
 // --------------------------------------------------------------- page ---
 
@@ -510,16 +508,7 @@ OVER`}
 
         <Table
           head={['Proword', 'Znaczenie', 'По-русски']}
-          rows={[
-            ['OVER', 'skonczylem, czekam na odpowiedz', 'приём, жду ответа'],
-            ['OUT', 'koniec lacznosci, bez odpowiedzi', 'конец связи, ответа не жду'],
-            ['ROGER / RECEIVED', 'zrozumialem', 'принял, понял'],
-            ['AFFIRMATIVE / NEGATIVE', 'tak / nie', 'да / нет'],
-            ['SAY AGAIN', 'powtorz', 'повторите'],
-            ['I SAY AGAIN', 'powtarzam', 'повторяю'],
-            ['STATION CALLING', 'stacja wywolujaca, podaj sie', 'вызывающая станция, назовитесь'],
-            ['RADIO CHECK', 'prosba o sprawdzenie slyszalnosci', 'проверка связи/слышимости'],
-          ]}
+          rows={PROWORDS.map((p) => [...p])}
         />
         <Tip>
           {tp(
@@ -532,6 +521,13 @@ OVER`}
 
       {/* 6. CHEAT SHEET ----------------------------------------------------- */}
       <Section id="sciaga" num={6} pl="Sciaga" ru="Шпаргалка на экзамен и в рейс">
+        <Link
+          href="/radio/sciaga"
+          className="mb-3 inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold"
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+        >
+          📄 {tp('Полная шпаргалка и печать', 'Full cheat sheet and print', 'Pelna sciaga i wydruk')}
+        </Link>
         <div className="grid gap-3 sm:grid-cols-2">
           <Card title="Kanaly">
             <ul className="space-y-1 pl-4 text-sm" style={{ color: 'var(--text-secondary)', listStyle: 'disc' }}>

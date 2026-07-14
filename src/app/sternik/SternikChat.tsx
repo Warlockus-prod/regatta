@@ -186,7 +186,7 @@ export default function SternikChat() {
         className="fixed bottom-20 right-4 z-40 h-12 w-12 rounded-full shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
         style={{
           background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))',
-          color: '#04222e',
+          color: 'var(--accent-ink, #04222e)',
           fontSize: 22,
         }}
       >
@@ -255,7 +255,7 @@ export default function SternikChat() {
                   className="max-w-[85%] whitespace-pre-wrap rounded-xl px-3 py-2 text-sm leading-relaxed"
                   style={
                     m.role === 'user'
-                      ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                      ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                       : { background: 'var(--bg-secondary)', color: 'var(--text-primary)' }
                   }
                 >
@@ -321,7 +321,7 @@ export default function SternikChat() {
               type="submit"
               disabled={busy || !input.trim()}
               className="rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-40"
-              style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+              style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
               {tp('Отпр.', 'Send', 'Wyslij')}
             </button>

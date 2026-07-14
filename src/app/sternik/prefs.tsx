@@ -118,7 +118,7 @@ export function ExplLangToggle() {
             className="flex min-h-[44px] items-center rounded-full px-3 py-1.5 text-sm font-medium transition"
             style={
               active
-                ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                 : { background: 'transparent', color: 'var(--text-secondary)' }
             }
             aria-pressed={active}
@@ -159,7 +159,7 @@ export function BaseToggle({ counts }: { counts: { all: number; materialy: numbe
               className="flex min-h-[44px] items-center gap-1.5 rounded-full px-3 py-2 text-sm font-medium transition"
               style={
                 active
-                  ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                  ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                   : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }
               }
               aria-pressed={active}
