@@ -511,6 +511,74 @@ every button."* He was right, and the fixes below all follow from it.
   question about a DSC alert was answered as off-topic or without pointing at our
   own section. Both fixed, plus a short list of load-bearing facts it may repeat.
 
+## V5: the audio reality check (2026-07-14)
+
+The user's next demand was the right one: *"make the sound exactly as it is in
+real life - is there noise, can monitoring be switched off? Re-check everything."*
+A 15-agent workflow read the actual IC-M330GE and IC-M323 instruction manuals and
+audited our engine against them. It found 12 discrepancies; every one survived an
+adversarial refutation pass. All 12 are now fixed.
+
+**The worst one was ours.** `audioView()` forced the squelch gate open whenever
+the VOL screen was showing - an invented "monitor" that existed only to paper
+over a lesson-ordering bug. **Neither exam radio has any monitor function**: the
+M330GE softkey pool is published and closed (DISTRESS, OTHER DSC, TASK, SCAN,
+DW/TW, HI/LO, CH/WX, LO/DX, AQUA, Favorite, NAME, BKLT, LOG) and there is no MON
+key, no squelch defeat, nothing. It taught the candidate that the hiss belongs to
+a screen, when on the real set it belongs to a **setting**.
+
+What the manual actually prescribes (IC-M323 p.13, verbatim): *"First, open the
+squelch. Then, adjust the audio output level. After that, adjust the squelch level
+until the noise just disappears."* So:
+
+- **The squelch has an OPEN position**, not a zero: "OPEN is completely open; 10
+  is tight squelch; 1 is loose squelch" (11 positions). The LCD now says
+  `SQL: OPEN`, and OPEN is a **latched** state that keeps hissing after the
+  adjustment screen closes. That persistence IS the lesson.
+- **The course order changed** to the manual's: open the squelch (new lesson 2) ->
+  set the volume against the hiss (3) -> raise the squelch to the threshold (4).
+  15 lessons now. The old order could not work: at the factory squelch the radio
+  is silent, and you cannot set a volume against silence.
+- **BUSY** is now on the LCD, driven by the audio gate itself: *"BUSY: displayed
+  while receiving, OR THE SQUELCH IS OPEN"* (M330GE p.3). Hiss and BUSY are the
+  same condition, always - never one without the other.
+- **SQL 10 is "tight", not deaf.** A coast station alongside still breaks it; what
+  a tight squelch loses is the weak distant call. "Max squelch = you hear nothing
+  ever" was the wrong lesson - the real danger is subtler, which is why people
+  fail on it.
+- **Key Beep is a real device setting**: MENU > Configuration > Key Beep, On/Off,
+  binary (no levels on these two sets). Off = "silent operation". It silences key
+  beeps ONLY - **it cannot silence the DSC alarm, and no setting on the radio
+  can**. Feeling that difference is worth the lesson.
+- **The DSC alarm never gives up.** It used to pre-schedule 240 tone steps and
+  then hold the last value, so after 60 seconds the distress alarm quietly became
+  a flat 1300 Hz dial tone. The manual: a received distress alarm *"sounds UNTIL
+  YOU TURN IT OFF"*. It is now driven in a rolling window. Every other DSC call
+  *"sounds for 2 minutes"* and then stops by itself - so an incoming routine call
+  alerts you (that is the whole point of DSC) with its own gentler cue, and times
+  out.
+- **The station's voice goes through the receiver.** The TTS reply used to connect
+  straight to the audio destination, so you could hear the coast station with the
+  volume at zero and the squelch shut - silently undoing the squelch lesson the
+  moment the learner opened a scenario. It is now a carrier on the channel
+  (`scriptOver` at `SIG_STRONG`) fed into the engine's squelch gate: gated by YOUR
+  squelch, scaled by YOUR volume, muted while YOU transmit.
+- **Scan and Dual Watch actually listen.** Scan is squelch-gated - it refuses to
+  start with the squelch OPEN ("make sure the squelch is closed to start a scan")
+  and pauses on a busy channel instead of chopping a live station into 900 ms
+  fragments. Dual Watch samples CH 16 and parks there when someone is on it,
+  beeping, then returns. Painting "DW" on the LCD while hearing nothing taught the
+  exact opposite of the lesson.
+- **AquaQuake is a buzz, not a beep**, and it deliberately bypasses the volume:
+  *"a low frequency vibration beep sounds to drain the water, REGARDLESS OF THE
+  VOLUME LEVEL SETTING"* (M330GE p.14). It is the one sound on the set the VOL
+  knob cannot touch.
+
+Simplifications we keep, and label as such: the DSC alarm's volume relationship is
+not documented in either manual, so we do not assert one; and CH 70's speaker
+silence is inferred (no DSC set feeds data audio to the AF stage) rather than
+quoted.
+
 ## Coverage of the official 26 UKE tasks
 
 All 26 published SRC practical tasks are covered across three surfaces

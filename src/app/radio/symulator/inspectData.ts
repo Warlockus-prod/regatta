@@ -235,6 +235,16 @@ export const INSPECT: Record<string, InspectItem> = {
     whenPl: 'Sprawdzasz przy pierwszym uruchomieniu radia na nowej lodce i po tym, jak ktos grzebal w ustawieniach. W Europie na ekranie ma byc INT.',
     whenRu: 'Проверяешь при первом включении станции на новой лодке и после того, как кто-то менял настройки. В Европе на экране должно быть INT.',
   },
+  'status-busy': {
+    titlePl: 'BUSY - odbiornik otwarty',
+    titleRu: 'BUSY - приёмник открыт',
+    whatPl: 'Zapala sie, gdy odbiornik jest otwarty: albo cos odbierasz, albo blokada szumow stoi na OPEN. To dokladnie ten sam warunek, w ktorym slyszysz glosnik - nigdy jedno bez drugiego.',
+    whatRu: 'Загорается, когда приёмник открыт: либо идёт приём, либо шумоподавитель стоит на OPEN. Это ровно то же условие, при котором слышно динамик, - никогда одно без другого.',
+    whyPl: 'To jedyny sposob, zeby zobaczyc, ze kanal jest zajety, zanim wcisniesz PTT i wejdziesz komus w slowo. Przy dobrze ustawionym SQL zapala sie tylko wtedy, gdy ktos naprawde nadaje.',
+    whyRu: 'Это единственный способ увидеть, что канал занят, до того как нажмёшь PTT и перебьёшь кого-то. При верно выставленном SQL он загорается только тогда, когда кто-то действительно передаёт.',
+    whenPl: 'Zerkasz na niego przed kazdym nadaniem. Jesli BUSY swieci bez przerwy i slychac szum - masz SQL na OPEN i musisz go podniesc do progu.',
+    whenRu: 'Смотришь на него перед каждой передачей. Если BUSY горит непрерывно и слышно шипение - у тебя SQL на OPEN, подними его до порога.',
+  },
   'status-gps': {
     titlePl: 'Wskaznik GPS',
     titleRu: 'Индикатор GPS',

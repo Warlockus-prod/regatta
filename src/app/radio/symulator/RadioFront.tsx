@@ -68,6 +68,8 @@ interface Props {
   onInspect?: (key: string) => void;
   /** Currently explained part - gets a ring so the user sees what they picked. */
   inspectKey?: string | null;
+  /** BUSY: the audio gate is open (receiving, or the squelch is set to OPEN). */
+  busy?: boolean;
 }
 
 function Key({
@@ -133,10 +135,10 @@ function LcdLine({ children, big, dim, color }: { children: ReactNode; big?: boo
   );
 }
 
-function CenterGauge({ label, value, max = 10 }: { label: string; value: number; max?: number }) {
+function CenterGauge({ label, value, max = 10, zeroLabel }: { label: string; value: number; max?: number; zeroLabel?: string }) {
   return (
     <div style={{ paddingTop: 22 }}>
-      <LcdLine big>{label}: {value}</LcdLine>
+      <LcdLine big>{label}: {value === 0 && zeroLabel ? zeroLabel : value}</LcdLine>
       <div className="mt-2 h-2 w-full overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.16)' }}>
         <div style={{ width: `${(value / max) * 100}%`, height: '100%', background: LCD_FG }} />
       </div>
@@ -170,7 +172,7 @@ function Ind({ ik, ins, style, children }: { ik: string; ins?: Inspect; style?: 
 }
 
 /** Persistent top row of the LCD: band, GPS, watch mode, power, battery. */
-function StatusBar({ s, ins }: { s: RadioState; ins?: Inspect }) {
+function StatusBar({ s, ins, busy = false }: { s: RadioState; ins?: Inspect; busy?: boolean }) {
   const watch = s.scanActive ? 'SCAN' : s.dualWatch ? 'DW' : s.aquaActive ? 'AQUA' : '';
   return (
     <div
@@ -184,6 +186,12 @@ function StatusBar({ s, ins }: { s: RadioState; ins?: Inspect }) {
       }}
     >
       <Ind ik="status-band" ins={ins}>INT</Ind>
+      {/* "BUSY: displayed while receiving, OR THE SQUELCH IS OPEN" (M330GE p.3).
+          It is the visual twin of the audio gate: if you can hear the speaker,
+          BUSY is lit - always the same condition, never one without the other. */}
+      <Ind ik="status-busy" ins={ins} style={{ color: busy ? LCD_WARN : LCD_FAINT, minWidth: 30 }}>
+        {busy ? 'BUSY' : '·'}
+      </Ind>
       <Ind ik="status-gps" ins={ins} style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</Ind>
       <Ind ik="status-watch" ins={ins} style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch || '·'}</Ind>
       <Ind ik="status-power" ins={ins} style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</Ind>
@@ -220,7 +228,7 @@ function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
   );
 }
 
-function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect }) {
+function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean }) {
   const ch16 = channel(s);
   const keys = softkeys(s);
 
@@ -237,7 +245,20 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: stri
         body = <CenterGauge label="Volume" value={s.volume} max={radioProfile(s.model).maxVolume} />;
         break;
       case 'squelch':
-        body = <CenterGauge label="SQL" value={s.squelch} />;
+        // The bottom position is named, not numbered: "OPEN is completely open;
+        // 10 is tight squelch; 1 is loose squelch" (IC-M323 p.14). The candidate
+        // looks for the word OPEN on the exam radio, not for a zero.
+        body = <CenterGauge label="SQL" value={s.squelch} zeroLabel="OPEN" />;
+        break;
+      case 'config':
+        body = (
+          <>
+            <LcdLine big>{'▸'} CONFIGURATION</LcdLine>
+            <LcdLine>Key Beep: {s.keyBeep ? 'On' : 'Off'}</LcdLine>
+            <LcdLine dim>[ENT] toggles - Off = silent operation</LcdLine>
+            <LcdLine dim>the DSC alarm always sounds</LcdLine>
+          </>
+        );
         break;
       case 'channel-select':
         body = (
@@ -562,7 +583,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: stri
         cursor: ins?.on ? 'pointer' : undefined,
       }}
     >
-      {s.power && <StatusBar s={s} ins={ins} />}
+      {s.power && <StatusBar s={s} ins={ins} busy={busy} />}
       <div style={{ minHeight: 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
       {s.power && <TxMeter s={s} ins={ins} />}
       {/* softkey labels - bottom row, like on the device */}
@@ -600,7 +621,7 @@ function softIk(label: string): string {
 
 export default function RadioFront({
   s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
-  highlightControl, inspect = false, onInspect, inspectKey = null,
+  highlightControl, inspect = false, onInspect, inspectKey = null, busy = false,
 }: Props) {
   const { tp } = useI18n();
   const [coverOpen, setCoverOpen] = useState(false);
@@ -725,7 +746,7 @@ export default function RadioFront({
         </div>
 
         {/* LCD */}
-        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} />
+        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} />
 
         {/* softkeys - a softkey explains the function it currently carries, and
             falls back to the general "these keys change meaning" entry. */}

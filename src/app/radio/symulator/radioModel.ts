@@ -118,7 +118,7 @@ export const DSC_VOICE_CHANNELS = ['06', '08', '09', '12', '13', '16', '69', '71
 
 export type ScreenId =
   | 'off' | 'standby' | 'volume' | 'squelch' | 'channel-select' | 'backlight'
-  | 'menu' | 'm323-dsc-calls' | 'gps-info' | 'radio-info' | 'dsc-log' | 'stub-view'
+  | 'menu' | 'm323-dsc-calls' | 'gps-info' | 'radio-info' | 'dsc-log' | 'stub-view' | 'config'
   | 'distress-compose' | 'distress-nature' | 'distress-hold' | 'distress-tx'
   | 'distress-wait' | 'distress-ack' | 'distress-ack-done'
   | 'cancel-confirm' | 'cancel-tx' | 'cancel-voice' | 'cancel-done'
@@ -163,7 +163,13 @@ export interface RadioState {
   mmsiSet: boolean;
   scanActive: boolean;
   dualWatch: boolean;
+  /** parked on 16 by Dual Watch because a signal is there (M330GE p.17) */
+  dwOnSixteen: boolean;
+  /** the channel DW will return to once 16 goes quiet */
+  workChannelIndex: number | null;
   aquaActive: boolean;
+  /** MENU > Configuration > Key Beep. On by default; Off = silent operation. */
+  keyBeep: boolean;
   favoriteChannels: string[];
   softPage: number;
   menuCursor: number;
@@ -207,7 +213,10 @@ export type RadioEvent =
   | { type: 'distress-held' } | { type: 'distress-txdone' }
   | { type: 'cancel-txdone' } | { type: 'auto-retx' }
   | { type: 'coast-ack' } | { type: 'otherdsc-ack' }
-  | { type: 'scan-tick' }
+  // `busy` / `sixteenBusy` come from the RF side (radioTraffic + the squelch),
+  // which the pure reducer deliberately does not know about.
+  | { type: 'scan-tick'; busy?: boolean }
+  | { type: 'dw-tick'; sixteenBusy: boolean }
   | { type: 'alarm-off' }
   | { type: 'aqua-down' } | { type: 'aqua-up' }
   | { type: 'ptt-down' } | { type: 'ptt-up' };
@@ -222,7 +231,8 @@ export function createInitialRadio(
     pos: { lat: pos.lat, lon: pos.lon }, channelIndex: CH16_INDEX,
     callChannelIndex: CHANNELS.findIndex((c) => c.num === '06'),
     volume: 16, squelch: 4, backlight: 5, hiPower: true, gpsValid: true,
-    ptt: false, mmsiSet: true, scanActive: false, dualWatch: false, aquaActive: false,
+    ptt: false, mmsiSet: true, scanActive: false, dualWatch: false, dwOnSixteen: false,
+    workChannelIndex: null, aquaActive: false, keyBeep: true,
     favoriteChannels: ['06', '12', '16'], softPage: 0, menuCursor: 0, m323CallCursor: 0, stubTitle: '',
     natureIndex: 0, natureCursor: 0, composeCursor: 0,
     distressActive: false, retxCount: 0, retxPaused: false, ackReceived: false,
@@ -408,7 +418,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
     }
 
     case 'key-16c': {
-      const allowed: ScreenId[] = ['standby', 'menu', 'm323-dsc-calls', 'gps-info', 'radio-info', 'dsc-log', 'stub-view', 'volume', 'squelch', 'channel-select', 'backlight'];
+      const allowed: ScreenId[] = ['standby', 'menu', 'm323-dsc-calls', 'gps-info', 'radio-info', 'dsc-log', 'stub-view', 'config', 'volume', 'squelch', 'channel-select', 'backlight'];
       if (!allowed.includes(s.screen)) return s;
       return { ...toStandby(s), channelIndex: CH16_INDEX, deviceLog: log(s, 'CH 16 (distress/calling)'), beeps: s.beeps + 1 };
     }
@@ -424,7 +434,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
       if (['volume', 'squelch', 'channel-select', 'backlight'].includes(s.screen)) return { ...s, screen: s.back };
       switch (s.screen) {
         case 'menu': return toStandby(s);
-        case 'gps-info': case 'radio-info': case 'dsc-log': case 'stub-view': case 'm323-dsc-calls': return { ...s, screen: 'menu' };
+        case 'gps-info': case 'radio-info': case 'dsc-log': case 'stub-view': case 'config': case 'm323-dsc-calls': return { ...s, screen: 'menu' };
         case 'distress-nature': return { ...s, screen: 'distress-compose' };
         case 'distress-compose': return toStandby(s);
         case 'otherdsc-field': return { ...s, screen: 'otherdsc-compose' };
@@ -444,7 +454,21 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         if (item === 'Radio Info') return { ...s, screen: 'radio-info' };
         if (item === 'MMSI/GPS Info') return { ...s, screen: 'radio-info' };
         if (item === 'DSC Log') return { ...s, screen: 'dsc-log' };
+        // Configuration is where Key Beep lives on the real set (M330GE p.49,
+        // M323 p.69): On by default, Off "for silent operation". It is binary -
+        // there are no beep levels on these two models - and it silences key
+        // beeps ONLY: the DSC alarm can never be turned off this way.
+        if (item === 'Configuration') return { ...s, screen: 'config' };
         return { ...s, screen: 'stub-view', stubTitle: item };
+      }
+      if (s.screen === 'config') {
+        return {
+          ...s,
+          keyBeep: !s.keyBeep,
+          deviceLog: log(s, `Key Beep ${!s.keyBeep ? 'ON' : 'OFF'}`),
+          // the confirming beep only sounds if beeps are being turned ON
+          beeps: !s.keyBeep ? s.beeps + 1 : s.beeps,
+        };
       }
       if (s.screen === 'distress-compose') {
         if (s.composeCursor === 0) return { ...s, screen: 'distress-nature', natureCursor: s.natureIndex };
@@ -494,8 +518,28 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         case 'OTHER DSC': return { ...s, screen: 'otherdsc-compose', odCursor: 0 };
         case 'HI/LO': return { ...s, hiPower: !s.hiPower, deviceLog: log(s, `Power ${!s.hiPower ? '25W' : '1W'}`) };
         case 'CHAN': return { ...s, screen: 'channel-select', back: 'standby' };
-        case 'SCAN': return { ...s, scanActive: !s.scanActive, dualWatch: false, deviceLog: log(s, `SCAN ${!s.scanActive ? 'ON' : 'OFF'}`), beeps: s.beeps + 1 };
-        case 'DW': return { ...s, dualWatch: !s.dualWatch, scanActive: false, deviceLog: log(s, `DUAL WATCH ${!s.dualWatch ? 'ON' : 'OFF'}: CH ${channel(s).num} + CH 16`), beeps: s.beeps + 1 };
+        case 'SCAN':
+          // "Make sure the squelch is closed to start a scan" (M323 p.17): with
+          // the squelch OPEN every channel reads busy, so a scan would never
+          // move. The real set refuses; so do we, with the error beep.
+          if (!s.scanActive && s.squelch === 0) {
+            return { ...s, deviceLog: log(s, 'SCAN needs a closed squelch - set SQL above OPEN'), beeps: s.beeps + 1 };
+          }
+          return { ...s, scanActive: !s.scanActive, dualWatch: false, dwOnSixteen: false, deviceLog: log(s, `SCAN ${!s.scanActive ? 'ON' : 'OFF'}`), beeps: s.beeps + 1 };
+        case 'DW': {
+          const on = !s.dualWatch;
+          return {
+            ...s,
+            dualWatch: on,
+            scanActive: false,
+            dwOnSixteen: false,
+            // remember where to come back to when 16 goes quiet again
+            channelIndex: !on && s.dwOnSixteen ? (s.workChannelIndex ?? s.channelIndex) : s.channelIndex,
+            workChannelIndex: on ? s.channelIndex : null,
+            deviceLog: log(s, `DUAL WATCH ${on ? 'ON' : 'OFF'}: CH ${channel(s).num} + CH 16`),
+            beeps: s.beeps + 1,
+          };
+        }
         case 'BKLT': return { ...s, screen: 'backlight', back: 'standby' };
         case 'FAV': {
           const num = channel(s).num;
@@ -539,6 +583,10 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
 
     case 'scan-tick': {
       if (!s.scanActive) return s;
+      // A scan is squelch-gated on the real set: "When a signal is detected, the
+      // scan pauses until the signal disappears" (M330GE p.16, M323 p.17). It
+      // does not chop an active station into fragments.
+      if (e.busy) return s;
       const favorites = CHANNELS
         .map((item, index) => ({ item, index }))
         .filter(({ item }) => s.favoriteChannels.includes(item.num));
@@ -546,6 +594,34 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
       const current = favorites.findIndex(({ index }) => index === s.channelIndex);
       const next = favorites[(current + 1 + favorites.length) % favorites.length];
       return { ...s, channelIndex: next.index };
+    }
+
+    // Dual Watch actually listens: it samples CH 16 while you sit on the working
+    // channel, and when a signal appears there "a beep tone sounds and 16 blinks"
+    // and the watch stays on 16 until the signal goes (M330GE p.17). Painting DW
+    // on the LCD without this taught the opposite of the lesson: that you can go
+    // to a working channel and still be covered, when in fact you heard nothing.
+    case 'dw-tick': {
+      if (!s.dualWatch || s.ptt) return s;
+      if (e.sixteenBusy && !s.dwOnSixteen) {
+        return {
+          ...s,
+          dwOnSixteen: true,
+          workChannelIndex: s.channelIndex,
+          channelIndex: CH16_INDEX,
+          deviceLog: log(s, 'DW: signal on CH 16 - watching 16', 'rx'),
+          beeps: s.beeps + 1,
+        };
+      }
+      if (!e.sixteenBusy && s.dwOnSixteen) {
+        return {
+          ...s,
+          dwOnSixteen: false,
+          channelIndex: s.workChannelIndex ?? s.channelIndex,
+          deviceLog: log(s, 'DW: CH 16 clear - back to the working channel'),
+        };
+      }
+      return s;
     }
 
     case 'distress-down': {

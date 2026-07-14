@@ -21,11 +21,18 @@ export function cuesFor(e: RadioEvent, prev: RadioState, next: RadioState): Cue[
 
   const cues: Cue[] = [];
 
+  // MENU > Configuration > Key Beep, Off = "silent operation" (M330GE p.49).
+  // It silences the KEY BEEPS only - it cannot silence the DSC alarm, and no
+  // setting on the real radio can. That is the difference between a preference
+  // and a safety function, and it is worth the learner feeling it.
+  const beepsOn = next.keyBeep;
+
   switch (e.type) {
     case 'ptt-down':
       // the reducer refuses PTT on a data-only channel and bumps `beeps`; that
       // refusal must SOUND like a refusal.
-      return next.ptt ? ['tx-key'] : ['error-beep'];
+      if (next.ptt) return ['tx-key'];
+      return beepsOn ? ['error-beep'] : [];
     case 'ptt-up':
       return prev.ptt ? ['tx-unkey'] : [];
     case 'dial-rotate':
@@ -35,6 +42,10 @@ export function cuesFor(e: RadioEvent, prev: RadioState, next: RadioState): Cue[
         return ['dial-tick'];
       }
       return [];
+    case 'aqua-down':
+      return next.aquaActive ? ['aqua-start'] : [];
+    case 'aqua-up':
+      return prev.aquaActive ? ['aqua-stop'] : [];
     default:
       break;
   }
@@ -47,7 +58,7 @@ export function cuesFor(e: RadioEvent, prev: RadioState, next: RadioState): Cue[
   // screens, stop when they close).
 
   // everything else the radio beeps at
-  if (next.beeps > prev.beeps && cues.length === 0) cues.push('key-beep');
+  if (beepsOn && next.beeps > prev.beeps && cues.length === 0) cues.push('key-beep');
 
   return cues;
 }
@@ -66,11 +77,5 @@ export function audioView(s: RadioState) {
     channelNum: ch.num,
     noVoice: ch.noVoice === true,
     ptt: s.ptt,
-    // On the VOL screen the gate is forced open, so you can set the volume
-    // against the hiss. That is not a cheat - it is the real procedure (and the
-    // MON key many sets have): with the squelch at its factory 4 the radio is
-    // silent, and you cannot set a volume you cannot hear. The SQL screen is
-    // deliberately NOT monitored: that is the screen the squelch lesson lives on.
-    monitor: s.screen === 'volume',
   };
 }

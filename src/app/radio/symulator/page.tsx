@@ -9,11 +9,12 @@ import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
 import { InspectPanel } from './InspectPanel';
 import { useRadioAudio } from './audio/useRadioAudio';
-import { speakStation } from './audio/stationVoice';
+import { fetchStationVoice } from './audio/stationVoice';
+import { SIG_STRONG, opensGate, scriptOver, signalOn } from './radioTraffic';
 import { stationReply } from './stationReply';
 import { hintFor } from './hints';
 import {
-  DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
+  CHANNELS, DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState, type Variant,
 } from './radioModel';
 import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios';
@@ -152,6 +153,8 @@ export default function RadioSimulatorPage() {
   variantRef.current = variant;
   const mutedRef = useRef(false);
   mutedRef.current = audio.muted;
+  const audioRef = useRef(audio);
+  audioRef.current = audio;
 
   const pushLog = useCallback((text: string, kind: LogRow['kind'] = 'ui') => {
     setPageLog((l) => [...l, { t: Date.now(), text, kind }]);
@@ -310,28 +313,59 @@ export default function RadioSimulatorPage() {
   // alarm patterns below stay: they are the manual-derived DSC cadences.
 
   // The DSC alarm, on the real two tones: 2200 Hz and 1300 Hz, 250 ms each,
-  // alternating (ITU-R M.493). It rings until the screen that raised it closes -
-  // which is the whole point of [ALARM OFF] being a separate key.
+  // alternating (ITU-R M.493).
+  //
+  // The manuals split it in two, and so do we:
+  //   - a received DISTRESS "sounds UNTIL YOU TURN IT OFF" - no timeout, ever;
+  //   - every other DSC call "sounds for 2 minutes" and then stops by itself.
+  // [ALARM OFF] silences both. No setting on the radio can pre-silence a distress
+  // alarm, which is exactly why the Key Beep switch does not touch it.
   useEffect(() => {
-    const ringing = screen === 'distress-ack' || screen === 'otherdsc-ack' || screen === 'rx-distress-alert';
-    if (!ringing) return undefined;
-    audio.play('alarm-start');
-    return () => audio.play('alarm-stop');
+    const distress = screen === 'distress-ack' || screen === 'rx-distress-alert';
+    const otherDsc = screen === 'otherdsc-ack' || screen === 'rx-individual-call';
+    if (!distress && !otherDsc) return undefined;
+
+    audio.play(distress ? 'alarm-start' : 'call-alert');
+    if (distress) return () => audio.play('alarm-stop');
+
+    // a routine call alerts you too - that is the point of DSC - but it gives up
+    // after two minutes, and it is not the distress two-tone
+    const id = setInterval(() => audio.play('call-alert'), 4000);
+    const stop = setTimeout(() => clearInterval(id), 120_000);
+    return () => { clearInterval(id); clearTimeout(stop); };
   }, [audio, screen]);
 
+  // AquaQuake: "a low frequency vibration beep sounds to drain the water,
+  // REGARDLESS OF THE VOLUME LEVEL SETTING" (M330GE p.14). A buzz, not a beep,
+  // and the one sound on the set the VOL knob cannot touch.
   useEffect(() => {
     if (!rs.aquaActive) return undefined;
-    const pulse = () => playTone(165, 150, 0.06);
-    pulse();
-    const id = setInterval(pulse, 190);
-    return () => clearInterval(id);
-  }, [playTone, rs.aquaActive]);
+    audio.play('aqua-start');
+    return () => audio.play('aqua-stop');
+  }, [audio, rs.aquaActive]);
 
+  // The scan is squelch-gated: it pauses on a busy channel instead of chopping a
+  // live station into fragments ("the scan pauses until the signal disappears").
   useEffect(() => {
     if (!rs.scanActive) return undefined;
-    const id = setInterval(() => dispatch({ type: 'scan-tick' }), 900);
+    const id = setInterval(() => {
+      const s = rsRef.current;
+      const busyNow = opensGate(s.squelch, signalOn(CHANNELS[s.channelIndex].num, Date.now()));
+      dispatch({ type: 'scan-tick', busy: busyNow });
+    }, 900);
     return () => clearInterval(id);
   }, [dispatch, rs.scanActive]);
+
+  // Dual Watch actually samples CH 16 and parks there when someone is on it.
+  useEffect(() => {
+    if (!rs.dualWatch) return undefined;
+    const id = setInterval(() => {
+      const s = rsRef.current;
+      const sixteenBusy = opensGate(s.squelch, signalOn('16', Date.now()));
+      dispatch({ type: 'dw-tick', sixteenBusy });
+    }, 1200);
+    return () => clearInterval(id);
+  }, [dispatch, rs.dualWatch]);
   useEffect(() => () => { void audioCtx.current?.close().catch(() => {}); }, []);
 
   // 1 s stopwatch tick while a scenario is running (elapsed is derived from
@@ -419,14 +453,30 @@ export default function RadioSimulatorPage() {
       }
       pushLog(`${tp('Оценка передачи', 'Transmission graded', 'Ocena nadania')}: ${r.score}%`, r.score >= 70 ? 'step' : 'ui');
 
-      // and the station answers OUT LOUD, on the working channel
+      // and the station answers OUT LOUD - as a carrier on the channel you are
+      // sitting on, so it is gated by YOUR squelch and scaled by YOUR volume,
+      // exactly like every other signal. Set the squelch too high and you miss
+      // the coast station's answer, which is the lesson, not a bug.
       const step = sc.steps[idx];
       const kind = step?.voice?.kind;
       if (kind && r.score >= 40) {
         const reply = stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name);
         if (reply) {
           pushLog(`📻 ${reply.station}: ${reply.say}`, 'rx');
-          void speakStation(reply.say, mutedRef.current);
+          void (async () => {
+            const raw = await fetchStationVoice(reply.say);
+            if (!raw) return;
+            const s = rsRef.current;
+            // a coast station alongside is a strong signal - it breaks any squelch
+            // except a maxed-out one, and it quiets the hiss under it
+            scriptOver(CHANNELS[s.channelIndex].num, {
+              startMs: Date.now(),
+              durMs: 12_000,
+              signal: SIG_STRONG,
+              voice: 'male',
+            });
+            await audioRef.current?.speak(raw);
+          })();
         }
       }
     }
@@ -657,6 +707,7 @@ export default function RadioSimulatorPage() {
                 onInspect={setInspectKey}
                 inspectKey={inspectKey}
                 highlightControl={hintTarget ?? undefined}
+                busy={audio.busy}
               />
               </div>
 
