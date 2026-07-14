@@ -107,16 +107,26 @@ const RESCUE: MustItem = {
   anyOf: ['gdynia rescue radio', 'rescue radio', 'gdynia rescue', 'gdinia rescue', 'gdynia radio', 'rescue'],
 };
 
-/** the spoken position, in every form the transcriber actually produces */
+/**
+ * The spoken position, in every form the transcriber actually produces.
+ *
+ * These are not guesses. Feeding our own TTS reading of a MAYDAY back through
+ * our own STT on prod returned:
+ *
+ *     "5-4 DEGREES, 3-0-DECIMAL-5 MINUTES NORTH"
+ *
+ * - digits, hyphenated. The spelled-out "FIVE FOUR" that was spoken came back as
+ * "5-4". So the digit-spaced forms below are the ones that actually fire.
+ */
 const POSITION: MustItem = {
   id: 'position',
   label: 'Wlasna pozycja',
   anyOf: [
     'five four degrees', '54 degrees', 'fifty four degrees', '5 4 degrees', '54 30 5',
-    'three zero decimal five', 'thirty decimal five', 'three zero point five',
-    'thirty point five', '30 decimal 5', '30 point 5', '30 5', '30 5 minutes',
-    'zero one eight degrees', '018 degrees', '18 degrees', '0 1 8 degrees',
-    'four five decimal two', '45 2', '45 2 minutes',
+    'three zero decimal five', '3 0 decimal 5', 'thirty decimal five', 'three zero point five',
+    'thirty point five', '30 decimal 5', '3 0 point 5', '30 point 5', '30 5', '30 5 minutes',
+    'zero one eight degrees', '0 1 8 degrees', '018 degrees', '18 degrees',
+    'four five decimal two', '4 5 decimal 2', '45 decimal 2', '45 2', '45 2 minutes',
   ],
 };
 
