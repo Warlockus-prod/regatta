@@ -54,7 +54,7 @@ function CatRow({ c, onAskAI }: { c: CatAnalysis; onAskAI: (catId: string) => vo
         <Link
           href={`/sternik/test?cat=${c.cat.id}`}
           className="rounded-lg px-2.5 py-1 text-xs font-medium"
-          style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
         >
           🎯 {tp('Тренировать', 'Train', 'Trenuj')}
         </Link>
@@ -178,7 +178,7 @@ export default function PersonalReport({
           type="button"
           onClick={() => startLesson()}
           className="rounded-xl px-4 py-2.5 text-sm font-semibold"
-          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: '#04222e' }}
+          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: 'var(--accent-ink, #04222e)' }}
         >
           🎓 {tp('Начать разбор с AI', 'Start AI lesson', 'Lekcja z AI')}
         </button>

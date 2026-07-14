@@ -149,7 +149,7 @@ export default function RadioGuidePage() {
         </Tip>
         <MicCheck />
         <div className="mt-3">
-          <Link href="/radio/symulator" className="inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: '#04222e' }}>
+          <Link href="/radio/symulator" className="inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
             🎙️ {tp('Микрофон работает - в симулятор', 'Mic works - open the simulator', 'Mikrofon dziala - do symulatora')}
           </Link>
         </div>

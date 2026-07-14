@@ -126,7 +126,7 @@ export default function MicCheck({ compact = false }: { compact?: boolean }) {
             {Array.from({ length: SEGMENTS }, (_, i) => {
               const on = i < lit;
               const isPeak = i === peakSeg - 1 && peakSeg > lit;
-              const color = i > SEGMENTS * 0.82 ? '#ff5566' : i > SEGMENTS * 0.6 ? '#ffd24a' : '#44ff88';
+              const color = i > SEGMENTS * 0.82 ? 'var(--danger)' : i > SEGMENTS * 0.6 ? 'var(--warning)' : 'var(--success)';
               return (
                 <span
                   key={i}
@@ -166,7 +166,7 @@ export default function MicCheck({ compact = false }: { compact?: boolean }) {
             onClick={start}
             disabled={status === 'requesting'}
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-60"
-            style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             {status === 'requesting'
               ? tp('Запрашиваю доступ...', 'Requesting access...', 'Prosze o dostep...')

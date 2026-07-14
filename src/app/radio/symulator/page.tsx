@@ -8,6 +8,7 @@ import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
 import { INSPECT } from './inspectData';
+import { hintFor } from './hints';
 import {
   DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState, type Variant,
@@ -88,6 +89,12 @@ export default function RadioSimulatorPage() {
    *  While on, taps never reach the state machine - the radio is not operated. */
   const [inspect, setInspect] = useState(false);
   const [inspectKey, setInspectKey] = useState<string | null>(null);
+  /** "?" hint: the control the current step wants, spotlighted for a few sec. */
+  const [hintTarget, setHintTarget] = useState<string | null>(null);
+  /** true when the step has nothing to press (e.g. waiting for the coast ACK) */
+  const [hintNone, setHintNone] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => { if (hintTimer.current) clearTimeout(hintTimer.current); }, []);
   useEffect(() => {
     try {
       const m = window.localStorage.getItem(MODEL_KEY);
@@ -377,6 +384,17 @@ export default function RadioSimulatorPage() {
     force((n) => n + 1);
   }, [model, stopHold]);
 
+  /** "?" - spotlight whatever the CURRENT step wants pressed right now. */
+  const showHint = useCallback(() => {
+    const step = scenarioRef.current?.steps[stepIdxRef.current];
+    if (!step) return;
+    const target = hintFor(step.id, rsRef.current);
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    setHintTarget(target);
+    setHintNone(!target);
+    hintTimer.current = setTimeout(() => { setHintTarget(null); setHintNone(false); }, 3500);
+  }, []);
+
   const onVoiceComplete = useCallback((r: VoiceResult | null) => {
     setVoiceResult(r);
     const sc = scenarioRef.current;
@@ -455,7 +473,7 @@ export default function RadioSimulatorPage() {
                   onClick={() => pickModel(m)}
                   className="min-h-[36px] px-3 text-xs font-semibold"
                   style={model === m
-                    ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                    ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                     : { background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
                 >
                   IC-{m}
@@ -493,7 +511,7 @@ export default function RadioSimulatorPage() {
                       data-testid={`start-nauka-${sc.id}`}
                       onClick={() => startScenario(sc, 'nauka')}
                       className="min-h-[40px] flex-1 rounded-xl px-3 text-sm font-semibold"
-                      style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+                      style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                     >
                       {tp('Обучение', 'Learn', 'Nauka')}
                     </button>
@@ -528,7 +546,7 @@ export default function RadioSimulatorPage() {
             <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
               {scenario.icon} {bi(scenario.title)}
             </span>
-            <span className="rounded-full px-3 py-1 text-xs" style={{ background: learning ? 'rgba(0,212,255,0.12)' : 'rgba(255,210,74,0.12)', color: learning ? 'var(--accent-cyan)' : '#ffd24a' }}>
+            <span className="rounded-full px-3 py-1 text-xs" style={{ background: learning ? 'rgba(0,212,255,0.12)' : 'rgba(255,210,74,0.12)', color: learning ? 'var(--accent-cyan)' : 'var(--warning)' }}>
               {learning ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin')}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {fmtTime(elapsedSec)}</span>
@@ -584,6 +602,7 @@ export default function RadioSimulatorPage() {
                 inspect={inspect}
                 onInspect={setInspectKey}
                 inspectKey={inspectKey}
+                highlightControl={hintTarget ?? undefined}
               />
 
               {/* what the tapped part is */}
@@ -595,7 +614,7 @@ export default function RadioSimulatorPage() {
                 >
                   {inspectKey && INSPECT[inspectKey] ? (
                     <>
-                      <div className="mb-1 text-sm font-bold" style={{ color: '#ffce4d' }}>
+                      <div className="mb-1 text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
                         {showRu && !showPl ? INSPECT[inspectKey].titleRu : INSPECT[inspectKey].titlePl}
                       </div>
                       {showPl && (
@@ -676,7 +695,7 @@ export default function RadioSimulatorPage() {
                     </ol>
                   </details>
                   <div className="mt-3 flex gap-2">
-                    <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[42px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: '#04222e' }}>
+                    <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[42px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
                       {tp('Ещё раз', 'Again', 'Jeszcze raz')}
                     </button>
                     <button type="button" onClick={exitScenario} className="min-h-[42px] rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
@@ -688,12 +707,38 @@ export default function RadioSimulatorPage() {
                 <>
                   {/* progress through steps */}
                   <div className="mb-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-                    <div className="mb-1 flex items-center justify-between">
+                    <div className="mb-1 flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                         {tp('Задание', 'Task', 'Zadanie')} {Math.min(stepIdx + 1, scenario.steps.length)}/{scenario.steps.length}
                       </span>
-                      <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{doneCount} ✓</span>
+                      <span className="flex items-center gap-2">
+                        {/* "?" - show me on the radio which control this step wants.
+                            Learning mode only: in the exam the task text is hidden on
+                            purpose, so a hint would hand the answer over. */}
+                        {learning && (
+                          <button
+                            type="button"
+                            data-testid="hint-btn"
+                            onClick={showHint}
+                            title={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedz - pokaz na radiu')}
+                            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition active:scale-95"
+                            style={{ background: 'rgba(255,206,77,0.15)', color: 'var(--hl-amber, #ffce4d)', border: '1px solid rgba(255,206,77,0.45)' }}
+                          >
+                            ?
+                          </button>
+                        )}
+                        <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{doneCount} ✓</span>
+                      </span>
                     </div>
+                    {hintNone && (
+                      <div data-testid="hint-none" className="mb-2 text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                        {tp(
+                          'Сейчас нажимать нечего - жди ответа станции.',
+                          'Nothing to press right now - wait for the station to answer.',
+                          'Teraz nic nie naciskasz - czekaj na odpowiedz stacji.',
+                        )}
+                      </div>
+                    )}
                     {learning && currentStep ? (
                       <>
                         <div data-testid="current-todo" className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>{bi(currentStep.todo)}</div>
@@ -738,7 +783,7 @@ export default function RadioSimulatorPage() {
                   <ol data-testid="action-log" className="max-h-64 space-y-1 overflow-y-auto">
                     {pageLog.map((r, i) => {
                       const rel = startedAt ? Math.max(0, Math.round((r.t - startedAt) / 1000)) : 0;
-                      const color = r.kind === 'bad' ? 'var(--danger, #ff6a5a)' : r.kind === 'step' ? 'var(--success)' : r.kind === 'tx' ? '#ffd24a' : r.kind === 'rx' ? 'var(--accent-cyan)' : 'var(--text-secondary)';
+                      const color = r.kind === 'bad' ? 'var(--danger, #ff6a5a)' : r.kind === 'step' ? 'var(--success)' : r.kind === 'tx' ? 'var(--warning)' : r.kind === 'rx' ? 'var(--accent-cyan)' : 'var(--text-secondary)';
                       return (
                         <li key={i} className="flex gap-2 text-xs" style={{ color }}>
                           <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>{fmtTime(rel)}</span>
@@ -809,7 +854,7 @@ export default function RadioSimulatorPage() {
                     else setOnboardStep(onboardStep + 1);
                   }}
                   className="min-h-[40px] rounded-xl px-4 text-sm font-semibold"
-                  style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+                  style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
                   {onboardStep >= 3 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej')}
                 </button>

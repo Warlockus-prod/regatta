@@ -380,6 +380,64 @@ smoke step warns (does not fail) when the header is still missing.
   `<text>` nodes is now conditional on the RU site version (agent-edited,
   0 unconditional Cyrillic renders).
 
+## V3 additions (2026-07-14, design pass)
+
+Driven by the `vhf-trainer` handoff design. The decision was to take the
+**visual language** from it but keep our **real ICOM models** (the design drew a
+fictional "RG-16D"; the exam is taken on an ICOM, so the panel has to match the
+real device). See the panel restyle in `RadioFront.tsx`.
+
+- **Panel restyle** (PR #33): device stage, machined DIAL, hazard-striped
+  DISTRESS cover, LCD with scanline texture and a self-hosted Share Tech Mono
+  (`next/font/google` - no external request, so the CSP stays clean), status
+  bar (INT / GPS / watch / power / battery) and a TX meter. Every `data-testid`,
+  prop and dispatch is unchanged: the restyle is skin-deep on purpose, the state
+  machine in `radioModel.ts` did not move.
+- **Inspect mode** ("Rozbior", PR #34): a toggle that turns the whole panel into
+  a tap-to-learn surface. Every control and LCD indicator carries an entry in
+  `inspectData.ts` (13 keys, PL + RU, each tied to what the exam asks). While
+  inspect is on, the radio does not react - taps explain instead of acting.
+- **"?" hint** (`hints.ts`): given the current step and the current radio state,
+  `hintFor()` returns the `data-testid` of the control to press now, and the page
+  feeds it to the existing amber spotlight. Softkey positions are resolved by
+  **label**, never hardcoded, so a hint stays correct across both device profiles
+  (their softkey layouts differ) and across menu pages. Returns `null` when there
+  is nothing to press (waiting for the coast station) and the UI says so.
+  Learning mode only: in the exam the task text is hidden on purpose, so a hint
+  would hand the answer over.
+- **Printable cheat sheet + training certificate** (`/radio/sciaga`): the crib
+  (channels, MAYDAY / PAN-PAN / SECURITE / cancel templates, DSC steps, phonetic
+  alphabet + digits, prowords, the mistakes that fail people, exam facts) on one
+  page, plus a certificate that reads the simulator's own progress
+  (`sternik.radio.progress.v1`, a scenario counts as passed at >= 60%, the same
+  bar as the UKE practical) and prints with the learner's name and date. The
+  certificate says in both languages that it is a training document, not the UKE
+  swiadectwo.
+  Crib content lives in `cheatData.ts` so `/radio` (sections 5-6) and the
+  printable sheet cannot drift apart.
+- **Printing**, in `globals.css`: a page marks the one subtree worth putting on
+  paper with `.printable`; the `@media print` block blanks the rest of the
+  document (site nav, subnav, footer, feedback bubble), lifts that subtree to the
+  top of the sheet, and pins the palette to ink-on-white. No shared component had
+  to learn about printing, and the printout is identical whether the reader is
+  browsing in the dark or the light theme.
+- **Light-theme contrast** (the design shipped a light palette; the site already
+  had a light theme via `<html data-theme="light">` and the header ThemeToggle,
+  so no second toggle was added - the radio section was simply made to survive
+  it). Two new CSS vars carry the flip:
+  - `--accent-ink` - the ink ON an accent fill. Near-black reads on the dark
+    theme's bright cyan but not on the light theme's deep cyan, which needs
+    white. Replaced 16 hardcoded `#04222e` call sites across `/radio` and
+    `/sternik` (with a fallback, so nothing outside those sections changed).
+  - `--hl-amber` - the inspect/hint amber, bright on dark, deep on light.
+  - Neon status literals (`#44ff88` / `#ff5566` / `#ffd24a`) in the radio pages
+    now use the semantic `--success` / `--danger` / `--warning` vars, which
+    already flip per theme. The SVG nav-light diagrams in `/sternik` keep their
+    literal colors on purpose: those are drawings of real navigation lights, not
+    UI status.
+  - The radio device itself stays dark metal in both themes. It is a physical
+    object, not a UI surface.
+
 ## Coverage of the official 26 UKE tasks
 
 All 26 published SRC practical tasks are covered across three surfaces

@@ -15,6 +15,7 @@ export default function RadioSubnav() {
     { href: '/radio/symulator', label: tp('Симулятор', 'Simulator', 'Symulator'), icon: '🎙️' },
     { href: '/radio/zadania', label: tp('26 заданий', '26 tasks', '26 zadan'), icon: '📋' },
     { href: '/radio/test', label: tp('Тренажёр UKE', 'UKE trainer', 'Trening UKE'), icon: '✅' },
+    { href: '/radio/sciaga', label: tp('Шпаргалка', 'Cheat sheet', 'Sciaga'), icon: '📄' },
   ];
 
   return (
@@ -29,7 +30,7 @@ export default function RadioSubnav() {
               className="flex min-h-[44px] items-center whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition"
               style={
                 active
-                  ? { background: 'var(--accent-cyan)', color: '#04222e' }
+                  ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                   : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }
               }
             >

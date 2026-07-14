@@ -230,7 +230,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
       {result && (
         <div data-testid="voice-result" className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="flex items-baseline gap-2">
-            <span className="text-2xl font-extrabold" style={{ color: result.score >= 70 ? 'var(--success)' : result.score >= 40 ? '#ffd24a' : 'var(--danger, #ff6a5a)' }}>
+            <span className="text-2xl font-extrabold" style={{ color: result.score >= 70 ? 'var(--success)' : result.score >= 40 ? 'var(--warning)' : 'var(--danger, #ff6a5a)' }}>
               {result.score}%
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{ru ? 'структура сообщения (Whisper)' : 'struktura komunikatu (Whisper)'}</span>

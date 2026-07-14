@@ -145,7 +145,7 @@ export default function SternikExamPage() {
           type="button"
           onClick={start}
           className="rounded-2xl px-6 py-3 text-base font-bold transition hover:opacity-90"
-          style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+          style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
         >
           ▶ {tp('Начать экзамен', 'Start exam', 'Rozpocznij egzamin')}
         </button>
@@ -217,7 +217,7 @@ export default function SternikExamPage() {
               type="button"
               onClick={start}
               className="rounded-xl px-4 py-2 text-sm font-semibold"
-              style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+              style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
               🔄 {tp('Ещё попытка', 'Try again', 'Jeszcze raz')}
             </button>
@@ -364,7 +364,7 @@ export default function SternikExamPage() {
                         : done
                           ? 'rgba(68,255,136,0.18)'
                           : 'var(--bg-card)',
-                    color: isCurrent ? '#04222e' : flagged ? 'var(--warning)' : done ? 'var(--success)' : 'var(--text-muted)',
+                    color: isCurrent ? 'var(--accent-ink, #04222e)' : flagged ? 'var(--warning)' : done ? 'var(--success)' : 'var(--text-muted)',
                     border: '1px solid var(--border-subtle)',
                   }}
                   aria-label={`${tp('Вопрос', 'Question', 'Pytanie')} ${i + 1}`}
@@ -461,7 +461,7 @@ export default function SternikExamPage() {
             disabled={pos + 1 >= questions.length}
             onClick={() => setPos((p) => Math.min(questions.length - 1, p + 1))}
             className="flex min-h-[44px] items-center rounded-xl px-5 text-sm font-semibold disabled:opacity-30"
-            style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             {tp('Дальше', 'Next', 'Dalej')} →
           </button>
@@ -497,7 +497,7 @@ export default function SternikExamPage() {
               type="button"
               onClick={() => setPaused(false)}
               className="mt-4 w-full rounded-xl px-4 py-2 font-semibold"
-              style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+              style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
               ▶ {tp('Продолжить', 'Resume', 'Wznow')}
             </button>

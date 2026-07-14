@@ -299,7 +299,7 @@ export default function InteractiveRadioCourse() {
               type="button"
               onClick={() => chooseModel(item)}
               className="min-h-[44px] px-4 text-sm font-semibold"
-              style={model === item ? { background: 'var(--accent-cyan)', color: '#04222e' } : { background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
+              style={model === item ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' } : { background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
             >
               IC-{item}
             </button>
@@ -358,7 +358,7 @@ export default function InteractiveRadioCourse() {
               onClick={nextLesson}
               disabled={!lessonDone}
               className="mt-5 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
-              style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+              style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
               {tp('Следующий урок', 'Next lesson', 'Nastepna lekcja')} {'>'}
             </button>

@@ -6,6 +6,47 @@
   color: #14181d;
 }
 
+/* ---- Print ----------------------------------------------------------------
+   A page marks the one subtree worth putting on paper with `.printable` (the
+   radio cheat sheet and the training certificate do). Printing then blanks the
+   rest of the document - site nav, subnav, footer, feedback bubble - and lifts
+   that subtree to the top of the sheet, so no shared component needs to know
+   about printing. `.no-print` drops controls (buttons, inputs) from the paper;
+   `.print-only` adds a heading that the sheet needs but the web page does not.
+
+   The palette is pinned to ink-on-white here, so the printout looks the same
+   whether the reader is browsing in the dark or the light theme. */
+.print-only { display: none; }
+
+@media print {
+  body { background: #fff !important; }
+  body * { visibility: hidden !important; }
+  .printable, .printable * { visibility: visible !important; }
+  .printable {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f2f5f9;
+    --bg-card: #ffffff;
+    --bg-card-hover: #ffffff;
+    --text-primary: #14213d;
+    --text-secondary: #33415c;
+    --text-muted: #55627d;
+    --border-subtle: #c9d4e3;
+    --accent-cyan: #0a58c2;
+    --accent-ink: #ffffff;
+    --danger: #b3261e;
+    --warning: #8a6100;
+    --success: #0b6b3a;
+    --cat-orange: #a04b16;
+    --hl-amber: #8a6100;
+  }
+  .printable * { box-shadow: none !important; }
+  .print-only { display: block !important; }
+  .no-print { display: none !important; }
+}
+
 :root {
   color-scheme: dark;
   --bg-primary: #0a1628;
@@ -15,6 +56,11 @@
   --accent-cyan: #00d4ff;
   --accent-cyan-dim: #0099cc;
   --accent-teal: #00ffcc;
+  /* Ink to put ON an accent-cyan fill (buttons, active pills). Near-black reads
+     on the dark theme's bright cyan; the light theme's deep cyan needs white. */
+  --accent-ink: #04222e;
+  /* Highlight amber (radio inspect / hint UI). Bright on dark, deep on light. */
+  --hl-amber: #ffce4d;
   --text-primary: #e8f4f8;
   --text-secondary: #8ba7b8;
   --text-muted: #7593a6;
@@ -64,6 +110,8 @@
   --accent-cyan: #0072a3;
   --accent-cyan-dim: #005f88;
   --accent-teal: #00a78e;
+  --accent-ink: #ffffff;
+  --hl-amber: #8a6100;
   --text-primary: #0c2233;
   --text-secondary: #45606f;
   --text-muted: #57707f;

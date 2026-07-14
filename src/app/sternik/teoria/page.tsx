@@ -174,7 +174,7 @@ export default function SternikTheoryPage() {
         <a
           href="#sciaga"
           className="flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold"
-          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: '#04222e' }}
+          style={{ background: 'linear-gradient(135deg, var(--accent-cyan), var(--accent-teal))', color: 'var(--accent-ink, #04222e)' }}
         >
           ⚡ {tp('Шпаргалка на завтра', 'Last-minute cheat sheet', 'Sciaga na ostatnia chwile')}
         </a>
@@ -796,7 +796,7 @@ export default function SternikTheoryPage() {
           <Link
             href="/sternik/test"
             className="rounded-xl px-5 py-2.5 text-sm font-semibold"
-            style={{ background: 'var(--accent-cyan)', color: '#04222e' }}
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             🎯 {tp('Закрепить в тренажёре', 'Drill it in the trainer', 'Utrwal w treningu')}
           </Link>
