@@ -27,14 +27,19 @@ interface Ctx {
   setExamBase: (v: ExamBase) => void;
 }
 
+// Polish is the BASE, not one of two equal options: it is the language of the
+// exam. Russian commentary is something a Russian speaker turns ON to understand
+// the context better - so the default is 'pl', and 'both' is one tap away.
+const DEFAULT_EXPL: ExplLang = 'pl';
+
 const PrefsContext = createContext<Ctx>({
-  explLang: 'both', setExplLang: () => {},
+  explLang: DEFAULT_EXPL, setExplLang: () => {},
   examBase: 'all', setExamBase: () => {},
 });
 
 export function SternikPrefsProvider({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
-  const [explLang, setExplLangState] = useState<ExplLang>('both');
+  const [explLang, setExplLangState] = useState<ExplLang>(DEFAULT_EXPL);
   const [examBase, setExamBaseState] = useState<ExamBase>('all');
 
   useEffect(() => {
@@ -127,6 +132,65 @@ export function ExplLangToggle() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+const HINT_KEY = 'sternik.explHint.v1';
+
+/**
+ * A one-line, dismissible note that tells a Russian speaker the course is in
+ * Polish ON PURPOSE - and that Russian commentary is one tap away.
+ *
+ * It exists because the policy is not obvious: a visitor who switched the site
+ * to Russian and then found a Polish course could reasonably think the
+ * translation is simply missing. It is not - Polish is the exam language, and
+ * a half-translated licence course would be worse than none.
+ *
+ * Shown only on the Russian site version, and only until it is dismissed.
+ */
+export function ExplLangHint() {
+  const { lang } = useI18n();
+  const { explLang, setExplLang } = useSternikPrefs();
+  const [hidden, setHidden] = useState(true);
+
+  useEffect(() => {
+    try { setHidden(window.localStorage.getItem(HINT_KEY) === '1'); } catch { setHidden(false); }
+  }, []);
+
+  if (lang !== 'ru' || hidden || explLang !== 'pl') return null;
+
+  const dismiss = () => {
+    setHidden(true);
+    try { window.localStorage.setItem(HINT_KEY, '1'); } catch { /* ignore */ }
+  };
+
+  return (
+    <div
+      data-testid="expl-lang-hint"
+      className="mb-4 flex flex-wrap items-center gap-2 rounded-xl px-3 py-2 text-xs leading-relaxed"
+      style={{ background: 'rgba(0,212,255,0.07)', border: '1px solid rgba(0,212,255,0.22)', color: 'var(--text-secondary)' }}
+    >
+      <span>
+        💬 Курс идёт на польском - это язык экзамена. Нужен контекст по-русски? Добавь русские комментарии.
+      </span>
+      <button
+        type="button"
+        data-testid="expl-lang-hint-on"
+        onClick={() => { setExplLang('both'); dismiss(); }}
+        className="min-h-[36px] rounded-full px-3 text-xs font-semibold"
+        style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+      >
+        Включить RU
+      </button>
+      <button
+        type="button"
+        onClick={dismiss}
+        className="min-h-[36px] rounded-full px-2 text-xs"
+        style={{ color: 'var(--text-muted)' }}
+      >
+        Не надо
+      </button>
     </div>
   );
 }

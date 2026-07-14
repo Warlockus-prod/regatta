@@ -326,6 +326,38 @@ smoke step warns (does not fail) when the header is still missing.
 - Simulator/scenario texts are `Bi {pl, ru}` rendered via the same policy
   (`ru` only for RU-site users who chose RU or Both).
 
+### 2026-07-14: Polish is the base, Russian is an addition
+
+The rule was right but the default contradicted it: `explLang` defaulted to
+`'both'`, so a Russian visitor got a bilingual course they never asked for, and
+"Russian commentary can be **added**" was not what actually happened.
+
+- Default is now **`'pl'`** (`DEFAULT_EXPL` in `prefs.tsx`). Polish is the base -
+  it is the exam language - and Russian commentary is one tap away, not on by
+  default.
+- `ExplLangHint` (RU site only, dismissible, remembered in
+  `sternik.explHint.v1`): a one-line note where the learner meets the course,
+  saying the Polish is deliberate and offering an **Enable RU** button. Without
+  it, a visitor who switched the site to Russian and then found a Polish course
+  could reasonably conclude the translation was simply missing.
+- The invariant is unchanged and still holds on every other language: **no
+  Russian anywhere**, no toggle, even if a `'both'` preference is sitting in
+  localStorage from an earlier RU visit. Verified in-browser: on `?lang=pl` the
+  page contains zero Cyrillic characters and no explanation-language toggle.
+
+## Finding the courses (2026-07-14)
+
+The two Polish licence courses now have a home in the theory section
+(`/rules` -> `CoursesSection.tsx`): two cards, `sternik motorowodny` and
+`radio SRC`, with what each one contains and a one-line statement of the language
+rule - so the reader meets the policy instead of being surprised by it.
+
+`/radio` was also **added to the site navigation** (Nauka group, next to
+`/sternik`). Until now it was reachable only through a link buried inside
+`/sternik`, so somebody who came for the radio exam could not find it from the
+nav at all. Both entries are named as what they are: `Kurs: sternik motorowodny`
+and `Kurs: radio SRC`.
+
 ## Progress + onboarding
 
 - `localStorage['sternik.radio.progress.v1']`:

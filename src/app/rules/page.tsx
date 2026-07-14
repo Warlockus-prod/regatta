@@ -5,6 +5,7 @@ import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
+import CoursesSection from './CoursesSection';
 
 // ============================================================================
 // Scenario illustrations - pure SVG, stylized, readable on any background
@@ -210,6 +211,15 @@ export default function RulesPage() {
           )}
         </p>
       </div>
+
+      {/* --- Kursy (patenty PL) ---------------------------------------------
+          The two Polish licence courses. They live here, in the theory section,
+          because that is where somebody who wants a certificate looks - and
+          because /radio was previously reachable only through a link buried
+          inside /sternik. The course CONTENT is Polish: these are Polish exams,
+          and a half-translated licence course would be worse than none. On the
+          Russian site version the courses additionally offer Russian commentary. */}
+      <CoursesSection />
 
       {/* --- RRS section --- */}
       <div className="mb-6 flex items-center gap-3">
