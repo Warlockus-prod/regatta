@@ -564,9 +564,9 @@ export default function InteractiveRadioCourse() {
             </div>
             <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
               {tp(
-                'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Задерёшь SQL - не услышишь и станцию.',
-                'The voice arrives like any other signal: through your squelch and your volume. Turn the squelch up too far and you will not hear the station either.',
-                'Glos przychodzi jak kazdy inny sygnal: przez twoja blokade szumow i twoja glosnosc. Podkrec SQL za wysoko, a nie uslyszysz nawet stacji.',
+                'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Станция рядом - сильная, она пробьёт даже тугой SQL. А вот далёкая лодка на 1 Вт при том же SQL уже не пробьётся: именно в этом и опасность.',
+                'The voice arrives like any other signal: through your squelch and your volume. A station nearby is strong - it breaks even a tight squelch. A distant boat on 1 W, at that same squelch, does not. That is where the danger is.',
+                'Glos przychodzi jak kazdy inny sygnal: przez twoja blokade szumow i twoja glosnosc. Stacja obok jest mocna - przebije nawet ciasny SQL. Odlegla lodz na 1 W przy tym samym SQL juz nie: i wlasnie w tym tkwi niebezpieczenstwo.',
               )}
             </p>
           </div>
