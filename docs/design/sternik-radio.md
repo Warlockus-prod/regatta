@@ -631,6 +631,83 @@ and never once heard a station speak. All three now live in
   are scaled by your volume. Set the squelch too high and you will not hear the
   station either - which is the lesson, not a bug.
 
+## The live conversation (2026-07-14)
+
+Speaking into a trainer that only ever writes back at you teaches half the skill.
+On the water - and at the exam - you are judged on how you handle what comes
+BACK: a berth number, a working channel, a question you did not expect, in a
+language that is not yours, under stress. So `/radio/rozmowa` is a genuine
+two-way exchange:
+
+**you hold PTT and speak -> `/api/radio-transcribe` (gpt-4o-transcribe) turns it
+into text -> the turn is graded against what it had to contain -> the station
+answers OUT LOUD (`/api/radio-tts`) as a carrier on your channel, through your
+squelch, scaled by your volume -> you answer back.**
+
+Everything you said lands in the Dziennik, word for word, with one line per
+missing element.
+
+### The microphone check now proves the model understands you
+
+A bouncing level meter proves the mic is WIRED UP. It does not prove the model
+can UNDERSTAND you - and those are different failures. A learner with a lively
+meter and an unusable microphone (too far, too much gain, a fan behind them)
+found out only when their MAYDAY scored zero, with no idea why.
+
+`MicCheck` now records a line and shows back exactly what the model heard. If
+those are your words, the voice trainer will work. If they are not, you know
+before it costs you points.
+
+### `/api/radio-transcribe`
+
+Transcription without grading - the smaller, dumber sibling of `/api/radio-voice`
+(which still does transcription + scenario grading in one call). Two things need
+it and neither wants a checklist: the mic check, and the live conversation, whose
+turns are graded on the CLIENT by a pure function.
+
+### The one bug that would have failed everyone
+
+`dialogueGrading.ts` **normalizes both sides** of every comparison - case,
+punctuation, Polish diacritics. This is not polish, it is the feature:
+
+    gpt-4o-transcribe returns:  "Mayday! Mayday! Mayday! This is Wind Dancer..."
+    a naive match for "mayday mayday mayday" MISSES IT.
+
+A textbook-perfect distress call would have been told it was missing the word
+MAYDAY. The reviewer who caught this called it a refuting case, and the test
+suite now pins it (`the punctuation trap`). The same goes for
+`"Pan-pan, pan-pan, pan-pan."`, `"S.P. 9012"` and `"54deg 30.5' N"`.
+
+The `anyOf` lists are deliberately wide for the same reason: a Polish speaker's
+"Wind Dancer" comes back as "Vind Dancer" or "Windancer", a call sign as loose
+digits. **An element a CORRECT transmission can fail is worse than no element at
+all** - it teaches the learner to distrust their own correct procedure.
+
+### Six conversations, and what the reviewers caught
+
+`radio-check` (2 turns), `marina-berth` (4), `ship-to-ship` (4), `vts-report` (3),
+`panpan-medico` (4), `mayday-dialogue` (4). Written against IMO SMCP, then
+adversarially reviewed by three lenses (procedure / speech-to-text / typography).
+The procedure reviewer found real errors, all fixed:
+
+- a **medical consultation was being held on channel 16**. A coast station moves
+  urgency traffic to a working channel; a doctor talking on 16 would block the
+  distress channel for the whole coast.
+- the coast station **never imposed SEELONCE MAYDAY** - the single most examinable
+  thing a station does after RECEIVED MAYDAY.
+- **"STAND BY. OVER."** is a contradiction: OVER means "answer me now". A station
+  telling you to stand by closes with OUT.
+- **GDYNIA RADIO does not exist.** Distress and urgency in Polish waters are
+  answered by the MRCC, which calls itself GDYNIA RESCUE RADIO. Teaching an
+  invented name means calling a station that never answers.
+- the learner said **OUT and the station transmitted again**. After OUT nobody
+  answers - that is what OUT MEANS, and it is the lesson of the very first
+  dialogue. (Pinned by a test: no dialogue may reply to an OUT.)
+- the crossing rule (COLREGS 15) applies to **power-driven** vessels, so the
+  ship-to-ship brief now says both yachts are under engine. Under sail the
+  give-way vessel is decided by tack, and the scenario would have taught the
+  wrong rule.
+
 ## Coverage of the official 26 UKE tasks
 
 All 26 published SRC practical tasks are covered across three surfaces

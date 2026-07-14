@@ -4,11 +4,20 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 
 // ============================================================================
-// MicCheck - browser microphone tester. Requests permission, then shows a
-// LIVE input-level meter so the user can literally see their voice being
-// picked up before using the simulator's voice grading. Handles the real
-// failure modes: no permission, no device, insecure (non-HTTPS) context.
-// Used on the radio guide page and inside the simulator's voice panel.
+// MicCheck - browser microphone tester.
+//
+// A bouncing level meter proves the microphone is WIRED UP. It does not prove
+// the model can UNDERSTAND you through it - and those are different failures. A
+// learner with a lively meter and an unusable microphone (too far, too much
+// gain, a fan behind them) found that out only when their MAYDAY scored zero and
+// they had no idea why.
+//
+// So the check now has a second half: say a line, and it shows you back exactly
+// what the model heard. If the words on screen are your words, the voice trainer
+// will work. If they are not, you know before it matters.
+//
+// Handles the real failure modes: no permission, no device, insecure (non-HTTPS)
+// context, and no API key (falls back to the meter alone).
 // ============================================================================
 
 type Status = 'idle' | 'requesting' | 'live' | 'denied' | 'noDevice' | 'insecure' | 'error';
@@ -16,8 +25,19 @@ type Status = 'idle' | 'requesting' | 'live' | 'denied' | 'noDevice' | 'insecure
 const SEGMENTS = 22;
 /** RMS level above this (0..1) counts as "we heard you". */
 const HEARD_THRESHOLD = 0.1;
+/** long enough for a radio check, short enough that nobody waits */
+const SAY_MS = 6000;
 
-export default function MicCheck({ compact = false }: { compact?: boolean }) {
+/** the line we ask for - it is also the first thing they will say for real */
+const SAY_LINE = 'MARINA GDYNIA, THIS IS WIND DANCER, RADIO CHECK, OVER';
+
+export default function MicCheck({
+  compact = false, onTranscript,
+}: {
+  compact?: boolean;
+  /** the guide/simulator uses this to put the words in the Dziennik */
+  onTranscript?: (text: string) => void;
+}) {
   const { tp } = useI18n();
   const [status, setStatus] = useState<Status>('idle');
   const [level, setLevel] = useState(0);
@@ -25,9 +45,18 @@ export default function MicCheck({ compact = false }: { compact?: boolean }) {
   const [heard, setHeard] = useState(false);
   const [device, setDevice] = useState('');
 
+  const [recording, setRecording] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [transcript, setTranscript] = useState<string | null>(null);
+  const [sttOff, setSttOff] = useState(false);
+  const [sttError, setSttError] = useState<string | null>(null);
+
   const streamRef = useRef<MediaStream | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
   const rafRef = useRef<number | null>(null);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<BlobPart[]>([]);
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const stop = useCallback(() => {
     if (rafRef.current !== null) cancelAnimationFrame(rafRef.current);
@@ -87,7 +116,67 @@ export default function MicCheck({ compact = false }: { compact?: boolean }) {
     }
   }, []);
 
-  useEffect(() => () => stop(), [stop]);
+  /**
+   * Record a few seconds and show what the model heard. This is the half of the
+   * check that actually matters: the meter says "sound is arriving", this says
+   * "the words are arriving".
+   */
+  const sayIt = useCallback(() => {
+    const stream = streamRef.current;
+    if (!stream || recording || busy) return;
+    setTranscript(null);
+    setSttError(null);
+
+    let rec: MediaRecorder;
+    try {
+      rec = new MediaRecorder(stream);
+    } catch {
+      setSttError(tp('Браузер не умеет записывать звук.', 'This browser cannot record audio.', 'Ta przegladarka nie potrafi nagrywac dzwieku.'));
+      return;
+    }
+    recRef.current = rec;
+    chunksRef.current = [];
+
+    rec.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
+    rec.onstop = async () => {
+      setRecording(false);
+      const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
+      if (blob.size === 0) return;
+      setBusy(true);
+      try {
+        const fd = new FormData();
+        fd.append('audio', blob, 'check.webm');
+        const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
+        const data = (await res.json()) as { transcript?: string; fallback?: boolean; error?: string };
+        if (data.fallback) { setSttOff(true); return; }
+        if (!res.ok || data.error) {
+          setSttError(data.error ?? tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udalo sie rozpoznac mowy.'));
+          return;
+        }
+        const text = (data.transcript ?? '').trim();
+        setTranscript(text);
+        if (text) onTranscript?.(text);
+      } catch {
+        setSttError(tp('Нет связи с сервером распознавания.', 'The transcription service is unreachable.', 'Brak polaczenia z serwerem rozpoznawania.'));
+      } finally {
+        setBusy(false);
+      }
+    };
+
+    rec.start();
+    setRecording(true);
+    stopTimer.current = setTimeout(() => {
+      try { rec.stop(); } catch { /* already stopped */ }
+    }, SAY_MS);
+  }, [busy, onTranscript, recording, tp]);
+
+  const stopSaying = useCallback(() => {
+    if (stopTimer.current) clearTimeout(stopTimer.current);
+    stopTimer.current = null;
+    try { recRef.current?.stop(); } catch { /* already stopped */ }
+  }, []);
+
+  useEffect(() => () => { stopSaying(); stop(); }, [stop, stopSaying]);
 
   const lit = Math.round(level * SEGMENTS);
   const peakSeg = Math.round(peak * SEGMENTS);
@@ -157,6 +246,82 @@ export default function MicCheck({ compact = false }: { compact?: boolean }) {
             </button>
           </div>
           {device && <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{tp('Устройство', 'Device', 'Urzadzenie')}: {device}</div>}
+
+          {/* Half two: does the MODEL understand you? A moving bar and an
+              unusable microphone look identical until a MAYDAY scores zero. */}
+          <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+            <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+              {tp('Теперь проверим, понимает ли тебя модель', 'Now check that the model understands you', 'Teraz sprawdzmy, czy model cie rozumie')}
+            </div>
+            <pre className="mb-2 overflow-x-auto rounded-lg p-2 text-xs" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
+{SAY_LINE}
+            </pre>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                data-testid="mic-say"
+                onClick={recording ? stopSaying : sayIt}
+                disabled={busy}
+                className="min-h-[40px] rounded-lg px-3 text-sm font-semibold disabled:opacity-50"
+                style={recording
+                  ? { background: 'var(--danger)', color: '#fff' }
+                  : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+              >
+                {busy
+                  ? tp('Слушаю...', 'Listening...', 'Slucham...')
+                  : recording
+                    ? tp('⏹ Стоп', '⏹ Stop', '⏹ Stop')
+                    : tp('🔴 Сказать это', '🔴 Say it', '🔴 Powiedz to')}
+              </button>
+              {recording && (
+                <span className="text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                  {tp('Говори... запись до 6 секунд', 'Speak... recording for up to 6 seconds', 'Mow... nagrywam do 6 sekund')}
+                </span>
+              )}
+            </div>
+
+            {sttOff && (
+              <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                {tp(
+                  'Распознавание речи сейчас недоступно. Микрофон при этом проверен - полоска двигается.',
+                  'Speech recognition is unavailable right now. The microphone itself is fine - the bar moves.',
+                  'Rozpoznawanie mowy jest teraz niedostepne. Sam mikrofon jest sprawny - pasek sie rusza.',
+                )}
+              </p>
+            )}
+            {sttError && (
+              <p className="mt-2 text-xs" style={{ color: 'var(--danger)' }}>{sttError}</p>
+            )}
+
+            {transcript !== null && (
+              <div data-testid="mic-transcript" className="mt-2">
+                <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                  {tp('Модель услышала', 'The model heard', 'Model uslyszal')}
+                </div>
+                {transcript ? (
+                  <p className="mt-0.5 text-sm font-medium" style={{ color: 'var(--success)' }}>
+                    &quot;{transcript}&quot;
+                  </p>
+                ) : (
+                  <p className="mt-0.5 text-sm" style={{ color: 'var(--danger)' }}>
+                    {tp(
+                      'Ничего. Говори громче и ближе к микрофону, убери фоновый шум.',
+                      'Nothing. Speak louder and closer to the mic, and kill the background noise.',
+                      'Nic. Mow glosniej i blizej mikrofonu, wycisz halas w tle.',
+                    )}
+                  </p>
+                )}
+                <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  {tp(
+                    'Если это твои слова - голосовой тренажёр будет работать. Если нет - на экзаменационной передаче будет то же самое, только там это будет стоить баллов.',
+                    'If those are your words, the voice trainer will work. If they are not, the same thing will happen to your exam transmission - only there it costs points.',
+                    'Jesli to twoje slowa - trening glosowy zadziala. Jesli nie - to samo stanie sie z nadaniem egzaminacyjnym, tylko tam bedzie to kosztowac punkty.',
+                  )}
+                </p>
+              </div>
+            )}
+          </div>
         </>
       ) : (
         <>
