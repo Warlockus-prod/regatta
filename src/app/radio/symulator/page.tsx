@@ -7,7 +7,10 @@ import { useSternikPrefs } from '../../sternik/prefs';
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
-import { INSPECT } from './inspectData';
+import { InspectPanel } from './InspectPanel';
+import { useRadioAudio } from './audio/useRadioAudio';
+import { speakStation } from './audio/stationVoice';
+import { stationReply } from './stationReply';
 import { hintFor } from './hints';
 import {
   DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
@@ -67,6 +70,7 @@ export default function RadioSimulatorPage() {
   const rsRef = useRef<RadioState>(createInitialRadio());
   const [, force] = useState(0);
   const rs = rsRef.current;
+  const audio = useRadioAudio(rs);
 
   // --- scenario engine state -------------------------------------------------
   const [scenario, setScenario] = useState<Scenario | null>(null);
@@ -142,6 +146,12 @@ export default function RadioSimulatorPage() {
   finishedRef.current = finishedAt !== null;
   const modeRef = useRef<Mode>('nauka');
   modeRef.current = mode;
+  // read inside onVoiceComplete, which must not re-create on every variant /
+  // mute change (VoicePtt holds it across a recording)
+  const variantRef = useRef(variant);
+  variantRef.current = variant;
+  const mutedRef = useRef(false);
+  mutedRef.current = audio.muted;
 
   const pushLog = useCallback((text: string, kind: LogRow['kind'] = 'ui') => {
     setPageLog((l) => [...l, { t: Date.now(), text, kind }]);
@@ -152,6 +162,10 @@ export default function RadioSimulatorPage() {
     const prev = rsRef.current;
     const next = radioReducer(prev, e);
     rsRef.current = next;
+
+    // the radio's own sounds - hiss behind the squelch, key beeps, the refusal
+    // beep on CH 70, the DSC alarm
+    audio.onEvent(e, prev, next);
 
     // mirror device log additions into the page log
     if (next.deviceLog.length > prev.deviceLog.length) {
@@ -192,7 +206,7 @@ export default function RadioSimulatorPage() {
     }
 
     force((n) => n + 1);
-  }, [bi]);
+  }, [audio, bi]);
 
   // --- device timers -----------------------------------------------------------
   const [holdPct, setHoldPct] = useState(0);
@@ -291,25 +305,19 @@ export default function RadioSimulatorPage() {
 
   useEffect(() => () => stopHold(), [stopHold]);
 
-  // Key confirmation beep. Distress and received-call alarms have their own
-  // manual-derived patterns below.
-  const lastBeep = useRef(0);
-  useEffect(() => {
-    if (rs.beeps === lastBeep.current) return;
-    lastBeep.current = rs.beeps;
-    playTone(1350, 80);
-  }, [playTone, rs.beeps]);
+  // The key beep now comes from the audio engine (which can tell a confirmation
+  // apart from a refusal - a PTT on CH 70 must not sound like success). The
+  // alarm patterns below stay: they are the manual-derived DSC cadences.
 
+  // The DSC alarm, on the real two tones: 2200 Hz and 1300 Hz, 250 ms each,
+  // alternating (ITU-R M.493). It rings until the screen that raised it closes -
+  // which is the whole point of [ALARM OFF] being a separate key.
   useEffect(() => {
-    if (screen !== 'distress-ack' && screen !== 'otherdsc-ack' && screen !== 'rx-distress-alert') return undefined;
-    const alarm = () => {
-      playTone(1250, 180, 0.045);
-      setTimeout(() => playTone(900, 220, 0.045), 230);
-    };
-    alarm();
-    const id = setInterval(alarm, 1100);
-    return () => clearInterval(id);
-  }, [playTone, screen]);
+    const ringing = screen === 'distress-ack' || screen === 'otherdsc-ack' || screen === 'rx-distress-alert';
+    if (!ringing) return undefined;
+    audio.play('alarm-start');
+    return () => audio.play('alarm-stop');
+  }, [audio, screen]);
 
   useEffect(() => {
     if (!rs.aquaActive) return undefined;
@@ -400,9 +408,32 @@ export default function RadioSimulatorPage() {
     const sc = scenarioRef.current;
     if (!sc) return;
     const idx = stepIdxRef.current;
+
+    // The Dziennik records what you SAID, not just which buttons you pressed.
+    // Without this the learner sees a score and has no way to know which words
+    // were missing - and the missing words are the whole lesson.
+    if (r) {
+      pushLog(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${r.transcript.trim()}"`, 'tx');
+      for (const c of r.checks.filter((x) => !x.ok)) {
+        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+      }
+      pushLog(`${tp('Оценка передачи', 'Transmission graded', 'Ocena nadania')}: ${r.score}%`, r.score >= 70 ? 'step' : 'ui');
+
+      // and the station answers OUT LOUD, on the working channel
+      const step = sc.steps[idx];
+      const kind = step?.voice?.kind;
+      if (kind && r.score >= 40) {
+        const reply = stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name);
+        if (reply) {
+          pushLog(`📻 ${reply.station}: ${reply.say}`, 'rx');
+          void speakStation(reply.say, mutedRef.current);
+        }
+      }
+    }
+
     if (idx + 1 >= sc.steps.length) setFinishedAt(Date.now());
     else setStepIdx(idx + 1);
-  }, []);
+  }, [pushLog, tp]);
 
   // score + persistence on finish
   const doneCount = scenario ? scenario.steps.filter((s) => doneRef.current.has(s.id)).length : 0;
@@ -463,6 +494,18 @@ export default function RadioSimulatorPage() {
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               · {tp('прогресс сохраняется на этом устройстве', 'progress is saved on this device', 'postep zapisuje sie na tym urzadzeniu')}
             </span>
+            {/* The tour used to be a one-shot: shown once, then locked behind a
+                localStorage flag with no way back to it. Anyone who skipped it -
+                or cleared it by finishing once - could never see it again. */}
+            <button
+              type="button"
+              data-testid="replay-onboarding"
+              onClick={() => setOnboardStep(0)}
+              className="min-h-[36px] rounded-full px-3 text-xs font-semibold"
+              style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+            >
+              ❔ {tp('Как это работает', 'How this works', 'Jak to dziala')}
+            </button>
             {/* model picker - both sets appear at the UKE practical */}
             <span className="ml-auto inline-flex overflow-hidden rounded-full" style={{ border: '1px solid var(--border-subtle)' }}>
               {(['M330', 'M323'] as RadioModel[]).map((m) => (
@@ -571,6 +614,16 @@ export default function RadioSimulatorPage() {
                 >
                   🔍 {tp('Разбор', 'Inspect', 'Rozbior')}
                 </button>
+                <button
+                  type="button"
+                  data-testid="sound-toggle"
+                  onClick={audio.toggleMute}
+                  aria-pressed={!audio.muted}
+                  className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+                  style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+                >
+                  {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
+                </button>
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {inspect
                     ? tp(
@@ -582,6 +635,7 @@ export default function RadioSimulatorPage() {
                 </span>
               </div>
 
+              <div onPointerDownCapture={audio.unlock}>
               <RadioFront
                 s={rs}
                 dispatch={dispatch}
@@ -604,41 +658,10 @@ export default function RadioSimulatorPage() {
                 inspectKey={inspectKey}
                 highlightControl={hintTarget ?? undefined}
               />
+              </div>
 
               {/* what the tapped part is */}
-              {inspect && (
-                <div
-                  data-testid="inspect-panel"
-                  className="mt-3 rounded-2xl p-4"
-                  style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,206,77,0.35)' }}
-                >
-                  {inspectKey && INSPECT[inspectKey] ? (
-                    <>
-                      <div className="mb-1 text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                        {showRu && !showPl ? INSPECT[inspectKey].titleRu : INSPECT[inspectKey].titlePl}
-                      </div>
-                      {showPl && (
-                        <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-                          {INSPECT[inspectKey].pl}
-                        </p>
-                      )}
-                      {showRu && (
-                        <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
-                          {INSPECT[inspectKey].ru}
-                        </p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-sm" style={{ color: 'var(--text-muted)' }}>
-                      {tp(
-                        'Ткни в любую часть рации: экран, индикатор GPS, мощность, крутилку, 16/C, DISTRESS, PTT...',
-                        'Tap any part of the radio: the screen, the GPS indicator, power, the knob, 16/C, DISTRESS, PTT...',
-                        'Dotknij dowolnej czesci radia: ekranu, wskaznika GPS, mocy, pokretla, 16/C, DISTRESS, PTT...',
-                      )}
-                    </p>
-                  )}
-                </div>
-              )}
+              {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} />}
             </div>
 
             <div className="min-w-0">
@@ -820,9 +843,19 @@ export default function RadioSimulatorPage() {
                 p: tp('Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.', 'Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved.', 'Nauka - wskazowki na kazdym kroku. Egzamin - jak w UKE: tylko sytuacja, omowienie na koncu. Postep sie zapisuje.'),
               },
               {
+                icon: '🔍',
+                h: tp('Не знаешь кнопку - включи Разбор', 'Do not know a key? Turn on Inspect', 'Nie znasz klawisza? Wlacz Rozbior'),
+                p: tp('В режиме "Разбор" рация не работает: жми любую кнопку, индикатор или экран - она объяснит, что это, зачем нужна и когда используется. А кнопка "?" подсветит ту кнопку, которую надо нажать сейчас.', 'In Inspect mode the radio does not react: tap any key, indicator or the screen and it explains what it is, why it exists and when you use it. The "?" button spotlights the control you need right now.', 'W trybie Rozbior radio nie dziala: dotknij dowolnego klawisza, wskaznika lub ekranu, a wyjasni, co to jest, po co i kiedy sie tego uzywa. Przycisk "?" podswietli klawisz, ktory masz teraz nacisnac.'),
+              },
+              {
+                icon: '🔊',
+                h: tp('Слушай рацию', 'Listen to the radio', 'Sluchaj radia'),
+                p: tp('У рации есть звук: шум эфира, писк клавиш, отказ на 70-м канале, тревога DSC. Шумоподавитель (SQL) настраивают на слух - задерёшь порог ради тишины и не услышишь слабый далёкий вызов. Именно это и проверяют на экзамене.', 'The radio has sound: the hiss of an open channel, key beeps, the refusal on channel 70, the DSC alarm. Squelch is set BY EAR - turn it up for silence and you go deaf to the weak distant call. That is what the exam is testing.', 'Radio ma dzwiek: szum eteru, piski klawiszy, odmowa na kanale 70, alarm DSC. Blokade szumow (SQL) ustawia sie SLUCHEM - podkrec ja dla ciszy, a oglochniesz na slabe, dalekie wywolanie. Wlasnie to sprawdza egzamin.'),
+              },
+              {
                 icon: '🎤',
-                h: tp('Говори в эфир', 'Speak on air', 'Mow do eteru'),
-                p: tp('MAYDAY и PAN-PAN можно наговорить в микрофон - Whisper распознает речь и проверит структуру сообщения по чек-листу.', 'You can speak MAYDAY and PAN-PAN into the mic - Whisper transcribes it and checks the message structure.', 'MAYDAY i PAN-PAN mozesz nagrac mikrofonem - Whisper rozpozna mowe i sprawdzi strukture komunikatu.'),
+                h: tp('Говори в эфир, станция ответит голосом', 'Speak on air - the station answers out loud', 'Mow do eteru - stacja odpowie glosem'),
+                p: tp('MAYDAY и PAN-PAN наговариваешь в микрофон. Речь распознаётся, структура сообщения проверяется по чек-листу, а в дневнике остаётся дословно то, что ты сказал, и то, чего не хватило. Береговая станция отвечает голосом, как в эфире.', 'You speak MAYDAY and PAN-PAN into the mic. The speech is transcribed, the message structure is graded against a checklist, and the journal keeps your exact words plus what was missing. The coast station answers out loud, as it would on air.', 'MAYDAY i PAN-PAN mowisz do mikrofonu. Mowa jest rozpoznawana, struktura komunikatu oceniana wedlug listy, a w dzienniku zostaje doslownie to, co powiedziales, i to, czego zabraklo. Stacja brzegowa odpowiada glosem, jak w eterze.'),
               },
             ].map((card, i) => (i === onboardStep ? (
               <div key={i}>
@@ -833,7 +866,7 @@ export default function RadioSimulatorPage() {
             ) : null))}
             <div className="mt-4 flex items-center justify-between">
               <div className="flex gap-1.5">
-                {[0, 1, 2, 3].map((i) => (
+                {[0, 1, 2, 3, 4, 5].map((i) => (
                   <span key={i} className="h-1.5 w-5 rounded-full" style={{ background: i <= onboardStep ? 'var(--accent-cyan)' : 'var(--border-subtle)' }} />
                 ))}
               </div>
@@ -850,13 +883,13 @@ export default function RadioSimulatorPage() {
                   type="button"
                   data-testid="onboard-next"
                   onClick={() => {
-                    if (onboardStep >= 3) dismissOnboarding();
+                    if (onboardStep >= 5) dismissOnboarding();
                     else setOnboardStep(onboardStep + 1);
                   }}
                   className="min-h-[40px] rounded-xl px-4 text-sm font-semibold"
                   style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
-                  {onboardStep >= 3 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej')}
+                  {onboardStep >= 5 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej')}
                 </button>
               </div>
             </div>

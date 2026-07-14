@@ -501,9 +501,20 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: stri
         body = (
           <div className="flex items-start justify-between" style={{ marginTop: 2 }}>
             <div>
-              <div style={{ fontSize: 9, letterSpacing: 1, color: LCD_DIM }}>CH</div>
-              <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>
-                {ch16.num}
+              <div
+                data-ik="ch-readout"
+                onClick={ins?.on ? () => ins.pick('ch-readout') : undefined}
+                style={{
+                  cursor: ins?.on ? 'help' : undefined,
+                  borderRadius: 6,
+                  padding: ins?.on ? 2 : 0,
+                  outline: ins?.on && ins.key === 'ch-readout' ? `2px solid ${HL}` : 'none',
+                }}
+              >
+                <div style={{ fontSize: 9, letterSpacing: 1, color: LCD_DIM }}>CH</div>
+                <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>
+                  {ch16.num}
+                </div>
               </div>
               <div style={{ fontSize: 9.5, letterSpacing: 0.5, color: LCD_DIM, marginTop: 6 }}>
                 {s.gpsValid ? `${s.pos.lat} ${s.pos.lon}` : 'NO POS'}
@@ -569,6 +580,23 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins }: { s: RadioState; clock: stri
 }
 
 // ------------------------------------------------------------- panel -------
+
+/**
+ * Which inspect entry a softkey carries right now. A softkey has no fixed
+ * meaning - it does whatever its current label says - so inspect follows the
+ * LABEL. Anything without a dedicated entry falls back to the general
+ * "these four keys change meaning" explanation, which is the honest answer for
+ * a context action like CANCEL or ALARM OFF.
+ */
+function softIk(label: string): string {
+  switch (label) {
+    case 'HI/LO': return 'sk-hilo';
+    case 'DW': return 'sk-dw';
+    case 'SCAN': return 'sk-scan';
+    case 'DISTRESS': return 'sk-distress-menu';
+    default: return 'softkeys';
+  }
+}
 
 export default function RadioFront({
   s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
@@ -699,19 +727,21 @@ export default function RadioFront({
         {/* LCD */}
         <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} />
 
-        {/* softkeys */}
+        {/* softkeys - a softkey explains the function it currently carries, and
+            falls back to the general "these keys change meaning" entry. */}
         <div className="mt-2.5 grid grid-cols-4 gap-1.5">
           {softkeys(s).map((k, i) => {
             const aqua = k === 'AQUA' && !inspect;
+            const ikKey = softIk(k);
             return (
               <Key
                 key={i}
                 id={`soft-${i}`}
-                ik="softkeys"
+                ik={ikKey}
                 small
                 tone="soft"
                 disabled={inspect ? false : (!s.power || !k)}
-                onClick={aqua ? undefined : act('softkeys', () => dispatch({ type: 'soft', index: i }))}
+                onClick={aqua ? undefined : act(ikKey, () => dispatch({ type: 'soft', index: i }))}
                 onPointerDown={aqua ? () => dispatch({ type: 'aqua-down' }) : undefined}
                 onPointerUp={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
                 onPointerLeave={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
@@ -781,10 +811,10 @@ export default function RadioFront({
           <div className="flex flex-col gap-1.5">
             <Key
               id="key-16c"
-              ik="sixteen"
+              ik="key-16c"
               tone="red"
               ariaLabel="Channel 16, hold for Call Channel"
-              onClick={inspect ? () => onInspect?.('sixteen') : undefined}
+              onClick={inspect ? () => onInspect?.('key-16c') : undefined}
               onPointerDown={hold(callDown)}
               onPointerUp={hold(callUp)}
               onPointerLeave={hold(callCancel)}
@@ -797,15 +827,17 @@ export default function RadioFront({
             >
               16 · C
             </Key>
+            {/* Each key carries its OWN inspect id - tapping MENU in inspect mode
+                must explain MENU, not "the keypad". */}
             <div className="grid grid-cols-3 gap-1.5">
-              <Key id="key-left" ik="keypad" small ariaLabel="Softkey page left" onClick={act('keypad', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>
-              <Key id="key-up" ik="keypad" small ariaLabel="Up / channel up" onClick={act('keypad', () => dispatch({ type: 'up' }))}>▲</Key>
-              <Key id="key-right" ik="keypad" small ariaLabel="Softkey page right" onClick={act('keypad', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>
-              <Key id="key-clr" ik="keypad" small ariaLabel="Clear / back" onClick={act('keypad', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>
-              <Key id="key-down" ik="keypad" small ariaLabel="Down / channel down" onClick={act('keypad', () => dispatch({ type: 'down' }))}>▼</Key>
-              <Key id="key-menu" ik="keypad" small ariaLabel="Menu" onClick={act('keypad', () => dispatch({ type: 'menu' }))}>MENU</Key>
+              <Key id="key-left" ik="key-left" small ariaLabel="Softkey page left" onClick={act('key-left', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>
+              <Key id="key-up" ik="key-up" small ariaLabel="Up / channel up" onClick={act('key-up', () => dispatch({ type: 'up' }))}>▲</Key>
+              <Key id="key-right" ik="key-right" small ariaLabel="Softkey page right" onClick={act('key-right', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>
+              <Key id="key-clr" ik="key-clr" small ariaLabel="Clear / back" onClick={act('key-clr', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>
+              <Key id="key-down" ik="key-down" small ariaLabel="Down / channel down" onClick={act('key-down', () => dispatch({ type: 'down' }))}>▼</Key>
+              <Key id="key-menu" ik="key-menu" small ariaLabel="Menu" onClick={act('key-menu', () => dispatch({ type: 'menu' }))}>MENU</Key>
             </div>
-            <Key id="key-ent" ik="keypad" small ariaLabel="Enter" onClick={act('keypad', () => dispatch({ type: 'ent' }))}>ENT</Key>
+            <Key id="key-ent" ik="key-ent" small ariaLabel="Enter" onClick={act('key-ent', () => dispatch({ type: 'ent' }))}>ENT</Key>
           </div>
         </div>
 
@@ -815,13 +847,13 @@ export default function RadioFront({
             <button
               type="button"
               data-testid="distress-cover"
-              data-ik="distress"
+              data-ik="distress-cover"
               aria-label="Open DISTRESS cover"
-              onClick={act('distress', () => setCoverOpen(true))}
+              onClick={act('distress-cover', () => setCoverOpen(true))}
               className="relative w-full select-none"
               style={{
                 height: 46, borderRadius: 9,
-                border: inspect && inspectKey === 'distress' ? `2px solid ${HL}` : '2px solid #b23524',
+                border: inspect && inspectKey === 'distress-cover' ? `2px solid ${HL}` : '2px solid #b23524',
                 background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
                 color: '#ffe8e2', fontWeight: 700, fontSize: 12, letterSpacing: 2,
                 boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
@@ -835,8 +867,8 @@ export default function RadioFront({
               <button
                 type="button"
                 data-testid="distress-key"
-                data-ik="distress"
-                onClick={inspect ? () => onInspect?.('distress') : undefined}
+                data-ik="distress-key"
+                onClick={inspect ? () => onInspect?.('distress-key') : undefined}
                 onPointerDown={hold(onDistressDown)}
                 onPointerUp={hold(onDistressUp)}
                 onPointerLeave={hold(onDistressUp)}
@@ -871,16 +903,20 @@ export default function RadioFront({
         </div>
       </div>
 
-      {/* fist mic PTT */}
+      {/* fist mic PTT. The housing itself is inspectable ("mic"); the PTT lever
+          inside it has its own entry. */}
       <div
         className="mx-auto mt-3 flex items-center gap-3"
+        data-ik="mic"
+        onClick={inspect ? () => onInspect?.('mic') : undefined}
         style={{
           maxWidth: 440,
           background: 'linear-gradient(165deg,#33383f,#1f2229)',
-          border: '1px solid #14171d',
+          border: inspect && inspectKey === 'mic' ? `2px solid ${HL}` : '1px solid #14171d',
           borderRadius: 12,
           padding: '11px 13px',
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1)',
+          cursor: inspect ? 'help' : undefined,
         }}
       >
         <button

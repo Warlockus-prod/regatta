@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
+import { useSternikPrefs } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
+import { InspectPanel } from '../symulator/InspectPanel';
+import { useRadioAudio } from '../symulator/audio/useRadioAudio';
+import { SIG_WEAK, scriptOver } from '../symulator/radioTraffic';
+import { LESSON_TEXT } from './lessonData';
 import {
   CHANNELS, OTHERDSC_CATEGORIES, createInitialRadio, otherDscRows, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState,
@@ -24,8 +29,16 @@ function channelNumber(state: RadioState): string {
 }
 
 export default function InteractiveRadioCourse() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
+  const { explLang } = useSternikPrefs();
+  // Same language policy as the rest of the section: PL for everyone, RU only as
+  // an opt-in aid on the RU site version.
+  const showRu = lang === 'ru' && explLang !== 'pl';
+  const showPl = explLang !== 'ru' || lang !== 'ru';
+  const [inspect, setInspect] = useState(false);
+  const [inspectKey, setInspectKey] = useState<string | null>(null);
   const [model, setModel] = useState<RadioModel>('M330');
+  const [testCallAt, setTestCallAt] = useState<number | null>(null);
   const stateRef = useRef<RadioState>(createInitialRadio('M330'));
   const [, render] = useState(0);
   const state = stateRef.current;
@@ -166,6 +179,7 @@ export default function InteractiveRadioCourse() {
   ], [tp]);
 
   const currentLesson = lessons[lessonIndex];
+  const audio = useRadioAudio(stateRef.current);
 
   useEffect(() => {
     try {
@@ -193,7 +207,9 @@ export default function InteractiveRadioCourse() {
     const prev = stateRef.current;
     const next = radioReducer(prev, event);
     stateRef.current = next;
-    if (next.beeps > prev.beeps) playTone(1350, 80);
+    // The radio's own sounds: a keypress, a refusal, a dial detent, the hiss
+    // behind the squelch. A refused PTT on CH 70 must not sound like success.
+    audio.onEvent(event, prev, next);
     if (!lessonDone && currentLesson.check(event, prev, next)) {
       setLessonDone(true);
       setSavedProgress((old) => {
@@ -203,7 +219,7 @@ export default function InteractiveRadioCourse() {
       });
     }
     render((value) => value + 1);
-  }, [currentLesson, lessonDone, lessonIndex, model, playTone]);
+  }, [audio, currentLesson, lessonDone, lessonIndex, model]);
 
   const clearHold = useCallback(() => {
     if (holdRaf.current !== null) cancelAnimationFrame(holdRaf.current);
@@ -280,6 +296,7 @@ export default function InteractiveRadioCourse() {
 
   const highlight = currentLesson.highlight(state);
   const complete = lessonIndex === lessons.length - 1 && lessonDone;
+  const text = LESSON_TEXT[currentLesson.id];
 
   return (
     <section id="interaktywny-kurs" className="mb-10 scroll-mt-24" data-testid="interactive-radio-course">
@@ -319,6 +336,46 @@ export default function InteractiveRadioCourse() {
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,520px)_1fr]">
         <div className="min-w-0">
+          {/* Inspect ("Rozbior"): the course is where the learner meets the
+              buttons, so this is where "what does this button even do" has to be
+              answerable. While it is on, taps explain instead of acting. */}
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              data-testid="course-inspect-toggle"
+              onClick={() => { setInspect((v) => !v); setInspectKey(null); }}
+              aria-pressed={inspect}
+              className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+              style={inspect
+                ? { background: '#ffce4d', color: '#3a2a00' }
+                : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+            >
+              🔍 {tp('Разбор', 'Inspect', 'Rozbior')}
+            </button>
+
+            {/* Sound. Off by default it would be silent - and a silent radio
+                cannot teach squelch at all - so it is ON, and the AudioContext
+                unlocks on the first touch of the panel (browsers refuse one made
+                any other way). */}
+            <button
+              type="button"
+              data-testid="sound-toggle"
+              onClick={audio.toggleMute}
+              aria-pressed={!audio.muted}
+              className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+              style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+            >
+              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
+            </button>
+
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+              {inspect
+                ? tp('Жми любую кнопку - она объяснит себя. Рация не работает.', 'Press any control - it explains itself. The radio does not react.', 'Nacisnij dowolny element - wyjasni sie sam. Radio nie dziala.')
+                : tp('Не знаешь, что делает кнопка? Включи Разбор.', 'Not sure what a control does? Turn Inspect on.', 'Nie wiesz, co robi przycisk? Wlacz Rozbior.')}
+            </span>
+          </div>
+
+          <div onPointerDownCapture={audio.unlock}>
           <RadioFront
             s={state}
             dispatch={dispatch}
@@ -330,8 +387,51 @@ export default function InteractiveRadioCourse() {
             onPttUp={() => dispatch({ type: 'ptt-up' })}
             clock="12:00"
             nextTxSec={radioProfile(model).retxSeconds}
-            highlightControl={highlight}
+            highlightControl={inspect ? undefined : highlight}
+            inspect={inspect}
+            inspectKey={inspectKey}
+            onInspect={setInspectKey}
           />
+          </div>
+
+          {/* The squelch lesson only means something if there is a call to miss.
+              This puts a weak, distant station on the air for 8 seconds: set the
+              squelch correctly and you hear it, set it too high and you do not -
+              which is exactly what the exam is testing. */}
+          {currentLesson.id === 'squelch' && (
+            <div className="mt-2 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+              <button
+                type="button"
+                data-testid="test-call"
+                onClick={() => {
+                  audio.unlock();
+                  const at = Date.now() + 400;
+                  scriptOver(CHANNELS[stateRef.current.channelIndex].num, {
+                    startMs: at, durMs: 8000, signal: SIG_WEAK, voice: 'male',
+                  });
+                  setTestCallAt(at);
+                }}
+                className="min-h-[40px] rounded-lg px-3 text-sm font-semibold"
+                style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+              >
+                📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Slabe wywolanie z daleka')}
+              </button>
+              <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                {tp(
+                  'Далёкая лодка на 1 Вт. Если SQL выставлен верно - услышишь её сквозь шум. Если задрал SQL ради тишины - не услышишь ничего, и на воде это будет чей-то вызов о помощи.',
+                  'A distant boat on 1 W. With the squelch set correctly you hear it through the hiss. Turn the squelch up for silence and you hear nothing at all - and at sea that would be somebody calling for help.',
+                  'Odlegla lodz na 1 W. Przy dobrze ustawionym SQL uslyszysz ja przez szum. Podkrec SQL dla ciszy i nie uslyszysz nic - a na wodzie bylby to czyjs wolanie o pomoc.',
+                )}
+              </p>
+              {testCallAt !== null && (
+                <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                  {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Sluchaj.')}
+                </p>
+              )}
+            </div>
+          )}
+
+          {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} />}
         </div>
 
         <div className="min-w-0 rounded-lg p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
@@ -348,6 +448,19 @@ export default function InteractiveRadioCourse() {
           <div className="mt-4 border-l-2 pl-3 text-sm leading-relaxed" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--text-muted)' }}>
             {currentLesson.why}
           </div>
+
+          {/* The lesson used to stop here - "press HI/LO", and one line of why.
+              A learner who does not know what transmit power IS cannot pass an
+              oral exam on it, so every lesson now answers what / why / when, and
+              names what the examiner watches for. */}
+          {text && (
+            <div className="mt-4 space-y-3">
+              <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
+              <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
+              <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy uzywasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
+              <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
+            </div>
+          )}
           {complete ? (
             <div className="mt-5 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
               {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obslugi ukonczony. Przejdz teraz do scenariuszy egzaminacyjnych.')}
@@ -366,6 +479,32 @@ export default function InteractiveRadioCourse() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * One labelled block of a lesson (what / why / when / exam). The label is what
+ * makes it an answer: "press HI/LO" is an instruction, "WHY: 25 W in a marina
+ * blocks the channel for everyone to the radio horizon" is a lesson.
+ */
+function LessonBlock({ label, pl, ru, exam }: { label: string; pl: string | null; ru: string | null; exam?: boolean }) {
+  if (!pl && !ru) return null;
+  return (
+    <div
+      className="rounded-xl p-3"
+      style={exam
+        ? { background: 'rgba(255,206,77,0.08)', border: '1px solid rgba(255,206,77,0.3)' }
+        : { background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}
+    >
+      <div
+        className="mb-1 text-[11px] font-bold uppercase tracking-wide"
+        style={{ color: exam ? 'var(--hl-amber, #ffce4d)' : 'var(--accent-cyan)' }}
+      >
+        {label}
+      </div>
+      {pl && <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{pl}</p>}
+      {ru && <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{ru}</p>}
+    </div>
   );
 }
 

@@ -1,104 +1,298 @@
 // ============================================================================
-// Inspect ("Rozbior" / "Разбор") data for the radio panel.
+// Inspect mode ("Rozbior" / "Разбор"): tap any part of the radio and it
+// explains itself.
 //
-// From the 2026-07 `vhf-trainer` design handoff: in inspect mode every control
-// AND every display indicator is tappable and explains itself. The design used
-// 19 generic keys; these are the same idea mapped onto the controls our real
-// ICOM IC-M330GE / IC-M323 faceplate actually has.
+// One entry per CONTROL, not per group. The first version lumped the whole
+// keypad into a single "keypad" entry and all four softkeys into "softkeys" -
+// which is exactly the complaint this mode exists to answer: the learner pressed
+// MENU and got a paragraph about "the keypad".
 //
-// Text is PL (the exam language) + RU (opt-in aid on the RU site), matching the
-// section language policy - no EN, the section only exists in PL and RU.
+// Each entry answers three questions, in this order:
+//   WHAT it is  -> the control itself, in plain words
+//   WHY it is   -> the physical / operational reason it exists at all
+//   WHEN        -> the concrete moments on the water you reach for it
+//
+// Facts verified against the ICOM IC-M330GE / IC-M323 manuals, ITU-R M.493 /
+// M.541 and the UKE exam materials, then adversarially fact-checked. PL is
+// ASCII-only per the repo typography rule; RU is the opt-in aid on the RU site.
 // ============================================================================
 
 export interface InspectItem {
-  /** what it is */
-  titlePl: string;
-  titleRu: string;
-  /** what it does and, crucially, WHY it matters on the exam / at sea */
-  pl: string;
-  ru: string;
+  titlePl: string; titleRu: string;
+  whatPl: string; whatRu: string;
+  whyPl: string; whyRu: string;
+  whenPl: string; whenRu: string;
 }
 
-/** Keys are the `data-ik` values placed on the panel. */
 export const INSPECT: Record<string, InspectItem> = {
+  dial: {
+    titlePl: 'Pokretlo PWR / VOL / SQL',
+    titleRu: 'Ручка PWR / VOL / SQL',
+    whatPl: 'Jedno pokretlo pelni trzy role: zasilanie, glosnosc i squelch (blokada szumu). Przytrzymanie okolo 1 sekundy wlacza lub wylacza radio, krotkie nacisniecie przelacza VOL na SQL, a obrot reguluje aktualnie wybrana wartosc.',
+    whatRu: 'Одна ручка выполняет три роли: питание, громкость и шумоподавитель (squelch). Удержание около 1 секунды включает или выключает станцию, короткое нажатие переключает VOL на SQL, поворот регулирует выбранное значение.',
+    whyPl: 'ICOM oszczedza miejsce na wodoszczelnym panelu: jedna galka zamiast trzech. Squelch to nie jest ciszej - on ustawia prog, ponizej ktorego odbiornik w ogole nie otwiera glosnika, wiec za wysoki squelch wycina slabe, dalekie wywolania, takze wywolanie w niebezpieczenstwie.',
+    whyRu: 'ICOM экономит место на герметичной панели: одна ручка вместо трёх. Squelch - это не «тише»: он задаёт порог, ниже которого приёмник вообще не открывает динамик, поэтому слишком высокий squelch срезает слабые дальние вызовы, в том числе сигнал бедствия.',
+    whenPl: 'Zaraz po wlaczeniu: podnies glosnosc, potem zejdz squelchem az uslyszysz szum i podnies go dokladnie do punktu, w ktorym szum ZNIKA - to najczulszy prog. Na IC-M323 kolejne nacisniecia ida dalej: VOL, SQL, wybor kanalu (CH) i podswietlenie, a na IC-M330GE cykl konczy sie na SQL.',
+    whenRu: 'Сразу после включения: подними громкость, затем опусти squelch до появления шума и подними ровно до точки, где шум ПРОПАДАЕТ - это самый чувствительный порог. На IC-M323 нажатия идут дальше: VOL, SQL, выбор канала (CH) и подсветка, а на IC-M330GE цикл заканчивается на SQL.',
+  },
   lcd: {
-    titlePl: 'Wyswietlacz',
-    titleRu: 'Дисплей',
-    pl: 'Caly stan radia naraz: kanal, pozycja z GPS, tryb nasluchu, moc, stan baterii i to, czy wlasnie nadajesz. Na egzaminie egzaminator patrzy wlasnie tu - z ekranu widac, czy zrobiles wszystko poprawnie.',
-    ru: 'Всё состояние рации сразу: канал, позиция с GPS, режим вахты, мощность, батарея и передаёшь ли ты сейчас. На экзамене экзаменатор смотрит именно сюда - по экрану видно, всё ли сделано верно.',
+    titlePl: 'Wyswietlacz LCD',
+    titleRu: 'Дисплей LCD',
+    whatPl: 'Caly stan radia naraz: gorny pasek statusu (grupa kanalow, GPS, tryb nasluchu, moc, zasilanie), duzy numer kanalu na srodku, tresc menu, napisy nad softkeyami i dolny wiersz TX/RX.',
+    whatRu: 'Всё состояние станции сразу: верхняя строка статуса (группа каналов, GPS, режим вахты, мощность, питание), крупный номер канала в центре, содержимое меню, подписи над софткеями и нижняя строка TX/RX.',
+    whyPl: 'Radio nie potwierdza niczego glosem. Jedynym dowodem, ze masz wlasciwy kanal, wlasciwa moc i ze alarm faktycznie poszedl w eter, jest to, co widac na ekranie.',
+    whyRu: 'Станция ничего не подтверждает голосом. Единственное доказательство того, что у тебя верный канал, верная мощность и что тревога действительно ушла в эфир, - это экран.',
+    whenPl: 'Patrzysz na niego przed kazdym nadaniem i po kazdej akcji DSC. Na egzaminie egzaminator ocenia to, co widzi na ekranie, a nie to, co zamierzales zrobic.',
+    whenRu: 'Смотришь на него перед каждой передачей и после каждого действия DSC. На экзамене экзаменатор оценивает то, что видит на экране, а не то, что ты собирался сделать.',
+  },
+  'ch-readout': {
+    titlePl: 'Numer kanalu (duza cyfra)',
+    titleRu: 'Номер канала (крупная цифра)',
+    whatPl: 'Duza cyfra na srodku wyswietlacza: kanal, na ktorym radio teraz slucha i na ktorym nadasz po wcisnieciu PTT. Obok pojawia sie opis kanalu, np. 16 = DISTRESS/CALLING, 12 = port, 70 = DSC.',
+    whatRu: 'Крупная цифра в центре дисплея: канал, на котором станция сейчас слушает и на котором ты передашь при нажатии PTT. Рядом появляется описание канала, например 16 = DISTRESS/CALLING, 12 = порт, 70 = DSC.',
+    whyPl: 'Kanal decyduje o tym, czy ktokolwiek cie uslyszy - bezbledna procedura na zlym kanale jest bezuzyteczna. Dlatego numer jest najwiekszym elementem ekranu: to pierwsza rzecz, ktora sprawdzasz przed nadaniem.',
+    whyRu: 'Канал решает, услышит ли тебя вообще кто-нибудь: безупречная процедура на чужом канале бесполезна. Поэтому номер - самый крупный элемент экрана: это первое, что проверяют перед передачей.',
+    whenPl: 'Zawsze przed nacisnieciem PTT i po kazdym wywolaniu DSC - radio po przyjeciu wywolania samo przeskakuje na uzgodniony kanal roboczy i musisz to zobaczyc.',
+    whenRu: 'Всегда перед нажатием PTT и после каждого DSC-вызова: приняв вызов, станция сама перескакивает на согласованный рабочий канал, и ты должен это увидеть.',
+  },
+  'key-16c': {
+    titlePl: 'Klawisz 16 / C',
+    titleRu: 'Клавиша 16 / C',
+    whatPl: 'Krotkie nacisniecie natychmiast wraca na kanal 16 - z niemal kazdego ekranu, takze z menu, z regulacji glosnosci czy squelcha. Przytrzymanie okolo 1 sekundy przelacza na kanal wywolawczy (Call Channel): to programowalny skrot uzytkownika, fabrycznie ustawiony na kanal 16, a w naszym symulatorze wpisany jest tam kanal 06.',
+    whatRu: 'Короткое нажатие мгновенно возвращает на канал 16 - почти с любого экрана, в том числе из меню, из регулировки громкости или squelch. Удержание около 1 секунды переключает на вызывной канал (Call Channel): это программируемый пользователем ярлык, на заводе он стоит на канале 16, а в нашем симуляторе туда вписан канал 06.',
+    whyPl: 'Kanal 16 to kanal nasluchu, wywolan i niebezpieczenstwa - musi byc osiagalny jednym ruchem, na oslep, bez wychodzenia z menu. Dlatego producent daje mu wlasny, wyrozniony klawisz zamiast pozycji na liscie.',
+    whyRu: 'Канал 16 - это канал вахты, вызовов и бедствия: он должен быть доступен одним движением, вслепую, без выхода из меню. Поэтому производитель дал ему отдельную выделенную клавишу, а не пункт в списке.',
+    whenPl: 'Gdy tylko musisz wrocic do nasluchu albo zaczac wywolanie glosowe. Zawsze po alarmie DSC: rozmowa w niebezpieczenstwie idzie glosem wlasnie na 16.',
+    whenRu: 'Как только нужно вернуться к вахте или начать голосовой вызов. Обязательно после DSC-тревоги: разговор о бедствии идёт голосом именно на 16.',
+  },
+  'key-menu': {
+    titlePl: 'Klawisz MENU',
+    titleRu: 'Клавиша MENU',
+    whatPl: 'Otwiera i zamyka menu radia. IC-M330GE ma pozycje Distress, Other DSC, GPS, Configuration, DSC Log, Radio Settings, DSC Settings, Radio Info; IC-M323 ma krotsza liste: DSC Calls, DSC Settings, Radio Settings, Configuration, MMSI/GPS Info.',
+    whatRu: 'Открывает и закрывает меню станции. У IC-M330GE пункты: Distress, Other DSC, GPS, Configuration, DSC Log, Radio Settings, DSC Settings, Radio Info; у IC-M323 список короче: DSC Calls, DSC Settings, Radio Settings, Configuration, MMSI/GPS Info.',
+    whyPl: 'Wszystko, co nie ma wlasnego klawisza - cyfrowe wywolania, dziennik DSC, ustawienia, podglad MMSI i pozycji - siedzi w menu. Rozne modele maja rozne drzewa menu, wiec na egzaminie warto wiedziec, ktory sprzet masz przed soba.',
+    whyRu: 'Всё, у чего нет своей клавиши - цифровые вызовы, журнал DSC, настройки, просмотр MMSI и позиции - живёт в меню. У разных моделей дерево меню разное, так что на экзамене важно понимать, какой аппарат перед тобой.',
+    whenPl: 'Gdy budujesz wywolanie DSC bez skrotu softkey (na IC-M323 to jedyna droga), gdy sprawdzasz MMSI i pozycje albo przegladasz dziennik odebranych wywolan. MENU dziala ze stanu czuwania, a z menu wracasz tym samym klawiszem.',
+    whenRu: 'Когда собираешь DSC-вызов без софткея (на IC-M323 это единственный путь), когда проверяешь MMSI и позицию или смотришь журнал принятых вызовов. MENU работает из режима ожидания, и той же клавишей из меню выходишь.',
+  },
+  'key-ent': {
+    titlePl: 'Klawisz ENT (zatwierdz)',
+    titleRu: 'Клавиша ENT (подтвердить)',
+    whatPl: 'Zatwierdza to, co jest podswietlone: pozycje menu, rodzaj zagrozenia z listy Nature, pole wywolania DSC (typ, adresat, kategoria, kanal roboczy), a na koncu wyslanie zlozonego wywolania Other DSC. Alarmu DISTRESS ENT nie nadaje - ten wychodzi wylacznie po 3-sekundowym przytrzymaniu czerwonego klawisza.',
+    whatRu: 'Подтверждает то, что подсвечено: пункт меню, род бедствия из списка Nature, поле DSC-вызова (тип, адресат, категория, рабочий канал), а в конце - отправку собранного вызова Other DSC. Тревогу DISTRESS клавиша ENT не передаёт: она уходит только после 3-секундного удержания красной кнопки.',
+    whyPl: 'Wywolanie DSC skladasz z pol. ENT jest jedynym potwierdzeniem kazdego kroku - dzieki temu przewijanie listy niczego nie zmienia, dopoki swiadomie nie zatwierdzisz.',
+    whyRu: 'DSC-вызов собирается из полей. ENT - единственное подтверждение каждого шага: пока ты просто листаешь список, ничего не меняется, изменение происходит только по осознанному нажатию.',
+    whenPl: 'Po kazdym wyborze na liscie oraz na koncu, na pozycji wyslania - wtedy ENT nadaje wywolanie Other DSC na kanale 70. Wyjatek: alarm DISTRESS nie idzie przez ENT, tylko po 3-sekundowym przytrzymaniu czerwonego klawisza pod oslona.',
+    whenRu: 'После каждого выбора в списке и в самом конце, на строке отправки: именно тогда ENT передаёт вызов Other DSC на канале 70. Исключение: тревога DISTRESS через ENT не уходит, только 3-секундное удержание красной кнопки под крышкой.',
+  },
+  'key-clr': {
+    titlePl: 'Klawisz CLR (na IC-M323: CLEAR)',
+    titleRu: 'Клавиша CLR (на IC-M323: CLEAR)',
+    whatPl: 'Cofa o jeden krok: zamyka regulacje glosnosci, squelcha, wyboru kanalu i podswietlenia, wychodzi z podgladu do menu, z menu do czuwania, z listy Nature z powrotem na ekran Distress. Na IC-M330GE klawisz jest opisany CLR, na IC-M323 - CLEAR.',
+    whatRu: 'Возврат на шаг назад: закрывает регулировку громкости, squelch, выбор канала и подсветку, выходит из просмотра в меню, из меню в режим ожидания, из списка Nature обратно на экран Distress. На IC-M330GE клавиша подписана CLR, на IC-M323 - CLEAR.',
+    whyPl: 'Bez klawisza wyjscia kazda pomylka w menu konczylaby sie utknieciem w niewlasciwym ekranie, w chwili gdy liczy sie czas. CLR/CLEAR to twoje wstecz.',
+    whyRu: 'Без клавиши выхода любая ошибка в меню заканчивалась бы застреванием не на том экране - как раз тогда, когда важна каждая секунда. CLR/CLEAR - это твоё «назад».',
+    whenPl: 'Zawsze, gdy wszedles nie tam, gdzie chciales. Uwaga: CLR NIE odwoluje juz nadanego alarmu DISTRESS - falszywy alarm kasuje sie procedura CANCEL w DSC plus odwolaniem glosem na kanale 16.',
+    whenRu: 'Каждый раз, когда зашёл не туда. Важно: CLR НЕ отменяет уже переданный сигнал DISTRESS - ложная тревога снимается процедурой CANCEL в DSC плюс голосовой отменой на канале 16.',
+  },
+  'key-up': {
+    titlePl: 'Strzalka w gore',
+    titleRu: 'Стрелка вверх',
+    whatPl: 'W czuwaniu podnosi numer kanalu o jeden. W menu i na listach (Nature, pola DSC, dziennik) przesuwa kursor w gore.',
+    whatRu: 'В режиме ожидания поднимает номер канала на единицу. В меню и в списках (Nature, поля DSC, журнал) двигает курсор вверх.',
+    whyPl: 'Staly panel VHF nie ma klawiatury numerycznej - kanalu 72 nie wystukasz, tylko do niego przechodzisz. Dwa klawisze strzalek obsluguja i kanaly, i cala nawigacje po listach, wiec panel zostaje maly i szczelny.',
+    whyRu: 'У стационарной УКВ-станции нет цифровой клавиатуры: канал 72 не набирают, к нему переходят. Две клавиши-стрелки обслуживают и каналы, и всю навигацию по спискам, поэтому панель остаётся маленькой и герметичной.',
+    whenPl: 'Przy przejsciu na uzgodniony kanal roboczy po wywolaniu na 16 i przy poruszaniu sie po menu lub liscie rodzajow zagrozenia.',
+    whenRu: 'При переходе на согласованный рабочий канал после вызова на 16 и при перемещении по меню или списку родов бедствия.',
+  },
+  'key-down': {
+    titlePl: 'Strzalka w dol',
+    titleRu: 'Стрелка вниз',
+    whatPl: 'Odwrotnosc strzalki w gore: w czuwaniu obniza numer kanalu, w menu i na listach przesuwa kursor w dol.',
+    whatRu: 'Зеркало стрелки вверх: в режиме ожидания понижает номер канала, в меню и в списках двигает курсор вниз.',
+    whyPl: 'Zmiana kanalu w dwie strony musi byc mozliwa jedna reka, bez patrzenia na klawiature - druga reka trzyma ster albo mikrofon.',
+    whyRu: 'Менять канал в обе стороны нужно одной рукой и не глядя на клавиатуру: вторая рука держит румпель или микрофон.',
+    whenPl: 'Gdy schodzisz na nizszy kanal (np. z 16 na 12, zeby wywolac port) i gdy wybierasz pozycje w menu albo rodzaj zagrozenia na liscie Nature.',
+    whenRu: 'Когда идёшь на канал ниже (например, с 16 на 12, чтобы вызвать порт) и когда выбираешь пункт меню или род бедствия в списке Nature.',
+  },
+  'key-left': {
+    titlePl: 'Strzalka w lewo (strona softkeyow)',
+    titleRu: 'Стрелка влево (страница софткеев)',
+    whatPl: 'Na tym panelu, jak w IC-M330GE, strzalki w bok nie zmieniaja kanalu: przewijaja strony klawiszy funkcyjnych. Lewa cofa do poprzedniej strony napisow nad softkeyami.',
+    whatRu: 'На этой панели, как и в IC-M330GE, боковые стрелки не меняют канал: они листают страницы функциональных клавиш. Левая возвращает к предыдущей странице подписей над софткеями.',
+    whyPl: 'Cztery softkeye nie pomieszcza wszystkich funkcji naraz, wiec sa rozlozone na kilku stronach. Strzalki sa jedynym sposobem, zeby dojsc do strony, ktorej akurat nie widac.',
+    whyRu: 'Четыре софткея не вмещают все функции сразу, поэтому они разложены по нескольким страницам. Стрелки - единственный способ добраться до страницы, которой сейчас не видно.',
+    whenPl: 'Gdy potrzebna funkcja (SCAN, DW, BKLT, LOG, FAV) nie jest widoczna na dole ekranu. Dziala w stanie czuwania.',
+    whenRu: 'Когда нужная функция (SCAN, DW, BKLT, LOG, FAV) не видна внизу экрана. Работает в режиме ожидания.',
+  },
+  'key-right': {
+    titlePl: 'Strzalka w prawo (strona softkeyow)',
+    titleRu: 'Стрелка вправо (страница софткеев)',
+    whatPl: 'Lustrzane odbicie strzalki w lewo: przechodzi do nastepnej strony klawiszy funkcyjnych. Strony zapetlaja sie, wiec dalsze naciskanie wraca na poczatek.',
+    whatRu: 'Зеркало стрелки влево: переходит к следующей странице функциональных клавиш. Страницы зациклены, поэтому дальнейшие нажатия возвращают к началу.',
+    whyPl: 'Strony softkeyow sa zapetlone i zawsze ida w tej samej kolejnosci, wiec po kilku probach dochodzisz do funkcji ruchem z pamieci, nie szukajac jej wzrokiem. Do tego zestaw softkeyow zmienia sie razem ze stanem radia: co innego widzisz w czuwaniu, co innego na ekranie odebranego wywolania DSC. Dlatego najpierw wiedz, czego szukasz, a dopiero potem przewijaj.',
+    whyRu: 'Страницы софткеев зациклены и всегда идут в одном порядке, поэтому через несколько попыток ты доходишь до функции движением по памяти, а не глазами. К тому же набор софткеев меняется вместе с состоянием станции: в режиме ожидания одни функции, на экране принятого DSC-вызова другие. Поэтому сначала пойми, что ищешь, и только потом листай.',
+    whenPl: 'Kiedy szukasz funkcji, ktorej nie widac na aktualnej stronie - przewin w prawo. Dziala w stanie czuwania.',
+    whenRu: 'Когда ищешь функцию, которой нет на текущей странице, - листай вправо. Работает в режиме ожидания.',
+  },
+  softkeys: {
+    titlePl: 'Cztery klawisze funkcyjne (softkeye)',
+    titleRu: 'Четыре функциональные клавиши (софткеи)',
+    whatPl: 'Cztery klawisze bezposrednio pod ekranem. Nie maja stalego znaczenia - robia dokladnie to, co akurat pisze nad nimi w dolnym wierszu LCD.',
+    whatRu: 'Четыре клавиши прямо под экраном. У них нет постоянного значения: они делают ровно то, что написано над ними в нижней строке LCD.',
+    whyPl: 'Kontekstowe klawisze pozwalaja malemu panelowi obsluzyc dziesiatki funkcji, a w sytuacji alarmowej pokazac wylacznie te akcje, ktore maja teraz sens: CANCEL, RESEND, PAUSE, INFO, ALARM OFF, ACCEPT, REFUSE.',
+    whyRu: 'Контекстные клавиши позволяют маленькой панели обслужить десятки функций, а в аварийной ситуации показать только те действия, которые сейчас имеют смысл: CANCEL, RESEND, PAUSE, INFO, ALARM OFF, ACCEPT, REFUSE.',
+    whenPl: 'Za kazdym razem, gdy ekran sie zmienia: po odebraniu wywolania DSC, po nadaniu alarmu, po wejsciu w menu, po przewinieciu strony. Zasada jest jedna: najpierw przeczytaj napis na ekranie, potem nacisnij klawisz pod nim. Naciskanie z pamieci, gdy nad klawiszem stoi juz co innego, to najczestszy sposob na wyslanie czegos, czego nie chciales.',
+    whenRu: 'Каждый раз, когда экран меняется: после приёма DSC-вызова, после подачи тревоги, после входа в меню, после листания страницы. Правило одно: сначала прочитай подпись на экране, потом жми клавишу под ней. Нажатие по памяти, когда над клавишей уже другая подпись, - самый частый способ отправить то, чего не хотел.',
+  },
+  'soft-page': {
+    titlePl: 'Strony softkeyow',
+    titleRu: 'Страницы софткеев',
+    whatPl: 'Funkcje softkeyow sa rozlozone na kilku stronach, przewijanych strzalkami w bok. Czuwanie IC-M330GE: strona 1 to DISTRESS, OTHER DSC, HI/LO, CHAN; strona 2 to SCAN, DW, AQUA, BKLT; strona 3 to LOG, NAME, FAV.',
+    whatRu: 'Функции софткеев разложены по нескольким страницам, которые листаются боковыми стрелками. Режим ожидания IC-M330GE: страница 1 - DISTRESS, OTHER DSC, HI/LO, CHAN; страница 2 - SCAN, DW, AQUA, BKLT; страница 3 - LOG, NAME, FAV.',
+    whyPl: 'Funkcji jest wiecej niz klawiszy, wiec sprzet handluje miejscem na panelu za jedno dodatkowe nacisniecie. IC-M323 ma inny uklad i nie ma na softkeyach ani DISTRESS, ani OTHER DSC - tam DSC robi sie przez MENU.',
+    whyRu: 'Функций больше, чем клавиш, поэтому аппарат меняет место на панели на одно лишнее нажатие. У IC-M323 раскладка другая, и на софткеях нет ни DISTRESS, ни OTHER DSC: там DSC делается через MENU.',
+    whenPl: 'Za kazdym razem, gdy szukana funkcja nie jest widoczna - przewin strzalkami. Jesli MMSI nie jest zaprogramowane, softkeye DISTRESS i OTHER DSC sa puste: bez tozsamosci radio nie pozwoli nadac zadnego wywolania DSC.',
+    whenRu: 'Каждый раз, когда нужной функции не видно, - листай стрелками. Если MMSI не запрограммирован, софткеи DISTRESS и OTHER DSC пустые: без идентичности станция не даст передать ни одного DSC-вызова.',
+  },
+  'sk-hilo': {
+    titlePl: 'Softkey HI/LO (moc)',
+    titleRu: 'Софткей HI/LO (мощность)',
+    whatPl: 'Przelacza moc nadawania miedzy 25 W (HI) i 1 W (LO). Wynik widac natychmiast na gornym pasku statusu.',
+    whatRu: 'Переключает мощность передачи между 25 Вт (HI) и 1 Вт (LO). Результат сразу видно в верхней строке статуса.',
+    whyPl: 'Moc to zasieg, ale takze zasieg zaklocania: 25 W w marinie zajmuje kanal wszystkim az po horyzont radiowy - kilkanascie mil miedzy jachtami i 20-30 mil do wysoko postawionej anteny stacji brzegowej. Na kanalach o ograniczonej mocy (15, 17, a takze 75 i 76) radio wymusza 1 W niezaleznie od twojego ustawienia.',
+    whyRu: 'Мощность - это дальность, но и дальность помех: 25 Вт в марине занимают канал у всех до радиогоризонта, а это порядка десятка миль между яхтами и 20-30 миль до высоко поднятой антенны береговой станции. На каналах с ограниченной мощностью (15, 17, а также 75 и 76) станция принудительно ставит 1 Вт независимо от твоей настройки.',
+    whenPl: 'LO w porcie, w marinie i przy rozmowie z lodzia obok. HI do stacji brzegowej, na otwartej wodzie i zawsze przy wywolaniu w niebezpieczenstwie - zla moc jest jednym z najczestszych bledow na egzaminie.',
+    whenRu: 'LO в порту, в марине и при разговоре с лодкой рядом. HI для береговой станции, на открытой воде и всегда при бедствии: неверная мощность - одна из самых частых ошибок на экзамене.',
+  },
+  'sk-dw': {
+    titlePl: 'Softkey DW (Dual Watch)',
+    titleRu: 'Софткей DW (Dual Watch)',
+    whatPl: 'Wlacza podwojny nasluch: radio na przemian sprawdza twoj kanal roboczy i kanal 16. Wskaznik DW pojawia sie na gornym pasku; wlaczenie DW wylacza SCAN i odwrotnie.',
+    whatRu: 'Включает двойную вахту: станция попеременно проверяет твой рабочий канал и канал 16. Индикатор DW появляется в верхней строке; включение DW выключает SCAN и наоборот.',
+    whyPl: 'Nasluch na kanale 16 jest obowiazkiem operatora, ale pracowac musisz na kanale roboczym. Dual Watch pozwala robic jedno i drugie naraz, bez rezygnowania z nasluchu.',
+    whyRu: 'Вахта на канале 16 - обязанность оператора, но работать приходится на рабочем канале. Dual Watch позволяет делать и то и другое сразу, не отказываясь от вахты.',
+    whenPl: 'Wlaczasz, gdy przechodzisz z 16 na kanal roboczy (np. 72) i nadal chcesz slyszec wywolania na 16 - i zostawiasz go wlaczonego, bo nasluch na 16 to obowiazek operatora. Jesli w wyjatkowej sytuacji go wylaczysz (np. dluga, precyzyjna rozmowa z VTS), wlacz go z powrotem zaraz po zakonczeniu.',
+    whenRu: 'Включаешь, когда уходишь с 16 на рабочий канал (например, 72) и хочешь по-прежнему слышать вызовы на 16, и оставляешь включённым: вахта на 16 - обязанность оператора. Если в исключительном случае выключил его (например, длинный точный обмен с VTS), включи обратно сразу после разговора.',
+  },
+  'sk-scan': {
+    titlePl: 'Softkey SCAN',
+    titleRu: 'Софткей SCAN',
+    whatPl: 'Uruchamia przeszukiwanie kanalow z listy ulubionych - u nas domyslnie 06, 12 i 16 - ktora ustawiasz softkeyem FAV. Typ skanowania wybierasz w Radio Settings: Normal przeszukuje same ulubione, Priority przeszukuje ulubione i miedzy nimi caly czas sprawdza kanal 16. Przy mniej niz dwoch ulubionych skanowanie sie nie uruchamia.',
+    whatRu: 'Запускает сканирование каналов из списка избранных - по умолчанию 06, 12 и 16, - который ты задаёшь софткеем FAV. Тип сканирования выбирается в Radio Settings: Normal обходит только избранные, Priority обходит избранные и между ними постоянно проверяет канал 16. Если избранных меньше двух, сканирование не запускается.',
+    whyPl: 'Skan pozwala pilnowac kilku kanalow naraz - portu, mariny i 16 - zamiast wybrac jeden i przegapic reszte. To wygodne przy podejsciu, gdzie ruch idzie po kilku kanalach jednoczesnie.',
+    whyRu: 'Сканирование позволяет держать несколько каналов сразу - порт, марину и 16 - вместо того чтобы выбрать один и пропустить остальные. Это удобно на подходе, где обмен идёт сразу по нескольким каналам.',
+    whenPl: 'Na podejsciu do portu, gdy interesuje cie i VTS, i port, i 16. Wylaczasz go, zanim zaczniesz nadawac: skanowanie i praca na jednym kanale wykluczaja sie, a SCAN wylacza DW.',
+    whenRu: 'На подходе к порту, когда нужны и VTS, и порт, и 16. Выключаешь его перед тем, как передавать: сканирование и работа на одном канале несовместимы, а SCAN отключает DW.',
+  },
+  'sk-distress-menu': {
+    titlePl: 'Softkey DISTRESS (ekran alarmu)',
+    titleRu: 'Софткей DISTRESS (экран тревоги)',
+    whatPl: 'Na IC-M330GE (strona 1 softkeyow) otwiera ekran budowania alarmu, na ktorym wybierasz rodzaj zagrozenia z listy Nature: Fire, Flooding, Collision, Grounding, Sinking, Man Overboard i pozostale. Na IC-M323 tego skrotu nie ma - ta sama droga prowadzi przez MENU, DSC Calls, Distress.',
+    whatRu: 'На IC-M330GE (страница 1 софткеев) открывает экран подготовки тревоги, где выбирают род бедствия из списка Nature: Fire, Flooding, Collision, Grounding, Sinking, Man Overboard и остальные. На IC-M323 такого софткея нет: тот же путь идёт через MENU, DSC Calls, Distress.',
+    whyPl: 'Alarm z okreslonym rodzajem zagrozenia mowi ratownikom, czego sie spodziewac, zanim jeszcze odezwiesz sie glosem. Alarm Undesignated tez zadziala, ale niesie mniej informacji - wybor rodzaju kosztuje kilka sekund i bardzo poprawia jakosc alertu.',
+    whyRu: 'Тревога с указанным родом бедствия говорит спасателям, чего ждать, ещё до того, как ты выйдешь в голос. Тревога Undesignated тоже сработает, но несёт меньше информации: выбор рода стоит несколько секунд и заметно улучшает качество алерта.',
+    whenPl: 'Gdy masz kilkanascie sekund i wiesz, co sie dzieje - wybierz rodzaj zagrozenia, zanim przytrzymasz czerwony klawisz. Uwaga: ten ekran niczego nie nadaje; alarm wychodzi dopiero po 3-sekundowym przytrzymaniu klawisza DISTRESS pod oslona.',
+    whenRu: 'Когда есть десяток секунд и ты понимаешь, что происходит, - выбери род бедствия до того, как удерживать красную кнопку. Важно: сам экран ничего не передаёт, тревога уходит только после 3-секундного удержания кнопки DISTRESS под крышкой.',
+  },
+  ptt: {
+    titlePl: 'PTT (Push To Talk)',
+    titleRu: 'PTT (Push To Talk)',
+    whatPl: 'Trzymasz - nadajesz (TX), puszczasz - sluchasz (RX). Na kanale 70 PTT nie wypusci glosu: to kanal wylacznie cyfrowy (DSC).',
+    whatRu: 'Держишь - передаёшь (TX), отпустил - слушаешь (RX). На канале 70 PTT не выпустит голос: это чисто цифровой канал (DSC).',
+    whyPl: 'Radio jest simpleksowe: w danej chwili albo nadajesz, albo sluchasz, nigdy oba naraz. Trzymajac PTT jestes gluchy - nie uslyszysz, ze ktos ci przerywa ani ze na 16 idzie wywolanie w niebezpieczenstwie. Nigdy nie nadawaj bez podlaczonej anteny: odbita moc potrafi spalic stopien koncowy nadajnika.',
+    whyRu: 'Станция симплексная: в каждый момент ты либо передаёшь, либо слушаешь, но не одновременно. Держа PTT, ты глухой: не услышишь ни того, что тебя перебивают, ни вызова о бедствии на 16. Никогда не передавай без подключённой антенны: отражённая мощность может сжечь выходной каскад.',
+    whenPl: 'Wcisnij, zrob pol sekundy pauzy, dopiero potem mow - inaczej ucieka pierwsze slowo. Mow zwiezle, oddaj glos slowem OVER i puszczaj: dlugie trzymanie blokuje kanal wszystkim dookola.',
+    whenRu: 'Нажми, выдержи полсекунды паузы и только потом говори - иначе первое слово срезается. Говори коротко, передай слово словом OVER и отпусти: долгое удержание блокирует канал для всех вокруг.',
+  },
+  'distress-cover': {
+    titlePl: 'Oslona nad klawiszem DISTRESS',
+    titleRu: 'Крышка над кнопкой DISTRESS',
+    whatPl: 'Sprezynowa klapka nad czerwonym klawiszem, zwykle w czerwono-czarne pasy. Sama nic nie nadaje - trzeba ja podniesc, zeby w ogole dosiegnac przycisku.',
+    whatRu: 'Подпружиненная крышка над красной кнопкой, обычно в красно-чёрную полоску. Сама она ничего не передаёт: её нужно поднять, чтобы вообще добраться до кнопки.',
+    whyPl: 'Falszywe alarmy DSC to realny problem GMDSS: kazdy z nich uruchamia sluzby i zajmuje kanal 70. Oslona jest fizyczna bariera przed zahaczeniem przycisku reka, szotem, kurtka czy plecakiem.',
+    whyRu: 'Ложные тревоги DSC - реальная проблема ГМССБ: каждая поднимает службы и занимает канал 70. Крышка - это физический барьер от случайного нажатия рукой, шкотом, курткой или рюкзаком.',
+    whenPl: 'Podnosisz ja wylacznie wtedy, gdy naprawde masz nadac alarm. Podczas przegladu sprzetu sprawdzasz, czy nie jest ulamana i czy przycisk pod nia nie jest zaklinowany.',
+    whenRu: 'Поднимаешь её только тогда, когда действительно собираешься подать тревогу. При осмотре оборудования проверяешь, что она не сломана и что кнопка под ней не заклинена.',
+  },
+  'distress-key': {
+    titlePl: 'Czerwony klawisz DISTRESS',
+    titleRu: 'Красная кнопка DISTRESS',
+    whatPl: 'Przytrzymanie 3 sekund (radio odlicza na ekranie i piszczy) nadaje cyfrowy alarm DSC na kanale 70: twoje MMSI, pozycje z GPS wraz z czasem oraz wybrany rodzaj zagrozenia.',
+    whatRu: 'Удержание 3 секунды (станция отсчитывает на экране и пищит) передаёт цифровую тревогу DSC на канале 70: твой MMSI, позицию от GPS вместе со временем и выбранный род бедствия.',
+    whyPl: 'Jedno przytrzymanie robi to, co glosem zajeloby minute i wymagalo spokoju, ktorego wtedy nie masz. Alert dociera naraz do wszystkich stacji DSC w zasiegu i od razu daje im twoja tozsamosc i pozycje - dlatego jest szybszy i pewniejszy niz MAYDAY glosem.',
+    whyRu: 'Одно удержание делает то, на что голосом ушла бы минута и понадобилось бы спокойствие, которого в этот момент нет. Алерт приходит сразу на все DSC-станции в зоне действия и сразу даёт им твою идентичность и позицию, поэтому он быстрее и надёжнее голосового MAYDAY.',
+    whenPl: 'TYLKO przy bezposrednim, powaznym zagrozeniu zycia lub jednostki. Po nadaniu radio samo powtarza alarm w losowych odstepach od 3,5 do 4,5 minuty, dopoki nie przyjdzie potwierdzenie (ACK), a ty przechodzisz na kanal 16 i nadajesz MAYDAY glosem. Falszywy alarm odwolujesz natychmiast: CANCEL w DSC plus odwolanie glosem na 16 do wszystkich stacji (nazwa, znak wywolawczy, MMSI, czas nadania alarmu).',
+    whenRu: 'ТОЛЬКО при прямой серьёзной угрозе жизни или судну. После передачи станция сама повторяет тревогу через случайные интервалы от 3,5 до 4,5 минуты, пока не придёт подтверждение (ACK), а ты переходишь на канал 16 и подаёшь MAYDAY голосом. Ложную тревогу отменяешь сразу: CANCEL в DSC плюс голосовая отмена на 16 всем станциям (название, позывной, MMSI, время передачи тревоги).',
   },
   'status-band': {
     titlePl: 'INT - grupa kanalow',
     titleRu: 'INT - группа каналов',
-    pl: 'Miedzynarodowa grupa kanalow (INT). Sa tez grupy USA i CAN - maja inne czestotliwosci na tych samych numerach. W Europie zawsze pracujesz na INT.',
-    ru: 'Международная группа каналов (INT). Есть ещё USA и CAN - у них другие частоты на тех же номерах. В Европе всегда работаешь на INT.',
+    whatPl: 'Pokazuje aktywna grupe kanalow. Europejskie IC-M330GE i IC-M323 pracuja wylacznie w grupie miedzynarodowej INT - grupy USA i CAN maja tylko wersje amerykanskie tych radiotelefonow. Nasz panel, jak kazde radio uzywane w Europie, stoi na INT.',
+    whatRu: 'Показывает активную группу каналов. Европейские IC-M330GE и IC-M323 работают только в международной группе INT: группы USA и CAN есть лишь у американских версий этих станций. Наша панель, как и любая станция в Европе, стоит на INT.',
+    whyPl: 'Te same numery kanalow maja w roznych grupach inne czestotliwosci i inny tryb pracy. Zla grupa oznacza, ze nadajesz obok wszystkich pozostalych, mimo ze na ekranie widnieje wlasciwy numer - i nikt tego nie zauwazy, dopoki ktos cie nie zawola.',
+    whyRu: 'Одни и те же номера каналов в разных группах имеют разные частоты и режим работы. Не та группа означает, что ты передаёшь мимо всех остальных, хотя на экране стоит правильный номер, и это не всплывёт, пока тебя не позовут.',
+    whenPl: 'Sprawdzasz przy pierwszym uruchomieniu radia na nowej lodce i po tym, jak ktos grzebal w ustawieniach. W Europie na ekranie ma byc INT.',
+    whenRu: 'Проверяешь при первом включении станции на новой лодке и после того, как кто-то менял настройки. В Европе на экране должно быть INT.',
   },
   'status-gps': {
-    titlePl: 'GPS',
-    titleRu: 'GPS',
-    pl: 'Radio ma wazna pozycje z GPS. To krytyczne: alarm DISTRESS wysyla twoja pozycje automatycznie. Bez GPS ratownicy nie wiedza, gdzie jestes, i pozycje trzeba wpisac recznie.',
-    ru: 'У рации есть валидная позиция от GPS. Это критично: сигнал DISTRESS отправляет твою позицию автоматически. Без GPS спасатели не знают, где ты, и позицию придётся вводить вручную.',
+    titlePl: 'Wskaznik GPS',
+    titleRu: 'Индикатор GPS',
+    whatPl: 'Swieci, gdy radio ma wazna, aktualna pozycje - z wbudowanego odbiornika albo z plotera po NMEA. Zgaszony lub przygaszony wskaznik znaczy: radio nie wie, gdzie jestes.',
+    whatRu: 'Горит, когда у станции есть валидная актуальная позиция - от встроенного приёмника или от плоттера по NMEA. Погасший или тусклый индикатор означает: станция не знает, где ты.',
+    whyPl: 'Alarm DISTRESS niesie twoja pozycje. Z pozycja ratownicy maja punkt na mapie i ida prosto do ciebie; bez niej maja samo MMSI i musza cie namierzac radiowo, wiec akcja robi sie o rzad wielkosci wolniejsza i szersza. To jest dokladnie ta roznica, o ktora pyta egzaminator.',
+    whyRu: 'Сигнал DISTRESS несёт твою позицию. С позицией у спасателей есть точка на карте и они идут прямо к тебе; без неё есть только MMSI, и тебя надо пеленговать, поэтому поиск становится на порядок медленнее и шире. Именно об этой разнице спрашивает экзаменатор.',
+    whenPl: 'Sprawdzasz przy kazdym rozruchu radia - to czesc przegladu przed wyjsciem. Jesli GPS nie ma fixa, pozycje i czas wpisujesz recznie w menu ZANIM beda potrzebne, a nie w chwili alarmu.',
+    whenRu: 'Проверяешь при каждом включении станции - это часть осмотра перед выходом. Если у GPS нет фикса, позицию и время вводишь вручную в меню ЗАРАНЕЕ, а не в момент тревоги.',
   },
   'status-watch': {
     titlePl: 'Tryb nasluchu (DW / SCAN)',
     titleRu: 'Режим вахты (DW / SCAN)',
-    pl: 'DW (Dual Watch) - radio slucha twojego kanalu roboczego I kanalu 16 naraz. SCAN - przeszukuje liste kanalow. Puste = zwykly nasluch jednego kanalu.',
-    ru: 'DW (Dual Watch) - рация слушает твой рабочий канал И 16-й одновременно. SCAN - сканирует список каналов. Пусто = обычная вахта на одном канале.',
+    whatPl: 'Pokazuje, jak radio slucha: DW to Dual Watch (kanal roboczy plus 16), SCAN to przeszukiwanie ulubionych, a puste pole oznacza zwykly nasluch jednego kanalu.',
+    whatRu: 'Показывает, как станция слушает: DW - это Dual Watch (рабочий канал плюс 16), SCAN - сканирование избранных, пустое поле - обычная вахта на одном канале.',
+    whyPl: 'Z tego jednego pola widzisz, czy nadal masz nasluch na 16. Po przejsciu na kanal roboczy latwo o tym zapomniec, a nasluch 16 to obowiazek operatora, nie opcja.',
+    whyRu: 'По этому одному полю видно, есть ли ещё вахта на 16. После перехода на рабочий канал об этом легко забыть, а вахта на 16 - обязанность оператора, а не опция.',
+    whenPl: 'Rzut oka po kazdej zmianie kanalu i przed dluzsza rozmowa. Pamietaj: SCAN wylacza DW i odwrotnie - dwa tryby naraz nie istnieja.',
+    whenRu: 'Взгляд после каждой смены канала и перед долгим разговором. Помни: SCAN выключает DW и наоборот, два режима одновременно не существуют.',
   },
   'status-power': {
-    titlePl: 'Moc nadawania (25W / 1W)',
+    titlePl: 'Moc nadawania (25 W / 1 W)',
     titleRu: 'Мощность передачи (25 Вт / 1 Вт)',
-    pl: '25W na otwartej wodzie, 1W w porcie i na krotkim dystansie - zeby nie zasmiecac eteru w promieniu 20 mil. Kanaly 15 i 17 sa TYLKO 1W. Zla moc to typowy blad na egzaminie.',
-    ru: '25 Вт на открытой воде, 1 Вт в порту и на короткой дистанции - чтобы не забивать эфир в радиусе 20 миль. Каналы 15 и 17 - ТОЛЬКО 1 Вт. Неверная мощность - типичная ошибка на экзамене.',
+    whatPl: 'Pokazuje moc, z ktora radio nada po wcisnieciu PTT: 25 W (HI) albo 1 W (LO). Przelaczasz ja softkeyem HI/LO, a na kanalach o ograniczonej mocy (15, 17, 75, 76) radio pokazuje 1 W niezaleznie od ustawienia.',
+    whatRu: 'Показывает мощность, с которой станция передаст при нажатии PTT: 25 Вт (HI) или 1 Вт (LO). Переключается софткеем HI/LO, а на каналах с ограниченной мощностью (15, 17, 75, 76) станция показывает 1 Вт независимо от настройки.',
+    whyPl: 'To pole jest szybszym sprawdzeniem niz pamietanie, co ostatnio ustawiles. 25 W na krotkim dystansie nie poprawia slyszalnosci, za to zajmuje kanal wszystkim w zasiegu - a zasieg VHF wyznacza horyzont radiowy: kilkanascie mil miedzy jachtami, 20-30 mil do stacji brzegowej.',
+    whyRu: 'Это поле - более быстрая проверка, чем попытка вспомнить, что ты выставил в прошлый раз. 25 Вт на короткой дистанции не улучшают слышимость, зато занимают канал у всех в зоне действия, а её задаёт радиогоризонт: порядка десятка миль между яхтами и 20-30 миль до береговой станции.',
+    whenPl: 'Rzucasz na nie okiem przed kazdym nadaniem, tak samo jak na numer kanalu. Zla moc to jeden z najczestszych bledow zauwazanych na egzaminie.',
+    whenRu: 'Смотришь на него перед каждой передачей, так же как на номер канала. Неверная мощность - одна из самых частых ошибок, которые ловят на экзамене.',
   },
   'status-batt': {
     titlePl: 'Zasilanie',
     titleRu: 'Питание',
-    pl: 'Stan zasilania. Radio bez pradu to brak nasluchu i brak mozliwosci nadania alarmu - dlatego przed rejsem sprawdza sie zasilanie i bezpiecznik.',
-    ru: 'Состояние питания. Рация без питания - это ни вахты, ни возможности подать сигнал бедствия, поэтому перед выходом проверяют питание и предохранитель.',
+    whatPl: 'Wskaznik zasilania: napiecie z instalacji lodki. Stale VHF nie ma wlasnego akumulatora - zyje z 12 V pokladowych.',
+    whatRu: 'Индикатор питания: напряжение от бортовой сети. У стационарной УКВ-станции нет своего аккумулятора, она живёт от бортовых 12 В.',
+    whyPl: 'Radio bez pradu to brak nasluchu i brak mozliwosci nadania alarmu. Nadawanie 25 W jest jednym z najwiekszych poborow pradu na pokladzie, wiec przy slabym akumulatorze napiecie siada dokladnie w tej chwili, w ktorej nadajesz.',
+    whyRu: 'Станция без питания - это ни вахты, ни возможности подать сигнал бедствия. Передача на 25 Вт - один из самых больших потребителей тока на борту, поэтому при слабом аккумуляторе напряжение проседает ровно в тот момент, когда ты передаёшь.',
+    whenPl: 'Kontrolujesz przed wyjsciem: zasilanie, bezpiecznik, zaciski. W trakcie rejsu patrzysz tu, jesli radio resetuje sie przy wcisnieciu PTT - to klasyczny objaw slabego zasilania, nie usterki radia.',
+    whenRu: 'Проверяешь перед выходом: питание, предохранитель, клеммы. В рейсе смотришь сюда, если станция перезагружается при нажатии PTT - это классический признак слабого питания, а не поломки станции.',
   },
   'tx-meter': {
-    titlePl: 'TX / RX + wskaznik',
-    titleRu: 'TX / RX + индикатор',
-    pl: 'TX = nadajesz (trzymasz PTT), RX = sluchasz. Radio jest simpleksowe: trzymajac PTT NIE slyszysz nikogo. Dlatego mowisz krotko i konczysz "OVER".',
-    ru: 'TX = передаёшь (держишь PTT), RX = слушаешь. Рация симплексная: держа PTT, ты НЕ слышишь никого. Поэтому говоришь коротко и заканчиваешь «OVER».',
+    titlePl: 'TX / RX i wskaznik',
+    titleRu: 'TX / RX и индикатор',
+    whatPl: 'Dolny wiersz LCD: TX gdy nadajesz (trzymasz PTT), RX gdy sluchasz. Pasek obok pokazuje sile odbieranego sygnalu przy odbiorze i moc wyjsciowa przy nadawaniu.',
+    whatRu: 'Нижняя строка LCD: TX, когда передаёшь (держишь PTT), RX, когда слушаешь. Полоска рядом показывает уровень принимаемого сигнала при приёме и выходную мощность при передаче.',
+    whyPl: 'To jedyne potwierdzenie, ze radio faktycznie wyszlo w eter, a nie tylko zapiszczalo. Brak wychylenia przy nadawaniu oznacza problem z antena, mikrofonem albo zasilaniem - lepiej dowiedziec sie o tym przy nabrzezu niz w sztormie.',
+    whyRu: 'Это единственное подтверждение, что станция действительно вышла в эфир, а не просто пискнула. Отсутствие отклонения при передаче означает проблему с антенной, микрофоном или питанием, и узнать об этом лучше у причала, чем в шторм.',
+    whenPl: 'Zerkasz na niego, gdy trzymasz PTT, i podczas testu radiowego (test call DSC albo wywolanie na 16 do stacji brzegowej). Widoczne TX oznacza tez: w tej chwili nikogo nie slyszysz.',
+    whenRu: 'Смотришь на него, пока держишь PTT, и во время радиопроверки (test call DSC или вызов на 16 береговой станции). Видимое TX также означает: сейчас ты никого не слышишь.',
   },
-  softkeys: {
-    titlePl: 'Klawisze funkcyjne (softkeys)',
-    titleRu: 'Функциональные клавиши (софткеи)',
-    pl: 'Cztery klawisze pod ekranem - ich funkcja zmienia sie zaleznie od ekranu; aktualne napisy widac na dole wyswietlacza. Strzalki [<]/[>] przewijaja kolejne strony funkcji (SCAN, DW, HI/LO, DISTRESS, OTHER DSC...).',
-    ru: 'Четыре клавиши под экраном - их функция меняется в зависимости от экрана; текущие подписи видно внизу дисплея. Стрелки [<]/[>] листают страницы функций (SCAN, DW, HI/LO, DISTRESS, OTHER DSC...).',
-  },
-  dial: {
-    titlePl: 'Pokretlo PWR / VOL / SQL',
-    titleRu: 'Ручка PWR / VOL / SQL',
-    pl: 'Przytrzymaj ~1 s = wlacz/wylacz radio. Krotkie nacisniecie przechodzi przez glosnosc i squelch, obrot je reguluje. Squelch ustawia sie tak: zejdz az uslyszysz szum, potem podnies dokladnie do momentu, gdy szum ZNIKA - to najczulszy prog.',
-    ru: 'Удержи ~1 с = включить/выключить рацию. Короткое нажатие переключает громкость и squelch, поворот их регулирует. Squelch настраивают так: опусти, пока не появится шум, затем подними ровно до момента, когда шум ПРОПАДАЕТ - это самый чувствительный порог.',
-  },
-  sixteen: {
-    titlePl: 'Klawisz 16 / C',
-    titleRu: 'Клавиша 16 / C',
-    pl: 'Krotkie nacisniecie = natychmiast kanal 16 (alarmowy i wywolawczy) z kazdego miejsca w menu. Przytrzymanie ~1 s = kanal wywolawczy (Call Channel). Kanal 16 musi byc zawsze pod reka - stad osobny, czerwony klawisz.',
-    ru: 'Короткое нажатие = мгновенно канал 16 (аварийный и вызывной) из любого места меню. Удержание ~1 с = вызывной канал (Call Channel). Канал 16 должен быть всегда под рукой - поэтому отдельная красная клавиша.',
-  },
-  keypad: {
-    titlePl: 'Nawigacja: strzalki, CLR, MENU, ENT',
-    titleRu: 'Навигация: стрелки, CLR, MENU, ENT',
-    pl: 'Strzalki gora/dol zmieniaja kanal (a w menu - pozycje na liscie). [MENU] otwiera menu, [ENT] zatwierdza, [CLR] cofa. Tedy skladasz wywolania DSC. Uwaga: IC-M323 ma napis CLEAR zamiast CLR i inne drzewo menu.',
-    ru: 'Стрелки вверх/вниз меняют канал (а в меню - позицию в списке). [MENU] открывает меню, [ENT] подтверждает, [CLR] возвращает. Через них собираются DSC-вызовы. Внимание: у IC-M323 надпись CLEAR вместо CLR и другое дерево меню.',
-  },
-  distress: {
-    titlePl: 'DISTRESS pod oslona',
-    titleRu: 'DISTRESS под крышкой',
-    pl: 'Czerwony klawisz alarmu. Oslona i wymog przytrzymania 3 sekund chronia przed przypadkowym alarmem (falszywe alerty to realny problem GMDSS). Nadaje na kanale 70: twoj MMSI + pozycje z GPS + rodzaj zagrozenia - zanim w ogole wezmiesz mikrofon. Uzywasz go TYLKO przy bezposrednim zagrozeniu zycia.',
-    ru: 'Красная кнопка тревоги. Крышка и удержание 3 секунды защищают от случайного алерта (ложные тревоги - реальная проблема GMDSS). Передаёт на 70 канале: твой MMSI + позицию с GPS + род бедствия - ещё до того, как возьмёшь микрофон. Жмёшь ТОЛЬКО при прямой угрозе жизни.',
-  },
-  ptt: {
-    titlePl: 'PTT na mikrofonie',
-    titleRu: 'PTT на микрофоне',
-    pl: 'Push To Talk: trzymasz = nadajesz, puszczasz = sluchasz. Nigdy nie nadawaj bez podlaczonej anteny - odbita moc moze spalic stopien koncowy. Na kanale 70 glos jest zablokowany: to kanal wylacznie cyfrowy (DSC).',
-    ru: 'Push To Talk: держишь = передаёшь, отпустил = слушаешь. Никогда не передавай без подключённой антенны - отражённая мощность может сжечь выходной каскад. На 70 канале голос заблокирован: это чисто цифровой канал (DSC).',
+  mic: {
+    titlePl: 'Mikrofon (sluchawka)',
+    titleRu: 'Микрофон (тангента)',
+    whatPl: 'Reczny mikrofon na spiralnym kablu, z klawiszem PTT na boku. To twoje jedyne wejscie glosowe - radio nadaje dokladnie to, co z niego uslyszy, razem z wiatrem i silnikiem.',
+    whatRu: 'Ручной микрофон на витом кабеле, с клавишей PTT сбоку. Это твой единственный голосовой вход: станция передаёт ровно то, что услышит от него, вместе с ветром и двигателем.',
+    whyPl: 'O odebraniu wiadomosci decyduje zrozumialosc, nie glosnosc. Zbyt blisko ust - przester i syk, zbyt daleko - twoj glos ginie w tle, a przy zlej dykcji ratownik traci czas na dopytywanie zamiast dzialac.',
+    whyRu: 'Приём сообщения решает разборчивость, а не громкость. Слишком близко ко рту - перегрузка и шипение, слишком далеко - голос тонет в фоне, а при плохой дикции спасатель тратит время на переспросы вместо действий.',
+    whenPl: 'Mow z okolo 5 cm, lekko z boku, spokojnie i wyraznie - nie krzycz. Po rozmowie odkladasz mikrofon na uchwyt: zwisajacy zahacza sie o wszystko i potrafi zablokowac PTT, co zajmuje kanal calej okolicy.',
+    whenRu: 'Говори с расстояния около 5 см, чуть сбоку, спокойно и чётко, не кричи. После разговора вешаешь микрофон на держатель: висящий цепляется за всё подряд и может зажать PTT, заняв канал всей округе.',
   },
 };
-
-export type InspectKey = keyof typeof INSPECT;
