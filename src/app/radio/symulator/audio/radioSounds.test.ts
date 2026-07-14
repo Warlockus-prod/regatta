@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { createInitialRadio, radioReducer, CHANNELS, type RadioState } from '../radioModel';
+import { createInitialRadio, radioReducer, menuItems, softkeys, CHANNELS, type RadioState } from '../radioModel';
 import { cuesFor, audioView } from './radioSounds';
 import { SIG_WEAK, SIG_STRONG, opensGate, signalOn, scriptOver, clearTraffic } from '../radioTraffic';
 
@@ -14,10 +14,16 @@ function on(): RadioState {
   return radioReducer(s, { type: 'dial-hold' });
 }
 
-/** walk the radio to a channel by number */
+/**
+ * Walk the radio to a channel by number. The arrows only move the CHANNEL from
+ * standby - on a menu screen they move the cursor instead - so get out of
+ * whatever screen we are on first.
+ */
 function toChannel(s: RadioState, num: string): RadioState {
   const target = CHANNELS.findIndex((c) => c.num === num);
   let cur = s;
+  let guard = 0;
+  while (cur.screen !== 'standby' && guard++ < 8) cur = radioReducer(cur, { type: 'clr' });
   while (cur.channelIndex !== target) {
     cur = radioReducer(cur, { type: cur.channelIndex < target ? 'up' : 'down' });
   }
@@ -37,12 +43,14 @@ describe('squelch gate', () => {
     expect(opensGate(8, SIG_WEAK)).toBe(false);
   });
 
-  it('a strong station still gets through a high squelch, but not a maxed one', () => {
-    expect(opensGate(8, SIG_STRONG)).toBe(true);
-    expect(opensGate(10, SIG_STRONG)).toBe(false); // max squelch = deaf radio
+  it('a tight squelch still lets a strong station through - it is not a mute switch', () => {
+    // Level 10 is "tight squelch", not "deaf". What a tight squelch loses is the
+    // WEAK call, and that subtlety is exactly why people fail on it.
+    expect(opensGate(10, SIG_STRONG)).toBe(true);
+    expect(opensGate(10, SIG_WEAK)).toBe(false);
   });
 
-  it('squelch 0 is the monitor position: always open, hiss and all', () => {
+  it('squelch 0 is the OPEN position: always open, hiss and all', () => {
     expect(opensGate(0, 0)).toBe(true);
   });
 
@@ -119,11 +127,96 @@ describe('audioView', () => {
     expect(audioView(toChannel(on(), '16')).noVoice).toBe(false);
   });
 
-  it('monitors the gate on the volume screen, but never on the squelch screen', () => {
+  it('no screen can force the squelch open - neither exam radio has a monitor', () => {
+    // An earlier version opened the gate while the VOL screen was up. Neither the
+    // IC-M330GE nor the IC-M323 has a MON key or any squelch defeat: the only way
+    // to hear the hiss is to SET the squelch to OPEN, and that is a latched
+    // setting that survives leaving the screen.
     const vol = radioReducer(on(), { type: 'dial-push' });
-    expect(audioView(vol).monitor).toBe(true);
-    const sql = radioReducer(vol, { type: 'dial-push' });
-    expect(sql.screen).toBe('squelch');
-    expect(audioView(sql).monitor).toBe(false); // the squelch lesson lives here
+    expect(vol.screen).toBe('volume');
+    expect(audioView(vol)).not.toHaveProperty('monitor');
+    expect(audioView(vol).squelch).toBe(4); // still closed, so still silent
+  });
+});
+
+describe('key beep (MENU > Configuration > Key Beep)', () => {
+  /** walk MENU > Configuration and toggle Key Beep off */
+  function beepsOff(): RadioState {
+    let s = on();
+    s = radioReducer(s, { type: 'menu' });
+    const idx = menuItems(s).indexOf('Configuration');
+    for (let i = 0; i < idx; i++) s = radioReducer(s, { type: 'down' });
+    s = radioReducer(s, { type: 'ent' });   // into Configuration
+    expect(s.screen).toBe('config');
+    return radioReducer(s, { type: 'ent' }); // toggle
+  }
+
+  it('is On by default and can be turned Off, exactly like the real set', () => {
+    expect(on().keyBeep).toBe(true);
+    expect(beepsOff().keyBeep).toBe(false);
+  });
+
+  it('silences the key beep', () => {
+    const s = beepsOff();
+    const next = radioReducer(s, { type: 'clr' });
+    expect(cuesFor({ type: 'clr' }, s, next)).not.toContain('key-beep');
+  });
+
+  it('CANNOT silence the DSC alarm - no setting on the radio can', () => {
+    // The alarm is driven by the screen, not by cuesFor, precisely so that a
+    // preference can never mute a safety function.
+    const s = beepsOff();
+    expect(s.keyBeep).toBe(false);
+    const ptt = radioReducer(toChannel(s, '70'), { type: 'ptt-down' });
+    // even the refusal beep is a key beep, so it goes quiet...
+    expect(cuesFor({ type: 'ptt-down' }, toChannel(s, '70'), ptt)).toEqual([]);
+    // ...but the alarm cue is not in cuesFor's vocabulary at all
+    expect(cuesFor({ type: 'ptt-down' }, toChannel(s, '70'), ptt)).not.toContain('alarm-start');
+  });
+});
+
+describe('scan and dual watch', () => {
+  it('refuses to scan with the squelch OPEN, like the manual demands', () => {
+    let s = on();
+    // squelch to OPEN
+    s = radioReducer(s, { type: 'dial-push' });
+    s = radioReducer(s, { type: 'dial-push' });
+    for (let i = 0; i < 6; i++) s = radioReducer(s, { type: 'dial-rotate', dir: -1 });
+    expect(s.squelch).toBe(0);
+    s = radioReducer(s, { type: 'clr' });
+
+    const page = radioReducer(s, { type: 'soft-page', dir: 1 });   // SCAN lives on page 2
+    const idx = softkeys(page).indexOf('SCAN');
+    expect(idx).toBeGreaterThanOrEqual(0);
+    const tried = radioReducer(page, { type: 'soft', index: idx });
+    expect(tried.scanActive).toBe(false);
+  });
+
+  it('a scan pauses on a busy channel instead of chopping the station up', () => {
+    let s = on();
+    const page = radioReducer(s, { type: 'soft-page', dir: 1 });
+    const idx = softkeys(page).indexOf('SCAN');
+    s = radioReducer(page, { type: 'soft', index: idx });
+    expect(s.scanActive).toBe(true);
+    const before = s.channelIndex;
+    const paused = radioReducer(s, { type: 'scan-tick', busy: true });
+    expect(paused.channelIndex).toBe(before);
+    const moved = radioReducer(s, { type: 'scan-tick', busy: false });
+    expect(moved.channelIndex).not.toBe(before);
+  });
+
+  it('dual watch parks on 16 when someone is on it, and comes back when they go', () => {
+    let s = toChannel(on(), '12');
+    const page = radioReducer(s, { type: 'soft-page', dir: 1 });
+    const idx = softkeys(page).indexOf('DW');
+    s = radioReducer(page, { type: 'soft', index: idx });
+    expect(s.dualWatch).toBe(true);
+
+    const onSixteen = radioReducer(s, { type: 'dw-tick', sixteenBusy: true });
+    expect(CHANNELS[onSixteen.channelIndex].num).toBe('16');
+    expect(onSixteen.dwOnSixteen).toBe(true);
+
+    const back = radioReducer(onSixteen, { type: 'dw-tick', sixteenBusy: false });
+    expect(CHANNELS[back.channelIndex].num).toBe('12');
   });
 });

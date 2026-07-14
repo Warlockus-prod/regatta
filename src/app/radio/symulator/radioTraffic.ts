@@ -23,8 +23,14 @@
 export const NOISE_CEILING = 2.5;
 /** a distant yacht on 1 W: the call the exam is about */
 export const SIG_WEAK = 4;
-/** a coast station or a boat alongside */
-export const SIG_STRONG = 9;
+/**
+ * A coast station or a boat alongside. It breaks even the tightest squelch -
+ * level 10 is "tight squelch", not a mute switch, and what a tight squelch loses
+ * is the WEAK call, not every call. Teaching "SQL 10 = you hear nothing ever"
+ * would be the wrong lesson: the danger is subtler than that, and subtler is
+ * exactly why people fail it.
+ */
+export const SIG_STRONG = 10;
 
 export interface Over {
   /** ms since epoch when this transmission starts */
@@ -72,8 +78,8 @@ function ambient(channelNum: string, tMs: number): number {
   const busy = channelNum === '12' || channelNum === '14' || channelNum === '71';
   const watch = channelNum === '16';
 
-  if (busy && r < 0.45 && phase < 5) return 6 + r * 3;   // a few seconds of traffic
-  if (watch && r < 0.12 && phase < 3) return 6 + r * 3;  // 16 is mostly quiet, and that is the point
+  if (busy && r < 0.45 && phase < 5) return 6 + r * 4;   // a few seconds of traffic
+  if (watch && r < 0.12 && phase < 3) return 6 + r * 4;  // 16 is mostly quiet, and that is the point
   return 0;
 }
 
@@ -94,7 +100,10 @@ export function signalOn(channelNum: string, tMs: number): number {
  * Would a receiver set to this squelch hear this signal? The audio engine adds
  * hysteresis; this is the plain contract that the tests pin down.
  *
- * SQL 0 is the monitor position: the gate is forced open, hiss and all.
+ * Squelch 0 is the OPEN position of the real control ("OPEN is completely open;
+ * 10 is tight squelch; 1 is loose squelch" - IC-M323 p.14). It is a LATCHED
+ * setting, not a momentary monitor key: neither exam radio has a MON key or any
+ * other squelch defeat.
  */
 export function opensGate(squelch: number, signal: number, noiseFloor = 0): boolean {
   if (squelch === 0) return true;

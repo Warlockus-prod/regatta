@@ -24,18 +24,17 @@ import { NOISE_CEILING, signalOn } from '../radioTraffic';
 
 export type Cue =
   | 'key-beep' | 'error-beep' | 'power-on' | 'power-off' | 'dial-tick'
-  | 'dsc-tx' | 'alarm-start' | 'alarm-stop' | 'tx-key' | 'tx-unkey';
+  | 'dsc-tx' | 'alarm-start' | 'alarm-stop' | 'call-alert' | 'tx-key' | 'tx-unkey'
+  | 'aqua-start' | 'aqua-stop';
 
 /** what the engine needs to know about the radio, each tick */
 export interface AudioRadioView {
   power: boolean;
   volume: number;      // 0..20
-  squelch: number;     // 0..10
+  squelch: number;     // 0..10, where 0 is the OPEN position
   channelNum: string;
   noVoice: boolean;    // CH 70: data only, never any audio
   ptt: boolean;
-  /** force the gate open (the VOL screen: you cannot set a volume you cannot hear) */
-  monitor: boolean;
 }
 
 const NOISE_STEP = 0.6;
@@ -73,8 +72,18 @@ export class RadioAudioEngine {
   private gateOpen = false;
   private muted = false;
   private view: AudioRadioView | null = null;
+  /** the BUSY lamp is the visual twin of the gate: "BUSY: displayed while
+   *  receiving, OR THE SQUELCH IS OPEN" (M330GE p.3). Same condition, always. */
+  private busy = false;
+  private alarmTimer: ReturnType<typeof setInterval> | null = null;
+  private alarmPhase = 0;
+  private aquaOsc: OscillatorNode | null = null;
+  private aquaGain: GainNode | null = null;
+  /** ctx.currentTime until which a real (TTS) voice is on the air */
+  private speakingUntil = 0;
 
   get started(): boolean { return this.ctx !== null; }
+  get isBusy(): boolean { return this.busy; }
 
   /**
    * Create the AudioContext. MUST be called from a user gesture: a context made
@@ -177,6 +186,7 @@ export class RadioAudioEngine {
       // dead radio, a data-only channel, or we are transmitting: receiver silent
       this.rxBus.gain.setTargetAtTime(0, t, 0.02);
       this.gateOpen = false;
+      this.busy = false;
       return;
     }
     this.rxBus.gain.setTargetAtTime(1, t, 0.05);
@@ -189,15 +199,24 @@ export class RadioAudioEngine {
     const carrier = signalOn(v.channelNum, Date.now());
     const level = Math.max(carrier, this.noiseS);
 
-    // 3. the gate, with hysteresis. SQL 0 (and the VOL screen) = monitor: open.
-    const open = v.squelch === 0 || v.monitor
+    // 3. the gate, with hysteresis.
+    //
+    // SQL 0 is the OPEN position of the real squelch control ("OPEN is completely
+    // open" - M323 p.14): a LATCHED setting that hisses forever, not a momentary
+    // key. Neither the IC-M330GE nor the IC-M323 has any monitor / squelch-defeat
+    // function, so nothing else may force this gate open. An earlier version
+    // opened it while the VOL screen was up; that was invented, and it taught the
+    // learner that the hiss belongs to a screen rather than to a setting.
+    const open = v.squelch === 0
       ? true
       : this.gateOpen ? level >= v.squelch - HYSTERESIS : level >= v.squelch;
+    this.busy = open;
 
     // 4. FM quieting: a carrier kills the hiss under it
     const quieting = clamp(carrier / FULL_QUIETING, 0, 1);
     const noiseTgt = NOISE_MAX * (1 - 0.92 * quieting);
-    const voiceTgt = carrier > 0 ? 0.18 + 0.5 * clamp(carrier / 8, 0, 1) : 0;
+    const speaking = t < this.speakingUntil;
+    const voiceTgt = carrier > 0 && !speaking ? 0.18 + 0.5 * clamp(carrier / 8, 0, 1) : 0;
 
     // 5. volume: perceptual taper, and 0 really means 0
     const vol = v.volume === 0 ? 0 : Math.pow(v.volume / 20, 1.8) * 0.9;
@@ -206,7 +225,7 @@ export class RadioAudioEngine {
     this.voiceGain.gain.setTargetAtTime(voiceTgt, t, 0.03);
     this.volGain.gain.setTargetAtTime(vol, t, 0.02);
 
-    if (carrier > 0 && this.voiceOsc) {
+    if (carrier > 0 && !speaking && this.voiceOsc) {
       // wobble the pitch so the babble reads as speech, not a drone
       this.voiceOsc.frequency.setTargetAtTime(100 + Math.random() * 40, t, 0.12);
     }
@@ -254,14 +273,29 @@ export class RadioAudioEngine {
         return;
       case 'alarm-start': return this.startAlarm();
       case 'alarm-stop': return this.stopAlarm();
+      case 'aqua-start': return this.startAqua();
+      case 'aqua-stop': return this.stopAqua();
+      case 'call-alert':
+        // an incoming routine DSC call also alerts you (that is the point of DSC:
+        // it wakes you when nobody is listening to the speaker) - but it is not
+        // the distress two-tone, so it gets its own, gentler pattern
+        this.beep(1600, 0.14, 0.08);
+        window.setTimeout(() => this.beep(1200, 0.14, 0.08), 190);
+        return;
     }
     void t;
   }
 
   /**
-   * The DSC distress alarm: 2200 Hz and 1300 Hz, 250 ms each, alternating.
-   * Those are the real numbers (ITU-R M.493 two-tone alarm), which is the whole
-   * point of hearing it here rather than a generic siren.
+   * The DSC distress alarm: 2200 Hz and 1300 Hz, 250 ms each, alternating (the
+   * real ITU-R M.493 two-tone alarm).
+   *
+   * It is scheduled in a ROLLING window, not as a fixed batch. An earlier version
+   * pre-scheduled 240 steps and then just held the last value, so after one
+   * minute the distress alarm quietly turned into a flat 1300 Hz dial tone - and
+   * the manual is explicit that a received distress alarm "sounds UNTIL YOU TURN
+   * IT OFF". A ringing alarm that gives up on its own is the one thing this sound
+   * must never do.
    */
   private startAlarm(): void {
     const ctx = this.ctx;
@@ -270,24 +304,110 @@ export class RadioAudioEngine {
     const g = ctx.createGain();
     osc.type = 'sine';
     g.gain.value = 0.09;
-    const t0 = ctx.currentTime;
-    for (let k = 0; k < 240; k++) {
-      osc.frequency.setValueAtTime(k % 2 === 0 ? 2200 : 1300, t0 + k * 0.25);
-    }
+    osc.frequency.setValueAtTime(2200, ctx.currentTime);
     osc.connect(g).connect(this.master);
-    osc.start(t0);
+    osc.start(ctx.currentTime);
     this.alarmOsc = osc;
     this.alarmGain = g;
+    this.alarmPhase = 0;
+
+    // schedule a couple of seconds ahead, and keep topping it up
+    const pump = () => {
+      const c = this.ctx;
+      const o = this.alarmOsc;
+      if (!c || !o) return;
+      const now = c.currentTime;
+      for (let k = 0; k < 8; k++) {
+        const at = now + k * 0.25;
+        o.frequency.setValueAtTime(this.alarmPhase % 2 === 0 ? 2200 : 1300, at);
+        this.alarmPhase++;
+      }
+    };
+    pump();
+    this.alarmTimer = setInterval(pump, 1800);
   }
 
   private stopAlarm(): void {
     const ctx = this.ctx;
+    if (this.alarmTimer) { clearInterval(this.alarmTimer); this.alarmTimer = null; }
     if (!ctx || !this.alarmOsc || !this.alarmGain) return;
     const t = ctx.currentTime;
+    this.alarmGain.gain.cancelScheduledValues(t);
     this.alarmGain.gain.setTargetAtTime(0, t, 0.02);
     this.alarmOsc.stop(t + 0.15);
     this.alarmOsc = null;
     this.alarmGain = null;
+  }
+
+  /**
+   * AquaQuake: the radio vibrates its own speaker cone to shake water out of the
+   * grille - "a low frequency vibration beep sounds to drain the water,
+   * REGARDLESS OF THE VOLUME LEVEL SETTING" (M330GE p.14). So it is a harsh low
+   * buzz, not a beep, and it deliberately bypasses the volume: it is the one
+   * sound on the set the VOL knob cannot touch.
+   */
+  private startAqua(): void {
+    const ctx = this.ctx;
+    if (!ctx || this.aquaOsc) return;
+    const osc = ctx.createOscillator();
+    const lp = ctx.createBiquadFilter();
+    const g = ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.value = 145;
+    lp.type = 'lowpass';
+    lp.frequency.value = 420;
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.03);
+
+    // a slow amplitude wobble: the cone is being shaken, not driven with a tone
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.value = 7;
+    lfoGain.gain.value = 0.05;
+    lfo.connect(lfoGain).connect(g.gain);
+    lfo.start();
+
+    osc.connect(lp).connect(g).connect(this.master);  // NOT through volGain
+    osc.start();
+    this.aquaOsc = osc;
+    this.aquaGain = g;
+  }
+
+  private stopAqua(): void {
+    const ctx = this.ctx;
+    if (!ctx || !this.aquaOsc || !this.aquaGain) return;
+    const t = ctx.currentTime;
+    this.aquaGain.gain.cancelScheduledValues(t);
+    this.aquaGain.gain.setTargetAtTime(0, t, 0.015);
+    this.aquaOsc.stop(t + 0.08);
+    this.aquaOsc = null;
+    this.aquaGain = null;
+  }
+
+  /**
+   * Play a decoded station voice THROUGH THE RECEIVER: squelch gate, then volume,
+   * then the speaker. Previously the TTS reply went straight to the destination,
+   * so you could hear the coast station with the volume at zero and the squelch
+   * shut - which silently undid the squelch lesson the moment the learner opened
+   * a scenario.
+   */
+  speak(buffer: AudioBuffer): void {
+    const ctx = this.ctx;
+    if (!ctx) return;
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(this.squelchGate);
+    src.start(ctx.currentTime + 0.05);
+    // while a real voice is on the air, the synthetic babble stands down - the
+    // carrier is the station, not a second one on top of it
+    this.speakingUntil = ctx.currentTime + buffer.duration + 0.25;
+  }
+
+  /** decode compressed audio in the engine's own context */
+  async decode(raw: ArrayBuffer): Promise<AudioBuffer | null> {
+    const ctx = this.ctx;
+    if (!ctx) return null;
+    try { return await ctx.decodeAudioData(raw.slice(0)); } catch { return null; }
   }
 
   private beep(freq: number, durSec: number, gain: number, harmonic?: number): void {
@@ -361,6 +481,7 @@ export class RadioAudioEngine {
     if (this.timer) clearInterval(this.timer);
     this.timer = null;
     this.stopAlarm();
+    this.stopAqua();
     try { this.voiceOsc?.stop(); } catch { /* already stopped */ }
     void this.ctx?.close();
     this.ctx = null;
