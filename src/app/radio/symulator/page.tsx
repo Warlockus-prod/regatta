@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
-import { useSternikPrefs } from '../../sternik/prefs';
+import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
@@ -57,7 +57,8 @@ function saveProgress(p: ProgressMap) {
 
 export default function RadioSimulatorPage() {
   const { tp, lang } = useI18n();
-  const { explLang } = useSternikPrefs();
+  const { explLang, radioRealistic } = useSternikPrefs();
+  const skin = radioRealistic ? 'amber' : 'green';
   // Language policy: RU commentary only when the RU site user allows it.
   const showRu = lang === 'ru' && explLang !== 'pl';
   const showPl = explLang !== 'ru' || lang !== 'ru';
@@ -606,23 +607,11 @@ export default function RadioSimulatorPage() {
             >
               ❔ {tp('Как это работает', 'How this works', 'Jak to dziala')}
             </button>
-            {/* model picker - both sets appear at the UKE practical */}
-            <span className="ml-auto inline-flex overflow-hidden rounded-full" style={{ border: '1px solid var(--border-subtle)' }}>
-              {(['M330', 'M323'] as RadioModel[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  data-testid={`model-${m}`}
-                  onClick={() => pickModel(m)}
-                  className="min-h-[36px] px-3 text-xs font-semibold"
-                  style={model === m
-                    ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
-                    : { background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
-                >
-                  IC-{m}
-                </button>
-              ))}
-            </span>
+            {/* model picker - both sets appear at the UKE practical; the third
+                option repaints the set as the real amber IC-M330GE hardware */}
+            <div className="ml-auto">
+              <RadioVariantToggle model={model} onModel={pickModel} />
+            </div>
           </div>
           {model === 'M323' && (
             <div className="mb-3 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -758,6 +747,8 @@ export default function RadioSimulatorPage() {
                 inspectKey={inspectKey}
                 highlightControl={hintTarget ?? undefined}
                 busy={audio.busy}
+                skin={skin}
+                realistic={radioRealistic}
               />
               </div>
 

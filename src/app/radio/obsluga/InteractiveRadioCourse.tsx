@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { useSternikPrefs } from '../../sternik/prefs';
+import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
 import { InspectPanel } from '../symulator/InspectPanel';
 import VoicePtt, { type VoiceResult } from '../symulator/VoicePtt';
@@ -69,7 +69,9 @@ function channelNumber(state: RadioState): string {
 
 export default function InteractiveRadioCourse() {
   const { tp, lang } = useI18n();
-  const { explLang } = useSternikPrefs();
+  const { explLang, radioRealistic } = useSternikPrefs();
+  // The realistic look is amber; the trainer models are green.
+  const skin = radioRealistic ? 'amber' : 'green';
   // Same language policy as the rest of the section: PL for everyone, RU only as
   // an opt-in aid on the RU site version.
   const showRu = lang === 'ru' && explLang !== 'pl';
@@ -417,18 +419,8 @@ export default function InteractiveRadioCourse() {
             {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynnosci na radiu. Nastepna lekcja odblokuje sie dopiero po prawidlowym nacisnieciu lub obrocie.')}
           </p>
         </div>
-        <div className="ml-auto inline-flex overflow-hidden rounded-lg" role="group" aria-label="Radio model" style={{ border: '1px solid var(--border-subtle)' }}>
-          {(['M330', 'M323'] as RadioModel[]).map((item) => (
-            <button
-              key={item}
-              type="button"
-              onClick={() => chooseModel(item)}
-              className="min-h-[44px] px-4 text-sm font-semibold"
-              style={model === item ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' } : { background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}
-            >
-              IC-{item}
-            </button>
-          ))}
+        <div className="ml-auto">
+          <RadioVariantToggle model={model} onModel={chooseModel} />
         </div>
       </div>
 
@@ -500,6 +492,8 @@ export default function InteractiveRadioCourse() {
             inspectKey={inspectKey}
             onInspect={setInspectKey}
             busy={audio.busy}
+            skin={skin}
+            realistic={radioRealistic}
           />
           </div>
 

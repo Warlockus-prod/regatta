@@ -110,6 +110,21 @@ src/app/radio/symulator/
                   below it, a machined knob with a pointer, and an amber
                   (#ffce4d) pulse for the course spotlight. The DEVICE is
                   still the real exam hardware - only the styling changed.
+                  FACEPLATE VARIANTS (2026-07): the radio picker is a 3-way -
+                  IC-M330 and IC-M323 in the green trainer look, plus a third
+                  "Realna" that renders the real amber IC-M330GE hardware. Two
+                  props drive it: `skin` ('green'|'amber') swaps the LCD colour
+                  via `LCD_SKINS` (CSS variables on the faceplate), and
+                  `realistic` swaps the body to graphite + adds the perforated
+                  speaker grille that the real front panel has. The realistic
+                  option pairs skin=amber with realistic=true. Only the SCREEN
+                  and BODY change; the controls stay wired the same. DISTRESS /
+                  TX stay red on every skin for danger legibility. The realistic
+                  choice is a persisted section pref (`radioRealistic`,
+                  localStorage) so it follows the learner across surfaces; the
+                  model stays page-local (each surface resets its own radio on
+                  switch). The picker is `RadioVariantToggle`, on all three radio
+                  surfaces (symulator / obsluga / rozmowa).
   inspectData.ts  inspect ("Rozbior") copy: 13 tappable parts of the panel -
                   every control AND every display indicator (lcd, status-band /
                   gps / watch / power / batt, tx-meter, softkeys, dial, sixteen,

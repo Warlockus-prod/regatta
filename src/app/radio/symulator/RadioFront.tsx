@@ -17,26 +17,64 @@ import {
 // fist-mic PTT.
 //
 // The look follows the 2026-07 `vhf-trainer` design handoff: green phosphor LCD
-// (#79f0cf on #062a26) with scanlines and a Share Tech Mono face, a persistent
-// status bar (band / GPS / watch / power / battery) above the screen and a
-// TX + signal meter below it, a machined PWR-VOL-SQL knob, hazard-striped
-// DISTRESS cover, and an amber (#ffce4d) pulse for the guided-course spotlight.
+// with scanlines and a Share Tech Mono face, a persistent status bar (band /
+// GPS / watch / power / battery) above the screen and a TX + signal meter below
+// it, a machined PWR-VOL-SQL knob, hazard-striped DISTRESS cover, and an amber
+// (#ffce4d) pulse for the guided-course spotlight.
 // The DEVICE stays the real exam hardware - only the styling is new.
+//
+// LCD SKIN (2026-07): the screen colour is a `skin` - the trainer default is
+// the green phosphor from the handoff; "amber" repaints the screen to match the
+// real IC-M330GE / IC-M323, whose display is an amber dot-matrix, so a candidate
+// can practise on the colour they will actually see on exam day. Only the SCREEN
+// changes: the grey device body is identical on both, exactly as on the hardware.
 // ============================================================================
 
 // Self-hosted by next/font (no external request, so the CSP stays untouched).
 const lcdFont = Share_Tech_Mono({ weight: '400', subsets: ['latin'], display: 'swap' });
 
-// --- LCD phosphor palette (design tokens) -----------------------------------
-const LCD_FG = '#79f0cf';
-const LCD_DIM = '#4fae9c';
-const LCD_FAINT = '#3f9184';
-const LCD_WARN = '#e6c14a';
-const LCD_ALERT = '#ff6b52';
-const LCD_BG = 'linear-gradient(180deg,#062a26,#04201d)';
-const LCD_SCAN = 'repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)';
+// --- LCD palette (design tokens) --------------------------------------------
+// The colours are CSS variables set on the faceplate per skin (see LCD_SKINS),
+// so every indicator below inherits the active skin with no prop threading.
+const LCD_FG = 'var(--lcd-fg)';
+const LCD_DIM = 'var(--lcd-dim)';
+const LCD_FAINT = 'var(--lcd-faint)';
+const LCD_WARN = 'var(--lcd-warn)';
+const LCD_ALERT = 'var(--lcd-alert)';
+const LCD_BG = 'var(--lcd-bg)';
+const LCD_SCAN = 'var(--lcd-scan)';
 /** guided-course spotlight colour */
 const HL = '#ffce4d';
+
+/** Which LCD colour the screen is painted in. */
+export type RadioSkin = 'green' | 'amber';
+
+// The two skins. `--lcd-tint` is the phosphor RGB triple that the low-alpha
+// tracks, borders and glows are mixed from (`rgba(var(--lcd-tint),a)`). Real
+// amber units are monochrome; we keep the hot red-orange `--lcd-alert` on both
+// because the DISTRESS / TX states rely on colour to read as danger.
+const LCD_SKINS: Record<RadioSkin, React.CSSProperties> = {
+  green: {
+    '--lcd-fg': '#79f0cf',
+    '--lcd-dim': '#4fae9c',
+    '--lcd-faint': '#3f9184',
+    '--lcd-warn': '#e6c14a',
+    '--lcd-alert': '#ff6b52',
+    '--lcd-bg': 'linear-gradient(180deg,#062a26,#04201d)',
+    '--lcd-scan': 'repeating-linear-gradient(0deg,rgba(0,0,0,.13) 0 1px,transparent 1px 3px)',
+    '--lcd-tint': '121,240,207',
+  } as React.CSSProperties,
+  amber: {
+    '--lcd-fg': '#ffb638',
+    '--lcd-dim': '#c98a2e',
+    '--lcd-faint': '#8a6023',
+    '--lcd-warn': '#ffd873',
+    '--lcd-alert': '#ff6b52',
+    '--lcd-bg': 'linear-gradient(180deg,#241603,#180f01)',
+    '--lcd-scan': 'repeating-linear-gradient(0deg,rgba(0,0,0,.16) 0 1px,transparent 1px 3px)',
+    '--lcd-tint': '255,182,56',
+  } as React.CSSProperties,
+};
 
 /** Inspect-mode wiring handed down to the LCD indicators. */
 interface Inspect {
@@ -70,6 +108,11 @@ interface Props {
   inspectKey?: string | null;
   /** BUSY: the audio gate is open (receiving, or the squelch is set to OPEN). */
   busy?: boolean;
+  /** LCD colour skin. Defaults to the green-phosphor trainer look. */
+  skin?: RadioSkin;
+  /** Realistic hardware faceplate (graphite body + speaker grille), matching the
+   *  real IC-M330GE product photo. Pairs with skin="amber". */
+  realistic?: boolean;
 }
 
 function Key({
@@ -151,7 +194,7 @@ function CenterGauge({ label, value, max = 10, zeroLabel }: { label: string; val
   return (
     <div style={{ paddingTop: 22 }}>
       <LcdLine big>{label}: {value === 0 && zeroLabel ? zeroLabel : value}</LcdLine>
-      <div className="mt-2 h-2 w-full overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.16)' }}>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded" style={{ background: 'rgba(var(--lcd-tint),0.16)' }}>
         <div style={{ width: `${(value / max) * 100}%`, height: '100%', background: LCD_FG }} />
       </div>
       <LcdLine dim>rotate [DIAL] · push = next</LcdLine>
@@ -171,7 +214,7 @@ function Ind({ ik, ins, style, children }: { ik: string; ins?: Inspect; style?: 
       style={{
         ...style,
         background: 'transparent',
-        border: picked ? `1px solid ${HL}` : '1px dashed rgba(121,240,207,0.35)',
+        border: picked ? `1px solid ${HL}` : '1px dashed rgba(var(--lcd-tint),0.35)',
         borderRadius: 4,
         padding: '0 3px',
         cursor: 'pointer',
@@ -192,7 +235,7 @@ function StatusBar({ s, ins, busy = false }: { s: RadioState; ins?: Inspect; bus
       style={{
         fontSize: 10.5,
         letterSpacing: 0.5,
-        borderBottom: '1px solid rgba(121,240,207,0.16)',
+        borderBottom: '1px solid rgba(var(--lcd-tint),0.16)',
         paddingBottom: 5,
         color: LCD_DIM,
       }}
@@ -218,7 +261,7 @@ function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
   const label = tx ? 'TX' : 'RX';
   const pct = tx ? '86%' : s.power ? '22%' : '0%';
   return (
-    <div className="mt-2 flex items-center gap-2 border-t pt-1.5" style={{ borderColor: 'rgba(121,240,207,0.16)' }}>
+    <div className="mt-2 flex items-center gap-2 border-t pt-1.5" style={{ borderColor: 'rgba(var(--lcd-tint),0.16)' }}>
       <Ind
         ik="tx-meter"
         ins={ins}
@@ -226,12 +269,12 @@ function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
       >
         {label}
       </Ind>
-      <div className="h-1.5 flex-1 overflow-hidden rounded" style={{ background: 'rgba(121,240,207,0.14)' }}>
+      <div className="h-1.5 flex-1 overflow-hidden rounded" style={{ background: 'rgba(var(--lcd-tint),0.14)' }}>
         <div
           style={{
             height: '100%',
             width: pct,
-            background: 'linear-gradient(90deg,#79f0cf 0%,#e6c14a 72%,#ff6b52 100%)',
+            background: 'linear-gradient(90deg,var(--lcd-fg) 0%,#e6c14a 72%,#ff6b52 100%)',
             transition: 'width .12s',
           }}
         />
@@ -276,7 +319,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         body = (
           <>
             <LcdLine big>CHANNEL SELECT</LcdLine>
-            <div style={{ fontSize: 46, textAlign: 'center', color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>{ch16.num}</div>
+            <div style={{ fontSize: 46, textAlign: 'center', color: LCD_FG, textShadow: '0 0 10px rgba(var(--lcd-tint),.45)' }}>{ch16.num}</div>
             <LcdLine dim>Use [^]/[v]{s.model === 'M323' ? ' or rotate [DIAL]' : ''}</LcdLine>
           </>
         );
@@ -545,7 +588,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
                 }}
               >
                 <div style={{ fontSize: 9, letterSpacing: 1, color: LCD_DIM }}>CH</div>
-                <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(121,240,207,.45)' }}>
+                <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(var(--lcd-tint),.45)' }}>
                   {ch16.num}
                 </div>
               </div>
@@ -590,7 +633,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         borderRadius: 9,
         minHeight: 168,
         color: LCD_FG,
-        boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(120,240,207,.06)',
+        boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(var(--lcd-tint),.06)',
         overflow: 'hidden',
         cursor: ins?.on ? 'pointer' : undefined,
         // The backlight actually dims the screen. The lesson says a bright display
@@ -607,7 +650,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
       {s.power && <TxMeter s={s} ins={ins} />}
       {/* softkey labels - bottom row, like on the device */}
       {s.power && (
-        <div className="mt-1 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(121,240,207,0.25)' }}>
+        <div className="mt-1 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(var(--lcd-tint),0.25)' }}>
           {keys.map((k, i) => (
             <div key={i} style={{ fontSize: 8.5, textAlign: 'center', color: k ? LCD_FG : 'transparent', overflow: 'hidden', whiteSpace: 'nowrap' }}>
               {k || '.'}
@@ -640,7 +683,7 @@ function softIk(label: string): string {
 
 export default function RadioFront({
   s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
-  highlightControl, inspect = false, onInspect, inspectKey = null, busy = false,
+  highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
 }: Props) {
   const { tp } = useI18n();
   const [coverOpen, setCoverOpen] = useState(false);
@@ -732,16 +775,25 @@ export default function RadioFront({
         `}</style>
       )}
 
-      {/* radio body */}
+      {/* radio body. The realistic faceplate is a graphite hardware body that
+          matches the real IC-M330GE product photo; the trainer body is the
+          lighter stylised look from the design handoff. */}
       <div
         className="radio-front mx-auto"
         style={{
+          // The active skin is injected here as CSS variables; only the LCD
+          // subtree reads them, so the grey body stays identical on both skins.
+          ...LCD_SKINS[skin],
           maxWidth: 440,
-          background: 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
+          background: realistic
+            ? 'linear-gradient(180deg,#23262b 0%,#191b1f 58%,#101215 100%)'
+            : 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
           borderRadius: 16,
           padding: '16px 15px 18px',
-          border: '1px solid #171a20',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
+          border: realistic ? '1px solid #06070a' : '1px solid #171a20',
+          boxShadow: realistic
+            ? 'inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 9px rgba(0,0,0,.65), 0 14px 30px -14px rgba(0,0,0,.78)'
+            : 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
         }}
       >
         {/* brand row */}
@@ -763,6 +815,23 @@ export default function RadioFront({
             VHF MARINE<br />TRANSCEIVER
           </span>
         </div>
+
+        {/* Speaker grille - a defining feature of the real IC-M330GE front
+            panel. A perforated bar reads as hardware; trainer skins omit it. */}
+        {realistic && (
+          <div
+            aria-hidden
+            className="mb-3"
+            style={{
+              height: 18,
+              borderRadius: 6,
+              background:
+                'radial-gradient(circle at center, rgba(0,0,0,.6) 1.1px, transparent 1.6px) 0 0 / 7px 7px, linear-gradient(180deg,#191c20,#111316)',
+              boxShadow: 'inset 0 1px 2px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05)',
+              border: '1px solid #0a0b0e',
+            }}
+          />
+        )}
 
         {/* LCD */}
         <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} />
