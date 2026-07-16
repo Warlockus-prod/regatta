@@ -17,8 +17,11 @@ type VoiceKind = VoiceSpec['kind'];
 
 export interface VoiceResult {
   transcript: string;
-  checks: { id: string; label: string; ok: boolean }[];
+  checks: { id: string; label: string; ok: boolean; mandatory?: boolean }[];
   score: number;
+  /** false when a defining element (MAYDAY/PAN-PAN/SECURITE/RELAY/RECEIVED/CANCEL)
+   *  was missing: a fail regardless of the percentage. */
+  mandatoryOk?: boolean;
 }
 
 interface Props {
@@ -140,8 +143,19 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
           }
           const r = data as VoiceResult;
           setResult(r);
-          if (r.score >= minimumScore) finish(r);
-          else setError(ru ? `Нужно минимум ${minimumScore}%. Повтори передачу.` : `Wymagane minimum ${minimumScore}%. Powtorz transmisje.`);
+          // A missing defining signal (MAYDAY / PAN-PAN / SECURITE ...) fails the
+          // transmission outright, no matter how high the percentage: the one word
+          // the whole call exists for cannot be traded for supporting details.
+          const missing = r.mandatoryOk === false ? r.checks.find((c) => c.mandatory && !c.ok) : undefined;
+          if (missing) {
+            setError(ru
+              ? `Пропущен обязательный элемент: ${missing.label}. Без него передача не засчитывается.`
+              : `Brak elementu obowiazkowego: ${missing.label}. Bez niego transmisja nie liczy sie.`);
+          } else if (r.score >= minimumScore) {
+            finish(r);
+          } else {
+            setError(ru ? `Нужно минимум ${minimumScore}%. Повтори передачу.` : `Wymagane minimum ${minimumScore}%. Powtorz transmisje.`);
+          }
         } catch {
           setError(ru ? 'Сеть недоступна.' : 'Brak polaczenia.');
         } finally {

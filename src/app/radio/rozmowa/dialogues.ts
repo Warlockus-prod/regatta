@@ -1,4 +1,4 @@
-import type { MustItem } from './dialogueGrading';
+import { normalize, type MustItem } from './dialogueGrading';
 
 // ============================================================================
 // Six real VHF conversations. Not monologues: you transmit, the station answers
@@ -17,8 +17,9 @@ import type { MustItem } from './dialogueGrading';
 //  - "STAND BY. OVER." is a contradiction: OVER means "answer me now". A station
 //    that tells you to stand by closes with OUT.
 //  - GDYNIA RADIO does not exist. Distress and urgency in Polish waters are
-//    answered by the MRCC, which calls itself GDYNIA RESCUE RADIO. Teaching an
-//    invented name means calling a station that never answers.
+//    answered by the Polish MRCC (Gdynia), whose on-air GMDSS identity is
+//    POLISH RESCUE RADIO (MMSI 002618102) - the same name the scenarios use.
+//    Teaching an invented name means calling a station that never answers.
 //  - the learner said OUT and the station then transmitted again. After OUT
 //    nobody answers - that is what OUT MEANS, and it is the lesson of the very
 //    first dialogue.
@@ -80,8 +81,8 @@ const CALLSIGN: MustItem = {
 };
 
 const THIS_IS: MustItem = { id: 'thisis', label: 'Zwrot THIS IS przed wlasna nazwa', anyOf: ['this is'] };
-const OVER: MustItem = { id: 'over', label: 'OVER na koncu', anyOf: ['over'] };
-const OUT: MustItem = { id: 'out', label: 'OUT na koncu (rozmowa skonczona, nie OVER)', anyOf: ['out'] };
+const OVER: MustItem = { id: 'over', label: 'OVER na koncu', anyOf: ['over'], whole: true };
+const OUT: MustItem = { id: 'out', label: 'OUT na koncu (rozmowa skonczona, nie OVER)', anyOf: ['out'], whole: true };
 
 const marina = (id = 'station'): MustItem => ({
   id,
@@ -103,8 +104,8 @@ const VTS: MustItem = {
 
 const RESCUE: MustItem = {
   id: 'station',
-  label: 'Nazwa stacji (GDYNIA RESCUE RADIO)',
-  anyOf: ['gdynia rescue radio', 'rescue radio', 'gdynia rescue', 'gdinia rescue', 'gdynia radio', 'rescue'],
+  label: 'Nazwa stacji (POLISH RESCUE RADIO)',
+  anyOf: ['polish rescue radio', 'polish rescue', 'polisch rescue', 'polska rescue', 'rescue radio', 'rescue'],
 };
 
 /**
@@ -420,60 +421,67 @@ export const DIALOGUES: Dialogue[] = [
           // "Pan-pan, pan-pan, pan-pan." and "Pan pan. Pan pan. Pan pan." both
           // normalize to "pan pan pan pan pan pan" - the naive three-word match
           // would have failed a perfect call.
-          { id: 'panpan', label: 'PAN-PAN trzy razy', anyOf: ['pan pan pan pan pan pan', 'panpan panpan panpan', 'pan pan pan', 'pon pon pon', 'pan pan pan pan'] },
+          {
+            id: 'panpan', label: 'PAN-PAN trzy razy', critical: true,
+            anyOf: ['pan pan pan pan pan pan'],
+            // PAN-PAN x3 is six "pan" tokens. Require the full urgency signal, not
+            // the 1.5x "pan pan pan" the old list let through. Tolerate one dropped
+            // token from the transcriber (>= 5).
+            test: (raw) => (normalize(raw).replace(/panpan/g, 'pan pan').replace(/\bpon\b/g, 'pan').match(/\bpan\b/g) || []).length >= 5,
+          },
           { id: 'allstations', label: 'ALL STATIONS', anyOf: ['all stations', 'all ships'] },
           IDENTITY, POSITION,
           { id: 'nature', label: 'Rodzaj problemu (rana, krwawienie)', anyOf: ['cut', 'bleeding', 'injured', 'injury', 'wound', 'hand'] },
           { id: 'request', label: 'Prosba o porade medyczna (MEDICAL ADVICE)', anyOf: ['medical advice', 'medical assistance', 'medico', 'doctor'] },
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. PAN-PAN RECEIVED. WHAT HAPPENED, AND IS THE PERSON CONSCIOUS. OVER.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. PAN-PAN RECEIVED. WHAT HAPPENED, AND IS THE PERSON CONSCIOUS. OVER.',
         hint: {
           pl: 'PAN-PAN trzy razy, ALL STATIONS trzy razy, nazwa trzy razy. Potem pozycja, co sie stalo i czego prosisz.',
           ru: 'PAN-PAN трижды, ALL STATIONS трижды, название трижды. Потом позиция, что случилось и о чём просите.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. THE CREW MEMBER CUT HIS HAND ON A WINCH ABOUT TEN MINUTES AGO. HE IS CONSCIOUS AND BREATHING NORMALLY. THE BLEEDING IS UNDER A PRESSURE DRESSING. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. THE CREW MEMBER CUT HIS HAND ON A WINCH ABOUT TEN MINUTES AGO. HE IS CONSCIOUS AND BREATHING NORMALLY. THE BLEEDING IS UNDER A PRESSURE DRESSING. OVER.',
         must: [
           RESCUE, IDENTITY,
           { id: 'what', label: 'Co sie stalo (skaleczenie o winch)', anyOf: ['cut his hand', 'cut', 'winch', 'wound'] },
           { id: 'conscious', label: 'Czy przytomny (CONSCIOUS)', anyOf: ['conscious', 'awake', 'breathing'] },
           OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. HOW MANY PERSONS ON BOARD, AND DO YOU HAVE A FIRST AID KIT. OVER.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. HOW MANY PERSONS ON BOARD, AND DO YOU HAVE A FIRST AID KIT. OVER.',
         hint: {
           pl: 'Odpowiadaj na to, o co pytali, i tylko na to. Krotko, konkretnie, bez opowiadania historii.',
           ru: 'Отвечайте на то, о чём спросили, и только на это. Коротко, конкретно, без историй.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. THREE PERSONS ON BOARD. YES, I HAVE A FIRST AID KIT ON BOARD. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. THREE PERSONS ON BOARD. YES, I HAVE A FIRST AID KIT ON BOARD. OVER.',
         must: [
           RESCUE, IDENTITY, POB,
           { id: 'kit', label: 'Odpowiedz o apteczce (FIRST AID KIT)', anyOf: ['first aid kit', 'first aid', 'medical kit', 'yes i have'] },
           OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
+        stationName: 'POLISH RESCUE RADIO',
         // Urgency traffic moves OFF 16. A doctor holding a consultation on the
         // calling and distress channel would block it for the whole coast.
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. KEEP THE HAND RAISED AND KEEP PRESSURE ON. DO NOT REMOVE THE DRESSING. CHANGE TO CHANNEL SIX SEVEN FOR MEDICAL ADVICE. A DOCTOR WILL SPEAK TO YOU ON CHANNEL SIX SEVEN. OVER.',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. KEEP THE HAND RAISED AND KEEP PRESSURE ON. DO NOT REMOVE THE DRESSING. CHANGE TO CHANNEL SIX SEVEN FOR MEDICAL ADVICE. A DOCTOR WILL SPEAK TO YOU ON CHANNEL SIX SEVEN. OVER.',
         hint: {
           pl: 'Kazda odpowiedz zaczyna sie od nazwy stacji i THIS IS WIND DANCER. W eterze moze byc kilka jachtow.',
           ru: 'Каждый ответ начинается с названия станции и THIS IS WIND DANCER. В эфире может быть несколько яхт.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. I KEEP THE HAND RAISED, I KEEP PRESSURE ON, I DO NOT REMOVE THE DRESSING. CHANGING TO CHANNEL SIX SEVEN. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. I KEEP THE HAND RAISED, I KEEP PRESSURE ON, I DO NOT REMOVE THE DRESSING. CHANGING TO CHANNEL SIX SEVEN. OVER.',
         must: [
           RESCUE, IDENTITY,
           { id: 'readback', label: 'Powtorzenie zalecen (pressure, dressing)', anyOf: ['pressure', 'dressing', 'hand raised', 'keep the hand'] },
           { id: 'channel', label: 'Potwierdzenie zmiany kanalu (CHANNEL SIX SEVEN)', anyOf: ['changing to channel six seven', 'channel six seven', 'channel 67', 'six seven', '67'] },
           OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. UNDERSTOOD. STAND BY ON CHANNEL SIX SEVEN. OUT.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. UNDERSTOOD. STAND BY ON CHANNEL SIX SEVEN. OUT.',
         hint: {
           pl: 'Powtorz zalecenia lekarskie i potwierdz kanal roboczy. Konczysz slowem OVER, bo rozmowa trwa - lekarz sie odezwie.',
           ru: 'Повторите медицинские указания и подтвердите рабочий канал. Заканчиваете словом OVER: разговор продолжается, врач ещё выйдет на связь.',
@@ -500,59 +508,67 @@ export const DIALOGUES: Dialogue[] = [
         youSay: 'MAYDAY, MAYDAY, MAYDAY. THIS IS WIND DANCER, WIND DANCER, WIND DANCER, CALL SIGN SIERRA PAPA NINE ZERO ONE TWO. MAYDAY WIND DANCER. MY POSITION IS FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH, ZERO ONE EIGHT DEGREES FOUR FIVE DECIMAL TWO MINUTES EAST. I AM ON FIRE IN THE ENGINE COMPARTMENT. I REQUIRE IMMEDIATE ASSISTANCE. THREE PERSONS ON BOARD. OVER.',
         must: [
           // "Mayday! Mayday! Mayday!" is what the transcriber actually returns.
-          { id: 'mayday', label: 'MAYDAY trzy razy', anyOf: ['mayday mayday mayday', 'may day may day may day', 'mayday mayday', 'maiday maiday'] },
+          {
+            id: 'mayday', label: 'MAYDAY trzy razy', critical: true,
+            anyOf: ['mayday mayday mayday'],
+            // The distress signal is the load-bearing word: it must be present AND
+            // said three times. Count it after collapsing "may day" -> "mayday" so
+            // the STT split and punctuation cannot fake or hide a repetition. A call
+            // that says MAYDAY twice (or not at all) must not pass.
+            test: (raw) => (normalize(raw).replace(/may day/g, 'mayday').match(/\bmayday\b/g) || []).length >= 3,
+          },
           IDENTITY, POSITION,
           { id: 'nature', label: 'Rodzaj niebezpieczenstwa (POZAR)', anyOf: ['fire', 'on fire', 'burning', 'engine compartment'] },
           { id: 'assistance', label: 'Prosba o natychmiastowa pomoc', anyOf: ['immediate assistance', 'require assistance', 'need assistance', 'require immediate'] },
           POB,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'MAYDAY. WIND DANCER, WIND DANCER, WIND DANCER, THIS IS GDYNIA RESCUE RADIO. RECEIVED MAYDAY. ALL STATIONS, ALL STATIONS, THIS IS GDYNIA RESCUE RADIO. SEELONCE MAYDAY. WIND DANCER, HOW MANY PERSONS ON BOARD, AND ARE YOU ABANDONING YOUR VESSEL. OVER.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'MAYDAY. WIND DANCER, WIND DANCER, WIND DANCER, THIS IS POLISH RESCUE RADIO. RECEIVED MAYDAY. ALL STATIONS, ALL STATIONS, THIS IS POLISH RESCUE RADIO. SEELONCE MAYDAY. WIND DANCER, HOW MANY PERSONS ON BOARD, AND ARE YOU ABANDONING YOUR VESSEL. OVER.',
         hint: {
           pl: 'MAYDAY trzy razy, nazwa trzy razy, potem MAYDAY plus nazwa raz. Pozycja, rodzaj niebezpieczenstwa, jaka pomoc, ile osob. To wszystko w jednej transmisji.',
           ru: 'MAYDAY трижды, название трижды, потом MAYDAY плюс название один раз. Позиция, характер бедствия, какая помощь, сколько человек. Всё это в одной передаче.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. THREE PERSONS ON BOARD. I AM NOT ABANDONING. I AM FIGHTING THE FIRE. THE LIFERAFT IS READY. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. THREE PERSONS ON BOARD. I AM NOT ABANDONING. I AM FIGHTING THE FIRE. THE LIFERAFT IS READY. OVER.',
         must: [
           RESCUE, IDENTITY, POB,
           { id: 'abandon', label: 'Odpowiedz o opuszczeniu jachtu (NOT ABANDONING)', anyOf: ['not abandoning', 'i am not abandoning', 'we are not abandoning', 'not leaving', 'abandoning'] },
           OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. WHAT IS THE COLOUR OF YOUR HULL, AND HAVE YOU STOPPED YOUR ENGINE. OVER.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. WHAT IS THE COLOUR OF YOUR HULL, AND HAVE YOU STOPPED YOUR ENGINE. OVER.',
         hint: {
           pl: 'Odpowiadaj krotko i dokladnie na oba pytania. Stacja brzegowa prowadzi ruch w niebezpieczenstwie, ty tylko odpowiadasz.',
           ru: 'Отвечайте коротко и точно на оба вопроса. Береговая станция управляет трафиком бедствия, вы только отвечаете.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. MY HULL IS WHITE WITH A BLUE STRIPE. THE ENGINE IS STOPPED AND THE FUEL IS SHUT OFF. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. MY HULL IS WHITE WITH A BLUE STRIPE. THE ENGINE IS STOPPED AND THE FUEL IS SHUT OFF. OVER.',
         must: [
           RESCUE, IDENTITY,
           { id: 'colour', label: 'Kolor kadluba', anyOf: ['white', 'blue stripe', 'hull is white', 'white hull'] },
           { id: 'engine', label: 'Odpowiedz o silniku (ENGINE STOPPED)', anyOf: ['engine is stopped', 'engine stopped', 'stopped the engine', 'fuel is shut off', 'engine off'] },
           OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. LIFEBOAT IS ON THE WAY, ETA TWO ZERO MINUTES. PUT ON LIFEJACKETS. STAY ON CHANNEL ONE SIX. OVER.',
+        stationName: 'POLISH RESCUE RADIO',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. LIFEBOAT IS ON THE WAY, ETA TWO ZERO MINUTES. PUT ON LIFEJACKETS. STAY ON CHANNEL ONE SIX. OVER.',
         hint: {
           pl: 'Kolor kadluba to nie ciekawostka: po tym znajdzie cie smiglowiec. Podaj go bez wahania.',
           ru: 'Цвет корпуса - не мелочь: по нему вас найдёт вертолёт. Называйте без колебаний.',
         },
       },
       {
-        youSay: 'GDYNIA RESCUE RADIO, THIS IS WIND DANCER. LIFEBOAT ETA TWO ZERO MINUTES, UNDERSTOOD. LIFEJACKETS ON. I AM STANDING BY ON CHANNEL ONE SIX. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. LIFEBOAT ETA TWO ZERO MINUTES, UNDERSTOOD. LIFEJACKETS ON. I AM STANDING BY ON CHANNEL ONE SIX. OVER.',
         must: [
           RESCUE, IDENTITY,
           { id: 'readback', label: 'Powtorzenie ETA lodzi ratunkowej', anyOf: ['two zero minutes', '20 minutes', 'twenty minutes', 'eta two zero', 'eta 20'] },
           { id: 'lifejackets', label: 'Potwierdzenie kamizelek', anyOf: ['lifejackets', 'life jackets', 'lifejackets on'] },
           STANDBY_16, OVER,
         ],
-        stationName: 'GDYNIA RESCUE RADIO',
+        stationName: 'POLISH RESCUE RADIO',
         // "STAND BY. OVER." is a contradiction: OVER means "answer me now".
-        stationSays: 'WIND DANCER, THIS IS GDYNIA RESCUE RADIO. UNDERSTOOD. REPORT ANY CHANGE IMMEDIATELY. STAND BY ON CHANNEL ONE SIX. OUT.',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. UNDERSTOOD. REPORT ANY CHANGE IMMEDIATELY. STAND BY ON CHANNEL ONE SIX. OUT.',
         hint: {
           pl: 'Nigdy nie konczysz MAYDAY slowem OUT. Ruch w niebezpieczenstwie zamyka stacja brzegowa, nie ty.',
           ru: 'Никогда не заканчивайте MAYDAY словом OUT. Трафик бедствия закрывает береговая станция, а не вы.',

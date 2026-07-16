@@ -77,8 +77,12 @@ export class RadioAudioEngine {
   private busy = false;
   private alarmTimer: ReturnType<typeof setInterval> | null = null;
   private alarmPhase = 0;
+  /** absolute ctx time of the next two-tone step, so alarm batches continue the
+   *  grid from a persistent cursor instead of re-anchoring at currentTime */
+  private alarmNextAt = 0;
   private aquaOsc: OscillatorNode | null = null;
   private aquaGain: GainNode | null = null;
+  private aquaLfo: OscillatorNode | null = null;
   /** ctx.currentTime until which a real (TTS) voice is on the air */
   private speakingUntil = 0;
 
@@ -222,7 +226,9 @@ export class RadioAudioEngine {
     const vol = v.volume === 0 ? 0 : Math.pow(v.volume / 20, 1.8) * 0.9;
 
     this.noiseGain.gain.setTargetAtTime(noiseTgt, t, 0.05);
-    this.voiceGain.gain.setTargetAtTime(voiceTgt, t, 0.03);
+    // fade the synthetic babble in gently, but OUT fast: when the carrier drops
+    // the fake voice should die at once, not trail off as a howl
+    this.voiceGain.gain.setTargetAtTime(voiceTgt, t, voiceTgt > 0 ? 0.03 : 0.012);
     this.volGain.gain.setTargetAtTime(vol, t, 0.02);
 
     if (carrier > 0 && !speaking && this.voiceOsc) {
@@ -310,17 +316,21 @@ export class RadioAudioEngine {
     this.alarmOsc = osc;
     this.alarmGain = g;
     this.alarmPhase = 0;
+    this.alarmNextAt = ctx.currentTime;
 
-    // schedule a couple of seconds ahead, and keep topping it up
+    // Keep ~2.4s of the two-tone grid scheduled AHEAD of a persistent cursor.
+    // The old pump re-anchored its 8 steps at currentTime every 1800ms, so
+    // successive 2.0s batches overlapped by ~0.2s and seamed the 2200/1300 Hz
+    // alternation. Continuing from alarmNextAt keeps one unbroken grid.
     const pump = () => {
       const c = this.ctx;
       const o = this.alarmOsc;
       if (!c || !o) return;
-      const now = c.currentTime;
-      for (let k = 0; k < 8; k++) {
-        const at = now + k * 0.25;
-        o.frequency.setValueAtTime(this.alarmPhase % 2 === 0 ? 2200 : 1300, at);
+      const horizon = c.currentTime + 2.4;
+      while (this.alarmNextAt < horizon) {
+        o.frequency.setValueAtTime(this.alarmPhase % 2 === 0 ? 2200 : 1300, this.alarmNextAt);
         this.alarmPhase++;
+        this.alarmNextAt += 0.25;
       }
     };
     pump();
@@ -371,17 +381,26 @@ export class RadioAudioEngine {
     osc.start();
     this.aquaOsc = osc;
     this.aquaGain = g;
+    this.aquaLfo = lfo;
   }
 
   private stopAqua(): void {
     const ctx = this.ctx;
     if (!ctx || !this.aquaOsc || !this.aquaGain) return;
     const t = ctx.currentTime;
-    this.aquaGain.gain.cancelScheduledValues(t);
-    this.aquaGain.gain.setTargetAtTime(0, t, 0.015);
+    const g = this.aquaGain;
+    g.gain.cancelScheduledValues(t);
+    g.gain.setTargetAtTime(0, t, 0.015);
     this.aquaOsc.stop(t + 0.08);
+    // the amplitude LFO is a SECOND oscillator; if it is not stopped it keeps
+    // running (modulating a now-silent gain) for every start/stop cycle. Stop it
+    // and disconnect the aqua gain from master once the fade is done, so the
+    // whole sub-graph can be collected instead of leaking per AquaQuake.
+    try { this.aquaLfo?.stop(t + 0.08); } catch { /* already stopped */ }
+    window.setTimeout(() => { try { g.disconnect(); } catch { /* context closed */ } }, 200);
     this.aquaOsc = null;
     this.aquaGain = null;
+    this.aquaLfo = null;
   }
 
   /**

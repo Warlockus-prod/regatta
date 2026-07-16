@@ -49,11 +49,13 @@ export function stationReply(kind: VoiceKind, vesselName: string): StationLine |
     case 'vts-report':
       return { station: VTS, say: `${you}, THIS IS ${VTS}, YOUR REPORT IS RECEIVED. NO REPORTED TRAFFIC IN THE FAIRWAY. OUT.` };
     case 'routine-ship':
-      return { station: 'ORKA', say: `${you}, THIS IS ORKA, GO AHEAD ON CHANNEL SEVEN TWO. OVER.` };
+      return { station: 'TRAINING SHIP', say: `${you}, THIS IS TRAINING SHIP, GO AHEAD ON CHANNEL SEVEN TWO. OVER.` };
     case 'routine-group':
-      return { station: 'REGATTA FLEET', say: `ALL FLEET, THIS IS ${you}, MESSAGE RECEIVED. OUT.` };
+      // the answering station is the fleet, not the caller's own vessel
+      return { station: 'REGATTA FLEET', say: `${you}, THIS IS REGATTA FLEET, MESSAGE RECEIVED. OUT.` };
     case 'answer-call':
-      return { station: RESCUE, say: `${you}, THIS IS ${RESCUE}, ROGER. OVER.` };
+      // the learner answered a call FROM the training ship, so the training ship replies
+      return { station: 'TRAINING SHIP', say: `${you}, THIS IS TRAINING SHIP, ROGER. OVER.` };
     default:
       return null;
   }
