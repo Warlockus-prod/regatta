@@ -43,6 +43,13 @@ export interface MustItem {
    * same kind of mistake, and must not pass.
    */
   critical?: boolean;
+  /**
+   * Match each `anyOf` entry as a whole space-delimited token, not a substring.
+   * OUT is the whole lesson of the radio check, and "out" as a substring is
+   * ticked green by "about"; OVER by "moreover", "overboard", "recover". Short
+   * prowords need a word boundary so an unrelated word cannot satisfy them.
+   */
+  whole?: boolean;
 }
 
 export interface TurnResult {
@@ -69,7 +76,13 @@ export function normalize(text: string): string {
 export function hits(transcript: string, item: MustItem): boolean {
   if (item.test) return item.test(transcript);
   const t = normalize(transcript);
-  return item.anyOf.some((phrase) => t.includes(normalize(phrase)));
+  return item.anyOf.some((phrase) => {
+    const p = normalize(phrase);
+    if (!p) return false;
+    // normalize() leaves only [a-z0-9 ], so `p` is a safe, literal regex body.
+    if (item.whole) return new RegExp(`(?:^| )${p}(?: |$)`).test(t);
+    return t.includes(p);
+  });
 }
 
 export function gradeTurn(transcript: string, must: MustItem[]): {

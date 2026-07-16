@@ -1,5 +1,5 @@
 // ============================================================================
-// Deep explanations for the 14 lessons of the interactive course.
+// Deep explanations for the 15 lessons of the interactive course.
 //
 // The course used to say only WHICH button to press plus a one-line reason.
 // That is not enough to pass an oral exam and it is not enough to actually

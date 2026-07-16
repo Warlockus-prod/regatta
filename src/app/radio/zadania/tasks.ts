@@ -111,8 +111,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 10, group: 'voice',
     task: 'Nadaj komunikat w sytuacji wypadniecia czlowieka za burte przy uzyciu radiotelefonu VHF.',
     how: {
-      pl: 'Wg UKE czlowiek za burta to zagrozenie zycia: na kanale 16 nadaj MAYDAY x3, ALL STATIONS x3, znak wlasnej stacji x3, MAN OVERBOARD IN POSITION... W symulatorze widoczny MOB cwiczymy jako PAN-PAN (ocena sytuacji).',
-      ru: 'По UKE человек за бортом - угроза жизни: на канале 16 передай MAYDAY x3, ALL STATIONS x3, свой позывной x3, MAN OVERBOARD IN POSITION... В симуляторе видимого MOB отрабатываем как PAN-PAN (оценка ситуации).',
+      pl: 'Wg UKE czlowiek za burta to zagrozenie zycia: na kanale 16 nadaj MAYDAY x3, THIS IS znak wlasnej stacji x3, potem MAYDAY + nazwa, POSITION..., MAN OVERBOARD, REQUIRE IMMEDIATE ASSISTANCE, liczba osob, OVER. Uwaga: w wywolaniu MAYDAY nie ma ALL STATIONS - samo slowo MAYDAY jest sygnalem do wszystkich. W symulatorze widoczny MOB cwiczymy jako PAN-PAN (ocena sytuacji).',
+      ru: 'По UKE человек за бортом - угроза жизни: на канале 16 передай MAYDAY x3, THIS IS свой позывной x3, затем MAYDAY + название, POSITION..., MAN OVERBOARD, REQUIRE IMMEDIATE ASSISTANCE, число людей, OVER. Важно: в вызове MAYDAY нет ALL STATIONS - само слово MAYDAY уже сигнал всем. В симуляторе видимого MOB отрабатываем как PAN-PAN (оценка ситуации).',
     },
     scenario: 'mob-panpan',
   },

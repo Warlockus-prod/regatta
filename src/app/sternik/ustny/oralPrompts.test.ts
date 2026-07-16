@@ -42,6 +42,14 @@ describe('a natural correct answer is not rejected on inflection', () => {
     const said = 'Ustepuje ten, kto ma druga lodz po prawej burcie. Manewr ma byc wczesny i wyrazny, przechodze za jej rufa i nie wolno przecinac jej kursu. Druga jednostka utrzymuje kurs i predkosc.';
     expect(gradeTurn(said, q.must).passed).toBe(true);
   });
+
+  it('overtaking, verb-first ("Ustepuje jednostka wyprzedzajaca") is correct', () => {
+    const e1 = ORAL_PROMPTS.find((p) => p.id === 'sternik-oral-02')!.must.find((m) => m.id === 'q2-e1')!;
+    expect(hits('Ustepuje jednostka wyprzedzajaca', e1)).toBe(true);
+    expect(hits('Ustepuje ta jednostka, ktora wyprzedza', e1)).toBe(true);
+    // but giving way TO the overtaking vessel (dative) is the rule backwards
+    expect(hits('Ustepuje jednostce wyprzedzajacej', e1)).toBe(false);
+  });
 });
 
 describe('the reversed rule does not score', () => {
@@ -137,6 +145,20 @@ describe('the reversed rule does not score', () => {
   it('Q8: "I do not remember the thresholds" is not a correct answer', () => {
     expect(gradeTurn('Nie pamietam progow rejestracji.', q('sternik-oral-08').must)
       .checks.find((c) => c.id === 'q8-e3')!.ok).toBe(false);
+  });
+
+  it('Q6: a MAYDAY answer that omits the position does not pass (position is required)', () => {
+    const noPos = 'Na kanale 16 nadaje MAYDAY trzy razy, podaje nazwe jachtu, rodzaj niebezpieczenstwa i liczbe osob na pokladzie. Uzywam racy i pomaranczowego dymu. Na srodladziu dzwonie 112.';
+    const r = gradeTurn(noPos, q('sternik-oral-06').must);
+    expect(r.checks.find((c) => c.id === 'q6-e3-pos')!.ok).toBe(false);
+    expect(r.passed).toBe(false);
+  });
+
+  it('Q6: a MAYDAY answer that omits the number of persons does not pass', () => {
+    const noPob = 'Na kanale 16 nadaje MAYDAY trzy razy, podaje nazwe jachtu, moja pozycje i rodzaj niebezpieczenstwa. Uzywam racy i pomaranczowego dymu. Na srodladziu dzwonie 112.';
+    const r = gradeTurn(noPob, q('sternik-oral-06').must);
+    expect(r.checks.find((c) => c.id === 'q6-e3-pob')!.ok).toBe(false);
+    expect(r.passed).toBe(false);
   });
 });
 

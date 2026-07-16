@@ -484,16 +484,18 @@ export default function RadioSimulatorPage() {
           void (async () => {
             const raw = await fetchStationVoice(reply.say);
             if (!raw) return;
+            const voiceMs = (await audioRef.current?.speak(raw)) ?? 0;
+            if (voiceMs <= 0) return;
             const s = rsRef.current;
             // a coast station alongside is a strong signal - it breaks any squelch
-            // except a maxed-out one, and it quiets the hiss under it
+            // except a maxed-out one, and it quiets the hiss under it. The carrier
+            // lasts as long as the voice, so the squelch closes when it stops.
             scriptOver(CHANNELS[s.channelIndex].num, {
               startMs: Date.now(),
-              durMs: 12_000,
+              durMs: Math.round(voiceMs) + 300,
               signal: SIG_STRONG,
               voice: 'male',
             });
-            await audioRef.current?.speak(raw);
           })();
         }
       }
@@ -545,18 +547,18 @@ export default function RadioSimulatorPage() {
       const say = modelLines.join(' ');
       const raw = await fetchStationVoice(say);
       // No audio (offline, no TTS key) means no transmission. Marking the channel
-      // BUSY for 25 seconds of silence would be the simulator lying about the air
-      // in the one trainer whose whole claim is that it never fakes anything.
+      // BUSY for silence would be the simulator lying about the air, in the one
+      // trainer whose whole claim is that it never fakes anything.
       if (!raw) return;
+      const voiceMs = await a.speak(raw);
+      if (voiceMs <= 0) return;
       const s = rsRef.current;
-      // Length the carrier to the actual speech (~0.38s a word), not a flat 25s,
-      // so the squelch closes when the voice stops. It comes over the air like any
-      // other transmission, not out of a speaker bolted onto the page.
-      const durMs = Math.min(30_000, Math.max(4_000, say.split(/\s+/).length * 380));
+      // Length the carrier to the ACTUAL decoded speech, so the squelch closes
+      // the moment the voice stops - it comes over the air like any other
+      // transmission, not out of a speaker bolted onto the page.
       scriptOver(CHANNELS[s.channelIndex].num, {
-        startMs: Date.now(), durMs, signal: SIG_STRONG, voice: 'male',
+        startMs: Date.now(), durMs: Math.round(voiceMs) + 300, signal: SIG_STRONG, voice: 'male',
       });
-      await a.speak(raw);
     } finally {
       setPlayingModel(false);
     }
@@ -687,7 +689,7 @@ export default function RadioSimulatorPage() {
             </button>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[minmax(0,460px)_1fr]">
+          <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'lg:grid-cols-[minmax(0,460px)_1fr]'}`}>
             <div>
               {/* Inspect ("Rozbior") toggle - tap any part of the radio to learn it */}
               <div className="mb-2 flex items-center gap-2">

@@ -230,10 +230,20 @@ export const ORAL_PROMPTS: OralPrompt[] = [
           const w = normalize(raw).split(' ');
           const gives = w.findIndex((x) => /^ustepuj/.test(x));
           if (gives < 0) return false;
-          const overtaking = w.findIndex((x) => /^wyprzedzaj/.test(x) || x === 'wyprzedza' || x === 'wyprzedzam');
-          const overtaken = w.findIndex((x) => /^wyprzedzan/.test(x));
-          if (overtaken >= 0 && overtaken < gives) return false;   // "wyprzedzana ustepuje" = backwards
-          return (overtaking >= 0 && overtaking < gives) || overtaken > gives;
+          const before = w.slice(0, gives);
+          const after = w.slice(gives + 1);
+          // "the OVERTAKEN vessel gives way" (overtaken before the verb) = backwards
+          if (before.some((x) => /^wyprzedzan/.test(x))) return false;
+          // "gives way TO the overtaking vessel" - a dative -ej/-emu after the verb
+          // means the overtaking one is the party given way to, which is backwards
+          if (after.some((x) => /^wyprzedzaj\w*(ej|emu)$/.test(x))) return false;
+          // Correct: the overtaking vessel is the SUBJECT that gives way - nominative
+          // (wyprzedzajac-a/-y) or a verb form - in either word order (subject-first
+          // "wyprzedzajaca ... ustepuje" or verb-first "ustepuje ... wyprzedzajaca");
+          // OR the overtaken vessel is the object it gives way to, after the verb.
+          const overtakingSubject = w.some((x) => (/^wyprzedzaj/.test(x) && !/(ej|emu)$/.test(x)) || x === 'wyprzedza' || x === 'wyprzedzam');
+          const overtakenAfter = after.some((x) => /^wyprzedzan/.test(x));
+          return overtakingSubject || overtakenAfter;
         },
         critical: true,
       },
@@ -398,10 +408,26 @@ export const ORAL_PROMPTS: OralPrompt[] = [
         label: 'MAYDAY powtorzone trzy razy',
         anyOf: ['mayday', 'may day', 'mejdej', 'majdej', 'trzy razy', '3 razy', 'trzykrotn'],
       },
+      // Position and persons-on-board are the load-bearing content of any distress
+      // message: a rescue cannot start without them. They were one tradeable element
+      // that passed on ANY single word; split out and each made required so a learner
+      // cannot omit the position and the head-count and still score the call.
       {
-        id: 'q6-e3',
-        label: 'Tresc: nazwa, pozycja, rodzaj niebezpieczenstwa, liczba osob',
-        anyOf: ['pozycje', 'pozycja', 'nazwe', 'nazwa jachtu', 'liczbe osob', 'ile osob', 'osob na pokladzie', 'rodzaj niebezpieczenstwa', 'rodzaj zagrozenia'],
+        id: 'q6-e3-pos',
+        label: 'Podajesz pozycje',
+        anyOf: ['pozycje', 'pozycja', 'pozycji', 'wspolrzedne', 'gdzie jestem'],
+        critical: true,
+      },
+      {
+        id: 'q6-e3-pob',
+        label: 'Podajesz liczbe osob na pokladzie',
+        anyOf: ['liczbe osob', 'ile osob', 'osob na pokladzie', 'liczba osob', 'osoby na pokladzie'],
+        critical: true,
+      },
+      {
+        id: 'q6-e3-info',
+        label: 'Podajesz nazwe jachtu i rodzaj niebezpieczenstwa',
+        anyOf: ['nazwe', 'nazwa jachtu', 'rodzaj niebezpieczenstwa', 'rodzaj zagrozenia', 'co sie stalo'],
       },
       {
         id: 'q6-e4',

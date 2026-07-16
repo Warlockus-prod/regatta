@@ -128,10 +128,11 @@ function Key({
 }) {
   const bg =
     tone === 'red' ? 'linear-gradient(180deg,#4a5060,#343947)'
-    : tone === 'blue' ? 'linear-gradient(180deg,#4a5060,#343947)'
+    // solid blue, like the round 16/C key on the real IC-M330
+    : tone === 'blue' ? 'radial-gradient(circle at 42% 30%,#3aa3ea,#1f74c4 62%,#175da0)'
     : tone === 'soft' ? 'linear-gradient(180deg,#3f4552,#2c313c)'
     : 'linear-gradient(180deg,#4a5060,#343947)';
-  const fg = tone === 'red' ? '#ff5f52' : tone === 'blue' ? '#9fd8ff' : '#dfe5ee';
+  const fg = tone === 'red' ? '#ff5f52' : tone === 'blue' ? '#ffffff' : '#dfe5ee';
   return (
     <button
       type="button"
@@ -743,6 +744,326 @@ export default function RadioFront({
     if (callTimer.current) clearTimeout(callTimer.current);
   }, []);
 
+  // ---------------------------------------------------------------------------
+  // Reusable control blocks. The vertical trainer faceplate and the wide
+  // "realistic" IC-M330GE both render the SAME wired controls (same handlers,
+  // same data-testid / data-ik, same inspect + highlight behaviour); only the
+  // ARRANGEMENT differs. That is the whole point of the realistic layout: the
+  // learner meets the real button POSITIONS, not a second set of handlers.
+  // ---------------------------------------------------------------------------
+  const brandBlock = (
+    <div className="flex items-center gap-2">
+      <span
+        style={{
+          width: 15, height: 15, borderRadius: 4,
+          background: 'conic-gradient(from 210deg,#0a58c2,#39b0e5,#0a58c2)',
+          boxShadow: '0 0 6px rgba(57,176,229,.5)',
+        }}
+      />
+      <span>
+        {/* the real faceplate reads "IC-M330" - the GE (GPS) suffix is not printed on it */}
+        <span className="block whitespace-nowrap text-[12px] font-bold leading-none tracking-wide text-[#eef3fa]">{realistic ? profile.nameplate.replace('GE', '') : profile.nameplate}</span>
+        <span className="block text-[7.5px] font-medium leading-tight tracking-[1.5px] text-[#8b97a8]">DSC CLASS D</span>
+      </span>
+    </div>
+  );
+
+  const brandTag = (
+    <span className="text-right text-[7.5px] font-medium leading-tight tracking-[1.4px] text-[#7d8899]">
+      VHF MARINE<br />TRANSCEIVER
+    </span>
+  );
+
+  const lcdBlock = <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} />;
+
+  const softkeysBlock = (
+    <div className="grid grid-cols-4 gap-1.5">
+      {softkeys(s).map((k, i) => {
+        const aqua = k === 'AQUA' && !inspect;
+        const ikKey = softIk(k);
+        return (
+          <Key
+            key={i}
+            id={`soft-${i}`}
+            ik={ikKey}
+            small
+            tone="soft"
+            disabled={inspect ? false : (!s.power || !k)}
+            onClick={aqua ? undefined : act(ikKey, () => dispatch({ type: 'soft', index: i }))}
+            onPointerDown={aqua ? () => dispatch({ type: 'aqua-down' }) : undefined}
+            onPointerUp={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
+            onPointerLeave={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
+            onKeyDown={aqua ? (e) => {
+              if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
+            } : undefined}
+            onKeyUp={aqua ? (e) => {
+              if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
+            } : undefined}
+          >
+            {k || '·'}
+          </Key>
+        );
+      })}
+    </div>
+  );
+
+  // Granular control pieces, so the two layouts can place them differently: the
+  // vertical trainer keeps its stacked keypad, the realistic layout arranges them
+  // as the real IC-M330GE does (keypad up top, 16/C + knob bottom-right).
+  const dialKnob = (
+    <button
+      type="button"
+      data-testid="dial-center"
+      data-ik="dial"
+      aria-label="Dial: press for volume/squelch, hold for power"
+      onClick={inspect ? () => onInspect?.('dial') : undefined}
+      onPointerDown={hold(dialDown)}
+      onPointerUp={hold(dialUp)}
+      onPointerLeave={hold(dialCancel)}
+      onPointerCancel={hold(dialCancel)}
+      onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dialDown(); }
+      })}
+      onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
+      })}
+      className="relative select-none shrink-0"
+      style={{
+        width: 76, height: 76, borderRadius: '50%',
+        border: inspect && inspectKey === 'dial' ? `2px solid ${HL}` : 'none',
+        background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
+        boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
+        touchAction: 'none',
+      }}
+    >
+      <span style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: 16, borderRadius: 2, background: '#cfd6e0' }} />
+      <span style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
+    </button>
+  );
+
+  const dialCaption = (
+    <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">
+      PWR·VOL·SQL
+      <br />
+      <span className="text-[#6b7686]">
+        {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}
+        {' · '}
+        {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
+      </span>
+    </div>
+  );
+
+  const dialRockers = (
+    <div className="flex gap-1.5">
+      <Key id="dial-ccw" ik="dial" small ariaLabel="Rotate dial counter-clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
+      <Key id="dial-cw" ik="dial" small ariaLabel="Rotate dial clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
+    </div>
+  );
+
+  // On the real set the 16/C is a small round BLUE key by the knob; keep it red in
+  // the trainer skin where red reads as "the emergency-adjacent one".
+  const key16c = (
+    <Key
+      id="key-16c"
+      ik="key-16c"
+      round={realistic}
+      tone={realistic ? 'blue' : 'red'}
+      ariaLabel="Channel 16, hold for Call Channel"
+      onClick={inspect ? () => onInspect?.('key-16c') : undefined}
+      onPointerDown={hold(callDown)}
+      onPointerUp={hold(callUp)}
+      onPointerLeave={hold(callCancel)}
+      onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
+      })}
+      onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
+      })}
+    >
+      16 · C
+    </Key>
+  );
+
+  const kLeft = <Key id="key-left" ik="key-left" small ariaLabel="Softkey page left" onClick={act('key-left', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>;
+  const kUp = <Key id="key-up" ik="key-up" small ariaLabel="Up / channel up" onClick={act('key-up', () => dispatch({ type: 'up' }))}>▲</Key>;
+  const kRight = <Key id="key-right" ik="key-right" small ariaLabel="Softkey page right" onClick={act('key-right', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>;
+  const kClr = <Key id="key-clr" ik="key-clr" small ariaLabel="Clear / back" onClick={act('key-clr', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>;
+  const kDown = <Key id="key-down" ik="key-down" small ariaLabel="Down / channel down" onClick={act('key-down', () => dispatch({ type: 'down' }))}>▼</Key>;
+  const kMenu = <Key id="key-menu" ik="key-menu" small ariaLabel="Menu" onClick={act('key-menu', () => dispatch({ type: 'menu' }))}>MENU</Key>;
+  const kEnt = <Key id="key-ent" ik="key-ent" small ariaLabel="Enter" onClick={act('key-ent', () => dispatch({ type: 'ent' }))}>ENT</Key>;
+
+  // Vertical trainer keypad: knob column + keypad column (the original stacked look).
+  const knobBlock = (
+    <div className="flex flex-col items-center gap-1.5">
+      {dialKnob}
+      {dialCaption}
+      {dialRockers}
+    </div>
+  );
+  const keypadBlock = (
+    <div className="flex flex-col gap-1.5">
+      {key16c}
+      <div className="grid grid-cols-3 gap-1.5">{kLeft}{kUp}{kRight}{kClr}{kDown}{kMenu}</div>
+      {kEnt}
+    </div>
+  );
+
+  // Realistic keypad, arranged like the hardware: CH-up on top, arrows around ENT,
+  // then MENU / CH-down / CLR - with the 16/C and the knob at the bottom-right.
+  const realControls = (
+    <div className="flex flex-col gap-2">
+      <div className="grid grid-cols-3 gap-1.5">
+        <span />{kUp}<span />
+        {kLeft}{kEnt}{kRight}
+        {kMenu}{kDown}{kClr}
+      </div>
+      <div className="mt-0.5 flex items-center justify-between gap-2">
+        {key16c}
+        {dialKnob}
+      </div>
+      {dialCaption}
+    </div>
+  );
+
+  const distressBlock = !coverOpen ? (
+    <button
+      type="button"
+      data-testid="distress-cover"
+      data-ik="distress-cover"
+      aria-label="Open DISTRESS cover"
+      onClick={act('distress-cover', () => setCoverOpen(true))}
+      className="relative w-full select-none"
+      style={{
+        // realistic: a small red flip-tab, as on the hardware; trainer: a full bar
+        height: realistic ? 38 : 46, borderRadius: realistic ? 6 : 9,
+        border: inspect && inspectKey === 'distress-cover' ? `2px solid ${HL}` : '2px solid #b23524',
+        background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
+        color: '#ffe8e2', fontWeight: 700, fontSize: realistic ? 10.5 : 12, letterSpacing: realistic ? 1 : 2,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
+      }}
+    >
+      <span style={{ position: 'absolute', left: realistic ? 7 : 12, top: '50%', transform: 'translateY(-50%)', fontSize: realistic ? 12 : 16 }}>⬒</span>
+      {realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otworz oslone')}`}
+    </button>
+  ) : (
+    <div style={{ borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}>
+      <button
+        type="button"
+        data-testid="distress-key"
+        data-ik="distress-key"
+        onClick={inspect ? () => onInspect?.('distress-key') : undefined}
+        onPointerDown={hold(onDistressDown)}
+        onPointerUp={hold(onDistressUp)}
+        onPointerLeave={hold(onDistressUp)}
+        onPointerCancel={hold(onDistressUp)}
+        onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+          if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
+        })}
+        onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+          if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
+        })}
+        className="w-full select-none"
+        style={{
+          height: 44, borderRadius: 7, border: 'none',
+          background: 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)',
+          color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 2,
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px rgba(180,30,20,.55)',
+          touchAction: 'none',
+        }}
+      >
+        DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}
+      </button>
+      <button
+        type="button"
+        onClick={() => setCoverOpen(false)}
+        className="mt-1.5 w-full"
+        style={{ height: 22, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
+      >
+        {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
+      </button>
+    </div>
+  );
+
+  const micBlock = (
+    <div
+      className="mx-auto mt-3 flex items-center gap-3"
+      data-ik="mic"
+      onClick={inspect ? (e) => {
+        const hit = (e.target as HTMLElement).closest('[data-ik]');
+        onInspect?.(hit?.getAttribute('data-ik') ?? 'mic');
+      } : undefined}
+      style={{
+        maxWidth: realistic ? 720 : 440,
+        background: 'linear-gradient(165deg,#33383f,#1f2229)',
+        border: inspect && inspectKey === 'mic' ? `2px solid ${HL}` : '1px solid #14171d',
+        borderRadius: 12,
+        padding: '11px 13px',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1)',
+        cursor: inspect ? 'help' : undefined,
+      }}
+    >
+      <button
+        type="button"
+        data-testid="ptt"
+        data-ik="ptt"
+        onClick={inspect ? () => onInspect?.('ptt') : undefined}
+        onPointerDown={hold(onPttDown)}
+        onPointerUp={hold(onPttUp)}
+        onPointerLeave={hold(onPttUp)}
+        onPointerCancel={hold(onPttUp)}
+        onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+          if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
+        })}
+        onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+          if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
+        })}
+        className="flex-1 select-none"
+        style={{
+          height: 54, borderRadius: 9,
+          border: inspect && inspectKey === 'ptt' ? `2px solid ${HL}` : 'none',
+          background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
+          color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 1.5,
+          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',
+          touchAction: 'none',
+          transition: 'background .1s',
+        }}
+      >
+        PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mowisz')}
+      </button>
+      <div style={{ flex: '0 0 96px' }}>
+        <div style={{ height: 8, background: '#12151b', borderRadius: 4, overflow: 'hidden', border: '1px solid #0a0c10' }}>
+          <div
+            style={{
+              height: '100%',
+              width: s.ptt ? '88%' : '0%',
+              background: 'linear-gradient(90deg,#3ec98a,#e6c14a,#ff6b52)',
+              transition: 'width .12s',
+            }}
+          />
+        </div>
+        <div className="mt-1 text-center text-[7.5px] font-medium tracking-widest text-[#7d8899]">
+          {tp('ПЕРЕДАЧА', 'TRANSMIT', 'NADAWANIE')}
+        </div>
+      </div>
+    </div>
+  );
+
+  // The speaker: a tall rounded-rectangle grille of HORIZONTAL louvers on the far
+  // left, exactly as on the real IC-M330GE (not a round dot-matrix). The vertical
+  // trainer faceplate has no speaker.
+  const speakerBlock = (
+    <div
+      aria-hidden
+      className="h-full w-full"
+      style={{
+        minHeight: 150, borderRadius: 9,
+        background: 'repeating-linear-gradient(0deg,#05060a 0 2px,#2a2e35 2px 5px)',
+        boxShadow: 'inset 0 1px 2px rgba(0,0,0,.75), inset 0 0 0 2px #14161b',
+        border: '1px solid #0a0b0e',
+      }}
+    />
+  );
+
   return (
     // device stage: the radio sits on a lit deck, as in the design handoff
     <div
@@ -784,7 +1105,8 @@ export default function RadioFront({
           // The active skin is injected here as CSS variables; only the LCD
           // subtree reads them, so the grey body stays identical on both skins.
           ...LCD_SKINS[skin],
-          maxWidth: 440,
+          // the realistic faceplate is a wide, landscape unit like the real set
+          maxWidth: realistic ? 720 : 440,
           background: realistic
             ? 'linear-gradient(180deg,#23262b 0%,#191b1f 58%,#101215 100%)'
             : 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
@@ -796,288 +1118,50 @@ export default function RadioFront({
             : 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
         }}
       >
-        {/* brand row */}
-        <div className="mb-3 flex items-center justify-between px-0.5">
-          <div className="flex items-center gap-2">
-            <span
-              style={{
-                width: 15, height: 15, borderRadius: 4,
-                background: 'conic-gradient(from 210deg,#0a58c2,#39b0e5,#0a58c2)',
-                boxShadow: '0 0 6px rgba(57,176,229,.5)',
-              }}
-            />
-            <span>
-              <span className="block whitespace-nowrap text-[12px] font-bold leading-none tracking-wide text-[#eef3fa]">{profile.nameplate}</span>
-              <span className="block text-[7.5px] font-medium leading-tight tracking-[1.5px] text-[#8b97a8]">DSC CLASS D</span>
-            </span>
-          </div>
-          <span className="text-right text-[7.5px] font-medium leading-tight tracking-[1.4px] text-[#7d8899]">
-            VHF MARINE<br />TRANSCEIVER
-          </span>
-        </div>
-
-        {/* Speaker grille - a defining feature of the real IC-M330GE front
-            panel. A perforated bar reads as hardware; trainer skins omit it. */}
-        {realistic && (
-          <div
-            aria-hidden
-            className="mb-3"
-            style={{
-              height: 18,
-              borderRadius: 6,
-              background:
-                'radial-gradient(circle at center, rgba(0,0,0,.6) 1.1px, transparent 1.6px) 0 0 / 7px 7px, linear-gradient(180deg,#191c20,#111316)',
-              boxShadow: 'inset 0 1px 2px rgba(0,0,0,.7), inset 0 -1px 0 rgba(255,255,255,.05)',
-              border: '1px solid #0a0b0e',
-            }}
-          />
+        {realistic ? (
+          // ---- wide realistic IC-M330GE: speaker | screen | controls, the real
+          //      front-panel geometry so the learner meets the actual layout ----
+          <>
+            <div className="mb-3 flex items-center justify-between px-1">
+              {brandBlock}
+              {brandTag}
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '0.6fr 1.7fr 1.05fr', gap: 12, alignItems: 'stretch' }}>
+              {/* LEFT: louvered speaker (top) + the red DISTRESS flip-tab (bottom) */}
+              <div className="flex flex-col gap-2">
+                <div className="min-h-0 flex-1">{speakerBlock}</div>
+                {distressBlock}
+              </div>
+              {/* CENTER: the screen, with the softkeys directly under it */}
+              <div className="flex min-w-0 flex-col gap-2">
+                {lcdBlock}
+                {softkeysBlock}
+              </div>
+              {/* RIGHT: keypad up top, 16/C + VOL/SQL knob at the bottom-right */}
+              <div className="flex flex-col">
+                {realControls}
+              </div>
+            </div>
+          </>
+        ) : (
+          // ---- vertical trainer faceplate: the stacked touch layout ----
+          <>
+            <div className="mb-3 flex items-center justify-between px-0.5">
+              {brandBlock}
+              {brandTag}
+            </div>
+            {lcdBlock}
+            <div className="mt-2.5">{softkeysBlock}</div>
+            <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: '1fr 1.15fr' }}>
+              {knobBlock}
+              {keypadBlock}
+            </div>
+            <div className="mt-3 border-t pt-3" style={{ borderColor: '#1b1e25' }}>{distressBlock}</div>
+          </>
         )}
-
-        {/* LCD */}
-        <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} />
-
-        {/* softkeys - a softkey explains the function it currently carries, and
-            falls back to the general "these keys change meaning" entry. */}
-        <div className="mt-2.5 grid grid-cols-4 gap-1.5">
-          {softkeys(s).map((k, i) => {
-            const aqua = k === 'AQUA' && !inspect;
-            const ikKey = softIk(k);
-            return (
-              <Key
-                key={i}
-                id={`soft-${i}`}
-                ik={ikKey}
-                small
-                tone="soft"
-                disabled={inspect ? false : (!s.power || !k)}
-                onClick={aqua ? undefined : act(ikKey, () => dispatch({ type: 'soft', index: i }))}
-                onPointerDown={aqua ? () => dispatch({ type: 'aqua-down' }) : undefined}
-                onPointerUp={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
-                onPointerLeave={aqua ? () => dispatch({ type: 'aqua-up' }) : undefined}
-                onKeyDown={aqua ? (e) => {
-                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-down' }); }
-                } : undefined}
-                onKeyUp={aqua ? (e) => {
-                  if (isActivationKey(e.key)) { e.preventDefault(); dispatch({ type: 'aqua-up' }); }
-                } : undefined}
-              >
-                {k || '·'}
-              </Key>
-            );
-          })}
-        </div>
-
-        {/* controls: knob + keypad */}
-        <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: '1fr 1.15fr' }}>
-          {/* knob */}
-          <div className="flex flex-col items-center gap-1.5">
-            <button
-              type="button"
-              data-testid="dial-center"
-              data-ik="dial"
-              aria-label="Dial: press for volume/squelch, hold for power"
-              onClick={inspect ? () => onInspect?.('dial') : undefined}
-              onPointerDown={hold(dialDown)}
-              onPointerUp={hold(dialUp)}
-              onPointerLeave={hold(dialCancel)}
-              onPointerCancel={hold(dialCancel)}
-              onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); dialDown(); }
-              })}
-              onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (isActivationKey(e.key)) { e.preventDefault(); dialUp(); }
-              })}
-              className="relative select-none"
-              style={{
-                width: 76, height: 76, borderRadius: '50%',
-                border: inspect && inspectKey === 'dial' ? `2px solid ${HL}` : 'none',
-                background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
-                boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
-                touchAction: 'none',
-              }}
-            >
-              {/* pointer indicator */}
-              <span style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: 16, borderRadius: 2, background: '#cfd6e0' }} />
-              <span style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
-            </button>
-            <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">
-              PWR·VOL·SQL
-              <br />
-              <span className="text-[#6b7686]">
-                {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}
-                {' · '}
-                {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
-              </span>
-            </div>
-            {/* rotate rockers */}
-            <div className="flex gap-1.5">
-              <Key id="dial-ccw" ik="dial" small ariaLabel="Rotate dial counter-clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
-              <Key id="dial-cw" ik="dial" small ariaLabel="Rotate dial clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
-            </div>
-          </div>
-
-          {/* keypad */}
-          <div className="flex flex-col gap-1.5">
-            <Key
-              id="key-16c"
-              ik="key-16c"
-              tone="red"
-              ariaLabel="Channel 16, hold for Call Channel"
-              onClick={inspect ? () => onInspect?.('key-16c') : undefined}
-              onPointerDown={hold(callDown)}
-              onPointerUp={hold(callUp)}
-              onPointerLeave={hold(callCancel)}
-              onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); callDown(); }
-              })}
-              onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                if (isActivationKey(e.key)) { e.preventDefault(); callUp(); }
-              })}
-            >
-              16 · C
-            </Key>
-            {/* Each key carries its OWN inspect id - tapping MENU in inspect mode
-                must explain MENU, not "the keypad". */}
-            <div className="grid grid-cols-3 gap-1.5">
-              <Key id="key-left" ik="key-left" small ariaLabel="Softkey page left" onClick={act('key-left', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>
-              <Key id="key-up" ik="key-up" small ariaLabel="Up / channel up" onClick={act('key-up', () => dispatch({ type: 'up' }))}>▲</Key>
-              <Key id="key-right" ik="key-right" small ariaLabel="Softkey page right" onClick={act('key-right', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>
-              <Key id="key-clr" ik="key-clr" small ariaLabel="Clear / back" onClick={act('key-clr', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>
-              <Key id="key-down" ik="key-down" small ariaLabel="Down / channel down" onClick={act('key-down', () => dispatch({ type: 'down' }))}>▼</Key>
-              <Key id="key-menu" ik="key-menu" small ariaLabel="Menu" onClick={act('key-menu', () => dispatch({ type: 'menu' }))}>MENU</Key>
-            </div>
-            <Key id="key-ent" ik="key-ent" small ariaLabel="Enter" onClick={act('key-ent', () => dispatch({ type: 'ent' }))}>ENT</Key>
-          </div>
-        </div>
-
-        {/* DISTRESS under a hazard-striped cover */}
-        <div className="mt-3 border-t pt-3" style={{ borderColor: '#1b1e25' }}>
-          {!coverOpen ? (
-            <button
-              type="button"
-              data-testid="distress-cover"
-              data-ik="distress-cover"
-              aria-label="Open DISTRESS cover"
-              onClick={act('distress-cover', () => setCoverOpen(true))}
-              className="relative w-full select-none"
-              style={{
-                height: 46, borderRadius: 9,
-                border: inspect && inspectKey === 'distress-cover' ? `2px solid ${HL}` : '2px solid #b23524',
-                background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
-                color: '#ffe8e2', fontWeight: 700, fontSize: 12, letterSpacing: 2,
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
-              }}
-            >
-              <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 16 }}>⬒</span>
-              DISTRESS · {tp('открой крышку', 'open the cover', 'otworz oslone')}
-            </button>
-          ) : (
-            <div style={{ borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}>
-              <button
-                type="button"
-                data-testid="distress-key"
-                data-ik="distress-key"
-                onClick={inspect ? () => onInspect?.('distress-key') : undefined}
-                onPointerDown={hold(onDistressDown)}
-                onPointerUp={hold(onDistressUp)}
-                onPointerLeave={hold(onDistressUp)}
-                onPointerCancel={hold(onDistressUp)}
-                onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                  if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onDistressDown(); }
-                })}
-                onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-                  if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
-                })}
-                className="w-full select-none"
-                style={{
-                  height: 44, borderRadius: 7, border: 'none',
-                  background: 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)',
-                  color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 2,
-                  boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px rgba(180,30,20,.55)',
-                  touchAction: 'none',
-                }}
-              >
-                DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}
-              </button>
-              <button
-                type="button"
-                onClick={() => setCoverOpen(false)}
-                className="mt-1.5 w-full"
-                style={{ height: 22, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
-              >
-                {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
-              </button>
-            </div>
-          )}
-        </div>
       </div>
 
-      {/* fist mic PTT. The housing itself is inspectable ("mic"); the PTT lever
-          inside it has its own entry. */}
-      <div
-        className="mx-auto mt-3 flex items-center gap-3"
-        data-ik="mic"
-        // The PTT lever sits INSIDE the housing, so its click bubbles up here.
-        // Resolve to the innermost part that names itself: a tap on the lever
-        // must explain the lever, not the handset it is bolted to.
-        onClick={inspect ? (e) => {
-          const hit = (e.target as HTMLElement).closest('[data-ik]');
-          onInspect?.(hit?.getAttribute('data-ik') ?? 'mic');
-        } : undefined}
-        style={{
-          maxWidth: 440,
-          background: 'linear-gradient(165deg,#33383f,#1f2229)',
-          border: inspect && inspectKey === 'mic' ? `2px solid ${HL}` : '1px solid #14171d',
-          borderRadius: 12,
-          padding: '11px 13px',
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.1)',
-          cursor: inspect ? 'help' : undefined,
-        }}
-      >
-        <button
-          type="button"
-          data-testid="ptt"
-          data-ik="ptt"
-          onClick={inspect ? () => onInspect?.('ptt') : undefined}
-          onPointerDown={hold(onPttDown)}
-          onPointerUp={hold(onPttUp)}
-          onPointerLeave={hold(onPttUp)}
-          onPointerCancel={hold(onPttUp)}
-          onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-            if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
-          })}
-          onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-            if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
-          })}
-          className="flex-1 select-none"
-          style={{
-            height: 54, borderRadius: 9,
-            border: inspect && inspectKey === 'ptt' ? `2px solid ${HL}` : 'none',
-            background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
-            color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 1.5,
-            boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',
-            touchAction: 'none',
-            transition: 'background .1s',
-          }}
-        >
-          PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mowisz')}
-        </button>
-        <div style={{ flex: '0 0 96px' }}>
-          <div style={{ height: 8, background: '#12151b', borderRadius: 4, overflow: 'hidden', border: '1px solid #0a0c10' }}>
-            <div
-              style={{
-                height: '100%',
-                width: s.ptt ? '88%' : '0%',
-                background: 'linear-gradient(90deg,#3ec98a,#e6c14a,#ff6b52)',
-                transition: 'width .12s',
-              }}
-            />
-          </div>
-          <div className="mt-1 text-center text-[7.5px] font-medium tracking-widest text-[#7d8899]">
-            {tp('ПЕРЕДАЧА', 'TRANSMIT', 'NADAWANIE')}
-          </div>
-        </div>
-      </div>
+      {micBlock}
     </div>
   );
 }

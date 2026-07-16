@@ -126,3 +126,44 @@ describe('the conversations themselves', () => {
     expect(moved).toBe(true);
   });
 });
+
+describe('distress signals cannot be traded or faked (audit hardening)', () => {
+  const anyItem = (id: string) => {
+    for (const d of DIALOGUES) for (const t of d.turns) {
+      const m = t.must.find((x) => x.id === id);
+      if (m) return m;
+    }
+    throw new Error(`no must-item with id ${id}`);
+  };
+
+  it('OUT/OVER match whole tokens, not substrings (about != OUT, moreover != OVER)', () => {
+    const out = anyItem('out');
+    const over = anyItem('over');
+    expect(hits('this is baltic star radio check out', out)).toBe(true);
+    expect(hits('i was talking about the weather', out)).toBe(false);
+    expect(hits('go ahead over', over)).toBe(true);
+    expect(hits('moreover the wind rose', over)).toBe(false);
+  });
+
+  it('MAYDAY is required three times and is critical', () => {
+    const mayday = anyItem('mayday');
+    expect(mayday.critical).toBe(true);
+    expect(hits('mayday mayday mayday this is wind dancer', mayday)).toBe(true);
+    expect(hits('mayday mayday this is wind dancer', mayday)).toBe(false);   // only twice
+    expect(hits('this is wind dancer we have a fire', mayday)).toBe(false);  // missing
+  });
+
+  it('PAN-PAN is the full three-fold signal and is critical', () => {
+    const panpan = anyItem('panpan');
+    expect(panpan.critical).toBe(true);
+    expect(hits('pan pan pan pan pan pan all stations', panpan)).toBe(true);
+    expect(hits('pan pan pan all stations', panpan)).toBe(false);   // only 1.5x
+  });
+
+  it('a MAYDAY turn does not pass when the signal word is missing', () => {
+    const turn = find('mayday-dialogue').turns.find((t) => t.must.some((m) => m.id === 'mayday'));
+    if (!turn) throw new Error('no mayday turn');
+    const missing = 'this is wind dancer sierra papa 9012 position 54 30 5 north 018 45 2 east fire on board require immediate assistance three persons on board over';
+    expect(gradeTurn(missing, turn.must).passed).toBe(false);
+  });
+});

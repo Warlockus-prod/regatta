@@ -50,7 +50,7 @@ const LISTEN_LINES = [
   },
   {
     station: 'POLISH RESCUE RADIO',
-    say: 'ALL STATIONS, ALL STATIONS, THIS IS POLISH RESCUE RADIO. SECURITE. NAVIGATIONAL WARNING FOLLOWS ON CHANNEL SIX SEVEN. OUT.',
+    say: 'SECURITE SECURITE SECURITE, ALL STATIONS ALL STATIONS ALL STATIONS, THIS IS POLISH RESCUE RADIO POLISH RESCUE RADIO POLISH RESCUE RADIO. FOR A NAVIGATIONAL WARNING LISTEN ON CHANNEL SIX SEVEN. OUT.',
   },
 ];
 
@@ -261,11 +261,18 @@ export default function InteractiveRadioCourse() {
     setSpeaking(true);
     try {
       const raw = await fetchStationVoice(say);
+      // No TTS (offline / no key) means no transmission: the written reply is
+      // still in the journal, but we do NOT put a carrier on the air just to make
+      // the synthetic babble wail into silence.
+      if (!raw) return;
+      const voiceMs = await a.speak(raw);
+      if (voiceMs <= 0) return;
+      // The carrier lasts exactly as long as the voice (+ a short tail), so the
+      // squelch closes when the station stops - no droning after the words.
       const s = stateRef.current;
       scriptOver(CHANNELS[s.channelIndex].num, {
-        startMs: Date.now(), durMs: 14_000, signal: SIG_STRONG, voice: 'male',
+        startMs: Date.now(), durMs: Math.round(voiceMs) + 300, signal: SIG_STRONG, voice: 'male',
       });
-      if (raw) await a.speak(raw);
     } finally {
       setSpeaking(false);
     }
@@ -434,7 +441,7 @@ export default function InteractiveRadioCourse() {
         </button>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,520px)_1fr]">
+      <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'xl:grid-cols-[minmax(0,520px)_1fr]'}`}>
         <div className="min-w-0">
           {/* Inspect ("Rozbior"): the course is where the learner meets the
               buttons, so this is where "what does this button even do" has to be

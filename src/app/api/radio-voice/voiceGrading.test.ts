@@ -115,3 +115,42 @@ describe('routine / test / medical / relay call grading', () => {
     expect(g.score).toBe(100);
   });
 });
+
+describe('a distress grader must not be tradeable (audit hardening)', () => {
+  const g = (kind: Parameters<typeof gradeVoiceTransmission>[0]['kind'], transcript: string, pob = 4) =>
+    gradeVoiceTransmission({ kind, transcript, vessel, positionSpoken: position, pob });
+
+  it('marks the defining signal mandatory and passes it for a correct MAYDAY', () => {
+    const grade = g('mayday-fire', correctMayday);
+    expect(grade.checks.find((c) => c.id === 'mayday3')?.mandatory).toBe(true);
+    expect(grade.mandatoryOk).toBe(true);
+  });
+
+  it('fails a MAYDAY that omits the word MAYDAY, however high the percentage', () => {
+    const noSignal = correctMayday.replace('MAYDAY MAYDAY MAYDAY', 'HELP HELP HELP');
+    const grade = g('mayday-fire', noSignal);
+    expect(grade.checks.find((c) => c.id === 'mayday3')?.ok).toBe(false);
+    expect(grade.mandatoryOk).toBe(false);
+  });
+
+  it('fails a SECURITE hazard call spoken with the wrong signal (PAN PAN)', () => {
+    const wrongLevel = 'PAN PAN PAN PAN PAN PAN ALL STATIONS ALL STATIONS ALL STATIONS THIS IS BALTIC STAR BALTIC STAR POSITION 54 30.5 NORTH 018 45.2 EAST SUBMERGED CONTAINER NAVIGATE WITH CAUTION OUT';
+    const grade = g('securite-hazard', wrongLevel);
+    expect(grade.checks.find((c) => c.id === 'securite3')?.ok).toBe(false);
+    expect(grade.mandatoryOk).toBe(false);
+  });
+
+  it('does not tick OUT/OVER for an unrelated word ending in those letters', () => {
+    const endsLookout = 'SECURITE SECURITE SECURITE ALL STATIONS ALL STATIONS ALL STATIONS THIS IS BALTIC STAR BALTIC STAR POSITION 54 30.5 NORTH 018 45.2 EAST SUBMERGED CONTAINER KEEP A SHARP LOOKOUT';
+    expect(g('securite-hazard', endsLookout).checks.find((c) => c.id === 'out')?.ok).toBe(false);
+    const endsMoreover = 'MARINA GDYNIA MARINA GDYNIA THIS IS BALTIC STAR BALTIC STAR RADIO CHECK MOREOVER';
+    expect(g('radio-check', endsMoreover).checks.find((c) => c.id === 'over')?.ok).toBe(false);
+  });
+
+  it('does not count a person tally hidden inside a larger number', () => {
+    const twentyOne = correctMayday.replace('FOUR PERSONS ON BOARD', 'TWENTY ONE PERSONS ON BOARD');
+    expect(g('mayday-fire', twentyOne, 1).checks.find((c) => c.id === 'persons')?.ok).toBe(false);
+    const one = correctMayday.replace('FOUR PERSONS ON BOARD', 'ONE PERSON ON BOARD');
+    expect(g('mayday-fire', one, 1).checks.find((c) => c.id === 'persons')?.ok).toBe(true);
+  });
+});

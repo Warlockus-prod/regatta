@@ -89,11 +89,16 @@ export default function LiveDialogue() {
     const a = audioRef.current;
     a.unlock();
     const raw = await fetchStationVoice(say);
+    // No TTS means no transmission - the written reply stays, but no carrier is
+    // put on the air just to let the synthetic babble wail into silence.
+    if (!raw) return;
+    const voiceMs = await a.speak(raw);
+    if (voiceMs <= 0) return;
+    // carrier tracks the real voice, so the squelch closes when the voice stops
     const s = rsRef.current;
     scriptOver(CHANNELS[s.channelIndex].num, {
-      startMs: Date.now(), durMs: 16_000, signal: SIG_STRONG, voice: 'male',
+      startMs: Date.now(), durMs: Math.round(voiceMs) + 300, signal: SIG_STRONG, voice: 'male',
     });
-    if (raw) await a.speak(raw);
   }, [push]);
 
   const start = useCallback((d: Dialogue) => {
@@ -259,7 +264,7 @@ export default function LiveDialogue() {
         </button>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,460px)_1fr]">
+      <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'lg:grid-cols-[minmax(0,460px)_1fr]'}`}>
         <div className="min-w-0">
           <div className="mb-2 flex flex-wrap items-center gap-2">
             <button

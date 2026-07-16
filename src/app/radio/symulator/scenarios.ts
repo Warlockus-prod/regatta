@@ -111,20 +111,23 @@ const stepHold = (): ScenarioStep => ({
 
 const stepAck = (): ScenarioStep => ({
   id: 'ack',
-  todo: { pl: 'Czekaj na potwierdzenie DSC (ACK) od stacji brzegowej - nie wylaczaj radia', ru: 'Жди подтверждение DSC (ACK) от береговой станции - не выключай рацию' },
+  todo: { pl: 'Juz po nadaniu MAYDAY glosem: stacja brzegowa potwierdza alert (ACK). Nie wylaczaj radia', ru: 'Уже после голосового MAYDAY: береговая станция подтверждает алерт (ACK). Не выключай рацию' },
   why: {
-    pl: 'Do czasu ACK radio samo powtarza alert co 3,5-4,5 min. Z zasady ACK przez DSC nadaje tylko stacja brzegowa (statki potwierdzaja glosem; wyjatek M.541: gdy zadna stacja nie odbiera, statek moze zamknac powtorki przez DSC). W Polsce dyzur trzyma POLISH RESCUE RADIO (MMSI 002618102) i MRCK Gdynia.',
-    ru: 'До получения ACK рация сама повторяет алерт каждые 3,5-4,5 мин. По правилу ACK по DSC даёт только береговая станция (суда подтверждают голосом; исключение M.541: если никто не принял алерт, судно может остановить повторы по DSC). В Польше вахту несёт POLISH RESCUE RADIO (MMSI 002618102) и MRCK Gdynia.',
+    pl: 'Glos juz poszedl - teraz stacja brzegowa potwierdza odbior alertu przez DSC. Do czasu ACK radio samo powtarza alert co 3,5-4,5 min - dlatego nie czekales z glosem. Z zasady ACK przez DSC nadaje tylko stacja brzegowa (statki potwierdzaja glosem; wyjatek M.541: gdy zadna stacja nie odbiera, statek moze zamknac powtorki przez DSC). W Polsce dyzur trzyma POLISH RESCUE RADIO (MMSI 002618102) i MRCK Gdynia.',
+    ru: 'Голос уже ушёл - теперь береговая станция подтверждает приём алерта по DSC. До ACK рация сама повторяет алерт каждые 3,5-4,5 мин - поэтому с голосом ты не ждал. По правилу ACK по DSC даёт только береговая станция (суда подтверждают голосом; исключение M.541: если никто не принял алерт, судно может остановить повторы по DSC). В Польше вахту несёт POLISH RESCUE RADIO (MMSI 002618102) и MRCK Gdynia.',
   },
-  check: (e) => e.type === 'coast-ack',
+  // The ACK is on a timer from distress-wait and may land during OR after the
+  // voice MAYDAY, so accept the fresh event or the already-acknowledged state.
+  // A one-shot `=== coast-ack` here would soft-lock if it fired while speaking.
+  check: (e, prev, next) => e.type === 'coast-ack' || next.ackReceived,
 });
 
 const stepAlarmOff = (): ScenarioStep => ({
   id: 'alarmoff',
-  todo: { pl: 'Wylacz alarm ([ALARM OFF]) - radio samo ustawi kanal 16', ru: 'Отключи сигнал ([ALARM OFF]) - рация сама встанет на 16 канал' },
+  todo: { pl: 'Wylacz alarm ([ALARM OFF]) - radio zostaje na kanale 16', ru: 'Отключи сигнал ([ALARM OFF]) - рация остаётся на 16 канале' },
   why: {
-    pl: 'Po ACK caly ruch w niebezpieczenstwie przenosi sie na kanal 16 (radiotelefonia). Radio robi to automatycznie - zostaje nadac komunikat glosem.',
-    ru: 'После ACK весь обмен по бедствию идёт на 16 канале (голос). Рация переключается автоматически - остаётся передать сообщение голосом.',
+    pl: 'Alarm ACK ucichl - wylaczasz go, radio zostaje na kanale 16. Glosowy MAYDAY juz nadany; teraz sluchasz stacji brzegowej i odpowiadasz na jej pytania na 16 (to ona kieruje ruchem w niebezpieczenstwie).',
+    ru: 'Сигнал ACK смолк - выключаешь его, рация остаётся на 16 канале. Голосовой MAYDAY уже передан; теперь слушаешь береговую станцию и отвечаешь на её вопросы на 16 (движением по бедствию управляет она).',
   },
   check: (e, prev, next) => e.type === 'soft' && prev.screen === 'distress-ack' && next.screen === 'distress-ack-done',
 });
@@ -156,20 +159,21 @@ const fireScenario: Scenario = {
     stepDistressCompose(),
     stepNature('Fire,Explosion'),
     stepHold(),
-    stepAck(),
-    stepAlarmOff(),
     {
       id: 'mayday-voice',
-      todo: { pl: 'Nadaj MAYDAY glosem na kanale 16 (trzymaj PTT)', ru: 'Передай MAYDAY голосом на 16 канале (держи PTT)' },
+      todo: { pl: 'Od razu nadaj MAYDAY glosem na kanale 16 (trzymaj PTT) - nie czekaj na ACK', ru: 'Сразу передай MAYDAY голосом на 16 канале (держи PTT) - не жди ACK' },
       why: {
-        pl: 'Cyfrowy alert to tylko naglowek. Glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji, potrzebna pomoc. Kolejnosc (schemat MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
-        ru: 'Цифровой алерт - только «заголовок». Голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации, нужную помощь. Порядок (схема MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
+        pl: 'Zaraz po alercie DSC nadajesz komunikat glosem - NIE czekasz na potwierdzenie. Radio samo powtarza alert co ok. 4 min az do ACK; ty w tym czasie mowisz. Cyfrowy alert to tylko naglowek; glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji, potrzebna pomoc. Kolejnosc (schemat MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
+        ru: 'Сразу после DSC-алерта передаёшь сообщение голосом - НЕ ждёшь подтверждения. Рация сама повторяет алерт каждые ~4 мин до ACK; ты в это время говоришь. Цифровой алерт - только «заголовок»; голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации, нужную помощь. Порядок (схема MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
       },
-      // Durable check: only requires PTT keyed on CH16 - the step is active
-      // only after alarm-off anyway, and [STBY] must not brick the scenario.
+      // Durable check: only requires PTT keyed on CH16. It is available right after
+      // the DSC alert (during distress-wait), so the learner speaks the voice MAYDAY
+      // WITHOUT waiting for the ACK - which is the whole point of this scenario.
       check: (e, prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
       voice: { kind: 'mayday-fire', lines: MAYDAY_FIRE_LINES },
     },
+    stepAck(),
+    stepAlarmOff(),
   ],
   mistakes: [
     {

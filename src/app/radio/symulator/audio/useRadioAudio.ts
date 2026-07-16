@@ -82,14 +82,17 @@ export function useRadioAudio(state: RadioState) {
     });
   }, []);
 
-  /** speak a station reply THROUGH the receiver: gated by squelch, scaled by VOL */
-  const speak = useCallback(async (raw: ArrayBuffer): Promise<boolean> => {
+  /** speak a station reply THROUGH the receiver: gated by squelch, scaled by VOL.
+   *  Returns the voice length in ms (0 if nothing played) so the caller can put a
+   *  carrier of exactly that length on the air - the squelch then closes when the
+   *  voice stops, instead of the synthetic babble droning on to a fixed window. */
+  const speak = useCallback(async (raw: ArrayBuffer): Promise<number> => {
     const engine = engineRef.current;
-    if (!engine || !engine.started) return false;
+    if (!engine || !engine.started) return 0;
     const buf = await engine.decode(raw);
-    if (!buf) return false;
+    if (!buf) return 0;
     engine.speak(buf);
-    return true;
+    return buf.duration * 1000;
   }, []);
 
   return { muted, toggleMute, unlock, onEvent, play, speak, started, busy };
