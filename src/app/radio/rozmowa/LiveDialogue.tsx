@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
-import { useSternikPrefs } from '../../sternik/prefs';
+import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
 import { fetchStationVoice } from '../symulator/audio/stationVoice';
@@ -33,7 +33,8 @@ interface LogRow { t: number; text: string; kind: 'tx' | 'rx' | 'bad' | 'step' |
 
 export default function LiveDialogue() {
   const { tp, lang } = useI18n();
-  const { explLang } = useSternikPrefs();
+  const { explLang, radioRealistic } = useSternikPrefs();
+  const skin = radioRealistic ? 'amber' : 'green';
   const showRu = lang === 'ru' && explLang !== 'pl';
   const showPl = explLang !== 'ru' || lang !== 'ru';
   const bi = useCallback((b: { pl: string; ru: string }) => {
@@ -270,21 +271,10 @@ export default function LiveDialogue() {
             >
               {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
             </button>
-            <span className="inline-flex overflow-hidden rounded-full" style={{ border: '1px solid var(--border-subtle)' }}>
-              {(['M330', 'M323'] as RadioModel[]).map((m) => (
-                <button
-                  key={m}
-                  type="button"
-                  onClick={() => { setModel(m); rsRef.current = createInitialRadio(m); force((n) => n + 1); }}
-                  className="min-h-[40px] px-3 text-xs font-semibold"
-                  style={model === m
-                    ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
-                    : { background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
-                >
-                  IC-{m}
-                </button>
-              ))}
-            </span>
+            <RadioVariantToggle
+              model={model}
+              onModel={(m) => { setModel(m); rsRef.current = createInitialRadio(m); force((n) => n + 1); }}
+            />
           </div>
 
           <div onPointerDownCapture={audio.unlock}>
@@ -300,6 +290,8 @@ export default function LiveDialogue() {
               clock="12:00"
               nextTxSec={radioProfile(model).retxSeconds}
               busy={audio.busy}
+              skin={skin}
+              realistic={radioRealistic}
             />
           </div>
 
