@@ -61,6 +61,15 @@ export default function LiveDialogue() {
 
   const recRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<BlobPart[]>([]);
+  // PTT/getUserMedia race guards, mirroring usePushToTalk: a quick tap must never
+  // leave the mic hot. wantRecording is true only while the button is held; genRef
+  // hands each press a ticket so a stale recorder cannot start or grade; streamRef
+  // lets the exit path release the mic; stopTimer caps a stuck press at 45s.
+  const streamRef = useRef<MediaStream | null>(null);
+  const wantRecording = useRef(false);
+  const genRef = useRef(0);
+  const aliveRef = useRef(true);
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [holdPct] = useState(0);
 
   const push = useCallback((text: string, kind: LogRow['kind'] = 'ui') => {
@@ -82,8 +91,10 @@ export default function LiveDialogue() {
   const turn = dialogue?.turns[turnIdx] ?? null;
   const channelNow = CHANNELS[rs.channelIndex].num;
 
-  /** the station transmits: a carrier on your channel, into your receiver */
-  const stationSpeaks = useCallback(async (name: string, say: string) => {
+  /** the station transmits: a carrier on the CONVERSATION's channel, into your
+   *  receiver. The carrier is scripted on the channel the traffic belongs on
+   *  (the coast station does not chase the learner onto a wrong channel). */
+  const stationSpeaks = useCallback(async (name: string, say: string, onChannel: string) => {
     if (!say) return;
     push(`📻 ${name}: ${say}`, 'rx');
     const a = audioRef.current;
@@ -95,8 +106,7 @@ export default function LiveDialogue() {
     const voiceMs = await a.speak(raw);
     if (voiceMs <= 0) return;
     // carrier tracks the real voice, so the squelch closes when the voice stops
-    const s = rsRef.current;
-    scriptOver(CHANNELS[s.channelIndex].num, {
+    scriptOver(onChannel, {
       startMs: Date.now(), durMs: Math.round(voiceMs) + 300, signal: SIG_STRONG, voice: 'male',
     });
   }, [push]);
@@ -121,67 +131,133 @@ export default function LiveDialogue() {
     dispatch({ type: 'ptt-down' });
     if (!rsRef.current.ptt) return;   // the reducer refused (CH 70, or radio off)
 
+    // Every press takes a ticket. If the finger lifts (or the user exits) before
+    // the mic finishes opening, this press is no longer current and nothing starts.
+    const ticket = ++genRef.current;
+    const isCurrent = () => aliveRef.current && genRef.current === ticket;
+    wantRecording.current = true;
+
     setChecks(null);
     setHeard(null);
+
+    let stream: MediaStream;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-      const rec = new MediaRecorder(stream);
-      recRef.current = rec;
-      chunks.current = [];
-      rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
-      rec.onstop = async () => {
-        stream.getTracks().forEach((t) => t.stop());
-        const blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' });
-        if (blob.size === 0) { setPhase('idle'); return; }
-        setPhase('grading');
-        try {
-          const fd = new FormData();
-          fd.append('audio', blob, 'turn.webm');
-          const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
-          const data = (await res.json()) as { transcript?: string; fallback?: boolean };
-          if (data.fallback) { setSttOff(true); setPhase('idle'); return; }
-          const text = (data.transcript ?? '').trim();
-          setHeard(text);
+      stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+    } catch {
+      if (isCurrent()) setPhase('idle');
+      return;
+    }
 
-          const graded = gradeTurn(text, turn.must);
-          setChecks(graded.checks);
-          recordWeak(
-            'dialogue',
-            graded.checks.filter((c) => !c.ok).map((c) => ({ id: c.id, label: c.label })),
-            graded.checks.filter((c) => c.ok).map((c) => ({ id: c.id })),
-          );
-          push(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${text}"`, 'tx');
-          for (const c of graded.checks.filter((x) => !x.ok)) {
-            push(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
-          }
-          push(`${tp('Оценка', 'Graded', 'Ocena')}: ${graded.score}%`, graded.passed ? 'step' : 'ui');
+    // The whole point of the guard: by the time the mic opened, a quick tap may
+    // already be released. Close the stream and bail before any recorder starts.
+    if (!isCurrent() || !wantRecording.current) {
+      stream.getTracks().forEach((t) => t.stop());
+      if (isCurrent()) setPhase('idle');
+      return;
+    }
 
-          // transmitting on the wrong channel is a real failure, so say so
-          if (channelNow !== dialogue?.channel && turnIdx === 0) {
-            push(`⚠ ${tp('Ты передавал на канале', 'You transmitted on channel', 'Nadawales na kanale')} ${channelNow}, ${tp('а разговор идёт на', 'but this conversation is on', 'a ta rozmowa jest na')} ${dialogue?.channel}`, 'bad');
-          }
+    streamRef.current = stream;
+    const rec = new MediaRecorder(stream);
+    recRef.current = rec;
+    chunks.current = [];
+    rec.ondataavailable = (e) => { if (e.data.size > 0) chunks.current.push(e.data); };
+    rec.onstop = async () => {
+      if (stopTimer.current) { clearTimeout(stopTimer.current); stopTimer.current = null; }
+      stream.getTracks().forEach((t) => t.stop());
+      if (streamRef.current === stream) streamRef.current = null;
+      if (recRef.current === rec) recRef.current = null;
+      if (!isCurrent()) return;   // a superseded or abandoned press: drop it silently
+      const blob = new Blob(chunks.current, { type: rec.mimeType || 'audio/webm' });
+      if (blob.size === 0) { setPhase('idle'); return; }
+      setPhase('grading');
+      try {
+        const fd = new FormData();
+        fd.append('audio', blob, 'turn.webm');
+        const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
+        // A 429 / 413 / 502 must NOT be graded as "you missed everything" - that
+        // poisons weakSpots and tells a correct learner they were wrong. Only a
+        // real transcript is ever graded.
+        if (!res.ok) { if (isCurrent()) { setSttOff(true); setPhase('idle'); } return; }
+        const data = (await res.json()) as { transcript?: string; fallback?: boolean };
+        if (data.fallback) { if (isCurrent()) { setSttOff(true); setPhase('idle'); } return; }
+        if (!isCurrent()) return;
 
-          if (graded.passed) {
-            setPhase('answered');
-            await stationSpeaks(turn.stationName, turn.stationSays);
-          } else {
-            setPhase('idle');
-          }
-        } catch {
+        const text = (data.transcript ?? '').trim();
+        if (!text) {
+          // Silence (muted mic, headset not routed) is not a failed turn - clear
+          // the heard text, count nothing against the learner, let them retry.
+          setHeard('');
+          setPhase('idle');
+          return;
+        }
+        setHeard(text);
+
+        const graded = gradeTurn(text, turn.must);
+        setChecks(graded.checks);
+        recordWeak(
+          'dialogue',
+          graded.checks.filter((c) => !c.ok).map((c) => ({ id: c.id, label: c.label })),
+          graded.checks.filter((c) => c.ok).map((c) => ({ id: c.id })),
+        );
+        push(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${text}"`, 'tx');
+        for (const c of graded.checks.filter((x) => !x.ok)) {
+          push(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+        }
+        push(`${tp('Оценка', 'Graded', 'Ocena')}: ${graded.score}%`, graded.passed ? 'step' : 'ui');
+
+        // Transmitting on the wrong channel is a real failure, on EVERY turn -
+        // the whole point of the marina/medico briefs is moving traffic OFF 16,
+        // so pouring the berth details or the consultation onto 16 must be
+        // flagged, not just the opening hail. `expectedChannel` is the channel
+        // this turn belongs on (a post-switch turn carries its own `channel`).
+        const expectedChannel = turn.channel ?? dialogue?.channel;
+        if (expectedChannel && channelNow !== expectedChannel) {
+          push(`⚠ ${tp('Ты передавал на канале', 'You transmitted on channel', 'Nadawales na kanale')} ${channelNow}, ${tp('а это должно идти на', 'but this belongs on', 'a to powinno isc na')} ${expectedChannel}`, 'bad');
+        }
+
+        if (graded.passed) {
+          setPhase('answered');
+          // the station answers on the channel the traffic belongs on
+          await stationSpeaks(turn.stationName, turn.stationSays, expectedChannel ?? channelNow);
+        } else {
           setPhase('idle');
         }
-      };
-      rec.start();
-      setPhase('recording');
-    } catch {
-      setPhase('idle');
-    }
+      } catch {
+        if (isCurrent()) setPhase('idle');
+      }
+    };
+    // Never let the recorder run forever - VoicePtt caps a held press at 45s.
+    stopTimer.current = setTimeout(() => { try { rec.stop(); } catch { /* already stopped */ } }, 45000);
+    rec.start();
+    setPhase('recording');
   }, [channelNow, dialogue, dispatch, phase, push, stationSpeaks, tp, turn, turnIdx]);
 
   const endRecording = useCallback(() => {
+    wantRecording.current = false;
     dispatch({ type: 'ptt-up' });
-    try { recRef.current?.stop(); } catch { /* already stopped */ }
+    try { recRef.current?.stop(); } catch { /* already stopped, or never started */ }
   }, [dispatch]);
+
+  /** Tear down the mic completely: invalidate the ticket, stop the recorder and
+   *  release the stream. Used on exit and on dialogue change so a tap in flight
+   *  can never leave the microphone open behind the picker. */
+  const stopRecording = useCallback(() => {
+    genRef.current += 1;
+    wantRecording.current = false;
+    if (stopTimer.current) { clearTimeout(stopTimer.current); stopTimer.current = null; }
+    try { recRef.current?.stop(); } catch { /* already stopped */ }
+    recRef.current = null;
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setPhase('idle');
+  }, []);
+
+  const exitDialogue = useCallback(() => {
+    stopRecording();
+    setDialogue(null);
+  }, [stopRecording]);
 
   const nextTurn = useCallback(() => {
     if (!dialogue) return;
@@ -192,7 +268,13 @@ export default function LiveDialogue() {
     setHeard(null);
   }, [dialogue, turnIdx]);
 
-  useEffect(() => () => { try { recRef.current?.stop(); } catch { /* noop */ } }, []);
+  // alive tracks a real unmount, so a late transcript never touches a dead panel.
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => { aliveRef.current = false; };
+  }, []);
+  // leaving a conversation - or the page - must never leave the mic hot.
+  useEffect(() => () => { stopRecording(); }, [dialogue, stopRecording]);
 
   // --- the picker ---------------------------------------------------------------
 
@@ -256,7 +338,7 @@ export default function LiveDialogue() {
         <button
           type="button"
           data-testid="exit-dialogue"
-          onClick={() => setDialogue(null)}
+          onClick={exitDialogue}
           className="ml-auto min-h-[40px] rounded-lg px-3 text-xs"
           style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
         >
@@ -271,6 +353,7 @@ export default function LiveDialogue() {
               type="button"
               data-testid="sound-toggle"
               onClick={audio.toggleMute}
+              aria-pressed={!audio.muted}
               className="min-h-[40px] rounded-xl px-3 text-sm font-semibold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
@@ -326,7 +409,7 @@ export default function LiveDialogue() {
               <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{bi(dialogue.why)}</p>
               <button
                 type="button"
-                onClick={() => setDialogue(null)}
+                onClick={exitDialogue}
                 className="mt-3 min-h-[44px] rounded-xl px-4 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
@@ -343,7 +426,7 @@ export default function LiveDialogue() {
                   type="button"
                   data-testid="toggle-script"
                   onClick={() => setShowScript((v) => !v)}
-                  className="min-h-[32px] rounded-full px-2 text-[11px]"
+                  className="min-h-[44px] rounded-full px-2 text-[11px]"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   {showScript ? tp('Скрыть текст (экзамен)', 'Hide the script (exam)', 'Ukryj tekst (egzamin)') : tp('Показать текст', 'Show the script', 'Pokaz tekst')}
@@ -366,9 +449,10 @@ export default function LiveDialogue() {
                 </p>
               )}
 
-              {/* what happened to the last thing you said */}
+              {/* what happened to the last thing you said - announced to a screen
+                  reader, since the verdict appears seconds after the user speaks */}
               {heard !== null && (
-                <div className="mb-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                <div className="mb-3 rounded-xl p-3" aria-live="polite" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                   <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                     {tp('Модель услышала', 'The model heard', 'Model uslyszal')}
                   </div>
@@ -411,7 +495,7 @@ export default function LiveDialogue() {
               )}
 
               {sttOff && (
-                <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
+                <p className="mt-2 text-xs" role="alert" style={{ color: 'var(--text-muted)' }}>
                   {tp(
                     'Распознавание речи сейчас недоступно - разговор можно только прочитать.',
                     'Speech recognition is unavailable right now - the conversation can only be read.',

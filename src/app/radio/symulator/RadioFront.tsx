@@ -67,7 +67,10 @@ const LCD_SKINS: Record<RadioSkin, React.CSSProperties> = {
   amber: {
     '--lcd-fg': '#ffb638',
     '--lcd-dim': '#c98a2e',
-    '--lcd-faint': '#8a6023',
+    // Lifted from #8a6023 (~3.3:1) to reach >=4.5:1 on the amber LCD for the
+    // 9.5-10.5px faint text (NO TIME, GPS-off, status bar). Still visibly
+    // fainter than --lcd-dim, so the phosphor hierarchy is preserved.
+    '--lcd-faint': '#b5842f',
     '--lcd-warn': '#ffd873',
     '--lcd-alert': '#ff6b52',
     '--lcd-bg': 'linear-gradient(180deg,#241603,#180f01)',
@@ -204,13 +207,16 @@ function CenterGauge({ label, value, max = 10, zeroLabel }: { label: string; val
 }
 
 /** An LCD indicator: plain text normally, a tappable target while inspecting. */
-function Ind({ ik, ins, style, children }: { ik: string; ins?: Inspect; style?: React.CSSProperties; children: ReactNode }) {
+function Ind({ ik, ins, style, label, children }: { ik: string; ins?: Inspect; style?: React.CSSProperties; label?: string; children: ReactNode }) {
   if (!ins?.on) return <span style={style}>{children}</span>;
   const picked = ins.key === ik;
   return (
     <button
       type="button"
       data-ik={ik}
+      // The visible content is a raw glyph ('▮▮▮', '◈ GPS', '·'); the aria-label
+      // gives screen-reader users a real name for the indicator they can inspect.
+      aria-label={label ?? ik}
       onClick={() => ins.pick(ik)}
       style={{
         ...style,
@@ -241,17 +247,17 @@ function StatusBar({ s, ins, busy = false }: { s: RadioState; ins?: Inspect; bus
         color: LCD_DIM,
       }}
     >
-      <Ind ik="status-band" ins={ins}>INT</Ind>
+      <Ind ik="status-band" ins={ins} label="frequency band">INT</Ind>
       {/* "BUSY: displayed while receiving, OR THE SQUELCH IS OPEN" (M330GE p.3).
           It is the visual twin of the audio gate: if you can hear the speaker,
           BUSY is lit - always the same condition, never one without the other. */}
-      <Ind ik="status-busy" ins={ins} style={{ color: busy ? LCD_WARN : LCD_FAINT, minWidth: 30 }}>
+      <Ind ik="status-busy" ins={ins} label="busy indicator" style={{ color: busy ? LCD_WARN : LCD_FAINT, minWidth: 30 }}>
         {busy ? 'BUSY' : '·'}
       </Ind>
-      <Ind ik="status-gps" ins={ins} style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</Ind>
-      <Ind ik="status-watch" ins={ins} style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch || '·'}</Ind>
-      <Ind ik="status-power" ins={ins} style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</Ind>
-      <Ind ik="status-batt" ins={ins}>▮▮▮</Ind>
+      <Ind ik="status-gps" ins={ins} label="GPS status" style={{ color: s.gpsValid ? LCD_FG : LCD_FAINT }}>◈ GPS</Ind>
+      <Ind ik="status-watch" ins={ins} label="watch mode" style={{ color: LCD_WARN, minWidth: 32, textAlign: 'center' }}>{watch || '·'}</Ind>
+      <Ind ik="status-power" ins={ins} label="transmit power" style={{ color: LCD_FG, fontWeight: 700 }}>{effectivePower(s)}</Ind>
+      <Ind ik="status-batt" ins={ins} label="battery indicator">▮▮▮</Ind>
     </div>
   );
 }
@@ -266,6 +272,7 @@ function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
       <Ind
         ik="tx-meter"
         ins={ins}
+        label="transmit / receive meter"
         style={{ fontSize: 11, fontWeight: 700, letterSpacing: 1, color: tx ? LCD_ALERT : LCD_DIM, minWidth: 24 }}
       >
         {label}
@@ -290,8 +297,11 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
 
   let body: ReactNode;
   if (!s.power) {
+    // Skin-aware "off" text: the old hard-coded #12463f was a green-skin colour
+    // (~1.7:1, invisible, and off-palette on the amber skin). A phosphor-tint
+    // wash at 0.5 alpha reads on BOTH skins at >=3:1 without lighting the LCD.
     body = (
-      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#12463f', fontSize: 12, letterSpacing: 2 }}>
+      <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(var(--lcd-tint),0.5)', fontSize: 12, letterSpacing: 2 }}>
         {'- OFF -'}
       </div>
     );
@@ -580,7 +590,15 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
             <div>
               <div
                 data-ik="ch-readout"
+                // While inspecting, this becomes a real keyboard target so a
+                // keyboard user can ask "what is this big number".
+                role={ins?.on ? 'button' : undefined}
+                tabIndex={ins?.on ? 0 : undefined}
+                aria-label={ins?.on ? 'channel number readout' : undefined}
                 onClick={ins?.on ? () => ins.pick('ch-readout') : undefined}
+                onKeyDown={ins?.on ? (e) => {
+                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ins.pick('ch-readout'); }
+                } : undefined}
                 style={{
                   cursor: ins?.on ? 'help' : undefined,
                   borderRadius: 6,
@@ -622,9 +640,18 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
     <div
       data-testid="lcd"
       data-ik="lcd"
+      // While inspecting, the screen itself is focusable so a keyboard user can
+      // ask "what is this screen" (Enter/Space), matching the pointer behaviour.
+      role={ins?.on ? 'button' : undefined}
+      tabIndex={ins?.on ? 0 : undefined}
+      aria-label={ins?.on ? 'radio display screen' : undefined}
       onClick={ins?.on ? (e) => {
         // Only claim the tap if it did not land on a more specific indicator.
         if ((e.target as HTMLElement).closest('[data-ik]') === e.currentTarget) ins.pick('lcd');
+      } : undefined}
+      onKeyDown={ins?.on ? (e) => {
+        // Only handle keys aimed at the container itself, not a focused child indicator.
+        if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ins.pick('lcd'); }
       } : undefined}
       className={`${lcdFont.className} relative rounded-lg px-3 py-2`}
       style={{
@@ -689,6 +716,21 @@ export default function RadioFront({
   const { tp } = useI18n();
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
+
+  // The wide "realistic" faceplate is a 3-column grid whose min-content (softkeys
+  // 4x44, keypad 3x44, DISTRESS tab) overflows a phone below ~480px. Under that
+  // width we drop the realistic layout into a single stacked column so the 44px
+  // keys are preserved (they wrap) and the page never scrolls sideways. The grid
+  // (and the identical desktop look) is untouched at >=480px, incl. >=768px.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) return;
+    const mq = window.matchMedia('(max-width: 479px)');
+    const update = () => setNarrow(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
 
   // Inspect mode: a tap EXPLAINS the part instead of operating the radio, so no
   // event reaches the state machine. Off by default -> behaviour is unchanged.
@@ -845,7 +887,9 @@ export default function RadioFront({
     <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">
       PWR·VOL·SQL
       <br />
-      <span className="text-[#6b7686]">
+      {/* Lifted from #6b7686 (~3.9:1) to the caption's own #9aa5b4 (~6.9:1). This
+          sub-line is the ONLY place the press-vs-hold power gesture is documented. */}
+      <span className="text-[#9aa5b4]">
         {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}
         {' · '}
         {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
@@ -934,8 +978,9 @@ export default function RadioFront({
       onClick={act('distress-cover', () => setCoverOpen(true))}
       className="relative w-full select-none"
       style={{
-        // realistic: a small red flip-tab, as on the hardware; trainer: a full bar
-        height: realistic ? 38 : 46, borderRadius: realistic ? 6 : 9,
+        // realistic: a compact red flip-tab, as on the hardware; trainer: a full bar.
+        // The realistic tab is 44px (not 38) so its touch target clears the 44px floor.
+        height: realistic ? 44 : 46, borderRadius: realistic ? 6 : 9,
         border: inspect && inspectKey === 'distress-cover' ? `2px solid ${HL}` : '2px solid #b23524',
         background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
         color: '#ffe8e2', fontWeight: 700, fontSize: realistic ? 10.5 : 12, letterSpacing: realistic ? 1 : 2,
@@ -977,7 +1022,9 @@ export default function RadioFront({
         type="button"
         onClick={() => setCoverOpen(false)}
         className="mt-1.5 w-full"
-        style={{ height: 22, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
+        // minHeight 44 gives a full touch target; the transparent background keeps
+        // it looking like the same small text link (44px floor, not a visual bar).
+        style={{ minHeight: 44, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
       >
         {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
       </button>
@@ -1056,7 +1103,9 @@ export default function RadioFront({
       aria-hidden
       className="h-full w-full"
       style={{
-        minHeight: 150, borderRadius: 9,
+        // Full-height grille beside the LCD on desktop; a short strip when the
+        // narrow layout stacks it above the screen instead of alongside it.
+        minHeight: narrow ? 84 : 150, borderRadius: 9,
         background: 'repeating-linear-gradient(0deg,#05060a 0 2px,#2a2e35 2px 5px)',
         boxShadow: 'inset 0 1px 2px rgba(0,0,0,.75), inset 0 0 0 2px #14161b',
         border: '1px solid #0a0b0e',
@@ -1126,22 +1175,37 @@ export default function RadioFront({
               {brandBlock}
               {brandTag}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '0.6fr 1.7fr 1.05fr', gap: 12, alignItems: 'stretch' }}>
-              {/* LEFT: louvered speaker (top) + the red DISTRESS flip-tab (bottom) */}
-              <div className="flex flex-col gap-2">
-                <div className="min-h-0 flex-1">{speakerBlock}</div>
+            {narrow ? (
+              // Phone (<480px): a single stacked column - speaker strip, DISTRESS
+              // tab, screen + softkeys, then the keypad/knob. Every block spans the
+              // full width, so nothing overflows and the 44px keys keep their size.
+              <div className="flex flex-col gap-3">
+                {speakerBlock}
                 {distressBlock}
-              </div>
-              {/* CENTER: the screen, with the softkeys directly under it */}
-              <div className="flex min-w-0 flex-col gap-2">
-                {lcdBlock}
-                {softkeysBlock}
-              </div>
-              {/* RIGHT: keypad up top, 16/C + VOL/SQL knob at the bottom-right */}
-              <div className="flex flex-col">
+                <div className="flex min-w-0 flex-col gap-2">
+                  {lcdBlock}
+                  {softkeysBlock}
+                </div>
                 {realControls}
               </div>
-            </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: '0.6fr 1.7fr 1.05fr', gap: 12, alignItems: 'stretch' }}>
+                {/* LEFT: louvered speaker (top) + the red DISTRESS flip-tab (bottom) */}
+                <div className="flex flex-col gap-2">
+                  <div className="min-h-0 flex-1">{speakerBlock}</div>
+                  {distressBlock}
+                </div>
+                {/* CENTER: the screen, with the softkeys directly under it */}
+                <div className="flex min-w-0 flex-col gap-2">
+                  {lcdBlock}
+                  {softkeysBlock}
+                </div>
+                {/* RIGHT: keypad up top, 16/C + VOL/SQL knob at the bottom-right */}
+                <div className="flex flex-col">
+                  {realControls}
+                </div>
+              </div>
+            )}
           </>
         ) : (
           // ---- vertical trainer faceplate: the stacked touch layout ----

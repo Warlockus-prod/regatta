@@ -36,7 +36,7 @@ function shuffle<T>(arr: T[]): T[] {
 type PartFilter = 'all' | 1 | 2;
 
 export default function SrcTrainerPage() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const [progress, setProgress] = useState<Progress>({});
   const [part, setPart] = useState<PartFilter>('all');
   const [queue, setQueue] = useState<SrcQuestion[]>([]);
@@ -218,8 +218,13 @@ export default function SrcTrainerPage() {
 
           {picked !== null && (
             <>
-              <div className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
+              <div role="status" aria-live="polite" className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
                 {picked === current.correct ? '✅ ' : '❌ '}{current.whyPl}
+                {lang === 'ru' && (
+                  <span className="mt-2 block text-xs" style={{ color: 'var(--text-muted)' }}>
+                    Официальная база вопросов UKE и пояснения к ней доступны только на польском.
+                  </span>
+                )}
               </div>
               <button
                 type="button"

@@ -55,6 +55,23 @@ function count(text: string, re: RegExp): number {
   return text.match(re)?.length ?? 0;
 }
 
+/** MAYDAY as the OWN-distress signal: "may day" NOT part of "may day relay", so
+ *  announcing your own fire as a RELAY of someone else's distress fails the signal. */
+function maydaySignalCount(text: string): number {
+  return count(text, /may\s?day(?!\s+relay)/g);
+}
+
+/** Longest run of CONSECUTIVE "pan" tokens (after collapsing "panpan"/"pon"): a real
+ *  three-fold PAN-PAN is 6 tokens, so >= 5 passes it (tolerating one dropped by STT)
+ *  while scattered or interrupted pans - "pan pan pan all stations pan pan" - do not. */
+function longestPanRun(text: string): number {
+  const toks = text.replace(/panpan/g, 'pan pan').replace(/\bpon\b/g, 'pan').split(/\s+/);
+  let best = 0;
+  let cur = 0;
+  for (const t of toks) { if (t === 'pan') { cur += 1; if (cur > best) best = cur; } else cur = 0; }
+  return best;
+}
+
 function phrase(text: string, value: string): boolean {
   const words = normalizeRadioTranscript(value).split(' ').filter(Boolean).map(escRe);
   return new RegExp(words.join('\\s+')).test(text);
@@ -77,14 +94,36 @@ function exactIdentity(text: string, vessel: Vessel): boolean {
   return exactMmsi || exactCall;
 }
 
+// Between two spoken position digits the transcriber inserts the unit words
+// (DEGREES / MINUTES / DECIMAL / POINT) and splits "54" as "5 4", exactly as the
+// app's own pozycja drill teaches. Allow that filler between digit groups.
+const POS_FILLER = '[\\s]*(?:(?:degrees?|deg|decimal|point|minutes?|min|and)[\\s]*)*';
+
+function positionDigitsRe(digits: string): RegExp | null {
+  if (!digits) return null;
+  return new RegExp(digits.split('').map((d) => DIGIT_WORDS[d] ?? escRe(d)).join(POS_FILLER));
+}
+
+/**
+ * A correct position, read digit-by-digit (the SMCP form the pozycja drill
+ * trains: "FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH ..."). The old
+ * check required the terse contiguous "54 30 5 north" and failed every reading
+ * the app itself teaches; match the latitude and longitude DIGIT SEQUENCES with
+ * the unit words tolerated between them, plus the two hemispheres in order.
+ */
 function exactPosition(text: string, positionSpoken: string): boolean {
   const tokens = normalizeRadioTranscript(positionSpoken).split(' ');
   const north = tokens.indexOf('north');
   const east = tokens.indexOf('east');
   if (north < 2 || east < north + 3) return false;
-  const lat = tokens.slice(0, north).join(' ');
-  const lon = tokens.slice(north + 1, east).join(' ');
-  return phrase(text, lat) && text.includes('north') && phrase(text, lon) && text.includes('east');
+  const latDigits = tokens.slice(0, north).join('').replace(/[^0-9]/g, '');
+  const lonDigits = tokens.slice(north + 1, east).join('').replace(/[^0-9]/g, '');
+  const latRe = positionDigitsRe(latDigits);
+  const lonRe = positionDigitsRe(lonDigits);
+  if (!latRe || !lonRe || !latRe.test(text) || !lonRe.test(text)) return false;
+  const ni = text.search(/\bnorth\b/);
+  const ei = text.search(/\beast\b/);
+  return ni >= 0 && ei >= 0 && ni < ei;
 }
 
 const NUMBER_TOKEN = /^(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)$/;
@@ -142,7 +181,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
   switch (input.kind) {
     case 'mayday-fire':
       return [
-        { id: 'mayday3', label: 'MAYDAY x3', test: (t) => count(t, /may\s?day/g) >= 3 },
+        { id: 'mayday3', label: 'MAYDAY x3', test: (t) => maydaySignalCount(t) >= 3 },
         ...identity, position,
         { id: 'nature', label: 'rodzaj zagrozenia (fire)', test: (t) => /(fire|explosion|burning)/.test(t) },
         { id: 'assist', label: 'potrzebna pomoc', test: (t) => /(immediate assistance|require assistance|need help)/.test(t) },
@@ -152,7 +191,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'panpan-mob':
       return [
-        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => count(t, /pan\s?pan/g) >= 3 },
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
         { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
         ...identity, position,
         { id: 'mob', label: 'czlowiek za burta', test: (t) => /(man overboard|person in (?:the )?water)/.test(t) },
@@ -162,7 +201,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'panpan-engine':
       return [
-        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => count(t, /pan\s?pan/g) >= 3 },
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
         { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
         ...identity, position,
         { id: 'nature', label: 'awaria i dryf', test: (t) => /(engine|breakdown|disabled)/.test(t) && /(drift|drifting)/.test(t) },
@@ -222,7 +261,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'panpan-medico':
       return [
-        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => count(t, /pan\s?pan/g) >= 3 },
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
         { id: 'allstations', label: 'ALL STATIONS x3 (lub stacja brzegowa)', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 || /(polish rescue radio|coast|radio medico)/.test(t) },
         ...identity, position,
         { id: 'medico', label: 'prosba o porade/pomoc medyczna', test: (t) => /(medical|medico|doctor|injur|casualty|ambulance|unconscious|bleeding)/.test(t) },

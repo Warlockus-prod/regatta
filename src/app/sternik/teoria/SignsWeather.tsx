@@ -106,6 +106,21 @@ function Pillar({ stripes, top }: { stripes: { fill: string; frac: number }[]; t
     </svg>
   );
 }
+/** Safe-water mark - VERTICAL alternating red/white stripes + red ball topmark. */
+function SafeWaterBuoy() {
+  const x = 40, y0 = 40, h = 44, w = 20, n = 4;
+  const sw = w / n;
+  return (
+    <svg viewBox="0 0 80 100" className="h-24 w-auto">
+      <Ball x={x} y={28} fill={RED} />
+      {Array.from({ length: n }).map((_, i) => (
+        <rect key={i} x={x - w / 2 + i * sw} y={y0} width={sw + 0.4} height={h} fill={i % 2 === 0 ? RED : WHITE} stroke={OUTLINE} strokeWidth="0.5" />
+      ))}
+      <rect x={x - 2} y={y0 + h} width={4} height={10} fill={OUTLINE} />
+      <line x1="14" y1={y0 + h + 10} x2="66" y2={y0 + h + 10} stroke="var(--accent-cyan)" strokeWidth="1" strokeDasharray="3,3" opacity="0.5" />
+    </svg>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Inland tablica primitive
@@ -160,7 +175,6 @@ function DredgerSideSignal({ open }: { open: boolean }) {
       ) : (
         <g fill={RED} stroke="rgba(0,0,0,0.35)" strokeWidth="0.8">
           <circle cx="50" cy="18" r="8" />
-          <circle cx="50" cy="66" r="8" />
         </g>
       )}
     </svg>
@@ -195,8 +209,8 @@ export function IalaGallery() {
       <Tile title="Odosobnione niebezp." subtitle="czarno-czerwony, 2 czarne kule">
         <Pillar stripes={[{ fill: BLACK, frac: 0.38 }, { fill: RED, frac: 0.24 }, { fill: BLACK, frac: 0.38 }]} top={<><Ball x={40} y={22} /><Ball x={40} y={36} /></>} />
       </Tile>
-      <Tile title="Bezpieczna woda" subtitle="czerwono-biale pasy, czerwona kula">
-        <Pillar stripes={[{ fill: RED, frac: 0.25 }, { fill: WHITE, frac: 0.25 }, { fill: RED, frac: 0.25 }, { fill: WHITE, frac: 0.25 }]} top={<Ball x={40} y={30} fill={RED} />} />
+      <Tile title="Bezpieczna woda" subtitle="czerwono-biale pasy pionowe, czerwona kula">
+        <SafeWaterBuoy />
       </Tile>
       <Tile title="Znak specjalny" subtitle="zolty, zolty krzyz X">
         <Pillar stripes={[{ fill: YELLOW, frac: 1 }]} top={<g><line x1="33" y1="23" x2="47" y2="37" stroke={YELLOW} strokeWidth="3" /><line x1="47" y1="23" x2="33" y2="37" stroke={YELLOW} strokeWidth="3" /><circle cx="40" cy="30" r="9" fill="none" stroke={YELLOW} strokeWidth="0.5" /></g>} />
@@ -213,16 +227,19 @@ export function InlandSignsGallery() {
   return (
     <Grid>
       <Tile title="A.1 zakaz przejscia" subtitle="проход запрещён">
-        <Tablica kind="zakaz"><rect x="24" y="40" width="42" height="10" fill={RED} /></Tablica>
+        <svg viewBox="0 0 90 90" className="h-24 w-auto">
+          <rect x="10" y="10" width="70" height="70" rx="4" fill={RED} stroke={OUTLINE} strokeWidth="2" />
+          <rect x="10" y="38" width="70" height="14" fill={WHITE} />
+        </svg>
       </Tile>
       <Tile title="A.5 zakaz postoju" subtitle="стоянка запрещена">
-        <Tablica kind="zakaz"><text x="45" y="52" textAnchor="middle" fontSize="26" fontWeight="700" fill={RED}>P</text></Tablica>
+        <Tablica kind="zakaz"><text x="45" y="52" textAnchor="middle" fontSize="26" fontWeight="700" fill={BLACK}>P</text></Tablica>
       </Tile>
       <Tile title="A.6 zakaz kotwiczenia" subtitle="якорь запрещён">
-        <Tablica kind="zakaz"><g stroke={RED} strokeWidth="3.5" fill="none"><line x1="45" y1="26" x2="45" y2="60" /><path d="M30 52 Q45 66 60 52" /><line x1="37" y1="33" x2="53" y2="33" /></g></Tablica>
+        <Tablica kind="zakaz"><g stroke={BLACK} strokeWidth="3.5" fill="none"><line x1="45" y1="26" x2="45" y2="60" /><path d="M30 52 Q45 66 60 52" /><line x1="37" y1="33" x2="53" y2="33" /></g></Tablica>
       </Tile>
       <Tile title="A.9 zakaz falowania" subtitle="не создавать волну">
-        <Tablica kind="zakaz"><g stroke={RED} strokeWidth="3" fill="none"><path d="M26 42 Q33 34 40 42 T54 42" /><path d="M26 54 Q33 46 40 54 T54 54" /></g></Tablica>
+        <Tablica kind="zakaz"><g stroke={BLACK} strokeWidth="3" fill="none"><path d="M26 42 Q33 34 40 42 T54 42" /><path d="M26 54 Q33 46 40 54 T54 54" /></g></Tablica>
       </Tile>
       <Tile title="A.2 zakaz wyprzedzania" subtitle="обгон запрещён">
         <Tablica kind="zakaz"><g stroke={BLACK} strokeWidth="3.5" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M36 62 L36 34 M31 41 L36 34 L41 41" /><path d="M54 56 L54 28 M49 35 L54 28 L59 35" /></g></Tablica>
@@ -236,13 +253,13 @@ export function InlandSignsGallery() {
       <Tile title="C.1 ograniczenie glebok." subtitle="ограничение (число)">
         <Tablica kind="ograniczenie"><g><path d="M28 34 L62 34" stroke={BLACK} strokeWidth="3" /><path d="M45 34 L45 48 M39 42 L45 48 L51 42" stroke={BLACK} strokeWidth="2.5" fill="none" /><text x="45" y="66" textAnchor="middle" fontSize="14" fontWeight="700" fill={BLACK}>2,0m</text></g></Tablica>
       </Tile>
-      <Tile title="C.3 ograniczenie predk." subtitle="ограничение скорости">
+      <Tile title="B.6 nie przekraczaj predkosci" subtitle="ограничение скорости">
         <Tablica kind="ograniczenie"><text x="45" y="55" textAnchor="middle" fontSize="22" fontWeight="700" fill={BLACK}>6</text></Tablica>
       </Tile>
       <Tile title="C.2 ograniczenie wysokosci" subtitle="ограничение высоты (мост)">
         <Tablica kind="ograniczenie"><g fill={BLACK}><polygon points="35,24 55,24 45,38" /><polygon points="35,54 55,54 45,40" /></g><text x="45" y="72" textAnchor="middle" fontSize="13" fontWeight="700" fill={BLACK}>3,0m</text></Tablica>
       </Tile>
-      <Tile title="C.4 ograniczenie szerokosci" subtitle="ограничение ширины">
+      <Tile title="C.3 ograniczenie szerokosci" subtitle="ограничение ширины">
         <Tablica kind="ograniczenie"><g fill={BLACK}><polygon points="22,32 22,56 38,44" /><polygon points="68,32 68,56 52,44" /></g><text x="45" y="74" textAnchor="middle" fontSize="13" fontWeight="700" fill={BLACK}>12m</text></Tablica>
       </Tile>
       <Tile title="E.5 dozwolony postoj" subtitle="стоянка разрешена (синий)">

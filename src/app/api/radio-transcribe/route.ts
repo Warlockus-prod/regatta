@@ -35,6 +35,10 @@ const STT_FALLBACK = 'whisper-1';
  *  context, which is most of why it beats whisper-1 on our audio. */
 const PROMPT = 'Marine VHF radio transmission in radio English. MAYDAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, OVER, OUT, ROGER, RADIO CHECK, CHANNEL, WIND DANCER, ORKA, MARINA GDYNIA, VTS ZATOKA GDANSKA, POLISH RESCUE RADIO, MMSI, CALL SIGN, PERSONS ON BOARD, POSITION, DEGREES, MINUTES, NORTH, EAST.';
 
+/** Neutral Polish fallback bias for lang='pl' when the client sends no prompt.
+ *  The sternik oral trainer normally posts its own question-specific vocabulary. */
+const PROMPT_PL = 'Egzamin ustny na patent sternika motorowodnego, odpowiedz po polsku. Prawo drogi, znaki nawigacyjne, kardynalne i boczne, bezpieczenstwo, przepisy, manewrowanie, locja, MAYDAY, pozycja, kanal 16.';
+
 export async function POST(req: Request) {
   const started = Date.now();
   const apiKey = process.env.OPENAI_API_KEY;
@@ -82,7 +86,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Expected multipart/form-data' }, { status: 400 });
   }
 
-  const form = await req.formData();
+  let form: FormData;
+  try {
+    form = await req.formData();
+  } catch {
+    return NextResponse.json({ error: 'Expected multipart/form-data' }, { status: 400 });
+  }
   const audio = form.get('audio');
   if (!(audio instanceof Blob) || audio.size === 0) {
     return NextResponse.json({ error: 'Missing audio' }, { status: 400 });
@@ -91,14 +100,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Recording too long' }, { status: 413 });
   }
 
+  // Language + vocabulary bias. The radio trainers post English marine VHF and
+  // send no `lang`, so this stays 'en' and the outgoing request is byte-for-byte
+  // what it was before. The sternik oral trainer posts Polish and sends lang='pl',
+  // which switches the STT language and prompt so Polish speech is not decoded
+  // under an English model with English vocabulary bias.
+  const sttLang = String(form.get('lang') ?? '') === 'pl' ? 'pl' : 'en';
+  const clientPrompt = String(form.get('prompt') ?? '').trim();
+  const sttPrompt = sttLang === 'pl' ? (clientPrompt || PROMPT_PL) : PROMPT;
+
   const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
 
   async function transcribe(model: string): Promise<string> {
     const wf = new FormData();
     wf.append('file', audio as Blob, `ptt.${ext}`);
     wf.append('model', model);
-    wf.append('language', 'en');
-    wf.append('prompt', PROMPT);
+    wf.append('language', sttLang);
+    wf.append('prompt', sttPrompt);
     // No response_format: gpt-4o-transcribe rejects verbose_json, and the json
     // default is all we need.
     const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {

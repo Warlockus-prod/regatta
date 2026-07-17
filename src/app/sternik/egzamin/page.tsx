@@ -75,6 +75,31 @@ export default function SternikExamPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [secondsLeft, phase]);
 
+  // Navigation/refresh guard - while the exam runs, a reload / tab-close / back
+  // triggers the browser's native "leave site?" prompt so 90 minutes of answers
+  // are not silently lost. Kept minimal (no localStorage snapshot).
+  useEffect(() => {
+    if (phase !== 'exam') return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [phase]);
+
+  // One-shot low-time announcement - fires once when the clock first drops to
+  // <= 5 minutes, then stays quiet so the live region is not spammed each tick.
+  const lowTimeAnnouncedRef = useRef(false);
+  const [lowTimeAnnounce, setLowTimeAnnounce] = useState('');
+  useEffect(() => {
+    if (phase !== 'exam') return;
+    if (secondsLeft <= 5 * 60 && secondsLeft > 0 && !lowTimeAnnouncedRef.current) {
+      lowTimeAnnouncedRef.current = true;
+      setLowTimeAnnounce(tp('5 минут до конца', '5 minutes left', '5 minut do konca'));
+    }
+  }, [secondsLeft, phase, tp]);
+
   const start = () => {
     const pool = filterByBase(STERNIK_EXAM_POOL, examBase);
     const qs = shuffled(pool).slice(0, STERNIK_EXAM.questions).map(prepareQuestion);
@@ -86,6 +111,8 @@ export default function SternikExamPage() {
     setPaused(false);
     setConfirmFinish(false);
     timedOutRef.current = false;
+    lowTimeAnnouncedRef.current = false;
+    setLowTimeAnnounce('');
     setPhase('exam');
   };
 
@@ -292,6 +319,12 @@ export default function SternikExamPage() {
 
   return (
     <main className="relative">
+      {/* One-shot polite announcement when the clock crosses the 5-minute mark.
+          Kept outside the inert wrapper so it stays in the a11y tree while a
+          dialog is open. */}
+      <div className="sr-only" role="status" aria-live="polite">
+        {lowTimeAnnounce}
+      </div>
       {/* Everything behind a modal is inert (removed from tab order + a11y tree). */}
       <div inert={paused || confirmFinish || undefined}>
       {/* Top bar: timer + finish (sticky so the clock stays visible on mobile) */}
@@ -308,6 +341,7 @@ export default function SternikExamPage() {
               border: '1px solid var(--border-subtle)',
             }}
           >
+            {lowTime && <span aria-hidden="true">⏰ </span>}
             {formatClock(secondsLeft)}
           </span>
           <button

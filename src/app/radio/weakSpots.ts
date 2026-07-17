@@ -37,7 +37,13 @@ type Store = Record<string, WeakSpot>;
 
 function load(): Store {
   try {
-    return JSON.parse(window.localStorage.getItem(KEY) ?? '{}') as Store;
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return {};
+    // Guard the SHAPE, not just parse errors: 'null' -> null, '42' -> number,
+    // '"x"' -> string all parse fine, then record() does store[key] and weakest()
+    // does Object.values() on them and throws on every graded attempt after.
+    const p = JSON.parse(raw);
+    return p && typeof p === 'object' && !Array.isArray(p) ? p as Store : {};
   } catch {
     return {};
   }

@@ -68,6 +68,10 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
    *  must not start a recording whose button was already released. */
   const wantRecording = useRef(false);
   const starting = useRef(false);
+  /** false once this panel unmounts. A recording that stops during teardown must
+   *  not upload or grade: the page would run the grade against whatever scenario
+   *  mounted after this one, advancing B with A's result. */
+  const aliveRef = useRef(true);
 
   const finish = useCallback((r: VoiceResult | null) => {
     if (doneRef.current) return;
@@ -118,6 +122,10 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
       rec.ondataavailable = (ev) => { if (ev.data.size > 0) chunksRef.current.push(ev.data); };
       rec.onstop = async () => {
         stream.getTracks().forEach((t) => t.stop());
+        // Unmounted mid-grade (e.g. left scenario A, opened B): do not burn one of
+        // the user's recordings on an upload, and do not call onComplete - it would
+        // advance whatever scenario is active now with this aborted attempt.
+        if (!aliveRef.current) return;
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
         if (blob.size < 4000) { setError(ru ? 'Слишком короткая запись.' : 'Nagranie za krotkie.'); return; }
         setBusy(true);
@@ -183,6 +191,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   }), [startRecording, stopRecording]);
 
   useEffect(() => () => {
+    aliveRef.current = false;
     if (stopTimer.current) clearTimeout(stopTimer.current);
     const rec = mediaRef.current;
     if (rec && rec.state !== 'inactive') rec.stop();
@@ -221,12 +230,39 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             {ru ? 'Репетиция: следующая строка' : 'Proba: kolejna linia'} ({linesRead}/{lines.length})
           </button>
         )}
-        <div data-testid="voice-record-status" className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: recording ? '#a81f14' : 'var(--bg-secondary)', color: recording ? '#fff' : 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
+        <div data-testid="voice-record-status" aria-live="polite" className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: recording ? '#a81f14' : 'var(--bg-secondary)', color: recording ? '#fff' : 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
           {busy ? (ru ? 'Оцениваю передачу...' : 'Oceniam transmisje...') : recording ? (ru ? 'ЗАПИСЬ: говори и отпусти PTT' : 'NAGRYWANIE: mow i pusc PTT') : voiceUnavailable ? (ru ? 'Голосовой режим недоступен' : 'Tryb glosowy niedostepny') : (ru ? 'Удерживай PTT на рации' : 'Trzymaj PTT na radiu')}
         </div>
       </div>
 
-      {error && <div className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{error}</div>}
+      {error && <div role="alert" className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{error}</div>}
+
+      {/* Exam mode has no line-practice fallback, so a denied/absent mic or an
+          offline grader used to strand the whole run: onComplete never fired and
+          the only exit discarded everything. Let the candidate close the voice
+          step with a scored-zero verdict instead. Learn mode keeps its line
+          practice, so this button never shows there. */}
+      {voiceUnavailable && !allowLinePractice && (
+        <button
+          type="button"
+          data-testid="voice-exam-skip"
+          onClick={() => finish({
+            transcript: '',
+            checks: [{
+              id: 'voice-not-transmitted',
+              label: ru ? 'Голосовая передача не отправлена' : 'Transmisja glosowa nie zostala nadana',
+              ok: false,
+              mandatory: true,
+            }],
+            score: 0,
+            mandatoryOk: false,
+          })}
+          className="mt-2 min-h-[44px] rounded-xl px-4 text-sm font-semibold"
+          style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+        >
+          {ru ? 'Закончить без голосовой передачи' : 'Zakoncz bez transmisji glosowej'}
+        </button>
+      )}
 
       {/* mic check - lets the user verify the browser hears them before/after
           a failed recording, and diagnose permission problems */}
@@ -234,7 +270,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         type="button"
         data-testid="voice-miccheck-toggle"
         onClick={() => setShowMicCheck((v) => !v)}
-        className="mt-2 text-xs underline"
+        className="mt-2 inline-flex min-h-[44px] items-center px-1 text-xs underline"
         style={{ color: 'var(--text-muted)' }}
       >
         {ru ? (showMicCheck ? 'Скрыть проверку микрофона' : 'Проверить микрофон') : (showMicCheck ? 'Ukryj sprawdzenie mikrofonu' : 'Sprawdz mikrofon')}
@@ -242,7 +278,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
       {showMicCheck && <div className="mt-2"><MicCheck compact /></div>}
 
       {result && (
-        <div data-testid="voice-result" className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+        <div data-testid="voice-result" aria-live="polite" className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold" style={{ color: result.score >= 70 ? 'var(--success)' : result.score >= 40 ? 'var(--warning)' : 'var(--danger, #ff6a5a)' }}>
               {result.score}%

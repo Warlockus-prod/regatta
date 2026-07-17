@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import {
@@ -47,7 +47,7 @@ interface SessionResult {
 
 function TrainerInner() {
   const { tp, lang } = useI18n();
-  const { explLang, examBase } = useSternikPrefs();
+  const { explLang, examBase, prefsLoaded } = useSternikPrefs();
   // The pool the whole trainer works from, honoring the selected base.
   const bank = filterByBase(STERNIK_BANK, examBase);
   const params = useSearchParams();
@@ -64,6 +64,10 @@ function TrainerInner() {
   const [weakCount, setWeakCount] = useState(0);
   const [sessionLabel, setSessionLabel] = useState('');
   const savedTimeRef = useRef(0);
+  // Mirror of `elapsed` so a flush can read the latest value from a cleanup or
+  // an event handler without stale-closure risk.
+  const elapsedRef = useRef(0);
+  useEffect(() => { elapsedRef.current = elapsed; }, [elapsed]);
 
   useEffect(() => {
     setWeakCount(sternikWeakIds(loadSternikProgress()).length);
@@ -76,13 +80,28 @@ function TrainerInner() {
     return () => clearInterval(t);
   }, [phase, paused]);
 
-  // Persist practice time when the session ends or the page unmounts.
+  // Commit any not-yet-saved practice seconds to the store. Guards against
+  // double-counting: only a positive delta is added, then the baseline advances.
+  // Uses the same store call/key as the phase==='done' path below.
+  const flushPracticeTime = useCallback(() => {
+    const delta = elapsedRef.current - savedTimeRef.current;
+    if (delta > 0) {
+      addSternikPracticeTime(delta);
+      savedTimeRef.current = elapsedRef.current;
+    }
+  }, []);
+
+  // Persist practice time when the session ends.
   useEffect(() => {
     if (phase === 'done' && elapsed > savedTimeRef.current) {
       addSternikPracticeTime(elapsed - savedTimeRef.current);
       savedTimeRef.current = elapsed;
     }
   }, [phase, elapsed]);
+
+  // Also flush on unmount (navigating away mid-session), so accumulated seconds
+  // are never silently dropped. flushPracticeTime is stable, so this runs once.
+  useEffect(() => flushPracticeTime, [flushPracticeTime]);
 
   const begin = (questions: typeof STERNIK_BANK, label: string) => {
     if (questions.length === 0) return;
@@ -157,10 +176,12 @@ function TrainerInner() {
     begin(shuffled(pool), tp('Умная тренировка', 'Smart session', 'Inteligentny trening'));
   };
 
-  // Auto-start from URL (?cat=..., ?mode=errors) once.
+  // Auto-start from URL (?cat=..., ?mode=errors) once - but only after the
+  // stored examBase has loaded, so a deep link draws from the saved base, not
+  // the default 'all'. prefsLoaded flips true in the provider's mount effect.
   const autoStarted = useRef(false);
   useEffect(() => {
-    if (autoStarted.current || phase !== 'menu') return;
+    if (autoStarted.current || phase !== 'menu' || !prefsLoaded) return;
     if (modeParam === 'errors') {
       autoStarted.current = true;
       startErrors();
@@ -169,7 +190,7 @@ function TrainerInner() {
       startCat(catParam as SternikCatId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [catParam, modeParam, phase]);
+  }, [catParam, modeParam, phase, prefsLoaded]);
 
   const current = queue[pos];
   const answered = picked !== null;
@@ -500,7 +521,7 @@ function TrainerInner() {
       >
         <button
           type="button"
-          onClick={() => setPhase('menu')}
+          onClick={() => { flushPracticeTime(); setPhase('menu'); }}
           className="flex min-h-[44px] items-center pr-2"
           style={{ color: 'var(--text-muted)' }}
         >
@@ -593,6 +614,8 @@ function TrainerInner() {
         {answered && (
           <div
             ref={feedbackRef}
+            role="status"
+            aria-live="polite"
             className="mt-4 scroll-mt-16 rounded-xl p-4 text-sm"
             style={{
               background: current.options[picked!].ok ? 'rgba(68,255,136,0.08)' : 'rgba(255,68,68,0.08)',

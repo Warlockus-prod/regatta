@@ -3,7 +3,7 @@
 //
 // One source of truth for both the on-site reading version (/radio, sections 5
 // and 6) and the printable sheet (/radio/sciaga). Facts verified against the
-// UKE exam materials (materialy_do_testu_src.pdf), ITU-R M.1371 / IMO SMCP and
+// UKE exam materials (materialy_do_testu_src.pdf), ITU-R M.1171/M.1172 / IMO SMCP and
 // the ICOM IC-M330GE / IC-M323 manuals.
 //
 // PL is the primary language of this section (the exam is Polish); RU is the
@@ -86,9 +86,9 @@ OUT`;
 export const DSC_STEPS: Row3[] = [
   ['1', 'Podnies oslone [DISTRESS]', 'Подними крышку кнопки DISTRESS'],
   ['2', 'Wybierz rodzaj (nature): Fire, Sinking, MOB...', 'Выбери характер бедствия'],
-  ['3', 'Przytrzymaj [DISTRESS] 3-5 s (odliczanie)', 'Держи DISTRESS 3-5 сек, идёт отсчёт'],
+  ['3', 'Przytrzymaj [DISTRESS] 3 s (odliczanie)', 'Держи DISTRESS 3 сек, идёт отсчёт'],
   ['4', 'Radio nadaje alert na kanale 70 i przechodzi na 16', 'Рация шлёт алерт на 70 и уходит на 16'],
-  ['5', 'Czekaj na potwierdzenie (DSC ACK) i nadaj MAYDAY glosem', 'Жди подтверждения и передай MAYDAY голосом'],
+  ['5', 'Nadaj MAYDAY glosem na 16 od razu - nie czekaj na ACK (radio samo powtarza alert)', 'Передавай MAYDAY голосом на 16 сразу, не жди ACK (радио само повторяет вызов)'],
   ['6', '[ALARM OFF] wylacza dzwiek, ale NIE odwoluje alertu', 'ALARM OFF глушит звук, но НЕ отменяет алерт'],
 ];
 
@@ -107,7 +107,7 @@ export const MISTAKES: Pair[] = [
 /** Exam facts (UKE). [PL, RU] */
 export const EXAM_FACTS: Pair[] = [
   ['Egzamin w UKE, od 15 lat, swiadectwo bezterminowe, oplata 175 zl', 'Экзамен в UKE, с 15 лет, свидетельство бессрочное, 175 zl'],
-  ['Teoria: 3 dzialy, punktacja 0-5 pkt za pytanie, min. 60% w kazdym dziale (kazdy dzial musi byc zaliczony)', 'Теория: 3 раздела, оценка 0-5 баллов за вопрос, минимум 60% в каждом разделе (каждый раздел зачитывается отдельно)'],
-  ['Praktyka na radiu ICOM: min. 60% punktow', 'Практика на рации ICOM: минимум 60% баллов'],
+  ['Teoria: 3 dzialy po 5 pytan (15 lacznie), 1 pkt za pytanie, zaliczenie: min. 3 z 5 poprawnych w kazdym dziale', 'Теория: 3 раздела по 5 вопросов (15 всего), 1 балл за вопрос, зачет: минимум 3 из 5 правильных в каждом разделе'],
+  ['Praktyka na radiu ICOM: zadania punktowane 0-5, max 20 pkt, zaliczenie 60% (12 pkt)', 'Практика на рации ICOM: задания по 0-5 баллов, максимум 20, зачет 60% (12 баллов)'],
   ['Zapis min. 14 dni przed sesja, oplata przed zapisem', 'Запись минимум за 14 дней, оплата до записи'],
 ];

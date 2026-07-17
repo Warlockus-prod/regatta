@@ -180,8 +180,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 18, group: 'dsc',
     task: 'Nadaj regularne wywolanie alarmowe DSC.',
     how: {
-      pl: 'MENU -> DSC Calls -> Distress Call. Wybierz rodzaj zagrozenia z listy, nacisnij [ENT] dwukrotnie, przytrzymaj czerwony DISTRESS przez 3 sekundy, oczekuj na ACK. Nastepnie nadaj MAYDAY glosem na 16.',
-      ru: 'MENU -> DSC Calls -> Distress Call. Выбери род бедствия из списка, нажми [ENT] дважды, удержи красную DISTRESS 3 секунды, жди ACK. Затем передай MAYDAY голосом на 16.',
+      pl: 'MENU -> DSC Calls -> Distress Call. Wybierz rodzaj zagrozenia z listy, nacisnij [ENT] dwukrotnie, przytrzymaj czerwony DISTRESS przez 3 sekundy. Gdy alert pojdzie, radio przechodzi na kanal 16 - od razu nadaj MAYDAY glosem, nie czekajac na ACK. Radio samo powtarza alert DSC az do nadejscia potwierdzenia.',
+      ru: 'MENU -> DSC Calls -> Distress Call. Выбери род бедствия из списка, нажми [ENT] дважды, удержи красную DISTRESS 3 секунды. Когда алерт уйдет, рация переходит на канал 16 - сразу передавай MAYDAY голосом, не дожидаясь ACK. Рация сама повторяет DSC-алерт до прихода подтверждения.',
     },
     scenario: 'fire-mayday',
   },
@@ -189,8 +189,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 19, group: 'dsc',
     task: 'Nadaj wywolanie alarmowe DSC o zalaniu jednostki woda.',
     how: {
-      pl: 'MENU -> DSC Calls -> Distress Call -> wybierz rodzaj zagrozenia Flooding (zalanie), [ENT] dwukrotnie, przytrzymaj DISTRESS 3 sekundy, oczekuj na ACK. Rodzaj zagrozenia trafia do cyfrowego alertu.',
-      ru: 'MENU -> DSC Calls -> Distress Call -> выбери род бедствия Flooding (затопление), [ENT] дважды, удержи DISTRESS 3 секунды, жди ACK. Род бедствия уходит в цифровой алерт.',
+      pl: 'MENU -> DSC Calls -> Distress Call -> wybierz rodzaj zagrozenia Flooding (zalanie), [ENT] dwukrotnie, przytrzymaj DISTRESS 3 sekundy. Rodzaj zagrozenia trafia do cyfrowego alertu. Gdy alert pojdzie, radio przechodzi na kanal 16 - od razu nadaj MAYDAY glosem, nie czekajac na ACK. Radio samo powtarza alert DSC az do nadejscia potwierdzenia.',
+      ru: 'MENU -> DSC Calls -> Distress Call -> выбери род бедствия Flooding (затопление), [ENT] дважды, удержи DISTRESS 3 секунды. Род бедствия уходит в цифровой алерт. Когда алерт уйдет, рация переходит на канал 16 - сразу передавай MAYDAY голосом, не дожидаясь ACK. Рация сама повторяет DSC-алерт до прихода подтверждения.',
     },
     scenario: 'fire-mayday',
   },
@@ -225,8 +225,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 23, group: 'epirb-sart',
     task: 'Sposob postepowania z radioplawa EPIRB, bedac na tratwie ratunkowej.',
     how: {
-      pl: 'Wcisnij przycisk ON na zabranej ze statku radioplawie i umiesc ja mozliwie wysoko na tratwie (antena musi widziec niebo). Nie wrzucaj jej od razu do wody.',
-      ru: 'Нажми кнопку ON на снятом с судна EPIRB и размести его как можно выше на плоту (антенна должна видеть небо). Не бросай его сразу в воду.',
+      pl: 'Wcisnij przycisk ON na zabranej ze statku radioplawie, przywiaz ja linka (lanyard) do tratwy i pozwol jej plywac w wodzie obok tratwy - jest tak zaprojektowana, ze utrzymuje sie antena do gory. Ewentualnie trzymaj ja w rece, antena pionowo i z otwartym widokiem na niebo.',
+      ru: 'Нажми кнопку ON на снятом с судна EPIRB, привяжи его линем (lanyard) к плоту и дай ему плавать в воде рядом с плотом - он сконструирован так, что держится антенной вверх. Либо держи его в руке, антенной вертикально и с открытым видом на небо.',
     },
   },
   {

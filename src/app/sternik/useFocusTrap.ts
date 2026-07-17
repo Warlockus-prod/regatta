@@ -17,6 +17,12 @@ export function useFocusTrap<T extends HTMLElement>(
 ) {
   const ref = useRef<T | null>(null);
   const restoreRef = useRef<HTMLElement | null>(null);
+  // Keep the latest onEscape in a ref so inline arrow callbacks (new identity
+  // every render) do not re-run the trap effect. A ticking countdown re-renders
+  // the dialog once per second; without this the effect would remount and yank
+  // focus back to the first control every tick.
+  const onEscapeRef = useRef(onEscape);
+  onEscapeRef.current = onEscape;
 
   useEffect(() => {
     if (!active) return;
@@ -30,9 +36,9 @@ export function useFocusTrap<T extends HTMLElement>(
     (first ?? node).focus?.();
 
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && onEscape) {
+      if (e.key === 'Escape' && onEscapeRef.current) {
         e.preventDefault();
-        onEscape();
+        onEscapeRef.current();
         return;
       }
       if (e.key !== 'Tab') return;
@@ -53,7 +59,7 @@ export function useFocusTrap<T extends HTMLElement>(
       document.removeEventListener('keydown', onKey, true);
       restoreRef.current?.focus?.();
     };
-  }, [active, onEscape]);
+  }, [active]);
 
   return ref;
 }

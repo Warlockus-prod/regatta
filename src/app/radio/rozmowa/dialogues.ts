@@ -44,6 +44,14 @@ export interface DialogueTurn {
   stationName: string;
   stationSays: string;
   hint: Bi;
+  /**
+   * The channel this turn must be transmitted on. Defaults to the dialogue's
+   * starting channel. Set it on the turns AFTER a "change to channel X" so the
+   * grader can flag content spoken on the wrong channel, and so the station
+   * carrier is scripted on the working channel rather than wherever the learner
+   * happens to be sitting.
+   */
+  channel?: string;
 }
 
 export interface Dialogue {
@@ -81,8 +89,10 @@ const CALLSIGN: MustItem = {
 };
 
 const THIS_IS: MustItem = { id: 'thisis', label: 'Zwrot THIS IS przed wlasna nazwa', anyOf: ['this is'] };
-const OVER: MustItem = { id: 'over', label: 'OVER na koncu', anyOf: ['over'], whole: true };
-const OUT: MustItem = { id: 'out', label: 'OUT na koncu (rozmowa skonczona, nie OVER)', anyOf: ['out'], whole: true };
+const OVER: MustItem = { id: 'over', label: 'OVER na koncu', anyOf: ['over'], end: true };
+// OUT is the whole lesson of the radio check (OUT vs OVER), so it is critical and
+// must be at the very close - a turn ended with OVER instead of OUT fails.
+const OUT: MustItem = { id: 'out', label: 'OUT na koncu (rozmowa skonczona, nie OVER)', anyOf: ['out'], end: true, critical: true };
 
 const marina = (id = 'station'): MustItem => ({
   id,
@@ -237,6 +247,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
+        channel: '12',
         youSay: 'MARINA GDYNIA, THIS IS WIND DANCER. I REQUEST A BERTH FOR TONIGHT. MY LENGTH IS ELEVEN METRES, MY DRAUGHT IS ONE DECIMAL EIGHT METRES, THREE PERSONS ON BOARD. MY ETA IS ONE SIX THREE ZERO LOCAL TIME. OVER.',
         must: [
           IDENTITY,
@@ -254,6 +265,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
+        channel: '12',
         youSay: 'MARINA GDYNIA, THIS IS WIND DANCER. BERTH DELTA ONE FOUR, PORT SIDE TO. I WILL CALL YOU AT THE ENTRANCE. THANK YOU. OUT.',
         must: [
           IDENTITY,
@@ -312,6 +324,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
+        channel: '6',
         youSay: 'ORKA, THIS IS WIND DANCER. MY POSITION IS FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH, ZERO ONE EIGHT DEGREES FOUR FIVE DECIMAL TWO MINUTES EAST. YOU ARE CROSSING FROM MY STARBOARD SIDE. I INTEND TO ALTER COURSE TO STARBOARD AND PASS ASTERN OF YOU. OVER.',
         must: [
           IDENTITY, POSITION,
@@ -327,6 +340,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
+        channel: '6',
         youSay: 'ORKA, THIS IS WIND DANCER. AGREED. I ALTER COURSE TO STARBOARD AND PASS ASTERN OF YOU. OUT.',
         must: [
           IDENTITY,
@@ -427,10 +441,19 @@ export const DIALOGUES: Dialogue[] = [
             // PAN-PAN x3 is six "pan" tokens. Require the full urgency signal, not
             // the 1.5x "pan pan pan" the old list let through. Tolerate one dropped
             // token from the transcriber (>= 5).
-            test: (raw) => (normalize(raw).replace(/panpan/g, 'pan pan').replace(/\bpon\b/g, 'pan').match(/\bpan\b/g) || []).length >= 5,
+            // longest CONSECUTIVE run of 'pan' >= 5: a real 3x PAN-PAN (6 tokens, or
+            // 5 with one dropped by STT) passes; scattered pans around other words do not
+            test: (raw) => {
+              const toks = normalize(raw).replace(/panpan/g, 'pan pan').replace(/\bpon\b/g, 'pan').split(' ');
+              let best = 0; let cur = 0;
+              for (const x of toks) { if (x === 'pan') { cur += 1; if (cur > best) best = cur; } else cur = 0; }
+              return best >= 5;
+            },
           },
           { id: 'allstations', label: 'ALL STATIONS', anyOf: ['all stations', 'all ships'] },
-          IDENTITY, POSITION,
+          // position is the load-bearing content of any urgency call - a rescue
+          // cannot start without it, so it cannot be traded by the one-miss slack
+          IDENTITY, { ...POSITION, critical: true },
           { id: 'nature', label: 'Rodzaj problemu (rana, krwawienie)', anyOf: ['cut', 'bleeding', 'injured', 'injury', 'wound', 'hand'] },
           { id: 'request', label: 'Prosba o porade medyczna (MEDICAL ADVICE)', anyOf: ['medical advice', 'medical assistance', 'medico', 'doctor'] },
         ],
@@ -466,22 +489,22 @@ export const DIALOGUES: Dialogue[] = [
         stationName: 'POLISH RESCUE RADIO',
         // Urgency traffic moves OFF 16. A doctor holding a consultation on the
         // calling and distress channel would block it for the whole coast.
-        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. KEEP THE HAND RAISED AND KEEP PRESSURE ON. DO NOT REMOVE THE DRESSING. CHANGE TO CHANNEL SIX SEVEN FOR MEDICAL ADVICE. A DOCTOR WILL SPEAK TO YOU ON CHANNEL SIX SEVEN. OVER.',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. KEEP THE HAND RAISED AND KEEP PRESSURE ON. DO NOT REMOVE THE DRESSING. CHANGE TO CHANNEL SIX TWO FOR MEDICAL ADVICE. A DOCTOR WILL SPEAK TO YOU ON CHANNEL SIX TWO. OVER.',
         hint: {
           pl: 'Kazda odpowiedz zaczyna sie od nazwy stacji i THIS IS WIND DANCER. W eterze moze byc kilka jachtow.',
           ru: 'Каждый ответ начинается с названия станции и THIS IS WIND DANCER. В эфире может быть несколько яхт.',
         },
       },
       {
-        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. I KEEP THE HAND RAISED, I KEEP PRESSURE ON, I DO NOT REMOVE THE DRESSING. CHANGING TO CHANNEL SIX SEVEN. OVER.',
+        youSay: 'POLISH RESCUE RADIO, THIS IS WIND DANCER. I KEEP THE HAND RAISED, I KEEP PRESSURE ON, I DO NOT REMOVE THE DRESSING. CHANGING TO CHANNEL SIX TWO. OVER.',
         must: [
           RESCUE, IDENTITY,
           { id: 'readback', label: 'Powtorzenie zalecen (pressure, dressing)', anyOf: ['pressure', 'dressing', 'hand raised', 'keep the hand'] },
-          { id: 'channel', label: 'Potwierdzenie zmiany kanalu (CHANNEL SIX SEVEN)', anyOf: ['changing to channel six seven', 'channel six seven', 'channel 67', 'six seven', '67'] },
+          { id: 'channel', label: 'Potwierdzenie zmiany kanalu (CHANNEL SIX TWO)', anyOf: ['changing to channel six two', 'channel six two', 'channel 62', 'six two', '62'] },
           OVER,
         ],
         stationName: 'POLISH RESCUE RADIO',
-        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. UNDERSTOOD. STAND BY ON CHANNEL SIX SEVEN. OUT.',
+        stationSays: 'WIND DANCER, THIS IS POLISH RESCUE RADIO. UNDERSTOOD. STAND BY ON CHANNEL SIX TWO. OUT.',
         hint: {
           pl: 'Powtorz zalecenia lekarskie i potwierdz kanal roboczy. Konczysz slowem OVER, bo rozmowa trwa - lekarz sie odezwie.',
           ru: 'Повторите медицинские указания и подтвердите рабочий канал. Заканчиваете словом OVER: разговор продолжается, врач ещё выйдет на связь.',
@@ -517,13 +540,14 @@ export const DIALOGUES: Dialogue[] = [
             // that says MAYDAY twice (or not at all) must not pass.
             test: (raw) => (normalize(raw).replace(/may day/g, 'mayday').match(/\bmayday\b/g) || []).length >= 3,
           },
-          IDENTITY, POSITION,
+          // position and persons-on-board are the load-bearing content of a MAYDAY
+          IDENTITY, { ...POSITION, critical: true },
           { id: 'nature', label: 'Rodzaj niebezpieczenstwa (POZAR)', anyOf: ['fire', 'on fire', 'burning', 'engine compartment'] },
           { id: 'assistance', label: 'Prosba o natychmiastowa pomoc', anyOf: ['immediate assistance', 'require assistance', 'need assistance', 'require immediate'] },
-          POB,
+          { ...POB, critical: true },
         ],
         stationName: 'POLISH RESCUE RADIO',
-        stationSays: 'MAYDAY. WIND DANCER, WIND DANCER, WIND DANCER, THIS IS POLISH RESCUE RADIO. RECEIVED MAYDAY. ALL STATIONS, ALL STATIONS, THIS IS POLISH RESCUE RADIO. SEELONCE MAYDAY. WIND DANCER, HOW MANY PERSONS ON BOARD, AND ARE YOU ABANDONING YOUR VESSEL. OVER.',
+        stationSays: 'MAYDAY. WIND DANCER, WIND DANCER, WIND DANCER, THIS IS POLISH RESCUE RADIO, POLISH RESCUE RADIO, POLISH RESCUE RADIO. RECEIVED MAYDAY. ALL STATIONS, ALL STATIONS, THIS IS POLISH RESCUE RADIO. SEELONCE MAYDAY. WIND DANCER, HOW MANY PERSONS ON BOARD, AND ARE YOU ABANDONING YOUR VESSEL. OVER.',
         hint: {
           pl: 'MAYDAY trzy razy, nazwa trzy razy, potem MAYDAY plus nazwa raz. Pozycja, rodzaj niebezpieczenstwa, jaka pomoc, ile osob. To wszystko w jednej transmisji.',
           ru: 'MAYDAY трижды, название трижды, потом MAYDAY плюс название один раз. Позиция, характер бедствия, какая помощь, сколько человек. Всё это в одной передаче.',
