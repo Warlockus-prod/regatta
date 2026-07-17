@@ -26,13 +26,22 @@ export function isImmersive(pathname: string): boolean {
   return IMMERSIVE_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`));
 }
 
+// The iOS app embeds pages via WebView with ?embed=1 and is dark-only. The
+// no-flash inline script in layout.tsx already pins dark on embed; mirror that
+// here so the post-hydration theme manager does not reset an embedded course
+// page to light under a light OS preference (part of the embed contract that
+// e2e/smoke.spec.ts guards).
+export function isEmbed(): boolean {
+  return typeof window !== 'undefined' && /[?&]embed=1/.test(window.location.search);
+}
+
 export function systemDark(): boolean {
   return typeof window !== 'undefined'
     && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
 
 export function effectiveTheme(mode: ThemeMode, pathname: string): 'dark' | 'light' {
-  if (isImmersive(pathname)) return 'dark';
+  if (isImmersive(pathname) || isEmbed()) return 'dark';
   if (mode === 'dark') return 'dark';
   if (mode === 'light') return 'light';
   return systemDark() ? 'dark' : 'light';

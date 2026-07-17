@@ -4,8 +4,18 @@ Status: **shipped as a WebView** (app 1.5.0, build 28). This document says exact
 what works, what needs a network, and what it would cost to change that - so the
 next decision is made with numbers rather than vibes.
 
+> **Correction (2026-07-17, see DECISIONS.md ADR-0010).** The "after phase 1 =
+> offline" rows in section 5 are NOT yet true and are probably wrong as written.
+> Offline here assumes the web service worker (public/sw.js) runs inside the app
+> WebView, but `app.json` declares no `WKAppBoundDomains` /
+> `limitsNavigationsToAppBoundDomains`, so WKWebView almost certainly never
+> registers the service worker (it works only in mobile Safari). Treat offline as
+> UNVERIFIED until a Phase 1 on-device measurement (load online, kill network,
+> reopen) confirms it. Default lean is online-only with the honest Retry UI.
+> Do not re-assert "offline works" in product copy until measured.
+
 Related: [ARCHITECTURE.md](ARCHITECTURE.md), [API_CONTRACT.md](API_CONTRACT.md),
-[../sternik-radio.md](../sternik-radio.md).
+[../sternik-radio.md](../sternik-radio.md), [DECISIONS.md](DECISIONS.md).
 
 ---
 

@@ -6,6 +6,62 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0010: Licence courses stay a WebView embed; harden, not rewrite (2026-07-17)
+
+**Status:** accepted.
+
+**Context.** The two Polish licence courses (Sternik motorowodny, SRC Radio)
+already ship as WebView embeds of weektoregatta.com/sternik and /radio at
+`?lang=pl&embed=1` (mobile/src/course/SectionWebView.tsx, app 1.5.0 / build 29).
+After a 71-finding web audit of both courses landed (web PR #50), the question
+was whether to keep the embed or re-implement the courses natively.
+
+**Decision.** Keep approach (a): WebView embed hitting the existing web `/api`,
+and invest in verification and hardening, not a native port.
+
+Why:
+- The courses call only relative `/api` paths (radio-voice, radio-transcribe,
+  radio-tts, sternik-chat) that resolve against the WebView origin for free. A
+  native client has no document origin, and the no-separate-backend rule
+  (CLAUDE.md) forbids adding one.
+- Matches the decided Native-3D -> WebView pattern (docs/design/SIMULATORS.md).
+- Every web deploy reaches the app instantly: the 71 audit fixes reached the app
+  the moment web PR #50 deployed, with no rebuild and no App Store re-review.
+- The two real risks are largely handled: mic capture is wired
+  (mediaCapturePermissionGrantType=grant + NSMicrophoneUsageDescription), and the
+  iOS mp4 codec is mapped to m4a server-side in the radio-voice route.
+
+Full native (XL) would fork the voice/AI pipeline, lose OTA-via-web-deploy and
+duplicate content. Hybrid (L) buys little, since the expensive piece (WebAudio
+faceplate + mic grading) would stay WebView anyway.
+
+**Consequences / follow-through.**
+- Offline is NOT assumed to work in-app. The web service worker (public/sw.js,
+  src/app/radio/sw*) almost certainly does not run inside WKWebView because
+  app.json declares no `WKAppBoundDomains` / `limitsNavigationsToAppBoundDomains`.
+  Decision deferred to a Phase 1 on-device measurement (load online, kill network,
+  reopen). Default lean: accept online-only (voice grading and spoken replies can
+  never be offline anyway) and correct COURSES_OFFLINE.md; pursue WKAppBoundDomains
+  only if usage shows people opening the course with no signal.
+- Course visibility stays under Rules -> Kursy (not promoted to the home hub) for
+  a low profile and lower Guideline 4.2 optics risk. Deep links are a later add.
+- Shipped with this decision (web + mobile, one PR):
+  1. CI guard for the course embed contract: e2e/smoke.spec.ts asserts
+     `/radio?embed=1` and `/sternik?embed=1` hide the global chrome, keep the
+     section subnav and pin dark, so a web deploy that breaks the app fails CI.
+  2. Embed dark-pin now survives hydration: src/lib/theme.ts `effectiveTheme()`
+     treats `?embed=1` as dark (it only checked immersive routes before), matching
+     the layout no-flash script.
+  3. Native exam-loss guard: the sternik mock exam posts `{ type: 'exam-dirty' }`
+     while 90 minutes of answers are unsaved (src/app/sternik/egzamin/page.tsx);
+     SectionWebView intercepts the back gesture / header back with a confirm
+     (beforeunload does not fire in a WKWebView).
+
+**Still to verify on a physical device (Phase 1):** the mic round-trip
+(getUserMedia -> /api/radio-voice grade) on a real iOS WebView recording; the
+offline behavior; regatta_sid cookie persistence across launches (for rate-limit
+and budget); and analytics events firing from inside the embed.
+
 ## ADR-0009: One golden physics engine via @regatta/physics (2026-07-05)
 
 Decision: the native trainer consumes the web's canonical VPP engine
