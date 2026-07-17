@@ -176,31 +176,58 @@ export function RadioVariantToggle({ model, onModel }: { model: RadioModel; onMo
   const pickModel = (m: RadioModel) => { setRadioRealistic(false); onModel(m); };
   const m330On = model === 'M330' && !radioRealistic;
   const m323On = model === 'M323' && !radioRealistic;
+  // Three variants along two axes that used to read as duplicates:
+  //   IC-M330 / IC-M323 are the TWO different sets UKE actually uses at the SRC
+  //   practical (they differ in menu tree, CLR/CLEAR, cancel procedure), and the
+  //   third button is the SAME M330 shown as the realistic amber IC-M330GE
+  //   faceplate. Labeling the third "M330 realny" (and pinning it to the M330
+  //   model) stops it reading as a mysterious third radio.
   return (
-    <div
-      className="inline-flex overflow-hidden rounded-lg"
-      role="group"
-      aria-label={tp('Рация', 'Radio', 'Radio')}
-      style={{ border: '1px solid var(--border-subtle)' }}
-    >
-      <button type="button" data-testid="radio-variant-m330" onClick={() => pickModel('M330')} aria-pressed={m330On} className={cls} style={m330On ? on : off}>
-        IC-M330
-      </button>
-      <button type="button" data-testid="radio-variant-m323" onClick={() => pickModel('M323')} aria-pressed={m323On} className={cls} style={m323On ? on : off}>
-        IC-M323
-      </button>
-      <button
-        type="button"
-        data-testid="radio-variant-real"
-        onClick={() => setRadioRealistic(true)}
-        aria-pressed={radioRealistic}
-        className={cls}
-        style={radioRealistic ? on : off}
-        title={tp('Как настоящая рация ICOM', 'Like the real ICOM set', 'Jak prawdziwe radio ICOM')}
+    <div className="inline-flex flex-col items-start gap-1">
+      <div
+        className="inline-flex overflow-hidden rounded-lg"
+        role="group"
+        aria-label={tp('Рация', 'Radio', 'Radio')}
+        style={{ border: '1px solid var(--border-subtle)' }}
       >
-        <span aria-hidden style={{ width: 9, height: 9, borderRadius: 2, background: '#ffb638', boxShadow: '0 0 5px #ffb638' }} />
-        {tp('Реальная', 'Real', 'Realna')}
-      </button>
+        <button
+          type="button"
+          data-testid="radio-variant-m330"
+          onClick={() => pickModel('M330')}
+          aria-pressed={m330On}
+          className={cls}
+          style={m330On ? on : off}
+          title={tp('Компактная рация, одна из двух на экзамене UKE', 'Compact set, one of the two UKE exam radios', 'Kompaktowe radio, jedno z dwoch na egzaminie UKE')}
+        >
+          IC-M330
+        </button>
+        <button
+          type="button"
+          data-testid="radio-variant-m323"
+          onClick={() => pickModel('M323')}
+          aria-pressed={m323On}
+          className={cls}
+          style={m323On ? on : off}
+          title={tp('Стандартная рация, вторая на экзамене UKE (другое меню, CLEAR)', 'Standard set, the other UKE exam radio (different menu, CLEAR)', 'Standardowe radio, drugie na egzaminie UKE (inne menu, CLEAR)')}
+        >
+          IC-M323
+        </button>
+        <button
+          type="button"
+          data-testid="radio-variant-real"
+          onClick={() => { setRadioRealistic(true); onModel('M330'); }}
+          aria-pressed={radioRealistic}
+          className={cls}
+          style={radioRealistic ? on : off}
+          title={tp('Реалистичный вид IC-M330GE, как на экзамене', 'Realistic IC-M330GE look, like at the exam', 'Realistyczny wyglad IC-M330GE, jak na egzaminie')}
+        >
+          <span aria-hidden style={{ width: 9, height: 9, borderRadius: 2, background: '#ffb638', boxShadow: '0 0 5px #ffb638' }} />
+          {tp('M330 реальный', 'M330 real', 'M330 realny')}
+        </button>
+      </div>
+      <span className="px-0.5 text-[10px] leading-tight" style={{ color: 'var(--text-muted)' }}>
+        {tp('M330 и M323 - обе на экзамене UKE, разное меню', 'M330 and M323 are both used at the UKE exam (different menus)', 'M330 i M323 - obie na egzaminie UKE, inne menu')}
+      </span>
     </div>
   );
 }
