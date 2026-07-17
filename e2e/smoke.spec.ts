@@ -148,4 +148,29 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.locator('a[href="/simulator-v3"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
   });
+
+  test('embed mode hides global chrome but keeps the course subnav (mobile course contract)', async ({ page }) => {
+    // The iOS app ships the Polish licence courses as WebView embeds of
+    // /radio and /sternik at ?embed=1 (mobile/src/course/SectionWebView.tsx).
+    // The embed strips the global site chrome (sticky nav, footer nav, feedback
+    // widget) and pins the dark theme, while keeping the in-section subnav so
+    // the learner can move around the course. A web change that breaks this
+    // silently breaks an App Store feature - so guard it in CI.
+    for (const { path, subnav } of [
+      { path: '/radio', subnav: 'Radio' },
+      { path: '/sternik', subnav: 'Sternik' },
+    ]) {
+      // Sanity / positive control: without embed the global sticky nav renders.
+      await page.goto(path);
+      await expect(page.locator('nav.sticky')).toHaveCount(1);
+
+      // With embed the global chrome is gone, the section subnav stays, theme is dark.
+      await page.goto(`${path}?embed=1`);
+      await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
+      await expect(page.locator('nav.sticky')).toHaveCount(0);
+      await expect
+        .poll(() => page.evaluate(() => document.documentElement.dataset.theme))
+        .toBe('dark');
+    }
+  });
 });

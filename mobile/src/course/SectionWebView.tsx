@@ -1,7 +1,8 @@
-import { Stack } from 'expo-router';
+import { Stack, useNavigation } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Linking,
   Pressable,
   StyleSheet,
@@ -69,10 +70,15 @@ export interface SectionWebViewProps {
 
 export function SectionWebView({ path, section, title }: SectionWebViewProps) {
   const { tp } = useI18n();
+  const navigation = useNavigation();
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  // The embedded sternik mock exam posts { type: 'exam-dirty' } while 90 minutes
+  // of answers are unsaved. beforeunload does not fire in a WKWebView, so we guard
+  // the native back gesture / header back here instead.
+  const [examDirty, setExamDirty] = useState(false);
 
   const uri = `${ORIGIN}${path}?lang=pl&embed=1`;
 
@@ -84,6 +90,54 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
     }, LOAD_TIMEOUT_MS);
     return () => clearTimeout(t);
   }, [loading, reloadKey]);
+
+  // Confirm before leaving the screen while an exam is in progress. beforeRemove
+  // covers the header back button, the iOS swipe-back gesture and Android
+  // hardware back (they all resolve to a navigation action on this screen).
+  useEffect(() => {
+    if (!examDirty) return undefined;
+    const sub = navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      Alert.alert(
+        tp('Wyjsc z egzaminu?', 'Выйти из экзамена?', 'Wyjsc z egzaminu?', {
+          es: 'Salir del examen?',
+          fr: "Quitter l'examen?",
+          de: 'Pruefung verlassen?',
+          it: "Uscire dall'esame?",
+        }),
+        tp(
+          'Odpowiedzi egzaminu zostana utracone.',
+          'Ответы экзамена будут потеряны.',
+          'Odpowiedzi egzaminu zostana utracone.',
+          {
+            es: 'Se perderan las respuestas del examen.',
+            fr: "Les reponses de l'examen seront perdues.",
+            de: 'Die Pruefungsantworten gehen verloren.',
+            it: "Le risposte dell'esame andranno perse.",
+          },
+        ),
+        [
+          {
+            text: tp('Zostan', 'Остаться', 'Zostan', {
+              es: 'Quedarse', fr: 'Rester', de: 'Bleiben', it: 'Restare',
+            }),
+            style: 'cancel',
+          },
+          {
+            text: tp('Wyjdz', 'Выйти', 'Wyjdz', {
+              es: 'Salir', fr: 'Quitter', de: 'Verlassen', it: 'Esci',
+            }),
+            style: 'destructive',
+            onPress: () => {
+              setExamDirty(false);
+              navigation.dispatch(e.data.action);
+            },
+          },
+        ],
+      );
+    });
+    return sub;
+  }, [navigation, examDirty, tp]);
 
   const retry = () => {
     setFailed(false);
@@ -123,7 +177,13 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
           return false;
         }}
         onMessage={(e: WebViewMessageEvent) => {
-          if (e.nativeEvent.data === 'ready') setLoading(false);
+          const data = e.nativeEvent.data;
+          if (data === 'ready') { setLoading(false); return; }
+          // structured messages from the embedded course (e.g. exam dirty state)
+          try {
+            const msg = JSON.parse(data) as { type?: string; dirty?: boolean };
+            if (msg.type === 'exam-dirty') setExamDirty(!!msg.dirty);
+          } catch { /* non-JSON message, ignore */ }
         }}
         onLoadEnd={() => setLoading(false)}
         onError={() => {

@@ -28,6 +28,19 @@ import { useFocusTrap } from '../useFocusTrap';
 // clock; timeout auto-submits; full review afterwards.
 // ============================================================================
 
+// Tell the native app shell (when this page runs inside the iOS WebView course)
+// whether an exam is in progress, so it can guard the back gesture. Shaped as
+// { type: 'exam-dirty', dirty } and parsed in mobile/src/course/SectionWebView.
+// A plain browser has no window.ReactNativeWebView, so this is a silent no-op.
+function postExamDirty(dirty: boolean): void {
+  try {
+    const bridge = (window as unknown as {
+      ReactNativeWebView?: { postMessage: (m: string) => void };
+    }).ReactNativeWebView;
+    bridge?.postMessage(JSON.stringify({ type: 'exam-dirty', dirty }));
+  } catch { /* not in a WebView, or postMessage unavailable */ }
+}
+
 type Phase = 'intro' | 'exam' | 'result';
 
 export default function SternikExamPage() {
@@ -87,6 +100,16 @@ export default function SternikExamPage() {
     window.addEventListener('beforeunload', onBeforeUnload);
     return () => window.removeEventListener('beforeunload', onBeforeUnload);
   }, [phase]);
+
+  // Native-app counterpart of the beforeunload guard: beforeunload does not fire
+  // in an iOS WKWebView, so tell the native shell (mobile/src/course/SectionWebView)
+  // whether an exam is in progress. The shell intercepts the back gesture / header
+  // back and confirms before discarding 90 minutes of answers. No-op in a normal
+  // browser (window.ReactNativeWebView is undefined there).
+  useEffect(() => {
+    postExamDirty(phase === 'exam');
+  }, [phase]);
+  useEffect(() => () => postExamDirty(false), []);
 
   // One-shot low-time announcement - fires once when the clock first drops to
   // <= 5 minutes, then stays quiet so the live region is not spammed each tick.
