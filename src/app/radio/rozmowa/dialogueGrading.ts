@@ -50,6 +50,13 @@ export interface MustItem {
    * prowords need a word boundary so an unrelated word cannot satisfy them.
    */
   whole?: boolean;
+  /**
+   * The token must be at (or one token before) the END of the turn. OVER and OUT
+   * are closing prowords: "over to you ... radio check" (over not at the close)
+   * must not tick OVER, and a turn closed with a plain OVER must not tick OUT.
+   * Allows at most one token of trailing noise from the transcriber.
+   */
+  end?: boolean;
 }
 
 export interface TurnResult {
@@ -76,6 +83,11 @@ export function normalize(text: string): string {
 export function hits(transcript: string, item: MustItem): boolean {
   if (item.test) return item.test(transcript);
   const t = normalize(transcript);
+  if (item.end) {
+    // whole-token match confined to the last two tokens (proword at the close)
+    const tail = t.split(' ').filter(Boolean).slice(-2);
+    return item.anyOf.some((phrase) => { const p = normalize(phrase); return !!p && tail.includes(p); });
+  }
   return item.anyOf.some((phrase) => {
     const p = normalize(phrase);
     if (!p) return false;

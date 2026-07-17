@@ -120,10 +120,40 @@ describe('the conversations themselves', () => {
     expect(find('mayday-dialogue').turns[0].stationSays).toContain('SEELONCE MAYDAY');
   });
 
-  it('urgency traffic is moved off channel 16', () => {
+  it('urgency traffic is moved off channel 16 to a Polish Rescue Radio working channel', () => {
     const medico = find('panpan-medico');
-    const moved = medico.turns.some((t) => /CHANNEL SIX SEVEN/.test(t.stationSays));
+    // moves to CH62 (a real Polish Rescue Radio working channel), off the calling channel 16
+    const moved = medico.turns.some((t) => /CHANNEL SIX TWO/.test(t.stationSays));
     expect(moved).toBe(true);
+  });
+});
+
+describe('audit 2026-07-17: per-turn expected channel drives channel discipline', () => {
+  // Content spoken after a "change to channel X" must be marked as belonging on
+  // the working channel, so LiveDialogue can flag it when the learner never
+  // turned the knob and script the station carrier on the right channel.
+  it('marina-berth carries the berth details and readback on CH12, hail on 16', () => {
+    const t = find('marina-berth').turns;
+    expect(t[0].channel).toBeUndefined();       // hail on the dialogue channel (16)
+    expect(t[1].channel).toBeUndefined();        // "CHANGING TO 12" is announced on 16
+    expect(t[2].channel).toBe('12');             // berth details belong on 12
+    expect(t[3].channel).toBe('12');             // readback on 12
+  });
+
+  it('ship-to-ship carries the manoeuvre agreement on CH6', () => {
+    const t = find('ship-to-ship').turns;
+    expect(t[2].channel).toBe('6');
+    expect(t[3].channel).toBe('6');
+  });
+
+  it('a set per-turn channel always differs from the dialogue start channel', () => {
+    for (const d of DIALOGUES) {
+      for (const [i, t] of d.turns.entries()) {
+        if (t.channel !== undefined) {
+          expect({ id: d.id, i, channel: t.channel }).not.toEqual({ id: d.id, i, channel: d.channel });
+        }
+      }
+    }
   });
 });
 
@@ -165,5 +195,49 @@ describe('distress signals cannot be traded or faked (audit hardening)', () => {
     if (!turn) throw new Error('no mayday turn');
     const missing = 'this is wind dancer sierra papa 9012 position 54 30 5 north 018 45 2 east fire on board require immediate assistance three persons on board over';
     expect(gradeTurn(missing, turn.must).passed).toBe(false);
+  });
+});
+
+describe('audit 2026-07-17: prowords are end-anchored, OUT + distress content are critical', () => {
+  const anyItem = (id: string) => {
+    for (const d of DIALOGUES) for (const t of d.turns) { const m = t.must.find((x) => x.id === id); if (m) return m; }
+    throw new Error(`no must-item ${id}`);
+  };
+
+  it('OUT ticks only at the close, not as a substring or when the turn ends with OVER', () => {
+    const out = anyItem('out');
+    expect(hits('marina gdynia this is wind dancer radio check out', out)).toBe(true);
+    expect(hits('i was talking about the weather over', out)).toBe(false);       // "about" is not OUT
+    expect(hits('marina gdynia this is wind dancer radio check over', out)).toBe(false); // closed with OVER
+  });
+
+  it('OVER ticks only at the close, not when it opens the turn or is "moreover"', () => {
+    const over = anyItem('over');
+    expect(hits('go ahead this is wind dancer over', over)).toBe(true);
+    expect(hits('over to you marina gdynia this is wind dancer radio check', over)).toBe(false);
+    expect(hits('moreover the wind rose radio check', over)).toBe(false);
+  });
+
+  it('OUT is critical: an otherwise-correct radio check closed with OVER fails', () => {
+    const rc = find('radio-check');
+    const closer = rc.turns.find((t) => t.must.some((m) => m.id === 'out'));
+    if (!closer) throw new Error('no OUT-closing turn');
+    expect(gradeTurn(closer.youSay, closer.must).passed).toBe(true);
+    const wrong = closer.youSay.replace(/OUT\.?\s*$/i, 'OVER.');
+    expect(gradeTurn(wrong, closer.must).passed).toBe(false);
+  });
+
+  it('mayday-dialogue first turn fails without a position (position is critical)', () => {
+    const turn = find('mayday-dialogue').turns.find((t) => t.must.some((m) => m.id === 'mayday'))!;
+    expect(gradeTurn(turn.youSay, turn.must).passed).toBe(true);
+    const noPos = turn.youSay.replace(/MY POSITION IS[^.]*\./i, '');
+    expect(gradeTurn(noPos, turn.must).passed).toBe(false);
+  });
+
+  it('PAN-PAN must be a consecutive three-fold signal, not scattered pans', () => {
+    const panpan = anyItem('panpan');
+    expect(hits('pan pan pan pan pan pan all stations', panpan)).toBe(true);
+    expect(hits('pan pan pan all stations pan pan', panpan)).toBe(false);   // 1.5x then interrupted
+    expect(hits('pan pan all stations pan pan pan', panpan)).toBe(false);
   });
 });

@@ -31,6 +31,10 @@ interface Ctx {
    *  green trainer look. Persisted, shared across all radio surfaces. */
   radioRealistic: boolean;
   setRadioRealistic: (v: boolean) => void;
+  /** False until the persisted prefs have been read from localStorage after
+   *  mount. Deep-link auto-start (e.g. /sternik/test?cat=...) must wait for this,
+   *  otherwise it captures the default examBase before the stored one loads. */
+  prefsLoaded: boolean;
 }
 
 // Polish is the BASE, not one of two equal options: it is the language of the
@@ -42,13 +46,20 @@ const PrefsContext = createContext<Ctx>({
   explLang: DEFAULT_EXPL, setExplLang: () => {},
   examBase: 'all', setExamBase: () => {},
   radioRealistic: false, setRadioRealistic: () => {},
+  prefsLoaded: false,
 });
 
 export function SternikPrefsProvider({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
+  // Initialize to the SSR defaults so the first client render matches the server
+  // HTML exactly (reading localStorage in the initializer instead would flip
+  // e.g. radioRealistic and cause a hydration mismatch on every radio page).
+  // The stored values are pulled in a mount effect below, and prefsLoaded gates
+  // any deep-link auto-start until they are in.
   const [explLang, setExplLangState] = useState<ExplLang>(DEFAULT_EXPL);
   const [examBase, setExamBaseState] = useState<ExamBase>('all');
-  const [radioRealistic, setRadioRealisticState] = useState(false);
+  const [radioRealistic, setRadioRealisticState] = useState<boolean>(false);
+  const [prefsLoaded, setPrefsLoaded] = useState(false);
 
   useEffect(() => {
     try {
@@ -56,10 +67,9 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
       if (raw === 'pl' || raw === 'ru' || raw === 'both') setExplLangState(raw);
       const b = window.localStorage.getItem(BASE_KEY);
       if (b === 'all' || b === 'materialy' || b === 'internet') setExamBaseState(b);
-      if (window.localStorage.getItem(REAL_KEY) === '1') setRadioRealisticState(true);
-    } catch {
-      // ignore
-    }
+      setRadioRealisticState(window.localStorage.getItem(REAL_KEY) === '1');
+    } catch { /* ignore */ }
+    setPrefsLoaded(true);
   }, []);
 
   const setExplLang = useCallback((v: ExplLang) => {
@@ -83,7 +93,7 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
   const effectiveExplLang: ExplLang = lang === 'ru' ? explLang : 'pl';
 
   return (
-    <PrefsContext.Provider value={{ explLang: effectiveExplLang, setExplLang, examBase, setExamBase, radioRealistic, setRadioRealistic }}>
+    <PrefsContext.Provider value={{ explLang: effectiveExplLang, setExplLang, examBase, setExamBase, radioRealistic, setRadioRealistic, prefsLoaded }}>
       {children}
     </PrefsContext.Provider>
   );
@@ -121,10 +131,11 @@ export function ExplLangToggle() {
   return (
     <div
       className="inline-flex items-center gap-0.5 rounded-full p-0.5"
+      role="group"
+      aria-label={tp('Язык пояснений', 'Explanation language', 'Jezyk wyjasnien')}
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
-      title={tp('Язык пояснений', 'Explanation language', 'Jezyk wyjasnien')}
     >
-      <span className="px-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
+      <span aria-hidden className="px-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
         💬
       </span>
       {opts.map((o) => {

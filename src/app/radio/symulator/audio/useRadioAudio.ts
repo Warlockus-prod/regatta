@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RadioEvent, RadioState } from '../radioModel';
 import { RadioAudioEngine, type Cue } from './RadioAudioEngine';
 import { audioView, cuesFor } from './radioSounds';
@@ -52,14 +52,15 @@ export function useRadioAudio(state: RadioState) {
     engineRef.current?.setMuted(muted);
   }, [muted]);
 
-  /** call from a real user gesture (pointerdown on the panel) */
+  /** call from a real user gesture (pointerdown on the panel). Kept off `state`
+   *  so the hook stays stable across renders (the effect above already keeps the
+   *  engine's view current); depending on `state` here churned every consumer. */
   const unlock = useCallback(() => {
     const engine = engineRef.current;
     if (!engine || muted) return;
     engine.start();
-    engine.update(audioView(state));
     setStarted(engine.started);
-  }, [muted, state]);
+  }, [muted]);
 
   /** call after every dispatch, with the same (event, prev, next) */
   const onEvent = useCallback((e: RadioEvent, prev: RadioState, next: RadioState) => {
@@ -95,5 +96,13 @@ export function useRadioAudio(state: RadioState) {
     return buf.duration * 1000;
   }, []);
 
-  return { muted, toggleMute, unlock, onEvent, play, speak, started, busy };
+  // A NEW object literal every render gave the hook an unstable identity, which
+  // made every consumer's useCallback/useEffect keyed on `audio` tear down and
+  // re-arm on each render. With the 1 Hz scenario stopwatch forcing a render each
+  // second, any timer >= ~1s (distress-txdone, coast-ack, dual-watch) never fired
+  // and DSC scenarios soft-locked. Memoize on the stable pieces.
+  return useMemo(
+    () => ({ muted, toggleMute, unlock, onEvent, play, speak, started, busy }),
+    [muted, toggleMute, unlock, onEvent, play, speak, started, busy],
+  );
 }

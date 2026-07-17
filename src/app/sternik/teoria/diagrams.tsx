@@ -418,7 +418,7 @@ export function BridgeClearanceDiagram() {
         <polygon points="260,36 260,50 270,43" />
         <polygon points="286,36 286,50 276,43" />
       </g>
-      <text x="273" y="61" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={BLACK}>C.4</text>
+      <text x="273" y="61" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={BLACK}>C.3</text>
 
       <text x="170" y="202" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'sprawdz zanurzenie, wysokosc anteny i stan wody · не гадай на глаз' : 'sprawdz zanurzenie, wysokosc anteny i stan wody'}</text>
     </svg>
@@ -453,10 +453,9 @@ export function DredgerPassDiagram() {
         <text x="170" y="116" textAnchor="middle" fontSize="7.5" fill={TXT2}>земснаряд</text>
       )}
 
-      {/* closed side */}
+      {/* closed side - single red ball (night: single red light) */}
       <g fill={RED} stroke="rgba(0,0,0,0.35)" strokeWidth="0.8">
         <circle cx="118" cy="70" r="7" />
-        <circle cx="118" cy="138" r="7" />
       </g>
       <path d="M 86 70 L 126 138" stroke={RED} strokeWidth="2.2" opacity="0.8" />
       <text x="92" y="158" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={RED}>NIE MIJAJ</text>

@@ -296,8 +296,14 @@ export default function InteractiveRadioCourse() {
     try {
       const parsed = JSON.parse(window.localStorage.getItem(COURSE_KEY) ?? '{}') as Partial<Record<RadioModel, number>>;
       setSavedProgress({ M330: parsed.M330 ?? 0, M323: parsed.M323 ?? 0 });
+      // Resume where the learner left off instead of forcing lesson 1 every visit.
+      // The bar already showed N/15; the lesson header used to disagree with it.
+      const done = parsed[model] ?? 0;
+      if (done > 0) setLessonIndex(Math.min(done, lessons.length - 1));
     } catch { /* ignore */ }
-  }, []);
+    // model is the mount-time default here; chooseModel handles later switches.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lessons.length]);
 
   const playTone = useCallback((frequency: number, durationMs: number) => {
     try {
@@ -384,7 +390,8 @@ export default function InteractiveRadioCourse() {
   const chooseModel = (nextModel: RadioModel) => {
     setModel(nextModel);
     stateRef.current = createInitialRadio(nextModel);
-    setLessonIndex(0);
+    // resume this model's saved lesson rather than dropping back to lesson 1
+    setLessonIndex(Math.min(savedProgress[nextModel] ?? 0, lessons.length - 1));
     setLessonDone(false);
     clearHold();
     render((value) => value + 1);

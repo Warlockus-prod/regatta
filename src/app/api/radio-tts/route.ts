@@ -17,9 +17,12 @@ import { rateLimitWithGlobal, rateLimitHeaders, clientIpKey } from '@/lib/rate-l
 // is then pushed through a radio-band filter in the browser (see StationVoice),
 // so it arrives sounding like a radio, not like a podcast.
 //
-// The station's lines come from a fixed script pool, so the same phrase is
-// generated at most once per deploy and then served from the HTTP cache: this
-// costs a fraction of a cent in practice.
+// The station's lines come from a fixed script pool, so the same phrase recurs
+// often. Note this does NOT get deduped by the HTTP cache: browsers and shared
+// caches do not cache POST responses by URL, so the Cache-Control header below
+// is only a hint and dedupes nothing across sessions. The one real dedupe is the
+// in-memory Map in stationVoice.ts, which lasts a single page load. Even so, the
+// cost is a fraction of a cent in practice.
 // ============================================================================
 
 const TTS_MODEL = process.env.OPENAI_TTS_MODEL || 'gpt-4o-mini-tts';
@@ -110,7 +113,9 @@ export async function POST(req: Request) {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
-        // the station's lines come from a fixed pool: generate once, reuse
+        // Retained only as a hint. POST responses are not HTTP-cacheable by URL,
+        // so this does not dedupe across sessions; the only dedupe is the
+        // in-memory Map in stationVoice.ts (per page load), not this header.
         'Cache-Control': 'public, max-age=86400, immutable',
       },
     });

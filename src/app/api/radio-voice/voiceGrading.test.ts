@@ -154,3 +154,30 @@ describe('a distress grader must not be tradeable (audit hardening)', () => {
     expect(g('mayday-fire', one, 1).checks.find((c) => c.id === 'persons')?.ok).toBe(true);
   });
 });
+
+describe('audit 2026-07-17: position read digit-by-digit, relay confusion, PAN tolerance', () => {
+  const g = (kind: Parameters<typeof gradeVoiceTransmission>[0]['kind'], transcript: string, pob = 4) =>
+    gradeVoiceTransmission({ kind, transcript, vessel, positionSpoken: position, pob });
+
+  it('accepts the position read digit-by-digit with unit words (the pozycja drill form)', () => {
+    const spoken = 'MAYDAY MAYDAY MAYDAY THIS IS BALTIC STAR BALTIC STAR BALTIC STAR CALL SIGN SP 1234 MMSI 261012345 FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH ZERO ONE EIGHT DEGREES FOUR FIVE DECIMAL TWO MINUTES EAST FIRE ON BOARD REQUIRE IMMEDIATE ASSISTANCE FOUR PERSONS ON BOARD OVER';
+    expect(g('mayday-fire', spoken).checks.find((c) => c.id === 'position')?.ok).toBe(true);
+  });
+
+  it('fails a MAYDAY RELAY transmitted in an own-distress fire scenario', () => {
+    const relay = 'MAYDAY RELAY MAYDAY RELAY MAYDAY RELAY THIS IS BALTIC STAR BALTIC STAR BALTIC STAR CALL SIGN SP 1234 POSITION 54 30.5 NORTH 018 45.2 EAST FIRE REQUIRE IMMEDIATE ASSISTANCE FOUR PERSONS ON BOARD OVER';
+    const grade = g('mayday-fire', relay);
+    expect(grade.checks.find((c) => c.id === 'mayday3')?.ok).toBe(false);
+    expect(grade.mandatoryOk).toBe(false);
+  });
+
+  it('a correct PAN-PAN with one STT-dropped pan (5 tokens) still passes the mandatory signal', () => {
+    const five = 'PAN PAN PAN PAN PAN ALL STATIONS ALL STATIONS ALL STATIONS THIS IS BALTIC STAR BALTIC STAR MMSI 261012345 POSITION 54 30.5 NORTH 018 45.2 EAST MAN OVERBOARD KEEP CLEAR FOUR PERSONS ON BOARD OVER';
+    expect(g('panpan-mob', five).checks.find((c) => c.id === 'panpan3')?.ok).toBe(true);
+  });
+
+  it('still fails a half PAN-PAN of 3 consecutive tokens', () => {
+    const three = 'PAN PAN PAN ALL STATIONS ALL STATIONS ALL STATIONS THIS IS BALTIC STAR BALTIC STAR MMSI 261012345 POSITION 54 30.5 NORTH 018 45.2 EAST MAN OVERBOARD KEEP CLEAR FOUR PERSONS ON BOARD OVER';
+    expect(g('panpan-mob', three).checks.find((c) => c.id === 'panpan3')?.ok).toBe(false);
+  });
+});

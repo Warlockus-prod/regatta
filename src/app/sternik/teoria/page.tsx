@@ -300,7 +300,8 @@ export default function SternikTheoryPage() {
           <Fact q="Stozek wierzcholkiem w dol" a="jacht zaglowy plynacy takze na silniku" ru="Конус вершиной вниз - парусник, идущий ещё и под мотором (считается моторным)." />
           <Fact q="Niebieski stozek w dol / niebieskie swiatlo" a="material niebezpieczny palny" ru="Синий конус вершиной вниз (ночью синий огонь) - опасный груз." />
           <Fact q="Dwie czarne kule" a="statek bez mozliwosci manewru" ru="Два чёрных шара - судно, лишённое возможности управляться." />
-          <Fact q="Walec (cylinder) czarny" a="pierwszenstwo przejazdu (duza jednostka)" ru="Чёрный цилиндр - судно с преимуществом прохода (обычно крупное)." />
+          <Fact q="Walec (cylinder) czarny" a="statek ograniczony swoim zanurzeniem (COLREG praw. 28; noca trzy czerwone swiatla w pionie)" ru="Судно, стеснённое своей осадкой (МППСС пр. 28; ночью три красных огня вертикально)." />
+          <Fact q="Czerwony proporzec (pionowy)" a="statek majacy pierwszenstwo przejscia (srodladzie)" ru="Красный вымпел/флаг - судно, имеющее преимущество прохода (внутренние воды)." />
         </Card>
       </Section>
 
@@ -648,13 +649,13 @@ export default function SternikTheoryPage() {
         </h3>
         <p className="mb-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
           {tp(
-            'Skala Beauforta (0-12) opisuje siłę wiatru. Шкала Бофорта (0-12) описывает силу ветра по его действию на воду. Для малых лодок 6 баллов - уже предел, при 8+ на воду не выходят.',
+            'Шкала Бофорта (0-12) описывает силу ветра по его действию на воду. Для малых лодок 6 баллов - уже предел, при 8+ на воду не выходят.',
             'The Beaufort scale (0-12) describes wind force by its effect on the water. For small boats 6 is already the limit; at 8+ you do not go out.',
             'Skala Beauforta (0-12) opisuje sile wiatru wg jego dzialania na wode. Dla malych lodzi 6 to juz granica, przy 8+ nie wyplywa sie.',
           )}
         </p>
         <Table
-          head={['B', 'Nazwa (PL / RU)', 'Wezly / m/s', 'Morze / Море']}
+          head={['B', 'Nazwa (PL / RU)', 'Wezly', 'Morze / Море']}
           rows={[
             ['0', 'Cisza / штиль', '< 1 kn', 'lustro wody / гладь'],
             ['1', 'Powiew / тихий', '1-3 kn', 'zmarszczki / рябь'],
@@ -663,7 +664,7 @@ export default function SternikTheoryPage() {
             ['4', 'Umiarkowany / умеренный', '11-16 kn', 'male fale, biale grzywy / белые гребни'],
             ['5', 'Dosc silny / свежий', '17-21 kn', 'umiarkowane fale / умеренные волны'],
             ['6', 'Silny / сильный', '22-27 kn', 'duze fale, piana / крупные волны, пена'],
-            ['7', 'Bardzo silny / крепкий', '28-33 kn', 'morze się piętrzy / волны громоздятся'],
+            ['7', 'Bardzo silny / крепкий', '28-33 kn', 'morze sie pietrzy / волны громоздятся'],
             ['8', 'Sztormowy / очень крепкий', '34-40 kn', 'wichura, wysokie fale / шторм'],
             ['9', 'Silnie sztormowy / шторм', '41-47 kn', 'bardzo wysokie fale / очень высокие'],
             ['10', 'Sztorm / сильный шторм', '48-55 kn', 'ogromne fale / огромные волны'],
@@ -782,7 +783,7 @@ export default function SternikTheoryPage() {
             <li>{tp('Порт: выходящий имеет приоритет; манёвры на минимальной скорости со сохранением управляемости.', 'Port: the outbound vessel has priority; manoeuvre at minimum steerage speed.', 'Port: wychodzacy ma pierwszenstwo; manewry z minimalna predkoscia zapewniajaca sterownosc.')}</li>
             <li>{tp('СЛР 30:2 (100-120/мин); предмет в ране не вынимать; алкоголь переохлаждённому нельзя; 601 100 100 / 112.', 'CPR 30:2 (100-120/min); never pull an object out of a wound; no alcohol for hypothermia; 601 100 100 / 112.', 'RKO 30:2 (100-120/min); przedmiotu z rany nie wyjmuj; alkohol przy wychlodzeniu zabroniony; 601 100 100 / 112.')}</li>
             <li>{tp('Экология: ничего за борт; заправка при выключенном моторе; химтуалет - в спецточки.', 'Environment: nothing overboard; refuel with the engine off; chemical toilet - only to disposal points.', 'Srodowisko: nic za burte; tankowanie przy zgaszonym silniku; toaleta chemiczna - do punktow zlewnych.')}</li>
-            <li>{tp('Патент: internal без лимита (до 16 лет - 60 кВт); море - 12 м / 2 Mm / день. Без патента: до 10 кВт (или хаусбот до 75 кВт / 13 м / 15 км/ч).', 'Patent: inland no power limit (under 16 - 60 kW); sea - 12 m / 2 NM / daytime. Without a patent: up to 10 kW (or houseboat up to 75 kW / 13 m / 15 km/h).', 'Patent: srodladzie bez limitu (do 16 lat - 60 kW); morze - 12 m / 2 Mm / dzien. Bez patentu: do 10 kW (lub houseboat do 75 kW / 13 m / 15 km/h).')}</li>
+            <li>{tp('Патент: внутренние воды без лимита (до 16 лет - 60 кВт); море - 12 м / 2 Mm / день. Без патента: до 10 кВт (или хаусбот до 75 кВт / 13 м / 15 км/ч).', 'Patent: inland no power limit (under 16 - 60 kW); sea - 12 m / 2 NM / daytime. Without a patent: up to 10 kW (or houseboat up to 75 kW / 13 m / 15 km/h).', 'Patent: srodladzie bez limitu (do 16 lat - 60 kW); morze - 12 m / 2 Mm / dzien. Bez patentu: do 10 kW (lub houseboat do 75 kW / 13 m / 15 km/h).')}</li>
           </ul>
         </Card>
         <Tip>

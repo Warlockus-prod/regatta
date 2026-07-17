@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs, type ExplLang } from './prefs';
+import { useFocusTrap } from './useFocusTrap';
 
 // ============================================================================
 // Floating AI instructor chat for the /sternik section.
@@ -72,12 +73,24 @@ export default function SternikChat() {
   const [error, setError] = useState<string | null>(null);
   const contextRef = useRef<string>('');
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
   const openRef = useRef(open);
   openRef.current = open;
+  // Mirror msgs in a ref so send() can build the next turn list from the live
+  // React state (not sessionStorage, which can silently fail to persist).
+  const msgsRef = useRef<Msg[]>(msgs);
+  msgsRef.current = msgs;
+  // Trap focus inside the panel while open; Escape closes it.
+  const panelRef = useFocusTrap<HTMLDivElement>(open, () => setOpen(false));
 
   useEffect(() => {
     setMsgs(loadSession());
   }, []);
+
+  // Move focus to the text input when the panel opens.
+  useEffect(() => {
+    if (open) inputRef.current?.focus();
+  }, [open]);
 
   useEffect(() => {
     if (listRef.current) {
@@ -91,7 +104,7 @@ export default function SternikChat() {
       if (!clean || busy) return;
       setError(null);
       setBusy(true);
-      const next: Msg[] = [...loadSession().slice(-20), { role: 'user', content: clean }];
+      const next: Msg[] = [...msgsRef.current.slice(-20), { role: 'user', content: clean }];
       setMsgs(next);
       saveSession(next);
       // Never hang: abort the request after 30s and surface a retryable error.
@@ -196,6 +209,10 @@ export default function SternikChat() {
       {/* Panel */}
       {open && (
         <div
+          ref={panelRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label={tp('Чат с AI-инструктором', 'AI instructor chat', 'Czat z instruktorem AI')}
           className="fixed z-50 flex flex-col overflow-hidden rounded-t-2xl sm:rounded-2xl shadow-2xl"
           style={{
             background: 'var(--bg-card)',
@@ -229,14 +246,14 @@ export default function SternikChat() {
               type="button"
               onClick={() => setOpen(false)}
               aria-label={tp('Закрыть', 'Close', 'Zamknij')}
-              className="text-xl px-2"
+              className="flex min-h-[44px] min-w-[44px] items-center justify-center text-xl"
               style={{ color: 'var(--text-secondary)' }}
             >
               ×
             </button>
           </div>
 
-          <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+          <div ref={listRef} aria-live="polite" className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
             {msgs.length === 0 && (
               <div
                 className="rounded-xl px-3 py-2 text-sm"
@@ -307,6 +324,7 @@ export default function SternikChat() {
             style={{ borderTop: '1px solid var(--border-subtle)' }}
           >
             <input
+              ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder={tp('Спроси про экзамен...', 'Ask about the exam...', 'Zapytaj o egzamin...')}

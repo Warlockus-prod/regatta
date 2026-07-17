@@ -222,28 +222,25 @@ export const ORAL_PROMPTS: OralPrompt[] = [
         id: 'q2-e1',
         label: 'WYPRZEDZAJACY ustepuje wyprzedzanemu (nie odwrotnie)',
         anyOf: ['wyprzedzajac', 'ustepuje wyprzedzanemu', 'ustepuje wyprzedzanej'],
-        // Both participles appear in the sentence that reverses the rule, so the
-        // keyword is useless: what decides it is WHICH ONE IS THE SUBJECT. In Polish
-        // that is word order - the giver-way comes before "ustepuje", the vessel
-        // given way to comes after it.
+        // Both participles appear in the sentence that reverses the rule, so a
+        // keyword is useless: what decides it is WHICH VESSEL IS THE SUBJECT (the
+        // one that gives way). Polish marks that by CASE, not word order: the
+        // subject is nominative (wyprzedzajac-a / -y / -e, or a verb form), the
+        // vessel given way to is dative (-ej / -emu). Position-based heuristics
+        // failed both ways (a verb-first nominative "ustepuje jednostka wyprzedzana"
+        // is backwards but passed; the gerund "przy wyprzedzaniu" before the verb
+        // false-failed correct answers). So classify by ending, ignore position.
         test: (raw) => {
           const w = normalize(raw).split(' ');
-          const gives = w.findIndex((x) => /^ustepuj/.test(x));
-          if (gives < 0) return false;
-          const before = w.slice(0, gives);
-          const after = w.slice(gives + 1);
-          // "the OVERTAKEN vessel gives way" (overtaken before the verb) = backwards
-          if (before.some((x) => /^wyprzedzan/.test(x))) return false;
-          // "gives way TO the overtaking vessel" - a dative -ej/-emu after the verb
-          // means the overtaking one is the party given way to, which is backwards
-          if (after.some((x) => /^wyprzedzaj\w*(ej|emu)$/.test(x))) return false;
-          // Correct: the overtaking vessel is the SUBJECT that gives way - nominative
-          // (wyprzedzajac-a/-y) or a verb form - in either word order (subject-first
-          // "wyprzedzajaca ... ustepuje" or verb-first "ustepuje ... wyprzedzajaca");
-          // OR the overtaken vessel is the object it gives way to, after the verb.
-          const overtakingSubject = w.some((x) => (/^wyprzedzaj/.test(x) && !/(ej|emu)$/.test(x)) || x === 'wyprzedza' || x === 'wyprzedzam');
-          const overtakenAfter = after.some((x) => /^wyprzedzan/.test(x));
-          return overtakingSubject || overtakenAfter;
+          if (!w.some((x) => /^ustepuj/.test(x))) return false;
+          // the OVERTAKING vessel as the subject giving way: nominative participle
+          // (ends a/y/e, not the dative -ej/-emu) or a finite verb form
+          const overtakingSubject = w.some((x) =>
+            /^wyprzedzaj\w*(a|y|e)$/.test(x) || x === 'wyprzedza' || x === 'wyprzedzam' || x === 'wyprzedzaja' || x === 'wyprzedzajac' || x === 'wyprzedzajacy');
+          // the OVERTAKEN vessel as the (nominative) subject = the rule backwards.
+          // Excludes the gerund "wyprzedzaniu/wyprzedzania" (ends -iu/-ia, not a/y/e).
+          const overtakenSubject = w.some((x) => /^wyprzedzan(a|y|e)$/.test(x));
+          return overtakingSubject && !overtakenSubject;
         },
         critical: true,
       },
@@ -465,8 +462,10 @@ export const ORAL_PROMPTS: OralPrompt[] = [
         // correct. The number has to be bound to its unit, on a word boundary.
         test: (raw) => {
           const t = normalize(raw);
-          const hull = /\b12\s+(m\b|metr)/.test(t);
-          const zone = /\b2\s+(mile|mil|mm)\b/.test(t) || /\bdwie mile\b/.test(t);
+          // Polish STT spells small numbers, and "do" takes the genitive: "do
+          // dwoch mil morskich", "dwunastu metrow". Accept the inflected words too.
+          const hull = /\b12\s+(m\b|metr)/.test(t) || /\b(dwanascie|dwunastu)\s+metr/.test(t);
+          const zone = /\b2\s+(mile|mil|mm)\b/.test(t) || /\b(dwie|dwoch|dwu)\s+mil/.test(t);
           return hull && zone;
         },
         critical: true,

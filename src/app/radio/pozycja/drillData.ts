@@ -390,7 +390,7 @@ function orderCheck(said: string, must: PosElement[]): PosCheck {
     const el = must.find((m) => m.id === id);
     if (!el) return -1;
     return Math.min(...el.anyOf.map((k) => {
-      const i = said.indexOf(normalize(k));
+      const i = said.indexOf(` ${normalize(k)} `);
       return i < 0 ? Number.POSITIVE_INFINITY : i;
     }));
   };
@@ -406,10 +406,10 @@ export function gradePosition(transcript: string, must: PosElement[]): PosResult
   const said = ` ${normalize(transcript)} `;
 
   const checks: PosCheck[] = must.map((el) => {
-    if (el.anyOf.some((k) => said.includes(normalize(k)))) {
+    if (el.anyOf.some((k) => said.includes(` ${normalize(k)} `))) {
       return { id: el.id, label: el.label, status: 'ok' as const };
     }
-    const amb = (el.warnOf ?? []).find((k) => said.includes(normalize(k)));
+    const amb = (el.warnOf ?? []).find((k) => said.includes(` ${normalize(k)} `));
     if (amb) return { id: el.id, label: el.label, status: 'warn' as const, heardAs: amb };
     return { id: el.id, label: el.label, status: 'miss' as const };
   });

@@ -857,7 +857,7 @@ export const SRC_BANK: SrcQuestion[] = [
   "options": [
    "MAYDAY",
    "MAYDAY MAYDAY MAYDAY",
-   "C. MAYDAY RELAY MAYDAY RELAY MAYDAY RELAY"
+   "MAYDAY RELAY MAYDAY RELAY MAYDAY RELAY"
   ],
   "correct": 2,
   "whyPl": "Stacja przekazująca cudze niebezpieczeństwo używa sygnału MAYDAY RELAY powtórzonego trzykrotnie, co odróżnia przekaz od własnego wezwania o pomoc.",
@@ -1380,7 +1380,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "STOP"
   ],
   "correct": 0,
-  "whyPl": "Zakończenie całej łączności sygnalizuje się zwrotem OVER AND OUT, natomiast samo OVER kończy tylko pojedynczą wypowiedź.",
+  "whyPl": "Sposrod podanych opcji najlepsza jest OVER AND OUT, ale scisle proceduralnie zakonczenie lacznosci sygnalizuje sie slowem OUT; 'over and out' laczy dwa sprzeczne zwroty.",
   "confidence": "sure"
  },
  {
@@ -1507,7 +1507,7 @@ export const SRC_BANK: SrcQuestion[] = [
   "options": [
    "tylko informacja wychodząca ze stacji nie może trafić do osób trzecich",
    "tylko informacja przychodząca do stacji nie może trafić do osób trzecich",
-   "informacja przychodząca i wychodząca ze stacji nie może trafić do osób trzecich Podstawowe terminy anglojęzyczne stosowane w radiokomunikacyjnej służbie morskiej"
+   "informacja przychodząca i wychodząca ze stacji nie może trafić do osób trzecich"
   ],
   "correct": 2,
   "whyPl": "Tajemnica korespondencji obejmuje zarówno informacje przychodzące do stacji, jak i z niej wychodzące.",

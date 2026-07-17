@@ -49,7 +49,7 @@ export default function WeakSpotsPanel() {
           type="button"
           data-testid="clear-weak"
           onClick={() => { clearWeakSpots(); setSpots([]); }}
-          className="ml-auto min-h-[32px] rounded-full px-2 text-[11px]"
+          className="ml-auto flex min-h-[44px] items-center rounded-full px-3 text-[11px]"
           style={{ color: 'var(--text-muted)' }}
         >
           {tp('Сбросить', 'Reset', 'Resetuj')}

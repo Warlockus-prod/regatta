@@ -57,6 +57,12 @@ export default function OralTrainer() {
     try {
       const fd = new FormData();
       fd.append('audio', blob, 'answer.webm');
+      // The sternik oral exam is in Polish. Without this the route transcribes
+      // under an English model with English vocabulary bias, mangling exactly the
+      // Polish keywords the grader matches. `prompt` biases the model toward this
+      // question's expected exam terms.
+      fd.append('lang', 'pl');
+      fd.append('prompt', `Egzamin ustny na patent sternika motorowodnego, odpowiedz po polsku. ${p.questionPl} ${p.must.flatMap((m) => m.anyOf).join(', ')}`.slice(0, 900));
       const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
       // A 429 / 502 must not be graded as "you missed every element" and written
       // into weakSpots. Only a real transcript is ever graded.
@@ -198,9 +204,9 @@ export default function OralTrainer() {
 
           <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
             {tp(
-              'Отвечай по-польски - экзамен принимают на польском. Одного пропущенного пункта достаточно для зачёта, двух - уже нет.',
-              'Answer in Polish - the exam is held in Polish. One missing element still passes; two do not.',
-              'Odpowiadaj po polsku - egzamin jest po polsku. Jeden brakujacy punkt jeszcze przechodzi, dwa juz nie.',
+              'Отвечай по-польски - экзамен принимают на польском. Один пропущенный пункт ещё проходит - кроме критического (например позиция или число людей в MAYDAY).',
+              'Answer in Polish - the exam is held in Polish. One missing element still passes - unless it is a critical one (for example the position or the number of persons in a MAYDAY).',
+              'Odpowiadaj po polsku - egzamin jest po polsku. Jeden brakujacy punkt jeszcze przechodzi - chyba ze to punkt krytyczny (np. pozycja lub liczba osob w MAYDAY).',
             )}
           </p>
 

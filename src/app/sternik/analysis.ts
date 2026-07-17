@@ -142,7 +142,12 @@ export const CAT_THEORY_ANCHOR: Record<SternikCatId, string> = {
 
 /** Build a compact context block for the AI tutor from the analysis. */
 export function buildTutorContext(a: SternikAnalysis, lang: 'pl' | 'ru' | 'both'): string {
-  const weak = a.weakest.slice(0, 4).map((c) => `${c.cat.pl} (${c.cat.ru}): ${Math.round(c.accuracy * 100)}%`).join('; ');
+  const weak = a.weakest.slice(0, 4).map((c) => {
+    // On the Polish site the tutor request must stay Cyrillic-free; the RU gloss
+    // is an aid only for the Russian (and mixed) audience.
+    const label = lang === 'pl' ? c.cat.pl : `${c.cat.pl} (${c.cat.ru})`;
+    return `${label}: ${Math.round(c.accuracy * 100)}%`;
+  }).join('; ');
   const misses = a.stubborn.slice(0, 5).map((s) => {
     const cat = STERNIK_CATEGORY_BY_ID[s.cat];
     return `- [${cat.pl}] ${s.q} -> poprawna: ${s.correctText}`;

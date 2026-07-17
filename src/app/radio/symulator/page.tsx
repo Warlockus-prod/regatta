@@ -172,8 +172,9 @@ export default function RadioSimulatorPage() {
     rsRef.current = next;
 
     // the radio's own sounds - hiss behind the squelch, key beeps, the refusal
-    // beep on CH 70, the DSC alarm
-    audio.onEvent(e, prev, next);
+    // beep on CH 70, the DSC alarm. Read through the ref so `dispatch` stays a
+    // stable identity (see the deps note below).
+    audioRef.current.onEvent(e, prev, next);
 
     // mirror device log additions into the page log
     if (next.deviceLog.length > prev.deviceLog.length) {
@@ -220,7 +221,10 @@ export default function RadioSimulatorPage() {
     }
 
     force((n) => n + 1);
-  }, [audio, bi]);
+    // NOT [audio]: the audio object identity used to change on every render, which
+    // made dispatch (and every effect keyed on it) re-arm each second and never
+    // fire the DSC timers. audioRef keeps the sound current without the dep.
+  }, [bi]);
 
   // --- device timers -----------------------------------------------------------
   const [holdPct, setHoldPct] = useState(0);
@@ -336,24 +340,27 @@ export default function RadioSimulatorPage() {
     const otherDsc = screen === 'otherdsc-ack' || screen === 'rx-individual-call';
     if (!distress && !otherDsc) return undefined;
 
-    audio.play(distress ? 'alarm-start' : 'call-alert');
-    if (distress) return () => audio.play('alarm-stop');
+    audioRef.current.play(distress ? 'alarm-start' : 'call-alert');
+    if (distress) return () => audioRef.current.play('alarm-stop');
 
     // a routine call alerts you too - that is the point of DSC - but it gives up
     // after two minutes, and it is not the distress two-tone
-    const id = setInterval(() => audio.play('call-alert'), 4000);
+    const id = setInterval(() => audioRef.current.play('call-alert'), 4000);
     const stop = setTimeout(() => clearInterval(id), 120_000);
     return () => { clearInterval(id); clearTimeout(stop); };
-  }, [audio, screen]);
+    // depend on `screen` only (via audioRef): keying on `audio` re-ran this every
+    // render, re-playing the alert each second and resetting the alarm tone grid.
+  }, [screen]);
 
   // AquaQuake: "a low frequency vibration beep sounds to drain the water,
   // REGARDLESS OF THE VOLUME LEVEL SETTING" (M330GE p.14). A buzz, not a beep,
   // and the one sound on the set the VOL knob cannot touch.
   useEffect(() => {
     if (!rs.aquaActive) return undefined;
-    audio.play('aqua-start');
-    return () => audio.play('aqua-stop');
-  }, [audio, rs.aquaActive]);
+    audioRef.current.play('aqua-start');
+    return () => audioRef.current.play('aqua-stop');
+    // via audioRef, so re-keying on `audio` no longer restarts the buzz each render
+  }, [rs.aquaActive]);
 
   // The scan is squelch-gated: it pauses on a busy channel instead of chopping a
   // live station into fragments ("the scan pauses until the signal disappears").
@@ -776,7 +783,7 @@ export default function RadioSimulatorPage() {
 
               {/* finished -> debrief; else current step */}
               {finishedAt !== null ? (
-                <div data-testid="debrief" className="mb-3 rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
+                <div data-testid="debrief" role="status" aria-live="polite" className="mb-3 rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
                   <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Разбор', 'Debrief', 'Omowienie')}</div>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{finalScore}%</span>
@@ -871,7 +878,7 @@ export default function RadioSimulatorPage() {
                             data-testid="hint-btn"
                             onClick={showHint}
                             title={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedz - pokaz na radiu')}
-                            className="flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold transition active:scale-95"
+                            className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-sm font-bold transition active:scale-95"
                             style={{ background: 'rgba(255,206,77,0.15)', color: 'var(--hl-amber, #ffce4d)', border: '1px solid rgba(255,206,77,0.45)' }}
                           >
                             ?

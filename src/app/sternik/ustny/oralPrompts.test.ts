@@ -227,3 +227,31 @@ describe('the data itself', () => {
     expect(ORAL_PROMPTS).toHaveLength(12);
   });
 });
+
+describe('audit 2026-07-17: overtaking grader is case-based, not position-based', () => {
+  const q2e1 = ORAL_PROMPTS.find((p) => p.id === 'sternik-oral-02')!.must.find((m) => m.id === 'q2-e1')!;
+
+  it('rejects the reversed rule even when stated verb-first (nominative overtaken subject)', () => {
+    // "the overtaken vessel gives way" - backwards, and previously PASSED
+    expect(hits('Zawsze ustepuje jednostka wyprzedzana', q2e1)).toBe(false);
+    expect(hits('Ustepuje jednostka wyprzedzana', q2e1)).toBe(false);
+  });
+
+  it('accepts correct answers that open with the gerund or use OVS order', () => {
+    // gerund "wyprzedzaniu" before the verb - the question echoes this wording - previously FAILED
+    expect(hits('Przy wyprzedzaniu zawsze ustepuje jednostka wyprzedzajaca', q2e1)).toBe(true);
+    // object-verb-subject: overtaken vessel is dative, overtaking is the nom subject
+    expect(hits('Jednostce wyprzedzanej ustepuje jednostka wyprzedzajaca', q2e1)).toBe(true);
+  });
+
+  it('still rejects giving way TO the overtaking vessel (dative)', () => {
+    expect(hits('Ustepuje jednostce wyprzedzajacej', q2e1)).toBe(false);
+    expect(hits('Jednostka wyprzedzana ustepuje jednostce wyprzedzajacej', q2e1)).toBe(false);
+  });
+
+  it('Q7 zone limit accepts the Polish genitive "do dwoch mil" and spelled "dwunastu metrow"', () => {
+    const q7e2 = ORAL_PROMPTS.find((p) => p.id === 'sternik-oral-07')!.must.find((m) => m.id === 'q7-e2')!;
+    expect(hits('Kadlub do dwunastu metrow i strefa do dwoch mil morskich od brzegu', q7e2)).toBe(true);
+    expect(hits('do 12 metrow i do 2 mil morskich', q7e2)).toBe(true);
+  });
+});
