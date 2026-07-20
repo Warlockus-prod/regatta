@@ -142,11 +142,27 @@ test.describe('Smoke: critical user flows', () => {
   });
 
   test('embed mode hides the sim switcher (iOS WebView contract)', async ({ page }) => {
+    // Since app 1.5.0 b30 ALL THREE simulator tiers are embedded by the iOS app
+    // (mobile/app/simulator-v1|simulator-v3|simulator2 -> SimWebView), so the
+    // chromeless contract - no global nav, no cross-sim switcher links - must
+    // hold on every tier, not just /simulator2.
     await page.goto('/simulator2?embed=1');
     await expect(page.locator('canvas').first()).toBeVisible({ timeout: 20_000 });
     // No cross-sim links may render inside the chromeless app embed.
     await expect(page.locator('a[href="/simulator-v3"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
+
+    await page.goto('/simulator?embed=1');
+    await expect(page.locator('svg, canvas').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('nav.sticky')).toHaveCount(0);
+    await expect(page.locator('a[href="/simulator-v3"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
+
+    await page.goto('/simulator-v3?embed=1');
+    await expect(page.locator('canvas, svg').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('nav.sticky')).toHaveCount(0);
+    await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
+    await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
   });
 
   test('embed mode hides global chrome but keeps the course subnav (mobile course contract)', async ({ page }) => {
