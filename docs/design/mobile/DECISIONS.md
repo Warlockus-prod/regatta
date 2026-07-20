@@ -45,6 +45,8 @@ by SimWebView's failure card, and the first-launch onboarding now routes to the
   switching tiers is the native hub's job via the header back button.
 - Shipped in 1.5.0 build 30 together with the courses exam-guard (ADR-0010).
 
+## ADR-0010: Licence courses stay a WebView embed; harden, not rewrite (2026-07-17)
+
 **Status:** accepted.
 
 **Context.** The two Polish licence courses (Sternik motorowodny, SRC Radio)
