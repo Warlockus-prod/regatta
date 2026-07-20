@@ -6,7 +6,44 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
-## ADR-0010: Licence courses stay a WebView embed; harden, not rewrite (2026-07-17)
+## ADR-0011: Simulators hub mirrors the web tiers via WebView; native sims become offline fallbacks (2026-07-18)
+
+**Status:** accepted (owner feedback on TestFlight 1.5.0 build 29). Supersedes
+the native-first tier mapping of ADR-0008; the two-tier MODEL itself stands.
+
+**Context.** ADR-0008 mapped the hub tiers to native screens: "Basics" was a
+new simple native screen and "Trainer" was the native RN Skia sim, with only
+the 3D boat as a WebView. The owner's TestFlight feedback: the first tier looks
+primitive next to the web graphics, the second is a completely different
+product from the web version, and the tier-switcher menu that sits at the top
+of every web simulator is gone in the app (it is hidden by the embed contract;
+the e2e test asserts no cross-sim links render at ?embed=1 - in the app the
+native hub IS the switcher). The web tiers (SIMULATORS.md) are: Podstawy =
+/simulator (V1), Trener = /simulator-v3, Lodka 3D = /simulator2.
+
+**Decision.** The hub's cards now open the WEB tiers, byte-identical to the
+site, all through SimWebView:
+
+- Basics -> new route `/simulator-v1` = web `/simulator?embed=1`
+  (scroll enabled - the V1 page scrolls; offline fallback: native
+  `/simulator-basics`).
+- Trainer -> existing route `/simulator-v3` = web `/simulator-v3?embed=1`
+  (offline fallback: native `/simulator`).
+- 3D Boat -> `/simulator2` (unchanged).
+
+The native screens are NOT deleted: they remain the offline fallbacks offered
+by SimWebView's failure card, and the first-launch onboarding now routes to the
+`/simulators` hub instead of the native trainer.
+
+**Consequences.**
+- The app always shows the same simulators as the site; every web sim deploy
+  reaches the app instantly (same property as the courses, ADR-0010).
+- Basics/Trainer now need a network; the failure card is honest about it and
+  one tap away from the offline native version. The Trainer card copy no longer
+  claims "works offline" outright.
+- The in-sim tier switcher stays hidden in embeds (containment contract);
+  switching tiers is the native hub's job via the header back button.
+- Shipped in 1.5.0 build 30 together with the courses exam-guard (ADR-0010).
 
 **Status:** accepted.
 

@@ -13,16 +13,18 @@ import { colors } from '../../src/design-system/tokens';
 import type { Lang } from '../../src/i18n/languages';
 
 // ============================================================================
-// Simulators hub - two-tier learning path plus the 3D boat view.
-// Step 1 "Basics" is the new simple native screen, Step 2 "Trainer" is the
-// full native sim, and the 3D boat runs the web module in a WebView.
-// (The V3 route still exists for deep links but is not listed here.)
+// Simulators hub - two-tier learning path plus the 3D boat view, mirroring
+// the website tiers exactly (owner feedback, TestFlight 1.5.0: the native
+// Basics/Trainer looked nothing like the web). Step 1 "Basics" embeds the web
+// /simulator (V1), Step 2 "Trainer" embeds the web /simulator-v3 - both via
+// SimWebView, like the 3D boat. The native screens stay as offline fallbacks
+// (/simulator-basics and /simulator), offered by SimWebView's failure card.
 // ============================================================================
 
 type LocalizedText = { ru: string; en: string; pl: string; es: string; fr: string; de: string; it: string };
 
 interface SimEntry {
-  route: '/simulator-basics' | '/simulator' | '/simulator2';
+  route: '/simulator-v1' | '/simulator-v3' | '/simulator2';
   icon: IconName;
   badge?: LocalizedText;
   accent?: CardAccent;
@@ -32,7 +34,7 @@ interface SimEntry {
 
 const PRIMARY_ENTRIES: SimEntry[] = [
   {
-    route: '/simulator-basics',
+    route: '/simulator-v1',
     icon: 'compass',
     accent: 'cyan',
     badge: {
@@ -64,7 +66,7 @@ const PRIMARY_ENTRIES: SimEntry[] = [
     },
   },
   {
-    route: '/simulator',
+    route: '/simulator-v3',
     icon: 'simulator',
     accent: 'success',
     badge: {
@@ -86,13 +88,13 @@ const PRIMARY_ENTRIES: SimEntry[] = [
       it: 'Trainer',
     },
     desc: {
-      ru: 'Реальная физика, трим, упражнения и миссии, живой ветер. Работает офлайн.',
-      en: 'Real physics, sail trim, drills and missions, live wind. Works offline.',
-      pl: 'Prawdziwa fizyka, trym, cwiczenia i misje, zywy wiatr. Dziala offline.',
-      es: 'Fisica real, trimado, ejercicios y misiones, viento vivo. Funciona sin conexion.',
-      fr: 'Physique reelle, reglage, exercices et missions, vent vivant. Marche hors ligne.',
-      de: 'Echte Physik, Trimm, Uebungen und Missionen, Live-Wind. Funktioniert offline.',
-      it: 'Fisica reale, regolazione, esercizi e missioni, vento vivo. Funziona offline.',
+      ru: 'Реальная физика, трим, упражнения и миссии - как на сайте. Офлайн есть упрощённая версия.',
+      en: 'Real physics, sail trim, drills and missions - same as the website. A simpler offline version exists.',
+      pl: 'Prawdziwa fizyka, trym, cwiczenia i misje - jak na stronie. Offline jest wersja uproszczona.',
+      es: 'Fisica real, trimado, ejercicios y misiones - como en la web. Sin conexion hay una version simple.',
+      fr: 'Physique reelle, reglage, exercices et missions - comme sur le site. Hors ligne, version simplifiee.',
+      de: 'Echte Physik, Trimm, Uebungen und Missionen - wie auf der Website. Offline gibt es eine einfache Version.',
+      it: 'Fisica reale, regolazione, esercizi e missioni - come sul sito. Offline esiste una versione semplice.',
     },
   },
 ];

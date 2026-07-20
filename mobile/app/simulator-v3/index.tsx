@@ -1,13 +1,28 @@
 import { SimWebView } from '../../src/simulator/SimWebView';
+import { useI18n } from '../../src/i18n/context';
 
 // ============================================================================
-// Simulator V3 screen.
+// Trainer (web V3) screen.
 //
-// Embeds the live web /simulator-v3 via WebView for full parity with the
-// website (same physics, same UI, same content). Mobile-lane only: this loads
-// the deployed web route, it does not edit any web V3 code.
+// Embeds the live web /simulator-v3 (the "Trener" tier) via WebView for full
+// parity with the website (same physics, same UI, same content). Mobile-lane
+// only: this loads the deployed web route, it does not edit any web V3 code.
+// Offline falls back to the native Trainer, which keeps working without a
+// network.
 // ============================================================================
 
 export default function SimulatorV3Screen() {
-  return <SimWebView path="/simulator-v3" title="V3" />;
+  const { tp } = useI18n();
+  return (
+    <SimWebView
+      path="/simulator-v3"
+      title={tp('Тренажёр', 'Trainer', 'Trener', {
+        es: 'Entrenador',
+        fr: 'Entraineur',
+        de: 'Trainer',
+        it: 'Trainer',
+      })}
+      fallbackRoute="/simulator"
+    />
+  );
 }

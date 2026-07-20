@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "29",
+      "buildNumber": "30",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "Mikrofon jest uzywany w symulatorze radia SRC do oceny transmisji glosowych (MAYDAY, PAN-PAN). Nagranie sluzy wylacznie do oceny i nie jest przechowywane."
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 29,
+      "versionCode": 30,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"

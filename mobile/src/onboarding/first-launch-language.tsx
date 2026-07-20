@@ -173,7 +173,7 @@ function OnboardingTourModal({
     },
   );
 
-  const handleStart = (target: '/bootcamp' | '/simulator') => {
+  const handleStart = (target: '/bootcamp' | '/simulators') => {
     onFinish();
     // Defer to next tick so the modal teardown doesn't race the route push.
     setTimeout(() => {
@@ -235,7 +235,9 @@ function OnboardingTourModal({
                 onBack={onStartBack}
                 onSkip={onFinish}
                 onPickBootcamp={() => handleStart('/bootcamp')}
-                onPickSimulator={() => handleStart('/simulator')}
+                // The simulators hub, not the native trainer directly: the hub
+                // mirrors the web tiers (Basics / Trainer / 3D) since 1.5.0 b30.
+                onPickSimulator={() => handleStart('/simulators')}
               />
             ) : null}
           </SlideStage>

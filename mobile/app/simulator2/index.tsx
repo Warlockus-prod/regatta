@@ -1,4 +1,5 @@
 import { SimWebView } from '../../src/simulator/SimWebView';
+import { useI18n } from '../../src/i18n/context';
 
 // ============================================================================
 // Simulator V2 (3D) screen.
@@ -9,5 +10,16 @@ import { SimWebView } from '../../src/simulator/SimWebView';
 // ============================================================================
 
 export default function SimulatorV2Screen() {
-  return <SimWebView path="/simulator2" title="3D" />;
+  const { tp } = useI18n();
+  return (
+    <SimWebView
+      path="/simulator2"
+      title={tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
+        es: 'Barco 3D',
+        fr: 'Bateau 3D',
+        de: 'Boot 3D',
+        it: 'Barca 3D',
+      })}
+    />
+  );
 }
