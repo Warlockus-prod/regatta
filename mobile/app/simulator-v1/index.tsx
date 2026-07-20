@@ -1,5 +1,7 @@
+import { useLocalSearchParams } from 'expo-router';
 import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
+import { passthroughQuery } from '../../src/simulator/passthroughQuery';
 
 // ============================================================================
 // Basics (web V1) screen.
@@ -13,9 +15,12 @@ import { useI18n } from '../../src/i18n/context';
 
 export default function SimulatorV1Screen() {
   const { tp } = useI18n();
+  const params = useLocalSearchParams();
   return (
     <SimWebView
       path="/simulator"
+      tier="basics"
+      query={passthroughQuery(params)}
       title={tp('Основы', 'Basics', 'Podstawy', {
         es: 'Basicos',
         fr: 'Bases',

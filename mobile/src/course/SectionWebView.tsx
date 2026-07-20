@@ -99,15 +99,18 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
     const sub = navigation.addListener('beforeRemove', (e) => {
       e.preventDefault();
       Alert.alert(
-        tp('Wyjsc z egzaminu?', 'Выйти из экзамена?', 'Wyjsc z egzaminu?', {
+        // tp(ru, en, pl) - the RU slot is FIRST. These four calls shipped in
+        // build 30 with RU and PL swapped, so a Russian tester saw Polish and an
+        // English one saw Cyrillic.
+        tp('Выйти из экзамена?', 'Leave the exam?', 'Wyjsc z egzaminu?', {
           es: 'Salir del examen?',
           fr: "Quitter l'examen?",
           de: 'Pruefung verlassen?',
           it: "Uscire dall'esame?",
         }),
         tp(
-          'Odpowiedzi egzaminu zostana utracone.',
           'Ответы экзамена будут потеряны.',
+          'Your exam answers will be lost.',
           'Odpowiedzi egzaminu zostana utracone.',
           {
             es: 'Se perderan las respuestas del examen.',
@@ -118,13 +121,13 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         ),
         [
           {
-            text: tp('Zostan', 'Остаться', 'Zostan', {
+            text: tp('Остаться', 'Stay', 'Zostan', {
               es: 'Quedarse', fr: 'Rester', de: 'Bleiben', it: 'Restare',
             }),
             style: 'cancel',
           },
           {
-            text: tp('Wyjdz', 'Выйти', 'Wyjdz', {
+            text: tp('Выйти', 'Leave', 'Wyjdz', {
               es: 'Salir', fr: 'Quitter', de: 'Verlassen', it: 'Esci',
             }),
             style: 'destructive',

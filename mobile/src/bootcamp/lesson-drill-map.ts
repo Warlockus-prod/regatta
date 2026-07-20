@@ -24,6 +24,17 @@ export function getDrillForLesson(lessonId: string): string | null {
   return LESSON_TO_DRILL[lessonId] ?? null;
 }
 
+/**
+ * Deliberately targets the NATIVE trainer, not the web Trainer embed.
+ *
+ * The ids above (hold-twa-45, tack-clean, ...) are the NATIVE trainer's drill
+ * catalog. The web Trainer has a different, trim-focused catalog (hold-trim,
+ * beam-healthy, reduce-heel, ... - src/features/simulator-v3/runtime/
+ * scenario-presets.ts) and resolveTrainerDeepLink silently ignores an unknown
+ * `drill`, so pointing these links at /simulator-v3 would drop the drill and
+ * open a generic trainer. Until the two catalogs are reconciled, a bootcamp
+ * lesson keeps opening the screen that actually has its drill.
+ */
 export function buildSimulatorDrillRoute(
   lessonId: string,
   drillId: string,

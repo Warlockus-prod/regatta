@@ -45,6 +45,31 @@ by SimWebView's failure card, and the first-launch onboarding now routes to the
   switching tiers is the native hub's job via the header back button.
 - Shipped in 1.5.0 build 30 together with the courses exam-guard (ADR-0010).
 
+**Follow-up in build 31 (2026-07-20).** Shipping build 30 answered the owner's
+"primitive" / "different from the web" complaints but NOT his first one - the
+missing tier-switcher menu - which build 30 only rationalized ("the hub is the
+switcher"). It also made that screen's top strip sparser than the native trainer
+it replaced. Build 31 therefore adds a NATIVE tier switcher: a segmented row
+(Osnovy | Trenazher | Lodka 3D) rendered by SimWebView under the stack header on
+all three tier screens, using `router.replace` so Back still returns to the hub.
+This restores one-tap tier switching without touching the web embed contract or
+its e2e guard. Build 31 also fixes, on the same pass:
+- the exam-exit dialog shipped in build 30 with RU and PL swapped in `tp(ru, en, pl)`
+  (a Russian tester saw Polish, an English one saw Cyrillic);
+- bootcamp lessons landing in the native trainer because the web route string
+  `/simulator` (= Basics on the web) collides with the app route `/simulator`
+  (= native trainer) - now mapped via `web-route-to-app-route.ts`;
+- lesson deep-link params being dropped (SimWebView built the URL from lang+embed
+  only, so `?drill=hold-trim` never reached the embed) - now passed through;
+- the 3D tier offering "open the Trainer" as its offline fallback, and its
+  5-step tour popping over the scene (`regatta.3d.tour.v1` was missing from the
+  suppressed-flags list);
+- the Basics card not saying it needs a network.
+The bootcamp "try this drill" CTA deliberately still opens the NATIVE trainer:
+its drill ids (hold-twa-45, tack-clean, ...) are the native catalog and the web
+Trainer has a different, trim-focused one, so redirecting would silently drop the
+drill. Reconciling the two catalogs is open work.
+
 ## ADR-0010: Licence courses stay a WebView embed; harden, not rewrite (2026-07-17)
 
 **Status:** accepted.

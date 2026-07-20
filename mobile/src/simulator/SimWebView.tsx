@@ -41,7 +41,14 @@ const LOAD_TIMEOUT_MS = 12000;
 
 // localStorage flags that gate first-visit tours across the web app. Keep in
 // sync with web onboarding gates (OnboardingTour, V3 TourOverlay).
-const SEEN_FLAGS = ['regatta.onboarding.v1', 'regatta.v3.tour.v1'];
+const SEEN_FLAGS = [
+  'regatta.onboarding.v1',
+  'regatta.v3.tour.v1',
+  // The 3D boat has its own 5-step tour (src/features/simulator-3d/
+  // Simulator3D.tsx). It was missing here, so it popped over the scene the
+  // first time the 3D tier opened in the app.
+  'regatta.3d.tour.v1',
+];
 const SET_FLAGS = SEEN_FLAGS.map((k) => `localStorage.setItem('${k}', '1');`).join(' ');
 
 // Runs before hydration. Also repeated in AFTER_LOAD because
@@ -68,6 +75,18 @@ const AFTER_LOAD = `
   true;
 `;
 
+/**
+ * Which learning tier this screen is, when it is one. Set it to render the
+ * native tier switcher under the header.
+ *
+ * The web pages carry their own Osnovy/Trenazher/Lodka 3D switcher at the top,
+ * but every embed hides it (the pages gate it behind !embed, and we also drop
+ * the site nav) so a tap cannot walk the user out of the chromeless screen.
+ * The owner reported the missing switcher as a bug, so the app provides its own
+ * native one that swaps the embedded route instead of navigating the web page.
+ */
+export type SimTier = 'basics' | 'trainer' | 'boat3d';
+
 export interface SimWebViewProps {
   /** Web route to embed, e.g. "/simulator-v3" or "/anatomy". */
   path: string;
@@ -75,6 +94,8 @@ export interface SimWebViewProps {
   title: string;
   /** Extra query params appended after lang/embed. */
   query?: Record<string, string>;
+  /** Render the native tier switcher and mark this tier active. */
+  tier?: SimTier;
   /**
    * Allow page scrolling. Off for the simulators (they fit 100dvh by the
    * embed contract); on for content pages like /anatomy where natural scroll
@@ -92,12 +113,39 @@ export function SimWebView({
   path,
   title,
   query,
+  tier,
   scrollEnabled = false,
   fallbackRoute = '/simulator',
   fallbackLabel,
 }: SimWebViewProps) {
   const { lang, tp } = useI18n();
   const router = useRouter();
+
+  // The three learning tiers, in the site's order. `replace` (not `push`) keeps
+  // the back button pointing at the hub instead of stacking simulators.
+  const tiers: { id: SimTier; route: string; label: string }[] = [
+    {
+      id: 'basics',
+      route: '/simulator-v1',
+      label: tp('Основы', 'Basics', 'Podstawy', {
+        es: 'Basicos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
+      }),
+    },
+    {
+      id: 'trainer',
+      route: '/simulator-v3',
+      label: tp('Тренажёр', 'Trainer', 'Trener', {
+        es: 'Entrenador', fr: 'Entraineur', de: 'Trainer', it: 'Trainer',
+      }),
+    },
+    {
+      id: 'boat3d',
+      route: '/simulator2',
+      label: tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
+        es: 'Barco 3D', fr: 'Bateau 3D', de: 'Boot 3D', it: 'Barca 3D',
+      }),
+    },
+  ];
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -127,6 +175,31 @@ export function SimWebView({
   return (
     <Screen noTopInset noBottomInset>
       <Stack.Screen options={{ title }} />
+      {tier && (
+        <View style={styles.tierBar} accessibilityRole="tablist">
+          {tiers.map((t) => {
+            const active = t.id === tier;
+            return (
+              <Pressable
+                key={t.id}
+                onPress={() => { if (!active) router.replace(t.route); }}
+                accessibilityRole="tab"
+                accessibilityState={{ selected: active }}
+                accessibilityLabel={t.label}
+                style={({ pressed }) => [
+                  styles.tierChip,
+                  active && styles.tierChipActive,
+                  pressed && !active && styles.btnPressed,
+                ]}
+              >
+                <Text style={[styles.tierText, active && styles.tierTextActive]} numberOfLines={1}>
+                  {t.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      )}
       <WebView
         key={reloadKey}
         ref={webRef}
@@ -222,6 +295,38 @@ export function SimWebView({
 
 const styles = StyleSheet.create({
   web: { flex: 1, backgroundColor: colors.bgPrimary },
+  tierBar: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingTop: 6,
+    paddingBottom: 8,
+    backgroundColor: colors.bgPrimary,
+  },
+  tierChip: {
+    flex: 1,
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 8,
+    borderRadius: 9,
+    borderWidth: 1,
+    borderColor: 'rgba(139, 167, 184, 0.28)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  tierChipActive: {
+    backgroundColor: 'rgba(0, 212, 255, 0.14)',
+    borderColor: colors.accentCyan,
+  },
+  tierText: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  tierTextActive: {
+    color: colors.accentCyan,
+    fontWeight: '700',
+  },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',

@@ -19,6 +19,7 @@ import {
   buildSimulatorDrillRoute,
   getDrillForLesson,
 } from '../../src/bootcamp/lesson-drill-map';
+import { webRouteToAppRoute } from '../../src/bootcamp/web-route-to-app-route';
 import {
   getQuizForLesson,
   isQuizPassed,
@@ -180,7 +181,9 @@ export default function BootcampLesson() {
           <Button
             onPress={() => {
               markCompleted(lesson.id);
-              router.push(lesson.route);
+              // lesson.route is a WEB path; "/simulator" means Basics on the
+              // web but the native trainer in the app (see web-route-to-app-route).
+              router.push(webRouteToAppRoute(lesson.route));
             }}
             variant="primary"
           >
