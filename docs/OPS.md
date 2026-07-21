@@ -132,8 +132,21 @@ Expect:
 
 ---
 
+## Alerts to Telegram (App Store status + support email)
+
+`ops/notify/` holds two operational alerts, secret-free (tokens read at runtime
+from an external env, never committed):
+
+- **App Store review-status -> Telegram** (`asc-telegram-notify.mjs`, managed by
+  `asc-alert.sh`): a launchd poller that pings @gtframe_bot when the ASC
+  `appStoreState` changes. This is the "did the build actually go live / stall"
+  signal. `ops/notify/README.md` has the run/status/logs commands.
+- **support@ email -> Telegram** (`regatta-support-email-to-telegram.workflow.json`):
+  an n8n IMAP->Telegram workflow. Setup in `ops/notify/N8N_SUPPORT_SETUP.md`.
+
 ## See also
 
 - `docs/I18N_AUDIT.md` - i18n status across routes + langs
 - `CLAUDE.md` - lane coordination rules for parallel chats
 - `README.md` - product overview
+- `ops/notify/README.md` - ASC + support alert tooling

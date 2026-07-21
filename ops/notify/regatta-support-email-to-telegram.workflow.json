@@ -1,0 +1,41 @@
+{
+  "name": "Regatta: support@ Email -> Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": { "item": [ { "mode": "everyMinute" } ] },
+        "simple": false
+      },
+      "id": "regatta-check-email-support",
+      "name": "Check support@ Email",
+      "type": "n8n-nodes-base.emailReadImap",
+      "typeVersion": 2,
+      "position": [ 420, 300 ],
+      "notes": "Assign a NEW IMAP credential: host mail.gtframe.io, port 993, SSL/TLS on, user support@gtframe.io, password = yours (enter it here, in n8n)."
+    },
+    {
+      "parameters": {
+        "operation": "sendMessage",
+        "chatId": "386781503",
+        "text": "=📧 <b>Новое письмо на support@gtframe.io</b>\n🕐 {{ $now.format('yyyy-MM-dd HH:mm') }}\n\n<b>От:</b> {{ $json.from }}\n<b>Тема:</b> {{ $json.subject }}\n\n{{ $json.textPlain ? $json.textPlain.substring(0, 500) : '(без текста)' }}",
+        "additionalFields": {
+          "parse_mode": "HTML",
+          "disable_web_page_preview": true
+        }
+      },
+      "id": "regatta-send-telegram",
+      "name": "Send to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [ 700, 300 ],
+      "notes": "Assign the EXISTING @gtframe_bot Telegram credential (same one the GTFrame email workflow uses)."
+    }
+  ],
+  "connections": {
+    "Check support@ Email": {
+      "main": [ [ { "node": "Send to Telegram", "type": "main", "index": 0 } ] ]
+    }
+  },
+  "settings": {},
+  "active": false
+}
