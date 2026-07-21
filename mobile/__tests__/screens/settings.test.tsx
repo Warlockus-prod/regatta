@@ -32,6 +32,14 @@ jest.mock('expo-constants', () => ({
   },
 }));
 
+// expo-application ships the same untransformed ESM; stub the two fields the
+// Settings "about" line reads (Application.nativeApplicationVersion / nativeBuildVersion).
+jest.mock('expo-application', () => ({
+  __esModule: true,
+  nativeApplicationVersion: '1.5.0',
+  nativeBuildVersion: '31',
+}));
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Settings from '../../app/settings';
 import { renderWithProviders } from '../../src/test-utils';
