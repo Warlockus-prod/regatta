@@ -12,7 +12,8 @@
     "test:api": "vitest run src/app/api",
     "test:radio": "vitest run src/app/radio",
     "test": "vitest run",
-    "check:dash": "node scripts/check-no-dash.mjs"
+    "check:dash": "node scripts/check-no-dash.mjs",
+    "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

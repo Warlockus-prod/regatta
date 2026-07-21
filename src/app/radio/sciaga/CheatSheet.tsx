@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs } from '../../sternik/prefs';
 import { SCENARIOS } from '../symulator/scenarios';
+import { SpeakButton } from '../audio/SpeakButton';
 import {
   CHANNELS, PHONETIC, DIGITS, PROWORDS, DSC_STEPS, MISTAKES, EXAM_FACTS,
   MAYDAY_TEMPLATE, PANPAN_TEMPLATE, SECURITE_TEMPLATE, CANCEL_TEMPLATE,
@@ -79,6 +80,13 @@ export default function CheatSheet() {
     if (showPl && showRu) return `${pl} · ${ru}`;
     return showRu ? ru : pl;
   }, [showPl, showRu]);
+
+  const listen = tp('Прослушать', 'Listen', 'Posluchaj', {
+    es: 'Escuchar', fr: 'Ecouter', de: 'Anhoren', it: 'Ascolta',
+  });
+  // Prowords are shown "ENGLISH / ENGLISH" (e.g. ROGER / RECEIVED); speak the
+  // clean spoken form (matches the pregen manifest key).
+  const say = (proword: string) => proword.replace(/\s*\/\s*/g, ', ');
 
   const grade = useMemo(() => {
     if (!done) return null;
@@ -171,22 +179,34 @@ export default function CheatSheet() {
           <Box title={bi('Alfabet fonetyczny', 'Фонетический алфавит')} wide>
             <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-sm sm:grid-cols-6" style={{ color: 'var(--text-secondary)' }}>
               {PHONETIC.map(([l, w]) => (
-                <div key={l}>
-                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{l}</span> {w}
+                <div key={l} className="flex items-center gap-1.5">
+                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{l}</span>
+                  <span>{w}</span>
+                  <span className="no-print ml-auto"><SpeakButton text={w} label={listen} size={20} /></span>
                 </div>
               ))}
             </div>
             <div className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1 text-sm sm:grid-cols-5" style={{ color: 'var(--text-secondary)' }}>
               {DIGITS.map(([d, w]) => (
-                <div key={d}>
-                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{d}</span> {w}
+                <div key={d} className="flex items-center gap-1.5">
+                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{d}</span>
+                  <span>{w}</span>
+                  <span className="no-print ml-auto"><SpeakButton text={w} label={listen} size={20} /></span>
                 </div>
               ))}
             </div>
           </Box>
 
           <Box title="Prowords" wide>
-            <Rows rows={PROWORDS.map((p) => [p[0], bi(p[1], p[2])] as const)} />
+            <div className="space-y-1 text-sm">
+              {PROWORDS.map((p) => (
+                <div key={p[0]} className="flex items-center gap-2">
+                  <span className="no-print"><SpeakButton text={say(p[0])} label={listen} size={20} /></span>
+                  <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
+                </div>
+              ))}
+            </div>
           </Box>
 
           <Box title={bi('Typowe bledy - tu oblewa sie egzamin', 'Типовые ошибки - на них валят экзамен')}>
