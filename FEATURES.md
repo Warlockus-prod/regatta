@@ -3,6 +3,12 @@
 **Last updated:** 2026-04-20 (after V1/V2/V3 simulator split + physics engine live)
 **Live:** https://weektoregatta.com
 
+> **Naming note (2026-07):** the shipped user-facing model is now **two tiers +
+> a 3D boat view** - Basics (`/simulator`), the Trainer (`/simulator-v3`), and
+> the 3D boat view (`/simulator2`). `V1/V2/V3` below are internal route
+> codenames only and must not appear in the UI. `docs/design/SIMULATORS.md` is
+> the single source of truth; where it and this file disagree, it wins.
+
 Inventory of everything the app does today. This is the user-facing
 counterpart to `TECH.md` (architecture) and `AUDIT.md` (code-health).
 When a feature is added, moved, or retired, update this file in the
@@ -44,9 +50,11 @@ toggle. Everything runs client-side except the physics engine tests
 (separate WS process), the SQLite event log, and the Claude Haiku
 coaching endpoint.
 
-**Three simulator versions** live side by side at `/simulator` (V1),
-`/simulator2` (V2), `/simulator-v3` (V3). Each is a different teaching
-surface over the same shared `sailing-physics` engine.
+**Two simulator tiers + a 3D boat view** live at `/simulator` (Basics),
+`/simulator-v3` (Trainer), and `/simulator2` (the 3D boat view). Each is a
+different teaching surface over the same shared `sailing-physics` engine.
+(The `V1/V2/V3` codenames used below are internal route names, not the model
+users see - see the naming note at the top.)
 
 ---
 
