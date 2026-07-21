@@ -449,6 +449,35 @@ export default function SternikRadioPage() {
           <Fact q="Kanal 16" a="nie zajmuj rozmowa - to kanal wywolawczy/alarmowy" ru="Канал 16 не занимать болтовнёй: вызвал - и уходи на рабочий канал." />
           <Fact q="Kolejnosc" a="nadaje ten, kto sie zglosil; sluchaj zanim nadasz" ru="Сначала слушай (не занят ли канал), потом нажимай передачу." />
         </Card>
+
+        <Card title="Pasmo VHF: fale metrowe / Диапазон VHF: метровые волны">
+          <Fact q="VHF = Very High Frequency" a="fale metrowe (dlugosc 1-10 m), pasmo 30-300 MHz" ru="VHF (УКВ) - «очень высокие частоты». Это метровые волны (длина 1-10 м), диапазон 30-300 МГц." />
+          <Fact q="Morskie pasmo VHF" a="156-174 MHz (Regulamin Radiokomunikacyjny ITU)" ru="Морской диапазон VHF: 156-174 МГц (Регламент радиосвязи ITU)." />
+          <Fact q="Predkosc i dlugosc fali" a="fale radiowe biegna z predkoscia swiatla (~300 000 km/s); λ[m] = 300 / f[MHz], wiec 156 MHz to ok. 1,9 m" ru="Радиоволны идут со скоростью света (~300 000 км/с). Длина волны λ[м] = 300 / f[МГц]: для 156 МГц это около 1,9 м." />
+          <Fact q="Kanal to etykieta czestotliwosci" a="numer kanalu = z gory ustalona czestotliwosc; kanal 16 = 156,800 MHz" ru="Номер канала - это заранее заданная частота. Например, канал 16 = 156,800 МГц." />
+        </Card>
+
+        <Card title="Simplex, duplex, semidupleks / Симплекс и дуплекс">
+          <Fact q="Kanal simpleksowy" a="jedna czestotliwosc - nadajesz i odbierasz na tej samej, na zmiane (OVER)" ru="Симплекс: одна частота - и передача, и приём на ней же, по очереди (OVER)." />
+          <Fact q="Kanal dupleksowy" a="dwie czestotliwosci: inna do nadawania, inna do odbioru - jak telefon" ru="Дуплекс: две частоты (одна на передачу, другая на приём) - как телефон." />
+          <Fact q="Semidupleks" a="jedna stacja pracuje simpleksem, druga dupleksem (zwykle: statek simplex, stacja brzegowa duplex)" ru="Полудуплекс: одна станция работает симплексом, другая дуплексом (обычно судно - симплекс, берег - дуплекс)." />
+        </Card>
+
+        <Card title="Zasieg: horyzont radiowy i antena / Дальность: радиогоризонт и антенна">
+          <Fact q="Zasieg jest quasi-optyczny" a="VHF idzie 'na wprost' (line of sight) do horyzontu radiowego; nie odbija sie od jonosfery jak fale krotkie" ru="Дальность квазиоптическая: VHF идёт «по прямой» (line of sight) до радиогоризонта и не отражается от ионосферы, как короткие волны." />
+          <Fact q="Od czego zalezy zasieg" a="od wysokosci anten (nadawczej i odbiorczej), a NIE od mocy, pory doby czy szerokosci geograficznej" ru="Зависит от высоты антенн (передающей и приёмной), а НЕ от мощности, времени суток или широты." />
+          <Fact q="Wzor na zasieg" a="d[km] ~ 4·√h[m]; dwie anteny: 4·(√h1 + √h2). Maszt 100 m -> ok. 40 km, 64 m -> ok. 32 km" ru="Формула: d[км] ~ 4·√h[м]; для двух антенн 4·(√h1 + √h2). Мачта 100 м -> около 40 км, 64 м -> около 32 км." />
+          <Fact q="Dlaczego wyzsza antena siega dalej" a="wyzej = dalszy horyzont radiowy; antena na topie masztu bije dalej niz reczny radiotelefon" ru="Выше антенна - дальше радиогоризонт. Поэтому антенна на топе мачты бьёт дальше ручной рации." />
+          <Fact q="Antena VHF" a="typowo pionowy dipol cwiercfalowy (0,25 dlugosci fali)" ru="Обычно вертикальный четвертьволновый диполь (0,25 длины волны)." />
+        </Card>
+
+        <Tip>
+          {tp(
+            'Практический вывод: на VHF высота антенны важнее мощности. 25 Вт не «пробьют» за горизонт - поэтому в порту хватает 1 Вт, а для дальности поднимай антенну выше.',
+            'Practical takeaway: on VHF, antenna height beats power. 25 W will not reach past the horizon, so 1 W is enough in harbour; for range, mount the antenna higher.',
+            'Wniosek praktyczny: na VHF wysokosc anteny jest wazniejsza niz moc. 25 W nie przebije za horyzont - dlatego w porcie wystarczy 1 W, a dla zasiegu podnies antene wyzej.',
+          )}
+        </Tip>
       </Section>
 
       {/* 4. DISTRESS -------------------------------------------------------- */}
