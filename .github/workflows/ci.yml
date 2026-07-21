@@ -64,3 +64,27 @@ jobs:
         run: |
           npx vitest run src/app/radio
           npx vitest run src/app/sternik
+
+  # The mobile app (mobile/) shipped with NO CI of its own - its lint,
+  # typecheck and 92 Jest tests only ran on a developer's laptop, so a broken
+  # drill map or an untransformed expo module could reach a build unnoticed.
+  # This runs the mobile lane's own gate (`npm run check` = sync-content twins
+  # + lint + tsc + jest). Separate job so it runs in parallel with the web one.
+  mobile:
+    name: Mobile (twins + lint + typecheck + tests)
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install mobile deps
+        working-directory: mobile
+        run: npm ci --no-audit --no-fund
+
+      - name: Content twins in sync + lint + typecheck + Jest
+        working-directory: mobile
+        run: npm run check

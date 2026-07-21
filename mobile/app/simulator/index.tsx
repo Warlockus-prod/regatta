@@ -350,7 +350,9 @@ export default function Simulator() {
   const compassCy = COMPASS_R + 18;
   const sim = useSimLoop({ bounds: { width: sceneW, height: sceneH } });
   const boatLength = sceneW < 360 ? 48 : 56;
-  const viewParam = useLocalSearchParams<{ view?: string }>().view;
+  const routeParams = useLocalSearchParams<{ view?: string; drill?: string }>();
+  const viewParam = routeParams.view;
+  const drillParam = routeParams.drill;
   const [simView, setSimView] = useState<SimView>(
     viewParam === 'side' || viewParam === 'rear' ? viewParam : 'top',
   );
@@ -361,6 +363,26 @@ export default function Simulator() {
       setSimView(viewParam);
     }
   }, [viewParam]);
+
+  // Deep-link a drill from a bootcamp lesson's "Try this in the simulator" CTA:
+  // regatta://simulator?drill=twa45 (see src/bootcamp/lesson-drill-map.ts). Only
+  // a real DRILLS id is honored - anything else is ignored, so a plain open of
+  // the trainer behaves exactly as before. Applied once per distinct param value
+  // (a different lesson CTA pushes a new route with a new value, re-applying);
+  // switching mode/drill by hand afterwards still wins because the ref is set.
+  const appliedDrillRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!drillParam || appliedDrillRef.current === drillParam) return;
+    const match = DRILLS.find((d) => d.id === drillParam);
+    if (!match) return;
+    appliedDrillRef.current = drillParam;
+    sim.setMode('drill');
+    sim.setDrillId(match.id);
+    sim.reset();
+    // Only react to the drill param; the sim methods are called imperatively
+    // (same pattern as handlePickDrill: setDrillId then reset).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [drillParam]);
   const [windMapMode, setWindMapMode] = useState<WindMapMode>('steady');
   const windBaseRef = useRef(sim.wind.trueWindDirRad);
   const windSpeedBaseRef = useRef(sim.wind.trueWindSpeedKts);
