@@ -88,6 +88,14 @@ key/
 # exports + zip, kept locally for reference only - not version controlled.
 /app-graf/
 
+# More design/agent-handoff scratch drop-zones (same as /3d/, /app-graf/):
+# handoff zips + local agent-session sandboxes, kept out of the repo so they
+# stop dirtying `git status`. NOTE: /ops/ is intentionally NOT here - it is
+# committed ops tooling (ASC alerts + n8n), not scratch.
+/3dnew/
+/radio/
+/sternik/
+
 # Gallery raw originals - optimized into full/ + thumb/ by scripts/build-gallery-year.mjs
 public/gallery/*/_incoming/*
 !public/gallery/*/_incoming/README.txt

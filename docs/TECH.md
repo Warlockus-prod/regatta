@@ -20,7 +20,9 @@ A concise overview of how the Regatta web app is built and shipped.
 ## Sailing physics
 
 - The VPP (velocity-prediction) engine lives in `src/lib/sailing-physics/*` and
-  is shared by the simulators (V1/V2/V3). Physics tests: `npm run test:physics`.
+  is shared by all simulators - the Basics/Trainer tiers and the 3D boat view
+  (internal route codenames V1/V2/V3; see `docs/design/SIMULATORS.md`). Physics
+  tests: `npm run test:physics` (31 green).
 
 ## Internationalization
 

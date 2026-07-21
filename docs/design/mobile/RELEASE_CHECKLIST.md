@@ -42,9 +42,10 @@ Catch missing / placeholder localizations before Apple does.
 - Native string catalogs: run **LocaleLint** on any `.xcstrings` (app name,
   `InfoPlist` localizations). Managed Expo has none committed today - they
   appear after `expo prebuild`; lint them then.
-- JS i18n (where our actual UI strings live): `node scripts/i18n-audit.mjs`
-  must be clean across all 7 langs. This is the equivalent gate for the RN app
-  today.
+- JS i18n (where our actual UI strings live): `node mobile/scripts/i18n-audit.mjs`
+  (from the repo root; the script lives under `mobile/scripts/`, not the web
+  `scripts/`) must be clean across all 7 langs. This is the equivalent gate for
+  the RN app today.
 - **Gate:** zero missing / empty translations.
 
 ### G2 - XcodeBuildMCP: build + SIMULATOR verify   [one-time setup below]
@@ -149,8 +150,9 @@ gate still requires "no dangling pending submission".)
 
 ### LocaleLint   [SETUP NEEDED - applies once we have .xcstrings]
 Add LocaleLint to CI to lint `.xcstrings`. Today the RN app's strings are JS
-(`src/i18n`), so `scripts/i18n-audit.mjs` is the active check; adopt LocaleLint
-when native String Catalogs exist (post-prebuild: app name / InfoPlist).
+(`mobile/src/i18n`), so `mobile/scripts/i18n-audit.mjs` is the active check;
+adopt LocaleLint when native String Catalogs exist (post-prebuild: app name /
+InfoPlist).
 
 ---
 

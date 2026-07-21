@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, clientIpKey } from '@/lib/rate-limit';
 
 // ============================================================================
 // The coast station answers OUT LOUD.
@@ -57,6 +57,18 @@ export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
   const ip = clientIpKey(req);
+
+  // Per-user daily AI budget - the same ceiling radio-voice enforces. The hourly
+  // rate limit below caps bursts; this caps the slow drip that would otherwise
+  // let one session run up an unbounded daily TTS bill. On cap we degrade to the
+  // written reply (fallback:true, 200) rather than 429, because that is the path
+  // the client already handles for every other radio-tts failure - a 429 here
+  // would surface as a broken button instead of a graceful text fallback.
+  const daily = checkUserDailyBudget(sid ?? ip);
+  if (!daily.ok) {
+    logWarn('radio-tts.daily-budget', { resetMs: daily.resetMs });
+    return NextResponse.json({ fallback: true }, { status: 200 });
+  }
 
   const rl = rateLimitWithGlobal({
     key: 'radio-tts:' + (sid ?? ip),

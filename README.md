@@ -8,11 +8,13 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 
 ## Highlights
 
-- **Three simulator versions** over a shared VPP-style physics engine:
-  V1 canvas (drag + keyboard), V2 Three.js (immersive 3D), V3 SVG
-  cockpit (teaching panel with pods + diagnostics).
+- **Two simulator tiers + a 3D boat view**, all over one shared VPP-style
+  physics engine: Basics (`/simulator`, wind + turns + angle to wind),
+  the Trainer (`/simulator-v3`, live physics + trim + drills), and the 3D
+  boat view (`/simulator2`, R3F + GLB). The `V1/V2/V3` names are internal
+  route codenames only - see `docs/design/SIMULATORS.md` for the model.
 - **Physics engine** in `src/lib/sailing-physics/` - 8-step force-
-  balance tick, 8/8 verification tests green (see `DECISIONS.md`
+  balance tick; `npm run test:physics` = 31 tests green (see `DECISIONS.md`
   ADR-0001).
 - **Race game** with AI opponents on 3 difficulty levels, Claude
   Haiku coach on finish.
@@ -44,9 +46,9 @@ For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 
 - Next.js 16 (App Router) + React 19 + TypeScript strict
 - Tailwind CSS v4, dark-ocean theme via CSS vars
-- HTML5 Canvas (V1 simulator, game)
-- Three.js + @react-three/fiber + drei (V2 simulator)
-- SVG (V3 simulator, static diagrams)
+- HTML5 Canvas (Basics simulator `/simulator`, game)
+- Three.js + @react-three/fiber + drei (3D boat view `/simulator2`)
+- SVG (Trainer `/simulator-v3`, static diagrams)
 - SQLite via better-sqlite3 (`/data/regatta-stats.db` on VPS)
 - Separate WebSocket server at `:4502` (multiplayer)
 - Claude Haiku 4.5 via `@anthropic-ai/sdk` (coach + AI chat)
