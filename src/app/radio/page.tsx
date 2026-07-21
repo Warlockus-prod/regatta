@@ -242,6 +242,28 @@ export default function SternikRadioPage() {
         )}
       </Warn>
 
+      {/* Theory konspekt CTA - the distilled study text */}
+      <Link
+        href="/radio/teoria"
+        className="mb-6 flex items-center gap-4 rounded-2xl p-4 transition hover:-translate-y-0.5"
+        style={{ background: 'linear-gradient(140deg, var(--bg-card), rgba(0,212,255,0.12))', border: '1px solid var(--border-subtle)' }}
+      >
+        <div className="text-3xl">📚</div>
+        <div className="flex-1">
+          <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {tp('Теория SRC - конспект', 'SRC theory - konspekt', 'Teoria SRC - konspekt')}
+          </div>
+          <p className="mt-0.5 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {tp(
+              'Вся теория коротко и с конкретикой: частоты, каналы, DSC, аварийные вызовы, приборы GMDSS. Выжимка из всех 324 вопросов UKE.',
+              'The whole theory, short and concrete: frequencies, channels, DSC, distress calls, GMDSS devices. Distilled from all 324 UKE questions.',
+              'Cala teoria krotko i konkretnie: czestotliwosci, kanaly, DSC, wywolania alarmowe, urzadzenia GMDSS. Wyciag z 324 pytan UKE.',
+            )}
+          </p>
+        </div>
+        <div className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>{tp('Открыть', 'Open', 'Otworz')} {'->'}</div>
+      </Link>
+
       {/* Simulator CTA */}
       <Link
         href="/radio/symulator"
