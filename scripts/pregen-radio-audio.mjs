@@ -14,7 +14,8 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { PHONETIC, DIGITS, PROWORDS } from '../src/app/radio/cheatData.ts';
+import { PHONETIC, DIGITS, PROWORDS, SMCP } from '../src/app/radio/cheatData.ts';
+import { REACTION_LINES } from '../src/app/radio/symulator/stationReaction.ts';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(ROOT, 'public', 'radio-audio');
@@ -41,6 +42,16 @@ function apiKey() {
   return null;
 }
 
+// dialogues.ts cross-imports dialogueGrading, so it will not import standalone
+// under strip-types. The youSay model lines are plain single-quoted literals, so
+// extract them from the source text instead.
+function dialogueLines() {
+  const src = readFileSync(join(ROOT, 'src', 'app', 'radio', 'rozmowa', 'dialogues.ts'), 'utf8');
+  const out = [];
+  for (const m of src.matchAll(/youSay:\s*'([^']*)'/g)) out.push(m[1]);
+  return out;
+}
+
 // The phrases to bake. Keep this the single source of what is "static"; the
 // SpeakButton just looks the text up in the manifest.
 function phrases() {
@@ -48,6 +59,9 @@ function phrases() {
   for (const [, word] of PHONETIC) out.add(word);          // Alfa, Bravo, ...
   for (const [, word] of DIGITS) out.add(word);            // Nadazero, Unaone, ...
   for (const [pw] of PROWORDS) out.add(pw.replace(/\s*\/\s*/g, ', ')); // OVER, ROGER, RECEIVED, ...
+  for (const [phrase] of SMCP) out.add(phrase);            // How do you read me? ...
+  for (const line of REACTION_LINES) out.add(line);        // SAY AGAIN, OVER. ...
+  for (const line of dialogueLines()) out.add(line);       // the model transmissions
   return [...out];
 }
 

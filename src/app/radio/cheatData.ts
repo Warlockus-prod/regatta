@@ -29,6 +29,19 @@ export const DIGITS: Pair[] = [
   ['5', 'Pantafive'], ['6', 'Soxisix'], ['7', 'Setteseven'], ['8', 'Oktoeight'], ['9', 'Novenine'],
 ];
 
+/** Standard IMO SMCP phrases a candidate hears / uses on the air.
+ *  [English phrase, PL meaning, RU meaning] - the English is what gets spoken. */
+export const SMCP: Row3[] = [
+  ['How do you read me?', 'jak mnie slyszysz?', 'как меня слышно?'],
+  ['I read you loud and clear.', 'slysze cie glosno i wyraznie', 'слышу вас громко и чётко'],
+  ['Stand by on channel one six.', 'czekaj na kanale 16', 'ждите на 16 канале'],
+  ['Say again, please.', 'powtorz prosze', 'повторите, пожалуйста'],
+  ['What is your position?', 'jaka jest twoja pozycja?', 'какая ваша позиция?'],
+  ['I require assistance.', 'potrzebuje pomocy', 'мне нужна помощь'],
+  ['I am not under command.', 'nie moge manewrowac', 'не управляюсь'],
+  ['Nothing more, out.', 'nic wiecej, bez odbioru', 'больше ничего, конец связи'],
+];
+
 /** [proword, PL meaning, RU meaning] */
 export const PROWORDS: Row3[] = [
   ['OVER', 'skonczylem, czekam na odpowiedz', 'приём, жду ответа'],

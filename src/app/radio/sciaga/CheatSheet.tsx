@@ -7,7 +7,7 @@ import { useSternikPrefs } from '../../sternik/prefs';
 import { SCENARIOS } from '../symulator/scenarios';
 import { SpeakButton } from '../audio/SpeakButton';
 import {
-  CHANNELS, PHONETIC, DIGITS, PROWORDS, DSC_STEPS, MISTAKES, EXAM_FACTS,
+  CHANNELS, PHONETIC, DIGITS, PROWORDS, SMCP, DSC_STEPS, MISTAKES, EXAM_FACTS,
   MAYDAY_TEMPLATE, PANPAN_TEMPLATE, SECURITE_TEMPLATE, CANCEL_TEMPLATE,
 } from '../cheatData';
 
@@ -203,6 +203,18 @@ export default function CheatSheet() {
                 <div key={p[0]} className="flex items-center gap-2">
                   <span className="no-print"><SpeakButton text={say(p[0])} label={listen} size={20} /></span>
                   <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
+                </div>
+              ))}
+            </div>
+          </Box>
+
+          <Box title={bi('Zwroty SMCP (morski angielski)', 'Фразы SMCP (морской английский)')} wide>
+            <div className="space-y-1 text-sm">
+              {SMCP.map((p) => (
+                <div key={p[0]} className="flex items-center gap-2">
+                  <span className="no-print"><SpeakButton text={p[0]} label={listen} size={20} /></span>
+                  <span className="min-w-[210px] shrink-0 font-semibold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
                   <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
                 </div>
               ))}

@@ -13,6 +13,8 @@ import {
 } from '../symulator/radioModel';
 import { DIALOGUES, type Dialogue } from './dialogues';
 import { gradeTurn, type TurnResult } from './dialogueGrading';
+import { pickReaction } from '../symulator/stationReaction';
+import { SpeakButton } from '../audio/SpeakButton';
 import { record as recordWeak } from '../weakSpots';
 
 // ============================================================================
@@ -220,6 +222,14 @@ export default function LiveDialogue() {
           // the station answers on the channel the traffic belongs on
           await stationSpeaks(turn.stationName, turn.stationSays, expectedChannel ?? channelNow);
         } else {
+          // Like real life: a poor / incomplete call gets a spoken RE-PROMPT
+          // from the station ("what is your position, over") instead of silence,
+          // so the learner hears the correction and tries the SAME turn again.
+          const missed = graded.checks.filter((c) => !c.ok).map((c) => c.id);
+          const distress = turn.must.some((m) => m.id === 'mayday' || m.id === 'panpan' || m.id === 'securite');
+          const reaction = pickReaction(missed, { distress, unreadable: !text.trim() });
+          setPhase('answered');
+          await stationSpeaks(reaction.station, reaction.say, channelNow);
           setPhase('idle');
         }
       } catch {
@@ -434,13 +444,21 @@ export default function LiveDialogue() {
               </div>
 
               {showScript && turn && (
-                <pre
-                  data-testid="turn-script"
-                  className="mb-2 overflow-x-auto whitespace-pre-wrap rounded-xl p-3 text-xs leading-relaxed"
-                  style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
-                >
-                  {turn.youSay}
-                </pre>
+                <div className="mb-2">
+                  <div className="mb-1 flex items-center gap-2">
+                    <SpeakButton text={turn.youSay} label={tp('Прослушать эталон', 'Play the model', 'Posluchaj wzorca')} size={22} />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {tp('Как это должно звучать', 'How it should sound', 'Jak to ma brzmiec')}
+                    </span>
+                  </div>
+                  <pre
+                    data-testid="turn-script"
+                    className="overflow-x-auto whitespace-pre-wrap rounded-xl p-3 text-xs leading-relaxed"
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                  >
+                    {turn.youSay}
+                  </pre>
+                </div>
               )}
 
               {turn && (

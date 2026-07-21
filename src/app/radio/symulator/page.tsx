@@ -12,6 +12,7 @@ import { useRadioAudio } from './audio/useRadioAudio';
 import { fetchStationVoice } from './audio/stationVoice';
 import { SIG_STRONG, opensGate, scriptOver, signalOn } from './radioTraffic';
 import { stationReply } from './stationReply';
+import { pickReaction } from './stationReaction';
 import { record as recordWeak } from '../weakSpots';
 import { hintFor } from './hints';
 import {
@@ -484,27 +485,35 @@ export default function RadioSimulatorPage() {
       // the coast station's answer, which is the lesson, not a bug.
       const step = sc.steps[idx];
       const kind = step?.voice?.kind;
-      if (kind && r.score >= 40) {
-        const reply = stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name);
-        if (reply) {
-          pushLog(`📻 ${reply.station}: ${reply.say}`, 'rx');
-          void (async () => {
-            const raw = await fetchStationVoice(reply.say);
-            if (!raw) return;
-            const voiceMs = (await audioRef.current?.speak(raw)) ?? 0;
-            if (voiceMs <= 0) return;
-            const s = rsRef.current;
-            // a coast station alongside is a strong signal - it breaks any squelch
-            // except a maxed-out one, and it quiets the hiss under it. The carrier
-            // lasts as long as the voice, so the squelch closes when it stops.
-            scriptOver(CHANNELS[s.channelIndex].num, {
-              startMs: Date.now(),
-              durMs: Math.round(voiceMs) + 300,
-              signal: SIG_STRONG,
-              voice: 'male',
-            });
-          })();
-        }
+      // A good call gets the scenario reply; a poor one (where the station used
+      // to stay silent) now gets a spoken re-prompt from the coast station -
+      // "say again", "what is your position, over" - the same as real life.
+      const line = kind
+        ? (r.score >= 40
+            ? stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name)
+            : pickReaction(
+                r.checks.filter((c) => !c.ok).map((c) => c.id),
+                { distress: /mayday|pan|securite/.test(kind), unreadable: !r.transcript.trim() },
+              ))
+        : null;
+      if (line) {
+        pushLog(`📻 ${line.station}: ${line.say}`, 'rx');
+        void (async () => {
+          const raw = await fetchStationVoice(line.say);
+          if (!raw) return;
+          const voiceMs = (await audioRef.current?.speak(raw)) ?? 0;
+          if (voiceMs <= 0) return;
+          const s = rsRef.current;
+          // a coast station alongside is a strong signal - it breaks any squelch
+          // except a maxed-out one, and it quiets the hiss under it. The carrier
+          // lasts as long as the voice, so the squelch closes when it stops.
+          scriptOver(CHANNELS[s.channelIndex].num, {
+            startMs: Date.now(),
+            durMs: Math.round(voiceMs) + 300,
+            signal: SIG_STRONG,
+            voice: 'male',
+          });
+        })();
       }
     }
 
