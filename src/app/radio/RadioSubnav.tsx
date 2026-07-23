@@ -35,7 +35,7 @@ export default function RadioSubnav() {
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-2">
-      <nav className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1" aria-label={tp("Основные разделы курса", "Main course sections", "Glowne dzialy kursu")}>
+      <nav className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1" aria-label="Radio">
         {primary.map((item) => (
           <Link
             key={item.href}
