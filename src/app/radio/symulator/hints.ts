@@ -111,6 +111,37 @@ export function hintFor(stepId: string, s: RadioState): string | null {
       return 'key-16c';
     case 'lowpower':
       return anySoft(s, 'HI/LO') ?? 'key-right'; // page the softkeys until HI/LO shows
+    case 'scan-review':
+      return 'key-down';
+    case 'scan-add-06':
+    case 'scan-add-13':
+    case 'scan-add-16':
+      return anySoft(s, 'FAV') ?? 'key-right';
+
+    // --- UKE settings tasks 14-16 ------------------------------------------
+    case 'settings-menu':
+      if (s.screen === 'menu') return 'key-ent';
+      return 'key-menu';
+    case 'position-open':
+      return s.screen === 'dsc-settings' && s.dscSettingsCursor === 0 ? 'key-ent' : 'key-up';
+    case 'position-lat':
+    case 'position-lon':
+    case 'position-save':
+      return anySoft(s, 'FIN') ?? 'soft-0';
+    case 'id-list':
+      if (s.screen === 'dsc-settings') return s.dscSettingsCursor === 1 ? 'key-ent' : 'key-down';
+      if (s.screen === 'menu') return 'key-ent';
+      return 'key-menu';
+    case 'id-add':
+      return anySoft(s, 'ADD') ?? 'soft-0';
+    case 'id-number':
+      return s.idEntryMmsi === '002191000' ? 'key-ent' : 'key-up';
+    case 'id-save':
+      return anySoft(s, 'FIN') ?? 'soft-0';
+    case 'id-delete':
+      return anySoft(s, 'DEL') ?? 'key-down';
+    case 'id-delete-ok':
+      return anySoft(s, 'OK') ?? 'soft-0';
 
     default:
       // every spoken step ends in -voice (mayday-voice, panpan-voice, ...)

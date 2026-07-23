@@ -7,13 +7,15 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "build:radio-offline": "node scripts/build-radio-offline.mjs",
+    "build:radio-offline:check": "node scripts/build-radio-offline.mjs --check",
     "sync-content": "node --experimental-strip-types scripts/sync-content.ts",
     "sync-content:check": "node --experimental-strip-types scripts/sync-content.ts --check",
     "lint": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts,.tsx,.js,.jsx --max-warnings=0",
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "check": "npm run sync-content:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run build:radio-offline:check && npm run sync-content:check && npm run lint && npm run typecheck && npm test"
   },
   "jest": {
     "preset": "jest-expo",

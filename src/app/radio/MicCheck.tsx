@@ -239,7 +239,7 @@ export default function MicCheck({
               type="button"
               data-testid="mic-stop"
               onClick={stop}
-              className="min-h-[36px] shrink-0 rounded-lg px-3 text-xs"
+              className="min-h-[44px] shrink-0 rounded-lg px-3 text-xs"
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
               {tp('Стоп', 'Stop', 'Stop')}
@@ -263,7 +263,7 @@ export default function MicCheck({
                 data-testid="mic-say"
                 onClick={recording ? stopSaying : sayIt}
                 disabled={busy}
-                className="min-h-[40px] rounded-lg px-3 text-sm font-semibold disabled:opacity-50"
+                className="min-h-[44px] rounded-lg px-3 text-sm font-semibold disabled:opacity-50"
                 style={recording
                   ? { background: 'var(--danger)', color: '#fff' }
                   : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}

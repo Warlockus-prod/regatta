@@ -86,8 +86,14 @@ OVER`;
 export const SECURITE_TEMPLATE = `SECURITE  SECURITE  SECURITE
 ALL STATIONS  ALL STATIONS  ALL STATIONS
 THIS IS  <nazwa x3>
-<ostrzezenie: co, gdzie>
 LISTEN CHANNEL <kanal roboczy>
+OUT
+
+NA KANALE ROBOCZYM:
+SECURITE  SECURITE  SECURITE
+ALL STATIONS  ALL STATIONS  ALL STATIONS
+THIS IS  <nazwa x3>
+<ostrzezenie: co, gdzie, kiedy>
 OUT`;
 
 export const CANCEL_TEMPLATE = `ALL STATIONS  ALL STATIONS  ALL STATIONS
@@ -108,19 +114,19 @@ export const DSC_STEPS: Row3[] = [
 /** The mistakes the simulator's detectors watch for - the same ones fail people
  *  at the UKE practical. [PL, RU] */
 export const MISTAKES: Pair[] = [
-  ['Nadanie glosem MAYDAY bez wczesniejszego alertu DSC', 'Голосовой MAYDAY без цифрового алерта DSC'],
+  ['Pominiecie DSC przed MAYDAY, gdy sprawne radio i czas pozwalaja (w naglym wypadku glos ma pierwszenstwo)', 'Пропуск DSC перед MAYDAY, когда рация исправна и время позволяет (в резкой аварии голос важнее)'],
   ['[DISTRESS] uzyty do PAN-PAN lub SECURITE', 'Красная кнопка нажата для PAN-PAN или SECURITE'],
   ['Wywolanie rutynowe na kanale 16', 'Рутинный вызов на 16 канале'],
   ['Falszywy alert bez odwolania (glosem i cyfrowo)', 'Ложный алерт без отмены голосом и цифрой'],
   ['Nature "Undesignated" przy znanej przyczynie', 'Undesignated, когда причина известна'],
-  ['Pelna moc 25 W w marinie zamiast 1 W', 'Полная мощность 25 Вт в марине вместо 1 Вт'],
+  ['25 W do bliskiej lacznosci, gdy 1 W wystarcza i kanal na nia pozwala', '25 Вт для близкой связи, когда достаточно 1 Вт и канал это допускает'],
   ['Wylaczenie radia po alercie', 'Выключение рации после алерта'],
 ];
 
 /** Exam facts (UKE). [PL, RU] */
 export const EXAM_FACTS: Pair[] = [
   ['Egzamin w UKE, od 15 lat, swiadectwo bezterminowe, oplata 175 zl', 'Экзамен в UKE, с 15 лет, свидетельство бессрочное, 175 zl'],
-  ['Teoria: 3 dzialy po 5 pytan (15 lacznie), 1 pkt za pytanie, zaliczenie: min. 3 z 5 poprawnych w kazdym dziale', 'Теория: 3 раздела по 5 вопросов (15 всего), 1 балл за вопрос, зачет: минимум 3 из 5 правильных в каждом разделе'],
+  ['Teoria SRC: 2 przedmioty po 5 pytan (10 lacznie), zaliczenie kazdego osobno na min. 60%', 'Теория SRC: 2 предмета по 5 вопросов (10 всего), каждый предмет нужно сдать отдельно минимум на 60%'],
   ['Praktyka na radiu ICOM: zadania punktowane 0-5, max 20 pkt, zaliczenie 60% (12 pkt)', 'Практика на рации ICOM: задания по 0-5 баллов, максимум 20, зачет 60% (12 баллов)'],
   ['Zapis min. 14 dni przed sesja, oplata przed zapisem', 'Запись минимум за 14 дней, оплата до записи'],
 ];

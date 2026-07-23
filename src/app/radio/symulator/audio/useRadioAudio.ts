@@ -25,12 +25,18 @@ export function useRadioAudio(state: RadioState) {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    let savedMuted = false;
     try {
-      if (window.localStorage.getItem(MUTE_KEY) === '1') setMuted(true);
+      savedMuted = window.localStorage.getItem(MUTE_KEY) === '1';
     } catch { /* private browsing */ }
+    const frame = window.requestAnimationFrame(() => setMuted(savedMuted));
     const engine = new RadioAudioEngine();
     engineRef.current = engine;
-    return () => { engine.dispose(); engineRef.current = null; };
+    return () => {
+      window.cancelAnimationFrame(frame);
+      engine.dispose();
+      engineRef.current = null;
+    };
   }, []);
 
   // keep the engine's view of the radio current

@@ -1,11 +1,11 @@
 /**
- * App Store Connect v1.1 release driver.
+ * App Store Connect release driver.
  *
  * Does the parts asc-metadata.mjs does NOT:
- *   1. Create the next App Store version (versionString from --version, default 1.1)
+ *   1. Create the next App Store version (versionString from --version, default 1.6.0)
  *      if it does not already exist. Idempotent: reuses an existing editable one.
  *   2. Set "What's New" (whatsNew) for all 7 locales.
- *   3. Attach a processed build (--build, default 14) to the version - but ONLY
+ *   3. Attach a processed build (--build, default 33) to the version - but ONLY
  *      once Apple reports the build processingState=VALID. If it is still
  *      PROCESSING, the script says so and exits 0 (re-run later to attach).
  *
@@ -17,7 +17,7 @@
  * Usage:
  *   node scripts/asc-release.mjs --dry-run     # show plan, no writes
  *   node scripts/asc-release.mjs               # create version + whatsNew + attach if ready
- *   node scripts/asc-release.mjs --version 1.1 --build 14
+ *   node scripts/asc-release.mjs --version 1.6.0 --build 33
  */
 
 import { readFileSync, existsSync } from 'node:fs';
@@ -40,19 +40,19 @@ const val = (n) => {
   return i === -1 ? null : args[i + 1] ?? null;
 };
 const DRY_RUN = flag('--dry-run');
-const VERSION = val('--version') || '1.1';
-const BUILD = val('--build') || '14';
+const VERSION = val('--version') || '1.6.0';
+const BUILD = val('--build') || '33';
 
 // What's New, per ASC locale. ASCII-clean per the project typography rule
 // (no em/en-dash); es/fr/de/it keep their meaningful diacritics.
 const WHATS_NEW = {
-  'en-US': "What's new in 1.5: two Polish licence courses - Sternik motorowodny and SRC Radio - with a full ICOM VHF radio simulator, voice-graded MAYDAY and PAN-PAN calls, the official UKE question banks and a timed mock exam. The simulators now open exactly what the website shows: Basics, Trainer and the 3D boat, with a one-tap switcher at the top of each. New Simulators card on the home screen, app version in Settings, and many fixes.",
-  ru: 'Что нового в 1.5: два курса на польские патенты - Sternik motorowodny и Radio SRC - с полноценным симулятором рации ICOM, голосовой оценкой вызовов MAYDAY и PAN-PAN, официальными банками вопросов UKE и пробным экзаменом на время. Симуляторы теперь открывают ровно то же, что показывает сайт: Основы, Тренажёр и Лодка 3D, с переключателем в одно касание сверху. Новая карточка «Симуляторы» на главном экране, версия приложения в настройках и множество исправлений.',
-  pl: 'Co nowego w 1.5: dwa kursy na polskie patenty - Sternik motorowodny i Radio SRC - z pelnym symulatorem radia ICOM, ocena glosowa wywolan MAYDAY i PAN-PAN, oficjalnymi bankami pytan UKE i probnym egzaminem na czas. Symulatory otwieraja teraz dokladnie to, co pokazuje strona: Podstawy, Trener i Lodka 3D, z przelacznikiem jednym dotknieciem na gorze. Nowa karta Symulatory na ekranie glownym, wersja aplikacji w ustawieniach i wiele poprawek.',
-  'es-ES': 'Novedades de la 1.5: dos cursos para las licencias polacas - Sternik motorowodny y Radio SRC - con un simulador completo de radio VHF ICOM, evaluacion por voz de las llamadas MAYDAY y PAN-PAN, los bancos oficiales de preguntas de UKE y un examen de prueba cronometrado. Los simuladores abren ahora exactamente lo que muestra la web: Basicos, Entrenador y el barco 3D, con un selector de un toque en la parte superior. Nueva tarjeta Simuladores en la pantalla de inicio, version de la app en Ajustes y muchas correcciones.',
-  'fr-FR': "Nouveautes de la 1.5 : deux cours pour les licences polonaises - Sternik motorowodny et Radio SRC - avec un simulateur complet de radio VHF ICOM, une evaluation vocale des appels MAYDAY et PAN-PAN, les banques de questions officielles de l'UKE et un examen blanc chronometre. Les simulateurs ouvrent desormais exactement ce que montre le site : Bases, Entraineur et le bateau 3D, avec un selecteur en un geste en haut. Nouvelle carte Simulateurs sur l'ecran d'accueil, version de l'app dans les Reglages et de nombreux correctifs.",
-  'de-DE': 'Neu in 1.5: zwei Kurse fuer die polnischen Lizenzen - Sternik motorowodny und Radio SRC - mit einem vollstaendigen ICOM-UKW-Funksimulator, Sprachbewertung von MAYDAY- und PAN-PAN-Rufen, den offiziellen UKE-Fragenkatalogen und einer Pruefungssimulation mit Zeit. Die Simulatoren oeffnen jetzt genau das, was die Website zeigt: Grundlagen, Trainer und das 3D-Boot, mit einem Umschalter oben zum Antippen. Neue Karte Simulatoren auf dem Startbildschirm, App-Version in den Einstellungen und viele Fixes.',
-  it: "Novita della 1.5: due corsi per le licenze polacche - Sternik motorowodny e Radio SRC - con un simulatore completo di radio VHF ICOM, valutazione vocale delle chiamate MAYDAY e PAN-PAN, le banche dati ufficiali UKE e un esame di prova a tempo. I simulatori ora aprono esattamente quello che mostra il sito: Base, Trainer e la barca 3D, con un selettore in alto con un tocco. Nuova scheda Simulatori nella schermata iniziale, versione dell'app nelle Impostazioni e molte correzioni.",
+  'en-US': "What's new in 1.6: the complete SRC Radio course now works offline from the first launch. Study 18 theory chapters and diagrams, answer all 324 UKE questions, complete 26 practical tasks, and operate both ICOM radio models across 19 scenarios without a connection. Speech recognition and automatic voice grading still require internet.",
+  ru: 'Что нового в 1.6: полный курс SRC Radio теперь работает офлайн с первого запуска. Без интернета доступны 18 глав теории со схемами, все 324 вопроса UKE, 26 практических заданий, обе модели рации ICOM и 19 сценариев. Распознавание и автоматическая оценка речи требуют подключения.',
+  pl: 'Co nowego w 1.6: pelny kurs SRC Radio dziala teraz offline od pierwszego uruchomienia. Bez internetu masz 18 rozdzialow teorii ze schematami, wszystkie 324 pytania UKE, 26 zadan praktycznych, oba modele radia ICOM i 19 scenariuszy. Rozpoznawanie i automatyczna ocena mowy wymagaja polaczenia.',
+  'es-ES': 'Novedades de la 1.6: el curso completo de Radio SRC funciona sin conexion desde el primer inicio. Incluye 18 capitulos de teoria, 324 preguntas UKE, 26 tareas practicas, dos modelos ICOM y 19 escenarios. El reconocimiento y la evaluacion de voz requieren internet.',
+  'fr-FR': "Nouveautes de la 1.6 : le cours SRC Radio complet fonctionne hors ligne des le premier lancement. Il comprend 18 chapitres, 324 questions UKE, 26 exercices pratiques, deux modeles ICOM et 19 scenarios. La reconnaissance et l'evaluation vocale necessitent internet.",
+  'de-DE': 'Neu in 1.6: Der komplette SRC-Funkkurs funktioniert ab dem ersten Start offline. Enthalten sind 18 Theoriekapitel, 324 UKE-Fragen, 26 Praxisaufgaben, zwei ICOM-Modelle und 19 Szenarien. Spracherkennung und automatische Sprachbewertung benoetigen Internet.',
+  it: "Novita della 1.6: il corso SRC Radio completo funziona offline dal primo avvio. Include 18 capitoli di teoria, 324 domande UKE, 26 esercizi pratici, due modelli ICOM e 19 scenari. Il riconoscimento e la valutazione vocale richiedono internet.",
 };
 
 function jwt() {

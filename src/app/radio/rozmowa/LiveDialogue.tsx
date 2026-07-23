@@ -54,12 +54,10 @@ export default function LiveDialogue() {
   const [log, setLog] = useState<LogRow[]>([]);
   const [model, setModel] = useState<RadioModel>('M330');
 
+  const [rs, setRs] = useState<RadioState>(() => createInitialRadio('M330'));
   const rsRef = useRef<RadioState>(createInitialRadio('M330'));
-  const [, force] = useState(0);
-  const rs = rsRef.current;
   const audio = useRadioAudio(rs);
   const audioRef = useRef(audio);
-  audioRef.current = audio;
 
   const recRef = useRef<MediaRecorder | null>(null);
   const chunks = useRef<BlobPart[]>([]);
@@ -82,12 +80,12 @@ export default function LiveDialogue() {
     const prev = rsRef.current;
     const next = radioReducer(prev, e);
     rsRef.current = next;
+    setRs(next);
     audioRef.current.onEvent(e, prev, next);
     if (next.deviceLog.length > prev.deviceLog.length) {
       const added = next.deviceLog.slice(prev.deviceLog.length);
       setLog((l) => [...l.slice(-60), ...added.map((d) => ({ t: d.t, text: d.text, kind: d.kind as LogRow['kind'] }))]);
     }
-    force((n) => n + 1);
   }, []);
 
   const turn = dialogue?.turns[turnIdx] ?? null;
@@ -120,9 +118,9 @@ export default function LiveDialogue() {
     setChecks(null);
     setHeard(null);
     setLog([]);
-    rsRef.current = createInitialRadio(model);
-    // a radio you have to switch on yourself, like every other surface here
-    force((n) => n + 1);
+    const initial = createInitialRadio(model);
+    rsRef.current = initial;
+    setRs(initial);
   }, [model]);
 
   // --- recording ---------------------------------------------------------------
@@ -213,15 +211,23 @@ export default function LiveDialogue() {
         // flagged, not just the opening hail. `expectedChannel` is the channel
         // this turn belongs on (a post-switch turn carries its own `channel`).
         const expectedChannel = turn.channel ?? dialogue?.channel;
-        if (expectedChannel && channelNow !== expectedChannel) {
+        const channelOk = !expectedChannel || channelNow === expectedChannel;
+        if (!channelOk) {
           push(`⚠ ${tp('Ты передавал на канале', 'You transmitted on channel', 'Nadawales na kanale')} ${channelNow}, ${tp('а это должно идти на', 'but this belongs on', 'a to powinno isc na')} ${expectedChannel}`, 'bad');
         }
 
-        if (graded.passed) {
+        if (graded.passed && channelOk) {
           setPhase('answered');
           // the station answers on the channel the traffic belongs on
           await stationSpeaks(turn.stationName, turn.stationSays, expectedChannel ?? channelNow);
         } else {
+          // A station listening on the assigned channel cannot answer a
+          // transmission made somewhere else. Keep the written trainer warning,
+          // but do not make the station magically follow the learner.
+          if (!channelOk) {
+            setPhase('idle');
+            return;
+          }
           // Like real life: a poor / incomplete call gets a spoken RE-PROMPT
           // from the station ("what is your position, over") instead of silence,
           // so the learner hears the correction and tries the SAME turn again.
@@ -240,7 +246,7 @@ export default function LiveDialogue() {
     stopTimer.current = setTimeout(() => { try { rec.stop(); } catch { /* already stopped */ } }, 45000);
     rec.start();
     setPhase('recording');
-  }, [channelNow, dialogue, dispatch, phase, push, stationSpeaks, tp, turn, turnIdx]);
+  }, [channelNow, dialogue, dispatch, phase, push, stationSpeaks, tp, turn]);
 
   const endRecording = useCallback(() => {
     wantRecording.current = false;
@@ -283,6 +289,9 @@ export default function LiveDialogue() {
     aliveRef.current = true;
     return () => { aliveRef.current = false; };
   }, []);
+  useEffect(() => {
+    audioRef.current = audio;
+  }, [audio]);
   // leaving a conversation - or the page - must never leave the mic hot.
   useEffect(() => () => { stopRecording(); }, [dialogue, stopRecording]);
 
@@ -290,7 +299,7 @@ export default function LiveDialogue() {
 
   if (!dialogue) {
     return (
-      <main>
+      <div>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
           🎙 {tp('Живой разговор', 'Live conversation', 'Rozmowa na zywo')}
         </h1>
@@ -328,7 +337,7 @@ export default function LiveDialogue() {
             </button>
           ))}
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -337,7 +346,7 @@ export default function LiveDialogue() {
   const done = phase === 'done';
 
   return (
-    <main>
+    <div>
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
           {dialogue.icon} {bi(dialogue.title)}
@@ -349,7 +358,7 @@ export default function LiveDialogue() {
           type="button"
           data-testid="exit-dialogue"
           onClick={exitDialogue}
-          className="ml-auto min-h-[40px] rounded-lg px-3 text-xs"
+          className="ml-auto min-h-[44px] rounded-lg px-3 text-xs"
           style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
         >
           ✕ {tp('Выйти', 'Exit', 'Wyjdz')}
@@ -364,14 +373,19 @@ export default function LiveDialogue() {
               data-testid="sound-toggle"
               onClick={audio.toggleMute}
               aria-pressed={!audio.muted}
-              className="min-h-[40px] rounded-xl px-3 text-sm font-semibold"
+              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
               {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
             </button>
             <RadioVariantToggle
               model={model}
-              onModel={(m) => { setModel(m); rsRef.current = createInitialRadio(m); force((n) => n + 1); }}
+              onModel={(m) => {
+                const initial = createInitialRadio(m);
+                setModel(m);
+                rsRef.current = initial;
+                setRs(initial);
+              }}
             />
           </div>
 
@@ -555,6 +569,6 @@ export default function LiveDialogue() {
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

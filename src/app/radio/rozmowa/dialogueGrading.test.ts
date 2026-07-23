@@ -55,14 +55,14 @@ describe('the punctuation trap', () => {
     expect(gradeTurn(asHeard, panpan.must).checks.find((c) => c.id === 'panpan')?.ok).toBe(true);
   });
 
-  it('grades the EXACT transcript prod returned when we spoke a MAYDAY at it', () => {
+  it('does not treat a production transcript with a dropped longitude as a complete position', () => {
     // Not a guess. Our own TTS read the distress call, our own STT heard it back,
     // and this is verbatim what came out - digits, hyphens and all. It is here so
     // that this shape can never silently stop matching.
     const fromProd = 'MAYDAY, MAYDAY, MAYDAY, THIS IS, WIND DANCER, WIND DANCER, WIND DANCER, CALL SIGN, SIERRA PAPA 9012, MY POSITION IS, 5-4 DEGREES, 3-0-DECIMAL-5 MINUTES NORTH, I AM ON FIRE IN THE ENGINE COMPARTMENT, I REQUIRE IMMEDIATE ASSISTANCE, THREE PERSONS ON BOARD, OVER.';
-    const { score, checks } = gradeTurn(fromProd, find('mayday-dialogue').turns[0].must);
-    expect(checks.filter((c) => !c.ok)).toEqual([]);
-    expect(score).toBe(100);
+    const { checks, passed } = gradeTurn(fromProd, find('mayday-dialogue').turns[0].must);
+    expect(checks.find((c) => c.id === 'position')?.ok).toBe(false);
+    expect(passed).toBe(false);
   });
 
   it('accepts the vessel name however a Polish speaker gets rendered', () => {
@@ -88,6 +88,13 @@ describe('a bad transmission still fails', () => {
     expect(checks.find((c) => c.id === 'position')?.ok).toBe(false);
     expect(checks.find((c) => c.id === 'pob')?.ok).toBe(false);
     expect(passed).toBe(false);
+  });
+
+  it('does not accept one coordinate fragment as a complete position', () => {
+    const position = find('mayday-dialogue').turns[0].must.find((item) => item.id === 'position');
+    if (!position) throw new Error('no position item');
+    expect(hits('position five four degrees north', position)).toBe(false);
+    expect(hits('position five four degrees three zero decimal five minutes north zero one eight degrees four five decimal two minutes east', position)).toBe(true);
   });
 
   it('silence scores zero', () => {
@@ -142,8 +149,8 @@ describe('audit 2026-07-17: per-turn expected channel drives channel discipline'
 
   it('ship-to-ship carries the manoeuvre agreement on CH6', () => {
     const t = find('ship-to-ship').turns;
-    expect(t[2].channel).toBe('6');
-    expect(t[3].channel).toBe('6');
+    expect(t[2].channel).toBe('06');
+    expect(t[3].channel).toBe('06');
   });
 
   it('a set per-turn channel always differs from the dialogue start channel', () => {

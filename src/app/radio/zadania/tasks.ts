@@ -80,6 +80,7 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
       pl: 'Kanaly nalezace do listy skaningowej maja na wyswietlaczu znacznik (TAG). Przewijaj kanaly przyciskami CH i zobacz, ktore sa oznaczone tym symbolem.',
       ru: 'Каналы из списка сканирования помечены на дисплее меткой (TAG). Пролистай каналы клавишами CH и посмотри, какие отмечены этим символом.',
     },
+    scenario: 'scan-memory',
   },
   {
     n: 7, group: 'device',
@@ -88,6 +89,7 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
       pl: 'Ustaw kanal 6, nacisnij softkey dodawania do skanu (TAG/FAV), powtorz dla kanalu 13 i 16. Kazdy dostaje znacznik listy skaningowej.',
       ru: 'Выставь канал 6, нажми софтклавишу добавления в скан (TAG/FAV), повтори для 13 и 16. Каждый получает метку списка сканирования.',
     },
+    scenario: 'scan-memory',
   },
   {
     n: 8, group: 'voice',
@@ -120,8 +122,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 11, group: 'voice',
     task: 'Potwierdz odbior alarmu przy uzyciu radiotelefonu VHF.',
     how: {
-      pl: 'Wcisnij [16/C], sprawdz moc, nadaj: MAYDAY, znak stacji zagrozonej x3, THIS IS znak wlasnej stacji x3, RECEIVED MAYDAY. Rob to glosem, gdy stacja brzegowa nie potwierdza.',
-      ru: 'Нажми [16/C], проверь мощность, передай: MAYDAY, позывной судна в беде x3, THIS IS свой позывной x3, RECEIVED MAYDAY. Делай это голосом, когда береговая станция не подтверждает.',
+      pl: 'Wycisz alarm, przejdz na 16 i sluchaj przez 5 minut. Sprawdz, czy stacja brzegowa lub RCC potwierdzily alarm i prowadza ruch. Gdy nie, nadaj glosem: MAYDAY, znak stacji zagrozonej x3, THIS IS znak wlasnej stacji x3, RECEIVED MAYDAY. Poinformuj brzeg lub RCC i ocen mozliwosc pomocy. DSC ACK ze statku jest wyjatkiem dopiero po konsultacji, gdy alarm nadal sie powtarza.',
+      ru: 'Заглуши сигнал, перейди на 16 и слушай 5 минут. Проверь, подтвердили ли берег или RCC сигнал и ведут ли обмен. Если нет, передай голосом: MAYDAY, позывной судна в беде x3, THIS IS свой позывной x3, RECEIVED MAYDAY. Сообщи берегу или RCC и оцени возможность помочь. DSC ACK с судна является исключением только после консультации, если сигнал продолжает повторяться.',
     },
     scenario: 'receive-distress',
   },
@@ -150,6 +152,7 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
       pl: 'MENU -> DSC Settings -> Position Input. Strzalkami i [ENT] wprowadz szerokosc, dlugosc geograficzna oraz czas UTC, zatwierdz. Wazna pozycja jest kluczowa dla alarmu DSC.',
       ru: 'MENU -> DSC Settings -> Position Input. Стрелками и [ENT] введи широту, долготу и время UTC, подтверди. Актуальная позиция критична для DSC-алерта.',
     },
+    scenario: 'position-input',
   },
   {
     n: 15, group: 'device',
@@ -158,6 +161,7 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
       pl: 'MENU -> DSC Settings -> Individual ID -> softkey [ADD]. Wprowadz ID stacji 002191000 i nazwe LYNGBY, zatwierdz. Zapisany adres przyspiesza pozniejsze wywolania.',
       ru: 'MENU -> DSC Settings -> Individual ID -> софтклавиша [ADD]. Введи ID станции 002191000 и имя LYNGBY, подтверди. Сохранённый адрес ускоряет последующие вызовы.',
     },
+    scenario: 'id-add-lyngby',
   },
   {
     n: 16, group: 'device',
@@ -166,6 +170,7 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
       pl: 'MENU -> DSC Settings -> Individual ID -> zaznacz LYNGBY -> softkey [DEL] -> potwierdz [OK].',
       ru: 'MENU -> DSC Settings -> Individual ID -> выбери LYNGBY -> софтклавиша [DEL] -> подтверди [OK].',
     },
+    scenario: 'id-delete-lyngby',
   },
   {
     n: 17, group: 'dsc',
@@ -180,8 +185,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 18, group: 'dsc',
     task: 'Nadaj regularne wywolanie alarmowe DSC.',
     how: {
-      pl: 'MENU -> DSC Calls -> Distress Call. Wybierz rodzaj zagrozenia z listy, nacisnij [ENT] dwukrotnie, przytrzymaj czerwony DISTRESS przez 3 sekundy. Gdy alert pojdzie, radio przechodzi na kanal 16 - od razu nadaj MAYDAY glosem, nie czekajac na ACK. Radio samo powtarza alert DSC az do nadejscia potwierdzenia.',
-      ru: 'MENU -> DSC Calls -> Distress Call. Выбери род бедствия из списка, нажми [ENT] дважды, удержи красную DISTRESS 3 секунды. Когда алерт уйдет, рация переходит на канал 16 - сразу передавай MAYDAY голосом, не дожидаясь ACK. Рация сама повторяет DSC-алерт до прихода подтверждения.',
+      pl: 'MENU -> DSC Calls -> Distress Call. Wybierz rodzaj zagrozenia, zatwierdz i przytrzymaj czerwony DISTRESS przez 3 sekundy. Czekaj na DSC ACK. Po ACK wycisz alarm - radio wybierze kanal 16 - i nadaj MAYDAY glosem. Jezeli ACK nie przychodzi, po ok. 15 sekundach wybierz 16/C i nadaj MAYDAY; powtorki DSC pozostaja aktywne.',
+      ru: 'MENU -> DSC Calls -> Distress Call. Выбери род бедствия, подтверди и удержи красную DISTRESS 3 секунды. Жди DSC ACK. После ACK заглуши сигнал - рация выберет канал 16 - и передай MAYDAY голосом. Если ACK не приходит, примерно через 15 секунд выбери 16/C и передай MAYDAY; повторы DSC продолжаются.',
     },
     scenario: 'fire-mayday',
   },
@@ -189,8 +194,8 @@ export const PRACTICAL_TASKS: PracticalTask[] = [
     n: 19, group: 'dsc',
     task: 'Nadaj wywolanie alarmowe DSC o zalaniu jednostki woda.',
     how: {
-      pl: 'MENU -> DSC Calls -> Distress Call -> wybierz rodzaj zagrozenia Flooding (zalanie), [ENT] dwukrotnie, przytrzymaj DISTRESS 3 sekundy. Rodzaj zagrozenia trafia do cyfrowego alertu. Gdy alert pojdzie, radio przechodzi na kanal 16 - od razu nadaj MAYDAY glosem, nie czekajac na ACK. Radio samo powtarza alert DSC az do nadejscia potwierdzenia.',
-      ru: 'MENU -> DSC Calls -> Distress Call -> выбери род бедствия Flooding (затопление), [ENT] дважды, удержи DISTRESS 3 секунды. Род бедствия уходит в цифровой алерт. Когда алерт уйдет, рация переходит на канал 16 - сразу передавай MAYDAY голосом, не дожидаясь ACK. Рация сама повторяет DSC-алерт до прихода подтверждения.',
+      pl: 'MENU -> DSC Calls -> Distress Call -> wybierz Flooding, zatwierdz i przytrzymaj DISTRESS 3 sekundy. Po DSC ACK wycisz alarm, a na automatycznie wybranym kanale 16 nadaj MAYDAY glosem. Jezeli ACK nie przychodzi, po ok. 15 sekundach wybierz 16/C i nadaj MAYDAY; radio nadal powtarza alert DSC.',
+      ru: 'MENU -> DSC Calls -> Distress Call -> выбери Flooding, подтверди и удержи DISTRESS 3 секунды. После DSC ACK заглуши сигнал и на автоматически выбранном канале 16 передай MAYDAY голосом. Если ACK не приходит, примерно через 15 секунд выбери 16/C и передай MAYDAY; рация продолжает повторять DSC-алерт.',
     },
     scenario: 'fire-mayday',
   },

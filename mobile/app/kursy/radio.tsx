@@ -1,8 +1,8 @@
-import { SectionWebView } from '../../src/course/SectionWebView';
+import { OfflineRadioCourse } from '../../src/course/OfflineRadioCourse';
 
-// Kurs: SRC Radio. Embeds the full /radio web section - guide, ICOM simulator
-// (with the voice mode, mic granted), 26 UKE tasks and the UKE trainer - always
-// in Polish.
+// SRC Radio ships as a self-contained local web course. Theory, diagrams,
+// questions and both ICOM simulators work on the first launch without a
+// connection. Server speech grading is deliberately not imitated offline.
 export default function KursRadio() {
-  return <SectionWebView path="/radio" section="/radio" title="SRC Radio" />;
+  return <OfflineRadioCourse />;
 }

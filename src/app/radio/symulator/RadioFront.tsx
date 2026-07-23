@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { Share_Tech_Mono } from 'next/font/google';
 import { useI18n } from '@/lib/i18n';
 import {
-  DSC_ADDRESSES, DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
+  DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
   channel, dscFieldValues, effectivePower, menuItems, otherDscRows, radioProfile, softkeys,
   type OtherDscField, type RadioEvent, type RadioModel, type RadioState,
 } from './radioModel';
@@ -326,6 +326,101 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
           </>
         );
         break;
+      case 'dsc-settings': {
+        const items = ['Position Input', 'Individual ID'];
+        body = (
+          <>
+            <LcdLine big>{'▸'} DSC SETTINGS</LcdLine>
+            {items.map((item, index) => (
+              <LcdLine key={item} dim={index !== s.dscSettingsCursor}>
+                {index === s.dscSettingsCursor ? '> ' : '  '}{item}
+              </LcdLine>
+            ))}
+          </>
+        );
+        break;
+      }
+      case 'position-input': {
+        const stages = [
+          `Latitude:  ${s.pos.lat}`,
+          `Longitude: ${s.pos.lon}`,
+          `UTC time:  ${s.positionTime}`,
+        ];
+        body = (
+          <>
+            <LcdLine big>POSITION INPUT</LcdLine>
+            {s.gpsValid ? (
+              <>
+                <LcdLine color={LCD_WARN}>VALID GPS DATA ACTIVE</LcdLine>
+                <LcdLine dim>Manual input is unavailable</LcdLine>
+                <LcdLine dim>Disconnect GPS to enter manually</LcdLine>
+              </>
+            ) : (
+              <>
+                {stages.map((item, index) => (
+                  <LcdLine key={item} dim={index !== s.positionInputStage}>
+                    {index === s.positionInputStage ? '> ' : '  '}{item}
+                  </LcdLine>
+                ))}
+                <LcdLine dim>[FIN] confirms each field</LcdLine>
+              </>
+            )}
+          </>
+        );
+        break;
+      }
+      case 'individual-id-list':
+        body = (
+          <>
+            <LcdLine big>INDIVIDUAL ID</LcdLine>
+            {s.individualIds.length === 0 && <LcdLine dim>NO ID</LcdLine>}
+            {s.individualIds.map((item, index) => (
+              <LcdLine key={`${item.mmsi}-${index}`} dim={index !== s.idCursor}>
+                {index === s.idCursor ? '> ' : '  '}{item.label} {item.mmsi}
+              </LcdLine>
+            ))}
+          </>
+        );
+        break;
+      case 'individual-id-add-mmsi':
+        body = (
+          <>
+            <LcdLine big>INDIVIDUAL ID</LcdLine>
+            <LcdLine dim>Coast station: first 00 fixed</LcdLine>
+            <div style={{ fontSize: 24, letterSpacing: 3, textAlign: 'center', color: LCD_FG }}>
+              {s.idEntryMmsi.split('').map((digit, index) => (
+                <span key={index} style={{
+                  color: index === s.idEntryCursor ? LCD_ALERT : index < 2 ? LCD_FAINT : LCD_FG,
+                  textDecoration: index === s.idEntryCursor ? 'underline' : 'none',
+                }}>{digit}</span>
+              ))}
+            </div>
+            <LcdLine dim>[^]/[v] digit, [◂]/[▸] cursor, [ENT] next</LcdLine>
+          </>
+        );
+        break;
+      case 'individual-id-add-name':
+        body = (
+          <>
+            <LcdLine big>ID NAME</LcdLine>
+            <LcdLine>LYNGBY</LcdLine>
+            <LcdLine dim>Exam preset for MMSI 002191000</LcdLine>
+            <LcdLine dim>[FIN] saves the address</LcdLine>
+          </>
+        );
+        break;
+      case 'individual-id-delete': {
+        const selected = s.individualIds[s.idCursor];
+        body = (
+          <>
+            <LcdLine big color={LCD_ALERT}>ARE YOU SURE?</LcdLine>
+            <LcdLine>{selected?.label ?? 'NO ID'}</LcdLine>
+            <LcdLine>{selected?.mmsi ?? ''}</LcdLine>
+            <LcdLine dim>[OK] delete / [CANCEL] back</LcdLine>
+          </>
+        );
+        break;
+      }
       case 'channel-select':
         body = (
           <>
@@ -509,7 +604,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         const rows = otherDscRows(s);
         const rowValue = (field: OtherDscField) => {
           if (field === 'type') return OTHERDSC_TYPES[s.odType];
-          if (field === 'address') return DSC_ADDRESSES[s.odAddress].label;
+          if (field === 'address') return s.individualIds[s.odAddress]?.label ?? 'MANUAL';
           if (field === 'category') return OTHERDSC_CATEGORIES[s.odCategory];
           return `CH ${DSC_VOICE_CHANNELS[s.odChannel]}`;
         };

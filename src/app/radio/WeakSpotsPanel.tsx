@@ -24,6 +24,7 @@ const AREA: Record<WeakSpot['area'], { icon: string; href: string }> = {
   dialogue: { icon: '🗣', href: '/radio/rozmowa' },
   control: { icon: '🔍', href: '/radio/obsluga' },
   position: { icon: '🧭', href: '/radio/pozycja' },
+  theory: { icon: '🧠', href: '/radio/test?mode=weak' },
   oral: { icon: '🎓', href: '/sternik/ustny' },
 };
 
@@ -31,7 +32,10 @@ export default function WeakSpotsPanel() {
   const { tp } = useI18n();
   const [spots, setSpots] = useState<WeakSpot[]>([]);
 
-  useEffect(() => { setSpots(weakest()); }, []);
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => setSpots(weakest()));
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   if (spots.length === 0) return null;
 

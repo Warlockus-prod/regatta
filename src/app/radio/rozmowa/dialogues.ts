@@ -129,6 +129,21 @@ const RESCUE: MustItem = {
  * - digits, hyphenated. The spelled-out "FIVE FOUR" that was spoken came back as
  * "5-4". So the digit-spaced forms below are the ones that actually fire.
  */
+function hasOne(text: string, variants: string[]): boolean {
+  return variants.some((value) => text.includes(normalize(value)));
+}
+
+function hasCompleteTrainingPosition(raw: string): boolean {
+  const text = normalize(raw);
+  const latDegrees = hasOne(text, ['five four degrees', '54 degrees', 'fifty four degrees', '5 4 degrees']);
+  const latMinutes = hasOne(text, ['three zero decimal five', '30 decimal 5', '30 point 5', 'thirty point five', '30 5 minutes']);
+  const lonDegrees = hasOne(text, ['zero one eight degrees', '0 1 8 degrees', '018 degrees', '18 degrees']);
+  const lonMinutes = hasOne(text, ['four five decimal two', '45 decimal 2', '45 point 2', 'forty five point two', '45 2 minutes']);
+  const north = text.indexOf('north');
+  const east = text.indexOf('east');
+  return latDegrees && latMinutes && lonDegrees && lonMinutes && north >= 0 && east > north;
+}
+
 const POSITION: MustItem = {
   id: 'position',
   label: 'Wlasna pozycja',
@@ -139,6 +154,7 @@ const POSITION: MustItem = {
     'zero one eight degrees', '0 1 8 degrees', '018 degrees', '18 degrees',
     'four five decimal two', '4 5 decimal 2', '45 decimal 2', '45 2', '45 2 minutes',
   ],
+  test: hasCompleteTrainingPosition,
 };
 
 const POB: MustItem = {
@@ -324,7 +340,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
-        channel: '6',
+        channel: '06',
         youSay: 'ORKA, THIS IS WIND DANCER. MY POSITION IS FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH, ZERO ONE EIGHT DEGREES FOUR FIVE DECIMAL TWO MINUTES EAST. YOU ARE CROSSING FROM MY STARBOARD SIDE. I INTEND TO ALTER COURSE TO STARBOARD AND PASS ASTERN OF YOU. OVER.',
         must: [
           IDENTITY, POSITION,
@@ -340,7 +356,7 @@ export const DIALOGUES: Dialogue[] = [
         },
       },
       {
-        channel: '6',
+        channel: '06',
         youSay: 'ORKA, THIS IS WIND DANCER. AGREED. I ALTER COURSE TO STARBOARD AND PASS ASTERN OF YOU. OUT.',
         must: [
           IDENTITY,

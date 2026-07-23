@@ -158,7 +158,7 @@ export default function InteractiveRadioCourse() {
       id: 'power-level',
       title: tp('8. Мощность 25W / 1W', '8. Power 25W / 1W', '8. Moc 25W / 1W'),
       instruction: tp('Перейди на первую страницу софтклавиш и нажми HI/LO.', 'Return to the first softkey page and press HI/LO.', 'Wroc do pierwszej strony klawiszy i nacisnij HI/LO.'),
-      why: tp('В порту выбирай 1W, на большой дистанции 25W. Каналы 15, 17, 75 и 76 принудительно ограничены малой мощностью.', 'Use 1W in port and 25W for longer range. Channels 15, 17, 75 and 76 are limited to low power.', 'W porcie uzywaj 1W, na duzym dystansie 25W. Kanaly 15, 17, 75 i 76 sa ograniczone do malej mocy.'),
+      why: tp('Выбирай минимальную достаточную мощность: обычно 1W вблизи, 25W при слабой связи и бедствии. Каналы 15, 17, 75 и 76 принудительно ограничены малой мощностью.', 'Use the minimum effective power: normally 1 W nearby, 25 W for a weak link and distress. Channels 15, 17, 75 and 76 are limited to low power.', 'Uzywaj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy slabym sygnale i w niebezpieczenstwie. Kanaly 15, 17, 75 i 76 sa ograniczone do malej mocy.'),
       highlight: (s) => s.softPage === 0 ? 'soft-2' : 'key-left',
       check: (event, prev, next) => event.type === 'soft' && prev.hiPower && !next.hiPower,
     },
@@ -459,7 +459,7 @@ export default function InteractiveRadioCourse() {
               data-testid="course-inspect-toggle"
               onClick={() => { setInspect((v) => !v); setInspectKey(null); }}
               aria-pressed={inspect}
-              className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
               style={inspect
                 ? { background: '#ffce4d', color: '#3a2a00' }
                 : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
@@ -476,7 +476,7 @@ export default function InteractiveRadioCourse() {
               data-testid="sound-toggle"
               onClick={audio.toggleMute}
               aria-pressed={!audio.muted}
-              className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
               {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
@@ -528,7 +528,7 @@ export default function InteractiveRadioCourse() {
                   });
                   setTestCallAt(at);
                 }}
-                className="min-h-[40px] rounded-lg px-3 text-sm font-semibold"
+                className="min-h-[44px] rounded-lg px-3 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
                 📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Slabe wywolanie z daleka')}
@@ -563,7 +563,7 @@ export default function InteractiveRadioCourse() {
                   data-testid={`listen-${l.station.split(' ')[0].toLowerCase()}`}
                   disabled={speaking}
                   onClick={() => void stationSpeaks(l.station, l.say)}
-                  className="min-h-[40px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
+                  className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
                   style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
                 >
                   📻 {l.station}

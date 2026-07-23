@@ -27,7 +27,7 @@ export function stationReply(kind: VoiceKind, vesselName: string): StationLine |
   const you = vesselName.toUpperCase();
   switch (kind) {
     case 'mayday-fire':
-      return { station: RESCUE, say: `MAYDAY ${you}, THIS IS ${RESCUE}, RECEIVED MAYDAY. RESCUE UNIT DISPATCHED. REMAIN ON CHANNEL ONE SIX. OVER.` };
+      return { station: RESCUE, say: `MAYDAY. ${you}, ${you}, ${you}, THIS IS ${RESCUE}, ${RESCUE}, ${RESCUE}. RECEIVED MAYDAY. RESCUE UNIT DISPATCHED. REMAIN ON CHANNEL ONE SIX. OVER.` };
     case 'mayday-relay':
       return { station: RESCUE, say: `MAYDAY RELAY ${you}, THIS IS ${RESCUE}, RECEIVED MAYDAY RELAY. WE TAKE OVER COORDINATION. REMAIN ON CHANNEL ONE SIX. OVER.` };
     case 'mayday-ack':

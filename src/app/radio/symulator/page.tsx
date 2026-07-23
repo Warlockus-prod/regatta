@@ -15,6 +15,7 @@ import { stationReply } from './stationReply';
 import { pickReaction } from './stationReaction';
 import { record as recordWeak } from '../weakSpots';
 import { hintFor } from './hints';
+import { radioRuntimeSearch } from '../runtimeSearch';
 import {
   CHANNELS, DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState, type Variant,
@@ -96,6 +97,9 @@ export default function RadioSimulatorPage() {
   const [variant, setVariant] = useState<Variant>(DEFAULT_VARIANT);
   /** faceplate model (both UKE sets); DSC procedures follow the M330 manual. */
   const [model, setModel] = useState<RadioModel>('M330');
+  /** Deep-linked scenarios must wait until the saved hardware model is loaded,
+   *  otherwise an M323 faceplate can drive an M330 state machine. */
+  const [modelReady, setModelReady] = useState(false);
   /** Inspect ("Rozbior") mode: tap any control or display indicator to learn it.
    *  While on, taps never reach the state machine - the radio is not operated. */
   const [inspect, setInspect] = useState(false);
@@ -115,6 +119,7 @@ export default function RadioSimulatorPage() {
         force((n) => n + 1);
       }
     } catch { /* ignore */ }
+    setModelReady(true);
   }, []);
   const pickModel = useCallback((m: RadioModel) => {
     setModel(m);
@@ -337,12 +342,13 @@ export default function RadioSimulatorPage() {
   // [ALARM OFF] silences both. No setting on the radio can pre-silence a distress
   // alarm, which is exactly why the Key Beep switch does not touch it.
   useEffect(() => {
-    const distress = screen === 'distress-ack' || screen === 'rx-distress-alert';
+    const distressAlert = screen === 'rx-distress-alert';
+    const distressAck = screen === 'distress-ack';
     const otherDsc = screen === 'otherdsc-ack' || screen === 'rx-individual-call';
-    if (!distress && !otherDsc) return undefined;
+    if (!distressAlert && !distressAck && !otherDsc) return undefined;
 
-    audioRef.current.play(distress ? 'alarm-start' : 'call-alert');
-    if (distress) return () => audioRef.current.play('alarm-stop');
+    audioRef.current.play(distressAlert ? 'alarm-start' : distressAck ? 'alarm-ack-start' : 'call-alert');
+    if (distressAlert || distressAck) return () => audioRef.current.play('alarm-stop');
 
     // a routine call alerts you too - that is the point of DSC - but it gives up
     // after two minutes, and it is not the distress two-tone
@@ -436,6 +442,20 @@ export default function RadioSimulatorPage() {
     stopHold();
     force((n) => n + 1);
   }, [model, stopHold]);
+
+  const deepLinkStartedRef = useRef(false);
+  useEffect(() => {
+    if (!modelReady) return;
+    if (deepLinkStartedRef.current) return;
+    const requestedId = new URLSearchParams(radioRuntimeSearch()).get('scenario');
+    if (!requestedId) return;
+    const requested = SCENARIOS.find((item) => item.id === requestedId);
+    if (!requested) return;
+    deepLinkStartedRef.current = true;
+    try { window.localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }
+    setOnboardStep(null);
+    startScenario(requested, 'nauka');
+  }, [modelReady, startScenario]);
 
   const exitScenario = useCallback(() => {
     setScenario(null);
@@ -586,7 +606,7 @@ export default function RadioSimulatorPage() {
 
   // ==========================================================================
   return (
-    <main id="sternik-radio-sim">
+    <div id="sternik-radio-sim">
       <div className="mb-2">
         <Link href="/radio" className="text-sm" style={{ color: 'var(--accent-cyan)' }}>
           {'<'} {tp('Раздел рации', 'Radio section', 'Dzial radio')}
@@ -620,7 +640,7 @@ export default function RadioSimulatorPage() {
               type="button"
               data-testid="replay-onboarding"
               onClick={() => setOnboardStep(0)}
-              className="min-h-[36px] rounded-full px-3 text-xs font-semibold"
+              className="min-h-[44px] rounded-full px-3 text-xs font-semibold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
               ❔ {tp('Как это работает', 'How this works', 'Jak to dziala')}
@@ -634,9 +654,9 @@ export default function RadioSimulatorPage() {
           {model === 'M323' && (
             <div className="mb-3 text-xs" style={{ color: 'var(--text-muted)' }}>
               {tp(
-                'Профиль IC-M323: клавиша CLEAR, отдельное дерево меню, цикл ручки VOL -> SQL -> CH -> подсветка, таймер повтора 3:42 и завершение отмены без отдельного STBY.',
-                'IC-M323 profile: CLEAR key, its own menu tree, VOL -> SQL -> CH -> backlight dial cycle, 3:42 repeat timer, and cancel completion without a separate STBY step.',
-                'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokretla VOL -> SQL -> CH -> podswietlenie, czas powtorki 3:42 i zakonczenie odwolania bez osobnego STBY.',
+                'Профиль IC-M323: клавиша CLEAR, отдельное дерево меню, цикл ручки VOL -> SQL -> CH -> подсветка и завершение отмены без отдельного STBY. Интервал повтора DSC у обеих моделей случайный: 3,5-4,5 минуты.',
+                'IC-M323 profile: CLEAR key, its own menu tree, VOL -> SQL -> CH -> backlight dial cycle, and cancel completion without a separate STBY step. Both models randomize the DSC repeat interval between 3.5 and 4.5 minutes.',
+                'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokretla VOL -> SQL -> CH -> podswietlenie i zakonczenie odwolania bez osobnego STBY. W obu modelach odstep powtorki DSC jest losowy: 3,5-4,5 minuty.',
               )}
             </div>
           )}
@@ -660,7 +680,7 @@ export default function RadioSimulatorPage() {
                       type="button"
                       data-testid={`start-nauka-${sc.id}`}
                       onClick={() => startScenario(sc, 'nauka')}
-                      className="min-h-[40px] flex-1 rounded-xl px-3 text-sm font-semibold"
+                      className="min-h-[44px] flex-1 rounded-xl px-3 text-sm font-semibold"
                       style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                     >
                       {tp('Обучение', 'Learn', 'Nauka')}
@@ -669,7 +689,7 @@ export default function RadioSimulatorPage() {
                       type="button"
                       data-testid={`start-egzamin-${sc.id}`}
                       onClick={() => startScenario(sc, 'egzamin')}
-                      className="min-h-[40px] flex-1 rounded-xl px-3 text-sm font-medium"
+                      className="min-h-[44px] flex-1 rounded-xl px-3 text-sm font-medium"
                       style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
                     >
                       {tp('Экзамен', 'Exam', 'Egzamin')}
@@ -714,7 +734,7 @@ export default function RadioSimulatorPage() {
                   data-testid="inspect-toggle"
                   onClick={() => { setInspect((v) => !v); setInspectKey(null); }}
                   aria-pressed={inspect}
-                  className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+                  className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
                   style={inspect
                     ? { background: '#ffce4d', color: '#3a2a00' }
                     : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
@@ -726,7 +746,7 @@ export default function RadioSimulatorPage() {
                   data-testid="sound-toggle"
                   onClick={audio.toggleMute}
                   aria-pressed={!audio.muted}
-                  className="min-h-[40px] rounded-xl px-3 text-sm font-semibold transition"
+                  className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
                   style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
                 >
                   {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
@@ -843,7 +863,7 @@ export default function RadioSimulatorPage() {
                           data-testid="play-model"
                           disabled={playingModel}
                           onClick={() => void playModel()}
-                          className="min-h-[36px] rounded-lg px-3 text-xs font-semibold disabled:opacity-50"
+                          className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-50"
                           style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                         >
                           {playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posluchaj wzorca')}
@@ -861,10 +881,10 @@ export default function RadioSimulatorPage() {
                   )}
 
                   <div className="mt-3 flex gap-2">
-                    <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[42px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
+                    <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[44px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
                       {tp('Ещё раз', 'Again', 'Jeszcze raz')}
                     </button>
-                    <button type="button" onClick={exitScenario} className="min-h-[42px] rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
+                    <button type="button" onClick={exitScenario} className="min-h-[44px] rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
                       {tp('К сценариям', 'Scenarios', 'Do scenariuszy')}
                     </button>
                   </div>
@@ -1017,7 +1037,7 @@ export default function RadioSimulatorPage() {
                 <button
                   type="button"
                   onClick={dismissOnboarding}
-                  className="min-h-[40px] rounded-lg px-3 text-xs"
+                  className="min-h-[44px] rounded-lg px-3 text-xs"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   {tp('Пропустить', 'Skip', 'Pomin')}
@@ -1029,7 +1049,7 @@ export default function RadioSimulatorPage() {
                     if (onboardStep >= 5) dismissOnboarding();
                     else setOnboardStep(onboardStep + 1);
                   }}
-                  className="min-h-[40px] rounded-xl px-4 text-sm font-semibold"
+                  className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
                   style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
                   {onboardStep >= 5 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej')}
@@ -1039,6 +1059,6 @@ export default function RadioSimulatorPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

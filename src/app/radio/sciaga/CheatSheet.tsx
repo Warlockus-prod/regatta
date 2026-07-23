@@ -95,7 +95,7 @@ export default function CheatSheet() {
   }, [passed, done]);
 
   return (
-    <main>
+    <div>
       <div className="no-print">
         <Link href="/radio" className="text-sm" style={{ color: 'var(--accent-cyan)' }}>
           {tp('< Раздел радио', '< Radio section', '< Dzial radio')}
@@ -143,7 +143,7 @@ export default function CheatSheet() {
         <div className="grid gap-3 sm:grid-cols-2">
           <Box title={bi('Kanaly', 'Каналы')}>
             <Rows rows={CHANNELS.map((c) => [c[0], bi(c[1], c[2])] as const)} />
-            <Note>{bi('1 W w porcie i marinie, 25 W na otwartej wodzie.', '1 Вт в порту и марине, 25 Вт на открытой воде.')}</Note>
+            <Note>{bi('Uzyj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy slabym sygnale i w niebezpieczenstwie. Sprawdz ograniczenia kanalu.', 'Используй минимальную достаточную мощность: обычно 1 Вт вблизи, 25 Вт при слабой связи и бедствии. Учитывай ограничения канала.')}</Note>
           </Box>
 
           <Box title={bi('Priorytet wywolan', 'Приоритет вызовов')}>
@@ -177,7 +177,7 @@ export default function CheatSheet() {
           </Box>
 
           <Box title={bi('Alfabet fonetyczny', 'Фонетический алфавит')} wide>
-            <div className="grid grid-cols-3 gap-x-4 gap-y-1 text-sm sm:grid-cols-6" style={{ color: 'var(--text-secondary)' }}>
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm sm:grid-cols-4 lg:grid-cols-6" style={{ color: 'var(--text-secondary)' }}>
               {PHONETIC.map(([l, w]) => (
                 <div key={l} className="flex items-center gap-1.5">
                   <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{l}</span>
@@ -186,7 +186,7 @@ export default function CheatSheet() {
                 </div>
               ))}
             </div>
-            <div className="mt-2 grid grid-cols-3 gap-x-4 gap-y-1 text-sm sm:grid-cols-5" style={{ color: 'var(--text-secondary)' }}>
+            <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm sm:grid-cols-5" style={{ color: 'var(--text-secondary)' }}>
               {DIGITS.map(([d, w]) => (
                 <div key={d} className="flex items-center gap-1.5">
                   <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{d}</span>
@@ -200,7 +200,7 @@ export default function CheatSheet() {
           <Box title="Prowords" wide>
             <div className="space-y-1 text-sm">
               {PROWORDS.map((p) => (
-                <div key={p[0]} className="flex items-center gap-2">
+                <div key={p[0]} className="flex flex-wrap items-center gap-2">
                   <span className="no-print"><SpeakButton text={say(p[0])} label={listen} size={20} /></span>
                   <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
                   <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
@@ -212,10 +212,10 @@ export default function CheatSheet() {
           <Box title={bi('Zwroty SMCP (morski angielski)', 'Фразы SMCP (морской английский)')} wide>
             <div className="space-y-1 text-sm">
               {SMCP.map((p) => (
-                <div key={p[0]} className="flex items-center gap-2">
+                <div key={p[0]} className="flex flex-wrap items-center gap-2">
                   <span className="no-print"><SpeakButton text={p[0]} label={listen} size={20} /></span>
-                  <span className="min-w-[210px] shrink-0 font-semibold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
+                  <span className="min-w-0 font-semibold sm:min-w-[210px] sm:shrink-0" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
+                  <span className="w-full min-w-0 sm:w-auto sm:flex-1" style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
                 </div>
               ))}
             </div>
@@ -314,7 +314,7 @@ export default function CheatSheet() {
           )}
         </div>
       </section>
-    </main>
+    </div>
   );
 }
 

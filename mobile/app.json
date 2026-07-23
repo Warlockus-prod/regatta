@@ -3,7 +3,7 @@
     "name": "Week to Regatta",
     "slug": "regatta",
     "scheme": "regatta",
-    "version": "1.5.1",
+    "version": "1.6.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "32",
+      "buildNumber": "33",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "Mikrofon jest uzywany w symulatorze radia SRC do oceny transmisji glosowych (MAYDAY, PAN-PAN). Nagranie sluzy wylacznie do oceny i nie jest przechowywane."
@@ -27,7 +27,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 31,
+      "versionCode": 33,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"

@@ -11,6 +11,8 @@
     "test:physics:watch": "vitest src/lib/sailing-physics src/lib/race-physics.drift.test.ts",
     "test:api": "vitest run src/app/api",
     "test:radio": "vitest run src/app/radio",
+    "build:radio-offline": "node mobile/scripts/build-radio-offline.mjs",
+    "build:radio-offline:check": "node mobile/scripts/build-radio-offline.mjs --check",
     "test": "vitest run",
     "check:dash": "node scripts/check-no-dash.mjs",
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs"

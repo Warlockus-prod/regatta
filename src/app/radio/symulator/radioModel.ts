@@ -28,7 +28,9 @@ export const RADIO_PROFILES: Record<RadioModel, RadioProfile> = {
     nameplate: 'ICOM · IC-M330GE',
     clearLabel: 'CLR',
     menuItems: M330_MENU,
-    retxSeconds: 246,
+    // The real interval is randomized between 3.5 and 4.5 minutes. The
+    // simulator uses the midpoint so the countdown stays deterministic.
+    retxSeconds: 240,
     cancelRequiresStandby: true,
     maxVolume: 20,
     maxBacklight: 7,
@@ -38,7 +40,8 @@ export const RADIO_PROFILES: Record<RadioModel, RadioProfile> = {
     nameplate: 'ICOM · IC-M323',
     clearLabel: 'CLEAR',
     menuItems: M323_MENU,
-    retxSeconds: 222,
+    // Same DSC rule as the M330: this is not a model-specific timer.
+    retxSeconds: 240,
     cancelRequiresStandby: false,
     maxVolume: 20,
     maxBacklight: 7,
@@ -109,16 +112,19 @@ export type Nature = (typeof NATURES)[number];
 
 export const OTHERDSC_TYPES = ['Individual', 'Group', 'All Ships', 'Test'] as const;
 export const OTHERDSC_CATEGORIES = ['Routine', 'Safety', 'Urgency'] as const;
-export const DSC_ADDRESSES = [
+export interface DscAddress { label: string; mmsi: string }
+export const DSC_ADDRESSES: readonly DscAddress[] = [
   { label: 'POLISH RESCUE RADIO', mmsi: COAST_MMSI },
   { label: 'LYNGBY RADIO', mmsi: '002191000' },
   { label: 'TRAINING SHIP', mmsi: '261111111' },
-] as const;
+];
 export const DSC_VOICE_CHANNELS = ['06', '08', '09', '12', '13', '16', '69', '71', '72', '77'] as const;
 
 export type ScreenId =
   | 'off' | 'standby' | 'volume' | 'squelch' | 'channel-select' | 'backlight'
   | 'menu' | 'm323-dsc-calls' | 'gps-info' | 'radio-info' | 'dsc-log' | 'stub-view' | 'config'
+  | 'dsc-settings' | 'position-input' | 'individual-id-list'
+  | 'individual-id-add-mmsi' | 'individual-id-add-name' | 'individual-id-delete'
   | 'distress-compose' | 'distress-nature' | 'distress-hold' | 'distress-tx'
   | 'distress-wait' | 'distress-ack' | 'distress-ack-done'
   | 'cancel-confirm' | 'cancel-tx' | 'cancel-voice' | 'cancel-done'
@@ -174,6 +180,13 @@ export interface RadioState {
   softPage: number;
   menuCursor: number;
   m323CallCursor: number;
+  dscSettingsCursor: number;
+  idCursor: number;
+  individualIds: DscAddress[];
+  idEntryMmsi: string;
+  idEntryCursor: number;
+  positionInputStage: number;
+  positionTime: string;
   stubTitle: string;
   natureIndex: number;
   natureCursor: number;
@@ -234,6 +247,8 @@ export function createInitialRadio(
     ptt: false, mmsiSet: true, scanActive: false, dualWatch: false, dwOnSixteen: false,
     workChannelIndex: null, aquaActive: false, keyBeep: true,
     favoriteChannels: ['06', '12', '16'], softPage: 0, menuCursor: 0, m323CallCursor: 0, stubTitle: '',
+    dscSettingsCursor: 0, idCursor: 0, individualIds: DSC_ADDRESSES.map((item) => ({ ...item })),
+    idEntryMmsi: '000000000', idEntryCursor: 2, positionInputStage: 0, positionTime: '1200',
     natureIndex: 0, natureCursor: 0, composeCursor: 0,
     distressActive: false, retxCount: 0, retxPaused: false, ackReceived: false,
     odType: 2, odAddress: 0, odCategory: 0,
@@ -278,6 +293,11 @@ export function softkeys(s: RadioState): string[] {
     case 'otherdsc-ack': return ['ALARM OFF', 'STBY', '', ''];
     case 'rx-distress-alert': return ['ALARM OFF', '', '', ''];
     case 'rx-individual-call': return ['ACCEPT', 'REFUSE', '', ''];
+    case 'position-input': return s.gpsValid ? ['', '', 'EXIT', ''] : ['FIN', '', 'EXIT', ''];
+    case 'individual-id-list': return ['ADD', '', 'DEL', ''];
+    case 'individual-id-add-mmsi': return ['', '', 'CANCEL', ''];
+    case 'individual-id-add-name': return ['FIN', '', 'CANCEL', ''];
+    case 'individual-id-delete': return ['OK', 'CANCEL', '', ''];
     case 'standby': {
       const pages = standbySoftkeyPages(s);
       const page = pages[s.softPage % pages.length];
@@ -310,7 +330,7 @@ function moveChannel(s: RadioState, delta: number): RadioState {
 
 export function dscFieldValues(s: RadioState): readonly string[] {
   if (s.odField === 'type') return OTHERDSC_TYPES;
-  if (s.odField === 'address') return DSC_ADDRESSES.map((a) => `${a.label} ${a.mmsi}`);
+  if (s.odField === 'address') return s.individualIds.map((a) => `${a.label} ${a.mmsi}`);
   if (s.odField === 'category') return OTHERDSC_CATEGORIES;
   return DSC_VOICE_CHANNELS;
 }
@@ -334,6 +354,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         ...createInitialRadio(s.model, s.vessel, s.pos),
         volume: s.volume, squelch: s.squelch, backlight: s.backlight,
         callChannelIndex: s.callChannelIndex, favoriteChannels: s.favoriteChannels,
+        individualIds: s.individualIds, gpsValid: s.gpsValid,
       };
     }
     return {
@@ -341,6 +362,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
       power: true, screen: 'standby', volume: s.volume, squelch: s.squelch,
       backlight: s.backlight, callChannelIndex: s.callChannelIndex,
       favoriteChannels: s.favoriteChannels,
+      individualIds: s.individualIds, gpsValid: s.gpsValid,
       deviceLog: [{ t: Date.now(), text: 'Power ON - watch on CH 16 / CH 70 (DSC)', kind: 'ui' }],
       beeps: s.beeps + 1,
     };
@@ -379,6 +401,22 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         const n = 5;
         return { ...s, m323CallCursor: (s.m323CallCursor + e.dir + n) % n };
       }
+      if (s.screen === 'dsc-settings') {
+        const n = 2;
+        return { ...s, dscSettingsCursor: (s.dscSettingsCursor + e.dir + n) % n };
+      }
+      if (s.screen === 'individual-id-list') {
+        const n = Math.max(1, s.individualIds.length);
+        return { ...s, idCursor: (s.idCursor + e.dir + n) % n };
+      }
+      if (s.screen === 'individual-id-add-mmsi') {
+        const digit = Number(s.idEntryMmsi[s.idEntryCursor] ?? '0');
+        const nextDigit = String((digit + e.dir + 10) % 10);
+        return {
+          ...s,
+          idEntryMmsi: `${s.idEntryMmsi.slice(0, s.idEntryCursor)}${nextDigit}${s.idEntryMmsi.slice(s.idEntryCursor + 1)}`,
+        };
+      }
       if (s.screen === 'otherdsc-field') {
         const n = dscFieldValues(s).length;
         return { ...s, odFieldCursor: (s.odFieldCursor + e.dir + n) % n };
@@ -405,6 +443,23 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         const n = 5;
         return { ...s, m323CallCursor: (s.m323CallCursor + listDir + n) % n };
       }
+      if (s.screen === 'dsc-settings') {
+        const n = 2;
+        return { ...s, dscSettingsCursor: (s.dscSettingsCursor + listDir + n) % n };
+      }
+      if (s.screen === 'individual-id-list') {
+        const n = Math.max(1, s.individualIds.length);
+        return { ...s, idCursor: (s.idCursor + listDir + n) % n };
+      }
+      if (s.screen === 'individual-id-add-mmsi') {
+        const digit = Number(s.idEntryMmsi[s.idEntryCursor] ?? '0');
+        const delta = e.type === 'up' ? 1 : -1;
+        const nextDigit = String((digit + delta + 10) % 10);
+        return {
+          ...s,
+          idEntryMmsi: `${s.idEntryMmsi.slice(0, s.idEntryCursor)}${nextDigit}${s.idEntryMmsi.slice(s.idEntryCursor + 1)}`,
+        };
+      }
       if (s.screen === 'otherdsc-compose') {
         const n = otherDscRows(s).length + 1;
         return { ...s, odCursor: (s.odCursor + listDir + n) % n };
@@ -418,7 +473,18 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
     }
 
     case 'key-16c': {
-      const allowed: ScreenId[] = ['standby', 'menu', 'm323-dsc-calls', 'gps-info', 'radio-info', 'dsc-log', 'stub-view', 'config', 'volume', 'squelch', 'channel-select', 'backlight'];
+      // While waiting for a distress ACK the operator must still be able to
+      // move to the associated voice channel and send MAYDAY after about
+      // 15 seconds if no ACK arrives. Keep the repeat state on screen.
+      if (s.screen === 'distress-wait') {
+        return {
+          ...s,
+          channelIndex: CH16_INDEX,
+          deviceLog: log(s, 'CH 16 selected for the voice MAYDAY; DSC repeat remains active'),
+          beeps: s.beeps + 1,
+        };
+      }
+      const allowed: ScreenId[] = ['standby', 'menu', 'm323-dsc-calls', 'gps-info', 'radio-info', 'dsc-log', 'stub-view', 'config', 'dsc-settings', 'position-input', 'individual-id-list', 'individual-id-add-mmsi', 'individual-id-add-name', 'individual-id-delete', 'volume', 'squelch', 'channel-select', 'backlight'];
       if (!allowed.includes(s.screen)) return s;
       return { ...toStandby(s), channelIndex: CH16_INDEX, deviceLog: log(s, 'CH 16 (distress/calling)'), beeps: s.beeps + 1 };
     }
@@ -434,7 +500,9 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
       if (['volume', 'squelch', 'channel-select', 'backlight'].includes(s.screen)) return { ...s, screen: s.back };
       switch (s.screen) {
         case 'menu': return toStandby(s);
-        case 'gps-info': case 'radio-info': case 'dsc-log': case 'stub-view': case 'config': case 'm323-dsc-calls': return { ...s, screen: 'menu' };
+        case 'gps-info': case 'radio-info': case 'dsc-log': case 'stub-view': case 'config': case 'm323-dsc-calls': case 'dsc-settings': return { ...s, screen: 'menu' };
+        case 'position-input': case 'individual-id-list': return { ...s, screen: 'dsc-settings' };
+        case 'individual-id-add-mmsi': case 'individual-id-add-name': case 'individual-id-delete': return { ...s, screen: 'individual-id-list' };
         case 'distress-nature': return { ...s, screen: 'distress-compose' };
         case 'distress-compose': return toStandby(s);
         case 'otherdsc-field': return { ...s, screen: 'otherdsc-compose' };
@@ -454,6 +522,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         if (item === 'Radio Info') return { ...s, screen: 'radio-info' };
         if (item === 'MMSI/GPS Info') return { ...s, screen: 'radio-info' };
         if (item === 'DSC Log') return { ...s, screen: 'dsc-log' };
+        if (item === 'DSC Settings') return { ...s, screen: 'dsc-settings', dscSettingsCursor: 0 };
         // Configuration is where Key Beep lives on the real set (M330GE p.49,
         // M323 p.69): On by default, Off "for silent operation". It is binary -
         // there are no beep levels on these two models - and it silences key
@@ -469,6 +538,14 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
           // the confirming beep only sounds if beeps are being turned ON
           beeps: !s.keyBeep ? s.beeps + 1 : s.beeps,
         };
+      }
+      if (s.screen === 'dsc-settings') {
+        if (s.dscSettingsCursor === 0) return { ...s, screen: 'position-input', positionInputStage: 0 };
+        return { ...s, screen: 'individual-id-list', idCursor: 0 };
+      }
+      if (s.screen === 'individual-id-add-mmsi') {
+        if (s.idEntryCursor < 8) return { ...s, idEntryCursor: s.idEntryCursor + 1 };
+        return { ...s, screen: 'individual-id-add-name' };
       }
       if (s.screen === 'distress-compose') {
         if (s.composeCursor === 0) return { ...s, screen: 'distress-nature', natureCursor: s.natureIndex };
@@ -489,7 +566,8 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         }
         const type = OTHERDSC_TYPES[s.odType];
         const category = type === 'Test' ? 'Routine' : OTHERDSC_CATEGORIES[s.odCategory];
-        const address = type === 'All Ships' ? 'ALL SHIPS' : `${DSC_ADDRESSES[s.odAddress].label} ${DSC_ADDRESSES[s.odAddress].mmsi}`;
+        const selectedAddress = s.individualIds[s.odAddress] ?? s.individualIds[0] ?? { label: 'MANUAL', mmsi: '000000000' };
+        const address = type === 'All Ships' ? 'ALL SHIPS' : `${selectedAddress.label} ${selectedAddress.mmsi}`;
         const voiceChannel = DSC_VOICE_CHANNELS[s.odChannel];
         const channelIndex = CHANNELS.findIndex((c) => c.num === voiceChannel);
         const awaiting = type === 'Individual' || type === 'Test';
@@ -549,7 +627,58 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
         case 'LOG': return { ...s, screen: 'dsc-log' };
         case 'AQUA': return s;
         case 'NAME': return { ...s, deviceLog: log(s, `${key}: configuration view`), beeps: s.beeps + 1 };
-        case 'CANCEL': return { ...s, screen: 'cancel-confirm' };
+        case 'ADD':
+          return { ...s, screen: 'individual-id-add-mmsi', idEntryMmsi: '000000000', idEntryCursor: 2 };
+        case 'DEL':
+          return s.individualIds.length > 0 ? { ...s, screen: 'individual-id-delete' } : s;
+        case 'OK': {
+          if (s.screen !== 'individual-id-delete') return s;
+          const removed = s.individualIds[s.idCursor];
+          const individualIds = s.individualIds.filter((_, index) => index !== s.idCursor);
+          return {
+            ...s,
+            screen: 'individual-id-list',
+            individualIds,
+            idCursor: Math.max(0, Math.min(s.idCursor, individualIds.length - 1)),
+            odAddress: Math.max(0, Math.min(s.odAddress, individualIds.length - 1)),
+            deviceLog: log(s, `Deleted Individual ID ${removed?.label ?? ''} ${removed?.mmsi ?? ''}`.trim()),
+            beeps: s.beeps + 1,
+          };
+        }
+        case 'EXIT':
+          return s.screen === 'position-input' ? { ...s, screen: 'dsc-settings' } : s;
+        case 'CANCEL':
+          if (s.screen === 'individual-id-add-mmsi' || s.screen === 'individual-id-add-name' || s.screen === 'individual-id-delete') {
+            return { ...s, screen: 'individual-id-list' };
+          }
+          return { ...s, screen: 'cancel-confirm' };
+        case 'FIN':
+          if (s.screen === 'position-input') {
+            if (s.gpsValid) return s;
+            if (s.positionInputStage < 2) return { ...s, positionInputStage: s.positionInputStage + 1 };
+            return {
+              ...s,
+              screen: 'dsc-settings',
+              deviceLog: log(s, `Manual position saved: ${s.pos.lat} ${s.pos.lon}, UTC ${s.positionTime}; valid for 23.5 h or until power off`),
+              beeps: s.beeps + 1,
+            };
+          }
+          if (s.screen === 'individual-id-add-name') {
+            if (s.individualIds.some((item) => item.mmsi === s.idEntryMmsi)) {
+              return { ...s, screen: 'individual-id-list', deviceLog: log(s, `Individual ID ${s.idEntryMmsi} already exists`), beeps: s.beeps + 1 };
+            }
+            const individualIds = [...s.individualIds, { label: 'LYNGBY', mmsi: s.idEntryMmsi }];
+            return {
+              ...s,
+              screen: 'individual-id-list',
+              individualIds,
+              idCursor: individualIds.length - 1,
+              deviceLog: log(s, `Saved Individual ID LYNGBY ${s.idEntryMmsi}`),
+              beeps: s.beeps + 1,
+            };
+          }
+          if (radioProfile(s.model).cancelRequiresStandby) return { ...s, screen: 'cancel-done' };
+          return { ...toStandby(s), distressActive: false, ackReceived: false, retxCount: 0 };
         case 'RESEND': return { ...s, screen: 'distress-tx', deviceLog: log(s, 'Resending Distress Alert (CH 70)', 'tx') };
         case 'PAUSE': return { ...s, retxPaused: true };
         case 'RESUME': return { ...s, retxPaused: false };
@@ -576,6 +705,9 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
     }
 
     case 'soft-page': {
+      if (s.screen === 'individual-id-add-mmsi') {
+        return { ...s, idEntryCursor: Math.min(8, Math.max(2, s.idEntryCursor + e.dir)) };
+      }
       if (s.screen !== 'standby') return s;
       const pages = standbySoftkeyPages(s);
       return { ...s, softPage: (s.softPage + e.dir + pages.length) % pages.length };

@@ -54,7 +54,7 @@ describe('scenario catalogue integrity', () => {
   });
 
   it('ships the expected count (6 originals + 7 transmit + 2 receive)', () => {
-    expect(SCENARIOS.length).toBe(15);
+    expect(SCENARIOS.length).toBe(19);
   });
 
   it('covers all four DSC call types across the catalogue', () => {

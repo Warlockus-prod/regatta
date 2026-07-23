@@ -103,7 +103,7 @@ export default function RadioGuidePage() {
   const { tp, lang } = useI18n();
 
   return (
-    <main id="radio-guide">
+    <div id="radio-guide">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
         🛠️ {tp('Путеводитель по рации: что, зачем и как обслуживать', 'Radio guide: what, why and how to maintain it', 'Poradnik radia: co, po co i jak obslugiwac')}
       </h1>
@@ -131,7 +131,7 @@ export default function RadioGuidePage() {
           ['problemy', '7. Rozwiazywanie problemow', 'Поиск неисправностей'],
           ['sciaga', '8. Szybka sciaga', 'Шпаргалка'],
         ].map(([id, pl, ru]) => (
-          <a key={id} href={`#${id}`} className="flex min-h-[40px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+          <a key={id} href={`#${id}`} className="flex min-h-[44px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
             <span style={{ color: CYAN }}>{pl}</span>
             {lang === 'ru' && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>&nbsp;· {ru}</span>}
           </a>
@@ -166,7 +166,7 @@ export default function RadioGuidePage() {
             ['DSC / MENU', 'cyfrowe wywolania i ustawienia', 'stad wysylasz PAN-PAN/SECURITE i konfigurujesz radio / меню DSC и настройки'],
             ['[ENT]/[CLR]/strzalki', 'nawigacja po menu, zatwierdzanie/cofanie', 'obsluga menu DSC / навигация по меню'],
             ['Softkeys (4 klawisze)', 'funkcje zmienne pod wyswietlaczem (SCAN, DW, HI/LO...)', 'skroty do najczestszych funkcji / контекстные кнопки'],
-            ['HI / LO', 'moc nadawania 25 W lub 1 W', 'w porcie 1 W, na wodzie 25 W - patrz sekcja antena / мощность 25/1 Вт'],
+            ['HI / LO', 'moc nadawania 25 W lub 1 W', 'najmniejsza skuteczna moc, pelna przy slabym sygnale i alarmie / минимальная достаточная мощность, полная при слабом сигнале и аварии'],
             ['DW / TRI / SCAN', 'nasluch kilku kanalow naraz / przeszukiwanie', 'slyszysz 16 i swoj roboczy jednoczesnie / двойная вахта и скан'],
             ['DISTRESS (pod oslona)', 'czerwony klawisz alarmu w niebezpieczenstwie', 'oslona chroni przed przypadkowym alarmem - przytrzymaj 3 s / красная кнопка бедствия'],
             ['PTT (na mikrofonie)', 'nacisnij = nadajesz, puscisz = sluchasz', 'radio to simplex - nie da sie mowic i sluchac naraz / нажал - говоришь, отпустил - слушаешь'],
@@ -216,7 +216,7 @@ export default function RadioGuidePage() {
         <Table
           head={['Zasada', 'Szczegol', 'По-русски']}
           rows={[
-            ['Moc', 'w porcie/blisko 1 W, na otwartej wodzie 25 W', 'малая мощность вблизи, полная - на воде'],
+            ['Moc', 'najmniejsza skuteczna: zwykle 1 W blisko, 25 W przy slabym sygnale i alarmie', 'минимальная достаточная: обычно 1 Вт вблизи, 25 Вт при слабом сигнале и аварии'],
             ['Kanal 16', 'tylko wywolanie i alarm, nie rozmowy', 'канал 16 не занимать болтовнёй'],
             ['Kanaly robocze PL', 'mariny/porty 10/12/14 (Gdynia 12, Gdansk 14)', 'рабочие каналы марин Польши'],
             ['Kanal 70', 'tylko DSC - nie mow glosem', 'канал 70 - только цифра, не голос'],
@@ -328,7 +328,7 @@ export default function RadioGuidePage() {
               <li>{tp('16 - вызов и бедствие, 70 - только DSC', '16 - calling/distress, 70 - DSC only', '16 - wywolanie/alarm, 70 - tylko DSC')}</li>
               <li>{tp('PTT держишь - говоришь, отпустил - слушаешь', 'hold PTT to talk, release to listen', 'PTT - mowisz, puszczasz - sluchasz')}</li>
               <li>{tp('OVER - жду ответа, OUT - конец', 'OVER - expecting reply, OUT - finished', 'OVER - czekam, OUT - koniec')}</li>
-              <li>{tp('в порту 1 Вт, на воде 25 Вт', 'port 1 W, open water 25 W', 'port 1 W, woda 25 W')}</li>
+              <li>{tp('минимальная достаточная мощность: 1 Вт вблизи, 25 Вт при слабой связи и бедствии', 'minimum effective power: 1 W nearby, 25 W for weak links and distress', 'najmniejsza skuteczna moc: 1 W blisko, 25 W przy slabym sygnale i w niebezpieczenstwie')}</li>
               <li>{tp('squelch - до исчезновения шипения', 'squelch - up to where hiss stops', 'squelch - do zaniku szumu')}</li>
               <li>{tp('не нажимай PTT без антенны', 'never key PTT without an antenna', 'nie nadawaj bez anteny')}</li>
             </ul>
@@ -342,6 +342,6 @@ export default function RadioGuidePage() {
           </Card>
         </div>
       </Section>
-    </main>
+    </div>
   );
 }

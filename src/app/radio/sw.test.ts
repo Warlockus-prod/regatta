@@ -43,7 +43,7 @@ const u = (path: string) => new URL(`https://weektoregatta.com${path}`);
 
 describe('the service worker never caches what it must not', () => {
   it('caches course documents', () => {
-    for (const p of ['/radio', '/radio/pozycja', '/radio/symulator', '/sternik', '/sternik/ustny', '/offline']) {
+    for (const p of ['/radio', '/radio/teoria', '/radio/pozycja', '/radio/symulator', '/sternik', '/sternik/ustny', '/offline']) {
       expect(`${p}: ${isCacheableDoc(u(p))}`).toBe(`${p}: true`);
     }
   });
@@ -72,6 +72,7 @@ describe('the service worker never caches what it must not', () => {
     expect(m).toBeTruthy();
     const list = m![1];
     expect(list).not.toMatch(/stats|api|multiplayer|leaderboard/);
+    expect(list).toContain("'/radio/teoria'");
   });
 
   it('bails out of /api before any cache logic', () => {

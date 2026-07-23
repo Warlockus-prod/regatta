@@ -7,7 +7,7 @@
 // ============================================================================
 
 import {
-  CHANNELS, INITIAL_RADIO, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
+  CHANNELS, INITIAL_RADIO, NATURES, OTHERDSC_TYPES,
   RX_CALLER, RX_DISTRESS,
   type RadioEvent, type RadioState, type Vessel,
 } from './radioModel';
@@ -111,10 +111,10 @@ const stepHold = (): ScenarioStep => ({
 
 const stepAck = (): ScenarioStep => ({
   id: 'ack',
-  todo: { pl: 'Juz po nadaniu MAYDAY glosem: stacja brzegowa potwierdza alert (ACK). Nie wylaczaj radia', ru: 'Уже после голосового MAYDAY: береговая станция подтверждает алерт (ACK). Не выключай рацию' },
+  todo: { pl: 'Poczekaj na cyfrowe potwierdzenie stacji brzegowej (DSC ACK)', ru: 'Дождись цифрового подтверждения береговой станции (DSC ACK)' },
   why: {
-    pl: 'Glos juz poszedl - teraz stacja brzegowa potwierdza odbior alertu przez DSC. Do czasu ACK radio samo powtarza alert co 3,5-4,5 min - dlatego nie czekales z glosem. Z zasady ACK przez DSC nadaje tylko stacja brzegowa (statki potwierdzaja glosem; wyjatek M.541: gdy zadna stacja nie odbiera, statek moze zamknac powtorki przez DSC). W Polsce dyzur trzyma POLISH RESCUE RADIO (MMSI 002618102) i MRCK Gdynia.',
-    ru: 'Голос уже ушёл - теперь береговая станция подтверждает приём алерта по DSC. До ACK рация сама повторяет алерт каждые 3,5-4,5 мин - поэтому с голосом ты не ждал. По правилу ACK по DSC даёт только береговая станция (суда подтверждают голосом; исключение M.541: если никто не принял алерт, судно может остановить повторы по DSC). В Польше вахту несёт POLISH RESCUE RADIO (MMSI 002618102) и MRCK Gdynia.',
+    pl: 'W normalnym zasiegu A1 stacja brzegowa potwierdza alert przez DSC. Do czasu ACK radio samo powtarza alert w losowych odstepach 3,5-4,5 minuty. Jezeli ACK nie przychodzi po ok. 15 sekundach, wybierz 16/C i nadaj MAYDAY glosem, nie czekaj bez konca. W Polsce dyzur trzyma POLISH RESCUE RADIO (MMSI 002618102) i MRCK Gdynia.',
+    ru: 'В обычной зоне A1 береговая станция подтверждает алерт по DSC. До ACK рация сама повторяет алерт через случайные интервалы 3,5-4,5 минуты. Если ACK не приходит примерно 15 секунд, выбери 16/C и передай MAYDAY голосом, не жди бесконечно. В Польше вахту несёт POLISH RESCUE RADIO (MMSI 002618102) и MRCK Gdynia.',
   },
   // The ACK is on a timer from distress-wait and may land during OR after the
   // voice MAYDAY, so accept the fresh event or the already-acknowledged state.
@@ -159,21 +159,19 @@ const fireScenario: Scenario = {
     stepDistressCompose(),
     stepNature('Fire,Explosion'),
     stepHold(),
-    {
-      id: 'mayday-voice',
-      todo: { pl: 'Od razu nadaj MAYDAY glosem na kanale 16 (trzymaj PTT) - nie czekaj na ACK', ru: 'Сразу передай MAYDAY голосом на 16 канале (держи PTT) - не жди ACK' },
-      why: {
-        pl: 'Zaraz po alercie DSC nadajesz komunikat glosem - NIE czekasz na potwierdzenie. Radio samo powtarza alert co ok. 4 min az do ACK; ty w tym czasie mowisz. Cyfrowy alert to tylko naglowek; glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji, potrzebna pomoc. Kolejnosc (schemat MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
-        ru: 'Сразу после DSC-алерта передаёшь сообщение голосом - НЕ ждёшь подтверждения. Рация сама повторяет алерт каждые ~4 мин до ACK; ты в это время говоришь. Цифровой алерт - только «заголовок»; голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации, нужную помощь. Порядок (схема MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
-      },
-      // Durable check: only requires PTT keyed on CH16. It is available right after
-      // the DSC alert (during distress-wait), so the learner speaks the voice MAYDAY
-      // WITHOUT waiting for the ACK - which is the whole point of this scenario.
-      check: (e, prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
-      voice: { kind: 'mayday-fire', lines: MAYDAY_FIRE_LINES },
-    },
     stepAck(),
     stepAlarmOff(),
+    {
+      id: 'mayday-voice',
+      todo: { pl: 'Nadaj MAYDAY glosem na kanale 16 (trzymaj PTT)', ru: 'Передай MAYDAY голосом на 16 канале (держи PTT)' },
+      why: {
+        pl: 'Po ACK i ALARM OFF radio automatycznie wybiera kanal 16. Cyfrowy alert to tylko naglowek; glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji i potrzebna pomoc. Kolejnosc (MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
+        ru: 'После ACK и ALARM OFF рация автоматически выбирает канал 16. Цифровой алерт - только заголовок; голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации и нужную помощь. Порядок (MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
+      },
+      // Durable check: only requires PTT keyed on the associated voice channel.
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+      voice: { kind: 'mayday-fire', lines: MAYDAY_FIRE_LINES },
+    },
   ],
   mistakes: [
     {
@@ -190,12 +188,12 @@ const fireScenario: Scenario = {
         pl: 'Alert poszedl bez rodzaju zagrozenia (Undesignated) - dziala, ale ratownicy wiedza mniej.',
         ru: 'Алерт ушёл без рода бедствия (Undesignated) - работает, но спасатели знают меньше.',
       },
-      detect: (e, prev, next, done) => e.type === 'distress-held' && NATURES[next.natureIndex] === 'Undesignated',
+      detect: (e, prev, next) => e.type === 'distress-held' && NATURES[next.natureIndex] === 'Undesignated',
     },
   ],
   debrief: {
-    pl: 'Gdyby ACK nie przyszlo w ok. 15 sekund, i tak nadajesz MAYDAY glosem na 16 - nie czekasz w nieskonczonosc. Radio powtarza alert DSC samo, dopoki stacja nie potwierdzi.',
-    ru: 'Если ACK не пришёл за ~15 секунд - всё равно передавай MAYDAY голосом на 16, не жди бесконечно. DSC-алерт рация повторяет сама, пока станция не подтвердит.',
+    pl: 'Gdy ACK nie przyjdzie w ok. 15 sekund, wcisnij 16/C i nadaj MAYDAY glosem na 16. Nie wylaczaj alertu i nie czekaj bez konca: radio nadal powtarza DSC co 3,5-4,5 minuty.',
+    ru: 'Если ACK не пришёл примерно за 15 секунд, нажми 16/C и передай MAYDAY голосом на 16. Не отменяй алерт и не жди бесконечно: рация продолжает повторять DSC каждые 3,5-4,5 минуты.',
   },
 };
 
@@ -215,10 +213,10 @@ const PANPAN_MOB_LINES = (v: VariantData) => [
 const mobScenario: Scenario = {
   id: 'mob-panpan',
   icon: '🛟',
-  title: { pl: 'Czlowiek za burta (widoczny) - PAN-PAN', ru: 'Человек за бортом (виден) - PAN-PAN' },
+  title: { pl: 'MOB widoczny, pomoc lokalna - PAN-PAN', ru: 'MOB виден, локальная помощь - PAN-PAN' },
   brief: {
-    pl: 'Podczas zwrotu kolega wypadl za burte. WIDZISZ go, ma kamizelke, manewr powrotu trwa. Wokol inne jachty. Trzeba ostrzec ruch wokol - kategoria PILNOSC (PAN-PAN). Gdyby czlowiek zniknal z oczu lub byl nieprzytomny - to bylby MAYDAY (nature: Man Overboard).',
-    ru: 'На повороте товарищ выпал за борт. Ты его ВИДИШЬ, он в жилете, манёвр возврата идёт. Вокруг другие яхты. Нужно предупредить окружающий трафик - категория СРОЧНОСТЬ (PAN-PAN). Если бы человек пропал из виду или был без сознания - это был бы MAYDAY (род: Man Overboard).',
+    pl: 'To scenariusz operacyjny, nie odpowiedz do zadania nr 10 UKE. Widzisz osobe w kamizelce, manewr podjecia trwa i prosisz pobliskie jednostki o ograniczenie fali. Cwiczysz PAN-PAN. W zadaniu praktycznym UKE "czlowiek za burta" odpowiadaj MAYDAY. W realu MAYDAY jest wlasciwe zawsze, gdy potrzebna jest natychmiastowa pomoc z zewnatrz.',
+    ru: 'Это операционный сценарий, а не ответ к заданию UKE номер 10. Человек виден, он в жилете, маневр подъема уже идет, а соседние суда просят уменьшить волну. Здесь тренируется PAN-PAN. В практическом задании UKE «человек за бортом» отвечай MAYDAY. В море MAYDAY нужен всегда, когда требуется немедленная внешняя помощь.',
   },
   steps: [
     stepPower(),
@@ -264,8 +262,8 @@ const mobScenario: Scenario = {
     },
   ],
   debrief: {
-    pl: 'Granica PAN-PAN / MAYDAY przy MOB to ocena sytuacji: osoba widoczna i podejmowana = PAN-PAN; stracona z oczu, noc, hipotermia, brak kamizelki = MAYDAY. PAN-PAN wolno "podniesc" do MAYDAY, gdy sytuacja sie pogarsza.',
-    ru: 'Граница PAN-PAN / MAYDAY при MOB - оценка ситуации: человек виден и его поднимают = PAN-PAN; потерян из виду, ночь, гипотермия, без жилета = MAYDAY. PAN-PAN можно «поднять» до MAYDAY, если ситуация ухудшается.',
+    pl: 'Egzamin UKE: zadanie "czlowiek za burta" = MAYDAY. Ten wariant PAN-PAN dotyczy tylko sytuacji, w ktorej odzyskanie osoby juz trwa, pomoc ratownicza nie jest potrzebna, a komunikat ma pilnie uporzadkowac ruch wokol. Jesli masz watpliwosc co do zycia, widocznosci osoby lub skutecznosci podjecia, uzyj MAYDAY.',
+    ru: 'Экзамен UKE: задание «человек за бортом» = MAYDAY. Этот вариант PAN-PAN относится только к ситуации, когда подъем уже идет, спасательная помощь не требуется, а сообщение должно срочно упорядочить движение рядом. Если есть сомнение в угрозе жизни, видимости человека или успехе подъема, используй MAYDAY.',
   },
 };
 
@@ -370,13 +368,31 @@ const securiteScenario: Scenario = {
         && next.odSent?.type === 'All Ships' && next.odSent?.category === 'Safety',
     },
     {
-      id: 'securite-voice',
-      todo: { pl: 'Nadaj SECURITE glosem na 16, zakoncz OUT', ru: 'Передай SECURITE голосом на 16, закончи OUT' },
+      id: 'securite-announce',
+      todo: { pl: 'Na kanale 16 zapowiedz SECURITE i wskaz kanal roboczy 72', ru: 'На канале 16 объяви SECURITE и укажи рабочий канал 72' },
       why: {
-        pl: 'SECURITE x3 -> ALL STATIONS x3 -> THIS IS + nazwa -> tresc ostrzezenia (co, gdzie, zalecenie) -> OUT, bo nie oczekujesz odpowiedzi. Duze stacje przenosza tresc na kanal roboczy; krotkie ostrzezenie z jachtu w praktyce idzie na 16.',
-        ru: 'SECURITE x3 -> ALL STATIONS x3 -> THIS IS + название -> текст предупреждения (что, где, рекомендация) -> OUT, потому что ответа не ждёшь. Большие станции переносят текст на рабочий канал; короткое предупреждение с яхты на практике идёт на 16.',
+        pl: 'Format egzaminacyjny UKE: na 16 idzie krotka zapowiedz SECURITE z informacja, gdzie sluchac tresci. Kanal 16 pozostaje wolny dla wywolan i distress.',
+        ru: 'Экзаменационный формат UKE: на 16 передается короткое объявление SECURITE с указанием канала сообщения. Канал 16 остается свободным для вызовов и distress.',
       },
       check: (e, prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
+    },
+    {
+      id: 'securite-working',
+      todo: { pl: 'Przejdz na kanal roboczy 72', ru: 'Перейди на рабочий канал 72' },
+      why: {
+        pl: 'Pelna tresc ostrzezenia jest dluzsza niz zapowiedz. Przeniesienie jej chroni kanal 16 przed blokowaniem.',
+        ru: 'Полный текст предупреждения длиннее объявления. Перенос защищает канал 16 от блокировки.',
+      },
+      check: (_e, prev, next) => ch(next) === '72' && ch(prev) !== '72',
+    },
+    {
+      id: 'securite-voice',
+      todo: { pl: 'Nadaj pelna tresc SECURITE na 72 i zakoncz OUT', ru: 'Передай полный текст SECURITE на 72 и закончи OUT' },
+      why: {
+        pl: 'Powtorz SECURITE, ALL STATIONS i identyfikacje, potem podaj co, gdzie i jakie dzialanie zalecasz. OUT oznacza, ze nie oczekujesz odpowiedzi.',
+        ru: 'Повтори SECURITE, ALL STATIONS и идентификацию, затем сообщи что, где и что рекомендуешь. OUT означает, что ответа не ждут.',
+      },
+      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '72' && next.ptt,
       voice: { kind: 'securite-hazard', lines: SECURITE_LINES },
     },
   ],
@@ -423,8 +439,8 @@ const radioCheckScenario: Scenario = {
       id: 'lowpower',
       todo: { pl: 'Przelacz moc na 1W ([HI/LO])', ru: 'Переключи мощность на 1 Вт ([HI/LO])' },
       why: {
-        pl: 'W porcie i na krotkim dystansie nadaje sie mala moca (1W), zeby nie zasmiecac eteru w promieniu 20 mil. 25W zostaw na otwarta wode.',
-        ru: 'В порту и на короткой дистанции передают малой мощностью (1 Вт), чтобы не забивать эфир в радиусе 20 миль. 25 Вт - для открытой воды.',
+        pl: 'Do bliskiej lacznosci uzyj najmniejszej skutecznej mocy, tutaj 1 W. Ograniczasz zaklocenia i pobor pradu. Przejdz na 25 W, gdy sygnal jest za slaby lub sytuacja jest alarmowa.',
+        ru: 'Для близкой связи используй минимальную достаточную мощность, здесь 1 Вт. Так меньше помех и расход энергии. Перейди на 25 Вт при слабой связи или аварии.',
       },
       check: (e, prev, next) => e.type === 'soft' && prev.hiPower && !next.hiPower,
     },
@@ -941,7 +957,7 @@ const MAYDAY_ACK_LINES = (v: VariantData) => [
 const receiveDistressScenario: Scenario = {
   id: 'receive-distress',
   icon: '📥',
-  init: (vessel) => ({
+  init: () => ({
     ...INITIAL_RADIO,
     power: true,
     screen: 'rx-distress-alert',
@@ -953,16 +969,16 @@ const receiveDistressScenario: Scenario = {
   }),
   title: { pl: 'Odbior cudzego MAYDAY', ru: 'Приём чужого MAYDAY' },
   brief: {
-    pl: 'Twoje radio odebralo cyfrowy alarm DISTRESS z jachtu NEPTUN (tonie, 3 osoby) - rozlega sie alarm. Jako jacht NIE potwierdzasz cudzego DISTRESS przez DSC (to rola stacji brzegowej): wyciszasz alarm, sluchasz 16 i potwierdzasz GLOSEM dopiero, gdy stacja brzegowa nie odpowiada.',
-    ru: 'Твоя рация приняла цифровой DISTRESS с яхты NEPTUN (тонет, 3 человека) - звучит сигнал. Как яхта ты НЕ подтверждаешь чужой DISTRESS по DSC (это роль береговой станции): глушишь сигнал, слушаешь 16 и подтверждаешь ГОЛОСОМ только если береговая станция молчит.',
+    pl: 'Radio odebralo DSC DISTRESS z jachtu NEPTUN. Wycisz alarm, przejdz na 16 i sluchaj przez 5 minut. Sprawdz, czy brzeg lub RCC potwierdzily alarm i prowadza ruch. Gdy nie ma odpowiedzi, potwierdz glosem i poinformuj brzeg lub RCC. DSC ACK ze statku nie jest pierwszym krokiem.',
+    ru: 'Рация приняла DSC DISTRESS с яхты NEPTUN. Заглуши сигнал, перейди на 16 и слушай 5 минут. Проверь, подтвердили ли берег или RCC сигнал и ведут ли обмен. Если ответа нет, подтверди голосом и сообщи берегу или RCC. DSC ACK с судна не является первым действием.',
   },
   steps: [
     {
       id: 'alarm-off',
       todo: { pl: 'Wycisz alarm ([ALARM OFF]) - radio ustawi kanal 16 do nasluchu', ru: 'Заглуши сигнал ([ALARM OFF]) - рация встанет на 16 для прослушивания' },
       why: {
-        pl: 'Nie potwierdzaj cudzego DISTRESS przez DSC - to zadanie stacji brzegowej, a przedwczesny ACK jachtu wstrzymuje powtorki alarmu. Wycisz i sluchaj: kto sie zglasza?',
-        ru: 'Не подтверждай чужой DISTRESS по DSC - это задача береговой станции, а преждевременный ACK с яхты останавливает повторы. Заглуши и слушай: кто отвечает?',
+        pl: 'Przedwczesny DSC ACK ze statku moze zatrzymac powtorki, zanim RCC przejmie alarm. Aktualna procedura IMO wymaga 5 minut nasluchu na 16 i oceny odpowiedzi brzegu.',
+        ru: 'Преждевременный DSC ACK с судна может остановить повторы до того, как RCC примет сигнал. Актуальная процедура IMO требует 5 минут слушать канал 16 и оценить ответ берега.',
       },
       check: (e, prev, next) => e.type === 'soft' && prev.screen === 'rx-distress-alert' && next.screen === 'standby' && ch(next) === '16',
     },
@@ -985,8 +1001,8 @@ const receiveDistressScenario: Scenario = {
     },
   ],
   debrief: {
-    pl: 'Kolejnosc przy odbiorze cudzego MAYDAY: 1) sluchaj, czy stacja brzegowa potwierdza; 2) jesli nie i jestes w zasiegu - potwierdz glosem RECEIVED MAYDAY; 3) rozwaz MAYDAY RELAY i pomoc. Jacht nie nadaje ACK przez DSC.',
-    ru: 'Порядок при приёме чужого MAYDAY: 1) слушай, подтверждает ли береговая станция; 2) если нет и ты в зоне - подтверди голосом RECEIVED MAYDAY; 3) рассмотри MAYDAY RELAY и помощь. Яхта не даёт ACK по DSC.',
+    pl: 'Procedura IMO MSC.1/Circ.1657: 1) sluchaj 16 przez 5 minut; 2) sprawdz ACK i ruch brzegu lub RCC; 3) gdy ich brak, potwierdz fonia, poinformuj brzeg lub RCC i ocen pomoc. Wyjatek: jezeli kolejne alerty nadal przychodza, statek jest bez watpienia blisko i skonsultowales sie z RCC lub stacja brzegowa, DSC ACK moze zakonczyc powtorki.',
+    ru: 'Процедура IMO MSC.1/Circ.1657: 1) слушай 16 канал 5 минут; 2) проверь ACK и обмен берега или RCC; 3) если их нет, подтверди голосом, сообщи берегу или RCC и оцени помощь. Исключение: если сигналы продолжаются, судно точно находится рядом и состоялась консультация с RCC или берегом, DSC ACK может остановить повторы.',
   },
 };
 
@@ -1001,7 +1017,7 @@ const ANSWER_LINES = (v: VariantData) => [
 const receiveCallScenario: Scenario = {
   id: 'receive-call',
   icon: '📲',
-  init: (vessel) => ({
+  init: () => ({
     ...INITIAL_RADIO,
     power: true,
     screen: 'rx-individual-call',
@@ -1040,6 +1056,214 @@ const receiveCallScenario: Scenario = {
   mistakes: [],
 };
 
+// --- UKE device tasks 6-7 and 14-16: settings that used to be text-only ------
+
+const scanMemoryScenario: Scenario = {
+  id: 'scan-memory',
+  icon: '⭐',
+  init: () => ({ ...INITIAL_RADIO, favoriteChannels: ['12'] }),
+  title: { pl: 'Pamiec skanowania: sprawdz i dodaj kanaly', ru: 'Память сканирования: проверка и добавление каналов' },
+  brief: {
+    pl: 'Wykonaj zadania 6 i 7 UKE. Najpierw rozpoznaj kanal juz oznaczony gwiazdka FAV, potem dodaj 06, 13 i 16 do listy skanowania.',
+    ru: 'Выполни задания 6 и 7 UKE. Сначала найди канал, уже отмеченный звёздочкой FAV, затем добавь 06, 13 и 16 в список сканирования.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'scan-review',
+      todo: { pl: 'Przewijaj kanaly i znajdz oznaczony kanal 12', ru: 'Листай каналы и найди отмеченный канал 12' },
+      why: {
+        pl: 'Gwiazdka na ekranie oznacza kanal nalezacy do listy skanowania. Samo wlaczenie SCAN nie pokazuje pelnej listy.',
+        ru: 'Звёздочка на экране означает канал из списка сканирования. Само включение SCAN не показывает полный список.',
+      },
+      check: (e, _prev, next) => (e.type === 'up' || e.type === 'down') && ch(next) === '12' && next.favoriteChannels.includes('12'),
+    },
+    {
+      id: 'scan-add-06',
+      todo: { pl: 'Ustaw kanal 06, pokaz [FAV] i nacisnij go', ru: 'Выставь канал 06, открой [FAV] и нажми его' },
+      why: {
+        pl: 'FAV dziala jak przelacznik: pierwsze nacisniecie dodaje gwiazdke, drugie usuwa kanal z listy.',
+        ru: 'FAV работает как переключатель: первое нажатие добавляет звёздочку, второе удаляет канал из списка.',
+      },
+      check: (e, prev, next) => e.type === 'soft' && ch(prev) === '06' && !prev.favoriteChannels.includes('06') && next.favoriteChannels.includes('06'),
+    },
+    {
+      id: 'scan-add-13',
+      todo: { pl: 'Ustaw kanal 13 i dodaj go [FAV]', ru: 'Выставь канал 13 и добавь его [FAV]' },
+      why: {
+        pl: 'Lista jest pamiecia kanalow, ktore SCAN bedzie kolejno sprawdzal po zamknieciu blokady szumow.',
+        ru: 'Это список каналов, которые SCAN будет последовательно проверять при закрытом шумоподавителе.',
+      },
+      check: (e, prev, next) => e.type === 'soft' && ch(prev) === '13' && !prev.favoriteChannels.includes('13') && next.favoriteChannels.includes('13'),
+    },
+    {
+      id: 'scan-add-16',
+      todo: { pl: 'Ustaw kanal 16 i dodaj go [FAV]', ru: 'Выставь канал 16 и добавь его [FAV]' },
+      why: {
+        pl: 'Po zadaniu lista ma zawierac 06, 13 i 16. Przed rozpoczeciem SCAN ustaw SQL powyzej OPEN.',
+        ru: 'После задания список должен содержать 06, 13 и 16. Перед запуском SCAN выставь SQL выше OPEN.',
+      },
+      check: (e, prev, next) => e.type === 'soft' && ch(prev) === '16' && !prev.favoriteChannels.includes('16') && next.favoriteChannels.includes('16'),
+    },
+  ],
+  mistakes: [],
+};
+
+const positionInputScenario: Scenario = {
+  id: 'position-input',
+  icon: '🧭',
+  init: () => ({ ...INITIAL_RADIO, gpsValid: false }),
+  title: { pl: 'Reczne wprowadzenie pozycji i czasu', ru: 'Ручной ввод позиции и времени' },
+  brief: {
+    pl: 'Odbiornik GPS jest odlaczony. Wprowadz recznie szerokosc, dlugosc i czas UTC sciezka wymagana w zadaniu 14 UKE. Dane reczne sa wazne tylko 23,5 godziny albo do wylaczenia radia.',
+    ru: 'Приёмник GPS отключён. Введи вручную широту, долготу и UTC по пути из задания 14 UKE. Ручные данные действуют только 23,5 часа или до выключения рации.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'settings-menu',
+      todo: { pl: 'Wejdz: MENU > DSC Settings', ru: 'Открой: MENU > DSC Settings' },
+      why: {
+        pl: 'Pozycja do DSC jest ustawieniem systemu DSC, nie ustawieniem kanalu ani przesuniecia strefy czasowej.',
+        ru: 'Позиция для DSC относится к настройкам DSC, а не к настройкам канала или часового пояса.',
+      },
+      check: (_e, prev, next) => prev.screen !== 'dsc-settings' && next.screen === 'dsc-settings',
+    },
+    {
+      id: 'position-open',
+      todo: { pl: 'Wybierz Position Input i wcisnij [ENT]', ru: 'Выбери Position Input и нажми [ENT]' },
+      why: {
+        pl: 'Reczny wpis jest dostepny tylko bez prawidlowych danych GPS. Przy aktywnym GPS radio blokuje ten ekran przed przypadkowym nadpisaniem pozycji.',
+        ru: 'Ручной ввод доступен только без валидных данных GPS. При активном GPS рация блокирует случайную перезапись позиции.',
+      },
+      check: (_e, prev, next) => prev.screen === 'dsc-settings' && next.screen === 'position-input',
+    },
+    {
+      id: 'position-lat',
+      todo: { pl: 'Sprawdz szerokosc geograficzna i zatwierdz [FIN]', ru: 'Проверь широту и подтверди [FIN]' },
+      why: {
+        pl: 'Najpierw szerokosc: stopnie, minuty dziesietne i N albo S. Zly znak polkuli przenosi pozycje na drugi koniec swiata.',
+        ru: 'Сначала широта: градусы, десятичные минуты и N либо S. Ошибка полушария переносит позицию на другой конец света.',
+      },
+      check: (_e, prev, next) => prev.screen === 'position-input' && prev.positionInputStage === 0 && next.positionInputStage === 1,
+    },
+    {
+      id: 'position-lon',
+      todo: { pl: 'Sprawdz dlugosc geograficzna i zatwierdz [FIN]', ru: 'Проверь долготу и подтверди [FIN]' },
+      why: {
+        pl: 'Dlugosc ma trzy cyfry stopni i znak E albo W. Zachowuj zera wiodace, np. 018 stopni.',
+        ru: 'У долготы три цифры градусов и знак E либо W. Сохраняй ведущие нули, например 018 градусов.',
+      },
+      check: (_e, prev, next) => prev.screen === 'position-input' && prev.positionInputStage === 1 && next.positionInputStage === 2,
+    },
+    {
+      id: 'position-save',
+      todo: { pl: 'Sprawdz czas UTC i zapisz [FIN]', ru: 'Проверь время UTC и сохрани [FIN]' },
+      why: {
+        pl: 'DSC wysyla pozycje razem z czasem jej ustalenia. Stara pozycja bez czasu moze skierowac ratownikow w zle miejsce.',
+        ru: 'DSC передаёт позицию вместе со временем её определения. Старая позиция без времени может направить спасателей не туда.',
+      },
+      check: (_e, prev, next) => prev.screen === 'position-input' && next.screen === 'dsc-settings' && next.deviceLog.length > prev.deviceLog.length,
+    },
+  ],
+  mistakes: [],
+};
+
+const idAddScenario: Scenario = {
+  id: 'id-add-lyngby',
+  icon: '➕',
+  init: () => ({
+    ...INITIAL_RADIO,
+    individualIds: INITIAL_RADIO.individualIds.filter((item) => item.mmsi !== '002191000'),
+  }),
+  title: { pl: 'Dodanie Lyngby do Individual ID', ru: 'Добавление Lyngby в Individual ID' },
+  brief: {
+    pl: 'Wykonaj zadanie 15 UKE: zapisz dunska stacje brzegowa LYNGBY pod prawidlowym MMSI 002191000.',
+    ru: 'Выполни задание 15 UKE: сохрани датскую береговую станцию LYNGBY с правильным MMSI 002191000.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'id-list',
+      todo: { pl: 'Wejdz: MENU > DSC Settings > Individual ID', ru: 'Открой: MENU > DSC Settings > Individual ID' },
+      why: {
+        pl: 'Rejestr Individual ID jest ksiazka adresowa DSC. Nie wysylasz jeszcze wywolania.',
+        ru: 'Реестр Individual ID является адресной книгой DSC. Сам вызов пока не передаётся.',
+      },
+      check: (_e, prev, next) => prev.screen !== 'individual-id-list' && next.screen === 'individual-id-list',
+    },
+    {
+      id: 'id-add',
+      todo: { pl: 'Nacisnij [ADD]', ru: 'Нажми [ADD]' },
+      why: {
+        pl: 'Numer stacji brzegowej ma dziewiec cyfr i zaczyna sie od 00. Te dwie cyfry radio blokuje.',
+        ru: 'Номер береговой станции состоит из девяти цифр и начинается с 00. Эти две цифры рация фиксирует.',
+      },
+      check: (_e, prev, next) => prev.screen === 'individual-id-list' && next.screen === 'individual-id-add-mmsi',
+    },
+    {
+      id: 'id-number',
+      todo: { pl: 'Strzalkami i [ENT] wprowadz 002191000', ru: 'Стрелками и [ENT] введи 002191000' },
+      why: {
+        pl: 'MMSI musi byc dokladny. Jedna zla cyfra oznacza innego adresata albo brak odpowiedzi.',
+        ru: 'MMSI должен быть точным. Одна неверная цифра означает другого адресата или отсутствие ответа.',
+      },
+      check: (_e, prev, next) => prev.screen === 'individual-id-add-mmsi' && next.screen === 'individual-id-add-name' && next.idEntryMmsi === '002191000',
+    },
+    {
+      id: 'id-save',
+      todo: { pl: 'Nazwa LYNGBY jest gotowa. Nacisnij [FIN]', ru: 'Имя LYNGBY готово. Нажми [FIN]' },
+      why: {
+        pl: 'Nazwa jest etykieta dla operatora, ale wywolanie jest adresowane dziewieciocyfrowym MMSI.',
+        ru: 'Имя служит подписью для оператора, но вызов адресуется девятизначным MMSI.',
+      },
+      check: (_e, prev, next) => prev.screen === 'individual-id-add-name' && next.individualIds.some((item) => item.label === 'LYNGBY' && item.mmsi === '002191000'),
+    },
+  ],
+  mistakes: [],
+};
+
+const idDeleteScenario: Scenario = {
+  id: 'id-delete-lyngby',
+  icon: '🗑️',
+  title: { pl: 'Usuniecie Lyngby z Individual ID', ru: 'Удаление Lyngby из Individual ID' },
+  brief: {
+    pl: 'Wykonaj zadanie 16 UKE: znajdz LYNGBY, uzyj DEL i potwierdz OK. CANCEL ma zostawic wpis bez zmian.',
+    ru: 'Выполни задание 16 UKE: найди LYNGBY, используй DEL и подтверди OK. CANCEL должен оставить запись без изменений.',
+  },
+  steps: [
+    stepPower(),
+    {
+      id: 'id-list',
+      todo: { pl: 'Wejdz: MENU > DSC Settings > Individual ID', ru: 'Открой: MENU > DSC Settings > Individual ID' },
+      why: {
+        pl: 'Usuwasz wpis z ksiazki adresowej, nie z historii polaczen DSC.',
+        ru: 'Удаляется запись из адресной книги, а не из журнала вызовов DSC.',
+      },
+      check: (_e, prev, next) => prev.screen !== 'individual-id-list' && next.screen === 'individual-id-list',
+    },
+    {
+      id: 'id-delete',
+      todo: { pl: 'Zaznacz LYNGBY i nacisnij [DEL]', ru: 'Выбери LYNGBY и нажми [DEL]' },
+      why: {
+        pl: 'Najpierw sprawdz nazwe i pelny MMSI 002191000. DEL otwiera potwierdzenie, jeszcze niczego nie usuwa.',
+        ru: 'Сначала проверь имя и полный MMSI 002191000. DEL открывает подтверждение и пока ничего не удаляет.',
+      },
+      check: (_e, prev, next) => prev.screen === 'individual-id-list' && prev.individualIds[prev.idCursor]?.mmsi === '002191000' && next.screen === 'individual-id-delete',
+    },
+    {
+      id: 'id-delete-ok',
+      todo: { pl: 'Potwierdz usuniecie [OK]', ru: 'Подтверди удаление [OK]' },
+      why: {
+        pl: 'OK usuwa wpis trwale. CANCEL wraca do listy bez zmiany.',
+        ru: 'OK удаляет запись окончательно. CANCEL возвращает к списку без изменений.',
+      },
+      check: (_e, prev, next) => prev.screen === 'individual-id-delete' && !next.individualIds.some((item) => item.mmsi === '002191000'),
+    },
+  ],
+  mistakes: [],
+};
+
 export const SCENARIOS: Scenario[] = [
   fireScenario,
   mobScenario,
@@ -1056,4 +1280,8 @@ export const SCENARIOS: Scenario[] = [
   relayScenario,
   receiveDistressScenario,
   receiveCallScenario,
+  scanMemoryScenario,
+  positionInputScenario,
+  idAddScenario,
+  idDeleteScenario,
 ];

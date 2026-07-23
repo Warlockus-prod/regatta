@@ -56,6 +56,7 @@ const META_CACHE = `regatta-meta-${VERSION}`;
 /** The pages worth having on a boat with no signal. */
 const PRECACHE = [
   '/radio',
+  '/radio/teoria',
   '/radio/obsluga',
   '/radio/symulator',
   '/radio/rozmowa',

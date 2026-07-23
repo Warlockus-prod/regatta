@@ -22,7 +22,7 @@ built for a user who is actually taking the UKE exam. Four parts:
 2. **Operating guide** (`src/app/radio/obsluga/*`) - "what every control
    does and why, and how to maintain the set", with a browser mic check
    and an **interactive control course** (`InteractiveRadioCourse.tsx`):
-   14 guided lessons that unlock only after you perform the real action on
+   15 guided lessons that unlock only after you perform the real action on
    the working radio panel. See "Interactive control course" below.
 3. **Simulator** (`src/app/radio/symulator/*`) - an interactive replica
    of the ICOM IC-M330GE **and** IC-M323 (two switchable behavioral
@@ -83,8 +83,6 @@ Researched via a 4-agent workflow; primary sources:
 - Number of practical exam tasks (4 vs 5) and formal "min 3 pts per task"
   rule - only the 60% rule is official.
 - Certificate delivery time (blogs: 1-4 weeks; no official deadline).
-- Main volume/squelch numeric ranges (manual shows examples 8 / 4; we use
-  1..10).
 - Qualification-email timing after UKE registration ("usually a few working
   days") - reported by candidates, no official deadline found.
 
@@ -186,7 +184,8 @@ not a 1:1 radio. Honest limits:
   MMSI address book is a fixed 3-entry list, not free entry; scan / DW /
   AQUA / BKLT / FAV / LOG work but some list views are summarized.
 - Coast-station ACK arrives after ~7 s (real world: up to minutes); the
-  auto re-TX countdown shows the manual's 4:06 (M330) / 3:42 (M323) and
+  auto re-TX countdown uses a deterministic 4:00 training midpoint; the real
+  interval is randomized from 3.5 to 4.5 minutes on both models, and
   really re-alerts at 0.
 - Position/nature/GPS are fixed per run (drawn from the variant pool), not
   a live GPS feed.
@@ -251,7 +250,8 @@ separately in the debrief.
 scenario. It reuses the **same `RadioFront` panel and `radioReducer`** as
 the simulator, so the user learns on the real state machine, not a mock.
 
-- 14 ordered lessons: power hold, volume, squelch, working channel, ch 16,
+- 15 ordered lessons: power hold, open squelch, volume against the hiss,
+  squelch threshold, working channel, ch 16,
   Call Channel (16/C hold), 25W/1W, Dual Watch, backlight, main menu, the
   DSC calls menu, an All Ships Safety DSC, physical PTT, and the 3-second
   DISTRESS under the cover.
@@ -728,33 +728,29 @@ The procedure reviewer found real errors, all fixed:
 All 26 published SRC practical tasks are covered across three surfaces
 (see `/radio/zadania` for the full mapping):
 
-- **15 simulator scenarios** (`/radio/symulator`) demonstrate the
+- **19 simulator scenarios** (`/radio/symulator`) demonstrate the
   radiotelephony + DSC procedures - all four DSC call types (Individual,
   Group, All Ships, Test) and all three categories: distress, the three
   urgency calls, safety, routine marina/VTS/ship/group, DSC test, distress
-  cancel, MAYDAY relay, and the receiving side (received distress + call).
-  Maps to tasks 8-13, 17-22.
-- **14-lesson interactive course** (`/radio/obsluga`) drills the device
+  cancel, MAYDAY relay, the receiving side (received distress + call), scan
+  memory, manual position/time, and the Lyngby MMSI address-book tasks.
+  Maps to tasks 6-22.
+- **15-lesson interactive course** (`/radio/obsluga`) drills the device
   operations - power, squelch, channels, dual watch, backlight, power
   reduction, menu, DSC compose, PTT, DISTRESS. Maps to tasks 1-5, 7.
 - **26-task reference** (`/radio/zadania`) lists every task verbatim with its
-  correct procedure - the single place that also covers the tasks not
-  demonstrable on the VHF panel: position/time entry (14), MMSI address book
-  (15-16), scan memory (6), and EPIRB/SART handling and testing (23-26).
+  correct procedure. EPIRB/SART handling and testing (23-26) remain physical
+  equipment procedures rather than VHF-panel simulations.
 
 ## Roadmap (next versions)
 
-- Make the device-only tasks demonstrable on the panel too: manual
-  position/time entry, an editable MMSI address book, and scan-list tagging
-  (today these live only in the `/radio/zadania` procedure reference).
 - A timed incoming call that arrives mid-standby (today the receiving
   scenarios start already ringing via `init`); distress-relay via DSC.
 - A small EPIRB/SART interactive widget (today text procedure only).
 - Voice-first exam mode, GPT feedback on transcripts.
 - Apply `regatta.nginx.conf` on the shared proxy so the voice trainer works
   on prod, then flip the deploy smoke check back to hard-fail.
-- Per-question drill from the official UKE PDF (324 written questions) -
-  answer key being authored via a verified multi-agent workflow.
+- Add more examiner-style variants to the completed 324-question UKE trainer.
 
 ## V6: offline, spoken answers, and two grading bugs worth remembering
 
@@ -824,23 +820,52 @@ A `critical` flag on `MustItem` stops the one-miss allowance from trading away a
 rule stated backwards. Fumbling a supporting detail is human; getting the rule
 inside out is not the same kind of mistake.
 
-### For the app
+### For the app: embedded offline package
 
-Courses are a WebView of the live site, so all of the CONTENT and grading reaches
-the app with no rebuild.
+Version 1.6 no longer opens the live `/radio` URL. The mobile route loads
+`mobile/assets/radio-offline.html`, a self-contained document generated by
+`mobile/scripts/build-radio-offline.mjs`.
 
-The offline caching does NOT reach the iOS app for free, and the first draft of
-this section wrongly implied it did. iOS WKWebView runs no service worker unless
-the app opts every course URL into `WKAppBoundDomains` in Info.plist AND sets
-`configuration.limitsNavigationsToAppBoundDomains = true` - and app-bound domains
-disable other things the app relies on, so it is a real decision, not a checkbox.
-Until that is done, the service worker simply does not register inside the app:
-the browser web experience is offline-capable, the iOS WebView is not. Android
-System WebView does run service workers, so the app is offline-capable there.
+The build imports the same React components, theory data, UKE question bank,
+scenario definitions and pure radio reducer as the website. Build-time aliases
+replace only the server and Next.js edges:
 
-The honest status, to carry into `docs/design/mobile/COURSES_OFFLINE.md`:
-- Web (Safari/Chrome/Firefox on any device): offline works.
-- Android app WebView: offline works.
-- iOS app WebView: online only, until WKAppBoundDomains is configured and its
-  trade-offs are accepted. Do not tell a user the iOS app works offline until it
-  is verified in Airplane mode on a device.
+- `next/link` becomes an in-memory course router;
+- `next/font` becomes a system monospace LCD font;
+- microphone grading becomes an honest line-by-line self-check;
+- external citations open in the system browser;
+- no API response is cached or invented.
+
+When a connection is available, the local status bar offers `Voice online`.
+That switches the same native WebView to the live `/radio/symulator`, preserving
+the microphone, transcription and server grading from earlier app versions.
+A fixed `Offline` control returns to the embedded package. A failed online load
+also falls back to the local course.
+
+The generated document has its JavaScript and Tailwind CSS inline. It needs no
+relative assets, local HTTP server, service worker or first online launch. Expo
+includes it as a normal application asset. A clean install can therefore open
+the theory, diagrams, 324 questions, 26 tasks, 15 control lessons, both ICOM
+models and all 19 button scenarios in Airplane mode on iOS and Android.
+
+WebView localStorage remains the fast browser-side store. Every relevant course
+key is also sent to the native wrapper and backed up in AsyncStorage, then
+restored before the document loads. This protects progress across WebView cache
+eviction and application updates.
+
+Commands:
+
+```text
+npm run build:radio-offline
+npm run build:radio-offline:check
+```
+
+The check is part of `mobile npm run check`, so a source change that was not
+copied into the embedded package fails CI.
+
+Current status:
+
+- Web browsers: service-worker offline after the first successful visit.
+- iOS app 1.6+: embedded course works from the first launch without a network.
+- Android app 1.6+: embedded course works from the first launch without a network.
+- Speech recognition, server voice grading and free conversation: online only.

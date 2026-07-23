@@ -24,7 +24,7 @@ import { NOISE_CEILING, signalOn } from '../radioTraffic';
 
 export type Cue =
   | 'key-beep' | 'error-beep' | 'power-on' | 'power-off' | 'dial-tick'
-  | 'dsc-tx' | 'alarm-start' | 'alarm-stop' | 'call-alert' | 'tx-key' | 'tx-unkey'
+  | 'dsc-tx' | 'alarm-start' | 'alarm-ack-start' | 'alarm-stop' | 'call-alert' | 'tx-key' | 'tx-unkey'
   | 'aqua-start' | 'aqua-stop';
 
 /** what the engine needs to know about the radio, each tick */
@@ -278,6 +278,7 @@ export class RadioAudioEngine {
         window.setTimeout(() => this.chirp(2200, 1300, 0.09), 100);
         return;
       case 'alarm-start': return this.startAlarm();
+      case 'alarm-ack-start': return this.startAlarm(0.5);
       case 'alarm-stop': return this.stopAlarm();
       case 'aqua-start': return this.startAqua();
       case 'aqua-stop': return this.stopAqua();
@@ -303,13 +304,16 @@ export class RadioAudioEngine {
    * IT OFF". A ringing alarm that gives up on its own is the one thing this sound
    * must never do.
    */
-  private startAlarm(): void {
+  private startAlarm(stepSeconds = 0.25): void {
     const ctx = this.ctx;
     if (!ctx || this.alarmOsc) return;
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
     osc.type = 'sine';
-    g.gain.value = 0.09;
+    // M.493 requires received alarms to start softly and rise. This short ramp
+    // keeps the first edge from being an artificial full-volume click.
+    g.gain.setValueAtTime(0.015, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.09, ctx.currentTime + 2);
     osc.frequency.setValueAtTime(2200, ctx.currentTime);
     osc.connect(g).connect(this.master);
     osc.start(ctx.currentTime);
@@ -330,7 +334,7 @@ export class RadioAudioEngine {
       while (this.alarmNextAt < horizon) {
         o.frequency.setValueAtTime(this.alarmPhase % 2 === 0 ? 2200 : 1300, this.alarmNextAt);
         this.alarmPhase++;
-        this.alarmNextAt += 0.25;
+        this.alarmNextAt += stepSeconds;
       }
     };
     pump();

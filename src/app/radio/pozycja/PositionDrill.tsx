@@ -114,10 +114,8 @@ export default function PositionDrill() {
     }
   }, [item.say, playing]);
 
-  const rules = showRu ? POS_RULES_RU : POS_RULES_PL;
-
   return (
-    <main>
+    <div>
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
         🧭 {tp('Диктовка позиции', 'Dictating a position', 'Dyktowanie pozycji')}
       </h1>
@@ -163,7 +161,7 @@ export default function PositionDrill() {
               aria-current={i === idx ? 'true' : undefined}
               aria-label={label}
               title={label}
-              className="min-h-[36px] min-w-[36px] rounded-lg px-2 text-xs font-semibold"
+              className="min-h-[44px] min-w-[44px] rounded-lg px-2 text-xs font-semibold"
               style={i === idx
                 ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                 : done
@@ -228,7 +226,7 @@ export default function PositionDrill() {
             type="button"
             data-testid="pos-reveal"
             onClick={() => setReveal((v) => !v)}
-            className="mt-2 min-h-[36px] text-xs"
+            className="mt-2 min-h-[44px] text-xs"
             style={{ color: 'var(--text-muted)' }}
           >
             {reveal
@@ -347,6 +345,6 @@ export default function PositionDrill() {
           )}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
