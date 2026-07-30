@@ -132,11 +132,17 @@ export async function generateMetadata(): Promise<Metadata> {
         .map((language) => language.metadataLocale)
         .filter((locale) => locale !== pick.locale),
       type: 'website',
+      // Localized share card. The language is in the image URL because the
+      // link-preview crawler fetches og:image directly (no cookie, no header),
+      // so the language cannot be inferred any other way. Resolved against
+      // metadataBase -> https://weektoregatta.com/api/og?lang=xx.
+      images: [{ url: `/api/og?lang=${lang}`, width: 1200, height: 630, alt: pick.title }],
     },
     twitter: {
       card: 'summary_large_image',
       title: pick.title,
       description: pick.twitter,
+      images: [`/api/og?lang=${lang}`],
     },
     // Search-engine verification tokens. Set GOOGLE_SITE_VERIFICATION /
     // YANDEX_VERIFICATION env vars on the VPS once the property is added in
