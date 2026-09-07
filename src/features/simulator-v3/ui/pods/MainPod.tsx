@@ -28,8 +28,11 @@ export function MainPod(props: {
   //   15-20     : EDGE      - flow starting to separate, close to stall
   //   >= 20     : STALL     - flow fully detached
   const aoa = sim.result.diag.mainAoA;
-  const stalled = sim.result.diag.mainStalled;
-  const state: 'luffing' | 'attached' | 'edge' | 'stall' = stalled
+  const lowered = ui.sailsRaised === "jib";
+  const stalled = !lowered && sim.result.diag.mainStalled;
+  const state: 'lowered' | 'luffing' | 'attached' | 'edge' | 'stall' = lowered
+    ? 'lowered'
+    : stalled
     ? 'stall'
     : aoa < 5
     ? 'luffing'
@@ -37,9 +40,11 @@ export function MainPod(props: {
     ? 'edge'
     : 'attached';
   const tone: 'good' | 'warn' | 'danger' =
-    state === 'stall' ? 'danger' : state === 'attached' ? 'good' : 'warn';
+    state === 'stall' ? 'danger' : state === 'attached' || state === 'lowered' ? 'good' : 'warn';
   const text =
-    state === 'stall'
+    state === 'lowered'
+      ? tp("УБРАН", "LOWERED", "OPUSZCZONY", { es: "ARRIADA", fr: "AFFALEE", de: "GEBORGEN", it: "AMMAINATA" })
+      : state === 'stall'
       ? tp('СРЫВ', 'STALL', 'STALL', { es: 'STALL', fr: 'DECROCHE', de: 'STALL', it: 'STALLO' })
       : state === 'edge'
       ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ', { es: 'AL LIMITE', fr: 'A LA LIMITE', de: 'GRENZE', it: 'AL LIMITE' })

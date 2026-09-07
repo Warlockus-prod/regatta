@@ -21,11 +21,12 @@ export function JibPod(props: {
 }) {
   const { ui, setUi, params, sim, tp, compact } = props;
   // Same 4-state gradient as main pod, plus a prefix "FURLED" state
-  // when the jib is rolled up below 10%.
+  // when the jib is fully rolled up or lowered.
   const aoa = sim.result.diag.jibAoA;
-  const stalled = sim.result.diag.jibStalled;
+  const furled = ui.sailsRaised === "main" || ui.jibFurlPct <= 0;
+  const stalled = !furled && sim.result.diag.jibStalled;
   let state: 'furled' | 'luffing' | 'attached' | 'edge' | 'stall';
-  if (ui.jibFurlPct < 10) state = 'furled';
+  if (furled) state = 'furled';
   else if (stalled) state = 'stall';
   else if (aoa < 5) state = 'luffing';
   else if (aoa >= 15) state = 'edge';
