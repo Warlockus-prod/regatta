@@ -162,7 +162,7 @@ export default function Rules() {
     };
     switch (lang) {
       case 'ru':
-        return [worldSailing, { label: 'ВФПС РФ (рус.)', url: 'https://vfps.ru/' }, rrsPdf];
+        return [worldSailing, { label: "VFPS (RU)", url: 'https://vfps.ru/' }, rrsPdf];
       case 'en':
         return [worldSailing, { label: 'US Sailing + prescr.', url: 'https://www.ussailing.org/competition/rules-officiating/the-racing-rules-of-sailing-2025-2028/' }, rrsPdf];
       case 'pl':
@@ -256,6 +256,7 @@ export default function Rules() {
                   'Теория, тренажёр вопросов и пробный экзамен - на польском.',
                   'Theory, question trainer and mock exam - in Polish.',
                   'Teoria, trening pytan i egzamin probny - po polsku.',
+                  { es: "Teoría, práctica y examen de prueba en polaco.", fr: "Théorie, entraînement et examen blanc en polonais.", de: "Theorie, Fragentraining und Probeprüfung auf Polnisch.", it: "Teoria, esercizi ed esame di prova in polacco." },
                 )}
               </Text>
             </View>
@@ -275,7 +276,8 @@ export default function Rules() {
                 {tp(
                   'Свидетельство SRC, симулятор ICOM с голосом, 26 заданий UKE - на польском.',
                   'SRC certificate, ICOM voice simulator, 26 UKE tasks - in Polish.',
-                  'Swiadectwo SRC, symulator ICOM z glosem, 26 zadan UKE - po polsku.',
+                   'Swiadectwo SRC, symulator ICOM z glosem, 26 zadan UKE - po polsku.',
+                  { es: "Certificado SRC, simulador ICOM con voz y 26 tareas UKE en polaco.", fr: "Certificat SRC, simulateur vocal ICOM et 26 exercices UKE en polonais.", de: "SRC-Zertifikat, ICOM-Sprachsimulator und 26 UKE-Aufgaben auf Polnisch.", it: "Certificato SRC, simulatore vocale ICOM e 26 esercizi UKE in polacco." },
                 )}
               </Text>
             </View>

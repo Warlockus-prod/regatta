@@ -25,6 +25,19 @@ The four tools we standardized on (added globally in Claude):
 
 ---
 
+## Verified local release tooling, 2026-09-07
+
+The release may use direct `xcodebuild` for archive, export and Simulator
+build, and the signed ASC API scripts for upload and submission. The tool
+brand is not a gate: successful build, actual visual inspection, metadata
+validation and verified submission state are the requirements. EAS and
+Codemagic are alternatives, not required services for this local pipeline.
+
+Native `app.json` explicitly supports a dark interface only. Verify that
+supported native appearance; do not report imaginary native light/auto modes.
+The embedded website separately supports its web themes. Retest changed
+screens and the main navigation on the exact release binary, with screenshots.
+
 ## The gate (run in order; all must be green)
 
 ### G0 - Content sync + version

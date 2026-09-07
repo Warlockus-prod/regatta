@@ -243,11 +243,6 @@ export default function Courses() {
                 it: 'Due vele, non una',
               })}
             </Text>
-            {lang !== 'en' ? (
-              <Text variant="muted" style={styles.theoryAnchor}>
-                Two sails, not one
-              </Text>
-            ) : null}
           </View>
           <Text variant="body" style={styles.theoryIntro}>
             {tp(
@@ -359,11 +354,6 @@ export default function Courses() {
                 it: 'Cos altro c e?',
               })}
             </Text>
-            {lang !== 'en' ? (
-              <Text variant="muted" style={styles.theoryAnchor}>
-                What else is there?
-              </Text>
-            ) : null}
           </View>
 
           <Text variant="muted" style={styles.extraPara}>

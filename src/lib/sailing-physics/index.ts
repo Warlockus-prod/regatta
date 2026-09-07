@@ -51,3 +51,6 @@ export {
   type OverGround,
 } from './current';
 export { NO_GO_HALF_DEG } from './constants';
+
+export { trimForDrive, solvePolarPoint } from "./polar";
+export { updateLap, raceWaypoint, raceAutopilotTurn, type RaceBoat, type RaceCourse } from "../race-physics";

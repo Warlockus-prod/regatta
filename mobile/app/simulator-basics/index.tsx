@@ -182,7 +182,7 @@ export default function SimulatorBasicsScreen() {
   const intoWindLabel = tp('В левентик', 'Into wind', 'W lewentyk', {
     es: 'Proa al viento', fr: 'Bout au vent', de: 'In den Wind', it: 'Prua al vento',
   });
-  const resetLabel = tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)');
+  const resetLabel = tp('Сброс (90°)', "Reset (90°)", 'Reset (90°)', {es:"Restablecer (90°)", fr:"Réinitialiser (90°)", de:"Zurücksetzen (90°)", it:"Ripristina (90°)"});
   const headingWord = tp('Курс', 'Heading', 'Kurs', {
     es: 'Rumbo', fr: 'Cap', de: 'Kurs', it: 'Rotta',
   });

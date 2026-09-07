@@ -500,7 +500,12 @@ function updateLap(boat, prevPos, course, raceTime) {
   return null;
 }
 function raceWaypoint(boat, course) {
-  if (!boat.started) return { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y - 60 };
+  if (!boat.started) {
+    const y = course.startLine.a.y;
+    if (boat.pos.y < y) boat.returningToStart = true;
+    if (boat.pos.y > y + 35) boat.returningToStart = false;
+    return { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: y + (boat.returningToStart ? 60 : -60) };
+  }
   if (boat.lapDone > 0) return { x: (course.finishLine.a.x + course.finishLine.b.x) / 2, y: course.finishLine.a.y + 30 };
   const m = course.marks[0].pos;
   const r = course.marks[0].radius + MIN_BOAT_SEPARATION / 2 + 35;

@@ -210,7 +210,8 @@ export function projectCourse(
   return course.marks.map((m, i) => ({
     id: m.id,
     x: m.fx * bounds.width,
-    y: m.fy * bounds.height,
+    // Leave turning room above the windward mark and below the line.
+    y: m.id === "windward" ? Math.max(100, m.fy * bounds.height) : Math.min(bounds.height - 24, m.fy * bounds.height),
     radius: m.radius,
     captureRadius: m.captureRadius,
     index: i,

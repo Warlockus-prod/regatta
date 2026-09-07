@@ -27,6 +27,7 @@ import {
   createInitialState,
   getBoatParams,
   RAD_TO_DEG,
+  trimForDrive,
 } from './physics';
 import type {
   BoatState as PhysicsBoatState,
@@ -86,6 +87,7 @@ const DEFAULT_WIND: WindState = {
 };
 
 interface SimLoopOptions {
+  running?: boolean;
   initialX?: number;
   initialY?: number;
   bounds: { width: number; height: number };
@@ -316,6 +318,8 @@ function shortestRad(a: number, b: number): number {
 }
 
 export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
+  const runningRef = useRef(options.running);
+  runningRef.current = options.running;
   const initialX = options.initialX ?? options.bounds.width / 2;
   const initialY = options.initialY ?? options.bounds.height / 2;
 
@@ -326,6 +330,8 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
   });
   const controlsRef = useRef<Controls>({ ...DEFAULT_CONTROL_STATE });
   const windRef = useRef<WindState>({ ...DEFAULT_WIND });
+  const autoTrimClock = useRef(0);
+  const optimizedTrim = useRef<PhysicsControls>(AUTO_CONTROLS);
   const physicsRef = useRef<PhysicsBoatState>(
     createInitialState({
       tws: DEFAULT_WIND.trueWindSpeedKts,
@@ -384,6 +390,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     const start = () => {
       if (id !== null) return;
       id = setInterval(() => {
+        if (runningRef.current === false) return;
         const screen = screenStateRef.current;
         const controls = controlsRef.current;
 
@@ -457,7 +464,14 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         // 3. Auto-trim sails for the current TWA, then run one engine tick.
         const twaPre =
           ((trueWindDirDeg - newHeadingDeg + 540) % 360) - 180;
-        const autoControls = autoTrimFor(twaPre);
+        autoTrimClock.current += DT;
+        if (autoTrimClock.current >= 0.5) {
+          optimizedTrim.current = trimForDrive(engineIn, {
+            ...autoTrimFor(twaPre), reef: controls.reef ?? 0,
+          });
+          autoTrimClock.current = 0;
+        }
+        const autoControls = optimizedTrim.current;
         const trimmed = controlsToPhysics(controls, autoControls);
         if (controls.autoTrim !== false) {
           controlsRef.current = {
@@ -474,8 +488,9 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         // 4. Position integration in screen-space, driven by real knots.
         //    Canvas Y is screen-down so heading 0 (north) means -Y.
         const speedPxPerS = result.state.boatSpeed * KN_TO_PX_PER_S;
-        const dx = Math.sin(newHeadingRad) * speedPxPerS * DT;
-        const dy = -Math.cos(newHeadingRad) * speedPxPerS * DT;
+        const courseRad = newHeadingRad + result.state.leeway / RAD_TO_DEG;
+        const dx = Math.sin(courseRad) * speedPxPerS * DT;
+        const dy = -Math.cos(courseRad) * speedPxPerS * DT;
 
         const w = options.bounds.width;
         const h = options.bounds.height;

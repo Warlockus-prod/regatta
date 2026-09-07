@@ -265,6 +265,7 @@ export function OfflineRadioCourse() {
               "Открываю сохранённый курс...",
               "Opening the stored course...",
               "Otwieram zapisany kurs...",
+              {es:"Abriendo el curso guardado...",fr:"Ouverture du cours enregistré...",de:"Gespeicherter Kurs wird geöffnet...",it:"Apertura del corso salvato..."},
             )}
           </Text>
         </View>
@@ -278,11 +279,13 @@ export function OfflineRadioCourse() {
                   "Онлайн-режим недоступен. Офлайн-теория и симулятор остаются на устройстве.",
                   "Online mode is unavailable. Offline theory and the simulator remain on the device.",
                   "Tryb online jest niedostepny. Teoria i symulator offline pozostaja na urzadzeniu.",
+                  {es:"Modo en línea no disponible. La teoría y el simulador siguen disponibles sin conexión.",fr:"Mode en ligne indisponible. La théorie et le simulateur restent disponibles hors ligne.",de:"Online-Modus nicht verfügbar. Theorie und Simulator bleiben offline verfügbar.",it:"Modalità online non disponibile. Teoria e simulatore restano disponibili offline."},
                 )
               : tp(
                   "Не удалось открыть встроенный курс. Интернет для повторной попытки не требуется.",
                   "The embedded course could not be opened. Retrying does not require a connection.",
                   "Nie udalo sie otworzyc wbudowanego kursu. Ponowienie nie wymaga internetu.",
+                  {es:"No se pudo abrir el curso integrado. Puedes reintentar sin conexión.",fr:"Impossible d’ouvrir le cours intégré. Réessayez sans connexion.",de:"Der integrierte Kurs konnte nicht geöffnet werden. Erneut versuchen ist offline möglich.",it:"Impossibile aprire il corso integrato. Puoi riprovare senza connessione."},
                 )}
           </Text>
           <Pressable
@@ -295,8 +298,8 @@ export function OfflineRadioCourse() {
           >
             <Text style={styles.buttonText}>
               {mode === "online"
-                ? tp("Вернуться офлайн", "Return offline", "Wroc offline")
-                : tp("Повторить", "Retry", "Ponow")}
+                ? tp("Вернуться офлайн", "Return offline", "Wroc offline", {es:"Volver sin conexión",fr:"Revenir hors ligne",de:"Zurück zu Offline",it:"Torna offline"})
+                : tp("Повторить", "Retry", "Ponow", {es:"Reintentar",fr:"Réessayer",de:"Erneut versuchen",it:"Riprova"})}
             </Text>
           </Pressable>
         </View>

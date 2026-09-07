@@ -21,6 +21,17 @@ describe("one complete fair regatta", () => {
     expect(b.lapDone, JSON.stringify(b)).toBe(2);
     expect(b.finishTime).toBeGreaterThan(20);
   });
+  it("returns after crossing early during countdown and finishes legally", () => {
+    const b = boat(), c = makeStandardCourse();
+    b.pos.y = c.startLine.a.y - 40;
+    b.speed = 4;
+    for (let t=0; t<600 && b.lapDone<2; t+=.05) {
+      const prev={...b.pos};
+      stepBoat(b,.05,0,1,{turn:raceAutopilotTurn(b,c,0)});
+      updateLap(b,prev,c,t);
+    }
+    expect(b.lapDone, JSON.stringify(b)).toBe(2);
+  });
   it("has no rudder authority while stationary and separates coincident boats", () => {
     const a=boat(), b={...boat(),id:"two",pos:{...boat().pos}};
     stepBoat(a,.05,0,1,{turn:1});

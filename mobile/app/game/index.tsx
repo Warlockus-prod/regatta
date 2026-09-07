@@ -28,7 +28,8 @@ import {
   buildCompassArrowPath,
   buildApparentArrowPath,
 } from '../../src/simulator/skia-wind';
-import { findCourse, type CourseId, type CourseMarkScreen, projectCourse, scoreCourse, buildFinishLine, crossedFinishLine } from '../../src/game/course';
+import { findCourse, type CourseId, type CourseMarkScreen, projectCourse, scoreCourse, buildFinishLine } from '../../src/game/course';
+import { nativeProgress, advanceNativeProgress, nativeTarget } from "../../src/game/progression";
 import { useRaceAi, type RaceDifficulty } from '../../src/game/ai-boats';
 import { useRaceHistory, type ReplayPoint } from '../../src/persistence/race-history';
 import {
@@ -152,10 +153,12 @@ export default function Game() {
   // Start mark drives the boat's initial position so the player begins
   // on the start line, bow pointing at the windward mark.
   const startMark = initialMarks[0]!;
+  const [phase, setPhase] = useState<Phase>('countdown');
   const sim = useSimLoop({
+    running: phase === "racing",
     bounds: { width: sceneW, height: sceneH },
     initialX: startMark.x,
-    initialY: startMark.y,
+    initialY: startMark.y + 12,
   });
 
   // One-time wind setup from the course definition. Keep idempotent so
@@ -186,7 +189,6 @@ export default function Game() {
   // Phase machine. Countdown ticks in real-time via setInterval so we
   // don't depend on the physics loop's tick counter; finishes flip to
   // racing once the timer hits zero.
-  const [phase, setPhase] = useState<Phase>('countdown');
   const [countdownSec, setCountdownSec] = useState(COUNTDOWN_SEC);
   const [raceTimeSec, setRaceTimeSec] = useState(0);
   const startTimestampRef = useRef<number | null>(null);
@@ -198,6 +200,7 @@ export default function Game() {
   // shape to render Save buttons.
   const [marks, setMarks] = useState<CourseMarkScreen[]>(initialMarks);
   const marksRef = useRef<CourseMarkScreen[]>(initialMarks);
+  const progressionRef = useRef(nativeProgress(startMark.x,startMark.y+12,0));
   const finishLine = useMemo(
     () => buildFinishLine(initialMarks, { width: sceneW, height: sceneH }),
     [initialMarks, sceneW, sceneH],
@@ -210,7 +213,6 @@ export default function Game() {
   const aiMarks = useMemo(
     () =>
       initialMarks
-        .slice(1)
         .map((m) => ({ x: m.x, y: m.y, captureRadius: m.captureRadius, finish: m.finish })),
     [initialMarks],
   );
@@ -224,7 +226,7 @@ export default function Game() {
     difficulty: (course.difficulty as RaceDifficulty) ?? 'medium',
     running: phase === 'racing',
     startX: startMark.x,
-    startY: startMark.y,
+    startY: startMark.y + 12,
     resetKey: `${courseId}-${aiNonce}`,
   });
 
@@ -302,33 +304,8 @@ export default function Game() {
     let activeIdx = next.findIndex((m) => !m.cleared);
     if (activeIdx === -1) return;
     const m = next[activeIdx]!;
-    const dxm = sim.boat.x - m.x;
-    const dym = sim.boat.y - m.y;
-    const dist = Math.sqrt(dxm * dxm + dym * dym);
-    if (dist <= m.captureRadius) {
-      // Special-case the finish mark: only counts after the windward
-      // mark has been cleared AND the boat crosses the actual finish
-      // line strip (not just the mark capture radius).
-      if (m.finish) {
-        const allPriorCleared = next
-          .slice(0, activeIdx)
-          .every((mm) => mm.cleared);
-        if (!allPriorCleared) return;
-        if (
-          finishLine &&
-          !crossedFinishLine(
-            { x: sim.boat.x, y: sim.boat.y },
-            finishLine,
-          )
-        ) {
-          return;
-        }
-      } else if (m.id === 'start') {
-        // Start mark is auto-cleared the moment the start signal fires
-        // (boat already sits on the start line). Don't require the
-        // player to leave-and-return.
-        if (elapsedSec < 0.5) return;
-      }
+    const clearedCount=advanceNativeProgress(progressionRef.current,sim.boat.x,sim.boat.y,sim.boat.heading,initialMarks,elapsedSec);
+    if (clearedCount > activeIdx) {
       const updated = next.map((mm, i) =>
         i === activeIdx
           ? { ...mm, cleared: true, active: false }
@@ -450,7 +427,8 @@ export default function Game() {
 
   // Localised chrome.
   const title = course.title(tp);
-  const courseHint = course.hint(tp);
+  const gateTarget = nativeTarget(progressionRef.current,initialMarks);
+  const courseHint = tp("Пересеки старт, оставь верхний знак слева и вернись через финиш.", "Cross the start, leave the windward mark to port, then cross the finish.", "Przetnij start, zostaw górny znak po lewej i przekrocz metę.", {es:"Cruza la salida, deja la baliza de barlovento a babor y cruza la meta.",fr:"Franchis le départ, laisse la bouée au vent à bâbord et franchis l’arrivée.",de:"Überquere den Start, lasse die Luvtonne an Backbord und überquere das Ziel.",it:"Attraversa la partenza, lascia la boa al vento a sinistra e taglia l’arrivo."});
   const headingLabel = tp('КУРС', 'HEADING', 'KURS', {
     es: 'RUMBO', fr: 'CAP', de: 'KURS', it: 'ROTTA',
   });
@@ -686,15 +664,14 @@ export default function Game() {
     const fresh = projectCourse(course, { width: sceneW, height: sceneH });
     marksRef.current = fresh;
     setMarks(fresh);
+    progressionRef.current = nativeProgress(startMark.x,startMark.y+12,0);
     sim.reset();
     sim.setWindDir(course.initialWindDirRad);
     sim.setWindSpeed(course.initialWindKn);
-    const wm = fresh[1]!;
-    const sm = fresh[0]!;
-    sim.setTargetHeading(Math.atan2(wm.x - sm.x, -(wm.y - sm.y)));
+    sim.setTargetHeading(course.initialWindDirRad + 52 * Math.PI / 180);
     setCountdownSec(COUNTDOWN_SEC);
     setPhase('countdown');
-  }, [course, sceneW, sceneH, sim]);
+  }, [course, sceneW, sceneH, sim, startMark]);
 
   const handleHome = useCallback(() => router.replace('/'), [router]);
 
@@ -715,6 +692,8 @@ export default function Game() {
           <GestureDetector gesture={steer}>
             <Canvas style={{ width: sceneW, height: sceneH }}>
               <Group>
+                <SkiaLine p1={{x:sim.boat.x,y:sim.boat.y}} p2={gateTarget} color={colors.accentCyan} strokeWidth={1} opacity={0.45} />
+                <Circle cx={gateTarget.x} cy={gateTarget.y} r={5} color={colors.accentCyan} style="stroke" strokeWidth={2} />
                 <Path
                   path={windArrowsPath}
                   color={colors.windColor}

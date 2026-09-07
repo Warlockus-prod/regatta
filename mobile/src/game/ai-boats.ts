@@ -1,32 +1,14 @@
-/**
- * AI opponents for the solo race screen.
- *
- * The player boat runs the full VPP engine via useSimLoop. Running N more
- * VPP instances per frame would be wasteful, so the rivals use a lightweight
- * KINEMATIC model in the SAME screen-space coordinate system as the player:
- *
- *   - heading: radians, 0 = north (-Y), clockwise (matches use-sim-loop).
- *   - position step: dx = sin(h)*v*dt, dy = -cos(h)*v*dt.
- *   - speed: a simple polar (fraction of true wind speed by |TWA|) times a
- *     per-boat skill factor, then KN_TO_PX_PER_S like the player.
- *
- * Steering: head for the next uncleared mark. If the mark is upwind (inside
- * the no-go cone) the boat beats - it sails the favoured close-hauled tack and
- * flips tacks at the layline, with a cooldown so it does not shimmy on the
- * rhumb line. Mark rounding + finish detection mirror the player's mission
- * logic so positions are comparable.
- *
- * Difficulty sets the opponent COUNT and the skill spread.
- */
+/** Rivals use the shared force model, with the same screen-space units as the player. */
 import { useEffect, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
+import { createInitialState, tick as physicsTick, getBoatParams, trimForDrive, type BoatState, type Controls, type RaceBoat, raceAutopilotTurn } from '@regatta/physics';
+
+import { nativeCourse, nativeProgress, advanceNativeProgress } from "./progression";
 
 const TICK_HZ = 30;
 const DT = 1 / TICK_HZ;
 const KN_TO_PX_PER_S = 6; // must match use-sim-loop.ts
-const TURN_RATE = 0.85; // rad/s
-const NO_GO_DEG = 42; // closest a boat points to the true wind
-const TACK_COOLDOWN_S = 2.4;
+const TURN_RATE = 0.7; // rad/s
 const RAD = Math.PI / 180;
 
 export type RaceDifficulty = 'easy' | 'medium' | 'hard';
@@ -52,6 +34,10 @@ export interface AiBoat {
   tackDir: 1 | -1;
   tackCdSec: number;
   skill: number;
+  progression?: RaceBoat;
+  physics?: BoatState;
+  trim?: Controls;
+  trimClock?: number;
 }
 
 export interface RaceAiOptions {
@@ -85,36 +71,13 @@ const DIFFICULTY: Record<RaceDifficulty, { count: number; skillLo: number; skill
   hard: { count: 4, skillLo: 0.93, skillHi: 1.0 },
 };
 
-/** Boat speed as a fraction of true wind speed by |TWA| (deg). Rough polar:
- *  fastest on a beam-broad reach, slow upwind, easing off dead downwind. */
-function polarFrac(twaAbs: number): number {
-  if (twaAbs < NO_GO_DEG) return 0.12;
-  if (twaAbs < 52) return 0.40;
-  if (twaAbs < 80) return 0.50;
-  if (twaAbs < 115) return 0.56;
-  if (twaAbs < 150) return 0.48;
-  return 0.36;
-}
-
 function normRad(r: number): number {
   const T = Math.PI * 2;
   let n = r % T;
   if (n < 0) n += T;
   return n;
 }
-function shortestRad(a: number, b: number): number {
-  const T = Math.PI * 2;
-  let d = (b - a) % T;
-  if (d > Math.PI) d -= T;
-  if (d < -Math.PI) d += T;
-  return d;
-}
-/** Heading (screen-space, 0 = north) that points from (x,y) to (tx,ty). */
-function bearingTo(x: number, y: number, tx: number, ty: number): number {
-  return Math.atan2(tx - x, -(ty - y));
-}
-
-function buildFleet(opts: RaceAiOptions): AiBoat[] {
+export function buildFleet(opts: RaceAiOptions): AiBoat[] {
   const cfg = DIFFICULTY[opts.difficulty];
   const boats: AiBoat[] = [];
   for (let i = 0; i < cfg.count; i++) {
@@ -128,7 +91,7 @@ function buildFleet(opts: RaceAiOptions): AiBoat[] {
       color: AI_COLORS[i % AI_COLORS.length]!,
       x: Math.max(8, Math.min(opts.bounds.width - 8, opts.startX + spread)),
       y: opts.startY,
-      heading: 0,
+      heading: opts.getWind().dirRad + (i % 2 === 0 ? 52 : -52) * RAD,
       speedKn: 0,
       markIndex: 0,
       finished: false,
@@ -141,7 +104,7 @@ function buildFleet(opts: RaceAiOptions): AiBoat[] {
   return boats;
 }
 
-function stepBoat(
+export function stepBoat(
   b: AiBoat,
   marks: ReadonlyArray<AiMark>,
   windDirRad: number,
@@ -157,63 +120,32 @@ function stepBoat(
     return;
   }
 
-  const bearing = bearingTo(b.x, b.y, mark.x, mark.y);
-  // TWA if we headed straight at the mark.
-  const twaDirect = (shortestRad(bearing, windDirRad) * 180) / Math.PI; // deg, signed
-  let desired: number;
-  if (Math.abs(twaDirect) >= NO_GO_DEG) {
-    desired = bearing; // can lay the mark directly
-  } else {
-    // Upwind: beat. The two close-hauled headings sit NO_GO either side of
-    // the wind-from direction.
-    const hA = normRad(windDirRad + NO_GO_DEG * RAD);
-    const hB = normRad(windDirRad - NO_GO_DEG * RAD);
-    const favored = Math.abs(shortestRad(hA, bearing)) <= Math.abs(shortestRad(hB, bearing)) ? hA : hB;
-    const other = favored === hA ? hB : hA;
-    // Tack toward the favoured side, but only flip when off cooldown and the
-    // other tack is clearly better (we have sailed past the layline).
-    if (b.tackCdSec <= 0) {
-      const curHeading = b.tackDir === 1 ? hA : hB;
-      const curErr = Math.abs(shortestRad(curHeading, bearing));
-      const favErr = Math.abs(shortestRad(favored, bearing));
-      if (favored !== curHeading && curErr - favErr > 18 * RAD) {
-        b.tackDir = favored === hA ? 1 : -1;
-        b.tackCdSec = TACK_COOLDOWN_S;
-      }
-    }
-    desired = b.tackDir === 1 ? hA : hB;
-    void other;
+  b.progression ??= nativeProgress(b.x,b.y,b.heading);
+  b.progression.heading=b.heading/RAD;
+  const turn=raceAutopilotTurn(b.progression,nativeCourse(marks),windDirRad/RAD);
+  b.heading=normRad(b.heading+turn*TURN_RATE*DT);
+  const state = { ...(b.physics ?? createInitialState({tws: windKts})), heading: b.heading / RAD,
+    trueWindDir: windDirRad / RAD, trueWindSpeed: windKts };
+  b.trimClock = (b.trimClock ?? 0) + DT;
+  if (!b.trim || b.trimClock >= .5) {
+    b.trim = trimForDrive(state, b.trim ?? { mainSheet:.5, jibSheet:.3, mainTwist:.15, jibTwist:.15, reef:0, jibFurl:0, jibSide:1 });
+    b.trimClock = 0;
   }
-
-  // Turn toward desired, clamped.
-  const dh = shortestRad(b.heading, desired);
-  const maxStep = TURN_RATE * DT;
-  b.heading = normRad(b.heading + Math.max(-maxStep, Math.min(maxStep, dh)));
-  if (b.tackCdSec > 0) b.tackCdSec -= DT;
-
-  // Speed from the polar at the ACTUAL heading's TWA.
-  const twaNow = Math.abs((shortestRad(b.heading, windDirRad) * 180) / Math.PI);
-  b.speedKn = polarFrac(twaNow) * windKts * b.skill;
+  b.physics = physicsTick(state, b.trim, getBoatParams(), DT).state;
+  b.speedKn = b.physics.boatSpeed;
   const v = b.speedKn * KN_TO_PX_PER_S;
-  b.x += Math.sin(b.heading) * v * DT;
-  b.y += -Math.cos(b.heading) * v * DT;
+  const course = b.heading + b.physics.leeway * RAD;
+  b.x += Math.sin(course) * v * DT;
+  b.y += -Math.cos(course) * v * DT;
   // Soft-wrap like the player field so a boat does not vanish off-edge.
   if (b.x < 0) b.x += bounds.width;
   if (b.x > bounds.width) b.x -= bounds.width;
   if (b.y < 0) b.y += bounds.height;
   if (b.y > bounds.height) b.y -= bounds.height;
 
-  // Mark rounding.
-  const dxm = b.x - mark.x;
-  const dym = b.y - mark.y;
-  if (dxm * dxm + dym * dym <= mark.captureRadius * mark.captureRadius) {
-    b.markIndex += 1;
-    b.tackCdSec = 0;
-    if (b.markIndex >= marks.length || mark.finish) {
-      b.finished = true;
-      b.finishSec = elapsedSec;
-    }
-  }
+  b.markIndex=advanceNativeProgress(b.progression,b.x,b.y,b.heading,marks,elapsedSec);
+  if (b.markIndex>=marks.length) { b.finished=true; b.finishSec=elapsedSec; }
+
 }
 
 export function useRaceAi(opts: RaceAiOptions): RaceAiHandle {

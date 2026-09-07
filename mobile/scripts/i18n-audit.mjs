@@ -36,7 +36,7 @@ import { fileURLToPath } from 'node:url';
 const HERE = dirname(fileURLToPath(import.meta.url));
 const MOBILE_ROOT = join(HERE, '..');
 const REPO_ROOT = join(MOBILE_ROOT, '..');
-const REPORT_PATH = join(
+const REPORT_PATH = process.env.REGATTA_I18N_REPORT || join(
   REPO_ROOT,
   'docs/design/mobile/audits/sprint10-i18n-audit.md',
 );
@@ -333,6 +333,7 @@ function findJsxText(text) {
     if (/^\s*[a-z]+\s*\(/.test(trimmed)) continue; // method calls
     if (/^\s*[a-z]+\s*[?:]/.test(trimmed)) continue; // ternary fragments
     if (/[;}=]/.test(trimmed)) continue; // statement noise
+    if (/^,\s*[A-Za-z_$][\w$]*\s*:/.test(trimmed)) continue; // TS generic parameter boundary
     if (/^[A-Za-z_]+\s*<\s*[A-Za-z_]+/.test(trimmed)) continue;
 
     // Actual JSX text rarely contains parentheses around full clauses.
