@@ -361,3 +361,11 @@ iOS 26.5. После установки проверен CFBundleVersion=36, в�
 На основном языке готовы по 5 скриншотов iPhone 6.7 и iPad 12.9, все COMPLETE;
 остальные локали используют основной набор согласно
 [правилам локализации Apple](https://developer.apple.com/help/app-store-connect/manage-app-information/localize-app-information).
+
+При финальном осмотре курсов дополнительно исправлены два учебных
+упрощения на всех 7 языках: спинакер работает не только на чистом
+форде, а «эффект щели» нельзя объяснять лишь ускорением в сужении.
+Опора: [Doyle, symmetric sails](https://www.doylesails.com/buy-sail/downwind/symmetric/)
+и [Arvel Gentry, slot effect](https://gentrysailing.com/pdf-magazines/4-Another-Look-at-Slot-Effect.pdf).
+На нативной диаграмме разнесены подписи галфвинда и градусов, устранено
+обрезание текста по краям. На главной исправлена высота строки скорости ветра.

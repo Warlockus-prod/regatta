@@ -138,7 +138,7 @@ export function PointsOfSailDiagram({
           key: `b-${s.id}-${sign}`,
           id: s.id,
           x: cx + r * Math.cos(rad),
-          y: cy + r * Math.sin(rad),
+          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 20 : 0),
           rot: (deg * Math.PI) / 180,
         });
       }
@@ -150,7 +150,7 @@ export function PointsOfSailDiagram({
   // (in-irons sits once inside the top no-go sector, like the web).
   const sectorNamePositions = useMemo(() => {
     const r = outerR + 20;
-    const pad = 14;
+    const pad = 50;
     const maxX = cx * 2 - pad;
     // Label angles fanned out from the sector mids so the rim names sit like the
     // web (close-hauled / beam / broad / run spread evenly, not bunched at the
@@ -179,7 +179,7 @@ export function PointsOfSailDiagram({
           key: `${s.id}-${sign}`,
           name,
           x,
-          y: cy + r * Math.sin(rad),
+          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 20 : 0),
           muted: false,
         });
       }

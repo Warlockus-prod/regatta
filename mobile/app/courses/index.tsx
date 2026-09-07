@@ -331,17 +331,7 @@ export default function Courses() {
               })}
             </Text>
             <Text variant="muted" style={styles.subCardBody}>
-              {tp(
-                'Когда стаксель и грот работают вместе, между ними образуется суживающаяся щель. Воздух в ней ускоряется и создает разрежение на подветренной стороне грота - парус тянет лучше, чем если бы стоял один. Именно поэтому на бейдевинде лодка со стакселем идет заметно быстрее.',
-                'When jib and main work together, a narrowing slot forms between them. Air speeds up in it and creates low pressure on the leeward side of the main - the sail pulls harder than it would alone. That is why a boat with a jib sails noticeably faster close-hauled.',
-                'Gdy fok i grot pracuja razem, miedzy nimi powstaje zwezajaca sie szczelina. Powietrze w niej przyspiesza i tworzy podcisnienie po zawietrznej stronie grota - zagiel ciagnie lepiej niz samodzielnie. Dlatego na bajdewindzie jacht z fokiem plynie zauwazalnie szybciej.',
-                {
-                  es: 'Cuando el foque y la mayor trabajan juntos, entre ellos se forma una rendija que se estrecha. El aire se acelera y crea baja presion en la cara de sotavento de la mayor: la vela tira mas que si estuviera sola. Por eso un barco con foque navega notablemente mas rapido en cenida.',
-                  fr: 'Quand le foc et la grand-voile travaillent ensemble, une fente qui se resserre se forme entre eux. L air y accelere et cree une depression sur la face sous le vent de la grand-voile: la voile tire plus que seule. C est pourquoi un bateau avec foc avance nettement plus vite au pres.',
-                  de: 'Wenn Fock und Gross zusammenarbeiten, bildet sich zwischen ihnen ein sich verengender Spalt. Die Luft beschleunigt darin und erzeugt Unterdruck auf der Leeseite des Gross - das Segel zieht staerker als allein. Darum segelt ein Boot mit Fock am Wind deutlich schneller.',
-                  it: 'Quando fiocco e randa lavorano insieme, tra loro si forma una fessura che si restringe. L aria accelera e crea bassa pressione sul lato sottovento della randa: la vela tira di piu che da sola. Per questo una barca col fiocco va molto piu veloce di bolina.',
-                },
-              )}
+              {tp("Грот и стаксель взаимно меняют направление потока и распределение давления. Согласуй их трим: слишком закрытый промежуток между парусами ухудшает работу. Это взаимодействие двух крыльев, а не просто ускорение воздуха в узкой щели.", "The main and jib change each other's airflow and pressure distribution. Trim them together: an overly closed slot can reduce performance. This is interaction between two wings, rather than simply air accelerating through a narrow gap.", "Grot i fok wzajemnie zmieniają przepływ powietrza i rozkład ciśnienia. Trymuj je razem: nadmiernie zamknięta szczelina pogarsza pracę żagli. To współpraca dwóch skrzydeł, a nie samo przyspieszanie powietrza w szczelinie.", {"es":"Mayor y foque modifican mutuamente el flujo y la presión. Ajusta ambas velas: cerrar demasiado el espacio puede reducir el rendimiento. Son dos alas que interactúan, no solo aire acelerado en un hueco.","fr":"Grand-voile et foc modifient mutuellement le flux et la pression. Règle les deux voiles ensemble : un couloir trop fermé peut nuire au rendement. Deux profils interagissent, au-delà d’une simple accélération dans un passage étroit.","de":"Groß und Fock beeinflussen gegenseitig Strömung und Druckverteilung. Trimme beide zusammen: Ein zu enger Spalt kann Leistung kosten. Zwei Flügel wirken zusammen; es geht nicht nur um beschleunigte Luft im Spalt.","it":"Randa e fiocco modificano reciprocamente flusso e pressione. Regolali insieme: uno spazio troppo chiuso può ridurre il rendimento. Interagiscono due ali, non si tratta solo di aria accelerata in una fessura."})}
             </Text>
           </View>
 
@@ -409,17 +399,7 @@ export default function Courses() {
                 it: 'Spinnaker ',
               })}
             </Text>
-            {tp(
-              '- симметричный пузатый парус только для чистого фордевинда. Требует отдельного гика и навыка. На круизерах встречается редко.',
-              '- symmetric balloon sail only for a dead run. Needs a dedicated spinnaker pole and practice. Rare on cruisers.',
-              '- symetryczny baniasty zagiel tylko na czysty fordewind. Wymaga oddzielnego bomu spinakerowego i umiejetnosci. Rzadko spotykany na jachtach turystycznych.',
-              {
-                es: '- vela simetrica abombada solo para la popa cerrada. Necesita tangon propio y practica. Poco comun en barcos de crucero.',
-                fr: '- voile symetrique ventrue uniquement pour le plein vent arriere. Necessite un tangon dedie et de l entrainement. Rare sur les voiliers de croisiere.',
-                de: '- symmetrisches bauchiges Segel nur fuer den reinen Vorwindkurs. Braucht einen eigenen Spinnakerbaum und Uebung. Auf Fahrtenyachten selten.',
-                it: '- vela simmetrica panciuta solo per la poppa piena. Richiede un tangone dedicato e pratica. Rara sulle barche da crociera.',
-              },
-            )}
+            {tp("- симметричный объёмный парус для полных курсов, включая бакштаг и фордевинд. Рабочий угол зависит от кроя и ветра. Обычно используется со спинакер-гиком.", "- a symmetric full sail for downwind courses, including broad reaching and running. Its working angles depend on the cut and wind strength. Normally flown with a spinnaker pole.", "- symetryczny pełny żagiel na kursy pełne, w tym baksztag i fordewind. Zakres kątów zależy od kroju i siły wiatru. Zwykle wymaga spinakerbomu.", {"es":"- vela simétrica para rumbos portantes, incluidos largos y popa. Los ángulos dependen del corte y del viento. Normalmente usa tangón.","fr":"- voile symétrique pour les allures portantes, du grand largue au vent arrière selon sa coupe et le vent. Elle utilise généralement un tangon.","de":"- ein symmetrisches Segel für raume Kurse und Vorwind. Der Einsatzbereich hängt von Schnitt und Windstärke ab. Meist wird ein Spinnakerbaum verwendet.","it":"- vela simmetrica per le andature portanti, dal lasco alla poppa secondo taglio e vento. Normalmente richiede un tangone."})}
           </Text>
 
           <Text variant="muted" style={[styles.extraPara, styles.extraNote]}>
