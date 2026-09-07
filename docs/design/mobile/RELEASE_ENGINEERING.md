@@ -1,6 +1,9 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Current release source verified 2026-09-07: `main`, app 1.6.1 (34). Local Xcode
+Current release source verified 2026-09-07: `main` at `eb8e141`, app 1.6.1 (39).
+Build 39 is available to TestFlight Self and WAITING_FOR_REVIEW in App Store
+Connect, with automatic release after approval. See the
+[radio audit](../radio-course-audit-2026-09-07.md) for delivery evidence. Local Xcode
 archive/export and `altool` are the working release path. EAS Update remains
 unconfigured (`updates.url` and `extra.eas.projectId` absent); runtime policy is
 `appVersion`. Shared 3D/Trainer WebView scenes update through the VPS website.
