@@ -4,14 +4,14 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import {
   getBoatParams,
   tick,
-  settle,
   twaFromCompass,
   NO_GO_HALF_DEG,
   type BoatState as EngineState,
   type Controls as EngineControls,
   type TickDiagnostics,
 } from '@/lib/sailing-physics';
-import { clamp, optimalBoomAngle, optimalJibAngle, type CoachKey, type Controls, type WindState } from './sailModel';
+import { clamp, type CoachKey, type Controls, type WindState } from './sailModel';
+import { createTargetSolver } from './targets';
 import type { YachtState } from '../types';
 
 // ============================================================================
@@ -59,8 +59,8 @@ const PARAMS = getBoatParams();
 const INITIAL_ENGINE: EngineState = {
   trueWindDir: 0,
   trueWindSpeed: 12,
-  heading: 45,
-  boatSpeed: 0,
+  heading: 90,
+  boatSpeed: 5,
   heel: 0,
   leeway: 0,
 };
@@ -68,11 +68,11 @@ const INITIAL_ENGINE: EngineState = {
 const INITIAL_TELEMETRY: SimTelemetry = {
   speedKn: 0,
   heelDeg: 0,
-  twaSigned: 45,
-  awaDeg: 30,
-  awaSigned: 30,
+  twaSigned: -90,
+  awaDeg: 90,
+  awaSigned: -90,
   awsKn: 12,
-  heading: 45,
+  heading: 90,
   trimQuality: 0,
   vmg: 0,
   vmgTargetAngle: 48,
@@ -80,57 +80,6 @@ const INITIAL_TELEMETRY: SimTelemetry = {
   coach: 'reachOn',
   pos: { x: 0, z: 0 },
 };
-
-/** Near-optimal ENGINE controls for a given apparent wind angle: sheet so the
- * boom/jib sit at their optimal angles (sailModel's boom-angle optimum). */
-function optimalEngineControls(awaAbs: number, reef: number): EngineControls {
-  const mainSheet = clamp(1 - optimalBoomAngle(awaAbs) / PARAMS.mainMaxOff, 0, 1);
-  const jibRange = PARAMS.jibMaxOff - PARAMS.jibMinOff;
-  const jibSheet = clamp(1 - (optimalJibAngle(awaAbs) - PARAMS.jibMinOff) / jibRange, 0, 1);
-  return { mainSheet, jibSheet, mainTwist: 0.35, jibTwist: 0.4, reef, jibFurl: 0, jibSide: 1 };
-}
-
-/** Settled boat speed at |TWA| under optimal trim (two-pass: trim to the
- * apparent wind the first pass discovers). */
-function settledOptimalSpeed(twaAbs: number, twsKn: number, reef: number): number {
-  const state: EngineState = {
-    trueWindDir: 0,
-    trueWindSpeed: twsKn,
-    heading: twaAbs,
-    boatSpeed: 3,
-    heel: 0,
-    leeway: 0,
-  };
-  const pass1 = settle(state, optimalEngineControls(twaAbs * 0.8, reef), PARAMS, 4);
-  const pass2 = settle(pass1.state, optimalEngineControls(Math.abs(pass1.diag.awa), reef), PARAMS, 5);
-  return pass2.state.boatSpeed;
-}
-
-/** Best-VMG angles for a wind speed, from the engine itself (not a lookup). */
-function solveVmgTargets(twsKn: number): { up: number; down: number } {
-  let up = 48;
-  let bestUp = -Infinity;
-  for (let a = NO_GO_HALF_DEG + 1; a <= 75; a += 2) {
-    const v = settledOptimalSpeed(a, twsKn, 0) * Math.cos((a * Math.PI) / 180);
-    if (v > bestUp) {
-      bestUp = v;
-      up = a;
-    }
-  }
-  let down = 155;
-  let bestDown = -Infinity;
-  // Cap the scan at 165: beyond that the engine's drag-driven run is nearly
-  // flat, so cos() alone would push the answer to ~173 - deeper than the
-  // reference polar (best downwind VMG 150-165 for this cruiser) teaches.
-  for (let a = 125; a <= 165; a += 3) {
-    const v = settledOptimalSpeed(a, twsKn, 0) * -Math.cos((a * Math.PI) / 180);
-    if (v > bestDown) {
-      bestDown = v;
-      down = a;
-    }
-  }
-  return { up, down };
-}
 
 /** Coach hint from engine diagnostics (same keys/labels as before).
  * Note: deep downwind the sails run in drag mode - the engine's "stalled"
@@ -158,7 +107,7 @@ function trimQualityFrom(twaAbs: number, diag: TickDiagnostics): number {
 }
 
 export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: boolean) {
-  const [controls, setControls] = useState<Controls>({ rudder: 0, mainSheet: 0.2, jibSheet: 0.25, reef: 0 });
+  const [controls, setControls] = useState<Controls>({ rudder: 0, mainSheet: 0.6, jibSheet: 0.8, reef: 0 });
   const [wind, setWind] = useState<WindState>({ twsKn: 12, fromDeg: 0 });
   const [telemetry, setTelemetry] = useState<SimTelemetry>(INITIAL_TELEMETRY);
 
@@ -168,7 +117,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   const engineRef = useRef<EngineState>({ ...INITIAL_ENGINE });
   const posRef = useRef({ x: 0, z: 0 });
   // Throttled expensive solves (engine settles): target speed + best-VMG.
-  const solveRef = useRef({ twaKey: -1, twsKey: -1, target: 0, vmgUp: 48, vmgDown: 155 });
+  const solveRef = useRef(createTargetSolver());
 
   // Mirror the latest props/state into the loop's refs (refs must not be
   // assigned during render under the react-hooks rules).
@@ -217,7 +166,8 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
         const twaAbs = Math.abs(twaSigned);
         const side = twaSigned >= 0 ? -1 : 1; // sails set to leeward
         const quality = trimQualityFrom(twaAbs, diag);
-        const luffing = twaAbs < NO_GO_HALF_DEG || Math.min(diag.mainAoA, diag.jibAoA) < 6;
+        const luffing = twaAbs < NO_GO_HALF_DEG || diag.mainAoA < 6;
+        const jibLuffing = twaAbs < NO_GO_HALF_DEG || diag.jibAoA < 6;
 
         // Rig visuals: sheets place the booms; morphs follow trim state.
         const boom = PARAMS.mainMaxOff * ui.mainSheet;
@@ -232,33 +182,29 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
           luff: luffing ? 1 : 0,
           reef: ui.reef,
           rudderAngle: ui.rudder * 35,
-          heel: next.heel * (side === -1 ? 1 : -1),
+          heel: Math.abs(next.heel) * (side === -1 ? 1 : -1),
+          heading: next.heading,
+          jibShape: {
+            camber: jibLuffing ? 0.06 : clamp(0.5 * (0.6 + 0.4 * quality), 0.05, 0.7),
+            twist: clamp(twist + 0.05, 0, 1),
+            luff: jibLuffing ? 1 : 0,
+            furl: 0,
+          },
           speedKn: next.boatSpeed,
         } satisfies YachtState);
 
         // Position (telemetry only; the 3D world is boat-centric).
-        const course = ((next.heading + side * next.leeway) * Math.PI) / 180;
+        const course = ((next.heading + next.leeway) * Math.PI) / 180;
         const v = next.boatSpeed * 0.514444;
         posRef.current.x += Math.sin(course) * v * dt;
-        posRef.current.z += Math.cos(course) * v * dt;
+        posRef.current.z -= Math.cos(course) * v * dt;
+        yachtRef.current.travel = { ...posRef.current };
 
         acc += dt;
         if (acc > 0.12) {
           acc = 0;
           // Throttled engine solves: only when the angle bucket or wind change.
-          const sv = solveRef.current;
-          const twaKey = Math.round(twaAbs / 4);
-          const twsKey = Math.round(w.twsKn);
-          if (sv.twsKey !== twsKey) {
-            const t2 = solveVmgTargets(w.twsKn);
-            sv.vmgUp = t2.up;
-            sv.vmgDown = t2.down;
-          }
-          if (sv.twaKey !== twaKey || sv.twsKey !== twsKey) {
-            sv.target = twaAbs < NO_GO_HALF_DEG ? 0 : settledOptimalSpeed(twaAbs, w.twsKn, ui.reef);
-            sv.twaKey = twaKey;
-            sv.twsKey = twsKey;
-          }
+          const sv = solveRef.current(twaAbs, w.twsKn, ui.reef);
           setTelemetry({
             speedKn: next.boatSpeed,
             heelDeg: Math.abs(next.heel),
@@ -286,9 +232,9 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   }, [yachtRef]);
 
   const reset = useCallback(() => {
-    engineRef.current = { ...INITIAL_ENGINE, trueWindDir: windRef.current.fromDeg, trueWindSpeed: windRef.current.twsKn };
+    engineRef.current = { ...INITIAL_ENGINE, trueWindDir: windRef.current.fromDeg, trueWindSpeed: windRef.current.twsKn, heading: (windRef.current.fromDeg + 90) % 360 };
     posRef.current = { x: 0, z: 0 };
-    solveRef.current.twaKey = -1;
+    solveRef.current = createTargetSolver();
   }, []);
 
   const setControl = <K extends keyof Controls>(key: K, value: Controls[K]) =>

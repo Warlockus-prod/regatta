@@ -24,13 +24,16 @@
 // so 2D and 3D share state.
 // ============================================================================
 
-import { Suspense, useEffect, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, ContactShadows, Html } from '@react-three/drei';
-import { DoubleSide, MeshStandardMaterial, type Group, type Mesh } from 'three';
+import { OrbitControls, useGLTF, ContactShadows, Html, Environment, Lightformer } from '@react-three/drei';
+import { DoubleSide, MeshStandardMaterial, Box3, Vector3, type Group, type Mesh } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { fitCamera } from "@/features/simulator-3d/camera";
+import { SceneBoundary } from "@/features/simulator-3d/SceneBoundary";
+import { useI18n } from "@/lib/i18n";
 
 // Camera presets in world Three.js coords (after the GLB has been rotated
 // so its local +Z = world +Y). The v7.2 model spans:
@@ -109,12 +112,14 @@ function Hotspot({ position, label, active, onSelect }: MarkerProps) {
           <meshBasicMaterial color="#00d4ff" transparent opacity={0.5} />
         </mesh>
       )}
-      <Html
+      {active && <Html
         center
-        distanceFactor={12}
         style={{
           pointerEvents: 'none',
-          color: active ? '#00d4ff' : '#ffffff',
+          color: '#e7f2f6',
+          background: '#102738',
+          padding: '5px 9px',
+          borderRadius: 6,
           fontSize: active ? 13 : 11,
           fontWeight: active ? 700 : 500,
           textShadow: '0 1px 2px rgba(0,0,0,0.8)',
@@ -123,7 +128,7 @@ function Hotspot({ position, label, active, onSelect }: MarkerProps) {
         }}
       >
         {label}
-      </Html>
+      </Html>}
     </group>
   );
 }
@@ -148,7 +153,8 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
     }
   });
 
-  const { scene } = useGLTF(MODEL_URL);
+  const { scene: source } = useGLTF(MODEL_URL);
+  const scene = useMemo(() => source.clone(true), [source]);
 
   // v8 cleanup pass. The supplier's GLB ships the YACHTING wordmark
   // baked into the mainsail UVs (mesh `MAT_MainSail_BakedLogo_UV`
@@ -174,6 +180,7 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   //      mainsail is still the same shape - but the wordmark texture
   //      is gone.
   useEffect(() => {
+    const owned: MeshStandardMaterial[] = [];
     scene.traverse((obj) => {
       const n = obj.name;
       if (n === 'MAT_Logo_Red_Decal' || n === 'MAT_Logo_Black_Decal') {
@@ -182,20 +189,23 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
       }
       const mesh = obj as Mesh & { isMesh?: boolean };
       if (mesh.isMesh && n === 'MAT_MainSail_BakedLogo_UV') {
-        mesh.material = new MeshStandardMaterial({
+        const material = new MeshStandardMaterial({
           color: 0xffffff,
           roughness: 0.9,
           metalness: 0.0,
           side: DoubleSide,
         });
+        mesh.material = material;
+        owned.push(material);
       }
     });
+    return () => owned.forEach((material) => material.dispose());
   }, [scene]);
 
 
 
   return (
-    <group ref={yawRef}>
+    <group ref={yawRef} name="anatomy-yacht">
       {/*
         Inner group: -90deg around world X brings the GLB's local +Z (up)
         into world +Y (Three.js up). Hotspot positions are in the GLB's
@@ -225,18 +235,30 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
 // Imperative camera handle used by the preset bar. Lives inside the canvas
 // so it can call useThree() to grab the active camera + the OrbitControls
 // installed via `makeDefault`. Re-runs when the parent toggles `view`.
-function CameraDriver({ view }: { view: ViewPreset }) {
-  const camera = useThree((s) => s.camera);
-  const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
+function CameraDriver({ view, activePart, revision }: { view: ViewPreset; activePart: AnatomyPart | null; revision: number }) {
+  const { camera, controls, size, scene } = useThree();
+  const previousPart = useRef(activePart?.id);
   useEffect(() => {
-    const [x, y, z] = VIEW_PRESETS[view];
-    camera.position.set(x, y, z);
-    camera.lookAt(...TARGET);
-    if (controls) {
-      controls.target.set(...TARGET);
-      controls.update();
+    const boat = scene.getObjectByName("anatomy-yacht");
+    if (!boat) return;
+    boat.updateWorldMatrix(true, true);
+    const bounds = new Box3().setFromObject(boat);
+    const focusChanged = previousPart.current !== activePart?.id;
+    previousPart.current = activePart?.id;
+    if (focusChanged && activePart?.three) {
+      const p = activePart.three;
+      const center = new Vector3(p.x, p.z, -p.y);
+      bounds.setFromCenterAndSize(center, new Vector3(8, 8, 8));
     }
-  }, [view, camera, controls]);
+    const direction = new Vector3(...VIEW_PRESETS[view]).sub(new Vector3(...TARGET));
+    const fit = fitCamera(bounds.min, bounds.max, direction, size.width / size.height, 35, 1.2);
+    camera.position.copy(fit.position);
+    camera.lookAt(fit.target);
+    if (controls) {
+      (controls as OrbitControlsImpl).target.copy(fit.target);
+      (controls as OrbitControlsImpl).update();
+    }
+  }, [view, activePart, revision, camera, controls, size.width, size.height, scene]);
   return null;
 }
 
@@ -278,6 +300,8 @@ export default function YachtViewer3D({
   viewLabels,
 }: YachtViewer3DProps) {
   const [view, setView] = useState<ViewPreset>('three-quarter');
+  const [revision, setRevision] = useState(0);
+  const { tp } = useI18n();
   const [isFullscreen, setIsFullscreen] = useState(false);
   const labels = {
     threeQuarter: viewLabels?.threeQuarter ?? '3/4',
@@ -326,7 +350,7 @@ export default function YachtViewer3D({
         background: 'linear-gradient(180deg, rgba(6, 20, 40, 0.97) 0%, rgba(2, 8, 18, 0.99) 100%)',
       }
     : {
-        aspectRatio: '16 / 10',
+        height: 'clamp(360px, 58svh, 620px)',
         background: 'linear-gradient(180deg, rgba(13, 40, 71, 0.9) 0%, rgba(6, 20, 40, 0.96) 100%)',
       };
 
@@ -335,12 +359,15 @@ export default function YachtViewer3D({
       className={isFullscreen ? '' : 'relative w-full'}
       style={wrapperStyle}
     >
+      <SceneBoundary modelUrl={MODEL_URL}
+        errorLabel={tp("Не удалось загрузить яхту. Попробуй ещё раз.", "The yacht could not load. Try again.", "Nie udalo sie zaladowac jachtu. Sprobuj ponownie.", { es: "No se pudo cargar el yate. Reintenta.", fr: "Impossible de charger le bateau. Reessaie.", de: "Yacht konnte nicht geladen werden. Versuche es erneut.", it: "Impossibile caricare la barca. Riprova." })}
+        retryLabel={tp("Повторить", "Try again", "Ponow", { es: "Reintentar", fr: "Reessayer", de: "Erneut versuchen", it: "Riprova" })}>
       <Canvas
         dpr={[1, 1.5]}
         camera={{ position: VIEW_PRESETS['three-quarter'], fov: 35, near: 0.1, far: 200 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <Suspense fallback={null}>
+        <Suspense fallback={<Html center><div role="status" className="rounded-lg bg-slate-900 p-3 text-sm text-slate-100">{loadingLabel}</div></Html>}>
           {/*
             Manual lighting rig (instead of drei's <Stage> + <Environment>).
             Stage and Environment with preset="sunset" both fetch a HDR from
@@ -368,22 +395,27 @@ export default function YachtViewer3D({
             onSelect={onSelect}
             pickName={pickName}
           />
-          <ContactShadows position={[0, -2.2, 0]} opacity={0.3} scale={30} blur={2} far={20} />
+          <Environment resolution={128} frames={1}>
+            <Lightformer position={[8, 15, 10]} scale={[12, 18, 1]} intensity={2} color="#e3eff5" target={[0, 4, 0]} />
+            <Lightformer position={[-10, 8, -8]} scale={[10, 20, 1]} intensity={1} color="#8bb8cf" target={[0, 4, 0]} />
+          </Environment>
+          <CameraDriver view={view} activePart={activePart} revision={revision} />
+          <ContactShadows frames={1} position={[0, -2.2, 0]} opacity={0.3} scale={30} blur={2} far={20} />
         </Suspense>
         <OrbitControls
           makeDefault
           enablePan={false}
           target={TARGET}
           minDistance={10}
-          maxDistance={55}
+          maxDistance={140}
           minPolarAngle={0.05}
           maxPolarAngle={Math.PI / 2 - 0.02}
           autoRotate={false}
           enableDamping
           dampingFactor={0.08}
         />
-        <CameraDriver view={view} />
       </Canvas>
+      </SceneBoundary>
 
       <noscript>
         <div
@@ -408,8 +440,8 @@ export default function YachtViewer3D({
           title={isFullscreen ? labels.exitFullscreen : labels.fullscreen}
           className="flex items-center justify-center rounded transition"
           style={{
-            width: 32,
-            height: 32,
+            width: 44,
+            height: 44,
             background: 'rgba(10, 22, 40, 0.7)',
             border: '1px solid rgba(139, 167, 184, 0.3)',
             color: 'rgba(255, 255, 255, 0.85)',
@@ -438,7 +470,7 @@ export default function YachtViewer3D({
 
       {/* View-preset toolbar - top-right floating chip */}
       <div
-        className="absolute right-2 flex flex-wrap gap-1 pointer-events-auto justify-end"
+        className="absolute right-2 flex flex-nowrap gap-1 overflow-x-auto pointer-events-auto"
         style={{ top: isFullscreen ? 'max(0.5rem, env(safe-area-inset-top))' : '0.5rem', maxWidth: 'calc(100% - 56px)' }}
       >
         {(['three-quarter', 'top', 'side', 'bow', 'stern'] as const).map((v) => {
@@ -452,8 +484,8 @@ export default function YachtViewer3D({
           return (
             <button
               key={v}
-              onClick={() => setView(v)}
-              className="text-[10px] sm:text-xs px-2 py-1 rounded transition font-medium"
+              onClick={() => { setView(v); setRevision((value) => value + 1); }}
+              className="min-h-11 shrink-0 whitespace-nowrap text-xs px-2 py-1 rounded transition font-medium"
               style={{
                 background: active ? 'rgba(0, 212, 255, 0.25)' : 'rgba(10, 22, 40, 0.7)',
                 border: `1px solid ${active ? 'rgba(0, 212, 255, 0.6)' : 'rgba(139, 167, 184, 0.3)'}`,

@@ -111,5 +111,9 @@ export function useSailAudio() {
     };
   }, []);
 
-  return { enabled, toggle, update };
+  const setActive = useCallback((active: boolean) => {
+    const nodes = ref.current;
+    if (nodes) nodes.master.gain.setTargetAtTime(active && enabled ? 0.9 : 0, nodes.ctx.currentTime, 0.05);
+  }, [enabled]);
+  return { enabled, toggle, update, setActive };
 }

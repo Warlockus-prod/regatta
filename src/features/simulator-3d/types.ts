@@ -20,6 +20,12 @@ export interface YachtState {
   heel: number;
   /** Boat speed, knots (drives wake/foam intensity; 0 in free-trim mode). */
   speedKn?: number;
+  /** Compass heading; omitted for a posed yacht. */
+  heading?: number;
+  /** World travel in metres, X east and Z south. */
+  travel?: { x: number; z: number };
+  /** Independent jib shape. Reef always belongs to the mainsail. */
+  jibShape?: { camber: number; twist: number; luff: number; furl: number };
 }
 
 export const NEUTRAL_YACHT: YachtState = {
@@ -35,7 +41,15 @@ export const NEUTRAL_YACHT: YachtState = {
 };
 
 /** UI strings, injectable so the core has no i18n dependency. */
+export interface SceneLabels {
+  whole: string; sails: string; deck: string; resetView: string;
+  more: string; instruments: string; loading: string; error: string;
+  retry: string; heading: string; target: string; apparent: string;
+  light: string; quality: string; sailingHint: string;
+}
+
 export interface SimLabels {
+  scene: SceneLabels;
   badge: string;
   orbitHint: string;
   /** Shown in free-trim mode: where steering lives. */
@@ -82,6 +96,13 @@ export interface SimLabels {
 }
 
 export const DEFAULT_LABELS: SimLabels = {
+  scene: {
+    whole: "Whole yacht", sails: "Sails", deck: "Deck", resetView: "Reset camera",
+    more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
+    error: "The 3D scene could not load. Check your connection or try another browser.",
+    retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind",
+    light: "Light graphics", quality: "Graphics", sailingHint: "Hold an arrow to steer. Adjust the sheets and watch the speed.",
+  },
   badge: 'SIMULATOR V2 - 3D',
   orbitHint: 'drag to orbit, wheel to zoom',
   freeModeHint: 'Free trim poses the rig. To steer and turn the boat, switch to Sailing.',

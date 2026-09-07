@@ -1,34 +1,27 @@
 # Week to Regatta - Mobile: Architecture & Change Map
 
 Authoritative "how the mobile app is built and where every screen/element lives"
-reference. If you only read one mobile doc, read this. Last mapped: 2026-06-21
-(branch `app`, app version 1.3.0 / build 19).
+reference. Release source verified: 2026-09-07, `main`, app 1.6.1 / build 34.
 
----
+## 0. READ FIRST - where the code lives
 
-## 0. READ FIRST - where the code lives (the #1 source of "we fixed it but nothing changed")
-
-This repo holds TWO apps:
-
-| App | Lives in | Branch | Ships via | URL / target |
+| App | Lives in | Release branch | Ships via | URL / target |
 |---|---|---|---|---|
-| **Web** (the website) | `src/` | **`main`** | push to `main` -> GitHub Actions -> VPS Docker | weektoregatta.com |
-| **Mobile** (iOS "Week to Regatta") | `mobile/` | **`app`** ONLY | LOCAL Xcode archive -> altool -> TestFlight | App Store / TestFlight |
+| Web | `src/` | `main` | GitHub Actions -> VPS Docker | weektoregatta.com |
+| Mobile | `mobile/` | `main` | Local Xcode archive -> App Store Connect | App Store / TestFlight |
 
-**Critical traps:**
+The branches were consolidated on 2026-06-21. The old `app` branch is historical
+and is no longer the release source. Do not switch to it for mobile changes.
+Both web and native code must be built from the same reviewed `main` commit.
+See `BUILDS.md` for the release journal.
 
-1. **`main` contains a DEAD mobile scaffold.** On `main`, `mobile/app/simulator/index.tsx`
-   is a `PlaceholderScreen` ("Skia simulator lands in Phase 2") and `mobile/app.json`
-   says version `0.1.0`. The REAL mobile app (v1.2/v1.3, the cockpit, all screens)
-   exists **only on the `app` branch**. Editing mobile files while on `main` edits
-   throwaway code that never ships.
-
-2. **Before ANY mobile change, verify you are on the real code:**
-   ```sh
-   git branch --show-current        # must print: app
-   grep '"version"' mobile/app.json # must print 1.x.x  (NOT 0.1.0)
-   ```
-   If it says `0.1.0` / a PlaceholderScreen, you are on the wrong branch. `git checkout app`.
+**Shared 3D module:** `/simulator2` renders the React Three Fiber scene from
+`src/features/simulator-3d`. Native `mobile/app/simulator2.tsx` hosts the same
+production route via `SimWebView`. A website deployment updates the scene for
+installed apps; native loading/error handling requires an app binary update.
+`scene-ready` means the yacht asset is mounted, not merely that HTML loaded.
+`scene-error`, HTTP errors and content-process termination show native retry.
+3D requires internet; the offline fallback remains available.
 
 3. **The website's "Points of Sail" (clean sector wheel) is WEB code** (`src/`), a
    different component from the mobile one. Matching the mobile screen to the web

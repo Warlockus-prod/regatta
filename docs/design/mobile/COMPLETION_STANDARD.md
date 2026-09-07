@@ -5,9 +5,8 @@ build. This is the "definition of done" + the control contract for every prompt,
 every subagent, and every release. If a step cannot meet this, it is NOT done.
 
 ## 0. Orient before touching anything
-- **Branch:** web lives on `main`, mobile lives on `app`. `main` has a DEAD mobile
-  scaffold; `app` web is PRE-OpenAI. Confirm `git branch --show-current` matches
-  the layer you are changing. (Web AI routes = `main`; mobile screens = `app`.)
+- **Branch:** `main` is canonical for both `src/` and `mobile/` after the
+  2026-06-21 consolidation. The old `app` branch is historical.
 - **Code != build.** A mobile code change is invisible until a new build is
   archived, uploaded, AND attached to a TestFlight group (see section 3).
 
@@ -22,7 +21,7 @@ every subagent, and every release. If a step cannot meet this, it is NOT done.
 6. Diagrams/visuals derive geometry + color from CANONICAL data (e.g. the
    courses wheel from `pointsOfSail`), never hardcoded - this is how the polar
    bug and the sector-color bug happened.
-7. Committed AND pushed (`origin/app` for mobile, `origin/main` for web). Nothing
+7. Committed AND pushed (`origin/main` for both mobile and web). Nothing
    is "safe" until it is on the remote.
 
 ## 2. Design: Definition of Done (every UI change)
@@ -72,4 +71,4 @@ OUTPUT:      <structured result / artifact path>
   Nothing counts as done until: verified + committed + pushed + (mobile) in a
   distributed build.
 - At the end of a cycle: re-check the whole plan/audit for anything missed; the
-  mobile binary in TestFlight must match the committed `app` branch.
+  mobile binary in TestFlight must match the committed `main` release source.

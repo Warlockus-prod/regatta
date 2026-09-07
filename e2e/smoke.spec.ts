@@ -190,3 +190,25 @@ test.describe('Smoke: critical user flows', () => {
     }
   });
 });
+
+test("3D embed keeps slider keys local and essential controls inside the viewport", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/simulator2?embed=1&lang=en");
+  const main = page.getByRole("slider", { name: "Mainsheet (boom)", exact: true });
+  await expect(main).toBeVisible({ timeout: 20_000 });
+  await expect(page.locator("canvas").first()).toBeVisible();
+  await expect(page.getByRole("contentinfo", { name: "Site brand" })).toHaveCount(0);
+  const before = Number(await main.inputValue());
+  await main.press("ArrowRight");
+  await expect(main).toHaveValue((before + 0.01).toFixed(2));
+  await page.getByText("Wind and fine tuning", { exact: true }).click();
+  await expect(page.getByRole("slider", { name: "Helm", exact: true })).toHaveValue("0");
+  await page.getByRole("button", { name: "Deck", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Deck", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await page.getByRole("button", { name: "Reset camera", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Whole yacht", exact: true })).toHaveAttribute("aria-pressed", "true");
+  const canvas = await page.locator("canvas").first().boundingBox();
+  expect(canvas).not.toBeNull();
+  expect(canvas!.height).toBeGreaterThan(200);
+  expect(canvas!.y + canvas!.height).toBeLessThan(844);
+});

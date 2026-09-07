@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo, useRef, type MutableRefObject } from 'react';
+import { useMemo, useRef, useEffect, type MutableRefObject } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { sampleWave } from './waves';
@@ -18,8 +18,8 @@ import type { YachtState } from '../types';
 
 const COUNT = 220;
 const KN_TO_MS = 0.514444;
-const STERN_X = -3.4;
-const BOW_X = 3.1;
+const STERN_X = -6.5;
+const BOW_X = 6.2;
 const LIFE = 2.6; // seconds
 
 function makeFoamSprite(): THREE.Texture {
@@ -52,7 +52,7 @@ export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
   const spawnAcc = useRef(0);
   const cursor = useRef(0);
 
-  const { geometry, material, particles } = useMemo(() => {
+  const resources = useMemo(() => {
     const particles: Particle[] = Array.from({ length: COUNT }, () => ({
       x: 0, y: 0, z: 0, vx: 0, vz: 0, age: LIFE,
     }));
@@ -92,11 +92,20 @@ export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
     return { geometry, material, particles };
   }, []);
 
+  const runtime = useRef<typeof resources | null>(null);
+  useEffect(() => {
+    runtime.current = resources;
+    if (runtime.current.material.map) runtime.current.material.map.needsUpdate = true;
+    return () => { runtime.current = null; resources.material.map?.dispose(); };
+  }, [resources]);
   useFrame((st, rawDt) => {
+    if (!runtime.current) return;
+    const { geometry, particles } = runtime.current;
     const dt = Math.min(rawDt, 0.1);
     const t = st.clock.elapsedTime;
     const speedKn = stateRef.current.speedKn ?? 0;
     const speedMs = speedKn * KN_TO_MS;
+    const yaw = ((90 - (stateRef.current.heading ?? 90)) * Math.PI) / 180;
     const intensity = Math.min(1, speedKn / 7);
 
     // Spawn rate scales with speed: silent at rest, ~70/s at hull speed.
@@ -121,6 +130,11 @@ export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
         p.vx = -speedMs * (0.5 + Math.random() * 0.25);
         p.vz = p.z * (0.35 + Math.random() * 0.3);
       }
+      const x = p.x, z = p.z, vx = p.vx, vz = p.vz;
+      p.x = x * Math.cos(yaw) + z * Math.sin(yaw);
+      p.z = -x * Math.sin(yaw) + z * Math.cos(yaw);
+      p.vx = vx * Math.cos(yaw) + vz * Math.sin(yaw);
+      p.vz = -vx * Math.sin(yaw) + vz * Math.cos(yaw);
       p.age = 0;
     }
 
@@ -138,15 +152,15 @@ export function Wake({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
       p.z += p.vz * dt;
       const k = p.age / LIFE;
       // Foam settles onto the moving swell surface.
-      const wave = sampleWave(p.x, p.z, t).y;
+      const wave = sampleWave(p.x + (stateRef.current.travel?.x ?? 0), p.z + (stateRef.current.travel?.z ?? 0), t).y;
       pos.setXYZ(i, p.x, Math.max(0.04, p.y * (1 - k)) + wave, p.z);
       alpha.setX(i, intensity * (1 - k) * 0.85);
-      size.setX(i, 26 * (0.5 + 1.7 * k));
+      size.setX(i, 0.35 + 0.9 * k);
     }
     pos.needsUpdate = true;
     alpha.needsUpdate = true;
     size.needsUpdate = true;
   });
 
-  return <points ref={pointsRef} geometry={geometry} material={material} frustumCulled={false} />;
+  return <points ref={pointsRef} geometry={resources.geometry} material={resources.material} frustumCulled={false} />;
 }

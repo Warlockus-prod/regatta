@@ -31,6 +31,23 @@ function SimulatorV2Inner() {
 
   const labels: SimLabels = useMemo(
     () => ({
+      scene: {
+        whole: tp("Вся яхта", "Whole yacht", "Caly jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Intera barca" }),
+        sails: tp("Паруса", "Sails", "Zagle", { es: "Velas", fr: "Voiles", de: "Segel", it: "Vele" }),
+        deck: tp("Палуба", "Deck", "Poklad", { es: "Cubierta", fr: "Pont", de: "Deck", it: "Coperta" }),
+        resetView: tp("Сбросить камеру", "Reset camera", "Resetuj kamere", { es: "Restablecer camara", fr: "Reinitialiser la camera", de: "Kamera zurucksetzen", it: "Reimposta camera" }),
+        more: tp("Ветер и точная настройка", "Wind and fine tuning", "Wiatr i ustawienia", { es: "Viento y ajustes", fr: "Vent et reglages", de: "Wind und Feineinstellung", it: "Vento e regolazioni" }),
+        instruments: tp("Все приборы", "More instruments", "Wiecej przyrzadow", { es: "Mas instrumentos", fr: "Plus de mesures", de: "Weitere Instrumente", it: "Altri strumenti" }),
+        loading: tp("Загружаем яхту...", "Loading yacht...", "Ladowanie jachtu...", { es: "Cargando el yate...", fr: "Chargement du bateau...", de: "Yacht wird geladen...", it: "Caricamento della barca..." }),
+        error: tp("Не удалось загрузить 3D. Проверь соединение или попробуй другой браузер.", "The 3D scene could not load. Check your connection or try another browser.", "Nie udalo sie zaladowac 3D. Sprawdz polaczenie lub inna przegladarke.", { es: "No se pudo cargar la escena 3D. Comprueba la conexion o prueba otro navegador.", fr: "La scene 3D ne se charge pas. Verifie la connexion ou essaie un autre navigateur.", de: "Die 3D-Szene konnte nicht geladen werden. Prufe die Verbindung oder einen anderen Browser.", it: "Impossibile caricare la scena 3D. Controlla la connessione o prova un altro browser." }),
+        retry: tp("Попробовать снова", "Try again", "Sprobuj ponownie", { es: "Reintentar", fr: "Reessayer", de: "Erneut versuchen", it: "Riprova" }),
+        heading: tp("Курс", "Heading", "Kurs", { es: "Rumbo", fr: "Cap", de: "Kurs", it: "Rotta" }),
+        target: tp("Целевая скорость", "Target speed", "Predkosc docelowa", { es: "Velocidad objetivo", fr: "Vitesse cible", de: "Zielgeschwindigkeit", it: "Velocita obiettivo" }),
+        apparent: tp("Вымпельный ветер", "Apparent wind", "Wiatr pozorny", { es: "Viento aparente", fr: "Vent apparent", de: "Scheinbarer Wind", it: "Vento apparente" }),
+        light: tp("Лёгкая графика", "Light graphics", "Lekka grafika", { es: "Graficos ligeros", fr: "Graphismes legers", de: "Leichte Grafik", it: "Grafica leggera" }),
+        quality: tp("Графика", "Graphics", "Grafika", { es: "Graficos", fr: "Graphismes", de: "Grafik", it: "Grafica" }),
+        sailingHint: tp("Держи стрелку, чтобы повернуть. Настраивай шкоты и следи за скоростью.", "Hold an arrow to steer. Adjust the sheets and watch the speed.", "Przytrzymaj strzalke, aby skrecic. Ustaw szoty i obserwuj predkosc.", { es: "Manten una flecha para virar. Ajusta las escotas y observa la velocidad.", fr: "Maintiens une fleche pour tourner. Regle les ecoutes et observe la vitesse.", de: "Halte einen Pfeil zum Steuern. Stelle die Schoten ein und beobachte die Fahrt.", it: "Tieni premuta una freccia per virare. Regola le scotte e osserva la velocita." }),
+      },
       badge: tp('ЛОДКА 3D', '3D BOAT', 'LODKA 3D', {
         es: 'BARCO 3D', fr: 'BATEAU 3D', de: 'BOOT 3D', it: 'BARCA 3D',
       }),

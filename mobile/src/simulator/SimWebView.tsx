@@ -162,9 +162,9 @@ export function SimWebView({
     const t = setTimeout(() => {
       setLoading(false);
       setFailed(true);
-    }, LOAD_TIMEOUT_MS);
+    }, tier === 'boat3d' ? 30000 : LOAD_TIMEOUT_MS);
     return () => clearTimeout(t);
-  }, [loading, reloadKey]);
+  }, [loading, reloadKey, tier]);
 
   const retry = () => {
     setFailed(false);
@@ -227,9 +227,19 @@ export function SimWebView({
           return true;
         }}
         onMessage={(e: WebViewMessageEvent) => {
-          if (e.nativeEvent.data === 'ready') setLoading(false);
+          const status = e.nativeEvent.data;
+          if (status === 'scene-ready' || (status === 'ready' && tier !== 'boat3d')) {
+            setLoading(false);
+            setFailed(false);
+          }
+          if (status === 'scene-error') {
+            setLoading(false);
+            setFailed(true);
+          }
         }}
-        onLoadEnd={() => setLoading(false)}
+        onLoadEnd={() => { if (tier !== 'boat3d') setLoading(false); }}
+        onHttpError={() => { setLoading(false); setFailed(true); }}
+        onContentProcessDidTerminate={() => { setLoading(false); setFailed(true); }}
         onError={() => {
           setLoading(false);
           setFailed(true);

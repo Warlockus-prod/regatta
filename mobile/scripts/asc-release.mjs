@@ -45,7 +45,7 @@ const BUILD = val('--build') || '33';
 
 // What's New, per ASC locale. ASCII-clean per the project typography rule
 // (no em/en-dash); es/fr/de/it keep their meaningful diacritics.
-const WHATS_NEW = {
+const DEFAULT_WHATS_NEW = {
   'en-US': "What's new in 1.6: the complete SRC Radio course now works offline from the first launch. Study 18 theory chapters and diagrams, answer all 324 UKE questions, complete 26 practical tasks, and operate both ICOM radio models across 19 scenarios without a connection. Speech recognition and automatic voice grading still require internet.",
   ru: 'Что нового в 1.6: полный курс SRC Radio теперь работает офлайн с первого запуска. Без интернета доступны 18 глав теории со схемами, все 324 вопроса UKE, 26 практических заданий, обе модели рации ICOM и 19 сценариев. Распознавание и автоматическая оценка речи требуют подключения.',
   pl: 'Co nowego w 1.6: pelny kurs SRC Radio dziala teraz offline od pierwszego uruchomienia. Bez internetu masz 18 rozdzialow teorii ze schematami, wszystkie 324 pytania UKE, 26 zadan praktycznych, oba modele radia ICOM i 19 scenariuszy. Rozpoznawanie i automatyczna ocena mowy wymagaja polaczenia.',
@@ -54,6 +54,18 @@ const WHATS_NEW = {
   'de-DE': 'Neu in 1.6: Der komplette SRC-Funkkurs funktioniert ab dem ersten Start offline. Enthalten sind 18 Theoriekapitel, 324 UKE-Fragen, 26 Praxisaufgaben, zwei ICOM-Modelle und 19 Szenarien. Spracherkennung und automatische Sprachbewertung benoetigen Internet.',
   it: "Novita della 1.6: il corso SRC Radio completo funziona offline dal primo avvio. Include 18 capitoli di teoria, 324 domande UKE, 26 esercizi pratici, due modelli ICOM e 19 scenari. Il riconoscimento e la valutazione vocale richiedono internet.",
 };
+
+// Explicit release notes keep each version's metadata reproducible.
+const notesPath = val('--notes');
+const WHATS_NEW = notesPath ? JSON.parse(readFileSync(notesPath, 'utf8')) : DEFAULT_WHATS_NEW;
+if (!notesPath && VERSION !== '1.6.0') {
+  throw new Error('Pass --notes <release-notes.json> for a new version.');
+}
+for (const locale of Object.keys(DEFAULT_WHATS_NEW)) {
+  if (typeof WHATS_NEW[locale] !== 'string' || !WHATS_NEW[locale].trim()) {
+    throw new Error(`Missing release notes for ${locale}`);
+  }
+}
 
 function jwt() {
   const header = { alg: 'ES256', kid: KEY_ID, typ: 'JWT' };

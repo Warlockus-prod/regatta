@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 
-const HIDE_PATHS = ['/game', '/multiplayer', '/simulator-v3'];
+const HIDE_PATHS = ['/game', '/multiplayer', '/simulator-v3', '/simulator2'];
 
 export default function SiteFooter() {
   const pathname = usePathname();
