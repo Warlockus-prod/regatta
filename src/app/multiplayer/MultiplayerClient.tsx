@@ -557,6 +557,9 @@ export default function MultiplayerClient() {
     <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - 56px)' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
+      {phase !== "finished" && <button onClick={leaveLobby} className="absolute top-2 right-3 min-h-11 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 text-xs">
+        {tp("Выйти", "Leave", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Verlassen", it: "Esci" })}
+      </button>}
       {reconnecting && (
         <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(255,170,0,0.2)', color: 'var(--warning)', backdropFilter: 'blur(8px)' }}>
@@ -565,8 +568,9 @@ export default function MultiplayerClient() {
       )}
 
       {phase === 'racing' && (
-        <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 md:hidden pointer-events-none">
+        <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 pointer-events-none">
           <button
+            aria-label={tp("Поворот влево", "Turn left", "Skręt w lewo", { es: "Girar a la izquierda", fr: "Tourner à gauche", de: "Nach links steuern", it: "Virare a sinistra" })}
             onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.left = true; }}
             onPointerUp={() => { inputRef.current.left = false; }}
             onPointerCancel={() => { inputRef.current.left = false; }}
@@ -574,6 +578,7 @@ export default function MultiplayerClient() {
             style={{ background: 'rgba(21,37,64,0.7)', border: '2px solid rgba(0,212,255,0.5)', color: 'var(--accent-cyan)', touchAction: 'none' }}
           >←</button>
           <button
+            aria-label={tp("Поворот вправо", "Turn right", "Skręt w prawo", { es: "Girar a la derecha", fr: "Tourner à droite", de: "Nach rechts steuern", it: "Virare a destra" })}
             onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.right = true; }}
             onPointerUp={() => { inputRef.current.right = false; }}
             onPointerCancel={() => { inputRef.current.right = false; }}
@@ -596,7 +601,7 @@ export default function MultiplayerClient() {
                      style={{ background: r.id === room?.myId ? 'rgba(0,212,255,0.1)' : 'transparent' }}>
                   <span className="text-sm">
                     <span className="font-mono text-xs text-[var(--text-muted)] mr-2">
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
+                      {r.time == null ? '·' : i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                     </span>
                     {r.nickname}
                     {r.isBot && <span className="text-[9px] text-[var(--text-muted)] ml-2">AI</span>}
