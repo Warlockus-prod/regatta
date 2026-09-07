@@ -1,7 +1,7 @@
 import type { Vessel } from '@/app/radio/symulator/radioModel';
 
 export const VOICE_KINDS = [
-  'mayday-fire', 'panpan-mob', 'panpan-engine',
+  'mayday-fire', 'mayday-mob', 'panpan-mob', 'panpan-engine',
   'securite-hazard', 'radio-check', 'cancel-false',
   'routine-marina', 'routine-ship', 'routine-group',
   'panpan-medico', 'vts-report', 'mayday-relay',
@@ -120,10 +120,11 @@ function exactPosition(text: string, positionSpoken: string): boolean {
   const lonDigits = tokens.slice(north + 1, east).join('').replace(/[^0-9]/g, '');
   const latRe = positionDigitsRe(latDigits);
   const lonRe = positionDigitsRe(lonDigits);
-  if (!latRe || !lonRe || !latRe.test(text) || !lonRe.test(text)) return false;
-  const ni = text.search(/\bnorth\b/);
-  const ei = text.search(/\beast\b/);
-  return ni >= 0 && ei >= 0 && ni < ei;
+  if (!latRe || !lonRe) return false;
+  // Bind each coordinate to its own hemisphere, in the transmitted position.
+  // Matching digit sequences anywhere could accept swapped values or MMSI digits.
+  const pattern = `\\b${latRe.source}${POS_FILLER}north\\s+(?:and\\s+)?${lonRe.source}${POS_FILLER}east\\b`;
+  return new RegExp(pattern).test(text);
 }
 
 const NUMBER_TOKEN = /^(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)$/;
@@ -179,14 +180,15 @@ function buildChecks(input: VoiceGradeInput): Check[] {
   const identity = commonIdentityChecks(input.vessel);
 
   switch (input.kind) {
+    case 'mayday-mob':
     case 'mayday-fire':
       return [
         { id: 'mayday3', label: 'MAYDAY x3', test: (t) => maydaySignalCount(t) >= 3 },
         ...identity, position,
-        { id: 'nature', label: 'rodzaj zagrozenia (fire)', test: (t) => /(fire|explosion|burning)/.test(t) },
+        { id: 'nature', label: input.kind === "mayday-mob" ? "czlowiek za burta" : "rodzaj zagrozenia (fire)", test: (t) => input.kind === "mayday-mob" ? /(man overboard|person in (?:the )?water)/.test(t) : /(fire|explosion|burning)/.test(t) },
         { id: 'assist', label: 'potrzebna pomoc', test: (t) => /(immediate assistance|require assistance|need help)/.test(t) },
         persons,
-        { id: 'order', label: 'kolejnosc: alarm -> identyfikacja -> pozycja -> zagrozenie', test: (t) => ordered(t, [/may\s?day/, /this is/, /position/, /(fire|explosion|burning)/]) },
+        { id: 'order', label: 'kolejnosc: alarm -> identyfikacja -> pozycja -> zagrozenie', test: (t) => ordered(t, [/may\s?day/, /this is/, /position/, input.kind === "mayday-mob" ? /(man overboard|person in (?:the )?water)/ : /(fire|explosion|burning)/]) },
         { id: 'over', label: 'OVER na koncu', test: (t) => /\bover$/.test(t) },
       ];
     case 'panpan-mob':
@@ -317,7 +319,7 @@ export function gradeVoiceTransmission(input: VoiceGradeInput): {
     id: check.id,
     label: check.label,
     ok: check.test(text),
-    ...(MANDATORY_CHECK_IDS.has(check.id) ? { mandatory: true } : {}),
+    ...((MANDATORY_CHECK_IDS.has(check.id) || ((input.kind === "mayday-fire" || input.kind === "mayday-mob") && ["position", "nature", "assist"].includes(check.id))) ? { mandatory: true } : {}),
   }));
   const score = Math.round((checks.filter((check) => check.ok).length / checks.length) * 100);
   const mandatoryOk = checks.every((check) => !check.mandatory || check.ok);

@@ -28,3 +28,10 @@ describe('UKE 26 practical tasks', () => {
     expect(groups).toEqual(new Set(['device', 'voice', 'dsc', 'epirb-sart']));
   });
 });
+
+
+it("task 10 trains the same distress priority that its explanation teaches", () => {
+  const task = PRACTICAL_TASKS.find((item) => item.n === 10)!;
+  const scenario = SCENARIOS.find((item) => item.id === task.scenario)!;
+  expect(scenario.steps.find((step) => step.voice)?.voice?.kind).toBe("mayday-mob");
+});

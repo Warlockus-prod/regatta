@@ -26,7 +26,7 @@ export interface VariantData {
 export interface VoiceSpec {
   /** id understood by /api/radio-voice grading. */
   kind:
-    | 'mayday-fire' | 'panpan-mob' | 'panpan-engine' | 'securite-hazard'
+    | 'mayday-fire' | 'mayday-mob' | 'panpan-mob' | 'panpan-engine' | 'securite-hazard'
     | 'radio-check' | 'cancel-false' | 'routine-marina' | 'routine-ship'
     | 'routine-group' | 'panpan-medico' | 'vts-report' | 'mayday-relay'
     | 'mayday-ack' | 'answer-call';
@@ -73,15 +73,15 @@ const stepPower = (): ScenarioStep => ({
   id: 'power',
   todo: { pl: 'Wlacz radiostacje (przytrzymaj pokretlo [DIAL] 1 s)', ru: 'Включи рацию (удержи ручку [DIAL] 1 с)' },
   why: {
-    pl: 'Wlaczone radio pelni ciagly nasluch na kanale 16 i cyfrowo na kanale 70 (DSC). Bez zasilania nie ma ani nasluchu, ani mozliwosci nadania alarmu.',
-    ru: 'Включённая рация несёт непрерывную вахту на 16 канале и цифровую на 70 (DSC). Без питания нет ни вахты, ни возможности подать сигнал.',
+    pl: 'Wlacz radio i wybierz kanal 16 do nasluchu glosowego. Oddzielny odbiornik DSC nasluchuje kanalu 70; samo wlaczenie radia na innym kanale nie zapewnia nasluchu glosowego na 16. Bez zasilania nie ma ani nasluchu, ani mozliwosci nadania alarmu.',
+    ru: 'Включи рацию и выбери канал 16 для голосовой вахты. Отдельный приёмник DSC слушает канал 70; включение рации на другом канале само по себе не обеспечивает голосовую вахту на 16. Без питания нет ни вахты, ни возможности подать сигнал.',
   },
   check: (e, prev, next) => e.type === 'dial-hold' && !prev.power && next.power,
 });
 
 const stepDistressCompose = (): ScenarioStep => ({
   id: 'compose',
-  todo: { pl: 'Otworz ekran DISTRESS (softkey [DISTRESS] albo Menu > Distress)', ru: 'Открой экран DISTRESS (софткей [DISTRESS] или Menu > Distress)' },
+  todo: { pl: 'M330: [DISTRESS] lub Menu > Distress. M323: Menu > DSC Calls > Distress Call', ru: 'M330: [DISTRESS] или Menu > Distress. M323: Menu > DSC Calls > Distress Call' },
   why: {
     pl: 'Alarm "designated" (z podanym rodzajem zagrozenia) mowi ratownikom, CO sie dzieje, zanim uslysza glos. Ekran Distress pozwala wybrac rodzaj przed nadaniem.',
     ru: 'Алерт «designated» (с указанным родом бедствия) сообщает спасателям, ЧТО случилось, ещё до голосовой связи. Экран Distress позволяет выбрать род до отправки.',
@@ -107,29 +107,6 @@ const stepHold = (): ScenarioStep => ({
     ru: 'Крышка и удержание 3 секунды защищают от случайного алерта (ложные тревоги - реальная проблема GMDSS). Рация отсчитывает бипами и передаёт DSC-алерт на 70 канале: MMSI + позиция GPS + род бедствия.',
   },
   check: (e) => e.type === 'distress-held',
-});
-
-const stepAck = (): ScenarioStep => ({
-  id: 'ack',
-  todo: { pl: 'Poczekaj na cyfrowe potwierdzenie stacji brzegowej (DSC ACK)', ru: 'Дождись цифрового подтверждения береговой станции (DSC ACK)' },
-  why: {
-    pl: 'W normalnym zasiegu A1 stacja brzegowa potwierdza alert przez DSC. Do czasu ACK radio samo powtarza alert w losowych odstepach 3,5-4,5 minuty. Jezeli ACK nie przychodzi po ok. 15 sekundach, wybierz 16/C i nadaj MAYDAY glosem, nie czekaj bez konca. W Polsce dyzur trzyma POLISH RESCUE RADIO (MMSI 002618102) i MRCK Gdynia.',
-    ru: 'В обычной зоне A1 береговая станция подтверждает алерт по DSC. До ACK рация сама повторяет алерт через случайные интервалы 3,5-4,5 минуты. Если ACK не приходит примерно 15 секунд, выбери 16/C и передай MAYDAY голосом, не жди бесконечно. В Польше вахту несёт POLISH RESCUE RADIO (MMSI 002618102) и MRCK Gdynia.',
-  },
-  // The ACK is on a timer from distress-wait and may land during OR after the
-  // voice MAYDAY, so accept the fresh event or the already-acknowledged state.
-  // A one-shot `=== coast-ack` here would soft-lock if it fired while speaking.
-  check: (e, prev, next) => e.type === 'coast-ack' || next.ackReceived,
-});
-
-const stepAlarmOff = (): ScenarioStep => ({
-  id: 'alarmoff',
-  todo: { pl: 'Wylacz alarm ([ALARM OFF]) - radio zostaje na kanale 16', ru: 'Отключи сигнал ([ALARM OFF]) - рация остаётся на 16 канале' },
-  why: {
-    pl: 'Alarm ACK ucichl - wylaczasz go, radio zostaje na kanale 16. Glosowy MAYDAY juz nadany; teraz sluchasz stacji brzegowej i odpowiadasz na jej pytania na 16 (to ona kieruje ruchem w niebezpieczenstwie).',
-    ru: 'Сигнал ACK смолк - выключаешь его, рация остаётся на 16 канале. Голосовой MAYDAY уже передан; теперь слушаешь береговую станцию и отвечаешь на её вопросы на 16 (движением по бедствию управляет она).',
-  },
-  check: (e, prev, next) => e.type === 'soft' && prev.screen === 'distress-ack' && next.screen === 'distress-ack-done',
 });
 
 // --- scenario 1: fire -> designated MAYDAY ----------------------------------
@@ -159,14 +136,12 @@ const fireScenario: Scenario = {
     stepDistressCompose(),
     stepNature('Fire,Explosion'),
     stepHold(),
-    stepAck(),
-    stepAlarmOff(),
     {
       id: 'mayday-voice',
-      todo: { pl: 'Nadaj MAYDAY glosem na kanale 16 (trzymaj PTT)', ru: 'Передай MAYDAY голосом на 16 канале (держи PTT)' },
+      todo: { pl: 'Po ACK: ALARM OFF, potem MAYDAY na 16. Bez ACK po ok. 15 s: 16/C i MAYDAY (PTT)', ru: 'После ACK: ALARM OFF и MAYDAY на 16. Если ACK нет около 15 с: 16/C и MAYDAY (PTT)' },
       why: {
-        pl: 'Po ACK i ALARM OFF radio automatycznie wybiera kanal 16. Cyfrowy alert to tylko naglowek; glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji i potrzebna pomoc. Kolejnosc (MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
-        ru: 'После ACK и ALARM OFF рация автоматически выбирает канал 16. Цифровой алерт - только заголовок; голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации и нужную помощь. Порядок (MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
+        pl: 'Po ACK wybierz ALARM OFF. Jezeli ACK nie przychodzi po okolo 15 sekundach, wybierz 16/C i nadaj MAYDAY bez dalszego czekania; cyfrowe powtarzanie alarmu pozostaje aktywne. Cyfrowy alert to tylko naglowek; glosem podajesz to, czego DSC nie przenosi: liczbe osob, rozwoj sytuacji i potrzebna pomoc. Kolejnosc (MIPDANIO): MAYDAY x3 -> THIS IS + nazwa x3 -> znak/MMSI -> MAYDAY + nazwa -> pozycja -> rodzaj zagrozenia -> potrzebna pomoc -> liczba osob -> OVER.',
+        ru: 'После ACK выбери ALARM OFF. Если ACK нет примерно 15 секунд, выбери 16/C и передай MAYDAY без дальнейшего ожидания; цифровые повторы алерта продолжаются. Цифровой алерт - только заголовок; голосом передаёшь то, чего нет в DSC: число людей, развитие ситуации и нужную помощь. Порядок (MIPDANIO): MAYDAY x3 -> THIS IS + название x3 -> позывной/MMSI -> MAYDAY + название -> позиция -> род бедствия -> нужная помощь -> число людей -> OVER.',
       },
       // Durable check: only requires PTT keyed on the associated voice channel.
       check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
@@ -197,73 +172,41 @@ const fireScenario: Scenario = {
   },
 };
 
-// --- scenario 2: MOB in sight -> PAN-PAN ------------------------------------
-
-const PANPAN_MOB_LINES = (v: VariantData) => [
-  'PAN PAN, PAN PAN, PAN PAN',
-  'ALL STATIONS, ALL STATIONS, ALL STATIONS',
-  `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
-  `CALL SIGN ${v.vessel.call}, MMSI ${v.vessel.mmsi}`,
-  `POSITION ${v.posSpoken}`,
-  'MAN OVERBOARD, PERSON IN SIGHT, RECOVERY IN PROGRESS',
-  'ALL VESSELS IN VICINITY KEEP CLEAR AND REDUCE WAKE',
-  'OVER',
-];
-
+// MOB uses the same distress procedure as fire. Visual contact does not
+// remove the danger to life; the former PAN-PAN exercise taught the wrong default.
 const mobScenario: Scenario = {
-  id: 'mob-panpan',
-  icon: '🛟',
-  title: { pl: 'MOB widoczny, pomoc lokalna - PAN-PAN', ru: 'MOB виден, локальная помощь - PAN-PAN' },
+  ...fireScenario,
+  id: "mob-mayday",
+  icon: "🛟",
+  title: { pl: "Czlowiek za burta - MAYDAY", ru: "Человек за бортом - MAYDAY" },
   brief: {
-    pl: 'To scenariusz operacyjny, nie odpowiedz do zadania nr 10 UKE. Widzisz osobe w kamizelce, manewr podjecia trwa i prosisz pobliskie jednostki o ograniczenie fali. Cwiczysz PAN-PAN. W zadaniu praktycznym UKE "czlowiek za burta" odpowiadaj MAYDAY. W realu MAYDAY jest wlasciwe zawsze, gdy potrzebna jest natychmiastowa pomoc z zewnatrz.',
-    ru: 'Это операционный сценарий, а не ответ к заданию UKE номер 10. Человек виден, он в жилете, маневр подъема уже идет, а соседние суда просят уменьшить волну. Здесь тренируется PAN-PAN. В практическом задании UKE «человек за бортом» отвечай MAYDAY. В море MAYDAY нужен всегда, когда требуется немедленная внешняя помощь.',
+    pl: "Czlonek zalogi wypadl za burte i pozostaje w wodzie. Widzisz go, ale nie mozesz bezpiecznie podjac go na poklad i potrzebujesz natychmiastowej pomocy. Nadaj alarm DSC Man Overboard i MAYDAY na kanale 16.",
+    ru: "Член экипажа упал за борт и остаётся в воде. Ты его видишь, но не можешь безопасно поднять на борт и нужна немедленная помощь. Передай DSC Man Overboard и MAYDAY на канале 16.",
   },
-  steps: [
-    stepPower(),
-    {
-      id: 'otherdsc',
-      todo: { pl: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call', ru: 'M330: [OTHER DSC]. M323: Menu > DSC Calls > All Ships Call' },
-      why: {
-        pl: 'PAN-PAN to NIE czerwony przycisk - ten jest tylko dla DISTRESS. Wywolania pilnosci i bezpieczenstwa sklada sie z menu Other DSC jako "All Ships".',
-        ru: 'PAN-PAN - это НЕ красная кнопка, она только для DISTRESS. Вызовы срочности и безопасности собираются в меню Other DSC как «All Ships».',
+  steps: fireScenario.steps.map((step) => {
+    if (step.id === "nature") return stepNature("Man Overboard");
+    if (!step.voice) return step;
+    return {
+      ...step,
+      voice: {
+        kind: "mayday-mob",
+        lines: (v: VariantData) => [
+          "MAYDAY MAYDAY MAYDAY",
+          `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
+          `CALL SIGN ${v.vessel.call}, MMSI ${v.vessel.mmsi}`,
+          `MAYDAY ${v.vessel.name}`,
+          `POSITION ${v.posSpoken}`,
+          "MAN OVERBOARD, ONE PERSON IN THE WATER, UNABLE TO RECOVER",
+          "REQUIRE IMMEDIATE ASSISTANCE",
+          `${v.pobWord} PERSONS IN TOTAL, INCLUDING THE PERSON IN THE WATER`,
+          "OVER",
+        ],
       },
-      check: (e, prev, next) => prev.screen !== 'otherdsc-compose' && next.screen === 'otherdsc-compose',
-    },
-    {
-      id: 'urgency-sent',
-      todo: { pl: 'Ustaw Type: All Ships, Category: Urgency i wyslij (Send)', ru: 'Выставь Type: All Ships, Category: Urgency и отправь (Send)' },
-      why: {
-        pl: 'Cyfrowa zapowiedz "All Ships / Urgency" na kanale 70 podbija uwage wszystkich radiostacji w zasiegu i wskazuje kanal 16 dla tresci. Zapowiedz pilnosci NIE jest potwierdzana przez DSC.',
-        ru: 'Цифровое объявление «All Ships / Urgency» на 70 канале привлекает внимание всех радиостанций в зоне и указывает 16 канал для сообщения. Объявление срочности НЕ подтверждается по DSC.',
-      },
-      check: (e, prev, next) =>
-        e.type === 'ent' && next.screen === 'otherdsc-sent'
-        && next.odSent?.type === 'All Ships' && next.odSent?.category === 'Urgency',
-    },
-    {
-      id: 'panpan-voice',
-      todo: { pl: 'Nadaj PAN-PAN glosem na kanale 16', ru: 'Передай PAN-PAN голосом на 16 канале' },
-      why: {
-        pl: 'Struktura: PAN PAN x3 -> ALL STATIONS x3 -> THIS IS + nazwa x3 -> pozycja -> sytuacja -> czego oczekujesz od ruchu wokol -> OVER. Prowords zostaja angielskie takze na polskim egzaminie.',
-        ru: 'Структура: PAN PAN x3 -> ALL STATIONS x3 -> THIS IS + название x3 -> позиция -> ситуация -> чего ждёшь от судов вокруг -> OVER. Служебные слова остаются английскими и на польском экзамене.',
-      },
-      check: (e, prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
-      voice: { kind: 'panpan-mob', lines: PANPAN_MOB_LINES },
-    },
-  ],
-  mistakes: [
-    {
-      id: 'red-button-for-panpan',
-      text: {
-        pl: 'Czerwony DISTRESS przy sytuacji pilnosci - alarm bedzie falszywy. Czerwony klawisz = tylko bezposrednie zagrozenie zycia/statku.',
-        ru: 'Красная DISTRESS в ситуации срочности - алерт будет ложным. Красная кнопка = только прямая угроза жизни/судну.',
-      },
-      detect: (e) => e.type === 'distress-held',
-    },
-  ],
+    };
+  }),
   debrief: {
-    pl: 'Egzamin UKE: zadanie "czlowiek za burta" = MAYDAY. Ten wariant PAN-PAN dotyczy tylko sytuacji, w ktorej odzyskanie osoby juz trwa, pomoc ratownicza nie jest potrzebna, a komunikat ma pilnie uporzadkowac ruch wokol. Jesli masz watpliwosc co do zycia, widocznosci osoby lub skutecznosci podjecia, uzyj MAYDAY.',
-    ru: 'Экзамен UKE: задание «человек за бортом» = MAYDAY. Этот вариант PAN-PAN относится только к ситуации, когда подъем уже идет, спасательная помощь не требуется, а сообщение должно срочно упорядочить движение рядом. Если есть сомнение в угрозе жизни, видимости человека или успехе подъема, используй MAYDAY.',
+    pl: "Widocznosc osoby i kamizelka nie usuwaja zagrozenia zycia. Cwicz MAYDAY takze do zadania 10 UKE. Po podjeciu osoby powiadom stacje ratownicza o zmianie sytuacji. Rzeczywistego, zakonczonego zdarzenia nie odwoluj jako falszywego alarmu.",
+    ru: "Видимость человека и спасжилет не устраняют угрозу жизни. Отрабатывай MAYDAY также для задания 10 UKE. После подъёма сообщи спасательной станции об изменении ситуации. Настоящее завершившееся происшествие не отменяют как ложную тревогу.",
   },
 };
 
@@ -421,8 +364,8 @@ const radioCheckScenario: Scenario = {
   icon: '📞',
   title: { pl: 'Radio check w marinie', ru: 'Проверка связи с мариной' },
   brief: {
-    pl: 'Wychodzisz z Mariny Gdynia i chcesz sprawdzic, czy radio nadaje i odbiera. Wywolania rutynowe NIE ida na kanale 16 - marina Gdynia pracuje na kanale 12.',
-    ru: 'Выходишь из марины Гдыня и хочешь проверить, что рация передаёт и принимает. Рутинные вызовы НЕ идут на 16 канале - марина Гдыня работает на 12.',
+    pl: 'Wychodzisz z Mariny Gdynia i chcesz sprawdzic, czy radio nadaje i odbiera. Do tego radio check uzyj znanego kanalu roboczego mariny Gdynia: 12. Kanal 16 sluzy rowniez do krotkiego wywolania, ale nie do rutynowej rozmowy ani testowania radia.',
+    ru: 'Выходишь из марины Гдыня и хочешь проверить, что рация передаёт и принимает. Для этой проверки используй известный рабочий канал марины Гдыня: 12. Канал 16 также служит для короткого первоначального вызова, но не для обычной беседы или проверки рации.',
   },
   steps: [
     stepPower(),

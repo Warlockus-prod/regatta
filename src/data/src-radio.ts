@@ -2602,7 +2602,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "rodzaj zagrożenia, pozycja, czas aktualności pozycji, rodzaj oczekiwanej pomocy"
   ],
   "correct": 0,
-  "whyPl": "Alarm DSC na kanale 70 zawsze zawiera numer MMSI, pozycję i czas jej aktualności; rodzaj oczekiwanej pomocy nie jest elementem alarmu DSC, lecz komunikatu fonicznego MAYDAY.",
+  "whyPl": "Alarm DSC zawiera MMSI oraz pola pozycji i czasu jej aktualności. Bez aktualnego GNSS lub wpisu ręcznego pozycja może być nieaktualna albo oznaczona jako niedostępna. Rodzaj oczekiwanej pomocy podaje się głosem w MAYDAY.",
   "confidence": "unsure"
  },
  {
@@ -3083,7 +3083,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "4 - 6 satelitów"
   ],
   "correct": 2,
-  "whyPl": "Segment geostacjonarny GEOSAR systemu COSPAS-SARSAT tworzy 4-6 satelitów z transponderami 406 MHz.",
+  "whyPl": "W tym historycznym pytaniu bazy UKE klucz szkoleniowy wskazuje 4-6 satelitów. Nie traktuj tej liczby jako aktualnego stanu konstelacji: skład i status systemu zmieniają się, a bieżące dane publikuje COSPAS-SARSAT w QARS.",
   "confidence": "sure"
  },
  {

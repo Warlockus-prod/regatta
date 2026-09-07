@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -35,7 +35,7 @@ export default function RadioSubnav() {
 
   return (
     <div className="mb-6 flex flex-wrap items-center gap-2">
-      <nav className="flex min-w-0 flex-1 gap-2 overflow-x-auto pb-1" aria-label="Radio">
+      <nav className="flex w-full min-w-0 flex-none gap-2 overflow-x-auto pb-1 sm:w-auto sm:flex-1" aria-label="Radio">
         {primary.map((item) => (
           <Link
             key={item.href}

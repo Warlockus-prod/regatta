@@ -181,3 +181,25 @@ describe('audit 2026-07-17: position read digit-by-digit, relay confusion, PAN t
     expect(g('panpan-mob', three).checks.find((c) => c.id === 'panpan3')?.ok).toBe(false);
   });
 });
+
+describe("distress audit regressions", () => {
+  const grade = (transcript: string) => gradeVoiceTransmission({
+    kind: "mayday-fire", transcript, vessel, positionSpoken: position, pob: 4,
+  });
+  it("rejects swapped coordinates even when both sequences occur", () => {
+    const result = grade(correctMayday.replace("54 30.5 NORTH 018 45.2 EAST", "018 45.2 NORTH 54 30.5 EAST"));
+    expect(result.checks.find((c) => c.id === "position")?.ok).toBe(false);
+    expect(result.mandatoryOk).toBe(false);
+  });
+  it("requires position, danger and assistance in the assigned distress exercise", () => {
+    for (const omitted of ["POSITION 54 30.5 NORTH 018 45.2 EAST", "FIRE ON BOARD FIRE IS NOT UNDER CONTROL", "REQUIRE IMMEDIATE ASSISTANCE"]) {
+      expect(grade(correctMayday.replace(omitted, "")).mandatoryOk).toBe(false);
+    }
+  });
+  it("grades a MOB as MAYDAY and rejects PAN-PAN as the distress signal", () => {
+    const transcript = correctMayday.replace("FIRE ON BOARD FIRE IS NOT UNDER CONTROL", "MAN OVERBOARD ONE PERSON IN THE WATER");
+    const input = { kind: "mayday-mob" as const, transcript, vessel, positionSpoken: position, pob: 4 };
+    expect(gradeVoiceTransmission(input).score).toBe(100);
+    expect(gradeVoiceTransmission({ ...input, transcript: transcript.replaceAll("MAYDAY", "PAN PAN") }).mandatoryOk).toBe(false);
+  });
+});

@@ -116,7 +116,7 @@ export const DSC_STEPS: Row3[] = [
 export const MISTAKES: Pair[] = [
   ['Pominiecie DSC przed MAYDAY, gdy sprawne radio i czas pozwalaja (w naglym wypadku glos ma pierwszenstwo)', 'Пропуск DSC перед MAYDAY, когда рация исправна и время позволяет (в резкой аварии голос важнее)'],
   ['[DISTRESS] uzyty do PAN-PAN lub SECURITE', 'Красная кнопка нажата для PAN-PAN или SECURITE'],
-  ['Wywolanie rutynowe na kanale 16', 'Рутинный вызов на 16 канале'],
+  ['Rutynowa rozmowa lub radio check na 16 zamiast przejscia na kanal roboczy', 'Обычная беседа или проверка связи на 16 вместо перехода на рабочий канал'],
   ['Falszywy alert bez odwolania (glosem i cyfrowo)', 'Ложный алерт без отмены голосом и цифрой'],
   ['Nature "Undesignated" przy znanej przyczynie', 'Undesignated, когда причина известна'],
   ['25 W do bliskiej lacznosci, gdy 1 W wystarcza i kanal na nia pozwala', '25 Вт для близкой связи, когда достаточно 1 Вт и канал это допускает'],

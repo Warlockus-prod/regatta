@@ -1,6 +1,6 @@
-"use client";
+'use client';
 
-import { useI18n } from "@/lib/i18n";
+import { useSternikPrefs } from "../../sternik/prefs";
 import type { DiagramId } from "./courseData";
 
 const C = {
@@ -75,8 +75,8 @@ function ArrowDefs({ id, color = C.muted }: { id: string; color?: string }) {
 }
 
 function SystemDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Система морской связи" : "System lacznosci morskiej"}
@@ -123,8 +123,8 @@ function SystemDiagram() {
 }
 
 function HorizonDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Радиогоризонт VHF" : "Radiogoryzont VHF"}
@@ -176,8 +176,8 @@ function HorizonDiagram() {
 }
 
 function ControlsDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const callouts = [
     { x: 75, y: 58, label: "DISTRESS", note: ru ? "только бедствие" : "tylko distress", color: C.red },
     { x: 555, y: 68, label: "VOL", note: ru ? "громкость" : "glosnosc", color: C.cyan },
@@ -226,8 +226,8 @@ function ControlsDiagram() {
 }
 
 function ChannelsDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Simplex, duplex и роли каналов" : "Simplex, duplex i role kanalow"}
@@ -277,8 +277,8 @@ function ChannelsDiagram() {
 }
 
 function IdentityDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const rows = [
     { y: 72, k: ru ? "ИМЯ" : "NAZWA", v: "SY BALTICA", use: ru ? "человек слышит" : "czlowiek slyszy", c: C.cyan },
     { y: 164, k: "CALL SIGN", v: "SPG 2047", use: ru ? "официальный позывной" : "oficjalny znak", c: C.amber },
@@ -312,8 +312,8 @@ function IdentityDiagram() {
 }
 
 function RoutineDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const steps = [
     { t: ru ? "СЛУШАЙ" : "NASLUCH", s: ru ? "канал свободен?" : "kanal wolny?" },
     { t: ru ? "ВЫЗОВ" : "WYWOLAJ", s: "MARINA, THIS IS BALTICA, OVER" },
@@ -352,8 +352,8 @@ function RoutineDiagram() {
 }
 
 function DscDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Две дорожки DSC и голоса" : "Dwie sciezki DSC i fonii"}
@@ -393,8 +393,8 @@ function DscDiagram() {
 }
 
 function PriorityDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Дерево выбора приоритета" : "Drzewo wyboru priorytetu"}
@@ -429,8 +429,8 @@ function PriorityDiagram() {
 }
 
 function MaydayDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const rows = [
     { n: "1", call: "MAYDAY x3, THIS IS, BALTICA x3", why: ru ? "привлечь внимание и назвать себя" : "uwaga i identyfikacja", c: C.red },
     { n: "2", call: "MAYDAY BALTICA", why: ru ? "начало сообщения" : "poczatek komunikatu", c: C.red },
@@ -466,8 +466,8 @@ function MaydayDiagram() {
 }
 
 function ReceiveDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const boxes = [
     { x: 24, y: 125, w: 125, t: ru ? "ПРИНЯТ DSC" : "ODEBRANO DSC", s: ru ? "запиши данные" : "zapisz dane", c: C.red },
     { x: 180, y: 125, w: 125, t: ru ? "СЛУШАЙ 16" : "SLUCHAJ 16", s: ru ? "5 минут" : "5 minut", c: C.cyan },
@@ -502,8 +502,8 @@ function ReceiveDiagram() {
 }
 
 function GmdssDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Цепочка GMDSS" : "Lancuch GMDSS"}
@@ -552,8 +552,8 @@ function GmdssDiagram() {
 }
 
 function PowerDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const stages = [
     { x: 34, t: ru ? "ИСТОЧНИК" : "ZRODLO", s: "12 / 24 V", c: C.cyan },
     { x: 204, t: ru ? "ЗАЩИТА" : "OCHRONA", s: ru ? "предохранитель" : "bezpiecznik", c: C.amber },
@@ -589,8 +589,8 @@ function PowerDiagram() {
 }
 
 function SmcpDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const rows = [
     { y: 60, start: "I AM", examples: "SINKING / ON FIRE / NOT UNDER COMMAND", c: C.red },
     { y: 125, start: "I REQUIRE", examples: "ASSISTANCE / TUG / AMBULANCE", c: C.amber },
@@ -619,8 +619,8 @@ function SmcpDiagram() {
 }
 
 function NavtexDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const fields = [
     { x: 92, code: "ZCZC", label: ru ? "начало" : "poczatek", c: C.muted },
     { x: 226, code: "J", label: ru ? "станция B1" : "stacja B1", c: C.cyan },
@@ -654,8 +654,8 @@ function NavtexDiagram() {
 }
 
 function EpirbDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const nodes = [
     { x: 34, t: "EPIRB", s: "406 MHz", c: C.red },
     { x: 190, t: ru ? "СПУТНИКИ" : "SATELITY", s: "LEO / GEO / MEO", c: C.cyan },
@@ -690,8 +690,8 @@ function EpirbDiagram() {
 }
 
 function SartDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Как изображение Radar SART меняется при сближении" : "Jak zmienia sie obraz Radar SART przy zblizaniu"}
@@ -726,8 +726,8 @@ function SartDiagram() {
 }
 
 function AisSartDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   return (
     <Base
       title={ru ? "Radar SART и AIS-SART используют разные экраны" : "Radar SART i AIS-SART uzywaja innych ekranow"}
@@ -754,8 +754,8 @@ function AisSartDiagram() {
 }
 
 function WorldDiagram() {
-  const { lang } = useI18n();
-  const ru = lang === "ru";
+  const { explLang } = useSternikPrefs();
+  const ru = explLang === "ru";
   const regions = [
     { x: 32, title: ru ? "МОРЕ ЕВРОПЫ" : "MORZE EUROPA", lines: ["INT", "DSC CH 70", "VTS / PORT"], c: C.cyan },
     { x: 205, title: ru ? "EU INLAND" : "EU INLAND", lines: ["ATIS", ru ? "часто без DSC" : "czesto bez DSC", ru ? "малая мощность" : "mala moc"], c: C.amber },

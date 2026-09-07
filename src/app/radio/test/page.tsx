@@ -14,6 +14,7 @@ import { record as recordWeak } from '../weakSpots';
 import { THEORY_CHAPTERS } from '../teoria/courseData';
 import { CHAPTER_QUESTION_IDS, theoryHrefForQuestion, type TheoryChapterId } from '../teoria/courseMap';
 import { radioRuntimeSearch } from '../runtimeSearch';
+import { createExam, gradeExam } from './examModel';
 
 // ============================================================================
 // /radio/test - trainer over the OFFICIAL UKE SRC question base (324 A/B/C
@@ -45,17 +46,19 @@ export default function SrcTrainerPage() {
   const [picked, setPicked] = useState<number | null>(null);
   const [sessionOk, setSessionOk] = useState(0);
   const [sessionN, setSessionN] = useState(0);
+  const [answers, setAnswers] = useState<Record<string, number>>({});
+  const examResult = gradeExam(queue, answers);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setProgress(loadQuestionProgress());
       const search = new URLSearchParams(radioRuntimeSearch());
       const requestedChapter = search.get('chapter');
-      if (requestedChapter && requestedChapter in CHAPTER_QUESTION_IDS) {
+      if (requestedChapter && Object.hasOwn(CHAPTER_QUESTION_IDS, requestedChapter)) {
         setChapterId(requestedChapter as TheoryChapterId);
       }
       if (search.get('mode') === 'weak') setMode('weak');
-      if (search.get('mode') === 'exam') setMode('exam');
+      if (search.get('mode') === 'exam') { setMode('exam'); setChapterId(null); }
     });
     return () => window.cancelAnimationFrame(frame);
   }, []);
@@ -78,11 +81,8 @@ export default function SrcTrainerPage() {
   }, [chapterId, mode, part, progress]);
 
   const start = useCallback(() => {
-    const scored = mode === 'exam' && !chapterId
-      ? shuffle([
-          ...shuffle(SRC_BANK.filter((question) => question.part === 1)).slice(0, 5),
-          ...shuffle(SRC_BANK.filter((question) => question.part === 2)).slice(0, 5),
-        ])
+    const scored = mode === 'exam'
+      ? createExam(SRC_BANK)
       : shuffle(pool).sort((a, b) => {
           const sa = progress[a.id]?.streak ?? -1;
           const sb = progress[b.id]?.streak ?? -1;
@@ -93,6 +93,7 @@ export default function SrcTrainerPage() {
     setPicked(null);
     setSessionOk(0);
     setSessionN(0);
+    setAnswers({});
   }, [chapterId, mode, pool, progress]);
 
   const current = queue[idx];
@@ -100,6 +101,7 @@ export default function SrcTrainerPage() {
   const answer = useCallback((i: number) => {
     if (!current || picked !== null) return;
     setPicked(i);
+    setAnswers((previous) => ({ ...previous, [current.id]: i }));
     const ok = i === current.correct;
     setSessionOk((v) => v + (ok ? 1 : 0));
     setSessionN((v) => v + 1);
@@ -133,9 +135,9 @@ export default function SrcTrainerPage() {
       </h1>
       <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
         {tp(
-          '324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). Ответил - сразу видишь верно/нет и почему.',
-          'All 324 questions from the official UKE SRC study materials. Instant right/wrong feedback with explanations.',
-          '324 pytania z oficjalnych materialow UKE do testu SRC. Odpowiadasz - od razu widzisz dobrze/zle i dlaczego.',
+          '324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.',
+          'All 324 questions from the official UKE SRC study materials. Learn with instant feedback, or take a mock exam with feedback at the end.',
+          '324 pytania z oficjalnych materialow UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie probnym dopiero po zakonczeniu.',
         )}
       </p>
 
@@ -157,7 +159,7 @@ export default function SrcTrainerPage() {
             key={value}
             type="button"
             aria-pressed={mode === value}
-            onClick={() => { setMode(value); setQueue([]); }}
+            onClick={() => { setMode(value); setQueue([]); if (value === "exam") setChapterId(null); }}
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={mode === value
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }
@@ -214,11 +216,40 @@ export default function SrcTrainerPage() {
               <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {tp('Серия пройдена', 'Round finished', 'Runda zakonczona')}: {sessionOk}/{sessionN}
               </div>
+              {mode === "exam" && (
+                <div className="mt-4 text-left" data-testid="exam-result" role="status">
+                  <p className="font-semibold" style={{ color: examResult.passed ? "var(--success)" : "var(--warning)" }}>
+                    {examResult.passed ? tp("Теоретический пробник сдан", "Theory mock passed", "Proba teorii zaliczona") : tp("Нужно повторить один или оба предмета", "Review one or both subjects", "Powtorz jeden lub oba przedmioty")}
+                  </p>
+                  {examResult.parts.map((result) => (
+                    <p key={result.part} className="mt-2 text-sm">
+                      {SRC_PARTS[result.part]}: {result.correct}/{result.total} {result.passed ? "✓" : "✗"}
+                    </p>
+                  ))}
+                  <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
+                    {tp("Порог: 3/5 отдельно в каждом предмете. Это не оценка практических навыков.", "Threshold: 3/5 in each subject separately. This does not assess practical skills.", "Prog: 3/5 osobno z kazdego przedmiotu. To nie jest ocena umiejetnosci praktycznych.")}
+                  </p>
+                  <details className="mt-4">
+                    <summary className="min-h-[44px] cursor-pointer font-semibold">{tp("Разбор ответов", "Review answers", "Omowienie odpowiedzi")}</summary>
+                    <ol className="space-y-5">
+                      {queue.map((question) => (
+                        <li key={question.id} className="border-t pt-3 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
+                          <p>{answers[question.id] === question.correct ? "✓" : "✗"} {question.q}</p>
+                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedz")}: {question.options[answers[question.id]]}</p>
+                          <p className="mt-1">{tp("Учебный ключ", "Study key", "Klucz szkoleniowy")}: {question.options[question.correct]}</p>
+                          <p className="mt-1" style={{ color: "var(--text-secondary)" }}>{question.whyPl}</p>
+                          <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tp("Повторить тему", "Review topic", "Powtorz temat")}</Link>
+                        </li>
+                      ))}
+                    </ol>
+                  </details>
+                </div>
+              )}
             </>
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {mode === 'exam'
-                ? tp('10 вопросов: 5 из каждого раздела, как на теоретическом экзамене UKE.', '10 questions: 5 from each section, matching the UKE theory format.', '10 pytan: po 5 z kazdego dzialu, jak na egzaminie teoretycznym UKE.')
+                ? tp('10 вопросов, по 5 из каждого предмета. Нужно минимум 3/5 в каждом. Ответы и разбор после завершения. Практическая часть оценивается отдельно.', '10 questions, 5 per subject. You need at least 3/5 in each. Answers and feedback appear at the end. Practical skills are assessed separately.', '10 pytan, po 5 z kazdego przedmiotu. Potrzebujesz co najmniej 3/5 w kazdym. Odpowiedzi i omowienie po zakonczeniu. Praktyka jest oceniana osobno.')
                 : pool.length === 0 && mode === 'weak'
                   ? tp('Пока нет вопросов для повторения. Ошибки из курса и банка появятся здесь.', 'There are no questions to review yet. Mistakes from the course and bank will appear here.', 'Nie ma jeszcze pytan do powtorki. Bledy z kursu i banku pojawia sie tutaj.')
                   : chapter
@@ -250,7 +281,7 @@ export default function SrcTrainerPage() {
                 ⚠️ {tp('спорный ключ', 'uncertain key', 'watpliwy klucz')}
               </span>
             )}
-            <span className="ml-auto">{sessionOk}/{sessionN} ✓</span>
+            {mode !== 'exam' && <span className="ml-auto">{sessionOk}/{sessionN} ✓</span>}
           </div>
 
           <div className="mb-4 text-base font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
@@ -261,7 +292,7 @@ export default function SrcTrainerPage() {
             {current.options.map((opt, i) => {
               const isPicked = picked === i;
               const isCorrect = i === current.correct;
-              const show = picked !== null;
+              const show = picked !== null && mode !== "exam";
               return (
                 <button
                   key={i}
@@ -270,13 +301,14 @@ export default function SrcTrainerPage() {
                   disabled={picked !== null}
                   className="flex w-full items-start gap-2 rounded-xl px-4 py-3 text-left text-sm transition disabled:cursor-default"
                   style={{
-                    background: show && isCorrect ? 'rgba(68,255,136,0.10)' : show && isPicked ? 'rgba(255,85,102,0.10)' : 'var(--bg-secondary)',
+                    background: mode === 'exam' && isPicked ? 'var(--hover-bg)' : show && isCorrect ? 'rgba(68,255,136,0.10)' : show && isPicked ? 'rgba(255,85,102,0.10)' : 'var(--bg-secondary)',
                     border: `1px solid ${show && isCorrect ? 'var(--success)' : show && isPicked ? 'var(--danger, #ff6a5a)' : 'var(--border-subtle)'}`,
                     color: 'var(--text-primary)',
                   }}
                 >
                   <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{letters[i]}</span>
                   <span>{opt}</span>
+                  {mode === 'exam' && isPicked && <span className="ml-auto">{tp("Выбрано", "Selected", "Wybrano")}</span>}
                   {show && isCorrect && <span className="ml-auto shrink-0" style={{ color: 'var(--success)' }}>✓</span>}
                   {show && isPicked && !isCorrect && <span className="ml-auto shrink-0" style={{ color: 'var(--danger, #ff6a5a)' }}>✗</span>}
                 </button>
@@ -286,7 +318,7 @@ export default function SrcTrainerPage() {
 
           {picked !== null && (
             <>
-              <div role="status" aria-live="polite" className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
+              {mode !== "exam" && <div role="status" aria-live="polite" className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
                 {picked === current.correct ? '✅ ' : '❌ '}{current.whyPl}
                 {lang === 'ru' && (
                   <span className="mt-2 block text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -300,7 +332,7 @@ export default function SrcTrainerPage() {
                 >
                   {tp('Открыть связанную главу теории', 'Open the related theory chapter', 'Otworz powiazany rozdzial teorii')}
                 </Link>
-              </div>
+              </div>}
               <button
                 type="button"
                 data-testid="next-question"

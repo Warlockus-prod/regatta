@@ -1,4 +1,4 @@
-import { otherDscRows, softkeys, type RadioState } from './radioModel';
+import { CHANNELS, otherDscRows, softkeys, type RadioState } from './radioModel';
 
 // ============================================================================
 // "?" hint ("Podpowiedz - pokaz na radiu") from the vhf-trainer design.
@@ -53,11 +53,18 @@ export function hintFor(stepId: string, s: RadioState): string | null {
     // --- distress -----------------------------------------------------------
     case 'compose':
       // reach the Distress screen: softkey if it is on this page, else the menu
-      return s.screen === 'distress-compose' ? 'key-ent' : (anySoft(s, 'DISTRESS') ?? 'key-menu');
+      if (s.screen === 'distress-compose') return 'key-ent';
+      if (s.screen === 'menu') return s.menuCursor === 0 ? 'key-ent' : 'key-up';
+      if (s.screen === 'm323-dsc-calls') return s.m323CallCursor === 3 ? 'key-ent' : 'key-down';
+      return anySoft(s, 'DISTRESS') ?? 'key-menu';
     case 'nature':
       return s.screen === 'distress-nature' ? 'key-ent' : 'key-ent';
     case 'hold':
       return s.screen === 'distress-hold' ? 'distress-key' : 'distress-cover';
+    case "mayday-voice":
+      if (s.screen === "distress-ack") return anySoft(s, "ALARM OFF");
+      if (s.screen === "distress-wait" && CHANNELS[s.channelIndex].num !== "16") return "key-16c";
+      return "ptt";
     case 'ack':
     case 'dsc-ack':
       return null; // waiting for the other station - nothing to press

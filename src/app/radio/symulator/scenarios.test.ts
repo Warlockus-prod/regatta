@@ -64,7 +64,7 @@ describe('scenario catalogue integrity', () => {
     expect(SCENARIOS.some((s) => s.id === 'routine-ship')).toBe(true);   // Individual
     expect(SCENARIOS.some((s) => s.id === 'group-call')).toBe(true);     // Group
     expect(SCENARIOS.some((s) => s.id === 'dsc-test')).toBe(true);       // Test
-    expect(SCENARIOS.some((s) => s.id === 'mob-panpan')).toBe(true);     // All Ships
+    expect(SCENARIOS.some((s) => s.id === 'panpan-medico')).toBe(true);     // All Ships
     expect(sends.length).toBeGreaterThan(0);
   });
 });
@@ -190,4 +190,29 @@ describe('mistake detectors fire', () => {
     const relay = play('mayday-relay', [{ type: 'dial-hold' }, { type: 'distress-held' }]);
     expect(relay.mistakes.has('relay-red-button')).toBe(true);
   });
+});
+
+describe("own distress procedures", () => {
+  for (const model of ["M330", "M323"] as const) {
+    for (const [id, natureIndex] of [["fire-mayday", 1], ["mob-mayday", 10]] as const) {
+      const prefix: RadioEvent[] = [
+        { type: "dial-hold" }, { type: "menu" }, { type: "ent" },
+        ...(model === "M323" ? [...rep(3, { type: "down" }), { type: "ent" } as RadioEvent] : []),
+        { type: "ent" }, ...rep(natureIndex, { type: "down" }), { type: "ent" },
+        { type: "distress-down" }, { type: "distress-held" }, { type: "distress-txdone" },
+      ];
+      it(`${model} ${id}: sends voice after acknowledgement`, () => {
+        const result = play(id, [...prefix, { type: "coast-ack" }, { type: "soft", index: 0 }, { type: "ptt-down" }], model);
+        expect(result.state.natureIndex).toBe(natureIndex);
+        expect(result.done.size).toBe(result.sc.steps.length);
+        expect(result.mistakes.size).toBe(0);
+      });
+      it(`${model} ${id}: can send voice without waiting indefinitely for ACK`, () => {
+        const result = play(id, [...prefix, { type: "key-16c" }, { type: "ptt-down" }], model);
+        expect(result.done.size).toBe(result.sc.steps.length);
+        expect(result.state.distressActive).toBe(true);
+        expect(result.state.ackReceived).toBe(false);
+      });
+    }
+  }
 });

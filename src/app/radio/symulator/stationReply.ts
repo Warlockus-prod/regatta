@@ -26,6 +26,7 @@ const VTS = 'VTS ZATOKA GDANSKA';
 export function stationReply(kind: VoiceKind, vesselName: string): StationLine | null {
   const you = vesselName.toUpperCase();
   switch (kind) {
+    case 'mayday-mob':
     case 'mayday-fire':
       return { station: RESCUE, say: `MAYDAY. ${you}, ${you}, ${you}, THIS IS ${RESCUE}, ${RESCUE}, ${RESCUE}. RECEIVED MAYDAY. RESCUE UNIT DISPATCHED. REMAIN ON CHANNEL ONE SIX. OVER.` };
     case 'mayday-relay':

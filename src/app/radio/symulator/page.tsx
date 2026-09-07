@@ -449,7 +449,7 @@ export default function RadioSimulatorPage() {
     if (deepLinkStartedRef.current) return;
     const requestedId = new URLSearchParams(radioRuntimeSearch()).get('scenario');
     if (!requestedId) return;
-    const requested = SCENARIOS.find((item) => item.id === requestedId);
+    const requested = SCENARIOS.find((item) => item.id === (requestedId === "mob-panpan" ? "mob-mayday" : requestedId));
     if (!requested) return;
     deepLinkStartedRef.current = true;
     try { window.localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }

@@ -186,7 +186,7 @@ export default function RadioCourseHome() {
         <section aria-label={tp("Общий прогресс", "Overall progress", "Postep ogolny")} className="self-start border-t pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="mb-5 flex items-baseline justify-between">
             <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-              {tp("Готовность курса", "Course readiness", "Gotowosc kursu")}
+              {tp("Прогресс обучения", "Learning progress", "Postep nauki")}
             </h2>
             <span className="text-2xl font-bold" style={{ color: "var(--accent-cyan)" }}>
               {progress.overallPercent}%
