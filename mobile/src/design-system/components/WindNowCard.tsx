@@ -381,6 +381,7 @@ const styles = StyleSheet.create({
   },
   speedValue: {
     fontSize: 30,
+    lineHeight: 36,
     fontWeight: '700',
     color: colors.textPrimary,
   },
