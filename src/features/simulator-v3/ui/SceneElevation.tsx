@@ -53,7 +53,7 @@ export function SceneElevation({ view, ui, sim, tp }: {
     ? tp("полощет", "luffing", "lopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
     : sim.result.diag.jibStalled
       ? tp("срыв потока", "stalled", "oderwanie strug", { es: "perdida", fr: "decrochage", de: "Stromungsabriss", it: "stallo" }) : "";
-  return <div className="flex h-full min-h-0 flex-col" style={{ background: "var(--bg-primary)" }}>
+  return <div className="absolute inset-0 flex min-h-0 flex-col" style={{ background: "var(--bg-primary)" }}>
     <div className="flex items-start justify-between gap-4 px-5 pt-5">
       <div><h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{title}</h2>
         <p className="mt-1 hidden text-xs leading-relaxed sm:block" style={{ color: "var(--text-secondary)" }}>{hint}</p></div>
