@@ -16,7 +16,8 @@
     "test": "vitest run",
     "check:dash": "node scripts/check-no-dash.mjs",
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs",
-    "build:race-server": "node scripts/build-race-server.mjs"
+    "build:race-server": "node scripts/build-race-server.mjs",
+    "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.90.0",

@@ -60,6 +60,11 @@ export function WindPod(props: {
         sliderValue={ui.windSpeed}
         onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))}
       />
+      <details className="pt-1">
+        <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">
+          {tp("Порывы и живой ветер", "Gusts and live wind", "Podmuchy i wiatr na żywo", { es: "Rachas y viento real", fr: "Rafales et vent réel", de: "Böen und Live-Wind", it: "Raffiche e vento reale" })}
+        </summary>
+        <div className="space-y-2 pb-2">
       <LiveWindButton
         tp={tp}
         onApply={(speedKn) =>
@@ -103,6 +108,8 @@ export function WindPod(props: {
         active={ui.windMode}
         onSelect={(v) => setUi((p) => ({ ...p, windMode: v }))}
       />
+        </div>
+      </details>
       <button
         onClick={() =>
           setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }))

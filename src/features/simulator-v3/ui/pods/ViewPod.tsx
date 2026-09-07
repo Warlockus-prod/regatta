@@ -51,6 +51,9 @@ export function ViewPod(props: {
         active={ui.view}
         onSelect={(v) => setUi((p) => ({ ...p, view: v as ViewMode }))}
       />
+      <details>
+        <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
+        <div className="space-y-2 pb-2">
       <PodSegmented
         compact={compact}
         options={[
@@ -99,17 +102,19 @@ export function ViewPod(props: {
           </button>
         ))}
       </div>
+        </div>
+      </details>
       <div className="grid grid-cols-2 gap-1">
         <button
           onClick={applyOptimal}
-          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-1.5 py-1 text-[10px]'} rounded-md border font-semibold uppercase tracking-wider transition`}
+          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}
         >
           {tp('Оптим', 'Best', 'Opt', { es: 'Optimo', fr: 'Optimal', de: 'Optimal', it: 'Ottimo' })}
         </button>
         <button
           onClick={resetAll}
-          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-1.5 py-1 text-[10px]'} rounded-md border font-semibold uppercase tracking-wider transition`}
+          className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-muted)' }}
         >
           {tp('Сброс', 'Reset', 'Reset', { es: 'Reset', fr: 'Reset', de: 'Reset', it: 'Reset' })}

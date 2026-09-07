@@ -28,6 +28,8 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci --no-audit --no-fund
+      - name: Multiplayer socket lifecycle
+        run: npm run test:multiplayer
       - name: TypeScript check
         run: npx tsc --noEmit
       - name: Typography (no em/en-dash)

@@ -242,9 +242,8 @@ export function PodCard({ children, compact }: { children: React.ReactNode; comp
     <div
       className={`rounded-xl ${compact ? 'p-2' : 'p-3'} space-y-2`}
       style={{
-        background: 'rgba(8, 24, 48, 0.72)',
-        border: '1px solid rgba(0, 212, 255, 0.22)',
-        backdropFilter: 'blur(12px)',
+        background: 'var(--bg-secondary)',
+        border: '1px solid rgba(139, 167, 184, 0.18)',
       }}
     >
       {children}
@@ -322,10 +321,11 @@ export function PodSegmented<T extends string | number>(props: {
       {options.map((opt) => (
         <button
           key={String(opt.value)}
+          aria-pressed={active === opt.value}
           onClick={() => onSelect(opt.value)}
           className={`${
-            compact ? 'px-1.5 py-1 text-[9px]' : 'px-2 py-1.5 text-[10px]'
-          } rounded-md border font-semibold transition truncate`}
+            compact ? 'px-1.5 py-1 text-[9px]' : 'px-2 py-2 text-xs min-h-11'
+          } rounded-md border font-semibold transition whitespace-normal leading-snug`}
           style={{
             borderColor: active === opt.value ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.22)',
             background: active === opt.value ? 'rgba(0, 212, 255, 0.14)' : 'transparent',

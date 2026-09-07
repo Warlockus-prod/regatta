@@ -26,13 +26,13 @@ export type MPMessage =
   | { type: 'countdown'; remain: number }
   | { type: 'state'; t: number;
       wind: { dir: number; gust: number };
-      boats: { id: string; x: number; y: number; h: number; s: number; l: number; f: number | null }[];
+      boats: { id: string; x: number; y: number; h: number; s: number; l: number; f: number | null; target?: { x: number; y: number } }[];
       events: { id: string; type: string; t: number }[] }
   | { type: 'finished'; results: {
         id: string; nickname: string; isBot: boolean; time: number | null;
         mission: { passed: boolean; reasons: MissionReason[] } | null;
       }[] }
-  | { type: 'error'; message: string };
+  | { type: 'error'; message: string; code?: string };
 
 interface ResumePayload {
   code: string;
@@ -62,8 +62,11 @@ export class MPClient {
   private openSocket(): Promise<void> {
     return new Promise((resolve, reject) => {
       if (!this.url) return reject(new Error('no url'));
-      this.ws = new WebSocket(this.url);
+      const socket = new WebSocket(this.url);
+      this.ws = socket;
+      const timeout = setTimeout(() => { reject(new Error("Connection timed out")); socket.close(); }, 8000);
       this.ws.onopen = () => {
+        clearTimeout(timeout);
         this.reconnectAttempt = 0;
         if (this.resumeInfo) {
           // Auto-resume after reconnect
@@ -77,8 +80,11 @@ export class MPClient {
         this.openListeners.forEach((l) => l());
         resolve();
       };
-      this.ws.onerror = () => reject(new Error('WebSocket error'));
+      this.ws.onerror = () => { clearTimeout(timeout); reject(new Error('WebSocket error')); };
       this.ws.onclose = () => {
+        clearTimeout(timeout);
+        reject(new Error("Connection closed"));
+        if (this.ws !== socket) return;
         const wasReconnect = !!this.resumeInfo && !this.intentionalClose;
         this.closeListeners.forEach((l) => l(wasReconnect));
         if (!this.intentionalClose && this.resumeInfo) this.scheduleReconnect();
@@ -152,7 +158,7 @@ export function getWsUrl(): string {
 export interface Snapshot {
   t: number;            // race-relative seconds
   recvAt: number;       // performance.now() when received
-  boats: { id: string; x: number; y: number; h: number; s: number; l: number; f: number | null }[];
+  boats: { id: string; x: number; y: number; h: number; s: number; l: number; f: number | null; target?: { x: number; y: number } }[];
   wind: { dir: number; gust: number };
 }
 
@@ -203,6 +209,7 @@ export class SnapshotBuffer {
         s: pb.s + (nb.s - pb.s) * alpha,
         l: nb.l,
         f: nb.f,
+        target: nb.target,
       };
     });
 

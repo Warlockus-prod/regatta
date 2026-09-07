@@ -167,7 +167,7 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
 
     await page.goto('/simulator-v3?embed=1');
-    await expect(page.locator('canvas, svg').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('trainer-scene').locator('svg').first()).toBeVisible({ timeout: 20_000 });
     await expect(page.locator('nav.sticky')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);

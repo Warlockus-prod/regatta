@@ -346,7 +346,7 @@ export default function SimulatorV3Page() {
           backdropFilter: 'blur(10px)',
         }}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        <div className="hidden sm:flex items-center gap-2 min-w-0">
           <span
             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wider uppercase shrink-0"
             style={{
@@ -473,6 +473,10 @@ export default function SimulatorV3Page() {
         </div>
       </div>
 
+      {!embed && <p className="px-5 pt-3 pb-1 text-sm text-[var(--text-secondary)] max-w-[75ch]">
+        {tp("Выбери курс к ветру, настрой два шкота и сравни скорость. Для задания открой «Упражнения», для объяснений нажми «?».", "Choose a wind angle, trim both sails and compare speed. Open Drills for a task or ? for a guide.", "Wybierz kąt do wiatru, ustaw oba żagle i porównaj prędkość. Otwórz ćwiczenia lub przewodnik pod ?.", { es: "Elige un ángulo al viento, ajusta ambas velas y compara la velocidad. Abre Ejercicios o la guía con ?.", fr: "Choisis une allure, règle les deux voiles et compare la vitesse. Ouvre les exercices ou le guide avec ?.", de: "Wähle einen Windwinkel, trimme beide Segel und vergleiche die Fahrt. Öffne Übungen oder die Anleitung mit ?.", it: "Scegli un angolo al vento, regola entrambe le vele e confronta la velocità. Apri gli esercizi o la guida con ?." })}
+      </p>}
+
       {/* Desktop layout (>= 1024px), mounted ONLY when isDesktop. In embed
           mode the grid is clamped to the viewport and each side column
           scrolls internally. */}
@@ -506,7 +510,10 @@ export default function SimulatorV3Page() {
             />
           )}
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
-          <HelmPod sim={sim} tp={tp} />
+          <details>
+            <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Курс и компас", "Heading and compass", "Kurs i kompas", { es: "Rumbo y brújula", fr: "Cap et compas", de: "Kurs und Kompass", it: "Rotta e bussola" })}</summary>
+            <HelmPod sim={sim} tp={tp} />
+          </details>
           <ViewPod
             ui={ui}
             setUi={setUi}
@@ -517,10 +524,12 @@ export default function SimulatorV3Page() {
           />
         </div>
 
-        <div className="relative flex flex-col">
+        <div className="relative flex flex-col min-h-0 overflow-y-auto">
           <div
-            className="relative flex-1 min-h-[520px] rounded-2xl overflow-hidden border shadow-[0_12px_60px_rgba(0,0,0,0.5)]"
+            data-testid="trainer-scene"
+            className="relative shrink-0 rounded-2xl overflow-hidden border"
             style={{
+              height: 'clamp(360px, 55dvh, 620px)',
               borderColor: 'rgba(0, 212, 255, 0.18)',
               background:
                 'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
@@ -599,6 +608,7 @@ export default function SimulatorV3Page() {
         )}
         <div className={styles.stage} style={{ top: embed ? 0 : 104 }}>
         <div
+          data-testid="trainer-scene"
           className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)] shrink-0"
           style={{
             borderColor: 'rgba(0, 212, 255, 0.18)',
@@ -625,7 +635,7 @@ export default function SimulatorV3Page() {
         <MetricsStrip ui={ui} sim={sim} tp={tp} />
         <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
         </div>
-        <div className="mx-2 grid shrink-0 grid-cols-2 gap-2 mb-2">
+        <div className="mx-2 grid shrink-0 grid-cols-1 min-[480px]:grid-cols-2 gap-3 mb-3">
           <ViewPod
             ui={ui}
             setUi={setUi}
@@ -637,8 +647,11 @@ export default function SimulatorV3Page() {
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
           <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
-          <div className="col-span-2">
+          <div className="min-[480px]:col-span-2">
+            <details>
+            <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Курс и компас", "Heading and compass", "Kurs i kompas", { es: "Rumbo y brújula", fr: "Cap et compas", de: "Kurs und Kompass", it: "Rotta e bussola" })}</summary>
             <HelmPod sim={sim} tp={tp} />
+          </details>
           </div>
         </div>
       </div>
@@ -646,12 +659,12 @@ export default function SimulatorV3Page() {
 
       {!embed && <GlossaryFooter tp={tp} />}
 
-      <TourOverlay
+      {forceTour > 0 && <TourOverlay
         key={forceTour}
         lang={lang}
         tp={tp}
-        forceOpen={forceTour > 0}
-      />
+        forceOpen
+      />}
     </div>
   );
 }

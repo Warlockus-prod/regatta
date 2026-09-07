@@ -40,13 +40,13 @@ export interface TourStep {
 const STEPS: TourStep[] = [
   {
     icon: '⛵',
-    titleRu: 'Добро пожаловать в V3',
-    titleEn: 'Welcome to V3',
-    titlePl: 'Witaj w V3',
-    titleEs: 'Bienvenido a V3',
-    titleFr: 'Bienvenue sur V3',
-    titleDe: 'Willkommen bei V3',
-    titleIt: 'Benvenuto in V3',
+    titleRu: 'Настройка парусов',
+    titleEn: 'Sail trim',
+    titlePl: 'Trym żagli',
+    titleEs: 'Ajuste de velas',
+    titleFr: 'Réglage des voiles',
+    titleDe: 'Segeltrimm',
+    titleIt: 'Regolazione delle vele',
     bodyRu:
       'Учебный тренажёр парусной яхты с живой физикой. Ты будешь видеть силы на парусах, крен и снос как на реальной лодке. 8-10 минут - и ты поймёшь триммирование.',
     bodyEn:

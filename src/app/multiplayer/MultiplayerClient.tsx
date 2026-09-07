@@ -37,12 +37,15 @@ function missionReasonText(
 
 export default function MultiplayerClient() {
   const { tp } = useI18n();
+  const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
   const [phase, setPhase] = useState<Phase>('menu');
   const [error, setError] = useState<string | null>(null);
   const [nickname, setNickname] = useState<string>('');
   const [joinCode, setJoinCode] = useState('');
   const [sid, setSid] = useState<string | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+  const [connecting, setConnecting] = useState(false);
 
   const [room, setRoom] = useState<{
     code: string; hostId: string; myId: string; isHost: boolean;
@@ -59,12 +62,14 @@ export default function MultiplayerClient() {
   const bufferRef = useRef<SnapshotBuffer>(new SnapshotBuffer());
   const windRef = useRef<{ dir: number; gust: number }>({ dir: 0, gust: 1 });
 
+  useEffect(() => () => { clientRef.current?.close(); clientRef.current = null; }, []);
+
   // Load session info
   useEffect(() => {
     fetch('/api/player').then((r) => r.json()).then((d) => {
-      if (d?.sid) setSid(d.sid);
+      setSid(typeof d?.sid === "string" ? d.sid : crypto.randomUUID());
       if (d?.nickname) setNickname(d.nickname);
-    }).catch(() => {});
+    }).catch(() => { setSid(crypto.randomUUID()); });
   }, []);
 
   // URL code prefill (e.g. /multiplayer?code=ABCD). One-time read of
@@ -81,6 +86,8 @@ export default function MultiplayerClient() {
   const handleServerMsg = useCallback((msg: MPMessage) => {
     switch (msg.type) {
       case 'joined':
+        setConnecting(false);
+        setError(null);
         // msg.id is the server-assigned OPAQUE player id (never our sid). We
         // identify "me" everywhere by room.myId === boat/player.id - never by
         // assuming id === sid - so the server can keep sid fully private.
@@ -95,14 +102,15 @@ export default function MultiplayerClient() {
         break;
       case 'lobby-state':
         setRoom((r) => r ? {
-          ...r, code: msg.code, hostId: msg.hostId,
+          ...r, code: msg.code, hostId: msg.hostId, isHost: msg.hostId === r.myId,
           missionId: msg.missionId, difficulty: msg.difficulty, windStrength: msg.windStrength,
           maxPlayers: msg.maxPlayers,
         } : null);
         setLobbyPlayers(msg.players);
         break;
       case 'phase':
-        if (msg.phase === 'countdown') { setPhase('countdown'); bufferRef.current.reset(); }
+        if (msg.phase === 'lobby') setPhase('lobby');
+        else if (msg.phase === 'countdown') { setPhase('countdown'); bufferRef.current.reset(); }
         else if (msg.phase === 'racing') setPhase('racing');
         else if (msg.phase === 'finished') setPhase('finished');
         break;
@@ -118,11 +126,24 @@ export default function MultiplayerClient() {
         setPhase('finished');
         break;
       case 'error':
-        setError(msg.message);
+        setConnecting(false);
+        setError(msg.code === "players-not-ready"
+          ? tp("Дождись готовности всех игроков", "Wait until everyone is ready", "Poczekaj na gotowość wszystkich", { es: "Espera a todos", fr: "Attendez tous les joueurs", de: "Warte, bis alle bereit sind", it: "Attendi che tutti siano pronti" })
+          : msg.code === "room-not-found" ? tp("Комната закрыта или код неверен", "Room closed or code incorrect", "Pokój zamknięty lub błędny kod", { es: "Sala cerrada o código incorrecto", fr: "Salle fermée ou code incorrect", de: "Raum geschlossen oder falscher Code", it: "Stanza chiusa o codice errato" })
+          : msg.code === "race-in-progress" ? tp("Гонка уже началась", "The race has already started", "Wyścig już się rozpoczął", { es: "La carrera ya comenzó", fr: "La course a déjà commencé", de: "Das Rennen läuft bereits", it: "La regata è già iniziata" })
+          : msg.code === "room-full" ? tp("Комната заполнена", "The room is full", "Pokój jest pełny", { es: "La sala está llena", fr: "La salle est pleine", de: "Der Raum ist voll", it: "La stanza è piena" })
+          : msg.message);
+        if (msg.code === "room-not-found" || msg.code === "race-in-progress" || msg.code === "room-full") {
+          setReconnecting(false);
+          setPhase("error");
+          clientRef.current?.close();
+          clientRef.current = null;
+          setRoom(null);
+        }
         setPhase((p) => p === 'menu' ? 'error' : p);
         break;
     }
-  }, []);
+  }, [tp]);
 
   const ensureClient = useCallback(async (): Promise<MPClient> => {
     if (clientRef.current?.isOpen) return clientRef.current;
@@ -141,10 +162,12 @@ export default function MultiplayerClient() {
   const createLobby = useCallback(async () => {
     if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj ksywe')); return; }
     setError(null);
+    setConnecting(true);
     try {
       const c = await ensureClient();
       c.send({ type: 'create', nickname: nickname.trim(), sid });
     } catch {
+      setConnecting(false);
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udalo sie polaczyc z serwerem'));
       setPhase('error');
     }
@@ -154,11 +177,13 @@ export default function MultiplayerClient() {
     if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj ksywe')); return; }
     if (joinCode.length !== 4) { setError(tp('Код должен быть 4 символа', 'Code must be 4 characters', 'Kod musi miec 4 znaki')); return; }
     setError(null);
+    setConnecting(true);
     try {
       const c = await ensureClient();
       c.send({ type: 'join', code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
       if (sid) c.rememberForResume({ code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
     } catch {
+      setConnecting(false);
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udalo sie polaczyc z serwerem'));
       setPhase('error');
     }
@@ -213,6 +238,8 @@ export default function MultiplayerClient() {
       if (k === 'arrowleft' || k === 'a') inputRef.current.left = false;
       if (k === 'arrowright' || k === 'd') inputRef.current.right = false;
     };
+    const releaseInput = () => { inputRef.current = { left: false, right: false }; };
+    window.addEventListener("blur", releaseInput);
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup', onUp);
     const id = setInterval(() => {
@@ -220,6 +247,8 @@ export default function MultiplayerClient() {
       clientRef.current?.send({ type: 'input', turn });
     }, 50);
     return () => {
+      releaseInput();
+      window.removeEventListener('blur', releaseInput);
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup', onUp);
       clearInterval(id);
@@ -278,15 +307,25 @@ export default function MultiplayerClient() {
           const b = snap.boats[i];
           const screen = toXY({ x: b.x, y: b.y });
           const isMe = room?.myId === b.id;
+          if (isMe && b.target && b.f == null) {
+            const target = toXY(b.target);
+            ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
+            ctx.beginPath(); ctx.moveTo(screen.x, screen.y); ctx.lineTo(target.x, target.y); ctx.stroke();
+            ctx.setLineDash([]); ctx.beginPath(); ctx.arc(target.x, target.y, 8, 0, Math.PI * 2); ctx.stroke();
+          }
           drawBoat(ctx, screen.x, screen.y, b.h, COLORS[i % COLORS.length], isMe);
+          ctx.fillStyle = isMe ? "#00d4ff" : "#d9e8f1";
+          ctx.font = "12px system-ui, sans-serif"; ctx.textAlign = "center";
+          ctx.fillText(lobbyPlayers.find((p) => p.id === b.id)?.nickname.slice(0, 16) ?? "", screen.x, screen.y + 26);
+
         }
       }
 
       // HUD wind
       ctx.fillStyle = '#ffffff';
-      ctx.font = '11px system-ui, sans-serif';
+      ctx.font = '13px system-ui, sans-serif';
       ctx.textAlign = 'left';
-      ctx.fillText(`${tp('Ветер', 'Wind', 'Wiatr')} ${Math.round(windRef.current.dir)}°  ${windRef.current.gust.toFixed(2)}×`, 10, 18);
+      ctx.fillText(`${tp('Ветер', 'Wind', 'Wiatr')} ${Math.round(windRef.current.dir)}°  ${(12 * (room?.windStrength === "light" ? 0.65 : room?.windStrength === "heavy" ? 1.3 : 1) * windRef.current.gust).toFixed(1)} kn`, 10, 18);
 
       if (phase === 'countdown') {
         ctx.fillStyle = 'rgba(10, 22, 40, 0.6)';
@@ -304,16 +343,16 @@ export default function MultiplayerClient() {
       cancelAnimationFrame(raf);
       window.removeEventListener('resize', resize);
     };
-  }, [phase, countdown, room]);
+  }, [phase, countdown, room, lobbyPlayers, tp]);
 
   // --- UI ---
 
   if (phase === 'menu' || phase === 'error') {
     return (
       <div className="page-enter max-w-lg mx-auto px-4 py-10">
-        <Link href="/game" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
+        {!embed && <Link href="/game" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
           ← {tp('Одиночная гонка', 'Single race', 'Wyscig solo')}
-        </Link>
+        </Link>}
         <h1 className="text-3xl font-bold mt-4 mb-2">{tp('Мультиплеер', 'Multiplayer', 'Multiplayer')}</h1>
         <p className="text-sm text-[var(--text-secondary)] mb-6">
           {tp(
@@ -325,6 +364,7 @@ export default function MultiplayerClient() {
         <div className="card p-4 mb-4">
           <label className="text-xs text-[var(--text-muted)] block mb-1">{tp('Твой ник', 'Your nickname', 'Twoja ksywa')}</label>
           <input
+            aria-label={tp("Твой ник", "Your nickname", "Twoja ksywa")}
             type="text" value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
@@ -333,7 +373,7 @@ export default function MultiplayerClient() {
             placeholder={tp('Введи ник', 'Enter nickname', 'Podaj ksywe')}
           />
         </div>
-        <button onClick={createLobby}
+        <button disabled={connecting || !nickname.trim() || !sid} onClick={createLobby}
           className="w-full py-3 rounded-lg font-semibold text-sm mb-3"
           style={{ background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)', color: '#0a1628' }}>
           {tp('Создать лобби', 'Create lobby', 'Utworz lobby')}
@@ -345,11 +385,12 @@ export default function MultiplayerClient() {
               type="text" value={joinCode}
               onChange={(e) => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
               maxLength={4}
-              className="flex-1 px-3 py-2 rounded text-base font-mono text-center tracking-widest"
+              aria-label={tp("Код комнаты", "Room code", "Kod pokoju")}
+              className="min-w-0 flex-1 px-3 py-2 rounded text-base font-mono text-center tracking-widest"
               style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
               placeholder="XXXX"
             />
-            <button onClick={joinLobby} disabled={joinCode.length !== 4}
+            <button onClick={joinLobby} disabled={connecting || joinCode.length !== 4 || !nickname.trim() || !sid}
               className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
               style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}>
               {tp('Войти', 'Join', 'Dolacz')}
@@ -363,9 +404,9 @@ export default function MultiplayerClient() {
         )}
         <div className="text-[10px] text-[var(--text-muted)] mt-6 leading-relaxed">
           {tp(
-            'Мультиплеер BETA. Физика authoritative на сервере. Reconnect 20 сек grace.',
-            'Multiplayer BETA. Physics is server-authoritative. 20 sec reconnect grace.',
-            'Multiplayer BETA. Fizyka jest obliczana na serwerze. 20 sek okresu laski przy rozlaczeniu.',
+            'При обрыве связи твоё место сохраняется на 20 секунд. Управляй стрелками или кнопками поворота.',
+            "Your place is held for 20 seconds if you disconnect. Steer with the arrow keys or turn buttons.",
+            'Po rozłączeniu miejsce czeka 20 sekund. Steruj strzałkami lub przyciskami skrętu.',
           )}
         </div>
       </div>
@@ -373,7 +414,9 @@ export default function MultiplayerClient() {
   }
 
   if (phase === 'lobby' && room) {
-    const iAmHost = room.isHost;
+    const iAmHost = room.hostId === room.myId;
+    const me = lobbyPlayers.find((p) => p.id === room.myId);
+    const allReady = lobbyPlayers.every((p) => p.isBot || (p.connected && (p.id === room.hostId || p.ready)));
     const shareUrl = typeof window !== 'undefined' ? `${window.location.origin}/multiplayer?code=${room.code}` : '';
     const activeMission = room.missionId ? missions.find((m) => m.id === room.missionId) : null;
     const botCount = lobbyPlayers.filter((p) => p.isBot).length;
@@ -394,9 +437,9 @@ export default function MultiplayerClient() {
           <div className="text-5xl font-bold font-mono tracking-[0.2em]" style={{ color: 'var(--accent-cyan)' }}>
             {room.code}
           </div>
-          <button onClick={() => navigator.clipboard?.writeText(shareUrl)}
+          <button onClick={async () => { try { await navigator.clipboard.writeText(shareUrl); setLinkCopied(true); } catch { setError(shareUrl); } }}
             className="text-[11px] text-[var(--text-muted)] hover:text-[var(--accent-cyan)] mt-2">
-            📋 {tp('Копировать ссылку', 'Copy link', 'Kopiuj link')}
+            {linkCopied ? tp("Ссылка скопирована", "Link copied", "Link skopiowany", { es: "Enlace copiado", fr: "Lien copié", de: "Link kopiert", it: "Link copiato" }) : tp('Копировать ссылку', 'Copy link', 'Kopiuj link')}
           </button>
         </div>
 
@@ -465,6 +508,7 @@ export default function MultiplayerClient() {
                   {!p.connected && !p.isBot && <span className="text-[9px] text-[var(--warning)] ml-2">{tp('разрыв', 'disconnected', 'rozlaczony')}</span>}
                 </span>
                 {p.id === room.hostId && <span className="text-[10px] px-1.5 py-0.5 rounded" style={{ background: 'rgba(255,170,0,0.15)', color: 'var(--warning)' }}>{tp('хост', 'host', 'host')}</span>}
+                {!p.isBot && p.id !== room.hostId && <span className="text-xs text-[var(--text-secondary)]">{p.ready ? tp("Готов", "Ready", "Gotowy", { es: "Listo", fr: "Prêt", de: "Bereit", it: "Pronto" }) : tp("Не готов", "Not ready", "Niegotowy", { es: "No listo", fr: "Pas prêt", de: "Nicht bereit", it: "Non pronto" })}</span>}
                 {p.id === room.myId && <span className="text-[10px] text-[var(--accent-cyan)]">{tp('ты', 'you', 'ty')}</span>}
               </div>
             ))}
@@ -475,7 +519,7 @@ export default function MultiplayerClient() {
         </div>
 
         {iAmHost ? (
-          <button onClick={startRace} disabled={totalCount < 1}
+          <button onClick={startRace} disabled={totalCount < 1 || !allReady || reconnecting}
             className="w-full py-3 rounded-lg font-semibold text-base disabled:opacity-40"
             style={{ background: 'linear-gradient(135deg, #44ff88, #22cc66)', color: '#0a1628' }}>
             {tp('Старт гонки', 'Start race', 'Rozpocznij wyscig')} · {totalCount} {
@@ -488,10 +532,14 @@ export default function MultiplayerClient() {
           </button>
         ) : (
           <div className="text-center text-sm text-[var(--text-muted)] py-3">
-            {tp('Ждём, когда хост нажмёт «Старт»…', 'Waiting for host to press Start…', 'Czekamy, az host nacisnie Start…')}
+            <button className="w-full min-h-11 rounded-lg border px-4 py-3 text-[var(--accent-cyan)]" aria-pressed={!!me?.ready} disabled={reconnecting} onClick={() => clientRef.current?.send({ type: "ready", ready: !me?.ready })}>
+              {me?.ready ? tp("Готов, жду старта", "Ready, waiting for start", "Gotowy, czekam na start", { es: "Listo, esperando", fr: "Prêt, en attente", de: "Bereit, warte auf Start", it: "Pronto, in attesa" }) : tp("Я готов", "I'm ready", "Jestem gotowy", { es: "Estoy listo", fr: "Je suis prêt", de: "Ich bin bereit", it: "Sono pronto" })}
+            </button>
           </div>
         )}
 
+        {error && <p role="alert" className="mt-3 break-all text-sm text-[var(--warning)]">{error}</p>}
+        {iAmHost && !allReady && <p role="status" className="mt-3 text-sm text-[var(--text-secondary)]">{tp("Ждём готовности игроков", "Waiting for players to be ready", "Czekamy na gotowość graczy", { es: "Esperando a los jugadores", fr: "En attente des joueurs", de: "Warte auf die Spieler", it: "In attesa dei giocatori" })}</p>}
         {reconnecting && (
           <div className="mt-3 text-xs text-center px-3 py-2 rounded" style={{ background: 'rgba(255, 170, 0, 0.1)', color: 'var(--warning)' }}>
             {tp('Переподключаюсь…', 'Reconnecting…', 'Lacze ponownie…')}
@@ -503,7 +551,7 @@ export default function MultiplayerClient() {
 
   // Racing / countdown / finished
   return (
-    <div className="relative w-full" style={{ height: 'calc(100vh - 56px)' }}>
+    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - 56px)' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
       {reconnecting && (
@@ -516,14 +564,14 @@ export default function MultiplayerClient() {
       {phase === 'racing' && (
         <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 md:hidden pointer-events-none">
           <button
-            onPointerDown={() => { inputRef.current.left = true; }}
+            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.left = true; }}
             onPointerUp={() => { inputRef.current.left = false; }}
             onPointerCancel={() => { inputRef.current.left = false; }}
             className="pointer-events-auto w-20 h-20 rounded-full text-3xl font-bold select-none"
             style={{ background: 'rgba(21,37,64,0.7)', border: '2px solid rgba(0,212,255,0.5)', color: 'var(--accent-cyan)', touchAction: 'none' }}
           >←</button>
           <button
-            onPointerDown={() => { inputRef.current.right = true; }}
+            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.right = true; }}
             onPointerUp={() => { inputRef.current.right = false; }}
             onPointerCancel={() => { inputRef.current.right = false; }}
             className="pointer-events-auto w-20 h-20 rounded-full text-3xl font-bold select-none"
@@ -557,6 +605,7 @@ export default function MultiplayerClient() {
                 </div>
               ))}
             </div>
+            {room?.hostId === room?.myId && <button onClick={() => clientRef.current?.send({ type: "rematch" })} className="w-full min-h-11 mb-3 rounded-lg bg-[var(--accent-cyan)] text-[var(--bg-primary)] font-semibold">{tp("Ещё гонка", "Race again", "Jeszcze jeden wyścig", { es: "Otra carrera", fr: "Nouvelle course", de: "Noch ein Rennen", it: "Altra regata" })}</button>}
             {/* Mission result for "me" */}
             {(() => {
               const mine = results.find((r) => r.id === room?.myId);
@@ -583,11 +632,11 @@ export default function MultiplayerClient() {
                 style={{ borderColor: 'rgba(0,212,255,0.3)', color: 'var(--accent-cyan)' }}>
                 {tp('В меню', 'To menu', 'Do menu')}
               </button>
-              <Link href="/leaderboard"
+              {!embed && <Link href="/leaderboard"
                 className="flex-1 py-2 rounded-lg border text-sm text-center"
                 style={{ borderColor: 'rgba(68,255,136,0.35)', color: 'var(--success)' }}>
                 {tp('Лидерборд', 'Leaderboard', 'Ranking')}
-              </Link>
+              </Link>}
             </div>
           </div>
         </div>

@@ -122,11 +122,11 @@ function lobbyState(room) {
     difficulty: room.difficulty,
     windStrength: room.windStrength,
     maxPlayers: MAX_PLAYERS_PER_ROOM,
-    players: Array.from(room.players.values()).map((p) => ({
+    players: [...Array.from(room.players.values()).map((p) => ({
       id: p.id, nickname: p.nickname, ready: p.ready,
       isBot: p.isBot === true,
       connected: !!p.ws && p.ws.readyState === 1,
-    })),
+    })), ...room.aiBots.map((b) => ({ id: b.id, nickname: b.name, ready: true, isBot: true, connected: true }))],
   };
 }
 
@@ -236,6 +236,7 @@ setInterval(() => {
       broadcast(room, { type: 'countdown', remain });
       if (remain <= 0) {
         room.phase = 'racing';
+        room.lastTickTs = now;
         room.raceStartTs = now;
         resetStats(room);
         broadcast(room, { type: 'phase', phase: 'racing' });
@@ -247,7 +248,8 @@ setInterval(() => {
 
     const raceT = (now - room.raceStartTs) / 1000;
     const wind = P.windAt(raceT, room.seed);
-    const dt = 1 / TICK_HZ;
+    const dt = Math.min(0.25, Math.max(0.001, (now - (room.lastTickTs ?? now - 50)) / 1000));
+    room.lastTickTs = now;
     const windMul = windStrengthMul(room.windStrength);
 
     const prevPositions = new Map();
@@ -316,6 +318,7 @@ setInterval(() => {
         s: Math.round(b.speed * 100) / 100,
         l: b.lapDone,
         f: b.finishTime ?? null,
+        target: b.lapDone < 2 ? P.raceWaypoint(b, room.course) : undefined,
       })),
       events,
     });
@@ -459,6 +462,7 @@ wss.on('connection', (ws, req) => {
 
     switch (msg.type) {
       case 'create': {
+        if (roomCode) return;
         sid = String(msg.sid || ('s' + Math.random().toString(36).slice(2, 10)));
         playerId = genPlayerId();
         const nickname = String(msg.nickname || 'Player').slice(0, 20);
@@ -477,14 +481,18 @@ wss.on('connection', (ws, req) => {
         break;
       }
       case 'join': {
+        if (roomCode) return;
         const code = String(msg.code || '').toUpperCase();
         const r = rooms.get(code);
-        if (!r) { sendJson(ws, { type: 'error', message: 'Комната не найдена' }); return; }
+        if (!r) { sendJson(ws, { type: 'error', code: 'room-not-found', message: 'Room not found' }); return; }
         sid = String(msg.sid || ('s' + Math.random().toString(36).slice(2, 10)));
         // Resume existing player if sid matches
         const existing = Array.from(r.players.values()).find((p) => p.sid === sid);
         if (existing) {
+          const oldSocket = existing.ws;
           existing.ws = ws;
+          if (oldSocket && oldSocket !== ws) oldSocket.close(1000, "session-resumed");
+          existing.input.turn = 0;
           existing.connectedOrGrace = true;
           // Reconnected inside the grace window: cancel the pending auto-drop.
           if (existing.graceTimer) { clearTimeout(existing.graceTimer); existing.graceTimer = null; }
@@ -493,12 +501,13 @@ wss.on('connection', (ws, req) => {
           clients.set(ws, r.code);
           sendJson(ws, { type: 'joined', code: r.code, id: playerId, isHost: r.hostId === playerId });
           broadcast(r, lobbyState(r));
-          if (r.phase === 'racing') sendJson(ws, { type: 'phase', phase: 'racing' });
+          sendJson(ws, { type: 'phase', phase: r.phase });
+          if (r.phase === 'finished') sendJson(ws, { type: 'finished', results: r.results });
           return;
         }
-        if (r.phase !== 'lobby') { sendJson(ws, { type: 'error', message: 'Гонка уже идёт' }); return; }
+        if (r.phase !== 'lobby') { sendJson(ws, { type: 'error', code: 'race-in-progress', message: 'Race already started' }); return; }
         if (r.players.size + r.aiBots.length >= MAX_PLAYERS_PER_ROOM) {
-          sendJson(ws, { type: 'error', message: 'Комната полна' }); return;
+          sendJson(ws, { type: 'error', code: 'room-full', message: 'Room is full' }); return;
         }
         playerId = genPlayerId();
         const nickname = String(msg.nickname || 'Player').slice(0, 20);
@@ -521,6 +530,7 @@ wss.on('connection', (ws, req) => {
         if (room.hostId !== playerId) return;
         if (room.phase !== 'lobby') return;
         applyMission(room, msg.missionId || null);
+        for (const p of room.players.values()) p.ready = false;
         if (!msg.missionId) {
           if (msg.difficulty) room.difficulty = String(msg.difficulty);
           if (msg.windStrength) room.windStrength = String(msg.windStrength);
@@ -533,7 +543,7 @@ wss.on('connection', (ws, req) => {
         if (!room || room.hostId !== playerId) return;
         if (room.phase !== 'lobby') return;
         if (room.players.size + room.aiBots.length >= MAX_PLAYERS_PER_ROOM) {
-          sendJson(ws, { type: 'error', message: 'Комната полна' }); return;
+          sendJson(ws, { type: 'error', code: 'room-full', message: 'Room is full' }); return;
         }
         const names = ['Nautilus', 'Mistral', 'Trident', 'Aurora', 'Kraken', 'Borealis', 'Zephyr', 'Orion'];
         const botName = names[room.aiBots.length % names.length];
@@ -554,8 +564,18 @@ wss.on('connection', (ws, req) => {
         broadcast(room, lobbyState(room));
         break;
       }
+      case 'rematch': {
+        if (!room || room.hostId !== playerId || room.phase !== 'finished') return;
+        room.phase = 'lobby';
+        room.results = [];
+        for (const p of room.players.values()) { p.ready = false; p.input.turn = 0; }
+        room.lastActivity = Date.now();
+        broadcast(room, { type: 'phase', phase: 'lobby' });
+        broadcast(room, lobbyState(room));
+        break;
+      }
       case 'ready': {
-        if (!room || !playerId) return;
+        if (!room || !playerId || room.phase !== 'lobby') return;
         const p = room.players.get(playerId);
         if (!p) return;
         p.ready = !!msg.ready;
@@ -565,6 +585,10 @@ wss.on('connection', (ws, req) => {
       }
       case 'start-race': {
         if (!room || !playerId || room.hostId !== playerId || room.phase !== 'lobby') return;
+        if ([...room.players.values()].some((p) => !p.ws || p.ws.readyState !== 1 || (p.id !== room.hostId && !p.ready))) {
+          sendJson(ws, { type: "error", code: "players-not-ready", message: "Wait for all players to be ready." });
+          return;
+        }
         repositionAllBoats(room);
         room.phase = 'countdown';
         room.raceStartTs = Date.now();
@@ -603,7 +627,9 @@ wss.on('connection', (ws, req) => {
     const r = rooms.get(roomCode);
     if (!r) return;
     const p = r.players.get(playerId);
-    if (!p) return;
+    if (!p || p.ws !== ws) return;
+    p.input.turn = 0;
+    p.ready = false;
 
     // Start grace period. Player keeps their slot/boat; auto-drop after 20s.
     p.ws = null;
