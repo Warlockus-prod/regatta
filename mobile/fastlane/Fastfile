@@ -1,0 +1,19 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Read-only App Store metadata check using the existing ASC API key"
+  lane :gate do
+    key = app_store_connect_api_key(
+      key_id: ENV.fetch("ASC_KEY_ID", "QBF5228DP3"),
+      issuer_id: ENV.fetch("ASC_ISSUER_ID", "c646a296-d7f1-418a-ac78-4ede7aacd995"),
+      key_filepath: ENV.fetch("ASC_KEY_PATH", File.expand_path("~/.appstoreconnect/private_keys/AuthKey_QBF5228DP3.p8")),
+      in_house: false
+    )
+    precheck(
+      api_key: key,
+      app_identifier: "com.icoffio.regatta",
+      default_rule_level: :error,
+      include_in_app_purchases: false
+    )
+  end
+end

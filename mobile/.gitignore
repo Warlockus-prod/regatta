@@ -42,3 +42,6 @@ yarn-error.*
 /ios
 /android
 ExportOptions.plist
+
+# Fastlane generated execution report
+fastlane/report.xml

@@ -69,11 +69,15 @@ Never submit a build no one has looked at.
 ### G4 - Fastlane precheck: validate ALL metadata BEFORE submit   [THE key fix]
 ```sh
 cd mobile
-fastlane precheck               # reads fastlane/Precheckfile; uses the ASC API key
+fastlane ios gate               # reads fastlane/Fastfile; uses the ASC API key
 ```
 Precheck validates name, subtitle, description, keywords, support + marketing
 URLs (resolve + not broken), privacy URL, screenshots present for each required
 device, age rating, export compliance, and placeholder / prohibited text.
+Implementation note (2026-09-07): Fastlane's actual precheck covers metadata
+text, copyright and URL rules. It does not establish screenshot completeness,
+age rating or export compliance; verify those separately in ASC. The API-key
+lane excludes IAP checking. Do not interpret a green precheck as all of G4.
 - **Gate:** precheck exits with **zero errors**. If red -> fix metadata
   (`node scripts/asc-metadata.mjs`, or in ASC) and re-run. **Do NOT submit on a
   red precheck.**
@@ -93,7 +97,15 @@ node scripts/asc-state.mjs       # confirm it entered WAITING_FOR_REVIEW / IN_RE
 
 ## One-time setup (do once; after that the gate is just "run it")
 
-### Fastlane (deliver + precheck)   [SETUP NEEDED - no fastlane/ yet]
+### Fastlane (deliver + precheck)   [gate configured 2026-09-07]
+
+`mobile/fastlane/Fastfile` now provides the read-only `ios gate` lane using the
+existing ASC API key, with all rule findings treated as errors. Fastlane
+2.239.0 passed on build 34 metadata. On this Mac it is installed under the
+Homebrew Ruby user gem directory; add its bin directory and Homebrew Ruby to
+PATH, then run `fastlane ios gate` from `mobile/`.
+
+The following generic setup is only needed on a new machine:
 ```sh
 cd mobile
 gem install fastlane -N          # or brew install fastlane
