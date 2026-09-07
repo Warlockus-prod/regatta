@@ -447,7 +447,7 @@ export default function MultiplayerClient() {
           {activeMission ? tp(activeMission.descRu, activeMission.descEn, activeMission.descPl) : tp("Обычная регата: старт, знак слева, финиш.", "Standard race: start, leave the mark to port, finish.", "Zwykła regata: start, znak lewą burtą, meta.", { es: "Regata: salida, boya por babor y llegada.", fr: "Régate : départ, marque à bâbord, arrivée.", de: "Regatta: Start, Marke an Backbord, Ziel.", it: "Regata: partenza, boa a sinistra, arrivo." })}
         </p>
         {iAmHost && (
-          <details className="mb-4 border-y border-[var(--border-color)]">
+          <details className="mb-4 border-y border-[var(--border-subtle)]">
             <summary className="cursor-pointer py-3 text-sm text-[var(--text-secondary)]">
               {tp("Условия гонки", "Race settings", "Ustawienia regaty", { es: "Opciones de regata", fr: "Réglages de course", de: "Renneinstellungen", it: "Impostazioni regata" })}
             </summary>
