@@ -352,3 +352,12 @@ iOS 26.5. После установки проверен CFBundleVersion=36, в�
 Исходные пользовательские правки в sprint10-i18n-audit.md сохранены;
 актуальный отчёт релиза ведётся отдельно. Веб-пакет 32b63d7 успешно прошёл
 серверную сборку, публикацию и все production E2E (run 34147020194).
+
+Проверка App Store Connect выявила ошибку прежней возрастной анкеты:
+`contests=NONE`, хотя доступны регаты, ежедневные состязания и рейтинги.
+В редактируемой версии установлено `FREQUENT_OR_INTENSE`; актуальный
+возраст рассчитывает Apple. Определение включает спортивные соревнования
+и борьбу за рейтинг: [Apple, age ratings](https://developer.apple.com/help/app-store-connect/reference/app-information/age-ratings-values-and-definitions).
+На основном языке готовы по 5 скриншотов iPhone 6.7 и iPad 12.9, все COMPLETE;
+остальные локали используют основной набор согласно
+[правилам локализации Apple](https://developer.apple.com/help/app-store-connect/manage-app-information/localize-app-information).

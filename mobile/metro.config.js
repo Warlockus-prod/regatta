@@ -12,7 +12,8 @@ const config = getDefaultConfig(__dirname);
 
 const PHYSICS_DIR = path.resolve(__dirname, '../src/lib/sailing-physics');
 
-config.watchFolders = [...(config.watchFolders ?? []), PHYSICS_DIR];
+// Course progression lives beside the engine and is also shared with native.
+config.watchFolders = [...(config.watchFolders ?? []), path.dirname(PHYSICS_DIR)];
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
   '@regatta/physics': PHYSICS_DIR,

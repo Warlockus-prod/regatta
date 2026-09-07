@@ -8,7 +8,7 @@
  *   - Primary category   -> EDUCATION
  *   - Secondary category -> SPORTS
  *   - Content Rights     -> DOES_NOT_USE_THIRD_PARTY_CONTENT
- *   - Age Rating         -> all NONE / false (4+)
+ *   - Age Rating         -> declares regular competitions
  *   - Price              -> Free, base territory USA, auto-spread to all markets
  *   - Privacy Policy URL -> applied to all 7 appInfoLocalizations
  *
@@ -165,7 +165,7 @@ async function main() {
     console.log('  set DOES_NOT_USE_THIRD_PARTY_CONTENT');
   }
 
-  logStep('3/5 age rating - all NONE / false (target rating: 4+)');
+  logStep('3/5 age rating - regular sailing competitions');
   if (!ageDeclId) {
     console.log('  no ageRatingDeclaration id on appInfo, skip');
   } else if (DRY_RUN) {
@@ -185,7 +185,7 @@ async function main() {
       // string enums
       ageRatingOverride: 'NONE',
       alcoholTobaccoOrDrugUseOrReferences: 'NONE',
-      contests: 'NONE',
+      contests: "FREQUENT_OR_INTENSE",
       gamblingSimulated: 'NONE',
       gunsOrOtherWeapons: 'NONE',
       horrorOrFearThemes: 'NONE',
