@@ -1,6 +1,7 @@
 'use client';
 
 import { useId } from "react";
+import styles from "../SimulatorV3.module.css";
 import { clamp, finite, REEF_VALUES, type SimulationModel, type TpFn, type UiState } from "./shared";
 import { projectSailPoint, projectedSailPath } from "./sail-projection";
 
@@ -49,10 +50,10 @@ export function SceneElevation({ view, ui, sim, tp }: {
     ? tp("полощет", "luffing", "lopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
     : sim.result.diag.jibStalled
       ? tp("срыв потока", "stalled", "oderwanie strug", { es: "perdida", fr: "decrochage", de: "Stromungsabriss", it: "stallo" }) : "";
-  return <div className="absolute inset-0 flex min-h-0 flex-col" style={{ background: "var(--bg-primary)" }}>
+  return <div className={`${styles.elevation} absolute inset-0 flex min-h-0 flex-col`} style={{ background: "var(--bg-primary)" }}>
     <div className="flex items-start justify-between gap-4 px-5 pt-5">
       <div><h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{title}</h2>
-        <p className="mt-1 hidden text-xs leading-relaxed sm:block" style={{ color: "var(--text-secondary)" }}>{hint}</p></div>
+        <p className={`${styles.elevationHint} mt-1 hidden text-xs leading-relaxed sm:block`} style={{ color: "var(--text-secondary)" }}>{hint}</p></div>
       <div className="shrink-0 text-right"><span className="block text-xs" style={{ color: "var(--text-secondary)" }}>{heelLabel}</span>
         <strong className="text-xl tabular-nums" style={{ color: heel > 28 ? "var(--danger)" : "var(--accent-cyan)" }}>{Math.round(heel)}°</strong></div>
     </div>
@@ -120,8 +121,8 @@ export function SceneElevation({ view, ui, sim, tp }: {
         {mainVisible && <span style={{ color: MAIN }}>● {mainName}: {Math.round(mainAngle)}°{mainStatus && ` · ${mainStatus}`}{ui.reefLevel > 0 && ` · R${ui.reefLevel}`}</span>}
         {jibVisible && <span style={{ color: JIB }}>● {jibName}: {Math.round(jibAngle)}° · {Math.round(furl * 100)}%{jibStatus && ` · ${jibStatus}`}</span>}
       </div>
-      <p className="hidden sm:block" style={{ color: "var(--text-secondary)" }}>{note}</p>
-      <details className="sm:hidden" style={{ color: "var(--text-secondary)" }}>
+      <p className={`${styles.elevationHint} hidden sm:block`} style={{ color: "var(--text-secondary)" }}>{note}</p>
+      <details className={`${styles.elevationHelp} sm:hidden`} style={{ color: "var(--text-secondary)" }}>
         <summary className="cursor-pointer">{tp("Как читать схему", "Read this view", "Jak czytac schemat", { es: "Como leer la vista", fr: "Lire cette vue", de: "Ansicht verstehen", it: "Leggere questa vista" })}</summary>
         <p className="mt-2 max-h-20 overflow-y-auto">{note}</p>
       </details>

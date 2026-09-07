@@ -604,7 +604,7 @@ export default function SimulatorV3Page() {
             borderColor: 'rgba(0, 212, 255, 0.18)',
             background:
               'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
-            height: 'clamp(170px, 32dvh, 310px)',
+            height: 'clamp(270px, 32dvh, 310px)',
           }}
         >
           {ui.view === 'top' ? (

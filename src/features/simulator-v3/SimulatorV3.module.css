@@ -8,3 +8,8 @@
 @media (max-height: 600px) {
   .stage { position: relative; top: 0 !important; }
 }
+
+@media (max-height: 600px) {
+  .elevationHint { display: none; }
+  .elevationHelp { display: block; }
+}
