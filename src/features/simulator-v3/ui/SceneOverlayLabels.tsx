@@ -21,7 +21,7 @@ export function SceneOverlayLabels(args: {
       ? 'var(--accent-cyan)'
       : 'var(--warning)';
 
-  if (ui.view === 'rear') return null;
+  if (ui.view !== 'top') return null;
 
   return (
     <>

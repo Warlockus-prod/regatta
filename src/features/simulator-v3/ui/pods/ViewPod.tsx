@@ -115,7 +115,7 @@ export function ViewPod(props: {
           {tp('Сброс', 'Reset', 'Reset', { es: 'Reset', fr: 'Reset', de: 'Reset', it: 'Reset' })}
         </button>
       </div>
-      <label
+      {ui.view === "top" && <label
         className={`flex items-center gap-2 ${compact ? 'text-[9px]' : 'text-[10px]'} text-[var(--text-secondary)] cursor-pointer`}
       >
         <input
@@ -129,7 +129,7 @@ export function ViewPod(props: {
           de: 'Geister-Optimum',
           it: "Fantasma dell'ottimo",
         })}
-      </label>
+      </label>}
     </PodCard>
   );
 }

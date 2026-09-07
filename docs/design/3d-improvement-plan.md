@@ -11,3 +11,14 @@ Scope: shared web /simulator2, its native WebView host, and /anatomy.
 7. Archive and upload iOS 1.6.1 (34), attach it to TestFlight, prepare the App Store update, and record release results.
 
 Preserve existing user changes and existing GLB assets. Evaluate geometry work after rendering improvements. The owner authorized server deployment and a new app release on 2026-09-07.
+
+## Progress
+
+Steps 1-6 completed. Website release `639eb17` is live and production tests pass.
+Step 7: iOS 1.6.1 (34) archive, export, simulator build and launch completed;
+Apple validation/upload passed and build 34 is verified in the Self TestFlight group.
+Public App Store review remains pending the native visual release gate.
+
+Owner screenshot follow-up: fix anchored sail geometry and replace Trainer rear/
+side projections. Implemented locally; second production deployment in progress.
+See `3d-release-2026-09-07.md` for the exact checks and release limitations.

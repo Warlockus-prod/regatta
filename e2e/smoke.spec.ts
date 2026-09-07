@@ -15,6 +15,7 @@ test.beforeEach(async ({ context }) => {
     try {
       window.localStorage.setItem('regatta.lang.v1', 'ru');
       window.localStorage.setItem('regatta.onboarding.v1', '1');
+      window.localStorage.setItem('regatta.v3.tour.v1', '1');
     } catch { /* ignore */ }
   });
 });
@@ -133,6 +134,13 @@ test.describe('Smoke: critical user flows', () => {
 
     await page.goto('/simulator-v3');
     await expect(page.locator('canvas, svg').first()).toBeVisible({ timeout: 15_000 });
+
+    await page.getByRole("button", { name: "Сзади", exact: true }).click();
+    await expect(page.getByRole("img", { name: "Вид с кормы", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "Сбоку", exact: true }).click();
+    await expect(page.getByRole("img", { name: "Вид сбоку", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "R2", exact: true }).click();
+    await expect(page.getByText(/Грот:.*R2/)).toBeVisible();
 
     await page.goto('/simulator2');
     // The 3D scene mounts client-side only; wait for its canvas.

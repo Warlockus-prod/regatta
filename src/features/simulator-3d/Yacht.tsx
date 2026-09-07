@@ -7,6 +7,7 @@ import * as THREE from 'three';
 import { YACHT_MODEL_URL } from './config';
 import { sampleWave } from './ocean/waves';
 import type { YachtState } from './types';
+import { FORESTAY_AXIS, sailPoint, createSailGeometry, updateSailGeometry, createSailSeams, updateSailSeams, type SailShape } from './sails/geometry';
 
 // ============================================================================
 // Yacht - drives a per-instance clone of the GLB from a shared rig-state ref.
@@ -45,12 +46,6 @@ function findMorphMesh(node: THREE.Object3D | null): THREE.Mesh | null {
   return found;
 }
 
-function setMorph(mesh: THREE.Mesh | null, name: string, value: number) {
-  if (!mesh || !mesh.morphTargetDictionary || !mesh.morphTargetInfluences) return;
-  const idx = mesh.morphTargetDictionary[name];
-  if (idx !== undefined) mesh.morphTargetInfluences[idx] = value;
-}
-
 /**
  * Upgrade the GLB's flat Sail_Canvas material: slight sheen + softer roughness
  * gives the cloth a lit, premium read (the exported material was roughness=1
@@ -67,6 +62,8 @@ function upgradeSailMaterial(mesh: THREE.Mesh | null, weave: THREE.DataTexture) 
     roughness: 0.62,
     metalness: 0,
     sheen: 0.4,
+    emissive: new THREE.Color('#d6d8ce'),
+    emissiveIntensity: 0.06,
     normalMap: weave,
     normalScale: new THREE.Vector2(0.12, 0.12),
     sheenRoughness: 0.55,
@@ -82,6 +79,8 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
   const root = useRef<THREE.Group>(null);
   const yawRoot = useRef<THREE.Group>(null);
   const heelLerp = useRef(0);
+  const jibAngle = useRef(0);
+  const clothTime = useRef(-1);
 
   // Per-instance clone with shadows enabled (pure: builds and returns a value).
   const model = useMemo(() => {
@@ -103,16 +102,18 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     rudder: THREE.Object3D | null;
     main: THREE.Mesh | null;
     jib: THREE.Mesh | null;
-    mainTelltales: THREE.Object3D | null;
-    jibTelltales: THREE.Object3D | null;
+    sheets: THREE.LineSegments | null;
+    mainSeams: THREE.LineSegments | null;
+    jibSeams: THREE.LineSegments | null;
   }>({
     mainRig: null,
     jibRig: null,
     rudder: null,
     main: null,
     jib: null,
-    mainTelltales: null,
-    jibTelltales: null,
+    sheets: null,
+    mainSeams: null,
+    jibSeams: null,
   });
 
   useEffect(() => {
@@ -151,6 +152,25 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     });
     const main = findMorphMesh(model.getObjectByName('MainSail') ?? null);
     const jib = findMorphMesh(model.getObjectByName('Jib') ?? null);
+    const oldMainGeometry = main?.geometry;
+    const oldJibGeometry = jib?.geometry;
+    const mainGeometry = createSailGeometry();
+    const jibGeometry = createSailGeometry();
+    const sheetGeometry = new THREE.BufferGeometry();
+    sheetGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(18), 3).setUsage(THREE.DynamicDrawUsage));
+    const sheets = new THREE.LineSegments(sheetGeometry, new THREE.LineBasicMaterial({ color: "#bfc3b7" }));
+    sheets.frustumCulled = false;
+    model.add(sheets);
+    const mainSeams = createSailSeams();
+    const jibSeams = createSailSeams();
+    const initial: SailShape = { camber: 0.5, twist: 0.35, luff: 0, reef: 0, side: -1, time: 0 };
+    updateSailGeometry(mainGeometry, "main", initial);
+    updateSailGeometry(jibGeometry, "jib", initial);
+    if (main) { main.geometry = mainGeometry; main.add(mainSeams); }
+    if (jib) { jib.geometry = jibGeometry; jib.add(jibSeams); }
+    // Exported rigid decorations do not follow the cloth and float off it.
+    const decorations = ["Battens", "SailNumber", "Main_Telltales", "Jib_Telltales", "Running_Rigging"].map((name) => model.getObjectByName(name));
+    decorations.forEach((object) => { if (object) object.visible = false; });
     const mainMaterial = main?.material;
     const jibMaterial = jib?.material;
     const mainUpgrade = upgradeSailMaterial(main, weave);
@@ -161,13 +181,18 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
       rudder: model.getObjectByName('Rudder') ?? null,
       main,
       jib,
-      // The GLB ships telltale meshes that were never animated - the audit and
-      // the eSail research both rank fluttering telltales as the #1 teaching
-      // signal for trim. We drive them below.
-      mainTelltales: model.getObjectByName('Main_Telltales') ?? null,
-      jibTelltales: model.getObjectByName('Jib_Telltales') ?? null,
+      mainSeams,
+      jibSeams,
+      sheets,
+
     };
     return () => {
+      if (main && oldMainGeometry) { main.geometry = oldMainGeometry; main.remove(mainSeams); }
+      if (jib && oldJibGeometry) { jib.geometry = oldJibGeometry; jib.remove(jibSeams); }
+      model.remove(sheets); sheetGeometry.dispose(); (sheets.material as THREE.Material).dispose();
+      mainGeometry.dispose(); jibGeometry.dispose();
+      for (const seam of [mainSeams, jibSeams]) { seam.geometry.dispose(); (seam.material as THREE.Material).dispose(); }
+      decorations.forEach((object) => { if (object) object.visible = true; });
       if (main && mainMaterial) main.material = mainMaterial;
       if (jib && jibMaterial) jib.material = jibMaterial;
       for (const surface of surfaces) { surface.mesh.material = surface.original; surface.owned.forEach((material) => material.dispose()); }
@@ -183,34 +208,29 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     const k = Math.min(1, dt * 8);
     const t = st.clock.elapsedTime;
     if (n.mainRig) n.mainRig.rotation.y = THREE.MathUtils.lerp(n.mainRig.rotation.y, SIGN.boom * s.boomAngle * DEG, k);
-    if (n.jibRig) n.jibRig.rotation.y = THREE.MathUtils.lerp(n.jibRig.rotation.y, SIGN.jib * s.jibAngle * DEG, k);
+    jibAngle.current = THREE.MathUtils.lerp(jibAngle.current, SIGN.jib * s.jibAngle * DEG, k);
+    if (n.jibRig) n.jibRig.quaternion.setFromAxisAngle(FORESTAY_AXIS, jibAngle.current);
     if (n.rudder) n.rudder.rotation.y = THREE.MathUtils.lerp(n.rudder.rotation.y, SIGN.rudder * s.rudderAngle * DEG, k);
-    for (const [mesh, shape] of [
-      [n.main, { camber: s.camber, twist: s.twist, luff: s.luff, reef: s.reef }],
-      [n.jib, { camber: s.jibShape?.camber ?? s.camber, twist: s.jibShape?.twist ?? s.twist,
-        luff: s.jibShape?.luff ?? s.luff, reef: s.jibShape?.furl ?? 0 }],
-    ] as const) {
-      setMorph(mesh, "Camber", shape.camber);
-      setMorph(mesh, "Twist", shape.twist);
-      // Luffing flutters: ripple the Luff morph so a luffing sail shakes
-      // instead of freezing in a static "luffed" pose.
-      const flutter = shape.luff > 0.01 ? shape.luff * (0.85 + 0.15 * Math.sin(t * 18)) : 0;
-      setMorph(mesh, 'Luff', flutter);
-      setMorph(mesh, 'Reef', shape.reef);
+    if (t - clothTime.current > 1 / 30 || t < clothTime.current) {
+      clothTime.current = t;
+      for (const [mesh, seam, kind, shape] of [
+        [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, luff: s.luff, reef: s.reef, side: Math.sign(s.boomAngle) || 1, time: t }],
+        [n.jib, n.jibSeams, "jib", { camber: s.jibShape?.camber ?? s.camber, twist: s.jibShape?.twist ?? s.twist,
+          luff: s.jibShape?.luff ?? s.luff, reef: 0, side: Math.sign(s.jibAngle) || 1, time: t }],
+      ] as const) {
+        if (mesh) updateSailGeometry(mesh.geometry, kind, shape);
+        if (seam) updateSailSeams(seam, kind, shape);
+      }
     }
-    // Telltales: stream aft when flow is attached; lift and flick when luffing.
-    // Attached flow still micro-flutters (like the real ribbons).
-    const luffing = s.luff > 0.01;
-    const baseAmp = luffing ? 0.9 : 0.12;
-    const freq = luffing ? 16 : 6;
-    if (n.mainTelltales) {
-      n.mainTelltales.rotation.x = baseAmp * 0.5 * Math.sin(t * freq);
-      n.mainTelltales.rotation.y = baseAmp * 0.3 * Math.sin(t * freq * 0.8 + 1.3);
-    }
-    if (n.jibTelltales) {
-      const jibAmp = (s.jibShape?.luff ?? s.luff) > 0.01 ? 0.9 : 0.12;
-      n.jibTelltales.rotation.x = jibAmp * 0.5 * Math.sin(t * freq * 1.1 + 0.7);
-      n.jibTelltales.rotation.y = jibAmp * 0.3 * Math.sin(t * freq * 0.9 + 2.1);
+    if (n.sheets && n.mainRig && n.jibRig) {
+      const position = n.sheets.geometry.getAttribute("position") as THREE.BufferAttribute;
+      const boomEnd = new THREE.Vector3(-5.2, -0.04, 0).applyQuaternion(n.mainRig.quaternion).add(n.mainRig.position);
+      const clew = sailPoint("jib", 1, 0, { camber: 0, twist: 0, luff: 0, reef: 0, side: 1, time: 0 }, new THREE.Vector3())
+        .applyQuaternion(n.jibRig.quaternion).add(n.jibRig.position);
+      position.setXYZ(0, -3.1, 1.3, -0.25); position.setXYZ(1, boomEnd.x, boomEnd.y, boomEnd.z);
+      position.setXYZ(2, -3.1, 1.3, 0.25); position.setXYZ(3, boomEnd.x, boomEnd.y, boomEnd.z);
+      position.setXYZ(4, -3.4, 1.3, (Math.sign(s.jibAngle) || 1) * 1.15); position.setXYZ(5, clew.x, clew.y, clew.z);
+      position.needsUpdate = true;
     }
     const yaw = s.heading === undefined ? 0 : (90 - s.heading) * DEG;
     if (yawRoot.current) yawRoot.current.rotation.y = yaw;
