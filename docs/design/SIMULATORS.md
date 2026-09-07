@@ -3,7 +3,8 @@
 Status: ACTIVE (2026-09-07). The fresh [sailing audit](sailing-simulator-audit-2026-09-07.md)
 records physics and visual mismatches plus the next staged quality plan.
 Historical roadmap items 1-5 below are shipped;
-TestFlight build 26 (version 1.4.0) carries the full state of this document.
+Build 26 (version 1.4.0) was the historical July baseline. September changes
+are recorded in the audit and the build 37 release report.
 Remaining known gaps: mobile leaderboard auth (ADR-0006) and monetization
 (needs owner accounts: RevenueCat API key + IAP products in ASC - see
 docs/design/mobile/APPSTORE_GROWTH.md). This document supersedes the simulator-role
@@ -42,19 +43,19 @@ found this was the single biggest source of confusion. The tier names fix it.
    2,304 lines), the /simulator-3d-lab route, 4 prototype GLBs and the
    NEXT_PUBLIC_SIM_V2 flag were deleted 2026-07-05 (recoverable at be43938).
 
-## Physics engines (current state and target)
+## Physics engines (September 2026)
 
 | Engine | Where | Status |
 |---|---|---|
-| Golden VPP (`src/lib/sailing-physics`) | web Trainer (V3) | Canonical. 23 unit tests + V3's 33 runtime tests. |
-| Native fork (`mobile/src/simulator/physics`) | native Trainer | DIVERGED from golden (91 diff lines in forces.ts, missing current.ts, zero tests). To be replaced by `packages/physics` extraction (ADR-0003 step 5). |
-| 3D boat view | /simulator2 sailing mode | GOLDEN VPP since 2026-07-06: useSailingSim ticks src/lib/sailing-physics (steering integrated caller-side, same split as the Trainer); TGT and best-VMG come from throttled engine settles at optimal trim, not a lookup. sailModel.ts is now only UI/coach helpers. |
-| Arcade (`src/lib/race-physics.ts`) | /game, /multiplayer, /r replays | Intentionally simple race model; shared by all three consumers. GameClient still carries an inline duplicate - fold it in when /game is next touched. |
-| Basics lookup | web /simulator, app /simulator-basics | Point-of-sail speed-factor lookup, no dynamics - by design for tier 1. |
+| Shared force model (`src/lib/sailing-physics`) | Web Trainer, native Trainer, 3D sailing, race adapters | One approximate model for sail forces, twist, reefing, drag, heel and leeway. Native imports the shared source through an alias; its old physics directory is a shim, not a fork. |
+| 3D targets | `/simulator2` | Converged, trimmed polar solutions and cached VMG searches, including running angles. |
+| Race adapter (`src/lib/race-physics.ts`) | Web game, multiplayer server and replay | Shared forces, speed-dependent steering, legal start, port rounding and finish gates. The server bundle is generated and checked for freshness. |
+| Native race adapter | Mobile game | Shared forces and course progression, with native coordinates, presentation and steering assistance. Player and AI use the same force model. |
+| Basics lookup | Web Basics and native fallback | Explicitly conditional point-of-sail speeds, designed for introductory teaching. |
 
-Target end state: ONE golden engine in `packages/physics` consumed by web
-Trainer, native Trainer and the 3D view; the arcade model stays for /game;
-Basics stays a lookup.
+The shared force engine is already in use. This is not a sea-trial-calibrated
+VPP: the synthetic boat passport, assisted steering and simplified hydrodynamics
+remain documented limitations. See the audit for open calibration work.
 
 ## Shared constants and terms (do not fork these)
 
@@ -95,12 +96,15 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 
 ## Verification gates
 
-- Web: `npx tsc --noEmit`, `npm run lint`, `npm run test:physics` (23),
-  `npx vitest run src/features` (33+, now in CI), `npx playwright test`
+- Web: `npx tsc --noEmit`, `npm run lint`, `npm run test:physics` (45 plus generated-server freshness),
+  `npm test -- --run` (312 tests in the September release), `npx playwright test`
   (smoke covers /simulator, /simulator-v3, /simulator2 and the embed contract),
   `npm run build` before push.
-- Mobile: `npx tsc --noEmit`, `npm run lint`, `npx jest --ci`.
-- Live: cold-relaunch the dev-client (stale-bundle trap), screenshot each sim.
+- Mobile: `npx tsc --noEmit`, `npm run lint`, `npx jest --ci` (112 tests,
+  including complete AI trajectories on four courses and three screen sizes).
+  Also run content-sync checks and the localization audit.
+- Live: inspect the actual Release build and deployed site, not only a dev client.
+  Record screenshots and distinguish automated trajectories from manual race completion.
 
 ## Roadmap after this restructure
 
@@ -144,5 +148,6 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 ## September 2026 release
 
 See `3d-release-2026-09-07.md` for implementation, verification, deployment
-commits and the iOS 1.6.1 (34) TestFlight status. The owner-screenshot follow-up
+commits and the historical iOS 1.6.1 (34) TestFlight status.
+The current release is documented in `sailing-release37-2026-09-07.md`. The owner-screenshot follow-up
 corrects the jib's inclined rotation axis and replaces the Trainer elevations.
