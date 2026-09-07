@@ -481,3 +481,14 @@ The stack choice determines how much of this we reuse verbatim vs re-implement i
 - **Auth / accounts** - none on web today. Mobile parity needs cross-device
   sync, which forces a real account model. Sign in with Apple as default
   candidate (ADR-0006).
+
+
+## 2026-09-07: Shared live multiplayer surface
+
+Build 38 replaces the local mock-room entry with the existing hardened SimWebView
+pointing at `/multiplayer?embed=1`. This follows the shared-web strategy already
+used for Trainer and 3D and immediately gives app and website players the same
+server, readiness, course, reconnect and results behavior. The earlier suggestion
+of a separate React Native WebSocket UI is superseded for this release. Native
+solo racing remains the offline fallback; network play is explicitly online-only.
+Legacy host/join/race routes redirect and preserve room codes.

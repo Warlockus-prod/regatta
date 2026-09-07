@@ -43,6 +43,38 @@ The unused mock module is retained as historical code, not a network implementat
 
 ## Release tracking
 
-Build 38 is being prepared to replace build 37 in the pending 1.6.1 release.
-Deployment, final browser verification and App Store state will be recorded here
-once confirmed. Existing App Store review is not claimed to contain these changes.
+Build 38 replaces build 37 in the 1.6.1 submission. The final confirmed state
+is recorded below; App Store public availability still depends on Apple approval.
+
+
+## Final web verification
+
+Source `380a30435902c989604eb663b6e0fec9d116c068` deployed successfully.
+[CI run 34157533955](https://github.com/Warlockus-prod/regatta/actions/runs/34157533955):
+9 pre-deployment browser tests and all 13 production tests passed, including
+readiness and tablet steering in an embedded guest session.
+The optional socket `--expiry` test also passes: a disconnected host is removed
+after the grace window and the remaining human becomes host.
+
+Release archive 38, fresh IPA export, Apple validation and upload succeeded.
+The build is VALID and available to the Self TestFlight group. The Release
+Simulator binary was installed on iPhone 17 Pro / iOS 26.5; the live multiplayer
+entry rendered correctly in English. [Native evidence](mobile/audits/multiplayer-build38/multiplayer-entry.png).
+[Native localization audit](mobile/audits/multiplayer-build38/i18n.md): zero findings.
+The two-client browser flow and complete socket race are automated; a manual
+full race in WKWebView and physical-device performance are not claimed.
+
+
+## App Store submission confirmed
+
+At 2026-09-07 22:13 Europe/Warsaw: 1.6.1 (38), VALID, WAITING_FOR_REVIEW,
+AFTER_APPROVAL. Build ID: `c76aa877-9e90-4479-8e96-eb3a7e050f10`.
+Review submission: `cd721e6d-9cfe-4b59-b354-fdcff9d553b9`, submitted
+2026-09-07T20:12:47.074Z. The previous build 37 submission was canceled solely
+to replace its binary. Seven release-note locales were updated. Fastlane precheck
+and the submission dry-run passed before the actual submission.
+
+The final native check covers the installed release entry and its live web render.
+The final production E2E covers two independent browser sessions, including a
+tablet-sized embedded guest, readiness, bot roster, shared start and visible turn
+controls. This does not claim a manual full race on a physical iPhone.

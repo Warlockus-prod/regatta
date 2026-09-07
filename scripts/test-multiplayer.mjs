@@ -14,9 +14,9 @@ async function client() {
   const messages = [];
   ws.on("message", (raw) => messages.push(JSON.parse(raw)));
   await once(ws, "open");
-  return { ws, messages, send: (m) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(m)); }, async wait(type, predicate = () => true) {
+  return { ws, messages, send: (m) => { if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(m)); }, async wait(type, predicate = () => true, timeoutMs = 10000) {
     const start = Date.now();
-    while (Date.now() - start < 10000) {
+    while (Date.now() - start < timeoutMs) {
       const index = messages.findIndex((m) => m.type === type && predicate(m));
       if (index >= 0) return messages.splice(index, 1)[0];
       await delay(20);
@@ -93,6 +93,17 @@ try {
     atFinish.send({ type: "leave" });
   }
   resumed.send({ type: "leave" });
+  if (process.argv.includes("--expiry")) {
+    const departing = await client(), remaining = await client();
+    departing.send({ type: "create", nickname: "Departing host", sid: "qa-expiry-host" });
+    const expiryRoom = await departing.wait("joined");
+    remaining.send({ type: "join", code: expiryRoom.code, nickname: "Remaining sailor", sid: "qa-expiry-guest" });
+    const remainingId = (await remaining.wait("joined")).id;
+    departing.ws.close();
+    await remaining.wait("lobby-state", (m) => m.hostId === remainingId, 25000);
+    remaining.send({ type: "leave" });
+    console.log("PASS: disconnected host expires after grace and remaining sailor becomes host");
+  }
   console.log("PASS: bot roster, readiness gate, host transfer, socket replacement, countdown reconnect, authoritative racing snapshots");
 } finally {
   for (const ws of sockets) ws.terminate();

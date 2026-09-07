@@ -80,7 +80,9 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 ## Onboarding map
 
 - Web Basics: first-visit canvas hints + localized help paragraph.
-- Web Trainer: 10-step 7-language tour (TourOverlay).
+- Web Trainer: a short inline first action. The 10-step, 7-language guide
+  opens only on request through the help button. Wind dynamics, compass and
+  sail/course presets expand when needed; the main controls stay visible.
 - Web 3D: optional help via the "?" button; no automatic modal tour. Whole-yacht,
   sails and deck camera presets. Primary sheets are always available; wind,
   reef and extra instruments expand on demand. Hold-to-steer supports pointer
@@ -151,3 +153,12 @@ See `3d-release-2026-09-07.md` for implementation, verification, deployment
 commits and the historical iOS 1.6.1 (34) TestFlight status.
 The current release is documented in `sailing-release37-2026-09-07.md`. The owner-screenshot follow-up
 corrects the jib's inclined rotation axis and replaces the Trainer elevations.
+
+
+## Live multiplayer, build 38
+
+The app multiplayer entry now embeds the same live room and race as the website.
+Previous host/join/race routes redirect to this entry and forward room codes.
+Network failure offers retry and offline solo racing. See
+[UX and multiplayer delivery](ux-multiplayer-2026-09-07.md) for verification and
+release status. The old local ghost-room implementation is no longer the entry flow.
