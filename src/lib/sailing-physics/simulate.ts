@@ -142,7 +142,7 @@ export function tick(
   // jib loses force. Wing-on-wing (jib on opposite side) gets clean air.
   // Model: blanket kicks in within 45 deg of dead downwind, worst at 180 deg.
   const twaFromDead = 180 - Math.abs(twa);
-  if (jibSideSign === mainSideSign && twaFromDead < 45) {
+  if (mainArea > 0 && jibSideSign === mainSideSign && twaFromDead < 45) {
     const blanketFactor = 0.4 + 0.6 * (twaFromDead / 45);
     jibF.drive *= blanketFactor;
     jibF.side *= blanketFactor;

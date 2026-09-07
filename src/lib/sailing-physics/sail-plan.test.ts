@@ -37,6 +37,14 @@ describe("physical sail contracts", () => {
       expect(result.state.boatSpeed).toBe(0);
     }
   });
+  it("a lowered main cannot blanket the jib on a dead run", () => {
+    const state = createInitialState({ tws: 12, twa: 180, boatSpeed: 0 });
+    const run = (jibSide: 1 | -1) => tick(state, {
+      ...controls, mainHoisted: false, jibSide,
+    }, getBoatParams(), .1).diag.drive;
+    expect(run(1)).toBeGreaterThan(0);
+    expect(run(1)).toBeCloseTo(run(-1), 8);
+  });
   it("halves isolated jib force at half furl and removes it at full furl", () => {
     const state = createInitialState({tws:12,twa:90,boatSpeed:5});
     const run = (jibFurl: number) => tick(state, {...controls,mainHoisted:false,jibFurl}, getBoatParams(), .1).diag;
