@@ -3,6 +3,7 @@ import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
 
 /** Visual rig state the 3D yacht renders from (drives morphs + rig nodes). */
 export interface YachtState {
+  wind?: { from: number; knots: number };
   /** Main boom angle off centerline, signed deg (sign picks the lee side). */
   boomAngle: number;
   /** Jib clew angle off centerline, signed deg. */

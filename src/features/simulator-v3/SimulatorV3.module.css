@@ -1,0 +1,10 @@
+.stage {
+  position: sticky;
+  z-index: 20;
+  flex-shrink: 0;
+  background: var(--bg-primary);
+  padding-bottom: 8px;
+}
+@media (max-height: 600px) {
+  .stage { position: relative; top: 0 !important; }
+}

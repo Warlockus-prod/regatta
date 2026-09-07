@@ -1,5 +1,6 @@
 'use client';
 
+import styles from "./SimulatorV3.module.css";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
@@ -354,18 +355,18 @@ export default function SimulatorV3Page() {
               border: '1px solid rgba(0, 212, 255, 0.35)',
             }}
           >
-            V3 · Cockpit
+            {tp("Трим", "Trim", "Trym", { es: "Trimado", fr: "Réglage", de: "Trimm", it: "Regolazione" })}
           </span>
           <span className="hidden sm:inline text-xs text-[var(--text-muted)] truncate">
             {tp(
-              'VPP engine · живой тренажёр',
-              'VPP engine · live trainer',
-              'VPP · trener na zywo',
+              'Ветер, паруса, ход',
+              'Wind, sails, boat speed',
+              'Wiatr, zagle, predkosc',
               {
-                es: 'Motor VPP · entrenador en vivo',
-                fr: 'Moteur VPP · entraineur en direct',
-                de: 'VPP-Engine · Live-Trainer',
-                it: 'Motore VPP · trainer dal vivo',
+                es: 'Viento, velas, velocidad',
+                fr: 'Vent, voiles, vitesse',
+                de: 'Wind, Segel, Fahrt',
+                it: 'Vento, vele, velocità',
               },
             )}
           </span>
@@ -596,14 +597,14 @@ export default function SimulatorV3Page() {
             />
           </div>
         )}
+        <div className={styles.stage} style={{ top: embed ? 0 : 104 }}>
         <div
           className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)] shrink-0"
           style={{
             borderColor: 'rgba(0, 212, 255, 0.18)',
             background:
               'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
-            height: embed ? '42dvh' : '55vh',
-            minHeight: embed ? '280px' : '360px',
+            height: 'clamp(170px, 32dvh, 310px)',
           }}
         >
           {ui.view === 'top' ? (
@@ -623,9 +624,8 @@ export default function SimulatorV3Page() {
         </div>
         <MetricsStrip ui={ui} sim={sim} tp={tp} />
         <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
-        <div className="mx-2 grid grid-cols-2 gap-2 mb-2">
-          <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
-          <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+        </div>
+        <div className="mx-2 grid shrink-0 grid-cols-2 gap-2 mb-2">
           <ViewPod
             ui={ui}
             setUi={setUi}
@@ -634,6 +634,8 @@ export default function SimulatorV3Page() {
             resetAll={resetAll}
             setPreset={setPreset}
           />
+          <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
+          <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
           <div className="col-span-2">
             <HelmPod sim={sim} tp={tp} />

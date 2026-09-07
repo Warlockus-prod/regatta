@@ -100,7 +100,7 @@ function coachFrom(twaAbs: number, speedKn: number, diag: TickDiagnostics, quali
  * Deep downwind (drag mode) attached-flow scoring does not apply: full,
  * well-eased sails there are GOOD trim even though the engine flags stall. */
 function trimQualityFrom(twaAbs: number, diag: TickDiagnostics): number {
-  if (twaAbs > 135) return 0.75;
+  if (twaAbs > 135) return clamp((0.6 * Math.sin(diag.mainAoA * Math.PI / 180) ** 2 + 0.4 * Math.sin(diag.jibAoA * Math.PI / 180) ** 2), 0, 1);
   const q = (aoa: number, stalled: boolean) => (stalled ? 0.15 : clamp(1 - Math.abs(aoa - 16) / 14, 0, 1));
   const base = 0.6 * q(diag.mainAoA, diag.mainStalled) + 0.4 * q(diag.jibAoA, diag.jibStalled);
   return clamp(base * (0.7 + 0.3 * diag.slotHealth), 0, 1);
@@ -173,7 +173,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
         const boom = PARAMS.mainMaxOff * ui.mainSheet;
         const jib = PARAMS.jibMinOff + (PARAMS.jibMaxOff - PARAMS.jibMinOff) * ui.jibSheet;
         const camber = clamp((luffing ? 0.06 : 0.5) * (0.6 + 0.4 * quality) - 0.2 * ui.reef, 0.05, 0.7);
-        const twist = clamp(0.18 + 0.5 * (twaAbs / 180), 0.15, 0.92);
+        const twist = engineControls.mainTwist;
         Object.assign(yachtRef.current, {
           boomAngle: boom * (side === -1 ? 1 : -1),
           jibAngle: jib * (side === -1 ? 1 : -1),
@@ -184,9 +184,10 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
           rudderAngle: ui.rudder * 35,
           heel: Math.abs(next.heel) * (side === -1 ? 1 : -1),
           heading: next.heading,
+          wind: { from: w.fromDeg, knots: w.twsKn },
           jibShape: {
             camber: jibLuffing ? 0.06 : clamp(0.5 * (0.6 + 0.4 * quality), 0.05, 0.7),
-            twist: clamp(twist + 0.05, 0, 1),
+            twist: engineControls.jibTwist,
             luff: jibLuffing ? 1 : 0,
             furl: 0,
           },

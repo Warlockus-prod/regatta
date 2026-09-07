@@ -7,6 +7,7 @@ import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
 import * as THREE from 'three';
 import { Yacht } from './Yacht';
 import { Ocean } from './ocean/Ocean';
+import { WindFlow } from "./ocean/WindFlow";
 import { Wake } from './ocean/Wake';
 import type { YachtState } from './types';
 import type { OrbitControls as Controls } from "three-stdlib";
@@ -179,6 +180,7 @@ export const RegattaScene = memo(function RegattaScene({
 
       <Ocean stateRef={stateRef} />
       <Wake stateRef={stateRef} />
+      <WindFlow stateRef={stateRef} />
 
 
       {postFx && (

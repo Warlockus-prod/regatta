@@ -283,7 +283,7 @@ describe('pickPrimaryFeedback', () => {
     const args = makeArgs({ twa: 25 }, {});
     const r = pickPrimaryFeedback(args);
     expect(r.tone).toBe('danger');
-    expect(r.text).toMatch(/мёртв/i);
+    expect(r.text).toMatch(/близко к ветру/i);
   });
 
   it('flags critical heel + heavy wind + no reef', () => {

@@ -1,3 +1,4 @@
+import { NO_GO_HALF_DEG } from "@/lib/sailing-physics/constants";
 import type { LegacyLocalized } from '@/lib/languages';
 
 // ===== POINTS OF SAIL =====
@@ -25,7 +26,7 @@ export const pointsOfSail: PointOfSail[] = [
     nameDe: 'im Wind',
     nameIt: 'in panna',
     angleMin: 0,
-    angleMax: 30,
+    angleMax: NO_GO_HALF_DEG,
     sailAngle: 0,
     speedFactor: 0,
     descriptionRu: 'Яхта стоит носом прямо против ветра. Паруса полощутся (заполаскивают), тяга отсутствует. Это "мёртвая зона" - яхта не может двигаться в этом направлении.',
@@ -53,17 +54,17 @@ export const pointsOfSail: PointOfSail[] = [
     nameFr: 'au près',
     nameDe: 'Am Wind',
     nameIt: 'bolina',
-    angleMin: 30,
+    angleMin: NO_GO_HALF_DEG,
     angleMax: 60,
     sailAngle: 12,
     speedFactor: 0.65,
-    descriptionRu: 'Курс под острым углом к ветру (30-60°). Паруса максимально выбраны (подтянуты к ДП). Парус работает как крыло самолёта, создавая аэродинамическую тягу. Самый "тесный" рабочий курс.',
-    descriptionEn: 'Sailing at a sharp angle to the wind (30-60°). Sails trimmed tight to centerline. The sail works like an airplane wing, generating aerodynamic lift. The closest working angle to the wind.',
-    descriptionPl: 'Kurs pod ostrym katem do wiatru (30-60°). Zagle maksymalnie wybrane (dociagniete do osi symetrii). Zagiel dziala jak skrzydlo samolotu, generujac sile aerodynamiczna. Najbardziej "ciasny" kurs roboczy.',
-    descriptionEs: 'Rumbo muy ceñido al viento (30-60°). Las velas están máximamente cazadas (tensadas hacia la línea de crujía). La vela funciona como un ala de avión, generando tracción aerodinámica. El rumbo de trabajo más "cerrado".',
-    descriptionFr: 'Cap au pres (30-60°). Voiles maximalement bordees (serrees vers l\'axe longitudinal). La voile fonctionne comme une aile d\'avion, creant une traction aerodynamique. Le cap de travail le plus "serre".',
-    descriptionDe: 'Am Wind (30-60°). Segel sind maximal dicht (straff zur Mittellinie). Das Segel arbeitet wie ein Flugzeugflügel und erzeugt aerodynamischen Auftrieb. Der "engste" Arbeitskurs.',
-    descriptionIt: 'Bolina - corso con angolo acuto al vento (30-60°). Vele cazzate al massimo (tirate verso la linea di centro). La vela funziona come un\'ala d\'aereo, creando una spinta aerodinamica. Il corso di lavoro più "stretto".',
+    descriptionRu: 'Курс под острым углом к ветру (42-60°). Паруса максимально выбраны (подтянуты к ДП). Парус работает как крыло самолёта, создавая аэродинамическую тягу. Самый "тесный" рабочий курс.',
+    descriptionEn: 'Sailing at a sharp angle to the wind (42-60°). Sails trimmed tight to centerline. The sail works like an airplane wing, generating aerodynamic lift. The closest working angle to the wind.',
+    descriptionPl: 'Kurs pod ostrym katem do wiatru (42-60°). Zagle maksymalnie wybrane (dociagniete do osi symetrii). Zagiel dziala jak skrzydlo samolotu, generujac sile aerodynamiczna. Najbardziej "ciasny" kurs roboczy.',
+    descriptionEs: 'Rumbo muy ceñido al viento (42-60°). Las velas están máximamente cazadas (tensadas hacia la línea de crujía). La vela funciona como un ala de avión, generando tracción aerodinámica. El rumbo de trabajo más "cerrado".',
+    descriptionFr: 'Cap au pres (42-60°). Voiles maximalement bordees (serrees vers l\'axe longitudinal). La voile fonctionne comme une aile d\'avion, creant une traction aerodynamique. Le cap de travail le plus "serre".',
+    descriptionDe: 'Am Wind (42-60°). Segel sind maximal dicht (straff zur Mittellinie). Das Segel arbeitet wie ein Flugzeugflügel und erzeugt aerodynamischen Auftrieb. Der "engste" Arbeitskurs.',
+    descriptionIt: 'Bolina - corso con angolo acuto al vento (42-60°). Vele cazzate al massimo (tirate verso la linea di centro). La vela funziona come un\'ala d\'aereo, creando una spinta aerodinamica. Il corso di lavoro più "stretto".',
     color: '#ff8844',
     sailWorkRu: 'Парус как крыло - аэродинамическая тяга',
     sailWorkEn: 'Sail as wing - aerodynamic lift',
@@ -359,11 +360,11 @@ export const glossaryTerms: GlossaryTerm[] = [
 
   // Курсы / Points of Sail / Kursy wzgledem wiatru
   { id: 'course-in-irons', termRu: 'Левентик', termEn: 'In Irons / Head to Wind', termPl: 'Pod wiatr (lewentyk)', definitionRu: 'Нос прямо против ветра, яхта не движется', definitionEn: 'Bow pointed directly into wind, boat stalled', definitionPl: 'Dziob skierowany prosto pod wiatr, jacht nie plynie', category: 'course', termEs: 'en facha', termFr: 'vent debout', termDe: 'im Wind', termIt: 'in panna', definitionEs: 'Proa directamente contra el viento, el yate no se mueve', definitionFr: 'Vent debout, le bateau n\'avance pas', definitionDe: 'Bug direkt gegen den Wind, die Yacht bewegt sich nicht', definitionIt: 'Prua dritta contro il vento, la barca non si muove', },
-  { id: 'course-close-hauled', termRu: 'Бейдевинд', termEn: 'Close-hauled', termPl: 'Bajdewind', definitionRu: 'Курс под острым углом к ветру (30-60°)', definitionEn: 'Sailing at a sharp angle to wind (30-60°)', definitionPl: 'Kurs pod ostrym katem do wiatru (30-60°)', category: 'course', termEs: 'cenida', termFr: 'au pres', termDe: 'Am Wind', termIt: 'bolina', definitionEs: 'Rumbo ceñido a un ángulo cerrado al viento (30-60°)', definitionFr: 'Cours au près (30-60°)', definitionDe: 'Kurs in Halbwind-Amwind (30-60°)', definitionIt: 'Rotta con angolo acuto al vento (30-60°)', },
+  { id: 'course-close-hauled', termRu: 'Бейдевинд', termEn: 'Close-hauled', termPl: 'Bajdewind', definitionRu: 'Курс под острым углом к ветру (42-60°)', definitionEn: 'Sailing at a sharp angle to wind (42-60°)', definitionPl: 'Kurs pod ostrym katem do wiatru (42-60°)', category: 'course', termEs: 'cenida', termFr: 'au pres', termDe: 'Am Wind', termIt: 'bolina', definitionEs: 'Rumbo ceñido a un ángulo cerrado al viento (42-60°)', definitionFr: 'Cours au près (42-60°)', definitionDe: 'Kurs in Halbwind-Amwind (42-60°)', definitionIt: 'Rotta con angolo acuto al vento (42-60°)', },
   { id: 'course-beam-reach', termRu: 'Галфвинд', termEn: 'Beam Reach', termPl: 'Polwiatr', definitionRu: 'Ветер перпендикулярно борту (~90°)', definitionEn: 'Wind perpendicular to beam (~90°)', definitionPl: 'Wiatr prostopadle do burty (~90°)', category: 'course', termEs: 'a un largo', termFr: 'vent de travers', termDe: 'Halbwind', termIt: 'Halbwind', definitionEs: 'Viento perpendicular al costado (~90°)', definitionFr: 'Vent de travers (~90°)', definitionDe: 'Windquere zum Boot (~90°)', definitionIt: 'Vento perpendicolare al bordo (~90°)', },
   { id: 'course-broad-reach', termRu: 'Бакштаг', termEn: 'Broad Reach', termPl: 'Baksztag', definitionRu: 'Ветер сзади-сбоку (110-160°)', definitionEn: 'Wind from behind and to the side (110-160°)', definitionPl: 'Wiatr z tylu-boku (110-160°)', category: 'course', termEs: 'largo', termFr: 'grand largue', termDe: 'Raumwind', termIt: 'lasco', definitionEs: 'Viento de aleta (110-160°)', definitionFr: 'Vent arriere-travers (110-160°)', definitionDe: 'Wind von hinten-von der Seite (110-160°)', definitionIt: 'Lasco (110-160°)', },
   { id: 'course-running', termRu: 'Фордевинд', termEn: 'Running / Dead Run', termPl: 'Fordewind', definitionRu: 'Ветер прямо в корму (160-180°)', definitionEn: 'Wind directly from behind (160-180°)', definitionPl: 'Wiatr prosto w rufe (160-180°)', category: 'course', termEs: 'popa', termFr: 'vent arriere', termDe: 'vor dem Wind', termIt: 'fil di ruota', definitionEs: 'Viento directo en popa (160-180°)', definitionFr: 'Vent arriere (160-180°)', definitionDe: 'Wind direkt von achtern (160-180°)', definitionIt: 'Vento direttamente in poppa (160-180°)', },
-  { id: 'no-go-zone', termRu: 'Неходовая зона (мёртвая зона)', termEn: 'No-Go Zone', termPl: 'Strefa martwa', definitionRu: 'Сектор ±30° к ветру, где яхта не может идти', definitionEn: 'Sector ±30° from wind where boat cannot sail', definitionPl: 'Sektor ±30° od wiatru, w ktorym jacht nie moze plynac', category: 'course', termEs: 'Zona muerta (no-go zone)', termFr: 'Zone morte (zone morte)', termDe: 'Totzone (Totzone)', termIt: 'Zona morta (no-go zone)', definitionEs: 'Zona muerta de ±30° al viento, donde el yate no puede navegar', definitionFr: 'Zone morte de ±30° au vent, où le voilier ne peut pas naviguer', definitionDe: 'Totzone von etwa ±30° zum Wind, wo die Yacht nicht segeln kann', definitionIt: 'Zona morta di ±30° rispetto al vento, dove la barca non può andare', },
+  { id: 'no-go-zone', termRu: 'Неходовая зона (мёртвая зона)', termEn: 'No-Go Zone', termPl: 'Strefa martwa', definitionRu: 'Сектор ±42° к ветру, где яхта не может идти', definitionEn: 'Sector ±42° from wind where boat cannot sail', definitionPl: 'Sektor ±42° od wiatru, w ktorym jacht nie moze plynac', category: 'course', termEs: 'Zona muerta (no-go zone)', termFr: 'Zone morte (zone morte)', termDe: 'Totzone (Totzone)', termIt: 'Zona morta (no-go zone)', definitionEs: 'Zona muerta de ±42° al viento, donde el yate no puede navegar', definitionFr: 'Zone morte de ±42° au vent, où le voilier ne peut pas naviguer', definitionDe: 'Totzone von etwa ±42° zum Wind, wo die Yacht nicht segeln kann', definitionIt: 'Zona morta di ±42° rispetto al vento, dove la barca non può andare', },
 
   // Маневры / Maneuvers / Manewry
   { id: 'man-tacking', termRu: 'Оверштаг', termEn: 'Tacking', termPl: 'Zwrot przez sztag', definitionRu: 'Поворот через нос (через линию ветра)', definitionEn: 'Turn through the bow (across the wind line)', definitionPl: 'Zwrot przez dziob (przez linie wiatru)', category: 'maneuver', termEs: 'Tacking', termFr: 'Virer', termDe: 'Wenden', termIt: 'Virare', definitionEs: 'Virar por avante (por la línea del viento)', definitionFr: 'Virer (de bord)', definitionDe: 'Wenden (durch die Windeye)', definitionIt: 'Virare di bordo (attraverso la linea del vento)', },

@@ -1,5 +1,5 @@
 import { DEG_TO_RAD, RAD_TO_DEG, type WindVec } from './wind';
-import { sailCl, sailCd, stallOnsetWithTwist, peakClWithTwist, isStalled } from './aero';
+import { sailCl, sailCd, isStalled } from './aero';
 
 // ============================================================================
 // Sail forces: given a sail configuration and apparent wind in boat frame,
@@ -46,7 +46,7 @@ export interface SailForce {
  *    chord.x = sailSide * sin(angleOff)
  *    chord.y = -cos(angleOff)    (always aft)
  */
-export function computeSailForce(
+function computeSectionForce(
   aw: WindVec,
   awsMps: number,
   cfg: SailConfig,
@@ -108,15 +108,11 @@ export function computeSailForce(
   const flowDotLeeward = flowX * leewardX + flowY * leewardY;
   const backed = flowDotLeeward < 0;
 
-  // Twist-adjusted stall and peak
-  const stallOnset = stallOnsetWithTwist(20, cfg.twist);
-  const peakCl = peakClWithTwist(1.5, cfg.twist);
-
-  // Compute Cl, Cd. If backed, Cl is negative (pushes sail windward instead).
-  const clRaw = sailCl(aoa, peakCl) * clMultiplier;
+  // The coefficient curve and diagnostic use the same section stall onset.
+  const clRaw = sailCl(aoa, 1.5) * clMultiplier;
   const cl = backed ? -clRaw * 0.5 : clRaw;
   const cd = sailCd(aoa);
-  const stalled = isStalled(aoa, stallOnset);
+  const stalled = isStalled(aoa, 18);
 
   // Dynamic pressure
   const q = 0.5 * RHO_AIR * awsMps * awsMps;
@@ -158,6 +154,27 @@ export function computeSailForce(
     aoa,
     stalled,
   };
+}
+
+/** Triangular-area quadrature. The upper sections open by exactly the same
+ * twist profile as the runtime cloth, rather than moving a diagnostic flag. */
+export const MAX_SAIL_TWIST_DEG = 20;
+export function sectionTwistDegrees(twist: number, height: number): number {
+  return Math.max(0, Math.min(1, twist)) * MAX_SAIL_TWIST_DEG * Math.pow(height, 1.6);
+}
+export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, clMultiplier = 1): SailForce {
+  let drive = 0, side = 0, aoa = 0, stalledArea = 0;
+  for (let i = 0; i < 5; i++) {
+    const height = (i + 0.5) / 5;
+    const weight = 2 * (1 - height) / 5;
+    const section = computeSectionForce(aw, awsMps, {
+      ...cfg, area: cfg.area * weight,
+      angleOff: cfg.angleOff + sectionTwistDegrees(cfg.twist, height), twist: 0,
+    }, clMultiplier);
+    drive += section.drive; side += section.side; aoa += section.aoa * weight;
+    if (section.stalled) stalledArea += weight;
+  }
+  return { drive, side, aoa, stalled: stalledArea >= 0.5 };
 }
 
 /** Compute slot-effect multiplier on the main Cl from the jib state.

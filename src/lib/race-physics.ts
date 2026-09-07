@@ -1,3 +1,7 @@
+import { tick, createInitialState } from "./sailing-physics/simulate";
+import { getBoatParams } from "./sailing-physics/boat";
+import { trimForDrive } from "./sailing-physics/polar";
+import type { BoatState, Controls } from "./sailing-physics/types";
 /**
  * Pure sailing physics functions.
  *
@@ -11,7 +15,7 @@ export interface Vec2 { x: number; y: number }
 export const WORLD = { width: 800, height: 1200 };
 export const WIND_DIRECTION_BASE = 0;            // deg, wind source (0 = from north)
 export const MAX_SPEED = 8.0;                    // knots
-export const TURN_RATE = 90;                     // deg/sec player
+export const TURN_RATE = 22;                     // deg/sec player
 export const ACCEL = 2.5;                        // speed lerp factor
 export const MARK_ROUND_DIST = 28;
 export const MIN_BOAT_SEPARATION = 22;           // collision repel distance
@@ -106,6 +110,11 @@ export interface RaceBoat {
   wake?: Vec2[];
   lapDone: number;        // 0 = before mark, 1 = after mark, 2 = finished
   finishTime?: number;
+  started?: boolean;
+  roundPhase?: number;
+  physics?: BoatState;
+  trim?: Controls;
+  trimClock?: number;
   // Client-side only extras are allowed (ignored server side):
   skill?: number;
   tackPreference?: 'port' | 'starboard';
@@ -127,21 +136,20 @@ export function stepBoat(
   input: InputState,
   opts: { speedMul?: number; windStrengthMul?: number } = {},
 ): void {
-  // Heading
-  if (input.turn !== 0) {
-    boat.heading = normalizeAngle(boat.heading + input.turn * TURN_RATE * dt);
+  const authority = Math.max(0, Math.min(1, boat.speed / 3));
+  boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
+  const params = getBoatParams();
+  const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
+    boatSpeed: boat.speed, trueWindDir: windDir,
+    trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
+  boat.trimClock = (boat.trimClock ?? 1) + dt;
+  if (!boat.trim || boat.trimClock >= .5) {
+    boat.trim = trimForDrive(state, boat.trim ?? { mainSheet: .4, jibSheet: .2, mainTwist: .35, jibTwist: .4, reef: 0, jibFurl: 0, jibSide: 1 });
+    boat.trimClock = 0;
   }
-
-  // Speed
-  const twa = calcTWA(boat.heading, windDir);
-  const speedMul = opts.speedMul ?? 1.0;
-  const wsm = opts.windStrengthMul ?? 1.0;
-  const targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul * wsm * gust;
-  const accel = (targetSpeed > boat.speed ? ACCEL : ACCEL * 0.6);
-  boat.speed += (targetSpeed - boat.speed) * accel * dt;
-
-  // Position
-  const rad = deg2rad(boat.heading);
+  boat.physics = tick(state, boat.trim, params, dt).state;
+  boat.speed = boat.physics.boatSpeed;
+  const rad = deg2rad(boat.heading + boat.physics.leeway);
   boat.pos.x += Math.sin(rad) * boat.speed * 8 * dt;
   boat.pos.y -= Math.cos(rad) * boat.speed * 8 * dt;
 
@@ -151,7 +159,7 @@ export function stepBoat(
 }
 
 /** Pair-wise boat repel to prevent overlap. */
-export function resolveCollisions(boats: RaceBoat[]): void {
+export function resolveCollisions(boats: RaceBoat[], dt = 1 / 20): void {
   for (let i = 0; i < boats.length; i++) {
     for (let j = i + 1; j < boats.length; j++) {
       const a = boats[i];
@@ -159,16 +167,16 @@ export function resolveCollisions(boats: RaceBoat[]): void {
       const dx = b.pos.x - a.pos.x;
       const dy = b.pos.y - a.pos.y;
       const d = Math.hypot(dx, dy);
-      if (d < MIN_BOAT_SEPARATION && d > 0.01) {
+      if (d < MIN_BOAT_SEPARATION) {
         const overlap = (MIN_BOAT_SEPARATION - d) / 2;
-        const nx = dx / d;
-        const ny = dy / d;
+        const nx = d > .001 ? dx / d : 1;
+        const ny = d > .001 ? dy / d : 0;
         a.pos.x -= nx * overlap;
         a.pos.y -= ny * overlap;
         b.pos.x += nx * overlap;
         b.pos.y += ny * overlap;
-        a.speed *= 0.92;
-        b.speed *= 0.92;
+        a.speed *= Math.exp(-1.67 * dt);
+        b.speed *= Math.exp(-1.67 * dt);
       }
     }
   }
@@ -216,20 +224,46 @@ export function updateLap(
   course: RaceCourse,
   raceTime: number,
 ): 'mark' | 'finish' | null {
+  if (!boat.started) {
+    if (prevPos.y > boat.pos.y && segmentCrossed(prevPos, boat.pos, course.startLine.a, course.startLine.b)) boat.started = true;
+    else return null;
+  }
   if (boat.lapDone === 0) {
-    const w = course.marks[0];
-    if (distance(boat.pos, w.pos) < MARK_ROUND_DIST + w.radius) {
-      boat.lapDone = 1;
-      return 'mark';
+    const m = course.marks[0];
+    const inner = m.radius + MIN_BOAT_SEPARATION / 2;
+    const outer = inner + 70;
+    const x = m.pos.x, y = m.pos.y;
+    const phase = boat.roundPhase ?? 0;
+    if (phase === 0 && boat.pos.y < prevPos.y && segmentCrossed(prevPos, boat.pos, {x:x+inner,y}, {x:x+outer,y})) boat.roundPhase = 1;
+    else if (phase === 1 && boat.pos.x < prevPos.x && segmentCrossed(prevPos, boat.pos, {x,y:y-inner}, {x,y:y-outer})) boat.roundPhase = 2;
+    else if (phase === 2 && boat.pos.y > prevPos.y && segmentCrossed(prevPos, boat.pos, {x:x-inner,y}, {x:x-outer,y})) {
+      boat.lapDone = 1; return "mark";
     }
-  } else if (boat.lapDone === 1) {
-    if (segmentCrossed(prevPos, boat.pos, course.finishLine.a, course.finishLine.b)) {
-      if (prevPos.y < boat.pos.y) {
-        boat.lapDone = 2;
-        boat.finishTime = raceTime;
-        return 'finish';
-      }
-    }
+  } else if (boat.lapDone === 1 && prevPos.y < boat.pos.y && segmentCrossed(prevPos, boat.pos, course.finishLine.a, course.finishLine.b)) {
+    boat.lapDone = 2; boat.finishTime = raceTime; return "finish";
   }
   return null;
+}
+
+/** Port rounding: approach east, pass north, depart west of the mark.
+ * The AI navigates the same gates checked for the player. */
+export function raceWaypoint(boat: RaceBoat, course: RaceCourse): Vec2 {
+  if (!boat.started) return { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y - 60 };
+  if (boat.lapDone > 0) return { x: (course.finishLine.a.x + course.finishLine.b.x) / 2, y: course.finishLine.a.y + 30 };
+  const m = course.marks[0].pos;
+  const r = course.marks[0].radius + MIN_BOAT_SEPARATION / 2 + 35;
+  if ((boat.roundPhase ?? 0) === 0) return { x: m.x + r, y: m.y - r };
+  if (boat.roundPhase === 1) return { x: m.x - r, y: m.y - r };
+  return { x: m.x - r, y: m.y + r };
+}
+
+export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: number): number {
+  const target = raceWaypoint(boat, course);
+  let desired = bearing(boat.pos, target);
+  const relative = calcTWA(desired, windDir);
+  if (Math.abs(relative) < 45) {
+    const crosswind = (target.x - boat.pos.x) * Math.cos(deg2rad(windDir)) + (target.y - boat.pos.y) * Math.sin(deg2rad(windDir));
+    desired = normalizeAngle(windDir + (crosswind >= 0 ? 48 : -48));
+  }
+  return Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12));
 }

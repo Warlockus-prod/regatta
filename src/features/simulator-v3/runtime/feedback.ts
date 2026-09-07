@@ -61,14 +61,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (absTwa < NO_GO_HALF_DEG) {
     return {
       text: tp(
-        'В мёртвой зоне. Уваливайся - лодка встала.',
-        'No-go zone. Bear away, the boat has stopped.',
+        'Слишком близко к ветру. Уваливайся, чтобы восстановить ход.',
+        'Too close to the wind. Bear away to recover speed.',
         'Strefa martwa. Zejdz od wiatru.',
         {
-          es: 'Zona muerta. Arriba: el barco se ha parado.',
-          fr: "Zone morte. Abats, le bateau s'est arrêté.",
-          de: 'Totzone. Fall ab, das Boot steht.',
-          it: 'Zona morta. Poggia: la barca si è fermata.',
+          es: 'Demasiado cerca del viento. Arriba para recuperar velocidad.',
+          fr: "Trop près du vent. Abats pour reprendre de la vitesse.",
+          de: 'Zu nah am Wind. Fall ab, um wieder Fahrt aufzunehmen.',
+          it: 'Troppo vicino al vento. Poggia per riprendere velocità.',
         },
       ),
       tone: 'danger',

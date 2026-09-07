@@ -2,15 +2,15 @@ import type { BoatParams } from './types';
 import { SAIL_PLAN } from './sail-plan';
 
 // ============================================================================
-// Abstract 2-sail cruiser. Numbers chosen to represent a ~40 ft production
+// Abstract 2-sail cruiser, not a certified model of a production class. Numbers chosen to represent a synthetic 45 ft
 // cruiser (Bavaria / Beneteau / Jeanneau class) without committing to a
 // specific hull. Tuned against ADR-0001 verification tests.
 // ============================================================================
 
 export const DEFAULT_BOAT: BoatParams = {
   displacement: 8000,   // kg, typical for 40 ft cruiser
-  loa: 12.2,            // m (40 ft)
-  lwl: 10.5,            // m. Hull speed = 1.34 * sqrt(lwl_ft) ~ 8.5 kn.
+  loa: 13.8554,            // m, measured GLB hull length in metre units
+  lwl: 12.2,            // m. Hull speed = 1.34 * sqrt(lwl_ft) ~ 8.5 kn.
   mainArea: SAIL_PLAN.main.area,
   jibArea: SAIL_PLAN.jib.area,
   mainCOP: 7.5,         // m above waterline (center of pressure ~40% up the main)

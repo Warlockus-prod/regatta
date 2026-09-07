@@ -20,7 +20,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
 
   return (
     <div
-      className="grid grid-cols-4 gap-0 mx-2 lg:mx-0 mt-2 lg:mt-3 rounded-xl overflow-hidden"
+      className="grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 mt-2 lg:mt-3 rounded-xl overflow-hidden"
       style={{ background: 'rgba(8, 24, 48, 0.6)', border: '1px solid rgba(0, 212, 255, 0.18)' }}
     >
       <MetricChip

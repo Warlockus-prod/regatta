@@ -3,8 +3,8 @@
 //
 // These curves are deliberately simple: piecewise-linear with an explicit
 // stall region. The goal is the shape (peak -> stall -> drag-dominated flat
-// plate), not numerical fidelity. Domain experts agree this is enough for
-// teaching the causal chain. (See DECISIONS.md ADR-0001.)
+// plate), not validated numerical fidelity. This is an educational approximation
+// for teaching the causal chain. (See DECISIONS.md ADR-0001.)
 //
 // AoA input is the absolute angle between sail chord and apparent-wind flow
 // direction, in degrees. Range [0, 180].

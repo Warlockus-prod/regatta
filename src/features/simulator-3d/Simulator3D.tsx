@@ -129,6 +129,9 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
           {mode === "sail" && <>
+            <div className={styles.windBadge} aria-label={L.wind}>
+              {L.wind}: {Math.round(sim.wind.fromDeg)}° · {sim.wind.twsKn.toFixed(0)} kn
+            </div>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
           </>}
@@ -157,7 +160,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} fmt={(v) => degrees(v * 35)} onChange={(v) => sim.setControl("rudder", v)} />
             <button className={styles.button} onClick={release}>{L.helm}: 0°</button>
             <Slider label={L.reef} value={sim.controls.reef} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("reef", v)} />
-            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={4} max={28} step={1} fmt={(v) => `${v} kn`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
+            <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} kn`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
             <Slider label={L.wind} value={sim.wind.fromDeg} min={0} max={359} step={1} fmt={degrees} onChange={(v) => sim.setWind((w) => ({ ...w, fromDeg: v }))} />
             <button className={styles.button} onClick={reset}>{L.reset}</button>
           </div></details>

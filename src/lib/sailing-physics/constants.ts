@@ -7,10 +7,7 @@
 // cones (30/42/45 deg) taught to the same beginner; consumers now import this.
 // ============================================================================
 
-/**
- * Half-angle of the no-go zone (degrees off the true wind). A cruising sloop
- * cannot generate drive closer than ~40-45 deg to the wind; 42 matches the
- * VPP-derived value used by the 3D sail model and the physics reference doc
- * (docs/design/SAILING_PHYSICS_REFERENCE.md, section 4).
- */
+/** Teaching reference for the close-hauled boundary of our synthetic cruiser.
+ * It is a recommended course limit, not a discontinuity in the force model:
+ * a moving boat keeps momentum and may pinch inside this reference cone. */
 export const NO_GO_HALF_DEG = 42;

@@ -918,16 +918,11 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('КУРС / POINT OF SAIL', 'POINT OF SAIL', 'KURS / POINT OF SAIL')}
+            {tp('КУРС', 'POINT OF SAIL', 'KURS')}
           </div>
           <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
             {legacyPick(pos, 'name', lang)}
           </div>
-          {lang !== 'en' && (
-            <div className="text-sm" style={{ color: COLORS.textSecondary }}>
-              {pos.nameEn}
-            </div>
-          )}
         </div>
 
         {/* Angle + Speed Row */}
@@ -955,16 +950,13 @@ export default function SimulatorPage() {
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
                  style={{ color: COLORS.textMuted }}>
-              {tp('ГАЛС / TACK', 'TACK', 'HALS / TACK')}
+              {tp('ГАЛС', 'TACK', 'HALS')}
             </div>
             <div className="text-lg font-bold"
                  style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
               {tack === 'starboard'
                 ? tp('Правый', 'Starboard', 'Prawy')
                 : tp('Левый', 'Port', 'Lewy')}
-            </div>
-            <div className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
-              {tack === 'starboard' ? 'Starboard' : 'Port'}
             </div>
           </div>
         </div>
@@ -974,7 +966,7 @@ export default function SimulatorPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-medium tracking-wider"
                  style={{ color: COLORS.textMuted }}>
-              {tp('СКОРОСТЬ / SPEED', 'SPEED', 'PREDKOSC / SPEED')}
+              {tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')}
             </div>
             <div className="text-sm font-bold font-mono" style={{ color: COLORS.accentCyan }}>
               {speed.toFixed(1)} kts
@@ -1001,16 +993,11 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('РАБОТА ПАРУСОВ / SAIL TRIM', 'SAIL TRIM', 'USTAWIENIE ZAGLI / SAIL TRIM')}
+            {tp('РАБОТА ПАРУСОВ', 'SAIL TRIM', 'USTAWIENIE ZAGLI')}
           </div>
           <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
             {legacyPick(pos, 'sailWork', lang)}
           </div>
-          {lang !== 'en' && (
-            <div className="text-xs" style={{ color: COLORS.textSecondary }}>
-              {pos.sailWorkEn}
-            </div>
-          )}
           <div className="mt-3 flex items-center gap-2">
             <div className="text-xs px-2 py-0.5 rounded-full"
                  style={{
@@ -1032,23 +1019,18 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('ОПИСАНИЕ / DESCRIPTION', 'DESCRIPTION', 'OPIS / DESCRIPTION')}
+            {tp('ОПИСАНИЕ', 'DESCRIPTION', 'OPIS')}
           </div>
           <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
             {legacyPick(pos, 'description', lang)}
           </p>
-          {lang !== 'en' && (
-            <p className="text-xs leading-relaxed" style={{ color: COLORS.textSecondary }}>
-              {pos.descriptionEn}
-            </p>
-          )}
         </div>
 
         {/* Controls */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
                style={{ color: COLORS.textMuted }}>
-            {tp('УПРАВЛЕНИЕ / CONTROLS', 'CONTROLS', 'STEROWANIE / CONTROLS')}
+            {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}
           </div>
 
           {/* Rotation slider */}

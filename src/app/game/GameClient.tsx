@@ -15,14 +15,12 @@ import {
 } from '@/lib/best-times';
 import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fallback-coach';
 import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
-// Single source of truth for the arcade race physics. The ws-server keeps a
-// hand-synced JS mirror (ws-server/race-physics.js) guarded by a drift test
-// (src/lib/race-physics.drift.test.ts) so the 3 copies can no longer diverge.
+// Shared sailing engine; the WebSocket server imports a generated bundle.
 import {
-  WORLD, MAX_SPEED, TURN_RATE, ACCEL, MARK_ROUND_DIST,
+  WORLD, MAX_SPEED, stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, raceWaypoint,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
-  speedFactorFromTWA, calcTWA, deg2rad, distance, bearing,
-  normalizeAngle, angleDiff, segmentCrossed,
+  calcTWA, deg2rad, distance, bearing,
+  angleDiff,
 } from '@/lib/race-physics';
 
 // ============================================================================
@@ -220,80 +218,6 @@ function makeCourse(): Course {
 // ============================================================================
 // AI LOGIC
 // ============================================================================
-
-function computeAIHeading(boat: Boat, course: Course, dt: number): number {
-  const currentHeading = boat.heading;
-  let targetBearing: number;
-
-  if (boat.lapDone === 0) {
-    // Heading to windward mark
-    targetBearing = bearing(boat.pos, course.marks[0].pos);
-  } else {
-    // Heading to finish line center
-    const finishCenter: Vec2 = {
-      x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
-      y: (course.finishLine.a.y + course.finishLine.b.y) / 2,
-    };
-    targetBearing = bearing(boat.pos, finishCenter);
-  }
-
-  // Check if target bearing is in no-go zone (< 30° to wind source which is at 0)
-  // Wind source direction = 0, so angle to wind = targetBearing or 360-targetBearing
-  const angleToWind = Math.min(normalizeAngle(targetBearing), 360 - normalizeAngle(targetBearing));
-
-  let desiredHeading: number;
-
-  if (angleToWind < 42 && boat.lapDone === 0) {
-    // Upwind: must tack. Choose layline at ~45° to wind
-    const tackAngle = 45;
-    const pref = boat.tackPreference || 'starboard';
-    // Starboard tack: wind from right, boat heading offset clockwise from 180° (downwind)
-    // Close-hauled headings: 45° (port tack) or 315° (starboard tack)
-    const portTackHdg = tackAngle;           // sailing toward upper-right with wind from left
-    const starboardTackHdg = 360 - tackAngle; // sailing toward upper-left with wind from right
-
-    // Check lay line: are we close enough that the other tack would reach the mark?
-    const markPos = course.marks[0].pos;
-    const distToMark = distance(boat.pos, markPos);
-    const markBearing = bearing(boat.pos, markPos);
-
-    // Switch tack if: too far off the "correct" side of the mark for current tack
-    // Starboard tack (heading 315°) is good for reaching a mark that's to the right of wind
-    // Port tack (heading 45°) is good for reaching a mark that's to the left of wind
-    const markOffsetX = markPos.x - boat.pos.x;
-
-    // Determine tack preference based on advantage
-    boat.aiTackTimer = (boat.aiTackTimer ?? 0) + dt;
-    const tackInterval = 3.0 + (1.1 - boat.skill) * 3; // better skill = faster tactical decisions
-
-    if (boat.aiTackTimer > tackInterval || distToMark < 220) {
-      // Re-evaluate tack choice
-      if (distToMark < 180) {
-        // Near the mark: take the tack that leads to it directly
-        boat.tackPreference = markOffsetX > 0 ? 'port' : 'starboard';
-      } else {
-        // Zigzag naturally
-        boat.tackPreference = pref === 'port' ? 'starboard' : 'port';
-      }
-      boat.aiTackTimer = 0;
-    }
-
-    desiredHeading = boat.tackPreference === 'port' ? portTackHdg : starboardTackHdg;
-  } else if (angleToWind > 170 && boat.lapDone === 1) {
-    // Dead downwind: slightly offset for VMG (broad reach)
-    const bias = boat.tackPreference === 'port' ? -20 : 20;
-    desiredHeading = normalizeAngle(targetBearing + bias);
-  } else {
-    // Normal sailable bearing
-    desiredHeading = targetBearing;
-  }
-
-  // Smooth turn
-  const diff = angleDiff(currentHeading, desiredHeading);
-  const maxTurn = TURN_RATE * boat.skill * dt;
-  const turn = Math.max(-maxTurn, Math.min(maxTurn, diff));
-  return normalizeAngle(currentHeading + turn);
-}
 
 // ============================================================================
 // GAME COMPONENT
@@ -566,7 +490,7 @@ export default function GamePage() {
       name: 'Ты',
       color: '#00d4ff',
       pos: { x: lineCenter.x, y: lineCenter.y + 30 },
-      heading: 0,
+      heading: 45,
       speed: 0,
       targetSpeed: 0,
       isPlayer: true,
@@ -585,7 +509,7 @@ export default function GamePage() {
         name: AI_NAMES[i] || `AI ${i + 1}`,
         color: AI_COLORS[i] || '#888888',
         pos: { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
-        heading: 0,
+        heading: t > 0 ? 315 : 45,
         speed: 0,
         targetSpeed: 0,
         isPlayer: false,
@@ -708,7 +632,6 @@ export default function GamePage() {
 
       const course = courseRef.current;
       const boats = boatsRef.current;
-      const cfg = DIFFICULTY_CONFIG[difficulty];
 
       // --- Wind shifts: slow sinusoidal direction drift + short gusts ---
       // Direction oscillates ±6° with period ~22s (slow shift)
@@ -734,69 +657,18 @@ export default function GamePage() {
       for (const boat of boats) {
         prevPositions.set(boat.id, { ...boat.pos });
 
-        // --- Heading update ---
+        let turnInput = 0;
         if (boat.isPlayer) {
-          const keyRight = keysRef.current.has('arrowright') || keysRef.current.has('d') || rightHeldRef.current;
-          const keyLeft = keysRef.current.has('arrowleft') || keysRef.current.has('a') || leftHeldRef.current;
-          const turnInput = (keyRight ? 1 : 0) - (keyLeft ? 1 : 0);
-          if (turnInput !== 0) {
-            // Any input turns off autopilot. Update the ref immediately so the
-            // hold branch below stops steering this same frame (setState only
-            // lands next render).
-            if (autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
-            boat.heading = normalizeAngle(boat.heading + turnInput * TURN_RATE * dt);
-          } else if (autopilotOnRef.current) {
-            // Smoothly hold target heading (stops drift caused by wind / wave ~ n/a but future-proofed)
-            const diff = angleDiff(boat.heading, autopilotHeadingRef.current);
-            const maxTurn = TURN_RATE * 0.5 * dt;
-            boat.heading = normalizeAngle(boat.heading + Math.max(-maxTurn, Math.min(maxTurn, diff)));
-          }
-        } else {
-          boat.heading = computeAIHeading(boat, course, dt);
-        }
-
-        // --- Speed from sailing physics ---
-        const twa = calcTWA(boat.heading, windDirRef.current);
-        const speedMul = boat.isPlayer ? 1.0 : cfg.aiSpeedMul;
-        boat.targetSpeed = speedFactorFromTWA(twa) * MAX_SPEED * speedMul * windStrengthRef.current * windGustRef.current;
-
-        // Lerp speed toward target
-        const accel = (boat.targetSpeed > boat.speed ? ACCEL : ACCEL * 0.6);
-        boat.speed += (boat.targetSpeed - boat.speed) * accel * dt;
-
-        // --- Position update ---
-        const rad = deg2rad(boat.heading);
-        boat.pos.x += Math.sin(rad) * boat.speed * 8 * dt;  // scale factor for visual movement
-        boat.pos.y -= Math.cos(rad) * boat.speed * 8 * dt;
-
-        // Clamp to world
-        boat.pos.x = Math.max(20, Math.min(WORLD.width - 20, boat.pos.x));
-        boat.pos.y = Math.max(20, Math.min(WORLD.height - 20, boat.pos.y));
+          const right = keysRef.current.has("arrowright") || keysRef.current.has("d") || rightHeldRef.current;
+          const left = keysRef.current.has("arrowleft") || keysRef.current.has("a") || leftHeldRef.current;
+          turnInput = Number(right) - Number(left);
+          if (turnInput && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
+          if (!turnInput && autopilotOnRef.current) turnInput = Math.max(-1, Math.min(1, angleDiff(boat.heading, autopilotHeadingRef.current) / 12));
+        } else turnInput = raceAutopilotTurn(boat, course, windDirRef.current);
+        stepBoat(boat, dt, windDirRef.current, windGustRef.current, { turn: turnInput }, { windStrengthMul: windStrengthRef.current });
+        boat.targetSpeed = boat.speed;
       }
-
-      // --- Collision avoidance: repel overlapping boats (simple nearest-pair)
-      const MIN_SEP = 22; // world units
-      for (let i = 0; i < boats.length; i++) {
-        for (let j = i + 1; j < boats.length; j++) {
-          const a = boats[i];
-          const b = boats[j];
-          const dx = b.pos.x - a.pos.x;
-          const dy = b.pos.y - a.pos.y;
-          const d = Math.hypot(dx, dy);
-          if (d < MIN_SEP && d > 0.01) {
-            const overlap = (MIN_SEP - d) / 2;
-            const nx = dx / d;
-            const ny = dy / d;
-            a.pos.x -= nx * overlap;
-            a.pos.y -= ny * overlap;
-            b.pos.x += nx * overlap;
-            b.pos.y += ny * overlap;
-            // small speed penalty on contact
-            a.speed *= 0.92;
-            b.speed *= 0.92;
-          }
-        }
-      }
+      resolveCollisions(boats, dt);
 
       // Re-process course progression after collision adjustments
       for (const boat of boats) {
@@ -811,31 +683,13 @@ export default function GamePage() {
         // Mark / finish detection only counts once the race is officially on.
         if (!isRacing) continue;
 
-        // --- Course progression ---
-        if (boat.lapDone === 0) {
-          // Check windward mark rounding
-          const windwardMark = course.marks[0];
-          if (distance(boat.pos, windwardMark.pos) < MARK_ROUND_DIST + windwardMark.radius) {
-            boat.lapDone = 1;
-            if (boat.isPlayer) {
-              const t = (now - startTimeRef.current) / 1000;
-              logEventsRef.current.push({ type: 'mark-rounded', t, note: 'windward' });
-              playMarkRound();
-            }
-          }
-        } else if (boat.lapDone === 1) {
-          // Check finish line crossing (from north to south direction)
-          if (segmentCrossed(prevPos, boat.pos, course.finishLine.a, course.finishLine.b)) {
-            if (prevPos.y < boat.pos.y) {
-              // Crossed southward = finish
-              boat.lapDone = 2;
-              boat.finishTime = (now - startTimeRef.current) / 1000;
-              if (boat.isPlayer) {
-                logEventsRef.current.push({ type: 'finish', t: boat.finishTime });
-                playFinish();
-              }
-            }
-          }
+        const event = updateLap(boat, prevPos, course, (now - startTimeRef.current) / 1000);
+        if (boat.isPlayer && event === "mark") {
+          logEventsRef.current.push({ type: "mark-rounded", t: (now - startTimeRef.current) / 1000, note: "windward-port" });
+          playMarkRound();
+        } else if (boat.isPlayer && event === "finish") {
+          logEventsRef.current.push({ type: "finish", t: boat.finishTime! });
+          playFinish();
         }
       }
 
@@ -1200,10 +1054,7 @@ export default function GamePage() {
 
     // --- Arrow pointing to next mark ---
     if (player.lapDone < 2) {
-      const target = player.lapDone === 0 ? course.marks[0].pos : {
-        x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
-        y: course.finishLine.a.y,
-      };
+      const target = raceWaypoint(player, course);
       const targetScreen = toScreen(target);
       // Only show arrow if target is off-screen or far
       const distToTarget = distance(player.pos, target);

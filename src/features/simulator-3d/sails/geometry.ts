@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { sectionTwistDegrees } from "@/lib/sailing-physics/forces";
 import { sailDimensions } from "@/lib/sailing-physics/sail-plan";
 
 export type SailKind = "main" | "jib";
@@ -22,7 +23,7 @@ export function sailPoint(kind: SailKind, u: number, v: number, shape: SailShape
   const flutter = shape.luff * width * 0.045 * Math.sin(u * Math.PI) *
     Math.sin(shape.time * 15 - v * 17 + u * 8) * Math.sin(Math.PI * v);
   chord.z = shape.side * (draft * depth * (1 - shape.luff * 0.75) + flutter);
-  const twist = shape.side * shape.twist * THREE.MathUtils.degToRad(20) * Math.pow(v, 1.6);
+  const twist = shape.side * THREE.MathUtils.degToRad(sectionTwistDegrees(shape.twist, v));
   chord.applyAxisAngle(kind === "main" ? UP : FORESTAY_AXIS, twist);
   return out.copy(anchor).add(chord);
 }

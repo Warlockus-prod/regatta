@@ -54,3 +54,5 @@
   .embed .layout { display: grid; grid-template-columns: minmax(0,1fr) 270px; }
   .embed .panel { max-height: none; }
 }
+
+.windBadge { position: absolute; top: 12px; right: 12px; padding: 8px 12px; border-radius: 8px; background: rgba(5,20,32,.82); color: var(--accent-cyan); font-size: 12px; pointer-events: none; }

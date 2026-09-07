@@ -134,10 +134,6 @@ function windStrengthMul(w) {
   return w === 'light' ? 0.65 : w === 'heavy' ? 1.3 : 1.0;
 }
 
-function difficultySpeedMul(d) {
-  return d === 'easy' ? 0.78 : d === 'hard' ? 1.02 : 0.92;
-}
-
 function spawnBoat(room, id, nickname, index) {
   const line = room.course.startLine;
   const cx = (line.a.x + line.b.x) / 2;
@@ -147,7 +143,7 @@ function spawnBoat(room, id, nickname, index) {
     id,
     name: nickname,
     pos: { x: cx + t * 80, y: line.a.y + 30 },
-    heading: 0,
+    heading: t > 0 ? 315 : 45,
     speed: 0,
     lapDone: 0,
     // AI bookkeeping
@@ -224,47 +220,6 @@ function evaluateMissionForPlayer(room, playerId) {
 
 // ------------------------------ AI logic ---------------------------------
 
-function computeAIHeading(boat, course, dt, windDir) {
-  const target = boat.lapDone === 0 ? course.marks[0].pos : {
-    x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
-    y: course.finishLine.a.y,
-  };
-  const dx = target.x - boat.pos.x;
-  const dy = target.y - boat.pos.y;
-  const targetBearing = ((Math.atan2(dx, -dy) * 180) / Math.PI + 360) % 360;
-
-  // Relative angle to wind
-  const angleToWind = Math.min(
-    ((targetBearing - windDir) + 360) % 360,
-    360 - (((targetBearing - windDir) + 360) % 360),
-  );
-
-  let desired;
-  const CH = 45;
-  if (angleToWind < 42 && boat.lapDone === 0) {
-    // Upwind - tack
-    boat.aiTackTimer = (boat.aiTackTimer || 0) + dt;
-    const interval = 3.5;
-    const dist = Math.hypot(dx, dy);
-    if (boat.aiTackTimer > interval || dist < 220) {
-      if (dist < 180) boat.tackPreference = dx > 0 ? 'port' : 'starboard';
-      else boat.tackPreference = boat.tackPreference === 'port' ? 'starboard' : 'port';
-      boat.aiTackTimer = 0;
-    }
-    const portHdg = (windDir + CH) % 360;
-    const starHdg = (windDir - CH + 360) % 360;
-    desired = boat.tackPreference === 'port' ? portHdg : starHdg;
-  } else {
-    desired = targetBearing;
-  }
-
-  // Turn toward desired
-  let diff = ((desired - boat.heading + 540) % 360) - 180;
-  const maxTurn = P.TURN_RATE * 0.85 * dt;
-  diff = Math.max(-maxTurn, Math.min(maxTurn, diff));
-  return P.normalizeAngle(boat.heading + diff);
-}
-
 // ------------------------------ Game loop --------------------------------
 
 setInterval(() => {
@@ -294,7 +249,6 @@ setInterval(() => {
     const wind = P.windAt(raceT, room.seed);
     const dt = 1 / TICK_HZ;
     const windMul = windStrengthMul(room.windStrength);
-    const aiSpeedMul = difficultySpeedMul(room.difficulty);
 
     const prevPositions = new Map();
     const boats = [];
@@ -305,7 +259,7 @@ setInterval(() => {
       prevPositions.set(p.boat.id, { ...p.boat.pos });
       if (p.boat.lapDone < 2 && p.connectedOrGrace) {
         P.stepBoat(p.boat, dt, wind.dir, wind.gust, p.input,
-                   { speedMul: 1.0, windStrengthMul: windMul });
+                   { windStrengthMul: windMul });
       }
       boats.push(p.boat);
     }
@@ -313,14 +267,13 @@ setInterval(() => {
     for (const bot of room.aiBots) {
       prevPositions.set(bot.id, { ...bot.pos });
       if (bot.lapDone < 2) {
-        bot.heading = computeAIHeading(bot, room.course, dt, wind.dir);
-        P.stepBoat(bot, dt, wind.dir, wind.gust, { turn: 0 },
-                   { speedMul: aiSpeedMul, windStrengthMul: windMul });
+        P.stepBoat(bot, dt, wind.dir, wind.gust, { turn: P.raceAutopilotTurn(bot, room.course, wind.dir) },
+                   { windStrengthMul: windMul });
       }
       boats.push(bot);
     }
 
-    P.resolveCollisions(boats);
+    P.resolveCollisions(boats, dt);
 
     // Events + stats
     const events = [];

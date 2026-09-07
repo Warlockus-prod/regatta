@@ -9,4 +9,4 @@
 // ============================================================================
 
 // Path to the exported GLB (Blender -> glTF, Y-up, morph targets + named rig).
-export const YACHT_MODEL_URL = '/models/regatta_sloop.glb';
+export const YACHT_MODEL_URL = "/models/regatta_sloop_refined.glb";
