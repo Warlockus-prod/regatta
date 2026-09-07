@@ -374,7 +374,7 @@ export default function MultiplayerClient() {
           />
         </div>
         <button disabled={connecting || !nickname.trim() || !sid} onClick={createLobby}
-          className="w-full py-3 rounded-lg font-semibold text-sm mb-3"
+          className="w-full py-3 rounded-lg font-semibold text-sm mb-3 disabled:opacity-40"
           style={{ background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)', color: '#0a1628' }}>
           {tp('Создать лобби', 'Create lobby', 'Utworz lobby')}
         </button>
@@ -443,11 +443,14 @@ export default function MultiplayerClient() {
           </button>
         </div>
 
+        <p className="mb-4 text-sm text-[var(--text-secondary)]">
+          {activeMission ? tp(activeMission.descRu, activeMission.descEn, activeMission.descPl) : tp("Обычная регата: старт, знак слева, финиш.", "Standard race: start, leave the mark to port, finish.", "Zwykła regata: start, znak lewą burtą, meta.", { es: "Regata: salida, boya por babor y llegada.", fr: "Régate : départ, marque à bâbord, arrivée.", de: "Regatta: Start, Marke an Backbord, Ziel.", it: "Regata: partenza, boa a sinistra, arrivo." })}
+        </p>
         {iAmHost && (
-          <div className="card p-3 mb-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">
-              {tp('РЕЖИМ (только хост)', 'MODE (host only)', 'TRYB (tylko host)')}
-            </div>
+          <details className="mb-4 border-y border-[var(--border-color)]">
+            <summary className="cursor-pointer py-3 text-sm text-[var(--text-secondary)]">
+              {tp("Условия гонки", "Race settings", "Ustawienia regaty", { es: "Opciones de regata", fr: "Réglages de course", de: "Renneinstellungen", it: "Impostazioni regata" })}
+            </summary>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
               <button
                 onClick={() => pickMission(null)}
@@ -479,7 +482,7 @@ export default function MultiplayerClient() {
                 💡 {tp(activeMission.hintRu, activeMission.hintEn, activeMission.hintPl)}
               </div>
             )}
-          </div>
+          </details>
         )}
 
         <div className="card p-4 mb-4">
@@ -514,7 +517,7 @@ export default function MultiplayerClient() {
             ))}
           </div>
           <div className="text-[10px] text-[var(--text-muted)] mt-2">
-            {tp('людей', 'humans', 'ludzi')}: {humanCount} · {tp('ботов', 'bots', 'botow')}: {botCount} · {tp('сложность', 'difficulty', 'trudnosc')}: {room.difficulty} · {tp('ветер', 'wind', 'wiatr')}: {room.windStrength}
+            {tp('людей', 'humans', 'ludzi')}: {humanCount} · {tp('ботов', 'bots', 'botow')}: {botCount}
           </div>
         </div>
 
