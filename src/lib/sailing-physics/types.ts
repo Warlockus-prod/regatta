@@ -33,6 +33,8 @@ export interface BoatState {
 
 /** User inputs that shape the sails. All in [0, 1] except jibSide. */
 export interface Controls {
+  /** False lowers the main completely; reefing alone never lowers it. */
+  mainHoisted?: boolean;
   /** Main sheet tension. 0 = fully eased, 1 = hard sheeted. */
   mainSheet: number;
   /** Jib sheet tension. 0 = fully eased, 1 = hard sheeted. */

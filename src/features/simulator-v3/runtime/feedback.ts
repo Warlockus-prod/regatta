@@ -52,6 +52,8 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   const { ui, result, absTwa, tp, trimDelta = 0, heelDelta = 0 } = args;
   const { diag, state } = result;
   const heelAbs = Math.abs(state.heel);
+  const mainSet = ui.sailsRaised !== 'jib';
+  const jibSet = ui.sailsRaised !== 'main' && ui.jibFurlPct > 0;
 
   // -------- CRITICAL --------
   // Threshold matches the drawn no-go cone (NO_GO_HALF_DEG from the shared
@@ -88,7 +90,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       tone: 'danger',
     };
   }
-  if (diag.mainStalled && heelAbs > 22) {
+  if (mainSet && diag.mainStalled && heelAbs > 22 && absTwa < 135) {
     return {
       text: tp(
         'Срыв грота + большой крен. Ослабь шкот и рифься.',
@@ -106,7 +108,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   }
 
   // -------- WARNING --------
-  if (diag.mainStalled) {
+  if (mainSet && diag.mainStalled && absTwa < 135) {
     const tail = trimDelta > TRIM_RISING
       ? tp(' Уже лучше.', ' Recovering.', ' Poprawia sie.', {
           es: ' Se recupera.',
@@ -130,7 +132,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       tone: 'warn',
     };
   }
-  if (diag.jibStalled && ui.jibFurlPct > 20) {
+  if (jibSet && diag.jibStalled && ui.jibFurlPct > 20 && absTwa < 135) {
     return {
       text: tp(
         'Стаксель перетянут и душит слот.',
@@ -178,7 +180,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       tone: 'warn',
     };
   }
-  if (diag.mainAoA < 5 && diag.jibAoA < 5) {
+  if ((mainSet || jibSet) && (!mainSet || diag.mainAoA < 5) && (!jibSet || diag.jibAoA < 5)) {
     return {
       text: tp(
         'Паруса полощут - подтяни шкоты.',
@@ -212,7 +214,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   }
 
   // -------- EDGE --------
-  if (diag.mainAoA >= 15) {
+  if (mainSet && diag.mainAoA >= 15 && absTwa < 135) {
     return {
       text: tp(
         'Грот у грани срыва. Не тяни сильнее.',
@@ -228,7 +230,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       tone: 'info',
     };
   }
-  if (diag.jibAoA >= 15 && ui.jibFurlPct > 30) {
+  if (jibSet && diag.jibAoA >= 15 && ui.jibFurlPct > 30 && absTwa < 135) {
     return {
       text: tp(
         'Стаксель у грани срыва.',
@@ -244,7 +246,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       tone: 'info',
     };
   }
-  if (diag.slotHealth < 0.4 && ui.jibFurlPct > 20 && absTwa < 130) {
+  if (mainSet && jibSet && diag.slotHealth < 0.4 && ui.jibFurlPct > 20 && absTwa < 130) {
     return {
       text: tp(
         'Слот закрывается - ослабь стаксель.',
@@ -278,7 +280,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   }
 
   // -------- HEALTHY --------
-  if (diag.slotHealth > 0.7 && absTwa < 130 && !diag.mainStalled && !diag.jibStalled) {
+  if (mainSet && jibSet && diag.slotHealth > 0.7 && absTwa < 130 && !diag.mainStalled && !diag.jibStalled) {
     const tail = trimDelta > TRIM_RISING
       ? tp(' Разгоняемся.', ' Picking up.', ' Rozpedza sie.', {
           es: ' Acelerando.',

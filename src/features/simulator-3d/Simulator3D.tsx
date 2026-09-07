@@ -133,6 +133,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
           </>}
         </div>
+        {view === "sails" && <p className={styles.coach}>{L.scene.fullSailPlan}</p>}
         {mode === "sail" ? <>
           <div className={styles.stats}>
             <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />

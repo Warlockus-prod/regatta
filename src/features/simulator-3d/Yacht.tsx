@@ -216,7 +216,7 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
       for (const [mesh, seam, kind, shape] of [
         [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, luff: s.luff, reef: s.reef, side: Math.sign(s.boomAngle) || 1, time: t }],
         [n.jib, n.jibSeams, "jib", { camber: s.jibShape?.camber ?? s.camber, twist: s.jibShape?.twist ?? s.twist,
-          luff: s.jibShape?.luff ?? s.luff, reef: 0, side: Math.sign(s.jibAngle) || 1, time: t }],
+          luff: s.jibShape?.luff ?? s.luff, reef: 0, furl: s.jibShape?.furl ?? 0, side: Math.sign(s.jibAngle) || 1, time: t }],
       ] as const) {
         if (mesh) updateSailGeometry(mesh.geometry, kind, shape);
         if (seam) updateSailSeams(seam, kind, shape);
@@ -225,7 +225,7 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     if (n.sheets && n.mainRig && n.jibRig) {
       const position = n.sheets.geometry.getAttribute("position") as THREE.BufferAttribute;
       const boomEnd = new THREE.Vector3(-5.2, -0.04, 0).applyQuaternion(n.mainRig.quaternion).add(n.mainRig.position);
-      const clew = sailPoint("jib", 1, 0, { camber: 0, twist: 0, luff: 0, reef: 0, side: 1, time: 0 }, new THREE.Vector3())
+      const clew = sailPoint("jib", 1, 0, { camber: 0, twist: 0, luff: 0, reef: 0, furl: s.jibShape?.furl ?? 0, side: 1, time: 0 }, new THREE.Vector3())
         .applyQuaternion(n.jibRig.quaternion).add(n.jibRig.position);
       position.setXYZ(0, -3.1, 1.3, -0.25); position.setXYZ(1, boomEnd.x, boomEnd.y, boomEnd.z);
       position.setXYZ(2, -3.1, 1.3, 0.25); position.setXYZ(3, boomEnd.x, boomEnd.y, boomEnd.z);

@@ -103,11 +103,11 @@ describe('ADR-0001 V1 verification', () => {
 
     expect(Math.abs(noReef.state.heel)).toBeGreaterThan(25);
 
-    // "Heavily reefed" = 3rd reef in main, roller jib furled to ~#3.
-    // In 22 kn on a cruiser this is what a sensible skipper sets up to stay
-    // comfortable (heel under 22 deg, boat still moving well).
+    // Preserve the reference fixture's 57.75% deployed jib area. The former
+    // shared reef/furl formula retained 1 - .65 * .65 = .5775; furl now means
+    // the actual area removed. This test is not a prescription for sea use.
     const s0b = createInitialState({ tws: 22, twa: 40 });
-    const closeReefed: Controls = { ...closeNoReef, reef: 0.85, jibFurl: 0.65 };
+    const closeReefed: Controls = { ...closeNoReef, reef: 0.85, jibFurl: 0.4225 };
     const reefed = settle(s0b, closeReefed, params, 60);
 
     console.log(`  Test 4b (reefed): bs=${reefed.state.boatSpeed.toFixed(2)} kn, ` +

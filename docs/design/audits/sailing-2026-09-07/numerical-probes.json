@@ -1,0 +1,61 @@
+{
+  "sailPlan": {
+    "mainProjected": 49.55989732744211,
+    "jibProjected": 39.196890889420594,
+    "visualRatio": 1.2643833784484813,
+    "physicsRatio": 1.5,
+    "mainReefVisualFraction": 0.4612444452751504,
+    "mainReefPhysicsFraction": 0.35
+  },
+  "fullyFurledJibOnly": {
+    "driveN": 36.76421997642743,
+    "speedAfterTick": 0.0007146398825999998
+  },
+  "equalOppositeSideForces": {
+    "heelEquilibrium": 7.26400847516269,
+    "leewayEquilibrium": 0
+  },
+  "markTouchWithoutRounding": {
+    "event": "mark",
+    "lapDone": 1
+  },
+  "stationaryRaceSteeringDegPerSecond": 90,
+  "target90": {
+    "target": 5.3130875647271045,
+    "vmgUp": 43,
+    "vmgDown": 164
+  },
+  "beamFixedSheets": [
+    {
+      "seconds": 9,
+      "speed": 0.5928301956100331
+    },
+    {
+      "seconds": 60,
+      "speed": 2.5939802949243838
+    },
+    {
+      "seconds": 180,
+      "speed": 3.2678927431249756
+    }
+  ],
+  "beamWarmStart": 6.373607017220051,
+  "symmetric": [
+    {
+      "trueWindDir": 270,
+      "trueWindSpeed": 12,
+      "heading": 0,
+      "boatSpeed": 3.2678927431249756,
+      "heel": 3.8810637126174368,
+      "leeway": 7.006535625547481
+    },
+    {
+      "trueWindDir": 90,
+      "trueWindSpeed": 12,
+      "heading": 0,
+      "boatSpeed": 3.2678927431249756,
+      "heel": -3.8810637126174368,
+      "leeway": -7.006535625547481
+    }
+  ]
+}

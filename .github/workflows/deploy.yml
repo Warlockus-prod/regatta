@@ -44,6 +44,8 @@ jobs:
         run: npm run test:physics
       - name: 3D camera and sailing target regression tests
         run: npx vitest run src/features/simulator-3d
+      - name: Trainer runtime and feedback regression tests
+        run: npx vitest run src/features/simulator-v3
       - name: Radio trainer tests (state machine + scenarios)
         run: npm run test:radio
       # test:radio does not cover src/app/sternik. The oral trainer's grader tests
@@ -133,7 +135,7 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
         run: |
-          for path in / /game /leaderboard /anatomy /simulator /simulator2 /courses /radio /radio/obsluga /radio/symulator /radio/zadania /radio/test; do
+          for path in / /game /leaderboard /anatomy /simulator /simulator2 /simulator-v3 /courses /radio /radio/obsluga /radio/symulator /radio/zadania /radio/test; do
             code=$(curl -sS -o /dev/null -w "%{http_code}" -m 15 "https://weektoregatta.com$path")
             echo "HTTP $code  $path"
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }

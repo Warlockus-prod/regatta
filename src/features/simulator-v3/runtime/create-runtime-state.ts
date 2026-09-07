@@ -17,6 +17,7 @@ export function uiToControls(ui: UiState, params: ReturnType<typeof getBoatParam
   const jibFurlEff = ui.sailsRaised === 'main' ? 1 : 1 - ui.jibFurlPct / 100;
   const reefEff = ui.sailsRaised === 'jib' ? 1 : REEF_VALUES[ui.reefLevel];
   return {
+    mainHoisted: ui.sailsRaised !== 'jib',
     mainSheet: toMainSheet(ui.mainAngle, params.mainMaxOff),
     jibSheet: toJibSheet(ui.jibAngle, params.jibMinOff, params.jibMaxOff),
     mainTwist: ui.mainTwistPct / 100,

@@ -1,4 +1,5 @@
 // Shared types for the standalone V2 (3D) simulator module.
+import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
 
 /** Visual rig state the 3D yacht renders from (drives morphs + rig nodes). */
 export interface YachtState {
@@ -46,6 +47,7 @@ export interface SceneLabels {
   more: string; instruments: string; loading: string; error: string;
   retry: string; heading: string; target: string; apparent: string;
   light: string; quality: string; sailingHint: string;
+  fullSailPlan: string;
 }
 
 export interface SimLabels {
@@ -97,6 +99,7 @@ export interface SimLabels {
 
 export const DEFAULT_LABELS: SimLabels = {
   scene: {
+    fullSailPlan: `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
     whole: "Whole yacht", sails: "Sails", deck: "Deck", resetView: "Reset camera",
     more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
     error: "The 3D scene could not load. Check your connection or try another browser.",

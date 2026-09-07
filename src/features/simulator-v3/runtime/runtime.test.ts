@@ -19,6 +19,12 @@ import { DRILLS, SCENARIO_PRESETS, pickText } from './scenario-presets';
 const params = getBoatParams();
 
 describe('createRuntimeState', () => {
+  it("lowering the main is separate from deep reefing and survives interpolation", () => {
+    const target = uiToControls({...DEFAULT_UI, sailsRaised:"jib"}, params);
+    expect(target.mainHoisted).toBe(false);
+    expect(interpolateControls(uiToControls(DEFAULT_UI, params), target, .1).mainHoisted).toBe(false);
+    expect(uiToControls({...DEFAULT_UI, sailsRaised:"main"}, params).jibFurl).toBe(1);
+  });
   it('settles to a healthy beam reach on default UI', () => {
     const rt = createRuntimeState({ ui: DEFAULT_UI, params });
     expect(rt.simTime).toBe(0);
@@ -73,7 +79,7 @@ describe('uiToControls', () => {
 
   it('zeroes the main area when sailsRaised = jib', () => {
     const c = uiToControls({ ...DEFAULT_UI, sailsRaised: 'jib' }, params);
-    expect(c.reef).toBe(1); // deep-reefed = engine reads as min main area
+    expect(c.mainHoisted).toBe(false);
   });
 });
 
@@ -256,6 +262,22 @@ describe('pickPrimaryFeedback', () => {
     const pos = pointsOfSail.find((p) => absTwa >= p.angleMin && absTwa < p.angleMax) ?? pointsOfSail[0];
     return { ui, result, pos, absTwa, tp };
   }
+
+  it("does not diagnose stall in a lowered sail or a downwind drag regime", () => {
+    const mainHidden = pickPrimaryFeedback(makeArgs({ sailsRaised: "jib" }, {
+      mainStalled: true, mainAoA: 60,
+    }));
+    expect(mainHidden.text).not.toMatch(/грот|оба паруса/i);
+    const jibHidden = pickPrimaryFeedback(makeArgs({ jibFurlPct: 0 }, {
+      jibStalled: true, jibAoA: 60,
+    }));
+    expect(jibHidden.text).not.toMatch(/стаксель|оба паруса/i);
+    const downwind = pickPrimaryFeedback(makeArgs({ twa: 170 }, {
+      mainStalled: true, jibStalled: true, mainAoA: 70, jibAoA: 70,
+    }));
+    expect(downwind.text).not.toMatch(/перетянут|срыв|срыва/i);
+    expect(downwind.tone).not.toBe("warn");
+  });
 
   it('flags critical no-go zone', () => {
     const args = makeArgs({ twa: 25 }, {});

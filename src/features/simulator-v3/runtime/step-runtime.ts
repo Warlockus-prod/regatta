@@ -24,6 +24,7 @@ function approach(current: number, target: number, maxStep: number): number {
 
 export function interpolateControls(live: Controls, target: Controls, dt: number): Controls {
   return {
+    mainHoisted: target.mainHoisted,
     mainSheet: clamp(approach(live.mainSheet, target.mainSheet, CONTROL_RATES.mainSheet * dt), 0, 1),
     jibSheet: clamp(approach(live.jibSheet, target.jibSheet, CONTROL_RATES.jibSheet * dt), 0, 1),
     mainTwist: clamp(approach(live.mainTwist, target.mainTwist, CONTROL_RATES.mainTwist * dt), 0, 1),

@@ -903,6 +903,17 @@ export default function SimulatorPage() {
       <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-56px)]"
            style={{ background: 'rgba(15, 32, 53, 0.6)' }}>
 
+        <p className="text-sm leading-relaxed" style={{color: "var(--text-secondary)"}}>
+          {tp("Учебная схема курсов к ветру. Скорость условная, паруса настраиваются автоматически.",
+            "Points-of-sail teaching diagram. Speed is illustrative; sails trim automatically.",
+            "Schemat kursow wzgledem wiatru. Predkosc jest orientacyjna; zagle trymuja sie automatycznie.", {
+              es: "Esquema de rumbos al viento. Velocidad orientativa; las velas se ajustan automaticamente.",
+              fr: "Schema des allures. Vitesse indicative ; les voiles se reglent automatiquement.",
+              de: "Lehrbild der Kurse zum Wind. Geschwindigkeit beispielhaft; Segel trimmen automatisch.",
+              it: "Schema delle andature. Velocita indicativa; le vele si regolano automaticamente.",
+            })}
+        </p>
+
         {/* Course Name */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"

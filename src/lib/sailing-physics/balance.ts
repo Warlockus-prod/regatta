@@ -42,16 +42,11 @@ export function computeBalance(args: {
   // perpendicular to the mast. At rest upright, that is simply the horizontal
   // side force. At non-zero heel, the lever arm is h_eff * cos(heel), which we
   // bake into the tan-form below.
-  const absSide = Math.abs(fSideMainN) + Math.abs(fSideJibN);
-  const hEff = absSide > 1e-3
-    ? (Math.abs(fSideMainN) * mainCop + Math.abs(fSideJibN) * jibCop) / absSide
-    : 0;
-
-  const heelingMoment = absSide * hEff;
+  // Opposing forces cancel their signed moments, not their magnitudes.
+  const heelingMoment = fSideMainN * mainCop + fSideJibN * jibCop;
   const rightingCoeff = params.displacement * G * params.gm;
   const tanHeel = heelingMoment / Math.max(rightingCoeff, 1);
-  const heelSign = (fSideMainN + fSideJibN) >= 0 ? 1 : -1;
-  const heelEquilibrium = Math.atan(tanHeel) * RAD_TO_DEG * heelSign;
+  const heelEquilibrium = Math.atan(tanHeel) * RAD_TO_DEG;
 
   // Leeway from keel balance.
   // Sign convention: leeway in the SAME sign as side force. If sails push the

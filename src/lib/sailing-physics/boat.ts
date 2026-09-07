@@ -1,4 +1,5 @@
 import type { BoatParams } from './types';
+import { SAIL_PLAN } from './sail-plan';
 
 // ============================================================================
 // Abstract 2-sail cruiser. Numbers chosen to represent a ~40 ft production
@@ -10,8 +11,8 @@ export const DEFAULT_BOAT: BoatParams = {
   displacement: 8000,   // kg, typical for 40 ft cruiser
   loa: 12.2,            // m (40 ft)
   lwl: 10.5,            // m. Hull speed = 1.34 * sqrt(lwl_ft) ~ 8.5 kn.
-  mainArea: 45,         // m^2
-  jibArea: 30,          // m^2 (100% jib, not full genoa)
+  mainArea: SAIL_PLAN.main.area,
+  jibArea: SAIL_PLAN.jib.area,
   mainCOP: 7.5,         // m above waterline (center of pressure ~40% up the main)
   jibCOP: 4.5,          // m above waterline
   mainMaxOff: 85,       // deg (boom can swing ~85 deg to leeward)

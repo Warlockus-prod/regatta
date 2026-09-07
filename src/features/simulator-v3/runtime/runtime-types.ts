@@ -45,6 +45,7 @@ export interface RuntimeState {
  * - JibSide: instant (wing-on-wing switch is atomic).
  */
 export const CONTROL_RATES: Record<keyof Controls, number> = {
+  mainHoisted: Infinity,
   mainSheet: 0.6,
   jibSheet: 0.6,
   mainTwist: 0.5,

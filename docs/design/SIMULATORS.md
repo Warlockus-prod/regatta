@@ -1,6 +1,8 @@
 # SIMULATORS.md - the single source of truth
 
-Status: ACTIVE (2026-07-06). Roadmap items 1-5 below are ALL SHIPPED;
+Status: ACTIVE (2026-09-07). The fresh [sailing audit](sailing-simulator-audit-2026-09-07.md)
+records physics and visual mismatches plus the next staged quality plan.
+Historical roadmap items 1-5 below are shipped;
 TestFlight build 26 (version 1.4.0) carries the full state of this document.
 Remaining known gaps: mobile leaderboard auth (ADR-0006) and monetization
 (needs owner accounts: RevenueCat API key + IAP products in ASC - see
@@ -9,12 +11,12 @@ statements in docs/design/simulator-v3/SPEC.md ("V1 and V2 are deleted") and
 docs/design/simulator2/ROADMAP.md ("V2 = premium race surface"). Any doc that
 contradicts this one is stale; update it or link here.
 
-## The model: TWO simulators + one 3D view, identical on web and iOS
+## The model: TWO simulators + one 3D view, shared web content on iOS
 
 | Tier | Web route | iOS screen | What it is |
 |---|---|---|---|
-| 1. Basics (Основы) | `/simulator` | `/simulator-basics` (native, offline) | Wind + turns + angle to wind. A boat on a wind rose, the no-go cone, point-of-sail cards. Zero trim complexity. Step 1 for a complete beginner. |
-| 2. Trainer (Тренажёр) | `/simulator-v3` | `/simulator` (native, offline) | The full trainer: live VPP physics, manual sail trim, drills, scenarios/missions, coach feedback, live weather wind. Step 2. |
+| 1. Basics (Основы) | `/simulator` | `/simulator-v1` (WebView), `/simulator-basics` offline fallback | Wind + turns + angle to wind. A boat on a wind rose, the no-go cone, point-of-sail cards. Conditional speed and automatic trim. Step 1 for a complete beginner. |
+| 2. Trainer (Тренажёр) | `/simulator-v3` | `/simulator-v3` (WebView), `/simulator` offline fallback | Approximate force model, manual sail trim, drills, scenarios/missions, coach feedback, live weather wind. Step 2. |
 | 3D boat view (Лодка 3D) | `/simulator2` | `/simulator2` (WebView) | NOT a third simulator. The R3F + GLB sloop: orbit 360, anchored parametric sails, free-trim and sailing modes. The visual layer; long-term it becomes the Trainer's 3D view. |
 
 UI naming (all 7 languages): "Основы / Basics / Podstawy", "Тренажёр /

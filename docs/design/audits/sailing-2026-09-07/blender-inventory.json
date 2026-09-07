@@ -1,0 +1,414 @@
+{
+  "blender": "5.1.1",
+  "axes": "Blender Z-up; source GLB Y-up",
+  "mesh_count": 27,
+  "triangles": 18523,
+  "material_slots": 34,
+  "meshes": [
+    {
+      "name": "Hull",
+      "triangles": 10608,
+      "materials": 4,
+      "min": [
+        -6.9277,
+        -2.1045,
+        -0.5278
+      ],
+      "max": [
+        6.9277,
+        2.1045,
+        1.5718
+      ]
+    },
+    {
+      "name": "Cabin",
+      "triangles": 188,
+      "materials": 1,
+      "min": [
+        -0.9,
+        -1.15,
+        1.46
+      ],
+      "max": [
+        3.7,
+        1.15,
+        2.18
+      ]
+    },
+    {
+      "name": "Keel_Bulb",
+      "triangles": 960,
+      "materials": 1,
+      "min": [
+        -1.15,
+        -0.18,
+        -2.18
+      ],
+      "max": [
+        0.35,
+        0.18,
+        -1.86
+      ]
+    },
+    {
+      "name": "Deck_Rails",
+      "triangles": 1120,
+      "materials": 1,
+      "min": [
+        -6.113,
+        -2.0165,
+        1.1037
+      ],
+      "max": [
+        6.6073,
+        2.0165,
+        2.1119
+      ]
+    },
+    {
+      "name": "Winches",
+      "triangles": 88,
+      "materials": 1,
+      "min": [
+        -3.49,
+        -1.24,
+        1.2197
+      ],
+      "max": [
+        -3.31,
+        1.24,
+        1.3597
+      ]
+    },
+    {
+      "name": "Pedestal",
+      "triangles": 36,
+      "materials": 1,
+      "min": [
+        -4.3476,
+        -0.05,
+        1.3414
+      ],
+      "max": [
+        -4.2524,
+        0.05,
+        2.2414
+      ]
+    },
+    {
+      "name": "Wheel",
+      "triangles": 400,
+      "materials": 1,
+      "min": [
+        -4.325,
+        -0.365,
+        1.9264
+      ],
+      "max": [
+        -4.275,
+        0.365,
+        2.6564
+      ]
+    },
+    {
+      "name": "Cabin_Glass",
+      "triangles": 72,
+      "materials": 1,
+      "min": [
+        -0.98,
+        -1.185,
+        1.3837
+      ],
+      "max": [
+        5.01,
+        1.185,
+        2.22
+      ]
+    },
+    {
+      "name": "Deck_Fittings",
+      "triangles": 100,
+      "materials": 1,
+      "min": [
+        -3.11,
+        -1.385,
+        1.2382
+      ],
+      "max": [
+        6.725,
+        1.385,
+        2.3156
+      ]
+    },
+    {
+      "name": "Windlass",
+      "triangles": 108,
+      "materials": 1,
+      "min": [
+        5.75,
+        -0.11,
+        1.4903
+      ],
+      "max": [
+        6.05,
+        0.11,
+        1.6503
+      ]
+    },
+    {
+      "name": "Running_Rigging",
+      "triangles": 200,
+      "materials": 1,
+      "min": [
+        -3.5584,
+        -1.1308,
+        1.26
+      ],
+      "max": [
+        0.5517,
+        1.1304,
+        18.802
+      ]
+    },
+    {
+      "name": "LifeRing",
+      "triangles": 256,
+      "materials": 1,
+      "min": [
+        -6.28,
+        -0.06,
+        1.67
+      ],
+      "max": [
+        -5.72,
+        0.06,
+        2.23
+      ]
+    },
+    {
+      "name": "Cockpit",
+      "triangles": 84,
+      "materials": 2,
+      "min": [
+        -4.845,
+        -0.825,
+        0.925
+      ],
+      "max": [
+        -1.155,
+        0.825,
+        1.475
+      ]
+    },
+    {
+      "name": "Portlights",
+      "triangles": 72,
+      "materials": 1,
+      "min": [
+        -2.65,
+        -2.1807,
+        0.7
+      ],
+      "max": [
+        1.85,
+        2.1807,
+        0.86
+      ]
+    },
+    {
+      "name": "Helmsman",
+      "triangles": 1092,
+      "materials": 3,
+      "min": [
+        -5.2117,
+        -0.2513,
+        0.95
+      ],
+      "max": [
+        -4.4311,
+        0.2513,
+        2.605
+      ]
+    },
+    {
+      "name": "Battens",
+      "triangles": 48,
+      "materials": 1,
+      "min": [
+        -4.4177,
+        -0.31,
+        5.975
+      ],
+      "max": [
+        0.2473,
+        -0.29,
+        16.525
+      ]
+    },
+    {
+      "name": "Boom",
+      "triangles": 36,
+      "materials": 1,
+      "min": [
+        -5.0039,
+        -0.1,
+        2.605
+      ],
+      "max": [
+        0.3039,
+        0.1,
+        3.015
+      ]
+    },
+    {
+      "name": "Main_Telltales",
+      "triangles": 36,
+      "materials": 1,
+      "min": [
+        -3.667,
+        -0.304,
+        6.9825
+      ],
+      "max": [
+        -0.8325,
+        -0.296,
+        15.0175
+      ]
+    },
+    {
+      "name": "MainSail",
+      "triangles": 528,
+      "materials": 1,
+      "min": [
+        -5.0,
+        -0.25,
+        2.7
+      ],
+      "max": [
+        0.46,
+        0.0,
+        19.7
+      ]
+    },
+    {
+      "name": "SailNumber",
+      "triangles": 239,
+      "materials": 1,
+      "min": [
+        -2.9052,
+        -0.62,
+        7.8438
+      ],
+      "max": [
+        -0.693,
+        -0.62,
+        9.1038
+      ]
+    },
+    {
+      "name": "Jib",
+      "triangles": 480,
+      "materials": 1,
+      "min": [
+        0.5,
+        -0.25,
+        1.5
+      ],
+      "max": [
+        6.3,
+        0.0,
+        17.6
+      ]
+    },
+    {
+      "name": "Jib_Telltales",
+      "triangles": 72,
+      "materials": 2,
+      "min": [
+        2.5672,
+        -0.074,
+        5.2703
+      ],
+      "max": [
+        4.5133,
+        0.074,
+        10.4878
+      ]
+    },
+    {
+      "name": "Mast",
+      "triangles": 44,
+      "materials": 1,
+      "min": [
+        0.17,
+        -0.13,
+        1.2
+      ],
+      "max": [
+        0.43,
+        0.13,
+        19.9
+      ]
+    },
+    {
+      "name": "Spreaders",
+      "triangles": 56,
+      "materials": 1,
+      "min": [
+        0.25,
+        -1.45,
+        7.75
+      ],
+      "max": [
+        0.35,
+        1.45,
+        13.25
+      ]
+    },
+    {
+      "name": "Rigging",
+      "triangles": 200,
+      "materials": 1,
+      "min": [
+        -11.6589,
+        -2.0195,
+        -2.6176
+      ],
+      "max": [
+        6.8094,
+        2.0195,
+        19.7695
+      ]
+    },
+    {
+      "name": "Keel",
+      "triangles": 700,
+      "materials": 1,
+      "min": [
+        -1.09,
+        -0.1494,
+        -2.0
+      ],
+      "max": [
+        1.21,
+        0.1494,
+        -0.55
+      ]
+    },
+    {
+      "name": "Rudder",
+      "triangles": 700,
+      "materials": 1,
+      "min": [
+        -6.255,
+        -0.0467,
+        -1.7
+      ],
+      "max": [
+        -5.405,
+        0.0467,
+        0.15
+      ]
+    }
+  ]
+}

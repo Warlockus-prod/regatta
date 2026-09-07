@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 import type { SimLabels } from './types';
+import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
 
 // Load the heavy three.js scene only on the client (keeps it out of SSR).
 const Simulator3D = dynamic(() => import('./Simulator3D').then((m) => m.Simulator3D), { ssr: false });
@@ -32,6 +33,14 @@ function SimulatorV2Inner() {
   const labels: SimLabels = useMemo(
     () => ({
       scene: {
+        fullSailPlan: tp(`Полные паруса: грот ${SAIL_PLAN.main.area} м², стаксель ${SAIL_PLAN.jib.area} м²`,
+          `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
+          `Pelne zagle: grot ${SAIL_PLAN.main.area} m², fok ${SAIL_PLAN.jib.area} m²`, {
+            es: `Velas completas: mayor ${SAIL_PLAN.main.area} m², foque ${SAIL_PLAN.jib.area} m²`,
+            fr: `Voiles entieres : grand-voile ${SAIL_PLAN.main.area} m², foc ${SAIL_PLAN.jib.area} m²`,
+            de: `Volle Segel: Gross ${SAIL_PLAN.main.area} m², Fock ${SAIL_PLAN.jib.area} m²`,
+            it: `Vele complete: randa ${SAIL_PLAN.main.area} m², fiocco ${SAIL_PLAN.jib.area} m²`,
+          }),
         whole: tp("Вся яхта", "Whole yacht", "Caly jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Intera barca" }),
         sails: tp("Паруса", "Sails", "Zagle", { es: "Velas", fr: "Voiles", de: "Segel", it: "Vele" }),
         deck: tp("Палуба", "Deck", "Poklad", { es: "Cubierta", fr: "Pont", de: "Deck", it: "Coperta" }),

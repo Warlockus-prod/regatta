@@ -41,7 +41,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
           de: 'KRAENGUNG',
           it: 'SBANDAM.',
         })}
-        value={Math.round(sim.result.state.heel).toString()}
+        value={Math.round(heelAbs).toString()}
         unit="°"
         color={heelColor}
         divider

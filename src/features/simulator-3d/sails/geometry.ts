@@ -1,7 +1,8 @@
 import * as THREE from "three";
+import { sailDimensions } from "@/lib/sailing-physics/sail-plan";
 
 export type SailKind = "main" | "jib";
-export interface SailShape { camber: number; twist: number; luff: number; reef: number; side: number; time: number }
+export interface SailShape { camber: number; twist: number; luff: number; reef: number; furl?: number; side: number; time: number }
 export const FORESTAY_AXIS = new THREE.Vector3(-6, 16.7, 0).normalize();
 const UP = new THREE.Vector3(0, 1, 0);
 const anchor = new THREE.Vector3();
@@ -10,14 +11,10 @@ const chord = new THREE.Vector3();
 /** A section from the fixed luff to the free leech. All deformation vanishes
  * at the luff, head and corners. Twist rotates about the actual luff axis. */
 export function sailPoint(kind: SailKind, u: number, v: number, shape: SailShape, out: THREE.Vector3) {
-  const reef = kind === "main" ? THREE.MathUtils.clamp(shape.reef, 0, 1) : 0;
-  const height = kind === "main" ? 17 * (1 - 0.45 * reef) : 16.1433333333;
-  const luffX = kind === "main" ? 0 : -5.8 * v;
-  anchor.set(luffX, height * v, 0);
-  const foot = kind === "main" ? 5.2 * (1 - 0.18 * reef) : 5.4;
-  const roach = kind === "main" ? 0.5 * Math.sin(Math.PI * v) : -0.14 * Math.sin(Math.PI * v);
-  const width = Math.max(0, foot * (1 - v) + roach);
-  const rise = (kind === "main" ? 0.16 : 1.05) * (1 - v);
+  const plan = sailDimensions(kind, shape.reef, shape.furl ?? 0);
+  anchor.set(plan.luffOffset * v, plan.height * v, 0);
+  const width = Math.max(0, plan.foot * (1 - v) + plan.roach * Math.sin(Math.PI * v));
+  const rise = plan.rise * (1 - v);
   chord.set(-width * u, rise * u, 0);
   // Broad forward draft, shallow near the head. Reverses with the tack.
   const draft = Math.sin(Math.PI * Math.pow(u, 0.8));

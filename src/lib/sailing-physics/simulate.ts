@@ -2,6 +2,7 @@ import type { BoatState, Controls, BoatParams, TickResult, TickDiagnostics } fro
 import { apparentWind, twaFromCompass, vmg, KN_TO_MPS, MPS_TO_KN } from './wind';
 import { computeSailForce, slotMultiplier, type SailConfig } from './forces';
 import { computeBalance } from './balance';
+import { reefAreaFraction, jibAreaFraction } from './sail-plan';
 
 // ============================================================================
 // Single tick of the sailing-physics engine.
@@ -64,8 +65,7 @@ function sailAngleOff(sheet: number, minOff: number, maxOff: number): number {
  *  A 2nd main reef on a cruiser removes ~35-40% of area, 3rd reef ~55%.
  *  Modeling curve: reef=0.5 -> 67.5% area, reef=1.0 -> 35% area. */
 function effectiveArea(fullArea: number, reduction01: number): number {
-  const r = Math.max(0, Math.min(1, reduction01));
-  return fullArea * (1 - 0.65 * r);
+  return fullArea * reefAreaFraction(reduction01);
 }
 
 /** Effective center of pressure shift when reefed. Reefing lowers the top of
@@ -106,8 +106,8 @@ export function tick(
   const mainAngle = sailAngleOff(controls.mainSheet, 0, params.mainMaxOff);
   const jibAngle = sailAngleOff(controls.jibSheet, params.jibMinOff, params.jibMaxOff);
 
-  const mainArea = effectiveArea(params.mainArea, controls.reef);
-  const jibArea = effectiveArea(params.jibArea, controls.jibFurl);
+  const mainArea = controls.mainHoisted === false ? 0 : effectiveArea(params.mainArea, controls.reef);
+  const jibArea = params.jibArea * jibAreaFraction(controls.jibFurl);
 
   // --- Step 3-4: compute sail forces ---
   // Jib first (we need its AoA/stall state for the slot effect on main).

@@ -1,11 +1,11 @@
 'use client';
 
 import { useId } from "react";
-import { clamp, finite, REEF_VISUAL, type SimulationModel, type TpFn, type UiState } from "./shared";
+import { clamp, finite, REEF_VALUES, type SimulationModel, type TpFn, type UiState } from "./shared";
+import { projectSailPoint, projectedSailPath } from "./sail-projection";
 
 const MAIN = "#f3dfac";
 const JIB = "#70cee0";
-const rad = (degrees: number) => degrees * Math.PI / 180;
 
 /** Deliberate orthographic teaching diagrams. Rear is a transom section;
  * side is a longitudinal profile. No fake perspective or mirrored sails. */
@@ -19,7 +19,7 @@ export function SceneElevation({ view, ui, sim, tp }: {
   const roll = rear ? side * Math.min(heel, 45) : 0;
   const mainAngle = clamp(sim.liveMainAngle, 0, 90);
   const jibAngle = clamp(sim.liveJibAngle, 0, 90);
-  const reef = REEF_VISUAL[ui.reefLevel];
+  const reef = REEF_VALUES[ui.reefLevel];
   const furl = clamp(ui.jibFurlPct / 100, 0, 1);
   const mainVisible = ui.sailsRaised !== "jib";
   const jibVisible = ui.sailsRaised !== "main" && furl > 0.05;
@@ -37,14 +37,10 @@ export function SceneElevation({ view, ui, sim, tp }: {
   const note = rear
     ? tp("Паруса могут перекрываться. Выбери «Грот» или «Стакс.», чтобы рассмотреть один.", "Sails can overlap. Select Main or Jib to inspect one sail.", "Zagle moga sie nakladac. Wybierz Grot lub Fok, aby obejrzec jeden.", { es: "Las velas pueden solaparse. Selecciona Mayor o Foque para ver una.", fr: "Les voiles peuvent se superposer. Choisis Grand-voile ou Foc.", de: "Segel konnen sich uberdecken. Wahle Grosssegel oder Fock einzeln.", it: "Le vele possono sovrapporsi. Seleziona Randa o Fiocco." })
     : tp("Это боковая проекция: при потравливании паруса видны уже. Углы трима сравнивай сверху, крен с кормы.", "This is a side projection: eased sails look narrower. Compare trim angles from above and heel from astern.", "To rzut boczny: luzowane zagle wygladaja na wezsze. Katy trymu porownuj z gory, przechyl od rufy.", { es: "Las velas amolladas parecen mas estrechas. Compara los angulos desde arriba y la escora desde popa.", fr: "Les voiles choquees paraissent plus etroites. Compare les angles de dessus et la gite de poupe.", de: "Gefierte Segel wirken schmaler. Vergleiche Trimmwinkel von oben und Krangung von achtern.", it: "Le vele lascate appaiono piu strette. Confronta gli angoli dall'alto e lo sbandamento da poppa." });
-  const mainX = rear ? side * 125 * Math.sin(rad(mainAngle)) : 30 - 125 * Math.cos(rad(mainAngle));
-  const mainTackX = rear ? 0 : 30;
-  const headY = -55 - 270 * reef;
-  const jibHeadX = rear ? 0 : 30 + 135 * (20 / 298);
-  const jibTackX = rear ? 0 : 165;
-  const jibClewX = rear ? side * 100 * Math.sin(rad(jibAngle)) * furl : 165 - 130 * Math.cos(rad(jibAngle)) * furl;
-  const mainPath = `M ${mainTackX} ${headY} L ${mainTackX} -55 Q ${(mainTackX + mainX) / 2} -46 ${mainX} -55 Q ${mainX} ${headY * 0.46} ${mainTackX} ${headY} Z`;
-  const jibPath = `M ${jibHeadX} -310 L ${jibTackX} -32 L ${jibClewX} -62 Q ${jibClewX} -210 ${jibHeadX} -310 Z`;
+  const mainTackX = rear ? 0 : 6.4;
+  const boomEnd = projectSailPoint("main", 1, 0, mainAngle, side, 0, 0, rear);
+  const mainPath = projectedSailPath("main", mainAngle, side, reef, 0, rear);
+  const jibPath = projectedSailPath("jib", jibAngle, side, 0, 1 - furl, rear);
   const mainStatus = mainLuffing
     ? tp("полощет", "luffing", "lopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
     : sim.result.diag.mainStalled
@@ -72,13 +68,13 @@ export function SceneElevation({ view, ui, sim, tp }: {
       {rear && <path d="M 380 70 V 400" stroke="#557083" strokeDasharray="4 7" opacity=".65" />}
       <g transform={`translate(380 397) rotate(${roll})`}>
         {/* Underwater appendages: distinct from the sails, muted and correctly sized. */}
-        <g opacity=".38" fill="#557185" stroke="#87a0b1" strokeWidth="1.5">
+        <g transform={`scale(${rear ? 0.5 : 0.66} .66)`} opacity=".38" fill="#557185" stroke="#87a0b1" strokeWidth="1.5">
           {rear ? <path d="M -7 6 L -5 76 Q 0 83 5 76 L 7 6 Z" /> : <>
             <path d="M -23 1 L -14 62 L 10 62 L 19 1 Z" />
             <path d="M -139 -6 L -147 39 L -132 40 L -122 -4 Z" />
           </>}
         </g>
-        {rear ? <>
+        <g transform={`scale(${rear ? 0.5 : 0.66} .66)`}>{rear ? <>
           {/* Transom seen end-on: beam, cockpit opening and centred wheel. */}
           <path d="M -67 -31 Q -74 -7 -48 12 Q 0 32 48 12 Q 74 -7 67 -31 Z" fill="#cedce2" stroke="#6c8799" strokeWidth="2" />
           <path d="M -55 -34 Q 0 -42 55 -34 L 42 -15 L -42 -15 Z" fill="#465e70" stroke="#9bb1bc" strokeWidth="2" />
@@ -95,8 +91,8 @@ export function SceneElevation({ view, ui, sim, tp }: {
           <path d="M -162 -35 V -49 H -97 M 94 -36 L 156 -43 V -31" fill="none" stroke="#9cb2bd" strokeWidth="2" />
           <path d="M -166 -10 Q 0 1 155 -12" fill="none" stroke="#547589" strokeWidth="2" />
           <circle cx="-112" cy="-35" r="9" fill="none" stroke="#b6c7cf" strokeWidth="2" />
-          <path d="M -156 -30 L 30 -330 L 165 -32" fill="none" stroke="#607d8f" strokeWidth="1.2" />
-        </>}
+        </>}</g>
+        {!rear && <path d="M -100 -20 L 4.8 -291.2 L 100.8 -24" fill="none" stroke="#607d8f" strokeWidth="1.2" />}
         {jibVisible && <g>
           <path d={jibPath} fill={`url(#${uid}-jib)`} stroke={JIB} strokeWidth="1.6" opacity={rear ? 0.7 : 0.9} />
           <g clipPath={`url(#${uid}-jibclip)`} stroke="#426d7d" opacity=".32">
@@ -108,9 +104,9 @@ export function SceneElevation({ view, ui, sim, tp }: {
           <g clipPath={`url(#${uid}-mainclip)`} stroke="#797d71" opacity=".35">
             {[0, 1, 2, 3, 4, 5].map((i) => <path key={i} d={`M -170 ${-80-i*39} Q 0 ${-69-i*39} 170 ${-80-i*39}`} fill="none" />)}
           </g>
-          <path d={`M ${mainTackX} -54 L ${mainX} -54`} stroke="#a6bac4" strokeWidth="5" strokeLinecap="round" />
+          <path d={`M ${mainTackX} -44 L ${boomEnd.x} -44`} stroke="#a6bac4" strokeWidth="4" strokeLinecap="round" />
         </g>}
-        <path d={`M ${mainTackX} -34 V -332`} stroke="#aebfc9" strokeWidth="4" strokeLinecap="round" />
+        <path d={`M ${mainTackX} -20 V -318.4`} stroke="#aebfc9" strokeWidth="3" strokeLinecap="round" />
         {rear && <>
           <path d="M -55 -30 L 0 -329 L 55 -30 M -26 -205 H 26 M -20 -260 H 20" fill="none" stroke="#7e99a9" strokeWidth="1.2" />
           <path d="M -22 -33 V -62 H 22 V -33" fill="none" stroke="#90a9b7" strokeWidth="2" />
