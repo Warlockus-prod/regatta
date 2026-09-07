@@ -20,5 +20,5 @@ Apple validation/upload passed and build 34 is verified in the Self TestFlight g
 Public App Store review remains pending the native visual release gate.
 
 Owner screenshot follow-up: fix anchored sail geometry and replace Trainer rear/
-side projections. Implemented locally; second production deployment in progress.
+side projections. Published and verified on production (`8e7bf3d`); all deployment jobs passed.
 See `3d-release-2026-09-07.md` for the exact checks and release limitations.

@@ -15,7 +15,7 @@ contradicts this one is stale; update it or link here.
 |---|---|---|---|
 | 1. Basics (Основы) | `/simulator` | `/simulator-basics` (native, offline) | Wind + turns + angle to wind. A boat on a wind rose, the no-go cone, point-of-sail cards. Zero trim complexity. Step 1 for a complete beginner. |
 | 2. Trainer (Тренажёр) | `/simulator-v3` | `/simulator` (native, offline) | The full trainer: live VPP physics, manual sail trim, drills, scenarios/missions, coach feedback, live weather wind. Step 2. |
-| 3D boat view (Лодка 3D) | `/simulator2` | `/simulator2` (WebView) | NOT a third simulator. The R3F + GLB sloop: orbit 360, live sail morphs, free-trim and sailing modes. The visual layer; long-term it becomes the Trainer's 3D view. |
+| 3D boat view (Лодка 3D) | `/simulator2` | `/simulator2` (WebView) | NOT a third simulator. The R3F + GLB sloop: orbit 360, anchored parametric sails, free-trim and sailing modes. The visual layer; long-term it becomes the Trainer's 3D view. |
 
 UI naming (all 7 languages): "Основы / Basics / Podstawy", "Тренажёр /
 Trainer / Trener", "Лодка 3D / 3D Boat / Lodka 3D". The internal V1/V2/V3
@@ -78,11 +78,15 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
 
 - Web Basics: first-visit canvas hints + localized help paragraph.
 - Web Trainer: 10-step 7-language tour (TourOverlay).
-- Web 3D: 5-step 7-language tour (auto on first visit, reopen via the "?"
-  button; localStorage regatta.3d.tour.v1 - deliberately NOT suppressed in the
-  app embed) + one-line orbit hint + loading spinner while the GLB streams.
-  Steering: hold-to-steer buttons on the scene edges (touch + mouse) and
-  left/right arrow keys on desktop; helm slider carries a zero mark.
+- Web 3D: optional help via the "?" button; no automatic modal tour. Whole-yacht,
+  sails and deck camera presets. Primary sheets are always available; wind,
+  reef and extra instruments expand on demand. Hold-to-steer supports pointer
+  and keyboard input, while arrow keys on sliders remain local to the slider.
+- App 3D: same web scene. Native loading waits for `scene-ready`, with a
+  30-second watchdog and retry/offline fallback for failed loads.
+- Trainer rear/side: orthographic teaching diagrams, separate from the top-view
+  angle overlay. Rear shows a transom and signed heel; side shows reefing and
+  jib opening. Main/jib colors and compact legends explain overlap.
 - App hub: STEP 1 / STEP 2 badges encode the learning order.
 - App Basics: 3-step first-open overlay (AsyncStorage `regatta.basics.hint.v1`).
 - App Trainer: native drills with pass/fail + score.
@@ -106,7 +110,8 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
    Lightformers (no external HDR, CSP-safe), GPU ocean (waves moved from a
    5.3k-vertex CPU loop into the vertex shader, generated from the same
    WAVES table the hull rides), sail cloth sheen material, animated
-   telltales + luff flutter (GLB nodes Main_Telltales/Jib_Telltales),
+   luff flutter. In September, anchored procedural cloth and moving sheets
+   replaced the unanchored GLB sail morphs and floating rigid decorations;
    tightened shadow frustum; wake + bow spray particle system driven by
    telemetry speed (2026-07-05, later pass); desktop-only Bloom + Vignette
    via @react-three/postprocessing (never in the WebView embed).
@@ -133,3 +138,9 @@ Guarded by e2e/smoke.spec.ts ("embed mode hides the sim switcher").
    check()/marks/scoring local, keyed by the same ids. Completeness (7-lang
    non-empty text, unique ids, web id coverage) is guarded by
    src/features/simulator-v3/runtime/trainer-catalog.test.ts.
+
+## September 2026 release
+
+See `3d-release-2026-09-07.md` for implementation, verification, deployment
+commits and the iOS 1.6.1 (34) TestFlight status. The owner-screenshot follow-up
+corrects the jib's inclined rotation axis and replaces the Trainer elevations.

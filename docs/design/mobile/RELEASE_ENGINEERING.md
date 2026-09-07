@@ -1,6 +1,12 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Snapshot: 2026-05-31. App `com.icoffio.regatta`, ASC app id `6768134329`,
+Current release source verified 2026-09-07: `main`, app 1.6.1 (34). Local Xcode
+archive/export and `altool` are the working release path. EAS Update remains
+unconfigured (`updates.url` and `extra.eas.projectId` absent); runtime policy is
+`appVersion`. Shared 3D/Trainer WebView scenes update through the VPS website.
+See `BUILDS.md` and `../3d-release-2026-09-07.md` for actual release results.
+
+Historical setup notes below (snapshot 2026-05-31). App `com.icoffio.regatta`, ASC app id `6768134329`,
 Apple team `547PA2PLLB`, Expo SDK 54, RN 0.81, expo-router 6, New Arch on.
 
 This doc covers (1) the EAS Update / OTA setup, (2) a command cheat-sheet for

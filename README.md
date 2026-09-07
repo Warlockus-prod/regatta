@@ -6,6 +6,9 @@ Interactive sailing education app. Learn points of sail, sail trim, racing strat
 
 For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
 
+September 2026: [3D yacht and Trainer update](./docs/design/3d-release-2026-09-07.md),
+with release checks and iOS 1.6.1 (34) TestFlight status.
+
 ## Highlights
 
 - **Two simulator tiers + a 3D boat view**, all over one shared VPP-style
