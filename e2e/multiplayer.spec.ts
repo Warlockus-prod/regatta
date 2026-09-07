@@ -66,7 +66,8 @@ test.describe('Multiplayer smoke', () => {
     expect(code).toMatch(/^[A-Z2-9]{4}$/);
 
     // Guest joins
-    await g.goto('/multiplayer');
+    await g.setViewportSize({ width: 1024, height: 768 });
+    await g.goto('/multiplayer?embed=1');
     await expect(g.getByRole('heading', { name: 'Мультиплеер' })).toBeVisible({ timeout: 10_000 });
     const guestNick = 'Guest_' + Date.now().toString(36);
     await g.getByPlaceholder('Введи ник').fill(guestNick);
@@ -90,6 +91,8 @@ test.describe('Multiplayer smoke', () => {
     await start.click();
     await expect(h.locator('canvas')).toBeVisible();
     await expect(g.locator('canvas')).toBeVisible();
+    await expect(g.getByRole('button', { name: 'Поворот влево' })).toBeVisible({ timeout: 10000 });
+    await expect(g.getByRole('button', { name: 'Поворот вправо' })).toBeVisible();
 
     await host.close();
     await guest.close();
