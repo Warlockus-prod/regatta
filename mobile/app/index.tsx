@@ -21,7 +21,7 @@ export default function Home() {
   const title = next ? tp(next.titleRu, next.titleEn, next.titlePl, { es: next.titleEs, fr: next.titleFr, de: next.titleDe, it: next.titleIt }) : "";
   const settings = destinations.find(d => d.id === "settings")!;
   return <Screen>
-    <Stack.Screen options={{ headerShown: false }} />
+    <Stack.Screen options={{ headerShown: false, title: sections[0].title[lang] }} />
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.brandRow}>
         <Wordmark size="m" />
