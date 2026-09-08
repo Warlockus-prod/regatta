@@ -43,7 +43,7 @@ export default function BootcampFooterNav() {
     const onFocus = () => setProgress(getBootcampProgress());
     window.addEventListener('focus', onFocus);
     return () => window.removeEventListener('focus', onFocus);
-  }, []);
+  }, [pathname]);
 
   const currentLesson = progress?.current
     ? bootcampLessons.find((l) => l.id === progress.current)
@@ -127,6 +127,7 @@ export default function BootcampFooterNav() {
     // Mark current as complete (if not already) + set next as current.
     if (!isDone) markLessonComplete(currentLesson.id);
     setCurrentLesson(nextLesson.id);
+    refresh();
     router.push(nextLesson.route);
     // router.push() with a hash on the same pathname won't scroll the page
     // by itself - the URL updates but no scroll fires. Manually scroll to the

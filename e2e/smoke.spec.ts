@@ -48,6 +48,13 @@ test.describe('Smoke: critical user flows', () => {
     await page.getByRole('menuitemradio', { name: /Русский/ }).click();
   });
 
+  test("home starts a lesson with working course navigation", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("link", { name: "Начать первый урок", exact: true }).click();
+    await expect(page).toHaveURL(/\/courses#wind$/);
+    await expect(page.getByRole("region", { name: "Навигация по курсу" })).toBeVisible();
+  });
+
   test("library search reaches the radio course and keeps its section selected", async ({ page }) => {
     await page.goto("/library");
     const search = page.getByRole("searchbox", { name: "Поиск по разделам" });

@@ -183,6 +183,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
             color: 'var(--text-secondary)',
             border: '1px solid var(--border-subtle)',
             boxShadow: 'none',
+            bottom: 'calc(var(--bootcamp-footer-h, 0px) + 16px)',
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
