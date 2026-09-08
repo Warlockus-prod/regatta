@@ -73,10 +73,28 @@ geometry are unchanged. This correction belongs to the live rig/force adapter.
   permanent wind instrument and both sheet sliders visible.
 - The existing browser smoke test now guards default airflow visibility and
   keeps the wind instrument visible when arrows are disabled.
-- Production deployment and native app verification are recorded below after
-  completion. Native `/simulator2` embeds the deployed route; no native source
-  or App Store version change is needed to receive this scene update.
+- Native checks also pass: 114 tests, content/offline-bundle validation,
+  TypeScript and mobile lint.
 
 ## Release verification
 
-Pending deployment and native visual pass.
+- Runtime changes: `2f0fb61`. Deployed source: `cb187ba`, which also separates
+  the airflow toggle check from the existing camera/keyboard smoke test.
+- [Deployment 34231339102](https://github.com/Warlockus-prod/regatta/actions/runs/34231339102)
+  passed build/pre-deploy checks, VPS deployment and production browser E2E.
+  The existing camera smoke test used the configured retry policy on software
+  WebGL. This is a functional verification, not a measured device FPS result.
+- The live `/simulator2` route and health endpoint were checked after deployment.
+  The production browser displays the new wind instrument and scene arrows.
+- iOS 26.5, iPhone 17 Pro Max Simulator, app 1.6.1 (42): opened the native 3D
+  entry and visually verified the updated production scene, wind instrument,
+  airflow arrows and both sheet sliders. See the saved
+  [native screenshot](mobile/audits/sail-transfer-2026-09-08/sailing-iphone.png).
+- Native gesture verification is limited: WKWebView controls were not exposed
+  through the available accessibility tree, and coordinate input returned
+  `noWindowsAvailable`. Native held-steering input was therefore not separately
+  verified. Actual steering and wind crossing were exercised in the browser;
+  both tack and gybe directions are covered by the rig integration tests.
+- The app embeds the deployed `/simulator2` route. This update is available in
+  build 42 without a new native binary or App Store submission. Leave and reopen
+  the 3D screen to load fresh HTML if it was already open during deployment.

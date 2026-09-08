@@ -17,6 +17,16 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 | 18 | 1.2.0 | v1.2 | NOT attached | AI opponents, animated sim + wind rose, global leaderboard, PostHog. Never reached testers (attach gap). |
 | <= 13 | <= 0.13.0 | - | Self | Last builds the phone actually saw before the gap. |
 
+## Online 3D update (2026-09-08)
+
+Build 42 now loads web source `cb187ba` for its online 3D scene: automatic
+main/jib transfer during tacks and gybes, corrected sail-side and heel signs,
+unloading tied to physical drive, visible airflow and a permanent wind readout.
+This is a deployed WebView update, not a new native build. The 114 mobile tests
+and native checks pass; the updated scene was visually verified in iPhone
+17 Pro Max Simulator. See [sail-transfer verification](../sail-transfer-2026-09-08.md)
+for evidence and the native gesture-testing limitation.
+
 ## Branch consolidation (2026-06-21)
 `main` and `app` are unified at one commit (`609b911`). Before this, `main`
 carried the correct web (OpenAI -> GPT-5 + security fixes) but a DEAD mobile
