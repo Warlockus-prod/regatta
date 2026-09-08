@@ -30,7 +30,7 @@ export default function Navigation() {
   }, [embed]);
   if (embed) return null;
   const selected = sectionForPath(pathname, "web");
-  return <nav ref={navRef} className={styles.nav} aria-label={copy.navigation[lang]}>
+  return <nav data-product-navigation ref={navRef} className={styles.nav} aria-label={copy.navigation[lang]}>
     <div className={styles.inner}>
       <Link href="/" className={styles.brand} aria-label="Regatta">
         <svg width="26" height="28" viewBox="0 0 26 28" fill="none" aria-hidden="true">

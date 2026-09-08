@@ -179,13 +179,13 @@ test.describe('Smoke: critical user flows', () => {
 
     await page.goto('/simulator?embed=1');
     await expect(page.locator('svg, canvas').first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.locator('nav.sticky')).toHaveCount(0);
+    await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator-v3"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
 
     await page.goto('/simulator-v3?embed=1');
     await expect(page.getByTestId('trainer-scene').locator('svg').first()).toBeVisible({ timeout: 20_000 });
-    await expect(page.locator('nav.sticky')).toHaveCount(0);
+    await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
   });
@@ -203,12 +203,12 @@ test.describe('Smoke: critical user flows', () => {
     ]) {
       // Sanity / positive control: without embed the global sticky nav renders.
       await page.goto(path);
-      await expect(page.locator('nav.sticky')).toHaveCount(1);
+      await expect(page.locator('nav[data-product-navigation]')).toHaveCount(1);
 
       // With embed the global chrome is gone, the section subnav stays, theme is dark.
       await page.goto(`${path}?embed=1`);
       await expect(page.getByRole('navigation', { name: subnav })).toBeVisible({ timeout: 20_000 });
-      await expect(page.locator('nav.sticky')).toHaveCount(0);
+      await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
       await expect
         .poll(() => page.evaluate(() => document.documentElement.dataset.theme))
         .toBe('dark');
