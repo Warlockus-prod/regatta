@@ -1,13 +1,14 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Current release source verified 2026-09-07: `main` at `eb8e141`, app 1.6.1 (39).
-Build 39 is available to TestFlight Self and WAITING_FOR_REVIEW in App Store
-Connect, with automatic release after approval. See the
-[radio audit](../radio-course-audit-2026-09-07.md) for delivery evidence. Local Xcode
-archive/export and `altool` are the working release path. EAS Update remains
-unconfigured (`updates.url` and `extra.eas.projectId` absent); runtime policy is
-`appVersion`. Shared 3D/Trainer WebView scenes update through the VPS website.
-See `BUILDS.md` and `../3d-release-2026-09-07.md` for actual release results.
+Current release verified 2026-09-08: model/mobile source `585acef`, final website
+`43a7ca7`, app 1.6.1 (40). Build 40 is VALID, attached to TestFlight Self and
+WAITING_FOR_REVIEW in App Store Connect, with automatic release after approval.
+See the [Blender and anatomy release audit](../blender-sailing-update-2026-09-08.md)
+for delivery evidence and iPhone Simulator screenshots. It replaces build 39's
+pending review and includes its radio corrections. Local Xcode archive/export
+and `altool` remain the working release path. EAS Update is unconfigured
+(`updates.url` and `extra.eas.projectId` absent). Shared web 3D/Trainer/Anatomy
+scenes update through the VPS website; bundled offline data ships with the binary.
 
 Historical setup notes below (snapshot 2026-05-31). App `com.icoffio.regatta`, ASC app id `6768134329`,
 Apple team `547PA2PLLB`, Expo SDK 54, RN 0.81, expo-router 6, New Arch on.

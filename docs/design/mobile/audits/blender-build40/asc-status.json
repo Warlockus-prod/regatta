@@ -1,0 +1,28 @@
+{
+  "version": {
+    "type": "appStoreVersions",
+    "id": "5ccecd54-f10b-4342-b156-995a4dd2dd33",
+    "attributes": {
+      "versionString": "1.6.1",
+      "appStoreState": "WAITING_FOR_REVIEW",
+      "releaseType": "AFTER_APPROVAL"
+    },
+    "links": {
+      "self": "https://api.appstoreconnect.apple.com/v1/appStoreVersions/5ccecd54-f10b-4342-b156-995a4dd2dd33"
+    }
+  },
+  "builds": [
+    {
+      "type": "builds",
+      "id": "a27d56c2-6d5b-42bd-ba9c-c8121a113b72",
+      "attributes": {
+        "version": "40",
+        "processingState": "VALID",
+        "usesNonExemptEncryption": false
+      },
+      "links": {
+        "self": "https://api.appstoreconnect.apple.com/v1/builds/a27d56c2-6d5b-42bd-ba9c-c8121a113b72"
+      }
+    }
+  ]
+}

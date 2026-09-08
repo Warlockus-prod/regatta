@@ -5,7 +5,7 @@
 The editable scene is `assets/3d/regatta_sloop_sailing.blend`, built and rendered
 with Blender 5.1.1. The game asset is `public/models/regatta_sloop_sailing.glb`;
 `YACHT_MODEL_URL` now selects it in the shared web/iOS WebView scene.
-Website deployment and iOS build 40 are in preparation. Final publication state is recorded in the release verification below.
+Published to the website on 2026-09-08. iOS 1.6.1 (40) is available to TestFlight Self and submitted to App Review, WAITING_FOR_REVIEW with automatic release after approval. This is not yet a public App Store release.
 
 This is a real Blender scene and Cycles render, not an AI-generated concept.
 Work was performed through Blender's Python API. The desktop application was
@@ -117,3 +117,14 @@ previous `.blend` remain available for comparison.
 - Reviewed Trainer top, stern and side views. They remain deliberate educational projections. Further work should prioritize a larger sail inspection view, clearer wind and per-sail feedback, followed by short guided drills. A photorealistic replacement of every teaching diagram is not required for comprehension.
 
 - iPhone QA caught duplicated course text overlapping the south wind label in Basics. Removed the duplicate canvas footer and drag hint; the accessible course and instructions remain in the adjacent panel.
+
+## Published release verification
+
+- Main model/content commit: `585acef`. Final web label fix: `43a7ca7`.
+- Both deployments succeeded: [model deployment](https://github.com/Warlockus-prod/regatta/actions/runs/34203055331) and [final Basics fix](https://github.com/Warlockus-prod/regatta/actions/runs/34203987324). CI includes 46 physics, 14 3D, 51 Trainer, 131 radio, 60 API and 30 oral-grader tests, multiplayer lifecycle checks, nine pre-deploy E2E checks and 13 production E2E checks.
+- Inspected production anatomy and sailing 3D. Basics heading and wind sliders remain independent; into-wind sets heading to the current wind bearing.
+- Built, installed and launched exact iOS Release 1.6.1 (40) on the dedicated iPhone 17 Pro Simulator, iOS 26.5. Visually checked home, anatomy, Basics, Trainer top and the 3D sailing scene. Navigated home to anatomy and back, then across all three simulator entries. Screenshots: [anatomy](mobile/audits/blender-build40/anatomy.png), [3D boat](mobile/audits/blender-build40/boat3d.png), [Basics](mobile/audits/blender-build40/basics.png), [Trainer](mobile/audits/blender-build40/trainer-top.png), [home](mobile/audits/blender-build40/home.png).
+- Xcode archive/export and Apple IPA validation/upload succeeded. Build `a27d56c2-6d5b-42bd-ba9c-c8121a113b72` is VALID and explicitly attached to TestFlight Self. Native build contains updated shared anatomy data and the previously verified offline radio course.
+- Replaced build 39's pending review after build 40 was ready. Final review `68304705-1e26-4be2-99cc-04febed19aa6` entered WAITING_FOR_REVIEW on 2026-09-08 at 08:29 UTC. Release policy is AFTER_APPROVAL.
+- Final Fastlane metadata precheck passed. An earlier run hit a transient privacy URL 502 during deployment; both canonical and legacy privacy URLs returned 200 afterward. Rechecked the final seven release-note localizations, five iPhone and five iPad screenshots (COMPLETE, other locales inherit the primary set), age declaration and non-exempt encryption=false.
+- This verifies an iPhone Simulator release, not physical-device GPU performance, thermal behavior, or exhaustive tablet interaction. Offline native anatomy remains a schematic with synchronized teaching text; static historical posters are separate illustrations.
