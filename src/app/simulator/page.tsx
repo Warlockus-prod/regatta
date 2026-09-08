@@ -793,37 +793,8 @@ export default function SimulatorPage() {
       );
       ctx.restore();
 
-      // ===== POINT OF SAIL LABEL ON CANVAS =====
-      ctx.save();
-      ctx.font = `bold ${Math.max(12, w * 0.025)}px sans-serif`;
-      ctx.textAlign = 'center';
-      ctx.fillStyle = currentPOS.color;
-      ctx.fillText(
-        legacyPick(currentPOS, 'name', lang),
-        cx,
-        h - 30,
-      );
-      ctx.font = `${Math.max(10, w * 0.018)}px sans-serif`;
-      ctx.fillStyle = COLORS.textSecondary;
-      // In English mode the top label already IS English, skip the duplicate subtitle.
-      if (lang !== 'en') {
-        ctx.fillText(currentPOS.nameEn, cx, h - 14);
-      }
-      ctx.restore();
-
-      // ===== CURSOR HINT =====
-      if (!isDragging) {
-        ctx.save();
-        ctx.font = `${Math.max(9, w * 0.016)}px sans-serif`;
-        ctx.textAlign = 'center';
-        ctx.fillStyle = 'rgba(139, 167, 184, 0.4)';
-        ctx.fillText(
-          lang === 'ru' ? 'перетащи / стрелки' : lang === 'pl' ? 'przeciagnij / strzalki' : 'drag / arrow keys',
-          cx,
-          18,
-        );
-        ctx.restore();
-      }
+      // Course names and drag instructions live in the adjacent panel.
+      // Keeping them outside the compass prevents overlap with a rotated wind label.
 
       animFrameRef.current = requestAnimationFrame(draw);
     };

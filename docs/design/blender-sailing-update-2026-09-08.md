@@ -115,3 +115,5 @@ previous `.blend` remain available for comparison.
 - Fixed desktop anatomy columns, sticky viewer and 44px part buttons. Historical anatomy posters remain separate illustrations; they were not rebuilt from Blender. Native offline anatomy retains its schematic view with updated descriptions.
 - Basics: fixed wake particles drifting forward over the hull and made particle motion time-based. Slider arrow keys no longer also turn the boat; browser QA confirmed wind 180 to 181 degrees while heading stayed 90 degrees.
 - Reviewed Trainer top, stern and side views. They remain deliberate educational projections. Further work should prioritize a larger sail inspection view, clearer wind and per-sail feedback, followed by short guided drills. A photorealistic replacement of every teaching diagram is not required for comprehension.
+
+- iPhone QA caught duplicated course text overlapping the south wind label in Basics. Removed the duplicate canvas footer and drag hint; the accessible course and instructions remain in the adjacent panel.
