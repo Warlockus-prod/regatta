@@ -1,0 +1,11 @@
+Week to Regatta is a sailing learning and practice app. No sign-in or test account is required.
+
+Build 42 navigation: Home, Learn, Practice, Race and Library. Home opens the first lesson or resumes saved progress. Learn contains the sailing lessons and the Polish SRC radio and motorboat exam courses. Library searches all courses and tools.
+
+Practice offers Basics, Sail Trim Trainer and 3D Boat. These shared website scenes need internet; the Practice hub also links to a simplified offline trainer. Yacht Anatomy uses an interactive 3D model with teaching markers. The SRC radio course and its core exercises are bundled for offline use; speech recognition and voice assessment need internet and microphone permission when the user starts voice practice.
+
+Race offers solo sailing and real network multiplayer. To test multiplayer, create a room on one device and join with its code on a second device or at weektoregatta.com/multiplayer. Players on the app and website can race together.
+
+Lesson progress, preferences and checklists are stored locally. Online services support multiplayer, race results, weather and assistant responses. The app includes optional anonymous analytics; the user can disable it in Settings. It does not use the advertising identifier or cross-app advertising tracking.
+
+The new home screenshots reflect the updated navigation.

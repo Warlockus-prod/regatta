@@ -153,3 +153,14 @@ caption per-locale in the ASC web UI on submit day.
 If you want the captions baked in (heavier branding), use a Figma
 template overlay - that is a Sprint 9 nice-to-have, not a Sprint 8
 blocker. v1.0 ships clean device frames with ASC-side captions.
+
+
+## 2026-09-08, navigation update
+
+Updated `iphone-6.9/en/01-home.png` (1320x2868, build 42) and
+`ipad-13/en/01-home.png` (2064x2752, visually identical home from build 41).
+Uploaded as `01-home-build42.png` in the existing English iPhone and iPad sets.
+Both assets are COMPLETE and first in their five-image sets. The remaining
+four images in each set were preserved. The original first images were backed
+up before replacement. Release review instructions now describe the current
+3D anatomy, network multiplayer, analytics settings and five-section navigation.

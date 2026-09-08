@@ -1,14 +1,17 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Current release verified 2026-09-08: model/mobile source `585acef`, final website
-`43a7ca7`, app 1.6.1 (40). Build 40 is VALID, attached to TestFlight Self and
+Current release verified 2026-09-08: website `c6ad1d9`, native source `9455e10`,
+app 1.6.1 (42). Build 42 is VALID, attached to TestFlight Self and
 WAITING_FOR_REVIEW in App Store Connect, with automatic release after approval.
-See the [Blender and anatomy release audit](../blender-sailing-update-2026-09-08.md)
-for delivery evidence and iPhone Simulator screenshots. It replaces build 39's
-pending review and includes its radio corrections. Local Xcode archive/export
-and `altool` remain the working release path. EAS Update is unconfigured
-(`updates.url` and `extra.eas.projectId` absent). Shared web 3D/Trainer/Anatomy
-scenes update through the VPS website; bundled offline data ships with the binary.
+See the [navigation redesign audit](../navigation-redesign-2026-09-08.md) for
+checks, Simulator screenshots and delivery evidence. It replaces build 40's
+pending review and includes the previous Blender, sailing and radio changes.
+The [Blender audit](../blender-sailing-update-2026-09-08.md) documents that earlier work.
+
+Local Xcode archive/export and `altool` remain the working release path.
+EAS Update is unconfigured (`updates.url` and `extra.eas.projectId` absent).
+Shared web 3D/Trainer/Anatomy scenes update through the VPS website;
+bundled offline data and native navigation ship with the binary.
 
 Historical setup notes below (snapshot 2026-05-31). App `com.icoffio.regatta`, ASC app id `6768134329`,
 Apple team `547PA2PLLB`, Expo SDK 54, RN 0.81, expo-router 6, New Arch on.
