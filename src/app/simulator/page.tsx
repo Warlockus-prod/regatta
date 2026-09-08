@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
@@ -9,8 +9,11 @@ import { useI18n } from '@/lib/i18n';
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
 
 // ---- Constants ----
-const DEFAULT_WIND_DIR = 180; // Wind blows FROM the top of the screen (180 = from south in screen coords means arrow points down)
+const DEFAULT_WIND_DIR = 180; // Compass bearing: wind from south, flowing upward on screen.
 const MAX_SPEED_KTS = 7.5;
+const subscribeEmbed = () => () => {};
+const readEmbed = () => new URLSearchParams(window.location.search).get("embed") === "1";
+const serverEmbed = () => false;
 
 const COLORS = {
   bgPrimary: '#0a1628',
@@ -103,7 +106,7 @@ export default function SimulatorPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const animFrameRef = useRef<number>(0);
 
-  const [boatAngle, setBoatAngle] = useState(90); // degrees, 0 = pointing up (into wind)
+  const [boatAngle, setBoatAngle] = useState(90); // Compass degrees, 0 points north.
   const [windDir, setWindDir] = useState(DEFAULT_WIND_DIR); // compass bearing wind blows from
   const [isDragging, setIsDragging] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ w: 600, h: 600 });
@@ -114,12 +117,7 @@ export default function SimulatorPage() {
   // The iOS app embeds this page chromelessly via ?embed=1 - hide the tier
   // header there. Read from window.location instead of useSearchParams so
   // this client page does not need a Suspense boundary.
-  const [isEmbed, setIsEmbed] = useState(false);
-  useEffect(() => {
-    try {
-      setIsEmbed(new URLSearchParams(window.location.search).get('embed') === '1');
-    } catch { /* ignore */ }
-  }, []);
+  const isEmbed = useSyncExternalStore(subscribeEmbed, readEmbed, serverEmbed);
 
   const wakeRef = useRef<WakeParticle[]>([]);
   const dotsRef = useRef<WaveDot[]>([]);
@@ -155,6 +153,11 @@ export default function SimulatorPage() {
   // ---- Keyboard ----
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      // Sliders and text fields own their arrow keys. Do not also turn the boat.
+      const target = e.target;
+      if (target instanceof HTMLElement && (target.isContentEditable || target.closest("input, textarea, select, [role='slider'], [role='dialog']"))) return;
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
       if (e.key === 'ArrowLeft') {
         setBoatAngle((a) => normalizeAngle(a - 3));
       } else if (e.key === 'ArrowRight') {
@@ -324,8 +327,7 @@ export default function SimulatorPage() {
       ctx.beginPath();
       ctx.moveTo(0, 0);
       // Draw sector from boat center
-      // Wind from top = 180 deg = PI rad in standard screen coords
-      // But in canvas, 0 is right, so we need to adjust: screen angle = 90 - degree
+      // Convert compass bearings (north = 0) to canvas angles (right = 0).
       const sectorStartRad = degToRad(windDirRef.current - NO_GO_HALF_DEG - 90);
       const sectorEndRad = degToRad(windDirRef.current + NO_GO_HALF_DEG - 90);
       ctx.arc(0, 0, w * 0.45, sectorStartRad, sectorEndRad);
@@ -413,7 +415,7 @@ export default function SimulatorPage() {
       // ===== WIND ARROW =====
       ctx.save();
       ctx.translate(cx, cy);
-      // Wind comes from top (180), so arrow points downward from top
+      // The arrow runs inward from the wind source toward the boat.
       const windArrowRad = degToRad(windDirRef.current - 90); // point from which wind comes
       const arrowFromDist = w * 0.38;
       const arrowLen = w * 0.15;
@@ -490,8 +492,8 @@ export default function SimulatorPage() {
             age: 0,
             maxAge: 2 + Math.random(),
             size: 2 + Math.random() * 3,
-            dx: -Math.sin(boatRad) * (-0.3) + (Math.random() - 0.5) * 0.3,
-            dy: Math.cos(boatRad) * (-0.3) + (Math.random() - 0.5) * 0.3,
+            dx: -Math.sin(boatRad) * 18 + (Math.random() - 0.5) * 8,
+            dy: Math.cos(boatRad) * 18 + (Math.random() - 0.5) * 8,
           });
         }
       }
@@ -499,8 +501,8 @@ export default function SimulatorPage() {
       // Update and draw wake
       wakeRef.current = wakeRef.current.filter((p) => {
         p.age += dt;
-        p.x += p.dx;
-        p.y += p.dy;
+        p.x += p.dx * dt;
+        p.y += p.dy * dt;
         if (p.age >= p.maxAge) return false;
         const alpha = (1 - p.age / p.maxAge) * 0.3;
         const size = p.size * (1 + p.age * 0.5);

@@ -1,13 +1,22 @@
 import * as THREE from "three";
 import { sectionTwistDegrees } from "@/lib/sailing-physics/forces";
-import { sailDimensions } from "@/lib/sailing-physics/sail-plan";
+import { SAIL_PLAN, sailDimensions } from "@/lib/sailing-physics/sail-plan";
 
 export type SailKind = "main" | "jib";
 export interface SailShape { camber: number; twist: number; luff: number; reef: number; furl?: number; side: number; time: number }
-export const FORESTAY_AXIS = new THREE.Vector3(-6, 16.7, 0).normalize();
+export const FORESTAY_AXIS = new THREE.Vector3(SAIL_PLAN.jib.luffOffset, SAIL_PLAN.jib.height, 0).normalize();
 const UP = new THREE.Vector3(0, 1, 0);
 const anchor = new THREE.Vector3();
 const chord = new THREE.Vector3();
+
+/** Smooth camber line with an explicit maximum instead of a sine-shaped sheet.
+ * These are design choices for our synthetic cruiser, not measured sail polars. */
+export function draftProfile(u: number, kind: SailKind) {
+  const peak = kind === "main" ? 0.45 : 0.38;
+  return u <= peak
+    ? 1 - Math.pow((u - peak) / peak, 2)
+    : 1 - Math.pow((u - peak) / (1 - peak), 2);
+}
 
 /** A section from the fixed luff to the free leech. All deformation vanishes
  * at the luff, head and corners. Twist rotates about the actual luff axis. */
@@ -18,8 +27,9 @@ export function sailPoint(kind: SailKind, u: number, v: number, shape: SailShape
   const rise = plan.rise * (1 - v);
   chord.set(-width * u, rise * u, 0);
   // Broad forward draft, shallow near the head. Reverses with the tack.
-  const draft = Math.sin(Math.PI * Math.pow(u, 0.8));
-  const depth = width * (0.055 + 0.12 * shape.camber) * (0.45 + 0.55 * Math.sin(Math.PI * v));
+  const draft = draftProfile(u, kind);
+  const depth = width * (0.07 + 0.07 * THREE.MathUtils.clamp(shape.camber, 0, 1)) *
+    (0.65 + 0.35 * Math.sin(Math.PI * v));
   const flutter = shape.luff * width * 0.045 * Math.sin(u * Math.PI) *
     Math.sin(shape.time * 15 - v * 17 + u * 8) * Math.sin(Math.PI * v);
   chord.z = shape.side * (draft * depth * (1 - shape.luff * 0.75) + flutter);

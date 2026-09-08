@@ -1,50 +1,20 @@
 'use client';
 
-// ============================================================================
-// YachtViewer3D
-//
-// Interactive 3D viewer for the production-ready Bavaria-46-inspired GLB on
-// /anatomy. Built on @react-three/fiber + @react-three/drei (already
-// installed for V2 simulator). Lazy-loaded by the consumer so users who
-// never toggle 3D don't pay the Three.js bundle cost.
-//
-// Model: /public/models/Andryu_Yacht_v8.glb (~830 KB). Has LOD0_/LOD1_
-//   prefixes and COL_* debug colliders (we hide the colliders at load).
-//   Earlier prototype GLBs + asset_metadata_v3.json were removed 2026-07-05
-//   (recoverable from git history).
-//
-// Hotspots: each anatomy part with a `three: { x, y, z }` field gets a
-// clickable sphere + label rendered as a child of the same group as the
-// model. Local coordinate convention from the GLB metadata:
-//   X = stern -> bow (~ -7..+7), Y = port/starboard, Z = vertical.
-// We rotate the wrapper -90deg around X so Three.js Y-up is satisfied.
-//
-// The active hotspot scales up + glows; clicking any sphere fires
-// onSelect(id). The same setActiveId function drives the 2D side-profile,
-// so 2D and 3D share state.
-// ============================================================================
+// Anatomy and the sailing simulator share one Blender asset and metre scale.
+// Teaching coordinates remain Z-up in anatomy.ts and are converted once below.
 
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { OrbitControls, useGLTF, ContactShadows, Html, Environment, Lightformer } from '@react-three/drei';
-import { DoubleSide, MeshStandardMaterial, Box3, Vector3, type Group, type Mesh } from 'three';
+import { OrbitControls, useGLTF, Html } from '@react-three/drei';
+import { Box3, Vector3, type Group } from 'three';
 import type { AnatomyPart } from '@/data/anatomy';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { fitCamera } from "@/features/simulator-3d/camera";
+import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { SceneBoundary } from "@/features/simulator-3d/SceneBoundary";
 import { useI18n } from "@/lib/i18n";
 
-// Camera presets in world Three.js coords (after the GLB has been rotated
-// so its local +Z = world +Y). The v7.2 model spans:
-//   X (stern -> bow):  -6.95 .. +7.05  (LOA 14.00 m)
-//   Y (port -> stbd):  -2.15 .. +2.15  (beam 4.31 m)
-//   Z (down -> up):    -2.18 .. +20.75 (mast top from waterline ~20.75 m)
-// After the -PI/2 X-rotation in <Boat>, model-Z becomes world-Y; so the
-// boat is ~22.93 m tall in world-Y coords and the camera target sits at
-// world-Y = 7 (= ~ mid-rig) so neither keel nor masthead is cropped.
-// Distances were retuned for v7.2's taller mast: at FOV 35deg the visible
-// scene-height at 35 m is ~22 m, just enough to frame the whole rig.
 type ViewPreset = 'three-quarter' | 'top' | 'side' | 'bow' | 'stern';
 const TARGET: [number, number, number] = [0, 7, 0];
 const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
@@ -55,31 +25,7 @@ const VIEW_PRESETS: Record<ViewPreset, [number, number, number]> = {
   'stern':         [-38, 9, 0.001],
 };
 
-// v8 visual-clean GLB: cleanup of v7.3 with stable material naming for
-// web/app integration. Same Bavaria-46 dimensions as v7.2/v7.4 (mast
-// 20.75 m, LOA 14 m).
-//
-// Key wins over v7.4:
-//   - Logo is a 2K texture baked into the dedicated mainsail UVs
-//     (mesh `MAT_MainSail_BakedLogo_UV` with material
-//     `MAT_MainSail_BakedLogo_UV_Embedded`), no more separate
-//     port/starboard geometric decal meshes that v7.4 needed UV
-//     hand-flips for - and that ended up rendering upside-down.
-//   - All sail + logo materials ship with `doubleSided: true` in the
-//     glTF JSON, so GLTFLoader hands us correctly two-sided materials
-//     out of the box - no more wholesale traverse replacement.
-//   - The stale 2x2 placeholder texture on `MAT_Sail_Seams` is gone.
-//   - Hull/deck/rigging stay split across separate materials
-//     (`MAT_TeakDeck_UV`, `MAT_HullWhite_UV`, `MAT_Aluminium_Mast`,
-//     etc.) - the v7.4 regression that collapsed everything into one
-//     `HullDeckRigging` mesh is reverted.
-//
-// Top-level node naming returns to the v7.2 `MAT_*` scheme (one node
-// per material). The legacy `MAT_Logo_Red_Decal` /
-// `MAT_Logo_Black_Decal` blob meshes are still in the GLB but the
-// real branded mainsail uses `MAT_MainSail_BakedLogo_UV` instead, so
-// we hide the blobs in the traverse below.
-const MODEL_URL = '/models/Andryu_Yacht_v8.glb';
+const MODEL_URL = YACHT_MODEL_URL;
 useGLTF.preload(MODEL_URL);
 
 interface MarkerProps {
@@ -142,10 +88,6 @@ interface BoatProps {
 }
 
 function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
-  // Outer group handles YAW (rotation around world-Y, i.e. vertical axis).
-  // Inner group converts GLB axis convention (Z-up) to Three.js (Y-up).
-  // Spinning the OUTER group rotates the boat the way a real boat yaws,
-  // not end-over-end like before.
   const yawRef = useRef<Group>(null);
   useFrame((_, delta) => {
     if (spinning && yawRef.current) {
@@ -156,71 +98,16 @@ function Boat({ spinning, parts, activeId, onSelect, pickName }: BoatProps) {
   const { scene: source } = useGLTF(MODEL_URL);
   const scene = useMemo(() => source.clone(true), [source]);
 
-  // v8 cleanup pass. The supplier's GLB ships the YACHTING wordmark
-  // baked into the mainsail UVs (mesh `MAT_MainSail_BakedLogo_UV`
-  // with material `MAT_MainSail_BakedLogo_UV_Embedded` carrying the
-  // 2K PNG) plus two legacy flat-coloured "logo" blob meshes
-  // (`MAT_Logo_Red_Decal`, `MAT_Logo_Black_Decal`) the supplier kept
-  // for fallback compatibility.
-  //
-  // Per user's review of the v8 deploy on prod: the baked logo reads
-  // poorly at this camera distance (low-res-looking, fights with the
-  // sail texture, ends up looking like a smudge from any orbit).
-  // Decision: drop the wordmark entirely on /anatomy and just show
-  // a clean white mainsail. The brand lives on the page footer +
-  // metadata now (`SiteFooter.tsx`, `<title>`, OG tags), it doesn't
-  // need to be on the 3D model too.
-  //
-  // Implementation:
-  //   1. Hide the two flat-colour blob decals (they're redundant
-  //      regardless).
-  //   2. REPLACE the material on `MAT_MainSail_BakedLogo_UV` with a
-  //      plain white sail-cloth material that matches
-  //      `MAT_SailCloth_Plain_UV`'s look. Geometry stays - the
-  //      mainsail is still the same shape - but the wordmark texture
-  //      is gone.
-  useEffect(() => {
-    const owned: MeshStandardMaterial[] = [];
-    scene.traverse((obj) => {
-      const n = obj.name;
-      if (n === 'MAT_Logo_Red_Decal' || n === 'MAT_Logo_Black_Decal') {
-        obj.visible = false;
-        return;
-      }
-      const mesh = obj as Mesh & { isMesh?: boolean };
-      if (mesh.isMesh && n === 'MAT_MainSail_BakedLogo_UV') {
-        const material = new MeshStandardMaterial({
-          color: 0xffffff,
-          roughness: 0.9,
-          metalness: 0.0,
-          side: DoubleSide,
-        });
-        mesh.material = material;
-        owned.push(material);
-      }
-    });
-    return () => owned.forEach((material) => material.dispose());
-  }, [scene]);
-
-
-
   return (
     <group ref={yawRef} name="anatomy-yacht">
-      {/*
-        Inner group: -90deg around world X brings the GLB's local +Z (up)
-        into world +Y (Three.js up). Hotspot positions are in the GLB's
-        local coord space (X=stern->bow, Y=port/stbd, Z=up), so we put
-        them as children of THIS inner group and they ride along with the
-        rotation correctly.
-      */}
-      <group rotation={[-Math.PI / 2, 0, 0]}>
+      <group>
         <primitive object={scene} />
         {parts.map((p) => {
           if (!p.three) return null;
           return (
             <Hotspot
               key={p.id}
-              position={[p.three.x, p.three.y, p.three.z]}
+              position={[p.three.x, p.three.z, -p.three.y]}
               label={pickName(p)}
               active={p.id === activeId}
               onSelect={() => onSelect(p.id)}
@@ -242,7 +129,8 @@ function CameraDriver({ view, activePart, revision }: { view: ViewPreset; active
     const boat = scene.getObjectByName("anatomy-yacht");
     if (!boat) return;
     boat.updateWorldMatrix(true, true);
-    const bounds = new Box3().setFromObject(boat);
+    // Use the visible pose, not the conservative union of every shape key.
+    const bounds = new Box3().setFromObject(boat, true);
     const focusChanged = previousPart.current !== activePart?.id;
     previousPart.current = activePart?.id;
     if (focusChanged && activePart?.three) {
@@ -272,7 +160,7 @@ export interface YachtViewer3DProps {
   /** Optional secondary name (e.g. English latin form) shown under the
    *  primary name in the fullscreen info bar. Returns falsy to skip. */
   pickAltName?: (p: AnatomyPart) => string | undefined;
-  /** Auto-rotate while idle. Default true; pauses on hover via OrbitControls. */
+  /** Auto-rotate while idle. Default false; selected parts remain stationary. */
   autoRotate?: boolean;
   /** Localized labels for the view-preset toolbar. */
   viewLabels?: {
@@ -296,7 +184,7 @@ export default function YachtViewer3D({
   onSelect,
   pickName,
   pickAltName,
-  autoRotate = true,
+  autoRotate = false,
   viewLabels,
 }: YachtViewer3DProps) {
   const [view, setView] = useState<ViewPreset>('three-quarter');
@@ -395,12 +283,8 @@ export default function YachtViewer3D({
             onSelect={onSelect}
             pickName={pickName}
           />
-          <Environment resolution={128} frames={1}>
-            <Lightformer position={[8, 15, 10]} scale={[12, 18, 1]} intensity={2} color="#e3eff5" target={[0, 4, 0]} />
-            <Lightformer position={[-10, 8, -8]} scale={[10, 20, 1]} intensity={1} color="#8bb8cf" target={[0, 4, 0]} />
-          </Environment>
           <CameraDriver view={view} activePart={activePart} revision={revision} />
-          <ContactShadows frames={1} position={[0, -2.2, 0]} opacity={0.3} scale={30} blur={2} far={20} />
+
         </Suspense>
         <OrbitControls
           makeDefault

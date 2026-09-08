@@ -259,7 +259,10 @@ function tick(state, controls, params2, dt) {
     fSideMainN: mainSideEff,
     fSideJibN: jibSideEff,
     mainCop: effectiveCop(params2.mainCOP, controls.reef),
-    jibCop: effectiveCop(params2.jibCOP, controls.jibFurl),
+    // Roller furling narrows the jib along its full-height forestay. It does
+    // not lower its head like a slab reef. Keep the reference pressure height
+    // for this sectional model; area reduction already reduces the moment.
+    jibCop: params2.jibCOP,
     boatSpeedKn: state.boatSpeed,
     params: params2
   });

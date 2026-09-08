@@ -14,8 +14,8 @@ export interface SailConfig {
   area: number;
   /** Sail angle off centerline, degrees, absolute value. */
   angleOff: number;
-  /** Side the sail is set on. +1 = port (normal for starboard tack),
-   *  -1 = starboard (normal for port tack). On wing-on-wing, jib is opposite. */
+  /** Side the sail is set on in the boat frame: -1 = port, +1 = starboard.
+   * On wing-on-wing, the jib is opposite the main. */
   side: 1 | -1;
   /** Twist in [0, 1]. */
   twist: number;
@@ -179,9 +179,10 @@ export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, c
 
 /** Compute slot-effect multiplier on the main Cl from the jib state.
  *
- *  Real effect: a well-set jib accelerates flow over the main's leeward side,
- *  delays its stall, and boosts its lift a little. A backed, furled, or
- *  stalled jib does none of this. Keep it soft and bounded.
+ *  Bounded gameplay approximation of coupled sail circulation. The real
+ *  interaction changes pressure and separation on BOTH sails; it is not a
+ *  Venturi acceleration through a narrow gap. This multiplier is not CFD
+ *  or a calibrated rig polar. A backed, furled or stalled jib gets no boost.
  *
  *  Returns a multiplier in [0.9, 1.15]:
  *  - 1.15 when jib is at healthy AoA (5-20 deg) and set on same side as main

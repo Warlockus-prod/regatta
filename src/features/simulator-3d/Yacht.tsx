@@ -169,7 +169,7 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     if (main) { main.geometry = mainGeometry; main.add(mainSeams); }
     if (jib) { jib.geometry = jibGeometry; jib.add(jibSeams); }
     // Exported rigid decorations do not follow the cloth and float off it.
-    const decorations = ["Battens", "SailNumber", "Main_Telltales", "Jib_Telltales", "Running_Rigging"].map((name) => model.getObjectByName(name));
+    const decorations = ["Battens", "SailNumber", "Main_Telltales", "Jib_Telltales", "Running_Rigging", "Anatomy_Sheets", "Anatomy_Fender_-1", "Anatomy_Fender_1", "Anatomy_Fender_Line_-1", "Anatomy_Fender_Line_1"].map((name) => model.getObjectByName(name));
     decorations.forEach((object) => { if (object) object.visible = false; });
     const mainMaterial = main?.material;
     const jibMaterial = jib?.material;

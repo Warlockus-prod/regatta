@@ -1,0 +1,29 @@
+{
+  "blender": "5.1.1",
+  "mesh_count": 45,
+  "triangles": 23292,
+  "rigging_bounds_zup": {
+    "min": [
+      -6.113582134246826,
+      -1.8139777183532715,
+      1.495266318321228
+    ],
+    "max": [
+      6.313175678253174,
+      1.8139777183532715,
+      19.704782485961914
+    ]
+  },
+  "sail_areas": {
+    "main": 45,
+    "jib": 30
+  },
+  "shape_keys": [
+    "Basis",
+    "Flat",
+    "Full",
+    "TwistOpen",
+    "Luffing",
+    "Reduced"
+  ]
+}

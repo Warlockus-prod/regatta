@@ -8,18 +8,7 @@ import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 import AnatomyPosters from '@/components/AnatomyPosters';
 
-// ============================================================================
-// Yacht anatomy - interactive 3D Bavaria 46 with clickable hotspots.
-//
-// History: previously had a 2D side-profile SVG with a 2D/3D toggle. The
-// 3D viewer (Andryu Yacht v3 GLB, 17 hotspots, 5 projections) covered every
-// teaching need on its own and the 2D fallback added clutter, so the SVG
-// view + toggle were removed in 2026-04-26.
-//
-// Three.js + r3f is heavy (~120 KB gzipped). Code-split it with ssr:false
-// so the heavy bundle loads only after the initial paint, not as part of
-// the route's critical path.
-// ============================================================================
+// Shared Blender yacht with accessible part selection and five camera views.
 
 const YachtViewer3D = dynamic(() => import('@/components/YachtViewer3D'), {
   ssr: false,
@@ -62,9 +51,9 @@ export default function AnatomyPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr,360px] gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_360px] gap-4 sm:gap-6">
         {/* 3D viewer with all 17 hotspots + 5 camera projections. */}
-        <div className="card p-3 sm:p-4">
+        <div className="card p-3 sm:p-4 self-start lg:sticky lg:top-20">
           <YachtViewer3D
             parts={anatomyParts}
             activeId={activeId}
@@ -101,7 +90,7 @@ export default function AnatomyPage() {
             )}
           />
           <div className="mt-3 text-xs text-[var(--text-muted)] text-center">
-            LOA 14.00 m · Beam 4.31 m · Draft 2.18 m · Mast ~20.75 m
+            LOA 13.86 m · Beam 4.21 m · Draft 2.18 m · Mast ~19.9 m
           </div>
         </div>
 
@@ -160,7 +149,8 @@ export default function AnatomyPage() {
                 <button
                   key={p.id}
                   onClick={() => setActiveId(p.id)}
-                  className="text-left text-xs px-2 py-1.5 rounded transition"
+                  aria-pressed={activeId === p.id}
+                  className="text-left text-sm min-h-11 px-2 py-2 rounded transition"
                   style={{
                     background: activeId === p.id ? 'rgba(0, 212, 255, 0.15)' : 'transparent',
                     color: activeId === p.id ? 'var(--accent-cyan)' : 'var(--text-secondary)',
@@ -176,14 +166,14 @@ export default function AnatomyPage() {
 
       <p className="text-xs text-[var(--text-muted)] mt-6 text-center">
         {tp(
-          'Стилизованная модель круизной яхты. Low-poly заготовка под симулятор.',
-          'Stylized cruising yacht model. Low-poly placeholder for the simulator pipeline.',
-          'Stylizowany model jachtu turystycznego. Low-poly model do symulatora.',
+          'Учебная круизная яхта, общая с симулятором. Это не точная копия серийной модели.',
+          'The training cruiser shared with the simulator. It is not an exact production-yacht replica.',
+          'Jacht szkoleniowy wspólny z symulatorem. Nie jest dokładną kopią jachtu seryjnego.',
           {
-            es: 'Modelo estilizado de yate de crucero. Modelo low-poly para el pipeline del simulador.',
-            fr: 'Modele stylise de voilier de croisiere. Modele low-poly pour le pipeline du simulateur.',
-            de: 'Stilisiertes Modell einer Fahrtenyacht. Low-Poly-Modell fuer die Simulator-Pipeline.',
-            it: 'Modello stilizzato di yacht da crociera. Modello low-poly per la pipeline del simulatore.',
+            es: 'Crucero didáctico compartido con el simulador. No es una réplica exacta de un yate de serie.',
+            fr: 'Voilier pédagogique commun au simulateur, sans être la réplique exacte d’un modèle de série.',
+            de: 'Schulungsyacht aus dem Simulator, keine exakte Kopie einer Serienyacht.',
+            it: 'Barca didattica condivisa con il simulatore, non una replica esatta di un modello di serie.',
           },
         )}
       </p>

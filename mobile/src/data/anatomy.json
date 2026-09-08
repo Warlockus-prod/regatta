@@ -18,17 +18,17 @@
         "y": 50
       },
       "three": {
-        "x": 6.8,
+        "x": 6.65,
         "y": 0,
-        "z": 0.8
+        "z": 1.4
       },
-      "descRu": "Передняя часть яхты. На Bavaria 46 - наклонный форштевень, якорный рольганг.",
-      "descEn": "Forward-most part. Bavaria 46 has a raked stem and an anchor roller.",
-      "descPl": "Przednia czesc jachtu. Bavaria 46 ma nachylony dziobnik i rolke kotwiczna.",
-      "descEs": "Proa de la vela. En Bavaria 46 - roda inclinada, rodillo de ancla.",
-      "descFr": "Avant de la voile. Sur la Bavaria 46 - étrave inclinée, rail d'ancre.",
-      "descDe": "Bug der Yacht. Bei der Bavaria 46 - geneigter Vorsteven, Ankerwellenschiene.",
-      "descIt": "La prua della barca. Sulla Bavaria 46 - un dritto inclinato e un rullo di ancora.",
+      "descRu": "Передняя часть корпуса яхты.",
+      "descEn": "The forward end of the yacht hull.",
+      "descPl": "Przednia część kadłuba jachtu.",
+      "descEs": "Parte delantera del casco.",
+      "descFr": "Partie avant de la coque.",
+      "descDe": "Der vordere Teil des Rumpfes.",
+      "descIt": "La parte anteriore dello scafo.",
       "useOnBoardRu": "Направление «вперёд». Ходишь по палубе - одна рука всегда на леере.",
       "useOnBoardEn": "Forward direction. When walking the deck - one hand always on lifeline.",
       "useOnBoardPl": "Kierunek \"do przodu\". Chodzac po pokladzie - jedna reka zawsze na relingu.",
@@ -55,17 +55,17 @@
         "y": 450
       },
       "three": {
-        "x": -6.5,
+        "x": -6.6,
         "y": 0,
-        "z": 0.4
+        "z": 1.25
       },
-      "descRu": "Задняя часть. У Bavaria 46 - широкая транцевая платформа, часто с trap (ступенькой для купания).",
-      "descEn": "Aft end. Bavaria 46 has a wide transom with bathing platform (swim steps).",
-      "descPl": "Tylna czesc. Bavaria 46 ma szeroka platforme rufowa, czesto ze schodkami do kapieli.",
-      "descEs": "Parte trasera. El Bavaria 46 tiene una amplia plataforma de espejo, a menudo con una plataforma de baño.",
-      "descFr": "Arrière. Le Bavaria 46 possède une large plateforme de transom, souvent équipée d'un trap (marchepied de baignade).",
-      "descDe": "Heck. Die Bavaria 46 hat eine breite Transom-Plattform, oft mit Badeleiter (Badeplattform).",
-      "descIt": "La parte posteriore. Il Bavaria 46 ha una piattaforma di poppa ampia, spesso con trap (gradino per il bagno).",
+      "descRu": "Задняя часть корпуса яхты, за кокпитом.",
+      "descEn": "The aft end of the yacht hull, behind the cockpit.",
+      "descPl": "Tylna część kadłuba, za kokpitem.",
+      "descEs": "Parte trasera del casco, detrás de la bañera.",
+      "descFr": "Partie arrière de la coque, derrière le cockpit.",
+      "descDe": "Der hintere Teil des Rumpfes, hinter dem Cockpit.",
+      "descIt": "La parte posteriore dello scafo, dietro il pozzetto.",
       "useOnBoardRu": "Место посадки на борт. Отсюда же ставишь якорь в корму на стоянке.",
       "useOnBoardEn": "Where you board. Also where the stern anchor drops in Med-style mooring.",
       "useOnBoardPl": "Miejsce wejscia na poklad. Stad rzucasz kotwice rufowa przy cumowaniu typu Med.",
@@ -92,24 +92,24 @@
         "y": 220
       },
       "three": {
-        "x": 0.5,
+        "x": 0.3,
         "y": 0,
         "z": 11
       },
-      "descRu": "Вертикальная опора парусов. На Bavaria 46 - алюминиевая фрак-риг около 21 м от ватерлинии.",
-      "descEn": "Vertical spar holding the sails. Bavaria 46 has a ~21 m aluminum fractional rig measured from the waterline.",
-      "descPl": "Pionowe podparcie zagli. Bavaria 46 ma aluminiowy takielunek typu fractional ~21 m od linii wody.",
-      "descEs": "Mastil. En el Bavaria 46 es una estructura de aluminio tipo fraccionado de aproximadamente 21 m desde la linea de flotacion.",
-      "descFr": "Vertical support for the sails. On Bavaria 46 a ~21 m aluminum fractional rig measured from the waterline.",
-      "descDe": "Vertikale Stutzstruktur der Segel. Auf der Bavaria 46 ein Aluminium-Fraktionsmast von etwa 21 m ab der Wasserlinie.",
-      "descIt": "Albero. Sul Bavaria 46 una attrezzatura frazionata in alluminio di circa 21 m dalla linea di galleggiamento.",
-      "useOnBoardRu": "Не прислоняйся под нагрузкой, не хватайся за ванты чтобы не сбить настройку.",
-      "useOnBoardEn": "Don't lean on it under load, don't pull on shrouds - messes with tuning.",
-      "useOnBoardPl": "Nie opieraj sie pod obciazeniem, nie lap za wanty - psuja strojenie.",
-      "useOnBoardEs": "No te inclines bajo carga, no agarres los obenques para no desajustar la vela.",
-      "useOnBoardFr": "Ne te penche pas sous charge, ne t'accroche pas aux haubans pour ne pas déranger le réglage.",
-      "useOnBoardDe": "Lehn dich unter Last nicht an, fass nicht in die Wanten um die Trimmung nicht zu verderben.",
-      "useOnBoardIt": "Non appoggiarti con il peso, non afferrare gli stralli per non rovinare la regolazione delle vele."
+      "descRu": "Вертикальная опора парусов. На учебной модели вершина находится примерно в 20 м над ватерлинией.",
+      "descEn": "The upright spar supporting the sails. The training model has a masthead about 20 m above the waterline.",
+      "descPl": "Pionowe podparcie żagli. Top masztu modelu znajduje się około 20 m nad linią wody.",
+      "descEs": "Palo vertical que sostiene las velas. En este modelo alcanza unos 20 m sobre la flotación.",
+      "descFr": "Support vertical des voiles. Le mât du modèle atteint environ 20 m au-dessus de la flottaison.",
+      "descDe": "Senkrechter Träger der Segel. Der Masttop liegt beim Modell etwa 20 m über der Wasserlinie.",
+      "descIt": "Sostegno verticale delle vele. Nel modello la testa è circa 20 m sopra il galleggiamento.",
+      "useOnBoardRu": "При перемещении по палубе используй надёжные поручни и следуй указаниям шкипера.",
+      "useOnBoardEn": "Use secure handholds when moving on deck and follow the skipper’s instructions.",
+      "useOnBoardPl": "Poruszając się po pokładzie, korzystaj z pewnych uchwytów i poleceń skippera.",
+      "useOnBoardEs": "Usa asideros firmes al moverte por cubierta y sigue al patrón.",
+      "useOnBoardFr": "Utilise des prises solides sur le pont et suis les consignes du skipper.",
+      "useOnBoardDe": "Nutze sichere Haltegriffe an Deck und befolge die Anweisungen des Skippers.",
+      "useOnBoardIt": "Usa appigli sicuri in coperta e segui le istruzioni dello skipper."
     },
     {
       "id": "boom",
@@ -125,9 +125,9 @@
         "y": 210
       },
       "three": {
-        "x": -1.5,
+        "x": -2.5,
         "y": 0,
-        "z": 2
+        "z": 2.72
       },
       "descRu": "Горизонтальная балка у основания грота. При поворотах фордевинд пересекает лодку.",
       "descEn": "Horizontal spar at the foot of the mainsail. Crosses the boat during jibes.",
@@ -158,9 +158,9 @@
         "y": 140
       },
       "three": {
-        "x": -0.5,
-        "y": 0,
-        "z": 8
+        "x": -1,
+        "y": -0.3,
+        "z": 9
       },
       "descRu": "Главный парус, крепится к мачте и гику.",
       "descEn": "Main sail, attached to mast and boom.",
@@ -191,17 +191,17 @@
         "y": 190
       },
       "three": {
-        "x": 3.5,
-        "y": 0,
+        "x": 3.3,
+        "y": -0.25,
         "z": 7
       },
-      "descRu": "Передний парус. На Bavaria 46 обычно 105% от J (размер треугольника передка).",
-      "descEn": "Forward sail. On Bavaria 46 usually 105% of the J triangle.",
-      "descPl": "Przedni zagiel. Na Bavaria 46 zwykle 105% trojkata J.",
-      "descEs": "Foque. En un Bavaria 46 normalmente 105% de J (tamaño del triángulo delantero).",
-      "descFr": "Foc. Sur un Bavaria 46, généralement 105% du J (la taille du triangle avant).",
-      "descDe": "Vordersegel. Auf der Bavaria 46 normalerweise 105% des J (Grosse des Vordreieck).",
-      "descIt": "Vela di prua. Su un Bavaria 46 normalmente il 105% di J (la dimensione del triangolo di prua).",
+      "descRu": "Передний парус, закреплённый вдоль штага. Площадь полного стакселя в этой модели 30 м².",
+      "descEn": "The headsail attached along the forestay. Full jib area in this model is 30 m².",
+      "descPl": "Przedni żagiel mocowany wzdłuż sztagu. Powierzchnia pełnego foka w modelu wynosi 30 m².",
+      "descEs": "Vela de proa unida al estay. El foque completo de este modelo tiene 30 m².",
+      "descFr": "Voile avant fixée le long de l’étai. Le foc complet du modèle fait 30 m².",
+      "descDe": "Vorsegel entlang des Vorstags. Die volle Fockfläche im Modell beträgt 30 m².",
+      "descIt": "Vela di prua lungo lo strallo. Il fiocco completo del modello misura 30 m².",
       "useOnBoardRu": "Управляется стаксель-шкотами (jib sheets), их два - работают по очереди через лебёдки.",
       "useOnBoardEn": "Controlled by jib sheets - two of them, alternating via winches.",
       "useOnBoardPl": "Kontrolowany przez szoty foka - dwa z nich, naprzemiennie przez kabestany.",
@@ -224,17 +224,17 @@
         "y": 200
       },
       "three": {
-        "x": 0.5,
-        "y": 1.5,
-        "z": 6
+        "x": 0.3,
+        "y": 1.45,
+        "z": 10
       },
-      "descRu": "Боковые тросы, удерживающие мачту. У Bavaria 46 - обычно двойные + lower shrouds.",
-      "descEn": "Side wires holding the mast. Bavaria 46 usually has caps + lower shrouds.",
-      "descPl": "Boczne liny utrzymujace maszt. Bavaria 46 ma zwykle wanty gorne + wanty dolne.",
-      "descEs": "Obenques laterales que sostienen el mastil. En Bavaria 46 - normalmente dobles + lower shrouds.",
-      "descFr": "Les haubans latéraux qui maintiennent le mât. Sur Bavaria 46 - généralement doubles + lower shrouds.",
-      "descDe": "Seitliche Wanten, die den Mast halten. Bei der Bavaria 46 - normalerweise doppelt + untere Wanten.",
-      "descIt": "Cavi laterali che sostengono l'albero. Su Bavaria 46 - solitamente doppi + lower shrouds.",
+      "descRu": "Боковые тросы, поддерживающие мачту. Краспицы разводят верхние ванты в стороны.",
+      "descEn": "Side wires supporting the mast. Spreaders hold the upper shrouds away from it.",
+      "descPl": "Boczne liny podtrzymujące maszt. Saligi odsuwają górne wanty od masztu.",
+      "descEs": "Cables laterales que sostienen el mástil, separados por las crucetas.",
+      "descFr": "Câbles latéraux soutenant le mât, écartés par les barres de flèche.",
+      "descDe": "Seitliche Drähte stützen den Mast; Salinge spreizen die Oberwanten.",
+      "descIt": "Cavi laterali che sostengono l’albero, distanziati dalle crocette.",
       "useOnBoardRu": "Не хватайся - они ТОЛЬКО держат мачту. Для страховки есть леера.",
       "useOnBoardEn": "Don't grab them - they only hold the mast. Use lifelines for safety.",
       "useOnBoardPl": "Nie lap ich - one TYLKO utrzymuja maszt. Do asekuracji uzywaj relingow.",
@@ -257,7 +257,7 @@
         "y": 160
       },
       "three": {
-        "x": 5.5,
+        "x": 4.86,
         "y": 0,
         "z": 5.5
       },
@@ -290,9 +290,9 @@
         "y": 280
       },
       "three": {
-        "x": -2.8,
-        "y": 0,
-        "z": 1.6
+        "x": -3.9,
+        "y": -0.12,
+        "z": 2
       },
       "descRu": "Снасть управления грота. Обычно тали из нескольких блоков.",
       "descEn": "Line controlling the mainsail. Usually a multi-part block and tackle.",
@@ -323,9 +323,9 @@
         "y": 295
       },
       "three": {
-        "x": -1,
-        "y": 1,
-        "z": 1.4
+        "x": -0.65,
+        "y": 0.6,
+        "z": 1.93
       },
       "descRu": "Шкот стакселя, проходит через лебёдку.",
       "descEn": "Jib sheet, runs through a winch.",
@@ -356,17 +356,17 @@
         "y": 285
       },
       "three": {
-        "x": -1.5,
-        "y": 1.5,
-        "z": 1.2
+        "x": -3.4,
+        "y": 1.15,
+        "z": 1.34
       },
-      "descRu": "Круглый барабан для нагруженных шкотов. У Bavaria 46 обычно 4 winch в кокпите.",
-      "descEn": "Drum for loaded sheets. Bavaria 46 typically has 4 cockpit winches.",
-      "descPl": "Beben do obciazonych szotow. Bavaria 46 ma zwykle 4 kabestany w kokpicie.",
-      "descEs": "Winche de tambor para escotas cargadas. El Bavaria 46 normalmente tiene 4 winches en la bañera.",
-      "descFr": "Tambour circulaire pour ecoutes chargees. Le Bavaria 46 a generalement 4 winch dans le cockpit.",
-      "descDe": "Rundtrommel für belastete Schoten. Die Bavaria 46 hat normalerweise 4 Winsche in der Plicht.",
-      "descIt": "Verricello a tamburo circolare per scotte cariche. Sulla Bavaria 46 di solito ci sono 4 winch in pozzetto.",
+      "descRu": "Барабан с механизмом, помогающий выбирать нагруженный шкот.",
+      "descEn": "A geared drum used to trim a loaded sheet.",
+      "descPl": "Bęben z przekładnią ułatwiający wybieranie obciążonego szotu.",
+      "descEs": "Tambor con engranajes para cazar una escota cargada.",
+      "descFr": "Tambour démultiplié pour border une écoute sous charge.",
+      "descDe": "Eine Trommel mit Getriebe zum Dichtholen einer belasteten Schot.",
+      "descIt": "Tamburo con ingranaggi per cazzare una scotta sotto carico.",
       "useOnBoardRu": "3-4 оборота по часовой. Рукоятка (handle) вставляется сверху. Пальцы держи подальше от шкота.",
       "useOnBoardEn": "3-4 clockwise wraps. Handle goes on top. Keep fingers away from the loaded sheet.",
       "useOnBoardPl": "3-4 zwoje zgodnie ze wskazowkami zegara. Korba wchodzi od gory. Palce trzymaj z dala od obciazonego szotu.",
@@ -389,9 +389,9 @@
         "y": 290
       },
       "three": {
-        "x": 5.5,
+        "x": 5.4,
         "y": 1,
-        "z": 1
+        "z": 1.6
       },
       "descRu": "Деталь для крепления концов.",
       "descEn": "Fitting for securing lines.",
@@ -489,8 +489,8 @@
       },
       "three": {
         "x": -2.5,
-        "y": 2,
-        "z": 0.2
+        "y": 2.04,
+        "z": 0.9
       },
       "descRu": "Мягкий буфер между бортом и причалом/другим судном.",
       "descEn": "Soft buffer between hull and dock or other vessel.",
@@ -521,24 +521,24 @@
         "y": 260
       },
       "three": {
-        "x": -3.6,
+        "x": -4.3,
         "y": 0,
-        "z": 1.5
+        "z": 2.3
       },
-      "descRu": "Рулевое колесо. У Bavaria 46 обычно ДВА штурвала - правый и левый в кокпите.",
-      "descEn": "Steering wheel. Bavaria 46 usually has TWO wheels - port and starboard in cockpit.",
-      "descPl": "Kolo sterowe. Bavaria 46 ma zwykle DWA kola - lewe i prawe w kokpicie.",
-      "descEs": "El timón. El Bavaria 46 suele tener DOS ruedas de timón - derecha e izquierda en la bañera.",
-      "descFr": "Volant. Le Bavaria 46 a généralement DEUX roues - une à droite et une à gauche dans le cockpit.",
-      "descDe": "Steuerrad. Bei der Bavaria 46 sind normalerweise ZWEI Ruderanlage - rechts und links in der Plicht.",
-      "descIt": "Ruota del timone. La Bavaria 46 di solito ha DUE ruote - destra e sinistra in pozzetto.",
-      "useOnBoardRu": "Шкипер использует подветренный штурвал (видит паруса и воду лучше). Никогда не стой между штурвалом и гикой.",
-      "useOnBoardEn": "Skipper uses the leeward wheel (better view of sails and water). Never stand between wheel and boom.",
-      "useOnBoardPl": "Szyper uzywa kola zawietrznego (lepszy widok zagli i wody). Nigdy nie stoj miedzy kolem a bomem.",
-      "useOnBoardEs": "El patrón usa la caña de sotavento (ve mejor las velas y el agua). Nunca te pares entre la caña y el botón.",
-      "useOnBoardFr": "Le skipper utilise le gouvernail sous le vent (voit mieux les voiles et l'eau). Ne reste jamais entre le gouvernail et la bome.",
-      "useOnBoardDe": "Der Skipper benutzt das Lee-Ruder (sieht die Segel und das Wasser besser). Stehe niemals zwischen dem Ruder und dem Baum.",
-      "useOnBoardIt": "Lo skipper usa il timone sottovento (vede le vele e l'acqua meglio). Non stare mai tra il timone e la boma."
+      "descRu": "Штурвал передаёт движение рулевому перу. На этой учебной яхте один штурвал.",
+      "descEn": "The wheel operates the rudder. This training yacht has one wheel.",
+      "descPl": "Koło sterowe porusza płetwą sterową. Model ma jedno koło.",
+      "descEs": "La rueda acciona la pala del timón. Este modelo tiene una rueda.",
+      "descFr": "La barre à roue commande le safran. Ce modèle possède une seule roue.",
+      "descDe": "Das Steuerrad bewegt das Ruderblatt. Dieses Modell hat ein Steuerrad.",
+      "descIt": "La ruota aziona la pala del timone. Questo modello ha una sola ruota.",
+      "useOnBoardRu": "Держи обзор по курсу и вокруг яхты. Передавай управление явно и держись вне траектории гика.",
+      "useOnBoardEn": "Keep a lookout ahead and around the yacht. Hand over the helm explicitly and stay clear of the boom’s path.",
+      "useOnBoardPl": "Obserwuj kurs i otoczenie. Wyraźnie przekazuj ster i unikaj drogi bomu.",
+      "useOnBoardEs": "Vigila el rumbo y el entorno. Entrega el mando claramente y evita el recorrido de la botavara.",
+      "useOnBoardFr": "Surveille le cap et les alentours. Transmets clairement la barre et évite la trajectoire de la bôme.",
+      "useOnBoardDe": "Behalte Kurs und Umgebung im Blick. Übergib das Steuer eindeutig und meide den Schwenkbereich des Baums.",
+      "useOnBoardIt": "Controlla rotta e dintorni. Passa il timone in modo esplicito ed evita il percorso del boma."
     },
     {
       "id": "cockpit",
@@ -556,15 +556,15 @@
       "three": {
         "x": -3.2,
         "y": 0,
-        "z": 0.7
+        "z": 1
       },
-      "descRu": "Рабочая и жилая зона на корме. У Bavaria 46 - просторный, с обеденным столом на качке опускаемым.",
-      "descEn": "Working and living area aft. Bavaria 46 has a large cockpit with a drop-down dining table.",
-      "descPl": "Strefa robocza i bytowa na rufie. Bavaria 46 ma duzy kokpit ze skladanym stolem.",
-      "descEs": "Zona de trabajo y alojamiento en popa. En la Bavaria 46 - espaciosa, con mesa de comedor bajable en navegación.",
-      "descFr": "Zone de travail et d'habitation a l'arriere. Sur Bavaria 46 - spacieuse, avec table a manger amovible sur pivot.",
-      "descDe": "Arbeits- und Wohnbereich am Heck. Bei der Bavaria 46 - geräumig, mit Esstisch auf Rollenlagern zum Versenken.",
-      "descIt": "La zona di lavoro e abitazione a poppa. Su una Bavaria 46 è spaziosa, con tavolo da pranzo cardanico abbassabile.",
+      "descRu": "Углублённая рабочая зона в кормовой части: здесь находятся штурвал, лебёдки и места экипажа.",
+      "descEn": "The recessed working area aft, with the wheel, winches and crew seating.",
+      "descPl": "Zagłębiona strefa robocza na rufie z kołem, kabestanami i siedzeniami.",
+      "descEs": "Zona de trabajo hundida a popa, con rueda, winches y asientos.",
+      "descFr": "Espace de travail en creux à l’arrière avec roue, winchs et sièges.",
+      "descDe": "Vertiefter Arbeitsbereich achtern mit Steuerrad, Winschen und Sitzplätzen.",
+      "descIt": "Zona di lavoro ribassata a poppa con ruota, winch e sedute.",
       "useOnBoardRu": "Здесь вся работа со шкотами. Держись за обвес или стол если стоишь под парусами.",
       "useOnBoardEn": "All sheet work happens here. Hold onto the binnacle or table when standing under sail.",
       "useOnBoardPl": "Tu odbywa sie cala praca z szotami. Trzymaj sie stolu lub obudowy binnakla stojac pod zaglem.",

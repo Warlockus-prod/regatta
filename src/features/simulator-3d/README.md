@@ -42,7 +42,7 @@ export default function Page() {
 ```
 
 Host the model so it is reachable at the URL in `config.ts`
-(`/models/regatta_sloop.glb` by default - change `YACHT_MODEL_URL` to your path).
+(`/models/regatta_sloop_sailing.glb` by default - change `YACHT_MODEL_URL` to your path).
 
 ## Modes
 

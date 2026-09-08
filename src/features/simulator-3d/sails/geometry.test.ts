@@ -1,9 +1,20 @@
 import { describe, it, expect } from "vitest";
 import * as THREE from "three";
-import { FORESTAY_AXIS, sailPoint, type SailShape } from "./geometry";
+import { draftProfile, FORESTAY_AXIS, sailPoint, type SailShape } from "./geometry";
 
 const shape: SailShape = { camber: 0.7, twist: 0.9, luff: 1, reef: 0, side: 1, time: 1.7 };
 describe("sail attachment geometry", () => {
+  it("places the maximum draft forward and preserves both chord ends", () => {
+    for (const [kind, peak] of [["main", .45], ["jib", .38]] as const) {
+      expect(draftProfile(0, kind)).toBe(0);
+      expect(draftProfile(1, kind)).toBe(0);
+      expect(draftProfile(peak, kind)).toBe(1);
+      for (let i = 0; i <= 100; i++) {
+        expect(draftProfile(i / 100, kind)).toBeGreaterThanOrEqual(0);
+        expect(draftProfile(i / 100, kind)).toBeLessThanOrEqual(1);
+      }
+    }
+  });
   it("keeps every jib luff point on the forestay through sheet rotation and flutter", () => {
     for (const angle of [-70, -30, 0, 30, 70]) for (const v of [0, 0.2, 0.5, 0.8, 1]) {
       const point = sailPoint("jib", 0, v, shape, new THREE.Vector3());

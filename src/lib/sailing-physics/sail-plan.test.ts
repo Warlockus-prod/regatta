@@ -51,6 +51,16 @@ describe("physical sail contracts", () => {
     expect(run(.5).drive).toBeCloseTo(run(0).drive / 2, 8);
     expect(run(1).drive).toBe(0);
   });
+  it("does not double-count roller furling by also lowering the full-height jib", () => {
+    const state = createInitialState({tws:12,twa:90,boatSpeed:5});
+    const alpha = 1 - Math.exp(-.1 / 2);
+    const momentRatio = (furl: number) => {
+      const next = tick(state, {...controls,mainHoisted:false,jibFurl:furl}, getBoatParams(), .1);
+      return Math.tan(next.state.heel / alpha * Math.PI / 180);
+    };
+    expect(momentRatio(.5) / momentRatio(0)).toBeCloseTo(.5, 8);
+    expect(momentRatio(1)).toBe(0);
+  });
   it("balances signed moments rather than adding opposing force magnitudes", () => {
     const args = {fSideMainN:1000,fSideJibN:-1000,mainCop:5,jibCop:5,boatSpeedKn:5,params:getBoatParams()};
     expect(computeBalance(args).heelEquilibrium).toBe(0);
