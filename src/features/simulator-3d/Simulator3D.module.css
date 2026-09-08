@@ -56,3 +56,10 @@
 }
 
 .windBadge { position: absolute; top: 12px; right: 12px; padding: 8px 12px; border-radius: 8px; background: rgba(5,20,32,.82); color: var(--accent-cyan); font-size: 12px; pointer-events: none; }
+
+.toolbar { overflow-x: auto; }
+.toolbar .button, .sailViews .button { flex-shrink: 0; }
+.sailViews { display: flex; gap: 4px; padding: 4px 10px; border-bottom: 1px solid var(--border-color, #24364a); }
+.sailFeedback { display: grid; gap: 6px; margin: 8px 0 14px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
+.sailFeedback span { display: block; }
+.sailFeedback strong { color: var(--text-primary); }

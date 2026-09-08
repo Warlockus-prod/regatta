@@ -29,7 +29,9 @@ describe("Blender game asset contract", () => {
       const node = named(sail);
       expect(named(rig).children).toContain(gltf.nodes.indexOf(node));
       const mesh = gltf.meshes[node.mesh!];
-      expect(mesh.weights).toEqual([0,0,0,0,0]);
+      expect(mesh.weights).toHaveLength(6);
+      expect(mesh.weights?.every(weight => weight === 0)).toBe(true);
+      expect(mesh.extras?.targetNames).toContain("Unloaded");
       expect(mesh.extras?.targetNames).toContain("Reduced");
       const bounds = gltf.accessors[mesh.primitives[0].attributes.POSITION];
       expect(bounds.max[1]).toBeGreaterThan(16);

@@ -11,7 +11,8 @@ for (const kind of ["main", "jib"]) {
  const geometry = createSailGeometry(28, 48);
  const base = {camber: .5, twist: .35, luff: 0, reef: 0, furl: 0, side: 1, time: 0};
  const states = {Basis: base, Flat: {...base, camber: 0}, Full: {...base, camber: 1},
-  TwistOpen: {...base, twist: 1}, Luffing: {...base, luff: 1, time: 1.7},
+  TwistOpen: {...base, twist: 1}, Luffing: {...base, fill: 0, airSpeed: 12, luff: 1, time: 1.7},
+  Unloaded: {...base, fill: 0, airSpeed: 0},
   Reduced: {...base, reef: kind === "main" ? 1 : 0, furl: kind === "jib" ? .7 : 0}};
  const positions = {};
  for (const [name, shape] of Object.entries(states)) {

@@ -4,6 +4,9 @@ import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
 /** Visual rig state the 3D yacht renders from (drives morphs + rig nodes). */
 export interface YachtState {
   wind?: { from: number; knots: number };
+  apparentWind?: { from: number; knots: number };
+  fill?: number;
+  airSpeed?: number;
   /** Main boom angle off centerline, signed deg (sign picks the lee side). */
   boomAngle: number;
   /** Jib clew angle off centerline, signed deg. */
@@ -27,7 +30,7 @@ export interface YachtState {
   /** World travel in metres, X east and Z south. */
   travel?: { x: number; z: number };
   /** Independent jib shape. Reef always belongs to the mainsail. */
-  jibShape?: { camber: number; twist: number; luff: number; furl: number };
+  jibShape?: { camber: number; twist: number; luff: number; furl: number; fill?: number; airSpeed?: number };
 }
 
 export const NEUTRAL_YACHT: YachtState = {
@@ -44,7 +47,7 @@ export const NEUTRAL_YACHT: YachtState = {
 
 /** UI strings, injectable so the core has no i18n dependency. */
 export interface SceneLabels {
-  whole: string; sails: string; deck: string; resetView: string;
+  whole: string; sails: string; both: string; deck: string; main: string; jib: string; stern: string; flow: string; resetView: string;
   more: string; instruments: string; loading: string; error: string;
   retry: string; heading: string; target: string; apparent: string;
   light: string; quality: string; sailingHint: string;
@@ -76,6 +79,7 @@ export interface SimLabels {
   bestVmg: string;
   reset: string;
   presets: { luff: string; close: string; beam: string; broad: string; run: string };
+  sailStatus: { inIrons: string; calm: string; luffing: string; stalled: string; drawing: string };
   coach: {
     inIrons: string;
     luffEaseIn: string;
@@ -101,7 +105,8 @@ export interface SimLabels {
 export const DEFAULT_LABELS: SimLabels = {
   scene: {
     fullSailPlan: `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
-    whole: "Whole yacht", sails: "Sails", deck: "Deck", resetView: "Reset camera",
+    main: "Main", jib: "Jib", stern: "Astern", flow: "Show apparent wind",
+    whole: "Whole yacht", sails: "Sails", both: "Both", deck: "Deck", resetView: "Reset camera",
     more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
     error: "The 3D scene could not load. Check your connection or try another browser.",
     retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind",
@@ -129,6 +134,7 @@ export const DEFAULT_LABELS: SimLabels = {
   bestVmg: 'Best VMG',
   reset: 'Reset',
   presets: { luff: 'In irons', close: 'Close-hauled', beam: 'Beam reach', broad: 'Broad reach', run: 'Run' },
+  sailStatus: { inIrons: "In irons: bear away", calm: "Little airflow", luffing: "Luffing: sheet in slightly", stalled: "Stalled: ease the sheet", drawing: "Drawing" },
   coach: {
     inIrons: 'In irons - bear away to fill the sails',
     luffEaseIn: 'Luffing - sheet in or bear away',

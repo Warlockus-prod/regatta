@@ -33,6 +33,12 @@ function SimulatorV2Inner() {
   const labels: SimLabels = useMemo(
     () => ({
       scene: {
+        both: tp("Оба", "Both", "Oba", { es: "Ambas", fr: "Les deux", de: "Beide", it: "Entrambe" }),
+        main: tp("Грот", "Main", "Grot", { es: "Mayor", fr: "Grand-voile", de: "Grosssegel", it: "Randa" }),
+        jib: tp("Стаксель", "Jib", "Fok", { es: "Foque", fr: "Foc", de: "Fock", it: "Fiocco" }),
+        stern: tp("С кормы", "Astern", "Od rufy", { es: "Desde popa", fr: "De poupe", de: "Von achtern", it: "Da poppa" }),
+        flow: tp("Показать вымпельный ветер", "Show apparent wind", "Pokaz wiatr pozorny", { es: "Mostrar viento aparente", fr: "Afficher le vent apparent", de: "Scheinbaren Wind zeigen", it: "Mostra vento apparente" }),
+
         fullSailPlan: tp(`Полные паруса: грот ${SAIL_PLAN.main.area} м², стаксель ${SAIL_PLAN.jib.area} м²`,
           `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
           `Pelne zagle: grot ${SAIL_PLAN.main.area} m², fok ${SAIL_PLAN.jib.area} m²`, {
@@ -202,6 +208,13 @@ function SimulatorV2Inner() {
             ),
           },
         ],
+      },
+      sailStatus: {
+        inIrons: tp("Левентик: увались", "In irons: bear away", "W linii wiatru: odpadnij", { es: "A proa: arriba", fr: "Bout au vent : abats", de: "Im Wind: abfallen", it: "Prua al vento: poggia" }),
+        calm: tp("Мало потока", "Little airflow", "Slaby przeplyw", { es: "Poco flujo", fr: "Peu de flux", de: "Wenig Stromung", it: "Poco flusso" }),
+        luffing: tp("Полощет: немного выбери шкот", "Luffing: sheet in slightly", "Lopocze: lekko wybierz szot", { es: "Flamea: caza un poco", fr: "Faseye : borde un peu", de: "Killt: leicht dichtholen", it: "Fileggia: cazza un poco" }),
+        stalled: tp("Срыв потока: потрави шкот", "Stalled: ease the sheet", "Oderwanie: wyluzuj szot", { es: "Perdida: amolla escota", fr: "Decrochage : choque", de: "Abriss: Schot fieren", it: "Stallo: lasca la scotta" }),
+        drawing: tp("Наполнен, тянет", "Filled and drawing", "Wypelniony, ciagnie", { es: "Llena y tira", fr: "Gonflee, propulsive", de: "Gefullt, zieht", it: "Gonfia e tira" }),
       },
       coach: {
         inIrons: tp('В левентике - увались, чтобы наполнить паруса', 'In irons - bear away to fill the sails', 'W leventiku - odpadnij, by napelnic zagle', {

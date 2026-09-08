@@ -11,30 +11,39 @@ import { WindFlow } from "./ocean/WindFlow";
 import { Wake } from './ocean/Wake';
 import type { YachtState } from './types';
 import type { OrbitControls as Controls } from "three-stdlib";
-import { fitCamera, type CameraView } from "./camera";
+import { fitCamera, fitSailCamera, type CameraView } from "./camera";
 import { SceneBoundary, reportScene } from "./SceneBoundary";
 import { YACHT_MODEL_URL } from "./config";
 
-function CameraFit({ view, revision }: { view: CameraView; revision: number }) {
+function CameraFit({ view, revision, stateRef }: { view: CameraView; revision: number; stateRef: MutableRefObject<YachtState> }) {
   const { camera, controls, size } = useThree();
   useEffect(() => {
+    const detail = view === "main" || view === "jib";
     const bounds = view === "deck"
       ? [new THREE.Vector3(-7, -0.2, -2.5), new THREE.Vector3(7, 4.5, 2.5)]
       : [new THREE.Vector3(-7, -0.5, -4), new THREE.Vector3(7, 20.5, 4)];
-    const dir = view === "sails" ? new THREE.Vector3(0.12, 0.08, 1) : new THREE.Vector3(-0.8, view === "deck" ? 0.8 : 0.18, 1);
-    const silhouette = view === "deck" ? undefined : [
+    const side = Math.sign(stateRef.current.boomAngle) || 1;
+    const dir = view === "stern" ? new THREE.Vector3(-1, 0.14, side * 0.12)
+      : view === "sails" ? new THREE.Vector3(0.3, 0.08, side) : new THREE.Vector3(-0.8, view === "deck" ? 0.8 : 0.18, 1);
+    const silhouette = view === "deck" || detail ? undefined : [
       [-7, 0, -2.3], [-7, 0, 2.3], [7, 0, -2.3], [7, 0, 2.3],
       [0.3, 20.5, 0], [-1, 19, -1], [1, 19, 1],
       [-5, 4, -5], [-5, 4, 5], [6.3, 1.5, 0],
     ].map(([x, y, z]) => new THREE.Vector3(x, y, z));
-    const fit = fitCamera(bounds[0], bounds[1], dir, size.width / size.height, 42, 1.12, silhouette);
+    const fit = view === "main" || view === "jib"
+      ? fitSailCamera(view, stateRef.current, size.width / size.height)
+      : fitCamera(bounds[0], bounds[1], dir, size.width / size.height, 42, 1.12, silhouette);
+    // Presets are relative to the yacht, even after steering to another heading.
+    const yaw = (90 - (stateRef.current.heading ?? 90)) * Math.PI / 180;
+    fit.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
+    fit.target.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
     camera.position.copy(fit.position);
     camera.lookAt(fit.target);
     if (controls) {
       (controls as Controls).target.copy(fit.target);
       (controls as Controls).update();
     }
-  }, [camera, controls, size.width, size.height, view, revision]);
+  }, [camera, controls, size.width, size.height, view, revision, stateRef]);
   return null;
 }
 
@@ -95,6 +104,7 @@ export const RegattaScene = memo(function RegattaScene({
   view = "whole",
   revision = 0,
   loadingLabel,
+  showFlow = true,
   sceneLabel,
   errorLabel,
   retryLabel,
@@ -102,6 +112,7 @@ export const RegattaScene = memo(function RegattaScene({
   stateRef: MutableRefObject<YachtState>;
   view?: CameraView;
   revision?: number;
+  showFlow?: boolean;
   loadingLabel: string;
   sceneLabel: string;
   errorLabel: string;
@@ -174,13 +185,13 @@ export const RegattaScene = memo(function RegattaScene({
       </Environment>
 
       <Suspense fallback={<YachtLoading label={loadingLabel} />}>
-        <Yacht stateRef={stateRef} />
+        <Yacht stateRef={stateRef} light={maxDpr <= 1} />
         <Ready />
       </Suspense>
 
       <Ocean stateRef={stateRef} />
       <Wake stateRef={stateRef} />
-      <WindFlow stateRef={stateRef} />
+      {showFlow && <WindFlow stateRef={stateRef} />}
 
 
       {postFx && (
@@ -201,7 +212,7 @@ export const RegattaScene = memo(function RegattaScene({
         dampingFactor={0.08}
       />
       <ContextHealth />
-      <CameraFit view={view} revision={revision} />
+      <CameraFit view={view} revision={revision} stateRef={stateRef} />
     </Canvas>
     </SceneBoundary>
   );

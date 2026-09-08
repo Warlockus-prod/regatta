@@ -13,6 +13,7 @@ import {
 import { clamp, type CoachKey, type Controls, type WindState } from './sailModel';
 import { createTargetSolver } from './targets';
 import type { YachtState } from '../types';
+import { sailResponse, signedSailIncidence, type SailStatus } from '../sails/response';
 
 // ============================================================================
 // useSailingSim - drives the 3D boat from the GOLDEN VPP engine.
@@ -50,6 +51,8 @@ export interface SimTelemetry {
   /** Engine target boat speed at the current angle with OPTIMAL trim, knots. */
   targetSpeedKn: number;
   coach: CoachKey;
+  mainStatus: SailStatus;
+  jibStatus: SailStatus;
   pos: { x: number; z: number };
 }
 
@@ -78,6 +81,8 @@ const INITIAL_TELEMETRY: SimTelemetry = {
   vmgTargetAngle: 48,
   targetSpeedKn: 0,
   coach: 'reachOn',
+  mainStatus: 'drawing',
+  jibStatus: 'drawing',
   pos: { x: 0, z: 0 },
 };
 
@@ -166,29 +171,36 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
         const twaAbs = Math.abs(twaSigned);
         const side = twaSigned >= 0 ? -1 : 1; // sails set to leeward
         const quality = trimQualityFrom(twaAbs, diag);
-        const luffing = twaAbs < NO_GO_HALF_DEG || diag.mainAoA < 6;
-        const jibLuffing = twaAbs < NO_GO_HALF_DEG || diag.jibAoA < 6;
-
-        // Rig visuals: sheets place the booms; morphs follow trim state.
         const boom = PARAMS.mainMaxOff * ui.mainSheet;
         const jib = PARAMS.jibMinOff + (PARAMS.jibMaxOff - PARAMS.jibMinOff) * ui.jibSheet;
-        const camber = clamp((luffing ? 0.06 : 0.5) * (0.6 + 0.4 * quality) - 0.2 * ui.reef, 0.05, 0.7);
+        const mainIncidence = signedSailIncidence(diag.awa, boom, engineControls.mainTwist);
+        const jibIncidence = signedSailIncidence(diag.awa, jib, engineControls.jibTwist);
+        const mainResponse = sailResponse(diag.aws, mainIncidence, diag.mainStalled, twaAbs > 135, twaAbs < NO_GO_HALF_DEG);
+        const jibResponse = sailResponse(diag.aws, jibIncidence, diag.jibStalled, twaAbs > 135, twaAbs < NO_GO_HALF_DEG);
+
+        // Rig visuals: sheets place the booms; morphs follow trim state.
+        const camber = 0.6 - 0.2 * ui.reef;
         const twist = engineControls.mainTwist;
         Object.assign(yachtRef.current, {
           boomAngle: boom * (side === -1 ? 1 : -1),
           jibAngle: jib * (side === -1 ? 1 : -1),
           camber,
           twist,
-          luff: luffing ? 1 : 0,
+          luff: mainResponse.luff,
+          fill: mainResponse.fill,
+          airSpeed: mainResponse.airSpeed,
           reef: ui.reef,
           rudderAngle: ui.rudder * 35,
           heel: Math.abs(next.heel) * (side === -1 ? 1 : -1),
           heading: next.heading,
           wind: { from: w.fromDeg, knots: w.twsKn },
+          apparentWind: { from: (next.heading + Math.sign(twaSigned || 1) * Math.abs(diag.awa) + 360) % 360, knots: diag.aws },
           jibShape: {
-            camber: jibLuffing ? 0.06 : clamp(0.5 * (0.6 + 0.4 * quality), 0.05, 0.7),
+            camber: 0.7,
             twist: engineControls.jibTwist,
-            luff: jibLuffing ? 1 : 0,
+            luff: jibResponse.luff,
+            fill: jibResponse.fill,
+            airSpeed: jibResponse.airSpeed,
             furl: 0,
           },
           speedKn: next.boatSpeed,
@@ -218,7 +230,10 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             vmg: diag.vmg,
             vmgTargetAngle: twaAbs < 90 ? sv.vmgUp : sv.vmgDown,
             targetSpeedKn: sv.target,
-            coach: coachFrom(twaAbs, next.boatSpeed, diag, quality),
+            coach: twaAbs >= NO_GO_HALF_DEG && twaAbs <= 135 && (mainIncidence < 1 || jibIncidence < 1)
+              ? "luffEaseIn" : coachFrom(twaAbs, next.boatSpeed, diag, quality),
+            mainStatus: mainResponse.status,
+            jibStatus: jibResponse.status,
             pos: { ...posRef.current },
           });
         }

@@ -128,3 +128,51 @@ previous `.blend` remain available for comparison.
 - Replaced build 39's pending review after build 40 was ready. Final review `68304705-1e26-4be2-99cc-04febed19aa6` entered WAITING_FOR_REVIEW on 2026-09-08 at 08:29 UTC. Release policy is AFTER_APPROVAL.
 - Final Fastlane metadata precheck passed. An earlier run hit a transient privacy URL 502 during deployment; both canonical and legacy privacy URLs returned 200 afterward. Rechecked the final seven release-note localizations, five iPhone and five iPad screenshots (COMPLETE, other locales inherit the primary set), age declaration and non-exempt encryption=false.
 - This verifies an iPhone Simulator release, not physical-device GPU performance, thermal behavior, or exhaustive tablet interaction. Offline native anatomy remains a schematic with synchronized teaching text; static historical posters are separate illustrations.
+
+## Follow-up: wind-driven cloth and inspection cameras
+
+The 3D sailing route now fills each sail independently using apparent air speed
+and its signed incidence, including the shared five-section twist profile. A
+bounded pressure response fills the cut shape; unloaded cloth sags between fixed
+corners and luffs when air is present. Transitions are smoothed over about 0.24 s.
+An over-eased sail is no longer classified from an absolute incidence as a full,
+stalled sail with the wrong advice to ease farther. Downwind drag remains a
+normal sailing state. Each sail has its own short feedback, with a distinct
+head-to-wind instruction.
+
+This is a visual approximation, not cloth stress simulation, CFD, or measured
+yacht calibration. Depth, angle of attack and twist are separate trim factors;
+a loaded sail can still be stalled. Stronger wind does not produce unlimited
+belly. Qualitative references: [North Sails, Upwind Sail Power](https://www.northsails.com/en-nz/blogs/north-sails-blog/upwind-sail-power-by-bill-gladstone)
+and [North Sails, Understanding Twist](https://www.northsails.com/fr-fr/blogs/north-sails-blog/north-u-understanding-twist-by-bill-gladstone).
+The response constants and cut depths are choices for this synthetic boat. The
+shared force engine and race balance are unchanged by this follow-up. Fully
+backed sails, transient slot flow and spanwise wind shear need a richer coupled
+model before they can be claimed as realistic.
+
+- Added main/jib middle-section inspection presets and an astern preset. Camera
+  resets account for the current heading, tack and the selected sail's sheet
+  angle. Orbit remains manual after selecting a preset; it is not a tracking
+  camera that locks to every subsequent helm/sheet movement.
+- Replaced faint sea-level streaks with directed apparent-wind arrows at sail
+  height. Their travel rate follows apparent speed. The toggle and overlay name
+  the same wind; the overlay angle is relative to the bow. Arrows show incoming
+  air, not a computed streamline solution around the sail.
+- Normal cloth uses 925 vertices per sail, updated at up to 30 Hz. Light mode
+  uses 345 at up to 20 Hz; the boat/camera render loop continues independently.
+  Both surfaces, normals and seams took a median 0.55 ms / 0.24 ms respectively
+  in the local Node CPU probe, with 500 measured iterations. These are not GPU
+  frame times or iPhone FPS. Raw result: [cloth-cpu.json](audits/sailing-2026-09-08/cloth-cpu.json).
+- Ran installed Blender 5.1.1 on this Mac in background Python mode, exported the
+  same runtime geometry again and rendered three Cycles views. The editable
+  scene now also has an `Unloaded` shape key; `Luffing` includes unloaded fill.
+  Six alternative shape keys start at zero. GLB: 1,304,944 bytes; `.blend`:
+  2,511,769 bytes. No manual mouse modelling or cloud Blender service is claimed.
+- Local verification: 54 physics/3D tests, TypeScript, scoped ESLint and typography
+  checks passed. Browser checked independent trim feedback, 12 to 1 kn wind
+  transition, mobile 390 x 740 embed, astern and jib inspection.
+- This module is also the existing native app's online 3D WebView. Website
+  deployment updates it on reopening; no new native binary is needed for this
+  follow-up. Offline native Trainer diagrams and radio content are unchanged.
+- The paired iPhone was reported unavailable by `devicectl`. Physical-device
+  GPU, battery and thermal acceptance remains unverified.

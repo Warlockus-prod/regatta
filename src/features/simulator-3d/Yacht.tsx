@@ -74,13 +74,14 @@ function upgradeSailMaterial(mesh: THREE.Mesh | null, weave: THREE.DataTexture) 
   return mat;
 }
 
-export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
+export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<YachtState>; light?: boolean }) {
   const { scene } = useGLTF(YACHT_MODEL_URL);
   const root = useRef<THREE.Group>(null);
   const yawRoot = useRef<THREE.Group>(null);
   const heelLerp = useRef(0);
   const jibAngle = useRef(0);
   const clothTime = useRef(-1);
+  const cloth = useRef({ main: { fill: 1, luff: 0, side: 1 }, jib: { fill: 1, luff: 0, side: 1 } });
 
   // Per-instance clone with shadows enabled (pure: builds and returns a value).
   const model = useMemo(() => {
@@ -154,8 +155,8 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     const jib = findMorphMesh(model.getObjectByName('Jib') ?? null);
     const oldMainGeometry = main?.geometry;
     const oldJibGeometry = jib?.geometry;
-    const mainGeometry = createSailGeometry();
-    const jibGeometry = createSailGeometry();
+    const mainGeometry = createSailGeometry(light ? 14 : 24, light ? 22 : 36);
+    const jibGeometry = createSailGeometry(light ? 14 : 24, light ? 22 : 36);
     const sheetGeometry = new THREE.BufferGeometry();
     sheetGeometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(18), 3).setUsage(THREE.DynamicDrawUsage));
     const sheets = new THREE.LineSegments(sheetGeometry, new THREE.LineBasicMaterial({ color: "#bfc3b7" }));
@@ -200,7 +201,7 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
       mainUpgrade?.dispose();
       jibUpgrade?.dispose();
     };
-  }, [model]);
+  }, [model, light]);
 
   useFrame((st, dt) => {
     const n = nodesRef.current;
@@ -211,12 +212,20 @@ export function Yacht({ stateRef }: { stateRef: MutableRefObject<YachtState> }) 
     jibAngle.current = THREE.MathUtils.lerp(jibAngle.current, SIGN.jib * s.jibAngle * DEG, k);
     if (n.jibRig) n.jibRig.quaternion.setFromAxisAngle(FORESTAY_AXIS, jibAngle.current);
     if (n.rudder) n.rudder.rotation.y = THREE.MathUtils.lerp(n.rudder.rotation.y, SIGN.rudder * s.rudderAngle * DEG, k);
-    if (t - clothTime.current > 1 / 30 || t < clothTime.current) {
+    const response = 1 - Math.exp(-Math.min(dt, 0.1) / 0.24);
+    for (const kind of ["main", "jib"] as const) {
+      const target = kind === "jib" ? s.jibShape ?? s : s;
+      const shape = cloth.current[kind];
+      shape.fill += ((target.fill ?? 1) - shape.fill) * response;
+      shape.luff += (target.luff - shape.luff) * response;
+      shape.side += ((Math.sign(kind === "main" ? s.boomAngle : s.jibAngle) || 1) - shape.side) * response;
+    }
+    if (t - clothTime.current > 1 / (light ? 20 : 30) || t < clothTime.current) {
       clothTime.current = t;
       for (const [mesh, seam, kind, shape] of [
-        [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, luff: s.luff, reef: s.reef, side: Math.sign(s.boomAngle) || 1, time: t }],
+        [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, luff: cloth.current.main.luff, fill: cloth.current.main.fill, airSpeed: s.airSpeed, reef: s.reef, side: cloth.current.main.side, time: t }],
         [n.jib, n.jibSeams, "jib", { camber: s.jibShape?.camber ?? s.camber, twist: s.jibShape?.twist ?? s.twist,
-          luff: s.jibShape?.luff ?? s.luff, reef: 0, furl: s.jibShape?.furl ?? 0, side: Math.sign(s.jibAngle) || 1, time: t }],
+          luff: cloth.current.jib.luff, fill: cloth.current.jib.fill, airSpeed: s.jibShape?.airSpeed ?? s.airSpeed, reef: 0, furl: s.jibShape?.furl ?? 0, side: cloth.current.jib.side, time: t }],
       ] as const) {
         if (mesh) updateSailGeometry(mesh.geometry, kind, shape);
         if (seam) updateSailSeams(seam, kind, shape);

@@ -1,0 +1,18 @@
+{
+  "scope": "Node CPU geometry + normals + seams for both sails. Not WebGL frame time or iPhone measurement.",
+  "samples": 500,
+  "results": [
+    {
+      "quality": "normal",
+      "verticesPerSail": 925,
+      "medianMs": 0.5508750000000191,
+      "p95Ms": 0.6139999999999759
+    },
+    {
+      "quality": "light",
+      "verticesPerSail": 345,
+      "medianMs": 0.24475000000001046,
+      "p95Ms": 0.3599169999999958
+    }
+  ]
+}

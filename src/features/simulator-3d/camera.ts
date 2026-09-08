@@ -1,6 +1,8 @@
-import { Vector3 } from "three";
+import { Box3, Quaternion, Vector3 } from "three";
+import { FORESTAY_AXIS, sailPoint, type SailKind } from "./sails/geometry";
+import type { YachtState } from "./types";
 
-export type CameraView = "whole" | "sails" | "deck";
+export type CameraView = "whole" | "sails" | "main" | "jib" | "stern" | "deck";
 
 /** Fit the projected corners, including depth, instead of guessing a distance. */
 export function fitCamera(
@@ -24,4 +26,19 @@ export function fitCamera(
       Math.abs(point.dot(up)) * padding / tanV + point.dot(forward));
   }
   return { target, position: forward.multiplyScalar(distance).add(target) };
+}
+
+/** Inspect the working middle sections from the loaded side of this sail. */
+export function fitSailCamera(kind: SailKind, state: YachtState, aspect: number) {
+  const angle = (kind === "main" ? state.boomAngle : state.jibAngle) * Math.PI / 180;
+  const side = Math.sign(angle) || 1;
+  const rotation = new Quaternion().setFromAxisAngle(kind === "main" ? new Vector3(0, 1, 0) : FORESTAY_AXIS, angle);
+  const origin = kind === "main" ? new Vector3(.3, 2.74, 0) : new Vector3(6.3, 1.5, 0);
+  const offset = kind === "main" ? new Vector3(.1, -.04, 0) : new Vector3();
+  const shape = { ...(kind === "jib" ? state.jibShape ?? state : state), reef: kind === "main" ? state.reef : 0, side, time: 0 };
+  const points = [0, .5, 1].flatMap(u => [.12, .4, .7].map(v =>
+    sailPoint(kind, u, v, shape, new Vector3()).add(offset).applyQuaternion(rotation).add(origin)));
+  const bounds = new Box3().setFromPoints(points);
+  const direction = new Vector3(-.65, .15, side).applyQuaternion(rotation);
+  return fitCamera(bounds.min, bounds.max, direction, aspect, 42, 1.18, points);
 }
