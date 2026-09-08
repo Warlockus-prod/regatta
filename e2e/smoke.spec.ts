@@ -222,13 +222,6 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   const main = page.getByRole("slider", { name: "Mainsheet (boom)", exact: true });
   await expect(main).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("canvas").first()).toBeVisible();
-  const airflow = page.getByRole("button", { name: "Airflow", exact: true });
-  await expect(airflow).toHaveAttribute("aria-pressed", "true");
-  await airflow.click();
-  await expect(airflow).toHaveAttribute("aria-pressed", "false");
-  // Hiding the scene arrows must not hide the permanent wind instrument.
-  await expect(page.getByRole("img", { name: "relative to bow", exact: true })).toBeVisible();
-  await airflow.click();
   await expect(page.getByRole("contentinfo", { name: "Site brand" })).toHaveCount(0);
   const before = Number(await main.inputValue());
   await main.press("ArrowRight");
@@ -243,4 +236,20 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   expect(canvas).not.toBeNull();
   expect(canvas!.height).toBeGreaterThan(200);
   expect(canvas!.y + canvas!.height).toBeLessThan(844);
+});
+
+// A software WebGL runner spends several seconds waiting for stable animation
+// frames per click. Keep this independent of the camera/keyboard workflow.
+test("3D wind instrument stays visible when animated airflow is hidden", async ({ page }) => {
+  test.setTimeout(60_000);
+  await page.setViewportSize({ width: 390, height: 680 });
+  await page.goto("/simulator2?embed=1&lang=en");
+  const airflow = page.getByRole("button", { name: "Airflow", exact: true });
+  await expect(airflow).toHaveAttribute("aria-pressed", "true");
+  await airflow.click();
+  await expect(airflow).toHaveAttribute("aria-pressed", "false");
+  // Hiding the scene arrows must not hide the permanent wind instrument.
+  await expect(page.getByRole("img", { name: "relative to bow", exact: true })).toBeVisible();
+  await airflow.click();
+  await expect(airflow).toHaveAttribute("aria-pressed", "true");
 });
