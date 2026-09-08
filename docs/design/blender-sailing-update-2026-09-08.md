@@ -155,8 +155,8 @@ model before they can be claimed as realistic.
   angle. Orbit remains manual after selecting a preset; it is not a tracking
   camera that locks to every subsequent helm/sheet movement.
 - Replaced faint sea-level streaks with directed apparent-wind arrows at sail
-  height. Their travel rate follows apparent speed. The toggle and overlay name
-  the same wind; the overlay angle is relative to the bow. Arrows show incoming
+  height. Their travel rate follows apparent speed. The toggle and readout name
+  the same wind; the readout angle is relative to the bow. Arrows show incoming
   air, not a computed streamline solution around the sail.
 - Normal cloth uses 925 vertices per sail, updated at up to 30 Hz. Light mode
   uses 345 at up to 20 Hz; the boat/camera render loop continues independently.
@@ -170,9 +170,23 @@ model before they can be claimed as realistic.
   2,511,769 bytes. No manual mouse modelling or cloud Blender service is claimed.
 - Local verification: 54 physics/3D tests, TypeScript, scoped ESLint and typography
   checks passed. Browser checked independent trim feedback, 12 to 1 kn wind
-  transition, mobile 390 x 740 embed, astern and jib inspection.
+  transition, 28 kn on the opposite tack, mobile 390 x 740 embed, astern and
+  main/jib inspection, switching to free trim, and production anatomy.
 - This module is also the existing native app's online 3D WebView. Website
   deployment updates it on reopening; no new native binary is needed for this
   follow-up. Offline native Trainer diagrams and radio content are unchanged.
 - The paired iPhone was reported unavailable by `devicectl`. Physical-device
   GPU, battery and thermal acceptance remains unverified.
+
+### Follow-up publication
+
+- Cloth/model commit: `3876985`; [deployment and production E2E passed](https://github.com/Warlockus-prod/regatta/actions/runs/34209647814).
+- iPhone Simulator QA found the apparent-wind badge overlapping the mast head.
+  Moved it into a separate readout row above the canvas. Final interface commit:
+  `c2a75df`; [deployment and production E2E passed](https://github.com/Warlockus-prod/regatta/actions/runs/34210296906).
+- Reopened the production 3D route in the already installed 1.6.1 (40) app on
+  the dedicated iPhone 17 Pro Simulator. Verified the new astern control,
+  per-sail feedback, apparent-wind arrows and unobstructed mast. Final screenshot:
+  [app cloth update](mobile/audits/blender-build40/cloth-update.png).
+- Production browser loaded the final scene and anatomy; no browser errors
+  were recorded. This follow-up required no new App Store submission.
