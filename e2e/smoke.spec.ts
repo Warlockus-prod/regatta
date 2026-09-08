@@ -222,6 +222,13 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   const main = page.getByRole("slider", { name: "Mainsheet (boom)", exact: true });
   await expect(main).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("canvas").first()).toBeVisible();
+  const airflow = page.getByRole("button", { name: "Airflow", exact: true });
+  await expect(airflow).toHaveAttribute("aria-pressed", "true");
+  await airflow.click();
+  await expect(airflow).toHaveAttribute("aria-pressed", "false");
+  // Hiding the scene arrows must not hide the permanent wind instrument.
+  await expect(page.getByRole("img", { name: "relative to bow", exact: true })).toBeVisible();
+  await airflow.click();
   await expect(page.getByRole("contentinfo", { name: "Site brand" })).toHaveCount(0);
   const before = Number(await main.inputValue());
   await main.press("ArrowRight");

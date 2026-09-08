@@ -21,15 +21,16 @@ import { FORESTAY_AXIS, sailPoint, createSailGeometry, updateSailGeometry, creat
 // Reading from a ref (not a prop) lets the physics loop update the boat 60x a
 // second without re-rendering the Canvas.
 //
-// SIGN keeps all axis directions in one place: flip a 1 to -1 after a visual
-// check if any motion reads backwards (orientation cannot be verified headless).
+// GLB frame: +X bow, +Y up, +Z starboard. Positive Y rotation moves
+// an aft clew to starboard; positive X roll leans the mast to starboard.
+// The same physical signs are used by the engine and the rig transfer solver.
 // ============================================================================
 
 const SIGN = {
   boom: 1,
   jib: 1,
   rudder: 1,
-  heel: -1,
+  heel: 1,
 };
 
 const DEG = Math.PI / 180;
@@ -208,17 +209,20 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     const s = stateRef.current;
     const k = Math.min(1, dt * 8);
     const t = st.clock.elapsedTime;
-    if (n.mainRig) n.mainRig.rotation.y = THREE.MathUtils.lerp(n.mainRig.rotation.y, SIGN.boom * s.boomAngle * DEG, k);
-    jibAngle.current = THREE.MathUtils.lerp(jibAngle.current, SIGN.jib * s.jibAngle * DEG, k);
+    const rigK = s.rigResolved ? 1 : k;
+    if (n.mainRig) n.mainRig.rotation.y = THREE.MathUtils.lerp(n.mainRig.rotation.y, SIGN.boom * s.boomAngle * DEG, rigK);
+    jibAngle.current = THREE.MathUtils.lerp(jibAngle.current, SIGN.jib * s.jibAngle * DEG, rigK);
     if (n.jibRig) n.jibRig.quaternion.setFromAxisAngle(FORESTAY_AXIS, jibAngle.current);
     if (n.rudder) n.rudder.rotation.y = THREE.MathUtils.lerp(n.rudder.rotation.y, SIGN.rudder * s.rudderAngle * DEG, k);
     const response = 1 - Math.exp(-Math.min(dt, 0.1) / 0.24);
     for (const kind of ["main", "jib"] as const) {
       const target = kind === "jib" ? s.jibShape ?? s : s;
       const shape = cloth.current[kind];
+      const angle = kind === "main" ? s.boomAngle : s.jibAngle;
+      const side = Math.abs(angle) < .5 ? s.sailSide ?? 1 : Math.sign(angle);
       shape.fill += ((target.fill ?? 1) - shape.fill) * response;
       shape.luff += (target.luff - shape.luff) * response;
-      shape.side += ((Math.sign(kind === "main" ? s.boomAngle : s.jibAngle) || 1) - shape.side) * response;
+      shape.side += (side - shape.side) * response;
     }
     if (t - clothTime.current > 1 / (light ? 20 : 30) || t < clothTime.current) {
       clothTime.current = t;

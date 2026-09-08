@@ -37,7 +37,10 @@ function SimulatorV2Inner() {
         main: tp("Грот", "Main", "Grot", { es: "Mayor", fr: "Grand-voile", de: "Grosssegel", it: "Randa" }),
         jib: tp("Стаксель", "Jib", "Fok", { es: "Foque", fr: "Foc", de: "Fock", it: "Fiocco" }),
         stern: tp("С кормы", "Astern", "Od rufy", { es: "Desde popa", fr: "De poupe", de: "Von achtern", it: "Da poppa" }),
-        flow: tp("Показать вымпельный ветер", "Show apparent wind", "Pokaz wiatr pozorny", { es: "Mostrar viento aparente", fr: "Afficher le vent apparent", de: "Scheinbaren Wind zeigen", it: "Mostra vento apparente" }),
+        flow: tp("Поток ветра", "Airflow", "Przepływ", { es: "Flujo de aire", fr: "Flux d’air", de: "Luftstrom", it: "Flusso d’aria" }),
+        relativeWind: tp("относительно носа", "relative to bow", "względem dziobu", { es: "respecto a proa", fr: "par rapport à l’étrave", de: "relativ zum Bug", it: "rispetto alla prua" }),
+        trueWind: tp("Истинный", "True wind", "Wiatr rzeczywisty", { es: "Viento real", fr: "Vent réel", de: "Wahrer Wind", it: "Vento reale" }),
+        calmWind: tp("Нет потока воздуха", "No airflow", "Brak przepływu", { es: "Sin flujo de aire", fr: "Pas de flux d’air", de: "Kein Luftstrom", it: "Nessun flusso d’aria" }),
 
         fullSailPlan: tp(`Полные паруса: грот ${SAIL_PLAN.main.area} м², стаксель ${SAIL_PLAN.jib.area} м²`,
           `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
@@ -61,7 +64,7 @@ function SimulatorV2Inner() {
         apparent: tp("Вымпельный ветер", "Apparent wind", "Wiatr pozorny", { es: "Viento aparente", fr: "Vent apparent", de: "Scheinbarer Wind", it: "Vento apparente" }),
         light: tp("Лёгкая графика", "Light graphics", "Lekka grafika", { es: "Graficos ligeros", fr: "Graphismes legers", de: "Leichte Grafik", it: "Grafica leggera" }),
         quality: tp("Графика", "Graphics", "Grafika", { es: "Graficos", fr: "Graphismes", de: "Grafik", it: "Grafica" }),
-        sailingHint: tp("Держи стрелку, чтобы повернуть. Настраивай шкоты и следи за скоростью.", "Hold an arrow to steer. Adjust the sheets and watch the speed.", "Przytrzymaj strzalke, aby skrecic. Ustaw szoty i obserwuj predkosc.", { es: "Manten una flecha para virar. Ajusta las escotas y observa la velocidad.", fr: "Maintiens une fleche pour tourner. Regle les ecoutes et observe la vitesse.", de: "Halte einen Pfeil zum Steuern. Stelle die Schoten ein und beobachte die Fahrt.", it: "Tieni premuta una freccia per virare. Regola le scotte e osserva la velocita." }),
+        sailingHint: tp("Держи стрелку, чтобы повернуть. Паруса перейдут сами; шкоты регулируешь ты.", "Hold an arrow to steer. Sails change sides automatically; you control the sheets.", "Przytrzymaj strzałkę, aby skręcić. Żagle przejdą same; ty regulujesz szoty.", { es: "Mantén una flecha para girar. Las velas cambian de banda solas; tú regulas las escotas.", fr: "Maintiens une flèche pour tourner. Les voiles changent de bord seules ; tu règles les écoutes.", de: "Halte einen Pfeil zum Steuern. Die Segel wechseln automatisch die Seite; du stellst die Schoten ein.", it: "Tieni premuta una freccia per virare. Le vele cambiano lato da sole; tu regoli le scotte." }),
       },
       badge: tp('ЛОДКА 3D', '3D BOAT', 'LODKA 3D', {
         es: 'BARCO 3D', fr: 'BATEAU 3D', de: 'BOOT 3D', it: 'BARCA 3D',
@@ -209,7 +212,13 @@ function SimulatorV2Inner() {
           },
         ],
       },
+      sheetScale: tp("0% шкот выбран · 100% потравлен", "0% sheeted in · 100% eased out", "0% szot wybrany · 100% wyluzowany", { es: "0% cazado · 100% amollado", fr: "0% bordé · 100% choqué", de: "0% dichtgeholt · 100% gefiert", it: "0% cazzata · 100% lascata" }),
+      maneuver: {
+        tacking: tp("Оверштаг: паруса разгружаются и наполняются на новом галсе", "Tacking: sails unload and fill on the new side", "Zwrot przez sztag: żagle tracą napór i napełniają się na nowym halsie", { es: "Virada por avante: las velas pierden presión y se llenan en la nueva banda", fr: "Virement : les voiles se déchargent puis se remplissent sur le nouveau bord", de: "Wende: Die Segel entlasten und füllen sich auf dem neuen Bug", it: "Virata: le vele si scaricano e si riempiono sulle nuove mure" }),
+        gybing: tp("Фордевинд: экипаж автоматически переносит паруса", "Gybing: the crew transfers the sails automatically", "Zwrot przez rufę: załoga automatycznie przenosi żagle", { es: "Trasluchada: la tripulación cambia las velas de banda automáticamente", fr: "Empannage : l’équipage fait passer les voiles automatiquement", de: "Halse: Die Crew bringt die Segel automatisch auf die andere Seite", it: "Abbattuta: l’equipaggio fa passare le vele automaticamente" }),
+      },
       sailStatus: {
+        transferring: tp("Переходит на другой борт", "Changing sides", "Przechodzi na drugą burtę", { es: "Cambiando de banda", fr: "Changement de bord", de: "Wechselt die Seite", it: "Cambia lato" }),
         inIrons: tp("Левентик: увались", "In irons: bear away", "W linii wiatru: odpadnij", { es: "A proa: arriba", fr: "Bout au vent : abats", de: "Im Wind: abfallen", it: "Prua al vento: poggia" }),
         calm: tp("Мало потока", "Little airflow", "Slaby przeplyw", { es: "Poco flujo", fr: "Peu de flux", de: "Wenig Stromung", it: "Poco flusso" }),
         luffing: tp("Полощет: немного выбери шкот", "Luffing: sheet in slightly", "Lopocze: lekko wybierz szot", { es: "Flamea: caza un poco", fr: "Faseye : borde un peu", de: "Killt: leicht dichtholen", it: "Fileggia: cazza un poco" }),
@@ -235,8 +244,8 @@ function SimulatorV2Inner() {
         reachOn: tp('Настрой под галфвинд', 'Trim for the reach', 'Trymuj na galfwind', {
           es: 'Trima para el traves', fr: 'Regle pour le travers', de: 'Fuer Halbwind trimmen', it: 'Regola per il traverso',
         }),
-        run: tp('Фордевинд - паруса травлены до конца', 'Running - sails eased right out', 'Forderwind - zagle wytrawione', {
-          es: 'Empopada - velas totalmente amolladas', fr: 'Vent arriere - voiles choquees en grand', de: 'Vorwind - Segel ganz gefiert', it: 'In poppa - vele tutte lascate',
+        run: tp("Фордевинд: потрави шкоты для попутного ветра", "Running: ease the sheets for the following wind", "Pełny wiatr: poluzuj szoty", {
+          es: "Empopada: amolla las escotas", fr: "Vent arrière : choque les écoutes", de: "Vorwind: Schoten fieren", it: "In poppa: lasca le scotte",
         }),
       },
     }),

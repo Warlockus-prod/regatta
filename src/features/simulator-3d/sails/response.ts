@@ -1,7 +1,7 @@
 import { sectionTwistDegrees } from "@/lib/sailing-physics/forces";
 import { clamp } from "../physics/sailModel";
 
-export type SailStatus = "calm" | "inIrons" | "luffing" | "stalled" | "drawing";
+export type SailStatus = "calm" | "inIrons" | "luffing" | "stalled" | "drawing" | "transferring";
 
 /** Bounded visual cloth response, not a membrane/CFD solver. Pressure fills
  * the cut shape; trim controls attachment. A stalled sail can still be full. */
@@ -13,7 +13,7 @@ export function sailResponse(awsKn: number, aoa: number, stalled: boolean, downw
   const fill = attached * pressure;
   const luff = (1 - attached) * pressure;
   const status: SailStatus = air < 2 ? "calm" : inIrons ? "inIrons" : attached < 0.45 ? "luffing" : stalled && !downwind ? "stalled" : "drawing";
-  return { fill, luff, airSpeed: air, status };
+  return { fill, luff, attachment: attached, airSpeed: air, status };
 }
 
 

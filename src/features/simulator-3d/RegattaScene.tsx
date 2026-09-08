@@ -24,7 +24,7 @@ function CameraFit({ view, revision, stateRef }: { view: CameraView; revision: n
       : [new THREE.Vector3(-7, -0.5, -4), new THREE.Vector3(7, 20.5, 4)];
     const side = Math.sign(stateRef.current.boomAngle) || 1;
     const dir = view === "stern" ? new THREE.Vector3(-1, 0.14, side * 0.12)
-      : view === "sails" ? new THREE.Vector3(0.3, 0.08, side) : new THREE.Vector3(-0.8, view === "deck" ? 0.8 : 0.18, 1);
+      : view === "sails" ? new THREE.Vector3(0.3, 0.08, -side) : new THREE.Vector3(-0.8, view === "deck" ? 0.8 : 0.18, -side);
     const silhouette = view === "deck" || detail ? undefined : [
       [-7, 0, -2.3], [-7, 0, 2.3], [7, 0, -2.3], [7, 0, 2.3],
       [0.3, 20.5, 0], [-1, 19, -1], [1, 19, 1],

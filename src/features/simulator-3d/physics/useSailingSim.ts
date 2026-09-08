@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
 import {
   getBoatParams,
-  tick,
   twaFromCompass,
   NO_GO_HALF_DEG,
   type BoatState as EngineState,
@@ -13,7 +12,9 @@ import {
 import { clamp, type CoachKey, type Controls, type WindState } from './sailModel';
 import { createTargetSolver } from './targets';
 import type { YachtState } from '../types';
-import { sailResponse, signedSailIncidence, type SailStatus } from '../sails/response';
+import type { SailStatus } from '../sails/response';
+import type { RigMotion, Maneuver } from '../sails/transfer';
+import { stepWithRig } from './step';
 
 // ============================================================================
 // useSailingSim - drives the 3D boat from the GOLDEN VPP engine.
@@ -51,6 +52,7 @@ export interface SimTelemetry {
   /** Engine target boat speed at the current angle with OPTIMAL trim, knots. */
   targetSpeedKn: number;
   coach: CoachKey;
+  maneuver: Maneuver;
   mainStatus: SailStatus;
   jibStatus: SailStatus;
   pos: { x: number; z: number };
@@ -81,6 +83,7 @@ const INITIAL_TELEMETRY: SimTelemetry = {
   vmgTargetAngle: 48,
   targetSpeedKn: 0,
   coach: 'reachOn',
+  maneuver: 'sailing',
   mainStatus: 'drawing',
   jibStatus: 'drawing',
   pos: { x: 0, z: 0 },
@@ -121,6 +124,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   const enabledRef = useRef(enabled);
   const engineRef = useRef<EngineState>({ ...INITIAL_ENGINE });
   const posRef = useRef({ x: 0, z: 0 });
+  const rigRef = useRef<RigMotion | null>(null);
   // Throttled expensive solves (engine settles): target speed + best-VMG.
   const solveRef = useRef(createTargetSolver());
 
@@ -164,26 +168,23 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
           jibFurl: 0,
           jibSide: 1,
         };
-        const { state: next, diag } = tick(s, engineControls, PARAMS, dt);
+        const { state: next, diag, motion, main: mainResponse, jib: jibResponse, mainIncidence, jibIncidence } =
+          stepWithRig(s, engineControls, PARAMS, rigRef.current, dt);
+        rigRef.current = motion;
         engineRef.current = next;
 
         const twaSigned = twaFromCompass(next.trueWindDir, next.heading);
         const twaAbs = Math.abs(twaSigned);
-        const side = twaSigned >= 0 ? -1 : 1; // sails set to leeward
         const quality = trimQualityFrom(twaAbs, diag);
-        const boom = PARAMS.mainMaxOff * ui.mainSheet;
-        const jib = PARAMS.jibMinOff + (PARAMS.jibMaxOff - PARAMS.jibMinOff) * ui.jibSheet;
-        const mainIncidence = signedSailIncidence(diag.awa, boom, engineControls.mainTwist);
-        const jibIncidence = signedSailIncidence(diag.awa, jib, engineControls.jibTwist);
-        const mainResponse = sailResponse(diag.aws, mainIncidence, diag.mainStalled, twaAbs > 135, twaAbs < NO_GO_HALF_DEG);
-        const jibResponse = sailResponse(diag.aws, jibIncidence, diag.jibStalled, twaAbs > 135, twaAbs < NO_GO_HALF_DEG);
 
         // Rig visuals: sheets place the booms; morphs follow trim state.
         const camber = 0.6 - 0.2 * ui.reef;
         const twist = engineControls.mainTwist;
         Object.assign(yachtRef.current, {
-          boomAngle: boom * (side === -1 ? 1 : -1),
-          jibAngle: jib * (side === -1 ? 1 : -1),
+          boomAngle: motion.main,
+          jibAngle: motion.jib,
+          rigResolved: true,
+          sailSide: motion.lee,
           camber,
           twist,
           luff: mainResponse.luff,
@@ -191,10 +192,10 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
           airSpeed: mainResponse.airSpeed,
           reef: ui.reef,
           rudderAngle: ui.rudder * 35,
-          heel: Math.abs(next.heel) * (side === -1 ? 1 : -1),
+          heel: next.heel,
           heading: next.heading,
           wind: { from: w.fromDeg, knots: w.twsKn },
-          apparentWind: { from: (next.heading + Math.sign(twaSigned || 1) * Math.abs(diag.awa) + 360) % 360, knots: diag.aws },
+          apparentWind: { from: (next.heading + diag.awa + 360) % 360, knots: diag.aws },
           jibShape: {
             camber: 0.7,
             twist: engineControls.jibTwist,
@@ -223,7 +224,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             heelDeg: Math.abs(next.heel),
             twaSigned,
             awaDeg: Math.abs(diag.awa),
-            awaSigned: Math.sign(twaSigned || 1) * Math.abs(diag.awa),
+            awaSigned: diag.awa,
             awsKn: diag.aws,
             heading: next.heading,
             trimQuality: quality,
@@ -232,6 +233,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             targetSpeedKn: sv.target,
             coach: twaAbs >= NO_GO_HALF_DEG && twaAbs <= 135 && (mainIncidence < 1 || jibIncidence < 1)
               ? "luffEaseIn" : coachFrom(twaAbs, next.boatSpeed, diag, quality),
+            maneuver: motion.maneuver,
             mainStatus: mainResponse.status,
             jibStatus: jibResponse.status,
             pos: { ...posRef.current },
@@ -250,6 +252,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   const reset = useCallback(() => {
     engineRef.current = { ...INITIAL_ENGINE, trueWindDir: windRef.current.fromDeg, trueWindSpeed: windRef.current.twsKn, heading: (windRef.current.fromDeg + 90) % 360 };
     posRef.current = { x: 0, z: 0 };
+    rigRef.current = null;
     solveRef.current = createTargetSolver();
   }, []);
 

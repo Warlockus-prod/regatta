@@ -3,11 +3,15 @@ import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
 
 /** Visual rig state the 3D yacht renders from (drives morphs + rig nodes). */
 export interface YachtState {
+  /** Resolved angles already include maneuver dynamics; do not smooth twice. */
+  rigResolved?: boolean;
+  /** Remember the lee side even with a hard-sheeted central boom. */
+  sailSide?: 1 | -1;
   wind?: { from: number; knots: number };
   apparentWind?: { from: number; knots: number };
   fill?: number;
   airSpeed?: number;
-  /** Main boom angle off centerline, signed deg (sign picks the lee side). */
+  /** Main boom angle off centerline, signed deg (positive = starboard, negative = port). */
   boomAngle: number;
   /** Jib clew angle off centerline, signed deg. */
   jibAngle: number;
@@ -21,7 +25,7 @@ export interface YachtState {
   reef: number;
   /** Rudder angle, deg (-35 .. 35). */
   rudderAngle: number;
-  /** Visual heel, signed deg (sign leans toward the lee side). */
+  /** Visual heel, signed deg (positive = starboard, negative = port). */
   heel: number;
   /** Boat speed, knots (drives wake/foam intensity; 0 in free-trim mode). */
   speedKn?: number;
@@ -52,6 +56,7 @@ export interface SceneLabels {
   retry: string; heading: string; target: string; apparent: string;
   light: string; quality: string; sailingHint: string;
   fullSailPlan: string;
+  relativeWind: string; trueWind: string; calmWind: string;
 }
 
 export interface SimLabels {
@@ -79,7 +84,9 @@ export interface SimLabels {
   bestVmg: string;
   reset: string;
   presets: { luff: string; close: string; beam: string; broad: string; run: string };
-  sailStatus: { inIrons: string; calm: string; luffing: string; stalled: string; drawing: string };
+  sailStatus: { inIrons: string; calm: string; luffing: string; stalled: string; drawing: string; transferring: string };
+  maneuver: { tacking: string; gybing: string };
+  sheetScale: string;
   coach: {
     inIrons: string;
     luffEaseIn: string;
@@ -105,12 +112,13 @@ export interface SimLabels {
 export const DEFAULT_LABELS: SimLabels = {
   scene: {
     fullSailPlan: `Full sails: main ${SAIL_PLAN.main.area} m², jib ${SAIL_PLAN.jib.area} m²`,
-    main: "Main", jib: "Jib", stern: "Astern", flow: "Show apparent wind",
+    main: "Main", jib: "Jib", stern: "Astern", flow: "Airflow",
+    relativeWind: "relative to bow", trueWind: "True wind", calmWind: "No airflow",
     whole: "Whole yacht", sails: "Sails", both: "Both", deck: "Deck", resetView: "Reset camera",
     more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
     error: "The 3D scene could not load. Check your connection or try another browser.",
     retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind",
-    light: "Light graphics", quality: "Graphics", sailingHint: "Hold an arrow to steer. Adjust the sheets and watch the speed.",
+    light: "Light graphics", quality: "Graphics", sailingHint: "Hold an arrow to steer. Sails change sides automatically; you control the sheets.",
   },
   badge: 'SIMULATOR V2 - 3D',
   orbitHint: 'drag to orbit, wheel to zoom',
@@ -134,7 +142,9 @@ export const DEFAULT_LABELS: SimLabels = {
   bestVmg: 'Best VMG',
   reset: 'Reset',
   presets: { luff: 'In irons', close: 'Close-hauled', beam: 'Beam reach', broad: 'Broad reach', run: 'Run' },
-  sailStatus: { inIrons: "In irons: bear away", calm: "Little airflow", luffing: "Luffing: sheet in slightly", stalled: "Stalled: ease the sheet", drawing: "Drawing" },
+  sailStatus: { inIrons: "In irons: bear away", calm: "Little airflow", luffing: "Luffing: sheet in slightly", stalled: "Stalled: ease the sheet", drawing: "Drawing", transferring: "Changing sides" },
+  maneuver: { tacking: "Tacking: sails unload and fill on the new side", gybing: "Gybing: the crew transfers the sails automatically" },
+  sheetScale: "0% sheeted in · 100% eased out",
   coach: {
     inIrons: 'In irons - bear away to fill the sails',
     luffEaseIn: 'Luffing - sheet in or bear away',
@@ -142,7 +152,7 @@ export const DEFAULT_LABELS: SimLabels = {
     pinching: 'Pinching - bear away a touch',
     good: 'Well trimmed - both sails pulling',
     reachOn: 'Trim for the reach',
-    run: 'Running - sails eased right out',
+    run: "Running: ease the sheets for the following wind",
   },
   steerLeft: 'Steer left',
   steerRight: 'Steer right',

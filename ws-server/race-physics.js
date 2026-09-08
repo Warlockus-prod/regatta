@@ -206,7 +206,7 @@ function effectiveCop(fullCop, reduction01) {
   const r = Math.max(0, Math.min(1, reduction01));
   return fullCop * (1 - 0.35 * r);
 }
-function tick(state, controls, params2, dt) {
+function tick(state, controls, params2, dt, rig) {
   const twa = twaFromCompass(state.trueWindDir, state.heading);
   const aw = apparentWind(
     state.trueWindSpeed,
@@ -215,14 +215,16 @@ function tick(state, controls, params2, dt) {
     state.leeway
   );
   const awsMps = aw.aws * KN_TO_MPS;
-  const mainSideSign = twa > 0 ? -1 : twa < 0 ? 1 : -1;
-  const jibSideSign = controls.jibSide === -1 ? mainSideSign === 1 ? -1 : 1 : mainSideSign;
-  const mainAngle = sailAngleOff(controls.mainSheet, 0, params2.mainMaxOff);
-  const jibAngle = sailAngleOff(controls.jibSheet, params2.jibMinOff, params2.jibMaxOff);
+  const mainSideSign = rig?.main.side ?? (twa > 0 ? -1 : twa < 0 ? 1 : -1);
+  const jibSideSign = rig?.jib.side ?? (controls.jibSide === -1 ? mainSideSign === 1 ? -1 : 1 : mainSideSign);
+  const mainAngle = rig?.main.angleOff ?? sailAngleOff(controls.mainSheet, 0, params2.mainMaxOff);
+  const jibAngle = rig?.jib.angleOff ?? sailAngleOff(controls.jibSheet, params2.jibMinOff, params2.jibMaxOff);
+  const mainLoad = Math.max(0, Math.min(1, rig?.main.load ?? 1));
+  const jibLoad = Math.max(0, Math.min(1, rig?.jib.load ?? 1));
   const mainArea = controls.mainHoisted === false ? 0 : effectiveArea(params2.mainArea, controls.reef);
   const jibArea = params2.jibArea * jibAreaFraction(controls.jibFurl);
   const jibCfg = {
-    area: jibArea,
+    area: jibArea * jibLoad,
     angleOff: jibAngle,
     side: jibSideSign,
     twist: controls.jibTwist
@@ -232,12 +234,12 @@ function tick(state, controls, params2, dt) {
     jibAoA: jibF.aoa,
     jibStalled: jibF.stalled,
     jibFurl01: controls.jibFurl,
-    jibAreaEffective: jibArea,
+    jibAreaEffective: jibArea * jibLoad,
     jibSide: jibSideSign,
     mainSide: mainSideSign
   });
   const mainCfg = {
-    area: mainArea,
+    area: mainArea * mainLoad,
     angleOff: mainAngle,
     side: mainSideSign,
     twist: controls.mainTwist

@@ -27,6 +27,7 @@ export type {
   Controls,
   TickDiagnostics,
   TickResult,
+  ResolvedRig,
 } from './types';
 
 export { DEFAULT_BOAT, getBoatParams } from './boat';

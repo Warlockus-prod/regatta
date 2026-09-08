@@ -5,6 +5,7 @@ import { RegattaScene } from "./RegattaScene";
 import { useSailingSim } from "./physics/useSailingSim";
 import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
+import { WindReadout } from "./ui/WindReadout";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
 import type { CameraView } from "./camera";
 import styles from "./Simulator3D.module.css";
@@ -59,6 +60,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     presets: { ...DEFAULT_LABELS.presets, ...labels?.presets },
     coach: { ...DEFAULT_LABELS.coach, ...labels?.coach },
     sailStatus: { ...DEFAULT_LABELS.sailStatus, ...labels?.sailStatus },
+    maneuver: { ...DEFAULT_LABELS.maneuver, ...labels?.maneuver },
     tour: { ...DEFAULT_LABELS.tour, ...labels?.tour },
   }), [labels]);
   const [mode, setMode] = useState<Mode>(initialMode);
@@ -71,7 +73,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [guide, setGuide] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
-    if (mode === "free") Object.assign(yachtRef.current, free, { heading: undefined, travel: undefined, jibShape: undefined, fill: 1, airSpeed: 12, apparentWind: undefined, wind: undefined, speedKn: 0 });
+    if (mode === "free") Object.assign(yachtRef.current, free, { rigResolved: false, sailSide: undefined, heading: undefined, travel: undefined, jibShape: undefined, fill: 1, airSpeed: 12, apparentWind: undefined, wind: undefined, speedKn: 0 });
   }, [free, mode]);
   const sim = useSailingSim(yachtRef, mode === "sail");
   const t = sim.telemetry;
@@ -130,9 +132,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {(["sails", "main", "jib"] as CameraView[]).includes(view) && <div className={styles.sailViews}>
           {(["sails", "main", "jib"] as const).map((item) => <button key={item} className={styles.button} aria-pressed={view === item} onClick={() => selectView(item)}>{item === "sails" ? L.scene.both : L.scene[item]}</button>)}
         </div>}
-        {mode === "sail" && <div className={styles.windReadout} aria-label={showFlow ? L.scene.apparent : L.wind}>
-          {showFlow ? `${L.scene.apparent}: ${Math.round(t.awaSigned)}° · ${t.awsKn.toFixed(0)} kn` : `${L.wind}: ${Math.round(sim.wind.fromDeg)}° · ${sim.wind.twsKn.toFixed(0)} kn`}
-        </div>}
+        {mode === "sail" && <WindReadout awa={t.awaSigned} aws={t.awsKn} tws={sim.wind.twsKn}
+          showFlow={showFlow} onToggle={() => setShowFlow(!showFlow)} labels={L.scene} />}
         <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
@@ -148,7 +149,9 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <Readout label={L.heel} value={degrees(t.heelDeg)} />
             <Readout label={L.scene.heading} value={degrees(t.heading)} />
           </div>
-          <p className={styles.coach}>{L.coach[t.coach]}</p>
+          <p className={styles.coach} data-maneuver={t.maneuver}>
+            {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
+          </p>
         </> : <p className={styles.coach}>{L.orbitHint}</p>}
       </section>
       <aside ref={panelRef} className={styles.panel}>
@@ -161,6 +164,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {mode === "sail" ? <>
           <Slider label={L.mainsheet} value={sim.controls.mainSheet} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("mainSheet", v)} />
           <Slider label={L.jibsheet} value={sim.controls.jibSheet} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("jibSheet", v)} />
+          <p className={styles.sheetScale}>{L.sheetScale}</p>
           <div className={styles.sailFeedback}>
             <span>{L.scene.main}: {L.sailStatus[t.mainStatus]}</span>
             <span>{L.scene.jib}: {L.sailStatus[t.jibStatus]}</span>
@@ -197,7 +201,6 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         </>}
         <div className="mt-2 flex flex-wrap gap-1">
           <button className={styles.button} aria-pressed={light} onClick={() => setLight(!light)}>{L.scene.light}</button>
-          {mode === "sail" && <button className={styles.button} aria-pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</button>}
           {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggle}>{L.sound}</button>}
         </div>
       </aside>

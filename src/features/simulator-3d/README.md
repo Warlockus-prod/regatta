@@ -68,3 +68,10 @@ proportions follow docs/design/SAILING_PHYSICS_REFERENCE.md.
 
 Heel / boom / rudder directions live in the `SIGN` constant in `Yacht.tsx`. If a
 motion reads backwards after a visual check, flip the relevant 1 to -1.
+
+## Automatic sail transfer
+
+Sailing mode now resolves a moving rig before each force tick. Steering changes
+tack automatically while user sheet levels remain fixed. See
+[the transfer and wind audit](../../../docs/design/sail-transfer-2026-09-08.md)
+for coordinate conventions, assistance limits and release checks.

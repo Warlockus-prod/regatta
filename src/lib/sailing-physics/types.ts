@@ -8,7 +8,7 @@
 // - Boat frame: +x = starboard, +y = forward (bow).
 // - TWA in [-180, 180]. Positive = wind from starboard (starboard tack).
 //   Negative = wind from port (port tack).
-// - Heel positive = heeled to leeward (away from wind).
+// - Heel positive = mast leans to starboard; negative = port.
 // - Heading in [0, 360), compass bearing (0 = north, 90 = east, 180 = south).
 // ============================================================================
 
@@ -25,10 +25,18 @@ export interface BoatState {
   heading: number;
   /** Boat speed over water through hull axis, knots. */
   boatSpeed: number;
-  /** Heel angle, degrees. Positive = heeled to leeward. */
+  /** Heel angle, degrees. Positive = starboard, negative = port. */
   heel: number;
   /** Leeway angle, degrees. Drift off bow axis toward leeward. */
   leeway: number;
+}
+
+/** Optional resolved rig for runtimes that animate sheet transfer. Angles and
+ * loading must describe the same sails that are drawn. Omission preserves the
+ * steady-trim engine used by the polar solver, lessons and race server. */
+export interface ResolvedRig {
+  main: { angleOff: number; side: 1 | -1; load: number };
+  jib: { angleOff: number; side: 1 | -1; load: number };
 }
 
 /** User inputs that shape the sails. All in [0, 1] except jibSide. */

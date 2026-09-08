@@ -42,8 +42,8 @@
   .panel { padding: 12px; }
   .embed .layout { display: flex; flex-direction: column; }
   .embed .visual { flex: 1; }
-  .embed .panel { flex: 0 0 auto; max-height: 31dvh; }
-  .embed .hint { display: none; }
+  .embed .panel { flex: 0 0 auto; max-height: 25dvh; }
+  .embed .hint { margin-bottom: 4px; font-size: 11px; line-height: 1.4; }
   .embed .header { margin-bottom: 4px; }
   .embed .toolbar { padding: 0 8px; }
   .embed .stats { padding: 6px 12px; }
@@ -55,7 +55,18 @@
   .embed .panel { max-height: none; }
 }
 
-.windReadout { flex: 0 0 auto; padding: 6px 12px; border-bottom: 1px solid var(--border-color, #24364a); color: var(--accent-cyan); font-size: 11px; line-height: 1.4; text-align: right; }
+.windReadout { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--border-color, #24364a); color: var(--text-primary); font-size: 11px; line-height: 1.35; }
+.windReadout svg { flex: 0 0 54px; }
+.airArrow { color: var(--accent-cyan); }
+.windNumbers { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.windNumbers strong { font-size: 12px; font-weight: 600; }
+.windNumbers strong span { color: var(--accent-cyan); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.windNumbers > span { color: var(--text-secondary); }
+.windReadout .button { flex-shrink: 0; max-width: 100px; font-size: 12px; padding: 6px 8px; }
+.embed .windReadout { padding: 4px 10px; }
+.embed .windReadout svg { flex-basis: 40px; width: 40px; height: 40px; }
+.sheetScale { margin: 0 0 8px; font-size: 11px; color: var(--text-secondary); }
+.coach[data-maneuver="tacking"], .coach[data-maneuver="gybing"] { color: var(--accent-cyan); }
 
 .toolbar { overflow-x: auto; }
 .toolbar .button, .sailViews .button { flex-shrink: 0; }

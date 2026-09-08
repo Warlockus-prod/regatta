@@ -1,4 +1,4 @@
-import type { BoatState, Controls, BoatParams, TickResult, TickDiagnostics } from './types';
+import type { BoatState, Controls, BoatParams, TickResult, TickDiagnostics, ResolvedRig } from './types';
 import { apparentWind, twaFromCompass, vmg, KN_TO_MPS, MPS_TO_KN } from './wind';
 import { computeSailForce, slotMultiplier, type SailConfig } from './forces';
 import { computeBalance } from './balance';
@@ -81,6 +81,7 @@ export function tick(
   controls: Controls,
   params: BoatParams,
   dt: number,
+  rig?: ResolvedRig,
 ): TickResult {
   // --- Step 1: apparent wind ---
   const twa = twaFromCompass(state.trueWindDir, state.heading);
@@ -97,14 +98,16 @@ export function tick(
   // comes from). TWA > 0 => wind from starboard => sails on port (sailSide = -1).
   // TWA < 0 => wind from port => sails on starboard (sailSide = +1).
   // TWA == 0 (dead upwind) => undefined; pick -1 by convention (starboard tack).
-  const mainSideSign: 1 | -1 = twa > 0 ? -1 : twa < 0 ? 1 : -1;
+  const mainSideSign: 1 | -1 = rig?.main.side ?? (twa > 0 ? -1 : twa < 0 ? 1 : -1);
   // Jib side: normally same as main; for wing-on-wing, opposite.
-  const jibSideSign: 1 | -1 = controls.jibSide === -1
+  const jibSideSign: 1 | -1 = rig?.jib.side ?? (controls.jibSide === -1
     ? (mainSideSign === 1 ? -1 : 1)
-    : mainSideSign;
+    : mainSideSign);
 
-  const mainAngle = sailAngleOff(controls.mainSheet, 0, params.mainMaxOff);
-  const jibAngle = sailAngleOff(controls.jibSheet, params.jibMinOff, params.jibMaxOff);
+  const mainAngle = rig?.main.angleOff ?? sailAngleOff(controls.mainSheet, 0, params.mainMaxOff);
+  const jibAngle = rig?.jib.angleOff ?? sailAngleOff(controls.jibSheet, params.jibMinOff, params.jibMaxOff);
+  const mainLoad = Math.max(0, Math.min(1, rig?.main.load ?? 1));
+  const jibLoad = Math.max(0, Math.min(1, rig?.jib.load ?? 1));
 
   const mainArea = controls.mainHoisted === false ? 0 : effectiveArea(params.mainArea, controls.reef);
   const jibArea = params.jibArea * jibAreaFraction(controls.jibFurl);
@@ -112,7 +115,7 @@ export function tick(
   // --- Step 3-4: compute sail forces ---
   // Jib first (we need its AoA/stall state for the slot effect on main).
   const jibCfg: SailConfig = {
-    area: jibArea,
+    area: jibArea * jibLoad,
     angleOff: jibAngle,
     side: jibSideSign,
     twist: controls.jibTwist,
@@ -124,13 +127,13 @@ export function tick(
     jibAoA: jibF.aoa,
     jibStalled: jibF.stalled,
     jibFurl01: controls.jibFurl,
-    jibAreaEffective: jibArea,
+    jibAreaEffective: jibArea * jibLoad,
     jibSide: jibSideSign,
     mainSide: mainSideSign,
   });
 
   const mainCfg: SailConfig = {
-    area: mainArea,
+    area: mainArea * mainLoad,
     angleOff: mainAngle,
     side: mainSideSign,
     twist: controls.mainTwist,
