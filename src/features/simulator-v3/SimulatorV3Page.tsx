@@ -331,7 +331,7 @@ export default function SimulatorV3Page() {
       className={`page-enter flex flex-col ${
         embed
           ? 'h-[100dvh] overflow-hidden'
-          : 'min-h-[calc(100vh-56px)]'
+          : 'min-h-[calc(100vh-var(--site-nav-h,56px))]'
       }`}
       style={{ background: '#050b18' }}
     >

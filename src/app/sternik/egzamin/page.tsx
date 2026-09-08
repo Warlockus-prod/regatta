@@ -353,7 +353,7 @@ export default function SternikExamPage() {
       {/* Top bar: timer + finish (sticky so the clock stays visible on mobile) */}
       <div
         className="sticky z-30 -mx-4 mb-3 flex items-center justify-between gap-3 px-4 py-2 text-sm"
-        style={{ top: 56, background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-subtle)' }}
+        style={{ top: "var(--site-nav-h, 56px)", background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-subtle)' }}
       >
         <div className="flex items-center gap-2">
           <span

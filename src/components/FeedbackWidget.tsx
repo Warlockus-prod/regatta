@@ -179,9 +179,10 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
             { es: 'Abrir asistente', fr: 'Ouvrir l\'assistant', de: 'Assistent oeffnen', it: 'Apri assistente' })}
           className="fixed bottom-4 right-4 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
           style={{
-            background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)',
-            color: '#0a1628',
-            boxShadow: '0 4px 16px rgba(0, 212, 255, 0.25)',
+            background: 'var(--bg-secondary)',
+            color: 'var(--text-secondary)',
+            border: '1px solid var(--border-subtle)',
+            boxShadow: 'none',
           }}
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

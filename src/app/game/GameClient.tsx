@@ -1307,7 +1307,7 @@ export default function GamePage() {
   // RACING / COUNTDOWN / FINISHED SCREENS (Canvas)
   // =====================================================================
   return (
-    <div className="relative w-full" style={{ height: 'calc(100dvh - 56px)' }}>
+    <div className="relative w-full" style={{ height: 'calc(100dvh - var(--site-nav-h, 56px))' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
       {/* HUD - top bar */}

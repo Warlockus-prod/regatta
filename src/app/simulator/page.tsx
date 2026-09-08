@@ -815,7 +815,7 @@ export default function SimulatorPage() {
 
   // ---- Render ----
   return (
-    <div className="page-enter flex flex-col min-h-[calc(100vh-56px)]">
+    <div className="page-enter flex flex-col min-h-[calc(100vh-var(--site-nav-h,56px))]">
       {/* Tier header: Basics (this page) / Trainer / 3D Boat.
           Hidden entirely under ?embed=1 (iOS app embeds this page chromelessly). */}
       {!isEmbed && (
@@ -873,7 +873,7 @@ export default function SimulatorPage() {
       </div>
 
       {/* Info Panel */}
-      <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-56px)]"
+      <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
            style={{ background: 'rgba(15, 32, 53, 0.6)' }}>
 
         <p className="text-sm leading-relaxed" style={{color: "var(--text-secondary)"}}>

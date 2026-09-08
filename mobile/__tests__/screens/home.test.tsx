@@ -1,74 +1,36 @@
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from "@testing-library/react-native";
 
-jest.mock('@react-native-async-storage/async-storage', () =>
-  require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
-);
+jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush }), useLocalSearchParams: () => ({}) }));
+jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US" }] }));
 
-jest.mock('expo-router', () => ({
-  Stack: { Screen: () => null },
-  useRouter: () => ({
-    push: jest.fn(),
-    back: jest.fn(),
-    replace: jest.fn(),
-  }),
-  useLocalSearchParams: () => ({}),
-  Link: ({ children }: { children: React.ReactNode }) => children,
-}));
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Home from "../../app/index";
+import { renderWithProviders } from "../../src/test-utils";
 
-jest.mock('expo-localization', () => ({
-  getLocales: () => [{ languageTag: 'en-US' }],
-}));
+beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); });
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import Home from '../../app/index';
-import { renderWithProviders } from '../../src/test-utils';
-
-// Home mounts WindNowCard, which fetches /api/weather on mount. Stub fetch so
-// the test resolves immediately instead of hitting the network (and waiting
-// out the 8s request timeout).
-const originalFetch = global.fetch;
-beforeEach(async () => {
-  await AsyncStorage.clear();
-  global.fetch = jest.fn(async () => ({
-    ok: true,
-    status: 200,
-    json: async () => ({
-      provider: 'open-meteo',
-      ts: '2026-05-25T12:00:00Z',
-      wind: { speedKn: 12, dirDeg: 270, gustKn: 18 },
-      wave: { heightM: 0.5, dirDeg: 270, periodS: 4 },
-      attribution: 'Weather data by Open-Meteo.com (CC BY 4.0)',
-    }),
-  })) as unknown as typeof fetch;
-});
-
-afterEach(() => {
-  global.fetch = originalFetch;
-  jest.clearAllMocks();
-});
-
-describe('Home screen', () => {
-  it('renders the brand wordmark', async () => {
+describe("Home entry flows", () => {
+  it("takes a new learner directly to the first lesson", async () => {
     const view = renderWithProviders(<Home />);
-    await waitFor(() => {
-      view.getByText('Regatta');
-      view.getByText('Week to');
-    });
+    await waitFor(() => expect(view.getByRole("button", { name: "Start the first lesson" }).props.accessibilityState.disabled).not.toBe(true));
+    fireEvent.press(view.getByRole("button", { name: "Start the first lesson" }));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/bootcamp/[id]", params: { id: "wind-direction" } });
   });
-
-  it('renders all three primary cards (Bootcamp, Quick, Rules) regardless of language', async () => {
+  it("resumes the actual unfinished lesson with nonsequential progress", async () => {
+    await AsyncStorage.setItem("regatta.progress.bootcamp.v1", JSON.stringify(["wind-direction", "tacking"]));
+    await AsyncStorage.setItem("regatta.progress.bootcamp.lastViewed.v1", JSON.stringify("how-sail-works"));
     const view = renderWithProviders(<Home />);
-    await waitFor(() => view.getByText('Regatta'));
-    // Bootcamp is the same word in all 7 supported locales.
-    view.getByText('Bootcamp');
+    await waitFor(() => view.getByRole("button", { name: "Continue learning" }));
+    fireEvent.press(view.getByRole("button", { name: "Continue learning" }));
+    expect(mockPush).toHaveBeenCalledWith({ pathname: "/bootcamp/[id]", params: { id: "how-sail-works" } });
   });
-
-  it('honors the lang persisted in AsyncStorage', async () => {
-    await AsyncStorage.setItem('regatta.lang.v1', 'pl');
+  it("honors persisted Polish language and keeps practice reachable", async () => {
+    await AsyncStorage.setItem("regatta.lang.v1", "pl");
     const view = renderWithProviders(<Home />);
-    // Polish tagline is "Trener zeglarstwa". Match the full phrase: the
-    // simulators quick-card caption ("Podstawy / Trener / 3D") also
-    // contains the bare word "Trener".
-    await waitFor(() => view.getByText(/Trener zeglarstwa/));
+    await waitFor(() => view.getByText("Żeglarstwo. Krok po kroku."));
+    fireEvent.press(view.getByText("Trening"));
+    expect(mockPush).toHaveBeenCalledWith("/simulators");
   });
 });

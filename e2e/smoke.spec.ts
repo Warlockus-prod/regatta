@@ -36,7 +36,7 @@ test.describe('Smoke: critical user flows', () => {
 
     // Primary nav - at least 4 nav entries should be wired to known routes
     const nav = page.locator('nav').first();
-    for (const href of ['/', '/start', '/simulator', '/game']) {
+    for (const href of ['/', '/learn', '/practice', '/race', '/library']) {
       await expect(nav.locator(`a[href="${href}"]`).first()).toBeVisible();
     }
 
@@ -46,6 +46,16 @@ test.describe('Smoke: critical user flows', () => {
     // Switch back to RU so subsequent tests keep their seeded language
     await langTrigger.click();
     await page.getByRole('menuitemradio', { name: /Русский/ }).click();
+  });
+
+  test("library search reaches the radio course and keeps its section selected", async ({ page }) => {
+    await page.goto("/library");
+    const search = page.getByRole("searchbox", { name: "Поиск по разделам" });
+    await search.fill("радио");
+    await expect(page.locator("main a")).toHaveCount(1);
+    await page.getByRole("link", { name: /Радиосвязь SRC/ }).click();
+    await expect(page).toHaveURL(/\/radio$/);
+    await expect(page.locator('nav a[href="/learn"]')).toHaveAttribute("aria-current", "page");
   });
 
   test('/game opens 3-preset menu and reaches briefing', async ({ page }) => {

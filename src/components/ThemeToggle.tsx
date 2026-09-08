@@ -53,7 +53,7 @@ export default function ThemeToggle() {
       onClick={cycle}
       title={label}
       aria-label={label}
-      className="flex w-8 h-8 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(127,127,127,0.14)] transition"
+      className="flex w-11 h-11 items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[rgba(127,127,127,0.14)] transition"
     >
       {mode === 'light' ? (
         // sun

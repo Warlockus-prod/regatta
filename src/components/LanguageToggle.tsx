@@ -31,7 +31,7 @@ export default function LanguageToggle() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex h-8 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition"
+        className="flex h-11 items-center gap-1.5 rounded-full px-2.5 text-[11px] font-semibold transition"
         aria-label="Choose language"
         aria-expanded={open}
         aria-haspopup="menu"

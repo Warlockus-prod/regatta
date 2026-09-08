@@ -4,7 +4,6 @@ import { cookies, headers } from "next/headers";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import ClientErrorReporter from "@/components/ClientErrorReporter";
-import OnboardingTour from "@/components/OnboardingTour";
 import HelpOverlay from "@/components/HelpOverlay";
 import FeedbackWidget from "@/components/FeedbackWidget";
 import BootcampFooterNav from "@/components/BootcampFooterNav";
@@ -263,7 +262,6 @@ export default async function RootLayout({
           <ThemeManager />
           <ServiceWorkerRegistrar />
           <ClientErrorReporter />
-          <OnboardingTour />
           <HelpOverlay />
           <Navigation />
           {/*

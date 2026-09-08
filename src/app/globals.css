@@ -506,3 +506,6 @@ button:not(:disabled),
     transform: none;
   }
 }
+
+/* Match sticky section controls and anchor targets to the responsive header. */
+html { scroll-padding-top: calc(var(--site-nav-h, 56px) + 16px); }

@@ -42,6 +42,8 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
       - name: Bundle-size budget check
         run: node scripts/check-bundle-size.mjs
+      - name: Product navigation routes and search
+        run: npx vitest run src/lib/product
       - name: Physics engine tests
         run: npm run test:physics
       - name: 3D camera and sailing target regression tests

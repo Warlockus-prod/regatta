@@ -9,6 +9,7 @@ import { I18nProvider, useI18n } from '../src/i18n/context';
 import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
+import { AppNavigation } from '../src/navigation/AppNavigation';
 import { colors } from '../src/design-system/tokens';
 
 // Block the native splash from auto-hiding before the JS bundle has
@@ -38,6 +39,7 @@ export default function RootLayout() {
             <AnalyticsProvider>
               <SplashGate>
                 <FirstLaunchGate>
+                  <AppNavigation>
                   <Stack
                     screenOptions={{
                       contentStyle: { backgroundColor: colors.bgPrimary },
@@ -47,6 +49,7 @@ export default function RootLayout() {
                       animation: 'slide_from_right',
                     }}
                   />
+                  </AppNavigation>
                   <StatusBar style="light" />
                 </FirstLaunchGate>
               </SplashGate>

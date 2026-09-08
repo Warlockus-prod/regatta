@@ -1,3 +1,3 @@
-import { ProductHub } from "../../src/navigation/ProductHub";
+import ProductHub from "@/components/product/ProductHub";
 
 export default function Page() { return <ProductHub section="practice" />; }

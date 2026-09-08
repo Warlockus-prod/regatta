@@ -1,6 +1,7 @@
-import { type ReactNode } from 'react';
+import { useContext, type ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NavigationInsetContext } from '../../navigation/NavigationContext';
 import { colors } from '../tokens';
 
 interface ScreenProps {
@@ -24,13 +25,14 @@ export function Screen({
   style,
 }: ScreenProps) {
   const insets = useSafeAreaInsets();
+  const hasNavigation = useContext(NavigationInsetContext);
   return (
     <View
       style={[
         styles.root,
         {
           paddingTop: noTopInset ? 0 : insets.top,
-          paddingBottom: noBottomInset ? 0 : insets.bottom,
+          paddingBottom: noBottomInset || hasNavigation ? 0 : insets.bottom,
         },
         style,
       ]}

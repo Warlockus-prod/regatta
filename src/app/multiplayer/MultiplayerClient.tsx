@@ -554,7 +554,7 @@ export default function MultiplayerClient() {
 
   // Racing / countdown / finished
   return (
-    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - 56px)' }}>
+    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
       <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
 
       {phase !== "finished" && <button onClick={leaveLobby} className="absolute top-2 right-3 min-h-11 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 text-xs">

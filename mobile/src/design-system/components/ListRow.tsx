@@ -33,6 +33,7 @@ export function ListRow({
 }: ListRowProps) {
   return (
     <Pressable
+      accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
