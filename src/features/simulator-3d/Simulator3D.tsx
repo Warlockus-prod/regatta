@@ -130,13 +130,13 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {(["sails", "main", "jib"] as CameraView[]).includes(view) && <div className={styles.sailViews}>
           {(["sails", "main", "jib"] as const).map((item) => <button key={item} className={styles.button} aria-pressed={view === item} onClick={() => selectView(item)}>{item === "sails" ? L.scene.both : L.scene[item]}</button>)}
         </div>}
+        {mode === "sail" && <div className={styles.windReadout} aria-label={showFlow ? L.scene.apparent : L.wind}>
+          {showFlow ? `${L.scene.apparent}: ${Math.round(t.awaSigned)}° · ${t.awsKn.toFixed(0)} kn` : `${L.wind}: ${Math.round(sim.wind.fromDeg)}° · ${sim.wind.twsKn.toFixed(0)} kn`}
+        </div>}
         <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
           {mode === "sail" && <>
-            <div className={styles.windBadge} aria-label={showFlow ? L.scene.apparent : L.wind}>
-              {showFlow ? `${L.scene.apparent}: ${Math.round(t.awaSigned)}° · ${t.awsKn.toFixed(0)} kn` : `${L.wind}: ${Math.round(sim.wind.fromDeg)}° · ${sim.wind.twsKn.toFixed(0)} kn`}
-            </div>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
           </>}

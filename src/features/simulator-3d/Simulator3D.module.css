@@ -55,7 +55,7 @@
   .embed .panel { max-height: none; }
 }
 
-.windBadge { position: absolute; top: 12px; right: 12px; padding: 8px 12px; border-radius: 8px; background: rgba(5,20,32,.82); color: var(--accent-cyan); font-size: 12px; pointer-events: none; }
+.windReadout { flex: 0 0 auto; padding: 6px 12px; border-bottom: 1px solid var(--border-color, #24364a); color: var(--accent-cyan); font-size: 11px; line-height: 1.4; text-align: right; }
 
 .toolbar { overflow-x: auto; }
 .toolbar .button, .sailViews .button { flex-shrink: 0; }
