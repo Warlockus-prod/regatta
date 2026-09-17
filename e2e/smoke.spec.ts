@@ -217,6 +217,9 @@ test.describe('Smoke: critical user flows', () => {
 });
 
 test("3D embed keeps slider keys local and essential controls inside the viewport", async ({ page }) => {
+  // Software WebGL in CI takes ~25s before the final camera click (trace from
+  // run 35257508736). Keep every interaction/assertion and budget the whole flow.
+  test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/simulator2?embed=1&lang=en");
   const main = page.getByRole("slider", { name: "Mainsheet (boom)", exact: true });
