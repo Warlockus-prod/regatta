@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { sectionTwistDegrees } from "@/lib/sailing-physics/forces";
 import { SAIL_PLAN, sailDimensions } from "@/lib/sailing-physics/sail-plan";
+import { outhaulDepthFactor } from "@/lib/sailing-physics/mainsail-shape";
 
 export type SailKind = "main" | "jib";
-export interface SailShape { camber: number; twist: number; luff: number; reef: number; furl?: number; side: number; time: number; fill?: number; airSpeed?: number }
+export interface SailShape { camber: number; twist: number; luff: number; reef: number; furl?: number; side: number; time: number; fill?: number; airSpeed?: number; boomRise?: number; outhaulEase?: number }
 export const FORESTAY_AXIS = new THREE.Vector3(SAIL_PLAN.jib.luffOffset, SAIL_PLAN.jib.height, 0).normalize();
 const UP = new THREE.Vector3(0, 1, 0);
 const anchor = new THREE.Vector3();
@@ -27,10 +28,16 @@ export function sailPoint(kind: SailKind, u: number, v: number, shape: SailShape
   const width = Math.max(0, plan.foot * (1 - v) + plan.roach * Math.sin(Math.PI * v));
   const rise = plan.rise * (1 - v);
   chord.set(-width * u, rise * u, 0);
+  if (kind === "main" && shape.boomRise) {
+    const pitch = THREE.MathUtils.degToRad(THREE.MathUtils.clamp(shape.boomRise, 0, 12));
+    const x = chord.x, y = chord.y;
+    chord.x = x * Math.cos(pitch) + y * Math.sin(pitch);
+    chord.y = -x * Math.sin(pitch) + y * Math.cos(pitch);
+  }
   // Broad forward draft, shallow near the head. Reverses with the tack.
   const draft = draftProfile(u, kind);
   const depth = width * (0.08 + 0.08 * THREE.MathUtils.clamp(shape.camber, 0, 1)) *
-    (0.65 + 0.35 * Math.sin(Math.PI * v));
+    (0.65 + 0.35 * Math.sin(Math.PI * v)) * (kind === "main" ? outhaulDepthFactor(shape.outhaulEase, v) : 1);
   const fill = THREE.MathUtils.clamp(shape.fill ?? 1, 0, 1);
   const air = Math.max(0, shape.airSpeed ?? 12);
   const flutterRate = 5 + Math.min(air, 30) * 0.65;

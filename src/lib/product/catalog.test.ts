@@ -3,6 +3,11 @@ import { existsSync } from "node:fs";
 import { destinations, sectionForPath, searchDestinations, sections } from "./catalog";
 
 describe("product navigation", () => {
+  it("does not require a connection for the bundled simulators or sail theory", () => {
+    expect(destinations.find(d => d.id === "boat")?.online).not.toBe(true);
+    expect(destinations.find(d => d.id === "sails")?.online).not.toBe(true);
+    expect(destinations.find(d => d.id === "trainer")?.online).not.toBe(true);
+  });
   it("keeps nested exam, simulator and race routes in their parent section", () => {
     expect(sectionForPath("/radio/symulator?scenario=mayday", "web")).toBe("learn");
     expect(sectionForPath("/kursy/radio", "native")).toBe("learn");
@@ -11,6 +16,8 @@ describe("product navigation", () => {
     expect(sectionForPath("/multiplayer/race/ABC123", "native")).toBe("race");
     expect(sectionForPath("/racing", "web")).toBe("learn");
     expect(sectionForPath("/race/", "web")).toBe("race");
+    expect(sectionForPath("/learn/sails/rig-basics", "web")).toBe("learn");
+    expect(sectionForPath("/learn/sails/rig-basics", "native")).toBe("learn");
   });
   it("searches localized words without requiring accents or exact casing", () => {
     expect(searchDestinations("ZAGLE", "pl", "native").some(d => d.id === "trainer")).toBe(true);

@@ -1,5 +1,9 @@
 import { words } from "./catalog";
 export const copy = {
+  menu: words("Меню", "Menu", "Menu", "Menú", "Menu", "Menü", "Menu"),
+  allSections: words("Все разделы", "All sections", "Wszystkie działy", "Todas las secciones", "Toutes les rubriques", "Alle Bereiche", "Tutte le sezioni"),
+  shortcuts: words("Быстрый переход", "Quick access", "Szybki dostęp", "Acceso rápido", "Accès rapide", "Schnellzugriff", "Accesso rapido"),
+  menuIntro: words("Выбери раздел или найди его по названию. Обучение можно продолжить с главной.", "Choose a section or search by name. Resume learning from Home.", "Wybierz dział lub wyszukaj nazwę. Wróć do nauki na ekranie Start.", "Elige una sección o busca por nombre. Continúa aprendiendo desde Inicio.", "Choisis une rubrique ou recherche son nom. Reprends ton apprentissage depuis l'accueil.", "Wähle einen Bereich oder suche nach dem Namen. Setze dein Lernen auf der Startseite fort.", "Scegli una sezione o cercala per nome. Riprendi a imparare dalla Home."),
   hello: words("Парусный спорт. Шаг за шагом.", "Sailing. One step at a time.", "Żeglarstwo. Krok po kroku.", "Vela. Paso a paso.", "La voile. Pas à pas.", "Segeln. Schritt für Schritt.", "Vela. Un passo alla volta."),
   intro: words("Разберись с ветром, попробуй управление и выйди на первую гонку.", "Understand the wind, try the controls and sail your first race.", "Poznaj wiatr, spróbuj sterowania i wystartuj w pierwszych regatach.", "Conoce el viento, prueba los mandos y navega tu primera regata.", "Comprends le vent, essaie les commandes et lance ta première course.", "Verstehe den Wind, probiere die Steuerung und segle dein erstes Rennen.", "Comprendi il vento, prova i comandi e naviga la tua prima regata."),
   start: words("Начать первый урок", "Start the first lesson", "Zacznij pierwszą lekcję", "Empezar la primera lección", "Commencer la première leçon", "Erste Lektion starten", "Inizia la prima lezione"),

@@ -14,12 +14,13 @@ import {
   uiToControls,
 } from '../runtime/create-runtime-state';
 import { stepRuntime } from '../runtime/step-runtime';
+import { createFixedClock, SAILING_STEP_SECONDS } from '../../sailing-lab/runtime/fixed-clock';
+import type { SailingSession } from "../../sailing-lab/runtime/session";
 import { type RuntimeState } from '../runtime/runtime-types';
 import { recommendedTrim } from '../runtime/trim-heuristics';
 import {
   clamp,
-  fromJibSheet,
-  fromMainSheet,
+  DEFAULT_UI,
   pointOfSailFor,
   toJibSheet,
   toMainSheet,
@@ -37,25 +38,18 @@ import {
 // a persistent runtime forward with rAF". That is what Contracts 2 and 3
 // (live overtrim, live reef recovery) require.
 //
-// Frame loop:
-// 1. rAF callback receives a timestamp.
-// 2. Elapsed ms since last frame is capped at 100 to avoid post-tab-hidden
-//    burst simulation.
-// 3. Accumulated lag is divided by a fixed dt (1/30). While enough lag is
-//    available, stepRuntime runs one step at a time. This decouples sim
-//    stepping from display refresh - sim stays stable on 120 Hz screens
-//    and after short GC pauses.
-// 4. A frame counter bumps so React renders with the new runtime snapshot.
+// The shared 30 Hz clock owns accumulation, pause and discontinuities.
+// A view switch never restarts it. Background tabs do not fast-forward.
 //
 // Reset clears the runtime and re-settles from the current UI.
 // ---------------------------------------------------------------------------
 
-const FIXED_DT = 1 / 30;
-const MAX_LAG_MS = 100;
+const FIXED_DT = SAILING_STEP_SECONDS;
 
 interface Options {
   ui: UiState;
   tp: TpFn;
+  paused?: boolean;
 }
 
 interface Result {
@@ -66,15 +60,18 @@ interface Result {
    * where the captured `ui` lags one render behind a concurrent setUi.
    */
   reset: (nextUi: UiState) => void;
+  restore: (session: SailingSession, nextUi: UiState) => void;
 }
 
-export function useSimulatorV3({ ui, tp }: Options): Result {
+export function useSimulatorV3({ ui, tp, paused = false }: Options): Result {
   const params = useMemo(() => getBoatParams(), []);
 
   // Mutable runtime lives outside React state to avoid N re-renders per
   // frame (we only need one). `frame` is just a tick counter for React.
-  const stateRef = useRef<RuntimeState>(createRuntimeState({ ui, params }));
+  const [initialRuntime] = useState(() => createRuntimeState({ ui, params }));
+  const stateRef = useRef<RuntimeState>(initialRuntime);
   const targetRef = useRef<Controls>(stateRef.current.target);
+  const trimRef = useRef(ui.mainTrim);
   // targetHeading kept in a ref so the env useEffect can update it without
   // racing with the fixed-step loop (loop reads .current each tick).
   const targetHeadingRef = useRef<number>(stateRef.current.targetHeading);
@@ -86,8 +83,9 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     windModeRef.current = ui.windMode;
   }, [ui.windMode]);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  const lastTimeRef = useRef<number | null>(null);
-  const accumRef = useRef(0);
+  const clockRef = useRef(createFixedClock());
+  const pausedRef = useRef(paused);
+  useEffect(() => { pausedRef.current = paused; }, [paused]);
   // Telemetry anchor for PR-5 delta-sensitive feedback. We capture
   // (trimScore, heelAbs, t) at a stable point up to ~1.5 s in the past,
   // then measure delta = current - anchor each frame. When the anchor
@@ -101,17 +99,8 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   // directly below so the wind rotates immediately.
   useEffect(() => {
     targetRef.current = uiToControls(ui, params);
-  }, [
-    ui.mainAngle,
-    ui.jibAngle,
-    ui.mainTwistPct,
-    ui.jibTwistPct,
-    ui.reefLevel,
-    ui.jibFurlPct,
-    ui.sailsRaised,
-    ui.tack,
-    params,
-  ]);
+    trimRef.current = ui.mainTrim;
+  }, [ui, params]);
 
   // PR-3 heading intent: TWA/tack express the TARGET, not an instant TWA.
   // TrueWindDir stays pinned at whatever createRuntimeState settled to - it
@@ -142,37 +131,22 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     };
   }, [ui.twa, ui.tack, ui.windSpeed]);
 
-  // Main simulation loop. We use setInterval(FIXED_DT) rather than rAF
-  // because requestAnimationFrame is paused by the browser when the tab is
-  // hidden, which prevents physics from ticking in background tabs and
-  // breaks automated preview verification (headless tabs report
-  // document.hidden === true). setInterval keeps ticking, and the visual
-  // refresh is still driven by the browser's natural paint cadence via
-  // React renders. FIXED_DT = 1/30 keeps CPU cost negligible.
-  //
-  // We still accumulate elapsed time and cap per-frame lag so that a tab
-  // unfreeze burst (e.g. laptop waking from sleep) does not simulate
-  // minutes of physics in one burst.
+  // Timer publishes to React, but the common clock determines whether and
+  // how many fixed steps run. Never simulate hidden time to satisfy a test.
   useEffect(() => {
+    const clock = clockRef.current;
     const tickInterval = () => {
-      const now = performance.now();
-      const prev = lastTimeRef.current ?? now;
-      lastTimeRef.current = now;
-      const elapsedMs = Math.min(now - prev, MAX_LAG_MS);
-      accumRef.current += elapsedMs / 1000;
-      let advanced = false;
-      while (accumRef.current >= FIXED_DT) {
+      const advanced = clock.advance(performance.now(), !pausedRef.current && !document.hidden, (dt) => {
         stateRef.current = stepRuntime(
           stateRef.current,
           targetRef.current,
           targetHeadingRef.current,
           params,
-          FIXED_DT,
+          dt,
           windModeRef.current,
+          trimRef.current,
         );
-        accumRef.current -= FIXED_DT;
-        advanced = true;
-      }
+      });
       if (advanced) setFrame((f) => (f + 1) | 0);
     };
     const intervalMs = Math.max(1, Math.round(FIXED_DT * 1000));
@@ -180,7 +154,7 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     return () => {
       if (intervalRef.current !== null) clearInterval(intervalRef.current);
       intervalRef.current = null;
-      lastTimeRef.current = null;
+      clock.reset();
     };
   }, [params]);
 
@@ -189,9 +163,9 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       const fresh = createRuntimeState({ ui: nextUi, params });
       stateRef.current = fresh;
       targetRef.current = fresh.target;
+      trimRef.current = nextUi.mainTrim;
       targetHeadingRef.current = fresh.targetHeading;
-      accumRef.current = 0;
-      lastTimeRef.current = null;
+      clockRef.current.reset();
       // Drop telemetry anchor on reset so trim/heel deltas don't report
       // a huge jump against a now-unrelated prior scenario.
       telemetryAnchorRef.current = null;
@@ -199,6 +173,22 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     },
     [params],
   );
+
+  const restore = useCallback((session: SailingSession, nextUi: UiState) => {
+    if (session.steering.mode !== "course-assist") throw new RangeError("Trainer requires assisted steering");
+    // Pause immediately, before the parent state update can reach an effect.
+    pausedRef.current = true;
+    const signedTwa = nextUi.tack === "starboard" ? nextUi.twa : -nextUi.twa;
+    const heading = ((session.wind.baseDir - signedTwa) % 360 + 360) % 360;
+    stateRef.current = { ...session, targetHeading: heading };
+    targetRef.current = uiToControls(nextUi, params);
+    trimRef.current = nextUi.mainTrim;
+    targetHeadingRef.current = heading;
+    windModeRef.current = nextUi.windMode;
+    clockRef.current.reset();
+    telemetryAnchorRef.current = null;
+    setFrame(value => (value + 1) | 0);
+  }, [params]);
 
   // ---------------------------------------------------------------------
   // Optimal trim + reference speed: recomputed only when env or reef/sails
@@ -208,7 +198,8 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
   // ---------------------------------------------------------------------
   const optimalModel = useMemo(() => {
     const signedTwa = ui.tack === 'starboard' ? ui.twa : -ui.twa;
-    const baseControls = uiToControls(ui, params);
+    const baseControls = uiToControls({ ...DEFAULT_UI, sailsRaised: ui.sailsRaised,
+      reefLevel: ui.reefLevel, jibFurlPct: ui.jibFurlPct }, params);
     const init = createInitialState({
       tws: ui.windSpeed,
       twa: signedTwa,
@@ -324,10 +315,11 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     // Live sail angles in degrees, recovered from the runtime's interpolated
     // controls. Scenes draw these instead of ui.mainAngle/ui.jibAngle so the
     // drawn sail eases at winch speed exactly like the physics does.
-    const liveMainAngle = fromMainSheet(rt.live.mainSheet, params.mainMaxOff);
-    const liveJibAngle = fromJibSheet(rt.live.jibSheet, params.jibMinOff, params.jibMaxOff);
+    const liveMainAngle = Math.abs(rt.rig.main);
+    const liveJibAngle = Math.abs(rt.rig.jib);
 
     return {
+      session: rt,
       result,
       optimalResult: optimalModel.optimalResult,
       pos,
@@ -338,8 +330,8 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
       ghostAngles,
       liveMainAngle,
       liveJibAngle,
-      primaryFeedback: picked.text,
-      primaryFeedbackTone: picked.tone,
+      primaryFeedback: rt.mainTrim ? tp("Меняй одну снасть. Сравни угол гика, twist, крен и установившуюся скорость.", "Change one control. Compare boom angle, twist, heel and settled speed.", "Zmieniaj jedną linę. Porównaj kąt bomu, skręt, przechył i ustaloną prędkość.", { es: "Cambia un control. Compara ángulo, torsión, escora y velocidad estable.", fr: "Change une commande. Compare angle, vrillage, gîte et vitesse stabilisée.", de: "Ändere eine Einstellung. Vergleiche Baumwinkel, Twist, Krängung und stabile Fahrt.", it: "Cambia un comando. Confronta angolo, twist, sbandamento e velocità stabile." }) : picked.text,
+      primaryFeedbackTone: rt.mainTrim ? "info" : picked.tone,
       targetHeading: rt.targetHeading,
     };
     // `frame` forces invalidation on every rAF-driven render so the memo
@@ -347,5 +339,5 @@ export function useSimulatorV3({ ui, tp }: Options): Result {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ui, optimalModel, tp, frame]);
 
-  return { sim, reset };
+  return { sim, reset, restore };
 }

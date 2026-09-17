@@ -59,9 +59,16 @@ function isStalled(aoaDeg, stallOnset = 20) {
   return Math.abs(aoaDeg) >= stallOnset;
 }
 
+// src/lib/sailing-physics/mainsail-shape.ts
+function outhaulDepthFactor(ease, height) {
+  const setting = Math.max(0, Math.min(1, ease ?? 0.5));
+  const lower = Math.max(0, 1 - Math.max(0, height) / 0.6) ** 2;
+  return 1 + 0.65 * (setting - 0.5) * lower;
+}
+
 // src/lib/sailing-physics/forces.ts
 var RHO_AIR = 1.225;
-function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1) {
+function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1, cdMultiplier = 1) {
   if (awsMps < 1e-4 || cfg.area < 1e-4) {
     return { drive: 0, side: 0, aoa: 0, stalled: false };
   }
@@ -87,7 +94,7 @@ function computeSectionForce(aw, awsMps, cfg, clMultiplier = 1) {
   const backed = flowDotLeeward < 0;
   const clRaw = sailCl(aoa, 1.5) * clMultiplier;
   const cl = backed ? -clRaw * 0.5 : clRaw;
-  const cd = sailCd(aoa);
+  const cd = sailCd(aoa) * cdMultiplier;
   const stalled = isStalled(aoa, 18);
   const q = 0.5 * RHO_AIR * awsMps * awsMps;
   const liftMag = q * cfg.area * cl;
@@ -122,12 +129,13 @@ function computeSailForce(aw, awsMps, cfg, clMultiplier = 1) {
   for (let i = 0; i < 5; i++) {
     const height = (i + 0.5) / 5;
     const weight = 2 * (1 - height) / 5;
+    const depthDelta = outhaulDepthFactor(cfg.outhaulEase, height) - 1;
     const section = computeSectionForce(aw, awsMps, {
       ...cfg,
       area: cfg.area * weight,
       angleOff: cfg.angleOff + sectionTwistDegrees(cfg.twist, height),
       twist: 0
-    }, clMultiplier);
+    }, clMultiplier * (1 + 0.8 * depthDelta), 1 + 1.2 * depthDelta);
     drive += section.drive;
     side += section.side;
     aoa += section.aoa * weight;
@@ -242,7 +250,8 @@ function tick(state, controls, params2, dt, rig) {
     area: mainArea * mainLoad,
     angleOff: mainAngle,
     side: mainSideSign,
-    twist: controls.mainTwist
+    twist: controls.mainTwist,
+    outhaulEase: rig?.main.outhaulEase
   };
   const mainF = computeSailForce(aw.vec, awsMps, mainCfg, slot.mult);
   const twaFromDead = 180 - Math.abs(twa);

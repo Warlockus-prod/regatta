@@ -35,7 +35,7 @@ export interface BoatState {
  * loading must describe the same sails that are drawn. Omission preserves the
  * steady-trim engine used by the polar solver, lessons and race server. */
 export interface ResolvedRig {
-  main: { angleOff: number; side: 1 | -1; load: number };
+  main: { angleOff: number; side: 1 | -1; load: number; outhaulEase?: number };
   jib: { angleOff: number; side: 1 | -1; load: number };
 }
 

@@ -11,7 +11,7 @@ import { WindFlow } from "./ocean/WindFlow";
 import { Wake } from './ocean/Wake';
 import type { YachtState } from './types';
 import type { OrbitControls as Controls } from "three-stdlib";
-import { fitCamera, fitSailCamera, type CameraView } from "./camera";
+import { fitCamera, fitSailCamera, fitMainsheetCamera, type CameraView } from "./camera";
 import { SceneBoundary, reportScene } from "./SceneBoundary";
 import { YACHT_MODEL_URL } from "./config";
 
@@ -30,7 +30,7 @@ function CameraFit({ view, revision, stateRef }: { view: CameraView; revision: n
       [0.3, 20.5, 0], [-1, 19, -1], [1, 19, 1],
       [-5, 4, -5], [-5, 4, 5], [6.3, 1.5, 0],
     ].map(([x, y, z]) => new THREE.Vector3(x, y, z));
-    const fit = view === "main" || view === "jib"
+    const fit = view === "mainsheet" ? fitMainsheetCamera(stateRef.current, size.width / size.height) : view === "main" || view === "jib"
       ? fitSailCamera(view, stateRef.current, size.width / size.height)
       : fitCamera(bounds[0], bounds[1], dir, size.width / size.height, 42, 1.12, silhouette);
     // Presets are relative to the yacht, even after steering to another heading.
@@ -205,7 +205,7 @@ export const RegattaScene = memo(function RegattaScene({
         makeDefault
         target={[0, 10, 0]}
         enablePan={false}
-        minDistance={9}
+        minDistance={view === "mainsheet" ? 2.5 : 9}
         maxDistance={120}
         maxPolarAngle={Math.PI / 2.04}
         enableDamping

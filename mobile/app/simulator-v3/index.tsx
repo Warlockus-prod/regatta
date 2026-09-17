@@ -3,16 +3,10 @@ import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
 import { passthroughQuery } from '../../src/simulator/passthroughQuery';
 
-// ============================================================================
-// Trainer (web V3) screen.
-//
-// Embeds the live web /simulator-v3 (the "Trener" tier) via WebView for full
-// parity with the website (same physics, same UI, same content). Mobile-lane
-// only: this loads the deployed web route, it does not edit any web V3 code.
-// Route params (e.g. a bootcamp lesson's ?drill=) are passed through to the
-// embed. Offline falls back to the native Trainer, which keeps working without
-// a network.
-// ============================================================================
+const OFFLINE_SAILING = require("../../assets/sailing-offline.html");
+
+// The same Trainer source and yacht as the website, bundled for first-launch
+// offline use. Deep-link parameters are injected before the local app mounts.
 
 export default function SimulatorV3Screen() {
   const { tp } = useI18n();
@@ -21,6 +15,7 @@ export default function SimulatorV3Screen() {
     <SimWebView
       path="/simulator-v3"
       tier="trainer"
+      offlineSource={OFFLINE_SAILING}
       query={passthroughQuery(params)}
       title={tp('Тренажёр', 'Trainer', 'Trener', {
         es: 'Entrenador',
@@ -28,7 +23,10 @@ export default function SimulatorV3Screen() {
         de: 'Trainer',
         it: 'Trainer',
       })}
-      fallbackRoute="/simulator"
+      fallbackRoute="/simulator-basics"
+      fallbackLabel={tp("Открыть Основы (офлайн)", "Open Basics (offline)", "Otwórz Podstawy (offline)", {
+        es: "Abrir Básicos (sin conexión)", fr: "Ouvrir les Bases (hors ligne)", de: "Grundlagen öffnen (offline)", it: "Apri le Basi (offline)",
+      })}
     />
   );
 }

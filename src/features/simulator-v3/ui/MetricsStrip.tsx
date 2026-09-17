@@ -7,7 +7,6 @@ import { type SimulationModel, type TpFn, type UiState } from './shared';
 // ---------------------------------------------------------------------------
 
 export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; tp: TpFn }) {
-  void ui;
   const heelAbs = Math.abs(sim.result.state.heel);
   const trimColor =
     sim.trimScore > 80
@@ -54,15 +53,15 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         divider
       />
       <MetricChip
-        label={tp('ТРИМ', 'TRIM', 'TRIM', {
+        label={ui.mainTrim ? "TWIST" : tp('ТРИМ', 'TRIM', 'TRIM', {
           es: 'TRIM',
           fr: 'TRIM',
           de: 'TRIMM',
           it: 'TRIM',
         })}
-        value={sim.trimScore.toString()}
-        unit="%"
-        color={trimColor}
+        value={ui.mainTrim ? (sim.session.live.mainTwist * 20).toFixed(1) : sim.trimScore.toString()}
+        unit={ui.mainTrim ? "°" : "%"}
+        color={ui.mainTrim ? "var(--accent-cyan)" : trimColor}
         divider
       />
     </div>

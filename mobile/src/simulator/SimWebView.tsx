@@ -2,16 +2,18 @@ import { Stack, useRouter } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { WebView, type WebViewMessageEvent } from 'react-native-webview';
+import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
 import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { colors } from '../design-system/tokens';
+import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -107,6 +109,8 @@ export interface SimWebViewProps {
   fallbackRoute?: string;
   /** 7-language label for the offline fallback button. */
   fallbackLabel?: string;
+  /** Bundled, self-contained content. Never falls through to a remote URL. */
+  offlineSource?: WebViewProps["source"] | number;
 }
 
 export function SimWebView({
@@ -117,6 +121,7 @@ export function SimWebView({
   scrollEnabled = false,
   fallbackRoute = '/simulator',
   fallbackLabel,
+  offlineSource,
 }: SimWebViewProps) {
   const { lang, tp } = useI18n();
   const router = useRouter();
@@ -154,6 +159,16 @@ export function SimWebView({
 
   const params = new URLSearchParams({ lang, embed: '1', ...(query ?? {}) });
   const uri = `${ORIGIN}${path}?${params.toString()}`;
+  const bundledSource = typeof offlineSource === "number" ? Image.resolveAssetSource(offlineSource) : offlineSource;
+  const bundledUri = bundledSource && "uri" in bundledSource ? bundledSource.uri : undefined;
+  // Metro serves assets over HTTP in development only. Release resolves the
+  // same require() to a bundled file; navigation stays confined to that asset.
+  const developmentOrigin = __DEV__ && bundledUri?.startsWith("http") ? new URL(bundledUri).origin : null;
+  const hasCheckpointBridge = Boolean(offlineSource && path === "/simulator-v3");
+  const languageScript = `window.__REGATTA_SAILING_STORAGE__ = ${hasCheckpointBridge}; window.__REGATTA_LANGUAGE__ = ${JSON.stringify(lang)}; window.__REGATTA_EMBED__ = ${JSON.stringify({ path, query: new URLSearchParams(query ?? {}).toString() })}; window.dispatchEvent(new Event("regatta-language")); window.dispatchEvent(new Event("regatta-embed")); true;`;
+  useEffect(() => {
+    if (offlineSource) webRef.current?.injectJavaScript(languageScript);
+  }, [offlineSource, languageScript]);
 
   // Watchdog: if the page never signals ready (dead network, blocked load),
   // surface the error state instead of a blank chromeless screen.
@@ -203,18 +218,19 @@ export function SimWebView({
       <WebView
         key={reloadKey}
         ref={webRef}
-        source={{ uri }}
+        source={offlineSource ? bundledSource ?? { html: "" } : { uri }}
         style={styles.web}
-        originWhitelist={[ORIGIN]}
+        originWhitelist={offlineSource ? ["file://*", "about:blank", ...(developmentOrigin ? [developmentOrigin] : [])] : [ORIGIN]}
         javaScriptEnabled
         domStorageEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         scrollEnabled={scrollEnabled}
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={BEFORE_LOAD}
-        injectedJavaScript={AFTER_LOAD}
+        injectedJavaScriptBeforeContentLoaded={languageScript + BEFORE_LOAD}
+        injectedJavaScript={languageScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
+          if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
           // A link tap must not navigate the embed away from the simulator.
           // Sim interactions are JS state, not URL loads, so they are
           // unaffected; only real anchor navigations reach here as 'click'.
@@ -228,16 +244,23 @@ export function SimWebView({
         }}
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
-          if (status === 'scene-ready' || (status === 'ready' && tier !== 'boat3d')) {
+          if (hasCheckpointBridge && status.startsWith("{")) {
+            void handleCheckpointMessage(status, script => webRef.current?.injectJavaScript(script));
+            return;
+          }
+          if (status === 'scene-ready' || (status === 'app-ready' && offlineSource && tier !== 'boat3d')
+            || (status === 'ready' && !offlineSource && tier !== 'boat3d')) {
             setLoading(false);
             setFailed(false);
           }
-          if (status === 'scene-error') {
+          // Trainer owns its recoverable 3D boundary. Its Top/Rear/Side views
+          // must stay accessible when WebGL fails; only root failures block it.
+          if (status === 'app-error' || (status === 'scene-error' && tier !== 'trainer')) {
             setLoading(false);
             setFailed(true);
           }
         }}
-        onLoadEnd={() => { if (tier !== 'boat3d') setLoading(false); }}
+        onLoadEnd={() => { if (!offlineSource && tier !== 'boat3d') setLoading(false); }}
         onHttpError={() => { setLoading(false); setFailed(true); }}
         onContentProcessDidTerminate={() => { setLoading(false); setFailed(true); }}
         onError={() => {
@@ -254,7 +277,12 @@ export function SimWebView({
       {failed && (
         <View style={styles.overlay}>
           <Text style={styles.errText}>
-            {tp(
+            {offlineSource ? tp(
+              "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенные Основы. Интернет не требуется.",
+              "The local simulator could not open. Retry or open simplified Basics. No internet is needed.",
+              "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz uproszczone Podstawy. Internet nie jest potrzebny.",
+              { es: "No se pudo abrir el simulador local. Reintenta o abre Fundamentos simplificados. No necesitas internet.", fr: "Le simulateur local ne s'ouvre pas. Réessaie ou ouvre les Bases simplifiées. Internet n'est pas nécessaire.", de: "Der lokale Simulator konnte nicht geöffnet werden. Erneut versuchen oder vereinfachte Grundlagen öffnen. Kein Internet nötig.", it: "Impossibile aprire il simulatore locale. Riprova o apri le Basi semplificate. Non serve internet." },
+            ) : tp(
               'Не удалось загрузить симулятор. Нужен интернет.',
               'The simulator failed to load. An internet connection is required.',
               'Nie udalo sie zaladowac symulatora. Potrzebny internet.',

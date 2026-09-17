@@ -12,8 +12,14 @@ const config = getDefaultConfig(__dirname);
 
 const PHYSICS_DIR = path.resolve(__dirname, '../src/lib/sailing-physics');
 
-// Course progression lives beside the engine and is also shared with native.
-config.watchFolders = [...(config.watchFolders ?? []), path.dirname(PHYSICS_DIR)];
+// Only shared source roots, not the entire Next application or its node_modules.
+// Metro must see these files during release export as well as development.
+config.watchFolders = [
+  ...(config.watchFolders ?? []),
+  path.dirname(PHYSICS_DIR),
+  path.resolve(__dirname, '../src/data/sailing-lab'),
+  path.resolve(__dirname, '../src/features/sailing-lab'),
+];
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),
   '@regatta/physics': PHYSICS_DIR,

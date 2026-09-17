@@ -20,6 +20,7 @@ export function MainPod(props: {
   sim: SimulationModel;
   tp: TpFn;
   compact?: boolean;
+  startRigStudy?: () => void;
 }) {
   const { ui, setUi, params, sim, tp, compact } = props;
   // 4-state gradient (more pedagogically honest than binary stall):
@@ -98,6 +99,11 @@ export function MainPod(props: {
         onSelect={(v) => setUi((p) => ({ ...p, reefLevel: v as ReefLevel }))}
       />
       <StatusDot tone={tone} text={text} compact={compact} />
+      {props.startRigStudy && <details>
+        <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--accent-cyan)]">{tp("Изучить снасти", "Study rig controls", "Poznaj obsługę lin", { es: "Estudiar los cabos", fr: "Étudier les commandes", de: "Leinen untersuchen", it: "Studiare le manovre" })}</summary>
+        <p className="mb-3 text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Начнется новая сессия: длина гротшкота и каретка вместо ползунка угла. Курс удерживает помощник. Это исследование, не экзамен.", "Starts a new session: sheet length and traveler replace the angle slider. An assistant holds course. Exploration, not an exam.", "Nowa sesja: długość szota i wózek zamiast suwaka kąta. Pomocnik utrzymuje kurs. To obserwacja, nie egzamin.", { es: "Nueva sesión: longitud y carro, no ángulo. Ayudante mantiene rumbo. Exploración, no examen.", fr: "Nouvelle session : longueur et chariot, pas l'angle. Cap maintenu. Exploration, pas examen.", de: "Neue Sitzung: Schotlänge und Traveller statt Winkel. Kurshilfe aktiv. Erkundung, keine Prüfung.", it: "Nuova sessione: lunghezza e carrello, non angolo. Aiuto sulla rotta. Esplorazione, non esame." })}</p>
+        <button className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]" onClick={props.startRigStudy}>{tp("Начать со снастями", "Start with rig controls", "Zacznij z linami", { es: "Empezar con cabos", fr: "Commencer avec les commandes", de: "Mit Leinen beginnen", it: "Inizia con le manovre" })}</button>
+      </details>}
     </PodCard>
   );
 }

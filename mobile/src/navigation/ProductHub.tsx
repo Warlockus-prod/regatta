@@ -8,7 +8,7 @@ import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors } from "../design-system/tokens";
 import { fetchDaily, type DailyChallenge } from "../api/daily";
 
-export function ProductHub({ section }: { section: Exclude<Section, "home"> }) {
+export function ProductHub({ section, menu = false }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
@@ -27,12 +27,18 @@ export function ProductHub({ section }: { section: Exclude<Section, "home"> }) {
       { id: "exam", title: copy.exam[lang], entries: visible.filter(d => d.certificate) },
     ] : [{ id: section, title: "", entries: visible }];
   return <Screen noTopInset>
-    <Stack.Screen options={{ title: current.title[lang], headerBackVisible: false }} />
+    <Stack.Screen options={menu
+      ? { title: copy.allSections[lang], headerBackVisible: true, headerRight: () => null }
+      : { title: current.title[lang], headerBackVisible: false }} />
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-      <Text style={styles.intro}>{current.description[lang]}</Text>
+      <Text style={styles.intro}>{menu ? copy.menuIntro[lang] : current.description[lang]}</Text>
       {section === "library" && <View style={styles.search}>
         <TextInput accessibilityLabel={copy.search[lang]} placeholder={copy.hint[lang]} placeholderTextColor={colors.textMuted} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" clearButtonMode="while-editing" style={styles.input} />
         {query ? <Button variant="ghost" onPress={() => setQuery("")}>{copy.clear[lang]}</Button> : null}
+      </View>}
+      {menu && !query.trim() && <View style={styles.group}>
+        <Text style={styles.groupTitle} accessibilityRole="header">{copy.navigation[lang]}</Text>
+        {sections.map(entry => <ListRow key={entry.id} title={entry.title[lang]} onPress={() => router.replace(entry.native as Href)} />)}
       </View>}
       {groups.filter(g => g.entries.length).map(group => <View key={group.id} style={styles.group}>
         {group.title ? <Text style={styles.groupTitle} accessibilityRole="header">{group.title}</Text> : null}

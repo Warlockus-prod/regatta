@@ -10,6 +10,7 @@ import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
+import { MenuButton } from '../src/navigation/MenuButton';
 import { colors } from '../src/design-system/tokens';
 
 // Block the native splash from auto-hiding before the JS bundle has
@@ -46,6 +47,7 @@ export default function RootLayout() {
                       headerStyle: { backgroundColor: colors.bgPrimary },
                       headerTintColor: colors.textPrimary,
                       headerTitleStyle: { color: colors.textPrimary },
+                      headerRight: () => <MenuButton />,
                       animation: 'slide_from_right',
                     }}
                   />

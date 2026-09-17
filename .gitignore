@@ -32,6 +32,8 @@ npm-debug.log*
 .idea/
 
 # Test/QA artefacts
+.playwright-cli/
+/output/playwright/
 .playwright-mcp/
 playwright-mcp/
 *-full.png

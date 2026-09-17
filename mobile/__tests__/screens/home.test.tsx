@@ -12,6 +12,14 @@ import { renderWithProviders } from "../../src/test-utils";
 beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); });
 
 describe("Home entry flows", () => {
+  it("opens the complete menu from a visible labelled button", async () => {
+    const view = renderWithProviders(<Home />);
+    await waitFor(() => view.getByRole("button", { name: "Menu" }));
+    fireEvent.press(view.getByRole("button", { name: "Menu" }));
+    expect(mockPush).toHaveBeenCalledWith("/menu");
+    fireEvent.press(view.getByText("Working with sails"));
+    expect(mockPush).toHaveBeenCalledWith("/learn/sails");
+  });
   it("takes a new learner directly to the first lesson", async () => {
     const view = renderWithProviders(<Home />);
     await waitFor(() => expect(view.getByRole("button", { name: "Start the first lesson" }).props.accessibilityState.disabled).not.toBe(true));

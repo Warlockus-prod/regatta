@@ -23,6 +23,13 @@ installed apps; native loading/error handling requires an app binary update.
 `scene-error`, HTTP errors and content-process termination show native retry.
 3D requires internet; the offline fallback remains available.
 
+**Unreleased change, 2026-09-17:** the working tree now bundles Trainer and 3D
+in `assets/sailing-offline.html`; both native routes load that asset through
+`SimWebView`. A web deployment does not update this bundled version. Language
+and drill parameters are injected; the shared source is checked by the offline
+build script. Cold-device verification and a new signed binary remain release
+gates. The paragraph above describes installed builds, not this pending change.
+
 3. **The website's "Points of Sail" (clean sector wheel) is WEB code** (`src/`), a
    different component from the mobile one. Matching the mobile screen to the web
    means changing the MOBILE component, not the web one.

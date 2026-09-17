@@ -3,11 +3,11 @@
 import { useId } from 'react';
 import type { Lang } from '@/lib/languages';
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
+import { sailDimensions, SAIL_PLAN } from '@/lib/sailing-physics/sail-plan';
 import {
   clamp,
   finite,
   polarPoint,
-  REEF_VISUAL,
   sectorPath,
   type SimulationModel,
   type UiState,
@@ -125,10 +125,10 @@ export function SceneTop({
     boatRotation + jibEnd,
   );
 
-  const hasMain = ui.sailsRaised !== 'jib';
-  const hasJib = ui.sailsRaised !== 'main' && ui.jibFurlPct > 10;
-  const mainVisualScale = REEF_VISUAL[ui.reefLevel];
-  const jibVisualOpacity = clamp(ui.jibFurlPct / 100, 0.18, 1);
+  const hasMain = sim.session.live.mainHoisted !== false;
+  const hasJib = sim.session.live.jibFurl < 0.9;
+  const mainVisualScale = sailDimensions("main", sim.session.live.reef).height / SAIL_PLAN.main.height;
+  const jibVisualOpacity = clamp(1 - sim.session.live.jibFurl, 0.18, 1);
 
   // Wind-shadow factor from main onto jib. On broad reach (TWA > 130) the
   // main sheets out wide and physically blocks wind reaching the jib if
@@ -440,8 +440,8 @@ export function SceneTop({
           slider target. */}
       <g transform={`translate(${cx} ${cy}) rotate(${boatRotation})`} filter={`url(#${boatShadowId})`}>
         <BoatTop
-          mainAngleDeg={finite(sim.liveMainAngle, ui.mainAngle)}
-          jibAngleDeg={finite(sim.liveJibAngle, ui.jibAngle)}
+          mainAngleDeg={sim.session.rig.main}
+          jibAngleDeg={sim.session.rig.jib}
           sailSide={sailSide}
           hasMain={hasMain}
           hasJib={hasJib}
@@ -546,6 +546,8 @@ function BoatTop(args: {
     mainStalled,
     jibStalled,
   } = args;
+  const mainSide = Math.abs(mainAngleDeg) < 0.5 ? sailSide : Math.sign(mainAngleDeg);
+  const jibSide = Math.abs(jibAngleDeg) < 0.5 ? sailSide : Math.sign(jibAngleDeg);
   // Unique prefix so jib/main gradient IDs don't collide across the twin
   // SceneTop instances (desktop + mobile layouts both sit in the DOM).
   const uid = useId();
@@ -684,15 +686,15 @@ function BoatTop(args: {
           it in z-order (real slot behavior: main overlaps jib's lee). */}
       {hasJib && (
         <g
-          transform={`translate(0 -58) rotate(${-jibAngleDeg * sailSide})`}
+          transform={`translate(0 -58) rotate(${-jibAngleDeg})`}
           opacity={jibOpacity}
         >
           <defs>
             <linearGradient
-              id={`v3-jib-grad-${sailSide}-${uid}`}
+              id={`v3-jib-grad-${jibSide}-${uid}`}
               x1="0"
               y1="0"
-              x2={sailSide > 0 ? '1' : '0'}
+              x2={jibSide > 0 ? '1' : '0'}
               y2="0"
             >
               <stop offset="0%" stopColor="#c8d9e4" />
@@ -707,8 +709,8 @@ function BoatTop(args: {
               points oscillate so the trailing edge visibly flaps. */}
           {jibStalled ? (
             <path
-              d={`M 0 0 Q ${sailSide * 32 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 22 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`}
-              fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
+              d={`M 0 0 Q ${jibSide * 32 * jibBelly} ${35} ${jibSide * 28 * jibBelly} ${70} Q ${jibSide * 22 * jibBelly} ${98} ${jibSide * 6} ${106} L 0 106 Z`}
+              fill={`url(#v3-jib-grad-${jibSide}-${uid})`}
               stroke="#ffffff"
               strokeWidth={2.2}
               strokeLinejoin="round"
@@ -718,18 +720,18 @@ function BoatTop(args: {
                 dur="0.55s"
                 repeatCount="indefinite"
                 values={[
-                  `M 0 0 Q ${sailSide * 30 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 18 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
-                  `M 0 0 Q ${sailSide * 36 * jibBelly} ${35} ${sailSide * 22 * jibBelly} ${70} Q ${sailSide * 28 * jibBelly} ${98} ${sailSide * 8} ${106} L 0 106 Z`,
-                  `M 0 0 Q ${sailSide * 28 * jibBelly} ${35} ${sailSide * 32 * jibBelly} ${70} Q ${sailSide * 16 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
-                  `M 0 0 Q ${sailSide * 34 * jibBelly} ${35} ${sailSide * 26 * jibBelly} ${70} Q ${sailSide * 24 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`,
-                  `M 0 0 Q ${sailSide * 30 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 18 * jibBelly} ${98} ${sailSide * 4} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${jibSide * 30 * jibBelly} ${35} ${jibSide * 28 * jibBelly} ${70} Q ${jibSide * 18 * jibBelly} ${98} ${jibSide * 4} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${jibSide * 36 * jibBelly} ${35} ${jibSide * 22 * jibBelly} ${70} Q ${jibSide * 28 * jibBelly} ${98} ${jibSide * 8} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${jibSide * 28 * jibBelly} ${35} ${jibSide * 32 * jibBelly} ${70} Q ${jibSide * 16 * jibBelly} ${98} ${jibSide * 4} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${jibSide * 34 * jibBelly} ${35} ${jibSide * 26 * jibBelly} ${70} Q ${jibSide * 24 * jibBelly} ${98} ${jibSide * 6} ${106} L 0 106 Z`,
+                  `M 0 0 Q ${jibSide * 30 * jibBelly} ${35} ${jibSide * 28 * jibBelly} ${70} Q ${jibSide * 18 * jibBelly} ${98} ${jibSide * 4} ${106} L 0 106 Z`,
                 ].join(';')}
               />
             </path>
           ) : (
             <path
-              d={`M 0 0 Q ${sailSide * 32 * jibBelly} ${35} ${sailSide * 28 * jibBelly} ${70} Q ${sailSide * 22 * jibBelly} ${98} ${sailSide * 6} ${106} L 0 106 Z`}
-              fill={`url(#v3-jib-grad-${sailSide}-${uid})`}
+              d={`M 0 0 Q ${jibSide * 32 * jibBelly} ${35} ${jibSide * 28 * jibBelly} ${70} Q ${jibSide * 22 * jibBelly} ${98} ${jibSide * 6} ${106} L 0 106 Z`}
+              fill={`url(#v3-jib-grad-${jibSide}-${uid})`}
               stroke="#ffffff"
               strokeWidth={2.2}
               strokeLinejoin="round"
@@ -743,7 +745,7 @@ function BoatTop(args: {
           {!jibStalled && (
             <g opacity={0.7}>
               {[24, 50, 80].map((y, i) => {
-                const reach = sailSide * (16 + (y / 100) * 8) * jibBelly;
+                const reach = jibSide * (16 + (y / 100) * 8) * jibBelly;
                 return (
                   <path
                     key={i}
@@ -770,9 +772,9 @@ function BoatTop(args: {
               Single static draw is enough; user reads position at a
               glance. */}
           <line
-            x1={sailSide * 28 * jibBelly}
+            x1={jibSide * 28 * jibBelly}
             y1={64}
-            x2={sailSide * (jibStalled ? 42 : 16) * jibBelly}
+            x2={jibSide * (jibStalled ? 42 : 16) * jibBelly}
             y2={jibStalled ? 58 : 72}
             stroke={jibStalled ? '#ff9a7a' : '#8fffc2'}
             strokeWidth={1.6}
@@ -780,7 +782,7 @@ function BoatTop(args: {
           />
           {/* Label with pill background so it reads on any sail tint */}
           <rect
-            x={sailSide * 18 * jibBelly - 14}
+            x={jibSide * 18 * jibBelly - 14}
             y={50}
             width={28}
             height={12}
@@ -788,7 +790,7 @@ function BoatTop(args: {
             fill="rgba(10, 22, 40, 0.78)"
           />
           <text
-            x={sailSide * 18 * jibBelly}
+            x={jibSide * 18 * jibBelly}
             y={59}
             fill="#7fc8ff"
             fontSize="9"
@@ -808,13 +810,13 @@ function BoatTop(args: {
           WIND-RESPONSIVE belly. Reef shrinks everything via the outer
           scale(1, mainVisualScale). */}
       {hasMain && (
-        <g transform={`rotate(${-mainAngleDeg * sailSide}) scale(1 ${mainVisualScale})`}>
+        <g transform={`rotate(${-mainAngleDeg}) scale(1 ${mainVisualScale})`}>
           <defs>
             <linearGradient
-              id={`v3-main-grad-${sailSide}-${uid}`}
+              id={`v3-main-grad-${mainSide}-${uid}`}
               x1="0"
               y1="0"
-              x2={sailSide > 0 ? '1' : '0'}
+              x2={mainSide > 0 ? '1' : '0'}
               y2="0"
             >
               <stop offset="0%" stopColor="#c8d9e4" />
@@ -837,8 +839,8 @@ function BoatTop(args: {
               having to read the badge. */}
           {mainStalled ? (
             <path
-              d={`M 0 -34 Q ${sailSide * 42 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 44 * mainBelly} ${134} ${sailSide * 18 * mainBelly} ${150} L 0 150 Z`}
-              fill={`url(#v3-main-grad-${sailSide}-${uid})`}
+              d={`M 0 -34 Q ${mainSide * 42 * mainBelly} ${28} ${mainSide * 50 * mainBelly} ${84} Q ${mainSide * 44 * mainBelly} ${134} ${mainSide * 18 * mainBelly} ${150} L 0 150 Z`}
+              fill={`url(#v3-main-grad-${mainSide}-${uid})`}
               stroke="#ffffff"
               strokeWidth={2.4}
               strokeLinejoin="round"
@@ -848,18 +850,18 @@ function BoatTop(args: {
                 dur="0.6s"
                 repeatCount="indefinite"
                 values={[
-                  `M 0 -34 Q ${sailSide * 38 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 38 * mainBelly} ${134} ${sailSide * 14 * mainBelly} ${150} L 0 150 Z`,
-                  `M 0 -34 Q ${sailSide * 50 * mainBelly} ${28} ${sailSide * 42 * mainBelly} ${84} Q ${sailSide * 52 * mainBelly} ${134} ${sailSide * 22 * mainBelly} ${150} L 0 150 Z`,
-                  `M 0 -34 Q ${sailSide * 36 * mainBelly} ${28} ${sailSide * 54 * mainBelly} ${84} Q ${sailSide * 36 * mainBelly} ${134} ${sailSide * 12 * mainBelly} ${150} L 0 150 Z`,
-                  `M 0 -34 Q ${sailSide * 48 * mainBelly} ${28} ${sailSide * 44 * mainBelly} ${84} Q ${sailSide * 50 * mainBelly} ${134} ${sailSide * 24 * mainBelly} ${150} L 0 150 Z`,
-                  `M 0 -34 Q ${sailSide * 38 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 38 * mainBelly} ${134} ${sailSide * 14 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${mainSide * 38 * mainBelly} ${28} ${mainSide * 50 * mainBelly} ${84} Q ${mainSide * 38 * mainBelly} ${134} ${mainSide * 14 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${mainSide * 50 * mainBelly} ${28} ${mainSide * 42 * mainBelly} ${84} Q ${mainSide * 52 * mainBelly} ${134} ${mainSide * 22 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${mainSide * 36 * mainBelly} ${28} ${mainSide * 54 * mainBelly} ${84} Q ${mainSide * 36 * mainBelly} ${134} ${mainSide * 12 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${mainSide * 48 * mainBelly} ${28} ${mainSide * 44 * mainBelly} ${84} Q ${mainSide * 50 * mainBelly} ${134} ${mainSide * 24 * mainBelly} ${150} L 0 150 Z`,
+                  `M 0 -34 Q ${mainSide * 38 * mainBelly} ${28} ${mainSide * 50 * mainBelly} ${84} Q ${mainSide * 38 * mainBelly} ${134} ${mainSide * 14 * mainBelly} ${150} L 0 150 Z`,
                 ].join(';')}
               />
             </path>
           ) : (
             <path
-              d={`M 0 -34 Q ${sailSide * 42 * mainBelly} ${28} ${sailSide * 50 * mainBelly} ${84} Q ${sailSide * 44 * mainBelly} ${134} ${sailSide * 18 * mainBelly} ${150} L 0 150 Z`}
-              fill={`url(#v3-main-grad-${sailSide}-${uid})`}
+              d={`M 0 -34 Q ${mainSide * 42 * mainBelly} ${28} ${mainSide * 50 * mainBelly} ${84} Q ${mainSide * 44 * mainBelly} ${134} ${mainSide * 18 * mainBelly} ${150} L 0 150 Z`}
+              fill={`url(#v3-main-grad-${mainSide}-${uid})`}
               stroke="#ffffff"
               strokeWidth={2.4}
               strokeLinejoin="round"
@@ -873,7 +875,7 @@ function BoatTop(args: {
             return (
               <path
                 key={bi}
-                d={`M 0 ${y} Q ${sailSide * reach * 0.6} ${y} ${sailSide * reach} ${y}`}
+                d={`M 0 ${y} Q ${mainSide * reach * 0.6} ${y} ${mainSide * reach} ${y}`}
                 fill="none"
                 stroke="rgba(160, 185, 205, 0.7)"
                 strokeWidth={0.8}
@@ -887,7 +889,7 @@ function BoatTop(args: {
           {!mainStalled && (
             <g opacity={0.65}>
               {[20, 56, 92, 128].map((y, i) => {
-                const reach = sailSide * (28 + (y / 150) * 14) * mainBelly;
+                const reach = mainSide * (28 + (y / 150) * 14) * mainBelly;
                 return (
                   <path
                     key={i}
@@ -914,7 +916,7 @@ function BoatTop(args: {
           <line
             x1={0}
             y1={150}
-            x2={sailSide * 56 * mainBelly}
+            x2={mainSide * 56 * mainBelly}
             y2={150}
             stroke="#1a2230"
             strokeWidth={4}
@@ -923,9 +925,9 @@ function BoatTop(args: {
           <circle cx={0} cy={150} r={3.5} fill="#2a4060" stroke="#0a1628" strokeWidth={1} />
           {/* Telltale at the leech of the main */}
           <line
-            x1={sailSide * 50 * mainBelly}
+            x1={mainSide * 50 * mainBelly}
             y1={90}
-            x2={sailSide * (mainStalled ? 78 : 30) * mainBelly}
+            x2={mainSide * (mainStalled ? 78 : 30) * mainBelly}
             y2={mainStalled ? 82 : 102}
             stroke={mainStalled ? '#ff8e6a' : '#8fffc2'}
             strokeWidth={1.8}
@@ -933,7 +935,7 @@ function BoatTop(args: {
           />
           {/* Label with pill background */}
           <rect
-            x={sailSide * 34 * mainBelly - 18}
+            x={mainSide * 34 * mainBelly - 18}
             y={86}
             width={36}
             height={14}
@@ -941,7 +943,7 @@ function BoatTop(args: {
             fill="rgba(10, 22, 40, 0.78)"
           />
           <text
-            x={sailSide * 34 * mainBelly}
+            x={mainSide * 34 * mainBelly}
             y={96}
             fill="#ffd7a8"
             fontSize="10"

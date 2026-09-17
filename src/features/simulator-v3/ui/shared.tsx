@@ -3,6 +3,8 @@
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
 import { type TickResult } from '@/lib/sailing-physics';
 import { type WindMode } from '../runtime/wind-dynamics';
+import type { SailingSession } from '../../sailing-lab/runtime/session';
+import type { MainTrimCommand } from '../../sailing-lab/rig/main-trim';
 
 export { type WindMode } from '../runtime/wind-dynamics';
 
@@ -19,7 +21,7 @@ export { type WindMode } from '../runtime/wind-dynamics';
 
 export type Tack = 'starboard' | 'port';
 export type ReefLevel = 0 | 1 | 2;
-export type ViewMode = 'top' | 'rear' | 'side';
+export type ViewMode = 'top' | 'rear' | 'side' | '3d';
 export type SailsRaised = 'both' | 'main' | 'jib';
 /** Optional 4th-language pack, mirrors TpExtras in src/lib/i18n.tsx so the
  *  global useI18n().tp is directly assignable to this type. */
@@ -28,6 +30,7 @@ export type TpFn = (ru: string, en: string, pl: string, extras?: TpExtras) => st
 export type FeedbackTone = 'good' | 'warn' | 'danger' | 'info';
 
 export interface UiState {
+  mainTrim?: MainTrimCommand;
   twa: number;
   tack: Tack;
   windSpeed: number;
@@ -54,6 +57,7 @@ export interface OptimalTrim {
 }
 
 export interface SimulationModel {
+  session: SailingSession;
   result: TickResult;
   optimalResult: TickResult;
   pos: PointOfSail;
@@ -189,8 +193,9 @@ export function fromJibSheet(sheet: number, minOff: number, maxOff: number): num
 export function polarPoint(cx: number, cy: number, radius: number, degFromUp: number) {
   const rad = degToRad(degFromUp);
   return {
-    x: cx + Math.sin(rad) * radius,
-    y: cy - Math.cos(rad) * radius,
+    // Stable SVG attributes across Node/V8 and browser trig implementations.
+    x: Number((cx + Math.sin(rad) * radius).toFixed(4)),
+    y: Number((cy - Math.cos(rad) * radius).toFixed(4)),
   };
 }
 
@@ -271,9 +276,10 @@ export function PodSlider(props: {
   sliderValue: number;
   onChange: (v: number) => void;
   compact?: boolean;
+  comfortable?: boolean;
   tone?: 'cyan' | 'warn' | 'danger' | 'good';
 }) {
-  const { label, value, min, max, step, sliderValue, onChange, compact, tone = 'cyan' } = props;
+  const { label, value, min, max, step, sliderValue, onChange, compact, comfortable, tone = 'cyan' } = props;
   const color =
     tone === 'danger'
       ? 'var(--danger)'
@@ -285,7 +291,7 @@ export function PodSlider(props: {
   return (
     <label className="block">
       <div className={`flex items-center justify-between gap-2 ${compact ? 'mb-0.5' : 'mb-1'}`}>
-        <span className={`${compact ? 'text-[10px]' : 'text-[11px]'} text-[var(--text-secondary)] truncate`}>
+        <span className={`${comfortable ? "text-sm" : compact ? "text-[10px]" : "text-[11px]"} text-[var(--text-secondary)] ${comfortable ? "min-w-0 whitespace-normal" : "truncate"}`}>
           {label}
         </span>
         <span
@@ -303,7 +309,7 @@ export function PodSlider(props: {
         value={sliderValue}
         onChange={(e) => onChange(Number(e.target.value))}
         className="w-full"
-        style={{ accentColor: color, height: compact ? '14px' : '18px' }}
+        style={{ accentColor: color, height: comfortable ? "44px" : compact ? "14px" : "18px" }}
       />
     </label>
   );

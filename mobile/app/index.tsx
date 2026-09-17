@@ -1,4 +1,4 @@
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, type Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { useI18n } from "../src/i18n/context";
 import { Button, Icon, ListRow, Screen, Text, Wordmark, type IconName } from "../src/design-system/components";
@@ -8,6 +8,7 @@ import { bootcampLessons } from "../src/data";
 import { colors } from "../src/design-system/tokens";
 import { destinations, sections } from "../../src/lib/product/catalog";
 import { copy } from "../../src/lib/product/copy";
+import { MenuButton } from "../src/navigation/MenuButton";
 
 export default function Home() {
   const { lang, tp } = useI18n();
@@ -25,7 +26,10 @@ export default function Home() {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.brandRow}>
         <Wordmark size="m" />
-        <Pressable accessibilityRole="button" accessibilityLabel={settings.title[lang]} onPress={() => router.push("/settings")} style={styles.settings}><Icon name="gear" size={22} color={colors.textSecondary} /></Pressable>
+        <View style={styles.headerActions}>
+          <MenuButton />
+          <Pressable accessibilityRole="button" accessibilityLabel={settings.title[lang]} onPress={() => router.push("/settings")} style={styles.settings}><Icon name="gear" size={22} color={colors.textSecondary} /></Pressable>
+        </View>
       </View>
       <View style={styles.header}>
         <Text variant="title" accessibilityRole="header" style={styles.title}>{copy.hello[lang]}</Text>
@@ -39,6 +43,13 @@ export default function Home() {
         <Button disabled={!ready} onPress={() => state.allDone ? router.push("/race") : next ? router.push({ pathname: "/bootcamp/[id]", params: { id: next.id } }) : router.push("/bootcamp")}>{state.allDone ? sections.find(s => s.id === "race")!.title[lang] : started ? copy.resume[lang] : copy.start[lang]}</Button>
         <Button variant="ghost" onPress={() => router.push("/bootcamp")}>{copy.overview[lang]}</Button>
       </View>
+      <View>
+        <Text variant="subtitle" accessibilityRole="header" style={styles.shortcutsTitle}>{copy.shortcuts[lang]}</Text>
+        {["sails", "radio", "trainer"].map(id => {
+          const entry = destinations.find(item => item.id === id)!;
+          return <ListRow key={id} title={entry.title[lang]} onPress={() => router.push(entry.native as Href)} />;
+        })}
+      </View>
       <View>{sections.filter(s => s.id === "practice" || s.id === "race").map(s => <ListRow key={s.id} icon={s.icon as IconName} title={s.title[lang]} caption={s.description[lang]} onPress={() => s.id === "practice" ? router.push("/simulators") : router.push("/race")} />)}</View>
       <Button variant="ghost" onPress={() => router.push("/learn")}>{copy.exam[lang]}</Button>
     </ScrollView>
@@ -48,6 +59,8 @@ const styles = StyleSheet.create({
   content: { paddingHorizontal: 20, paddingBottom: 28, gap: 24, maxWidth: 760, width: "100%", alignSelf: "center" },
   brandRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingTop: 4 },
   settings: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
+  headerActions: { flexDirection: "row", alignItems: "center", gap: 4 },
+  shortcutsTitle: { fontSize: 16, color: colors.textSecondary, marginBottom: 8 },
   header: { gap: 12 },
   title: { fontSize: 30, lineHeight: 35, letterSpacing: -0.6 },
   intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24 },

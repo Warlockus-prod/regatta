@@ -1,5 +1,6 @@
 import { DEG_TO_RAD, RAD_TO_DEG, type WindVec } from './wind';
 import { sailCl, sailCd, isStalled } from './aero';
+import { outhaulDepthFactor } from "./mainsail-shape";
 
 // ============================================================================
 // Sail forces: given a sail configuration and apparent wind in boat frame,
@@ -19,6 +20,7 @@ export interface SailConfig {
   side: 1 | -1;
   /** Twist in [0, 1]. */
   twist: number;
+  outhaulEase?: number;
 }
 
 export interface SailForce {
@@ -51,6 +53,7 @@ function computeSectionForce(
   awsMps: number,
   cfg: SailConfig,
   clMultiplier = 1.0,
+  cdMultiplier = 1.0,
 ): SailForce {
   if (awsMps < 1e-4 || cfg.area < 1e-4) {
     return { drive: 0, side: 0, aoa: 0, stalled: false };
@@ -111,7 +114,7 @@ function computeSectionForce(
   // The coefficient curve and diagnostic use the same section stall onset.
   const clRaw = sailCl(aoa, 1.5) * clMultiplier;
   const cl = backed ? -clRaw * 0.5 : clRaw;
-  const cd = sailCd(aoa);
+  const cd = sailCd(aoa) * cdMultiplier;
   const stalled = isStalled(aoa, 18);
 
   // Dynamic pressure
@@ -167,10 +170,13 @@ export function computeSailForce(aw: WindVec, awsMps: number, cfg: SailConfig, c
   for (let i = 0; i < 5; i++) {
     const height = (i + 0.5) / 5;
     const weight = 2 * (1 - height) / 5;
+    // Bounded sensitivity to the SAME lower-sail depth used in the drawing.
+    // Synthetic coefficients, not a measured polar or universal trim rule.
+    const depthDelta = outhaulDepthFactor(cfg.outhaulEase, height) - 1;
     const section = computeSectionForce(aw, awsMps, {
       ...cfg, area: cfg.area * weight,
       angleOff: cfg.angleOff + sectionTwistDegrees(cfg.twist, height), twist: 0,
-    }, clMultiplier);
+    }, clMultiplier * (1 + .8 * depthDelta), 1 + 1.2 * depthDelta);
     drive += section.drive; side += section.side; aoa += section.aoa * weight;
     if (section.stalled) stalledArea += weight;
   }

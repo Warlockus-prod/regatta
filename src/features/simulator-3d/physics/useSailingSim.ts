@@ -6,15 +6,17 @@ import {
   twaFromCompass,
   NO_GO_HALF_DEG,
   type BoatState as EngineState,
-  type Controls as EngineControls,
   type TickDiagnostics,
 } from '@/lib/sailing-physics';
 import { clamp, type CoachKey, type Controls, type WindState } from './sailModel';
 import { createTargetSolver } from './targets';
 import type { YachtState } from '../types';
 import type { SailStatus } from '../sails/response';
-import type { RigMotion, Maneuver } from '../sails/transfer';
-import { stepWithRig } from './step';
+import type { Maneuver } from '../sails/transfer';
+import { createSailingSession, stepSailingSession } from '../../sailing-lab/runtime/session';
+import { yachtFromSession } from "../../sailing-lab/runtime/presentation";
+import { createFixedClock } from '../../sailing-lab/runtime/fixed-clock';
+import { engineTrimFromEase } from '../../sailing-lab/runtime/trim-controls';
 
 // ============================================================================
 // useSailingSim - drives the 3D boat from the GOLDEN VPP engine.
@@ -58,7 +60,6 @@ export interface SimTelemetry {
   pos: { x: number; z: number };
 }
 
-const TURN_RATE_MAX_DEG_S = 22;
 const PARAMS = getBoatParams();
 
 const INITIAL_ENGINE: EngineState = {
@@ -69,6 +70,17 @@ const INITIAL_ENGINE: EngineState = {
   heel: 0,
   leeway: 0,
 };
+
+function inputFrom(ui: Controls, wind: WindState) {
+  return {
+    controls: engineTrimFromEase({ mainEase: ui.mainSheet, jibEase: ui.jibSheet, reef: ui.reef }),
+    steering: { mode: "helm" as const, rudder: ui.rudder, lowSpeedAssist: true },
+    wind: { speed: wind.twsKn, direction: wind.fromDeg, mode: "steady" as const },
+  };
+}
+function initialSession(ui: Controls, wind: WindState) {
+  return createSailingSession({ ...INITIAL_ENGINE, heading: (wind.fromDeg + 90) % 360 }, inputFrom(ui, wind), PARAMS);
+}
 
 const INITIAL_TELEMETRY: SimTelemetry = {
   speedKn: 0,
@@ -122,9 +134,9 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   const controlsRef = useRef(controls);
   const windRef = useRef(wind);
   const enabledRef = useRef(enabled);
-  const engineRef = useRef<EngineState>({ ...INITIAL_ENGINE });
-  const posRef = useRef({ x: 0, z: 0 });
-  const rigRef = useRef<RigMotion | null>(null);
+  const [initial] = useState(() => initialSession(controls, wind));
+  const sessionRef = useRef(initial);
+  const clockRef = useRef(createFixedClock());
   // Throttled expensive solves (engine settles): target speed + best-VMG.
   const solveRef = useRef(createTargetSolver());
 
@@ -139,80 +151,25 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   useEffect(() => {
     let alive = true;
     let raf = 0;
-    let last = performance.now();
     let acc = 0;
+    const clock = clockRef.current;
+    clock.reset();
     const loop = (t: number) => {
       if (!alive) return;
-      const dt = Math.min(0.05, (t - last) / 1000);
-      last = t;
-      if (enabledRef.current) {
+      clock.advance(t, enabledRef.current && !document.hidden, (dt) => {
         const ui = controlsRef.current;
         const w = windRef.current;
-        const s = engineRef.current;
-        s.trueWindDir = w.fromDeg;
-        s.trueWindSpeed = w.twsKn;
-
-        // Steering (caller-side, like the Trainer): helm authority grows with
-        // speed, with a small floor so a boat stalled head-to-wind can still
-        // slowly fall off instead of freezing in irons forever.
-        const auth = Math.max(0.12, clamp(s.boatSpeed / 3, 0, 1));
-        s.heading = (s.heading + ui.rudder * TURN_RATE_MAX_DEG_S * auth * dt + 360) % 360;
-
-        // Engine tick: UI sheets are 0=hard..1=eased, engine is the opposite.
-        const engineControls: EngineControls = {
-          mainSheet: 1 - ui.mainSheet,
-          jibSheet: 1 - ui.jibSheet,
-          mainTwist: 0.35,
-          jibTwist: 0.4,
-          reef: ui.reef,
-          jibFurl: 0,
-          jibSide: 1,
-        };
-        const { state: next, diag, motion, main: mainResponse, jib: jibResponse, mainIncidence, jibIncidence } =
-          stepWithRig(s, engineControls, PARAMS, rigRef.current, dt);
-        rigRef.current = motion;
-        engineRef.current = next;
+        const session = stepSailingSession(sessionRef.current, inputFrom(ui, w), PARAMS);
+        sessionRef.current = session;
+        const { boat: next, lastDiag: diag, rig: motion, main: mainResponse, jib: jibResponse,
+          mainIncidence, jibIncidence } = session;
 
         const twaSigned = twaFromCompass(next.trueWindDir, next.heading);
         const twaAbs = Math.abs(twaSigned);
         const quality = trimQualityFrom(twaAbs, diag);
 
-        // Rig visuals: sheets place the booms; morphs follow trim state.
-        const camber = 0.6 - 0.2 * ui.reef;
-        const twist = engineControls.mainTwist;
-        Object.assign(yachtRef.current, {
-          boomAngle: motion.main,
-          jibAngle: motion.jib,
-          rigResolved: true,
-          sailSide: motion.lee,
-          camber,
-          twist,
-          luff: mainResponse.luff,
-          fill: mainResponse.fill,
-          airSpeed: mainResponse.airSpeed,
-          reef: ui.reef,
-          rudderAngle: ui.rudder * 35,
-          heel: next.heel,
-          heading: next.heading,
-          wind: { from: w.fromDeg, knots: w.twsKn },
-          apparentWind: { from: (next.heading + diag.awa + 360) % 360, knots: diag.aws },
-          jibShape: {
-            camber: 0.7,
-            twist: engineControls.jibTwist,
-            luff: jibResponse.luff,
-            fill: jibResponse.fill,
-            airSpeed: jibResponse.airSpeed,
-            furl: 0,
-          },
-          speedKn: next.boatSpeed,
-        } satisfies YachtState);
-
-        // Position (telemetry only; the 3D world is boat-centric).
-        const course = ((next.heading + next.leeway) * Math.PI) / 180;
-        const v = next.boatSpeed * 0.514444;
-        posRef.current.x += Math.sin(course) * v * dt;
-        posRef.current.z -= Math.cos(course) * v * dt;
-        yachtRef.current.travel = { ...posRef.current };
+        Object.assign(yachtRef.current, yachtFromSession(session));
+        const pos = { x: session.position.east, z: -session.position.north };
 
         acc += dt;
         if (acc > 0.12) {
@@ -236,10 +193,10 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             maneuver: motion.maneuver,
             mainStatus: mainResponse.status,
             jibStatus: jibResponse.status,
-            pos: { ...posRef.current },
+            pos,
           });
         }
-      }
+      });
       raf = requestAnimationFrame(loop);
     };
     raf = requestAnimationFrame(loop);
@@ -250,10 +207,9 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   }, [yachtRef]);
 
   const reset = useCallback(() => {
-    engineRef.current = { ...INITIAL_ENGINE, trueWindDir: windRef.current.fromDeg, trueWindSpeed: windRef.current.twsKn, heading: (windRef.current.fromDeg + 90) % 360 };
-    posRef.current = { x: 0, z: 0 };
-    rigRef.current = null;
+    sessionRef.current = initialSession(controlsRef.current, windRef.current);
     solveRef.current = createTargetSolver();
+    clockRef.current.reset();
   }, []);
 
   const setControl = <K extends keyof Controls>(key: K, value: Controls[K]) =>

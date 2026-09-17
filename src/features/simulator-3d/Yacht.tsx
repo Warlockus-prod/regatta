@@ -8,6 +8,7 @@ import { YACHT_MODEL_URL } from './config';
 import { sampleWave } from './ocean/waves';
 import type { YachtState } from './types';
 import { FORESTAY_AXIS, sailPoint, createSailGeometry, updateSailGeometry, createSailSeams, updateSailSeams, type SailShape } from './sails/geometry';
+import { createTrimRig } from "../sailing-lab/scene/trim-rig";
 
 // ============================================================================
 // Yacht - drives a per-instance clone of the GLB from a shared rig-state ref.
@@ -107,6 +108,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     sheets: THREE.LineSegments | null;
     mainSeams: THREE.LineSegments | null;
     jibSeams: THREE.LineSegments | null;
+    trimRig: ReturnType<typeof createTrimRig> | null;
   }>({
     mainRig: null,
     jibRig: null,
@@ -116,6 +118,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     sheets: null,
     mainSeams: null,
     jibSeams: null,
+    trimRig: null,
   });
 
   useEffect(() => {
@@ -163,6 +166,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     const sheets = new THREE.LineSegments(sheetGeometry, new THREE.LineBasicMaterial({ color: "#bfc3b7" }));
     sheets.frustumCulled = false;
     model.add(sheets);
+    const trimRig = createTrimRig(model);
     const mainSeams = createSailSeams();
     const jibSeams = createSailSeams();
     const initial: SailShape = { camber: 0.5, twist: 0.35, luff: 0, reef: 0, side: -1, time: 0 };
@@ -186,9 +190,11 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
       mainSeams,
       jibSeams,
       sheets,
+      trimRig,
 
     };
     return () => {
+      trimRig.dispose();
       if (main && oldMainGeometry) { main.geometry = oldMainGeometry; main.remove(mainSeams); }
       if (jib && oldJibGeometry) { jib.geometry = oldJibGeometry; jib.remove(jibSeams); }
       model.remove(sheets); sheetGeometry.dispose(); (sheets.material as THREE.Material).dispose();
@@ -207,6 +213,10 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
   useFrame((st, dt) => {
     const n = nodesRef.current;
     const s = stateRef.current;
+    n.trimRig?.update(s.mainTrim);
+    n.sheets?.geometry.setDrawRange(s.mainTrim ? 4 : 0, s.mainTrim ? 2 : 6);
+    if (n.main) n.main.visible = s.mainHoisted !== false;
+    if (n.mainSeams) n.mainSeams.visible = s.mainHoisted !== false;
     const k = Math.min(1, dt * 8);
     const t = st.clock.elapsedTime;
     const rigK = s.rigResolved ? 1 : k;
@@ -227,7 +237,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
     if (t - clothTime.current > 1 / (light ? 20 : 30) || t < clothTime.current) {
       clothTime.current = t;
       for (const [mesh, seam, kind, shape] of [
-        [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, luff: cloth.current.main.luff, fill: cloth.current.main.fill, airSpeed: s.airSpeed, reef: s.reef, side: cloth.current.main.side, time: t }],
+        [n.main, n.mainSeams, "main", { camber: s.camber, twist: s.twist, boomRise: s.mainTrim?.pose.rise, outhaulEase: s.mainTrim?.outhaulEase, luff: cloth.current.main.luff, fill: cloth.current.main.fill, airSpeed: s.airSpeed, reef: s.reef, side: cloth.current.main.side, time: t }],
         [n.jib, n.jibSeams, "jib", { camber: s.jibShape?.camber ?? s.camber, twist: s.jibShape?.twist ?? s.twist,
           luff: cloth.current.jib.luff, fill: cloth.current.jib.fill, airSpeed: s.jibShape?.airSpeed ?? s.airSpeed, reef: 0, furl: s.jibShape?.furl ?? 0, side: cloth.current.jib.side, time: t }],
       ] as const) {

@@ -1,17 +1,23 @@
 'use client';
 
 import styles from "./SimulatorV3.module.css";
+import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
+import { useTrimStudy } from "./hooks/use-trim-study";
+import { TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
+import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
+import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
 import { resolveTrainerDeepLink } from './runtime/deep-link';
 import {
   type DrillDefinition,
   type ScenarioPreset,
 } from './runtime/scenario-presets';
 import { recommendedTrim } from './runtime/trim-heuristics';
+import { advanceDrillClock } from './runtime/drill-clock';
 import { CommentaryLine } from './ui/CommentaryLine';
 import { GlossaryFooter } from './ui/GlossaryFooter';
 import { MetricsStrip } from './ui/MetricsStrip';
@@ -26,6 +32,7 @@ import { TourOverlay } from './ui/panels/TourOverlay';
 import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
+import { MainTrimPod } from "./ui/pods/MainTrimPod";
 import { ViewPod } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
 import {
@@ -34,6 +41,8 @@ import {
   type SimulationModel,
   type UiState,
 } from './ui/shared';
+
+const TrainerBoat3D = dynamic(() => import("./ui/TrainerBoat3D"), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // URL-state shareable setups.
@@ -46,9 +55,9 @@ import {
 // separately by resolveTrainerDeepLink in runtime/deep-link.ts.
 // ---------------------------------------------------------------------------
 
-function readUiFromUrl(): Partial<UiState> | null {
+function readUiFromUrl(search?: string): Partial<UiState> | null {
   if (typeof window === 'undefined') return null;
-  const p = new URLSearchParams(window.location.search);
+  const p = new URLSearchParams(search ?? window.location.search);
   if (!p.toString()) return null;
   const out: Partial<UiState> = {};
   const num = (k: string) => {
@@ -102,7 +111,7 @@ function buildShareUrl(ui: UiState): string {
 // behaviors this page must deliver.
 // ============================================================================
 
-export default function SimulatorV3Page() {
+export default function SimulatorV3Page({ initialSearch }: { initialSearch?: string } = {}) {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
   // Start from DEFAULT_UI on both server and client so hydration matches;
@@ -160,7 +169,9 @@ export default function SimulatorV3Page() {
       }
     }
   };
-  const { sim, reset } = useSimulatorV3({ ui, tp });
+  const [paused, setPaused] = useState(false);
+  const { sim, reset, restore } = useSimulatorV3({ ui, tp, paused });
+  const trimStudy = useTrimStudy(sim.session);
 
   // Mode machine (PR-4). Drives what sits above the metrics strip:
   // - free: the original sandbox (no overlay panel)
@@ -180,12 +191,11 @@ export default function SimulatorV3Page() {
 
   useEffect(() => {
     if (mode !== 'drill' || !activeDrill || drillResult !== 'pending') return;
-    const start = performance.now();
-    let heldFor = 0;
+    let progress = { time: simRef.current.session.simTime, heldFor: 0 };
     const tickMs = 100;
     const iv = setInterval(() => {
       const s = simRef.current;
-      const elapsed = (performance.now() - start) / 1000;
+      const elapsed = s.session.simTime;
       const ok = activeDrill.evaluate({
         trimScore: s.trimScore,
         heel: s.result.state.heel,
@@ -193,10 +203,10 @@ export default function SimulatorV3Page() {
         mainStalled: s.result.diag.mainStalled,
         jibStalled: s.result.diag.jibStalled,
       });
-      heldFor = ok ? heldFor + tickMs / 1000 : 0;
+      progress = advanceDrillClock(progress, elapsed, ok);
       setDrillElapsed(elapsed);
-      setDrillHeldFor(heldFor);
-      if (heldFor >= activeDrill.holdDuration) {
+      setDrillHeldFor(progress.heldFor);
+      if (progress.heldFor >= activeDrill.holdDuration) {
         setDrillResult('win');
         clearInterval(iv);
       } else if (elapsed >= activeDrill.timeLimit) {
@@ -208,6 +218,8 @@ export default function SimulatorV3Page() {
   }, [mode, activeDrill, drillResult]);
 
   const startDrill = (def: DrillDefinition) => {
+    trimStudy.cancel();
+    setPaused(false);
     setActiveDrill(def);
     setDrillElapsed(0);
     setDrillHeldFor(0);
@@ -229,6 +241,8 @@ export default function SimulatorV3Page() {
   };
 
   const pickScenario = (s: ScenarioPreset) => {
+    trimStudy.cancel();
+    setPaused(false);
     setActiveScenarioId(s.id);
     setUi(s.ui);
     reset(s.ui);
@@ -258,7 +272,7 @@ export default function SimulatorV3Page() {
   // every render and restart the drill).
   useEffect(() => {
     try {
-      const search = new URLSearchParams(window.location.search);
+      const search = new URLSearchParams(initialSearch ?? window.location.search);
       const deepLink = resolveTrainerDeepLink(search);
       if (deepLink?.kind === 'drill') {
         setMode('drill');
@@ -266,8 +280,12 @@ export default function SimulatorV3Page() {
       } else if (deepLink?.kind === 'scenario') {
         setMode('scenario');
         pickScenario(deepLink.scenario);
+      } else if (search.get("study") === "mainsheet") {
+        startGuidedStudy();
+      } else if (search.get("study") === "shape") {
+        startRigStudy();
       } else {
-        const fromUrl = readUiFromUrl();
+        const fromUrl = readUiFromUrl(initialSearch);
         if (fromUrl) {
           const next = { ...DEFAULT_UI, ...fromUrl };
           setUi(next);
@@ -279,7 +297,7 @@ export default function SimulatorV3Page() {
       // Malformed URL or blocked APIs - keep defaults.
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [reset]);
+  }, [reset, initialSearch]);
 
   const setPreset = (twa: number) => {
     const preset = recommendedTrim(Math.max(25, twa - 18), ui.windSpeed, ui.reefLevel, params);
@@ -304,10 +322,37 @@ export default function SimulatorV3Page() {
   };
 
   const resetAll = () => {
+    trimStudy.cancel();
+    setPaused(false);
     setUi(DEFAULT_UI);
     reset(DEFAULT_UI);
     exitDrill();
     setActiveScenarioId(null);
+  };
+
+  const startRigStudy = () => {
+    trimStudy.cancel();
+    const study: UiState = { ...DEFAULT_UI, twa: 50, mainAngle: 15, jibAngle: 18,
+      mainTrim: { workingLength: 9, traveler: 0 }, showOptimal: false, view: "rear" };
+    setUi(study); reset(study); setPaused(false); exitDrill(); setActiveScenarioId(null); setMode("free");
+  };
+  const startGuidedStudy = () => { startRigStudy(); trimStudy.start(); };
+  const studyPanel = <TrimStudyPanel study={trimStudy.study} start={startGuidedStudy}
+    cancel={trimStudy.cancel} record={trimStudy.record} answer={trimStudy.answer} tp={tp} />;
+  const checkpoint = useTrainerCheckpoint({ session: sim.session, ui, study: trimStudy.study }, saved => {
+    setPaused(true);
+    setUi(saved.ui);
+    restore(saved.session, saved.ui);
+    trimStudy.restore(saved.study);
+    exitDrill(); setActiveScenarioId(null); setMode("free");
+  });
+  const checkpointPanel = <CheckpointPanel checkpoint={checkpoint} canSave={mode === "free"} tp={tp} />;
+  const openCheckpoint = () => {
+    const panel = document.querySelector<HTMLDetailsElement>('[data-testid="trainer-checkpoint"]');
+    if (!panel) return;
+    panel.open = true;
+    panel.scrollIntoView({ block: "start" });
+    panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
   const pointLabel = legacyPick(sim.pos, 'name', lang);
@@ -371,7 +416,10 @@ export default function SimulatorV3Page() {
             )}
           </span>
         </div>
-        <div className="flex items-center gap-1 shrink-0">
+        <div className="flex flex-wrap items-center gap-1 min-w-0">
+          <button onClick={openCheckpoint} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-3 text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]">
+            {tp("Сессия", "Session", "Sesja", { es: "Sesión", fr: "Session", de: "Sitzung", it: "Sessione" })}
+          </button>
           <button
             onClick={() => setForceTour((n) => n + 1)}
             aria-label={tp('Показать обзор', 'Show tour', 'Pokaz przewodnik', {
@@ -380,7 +428,7 @@ export default function SimulatorV3Page() {
               de: 'Tour anzeigen',
               it: 'Mostra il tour',
             })}
-            className="w-7 h-7 rounded-md border text-[13px] font-bold transition flex items-center justify-center"
+            className="min-w-11 min-h-11 rounded-md border text-[13px] font-bold transition flex items-center justify-center"
             style={{
               borderColor: 'rgba(0, 212, 255, 0.35)',
               background: 'rgba(0, 212, 255, 0.08)',
@@ -391,7 +439,7 @@ export default function SimulatorV3Page() {
           </button>
           {!embed && (
             <>
-              <button
+              {!ui.mainTrim && <button
                 onClick={onShare}
                 className="text-[11px] font-semibold px-2 py-1 rounded-md border transition"
                 style={{
@@ -420,7 +468,7 @@ export default function SimulatorV3Page() {
                       de: 'Teilen',
                       it: 'Condividi',
                     })}
-              </button>
+              </button>}
               {/* Two-tier naming shared with /simulator: Basics -> Trainer
                   (this page) -> 3D Boat. */}
               <a
@@ -515,18 +563,22 @@ export default function SimulatorV3Page() {
             <HelmPod sim={sim} tp={tp} />
           </details>
           <ViewPod
+            paused={paused}
+            togglePause={() => setPaused(value => !value)}
             ui={ui}
             setUi={setUi}
             tp={tp}
             applyOptimal={applyOptimal}
             resetAll={resetAll}
             setPreset={setPreset}
-          />
+          >{checkpointPanel}</ViewPod>
         </div>
 
         <div className="relative flex flex-col min-h-0 overflow-y-auto">
           <div
             data-testid="trainer-scene"
+            data-session-tick={sim.session.ticks}
+            data-session-heading={sim.session.boat.heading}
             className="relative shrink-0 rounded-2xl overflow-hidden border"
             style={{
               height: 'clamp(360px, 55dvh, 620px)',
@@ -535,7 +587,7 @@ export default function SimulatorV3Page() {
                 'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
             }}
           >
-            {ui.view === 'top' ? (
+            {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
               <SceneTop ui={ui} sim={sim} lang={lang} />
             ) : ui.view === 'side' ? (
               <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -555,7 +607,7 @@ export default function SimulatorV3Page() {
         </div>
 
         <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
-          <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+          {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
         </div>
       </div>
@@ -606,9 +658,11 @@ export default function SimulatorV3Page() {
             />
           </div>
         )}
-        <div className={styles.stage} style={{ top: embed ? 0 : 104 }}>
+        <div className={styles.stage}>
         <div
           data-testid="trainer-scene"
+            data-session-tick={sim.session.ticks}
+            data-session-heading={sim.session.boat.heading}
           className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)] shrink-0"
           style={{
             borderColor: 'rgba(0, 212, 255, 0.18)',
@@ -617,7 +671,7 @@ export default function SimulatorV3Page() {
             height: 'clamp(270px, 32dvh, 310px)',
           }}
         >
-          {ui.view === 'top' ? (
+          {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
             <SceneTop ui={ui} sim={sim} lang={lang} />
           ) : ui.view === 'side' ? (
             <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -637,15 +691,17 @@ export default function SimulatorV3Page() {
         </div>
         <div className="mx-2 grid shrink-0 grid-cols-1 min-[480px]:grid-cols-2 gap-3 mb-3">
           <ViewPod
+            paused={paused}
+            togglePause={() => setPaused(value => !value)}
             ui={ui}
             setUi={setUi}
             tp={tp}
             applyOptimal={applyOptimal}
             resetAll={resetAll}
             setPreset={setPreset}
-          />
+          >{checkpointPanel}</ViewPod>
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
-          <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
+          {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
           <div className="min-[480px]:col-span-2">
             <details>

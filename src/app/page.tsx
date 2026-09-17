@@ -44,6 +44,13 @@ export default function Home() {
         <Link className={styles.secondary} href="/start">{copy.overview[lang]}</Link>
       </div>
     </section>
+    <section className={styles.section} aria-labelledby="quick-access">
+      <h2 id="quick-access" className={styles.sectionTitle}>{copy.shortcuts[lang]}</h2>
+      <div className={styles.list}>{["sails", "radio", "trainer"].map(id => {
+        const entry = destinations.find(item => item.id === id)!;
+        return <Link className={styles.row} href={entry.web!} key={id}><strong>{entry.title[lang]}</strong><span className={styles.arrow} aria-hidden="true">→</span></Link>;
+      })}</div>
+    </section>
     <div className={styles.choices}>{sections.filter(s => s.id === "practice" || s.id === "race").map(s => <Link href={s.web} key={s.id} className={styles.choice}>
       <div><h2>{s.title[lang]}</h2><p className={styles.description}>{s.description[lang]}</p></div><span className={styles.arrow} aria-hidden="true">→</span>
     </Link>)}</div>

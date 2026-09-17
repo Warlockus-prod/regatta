@@ -19,8 +19,11 @@ export function ViewPod(props: {
   resetAll: () => void;
   setPreset: (twa: number) => void;
   compact?: boolean;
+  paused: boolean;
+  togglePause: () => void;
+  children?: React.ReactNode;
 }) {
-  const { ui, setUi, tp, applyOptimal, resetAll, setPreset, compact } = props;
+  const { ui, setUi, tp, applyOptimal, resetAll, setPreset, compact, paused, togglePause } = props;
   return (
     <PodCard compact={compact}>
       <PodLabel
@@ -47,10 +50,16 @@ export function ViewPod(props: {
             value: 'side' as const,
             label: tp('Сбоку', 'Side', 'Z boku', { es: 'Lateral', fr: 'Cote', de: 'Seite', it: 'Lato' }),
           },
+          { value: '3d' as const, label: "3D" },
         ]}
         active={ui.view}
         onSelect={(v) => setUi((p) => ({ ...p, view: v as ViewMode }))}
       />
+      <button onClick={togglePause} aria-pressed={paused} className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]">
+        {paused ? tp("Продолжить", "Resume", "Wznów", { es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" })
+          : tp("Пауза", "Pause", "Pauza", { es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" })}
+      </button>
+      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda: rumbo mantenido y cambio automático de velas. Cambiar vista conserva el estado.", fr: "Aide : cap maintenu et passage automatique des voiles. Changer de vue conserve l'état.", de: "Lernhilfe: Kurs wird gehalten, Segel wechseln automatisch. Ansicht ändern erhält den Zustand.", it: "Aiuto: rotta mantenuta e cambio automatico delle vele. La vista non azzera lo stato." })}</p>
       <details>
         <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
         <div className="space-y-2 pb-2">
@@ -104,28 +113,30 @@ export function ViewPod(props: {
       </div>
         </div>
       </details>
-      <div className="grid grid-cols-2 gap-1">
-        <button
+      <div className={`grid ${ui.mainTrim ? "grid-cols-1" : "grid-cols-2"} gap-1`}>
+        {!ui.mainTrim && <button
           onClick={applyOptimal}
+          disabled={Boolean(ui.mainTrim)}
           className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}
         >
           {tp('Оптим', 'Best', 'Opt', { es: 'Optimo', fr: 'Optimal', de: 'Optimal', it: 'Ottimo' })}
-        </button>
+        </button>}
         <button
           onClick={resetAll}
           className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-muted)' }}
         >
-          {tp('Сброс', 'Reset', 'Reset', { es: 'Reset', fr: 'Reset', de: 'Reset', it: 'Reset' })}
+          {ui.mainTrim ? tp("Новая простая сессия", "New simple session", "Nowa prosta sesja", { es: "Nueva sesión simple", fr: "Nouvelle session simple", de: "Neue einfache Sitzung", it: "Nuova sessione semplice" }) : tp('Сброс', 'Reset', 'Reset', { es: 'Reset', fr: 'Reset', de: 'Reset', it: 'Reset' })}
         </button>
       </div>
-      {ui.view === "top" && <label
+      {ui.view === "top" && !ui.mainTrim && <label
         className={`flex items-center gap-2 ${compact ? 'text-[9px]' : 'text-[10px]'} text-[var(--text-secondary)] cursor-pointer`}
       >
         <input
           type="checkbox"
           checked={ui.showOptimal}
+          disabled={Boolean(ui.mainTrim)}
           onChange={(e) => setUi((p) => ({ ...p, showOptimal: e.target.checked }))}
         />
         {tp('Призрак оптимума', 'Ghost optimum', 'Duch optimum', {
@@ -135,6 +146,7 @@ export function ViewPod(props: {
           it: "Fantasma dell'ottimo",
         })}
       </label>}
+      {props.children}
     </PodCard>
   );
 }

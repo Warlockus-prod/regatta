@@ -1,8 +1,11 @@
 // Shared types for the standalone V2 (3D) simulator module.
 import { SAIL_PLAN } from "@/lib/sailing-physics/sail-plan";
+import type { BoomPose } from "../sailing-lab/rig/layout";
 
 /** Visual rig state the 3D yacht renders from (drives morphs + rig nodes). */
 export interface YachtState {
+  mainTrim?: { pose: BoomPose; traveler: number; slack: number; vangSlack?: number; outhaulEase?: number };
+  mainHoisted?: boolean;
   /** Resolved angles already include maneuver dynamics; do not smooth twice. */
   rigResolved?: boolean;
   /** Remember the lee side even with a hard-sheeted central boom. */
@@ -118,7 +121,7 @@ export const DEFAULT_LABELS: SimLabels = {
     more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
     error: "The 3D scene could not load. Check your connection or try another browser.",
     retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind",
-    light: "Light graphics", quality: "Graphics", sailingHint: "Hold an arrow to steer. Sails change sides automatically; you control the sheets.",
+    light: "Light graphics", quality: "Graphics", sailingHint: "Low-speed steering assistance is enabled. Hold an arrow to steer. Sails change sides automatically; you control the sheets.",
   },
   badge: 'SIMULATOR V2 - 3D',
   orbitHint: 'drag to orbit, wheel to zoom',

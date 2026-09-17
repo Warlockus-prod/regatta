@@ -1,0 +1,11 @@
+Week to Regatta is a sailing learning and practice app. No sign-in or test account is required.
+
+Version 1.6.2 (43) adds a Menu button on Home and in screen headers. Menu provides searchable access to the existing Learn, Practice, Race and Library sections.
+
+Menu > Sail trim course contains six lessons with interactive diagrams and knowledge checks. Topics include rig controls, apparent wind, mainsheet and traveler, vang, and outhaul. Lessons and progress are available offline from the first launch. This is an introductory six-lesson course, not a claim of professional certification or a complete equipment simulator.
+
+Practice > Sail Trim Trainer and 3D Boat now use a bundled local scene and work offline from the first launch. The fourth sail-trim lesson opens a guided comparison experiment. The Session panel saves and restores one local practice checkpoint. This educational sailing model simplifies rig mechanics and does not represent certified loads or operational advice.
+
+The existing SRC radio theory, questions and core radio controls remain bundled for offline use. Speech recognition and voice assessment require internet and microphone permission when the user starts voice practice. Multiplayer, weather, assistant responses and other online services also require internet. Yacht Anatomy remains an online scene.
+
+Lesson progress, preferences and practice checkpoints are stored locally. Optional anonymous analytics can be disabled in Settings. The app does not use the advertising identifier or cross-app advertising tracking. Existing store screenshots still represent the main navigation and learning features.

@@ -293,20 +293,11 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
   const [show, setShow] = useState(false);
   const [step, setStep] = useState(0);
 
-  // Auto-open on first visit, unless the user already dismissed us.
+  // Help is explicitly requested. Do not cover controls or an active lesson.
   useEffect(() => {
     if (forceOpen) {
-      setShow(true);
-      setStep(0);
-      return;
-    }
-    try {
-      if (typeof window !== 'undefined' && !localStorage.getItem(STORAGE_KEY)) {
-        const t = setTimeout(() => setShow(true), 700);
-        return () => clearTimeout(t);
-      }
-    } catch {
-      // localStorage blocked in private mode
+      const timer = setTimeout(() => { setShow(true); setStep(0); }, 0);
+      return () => clearTimeout(timer);
     }
   }, [forceOpen]);
 

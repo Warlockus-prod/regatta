@@ -6,7 +6,8 @@ import {
 } from '@/lib/sailing-physics';
 import { REEF_VALUES, toJibSheet, toMainSheet, type UiState } from '../ui/shared';
 import { type RuntimeState } from './runtime-types';
-import { createWindState } from './wind-dynamics';
+import { createSailingSession } from '../../sailing-lab/runtime/session';
+import { openPercentToFurl } from '../../sailing-lab/runtime/trim-controls';
 
 // ---------------------------------------------------------------------------
 // Build the engine-facing Controls from the UI state. Mapping lives in one
@@ -14,7 +15,7 @@ import { createWindState } from './wind-dynamics';
 // ---------------------------------------------------------------------------
 
 export function uiToControls(ui: UiState, params: ReturnType<typeof getBoatParams>): Controls {
-  const jibFurlEff = ui.sailsRaised === 'main' ? 1 : 1 - ui.jibFurlPct / 100;
+  const jibFurlEff = ui.sailsRaised === 'main' ? 1 : openPercentToFurl(ui.jibFurlPct);
   const reefEff = ui.sailsRaised === 'jib' ? 1 : REEF_VALUES[ui.reefLevel];
   return {
     mainHoisted: ui.sailsRaised !== 'jib',
@@ -49,21 +50,14 @@ export function createRuntimeState(args: {
     twa: signedTwa,
     boatSpeed: Math.max(3, ui.windSpeed * 0.45),
   });
-  const settled = settle(init, controls, params, 45, 0.1);
+  const seed = ui.mainTrim ? init : settle(init, controls, params, 45, 0.1).state;
   return {
-    simTime: 0,
-    boat: settled.state,
-    live: controls,
-    target: controls,
-    // Boat starts aimed where it is - no spurious turn on mount.
-    targetHeading: settled.state.heading,
-    lastDiag: settled.diag,
-    // Wind base = whatever the settle produced (slider TWS, settled dir).
-    // Modulation starts neutral; the fixed seed keeps gust timing
-    // deterministic across resets and tests.
-    wind: createWindState({
-      baseTws: ui.windSpeed,
-      baseDir: settled.state.trueWindDir,
-    }),
+    ...createSailingSession(seed, {
+      controls,
+      mainTrim: ui.mainTrim,
+      steering: { mode: "course-assist", heading: seed.heading },
+      wind: { speed: ui.windSpeed, direction: seed.trueWindDir, mode: ui.windMode },
+    }, params),
+    targetHeading: seed.heading,
   };
 }

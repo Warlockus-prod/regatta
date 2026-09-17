@@ -2,6 +2,21 @@
 
 Status: ACTIVE (2026-09-07). The fresh [sailing audit](sailing-simulator-audit-2026-09-07.md)
 records physics and visual mismatches plus the next staged quality plan.
+The [eSail reference audit](esail-reference-audit-2026-09-16.md) records the
+procedural sailing comparison and the target integration of theory, 3D rig
+controls, lessons and offline practice.
+The [revised implementation plan](sailing-lab-implementation-plan-2026-09-17.md)
+is the current proposal for sailing lessons and detailed rig controls. It keeps
+Basics, Trainer and 3D Boat as separate entry points, with one shared detailed
+runtime and a new learning section. This is planned, not shipped.
+Local progress (not published): shared session and Trainer 3D are connected;
+mainsheet/traveler exploration, an observed four-step experiment, manual Trainer
+checkpoints and four theory lessons are implemented. Native
+Trainer and 3D now use one bundled offline HTML asset. Installed store builds
+still have the old delivery behavior until a new binary ships. See the
+[implementation journal](sailing-lab-progress-2026-09-17.md) for exact checks.
+It supersedes the navigation, first lesson, delivery order and estimates in the
+[initial architecture proposal](sailing-lab-architecture-plan-2026-09-16.md).
 Historical roadmap items 1-5 below are shipped;
 Build 26 (version 1.4.0) was the historical July baseline. September changes
 are recorded in the audit and the build 37 release report.

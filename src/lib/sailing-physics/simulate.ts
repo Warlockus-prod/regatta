@@ -137,6 +137,7 @@ export function tick(
     angleOff: mainAngle,
     side: mainSideSign,
     twist: controls.mainTwist,
+    outhaulEase: rig?.main.outhaulEase,
   };
   const mainF = computeSailForce(aw.vec, awsMps, mainCfg, slot.mult);
 
