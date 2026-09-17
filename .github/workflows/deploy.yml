@@ -52,6 +52,10 @@ jobs:
         run: npx vitest run src/features/simulator-v3
       - name: Shared sailing session, rig mechanics and course regression tests
         run: npx vitest run src/features/sailing-lab
+      - name: Install locked mobile dependencies for the offline package
+        # The bundled WebView resolves React from mobile, not the Next.js tree.
+        # Both lockfiles are required to reproduce the shipped native asset.
+        run: npm ci --prefix mobile --no-audit --no-fund
       - name: Offline sailing package matches the website source
         run: npm run build:sailing-offline:check
       - name: Radio trainer tests (state machine + scenarios)
