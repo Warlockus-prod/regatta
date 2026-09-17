@@ -1,17 +1,18 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Current release verified 2026-09-08: website `c6ad1d9`, native source `9455e10`,
-app 1.6.1 (42). Build 42 is VALID, attached to TestFlight Self and
+Current release submission verified 2026-09-17: website `972df53`, native source
+`b5580aa`, app 1.6.2 (43). Build 43 is VALID, attached to TestFlight Self and
 WAITING_FOR_REVIEW in App Store Connect, with automatic release after approval.
-See the [navigation redesign audit](../navigation-redesign-2026-09-08.md) for
-checks, Simulator screenshots and delivery evidence. It replaces build 40's
-pending review and includes the previous Blender, sailing and radio changes.
-The [Blender audit](../blender-sailing-update-2026-09-08.md) documents that earlier work.
+The public App Store version checked before submission was 1.6.1 READY_FOR_SALE.
+See the [release report](../sailing-release43-2026-09-17.md) for exact checks,
+scope, source hashes and delivery evidence. The complete sailing-lab plan is
+not finished; this update ships six lessons and the working offline simulator.
 
 Local Xcode archive/export and `altool` remain the working release path.
 EAS Update is unconfigured (`updates.url` and `extra.eas.projectId` absent).
-Shared web 3D/Trainer/Anatomy scenes update through the VPS website;
-bundled offline data and native navigation ship with the binary.
+Starting with build 43, Trainer and 3D Boat are bundled offline and require a
+new binary for updates. Anatomy remains an online scene. Bundled theory,
+radio, checkpoint logic and native navigation also ship with the binary.
 
 Historical setup notes below (snapshot 2026-05-31). App `com.icoffio.regatta`, ASC app id `6768134329`,
 Apple team `547PA2PLLB`, Expo SDK 54, RN 0.81, expo-router 6, New Arch on.
