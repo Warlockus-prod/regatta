@@ -28,7 +28,9 @@ def validate(raw):
     for field in ("appDigest", "wsDigest"):
         if not isinstance(raw[field], str) or not re.fullmatch(r"sha256:[0-9a-f]{64}", raw[field]):
             raise ValueError("Expected immutable image digests")
-    if not isinstance(raw["token"], str) or not re.fullmatch(r"[A-Za-z0-9_]{20,2048}", raw["token"]):
+    # Registry credentials are opaque (GitHub may change their encoding).
+    # They go only to fixed-host docker login stdin, never into a shell/URL.
+    if not isinstance(raw["token"], str) or not re.fullmatch(r"[!-~]{20,4096}", raw["token"]):
         raise ValueError("Invalid registry token")
     return {
         "commit": raw["commit"],
@@ -111,6 +113,12 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as error:
-        # Type is enough for the client; never echo user input or credentials.
-        print("Regatta deployment rejected or failed: " + type(error).__name__, file=sys.stderr)
+        # Report only our own fixed validation messages, never arbitrary input
+        # or a subprocess exception that could contain registry credentials.
+        safe_errors = {"Unexpected deployment fields", "Expected a full commit SHA",
+                       "Expected immutable image digests", "Invalid registry token",
+                       "Deployment request too large", "Input timeout",
+                       "Image revision does not match the tested commit"}
+        reason = str(error) if str(error) in safe_errors else type(error).__name__
+        print("Regatta deployment rejected or failed: " + reason, file=sys.stderr)
         sys.exit(1)

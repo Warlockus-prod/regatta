@@ -20,6 +20,8 @@ installation source; CI does **not** automatically install changes to this polic
   packages. The VPS pulls only `ghcr.io/warlockus-prod/regatta` and `regatta-ws`,
   by digest. The per-job GitHub token is sent over SSH stdin and erased with the
   temporary root-only Docker authentication directory after use.
+  Credentials are treated as opaque printable ASCII, with a size bound and no
+  control characters; their encoding is not assumed to be a GitHub token prefix.
 - `/etc/regatta-deploy/compose.yml` and `runtime.env` are root-only. No repository
   Dockerfile, Compose file or script runs as root on the server. Runtime policy
   fixes ports, the existing Regatta network and data volume, numeric non-root UID,

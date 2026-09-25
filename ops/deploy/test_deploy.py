@@ -25,11 +25,16 @@ class DeployBoundary(unittest.TestCase):
         self.assertEqual(result["app"], deploy.REGISTRY + "regatta@sha256:" + "b" * 64)
         self.assertNotIn("token", result)
 
+    def test_registry_token_is_opaque_and_may_use_base64_or_jwt_encoding(self):
+        raw = self.request()
+        raw["token"] = "header.payload.signature-with_base64+/="
+        self.assertEqual(deploy.validate(raw)["commit"], "a" * 40)
+
     def test_rejects_commands_paths_tags_and_unknown_options(self):
         for field, values in {"commit": ["main", "a" * 40 + ";id", None, True],
                               "appDigest": ["latest", "$(id)", "../../etc/shadow", "sha256:" + "a" * 63],
                               "wsDigest": ["evil.example/app:latest", "a" * 64],
-                              "token": ["x\npassword", "x" * 2049, None]}.items():
+                              "token": ["x\npassword", "x" * 4097, "x" * 30 + "\x00", None]}.items():
             for value in values:
                 with self.subTest(field=field, value=value):
                     raw = self.request(); raw[field] = value
