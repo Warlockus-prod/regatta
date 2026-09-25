@@ -17,12 +17,19 @@ concurrency:
 
 jobs:
   build-check:
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
     name: Build, checks + pre-deploy E2E
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
+      - name: Record the tested commit
+        id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Deployment privilege boundary tests
+        run: python3 -m unittest discover -s ops/deploy -p 'test_*.py'
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -104,44 +111,96 @@ jobs:
           path: playwright-report/
           retention-days: 14
 
-  deploy:
-    name: Deploy to VPS
+  publish-images:
+    name: Build immutable deployment images
     needs: build-check
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      app_digest: ${{ steps.images.outputs.app_digest }}
+      ws_digest: ${{ steps.images.outputs.ws_digest }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.build-check.outputs.commit }}
+          persist-credentials: false
+      - name: Build and publish the tested revision
+        id: images
+        env:
+          GH_TOKEN: ${{ github.token }}
+          COMMIT: ${{ needs.build-check.outputs.commit }}
+        run: |
+          set -euo pipefail
+          trap 'docker logout ghcr.io >/dev/null 2>&1 || true' EXIT
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io -u Warlockus-prod --password-stdin
+          for item in regatta regatta-ws; do
+            context=.
+            if [ "$item" = regatta-ws ]; then context=ws-server; fi
+            image="ghcr.io/warlockus-prod/$item:$COMMIT"
+            docker build --label "org.opencontainers.image.source=https://github.com/Warlockus-prod/regatta" \
+              --label "org.opencontainers.image.revision=$COMMIT" -t "$image" "$context"
+            docker push "$image"
+            digest=$(docker image inspect "$image" --format '{{index .RepoDigests 0}}')
+            digest="${digest##*@}"
+            [[ "$digest" =~ ^sha256:[a-f0-9]{64}$ ]]
+            output=app_digest
+            if [ "$item" = regatta-ws ]; then output=ws_digest; fi
+            echo "$output=$digest" >> "$GITHUB_OUTPUT"
+          done
+
+  deploy:
+    name: Deploy to VPS
+    needs: [build-check, publish-images]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: read
     steps:
       - name: Install SSH key
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
         run: |
+          umask 077
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          echo "${{ secrets.VPS_KNOWN_HOSTS }}" > ~/.ssh/known_hosts
-          chmod 644 ~/.ssh/known_hosts
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
 
-      - name: Pull + build + restart on VPS
+      - name: Verify the SSH key is confined to deployment
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -euo pipefail
+          [ "$VPS_USER" = regatta-deploy ]
+          options=(-o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=10)
+          set +e
+          ssh "${options[@]}" "$VPS_USER@$VPS_HOST" id
+          denied=$?
+          set -e
+          [ "$denied" = 126 ] || { echo 'Forced command boundary failed'; exit 1; }
+          if ssh "${options[@]}" "root@$VPS_HOST" true; then
+            echo 'The deployment key still permits root SSH'; exit 1
+          fi
+
+      - name: Deploy immutable images through the fixed server policy
         env:
           VPS_USER: ${{ secrets.VPS_USER }}
           VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PATH: ${{ secrets.VPS_PATH }}
-          DEPLOY_REF: ${{ github.event.inputs.ref || github.ref_name }}
+          COMMIT: ${{ needs.build-check.outputs.commit }}
+          APP_DIGEST: ${{ needs.publish-images.outputs.app_digest }}
+          WS_DIGEST: ${{ needs.publish-images.outputs.ws_digest }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          ssh -o BatchMode=yes "$VPS_USER@$VPS_HOST" bash <<EOF
-            set -e
-            cd "$VPS_PATH"
-            git fetch --all --tags --prune
-            if git rev-parse "refs/tags/$DEPLOY_REF" >/dev/null 2>&1; then
-              git checkout "refs/tags/$DEPLOY_REF"
-            elif git rev-parse "origin/$DEPLOY_REF" >/dev/null 2>&1; then
-              git checkout -B "$DEPLOY_REF" "origin/$DEPLOY_REF"
-            else
-              git checkout "$DEPLOY_REF"
-            fi
-            echo "--- Deploying \$(git rev-parse --short HEAD) ---"
-            docker compose build
-            docker tag regatta:latest "regatta:$DEPLOY_REF" || true
-            docker compose up -d
-            sleep 4
-            docker ps --filter name=regatta --format "{{.Names}} {{.Status}} {{.Image}}"
-          EOF
+          set -euo pipefail
+          python3 -c 'import json,os; print(json.dumps({"commit":os.environ["COMMIT"],"appDigest":os.environ["APP_DIGEST"],"wsDigest":os.environ["WS_DIGEST"],"token":os.environ["GH_TOKEN"]}))' | \
+            ssh -o BatchMode=yes -o StrictHostKeyChecking=yes "$VPS_USER@$VPS_HOST" deploy
+
+      - name: Remove the runner SSH key
+        if: always()
+        run: rm -f ~/.ssh/id_ed25519
 
       - name: Smoke-test prod (HTTP 200)
         env:

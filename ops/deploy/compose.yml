@@ -1,0 +1,72 @@
+# Installed independently in /etc/regatta-deploy, writable only by root.
+# CI controls image content, never host mounts, networks or runtime privileges.
+services:
+  regatta:
+    image: ${REGATTA_IMAGE:?image required}
+    container_name: regatta
+    restart: unless-stopped
+    user: "1001:1001"
+    working_dir: /app
+    entrypoint: ["node"]
+    command: ["server.js"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 256
+    mem_limit: 1g
+    cpus: 2
+    ports: ["172.17.0.1:4500:3000"]
+    env_file:
+      - path: /etc/regatta-deploy/runtime.env
+        format: raw
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: "1"
+      REGATTA_DB_DIR: /data
+      HOSTNAME: "0.0.0.0"
+      PORT: "3000"
+    volumes: ["regatta_data:/data"]
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=67108864,uid=1001,gid=1001,mode=1770
+      - /app/.next/cache:rw,noexec,nosuid,nodev,size=134217728,uid=1001,gid=1001,mode=0770
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 20s
+  regatta-ws:
+    image: ${REGATTA_WS_IMAGE:?image required}
+    container_name: regatta-ws
+    restart: unless-stopped
+    user: "1001:1001"
+    working_dir: /app
+    entrypoint: ["node"]
+    command: ["server.js"]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1
+    ports: ["172.17.0.1:4502:3001"]
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+      NEXT_INTERNAL_URL: http://regatta:3000
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=33554432,uid=1001,gid=1001,mode=1770
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+volumes:
+  regatta_data:
+    external: true
+    name: regatta_regatta_data
+networks:
+  default:
+    external: true
+    name: regatta_default
