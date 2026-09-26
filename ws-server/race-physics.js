@@ -160,6 +160,7 @@ function slotMultiplier(args) {
 
 // src/lib/sailing-physics/balance.ts
 var G = 9.80665;
+var KEEL_HEEL_EXP = 2;
 function computeBalance(args) {
   const { fSideMainN, fSideJibN, mainCop, jibCop, boatSpeedKn, params: params2 } = args;
   const heelingMoment = fSideMainN * mainCop + fSideJibN * jibCop;
@@ -167,12 +168,12 @@ function computeBalance(args) {
   const tanHeel = heelingMoment / Math.max(rightingCoeff, 1);
   const heelEquilibrium = Math.atan(tanHeel) * RAD_TO_DEG;
   const vMps = Math.max(boatSpeedKn * KN_TO_MPS, 0);
-  const denom = params2.keelK * (vMps + 0.5) * (vMps + 0.5);
+  const keelGrip = Math.pow(Math.max(Math.cos(heelEquilibrium * DEG_TO_RAD), 0.2), KEEL_HEEL_EXP);
+  const denom = params2.keelK * keelGrip * (vMps + 0.5) * (vMps + 0.5);
   const totalSide = fSideMainN + fSideJibN;
   const leewayRadRaw = totalSide / denom;
   const leewayDegRaw = leewayRadRaw * RAD_TO_DEG;
-  const leewayEquilibrium = Math.max(-12, Math.min(12, leewayDegRaw));
-  void DEG_TO_RAD;
+  const leewayEquilibrium = Number.isFinite(leewayDegRaw) ? Math.max(-12, Math.min(12, leewayDegRaw)) : 0;
   return { heelEquilibrium, leewayEquilibrium };
 }
 
@@ -336,12 +337,24 @@ var DEFAULT_BOAT = {
   // deg (hard sheeted, cannot go fully on centerline)
   gm: 1,
   // m. Metacentric height. Lower = tender, higher = stiff.
-  hullDragK: 220,
+  hullDragK: 240,
   // D = hullDragK * v^2 (v in m/s, D in N).
   // Tuned so beam-reach steady state lands in [5, 6.5] kn.
-  keelK: 1500,
+  // Raised from 220 together with keelK: realistic leeway
+  // stops bleeding apparent wind, so hull drag now carries
+  // that resistance. Keeps the trimmed polar within 2% of
+  // the old speeds on average (worst cell 3.9%), so race
+  // times, missions and leaderboards do not move.
+  // DECISIONS.md ADR-0002.
+  keelK: 6e3,
   // Effective keel/hull side-force constant.
   // Used as: leeway_rad ~ F_side / (keelK * (bs_mps + 0.5)^2)
+  // At 1500 close-hauled leeway sat on the 12 deg clamp at
+  // every wind speed, so the clamp, not the keel, set it.
+  // With the heel term in balance.ts, 6000 gives 3.3-4.6
+  // deg close-hauled at normal heel, 1.1-1.8 on a beam reach
+  // and 0.2-0.3 running (Dedekam p. 5: marked leeway upwind,
+  // little or none downwind). Locked by polar.test.ts.
   surgeMass: 1e4
   // kg. Added mass of water moving with the hull raises
   // effective inertia above displacement alone.

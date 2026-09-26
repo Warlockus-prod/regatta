@@ -12,11 +12,19 @@ import type { BoatParams } from './types';
 //
 // Leeway:
 //   Side force pushes hull sideways. Keel lift resists via:
-//     F_keel = keelK * (v + v0)^2 * leeway_rad    (for small leeway)
-//   Balance sets the leeway.
+//     F_keel = keelK * cos^2(heel) * (v + v0)^2 * leeway_rad    (small leeway)
+//   Balance sets the leeway. The cos^2 is the keel losing grip as the boat
+//   heels: its projected lateral area shrinks with cos(heel), and the part of
+//   its lift that still acts sideways shrinks with cos(heel) again.
 // ============================================================================
 
 const G = 9.80665;
+// Exponent of the keel's heel penalty (see the header). Without it an
+// overpowered boat kept full keel grip at any heel, and once leeway stopped
+// sitting on its clamp (ADR-0002) nothing slowed a boat laid over at 40 deg:
+// reefing in 22 kn stopped paying off (ADR-0001 Test 4). cos^2 makes the
+// overpowered boat slide, which is the physical reason to reef.
+const KEEL_HEEL_EXP = 2;
 
 export interface BalanceResult {
   /** Steady-state heel angle this tick is balancing toward, degrees. */
@@ -54,12 +62,19 @@ export function computeBalance(args: {
   // where +x = starboard). The wind.ts apparentWind() uses boatX = bs *
   // sin(leeway), so negative leeway = drift to port = correct.
   const vMps = Math.max(boatSpeedKn * KN_TO_MPS, 0);
-  const denom = params.keelK * (vMps + 0.5) * (vMps + 0.5);
+  const keelGrip = Math.pow(Math.max(Math.cos(heelEquilibrium * DEG_TO_RAD), 0.2), KEEL_HEEL_EXP);
+  const denom = params.keelK * keelGrip * (vMps + 0.5) * (vMps + 0.5);
   const totalSide = fSideMainN + fSideJibN;
   const leewayRadRaw = totalSide / denom;
   const leewayDegRaw = leewayRadRaw * RAD_TO_DEG;
-  const leewayEquilibrium = Math.max(-12, Math.min(12, leewayDegRaw));
+  // The clamp only guards near-zero boat speed, where the denominator is tiny.
+  // It must never bind while sailing: when it did (keelK 1500), close-hauled
+  // leeway read 12 deg at every wind speed. Math.max/min pass NaN straight
+  // through, so a non-finite force is caught explicitly instead of propagating
+  // into heading, position and every later tick.
+  const leewayEquilibrium = Number.isFinite(leewayDegRaw)
+    ? Math.max(-12, Math.min(12, leewayDegRaw))
+    : 0;
 
-  void DEG_TO_RAD;
   return { heelEquilibrium, leewayEquilibrium };
 }

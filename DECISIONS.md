@@ -173,6 +173,81 @@ boat runs with wind) also all green.
 
 ---
 
+## ADR-0002 - Physical leeway: keelK 6000, hull drag 240, keel grip falls with heel
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+Close-hauled leeway sat on the 12 deg clamp in `balance.ts` at every wind speed
+from 8 to 22 kn (keelK 1500). The clamp, not the keel, was setting leeway, which
+contradicts every source we have: Dedekam (p. 5) says leeway is marked upwind and
+small to none downwind, and `docs/design/SAILING_PHYSICS_REFERENCE.md` 6.3 gives
+3-5 deg close-hauled, near 0 on a reach or run. The keel also kept full grip at
+any heel.
+
+Leeway enters the model only through apparent wind (sideways drift carries the
+boat away from the wind). A pinned 12 deg therefore bled apparent wind on every
+close-hauled boat, and `hullDragK` 220 had been tuned around that loss.
+
+### Decision
+- `keelK` 1500 -> 6000.
+- Keel lateral grip scales with cos^2(heel) (`KEEL_HEEL_EXP` in `balance.ts`):
+  projected lateral area and the sideways share of keel lift each fall with
+  cos(heel).
+- `hullDragK` 220 -> 240, so boat speeds stay where they were.
+- A non-finite leeway is caught with `Number.isFinite` (Math.max/min pass NaN
+  through). The 12 deg clamp stays as a low-speed guard; it no longer binds
+  while sailing.
+
+Result, trimmed polar: close-hauled 3.3-4.6 deg at normal heel (8-12 kn), growing
+to 5.1-5.8 at 30 deg heel and 7.1-8.0 at 41 deg; beam reach 1.1-1.8; run 0.2-0.3.
+Speeds are within 1.95% of the old polar on average, worst cell 3.87%. ADR-0001
+Test 1 reads 6.426 kn against 6.425 before.
+
+### Options considered
+- keelK alone (4500, 6000, 7500). 6000 put leeway in band, but less leeway lost
+  the accidental brake on an overpowered boat: in ADR-0001 Test 4 the unreefed
+  boat did 8.28 kn at 42 deg heel and reefing stopped paying (reefed 69.4% of it,
+  the test needs more than 70%). Rejected on its own.
+- Deferring the heel term, as the book audit first proposed. Rejected for the
+  reason above: without it nothing slows a boat laid over at 40 deg.
+- cos(heel) (n = 1): passes Test 4 with 70.9%, barely. cos^2 (n = 2) passes with
+  75.3% and matches the physical argument. Chosen.
+- hullDragK 235 / 245 / 250 with n = 2: 240 gave the smallest speed drift.
+- Widening the clamp to 45 deg like the fuzz bound. Not needed: the clamp no
+  longer binds while sailing, and wider values would only change low-speed HUD
+  readouts in the V2/V3 lanes.
+
+### Consequences
+- Heel is still too large when a boat does not reef (41 deg at 22 kn unreefed).
+  That is a righting-moment and depowering question, not a keel one.
+- The broad reach (TWA 135) is still too slow, so its leeway exceeds the beam
+  reach. Tests leave that pair out on purpose.
+- The bot autopilot in `race-physics.ts` is pure pursuit toward points closer
+  than its turning circle (about 154 units across at 3.5 kn; a rounding gate is
+  70 long). It fails to finish from some start positions on both the old and
+  the new physics. With this change, finishes from the real ws-server spawn
+  positions went from 15/19 to 16/19 on a normal start and from 6/19 to 11/19
+  after an early start. The single scripted early-start case in
+  `race-course.test.ts` flipped from pass to fail and is kept as an `it.fails`
+  tripwire; a fleet-level floor test locks the new completion counts. Fixing the
+  autopilot is separate work.
+- `ws-server/race-physics.js` and the mobile offline sailing bundle are
+  regenerated from the engine.
+
+### Verification
+`polar.test.ts` "leeway follows the course and the heel, not the clamp";
+ADR-0001 Tests 1-5; `race-course.test.ts` fleet floor; `npm run test:physics`
+(including the race-server bundle check) and the mobile `npm run check`.
+
+### References
+Dedekam, "Sail and Rig Tuning", p. 5 (keel as a wing, leeway by course) and
+p. 38 (reduce sail past 25 deg heel); `docs/design/SAILING_PHYSICS_REFERENCE.md`
+6.3; `docs/design/books-audit-2026-09-26.md` (vpp-leeway-calibration).
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```
