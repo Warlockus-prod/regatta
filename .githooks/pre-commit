@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Pre-commit hook: block em-dash (U+2014) and en-dash (U+2013) in staged source files.
-// CLAUDE.md typography rule: only ASCII hyphen is allowed in this repo.
+// AGENTS.md typography rule: only ASCII hyphen is allowed in this repo.
 // Runs on the STAGED content (`git show :path`), not the working tree,
 // so the check matches exactly what is about to be committed.
 //
@@ -39,7 +39,7 @@ for (const file of staged) {
     if (DASH_RE.test(line)) {
       if (!bad) {
         console.error('ERROR: em-dash (U+2014) or en-dash (U+2013) found in staged content.');
-        console.error('CLAUDE.md typography rule: only ASCII hyphen (-) is allowed.');
+        console.error('AGENTS.md typography rule: only ASCII hyphen (-) is allowed.');
         console.error('');
       }
       bad = true;

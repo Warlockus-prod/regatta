@@ -16,7 +16,8 @@
     "build:sailing-offline": "node mobile/scripts/build-sailing-offline.mjs",
     "build:sailing-offline:check": "node mobile/scripts/build-sailing-offline.mjs --check",
     "test": "vitest run",
-    "check:dash": "node scripts/check-no-dash.mjs",
+    "check:dash": "node scripts/check-no-dash.mjs src docs scripts .githooks .github AGENTS.md ARCHITECTURE.md CHANGELOG.md CLAUDE.md README.md",
+    "check:map": "node scripts/check-project-map.mjs",
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs",
     "build:race-server": "node scripts/build-race-server.mjs",
     "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs"

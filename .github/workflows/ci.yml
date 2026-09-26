@@ -36,6 +36,13 @@ jobs:
       - name: Typography check (no em-dash / en-dash)
         run: npm run check:dash
 
+      # The agent-facing map (AGENTS.md / ARCHITECTURE.md / CHANGELOG.md) is
+      # what a fresh Claude, Codex or Gemini session reads before touching
+      # anything. A stale path there sends the next model confidently to the
+      # wrong file, so a moved or undocumented source file fails the build.
+      - name: Project map is current
+        run: npm run check:map
+
       - name: Physics engine tests
         run: npm run test:physics
 
