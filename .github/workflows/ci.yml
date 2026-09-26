@@ -92,6 +92,20 @@ jobs:
         working-directory: mobile
         run: npm ci --no-audit --no-fund
 
+      # The twin checks rebuild the offline bundles and compare them byte for
+      # byte, so they need BOTH dependency trees, in this order:
+      #   mobile/node_modules - build-sailing-offline.mjs resolves react and
+      #     react-dom with import.meta.resolve from mobile/scripts, which finds
+      #     Expo's pinned copies here first. Without them it falls through to the
+      #     web tree's React and the bundle no longer matches the committed asset.
+      #   root node_modules   - the scripts import esbuild, a devDependency of the
+      #     root package.json, to transpile ../../src/data/*.ts. Without it they
+      #     die with ERR_MODULE_NOT_FOUND, and build-radio-offline.mjs resolves
+      #     its React from the root tree as the committed asset expects.
+      # CI does not run on pushes to main, so this only surfaces on a pull request.
+      - name: Install root deps (esbuild for the content twins)
+        run: npm ci --no-audit --no-fund
+
       - name: Content twins in sync + lint + typecheck + Jest
         working-directory: mobile
         run: npm run check

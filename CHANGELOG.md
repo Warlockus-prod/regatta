@@ -17,6 +17,10 @@
   Подключен в CI шагом "Project map is current".
 - Гейт типографики теперь покрывает корневые файлы карты и `.github`, а не
   только `src`, `docs`, `scripts`, `.githooks`.
+- Починен job "Mobile (twins + lint + typecheck + tests)": он ставил только
+  зависимости `mobile/`, а скрипты сборки офлайн-бандлов импортируют `esbuild`
+  из корневого `package.json` и падали с ERR_MODULE_NOT_FOUND. CI не запускается
+  на пушах в `main`, поэтому поломка была не видна до первого pull request.
 - В карте зафиксированы фактические числа вместо старых: `npm run test:physics`
   = 46 тестов, весь `npx vitest run` = 414, `npx playwright test` = 16.
 
