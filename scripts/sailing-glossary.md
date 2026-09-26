@@ -16,7 +16,7 @@ strings must not use diacritics (ą ę ż ł ó ć ń ś ź - drop them).
 
 | English | Russian | Polish | Italian | Spanish | French | German |
 |---|---|---|---|---|---|---|
-| in irons / head to wind | левентик | lewentyk | in panna | en facha | vent debout | im Wind |
+| in irons / head to wind | левентик | lewentyk | prua al vento | proa al viento | vent debout | im Wind |
 | close-hauled | бейдевинд | bajdewind | bolina | cenida | au pres | Am Wind |
 | close reach | острый галфвинд | ostry polwiatr | lasco di bolina | ceñida abierta | petit largue | Halbwind-Amwind |
 | beam reach | галфвинд | polwiatr | traverso | a un largo | vent de travers | Halbwind |
@@ -32,6 +32,17 @@ strings must not use diacritics (ą ę ż ł ó ć ń ś ź - drop them).
 | tacking (working upwind in zigzag) | лавировка | halsowanie | bolinare | ceñir | louvoyer | kreuzen |
 | port tack (wind on port side) | левый галс | lewy hals | mure a sinistra | amura a babor | babord amures | Backbordbug |
 | starboard tack | правый галс | prawy hals | mure a dritta | amura a estribor | tribord amures | Steuerbordbug |
+| luff up / head up (course change toward the wind, SAME tack) | привестись / приведение | ostrzyc / ostrzenie | orzare | orzar | lofer | anluven |
+| bear away / bear off (course change away from the wind, SAME tack) | увалиться / уваливание | odpasc / odpadanie | poggiare | arribar | abattre | abfallen |
+| heave to (stop: jib backed, tiller to leeward) | лечь в дрейф | stanac w dryfie / stanie w dryfie | mettersi in panna | ponerse al pairo | mettre en panne | beidrehen |
+
+Do not confuse the rows above:
+- luff up and bear away change the COURSE and keep the tack. They are never a tack or a gybe.
+  Wrong translations seen in this repo: bear away as trasluche / empannage / halsen / strambare
+  (those mean gybe), luff up as ceñida / portanza (close-hauled / aerodynamic lift).
+- heave to is a deliberate stop. It is not leeway: never abatimiento / derive / Abdrift / scarroccio.
+- "in panna" and "en facha" mean heave to, so they must never be used for in irons.
+- Russian "дрейф" alone means leeway; the maneuver is always "лечь в дрейф".
 
 ## Parts of the boat
 
@@ -56,6 +67,9 @@ strings must not use diacritics (ą ę ż ł ó ć ń ś ź - drop them).
 | windward | наветренный | nawietrzny | sopravvento | barlovento | au vent | luv |
 | leeward | подветренный | zawietrzny | sottovento | sotavento | sous le vent | lee |
 | rudder | руль | ster | timone | timon | gouvernail | Ruder |
+| tiller (the handle, not the rudder) | румпель | rumpel | barra | caña | barre | Pinne |
+| luff (front edge of a sail) | передняя шкаторина | lik przedni | inferitura | grátil | guindant | Vorliek |
+| leech (back edge of a sail) | задняя шкаторина | lik tylny | balumina | baluma | chute | Achterliek |
 | keel | киль | kil | chiglia | quilla | quille | Kiel |
 
 ## Race-specific (RRS + tactics)
@@ -94,7 +108,7 @@ strings must not use diacritics (ą ę ż ł ó ć ń ś ź - drop them).
 | trim (verb: adjust sail) | настроить парус | wybrac zagiel | cazzare | cazar | border | trimmen |
 | ease (verb: let sheet out) | отпустить шкот | wyluzowac szot | lascare | lascar | choquer | fieren |
 | luff (verb: sail flutters) | полоскать | lopotac | sventare | flamear | faseyer | killen |
-| luffing | полоскание | lopotanie | sventamento | flameo | faseyage | Killen |
+| luffing (the sail fluttering, NOT luffing up) | полоскание | lopotanie | sventamento | flameo | faseyage | Killen |
 | stall (flow separation) | срыв потока | oderwanie przeplywu | stallo | desprendimiento | decrochage | Stromungsabriss |
 | slot effect (jib-main interaction) | эффект щели | efekt szczeliny | effetto fessura | efecto ranura | effet de fente | Slot-Effekt |
 | reef (reduce sail area) | риф / рифить | ryfowac | terzarolare | rizar | prendre un ris | reffen |
