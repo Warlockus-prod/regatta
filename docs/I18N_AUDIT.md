@@ -81,10 +81,10 @@ below):**
 - `/courses` (points of sail - data + UI)
 - `/racing` (tactics + course diagram + RacingStrategy tips +
   keyConcepts)
-- `/onboard` (first week on board - all 8 sections in
+- `/onboard` (first week on board - all 12 sections in
   `src/data/onboard.ts`)
 - `/anatomy` (Bavaria 46 parts)
-- `/checklist` (crew reference - all 8 sections in
+- `/checklist` (crew reference - all 9 sections in
   `src/data/checklist.ts`, incl. itemsEs/Fr/De/It)
 - `/glossary` (all 64 glossary definitions + terms)
 - `/rules` (RRS + COLREGS scenarios; per-language official links: RFEV
