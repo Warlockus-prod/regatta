@@ -1,12 +1,18 @@
 import { words, type Label } from "../../lib/product/catalog";
 import { mainsheetLesson } from "./mainsheet-lesson";
 import { vangLesson, outhaulLesson } from "./shape-lessons";
+import { telltaleLesson } from "./telltale-lesson";
+import { halyardLesson } from "./halyard-lesson";
+import { jibLeadLesson } from "./jib-lead-lesson";
+import { slotLesson } from "./slot-lesson";
+import { trimDoctorLesson } from "./trim-doctor-lesson";
+import { reefLesson } from "./reef-lesson";
 
 export interface SailLesson {
   id: string;
   title: Label;
   minutes: number;
-  diagram: "rig" | "wind" | "sheet" | "mainsheet" | "vang" | "outhaul";
+  diagram: "rig" | "wind" | "sheet" | "mainsheet" | "vang" | "outhaul" | "telltales" | "halyard" | "jib-lead" | "slot" | "helm" | "reef";
   sections: { title: Label; body: Label }[];
   question: Label;
   answers: Label[];
@@ -21,7 +27,7 @@ export interface SailLesson {
 export const sailCourse = {
   title: words("Работа с парусами", "Working with sails", "Obsługa żagli", "Manejo de las velas", "Manœuvrer les voiles", "Mit Segeln arbeiten", "Manovrare le vele"),
   intro: words("Сначала пойми, какая снасть что меняет. Затем свяжи ветер, форму паруса и действия экипажа.", "First understand what each control changes. Then connect wind, sail shape and crew actions.", "Najpierw poznaj działanie każdej liny. Potem połącz wiatr, kształt żagla i pracę załogi.", "Primero comprende qué cambia cada cabo. Después relaciona viento, forma de la vela y acciones de la tripulación.", "Comprends d'abord l'effet de chaque commande. Relie ensuite vent, forme des voiles et gestes de l'équipage.", "Verstehe zuerst, was jede Leine verändert. Verbinde dann Wind, Segelform und Handgriffe.", "Prima comprendi cosa modifica ogni cima. Poi collega vento, forma della vela e manovre dell'equipaggio."),
-  scope: words("Первый модуль: устройство, ветер и работа шкотов. Подъем, рифление и работа с лебедками будут добавлены после проверки механики.", "First module: rig, wind and sheets. Hoisting, reefing and winch procedures will follow once their mechanics are validated.", "Pierwszy moduł: takielunek, wiatr i szoty. Stawianie, refowanie i obsługa kabestanów pojawią się po sprawdzeniu mechaniki.", "Primer módulo: aparejo, viento y escotas. El izado, los rizos y los winches llegarán tras validar su mecánica.", "Premier module : gréement, vent et écoutes. Hissage, prise de ris et winchs suivront après validation de leur mécanique.", "Erstes Modul: Rigg, Wind und Schoten. Setzen, Reffen und Winschen folgen nach Prüfung ihrer Mechanik.", "Primo modulo: attrezzatura, vento e scotte. Issata, terzaroli e winch seguiranno dopo la verifica della meccanica."),
+  scope: words("Модули: устройство, ветер и шкоты; форма паруса; колдунчики, щель, диагностика и рифление. Последние проверяются на лодке: в Тренажере их механики нет. Подъем паруса и работа с лебедками будут добавлены после проверки механики.", "Modules: rig, wind and sheets; sail shape; telltales, the slot, diagnosis and reefing. The last are checked on the boat: the Trainer does not model them. Hoisting and winch procedures will follow once their mechanics are validated.", "Moduły: takielunek, wiatr i szoty; kształt żagla; włóczki, szczelina, diagnoza i refowanie. Ostatnie sprawdza się na jachcie: Trener ich nie modeluje. Stawianie i obsługa kabestanów pojawią się po sprawdzeniu mechaniki.", "Módulos: aparejo, viento y escotas; forma de la vela; catavientos, ranura, diagnóstico y rizos. Estos últimos se comprueban en el barco: el Entrenador no los modela. El izado y los winches llegarán tras validar su mecánica.", "Modules : gréement, vent et écoutes ; forme de la voile ; penons, fente, diagnostic et prise de ris. Ces derniers se vérifient à bord : l'Entraîneur ne les modélise pas. Hissage et winchs suivront après validation de leur mécanique.", "Module: Rigg, Wind und Schoten; Segelform; Telltales, Spalt, Diagnose und Reffen. Letztere werden an Bord geprüft: Der Trainer bildet sie nicht ab. Setzen und Winschen folgen nach Prüfung ihrer Mechanik.", "Moduli: attrezzatura, vento e scotte; forma della vela; filetti, fessura, diagnosi e terzaroli. Questi ultimi si verificano a bordo: l'Allenatore non li simula. Issata e winch seguiranno dopo la verifica della meccanica."),
   check: words("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie", "Comprueba lo aprendido", "Vérifie ta compréhension", "Prüfe dein Verständnis", "Verifica la comprensione"),
   correct: words("Верно. Теперь объясни это своими словами.", "Correct. Now explain it in your own words.", "Dobrze. Teraz wyjaśnij to własnymi słowami.", "Correcto. Ahora explícalo con tus palabras.", "Exact. Explique-le maintenant avec tes mots.", "Richtig. Erkläre es jetzt mit eigenen Worten.", "Corretto. Ora spiegalo con parole tue."),
   retry: words("Не совсем. Прочитай объяснение и попробуй еще раз.", "Not quite. Read the explanation and try again.", "Nie całkiem. Przeczytaj wyjaśnienie i spróbuj ponownie.", "No exactamente. Lee la explicación e inténtalo de nuevo.", "Pas tout à fait. Lis l'explication et réessaie.", "Noch nicht. Lies die Erklärung und versuche es erneut.", "Non proprio. Leggi la spiegazione e riprova."),
@@ -134,6 +140,14 @@ export const sailLessons: SailLesson[] = [
   mainsheetLesson,
   vangLesson,
   outhaulLesson,
+  // Book-based module (docs/design/books-audit-2026-09-26.md). Appended, never
+  // inserted: stored progress follows this order.
+  telltaleLesson,
+  halyardLesson,
+  jibLeadLesson,
+  slotLesson,
+  trimDoctorLesson,
+  reefLesson,
 ];
 
 export const findSailLesson = (id: string) => sailLessons.find(lesson => lesson.id === id);

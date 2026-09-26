@@ -338,6 +338,13 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/sailing-lab/course.ts` - структура курса работы с парусами.
 - `src/data/sailing-lab/mainsheet-lesson.ts` - урок по гика-шкоту.
 - `src/data/sailing-lab/shape-lessons.ts` - уроки по форме паруса (оттяжка, шкаторины).
+- `src/data/sailing-lab/sources.ts` - печатные источники книжных уроков (Дедекам, Das и von Krause, RYA) со ссылками; отдельно от `src/data/sailing-lab/course.ts`, чтобы не было цикла импорта.
+- `src/data/sailing-lab/telltale-lesson.ts` - урок "Колдунчики": где стоят, четыре правила (рулем или шкотом), тонкая настройка и ложные тревоги.
+- `src/data/sailing-lab/halyard-lesson.ts` - урок "Фал и положение пуза": складки как индикатор натяжения, фал против Каннингхема, книжные проценты пуза с оговоркой.
+- `src/data/sailing-lab/jib-lead-lesson.ts` - урок "Каретка стаксель-шкота и метод кулаков": стартовая установка, верх или низ заполаскивает первым, кулаки по матрице Дедекама.
+- `src/data/sailing-lab/slot-lesson.ts` - урок "Щель": грот и генуя как одно крыло, проверка щели, узкая и широкая, ложный диагноз грота.
+- `src/data/sailing-lab/trim-doctor-lesson.ts` - урок "Доктор трима": угол руля как прибор (3-5 / 8 градусов), тяжелый и подветренный руль, нет остроты или скорости.
+- `src/data/sailing-lab/reef-lesson.ts` - урок "Рифление": когда (крен 25, руль 8), системы, порядок слэб-рифления, ошибки, которые рвут парус.
 
 ### 4.9 `src/features/sailing-lab` - общая сессия, риг и уроки
 
@@ -372,6 +379,12 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/lessons/diagrams.ts` - схемы урока: подписи, варианты, показания.
 - `src/features/sailing-lab/lessons/mainsheet-diagram.ts` - схема урока по гика-шкоту.
 - `src/features/sailing-lab/lessons/shape-diagrams.ts` - схемы уроков по форме паруса.
+- `src/features/sailing-lab/lessons/telltale-diagram.ts` - схема входа генуи: какой колдунчик срывается, выводится из угла набегания потока.
+- `src/features/sailing-lab/lessons/halyard-diagram.ts` - схема фала: складки у мачты и сечение с положением пуза по той же линии прогиба, что у outhaul.
+- `src/features/sailing-lab/lessons/jib-lead-diagram.ts` - схема каретки: точка, где продолжение шкота встречает переднюю шкаторину, вычисляется.
+- `src/features/sailing-lab/lessons/slot-diagram.ts` - схема щели сверху: ширина щели измеряется как расстояние от задней шкаторины генуи до грота.
+- `src/features/sailing-lab/lessons/helm-diagram.ts` - шкала угла руля: зоны 3 / 5 / 8 градусов, те же пороги, что в тексте урока.
+- `src/features/sailing-lab/lessons/reef-diagram.ts` - слэб-рифление в четырех фазах; таблица фаз задает рисунок и проверяемый порядок шагов.
 - `src/features/sailing-lab/lessons/trim-study.ts` - разбор трима: фазы, замечания, наблюдения.
 - `src/features/sailing-lab/lessons/trim-study.test.ts` - тесты разбора трима.
 - `src/features/sailing-lab/scene/trim-rig.ts` - построение сцены рига для визуализации трима.
