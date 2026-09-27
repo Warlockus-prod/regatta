@@ -124,8 +124,8 @@ below):**
   `tp()` / `tl()` calls in pages and components, the product catalog
   (`src/lib/product/*`, shared with the app), the app's own screens
   (`mobile/app/*`, `mobile/src/*`) and the generated JSON twins in
-  `mobile/src/data/*` (`cd mobile && npm run sync-content`; `checklist.json`
-  is still a hand-kept copy).
+  `mobile/src/data/*` (`cd mobile && npm run sync-content`, nine twins
+  including `checklist.json`).
 - Known gaps: numbers from `toFixed()` show a decimal point in every language
   (the coach, missions and lesson readouts use the local separator); compass
   letters (N, NE) stay English; rate-limit errors of `/api/ai-chat` and
