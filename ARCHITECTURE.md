@@ -94,6 +94,9 @@ I/O). Его используют Основы (`/simulator`), Тренажер 
 Мультиплеер: `src/lib/mp-client.ts` -> `wss://weektoregatta.com/ws` -> nginx ->
 `ws-server/server.js` (авторитетный тик 20 Гц). На финише ws-server постит
 результат в `/api/race-result`, оттуда он попадает в лидерборд и реплей.
+Боты на сервере, в `/game` и в мобильном приложении рулят одним
+`raceAutopilotTurn`: состояние бота живет на объекте лодки, поэтому к новой
+гонке сервер создает ботам свежие объекты. Устройство и замеры - ADR-0003.
 
 ### 3.5 Живая погода
 
@@ -511,9 +514,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
 - `src/lib/sounds.ts` - процедурные звуки на WebAudio, уважают общий mute.
-- `src/lib/race-physics.ts` - аркадная модель гонки `/game` (долг: перевести на движок).
+- `src/lib/race-physics.ts` - гонка `/game`, мультиплеера и мобильного AI: шаг лодки через движок, ворота огибания (`updateLap`), подсказка игроку (`raceWaypoint`) и автопилот ботов (`raceAutopilotTurn`: петли по дистанции, сброс скорости перед знаком, повторный круг при промахе; `DECISIONS.md` ADR-0003). Остатки аркадной модели (`speedFactorFromTWA`, `MAX_SPEED`) - долг Phase 3.
 - `src/lib/race-physics.drift.test.ts` - тесты дрейфа аркадной модели.
-- `src/lib/race-course.test.ts` - тесты дистанции гонки (знаки, линия).
+- `src/lib/race-course.test.ts` - тесты дистанции гонки (знаки, линия) и автопилота: все 19 стартовых мест сервера вовремя и с фальстартом, 120 разных стартов, заход ветра в слабый, обычный и сильный ветер с отсечкой 300 с, повторная гонка той же лодкой.
 - `src/lib/race-resume.ts` - восстановление настроек гонки после перезагрузки.
 - `src/lib/best-times.ts` - личные рекорды по бакетам сложности и ветра.
 - `src/lib/mp-client.ts` - WebSocket-клиент мультиплеера с автопереподключением и типизированной шиной.
@@ -739,8 +742,8 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 | Документ | Утверждение | Как на самом деле |
 |---|---|---|
-| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 46 тестов в 7 файлах; весь `npx vitest run` = 414 тестов в 45 файлах |
-| `CLAUDE.md` (до этой правки) | 31/31 физика, 12/12 Playwright | 46 физики, `npx playwright test --list` = 16 тестов в 2 файлах |
+| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 54 теста в 7 файлах; весь `npx vitest run` = 429 тестов в 45 файлах |
+| `CLAUDE.md` (до этой правки) | 31/31 физика, 12/12 Playwright | 54 физики, `npx playwright test --list` = 16 тестов в 2 файлах |
 | `README.md` | глоссарий 64 термина | 51 запись в `src/data/sailing-data.ts` |
 | `FEATURES.md` | мультиплеер 2-8 игроков | `MAX_PLAYERS_PER_ROOM = 10` |
 | `FEATURES.md` | правил 8 карточек | 21 сценарий в `src/data/rules.ts` |

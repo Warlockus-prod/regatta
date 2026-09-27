@@ -169,9 +169,11 @@ function repositionAllBoats(room) {
     const b = spawnBoat(room, p.id, p.nickname, idx++);
     p.boat = b;
   }
+  // A fresh object per bot, as players get above: merging the spawn into the
+  // old one kept `started`, `roundPhase`, `finishTime` and the autopilot state
+  // from the previous race, so a rematch bot skipped the start and two gates.
   for (let i = 0; i < room.aiBots.length; i++) {
-    const b = spawnBoat(room, room.aiBots[i].id, room.aiBots[i].name, idx++);
-    Object.assign(room.aiBots[i], b);
+    room.aiBots[i] = spawnBoat(room, room.aiBots[i].id, room.aiBots[i].name, idx++);
   }
 }
 

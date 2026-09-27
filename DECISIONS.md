@@ -248,6 +248,87 @@ p. 38 (reduce sail past 25 deg heel); `docs/design/SAILING_PHYSICS_REFERENCE.md`
 
 ---
 
+## ADR-0003 - Bot autopilot: course loops, shed speed before the windward mark
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+`raceAutopilotTurn` (multiplayer bots, `/game` bots, the native app's AI) was
+pure pursuit toward waypoints 60 units from the mark. Measured on the engine:
+the full-rudder turning radius is about 21 units per knot (8 units per
+knot-second at 22 deg/s), so 115-140 units at normal racing speed and up to 170
+in a heavy breeze, while each rounding gate is 70 long. Brute force over the
+start of a full-rudder bear-away found the three gates reachable with only 4-8
+units of slack at normal speed and 0-4 in a heavy breeze. So bots missed gates,
+and then: pointing downwind at an upwind target they flipped between the two
+close-hauled headings every step and sailed to the bottom edge; after an early
+start they orbited a point 60 units under the line, inside their own turning
+circle. From the 19 real ws-server spawn places 16 finished, 11 after an early
+start, 66 of 120 varied starts; median race 162 s.
+
+### Decision
+Steer along paths laid out from the course (`race-physics.ts`, `AUTOPILOT`):
+- windward mark: a counter-clockwise stadium whose top is a circle (radius 80,
+  centre 35 below the mark) through all three gates. The bot climbs the east
+  leg in a tacking corridor that narrows toward the mark, sheds speed on the
+  climb to about 3.3 kn (full-rudder radius near 70) by pointing 3-12 deg off
+  the wind, sails the last stretch straight up the leg so no tack lands at the
+  mark, then loops over it. A missed gate is another lap of the stadium;
+- start: below the line, beat up its middle; over it early, a loop beside the
+  line sized to the boat's turning circle whose rising side crosses the middle;
+- finish: run down a lane of the line chosen from the boat id; after a miss,
+  loop back above the line;
+- the close-hauled side is committed with hysteresis (the downwind weave), and a
+  bot never tacks below 2 kn and bears away when slow near the wind: stopped
+  head to wind, a boat has no rudder authority and no drive, forever.
+`raceWaypoint` stays the player hint and is unchanged; `updateLap` is untouched.
+
+### Options considered
+- Better-placed pure-pursuit waypoints or a per-phase retry. Aiming lower halved
+  race times without adding finishes; a retry that U-turns at the gate misses
+  again (the U-turn is wider than the gate) and dropped spawn finishes to 6/19.
+- An open-loop full-rudder turn from a computed start point: the 4-8 unit slack
+  above is too small for wind shifts, and the start point depends on the app's
+  turning scale (the native app turns about 2.4 times tighter).
+- Shedding speed exactly head to wind: fastest, but a collision there leaves the
+  boat stopped in irons for good; 3-12 deg off the wind keeps a way out.
+- Fleet-aware avoidance: the autopilot does not see other boats; left out.
+
+### Consequences
+- Single boats: all 19 spawns and 19 early starts finish (median 82 and 88 s),
+  120 of 120 varied starts (87 s). Over 3950 races in 25 wind cases (8 seeds of
+  shifting wind at light, normal and heavy strength) no boat fails and none
+  needs more than 162 s, inside the server's 300 s cut. One cell is slower than
+  before: a light-wind early start takes about 6 s longer (118 against 112 s),
+  the price of a return loop that always works (the old one failed 4 of 19 early
+  starts in normal wind and 12 of 19 in a heavy breeze).
+- Fleets of 2-8 bots with the server's collisions and 300 s cut: 80% finish,
+  was 45%; median 144 s, was 204. The rest are collision deadlocks, not
+  steering: `resolveCollisions` damps both boats on any contact, low-speed
+  leeway keeps them touching, and they end at zero speed, some head to wind.
+  Damping only boats that close on each other would lift fleets to 97%; that
+  changes collisions for players too, so it is left for a separate decision.
+- Bots keep their state on the boat (`RaceBoat.autopilot`). The server used to
+  merge a new spawn into the old bot object on a rematch, which also kept
+  `started`, `roundPhase` and `finishTime`; it now creates fresh bot objects,
+  and the autopilot resets itself when a boat's lap count goes back.
+- The native app's AI keeps its finish times (within 1-2 s on every course and
+  screen size) and passes `mobile/src/game/race.test.ts`.
+
+### Verification
+`race-course.test.ts`: every real spawn on time and early (19/19 each), 120
+varied starts, all spawns in light, normal and heavy shifting wind inside 300 s,
+a reused boat sails a new race like a fresh one; `npm run test:physics`;
+`cd mobile && npm run check`.
+
+### References
+ADR-0002 (the leeway recalibration that exposed the old autopilot's margins);
+`ws-server/server.js` spawnBoat and tick loop; `src/app/game/GameClient.tsx`
+bot loop; `mobile/src/game/ai-boats.ts`.
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```
