@@ -825,7 +825,7 @@ export const racingStrategies: RacingStrategy[] = [
     descriptionPl: 'Aby dotrzec do punktu polozonego pod wiatr, trzeba plynac zygzakiem - halsami - pod katem ~45° do wiatru.',
     descriptionEs: 'Para alcanzar un punto contra el viento, hay que navegar en zigzag - ceñir - bajo un ángulo de ~45° al viento.',
     descriptionFr: 'Pour atteindre un point situé au vent, il faut louvoyer - faire des bordees - a un angle d\'environ 45° par rapport au vent.',
-    descriptionDe: 'Um einen Punkt gegen den Wind zu erreichen, musst du im Zickzack kreuzen - in Halsen - unter einem Winkel von etwa 45° zum Wind.',
+    descriptionDe: 'Um einen Punkt gegen den Wind zu erreichen, musst du im Zickzack kreuzen - in Kreuzschlägen - unter einem Winkel von etwa 45° zum Wind.',
     descriptionIt: 'Per raggiungere un punto controvento, devi navigare in zigzag - bolinare - con un angolo di circa 45° rispetto al vento.',
     tips: [
       { ru: 'Старайся держать оптимальный угол бейдевинда (~40-45°)', en: 'Maintain optimal close-hauled angle (~40-45°)', pl: 'Staraj sie utrzymywac optymalny kat bajdewindu (~40-45°)', es: 'Mantiene el angulo optimo de cenida (~40-45°)', fr: 'Maintiens l\'angle optimal au pres (~40-45°)', de: 'Halte den optimalen Am-Wind-Winkel (~40-45°)', it: 'Mantieni l\'angolo ottimale di bolina (~40-45°)' },

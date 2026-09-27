@@ -139,4 +139,17 @@ describe("sailing theory module", () => {
     expect(HELM_ANGLES.map(a => helmZone(a))).toEqual(["lee", "optimal", "brake", "reduce"]);
     expect(helmState(Number.NaN)).toEqual(helmState(1));
   });
+  // Against heavy helm the main is reefed first: less genoa moves the centre of
+  // effort aft and makes the helm heavier (book audit on D4-36). The lesson once
+  // offered "reef the main or roll away genoa" as equals.
+  it("cures heavy helm with a main reef, not with less genoa", () => {
+    const doctor = sailLessons.find(l => l.id === "trim-doctor")!;
+    const reduce = HELM_ANGLES.findIndex(a => helmZone(a) === "reduce");
+    const genoa = /genu|genoa|génova|génois|гену/i;
+    for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {
+      expect(doctor.answers[doctor.correct][lang]).not.toMatch(genoa);
+      expect(diagramReadout("helm", reduce, lang)).not.toMatch(genoa);
+    }
+    expect(doctor.answers[doctor.correct].en).toBe("Reduce sail: reef the main first");
+  });
 });

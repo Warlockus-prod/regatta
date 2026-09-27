@@ -747,7 +747,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 | Документ | Утверждение | Как на самом деле |
 |---|---|---|
-| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 58 тестов в 7 файлах; весь `npx vitest run` = 433 теста в 45 файлах |
+| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 58 тестов в 7 файлах; весь `npx vitest run` = 434 теста в 45 файлах |
 | `CLAUDE.md` (до этой правки) | 31/31 физика, 12/12 Playwright | 58 физики, `npx playwright test --list` = 16 тестов в 2 файлах |
 | `README.md` | глоссарий 64 термина | 51 запись в `src/data/sailing-data.ts` |
 | `FEATURES.md` | мультиплеер 2-8 игроков | `MAX_PLAYERS_PER_ROOM = 10` |
