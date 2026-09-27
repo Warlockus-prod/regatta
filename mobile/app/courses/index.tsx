@@ -1,4 +1,4 @@
-import { Stack } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -9,12 +9,90 @@ import {
   Screen,
   Text,
 } from '../../src/design-system/components';
-import { pointsOfSail } from '../../src/data';
-import { legacyPick } from '../../src/i18n/languages';
+import { maneuvers, pointsOfSail, type Maneuver } from '../../src/data';
+import { legacyPick, legacyPickArray, type Lang } from '../../src/i18n/languages';
+import { manoeuvres } from '../../../src/data/sailing-lab/sources';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
+
+// Tacking and jibing as procedures (the web /courses#turns section): the
+// helmsman's and trimmer's side; the crew's choreography is in the checklist.
+const TURNS = maneuvers.filter((m) => (m.stepsRu?.length ?? 0) > 0);
+
+// Numbers are what people forget first, so they stand out in the step text.
+function WithNumbers({ text, color }: { text: string; color: string }) {
+  return (
+    <>
+      {text.split(/(\d+(?:-\d+)?)/).map((part, i) =>
+        i % 2 === 1 ? (
+          <Text key={i} style={[styles.turnNumber, { color }]}>
+            {part}
+          </Text>
+        ) : (
+          part
+        ),
+      )}
+    </>
+  );
+}
+
+function TurnCard({
+  maneuver,
+  color,
+  lang,
+  labels,
+}: {
+  maneuver: Maneuver;
+  color: string;
+  lang: Lang;
+  labels: { commands: string; steps: string; mistakes: string };
+}) {
+  return (
+    <Card style={[styles.card, { borderLeftColor: color, borderLeftWidth: 4 }]}>
+      <Text variant="subtitle" style={{ color }}>
+        {legacyPick(maneuver, 'name', lang)}
+      </Text>
+      <Text variant="body" style={styles.desc}>
+        {legacyPick(maneuver, 'description', lang)}
+      </Text>
+      <Text variant="muted" style={styles.turnHeading}>
+        {labels.commands.toUpperCase()}
+      </Text>
+      {legacyPickArray(maneuver, 'commands', lang).map((command, i) => (
+        <View key={i} style={styles.turnCommand}>
+          <Text variant="body" style={styles.turnText}>
+            {command}
+          </Text>
+        </View>
+      ))}
+      <Text variant="muted" style={styles.turnHeading}>
+        {labels.steps.toUpperCase()}
+      </Text>
+      {legacyPickArray(maneuver, 'steps', lang).map((step, i) => (
+        <View key={i} style={styles.turnRow}>
+          <Text style={[styles.turnMarker, { color }]}>{i + 1}</Text>
+          <Text variant="body" style={styles.turnText}>
+            <WithNumbers text={step} color={color} />
+          </Text>
+        </View>
+      ))}
+      <Text variant="muted" style={styles.turnHeading}>
+        {labels.mistakes.toUpperCase()}
+      </Text>
+      {legacyPickArray(maneuver, 'mistakes', lang).map((mistake, i) => (
+        <View key={i} style={styles.turnRow}>
+          <Text style={[styles.turnMarker, { color: colors.danger }]}>✕</Text>
+          <Text variant="body" style={styles.turnText}>
+            {mistake}
+          </Text>
+        </View>
+      ))}
+    </Card>
+  );
+}
 
 export default function Courses() {
   const { tp, lang } = useI18n();
+  const router = useRouter();
 
   // Selected point of sail. Defaults to beam reach (the fastest, "hero" course -
   // matches the web, where Polwiatr is highlighted on load).
@@ -416,6 +494,118 @@ export default function Courses() {
             )}
           </Text>
         </Card>
+
+        <View style={styles.turnsHead}>
+          <Text variant="subtitle">
+            {tp('Повороты: оверштаг и фордевинд', 'Turns: tacking and jibing', 'Zwroty: przez sztag i przez rufe', {
+              es: 'Viradas: por avante y trasluchada',
+              fr: 'Virer de bord et empanner',
+              de: 'Wende und Halse',
+              it: 'Virare e strambare',
+            })}
+          </Text>
+          {lang !== 'en' ? (
+            <Text variant="muted" style={styles.anchorName}>
+              Tacking and jibing
+            </Text>
+          ) : null}
+          <Text variant="body" style={styles.turnsIntro}>
+            {tp(
+              'Поворот глазами рулевого и шкотового: команды, числа и порядок действий. Что в это время делает остальной экипаж и когда пригибаться, собрано в чек-листе.',
+              "The turn from the helmsman's and the trimmer's side: calls, numbers and the order of actions. What the rest of the crew does meanwhile, and when to duck, is in the checklist.",
+              'Zwrot oczami sternika i szotowego: komendy, liczby i kolejnosc dzialan. Co w tym czasie robi reszta zalogi i kiedy sie schylic, jest na liscie przed regata.',
+              {
+                es: 'La virada vista por el timonel y el trimmer: órdenes, números y orden de las acciones. Qué hace mientras tanto el resto de la tripulación, y cuándo agacharse, está en la checklist.',
+                fr: "La manoeuvre vue par le barreur et le régleur : ordres, chiffres et ordre des actions. Ce que fait le reste de l'équipage pendant ce temps, et quand baisser la tête, se trouve dans la checklist.",
+                de: 'Das Manöver aus Sicht von Rudergänger und Trimmer: Kommandos, Zahlen und Reihenfolge. Was die übrige Crew dabei tut und wann man den Kopf einzieht, steht in der Checkliste.',
+                it: "La manovra vista dal timoniere e dal trimmer: comandi, numeri e ordine delle azioni. Cosa fa intanto il resto dell'equipaggio, e quando abbassare la testa, è nella checklist.",
+              },
+            )}
+          </Text>
+        </View>
+
+        <Card
+          accent="cyan"
+          style={styles.turnsLink}
+          onPress={() => router.push('/checklist')}
+          accessibilityRole="button"
+        >
+          <Text variant="body" style={styles.turnsLinkText}>
+            {`${tp('Что делает экипаж: чек-лист', 'What the crew does: the checklist', 'Co robi zaloga: lista przed regata', {
+              es: 'Qué hace la tripulación: la checklist',
+              fr: "Ce que fait l'équipage : la checklist",
+              de: 'Was die Crew tut: die Checkliste',
+              it: "Cosa fa l'equipaggio: la checklist",
+            })} →`}
+          </Text>
+        </Card>
+
+        <View
+          style={[
+            styles.subCard,
+            { backgroundColor: 'rgba(245, 226, 107, 0.06)', borderColor: 'rgba(245, 226, 107, 0.20)' },
+          ]}
+        >
+          <Text variant="caption" style={[styles.subCardTitle, { color: colors.overtrim }]}>
+            {tp('Румпель и штурвал', 'Tiller and wheel', 'Rumpel i kolo sterowe', {
+              es: 'Caña y rueda',
+              fr: 'Barre franche et barre à roue',
+              de: 'Pinne und Rad',
+              it: 'Barra e ruota',
+            })}
+          </Text>
+          <Text variant="muted" style={styles.subCardBody}>
+            {tp(
+              'Рулевой сидит на наветренном борту. Румпель от себя - лодка приводится, на себя - уваливается: нос всегда уходит в сторону, противоположную румпелю. Штурвал крутят как руль машины: куда повернул, туда пошел нос.',
+              'The helmsman sits on the windward side. Push the tiller away from you and the boat luffs up; pull it towards you and it bears away: the bow always goes the opposite way to the tiller. A wheel turns like a car steering wheel: the bow goes the way you turn it.',
+              'Sternik siedzi na nawietrznej burcie. Rumpel od siebie - jacht ostrzy, do siebie - odpada: dziob zawsze idzie w strone przeciwna do rumpla. Kolem sterowym kreci sie jak kierownica w samochodzie: w ktora strone krecisz, tam idzie dziob.',
+              {
+                es: 'El timonel se sienta a barlovento. Caña hacia fuera y el barco orza; caña hacia ti y arriba: la proa siempre va al lado contrario de la caña. La rueda se gira como el volante de un coche: la proa va hacia donde giras.',
+                fr: "Le barreur est assis au vent. Barre poussée, le bateau lofe ; barre tirée vers soi, il abat : l'étrave part toujours du côté opposé à la barre. Une barre à roue se tourne comme un volant : l'étrave va du côté où tu tournes.",
+                de: 'Der Rudergänger sitzt in Luv. Pinne von sich weg: Das Boot luvt an. Pinne zu sich heran: Es fällt ab. Der Bug geht immer zur Gegenseite der Pinne. Ein Rad dreht man wie ein Autolenkrad: Der Bug geht dorthin, wohin du drehst.',
+                it: "Il timoniere siede sopravvento. Barra spinta lontano da te e la barca orza; barra verso di te e poggia: la prua va sempre dalla parte opposta alla barra. La ruota si gira come il volante di un'auto: la prua va dove giri.",
+              },
+            )}
+          </Text>
+        </View>
+
+        {TURNS.map((m) => (
+          <TurnCard
+            key={m.id}
+            maneuver={m}
+            color={m.id === 'jibing' ? colors.warning : colors.accentCyan}
+            lang={lang}
+            labels={{
+              commands: tp('Команды', 'Calls', 'Komendy', { es: 'Órdenes', fr: 'Ordres', de: 'Kommandos', it: 'Comandi' }),
+              steps: tp('По шагам', 'Step by step', 'Krok po kroku', {
+                es: 'Paso a paso',
+                fr: 'Étape par étape',
+                de: 'Schritt für Schritt',
+                it: 'Passo dopo passo',
+              }),
+              mistakes: tp('Частые ошибки', 'Common mistakes', 'Czeste bledy', {
+                es: 'Errores frecuentes',
+                fr: 'Erreurs fréquentes',
+                de: 'Häufige Fehler',
+                it: 'Errori frequenti',
+              }),
+            }}
+          />
+        ))}
+
+        <Text variant="muted" style={styles.turnsSource}>
+          {tp(
+            'По книге: Роберт Дас, Эрик фон Краузе, «Маневры под парусами».',
+            `Based on: ${manoeuvres.title}.`,
+            `Na podstawie: ${manoeuvres.title}.`,
+            {
+              es: `Basado en: ${manoeuvres.title}.`,
+              fr: `D'après : ${manoeuvres.title}.`,
+              de: `Nach: ${manoeuvres.title}.`,
+              it: `Basato su: ${manoeuvres.title}.`,
+            },
+          )}
+        </Text>
       </ScrollView>
     </Screen>
   );
@@ -570,5 +760,51 @@ const styles = StyleSheet.create({
   extraNote: {
     marginTop: spacing.md,
     fontStyle: 'italic',
+  },
+  turnsHead: {
+    marginTop: spacing.xl,
+  },
+  turnsIntro: {
+    marginTop: spacing.sm,
+  },
+  turnsLink: {
+    marginTop: spacing.md,
+  },
+  turnsLinkText: {
+    color: colors.accentCyan,
+  },
+  turnHeading: {
+    marginTop: spacing.md,
+    marginBottom: spacing.xs,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  turnCommand: {
+    marginBottom: spacing.xs,
+    padding: spacing.sm,
+    borderRadius: radii.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+  },
+  turnRow: {
+    flexDirection: 'row',
+    marginBottom: spacing.xs,
+  },
+  turnMarker: {
+    width: 22,
+    fontWeight: '700',
+    fontSize: 14,
+    lineHeight: 22,
+  },
+  turnText: {
+    flex: 1,
+    fontSize: 15,
+  },
+  turnNumber: {
+    fontWeight: '700',
+  },
+  turnsSource: {
+    marginTop: spacing.md,
+    marginBottom: spacing.xl,
+    fontSize: 12,
   },
 });

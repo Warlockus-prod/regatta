@@ -159,6 +159,17 @@ export type AnatomyPart =
   };
 
 /** A point-of-sail (course relative to the wind). 5 in total. */
+/** Tacking and jibing carry a step-by-step procedure for the courses screen,
+ * as parallel per-language arrays (read with legacyPickArray). */
+export type Maneuver =
+  & LegacyLocalized<'name'>
+  & LegacyLocalized<'description'>
+  & { [K in `${'commands' | 'steps' | 'mistakes'}${'Ru' | 'En' | 'Pl' | 'Es' | 'Fr' | 'De' | 'It'}`]?: string[] }
+  & {
+    id: string;
+    category: 'basic' | 'racing';
+  };
+
 export type PointOfSail =
   & LegacyLocalized<'name'>
   & LegacyLocalized<'description'>

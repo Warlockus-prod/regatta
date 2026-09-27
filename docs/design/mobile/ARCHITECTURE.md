@@ -134,7 +134,7 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
 
 | To change ... | Edit |
 |---|---|
-| **Points-of-Sail / wind-courses diagram** (the wheel) | `mobile/src/design-system/components/PointsOfSailDiagram.tsx` (the visual) + `mobile/app/courses/index.tsx` (the screen wrapper, readouts, cards) |
+| **Points-of-Sail / wind-courses diagram** (the wheel) | `mobile/src/design-system/components/PointsOfSailDiagram.tsx` (the visual) + `mobile/app/courses/index.tsx` (the screen wrapper, readouts, cards, and the tacking and jibing procedures from the synced `maneuvers`) |
 | Polar/VPP curve data | `mobile/src/courses/polar.ts` |
 | Simulator scene / cockpit | `mobile/app/simulator/index.tsx` + `mobile/src/simulator/*` (helpers) + `SkiaYacht.tsx` |
 | The yacht glyph (top-down) | `mobile/src/design-system/components/SkiaYacht.tsx` |
