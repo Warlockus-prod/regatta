@@ -78,7 +78,8 @@ below):**
 - `/start` (bootcamp hub - all 8 lessons translated in
   `src/data/bootcamp.ts`)
 - `/quick` (quick refresh - all 6 topics translated)
-- `/courses` (points of sail - data + UI)
+- `/courses` (points of sail, plus the `#turns` section: tacking and jibing
+  as procedures from the `maneuvers` data - data + UI)
 - `/racing` (tactics + course diagram + RacingStrategy tips +
   keyConcepts)
 - `/onboard` (first week on board - all 12 sections in

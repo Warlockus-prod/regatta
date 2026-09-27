@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
-import { legacyPick, type Lang } from '@/lib/languages';
-import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
+import { Fragment, useState, useMemo, useCallback } from 'react';
+import Link from 'next/link';
+import { legacyPick, legacyPickArray, type Lang } from '@/lib/languages';
+import { maneuvers, pointsOfSail, type Maneuver, type PointOfSail } from '@/data/sailing-data';
+import { manoeuvres } from '@/data/sailing-lab/sources';
 import { useI18n } from '@/lib/i18n';
 import ContentFooterNav from '@/components/ContentFooterNav';
 
@@ -37,6 +39,9 @@ function posSailWork(p: PointOfSail, lang: Lang): string {
 
 // --- Geometry helpers ---
 const DEG = Math.PI / 180;
+// Round trig results to 2 decimals: the server and the browser can disagree on
+// the last digit of sin/cos, and SSR'd SVG attributes then fail to hydrate.
+const r2 = (n: number) => Math.round(n * 100) / 100;
 const polarToCart = (cx: number, cy: number, r: number, deg: number) => ({
   x: Math.round((cx + r * Math.sin(deg * DEG)) * 100) / 100,
   y: Math.round((cy - r * Math.cos(deg * DEG)) * 100) / 100,
@@ -76,11 +81,11 @@ function YachtIcon({
   const jibFactor = Math.abs(sailAngle) < 45 ? 0.75 : 0.55;
   const jibSail = effectiveSail * jibFactor;
   const mastTop = -size * 0.55;
-  const boomEndX = Math.sin(effectiveSail * DEG) * size * 0.45;
-  const boomEndY = mastTop + Math.cos(effectiveSail * DEG) * size * 0.4;
+  const boomEndX = r2(Math.sin(effectiveSail * DEG) * size * 0.45);
+  const boomEndY = r2(mastTop + Math.cos(effectiveSail * DEG) * size * 0.4);
   const forestayY = -size * 0.6;
-  const jibClewX = Math.sin(jibSail * DEG) * size * 0.28;
-  const jibClewY = forestayY + Math.cos(jibSail * DEG) * size * 0.35;
+  const jibClewX = r2(Math.sin(jibSail * DEG) * size * 0.28);
+  const jibClewY = r2(forestayY + Math.cos(jibSail * DEG) * size * 0.35);
   // Wing-on-wing: at running / broad-reach the jib is set on the OPPOSITE side of the
   // main to catch wind that the mainsail would otherwise blanket.
   const wingOnWing = Math.abs(sailAngle) >= 75;
@@ -570,8 +575,8 @@ function SailAngleIllustration({
   // Main sail sits on the leeward side of the boat (in boat frame: starboard
   // side when wind hits from port; we pick starboard for the illustration so
   // rotation shows it swinging naturally).
-  const sailEndX = cx + Math.sin(sailAngle * DEG) * sailLen;
-  const sailEndY = mastTop + Math.cos(sailAngle * DEG) * sailLen * 0.4;
+  const sailEndX = r2(cx + Math.sin(sailAngle * DEG) * sailLen);
+  const sailEndY = r2(mastTop + Math.cos(sailAngle * DEG) * sailLen * 0.4);
   // Wing-on-wing for very deep downwind courses.
   const wingOnWing = sailAngle >= 75;
 
@@ -610,8 +615,8 @@ function SailAngleIllustration({
         />
         {/* Wing-on-wing jib on opposite side for running / broad reach */}
         {wingOnWing && (() => {
-          const jibEndX = cx - Math.sin(sailAngle * DEG) * sailLen * 0.7;
-          const jibEndY = mastTop + 4 + Math.cos(sailAngle * DEG) * sailLen * 0.4;
+          const jibEndX = r2(cx - Math.sin(sailAngle * DEG) * sailLen * 0.7);
+          const jibEndY = r2(mastTop + 4 + Math.cos(sailAngle * DEG) * sailLen * 0.4);
           return (
             <path
               d={`M ${cx} ${mastTop + 4} L ${jibEndX} ${jibEndY} L ${cx} ${jibEndY} Z`}
@@ -738,6 +743,105 @@ function DetailCard({
 }
 
 // --- Main page component ---
+// --- Turns: tacking and jibing as procedures ---
+
+// The maneuvers that carry a step-by-step procedure (tacking and jibing).
+const TURNS = maneuvers.filter((m) => (m.stepsRu?.length ?? 0) > 0);
+
+// rgb triplets so the tints work on both themes; text colors go through theme vars.
+const TURN_STYLE: Record<string, { color: string; rgb: string }> = {
+  tacking: { color: 'var(--cat-cyan)', rgb: '0, 212, 255' },
+  jibing: { color: 'var(--cat-orange)', rgb: '255, 136, 68' },
+};
+
+// Numbers are what people forget first, so they stand out in the step text.
+function WithNumbers({ text, color }: { text: string; color: string }) {
+  return (
+    <>
+      {text.split(/(\d+(?:-\d+)?)/).map((part, i) => (
+        <Fragment key={i}>
+          {i % 2 === 1 ? <strong className="font-semibold" style={{ color }}>{part}</strong> : part}
+        </Fragment>
+      ))}
+    </>
+  );
+}
+
+function TurnCard({ maneuver }: { maneuver: Maneuver }) {
+  const { lang, tp } = useI18n();
+  const style = TURN_STYLE[maneuver.id] ?? TURN_STYLE.tacking;
+  const heading = 'text-xs font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-2';
+  return (
+    <article
+      className="rounded-xl p-5 sm:p-6"
+      style={{ background: `rgba(${style.rgb}, 0.04)`, border: `1px solid rgba(${style.rgb}, 0.18)` }}
+    >
+      <h3 className="text-lg font-semibold" style={{ color: style.color }}>
+        {legacyPick(maneuver, 'name', lang)}
+      </h3>
+      <p className="text-xs text-[var(--text-secondary)] leading-relaxed mt-1 mb-4">
+        {legacyPick(maneuver, 'description', lang)}
+      </p>
+
+      <h4 className={heading}>
+        {tp('Команды', 'Calls', 'Komendy', { es: 'Órdenes', fr: 'Ordres', de: 'Kommandos', it: 'Comandi' })}
+      </h4>
+      <ol className="space-y-2 mb-5">
+        {legacyPickArray(maneuver, 'commands', lang).map((command, i) => (
+          <li
+            key={i}
+            className="rounded-lg px-3 py-2 text-sm leading-relaxed text-[var(--text-primary)]"
+            style={{ background: `rgba(${style.rgb}, 0.07)` }}
+          >
+            {command}
+          </li>
+        ))}
+      </ol>
+
+      <h4 className={heading}>
+        {tp('По шагам', 'Step by step', 'Krok po kroku', {
+          es: 'Paso a paso',
+          fr: 'Étape par étape',
+          de: 'Schritt für Schritt',
+          it: 'Passo dopo passo',
+        })}
+      </h4>
+      <ol className="space-y-2.5 mb-5">
+        {legacyPickArray(maneuver, 'steps', lang).map((step, i) => (
+          <li key={i} className="flex gap-3 text-sm leading-relaxed">
+            <span
+              className="shrink-0 w-6 h-6 rounded-full text-xs font-semibold flex items-center justify-center"
+              style={{ background: `rgba(${style.rgb}, 0.12)`, color: style.color }}
+            >
+              {i + 1}
+            </span>
+            <span className="text-[var(--text-primary)]">
+              <WithNumbers text={step} color={style.color} />
+            </span>
+          </li>
+        ))}
+      </ol>
+
+      <h4 className={heading}>
+        {tp('Частые ошибки', 'Common mistakes', 'Czeste bledy', {
+          es: 'Errores frecuentes',
+          fr: 'Erreurs fréquentes',
+          de: 'Häufige Fehler',
+          it: 'Errori frequenti',
+        })}
+      </h4>
+      <ul className="space-y-2">
+        {legacyPickArray(maneuver, 'mistakes', lang).map((mistake, i) => (
+          <li key={i} className="flex gap-3 text-sm leading-relaxed">
+            <span className="shrink-0" style={{ color: 'var(--danger)' }} aria-hidden="true">✕</span>
+            <span className="text-[var(--text-secondary)]">{mistake}</span>
+          </li>
+        ))}
+      </ul>
+    </article>
+  );
+}
+
 export default function CoursesPage() {
   const { lang, tp } = useI18n();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -833,7 +937,7 @@ export default function CoursesPage() {
       </section>
 
       {/* Two sails theory */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-16">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-4">
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
             {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa zagle, nie jeden', {
@@ -994,6 +1098,94 @@ export default function CoursesPage() {
               </p>
             </div>
           </div>
+        </div>
+      </section>
+
+      {/* Turns: the helmsman's and the trimmer's side. Crew choreography lives in /checklist. */}
+      <section id="turns" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-16 scroll-mt-24">
+        <div className="card p-6 sm:p-8">
+          <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
+            {tp('Повороты: оверштаг и фордевинд', 'Turns: tacking and jibing', 'Zwroty: przez sztag i przez rufe', {
+              es: 'Viradas: por avante y trasluchada',
+              fr: 'Virer de bord et empanner',
+              de: 'Wende und Halse',
+              it: 'Virare e strambare',
+            })}
+            {lang !== 'en' && <span className="text-sm font-normal text-[var(--text-muted)] ml-2">Tacking and jibing</span>}
+          </h2>
+          <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-2">
+            {tp(
+              'Поворот глазами рулевого и шкотового: команды, числа и порядок действий. Что в это время делает остальной экипаж и когда пригибаться, собрано в чек-листе.',
+              "The turn from the helmsman's and the trimmer's side: calls, numbers and the order of actions. What the rest of the crew does meanwhile, and when to duck, is in the checklist.",
+              'Zwrot oczami sternika i szotowego: komendy, liczby i kolejnosc dzialan. Co w tym czasie robi reszta zalogi i kiedy sie schylic, jest na liscie przed regata.',
+              {
+                es: 'La virada vista por el timonel y el trimmer: órdenes, números y orden de las acciones. Qué hace mientras tanto el resto de la tripulación, y cuándo agacharse, está en la checklist.',
+                fr: "La manoeuvre vue par le barreur et le régleur : ordres, chiffres et ordre des actions. Ce que fait le reste de l'équipage pendant ce temps, et quand baisser la tête, se trouve dans la checklist.",
+                de: 'Das Manöver aus Sicht von Rudergänger und Trimmer: Kommandos, Zahlen und Reihenfolge. Was die übrige Crew dabei tut und wann man den Kopf einzieht, steht in der Checkliste.',
+                it: "La manovra vista dal timoniere e dal trimmer: comandi, numeri e ordine delle azioni. Cosa fa intanto il resto dell'equipaggio, e quando abbassare la testa, è nella checklist.",
+              },
+            )}
+          </p>
+          <Link
+            href="/checklist#maneuvers"
+            className="inline-block text-sm underline mb-5"
+            style={{ color: 'var(--accent-cyan)' }}
+          >
+            {tp('Что делает экипаж: чек-лист', 'What the crew does: the checklist', 'Co robi zaloga: lista przed regata', {
+              es: 'Qué hace la tripulación: la checklist',
+              fr: "Ce que fait l'équipage : la checklist",
+              de: 'Was die Crew tut: die Checkliste',
+              it: "Cosa fa l'equipaggio: la checklist",
+            })}{' '}
+            →
+          </Link>
+
+          <div
+            className="rounded-lg p-4 mb-5"
+            style={{ background: 'rgba(255, 221, 68, 0.05)', border: '1px solid rgba(255, 221, 68, 0.15)' }}
+          >
+            <div className="text-sm font-semibold mb-1" style={{ color: 'var(--cat-amber)' }}>
+              {tp('Румпель и штурвал', 'Tiller and wheel', 'Rumpel i kolo sterowe', {
+                es: 'Caña y rueda',
+                fr: 'Barre franche et barre à roue',
+                de: 'Pinne und Rad',
+                it: 'Barra e ruota',
+              })}
+            </div>
+            <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
+              {tp(
+                'Рулевой сидит на наветренном борту. Румпель от себя - лодка приводится, на себя - уваливается: нос всегда уходит в сторону, противоположную румпелю. Штурвал крутят как руль машины: куда повернул, туда пошел нос.',
+                'The helmsman sits on the windward side. Push the tiller away from you and the boat luffs up; pull it towards you and it bears away: the bow always goes the opposite way to the tiller. A wheel turns like a car steering wheel: the bow goes the way you turn it.',
+                'Sternik siedzi na nawietrznej burcie. Rumpel od siebie - jacht ostrzy, do siebie - odpada: dziob zawsze idzie w strone przeciwna do rumpla. Kolem sterowym kreci sie jak kierownica w samochodzie: w ktora strone krecisz, tam idzie dziob.',
+                {
+                  es: 'El timonel se sienta a barlovento. Caña hacia fuera y el barco orza; caña hacia ti y arriba: la proa siempre va al lado contrario de la caña. La rueda se gira como el volante de un coche: la proa va hacia donde giras.',
+                  fr: "Le barreur est assis au vent. Barre poussée, le bateau lofe ; barre tirée vers soi, il abat : l'étrave part toujours du côté opposé à la barre. Une barre à roue se tourne comme un volant : l'étrave va du côté où tu tournes.",
+                  de: 'Der Rudergänger sitzt in Luv. Pinne von sich weg: Das Boot luvt an. Pinne zu sich heran: Es fällt ab. Der Bug geht immer zur Gegenseite der Pinne. Ein Rad dreht man wie ein Autolenkrad: Der Bug geht dorthin, wohin du drehst.',
+                  it: "Il timoniere siede sopravvento. Barra spinta lontano da te e la barca orza; barra verso di te e poggia: la prua va sempre dalla parte opposta alla barra. La ruota si gira come il volante di un'auto: la prua va dove giri.",
+                },
+              )}
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
+            {TURNS.map((m) => (
+              <TurnCard key={m.id} maneuver={m} />
+            ))}
+          </div>
+
+          <p className="text-xs text-[var(--text-muted)] mt-4">
+            {tp(
+              'По книге: Роберт Дас, Эрик фон Краузе, «Маневры под парусами».',
+              `Based on: ${manoeuvres.title}.`,
+              `Na podstawie: ${manoeuvres.title}.`,
+              {
+                es: `Basado en: ${manoeuvres.title}.`,
+                fr: `D'après : ${manoeuvres.title}.`,
+                de: `Nach: ${manoeuvres.title}.`,
+                it: `Basato su: ${manoeuvres.title}.`,
+              },
+            )}
+          </p>
         </div>
       </section>
 

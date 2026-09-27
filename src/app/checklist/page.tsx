@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick, legacyPickArray } from '@/lib/languages';
 import ContentFooterNav from '@/components/ContentFooterNav';
@@ -67,7 +68,7 @@ export default function ChecklistPage() {
           const items = legacyPickArray(section, 'items', lang);
           const warning = legacyPick(section, 'warning', lang);
           return (
-            <section key={section.id} className="card p-4 sm:p-5">
+            <section key={section.id} id={section.id} className="card p-4 sm:p-5 scroll-mt-24">
               <div className="flex items-center gap-3 mb-3">
                 <span className="text-2xl shrink-0">{section.icon}</span>
                 <h2 className="text-lg sm:text-xl font-semibold">{title}</h2>
@@ -94,6 +95,21 @@ export default function ChecklistPage() {
                   </span>{' '}
                   <span className="text-[var(--text-primary)]">{warning}</span>
                 </div>
+              )}
+              {section.id === 'maneuvers' && (
+                <Link
+                  href="/courses#turns"
+                  className="inline-block mt-3 text-sm underline"
+                  style={{ color: 'var(--accent-cyan)' }}
+                >
+                  {tp('Порядок для рулевого и шкотового, с числами', 'The helmsman and trimmer procedure, with numbers', 'Kolejnosc dla sternika i szotowego, z liczbami', {
+                    es: 'El procedimiento del timonel y del trimmer, con números',
+                    fr: 'La procédure du barreur et du régleur, avec les chiffres',
+                    de: 'Ablauf für Rudergänger und Trimmer, mit Zahlen',
+                    it: 'La procedura del timoniere e del trimmer, con i numeri',
+                  })}{' '}
+                  →
+                </Link>
               )}
             </section>
           );

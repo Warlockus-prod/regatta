@@ -194,9 +194,163 @@
       "descriptionEn": "Turn where the bow crosses the wind line. Boat changes tack through head-to-wind. Safe but slow turn.",
       "descriptionPl": "Zwrot, w ktorym dziob jachtu przecina linie wiatru. Jacht przechodzi z jednego halsu na drugi przez wiatr. Bezpieczny, ale wolny zwrot.",
       "descriptionEs": "Virada en la que la proa del barco cruza la línea del viento. El barco pasa de una amura a otra pasando por proa al viento. Una virada segura pero lenta.",
-      "descriptionFr": "Virer de bord, manoeuvre au cours de laquelle l'etrave de la yacht franchit la ligne du vent. La yacht passe d'une amure a l'autre en passant par vent debout. Un virement securise mais lent.",
-      "descriptionDe": "Wenden, bei dem der Bug der Yacht die Windrichtung kreuzt. Die Yacht wechselt von einem Bug auf den anderen durch den Zustand im Wind. Ein sicherer, aber langsamer Wendemanöver.",
-      "descriptionIt": "Virare, durante la quale la prua della barca attraversa la linea del vento. La barca passa da un bordo all'altro passando per la prua al vento. Una virata sicura, ma lenta.",
+      "descriptionFr": "Virer de bord : manoeuvre au cours de laquelle l'étrave du bateau passe la ligne du vent. Le bateau passe d'une amure à l'autre en passant par vent debout. Une manoeuvre sûre mais lente.",
+      "descriptionDe": "Manöver, bei dem der Bug der Yacht durch den Wind geht. Die Yacht wechselt von einem Bug auf den anderen und steht dabei kurz im Wind. Ein sicheres, aber langsames Manöver.",
+      "descriptionIt": "Manovra durante la quale la prua della barca attraversa la linea del vento. La barca passa da un bordo all'altro passando per la prua al vento. Una virata sicura, ma lenta.",
+      "commandsRu": [
+        "Предупреждение: «Приготовиться к повороту» (Ready about). Шкотовый у лебедок, экипаж отвечает «готов».",
+        "Исполнение: «Поворот» (Lee-ho). Рулевой перекладывает руль, шкотовый отдает рабочий шкот и выбирает новый."
+      ],
+      "commandsEn": [
+        "Warning: \"Ready about\". The trimmer is at the winches, the crew answers \"ready\".",
+        "Execution: \"Lee-ho\". The helmsman puts the helm over, the trimmer lets go the working sheet and hauls in the new one."
+      ],
+      "commandsPl": [
+        "Ostrzezenie: \"Gotowi do zwrotu\" (Ready about). Szotowy przy kabestanach, zaloga odpowiada \"gotowy\".",
+        "Wykonanie: \"Zwrot\" (Lee-ho). Sternik wyklada ster, szotowy luzuje pracujacy szot i wybiera nowy."
+      ],
+      "commandsEs": [
+        "Aviso: \"Listos para virar\" (Ready about). El trimmer en los winches, la tripulación responde \"listo\".",
+        "Ejecución: \"Virando\" (Lee-ho). El timonel mete timón, el trimmer larga la escota que trabaja y cobra la nueva."
+      ],
+      "commandsFr": [
+        "Annonce : \"Parés à virer\" (Ready about). Le régleur est aux winchs, l'équipage répond \"paré\".",
+        "Exécution : \"On vire\" (Lee-ho). Le barreur met de la barre, le régleur largue l'écoute qui travaille et reprend la nouvelle."
+      ],
+      "commandsDe": [
+        "Ankündigung: \"Klar zur Wende\" (Ready about). Der Trimmer steht an den Winschen, die Crew antwortet \"ist klar\".",
+        "Ausführung: \"Ree\" (Lee-ho). Der Rudergänger legt Ruder, der Trimmer wirft die arbeitende Schot los und holt die neue dicht."
+      ],
+      "commandsIt": [
+        "Avviso: \"Pronti a virare\" (Ready about). Il trimmer è ai winch, l'equipaggio risponde \"pronto\".",
+        "Esecuzione: \"Si vira\" (Lee-ho). Il timoniere mette timone, il trimmer molla la scotta che lavora e cazza la nuova."
+      ],
+      "stepsRu": [
+        "Сразу после прошлого поворота готовят шкот к следующему: на лебедку по часовой, в слабый ветер 1 шлаг, в сильный 2-3, слабину выбрать, чтобы шкот не зацепился у мачты.",
+        "Перед поворотом шкотовый переходит к подветренной лебедке и готовит рабочий шкот к отдаче. Ручку из подветренной лебедки вынимают: в держатель или сразу в наветренную лебедку.",
+        "Рулевой перекладывает руль примерно на 30 градусов: меньше - лодка может застрять в левентике, больше - руль начинает тормозить.",
+        "На волне поворот начинают, когда яхта проходит гребень: нос разгружен и меньше упирается в волну.",
+        "Через линию ветра идут плавно, без рывка: медленный поворот дает шкотовому время, и сил почти не нужно.",
+        "Рабочий шкот отдают, и он должен свободно бежать через кипу. Рулевой следит, чтобы шкот нигде не зацепился.",
+        "Как только нос прошел линию ветра и стаксель полощет перед мачтой, новый шкот выбирают руками как можно быстрее: пока парус не наполнился, шкот идет легко. В сильный ветер упираются ногами и тянут двумя руками.",
+        "Когда стаксель начинает давить, рулевой замедляет разворот.",
+        "Остаток добирают лебедкой: ручку в лебедку, на барабане 3-4 шлага, хвост шкота в самостопор.",
+        "После поворота рулевой держит чуть выше оптимального курса, пока шкот добирают, потом ложится на курс и настраивает грот.",
+        "С большой генуей не затягивай поворот: пока она полощет, она трется о краспицу. Короткий быстрый поворот на месте - только в очень слабый ветер и в узком фарватере."
+      ],
+      "stepsEn": [
+        "Right after the previous tack, prepare the sheet for the next one: onto the winch clockwise, 1 turn in light air, 2-3 in a breeze, slack taken in so it cannot snag at the mast.",
+        "Before the tack, the trimmer moves to the leeward winch and gets the working sheet ready to let go. The handle comes out of the leeward winch: into its pocket, or straight into the windward winch.",
+        "The helmsman puts about 30 degrees of helm on: less and the boat can stick in irons, more and the rudder starts to brake.",
+        "In waves, start the tack as the boat passes a crest: the bow is light and pushes less into the sea.",
+        "Go through the wind smoothly, without a jerk: a slow turn gives the trimmer time and takes almost no strength.",
+        "The working sheet is let go and must run freely through its lead. The helmsman watches that it does not catch anywhere.",
+        "As soon as the bow is through the wind and the jib is flapping in front of the mast, haul the new sheet in by hand as fast as you can: until the sail fills, it comes easily. In a breeze, brace your feet and pull with both hands.",
+        "When the jib starts to load up, the helmsman slows the turn.",
+        "Finish with the winch: handle in, 3-4 turns on the drum, the tail in the self-tailer.",
+        "After the tack, the helmsman sails slightly higher than the best course while the sheet is trimmed, then settles on course and trims the main.",
+        "With a big genoa, do not drag the tack out: while it flaps, it rubs on the spreader. A short, quick tack on the spot is only for very light air and narrow channels."
+      ],
+      "stepsPl": [
+        "Zaraz po poprzednim zwrocie przygotuj szot do nastepnego: na kabestan zgodnie z ruchem wskazowek zegara, przy slabym wietrze 1 zwoj, przy silnym 2-3, luz wybrany, zeby szot nie zaczepil przy maszcie.",
+        "Przed zwrotem szotowy przechodzi do zawietrznego kabestanu i szykuje pracujacy szot do zluzowania. Korbe wyjmuje sie z zawietrznego kabestanu: do uchwytu albo od razu do nawietrznego.",
+        "Sternik wyklada ster mniej wiecej o 30 stopni: mniej - jacht moze utknac w lewentyku, wiecej - ster zaczyna hamowac.",
+        "Na fali zaczynaj zwrot, gdy jacht przechodzi przez grzbiet: dziob jest odciazony i mniej wbija sie w fale.",
+        "Przez linie wiatru przechodz plynnie, bez szarpniecia: powolny zwrot daje szotowemu czas i prawie nie wymaga sily.",
+        "Pracujacy szot sie luzuje i musi swobodnie przebiegac przez prowadnice. Sternik pilnuje, zeby nigdzie nie zaczepil.",
+        "Gdy tylko dziob minie linie wiatru, a fok lopocze przed masztem, nowy szot wybiera sie rekami jak najszybciej: dopoki zagiel sie nie napelni, szot idzie lekko. Przy silnym wietrze zaprzyj sie nogami i ciagnij obiema rekami.",
+        "Gdy fok zaczyna ciagnac, sternik zwalnia obrot.",
+        "Reszte dobiera sie kabestanem: korba w kabestan, na bebnie 3-4 zwoje, koncowka szota w self-tailer.",
+        "Po zwrocie sternik trzyma troche ostrzej niz optymalny kurs, dopoki szot jest dobierany, potem ustawia kurs i trymuje grota.",
+        "Z duza genua nie przeciagaj zwrotu: dopoki lopocze, ociera sie o saling. Krotki, szybki zwrot w miejscu tylko przy bardzo slabym wietrze i w waskim torze wodnym."
+      ],
+      "stepsEs": [
+        "Nada más terminar la virada anterior, prepara la escota para la siguiente: en el winche en sentido horario, 1 vuelta con poco viento, 2-3 con más, sin seno para que no se enganche junto al mástil.",
+        "Antes de virar, el trimmer pasa al winche de sotavento y prepara la escota que trabaja para largarla. La manivela sale del winche de sotavento: a su bolsillo o directamente al winche de barlovento.",
+        "El timonel mete unos 30 grados de timón: con menos el barco puede quedarse proa al viento, con más el timón empieza a frenar.",
+        "Con ola, empieza la virada cuando el barco pasa una cresta: la proa va descargada y choca menos con la mar.",
+        "Cruza el viento con suavidad, sin brusquedad: una virada lenta da tiempo al trimmer y casi no exige fuerza.",
+        "La escota que trabaja se larga y debe correr libre por su guía. El timonel vigila que no se enganche en ningún sitio.",
+        "En cuanto la proa ha pasado el viento y el foque flamea delante del mástil, cobra la nueva escota a mano lo más rápido posible: hasta que la vela se llena, entra fácil. Con viento, apoya los pies y tira con las dos manos.",
+        "Cuando el foque empieza a cargar, el timonel frena el giro.",
+        "Termina con el winche: manivela puesta, 3-4 vueltas en el tambor y el chicote en el self-tailing.",
+        "Después de virar, el timonel lleva el barco un poco más orzado que el rumbo óptimo mientras se caza la escota, y luego se pone a rumbo y ajusta la mayor.",
+        "Con un génova grande no alargues la virada: mientras flamea, roza con la cruceta. Una virada corta y rápida, casi en el sitio, solo con viento muy flojo y en canales estrechos."
+      ],
+      "stepsFr": [
+        "Juste après le virement précédent, prépare l'écoute pour le suivant : sur le winch dans le sens horaire, 1 tour par petit temps, 2-3 dans la brise, le mou repris pour qu'elle n'accroche pas au pied de mât.",
+        "Avant le virement, le régleur passe au winch sous le vent et prépare l'écoute qui travaille pour la larguer. La manivelle sort du winch sous le vent : dans son support ou directement dans le winch au vent.",
+        "Le barreur met environ 30 degrés de barre : moins et le bateau peut rester bout au vent, plus et le safran commence à freiner.",
+        "Dans les vagues, commence le virement quand le bateau passe une crête : l'étrave est déchargée et tape moins dans la mer.",
+        "Passe le lit du vent en douceur, sans à-coup : un virement lent laisse du temps au régleur et ne demande presque pas de force.",
+        "L'écoute qui travaille est larguée et doit filer librement dans son renvoi. Le barreur surveille qu'elle n'accroche nulle part.",
+        "Dès que l'étrave a passé le vent et que le foc faseye devant le mât, reprends la nouvelle écoute à la main aussi vite que possible : tant que la voile n'est pas gonflée, elle vient facilement. Dans la brise, cale tes pieds et tire à deux mains.",
+        "Quand le foc commence à porter, le barreur ralentit la rotation.",
+        "Finis au winch : manivelle en place, 3-4 tours sur la poupée, le bout dans le self-tailing.",
+        "Après le virement, le barreur tient un peu plus haut que le cap optimal pendant qu'on reprend l'écoute, puis se met au cap et règle la grand-voile.",
+        "Avec un grand génois, ne traîne pas dans le virement : tant qu'il faseye, il frotte sur la barre de flèche. Un virement court et rapide, presque sur place, seulement par vent très faible et dans les passes étroites."
+      ],
+      "stepsDe": [
+        "Gleich nach der vorigen Wende die Schot für die nächste vorbereiten: im Uhrzeigersinn auf die Winsch, bei wenig Wind 1 Törn, bei mehr 2-3, Lose durchgeholt, damit sie am Mast nicht hängen bleibt.",
+        "Vor der Wende geht der Trimmer an die Leewinsch und macht die arbeitende Schot klar zum Loswerfen. Die Kurbel kommt aus der Leewinsch: in ihre Halterung oder gleich in die Luvwinsch.",
+        "Der Rudergänger legt etwa 30 Grad Ruder: weniger, und das Boot kann im Wind stehen bleiben, mehr, und das Ruder beginnt zu bremsen.",
+        "In der Welle die Wende beginnen, wenn das Boot über einen Wellenkamm geht: Der Bug ist entlastet und stößt weniger in die See.",
+        "Gleichmäßig durch den Wind, ohne Ruck: Eine langsame Wende gibt dem Trimmer Zeit und kostet kaum Kraft.",
+        "Die arbeitende Schot wird losgeworfen und muss frei durch ihren Holepunkt laufen. Der Rudergänger achtet darauf, dass sie nirgends hängen bleibt.",
+        "Sobald der Bug durch den Wind ist und die Fock vor dem Mast killt, die neue Schot so schnell wie möglich von Hand holen: Solange das Segel nicht gefüllt ist, kommt sie leicht. Bei mehr Wind die Füße abstützen und mit beiden Händen ziehen.",
+        "Wenn die Fock Druck bekommt, verlangsamt der Rudergänger die Drehung.",
+        "Den Rest mit der Winsch: Kurbel rein, 3-4 Törns auf der Trommel, das Ende in den Selbstholer.",
+        "Nach der Wende segelt der Rudergänger etwas höher als der beste Kurs, bis die Schot dicht ist, geht dann auf Kurs und trimmt das Groß.",
+        "Mit einer großen Genua die Wende nicht in die Länge ziehen: Solange sie killt, scheuert sie an der Saling. Eine kurze, schnelle Wende fast auf der Stelle nur bei sehr leichtem Wind und in engen Fahrwassern."
+      ],
+      "stepsIt": [
+        "Subito dopo la virata precedente prepara la scotta per la prossima: sul winch in senso orario, 1 giro con poco vento, 2-3 con più vento, recuperato il lasco perché non si impigli vicino all'albero.",
+        "Prima della virata il trimmer va al winch sottovento e prepara la scotta che lavora per mollarla. La maniglia esce dal winch sottovento: nel suo alloggio o subito nel winch sopravvento.",
+        "Il timoniere mette circa 30 gradi di timone: con meno la barca può restare prua al vento, con più il timone comincia a frenare.",
+        "Con onda, comincia la virata quando la barca passa una cresta: la prua è scarica e sbatte meno contro il mare.",
+        "Passa il vento con dolcezza, senza strappi: una virata lenta dà tempo al trimmer e non richiede quasi forza.",
+        "La scotta che lavora viene mollata e deve scorrere libera nel suo rinvio. Il timoniere controlla che non si impigli da nessuna parte.",
+        "Appena la prua ha passato il vento e il fiocco sbatte davanti all'albero, cazza la nuova scotta a mano il più in fretta possibile: finché la vela non si gonfia, viene facilmente. Con vento, punta i piedi e tira con due mani.",
+        "Quando il fiocco comincia a portare, il timoniere rallenta la rotazione.",
+        "Finisci con il winch: maniglia dentro, 3-4 giri sul tamburo, la coda nel self-tailing.",
+        "Dopo la virata il timoniere tiene un po' più all'orza della rotta migliore finché la scotta è cazzata, poi si mette in rotta e regola la randa.",
+        "Con un genoa grande non allungare la virata: finché sbatte, sfrega sulla crocetta. Una virata corta e veloce, quasi sul posto, solo con vento molto leggero e nei canali stretti."
+      ],
+      "mistakesRu": [
+        "Слишком сильно уваливаться после поворота: платишь дважды - теряешь высоту, и шкот добирать тяжелее.",
+        "Слишком мало руля и слишком долгий поворот. Так можно выиграть немного высоты, но лодка теряет ход и может залипнуть в левентике. У берега на течении это опасно.",
+        "Опоздать с выбиранием: стаксель уже наполнился, и все, что не успел выбрать руками, придется тянуть лебедкой против ветра."
+      ],
+      "mistakesEn": [
+        "Bearing away too far after the tack: you pay twice - you lose height, and the sheet is harder to trim.",
+        "Too little helm and too long a turn. It can gain a little height, but the boat loses way and can stick in irons. Near a shore with a current that is dangerous.",
+        "Hauling too late: the jib has already filled, and whatever you did not get in by hand has to be ground in against the wind."
+      ],
+      "mistakesPl": [
+        "Za mocne odpadanie po zwrocie: placisz podwojnie - tracisz wysokosc, a szot trudniej dobrac.",
+        "Za malo steru i za dlugi zwrot. Mozna tak troche zyskac na wysokosci, ale jacht traci predkosc i moze utknac w lewentyku. Przy brzegu i na pradzie to niebezpieczne.",
+        "Spoznione wybieranie: fok juz sie napelnil i wszystko, czego nie wybrales rekami, trzeba krecic kabestanem pod obciazeniem."
+      ],
+      "mistakesEs": [
+        "Arribar demasiado tras la virada: pagas dos veces, pierdes altura y la escota cuesta más de cazar.",
+        "Poco timón y una virada demasiado larga. Se puede ganar algo de altura, pero el barco pierde arrancada y puede quedarse proa al viento. Cerca de la costa con corriente es peligroso.",
+        "Cobrar tarde: el foque ya se ha llenado y todo lo que no cobraste a mano hay que meterlo con el winche contra el viento."
+      ],
+      "mistakesFr": [
+        "Abattre trop après le virement : tu paies deux fois, tu perds du cap et l'écoute est plus dure à reprendre.",
+        "Trop peu de barre et un virement trop long. On peut gagner un peu de cap, mais le bateau perd son erre et peut rester bout au vent. Près d'une côte avec du courant, c'est dangereux.",
+        "Reprendre trop tard : le foc est déjà gonflé et tout ce que tu n'as pas pris à la main doit passer au winch contre le vent."
+      ],
+      "mistakesDe": [
+        "Nach der Wende zu weit abfallen: Du zahlst doppelt, verlierst Höhe, und die Schot ist schwerer dichtzuholen.",
+        "Zu wenig Ruder und eine zu lange Wende. Das bringt etwas Höhe, aber das Boot verliert Fahrt und kann im Wind stehen bleiben. Nahe am Ufer mit Strömung ist das gefährlich.",
+        "Zu spät holen: Die Fock hat sich schon gefüllt, und alles, was du nicht von Hand geholt hast, muss gegen den Winddruck gekurbelt werden."
+      ],
+      "mistakesIt": [
+        "Poggiare troppo dopo la virata: paghi due volte, perdi altezza e la scotta è più dura da cazzare.",
+        "Poco timone e una virata troppo lunga. Si guadagna un po' di altezza, ma la barca perde abbrivio e può restare prua al vento. Vicino alla costa con corrente è pericoloso.",
+        "Cazzare in ritardo: il fiocco si è già gonfiato e tutto quello che non hai preso a mano va recuperato con il winch contro il vento."
+      ],
       "category": "basic"
     },
     {
@@ -213,8 +367,155 @@
       "descriptionPl": "Zwrot, w ktorym rufa jachtu przecina linie wiatru. Bom gwaltownie przerzuca sie na druga burte. Szybki, ale potencjalnie niebezpieczny - bom moze zranic zaloge.",
       "descriptionEs": "Trasluchar, giro en el que la popa del yate cruza la línea de viento. La botavara se desplaza bruscamente al otro lado. Un giro rápido pero potencialmente peligroso - la botavara puede lesionar a la tripulación.",
       "descriptionFr": "Empannage, manœuvre durant laquelle la poupe du yacht traverse la ligne du vent. La bôme bascule brutalement sur l'autre bord. Virage rapide mais potentiellement dangereux - la bôme peut blesser l'équipage.",
-      "descriptionDe": "Ein Wendemanöver, bei dem das Heck der Yacht die Windlinie kreuzt. Der Baum schwenkt abrupt auf die andere Seite. Eine schnelle, aber potenziell gefährliche Wendung - der Baum kann die Besatzung verletzen.",
-      "descriptionIt": "Un'evoluzione nella quale la poppa dell'imbarcazione attraversa la linea del vento. La boma si sposta bruscamente sull'altro bordo. Un'evoluzione veloce, ma potenzialmente pericolosa - la boma può ferire l'equipaggio.",
+      "descriptionDe": "Ein Manöver, bei dem das Heck der Yacht durch den Wind geht. Der Baum schwenkt abrupt auf die andere Seite. Schnell, aber potenziell gefährlich - der Baum kann die Crew verletzen.",
+      "descriptionIt": "Un'evoluzione nella quale la poppa dell'imbarcazione attraversa la linea del vento. Il boma si sposta bruscamente sull'altro bordo. Un'evoluzione veloce, ma potenzialmente pericolosa - il boma può ferire l'equipaggio.",
+      "commandsRu": [
+        "Предупреждение: «К повороту фордевинд!» Завал-таль травят и отдают, рулевой начинает уваливаться, гика-шкот выбирают втугую, все в кокпите пригибают головы.",
+        "Исполнение: «Поворот!» (Jibe-ho). Рулевой перекладывает руль, второй следит за гротом.",
+        "«Так держать!» Гик перешел, гика-шкот травят, рулевой держит новый курс."
+      ],
+      "commandsEn": [
+        "Warning: \"Ready to jibe\". The preventer is eased and released, the helmsman starts to bear away, the mainsheet is hauled in tight, everyone in the cockpit keeps their head down.",
+        "Execution: \"Jibe-ho\". The helmsman puts the helm over, the second person watches the main.",
+        "\"Steady\". The boom is across, the mainsheet is being eased, the helmsman holds the new course."
+      ],
+      "commandsPl": [
+        "Ostrzezenie: \"Gotowi do zwrotu przez rufe\". Preventer luzowany i zdjety, sternik zaczyna odpadac, szot grota wybrany do oporu, wszyscy w kokpicie pochylaja glowy.",
+        "Wykonanie: \"Zwrot przez rufe\" (Jibe-ho). Sternik wyklada ster, druga osoba pilnuje grota.",
+        "\"Tak trzymac\". Bom przeszedl, szot grota jest luzowany, sternik trzyma nowy kurs."
+      ],
+      "commandsEs": [
+        "Aviso: \"Listos para trasluchar\". Se lasca y se suelta la retenida, el timonel empieza a arribar, se caza a tope la escota de mayor, todos en la bañera agachan la cabeza.",
+        "Ejecución: \"Trasluchando\" (Jibe-ho). El timonel mete timón, otro tripulante vigila la mayor.",
+        "\"Mantén el rumbo\". La botavara ha pasado, se va lascando la escota, el timonel sostiene el nuevo rumbo."
+      ],
+      "commandsFr": [
+        "Annonce : \"Parés à empanner\". La retenue est choquée et larguée, le barreur commence à abattre, l'écoute de grand-voile est bordée à fond, tout le monde baisse la tête dans le cockpit.",
+        "Exécution : \"On empanne\" (Jibe-ho). Le barreur met de la barre, un second équipier surveille la grand-voile.",
+        "\"Tiens le cap\". La bôme est passée, on choque l'écoute, le barreur tient le nouveau cap."
+      ],
+      "commandsDe": [
+        "Ankündigung: \"Klar zur Halse\". Der Bullenstander wird gefiert und losgeworfen, der Rudergänger beginnt abzufallen, die Großschot wird dichtgeholt, alle im Cockpit ziehen den Kopf ein.",
+        "Ausführung: \"Rund achtern\" (Jibe-ho). Der Rudergänger legt Ruder, ein Zweiter beobachtet das Groß.",
+        "\"Kurs halten\". Der Baum ist über, die Großschot wird gefiert, der Rudergänger hält den neuen Kurs."
+      ],
+      "commandsIt": [
+        "Avviso: \"Pronti a strambare\". La ritenuta si lasca e si toglie, il timoniere comincia a poggiare, la scotta randa si cazza a ferro, tutti in pozzetto abbassano la testa.",
+        "Esecuzione: \"Si stramba\" (Jibe-ho). Il timoniere mette timone, un secondo membro dell'equipaggio controlla la randa.",
+        "\"Mantieni la rotta\". Il boma è passato, la scotta randa si lasca, il timoniere tiene la nuova rotta."
+      ],
+      "stepsRu": [
+        "Перед поворотом набей оттяжку гика: она не даст гику подскочить при перекидке.",
+        "Завал-таль, если заведена, травят и отдают до поворота. Иначе при перекидке можно сломать гик.",
+        "На лодке с румпелем рулевой садится на подветренный борт: после поворота этот борт станет наветренным.",
+        "Рулевой медленно уваливается, гика-шкот выбирают как можно туже, грот идет к середине. Стаксель-шкот пока в стопоре, второй заложен на лебедку в 2 шлага.",
+        "Корма проходит линию ветра, и гик перелетает. Сразу после перекидки гика-шкот травят как можно быстрее: выбранный в середину грот дает наибольший крен и приводит лодку.",
+        "После перекидки лодка стремится привестись. Рулевой парирует рулем, но не настолько, чтобы корма снова прошла линию ветра.",
+        "Стаксель переносят после поворота: старый шкот отдают, новый выбирают, пока шкотовый угол не окажется примерно на уровне вант. Если промедлить, стаксель не наполнится.",
+        "На новом курсе снова заводят завал-таль.",
+        "В сильный ветер грот к середине туго не выбрать, и гик проходит большую дугу с большой скоростью. Держаться и пригибаться тогда особенно важно."
+      ],
+      "stepsEn": [
+        "Before the jibe, tension the vang: it stops the boom from kicking up as it comes across.",
+        "If a preventer is rigged, ease it and release it before the jibe. Otherwise the boom can break as it comes across.",
+        "On a tiller boat the helmsman sits on the leeward side: after the jibe, that side becomes windward.",
+        "The helmsman bears away slowly while the mainsheet is hauled in as tight as possible and the main comes to the middle. The jib sheet stays in its clutch; the other one is on its winch with 2 turns.",
+        "The stern goes through the wind and the boom comes across. Right after it does, ease the mainsheet as fast as you can: a main hauled to the middle gives the most heel and rounds the boat up.",
+        "After the boom comes across the boat wants to round up. The helmsman counters with the helm, but not so much that the stern goes through the wind again.",
+        "The jib is moved after the jibe: let go the old sheet and trim the new one until the clew is roughly level with the shrouds. Wait too long and the jib will not fill.",
+        "Once on the new course, rig the preventer again.",
+        "In a strong wind the main cannot really be hauled tight to the middle, and the boom swings through a big arc at speed. Holding on and keeping your head down matter even more then."
+      ],
+      "stepsPl": [
+        "Przed zwrotem naciagnij obciagacz bomu: nie pozwoli bomowi podskoczyc przy przerzucie.",
+        "Preventer, jesli jest zalozony, luzuje sie i zdejmuje przed zwrotem. Inaczej przy przerzucie mozna zlamac bom.",
+        "Na jachcie z rumplem sternik siada na zawietrznej burcie: po zwrocie ta burta stanie sie nawietrzna.",
+        "Sternik powoli odpada, szot grota wybiera sie jak najmocniej, grot idzie do srodka. Szot foka zostaje w stoperze, drugi lezy na kabestanie, 2 zwoje.",
+        "Rufa przechodzi przez linie wiatru i bom przeskakuje. Zaraz po przerzucie szot grota luzuje sie jak najszybciej: wybrany do srodka grot daje najwiekszy przechyl i ostrzy jacht.",
+        "Po przerzucie jacht chce ostrzyc. Sternik kontruje sterem, ale nie tak mocno, zeby rufa znow przeszla przez wiatr.",
+        "Foka przenosi sie po zwrocie: stary szot sie luzuje, nowy wybiera, az rog szotowy bedzie mniej wiecej na wysokosci want. Jesli sie spoznisz, fok sie nie napelni.",
+        "Na nowym kursie znow zaklada sie preventer.",
+        "Przy silnym wietrze grota nie da sie mocno wybrac do srodka i bom przechodzi duzy luk z duza predkoscia. Trzymanie sie i pochylanie glowy sa wtedy jeszcze wazniejsze."
+      ],
+      "stepsEs": [
+        "Antes de trasluchar, tensa la contra: impide que la botavara salte al pasar.",
+        "Si hay una retenida montada, se lasca y se suelta antes de trasluchar. Si no, la botavara puede romperse al pasar.",
+        "En un barco con caña, el timonel se sienta a sotavento: después de trasluchar esa banda pasa a ser la de barlovento.",
+        "El timonel arriba despacio mientras se caza la escota de mayor lo más posible y la mayor viene al centro. La escota del foque sigue en su stopper; la otra está en su winche con 2 vueltas.",
+        "La popa cruza el viento y la botavara pasa. Justo después, lasca la escota de mayor lo más rápido que puedas: una mayor cazada al centro da la máxima escora y hace orzar al barco.",
+        "Tras el paso de la botavara el barco tiende a orzar. El timonel lo contrarresta con el timón, pero no tanto como para que la popa vuelva a cruzar el viento.",
+        "El foque se pasa después de trasluchar: larga la escota vieja y cobra la nueva hasta que el puño de escota quede más o menos a la altura de los obenques. Si tardas, el foque no se llenará.",
+        "Ya en el nuevo rumbo, vuelve a montar la retenida.",
+        "Con viento fuerte la mayor no se puede cazar de verdad al centro y la botavara recorre un gran arco a mucha velocidad. Agarrarse y agachar la cabeza importa entonces todavía más."
+      ],
+      "stepsFr": [
+        "Avant d'empanner, étarque le hale-bas : il empêche la bôme de se soulever en passant.",
+        "Si une retenue est en place, choque-la et largue-la avant d'empanner. Sinon la bôme peut casser en passant.",
+        "Sur un bateau à barre franche, le barreur s'assoit sous le vent : après l'empannage, ce bord devient le bord au vent.",
+        "Le barreur abat lentement pendant qu'on borde l'écoute de grand-voile au maximum et que la grand-voile vient au centre. L'écoute de foc reste dans son bloqueur ; l'autre est sur son winch avec 2 tours.",
+        "L'arrière passe le lit du vent et la bôme passe. Juste après, choque l'écoute de grand-voile aussi vite que possible : une grand-voile bordée au centre donne le plus de gîte et fait lofer le bateau.",
+        "Une fois la bôme passée, le bateau veut lofer. Le barreur contre à la barre, mais pas au point de faire repasser l'arrière dans le vent.",
+        "Le foc change de bord après l'empannage : largue l'ancienne écoute et reprends la nouvelle jusqu'à ce que le point d'écoute soit à peu près à hauteur des haubans. Si tu tardes, le foc ne se gonflera pas.",
+        "Une fois sur le nouveau cap, remets la retenue en place.",
+        "Dans un vent fort, la grand-voile ne se borde pas vraiment au centre et la bôme parcourt un grand arc à grande vitesse. Se tenir et baisser la tête comptent alors encore plus."
+      ],
+      "stepsDe": [
+        "Vor der Halse den Baumniederholer durchsetzen: Er verhindert, dass der Baum beim Überkommen hochschlägt.",
+        "Ist ein Bullenstander angeschlagen, ihn vor der Halse fieren und loswerfen. Sonst kann der Baum beim Überkommen brechen.",
+        "Auf einem Boot mit Pinne setzt sich der Rudergänger nach Lee: Nach der Halse ist diese Seite die Luvseite.",
+        "Der Rudergänger fällt langsam ab, während die Großschot so dicht wie möglich geholt wird und das Groß zur Mitte kommt. Die Fockschot bleibt im Stopper; die andere liegt mit 2 Törns auf ihrer Winsch.",
+        "Das Heck geht durch den Wind, und der Baum kommt über. Gleich danach die Großschot so schnell wie möglich fieren: Ein zur Mitte geholtes Groß macht die meiste Krängung und lässt das Boot anluven.",
+        "Nach dem Überkommen des Baums will das Boot anluven. Der Rudergänger steuert dagegen, aber nicht so stark, dass das Heck wieder durch den Wind geht.",
+        "Die Fock wird nach der Halse umgesetzt: die alte Schot loswerfen und die neue dichtholen, bis das Schothorn etwa auf Höhe der Wanten steht. Wer zu lange wartet, bekommt die Fock nicht gefüllt.",
+        "Auf dem neuen Kurs den Bullenstander wieder anschlagen.",
+        "Bei starkem Wind lässt sich das Groß nicht richtig zur Mitte dichtholen, und der Baum fegt in einem großen Bogen schnell herüber. Festhalten und Kopf einziehen sind dann noch wichtiger."
+      ],
+      "stepsIt": [
+        "Prima di strambare tesa il vang: impedisce al boma di sollevarsi quando passa.",
+        "Se c'è una ritenuta, lascala e toglila prima di strambare. Altrimenti il boma può rompersi quando passa.",
+        "Su una barca a barra il timoniere si siede sottovento: dopo la strambata quel lato diventa sopravvento.",
+        "Il timoniere poggia piano mentre la scotta randa si cazza il più possibile e la randa viene al centro. La scotta del fiocco resta nello stopper; l'altra è sul suo winch con 2 giri.",
+        "La poppa passa il vento e il boma passa. Subito dopo lasca la scotta randa il più in fretta possibile: una randa cazzata al centro dà il massimo sbandamento e fa orzare la barca.",
+        "Dopo il passaggio del boma la barca tende a orzare. Il timoniere corregge con il timone, ma non tanto da far ripassare la poppa nel vento.",
+        "Il fiocco si passa dopo la strambata: molla la vecchia scotta e cazza la nuova finché la bugna è più o meno all'altezza delle sartie. Se tardi, il fiocco non si gonfia.",
+        "Sulla nuova rotta rimetti la ritenuta.",
+        "Con vento forte la randa non si cazza davvero al centro e il boma percorre un grande arco a grande velocità. Tenersi e abbassare la testa contano allora ancora di più."
+      ],
+      "mistakesRu": [
+        "Наматывать гика-шкот на руку или зажимать в кулаке: при перекидке он уходит рывком. Держи открытой ладонью, в крайнем случае просто брось шкот.",
+        "Слишком сильный контр-руль: корма снова проходит линию ветра, и гик летит обратно. Это второй, неподготовленный поворот.",
+        "Не травить грот сразу после перекидки: выбранный в середину грот кренит лодку и разворачивает ее к ветру."
+      ],
+      "mistakesEn": [
+        "Wrapping the mainsheet round your hand or gripping it in a fist: it rips away as the boom comes across. Hold it with an open palm, and if need be simply let it go.",
+        "Too much counter-helm: the stern goes through the wind again and the boom comes back. That is a second, unprepared jibe.",
+        "Not easing the main right after the jibe: a main hauled to the middle heels the boat and turns it into the wind."
+      ],
+      "mistakesPl": [
+        "Nawijanie szota grota na reke albo sciskanie go w piesci: przy przerzucie szot szarpie z duza sila. Trzymaj go otwarta dlonia, a w razie potrzeby po prostu puszczaj.",
+        "Za mocna kontra sterem: rufa znow przechodzi przez wiatr i bom wraca. To drugi, nieprzygotowany zwrot przez rufe.",
+        "Brak luzowania grota zaraz po przerzucie: wybrany do srodka grot przechyla jacht i obraca go do wiatru."
+      ],
+      "mistakesEs": [
+        "Enrollarte la escota de mayor en la mano o apretarla en el puño: al pasar la botavara pega un tirón. Sujétala con la palma abierta y, si hace falta, suéltala sin más.",
+        "Demasiado contratimón: la popa vuelve a cruzar el viento y la botavara regresa. Es una segunda trasluchada sin preparar.",
+        "No lascar la mayor justo después de trasluchar: una mayor cazada al centro escora el barco y lo hace orzar."
+      ],
+      "mistakesFr": [
+        "Enrouler l'écoute de grand-voile autour de la main ou la serrer dans le poing : elle part d'un coup quand la bôme passe. Tiens-la main ouverte et, au besoin, lâche-la simplement.",
+        "Trop contrer à la barre : l'arrière repasse dans le vent et la bôme revient. C'est un second empannage non préparé.",
+        "Ne pas choquer la grand-voile juste après l'empannage : une grand-voile bordée au centre fait gîter le bateau et le fait lofer."
+      ],
+      "mistakesDe": [
+        "Die Großschot um die Hand wickeln oder in der Faust festhalten: Beim Überkommen reißt sie mit einem Ruck aus. Mit offener Hand führen und notfalls einfach loslassen.",
+        "Zu viel Gegenruder: Das Heck geht wieder durch den Wind, und der Baum kommt zurück. Das ist eine zweite, unvorbereitete Halse.",
+        "Das Groß nach der Halse nicht sofort fieren: Ein zur Mitte geholtes Groß lässt das Boot krängen und in den Wind schießen."
+      ],
+      "mistakesIt": [
+        "Avvolgerti la scotta randa sulla mano o stringerla nel pugno: quando il boma passa strappa di colpo. Tienila a mano aperta e, se serve, mollala e basta.",
+        "Troppa correzione di timone: la poppa ripassa il vento e il boma torna indietro. È una seconda strambata non preparata.",
+        "Non lascare la randa subito dopo la strambata: una randa cazzata al centro fa sbandare la barca e la fa orzare."
+      ],
       "category": "basic"
     },
     {
@@ -717,7 +1018,7 @@
       "termEs": "a un largo",
       "termFr": "vent de travers",
       "termDe": "Halbwind",
-      "termIt": "Halbwind",
+      "termIt": "Traverso",
       "definitionEs": "Viento perpendicular al costado (~90°)",
       "definitionFr": "Vent de travers (~90°)",
       "definitionDe": "Windquere zum Boot (~90°)",

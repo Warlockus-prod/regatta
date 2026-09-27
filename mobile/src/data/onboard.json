@@ -104,7 +104,7 @@
         "\"Cobra\" / \"Trim\" o \"Sheet in\" - cobra la escota, la vela más cerca de la crujía.",
         "\"Larga / amarra\" / \"Cast off / make fast\" - cabos de atraque y desatraque.",
         "\"Defensa dentro / fuera\" / \"Fender in / out\" - recoge o saca las defensas.",
-        "\"Trasluchada\" / \"Jibe-ho\" - virada por avante en popa, la botavara cruza de un lado a otro."
+        "\"Trasluchando\" / \"Jibe-ho\" - trasluchada: la popa pasa por el viento y la botavara cruza de un lado a otro."
       ],
       "itemsFr": [
         "\"Parés à virer\" / \"Ready about\" - mets-toi en position, mains sur les écoutes, réponds \"paré\" quand tu l'es.",
@@ -113,16 +113,16 @@
         "\"Borde\" / \"Trim\" ou \"Sheet in\" - borde l'écoute, la voile plus près de l'axe.",
         "\"Largue / amarre\" / \"Cast off / make fast\" - aussières d'accostage et de départ.",
         "\"Pare-battage dedans / dehors\" / \"Fender in / out\" - rentre ou sors les pare-battages.",
-        "\"Empannage\" / \"Jibe-ho\" - virement vent arrière, la bôme passe d'un bord à l'autre."
+        "\"On empanne\" / \"Jibe-ho\" - empannage : l'arrière passe dans le vent, la bôme passe d'un bord à l'autre."
       ],
       "itemsDe": [
-        "\"Klar zur Wende\" / \"Ready about\" - geh in Position, Hände an die Schoten, antworte \"klar\", wenn du bereit bist.",
-        "\"Wende\" / \"Tacking\" / \"Lee-ho\" - die Wende beginnt. Fier die arbeitende Schot, hol die andere dicht.",
+        "\"Klar zur Wende\" / \"Ready about\" - geh in Position, Hände an die Schoten, antworte \"ist klar\", wenn du bereit bist.",
+        "\"Ree\" / \"Tacking\" / \"Lee-ho\" - die Wende beginnt. Fier die arbeitende Schot, hol die andere dicht.",
         "\"Fier\" / \"Ease\" - lass die Schot los, das Segel geht weiter von der Mittellinie weg.",
         "\"Dichtholen\" / \"Trim\" oder \"Sheet in\" - hol die Schot dicht, das Segel näher zur Mittellinie.",
         "\"Los / fest\" / \"Cast off / make fast\" - Festmacherleinen beim An- und Ablegen.",
         "\"Fender rein / raus\" / \"Fender in / out\" - Fender wegräumen oder ausbringen.",
-        "\"Halse\" / \"Jibe-ho\" - Wende über das Heck, der BAUM schlägt herüber."
+        "\"Rund achtern\" / \"Jibe-ho\" - Halse: das Heck geht durch den Wind, der BAUM schlägt herüber."
       ],
       "itemsIt": [
         "\"Pronti a virare\" / \"Ready about\" - mettiti in posizione, mani sulle scotte, rispondi \"pronto\" quando lo sei.",
@@ -131,7 +131,7 @@
         "\"Cazza\" / \"Trim\" o \"Sheet in\" - cazza la scotta, la vela più vicina alla mezzeria.",
         "\"Mollare / dare volta\" / \"Cast off / make fast\" - cime di ormeggio e disormeggio.",
         "\"Parabordo dentro / fuori\" / \"Fender in / out\" - ritira o metti fuori i parabordi.",
-        "\"Strambata\" / \"Jibe-ho\" - virata in poppa, il BOMA passa da un lato all'altro."
+        "\"Si stramba\" / \"Jibe-ho\" - strambata: la poppa passa il vento, il BOMA passa da un lato all'altro."
       ],
       "warningRu": "Если не понял команду - кричи «не понял» / «say again», не угадывай. Тишина при «jibe-ho» = сломанные кости.",
       "warningEn": "If you didn't catch a command - shout \"say again\". Don't guess. Silence on \"jibe-ho\" = broken bones.",
@@ -176,7 +176,7 @@
         "Toalety, kambuz, otwarte luki przy fali - zawsze dwa punkty kontaktu."
       ],
       "itemsEs": [
-        "La BOTAVARA - el principal peligro. En las trasluchadas cruza la embarcación a la altura de la cabeza. Saca siempre dónde está.",
+        "La BOTAVARA - el principal peligro. En las trasluchadas cruza la embarcación a la altura de la cabeza. Ten siempre presente dónde está.",
         "Las escotas en carga - pueden arrancarte la piel, romperte los dedos. Nunca te enrolles una escota en la mano.",
         "El winche - funciona como una picadora de carne. Mantén los dedos lejos. Quítate anillos y pulseras antes de usarlo.",
         "La cadena del ancla - apártate durante el fondeo. El ancla cae rápido y la cadena puede salir disparada de la cubierta.",

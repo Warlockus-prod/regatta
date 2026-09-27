@@ -151,14 +151,14 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/library/page.tsx` - хаб Library с поиском по всем разделам.
 - `src/app/start/page.tsx` - буткемп из 8 уроков "с нуля".
 - `src/app/quick/page.tsx` - повторение за 15 минут.
-- `src/app/courses/page.tsx` - курсы относительно ветра (подписи по-русски намеренно).
+- `src/app/courses/page.tsx` - курсы относительно ветра (подписи по-русски намеренно) и раздел `#turns`: оверштаг и фордевинд как процедуры (команды, шаги с числами, ошибки) из `maneuvers`, врезка про румпель и штурвал, ссылка на хореографию экипажа в `/checklist#maneuvers`.
 - `src/app/rules/page.tsx` - правила гонок и расхождения, 21 сценарий.
 - `src/app/rules/CoursesSection.tsx` - блок курсов внутри страницы правил.
 - `src/app/racing/page.tsx` - тактика гонки.
 - `src/app/glossary/page.tsx` - глоссарий, 51 термин с категориями.
 - `src/app/anatomy/page.tsx` - устройство яхты: 3D-модель плюс постеры.
 - `src/app/onboard/page.tsx` - первая неделя на борту.
-- `src/app/checklist/page.tsx` - чек-лист перед выходом.
+- `src/app/checklist/page.tsx` - чек-лист перед выходом. У каждого раздела якорь по его `id` (`/checklist#maneuvers`), из раздела про повороты ссылка на `/courses#turns`.
 - `src/app/spots/page.tsx` - места и живая погода.
 - `src/app/gallery/page.tsx` - галерея фото и видео прошлых регат.
 
@@ -323,7 +323,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 ### 4.8 Контент `src/data`
 
-- `src/data/sailing-data.ts` - курсы относительно ветра (5), галсы, маневры (6), глоссарий (51 термин), категории, правила гонок, стратегии.
+- `src/data/sailing-data.ts` - курсы относительно ветра (5), галсы, маневры (6; у оверштага и фордевинда необязательные массивы `commands*`, `steps*`, `mistakes*` для `/courses#turns`, читаются `legacyPickArray`), глоссарий (51 термин), категории, правила гонок, стратегии.
 - `src/data/rules.ts` - сценарии расхождения и правил, 21 карточка (сцена, вопрос, ответ, почему).
 - `src/data/anatomy.ts` - части яхты с координатами в SVG 1000x500 и подписями.
 - `src/data/bootcamp.ts` - 8 уроков буткемпа по ~5 минут.
