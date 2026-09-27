@@ -51,6 +51,11 @@ function TurnCard({
       <Text variant="subtitle" style={{ color }}>
         {legacyPick(maneuver, 'name', lang)}
       </Text>
+      {lang !== 'en' ? (
+        <Text variant="muted" style={styles.anchorName}>
+          {maneuver.nameEn}
+        </Text>
+      ) : null}
       <Text variant="body" style={styles.desc}>
         {legacyPick(maneuver, 'description', lang)}
       </Text>
@@ -504,11 +509,6 @@ export default function Courses() {
               it: 'Virare e strambare',
             })}
           </Text>
-          {lang !== 'en' ? (
-            <Text variant="muted" style={styles.anchorName}>
-              Tacking and jibing
-            </Text>
-          ) : null}
           <Text variant="body" style={styles.turnsIntro}>
             {tp(
               'Поворот глазами рулевого и шкотового: команды, числа и порядок действий. Что в это время делает остальной экипаж и когда пригибаться, собрано в чек-листе.',

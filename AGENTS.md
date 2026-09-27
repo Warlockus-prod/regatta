@@ -71,8 +71,9 @@
   (`git show :path`), а не рабочее дерево, то есть ровно то, что уходит в
   коммит, и печатает `file:line` с типом тире. Файлы со старыми тире не
   флагаются, пока их не пересоберут в индекс.
-- CI: `npm run check:dash` (`scripts/check-no-dash.mjs`) проходит по дереву,
-  включая корневые файлы карты и `.github`.
+- CI: `npm run check:dash` (`scripts/check-no-dash.mjs`) проходит по всему
+  репозиторию: `src`, `docs`, `scripts`, `mobile`, `ws-server`, `e2e`, `ops`,
+  `.github`, `.githooks` и корневые документы (`node_modules` и сборки пропускает).
 
 ## Код-стайл
 

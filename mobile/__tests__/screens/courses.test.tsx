@@ -54,6 +54,23 @@ describe('Courses (points of sail) screen', () => {
     expect(view.getAllByText('STEP BY STEP').length).toBe(2);
   });
 
+  // Outside English the procedures come in the reader's language (no silent
+  // English fallback) and each turn keeps its English name underneath.
+  it('shows the turns in German with the English name under each', async () => {
+    await AsyncStorage.setItem('regatta.lang.v1', 'de');
+    const view = renderWithProviders(<Courses />);
+    await waitFor(() => view.getByText('Wende und Halse'));
+    const turns = maneuvers.filter((x) => (x.stepsRu?.length ?? 0) > 0);
+    expect(turns.length).toBe(2);
+    for (const m of turns) {
+      expect(view.getAllByText(legacyPick(m, 'name', 'de')).length).toBeGreaterThan(0);
+      expect(view.getByText(m.nameEn)).toBeTruthy();
+      for (const call of m.commandsDe!) expect(view.getByText(call)).toBeTruthy();
+      for (const mistake of m.mistakesDe!) expect(view.getByText(mistake)).toBeTruthy();
+    }
+    expect(view.getAllByText('SCHRITT FÜR SCHRITT').length).toBe(2);
+  });
+
   it('shows angle range and speed labels on each card', async () => {
     const view = renderWithProviders(<Courses />);
     await waitFor(() =>

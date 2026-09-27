@@ -108,7 +108,17 @@ below):**
 
 ---
 
-## Current no-Cyrillic verification (2026-04-25)
+## Current no-Cyrillic verification (2026-09-27)
+
+Latest run: `SCAN_BASE=http://localhost:3017 node scripts/cyrillic-scan.mjs` on a
+local dev server, PL/EN/ES/FR/DE/IT across 34 routes: the 20 content routes,
+`/learn`, `/learn/sails` and all 12 lesson pages. Result: ALL CLEAN, 0 leaks.
+The scan now reads the lesson links from `/learn/sails`, so a new lesson is
+scanned without editing the route list. A one-off check in the same run also
+found no lesson page whose ES/FR/DE/IT text equals the English one (the
+silent English fallback the scan itself cannot see).
+
+### Earlier run (2026-04-25)
 
 Local Playwright scan via `node scripts/cyrillic-scan.mjs` against
 `npm run dev -- --port 3007` (and prod re-confirmed via
@@ -122,10 +132,9 @@ ALL CLEAN - 0 leaks across all routes and target langs.
 
 - The last full run covered 16 routes: **0 leaks** for each of ES / FR /
   DE / IT.
-- Routes now covered by the scan: `/spots`, `/privacy`, and `/quick` were
-  added to the scanner's `ROUTES` array (2026-05-30), bringing it to 19
-  routes. They have not yet been through a fresh run; rerun
-  `node scripts/cyrillic-scan.mjs` to confirm they are clean.
+- `/spots`, `/privacy` and `/quick` were added to the scanner's `ROUTES`
+  array on 2026-05-30 and `/support` later; all of them were clean in the
+  2026-09-27 run above.
 - `/simulator-v3` translated as a one-off coordination from the V3
   lane on 2026-04-25 (TourOverlay + point-of-sail label via
   `legacyPick`); physics frozen, only i18n strings touched.

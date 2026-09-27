@@ -10,7 +10,7 @@ export const telltaleCopy = {
   description: words(
     "Вид сверху на вход генуи. 1: наветренный колдунчик, 2: подветренный, 3: набегающий поток. Схема качественная: она показывает, какая сторона теряет поток, а не точные углы.",
     "Top view of the genoa entry. 1: windward telltale, 2: leeward telltale, 3: oncoming flow. The diagram is qualitative: it shows which side loses the flow, not exact angles.",
-    "Widok z góry na wejście genui. 1: włóczka nawietrzna, 2: zawietrzna, 3: napływające powietrze. Schemat jest jakościowy: pokazuje, która strona traci opływ, a nie dokładne kąty.",
+    "Widok z gory na wejscie genui. 1: wloczka nawietrzna, 2: zawietrzna, 3: naplywajace powietrze. Schemat jest jakosciowy: pokazuje, ktora strona traci oplyw, a nie dokladne katy.",
     "Vista cenital de la entrada del génova. 1: cataviento de barlovento, 2: de sotavento, 3: flujo incidente. El esquema es cualitativo: muestra qué cara pierde el flujo, no ángulos exactos.",
     "Vue de dessus de l'entrée du génois. 1 : penon au vent, 2 : penon sous le vent, 3 : écoulement incident. Le schéma est qualitatif : il montre quelle face perd l'écoulement, pas des angles exacts.",
     "Draufsicht auf den Vorliekbereich der Genua. 1: Luv-Telltale, 2: Lee-Telltale, 3: anströmende Luft. Das Bild ist qualitativ: Es zeigt, welche Seite die Strömung verliert, keine genauen Winkel.",
@@ -19,13 +19,13 @@ export const telltaleCopy = {
   options: [
     words("Слишком круто", "Too close", "Za ostro", "Demasiado ceñido", "Trop près", "Zu hoch", "Troppo stretto"),
     words("В струе", "In the groove", "W strudze", "En su punto", "Dans le bon angle", "Im Strom", "In traiettoria"),
-    words("Парус заторможен", "Sail stalled", "Żagiel przeciągnięty", "Vela en pérdida", "Voile décrochée", "Segel abgerissen", "Vela in stallo"),
+    words("Парус заторможен", "Sail stalled", "Zagiel przeciagniety", "Vela en pérdida", "Voile décrochée", "Segel abgerissen", "Vela in stallo"),
   ],
   readouts: [
     words(
       "Наветренный колдунчик поднялся и крутится: поток бьет во вход с подветренной стороны. Рулем: увалиться. Шкотом, не меняя курса: подобрать.",
       "The windward telltale lifts and spins: the flow meets the entry from leeward. With the helm: bear away. With the sheet, keeping the course: trim in.",
-      "Nawietrzna włóczka unosi się i wiruje: strumień trafia we wlot od zawietrznej. Sterem: odpadnij. Szotem, bez zmiany kursu: wybierz.",
+      "Nawietrzna wloczka unosi sie i wiruje: strumien trafia we wlot od zawietrznej. Sterem: odpadnij. Szotem, bez zmiany kursu: wybierz.",
       "El cataviento de barlovento se levanta y gira: el flujo entra por sotavento. Con la caña: arriba. Con la escota, sin cambiar el rumbo: caza.",
       "Le penon au vent se lève et tourne : l'air attaque l'entrée par sous le vent. À la barre : abats. À l'écoute, sans changer de cap : borde.",
       "Das Luv-Telltale steigt und dreht sich: Die Luft trifft das Vorliek von Lee. Mit der Pinne: abfallen. Mit der Schot, ohne Kursänderung: dichtholen.",
@@ -34,7 +34,7 @@ export const telltaleCopy = {
     words(
       "Оба колдунчика вытянуты в корму и слегка подрагивают: поток прижат к обеим сторонам паруса. Ничего не трогай.",
       "Both telltales stream aft and flicker slightly: the flow is attached on both sides of the sail. Leave everything as it is.",
-      "Obie włóczki są wyciągnięte ku rufie i lekko drgają: opływ przylega do obu stron żagla. Niczego nie zmieniaj.",
+      "Obie wloczki sa wyciagniete ku rufie i lekko drgaja: oplyw przylega do obu stron zagla. Niczego nie zmieniaj.",
       "Ambos catavientos van hacia popa y tiemblan un poco: el flujo está pegado a las dos caras de la vela. No toques nada.",
       "Les deux penons filent vers l'arrière et frémissent un peu : l'écoulement colle aux deux faces de la voile. Ne touche à rien.",
       "Beide Telltales wehen nach achtern und zittern leicht: Die Strömung liegt auf beiden Segelseiten an. Nichts verstellen.",
@@ -43,7 +43,7 @@ export const telltaleCopy = {
     words(
       "Подветренный колдунчик изгибается и колеблется: поток оторвался, парус не работает. Рулем: привестись. Шкотом, не меняя курса: потравить.",
       "The leeward telltale curls and flutters: the flow has separated and the sail is not working. With the helm: luff up. With the sheet, keeping the course: ease.",
-      "Zawietrzna włóczka wygina się i trzepocze: opływ się oderwał, żagiel nie pracuje. Sterem: ostrz. Szotem, bez zmiany kursu: poluzuj.",
+      "Zawietrzna wloczka wygina sie i trzepocze: oplyw sie oderwal, zagiel nie pracuje. Sterem: ostrz. Szotem, bez zmiany kursu: poluzuj.",
       "El cataviento de sotavento se curva y aletea: el flujo se ha desprendido y la vela no trabaja. Con la caña: orza. Con la escota, sin cambiar el rumbo: lasca.",
       "Le penon sous le vent se tord et bat : l'écoulement a décroché, la voile ne travaille plus. À la barre : lofe. À l'écoute, sans changer de cap : choque.",
       "Das Lee-Telltale knickt und flattert: Die Strömung ist abgerissen, das Segel arbeitet nicht. Mit der Pinne: anluven. Mit der Schot, ohne Kursänderung: fieren.",
