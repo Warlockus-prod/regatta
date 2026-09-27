@@ -523,11 +523,11 @@ function SpeedBar({ factor, color }: { factor: number; color: string }) {
   const pct = Math.round(factor * 100);
   return (
     <div className="flex items-center gap-3">
-      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Predkosc', {
+      <span className="text-xs text-[var(--text-muted)] w-20 shrink-0">{tp('Скорость', 'Speed', 'Prędkość', {
         es: 'Velocidad',
         fr: 'Vitesse',
         de: 'Geschwindigkeit',
-        it: 'Velocita',
+        it: 'Velocità',
       })}</span>
       <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: 'rgba(127,127,127,0.18)' }}>
         <div
@@ -823,7 +823,7 @@ function TurnCard({ maneuver }: { maneuver: Maneuver }) {
       </ol>
 
       <h4 className={heading}>
-        {tp('Частые ошибки', 'Common mistakes', 'Czeste bledy', {
+        {tp('Частые ошибки', 'Common mistakes', 'Częste błędy', {
           es: 'Errores frecuentes',
           fr: 'Erreurs fréquentes',
           de: 'Häufige Fehler',
@@ -869,21 +869,28 @@ export default function CoursesPage() {
             WebkitTextFillColor: 'transparent',
           }}
         >
-          {lang === 'ru'
-            ? 'Курсы относительно ветра'
-            : lang === 'pl'
-            ? 'Kursy wzgledem wiatru'
-            : 'Points of Sail'}
+          {tp('Курсы относительно ветра', 'Points of Sail', 'Kursy względem wiatru', {
+            es: 'Rumbos respecto al viento',
+            fr: 'Les allures',
+            de: 'Kurse zum Wind',
+            it: 'Le andature',
+          })}
         </h1>
         {lang !== 'en' && (
           <p className="text-sm text-[var(--text-muted)]">Points of Sail</p>
         )}
         <p className="max-w-xl mx-auto text-sm text-[var(--text-secondary)] mt-3 leading-relaxed">
-          {lang === 'ru'
-            ? 'Нажми на сектор диаграммы или на карточку ниже, чтобы узнать подробности о каждом курсе.'
-            : lang === 'pl'
-            ? 'Kliknij na sektor diagramu lub karte ponizej, aby poznac szczegoly kazdego kursu.'
-            : 'Click a diagram sector or a card below to see details of each course.'}
+          {tp(
+            'Нажми на сектор диаграммы или на карточку ниже, чтобы узнать подробности о каждом курсе.',
+            'Click a diagram sector or a card below to see the details of each point of sail.',
+            'Kliknij sektor diagramu lub kartę poniżej, aby poznać szczegóły każdego kursu.',
+            {
+              es: 'Haz clic en un sector del diagrama o en una tarjeta de abajo para ver los detalles de cada rumbo.',
+              fr: 'Clique sur un secteur du diagramme ou sur une carte ci-dessous pour voir le détail de chaque allure.',
+              de: 'Klicke auf einen Sektor im Diagramm oder auf eine Karte unten, um mehr über jeden Kurs zu erfahren.',
+              it: 'Clicca su un settore del diagramma o su una scheda qui sotto per i dettagli di ogni andatura.',
+            },
+          )}
         </p>
       </section>
 
@@ -916,10 +923,15 @@ export default function CoursesPage() {
       {/* Detail cards */}
       <section id="points-of-sail" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-4 scroll-mt-24">
         <h2 className="text-xl font-semibold mb-5 text-[var(--text-primary)]">
-          {lang === 'ru' ? 'Все курсы' : lang === 'pl' ? 'Wszystkie kursy' : 'All courses'}
+          {tp('Все курсы', 'All points of sail', 'Wszystkie kursy', {
+            es: 'Todos los rumbos',
+            fr: 'Toutes les allures',
+            de: 'Alle Kurse',
+            it: 'Tutte le andature',
+          })}
           {lang !== 'en' && (
             <span className="text-sm font-normal text-[var(--text-muted)] ml-2">
-              All courses
+              All points of sail
             </span>
           )}
         </h2>
@@ -940,9 +952,9 @@ export default function CoursesPage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-4">
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
-            {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa zagle, nie jeden', {
+            {tp('Два паруса, а не один', 'Two sails, not one', 'Dwa żagle, nie jeden', {
               es: 'Dos velas, no una',
-              fr: 'Deux voiles, pas une',
+              fr: 'Deux voiles, pas une seule',
               de: 'Zwei Segel, nicht eins',
               it: 'Due vele, non una',
             })}
@@ -952,12 +964,12 @@ export default function CoursesPage() {
             {tp(
               'Обычная круизная яхта (слуп) несёт два паруса: грот и стаксель. На диаграмме каждый кораблик показан с обоими: треугольник за мачтой - грот, треугольник перед мачтой - стаксель. На реальной лодке они работают вместе, а шкотов (верёвок управления) - два.',
               'A typical cruising yacht (sloop) carries two sails: mainsail and jib. In the diagram every boat shows both - triangle aft of the mast is the main, triangle forward of the mast is the jib. On a real boat they work together, and there are TWO sheets (control lines).',
-              'Typowy jacht turystyczny (slup) niesie dwa zagle: grot i fok. Na diagramie kazda lodz pokazana jest z obydwoma: trojkat za masztem to grot, przed masztem to fok. Na prawdziwej lodzi pracuja razem, a szotow (lin sterujacych) sa dwa.',
+              'Typowy jacht turystyczny (slup) niesie dwa żagle: grot i fok. Na diagramie każda łódka ma oba: trójkąt za masztem to grot, trójkąt przed masztem to fok. Na prawdziwym jachcie pracują razem, a szoty (liny do ich regulacji) są DWA.',
               {
-                es: 'Un yate de crucero tipico (balandro) lleva dos velas: la mayor y el foque. En el diagrama cada barco muestra ambas: el triangulo a popa del mastil es la mayor, el triangulo a proa del mastil es el foque. En un barco real trabajan juntas, y hay DOS escotas (cabos de control).',
-                fr: 'Un yacht de croisiere typique (sloop) porte deux voiles: la grand-voile et le foc. Sur le diagramme chaque bateau montre les deux: le triangle en arriere du mat est la grand-voile, le triangle en avant du mat est le foc. Sur un vrai bateau elles travaillent ensemble, et il y a DEUX ecoutes (cordages de reglage).',
-                de: 'Eine typische Fahrtenyacht (Slup) fuehrt zwei Segel: Grossegel und Fock. Im Diagramm zeigt jedes Boot beide: das Dreieck achtern vom Mast ist das Grossegel, das Dreieck vor dem Mast ist die Fock. Auf einem echten Boot arbeiten sie zusammen, und es gibt ZWEI Schoten (Steuerleinen).',
-                it: 'Un tipico yacht da crociera (sloop) porta due vele: la randa e il fiocco. Nel diagramma ogni barca mostra entrambe: il triangolo a poppa dell\'albero e la randa, quello a prua dell\'albero e il fiocco. Su una barca vera lavorano insieme, e ci sono DUE scotte (cime di regolazione).',
+                es: 'Un velero de crucero típico (balandro) lleva dos velas: la mayor y el foque. En el diagrama cada barco lleva las dos: el triángulo a popa del mástil es la mayor y el triángulo a proa del mástil es el foque. En un barco de verdad trabajan juntas, y hay DOS escotas (los cabos que las regulan).',
+                fr: 'Un voilier de croisière typique (sloop) porte deux voiles : la grand-voile et le foc. Sur le diagramme, chaque bateau porte les deux : le triangle en arrière du mât est la grand-voile, le triangle en avant du mât est le foc. Sur un vrai bateau, elles travaillent ensemble et il y a DEUX écoutes (les cordages de réglage).',
+                de: 'Eine typische Fahrtenyacht (Slup) führt zwei Segel: Großsegel und Fock. Im Diagramm hat jedes Boot beide: Das Dreieck hinter dem Mast ist das Großsegel, das Dreieck vor dem Mast die Fock. Auf einem echten Boot arbeiten sie zusammen, und es gibt ZWEI Schoten (die Leinen zum Trimmen).',
+                it: "Un tipico yacht da crociera (sloop) porta due vele: la randa e il fiocco. Nel diagramma ogni barca le mostra entrambe: il triangolo a poppavia dell'albero è la randa, quello a proravia è il fiocco. Su una barca vera lavorano insieme, e le scotte (le cime di regolazione) sono DUE.",
               },
             )}
           </p>
@@ -968,7 +980,7 @@ export default function CoursesPage() {
                 {tp('Грот / Mainsail', 'Mainsail', 'Grot / Mainsail', {
                   es: 'Vela mayor / Mainsail',
                   fr: 'Grand-voile / Mainsail',
-                  de: 'Grossegel / Mainsail',
+                  de: 'Großsegel / Mainsail',
                   it: 'Randa / Mainsail',
                 })}
               </div>
@@ -976,12 +988,12 @@ export default function CoursesPage() {
                 {tp(
                   'Большой парус за мачтой. Главный двигатель на всех курсах кроме чистого фордевинда. Управляется гика-шкотом. В сильный ветер рифится (уменьшается) первым.',
                   'Big sail aft of the mast. The main engine on every course except a dead run. Controlled by the mainsheet. In strong wind it gets reefed (reduced) first.',
-                  'Duzy zagiel za masztem. Glowny naped na wszystkich kursach oprocz czystego fordewindu. Sterowany szotem grota. Przy silnym wietrze rifuje sie (zmniejsza) w pierwszej kolejnosci.',
+                  'Duży żagiel za masztem. Główny napęd na wszystkich kursach oprócz czystego fordewindu. Reguluje się go szotem grota. Przy silnym wietrze refuje się go (zmniejsza) jako pierwszy.',
                   {
-                    es: 'Vela grande a popa del mastil. El motor principal en todos los rumbos salvo la empopada pura. Se controla con la escota de mayor. Con viento fuerte se riza (se reduce) primero.',
-                    fr: 'Grande voile en arriere du mat. Le moteur principal sur toutes les allures sauf le vent arriere pur. Reglee par l\'ecoute de grand-voile. Par vent fort on la prend en premier (on reduit).',
-                    de: 'Grosses Segel achtern vom Mast. Der Hauptantrieb auf allen Kursen ausser dem reinen Vor-dem-Wind. Wird ueber die Grossschot gesteuert. Bei starkem Wind wird es zuerst gerefft (verkleinert).',
-                    it: 'Vela grande a poppa dell\'albero. Il motore principale su tutte le andature tranne la poppa piena. Si controlla con la scotta della randa. Con vento forte si terzarola (si riduce) per prima.',
+                    es: 'Vela grande a popa del mástil. Es el motor principal en todos los rumbos salvo la popa cerrada. Se regula con la escota de mayor. Con viento fuerte es la primera que se riza (se reduce).',
+                    fr: "Grande voile en arrière du mât. C'est le moteur principal à toutes les allures, sauf au plein vent arrière. Elle se règle avec l'écoute de grand-voile. Par vent fort, c'est elle qu'on réduit en premier (prise de ris).",
+                    de: 'Großes Segel hinter dem Mast. Der Hauptantrieb auf allen Kursen außer platt vor dem Wind. Wird mit der Großschot getrimmt. Bei starkem Wind wird es zuerst gerefft (verkleinert).',
+                    it: "Vela grande a poppavia dell'albero. È il motore principale in tutte le andature tranne la poppa piena. Si regola con la scotta della randa. Con vento forte è la prima a essere terzarolata (ridotta).",
                   },
                 )}
               </p>
@@ -997,14 +1009,14 @@ export default function CoursesPage() {
               </div>
               <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                 {tp(
-                  'Треугольный парус перед мачтой. Ускоряет воздух перед гротом (эффект щели), даёт дополнительную тягу на острых курсах. У него свой шкот - шкотовый.',
-                  'Triangular sail forward of the mast. Accelerates the airflow in front of the main (slot effect), adds drive on close courses. Has its own sheet - the jib sheet.',
-                  'Trojkatny zagiel przed masztem. Przyspiesza powietrze przed grotem (efekt szczeliny), daje dodatkowy ciag na ostrym kursie. Ma wlasny szot - szot foka.',
+                  'Треугольный парус перед мачтой. Вместе с гротом работает как одно крыло: паруса меняют поток друг друга (эффект щели) и дают дополнительную тягу на острых курсах. У него свой шкот - стаксель-шкот.',
+                  "Triangular sail forward of the mast. Together with the main it works as one wing: the two sails change each other's airflow (slot effect) and add drive on close courses. It has its own sheet - the jib sheet.",
+                  'Trójkątny żagiel przed masztem. Razem z grotem pracuje jak jedno skrzydło: żagle zmieniają sobie nawzajem przepływ (efekt szczeliny) i dają dodatkowy ciąg na ostrych kursach. Ma własny szot - szot foka.',
                   {
-                    es: 'Vela triangular a proa del mastil. Acelera el aire delante de la mayor (efecto de ranura), aporta empuje en los rumbos cenidos. Tiene su propia escota - la del foque.',
-                    fr: 'Voile triangulaire en avant du mat. Accelere l\'air devant la grand-voile (effet de fente), ajoute de la puissance aux allures pres. Il a sa propre ecoute - l\'ecoute de foc.',
-                    de: 'Dreieckiges Segel vor dem Mast. Beschleunigt die Luft vor dem Grossegel (Duesenwirkung), gibt zusaetzlichen Vortrieb auf hoch am Wind Kursen. Hat seine eigene Schot - die Fockschot.',
-                    it: 'Vela triangolare a prua dell\'albero. Accelera l\'aria davanti alla randa (effetto fessura), aggiunge spinta alle andature strette. Ha la sua scotta - quella del fiocco.',
+                    es: 'Vela triangular a proa del mástil. Junto con la mayor funciona como una sola ala: cada vela modifica el flujo de la otra (efecto ranura) y juntas dan más empuje en los rumbos de ceñida. Tiene su propia escota: la escota del foque.',
+                    fr: "Voile triangulaire en avant du mât. Avec la grand-voile, il forme une seule aile : chaque voile modifie l'écoulement de l'autre (effet de fente), ce qui donne plus de puissance aux allures de près. Il a sa propre écoute : l'écoute de foc.",
+                    de: 'Dreieckiges Segel vor dem Mast. Zusammen mit dem Großsegel wirkt es wie ein einziger Flügel: Die Segel verändern gegenseitig ihre Strömung (Spalteffekt) und bringen zusätzlichen Vortrieb auf Am-Wind-Kursen. Hat eine eigene Schot: die Fockschot.',
+                    it: "Vela triangolare a proravia dell'albero. Insieme alla randa lavora come un'unica ala: ogni vela modifica il flusso dell'altra (effetto fessura) e insieme danno più spinta nelle andature strette. Ha la sua scotta: la scotta del fiocco.",
                   },
                 )}
               </p>
@@ -1014,44 +1026,44 @@ export default function CoursesPage() {
           <div className="mt-5 rounded-lg p-4" style={{ background: 'rgba(255, 136, 68, 0.04)', border: '1px solid rgba(255, 136, 68, 0.12)' }}>
             <div className="text-sm font-semibold mb-1" style={{ color: '#ff8844' }}>
               {tp('Эффект щели / Slot effect', 'Slot effect', 'Efekt szczeliny / Slot effect', {
-                es: 'Efecto de ranura / Slot effect',
+                es: 'Efecto ranura / Slot effect',
                 fr: 'Effet de fente / Slot effect',
-                de: 'Duesenwirkung / Slot effect',
+                de: 'Spalteffekt / Slot effect',
                 it: 'Effetto fessura / Slot effect',
               })}
             </div>
             <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-              {tp("Грот и стаксель взаимно меняют направление потока и распределение давления. Согласуй их трим: слишком закрытый промежуток между парусами ухудшает работу. Это взаимодействие двух крыльев, а не просто ускорение воздуха в узкой щели.", "The main and jib change each other's airflow and pressure distribution. Trim them together: an overly closed slot can reduce performance. This is interaction between two wings, rather than simply air accelerating through a narrow gap.", "Grot i fok wzajemnie zmieniają przepływ powietrza i rozkład ciśnienia. Trymuj je razem: nadmiernie zamknięta szczelina pogarsza pracę żagli. To współpraca dwóch skrzydeł, a nie samo przyspieszanie powietrza w szczelinie.", {"es":"Mayor y foque modifican mutuamente el flujo y la presión. Ajusta ambas velas: cerrar demasiado el espacio puede reducir el rendimiento. Son dos alas que interactúan, no solo aire acelerado en un hueco.","fr":"Grand-voile et foc modifient mutuellement le flux et la pression. Règle les deux voiles ensemble : un couloir trop fermé peut nuire au rendement. Deux profils interagissent, au-delà d’une simple accélération dans un passage étroit.","de":"Groß und Fock beeinflussen gegenseitig Strömung und Druckverteilung. Trimme beide zusammen: Ein zu enger Spalt kann Leistung kosten. Zwei Flügel wirken zusammen; es geht nicht nur um beschleunigte Luft im Spalt.","it":"Randa e fiocco modificano reciprocamente flusso e pressione. Regolali insieme: uno spazio troppo chiuso può ridurre il rendimento. Interagiscono due ali, non si tratta solo di aria accelerata in una fessura."})}
+              {tp("Грот и стаксель взаимно меняют направление потока и распределение давления. Согласуй их трим: слишком закрытый промежуток между парусами ухудшает работу. Это взаимодействие двух крыльев, а не просто ускорение воздуха в узкой щели.", "The main and jib change each other's airflow and pressure distribution. Trim them together: an overly closed slot can reduce performance. This is interaction between two wings, rather than simply air accelerating through a narrow gap.", "Grot i fok wzajemnie zmieniają przepływ powietrza i rozkład ciśnienia. Trymuj je razem: nadmiernie zamknięta szczelina pogarsza pracę żagli. To współpraca dwóch skrzydeł, a nie samo przyspieszanie powietrza w szczelinie.", {"es":"Mayor y foque modifican mutuamente el flujo y la presión. Ajusta ambas velas: cerrar demasiado el espacio puede reducir el rendimiento. Son dos alas que interactúan, no solo aire acelerado en un hueco.","fr":"Grand-voile et foc modifient mutuellement le flux et la pression. Règle les deux voiles ensemble : un couloir trop fermé peut nuire au rendement. Deux profils interagissent, au-delà d'une simple accélération dans un passage étroit.","de":"Groß und Fock beeinflussen gegenseitig Strömung und Druckverteilung. Trimme beide zusammen: Ein zu enger Spalt kann Leistung kosten. Zwei Flügel wirken zusammen; es geht nicht nur um beschleunigte Luft im Spalt.","it":"Randa e fiocco modificano reciprocamente flusso e pressione. Regolali insieme: uno spazio troppo chiuso può ridurre il rendimento. Interagiscono due ali, non si tratta solo di aria accelerata in una fessura."})}
             </p>
           </div>
 
           <div className="mt-5">
             <h3 className="text-base font-semibold mb-2 text-[var(--text-primary)]">
               {tp('А что ещё бывает?', 'What else is there?', 'A co jeszcze?', {
-                es: 'Que mas hay?',
-                fr: 'Quoi d\'autre?',
+                es: '¿Qué más hay?',
+                fr: "Quoi d'autre ?",
                 de: 'Was gibt es noch?',
-                it: 'Cos\'altro c\'e?',
+                it: "Cos'altro c'è?",
               })}
               {lang !== 'en' && <span className="text-xs font-normal text-[var(--text-muted)] ml-2">What else is there?</span>}
             </h3>
             <div className="space-y-2 text-xs text-[var(--text-secondary)] leading-relaxed">
               <p>
                 <span className="font-semibold text-[var(--text-primary)]">{tp('Генуя (genoa)', 'Genoa', 'Genua', {
-                  es: 'Genoa',
-                  fr: 'Genois',
+                  es: 'Génova (genoa)',
+                  fr: 'Génois (genoa)',
                   de: 'Genua',
                   it: 'Genoa',
                 })} </span>
                 {tp(
                   '- большой стаксель, чей задний край заходит за мачту. Даёт заметно больше тяги на бейдевинде и галфвинде, но сложнее в работе при поворотах.',
                   '- a large jib whose trailing edge overlaps the mast. Gives noticeably more drive on close-hauled and beam reach, but is harder to handle through tacks.',
-                  '- duzy fok, ktorego tylna krawedz wchodzi za maszt. Daje wyraznie wiecej ciagu na bajdewindzie i polwiatrze, ale trudniejszy w obsludze przy zwrotach.',
+                  '- duży fok, którego lik tylny zachodzi za maszt. Daje wyraźnie więcej ciągu na bajdewindzie i półwietrze, ale trudniej się nim pracuje przy zwrotach.',
                   {
-                    es: '- un foque grande cuyo puno de escota solapa el mastil. Da bastante mas empuje en cenida y traves, pero es mas dificil de manejar en las viradas.',
-                    fr: '- un grand foc dont le bord de fuite recouvre le mat. Donne nettement plus de puissance au pres et au travers, mais plus difficile a manoeuvrer dans les virements.',
-                    de: '- eine grosse Fock, deren Achterliek den Mast ueberlappt. Gibt spuerbar mehr Vortrieb am Wind und auf halbem Wind, ist aber bei Wenden schwieriger zu handhaben.',
-                    it: '- un fiocco grande la cui balumina supera l\'albero. Da molta piu spinta di bolina e al traverso, ma e piu difficile da gestire nelle virate.',
+                    es: '- un foque grande cuya baluma sobrepasa el mástil. Da bastante más empuje en ceñida y al través, pero es más difícil de manejar en las viradas.',
+                    fr: '- un grand foc dont la chute recouvre le mât. Il donne nettement plus de puissance au près et au travers, mais il est plus difficile à manœuvrer dans les virements.',
+                    de: '- eine große Fock, deren Achterliek den Mast überlappt. Bringt spürbar mehr Vortrieb hoch am Wind und bei halbem Wind, ist aber bei Wenden schwerer zu handhaben.',
+                    it: "- un fiocco grande la cui balumina supera l'albero. Dà molta più spinta di bolina e al traverso, ma è più difficile da gestire nelle virate.",
                   },
                 )}
               </p>
@@ -1065,12 +1077,12 @@ export default function CoursesPage() {
                 {tp(
                   '- асимметричный лёгкий парус для попутных курсов (бакштаг, фордевинд). Ставится вместо стакселя, надувается как шар. Проще спинакера, не требует спинакер-гика.',
                   '- asymmetric light sail for downwind courses (broad reach, running). Set in place of the jib, inflates like a balloon. Simpler than a spinnaker, no spinnaker pole needed.',
-                  '- asymetryczny lekki zagiel na kursy pelne (baksztag, fordewind). Stawia sie zamiast foka, napelnia sie jak balon. Prostszy niz spinaker, nie wymaga bomu spinakerowego.',
+                  '- asymetryczny lekki żagiel na kursy pełne (baksztag, fordewind). Stawia się go zamiast foka i wypełnia się jak balon. Prostszy od spinakera, nie wymaga spinakerbomu.',
                   {
-                    es: '- vela ligera asimetrica para rumbos portantes (largo, empopada). Se iza en lugar del foque, se infla como un globo. Mas sencilla que el spinnaker, no necesita tangon.',
-                    fr: '- voile legere asymetrique pour les allures portantes (grand largue, vent arriere). Etablie a la place du foc, elle se gonfle comme un ballon. Plus simple qu\'un spi, sans tangon.',
-                    de: '- asymmetrisches Leichtwindsegel fuer Vorwindkurse (Raumschots, Vor-dem-Wind). Wird statt der Fock gesetzt, blaeht sich wie ein Ballon. Einfacher als ein Spinnaker, ohne Spinnakerbaum.',
-                    it: '- vela leggera asimmetrica per andature portanti (lasco, poppa). Si issa al posto del fiocco, si gonfia come un pallone. Piu semplice dello spinnaker, non serve il tangone.',
+                    es: '- vela ligera asimétrica para rumbos portantes (largo, popa). Se iza en lugar del foque y se hincha como un globo. Más sencilla que el spinnaker, no necesita tangón.',
+                    fr: "- voile légère asymétrique pour les allures portantes (grand largue, vent arrière). Elle s'établit à la place du foc et se gonfle comme un ballon. Plus simple qu'un spi, elle se passe de tangon.",
+                    de: '- asymmetrisches Leichtwindsegel für raume Kurse (raumer Wind, vor dem Wind). Wird statt der Fock gesetzt und bläht sich wie ein Ballon. Einfacher als ein Spinnaker, ohne Spinnakerbaum.',
+                    it: '- vela leggera asimmetrica per le andature portanti (lasco, poppa). Si issa al posto del fiocco e si gonfia come un pallone. Più semplice dello spinnaker, non serve il tangone.',
                   },
                 )}
               </p>
@@ -1081,18 +1093,18 @@ export default function CoursesPage() {
                   de: 'Spinnaker',
                   it: 'Spinnaker',
                 })} </span>
-                {tp("- симметричный объёмный парус для полных курсов, включая бакштаг и фордевинд. Рабочий угол зависит от кроя и ветра. Обычно используется со спинакер-гиком.", "- a symmetric full sail for downwind courses, including broad reaching and running. Its working angles depend on the cut and wind strength. Normally flown with a spinnaker pole.", "- symetryczny pełny żagiel na kursy pełne, w tym baksztag i fordewind. Zakres kątów zależy od kroju i siły wiatru. Zwykle wymaga spinakerbomu.", {"es":"- vela simétrica para rumbos portantes, incluidos largos y popa. Los ángulos dependen del corte y del viento. Normalmente usa tangón.","fr":"- voile symétrique pour les allures portantes, du grand largue au vent arrière selon sa coupe et le vent. Elle utilise généralement un tangon.","de":"- ein symmetrisches Segel für raume Kurse und Vorwind. Der Einsatzbereich hängt von Schnitt und Windstärke ab. Meist wird ein Spinnakerbaum verwendet.","it":"- vela simmetrica per le andature portanti, dal lasco alla poppa secondo taglio e vento. Normalmente richiede un tangone."})}
+                {tp("- симметричный объёмный парус для полных курсов, включая бакштаг и фордевинд. Рабочий угол зависит от кроя и ветра. Обычно используется со спинакер-гиком.", "- a symmetric full sail for downwind courses, including broad reaching and running. Its working angles depend on the cut and wind strength. Normally flown with a spinnaker pole.", "- symetryczny pełny żagiel na kursy pełne, w tym baksztag i fordewind. Zakres kątów zależy od kroju i siły wiatru. Zwykle wymaga spinakerbomu.", {"es":'- vela simétrica para rumbos portantes, incluidos largos y popa. Los ángulos dependen del corte y del viento. Normalmente se usa con tangón.',"fr":"- voile symétrique pour les allures portantes, du grand largue au vent arrière selon sa coupe et le vent. Elle utilise généralement un tangon.","de":"- ein symmetrisches Segel für raume Kurse und Vorwind. Der Einsatzbereich hängt von Schnitt und Windstärke ab. Meist wird ein Spinnakerbaum verwendet.","it":"- vela simmetrica per le andature portanti, dal lasco alla poppa secondo taglio e vento. Normalmente richiede un tangone."})}
               </p>
               <p className="text-[var(--text-muted)] pt-1">
                 {tp(
                   'В симуляторе показаны только грот + стаксель - базовая конфигурация слупа. Остальные паруса - для продвинутых гонок.',
                   'The simulator shows only main + jib - the basic sloop configuration. The other sails belong to advanced racing.',
-                  'W symulatorze pokazano tylko grot + fok - podstawowa konfiguracja slupa. Pozostale zagle to juz zaawansowane regaty.',
+                  'W symulatorze są tylko grot i fok - podstawowy zestaw żagli slupa. Pozostałe żagle to już zaawansowane regaty.',
                   {
-                    es: 'El simulador muestra solo mayor + foque - la configuracion basica del balandro. Las demas velas son para regatas avanzadas.',
-                    fr: 'Le simulateur ne montre que grand-voile + foc - la configuration de base du sloop. Les autres voiles relevent de la regate avancee.',
-                    de: 'Der Simulator zeigt nur Grossegel + Fock - die Grundkonfiguration der Slup. Die anderen Segel gehoeren zum fortgeschrittenen Regattasport.',
-                    it: 'Il simulatore mostra solo randa + fiocco - la configurazione base dello sloop. Le altre vele sono per le regate avanzate.',
+                    es: 'El simulador solo muestra mayor + foque, la configuración básica del balandro. Las demás velas son para regatas avanzadas.',
+                    fr: 'Le simulateur ne montre que grand-voile + foc, la configuration de base du sloop. Les autres voiles relèvent de la régate avancée.',
+                    de: 'Der Simulator zeigt nur Großsegel + Fock, die Grundbesegelung einer Slup. Die anderen Segel gehören ins fortgeschrittene Regattasegeln.',
+                    it: 'Il simulatore mostra solo randa + fiocco, la configurazione base dello sloop. Le altre vele sono per le regate avanzate.',
                   },
                 )}
               </p>
@@ -1105,8 +1117,8 @@ export default function CoursesPage() {
       <section id="turns" className="max-w-7xl mx-auto px-4 sm:px-6 pt-4 pb-16 scroll-mt-24">
         <div className="card p-6 sm:p-8">
           <h2 className="text-xl font-semibold mb-2 text-[var(--text-primary)]">
-            {tp('Повороты: оверштаг и фордевинд', 'Turns: tacking and jibing', 'Zwroty: przez sztag i przez rufe', {
-              es: 'Viradas: por avante y trasluchada',
+            {tp('Повороты: оверштаг и фордевинд', 'Turns: tacking and jibing', 'Zwroty: przez sztag i przez rufę', {
+              es: 'Virada por avante y trasluchada',
               fr: 'Virer de bord et empanner',
               de: 'Wende und Halse',
               it: 'Virare e strambare',
@@ -1117,10 +1129,10 @@ export default function CoursesPage() {
             {tp(
               'Поворот глазами рулевого и шкотового: команды, числа и порядок действий. Что в это время делает остальной экипаж и когда пригибаться, собрано в чек-листе.',
               "The turn from the helmsman's and the trimmer's side: calls, numbers and the order of actions. What the rest of the crew does meanwhile, and when to duck, is in the checklist.",
-              'Zwrot oczami sternika i szotowego: komendy, liczby i kolejnosc dzialan. Co w tym czasie robi reszta zalogi i kiedy sie schylic, jest na liscie przed regata.',
+              'Zwrot oczami sternika i szotowego: komendy, liczby i kolejność działań. Co w tym czasie robi reszta załogi i kiedy się schylić, znajdziesz na liście kontrolnej.',
               {
-                es: 'La virada vista por el timonel y el trimmer: órdenes, números y orden de las acciones. Qué hace mientras tanto el resto de la tripulación, y cuándo agacharse, está en la checklist.',
-                fr: "La manoeuvre vue par le barreur et le régleur : ordres, chiffres et ordre des actions. Ce que fait le reste de l'équipage pendant ce temps, et quand baisser la tête, se trouve dans la checklist.",
+                es: 'La maniobra vista por el timonel y el trimmer: órdenes, números y secuencia de acciones. Qué hace mientras tanto el resto de la tripulación, y cuándo agacharse, está en la checklist.',
+                fr: "La manœuvre vue par le barreur et le régleur : ordres, chiffres et enchaînement des actions. Ce que fait le reste de l'équipage pendant ce temps, et quand baisser la tête, se trouve dans la check-list.",
                 de: 'Das Manöver aus Sicht von Rudergänger und Trimmer: Kommandos, Zahlen und Reihenfolge. Was die übrige Crew dabei tut und wann man den Kopf einzieht, steht in der Checkliste.',
                 it: "La manovra vista dal timoniere e dal trimmer: comandi, numeri e ordine delle azioni. Cosa fa intanto il resto dell'equipaggio, e quando abbassare la testa, è nella checklist.",
               },
@@ -1131,9 +1143,9 @@ export default function CoursesPage() {
             className="inline-block text-sm underline mb-5"
             style={{ color: 'var(--accent-cyan)' }}
           >
-            {tp('Что делает экипаж: чек-лист', 'What the crew does: the checklist', 'Co robi zaloga: lista przed regata', {
+            {tp('Что делает экипаж: чек-лист', 'What the crew does: the checklist', 'Co robi załoga: lista kontrolna', {
               es: 'Qué hace la tripulación: la checklist',
-              fr: "Ce que fait l'équipage : la checklist",
+              fr: "Ce que fait l'équipage : la check-list",
               de: 'Was die Crew tut: die Checkliste',
               it: "Cosa fa l'equipaggio: la checklist",
             })}{' '}
@@ -1145,7 +1157,7 @@ export default function CoursesPage() {
             style={{ background: 'rgba(255, 221, 68, 0.05)', border: '1px solid rgba(255, 221, 68, 0.15)' }}
           >
             <div className="text-sm font-semibold mb-1" style={{ color: 'var(--cat-amber)' }}>
-              {tp('Румпель и штурвал', 'Tiller and wheel', 'Rumpel i kolo sterowe', {
+              {tp('Румпель и штурвал', 'Tiller and wheel', 'Rumpel i koło sterowe', {
                 es: 'Caña y rueda',
                 fr: 'Barre franche et barre à roue',
                 de: 'Pinne und Rad',
@@ -1156,9 +1168,9 @@ export default function CoursesPage() {
               {tp(
                 'Рулевой сидит на наветренном борту. Румпель от себя - лодка приводится, на себя - уваливается: нос всегда уходит в сторону, противоположную румпелю. Штурвал крутят как руль машины: куда повернул, туда пошел нос.',
                 'The helmsman sits on the windward side. Push the tiller away from you and the boat luffs up; pull it towards you and it bears away: the bow always goes the opposite way to the tiller. A wheel turns like a car steering wheel: the bow goes the way you turn it.',
-                'Sternik siedzi na nawietrznej burcie. Rumpel od siebie - jacht ostrzy, do siebie - odpada: dziob zawsze idzie w strone przeciwna do rumpla. Kolem sterowym kreci sie jak kierownica w samochodzie: w ktora strone krecisz, tam idzie dziob.',
+                'Sternik siedzi na nawietrznej burcie. Rumpel od siebie - jacht ostrzy, do siebie - odpada: dziób zawsze idzie w stronę przeciwną do rumpla. Kołem sterowym kręci się jak kierownicą w samochodzie: w którą stronę kręcisz, w tę idzie dziób.',
                 {
-                  es: 'El timonel se sienta a barlovento. Caña hacia fuera y el barco orza; caña hacia ti y arriba: la proa siempre va al lado contrario de la caña. La rueda se gira como el volante de un coche: la proa va hacia donde giras.',
+                  es: 'El timonel se sienta a barlovento. Caña hacia fuera y el barco orza; caña hacia ti y el barco arriba: la proa siempre va al lado contrario de la caña. La rueda se gira como el volante de un coche: la proa va hacia donde giras.',
                   fr: "Le barreur est assis au vent. Barre poussée, le bateau lofe ; barre tirée vers soi, il abat : l'étrave part toujours du côté opposé à la barre. Une barre à roue se tourne comme un volant : l'étrave va du côté où tu tournes.",
                   de: 'Der Rudergänger sitzt in Luv. Pinne von sich weg: Das Boot luvt an. Pinne zu sich heran: Es fällt ab. Der Bug geht immer zur Gegenseite der Pinne. Ein Rad dreht man wie ein Autolenkrad: Der Bug geht dorthin, wohin du drehst.',
                   it: "Il timoniere siede sopravvento. Barra spinta lontano da te e la barca orza; barra verso di te e poggia: la prua va sempre dalla parte opposta alla barra. La ruota si gira come il volante di un'auto: la prua va dove giri.",

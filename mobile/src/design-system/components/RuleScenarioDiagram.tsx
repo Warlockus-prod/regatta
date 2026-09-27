@@ -151,10 +151,10 @@ function PortVsStarboard() {
         rot={-45}
         color={colors.success}
         label={tp('правый', 'stbd', 'prawy', {
-          es: 'est',
-          fr: 'tri',
-          de: 'stb',
-          it: 'dr',
+          es: 'estribor',
+          fr: 'tribord',
+          de: 'Stb.',
+          it: 'dritta',
         })}
       />
       <Boat
@@ -163,19 +163,19 @@ function PortVsStarboard() {
         rot={45}
         color={colors.danger}
         label={tp('левый', 'port', 'lewy', {
-          es: 'bab',
-          fr: 'bab',
-          de: 'bb',
-          it: 'sin',
+          es: 'babor',
+          fr: 'bâbord',
+          de: 'Bb.',
+          it: 'sinistra',
         })}
       />
       <Path d="M76 78 Q100 58 124 78" fill="none" stroke={colors.warning} strokeWidth={1.4} strokeDasharray="4 3" />
       <SvgText x={100} y={124} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('левый уступает', 'port gives way', 'lewy ustepuje', {
-          es: 'babor cede',
-          fr: 'babord cede',
-          de: 'Backbord weicht',
-          it: 'sinistra cede',
+        {tp('левый уступает', 'port gives way', 'lewy hals ustępuje', {
+          es: 'amurado a babor cede',
+          fr: 'bâbord amures s\'écarte',
+          de: 'Backbordbug weicht aus',
+          it: 'mure a sinistra cede',
         })}
       </SvgText>
     </G>
@@ -192,11 +192,11 @@ function WindwardLeeward() {
         y={55}
         rot={-70}
         color={colors.danger}
-        label={tp('наветр.', 'windward', 'naw.', {
-          es: 'barlov.',
+        label={tp('наветр.', 'windward', 'nawietrzny', {
+          es: 'barlovento',
           fr: 'au vent',
           de: 'Luv',
-          it: 'soprav.',
+          it: 'sopravento',
         })}
       />
       <Boat
@@ -204,20 +204,20 @@ function WindwardLeeward() {
         y={95}
         rot={-70}
         color={colors.success}
-        label={tp('подветр.', 'leeward', 'zaw.', {
-          es: 'sotav.',
+        label={tp('подветр.', 'leeward', 'zawietrzny', {
+          es: 'sotavento',
           fr: 'sous le vent',
           de: 'Lee',
-          it: 'sottov.',
+          it: 'sottovento',
         })}
       />
       <Line x1={95} y1={74} x2={55} y2={91} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" />
       <SvgText x={100} y={124} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('подветренная имеет право', 'leeward has right', 'zawietrzny ma prawo', {
+        {tp('подветренная имеет право', 'leeward has right of way', 'zawietrzny ma pierwszeństwo', {
           es: 'sotavento tiene preferencia',
-          fr: 'sous le vent a priorite',
-          de: 'Lee hat Vorrang',
-          it: 'sottovento ha precedenza',
+          fr: 'sous le vent est prioritaire',
+          de: 'Lee-Boot hat Wegerecht',
+          it: 'sottovento ha la precedenza',
         })}
       </SvgText>
     </G>
@@ -234,7 +234,7 @@ function Overtaking() {
         y={50}
         rot={0}
         color={colors.success}
-        label={tp('впереди', 'ahead', 'przod', {
+        label={tp('впереди', 'ahead', 'z przodu', {
           es: 'delante',
           fr: 'devant',
           de: 'voraus',
@@ -246,19 +246,19 @@ function Overtaking() {
         y={100}
         rot={0}
         color={colors.danger}
-        label={tp('сзади', 'astern', 'tyl', {
-          es: 'detras',
-          fr: 'arriere',
+        label={tp('сзади', 'astern', 'z tyłu', {
+          es: 'detrás',
+          fr: 'derrière',
           de: 'achtern',
           it: 'dietro',
         })}
       />
       <Path d="M104 92 L112 72 L118 60" fill="none" stroke={colors.warning} strokeWidth={1.5} strokeDasharray="4 3" />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('обгоняющий уступает', 'overtaker keeps clear', 'wyprzedzajacy ustepuje', {
+        {tp('обгоняющий уступает', 'overtaker keeps clear', 'wyprzedzający ustępuje', {
           es: 'el que adelanta cede',
-          fr: 'le poursuivant degage',
-          de: 'Ueberholer haelt frei',
+          fr: 'celui qui double s\'écarte',
+          de: 'Überholer hält sich frei',
           it: 'chi sorpassa cede',
         })}
       </SvgText>
@@ -279,7 +279,7 @@ function MarkRoom() {
         color={colors.success}
         label={tp('внутр.', 'inside', 'wewn.', {
           es: 'interior',
-          fr: 'interieur',
+          fr: 'intérieur',
           de: 'innen',
           it: 'interno',
         })}
@@ -291,17 +291,17 @@ function MarkRoom() {
         color={colors.danger}
         label={tp('внеш.', 'outside', 'zewn.', {
           es: 'exterior',
-          fr: 'exterieur',
-          de: 'aussen',
+          fr: 'extérieur',
+          de: 'außen',
           it: 'esterno',
         })}
       />
       <Path d="M72 82 Q98 54 132 67" fill="none" stroke={colors.success} strokeWidth={1.4} />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
         {tp('место у знака', 'room at the mark', 'miejsce przy znaku', {
-          es: 'espacio en la baliza',
-          fr: 'place a la marque',
-          de: 'Raum an der Marke',
+          es: 'espacio en baliza',
+          fr: 'place à la marque',
+          de: 'Bahnmarkenraum',
           it: 'spazio alla boa',
         })}
       </SvgText>
@@ -333,9 +333,9 @@ function Crossing() {
         color={colors.danger}
         label={tp('он', 'opp', 'rywal', {
           es: 'rival',
-          fr: 'adv',
+          fr: 'adversaire',
           de: 'Gegner',
-          it: 'avv',
+          it: 'avversario',
         })}
       />
       <Line x1={57} y1={84} x2={143} y2={84} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="3 3" />
@@ -343,7 +343,7 @@ function Crossing() {
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
         {tp('избегай контакта', 'avoid contact', 'unikaj kontaktu', {
           es: 'evita el contacto',
-          fr: 'evitez le contact',
+          fr: 'évite le contact',
           de: 'Kontakt vermeiden',
           it: 'evita il contatto',
         })}
@@ -367,17 +367,17 @@ function StartLine() {
       <SvgText x={100} y={51} textAnchor="middle" fontSize={9} fontWeight="800" fill={colors.warning}>
         {tp('СТАРТ', 'START', 'START', {
           es: 'SALIDA',
-          fr: 'DEPART',
+          fr: 'DÉPART',
           de: 'START',
           it: 'PARTENZA',
         })}
       </SvgText>
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('разгон и чистый ветер', 'speed and clear air', 'predkosc i czysty wiatr', {
-          es: 'velocidad y aire limpio',
-          fr: 'vitesse et air clair',
+        {tp('разгон и чистый ветер', 'speed and clear air', 'rozpęd i czysty wiatr', {
+          es: 'velocidad y viento limpio',
+          fr: 'vitesse et vent clair',
           de: 'Tempo und freier Wind',
-          it: 'velocita e aria pulita',
+          it: 'velocità e aria libera',
         })}
       </SvgText>
     </G>
@@ -393,11 +393,11 @@ function CollisionAvoid() {
       <Circle cx={100} cy={70} r={12} fill="rgba(255, 68, 68, 0.18)" stroke={colors.danger} strokeWidth={1.2} />
       <SvgText x={100} y={74} textAnchor="middle" fontSize={13} fontWeight="800" fill={colors.danger}>!</SvgText>
       <SvgText x={100} y={118} textAnchor="middle" fontSize={9} fill={colors.warning}>
-        {tp('безопасность важнее правоты', 'safety beats being right', 'bezpieczenstwo ponad racja', {
-          es: 'la seguridad supera la razon',
-          fr: 'la securite prime sur le droit',
+        {tp('безопасность важнее правоты', 'safety beats being right', 'bezpieczeństwo ważniejsze niż racja', {
+          es: 'la seguridad antes que tener razón',
+          fr: 'la sécurité avant le bon droit',
           de: 'Sicherheit vor Recht',
-          it: 'sicurezza prima della ragione',
+          it: 'la sicurezza prima di aver ragione',
         })}
       </SvgText>
     </G>
@@ -415,11 +415,11 @@ function Penalty() {
       <Boat x={100} y={90} rot={180} color={colors.sailColor} label="3" />
       <Boat x={70} y={60} rot={-90} color={colors.success} label="4" />
       <SvgText x={100} y={128} textAnchor="middle" fontSize={9} fill={colors.textSecondary}>
-        {tp('штрафной оборот', 'penalty turn', 'obrot karny', {
-          es: 'giro de penalizacion',
-          fr: 'tour de penalite',
+        {tp('штрафной оборот', 'penalty turn', 'obrót karny', {
+          es: 'giro de penalización',
+          fr: 'tour de pénalité',
           de: 'Strafdrehung',
-          it: 'giro di penalita',
+          it: 'giro di penalità',
         })}
       </SvgText>
     </G>

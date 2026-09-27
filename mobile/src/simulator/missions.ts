@@ -141,7 +141,7 @@ const DRILL_TWA45: DrillDef = {
       `TWA utrzymany: ${Math.floor(p)} / ${t} sek`,
       {
         es: `TWA mantenido: ${Math.floor(p)} / ${t} seg`,
-        fr: `TWA tenu: ${Math.floor(p)} / ${t} sec`,
+        fr: `TWA tenu : ${Math.floor(p)} / ${t} s`,
         de: `TWA gehalten: ${Math.floor(p)} / ${t} Sek.`,
         it: `TWA tenuto: ${Math.floor(p)} / ${t} sec`,
       },
@@ -158,12 +158,12 @@ const DRILL_NO_GO: DrillDef = {
     tp(
       `Чисто: ${Math.floor(p)} / ${t} сек`,
       `Clear: ${Math.floor(p)} / ${t} sec`,
-      `Czysto: ${Math.floor(p)} / ${t} sek`,
+      `Poza kątem martwym: ${Math.floor(p)} / ${t} sek`,
       {
-        es: `Despejado: ${Math.floor(p)} / ${t} seg`,
-        fr: `Degage: ${Math.floor(p)} / ${t} sec`,
-        de: `Frei: ${Math.floor(p)} / ${t} Sek.`,
-        it: `Libero: ${Math.floor(p)} / ${t} sec`,
+        es: `Fuera de la zona muerta: ${Math.floor(p)} / ${t} seg`,
+        fr: `Hors zone morte : ${Math.floor(p)} / ${t} s`,
+        de: `Nicht im toten Winkel: ${Math.floor(p)} / ${t} Sek.`,
+        it: `Fuori dall'angolo morto: ${Math.floor(p)} / ${t} sec`,
       },
     ),
 };
@@ -184,7 +184,7 @@ const DRILL_REACH90: DrillDef = {
       `Na kursie: ${Math.floor(p)} / ${t} sek`,
       {
         es: `En objetivo: ${Math.floor(p)} / ${t} seg`,
-        fr: `Sur objectif: ${Math.floor(p)} / ${t} sec`,
+        fr: `Dans la cible : ${Math.floor(p)} / ${t} s`,
         de: `Auf Ziel: ${Math.floor(p)} / ${t} Sek.`,
         it: `In rotta: ${Math.floor(p)} / ${t} sec`,
       },
@@ -215,7 +215,7 @@ const DRILL_SHIFT_REACT: DrillDef = {
       `Na kursie: ${Math.floor(p)} / ${t} sek`,
       {
         es: `En objetivo: ${Math.floor(p)} / ${t} seg`,
-        fr: `Sur objectif: ${Math.floor(p)} / ${t} sec`,
+        fr: `Dans la cible : ${Math.floor(p)} / ${t} s`,
         de: `Auf Ziel: ${Math.floor(p)} / ${t} Sek.`,
         it: `In rotta: ${Math.floor(p)} / ${t} sec`,
       },
@@ -241,11 +241,11 @@ const DRILL_GUST_TRIM: DrillDef = {
     tp(
       `TRIM удержан: ${Math.floor(p)} / ${t} сек`,
       `TRIM held: ${Math.floor(p)} / ${t} sec`,
-      `TRIM utrzymany: ${Math.floor(p)} / ${t} sek`,
+      `TRYM utrzymany: ${Math.floor(p)} / ${t} sek`,
       {
         es: `TRIM mantenido: ${Math.floor(p)} / ${t} seg`,
-        fr: `TRIM tenu: ${Math.floor(p)} / ${t} sec`,
-        de: `TRIM gehalten: ${Math.floor(p)} / ${t} Sek.`,
+        fr: `TRIM tenu : ${Math.floor(p)} / ${t} s`,
+        de: `TRIMM gehalten: ${Math.floor(p)} / ${t} Sek.`,
         it: `TRIM tenuto: ${Math.floor(p)} / ${t} sec`,
       },
     ),
@@ -270,12 +270,12 @@ const DRILL_NO_GO_RECOVERY: DrillDef = {
     tp(
       `Время до 4 уз: ${Math.floor(p)} / ${t} сек`,
       `Time to 4 kt: ${Math.floor(p)} / ${t} sec`,
-      `Czas do 4 wezlow: ${Math.floor(p)} / ${t} sek`,
+      `Czas do 4 węzłów: ${Math.floor(p)} / ${t} sek`,
       {
-        es: `Tiempo a 4 nudos: ${Math.floor(p)} / ${t} seg`,
-        fr: `Temps jusqu a 4 nd: ${Math.floor(p)} / ${t} sec`,
-        de: `Zeit bis 4 kt: ${Math.floor(p)} / ${t} Sek.`,
-        it: `Tempo fino a 4 nd: ${Math.floor(p)} / ${t} sec`,
+        es: `Tiempo hasta 4 nudos: ${Math.floor(p)} / ${t} seg`,
+        fr: `Temps jusqu'à 4 kn : ${Math.floor(p)} / ${t} s`,
+        de: `Zeit bis 4 kn: ${Math.floor(p)} / ${t} Sek.`,
+        it: `Tempo fino a 4 kn: ${Math.floor(p)} / ${t} sec`,
       },
     ),
   setup: (ctx) => ({

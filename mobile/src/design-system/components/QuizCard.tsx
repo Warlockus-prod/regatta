@@ -63,21 +63,21 @@ export function QuizCard({
 
   const correctBadge = tp('Верно', 'Correct', 'Dobrze', {
     es: 'Correcto',
-    fr: 'Correct',
+    fr: 'Bonne réponse',
     de: 'Richtig',
-    it: 'Corretto',
+    it: 'Esatto',
   });
-  const wrongBadge = tp('Не совсем', 'Not quite', 'Nie do konca', {
+  const wrongBadge = tp('Не совсем', 'Not quite', 'Niezupełnie', {
     es: 'No del todo',
-    fr: 'Pas tout a fait',
+    fr: 'Pas tout à fait',
     de: 'Nicht ganz',
     it: 'Non proprio',
   });
   const whyLabel = tp('Почему', 'Why', 'Dlaczego', {
-    es: 'Por que',
+    es: 'Por qué',
     fr: 'Pourquoi',
     de: 'Warum',
-    it: 'Perche',
+    it: 'Perché',
   });
 
   const promptText = pickPrompt(question.prompt, lang);

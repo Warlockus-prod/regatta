@@ -270,18 +270,18 @@ export default function GalleryPage() {
           }}
         >
           {tp('Галерея', 'Gallery', 'Galeria',
-            { es: 'Galeria', fr: 'Galerie', de: 'Galerie', it: 'Galleria' })}
+            { es: 'Galería', fr: 'Galerie', de: 'Galerie', it: 'Galleria' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp(
             'Видео и фото с прошлых регат. Нажми на сердце - сохраним на потом.',
             'Videos and photos from past regattas. Tap a heart to save it.',
-            'Wideo i zdjecia z przeszlych regat. Klik w serce - zapamiec.',
+            'Wideo i zdjęcia z minionych regat. Kliknij serce, a zapiszemy je na później.',
             {
-              es: 'Videos y fotos de regatas pasadas. Pulsa el corazon para guardar.',
-              fr: 'Videos et photos des regates passees. Tape sur le coeur pour garder.',
-              de: 'Videos und Fotos vergangener Regatten. Tippe aufs Herz zum Merken.',
-              it: 'Video e foto di regate passate. Tocca il cuore per salvare.',
+              es: 'Vídeos y fotos de regatas pasadas. Pulsa el corazón y lo guardamos para más tarde.',
+              fr: 'Vidéos et photos des régates passées. Touche le cœur pour les garder pour plus tard.',
+              de: 'Videos und Fotos vergangener Regatten. Tippe aufs Herz, dann merken wir sie uns für später.',
+              it: 'Video e foto di regate passate. Tocca il cuore per salvarli per dopo.',
             },
           )}
         </p>
@@ -297,7 +297,7 @@ export default function GalleryPage() {
             }}
           >
             {'♥'} {tp('Понравившиеся', 'Liked', 'Polubione',
-              { es: 'Favoritas', fr: 'Aimees', de: 'Gemerkt', it: 'Preferite' })} ({likedCount})
+              { es: 'Favoritos', fr: 'Aimées', de: 'Gemerkt', it: 'Preferiti' })} ({likedCount})
           </button>
         )}
       </section>
@@ -329,9 +329,9 @@ export default function GalleryPage() {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pb-16">
           <div className="card p-12 text-center">
             <p className="text-[var(--text-muted)]">
-              {tp('Пока пусто, скоро будет материал.', 'Empty for now, content coming soon.', 'Jeszcze pusto, zawartosc wkrotce.', {
-                es: 'Vacio por ahora, pronto habra contenido.',
-                fr: 'Vide pour le moment, du contenu arrive bientot.',
+              {tp('Пока пусто, скоро будет материал.', 'Empty for now, content coming soon.', 'Na razie pusto, materiały wkrótce.', {
+                es: 'Vacío por ahora, pronto habrá contenido.',
+                fr: 'Vide pour le moment, du contenu arrive bientôt.',
                 de: 'Noch leer, Inhalte kommen bald.',
                 it: 'Vuoto per ora, contenuti in arrivo.',
               })}
@@ -363,7 +363,7 @@ export default function GalleryPage() {
                   place={meta.place}
                   coverSrc={meta.coverSrc}
                   eyebrow={tp('Регата', 'Regatta', 'Regata',
-                    { es: 'Regata', fr: 'Regate', de: 'Regatta', it: 'Regata' })}
+                    { es: 'Regata', fr: 'Régate', de: 'Regatta', it: 'Regata' })}
                 />
               ) : key !== 'misc' ? (
                 <div className="flex items-baseline gap-3 mb-5">
@@ -412,10 +412,10 @@ export default function GalleryPage() {
           canPrev={galleryItems.findIndex((i) => i.id === active.id) > 0}
           canNext={galleryItems.findIndex((i) => i.id === active.id) < galleryItems.length - 1}
           closeLabel={tp('Закрыть', 'Close', 'Zamknij',
-            { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' })}
+            { es: 'Cerrar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi' })}
           prevLabel={tp('Предыдущее', 'Previous', 'Poprzednie',
-            { es: 'Anterior', fr: 'Precedent', de: 'Zurueck', it: 'Precedente' })}
-          nextLabel={tp('Следующее', 'Next', 'Nastepne',
+            { es: 'Anterior', fr: 'Précédent', de: 'Zurück', it: 'Precedente' })}
+          nextLabel={tp('Следующее', 'Next', 'Następne',
             { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Successivo' })}
         />
       )}
@@ -555,12 +555,15 @@ function LikeButton({
   onToggle: () => void;
   className?: string;
 }) {
+  const { tp } = useI18n();
   return (
     <button
       type="button"
       onClick={(e) => { e.stopPropagation(); onToggle(); }}
       aria-pressed={liked}
-      aria-label={liked ? 'Unlike' : 'Like'}
+      aria-label={liked
+        ? tp('Убрать лайк', 'Unlike', 'Cofnij polubienie', { es: 'Ya no me gusta', fr: "Je n'aime plus", de: 'Gefällt mir nicht mehr', it: 'Non mi piace più' })
+        : tp('Нравится', 'Like', 'Lubię to', { es: 'Me gusta', fr: "J'aime", de: 'Gefällt mir', it: 'Mi piace' })}
       className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold transition-all backdrop-blur-md ${className}`}
       style={{
         background: liked ? 'rgba(255, 80, 100, 0.85)' : 'rgba(10, 22, 40, 0.55)',
@@ -731,5 +734,5 @@ function pluralPl(n: number): string {
   const mod10 = n % 10;
   const mod100 = n % 100;
   if (mod10 >= 2 && mod10 <= 4 && (mod100 < 10 || mod100 >= 20)) return 'pliki';
-  return 'plikow';
+  return 'plików';
 }

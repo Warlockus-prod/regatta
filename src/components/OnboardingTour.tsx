@@ -26,25 +26,25 @@ const STEPS: Step[] = [
     titlePl: 'Witaj w Regatta',
     bodyRu: 'Это обучающий симулятор парусной яхты. Ты научишься понимать ветер, ставить паруса и проходить гоночные трассы.',
     bodyEn: 'A sailing simulator for learners. You will get the feel for wind, sail trim, and racing courses.',
-    bodyPl: 'Symulator zeglarstwa dla poczatkujacych. Poznasz wiatr, trymowanie zagli i trase regat.',
+    bodyPl: 'Symulator żeglarski dla początkujących. Poznasz wiatr, trym żagli i trasy regatowe.',
   },
   {
     emoji: '🌬',
     titleRu: 'Ключевая идея: угол к ветру',
     titleEn: 'Key idea: angle to the wind',
-    titlePl: 'Kluczowa idea: kat do wiatru',
+    titlePl: 'Najważniejsze: kąt do wiatru',
     bodyRu: 'Яхта не может идти прямо против ветра (мёртвая зона). Поэтому в зависимости от угла к ветру парус работает по-разному - как крыло или как парус-парашют.',
     bodyEn: 'A yacht can\'t sail straight into the wind (the no-go zone). Depending on the angle, the sail works differently - as a wing close-hauled, as a parachute downwind.',
-    bodyPl: 'Jacht nie moze plynac prosto pod wiatr (martwa strefa). W zaleznosci od kata zagiel pracuje inaczej - jak skrzydlo na bajdewindzie, jak spadochron na fordewindzie.',
+    bodyPl: 'Jacht nie popłynie prosto pod wiatr (kąt martwy). Zależnie od kąta żagiel pracuje inaczej: na bajdewindzie jak skrzydło, na fordewindzie jak spadochron.',
   },
   {
     emoji: '🗺',
     titleRu: 'С чего начать',
     titleEn: 'Where to start',
-    titlePl: 'Od czego zaczac',
+    titlePl: 'Od czego zacząć',
     bodyRu: 'Лучший путь: открой «Начать» - 8 уроков по 5 минут, по порядку (ветер -> курсы -> повороты -> практика -> гонка). Хочешь сам полазить - заходи в «Курсы», «Симулятор», «Гонка».',
     bodyEn: 'Best path: open "Start here" - 8 lessons of ~5 min each, in order (wind -> points of sail -> turns -> simulator practice -> race). Prefer to explore? Try "Points of sail", "Simulator", "Race" from the top nav.',
-    bodyPl: 'Najlepsza droga: otworz "Start" - 8 lekcji po ~5 min, w kolejnosci (wiatr -> kursy -> zwroty -> symulator -> regata). Wolisz sam? Wejdz w "Kursy wiatru", "Symulator", "Regata".',
+    bodyPl: 'Najlepiej otwórz "Start": 8 lekcji po ~5 min, po kolei (wiatr -> kursy -> zwroty -> symulator -> wyścig). Wolisz sam? Zajrzyj do "Kursy względem wiatru", "Symulator", "Regaty".',
   },
 ];
 
@@ -99,12 +99,12 @@ export default function OnboardingTour() {
     lang === 'ru' ? ru : lang === 'pl' ? pl : en;
   const title = pick(current.titleRu, current.titleEn, current.titlePl);
   const body = pick(current.bodyRu, current.bodyEn, current.bodyPl);
-  const labelSkip = pick('Пропустить', 'Skip', 'Pomin');
+  const labelSkip = pick('Пропустить', 'Skip', 'Pomiń');
   const labelBack = pick('Назад', 'Back', 'Wstecz');
   const labelNext = step < STEPS.length - 1
     ? pick('Дальше', 'Next', 'Dalej')
     : pick('Начать', 'Start', 'Start');
-  const ariaSkip = pick('Пропустить обзор', 'Skip tour', 'Pomin przewodnik');
+  const ariaSkip = pick('Пропустить обзор', 'Skip tour', 'Pomiń przewodnik');
 
   return (
     <div

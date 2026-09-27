@@ -57,12 +57,12 @@ export default function Settings() {
 
   const title = tp('Настройки', 'Settings', 'Ustawienia', {
     es: 'Ajustes',
-    fr: 'Reglages',
+    fr: 'Réglages',
     de: 'Einstellungen',
     it: 'Impostazioni',
   });
 
-  const langSectionLabel = tp('Язык', 'Language', 'Jezyk', {
+  const langSectionLabel = tp('Язык', 'Language', 'Język', {
     es: 'Idioma',
     fr: 'Langue',
     de: 'Sprache',
@@ -71,20 +71,20 @@ export default function Settings() {
 
   const unitsSectionLabel = tp('Единицы', 'Units', 'Jednostki', {
     es: 'Unidades',
-    fr: 'Unites',
+    fr: 'Unités',
     de: 'Einheiten',
-    it: 'Unita',
+    it: 'Unità',
   });
 
   const aboutSectionLabel = tp('О приложении', 'About', 'O aplikacji', {
     es: 'Acerca de',
-    fr: 'A propos',
-    de: 'Uber die App',
+    fr: 'À propos',
+    de: 'Über die App',
     it: 'Informazioni',
   });
 
   const versionLabel = tp('Версия', 'Version', 'Wersja', {
-    es: 'Version',
+    es: 'Versión',
     fr: 'Version',
     de: 'Version',
     it: 'Versione',
@@ -93,10 +93,10 @@ export default function Settings() {
   const privacySectionLabel = tp(
     'Приватность',
     'Privacy',
-    'Prywatnosc',
+    'Prywatność',
     {
       es: 'Privacidad',
-      fr: 'Confidentialite',
+      fr: 'Confidentialité',
       de: 'Datenschutz',
       it: 'Privacy',
     },
@@ -104,7 +104,7 @@ export default function Settings() {
 
   const dataSectionLabel = tp('Данные', 'Data', 'Dane', {
     es: 'Datos',
-    fr: 'Donnees',
+    fr: 'Données',
     de: 'Daten',
     it: 'Dati',
   });
@@ -112,11 +112,11 @@ export default function Settings() {
   const privacyRowLabel = tp(
     'Политика конфиденциальности',
     'Privacy policy',
-    'Polityka prywatnosci',
+    'Polityka prywatności',
     {
-      es: 'Politica de privacidad',
-      fr: 'Politique de confidentialite',
-      de: 'Datenschutzerklaerung',
+      es: 'Política de privacidad',
+      fr: 'Politique de confidentialité',
+      de: 'Datenschutzerklärung',
       it: 'Informativa sulla privacy',
     },
   );
@@ -138,22 +138,22 @@ export default function Settings() {
     'Anonymous analytics',
     'Anonimowa analityka',
     {
-      es: 'Analitica anonima',
-      fr: 'Analyse anonyme',
+      es: 'Analítica anónima',
+      fr: 'Statistiques anonymes',
       de: 'Anonyme Analyse',
-      it: 'Analisi anonima',
+      it: 'Statistiche anonime',
     },
   );
 
   const analyticsHelp = tp(
-    'Помогает улучшать приложение: просмотры экранов и события гонки, без привязки к вам и без межсервисного трекинга. Можно выключить в любой момент.',
+    'Помогает улучшать приложение: просмотры экранов и события гонки, без привязки к тебе и без межсервисного трекинга. Можно выключить в любой момент.',
     'Helps improve the app: screen views and race events, not linked to you and never used for cross-app tracking. You can turn it off anytime.',
-    'Pomaga ulepszac aplikacje: odslony ekranow i zdarzenia wyscigu, bez powiazania z Toba i bez sledzenia miedzy aplikacjami. Mozesz to wylaczyc w kazdej chwili.',
+    'Pomaga ulepszać aplikację: odsłony ekranów i zdarzenia z wyścigów, bez powiązania z tobą i bez śledzenia między aplikacjami. Możesz to wyłączyć w każdej chwili.',
     {
-      es: 'Ayuda a mejorar la app: vistas de pantalla y eventos de regata, sin vincularse a ti ni rastreo entre apps. Puedes desactivarlo cuando quieras.',
-      fr: 'Aide a ameliorer l\'app : vues d\'ecran et evenements de course, sans lien avec vous ni suivi entre applications. Vous pouvez le desactiver a tout moment.',
-      de: 'Hilft, die App zu verbessern: Bildschirmaufrufe und Rennereignisse, nicht mit Ihnen verknuepft und kein App-uebergreifendes Tracking. Jederzeit abschaltbar.',
-      it: 'Aiuta a migliorare l\'app: visualizzazioni delle schermate ed eventi di gara, senza legami con te ne tracciamento tra app. Puoi disattivarlo quando vuoi.',
+      es: 'Ayuda a mejorar la app: pantallas vistas y eventos de regata, sin vincularlos a ti y sin rastreo entre apps. Puedes desactivarla cuando quieras.',
+      fr: 'Elles aident à améliorer l\'app : écrans consultés et événements de course, sans lien avec toi ni suivi entre applications. Tu peux les désactiver à tout moment.',
+      de: 'Hilft, die App zu verbessern: Bildschirmaufrufe und Rennereignisse, nicht mit dir verknüpft und ohne App-übergreifendes Tracking. Jederzeit abschaltbar.',
+      it: 'Aiutano a migliorare l\'app: schermate visualizzate ed eventi di regata, senza collegamenti a te né tracciamento tra app. Puoi disattivarle quando vuoi.',
     },
   );
 
@@ -174,37 +174,37 @@ export default function Settings() {
   );
 
   const supportHint = tp(
-    `${SUPPORT_EMAIL} - откроется ваш почтовый клиент`,
+    `${SUPPORT_EMAIL} - откроется твой почтовый клиент`,
     `${SUPPORT_EMAIL} - opens your mail app`,
-    `${SUPPORT_EMAIL} - otworzy aplikacje pocztowa`,
+    `${SUPPORT_EMAIL} - otworzy aplikację pocztową`,
     {
-      es: `${SUPPORT_EMAIL} - abrira tu cliente de correo`,
-      fr: `${SUPPORT_EMAIL} - ouvrira votre messagerie`,
-      de: `${SUPPORT_EMAIL} - oeffnet Ihre Mail-App`,
-      it: `${SUPPORT_EMAIL} - aprira il tuo client email`,
+      es: `${SUPPORT_EMAIL} - abrirá tu app de correo`,
+      fr: `${SUPPORT_EMAIL} - ouvre ta messagerie`,
+      de: `${SUPPORT_EMAIL} - öffnet deine Mail-App`,
+      it: `${SUPPORT_EMAIL} - apre la tua app di posta`,
     },
   );
 
   const mailErrorTitle = tp(
     'Не получилось открыть почту',
     'Could not open mail app',
-    'Nie mozna otworzyc poczty',
+    'Nie można otworzyć poczty',
     {
       es: 'No se pudo abrir el correo',
-      fr: 'Impossible douvrir la messagerie',
-      de: 'Mail-App liess sich nicht oeffnen',
+      fr: 'Impossible d\'ouvrir la messagerie',
+      de: 'Mail-App lässt sich nicht öffnen',
       it: 'Impossibile aprire la posta',
     },
   );
   const mailErrorBody = tp(
-    `Напишите на ${SUPPORT_EMAIL} вручную - укажите версию ${version}.`,
+    `Напиши на ${SUPPORT_EMAIL} вручную и укажи версию ${version}.`,
     `Write to ${SUPPORT_EMAIL} manually and mention version ${version}.`,
-    `Napisz recznie na ${SUPPORT_EMAIL} i podaj wersje ${version}.`,
+    `Wyślij e-mail na ${SUPPORT_EMAIL} i podaj wersję ${version}.`,
     {
-      es: `Escribe manualmente a ${SUPPORT_EMAIL} e indica la version ${version}.`,
-      fr: `Ecrivez manuellement a ${SUPPORT_EMAIL} en mentionnant la version ${version}.`,
-      de: `Schreiben Sie an ${SUPPORT_EMAIL} und nennen Sie die Version ${version}.`,
-      it: `Scrivi manualmente a ${SUPPORT_EMAIL} e indica la versione ${version}.`,
+      es: `Escribe a ${SUPPORT_EMAIL} desde tu correo e indica la versión ${version}.`,
+      fr: `Écris directement à ${SUPPORT_EMAIL} en indiquant la version ${version}.`,
+      de: `Schreib direkt an ${SUPPORT_EMAIL} und nenne die Version ${version}.`,
+      it: `Scrivi direttamente a ${SUPPORT_EMAIL} e indica la versione ${version}.`,
     },
   );
 
@@ -236,11 +236,11 @@ export default function Settings() {
             const langA11y = tp(
               `Выбрать язык: ${langMeta.nativeName}`,
               `Select language: ${langMeta.name}`,
-              `Wybierz jezyk: ${langMeta.nativeName}`,
+              `Wybierz język: ${langMeta.nativeName}`,
               {
                 es: `Elegir idioma: ${langMeta.nativeName}`,
                 fr: `Choisir la langue : ${langMeta.nativeName}`,
-                de: `Sprache waehlen: ${langMeta.nativeName}`,
+                de: `Sprache wählen: ${langMeta.nativeName}`,
                 it: `Scegli la lingua: ${langMeta.nativeName}`,
               },
             );
@@ -377,51 +377,51 @@ function UnitsSection() {
     cycleDistance,
   } = useUnits();
 
-  const speedRowLabel = tp('Скорость', 'Speed', 'Predkosc', {
+  const speedRowLabel = tp('Скорость', 'Speed', 'Prędkość', {
     es: 'Velocidad',
     fr: 'Vitesse',
     de: 'Geschwindigkeit',
-    it: 'Velocita',
+    it: 'Velocità',
   });
 
   const windSpeedRowLabel = tp(
     'Скорость ветра',
     'Wind speed',
-    'Predkosc wiatru',
+    'Prędkość wiatru',
     {
       es: 'Velocidad del viento',
       fr: 'Vitesse du vent',
       de: 'Windgeschwindigkeit',
-      it: 'Velocita del vento',
+      it: 'Velocità del vento',
     },
   );
 
-  const distanceRowLabel = tp('Дистанция', 'Distance', 'Dystans', {
+  const distanceRowLabel = tp('Дистанция', 'Distance', 'Odległość', {
     es: 'Distancia',
     fr: 'Distance',
-    de: 'Distanz',
+    de: 'Entfernung',
     it: 'Distanza',
   });
 
   const speedHint = tp(
-    'Узлы по умолчанию. Тапни чтобы переключить.',
+    'Узлы по умолчанию. Тапни, чтобы переключить.',
     'Knots by default. Tap to switch.',
-    'Wezly domyslnie. Stuknij aby zmienic.',
+    'Domyślnie węzły. Stuknij, aby zmienić.',
     {
       es: 'Nudos por defecto. Toca para cambiar.',
-      fr: 'Noeuds par defaut. Touchez pour changer.',
-      de: 'Knoten Standard. Tippen zum Umschalten.',
-      it: 'Nodi predefiniti. Tocca per cambiare.',
+      fr: 'Nœuds par défaut. Touche pour changer.',
+      de: 'Standardmäßig Knoten. Zum Umschalten tippen.',
+      it: 'Predefinito: nodi. Tocca per cambiare.',
     },
   );
 
   const windSpeedHint = tp(
     'Узлы, м/с или Бофорт.',
     'Knots, m/s, or Beaufort.',
-    'Wezly, m/s lub Beauforta.',
+    'Węzły, m/s lub skala Beauforta.',
     {
       es: 'Nudos, m/s o Beaufort.',
-      fr: 'Noeuds, m/s ou Beaufort.',
+      fr: 'Nœuds, m/s ou Beaufort.',
       de: 'Knoten, m/s oder Beaufort.',
       it: 'Nodi, m/s o Beaufort.',
     },
@@ -432,8 +432,8 @@ function UnitsSection() {
     'Nautical miles or kilometres.',
     'Mile morskie lub kilometry.',
     {
-      es: 'Millas nauticas o kilometros.',
-      fr: 'Milles nautiques ou kilometres.',
+      es: 'Millas náuticas o kilómetros.',
+      fr: 'Milles nautiques ou kilomètres.',
       de: 'Seemeilen oder Kilometer.',
       it: 'Miglia nautiche o chilometri.',
     },
@@ -442,9 +442,9 @@ function UnitsSection() {
   const speedFullName = (u: SpeedUnit) =>
     u === 'mps'
       ? tp('м/с', 'm/s', 'm/s', { es: 'm/s', fr: 'm/s', de: 'm/s', it: 'm/s' })
-      : tp('узлы', 'knots', 'wezly', {
+      : tp('узлы', 'knots', 'węzły', {
           es: 'nudos',
-          fr: 'noeuds',
+          fr: 'nœuds',
           de: 'Knoten',
           it: 'nodi',
         });
@@ -454,16 +454,16 @@ function UnitsSection() {
       return tp('м/с', 'm/s', 'm/s', { es: 'm/s', fr: 'm/s', de: 'm/s', it: 'm/s' });
     }
     if (u === 'beaufort') {
-      return tp('Бофорт', 'Beaufort', 'Beauforta', {
+      return tp('Бофорт', 'Beaufort', 'skala Beauforta', {
         es: 'Beaufort',
         fr: 'Beaufort',
         de: 'Beaufort',
         it: 'Beaufort',
       });
     }
-    return tp('узлы', 'knots', 'wezly', {
+    return tp('узлы', 'knots', 'węzły', {
       es: 'nudos',
-      fr: 'noeuds',
+      fr: 'nœuds',
       de: 'Knoten',
       it: 'nodi',
     });
@@ -473,7 +473,7 @@ function UnitsSection() {
     u === 'km'
       ? tp('км', 'km', 'km', { es: 'km', fr: 'km', de: 'km', it: 'km' })
       : tp('мор. мили', 'nautical miles', 'mile morskie', {
-          es: 'millas nauticas',
+          es: 'millas náuticas',
           fr: 'milles nautiques',
           de: 'Seemeilen',
           it: 'miglia nautiche',
@@ -483,11 +483,11 @@ function UnitsSection() {
     tp(
       `${rowLabel}: ${currentValue}. Тап - переключить.`,
       `${rowLabel}: ${currentValue}. Tap to cycle.`,
-      `${rowLabel}: ${currentValue}. Stuknij aby zmienic.`,
+      `${rowLabel}: ${currentValue}. Stuknij, aby zmienić.`,
       {
         es: `${rowLabel}: ${currentValue}. Toca para cambiar.`,
-        fr: `${rowLabel}: ${currentValue}. Touchez pour changer.`,
-        de: `${rowLabel}: ${currentValue}. Tippen zum Wechseln.`,
+        fr: `${rowLabel} : ${currentValue}. Touche pour changer.`,
+        de: `${rowLabel}: ${currentValue}. Zum Wechseln tippen.`,
         it: `${rowLabel}: ${currentValue}. Tocca per cambiare.`,
       },
     );
@@ -495,11 +495,11 @@ function UnitsSection() {
   // Long-press lets power users open a system Alert with named options
   // (full-name labels). Tap is the fast path (cycle), long-press is the
   // discoverable path. Both end in the same persistent state.
-  const longPressTitle = tp('Выбрать единицу', 'Pick a unit', 'Wybierz jednostke', {
+  const longPressTitle = tp('Выбрать единицу', 'Pick a unit', 'Wybierz jednostkę', {
     es: 'Elige una unidad',
-    fr: 'Choisir une unite',
-    de: 'Einheit waehlen',
-    it: 'Scegli unita',
+    fr: 'Choisir une unité',
+    de: 'Einheit wählen',
+    it: 'Scegli l\'unità',
   });
   const cancelLabel = tp('Отмена', 'Cancel', 'Anuluj', {
     es: 'Cancelar',
@@ -655,86 +655,86 @@ function DataSection() {
   const racesRowLabel = tp(
     'История гонок',
     'Race history',
-    'Historia wyscigow',
+    'Historia wyścigów',
     {
       es: 'Historial de regatas',
       fr: 'Historique des courses',
       de: 'Rennverlauf',
-      it: 'Cronologia delle gare',
+      it: 'Storico delle regate',
     },
   );
 
   const racesCountLabel = tp(
-    `${racesCount} гонок сохранено`,
+    `Сохранено гонок: ${racesCount}`,
     `${racesCount} ${racesCount === 1 ? 'race' : 'races'} saved`,
-    `${racesCount} wyscigow zapisano`,
+    `Zapisane wyścigi: ${racesCount}`,
     {
-      es: `${racesCount} regatas guardadas`,
-      fr: `${racesCount} courses enregistrees`,
-      de: `${racesCount} Rennen gespeichert`,
-      it: `${racesCount} gare salvate`,
+      es: `Regatas guardadas: ${racesCount}`,
+      fr: `Courses enregistrées : ${racesCount}`,
+      de: `Gespeicherte Rennen: ${racesCount}`,
+      it: `Regate salvate: ${racesCount}`,
     },
   );
 
-  const exportLabel = tp('Экспорт', 'Export', 'Eksport', {
+  const exportLabel = tp('Экспорт', 'Export', 'Eksportuj', {
     es: 'Exportar',
     fr: 'Exporter',
     de: 'Exportieren',
     it: 'Esporta',
   });
 
-  const clearLabel = tp('Очистить', 'Clear', 'Wyczysc', {
+  const clearLabel = tp('Очистить', 'Clear', 'Wyczyść', {
     es: 'Borrar',
     fr: 'Effacer',
-    de: 'Loeschen',
+    de: 'Löschen',
     it: 'Cancella',
   });
 
   const clearRacesConfirmTitle = tp(
     'Удалить историю гонок?',
     'Clear race history?',
-    'Wyczyscic historie wyscigow?',
+    'Usunąć historię wyścigów?',
     {
-      es: 'Borrar historial de regatas?',
-      fr: 'Effacer l historique des courses ?',
-      de: 'Rennverlauf loeschen?',
-      it: 'Cancellare la cronologia delle gare?',
+      es: '¿Borrar el historial de regatas?',
+      fr: 'Effacer l\'historique des courses ?',
+      de: 'Rennverlauf löschen?',
+      it: 'Cancellare lo storico delle regate?',
     },
   );
 
   const clearRacesConfirmBody = tp(
-    `Будут удалены все ${racesCount} записей. Это нельзя отменить.`,
-    `All ${racesCount} entries will be deleted. This cannot be undone.`,
-    `Wszystkie ${racesCount} wpisow zostanie usunietych. Nie da sie cofnac.`,
+    `Будут удалены все сохраненные гонки (${racesCount}). Это нельзя отменить.`,
+    `All saved races (${racesCount}) will be deleted. This cannot be undone.`,
+    `Wszystkie zapisane wyścigi (${racesCount}) zostaną usunięte. Tego nie da się cofnąć.`,
     {
-      es: `Se eliminaran las ${racesCount} entradas. No se puede deshacer.`,
-      fr: `Toutes les ${racesCount} entrees seront supprimees. Irreversible.`,
-      de: `Alle ${racesCount} Eintraege werden geloescht. Nicht umkehrbar.`,
-      it: `Tutte le ${racesCount} voci saranno eliminate. Non si puo annullare.`,
+      es: `Se borrarán todas las regatas guardadas (${racesCount}). No se puede deshacer.`,
+      fr: `Toutes les courses enregistrées (${racesCount}) seront supprimées. C'est irréversible.`,
+      de: `Alle gespeicherten Rennen (${racesCount}) werden gelöscht. Das lässt sich nicht rückgängig machen.`,
+      it: `Tutte le regate salvate (${racesCount}) verranno eliminate. Non si può annullare.`,
     },
   );
 
   const exportEmptyTitle = tp(
     'Пока нечего экспортировать',
     'Nothing to export yet',
-    'Nic do eksportu',
+    'Na razie nie ma czego eksportować',
     {
-      es: 'Nada que exportar aun',
-      fr: 'Rien a exporter pour l instant',
+      es: 'Aún no hay nada que exportar',
+      fr: 'Rien à exporter pour l\'instant',
       de: 'Noch nichts zu exportieren',
-      it: 'Nulla da esportare ancora',
+      it: 'Ancora niente da esportare',
     },
   );
 
   const exportEmptyBody = tp(
-    'Сначала закончите хотя бы одну гонку.',
+    'Сначала закончи хотя бы одну гонку.',
     'Finish at least one race first.',
-    'Najpierw ukoncz przynajmniej jeden wyscig.',
+    'Najpierw ukończ przynajmniej jeden wyścig.',
     {
       es: 'Termina al menos una regata primero.',
-      fr: 'Terminez au moins une course d abord.',
-      de: 'Beenden Sie zuerst mindestens ein Rennen.',
-      it: 'Completa prima almeno una gara.',
+      fr: 'Termine d\'abord au moins une course.',
+      de: 'Beende zuerst mindestens ein Rennen.',
+      it: 'Completa prima almeno una regata.',
     },
   );
 
@@ -743,24 +743,24 @@ function DataSection() {
   const exportFailTitle = tp(
     'Не удалось экспортировать',
     'Export failed',
-    'Nie udalo sie eksportowac',
+    'Eksport się nie udał',
     {
-      es: 'Falló la exportacion',
-      fr: 'Echec de l exportation',
+      es: 'Error al exportar',
+      fr: 'Échec de l\'exportation',
       de: 'Export fehlgeschlagen',
-      it: 'Esportazione fallita',
+      it: 'Esportazione non riuscita',
     },
   );
 
   const exportFailBody = tp(
-    'Поделиться не получилось. Попробуйте позже.',
+    'Поделиться не получилось. Попробуй позже.',
     'Could not share the file. Try again later.',
-    'Nie udalo sie udostepnic. Sprobuj pozniej.',
+    'Nie udało się udostępnić pliku. Spróbuj później.',
     {
-      es: 'No se pudo compartir. Intenta mas tarde.',
-      fr: 'Partage impossible. Reessayez plus tard.',
-      de: 'Teilen fehlgeschlagen. Spaeter erneut versuchen.',
-      it: 'Condivisione non riuscita. Riprova piu tardi.',
+      es: 'No se pudo compartir el archivo. Inténtalo más tarde.',
+      fr: 'Impossible de partager le fichier. Réessaie plus tard.',
+      de: 'Teilen fehlgeschlagen. Versuch es später noch einmal.',
+      it: 'Condivisione non riuscita. Riprova più tardi.',
     },
   );
 
@@ -805,12 +805,12 @@ function DataSection() {
   const bootcampRowLabel = tp(
     'Прогресс Bootcamp',
     'Bootcamp progress',
-    'Postep Bootcamp',
+    'Postęp w Bootcampie',
     {
-      es: 'Progreso de Bootcamp',
-      fr: 'Progression Bootcamp',
+      es: 'Progreso del Bootcamp',
+      fr: 'Progression du Bootcamp',
       de: 'Bootcamp-Fortschritt',
-      it: 'Progresso Bootcamp',
+      it: 'Progressi del Bootcamp',
     },
   );
 
@@ -820,40 +820,40 @@ function DataSection() {
     `${lessonsDone} z ${totalLessons} lekcji`,
     {
       es: `${lessonsDone} de ${totalLessons} lecciones`,
-      fr: `${lessonsDone} sur ${totalLessons} lecons`,
+      fr: `${lessonsDone} sur ${totalLessons} leçons`,
       de: `${lessonsDone} von ${totalLessons} Lektionen`,
-      it: `${lessonsDone} di ${totalLessons} lezioni`,
+      it: `${lessonsDone} su ${totalLessons} lezioni`,
     },
   );
 
-  const resetProgressLabel = tp('Сбросить прогресс', 'Reset progress', 'Wyczysc postep', {
+  const resetProgressLabel = tp('Сбросить прогресс', 'Reset progress', 'Zresetuj postęp', {
     es: 'Reiniciar progreso',
-    fr: 'Reinitialiser progression',
-    de: 'Fortschritt zuruecksetzen',
-    it: 'Azzera progresso',
+    fr: 'Réinitialiser',
+    de: 'Fortschritt zurücksetzen',
+    it: 'Azzera i progressi',
   });
 
   const resetBootcampConfirmTitle = tp(
     'Сбросить Bootcamp?',
     'Reset Bootcamp?',
-    'Zresetowac Bootcamp?',
+    'Zresetować Bootcamp?',
     {
-      es: 'Reiniciar Bootcamp?',
-      fr: 'Reinitialiser Bootcamp ?',
-      de: 'Bootcamp zuruecksetzen?',
-      it: 'Azzerare Bootcamp?',
+      es: '¿Reiniciar el Bootcamp?',
+      fr: 'Réinitialiser le Bootcamp ?',
+      de: 'Bootcamp zurücksetzen?',
+      it: 'Azzerare il Bootcamp?',
     },
   );
 
   const resetBootcampConfirmBody = tp(
     'Все отметки уроков будут стерты.',
     'All lesson completion ticks will be cleared.',
-    'Wszystkie znaczniki lekcji znikna.',
+    'Wszystkie oznaczenia ukończonych lekcji znikną.',
     {
-      es: 'Se borraran todas las marcas de lecciones.',
-      fr: 'Toutes les coches de lecons seront effacees.',
-      de: 'Alle Lektion-Haken werden geloescht.',
-      it: 'Tutte le spunte delle lezioni saranno cancellate.',
+      es: 'Se borrarán todas las marcas de lecciones completadas.',
+      fr: 'Toutes les coches des leçons terminées seront effacées.',
+      de: 'Alle Häkchen bei den Lektionen werden gelöscht.',
+      it: 'Tutte le spunte delle lezioni verranno cancellate.',
     },
   );
 
@@ -880,12 +880,12 @@ function DataSection() {
   const checklistRowLabel = tp(
     'Прогресс чек-листа',
     'Checklist progress',
-    'Postep listy',
+    'Postęp checklisty',
     {
       es: 'Progreso de la lista',
       fr: 'Progression de la liste',
       de: 'Checklisten-Fortschritt',
-      it: 'Progresso della lista',
+      it: 'Progressi della checklist',
     },
   );
 
@@ -894,44 +894,44 @@ function DataSection() {
     `${checklistCount} of ${totalChecklistItems} items checked`,
     `${checklistCount} z ${totalChecklistItems} pozycji`,
     {
-      es: `${checklistCount} de ${totalChecklistItems} elementos`,
-      fr: `${checklistCount} sur ${totalChecklistItems} elements`,
+      es: `${checklistCount} de ${totalChecklistItems} puntos`,
+      fr: `${checklistCount} sur ${totalChecklistItems} points`,
       de: `${checklistCount} von ${totalChecklistItems} Punkten`,
-      it: `${checklistCount} di ${totalChecklistItems} voci`,
+      it: `${checklistCount} su ${totalChecklistItems} voci`,
     },
   );
 
   const resetChecklistConfirmTitle = tp(
     'Сбросить чек-лист?',
     'Reset checklist?',
-    'Zresetowac liste?',
+    'Zresetować checklistę?',
     {
-      es: 'Reiniciar la lista?',
-      fr: 'Reinitialiser la liste ?',
-      de: 'Liste zuruecksetzen?',
-      it: 'Azzerare la lista?',
+      es: '¿Reiniciar la lista?',
+      fr: 'Réinitialiser la liste ?',
+      de: 'Checkliste zurücksetzen?',
+      it: 'Azzerare la checklist?',
     },
   );
 
   const resetChecklistConfirmBody = tp(
     'Все отметки удалятся, текст останется.',
     'All ticks will be cleared. The content stays.',
-    'Wszystkie znaczniki znikna, tresc zostaje.',
+    'Wszystkie zaznaczenia znikną, a treść zostanie.',
     {
-      es: 'Se borraran todas las marcas. El contenido se queda.',
-      fr: 'Toutes les coches seront effacees. Le contenu reste.',
-      de: 'Alle Haken werden geloescht. Der Inhalt bleibt.',
-      it: 'Tutte le spunte saranno cancellate. Il testo resta.',
+      es: 'Se borrarán todas las marcas. El contenido se mantiene.',
+      fr: 'Toutes les coches seront effacées. Le contenu reste.',
+      de: 'Alle Häkchen werden gelöscht. Der Inhalt bleibt.',
+      it: 'Tutte le spunte verranno cancellate. Il testo resta.',
     },
   );
 
   // touch the helper so unused-import lint stays clean for downstream
   void itemKey;
 
-  const resetLabel = tp('Сбросить', 'Reset', 'Wyczysc', {
+  const resetLabel = tp('Сбросить', 'Reset', 'Zresetuj', {
     es: 'Reiniciar',
-    fr: 'Reinitialiser',
-    de: 'Zuruecksetzen',
+    fr: 'Réinitialiser',
+    de: 'Zurücksetzen',
     it: 'Azzera',
   });
 
@@ -951,11 +951,11 @@ function DataSection() {
   const clearAllLabel = tp(
     'Очистить все данные',
     'Clear all data',
-    'Wyczysc wszystkie dane',
+    'Wyczyść wszystkie dane',
     {
       es: 'Borrar todos los datos',
-      fr: 'Effacer toutes les donnees',
-      de: 'Alle Daten loeschen',
+      fr: 'Effacer toutes les données',
+      de: 'Alle Daten löschen',
       it: 'Cancella tutti i dati',
     },
   );
@@ -963,23 +963,23 @@ function DataSection() {
   const clearAllHint = tp(
     'Сотрет язык, прогресс, единицы и историю.',
     'Wipes language, progress, units, and history.',
-    'Skasuje jezyk, postep, jednostki i historie.',
+    'Usuwa język, postęp, jednostki i historię.',
     {
       es: 'Borra idioma, progreso, unidades e historial.',
-      fr: 'Supprime langue, progression, unites et historique.',
-      de: 'Loescht Sprache, Fortschritt, Einheiten und Verlauf.',
-      it: 'Cancella lingua, progresso, unita e cronologia.',
+      fr: 'Supprime la langue, la progression, les unités et l\'historique.',
+      de: 'Löscht Sprache, Fortschritt, Einheiten und Verlauf.',
+      it: 'Cancella lingua, progressi, unità e storico.',
     },
   );
 
   const clearAllStep1Title = tp(
     'Удалить все данные?',
     'Clear all data?',
-    'Wyczyscic wszystkie dane?',
+    'Usunąć wszystkie dane?',
     {
-      es: 'Borrar todos los datos?',
-      fr: 'Effacer toutes les donnees ?',
-      de: 'Alle Daten loeschen?',
+      es: '¿Borrar todos los datos?',
+      fr: 'Effacer toutes les données ?',
+      de: 'Alle Daten löschen?',
       it: 'Cancellare tutti i dati?',
     },
   );
@@ -987,12 +987,12 @@ function DataSection() {
   const clearAllStep1Body = tp(
     'Будут стерты прогресс, история гонок, единицы измерения и язык.',
     'Will erase progress, race history, unit preferences, and language.',
-    'Skasuje postep, historie wyscigow, jednostki i jezyk.',
+    'Zostaną usunięte: postęp, historia wyścigów, jednostki i język.',
     {
-      es: 'Borrara progreso, historial de regatas, unidades e idioma.',
-      fr: 'Effacera progression, historique des courses, unites et langue.',
-      de: 'Loescht Fortschritt, Rennverlauf, Einheiten und Sprache.',
-      it: 'Cancellera progresso, cronologia delle gare, unita e lingua.',
+      es: 'Se borrarán el progreso, el historial de regatas, las unidades y el idioma.',
+      fr: 'La progression, l\'historique des courses, les unités et la langue seront effacés.',
+      de: 'Fortschritt, Rennverlauf, Einheiten und Sprache werden gelöscht.',
+      it: 'Verranno cancellati progressi, storico delle regate, unità e lingua.',
     },
   );
 
@@ -1006,37 +1006,37 @@ function DataSection() {
   const clearAllStep2Title = tp(
     'Это нельзя отменить',
     'This cannot be undone',
-    'Tego nie da sie cofnac',
+    'Tego nie da się cofnąć',
     {
       es: 'Esto no se puede deshacer',
-      fr: 'Cette action est irreversible',
-      de: 'Dies kann nicht rueckgaengig gemacht werden',
-      it: 'Questa azione non puo essere annullata',
+      fr: 'Cette action est irréversible',
+      de: 'Das lässt sich nicht rückgängig machen',
+      it: 'Non si può annullare',
     },
   );
 
   const clearAllStep2Body = tp(
     'Тапни «Удалить все», чтобы подтвердить.',
     'Tap "Delete all" to confirm.',
-    'Stuknij "Usun wszystko" aby potwierdzic.',
+    'Stuknij "Usuń wszystko", aby potwierdzić.',
     {
       es: 'Toca "Borrar todo" para confirmar.',
-      fr: 'Touchez "Tout effacer" pour confirmer.',
-      de: 'Tippen Sie "Alles loeschen" zum Bestaetigen.',
+      fr: 'Touche "Tout effacer" pour confirmer.',
+      de: 'Tippe auf "Alles löschen", um zu bestätigen.',
       it: 'Tocca "Elimina tutto" per confermare.',
     },
   );
 
-  const deleteAllLabel = tp('Удалить все', 'Delete all', 'Usun wszystko', {
+  const deleteAllLabel = tp('Удалить все', 'Delete all', 'Usuń wszystko', {
     es: 'Borrar todo',
     fr: 'Tout effacer',
-    de: 'Alles loeschen',
+    de: 'Alles löschen',
     it: 'Elimina tutto',
   });
 
   const clearAllDoneTitle = tp('Готово', 'Done', 'Gotowe', {
     es: 'Listo',
-    fr: 'Termine',
+    fr: 'Terminé',
     de: 'Fertig',
     it: 'Fatto',
   });
@@ -1044,12 +1044,12 @@ function DataSection() {
   const clearAllDoneBody = tp(
     'Все локальные данные приложения удалены.',
     'All local app data has been removed.',
-    'Wszystkie lokalne dane aplikacji usuniete.',
+    'Wszystkie lokalne dane aplikacji zostały usunięte.',
     {
       es: 'Se eliminaron todos los datos locales de la app.',
-      fr: 'Toutes les donnees locales de l app ont ete supprimees.',
+      fr: 'Toutes les données locales de l\'app ont été supprimées.',
       de: 'Alle lokalen App-Daten wurden entfernt.',
-      it: 'Tutti i dati locali dell app sono stati rimossi.',
+      it: 'Tutti i dati locali dell\'app sono stati rimossi.',
     },
   );
 
@@ -1206,11 +1206,11 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   const heading = tp(
     'Политика конфиденциальности',
     'Privacy policy',
-    'Polityka prywatnosci',
+    'Polityka prywatności',
     {
-      es: 'Politica de privacidad',
-      fr: 'Politique de confidentialite',
-      de: 'Datenschutzerklaerung',
+      es: 'Política de privacidad',
+      fr: 'Politique de confidentialité',
+      de: 'Datenschutzerklärung',
       it: 'Informativa sulla privacy',
     },
   );
@@ -1218,19 +1218,19 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   const closeLabel = tp('Закрыть', 'Close', 'Zamknij', {
     es: 'Cerrar',
     fr: 'Fermer',
-    de: 'Schliessen',
+    de: 'Schließen',
     it: 'Chiudi',
   });
 
   const intro = tp(
-    'Week to Regatta уважает вашу приватность. Приложение не отслеживает вас между сервисами и не собирает данные, которые вас идентифицируют.',
+    'Week to Regatta уважает твою приватность. Приложение не отслеживает тебя между сервисами и не собирает данные, которые тебя идентифицируют.',
     'Week to Regatta respects your privacy. The app does not track you across services and does not collect data that identifies you personally.',
-    'Week to Regatta szanuje Twoja prywatnosc. Aplikacja nie sledzi Cie miedzy uslugami i nie zbiera danych, ktore Cie identyfikuja.',
+    'Week to Regatta szanuje twoją prywatność. Aplikacja nie śledzi cię między usługami i nie zbiera danych, które pozwalają cię zidentyfikować.',
     {
       es: 'Week to Regatta respeta tu privacidad. La app no te rastrea entre servicios y no recopila datos que te identifiquen personalmente.',
-      fr: 'Week to Regatta respecte votre vie privee. L\'application ne vous suit pas entre services et ne collecte pas de donnees qui vous identifient personnellement.',
-      de: 'Week to Regatta respektiert Ihre Privatsphaere. Die App verfolgt Sie nicht ueber Dienste hinweg und sammelt keine Daten, die Sie persoenlich identifizieren.',
-      it: 'Week to Regatta rispetta la tua privacy. L\'app non ti traccia tra servizi e non raccoglie dati che ti identificano personalmente.',
+      fr: 'Week to Regatta respecte ta vie privée. L\'application ne te suit pas d\'un service à l\'autre et ne collecte aucune donnée permettant de t\'identifier.',
+      de: 'Week to Regatta respektiert deine Privatsphäre. Die App verfolgt dich nicht über Dienste hinweg und sammelt keine Daten, die dich persönlich identifizieren.',
+      it: 'Week to Regatta rispetta la tua privacy. L\'app non ti traccia tra servizi diversi e non raccoglie dati che possano identificarti.',
     },
   );
 
@@ -1239,60 +1239,60 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
   // ASC App Privacy label "Data Collected: Analytics / Product Interaction,
   // not linked to identity, not used for tracking" and NSPrivacyTracking=false.
   const noAnalytics = tp(
-    'Приложение отправляет анонимную продуктовую аналитику в PostHog: просмотры экранов и ключевые события (например, старт и финиш гонки), помеченные языком и версией приложения. Эти данные не привязаны к вашей личности и никогда не используются для межсервисного трекинга.',
+    'Приложение отправляет анонимную продуктовую аналитику в PostHog: просмотры экранов и ключевые события (например, старт и финиш гонки), помеченные языком и версией приложения. Эти данные не привязаны к твоей личности и никогда не используются для межсервисного трекинга.',
     'The app sends anonymous product analytics to PostHog: screen views and key events (such as race start and finish), tagged with your app language and version. This data is not linked to your identity and is never used for cross-app tracking.',
-    'Aplikacja wysyla anonimowa analityke produktowa do PostHog: odslony ekranow i kluczowe zdarzenia (np. start i meta wyscigu), oznaczone jezykiem i wersja aplikacji. Te dane nie sa powiazane z Twoja tozsamoscia i nigdy nie sluza do sledzenia miedzy aplikacjami.',
+    'Aplikacja wysyła anonimowe dane analityczne do PostHog: odsłony ekranów i kluczowe zdarzenia (np. start i metę wyścigu), oznaczone językiem i wersją aplikacji. Te dane nie są powiązane z twoją tożsamością i nigdy nie służą do śledzenia między aplikacjami.',
     {
-      es: 'La app envia analitica de producto anonima a PostHog: vistas de pantalla y eventos clave (como el inicio y el final de la regata), etiquetados con tu idioma y version de la app. Estos datos no se vinculan a tu identidad y nunca se usan para rastreo entre apps.',
-      fr: 'L\'application envoie des analyses produit anonymes a PostHog : vues d\'ecran et evenements cles (comme le depart et l\'arrivee de la course), associes a votre langue et version de l\'app. Ces donnees ne sont pas liees a votre identite et ne servent jamais au suivi entre applications.',
-      de: 'Die App sendet anonyme Produktanalysen an PostHog: Bildschirmaufrufe und wichtige Ereignisse (z. B. Start und Ziel des Rennens), versehen mit Ihrer App-Sprache und -Version. Diese Daten sind nicht mit Ihrer Identitaet verknuepft und werden nie fuer App-uebergreifendes Tracking verwendet.',
-      it: 'L\'app invia analisi di prodotto anonime a PostHog: visualizzazioni delle schermate ed eventi chiave (come partenza e arrivo della gara), contrassegnati con la lingua e la versione dell\'app. Questi dati non sono collegati alla tua identita e non vengono mai usati per il tracciamento tra app.',
+      es: 'La app envía analítica de producto anónima a PostHog: pantallas vistas y eventos clave (como la salida y la llegada de una regata), etiquetados con el idioma y la versión de la app. Estos datos no se vinculan a tu identidad y nunca se usan para rastrearte entre apps.',
+      fr: 'L\'application envoie des statistiques d\'usage anonymes à PostHog : écrans consultés et événements clés (comme le départ et l\'arrivée d\'une course), associés à la langue et à la version de l\'app. Ces données ne sont pas liées à ton identité et ne servent jamais au suivi entre applications.',
+      de: 'Die App sendet anonyme Produktanalysen an PostHog: Bildschirmaufrufe und wichtige Ereignisse (z. B. Start und Zieldurchgang eines Rennens), versehen mit App-Sprache und -Version. Diese Daten sind nicht mit deiner Identität verknüpft und werden nie für App-übergreifendes Tracking verwendet.',
+      it: 'L\'app invia statistiche d\'uso anonime a PostHog: schermate visualizzate ed eventi chiave (come partenza e arrivo di una regata), contrassegnati con la lingua e la versione dell\'app. Questi dati non sono collegati alla tua identità e non vengono mai usati per il tracciamento tra app.',
     },
   );
 
   const localOnly = tp(
-    'Прогресс по урокам и язык интерфейса хранятся только локально на вашем устройстве (AsyncStorage). Вы можете очистить их в любой момент через системные настройки приложения.',
+    'Прогресс по урокам и язык интерфейса хранятся только локально на твоем устройстве (AsyncStorage). Ты можешь очистить их в любой момент через системные настройки приложения.',
     'Lesson progress and your language preference live only locally on your device (AsyncStorage). You can clear them anytime via the system app settings.',
-    'Postep w lekcjach i preferencja jezyka sa przechowywane wylacznie lokalnie na urzadzeniu (AsyncStorage). Mozesz je usunac w dowolnym momencie z ustawien systemowych aplikacji.',
+    'Postępy w lekcjach i wybrany język są zapisane wyłącznie lokalnie na twoim urządzeniu (AsyncStorage). Możesz je usunąć w dowolnej chwili w ustawieniach systemowych aplikacji.',
     {
-      es: 'El progreso de las lecciones y tu idioma se guardan solo localmente en tu dispositivo (AsyncStorage). Puedes borrarlos cuando quieras desde los ajustes del sistema.',
-      fr: 'La progression des lecons et votre langue sont stockees uniquement en local sur votre appareil (AsyncStorage). Vous pouvez les effacer a tout moment via les reglages systeme de lapp.',
-      de: 'Lernfortschritt und Spracheinstellung werden ausschliesslich lokal auf Ihrem Geraet gespeichert (AsyncStorage). Sie koennen sie jederzeit ueber die System-Einstellungen der App loeschen.',
-      it: 'Il progresso delle lezioni e la tua lingua restano solo in locale sul dispositivo (AsyncStorage). Puoi cancellarli in qualsiasi momento dalle impostazioni di sistema dellapp.',
+      es: 'El progreso de las lecciones y el idioma de la interfaz se guardan solo en tu dispositivo (AsyncStorage). Puedes borrarlos cuando quieras desde los ajustes del sistema.',
+      fr: 'La progression des leçons et la langue de l\'interface sont stockées uniquement sur ton appareil (AsyncStorage). Tu peux les effacer à tout moment dans les réglages système de l\'app.',
+      de: 'Lernfortschritt und Spracheinstellung werden ausschließlich lokal auf deinem Gerät gespeichert (AsyncStorage). Du kannst sie jederzeit über die Systemeinstellungen der App löschen.',
+      it: 'I progressi delle lezioni e la lingua dell\'interfaccia restano solo in locale sul tuo dispositivo (AsyncStorage). Puoi cancellarli in qualsiasi momento dalle impostazioni di sistema dell\'app.',
     },
   );
 
   const network = tp(
     'Изображения и видео в галерее загружаются из сети с weektoregatta.com. Сервер не получает идентификаторов и не строит профиль пользователя.',
     'Images and videos in the gallery load from weektoregatta.com over the network. The server does not receive identifiers and does not build a user profile.',
-    'Obrazy i wideo w galerii laduja sie z weektoregatta.com przez siec. Serwer nie otrzymuje identyfikatorow i nie buduje profilu uzytkownika.',
+    'Zdjęcia i filmy w galerii ładują się z sieci, z weektoregatta.com. Serwer nie otrzymuje żadnych identyfikatorów i nie tworzy profilu użytkownika.',
     {
-      es: 'Las imagenes y los videos de la galeria se cargan desde weektoregatta.com por red. El servidor no recibe identificadores ni crea un perfil de usuario.',
-      fr: 'Les images et videos de la galerie sont chargees depuis weektoregatta.com via le reseau. Le serveur ne recoit pas didentifiants et ne construit pas de profil utilisateur.',
-      de: 'Bilder und Videos in der Galerie werden ueber das Netzwerk von weektoregatta.com geladen. Der Server erhaelt keine Kennungen und legt kein Nutzerprofil an.',
-      it: 'Immagini e video della galleria si caricano da weektoregatta.com tramite rete. Il server non riceve identificatori e non crea un profilo utente.',
+      es: 'Las imágenes y los videos de la galería se cargan desde weektoregatta.com. El servidor no recibe identificadores ni crea un perfil de usuario.',
+      fr: 'Les images et vidéos de la galerie sont chargées depuis weektoregatta.com. Le serveur ne reçoit aucun identifiant et ne crée pas de profil utilisateur.',
+      de: 'Bilder und Videos in der Galerie werden über das Netz von weektoregatta.com geladen. Der Server erhält keine Kennungen und legt kein Nutzerprofil an.',
+      it: 'Immagini e video della galleria vengono caricati da weektoregatta.com. Il server non riceve identificatori e non crea un profilo utente.',
     },
   );
 
   const webNote = tp(
     'У сайта weektoregatta.com есть собственный раздел приватности. Мобильное приложение использует те же базовые принципы.',
     'The website weektoregatta.com has its own privacy section. The mobile app uses the same baseline.',
-    'Strona weektoregatta.com ma wlasna sekcje prywatnosci. Aplikacja mobilna stosuje te same zasady.',
+    'Strona weektoregatta.com ma własną sekcję o prywatności. Aplikacja mobilna stosuje te same zasady.',
     {
-      es: 'El sitio weektoregatta.com tiene su propia seccion de privacidad. La app movil sigue los mismos principios.',
-      fr: 'Le site weektoregatta.com possede sa propre section confidentialite. Lapplication mobile applique les memes principes.',
-      de: 'Die Website weektoregatta.com hat einen eigenen Datenschutzbereich. Die mobile App folgt denselben Grundsaetzen.',
-      it: 'Il sito weektoregatta.com ha una propria sezione privacy. Lapp mobile applica gli stessi principi.',
+      es: 'El sitio weektoregatta.com tiene su propia sección de privacidad. La app móvil sigue los mismos principios.',
+      fr: 'Le site weektoregatta.com a sa propre section confidentialité. L\'application mobile applique les mêmes principes.',
+      de: 'Die Website weektoregatta.com hat einen eigenen Datenschutzbereich. Die mobile App folgt denselben Grundsätzen.',
+      it: 'Il sito weektoregatta.com ha una propria sezione sulla privacy. L\'app mobile segue gli stessi principi.',
     },
   );
 
   const contact = tp(
     `Вопросы по приватности: ${SUPPORT_EMAIL}.`,
     `Privacy questions: ${SUPPORT_EMAIL}.`,
-    `Pytania o prywatnosc: ${SUPPORT_EMAIL}.`,
+    `Pytania o prywatność: ${SUPPORT_EMAIL}.`,
     {
       es: `Preguntas sobre privacidad: ${SUPPORT_EMAIL}.`,
-      fr: `Questions sur la confidentialite : ${SUPPORT_EMAIL}.`,
+      fr: `Questions sur la confidentialité : ${SUPPORT_EMAIL}.`,
       de: `Datenschutzfragen: ${SUPPORT_EMAIL}.`,
       it: `Domande sulla privacy: ${SUPPORT_EMAIL}.`,
     },

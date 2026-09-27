@@ -500,16 +500,16 @@ export default function Simulator() {
     if (steerHoldRef.current) clearInterval(steerHoldRef.current);
   }, []);
   const steerPortLabel = tp('Руль влево (левый борт)', 'Steer to port', 'Ster w lewo (lewa burta)', {
-    es: 'Timon a babor',
-    fr: 'Barre a babord',
-    de: 'Ruder nach Backbord',
-    it: 'Timone a sinistra',
+    es: 'Girar a babor',
+    fr: 'Tourner à bâbord',
+    de: 'Nach Backbord steuern',
+    it: 'Girare a sinistra',
   });
   const steerStbdLabel = tp('Руль вправо (правый борт)', 'Steer to starboard', 'Ster w prawo (prawa burta)', {
-    es: 'Timon a estribor',
-    fr: 'Barre a tribord',
-    de: 'Ruder nach Steuerbord',
-    it: 'Timone a dritta',
+    es: 'Girar a estribor',
+    fr: 'Tourner à tribord',
+    de: 'Nach Steuerbord steuern',
+    it: 'Girare a dritta',
   });
 
   const arrowGrid = useMemo(
@@ -648,7 +648,7 @@ export default function Simulator() {
     it: 'Simulatore',
   });
   const badge = tp('VPP физика', 'VPP physics', 'Fizyka VPP', {
-    es: 'Fisica VPP',
+    es: 'Física VPP',
     fr: 'Physique VPP',
     de: 'VPP-Physik',
     it: 'Fisica VPP',
@@ -659,16 +659,16 @@ export default function Simulator() {
     de: 'RESET',
     it: 'RESET',
   });
-  const autoLabel = tp('АВТО TRIM', 'AUTO TRIM', 'AUTO TRIM', {
-    es: 'AUTO TRIM',
-    fr: 'AUTO TRIM',
-    de: 'AUTO TRIM',
-    it: 'AUTO TRIM',
+  const autoLabel = tp('АВТО TRIM', 'AUTO TRIM', 'AUTO TRYM', {
+    es: 'TRIM AUTO',
+    fr: 'RÉGLAGE AUTO',
+    de: 'AUTO-TRIMM',
+    it: 'TRIM AUTO',
   });
-  const manualLabel = tp('РУЧНОЙ TRIM', 'MANUAL TRIM', 'RECZNY TRIM', {
+  const manualLabel = tp('РУЧНОЙ TRIM', 'MANUAL TRIM', 'RĘCZNY TRYM', {
     es: 'TRIM MANUAL',
-    fr: 'TRIM MANUEL',
-    de: 'MANUELLER TRIM',
+    fr: 'RÉGLAGE MANUEL',
+    de: 'MANUELLER TRIMM',
     it: 'TRIM MANUALE',
   });
   const headingLabel = tp('КУРС', 'HEADING', 'KURS', {
@@ -683,16 +683,16 @@ export default function Simulator() {
   // "knots" label that lied when the user picked metric units.
   const speedUnitWord = speedUnitLabel(units.speed).toUpperCase();
   const speedLabel = speedUnitWord;
-  const heelLabel = tp('КРЕН', 'HEEL', 'PRZECHYL', {
+  const heelLabel = tp('КРЕН', 'HEEL', 'PRZECHYŁ', {
     es: 'ESCORA',
-    fr: 'GITE',
-    de: 'KRANGUNG',
+    fr: 'GÎTE',
+    de: 'KRÄNGUNG',
     it: 'SBANDAMENTO',
   });
-  const trimLabel = tp('TRIM', 'TRIM', 'TRIM', {
+  const trimLabel = tp('TRIM', 'TRIM', 'TRYM', {
     es: 'TRIM',
     fr: 'TRIM',
-    de: 'TRIM',
+    de: 'TRIMM',
     it: 'TRIM',
   });
   const mainLabel = tp('ГРОТ', 'MAIN', 'GROT', {
@@ -713,21 +713,21 @@ export default function Simulator() {
     de: 'REFF',
     it: 'TERZAROLI',
   });
-  const twistLabel = tp('TWIST', 'TWIST', 'TWIST', {
-    es: 'TWIST',
-    fr: 'TWIST',
+  const twistLabel = tp('TWIST', 'TWIST', 'SKRĘT', {
+    es: 'TORSIÓN',
+    fr: 'VRILLAGE',
     de: 'TWIST',
     it: 'TWIST',
   });
   const note = tp(
-    'Тяни по воде - руление. Компас справа меняет ветер. MAIN/JIB показывают, как шкот влияет на скорость, крен и срыв.',
+    'Тяни по воде - руление. Компас справа меняет ветер. ГРОТ и СТАКСЕЛЬ показывают, как шкот влияет на скорость, крен и срыв.',
     'Drag on water to steer. The compass changes wind. MAIN/JIB show how sheet trim changes speed, heel and stall.',
-    'Przeciagaj po wodzie - ster. Kompas zmienia wiatr. MAIN/JIB pokazuja wplyw szotow na predkosc, przechyl i stall.',
+    'Przeciągaj po wodzie, aby sterować. Kompas zmienia wiatr. GROT i FOK pokazują, jak szoty wpływają na prędkość, przechył i oderwanie przepływu.',
     {
-      es: 'Arrastra sobre el agua para gobernar. La brujula cambia el viento. MAIN/JIB muestran como el trim cambia velocidad, escora y stall.',
-      fr: 'Glisse sur leau pour barrer. La boussole change le vent. MAIN/JIB montrent comment le reglage change vitesse, gite et stall.',
-      de: 'Ziehe ueber das Wasser zum Steuern. Der Kompass aendert Wind. MAIN/JIB zeigen Tempo, Kraengung und Stall.',
-      it: 'Trascina sullacqua per timonare. La bussola cambia vento. MAIN/JIB mostrano velocita, sbandamento e stall.',
+      es: 'Arrastra sobre el agua para gobernar. La brújula cambia el viento. MAYOR y FOQUE muestran cómo las escotas cambian la velocidad, la escora y el desprendimiento del flujo.',
+      fr: "Glisse sur l'eau pour barrer. Le compas change le vent. GV et FOC montrent comment les écoutes changent la vitesse, la gîte et le décrochage.",
+      de: 'Ziehe über das Wasser, um zu steuern. Der Kompass ändert den Wind. GROSS und FOCK zeigen, wie die Schoten Fahrt, Krängung und Strömungsabriss verändern.',
+      it: "Trascina sull'acqua per governare. La bussola cambia il vento. RANDA e FIOCCO mostrano come le scotte cambiano velocità, sbandamento e stallo.",
     },
   );
   const modeFreeLabel = tp('Свободно', 'Free', 'Swobodnie', {
@@ -736,37 +736,37 @@ export default function Simulator() {
     de: 'Frei',
     it: 'Libero',
   });
-  const modeDrillLabel = tp('Тренировка', 'Drill', 'Cwiczenie', {
+  const modeDrillLabel = tp('Тренировка', 'Drill', 'Ćwiczenie', {
     es: 'Ejercicio',
     fr: 'Exercice',
-    de: 'Drill',
+    de: 'Übung',
     it: 'Esercizio',
   });
   const modeMissionLabel = tp('Миссия', 'Mission', 'Misja', {
-    es: 'Mision',
+    es: 'Misión',
     fr: 'Mission',
     de: 'Mission',
     it: 'Missione',
   });
-  const viewTopLabel = tp('Сверху', 'Top', 'Gora', {
-    es: 'Arriba',
+  const viewTopLabel = tp('Сверху', 'Top', 'Z góry', {
+    es: 'Cenital',
     fr: 'Dessus',
     de: 'Oben',
     it: 'Alto',
   });
-  const viewSideLabel = tp('Сбоку', 'Side', 'Bok', {
-    es: 'Lado',
-    fr: 'Cote',
+  const viewSideLabel = tp('Сбоку', 'Side', 'Z boku', {
+    es: 'Lateral',
+    fr: 'Côté',
     de: 'Seite',
     it: 'Lato',
   });
-  const viewRearLabel = tp('С кормы', 'Rear', 'Rufa', {
+  const viewRearLabel = tp('С кормы', 'Rear', 'Od rufy', {
     es: 'Popa',
-    fr: 'Arriere',
+    fr: 'Arrière',
     de: 'Heck',
     it: 'Poppa',
   });
-  const windSteadyLabel = tp('Ровный', 'Steady', 'Staly', {
+  const windSteadyLabel = tp('Ровный', 'Steady', 'Stały', {
     es: 'Estable',
     fr: 'Stable',
     de: 'Stetig',
@@ -781,11 +781,11 @@ export default function Simulator() {
   const windGustLabel = tp('Порыв', 'Gust', 'Podmuch', {
     es: 'Racha',
     fr: 'Rafale',
-    de: 'Boe',
+    de: 'Böe',
     it: 'Raffica',
   });
   const missionLabel = tp('МИССИЯ', 'MISSION', 'MISJA', {
-    es: 'MISION',
+    es: 'MISIÓN',
     fr: 'MISSION',
     de: 'MISSION',
     it: 'MISSIONE',
@@ -793,22 +793,22 @@ export default function Simulator() {
   const drillSelectLabel = tp(
     'Выбери тренировку',
     'Pick a drill',
-    'Wybierz cwiczenie',
+    'Wybierz ćwiczenie',
     {
       es: 'Elige un ejercicio',
       fr: 'Choisis un exercice',
-      de: 'Drill waehlen',
+      de: 'Übung wählen',
       it: 'Scegli un esercizio',
     },
   );
   const missionSelectLabel = tp(
     'Выбери миссию',
     'Pick a mission',
-    'Wybierz misje',
+    'Wybierz misję',
     {
-      es: 'Elige una mision',
+      es: 'Elige una misión',
       fr: 'Choisis une mission',
-      de: 'Mission waehlen',
+      de: 'Mission wählen',
       it: 'Scegli una missione',
     },
   );
@@ -816,16 +816,16 @@ export default function Simulator() {
     es: 'Otra vez',
     fr: 'Recommencer',
     de: 'Nochmal',
-    it: 'Ancora',
+    it: 'Riprova',
   });
   const nextMissionLabel = tp(
     'Следующая миссия',
     'Next mission',
-    'Nastepna misja',
+    'Następna misja',
     {
-      es: 'Siguiente mision',
+      es: 'Siguiente misión',
       fr: 'Mission suivante',
-      de: 'Naechste Mission',
+      de: 'Nächste Mission',
       it: 'Prossima missione',
     },
   );
@@ -834,8 +834,8 @@ export default function Simulator() {
     'Done!',
     'Gotowe!',
     {
-      es: 'Hecho!',
-      fr: 'Fini!',
+      es: '¡Hecho!',
+      fr: 'Fini !',
       de: 'Geschafft!',
       it: 'Fatto!',
     },
@@ -843,16 +843,16 @@ export default function Simulator() {
   const drillFailLabel = tp(
     'Не получилось',
     'Not this time',
-    'Nie udalo sie',
+    'Nie udało się',
     {
-      es: 'No salio',
+      es: 'No salió',
       fr: 'Pas cette fois',
       de: 'Nicht geschafft',
       it: 'Non stavolta',
     },
   );
   const drillScoreLabel = tp('Счёт', 'Score', 'Wynik', {
-    es: 'Puntuacion',
+    es: 'Puntuación',
     fr: 'Score',
     de: 'Punktzahl',
     it: 'Punteggio',
@@ -862,8 +862,8 @@ export default function Simulator() {
     'Finish!',
     'Meta!',
     {
-      es: 'Meta!',
-      fr: 'Arrivee!',
+      es: '¡Meta!',
+      fr: 'Arrivée !',
       de: 'Ziel!',
       it: 'Traguardo!',
     },
@@ -882,8 +882,8 @@ export default function Simulator() {
   });
   const distanceLabel = tp('До знака', 'To mark', 'Do znaku', {
     es: 'A la baliza',
-    fr: 'Vers la bouee',
-    de: 'Zur Tonne',
+    fr: 'Vers la bouée',
+    de: 'Zur Bahnmarke',
     it: 'Alla boa',
   });
   const windMapLabel = tp('КАРТА ВЕТРА', 'WIND MAP', 'MAPA WIATRU', {
@@ -892,7 +892,7 @@ export default function Simulator() {
     de: 'WINDKARTE',
     it: 'MAPPA VENTO',
   });
-  const trackLabel = tp('ТРЕК', 'TRACK', 'SLAD', {
+  const trackLabel = tp('ТРЕК', 'TRACK', 'ŚLAD', {
     es: 'TRAZA',
     fr: 'TRACE',
     de: 'SPUR',
@@ -905,28 +905,28 @@ export default function Simulator() {
       de: 'scheinbar',
       it: 'apparente',
     }),
-    trueWind: tp('истинный', 'true wind', 'wiatr realny', {
+    trueWind: tp('истинный', 'true wind', 'wiatr prawdziwy', {
       es: 'viento real',
-      fr: 'vent reel',
+      fr: 'vent réel',
       de: 'wahrer Wind',
       it: 'vento reale',
     }),
-    drive: tp('тяга', 'drive', 'ciag', {
+    drive: tp('тяга', 'drive', 'ciąg', {
       es: 'empuje',
-      fr: 'poussee',
+      fr: 'poussée',
       de: 'Vortrieb',
       it: 'spinta',
     }),
-    sideForce: tp('боковая', 'side force', 'sila boczna', {
-      es: 'lateral',
-      fr: 'lateral',
-      de: 'Seitkraft',
-      it: 'laterale',
+    sideForce: tp('боковая', 'side force', 'siła boczna', {
+      es: 'fuerza lateral',
+      fr: 'force latérale',
+      de: 'Seitenkraft',
+      it: 'forza laterale',
     }),
-    heel: tp('крен', 'heel', 'przechyl', {
+    heel: tp('крен', 'heel', 'przechył', {
       es: 'escora',
-      fr: 'gite',
-      de: 'Krangung',
+      fr: 'gîte',
+      de: 'Krängung',
       it: 'sbandamento',
     }),
     reef: tp('риф', 'reef', 'ref', {
@@ -935,11 +935,11 @@ export default function Simulator() {
       de: 'Reff',
       it: 'terzaroli',
     }),
-    twist: 'twist',
+    twist: tp('twist', 'twist', 'skręt', { es: 'torsión', fr: 'vrillage', de: 'Twist', it: 'twist' }),
     gust: tp('порыв', 'gust', 'podmuch', {
       es: 'racha',
       fr: 'rafale',
-      de: 'Boe',
+      de: 'Böe',
       it: 'raffica',
     }),
     shift: tp('заход ветра', 'wind shift', 'zmiana wiatru', {
@@ -950,28 +950,28 @@ export default function Simulator() {
     }),
     leeway: tp('дрейф', 'leeway', 'dryf', {
       es: 'abatimiento',
-      fr: 'derive',
+      fr: 'dérive',
       de: 'Abdrift',
       it: 'scarroccio',
     }),
   };
-  const luffLabel = tp('ХЛОПАЕТ', 'LUFF', 'LUFF', {
+  const luffLabel = tp('ХЛОПАЕТ', 'LUFF', 'ŁOPOCZE', {
     es: 'FLAMEA',
-    fr: 'FASEILLE',
+    fr: 'FASEYE',
     de: 'KILLT',
     it: 'FILEGGIA',
   });
-  const stallLabel = tp('СРЫВ', 'STALL', 'STALL', {
-    es: 'STALL',
-    fr: 'DECROCH',
-    de: 'STALL',
+  const stallLabel = tp('СРЫВ', 'STALL', 'ODERWANIE', {
+    es: 'PÉRDIDA',
+    fr: 'DÉCROCHÉ',
+    de: 'ABRISS',
     it: 'STALLO',
   });
-  const overtrimLabel = tp('ПЕРЕТЯНУТ', 'OVERTRIM', 'PRZECIAG', {
-    es: 'TENSO',
-    fr: 'TROP BORD',
+  const overtrimLabel = tp('ПЕРЕТЯНУТ', 'OVERTRIM', 'PRZEBRANY', {
+    es: 'MUY CAZADA',
+    fr: 'TROP BORDÉ',
     de: 'ZU DICHT',
-    it: 'TROPPO',
+    it: 'TROPPO TESA',
   });
   const goodLabel = tp('ОК', 'GOOD', 'OK', {
     es: 'OK',
@@ -1029,18 +1029,18 @@ export default function Simulator() {
         es: 'ESTRIBOR',
         fr: 'TRIBORD',
         de: 'STEUERBORD',
-        it: 'MURA DRITTA',
+        it: 'MURE A DRITTA',
       })
     : tp('ЛЕВЫЙ ГАЛС', 'PORT', 'LEWY HALS', {
         es: 'BABOR',
-        fr: 'BABORD',
+        fr: 'BÂBORD',
         de: 'BACKBORD',
-        it: 'MURA SINISTRA',
+        it: 'MURE A SINISTRA',
       });
-  const cockpitTrimWord = tp('ТРИМ', 'TRIM', 'TRIM', {
+  const cockpitTrimWord = tp('ТРИМ', 'TRIM', 'TRYM', {
     es: 'TRIM',
     fr: 'TRIM',
-    de: 'TRIM',
+    de: 'TRIMM',
     it: 'TRIM',
   });
   const cockpitPillText = [
@@ -1051,16 +1051,16 @@ export default function Simulator() {
     .filter(Boolean)
     .join('  ·  ');
   // Force-vector legend words (тяга / бок), matching the web cockpit.
-  const driveWord = tp('ТЯГА', 'DRIVE', 'NAPED', {
+  const driveWord = tp('ТЯГА', 'DRIVE', 'CIĄG', {
     es: 'EMPUJE',
-    fr: 'POUSSEE',
+    fr: 'POUSSÉE',
     de: 'VORTRIEB',
     it: 'SPINTA',
   });
   const sideWord = tp('БОК', 'SIDE', 'BOK', {
     es: 'LATERAL',
-    fr: 'LATERAL',
-    de: 'SEITE',
+    fr: 'LATÉRALE',
+    de: 'SEITENKRAFT',
     it: 'LATERALE',
   });
   const heelOffset = Math.max(-8, Math.min(8, sim.boatExt.heelDeg / 4));
@@ -1089,11 +1089,11 @@ export default function Simulator() {
   const sceneA11yLabel = tp(
     `Управление ветром и рулём. Тяни по воде - руль, компас меняет ветер. Курс ${headingDeg} градусов, ветер с ${twdDeg} градусов.`,
     `Wind and steering control. Drag on the water to steer, the compass changes the wind. Heading ${headingDeg} degrees, wind from ${twdDeg} degrees.`,
-    `Sterowanie wiatrem i sterem. Przeciagaj po wodzie - ster, kompas zmienia wiatr. Kurs ${headingDeg} stopni, wiatr z ${twdDeg} stopni.`,
+    `Sterowanie wiatrem i sterem. Przeciągaj po wodzie, aby sterować; kompas zmienia wiatr. Kurs ${headingDeg} stopni, wiatr z ${twdDeg} stopni.`,
     {
-      es: `Control de viento y timon. Arrastra sobre el agua para gobernar, la brujula cambia el viento. Rumbo ${headingDeg} grados, viento desde ${twdDeg} grados.`,
-      fr: `Controle du vent et de la barre. Glisse sur l'eau pour barrer, la boussole change le vent. Cap ${headingDeg} degres, vent de ${twdDeg} degres.`,
-      de: `Wind- und Steuerregler. Ziehe ueber das Wasser zum Steuern, der Kompass aendert den Wind. Kurs ${headingDeg} Grad, Wind aus ${twdDeg} Grad.`,
+      es: `Control de viento y timón. Arrastra sobre el agua para gobernar; la brújula cambia el viento. Rumbo ${headingDeg} grados, viento de ${twdDeg} grados.`,
+      fr: `Contrôle du vent et de la barre. Glisse sur l'eau pour barrer ; le compas change le vent. Cap ${headingDeg} degrés, vent du ${twdDeg} degrés.`,
+      de: `Wind- und Steuerregler. Ziehe über das Wasser, um zu steuern; der Kompass ändert den Wind. Kurs ${headingDeg} Grad, Wind aus ${twdDeg} Grad.`,
       it: `Controllo vento e timone. Trascina sull'acqua per timonare, la bussola cambia il vento. Rotta ${headingDeg} gradi, vento da ${twdDeg} gradi.`,
     },
   );
@@ -1605,12 +1605,12 @@ export default function Simulator() {
             accessibilityHint={tp(
               'Нажми, чтобы поменять силу ветра',
               'Tap to cycle wind speed',
-              'Stuknij, aby zmienic predkosc wiatru',
+              'Stuknij, aby zmienić prędkość wiatru',
               {
                 es: 'Toca para cambiar la velocidad del viento',
                 fr: 'Touche pour changer la vitesse du vent',
-                de: 'Tippen, um Windstaerke zu wechseln',
-                it: 'Tocca per cambiare la velocita del vento',
+                de: 'Tippen, um die Windstärke zu wechseln',
+                it: 'Tocca per cambiare la velocità del vento',
               },
             )}
           >
@@ -1915,7 +1915,7 @@ export default function Simulator() {
           <View style={styles.sliderRow}>
             <Slider
               label={mainLabel}
-              accessibilityLabel={`${mainLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'ecoute', de: 'Schot', it: 'scotta' })}`}
+              accessibilityLabel={`${mainLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'écoute', de: 'Schot', it: 'scotta' })}`}
               value={mainSheet}
               onChange={sim.setMainSheet}
               orientation="vertical"
@@ -1923,7 +1923,7 @@ export default function Simulator() {
             />
             <Slider
               label={jibLabel}
-              accessibilityLabel={`${jibLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'ecoute', de: 'Schot', it: 'scotta' })}`}
+              accessibilityLabel={`${jibLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'écoute', de: 'Schot', it: 'scotta' })}`}
               value={jibSheet}
               onChange={sim.setJibSheet}
               orientation="vertical"
@@ -1978,14 +1978,14 @@ function commentaryFor({
 }): string {
   if (Math.abs(twaDeg) < 30) {
     return tp(
-      'No-go zone: яхта теряет тягу, увались от ветра.',
+      'Мёртвая зона: яхта теряет тягу, увались от ветра.',
       'No-go zone: the sails lose drive, bear away from the wind.',
-      'No-go zone: zagle traca ciag, odpadnij od wiatru.',
+      'Kąt martwy: żagle tracą ciąg, odpadnij od wiatru.',
       {
-        es: 'No-go zone: las velas pierden empuje, cae del viento.',
-        fr: 'No-go zone: les voiles perdent la puissance, abats.',
-        de: 'No-go zone: Segel verlieren Druck, falle ab.',
-        it: 'No-go zone: le vele perdono spinta, poggia.',
+        es: 'Zona muerta: las velas pierden empuje; arriba para alejarte del viento.',
+        fr: 'Zone morte : les voiles perdent leur puissance, abats.',
+        de: 'Toter Winkel: Die Segel verlieren Druck, fall ab.',
+        it: 'Angolo morto: le vele perdono spinta, poggia.',
       },
     );
   }
@@ -1993,12 +1993,12 @@ function commentaryFor({
     return tp(
       'Срыв потока: ослабь MAIN или JIB, пока скорость не вернется.',
       'Stall: ease MAIN or JIB until speed comes back.',
-      'Stall: poluzuj MAIN albo JIB, az predkosc wroci.',
+      'Oderwanie przepływu: poluzuj GROT albo FOK, aż wróci prędkość.',
       {
-        es: 'Stall: suelta MAIN o JIB hasta que vuelva la velocidad.',
-        fr: 'Stall: choque MAIN ou JIB jusquau retour de vitesse.',
-        de: 'Stall: MAIN oder JIB fieren, bis Tempo zurueckkommt.',
-        it: 'Stall: lasca MAIN o JIB finche torna velocita.',
+        es: 'Flujo desprendido: lasca MAYOR o FOQUE hasta que vuelva la velocidad.',
+        fr: "Décrochage : choque la GV ou le FOC jusqu'à ce que la vitesse revienne.",
+        de: 'Strömungsabriss: GROSS oder FOCK fieren, bis die Fahrt zurückkommt.',
+        it: 'Stallo: lasca RANDA o FIOCCO finché torna la velocità.',
       },
     );
   }
@@ -2006,12 +2006,12 @@ function commentaryFor({
     return tp(
       'Крен высокий: поставь REEF или отпусти грот.',
       'Heel is high: add REEF or ease the main.',
-      'Przechyl wysoki: dodaj REF albo poluzuj grot.',
+      'Duży przechył: dodaj REF albo poluzuj grot.',
       {
-        es: 'Escora alta: mete RIZO o suelta la mayor.',
-        fr: 'Gite forte: prends un RIS ou choque la GV.',
-        de: 'Viel Kraengung: REFF setzen oder Gross fieren.',
-        it: 'Sbandamento alto: prendi TERZAROLI o lasca randa.',
+        es: 'Mucha escora: toma un RIZO o lasca la mayor.',
+        fr: 'Forte gîte : prends un RIS ou choque la GV.',
+        de: 'Viel Krängung: REFF einbinden oder Groß fieren.',
+        it: 'Troppo sbandamento: prendi una mano di TERZAROLI o lasca la randa.',
       },
     );
   }
@@ -2019,24 +2019,24 @@ function commentaryFor({
     return tp(
       'Trim здоровый: оба паруса тянут вместе.',
       'Trim is healthy: both sails are pulling together.',
-      'Trim dobry: oba zagle pracuja razem.',
+      'Trym dobry: oba żagle pracują razem.',
       {
-        es: 'Trim sano: ambas velas tiran juntas.',
-        fr: 'Trim sain: les deux voiles tirent ensemble.',
-        de: 'Trim gut: beide Segel ziehen zusammen.',
-        it: 'Trim sano: entrambe le vele spingono insieme.',
+        es: 'Buen trimado: las dos velas tiran juntas.',
+        fr: 'Bon réglage : les deux voiles portent ensemble.',
+        de: 'Guter Trimm: beide Segel ziehen zusammen.',
+        it: 'Buona regolazione: entrambe le vele spingono insieme.',
       },
     );
   }
   return tp(
-    'Поиграй MAIN/JIB: цель - высокий TRIM без лишнего крена.',
+    'Подвигай ползунки ГРОТ и СТАКСЕЛЬ: цель - высокий TRIM без лишнего крена.',
     'Work MAIN/JIB: aim for high TRIM without excess heel.',
-    'Ustaw MAIN/JIB: cel to wysoki TRIM bez duzego przechylu.',
+    'Pracuj GROTEM i FOKIEM: celem jest wysoki TRYM bez nadmiernego przechyłu.',
     {
-      es: 'Ajusta MAIN/JIB: busca TRIM alto sin mucha escora.',
-      fr: 'Regle MAIN/JIB: vise un TRIM haut sans trop de gite.',
-      de: 'Arbeite mit MAIN/JIB: hoher TRIM, wenig Kraengung.',
-      it: 'Regola MAIN/JIB: TRIM alto senza troppo sbandamento.',
+      es: 'Ajusta MAYOR y FOQUE: busca un TRIM alto sin demasiada escora.',
+      fr: 'Règle GV et FOC : vise un TRIM élevé sans trop de gîte.',
+      de: 'Arbeite mit GROSS und FOCK: hoher TRIMM, wenig Krängung.',
+      it: 'Regola RANDA e FIOCCO: TRIM alto senza troppo sbandamento.',
     },
   );
 }
@@ -2224,19 +2224,19 @@ function LiveWindControl({
   const selectedSpot =
     LIVE_SPOTS.find((s) => s.key === selectedKey) ?? null;
 
-  const heading = tp('Живой ветер', 'Live wind', 'Wiatr na zywo', {
-    es: 'Viento real',
-    fr: 'Vent reel',
-    de: 'Echter Wind',
-    it: 'Vento reale',
+  const heading = tp('Живой ветер', 'Live wind', 'Wiatr na żywo', {
+    es: 'Viento en vivo',
+    fr: 'Vent en direct',
+    de: 'Live-Wind',
+    it: 'Vento live',
   });
   const subtitle = tp(
     'По желанию: задать ветер по реальным данным.',
     'Optional: set the wind from real data.',
-    'Opcjonalnie: ustaw wiatr z realnych danych.',
+    'Opcjonalnie: ustaw wiatr według rzeczywistych danych.',
     {
       es: 'Opcional: ajusta el viento con datos reales.',
-      fr: 'Optionnel: regle le vent avec des donnees reelles.',
+      fr: 'Optionnel : règle le vent avec des données réelles.',
       de: 'Optional: Wind aus echten Daten setzen.',
       it: 'Opzionale: imposta il vento da dati reali.',
     },
@@ -2249,17 +2249,17 @@ function LiveWindControl({
   });
   const appliedWord = tp('задан', 'set', 'ustawiony', {
     es: 'aplicado',
-    fr: 'applique',
+    fr: 'appliqué',
     de: 'gesetzt',
     it: 'impostato',
   });
-  const unitKn = tp('уз', 'kn', 'w', {
+  const unitKn = tp('уз', 'kn', 'kn', {
     es: 'kn',
-    fr: 'nd',
+    fr: 'kn',
     de: 'kn',
     it: 'kn',
   });
-  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ladowanie...', {
+  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ładowanie...', {
     es: 'Cargando...',
     fr: 'Chargement...',
     de: 'Laden...',
@@ -2268,7 +2268,7 @@ function LiveWindControl({
   const errorLabel = tp(
     'Не удалось загрузить ветер.',
     'Could not load wind.',
-    'Nie udalo sie pobrac wiatru.',
+    'Nie udało się pobrać wiatru.',
     {
       es: 'No se pudo cargar el viento.',
       fr: 'Impossible de charger le vent.',
@@ -2276,10 +2276,10 @@ function LiveWindControl({
       it: 'Impossibile caricare il vento.',
     },
   );
-  const retryLabel = tp('Повторить', 'Retry', 'Ponow', {
+  const retryLabel = tp('Повторить', 'Retry', 'Ponów', {
     es: 'Reintentar',
-    fr: 'Reessayer',
-    de: 'Erneut',
+    fr: 'Réessayer',
+    de: 'Erneut versuchen',
     it: 'Riprova',
   });
   const disclaimer = tp(
@@ -2288,7 +2288,7 @@ function LiveWindControl({
     'Do treningu, nie do nawigacji.',
     {
       es: 'Para entrenar, no para navegar.',
-      fr: "Pour l'entrainement, pas pour la navigation.",
+      fr: "Pour l'entraînement, pas pour la navigation.",
       de: 'Zum Training, nicht zur Navigation.',
       it: "Per l'allenamento, non per la navigazione.",
     },

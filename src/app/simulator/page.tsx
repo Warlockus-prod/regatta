@@ -826,22 +826,28 @@ export default function SimulatorPage() {
             {tp(
               'Простая лодка на круге: крути лодку и ветер, смотри что происходит.',
               'Simple boat on a circle: spin the boat and the wind, watch what happens.',
-              'Prosta lodka na kole: obracaj lodke i wiatr, zobacz co sie dzieje.',
+              'Prosta łódka na kole: obracaj łódkę i wiatr, patrz, co się dzieje.',
+              {
+                es: 'Un barco sencillo en un círculo: gira el barco y el viento y mira qué pasa.',
+                fr: 'Un bateau simple sur un cercle : fais tourner le bateau et le vent, et regarde ce qui se passe.',
+                de: 'Ein einfaches Boot auf einem Kreis: Dreh Boot und Wind und schau, was passiert.',
+                it: 'Una barca semplice su un cerchio: gira la barca e il vento e guarda cosa succede.',
+              },
             )}
           </span>
         </div>
         <div className="flex items-center gap-1 shrink-0">
           <span className="text-[11px] font-semibold px-2 py-1 rounded-md border"
                 style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: COLORS.accentCyan }}>
-            {tp('Основы', 'Basics', 'Podstawy', { es: 'Basico', fr: 'Bases', de: 'Grundlagen', it: 'Base' })}
+            {tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' })}
           </span>
           <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
              style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>
-            {tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Entraineur', de: 'Trainer', it: 'Trainer' })}
+            {tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer' })}
           </a>
           <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
              style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: COLORS.textSecondary }}>
-            {tp('Лодка 3D', '3D Boat', 'Lodka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: 'Boot 3D', it: 'Barca 3D' })}
+            {tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' })}
           </a>
         </div>
       </div>
@@ -879,11 +885,11 @@ export default function SimulatorPage() {
         <p className="text-sm leading-relaxed" style={{color: "var(--text-secondary)"}}>
           {tp("Учебная схема курсов к ветру. Скорость условная, паруса настраиваются автоматически.",
             "Points-of-sail teaching diagram. Speed is illustrative; sails trim automatically.",
-            "Schemat kursow wzgledem wiatru. Predkosc jest orientacyjna; zagle trymuja sie automatycznie.", {
-              es: "Esquema de rumbos al viento. Velocidad orientativa; las velas se ajustan automaticamente.",
-              fr: "Schema des allures. Vitesse indicative ; les voiles se reglent automatiquement.",
-              de: "Lehrbild der Kurse zum Wind. Geschwindigkeit beispielhaft; Segel trimmen automatisch.",
-              it: "Schema delle andature. Velocita indicativa; le vele si regolano automaticamente.",
+            "Schemat kursów względem wiatru. Prędkość jest orientacyjna, żagle trymują się automatycznie.", {
+              es: "Esquema de rumbos respecto al viento. La velocidad es orientativa; las velas se ajustan automáticamente.",
+              fr: "Schéma des allures. Vitesse indicative ; les voiles se règlent automatiquement.",
+              de: "Lernskizze der Kurse zum Wind. Die Geschwindigkeit ist nur beispielhaft, die Segel trimmen sich automatisch.",
+              it: "Schema delle andature. Velocità indicativa; le vele si regolano automaticamente.",
             })}
         </p>
 
@@ -891,7 +897,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('КУРС', 'POINT OF SAIL', 'KURS')}
+            {tp('КУРС', 'POINT OF SAIL', 'KURS', { es: 'RUMBO', fr: 'ALLURE', de: 'KURS', it: 'ANDATURA' })}
           </div>
           <div className="text-2xl font-bold mb-1" style={{ color: pos.color }}>
             {legacyPick(pos, 'name', lang)}
@@ -904,14 +910,14 @@ export default function SimulatorPage() {
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
                  style={{ color: COLORS.textMuted }}>
-              {tp('УГОЛ К ВЕТРУ', 'WIND ANGLE', 'KAT DO WIATRU')}
+              {tp('УГОЛ К ВЕТРУ', 'WIND ANGLE', 'KĄT DO WIATRU', { es: 'ÁNGULO AL VIENTO', fr: 'ANGLE AU VENT', de: 'WINDWINKEL', it: 'ANGOLO AL VENTO' })}
             </div>
             <div className="text-3xl font-bold font-mono" style={{ color: COLORS.accentCyan }}>
               {Math.round(wa)}°
             </div>
             <div className="text-xs mt-1" style={{ color: COLORS.textMuted }}>
-              {tp('Угол к ветру', 'Wind angle', 'Kat do wiatru', {
-                es: 'Angulo al viento',
+              {tp('Угол к ветру', 'Wind angle', 'Kąt do wiatru', {
+                es: 'Ángulo al viento',
                 fr: 'Angle au vent',
                 de: 'Windwinkel',
                 it: 'Angolo al vento',
@@ -923,13 +929,13 @@ export default function SimulatorPage() {
           <div className="card p-4 flex-1">
             <div className="text-xs font-medium tracking-wider mb-2"
                  style={{ color: COLORS.textMuted }}>
-              {tp('ГАЛС', 'TACK', 'HALS')}
+              {tp('ГАЛС', 'TACK', 'HALS', { es: 'AMURA', fr: 'AMURE', de: 'BUG', it: 'MURE' })}
             </div>
             <div className="text-lg font-bold"
                  style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
               {tack === 'starboard'
-                ? tp('Правый', 'Starboard', 'Prawy')
-                : tp('Левый', 'Port', 'Lewy')}
+                ? tp('Правый', 'Starboard', 'Prawy', { es: 'Estribor', fr: 'Tribord', de: 'Steuerbord', it: 'Dritta' })
+                : tp('Левый', 'Port', 'Lewy', { es: 'Babor', fr: 'Bâbord', de: 'Backbord', it: 'Sinistra' })}
             </div>
           </div>
         </div>
@@ -939,10 +945,10 @@ export default function SimulatorPage() {
           <div className="flex items-center justify-between mb-2">
             <div className="text-xs font-medium tracking-wider"
                  style={{ color: COLORS.textMuted }}>
-              {tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC')}
+              {tp('СКОРОСТЬ', 'SPEED', 'PRĘDKOŚĆ', { es: 'VELOCIDAD', fr: 'VITESSE', de: 'FAHRT', it: 'VELOCITÀ' })}
             </div>
             <div className="text-sm font-bold font-mono" style={{ color: COLORS.accentCyan }}>
-              {speed.toFixed(1)} kts
+              {speed.toFixed(1)} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
             </div>
           </div>
           <div className="h-3 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
@@ -957,7 +963,7 @@ export default function SimulatorPage() {
           <div className="flex justify-between mt-1">
             <span className="text-xs" style={{ color: COLORS.textMuted }}>0</span>
             <span className="text-xs" style={{ color: COLORS.textMuted }}>
-              {MAX_SPEED_KTS} kts
+              {MAX_SPEED_KTS} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
             </span>
           </div>
         </div>
@@ -966,7 +972,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('РАБОТА ПАРУСОВ', 'SAIL TRIM', 'USTAWIENIE ZAGLI')}
+            {tp('РАБОТА ПАРУСОВ', 'SAIL TRIM', 'USTAWIENIE ŻAGLI', { es: 'TRIMADO', fr: 'RÉGLAGE DES VOILES', de: 'SEGELTRIMM', it: 'REGOLAZIONE VELE' })}
           </div>
           <div className="text-sm font-medium mb-1" style={{ color: COLORS.textPrimary }}>
             {legacyPick(pos, 'sailWork', lang)}
@@ -978,9 +984,9 @@ export default function SimulatorPage() {
                    color: pos.color,
                    border: `1px solid ${pos.color}30`,
                  }}>
-              {tp('Угол паруса:', 'Sail angle:', 'Kat zagla:', {
-                es: 'Angulo de vela:',
-                fr: 'Angle de voile:',
+              {tp('Угол паруса:', 'Sail angle:', 'Kąt żagla:', {
+                es: 'Ángulo de la vela:',
+                fr: 'Angle de la voile :',
                 de: 'Segelwinkel:',
                 it: 'Angolo della vela:',
               })} {pos.sailAngle}°
@@ -992,7 +998,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
                style={{ color: COLORS.textMuted }}>
-            {tp('ОПИСАНИЕ', 'DESCRIPTION', 'OPIS')}
+            {tp('ОПИСАНИЕ', 'DESCRIPTION', 'OPIS', { es: 'DESCRIPCIÓN', fr: 'DESCRIPTION', de: 'BESCHREIBUNG', it: 'DESCRIZIONE' })}
           </div>
           <p className="text-sm leading-relaxed mb-2" style={{ color: COLORS.textPrimary }}>
             {legacyPick(pos, 'description', lang)}
@@ -1003,14 +1009,14 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
                style={{ color: COLORS.textMuted }}>
-            {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}
+            {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}
           </div>
 
           {/* Rotation slider */}
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs" style={{ color: COLORS.textSecondary }}>
-                {tp('Курс яхты / Boat heading', 'Boat heading', 'Kurs jachtu / Boat heading')}
+                {tp('Курс яхты / Boat heading', 'Boat heading', 'Kurs jachtu / Boat heading', { es: 'Rumbo del barco / Boat heading', fr: 'Cap du bateau / Boat heading', de: 'Kurs des Boots / Boat heading', it: 'Rotta della barca / Boat heading' })}
               </span>
               <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
                 {Math.round(boatAngle)}°
@@ -1023,7 +1029,7 @@ export default function SimulatorPage() {
               step="1"
               value={boatAngle}
               onChange={onSliderChange}
-              aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu')}
+              aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
               className="w-full accent-[#00d4ff]"
               style={{ accentColor: COLORS.accentCyan }}
             />
@@ -1040,7 +1046,7 @@ export default function SimulatorPage() {
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1">
               <span className="text-xs" style={{ color: COLORS.textSecondary }}>
-                {tp('Откуда дует ветер / Wind from', 'Wind from', 'Kierunek wiatru / Wind from')}
+                {tp('Откуда дует ветер / Wind from', 'Wind from', 'Kierunek wiatru / Wind from', { es: 'De dónde sopla el viento / Wind from', fr: "D'où vient le vent / Wind from", de: 'Woher der Wind weht / Wind from', it: 'Da dove soffia il vento / Wind from' })}
               </span>
               <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
                 {Math.round(windDir)}°
@@ -1053,7 +1059,7 @@ export default function SimulatorPage() {
               step="1"
               value={windDir}
               onChange={(e) => setWindDir(Number(e.target.value))}
-              aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru')}
+              aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru', { es: 'Dirección del viento', fr: 'Direction du vent', de: 'Windrichtung', it: 'Direzione del vento' })}
               className="w-full"
               style={{ accentColor: COLORS.accentCyan }}
             />
@@ -1078,7 +1084,7 @@ export default function SimulatorPage() {
             >
               {tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)', {
                 es: 'Reiniciar (90°)',
-                fr: 'Reinitialiser (90°)',
+                fr: 'Réinitialiser (90°)',
                 de: 'Zurücksetzen (90°)',
                 it: 'Reimposta (90°)',
               })}
@@ -1096,7 +1102,7 @@ export default function SimulatorPage() {
                 border: '1px solid rgba(255, 68, 68, 0.2)',
               }}
             >
-              {tp('В левентик', 'Into wind', 'W lewentyk', {
+              {tp('В левентик', 'Into wind', 'Dziobem do wiatru', {
                 es: 'Proa al viento',
                 fr: 'Face au vent',
                 de: 'In den Wind',
@@ -1113,13 +1119,13 @@ export default function SimulatorPage() {
               <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
             )}
             {lang === 'pl' && (
-              <>Przeciagnij <span style={{ color: COLORS.accentCyan }}>lodke</span> aby ja obrocic, albo <span style={{ color: COLORS.accentCyan }}>strzalke wiatru</span> aby zmienic kierunek wiatru. Suwaki i strzalki na klawiaturze tez dzialaja.</>
+              <>Przeciągnij <span style={{ color: COLORS.accentCyan }}>łódkę</span>, aby ją obrócić, albo <span style={{ color: COLORS.accentCyan }}>strzałkę wiatru</span>, aby zmienić kierunek wiatru. Suwaki i strzałki na klawiaturze też działają.</>
             )}
             {lang === 'es' && (
-              <>Arrastra <span style={{ color: COLORS.accentCyan }}>el barco</span> para girarlo, o <span style={{ color: COLORS.accentCyan }}>la flecha del viento</span> para cambiar la direccion del viento. Los deslizadores y las flechas del teclado tambien funcionan.</>
+              <>Arrastra <span style={{ color: COLORS.accentCyan }}>el barco</span> para girarlo, o <span style={{ color: COLORS.accentCyan }}>la flecha del viento</span> para cambiar la dirección del viento. Los deslizadores y las flechas del teclado también funcionan.</>
             )}
             {lang === 'fr' && (
-              <>Fais glisser <span style={{ color: COLORS.accentCyan }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: COLORS.accentCyan }}>la fleche du vent</span> pour changer la direction du vent. Les curseurs et les fleches du clavier fonctionnent aussi.</>
+              <>Fais glisser <span style={{ color: COLORS.accentCyan }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: COLORS.accentCyan }}>la flèche du vent</span> pour changer la direction du vent. Les curseurs et les flèches du clavier fonctionnent aussi.</>
             )}
             {lang === 'de' && (
               <>Ziehe <span style={{ color: COLORS.accentCyan }}>das Boot</span>, um es zu drehen, oder <span style={{ color: COLORS.accentCyan }}>den Windpfeil</span>, um die Windrichtung zu ändern. Schieberegler und Pfeiltasten funktionieren auch.</>
@@ -1134,7 +1140,7 @@ export default function SimulatorPage() {
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
                style={{ color: COLORS.textMuted }}>
-            {tp('КУРСЫ / COURSES', 'COURSES', 'KURSY / COURSES')}
+            {tp('КУРСЫ / COURSES', 'COURSES', 'KURSY / COURSES', { es: 'RUMBOS', fr: 'ALLURES', de: 'KURSE', it: 'ANDATURE' })}
           </div>
           <div className="flex flex-col gap-1.5">
             {pointsOfSail.map((p) => (

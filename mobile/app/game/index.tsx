@@ -428,7 +428,7 @@ export default function Game() {
   // Localised chrome.
   const title = course.title(tp);
   const gateTarget = nativeTarget(progressionRef.current,initialMarks);
-  const courseHint = tp("Пересеки старт, оставь верхний знак слева и вернись через финиш.", "Cross the start, leave the windward mark to port, then cross the finish.", "Przetnij start, zostaw górny znak po lewej i przekrocz metę.", {es:"Cruza la salida, deja la baliza de barlovento a babor y cruza la meta.",fr:"Franchis le départ, laisse la bouée au vent à bâbord et franchis l’arrivée.",de:"Überquere den Start, lasse die Luvtonne an Backbord und überquere das Ziel.",it:"Attraversa la partenza, lascia la boa al vento a sinistra e taglia l’arrivo."});
+  const courseHint = tp("Пересеки старт, оставь верхний знак слева и вернись через финиш.", "Cross the start, leave the windward mark to port, then cross the finish.", "Przetnij linię startu, zostaw znak nawietrzny lewą burtą i wróć przez linię mety.", {es:"Cruza la línea de salida, deja la baliza de barlovento por babor y vuelve cruzando la llegada.",fr:"Franchis la ligne de départ, laisse la bouée au vent à bâbord et reviens couper la ligne d'arrivée.",de:"Überquere die Startlinie, lass die Luvtonne an Backbord und komm zurück durchs Ziel.",it:"Taglia la linea di partenza, lascia la boa di bolina a sinistra e torna a tagliare il traguardo."});
   const headingLabel = tp('КУРС', 'HEADING', 'KURS', {
     es: 'RUMBO', fr: 'CAP', de: 'KURS', it: 'ROTTA',
   });
@@ -443,18 +443,18 @@ export default function Game() {
     es: 'TIEMPO', fr: 'TEMPS', de: 'ZEIT', it: 'TEMPO',
   });
   const goLabel = tp('СТАРТ!', 'GO!', 'START!', {
-    es: 'YA!', fr: 'PARTEZ!', de: 'LOS!', it: 'VIA!',
+    es: '¡YA!', fr: 'PARTEZ !', de: 'LOS!', it: 'VIA!',
   });
-  const getReadyLabel = tp('Приготовься', 'Get ready', 'Przygotuj sie', {
-    es: 'Prepara', fr: 'Prepare-toi', de: 'Mach dich bereit', it: 'Preparati',
+  const getReadyLabel = tp('Приготовься', 'Get ready', 'Przygotuj się', {
+    es: 'Prepárate', fr: 'Prépare-toi', de: 'Mach dich bereit', it: 'Preparati',
   });
   const finishedLabel = tp('Финиш!', 'Finish!', 'Meta!', {
-    es: 'Meta!', fr: 'Arrivee!', de: 'Ziel!', it: 'Traguardo!',
+    es: '¡Llegada!', fr: 'Arrivée !', de: 'Im Ziel!', it: 'Arrivo!',
   });
   const elapsedLabel = tp('Время', 'Time', 'Czas', {
     es: 'Tiempo', fr: 'Temps', de: 'Zeit', it: 'Tempo',
   });
-  const scoreLabel = tp('Очки', 'Score', 'Wynik', {
+  const scoreLabel = tp('Очки', 'Score', 'Punkty', {
     es: 'Puntos', fr: 'Score', de: 'Punkte', it: 'Punti',
   });
   const parLabel = tp('Par', 'Par', 'Par', {
@@ -467,47 +467,47 @@ export default function Game() {
     es: 'Guardar', fr: 'Enregistrer', de: 'Speichern', it: 'Salva',
   });
   const coachLabel = tp('AI тренер', 'AI coach', 'Trener AI', {
-    es: 'Coach IA', fr: 'Coach IA', de: 'KI-Coach', it: 'Coach IA',
+    es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA',
   });
-  const replayLabel = tp('Повтор гонки', 'Race replay', 'Replay wyscigu', {
-    es: 'Repeticion', fr: 'Revoir la course', de: 'Wiederholung', it: 'Replay gara',
+  const replayLabel = tp('Повтор гонки', 'Race replay', 'Powtórka wyścigu', {
+    es: 'Repetición', fr: 'Revoir la course', de: 'Replay ansehen', it: 'Replay della regata',
   });
   const tryAgainLabel = tp('Ещё раз', 'Try again', 'Jeszcze raz', {
-    es: 'Otra vez', fr: 'Recommencer', de: 'Nochmal', it: 'Ancora',
+    es: 'Otra vez', fr: 'Recommencer', de: 'Noch mal', it: 'Riprova',
   });
-  const homeLabel = tp('Домой', 'Home', 'Strona glowna', {
+  const homeLabel = tp('Домой', 'Home', 'Strona główna', {
     es: 'Inicio', fr: 'Accueil', de: 'Start', it: 'Home',
   });
   const savedLabel = tp('Сохранено', 'Saved', 'Zapisano', {
-    es: 'Guardado', fr: 'Enregistre', de: 'Gespeichert', it: 'Salvato',
+    es: 'Guardado', fr: 'Enregistré', de: 'Gespeichert', it: 'Salvato',
   });
   const savingLabel = tp('Сохраняем...', 'Saving...', 'Zapisywanie...', {
-    es: 'Guardando...', fr: 'Sauvegarde...', de: 'Speichern...', it: 'Salvataggio...',
+    es: 'Guardando...', fr: 'Enregistrement...', de: 'Wird gespeichert...', it: 'Salvataggio...',
   });
   const offlineSavedLabel = tp(
     'Сохранили локально, без сети.',
     'Saved on device. Network unavailable.',
-    'Zapisano lokalnie, brak sieci.',
+    'Zapisano na urządzeniu. Brak sieci.',
     {
-      es: 'Guardado en el dispositivo. Sin conexion.',
-      fr: 'Sauvegarde sur lappareil. Hors ligne.',
-      de: 'Auf Geraet gespeichert. Offline.',
+      es: 'Guardado en el dispositivo. Sin conexión.',
+      fr: 'Enregistré sur l\'appareil. Hors ligne.',
+      de: 'Auf dem Gerät gespeichert. Offline.',
       it: 'Salvato sul dispositivo. Offline.',
     },
   );
   const networkErrorTitle = tp('Сеть недоступна', 'Network unavailable', 'Brak sieci', {
-    es: 'Sin conexion', fr: 'Hors ligne', de: 'Keine Verbindung', it: 'Nessuna rete',
+    es: 'Sin conexión', fr: 'Hors ligne', de: 'Keine Verbindung', it: 'Nessuna connessione',
   });
   const okLabel = 'OK';
   const goToCoachLabel = tp(
     'Открыть тренера',
     'Open coach',
-    'Otworz trenera',
+    'Otwórz trenera',
     {
-      es: 'Abrir coach',
+      es: 'Abrir el entrenador',
       fr: 'Ouvrir le coach',
-      de: 'Coach oeffnen',
-      it: 'Apri coach',
+      de: 'Trainer öffnen',
+      it: 'Apri il coach',
     },
   );
 

@@ -118,28 +118,28 @@ export function LiveWindButton(props: {
           }}
         >
           {state === 'ok'
-            ? tp('Обновить живой ветер', 'Refresh live wind', 'Odswiez zywy wiatr', {
+            ? tp('Обновить живой ветер', 'Refresh live wind', 'Odśwież wiatr na żywo', {
                 es: 'Actualizar viento en vivo',
                 fr: 'Actualiser le vent en direct',
-                de: 'Echten Wind aktualisieren',
-                it: 'Aggiorna vento dal vivo',
+                de: 'Live-Wind aktualisieren',
+                it: 'Aggiorna vento live',
               })
-            : tp('Живой ветер', 'Live wind', 'Zywy wiatr', {
+            : tp('Живой ветер', 'Live wind', 'Wiatr na żywo', {
                 es: 'Viento en vivo',
                 fr: 'Vent en direct',
-                de: 'Echter Wind',
-                it: 'Vento dal vivo',
+                de: 'Live-Wind',
+                it: 'Vento live',
               })}
         </button>
       )}
 
       {state === 'loading' && (
         <div className="text-[10px] text-[var(--text-muted)] px-0.5">
-          {tp('Загружаю живой ветер...', 'Loading live wind...', 'Laduje zywy wiatr...', {
+          {tp('Загружаю живой ветер...', 'Loading live wind...', 'Pobieram wiatr na żywo...', {
             es: 'Cargando viento en vivo...',
             fr: 'Chargement du vent en direct...',
-            de: 'Lade echten Wind...',
-            it: 'Caricamento vento dal vivo...',
+            de: 'Live-Wind wird geladen...',
+            it: 'Caricamento vento live...',
           })}
         </div>
       )}
@@ -149,16 +149,16 @@ export function LiveWindButton(props: {
           <span style={{ color: 'var(--warning)' }}>
             {tp('Нет данных о ветре.', 'No wind data.', 'Brak danych o wietrze.', {
               es: 'Sin datos de viento.',
-              fr: 'Pas de donnees de vent.',
+              fr: 'Pas de données de vent.',
               de: 'Keine Winddaten.',
               it: 'Nessun dato sul vento.',
             })}
           </span>{' '}
           <button onClick={loadLive} className="underline" style={{ color: 'var(--accent-cyan)' }}>
-            {tp('Повторить', 'Retry', 'Ponow', {
+            {tp('Повторить', 'Retry', 'Ponów', {
               es: 'Reintentar',
-              fr: 'Reessayer',
-              de: 'Erneut',
+              fr: 'Réessayer',
+              de: 'Erneut versuchen',
               it: 'Riprova',
             })}
           </button>
@@ -168,7 +168,7 @@ export function LiveWindButton(props: {
       {state === 'ok' && data && (
         <div className="text-[10px] text-[var(--text-muted)] px-0.5 leading-relaxed">
           <span style={{ color: 'var(--accent-cyan)' }}>
-            {tp('Живой', 'Live', 'Zywy', { es: 'En vivo', fr: 'En direct', de: 'Echt', it: 'Dal vivo' })}:
+            {tp('Живой', 'Live', 'Na żywo', { es: 'En vivo', fr: 'En direct', de: 'Live', it: 'Live' })}:
           </span>{' '}
           {tp('от', 'from', 'z', { es: 'desde', fr: 'de', de: 'aus', it: 'da' })}{' '}
           {cardinal(data.wind.dirDeg)} ({Math.round(data.wind.dirDeg)}°)
@@ -179,12 +179,12 @@ export function LiveWindButton(props: {
               {tp(
                 `Живой ${fetchedKn} уз, ограничен до ${cappedTo} для этого симулятора.`,
                 `Live ${fetchedKn} kts, capped to ${cappedTo} for this sim.`,
-                `Zywy ${fetchedKn} kts, ograniczony do ${cappedTo} dla tego symulatora.`,
+                `Wiatr na żywo ${fetchedKn} kn, w tym symulatorze ograniczony do ${cappedTo}.`,
                 {
-                  es: `En vivo ${fetchedKn} kts, limitado a ${cappedTo} para este simulador.`,
-                  fr: `En direct ${fetchedKn} kts, limite a ${cappedTo} pour ce simulateur.`,
-                  de: `Echt ${fetchedKn} kts, begrenzt auf ${cappedTo} fuer diesen Simulator.`,
-                  it: `Dal vivo ${fetchedKn} kts, limitato a ${cappedTo} per questo simulatore.`,
+                  es: `En vivo ${fetchedKn} kn, limitado a ${cappedTo} en este simulador.`,
+                  fr: `En direct ${fetchedKn} kn, limité à ${cappedTo} dans ce simulateur.`,
+                  de: `Live ${fetchedKn} kn, in diesem Simulator auf ${cappedTo} begrenzt.`,
+                  it: `Live ${fetchedKn} kn, limitato a ${cappedTo} in questo simulatore.`,
                 },
               )}{' '}
             </span>
@@ -192,27 +192,27 @@ export function LiveWindButton(props: {
           {data.current && (
             <>
               <span style={{ color: 'var(--accent-cyan)' }}>
-                {tp('Течение', 'Current', 'Prad', {
+                {tp('Течение', 'Current', 'Prąd', {
                   es: 'Corriente',
                   fr: 'Courant',
-                  de: 'Stroemung',
+                  de: 'Strömung',
                   it: 'Corrente',
                 })}
                 :
               </span>{' '}
               {Math.round(data.current.setKn)}{' '}
-              {tp('уз', 'kts', 'kts', { es: 'kts', fr: 'kts', de: 'kts', it: 'kts' })} {'->'}{' '}
+              {tp('уз', 'kts', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })} {'->'}{' '}
               {cardinal(data.current.dirDeg)}
               {'. '}
               {tp(
                 'Течение сносит лодку, поэтому путь над грунтом отличается от курса.',
                 'A current sets the boat, so course over ground differs from heading.',
-                'Prad znosi lodke, wiec kurs nad dnem rozni sie od kursu.',
+                'Prąd znosi jacht, więc kurs nad dnem różni się od kursu kompasowego.',
                 {
-                  es: 'Una corriente desplaza el barco, asi que el rumbo sobre el fondo difiere del rumbo.',
-                  fr: 'Un courant deporte le bateau, donc la route sur le fond differe du cap.',
-                  de: 'Eine Stroemung versetzt das Boot, daher weicht der Kurs ueber Grund vom Steuerkurs ab.',
-                  it: 'Una corrente sposta la barca, quindi la rotta sul fondo differisce dalla prua.',
+                  es: 'La corriente desplaza el barco, así que el rumbo sobre el fondo difiere del rumbo que marca la proa.',
+                  fr: 'Le courant déporte le bateau : la route fond diffère du cap.',
+                  de: 'Die Strömung versetzt das Boot, daher weicht der Kurs über Grund vom Steuerkurs ab.',
+                  it: 'La corrente sposta la barca, quindi la rotta sul fondo differisce dalla prua.',
                 },
               )}{' '}
             </>
@@ -222,10 +222,10 @@ export function LiveWindButton(props: {
             'For training, not for navigation.',
             'Do treningu, nie do nawigacji.',
             {
-              es: 'Para entrenamiento, no para navegacion.',
-              fr: "Pour l'entrainement, pas pour la navigation.",
+              es: 'Para entrenar, no para navegar.',
+              fr: "Pour l'entraînement, pas pour la navigation.",
               de: 'Zum Training, nicht zur Navigation.',
-              it: 'Per allenamento, non per navigazione.',
+              it: "Per l'allenamento, non per la navigazione.",
             },
           )}{' '}
           {data.attribution}

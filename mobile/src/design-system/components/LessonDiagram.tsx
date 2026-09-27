@@ -256,11 +256,11 @@ function WindDirectionDiagram() {
       <SvgText x={cx} y={cy + 40} textAnchor="middle" fontSize={7} fontWeight="700" fill={colors.warning}>TWA</SvgText>
 
       <SvgText x={cx} y={132} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('ветер сверху, TWA - угол к ветру', 'wind from top, TWA = angle to wind', 'wiatr z gory, TWA - kat do wiatru', {
-          es: 'viento desde arriba, TWA = angulo al viento',
+        {tp('ветер сверху, TWA - угол к ветру', 'wind from top, TWA = angle to wind', 'wiatr z góry, TWA - kąt do wiatru', {
+          es: 'viento desde arriba, TWA = ángulo al viento',
           fr: 'vent du haut, TWA = angle au vent',
           de: 'Wind von oben, TWA = Winkel zum Wind',
-          it: 'vento dall alto, TWA = angolo al vento',
+          it: 'vento dall\'alto, TWA = angolo al vento',
         })}
       </SvgText>
     </G>
@@ -321,17 +321,45 @@ function PointsOfSailMiniDiagram() {
 
       <Boat x={cx} y={cy} rot={70} color={colors.accentCyan} scale={1.1} />
 
-      <SvgText x={cx} y={cy - r + 16} textAnchor="middle" fontSize={6} fontWeight="800" fill={colors.danger}>NO-GO</SvgText>
-      <SvgText x={cx + 32} y={cy - 16} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.success}>REACH</SvgText>
-      <SvgText x={cx} y={cy + r - 4} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.warning}>RUN</SvgText>
-      <SvgText x={cx - 32} y={cy - 16} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.success}>REACH</SvgText>
+      <SvgText x={cx} y={cy - r + 16} textAnchor="middle" fontSize={6} fontWeight="800" fill={colors.danger}>
+        {tp('МЁРТВАЯ ЗОНА', 'NO-GO', 'KĄT MARTWY', {
+          es: 'ZONA MUERTA',
+          fr: 'ZONE MORTE',
+          de: 'TOTER WINKEL',
+          it: 'ANGOLO MORTO',
+        })}
+      </SvgText>
+      <SvgText x={cx + 32} y={cy - 16} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.success}>
+        {tp('ГАЛФВИНД', 'REACH', 'PÓŁWIATR', {
+          es: 'TRAVÉS',
+          fr: 'TRAVERS',
+          de: 'HALBWIND',
+          it: 'TRAVERSO',
+        })}
+      </SvgText>
+      <SvgText x={cx} y={cy + r - 4} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.warning}>
+        {tp('ФОРДЕВИНД', 'RUN', 'FORDEWIND', {
+          es: 'POPA',
+          fr: 'VENT ARRIÈRE',
+          de: 'VORWIND',
+          it: 'POPPA',
+        })}
+      </SvgText>
+      <SvgText x={cx - 32} y={cy - 16} textAnchor="middle" fontSize={6} fontWeight="700" fill={colors.success}>
+        {tp('ГАЛФВИНД', 'REACH', 'PÓŁWIATR', {
+          es: 'TRAVÉS',
+          fr: 'TRAVERS',
+          de: 'HALBWIND',
+          it: 'TRAVERSO',
+        })}
+      </SvgText>
 
       <SvgText x={cx} y={132} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('5 курсов вокруг ветра', '5 points of sail around the wind', '5 kursow wokol wiatru', {
-          es: '5 rumbos alrededor del viento',
+        {tp('5 курсов вокруг ветра', '5 points of sail around the wind', '5 kursów względem wiatru', {
+          es: '5 rumbos respecto al viento',
           fr: '5 allures autour du vent',
-          de: '5 Kurse um den Wind',
-          it: '5 andature intorno al vento',
+          de: '5 Kurse zum Wind',
+          it: '5 andature rispetto al vento',
         })}
       </SvgText>
     </G>
@@ -371,24 +399,31 @@ function SailLiftDiagram() {
       <Line x1={108} y1={70} x2={108} y2={32} stroke="rgba(0,0,0,0.4)" strokeWidth={3.5} />
       <Line x1={108} y1={70} x2={108} y2={32} stroke="url(#liftGrad)" strokeWidth={2.4} />
       <Polygon points={`${108 - 4},${36} ${108 + 4},${36} ${108},${28}`} fill={colors.success} />
-      <SvgText x={114} y={48} textAnchor="start" fontSize={8} fontWeight="800" fill={colors.success}>LIFT</SvgText>
+      <SvgText x={114} y={48} textAnchor="start" fontSize={8} fontWeight="800" fill={colors.success}>
+        {tp('ПОДЪЁМНАЯ СИЛА', 'LIFT', 'SIŁA NOŚNA', {
+          es: 'SUSTENTACIÓN',
+          fr: 'PORTANCE',
+          de: 'AUFTRIEB',
+          it: 'PORTANZA',
+        })}
+      </SvgText>
 
       <SvgText x={36} y={22} textAnchor="start" fontSize={8} fontWeight="800" fill={colors.windColor}>AWA</SvgText>
       <SvgText x={170} y={22} textAnchor="end" fontSize={7} fontWeight="700" fill={colors.windColor}>
-        {tp('поток', 'flow', 'przeplyw', {
+        {tp('поток', 'flow', 'przepływ', {
           es: 'flujo',
           fr: 'flux',
-          de: 'Stroemung',
+          de: 'Strömung',
           it: 'flusso',
         })}
       </SvgText>
 
       <SvgText x={100} y={132} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('парус как крыло, ветер создает подъемную силу', 'sail as a wing, wind creates lift', 'zagiel jak skrzydlo, wiatr tworzy sile nosna', {
-          es: 'vela como ala, el viento crea sustentacion',
-          fr: 'voile comme une aile, le vent cree la portance',
-          de: 'Segel als Fluegel, Wind erzeugt Auftrieb',
-          it: 'vela come ala, vento crea portanza',
+        {tp('парус как крыло, ветер создает подъемную силу', 'sail as a wing, wind creates lift', 'żagiel jak skrzydło, wiatr daje siłę nośną', {
+          es: 'vela como ala: el viento da sustentación',
+          fr: 'voile = aile, le vent crée la portance',
+          de: 'Segel als Flügel, Wind erzeugt Auftrieb',
+          it: 'vela come un\'ala, il vento crea portanza',
         })}
       </SvgText>
     </G>
@@ -417,13 +452,13 @@ function TackingDiagram() {
       <Boat x={144} y={102} rot={-30} color={colors.success} scale={1.05} />
 
       <SvgText x={56} y={126} textAnchor="middle" fontSize={7} fontWeight="700" fill={colors.textSecondary}>
-        {tp('левый', 'port', 'lewy', { es: 'babor', fr: 'babord', de: 'Backbord', it: 'babordo' })}
+        {tp('левый', 'port', 'lewy', { es: 'babor', fr: 'bâbord', de: 'Backbord', it: 'sinistra' })}
       </SvgText>
       <SvgText x={100} y={28} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.warning}>
-        {tp('через нос', 'through bow', 'przez dziob', { es: 'por proa', fr: 'par etrave', de: 'durch Bug', it: 'per prua' })}
+        {tp('через нос', 'bow through the wind', 'przez sztag', { es: 'por avante', fr: 'vent devant', de: 'Bug durch den Wind', it: 'prua al vento' })}
       </SvgText>
       <SvgText x={144} y={126} textAnchor="middle" fontSize={7} fontWeight="700" fill={colors.textSecondary}>
-        {tp('правый', 'stbd', 'prawy', { es: 'estribor', fr: 'tribord', de: 'Stb.', it: 'tribordo' })}
+        {tp('правый', 'stbd', 'prawy', { es: 'estribor', fr: 'tribord', de: 'Steuerbord', it: 'dritta' })}
       </SvgText>
     </G>
   );
@@ -451,13 +486,13 @@ function JibingDiagram() {
       <Boat x={144} y={38} rot={205} color={colors.success} scale={1.05} />
 
       <SvgText x={56} y={22} textAnchor="middle" fontSize={7} fontWeight="700" fill={colors.textSecondary}>
-        {tp('бакштаг', 'broad', 'baksztag', { es: 'largo', fr: 'largue', de: 'Raumwind', it: 'lasco' })}
+        {tp('бакштаг', 'broad reach', 'baksztag', { es: 'largo', fr: 'grand largue', de: 'raumer Wind', it: 'lasco' })}
       </SvgText>
       <SvgText x={100} y={120} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.danger}>
-        {tp('гик летит!', 'boom flies!', 'bom leci!', { es: 'boton vuela!', fr: 'bome vole!', de: 'Baum fliegt!', it: 'boma vola!' })}
+        {tp('гик летит!', 'boom flies!', 'bom przelatuje!', { es: '¡la botavara cruza!', fr: 'la bôme passe !', de: 'Baum schlägt über!', it: 'occhio alla boma!' })}
       </SvgText>
       <SvgText x={144} y={22} textAnchor="middle" fontSize={7} fontWeight="700" fill={colors.textSecondary}>
-        {tp('бакштаг', 'broad', 'baksztag', { es: 'largo', fr: 'largue', de: 'Raumwind', it: 'lasco' })}
+        {tp('бакштаг', 'broad reach', 'baksztag', { es: 'largo', fr: 'grand largue', de: 'raumer Wind', it: 'lasco' })}
       </SvgText>
     </G>
   );
@@ -478,7 +513,7 @@ function VmgBeatingDiagram() {
       <Line x1={100} y1={4} x2={100} y2={130} stroke={colors.windColor} strokeWidth={1} strokeDasharray="3 4" opacity={0.5} />
       <Polygon points="96,16 104,16 100,8" fill={colors.windColor} opacity={0.85} />
       <SvgText x={108} y={14} textAnchor="start" fontSize={7} fontWeight="800" fill={colors.windColor}>
-        {tp('цель', 'goal', 'cel', { es: 'meta', fr: 'but', de: 'Ziel', it: 'meta' })}
+        {tp('цель', 'goal', 'cel', { es: 'objetivo', fr: 'objectif', de: 'Ziel', it: 'obiettivo' })}
       </SvgText>
 
       <Circle cx={100} cy={20} r={5} fill={colors.warning} stroke={colors.sailColor} strokeWidth={0.8} />
@@ -501,11 +536,11 @@ function VmgBeatingDiagram() {
       <SvgText x={112} y={62} textAnchor="start" fontSize={8} fontWeight="800" fill={colors.success}>VMG</SvgText>
 
       <SvgText x={100} y={134} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('галсами под 45°, VMG = выигрыш к цели', 'tacks at 45°, VMG = gain toward goal', 'halsy pod 45°, VMG = zysk do celu', {
-          es: 'bordadas a 45°, VMG = ganancia al objetivo',
-          fr: 'bordees a 45°, VMG = gain vers la cible',
-          de: 'Schlaege unter 45°, VMG = Gewinn zum Ziel',
-          it: 'bordi a 45°, VMG = guadagno verso meta',
+        {tp('галсами под 45°, VMG = выигрыш к цели', 'tacks at 45°, VMG = gain toward goal', 'halsami pod 45°, VMG = zysk ku celowi', {
+          es: 'bordos a 45°, VMG = avance al objetivo',
+          fr: 'bords à 45°, VMG = gain vers l\'objectif',
+          de: 'Schläge unter 45°, VMG = Gewinn zum Ziel',
+          it: 'bordi a 45°, VMG = guadagno verso l\'obiettivo',
         })}
       </SvgText>
     </G>
@@ -533,23 +568,23 @@ function SimpleRulesDiagram() {
       />
 
       <SvgText x={150} y={108} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.success}>
-        {tp('правый', 'starboard', 'prawy', { es: 'estribor', fr: 'tribord', de: 'Stb.', it: 'tribordo' })}
+        {tp('правый', 'starboard', 'prawy', { es: 'estribor', fr: 'tribord', de: 'Steuerbord', it: 'dritta' })}
       </SvgText>
       <SvgText x={50} y={108} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.danger}>
-        {tp('левый - уступает', 'port - gives way', 'lewy - ustepuje', {
+        {tp('левый - уступает', 'port - gives way', 'lewy - ustępuje', {
           es: 'babor - cede',
-          fr: 'babord - cede',
-          de: 'BB - weicht',
-          it: 'babordo - cede',
+          fr: 'bâbord - s\'écarte',
+          de: 'Backbord - weicht aus',
+          it: 'sinistra - cede',
         })}
       </SvgText>
 
       <SvgText x={100} y={132} textAnchor="middle" fontSize={8} fill={colors.textSecondary}>
-        {tp('правый галс имеет приоритет', 'starboard tack has right of way', 'prawy hals ma pierwszenstwo', {
-          es: 'estribor tiene preferencia',
-          fr: 'tribord a la priorite',
-          de: 'Steuerbord hat Vorfahrt',
-          it: 'tribordo ha priorita',
+        {tp('правый галс имеет приоритет', 'starboard tack has right of way', 'prawy hals ma pierwszeństwo', {
+          es: 'amurado a estribor tiene preferencia',
+          fr: 'tribord amures est prioritaire',
+          de: 'Steuerbordbug hat Wegerecht',
+          it: 'mure a dritta ha la precedenza',
         })}
       </SvgText>
     </G>
@@ -574,17 +609,24 @@ function MiniRaceDiagram() {
       <Line x1={50} y1={108} x2={150} y2={108} stroke={colors.warning} strokeWidth={2} strokeDasharray="5 3" />
       <Circle cx={50} cy={108} r={4} fill={colors.warning} stroke={colors.sailColor} strokeWidth={0.6} />
       <Circle cx={150} cy={108} r={4} fill={colors.warning} stroke={colors.sailColor} strokeWidth={0.6} />
-      <SvgText x={100} y={104} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.warning}>START</SvgText>
+      <SvgText x={100} y={104} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.warning}>
+        {tp('СТАРТ', 'START', 'START', {
+          es: 'SALIDA',
+          fr: 'DÉPART',
+          de: 'START',
+          it: 'PARTENZA',
+        })}
+      </SvgText>
 
       <AnimatedG opacity={pulse}>
         <Circle cx={100} cy={36} r={6} fill="url(#markGrad)" stroke={colors.sailColor} strokeWidth={0.8} />
       </AnimatedG>
       <SvgText x={100} y={28} textAnchor="middle" fontSize={7} fontWeight="800" fill={colors.warning}>
-        {tp('верхний знак', 'windward mark', 'znak gorny', {
-          es: 'boya barlovento',
-          fr: 'bouee au vent',
+        {tp('верхний знак', 'windward mark', 'znak nawietrzny', {
+          es: 'baliza de barlovento',
+          fr: 'bouée au vent',
           de: 'Luvtonne',
-          it: 'boa sopravvento',
+          it: 'boa di bolina',
         })}
       </SvgText>
 
@@ -608,7 +650,14 @@ function MiniRaceDiagram() {
 
       <Rect x={138} y={120} width={10} height={6} fill={colors.success} />
       <Rect x={148} y={120} width={10} height={6} fill={colors.sailColor} />
-      <SvgText x={132} y={132} textAnchor="end" fontSize={7} fontWeight="800" fill={colors.success}>FINISH</SvgText>
+      <SvgText x={132} y={132} textAnchor="end" fontSize={7} fontWeight="800" fill={colors.success}>
+        {tp('ФИНИШ', 'FINISH', 'META', {
+          es: 'LLEGADA',
+          fr: 'ARRIVÉE',
+          de: 'ZIEL',
+          it: 'ARRIVO',
+        })}
+      </SvgText>
     </G>
   );
 }

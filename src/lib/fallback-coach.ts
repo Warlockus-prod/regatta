@@ -3,9 +3,10 @@
  * Analyses the race log directly with heuristics.
  * Returns the same shape as the AI coach, so the UI is interchangeable.
  *
- * i18n: accepts a `lang` parameter ('ru' | 'en' | 'pl'). All user-facing
- * strings are picked per-language. JSON field names (titleRu, fixRu,
- * nextGoalRu) are kept for client compatibility - values inside match lang.
+ * i18n: accepts a `lang` parameter (any of the 7 site languages). All
+ * user-facing strings are picked per-language. JSON field names (titleRu,
+ * fixRu, nextGoalRu) are kept for client compatibility - values inside match
+ * lang.
  */
 
 import type { Lang } from './languages';
@@ -79,10 +80,16 @@ export function coachNextGoal(c: Coaching): string {
 }
 
 export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coaching {
-  // Pick strategy: RU -> ru arg, PL -> pl arg, everything else -> en arg.
-  // ES/FR/DE/IT visitors get English rule-based coaching instead of Russian.
-  const pick = (ru: string, en: string, pl: string) =>
-    lang === 'ru' ? ru : lang === 'pl' ? pl : en;
+  // Pick strategy: RU / EN / PL positional, ES / FR / DE / IT from the 4th
+  // argument, so every site language gets its own rule-based coaching.
+  const pick = (ru: string, en: string, pl: string, x: { es: string; fr: string; de: string; it: string }) => {
+    if (lang === 'ru') return ru;
+    if (lang === 'pl') return pl;
+    if (lang === 'es' || lang === 'fr' || lang === 'de' || lang === 'it') return x[lang];
+    return en;
+  };
+  // Decimal comma for every language except English.
+  const dec = (n: number) => n.toFixed(1).replace('.', ',');
 
   const mistakes: Coaching['mistakes'] = [];
   const strengths: string[] = [];
@@ -99,17 +106,35 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       titleRu: pick(
         `Попадания в мёртвую зону (${noGoEntries.length}×)`,
         `No-go zone entries (${noGoEntries.length}x)`,
-        `Wejscia w martwa strefe (${noGoEntries.length}x)`,
+        `Wejścia w kąt martwy (${noGoEntries.length}×)`,
+        {
+          es: `Entradas en la zona muerta (${noGoEntries.length}×)`,
+          fr: `Entrées dans la zone morte (${noGoEntries.length}×)`,
+          de: `Im toten Winkel (${noGoEntries.length}×)`,
+          it: `Ingressi nell'angolo morto (${noGoEntries.length}×)`,
+        },
       ),
       explanationRu: pick(
         'Нос яхты заходил в сектор ±30° к ветру несколько раз. В этой зоне паруса заполаскивают и яхта теряет скорость.',
-        'The bow entered the ±30° sector into wind several times. In this zone sails luff and the boat loses speed.',
-        'Dziob wchodzil w sektor ±30° od wiatru kilka razy. W tej strefie zagle lopocza i jacht traci predkosc.',
+        'The bow swung into the ±30° sector either side of the wind several times. In this zone the sails luff and the boat loses speed.',
+        'Dziób kilka razy wchodził w sektor ±30° od wiatru. W tej strefie żagle łopoczą, a jacht traci prędkość.',
+        {
+          es: 'La proa entró varias veces en el sector de ±30° respecto al viento. En esa zona las velas flamean y el barco pierde velocidad.',
+          fr: 'L\'étrave est entrée plusieurs fois dans le secteur de ±30° face au vent. Dans cette zone, les voiles faseyent et le bateau perd de la vitesse.',
+          de: 'Der Bug ist mehrmals in den Sektor ±30° zum Wind geraten. Dort killen die Segel und das Boot verliert Fahrt.',
+          it: 'La prua è entrata più volte nel settore di ±30° dal vento. In quella zona le vele fileggiano e la barca perde velocità.',
+        },
       ),
       fixRu: pick(
         'Держи угол к ветру минимум 40° при лавировке. Если попал в левентик - сразу увалить на ~50°, чтобы паруса снова потянули.',
-        'Keep the angle to wind at 40° minimum when tacking. If you stall - bear off ~50° so the sails fill again.',
-        'Trzymaj kat do wiatru minimum 40° przy halsowaniu. Jesli stanales - odpadnij o ~50°, aby zagle znow zadzialaly.',
+        'Keep at least 40° to the wind when beating upwind. If you end up head to wind, bear away ~50° right away so the sails fill again.',
+        'Na halsówce trzymaj co najmniej 40° do wiatru. Jeśli wpadniesz w łopot, od razu odpadnij o ~50°, żeby żagle znów zaczęły pracować.',
+        {
+          es: 'En ceñida mantén al menos 40° respecto al viento. Si te quedas proa al viento, arriba enseguida unos 50° para que las velas vuelvan a portar.',
+          fr: 'Au louvoyage, garde au moins 40° par rapport au vent. Si tu te retrouves vent debout, abats tout de suite d\'environ 50° pour que les voiles portent à nouveau.',
+          de: 'Halte beim Kreuzen mindestens 40° zum Wind. Stehst du im Wind, fall sofort etwa 50° ab, damit die Segel wieder ziehen.',
+          it: 'Di bolina tieni almeno 40° dal vento. Se finisci prua al vento, poggia subito di circa 50° perché le vele tornino a portare.',
+        },
       ),
     });
     score -= Math.min(20, noGoEntries.length * 4);
@@ -117,7 +142,13 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     strengths.push(pick(
       'Ни разу не попал в мёртвую зону',
       'Never entered the no-go zone',
-      'Ani razu nie wszedles w martwa strefe',
+      'Ani jednego wejścia w kąt martwy',
+      {
+        es: 'Ni una sola entrada en la zona muerta',
+        fr: 'Aucune entrée dans la zone morte',
+        de: 'Kein einziges Mal im toten Winkel',
+        it: 'Nessun ingresso nell\'angolo morto',
+      },
     ));
   }
 
@@ -131,25 +162,49 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       titleRu: pick(
         `Слишком много поворотов (${tackCount})`,
         `Too many tacks (${tackCount})`,
-        `Za duzo zwrotow (${tackCount})`,
+        `Za dużo zwrotów (${tackCount})`,
+        {
+          es: `Demasiadas viradas (${tackCount})`,
+          fr: `Trop de virements (${tackCount})`,
+          de: `Zu viele Wenden (${tackCount})`,
+          it: `Troppe virate (${tackCount})`,
+        },
       ),
       explanationRu: pick(
         'Каждый поворот оверштаг теряет скорость и время. На стандартной трассе достаточно 2-4 галсов до знака.',
         'Every tack costs speed and time. On a standard course 2-4 tacks to the mark is plenty.',
-        'Kazdy zwrot przez sztag traci predkosc i czas. Na standardowej trasie wystarcza 2-4 halsy do znaku.',
+        'Każdy zwrot przez sztag kosztuje prędkość i czas. Na standardowej trasie do znaku wystarczą 2-4 halsy.',
+        {
+          es: 'Cada virada por avante cuesta velocidad y tiempo. En un recorrido estándar bastan 2-4 bordos hasta la baliza.',
+          fr: 'Chaque virement de bord coûte de la vitesse et du temps. Sur un parcours standard, 2-4 bords suffisent jusqu\'à la bouée.',
+          de: 'Jede Wende kostet Fahrt und Zeit. Auf einer Standardbahn reichen 2-4 Schläge bis zur Bahnmarke.',
+          it: 'Ogni virata costa velocità e tempo. Su un percorso standard bastano 2-4 bordi fino alla boa.',
+        },
       ),
       fixRu: pick(
         'Выбирай длинные галсы, переходи на другой галс только когда лейлайн ясно указывает смену.',
-        'Pick long tacks, switch only when the layline clearly calls for it.',
-        'Wybieraj dlugie halsy, zmieniaj tylko gdy layline wyraznie tego wymaga.',
+        'Sail long legs and tack only when the layline clearly calls for it.',
+        'Wybieraj długie halsy i zmieniaj hals dopiero wtedy, gdy layline wyraźnie na to wskazuje.',
+        {
+          es: 'Haz bordos largos y vira solo cuando la layline lo pida claramente.',
+          fr: 'Tire de longs bords et ne vire que lorsque la layline l\'impose clairement.',
+          de: 'Segle lange Schläge und wende erst, wenn die Layline es klar verlangt.',
+          it: 'Fai bordi lunghi e vira solo quando la layline lo richiede chiaramente.',
+        },
       ),
     });
     score -= 8;
   } else if (tackCount <= 4 && log.finishTime) {
     strengths.push(pick(
-      `Экономная лавировка: всего ${tackCount} поворотов`,
-      `Efficient tacking: only ${tackCount} turns`,
-      `Oszczedne halsowanie: tylko ${tackCount} zwrotow`,
+      `Экономная лавировка: поворотов всего ${tackCount}`,
+      `Efficient beat: only ${tackCount} tacks`,
+      `Oszczędne halsowanie (zwroty: ${tackCount})`,
+      {
+        es: `Ceñida eficiente (viradas: ${tackCount})`,
+        fr: `Louvoyage économe (virements : ${tackCount})`,
+        de: `Sparsames Kreuzen (Wenden: ${tackCount})`,
+        it: `Bolina efficiente (virate: ${tackCount})`,
+      },
     ));
   }
 
@@ -164,17 +219,35 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
       titleRu: pick(
         'Много времени в мёртвой зоне',
         'Too much time in the no-go zone',
-        'Duzo czasu w martwej strefie',
+        'Dużo czasu w kącie martwym',
+        {
+          es: 'Mucho tiempo en la zona muerta',
+          fr: 'Trop de temps dans la zone morte',
+          de: 'Zu lange im toten Winkel',
+          it: 'Troppo tempo nell\'angolo morto',
+        },
       ),
       explanationRu: pick(
         `Около ${Math.round(noGoFraction * 100)}% гонки скорость была ниже 2 узлов с углом к ветру меньше 30°. Это прямые потери времени.`,
-        `About ${Math.round(noGoFraction * 100)}% of the race had speed below 2 knots with wind angle under 30°. Direct time loss.`,
-        `Okolo ${Math.round(noGoFraction * 100)}% wyscigu predkosc byla ponizej 2 wezlow przy kacie ponizej 30°. Bezposrednia strata czasu.`,
+        `For about ${Math.round(noGoFraction * 100)}% of the race you were below 2 knots at under 30° to the wind. That is pure time lost.`,
+        `Przez około ${Math.round(noGoFraction * 100)}% wyścigu prędkość była poniżej 2 węzłów przy kącie do wiatru poniżej 30°. To czysta strata czasu.`,
+        {
+          es: `Durante cerca del ${Math.round(noGoFraction * 100)}% de la regata fuiste a menos de 2 nudos y a menos de 30° del viento. Es tiempo perdido sin más.`,
+          fr: `Pendant environ ${Math.round(noGoFraction * 100)} % de la course, tu étais sous 2 nœuds à moins de 30° du vent. C'est du temps perdu, tout simplement.`,
+          de: `Etwa ${Math.round(noGoFraction * 100)} % des Rennens warst du unter 2 Knoten bei weniger als 30° zum Wind. Das ist reiner Zeitverlust.`,
+          it: `Per circa il ${Math.round(noGoFraction * 100)}% della regata la velocità è rimasta sotto i 2 nodi con meno di 30° dal vento. È tempo perso e basta.`,
+        },
       ),
       fixRu: pick(
         'Следи за углом к ветру на HUD. Как только TWA опускается ниже 35° - сразу увалить.',
-        'Watch the wind angle on the HUD. If TWA drops below 35° - bear off immediately.',
-        'Patrz na kat do wiatru na HUD. Jak tylko TWA spada ponizej 35° - odpadnij od razu.',
+        'Watch the wind angle on the HUD. As soon as TWA drops below 35°, bear away.',
+        'Pilnuj kąta do wiatru na HUD. Gdy tylko TWA spadnie poniżej 35°, od razu odpadnij.',
+        {
+          es: 'Vigila el ángulo al viento en el HUD. En cuanto el TWA baje de 35°, arriba enseguida.',
+          fr: 'Surveille l\'angle au vent sur le HUD. Dès que le TWA passe sous 35°, abats tout de suite.',
+          de: 'Behalte den Windwinkel im HUD im Blick. Sobald der TWA unter 35° fällt, sofort abfallen.',
+          it: 'Tieni d\'occhio l\'angolo al vento sull\'HUD. Appena il TWA scende sotto i 35°, poggia subito.',
+        },
       ),
     });
     score -= 15;
@@ -186,9 +259,15 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
     const avgSpeed = closeHauledSamples.reduce((sum, s) => sum + s.speed, 0) / closeHauledSamples.length;
     if (avgSpeed >= 4.5) {
       strengths.push(pick(
-        `Хорошая скорость в бейдевинде: ${avgSpeed.toFixed(1)} kts средняя`,
+        `Хорошая скорость в бейдевинде: в среднем ${dec(avgSpeed)} уз`,
         `Good speed close-hauled: ${avgSpeed.toFixed(1)} kts average`,
-        `Dobra predkosc na bajdewindzie: ${avgSpeed.toFixed(1)} kts srednio`,
+        `Dobra prędkość na bajdewindzie: średnio ${dec(avgSpeed)} kn`,
+        {
+          es: `Buena velocidad en ceñida: ${dec(avgSpeed)} kn de media`,
+          fr: `Bonne vitesse au près : ${dec(avgSpeed)} kn de moyenne`,
+          de: `Gute Fahrt hoch am Wind: im Schnitt ${dec(avgSpeed)} kn`,
+          it: `Buona velocità di bolina: ${dec(avgSpeed)} kn di media`,
+        },
       ));
     } else if (avgSpeed < 3) {
       mistakes.push({
@@ -199,16 +278,34 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
           'Медленно в бейдевинде',
           'Slow close-hauled',
           'Wolno na bajdewindzie',
+          {
+            es: 'Lento en ceñida',
+            fr: 'Lent au près',
+            de: 'Langsam hoch am Wind',
+            it: 'Lento di bolina',
+          },
         ),
         explanationRu: pick(
-          `Средняя скорость в close-hauled всего ${avgSpeed.toFixed(1)} kts. Вероятно, идёшь слишком близко к ветру - теряешь в скорости больше, чем выигрываешь в угле.`,
+          `Средняя скорость в бейдевинде всего ${dec(avgSpeed)} уз. Вероятно, идёшь слишком близко к ветру - теряешь в скорости больше, чем выигрываешь в угле.`,
           `Average close-hauled speed is only ${avgSpeed.toFixed(1)} kts. Probably pointing too high - losing more in speed than you gain in angle.`,
-          `Srednia predkosc na bajdewindzie to tylko ${avgSpeed.toFixed(1)} kts. Prawdopodobnie idziesz za ostro - tracisz wiecej predkosci niz zyskujesz na kacie.`,
+          `Średnia prędkość na bajdewindzie to tylko ${dec(avgSpeed)} kn. Pewnie płyniesz za ostro - tracisz więcej na prędkości, niż zyskujesz na kącie.`,
+          {
+            es: `La velocidad media en ceñida es de solo ${dec(avgSpeed)} kn. Seguramente vas demasiado orzado - pierdes más en velocidad de lo que ganas en ángulo.`,
+            fr: `Ta vitesse moyenne au près n'est que de ${dec(avgSpeed)} kn. Tu serres sans doute trop le vent - tu perds plus en vitesse que tu ne gagnes en cap.`,
+            de: `Deine Durchschnittsfahrt hoch am Wind liegt bei nur ${dec(avgSpeed)} kn. Wahrscheinlich kneifst du zu hoch - du verlierst mehr Fahrt, als du an Höhe gewinnst.`,
+            it: `La velocità media di bolina è solo ${dec(avgSpeed)} kn. Probabilmente stringi troppo il vento - perdi più in velocità di quanto guadagni in angolo.`,
+          },
         ),
         fixRu: pick(
           'Попробуй увалить на 5-10° от текущего курса. Скорость в бейдевинде важнее узкого угла.',
-          'Try bearing off 5-10° from the current heading. Speed matters more than a tight angle close-hauled.',
-          'Sprobuj odpasc o 5-10° od biezacego kursu. Predkosc na bajdewindzie jest wazniejsza niz ciasny kat.',
+          'Try bearing away 5-10° from your current heading. Close-hauled, speed matters more than a tight angle.',
+          'Spróbuj odpaść o 5-10° od obecnego kursu. Na bajdewindzie prędkość jest ważniejsza niż ostry kąt.',
+          {
+            es: 'Prueba a arribar 5-10° respecto al rumbo actual. En ceñida, la velocidad importa más que un ángulo cerrado.',
+            fr: 'Essaie d\'abattre de 5-10° par rapport à ton cap actuel. Au près, la vitesse compte plus qu\'un angle serré.',
+            de: 'Versuch, 5-10° vom aktuellen Kurs abzufallen. Hoch am Wind ist Fahrt wichtiger als ein enger Winkel.',
+            it: 'Prova a poggiare di 5-10° rispetto alla rotta attuale. Di bolina la velocità conta più di un angolo stretto.',
+          },
         ),
       });
       score -= 5;
@@ -225,8 +322,14 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   if (strengths.length === 0 && log.finishTime) {
     strengths.push(pick(
       'Гонка пройдена до конца',
-      'Race finished',
-      'Wyscig ukonczony',
+      'Race completed',
+      'Wyścig ukończony',
+      {
+        es: 'Regata completada',
+        fr: 'Course bouclée',
+        de: 'Rennen beendet',
+        it: 'Regata completata',
+      },
     ));
   }
 
@@ -238,46 +341,94 @@ export function analyseRaceLocally(log: RaceLog, lang: CoachLang = 'ru'): Coachi
   if (!log.finishTime) {
     overall = pick(
       'Не удалось финишировать - вероятно, потерял курс или слишком много времени провёл в мёртвой зоне.',
-      'Did not finish - probably lost the course or spent too much time in the no-go zone.',
-      'Nie ukonczyles - prawdopodobnie zgubiles trase lub spedziles za duzo czasu w martwej strefie.',
+      'Did not finish - you probably lost the course or spent too much time in the no-go zone.',
+      'Nie udało się dopłynąć do mety - pewnie zgubiłeś trasę albo spędziłeś za dużo czasu w kącie martwym.',
+      {
+        es: 'No terminaste la regata - seguramente te desviaste del recorrido o pasaste demasiado tiempo en la zona muerta.',
+        fr: 'Pas d\'arrivée - tu as sans doute perdu le parcours ou passé trop de temps dans la zone morte.',
+        de: 'Nicht ins Ziel gekommen - wahrscheinlich hast du die Bahn verloren oder zu lange im toten Winkel gesteckt.',
+        it: 'Regata non conclusa - probabilmente hai perso il percorso o hai passato troppo tempo nell\'angolo morto.',
+      },
     );
     nextGoal = pick(
       'Пройти трассу полностью за любое время - цель номер один.',
-      'Finish the course at any time - that is goal number one.',
-      'Ukonczyc trase w dowolnym czasie - to cel numer jeden.',
+      'Finish the course, whatever the time - that is goal number one.',
+      'Ukończyć trasę w dowolnym czasie - to cel numer jeden.',
+      {
+        es: 'Completar el recorrido, con el tiempo que sea - ese es el objetivo número uno.',
+        fr: 'Boucler le parcours, peu importe le temps - c\'est l\'objectif numéro un.',
+        de: 'Die Bahn komplett segeln, egal in welcher Zeit - das ist Ziel Nummer eins.',
+        it: 'Completare il percorso, in qualsiasi tempo - è l\'obiettivo numero uno.',
+      },
     );
   } else if (log.position === 1) {
     overall = pick(
       `Победа за ${formatTime(log.finishTime)}! Отличный результат.`,
-      `Win in ${formatTime(log.finishTime)}! Great result.`,
-      `Zwyciestwo w ${formatTime(log.finishTime)}! Swietny wynik.`,
+      `Won in ${formatTime(log.finishTime)}! Great result.`,
+      `Zwycięstwo z czasem ${formatTime(log.finishTime)}! Świetny wynik.`,
+      {
+        es: `¡Victoria en ${formatTime(log.finishTime)}! Gran resultado.`,
+        fr: `Victoire en ${formatTime(log.finishTime)} ! Excellent résultat.`,
+        de: `Sieg in ${formatTime(log.finishTime)}! Starkes Ergebnis.`,
+        it: `Vittoria in ${formatTime(log.finishTime)}! Ottimo risultato.`,
+      },
     );
     nextGoal = pick(
       'Попробуй сложный уровень или улучши время на той же сложности.',
       'Try hard mode or beat your time on the same difficulty.',
-      'Sprobuj poziomu trudnego lub popraw czas na tej samej trudnosci.',
+      'Spróbuj poziomu trudnego albo popraw czas na tym samym poziomie.',
+      {
+        es: 'Prueba el nivel difícil o mejora tu tiempo en la misma dificultad.',
+        fr: 'Essaie le niveau difficile ou bats ton temps au même niveau.',
+        de: 'Probier die schwere Stufe oder verbessere deine Zeit auf derselben Stufe.',
+        it: 'Prova il livello difficile o migliora il tuo tempo allo stesso livello.',
+      },
     );
   } else if (log.position <= Math.ceil(places / 2)) {
     overall = pick(
       `Финиш на ${log.position} месте из ${places} за ${formatTime(log.finishTime)}. Крепкий результат, есть куда расти.`,
       `Finished ${log.position} of ${places} in ${formatTime(log.finishTime)}. Solid result, room to grow.`,
-      `Meta na ${log.position} miejscu z ${places} w ${formatTime(log.finishTime)}. Solidny wynik, jest pole do wzrostu.`,
+      `Meta na ${log.position}. miejscu z ${places}, czas ${formatTime(log.finishTime)}. Solidny wynik, ale jest jeszcze pole do poprawy.`,
+      {
+        es: `Terminaste en el puesto ${log.position} de ${places} en ${formatTime(log.finishTime)}. Buen resultado, con margen de mejora.`,
+        fr: `Arrivée à la ${log.position}e place sur ${places} en ${formatTime(log.finishTime)}. Résultat solide, tu peux encore progresser.`,
+        de: `Platz ${log.position} von ${places} in ${formatTime(log.finishTime)}. Solides Ergebnis, da ist noch Luft nach oben.`,
+        it: `Arrivo al ${log.position}º posto su ${places} in ${formatTime(log.finishTime)}. Risultato solido, c'è margine per crescere.`,
+      },
     );
     nextGoal = pick(
       'Сократи количество поворотов и время в мёртвой зоне - это даст пару секунд.',
       'Cut down on tacks and time in the no-go zone - that will save a couple of seconds.',
-      'Zmniejsz liczbe zwrotow i czas w martwej strefie - to da kilka sekund.',
+      'Ogranicz liczbę zwrotów i czas w kącie martwym - to da kilka sekund.',
+      {
+        es: 'Reduce las viradas y el tiempo en la zona muerta - así ganarás unos segundos.',
+        fr: 'Réduis le nombre de virements et le temps dans la zone morte - tu gagneras quelques secondes.',
+        de: 'Weniger Wenden und weniger Zeit im toten Winkel - das bringt ein paar Sekunden.',
+        it: 'Riduci le virate e il tempo nell\'angolo morto - guadagnerai qualche secondo.',
+      },
     );
   } else {
     overall = pick(
       `Финиш на ${log.position} из ${places} за ${formatTime(log.finishTime)}. Есть над чем поработать.`,
       `Finished ${log.position} of ${places} in ${formatTime(log.finishTime)}. Room for improvement.`,
-      `Meta na ${log.position} z ${places} w ${formatTime(log.finishTime)}. Jest nad czym pracowac.`,
+      `Meta na ${log.position}. miejscu z ${places}, czas ${formatTime(log.finishTime)}. Jest nad czym pracować.`,
+      {
+        es: `Terminaste en el puesto ${log.position} de ${places} en ${formatTime(log.finishTime)}. Hay cosas que mejorar.`,
+        fr: `Arrivée à la ${log.position}e place sur ${places} en ${formatTime(log.finishTime)}. Il y a du travail.`,
+        de: `Platz ${log.position} von ${places} in ${formatTime(log.finishTime)}. Da gibt es noch einiges zu tun.`,
+        it: `Arrivo al ${log.position}º posto su ${places} in ${formatTime(log.finishTime)}. C'è da lavorare.`,
+      },
     );
     nextGoal = pick(
       'Сконцентрируйся на контроле угла к ветру - большинство потерь времени оттуда.',
       'Focus on wind-angle control - most time losses come from there.',
-      'Skup sie na kontroli kata do wiatru - stamtad pochodzi wiekszosc strat czasu.',
+      'Skup się na kontroli kąta do wiatru - stąd bierze się większość strat czasu.',
+      {
+        es: 'Céntrate en controlar el ángulo al viento - de ahí viene la mayor parte del tiempo perdido.',
+        fr: 'Concentre-toi sur l\'angle au vent - c\'est là que tu perds le plus de temps.',
+        de: 'Konzentrier dich auf den Winkel zum Wind - dort verlierst du die meiste Zeit.',
+        it: 'Concentrati sul controllo dell\'angolo al vento - è lì che perdi più tempo.',
+      },
     );
   }
 

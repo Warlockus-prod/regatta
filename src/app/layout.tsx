@@ -68,39 +68,39 @@ export async function generateMetadata(): Promise<Metadata> {
     },
     en: {
       title: 'Week to Regatta - Sailing Simulator',
-      description: 'Interactive sailing trainer for people with a race next weekend. Wind, points of sail, sail trim, tactics in 45 minutes. AI coach reviews your race.',
+      description: 'Interactive sailing trainer for anyone with a regatta coming up. Wind, points of sail, sail trim and tactics in 45 minutes. An AI coach reviews your race.',
       locale: 'en_US',
       twitter: 'Racing next week? You can still prep. AI coach + head-to-head race in your browser.',
     },
     pl: {
-      title: 'Week to Regatta - symulator zeglarstwa',
-      description: 'Interaktywny trener dla tych, co w weekend maja regaty. Wiatr, kursy, zagle, taktyka w 45 minut. Trener AI analizuje twoj wyscig.',
+      title: 'Week to Regatta - trenażer żeglarski',
+      description: 'Interaktywny trenażer dla tych, których wkrótce czekają regaty. Wiatr, kursy, żagle i taktyka w 45 minut. Trener AI przeanalizuje twój wyścig.',
       locale: 'pl_PL',
-      twitter: 'Regaty za tydzien? Zdazysz sie przygotowac. Trener AI + wyscig z rywalami w przegladarce.',
+      twitter: 'Regaty za tydzień? Zdążysz się przygotować. Trener AI + wyścig z rywalami w przeglądarce.',
     },
     es: {
       title: 'Week to Regatta - simulador de vela',
-      description: 'Entrenador interactivo para quienes tienen una regata este fin de semana. Viento, rumbos, velas, tactica en 45 minutos. Entrenador IA analiza tu regata.',
+      description: 'Simulador interactivo para quien tiene pronto una regata. Viento, rumbos, velas y táctica en 45 minutos. Un entrenador IA analiza tu regata.',
       locale: 'es_ES',
-      twitter: 'Regata la proxima semana? Aun tienes tiempo de prepararte. Entrenador IA + regata con rivales en el navegador.',
+      twitter: '¿Regata la próxima semana? Aún tienes tiempo de prepararte. Entrenador IA + regata contra rivales en el navegador.',
     },
     fr: {
       title: 'Week to Regatta - simulateur de voile',
-      description: 'Entraineur interactif pour ceux qui ont une regate ce week-end. Vent, allures, voiles, tactique en 45 minutes. Le coach IA analyse votre course.',
+      description: 'Simulateur interactif pour ceux qui ont bientôt une régate. Vent, allures, voiles et tactique en 45 minutes. Le coach IA analyse ta course.',
       locale: 'fr_FR',
-      twitter: 'Regate la semaine prochaine ? Tu peux encore te preparer. Coach IA + course avec des rivaux dans le navigateur.',
+      twitter: 'Régate la semaine prochaine ? Tu as encore le temps de te préparer. Coach IA + course contre des rivaux dans le navigateur.',
     },
     de: {
       title: 'Week to Regatta - Segelsimulator',
-      description: 'Interaktiver Trainer fuer alle, die am Wochenende eine Regatta haben. Wind, Kurse, Segel, Taktik in 45 Minuten. KI-Coach analysiert dein Rennen.',
+      description: 'Interaktiver Segeltrainer für alle, die bald eine Regatta segeln. Wind, Kurse, Segel und Taktik in 45 Minuten. Ein KI-Coach analysiert dein Rennen.',
       locale: 'de_DE',
-      twitter: 'Regatta naechste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Rivalen im Browser.',
+      twitter: 'Regatta nächste Woche? Du kannst dich noch vorbereiten. KI-Coach + Rennen gegen Gegner im Browser.',
     },
     it: {
       title: 'Week to Regatta - simulatore di vela',
-      description: 'Allenatore interattivo per chi ha una regata nel fine settimana. Vento, corsi, vele, tattica in 45 minuti. Il coach IA analizza la tua regata.',
+      description: 'Simulatore interattivo per chi ha presto una regata. Vento, andature, vele e tattica in 45 minuti. Il coach IA analizza la tua regata.',
       locale: 'it_IT',
-      twitter: 'Regata la prossima settimana? Hai ancora tempo per prepararti. Coach IA + regata con rivali nel browser.',
+      twitter: 'Regata la prossima settimana? Hai ancora tempo per prepararti. Coach IA + regata contro rivali nel browser.',
     },
   };
   const pick = ogByLang[lang];
@@ -171,7 +171,7 @@ export default async function RootLayout({
 }>) {
   const serverLang = await resolveServerLang();
   const skipLabel = ({
-    ru: 'К содержимому', en: 'Skip to content', pl: 'Przejdz do tresci',
+    ru: 'К содержимому', en: 'Skip to content', pl: 'Przejdź do treści',
     es: 'Ir al contenido', fr: 'Aller au contenu', de: 'Zum Inhalt', it: 'Vai al contenuto',
   } as Record<string, string>)[serverLang] ?? 'Skip to content';
   return (

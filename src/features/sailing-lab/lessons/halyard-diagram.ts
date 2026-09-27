@@ -14,7 +14,7 @@ export const halyardCopy = {
   description: words(
     "Слева: парус у мачты, 1 - передняя шкаторина. Справа: горизонтальное сечение, 2 - положение пуза в процентах хорды от передней шкаторины. Проценты иллюстративные: они показывают направление, а не цель для твоего паруса.",
     "Left: the sail next to the mast, 1 - the luff. Right: a horizontal section, 2 - draft position as a percentage of the chord from the luff. The percentages are illustrative: they show direction, not a target for your sail.",
-    "Po lewej: zagiel przy maszcie, 1 - lik przedni. Po prawej: przekroj poziomy, 2 - polozenie brzucha w procentach cieciwy od liku przedniego. Procenty sa pogladowe: pokazuja kierunek, a nie cel dla twojego zagla.",
+    "Po lewej: żagiel przy maszcie, 1 - lik przedni. Po prawej: przekrój poziomy, 2 - położenie brzucha w procentach cięciwy od liku przedniego. Procenty są poglądowe: pokazują kierunek, a nie cel dla twojego żagla.",
     "A la izquierda: la vela junto al mástil, 1 - el grátil. A la derecha: una sección horizontal, 2 - posición de la bolsa en porcentaje de la cuerda desde el grátil. Los porcentajes son ilustrativos: indican la dirección, no un objetivo para tu vela.",
     "À gauche : la voile près du mât, 1 - le guindant. À droite : une section horizontale, 2 - position du creux en pourcentage de la corde depuis le guindant. Les pourcentages sont illustratifs : ils montrent le sens, pas une cible pour ta voile.",
     "Links: das Segel am Mast, 1 - das Vorliek. Rechts: ein waagerechter Schnitt, 2 - die Bauchlage in Prozent der Sehne vom Vorliek. Die Prozente sind Beispiele: Sie zeigen die Richtung, kein Ziel für dein Segel.",
@@ -22,14 +22,14 @@ export const halyardCopy = {
   ),
   options: [
     words("Потравлен", "Eased", "Poluzowany", "Lascada", "Choquée", "Gefiert", "Lascata"),
-    words("В норме", "Set right", "Ustawiony", "En su punto", "Bien réglée", "Richtig", "Giusta"),
-    words("Перетянут", "Over-tensioned", "Przeciagniety", "Demasiado tensa", "Trop étarquée", "Zu dicht", "Troppo tesa"),
+    words("В норме", "Set right", "W normie", "En su punto", "Bien réglée", "Richtig", "Giusta"),
+    words("Перетянут", "Over-tensioned", "Za mocno napięty", "Demasiado tensa", "Trop étarquée", "Zu straff", "Troppo tesa"),
   ],
   readouts: [
     words(
       "Горизонтальная рябь поперек передней шкаторины: фал потравлен. Пузо уходит назад, вход плоский: можно идти острее, но вести лодку труднее. Уместно только в очень слабый ветер.",
       "Horizontal ripples across the luff: the halyard is eased. The draft moves aft and the entry flattens: you can point higher, but the boat is harder to steer. Only right in very light air.",
-      "Poziome zmarszczki w poprzek liku przedniego: fal jest poluzowany. Brzuch idzie do tylu, wejscie sie splaszcza: mozna isc ostrzej, ale trudniej prowadzic jacht. Wlasciwe tylko przy bardzo slabym wietrze.",
+      "Poziome zmarszczki w poprzek liku przedniego: fał jest poluzowany. Brzuch idzie do tyłu, wejście się spłaszcza: można iść ostrzej, ale trudniej prowadzić jacht. Właściwe tylko przy bardzo słabym wietrze.",
       "Arrugas horizontales a lo ancho del grátil: la driza está lascada. La bolsa se va atrás y la entrada se aplana: puedes ceñir más, pero cuesta más gobernar. Solo conviene con viento muy flojo.",
       "Des rides horizontales en travers du guindant : la drisse est choquée. Le creux recule et l'entrée s'aplatit : tu remontes mieux, mais le bateau est plus dur à barrer. Ne convient que par vent très faible.",
       "Waagerechte Falten quer zum Vorliek: Das Fall ist gefiert. Der Bauch wandert nach achtern, der Eintritt wird flach: Du kannst höher laufen, aber das Boot ist schwerer zu steuern. Nur bei sehr leichtem Wind richtig.",
@@ -38,7 +38,7 @@ export const halyardCopy = {
     words(
       "Рябь только что исчезла, продольных складок нет: для легкого и среднего ветра это и есть нужное натяжение.",
       "The ripples have just gone and there is no fold along the luff: for light and medium wind this is the tension you want.",
-      "Zmarszczki wlasnie zniknely, a wzdluz liku nie ma faldy: przy slabym i srednim wietrze to jest wlasciwe napiecie.",
+      "Zmarszczki właśnie zniknęły, a wzdłuż liku nie ma fałdy: przy słabym i średnim wietrze to jest właściwe napięcie.",
       "Las arrugas acaban de desaparecer y no hay pliegue a lo largo del grátil: con viento flojo y medio, esta es la tensión buscada.",
       "Les rides viennent de disparaître et aucun pli ne longe le guindant : par vent faible et moyen, c'est la tension voulue.",
       "Die Falten sind gerade verschwunden, und am Vorliek entlang gibt es keine Falte: Bei leichtem und mittlerem Wind ist das die richtige Spannung.",
@@ -47,10 +47,10 @@ export const halyardCopy = {
     words(
       "Длинная складка вдоль передней шкаторины: перетянуто даже для сильного ветра. Пузо ушло далеко вперед, вход круглый: он прощает ошибки рулевого, но острота теряется. Потрави, пока складка не уйдет.",
       "A long fold along the luff: too tight even for a strong wind. The draft has gone far forward and the entry is round: forgiving for the helmsman, but you lose height. Ease until the fold disappears.",
-      "Dluga falda wzdluz liku przedniego: za mocno nawet na silny wiatr. Brzuch poszedl daleko do przodu, a wejscie jest okragle: wybacza bledy sternika, ale traci sie ostrosc. Luzuj, az falda zniknie.",
+      "Długa fałda wzdłuż liku przedniego: za mocno nawet na silny wiatr. Brzuch poszedł daleko do przodu, a wejście jest okrągłe: wybacza błędy sternika, ale traci się ostrość. Luzuj, aż fałda zniknie.",
       "Un pliegue largo a lo largo del grátil: demasiado tensa incluso para viento fuerte. La bolsa se ha ido muy adelante y la entrada es redonda: perdona errores del timonel, pero se pierde ángulo. Lasca hasta que desaparezca el pliegue.",
       "Un long pli le long du guindant : trop étarqué même pour du vent fort. Le creux est parti très en avant et l'entrée est ronde : elle pardonne les erreurs du barreur, mais tu perds du cap. Choque jusqu'à ce que le pli disparaisse.",
-      "Eine lange Falte längs des Vorlieks: zu dicht, sogar für starken Wind. Der Bauch ist weit nach vorn gewandert, der Eintritt ist rund: Das verzeiht Steuerfehler, kostet aber Höhe. Fieren, bis die Falte verschwindet.",
+      "Eine lange Falte längs des Vorlieks: zu stark durchgesetzt, sogar für starken Wind. Der Bauch ist weit nach vorn gewandert, der Eintritt ist rund: Das verzeiht Steuerfehler, kostet aber Höhe. Fieren, bis die Falte verschwindet.",
       "Una piega lunga lungo l'inferitura: troppo tesa anche per vento forte. Il grasso è andato molto avanti e l'entrata è tonda: perdona gli errori del timoniere, ma si perde angolo. Lasca finché la piega sparisce.",
     ),
   ],

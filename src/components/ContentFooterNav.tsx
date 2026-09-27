@@ -31,52 +31,52 @@ interface RelatedLink {
 
 const SIBLINGS: Record<string, RelatedLink[]> = {
   '/onboard': [
-    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regata', labelEs: 'Checklist pre-regata', labelFr: 'Checklist pre-regate', labelDe: 'Pre-Race-Checkliste', labelIt: 'Checklist pre-regata' },
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regatami', labelEs: 'Checklist para la regata', labelFr: 'Check-list avant la régate', labelDe: 'Checkliste vor der Regatta', labelIt: 'Checklist pre-regata' },
+    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
   ],
   '/anatomy': [
-    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzien na pokladzie', labelEs: 'Primera semana a bordo', labelFr: 'Premiere semaine a bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Slownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzień na pokładzie', labelEs: 'Primera semana a bordo', labelFr: 'Première semaine à bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
+    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
   ],
   '/checklist': [
-    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzien na pokladzie', labelEs: 'Primera semana a bordo', labelFr: 'Premiere semaine a bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzień na pokładzie', labelEs: 'Primera semana a bordo', labelFr: 'Première semaine à bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
   ],
   '/rules': [
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Slownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
   ],
   '/gallery': [
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
-    { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy wzgledem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Windkurse', labelIt: 'Andature' },
+    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+    { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy względem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Kurse zum Wind', labelIt: 'Andature' },
   ],
   '/courses': [
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
   ],
   '/glossary': [
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomia del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
+    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
   ],
   '/racing': [
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Przepisy drogowe', labelEs: 'Reglas de navegacion', labelFr: 'Regles de route', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di rotta' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Slownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
+    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
   ],
   '/leaderboard': [
-    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Strategie de regate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Rozegraj wyścig', labelEs: 'Juega una regata', labelFr: 'Jouer une régate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
+    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
   ],
   '/quick': [
-    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regata', labelEs: 'Checklist pre-regata', labelFr: 'Checklist pre-regate', labelDe: 'Pre-Race-Checkliste', labelIt: 'Checklist pre-regata' },
-    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Zagraj regate', labelEs: 'Juega una regata', labelFr: 'Jouer une regate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
+    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regatami', labelEs: 'Checklist para la regata', labelFr: 'Check-list avant la régate', labelDe: 'Checkliste vor der Regatta', labelIt: 'Checklist pre-regata' },
+    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Rozegraj wyścig', labelEs: 'Juega una regata', labelFr: 'Jouer une régate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
   ],
   '/support': [
-    { href: '/privacy', icon: '🔒', labelRu: 'Конфиденциальность', labelEn: 'Privacy', labelPl: 'Prywatnosc', labelEs: 'Privacidad', labelFr: 'Confidentialite', labelDe: 'Datenschutz', labelIt: 'Privacy' },
-    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona glowna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
+    { href: '/privacy', icon: '🔒', labelRu: 'Конфиденциальность', labelEn: 'Privacy', labelPl: 'Prywatność', labelEs: 'Privacidad', labelFr: 'Confidentialité', labelDe: 'Datenschutz', labelIt: 'Privacy' },
+    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona główna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
   ],
   '/privacy': [
     { href: '/support', icon: '✉️', labelRu: 'Контакты', labelEn: 'Contact', labelPl: 'Kontakt', labelEs: 'Contacto', labelFr: 'Contact', labelDe: 'Kontakt', labelIt: 'Contatti' },
-    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona glowna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
+    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona główna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
   ],
 };
 
@@ -137,7 +137,7 @@ export default function ContentFooterNav({ page }: { page: ContentFooterNavPage 
       >
         <div className="text-xs uppercase tracking-wider font-semibold mb-3" style={{ color: 'var(--accent-cyan)' }}>
           {tp('Куда дальше', 'Where to next', 'Co dalej',
-            { es: 'Adonde sigues', fr: 'Et apres', de: 'Wohin als naechstes', it: 'Dove andare' })}
+            { es: '¿Adónde ahora?', fr: 'Et ensuite ?', de: 'Wie geht es weiter?', it: 'Dove andare ora' })}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -153,11 +153,11 @@ export default function ContentFooterNav({ page }: { page: ContentFooterNavPage 
             <div className="min-w-0">
               <div className="text-xs font-semibold" style={{ color: 'var(--accent-cyan)' }}>
                 ← {tp('К курсу', 'Back to course', 'Do kursu',
-                  { es: 'Al curso', fr: 'Au cours', de: 'Zum Kurs', it: 'Al corso' })}
+                  { es: 'Volver al curso', fr: 'Retour au cours', de: 'Zurück zum Kurs', it: 'Torna al corso' })}
               </div>
               <div className="text-[10px] text-[var(--text-muted)] truncate">
-                {tp('Полный курс с нуля', 'Full bootcamp', 'Pelny kurs od zera',
-                  { es: 'Curso completo desde cero', fr: 'Bootcamp complet', de: 'Kompletter Bootcamp', it: 'Bootcamp completo' })}
+                {tp('Полный курс с нуля', 'Full bootcamp', 'Pełny kurs od podstaw',
+                  { es: 'Curso completo desde cero', fr: 'Cours complet pour débuter', de: 'Das komplette Bootcamp', it: 'Corso completo da zero' })}
               </div>
             </div>
           </Link>

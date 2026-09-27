@@ -48,7 +48,7 @@ export async function POST(req: Request) {
   const rl = rateLimit('fb:' + (sid ?? ip), FEEDBACK_LIMIT, FEEDBACK_WINDOW_MS);
   if (!rl.ok) {
     logWarn('feedback.rate-limited', { key: (sid ?? ip).slice(0, 12), resetMs: rl.resetMs });
-    return NextResponse.json({ error: 'Слишком много отзывов за последний час' }, { status: 429 });
+    return NextResponse.json({ error: 'Слишком много отзывов за последний час / Too much feedback in the last hour' }, { status: 429 });
   }
 
   let body: FeedbackPayload;

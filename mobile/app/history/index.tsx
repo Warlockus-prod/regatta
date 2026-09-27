@@ -18,6 +18,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
+import type { Lang } from '../../src/i18n/languages';
 import {
   Card,
   EmptyState,
@@ -38,50 +39,59 @@ function formatTime(sec: number): string {
   return `${m}:${r.toString().padStart(2, '0')}`;
 }
 
-/** Format a finish-at timestamp into a short, locale-agnostic header.
- *  We intentionally don't use Intl.DateTimeFormat here - it would shift
- *  per device locale and the format we want ("12 May, 16:42") is the
- *  same for all 7 supported langs. */
-function formatFinishedAt(ms: number): string {
+/** Short month names in the app's own language, so the header follows the
+ *  language picked in the app rather than the device locale. */
+const MONTHS: Record<Lang, string> = {
+  ru: 'янв фев мар апр мая июн июл авг сен окт ноя дек',
+  en: 'Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec',
+  pl: 'sty lut mar kwi maj cze lip sie wrz paź lis gru',
+  es: 'ene feb mar abr may jun jul ago sept oct nov dic',
+  fr: 'janv. févr. mars avr. mai juin juil. août sept. oct. nov. déc.',
+  de: 'Jan. Feb. März Apr. Mai Juni Juli Aug. Sept. Okt. Nov. Dez.',
+  it: 'gen feb mar apr mag giu lug ago set ott nov dic',
+};
+
+/** "12 May, 16:42" in the app language ("12. Mai, 16:42" in German). */
+function formatFinishedAt(ms: number, lang: Lang): string {
   const d = new Date(ms);
   const day = d.getDate();
-  const month = d.toLocaleDateString('en', { month: 'short' });
+  const month = (MONTHS[lang] ?? MONTHS.en).split(' ')[d.getMonth()];
   const hours = d.getHours().toString().padStart(2, '0');
   const minutes = d.getMinutes().toString().padStart(2, '0');
-  return `${day} ${month}, ${hours}:${minutes}`;
+  return `${day}${lang === 'de' ? '.' : ''} ${month}, ${hours}:${minutes}`;
 }
 
 export default function History() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const router = useRouter();
   const history = useRaceHistory();
 
-  const screenTitle = tp('История гонок', 'Race history', 'Historia wyscigow', {
+  const screenTitle = tp('История гонок', 'Race history', 'Historia wyścigów', {
     es: 'Historial de regatas',
     fr: 'Historique des courses',
-    de: 'Rennverlauf',
-    it: 'Cronologia gare',
+    de: 'Rennhistorie',
+    it: 'Cronologia regate',
   });
-  const watchLabel = tp('Повтор', 'Watch', 'Powtorka', {
+  const watchLabel = tp('Повтор', 'Watch', 'Powtórka', {
     es: 'Ver',
     fr: 'Revoir',
     de: 'Ansehen',
     it: 'Guarda',
   });
   const coachLabel = tp('Тренер', 'Coach', 'Trener', {
-    es: 'Coach',
+    es: 'Entrenador',
     fr: 'Coach',
-    de: 'Coach',
+    de: 'Trainer',
     it: 'Coach',
   });
-  const clearAllLabel = tp('Очистить всё', 'Clear all', 'Wyczysc wszystko', {
+  const clearAllLabel = tp('Очистить всё', 'Clear all', 'Wyczyść wszystko', {
     es: 'Borrar todo',
     fr: 'Tout effacer',
-    de: 'Alles loeschen',
+    de: 'Alles löschen',
     it: 'Cancella tutto',
   });
-  const emptyTitle = tp('Пока пусто', 'Nothing here yet', 'Pusto', {
-    es: 'Vacio por ahora',
+  const emptyTitle = tp('Пока пусто', 'Nothing here yet', 'Na razie pusto', {
+    es: 'Aún no hay nada',
     fr: 'Encore vide',
     de: 'Noch nichts hier',
     it: 'Ancora vuoto',
@@ -89,40 +99,40 @@ export default function History() {
   const emptySubtitle = tp(
     'Финишируй гонку в симуляторе, чтобы она появилась здесь.',
     'Finish a race in the simulator to see it here.',
-    'Skoncz wyscig w symulatorze, by pojawil sie tutaj.',
+    'Ukończ wyścig w symulatorze, a pojawi się tutaj.',
     {
-      es: 'Termina una regata en el simulador para verla aqui.',
+      es: 'Termina una regata en el simulador para verla aquí.',
       fr: 'Termine une course dans le simulateur pour la voir ici.',
       de: 'Beende ein Rennen im Simulator, damit es hier erscheint.',
-      it: 'Termina una gara nel simulatore per vederla qui.',
+      it: 'Completa una regata nel simulatore per vederla qui.',
     },
   );
-  const emptyCtaLabel = tp('К гонке', 'To the race', 'Do wyscigu', {
+  const emptyCtaLabel = tp('К гонке', 'To the race', 'Do wyścigu', {
     es: 'A la regata',
-    fr: 'A la course',
+    fr: 'À la course',
     de: 'Zum Rennen',
-    it: 'Alla gara',
+    it: 'Alla regata',
   });
   const confirmTitle = tp(
     'Очистить историю?',
     'Clear race history?',
-    'Wyczyscic historie?',
+    'Wyczyścić historię?',
     {
       es: '¿Borrar el historial?',
-      fr: 'Effacer lhistorique ?',
-      de: 'Verlauf loeschen?',
+      fr: 'Effacer l\'historique ?',
+      de: 'Verlauf löschen?',
       it: 'Cancellare la cronologia?',
     },
   );
   const confirmBody = tp(
     'Действие нельзя отменить.',
     'This cannot be undone.',
-    'Tej operacji nie mozna cofnac.',
+    'Tej operacji nie można cofnąć.',
     {
-      es: 'Esta accion no se puede deshacer.',
-      fr: 'Cette action ne peut pas etre annulee.',
-      de: 'Diese Aktion kann nicht rueckgaengig gemacht werden.',
-      it: 'Questa azione non puo essere annullata.',
+      es: 'Esta acción no se puede deshacer.',
+      fr: 'Cette action est irréversible.',
+      de: 'Das kann nicht rückgängig gemacht werden.',
+      it: 'Questa azione non può essere annullata.',
     },
   );
   const cancelLabel = tp('Отмена', 'Cancel', 'Anuluj', {
@@ -131,13 +141,13 @@ export default function History() {
     de: 'Abbrechen',
     it: 'Annulla',
   });
-  const confirmYesLabel = tp('Очистить', 'Clear', 'Wyczysc', {
+  const confirmYesLabel = tp('Очистить', 'Clear', 'Wyczyść', {
     es: 'Borrar',
     fr: 'Effacer',
-    de: 'Loeschen',
+    de: 'Löschen',
     it: 'Cancella',
   });
-  const scoreLabel = tp('Очки', 'Score', 'Wynik', {
+  const scoreLabel = tp('Очки', 'Score', 'Punkty', {
     es: 'Puntos',
     fr: 'Score',
     de: 'Punkte',
@@ -207,6 +217,7 @@ export default function History() {
               router.push(`/coach?raceId=${encodeURIComponent(race.id)}`)
             }
             tp={tp}
+            lang={lang}
             watchLabel={watchLabel}
             coachLabel={coachLabel}
             timeLabel={timeLabel}
@@ -238,6 +249,7 @@ interface RaceCardProps {
   onWatch: () => void;
   onCoach: () => void;
   tp: ReturnType<typeof useI18n>['tp'];
+  lang: Lang;
   watchLabel: string;
   coachLabel: string;
   timeLabel: string;
@@ -249,6 +261,7 @@ function RaceCard({
   onWatch,
   onCoach,
   tp,
+  lang,
   watchLabel,
   coachLabel,
   timeLabel,
@@ -263,7 +276,7 @@ function RaceCard({
           {courseTitle}
         </Text>
         <Text variant="muted" style={styles.raceMeta}>
-          {formatFinishedAt(race.finishedAt)}
+          {formatFinishedAt(race.finishedAt, lang)}
         </Text>
       </View>
       <View style={styles.raceStatsRow}>

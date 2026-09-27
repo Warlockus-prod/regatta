@@ -85,16 +85,16 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
   }, [open]);
 
   const categories: { id: Category; labelRu: string; labelEn: string; labelPl: string; labelEs: string; labelFr: string; labelDe: string; labelIt: string; emoji: string }[] = [
-    { id: 'useful', labelRu: 'Полезно', labelEn: 'Useful', labelPl: 'Przydatne', labelEs: 'Util', labelFr: 'Utile', labelDe: 'Nuetzlich', labelIt: 'Utile', emoji: '👍' },
+    { id: 'useful', labelRu: 'Полезно', labelEn: 'Useful', labelPl: 'Przydatne', labelEs: 'Útil', labelFr: 'Utile', labelDe: 'Nützlich', labelIt: 'Utile', emoji: '👍' },
     { id: 'unclear', labelRu: 'Непонятно', labelEn: 'Unclear', labelPl: 'Niejasne', labelEs: 'Confuso', labelFr: 'Pas clair', labelDe: 'Unklar', labelIt: 'Poco chiaro', emoji: '❓' },
-    { id: 'idea', labelRu: 'Идея', labelEn: 'Idea', labelPl: 'Pomysl', labelEs: 'Idea', labelFr: 'Idee', labelDe: 'Idee', labelIt: 'Idea', emoji: '💡' },
+    { id: 'idea', labelRu: 'Идея', labelEn: 'Idea', labelPl: 'Pomysł', labelEs: 'Idea', labelFr: 'Idée', labelDe: 'Idee', labelIt: 'Idea', emoji: '💡' },
     { id: 'other', labelRu: 'Другое', labelEn: 'Other', labelPl: 'Inne', labelEs: 'Otro', labelFr: 'Autre', labelDe: 'Sonstiges', labelIt: 'Altro', emoji: '✏️' },
   ];
 
   const submitFeedback = useCallback(async () => {
     if (!message.trim()) {
-      setError(tp('Напиши пару слов, что улучшить', 'Write a couple of words', 'Napisz kilka slow',
-        { es: 'Escribe un par de palabras', fr: 'Ecris quelques mots', de: 'Schreib ein paar Worte', it: 'Scrivi due parole' }));
+      setError(tp('Напиши пару слов, что улучшить', 'Write a few words on what to improve', 'Napisz w kilku słowach, co poprawić',
+        { es: 'Escribe en pocas palabras qué mejorar', fr: 'Écris en quelques mots ce qu\'il faut améliorer', de: 'Schreib in ein paar Worten, was besser werden soll', it: 'Scrivi in due parole cosa migliorare' }));
       return;
     }
     setSending(true);
@@ -119,8 +119,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || tp('Не удалось отправить', 'Failed to send', 'Nie udalo sie wyslac',
-          { es: 'No se pudo enviar', fr: 'Echec de l\'envoi', de: 'Senden fehlgeschlagen', it: 'Invio non riuscito' }));
+        throw new Error(data.error || tp('Не удалось отправить', 'Failed to send', 'Nie udało się wysłać',
+          { es: 'No se pudo enviar', fr: 'Échec de l\'envoi', de: 'Senden fehlgeschlagen', it: 'Invio non riuscito' }));
       }
       setSent(true);
       setMessage('');
@@ -132,8 +132,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
         setSent(false);
       }, 1800);
     } catch (err) {
-      setError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Blad sieci',
-        { es: 'Error de red', fr: 'Erreur reseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
+      setError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci',
+        { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
     } finally {
       setSending(false);
     }
@@ -160,8 +160,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       }
       setChat([...nextChat, { role: 'assistant', content: data.reply || '' }]);
     } catch (err) {
-      setChatError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Blad sieci',
-        { es: 'Error de red', fr: 'Erreur reseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
+      setChatError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci',
+        { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
     } finally {
       setChatLoading(false);
     }
@@ -175,8 +175,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
       {!open && (
         <button
           onClick={() => setOpen(true)}
-          aria-label={tp('Открыть ассистента', 'Open assistant', 'Otworz asystenta',
-            { es: 'Abrir asistente', fr: 'Ouvrir l\'assistant', de: 'Assistent oeffnen', it: 'Apri assistente' })}
+          aria-label={tp('Открыть ассистента', 'Open assistant', 'Otwórz asystenta',
+            { es: 'Abrir asistente', fr: 'Ouvrir l\'assistant', de: 'Assistent öffnen', it: 'Apri assistente' })}
           className="fixed bottom-4 right-4 z-40 w-12 h-12 rounded-full shadow-lg flex items-center justify-center transition hover:scale-105 active:scale-95"
           style={{
             background: 'var(--bg-secondary)',
@@ -215,20 +215,20 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   ? tp('AI-ассистент', 'AI assistant', 'Asystent AI',
                       { es: 'Asistente IA', fr: 'Assistant IA', de: 'KI-Assistent', it: 'Assistente IA' })
                   : sent
-                    ? tp('Спасибо! ✨', 'Thanks! ✨', 'Dziekuje! ✨',
+                    ? tp('Спасибо! ✨', 'Thanks! ✨', 'Dziękuję! ✨',
                         { es: '¡Gracias! ✨', fr: 'Merci ! ✨', de: 'Danke! ✨', it: 'Grazie! ✨' })
                     : kind === 'feedback'
                       ? tp('Отзыв', 'Feedback', 'Opinia',
                           { es: 'Comentario', fr: 'Avis', de: 'Feedback', it: 'Commento' })
-                      : tp('Сообщить о проблеме', 'Report a problem', 'Zglos problem',
-                          { es: 'Reportar un problema', fr: 'Signaler un probleme', de: 'Problem melden', it: 'Segnala un problema' })}
+                      : tp('Сообщить о проблеме', 'Report a problem', 'Zgłoś problem',
+                          { es: 'Informar de un problema', fr: 'Signaler un problème', de: 'Problem melden', it: 'Segnala un problema' })}
               </h2>
               <button
                 ref={closeBtnRef}
                 onClick={() => setOpen(false)}
                 disabled={sending}
                 aria-label={tp('Закрыть', 'Close', 'Zamknij',
-                  { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' })}
+                  { es: 'Cerrar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi' })}
                 className="text-[var(--text-muted)] hover:text-[var(--text-primary)] w-8 h-8 flex items-center justify-center"
               >
                 ✕
@@ -247,7 +247,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                 }}
               >
                 🧭 {tp('Спросить AI', 'Ask AI', 'Zapytaj AI',
-                  { es: 'Preguntar a la IA', fr: 'Demander a l\'IA', de: 'KI fragen', it: 'Chiedi all\'IA' })}
+                  { es: 'Preguntar a la IA', fr: 'Demander à l\'IA', de: 'KI fragen', it: 'Chiedi all\'IA' })}
               </button>
               <button
                 onClick={() => setTab('feedback')}
@@ -274,22 +274,22 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {tp(
                         'Привет! Спроси что-нибудь про яхтинг: курсы к ветру, правила, трим парусов, как лавировать. Сначала направлю по разделам сайта - если там нет, отвечу сам.',
                         "Hi! Ask anything about sailing: points of sail, rules, sail trim, tacking. I'll point you to a section of the site first - if it's not there, I'll answer myself.",
-                        "Czesc! Zapytaj o cokolwiek z zeglarstwa: kursy, przepisy, trym zagli, halsowanie. Najpierw wskaze sekcje strony - jesli tam nie ma, odpowiem sam.",
+                        "Cześć! Zapytaj o cokolwiek z żeglarstwa: kursy względem wiatru, przepisy, trym żagli, halsowanie. Najpierw wskażę dział strony, a jeśli tam tego nie ma, odpowiem sam.",
                         {
-                          es: 'Hola! Pregunta lo que quieras sobre vela: rumbos, reglas, trimado de velas, como virar. Primero te indicare una seccion del sitio - si no esta ahi, te respondo yo.',
-                          fr: 'Salut ! Pose toutes tes questions sur la voile : allures, regles, reglage des voiles, virement de bord. Je te dirige d\'abord vers une section du site - si ce n\'est pas la, je reponds moi-meme.',
-                          de: 'Hallo! Frag alles rund ums Segeln: Kurse zum Wind, Regeln, Segeltrimm, Wenden. Zuerst verweise ich dich auf einen Bereich der Seite - wenn es dort nicht steht, antworte ich selbst.',
-                          it: 'Ciao! Chiedi qualsiasi cosa sulla vela: andature, regole, regolazione delle vele, come virare. Prima ti indirizzo a una sezione del sito - se non c\'e, rispondo io.',
+                          es: '¡Hola! Pregunta lo que quieras sobre vela: rumbos, reglas, trimado de velas, cómo dar bordos. Primero te indicaré una sección del sitio; si no está ahí, te respondo yo.',
+                          fr: 'Salut ! Pose toutes tes questions sur la voile : allures, règles, réglage des voiles, louvoyage. Je t\'oriente d\'abord vers une rubrique du site ; si ce n\'est pas là, je réponds moi-même.',
+                          de: 'Hallo! Frag alles rund ums Segeln: Kurse zum Wind, Regeln, Segeltrimm, Kreuzen. Zuerst verweise ich dich auf einen Bereich der Seite - steht es dort nicht, antworte ich selbst.',
+                          it: 'Ciao! Chiedi qualsiasi cosa sulla vela: andature, regole, regolazione delle vele, come bordeggiare. Prima ti indirizzo a una sezione del sito; se non c\'è, rispondo io.',
                         }
                       )}
                       <div className="mt-2 flex flex-wrap gap-1.5 text-[11px]">
                         {([
-                          tp('Как начать лавировку?', 'How to start tacking?', 'Jak zaczac halsowanie?',
-                            { es: 'Como empezar a virar?', fr: 'Comment commencer a virer ?', de: 'Wie fange ich mit dem Wenden an?', it: 'Come iniziare a virare?' }),
-                          tp('Что такое фордевинд?', 'What is running?', 'Co to fordewind?',
-                            { es: 'Que es la empopada?', fr: 'Qu\'est-ce que le vent arriere ?', de: 'Was ist Vorwindkurs?', it: 'Cos\'e l\'andatura in poppa?' }),
-                          tp('Что такое apparent wind?', 'What is apparent wind?', 'Co to apparent wind?',
-                            { es: 'Que es el viento aparente?', fr: 'Qu\'est-ce que le vent apparent ?', de: 'Was ist der scheinbare Wind?', it: 'Cos\'e il vento apparente?' }),
+                          tp('Как начать лавировку?', 'How do I start beating upwind?', 'Jak zacząć halsowanie?',
+                            { es: '¿Cómo empiezo a dar bordos?', fr: 'Comment commencer à louvoyer ?', de: 'Wie fange ich mit dem Kreuzen an?', it: 'Come si inizia a bordeggiare?' }),
+                          tp('Что такое фордевинд?', 'What is a dead run?', 'Co to jest fordewind?',
+                            { es: '¿Qué es el rumbo de popa?', fr: 'Qu\'est-ce que le vent arrière ?', de: 'Was ist ein Vorwindkurs?', it: 'Cos\'è l\'andatura di poppa?' }),
+                          tp('Что такое apparent wind?', 'What is apparent wind?', 'Co to jest wiatr pozorny?',
+                            { es: '¿Qué es el viento aparente?', fr: 'Qu\'est-ce que le vent apparent ?', de: 'Was ist der scheinbare Wind?', it: 'Cos\'è il vento apparente?' }),
                         ]).map((q) => (
                           <button
                             key={q}
@@ -310,8 +310,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   {chatLoading && (
                     <div className="text-sm text-[var(--text-muted)] flex items-center gap-2 px-2">
                       <span className="inline-block w-2 h-2 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-                      {tp('Думаю...', 'Thinking...', 'Mysle...',
-                        { es: 'Pensando...', fr: 'Reflexion...', de: 'Denke nach...', it: 'Sto pensando...' })}
+                      {tp('Думаю...', 'Thinking...', 'Myślę...',
+                        { es: 'Pensando...', fr: 'Réflexion...', de: 'Denke nach...', it: 'Sto pensando...' })}
                     </div>
                   )}
 
@@ -339,8 +339,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                     type="text"
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
-                    placeholder={tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o zeglarstwo...',
-                      { es: 'Pregunta sobre vela...', fr: 'Pose une question sur la voile...', de: 'Frag zum Segeln...', it: 'Chiedi sulla vela...' })}
+                    placeholder={tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o żeglarstwo...',
+                      { es: 'Pregunta sobre vela...', fr: 'Pose une question sur la voile...', de: 'Frag zum Segeln...', it: 'Fai una domanda sulla vela...' })}
                     disabled={chatLoading}
                     className="flex-1 min-w-0 px-3 py-2 rounded-lg text-sm"
                     style={{
@@ -362,7 +362,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   </button>
                 </form>
                 <div className="text-[10px] text-[var(--text-muted)] mt-2 text-center">
-                  {tp('Только темы яхтинга. Powered by Claude.', 'Sailing topics only. Powered by Claude.', 'Tylko zeglarstwo. Powered by Claude.',
+                  {tp('Только темы яхтинга. Powered by Claude.', 'Sailing topics only. Powered by Claude.', 'Tylko tematy żeglarskie. Powered by Claude.',
                     { es: 'Solo temas de vela. Powered by Claude.', fr: 'Sujets de voile uniquement. Powered by Claude.', de: 'Nur Segelthemen. Powered by Claude.', it: 'Solo temi di vela. Powered by Claude.' })}
                 </div>
               </div>
@@ -375,12 +375,12 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   <p className="text-sm text-[var(--text-secondary)]">
                     {tp('Получил, буду разбирать. Если указал контакт - отвечу.',
                         "Got it. I'll go through this. If you left a contact, I'll reply.",
-                        'Otrzymalem. Przejrze. Jesli zostawiles kontakt - odpowiem.',
+                        'Otrzymałem, przejrzę to. Jeśli zostawiłeś kontakt, odpowiem.',
                         {
-                          es: 'Recibido. Lo revisare. Si dejaste un contacto, te respondere.',
-                          fr: 'Bien recu. Je vais regarder. Si tu as laisse un contact, je te repondrai.',
-                          de: 'Erhalten. Ich schaue es mir an. Wenn du einen Kontakt hinterlassen hast, antworte ich.',
-                          it: 'Ricevuto. Lo esaminero. Se hai lasciato un contatto, ti rispondero.',
+                          es: 'Recibido, lo revisaré. Si dejaste un contacto, te responderé.',
+                          fr: 'Bien reçu, je vais regarder. Si tu as laissé un contact, je te répondrai.',
+                          de: 'Angekommen, ich schaue es mir an. Wenn du einen Kontakt hinterlassen hast, antworte ich.',
+                          it: 'Ricevuto, lo esaminerò. Se hai lasciato un contatto, ti risponderò.',
                         })}
                   </p>
                 ) : (
@@ -407,7 +407,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                           color: kind === 'bug' ? 'var(--danger)' : 'var(--text-secondary)',
                         }}
                       >
-                        🐛 {tp('Проблема', 'Bug', 'Blad',
+                        🐛 {tp('Проблема', 'Bug', 'Błąd',
                   { es: 'Problema', fr: 'Bug', de: 'Fehler', it: 'Problema' })}
                       </button>
                     </div>
@@ -416,7 +416,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       <div className="mb-4">
                         <div className="text-xs font-medium tracking-wider text-[var(--text-muted)] mb-2">
                           {tp('КАТЕГОРИЯ', 'CATEGORY', 'KATEGORIA',
-                            { es: 'CATEGORIA', fr: 'CATEGORIE', de: 'KATEGORIE', it: 'CATEGORIA' })}
+                            { es: 'CATEGORÍA', fr: 'CATÉGORIE', de: 'KATEGORIE', it: 'CATEGORIA' })}
                         </div>
                         <div className="grid grid-cols-4 gap-1.5">
                           {categories.map((c) => (
@@ -443,8 +443,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {kind === 'bug' && (
                         <>
                           <textarea
-                            placeholder={tp('Что ожидал увидеть?', 'What did you expect?', 'Czego sie spodziewales?',
-                              { es: 'Que esperabas ver?', fr: 'A quoi t\'attendais-tu ?', de: 'Was hast du erwartet?', it: 'Cosa ti aspettavi?' })}
+                            placeholder={tp('Что ожидал увидеть?', 'What did you expect?', 'Czego się spodziewałeś?',
+                              { es: '¿Qué esperabas ver?', fr: 'À quoi t\'attendais-tu ?', de: 'Was hast du erwartet?', it: 'Cosa ti aspettavi?' })}
                             value={expected}
                             onChange={(e) => setExpected(e.target.value)}
                             rows={2}
@@ -456,8 +456,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                             }}
                           />
                           <textarea
-                            placeholder={tp('Что произошло на самом деле?', 'What actually happened?', 'Co sie wlasciwie stalo?',
-                              { es: 'Que paso en realidad?', fr: 'Que s\'est-il vraiment passe ?', de: 'Was ist tatsaechlich passiert?', it: 'Cosa e successo davvero?' })}
+                            placeholder={tp('Что произошло на самом деле?', 'What actually happened?', 'Co się właściwie stało?',
+                              { es: '¿Qué pasó en realidad?', fr: 'Que s\'est-il vraiment passé ?', de: 'Was ist tatsächlich passiert?', it: 'Cos\'è successo davvero?' })}
                             value={actual}
                             onChange={(e) => setActual(e.target.value)}
                             rows={2}
@@ -474,10 +474,10 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       <textarea
                         placeholder={
                           kind === 'feedback'
-                            ? tp('Расскажи подробнее (необязательно)', 'Tell me more (optional)', 'Opowiedz wiecej (opcjonalnie)',
-                                { es: 'Cuentame mas (opcional)', fr: 'Dis-m\'en plus (facultatif)', de: 'Erzaehl mehr (optional)', it: 'Raccontami di piu (facoltativo)' })
-                            : tp('Дополнительные детали (шаги воспроизведения)', 'More details (steps to reproduce)', 'Wiecej szczegolow (kroki)',
-                                { es: 'Mas detalles (pasos para reproducir)', fr: 'Plus de details (etapes pour reproduire)', de: 'Weitere Details (Schritte zum Reproduzieren)', it: 'Altri dettagli (passi per riprodurre)' })
+                            ? tp('Расскажи подробнее (необязательно)', 'Tell me more (optional)', 'Opowiedz więcej (opcjonalnie)',
+                                { es: 'Cuéntame más (opcional)', fr: 'Dis-m\'en plus (facultatif)', de: 'Erzähl mehr (optional)', it: 'Raccontami di più (facoltativo)' })
+                            : tp('Дополнительные детали (шаги воспроизведения)', 'More details (steps to reproduce)', 'Więcej szczegółów (jak odtworzyć błąd)',
+                                { es: 'Más detalles (pasos para reproducirlo)', fr: 'Plus de détails (étapes pour reproduire)', de: 'Weitere Details (Schritte zum Nachstellen)', it: 'Altri dettagli (passi per riprodurre)' })
                         }
                         value={message}
                         onChange={(e) => setMessage(e.target.value)}
@@ -498,7 +498,7 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                           'Email lub @telegram (opcjonalnie - odpowiemy)',
                           {
                             es: 'Email o @telegram (opcional - te respondemos)',
-                            fr: 'Email ou @telegram (facultatif - on te repond)',
+                            fr: 'Email ou @telegram (facultatif - on te répond)',
                             de: 'E-Mail oder @telegram (optional - wir antworten)',
                             it: 'Email o @telegram (facoltativo - ti rispondiamo)',
                           },
@@ -518,11 +518,11 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       {tp(
                         'Автоматически приложим: страницу, размер экрана, браузер, язык, время.',
                         'We\'ll auto-attach: page, viewport, browser, language, time.',
-                        'Automatycznie dolaczymy: strone, rozmiar ekranu, przegladarke, jezyk, czas.',
+                        'Automatycznie dołączymy: stronę, rozmiar ekranu, przeglądarkę, język, czas.',
                         {
-                          es: 'Adjuntaremos automaticamente: pagina, tamano de pantalla, navegador, idioma, hora.',
-                          fr: 'Nous joindrons automatiquement : page, taille d\'ecran, navigateur, langue, heure.',
-                          de: 'Wir haengen automatisch an: Seite, Bildschirmgroesse, Browser, Sprache, Uhrzeit.',
+                          es: 'Adjuntaremos automáticamente: página, tamaño de pantalla, navegador, idioma, hora.',
+                          fr: 'Nous joindrons automatiquement : page, taille d\'écran, navigateur, langue, heure.',
+                          de: 'Wir hängen automatisch an: Seite, Bildschirmgröße, Browser, Sprache, Uhrzeit.',
                           it: 'Allegheremo automaticamente: pagina, dimensione schermo, browser, lingua, ora.',
                         },
                       )}
@@ -544,13 +544,13 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                       }}
                     >
                       {sending
-                        ? tp('Отправляю…', 'Sending…', 'Wysylam…',
-                            { es: 'Enviando…', fr: 'Envoi…', de: 'Senden…', it: 'Invio…' })
+                        ? tp('Отправляю...', 'Sending...', 'Wysyłam...',
+                            { es: 'Enviando...', fr: 'Envoi...', de: 'Wird gesendet...', it: 'Invio...' })
                         : kind === 'feedback'
-                          ? tp('Отправить отзыв', 'Send feedback', 'Wyslij opinie',
-                              { es: 'Enviar comentario', fr: 'Envoyer le retour', de: 'Feedback senden', it: 'Invia commento' })
-                          : tp('Отправить репорт', 'Send report', 'Wyslij zgloszenie',
-                              { es: 'Enviar reporte', fr: 'Envoyer le rapport', de: 'Bericht senden', it: 'Invia segnalazione' })}
+                          ? tp('Отправить отзыв', 'Send feedback', 'Wyślij opinię',
+                              { es: 'Enviar comentario', fr: 'Envoyer mon avis', de: 'Feedback senden', it: 'Invia commento' })
+                          : tp('Отправить репорт', 'Send report', 'Wyślij zgłoszenie',
+                              { es: 'Enviar informe', fr: 'Envoyer le rapport', de: 'Bericht senden', it: 'Invia segnalazione' })}
                     </button>
                   </>
                 )}

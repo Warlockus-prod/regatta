@@ -63,7 +63,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Слишком близко к ветру. Уваливайся, чтобы восстановить ход.',
         'Too close to the wind. Bear away to recover speed.',
-        'Strefa martwa. Zejdz od wiatru.',
+        'Za ostro do wiatru. Odpadnij, żeby odzyskać prędkość.',
         {
           es: 'Demasiado cerca del viento. Arriba para recuperar velocidad.',
           fr: "Trop près du vent. Abats pour reprendre de la vitesse.",
@@ -79,11 +79,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Крен критический. Риф СЕЙЧАС.',
         'Heel is critical. Reef NOW.',
-        'Przechyl krytyczny. Refa, juz.',
+        'Krytyczny przechył. Refuj TERAZ.',
         {
-          es: 'Escora crítica. Riza YA.',
+          es: 'Escora crítica. Toma un rizo YA.',
           fr: 'Gîte critique. Prends un ris MAINTENANT.',
-          de: 'Kraengung kritisch. JETZT reffen.',
+          de: 'Krängung kritisch. JETZT reffen.',
           it: 'Sbandamento critico. Terzarola SUBITO.',
         },
       ),
@@ -95,11 +95,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Срыв грота + большой крен. Ослабь шкот и рифься.',
         'Main stalled and heeling hard. Ease the main and reef.',
-        'Grot zerwany i duzy przechyl. Popusc i refuj.',
+        'Oderwanie przepływu na grocie i duży przechył. Poluzuj szot i refuj.',
         {
-          es: 'Mayor en stall y mucha escora. Lasca la escota y riza.',
+          es: 'Flujo desprendido en la mayor y mucha escora. Lasca la escota y toma un rizo.',
           fr: "GV décrochée et forte gîte. Choque l'écoute et prends un ris.",
-          de: 'Gross im Stall und starke Kraengung. Schot fieren und reffen.',
+          de: 'Strömungsabriss am Groß und starke Krängung. Schot fieren und reffen.',
           it: 'Randa in stallo e forte sbandamento. Lasca la scotta e terzarola.',
         },
       ),
@@ -110,7 +110,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   // -------- WARNING --------
   if (mainSet && diag.mainStalled && absTwa < 135) {
     const tail = trimDelta > TRIM_RISING
-      ? tp(' Уже лучше.', ' Recovering.', ' Poprawia sie.', {
+      ? tp(' Уже лучше.', ' Recovering.', ' Już lepiej.', {
           es: ' Se recupera.',
           fr: ' Ça revient.',
           de: ' Wird besser.',
@@ -121,11 +121,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Грот перетянут - поток сорвался.' + tail,
         'Main overtrimmed - flow has detached.' + tail,
-        'Grot przebrany - przeplyw oderwany.' + tail,
+        'Grot za mocno wybrany: przepływ się oderwał.' + tail,
         {
-          es: 'Mayor sobretrimada: el flujo se ha desprendido.' + tail,
-          fr: "GV surbordée : l'écoulement a décroché." + tail,
-          de: 'Gross zu dicht - Stroemung abgerissen.' + tail,
+          es: 'Mayor demasiado cazada: el flujo se ha desprendido.' + tail,
+          fr: "GV trop bordée : l'écoulement a décroché." + tail,
+          de: 'Groß zu dicht: Strömung abgerissen.' + tail,
           it: 'Randa troppo cazzata: il flusso si è staccato.' + tail,
         },
       ),
@@ -137,12 +137,12 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Стаксель перетянут и душит слот.',
         'Jib is overtrimmed and choking the slot.',
-        'Fok przebrany - dusi slot.',
+        'Fok za mocno wybrany: zamyka szczelinę.',
         {
-          es: 'Foque sobretrimado: ahoga el slot.',
-          fr: 'Foc surbordé : il étouffe le slot.',
-          de: 'Fock zu dicht - sie erstickt den Slot.',
-          it: 'Fiocco troppo cazzato: soffoca lo slot.',
+          es: 'Foque demasiado cazado: cierra la ranura.',
+          fr: 'Foc trop bordé : il ferme la fente.',
+          de: 'Fock zu dicht: sie schließt den Spalt.',
+          it: 'Fiocco troppo cazzato: chiude la fessura.',
         },
       ),
       tone: 'warn',
@@ -151,30 +151,30 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (heelAbs > 22 && ui.windSpeed >= 16 && ui.reefLevel === 0) {
     const heelRound = Math.round(heelAbs);
     const tail = heelDelta > HEEL_RISING
-      ? tp(' и растёт', ' and rising', ' i rosnie', {
+      ? tp(' и растёт', ' and rising', ' i rośnie', {
           es: ' y subiendo',
-          fr: ' et ça monte',
+          fr: ' en hausse',
           de: ' und steigt',
           it: ' e cresce',
         })
       : heelDelta < HEEL_FALLING
-      ? tp(' оседает', ' settling', ' opada', {
-          es: ' bajando',
-          fr: ' ça retombe',
-          de: ' geht zurueck',
-          it: ' cala',
+      ? tp(' оседает', ' settling', ' i maleje', {
+          es: ' y bajando',
+          fr: ' en baisse',
+          de: ' geht zurück',
+          it: ' in calo',
         })
       : '';
     return {
       text: tp(
         `Крен ${heelRound}°${tail}. Пора рифиться.`,
         `Heel ${heelRound}°${tail}. Reef time.`,
-        `Przechyl ${heelRound}°${tail}. Czas refic.`,
+        `Przechył ${heelRound}°${tail}. Czas refować.`,
         {
-          es: `Escora ${heelRound}°${tail}. Hora de rizar.`,
-          fr: `Gîte ${heelRound}°${tail}. C'est l'heure du ris.`,
-          de: `Kraengung ${heelRound}°${tail}. Zeit zu reffen.`,
-          it: `Sbandamento ${heelRound}°${tail}. Ora di terzarolare.`,
+          es: `Escora ${heelRound}°${tail}. Hora de tomar un rizo.`,
+          fr: `Gîte ${heelRound}°${tail}. Il est temps de prendre un ris.`,
+          de: `Krängung ${heelRound}°${tail}. Zeit zu reffen.`,
+          it: `Sbandamento ${heelRound}°${tail}. È ora di terzarolare.`,
         },
       ),
       tone: 'warn',
@@ -185,7 +185,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Паруса полощут - подтяни шкоты.',
         'Sails are luffing - sheet in.',
-        'Zagle lopoczaz - wybierz szoty.',
+        'Żagle łopoczą: wybierz szoty.',
         {
           es: 'Las velas flamean: caza las escotas.',
           fr: 'Les voiles faseyent : borde les écoutes.',
@@ -201,11 +201,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Большой снос, киль уже не держит.',
         'Heavy sideways drift - keel saturated.',
-        'Duzy dryf, kil utracil przyczepnosc.',
+        'Duży dryf: kil już nie trzyma.',
         {
           es: 'Mucho abatimiento: la quilla ya no aguanta.',
-          fr: 'Forte dérive : la quille sature.',
-          de: 'Starke Abdrift - der Kiel haelt nicht mehr.',
+          fr: 'Forte dérive : la quille ne tient plus.',
+          de: 'Starke Abdrift: der Kiel hält nicht mehr.',
           it: 'Forte scarroccio: la chiglia non tiene più.',
         },
       ),
@@ -219,11 +219,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Грот у грани срыва. Не тяни сильнее.',
         'Main is on the edge of stall. Do not sheet harder.',
-        'Grot na krawedzi zerwania.',
+        'Grot na granicy oderwania przepływu. Nie wybieraj mocniej.',
         {
-          es: 'La mayor está al borde del stall. No caces más.',
+          es: 'La mayor está al borde del desprendimiento. No caces más.',
           fr: 'La GV est au bord du décrochage. Ne borde pas plus.',
-          de: 'Gross kurz vor dem Stall. Nicht weiter dichtholen.',
+          de: 'Groß kurz vor dem Strömungsabriss. Nicht weiter dichtholen.',
           it: 'La randa è al limite dello stallo. Non cazzare oltre.',
         },
       ),
@@ -235,11 +235,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Стаксель у грани срыва.',
         'Jib is on the edge of stall.',
-        'Fok na krawedzi zerwania.',
+        'Fok na granicy oderwania przepływu.',
         {
-          es: 'El foque está al borde del stall.',
+          es: 'El foque está al borde del desprendimiento.',
           fr: 'Le foc est au bord du décrochage.',
-          de: 'Fock kurz vor dem Stall.',
+          de: 'Fock kurz vor dem Strömungsabriss.',
           it: 'Il fiocco è al limite dello stallo.',
         },
       ),
@@ -251,12 +251,12 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Слот закрывается - ослабь стаксель.',
         'Slot is closing - ease the jib.',
-        'Slot sie zamyka - popusc foka.',
+        'Szczelina się zamyka: poluzuj szot foka.',
         {
-          es: 'El slot se cierra: lasca el foque.',
-          fr: 'Le slot se ferme : choque le foc.',
-          de: 'Der Slot schliesst sich - Fock fieren.',
-          it: 'Lo slot si chiude: lasca il fiocco.',
+          es: 'La ranura se cierra: lasca el foque.',
+          fr: 'La fente se ferme : choque le foc.',
+          de: 'Der Spalt schließt sich: Fock fieren.',
+          it: 'La fessura si chiude: lasca il fiocco.',
         },
       ),
       tone: 'info',
@@ -267,11 +267,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Крен растёт, скорость падает.',
         'Heel building, speed dropping.',
-        'Przechyl rosnie, predkosc spada.',
+        'Przechył rośnie, prędkość spada.',
         {
           es: 'La escora sube, la velocidad cae.',
           fr: 'La gîte monte, la vitesse tombe.',
-          de: 'Kraengung steigt, Fahrt faellt.',
+          de: 'Krängung steigt, Fahrt fällt.',
           it: 'Lo sbandamento cresce, la velocità cala.',
         },
       ),
@@ -282,7 +282,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   // -------- HEALTHY --------
   if (mainSet && jibSet && diag.slotHealth > 0.7 && absTwa < 130 && !diag.mainStalled && !diag.jibStalled) {
     const tail = trimDelta > TRIM_RISING
-      ? tp(' Разгоняемся.', ' Picking up.', ' Rozpedza sie.', {
+      ? tp(' Разгоняемся.', ' Picking up.', ' Przyspieszamy.', {
           es: ' Acelerando.',
           fr: ' Ça accélère.',
           de: ' Nimmt Fahrt auf.',
@@ -300,12 +300,12 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       text: tp(
         'Слот здоров - оба паруса тянут.' + tail,
         'Slot is healthy - both sails pulling.' + tail,
-        'Slot zdrowy - oba zagle ciagna.' + tail,
+        'Szczelina w porządku: oba żagle pracują.' + tail,
         {
-          es: 'Slot sano: ambas velas tiran.' + tail,
-          fr: 'Slot sain : les deux voiles portent.' + tail,
-          de: 'Slot gesund - beide Segel ziehen.' + tail,
-          it: 'Slot sano: entrambe le vele tirano.' + tail,
+          es: 'Buena ranura: las dos velas tiran.' + tail,
+          fr: 'Bonne fente : les deux voiles portent.' + tail,
+          de: 'Guter Spalt: beide Segel ziehen.' + tail,
+          it: 'Buona fessura: entrambe le vele tirano.' + tail,
         },
       ),
       tone: 'good',
@@ -313,8 +313,8 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   }
   if (state.boatSpeed >= 5 && heelAbs < 20 && !diag.mainStalled && !diag.jibStalled) {
     const tail = trimDelta > TRIM_RISING
-      ? tp(' Держи так.', ' Hold it.', ' Trzymaj.', {
-          es: ' Mantenlo.',
+      ? tp(' Держи так.', ' Hold it.', ' Tak trzymaj.', {
+          es: ' Mantenlo así.',
           fr: ' Tiens bon.',
           de: ' So halten.',
           it: ' Tieni così.',
@@ -326,7 +326,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
         'Trim is near optimal.' + tail,
         'Trym bliski optymalnego.' + tail,
         {
-          es: 'El trimado está cerca del optimo.' + tail,
+          es: 'El trimado está cerca del óptimo.' + tail,
           fr: 'Le réglage est proche de l\'optimum.' + tail,
           de: 'Der Trimm ist nahe am Optimum.' + tail,
           it: 'Il trim è vicino all\'ottimo.' + tail,
@@ -340,11 +340,11 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
     text: tp(
       'Крути контролы и смотри на скорость и крен.',
       'Move the controls and watch speed and heel.',
-      'Ruszaj slajdery, patrz na predkosc i przechyl.',
+      'Zmieniaj ustawienia i obserwuj prędkość oraz przechył.',
       {
         es: 'Mueve los controles y observa velocidad y escora.',
         fr: 'Bouge les commandes et surveille vitesse et gîte.',
-        de: 'Beweg die Regler und beobachte Fahrt und Kraengung.',
+        de: 'Beweg die Regler und beobachte Fahrt und Krängung.',
         it: 'Muovi i controlli e osserva velocità e sbandamento.',
       },
     ),

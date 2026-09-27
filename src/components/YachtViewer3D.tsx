@@ -248,8 +248,8 @@ export default function YachtViewer3D({
       style={wrapperStyle}
     >
       <SceneBoundary modelUrl={MODEL_URL}
-        errorLabel={tp("Не удалось загрузить яхту. Попробуй ещё раз.", "The yacht could not load. Try again.", "Nie udalo sie zaladowac jachtu. Sprobuj ponownie.", { es: "No se pudo cargar el yate. Reintenta.", fr: "Impossible de charger le bateau. Reessaie.", de: "Yacht konnte nicht geladen werden. Versuche es erneut.", it: "Impossibile caricare la barca. Riprova." })}
-        retryLabel={tp("Повторить", "Try again", "Ponow", { es: "Reintentar", fr: "Reessayer", de: "Erneut versuchen", it: "Riprova" })}>
+        errorLabel={tp("Не удалось загрузить яхту. Попробуй ещё раз.", "The yacht could not load. Try again.", "Nie udało się załadować jachtu. Spróbuj ponownie.", { es: "No se pudo cargar el velero. Inténtalo de nuevo.", fr: "Impossible de charger le voilier. Réessaie.", de: "Die Yacht konnte nicht geladen werden. Versuch es noch einmal.", it: "Impossibile caricare la barca. Riprova." })}
+        retryLabel={tp("Повторить", "Try again", "Spróbuj ponownie", { es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" })}>
       <Canvas
         dpr={[1, 1.5]}
         camera={{ position: VIEW_PRESETS['three-quarter'], fov: 35, near: 0.1, far: 200 }}

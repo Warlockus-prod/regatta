@@ -30,7 +30,7 @@ export default function RuleScenarioDetail() {
 
   const fallbackTitle = tp('Сценарий', 'Scenario', 'Scenariusz', {
     es: 'Escenario',
-    fr: 'Scenario',
+    fr: 'Scénario',
     de: 'Szenario',
     it: 'Scenario',
   });
@@ -44,10 +44,10 @@ export default function RuleScenarioDetail() {
             {tp(
               'Сценарий не найден',
               'Scenario not found',
-              'Scenariusz nie znaleziono',
+              'Nie znaleziono scenariusza',
               {
                 es: 'Escenario no encontrado',
-                fr: 'Scenario introuvable',
+                fr: 'Scénario introuvable',
                 de: 'Szenario nicht gefunden',
                 it: 'Scenario non trovato',
               },
@@ -67,7 +67,7 @@ export default function RuleScenarioDetail() {
 
   const sceneLabel = tp('Сцена', 'Scene', 'Scena', {
     es: 'Escena',
-    fr: 'Scene',
+    fr: 'Scène',
     de: 'Szene',
     it: 'Scena',
   });
@@ -77,20 +77,20 @@ export default function RuleScenarioDetail() {
     de: 'Frage',
     it: 'Domanda',
   });
-  const answerLabel = tp('Ответ', 'Answer', 'Odpowiedz', {
+  const answerLabel = tp('Ответ', 'Answer', 'Odpowiedź', {
     es: 'Respuesta',
-    fr: 'Reponse',
+    fr: 'Réponse',
     de: 'Antwort',
     it: 'Risposta',
   });
   const whyLabel = tp('Почему', 'Why', 'Dlaczego', {
-    es: 'Por que',
+    es: 'Por qué',
     fr: 'Pourquoi',
     de: 'Warum',
-    it: 'Perche',
+    it: 'Perché',
   });
   const practiceLabel = tp('На практике', 'In practice', 'W praktyce', {
-    es: 'En la practica',
+    es: 'En la práctica',
     fr: 'En pratique',
     de: 'In der Praxis',
     it: 'In pratica',
@@ -98,10 +98,10 @@ export default function RuleScenarioDetail() {
   const revealLabel = tp(
     'Показать ответ',
     'Show answer',
-    'Pokaz odpowiedz',
+    'Pokaż odpowiedź',
     {
       es: 'Mostrar respuesta',
-      fr: 'Voir la reponse',
+      fr: 'Voir la réponse',
       de: 'Antwort anzeigen',
       it: 'Mostra risposta',
     },
@@ -112,8 +112,8 @@ export default function RuleScenarioDetail() {
     'Schemat, nie w skali',
     {
       es: 'Esquema, no a escala',
-      fr: 'Schema, pas a lechelle',
-      de: 'Schema, nicht massstabsgetreu',
+      fr: "Schéma, pas à l'échelle",
+      de: 'Schema, nicht maßstabsgetreu',
       it: 'Schema, non in scala',
     },
   );

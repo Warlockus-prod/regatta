@@ -21,17 +21,17 @@ export default function SimulatorV2Screen() {
       path="/simulator2"
       tier="boat3d"
       offlineSource={OFFLINE_SAILING}
-      title={tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
+      title={tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
         es: 'Barco 3D',
         fr: 'Bateau 3D',
-        de: 'Boot 3D',
+        de: '3D-Boot',
         it: 'Barca 3D',
       })}
       fallbackRoute="/simulator-basics"
-      fallbackLabel={tp('Открыть Основы (офлайн)', 'Open Basics (offline)', 'Otworz Podstawy (offline)', {
-        es: 'Abrir Basicos (sin conexion)',
+      fallbackLabel={tp('Открыть Основы (офлайн)', 'Open Basics (offline)', 'Otwórz Podstawy (offline)', {
+        es: 'Abrir Fundamentos (sin conexión)',
         fr: 'Ouvrir les Bases (hors ligne)',
-        de: 'Grundlagen offnen (offline)',
+        de: 'Grundlagen öffnen (offline)',
         it: 'Apri le Basi (offline)',
       })}
     />

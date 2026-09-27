@@ -152,73 +152,73 @@ export default function Coach() {
   const loadingLabel = tp(
     'Тренер анализирует гонку...',
     'Coach is analysing the race...',
-    'Trener analizuje wyscig...',
+    'Trener analizuje wyścig...',
     {
-      es: 'El coach analiza la regata...',
+      es: 'El coach está analizando la regata...',
       fr: 'Le coach analyse la course...',
       de: 'Der Coach analysiert das Rennen...',
-      it: 'Il coach analizza la gara...',
+      it: 'Il coach sta analizzando la regata...',
     },
   );
   const errorTitle = tp(
     'Не удалось получить совет',
     'Could not load coaching',
-    'Nie udalo sie zaladowac trenera',
+    'Nie udało się pobrać porad',
     {
-      es: 'No se pudo cargar el coach',
-      fr: 'Impossible de charger le coach',
-      de: 'Coaching konnte nicht geladen werden',
-      it: 'Impossibile caricare il coach',
+      es: 'No se pudieron cargar los consejos',
+      fr: 'Impossible d\'obtenir les conseils',
+      de: 'Tipps konnten nicht geladen werden',
+      it: 'Impossibile ottenere i consigli',
     },
   );
   const retryLabel = tp('Повторить', 'Retry', 'Spróbuj ponownie', {
     es: 'Reintentar',
-    fr: 'Reessayer',
+    fr: 'Réessayer',
     de: 'Erneut versuchen',
     it: 'Riprova',
   });
-  const tryAgainLabel = tp('Сыграть ещё', 'Try another race', 'Zagraj ponownie', {
+  const tryAgainLabel = tp('Сыграть ещё', 'Try another race', 'Zagraj jeszcze raz', {
     es: 'Otra regata',
     fr: 'Encore une course',
     de: 'Noch ein Rennen',
-    it: 'Altra gara',
+    it: 'Un\'altra regata',
   });
-  const homeLabel = tp('Домой', 'Home', 'Strona glowna', {
+  const homeLabel = tp('Домой', 'Home', 'Strona główna', {
     es: 'Inicio',
     fr: 'Accueil',
-    de: 'Start',
+    de: 'Startseite',
     it: 'Home',
   });
   const noRaceTitle = tp(
     'Гонка не найдена',
     'Race not found',
-    'Nie znaleziono wyscigu',
+    'Nie znaleziono wyścigu',
     {
       es: 'Regata no encontrada',
       fr: 'Course introuvable',
       de: 'Rennen nicht gefunden',
-      it: 'Gara non trovata',
+      it: 'Regata non trovata',
     },
   );
   const noRaceSubtitle = tp(
     'Попробуй сыграть и сохранить ещё одну.',
     'Try playing and saving another race.',
-    'Sprobuj zagrac i zapisac kolejny wyscig.',
+    'Rozegraj i zapisz kolejny wyścig.',
     {
-      es: 'Prueba a jugar y guardar otra regata.',
-      fr: 'Essaie de jouer et denregistrer une autre course.',
-      de: 'Spiele und speichere ein anderes Rennen.',
-      it: 'Prova a giocare e salvare unaltra gara.',
+      es: 'Juega y guarda otra regata.',
+      fr: 'Fais une autre course et enregistre-la.',
+      de: 'Fahr ein neues Rennen und speichere es.',
+      it: 'Corri un\'altra regata e salvala.',
     },
   );
 
-  const overallLabel = tp('ИТОГ', 'OVERALL', 'OGOLEM', {
-    es: 'GLOBAL',
+  const overallLabel = tp('ИТОГ', 'OVERALL', 'PODSUMOWANIE', {
+    es: 'RESUMEN',
     fr: 'BILAN',
-    de: 'GESAMT',
-    it: 'GLOBALE',
+    de: 'FAZIT',
+    it: 'BILANCIO',
   });
-  const mistakesLabel = tp('ОШИБКИ', 'MISTAKES', 'BLEDY', {
+  const mistakesLabel = tp('ОШИБКИ', 'MISTAKES', 'BŁĘDY', {
     es: 'ERRORES',
     fr: 'ERREURS',
     de: 'FEHLER',
@@ -227,45 +227,45 @@ export default function Coach() {
   const strengthsLabel = tp('СИЛЬНЫЕ СТОРОНЫ', 'STRENGTHS', 'MOCNE STRONY', {
     es: 'PUNTOS FUERTES',
     fr: 'POINTS FORTS',
-    de: 'STAERKEN',
+    de: 'STÄRKEN',
     it: 'PUNTI DI FORZA',
   });
   const nextGoalLabel = tp(
     'СЛЕДУЮЩАЯ ЦЕЛЬ',
     'NEXT GOAL',
-    'NASTEPNY CEL',
+    'NASTĘPNY CEL',
     {
-      es: 'PROXIMO OBJETIVO',
+      es: 'PRÓXIMO OBJETIVO',
       fr: 'PROCHAIN OBJECTIF',
-      de: 'NAECHSTES ZIEL',
+      de: 'NÄCHSTES ZIEL',
       it: 'PROSSIMO OBIETTIVO',
     },
   );
-  const explainLabel = tp('Что случилось', 'What happened', 'Co sie stalo', {
-    es: 'Que paso',
-    fr: 'Ce qui sest passe',
+  const explainLabel = tp('Что случилось', 'What happened', 'Co się stało', {
+    es: 'Qué pasó',
+    fr: 'Ce qui s\'est passé',
     de: 'Was passiert ist',
-    it: 'Cosa e successo',
+    it: 'Cos\'è successo',
   });
-  const fixLabel = tp('Как лучше', 'How to fix', 'Jak poprawic', {
-    es: 'Como mejorar',
+  const fixLabel = tp('Как лучше', 'How to fix', 'Jak poprawić', {
+    es: 'Cómo mejorar',
     fr: 'Comment corriger',
-    de: 'Wie es geht',
+    de: 'So geht es besser',
     it: 'Come migliorare',
   });
-  const scoreLabel = tp('Оценка', 'Score', 'Wynik', {
-    es: 'Puntuacion',
+  const scoreLabel = tp('Оценка', 'Score', 'Ocena', {
+    es: 'Puntuación',
     fr: 'Note',
     de: 'Bewertung',
     it: 'Valutazione',
   });
-  const minorLabel = tp('лёгкая', 'minor', 'lekki', {
+  const minorLabel = tp('лёгкая', 'minor', 'drobny', {
     es: 'leve',
     fr: 'mineure',
     de: 'leicht',
     it: 'lieve',
   });
-  const majorLabel = tp('серьёзная', 'major', 'powazny', {
+  const majorLabel = tp('серьёзная', 'major', 'poważny', {
     es: 'grave',
     fr: 'majeure',
     de: 'schwer',
@@ -278,11 +278,11 @@ export default function Coach() {
   const watchReplayLabel = tp(
     'Смотреть повтор',
     'Watch replay',
-    'Obejrzyj powtorke',
+    'Obejrzyj powtórkę',
     {
-      es: 'Ver repeticion',
-      fr: 'Voir le replay',
-      de: 'Wiedergabe ansehen',
+      es: 'Ver la repetición',
+      fr: 'Revoir la course',
+      de: 'Wiederholung ansehen',
       it: 'Guarda il replay',
     },
   );
@@ -337,11 +337,11 @@ export default function Coach() {
             title={noRaceTitle}
             subtitle={noRaceSubtitle}
             cta={{
-              label: tp('К гонке', 'To the race', 'Do wyscigu', {
-                es: 'A la regata',
-                fr: 'A la course',
+              label: tp('К гонке', 'To the race', 'Do wyścigu', {
+                es: 'Ir a la regata',
+                fr: 'Aller à la course',
                 de: 'Zum Rennen',
-                it: 'Alla gara',
+                it: 'Vai alla regata',
               }),
               onPress: () => router.replace('/game'),
             }}

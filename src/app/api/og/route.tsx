@@ -19,7 +19,7 @@ const STRINGS: Record<Lang, { headline: string; sub: string; pills: string[] }> 
   en: { headline: 'Racing next week?', sub: 'You can still prep.', pills: ['45 min', 'AI coach', 'Race with rivals', '7 languages'] },
   pl: { headline: 'Regaty za tydzien?', sub: 'Zdazysz sie przygotowac.', pills: ['45 min', 'Trener AI', 'Wyscig z rywalami', '7 jezykow'] },
   es: { headline: 'Regata la proxima semana?', sub: 'Aun tienes tiempo de prepararte.', pills: ['45 min', 'Entrenador IA', 'Regata con rivales', '7 idiomas'] },
-  fr: { headline: 'Regate la semaine prochaine ?', sub: 'Tu peux encore te preparer.', pills: ['45 min', 'Coach IA', 'Course avec rivaux', '7 langues'] },
+  fr: { headline: 'Regate la semaine prochaine ?', sub: 'Tu peux encore te preparer.', pills: ['45 min', 'Coach IA', 'Course contre rivaux', '7 langues'] },
   de: { headline: 'Regatta naechste Woche?', sub: 'Du kannst dich noch vorbereiten.', pills: ['45 Min', 'KI-Coach', 'Rennen gegen Rivalen', '7 Sprachen'] },
   it: { headline: 'Regata la prossima settimana?', sub: 'Hai ancora tempo per prepararti.', pills: ['45 min', 'Coach IA', 'Regata con rivali', '7 lingue'] },
 };

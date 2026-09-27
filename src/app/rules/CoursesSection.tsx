@@ -37,20 +37,20 @@ export default function CoursesSection() {
       icon: '⚓',
       name: 'Sternik motorowodny',
       blurb: tp(
-        'Польские права на моторную лодку. Теория, банк из 148 вопросов, пробный экзамен.',
-        'The Polish powerboat licence. Theory, a 148-question bank, and a mock exam.',
-        'Patent na lodz motorowa. Teoria, bank 148 pytan, egzamin probny.',
+        'Польские права на моторную лодку. Теория, банк из 879 вопросов, пробный экзамен.',
+        'The Polish powerboat licence. Theory, an 879-question bank, and a mock exam.',
+        'Patent sternika motorowodnego. Teoria, baza 879 pytań, egzamin próbny.',
         {
-          es: 'La licencia polaca de motora. Teoria, banco de 148 preguntas y examen de prueba.',
-          fr: 'Le permis bateau polonais. Theorie, banque de 148 questions et examen blanc.',
-          de: 'Der polnische Motorbootfuehrerschein. Theorie, 148 Pruefungsfragen, Probepruefung.',
-          it: 'La patente nautica polacca. Teoria, banca di 148 domande ed esame di prova.',
+          es: 'La licencia polaca de patrón de motor. Teoría, banco de 879 preguntas y examen de prueba.',
+          fr: 'Le permis bateau polonais. Théorie, banque de 879 questions et examen blanc.',
+          de: 'Der polnische Motorbootführerschein. Theorie, 879 Prüfungsfragen, Probeprüfung.',
+          it: "La patente nautica polacca per barche a motore. Teoria, 879 domande e simulazione d'esame.",
         },
       ),
       bullets: [
-        tp('Теория по разделам', 'Theory by topic', 'Teoria wedlug dzialow', { es: 'Teoria por temas', fr: 'Theorie par themes', de: 'Theorie nach Themen', it: 'Teoria per argomenti' }),
-        tp('148 вопросов', '148 questions', '148 pytan', { es: '148 preguntas', fr: '148 questions', de: '148 Fragen', it: '148 domande' }),
-        tp('Пробный экзамен', 'Mock exam', 'Egzamin probny', { es: 'Examen de prueba', fr: 'Examen blanc', de: 'Probepruefung', it: 'Esame di prova' }),
+        tp('Теория по разделам', 'Theory by topic', 'Teoria według działów', { es: 'Teoría por temas', fr: 'Théorie par thèmes', de: 'Theorie nach Themen', it: 'Teoria per argomenti' }),
+        tp('879 вопросов', '879 questions', '879 pytań', { es: '879 preguntas', fr: '879 questions', de: '879 Fragen', it: '879 domande' }),
+        tp('Пробный экзамен', 'Mock exam', 'Egzamin próbny', { es: 'Examen de prueba', fr: 'Examen blanc', de: 'Probeprüfung', it: "Simulazione d'esame" }),
       ],
     },
     {
@@ -60,18 +60,18 @@ export default function CoursesSection() {
       blurb: tp(
         'Свидетельство оператора SRC: экзамен в UKE. Симулятор настоящей ICOM, 26 практических заданий, голосовая тренировка.',
         'The SRC operator certificate, examined by UKE. A simulator of the real ICOM, all 26 practical tasks, and voice practice.',
-        'Swiadectwo operatora SRC: egzamin w UKE. Symulator prawdziwego ICOM, 26 zadan praktycznych i trening glosowy.',
+        'Świadectwo operatora SRC: egzamin w UKE. Symulator prawdziwego ICOM-a, 26 zadań praktycznych i trening głosowy.',
         {
-          es: 'El certificado de operador SRC, examinado por UKE. Un simulador del ICOM real, las 26 tareas practicas y practica de voz.',
-          fr: 'Le certificat d\'operateur SRC, examine par UKE. Un simulateur du vrai ICOM, les 26 taches pratiques et un entrainement vocal.',
-          de: 'Das SRC-Betriebszeugnis, geprueft von UKE. Ein Simulator des echten ICOM, alle 26 Praxisaufgaben und Sprechtraining.',
-          it: 'Il certificato di operatore SRC, esaminato da UKE. Un simulatore del vero ICOM, tutti i 26 compiti pratici e pratica vocale.',
+          es: 'El certificado de operador SRC, con examen en la UKE. Un simulador del ICOM real, las 26 tareas prácticas y práctica de voz.',
+          fr: "Le certificat d'opérateur SRC, avec examen à l'UKE. Un simulateur du vrai ICOM, les 26 exercices pratiques et un entraînement vocal.",
+          de: 'Das SRC-Funkzeugnis, Prüfung beim UKE. Ein Simulator des echten ICOM, alle 26 Praxisaufgaben und Sprechtraining.',
+          it: "Il certificato di operatore SRC, con esame all'UKE. Un simulatore del vero ICOM, tutti i 26 esercizi pratici e allenamento vocale.",
         },
       ),
       bullets: [
         tp('Симулятор ICOM', 'ICOM simulator', 'Symulator ICOM', { es: 'Simulador ICOM', fr: 'Simulateur ICOM', de: 'ICOM-Simulator', it: 'Simulatore ICOM' }),
-        tp('26 заданий UKE', 'All 26 UKE tasks', '26 zadan UKE', { es: 'Las 26 tareas UKE', fr: 'Les 26 taches UKE', de: 'Alle 26 UKE-Aufgaben', it: 'Tutti i 26 compiti UKE' }),
-        tp('Голос и разбор', 'Voice and inspect', 'Glos i rozbior', { es: 'Voz e inspeccion', fr: 'Voix et inspection', de: 'Sprache und Inspektion', it: 'Voce e ispezione' }),
+        tp('26 заданий UKE', 'All 26 UKE tasks', '26 zadań UKE', { es: 'Las 26 tareas UKE', fr: 'Les 26 exercices UKE', de: 'Alle 26 UKE-Aufgaben', it: 'Tutti i 26 esercizi UKE' }),
+        tp('Голос и разбор', 'Voice and review', 'Głos i omówienie', { es: 'Voz y revisión', fr: 'Voix et correction', de: 'Sprechen und Auswertung', it: 'Voce e revisione' }),
       ],
     },
   ];
@@ -89,10 +89,10 @@ export default function CoursesSection() {
           {tp(
             'Польские патенты: sternik motorowodny и radio SRC',
             'Polish licences: sternik motorowodny and SRC radio',
-            'Patenty PL: sternik motorowodny i radio SRC',
+            'Polskie patenty: sternik motorowodny i radio SRC',
             {
-              es: 'Titulos polacos: sternik motorowodny y radio SRC',
-              fr: 'Permis polonais: sternik motorowodny et radio SRC',
+              es: 'Títulos polacos: sternik motorowodny y radio SRC',
+              fr: 'Permis polonais : sternik motorowodny et radio SRC',
               de: 'Polnische Scheine: sternik motorowodny und SRC-Funk',
               it: 'Patenti polacche: sternik motorowodny e radio SRC',
             },
@@ -129,7 +129,7 @@ export default function CoursesSection() {
             </div>
 
             <span className="mt-3 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Открыть', 'Open', 'Otworz', { es: 'Abrir', fr: 'Ouvrir', de: 'Oeffnen', it: 'Apri' })} {'->'}
+              {tp('Открыть', 'Open', 'Otwórz', { es: 'Abrir', fr: 'Ouvrir', de: 'Öffnen', it: 'Apri' })} {'->'}
             </span>
           </Link>
         ))}
@@ -143,12 +143,12 @@ export default function CoursesSection() {
           : tp(
               '',
               'Both courses are taught in Polish - it is the language of the exam, and a half-translated licence course would be worse than none.',
-              'Oba kursy sa po polsku - to jezyk egzaminu.',
+              'Oba kursy są po polsku - to język egzaminu.',
               {
-                es: 'Ambos cursos son en polaco: es el idioma del examen, y un curso a medio traducir seria peor que ninguno.',
-                fr: 'Les deux cours sont en polonais: c\'est la langue de l\'examen, et un cours a moitie traduit serait pire que rien.',
-                de: 'Beide Kurse sind auf Polnisch - das ist die Pruefungssprache; ein halb uebersetzter Kurs waere schlechter als keiner.',
-                it: 'Entrambi i corsi sono in polacco: e la lingua dell\'esame, e un corso tradotto a meta sarebbe peggio di nessuno.',
+                es: 'Ambos cursos son en polaco: es el idioma del examen, y un curso a medio traducir sería peor que ninguno.',
+                fr: "Les deux cours sont en polonais : c'est la langue de l'examen, et un cours à moitié traduit serait pire que rien.",
+                de: 'Beide Kurse sind auf Polnisch - das ist die Prüfungssprache; ein halb übersetzter Kurs wäre schlechter als keiner.',
+                it: "Entrambi i corsi sono in polacco: è la lingua dell'esame, e un corso tradotto a metà sarebbe peggio di nessuno.",
               },
             )}
       </p>

@@ -39,11 +39,14 @@ export function WindDial({
   awaSigned,
   noGoDeg = 42,
   size = 132,
+  label = 'Wind dial',
 }: {
   twaSigned: number;
   awaSigned: number;
   noGoDeg?: number;
   size?: number;
+  /** Accessible name in the reader's language (the module itself has no i18n). */
+  label?: string;
 }) {
   const a = (noGoDeg * Math.PI) / 180;
   const left = rim(-noGoDeg);
@@ -52,7 +55,7 @@ export function WindDial({
   void a;
 
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label="Wind dial">
+    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={label}>
       <circle cx={C} cy={C} r={R} fill="rgba(4,22,30,0.7)" stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
       {/* no-go wedge at the top */}
       <path d={noGoPath} fill="rgba(229,72,77,0.18)" stroke="rgba(229,72,77,0.35)" strokeWidth={0.5} />

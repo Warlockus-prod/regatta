@@ -461,7 +461,7 @@ export function SceneTop({
           to={tw.end}
           color="#00d4ff"
           width={2.8}
-          label={`TW ${Math.round(liveTws)} ${lang === 'ru' ? 'уз' : 'kts'}`}
+          label={`TW ${Math.round(liveTws)} ${lang === 'ru' ? 'уз' : lang === 'en' ? 'kts' : 'kn'}`}
           labelPos={{ x: cx, y: cy - sceneRadius * 1.06 }}
           labelAnchor="middle"
         />
@@ -479,7 +479,7 @@ export function SceneTop({
           to={driveEnd}
           color="#52ff8e"
           width={2.8}
-          label={lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciag' : 'drive'}
+          label={lang === 'ru' ? 'тяга' : lang === 'pl' ? 'ciąg' : lang === 'es' ? 'empuje' : lang === 'fr' ? 'poussée' : lang === 'de' ? 'Vortrieb' : lang === 'it' ? 'spinta' : 'drive'}
           labelPos={{ x: driveEnd.x + 10, y: driveEnd.y - 4 }}
           labelAnchor="start"
         />
@@ -488,7 +488,7 @@ export function SceneTop({
           to={sideEnd}
           color="#f6b73c"
           width={2.2}
-          label={lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : 'side'}
+          label={lang === 'ru' ? 'бок' : lang === 'pl' ? 'bok' : lang === 'es' ? 'lateral' : lang === 'fr' ? 'latérale' : lang === 'de' ? 'Seitenkraft' : lang === 'it' ? 'laterale' : 'side'}
           labelPos={{
             x: sideEnd.x + (sim.result.diag.side >= 0 ? 10 : -10),
             y: sideEnd.y - 4,

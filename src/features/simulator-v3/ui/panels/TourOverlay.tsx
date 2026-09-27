@@ -43,7 +43,7 @@ const STEPS: TourStep[] = [
     titleRu: 'Настройка парусов',
     titleEn: 'Sail trim',
     titlePl: 'Trym żagli',
-    titleEs: 'Ajuste de velas',
+    titleEs: 'Trimado de velas',
     titleFr: 'Réglage des voiles',
     titleDe: 'Segeltrimm',
     titleIt: 'Regolazione delle vele',
@@ -52,21 +52,21 @@ const STEPS: TourStep[] = [
     bodyEn:
       'A live-physics sailing trainer. You will see the forces on the sails, heel, and leeway as on a real boat. 8-10 minutes gives you a solid feel for trim.',
     bodyPl:
-      'Trener zeglarstwa z fizyka na zywo. Zobaczysz sily na zaglach, przechyl i dryf jak na prawdziwej lodzi. 8-10 minut i rozumiesz trymowanie.',
+      'Szkoleniowy symulator jachtu z fizyką na żywo. Zobaczysz siły na żaglach, przechył i dryf jak na prawdziwym jachcie. Po 8-10 minutach zrozumiesz trymowanie.',
     bodyEs:
-      'Entrenador de vela con fisica en vivo. Veras las fuerzas en las velas, la escora y el abatimiento como en una embarcacion real. 8-10 minutos y tendras buena sensibilidad para el trimado.',
+      'Un simulador de vela con física en tiempo real. Verás las fuerzas en las velas, la escora y el abatimiento como en un barco de verdad. En 8-10 minutos entenderás el trimado.',
     bodyFr:
-      'Un simulateur de voile avec physique en temps reel. Tu verras les forces sur les voiles, la gite et la derive comme sur un vrai bateau. 8-10 minutes suffisent pour sentir le reglage des voiles.',
+      'Un simulateur de voile avec une physique en temps réel. Tu verras les forces sur les voiles, la gîte et la dérive comme sur un vrai bateau. 8-10 minutes suffisent pour comprendre le réglage des voiles.',
     bodyDe:
-      'Ein Segelsimulator mit Echtzeit-Physik. Du siehst die Kraefte an den Segeln, die Kraengung und den Abdrift wie auf einem echten Boot. 8-10 Minuten genuegen fuer ein solides Gefuehl beim Trimmen.',
+      'Ein Segelsimulator mit Echtzeit-Physik. Du siehst die Kräfte an den Segeln, die Krängung und die Abdrift wie auf einem echten Boot. Nach 8-10 Minuten hast du ein solides Gefühl fürs Trimmen.',
     bodyIt:
-      'Un simulatore di vela con fisica in tempo reale. Vedrai le forze sulle vele, lo sbandamento e lo scarroccio come su una barca vera. 8-10 minuti ti danno un buon feeling per il trimmaggio.',
+      'Un simulatore di vela con fisica in tempo reale. Vedrai le forze sulle vele, lo sbandamento e lo scarroccio come su una barca vera. In 8-10 minuti capirai la regolazione delle vele.',
   },
   {
     icon: '🌬',
     titleRu: 'Ветер идёт сверху',
     titleEn: 'Wind always from the top',
-    titlePl: 'Wiatr zawsze z gory',
+    titlePl: 'Wiatr zawsze wieje z góry',
     titleEs: 'El viento viene de arriba',
     titleFr: 'Le vent vient du haut',
     titleDe: 'Der Wind kommt von oben',
@@ -74,41 +74,41 @@ const STEPS: TourStep[] = [
     bodyRu:
       'Красный конус NO-GO - мёртвая зона (против ветра). Туда идти нельзя. Синяя стрелка TW показывает истинный ветер, AW - что чувствует лодка на ходу.',
     bodyEn:
-      'The red NO-GO cone is the dead zone (into the wind). Blue TW arrow is the true wind, AW is the apparent wind the moving boat feels.',
+      'The red NO-GO cone is the no-go zone (straight into the wind): you cannot sail there. The blue TW arrow is the true wind; AW is the apparent wind the moving boat feels.',
     bodyPl:
-      'Czerwony stozek NO-GO to strefa martwa (pod wiatr). Niebieska strzalka TW to wiatr prawdziwy, AW to wiatr pozorny odczuwany przez jacht.',
+      'Czerwony stożek NO-GO to kąt martwy (prosto pod wiatr): tam nie popłyniesz. Niebieska strzałka TW to wiatr prawdziwy, AW to wiatr pozorny, który czuje płynący jacht.',
     bodyEs:
-      'El cono rojo NO-GO es la zona muerta (contra el viento). La flecha azul TW es el viento real, AW es el viento aparente que siente la barca en movimiento.',
+      'El cono rojo NO-GO es la zona muerta (contra el viento): por ahí no se puede navegar. La flecha azul TW es el viento real; AW, el viento aparente que siente el barco en movimiento.',
     bodyFr:
-      'Le cone rouge NO-GO est la zone morte (au vent). La fleche bleue TW est le vent reel, AW est le vent apparent ressenti par le bateau en mouvement.',
+      "Le cône rouge NO-GO est la zone morte (face au vent) : impossible d'y naviguer. La flèche bleue TW est le vent réel, AW le vent apparent ressenti par le bateau en mouvement.",
     bodyDe:
-      'Der rote NO-GO-Kegel ist die Totzone (in den Wind). Der blaue TW-Pfeil ist der wahre Wind, AW ist der scheinbare Wind, den das fahrende Boot spuert.',
+      'Der rote NO-GO-Kegel ist der tote Winkel (gegen den Wind): Dorthin kannst du nicht segeln. Der blaue TW-Pfeil ist der wahre Wind, AW der scheinbare Wind, den das fahrende Boot spürt.',
     bodyIt:
-      'Il cono rosso NO-GO e la zona morta (controvento). La freccia blu TW e il vento reale, AW e il vento apparente che sente la barca in movimento.',
+      "Il cono rosso NO-GO è l'angolo morto (controvento): lì non si naviga. La freccia blu TW è il vento reale, AW il vento apparente che sente la barca in movimento.",
   },
   {
     icon: '🧭',
     titleRu: 'ВЕТЕР + РУЛЬ - куда идём',
     titleEn: 'WIND + HELM - your course',
-    titlePl: 'WIATR + STER - twoj kurs',
-    titleEs: 'VIENTO + TIMON - tu rumbo',
+    titlePl: 'WIATR + STER - twój kurs',
+    titleEs: 'VIENTO + TIMÓN - tu rumbo',
     titleFr: 'VENT + BARRE - ton cap',
     titleDe: 'WIND + RUDER - dein Kurs',
     titleIt: 'VENTO + TIMONE - la tua rotta',
     bodyRu:
       'В поде ВЕТЕР - угол TWA (к ветру) и сила ветра. Нажми галс - лодка ПОВЕРНЁТСЯ через ветер за ~5 сек. РУЛЬ показывает текущий и целевой курс.',
     bodyEn:
-      'The WIND pod has TWA (angle to wind) and wind speed. Click the tack label - the boat TURNS through the wind over ~5 s. HELM shows current vs target bearing.',
+      'The WIND pod has TWA (angle to wind) and wind speed. Click the tack label - the boat TURNS through the wind over ~5 s. HELM shows the current and target heading.',
     bodyPl:
-      'Pod WIATR ma TWA (kat do wiatru) i sile wiatru. Klik na hals - jacht SKRECA przez wiatr przez ~5 s. STER pokazuje kurs biezacy i docelowy.',
+      'Panel WIATR pokazuje TWA (kąt do wiatru) i siłę wiatru. Kliknij hals: jacht ZMIENI HALS w ~5 s. STER pokazuje kurs bieżący i docelowy.',
     bodyEs:
-      'El pod VIENTO muestra TWA (angulo al viento) y fuerza del viento. Haz click en la amura - la barca VIRA a traves del viento en ~5 s. TIMON muestra rumbo actual vs objetivo.',
+      'El panel VIENTO muestra el TWA (ángulo al viento) y la fuerza del viento. Pulsa la amura: el barco CAMBIA DE AMURA en ~5 s. TIMÓN muestra el rumbo actual y el objetivo.',
     bodyFr:
-      'Le pod VENT affiche TWA (angle au vent) et force du vent. Clique sur l\'amure - le bateau VIRE de bord a travers le vent en ~5 s. BARRE montre le cap actuel vs cible.',
+      'Le panneau VENT affiche le TWA (angle au vent) et la force du vent. Touche l\'amure : le bateau CHANGE D\'AMURE en ~5 s. BARRE affiche le cap actuel et le cap visé.',
     bodyDe:
-      'Der WIND-Pod zeigt TWA (Winkel zum Wind) und Windgeschwindigkeit. Klick auf den Halsenlabel - das Boot WENDET durch den Wind in ~5 s. RUDER zeigt aktuellen vs gewuenschten Kurs.',
+      'Das Feld WIND zeigt TWA (Winkel zum Wind) und Windstärke. Tippe auf die Bug-Anzeige: Das Boot WECHSELT in ~5 s DEN BUG. RUDER zeigt aktuellen Kurs und Zielkurs.',
     bodyIt:
-      'Il pod VENTO mostra TWA (angolo al vento) e forza del vento. Clicca sulle mure - la barca VIRA attraverso il vento in ~5 s. TIMONE mostra rotta attuale vs obiettivo.',
+      'Il riquadro VENTO mostra il TWA (angolo al vento) e la forza del vento. Tocca le mure: la barca CAMBIA MURE in ~5 s. TIMONE mostra la rotta attuale e quella obiettivo.',
   },
   {
     icon: '🎏',
@@ -122,65 +122,65 @@ const STEPS: TourStep[] = [
     bodyRu:
       'Угол - насколько шкот выбран. Риф (R1/R2) уменьшает грот. Раскрытие стакселя 0-100. Зелёная точка ТЯНЕТ - парус работает. Красный СРЫВ - поток оторвался.',
     bodyEn:
-      'Angle = how tightly the sheet is pulled. Reef (R1/R2) shrinks the main. Jib furl 0-100%. Green ATTACHED dot = sail working. Red STALL = flow detached.',
+      'Angle = how tightly the sheet is pulled. Reef (R1/R2) shrinks the main. Jib unfurled 0-100%. Green ATTACHED dot = sail working. Red STALL = flow detached.',
     bodyPl:
-      'Kat = jak mocno wybrany szot. Ref (R1/R2) zmniejsza grota. Zwijanie foka 0-100. Zielony PRACUJE = zagiel dziala. Czerwony STALL = przeplyw oderwany.',
+      'Kąt: jak mocno wybrany jest szot. Ref (R1/R2) zmniejsza grot. Rozwinięcie foka 0-100%. Zielona kropka PRACUJE: żagiel działa. Czerwone ODERWANIE PRZEPŁYWU: przepływ się oderwał.',
     bodyEs:
-      'Angulo = cuanto se cazaba la escota. Rizo (R1/R2) reduce la mayor. Enrollado del foque 0-100. Punto verde PEGADO = vela funcionando. STALL rojo = flujo separado.',
+      'Ángulo: cuánto está cazada la escota. El rizo (R1/R2) reduce la mayor. Foque desenrollado 0-100%. Punto verde TIRA: la vela trabaja. Rojo FLUJO DESPRENDIDO: el flujo se ha separado.',
     bodyFr:
-      'Angle = a quel point l\'ecoute est bordee. Ris (R1/R2) reduit la grand-voile. Enroulement du foc 0-100. Point vert ATTACHE = voile qui porte. STALL rouge = ecoulement decroche.',
+      'Angle : à quel point l\'écoute est bordée. Le ris (R1/R2) réduit la grand-voile. Foc déroulé de 0 à 100%. Point vert PORTE : la voile travaille. Rouge DÉCROCHÉ : l\'écoulement a décroché.',
     bodyDe:
-      'Winkel = wie fest die Schot angezogen ist. Reff (R1/R2) verkleinert das Gross. Fock-Roll 0-100. Gruener ATTACHED-Punkt = Segel arbeitet. Roter STALL = Stroemung abgerissen.',
+      'Winkel: wie dicht die Schot geholt ist. Das Reff (R1/R2) verkleinert das Groß. Fock ausgerollt 0-100%. Grüner Punkt ZIEHT: das Segel arbeitet. Rot STRÖMUNGSABRISS: die Strömung ist abgerissen.',
     bodyIt:
-      'Angolo = quanto la scotta e cazzata. Terzarolo (R1/R2) riduce la randa. Avvolgimento del fiocco 0-100. Punto verde ATTACCATO = vela che lavora. STALL rosso = flusso staccato.',
+      'Angolo: quanto è cazzata la scotta. La mano di terzaroli (R1/R2) riduce la randa. Fiocco svolto 0-100%. Punto verde PORTA: la vela lavora. Rosso STALLO: il flusso si è staccato.',
   },
   {
     icon: '👻',
     titleRu: 'Призрак оптимума',
     titleEn: 'Ghost optimum',
-    titlePl: 'Duch optymalny',
-    titleEs: 'Fantasma del optimo',
-    titleFr: 'Fantome d\'optimum',
-    titleDe: 'Geister-Optimum',
+    titlePl: 'Duch optimum',
+    titleEs: 'Fantasma del óptimo',
+    titleFr: 'Fantôme de l\'optimum',
+    titleDe: 'Optimum-Geist',
     titleIt: 'Fantasma dell\'ottimo',
     bodyRu:
       'Пунктирные зелёные силуэты - где паруса ДОЛЖНЫ стоять на этом курсе и ветре. Твои паруса должны лечь точно на них - тогда трим 100%.',
     bodyEn:
       'The dashed green silhouettes show where the sails SHOULD sit for this course and wind. Match them and trim hits 100%.',
     bodyPl:
-      'Zielone przerywane sylwetki pokazuja gdzie zagle POWINNY byc dla tego kursu i wiatru. Nalicz je - trym 100%.',
+      'Zielone przerywane sylwetki pokazują, gdzie żagle POWINNY stać na tym kursie i przy tym wietrze. Ustaw na nich swoje żagle, a trym dojdzie do 100%.',
     bodyEs:
-      'Las siluetas verdes punteadas muestran donde DEBERIAN estar las velas para este rumbo y viento. Iguala esa posicion y el trimado llega al 100%.',
+      'Las siluetas verdes punteadas muestran dónde DEBERÍAN estar las velas con este rumbo y este viento. Coloca tus velas encima y el trim llegará al 100%.',
     bodyFr:
-      'Les silhouettes vertes pointillees montrent ou les voiles DEVRAIENT etre pour cette allure et ce vent. Aligne-toi dessus et le trim monte a 100%.',
+      'Les silhouettes vertes pointillées montrent où les voiles DEVRAIENT être pour cette allure et ce vent. Superpose tes voiles dessus et le trim monte à 100%.',
     bodyDe:
-      'Die gestrichelten gruenen Umrisse zeigen, wo die Segel fuer diesen Kurs und Wind stehen SOLLTEN. Triffst du sie, steht der Trim bei 100%.',
+      'Die gestrichelten grünen Umrisse zeigen, wo die Segel bei diesem Kurs und Wind stehen SOLLTEN. Legst du deine Segel genau darauf, steht der Trimm bei 100%.',
     bodyIt:
-      'Le sagome verdi tratteggiate mostrano dove DOVREBBERO stare le vele per questa andatura e vento. Allineale e il trim raggiunge il 100%.',
+      'Le sagome verdi tratteggiate mostrano dove DOVREBBERO stare le vele per questa andatura e questo vento. Allinea le tue vele e il trim arriva al 100%.',
   },
   {
     icon: '📊',
     titleRu: 'Метрики и комментарий',
     titleEn: 'Metrics and commentary',
-    titlePl: 'Metryki i komentarz',
-    titleEs: 'Metricas y comentarios',
-    titleFr: 'Metriques et commentaire',
-    titleDe: 'Metriken und Kommentar',
+    titlePl: 'Wskaźniki i komentarz',
+    titleEs: 'Métricas y comentarios',
+    titleFr: 'Métriques et commentaire',
+    titleDe: 'Messwerte und Kommentar',
     titleIt: 'Metriche e commento',
     bodyRu:
       'Снизу 4 числа: СКОРОСТЬ, КРЕН, AWA, ТРИМ. Под ними строчка от тренера - что сейчас не так или что хорошо. Цвет подсказывает уровень срочности.',
     bodyEn:
       'Bottom strip: SPEED, HEEL, AWA, TRIM. The line under it is the coach telling you what is wrong or right. Color signals urgency.',
     bodyPl:
-      'Dolny pasek: PREDKOSC, PRZECHYL, AWA, TRYM. Linia pod nim to trener mowiacy co jest zle lub dobrze. Kolor sygnalizuje wage.',
+      'Na dole cztery liczby: PRĘDKOŚĆ, PRZECHYŁ, AWA, TRYM. Pod nimi linijka od trenera: co jest nie tak, a co dobrze. Kolor pokazuje, jak pilna jest sprawa.',
     bodyEs:
-      'Franja inferior: VELOCIDAD, ESCORA, AWA, TRIMADO. La linea debajo es el coach diciendo que va mal o bien. El color indica urgencia.',
+      'Abajo hay 4 cifras: VELOCIDAD, ESCORA, AWA, TRIM. Debajo, una línea del entrenador te dice qué va mal y qué va bien. El color indica la urgencia.',
     bodyFr:
-      'Bandeau du bas : VITESSE, GITE, AWA, TRIM. La ligne en dessous c\'est le coach qui dit ce qui va ou ne va pas. La couleur indique l\'urgence.',
+      'En bas, 4 chiffres : VITESSE, GÎTE, AWA, TRIM. La ligne en dessous, c\'est le coach qui dit ce qui va ou ne va pas. La couleur indique l\'urgence.',
     bodyDe:
-      'Unterer Streifen: GESCHWINDIGKEIT, KRAENGUNG, AWA, TRIM. Die Zeile darunter ist der Coach, der sagt was klappt oder nicht. Farbe signalisiert Dringlichkeit.',
+      'Unten stehen 4 Werte: FAHRT, KRÄNGUNG, AWA, TRIMM. Die Zeile darunter ist der Coach: Er sagt, was klappt und was nicht. Die Farbe zeigt die Dringlichkeit.',
     bodyIt:
-      'Striscia in basso: VELOCITA, SBANDAMENTO, AWA, TRIM. La riga sotto e il coach che dice cosa va o non va. Il colore indica l\'urgenza.',
+      'In basso 4 numeri: VELOCITÀ, SBANDAMENTO, AWA, TRIM. La riga sotto è il coach che ti dice cosa va e cosa no. Il colore indica l\'urgenza.',
   },
   {
     icon: '🎯',
@@ -190,43 +190,43 @@ const STEPS: TourStep[] = [
     titleEs: 'Tres modos',
     titleFr: 'Trois modes',
     titleDe: 'Drei Modi',
-    titleIt: 'Tre modalita',
+    titleIt: 'Tre modalità',
     bodyRu:
       'СВОБОДНО - песочница. УПРАЖНЕНИЯ - задачи с таймером (держи трим 10 секунд). СЦЕНАРИИ - готовые ситуации (перегруз, плохой слот, перетянутый грот).',
     bodyEn:
       'Free Sail - sandbox. Drills - timed tasks (hold trim for 10 s). Scenarios - canned situations (overpowered, bad slot, overtrimmed main).',
     bodyPl:
-      'Wolna jazda - piaskownica. Cwiczenia - zadania z czasem (trzymaj trym 10 s). Scenariusze - gotowe sytuacje (za duzo mocy, zly slot, przebrany grot).',
+      'SWOBODNIE: piaskownica. ĆWICZENIA: zadania na czas (utrzymaj trym przez 10 s). SCENARIUSZE: gotowe sytuacje (za dużo mocy, zła szczelina, za mocno wybrany grot).',
     bodyEs:
-      'LIBRE - sandbox. EJERCICIOS - tareas con cronometro (manten el trim 10 s). ESCENARIOS - situaciones preparadas (sobrecarga, mal slot, mayor sobretrimada).',
+      'LIBRE: navegación sin reglas. EJERCICIOS: tareas con cronómetro (mantén el trim 10 s). ESCENARIOS: situaciones preparadas (exceso de potencia, mala ranura, mayor demasiado cazada).',
     bodyFr:
-      'LIBRE - bac a sable. EXERCICES - taches chronometrees (maintiens le trim 10 s). SCENARIOS - situations prefaites (surpuissance, mauvais slot, GV sur-bordee).',
+      'LIBRE : bac à sable. EXERCICES : tâches chronométrées (maintiens le trim 10 s). SCÉNARIOS : situations toutes prêtes (trop de puissance, mauvaise fente, GV trop bordée).',
     bodyDe:
-      'FREI - Sandbox. DRILLS - Aufgaben mit Timer (halte den Trim 10 s). SZENARIEN - feste Situationen (ueberdrueckt, schlechter Slot, zu dicht gefahrenes Gross).',
+      'FREI: Sandbox. ÜBUNGEN: Aufgaben auf Zeit (halte den Trimm 10 s). SZENARIEN: vorbereitete Situationen (zu viel Druck, schlechter Spalt, zu dicht geholtes Groß).',
     bodyIt:
-      'LIBERA - sandbox. ESERCIZI - compiti a tempo (tieni il trim 10 s). SCENARI - situazioni preconfezionate (sovrapotenza, slot sbagliato, randa sovratesata).',
+      'LIBERA: navigazione senza vincoli. ESERCIZI: compiti a tempo (tieni il trim per 10 s). SCENARI: situazioni pronte (troppa potenza, fessura sbagliata, randa troppo cazzata).',
   },
   {
     icon: '👁',
     titleRu: 'ВИД - сверху / сзади / сбоку',
     titleEn: 'VIEW - top / rear / side',
-    titlePl: 'WIDOK - gora / tyl / bok',
+    titlePl: 'WIDOK - z góry / z tyłu / z boku',
     titleEs: 'VISTA - cenital / popa / lateral',
-    titleFr: 'VUE - dessus / arriere / cote',
-    titleDe: 'ANSICHT - oben / hinten / seitlich',
+    titleFr: 'VUE - dessus / arrière / côté',
+    titleDe: 'ANSICHT - oben / Heck / Seite',
     titleIt: 'VISTA - alto / poppa / lato',
     bodyRu:
       'Сверху читаешь курс. Сзади - видно крен и рангоут как с другой яхты. Сбоку - профиль с килем и рулём. В каждом режиме подсвечивается своё.',
     bodyEn:
       'Top-down for course reading. Rear for heel and rig as seen from another boat. Side for the profile with keel and rudder. Each view highlights different things.',
     bodyPl:
-      'Gora dla odczytu kursu. Tyl dla przechylu i olinowania. Bok dla profilu z kilem i sterem. Kazdy widok podkresla co innego.',
+      'Z góry odczytasz kurs. Z tyłu widać przechył i omasztowanie, jak z innego jachtu. Z boku widać profil z kilem i sterem. Każdy widok pokazuje co innego.',
     bodyEs:
-      'Cenital para leer el rumbo. Popa para ver escora y aparejo como desde otro barco. Lateral para el perfil con quilla y timon. Cada vista resalta cosas distintas.',
+      'Cenital para leer el rumbo. Popa para ver la escora y el aparejo como desde otro barco. Lateral para el perfil con quilla y timón. Cada vista resalta cosas distintas.',
     bodyFr:
-      'Vue du dessus pour lire le cap. Arriere pour voir la gite et le greement comme depuis un autre bateau. Cote pour le profil avec quille et gouvernail. Chaque vue met en avant autre chose.',
+      'Dessus pour lire le cap. Arrière pour voir la gîte et le gréement comme depuis un autre bateau. Côté pour le profil avec la quille et le gouvernail. Chaque vue met en avant autre chose.',
     bodyDe:
-      'Draufsicht zum Kurslesen. Heckansicht fuer Kraengung und Rigg wie vom anderen Boot aus. Seitenansicht fuer das Profil mit Kiel und Ruder. Jede Ansicht hebt andere Dinge hervor.',
+      'Von oben liest du den Kurs. Von achtern siehst du Krängung und Rigg wie von einem anderen Boot aus. Seitlich siehst du das Profil mit Kiel und Ruder. Jede Ansicht zeigt etwas anderes.',
     bodyIt:
       'Vista dall\'alto per leggere la rotta. Da poppa per sbandamento e attrezzatura come da un\'altra barca. Di lato per il profilo con chiglia e timone. Ogni vista evidenzia cose diverse.',
   },
@@ -234,7 +234,7 @@ const STEPS: TourStep[] = [
     icon: '🔗',
     titleRu: 'Поделись сетапом',
     titleEn: 'Share your setup',
-    titlePl: 'Udostepnij setup',
+    titlePl: 'Udostępnij ustawienia',
     titleEs: 'Comparte tu setup',
     titleFr: 'Partage ta config',
     titleDe: 'Teile dein Setup',
@@ -244,21 +244,21 @@ const STEPS: TourStep[] = [
     bodyEn:
       '"Share" copies a link to your current setup. Send it to a friend - their page opens with the same sliders. Or save it for later.',
     bodyPl:
-      'Udostepnij kopiuje link do twojego setupu. Wyslij kolezance - otworzy sie z tymi samymi slajderami. Albo zapisz na pozniej.',
+      '"Udostępnij" kopiuje link do twoich bieżących ustawień. Wyślij go znajomemu: otworzą mu się te same suwaki. Możesz też zapisać link na później.',
     bodyEs:
-      '"Compartir" copia un enlace a tu setup actual. Envialo a un amigo - su pagina se abrira con los mismos sliders. O guardalo para despues.',
+      '"Compartir" copia un enlace a tu setup actual. Envíaselo a un amigo: su página se abrirá con los mismos controles. O guárdalo para después.',
     bodyFr:
-      '"Partager" copie un lien vers ta config actuelle. Envoie-le a un ami - sa page s\'ouvre avec les memes sliders. Ou garde-le pour plus tard.',
+      '"Partager" copie un lien vers ta config actuelle. Envoie-le à un ami : sa page s\'ouvre avec les mêmes curseurs. Ou garde-le pour plus tard.',
     bodyDe:
-      '"Teilen" kopiert einen Link zu deinem aktuellen Setup. Schick ihn einer Freundin - ihre Seite oeffnet mit den gleichen Slidern. Oder speichere fuer spaeter.',
+      '"Teilen" kopiert einen Link zu deinem aktuellen Setup. Schick ihn weiter: Die Seite öffnet sich mit denselben Reglern. Oder speichere ihn für später.',
     bodyIt:
-      '"Condividi" copia un link al tuo setup attuale. Inviatelo a un amico - la sua pagina si apre con gli stessi slider. Oppure salvalo per dopo.',
+      '"Condividi" copia un link al tuo setup attuale. Invialo a un amico: la sua pagina si apre con gli stessi cursori. Oppure salvalo per dopo.',
   },
   {
     icon: '🚀',
     titleRu: 'Поехали',
     titleEn: 'Go sailing',
-    titlePl: 'Do dziela',
+    titlePl: 'Do dzieła',
     titleEs: 'A navegar',
     titleFr: 'Au plan d\'eau',
     titleDe: 'Leinen los',
@@ -268,15 +268,15 @@ const STEPS: TourStep[] = [
     bodyEn:
       'Start in Free Sail. Move sliders, watch trim change. Then try Drills - "Hold trim" gives you your first goal. Help button "?" is at the top any time.',
     bodyPl:
-      'Zacznij od Wolna jazda. Rusz slajdery, zobacz jak zmienia sie trym. Potem Cwiczenia - "Utrzymaj trym" daje pierwszy cel. Pomoc - "?" na gorze.',
+      'Zacznij od trybu SWOBODNIE. Poruszaj suwakami i zobacz, jak zmienia się trym. Potem przejdź do ĆWICZEŃ: "Utrzymaj trym" to pierwszy cel. Pomoc jest zawsze pod przyciskiem "?" na górze.',
     bodyEs:
-      'Empieza en LIBRE. Mueve los sliders, mira como cambia el trim. Luego prueba EJERCICIOS - "Manten el trim" te da el primer objetivo. El boton de ayuda "?" esta arriba siempre.',
+      'Empieza en LIBRE. Mueve los controles y mira cómo cambia el trim. Luego prueba EJERCICIOS: "Mantén el trim" es tu primer objetivo. El botón de ayuda "?" está siempre arriba.',
     bodyFr:
-      'Commence en LIBRE. Bouge les sliders, regarde le trim changer. Ensuite EXERCICES - "Maintiens le trim" te donne ton premier objectif. Le bouton d\'aide "?" est en haut a tout moment.',
+      'Commence en LIBRE. Bouge les curseurs et regarde le trim changer. Ensuite, EXERCICES : "Maintiens le trim" te donne ton premier objectif. Le bouton d\'aide "?" est toujours en haut.',
     bodyDe:
-      'Starte im FREI-Modus. Bewege die Slider, beobachte wie sich der Trim aendert. Dann DRILLS - "Halte den Trim" gibt dir das erste Ziel. Der Hilfe-Button "?" ist immer oben.',
+      'Starte im Modus FREI. Bewege die Regler und beobachte, wie sich der Trimm ändert. Dann ÜBUNGEN: "Halte den Trimm" ist dein erstes Ziel. Die Hilfe "?" findest du jederzeit oben.',
     bodyIt:
-      'Inizia in LIBERA. Sposta gli slider, guarda il trim cambiare. Poi prova ESERCIZI - "Tieni il trim" ti da il primo obiettivo. Il pulsante aiuto "?" e in alto sempre.',
+      'Inizia in modalità LIBERA. Muovi i cursori e guarda come cambia il trim. Poi prova ESERCIZI: "Tieni il trim" è il tuo primo obiettivo. Il pulsante di aiuto "?" è sempre in alto.',
   },
 ];
 
@@ -357,9 +357,9 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
         <button
           onClick={finish}
           aria-label={tp('Закрыть обзор', 'Close tour', 'Zamknij przewodnik', {
-            es: 'Cerrar la guia',
+            es: 'Cerrar la guía',
             fr: 'Fermer le guide',
-            de: 'Tour schliessen',
+            de: 'Tour schließen',
             it: 'Chiudi il tour',
           })}
           className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-lg transition"
@@ -406,7 +406,7 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
                 `Krok ${i + 1}`,
                 {
                   es: `Paso ${i + 1}`,
-                  fr: `Etape ${i + 1}`,
+                  fr: `Étape ${i + 1}`,
                   de: `Schritt ${i + 1}`,
                   it: `Passo ${i + 1}`,
                 },
@@ -426,9 +426,9 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
               }}
             >
               {tp('Назад', 'Back', 'Wstecz', {
-                es: 'Atras',
+                es: 'Atrás',
                 fr: 'Retour',
-                de: 'Zurueck',
+                de: 'Zurück',
                 it: 'Indietro',
               })}
             </button>
@@ -442,7 +442,7 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
             }}
           >
             {isLast
-              ? tp('Поехали', 'Go sailing', 'Do dziela', {
+              ? tp('Поехали', 'Go sailing', 'Do dzieła', {
                   es: 'A navegar',
                   fr: "Au plan d'eau",
                   de: 'Leinen los',
@@ -467,7 +467,7 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
             `Krok ${step + 1} z ${STEPS.length}`,
             {
               es: `Paso ${step + 1} de ${STEPS.length}`,
-              fr: `Etape ${step + 1} sur ${STEPS.length}`,
+              fr: `Étape ${step + 1} sur ${STEPS.length}`,
               de: `Schritt ${step + 1} von ${STEPS.length}`,
               it: `Passo ${step + 1} di ${STEPS.length}`,
             },

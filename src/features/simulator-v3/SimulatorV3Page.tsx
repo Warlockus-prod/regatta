@@ -145,9 +145,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     return () => mq.removeEventListener('change', update);
   }, []);
 
-  const shareLinkLabel = tp('Ссылка на сетап:', 'Setup link:', 'Link do setupu:', {
+  const shareLinkLabel = tp('Ссылка на сетап:', 'Setup link:', 'Link do ustawień:', {
     es: 'Enlace del setup:',
-    fr: 'Lien du setup:',
+    fr: 'Lien de ta config :',
     de: 'Setup-Link:',
     it: 'Link del setup:',
   });
@@ -359,14 +359,14 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const tackLabel =
     ui.tack === 'starboard'
       ? tp('правый галс', 'starboard tack', 'prawy hals', {
-          es: 'amura a estribor',
+          es: 'amurado a estribor',
           fr: 'tribord amures',
           de: 'Steuerbordbug',
           it: 'mure a dritta',
         })
       : tp('левый галс', 'port tack', 'lewy hals', {
-          es: 'amura a babor',
-          fr: 'babord amures',
+          es: 'amurado a babor',
+          fr: 'bâbord amures',
           de: 'Backbordbug',
           it: 'mure a sinistra',
         });
@@ -406,7 +406,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             {tp(
               'Ветер, паруса, ход',
               'Wind, sails, boat speed',
-              'Wiatr, zagle, predkosc',
+              'Wiatr, żagle, prędkość',
               {
                 es: 'Viento, velas, velocidad',
                 fr: 'Vent, voiles, vitesse',
@@ -422,8 +422,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           </button>
           <button
             onClick={() => setForceTour((n) => n + 1)}
-            aria-label={tp('Показать обзор', 'Show tour', 'Pokaz przewodnik', {
-              es: 'Mostrar la guia',
+            aria-label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', {
+              es: 'Mostrar la guía',
               fr: 'Afficher le guide',
               de: 'Tour anzeigen',
               it: 'Mostra il tour',
@@ -458,11 +458,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 {shareState === 'copied'
                   ? tp('СКОПИРОВАНО', 'COPIED', 'SKOPIOWANO', {
                       es: 'COPIADO',
-                      fr: 'COPIE',
+                      fr: 'COPIÉ',
                       de: 'KOPIERT',
                       it: 'COPIATO',
                     })
-                  : tp('Поделиться', 'Share', 'Udostepnij', {
+                  : tp('Поделиться', 'Share', 'Udostępnij', {
                       es: 'Compartir',
                       fr: 'Partager',
                       de: 'Teilen',
@@ -480,10 +480,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 }}
               >
                 {tp('Основы', 'Basics', 'Podstawy', {
-                  es: 'Basico',
+                  es: 'Fundamentos',
                   fr: 'Bases',
                   de: 'Grundlagen',
-                  it: 'Base',
+                  it: 'Basi',
                 })}
               </a>
               <span
@@ -496,7 +496,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               >
                 {tp('Тренажёр', 'Trainer', 'Trener', {
                   es: 'Entrenador',
-                  fr: 'Entraineur',
+                  fr: 'Réglage',
                   de: 'Trainer',
                   it: 'Trainer',
                 })}
@@ -509,10 +509,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                   color: 'var(--text-secondary)',
                 }}
               >
-                {tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
+                {tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
                   es: 'Barco 3D',
                   fr: 'Bateau 3D',
-                  de: 'Boot 3D',
+                  de: '3D-Boot',
                   it: 'Barca 3D',
                 })}
               </a>
@@ -522,7 +522,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       </div>
 
       {!embed && <p className="px-5 pt-3 pb-1 text-sm text-[var(--text-secondary)] max-w-[75ch]">
-        {tp("Выбери курс к ветру, настрой два шкота и сравни скорость. Для задания открой «Упражнения», для объяснений нажми «?».", "Choose a wind angle, trim both sails and compare speed. Open Drills for a task or ? for a guide.", "Wybierz kąt do wiatru, ustaw oba żagle i porównaj prędkość. Otwórz ćwiczenia lub przewodnik pod ?.", { es: "Elige un ángulo al viento, ajusta ambas velas y compara la velocidad. Abre Ejercicios o la guía con ?.", fr: "Choisis une allure, règle les deux voiles et compare la vitesse. Ouvre les exercices ou le guide avec ?.", de: "Wähle einen Windwinkel, trimme beide Segel und vergleiche die Fahrt. Öffne Übungen oder die Anleitung mit ?.", it: "Scegli un angolo al vento, regola entrambe le vele e confronta la velocità. Apri gli esercizi o la guida con ?." })}
+        {tp("Выбери курс к ветру, настрой два шкота и сравни скорость. Для задания открой «Упражнения», для объяснений нажми «?».", "Choose a wind angle, trim both sails and compare speed. Open Drills for a task or ? for a guide.", "Wybierz kurs względem wiatru, ustaw oba szoty i porównaj prędkość. Zadanie znajdziesz w \"Ćwiczeniach\", objaśnienia pod \"?\".", { es: "Elige un rumbo respecto al viento, ajusta las dos escotas y compara la velocidad. Para una tarea abre \"Ejercicios\"; para las explicaciones, pulsa \"?\".", fr: "Choisis une allure, règle les deux écoutes et compare la vitesse. Pour une tâche, ouvre \"Exercices\" ; pour les explications, appuie sur \"?\".", de: "Wähle einen Kurs zum Wind, trimme beide Schoten und vergleiche die Fahrt. Aufgaben findest du unter \"Übungen\", Erklärungen unter \"?\".", it: "Scegli l'andatura, regola le due scotte e confronta la velocità. Per un compito apri \"Esercizi\", per le spiegazioni premi \"?\"." })}
       </p>}
 
       {/* Desktop layout (>= 1024px), mounted ONLY when isDesktop. In embed

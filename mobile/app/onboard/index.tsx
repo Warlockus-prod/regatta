@@ -19,22 +19,22 @@ export default function Onboard() {
   const { tp, lang } = useI18n();
   const router = useRouter();
 
-  const headerTitle = tp('На борту', 'On board', 'Na pokladzie', {
+  const headerTitle = tp('На борту', 'On board', 'Na pokładzie', {
     es: 'A bordo',
-    fr: 'A bord',
+    fr: 'À bord',
     de: 'An Bord',
     it: 'A bordo',
   });
 
   const intro = tp(
     'Для тех, кто впервые идёт на регату или чартер. Не учим как управлять яхтой, а как вести себя на борту, чтобы быть полезным и не мешать.',
-    'For first-time regatta or charter crew. Not how to sail - how to behave on board so you are useful and not in the way.',
-    'Dla tych, ktorzy pierwszy raz ida na regate lub czarter. Nie uczymy jak sterowac - jak zachowac sie na pokladzie, aby byc pomocnym i nie przeszkadzac.',
+    'For anyone joining a regatta or a charter for the first time. Not how to sail the boat, but how to behave on board so you are useful and not in the way.',
+    'Dla tych, którzy pierwszy raz płyną na regaty albo w rejs czarterowy. Nie o tym, jak prowadzić jacht, tylko o tym, jak się zachować na pokładzie, żeby się przydać i nie przeszkadzać.',
     {
-      es: 'Para tripulacion novata de regata o charter. No como navegar: como comportarse a bordo para ser util y no estorbar.',
-      fr: "Pour l'equipage debutant en regate ou en charter. Pas comment naviguer : comment se comporter a bord pour etre utile et ne pas gener.",
-      de: 'Fuer Crew, die zum ersten Mal auf Regatta oder Charter geht. Nicht wie man segelt - wie man sich an Bord verhaelt, um nuetzlich zu sein und nicht im Weg zu stehen.',
-      it: "Per l'equipaggio alle prime regate o charter. Non come navigare: come comportarsi a bordo per essere utile e non intralciare.",
+      es: 'Para quien va por primera vez a una regata o a un chárter. No enseña a gobernar el barco, sino a comportarte a bordo para ser útil y no estorbar.',
+      fr: "Pour toi qui pars pour la première fois en régate ou en croisière de location. On n'apprend pas ici à barrer, mais à se comporter à bord pour être utile et ne pas gêner.",
+      de: 'Für alle, die zum ersten Mal auf eine Regatta oder einen Chartertörn gehen. Nicht, wie man eine Yacht steuert, sondern wie du dich an Bord verhältst, um nützlich zu sein und nicht im Weg zu stehen.',
+      it: "Per chi va per la prima volta a una regata o in charter. Non insegna a condurre la barca, ma a comportarti a bordo per essere utile e non intralciare.",
     },
   );
 
@@ -45,58 +45,58 @@ export default function Onboard() {
     {
       es: 'Advertencia',
       fr: 'Attention',
-      de: 'Warnung',
+      de: 'Achtung',
       it: 'Attenzione',
     },
   );
 
-  const deeperTitle = tp('Глубже по темам', 'Deeper by topic', 'Glebiej po tematach', {
-    es: 'Mas a fondo por tema',
-    fr: 'Plus en detail par theme',
-    de: 'Tiefer nach Thema',
-    it: 'Piu a fondo per argomento',
+  const deeperTitle = tp('Глубже по темам', 'Go deeper', 'Więcej o tych tematach', {
+    es: 'Para profundizar',
+    fr: 'Pour aller plus loin',
+    de: 'Zum Vertiefen',
+    it: 'Per approfondire',
   });
 
   const deeperSubtitle = tp(
     'Краткий обзор здесь - подробности в отдельных разделах.',
-    'Overview here - details on dedicated pages.',
-    'Krotki przeglad tutaj - szczegoly w osobnych sekcjach.',
+    'The overview is here; the details are on dedicated pages.',
+    'Tu jest krótki przegląd, szczegóły znajdziesz w osobnych działach.',
     {
-      es: 'Resumen aqui: detalles en secciones aparte.',
-      fr: 'Apercu ici : details dans des sections dediees.',
-      de: 'Ueberblick hier - Details in eigenen Bereichen.',
-      it: 'Panoramica qui: dettagli in sezioni dedicate.',
+      es: 'Aquí tienes un resumen; los detalles, en secciones aparte.',
+      fr: 'Ici, un aperçu ; les détails sont dans des sections dédiées.',
+      de: 'Hier der Überblick, Details in eigenen Bereichen.',
+      it: 'Qui una panoramica, i dettagli in sezioni dedicate.',
     },
   );
 
   const anatomyTitle = tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu', {
-    es: 'Anatomia del yate',
-    fr: 'Anatomie du yacht',
-    de: 'Yacht-Aufbau',
-    it: 'Anatomia dello yacht',
+    es: 'Anatomía del velero',
+    fr: 'Anatomie du voilier',
+    de: 'Aufbau der Yacht',
+    it: 'Anatomia della barca',
   });
 
   const anatomyDesc = tp(
     '17 деталей с описанием, 2D профиль.',
     '17 parts described, 2D profile.',
-    '17 czesci z opisem, profil 2D.',
+    '17 części z opisem, profil 2D.',
     {
       es: '17 piezas descritas, perfil 2D.',
-      fr: '17 pieces decrites, profil 2D.',
+      fr: '17 pièces décrites, profil 2D.',
       de: '17 Teile beschrieben, 2D-Profil.',
       it: '17 parti descritte, profilo 2D.',
     },
   );
 
-  const checklistTitle = tp('Чек-лист к регате', 'Pre-race checklist', 'Lista przed regata', {
-    es: 'Lista pre-regata',
-    fr: 'Checklist avant course',
-    de: 'Pre-Race-Checkliste',
-    it: 'Checklist pre-gara',
+  const checklistTitle = tp('Чек-лист к регате', 'Pre-race checklist', 'Lista kontrolna przed regatami', {
+    es: 'Checklist para la regata',
+    fr: 'Check-list avant la régate',
+    de: 'Checkliste vor der Regatta',
+    it: 'Checklist prima della regata',
   });
 
-  const checklistCaption = tp('Что взять, что знать', 'Pack, know, do', 'Co wziac, co wiedziec', {
-    es: 'Que llevar, que saber',
+  const checklistCaption = tp('Что взять, что знать', 'What to pack, what to know', 'Co zabrać, co wiedzieć', {
+    es: 'Qué llevar, qué saber',
     fr: 'Quoi emporter, quoi savoir',
     de: 'Was mitnehmen, was wissen',
     it: 'Cosa portare, cosa sapere',
@@ -104,25 +104,25 @@ export default function Onboard() {
 
   const checklistDesc = tp(
     'Прогресс по пунктам сохраняется на устройстве.',
-    'Progress saved on the device.',
-    'Postep zapisuje sie na urzadzeniu.',
+    'Your progress is saved on this device.',
+    'Postęp zapisuje się na tym urządzeniu.',
     {
-      es: 'El progreso se guarda en el dispositivo.',
-      fr: "La progression est enregistree sur l'appareil.",
-      de: 'Fortschritt wird auf dem Geraet gespeichert.',
-      it: 'I progressi vengono salvati sul dispositivo.',
+      es: 'El progreso se guarda en este dispositivo.',
+      fr: "Ta progression est enregistrée sur cet appareil.",
+      de: 'Dein Fortschritt wird auf diesem Gerät gespeichert.',
+      it: 'I progressi vengono salvati su questo dispositivo.',
     },
   );
 
   const summary = tp(
     'Это базовая подборка. Каждая яхта - свой маленький мир. Главное правило: не уверен - спроси, не трогай без команды.',
-    'This is the basics. Each yacht has its own quirks. Main rule: not sure - ask. Do not touch without a command.',
-    'To podstawy. Kazdy jacht ma swoje kwirki. Glowna zasada: nie jestes pewien - zapytaj, nie dotykaj bez komendy.',
+    'These are the basics. Every yacht is a small world of its own. The main rule: not sure? Ask, and don\'t touch anything without a command.',
+    'To podstawy. Każdy jacht to osobny mały świat. Najważniejsza zasada: nie jesteś pewien - zapytaj i niczego nie ruszaj bez komendy.',
     {
-      es: 'Esto es lo basico. Cada yate tiene sus manias. Regla principal: si no estas seguro, pregunta; no toques sin orden.',
-      fr: "Voici les bases. Chaque yacht a ses particularites. Regle principale : pas sur - demande ; ne touche a rien sans ordre.",
-      de: 'Das sind die Grundlagen. Jede Yacht hat ihre Eigenheiten. Hauptregel: unsicher - frag, fass nichts ohne Kommando an.',
-      it: "Queste sono le basi. Ogni yacht ha le sue manie. Regola principale: non sei sicuro - chiedi, non toccare senza un comando.",
+      es: 'Esto es lo básico. Cada barco es un pequeño mundo. La regla principal: si no estás seguro, pregunta, y no toques nada sin una orden.',
+      fr: 'Ce sont les bases. Chaque voilier est un petit monde à part. Règle principale : pas sûr, demande ; ne touche à rien sans ordre.',
+      de: 'Das sind die Grundlagen. Jede Yacht ist eine eigene kleine Welt. Die wichtigste Regel: Unsicher? Frag nach, und fass nichts ohne Kommando an.',
+      it: 'Queste sono le basi. Ogni barca è un piccolo mondo a sé. La regola principale: se non sei sicuro, chiedi, e non toccare niente senza un comando.',
     },
   );
 

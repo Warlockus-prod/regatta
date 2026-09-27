@@ -41,7 +41,7 @@ const SPOTS: readonly Spot[] = [
   { key: 'palma', label: 'Palma', lat: 39.57, lon: 2.65 },
   { key: 'tarifa', label: 'Tarifa', lat: 36.01, lon: -5.6 },
   { key: 'cowes', label: 'Cowes', lat: 50.76, lon: -1.3 },
-  { key: 'hyeres', label: 'Hyeres', lat: 43.07, lon: 6.15 },
+  { key: 'hyeres', label: 'Hyères', lat: 43.07, lon: 6.15 },
 ] as const;
 
 const FALLBACK_ATTRIBUTION = 'Weather data by Open-Meteo.com (CC BY 4.0).';
@@ -102,14 +102,14 @@ export function WindNowCard() {
 
   const title = tp('Ветер сейчас', 'Wind now', 'Wiatr teraz', {
     es: 'Viento ahora',
-    fr: 'Vent maintenant',
-    de: 'Wind jetzt',
-    it: 'Vento ora',
+    fr: 'Vent actuel',
+    de: 'Aktueller Wind',
+    it: 'Vento attuale',
   });
 
-  const unitKn = tp('уз', 'kn', 'w', {
+  const unitKn = tp('уз', 'kn', 'kn', {
     es: 'kn',
-    fr: 'nd',
+    fr: 'kn',
     de: 'kn',
     it: 'kn',
   });
@@ -117,7 +117,7 @@ export function WindNowCard() {
   const gustLabel = tp('порывы', 'gusts', 'porywy', {
     es: 'rachas',
     fr: 'rafales',
-    de: 'Boeen',
+    de: 'Böen',
     it: 'raffiche',
   });
 
@@ -128,24 +128,24 @@ export function WindNowCard() {
     it: 'onde',
   });
 
-  const currentLabel = tp('течение', 'current', 'prad', {
+  const currentLabel = tp('течение', 'current', 'prąd', {
     es: 'corriente',
     fr: 'courant',
-    de: 'Stroemung',
+    de: 'Strömung',
     it: 'corrente',
   });
 
-  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ladowanie...', {
+  const loadingLabel = tp('Загрузка...', 'Loading...', 'Ładowanie...', {
     es: 'Cargando...',
     fr: 'Chargement...',
-    de: 'Laden...',
+    de: 'Wird geladen...',
     it: 'Caricamento...',
   });
 
   const errorLabel = tp(
     'Не удалось загрузить ветер.',
     'Could not load wind.',
-    'Nie udalo sie pobrac wiatru.',
+    'Nie udało się pobrać danych o wietrze.',
     {
       es: 'No se pudo cargar el viento.',
       fr: 'Impossible de charger le vent.',
@@ -154,10 +154,10 @@ export function WindNowCard() {
     },
   );
 
-  const retryLabel = tp('Повторить', 'Retry', 'Ponow', {
+  const retryLabel = tp('Повторить', 'Retry', 'Ponów', {
     es: 'Reintentar',
-    fr: 'Reessayer',
-    de: 'Erneut',
+    fr: 'Réessayer',
+    de: 'Wiederholen',
     it: 'Riprova',
   });
 
@@ -167,7 +167,7 @@ export function WindNowCard() {
     'Do treningu, nie do nawigacji.',
     {
       es: 'Para entrenar, no para navegar.',
-      fr: "Pour l'entrainement, pas pour la navigation.",
+      fr: "Pour l'entraînement, pas pour la navigation.",
       de: 'Zum Training, nicht zur Navigation.',
       it: "Per l'allenamento, non per la navigazione.",
     },
@@ -273,7 +273,7 @@ function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindR
       <View style={styles.readoutRow}>
         <Text style={styles.speedValue}>{`${speed}`}</Text>
         <Text style={styles.speedUnit}>{` ${unitKn}`}</Text>
-        <Text style={styles.dirText}>{`  ${cardinal} (${dirDeg}deg)`}</Text>
+        <Text style={styles.dirText}>{`  ${cardinal} (${dirDeg}°)`}</Text>
       </View>
       {data.wind.gustKn != null ? (
         <Text variant="caption" style={styles.metaText}>

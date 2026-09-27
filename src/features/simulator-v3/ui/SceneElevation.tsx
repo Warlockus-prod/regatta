@@ -28,31 +28,31 @@ export function SceneElevation({ view, ui, sim, tp }: {
   const jibVisible = furl > 0.05;
   const mainLuffing = finite(sim.result.diag.mainAoA) < 6;
   const jibLuffing = finite(sim.result.diag.jibAoA) < 6;
-  const mainName = tp("Грот", "Main", "Grot", { es: "Mayor", fr: "Grand-voile", de: "Grosssegel", it: "Randa" });
+  const mainName = tp("Грот", "Main", "Grot", { es: "Mayor", fr: "Grand-voile", de: "Großsegel", it: "Randa" });
   const jibName = tp("Стаксель", "Jib", "Fok", { es: "Foque", fr: "Foc", de: "Fock", it: "Fiocco" });
-  const heelLabel = tp("Крен", "Heel", "Przechyl", { es: "Escora", fr: "Gite", de: "Krangung", it: "Sbandamento" });
+  const heelLabel = tp("Крен", "Heel", "Przechył", { es: "Escora", fr: "Gîte", de: "Krängung", it: "Sbandamento" });
   const title = rear
     ? tp("Вид с кормы", "View from astern", "Widok od rufy", { es: "Vista desde popa", fr: "Vue de poupe", de: "Blick von achtern", it: "Vista da poppa" })
     : tp("Вид сбоку", "Side profile", "Widok z boku", { es: "Vista lateral", fr: "Vue de profil", de: "Seitenansicht", it: "Vista laterale" });
   const hint = rear
-    ? tp("Смотри, как кренится мачта и отклоняются паруса.", "Watch the mast heel and the sails open out.", "Obserwuj przechyl masztu i wychylenie zagli.", { es: "Observa la escora del mastil y la apertura de las velas.", fr: "Observe la gite du mat et l'ouverture des voiles.", de: "Beobachte Mastneigung und Segeloffnung.", it: "Osserva lo sbandamento e l'apertura delle vele." })
-    : tp("Нос справа. Здесь хорошо видны рифление и раскрытие стакселя.", "Bow to the right. Compare reefing and jib furling here.", "Dziob po prawej. Porownuj refowanie i rozwijanie foka.", { es: "Proa a la derecha. Compara los rizos y el enrollado del foque.", fr: "Proue a droite. Compare les ris et l'enroulement du foc.", de: "Bug rechts. Vergleiche Reffen und Ausrollen der Fock.", it: "Prua a destra. Confronta terzaroli e avvolgimento del fiocco." });
+    ? tp("Смотри, как кренится мачта и отклоняются паруса.", "Watch the mast heel and the sails open out.", "Obserwuj przechył masztu i to, jak otwierają się żagle.", { es: "Observa la escora del mástil y cómo se abren las velas.", fr: "Observe la gîte du mât et l'ouverture des voiles.", de: "Beobachte, wie der Mast krängt und die Segel öffnen.", it: "Osserva lo sbandamento e l'apertura delle vele." })
+    : tp("Нос справа. Здесь хорошо видны рифление и раскрытие стакселя.", "Bow to the right. Compare reefing and jib furling here.", "Dziób po prawej. Tu dobrze widać refowanie grota i rozwinięcie foka.", { es: "Proa a la derecha. Compara los rizos y el enrollado del foque.", fr: "Étrave à droite. Compare les ris et l'enroulement du foc.", de: "Bug rechts. Vergleiche Reffen und Ausrollen der Fock.", it: "Prua a destra. Confronta terzaroli e avvolgimento del fiocco." });
   const note = rear
-    ? tp("Паруса могут перекрываться. Выбери «Грот» или «Стакс.», чтобы рассмотреть один.", "Sails can overlap. Select Main or Jib to inspect one sail.", "Zagle moga sie nakladac. Wybierz Grot lub Fok, aby obejrzec jeden.", { es: "Las velas pueden solaparse. Selecciona Mayor o Foque para ver una.", fr: "Les voiles peuvent se superposer. Choisis Grand-voile ou Foc.", de: "Segel konnen sich uberdecken. Wahle Grosssegel oder Fock einzeln.", it: "Le vele possono sovrapporsi. Seleziona Randa o Fiocco." })
-    : tp("Это боковая проекция: при потравливании паруса видны уже. Углы трима сравнивай сверху, крен с кормы.", "This is a side projection: eased sails look narrower. Compare trim angles from above and heel from astern.", "To rzut boczny: luzowane zagle wygladaja na wezsze. Katy trymu porownuj z gory, przechyl od rufy.", { es: "Las velas amolladas parecen mas estrechas. Compara los angulos desde arriba y la escora desde popa.", fr: "Les voiles choquees paraissent plus etroites. Compare les angles de dessus et la gite de poupe.", de: "Gefierte Segel wirken schmaler. Vergleiche Trimmwinkel von oben und Krangung von achtern.", it: "Le vele lascate appaiono piu strette. Confronta gli angoli dall'alto e lo sbandamento da poppa." });
+    ? tp("Паруса могут перекрываться. Выбери «Грот» или «Стакс.», чтобы рассмотреть один.", "Sails can overlap. Select Main or Jib to inspect one sail.", "Żagle mogą się nakładać. Wybierz \"Grot\" lub \"Fok\", aby obejrzeć jeden z nich.", { es: "Las velas pueden solaparse. Selecciona \"Mayor\" o \"Foque\" para ver una sola.", fr: "Les voiles peuvent se superposer. Choisis \"GV\" ou \"Foc\" pour en voir une seule.", de: "Die Segel können sich überdecken. Wähle \"Groß\" oder \"Fock\", um ein Segel einzeln zu sehen.", it: "Le vele possono sovrapporsi. Seleziona \"Randa\" o \"Fiocco\" per vederne una sola." })
+    : tp("Это боковая проекция: при потравливании паруса видны уже. Углы трима сравнивай сверху, крен с кормы.", "This is a side projection: eased sails look narrower. Compare trim angles from above and heel from astern.", "To rzut boczny: poluzowane żagle wyglądają na węższe. Kąty trymu porównuj z góry, a przechył od rufy.", { es: "Es una proyección lateral: las velas lascadas parecen más estrechas. Compara los ángulos de trimado desde arriba y la escora desde popa.", fr: "C'est une projection de côté : les voiles choquées paraissent plus étroites. Compare les angles de réglage vus de dessus et la gîte vue de l'arrière.", de: "Das ist eine Seitenprojektion: gefierte Segel wirken schmaler. Vergleiche die Trimmwinkel von oben und die Krängung von achtern.", it: "È una proiezione laterale: le vele lascate sembrano più strette. Confronta gli angoli di regolazione dall'alto e lo sbandamento da poppa." });
   const mainTackX = rear ? 0 : 4.8;
   const rise = sim.session.mainTrim?.pose.rise ?? 0;
   const boomEnd = projectSailPoint("main", 1, 0, mainAngle, side, 0, 0, rear, 0, rise);
   const mainPath = projectedSailPath("main", mainAngle, side, reef, 0, rear, sim.session.live.mainTwist, rise);
   const jibPath = projectedSailPath("jib", jibAngle, jibSide, 0, 1 - furl, rear, sim.session.live.jibTwist);
   const mainStatus = mainLuffing
-    ? tp("полощет", "luffing", "lopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
+    ? tp("полощет", "luffing", "łopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
     : sim.result.diag.mainStalled
-      ? tp("срыв потока", "stalled", "oderwanie strug", { es: "perdida", fr: "decrochage", de: "Stromungsabriss", it: "stallo" }) : "";
+      ? tp("срыв потока", "stalled", "oderwanie przepływu", { es: "flujo desprendido", fr: "décrochage", de: "Strömungsabriss", it: "stallo" }) : "";
   const jibStatus = jibLuffing
-    ? tp("полощет", "luffing", "lopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
+    ? tp("полощет", "luffing", "łopocze", { es: "flamea", fr: "faseye", de: "killt", it: "fileggia" })
     : sim.result.diag.jibStalled
-      ? tp("срыв потока", "stalled", "oderwanie strug", { es: "perdida", fr: "decrochage", de: "Stromungsabriss", it: "stallo" }) : "";
+      ? tp("срыв потока", "stalled", "oderwanie przepływu", { es: "flujo desprendido", fr: "décrochage", de: "Strömungsabriss", it: "stallo" }) : "";
   return <div className="absolute inset-0 flex min-h-0 flex-col" style={{ background: "var(--bg-primary)" }}>
     <div className="flex items-start justify-between gap-4 px-5 pt-5">
       <div><h2 className="text-base font-semibold" style={{ color: "var(--text-primary)" }}>{title}</h2>
@@ -126,7 +126,7 @@ export function SceneElevation({ view, ui, sim, tp }: {
       </div>
       <p className={`${styles.elevationHint} hidden sm:block`} style={{ color: "var(--text-secondary)" }}>{note}</p>
       <details className={`${styles.elevationHelp} sm:hidden`} style={{ color: "var(--text-secondary)" }}>
-        <summary className="cursor-pointer">{tp("Как читать схему", "Read this view", "Jak czytac schemat", { es: "Como leer la vista", fr: "Lire cette vue", de: "Ansicht verstehen", it: "Leggere questa vista" })}</summary>
+        <summary className="cursor-pointer">{tp("Как читать схему", "Read this view", "Jak czytać ten widok", { es: "Cómo leer la vista", fr: "Lire cette vue", de: "Ansicht verstehen", it: "Leggere questa vista" })}</summary>
         <p className="mt-2 max-h-20 overflow-y-auto">{note}</p>
       </details>
     </div>

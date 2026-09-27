@@ -21,9 +21,9 @@ export default function Rules() {
   const { tp, lang } = useI18n();
   const router = useRouter();
 
-  const headerTitle = tp('Правила', 'Rules of the road', 'Zasady', {
+  const headerTitle = tp('Правила', 'Rules of the road', 'Przepisy', {
     es: 'Reglas',
-    fr: 'Regles',
+    fr: 'Règles',
     de: 'Regeln',
     it: 'Regole',
   });
@@ -31,57 +31,57 @@ export default function Rules() {
   const intro = tp(
     'Две системы правил: RRS (гоночные правила World Sailing, действуют только между гонщиками на дистанции) и МППСС-72 (международные правила предупреждения столкновений, действуют ВСЕГДА для каждого судна). Знать надо обе.',
     'Two rule systems: RRS (World Sailing racing rules, apply only between racing boats on the course) and COLREGS / IRPCS (International Regulations for Preventing Collisions at Sea, apply ALWAYS to every vessel). Both are essential.',
-    'Dwa systemy zasad: RRS (przepisy regatowe World Sailing, obowiazuja tylko miedzy zawodnikami na trasie) i COLREGS (miedzynarodowe przepisy o zapobieganiu zderzeniom na morzu, obowiazuja ZAWSZE dla kazdej jednostki). Oba sa konieczne.',
+    'Dwa systemy przepisów: RRS (przepisy regatowe World Sailing, obowiązują tylko między jachtami ścigającymi się na trasie) i MPZZM / COLREG (międzynarodowe przepisy o zapobieganiu zderzeniom na morzu, obowiązują ZAWSZE każdą jednostkę). Trzeba znać oba.',
     {
-      es: 'Dos sistemas de reglas: RRS (reglas de regata de World Sailing, solo entre barcos en regata en el campo) y COLREGS / RIPA (Reglamento Internacional para Prevenir Abordajes, se aplica SIEMPRE a toda embarcacion). Ambos son esenciales.',
-      fr: 'Deux systemes de regles: RRS (regles de course de World Sailing, seulement entre bateaux en course sur le parcours) et COLREG / RIPAM (Reglement International pour Prevenir les Abordages, s applique TOUJOURS a tout navire). Les deux sont essentiels.',
-      de: 'Zwei Regelsysteme: RRS (Wettfahrtregeln Segeln von World Sailing, gelten nur zwischen Booten in der Wettfahrt auf der Bahn) und COLREGS / KVR (Kollisionsverhuetungsregeln, gelten IMMER fuer jedes Fahrzeug). Beide sind unverzichtbar.',
-      it: 'Due sistemi di regole: RRS (regole di regata di World Sailing, valgono solo tra barche in regata sul campo) e COLREG / NIPAM (Regolamento Internazionale per Prevenire gli Abbordi, si applica SEMPRE a ogni imbarcazione). Entrambi sono essenziali.',
+      es: 'Dos sistemas de reglas: RRS (reglas de regata de World Sailing, solo se aplican entre barcos que compiten en el recorrido) y RIPA / COLREG (Reglamento Internacional para Prevenir los Abordajes, se aplica SIEMPRE a toda embarcación). Hay que conocer los dos.',
+      fr: "Deux systèmes de règles : RRS (règles de course de World Sailing, qui ne s'appliquent qu'entre bateaux en course sur le parcours) et RIPAM / COLREG (Règlement international pour prévenir les abordages en mer, qui s'applique TOUJOURS à tout navire). Il faut connaître les deux.",
+      de: 'Zwei Regelwerke: RRS (Wettfahrtregeln von World Sailing, gelten nur zwischen Booten, die auf der Bahn Regatta segeln) und KVR / COLREG (Internationale Regeln zur Verhütung von Zusammenstößen auf See, gelten IMMER für jedes Fahrzeug). Du musst beide kennen.',
+      it: 'Due sistemi di regole: RRS (regole di regata di World Sailing, valgono solo tra le barche in regata sul percorso) e COLREG (Regolamento internazionale per prevenire gli abbordi in mare, valgono SEMPRE per ogni imbarcazione). Bisogna conoscerli entrambi.',
     },
   );
 
   const rrsTitle = tp(
     'Гоночные правила (World Sailing)',
     'Racing Rules of Sailing (World Sailing)',
-    'Przepisy regatowe (World Sailing)',
+    'Przepisy Regatowe Żeglarstwa (World Sailing)',
     {
-      es: 'Reglas de Regata a Vela (World Sailing)',
-      fr: 'Regles de Course a la Voile (World Sailing)',
+      es: 'Reglamento de Regatas a Vela (World Sailing)',
+      fr: 'Règles de course à la voile (World Sailing)',
       de: 'Wettfahrtregeln Segeln (World Sailing)',
-      it: 'Regole di Regata della Vela (World Sailing)',
+      it: 'Regole di regata della vela (World Sailing)',
     },
   );
   const colregsTitle = tp(
     'Международные правила предупреждения столкновений',
     'International Regulations for Preventing Collisions at Sea',
-    'Miedzynarodowe przepisy o zapobieganiu zderzeniom na morzu',
+    'Międzynarodowe przepisy o zapobieganiu zderzeniom na morzu',
     {
-      es: 'Reglamento Internacional para Prevenir Abordajes',
-      fr: 'Reglement International pour Prevenir les Abordages',
-      de: 'Internationale Regeln zur Verhuetung von Zusammenstoessen auf See',
-      it: 'Regolamento Internazionale per Prevenire gli Abbordi in Mare',
+      es: 'Reglamento Internacional para Prevenir los Abordajes',
+      fr: 'Règlement international pour prévenir les abordages en mer',
+      de: 'Internationale Regeln zur Verhütung von Zusammenstößen auf See',
+      it: 'Regolamento internazionale per prevenire gli abbordi in mare',
     },
   );
   const colregsIntro = tp(
     'RRS действуют только во время гонки между гонщиками. В остальных случаях (выход из порта, прогулка, встреча с моторным судном) работают МППСС-72. Их обязан знать любой у штурвала.',
     'RRS applies only during a race between racing boats. Everywhere else (leaving harbour, cruising, meeting a power vessel), COLREGS / IRPCS applies. Every helmsman must know them.',
-    'RRS obowiazuje tylko podczas regat miedzy zawodnikami. W innych sytuacjach (wyjscie z portu, rejs, spotkanie z jednostka motorowa) obowiazuje COLREGS. Musi je znac kazdy przy sterze.',
+    'RRS obowiązują tylko podczas wyścigu, między jachtami, które się ścigają. W innych sytuacjach (wyjście z portu, rejs, spotkanie z jednostką motorową) obowiązuje MPZZM. Musi je znać każdy, kto stoi za sterem.',
     {
-      es: 'Las RRS solo se aplican durante una regata entre barcos en competicion. En el resto de casos (salir del puerto, navegar, cruzarse con un barco a motor) rige el COLREGS. Todo timonel debe conocerlo.',
-      fr: 'Les RRS ne s appliquent que pendant une course entre bateaux en regate. Partout ailleurs (sortie du port, croisiere, rencontre avec un navire a moteur) c est le COLREG qui prime. Tout barreur doit le connaitre.',
-      de: 'Die RRS gelten nur waehrend einer Wettfahrt zwischen Wettfahrtbooten. Ueberall sonst (Hafenausfahrt, Toern, Begegnung mit einem Motorschiff) gelten die KVR. Jeder am Ruder muss sie kennen.',
-      it: 'Le RRS valgono solo durante una regata tra barche in competizione. In tutti gli altri casi (uscita dal porto, crociera, incrocio con un natante a motore) vale il COLREG. Ogni timoniere deve conoscerlo.',
+      es: 'Las RRS solo se aplican durante una regata, entre barcos que compiten. En todos los demás casos (salir de puerto, navegar de paseo, cruzarse con un barco a motor) rige el RIPA. Todo timonel debe conocerlo.',
+      fr: "Les RRS ne s'appliquent que pendant une course, entre bateaux qui courent. Partout ailleurs (sortie de port, balade, rencontre avec un navire à moteur), c'est le RIPAM qui s'applique. Tout barreur doit le connaître.",
+      de: 'Die RRS gelten nur während einer Wettfahrt zwischen Booten, die Regatta segeln. Überall sonst (Hafenausfahrt, Törn, Begegnung mit einem Motorboot) gelten die KVR. Jeder am Ruder muss sie kennen.',
+      it: 'Le RRS valgono solo durante una regata, tra le barche che competono. In tutti gli altri casi (uscita dal porto, crociera, incontro con un mezzo a motore) valgono le COLREG. Ogni timoniere deve conoscerle.',
     },
   );
   const officialText = tp(
     'Официальный текст МППСС-72: принят Международной морской организацией (IMO) в 1972, действует во всех странах-подписантах. Обновлялись несколько раз, текущая редакция включает поправки 2007.',
     'Official COLREGS text: adopted by the International Maritime Organization (IMO) in 1972, binding in all signatory countries. Amended several times, current edition includes 2007 revisions.',
-    'Oficjalny tekst COLREGS: przyjete przez Miedzynarodowa Organizacje Morska (IMO) w 1972, obowiazuje we wszystkich panstwach-sygnatariuszach. Kilkakrotnie nowelizowane, obecna redakcja zawiera poprawki z 2007.',
+    'Oficjalny tekst MPZZM (COLREG): przepisy przyjęte przez Międzynarodową Organizację Morską (IMO) w 1972 r. obowiązują we wszystkich państwach-sygnatariuszach. Były kilkakrotnie nowelizowane, obecna wersja zawiera poprawki z 2007 r.',
     {
-      es: 'Texto oficial del COLREGS: adoptado por la Organizacion Maritima Internacional (OMI) en 1972, en vigor en todos los paises firmantes. Enmendado varias veces, la edicion actual incluye las revisiones de 2007.',
-      fr: 'Texte officiel du COLREG: adopte par l Organisation Maritime Internationale (OMI) en 1972, en vigueur dans tous les pays signataires. Amende plusieurs fois, l edition actuelle inclut les revisions de 2007.',
-      de: 'Offizieller KVR-Text: 1972 von der Internationalen Seeschifffahrtsorganisation (IMO) angenommen, in allen Unterzeichnerstaaten verbindlich. Mehrfach geaendert, die aktuelle Fassung enthaelt die Aenderungen von 2007.',
-      it: 'Testo ufficiale del COLREG: adottato dall Organizzazione Marittima Internazionale (IMO) nel 1972, in vigore in tutti i paesi firmatari. Emendato piu volte, l edizione attuale include le revisioni del 2007.',
+      es: 'Texto oficial del RIPA: adoptado por la Organización Marítima Internacional (OMI) en 1972, vinculante en todos los países signatarios. Enmendado varias veces, la edición actual incluye las enmiendas de 2007.',
+      fr: "Texte officiel du RIPAM : adopté par l'Organisation maritime internationale (OMI) en 1972, il s'applique dans tous les pays signataires. Il a été modifié plusieurs fois ; la version actuelle inclut les amendements de 2007.",
+      de: 'Offizieller KVR-Text: 1972 von der Internationalen Seeschifffahrts-Organisation (IMO) angenommen, verbindlich in allen Unterzeichnerstaaten. Mehrfach geändert, die aktuelle Fassung enthält die Änderungen von 2007.',
+      it: "Testo ufficiale delle COLREG: adottate dall'Organizzazione marittima internazionale (IMO) nel 1972, vincolanti in tutti i paesi firmatari. Emendate più volte, l'edizione attuale include le modifiche del 2007.",
     },
   );
 
@@ -99,11 +99,11 @@ export default function Rules() {
   // Mirrors the web /rules COLREGS links block, all 7 languages.
   const colregsLinks: LinkRow[] = (() => {
     const imo: LinkRow = {
-      label: tp('IMO оригинал (англ.)', 'IMO official text', 'IMO tekst oryginalny (ang.)', {
-        es: 'IMO texto original (ing.)',
-        fr: 'IMO texte original (ang.)',
-        de: 'IMO Originaltext (en.)',
-        it: 'IMO testo originale (ing.)',
+      label: tp('IMO оригинал (англ.)', 'IMO official text', 'Tekst oryginalny IMO (ang.)', {
+        es: 'Texto original de la OMI (ingl.)',
+        fr: "Texte original de l'OMI (angl.)",
+        de: 'IMO-Originaltext (engl.)',
+        it: 'Testo originale IMO (ingl.)',
       }),
       url: IMO_URL,
     };
@@ -113,11 +113,11 @@ export default function Rules() {
       case 'en':
         return [imo, { label: 'US Navigation Rules PDF', url: 'https://www.navcen.uscg.gov/sites/default/files/pdf/navRules/navrules.pdf' }];
       case 'pl':
-        return [{ label: 'Polski Zwiazek Zeglarski', url: 'https://pya.org.pl/polski-zwiazek-zeglarski/page/przepisy-zeglarskie/' }, imo];
+        return [{ label: 'Polski Związek Żeglarski', url: 'https://pya.org.pl/polski-zwiazek-zeglarski/page/przepisy-zeglarskie/' }, imo];
       case 'es':
-        return [{ label: 'Real Federacion Espanola de Vela', url: 'https://rfev.es/' }, imo];
+        return [{ label: 'Real Federación Española de Vela', url: 'https://rfev.es/' }, imo];
       case 'fr':
-        return [{ label: 'Federation Francaise de Voile', url: 'https://www.ffvoile.fr/' }, imo];
+        return [{ label: 'Fédération Française de Voile', url: 'https://www.ffvoile.fr/' }, imo];
       case 'de':
         return [{ label: 'Deutscher Segler-Verband', url: 'https://www.dsv.org/' }, imo];
       case 'it':
@@ -130,12 +130,12 @@ export default function Rules() {
   const rrsOfficialText = tp(
     'Официальный текст RRS: Racing Rules of Sailing 2025-2028, выпускается World Sailing, действует с 1 января 2025 до 31 декабря 2028. То, что выше - упрощённая версия для входа в тему.',
     'Official RRS text: Racing Rules of Sailing 2025-2028, published by World Sailing, in force from 1 January 2025 to 31 December 2028. The scenarios above are a simplified intro to the topic.',
-    'Oficjalny tekst RRS: Racing Rules of Sailing 2025-2028, wydawane przez World Sailing, obowiazuja od 1 stycznia 2025 do 31 grudnia 2028. Scenariusze powyzej to uproszczony wstep do tematu.',
+    'Oficjalny tekst RRS: Racing Rules of Sailing 2025-2028, wydawane przez World Sailing, obowiązują od 1 stycznia 2025 do 31 grudnia 2028 r. Scenariusze powyżej to uproszczony wstęp do tematu.',
     {
-      es: 'Texto oficial de las RRS: Racing Rules of Sailing 2025-2028, publicadas por World Sailing, en vigor del 1 de enero de 2025 al 31 de diciembre de 2028. Los escenarios anteriores son una introduccion simplificada al tema.',
-      fr: 'Texte officiel des RRS: Racing Rules of Sailing 2025-2028, publiees par World Sailing, en vigueur du 1 janvier 2025 au 31 decembre 2028. Les scenarios ci-dessus sont une introduction simplifiee au sujet.',
-      de: 'Offizieller RRS-Text: Racing Rules of Sailing 2025-2028, herausgegeben von World Sailing, in Kraft vom 1. Januar 2025 bis 31. Dezember 2028. Die Szenarien oben sind eine vereinfachte Einfuehrung ins Thema.',
-      it: 'Testo ufficiale delle RRS: Racing Rules of Sailing 2025-2028, pubblicate da World Sailing, in vigore dal 1 gennaio 2025 al 31 dicembre 2028. Gli scenari sopra sono una introduzione semplificata al tema.',
+      es: 'Texto oficial de las RRS: Racing Rules of Sailing 2025-2028, publicadas por World Sailing, en vigor del 1 de enero de 2025 al 31 de diciembre de 2028. Los escenarios anteriores son una introducción simplificada al tema.',
+      fr: 'Texte officiel des RRS : Racing Rules of Sailing 2025-2028, publiées par World Sailing, en vigueur du 1er janvier 2025 au 31 décembre 2028. Les scénarios ci-dessus sont une introduction simplifiée au sujet.',
+      de: 'Offizieller RRS-Text: Racing Rules of Sailing 2025-2028, herausgegeben von World Sailing, in Kraft vom 1. Januar 2025 bis 31. Dezember 2028. Die Szenarien oben sind eine vereinfachte Einführung ins Thema.',
+      it: "Testo ufficiale delle RRS: Racing Rules of Sailing 2025-2028, pubblicate da World Sailing, in vigore dal 1° gennaio 2025 al 31 dicembre 2028. Gli scenari qui sopra sono un'introduzione semplificata al tema.",
     },
   );
 
@@ -153,10 +153,10 @@ export default function Rules() {
     };
     const rrsPdf: LinkRow = {
       label: tp('RRS 2025-2028 PDF', 'RRS 2025-2028 PDF', 'RRS 2025-2028 PDF (ang.)', {
-        es: 'RRS 2025-2028 PDF (ing.)',
-        fr: 'RRS 2025-2028 PDF (ang.)',
-        de: 'RRS 2025-2028 PDF (en.)',
-        it: 'RRS 2025-2028 PDF (ing.)',
+        es: 'RRS 2025-2028 PDF (ingl.)',
+        fr: 'RRS 2025-2028 PDF (angl.)',
+        de: 'RRS 2025-2028 PDF (engl.)',
+        it: 'RRS 2025-2028 PDF (ingl.)',
       }),
       url: RRS_PDF_URL,
     };
@@ -168,11 +168,11 @@ export default function Rules() {
       case 'pl':
         return [worldSailing, { label: 'PZZ / PYA (pol.)', url: 'https://pya.org.pl/polski-zwiazek-zeglarski/page/przepisy-zeglarskie/' }, rrsPdf];
       case 'es':
-        return [worldSailing, { label: 'RFEV (es.)', url: 'https://rfev.es/' }, rrsPdf];
+        return [worldSailing, { label: 'RFEV (esp.)', url: 'https://rfev.es/' }, rrsPdf];
       case 'fr':
         return [worldSailing, { label: 'FFVoile (fr.)', url: 'https://www.ffvoile.fr/' }, rrsPdf];
       case 'de':
-        return [worldSailing, { label: 'DSV (de.)', url: 'https://www.dsv.org/' }, rrsPdf];
+        return [worldSailing, { label: 'DSV (dt.)', url: 'https://www.dsv.org/' }, rrsPdf];
       case 'it':
         return [worldSailing, { label: 'Federvela (it.)', url: 'https://www.federvela.it/' }, rrsPdf];
       default:
@@ -183,12 +183,12 @@ export default function Rules() {
   const linksNote = tp(
     'Если один из сайтов не открывается - попробуй следующий. Официальный текст одинаковый.',
     'If one of the sites is down - try the next one. The official text is identical.',
-    'Jesli jedna ze stron nie dziala - sprobuj nastepna. Tekst oficjalny jest identyczny.',
+    'Jeśli któraś strona się nie otwiera, spróbuj następnej. Oficjalny tekst jest wszędzie ten sam.',
     {
-      es: 'Si uno de los sitios no abre - prueba el siguiente. El texto oficial es identico.',
-      fr: 'Si l un des sites est inaccessible - essaie le suivant. Le texte officiel est identique.',
-      de: 'Wenn eine der Seiten nicht laedt - probiere die naechste. Der offizielle Text ist identisch.',
-      it: 'Se uno dei siti non si apre - prova il successivo. Il testo ufficiale e identico.',
+      es: 'Si uno de los sitios no abre, prueba el siguiente. El texto oficial es el mismo.',
+      fr: "Si l'un des sites ne s'ouvre pas, essaie le suivant. Le texte officiel est identique.",
+      de: 'Wenn eine der Seiten nicht lädt, probier die nächste. Der offizielle Text ist derselbe.',
+      it: 'Se uno dei siti non si apre, prova il successivo. Il testo ufficiale è identico.',
     },
   );
 
@@ -236,8 +236,8 @@ export default function Rules() {
             <Text style={[styles.badgeText, { color: colors.accentCyan }]}>🎓 KURSY</Text>
           </View>
           <Text variant="subtitle" style={styles.sectionTitle}>
-            {tp('Курсы (патенты PL)', 'Courses (PL licences)', 'Kursy (patenty PL)', {
-              es: 'Cursos (licencias PL)', fr: 'Cours (permis PL)', de: 'Kurse (PL-Patente)', it: 'Corsi (patenti PL)',
+            {tp('Курсы (патенты PL)', 'Courses (PL licences)', 'Kursy (polskie patenty)', {
+              es: 'Cursos (títulos polacos)', fr: 'Cours (permis polonais)', de: 'Kurse (polnische Scheine)', it: 'Corsi (patenti polacche)',
             })}
           </Text>
         </View>
@@ -255,7 +255,7 @@ export default function Rules() {
                 {tp(
                   'Теория, тренажёр вопросов и пробный экзамен - на польском.',
                   'Theory, question trainer and mock exam - in Polish.',
-                  'Teoria, trening pytan i egzamin probny - po polsku.',
+                  'Teoria, trening pytań i egzamin próbny - po polsku.',
                   { es: "Teoría, práctica y examen de prueba en polaco.", fr: "Théorie, entraînement et examen blanc en polonais.", de: "Theorie, Fragentraining und Probeprüfung auf Polnisch.", it: "Teoria, esercizi ed esame di prova in polacco." },
                 )}
               </Text>
@@ -276,8 +276,8 @@ export default function Rules() {
                 {tp(
                   'Свидетельство SRC, симулятор ICOM с голосом, 26 заданий UKE - на польском.',
                   'SRC certificate, ICOM voice simulator, 26 UKE tasks - in Polish.',
-                   'Swiadectwo SRC, symulator ICOM z glosem, 26 zadan UKE - po polsku.',
-                  { es: "Certificado SRC, simulador ICOM con voz y 26 tareas UKE en polaco.", fr: "Certificat SRC, simulateur vocal ICOM et 26 exercices UKE en polonais.", de: "SRC-Zertifikat, ICOM-Sprachsimulator und 26 UKE-Aufgaben auf Polnisch.", it: "Certificato SRC, simulatore vocale ICOM e 26 esercizi UKE in polacco." },
+                   'Świadectwo SRC, symulator ICOM z głosem, 26 zadań UKE - po polsku.',
+                  { es: "Certificado SRC, simulador ICOM con voz y 26 tareas UKE en polaco.", fr: "Certificat SRC, simulateur vocal ICOM et 26 exercices UKE en polonais.", de: 'SRC-Funkzeugnis, ICOM-Sprachsimulator und 26 UKE-Aufgaben auf Polnisch.', it: "Certificato SRC, simulatore vocale ICOM e 26 esercizi UKE in polacco." },
                 )}
               </Text>
             </View>

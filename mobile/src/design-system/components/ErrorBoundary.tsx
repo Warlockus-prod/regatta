@@ -26,31 +26,31 @@ const MONO_FONT = Platform.select({ ios: 'Menlo', default: 'monospace' });
 const FALLBACK_COPY: Record<Lang, { title: string; body: string }> = {
   ru: {
     title: 'Что-то пошло не так',
-    body: 'Приложение столкнулось с ошибкой. Закройте его и откройте снова. Если повторяется - стек в dev-консоли.',
+    body: 'Приложение столкнулось с ошибкой. Закрой его и открой снова.',
   },
   en: {
     title: 'Something went wrong',
-    body: 'The app hit an error and stopped rendering. Force-quit and reopen to continue. If it keeps happening, the dev console has the stack.',
+    body: 'The app hit an error. Close it and open it again.',
   },
   pl: {
-    title: 'Cos poszlo nie tak',
-    body: 'Aplikacja napotkala blad. Zamknij i uruchom ponownie. Jesli sie powtarza - stos w konsoli dev.',
+    title: 'Coś poszło nie tak',
+    body: 'Aplikacja napotkała błąd. Zamknij ją i uruchom ponownie.',
   },
   es: {
-    title: 'Algo salio mal',
-    body: 'La app tuvo un error y dejo de renderizar. Cierrala y vuelve a abrir. Si persiste, mira la consola dev.',
+    title: 'Algo salió mal',
+    body: 'La app ha tenido un error. Ciérrala y vuelve a abrirla.',
   },
   fr: {
     title: 'Une erreur est survenue',
-    body: 'L application a rencontre une erreur. Fermez et rouvrez. Si cela persiste, la console dev a la pile.',
+    body: 'L\'application a rencontré une erreur. Ferme-la et rouvre-la.',
   },
   de: {
     title: 'Etwas ist schiefgelaufen',
-    body: 'Die App hatte einen Fehler. Beenden und neu oeffnen. Bei Wiederholung steht der Stack in der Dev-Konsole.',
+    body: 'Die App ist auf einen Fehler gestoßen. Schließ sie und öffne sie erneut.',
   },
   it: {
-    title: 'Qualcosa e andato storto',
-    body: 'L app ha avuto un errore. Chiudila e riaprila. Se persiste, lo stack e nella console dev.',
+    title: 'Qualcosa è andato storto',
+    body: 'L\'app ha riscontrato un errore. Chiudila e riaprila.',
   },
 };
 

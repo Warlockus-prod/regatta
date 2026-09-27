@@ -330,7 +330,7 @@ export function useSimulatorV3({ ui, tp, paused = false }: Options): Result {
       ghostAngles,
       liveMainAngle,
       liveJibAngle,
-      primaryFeedback: rt.mainTrim ? tp("Меняй одну снасть. Сравни угол гика, twist, крен и установившуюся скорость.", "Change one control. Compare boom angle, twist, heel and settled speed.", "Zmieniaj jedną linę. Porównaj kąt bomu, skręt, przechył i ustaloną prędkość.", { es: "Cambia un control. Compara ángulo, torsión, escora y velocidad estable.", fr: "Change une commande. Compare angle, vrillage, gîte et vitesse stabilisée.", de: "Ändere eine Einstellung. Vergleiche Baumwinkel, Twist, Krängung und stabile Fahrt.", it: "Cambia un comando. Confronta angolo, twist, sbandamento e velocità stabile." }) : picked.text,
+      primaryFeedback: rt.mainTrim ? tp("Меняй одну снасть. Сравни угол гика, twist, крен и установившуюся скорость.", "Change one control. Compare boom angle, twist, heel and settled speed.", "Zmieniaj jedną linę. Porównaj kąt bomu, skręt, przechył i ustaloną prędkość.", { es: "Cambia un solo cabo. Compara el ángulo de la botavara, la torsión, la escora y la velocidad estable.", fr: "Change un seul réglage. Compare l'angle de bôme, le vrillage, la gîte et la vitesse stabilisée.", de: "Ändere eine Einstellung. Vergleiche Baumwinkel, Twist, Krängung und stabile Fahrt.", it: "Cambia una sola manovra. Confronta angolo del boma, svergolamento, sbandamento e velocità stabile." }) : picked.text,
       primaryFeedbackTone: rt.mainTrim ? "info" : picked.tone,
       targetHeading: rt.targetHeading,
     };

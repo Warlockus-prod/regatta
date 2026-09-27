@@ -5,10 +5,11 @@
 - `tl({ ru, en, pl, es, fr, de, it })` - object-based, extensible; preferred for new code.
   Type: `LocalizedText` from `src/lib/languages.ts`. Missing langs fall back
   to `en`, then `ru`, then the first provided value.
-- `tp(ru, en, pl)` - hardcoded 3-arg, legacy. ~500 existing call sites
-  across ~35 files. For ES/FR/DE/IT visitors `tp` returns `en` (widened
-  fallback in `src/lib/i18n.tsx`), so all routes render in English when
-  PL/DE/etc isn't explicit. Migration script in
+- `tp(ru, en, pl, { es, fr, de, it })` - positional, with the four newer
+  languages in the 4th argument. Without it `tp` returns `en` for
+  ES/FR/DE/IT visitors. Since the 2026-09-27 pass every `tp()` call outside
+  the Polish-only exam courses carries all four (198 were missing,
+  mostly in `/game` and `/multiplayer`). Migration script in
   `scripts/migrate-tp-to-tl.mjs`.
 - `t(ru, en)` - legacy 2-arg (PL/ES/FR/DE/IT fall back to EN). Retired
   2026-04-20; kept in the interface for type back-compat only.
@@ -108,6 +109,29 @@ below):**
 
 ---
 
+## Language adaptation pass (2026-09-27)
+
+- Every user-facing string in pl, en, es, fr, de, it was reviewed against the
+  Russian source and adapted, not translated word for word, using
+  `scripts/sailing-glossary.md` (normative terms, native crew commands, style
+  rules). Polish is written with diacritics everywhere except text drawn into
+  OG images (`src/app/api/og/*`), whose built-in font may lack the glyphs.
+- The Polish-only exam courses (SRC radio, sternik motorowodny) are excluded
+  on purpose and keep the wording of the official materials.
+- Where each language lives: data files (`src/data/*`, `fooRu..fooIt` fields
+  and `{ ru, ..., it }` objects), the course `words(ru, en, pl, es, fr, de,
+  it)` calls in `src/data/sailing-lab/*` and `src/features/sailing-lab/*`,
+  `tp()` / `tl()` calls in pages and components, the product catalog
+  (`src/lib/product/*`, shared with the app), the app's own screens
+  (`mobile/app/*`, `mobile/src/*`) and the generated JSON twins in
+  `mobile/src/data/*` (`cd mobile && npm run sync-content`; `checklist.json`
+  is still a hand-kept copy).
+- Known gaps: numbers from `toFixed()` show a decimal point in every language
+  (the coach, missions and lesson readouts use the local separator); compass
+  letters (N, NE) stay English; rate-limit errors of `/api/ai-chat` and
+  `/api/feedback` are RU/EN only and `/api/replay` errors English; the mobile
+  i18n audit shows three false positives ("Hyères" twice, `SimWebView.tsx`).
+
 ## Current no-Cyrillic verification (2026-09-27)
 
 Latest run: `SCAN_BASE=http://localhost:3017 node scripts/cyrillic-scan.mjs` on a
@@ -116,7 +140,9 @@ local dev server, PL/EN/ES/FR/DE/IT across 34 routes: the 20 content routes,
 The scan now reads the lesson links from `/learn/sails`, so a new lesson is
 scanned without editing the route list. A one-off check in the same run also
 found no lesson page whose ES/FR/DE/IT text equals the English one (the
-silent English fallback the scan itself cannot see).
+silent English fallback the scan itself cannot see). Rerun after the
+adaptation pass: still 0 leaks, and every Polish page with more than 400
+characters of text contains Polish letters.
 
 ### Earlier run (2026-04-25)
 

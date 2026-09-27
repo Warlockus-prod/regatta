@@ -44,7 +44,7 @@ const SPOTS: Spot[] = [
   { name: 'Palma', lat: 39.57, lon: 2.65, cc: 'es' },
   { name: 'Tarifa', lat: 36.01, lon: -5.6, cc: 'es' },
   { name: 'Cowes', lat: 50.76, lon: -1.3, cc: 'gb' },
-  { name: 'Hyeres', lat: 43.07, lon: 6.15, cc: 'fr' },
+  { name: 'Hyères', lat: 43.07, lon: 6.15, cc: 'fr' },
   { name: 'Sopot', lat: 54.45, lon: 18.57, cc: 'pl' },
   { name: 'Valencia', lat: 39.46, lon: -0.33, cc: 'es' },
 ];
@@ -73,9 +73,9 @@ export default function SpotsPage() {
   function countryLabel(cc: Spot['cc']): string {
     switch (cc) {
       case 'es': return tp('Испания', 'Spain', 'Hiszpania',
-        { es: 'Espana', fr: 'Espagne', de: 'Spanien', it: 'Spagna' });
+        { es: 'España', fr: 'Espagne', de: 'Spanien', it: 'Spagna' });
       case 'gb': return tp('Великобритания', 'United Kingdom', 'Wielka Brytania',
-        { es: 'Reino Unido', fr: 'Royaume-Uni', de: 'Vereinigtes Koenigreich', it: 'Regno Unito' });
+        { es: 'Reino Unido', fr: 'Royaume-Uni', de: 'Vereinigtes Königreich', it: 'Regno Unito' });
       case 'fr': return tp('Франция', 'France', 'Francja',
         { es: 'Francia', fr: 'France', de: 'Frankreich', it: 'Francia' });
       case 'pl': return tp('Польша', 'Poland', 'Polska',
@@ -114,27 +114,27 @@ export default function SpotsPage() {
         <div className="inline-flex items-center gap-2 mb-3">
           <span className="text-3xl" aria-hidden>📍</span>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            {tp('Споты: где ходить', 'Spots: where to sail', 'Spoty: gdzie plywac',
-              { es: 'Spots: donde navegar', fr: 'Spots : ou naviguer', de: 'Spots: wo segeln', it: 'Spot: dove navigare' })}
+            {tp('Споты: где ходить', 'Spots: where to sail', 'Miejsca: gdzie pływać',
+              { es: 'Lugares: dónde navegar', fr: 'Spots : où naviguer', de: 'Reviere: wo du segeln kannst', it: 'Spot: dove navigare' })}
           </h1>
         </div>
         <p className="text-sm text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {tp(
             'Известные парусные точки: морская карта и ветер прямо сейчас. Прикинь, какой это будет курс, когда поедешь.',
             'Well-known sailing venues: a nautical chart and the wind right now. Work out what point of sail it will be when you go.',
-            'Znane miejscowki zeglarskie: mapa morska i wiatr teraz. Ustal, jaki to bedzie kurs, gdy poplyniesz.',
+            'Znane akweny żeglarskie: mapa morska i wiatr w tej chwili. Oceń, jaki to będzie kurs, gdy tam popłyniesz.',
             {
-              es: 'Lugares conocidos para navegar: una carta nautica y el viento ahora mismo. Deduce que rumbo sera cuando vayas.',
-              fr: 'Spots de voile connus : une carte marine et le vent en ce moment. Deduis quelle allure ce sera quand tu iras.',
-              de: 'Bekannte Segelreviere: eine Seekarte und der Wind genau jetzt. Bestimme, welcher Kurs es sein wird, wenn du faehrst.',
-              it: 'Localita veliche note: una carta nautica e il vento in questo momento. Deduci che andatura sara quando andrai.',
+              es: 'Lugares conocidos para navegar: una carta náutica y el viento ahora mismo. Calcula qué rumbo será cuando vayas.',
+              fr: 'Des spots de voile connus : une carte marine et le vent en ce moment. Déduis quelle allure ce sera quand tu iras.',
+              de: 'Bekannte Segelreviere: eine Seekarte und der Wind in diesem Moment. Überleg dir, welcher Kurs es wird, wenn du hinfährst.',
+              it: 'Località veliche famose: una carta nautica e il vento in questo momento. Deduci che andatura sarà quando ci andrai.',
             },
           )}
         </p>
       </div>
 
       {/* ===== Spot selector chips ===== */}
-      <div className="flex flex-wrap gap-2 mb-6" role="tablist" aria-label={tp('Споты', 'Spots', 'Spoty', { es: 'Spots', fr: 'Spots', de: 'Spots', it: 'Spot' })}>
+      <div className="flex flex-wrap gap-2 mb-6" role="tablist" aria-label={tp('Споты', 'Spots', 'Miejsca', { es: 'Lugares', fr: 'Spots', de: 'Reviere', it: 'Spot' })}>
         {SPOTS.map((s, i) => {
           const active = i === selected;
           return (
@@ -169,7 +169,7 @@ export default function SpotsPage() {
                 `OpenSeaMap nautical chart: ${spot.name}`,
                 `Mapa morska OpenSeaMap: ${spot.name}`,
                 {
-                  es: `Carta nautica OpenSeaMap: ${spot.name}`,
+                  es: `Carta náutica OpenSeaMap: ${spot.name}`,
                   fr: `Carte marine OpenSeaMap : ${spot.name}`,
                   de: `OpenSeaMap-Seekarte: ${spot.name}`,
                   it: `Carta nautica OpenSeaMap: ${spot.name}`,
@@ -194,8 +194,8 @@ export default function SpotsPage() {
               <polyline points="15 3 21 3 21 9" />
               <line x1="10" y1="14" x2="21" y2="3" />
             </svg>
-            {tp('Открыть карту целиком на OpenSeaMap', 'Open the full chart on OpenSeaMap', 'Otworz pelna mape na OpenSeaMap',
-              { es: 'Abrir la carta completa en OpenSeaMap', fr: 'Ouvrir la carte complete sur OpenSeaMap', de: 'Vollstaendige Karte auf OpenSeaMap oeffnen', it: 'Apri la carta completa su OpenSeaMap' })}
+            {tp('Открыть карту целиком на OpenSeaMap', 'Open the full chart on OpenSeaMap', 'Otwórz pełną mapę na OpenSeaMap',
+              { es: 'Abrir la carta completa en OpenSeaMap', fr: 'Ouvrir la carte complète sur OpenSeaMap', de: 'Vollständige Karte auf OpenSeaMap öffnen', it: 'Apri la carta completa su OpenSeaMap' })}
           </a>
         </div>
 
@@ -211,15 +211,15 @@ export default function SpotsPage() {
 
           {state === 'loading' && (
             <div className="text-sm text-[var(--text-muted)]">
-              {tp('Загружаю ветер...', 'Loading wind...', 'Laduje wiatr...',
-                { es: 'Cargando viento...', fr: 'Chargement du vent...', de: 'Wind laedt...', it: 'Caricamento vento...' })}
+              {tp('Загружаю ветер...', 'Loading wind...', 'Ładuję wiatr...',
+                { es: 'Cargando viento...', fr: 'Chargement du vent...', de: 'Wind wird geladen...', it: 'Caricamento vento...' })}
             </div>
           )}
 
           {state === 'error' && (
             <div className="text-sm text-[var(--warning)]">
-              {tp('Не удалось получить погоду.', 'Could not fetch the weather.', 'Nie udalo sie pobrac pogody.',
-                { es: 'No se pudo obtener el clima.', fr: 'Impossible de recuperer la meteo.', de: 'Wetter konnte nicht geladen werden.', it: 'Impossibile ottenere il meteo.' })}
+              {tp('Не удалось получить погоду.', 'Could not fetch the weather.', 'Nie udało się pobrać pogody.',
+                { es: 'No se pudo cargar el tiempo.', fr: 'Impossible de récupérer la météo.', de: 'Wetter konnte nicht geladen werden.', it: 'Impossibile ottenere il meteo.' })}
             </div>
           )}
 
@@ -248,7 +248,7 @@ export default function SpotsPage() {
                 {data.wind.gustKn != null && (
                   <div>
                     <div className="text-xs text-[var(--text-muted)]">
-                      {tp('Порывы', 'Gusts', 'Porywy', { es: 'Rachas', fr: 'Rafales', de: 'Boeen', it: 'Raffiche' })}
+                      {tp('Порывы', 'Gusts', 'Porywy', { es: 'Rachas', fr: 'Rafales', de: 'Böen', it: 'Raffiche' })}
                     </div>
                     <div className="font-semibold">{Math.round(data.wind.gustKn)} kn</div>
                   </div>
@@ -269,11 +269,11 @@ export default function SpotsPage() {
                 {data.current != null && (
                   <div>
                     <div className="text-xs text-[var(--text-muted)]">
-                      {tp('Течение', 'Current', 'Prad', { es: 'Corriente', fr: 'Courant', de: 'Stroemung', it: 'Corrente' })}
+                      {tp('Течение', 'Current', 'Prąd', { es: 'Corriente', fr: 'Courant', de: 'Strömung', it: 'Corrente' })}
                     </div>
                     <div className="font-semibold">
                       {data.current.setKn.toFixed(1)} kn
-                      <span className="text-xs font-normal text-[var(--text-muted)]"> {tp('к', 'toward', 'ku', { es: 'hacia', fr: 'vers', de: 'Richtung', it: 'verso' })} {cardinal(data.current.dirDeg)}</span>
+                      <span className="text-xs font-normal text-[var(--text-muted)]"> {tp('к', 'toward', 'w kierunku', { es: 'hacia', fr: 'vers', de: 'Richtung', it: 'verso' })} {cardinal(data.current.dirDeg)}</span>
                     </div>
                   </div>
                 )}
@@ -281,7 +281,7 @@ export default function SpotsPage() {
 
               <Link href="/courses#wind" className="inline-block text-xs underline" style={{ color: 'var(--text-secondary)' }}>
                 {tp('Что значит направление ветра?', 'What does wind direction mean?', 'Co oznacza kierunek wiatru?',
-                  { es: 'Que significa la direccion del viento?', fr: 'Que signifie la direction du vent ?', de: 'Was bedeutet die Windrichtung?', it: 'Cosa significa la direzione del vento?' })}
+                  { es: '¿Qué significa la dirección del viento?', fr: 'Que signifie la direction du vent ?', de: 'Was bedeutet die Windrichtung?', it: 'Cosa significa la direzione del vento?' })}
               </Link>
             </div>
           )}
@@ -292,16 +292,16 @@ export default function SpotsPage() {
       <div className="text-[11px] text-[var(--text-muted)] mt-8 leading-relaxed border-t pt-4" style={{ borderColor: 'rgba(139, 167, 184, 0.15)' }}>
         <div className="font-medium text-[var(--text-secondary)]">
           {tp('Для тренировки, не для навигации.', 'For training, not for navigation.', 'Do treningu, nie do nawigacji.',
-            { es: 'Para entrenamiento, no para navegacion.', fr: 'Pour l\'entrainement, pas pour la navigation.', de: 'Zum Training, nicht zur Navigation.', it: 'Per allenamento, non per navigazione.' })}
+            { es: 'Para practicar, no para navegar.', fr: "Pour l'entraînement, pas pour la navigation.", de: 'Zum Üben, nicht zur Navigation.', it: 'Per allenarsi, non per navigare.' })}
         </div>
         <div className="mt-1">
           {tp(
             'Карта: OpenSeaMap / участники OpenStreetMap. Погода: Open-Meteo.com (CC BY 4.0).',
             'Chart: OpenSeaMap / OpenStreetMap contributors. Weather: Open-Meteo.com (CC BY 4.0).',
-            'Mapa: OpenSeaMap / wspoltworcy OpenStreetMap. Pogoda: Open-Meteo.com (CC BY 4.0).',
+            'Mapa: OpenSeaMap / współtwórcy OpenStreetMap. Pogoda: Open-Meteo.com (CC BY 4.0).',
             {
-              es: 'Carta: OpenSeaMap / colaboradores de OpenStreetMap. Clima: Open-Meteo.com (CC BY 4.0).',
-              fr: 'Carte : OpenSeaMap / contributeurs OpenStreetMap. Meteo : Open-Meteo.com (CC BY 4.0).',
+              es: 'Carta: OpenSeaMap / colaboradores de OpenStreetMap. Tiempo: Open-Meteo.com (CC BY 4.0).',
+              fr: 'Carte : OpenSeaMap / contributeurs OpenStreetMap. Météo : Open-Meteo.com (CC BY 4.0).',
               de: 'Karte: OpenSeaMap / OpenStreetMap-Mitwirkende. Wetter: Open-Meteo.com (CC BY 4.0).',
               it: 'Carta: OpenSeaMap / contributori OpenStreetMap. Meteo: Open-Meteo.com (CC BY 4.0).',
             },

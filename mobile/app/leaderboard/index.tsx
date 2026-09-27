@@ -111,8 +111,8 @@ export default function Leaderboard() {
     };
   }, [tab, gDiff, gWind, gNonce]);
 
-  const screenTitle = tp('Таблица лидеров', 'Leaderboard', 'Tabela liderow', {
-    es: 'Clasificacion',
+  const screenTitle = tp('Таблица лидеров', 'Leaderboard', 'Ranking', {
+    es: 'Clasificación',
     fr: 'Classement',
     de: 'Bestenliste',
     it: 'Classifica',
@@ -120,24 +120,24 @@ export default function Leaderboard() {
   const subtitle = tp(
     'Личные рекорды по трассам и глобальная таблица по классам гонок.',
     'Your bests per course, plus the global board by race class.',
-    'Rekordy osobiste i globalna tabela wedlug klas wyscigu.',
+    'Twoje rekordy na każdej trasie i globalny ranking według klas wyścigu.',
     {
       es: 'Tus mejores marcas por recorrido y la tabla global por clase de regata.',
       fr: 'Tes meilleurs temps par parcours et le classement global par classe.',
-      de: 'Deine Bestzeiten pro Kurs und die globale Liste nach Rennklasse.',
-      it: 'I tuoi record per percorso e la classifica globale per classe di gara.',
+      de: 'Deine Bestzeiten pro Bahn und die globale Liste nach Rennklasse.',
+      it: 'I tuoi record per percorso e la classifica globale per classe di regata.',
     },
   );
 
   const courseFilterLabel = tp('Трасса', 'Course', 'Trasa', {
     es: 'Recorrido',
     fr: 'Parcours',
-    de: 'Kurs',
+    de: 'Bahn',
     it: 'Percorso',
   });
   const periodFilterLabel = tp('Период', 'Period', 'Okres', {
     es: 'Periodo',
-    fr: 'Periode',
+    fr: 'Période',
     de: 'Zeitraum',
     it: 'Periodo',
   });
@@ -149,19 +149,19 @@ export default function Leaderboard() {
       de: 'Alle',
       it: 'Tutte',
     }),
-    short: tp('Короткая', 'Short', 'Krotka', {
+    short: tp('Короткая', 'Short', 'Krótka', {
       es: 'Corta',
       fr: 'Courte',
       de: 'Kurz',
       it: 'Breve',
     }),
-    medium: tp('Средняя', 'Medium', 'Srednia', {
+    medium: tp('Средняя', 'Medium', 'Średnia', {
       es: 'Media',
       fr: 'Moyenne',
       de: 'Mittel',
       it: 'Media',
     }),
-    long: tp('Длинная', 'Long', 'Dluga', {
+    long: tp('Длинная', 'Long', 'Długa', {
       es: 'Larga',
       fr: 'Longue',
       de: 'Lang',
@@ -169,13 +169,13 @@ export default function Leaderboard() {
     }),
   };
   const periodLabels: Record<LeaderboardPeriodFilter, string> = {
-    all: tp('За всё время', 'All time', 'Wszystkie czasy', {
-      es: 'Todo el tiempo',
+    all: tp('За всё время', 'All time', 'Od początku', {
+      es: 'Histórico',
       fr: 'Depuis toujours',
       de: 'Gesamt',
       it: 'Sempre',
     }),
-    week: tp('Эта неделя', 'This week', 'Ten tydzien', {
+    week: tp('Эта неделя', 'This week', 'Ten tydzień', {
       es: 'Esta semana',
       fr: 'Cette semaine',
       de: 'Diese Woche',
@@ -190,7 +190,7 @@ export default function Leaderboard() {
   };
 
   const personalBestLabel = tp('Личный рекорд', 'Personal best', 'Rekord osobisty', {
-    es: 'Mejor marca personal',
+    es: 'Récord personal',
     fr: 'Record personnel',
     de: 'Bestzeit',
     it: 'Record personale',
@@ -201,7 +201,7 @@ export default function Leaderboard() {
     de: 'Zeit',
     it: 'Tempo',
   });
-  const scoreLabel = tp('Очки', 'Score', 'Wynik', {
+  const scoreLabel = tp('Очки', 'Score', 'Punkty', {
     es: 'Puntos',
     fr: 'Score',
     de: 'Punkte',
@@ -211,89 +211,89 @@ export default function Leaderboard() {
   const emptyTitle = tp(
     'Пока нет финишей',
     'No races yet',
-    'Brak wyscigow',
+    'Brak wyścigów',
     {
-      es: 'Aun sin regatas',
+      es: 'Aún no hay regatas',
       fr: 'Pas encore de courses',
       de: 'Noch keine Rennen',
-      it: 'Nessuna gara ancora',
+      it: 'Ancora nessuna regata',
     },
   );
   const emptySubtitle = tp(
     'Финишируй гонку, и она встанет в таблицу. Лучший заезд по каждой трассе попадает на верх.',
     'Finish a race and it will land here. The best run on each course tops the board.',
-    'Skoncz wyscig, a pojawi sie tutaj. Najlepszy przejazd na trasie laduje na gorze.',
+    'Ukończ wyścig, a pojawi się tutaj. Najlepszy wynik na każdej trasie trafia na górę.',
     {
-      es: 'Termina una regata y aparecera aqui. La mejor carrera en cada recorrido encabeza la tabla.',
-      fr: 'Termine une course, elle apparaitra ici. La meilleure course par parcours est en tete.',
-      de: 'Beende ein Rennen und es erscheint hier. Der beste Lauf pro Kurs steht oben.',
-      it: 'Termina una gara e apparira qui. La migliore corsa per percorso e in cima.',
+      es: 'Termina una regata y aparecerá aquí. Tu mejor regata en cada recorrido encabeza la tabla.',
+      fr: 'Termine une course et elle apparaîtra ici. Ta meilleure course sur chaque parcours arrive en tête.',
+      de: 'Beende ein Rennen und es erscheint hier. Der beste Lauf pro Bahn steht oben.',
+      it: 'Completa una regata e comparirà qui. La tua regata migliore su ogni percorso va in cima.',
     },
   );
   const emptyFilteredTitle = tp(
     'Пусто в этом срезе',
     'No races in this slice',
-    'Brak w tym filtrze',
+    'Brak wyników dla tego filtra',
     {
-      es: 'Vacio en este corte',
-      fr: 'Vide pour ce filtre',
-      de: 'Leer in diesem Filter',
-      it: 'Vuoto in questo filtro',
+      es: 'Nada con este filtro',
+      fr: 'Rien pour ce filtre',
+      de: 'Nichts für diesen Filter',
+      it: 'Niente con questo filtro',
     },
   );
   const emptyFilteredSubtitle = tp(
     'Сбрось фильтр или сделай заезд по выбранной трассе.',
     'Clear the filter or finish a run on the selected course.',
-    'Wyczysc filtr lub skoncz przejazd na wybranej trasie.',
+    'Wyczyść filtr albo ukończ wyścig na wybranej trasie.',
     {
-      es: 'Borra el filtro o termina una carrera en el recorrido elegido.',
+      es: 'Borra el filtro o termina una regata en el recorrido elegido.',
       fr: 'Efface le filtre ou termine une course sur le parcours choisi.',
-      de: 'Filter loeschen oder einen Lauf auf dem gewaehlten Kurs beenden.',
-      it: 'Rimuovi il filtro o termina una corsa sul percorso scelto.',
+      de: 'Setz den Filter zurück oder beende ein Rennen auf der gewählten Bahn.',
+      it: 'Rimuovi il filtro o completa una regata sul percorso scelto.',
     },
   );
-  const emptyCtaLabel = tp('К гонке', 'To the race', 'Do wyscigu', {
+  const emptyCtaLabel = tp('К гонке', 'To the race', 'Do wyścigu', {
     es: 'A la regata',
-    fr: 'A la course',
+    fr: 'À la course',
     de: 'Zum Rennen',
-    it: 'Alla gara',
+    it: 'Alla regata',
   });
-  const clearFiltersLabel = tp('Сбросить фильтры', 'Clear filters', 'Wyczysc filtry', {
+  const clearFiltersLabel = tp('Сбросить фильтры', 'Clear filters', 'Wyczyść filtry', {
     es: 'Borrar filtros',
     fr: 'Effacer les filtres',
-    de: 'Filter loeschen',
+    de: 'Filter zurücksetzen',
     it: 'Cancella filtri',
   });
 
-  const localTabLabel = tp('Личные', 'Personal', 'Osobiste', { es: 'Personal', fr: 'Perso', de: 'Persoenlich', it: 'Personale' });
-  const globalTabLabel = tp('Глобальная', 'Global', 'Globalna', { es: 'Global', fr: 'Global', de: 'Global', it: 'Globale' });
-  const difficultyLabel = tp('Сложность', 'Difficulty', 'Trudnosc', { es: 'Dificultad', fr: 'Difficulte', de: 'Schwierigkeit', it: 'Difficolta' });
+  const localTabLabel = tp('Личные', 'Personal', 'Osobiste', { es: 'Personal', fr: 'Perso', de: 'Persönlich', it: 'Personale' });
+  const globalTabLabel = tp('Глобальная', 'Global', 'Globalne', { es: 'Global', fr: 'Global', de: 'Global', it: 'Globale' });
+  const difficultyLabel = tp('Сложность', 'Difficulty', 'Trudność', { es: 'Dificultad', fr: 'Difficulté', de: 'Schwierigkeit', it: 'Difficoltà' });
   const windLabelText = tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' });
   const diffLabels: Record<Difficulty, string> = {
-    easy: tp('Легко', 'Easy', 'Latwo', { es: 'Facil', fr: 'Facile', de: 'Leicht', it: 'Facile' }),
-    medium: tp('Средне', 'Medium', 'Srednio', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
-    hard: tp('Сложно', 'Hard', 'Trudno', { es: 'Dificil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' }),
+    easy: tp('Легко', 'Easy', 'Łatwy', { es: 'Fácil', fr: 'Facile', de: 'Leicht', it: 'Facile' }),
+    medium: tp('Средне', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
+    hard: tp('Сложно', 'Hard', 'Trudny', { es: 'Difícil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' }),
   };
   const windLabels: Record<Wind, string> = {
-    light: tp('Слабый', 'Light', 'Slaby', { es: 'Flojo', fr: 'Faible', de: 'Leicht', it: 'Leggero' }),
-    medium: tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
+    light: tp('Слабый', 'Light', 'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),
+    medium: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }),
     heavy: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),
   };
-  const globalEmptyTitle = tp('Пока пусто', 'No entries yet', 'Jeszcze pusto', { es: 'Aun vacio', fr: 'Encore vide', de: 'Noch leer', it: 'Ancora vuoto' });
+  const globalEmptyTitle = tp('Пока пусто', 'No entries yet', 'Jeszcze pusto', { es: 'Aún vacío', fr: 'Encore vide', de: 'Noch leer', it: 'Ancora vuoto' });
   const globalEmptySub = tp(
     'Никто ещё не финишировал в этом классе. Сыграй гонку - и попадёшь сюда.',
     'No finishes in this class yet. Play a race to land here.',
-    'Brak finiszow w tej klasie. Zagraj wyscig, by tu trafic.',
+    'Nikt jeszcze nie dopłynął do mety w tej klasie. Zagraj wyścig, a trafisz tutaj.',
     {
-      es: 'Sin llegadas en esta clase. Juega una regata para aparecer aqui.',
-      fr: 'Aucune arrivee dans cette classe. Joue une course pour y figurer.',
-      de: 'Noch keine Zieleinlaeufe in dieser Klasse. Spiele ein Rennen, um hier zu landen.',
-      it: 'Nessun arrivo in questa classe. Gioca una gara per comparire qui.',
+      es: 'Aún no hay llegadas en esta clase. Juega una regata para aparecer aquí.',
+      fr: 'Aucune arrivée dans cette classe. Joue une course pour y figurer.',
+      de: 'Noch keine Zieleinläufe in dieser Klasse. Fahr ein Rennen, um hier zu landen.',
+      it: 'Nessun arrivo in questa classe. Gioca una regata per comparire qui.',
     },
   );
-  const globalErrorTitle = tp('Не загрузилось', 'Could not load', 'Nie udalo sie', { es: 'No se pudo cargar', fr: 'Echec du chargement', de: 'Laden fehlgeschlagen', it: 'Caricamento fallito' });
-  const retryLabel = tp('Повторить', 'Retry', 'Ponow', { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut', it: 'Riprova' });
-  const anonLabel = tp('Аноним', 'Anon', 'Anonim', { es: 'Anonimo', fr: 'Anonyme', de: 'Anonym', it: 'Anonimo' });
+  const globalErrorTitle = tp('Не загрузилось', 'Could not load', 'Nie udało się wczytać', { es: 'No se pudo cargar', fr: 'Échec du chargement', de: 'Laden fehlgeschlagen', it: 'Caricamento non riuscito' });
+  const retryLabel = tp('Повторить', 'Retry', 'Ponów', { es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' });
+  const anonLabel = tp('Аноним', 'Anon', 'Anonim', { es: 'Anónimo', fr: 'Anonyme', de: 'Anonym', it: 'Anonimo' });
 
   const rows = useMemo(() => {
     const filteredByCourse = filterByCourse(history.races, courseFilter);

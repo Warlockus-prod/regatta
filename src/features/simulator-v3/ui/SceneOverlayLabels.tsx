@@ -37,7 +37,7 @@ export function SceneOverlayLabels(args: {
           }}
         >
           <span style={{ color: 'var(--text-muted)' }}>
-            {tp('Трим', 'Trim', 'Trim', { es: 'Trim', fr: 'Trim', de: 'Trimm', it: 'Trim' })}
+            {tp('Трим', 'Trim', 'Trym', { es: 'Trim', fr: 'Trim', de: 'Trimm', it: 'Trim' })}
           </span>
           <span style={{ color: trimColor }}>{sim.trimScore}%</span>
           <span style={{ color: 'var(--text-muted)' }}>·</span>

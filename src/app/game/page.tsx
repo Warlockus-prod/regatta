@@ -22,7 +22,7 @@ function LoadingRace() {
           style={{ background: 'rgba(0, 212, 255, 0.25)', border: '2px solid var(--accent-cyan)' }}
         />
         <div>
-          {tp('Загрузка гонки...', 'Loading race...', 'Ladowanie wyscigu...', {
+          {tp('Загрузка гонки...', 'Loading race...', 'Ładowanie wyścigu...', {
             es: 'Cargando la regata...',
             fr: 'Chargement de la course...',
             de: 'Rennen wird geladen...',

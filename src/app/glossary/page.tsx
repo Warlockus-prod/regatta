@@ -74,9 +74,9 @@ export default function GlossaryPage() {
               WebkitTextFillColor: 'transparent',
             }}
           >
-            {tp('Глоссарий', 'Glossary', 'Slownik', { es: 'Glosario', fr: 'Glossaire', de: 'Glossar', it: 'Glossario' })}
+            {tp('Глоссарий', 'Glossary', 'Słownik', { es: 'Glosario', fr: 'Glossaire', de: 'Glossar', it: 'Glossario' })}
           </h1>
-          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Slownik zeglarski', { es: 'Glosario de vela', fr: 'Glossaire de voile', de: 'Segel-Glossar', it: 'Glossario velico' })}</p>
+          <p className="text-sm text-[var(--text-muted)]">{tp('Sailing Glossary', 'Sailing Glossary', 'Słownik żeglarski', { es: 'Glosario de vela', fr: 'Glossaire de voile', de: 'Segellexikon', it: 'Glossario velico' })}</p>
         </div>
         <div
           className="absolute bottom-0 left-0 right-0 h-px"
@@ -103,7 +103,7 @@ export default function GlossaryPage() {
           </svg>
           <input
             type="text"
-            placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar terminos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
+            placeholder={tp('Поиск терминов...', 'Search terms...', 'Wyszukaj terminy...', { es: 'Buscar términos...', fr: 'Rechercher des termes...', de: 'Begriffe suchen...', it: 'Cerca termini...' })}
             value={search}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="search-input w-full pl-11 pr-4 py-3 text-sm"
@@ -112,7 +112,7 @@ export default function GlossaryPage() {
             <button
               onClick={() => handleSearchChange('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-full hover:bg-[rgba(0,212,255,0.1)] transition-colors"
-              aria-label="Clear search"
+              aria-label={tp('Очистить поиск', 'Clear search', 'Wyczyść wyszukiwanie', { es: 'Borrar búsqueda', fr: 'Effacer la recherche', de: 'Suche löschen', it: 'Cancella ricerca' })}
             >
               <svg
                 width="16"
@@ -174,9 +174,9 @@ export default function GlossaryPage() {
               ? tp(
                   `${glossaryTerms.length} терминов`,
                   `${glossaryTerms.length} terms`,
-                  `${glossaryTerms.length} terminow`,
+                  `${glossaryTerms.length} terminów`,
                   {
-                    es: `${glossaryTerms.length} terminos`,
+                    es: `${glossaryTerms.length} términos`,
                     fr: `${glossaryTerms.length} termes`,
                     de: `${glossaryTerms.length} Begriffe`,
                     it: `${glossaryTerms.length} termini`,
@@ -275,7 +275,7 @@ export default function GlossaryPage() {
               <line x1="8" y1="11" x2="14" y2="11" />
             </svg>
             <p className="text-sm text-[var(--text-muted)]">
-              {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'No se encontro nada', fr: 'Aucun resultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
+              {tp('Ничего не найдено', 'No terms match your search', 'Nic nie znaleziono', { es: 'Sin resultados', fr: 'Aucun résultat', de: 'Nichts gefunden', it: 'Nessun risultato' })}
             </p>
             {lang !== 'en' && (
               <p className="text-xs text-[var(--text-muted)]" style={{ opacity: 0.7 }}>
@@ -295,7 +295,7 @@ export default function GlossaryPage() {
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
             >
-              {tp('Сбросить фильтры', 'Clear filters', 'Wyczysc filtry', { es: 'Borrar filtros', fr: 'Effacer les filtres', de: 'Filter zurucksetzen', it: 'Azzera i filtri' })}
+              {tp('Сбросить фильтры', 'Clear filters', 'Wyczyść filtry', { es: 'Borrar filtros', fr: 'Effacer les filtres', de: 'Filter zurücksetzen', it: 'Azzera i filtri' })}
             </button>
           </div>
         )}

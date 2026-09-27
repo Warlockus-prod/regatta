@@ -32,8 +32,8 @@ export function WindPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Угол TWA', 'Angle TWA', 'Kat TWA', {
-          es: 'Angulo TWA',
+        label={tp('Угол TWA', 'Angle TWA', 'Kąt TWA', {
+          es: 'Ángulo TWA',
           fr: 'Angle TWA',
           de: 'Winkel TWA',
           it: 'Angolo TWA',
@@ -47,13 +47,13 @@ export function WindPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Сила', 'Speed', 'Sila', {
+        label={tp('Сила', 'Speed', 'Siła', {
           es: 'Fuerza',
           fr: 'Force',
-          de: 'Staerke',
+          de: 'Stärke',
           it: 'Forza',
         })}
-        value={`${ui.windSpeed} ${tp('уз', 'kts', 'kts')}`}
+        value={`${ui.windSpeed} ${tp('уз', 'kts', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}`}
         min={4}
         max={25}
         step={1}
@@ -62,7 +62,7 @@ export function WindPod(props: {
       />
       <details className="pt-1">
         <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">
-          {tp("Порывы и живой ветер", "Gusts and live wind", "Podmuchy i wiatr na żywo", { es: "Rachas y viento real", fr: "Rafales et vent réel", de: "Böen und Live-Wind", it: "Raffiche e vento reale" })}
+          {tp("Порывы и живой ветер", "Gusts and live wind", "Podmuchy i wiatr na żywo", { es: "Rachas y viento en vivo", fr: "Rafales et vent en direct", de: "Böen und Live-Wind", it: "Raffiche e vento live" })}
         </summary>
         <div className="space-y-2 pb-2">
       <LiveWindButton
@@ -79,9 +79,9 @@ export function WindPod(props: {
         options={[
           {
             value: 'steady',
-            label: tp('Ровный', 'Steady', 'Rowny', {
+            label: tp('Ровный', 'Steady', 'Stały', {
               es: 'Estable',
-              fr: 'Regulier',
+              fr: 'Régulier',
               de: 'Stetig',
               it: 'Costante',
             }),
@@ -90,7 +90,7 @@ export function WindPod(props: {
             value: 'shift',
             label: tp('Заходы', 'Shifts', 'Zmiany', {
               es: 'Roles',
-              fr: 'Adonnantes',
+              fr: 'Bascules',
               de: 'Dreher',
               it: 'Salti',
             }),
@@ -100,7 +100,7 @@ export function WindPod(props: {
             label: tp('Порывы', 'Gusts', 'Podmuchy', {
               es: 'Rachas',
               fr: 'Rafales',
-              de: 'Boen',
+              de: 'Böen',
               it: 'Raffiche',
             }),
           },

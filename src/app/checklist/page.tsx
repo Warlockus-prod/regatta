@@ -30,18 +30,18 @@ export default function ChecklistPage() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(255, 170, 0, 0.1)', border: '1px solid rgba(255, 170, 0, 0.25)', color: 'var(--warning)' }}>
-          ⚓ {tp('Готовимся к регате', 'Getting ready', 'Przygotowanie',
-            { es: 'Preparandonos', fr: 'On se prepare', de: 'Vorbereitung', it: 'Ci prepariamo' })}
+          ⚓ {tp('Готовимся к регате', 'Getting ready for a regatta', 'Przygotowania do regat',
+            { es: 'Preparando la regata', fr: 'On prépare la régate', de: 'Vorbereitung auf die Regatta', it: 'Prepariamo la regata' })}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
           {tp(
             'Что взять и как вести себя на яхте',
             'What to pack and how to behave on a yacht',
-            'Co zabrac i jak zachowac sie na jachcie',
+            'Co zabrać i jak się zachowywać na jachcie',
             {
-              es: 'Que llevar y como comportarse en un velero',
+              es: 'Qué llevar y cómo comportarte en un velero',
               fr: 'Quoi emporter et comment se comporter sur un voilier',
-              de: 'Was mitnehmen und wie man sich auf einer Yacht verhaelt',
+              de: 'Was du mitnimmst und wie du dich auf einer Yacht verhältst',
               it: 'Cosa portare e come comportarsi su una barca a vela',
             },
           )}
@@ -49,13 +49,13 @@ export default function ChecklistPage() {
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl">
           {tp(
             'Это одна страница, которую новичку стоит прочитать ДО того как он впервые встанет на палубу. Не учит как управлять яхтой - учит не мешать, быть полезным и не пораниться.',
-            'One page a first-timer should read BEFORE stepping on deck. It does not teach how to sail - it teaches how to not be in the way, be useful, and not get hurt.',
-            'Jedna strona, ktora nowicjusz powinien przeczytac PRZED wejsciem na poklad. Nie uczy jak zeglowac - uczy jak nie przeszkadzac, byc przydatnym i nie zranic sie.',
+            'One page a first-timer should read BEFORE stepping on deck. It does not teach you to sail: it teaches you to stay out of the way, be useful and not get hurt.',
+            'Jedna strona, którą początkujący powinien przeczytać, ZANIM pierwszy raz wejdzie na pokład. Nie uczy prowadzenia jachtu, tylko tego, jak nie przeszkadzać, być pomocnym i nie zrobić sobie krzywdy.',
             {
-              es: 'Una pagina que un principiante deberia leer ANTES de subir por primera vez a cubierta. No ensena a navegar - ensena a no estorbar, ser util y no lastimarse.',
-              fr: 'Une page qu\'un debutant devrait lire AVANT de monter pour la premiere fois sur le pont. Elle n\'apprend pas a naviguer - elle apprend a ne pas gener, a etre utile et a ne pas se blesser.',
-              de: 'Eine Seite, die ein Neuling lesen sollte, BEVOR er zum ersten Mal an Deck geht. Sie lehrt nicht das Segeln - sie lehrt, nicht im Weg zu sein, nuetzlich zu sein und sich nicht zu verletzen.',
-              it: 'Una pagina che un principiante dovrebbe leggere PRIMA di salire per la prima volta in coperta. Non insegna a navigare - insegna a non intralciare, a essere utile e a non farsi male.',
+              es: 'Una página que todo principiante debería leer ANTES de pisar la cubierta por primera vez. No enseña a gobernar un barco: enseña a no estorbar, a ser útil y a no hacerte daño.',
+              fr: 'Une page qu\'un débutant devrait lire AVANT de mettre le pied sur le pont pour la première fois. Elle n\'apprend pas à mener un voilier, mais à ne pas gêner, à être utile et à ne pas se blesser.',
+              de: 'Eine Seite, die jeder Neuling lesen sollte, BEVOR er zum ersten Mal an Deck geht. Sie bringt dir nicht das Segeln bei, sondern wie du nicht im Weg stehst, nützlich bist und dich nicht verletzt.',
+              it: 'Una pagina che un principiante dovrebbe leggere PRIMA di mettere piede in coperta per la prima volta. Non insegna a condurre la barca: insegna a non intralciare, a essere utile e a non farsi male.',
             },
           )}
         </p>
@@ -90,7 +90,7 @@ export default function ChecklistPage() {
                 <div className="mt-3 p-3 rounded-lg text-sm leading-relaxed"
                      style={{ background: 'rgba(255, 82, 82, 0.08)', border: '1px solid rgba(255, 82, 82, 0.25)' }}>
                   <span className="font-semibold" style={{ color: 'var(--danger)' }}>
-                    ⚠️ {tp('Важно', 'Important', 'Wazne',
+                    ⚠️ {tp('Важно', 'Important', 'Ważne',
                       { es: 'Importante', fr: 'Important', de: 'Wichtig', it: 'Importante' })}:
                   </span>{' '}
                   <span className="text-[var(--text-primary)]">{warning}</span>
@@ -102,7 +102,7 @@ export default function ChecklistPage() {
                   className="inline-block mt-3 text-sm underline"
                   style={{ color: 'var(--accent-cyan)' }}
                 >
-                  {tp('Порядок для рулевого и шкотового, с числами', 'The helmsman and trimmer procedure, with numbers', 'Kolejnosc dla sternika i szotowego, z liczbami', {
+                  {tp('Порядок для рулевого и шкотового, с числами', 'The helmsman and trimmer procedure, with numbers', 'Kolejność działań dla sternika i szotowego, z liczbami', {
                     es: 'El procedimiento del timonel y del trimmer, con números',
                     fr: 'La procédure du barreur et du régleur, avec les chiffres',
                     de: 'Ablauf für Rudergänger und Trimmer, mit Zahlen',
@@ -121,13 +121,13 @@ export default function ChecklistPage() {
         <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
           {tp(
             'Это базовая подборка. Каждая яхта - свой маленький мир. Главное: не уверен - спроси, не трогай без команды.',
-            'This is the basics. Each yacht is its own small world. Main rule: not sure - ask. Do not touch without a command.',
-            'To podstawa. Kazdy jacht jest innym malym swiatem. Glowna zasada: nie jestes pewien - pytaj, nie dotykaj bez polecenia.',
+            'These are the basics. Every yacht is a small world of its own. The main thing: not sure? Ask. Don\'t touch anything without a command.',
+            'To podstawy. Każdy jacht to osobny mały świat. Najważniejsze: nie jesteś pewien - zapytaj, niczego nie ruszaj bez komendy.',
             {
-              es: 'Esto es lo basico. Cada velero es su propio pequeno mundo. Regla principal: si no estas seguro - pregunta, no toques sin una orden.',
-              fr: 'Voici les bases. Chaque voilier est son propre petit monde. Regle principale : si tu n\'es pas sur - demande, ne touche a rien sans ordre.',
-              de: 'Das sind die Grundlagen. Jede Yacht ist ihre eigene kleine Welt. Hauptregel: nicht sicher - frag nach, fass nichts ohne Kommando an.',
-              it: 'Queste sono le basi. Ogni barca a vela e un piccolo mondo a se. Regola principale: se non sei sicuro - chiedi, non toccare senza un ordine.',
+              es: 'Esto es lo básico. Cada velero es un pequeño mundo. Lo principal: si no estás seguro, pregunta, y no toques nada sin una orden.',
+              fr: 'Ce sont les bases. Chaque voilier est un petit monde à part. L\'essentiel : pas sûr, demande ; ne touche à rien sans ordre.',
+              de: 'Das sind die Grundlagen. Jede Yacht ist eine eigene kleine Welt. Das Wichtigste: Unsicher? Frag nach, und fass nichts ohne Kommando an.',
+              it: 'Queste sono le basi. Ogni barca a vela è un piccolo mondo a sé. La cosa principale: se non sei sicuro, chiedi, e non toccare niente senza un comando.',
             },
           )}
         </p>

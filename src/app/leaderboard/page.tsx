@@ -61,18 +61,18 @@ export default function LeaderboardPage() {
     <div className="page-enter max-w-3xl mx-auto px-4 sm:px-6 py-10">
       <h1 className="text-3xl sm:text-4xl font-bold mb-2">
         {tp('Таблица лучших', 'Leaderboard', 'Ranking',
-          { es: 'Clasificacion', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
+          { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
       </h1>
       <p className="text-sm text-[var(--text-muted)] mb-6">
-        {tp('Лучшее время по каждой сессии. Переключай режим / сложность / миссию.', 'Best time per session. Toggle mode / difficulty / mission.', 'Najlepszy czas na sesje. Przelacz tryb / poziom / misje.',
-          { es: 'Mejor tiempo por sesion. Cambia modo / dificultad / mision.', fr: 'Meilleur temps par session. Change le mode / la difficulte / la mission.', de: 'Beste Zeit pro Sitzung. Wechsle Modus / Schwierigkeit / Mission.', it: 'Miglior tempo per sessione. Cambia modalita / difficolta / missione.' },
+        {tp('Лучшее время по каждой сессии. Переключай режим / сложность / миссию.', 'Best time per session. Toggle mode / difficulty / mission.', 'Najlepszy czas z każdej sesji. Przełączaj tryb / poziom / misję.',
+          { es: 'Mejor tiempo por sesión. Cambia modo / dificultad / misión.', fr: 'Meilleur temps par session. Change de mode / difficulté / mission.', de: 'Beste Zeit pro Sitzung. Wechsle Modus / Schwierigkeit / Mission.', it: 'Miglior tempo per sessione. Cambia modalità / difficoltà / missione.' },
         )}
       </p>
 
       {/* Mode toggle */}
       <div className="card p-3 mb-4 flex flex-wrap gap-2 items-center">
         <div className="text-xs text-[var(--text-muted)] mr-2">{tp('РЕЖИМ', 'MODE', 'TRYB',
-          { es: 'MODO', fr: 'MODE', de: 'MODUS', it: 'MODALITA' })}:</div>
+          { es: 'MODO', fr: 'MODE', de: 'MODUS', it: 'MODALITÀ' })}:</div>
         <button
           onClick={() => setMode('free')}
           className="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
@@ -82,7 +82,7 @@ export default function LeaderboardPage() {
             border: `1px solid ${mode === 'free' ? 'rgba(0, 212, 255, 0.4)' : 'rgba(139, 167, 184, 0.2)'}`,
           }}
         >
-          🏁 {tp('Свободная гонка', 'Free race', 'Wolna regata',
+          🏁 {tp('Свободная гонка', 'Free race', 'Wolny wyścig',
             { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
         </button>
         <button
@@ -105,7 +105,7 @@ export default function LeaderboardPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM',
-                { es: 'DIFICULTAD', fr: 'DIFFICULTE', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTA' })}</div>
+                { es: 'DIFICULTAD', fr: 'DIFFICULTÉ', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTÀ' })}</div>
               <div className="flex gap-1">
                 {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
                   <button
@@ -118,7 +118,7 @@ export default function LeaderboardPage() {
                       color: difficulty === d ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Latwy', { es: 'Facil', fr: 'Facile', de: 'Leicht', it: 'Facile' }) : d === 'medium' ? tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сложный', 'Hard', 'Trudny', { es: 'Dificil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' })}
+                    {d === 'easy' ? tp('Лёгкий', 'Easy', 'Łatwy', { es: 'Fácil', fr: 'Facile', de: 'Leicht', it: 'Facile' }) : d === 'medium' ? tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сложный', 'Hard', 'Trudny', { es: 'Difícil', fr: 'Difficile', de: 'Schwer', it: 'Difficile' })}
                   </button>
                 ))}
               </div>
@@ -138,7 +138,7 @@ export default function LeaderboardPage() {
                       color: wind === w ? 'var(--accent-cyan)' : 'var(--text-secondary)',
                     }}
                   >
-                    {w === 'light' ? tp('Слабый', 'Light', 'Slaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }) : w === 'medium' ? tp('Средний', 'Medium', 'Sredni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сильный', 'Heavy', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' })}
+                    {w === 'light' ? tp('Слабый', 'Light', 'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }) : w === 'medium' ? tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }) : tp('Сильный', 'Heavy', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' })}
                   </button>
                 ))}
               </div>
@@ -147,7 +147,7 @@ export default function LeaderboardPage() {
         ) : (
           <div>
             <div className="text-[10px] text-[var(--text-muted)] mb-1">{tp('МИССИЯ', 'MISSION', 'MISJA',
-              { es: 'MISION', fr: 'MISSION', de: 'MISSION', it: 'MISSIONE' })}</div>
+              { es: 'MISIÓN', fr: 'MISSION', de: 'MISSION', it: 'MISSIONE' })}</div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
               {missions.map((m) => (
                 <button
@@ -173,13 +173,13 @@ export default function LeaderboardPage() {
       <div className="card p-3">
         {loading ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Загружаю…', 'Loading…', 'Ladowanie…',
-              { es: 'Cargando…', fr: 'Chargement…', de: 'Laedt…', it: 'Caricamento…' })}
+            {tp('Загружаю...', 'Loading...', 'Ładowanie...',
+              { es: 'Cargando...', fr: 'Chargement...', de: 'Wird geladen...', it: 'Caricamento...' })}
           </div>
         ) : rows.length === 0 ? (
           <div className="text-sm text-[var(--text-muted)] py-10 text-center">
-            {tp('Пока никто не финишировал. Стань первым!', 'No results yet. Be the first!', 'Brak wynikow. Badz pierwszy!',
-              { es: 'Aun no hay resultados. Se el primero!', fr: 'Pas encore de resultats. Sois le premier !', de: 'Noch keine Ergebnisse. Sei der Erste!', it: 'Ancora nessun risultato. Sii il primo!' },
+            {tp('Пока никто не финишировал. Стань первым!', 'No results yet. Be the first!', 'Nikt jeszcze nie dopłynął do mety. Bądź pierwszy!',
+              { es: 'Aún no hay resultados. ¡Sé el primero!', fr: 'Pas encore de résultats. Sois le premier !', de: 'Noch keine Ergebnisse. Sei der Erste!', it: 'Ancora nessun risultato. Sii il primo!' },
             )}
             <div className="mt-3">
               <Link href="/game" className="text-[var(--accent-cyan)] font-semibold hover:underline">
@@ -206,10 +206,10 @@ export default function LeaderboardPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-semibold truncate text-[var(--text-primary)]">
-                      {r.nickname} {isMe && <span className="text-[10px] text-[var(--accent-cyan)]">you</span>}
+                      {r.nickname} {isMe && <span className="text-[10px] text-[var(--accent-cyan)]">{tp('ты', 'you', 'ty', { es: 'tú', fr: 'toi', de: 'du', it: 'tu' })}</span>}
                     </div>
                     {r.score !== null && (
-                      <div className="text-[10px] text-[var(--text-muted)]">score {r.score}/100</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">{tp('оценка', 'score', 'ocena', { es: 'puntuación', fr: 'note', de: 'Bewertung', it: 'punteggio' })} {r.score}/100</div>
                     )}
                   </div>
                   <div className="text-sm font-mono text-[var(--accent-cyan)] tabular-nums">
@@ -224,8 +224,8 @@ export default function LeaderboardPage() {
 
       <div className="text-center mt-6">
         <Link href="/game" className="text-sm text-[var(--text-secondary)] hover:text-[var(--accent-cyan)] transition">
-          ← {tp('Назад к гонке', 'Back to race', 'Powrot do regaty',
-            { es: 'Volver a la regata', fr: 'Retour a la course', de: 'Zurueck zum Rennen', it: 'Torna alla regata' })}
+          ← {tp('Назад к гонке', 'Back to race', 'Powrót do wyścigu',
+            { es: 'Volver a la regata', fr: 'Retour à la course', de: 'Zurück zum Rennen', it: 'Torna alla regata' })}
         </Link>
       </div>
 
