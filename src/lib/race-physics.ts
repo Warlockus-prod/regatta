@@ -162,12 +162,30 @@ export function stepBoat(
   boat.pos.y = Math.max(20, Math.min(WORLD.height - 20, boat.pos.y));
 }
 
-/** Pair-wise boat repel to prevent overlap. */
+/** Closing speed (knots) at which a contact costs both boats the full slow-down. */
+export const FULL_BUMP_CLOSING_KN = 1;
+
+/** Velocity over the ground in knots (x east, y south), as stepBoat moves the boat. */
+function groundVelocity(boat: RaceBoat): Vec2 {
+  const rad = deg2rad(boat.heading + (boat.physics?.leeway ?? 0));
+  return { x: Math.sin(rad) * boat.speed, y: -Math.cos(rad) * boat.speed };
+}
+
+/**
+ * Pair-wise boat repel to prevent overlap. Overlapping boats are always pushed
+ * apart; they lose speed in proportion to how fast they close on each other,
+ * the full slow-down from FULL_BUMP_CLOSING_KN. Boats that merely touch or
+ * move apart keep their speed: a flat slow-down on every contact pinned two
+ * boats grinding side by side at about 0.1 kn for good, head to wind with no
+ * way out (DECISIONS.md ADR-0004). Finished boats have left the course and do
+ * not collide, so a boat parked past the finish line blocks no one.
+ */
 export function resolveCollisions(boats: RaceBoat[], dt = 1 / 20): void {
   for (let i = 0; i < boats.length; i++) {
     for (let j = i + 1; j < boats.length; j++) {
       const a = boats[i];
       const b = boats[j];
+      if (a.lapDone >= 2 || b.lapDone >= 2) continue;
       const dx = b.pos.x - a.pos.x;
       const dy = b.pos.y - a.pos.y;
       const d = Math.hypot(dx, dy);
@@ -179,8 +197,14 @@ export function resolveCollisions(boats: RaceBoat[], dt = 1 / 20): void {
         a.pos.y -= ny * overlap;
         b.pos.x += nx * overlap;
         b.pos.y += ny * overlap;
-        a.speed *= Math.exp(-1.67 * dt);
-        b.speed *= Math.exp(-1.67 * dt);
+        const va = groundVelocity(a), vb = groundVelocity(b);
+        const closing = (va.x - vb.x) * nx + (va.y - vb.y) * ny;
+        const share = Math.max(0, Math.min(1, closing / FULL_BUMP_CLOSING_KN));
+        if (share > 0) {
+          const damp = Math.exp(-1.67 * dt * share);
+          a.speed *= damp;
+          b.speed *= damp;
+        }
       }
     }
   }
@@ -320,7 +344,7 @@ const AUTOPILOT = {
   finalShare: 0.35,      // ...capped at this share of the mark-to-line distance
   radiusGrowth: 1.15,    // turning circle grows as the boat bears away and speeds up
   shedHysteresis: 0.6,   // kn below the target speed before sailing freely again
-  shedMin: 1.8,          // kn: too slow to keep pointing up the last stretch
+  shedMin: 2.5,          // kn: too slow to keep pointing up the last stretch
   featherSlow: 12,       // deg off the wind while shedding speed near the target
   featherFast: 3,        // deg off the wind while well above it
   fastMargin: 0.8,       // kn above the target speed that counts as "well above"
@@ -331,7 +355,7 @@ const AUTOPILOT = {
   startBand: 40,         // tacking corridor half-width below the start line
   loopBand: 30,          // tacking corridor half-width on the start and finish loops
   tackMinSpeed: 2,       // kn: no tack below this
-  stallSpeed: 1.5,       // kn: below this, bear away from close to the wind
+  stallSpeed: 2.2,       // kn: below this, bear away from close to the wind (a bumped boat must not stop head to wind)
   dip: { drop: 30, minR: 70, maxR: 100, slack: 25 },
   finishLoop: { drop: 50, radius: 80 },
   finishLanes: 7,

@@ -99,6 +99,58 @@ describe("one complete fair regatta", () => {
     expect(b.lapDone).toBe(2);
     expect(Math.abs(b.finishTime! - first)).toBeLessThan(1);
   });
+  // Collisions (DECISIONS.md ADR-0004): overlapping boats are always pushed
+  // apart, but only boats closing on each other lose speed.
+  it("keeps two boats in light contact sailing", () => {
+    const a: RaceBoat = { ...boat(), id: "a", pos: { x: 120, y: 1100 }, heading: 46, speed: 4 };
+    const b: RaceBoat = { ...boat(), id: "b", pos: { x: 141.5, y: 1100 }, heading: 44, speed: 4 };
+    let touching = 0;
+    for (let t = 0; t < 10; t += .05) {
+      stepBoat(a, .05, 0, 1, { turn: 0 });
+      stepBoat(b, .05, 0, 1, { turn: 0 });
+      if (Math.hypot(a.pos.x - b.pos.x, a.pos.y - b.pos.y) < 22) touching++;
+      resolveCollisions([a, b], .05);
+    }
+    // They grind side by side the whole time; a flat slow-down on every
+    // contact left both at 0.2 kn, and near head to wind at 0 for good.
+    expect(touching).toBeGreaterThan(150);
+    expect(Math.min(a.speed, b.speed)).toBeGreaterThan(1.5);
+  });
+  it("still slows both boats in a head-on ram", () => {
+    const a: RaceBoat = { ...boat(), id: "a", pos: { x: 400, y: 600 }, heading: 90, speed: 5 };
+    const b: RaceBoat = { ...boat(), id: "b", pos: { x: 420, y: 600 }, heading: 270, speed: 5 };
+    resolveCollisions([a, b], .05);
+    expect(a.speed).toBeCloseTo(5 * Math.exp(-1.67 * .05), 6);
+    expect(b.speed).toBeCloseTo(5 * Math.exp(-1.67 * .05), 6);
+  });
+  it("takes finished boats out of collisions", () => {
+    const parked: RaceBoat = { ...boat(), id: "done", lapDone: 2 };
+    const b: RaceBoat = { ...boat(), id: "b", pos: { ...boat().pos }, heading: 180, speed: 3 };
+    resolveCollisions([parked, b], .05);
+    expect(b.pos).toEqual(parked.pos);
+    expect(b.speed).toBe(3);
+  });
+  // Fleets exactly as the server races them: 8 bots placed by spawnBoat,
+  // stepped together with collisions in shifting wind and cut at 300 s. With a
+  // flat slow-down on every contact 49 of these 72 finished. Never lower this.
+  it("finishes 8-bot fleets inside the server's 300 s", () => {
+    const c = makeStandardCourse(), line = c.startLine, cx = (line.a.x + line.b.x) / 2;
+    let finished = 0;
+    for (const seed of [1, 2, 3]) for (const mul of [0.65, 1, 1.3]) {
+      const fleet = Array.from({ length: 8 }, (_, i): RaceBoat => {
+        const t = (i / 7) * 2 - 1;
+        return { ...boat(), id: `b${i}`, pos: { x: cx + t * 80, y: line.a.y + 30 }, heading: t > 0 ? 315 : 45 };
+      });
+      for (let t = 0; t < 300 && fleet.some((b) => b.lapDone < 2); t += .05) {
+        const w = windAt(t, seed), prev = fleet.map((b) => ({ ...b.pos }));
+        for (const b of fleet) if (b.lapDone < 2) stepBoat(b, .05, w.dir, w.gust, { turn: raceAutopilotTurn(b, c, w.dir) }, { windStrengthMul: mul });
+        resolveCollisions(fleet, .05);
+        fleet.forEach((b, i) => { if (b.lapDone < 2) updateLap(b, prev[i], c, t); });
+      }
+      finished += fleet.filter((b) => b.lapDone === 2).length;
+    }
+    expect(finished).toBeGreaterThanOrEqual(71);
+  }, 60_000);
   it("has no rudder authority while stationary and separates coincident boats", () => {
     const a=boat(), b={...boat(),id:"two",pos:{...boat().pos}};
     stepBoat(a,.05,0,1,{turn:1});

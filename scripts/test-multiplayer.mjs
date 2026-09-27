@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
 import { once } from "node:events";
 import { createRequire } from "node:module";
+import * as P from "../ws-server/race-physics.js";
 const WebSocket = createRequire(new URL("../ws-server/package.json", import.meta.url))("ws");
 const port = 3198;
 const server = spawn(process.execPath, ["ws-server/server.js"], { env: { ...process.env, PORT: String(port), NEXT_INTERNAL_URL: "http://127.0.0.1:1" }, stdio: ["ignore", "pipe", "pipe"] });
@@ -63,20 +64,29 @@ try {
   assert.equal(snapshot.boats.length, 3);
   assert(snapshot.boats.every((b) => Number.isFinite(b.x) && Number.isFinite(b.s)));
   if (process.argv.includes("--full")) {
-    const steer = (c, id) => c.ws.on("message", (raw) => {
-      const m = JSON.parse(raw);
-      if (m.type !== "state") return;
-      const b = m.boats.find((b) => b.id === id);
-      if (!b?.target) return;
-      const dx = b.target.x - b.x, dy = b.target.y - b.y;
-      let desired = Math.atan2(dx, -dy) * 180 / Math.PI;
-      const angle = (x) => ((x + 540) % 360) - 180;
-      if (Math.abs(angle(desired - m.wind.dir)) < 45) {
-        const wind = m.wind.dir * Math.PI / 180;
-        desired = m.wind.dir + (dx * Math.cos(wind) + dy * Math.sin(wind) >= 0 ? 48 : -48);
-      }
-      c.send({ type: "input", turn: Math.max(-1, Math.min(1, angle(desired - b.h) / 12)) });
-    });
+    // The socket sailors steer with the autopilot the server gives its bots,
+    // fed only from the broadcast state. The state carries no `started` or
+    // rounding phase, so they are read back from the hint target: it is
+    // raceWaypoint of exactly those flags. (Chasing the hint with pure pursuit,
+    // as before, left one sailor unfinished in most full runs.)
+    const course = P.makeStandardCourse(), lineY = course.startLine.a.y;
+    const same = (a, b) => Math.abs(a.x - b.x) < 0.5 && Math.abs(a.y - b.y) < 0.5;
+    const steer = (c, id) => {
+      const boat = { id, name: id, color: "", pos: { x: 0, y: 0 }, heading: 0, speed: 0, lapDone: 0 };
+      c.ws.on("message", (raw) => {
+        const m = JSON.parse(raw);
+        if (m.type !== "state") return;
+        const b = m.boats.find((b) => b.id === id);
+        if (!b?.target) return;
+        Object.assign(boat, { pos: { x: b.x, y: b.y }, heading: b.h, speed: b.s, lapDone: b.l });
+        if (b.l === 0) {
+          const hint = (started, roundPhase, y) => P.raceWaypoint({ ...boat, pos: { x: b.x, y }, started, roundPhase }, course);
+          boat.started = ![lineY + 100, lineY - 100].some((y) => same(b.target, hint(false, 0, y)));
+          if (boat.started) boat.roundPhase = [0, 1, 2].find((ph) => same(b.target, hint(true, ph, b.y))) ?? boat.roundPhase ?? 0;
+        }
+        c.send({ type: "input", turn: P.raceAutopilotTurn(boat, course, m.wind.dir) });
+      });
+    };
     steer(resumed, joined.id); steer(sailor, sailorId);
     const deadline = Date.now() + 310000;
     while (!resumed.messages.some((m) => m.type === "finished") && Date.now() < deadline) await delay(100);

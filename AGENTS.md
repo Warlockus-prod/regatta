@@ -111,11 +111,11 @@ npm run dev -- --port 3007   # другой порт (нужно для ворк
 ```
 npx tsc --noEmit             # должно быть чисто
 npm run build                # прод-сборка Turbopack строже dev
-npm run test:physics         # 54 теста, 7 файлов
+npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 429 тестов, 45 файлов
+npx vitest run               # все юнит-тесты: 433 теста, 45 файлов
 npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна

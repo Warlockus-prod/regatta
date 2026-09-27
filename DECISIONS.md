@@ -329,6 +329,69 @@ bot loop; `mobile/src/game/ai-boats.ts`.
 
 ---
 
+## ADR-0004 - Collisions slow only boats closing on each other; finished boats leave the course
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+`resolveCollisions` (ws-server tick and `/game`) pushed overlapping boats apart
+and multiplied both boats' speed by exp(-1.67 dt) on every step they overlapped,
+whether they were approaching or not. Two boats grinding side by side stayed in
+contact every step (low-speed leeway and slightly converging headings), so both
+settled at 0.1-0.2 kn; near head to wind that is permanent, because the engine
+gives no rudder authority at rest and no drive below about 8 deg TWA. Finished
+boats also stayed in the collision list, parked just past the finish line, and
+blocked the next boat on the same spot. With the ADR-0003 autopilot, fleets of
+2-8 server bots (3 wind seeds x strengths 0.65 / 1 / 1.3, 300 s cut) finished
+80%; with the old autopilot 45%.
+
+### Decision
+- Keep the push-apart. Damp both boats by exp(-1.67 dt k), where k is the
+  closing speed along the contact normal divided by `FULL_BUMP_CLOSING_KN`
+  (1 kn), clamped to 0..1. Velocity is over the ground, heading plus leeway,
+  as stepBoat moves the boat. Touching or separating boats keep their speed; a
+  ram at 1 kn or more costs what it always did.
+- Boats with `lapDone >= 2` skip collisions, inside `resolveCollisions`, so the
+  server (through the generated `ws-server/race-physics.js`) and `/game` behave
+  the same.
+- In the autopilot, a bumped boat bears away sooner: stall speed 2.2 kn (was
+  1.5) and no pointing up the last stretch below 2.5 kn (was 1.8). Measured on
+  two seed sets: 300 -> 304 and 302 -> 308 of 315, single boats unchanged.
+
+### Options considered
+- Flat damping (as before): the deadlocks above.
+- Closing-speed damping without the finished-boat rule: nearly the same fleet
+  numbers (the autopilot already spreads finish lanes), but a parked boat still
+  blocks a human who aims at the same spot; the rule is one line.
+- An inelastic exchange of momentum along the normal: more physical (a rammed
+  boat would be shoved ahead), but a larger change to the feel of the game than
+  this problem needs.
+- Per-boat rounding lanes in the autopilot (loop radii 65 / 80 / 95), to turn
+  rear-end bumps into side contact: no fleet gain (300 of 315 either way), and
+  the tight lane cost 28 s of median in a heavy breeze. Rejected.
+
+### Consequences
+- Players feel it: brushing a neighbour no longer slows either boat; a ram
+  still does. A finished boat is a ghost for everyone still racing.
+- Fleets of 2-8 server bots with the 300 s cut: 96.5% finish (304 of 315),
+  median 122 s (was 144). The rest: 8-boat light-wind fleets finishing just past
+  300 s, and a few boats left head to wind by a ram near the mark.
+- `/game` bots 15 of 15 (14 of 15 with the new autopilot alone, 11 of 15
+  before it), median 97 s.
+
+### Verification
+`race-course.test.ts`: two boats in light contact keep sailing (flat damping:
+0.2 kn), a head-on ram still takes the full slow-down, finished boats take no
+part, 8-bot fleets finish 71 of 72 inside 300 s (flat damping: 49); live
+`node scripts/test-multiplayer.mjs --full`; `npm run test:physics`.
+
+### References
+ADR-0003 (autopilot); `ws-server/server.js` tick loop; `src/app/game/GameClient.tsx`
+game loop.
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```
