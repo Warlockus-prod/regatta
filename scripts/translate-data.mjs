@@ -62,7 +62,7 @@ if (!args.file || args.langs.length === 0) {
 const LANG_NAMES = {
   ru: 'Russian',
   en: 'English',
-  pl: 'Polish (no diacritics - use ASCII only)',
+  pl: 'Polish (full Polish spelling with diacritics)',
   es: 'Spanish (Castilian)',
   fr: 'French (standard France)',
   de: 'German (standard Hochdeutsch)',
@@ -86,8 +86,8 @@ ${glossary}
 CRITICAL RULES:
 1. Use the glossary terms verbatim. Do not paraphrase or use "safer" synonyms.
 2. Never use em-dash (U+2014) or en-dash (U+2013). Use plain ASCII hyphen "-".
-3. Polish specifically: strip all diacritics (ą ę ż ł ó ć ń ś ź). Use plain
-   ASCII. "swiatlo", not "światło".
+3. Polish specifically: write full Polish spelling with diacritics
+   (ą ć ę ł ń ó ś ź ż): "światło", not "swiatlo".
 4. Keep proper nouns unchanged: Bavaria 46, Regatta, World Sailing, Claude, AI coach.
 5. Keep English acronyms unchanged: TWA, AWA, AWS, TWS, VMG, RRS, COLREGS, MOB.
 6. Preserve sentence tone and length: short UI labels stay short, long lesson

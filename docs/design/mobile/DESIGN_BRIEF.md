@@ -601,8 +601,8 @@ inherits the strings.
 - **German** is the longest; expect ~30% expansion vs English.
   Designer must spec a "longest-string" mock for every label-bearing
   component (buttons, badges, list rows).
-- **Polish** uses no diacritics in this app (engineering rule), so
-  Polish text is shorter than usual.
+- **Polish** is written with its diacritics (since 2026-09-27); check
+  fonts for ą ć ę ł ń ó ś ź ż and expect ~20% expansion vs English.
 - **Russian** is Cyrillic; verify every font has full coverage.
 - **Spanish, French, Italian** have diacritics; **German** has
   umlauts and ess-zet.

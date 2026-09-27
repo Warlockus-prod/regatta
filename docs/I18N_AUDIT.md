@@ -175,8 +175,9 @@ For new components - prefer `tl()`:
 2. Use object-based form:
    `{tl({ ru: 'Привет', en: 'Hi', pl: 'Czesc', es: 'Hola', fr: 'Salut', de: 'Hallo', it: 'Ciao' })}`
 3. Optional langs (`es/fr/de/it`) fall back to `en` -> `ru` if missing.
-4. Per project rule: no Polish diacritics (no ą/ę/ż/ł/etc), no em-dash
-   or en-dash in any lang.
+4. Per project rule: full native spelling in every language, Polish
+   diacritics included (since 2026-09-27); no em-dash or en-dash in any
+   lang; terms from `scripts/sailing-glossary.md`.
 
 Existing `tp(ru, en, pl)` call sites stay functional and render EN for
 ES/FR/DE/IT. Batch-migrate via `node scripts/migrate-tp-to-tl.mjs` (see

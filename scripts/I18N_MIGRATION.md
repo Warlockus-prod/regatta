@@ -154,7 +154,8 @@ de, it).
 **System prompt.** Uses `scripts/sailing-glossary.md` as context. The
 glossary is the normative terminology reference: Claude uses the listed
 target-language terms instead of generic dictionary translations. No
-em-dash, no Polish diacritics, proper nouns preserved.
+em-dash, full native spelling (Polish diacritics included), proper nouns
+preserved.
 
 **Cost and time.** Haiku 4.5 list price ~$0.80 per 1M input+output tokens.
 Typical data file field is 10-200 chars RU. One lang per file:

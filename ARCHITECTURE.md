@@ -555,7 +555,6 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `scripts/translate-data.mjs` - перевод полей данных в новый язык (старая форма).
 - `scripts/migrate-data-fields.mjs` - кодмод формы полей в файлах данных.
 - `scripts/migrate-tp-to-tl.mjs` - кодмод `tp(...)` в `tl({...})`.
-- `scripts/strip-polish-diacritics.mjs` - снятие диакритик только с польских строк.
 - `scripts/fix-orphan-lines.mjs` - ремонт осиротевших строк переводов после массового прогона.
 - `scripts/audit-sailing-model.mjs` - числовые пробы поведения движка (только чтение).
 - `scripts/pregen-radio-audio.mjs` - предгенерация клипов радиофраз в `public/radio-audio`.
@@ -761,6 +760,6 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `CLAUDE.md` (до этой правки), `ROADMAP.md`, `MEMORY.md` | живой маршрут `/trim-trainer`, каталог src/features/simulator-v2 | ни того, ни другого в дереве нет (сборка V2-гонки удалена 2026-07-05, `be43938`) |
 | `CLAUDE.md` (до этой правки) | гейт G1 это scripts/i18n-audit.mjs в корне | скрипт живет в `mobile/scripts/i18n-audit.mjs` |
 | `DESIGN.md` | ссылка на PRODUCT.md | такого файла в репозитории нет; радиокурс описан в `docs/design/sternik-radio.md` |
-| `CLAUDE.md` правило "польский без диакритик" | применяется везде | в экзаменационном контенте (`src/data/sternik.ts`, радиокурс) диакритики намеренно есть; `src/lib/product/catalog.ts` тоже их содержит |
+| `CLAUDE.md` правило "польский без диакритик" | применяется везде | отменено 2026-09-27: польский пишется с диакритикой везде, кроме текста в OG-картинках; скрипт снятия диакритики удален |
 | `MEMORY.md` | банк sternik 148 вопросов | 879 вопросов в `src/data/sternik.ts` |
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
