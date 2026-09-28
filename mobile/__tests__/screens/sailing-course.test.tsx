@@ -81,3 +81,11 @@ test("mainsheet comparison works from bundled content and does not claim practic
   fireEvent.press(view.getByRole("button", { name: "Sail trim trainer" }));
   expect(mockPush).toHaveBeenCalledWith("/simulator-v3?study=mainsheet");
 });
+
+test("the overview offers the unfinished lesson Home continues, not the first one", async () => {
+  await AsyncStorage.setItem("regatta.learning.bookmark.v1", JSON.stringify({ version: 1, course: "sails", lessonId: "mainsheet", at: 1, positions: { sails: "mainsheet" } }));
+  const view = renderWithProviders(<SailingCourseScreen />);
+  await waitFor(() => view.getByRole("button", { name: "Mainsheet: angle and leech" }));
+  fireEvent.press(view.getByRole("button", { name: "Mainsheet: angle and leech" }));
+  expect(mockPush).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
+});

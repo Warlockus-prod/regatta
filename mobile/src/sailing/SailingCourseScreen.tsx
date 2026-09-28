@@ -11,7 +11,7 @@ import { copy } from "../../../src/lib/product/copy";
 import { findSailLesson, sailCourse, sailLessons } from "../../../src/data/sailing-lab/course";
 import { checkSailTheory, emptySailProgress, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, type SailProgress } from "../../../src/features/sailing-lab/lessons/progress";
 import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../../../src/features/sailing-lab/lessons/diagrams";
-import { useLearningBookmark } from "../persistence/learning-bookmark";
+import { readBookmark, useLearningBookmark } from "../persistence/learning-bookmark";
 
 export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const { lang } = useI18n();
@@ -22,6 +22,9 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const [selected, setSelected] = useState(0);
   const [answer, setAnswer] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
+  // The last sail lesson the learner opened (bookmark), so this overview and
+  // Home offer the same next lesson.
+  const [position, setPosition] = useState<string | null>(null);
   const lesson = lessonId ? findSailLesson(lessonId) : undefined;
   useLearningBookmark("sails", lesson?.id ?? null);
   useFocusEffect(useCallback(() => {
@@ -29,10 +32,12 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
     AsyncStorage.getItem(SAIL_PROGRESS_KEY).then(raw => {
       if (active) setProgress(readSailProgress(raw));
     }).catch(() => { if (active) { setProgress(emptySailProgress()); setStorageError(true); } });
+    readBookmark().then(b => { if (active) setPosition(b?.positions?.sails ?? null); });
     return () => { active = false; };
   }, []));
   const openLesson = (id: string) => router.push({ pathname: "/learn/sails/[lesson]", params: { lesson: id } });
-  const next = progress ? nextSailLesson(progress) : sailLessons[0];
+  const resumed = position && progress && !progress.checked.includes(position) ? findSailLesson(position) : undefined;
+  const next = progress ? resumed ?? nextSailLesson(progress) : sailLessons[0];
   const saveCheck = async () => {
     if (!lesson || !progress || answer === null || saving) return;
     const updated = checkSailTheory(progress, lesson.id, answer);
