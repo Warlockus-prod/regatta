@@ -3,9 +3,12 @@
 **RULE: no App Store submission (a build sent to review) happens until every
 gate below passes.** This gate is the fix for our recurring failures:
 metadata-rejections, "build number must increase", and the pile-up of empty
-"Prepare for Submission" entries in App Store Connect. Run it in the **main
-`mobile/` checkout** (Apple toolchain + ASC API key live there), not a web
-worktree.
+"Prepare for Submission" entries in App Store Connect. Run it on the release
+machine from a clean checkout of the exact release commit; a worktree works
+(build 45 was archived from the `design/v3` worktree). The ASC API key lives in
+`~/.appstoreconnect/private_keys/`, not in a checkout. After a version bump,
+regenerate the native project with `npx expo prebuild --platform ios
+--no-install` so `Info.plist` carries the new version and build.
 
 ASCII only (repo pre-commit hook blocks em/en-dash).
 
@@ -33,9 +36,11 @@ brand is not a gate: successful build, actual visual inspection, metadata
 validation and verified submission state are the requirements. EAS and
 Codemagic are alternatives, not required services for this local pipeline.
 
-Native `app.json` explicitly supports a dark interface only. Verify that
-supported native appearance; do not report imaginary native light/auto modes.
-The embedded website separately supports its web themes. Retest changed
+Since 1.7.0 (v3 design) `app.json` fixes the light interface
+(`userInterfaceStyle: light`); instrument screens paint their own dark surface.
+The app has no system dark or auto mode: verify the paper screens and the dark
+instrument screens as they are, and do not report imaginary native modes. The
+embedded website separately supports its web themes. Retest changed
 screens and the main navigation on the exact release binary, with screenshots.
 
 ## The gate (run in order; all must be green)
@@ -64,8 +69,13 @@ Catch missing / placeholder localizations before Apple does.
 ### G2 - XcodeBuildMCP: build + SIMULATOR verify   [one-time setup below]
 Never submit a build no one has looked at.
 - Use the XcodeBuildMCP tools (build -> boot simulator -> install -> launch).
-- Walk every screen in **light / dark / auto**; confirm the gallery (2026 album
-  + de-dated 2025) and any release-specific feature render; no redbox.
+- Walk the changed screens and the main navigation (paper screens and dark
+  instrument screens); confirm the gallery (2026 album + de-dated 2025) and any
+  release-specific feature render; no redbox.
+- **Update over the version on sale.** Install the store build's Release
+  Simulator app, create progress, install the candidate over it (no uninstall)
+  and check Home, the course path and that every stored progress key is still
+  there (build 45: see `BUILDS.md`).
 - Capture screenshots for the record.
 - **Release build on the newest iOS.** Build the Release configuration with the
   SAME Xcode that archives the store binary, install it fresh (erase the
