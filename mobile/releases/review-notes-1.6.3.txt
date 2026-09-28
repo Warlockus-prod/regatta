@@ -1,0 +1,5 @@
+Week to Regatta is a sailing learning and practice app. No sign-in or test account is required.
+
+Version 1.6.3 (44) is a fix release. Version 1.6.2 closed immediately at launch on iOS 27: it was built with the iOS 27 SDK but did not use the UIScene life cycle, which iOS 27 requires for such apps. Version 1.6.3 adopts the UIScene life cycle. Features, content and data handling are unchanged from 1.6.2.
+
+Verified on iPhone 17 Pro Max simulators with iOS 27.0 and iOS 26.5: fresh install, launch, navigation, the offline Trainer and links that open the app.

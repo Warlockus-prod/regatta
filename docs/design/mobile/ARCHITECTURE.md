@@ -23,12 +23,11 @@ installed apps; native loading/error handling requires an app binary update.
 `scene-error`, HTTP errors and content-process termination show native retry.
 3D requires internet; the offline fallback remains available.
 
-**Unreleased change, 2026-09-17:** the working tree now bundles Trainer and 3D
-in `assets/sailing-offline.html`; both native routes load that asset through
+**Since 1.6.2 (build 43):** the app bundles Trainer and 3D in
+`assets/sailing-offline.html`; both native routes load that asset through
 `SimWebView`. A web deployment does not update this bundled version. Language
 and drill parameters are injected; the shared source is checked by the offline
-build script. Cold-device verification and a new signed binary remain release
-gates. The paragraph above describes installed builds, not this pending change.
+build script. The paragraph above describes builds before 1.6.2.
 
 3. **The website's "Points of Sail" (clean sector wheel) is WEB code** (`src/`), a
    different component from the mobile one. Matching the mobile screen to the web
@@ -54,8 +53,18 @@ gates. The paragraph above describes installed builds, not this pending change.
 - **TestFlight pre-release train = `CFBundleShortVersionString` (= `expo.version`).** A
   version that reaches READY_FOR_SALE CLOSES its train; bump `expo.version` every release
   or `altool` bounces with a hidden `90186` train-closed error.
-- **State today:** App Store **v1.2 (build 18) LIVE**; TestFlight **v1.3.0 (build 19)**
-  (radar cockpit), not yet submitted for review.
+- **iOS 27 needs the UIScene life cycle.** Apps linked against the iOS 27 SDK
+  (Xcode 27) close at launch on iOS 27 without it, which is what happened to 1.6.2.
+  `mobile/plugins/with-uiscene.js` adds it at prebuild: single-scene manifest in
+  Info.plist, a generated `SceneDelegate.swift` that owns the window, starts React
+  Native in it and routes `regatta://` links and user activities through the
+  AppDelegate (so Expo linking sees cold-start links), an AppDelegate without a
+  window, and a Podfile step that raises pod targets below iOS 15.1 (Xcode 27
+  rejects them). The plugin throws if the Expo AppDelegate template changes.
+  Remove it when moving to Expo SDK 57.0.23+ (`ios.enableSceneSupport`) or 58
+  (default). Gate G2 now includes a clean-install launch on the newest iOS.
+- **Current state:** the top row of `BUILDS.md` and the release sections of
+  `CHANGELOG.md` (not repeated here, it goes stale).
 
 ---
 

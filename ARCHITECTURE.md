@@ -19,8 +19,9 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, версия 1.6.2 (build 43, ожидает
-  ревью), свой CI-джоб и свой гейт релиза. Своя карта: `docs/design/mobile/ARCHITECTURE.md`.
+- Мобильное: Expo / React Native в `mobile/`, в продаже 1.6.2 (build 43), на
+  ревью 1.6.3 (build 44, запуск на iOS 27), свой CI-джоб и свой гейт релиза.
+  Своя карта: `docs/design/mobile/ARCHITECTURE.md`.
 - Данные: SQLite (better-sqlite3) в томе `/data` контейнера `regatta`.
 - ИИ: Claude через `@anthropic-ai/sdk` (коуч, чаты), OpenAI (STT/TTS радиокурса).
 

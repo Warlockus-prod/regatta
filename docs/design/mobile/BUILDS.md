@@ -7,6 +7,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 44 | 1.6.3 | `09889d8` (branch `hotfix/1.6.3-ios27` from `b5580aa`; web `8da49ab`) | Self (attached 2026-09-28) | iOS 27 launch fix, content identical to 1.6.2. UIScene life cycle through `mobile/plugins/with-uiscene.js`: scene manifest, SceneDelegate that starts React Native in the scene window and routes `regatta://` links through the AppDelegate, pod targets raised to iOS 15.1 for Xcode 27. Archived with Xcode 27.0 (SDK 24A430). Release Simulator, iPhone 17 Pro Max on iOS 27.0 and 26.5: clean install, launch, navigation, offline Trainer, cold and warm `regatta://` links. Apple validation/upload, VALID processing and metadata precheck passed; review notes explain the fix. Submitted 2026-09-28, WAITING_FOR_REVIEW with automatic release after approval. |
 | 43 | 1.6.2 | `b5580aa` (web `972df53`) | Self (verified 2026-09-17) | Six shared lessons with interactive diagrams, Menu access, shared session and rig controls, bundled offline Trainer and 3D Boat, one manual checkpoint. 132 mobile tests, iPhone/iPad Release Simulator visual checks, archive/export and Apple validation passed. VALID and WAITING_FOR_REVIEW, automatic release after approval. Website deployed to VPS2; all 16 production browser tests passed. See [release report](../sailing-release43-2026-09-17.md). |
 | 42 | 1.6.1 | `9455e10` (web `c6ad1d9`) | Self (verified 2026-09-08) | Five shared product sections, shorter home with a start/resume action, searchable catalog, grouped sailing/exam courses and persistent native navigation that hides during activities. Localized Home back label. 114 mobile tests and full website deployment checks passed; iPhone/iPad Simulator visual checks recorded. Apple validation/upload and metadata precheck passed. Updated home screenshots and review notes. Replaces build 40 in App Review, WAITING_FOR_REVIEW with automatic release after approval. Build 41 was an intermediate verification build. See [navigation audit](../navigation-redesign-2026-09-08.md). |
 | 40 | 1.6.1 | `585acef` (web follow-up `43a7ca7`) | Self (verified 2026-09-08) | Real Blender yacht source and export, shared anatomy model and 17 anchors, seven-language teaching corrections, full-height jib furling pressure fix. Basics wake and label fixes published on the website. 112 mobile tests passed; exact Release Simulator home/anatomy/three simulator entries checked. Archive, IPA validation, metadata precheck passed. Replaces 39 in App Review, WAITING_FOR_REVIEW with automatic release after approval. See [Blender audit](../blender-sailing-update-2026-09-08.md). |
@@ -32,6 +33,15 @@ and works on iOS 26 and older. Reproduced with a Release simulator build of
 opens Home. Fix options: archive with Xcode 26.x (iOS 26 SDK), or adopt UIScene
 (Expo SDK 57.0.23+ with `expo-build-properties` `ios.enableSceneSupport`, default
 from SDK 58). Xcode 27 must not archive this app until UIScene is adopted.
+
+**Resolved 2026-09-28 in 1.6.3 (build 44).** UIScene is adopted through the
+local config plugin `mobile/plugins/with-uiscene.js` (reasoning in `DECISIONS.md`
+ADR-0012). The same Release build opens on iOS 27.0 and 26.5, and a cold
+`regatta://` link opens its screen, not Home: the first attempt landed on Home
+because expo-linking reads the launch URL only from the AppDelegate open-URL
+call, so the SceneDelegate now forwards the URL there before React Native
+starts. With the plugin in place Xcode 27 archives are safe again. Build 44 is
+also in the TestFlight group Self.
 
 ## Online 3D update (2026-09-08)
 

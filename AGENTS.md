@@ -16,9 +16,12 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
-  1.6.2 (iOS build 43). Она собрана Xcode 27 и не запускается на iOS 27 (нужен
-  UIScene): до перехода на UIScene архивировать только Xcode 26.x, разбор в
-  `docs/design/mobile/BUILDS.md`. Выпуск только через обязательный гейт (см. ниже).
+  1.6.2 (iOS build 43), которая не запускается на iOS 27. Исправление 1.6.3 (iOS
+  build 44) отправлено на ревью 2026-09-28, релиз автоматический после одобрения.
+  Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
+  плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
+  Журнал сборок и разбор: `docs/design/mobile/BUILDS.md`. Выпуск только через
+  обязательный гейт (см. ниже).
 - Стек: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict,
   Tailwind v4, SQLite (better-sqlite3), three.js / R3F для 3D, отдельный
   WebSocket-сервер на Node.
@@ -163,7 +166,8 @@ npm run check:map            # карта проекта актуальна
 
 - G1: переводы полные - `node mobile/scripts/i18n-audit.mjs` (скрипт лежит в
   `mobile/scripts/`, не в корневом `scripts/`).
-- G2: сборка плюс визуальная проверка на iOS-симуляторе (светлая, темная, авто).
+- G2: сборка плюс визуальная проверка на iOS-симуляторе (светлая, темная, авто),
+  включая запуск релизной сборки с чистой установки на самой новой iOS.
 - G3: Codemagic `cancel_previous_submissions` плюс строго растущий номер сборки.
 - G4: `fastlane precheck` - ноль ошибок метаданных (именно это раньше давало
   отказы по метаданным; lane не проверяет покупки внутри приложения).

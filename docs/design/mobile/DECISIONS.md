@@ -6,6 +6,37 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0012: UIScene through a local config plugin, not an Xcode downgrade or an Expo jump (2026-09-28)
+
+**Status:** accepted (hotfix 1.6.3, build 44).
+
+**Context.** 1.6.2 (build 43) closes at launch on every iPhone with iOS 27: it
+was archived with Xcode 27, and iOS 27 refuses apps built with that SDK unless
+they use the UIScene life cycle. Expo SDK 54 generates an AppDelegate-only app.
+Options: (a) archive again with Xcode 26.x; (b) upgrade to Expo SDK 57.0.23+ or
+58, which support scenes; (c) add scenes ourselves with a config plugin.
+
+**Decision.** (c). A local plugin, `mobile/plugins/with-uiscene.js`, writes the
+scene manifest, a `SceneDelegate.swift` and a Podfile step at prebuild. (a)
+needs the owner's Apple ID to download Xcode 26.6 and only postpones the
+problem, since Apple regularly makes the newest SDK mandatory for uploads. (b)
+is three SDK majors with a React Native upgrade, too large for a hotfix that
+has to ship at once.
+
+**Consequences.**
+
+- The SceneDelegate must route URLs and user activities through the AppDelegate:
+  expo-linking takes the cold-start URL only from the AppDelegate open-URL call.
+- The plugin matches the SDK 54 AppDelegate template and throws when it changes,
+  so an Expo upgrade fails loudly instead of shipping an app without a window.
+- UIApplication-level status bar calls are ignored under scenes on iOS 27. The
+  app uses one dark style (`userInterfaceStyle: dark`), so nothing changes today;
+  the light theme work has to set the style through the scene.
+- Remove the plugin when moving to Expo SDK 58 (scenes by default) or turn on
+  `ios.enableSceneSupport` on 57.0.23+.
+
+---
+
 ## ADR-0011: Simulators hub mirrors the web tiers via WebView; native sims become offline fallbacks (2026-07-18)
 
 **Status:** accepted (owner feedback on TestFlight 1.5.0 build 29). Supersedes

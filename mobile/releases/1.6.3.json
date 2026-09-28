@@ -1,0 +1,9 @@
+{
+  "en-US": "Fixes the app closing right after launch on iPhones with iOS 27. Everything else is the same as in 1.6.2.",
+  "ru": "Исправлено: на iPhone с iOS 27 приложение закрывалось сразу после запуска. Остальное без изменений по сравнению с 1.6.2.",
+  "pl": "Poprawka: na iPhone'ach z iOS 27 aplikacja zamykała się zaraz po uruchomieniu. Poza tym bez zmian względem wersji 1.6.2.",
+  "es-ES": "Corrección: en los iPhone con iOS 27 la app se cerraba nada más abrirla. Por lo demás, todo sigue igual que en la 1.6.2.",
+  "fr-FR": "Correctif : sur iPhone avec iOS 27, l'app se fermait dès son ouverture. Le reste est inchangé par rapport à la 1.6.2.",
+  "de-DE": "Fehlerbehebung: Auf iPhones mit iOS 27 schloss sich die App direkt nach dem Start. Sonst ist alles wie in 1.6.2.",
+  "it": "Correzione: sugli iPhone con iOS 27 l'app si chiudeva subito dopo l'avvio. Per il resto tutto è come nella 1.6.2."
+}
