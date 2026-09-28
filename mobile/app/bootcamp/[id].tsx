@@ -63,7 +63,7 @@ export default function BootcampLesson() {
   );
 
   const fallbackTitle = tp('Урок', 'Lesson', 'Lekcja', {
-    es: 'Leccion',
+    es: 'Lección',
     fr: 'Leçon',
     de: 'Lektion',
     it: 'Lezione',
@@ -78,9 +78,9 @@ export default function BootcampLesson() {
             {tp(
               'Урок не найден',
               'Lesson not found',
-              'Lekcja nie znaleziona',
+              'Nie znaleziono lekcji',
               {
-                es: 'Leccion no encontrada',
+                es: 'Lección no encontrada',
                 fr: 'Leçon introuvable',
                 de: 'Lektion nicht gefunden',
                 it: 'Lezione non trovata',
@@ -96,17 +96,17 @@ export default function BootcampLesson() {
   const summary = legacyPick(lesson, 'summary', lang);
   const focus = legacyPick(lesson, 'focus', lang);
 
-  const focusLabel = tp('Сфокусируйся', 'Focus this time', 'Skup sie', {
-    es: 'Enfocate',
+  const focusLabel = tp('Сфокусируйся', 'Focus this time', 'Skup się', {
+    es: 'Céntrate en esto',
     fr: 'Concentre-toi',
-    de: 'Fokus diesmal',
+    de: 'Dein Fokus',
     it: 'Concentrati',
   });
 
-  const openLabel = tp('Открыть', 'Open', 'Otworz', {
+  const openLabel = tp('Открыть', 'Open', 'Otwórz', {
     es: 'Abrir',
     fr: 'Ouvrir',
-    de: 'Oeffnen',
+    de: 'Öffnen',
     it: 'Apri',
   });
 
@@ -115,9 +115,9 @@ export default function BootcampLesson() {
     `Lesson ${lesson.order} (~${lesson.estMinutes} min)`,
     `Lekcja ${lesson.order} (~${lesson.estMinutes} min)`,
     {
-      es: `Leccion ${lesson.order} (~${lesson.estMinutes} min)`,
+      es: `Lección ${lesson.order} (~${lesson.estMinutes} min)`,
       fr: `Leçon ${lesson.order} (~${lesson.estMinutes} min)`,
-      de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min)`,
+      de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min.)`,
       it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
     },
   );
@@ -126,9 +126,9 @@ export default function BootcampLesson() {
   const dayBadge = tp(
     `День ${day}`,
     `Day ${day}`,
-    `Dzien ${day}`,
+    `Dzień ${day}`,
     {
-      es: `Dia ${day}`,
+      es: `Día ${day}`,
       fr: `Jour ${day}`,
       de: `Tag ${day}`,
       it: `Giorno ${day}`,
@@ -139,12 +139,12 @@ export default function BootcampLesson() {
   const tryInSimulatorLabel = tp(
     'Попробовать в симуляторе',
     'Try this in the simulator',
-    'Sprobuj w symulatorze',
+    'Spróbuj w symulatorze',
     {
-      es: 'Pruebalo en el simulador',
-      fr: 'Essaie dans le simulateur',
-      de: 'Im Simulator ueben',
-      it: 'Prova nel simulatore',
+      es: 'Pruébalo en el simulador',
+      fr: 'Essaie-le dans le simulateur',
+      de: 'Im Simulator üben',
+      it: 'Provalo nel simulatore',
     },
   );
 
@@ -257,26 +257,26 @@ function QuizSection({
   const sectionLabel = tp(
     'Проверь себя',
     'Test your understanding',
-    'Sprawdz sie',
+    'Sprawdź się',
     {
-      es: 'Comprueba tu comprension',
-      fr: 'Verifie ta comprehension',
-      de: 'Verstaendnis pruefen',
-      it: 'Verifica la tua comprensione',
+      es: 'Ponte a prueba',
+      fr: 'Teste tes connaissances',
+      de: 'Teste dein Wissen',
+      it: 'Mettiti alla prova',
     },
   );
   const startLabel = tp('Начать квиз', 'Start quiz', 'Rozpocznij quiz', {
-    es: 'Empezar quiz',
+    es: 'Empezar el quiz',
     fr: 'Commencer le quiz',
     de: 'Quiz starten',
-    it: 'Avvia il quiz',
+    it: 'Inizia il quiz',
   });
   const retakeLabel = tp(
     'Пройти ещё раз',
     'Retake quiz',
-    'Powtorz quiz',
+    'Powtórz quiz',
     {
-      es: 'Reintentar quiz',
+      es: 'Repetir el quiz',
       fr: 'Refaire le quiz',
       de: 'Quiz wiederholen',
       it: 'Rifai il quiz',
@@ -285,51 +285,51 @@ function QuizSection({
   const checkLabel = tp(
     'Проверить ответ',
     'Check answer',
-    'Sprawdz odpowiedz',
+    'Sprawdź odpowiedź',
     {
       es: 'Comprobar respuesta',
-      fr: 'Verifier la reponse',
-      de: 'Antwort pruefen',
-      it: 'Verifica risposta',
+      fr: 'Vérifier la réponse',
+      de: 'Antwort prüfen',
+      it: 'Verifica la risposta',
     },
   );
   const nextLabel = tp(
     'Следующий вопрос',
     'Next question',
-    'Nastepne pytanie',
+    'Następne pytanie',
     {
       es: 'Siguiente pregunta',
       fr: 'Question suivante',
-      de: 'Naechste Frage',
-      it: 'Prossima domanda',
+      de: 'Nächste Frage',
+      it: 'Domanda successiva',
     },
   );
   const finishLabel = tp(
     'Завершить квиз',
     'Finish quiz',
-    'Zakoncz quiz',
+    'Zakończ quiz',
     {
-      es: 'Terminar quiz',
+      es: 'Terminar el quiz',
       fr: 'Terminer le quiz',
       de: 'Quiz beenden',
-      it: 'Termina quiz',
+      it: 'Termina il quiz',
     },
   );
   const markCompleteLabel = tp(
     'Отметить выполненным',
     'Mark complete',
-    'Oznacz ukonczone',
+    'Oznacz jako ukończoną',
     {
-      es: 'Marcar como hecho',
-      fr: 'Marquer comme fait',
+      es: 'Marcar como completada',
+      fr: 'Marquer comme terminée',
       de: 'Als erledigt markieren',
-      it: 'Segna come completato',
+      it: 'Segna come completata',
     },
   );
-  const tryAgainLabel = tp('Попробовать снова', 'Try again', 'Sprobuj ponownie', {
+  const tryAgainLabel = tp('Попробовать снова', 'Try again', 'Spróbuj ponownie', {
     es: 'Intentar de nuevo',
-    fr: 'Reessayer',
-    de: 'Nochmal versuchen',
+    fr: 'Réessayer',
+    de: 'Erneut versuchen',
     it: 'Riprova',
   });
   const previousScoreLabel = tp(
@@ -337,27 +337,27 @@ function QuizSection({
     'Last result',
     'Ostatni wynik',
     {
-      es: 'Ultimo resultado',
-      fr: 'Dernier resultat',
+      es: 'Último resultado',
+      fr: 'Dernier résultat',
       de: 'Letztes Ergebnis',
       it: 'Ultimo risultato',
     },
   );
   const passedBadge = tp('Сдано', 'Passed', 'Zaliczone', {
     es: 'Aprobado',
-    fr: 'Reussi',
+    fr: 'Réussi',
     de: 'Bestanden',
     it: 'Superato',
   });
   const blurb = tp(
-    `${questions.length} коротких вопросов по уроку.`,
-    `${questions.length} quick questions on this lesson.`,
-    `${questions.length} krotkich pytan z lekcji.`,
+    `Короткие вопросы по уроку: ${questions.length}.`,
+    `Quick questions on this lesson: ${questions.length}.`,
+    `Krótkie pytania z tej lekcji: ${questions.length}.`,
     {
-      es: `${questions.length} preguntas rapidas sobre esta leccion.`,
-      fr: `${questions.length} questions rapides sur cette leçon.`,
-      de: `${questions.length} kurze Fragen zu dieser Lektion.`,
-      it: `${questions.length} domande rapide su questa lezione.`,
+      es: `Preguntas rápidas sobre esta lección: ${questions.length}.`,
+      fr: `Questions rapides sur cette leçon : ${questions.length}.`,
+      de: `Kurze Fragen zu dieser Lektion: ${questions.length}.`,
+      it: `Domande rapide su questa lezione: ${questions.length}.`,
     },
   );
 
@@ -501,9 +501,9 @@ function QuizSection({
         `Brawo: ${phase.score} z ${total}`,
         {
           es: `Bien hecho: ${phase.score} de ${total}`,
-          fr: `Bien joue: ${phase.score} sur ${total}`,
+          fr: `Bien joué : ${phase.score} sur ${total}`,
           de: `Gut gemacht: ${phase.score} von ${total}`,
-          it: `Ben fatto: ${phase.score} di ${total}`,
+          it: `Ben fatto: ${phase.score} su ${total}`,
         },
       )
     : tp(
@@ -511,33 +511,33 @@ function QuizSection({
         `Score: ${phase.score} of ${total}`,
         `Wynik: ${phase.score} z ${total}`,
         {
-          es: `Puntuacion: ${phase.score} de ${total}`,
-          fr: `Score: ${phase.score} sur ${total}`,
+          es: `Puntuación: ${phase.score} de ${total}`,
+          fr: `Résultat : ${phase.score} sur ${total}`,
           de: `Ergebnis: ${phase.score} von ${total}`,
-          it: `Punteggio: ${phase.score} di ${total}`,
+          it: `Punteggio: ${phase.score} su ${total}`,
         },
       );
   const passNote = passed
     ? tp(
         'Урок засчитан как пройденный.',
         'This lesson now counts as fully complete.',
-        'Lekcja zaliczona w pelni.',
+        'Lekcja zaliczona.',
         {
-          es: 'Esta leccion cuenta como completada.',
-          fr: 'Cette leçon compte comme terminee.',
-          de: 'Diese Lektion gilt als vollstaendig abgeschlossen.',
-          it: 'Questa lezione conta come completata.',
+          es: 'La lección cuenta como completada.',
+          fr: 'Leçon validée.',
+          de: 'Diese Lektion gilt als abgeschlossen.',
+          it: 'La lezione risulta completata.',
         },
       )
     : tp(
         `Нужно ${Math.ceil(total * 0.7)} из ${total} для зачёта. Попробуй ещё.`,
         `You need ${Math.ceil(total * 0.7)} of ${total} to pass. Give it another go.`,
-        `Potrzebujesz ${Math.ceil(total * 0.7)} z ${total} do zaliczenia. Sprobuj jeszcze raz.`,
+        `Do zaliczenia potrzebujesz ${Math.ceil(total * 0.7)} z ${total}. Spróbuj jeszcze raz.`,
         {
-          es: `Necesitas ${Math.ceil(total * 0.7)} de ${total} para aprobar. Intentalo de nuevo.`,
-          fr: `Il faut ${Math.ceil(total * 0.7)} sur ${total} pour valider. Reessaie.`,
-          de: `Du brauchst ${Math.ceil(total * 0.7)} von ${total} zum Bestehen. Versuche es nochmal.`,
-          it: `Servono ${Math.ceil(total * 0.7)} di ${total} per superarlo. Riprova.`,
+          es: `Necesitas ${Math.ceil(total * 0.7)} de ${total} para aprobar. Inténtalo de nuevo.`,
+          fr: `Il en faut ${Math.ceil(total * 0.7)} sur ${total} pour valider. Réessaie.`,
+          de: `Du brauchst ${Math.ceil(total * 0.7)} von ${total} zum Bestehen. Versuch es noch einmal.`,
+          it: `Ne servono ${Math.ceil(total * 0.7)} su ${total} per superarlo. Riprova.`,
         },
       );
 

@@ -55,7 +55,7 @@ const SPOTS: readonly Spot[] = [
   { name: 'Palma', lat: 39.57, lon: 2.65, cc: 'es' },
   { name: 'Tarifa', lat: 36.01, lon: -5.6, cc: 'es' },
   { name: 'Cowes', lat: 50.76, lon: -1.3, cc: 'gb' },
-  { name: 'Hyeres', lat: 43.07, lon: 6.15, cc: 'fr' },
+  { name: 'Hyères', lat: 43.07, lon: 6.15, cc: 'fr' },
   { name: 'Sopot', lat: 54.45, lon: 18.57, cc: 'pl' },
   { name: 'Valencia', lat: 39.46, lon: -0.33, cc: 'es' },
 ] as const;
@@ -129,11 +129,11 @@ export default function Spots() {
   const headerTitle = tp(
     'Споты: где ходить',
     'Spots: where to sail',
-    'Spoty: gdzie plywac',
+    'Spoty: gdzie żeglować',
     {
-      es: 'Spots: donde navegar',
-      fr: 'Spots : ou naviguer',
-      de: 'Spots: wo segeln',
+      es: 'Spots: dónde navegar',
+      fr: 'Spots : où naviguer',
+      de: 'Spots: Wo segeln?',
       it: 'Spot: dove navigare',
     },
   );
@@ -141,20 +141,20 @@ export default function Spots() {
   const intro = tp(
     'Известные парусные точки: морская карта и ветер прямо сейчас. Прикинь, какой это будет курс, когда поедешь.',
     'Well-known sailing venues: a nautical chart and the wind right now. Work out what point of sail it will be when you go.',
-    'Znane miejscowki zeglarskie: mapa morska i wiatr teraz. Ustal, jaki to bedzie kurs, gdy poplyniesz.',
+    'Znane akweny żeglarskie: mapa morska i aktualny wiatr. Oceń, jakim kursem względem wiatru popłyniesz, gdy tam pojedziesz.',
     {
-      es: 'Lugares conocidos para navegar: una carta nautica y el viento ahora mismo. Deduce que rumbo sera cuando vayas.',
-      fr: 'Spots de voile connus : une carte marine et le vent en ce moment. Deduis quelle allure ce sera quand tu iras.',
-      de: 'Bekannte Segelreviere: eine Seekarte und der Wind genau jetzt. Bestimme, welcher Kurs es sein wird, wenn du faehrst.',
-      it: 'Localita veliche note: una carta nautica e il vento in questo momento. Deduci che andatura sara quando andrai.',
+      es: 'Lugares de navegación conocidos: la carta náutica y el viento en este momento. Calcula qué rumbo llevarás cuando vayas.',
+      fr: 'Des spots de voile connus : la carte marine et le vent en ce moment. Estime à quelle allure tu navigueras une fois sur place.',
+      de: 'Bekannte Segelreviere: Seekarte und aktueller Wind. Überleg dir, auf welchem Kurs du dort segeln wirst.',
+      it: 'Località veliche note: la carta nautica e il vento in questo momento. Prova a capire che andatura avrai quando ci andrai.',
     },
   );
 
-  const unitKn = tp('уз', 'kn', 'w', { es: 'kn', fr: 'nd', de: 'kn', it: 'kn' });
+  const unitKn = tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' });
 
   const fromLabel = tp('от', 'from', 'z', {
-    es: 'desde',
-    fr: 'de',
+    es: 'del',
+    fr: 'du',
     de: 'aus',
     it: 'da',
   });
@@ -162,7 +162,7 @@ export default function Spots() {
   const gustLabel = tp('Порывы', 'Gusts', 'Porywy', {
     es: 'Rachas',
     fr: 'Rafales',
-    de: 'Boeen',
+    de: 'Böen',
     it: 'Raffiche',
   });
 
@@ -173,64 +173,64 @@ export default function Spots() {
     it: 'Onde',
   });
 
-  const currentLabel = tp('Течение', 'Current', 'Prad', {
+  const currentLabel = tp('Течение', 'Current', 'Prąd', {
     es: 'Corriente',
     fr: 'Courant',
-    de: 'Stroemung',
+    de: 'Strömung',
     it: 'Corrente',
   });
 
   const loadingLabel = tp(
     'Загружаю ветер...',
     'Loading wind...',
-    'Laduje wiatr...',
+    'Pobieram dane o wietrze...',
     {
-      es: 'Cargando viento...',
+      es: 'Cargando el viento...',
       fr: 'Chargement du vent...',
-      de: 'Wind laedt...',
-      it: 'Caricamento vento...',
+      de: 'Wind wird geladen...',
+      it: 'Caricamento del vento...',
     },
   );
 
   const errorLabel = tp(
     'Не удалось получить погоду.',
     'Could not fetch the weather.',
-    'Nie udalo sie pobrac pogody.',
+    'Nie udało się pobrać pogody.',
     {
-      es: 'No se pudo obtener el clima.',
-      fr: 'Impossible de recuperer la meteo.',
+      es: 'No se pudo obtener el tiempo.',
+      fr: 'Impossible de récupérer la météo.',
       de: 'Wetter konnte nicht geladen werden.',
       it: 'Impossibile ottenere il meteo.',
     },
   );
 
-  const retryLabel = tp('Повторить', 'Retry', 'Ponow', {
+  const retryLabel = tp('Повторить', 'Retry', 'Ponów', {
     es: 'Reintentar',
-    fr: 'Reessayer',
-    de: 'Erneut',
+    fr: 'Réessayer',
+    de: 'Wiederholen',
     it: 'Riprova',
   });
 
   const openChartLabel = tp(
     'Открыть морскую карту (OpenSeaMap)',
     'Open nautical chart (OpenSeaMap)',
-    'Otworz mape morska (OpenSeaMap)',
+    'Otwórz mapę morską (OpenSeaMap)',
     {
-      es: 'Abrir carta nautica (OpenSeaMap)',
+      es: 'Abrir la carta náutica (OpenSeaMap)',
       fr: 'Ouvrir la carte marine (OpenSeaMap)',
-      de: 'Seekarte oeffnen (OpenSeaMap)',
-      it: 'Apri carta nautica (OpenSeaMap)',
+      de: 'Seekarte öffnen (OpenSeaMap)',
+      it: 'Apri la carta nautica (OpenSeaMap)',
     },
   );
 
   const openErrorTitle = tp(
     'Не удалось открыть карту',
     'Could not open the chart',
-    'Nie udalo sie otworzyc mapy',
+    'Nie udało się otworzyć mapy',
     {
       es: 'No se pudo abrir la carta',
       fr: 'Impossible d\'ouvrir la carte',
-      de: 'Karte konnte nicht geoeffnet werden',
+      de: 'Karte konnte nicht geöffnet werden',
       it: 'Impossibile aprire la carta',
     },
   );
@@ -238,12 +238,12 @@ export default function Spots() {
   const openErrorBody = tp(
     'Не получилось открыть браузер. Проверь соединение и попробуй снова.',
     'Could not open a browser. Check your connection and try again.',
-    'Nie udalo sie otworzyc przegladarki. Sprawdz internet i sprobuj ponownie.',
+    'Nie udało się otworzyć przeglądarki. Sprawdź internet i spróbuj ponownie.',
     {
-      es: 'No se pudo abrir el navegador. Comprueba la conexion e intenta de nuevo.',
-      fr: 'Impossible d\'ouvrir un navigateur. Verifiez la connexion et reessayez.',
-      de: 'Browser konnte nicht geoeffnet werden. Verbindung pruefen und erneut versuchen.',
-      it: 'Impossibile aprire un browser. Controlla la connessione e riprova.',
+      es: 'No se pudo abrir el navegador. Comprueba la conexión e inténtalo de nuevo.',
+      fr: 'Impossible d\'ouvrir un navigateur. Vérifie ta connexion et réessaie.',
+      de: 'Browser konnte nicht geöffnet werden. Prüf deine Verbindung und versuch es noch einmal.',
+      it: 'Impossibile aprire il browser. Controlla la connessione e riprova.',
     },
   );
 
@@ -252,22 +252,22 @@ export default function Spots() {
     'For training, not for navigation.',
     'Do treningu, nie do nawigacji.',
     {
-      es: 'Para entrenamiento, no para navegacion.',
-      fr: 'Pour l\'entrainement, pas pour la navigation.',
+      es: 'Para entrenar, no para navegar.',
+      fr: 'Pour l\'entraînement, pas pour la navigation.',
       de: 'Zum Training, nicht zur Navigation.',
-      it: 'Per allenamento, non per navigazione.',
+      it: 'Per l\'allenamento, non per la navigazione.',
     },
   );
 
   const attributionLine = tp(
     'Карта: OpenSeaMap / участники OpenStreetMap. Погода: Open-Meteo.com (CC BY 4.0).',
     'Chart: OpenSeaMap / OpenStreetMap contributors. Weather: Open-Meteo.com (CC BY 4.0).',
-    'Mapa: OpenSeaMap / wspoltworcy OpenStreetMap. Pogoda: Open-Meteo.com (CC BY 4.0).',
+    'Mapa: OpenSeaMap / współtwórcy OpenStreetMap. Pogoda: Open-Meteo.com (CC BY 4.0).',
     {
-      es: 'Carta: OpenSeaMap / colaboradores de OpenStreetMap. Clima: Open-Meteo.com (CC BY 4.0).',
-      fr: 'Carte : OpenSeaMap / contributeurs OpenStreetMap. Meteo : Open-Meteo.com (CC BY 4.0).',
+      es: 'Carta: OpenSeaMap / colaboradores de OpenStreetMap. Tiempo: Open-Meteo.com (CC BY 4.0).',
+      fr: 'Carte : OpenSeaMap / contributeurs OpenStreetMap. Météo : Open-Meteo.com (CC BY 4.0).',
       de: 'Karte: OpenSeaMap / OpenStreetMap-Mitwirkende. Wetter: Open-Meteo.com (CC BY 4.0).',
-      it: 'Carta: OpenSeaMap / contributori OpenStreetMap. Meteo: Open-Meteo.com (CC BY 4.0).',
+      it: 'Carta: OpenSeaMap / contributori di OpenStreetMap. Meteo: Open-Meteo.com (CC BY 4.0).',
     },
   );
 
@@ -275,7 +275,7 @@ export default function Spots() {
     switch (cc) {
       case 'es':
         return tp('Испания', 'Spain', 'Hiszpania', {
-          es: 'Espana',
+          es: 'España',
           fr: 'Espagne',
           de: 'Spanien',
           it: 'Spagna',
@@ -284,7 +284,7 @@ export default function Spots() {
         return tp('Великобритания', 'United Kingdom', 'Wielka Brytania', {
           es: 'Reino Unido',
           fr: 'Royaume-Uni',
-          de: 'Vereinigtes Koenigreich',
+          de: 'Vereinigtes Königreich',
           it: 'Regno Unito',
         });
       case 'fr':
@@ -462,7 +462,7 @@ function WindReadout({
             <Text style={styles.speedUnit}>{` ${unitKn}`}</Text>
           </View>
           <Text variant="muted" style={styles.dirText}>
-            {`${fromLabel} ${cardinal(data.wind.dirDeg)} (${dirDeg}deg)`}
+            {`${fromLabel} ${cardinal(data.wind.dirDeg)} (${dirDeg}°)`}
           </Text>
         </View>
       </View>

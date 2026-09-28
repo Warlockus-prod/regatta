@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // Scan source files for em-dash (U+2014) and en-dash (U+2013).
-// CLAUDE.md typography rule: only ASCII hyphen is allowed in this repo.
+// AGENTS.md typography rule: only ASCII hyphen is allowed in this repo.
 // Used by CI to block PRs that introduce typographic dashes.
 // Pre-commit hook does the same on staged content; this one walks the tree.
 //
@@ -67,7 +67,7 @@ if (hits.length === 0) {
 }
 
 console.error(`ERROR: em-dash (U+2014) or en-dash (U+2013) found in ${hits.length} location(s).`);
-console.error('CLAUDE.md typography rule: only ASCII hyphen (-) is allowed.');
+console.error('AGENTS.md typography rule: only ASCII hyphen (-) is allowed.');
 console.error('');
 for (const h of hits) {
   const hl = h.text.replace(DASH_RE_G, (m) => `[${m === EM_DASH ? 'EM-DASH' : 'EN-DASH'}]`);

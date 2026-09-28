@@ -178,7 +178,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <button className={styles.button} onClick={reset}>{L.reset}</button>
           </div></details>
           <details className={styles.details}><summary>{L.scene.instruments}</summary><div>
-            <WindDial twaSigned={t.twaSigned} awaSigned={t.awaSigned} />
+            <WindDial twaSigned={t.twaSigned} awaSigned={t.awaSigned} label={L.scene.windDial} />
             <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} kn`} />
             <Readout label="VMG" value={`${t.vmg.toFixed(1)} kn`} />
             <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} kn / ${degrees(t.awaDeg)}`} />

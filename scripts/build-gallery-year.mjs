@@ -37,9 +37,9 @@ const yy = YEAR.slice(-2);
 const TITLE = {
   ru: `Регата ${YEAR}`,
   en: `Regatta ${YEAR}`,
-  pl: `Regata ${YEAR}`,
+  pl: `Regaty ${YEAR}`,
   es: `Regata ${YEAR}`,
-  fr: `Regate ${YEAR}`,
+  fr: `Régate ${YEAR}`,
   de: `Regatta ${YEAR}`,
   it: `Regata ${YEAR}`,
 };

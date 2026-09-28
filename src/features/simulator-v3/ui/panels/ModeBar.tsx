@@ -48,7 +48,7 @@ export function ModeBar({
     >
       {btn(
         'free',
-        tp('Свободно', 'Free Sail', 'Wolna jazda', {
+        tp('Свободно', 'Free Sail', 'Swobodnie', {
           es: 'Libre',
           fr: 'Libre',
           de: 'Frei',
@@ -57,10 +57,10 @@ export function ModeBar({
       )}
       {btn(
         'drill',
-        tp('Упражнения', 'Drills', 'Cwiczenia', {
+        tp('Упражнения', 'Drills', 'Ćwiczenia', {
           es: 'Ejercicios',
           fr: 'Exercices',
-          de: 'Drills',
+          de: 'Übungen',
           it: 'Esercizi',
         }),
       )}

@@ -19,13 +19,13 @@ export default function SimulatorV3Screen() {
       query={passthroughQuery(params)}
       title={tp('Тренажёр', 'Trainer', 'Trener', {
         es: 'Entrenador',
-        fr: 'Entraineur',
+        fr: 'Réglage des voiles',
         de: 'Trainer',
         it: 'Trainer',
       })}
       fallbackRoute="/simulator-basics"
       fallbackLabel={tp("Открыть Основы (офлайн)", "Open Basics (offline)", "Otwórz Podstawy (offline)", {
-        es: "Abrir Básicos (sin conexión)", fr: "Ouvrir les Bases (hors ligne)", de: "Grundlagen öffnen (offline)", it: "Apri le Basi (offline)",
+        es: "Abrir Fundamentos (sin conexión)", fr: "Ouvrir les Bases (hors ligne)", de: "Grundlagen öffnen (offline)", it: "Apri le Basi (offline)",
       })}
     />
   );

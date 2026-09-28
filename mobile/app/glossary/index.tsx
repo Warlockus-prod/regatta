@@ -37,7 +37,7 @@ export default function Glossary() {
   const [query, setQuery] = useState('');
   const [activeCat, setActiveCat] = useState<GlossaryCategoryId | 'all'>('all');
 
-  const headerTitle = tp('Глоссарий', 'Glossary', 'Glosariusz', {
+  const headerTitle = tp('Глоссарий', 'Glossary', 'Słownik', {
     es: 'Glosario',
     fr: 'Glossaire',
     de: 'Glossar',
@@ -80,7 +80,7 @@ export default function Glossary() {
     'Nic nie znaleziono',
     {
       es: 'Sin resultados',
-      fr: 'Aucun resultat',
+      fr: 'Aucun résultat',
       de: 'Nichts gefunden',
       it: 'Nessun risultato',
     },
@@ -89,26 +89,26 @@ export default function Glossary() {
   const emptySubtitle = tp(
     `По запросу «${query.trim()}» нет терминов в глоссарии.`,
     `No glossary terms match "${query.trim()}".`,
-    `Brak terminow dla "${query.trim()}".`,
+    `Brak terminów pasujących do "${query.trim()}".`,
     {
-      es: `Ningun termino coincide con "${query.trim()}".`,
-      fr: `Aucun terme ne correspond a "${query.trim()}".`,
-      de: `Keine Treffer fuer "${query.trim()}".`,
+      es: `Ningún término coincide con "${query.trim()}".`,
+      fr: `Aucun terme ne correspond à "${query.trim()}".`,
+      de: `Keine Treffer für "${query.trim()}".`,
       it: `Nessun termine corrisponde a "${query.trim()}".`,
     },
   );
 
-  const clearLabel = tp('Очистить поиск', 'Clear search', 'Wyczysc wyszukiwanie', {
-    es: 'Borrar busqueda',
+  const clearLabel = tp('Очистить поиск', 'Clear search', 'Wyczyść wyszukiwanie', {
+    es: 'Borrar búsqueda',
     fr: 'Effacer la recherche',
-    de: 'Suche loeschen',
+    de: 'Suche löschen',
     it: 'Cancella ricerca',
   });
 
   const searchA11y = tp(
     'Поиск по глоссарию',
     'Search glossary',
-    'Szukaj w glosariuszu',
+    'Szukaj w słowniku',
     {
       es: 'Buscar en el glosario',
       fr: 'Rechercher dans le glossaire',
@@ -123,7 +123,7 @@ export default function Glossary() {
       `Term: ${term}`,
       `Termin: ${term}`,
       {
-        es: `Termino: ${term}`,
+        es: `Término: ${term}`,
         fr: `Terme : ${term}`,
         de: `Begriff: ${term}`,
         it: `Termine: ${term}`,
@@ -156,7 +156,7 @@ export default function Glossary() {
           keyboardShouldPersistTaps="handled"
         >
           <CategoryChip
-            label={tp('Все', 'All', 'Wszystkie', { es: 'Todas', fr: 'Toutes', de: 'Alle', it: 'Tutte' })}
+            label={tp('Все', 'All', 'Wszystkie', { es: 'Todos', fr: 'Tous', de: 'Alle', it: 'Tutti' })}
             active={activeCat === 'all'}
             onPress={() => setActiveCat('all')}
           />

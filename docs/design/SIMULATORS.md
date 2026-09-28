@@ -36,7 +36,7 @@ contradicts this one is stale; update it or link here.
 | 3D boat view (Лодка 3D) | `/simulator2` | `/simulator2` (WebView) | NOT a third simulator. The R3F + GLB sloop: orbit 360, anchored parametric sails, free-trim and sailing modes. The visual layer; long-term it becomes the Trainer's 3D view. |
 
 UI naming (all 7 languages): "Основы / Basics / Podstawy", "Тренажёр /
-Trainer / Trener", "Лодка 3D / 3D Boat / Lodka 3D". The internal V1/V2/V3
+Trainer / Trener", "Лодка 3D / 3D Boat / Łódka 3D". The internal V1/V2/V3
 codenames stay in routes and code, but MUST NOT appear in user-facing UI.
 
 History note: "V1" used to name two DIFFERENT products (the static web

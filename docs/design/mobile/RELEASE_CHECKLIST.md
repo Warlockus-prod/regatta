@@ -67,7 +67,15 @@ Never submit a build no one has looked at.
 - Walk every screen in **light / dark / auto**; confirm the gallery (2026 album
   + de-dated 2025) and any release-specific feature render; no redbox.
 - Capture screenshots for the record.
-- **Gate:** builds, launches, visual pass in both themes.
+- **Release build on the newest iOS.** Build the Release configuration with the
+  SAME Xcode that archives the store binary, install it fresh (erase the
+  simulator first) on the newest iOS runtime Xcode ships, and launch it. A new
+  Xcode major brings a new SDK with new launch rules: build 43 (1.6.2) was the
+  first archive made with Xcode 27 and does not launch on iOS 27 at all, because
+  the iOS 27 SDK requires the UIScene life cycle (see `BUILDS.md`). Record the
+  Xcode version and SDK build (`sdkBuild` in App Store Connect) in `BUILDS.md`.
+- **Gate:** builds, launches on the newest iOS and on the previous major,
+  visual pass in both themes.
 - Note: the store binary itself is produced by `eas build --profile production`;
   XcodeBuildMCP is the local build/verify path so we never ship an unseen build.
 
@@ -186,6 +194,7 @@ InfoPlist).
 - "Build number must increase" -> **G0 + G3** (autoIncrement + Codemagic).
 - Pile-up of empty pending submissions -> **G3 cancel_previous_submissions**.
 - Shipping a visually broken build -> **G2 simulator verify**.
+- Shipping a build that the newest iOS refuses to launch -> **G2 newest-iOS launch**.
 - Missing translations -> **G1 LocaleLint / i18n-audit**.
 
 See also: `RELEASE_ENGINEERING.md` (EAS/OTA + Apple notes),

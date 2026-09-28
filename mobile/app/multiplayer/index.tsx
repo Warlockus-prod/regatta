@@ -9,5 +9,5 @@ export default function Multiplayer() {
   return <SimWebView path="/multiplayer" scrollEnabled query={code ? { code } : undefined}
     title={tp("Мультиплеер", "Multiplayer", "Multiplayer", { es: "Multijugador", fr: "Multijoueur", de: "Mehrspieler", it: "Multigiocatore" })}
     fallbackRoute="/game"
-    fallbackLabel={tp("Одиночная гонка офлайн", "Offline solo race", "Wyścig solo offline", { es: "Carrera individual sin conexión", fr: "Course solo hors ligne", de: "Offline-Einzelrennen", it: "Regata singola offline" })} />;
+    fallbackLabel={tp("Одиночная гонка офлайн", "Offline solo race", "Wyścig solo offline", { es: "Regata en solitario sin conexión", fr: "Course solo hors ligne", de: "Offline-Solorennen", it: "Regata in solitario offline" })} />;
 }

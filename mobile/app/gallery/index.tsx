@@ -55,7 +55,7 @@ export default function Gallery() {
   const { tp, lang } = useI18n();
 
   const headerTitle = tp('Галерея', 'Gallery', 'Galeria', {
-    es: 'Galeria',
+    es: 'Galería',
     fr: 'Galerie',
     de: 'Galerie',
     it: 'Galleria',
@@ -64,37 +64,37 @@ export default function Gallery() {
   const intro = tp(
     'Видео и фото с прошлых регат. Нажми, чтобы открыть.',
     'Videos and photos from past regattas. Tap to open.',
-    'Wideo i zdjecia z przeszlych regat. Kliknij, aby otworzyc.',
+    'Filmy i zdjęcia z poprzednich regat. Stuknij, aby otworzyć.',
     {
       es: 'Videos y fotos de regatas pasadas. Pulsa para abrir.',
-      fr: 'Videos et photos des regates passees. Touchez pour ouvrir.',
-      de: 'Videos und Fotos vergangener Regatten. Zum Oeffnen tippen.',
+      fr: 'Vidéos et photos des régates passées. Touche pour ouvrir.',
+      de: 'Videos und Fotos vergangener Regatten. Zum Öffnen tippen.',
       it: 'Video e foto di regate passate. Tocca per aprire.',
     },
   );
 
-  const videosLabel = tp('Видео', 'Videos', 'Wideo', {
+  const videosLabel = tp('Видео', 'Videos', 'Filmy', {
     es: 'Videos',
-    fr: 'Videos',
+    fr: 'Vidéos',
     de: 'Videos',
     it: 'Video',
   });
 
-  const openErrorTitle = tp('Не получилось открыть', 'Could not open', 'Nie mozna otworzyc', {
+  const openErrorTitle = tp('Не получилось открыть', 'Could not open', 'Nie można otworzyć', {
     es: 'No se pudo abrir',
-    fr: 'Impossible douvrir',
-    de: 'Konnte nicht oeffnen',
+    fr: 'Impossible d\'ouvrir',
+    de: 'Öffnen fehlgeschlagen',
     it: 'Impossibile aprire',
   });
   const openErrorBody = tp(
-    'Браузер или YouTube не отвечает. Проверьте интернет и попробуйте ещё раз.',
+    'Браузер или YouTube не отвечает. Проверь интернет и попробуй ещё раз.',
     'Browser or YouTube did not respond. Check your connection and try again.',
-    'Przegladarka lub YouTube nie odpowiada. Sprawdz internet i sprobuj ponownie.',
+    'Przeglądarka lub YouTube nie odpowiada. Sprawdź internet i spróbuj ponownie.',
     {
-      es: 'El navegador o YouTube no respondio. Comprueba la conexion e intenta de nuevo.',
-      fr: 'Le navigateur ou YouTube ne repond pas. Verifiez la connexion et reessayez.',
-      de: 'Browser oder YouTube reagiert nicht. Verbindung pruefen und erneut versuchen.',
-      it: 'Browser o YouTube non risponde. Controlla la connessione e riprova.',
+      es: 'El navegador o YouTube no responde. Comprueba la conexión e inténtalo de nuevo.',
+      fr: 'Le navigateur ou YouTube ne répond pas. Vérifie ta connexion et réessaie.',
+      de: 'Browser oder YouTube reagiert nicht. Prüf deine Verbindung und versuch es noch einmal.',
+      it: 'Il browser o YouTube non risponde. Controlla la connessione e riprova.',
     },
   );
 
@@ -102,7 +102,7 @@ export default function Gallery() {
     tp(
       `${n} фото`,
       `${n} ${n === 1 ? 'photo' : 'photos'}`,
-      `${n} ${n === 1 ? 'zdjecie' : 'zdjec'}`,
+      `Zdjęcia: ${n}`,
       {
         es: `${n} ${n === 1 ? 'foto' : 'fotos'}`,
         fr: `${n} ${n === 1 ? 'photo' : 'photos'}`,
@@ -114,10 +114,10 @@ export default function Gallery() {
     tp(
       `${n} видео`,
       `${n} ${n === 1 ? 'video' : 'videos'}`,
-      `${n} wideo`,
+      `Filmy: ${n}`,
       {
         es: `${n} ${n === 1 ? 'video' : 'videos'}`,
-        fr: `${n} ${n === 1 ? 'video' : 'videos'}`,
+        fr: `${n} ${n === 1 ? 'vidéo' : 'vidéos'}`,
         de: `${n} ${n === 1 ? 'Video' : 'Videos'}`,
         it: `${n} video`,
       },
@@ -153,16 +153,16 @@ export default function Gallery() {
     const itemTitle = legacyPick(item, 'title', lang);
     const ratio = aspectRatio(item.kind === 'youtube' ? '16:9' : item.aspect);
     const kindLabel = item.kind === 'youtube'
-      ? tp('видео', 'video', 'wideo', { es: 'video', fr: 'video', de: 'Video', it: 'video' })
-      : tp('фото', 'photo', 'zdjecie', { es: 'foto', fr: 'photo', de: 'Foto', it: 'foto' });
+      ? tp('видео', 'video', 'film', { es: 'video', fr: 'vidéo', de: 'Video', it: 'video' })
+      : tp('фото', 'photo', 'zdjęcie', { es: 'foto', fr: 'photo', de: 'Foto', it: 'foto' });
     const tileA11y = tp(
       `Открыть ${kindLabel}: ${itemTitle}`,
       `Open ${kindLabel}: ${itemTitle}`,
-      `Otworz ${kindLabel}: ${itemTitle}`,
+      `Otwórz ${kindLabel}: ${itemTitle}`,
       {
         es: `Abrir ${kindLabel}: ${itemTitle}`,
-        fr: `Ouvrir ${kindLabel} : ${itemTitle}`,
-        de: `${kindLabel} oeffnen: ${itemTitle}`,
+        fr: `Ouvrir la ${kindLabel} : ${itemTitle}`,
+        de: `${kindLabel} öffnen: ${itemTitle}`,
         it: `Apri ${kindLabel}: ${itemTitle}`,
       },
     );

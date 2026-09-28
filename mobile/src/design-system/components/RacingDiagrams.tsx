@@ -22,11 +22,11 @@ export function RacingCourseDiagram() {
   return (
     <View style={styles.courseFrame}>
       <Text style={styles.courseTitle}>
-        {tp('Дистанция windward-leeward', 'Windward-leeward course', 'Trasa windward-leeward', {
-          es: 'Recorrido windward-leeward',
-          fr: 'Parcours windward-leeward',
-          de: 'Windward-leeward Kurs',
-          it: 'Percorso windward-leeward',
+        {tp('Дистанция windward-leeward', 'Windward-leeward course', 'Trasa góra-dół (windward-leeward)', {
+          es: 'Recorrido barlovento-sotavento',
+          fr: 'Parcours au vent - sous le vent',
+          de: 'Luv-Lee-Kurs',
+          it: 'Percorso bolina-poppa',
         })}
       </Text>
       <Svg viewBox="0 0 360 360" width="100%" height={320}>
@@ -36,11 +36,11 @@ export function RacingCourseDiagram() {
         <Buoy
           cx={180}
           cy={76}
-          label={tp('верхний', 'windward', 'gorny', {
+          label={tp('верхний', 'windward', 'znak nawietrzny', {
             es: 'barlovento',
             fr: 'au vent',
-            de: 'Luv',
-            it: 'sopravento',
+            de: 'Luvtonne',
+            it: 'boa di bolina',
           })}
         />
         <Buoy cx={132} cy={308} label="L" />
@@ -52,8 +52,22 @@ export function RacingCourseDiagram() {
         <Boat x={180} y={185} rot={36} color={colors.accentCyan} />
         <Boat x={220} y={145} rot={146} color={colors.success} />
         <Boat x={186} y={248} rot={210} color={colors.success} />
-        <SvgText x={56} y={170} fill={colors.accentCyan} fontSize={10} fontWeight="800" transform="rotate(-90 56 170)">UPWIND</SvgText>
-        <SvgText x={304} y={220} fill={colors.success} fontSize={10} fontWeight="800" transform="rotate(90 304 220)">DOWNWIND</SvgText>
+        <SvgText x={56} y={170} fill={colors.accentCyan} fontSize={10} fontWeight="800" transform="rotate(-90 56 170)">
+          {tp('ПРОТИВ ВЕТРА', 'UPWIND', 'NA WIATR', {
+            es: 'CEÑIDA',
+            fr: 'PRÈS',
+            de: 'KREUZ',
+            it: 'BOLINA',
+          })}
+        </SvgText>
+        <SvgText x={304} y={220} fill={colors.success} fontSize={10} fontWeight="800" transform="rotate(90 304 220)">
+          {tp('ПО ВЕТРУ', 'DOWNWIND', 'Z WIATREM', {
+            es: 'POPA',
+            fr: 'PORTANT',
+            de: 'VORWIND',
+            it: 'POPPA',
+          })}
+        </SvgText>
       </Svg>
     </View>
   );
@@ -173,12 +187,12 @@ function Upwind() {
       <Path d="M110 122 L70 94 L150 66 L88 42 L110 40" fill="none" stroke={colors.accentCyan} strokeWidth={2} strokeDasharray="5 4" />
       <Boat x={110} y={106} rot={-38} color={colors.accentCyan} />
       <Boat x={112} y={72} rot={40} color={colors.accentCyan} />
-      <SvgText x={58} y={112} fill={colors.textSecondary} fontSize={8}>45 deg</SvgText>
+      <SvgText x={58} y={112} fill={colors.textSecondary} fontSize={8}>45°</SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('лавировка к знаку', 'tack toward the mark', 'halsuj do znaku', {
-          es: 'voltejea hacia la baliza',
-          fr: 'tirez des bords vers la marque',
-          de: 'kreuze zur Marke',
+        {tp('лавировка к знаку', 'tack toward the mark', 'halsowanie do znaku', {
+          es: 'barloventea hacia la baliza',
+          fr: 'louvoie jusqu\'à la bouée',
+          de: 'kreuze zur Bahnmarke',
           it: 'bordeggia verso la boa',
         })}
       </SvgText>
@@ -195,13 +209,20 @@ function Downwind() {
       <Path d="M110 38 L158 66 L62 98 L110 120" fill="none" stroke={colors.success} strokeWidth={2} strokeDasharray="5 4" />
       <Boat x={135} y={55} rot={150} color={colors.success} />
       <Boat x={86} y={86} rot={210} color={colors.success} />
-      <SvgText x={121} y={82} fill={colors.danger} fontSize={8}>dead run</SvgText>
+      <SvgText x={121} y={82} fill={colors.danger} fontSize={8}>
+        {tp('чистый фордевинд', 'dead run', 'pełny fordewind', {
+          es: 'popa cerrada',
+          fr: 'plein vent arrière',
+          de: 'platt vor dem Wind',
+          it: 'poppa piena',
+        })}
+      </SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('VMG лучше зигзагом', 'better VMG by angles', 'lepsze VMG katami', {
-          es: 'mejor VMG en angulos',
-          fr: 'meilleur VMG en zig-zag',
-          de: 'besseres VMG ueber Winkel',
-          it: 'miglior VMG con angoli',
+        {tp('VMG лучше зигзагом', 'better VMG by angles', 'lepsze VMG zygzakiem', {
+          es: 'mejor VMG en zigzag',
+          fr: 'meilleur VMG en zigzag',
+          de: 'besseres VMG mit Halsen',
+          it: 'VMG migliore a zigzag',
         })}
       </SvgText>
     </G>
@@ -223,17 +244,17 @@ function Start() {
       <SvgText x={110} y={73} textAnchor="middle" fill={colors.warning} fontSize={9} fontWeight="800">
         {tp('СТАРТ', 'START', 'START', {
           es: 'SALIDA',
-          fr: 'DEPART',
+          fr: 'DÉPART',
           de: 'START',
           it: 'PARTENZA',
         })}
       </SvgText>
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('чистый ветер и скорость', 'clear air and speed', 'czysty wiatr i predkosc', {
-          es: 'aire limpio y velocidad',
-          fr: 'air clair et vitesse',
-          de: 'freier Wind und Speed',
-          it: 'aria pulita e velocita',
+        {tp('чистый ветер и скорость', 'clear air and speed', 'czysty wiatr i prędkość', {
+          es: 'viento limpio y velocidad',
+          fr: 'vent clair et vitesse',
+          de: 'freier Wind und Tempo',
+          it: 'aria libera e velocità',
         })}
       </SvgText>
     </G>
@@ -251,10 +272,10 @@ function MarkRounding() {
       <Boat x={76} y={106} rot={-45} color={colors.success} />
       <Boat x={134} y={82} rot={-10} color={colors.success} />
       <SvgText x={110} y={132} textAnchor="middle" fill={colors.textSecondary} fontSize={9}>
-        {tp('широкий вход, узкий выход', 'wide in, tight out', 'szeroko wejsc, ciasno wyjsc', {
-          es: 'entrada amplia, salida ajustada',
-          fr: 'entree large, sortie serree',
-          de: 'weit hinein, eng heraus',
+        {tp('широкий вход, узкий выход', 'wide in, tight out', 'szerokie wejście, ciasne wyjście', {
+          es: 'entrada abierta, salida cerrada',
+          fr: 'entrée large, sortie serrée',
+          de: 'weit rein, eng raus',
           it: 'entrata larga, uscita stretta',
         })}
       </SvgText>
@@ -279,6 +300,7 @@ function Layline() {
 }
 
 function Vmg() {
+  const { tp } = useI18n();
   return (
     <G>
       {/* Wind from top */}
@@ -287,7 +309,14 @@ function Vmg() {
       <Line x1={110} y1={36} x2={110} y2={120} stroke={colors.textSecondary} strokeWidth={0.8} strokeDasharray="3 3" opacity={0.4} />
       {/* Boat speed vector (diagonal) */}
       <Line x1={110} y1={58} x2={172} y2={112} stroke={colors.accentCyan} strokeWidth={2} />
-      <SvgText x={150} y={88} fill={colors.accentCyan} fontSize={9} fontWeight="700">V boat</SvgText>
+      <SvgText x={150} y={88} fill={colors.accentCyan} fontSize={9} fontWeight="700">
+        {tp('V лодки', 'V boat', 'V jachtu', {
+          es: 'V barco',
+          fr: 'V bateau',
+          de: 'V Boot',
+          it: 'V barca',
+        })}
+      </SvgText>
       {/* VMG component (vertical projection) */}
       <Line x1={110} y1={58} x2={110} y2={112} stroke={colors.success} strokeWidth={2.6} />
       <SvgText x={60} y={92} fill={colors.success} fontSize={9} fontWeight="800">VMG</SvgText>
@@ -316,8 +345,8 @@ function ClearAir() {
       <Boat x={86} y={52} rot={-30} color={colors.success} />
       <SvgText x={100} y={50} fill={colors.success} fontSize={9} fontWeight="700">
         {tp('чистый ветер', 'clean air', 'czysty wiatr', {
-          es: 'aire limpio',
-          fr: 'air libre',
+          es: 'viento limpio',
+          fr: 'vent clair',
           de: 'freier Wind',
           it: 'aria libera',
         })}
@@ -325,7 +354,7 @@ function ClearAir() {
       {/* Trailing boat in shadow */}
       <Boat x={106} y={102} rot={-30} color={colors.danger} />
       <SvgText x={98} y={122} textAnchor="middle" fill={colors.danger} fontSize={8} opacity={0.85}>
-        {tp('тень', 'shadow', 'cien', {
+        {tp('тень', 'shadow', 'cień', {
           es: 'sombra',
           fr: 'ombre',
           de: 'Schatten',
@@ -358,9 +387,9 @@ function WindShadow() {
         <Line key={x} x1={x} y1={82} x2={x} y2={92} stroke={colors.textMuted} strokeWidth={0.8} strokeDasharray="1 3" opacity={0.5} />
       ))}
       <SvgText x={110} y={120} textAnchor="middle" fill={colors.textMuted} fontSize={9} fontWeight="700">
-        {tp('ветровая тень', 'wind shadow', 'cien wiatru', {
+        {tp('ветровая тень', 'wind shadow', 'cień wiatrowy', {
           es: 'sombra de viento',
-          fr: 'ombre de vent',
+          fr: 'dévent',
           de: 'Windschatten',
           it: 'ombra di vento',
         })}

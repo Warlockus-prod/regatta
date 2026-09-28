@@ -50,10 +50,10 @@ export function DrillCard({
           className="text-[10px] uppercase tracking-wider font-bold"
           style={{ color: 'var(--accent-cyan)' }}
         >
-          {tp('Выбери упражнение', 'Pick a drill', 'Wybierz cwiczenie', {
+          {tp('Выбери упражнение', 'Pick a drill', 'Wybierz ćwiczenie', {
             es: 'Elige un ejercicio',
             fr: 'Choisis un exercice',
-            de: 'Waehle eine Uebung',
+            de: 'Wähle eine Übung',
             it: 'Scegli un esercizio',
           })}
         </div>
@@ -175,7 +175,7 @@ export function DrillCard({
             ? tp('в процессе', 'in progress', 'w toku', {
                 es: 'en curso',
                 fr: 'en cours',
-                de: 'laeuft',
+                de: 'läuft',
                 it: 'in corso',
               })
             : result === 'win'
@@ -185,10 +185,10 @@ export function DrillCard({
                 de: 'GESCHAFFT',
                 it: 'FATTO',
               })
-            : tp('НЕ УСПЕЛ', 'FAILED', 'PORAZKA', {
+            : tp('НЕ УСПЕЛ', 'FAILED', 'NIE UDAŁO SIĘ', {
                 es: 'FALLIDO',
-                fr: 'RATE',
-                de: 'GESCHEITERT',
+                fr: 'RATÉ',
+                de: 'NICHT GESCHAFFT',
                 it: 'FALLITO',
               })}
         </span>
@@ -204,9 +204,9 @@ export function DrillCard({
               color: 'var(--accent-cyan)',
             }}
           >
-            {tp('Ещё раз', 'Retry', 'Ponow', {
+            {tp('Ещё раз', 'Retry', 'Jeszcze raz', {
               es: 'Otra vez',
-              fr: 'Encore',
+              fr: 'Recommencer',
               de: 'Nochmal',
               it: 'Di nuovo',
             })}
@@ -222,7 +222,7 @@ export function DrillCard({
             {tp('Выбрать другое', 'Pick another', 'Wybierz inne', {
               es: 'Elegir otro',
               fr: 'En choisir un autre',
-              de: 'Andere waehlen',
+              de: 'Andere wählen',
               it: 'Scegline un altro',
             })}
           </button>

@@ -30,20 +30,20 @@ const keyConcepts: KeyConcept[] = [
     title: {
       ru: 'Лейлайн',
       en: 'Layline',
-      pl: 'Layline (linia dojscia)',
+      pl: 'Layline (linia dojścia)',
       es: 'Layline',
       fr: 'Layline',
       de: 'Layline',
       it: 'Layline',
     },
     description: {
-      ru: 'Оптимальный курс, при котором яхта может достичь знака одним галсом без дополнительных поворотов. Пересечение лейлайна означает лишние повороты.',
-      en: 'Optimal course allowing the boat to reach the mark on one tack without extra turns. Crossing the layline means extra tacks.',
-      pl: 'Optymalny kurs, przy ktorym jacht moze osiagnac znak jednym halsem bez dodatkowych zwrotow. Przekroczenie layline oznacza zbedne zwroty.',
-      es: 'Rumbo optimo que permite al barco alcanzar la boya en una sola amura sin virajes extra. Pasar la layline significa virajes innecesarios.',
-      fr: "Cap optimal permettant au voilier d'atteindre la bouee sur une seule amure sans virements supplementaires. Depasser la layline implique des virements en trop.",
-      de: 'Optimaler Kurs, auf dem das Boot die Tonne in einem Schlag ohne zusaetzliche Wenden erreicht. Das Ueberschreiten der Layline bedeutet unnoetige Wenden.',
-      it: 'Rotta ottimale che permette alla barca di raggiungere la boa in una sola mure senza virate aggiuntive. Superare la layline significa virate in piu.',
+      ru: 'Оптимальный курс, при котором яхта может достичь знака одним галсом без дополнительных поворотов. Если перейти лейлайн, пройдёшь лишнее расстояние и потеряешь время.',
+      en: 'Optimal course allowing the boat to reach the mark on one tack without extra turns. Overstanding the layline costs extra distance and time.',
+      pl: 'Optymalny kurs, którym jacht dotrze do znaku na jednym halsie, bez dodatkowych zwrotów. Przekroczenie layline oznacza dodatkowy dystans i stratę czasu.',
+      es: 'Rumbo óptimo con el que el barco llega a la baliza en un solo bordo, sin virajes extra. Pasarse de la layline supone recorrer más distancia y perder tiempo.',
+      fr: "Route optimale qui permet au voilier d'atteindre la bouée en un seul bord, sans virement supplémentaire. Dépasser la layline, c'est de la distance en plus et du temps perdu.",
+      de: 'Optimaler Kurs, auf dem das Boot die Bahnmarke mit einem Schlag ohne zusätzliche Wenden erreicht. Wer die Layline überschießt, segelt zusätzliche Strecke und verliert Zeit.',
+      it: 'Rotta ottimale che permette alla barca di raggiungere la boa con un solo bordo, senza virate in più. Superare la layline significa percorrere più strada e perdere tempo.',
     },
   },
   {
@@ -60,32 +60,32 @@ const keyConcepts: KeyConcept[] = [
     description: {
       ru: 'Проекция скорости яхты на направление к цели. Даже если бакштаг быстрее фордевинда, VMG показывает реальное приближение к нижнему знаку.',
       en: 'The projection of boat speed onto the direction toward the target. Even if a broad reach is faster than a dead run, VMG shows the real rate of approach to the leeward mark.',
-      pl: 'Projekcja predkosci jachtu na kierunek do celu. Nawet jesli baksztag jest szybszy od fordewindu, VMG pokazuje rzeczywiste zblizanie do znaku zawietrznego.',
-      es: 'Proyeccion de la velocidad del barco sobre la direccion hacia el objetivo. Aunque el largo sea mas rapido que la popa pura, el VMG muestra el acercamiento real a la boya de sotavento.',
-      fr: 'Projection de la vitesse du voilier sur la direction de la cible. Meme si le grand largue est plus rapide que le vent arriere, le VMG montre le rapprochement reel vers la bouee sous le vent.',
-      de: 'Projektion der Bootsgeschwindigkeit auf die Richtung zum Ziel. Selbst wenn Raumwind schneller ist als vor dem Wind, zeigt VMG die echte Annaeherung an die Leetonne.',
-      it: "Proiezione della velocita della barca sulla direzione verso l'obiettivo. Anche se il lasco e piu veloce del fil di ruota, il VMG mostra l'avvicinamento reale alla boa sottovento.",
+      pl: 'Rzut prędkości jachtu na kierunek do celu. Nawet jeśli baksztag jest szybszy od fordewindu, VMG pokazuje, jak naprawdę zbliżasz się do znaku zawietrznego.',
+      es: 'Proyección de la velocidad del barco sobre la dirección hacia el objetivo. Aunque el largo sea más rápido que la popa, el VMG muestra cuánto te acercas realmente a la baliza de sotavento.',
+      fr: "Projection de la vitesse du voilier sur la direction de l'objectif. Même si le grand largue est plus rapide que le vent arrière, le VMG montre à quelle vitesse tu te rapproches vraiment de la bouée sous le vent.",
+      de: 'Projektion der Bootsgeschwindigkeit auf die Richtung zum Ziel. Auch wenn raumer Wind schneller ist als vor dem Wind, zeigt VMG, wie schnell du dich der Leetonne wirklich näherst.',
+      it: "Proiezione della velocità della barca sulla direzione dell'obiettivo. Anche se al lasco si va più veloci che in poppa piena, il VMG mostra quanto ti avvicini davvero alla boa di poppa.",
     },
   },
   {
     id: 'clear-air',
     title: {
-      ru: 'Свободная вода',
+      ru: 'Чистый ветер',
       en: 'Clear Air',
-      pl: 'Czyste powietrze',
+      pl: 'Czysty wiatr',
       es: 'Aire limpio',
-      fr: 'Air libre',
+      fr: 'Vent propre',
       de: 'Freier Wind',
       it: 'Aria libera',
     },
     description: {
       ru: 'Чистый, ненарушенный воздушный поток. Яхта в ветровой тени другой получает турбулентный и ослабленный ветер, теряя скорость.',
       en: "Clean, undisturbed wind flow. A boat in another boat's wind shadow gets turbulent and weakened wind, losing speed.",
-      pl: 'Czysty, niezaklocony przeplyw powietrza. Jacht w cieniu wiatru innego otrzymuje turbulentny i oslabiony wiatr, tracac predkosc.',
-      es: 'Flujo de aire limpio y no perturbado. Un barco en la sombra de viento de otro recibe viento turbulento y debilitado, perdiendo velocidad.',
-      fr: "Flux d'air propre et non perturbe. Un voilier dans l'ombre de vent d'un autre recoit un vent turbulent et affaibli, perdant de la vitesse.",
-      de: 'Sauberer, ungestoerter Windfluss. Ein Boot im Windschatten eines anderen bekommt turbulenten und abgeschwaechten Wind und verliert Geschwindigkeit.',
-      it: "Flusso di vento pulito e non disturbato. Una barca nell'ombra di vento di un'altra riceve vento turbolento e indebolito, perdendo velocita.",
+      pl: 'Czysty, niezaburzony przepływ powietrza. Jacht w cieniu wiatrowym innego jachtu dostaje turbulentny, osłabiony wiatr i traci prędkość.',
+      es: 'Flujo de aire limpio, sin perturbar. Un barco en la sombra de viento de otro recibe viento turbulento y más débil, y pierde velocidad.',
+      fr: "Flux d'air propre, non perturbé. Un voilier dans le dévent d'un autre reçoit un vent turbulent et affaibli, et perd de la vitesse.",
+      de: 'Sauberer, ungestörter Wind. Ein Boot im Windschatten eines anderen bekommt verwirbelten, schwächeren Wind und verliert Fahrt.',
+      it: "Flusso d'aria pulito e indisturbato. Una barca nell'ombra di vento di un'altra riceve vento turbolento e più debole, e perde velocità.",
     },
   },
   {
@@ -93,20 +93,20 @@ const keyConcepts: KeyConcept[] = [
     title: {
       ru: 'Ветровая тень',
       en: 'Wind Shadow',
-      pl: 'Cien wiatru',
+      pl: 'Cień wiatrowy',
       es: 'Sombra de viento',
-      fr: 'Ombre de vent',
+      fr: 'Dévent',
       de: 'Windschatten',
       it: 'Ombra di vento',
     },
     description: {
       ru: 'Зона за яхтой (по ветру), где воздушный поток ослаблен и турбулентен. Может распространяться на 3-7 корпусов позади.',
       en: 'Zone behind a boat (downwind) where airflow is weakened and turbulent. Can extend 3-7 boat-lengths behind.',
-      pl: 'Strefa za jachtem (z wiatrem), gdzie przeplyw powietrza jest oslabiony i turbulentny. Moze sie rozciagac 3-7 dlugosci kadluba za jachtem.',
-      es: 'Zona detras de un barco (sotavento) donde el flujo de aire esta debilitado y es turbulento. Puede extenderse 3-7 esloras hacia atras.',
-      fr: "Zone derriere un voilier (sous le vent) ou le flux d'air est affaibli et turbulent. Peut s'etendre sur 3-7 longueurs de coque en arriere.",
-      de: 'Bereich hinter einem Boot (in Lee), in dem der Luftstrom abgeschwaecht und turbulent ist. Kann sich 3-7 Bootslaengen nach hinten erstrecken.',
-      it: "Zona dietro la barca (sottovento) dove il flusso d'aria e indebolito e turbolento. Puo estendersi per 3-7 lunghezze di scafo dietro.",
+      pl: 'Strefa za jachtem (po stronie zawietrznej), w której przepływ powietrza jest osłabiony i turbulentny. Może sięgać 3-7 długości kadłuba za jachtem.',
+      es: 'Zona detrás de un barco (a sotavento) donde el flujo de aire es más débil y turbulento. Puede extenderse 3-7 esloras hacia atrás.',
+      fr: "Zone derrière un voilier (sous le vent) où le flux d'air est affaibli et turbulent. Elle peut s'étendre sur 3-7 longueurs de coque en arrière.",
+      de: 'Bereich hinter einem Boot (in Lee), in dem der Wind schwächer und verwirbelt ist. Er kann 3-7 Bootslängen nach hinten reichen.',
+      it: "Zona dietro la barca (sottovento) dove il flusso d'aria è indebolito e turbolento. Può estendersi per 3-7 lunghezze di scafo.",
     },
   },
 ];
@@ -126,33 +126,33 @@ export default function Racing() {
   const headerTitle = tp(
     'Тактика гонок',
     'Racing tactics',
-    'Taktyka wyscigow',
+    'Taktyka regatowa',
     {
-      es: 'Tactica de regata',
-      fr: 'Tactique de regate',
-      de: 'Regatta-Taktik',
+      es: 'Táctica de regata',
+      fr: 'Tactique de régate',
+      de: 'Regattataktik',
       it: 'Tattica di regata',
     },
   );
 
-  const rulesLabel = tp('Правила преимущества', 'Right of way', 'Pierwszenstwo', {
+  const rulesLabel = tp('Правила преимущества', 'Right of way', 'Prawo drogi', {
     es: 'Derecho de paso',
-    fr: 'Priorite',
-    de: 'Vorfahrt',
-    it: 'Diritto di precedenza',
+    fr: 'Priorité',
+    de: 'Wegerecht',
+    it: 'Diritto di rotta',
   });
 
   const strategiesLabel = tp('Стратегии', 'Strategies', 'Strategie', {
     es: 'Estrategias',
-    fr: 'Strategies',
+    fr: 'Stratégies',
     de: 'Strategien',
     it: 'Strategie',
   });
 
-  const conceptsLabel = tp('Ключевые понятия', 'Key concepts', 'Kluczowe pojecia', {
+  const conceptsLabel = tp('Ключевые понятия', 'Key concepts', 'Kluczowe pojęcia', {
     es: 'Conceptos clave',
-    fr: 'Notions cles',
-    de: 'Schluesselbegriffe',
+    fr: 'Notions clés',
+    de: 'Schlüsselbegriffe',
     it: 'Concetti chiave',
   });
 
@@ -176,9 +176,9 @@ export default function Racing() {
             `Priorytet ${rule.priority}`,
             {
               es: `Prioridad ${rule.priority}`,
-              fr: `Priorite ${rule.priority}`,
-              de: `Prioritaet ${rule.priority}`,
-              it: `Priorita ${rule.priority}`,
+              fr: `Priorité ${rule.priority}`,
+              de: `Priorität ${rule.priority}`,
+              it: `Priorità ${rule.priority}`,
             },
           );
           return (

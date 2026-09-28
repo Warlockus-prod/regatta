@@ -19,6 +19,7 @@ import type {
   GlossaryCategories,
   GlossaryCategoryId,
   GlossaryTerm,
+  Maneuver,
   OnboardSection,
   PointOfSail,
   QuickLesson,
@@ -76,7 +77,8 @@ interface SailingDataBundle {
   pointsOfSail: PointOfSail[];
   racingRules: RacingRule[];
   racingStrategies: RacingStrategy[];
-  // tacks / maneuvers also live in the JSON; type when wired up.
+  maneuvers: Maneuver[];
+  // tacks also live in the JSON; type when wired up.
 }
 
 const anatomy = anatomyJson as unknown as AnatomyBundle;
@@ -102,6 +104,7 @@ export const glossaryCategories: GlossaryCategories = sailingData.glossaryCatego
 export const pointsOfSail: PointOfSail[] = sailingData.pointsOfSail;
 export const racingRules: RacingRule[] = sailingData.racingRules;
 export const racingStrategies: RacingStrategy[] = sailingData.racingStrategies;
+export const maneuvers: Maneuver[] = sailingData.maneuvers;
 
 export type {
   AnatomyPart,
@@ -113,6 +116,7 @@ export type {
   GlossaryCategories,
   GlossaryCategoryId,
   GlossaryTerm,
+  Maneuver,
   OnboardSection,
   PointOfSail,
   QuickLesson,

@@ -5,10 +5,11 @@
 - `tl({ ru, en, pl, es, fr, de, it })` - object-based, extensible; preferred for new code.
   Type: `LocalizedText` from `src/lib/languages.ts`. Missing langs fall back
   to `en`, then `ru`, then the first provided value.
-- `tp(ru, en, pl)` - hardcoded 3-arg, legacy. ~500 existing call sites
-  across ~35 files. For ES/FR/DE/IT visitors `tp` returns `en` (widened
-  fallback in `src/lib/i18n.tsx`), so all routes render in English when
-  PL/DE/etc isn't explicit. Migration script in
+- `tp(ru, en, pl, { es, fr, de, it })` - positional, with the four newer
+  languages in the 4th argument. Without it `tp` returns `en` for
+  ES/FR/DE/IT visitors. Since the 2026-09-27 pass every `tp()` call outside
+  the Polish-only exam courses carries all four (198 were missing,
+  mostly in `/game` and `/multiplayer`). Migration script in
   `scripts/migrate-tp-to-tl.mjs`.
 - `t(ru, en)` - legacy 2-arg (PL/ES/FR/DE/IT fall back to EN). Retired
   2026-04-20; kept in the interface for type back-compat only.
@@ -78,13 +79,14 @@ below):**
 - `/start` (bootcamp hub - all 8 lessons translated in
   `src/data/bootcamp.ts`)
 - `/quick` (quick refresh - all 6 topics translated)
-- `/courses` (points of sail - data + UI)
+- `/courses` (points of sail, plus the `#turns` section: tacking and jibing
+  as procedures from the `maneuvers` data - data + UI)
 - `/racing` (tactics + course diagram + RacingStrategy tips +
   keyConcepts)
-- `/onboard` (first week on board - all 8 sections in
+- `/onboard` (first week on board - all 12 sections in
   `src/data/onboard.ts`)
 - `/anatomy` (Bavaria 46 parts)
-- `/checklist` (crew reference - all 8 sections in
+- `/checklist` (crew reference - all 9 sections in
   `src/data/checklist.ts`, incl. itemsEs/Fr/De/It)
 - `/glossary` (all 64 glossary definitions + terms)
 - `/rules` (RRS + COLREGS scenarios; per-language official links: RFEV
@@ -107,7 +109,42 @@ below):**
 
 ---
 
-## Current no-Cyrillic verification (2026-04-25)
+## Language adaptation pass (2026-09-27)
+
+- Every user-facing string in pl, en, es, fr, de, it was reviewed against the
+  Russian source and adapted, not translated word for word, using
+  `scripts/sailing-glossary.md` (normative terms, native crew commands, style
+  rules). Polish is written with diacritics everywhere except text drawn into
+  OG images (`src/app/api/og/*`), whose built-in font may lack the glyphs.
+- The Polish-only exam courses (SRC radio, sternik motorowodny) are excluded
+  on purpose and keep the wording of the official materials.
+- Where each language lives: data files (`src/data/*`, `fooRu..fooIt` fields
+  and `{ ru, ..., it }` objects), the course `words(ru, en, pl, es, fr, de,
+  it)` calls in `src/data/sailing-lab/*` and `src/features/sailing-lab/*`,
+  `tp()` / `tl()` calls in pages and components, the product catalog
+  (`src/lib/product/*`, shared with the app), the app's own screens
+  (`mobile/app/*`, `mobile/src/*`) and the generated JSON twins in
+  `mobile/src/data/*` (`cd mobile && npm run sync-content`, nine twins
+  including `checklist.json`).
+- Known gaps: numbers from `toFixed()` show a decimal point in every language
+  (the coach, missions and lesson readouts use the local separator); compass
+  letters (N, NE) stay English; rate-limit errors of `/api/ai-chat` and
+  `/api/feedback` are RU/EN only and `/api/replay` errors English; the mobile
+  i18n audit shows three false positives ("Hyères" twice, `SimWebView.tsx`).
+
+## Current no-Cyrillic verification (2026-09-27)
+
+Latest run: `SCAN_BASE=http://localhost:3017 node scripts/cyrillic-scan.mjs` on a
+local dev server, PL/EN/ES/FR/DE/IT across 34 routes: the 20 content routes,
+`/learn`, `/learn/sails` and all 12 lesson pages. Result: ALL CLEAN, 0 leaks.
+The scan now reads the lesson links from `/learn/sails`, so a new lesson is
+scanned without editing the route list. A one-off check in the same run also
+found no lesson page whose ES/FR/DE/IT text equals the English one (the
+silent English fallback the scan itself cannot see). Rerun after the
+adaptation pass: still 0 leaks, and every Polish page with more than 400
+characters of text contains Polish letters.
+
+### Earlier run (2026-04-25)
 
 Local Playwright scan via `node scripts/cyrillic-scan.mjs` against
 `npm run dev -- --port 3007` (and prod re-confirmed via
@@ -121,10 +158,9 @@ ALL CLEAN - 0 leaks across all routes and target langs.
 
 - The last full run covered 16 routes: **0 leaks** for each of ES / FR /
   DE / IT.
-- Routes now covered by the scan: `/spots`, `/privacy`, and `/quick` were
-  added to the scanner's `ROUTES` array (2026-05-30), bringing it to 19
-  routes. They have not yet been through a fresh run; rerun
-  `node scripts/cyrillic-scan.mjs` to confirm they are clean.
+- `/spots`, `/privacy` and `/quick` were added to the scanner's `ROUTES`
+  array on 2026-05-30 and `/support` later; all of them were clean in the
+  2026-09-27 run above.
 - `/simulator-v3` translated as a one-off coordination from the V3
   lane on 2026-04-25 (TourOverlay + point-of-sail label via
   `legacyPick`); physics frozen, only i18n strings touched.
@@ -165,8 +201,9 @@ For new components - prefer `tl()`:
 2. Use object-based form:
    `{tl({ ru: 'Привет', en: 'Hi', pl: 'Czesc', es: 'Hola', fr: 'Salut', de: 'Hallo', it: 'Ciao' })}`
 3. Optional langs (`es/fr/de/it`) fall back to `en` -> `ru` if missing.
-4. Per project rule: no Polish diacritics (no ą/ę/ż/ł/etc), no em-dash
-   or en-dash in any lang.
+4. Per project rule: full native spelling in every language, Polish
+   diacritics included (since 2026-09-27); no em-dash or en-dash in any
+   lang; terms from `scripts/sailing-glossary.md`.
 
 Existing `tp(ru, en, pl)` call sites stay functional and render EN for
 ES/FR/DE/IT. Batch-migrate via `node scripts/migrate-tp-to-tl.mjs` (see

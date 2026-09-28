@@ -25,12 +25,12 @@ export function OfflineBanner({ visible }: OfflineBannerProps) {
   const label = tp(
     'Офлайн-режим - показано из кэша',
     'Offline mode - cached content',
-    'Tryb offline - tresc z pamieci',
+    'Tryb offline - zapisana treść',
     {
-      es: 'Modo sin conexion - contenido en cache',
+      es: 'Sin conexión - contenido en caché',
       fr: 'Hors ligne - contenu en cache',
       de: 'Offline-Modus - Inhalt aus dem Cache',
-      it: 'Modalita offline - contenuto in cache',
+      it: 'Modalità offline - contenuto in cache',
     },
   );
 

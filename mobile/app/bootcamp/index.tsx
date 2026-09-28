@@ -45,29 +45,34 @@ export default function BootcampIndex() {
   const router = useRouter();
   const { isCompleted, completedIds, ready } = useBootcampProgress();
 
-  const headerTitle = tp('Bootcamp', 'Bootcamp', 'Bootcamp');
+  const headerTitle = tp('Bootcamp', 'Bootcamp', 'Bootcamp', {
+    es: 'Bootcamp',
+    fr: 'Bootcamp',
+    de: 'Bootcamp',
+    it: 'Bootcamp',
+  });
 
   const summary = tp(
     `${bootcampLessons.length} уроков, около ${BOOTCAMP_TOTAL_MINUTES} мин в сумме - 7 дней до регаты`,
     `${bootcampLessons.length} lessons, around ${BOOTCAMP_TOTAL_MINUTES} min total - 7 days to the regatta`,
-    `${bootcampLessons.length} lekcji, okolo ${BOOTCAMP_TOTAL_MINUTES} min - 7 dni do regat`,
+    `${bootcampLessons.length} lekcji, łącznie około ${BOOTCAMP_TOTAL_MINUTES} min - 7 dni do regat`,
     {
-      es: `${bootcampLessons.length} lecciones, unos ${BOOTCAMP_TOTAL_MINUTES} min - 7 dias a la regata`,
-      fr: `${bootcampLessons.length} leçons, environ ${BOOTCAMP_TOTAL_MINUTES} min - 7 jours avant la regate`,
-      de: `${bootcampLessons.length} Lektionen, etwa ${BOOTCAMP_TOTAL_MINUTES} Min - 7 Tage bis zur Regatta`,
-      it: `${bootcampLessons.length} lezioni, circa ${BOOTCAMP_TOTAL_MINUTES} min - 7 giorni alla regata`,
+      es: `${bootcampLessons.length} lecciones, unos ${BOOTCAMP_TOTAL_MINUTES} min en total - 7 días para la regata`,
+      fr: `${bootcampLessons.length} leçons, environ ${BOOTCAMP_TOTAL_MINUTES} min au total - 7 jours avant la régate`,
+      de: `${bootcampLessons.length} Lektionen, insgesamt etwa ${BOOTCAMP_TOTAL_MINUTES} Min. - 7 Tage bis zur Regatta`,
+      it: `${bootcampLessons.length} lezioni, circa ${BOOTCAMP_TOTAL_MINUTES} min in tutto - 7 giorni alla regata`,
     },
   );
 
   const progressLine = tp(
     `Пройдено ${completedIds.size} из ${bootcampLessons.length}`,
     `Completed ${completedIds.size} of ${bootcampLessons.length}`,
-    `Ukonczone ${completedIds.size} z ${bootcampLessons.length}`,
+    `Ukończono ${completedIds.size} z ${bootcampLessons.length}`,
     {
-      es: `Completadas ${completedIds.size} de ${bootcampLessons.length}`,
-      fr: `Terminees ${completedIds.size} sur ${bootcampLessons.length}`,
-      de: `Abgeschlossen ${completedIds.size} von ${bootcampLessons.length}`,
-      it: `Completate ${completedIds.size} di ${bootcampLessons.length}`,
+      es: `Completadas: ${completedIds.size} de ${bootcampLessons.length}`,
+      fr: `Terminées : ${completedIds.size} sur ${bootcampLessons.length}`,
+      de: `Abgeschlossen: ${completedIds.size} von ${bootcampLessons.length}`,
+      it: `Completate: ${completedIds.size} su ${bootcampLessons.length}`,
     },
   );
 
@@ -89,9 +94,9 @@ export default function BootcampIndex() {
           const dayLabel = tp(
             `День ${day}`,
             `Day ${day}`,
-            `Dzien ${day}`,
+            `Dzień ${day}`,
             {
-              es: `Dia ${day}`,
+              es: `Día ${day}`,
               fr: `Jour ${day}`,
               de: `Tag ${day}`,
               it: `Giorno ${day}`,
@@ -103,9 +108,9 @@ export default function BootcampIndex() {
             `${dayDone} z ${lessons.length} gotowe`,
             {
               es: `${dayDone} de ${lessons.length} hechas`,
-              fr: `${dayDone} sur ${lessons.length} fait`,
+              fr: `${dayDone} sur ${lessons.length} faites`,
               de: `${dayDone} von ${lessons.length} fertig`,
-              it: `${dayDone} di ${lessons.length} fatte`,
+              it: `${dayDone} su ${lessons.length} fatte`,
             },
           );
           const dayComplete = dayDone === lessons.length;
@@ -132,19 +137,19 @@ export default function BootcampIndex() {
                   `Lesson ${lesson.order} (~${lesson.estMinutes} min)`,
                   `Lekcja ${lesson.order} (~${lesson.estMinutes} min)`,
                   {
-                    es: `Leccion ${lesson.order} (~${lesson.estMinutes} min)`,
+                    es: `Lección ${lesson.order} (~${lesson.estMinutes} min)`,
                     fr: `Leçon ${lesson.order} (~${lesson.estMinutes} min)`,
-                    de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min)`,
+                    de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min.)`,
                     it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
                   },
                 );
                 const lessonA11y = tp(
                   `Урок ${lesson.order}: ${title}${completed ? ', пройден' : ''}`,
                   `Lesson ${lesson.order}: ${title}${completed ? ', completed' : ''}`,
-                  `Lekcja ${lesson.order}: ${title}${completed ? ', ukonczona' : ''}`,
+                  `Lekcja ${lesson.order}: ${title}${completed ? ', ukończona' : ''}`,
                   {
-                    es: `Leccion ${lesson.order}: ${title}${completed ? ', completada' : ''}`,
-                    fr: `Lecon ${lesson.order} : ${title}${completed ? ', terminee' : ''}`,
+                    es: `Lección ${lesson.order}: ${title}${completed ? ', completada' : ''}`,
+                    fr: `Leçon ${lesson.order} : ${title}${completed ? ', terminée' : ''}`,
                     de: `Lektion ${lesson.order}: ${title}${completed ? ', abgeschlossen' : ''}`,
                     it: `Lezione ${lesson.order}: ${title}${completed ? ', completata' : ''}`,
                   },

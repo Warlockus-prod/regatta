@@ -56,7 +56,7 @@ export const NEUTRAL_YACHT: YachtState = {
 export interface SceneLabels {
   whole: string; sails: string; both: string; deck: string; main: string; jib: string; stern: string; flow: string; resetView: string;
   more: string; instruments: string; loading: string; error: string;
-  retry: string; heading: string; target: string; apparent: string;
+  retry: string; heading: string; target: string; apparent: string; windDial: string;
   light: string; quality: string; sailingHint: string;
   fullSailPlan: string;
   relativeWind: string; trueWind: string; calmWind: string;
@@ -120,7 +120,7 @@ export const DEFAULT_LABELS: SimLabels = {
     whole: "Whole yacht", sails: "Sails", both: "Both", deck: "Deck", resetView: "Reset camera",
     more: "Wind and fine tuning", instruments: "More instruments", loading: "Loading yacht...",
     error: "The 3D scene could not load. Check your connection or try another browser.",
-    retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind",
+    retry: "Try again", heading: "Heading", target: "Target speed", apparent: "Apparent wind", windDial: "Wind dial",
     light: "Light graphics", quality: "Graphics", sailingHint: "Low-speed steering assistance is enabled. Hold an arrow to steer. Sails change sides automatically; you control the sheets.",
   },
   badge: 'SIMULATOR V2 - 3D',

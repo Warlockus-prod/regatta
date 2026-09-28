@@ -34,12 +34,12 @@ export default function RouteError({
           {tp(
             'Что-то пошло не так',
             'Something went wrong',
-            'Cos poszlo nie tak',
+            'Coś poszło nie tak',
             {
-              es: 'Algo salio mal',
+              es: 'Algo salió mal',
               fr: 'Une erreur est survenue',
               de: 'Etwas ist schiefgelaufen',
-              it: 'Qualcosa e andato storto',
+              it: 'Qualcosa è andato storto',
             },
           )}
         </h1>
@@ -47,11 +47,11 @@ export default function RouteError({
           {tp(
             'Эту страницу не удалось показать. Попробуй ещё раз.',
             'This page could not be displayed. Please try again.',
-            'Nie udalo sie wyswietlic tej strony. Sprobuj ponownie.',
+            'Nie udało się wyświetlić tej strony. Spróbuj ponownie.',
             {
-              es: 'No se pudo mostrar esta pagina. Intentalo de nuevo.',
-              fr: 'Cette page n\'a pas pu s\'afficher. Reessaie.',
-              de: 'Diese Seite konnte nicht angezeigt werden. Bitte erneut versuchen.',
+              es: 'No se pudo mostrar esta página. Inténtalo de nuevo.',
+              fr: 'Cette page n\'a pas pu s\'afficher. Réessaie.',
+              de: 'Diese Seite konnte nicht angezeigt werden. Versuch es noch einmal.',
               it: 'Impossibile mostrare questa pagina. Riprova.',
             },
           )}
@@ -61,9 +61,9 @@ export default function RouteError({
           className="text-sm px-4 py-2 rounded-md border transition hover:bg-[rgba(0,212,255,0.08)]"
           style={{ borderColor: 'rgba(0, 212, 255, 0.4)', color: 'var(--accent-cyan)' }}
         >
-          {tp('Повторить', 'Try again', 'Sprobuj ponownie', {
+          {tp('Повторить', 'Try again', 'Spróbuj ponownie', {
             es: 'Reintentar',
-            fr: 'Reessayer',
+            fr: 'Réessayer',
             de: 'Erneut versuchen',
             it: 'Riprova',
           })}

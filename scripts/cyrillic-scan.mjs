@@ -11,12 +11,21 @@ const ROUTES = [
   '/', '/start', '/onboard', '/checklist', '/courses', '/racing',
   '/glossary', '/rules', '/anatomy', '/gallery', '/simulator',
   '/simulator-v3', '/simulator2', '/leaderboard', '/game', '/multiplayer',
-  '/spots', '/privacy', '/quick', '/support',
+  '/spots', '/privacy', '/quick', '/support', '/learn', '/learn/sails',
 ];
 
 const browser = await chromium.launch();
 const ctx = await browser.newContext();
 const page = await ctx.newPage();
+
+// Lessons are read from the course page itself, so a lesson added to
+// src/data/sailing-lab is scanned without editing this list.
+await page.goto(`${BASE}/learn/sails?lang=en`, { waitUntil: 'networkidle', timeout: 20_000 });
+const lessons = await page.evaluate(() => [...new Set(
+  [...document.querySelectorAll('a[href^="/learn/sails/"]')].map((a) => a.getAttribute('href').split(/[?#]/)[0]),
+)]);
+if (lessons.length === 0) console.error('WARN: no lesson links found on /learn/sails');
+ROUTES.push(...lessons);
 
 const report = [];
 for (const lang of LANGS) {
@@ -42,7 +51,7 @@ for (const lang of LANGS) {
 
 await browser.close();
 
-const header = `\nCyrillic leak scan (ES/FR/DE/IT across ${ROUTES.length} routes):\n`;
+const header = `\nCyrillic leak scan (${LANGS.join('/').toUpperCase()} across ${ROUTES.length} routes):\n`;
 console.log(header);
 if (report.length === 0) {
   console.log('ALL CLEAN - 0 leaks across all routes and target langs.');

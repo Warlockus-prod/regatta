@@ -173,6 +173,225 @@ boat runs with wind) also all green.
 
 ---
 
+## ADR-0002 - Physical leeway: keelK 6000, hull drag 240, keel grip falls with heel
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+Close-hauled leeway sat on the 12 deg clamp in `balance.ts` at every wind speed
+from 8 to 22 kn (keelK 1500). The clamp, not the keel, was setting leeway, which
+contradicts every source we have: Dedekam (p. 5) says leeway is marked upwind and
+small to none downwind, and `docs/design/SAILING_PHYSICS_REFERENCE.md` 6.3 gives
+3-5 deg close-hauled, near 0 on a reach or run. The keel also kept full grip at
+any heel.
+
+Leeway enters the model only through apparent wind (sideways drift carries the
+boat away from the wind). A pinned 12 deg therefore bled apparent wind on every
+close-hauled boat, and `hullDragK` 220 had been tuned around that loss.
+
+### Decision
+- `keelK` 1500 -> 6000.
+- Keel lateral grip scales with cos^2(heel) (`KEEL_HEEL_EXP` in `balance.ts`):
+  projected lateral area and the sideways share of keel lift each fall with
+  cos(heel).
+- `hullDragK` 220 -> 240, so boat speeds stay where they were.
+- A non-finite leeway is caught with `Number.isFinite` (Math.max/min pass NaN
+  through). The 12 deg clamp stays as a low-speed guard; it no longer binds
+  while sailing.
+
+Result, trimmed polar: close-hauled 3.3-4.6 deg at normal heel (8-12 kn), growing
+to 5.1-5.8 at 30 deg heel and 7.1-8.0 at 41 deg; beam reach 1.1-1.8; run 0.2-0.3.
+Speeds are within 1.95% of the old polar on average, worst cell 3.87%. ADR-0001
+Test 1 reads 6.426 kn against 6.425 before.
+
+### Options considered
+- keelK alone (4500, 6000, 7500). 6000 put leeway in band, but less leeway lost
+  the accidental brake on an overpowered boat: in ADR-0001 Test 4 the unreefed
+  boat did 8.28 kn at 42 deg heel and reefing stopped paying (reefed 69.4% of it,
+  the test needs more than 70%). Rejected on its own.
+- Deferring the heel term, as the book audit first proposed. Rejected for the
+  reason above: without it nothing slows a boat laid over at 40 deg.
+- cos(heel) (n = 1): passes Test 4 with 70.9%, barely. cos^2 (n = 2) passes with
+  75.3% and matches the physical argument. Chosen.
+- hullDragK 235 / 245 / 250 with n = 2: 240 gave the smallest speed drift.
+- Widening the clamp to 45 deg like the fuzz bound. Not needed: the clamp no
+  longer binds while sailing, and wider values would only change low-speed HUD
+  readouts in the V2/V3 lanes.
+
+### Consequences
+- Heel is still too large when a boat does not reef (41 deg at 22 kn unreefed).
+  That is a righting-moment and depowering question, not a keel one.
+- The broad reach (TWA 135) is still too slow, so its leeway exceeds the beam
+  reach. Tests leave that pair out on purpose.
+- The bot autopilot in `race-physics.ts` is pure pursuit toward points closer
+  than its turning circle (about 154 units across at 3.5 kn; a rounding gate is
+  70 long). It fails to finish from some start positions on both the old and
+  the new physics. With this change, finishes from the real ws-server spawn
+  positions went from 15/19 to 16/19 on a normal start and from 6/19 to 11/19
+  after an early start. The single scripted early-start case in
+  `race-course.test.ts` flipped from pass to fail and is kept as an `it.fails`
+  tripwire; a fleet-level floor test locks the new completion counts. Fixing the
+  autopilot is separate work.
+- `ws-server/race-physics.js` and the mobile offline sailing bundle are
+  regenerated from the engine.
+
+### Verification
+`polar.test.ts` "leeway follows the course and the heel, not the clamp";
+ADR-0001 Tests 1-5; `race-course.test.ts` fleet floor; `npm run test:physics`
+(including the race-server bundle check) and the mobile `npm run check`.
+
+### References
+Dedekam, "Sail and Rig Tuning", p. 5 (keel as a wing, leeway by course) and
+p. 38 (reduce sail past 25 deg heel); `docs/design/SAILING_PHYSICS_REFERENCE.md`
+6.3; `docs/design/books-audit-2026-09-26.md` (vpp-leeway-calibration).
+
+---
+
+## ADR-0003 - Bot autopilot: course loops, shed speed before the windward mark
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+`raceAutopilotTurn` (multiplayer bots, `/game` bots, the native app's AI) was
+pure pursuit toward waypoints 60 units from the mark. Measured on the engine:
+the full-rudder turning radius is about 21 units per knot (8 units per
+knot-second at 22 deg/s), so 115-140 units at normal racing speed and up to 170
+in a heavy breeze, while each rounding gate is 70 long. Brute force over the
+start of a full-rudder bear-away found the three gates reachable with only 4-8
+units of slack at normal speed and 0-4 in a heavy breeze. So bots missed gates,
+and then: pointing downwind at an upwind target they flipped between the two
+close-hauled headings every step and sailed to the bottom edge; after an early
+start they orbited a point 60 units under the line, inside their own turning
+circle. From the 19 real ws-server spawn places 16 finished, 11 after an early
+start, 66 of 120 varied starts; median race 162 s.
+
+### Decision
+Steer along paths laid out from the course (`race-physics.ts`, `AUTOPILOT`):
+- windward mark: a counter-clockwise stadium whose top is a circle (radius 80,
+  centre 35 below the mark) through all three gates. The bot climbs the east
+  leg in a tacking corridor that narrows toward the mark, sheds speed on the
+  climb to about 3.3 kn (full-rudder radius near 70) by pointing 3-12 deg off
+  the wind, sails the last stretch straight up the leg so no tack lands at the
+  mark, then loops over it. A missed gate is another lap of the stadium;
+- start: below the line, beat up its middle; over it early, a loop beside the
+  line sized to the boat's turning circle whose rising side crosses the middle;
+- finish: run down a lane of the line chosen from the boat id; after a miss,
+  loop back above the line;
+- the close-hauled side is committed with hysteresis (the downwind weave), and a
+  bot never tacks below 2 kn and bears away when slow near the wind: stopped
+  head to wind, a boat has no rudder authority and no drive, forever.
+`raceWaypoint` stays the player hint and is unchanged; `updateLap` is untouched.
+
+### Options considered
+- Better-placed pure-pursuit waypoints or a per-phase retry. Aiming lower halved
+  race times without adding finishes; a retry that U-turns at the gate misses
+  again (the U-turn is wider than the gate) and dropped spawn finishes to 6/19.
+- An open-loop full-rudder turn from a computed start point: the 4-8 unit slack
+  above is too small for wind shifts, and the start point depends on the app's
+  turning scale (the native app turns about 2.4 times tighter).
+- Shedding speed exactly head to wind: fastest, but a collision there leaves the
+  boat stopped in irons for good; 3-12 deg off the wind keeps a way out.
+- Fleet-aware avoidance: the autopilot does not see other boats; left out.
+
+### Consequences
+- Single boats: all 19 spawns and 19 early starts finish (median 82 and 88 s),
+  120 of 120 varied starts (87 s). Over 3950 races in 25 wind cases (8 seeds of
+  shifting wind at light, normal and heavy strength) no boat fails and none
+  needs more than 162 s, inside the server's 300 s cut. One cell is slower than
+  before: a light-wind early start takes about 6 s longer (118 against 112 s),
+  the price of a return loop that always works (the old one failed 4 of 19 early
+  starts in normal wind and 12 of 19 in a heavy breeze).
+- Fleets of 2-8 bots with the server's collisions and 300 s cut: 80% finish,
+  was 45%; median 144 s, was 204. The rest are collision deadlocks, not
+  steering: `resolveCollisions` damps both boats on any contact, low-speed
+  leeway keeps them touching, and they end at zero speed, some head to wind.
+  Damping only boats that close on each other would lift fleets to 97%; that
+  changes collisions for players too, so it is left for a separate decision.
+- Bots keep their state on the boat (`RaceBoat.autopilot`). The server used to
+  merge a new spawn into the old bot object on a rematch, which also kept
+  `started`, `roundPhase` and `finishTime`; it now creates fresh bot objects,
+  and the autopilot resets itself when a boat's lap count goes back.
+- The native app's AI keeps its finish times (within 1-2 s on every course and
+  screen size) and passes `mobile/src/game/race.test.ts`.
+
+### Verification
+`race-course.test.ts`: every real spawn on time and early (19/19 each), 120
+varied starts, all spawns in light, normal and heavy shifting wind inside 300 s,
+a reused boat sails a new race like a fresh one; `npm run test:physics`;
+`cd mobile && npm run check`.
+
+### References
+ADR-0002 (the leeway recalibration that exposed the old autopilot's margins);
+`ws-server/server.js` spawnBoat and tick loop; `src/app/game/GameClient.tsx`
+bot loop; `mobile/src/game/ai-boats.ts`.
+
+---
+
+## ADR-0004 - Collisions slow only boats closing on each other; finished boats leave the course
+
+**Date:** 2026-09-27
+**Status:** accepted
+
+### Context
+`resolveCollisions` (ws-server tick and `/game`) pushed overlapping boats apart
+and multiplied both boats' speed by exp(-1.67 dt) on every step they overlapped,
+whether they were approaching or not. Two boats grinding side by side stayed in
+contact every step (low-speed leeway and slightly converging headings), so both
+settled at 0.1-0.2 kn; near head to wind that is permanent, because the engine
+gives no rudder authority at rest and no drive below about 8 deg TWA. Finished
+boats also stayed in the collision list, parked just past the finish line, and
+blocked the next boat on the same spot. With the ADR-0003 autopilot, fleets of
+2-8 server bots (3 wind seeds x strengths 0.65 / 1 / 1.3, 300 s cut) finished
+80%; with the old autopilot 45%.
+
+### Decision
+- Keep the push-apart. Damp both boats by exp(-1.67 dt k), where k is the
+  closing speed along the contact normal divided by `FULL_BUMP_CLOSING_KN`
+  (1 kn), clamped to 0..1. Velocity is over the ground, heading plus leeway,
+  as stepBoat moves the boat. Touching or separating boats keep their speed; a
+  ram at 1 kn or more costs what it always did.
+- Boats with `lapDone >= 2` skip collisions, inside `resolveCollisions`, so the
+  server (through the generated `ws-server/race-physics.js`) and `/game` behave
+  the same.
+- In the autopilot, a bumped boat bears away sooner: stall speed 2.2 kn (was
+  1.5) and no pointing up the last stretch below 2.5 kn (was 1.8). Measured on
+  two seed sets: 300 -> 304 and 302 -> 308 of 315, single boats unchanged.
+
+### Options considered
+- Flat damping (as before): the deadlocks above.
+- Closing-speed damping without the finished-boat rule: nearly the same fleet
+  numbers (the autopilot already spreads finish lanes), but a parked boat still
+  blocks a human who aims at the same spot; the rule is one line.
+- An inelastic exchange of momentum along the normal: more physical (a rammed
+  boat would be shoved ahead), but a larger change to the feel of the game than
+  this problem needs.
+- Per-boat rounding lanes in the autopilot (loop radii 65 / 80 / 95), to turn
+  rear-end bumps into side contact: no fleet gain (300 of 315 either way), and
+  the tight lane cost 28 s of median in a heavy breeze. Rejected.
+
+### Consequences
+- Players feel it: brushing a neighbour no longer slows either boat; a ram
+  still does. A finished boat is a ghost for everyone still racing.
+- Fleets of 2-8 server bots with the 300 s cut: 96.5% finish (304 of 315),
+  median 122 s (was 144). The rest: 8-boat light-wind fleets finishing just past
+  300 s, and a few boats left head to wind by a ram near the mark.
+- `/game` bots 15 of 15 (14 of 15 with the new autopilot alone, 11 of 15
+  before it), median 97 s.
+
+### Verification
+`race-course.test.ts`: two boats in light contact keep sailing (flat damping:
+0.2 kn), a head-on ram still takes the full slow-down, finished boats take no
+part, 8-bot fleets finish 71 of 72 inside 300 s (flat damping: 49); live
+`node scripts/test-multiplayer.mjs --full`; `npm run test:physics`.
+
+### References
+ADR-0003 (autopilot); `ws-server/server.js` tick loop; `src/app/game/GameClient.tsx`
+game loop.
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```

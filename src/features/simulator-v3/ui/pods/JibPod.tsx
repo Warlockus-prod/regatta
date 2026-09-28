@@ -35,13 +35,13 @@ export function JibPod(props: {
     state === 'stall' ? 'danger' : state === 'attached' ? 'good' : 'warn';
   const text =
     state === 'furled'
-      ? tp('УБРАН', 'FURLED', 'ZWINIETY', { es: 'ENROLLADO', fr: 'ENROULE', de: 'GEROLLT', it: 'AVVOLTO' })
+      ? tp('УБРАН', 'FURLED', 'ZWINIĘTY', { es: 'ENROLLADO', fr: 'ENROULÉ', de: 'EINGEROLLT', it: 'AVVOLTO' })
       : state === 'stall'
-      ? tp('СРЫВ', 'STALL', 'STALL', { es: 'STALL', fr: 'DECROCHE', de: 'STALL', it: 'STALLO' })
+      ? tp('СРЫВ', 'STALL', 'ODERWANIE PRZEPŁYWU', { es: 'FLUJO DESPRENDIDO', fr: 'DÉCROCHÉ', de: 'STRÖMUNGSABRISS', it: 'STALLO' })
       : state === 'edge'
-      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ', { es: 'AL LIMITE', fr: 'A LA LIMITE', de: 'GRENZE', it: 'AL LIMITE' })
+      ? tp('НА ГРАНИ', 'EDGE', 'NA GRANICY', { es: 'AL LÍMITE', fr: 'À LA LIMITE', de: 'AN DER GRENZE', it: 'AL LIMITE' })
       : state === 'luffing'
-      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
+      ? tp('ПОЛОЩЕТ', 'LUFFING', 'ŁOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
       : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE', { es: 'TIRA', fr: 'PORTE', de: 'ZIEHT', it: 'PORTA' });
 
   return (
@@ -57,8 +57,8 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kat', {
-          es: 'Angulo',
+        label={tp('Угол', 'Angle', 'Kąt', {
+          es: 'Ángulo',
           fr: 'Angle',
           de: 'Winkel',
           it: 'Angolo',
@@ -73,11 +73,11 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Раскрытие', 'Furl', 'Zwiniecie', {
-          es: 'Enrollador',
-          fr: 'Enrouleur',
-          de: 'Rollanlage',
-          it: 'Avvolgitore',
+        label={tp('Раскрытие', 'Unfurled', 'Rozwinięcie', {
+          es: 'Desenrollado',
+          fr: 'Déroulé',
+          de: 'Ausgerollt',
+          it: 'Svolto',
         })}
         value={`${ui.jibFurlPct}%`}
         min={0}

@@ -74,12 +74,12 @@ export function WindNowCard() {
         {tp(
           'Реальный ветер на твоей точке. Прикинь, какой это курс и где неходовая зона - то, что учил в первом уроке.',
           'Real wind at your spot. Work out the point of sail and where the no-go zone is - what you learned in lesson one.',
-          'Prawdziwy wiatr w twoim punkcie. Ustal kurs i gdzie jest strefa martwa - to, czego uczyles sie na pierwszej lekcji.',
+          'Prawdziwy wiatr tam, gdzie jesteś. Oceń, jaki to kurs i gdzie jest kąt martwy - tego uczyłeś się na pierwszej lekcji.',
           {
-            es: 'Viento real en tu punto. Deduce el rumbo y donde esta la zona muerta - lo que aprendiste en la primera leccion.',
-            fr: 'Vent reel a ton point. Deduis l\'allure et ou se trouve la zone morte - ce que tu as appris a la premiere lecon.',
-            de: 'Echter Wind an deinem Punkt. Bestimme den Kurs und wo die Totzone liegt - was du in der ersten Lektion gelernt hast.',
-            it: 'Vento reale al tuo punto. Deduci l\'andatura e dove e la zona morta - cio che hai imparato nella prima lezione.',
+            es: 'Viento real donde estás. Calcula el rumbo y dónde está la zona muerta: lo aprendiste en la primera lección.',
+            fr: 'Le vent réel là où tu es. Déduis l\'allure et où se trouve la zone morte : tu l\'as appris à la première leçon.',
+            de: 'Echter Wind an deinem Standort. Bestimme den Kurs und wo der tote Winkel liegt - das hast du in der ersten Lektion gelernt.',
+            it: 'Vento reale dove ti trovi. Deduci l\'andatura e dov\'è l\'angolo morto: l\'hai imparato nella prima lezione.',
           },
         )}
       </p>
@@ -90,27 +90,27 @@ export function WindNowCard() {
           className="text-sm px-4 py-2 rounded-md border transition hover:bg-[rgba(0,212,255,0.08)]"
           style={{ borderColor: 'rgba(0, 212, 255, 0.4)', color: 'var(--accent-cyan)' }}
         >
-          {tp('Показать ветер у меня', 'Show wind near me', 'Pokaz wiatr u mnie',
-            { es: 'Ver viento cerca de mi', fr: 'Voir le vent pres de moi', de: 'Wind in der Naehe zeigen', it: 'Mostra il vento vicino a me' })}
+          {tp('Показать ветер у меня', 'Show wind near me', 'Pokaż wiatr w mojej okolicy',
+            { es: 'Ver el viento cerca de mí', fr: 'Voir le vent près de moi', de: 'Wind in der Nähe zeigen', it: 'Mostra il vento vicino a me' })}
         </button>
       )}
 
       {state === 'loading' && (
         <div className="text-sm text-[var(--text-muted)]">
-          {tp('Загружаю...', 'Loading...', 'Laduje...',
-            { es: 'Cargando...', fr: 'Chargement...', de: 'Laedt...', it: 'Caricamento...' })}
+          {tp('Загружаю...', 'Loading...', 'Ładuję...',
+            { es: 'Cargando...', fr: 'Chargement...', de: 'Lädt...', it: 'Caricamento...' })}
         </div>
       )}
 
       {state === 'error' && (
         <div className="text-sm">
           <span className="text-[var(--warning)]">
-            {tp('Не удалось получить погоду.', 'Could not fetch the weather.', 'Nie udalo sie pobrac pogody.',
-              { es: 'No se pudo obtener el clima.', fr: 'Impossible de recuperer la meteo.', de: 'Wetter konnte nicht geladen werden.', it: 'Impossibile ottenere il meteo.' })}
+            {tp('Не удалось получить погоду.', 'Could not fetch the weather.', 'Nie udało się pobrać pogody.',
+              { es: 'No se pudo cargar el tiempo.', fr: 'Impossible de récupérer la météo.', de: 'Wetter konnte nicht geladen werden.', it: 'Impossibile ottenere il meteo.' })}
           </span>{' '}
           <button onClick={showWind} className="underline" style={{ color: 'var(--accent-cyan)' }}>
-            {tp('Повторить', 'Retry', 'Ponow',
-              { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut', it: 'Riprova' })}
+            {tp('Повторить', 'Retry', 'Ponów',
+              { es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' })}
           </button>
         </div>
       )}
@@ -140,7 +140,7 @@ export function WindNowCard() {
               <div>
                 <div className="text-xs text-[var(--text-muted)]">
                   {tp('Порывы', 'Gusts', 'Porywy',
-                    { es: 'Rachas', fr: 'Rafales', de: 'Boeen', it: 'Raffiche' })}
+                    { es: 'Rachas', fr: 'Rafales', de: 'Böen', it: 'Raffiche' })}
                 </div>
                 <div className="text-lg font-semibold"><span className="num">{Math.round(data.wind.gustKn)}</span> kn</div>
               </div>
@@ -163,20 +163,20 @@ export function WindNowCard() {
           {spotName && (
             <div className="text-xs text-[var(--text-muted)] mt-3">
               {tp('Показан спот', 'Showing spot', 'Pokazany spot',
-                { es: 'Mostrando spot', fr: 'Spot affiche', de: 'Gezeigter Spot', it: 'Spot mostrato' })}: {spotName}{' '}
-              ({tp('геолокация недоступна', 'location unavailable', 'lokalizacja niedostepna',
-                { es: 'ubicacion no disponible', fr: 'position indisponible', de: 'Standort nicht verfuegbar', it: 'posizione non disponibile' })})
+                { es: 'Mostrando spot', fr: 'Spot affiché', de: 'Gezeigter Spot', it: 'Spot mostrato' })}: {spotName}{' '}
+              ({tp('геолокация недоступна', 'location unavailable', 'lokalizacja niedostępna',
+                { es: 'ubicación no disponible', fr: 'position indisponible', de: 'Standort nicht verfügbar', it: 'posizione non disponibile' })})
             </div>
           )}
 
           <div className="flex items-center gap-3 mt-3">
             <button onClick={showWind} className="text-xs underline" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Обновить', 'Refresh', 'Odswiez',
+              {tp('Обновить', 'Refresh', 'Odśwież',
                 { es: 'Actualizar', fr: 'Actualiser', de: 'Aktualisieren', it: 'Aggiorna' })}
             </button>
             <Link href="/courses#wind" className="text-xs underline" style={{ color: 'var(--text-secondary)' }}>
               {tp('Что значит направление ветра?', 'What does wind direction mean?', 'Co oznacza kierunek wiatru?',
-                { es: 'Que significa la direccion del viento?', fr: 'Que signifie la direction du vent ?', de: 'Was bedeutet die Windrichtung?', it: 'Cosa significa la direzione del vento?' })}
+                { es: '¿Qué significa la dirección del viento?', fr: 'Que signifie la direction du vent ?', de: 'Was bedeutet die Windrichtung?', it: 'Cosa significa la direzione del vento?' })}
             </Link>
           </div>
         </div>
@@ -184,7 +184,7 @@ export function WindNowCard() {
 
       <div className="text-[10px] text-[var(--text-muted)] mt-4 leading-relaxed">
         {tp('Для тренировки, не для навигации.', 'For training, not for navigation.', 'Do treningu, nie do nawigacji.',
-          { es: 'Para entrenamiento, no para navegacion.', fr: 'Pour l\'entrainement, pas pour la navigation.', de: 'Zum Training, nicht zur Navigation.', it: 'Per allenamento, non per navigazione.' })}
+          { es: 'Para practicar, no para navegar.', fr: 'Pour l\'entraînement, pas pour la navigation.', de: 'Zum Üben, nicht zur Navigation.', it: 'Per allenarsi, non per navigare.' })}
         {data ? ` ${data.attribution}` : ' Weather data by Open-Meteo.com (CC BY 4.0).'}
       </div>
     </div>

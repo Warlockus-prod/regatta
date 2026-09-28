@@ -22,7 +22,7 @@ export default function SimulatorV1Screen() {
       tier="basics"
       query={passthroughQuery(params)}
       title={tp('Основы', 'Basics', 'Podstawy', {
-        es: 'Basicos',
+        es: 'Fundamentos',
         fr: 'Bases',
         de: 'Grundlagen',
         it: 'Basi',
@@ -30,7 +30,7 @@ export default function SimulatorV1Screen() {
       scrollEnabled
       fallbackRoute="/simulator-basics"
       fallbackLabel={tp('Основы офлайн (упрощённо)', 'Basics offline (simple)', 'Podstawy offline (uproszczone)', {
-        es: 'Basicos sin conexion (simple)',
+        es: 'Fundamentos sin conexión (simple)',
         fr: 'Bases hors ligne (simple)',
         de: 'Grundlagen offline (einfach)',
         it: 'Basi offline (semplice)',

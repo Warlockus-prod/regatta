@@ -2,26 +2,50 @@ import { words, type Language } from "../../../lib/product/catalog";
 import type { SailLesson } from "../../../data/sailing-lab/course";
 import { mainsheetCopy, mainsheetDrawing, mainsheetReadout } from "./mainsheet-diagram";
 import { shapeCopy, shapeDrawing, shapeReadout } from "./shape-diagrams";
+import { telltaleCopy, telltaleDrawing, telltaleReadout } from "./telltale-diagram";
+import { halyardCopy, halyardDrawing, halyardReadout } from "./halyard-diagram";
+import { jibLeadCopy, jibLeadDrawing, jibLeadReadout } from "./jib-lead-diagram";
+import { slotCopy, slotDrawing, slotReadout } from "./slot-diagram";
+import { helmCopy, helmDrawing, helmReadout } from "./helm-diagram";
+import { reefCopy, reefDrawing, reefReadout } from "./reef-diagram";
 
 export const diagramCopy = {
   vang: shapeCopy.vang,
   outhaul: shapeCopy.outhaul,
   mainsheet: mainsheetCopy.description,
+  telltales: telltaleCopy.description,
+  halyard: halyardCopy.description,
+  "jib-lead": jibLeadCopy.description,
+  slot: slotCopy.description,
+  helm: helmCopy.description,
+  reef: reefCopy.description,
   rig: words("Выбери снасть: номер на схеме совпадает с номером кнопки.", "Select a line: its number matches the diagram.", "Wybierz linę: numer odpowiada schematowi.", "Elige un cabo: su número coincide con el esquema.", "Choisis un cordage : son numéro correspond au schéma.", "Wähle eine Leine: Die Nummer steht auch im Bild.", "Scegli una cima: il numero corrisponde allo schema."),
-  wind: words("Измени скорость яхты. Истинный ветер остается 8 узлов сбоку. Стрелки показывают направление движения воздуха и яхты, не «откуда ветер».", "Change boat speed. True wind remains 8 knots abeam. Arrows show air and boat motion, not the direction wind comes from.", "Zmień prędkość jachtu. Wiatr rzeczywisty pozostaje 8 węzłów z boku. Strzałki pokazują ruch powietrza i jachtu, nie kierunek skąd wieje.", "Cambia la velocidad del barco. El viento real sigue a 8 nudos por el través. Las flechas muestran movimiento, no de dónde viene el viento.", "Change la vitesse du bateau. Le vent réel reste à 8 nœuds au travers. Les flèches montrent le mouvement, pas d'où vient le vent.", "Ändere die Bootsfahrt. Wahrer Wind bleibt 8 Knoten querab. Pfeile zeigen die Bewegung, nicht die Windherkunft.", "Cambia la velocità della barca. Il vento reale resta 8 nodi al traverso. Le frecce mostrano il movimento, non da dove viene il vento."),
+  wind: words("Измени скорость яхты. Истинный ветер остается 8 узлов сбоку. Стрелки показывают направление движения воздуха и яхты, не «откуда ветер».", "Change boat speed. True wind remains 8 knots abeam. Arrows show air and boat motion, not the direction wind comes from.", "Zmień prędkość jachtu. Wiatr rzeczywisty pozostaje 8 węzłów z boku. Strzałki pokazują ruch powietrza i jachtu, nie kierunek, skąd wieje.", "Cambia la velocidad del barco. El viento real sigue a 8 nudos por el través. Las flechas muestran movimiento, no de dónde viene el viento.", "Change la vitesse du bateau. Le vent réel reste à 8 nœuds au travers. Les flèches montrent le mouvement, pas d'où vient le vent.", "Ändere die Bootsfahrt. Der wahre Wind bleibt bei 8 Knoten querab. Pfeile zeigen die Bewegung, nicht die Windherkunft.", "Cambia la velocità della barca. Il vento reale resta 8 nodi al traverso. Le frecce mostrano il movimento, non da dove viene il vento."),
   sheet: words("Выбери положение: вид сверху показывает предел отхода гика под нагрузкой. Это схема угла, а не расчет скорости.", "Choose a setting: the top view shows the boom's outward limit under load. This is an angle diagram, not a speed calculation.", "Wybierz ustawienie: widok z góry pokazuje granicę wychylenia bomu pod obciążeniem. To schemat kąta, nie obliczenie prędkości.", "Elige un ajuste: la vista superior muestra el límite de apertura bajo carga. Es un esquema angular, no un cálculo de velocidad.", "Choisis un réglage : la vue de dessus montre la limite d'ouverture sous charge. C'est un schéma d'angle, pas un calcul de vitesse.", "Wähle eine Stellung: Die Draufsicht zeigt die Auslenkungsgrenze unter Last. Ein Winkeldiagramm, keine Fahrtberechnung.", "Scegli una regolazione: la vista dall'alto mostra il limite di apertura sotto carico. È uno schema angolare, non un calcolo di velocità."),
   lines: [
     words("Фал", "Halyard", "Fał", "Driza", "Drisse", "Fall", "Drizza"),
     words("Гротшкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta randa"),
     words("Оттяжка гика", "Vang", "Obciągacz bomu", "Contra", "Hale-bas", "Baumniederholer", "Vang"),
-    words("Outhaul", "Outhaul", "Outhaul", "Pajarín", "Bordure", "Unterliekstrecker", "Base"),
+    words("Outhaul", "Outhaul", "Wybranka", "Pajarín", "Bordure", "Unterliekstrecker", "Tesabase"),
     words("Топенант", "Topping lift", "Topenanta", "Amantillo", "Balancine", "Dirk", "Amantiglio"),
   ],
   windKeys: [words("Истинный ветер", "True wind", "Wiatr rzeczywisty", "Viento real", "Vent réel", "Wahrer Wind", "Vento reale"), words("Скорость яхты", "Boat velocity", "Prędkość jachtu", "Velocidad del barco", "Vitesse du bateau", "Bootsgeschwindigkeit", "Velocità della barca"), words("Вымпельный ветер", "Apparent wind", "Wiatr pozorny", "Viento aparente", "Vent apparent", "Scheinbarer Wind", "Vento apparente")],
-  positions: [words("Выбрано", "Trimmed in", "Wybrany", "Cazada", "Bordée", "Dichtgeholt", "Cazzata"), words("Середина", "Intermediate", "Pośrednio", "Intermedia", "Intermédiaire", "Mittel", "Intermedia"), words("Потравлено", "Eased out", "Wyluzowany", "Lascada", "Choquée", "Gefiert", "Lascata")],
+  positions: [words("Выбрано", "Trimmed in", "Wybrany", "Cazada", "Bordée", "Dichtgeholt", "Cazzata"), words("Середина", "Intermediate", "Pośredni", "Intermedia", "Intermédiaire", "Mittel", "Intermedia"), words("Потравлено", "Eased out", "Poluzowany", "Lascada", "Choquée", "Gefiert", "Lascata")],
 };
 
+const bookDiagrams = {
+  telltales: { options: telltaleCopy.options, readout: telltaleReadout, drawing: telltaleDrawing },
+  halyard: { options: halyardCopy.options, readout: halyardReadout, drawing: halyardDrawing },
+  "jib-lead": { options: jibLeadCopy.options, readout: jibLeadReadout, drawing: jibLeadDrawing },
+  slot: { options: slotCopy.options, readout: slotReadout, drawing: slotDrawing },
+  helm: { options: helmCopy.options, readout: helmReadout, drawing: helmDrawing },
+  reef: { options: reefCopy.options, readout: reefReadout, drawing: reefDrawing },
+} as const;
+type BookDiagram = keyof typeof bookDiagrams;
+const isBookDiagram = (kind: SailLesson["diagram"]): kind is BookDiagram => kind in bookDiagrams;
+
 export function diagramOptions(kind: SailLesson["diagram"], lang: Language) {
+  if (isBookDiagram(kind)) return bookDiagrams[kind].options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "vang" || kind === "outhaul") return shapeCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "mainsheet") return mainsheetCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "wind") return [0, 4, 8].map(value => ({ value, label: `${value} kn` }));
@@ -29,6 +53,7 @@ export function diagramOptions(kind: SailLesson["diagram"], lang: Language) {
 }
 
 export function diagramReadout(kind: SailLesson["diagram"], selection: number, lang: Language) {
+  if (isBookDiagram(kind)) return bookDiagrams[kind].readout(selection, lang);
   if (kind === "vang" || kind === "outhaul") return shapeReadout(kind, selection, lang);
   return kind === "mainsheet" ? mainsheetReadout(selection, lang) : null;
 }
@@ -48,7 +73,9 @@ export function windExample(boatSpeed: number) {
 export function sailDiagram(kind: SailLesson["diagram"], selection: number): string {
   selection = Number.isFinite(selection) ? selection : 0;
   let drawing = "";
-  if (kind === "vang" || kind === "outhaul") {
+  if (isBookDiagram(kind)) {
+    drawing = bookDiagrams[kind].drawing(selection);
+  } else if (kind === "vang" || kind === "outhaul") {
     drawing = shapeDrawing(kind, selection);
   } else if (kind === "mainsheet") {
     drawing = mainsheetDrawing(selection);

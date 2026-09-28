@@ -18,6 +18,21 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 | 18 | 1.2.0 | v1.2 | NOT attached | AI opponents, animated sim + wind rose, global leaderboard, PostHog. Never reached testers (attach gap). |
 | <= 13 | <= 0.13.0 | - | Self | Last builds the phone actually saw before the gap. |
 
+## Incident: 1.6.2 does not launch on iOS 27 (found 2026-09-27)
+
+Build 43 (1.6.2, on sale since September) was archived on 2026-09-17 two hours
+after the Mac updated Xcode 26.6 to Xcode 27.0, so it is linked against the iOS
+27 SDK (`sdkBuild` 24A430 in App Store Connect; build 42 was 23F81a, iOS 26.5).
+iOS 27 refuses to launch apps built with that SDK unless they use the UIScene
+life cycle, and Expo SDK 54 generates an AppDelegate-only app. The system log
+says: "Application failed to launch: UIScene life cycle is required for apps
+built with this SDK". The app closes immediately on every iPhone with iOS 27
+and works on iOS 26 and older. Reproduced with a Release simulator build of
+`b5580aa`: fresh install on iPhone 17 Pro Max iOS 27.0 closes at once, iOS 26.5
+opens Home. Fix options: archive with Xcode 26.x (iOS 26 SDK), or adopt UIScene
+(Expo SDK 57.0.23+ with `expo-build-properties` `ios.enableSceneSupport`, default
+from SDK 58). Xcode 27 must not archive this app until UIScene is adopted.
+
 ## Online 3D update (2026-09-08)
 
 Build 42 now loads web source `cb187ba` for its online 3D scene: automatic

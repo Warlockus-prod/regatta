@@ -495,7 +495,7 @@ No personally identifiable info. ATT-respecting.
 Same rules as web (per CLAUDE.md `## Typography` + `## i18n`):
 
 - No em-dashes / en-dashes. ASCII hyphens only.
-- Polish strings without diacritics.
+- Polish strings with full Polish spelling (diacritics), since 2026-09-27.
 - Spanish / French / German / Italian: diacritics OK, no fancy punctuation.
 - Source language is RU. New strings always start in RU and travel through `scripts/translate-data-flat.mjs` for the other six.
 - Pre-commit hook (Shared lane) runs `cyrillic-scan.mjs` on `src/data/*.ts`; mobile sync inherits that guarantee.

@@ -24,11 +24,11 @@ export default function Quick() {
   const headerTitle = tp(
     'Быстрый разогрев',
     'Quick refresh',
-    'Szybkie powtorzenie',
+    'Szybka powtórka',
     {
-      es: 'Repaso rapido',
-      fr: 'Revision rapide',
-      de: 'Schnelle Auffrischung',
+      es: 'Repaso rápido',
+      fr: 'Révision express',
+      de: 'Kurze Auffrischung',
       it: 'Ripasso rapido',
     },
   );
@@ -36,11 +36,11 @@ export default function Quick() {
   const badge = tp(
     'Быстрое освежение',
     'Quick refresh',
-    'Szybkie odswiezenie',
+    'Szybka powtórka',
     {
-      es: 'Repaso rapido',
-      fr: 'Revision rapide',
-      de: 'Schnelle Auffrischung',
+      es: 'Repaso rápido',
+      fr: 'Révision express',
+      de: 'Kurze Auffrischung',
       it: 'Ripasso rapido',
     },
   );
@@ -51,21 +51,21 @@ export default function Quick() {
     `${QUICK_REFRESH_TOTAL_MINUTES} minut przed startem`,
     {
       es: `${QUICK_REFRESH_TOTAL_MINUTES} min antes de la salida`,
-      fr: `${QUICK_REFRESH_TOTAL_MINUTES} min avant le depart`,
-      de: `${QUICK_REFRESH_TOTAL_MINUTES} Min vor dem Start`,
+      fr: `${QUICK_REFRESH_TOTAL_MINUTES} min avant le départ`,
+      de: `${QUICK_REFRESH_TOTAL_MINUTES} Min. vor dem Start`,
       it: `${QUICK_REFRESH_TOTAL_MINUTES} min prima della partenza`,
     },
   );
 
   const summary = tp(
-    'Для тех у кого опыт уже есть и регата - завтра. 6 ключевых тем без воды.',
+    'Для тех, у кого опыт уже есть и регата - завтра. 6 ключевых тем без воды.',
     'For experienced sailors with a regatta tomorrow. 6 key topics, no filler.',
-    'Dla doswiadczonych zeglarzy, ktorzy maja regate jutro. 6 kluczowych tematow, bez ogolnikow.',
+    'Dla doświadczonych żeglarzy, którzy jutro startują w regatach. 6 kluczowych tematów, bez lania wody.',
     {
-      es: 'Para regatistas con experiencia y regata manana. 6 temas clave, sin relleno.',
-      fr: 'Pour les regatiers experimentes avec une regate demain. 6 sujets cles, sans remplissage.',
-      de: 'Fur erfahrene Segler mit Regatta morgen. 6 Kernthemen, ohne Fullstoff.',
-      it: 'Per regatanti esperti con una regata domani. 6 temi chiave, senza riempitivi.',
+      es: 'Para regatistas con experiencia que compiten mañana. 6 temas clave, sin relleno.',
+      fr: 'Pour les régatiers expérimentés qui courent demain. 6 sujets clés, sans blabla.',
+      de: 'Für erfahrene Segler mit Regatta morgen. 6 Kernthemen, ohne Ballast.',
+      it: 'Per regatanti esperti con una regata domani. 6 temi chiave, senza fronzoli.',
     },
   );
 
@@ -79,11 +79,11 @@ export default function Quick() {
   const footerLead = tp(
     'Если хочешь полный маршрут на 45+ минут -',
     'If you want the full 45+ min path -',
-    'Jesli chcesz pelna sciezke na 45+ minut -',
+    'Jeśli chcesz pełną ścieżkę na 45+ minut -',
     {
       es: 'Si quieres la ruta completa de 45+ min -',
       fr: 'Si tu veux le parcours complet de 45+ min -',
-      de: 'Wenn du den vollen Pfad mit 45+ Min willst -',
+      de: 'Wenn du den ganzen Kurs mit 45+ Min. willst -',
       it: 'Se vuoi il percorso completo da 45+ min -',
     },
   );

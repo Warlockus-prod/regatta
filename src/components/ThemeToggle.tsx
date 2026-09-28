@@ -40,12 +40,12 @@ export default function ThemeToggle() {
   const label =
     mode === 'auto'
       ? tp('Тема: авто', 'Theme: auto', 'Motyw: auto',
-          { es: 'Tema: auto', fr: 'Theme: auto', de: 'Thema: auto', it: 'Tema: auto' })
+          { es: 'Tema: auto', fr: 'Thème : auto', de: 'Design: automatisch', it: 'Tema: auto' })
       : mode === 'light'
       ? tp('Тема: светлая', 'Theme: light', 'Motyw: jasny',
-          { es: 'Tema: claro', fr: 'Theme: clair', de: 'Thema: hell', it: 'Tema: chiaro' })
+          { es: 'Tema: claro', fr: 'Thème : clair', de: 'Design: hell', it: 'Tema: chiaro' })
       : tp('Тема: тёмная', 'Theme: dark', 'Motyw: ciemny',
-          { es: 'Tema: oscuro', fr: 'Theme: sombre', de: 'Thema: dunkel', it: 'Tema: scuro' });
+          { es: 'Tema: oscuro', fr: 'Thème : sombre', de: 'Design: dunkel', it: 'Tema: scuro' });
 
   return (
     <button

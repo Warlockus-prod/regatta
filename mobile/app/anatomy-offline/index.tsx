@@ -86,28 +86,28 @@ export default function Anatomy() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activePosterId, setActivePosterId] = useState<string | null>(null);
 
-  const headerTitle = tp('Анатомия яхты', 'Yacht anatomy', 'Anatomia jachtu', {
-    es: 'Anatomia del yate',
-    fr: 'Anatomie du yacht',
-    de: 'Yacht-Anatomie',
-    it: 'Anatomia dello yacht',
+  const headerTitle = tp('Анатомия яхты', 'Yacht anatomy', 'Budowa jachtu', {
+    es: 'Anatomía del velero',
+    fr: 'Anatomie du voilier',
+    de: 'Aufbau der Yacht',
+    it: 'Anatomia della barca',
   });
 
   const intro = tp(
     'Нажми на точку - откроется карточка с описанием.',
     'Tap a hotspot to open the part card.',
-    'Dotknij punktu - otworzy sie karta z opisem.',
+    'Dotknij punktu, a otworzy się karta z opisem.',
     {
-      es: 'Toca un punto - se abrira la ficha de la pieza.',
-      fr: 'Touche un point pour ouvrir la fiche de la piece.',
-      de: 'Tippe auf einen Punkt - die Bauteilkarte oeffnet sich.',
-      it: 'Tocca un punto per aprire la scheda del pezzo.',
+      es: 'Toca un punto para abrir la ficha con la descripción.',
+      fr: 'Touche un point pour ouvrir la fiche descriptive.',
+      de: 'Tippe auf einen Punkt, um die Beschreibung zu öffnen.',
+      it: 'Tocca un punto per aprire la scheda con la descrizione.',
     },
   );
 
   const allPartsLabel = tp('Все детали', 'All parts', 'Wszystkie elementy', {
     es: 'Todas las partes',
-    fr: 'Toutes les pieces',
+    fr: 'Tous les éléments',
     de: 'Alle Teile',
     it: 'Tutte le parti',
   });
@@ -115,24 +115,24 @@ export default function Anatomy() {
   const summary = tp(
     `${anatomyParts.length} элементов`,
     `${anatomyParts.length} parts`,
-    `${anatomyParts.length} elementow`,
+    `${anatomyParts.length} elementów`,
     {
-      es: `${anatomyParts.length} elementos`,
-      fr: `${anatomyParts.length} elements`,
+      es: `${anatomyParts.length} partes`,
+      fr: `${anatomyParts.length} éléments`,
       de: `${anatomyParts.length} Teile`,
-      it: `${anatomyParts.length} elementi`,
+      it: `${anatomyParts.length} parti`,
     },
   );
 
   const photoCaption = tp(
     'Современная гоночная яхта - вид сверху.',
     'Modern racing yacht - top-down view.',
-    'Wspolczesny jacht regatowy - widok z gory.',
+    'Współczesny jacht regatowy - widok z góry.',
     {
-      es: 'Yate de regatas moderno - vista cenital.',
-      fr: 'Yacht de regate moderne - vue de dessus.',
+      es: 'Velero de regatas moderno - vista cenital.',
+      fr: 'Voilier de régate moderne - vue de dessus.',
       de: 'Moderne Regattayacht - Blick von oben.',
-      it: 'Yacht da regata moderno - vista dall\'alto.',
+      it: 'Barca da regata moderna - vista dall\'alto.',
     },
   );
 
@@ -414,22 +414,22 @@ function PosterGallery({
     ? ANATOMY_POSTERS.find((p) => p.id === activePosterId) ?? null
     : null;
 
-  const sectionTitle = tp('Графика', 'Graphics', 'Graphics', {
-    es: 'Graficos',
-    fr: 'Graphiques',
+  const sectionTitle = tp('Графика', 'Graphics', 'Grafiki', {
+    es: 'Infografías',
+    fr: 'Infographies',
     de: 'Grafiken',
     it: 'Grafiche',
   });
-  const sectionMeta = tp('Постеры с сайта', 'Website posters', 'Postery ze strony', {
-    es: 'Posters del sitio',
+  const sectionMeta = tp('Постеры с сайта', 'Website posters', 'Plakaty ze strony', {
+    es: 'Pósteres de la web',
     fr: 'Affiches du site',
-    de: 'Website-Poster',
-    it: 'Poster del sito',
+    de: 'Poster von der Website',
+    it: 'Poster dal sito',
   });
   const closeLabel = tp('Закрыть', 'Close', 'Zamknij', {
     es: 'Cerrar',
     fr: 'Fermer',
-    de: 'Schliessen',
+    de: 'Schließen',
     it: 'Chiudi',
   });
 
@@ -577,42 +577,42 @@ function PartSheet({ part, onClose, onNext, onPrev }: PartSheetProps) {
   const closeLabel = tp('Закрыть', 'Close', 'Zamknij', {
     es: 'Cerrar',
     fr: 'Fermer',
-    de: 'Schliessen',
+    de: 'Schließen',
     it: 'Chiudi',
   });
-  const useOnBoardLabel = tp('На борту', 'On board', 'Na pokladzie', {
+  const useOnBoardLabel = tp('На борту', 'On board', 'Na pokładzie', {
     es: 'A bordo',
-    fr: 'A bord',
+    fr: 'À bord',
     de: 'An Bord',
     it: 'A bordo',
   });
   const partBadge = tp('Деталь', 'Part', 'Element', {
-    es: 'Pieza',
-    fr: 'Piece',
+    es: 'Parte',
+    fr: 'Élément',
     de: 'Teil',
-    it: 'Pezzo',
+    it: 'Parte',
   });
   const prevLabel = tp('Предыдущая деталь', 'Previous part', 'Poprzedni element', {
-    es: 'Pieza anterior',
-    fr: 'Piece precedente',
+    es: 'Parte anterior',
+    fr: 'Élément précédent',
     de: 'Vorheriges Teil',
-    it: 'Pezzo precedente',
+    it: 'Parte precedente',
   });
-  const nextLabel = tp('Следующая деталь', 'Next part', 'Nastepny element', {
-    es: 'Pieza siguiente',
-    fr: 'Piece suivante',
-    de: 'Naechstes Teil',
-    it: 'Pezzo successivo',
+  const nextLabel = tp('Следующая деталь', 'Next part', 'Następny element', {
+    es: 'Parte siguiente',
+    fr: 'Élément suivant',
+    de: 'Nächstes Teil',
+    it: 'Parte successiva',
   });
   const swipeHint = tp(
     'Свайп влево / вправо для соседних деталей.',
     'Swipe left / right for adjacent parts.',
-    'Przesun w lewo / w prawo dla sasiadow.',
+    'Przesuń w lewo lub w prawo, aby zobaczyć sąsiednie elementy.',
     {
-      es: 'Desliza izquierda / derecha para piezas vecinas.',
-      fr: 'Glisse a gauche / droite pour les voisines.',
-      de: 'Wische links / rechts fuer Nachbarn.',
-      it: 'Scorri sinistra / destra per i pezzi vicini.',
+      es: 'Desliza a la izquierda o a la derecha para ver las partes vecinas.',
+      fr: 'Glisse à gauche ou à droite pour voir les éléments voisins.',
+      de: 'Wische nach links oder rechts zu den benachbarten Teilen.',
+      it: 'Scorri a sinistra o a destra per le parti vicine.',
     },
   );
 

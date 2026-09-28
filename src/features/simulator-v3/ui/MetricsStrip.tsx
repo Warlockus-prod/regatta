@@ -23,21 +23,21 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
       style={{ background: 'rgba(8, 24, 48, 0.6)', border: '1px solid rgba(0, 212, 255, 0.18)' }}
     >
       <MetricChip
-        label={tp('СКОРОСТЬ', 'SPEED', 'PREDKOSC', {
+        label={tp('СКОРОСТЬ', 'SPEED', 'PRĘDKOŚĆ', {
           es: 'VELOCIDAD',
           fr: 'VITESSE',
           de: 'FAHRT',
-          it: 'VELOCITA',
+          it: 'VELOCITÀ',
         })}
         value={sim.result.state.boatSpeed.toFixed(1)}
-        unit={tp('уз', 'kts', 'kts')}
+        unit={tp('уз', 'kts', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
         color="var(--accent-cyan)"
       />
       <MetricChip
-        label={tp('КРЕН', 'HEEL', 'PRZECHYL', {
+        label={tp('КРЕН', 'HEEL', 'PRZECHYŁ', {
           es: 'ESCORA',
-          fr: 'GITE',
-          de: 'KRAENGUNG',
+          fr: 'GÎTE',
+          de: 'KRÄNGUNG',
           it: 'SBANDAM.',
         })}
         value={Math.round(heelAbs).toString()}
@@ -53,7 +53,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         divider
       />
       <MetricChip
-        label={ui.mainTrim ? "TWIST" : tp('ТРИМ', 'TRIM', 'TRIM', {
+        label={ui.mainTrim ? "TWIST" : tp('ТРИМ', 'TRIM', 'TRYM', {
           es: 'TRIM',
           fr: 'TRIM',
           de: 'TRIMM',

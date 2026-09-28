@@ -29,7 +29,7 @@ export default function SiteFooter() {
   const tagline = tp(
     'тренажёр парусного спорта',
     'sailing tutor',
-    'symulator zeglarstwa',
+    'trenażer żeglarski',
     {
       es: 'simulador de vela',
       fr: 'simulateur de voile',
@@ -49,8 +49,8 @@ export default function SiteFooter() {
       <span>{tagline}</span>
       <span className="mx-2 opacity-50">·</span>
       <Link href="/privacy" className="hover:text-[var(--accent-cyan)] transition">
-        {tp('Конфиденциальность', 'Privacy', 'Prywatnosc',
-          { es: 'Privacidad', fr: 'Confidentialite', de: 'Datenschutz', it: 'Privacy' })}
+        {tp('Конфиденциальность', 'Privacy', 'Prywatność',
+          { es: 'Privacidad', fr: 'Confidentialité', de: 'Datenschutz', it: 'Privacy' })}
       </Link>
       <span className="mx-2 opacity-50">·</span>
       <Link href="/support" className="hover:text-[var(--accent-cyan)] transition">

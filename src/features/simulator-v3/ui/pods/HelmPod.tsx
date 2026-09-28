@@ -52,7 +52,7 @@ export function HelmPod({
     <PodCard compact={compact}>
       <PodLabel
         text={tp('РУЛЬ', 'HELM', 'STER', {
-          es: 'TIMON',
+          es: 'TIMÓN',
           fr: 'BARRE',
           de: 'RUDER',
           it: 'TIMONE',

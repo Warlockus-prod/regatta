@@ -19,10 +19,22 @@ export const DEFAULT_BOAT: BoatParams = {
   jibMaxOff: 55,        // deg
   jibMinOff: 5,         // deg (hard sheeted, cannot go fully on centerline)
   gm: 1.0,              // m. Metacentric height. Lower = tender, higher = stiff.
-  hullDragK: 220,       // D = hullDragK * v^2 (v in m/s, D in N).
+  hullDragK: 240,       // D = hullDragK * v^2 (v in m/s, D in N).
                         // Tuned so beam-reach steady state lands in [5, 6.5] kn.
-  keelK: 1500,          // Effective keel/hull side-force constant.
+                        // Raised from 220 together with keelK: realistic leeway
+                        // stops bleeding apparent wind, so hull drag now carries
+                        // that resistance. Keeps the trimmed polar within 2% of
+                        // the old speeds on average (worst cell 3.9%), so race
+                        // times, missions and leaderboards do not move.
+                        // DECISIONS.md ADR-0002.
+  keelK: 6000,          // Effective keel/hull side-force constant.
                         // Used as: leeway_rad ~ F_side / (keelK * (bs_mps + 0.5)^2)
+                        // At 1500 close-hauled leeway sat on the 12 deg clamp at
+                        // every wind speed, so the clamp, not the keel, set it.
+                        // With the heel term in balance.ts, 6000 gives 3.3-4.6
+                        // deg close-hauled at normal heel, 1.1-1.8 on a beam reach
+                        // and 0.2-0.3 running (Dedekam p. 5: marked leeway upwind,
+                        // little or none downwind). Locked by polar.test.ts.
   surgeMass: 10000,     // kg. Added mass of water moving with the hull raises
                         // effective inertia above displacement alone.
 };

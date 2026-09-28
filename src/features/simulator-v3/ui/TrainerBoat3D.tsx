@@ -15,15 +15,15 @@ export default function TrainerBoat3D({ sim, tp }: { sim: SimulationModel; tp: T
   const views: { id: CameraView; title: string }[] = [
     { id: "sails", title: tp("Паруса", "Sails", "Żagle", { es: "Velas", fr: "Voiles", de: "Segel", it: "Vele" }) },
     { id: "deck", title: tp("Палуба", "Deck", "Pokład", { es: "Cubierta", fr: "Pont", de: "Deck", it: "Coperta" }) },
-    { id: "whole", title: tp("Вся яхта", "Whole yacht", "Cały jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Intera barca" }) },
+    { id: "whole", title: tp("Вся яхта", "Whole yacht", "Cały jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Tutta la barca" }) },
   ];
   if (sim.session.mainTrim) views.push({ id: "mainsheet", title: tp("Гротшкот", "Mainsheet", "Szot grota", { es: "Escota mayor", fr: "Écoute", de: "Großschot", it: "Scotta randa" }) });
   return <div className="absolute inset-0 flex flex-col">
     <div className="relative min-h-0 flex-1">
     <RegattaScene stateRef={yachtRef} maxDpr={1} postFx={false} view={activeView} showFlow={activeView !== "mainsheet"}
       sceneLabel="3D"
-      loadingLabel={tp("Загрузка яхты", "Loading yacht", "Ładowanie jachtu", { es: "Cargando yate", fr: "Chargement du bateau", de: "Yacht laden", it: "Caricamento barca" })}
-      errorLabel={tp("3D недоступно. Можно продолжить в виде «Сверху» без сброса упражнения.", "3D is unavailable. Continue in Top view without resetting the exercise.", "3D jest niedostępne. Wróć do widoku z góry bez resetowania ćwiczenia.", { es: "3D no disponible. Sigue en vista superior sin reiniciar.", fr: "3D indisponible. Continue en vue de dessus sans réinitialiser.", de: "3D nicht verfügbar. In der Draufsicht ohne Neustart fortfahren.", it: "3D non disponibile. Continua dall'alto senza ricominciare." })}
+      loadingLabel={tp("Загрузка яхты", "Loading yacht", "Ładowanie jachtu", { es: "Cargando yate", fr: "Chargement du bateau", de: "Yacht wird geladen", it: "Caricamento della barca" })}
+      errorLabel={tp("3D недоступно. Можно продолжить в виде «Сверху» без сброса упражнения.", "3D is unavailable. Continue in Top view without resetting the exercise.", "3D jest niedostępne. Wróć do widoku z góry bez resetowania ćwiczenia.", { es: "3D no disponible. Puedes seguir en la vista \"Cenital\" sin reiniciar el ejercicio.", fr: "La 3D est indisponible. Continue en vue \"Dessus\" sans réinitialiser l'exercice.", de: "3D nicht verfügbar. In der Draufsicht ohne Neustart fortfahren.", it: "3D non disponibile. Continua dall'alto senza ricominciare." })}
       retryLabel={tp("Повторить", "Retry", "Ponów", { es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" })} />
     </div>
     <div className="flex shrink-0 flex-wrap gap-2 p-2">

@@ -34,18 +34,30 @@ type BoatStyle = 'cruiser' | 'racer';
 const BOAT_STYLES: {
   id: BoatStyle;
   labelRu: string; labelEn: string; labelPl: string;
+  labelEs: string; labelFr: string; labelDe: string; labelIt: string;
   descRu: string; descEn: string; descPl: string;
+  descEs: string; descFr: string; descDe: string; descIt: string;
   hullScale: number; hullWidth: number; sailHue: string;
 }[] = [
   { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', labelPl: 'Jacht turystyczny',
+    labelEs: 'Crucero', labelFr: 'Croiseur', labelDe: 'Fahrtenyacht', labelIt: 'Da crociera',
     descRu: 'Сбалансированная, для начала.',
     descEn: 'Balanced, good for starting out.',
-    descPl: 'Zbalansowany, dobry na poczatek.',
+    descPl: 'Wyważony, dobry na początek.',
+    descEs: 'Equilibrado, ideal para empezar.',
+    descFr: 'Équilibré, idéal pour débuter.',
+    descDe: 'Ausgewogen, gut für den Einstieg.',
+    descIt: 'Equilibrata, ideale per iniziare.',
     hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
-  { id: 'racer', labelRu: 'Гоночная', labelEn: 'Racer', labelPl: 'Regatowy',
+  { id: 'racer', labelRu: 'Гоночная', labelEn: 'Racer', labelPl: 'Jacht regatowy',
+    labelEs: 'De regatas', labelFr: 'Voilier de course', labelDe: 'Regattayacht', labelIt: 'Da regata',
     descRu: 'Узкий длинный корпус, быстрая.',
-    descEn: 'Narrow long hull, fast.',
-    descPl: 'Waski dlugi kadlub, szybki.',
+    descEn: 'Long, narrow hull. Fast.',
+    descPl: 'Długi, wąski kadłub. Szybki.',
+    descEs: 'Casco largo y estrecho. Rápido.',
+    descFr: 'Coque longue et étroite. Rapide.',
+    descDe: 'Langer, schmaler Rumpf. Schnell.',
+    descIt: 'Scafo lungo e stretto. Veloce.',
     hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
 ];
 
@@ -75,6 +87,10 @@ interface CourseMark {
   label: string;       // RU, kept for back-compat (e.g. replay sharing)
   labelEn: string;
   labelPl: string;
+  labelEs?: string;
+  labelFr?: string;
+  labelDe?: string;
+  labelIt?: string;
   type: 'start' | 'windward' | 'finish';
   roundSide?: 'port' | 'starboard'; // which side to leave the mark
 }
@@ -136,9 +152,17 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string;      // RU (legacy field name, kept for compat)
   labelEn: string;
   labelPl: string;
+  labelEs: string;
+  labelFr: string;
+  labelDe: string;
+  labelIt: string;
   description: string;      // RU
   descriptionEn: string;
   descriptionPl: string;
+  descriptionEs: string;
+  descriptionFr: string;
+  descriptionDe: string;
+  descriptionIt: string;
   opponents: number;
   aiSpeedMul: number;
   aiSkill: number;
@@ -147,10 +171,18 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   easy: {
     label: 'Лёгкий',
     labelEn: 'Easy',
-    labelPl: 'Latwy',
+    labelPl: 'Łatwy',
+    labelEs: 'Fácil',
+    labelFr: 'Facile',
+    labelDe: 'Leicht',
+    labelIt: 'Facile',
     description: 'Медленные противники, спокойные повороты. Хорошо для знакомства с управлением.',
     descriptionEn: 'Slow opponents, gentle turns. Good for getting used to the controls.',
-    descriptionPl: 'Wolni rywale, lagodne zwroty. Dobre do zapoznania sie ze sterowaniem.',
+    descriptionPl: 'Wolni rywale, spokojne zwroty. Dobry na oswojenie się ze sterowaniem.',
+    descriptionEs: 'Rivales lentos que viran con calma. Ideal para hacerte con los controles.',
+    descriptionFr: 'Adversaires lents, virements tranquilles. Idéal pour prendre en main les commandes.',
+    descriptionDe: 'Langsame Gegner, ruhige Wenden. Gut, um dich mit der Steuerung vertraut zu machen.',
+    descriptionIt: 'Avversari lenti, virate tranquille. Ideale per prendere confidenza con i comandi.',
     opponents: 2,
     aiSpeedMul: 0.78,
     aiSkill: 0.7,
@@ -159,10 +191,18 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   medium: {
     label: 'Средний',
     labelEn: 'Medium',
-    labelPl: 'Sredni',
+    labelPl: 'Średni',
+    labelEs: 'Medio',
+    labelFr: 'Moyen',
+    labelDe: 'Mittel',
+    labelIt: 'Medio',
     description: 'Соперники держат курс уверенно. Нужна тактика лавировки и точное огибание знаков.',
     descriptionEn: 'Opponents sail a confident line. You need tacking tactics and precise mark rounding.',
-    descriptionPl: 'Rywale plyna pewnie. Potrzebna taktyka halsowania i precyzyjne oplywanie znakow.',
+    descriptionPl: 'Rywale pewnie trzymają kurs. Potrzebna jest taktyka halsowania i precyzyjne opływanie znaków.',
+    descriptionEs: 'Los rivales mantienen el rumbo con seguridad. Necesitas táctica de bordos y rodear las balizas con precisión.',
+    descriptionFr: 'Les adversaires tiennent leur cap avec assurance. Il te faut une tactique de louvoyage et des passages de bouée précis.',
+    descriptionDe: 'Die Gegner halten sicher ihren Kurs. Du brauchst eine gute Kreuztaktik und musst die Bahnmarken präzise runden.',
+    descriptionIt: 'Gli avversari tengono la rotta con sicurezza. Servono una buona tattica di bolina e giri di boa precisi.',
     opponents: 3,
     aiSpeedMul: 0.92,
     aiSkill: 0.9,
@@ -172,9 +212,17 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
     label: 'Сложный',
     labelEn: 'Hard',
     labelPl: 'Trudny',
+    labelEs: 'Difícil',
+    labelFr: 'Difficile',
+    labelDe: 'Schwer',
+    labelIt: 'Difficile',
     description: 'Агрессивные соперники идут почти оптимально. Каждая ошибка дорого стоит.',
     descriptionEn: 'Aggressive opponents sail near-optimal lines. Every mistake is costly.',
-    descriptionPl: 'Agresywni rywale plyna niemal optymalnie. Kazdy blad jest kosztowny.',
+    descriptionPl: 'Agresywni rywale płyną niemal optymalnie. Każdy błąd drogo kosztuje.',
+    descriptionEs: 'Rivales agresivos que navegan casi a la perfección. Cada error se paga caro.',
+    descriptionFr: 'Des adversaires agressifs, presque parfaits. Chaque erreur coûte cher.',
+    descriptionDe: 'Aggressive Gegner segeln nahezu optimal. Jeder Fehler rächt sich.',
+    descriptionIt: 'Avversari aggressivi che navigano quasi alla perfezione. Ogni errore costa caro.',
     opponents: 4,
     aiSpeedMul: 1.02,
     aiSkill: 1.0,
@@ -206,9 +254,9 @@ function makeCourse(): Course {
   };
   return {
     marks: [
-      { pos: { x: cx, y: windwardY }, radius: 14, label: 'Верхний знак', labelEn: 'Windward mark', labelPl: 'Znak nawietrzny', type: 'windward', roundSide: 'port' },
-      { pos: startLine.a, radius: 10, label: 'Старт/Финиш Л', labelEn: 'Start/Finish L', labelPl: 'Start/Meta L', type: 'start' },
-      { pos: startLine.b, radius: 10, label: 'Старт/Финиш П', labelEn: 'Start/Finish R', labelPl: 'Start/Meta P', type: 'start' },
+      { pos: { x: cx, y: windwardY }, radius: 14, label: 'Верхний знак', labelEn: 'Windward mark', labelPl: 'Znak nawietrzny', labelEs: 'Baliza de barlovento', labelFr: 'Bouée au vent', labelDe: 'Luvtonne', labelIt: 'Boa di bolina', type: 'windward', roundSide: 'port' },
+      { pos: startLine.a, radius: 10, label: 'Старт/Финиш Л', labelEn: 'Start/Finish L', labelPl: 'Start/Meta L', labelEs: 'Salida/Llegada I', labelFr: 'Départ/Arrivée G', labelDe: 'Start/Ziel L', labelIt: 'Partenza/Arrivo S', type: 'start' },
+      { pos: startLine.b, radius: 10, label: 'Старт/Финиш П', labelEn: 'Start/Finish R', labelPl: 'Start/Meta P', labelEs: 'Salida/Llegada D', labelFr: 'Départ/Arrivée D', labelDe: 'Start/Ziel R', labelIt: 'Partenza/Arrivo D', type: 'start' },
     ],
     startLine,
     finishLine: startLine,
@@ -367,8 +415,8 @@ export default function GamePage() {
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2 || player.finishTime == null) {
       setSaveState('error');
-      setSaveError(tp('Не финишировал', 'Did not finish', 'Nie ukonczyl',
-        { es: 'No termino', fr: 'Pas fini', de: 'Nicht beendet', it: 'Non ha finito' }));
+      setSaveError(tp('Не финишировал', 'Did not finish', 'Nie ukończono',
+        { es: 'No has terminado', fr: 'Course non terminée', de: 'Nicht im Ziel', it: 'Regata non conclusa' }));
       return;
     }
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
@@ -393,7 +441,7 @@ export default function GamePage() {
             body: JSON.stringify({ nickname: effectiveNick }),
           });
           const d = await r.json();
-          if (!r.ok) throw new Error(d.error || 'Failed to save nickname');
+          if (!r.ok) throw new Error(d.error || tp('Не удалось сохранить ник', 'Failed to save nickname', 'Nie udało się zapisać nicku', { es: 'No se pudo guardar el apodo', fr: 'Impossible d\'enregistrer le pseudo', de: 'Nickname konnte nicht gespeichert werden', it: 'Impossibile salvare il nickname' }));
           setNickname(d.nickname);
         }
         const res = await fetch('/api/race-result', {
@@ -414,11 +462,11 @@ export default function GamePage() {
           }),
         });
         const d = await res.json();
-        if (!res.ok) throw new Error(d.error || 'Failed to save result');
+        if (!res.ok) throw new Error(d.error || tp('Не удалось сохранить результат', 'Failed to save result', 'Nie udało się zapisać wyniku', { es: 'No se pudo guardar el resultado', fr: 'Impossible d\'enregistrer le résultat', de: 'Ergebnis konnte nicht gespeichert werden', it: 'Impossibile salvare il risultato' }));
         setSaveState('saved');
       } catch (err) {
         setSaveState('error');
-        setSaveError(err instanceof Error ? err.message : 'Network error');
+        setSaveError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci', { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
       }
     };
     void doSave();
@@ -831,14 +879,14 @@ export default function GamePage() {
               const local = analyseRaceLocally(payload, lang);
               setCoaching(local);
               if (data.fallback) setCoachingError(null);
-              else setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostepne - pokazuje analize lokalna'));
+              else setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
             }
           })
           .catch(() => {
             // Network error - use local analysis
             const local = analyseRaceLocally(payload, lang);
             setCoaching(local);
-            setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostepne - pokazuje analize lokalna'));
+            setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
           })
           .finally(() => setCoachingLoading(false));
 
@@ -1014,7 +1062,7 @@ export default function GamePage() {
         ctx.fillStyle = '#ffaa00';
         ctx.font = 'bold 12px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        const markLabel = lang === 'pl' ? mark.labelPl : lang === 'en' ? mark.labelEn : mark.label;
+        const markLabel = tp(mark.label, mark.labelEn, mark.labelPl, { es: mark.labelEs, fr: mark.labelFr, de: mark.labelDe, it: mark.labelIt });
         ctx.fillText(markLabel, p.x, p.y - mark.radius * scale * 1.8);
       }
       ctx.restore();
@@ -1089,7 +1137,7 @@ export default function GamePage() {
     }
 
     // --- Mini-map (bottom-right) ---
-    drawMiniMap(ctx, W, H, boats, course);
+    drawMiniMap(ctx, W, H, boats, course, tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' }));
   }, []);
 
   // -----------------------------------------------------------------------
@@ -1181,7 +1229,7 @@ export default function GamePage() {
             onClick={backToMenu}
             className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
           >
-            ← {tp('Назад к выбору', 'Back to menu', 'Wroc do wyboru')}
+            ← {tp('Назад к выбору', 'Back to menu', 'Wróć do wyboru', { es: 'Volver al menú', fr: 'Retour au menu', de: 'Zurück zum Menü', it: 'Torna al menu' })}
           </button>
           <div className="flex items-center gap-2">
             {/* Personal best for this difficulty + wind bucket. Hidden if
@@ -1194,8 +1242,8 @@ export default function GamePage() {
                   color: 'var(--warning)',
                   border: '1px solid rgba(255, 170, 0, 0.3)',
                 }}
-                title={tp('Твой рекорд', 'Your best', 'Twoj rekord',
-                  { es: 'Tu record', fr: 'Ton record', de: 'Dein Rekord', it: 'Tuo record' })}
+                title={tp('Твой рекорд', 'Your best', 'Twój rekord',
+                  { es: 'Tu récord', fr: 'Ton record', de: 'Dein Rekord', it: 'Il tuo record' })}
               >
                 🏆 {formatRecordTime(bestRecord.timeSec)}
               </div>
@@ -1205,27 +1253,37 @@ export default function GamePage() {
               color: DIFFICULTY_CONFIG[difficulty].color,
               border: `1px solid ${DIFFICULTY_CONFIG[difficulty].color}44`,
             }}>
-              {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl)} · {windStrength === 'light' ? tp('слабый', 'light', 'slaby') : windStrength === 'heavy' ? tp('сильный', 'heavy', 'silny') : tp('средний', 'medium', 'sredni')} {tp('ветер', 'wind', 'wiatr')}
+              {tp(DIFFICULTY_CONFIG[difficulty].label, DIFFICULTY_CONFIG[difficulty].labelEn, DIFFICULTY_CONFIG[difficulty].labelPl, { es: DIFFICULTY_CONFIG[difficulty].labelEs, fr: DIFFICULTY_CONFIG[difficulty].labelFr, de: DIFFICULTY_CONFIG[difficulty].labelDe, it: DIFFICULTY_CONFIG[difficulty].labelIt })} · {windStrength === 'light'
+                ? tp('слабый ветер', 'light wind', 'słaby wiatr', { es: 'viento flojo', fr: 'vent faible', de: 'leichter Wind', it: 'vento leggero' })
+                : windStrength === 'heavy'
+                  ? tp('сильный ветер', 'heavy wind', 'silny wiatr', { es: 'viento fuerte', fr: 'vent fort', de: 'starker Wind', it: 'vento forte' })
+                  : tp('средний ветер', 'medium wind', 'średni wiatr', { es: 'viento medio', fr: 'vent moyen', de: 'mittlerer Wind', it: 'vento medio' })}
             </div>
           </div>
         </div>
 
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {tp('Брифинг', 'Briefing', 'Briefing')}
+          {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
 
-        {/* ARCADE badge - makes it explicit that /game uses simplified physics
-            (race-physics.ts lookup model), different from /simulator-v3 (VPP
-            force balance). Users who noticed "speed differs between /game and
-            /simulator" were confused; this banner explains why. */}
+        {/* ARCADE badge: /game runs the shared VPP engine, but the sails trim
+            themselves (trimForDrive) and steering is a simple turn rate, while
+            /simulator-v3 lets you trim by hand. Users who noticed "speed
+            differs between /game and the trainer" were confused; this says why. */}
         <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full text-xs font-semibold"
              style={{ background: 'rgba(255, 170, 0, 0.12)', border: '1px solid rgba(255, 170, 0, 0.3)', color: 'var(--warning)' }}>
           <span>🕹️</span>
           <span>
             {tp(
-              'АРКАДНЫЙ РЕЖИМ · физика упрощена для скорости игры. Настоящая - в /simulator-v3',
-              'ARCADE MODE · simplified physics for gameplay speed. Real physics lives in /simulator-v3',
-              'TRYB ARCADE · uproszczona fizyka dla szybkiej rozgrywki. Prawdziwa jest w /simulator-v3',
+              'АРКАДНЫЙ РЕЖИМ · паруса настраиваются сами, руление упрощено. Трим вручную - в «Тренажёре трима»',
+              'ARCADE MODE · the sails trim themselves and steering is simplified. Trim by hand in the Sail trim trainer',
+              'TRYB ARCADE · żagle trymują się same, a sterowanie jest uproszczone. Trym ręczny: w Trenażerze trymu',
+              {
+                es: 'MODO ARCADE · las velas se ajustan solas y el gobierno está simplificado. El trimado a mano, en el Simulador de trimado',
+                fr: 'MODE ARCADE · les voiles se règlent seules et la barre est simplifiée. Le réglage à la main se fait dans Réglage des voiles',
+                de: 'ARCADE-MODUS · die Segel trimmen sich selbst, das Steuern ist vereinfacht. Von Hand trimmen: im Segeltrimm-Trainer',
+                it: 'MODALITÀ ARCADE · le vele si regolano da sole e il timone è semplificato. La regolazione a mano è in Regolazione delle vele',
+              },
             )}
           </span>
         </div>
@@ -1234,45 +1292,51 @@ export default function GamePage() {
           {tp(
             'Что делать и как не накосячить. Прочитай - старт через 3 секунды будет некогда разбираться.',
             'What to do and how not to screw up. Read it - in 3 seconds you won\'t have time.',
-            'Co robic i jak sie nie pomylic. Przeczytaj - za 3 sekundy nie bedzie czasu.',
+            'Co robić i jak nie nawalić. Przeczytaj - po starcie za 3 sekundy nie będzie czasu się zastanawiać.',
+            {
+              es: 'Qué hacer y cómo no meter la pata. Léelo - en 3 segundos ya no habrá tiempo.',
+              fr: 'Ce qu\'il faut faire et comment ne pas te planter. Lis-le - dans 3 secondes, tu n\'auras plus le temps.',
+              de: 'Was zu tun ist und wie du keinen Mist baust. Lies es - in 3 Sekunden ist keine Zeit mehr dafür.',
+              it: 'Cosa fare e come non combinare pasticci. Leggilo - tra 3 secondi non avrai più tempo.',
+            },
           )}
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
           {/* Course preview */}
           <div className="card p-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('ТРАССА', 'COURSE', 'TRASA')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
             <CoursePreview />
             <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
-              <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line below.', 'Start od pomaranczowej linii na dole.')}</li>
-              <li>{tp('Идёшь', 'Go', 'Idziesz')} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'on tacks', 'halsami')}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t go straight into wind.', 'do znaku nawietrznego - pod wiatr nie mozna.')}</li>
-              <li>{tp('Обходишь верхний знак (подойди на ~30 м).', 'Round the windward mark (get within ~30 m).', 'Okrazasz znak nawietrzny (podejdz na ~30 m).')}</li>
-              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pelnym i przecinasz mete z gory w dol.')}</li>
+              <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line at the bottom.', 'Start z pomarańczowej linii na dole.', { es: 'La salida es desde la línea naranja de abajo.', fr:'Départ depuis la ligne orange en bas.', de: 'Start an der orangen Linie unten.', it: 'Partenza dalla linea arancione in basso.' })}</li>
+              <li>{tp('Идёшь', 'Work', 'Płyniesz', { es: 'Sube', fr: 'Remonte', de: 'Segle', it: 'Risali' })} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'upwind in tacks', 'halsami', { es: 'dando bordos', fr: 'en louvoyant', de: 'in Kreuzschlägen', it: 'bordeggiando' })}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t sail straight into the wind.', 'do znaku nawietrznego - prosto pod wiatr się nie da.', { es: 'hasta la baliza de barlovento - directo contra el viento no se puede.', fr: 'jusqu\'à la bouée au vent - impossible d\'aller droit contre le vent.', de: 'zur Luvtonne - direkt gegen den Wind geht es nicht.', it: 'fino alla boa di bolina - dritti controvento non si può.' })}</li>
+              <li>{tp('Обходишь верхний знак (подойди на ~30 м).', 'Round the windward mark (get within ~30 m).', 'Okrążasz znak nawietrzny (podejdź na ~30 m).', { es: 'Rodea la baliza de barlovento (acércate a ~30 m).', fr: 'Vire la bouée au vent (approche-toi à ~30 m).', de: 'Runde die Luvtonne (komm auf ~30 m heran).', it: 'Gira la boa di bolina (avvicinati a ~30 m).' })}</li>
+              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>
 
           {/* Controls */}
           <div className="card p-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <div className="flex gap-1">
                   <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
                   <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
                 </div>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Повернуть. На мобайле - кнопки внизу экрана.', 'Turn. On mobile - buttons at the bottom of the screen.', 'Skret. Na mobilce - przyciski na dole ekranu.')}</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Повернуть. На мобайле - кнопки внизу экрана.', 'Turn. On mobile - buttons at the bottom of the screen.', 'Skręt. Na telefonie - przyciski na dole ekranu.', { es: 'Girar. En el móvil - botones en la parte inferior de la pantalla.', fr: 'Tourner. Sur mobile - boutons en bas de l\'écran.', de: 'Steuern. Auf dem Handy - Tasten unten am Bildschirm.', it: 'Girare. Su mobile - pulsanti in basso sullo schermo.' })}</span>
               </div>
               <div className="flex items-center gap-3">
                 <div className="px-2 py-1 rounded text-[10px] font-semibold border border-[rgba(0,212,255,0.3)] text-[var(--accent-cyan)]">▶ AUTO</div>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.', 'Autopilot - holds the current heading. Disengages on any turn. Handy on long tacks.', 'Autopilot - trzyma biezacy kurs. Wylacza sie przy kazdym skrecie. Przydatne na dlugich halsach.')}</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.', 'Autopilot - holds the current heading. Disengages on any turn. Handy on long tacks, so you don\'t have to keep correcting.', 'Autopilot - trzyma bieżący kurs. Wyłącza się przy każdym skręcie. Wygodny na długich halsach, żeby nie poprawiać kursu.', { es: 'Piloto automático - mantiene el rumbo actual. Se desactiva en cuanto giras. Útil en bordos largos para no ir corrigiendo.', fr: 'Pilote automatique - garde le cap actuel. Se coupe dès que tu tournes. Pratique sur les longs bords, pour ne pas corriger sans arrêt.', de: 'Autopilot - hält den aktuellen Kurs. Schaltet sich bei jeder Lenkbewegung ab. Praktisch auf langen Schlägen, damit du nicht ständig korrigieren musst.', it: 'Pilota automatico - mantiene la rotta attuale. Si disattiva appena giri. Comodo sui bordi lunghi, per non dover correggere.' })}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-base">🧭</span>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Левый HUD - TWA (угол к ветру) и скорость. Держи TWA > 40° на лавировке.', 'Left HUD - TWA (angle to wind) and speed. Keep TWA > 40° when tacking.', 'Lewy HUD - TWA (kat do wiatru) i predkosc. Trzymaj TWA > 40° przy halsowaniu.')}</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Левый HUD - TWA (угол к ветру) и скорость. Держи TWA > 40° на лавировке.', 'Left HUD - TWA (angle to wind) and speed. Keep TWA > 40° when beating upwind.', 'Lewy HUD - TWA (kąt do wiatru) i prędkość. Na halsówce trzymaj TWA > 40°.', { es: 'HUD izquierdo - TWA (ángulo al viento) y velocidad. En ceñida mantén TWA > 40°.', fr: 'HUD gauche - TWA (angle au vent) et vitesse. Au louvoyage, garde TWA > 40°.', de: 'Linkes HUD - TWA (Winkel zum Wind) und Geschwindigkeit. Halte beim Kreuzen TWA > 40°.', it: 'HUD sinistro - TWA (angolo al vento) e velocità. Di bolina tieni TWA > 40°.' })}</span>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-base">📍</span>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Стрелка на экране показывает направление к следующему знаку.', 'The on-screen arrow points to the next mark.', 'Strzalka na ekranie pokazuje kierunek do nastepnego znaku.')}</span>
+                <span className="text-sm text-[var(--text-secondary)]">{tp('Стрелка на экране показывает направление к следующему знаку.', 'The on-screen arrow points to the next mark.', 'Strzałka na ekranie wskazuje kierunek do następnego znaku.', { es: 'La flecha en pantalla apunta a la siguiente baliza.', fr: 'La flèche à l\'écran indique la prochaine bouée.', de: 'Der Pfeil auf dem Bildschirm zeigt zur nächsten Bahnmarke.', it: 'La freccia sullo schermo indica la prossima boa.' })}</span>
               </div>
             </div>
           </div>
@@ -1280,11 +1344,11 @@ export default function GamePage() {
 
         {/* Key rules */}
         <div className="card p-4 mb-6" style={{ borderColor: 'rgba(255, 170, 0, 0.3)', background: 'rgba(255, 170, 0, 0.04)' }}>
-          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ {tp('ВАЖНО', 'IMPORTANT', 'WAZNE')}</div>
+          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ {tp('ВАЖНО', 'IMPORTANT', 'WAŻNE', { es: 'IMPORTANTE', fr: 'IMPORTANT', de: 'WICHTIG', it: 'IMPORTANTE' })}</div>
           <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 leading-relaxed">
-            <li>• {tp('В секторе ±30° от ветра паруса не работают - это', 'In the ±30° sector upwind sails don\'t work - this is the', 'W sektorze ±30° od wiatru zagle nie dzialaja - to')} <span className="text-[var(--danger)] font-semibold">{tp('мёртвая зона', 'dead zone', 'martwa strefa')}</span>. {tp('Если встал - отверни от ветра градусов на 50.', 'If stuck - bear off ~50° from the wind.', 'Jesli stanales - odpadnij od wiatru o jakies 50°.')}</li>
-            <li>• {tp('Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.', 'Tacking = long legs, not frequent turns. Every turn loses speed.', 'Halsowanie = dlugie halsy, nie czeste zwroty. Kazdy zwrot traci predkosc.')}</li>
-            <li>• {tp('AI разберёт твою гонку после финиша и покажет, где ты терял время.', 'AI reviews your race after the finish and shows where you lost time.', 'AI przeanalizuje twoj wyscig po mecie i pokaze, gdzie traciles czas.')}</li>
+            <li>• {tp('В секторе ±30° от ветра паруса не работают - это', 'Within ±30° of the wind the sails don\'t work - this is the', 'W sektorze ±30° od wiatru żagle nie pracują - to', { es: 'En el sector de ±30° respecto al viento las velas no trabajan - es la', fr: 'Dans le secteur de ±30° face au vent, les voiles ne portent pas - c\'est la', de: 'Im Bereich ±30° zum Wind arbeiten die Segel nicht - das ist der', it: 'Nel settore di ±30° dal vento le vele non portano - questo è' })} <span className="text-[var(--danger)] font-semibold">{tp('мёртвая зона', 'no-go zone', 'kąt martwy', { es: 'zona muerta', fr: 'zone morte', de: 'tote Winkel', it: 'l\'angolo morto' })}</span>. {tp('Если встал - отверни от ветра градусов на 50.', 'If you stall, bear away about 50° from the wind.', 'Jeśli stanąłeś, odpadnij od wiatru o jakieś 50°.', { es: 'Si te quedas parado, arriba unos 50°.', fr: 'Si tu es arrêté, abats d\'environ 50°.', de: 'Wenn du stehst, fall etwa 50° ab.', it: 'Se ti fermi, poggia di circa 50°.' })}</li>
+            <li>• {tp('Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.', 'Beating upwind = long legs, not constant tacking. Every tack costs speed.', 'Halsowanie = długie halsy, a nie częste zwroty. Każdy zwrot kosztuje prędkość.', { es: 'Barloventear = bordos largos, no viradas constantes. Cada virada cuesta velocidad.', fr: 'Louvoyer = de longs bords, pas des virements à répétition. Chaque virement coûte de la vitesse.', de: 'Kreuzen = lange Schläge, keine ständigen Wenden. Jede Wende kostet Fahrt.', it: 'Bordeggiare = bordi lunghi, non virate continue. Ogni virata costa velocità.' })}</li>
+            <li>• {tp('AI разберёт твою гонку после финиша и покажет, где ты терял время.', 'AI reviews your race after the finish and shows where you lost time.', 'AI przeanalizuje twój wyścig po mecie i pokaże, gdzie traciłeś czas.', { es: 'La IA analizará tu regata tras la llegada y te mostrará dónde perdiste tiempo.', fr: 'L\'IA analysera ta course après l\'arrivée et te montrera où tu as perdu du temps.', de: 'Die KI analysiert dein Rennen nach dem Zieldurchgang und zeigt dir, wo du Zeit verloren hast.', it: 'L\'IA analizzerà la tua regata dopo l\'arrivo e ti mostrerà dove hai perso tempo.' })}</li>
           </ul>
         </div>
 
@@ -1297,7 +1361,7 @@ export default function GamePage() {
             boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
           }}
         >
-          {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1')}
+          {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
       </div>
     );
@@ -1316,7 +1380,7 @@ export default function GamePage() {
           {/* Left HUD: course info - compact on mobile */}
           <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('КУРС', 'POS', 'KURS')}</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('КУРС', 'POS', 'KURS', { es: 'RUMBO', fr: 'ALLURE', de: 'KURS', it: 'ANDATURA' })}</span>
               <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{legacyPick(currentPoS, 'name', lang)}</span>
             </div>
             <div className="flex items-center justify-between gap-2">
@@ -1324,8 +1388,8 @@ export default function GamePage() {
               <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
             </div>
             <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('СКОР.', 'SPD', 'PRED.')}</span>
-              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kts</span>
+              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('СКОР.', 'SPD', 'PRĘD.', { es: 'VEL.', fr: 'VIT.', de: 'FAHRT', it: 'VEL.' })}</span>
+              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kn</span>
             </div>
             <div className="w-full h-1 sm:h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
               <div className="h-full transition-all" style={{ width: `${(playerSpeed / MAX_SPEED) * 100}%`, background: currentPoS.color }} />
@@ -1334,20 +1398,20 @@ export default function GamePage() {
 
           {/* Right HUD: position + time - compact */}
           <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('ПОЗИЦИЯ', 'PLACE', 'POZYCJA')}</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('ПОЗИЦИЯ', 'PLACE', 'MIEJSCE', { es: 'PUESTO', fr: 'PLACE', de: 'PLATZ', it: 'POSIZIONE' })}</div>
             <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
               {position.rank}<span className="text-[10px] sm:text-xs text-[var(--text-muted)]"> / {position.total}</span>
             </div>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{tp('ВРЕМЯ', 'TIME', 'CZAS')}</div>
+            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{tp('ВРЕМЯ', 'TIME', 'CZAS', { es: 'TIEMPO', fr: 'TEMPS', de: 'ZEIT', it: 'TEMPO' })}</div>
             <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
           </div>
 
           {/* Mark progress indicator - above touch controls on mobile */}
           <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs whitespace-nowrap"
                style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego')}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety')}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${tp('Финиш!', 'Finish!', 'Meta!')}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego', { es: 'A la baliza de barlovento', fr: 'Vers la bouée au vent', de: 'Zur Luvtonne', it: 'Alla boa di bolina' })}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety', { es: 'A la llegada', fr: 'Vers l\'arrivée', de: 'Zum Ziel', it: 'All\'arrivo' })}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${tp('Финиш!', 'Finish!', 'Meta!', { es: '¡Llegada!', fr: 'Arrivée !', de: 'Im Ziel!', it: 'Arrivo!' })}`}
           </div>
 
           {/* Mission hint (if any) - under the mark progress, only during race */}
@@ -1355,8 +1419,8 @@ export default function GamePage() {
             <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center"
                  style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 230px)' }}>
               <span className="mr-1">{selectedMission.emoji}</span>
-              <span className="text-[var(--accent-cyan)] font-semibold">{tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl)}:</span>{' '}
-              <span className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl)}</span>
+              <span className="text-[var(--accent-cyan)] font-semibold">{tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl, { es: selectedMission.titleEs, fr: selectedMission.titleFr, de: selectedMission.titleDe, it: selectedMission.titleIt })}:</span>{' '}
+              <span className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</span>
             </div>
           )}
 
@@ -1377,7 +1441,9 @@ export default function GamePage() {
           {/* Mute toggle */}
           <button
             onClick={() => setMutedState(toggleMuted())}
-            aria-label={muted ? 'Unmute' : 'Mute'}
+            aria-label={muted
+              ? tp('Включить звук', 'Unmute', 'Włącz dźwięk', { es: 'Activar sonido', fr: 'Activer le son', de: 'Ton an', it: 'Attiva audio' })
+              : tp('Выключить звук', 'Mute', 'Wycisz', { es: 'Silenciar', fr: 'Couper le son', de: 'Ton aus', it: 'Disattiva audio' })}
             className="absolute top-16 left-2 sm:top-auto sm:left-4 w-9 h-9 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
           >
@@ -1389,7 +1455,7 @@ export default function GamePage() {
             className="absolute top-16 right-2 sm:top-auto sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
             style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
           >
-            ← {tp('Меню', 'Menu', 'Menu')}
+            ← {tp('Меню', 'Menu', 'Menu', { es: 'Menú', fr: 'Menu', de: 'Menü', it: 'Menu' })}
           </button>
 
           {/* Autopilot button - above touch controls, safe-area aware */}
@@ -1408,7 +1474,13 @@ export default function GamePage() {
             }}
             title={tp('AUTO: удерживает текущий курс. Выключится от любого поворота.',
                      'AUTO: holds current heading. Disengages on any turn input.',
-                     'AUTO: trzyma biezacy kurs. Wylacza sie przy kazdym skrecie.')}
+                     'AUTO: trzyma bieżący kurs. Wyłącza się przy każdym skręcie.',
+                     {
+                       es: 'AUTO: mantiene el rumbo actual. Se desactiva en cuanto giras.',
+                       fr: 'AUTO : garde le cap actuel. Se coupe dès que tu tournes.',
+                       de: 'AUTO: hält den aktuellen Kurs. Schaltet sich bei jeder Lenkbewegung ab.',
+                       it: 'AUTO: mantiene la rotta attuale. Si disattiva appena giri.',
+                     })}
             className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition active:scale-95"
             style={{
               background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
@@ -1418,7 +1490,7 @@ export default function GamePage() {
               bottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)',
             }}
           >
-            {autopilotOn ? `⏸ ${tp('AUTO вкл', 'AUTO on', 'AUTO wl')}` : `▶ ${tp('AUTO', 'AUTO', 'AUTO')}`}
+            {autopilotOn ? `⏸ ${tp('AUTO вкл', 'AUTO on', 'AUTO wł.', { es: 'AUTO activo', fr: 'AUTO actif', de: 'AUTO an', it: 'AUTO attivo' })}` : `▶ ${tp('AUTO', 'AUTO', 'AUTO', { es: 'AUTO', fr: 'AUTO', de: 'AUTO', it: 'AUTO' })}`}
           </button>
 
           {/* Touch controls - safe-area aware so they never hide behind mobile browser UI */}
@@ -1431,7 +1503,7 @@ export default function GamePage() {
               onPointerUp={() => setLeftHeld(false)}
               onPointerCancel={() => setLeftHeld(false)}
               onPointerLeave={() => setLeftHeld(false)}
-              aria-label="Turn left"
+              aria-label={tp('Поворот влево', 'Turn left', 'Skręt w lewo', { es: 'Girar a la izquierda', fr: 'Tourner à gauche', de: 'Nach links steuern', it: 'Gira a sinistra' })}
               className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
               style={{
                 background: leftHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
@@ -1448,7 +1520,7 @@ export default function GamePage() {
               onPointerUp={() => setRightHeld(false)}
               onPointerCancel={() => setRightHeld(false)}
               onPointerLeave={() => setRightHeld(false)}
-              aria-label="Turn right"
+              aria-label={tp('Поворот вправо', 'Turn right', 'Skręt w prawo', { es: 'Girar a la derecha', fr: 'Tourner à droite', de: 'Nach rechts steuern', it: 'Gira a destra' })}
               className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
               style={{
                 background: rightHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
@@ -1469,9 +1541,9 @@ export default function GamePage() {
         <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10, 22, 40, 0.6)', backdropFilter: 'blur(4px)' }}>
           <div className="text-center">
             <div className="text-8xl font-bold mb-4 pulse-gentle" style={{ color: 'var(--accent-cyan)' }}>
-              {countdown === 0 ? tp('СТАРТ!', 'START!', 'START!') : countdown}
+              {countdown === 0 ? tp('СТАРТ!', 'START!', 'START!', { es: '¡SALIDA!', fr: 'DÉPART !', de: 'START!', it: 'VIA!' }) : countdown}
             </div>
-            <div className="text-[var(--text-secondary)]">{tp('Приготовься к старту...', 'Get ready for the start...', 'Przygotuj sie do startu...')}</div>
+            <div className="text-[var(--text-secondary)]">{tp('Приготовься к старту...', 'Get ready for the start...', 'Przygotuj się do startu...', { es: 'Prepárate para la salida...', fr: 'Prépare-toi pour le départ...', de: 'Mach dich bereit für den Start...', it: 'Preparati alla partenza...' })}</div>
           </div>
         </div>
       )}
@@ -1481,14 +1553,14 @@ export default function GamePage() {
         <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10, 22, 40, 0.9)', backdropFilter: 'blur(8px)' }}>
           <div className="card p-6 sm:p-8 max-w-lg w-full my-4">
             <div className="text-center mb-5">
-              <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK')}</div>
+              <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK', { es: 'RESULTADO', fr: 'RÉSULTAT', de: 'ERGEBNIS', it: 'RISULTATO' })}</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
                 <>
                   <div className="text-5xl font-bold mb-2" style={{
                     color: playerRank === 1 ? 'var(--warning)' : playerRank <= 3 ? 'var(--success)' : 'var(--text-primary)',
                   }}>
                     {playerRank}
-                    <span className="text-2xl text-[var(--text-muted)]"> {tp('из', 'of', 'z')} {results.length}</span>
+                    <span className="text-2xl text-[var(--text-muted)]"> {tp('из', 'of', 'z', { es: 'de', fr: 'sur', de: 'von', it: 'su' })} {results.length}</span>
                   </div>
                   <div className="text-xl font-mono text-[var(--text-secondary)]">{formatTime(playerFinished.time)}</div>
                   {/* New-personal-best banner. Only shows after the player
@@ -1505,21 +1577,21 @@ export default function GamePage() {
                       }}
                     >
                       🏆 {tp('Новый рекорд!', 'New record!', 'Nowy rekord!',
-                        { es: 'Nuevo record!', fr: 'Nouveau record !', de: 'Neuer Rekord!', it: 'Nuovo record!' })}
+                        { es: '¡Nuevo récord!', fr: 'Nouveau record !', de: 'Neuer Rekord!', it: 'Nuovo record!' })}
                     </div>
                   )}
                   {!isNewRecord && bestRecord && (
                     <div className="mt-2 text-xs text-[var(--text-muted)]">
-                      {tp('Твой рекорд:', 'Your best:', 'Twoj rekord:',
-                        { es: 'Tu record:', fr: 'Ton record :', de: 'Dein Rekord:', it: 'Tuo record:' })}{' '}
+                      {tp('Твой рекорд:', 'Your best:', 'Twój rekord:',
+                        { es: 'Tu récord:', fr: 'Ton record :', de: 'Dein Rekord:', it: 'Il tuo record:' })}{' '}
                       <span className="font-mono">{formatRecordTime(bestRecord.timeSec)}</span>
                     </div>
                   )}
                 </>
               ) : (
                 <>
-                  <div className="text-3xl font-bold mb-2" style={{ color: 'var(--danger)' }}>{tp('Не финишировал', 'Did not finish', 'Nie ukonczyl')}</div>
-                  <div className="text-sm text-[var(--text-secondary)]">{tp('Время вышло', 'Time\'s up', 'Czas minal')}</div>
+                  <div className="text-3xl font-bold mb-2" style={{ color: 'var(--danger)' }}>{tp('Не финишировал', 'Did not finish', 'Nie ukończono', { es: 'No has terminado', fr: 'Course non terminée', de: 'Nicht im Ziel', it: 'Regata non conclusa' })}</div>
+                  <div className="text-sm text-[var(--text-secondary)]">{tp('Время вышло', 'Time\'s up', 'Czas minął', { es: 'Se acabó el tiempo', fr: 'Temps écoulé', de: 'Zeit abgelaufen', it: 'Tempo scaduto' })}</div>
                 </>
               )}
             </div>
@@ -1527,7 +1599,7 @@ export default function GamePage() {
             {/* Compact leaderboard - collapsed by default, only winner + you shown on mobile */}
             <details className="mb-5 card p-3">
               <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
-                <span>{tp('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS', 'WYNIKI WYSCIGU')} ({results.length})</span>
+                <span>{tp('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS', 'WYNIKI WYŚCIGU', { es: 'RESULTADOS DE LA REGATA', fr: 'RÉSULTATS DE LA COURSE', de: 'ERGEBNISSE', it: 'RISULTATI DELLA REGATA' })} ({results.length})</span>
                 <span className="text-[var(--accent-cyan)]">▾</span>
               </summary>
               <div className="mt-3 space-y-1">
@@ -1545,7 +1617,7 @@ export default function GamePage() {
                         {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`}
                       </span>
                       <div className="w-2 h-2 rounded-full" style={{ background: r.color }} />
-                      <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.name}</span>
+                      <span className={`text-xs ${r.isPlayer ? 'font-semibold' : ''}`}>{r.isPlayer ? tp('Ты', 'You', 'Ty', { es: 'Tú', fr: 'Toi', de: 'Du', it: 'Tu' }) : r.name}</span>
                     </div>
                     <span className="text-xs font-mono text-[var(--text-secondary)]">
                       {r.time === Infinity ? 'DNF' : formatTime(r.time)}
@@ -1565,9 +1637,9 @@ export default function GamePage() {
                   <span className="text-lg">{missionResult.mission.emoji}</span>
                   <div className="text-sm font-semibold flex-1" style={{ color: missionResult.passed ? 'var(--success)' : 'var(--warning)' }}>
                     {missionResult.passed
-                      ? tp('✓ Миссия пройдена', '✓ Mission passed', '✓ Misja zaliczona')
-                      : tp('⚠ Миссия провалена', '⚠ Mission failed', '⚠ Misja nieudana')
-                    }: {tp(missionResult.mission.titleRu, missionResult.mission.titleEn, missionResult.mission.titlePl)}
+                      ? tp('✓ Миссия пройдена', '✓ Mission passed', '✓ Misja zaliczona', { es: '✓ Misión cumplida', fr: '✓ Mission réussie', de: '✓ Mission geschafft', it: '✓ Missione compiuta' })
+                      : tp('⚠ Миссия провалена', '⚠ Mission failed', '⚠ Misja niezaliczona', { es: '⚠ Misión fallida', fr: '⚠ Mission ratée', de: '⚠ Mission gescheitert', it: '⚠ Missione fallita' })
+                    }: {tp(missionResult.mission.titleRu, missionResult.mission.titleEn, missionResult.mission.titlePl, { es: missionResult.mission.titleEs, fr: missionResult.mission.titleFr, de: missionResult.mission.titleDe, it: missionResult.mission.titleIt })}
                   </div>
                 </div>
                 <ul className="text-xs text-[var(--text-secondary)] space-y-0.5 list-disc list-inside">
@@ -1583,23 +1655,23 @@ export default function GamePage() {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">🧭</span>
                 <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('AI-тренер', 'AI coach', 'Trener AI',
-                  { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'AI Coach' })}</div>
+                  { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' })}</div>
               </div>
               {/* Apple Review 2025 + EU AI Act: explicit AI-content disclosure. */}
               <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
                 {tp(
                   'Разбор сгенерирован языковой моделью Claude по твоему логу гонки. Может ошибаться. Подробности в ',
-                  'Generated by the Claude language model from your race log. Can be wrong. Details in ',
-                  'Wygenerowane przez model jezykowy Claude na podstawie loga regaty. Moze sie mylic. Szczegoly w ',
+                  'Generated by the Claude language model from your race log. Can be wrong. Details in our ',
+                  'Wygenerowane przez model językowy Claude na podstawie zapisu twojego wyścigu. Może się mylić. Szczegóły w ',
                   {
-                    es: 'Generado por el modelo de lenguaje Claude a partir de tu registro de regata. Puede equivocarse. Detalles en ',
-                    fr: 'Genere par le modele de langage Claude a partir de ton log de course. Peut se tromper. Details dans ',
-                    de: 'Erzeugt vom Sprachmodell Claude aus deinem Rennlog. Kann sich irren. Details in ',
-                    it: 'Generato dal modello linguistico Claude dal tuo log di gara. Puo sbagliare. Dettagli in ',
+                    es: 'Generado por el modelo de lenguaje Claude a partir del registro de tu regata. Puede equivocarse. Más detalles en la ',
+                    fr: 'Généré par le modèle de langage Claude à partir du journal de ta course. Peut se tromper. Détails dans la ',
+                    de: 'Erstellt vom Sprachmodell Claude anhand deines Rennprotokolls. Kann sich irren. Details in der ',
+                    it: 'Generato dal modello linguistico Claude a partire dal log della tua regata. Può sbagliare. Dettagli nell\'',
                   },
                 )}
-                <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatnosci',
-                  { es: 'politica de privacidad', fr: 'politique de confidentialite', de: 'Datenschutzerklaerung', it: 'politica sulla privacy' })}</a>.
+                <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatności',
+                  { es: 'política de privacidad', fr: 'politique de confidentialité', de: 'Datenschutzerklärung', it: 'informativa sulla privacy' })}</a>.
               </div>
               {coachingLoading && <AnalyzingProgress />}
               {coachingError && !coaching && (
@@ -1609,7 +1681,7 @@ export default function GamePage() {
                 <div className="space-y-3">
                   <div>
                     <div className="flex items-center gap-2 mb-1">
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{tp('Оценка', 'Score', 'Ocena')}</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)]">{tp('Оценка', 'Score', 'Ocena', { es: 'Puntuación', fr: 'Note', de: 'Bewertung', it: 'Punteggio' })}</div>
                       <div className="text-lg font-bold" style={{
                         color: coaching.score >= 75 ? 'var(--success)' : coaching.score >= 50 ? 'var(--warning)' : 'var(--danger)',
                       }}>
@@ -1621,7 +1693,7 @@ export default function GamePage() {
 
                   {coaching.mistakes.length > 0 && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Bledy')}</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-2">{tp('Ошибки', 'Mistakes', 'Błędy', { es: 'Errores', fr: 'Erreurs', de: 'Fehler', it: 'Errori' })}</div>
                       <div className="space-y-2">
                         {coaching.mistakes.map((m, i) => (
                           <div key={i} className="text-xs p-2 rounded" style={{ background: 'rgba(10, 22, 40, 0.5)' }}>
@@ -1644,7 +1716,7 @@ export default function GamePage() {
 
                   {coaching.strengths.length > 0 && (
                     <div>
-                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Сильные стороны', 'Strengths', 'Mocne strony')}</div>
+                      <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Сильные стороны', 'Strengths', 'Mocne strony', { es: 'Puntos fuertes', fr: 'Points forts', de: 'Stärken', it: 'Punti di forza' })}</div>
                       <ul className="text-xs text-[var(--text-secondary)] space-y-0.5">
                         {coaching.strengths.map((s, i) => (
                           <li key={i} className="flex items-start gap-1">
@@ -1657,7 +1729,7 @@ export default function GamePage() {
                   )}
 
                   <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
-                    <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na nastepny wyscig')}</div>
+                    <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na następny wyścig', { es: 'Objetivo para la próxima regata', fr: 'Objectif pour la prochaine course', de: 'Ziel für das nächste Rennen', it: 'Obiettivo per la prossima regata' })}</div>
                     <p className="text-xs text-[var(--accent-cyan)]">{coachNextGoal(coaching)}</p>
                   </div>
                 </div>
@@ -1671,12 +1743,12 @@ export default function GamePage() {
             {saveState === 'prompting' && (
               <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
                 <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
-                  {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisac wynik w rankingu?',
-                    { es: 'Guardar tu resultado en la clasificacion?', fr: 'Enregistrer ton resultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
+                  {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisać wynik w rankingu?',
+                    { es: '¿Guardar tu resultado en la clasificación?', fr: 'Enregistrer ton résultat au classement ?', de: 'Ergebnis in die Bestenliste eintragen?', it: 'Salvare il risultato in classifica?' })}
                 </div>
                 <div className="text-xs text-[var(--text-muted)] mb-2">
-                  {tp('Введи ник (2-20 символов) - он будет виден в общем рейтинге.', 'Enter a nickname (2-20 chars) - it will show on the public leaderboard.', 'Podaj ksywe (2-20 znakow) - bedzie widoczna w publicznym rankingu.',
-                    { es: 'Escribe un apodo (2-20 caracteres) - se vera en la clasificacion publica.', fr: 'Entre un pseudo (2-20 caracteres) - il sera visible au classement public.', de: 'Gib einen Nickname ein (2-20 Zeichen) - er ist in der oeffentlichen Bestenliste sichtbar.', it: 'Inserisci un nickname (2-20 caratteri) - sara visibile nella classifica pubblica.' })}
+                  {tp('Введи ник (2-20 символов) - он будет виден в общем рейтинге.', 'Enter a nickname (2-20 chars) - it will show on the public leaderboard.', 'Podaj nick (2-20 znaków) - będzie widoczny w publicznym rankingu.',
+                    { es: 'Escribe un apodo (2-20 caracteres) - aparecerá en la clasificación pública.', fr: 'Entre un pseudo (2-20 caractères) - il sera visible dans le classement public.', de: 'Gib einen Nickname ein (2-20 Zeichen) - er erscheint in der öffentlichen Bestenliste.', it: 'Inserisci un nickname (2-20 caratteri) - sarà visibile nella classifica pubblica.' })}
                 </div>
                 <div className="flex gap-2">
                   <input
@@ -1687,7 +1759,7 @@ export default function GamePage() {
                     maxLength={20}
                     className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
                     style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
-                    placeholder={tp('Введи ник', 'Enter nickname', 'Podaj ksywe',
+                    placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick',
                       { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
                   />
                   <button
@@ -1707,8 +1779,8 @@ export default function GamePage() {
                   onClick={() => setSaveState('idle')}
                   className="mt-2 text-xs text-[var(--text-muted)] underline hover:text-[var(--text-secondary)] transition"
                 >
-                  {tp('Пропустить', 'Skip', 'Pomin',
-                    { es: 'Omitir', fr: 'Passer', de: 'Ueberspringen', it: 'Salta' })}
+                  {tp('Пропустить', 'Skip', 'Pomiń',
+                    { es: 'Omitir', fr: 'Passer', de: 'Überspringen', it: 'Salta' })}
                 </button>
               </div>
             )}
@@ -1717,21 +1789,21 @@ export default function GamePage() {
             {saveState === 'saving' && (
               <div className="mb-4 text-xs text-[var(--text-muted)]">
                 {tp('Сохраняю результат...', 'Saving result...', 'Zapisywanie wyniku...',
-                  { es: 'Guardando resultado...', fr: 'Enregistrement du resultat...', de: 'Ergebnis wird gespeichert...', it: 'Salvataggio del risultato...' })}
+                  { es: 'Guardando el resultado...', fr: 'Enregistrement du résultat...', de: 'Ergebnis wird gespeichert...', it: 'Salvataggio del risultato...' })}
               </div>
             )}
             {saveState === 'saved' && (
               <div className="mb-4 text-xs" style={{ color: 'var(--success)' }}>
                 ✓ {tp('Результат сохранён в лидерборд', 'Result saved to the leaderboard', 'Wynik zapisany w rankingu',
-                  { es: 'Resultado guardado en la clasificacion', fr: 'Resultat enregistre au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}
+                  { es: 'Resultado guardado en la clasificación', fr: 'Résultat enregistré au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}
               </div>
             )}
             {saveState === 'error' && saveError && (
               <div className="mb-4 text-xs flex items-center gap-2 flex-wrap" style={{ color: 'var(--danger)' }}>
                 <span>{saveError}</span>
                 <button onClick={() => saveResult(nicknameInput || undefined)} className="underline">
-                  {tp('Повторить', 'Retry', 'Ponow',
-                    { es: 'Reintentar', fr: 'Reessayer', de: 'Erneut versuchen', it: 'Riprova' })}
+                  {tp('Повторить', 'Retry', 'Ponów',
+                    { es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' })}
                 </button>
               </div>
             )}
@@ -1747,7 +1819,7 @@ export default function GamePage() {
                 finishTime={playerFinished && playerFinished.time !== Infinity ? playerFinished.time : undefined}
                 rank={playerRank > 0 ? playerRank : undefined}
                 total={results.length || undefined}
-                missionTitle={selectedMission ? tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl) : undefined}
+                missionTitle={selectedMission ? tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl, { es: selectedMission.titleEs, fr: selectedMission.titleFr, de: selectedMission.titleDe, it: selectedMission.titleIt }) : undefined}
               />
             )}
 
@@ -1756,21 +1828,21 @@ export default function GamePage() {
                 onClick={backToMenu}
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
-                {tp('Меню', 'Menu', 'Menu')}
+                {tp('Меню', 'Menu', 'Menu', { es: 'Menú', fr: 'Menu', de: 'Menü', it: 'Menu' })}
               </button>
               <button
                 onClick={() => setGameState('replay')}
                 disabled={logSamplesRef.current.length < 5}
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-[var(--accent-cyan)] hover:bg-[rgba(0,212,255,0.08)] transition disabled:opacity-40"
               >
-                ▶ {tp('Replay гонки', 'Race replay', 'Replay wyscigu')}
+                ▶ {tp('Replay гонки', 'Race replay', 'Powtórka wyścigu', { es: 'Repetición', fr: 'Revoir la course', de: 'Replay ansehen', it: 'Replay della regata' })}
               </button>
               <Link
                 href="/leaderboard"
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
                 🏆 {tp('Лидерборд', 'Leaderboard', 'Ranking',
-                  { es: 'Clasificacion', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
+                  { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
               </Link>
               <button
                 onClick={openBriefing}
@@ -1780,7 +1852,7 @@ export default function GamePage() {
                   color: '#0a1628',
                 }}
               >
-                {tp('Ещё раз', 'Again', 'Jeszcze raz')}
+                {tp('Ещё раз', 'Again', 'Jeszcze raz', { es: 'Otra vez', fr: 'Rejouer', de: 'Noch mal', it: 'Di nuovo' })}
               </button>
             </div>
           </div>
@@ -1966,16 +2038,16 @@ function ShareBlock({
     ? tp(
         `Прошёл регату за ${timePart} на weektoregatta.com - смотри replay`,
         `Finished the race in ${timePart} at weektoregatta.com - check the replay`,
-        `Ukonczylem regate w ${timePart} na weektoregatta.com - zobacz replay`,
+        `Wyścig ukończony w ${timePart} na weektoregatta.com - zobacz powtórkę`,
         {
-          es: `Termine la regata en ${timePart} en weektoregatta.com - mira el replay`,
-          fr: `Course terminee en ${timePart} sur weektoregatta.com - regarde le replay`,
-          de: `Regatta in ${timePart} beendet auf weektoregatta.com - schau dir das Replay an`,
-          it: `Regata finita in ${timePart} su weektoregatta.com - guarda il replay`,
+          es: `Terminé la regata en ${timePart} en weektoregatta.com - mira la repetición`,
+          fr: `Course terminée en ${timePart} sur weektoregatta.com - regarde le replay`,
+          de: `Rennen auf weektoregatta.com in ${timePart} beendet - schau dir das Replay an`,
+          it: `Regata conclusa in ${timePart} su weektoregatta.com - guarda il replay`,
         },
       )
-    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moj replay na weektoregatta.com',
-        { es: 'Mi replay en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Mein Replay auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
+    : tp('Мой replay на weektoregatta.com', 'My replay at weektoregatta.com', 'Moja powtórka na weektoregatta.com',
+        { es: 'Mi repetición en weektoregatta.com', fr: 'Mon replay sur weektoregatta.com', de: 'Mein Replay auf weektoregatta.com', it: 'Il mio replay su weektoregatta.com' });
 
   const onShare = async () => {
     if (navigator.share) {
@@ -2001,8 +2073,8 @@ function ShareBlock({
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
           <div className="text-[10px] uppercase tracking-wider text-[var(--text-muted)]">
-            {tp('ПОДЕЛИТЬСЯ REPLAY', 'SHARE REPLAY', 'UDOSTEPNIJ REPLAY',
-              { es: 'COMPARTIR REPLAY', fr: 'PARTAGER LE REPLAY', de: 'REPLAY TEILEN', it: 'CONDIVIDI REPLAY' })}
+            {tp('ПОДЕЛИТЬСЯ REPLAY', 'SHARE REPLAY', 'UDOSTĘPNIJ POWTÓRKĘ',
+              { es: 'COMPARTIR REPETICIÓN', fr: 'PARTAGER LE REPLAY', de: 'REPLAY TEILEN', it: 'CONDIVIDI IL REPLAY' })}
           </div>
           <div className="text-sm font-mono font-semibold text-[var(--accent-cyan)] mt-0.5">
             {code}
@@ -2016,8 +2088,8 @@ function ShareBlock({
           >
             {copied
               ? tp('✓ Скопировано', '✓ Copied', '✓ Skopiowano',
-                  { es: '✓ Copiado', fr: '✓ Copie', de: '✓ Kopiert', it: '✓ Copiato' })
-              : tp('🔗 Поделиться', '🔗 Share', '🔗 Udostepnij',
+                  { es: '✓ Copiado', fr: '✓ Copié', de: '✓ Kopiert', it: '✓ Copiato' })
+              : tp('🔗 Поделиться', '🔗 Share', '🔗 Udostępnij',
                   { es: '🔗 Compartir', fr: '🔗 Partager', de: '🔗 Teilen', it: '🔗 Condividi' })}
           </button>
           <Link
@@ -2025,8 +2097,8 @@ function ShareBlock({
             className="px-3 py-1.5 rounded text-xs font-semibold border"
             style={{ borderColor: 'rgba(0, 212, 255, 0.3)', color: 'var(--accent-cyan)' }}
           >
-            {tp('Открыть', 'Open', 'Otworz',
-              { es: 'Abrir', fr: 'Ouvrir', de: 'Oeffnen', it: 'Apri' })}
+            {tp('Открыть', 'Open', 'Otwórz',
+              { es: 'Abrir', fr: 'Ouvrir', de: 'Öffnen', it: 'Apri' })}
           </Link>
         </div>
       </div>
@@ -2047,16 +2119,20 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
 }
 
-function getPointOfSailName(twa: number): { nameRu: string; nameEn: string; namePl: string; color: string } {
+function getPointOfSailName(twa: number): {
+  nameRu: string; nameEn: string; namePl: string;
+  nameEs: string; nameFr: string; nameDe: string; nameIt: string;
+  color: string;
+} {
   const a = Math.abs(twa);
-  if (a < 30) return { nameRu: 'Левентик', nameEn: 'In irons', namePl: 'Lewentyk', color: '#ff4444' };
-  if (a < 60) return { nameRu: 'Бейдевинд', nameEn: 'Close-hauled', namePl: 'Bajdewind', color: '#ff8844' };
-  if (a < 110) return { nameRu: 'Галфвинд', nameEn: 'Beam reach', namePl: 'Polwiatr', color: '#44ff88' };
-  if (a < 160) return { nameRu: 'Бакштаг', nameEn: 'Broad reach', namePl: 'Baksztag', color: '#44aaff' };
-  return { nameRu: 'Фордевинд', nameEn: 'Running', namePl: 'Fordewind', color: '#8844ff' };
+  if (a < 30) return { nameRu: 'Левентик', nameEn: 'In irons', namePl: 'Łopot', nameEs: 'Proa al viento', nameFr: 'Vent debout', nameDe: 'Im Wind', nameIt: 'Prua al vento', color: '#ff4444' };
+  if (a < 60) return { nameRu: 'Бейдевинд', nameEn: 'Close-hauled', namePl: 'Bajdewind', nameEs: 'Ceñida', nameFr: 'Près', nameDe: 'Hoch am Wind', nameIt: 'Bolina', color: '#ff8844' };
+  if (a < 110) return { nameRu: 'Галфвинд', nameEn: 'Beam reach', namePl: 'Półwiatr', nameEs: 'Través', nameFr: 'Travers', nameDe: 'Halber Wind', nameIt: 'Traverso', color: '#44ff88' };
+  if (a < 160) return { nameRu: 'Бакштаг', nameEn: 'Broad reach', namePl: 'Baksztag', nameEs: 'Largo', nameFr: 'Grand largue', nameDe: 'Raumer Wind', nameIt: 'Lasco', color: '#44aaff' };
+  return { nameRu: 'Фордевинд', nameEn: 'Running', namePl: 'Fordewind', nameEs: 'Popa', nameFr: 'Vent arrière', nameDe: 'Vor dem Wind', nameIt: 'Poppa', color: '#8844ff' };
 }
 
-function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats: Boat[], course: Course) {
+function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats: Boat[], course: Course, label: string) {
   // Size + position of mini-map
   const mapW = Math.min(140, W * 0.22);
   const mapH = Math.min(180, H * 0.28);
@@ -2077,7 +2153,7 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats:
   ctx.fillStyle = 'rgba(139, 167, 184, 0.8)';
   ctx.font = '600 9px system-ui, sans-serif';
   ctx.textAlign = 'left';
-  ctx.fillText('ТРАССА / COURSE', mx + 6, my + 12);
+  ctx.fillText(label, mx + 6, my + 12);
 
   // World bounds (from constants): WORLD.width x WORLD.height = 800 x 1200
   // Figure out scale to fit
@@ -2147,10 +2223,10 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats:
 function AnalyzingProgress() {
   const { tp } = useI18n();
   const stages = [
-    { icon: '📍', label: tp('Сверяю трек с трассой', 'Matching track to course', 'Sprawdzam tor z trasa') },
-    { icon: '🌬', label: tp('Считаю время в мёртвой зоне', 'Counting time in dead zone', 'Licze czas w martwej strefie') },
-    { icon: '↺', label: tp('Анализирую повороты и лейлайны', 'Analyzing turns and laylines', 'Analizuje zwroty i lejliny') },
-    { icon: '🧭', label: tp('Формулирую советы', 'Drafting advice', 'Formuluje rady') },
+    { icon: '📍', label: tp('Сверяю трек с трассой', 'Matching track to course', 'Porównuję ślad z trasą', { es: 'Comparando la traza con el recorrido', fr: 'Je compare ta trace au parcours', de: 'Gleiche den Track mit der Bahn ab', it: 'Confronto la traccia con il percorso' }) },
+    { icon: '🌬', label: tp('Считаю время в мёртвой зоне', 'Counting time in the no-go zone', 'Liczę czas w kącie martwym', { es: 'Calculando el tiempo en la zona muerta', fr: 'Je compte le temps passé dans la zone morte', de: 'Zähle die Zeit im toten Winkel', it: 'Conto il tempo nell\'angolo morto' }) },
+    { icon: '↺', label: tp('Анализирую повороты и лейлайны', 'Analyzing tacks and laylines', 'Analizuję zwroty i laylines', { es: 'Analizando viradas y laylines', fr: 'J\'analyse les virements et les laylines', de: 'Analysiere Wenden und Laylines', it: 'Analizzo virate e layline' }) },
+    { icon: '🧭', label: tp('Формулирую советы', 'Drafting advice', 'Formułuję rady', { es: 'Redactando consejos', fr: 'Je rédige les conseils', de: 'Formuliere Tipps', it: 'Preparo i consigli' }) },
   ];
   const [stage, setStage] = useState(0);
   useEffect(() => {
@@ -2163,7 +2239,7 @@ function AnalyzingProgress() {
     <div className="space-y-2">
       <div className="flex items-center gap-2 mb-1">
         <span className="inline-block w-2.5 h-2.5 rounded-full pulse-gentle" style={{ background: 'var(--accent-cyan)' }} />
-        <span className="text-sm text-[var(--text-secondary)]">{tp('AI разбирает твою гонку…', 'AI is reviewing your race…', 'AI analizuje twoj wyscig…')}</span>
+        <span className="text-sm text-[var(--text-secondary)]">{tp('AI разбирает твою гонку...', 'AI is reviewing your race...', 'AI analizuje twój wyścig...', { es: 'La IA está analizando tu regata...', fr: 'L\'IA analyse ta course...', de: 'Die KI analysiert dein Rennen...', it: 'L\'IA sta analizzando la tua regata...' })}</span>
       </div>
       <ul className="space-y-1.5 text-xs">
         {stages.map((s, i) => {
@@ -2367,7 +2443,7 @@ function ReplayOverlay({
     ctx.font = '600 9px system-ui, sans-serif';
     ctx.fillStyle = 'rgba(68, 255, 136, 0.85)';
     ctx.textAlign = 'left';
-    ctx.fillText(tp('идеал', 'ideal', 'idealny'), gMid.x + 6, gMid.y - 4);
+    ctx.fillText(tp('идеал', 'ideal', 'ideał', { es: 'ideal', fr: 'idéal', de: 'Ideal', it: 'ideale' }), gMid.x + 6, gMid.y - 4);
     ctx.restore();
 
     // Track trail up to current idx (player track)
@@ -2431,15 +2507,15 @@ function ReplayOverlay({
       <div className="card w-full max-w-2xl p-4 sm:p-5" style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}>
         <div className="flex items-center justify-between mb-3">
           <div>
-            <div className="text-lg font-semibold">{tp('Replay гонки', 'Race replay', 'Replay wyscigu')}</div>
+            <div className="text-lg font-semibold">{tp('Replay гонки', 'Race replay', 'Powtórka wyścigu', { es: 'Repetición de la regata', fr: 'Replay de la course', de: 'Replay des Rennens', it: 'Replay della regata' })}</div>
             <div className="text-[11px] text-[var(--text-muted)]">
-              {tp('Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.', 'Scrub the timeline - points on the track are events: turn, dead zone, mark.', 'Przewin os czasu - punkty na trasie to zdarzenia: zwrot, martwa strefa, znak.')}
+              {tp('Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.', 'Scrub the timeline - dots on the track are events: tack, no-go zone, mark.', 'Przewiń oś czasu - punkty na śladzie to zdarzenia: zwrot, kąt martwy, znak.', { es: 'Desliza la línea de tiempo - los puntos de la traza son eventos: virada, zona muerta, baliza.', fr: 'Fais défiler la timeline - les points sur la trace sont des événements : virement, zone morte, bouée.', de: 'Zieh an der Zeitleiste - die Punkte auf dem Track sind Ereignisse: Wende, toter Winkel, Bahnmarke.', it: 'Scorri la timeline - i punti sulla traccia sono eventi: virata, angolo morto, boa.' })}
             </div>
           </div>
           <button
             onClick={onClose}
             className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            aria-label="Close replay"
+            aria-label={tp('Закрыть replay', 'Close replay', 'Zamknij powtórkę', { es: 'Cerrar la repetición', fr: 'Fermer le replay', de: 'Replay schließen', it: 'Chiudi il replay' })}
           >
             ✕
           </button>
@@ -2449,11 +2525,11 @@ function ReplayOverlay({
 
         {/* Legend */}
         <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[10px] text-[var(--text-muted)]">
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />{tp('твой трек', 'your track', 'twoj tor')}</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />{tp('идеальный путь', 'ideal path', 'idealny tor')}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />{tp('поворот', 'turn', 'zwrot')}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />{tp('мёртвая зона', 'dead zone', 'martwa strefa')}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />{tp('знак / финиш', 'mark / finish', 'znak / meta')}</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />{tp('твой трек', 'your track', 'twój ślad', { es: 'tu traza', fr: 'ta trace', de: 'dein Track', it: 'la tua traccia' })}</span>
+          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />{tp('идеальный путь', 'ideal path', 'idealna trasa', { es: 'ruta ideal', fr: 'trajectoire idéale', de: 'Ideallinie', it: 'percorso ideale' })}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />{tp('поворот', 'tack', 'zwrot', { es: 'virada', fr: 'virement', de: 'Wende', it: 'virata' })}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />{tp('мёртвая зона', 'no-go zone', 'kąt martwy', { es: 'zona muerta', fr: 'zone morte', de: 'toter Winkel', it: 'angolo morto' })}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />{tp('знак / финиш', 'mark / finish', 'znak / meta', { es: 'baliza / llegada', fr: 'bouée / arrivée', de: 'Bahnmarke / Ziel', it: 'boa / arrivo' })}</span>
         </div>
 
         {/* Timeline slider */}
@@ -2480,7 +2556,7 @@ function ReplayOverlay({
 
         {/* Speed control */}
         <div className="mt-2 flex items-center gap-2 text-xs">
-          <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Predkosc')}</span>
+          <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Prędkość', { es: 'Velocidad', fr: 'Vitesse', de: 'Tempo', it: 'Velocità' })}</span>
           {[0.5, 1, 2, 4].map((sp) => (
             <button
               key={sp}
@@ -2545,19 +2621,19 @@ function GameMenu({
 
   // Wind-label helper used in several places in this menu.
   const windLabel = (w: 'light' | 'medium' | 'heavy') =>
-    w === 'light' ? tp('слабый', 'light', 'slaby')
-    : w === 'heavy' ? tp('сильный', 'heavy', 'silny')
-    : tp('средний', 'medium', 'sredni');
+    w === 'light' ? tp('слабый', 'light', 'słaby', { es: 'flojo', fr: 'faible', de: 'schwach', it: 'leggero' })
+    : w === 'heavy' ? tp('сильный', 'heavy', 'silny', { es: 'fuerte', fr: 'fort', de: 'stark', it: 'forte' })
+    : tp('средний', 'medium', 'średni', { es: 'medio', fr: 'moyen', de: 'mittel', it: 'medio' });
 
   // Mission field pickers - mission titles / descriptions / hints are stored
-  // with *Ru/*En/*Pl variants on src/data/missions.ts.
-  const mTitle = (m: Mission) => tp(m.titleRu, m.titleEn, m.titlePl);
-  const mDesc = (m: Mission) => tp(m.descRu, m.descEn, m.descPl);
+  // with *Ru/*En/*Pl/*Es/*Fr/*De/*It variants on src/data/missions.ts.
+  const mTitle = (m: Mission) => tp(m.titleRu, m.titleEn, m.titlePl, { es: m.titleEs, fr: m.titleFr, de: m.titleDe, it: m.titleIt });
+  const mDesc = (m: Mission) => tp(m.descRu, m.descEn, m.descPl, { es: m.descEs, fr: m.descFr, de: m.descDe, it: m.descIt });
 
   // Difficulty label picker. DIFFICULTY_CONFIG has `label` (RU, legacy
-  // name), labelEn, labelPl.
+  // name), labelEn, labelPl, labelEs, labelFr, labelDe, labelIt.
   const difficultyLabel = (d: Difficulty) =>
-    tp(DIFFICULTY_CONFIG[d].label, DIFFICULTY_CONFIG[d].labelEn, DIFFICULTY_CONFIG[d].labelPl);
+    tp(DIFFICULTY_CONFIG[d].label, DIFFICULTY_CONFIG[d].labelEn, DIFFICULTY_CONFIG[d].labelPl, { es: DIFFICULTY_CONFIG[d].labelEs, fr: DIFFICULTY_CONFIG[d].labelFr, de: DIFFICULTY_CONFIG[d].labelDe, it: DIFFICULTY_CONFIG[d].labelIt });
 
   // When tab changes, apply defaults
   useEffect(() => {
@@ -2575,14 +2651,25 @@ function GameMenu({
   }, [tab]);
 
   const ctaLabel =
-    tab === 'learn' ? tp('Начать - Учусь гоняю', 'Start - Learning mode', 'Start - Tryb nauki') :
+    tab === 'learn' ? tp('Начать - Учусь гоняю', 'Start - Learning mode', 'Start - Tryb nauki', { es: 'Empezar - Modo aprendizaje', fr: 'Commencer - Mode apprentissage', de: 'Los - Lernmodus', it: 'Inizia - Modalità apprendimento' }) :
     tab === 'mission' ? (selectedMission
-      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`)
-      : tp('Выбери миссию', 'Pick a mission', 'Wybierz misje')) :
+      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
+          es: `Ir a la misión: ${selectedMission.titleEs ?? selectedMission.titleEn}`,
+          fr: `Vers la mission : ${selectedMission.titleFr ?? selectedMission.titleEn}`,
+          de: `Zur Mission: ${selectedMission.titleDe ?? selectedMission.titleEn}`,
+          it: `Vai alla missione: ${selectedMission.titleIt ?? selectedMission.titleEn}`,
+        })
+      : tp('Выбери миссию', 'Pick a mission', 'Wybierz misję', { es: 'Elige una misión', fr: 'Choisis une mission', de: 'Wähle eine Mission', it: 'Scegli una missione' })) :
     tp(
       `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`,
       `To briefing · ${DIFFICULTY_CONFIG[difficulty].labelEn}`,
-      `Do briefingu · ${DIFFICULTY_CONFIG[difficulty].labelPl}`,
+      `Do odprawy · ${DIFFICULTY_CONFIG[difficulty].labelPl}`,
+      {
+        es: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelEs}`,
+        fr: `Vers le briefing · ${DIFFICULTY_CONFIG[difficulty].labelFr}`,
+        de: `Zum Briefing · ${DIFFICULTY_CONFIG[difficulty].labelDe}`,
+        it: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelIt}`,
+      },
     );
 
   const ctaColor =
@@ -2597,10 +2684,10 @@ function GameMenu({
       <div className="text-center mb-8">
         <h1 className="text-4xl sm:text-5xl font-bold mb-2"
             style={{ background: 'linear-gradient(135deg, var(--text-primary), #ff6688)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          {tp('Гонка', 'Race', 'Wyscig')}
+          {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
-          {tp('Race · выбери режим', 'Race · pick a mode', 'Race · wybierz tryb')}
+          {tp('Race · выбери режим', 'Race · pick a mode', 'Race · wybierz tryb', { es: 'Race · elige un modo', fr: 'Race · choisis un mode', de: 'Race · wähle einen Modus', it: 'Race · scegli una modalità' })}
         </p>
       </div>
 
@@ -2611,12 +2698,18 @@ function GameMenu({
           onClick={() => setTab('learn')}
           emoji="🎓"
           accent="#44ff88"
-          title={tp('Учусь гоняю', 'Learning to race', 'Ucze sie regat')}
-          subtitle={tp('Easy + средний ветер', 'Easy + medium wind', 'Latwy + sredni wiatr')}
+          title={tp('Учусь гоняю', 'Learning to race', 'Uczę się ścigać', { es: 'Aprendo a competir', fr: 'J\'apprends à régater', de: 'Regatta lernen', it: 'Imparo a regatare' })}
+          subtitle={tp('Easy + средний ветер', 'Easy + medium wind', 'Łatwy + średni wiatr', { es: 'Fácil + viento medio', fr: 'Facile + vent moyen', de: 'Leicht + mittlerer Wind', it: 'Facile + vento medio' })}
           desc={tp(
             'Спокойные противники, плавные повороты. Для первого опыта гонки.',
             'Calm opponents, gentle turns. For a first racing experience.',
-            'Spokojni rywale, lagodne zwroty. Na pierwsze doswiadczenie regat.',
+            'Spokojni rywale, łagodne zwroty. Na pierwsze regatowe doświadczenie.',
+            {
+              es: 'Rivales tranquilos, viradas suaves. Para tu primera experiencia de regata.',
+              fr: 'Adversaires calmes, virements en douceur. Pour une première expérience de course.',
+              de: 'Ruhige Gegner, sanfte Wenden. Für dein erstes Regatta-Erlebnis.',
+              it: 'Avversari tranquilli, virate morbide. Per una prima esperienza di regata.',
+            },
           )}
         />
         <PresetCard
@@ -2624,12 +2717,18 @@ function GameMenu({
           onClick={() => setTab('free')}
           emoji="🏁"
           accent="#00d4ff"
-          title={tp('Свободная гонка', 'Free race', 'Wolny wyscig')}
-          subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz')}
+          title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
+          subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
             'Сложность, сила ветра, лодка - под тебя. Без конкретной цели.',
             'Difficulty, wind, boat - all yours. No specific objective.',
-            'Trudnosc, sila wiatru, lodz - pod ciebie. Bez konkretnego celu.',
+            'Poziom, siła wiatru, łódź - według ciebie. Bez konkretnego celu.',
+            {
+              es: 'Dificultad, viento, barco - a tu gusto. Sin un objetivo concreto.',
+              fr: 'Difficulté, vent, bateau - à ta guise. Sans objectif précis.',
+              de: 'Schwierigkeit, Wind, Boot - wie du willst. Ohne festes Ziel.',
+              it: 'Difficoltà, vento, barca - a tua scelta. Senza un obiettivo preciso.',
+            },
           )}
         />
         <PresetCard
@@ -2637,12 +2736,18 @@ function GameMenu({
           onClick={() => setTab('mission')}
           emoji="🎯"
           accent="#ffaa00"
-          title={tp('Миссия', 'Mission', 'Misja')}
-          subtitle={tp('Конкретная задача', 'Specific objective', 'Konkretny cel')}
+          title={tp('Миссия', 'Mission', 'Misja', { es: 'Misión', fr: 'Mission', de: 'Mission', it: 'Missione' })}
+          subtitle={tp('Конкретная задача', 'Specific objective', 'Konkretny cel', { es: 'Objetivo concreto', fr: 'Objectif précis', de: 'Konkretes Ziel', it: 'Obiettivo preciso' })}
           desc={tp(
             '4 сценария: чистая гонка, под 90 сек, мин. галсов, слабый ветер.',
             '4 scenarios: clean race, under 90 sec, min tacks, light wind.',
-            '4 scenariusze: czysty wyscig, ponizej 90 s, min. halsow, slaby wiatr.',
+            '4 scenariusze: czysty wyścig, poniżej 90 s, minimum zwrotów, słaby wiatr.',
+            {
+              es: '4 escenarios: regata limpia, menos de 90 s, pocas viradas, viento flojo.',
+              fr: '4 scénarios : course propre, moins de 90 s, peu de virements, vent faible.',
+              de: '4 Szenarien: sauberes Rennen, unter 90 s, wenige Wenden, Leichtwind.',
+              it: '4 scenari: regata pulita, sotto i 90 s, poche virate, vento leggero.',
+            },
           )}
         />
       </div>
@@ -2650,7 +2755,7 @@ function GameMenu({
       {/* Tab-specific controls */}
       {tab === 'mission' && (
         <div className="card p-4 mb-5">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ВЫБЕРИ МИССИЮ', 'PICK A MISSION', 'WYBIERZ MISJE')}</div>
+          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ВЫБЕРИ МИССИЮ', 'PICK A MISSION', 'WYBIERZ MISJĘ', { es: 'ELIGE UNA MISIÓN', fr: 'CHOISIS UNE MISSION', de: 'WÄHLE EINE MISSION', it: 'SCEGLI UNA MISSIONE' })}</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {missions.map((m) => {
               const active = selectedMission?.id === m.id;
@@ -2678,9 +2783,9 @@ function GameMenu({
                 {selectedMission.emoji} {mTitle(selectedMission)}
               </div>
               <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{mDesc(selectedMission)}</div>
-              <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl)}</div>
+              <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</div>
               <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                {tp('Автонастройки', 'Auto-settings', 'Autoustawienia')}: {difficultyLabel(selectedMission.difficulty)} · {tp('ветер', 'wind', 'wiatr')} {windLabel(selectedMission.windStrength)}
+                {tp('Автонастройки', 'Auto-settings', 'Ustawienia automatyczne', { es: 'Ajustes automáticos', fr: 'Réglages auto', de: 'Automatische Einstellungen', it: 'Impostazioni automatiche' })}: {difficultyLabel(selectedMission.difficulty)} · {tp('ветер', 'wind', 'wiatr', { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' })} {windLabel(selectedMission.windStrength)}
               </div>
             </div>
           )}
@@ -2691,7 +2796,7 @@ function GameMenu({
         <div className="card p-4 mb-5 space-y-4">
           {/* Difficulty */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'TRUDNOSC')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM', { es: 'DIFICULTAD', fr: 'DIFFICULTÉ', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTÀ' })}</div>
             <div className="grid grid-cols-3 gap-2">
               {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
                 const cfg = DIFFICULTY_CONFIG[d];
@@ -2709,9 +2814,9 @@ function GameMenu({
                   >
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                      <div className="font-semibold" style={{ color: cfg.color }}>{tp(cfg.label, cfg.labelEn, cfg.labelPl)}</div>
+                      <div className="font-semibold" style={{ color: cfg.color }}>{tp(cfg.label, cfg.labelEn, cfg.labelPl, { es: cfg.labelEs, fr: cfg.labelFr, de: cfg.labelDe, it: cfg.labelIt })}</div>
                     </div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперников', 'opponents', 'rywali')}</div>
+                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперника', 'opponents', 'rywali', { es: 'rivales', fr: 'adversaires', de: 'Gegner', it: 'avversari' })}</div>
                   </button>
                 );
               })}
@@ -2719,12 +2824,12 @@ function GameMenu({
           </div>
           {/* Wind */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SILA WIATRU')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { id: 'light',  label: tp('Слабый',  'Light',  'Slaby'),  icon: '🌬', desc: '~5 kts'  },
-                { id: 'medium', label: tp('Средний', 'Medium', 'Sredni'), icon: '💨', desc: '~10 kts' },
-                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny'),  icon: '🌪', desc: '~15 kts' },
+                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  icon: '🌬', desc: '~5 kn'  },
+                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), icon: '💨', desc: '~10 kn' },
+                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  icon: '🌪', desc: '~15 kn' },
               ] as const).map((w) => (
                 <button
                   key={w.id}
@@ -2745,7 +2850,7 @@ function GameMenu({
           </div>
           {/* Boat */}
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'LODZ')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'ŁÓDŹ', { es: 'BARCO', fr: 'BATEAU', de: 'BOOT', it: 'BARCA' })}</div>
             <div className="grid grid-cols-2 gap-2">
               {BOAT_STYLES.map((b) => {
                 const active = boatStyle === b.id;
@@ -2762,8 +2867,8 @@ function GameMenu({
                   >
                     <BoatStylePreview style={b.id} />
                     <div>
-                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl)}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl)}</div>
+                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl, { es: b.labelEs, fr: b.labelFr, de: b.labelDe, it: b.labelIt })}</div>
+                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl, { es: b.descEs, fr: b.descFr, de: b.descDe, it: b.descIt })}</div>
                     </div>
                   </button>
                 );
@@ -2779,8 +2884,8 @@ function GameMenu({
         className="w-full mb-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1 transition"
       >
         <span>{detailsOpen
-          ? tp('Скрыть детали', 'Hide details', 'Ukryj szczegoly')
-          : tp('Показать управление и правила трассы', 'Show controls and course rules', 'Pokaz sterowanie i zasady trasy')
+          ? tp('Скрыть детали', 'Hide details', 'Ukryj szczegóły', { es: 'Ocultar detalles', fr: 'Masquer les détails', de: 'Details ausblenden', it: 'Nascondi i dettagli' })
+          : tp('Показать управление и правила трассы', 'Show controls and course rules', 'Pokaż sterowanie i zasady trasy', { es: 'Ver controles y reglas del recorrido', fr: 'Afficher les commandes et les règles du parcours', de: 'Steuerung und Bahnregeln anzeigen', it: 'Mostra comandi e regole del percorso' })
         }</span>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
              style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
@@ -2791,28 +2896,28 @@ function GameMenu({
       {detailsOpen && (
         <div className="card p-4 mb-5 space-y-4">
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
             <div className="flex flex-wrap gap-3 text-sm">
               <div className="flex items-center gap-2">
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo')}</span>
+                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo', { es: 'Izquierda', fr: 'Gauche', de: 'Links', it: 'Sinistra' })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
                 <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo')}</span>
+                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo', { es: 'Derecha', fr: 'Droite', de: 'Rechts', it: 'Destra' })}</span>
               </div>
-              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na mobilce - przyciski na dole.')}</div>
+              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na telefonie - przyciski na dole ekranu.', { es: 'En el móvil - botones en la parte inferior.', fr: 'Sur mobile - boutons en bas de l\'écran.', de: 'Auf dem Handy - Tasten unten am Bildschirm.', it: 'Su mobile - pulsanti in basso.' })}</div>
             </div>
           </div>
           <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA')}</div>
+            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
             <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
-              <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start od dolnej pomaranczowej linii (tam tez meta).')}</li>
-              <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Go to the windward mark on tacks - wind is from above.', 'Do znaku nawietrznego idziesz halsami - wiatr z gory.')}</li>
-              <li>{tp('Огибаешь знак (ближе 30 метров).', 'Round the mark (within 30 m).', 'Okrazasz znak (blizej 30 m).')}</li>
-              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pelnym i przecinasz mete z gory w dol.')}</li>
+              <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start z dolnej pomarańczowej linii (tam jest też meta).', { es: 'Salida desde la línea naranja de abajo (también es la llegada).', fr: 'Départ depuis la ligne orange du bas (c\'est aussi l\'arrivée).', de: 'Start an der unteren orangen Linie (dort ist auch das Ziel).', it: 'Partenza dalla linea arancione in basso (è anche l\'arrivo).' })}</li>
+              <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Tack your way up to the windward mark - the wind blows from the top.', 'Do znaku nawietrznego płyniesz halsami - wiatr wieje z góry.', { es: 'Subes a la baliza de barlovento dando bordos - el viento viene de arriba.', fr: 'Tu remontes vers la bouée au vent en louvoyant - le vent vient du haut.', de: 'Zur Luvtonne kreuzt du auf - der Wind kommt von oben.', it: 'Risali verso la boa di bolina bordeggiando - il vento arriva dall\'alto.' })}</li>
+              <li>{tp('Огибаешь знак (ближе 30 метров).', 'Round the mark (within 30 m).', 'Okrążasz znak (bliżej niż 30 m).', { es: 'Rodeas la baliza (a menos de 30 m).', fr: 'Tu vires la bouée (à moins de 30 m).', de: 'Du rundest die Bahnmarke (näher als 30 m).', it: 'Giri la boa (a meno di 30 m).' })}</li>
+              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>
         </div>
@@ -2901,13 +3006,13 @@ function CoursePreview() {
   const labelWind = tp('ветер', 'wind', 'wiatr',
     { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' });
   const labelTopMark = tp('верхний знак', 'windward mark', 'znak nawietrzny',
-    { es: 'baliza de barlovento', fr: 'bouee au vent', de: 'Luvtonne', it: 'boa al vento' });
+    { es: 'baliza de barlovento', fr: 'bouée au vent', de: 'Luvtonne', it: 'boa di bolina' });
   const labelStartFinish = tp('старт / финиш', 'start / finish', 'start / meta',
-    { es: 'salida / llegada', fr: 'depart / arrivee', de: 'Start / Ziel', it: 'partenza / arrivo' });
-  const legendUpwind = tp('-- ходом против ветра (галсы)', '-- upwind (tacks)', '-- pod wiatr (halsy)',
-    { es: '-- contra el viento (bordadas)', fr: '-- au pres (bords)', de: '-- gegen den Wind (Schlaege)', it: '-- bolina (mure)' });
+    { es: 'salida / llegada', fr: 'départ / arrivée', de: 'Start / Ziel', it: 'partenza / arrivo' });
+  const legendUpwind = tp('-- ходом против ветра (галсы)', '-- upwind (tacks)', '-- pod wiatr (halsami)',
+    { es: '-- en ceñida (bordos)', fr: '-- au près (bords)', de: '-- gegen den Wind (Kreuzschläge)', it: '-- di bolina (bordi)' });
   const legendDownwind = tp('-- попутно к финишу', '-- downwind to finish', '-- z wiatrem do mety',
-    { es: '-- a favor del viento al final', fr: '-- vent arriere a l\'arrivee', de: '-- mit dem Wind zum Ziel', it: '-- al lasco al traguardo' });
+    { es: '-- a favor del viento a la llegada', fr: '-- au portant jusqu\'à l\'arrivée', de: '-- mit dem Wind zum Ziel', it: '-- vento in poppa all\'arrivo' });
   return (
     <svg viewBox="0 0 200 260" className="w-full max-w-[220px] mx-auto block">
       {/* water */}
@@ -2989,6 +3094,13 @@ function ResumeOffer({
   onDismiss: () => void;
 }) {
   const minutesAgo = Math.max(1, Math.round((Date.now() - saved.ts) / 60000));
+  const diff = DIFFICULTY_CONFIG[saved.difficulty];
+  const level = tp(diff.label, diff.labelEn, diff.labelPl, { es: diff.labelEs, fr: diff.labelFr, de: diff.labelDe, it: diff.labelIt });
+  const wind = saved.windStrength === 'light'
+    ? tp('слабый ветер', 'light wind', 'słaby wiatr', { es: 'viento flojo', fr: 'vent faible', de: 'schwacher Wind', it: 'vento leggero' })
+    : saved.windStrength === 'heavy'
+      ? tp('сильный ветер', 'strong wind', 'silny wiatr', { es: 'viento fuerte', fr: 'vent fort', de: 'starker Wind', it: 'vento forte' })
+      : tp('средний ветер', 'medium wind', 'średni wiatr', { es: 'viento medio', fr: 'vent moyen', de: 'mittlerer Wind', it: 'vento medio' });
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 mt-4">
       <div
@@ -3004,25 +3116,25 @@ function ResumeOffer({
             {tp(
               'Гонка прервана. Продолжить?',
               'A race was interrupted. Resume?',
-              'Wyscig przerwany. Wznowic?',
+              'Wyścig przerwany. Wznowić?',
               {
-                es: 'Una regata fue interrumpida. ?Continuar?',
-                fr: 'Une course a ete interrompue. Reprendre ?',
-                de: 'Ein Rennen wurde unterbrochen. Fortsetzen?',
-                it: 'Una regata e stata interrotta. Riprendere?',
+                es: 'Regata interrumpida. ¿Continuar?',
+                fr: 'Course interrompue. Reprendre ?',
+                de: 'Rennen unterbrochen. Fortsetzen?',
+                it: 'Regata interrotta. Riprendere?',
               },
             )}
           </div>
           <div className="text-xs text-[var(--text-muted)]">
             {tp(
-              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} мин назад`,
-              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min ago`,
-              `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min temu`,
+              `${level} · ${wind} · ${minutesAgo} мин назад`,
+              `${level} · ${wind} · ${minutesAgo} min ago`,
+              `${level} · ${wind} · ${minutesAgo} min temu`,
               {
-                es: `${saved.difficulty} · ${saved.windStrength} · hace ${minutesAgo} min`,
-                fr: `${saved.difficulty} · ${saved.windStrength} · il y a ${minutesAgo} min`,
-                de: `${saved.difficulty} · ${saved.windStrength} · vor ${minutesAgo} Min`,
-                it: `${saved.difficulty} · ${saved.windStrength} · ${minutesAgo} min fa`,
+                es: `${level} · ${wind} · hace ${minutesAgo} min`,
+                fr: `${level} · ${wind} · il y a ${minutesAgo} min`,
+                de: `${level} · ${wind} · vor ${minutesAgo} Min.`,
+                it: `${level} · ${wind} · ${minutesAgo} min fa`,
               },
             )}
           </div>
@@ -3037,7 +3149,7 @@ function ResumeOffer({
               color: '#0a1628',
             }}
           >
-            {tp('Продолжить', 'Resume', 'Wznow',
+            {tp('Продолжить', 'Resume', 'Wznów',
               { es: 'Continuar', fr: 'Reprendre', de: 'Fortsetzen', it: 'Riprendere' })}
           </button>
           <button

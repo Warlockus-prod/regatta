@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, type StyleProp, StyleSheet, type ViewStyle } from 'react-native';
 import { colors } from '../tokens';
+import { useI18n } from '../../i18n/context';
 
 interface SkeletonProps {
   width: number | `${number}%`;
@@ -16,6 +17,7 @@ interface SkeletonProps {
  * placeholder while a Tier-2 surface (gallery, leaderboard) hydrates.
  */
 export function Skeleton({ width, height, radius = 6, style }: SkeletonProps) {
+  const { tp } = useI18n();
   const opacity = useRef(new Animated.Value(0.4)).current;
 
   useEffect(() => {
@@ -41,7 +43,7 @@ export function Skeleton({ width, height, radius = 6, style }: SkeletonProps) {
 
   return (
     <Animated.View
-      accessibilityLabel="Loading"
+      accessibilityLabel={tp('Загрузка', 'Loading', 'Ładowanie', { es: 'Cargando', fr: 'Chargement', de: 'Wird geladen', it: 'Caricamento' })}
       accessibilityRole="image"
       style={[
         styles.base,

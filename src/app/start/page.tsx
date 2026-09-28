@@ -42,7 +42,7 @@ export default function StartHerePage() {
   };
 
   if (!progress) {
-    return <div className="max-w-3xl mx-auto px-4 py-10 text-center text-[var(--text-muted)]">…</div>;
+    return <div className="max-w-3xl mx-auto px-4 py-10 text-center text-[var(--text-muted)]">...</div>;
   }
 
   const completedCount = progress.completed.length;
@@ -67,10 +67,10 @@ export default function StartHerePage() {
   };
 
   const handleReset = () => {
-    if (confirm(tp('Сбросить весь прогресс?', 'Reset all progress?', 'Wyzerowac caly postep?', {
-      es: 'Reiniciar todo el progreso?',
-      fr: 'Reinitialiser toute la progression?',
-      de: 'Gesamten Fortschritt zuruecksetzen?',
+    if (confirm(tp('Сбросить весь прогресс?', 'Reset all progress?', 'Wyzerować cały postęp?', {
+      es: '¿Reiniciar todo el progreso?',
+      fr: 'Réinitialiser toute la progression ?',
+      de: 'Gesamten Fortschritt zurücksetzen?',
       it: 'Azzerare tutti i progressi?',
     }))) {
       resetBootcamp();
@@ -84,31 +84,31 @@ export default function StartHerePage() {
       <div className="mb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(0, 212, 255, 0.1)', border: '1px solid rgba(0, 212, 255, 0.25)', color: 'var(--accent-cyan)' }}>
-          🎓 {tp('Выбери трек', 'Pick your track', 'Wybierz sciezke', {
+          🎓 {tp('Выбери трек', 'Pick your track', 'Wybierz ścieżkę', {
             es: 'Elige tu ruta',
-            fr: 'Choisis ta voie',
-            de: 'Waehle deinen Weg',
+            fr: 'Choisis ton parcours',
+            de: 'Wähle deinen Weg',
             it: 'Scegli il tuo percorso',
           })}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {tp('С чего начнёшь?', 'Where do you start?', 'Od czego zaczynasz?', {
-            es: 'Por donde empiezas?',
-            fr: 'Par ou commences-tu?',
-            de: 'Wo faengst du an?',
+          {tp('С чего начнёшь?', 'Where will you start?', 'Od czego zaczynasz?', {
+            es: '¿Por dónde empiezas?',
+            fr: 'Par où commences-tu ?',
+            de: 'Wo fängst du an?',
             it: 'Da dove inizi?',
           })}
         </h1>
         <p className="text-[var(--text-secondary)] leading-relaxed max-w-2xl mb-5">
           {tp(
             'Три пути к старту. Выбери свой по времени и опыту.',
-            'Three tracks to starting line. Pick one by time and experience.',
-            'Trzy sciezki do startu. Wybierz swoja wedlug czasu i doswiadczenia.',
+            'Three tracks to the start line. Pick yours by time and experience.',
+            'Trzy ścieżki do startu. Wybierz swoją według czasu i doświadczenia.',
             {
-              es: 'Tres rutas a la salida. Elige la tuya segun tiempo y experiencia.',
-              fr: 'Trois voies vers la ligne de depart. Choisis selon ton temps et ton experience.',
-              de: 'Drei Wege zur Startlinie. Waehle nach Zeit und Erfahrung.',
-              it: 'Tre percorsi alla partenza. Scegli il tuo in base a tempo ed esperienza.',
+              es: 'Tres rutas hacia la salida. Elige la tuya según tu tiempo y tu experiencia.',
+              fr: 'Trois parcours vers la ligne de départ. Choisis le tien selon ton temps et ton expérience.',
+              de: 'Drei Wege zur Startlinie. Wähle deinen nach Zeit und Erfahrung.',
+              it: 'Tre percorsi verso la partenza. Scegli il tuo in base a tempo ed esperienza.',
             },
           )}
         </p>
@@ -118,70 +118,70 @@ export default function StartHerePage() {
             onClick={scrollToBootcamp}
             className="card p-4 ring-2 text-left transition hover:scale-[1.01]"
             style={{ borderColor: 'var(--accent-cyan)', outlineColor: 'var(--accent-cyan)', background: 'rgba(0, 212, 255, 0.06)' }}
-            aria-label={tp('Открыть полный курс ниже', 'Open full course below', 'Otworz pelny kurs ponizej', {
+            aria-label={tp('Открыть полный курс ниже', 'Open full course below', 'Otwórz pełny kurs poniżej', {
               es: 'Abrir el curso completo abajo',
               fr: 'Ouvrir le cours complet ci-dessous',
-              de: 'Vollstaendigen Kurs unten oeffnen',
+              de: 'Kompletten Kurs unten öffnen',
               it: 'Apri il corso completo qui sotto',
             })}
           >
             <div className="text-2xl mb-1">📚</div>
-            <div className="font-semibold text-[var(--accent-cyan)]">{tp('Полный курс', 'Full course', 'Pelny kurs', {
+            <div className="font-semibold text-[var(--accent-cyan)]">{tp('Полный курс', 'Full course', 'Pełny kurs', {
               es: 'Curso completo',
               fr: 'Cours complet',
-              de: 'Vollstaendiger Kurs',
+              de: 'Kompletter Kurs',
               it: 'Corso completo',
             })}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-2">{BOOTCAMP_TOTAL_MINUTES} {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min', it: 'min' })} · 8 {tp('уроков', 'lessons', 'lekcji', { es: 'lecciones', fr: 'lecons', de: 'Lektionen', it: 'lezioni' })}</div>
-            <p className="text-xs text-[var(--text-secondary)]">{tp('Ты - совсем с нуля. Разберёшь всё по шагам.', 'From zero. Step by step.', 'Od zera. Krok po kroku.', {
-              es: 'Desde cero. Paso a paso.',
-              fr: 'A partir de zero. Pas a pas.',
-              de: 'Von null. Schritt fuer Schritt.',
-              it: 'Da zero. Passo dopo passo.',
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">{BOOTCAMP_TOTAL_MINUTES} {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min.', it: 'min' })} · 8 {tp('уроков', 'lessons', 'lekcji', { es: 'lecciones', fr: 'leçons', de: 'Lektionen', it: 'lezioni' })}</div>
+            <p className="text-xs text-[var(--text-secondary)]">{tp('Ты - совсем с нуля. Разберёшь всё по шагам.', 'From zero. Step by step.', 'Zaczynasz od zera. Przejdziesz wszystko krok po kroku.', {
+              es: 'Empiezas de cero. Lo verás todo paso a paso.',
+              fr: 'Tu pars de zéro. Tu verras tout pas à pas.',
+              de: 'Du fängst bei null an. Alles Schritt für Schritt.',
+              it: 'Parti da zero. Vedrai tutto passo dopo passo.',
             })}</p>
             <div className="text-[10px] font-semibold mt-2" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Открыть курс', 'Open course', 'Otworz kurs', {
+              {tp('Открыть курс', 'Open course', 'Otwórz kurs', {
                 es: 'Abrir curso',
                 fr: 'Ouvrir le cours',
-                de: 'Kurs oeffnen',
+                de: 'Kurs öffnen',
                 it: 'Apri il corso',
               })} ↓
             </div>
           </button>
           <Link href="/quick" className="card p-4 hover:border-[var(--success)] transition">
             <div className="text-2xl mb-1">⚡</div>
-            <div className="font-semibold" style={{ color: 'var(--success)' }}>{tp('Освежить', 'Refresh', 'Odswiezyc', {
+            <div className="font-semibold" style={{ color: 'var(--success)' }}>{tp('Освежить', 'Refresh', 'Powtórka', {
               es: 'Repasar',
-              fr: 'Rafraichir',
+              fr: 'Réviser',
               de: 'Auffrischen',
               it: 'Ripassare',
             })}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-2">15 {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min', it: 'min' })} · 6 {tp('тем', 'topics', 'tematow', { es: 'temas', fr: 'sujets', de: 'Themen', it: 'argomenti' })}</div>
-            <p className="text-xs text-[var(--text-secondary)]">{tp('Опыт есть, регата - завтра. Только ключевое.', 'Got experience, race tomorrow. Key points only.', 'Masz doswiadczenie, regata jutro. Tylko kluczowe.', {
-              es: 'Tienes experiencia, regata manana. Solo lo esencial.',
-              fr: 'Tu as de l\'experience, regate demain. Que l\'essentiel.',
-              de: 'Erfahrung da, Regatta morgen. Nur das Wichtigste.',
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">15 {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min.', it: 'min' })} · 6 {tp('тем', 'topics', 'tematów', { es: 'temas', fr: 'sujets', de: 'Themen', it: 'argomenti' })}</div>
+            <p className="text-xs text-[var(--text-secondary)]">{tp('Опыт есть, регата - завтра. Только ключевое.', 'Got experience, race tomorrow. Key points only.', 'Masz doświadczenie, a regaty jutro? Tylko najważniejsze.', {
+              es: 'Tienes experiencia y la regata es mañana. Solo lo esencial.',
+              fr: "Tu as de l'expérience et la régate est demain ? L'essentiel seulement.",
+              de: 'Erfahrung da, Regatta morgen? Nur das Wichtigste.',
               it: 'Hai esperienza, regata domani. Solo l\'essenziale.',
             })}</p>
           </Link>
           <Link href="/onboard" className="card p-4 hover:border-[var(--warning)] transition">
             <div className="text-2xl mb-1">⚓</div>
-            <div className="font-semibold" style={{ color: 'var(--warning)' }}>{tp('На яхте', 'On board', 'Na pokladzie', {
+            <div className="font-semibold" style={{ color: 'var(--warning)' }}>{tp('На яхте', 'On board', 'Na pokładzie', {
               es: 'A bordo',
-              fr: 'A bord',
+              fr: 'À bord',
               de: 'An Bord',
               it: 'A bordo',
             })}</div>
-            <div className="text-[10px] text-[var(--text-muted)] mb-2">{tp('Как вести себя', 'How to behave', 'Jak sie zachowac', {
-              es: 'Como comportarse',
+            <div className="text-[10px] text-[var(--text-muted)] mb-2">{tp('Как вести себя', 'How to behave', 'Jak się zachować', {
+              es: 'Cómo comportarse',
               fr: 'Comment se comporter',
-              de: 'Wie man sich verhaelt',
+              de: 'Wie du dich verhältst',
               it: 'Come comportarsi',
             })}</div>
-            <p className="text-xs text-[var(--text-secondary)]">{tp('Команды, что опасно, что брать. Для первого выхода.', 'Commands, dangers, what to pack. For your first day aboard.', 'Komendy, co niebezpieczne, co zabrac. Na pierwsze wyjscie.', {
-              es: 'Ordenes, peligros, que llevar. Para tu primer dia a bordo.',
-              fr: 'Commandes, dangers, quoi emporter. Pour ton premier jour a bord.',
-              de: 'Kommandos, Gefahren, was mitnehmen. Fuer deinen ersten Tag an Bord.',
+            <p className="text-xs text-[var(--text-secondary)]">{tp('Команды, что опасно, что брать. Для первого выхода.', 'Commands, dangers, what to pack. For your first day aboard.', 'Komendy, co jest niebezpieczne, co zabrać. Na pierwsze wyjście w morze.', {
+              es: 'Órdenes, peligros, qué llevar. Para tu primer día a bordo.',
+              fr: 'Ordres, dangers, quoi emporter. Pour ton premier jour à bord.',
+              de: 'Kommandos, Gefahren, was du mitnimmst. Für deinen ersten Tag an Bord.',
               it: 'Comandi, pericoli, cosa portare. Per il tuo primo giorno a bordo.',
             })}</p>
           </Link>
@@ -201,12 +201,12 @@ export default function StartHerePage() {
       >
         <span className="text-xl">📚</span>
         <h2 className="text-xl font-semibold">
-          {tp('Полный курс:', 'Full course:', 'Pelny kurs:', {
+          {tp('Полный курс:', 'Full course:', 'Pełny kurs:', {
             es: 'Curso completo:',
-            fr: 'Cours complet:',
-            de: 'Vollstaendiger Kurs:',
+            fr: 'Cours complet :',
+            de: 'Kompletter Kurs:',
             it: 'Corso completo:',
-          })} <span style={{ color: 'var(--accent-cyan)' }}>{BOOTCAMP_TOTAL_MINUTES} {tp('минут', 'min', 'minut', { es: 'min', fr: 'min', de: 'Min', it: 'min' })}</span>
+          })} <span style={{ color: 'var(--accent-cyan)' }}>{BOOTCAMP_TOTAL_MINUTES} {tp('минут', 'min', 'minut', { es: 'min', fr: 'min', de: 'Min.', it: 'min' })}</span>
         </h2>
       </div>
 
@@ -214,11 +214,11 @@ export default function StartHerePage() {
       <div className="card p-4 mb-6">
         <div className="flex items-center justify-between mb-2">
           <div className="text-sm font-semibold">
-            {completedCount}/{bootcampLessons.length} {tp('пройдено', 'completed', 'ukonczono', {
-              es: 'completado',
-              fr: 'termine',
+            {completedCount}/{bootcampLessons.length} {tp('пройдено', 'completed', 'ukończono', {
+              es: 'completadas',
+              fr: 'terminées',
               de: 'abgeschlossen',
-              it: 'completato',
+              it: 'completate',
             })}
           </div>
           <div className="text-sm text-[var(--text-muted)]">{percentage}%</div>
@@ -234,10 +234,10 @@ export default function StartHerePage() {
             onClick={handleReset}
             className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mt-3 transition"
           >
-            {tp('Сбросить прогресс', 'Reset progress', 'Wyzeruj postep', {
+            {tp('Сбросить прогресс', 'Reset progress', 'Wyzeruj postęp', {
               es: 'Reiniciar progreso',
-              fr: 'Reinitialiser la progression',
-              de: 'Fortschritt zuruecksetzen',
+              fr: 'Réinitialiser la progression',
+              de: 'Fortschritt zurücksetzen',
               it: 'Azzera i progressi',
             })}
           </button>
@@ -272,16 +272,16 @@ export default function StartHerePage() {
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-bold"
               style={{ background: 'rgba(68, 255, 136, 0.2)', border: '1px solid rgba(68, 255, 136, 0.5)', color: 'var(--success)' }}
             >
-              🎓 {tp('Базовый курс пройден', 'Bootcamp complete', 'Podstawowy kurs ukonczony', {
-                es: 'Curso basico completado',
-                fr: 'Cours de base termine',
+              🎓 {tp('Базовый курс пройден', 'Bootcamp complete', 'Kurs podstawowy ukończony', {
+                es: 'Curso básico completado',
+                fr: 'Cours de base terminé',
                 de: 'Grundkurs abgeschlossen',
                 it: 'Corso base completato',
               })}
             </div>
-            <h3 className="text-2xl font-bold mb-2">{tp('База пройдена!', 'Basics complete!', 'Podstawy ukonczone!', {
-              es: 'Fundamentos completados!',
-              fr: 'Les bases sont acquises!',
+            <h3 className="text-2xl font-bold mb-2">{tp('База пройдена!', 'Basics complete!', 'Podstawy ukończone!', {
+              es: '¡Fundamentos completados!',
+              fr: 'Les bases sont acquises !',
               de: 'Grundlagen geschafft!',
               it: 'Basi completate!',
             })}</h3>
@@ -289,12 +289,12 @@ export default function StartHerePage() {
               {tp(
                 'Ты освоил основы парусного дела. Что дальше - выбирай по вкусу:',
                 'You\'ve got the basics of sailing. What next - pick your path:',
-                'Masz juz podstawy zeglarstwa. Co dalej - wybierz po swojemu:',
+                'Masz już podstawy żeglarstwa. Co dalej? Wybierz, co ci pasuje:',
                 {
-                  es: 'Ya tienes las bases de la vela. Que sigue - elige tu camino:',
-                  fr: 'Tu maitrises les bases de la voile. Et maintenant - choisis ta voie:',
-                  de: 'Du beherrschst die Grundlagen des Segelns. Was nun - waehle deinen Weg:',
-                  it: 'Hai le basi della vela. E ora - scegli il tuo percorso:',
+                  es: 'Ya tienes las bases de la vela. ¿Y ahora? Elige tu camino:',
+                  fr: 'Tu maîtrises les bases de la voile. Et maintenant ? Choisis ta voie :',
+                  de: 'Du beherrschst die Grundlagen des Segelns. Wie geht es weiter? Wähle deinen Weg:',
+                  it: 'Hai le basi della vela. E ora? Scegli il tuo percorso:',
                 },
               )}
             </p>
@@ -308,18 +308,18 @@ export default function StartHerePage() {
               style={{ borderColor: 'rgba(0, 212, 255, 0.4)', background: 'rgba(0, 212, 255, 0.08)' }}
             >
               <div className="text-3xl mb-1">🏁</div>
-              <div className="font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Гонка с AI', 'Race vs AI', 'Wyscig z AI', {
-                es: 'Carrera contra la IA',
+              <div className="font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Гонка с AI', 'Race vs AI', 'Wyścig z AI', {
+                es: 'Regata contra la IA',
                 fr: 'Course contre l\'IA',
                 de: 'Rennen gegen die KI',
-                it: 'Gara contro l\'IA',
+                it: "Regata contro l'IA",
               })}</div>
               <p className="text-xs text-[var(--text-secondary)] mt-1">
-                {tp('Соперники + AI-тренер разберёт ошибки', 'Opponents + AI coach reviews mistakes', 'Rywale + trener AI analizuje bledy', {
+                {tp('Соперники + AI-тренер разберёт ошибки', 'Opponents + AI coach reviews mistakes', 'Rywale + trener AI omówi błędy', {
                   es: 'Rivales + el entrenador IA analiza los errores',
                   fr: 'Adversaires + le coach IA analyse les erreurs',
                   de: 'Gegner + der KI-Trainer analysiert Fehler',
-                  it: 'Avversari + l\'allenatore IA analizza gli errori',
+                  it: 'Avversari + il coach IA analizza gli errori',
                 })}
               </p>
             </Link>
@@ -336,8 +336,8 @@ export default function StartHerePage() {
                 it: 'Multigiocatore',
               })}</div>
               <p className="text-xs text-[var(--text-secondary)] mt-1">
-                {tp('Пригласи друзей в лобби по коду', 'Invite friends to a lobby by code', 'Zapros znajomych do lobby po kodzie', {
-                  es: 'Invita a amigos a la sala con un codigo',
+                {tp('Пригласи друзей в лобби по коду', 'Invite friends to a lobby by code', 'Zaproś znajomych do lobby kodem', {
+                  es: 'Invita a tus amigos a una sala con un código',
                   fr: 'Invite tes amis dans un salon avec un code',
                   de: 'Lade Freunde per Code in eine Lobby ein',
                   it: 'Invita gli amici nella lobby con un codice',
@@ -365,9 +365,9 @@ export default function StartHerePage() {
               className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
             >
               <div className="text-xl mb-0.5">⚓</div>
-              <div className="text-xs font-semibold">{tp('На борту', 'On board', 'Na pokladzie', {
+              <div className="text-xs font-semibold">{tp('На борту', 'On board', 'Na pokładzie', {
                 es: 'A bordo',
-                fr: 'A bord',
+                fr: 'À bord',
                 de: 'An Bord',
                 it: 'A bordo',
               })}</div>
@@ -377,11 +377,11 @@ export default function StartHerePage() {
               className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
             >
               <div className="text-xl mb-0.5">✅</div>
-              <div className="text-xs font-semibold">{tp('Чек-лист', 'Checklist', 'Lista', {
-                es: 'Lista',
+              <div className="text-xs font-semibold">{tp('Чек-лист', 'Checklist', 'Lista kontrolna', {
+                es: 'Checklist',
                 fr: 'Checklist',
                 de: 'Checkliste',
-                it: 'Lista',
+                it: 'Checklist',
               })}</div>
             </Link>
             <Link
@@ -389,7 +389,7 @@ export default function StartHerePage() {
               className="card p-3 text-center hover:border-[var(--accent-cyan)] transition"
             >
               <div className="text-xl mb-0.5">📖</div>
-              <div className="text-xs font-semibold">{tp('Глоссарий', 'Glossary', 'Slownik', {
+              <div className="text-xs font-semibold">{tp('Глоссарий', 'Glossary', 'Słownik', {
                 es: 'Glosario',
                 fr: 'Glossaire',
                 de: 'Glossar',
@@ -473,11 +473,11 @@ function LessonAccordion({
         >
           <span className="text-xs font-mono text-[var(--text-muted)] shrink-0">#{lesson.order}</span>
           <span className="text-lg shrink-0">{lesson.emoji}</span>
-          <span className={`text-sm sm:text-base font-semibold truncate ${done ? 'line-through opacity-70' : ''}`}>
+          <span className={`text-sm sm:text-base font-semibold break-words ${done ? 'line-through opacity-70' : ''}`}>
             {title}
           </span>
           <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(0, 212, 255, 0.1)', color: 'var(--accent-cyan)' }}>
-            {lesson.estMinutes} {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min', it: 'min' })}
+            {lesson.estMinutes} {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min.', it: 'min' })}
           </span>
         </button>
 
@@ -503,7 +503,7 @@ function LessonAccordion({
             className="inline-flex items-center gap-1 text-sm font-medium mb-3"
             style={{ color: done ? 'var(--success)' : 'var(--accent-cyan)' }}
           >
-            <span>{done ? tp('Повторить', 'Review', 'Powtorz', { es: 'Repasar', fr: 'Revoir', de: 'Wiederholen', it: 'Ripassare' }) : current ? tp('Продолжить', 'Continue', 'Kontynuuj', { es: 'Continuar', fr: 'Continuer', de: 'Weiter', it: 'Continua' }) : tp('Открыть раздел', 'Open section', 'Otworz lekcje', { es: 'Abrir seccion', fr: 'Ouvrir la section', de: 'Abschnitt oeffnen', it: 'Apri la sezione' })}</span>
+            <span>{done ? tp('Повторить', 'Review', 'Powtórz', { es: 'Repasar', fr: 'Revoir', de: 'Wiederholen', it: 'Ripassare' }) : current ? tp('Продолжить', 'Continue', 'Kontynuuj', { es: 'Continuar', fr: 'Continuer', de: 'Weiter', it: 'Continua' }) : tp('Открыть раздел', 'Open section', 'Otwórz lekcję', { es: 'Abrir sección', fr: 'Ouvrir la section', de: 'Abschnitt öffnen', it: 'Apri la sezione' })}</span>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <polyline points="9 18 15 12 9 6"/>
             </svg>
@@ -519,7 +519,7 @@ function LessonAccordion({
                   className="px-2 py-1 rounded-md border transition hover:text-[var(--accent-cyan)]"
                   style={{ borderColor: 'rgba(139, 167, 184, 0.25)', color: 'var(--text-muted)' }}
                 >
-                  ← {tp('Пред.', 'Prev', 'Pop.', { es: 'Ant.', fr: 'Prec.', de: 'Zur.', it: 'Prec.' })}: #{prevLesson.order}
+                  ← {tp('Пред.', 'Prev', 'Poprz.', { es: 'Ant.', fr: 'Préc.', de: 'Zurück', it: 'Prec.' })}: #{prevLesson.order}
                 </button>
               )}
               {nextLesson && (

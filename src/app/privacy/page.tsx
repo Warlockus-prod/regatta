@@ -17,16 +17,16 @@ export default function PrivacyPage() {
       <div className="mb-6">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full mb-3 text-xs font-medium"
              style={{ background: 'rgba(0, 212, 255, 0.08)', border: '1px solid rgba(0, 212, 255, 0.2)', color: 'var(--accent-cyan)' }}>
-          {tp('Конфиденциальность', 'Privacy', 'Prywatnosc',
-            { es: 'Privacidad', fr: 'Confidentialite', de: 'Datenschutz', it: 'Privacy' })}
+          {tp('Конфиденциальность', 'Privacy', 'Prywatność',
+            { es: 'Privacidad', fr: 'Confidentialité', de: 'Datenschutz', it: 'Privacy' })}
         </div>
         <h1 className="text-3xl sm:text-4xl font-bold mb-2">
-          {tp('Политика конфиденциальности', 'Privacy Policy', 'Polityka prywatnosci',
-            { es: 'Politica de privacidad', fr: 'Politique de confidentialite', de: 'Datenschutzerklaerung', it: 'Politica sulla privacy' })}
+          {tp('Политика конфиденциальности', 'Privacy Policy', 'Polityka prywatności',
+            { es: 'Política de privacidad', fr: 'Politique de confidentialité', de: 'Datenschutzerklärung', it: 'Informativa sulla privacy' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
           {tp('Обновлено: 2026-07-10', 'Updated: 2026-07-10', 'Aktualizacja: 2026-07-10',
-            { es: 'Actualizado: 2026-07-10', fr: 'Mis a jour : 2026-07-10', de: 'Aktualisiert: 2026-07-10', it: 'Aggiornato: 2026-07-10' })}
+            { es: 'Actualizado: 2026-07-10', fr: 'Mis à jour : 2026-07-10', de: 'Aktualisiert: 2026-07-10', it: 'Aggiornato: 2026-07-10' })}
         </p>
       </div>
 
@@ -41,18 +41,18 @@ export default function PrivacyPage() {
         <div className="p-4 rounded-lg" style={{ background: 'rgba(68, 255, 136, 0.06)', border: '1px solid rgba(68, 255, 136, 0.25)' }}>
           <h2 className="text-lg font-semibold mb-2" style={{ color: 'var(--success)' }}>
             {tp('Приложение для iPhone / iPad', 'iPhone / iPad app', 'Aplikacja na iPhone / iPad',
-              { es: 'Aplicacion para iPhone / iPad', fr: 'Application iPhone / iPad', de: 'iPhone / iPad App', it: 'App per iPhone / iPad' })}
+              { es: 'Aplicación para iPhone / iPad', fr: 'Application iPhone / iPad', de: 'App für iPhone / iPad', it: 'App per iPhone / iPad' })}
           </h2>
           <p className="text-sm">
             {tp(
-              'Приложение «Week to Regatta» отправляет анонимную обобщённую продуктовую аналитику (просмотры экранов и события гонки, с пометкой языка и версии приложения), чтобы мы могли его улучшать. Это не привязано к твоей личности и никогда не используется для трекинга между приложениями; это можно выключить в Настройки -> Данные -> Анонимная аналитика. Больше ничего не покидает устройство: весь прогресс хранится локально (iOS AsyncStorage) и стирается в Настройки -> Данные -> Очистить. Остальная сеть используется только когда ты сам запускаешь: галерея, AI-разбор гонки, баннер дневного челленджа. Разделы ниже описывают САЙТ weektoregatta.com.',
-              'The "Week to Regatta" app sends anonymous, aggregate product analytics (screen views and race events, tagged with app language and version) to help us improve it. This is not linked to your identity and is never used for cross-app tracking; you can turn it off in Settings -> Data -> Anonymous analytics. Nothing else leaves your device: all progress is stored locally (iOS AsyncStorage) and wiped from Settings -> Data -> Clear all. Other network use happens only on actions you start: gallery, AI race review, daily-challenge banner. The sections below describe the WEBSITE weektoregatta.com.',
-              'Aplikacja "Week to Regatta" wysyla anonimowa, zbiorcza analityke produktowa (odslony ekranow i zdarzenia wyscigu, oznaczone jezykiem i wersja aplikacji), aby pomoc nam ja ulepszac. Nie jest to powiazane z Twoja tozsamoscia i nigdy nie sluzy do sledzenia miedzy aplikacjami; mozesz to wylaczyc w Ustawienia -> Dane -> Anonimowa analityka. Nic wiecej nie opuszcza urzadzenia: caly postep jest przechowywany lokalnie (iOS AsyncStorage) i kasowany w Ustawienia -> Dane -> Wyczysc. Reszta sieci dziala tylko gdy sam ja uruchomisz: galeria, analiza AI, baner wyzwania dnia. Sekcje ponizej opisuja STRONE weektoregatta.com.',
+              'Приложение «Week to Regatta» отправляет анонимную обобщённую продуктовую аналитику (просмотры экранов и события гонки, с пометкой языка и версии приложения), чтобы мы могли его улучшать. Это не привязано к твоей личности и никогда не используется для трекинга между приложениями; это можно выключить в Настройки -> Данные -> Анонимная аналитика. Больше ничего не покидает устройство: весь прогресс хранится локально (iOS AsyncStorage) и стирается в Настройки -> Данные -> Очистить все данные. Остальная сеть используется только когда ты сам запускаешь: галерея, AI-разбор гонки, баннер дневного челленджа. Разделы ниже описывают САЙТ weektoregatta.com.',
+              'The "Week to Regatta" app sends anonymous, aggregate product analytics (screen views and race events, tagged with app language and version) to help us improve it. This is not linked to your identity and is never used for cross-app tracking; you can turn it off in Settings -> Data -> Anonymous analytics. Nothing else leaves your device: all progress is stored locally (iOS AsyncStorage) and wiped from Settings -> Data -> Clear all data. Other network use happens only on actions you start: gallery, AI race review, daily-challenge banner. The sections below describe the WEBSITE weektoregatta.com.',
+              'Aplikacja "Week to Regatta" wysyła anonimowe, zbiorcze dane analityczne (wyświetlenia ekranów i zdarzenia wyścigu, oznaczone językiem i wersją aplikacji), abyśmy mogli ją ulepszać. Nie są one powiązane z Twoją tożsamością i nigdy nie służą do śledzenia między aplikacjami; możesz je wyłączyć w Ustawienia -> Dane -> Anonimowa analityka. Nic więcej nie opuszcza urządzenia: cały postęp jest przechowywany lokalnie (iOS AsyncStorage) i można go skasować w Ustawienia -> Dane -> Wyczyść wszystkie dane. Z sieci aplikacja korzysta poza tym tylko wtedy, gdy sam coś uruchomisz: galerię, analizę wyścigu przez AI, baner wyzwania dnia. Sekcje poniżej opisują STRONĘ weektoregatta.com.',
               {
-                es: 'La aplicacion «Week to Regatta» envia analitica de producto anonima y agregada (vistas de pantalla y eventos de regata, etiquetados con el idioma y la version de la app) para ayudarnos a mejorarla. No se vincula a tu identidad y nunca se usa para rastreo entre apps; puedes desactivarla en Ajustes -> Datos -> Analitica anonima. Nada mas sale de tu dispositivo: todo el progreso se guarda localmente (iOS AsyncStorage) y se borra en Ajustes -> Datos -> Borrar todo. El resto de la red solo se usa en acciones que tu inicias: galeria, analisis de regata con IA, banner del reto diario. Las secciones siguientes describen el SITIO weektoregatta.com.',
-                fr: 'L\'application « Week to Regatta » envoie des analyses produit anonymes et agregees (vues d\'ecran et evenements de course, associes a la langue et version de l\'app) pour nous aider a l\'ameliorer. Ce n\'est pas lie a ton identite et n\'est jamais utilise pour le suivi entre applications ; tu peux le desactiver dans Reglages -> Donnees -> Analyse anonyme. Rien d\'autre ne quitte ton appareil : toute la progression est stockee localement (iOS AsyncStorage) et effacee depuis Reglages -> Donnees -> Tout effacer. Le reste du reseau n\'est utilise que pour les actions que tu lances : galerie, analyse de course IA, banniere du defi du jour. Les sections ci-dessous decrivent le SITE weektoregatta.com.',
-                de: 'Die App «Week to Regatta» sendet anonyme, aggregierte Produktanalysen (Bildschirmaufrufe und Rennereignisse, versehen mit App-Sprache und -Version), um uns zu helfen, sie zu verbessern. Das ist nicht mit deiner Identitaet verknuepft und wird nie fuer App-uebergreifendes Tracking verwendet; du kannst es unter Einstellungen -> Daten -> Anonyme Analyse abschalten. Sonst verlaesst nichts dein Geraet: der gesamte Fortschritt wird lokal gespeichert (iOS AsyncStorage) und unter Einstellungen -> Daten -> Alles loeschen entfernt. Das uebrige Netzwerk wird nur bei Aktionen genutzt, die du startest: Galerie, KI-Rennanalyse, Tages-Challenge-Banner. Die Abschnitte unten beschreiben die WEBSITE weektoregatta.com.',
-                it: 'L\'app «Week to Regatta» invia analisi di prodotto anonime e aggregate (visualizzazioni delle schermate ed eventi di gara, contrassegnati con lingua e versione dell\'app) per aiutarci a migliorarla. Non e collegato alla tua identita e non viene mai usato per il tracciamento tra app; puoi disattivarlo in Impostazioni -> Dati -> Analisi anonima. Nient\'altro lascia il tuo dispositivo: tutti i progressi sono salvati localmente (iOS AsyncStorage) e cancellati da Impostazioni -> Dati -> Cancella tutto. Il resto della rete si usa solo per azioni che avvii tu: galleria, analisi gara con AI, banner della sfida del giorno. Le sezioni sotto descrivono il SITO weektoregatta.com.',
+                es: 'La aplicación "Week to Regatta" envía analítica de producto anónima y agregada (vistas de pantalla y eventos de regata, etiquetados con el idioma y la versión de la app) para ayudarnos a mejorarla. No se vincula a tu identidad y nunca se usa para el seguimiento entre apps; puedes desactivarla en Ajustes -> Datos -> Analítica anónima. Nada más sale de tu dispositivo: todo el progreso se guarda localmente (iOS AsyncStorage) y se borra en Ajustes -> Datos -> Borrar todos los datos. El resto del uso de la red solo ocurre con acciones que inicias tú: galería, análisis de regata con IA, banner del reto diario. Las secciones siguientes describen el SITIO WEB weektoregatta.com.',
+                fr: 'L\'application "Week to Regatta" envoie des statistiques d\'usage anonymes et agrégées (écrans consultés et événements de course, avec la langue et la version de l\'app) pour nous aider à l\'améliorer. Elles ne sont pas liées à ton identité et ne servent jamais au suivi entre applications ; tu peux les désactiver dans Réglages -> Données -> Statistiques anonymes. Rien d\'autre ne quitte ton appareil : toute ta progression est stockée localement (iOS AsyncStorage) et s\'efface dans Réglages -> Données -> Effacer toutes les données. Le reste de l\'accès réseau ne sert qu\'aux actions que tu lances toi-même : galerie, analyse de course par IA, bannière du défi du jour. Les sections ci-dessous décrivent le SITE weektoregatta.com.',
+                de: 'Die App "Week to Regatta" sendet anonyme, aggregierte Produktanalysen (Bildschirmaufrufe und Rennereignisse, versehen mit App-Sprache und -Version), damit wir sie verbessern können. Diese Daten sind nicht mit deiner Identität verknüpft und werden nie für App-übergreifendes Tracking verwendet; du kannst sie unter Einstellungen -> Daten -> Anonyme Analyse abschalten. Sonst verlässt nichts dein Gerät: Der gesamte Fortschritt wird lokal gespeichert (iOS AsyncStorage) und unter Einstellungen -> Daten -> Alle Daten löschen entfernt. Weitere Netzwerkzugriffe gibt es nur bei Aktionen, die du selbst startest: Galerie, KI-Rennanalyse, Banner der Tages-Challenge. Die Abschnitte unten beschreiben die WEBSITE weektoregatta.com.',
+                it: 'L\'app "Week to Regatta" invia statistiche d\'uso anonime e aggregate (visualizzazioni delle schermate ed eventi di regata, contrassegnati con lingua e versione dell\'app) per aiutarci a migliorarla. Non sono collegate alla tua identità e non vengono mai usate per il tracciamento tra app; puoi disattivarle in Impostazioni -> Dati -> Statistiche anonime. Nient\'altro lascia il tuo dispositivo: tutti i progressi sono salvati localmente (iOS AsyncStorage) e si cancellano da Impostazioni -> Dati -> Cancella tutti i dati. La rete viene usata solo per le azioni che avvii tu: galleria, analisi della regata con IA, banner della sfida del giorno. Le sezioni qui sotto descrivono il SITO weektoregatta.com.',
               },
             )}
           </p>
@@ -65,19 +65,19 @@ export default function PrivacyPage() {
 
         <Section
           title={tp('Что мы собираем', 'What we collect', 'Co zbieramy',
-            { es: 'Que recopilamos', fr: 'Ce que nous collectons', de: 'Was wir erfassen', it: 'Cosa raccogliamo' })}
+            { es: 'Qué recopilamos', fr: 'Ce que nous collectons', de: 'Was wir erfassen', it: 'Cosa raccogliamo' })}
         >
           <ul className="list-disc pl-5 space-y-2 text-sm">
             <li>
               {tp(
                 'Технические события: открытие страниц, ошибки JavaScript, размер окна, язык браузера, тип устройства. Сохраняются в нашу базу для анализа стабильности.',
                 'Technical events: page opens, JavaScript errors, viewport size, browser language, device type. Stored in our database for stability analysis.',
-                'Zdarzenia techniczne: otwarcia stron, bledy JavaScript, rozmiar okna, jezyk przegladarki, typ urzadzenia. Zapisywane w bazie do analizy stabilnosci.',
+                'Zdarzenia techniczne: otwarcia stron, błędy JavaScript, rozmiar okna, język przeglądarki, typ urządzenia. Zapisujemy je w naszej bazie danych do analizy stabilności.',
                 {
-                  es: 'Eventos tecnicos: aperturas de paginas, errores de JavaScript, tamano de la ventana, idioma del navegador, tipo de dispositivo. Se guardan en nuestra base de datos para analisis de estabilidad.',
-                  fr: 'Evenements techniques : ouvertures de pages, erreurs JavaScript, taille de fenetre, langue du navigateur, type d\'appareil. Conserves dans notre base de donnees pour l\'analyse de la stabilite.',
-                  de: 'Technische Ereignisse: Seitenaufrufe, JavaScript-Fehler, Fenstergroesse, Browsersprache, Geraetetyp. Gespeichert in unserer Datenbank zur Stabilitaetsanalyse.',
-                  it: 'Eventi tecnici: aperture di pagine, errori JavaScript, dimensione della finestra, lingua del browser, tipo di dispositivo. Memorizzati nel nostro database per analisi di stabilita.',
+                  es: 'Eventos técnicos: aperturas de páginas, errores de JavaScript, tamaño de la ventana, idioma del navegador, tipo de dispositivo. Se guardan en nuestra base de datos para analizar la estabilidad.',
+                  fr: "Événements techniques : ouvertures de pages, erreurs JavaScript, taille de la fenêtre, langue du navigateur, type d'appareil. Conservés dans notre base de données pour analyser la stabilité.",
+                  de: 'Technische Ereignisse: Seitenaufrufe, JavaScript-Fehler, Fenstergröße, Browsersprache, Gerätetyp. Gespeichert in unserer Datenbank zur Stabilitätsanalyse.',
+                  it: "Eventi tecnici: aperture di pagine, errori JavaScript, dimensione della finestra, lingua del browser, tipo di dispositivo. Salvati nel nostro database per l'analisi della stabilità.",
                 },
               )}
             </li>
@@ -85,12 +85,12 @@ export default function PrivacyPage() {
               {tp(
                 'Результаты гонок: время финиша, уровень сложности, выбранный никнейм. Сохраняются для лидерборда.',
                 'Race results: finish time, difficulty level, chosen nickname. Stored for the leaderboard.',
-                'Wyniki regat: czas finiszu, poziom trudnosci, wybrany pseudonim. Zapisywane dla rankingu.',
+                'Wyniki wyścigów: czas na mecie, poziom trudności, wybrany pseudonim. Zapisywane na potrzeby rankingu.',
                 {
-                  es: 'Resultados de regata: tiempo de meta, nivel de dificultad, apodo elegido. Se guardan para la clasificacion.',
-                  fr: 'Resultats de course : temps a l\'arrivee, niveau de difficulte, pseudo choisi. Conserves pour le classement.',
-                  de: 'Renn-Ergebnisse: Zielzeit, Schwierigkeitsstufe, gewaehlter Spitzname. Gespeichert fuer die Bestenliste.',
-                  it: 'Risultati di gara: tempo di arrivo, livello di difficolta, soprannome scelto. Memorizzati per la classifica.',
+                  es: 'Resultados de regata: tiempo de llegada, nivel de dificultad, apodo elegido. Se guardan para la clasificación.',
+                  fr: "Résultats de course : temps à l'arrivée, niveau de difficulté, pseudo choisi. Conservés pour le classement.",
+                  de: 'Rennergebnisse: Zielzeit, Schwierigkeitsstufe, gewählter Spitzname. Gespeichert für die Rangliste.',
+                  it: "Risultati delle regate: tempo all'arrivo, livello di difficoltà, nickname scelto. Salvati per la classifica.",
                 },
               )}
             </li>
@@ -98,12 +98,12 @@ export default function PrivacyPage() {
               {tp(
                 'Страна (приблизительно из IP-адреса), UTM-метки из ссылки.',
                 'Country (approximated from IP address), UTM tags from incoming link.',
-                'Kraj (przyblizony na podstawie adresu IP), tagi UTM z linku.',
+                'Kraj (w przybliżeniu, na podstawie adresu IP), tagi UTM z linku wejściowego.',
                 {
-                  es: 'Pais (aproximado por la direccion IP), etiquetas UTM del enlace.',
-                  fr: 'Pays (approxime depuis l\'adresse IP), parametres UTM du lien d\'arrivee.',
-                  de: 'Land (geschaetzt anhand der IP-Adresse), UTM-Parameter aus dem Link.',
-                  it: 'Paese (approssimato dall\'indirizzo IP), tag UTM dal link.',
+                  es: 'País (aproximado a partir de la dirección IP), etiquetas UTM del enlace de entrada.',
+                  fr: "Pays (estimé à partir de l'adresse IP), paramètres UTM du lien d'arrivée.",
+                  de: 'Land (geschätzt anhand der IP-Adresse), UTM-Parameter aus dem aufgerufenen Link.',
+                  it: "Paese (stimato dall'indirizzo IP), tag UTM del link di arrivo.",
                 },
               )}
             </li>
@@ -111,12 +111,12 @@ export default function PrivacyPage() {
               {tp(
                 'Сессионный cookie regatta_sid (UUID, без личных данных). Используется только для связи событий одной сессии.',
                 'Session cookie regatta_sid (UUID, no personal data). Used only to group events of the same session.',
-                'Cookie sesyjne regatta_sid (UUID, bez danych osobowych). Uzywane tylko do laczenia zdarzen tej samej sesji.',
+                'Sesyjny plik cookie regatta_sid (UUID, bez danych osobowych). Służy tylko do łączenia zdarzeń z tej samej sesji.',
                 {
-                  es: 'Cookie de sesion regatta_sid (UUID, sin datos personales). Solo se utiliza para agrupar eventos de la misma sesion.',
-                  fr: 'Cookie de session regatta_sid (UUID, sans donnees personnelles). Utilise uniquement pour regrouper les evenements d\'une meme session.',
-                  de: 'Sitzungs-Cookie regatta_sid (UUID, ohne personenbezogene Daten). Wird nur zur Gruppierung von Ereignissen derselben Sitzung verwendet.',
-                  it: 'Cookie di sessione regatta_sid (UUID, senza dati personali). Usato solo per raggruppare eventi della stessa sessione.',
+                  es: 'Cookie de sesión regatta_sid (UUID, sin datos personales). Solo se usa para agrupar los eventos de una misma sesión.',
+                  fr: "Cookie de session regatta_sid (UUID, sans données personnelles). Utilisé uniquement pour regrouper les événements d'une même session.",
+                  de: 'Sitzungs-Cookie regatta_sid (UUID, ohne personenbezogene Daten). Dient nur dazu, Ereignisse derselben Sitzung zusammenzufassen.',
+                  it: 'Cookie di sessione regatta_sid (UUID, senza dati personali). Serve solo a raggruppare gli eventi della stessa sessione.',
                 },
               )}
             </li>
@@ -124,12 +124,12 @@ export default function PrivacyPage() {
               {tp(
                 'Запись голоса только по твоей команде в голосовом режиме тренажера рации. Аудио отправляется на наш сервер для распознавания и оценки, не сохраняется в нашей базе и удаляется после обработки запроса.',
                 'A voice recording only when you start it in the radio trainer voice mode. Audio is sent to our server for transcription and grading, is not stored in our database, and is discarded after the request is processed.',
-                'Nagranie glosu tylko po Twoim uruchomieniu w trybie glosowym trenera radia. Audio jest wysylane na nasz serwer do transkrypcji i oceny, nie jest zapisywane w naszej bazie i jest usuwane po obsludze zadania.',
+                'Nagranie głosu, wyłącznie gdy sam je uruchomisz w trybie głosowym trenażera radiowego. Dźwięk jest wysyłany na nasz serwer do rozpoznania i oceny, nie jest zapisywany w naszej bazie i jest usuwany po obsłużeniu żądania.',
                 {
-                  es: 'Una grabacion de voz solo cuando la inicias en el modo de voz del simulador de radio. El audio se envia a nuestro servidor para transcripcion y evaluacion, no se guarda en nuestra base y se descarta tras procesar la solicitud.',
-                  fr: 'Un enregistrement vocal uniquement lorsque tu le lances dans le mode vocal du simulateur radio. L audio est envoye a notre serveur pour transcription et evaluation, n est pas stocke dans notre base et est supprime apres traitement.',
-                  de: 'Eine Sprachaufnahme nur, wenn du sie im Sprachmodus des Funktrainers startest. Das Audio wird zur Transkription und Bewertung an unseren Server gesendet, nicht in unserer Datenbank gespeichert und nach der Anfrage verworfen.',
-                  it: 'Una registrazione vocale solo quando la avvii nella modalita vocale del simulatore radio. L audio viene inviato al nostro server per trascrizione e valutazione, non viene salvato nel nostro database e viene eliminato dopo la richiesta.',
+                  es: 'Una grabación de voz, solo cuando la inicias en el modo de voz del simulador de radio. El audio se envía a nuestro servidor para su transcripción y evaluación, no se guarda en nuestra base de datos y se elimina tras procesar la solicitud.',
+                  fr: "Un enregistrement vocal, uniquement quand tu le lances dans le mode vocal du simulateur radio. L'audio est envoyé à notre serveur pour la transcription et l'évaluation, n'est pas stocké dans notre base de données et est supprimé une fois la requête traitée.",
+                  de: 'Eine Sprachaufnahme, nur wenn du sie im Sprachmodus des Funktrainers startest. Das Audio wird zur Transkription und Bewertung an unseren Server gesendet, nicht in unserer Datenbank gespeichert und nach der Verarbeitung der Anfrage gelöscht.',
+                  it: "Una registrazione vocale, solo quando la avvii nella modalità vocale del simulatore radio. L'audio viene inviato al nostro server per la trascrizione e la valutazione, non viene salvato nel nostro database e viene eliminato dopo l'elaborazione della richiesta.",
                 },
               )}
             </li>
@@ -141,14 +141,14 @@ export default function PrivacyPage() {
             { es: 'Lo que NO recopilamos', fr: 'Ce que nous NE collectons PAS', de: 'Was wir NICHT erfassen', it: 'Cosa NON raccogliamo' })}
         >
           <ul className="list-disc pl-5 space-y-2 text-sm">
-            <li>{tp('Имя, электронную почту, номер телефона.', 'Name, email, phone number.', 'Imie, e-mail, numer telefonu.',
-              { es: 'Nombre, correo electronico, numero de telefono.', fr: 'Nom, e-mail, numero de telephone.', de: 'Name, E-Mail, Telefonnummer.', it: 'Nome, e-mail, numero di telefono.' })}</li>
-            <li>{tp('Точную геолокацию.', 'Precise geolocation.', 'Dokladna lokalizacja.',
-              { es: 'Geolocalizacion precisa.', fr: 'Geolocalisation precise.', de: 'Genaue Standortdaten.', it: 'Geolocalizzazione precisa.' })}</li>
-            <li>{tp('Контент с других приложений или сайтов (мы не отслеживаем тебя вне regatta).', 'Content from other apps or websites (we do not track you outside regatta).', 'Tresci z innych aplikacji ani stron (nie sledzimy cie poza regatta).',
-              { es: 'Contenido de otras aplicaciones o sitios web (no te rastreamos fuera de regatta).', fr: 'Contenu provenant d\'autres applis ou sites (nous ne te suivons pas hors de regatta).', de: 'Inhalte aus anderen Apps oder Webseiten (wir verfolgen dich nicht ausserhalb von regatta).', it: 'Contenuti da altre app o siti web (non ti tracciamo fuori da regatta).' })}</li>
-            <li>{tp('Биометрию, контакты и фото. Доступ к микрофону запрашивается только для выбранного тобой голосового упражнения.', 'Biometrics, contacts, or photos. Microphone access is requested only for a voice exercise you choose to start.', 'Biometrii, kontaktow ani zdjec. Dostep do mikrofonu jest wymagany tylko dla cwiczenia glosowego, ktore sam uruchomisz.',
-              { es: 'Biometria, contactos ni fotos. El acceso al microfono se solicita solo para un ejercicio de voz que decidas iniciar.', fr: 'Donnees biometriques, contacts ou photos. L acces au microphone est demande uniquement pour un exercice vocal que tu choisis de lancer.', de: 'Biometrie, Kontakte oder Fotos. Der Mikrofonzugriff wird nur fuer eine von dir gestartete Sprachuebung angefordert.', it: 'Biometria, contatti o foto. L accesso al microfono viene richiesto solo per un esercizio vocale che scegli di avviare.' })}</li>
+            <li>{tp('Имя, электронную почту, номер телефона.', 'Name, email, phone number.', 'Imienia, adresu e-mail, numeru telefonu.',
+              { es: 'Nombre, correo electrónico, número de teléfono.', fr: 'Nom, e-mail, numéro de téléphone.', de: 'Name, E-Mail, Telefonnummer.', it: 'Nome, e-mail, numero di telefono.' })}</li>
+            <li>{tp('Точную геолокацию.', 'Precise geolocation.', 'Dokładnej lokalizacji.',
+              { es: 'Geolocalización precisa.', fr: 'Géolocalisation précise.', de: 'Genaue Standortdaten.', it: 'Geolocalizzazione precisa.' })}</li>
+            <li>{tp('Контент с других приложений или сайтов (мы не отслеживаем тебя вне regatta).', 'Content from other apps or websites (we do not track you outside Regatta).', 'Treści z innych aplikacji ani stron (nie śledzimy Cię poza Regatta).',
+              { es: 'Contenido de otras apps o sitios web (no te rastreamos fuera de Regatta).', fr: "Contenu provenant d'autres applis ou sites (nous ne te suivons pas en dehors de Regatta).", de: 'Inhalte aus anderen Apps oder Websites (wir verfolgen dich nicht außerhalb von Regatta).', it: 'Contenuti da altre app o siti web (non ti tracciamo fuori da Regatta).' })}</li>
+            <li>{tp('Биометрию, контакты и фото. Доступ к микрофону запрашивается только для выбранного тобой голосового упражнения.', 'Biometrics, contacts, or photos. Microphone access is requested only for a voice exercise you choose to start.', 'Danych biometrycznych, kontaktów ani zdjęć. O dostęp do mikrofonu prosimy tylko przy ćwiczeniu głosowym, które sam uruchomisz.',
+              { es: 'Datos biométricos, contactos o fotos. El acceso al micrófono solo se solicita para un ejercicio de voz que decidas iniciar.', fr: "Données biométriques, contacts ou photos. L'accès au micro n'est demandé que pour un exercice vocal que tu choisis de lancer.", de: 'Biometrische Daten, Kontakte oder Fotos. Der Mikrofonzugriff wird nur für eine Sprachübung angefragt, die du selbst startest.', it: "Dati biometrici, contatti o foto. L'accesso al microfono viene richiesto solo per un esercizio vocale che scegli di avviare." })}</li>
           </ul>
         </Section>
 
@@ -161,11 +161,11 @@ export default function PrivacyPage() {
               <strong>Google Analytics 4</strong>: {tp(
                 'агрегированная статистика посещений. GA получает только обезличенные события, IP анонимизируется на стороне Google.',
                 'aggregated visit statistics. GA receives only anonymized events; IP is anonymized on Google\'s side.',
-                'zagregowane statystyki odwiedzin. GA otrzymuje tylko anonimowe zdarzenia, IP jest anonimizowane po stronie Google.',
+                'zbiorcze statystyki odwiedzin. GA otrzymuje tylko zanonimizowane zdarzenia, a adres IP jest anonimizowany po stronie Google.',
                 {
-                  es: 'estadisticas de visitas agregadas. GA solo recibe eventos anonimizados, la IP se anonimiza del lado de Google.',
-                  fr: 'statistiques de visite agregees. GA ne recoit que des evenements anonymises ; l\'IP est anonymisee cote Google.',
-                  de: 'aggregierte Besuchsstatistik. GA erhaelt nur anonymisierte Ereignisse, die IP wird seitens Google anonymisiert.',
+                  es: 'estadísticas de visitas agregadas. GA solo recibe eventos anonimizados; la IP se anonimiza por parte de Google.',
+                  fr: "statistiques de visite agrégées. GA ne reçoit que des événements anonymisés ; l'IP est anonymisée côté Google.",
+                  de: 'aggregierte Besuchsstatistiken. GA erhält nur anonymisierte Ereignisse; die IP-Adresse wird auf Seiten von Google anonymisiert.',
                   it: 'statistiche di visita aggregate. GA riceve solo eventi anonimizzati; l\'IP viene anonimizzato lato Google.',
                 },
               )}
@@ -174,12 +174,12 @@ export default function PrivacyPage() {
               <strong>Anthropic (AI Coach)</strong>: {tp(
                 'когда ты запрашиваешь AI-разбор гонки, твой лог гонки (без личных данных) отправляется в Anthropic для анализа. Anthropic не использует наши запросы для тренировки моделей.',
                 'when you request the AI race review, your race log (no personal data) is sent to Anthropic for analysis. Anthropic does not use our requests to train models.',
-                'kiedy zadasz analizy AI, twoj log regaty (bez danych osobowych) jest wysylany do Anthropic. Anthropic nie uzywa naszych zapytan do treningu modeli.',
+                'gdy prosisz o analizę wyścigu przez AI, Twój zapis wyścigu (bez danych osobowych) jest wysyłany do Anthropic do analizy. Anthropic nie wykorzystuje naszych zapytań do trenowania modeli.',
                 {
-                  es: 'cuando solicitas el analisis de IA, tu registro de regata (sin datos personales) se envia a Anthropic. Anthropic no usa nuestras solicitudes para entrenar modelos.',
-                  fr: 'lorsque tu demandes l\'analyse IA, ton log de course (sans donnees personnelles) est envoye a Anthropic. Anthropic n\'utilise pas nos requetes pour entrainer ses modeles.',
-                  de: 'wenn du die KI-Auswertung anforderst, wird dein Rennlog (ohne personenbezogene Daten) an Anthropic gesendet. Anthropic nutzt unsere Anfragen nicht zum Trainieren der Modelle.',
-                  it: 'quando richiedi l\'analisi AI, il tuo log di gara (senza dati personali) viene inviato ad Anthropic. Anthropic non utilizza le nostre richieste per addestrare i modelli.',
+                  es: 'cuando solicitas el análisis de tu regata con IA, tu registro de regata (sin datos personales) se envía a Anthropic para su análisis. Anthropic no usa nuestras solicitudes para entrenar modelos.',
+                  fr: "lorsque tu demandes l'analyse de ta course par IA, le journal de ta course (sans données personnelles) est envoyé à Anthropic pour analyse. Anthropic n'utilise pas nos requêtes pour entraîner ses modèles.",
+                  de: 'wenn du die KI-Rennanalyse anforderst, wird dein Rennprotokoll (ohne personenbezogene Daten) zur Analyse an Anthropic gesendet. Anthropic nutzt unsere Anfragen nicht zum Trainieren von Modellen.',
+                  it: "quando richiedi l'analisi della regata con l'IA, il registro della tua regata (senza dati personali) viene inviato ad Anthropic per l'analisi. Anthropic non utilizza le nostre richieste per addestrare i modelli.",
                 },
               )}
             </li>
@@ -187,12 +187,12 @@ export default function PrivacyPage() {
               <strong>OpenAI (Radio voice trainer)</strong>: {tp(
                 'когда ты отправляешь голосовое упражнение, аудио передается через наш сервер в OpenAI для распознавания речи. Затем текст оценивается на нашем сервере по учебному чек-листу.',
                 'when you submit a radio voice exercise, the audio is relayed through our server to OpenAI for speech transcription. The transcript is then graded on our server against the training checklist.',
-                'gdy wysylasz cwiczenie glosowe, audio jest przekazywane przez nasz serwer do OpenAI w celu transkrypcji mowy. Tekst jest nastepnie oceniany na naszym serwerze wedlug listy kontrolnej cwiczenia.',
+                'gdy wysyłasz ćwiczenie głosowe, nagranie jest przekazywane przez nasz serwer do OpenAI w celu rozpoznania mowy. Następnie tekst jest oceniany na naszym serwerze według listy kontrolnej ćwiczenia.',
                 {
-                  es: 'cuando envias un ejercicio de voz, el audio se transmite a traves de nuestro servidor a OpenAI para transcribir el habla. El texto se evalua despues en nuestro servidor con la lista de control del ejercicio.',
-                  fr: 'lorsque tu envoies un exercice vocal, l audio passe par notre serveur vers OpenAI pour la transcription. Le texte est ensuite evalue sur notre serveur selon la liste de controle de l exercice.',
-                  de: 'wenn du eine Sprachuebung sendest, wird das Audio ueber unseren Server zur Spracherkennung an OpenAI weitergeleitet. Der Text wird danach auf unserem Server anhand der Uebungscheckliste bewertet.',
-                  it: 'quando invii un esercizio vocale, l audio viene inoltrato tramite il nostro server a OpenAI per la trascrizione. Il testo viene poi valutato sul nostro server in base alla checklist dell esercizio.',
+                  es: 'cuando envías un ejercicio de voz, el audio pasa por nuestro servidor hasta OpenAI para transcribir el habla. Después, el texto se evalúa en nuestro servidor con la lista de control del ejercicio.',
+                  fr: "lorsque tu envoies un exercice vocal, l'audio passe par notre serveur jusqu'à OpenAI pour la reconnaissance vocale. Le texte est ensuite évalué sur notre serveur selon la liste de contrôle de l'exercice.",
+                  de: 'wenn du eine Sprachübung absendest, wird das Audio über unseren Server zur Spracherkennung an OpenAI weitergeleitet. Der Text wird danach auf unserem Server anhand der Übungscheckliste bewertet.',
+                  it: "quando invii un esercizio vocale, l'audio viene inoltrato tramite il nostro server a OpenAI per il riconoscimento vocale. Il testo viene poi valutato sul nostro server in base alla checklist dell'esercizio.",
                 },
               )}
             </li>
@@ -200,38 +200,38 @@ export default function PrivacyPage() {
         </Section>
 
         <Section
-          title={tp('Где хранятся данные', 'Where data is stored', 'Gdzie sa przechowywane dane',
-            { es: 'Donde se almacenan los datos', fr: 'Ou les donnees sont stockees', de: 'Wo Daten gespeichert werden', it: 'Dove vengono memorizzati i dati' })}
+          title={tp('Где хранятся данные', 'Where data is stored', 'Gdzie przechowywane są dane',
+            { es: 'Dónde se almacenan los datos', fr: 'Où sont stockées les données', de: 'Wo Daten gespeichert werden', it: 'Dove vengono memorizzati i dati' })}
         >
           <p className="text-sm">
             {tp(
               'SQLite-база на нашем VPS-сервере. Резервные копии шифруются и хранятся 30 дней. Доступ к серверу - только у владельца проекта (Andrey, icoffio.com).',
               'SQLite database on our VPS server. Backups are encrypted and retained for 30 days. Server access is limited to the project owner (Andrey, icoffio.com).',
-              'Baza SQLite na naszym serwerze VPS. Kopie zapasowe sa szyfrowane i przechowywane przez 30 dni. Dostep do serwera ma tylko wlasciciel projektu (Andrey, icoffio.com).',
+              'Baza SQLite na naszym serwerze VPS. Kopie zapasowe są szyfrowane i przechowywane przez 30 dni. Dostęp do serwera ma tylko właściciel projektu (Andrey, icoffio.com).',
               {
-                es: 'Base de datos SQLite en nuestro servidor VPS. Las copias de seguridad estan cifradas y se conservan durante 30 dias. El acceso al servidor lo tiene solo el propietario del proyecto (Andrey, icoffio.com).',
-                fr: 'Base de donnees SQLite sur notre serveur VPS. Les sauvegardes sont chiffrees et conservees 30 jours. L\'acces au serveur est limite au proprietaire du projet (Andrey, icoffio.com).',
-                de: 'SQLite-Datenbank auf unserem VPS-Server. Sicherungen werden verschluesselt und 30 Tage aufbewahrt. Serverzugriff hat nur der Projekteigentuemer (Andrey, icoffio.com).',
-                it: 'Database SQLite sul nostro server VPS. I backup sono crittografati e conservati per 30 giorni. L\'accesso al server e limitato al proprietario del progetto (Andrey, icoffio.com).',
+                es: 'Base de datos SQLite en nuestro servidor VPS. Las copias de seguridad se cifran y se conservan 30 días. Solo el propietario del proyecto (Andrey, icoffio.com) tiene acceso al servidor.',
+                fr: 'Base de données SQLite sur notre serveur VPS. Les sauvegardes sont chiffrées et conservées 30 jours. Seul le propriétaire du projet (Andrey, icoffio.com) a accès au serveur.',
+                de: 'SQLite-Datenbank auf unserem VPS-Server. Sicherungen werden verschlüsselt und 30 Tage aufbewahrt. Zugriff auf den Server hat nur der Projektinhaber (Andrey, icoffio.com).',
+                it: 'Database SQLite sul nostro server VPS. I backup sono crittografati e conservati per 30 giorni. Solo il proprietario del progetto (Andrey, icoffio.com) ha accesso al server.',
               },
             )}
           </p>
         </Section>
 
         <Section
-          title={tp('AI-тренер: дополнительно', 'AI Coach: additional notes', 'Trener AI: dodatkowe uwagi',
-            { es: 'Entrenador IA: notas adicionales', fr: 'Coach IA : notes complementaires', de: 'KI-Trainer: zusaetzliche Hinweise', it: 'AI Coach: note aggiuntive' })}
+          title={tp('AI-тренер: дополнительно', 'AI Coach: additional notes', 'Trener AI: dodatkowe informacje',
+            { es: 'Entrenador IA: notas adicionales', fr: 'Coach IA : informations complémentaires', de: 'KI-Trainer: weitere Hinweise', it: 'Coach IA: note aggiuntive' })}
         >
           <p className="text-sm">
             {tp(
               'AI-разбор гонки генерируется языковой моделью Claude от Anthropic на основе твоего лога гонки. Модель может ошибаться. AI не дает медицинских, юридических или финансовых советов - только анализ техники парусного спорта.',
               'The AI race review is generated by Anthropic\'s Claude language model based on your race log. The model can be wrong. The AI does not give medical, legal, or financial advice - only sailing technique analysis.',
-              'Analiza AI jest generowana przez model jezykowy Claude od Anthropic na podstawie twojego loga regaty. Model moze sie mylic. AI nie udziela porad medycznych, prawnych ani finansowych - tylko analizy techniki zeglarskiej.',
+              'Analizę wyścigu przez AI generuje model językowy Claude firmy Anthropic na podstawie zapisu Twojego wyścigu. Model może się mylić. AI nie udziela porad medycznych, prawnych ani finansowych - tylko analizuje technikę żeglarską.',
               {
-                es: 'El analisis de IA lo genera el modelo de lenguaje Claude de Anthropic a partir de tu registro de regata. El modelo puede equivocarse. La IA no da consejos medicos, legales ni financieros, solo analisis de tecnica de vela.',
-                fr: 'L\'analyse IA est generee par le modele de langage Claude d\'Anthropic a partir de ton log de course. Le modele peut se tromper. L\'IA ne donne pas de conseils medicaux, juridiques ou financiers - uniquement de l\'analyse de technique a la voile.',
-                de: 'Die KI-Analyse wird vom Sprachmodell Claude von Anthropic auf Basis deines Rennlogs erstellt. Das Modell kann sich irren. Die KI gibt keine medizinischen, juristischen oder finanziellen Ratschlaege - nur Analyse der Segeltechnik.',
-                it: 'L\'analisi AI e generata dal modello linguistico Claude di Anthropic in base al tuo log di gara. Il modello puo sbagliare. L\'AI non fornisce consigli medici, legali o finanziari - solo analisi della tecnica velica.',
+                es: 'El análisis de regata con IA lo genera el modelo de lenguaje Claude de Anthropic a partir de tu registro de regata. El modelo puede equivocarse. La IA no da consejos médicos, legales ni financieros: solo analiza la técnica de navegación a vela.',
+                fr: "L'analyse de course par IA est générée par le modèle de langage Claude d'Anthropic à partir du journal de ta course. Le modèle peut se tromper. L'IA ne donne pas de conseils médicaux, juridiques ou financiers : uniquement une analyse de ta technique de voile.",
+                de: 'Die KI-Rennanalyse wird vom Sprachmodell Claude von Anthropic auf Basis deines Rennprotokolls erstellt. Das Modell kann sich irren. Die KI gibt keine medizinischen, rechtlichen oder finanziellen Ratschläge, sondern analysiert nur die Segeltechnik.',
+                it: "L'analisi della regata con l'IA è generata dal modello linguistico Claude di Anthropic in base al registro della tua regata. Il modello può sbagliare. L'IA non fornisce consigli medici, legali o finanziari: solo analisi della tecnica velica.",
               },
             )}
           </p>
@@ -239,30 +239,30 @@ export default function PrivacyPage() {
 
         <Section
           title={tp('Удаление данных', 'Data deletion', 'Usuwanie danych',
-            { es: 'Eliminacion de datos', fr: 'Suppression des donnees', de: 'Loeschen der Daten', it: 'Eliminazione dei dati' })}
+            { es: 'Eliminación de datos', fr: 'Suppression des données', de: 'Löschen der Daten', it: 'Eliminazione dei dati' })}
         >
           <p className="text-sm">
             {tp(
               'Чтобы удалить свои данные (результаты гонок, события сессий), напиши на ',
               'To delete your data (race results, session events), email ',
-              'Aby usunac swoje dane (wyniki regat, zdarzenia sesji), napisz na ',
+              'Aby usunąć swoje dane (wyniki wyścigów, zdarzenia sesji), napisz na ',
               {
-                es: 'Para eliminar tus datos (resultados de regata, eventos de sesion), escribe a ',
-                fr: 'Pour supprimer tes donnees (resultats de course, evenements de session), ecris a ',
-                de: 'Um deine Daten zu loeschen (Renn-Ergebnisse, Sitzungsereignisse), schreibe an ',
-                it: 'Per eliminare i tuoi dati (risultati di gara, eventi di sessione), scrivi a ',
+                es: 'Para eliminar tus datos (resultados de regatas, eventos de sesión), escribe a ',
+                fr: 'Pour supprimer tes données (résultats de course, événements de session), écris à ',
+                de: 'Um deine Daten zu löschen (Rennergebnisse, Sitzungsereignisse), schreib an ',
+                it: 'Per eliminare i tuoi dati (risultati delle regate, eventi di sessione), scrivi a ',
               },
             )}
             <a href="mailto:privacy@icoffio.com" className="text-[var(--accent-cyan)] hover:underline">privacy@icoffio.com</a>
             {tp(
               ' с указанием своего nickname (если есть). Удаление в течение 30 дней.',
               ' with your nickname (if any). Deletion within 30 days.',
-              ' z podaniem swojego nicku (jesli istnieje). Usuniecie w ciagu 30 dni.',
+              ' i podaj swój pseudonim (jeśli go masz). Usunięcie nastąpi w ciągu 30 dni.',
               {
-                es: ' con tu apodo (si lo hay). Eliminacion en 30 dias.',
-                fr: ' en indiquant ton pseudo (le cas echeant). Suppression sous 30 jours.',
-                de: ' und nenne deinen Spitznamen (falls vorhanden). Loeschung innerhalb von 30 Tagen.',
-                it: ' con il tuo nickname (se presente). Eliminazione entro 30 giorni.',
+                es: ' indicando tu apodo (si tienes). Los eliminamos en un plazo de 30 días.',
+                fr: ' en indiquant ton pseudo (le cas échéant). Suppression sous 30 jours.',
+                de: ' und nenne deinen Spitznamen (falls vorhanden). Die Löschung erfolgt innerhalb von 30 Tagen.',
+                it: ' indicando il tuo nickname (se ne hai uno). Eliminazione entro 30 giorni.',
               },
             )}
           </p>
@@ -270,18 +270,18 @@ export default function PrivacyPage() {
 
         <Section
           title={tp('Изменения', 'Changes', 'Zmiany',
-            { es: 'Cambios', fr: 'Modifications', de: 'Aenderungen', it: 'Modifiche' })}
+            { es: 'Cambios', fr: 'Modifications', de: 'Änderungen', it: 'Modifiche' })}
         >
           <p className="text-sm">
             {tp(
               'Если политика меняется существенно, мы покажем баннер в приложении / на сайте перед вступлением в силу. Дата вверху страницы фиксирует последнее изменение.',
               'If the policy changes materially, we will show an in-app/web banner before it takes effect. The date at the top of this page marks the last change.',
-              'Jesli polityka zmieni sie istotnie, pokazemy banner w aplikacji / na stronie przed wejsciem w zycie. Data u gory strony oznacza ostatnia zmiane.',
+              'Jeśli polityka istotnie się zmieni, przed wejściem zmian w życie pokażemy baner w aplikacji / na stronie. Data u góry strony oznacza ostatnią zmianę.',
               {
-                es: 'Si la politica cambia de manera importante, mostraremos un banner en la app / sitio antes de su entrada en vigor. La fecha en la parte superior indica el ultimo cambio.',
-                fr: 'Si la politique change de maniere notable, nous afficherons une banniere dans l\'appli / sur le site avant l\'entree en vigueur. La date en haut de cette page marque la derniere modification.',
-                de: 'Bei wesentlichen Aenderungen zeigen wir vor Inkrafttreten ein Banner in der App bzw. Webseite an. Das Datum oben auf der Seite zeigt die letzte Aenderung.',
-                it: 'Se la politica cambia in modo sostanziale, mostreremo un banner nell\'app / sul sito prima dell\'entrata in vigore. La data in alto indica l\'ultima modifica.',
+                es: 'Si la política cambia de forma importante, mostraremos un banner en la app / el sitio antes de que entre en vigor. La fecha en la parte superior de la página indica el último cambio.',
+                fr: "Si la politique change de manière notable, nous afficherons une bannière dans l'appli / sur le site avant son entrée en vigueur. La date en haut de cette page indique la dernière modification.",
+                de: 'Bei wesentlichen Änderungen zeigen wir vor dem Inkrafttreten ein Banner in der App bzw. auf der Website. Das Datum oben auf der Seite zeigt die letzte Änderung.',
+                it: "Se l'informativa cambia in modo sostanziale, mostreremo un banner nell'app / sul sito prima dell'entrata in vigore. La data in alto nella pagina indica l'ultima modifica.",
               },
             )}
           </p>
@@ -295,12 +295,12 @@ export default function PrivacyPage() {
             {tp(
               'Вопросы по политике конфиденциальности: ',
               'Questions about this policy: ',
-              'Pytania dotyczace polityki prywatnosci: ',
+              'Pytania dotyczące polityki prywatności: ',
               {
-                es: 'Preguntas sobre esta politica: ',
+                es: 'Preguntas sobre esta política: ',
                 fr: 'Questions sur cette politique : ',
                 de: 'Fragen zu dieser Richtlinie: ',
-                it: 'Domande su questa politica: ',
+                it: 'Domande su questa informativa: ',
               },
             )}
             <a href="mailto:privacy@icoffio.com" className="text-[var(--accent-cyan)] hover:underline">privacy@icoffio.com</a>

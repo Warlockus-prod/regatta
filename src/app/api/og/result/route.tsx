@@ -36,8 +36,8 @@ export async function GET(req: Request) {
   }> = {
     ru: { place: 'место', mission: 'миссия', settings: 'НАСТРОЙКИ', wind: 'ветер', tagline: 'интерактивный тренажёр яхтинга', windVal: { light: 'слабый', medium: 'средний', heavy: 'сильный' } },
     en: { place: 'place', mission: 'mission', settings: 'SETTINGS', wind: 'wind', tagline: 'interactive sailing trainer', windVal: { light: 'light', medium: 'medium', heavy: 'heavy' } },
-    pl: { place: 'miejsce', mission: 'misja', settings: 'USTAWIENIA', wind: 'wiatr', tagline: 'interaktywny trener zeglarstwa', windVal: { light: 'slaby', medium: 'sredni', heavy: 'silny' } },
-    es: { place: 'puesto', mission: 'mision', settings: 'AJUSTES', wind: 'viento', tagline: 'entrenador interactivo de vela', windVal: { light: 'flojo', medium: 'medio', heavy: 'fuerte' } },
+    pl: { place: 'miejsce', mission: 'misja', settings: 'USTAWIENIA', wind: 'wiatr', tagline: 'interaktywny trenazer zeglarski', windVal: { light: 'slaby', medium: 'sredni', heavy: 'silny' } },
+    es: { place: 'puesto', mission: 'mision', settings: 'AJUSTES', wind: 'viento', tagline: 'simulador interactivo de vela', windVal: { light: 'flojo', medium: 'medio', heavy: 'fuerte' } },
     fr: { place: 'place', mission: 'mission', settings: 'REGLAGES', wind: 'vent', tagline: 'simulateur interactif de voile', windVal: { light: 'faible', medium: 'moyen', heavy: 'fort' } },
     de: { place: 'Platz', mission: 'Mission', settings: 'EINSTELLUNGEN', wind: 'Wind', tagline: 'interaktiver Segeltrainer', windVal: { light: 'leicht', medium: 'mittel', heavy: 'stark' } },
     it: { place: 'posto', mission: 'missione', settings: 'IMPOSTAZIONI', wind: 'vento', tagline: 'simulatore di vela interattivo', windVal: { light: 'leggero', medium: 'medio', heavy: 'forte' } },

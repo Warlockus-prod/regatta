@@ -41,12 +41,12 @@ export default function Ask() {
   const welcome = tp(
     'Привет! Я ассистент по парусу. Спрашивай про ветер, курсы, паруса, правила расхождения, тактику, термины - отвечу и подскажу нужный раздел приложения. На вопросы не по теме отвечать не буду.',
     'Hi! I am your sailing assistant. Ask about wind, points of sail, trim, right-of-way rules, tactics, terms - I will answer and point you to the right section. I stick to sailing topics only.',
-    'Czesc! Jestem asystentem zeglarskim. Pytaj o wiatr, kursy, zagle, zasady, taktyke, terminy - odpowiem i wskaze odpowiednia sekcje. Trzymam sie tematow zeglarskich.',
+    'Cześć! Jestem asystentem żeglarskim. Pytaj o wiatr, kursy względem wiatru, żagle, zasady prawa drogi, taktykę i terminy - odpowiem i wskażę właściwą sekcję aplikacji. Na pytania niezwiązane z żeglarstwem nie odpowiadam.',
     {
-      es: 'Hola! Soy tu asistente de vela. Pregunta sobre viento, rumbos, trimado, reglas, tactica, terminos: respondo y te indico la seccion. Solo temas de vela.',
-      fr: 'Salut ! Je suis ton assistant voile. Demande sur le vent, les allures, le reglage, les regles, la tactique, les termes : je reponds et je t oriente. Sujets voile uniquement.',
-      de: 'Hi! Ich bin dein Segel-Assistent. Frag zu Wind, Kursen, Trimm, Regeln, Taktik, Begriffen - ich antworte und zeige dir den Bereich. Nur Segelthemen.',
-      it: 'Ciao! Sono il tuo assistente di vela. Chiedi di vento, andature, regolazione, regole, tattica, termini: rispondo e ti indico la sezione. Solo temi di vela.',
+      es: '¡Hola! Soy tu asistente de vela. Pregunta sobre viento, rumbos, velas, reglas de paso, táctica o términos: te respondo y te indico la sección de la app. Solo hablo de vela.',
+      fr: 'Salut ! Je suis ton assistant voile. Pose-moi tes questions sur le vent, les allures, les voiles, les règles de priorité, la tactique ou le vocabulaire : je réponds et je t\'indique la bonne section de l\'app. Je ne parle que de voile.',
+      de: 'Hallo! Ich bin dein Segel-Assistent. Frag mich zu Wind, Kursen, Segeltrimm, Ausweichregeln, Taktik und Begriffen - ich antworte und zeige dir den passenden Bereich der App. Ich beantworte nur Fragen zum Segeln.',
+      it: 'Ciao! Sono il tuo assistente di vela. Chiedimi di vento, andature, vele, regole di precedenza, tattica e termini: ti rispondo e ti indico la sezione giusta dell\'app. Parlo solo di vela.',
     },
   );
 
@@ -55,83 +55,83 @@ export default function Ask() {
       tp(
         'Кто кому уступает на разных галсах?',
         'Who gives way on opposite tacks?',
-        'Kto ustepuje na roznych halsach?',
+        'Kto komu ustępuje na przeciwnych halsach?',
         {
-          es: 'Quien cede paso en amuras opuestas?',
-          fr: 'Qui cede la priorite sur amures opposees ?',
-          de: 'Wer weicht bei entgegengesetztem Bug aus?',
-          it: 'Chi da precedenza su mure opposte?',
+          es: '¿Quién cede el paso en amuras opuestas?',
+          fr: 'Qui a la priorité sur des bords opposés ?',
+          de: 'Wer weicht auf entgegengesetzten Bugen aus?',
+          it: 'Chi dà la precedenza su mure opposte?',
         },
       ),
       tp(
         'Что взять на первую регату?',
         'What should I bring to my first regatta?',
-        'Co zabrac na pierwsze regaty?',
+        'Co zabrać na pierwsze regaty?',
         {
-          es: 'Que llevar a mi primera regata?',
-          fr: 'Quoi emporter a ma premiere regate ?',
-          de: 'Was zur ersten Regatta mitnehmen?',
-          it: 'Cosa portare alla prima regata?',
+          es: '¿Qué llevo a mi primera regata?',
+          fr: 'Que prendre pour ma première régate ?',
+          de: 'Was nehme ich zur ersten Regatta mit?',
+          it: 'Cosa porto alla mia prima regata?',
         },
       ),
       tp(
         'Объясни поворот оверштаг простыми словами',
         'Explain tacking in simple words',
-        'Wytlumacz zwrot przez sztag prosto',
+        'Wytłumacz prosto zwrot przez sztag',
         {
-          es: 'Explica la virada por avante en palabras simples',
-          fr: 'Explique le virement de bord simplement',
-          de: 'Erklaere die Wende einfach',
-          it: 'Spiega la virata in parole semplici',
+          es: 'Explícame la virada por avante con palabras sencillas',
+          fr: 'Explique-moi simplement le virement de bord',
+          de: 'Erklär mir die Wende ganz einfach',
+          it: 'Spiegami la virata in parole semplici',
         },
       ),
     ],
     [lang], // eslint-disable-line react-hooks/exhaustive-deps
   );
 
-  const inputPlaceholder = tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o zeglarstwo...', {
+  const inputPlaceholder = tp('Спроси про яхтинг...', 'Ask about sailing...', 'Zapytaj o żeglarstwo...', {
     es: 'Pregunta sobre vela...',
-    fr: 'Pose une question voile...',
-    de: 'Frag zum Segeln...',
-    it: 'Chiedi di vela...',
+    fr: 'Pose ta question sur la voile...',
+    de: 'Frag etwas zum Segeln...',
+    it: 'Chiedi qualcosa sulla vela...',
   });
-  const sendLabel = tp('Отправить', 'Send', 'Wyslij', {
+  const sendLabel = tp('Отправить', 'Send', 'Wyślij', {
     es: 'Enviar',
     fr: 'Envoyer',
     de: 'Senden',
     it: 'Invia',
   });
-  const thinkingLabel = tp('Думаю...', 'Thinking...', 'Mysle...', {
+  const thinkingLabel = tp('Думаю...', 'Thinking...', 'Myślę...', {
     es: 'Pensando...',
-    fr: 'Je reflechis...',
-    de: 'Denke nach...',
+    fr: 'Je réfléchis...',
+    de: 'Ich überlege...',
     it: 'Sto pensando...',
   });
-  const retryLabel = tp('Повторить', 'Retry', 'Ponow', {
+  const retryLabel = tp('Повторить', 'Retry', 'Ponów', {
     es: 'Reintentar',
-    fr: 'Reessayer',
-    de: 'Erneut',
+    fr: 'Réessayer',
+    de: 'Wiederholen',
     it: 'Riprova',
   });
   const rateLimitMsg = tp(
     'Слишком много вопросов за час. Попробуй позже.',
     'Too many questions this hour. Try again later.',
-    'Za duzo pytan w tej godzinie. Sprobuj pozniej.',
+    'Za dużo pytań w ciągu godziny. Spróbuj później.',
     {
-      es: 'Demasiadas preguntas esta hora. Intentalo mas tarde.',
-      fr: 'Trop de questions cette heure. Reessaie plus tard.',
-      de: 'Zu viele Fragen in dieser Stunde. Spaeter erneut.',
-      it: 'Troppe domande in questora. Riprova piu tardi.',
+      es: 'Demasiadas preguntas en una hora. Inténtalo más tarde.',
+      fr: 'Trop de questions en une heure. Réessaie plus tard.',
+      de: 'Zu viele Fragen in dieser Stunde. Versuch es später noch einmal.',
+      it: 'Troppe domande in un\'ora. Riprova più tardi.',
     },
   );
   const genericErrorMsg = tp(
     'Не получилось получить ответ. Проверь интернет и попробуй ещё раз.',
     'Could not get a reply. Check your connection and try again.',
-    'Nie udalo sie uzyskac odpowiedzi. Sprawdz internet i sprobuj ponownie.',
+    'Nie udało się uzyskać odpowiedzi. Sprawdź internet i spróbuj ponownie.',
     {
-      es: 'No se pudo obtener respuesta. Revisa la conexion e intenta de nuevo.',
-      fr: 'Reponse impossible. Verifie la connexion et reessaie.',
-      de: 'Keine Antwort moeglich. Verbindung pruefen und erneut versuchen.',
+      es: 'No se pudo obtener respuesta. Revisa la conexión e inténtalo de nuevo.',
+      fr: 'Pas de réponse. Vérifie ta connexion et réessaie.',
+      de: 'Keine Antwort erhalten. Prüf deine Verbindung und versuch es noch einmal.',
       it: 'Nessuna risposta. Controlla la connessione e riprova.',
     },
   );

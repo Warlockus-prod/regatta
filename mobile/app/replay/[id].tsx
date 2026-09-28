@@ -366,13 +366,13 @@ export default function Replay() {
   );
 
   // Localised chrome.
-  const screenTitle = tp('Повтор', 'Replay', 'Powtorka', {
-    es: 'Repeticion',
+  const screenTitle = tp('Повтор', 'Replay', 'Powtórka', {
+    es: 'Repetición',
     fr: 'Replay',
-    de: 'Wiedergabe',
+    de: 'Replay',
     it: 'Replay',
   });
-  const playLabel = tp('Старт', 'Play', 'Odtwarzaj', {
+  const playLabel = tp('Старт', 'Play', 'Odtwórz', {
     es: 'Reproducir',
     fr: 'Lire',
     de: 'Abspielen',
@@ -384,23 +384,23 @@ export default function Replay() {
     de: 'Pause',
     it: 'Pausa',
   });
-  const restartLabel = tp('Заново', 'Restart', 'Od poczatku', {
+  const restartLabel = tp('Заново', 'Restart', 'Od początku', {
     es: 'Reiniciar',
     fr: 'Recommencer',
     de: 'Neu starten',
     it: 'Riavvia',
   });
-  const shareLabel = tp('Поделиться', 'Share', 'Udostepnij', {
+  const shareLabel = tp('Поделиться', 'Share', 'Udostępnij', {
     es: 'Compartir',
     fr: 'Partager',
     de: 'Teilen',
     it: 'Condividi',
   });
-  const speedLabel = tp('Скорость', 'Speed', 'Predkosc', {
+  const speedLabel = tp('Скорость', 'Speed', 'Prędkość', {
     es: 'Velocidad',
     fr: 'Vitesse',
     de: 'Tempo',
-    it: 'Velocita',
+    it: 'Velocità',
   });
   const elapsedLabel = tp('Время', 'Time', 'Czas', {
     es: 'Tiempo',
@@ -408,7 +408,7 @@ export default function Replay() {
     de: 'Zeit',
     it: 'Tempo',
   });
-  const scoreLabel = tp('Очки', 'Score', 'Wynik', {
+  const scoreLabel = tp('Очки', 'Score', 'Punkty', {
     es: 'Puntos',
     fr: 'Score',
     de: 'Punkte',
@@ -417,38 +417,38 @@ export default function Replay() {
   const notFoundTitle = tp(
     'Гонка не найдена',
     'Race not found',
-    'Nie znaleziono wyscigu',
+    'Nie znaleziono wyścigu',
     {
       es: 'Regata no encontrada',
       fr: 'Course introuvable',
       de: 'Rennen nicht gefunden',
-      it: 'Gara non trovata',
+      it: 'Regata non trovata',
     },
   );
   const notFoundSubtitle = tp(
     'Возможно, её удалили из истории.',
     'It may have been cleared from history.',
-    'Mogl byc usuniety z historii.',
+    'Mógł zostać usunięty z historii.',
     {
       es: 'Es posible que se haya borrado del historial.',
-      fr: 'Elle a peut-etre ete effacee de lhistorique.',
-      de: 'Sie wurde moeglicherweise aus dem Verlauf geloescht.',
+      fr: 'Elle a peut-être été effacée de l\'historique.',
+      de: 'Es wurde möglicherweise aus dem Verlauf gelöscht.',
       it: 'Potrebbe essere stata cancellata dalla cronologia.',
     },
   );
   const backToHistoryLabel = tp(
     'К списку',
     'Back to history',
-    'Wroc do historii',
+    'Wróć do historii',
     {
       es: 'Volver al historial',
-      fr: 'Retour a lhistorique',
+      fr: 'Retour à l\'historique',
       de: 'Zum Verlauf',
       it: 'Torna alla cronologia',
     },
   );
   const codePrefixLabel = tp('Код', 'Code', 'Kod', {
-    es: 'Codigo',
+    es: 'Código',
     fr: 'Code',
     de: 'Code',
     it: 'Codice',
@@ -456,18 +456,18 @@ export default function Replay() {
   const shareTitleLabel = tp(
     'Моя гонка в Regatta',
     'My race in Regatta',
-    'Moj wyscig w Regacie',
+    'Mój wyścig w aplikacji Regatta',
     {
       es: 'Mi regata en Regatta',
       fr: 'Ma course dans Regatta',
       de: 'Mein Rennen in Regatta',
-      it: 'La mia gara in Regatta',
+      it: 'La mia regata su Regatta',
     },
   );
   const legendMarkLabel = tp('Знак', 'Mark', 'Znak', {
     es: 'Baliza',
-    fr: 'Bouee',
-    de: 'Tonne',
+    fr: 'Bouée',
+    de: 'Bahnmarke',
     it: 'Boa',
   });
   const legendTackLabel = tp('Поворот', 'Tack', 'Zwrot', {
@@ -476,19 +476,19 @@ export default function Replay() {
     de: 'Wende',
     it: 'Virata',
   });
-  const legendNoGoLabel = tp('В лавировку', 'No-go', 'Martwy kat', {
+  const legendNoGoLabel = tp('Мёртвая зона', 'No-go', 'Kąt martwy', {
     es: 'Zona muerta',
     fr: 'Zone morte',
-    de: 'Tote Zone',
-    it: 'Zona morta',
+    de: 'Toter Winkel',
+    it: 'Angolo morto',
   });
   const tryItLabel = tp(
     'Попробуй сам',
     'Try it yourself',
-    'Sprobuj sam',
+    'Spróbuj sam',
     {
-      es: 'Pruebalo tu mismo',
-      fr: 'Essaie toi-meme',
+      es: 'Pruébalo tú mismo',
+      fr: 'Essaie toi-même',
       de: 'Probier es selbst',
       it: 'Provaci tu',
     },

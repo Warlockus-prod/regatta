@@ -56,22 +56,22 @@ const COURSE_SHORT: CourseDef = {
   initialWindDirRad: 0,
   initialWindKn: 10,
   title: (tp) =>
-    tp('Короткая гонка', 'Short race', 'Krotki wyscig', {
+    tp('Короткая гонка', 'Short race', 'Krótki wyścig', {
       es: 'Regata corta',
       fr: 'Course courte',
       de: 'Kurzes Rennen',
-      it: 'Gara breve',
+      it: 'Regata breve',
     }),
   hint: (tp) =>
     tp(
       'Старт - верхний знак - финиш. Около 75 секунд при чистом проходе.',
       'Start, windward mark, finish. About 75 seconds if you sail it clean.',
-      'Start, znak nawietrzny, meta. Okolo 75 sekund przy czystym przejsciu.',
+      'Start, znak nawietrzny, meta. Około 75 sekund, jeśli popłyniesz czysto.',
       {
-        es: 'Salida, baliza barlovento, meta. Unos 75 segundos al limpio.',
-        fr: 'Depart, bouee au vent, arrivee. Environ 75 secondes en propre.',
-        de: 'Start, Luvtonne, Ziel. Etwa 75 Sekunden bei sauberem Lauf.',
-        it: 'Partenza, boa al vento, arrivo. Circa 75 secondi puliti.',
+        es: 'Salida, baliza de barlovento, llegada. Unos 75 segundos si navegas limpio.',
+        fr: 'Départ, bouée au vent, arrivée. Environ 75 secondes si tu navigues proprement.',
+        de: 'Start, Luvtonne, Ziel. Etwa 75 Sekunden, wenn du sauber segelst.',
+        it: 'Partenza, boa di bolina, arrivo. Circa 75 secondi se navighi pulito.',
       },
     ),
   marks: [
@@ -89,22 +89,22 @@ const COURSE_MEDIUM: CourseDef = {
   initialWindDirRad: 0,
   initialWindKn: 12,
   title: (tp) =>
-    tp('Средняя гонка', 'Medium race', 'Sredni wyscig', {
+    tp('Средняя гонка', 'Medium race', 'Średni wyścig', {
       es: 'Regata media',
       fr: 'Course moyenne',
       de: 'Mittleres Rennen',
-      it: 'Gara media',
+      it: 'Regata media',
     }),
   hint: (tp) =>
     tp(
       'Длиннее верхняя нога. Лавируй чисто и держи скорость.',
       'Longer windward leg. Tack cleanly and keep your speed up.',
-      'Dluzsza noga pod wiatr. Halsuj czysto i utrzymuj predkosc.',
+      'Dłuższy odcinek na wiatr. Halsuj czysto i utrzymuj prędkość.',
       {
-        es: 'Pierna de barlovento mas larga. Vira limpio y manten velocidad.',
-        fr: 'Bord au vent plus long. Vire proprement et garde ta vitesse.',
-        de: 'Laengeres Aufkreuzen. Sauber wenden und Speed halten.',
-        it: 'Lato di bolina piu lungo. Vira pulito e tieni la velocita.',
+        es: 'Tramo de ceñida más largo. Vira limpio y mantén la velocidad.',
+        fr: 'Remontée au vent plus longue. Vire proprement et garde ta vitesse.',
+        de: 'Längere Kreuz. Wende sauber und halte die Fahrt.',
+        it: 'Lato di bolina più lungo. Vira pulito e mantieni la velocità.',
       },
     ),
   marks: [
@@ -122,21 +122,21 @@ const COURSE_LONG: CourseDef = {
   initialWindDirRad: 0,
   initialWindKn: 16,
   title: (tp) =>
-    tp('Длинная гонка', 'Long race', 'Dlugi wyscig', {
+    tp('Длинная гонка', 'Long race', 'Długi wyścig', {
       es: 'Regata larga',
       fr: 'Course longue',
       de: 'Langes Rennen',
-      it: 'Gara lunga',
+      it: 'Regata lunga',
     }),
   hint: (tp) =>
     tp(
       'Длинная дистанция при свежем ветре. Контролируй крен.',
       'Long course in fresh breeze. Manage your heel.',
-      'Dluga trasa w swiezym wietrze. Kontroluj przechyl.',
+      'Długa trasa przy świeżym wietrze. Kontroluj przechył.',
       {
         es: 'Recorrido largo con brisa fresca. Controla la escora.',
-        fr: 'Parcours long par brise fraiche. Maitrise la gite.',
-        de: 'Lange Strecke bei frischem Wind. Kraengung im Griff behalten.',
+        fr: 'Parcours long dans une brise fraîche. Maîtrise la gîte.',
+        de: 'Lange Bahn bei frischem Wind. Behalte die Krängung im Griff.',
         it: 'Percorso lungo con brezza tesa. Controlla lo sbandamento.',
       },
     ),
@@ -154,9 +154,9 @@ const COURSE_DAILY: CourseDef = {
   ...COURSE_MEDIUM,
   id: 'daily',
   title: (tp) =>
-    tp('Дневной вызов', 'Daily challenge', 'Dzienne wyzwanie', {
+    tp('Дневной вызов', 'Daily challenge', 'Wyzwanie dnia', {
       es: 'Reto diario',
-      fr: 'Defi du jour',
+      fr: 'Défi du jour',
       de: 'Tagesherausforderung',
       it: 'Sfida giornaliera',
     }),
@@ -164,12 +164,12 @@ const COURSE_DAILY: CourseDef = {
     tp(
       'Один шанс в день. Финишируй ниже par для попадания в таблицу.',
       'One shot per day. Finish under par to land on the daily board.',
-      'Jedna szansa dziennie. Konczsz ponizej par, by trafic do tabeli.',
+      'Jedna szansa dziennie. Dopłyń do mety poniżej par, żeby trafić do tabeli.',
       {
-        es: 'Una oportunidad al dia. Termina bajo par para entrar al ranking.',
+        es: 'Una oportunidad al día. Termina por debajo del par para entrar en la clasificación.',
         fr: 'Une chance par jour. Finis sous le par pour entrer au classement.',
-        de: 'Eine Chance pro Tag. Unter Par finishen, um aufs Tagesboard zu kommen.',
-        it: 'Una sola possibilita al giorno. Finisci sotto par per entrare in classifica.',
+        de: 'Eine Chance pro Tag. Komm unter Par ins Ziel, um auf die Tagesliste zu kommen.',
+        it: 'Una sola possibilità al giorno. Arriva sotto il par per entrare in classifica.',
       },
     ),
 };

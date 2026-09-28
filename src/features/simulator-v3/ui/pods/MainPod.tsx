@@ -44,13 +44,13 @@ export function MainPod(props: {
     state === 'stall' ? 'danger' : state === 'attached' || state === 'lowered' ? 'good' : 'warn';
   const text =
     state === 'lowered'
-      ? tp("УБРАН", "LOWERED", "OPUSZCZONY", { es: "ARRIADA", fr: "AFFALEE", de: "GEBORGEN", it: "AMMAINATA" })
+      ? tp("УБРАН", "LOWERED", "OPUSZCZONY", { es: "ARRIADA", fr: "AFFALÉE", de: "GEBORGEN", it: "AMMAINATA" })
       : state === 'stall'
-      ? tp('СРЫВ', 'STALL', 'STALL', { es: 'STALL', fr: 'DECROCHE', de: 'STALL', it: 'STALLO' })
+      ? tp('СРЫВ', 'STALL', 'ODERWANIE PRZEPŁYWU', { es: 'FLUJO DESPRENDIDO', fr: 'DÉCROCHÉ', de: 'STRÖMUNGSABRISS', it: 'STALLO' })
       : state === 'edge'
-      ? tp('НА ГРАНИ', 'EDGE', 'KRAWEDZ', { es: 'AL LIMITE', fr: 'A LA LIMITE', de: 'GRENZE', it: 'AL LIMITE' })
+      ? tp('НА ГРАНИ', 'EDGE', 'NA GRANICY', { es: 'AL LÍMITE', fr: 'À LA LIMITE', de: 'AN DER GRENZE', it: 'AL LIMITE' })
       : state === 'luffing'
-      ? tp('ПОЛОЩЕТ', 'LUFFING', 'LOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
+      ? tp('ПОЛОЩЕТ', 'LUFFING', 'ŁOPOCZE', { es: 'FLAMEA', fr: 'FASEYE', de: 'KILLT', it: 'FILEGGIA' })
       : tp('ТЯНЕТ', 'ATTACHED', 'PRACUJE', { es: 'TIRA', fr: 'PORTE', de: 'ZIEHT', it: 'PORTA' });
 
   return (
@@ -66,8 +66,8 @@ export function MainPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kat', {
-          es: 'Angulo',
+        label={tp('Угол', 'Angle', 'Kąt', {
+          es: 'Ángulo',
           fr: 'Angle',
           de: 'Winkel',
           it: 'Angolo',
@@ -85,9 +85,9 @@ export function MainPod(props: {
         options={[
           {
             value: 0 as const,
-            label: tp('Полный', 'Full', 'Pelny', {
+            label: tp('Полный', 'Full', 'Pełny', {
               es: 'Entera',
-              fr: 'Pleine',
+              fr: 'Haute',
               de: 'Voll',
               it: 'Piena',
             }),
@@ -100,9 +100,9 @@ export function MainPod(props: {
       />
       <StatusDot tone={tone} text={text} compact={compact} />
       {props.startRigStudy && <details>
-        <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--accent-cyan)]">{tp("Изучить снасти", "Study rig controls", "Poznaj obsługę lin", { es: "Estudiar los cabos", fr: "Étudier les commandes", de: "Leinen untersuchen", it: "Studiare le manovre" })}</summary>
-        <p className="mb-3 text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Начнется новая сессия: длина гротшкота и каретка вместо ползунка угла. Курс удерживает помощник. Это исследование, не экзамен.", "Starts a new session: sheet length and traveler replace the angle slider. An assistant holds course. Exploration, not an exam.", "Nowa sesja: długość szota i wózek zamiast suwaka kąta. Pomocnik utrzymuje kurs. To obserwacja, nie egzamin.", { es: "Nueva sesión: longitud y carro, no ángulo. Ayudante mantiene rumbo. Exploración, no examen.", fr: "Nouvelle session : longueur et chariot, pas l'angle. Cap maintenu. Exploration, pas examen.", de: "Neue Sitzung: Schotlänge und Traveller statt Winkel. Kurshilfe aktiv. Erkundung, keine Prüfung.", it: "Nuova sessione: lunghezza e carrello, non angolo. Aiuto sulla rotta. Esplorazione, non esame." })}</p>
-        <button className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]" onClick={props.startRigStudy}>{tp("Начать со снастями", "Start with rig controls", "Zacznij z linami", { es: "Empezar con cabos", fr: "Commencer avec les commandes", de: "Mit Leinen beginnen", it: "Inizia con le manovre" })}</button>
+        <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--accent-cyan)]">{tp("Изучить снасти", "Study rig controls", "Poznaj obsługę lin", { es: "Estudiar la maniobra", fr: "Étudier les réglages", de: "Trimmleinen erkunden", it: "Studiare le manovre" })}</summary>
+        <p className="mb-3 text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Начнется новая сессия: длина гротшкота и каретка вместо ползунка угла. Курс удерживает помощник. Это исследование, не экзамен.", "Starts a new session: sheet length and traveler replace the angle slider. An assistant holds course. Exploration, not an exam.", "Nowa sesja: długość szota i wózek zamiast suwaka kąta. Pomocnik utrzymuje kurs. To obserwacja, nie egzamin.", { es: "Empieza una sesión nueva: la longitud de la escota de mayor y el carro sustituyen al control de ángulo. Un ayudante mantiene el rumbo. Es exploración, no un examen.", fr: "Une nouvelle session démarre : la longueur d'écoute de GV et le chariot remplacent le curseur d'angle. Un assistant tient le cap. C'est une exploration, pas un examen.", de: "Eine neue Sitzung startet: Großschotlänge und Traveller ersetzen den Winkelregler. Ein Helfer hält den Kurs. Erkundung, keine Prüfung.", it: "Si apre una nuova sessione: lunghezza della scotta randa e carrello al posto del cursore dell'angolo. Un assistente tiene la rotta. È un'esplorazione, non un esame." })}</p>
+        <button className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]" onClick={props.startRigStudy}>{tp("Начать со снастями", "Start with rig controls", "Zacznij z szotem i wózkiem", { es: "Empezar con escota y carro", fr: "Commencer avec écoute et chariot", de: "Mit Schot und Traveller starten", it: "Inizia con scotta e carrello" })}</button>
       </details>}
     </PodCard>
   );

@@ -40,15 +40,15 @@ export function ViewPod(props: {
         options={[
           {
             value: 'top' as const,
-            label: tp('Сверху', 'Top', 'Gora', { es: 'Arriba', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
+            label: tp('Сверху', 'Top', 'Z góry', { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
           },
           {
             value: 'rear' as const,
-            label: tp('Сзади', 'Rear', 'Z tylu', { es: 'Popa', fr: 'Arriere', de: 'Heck', it: 'Poppa' }),
+            label: tp('Сзади', 'Rear', 'Z tyłu', { es: 'Popa', fr: 'Arrière', de: 'Heck', it: 'Poppa' }),
           },
           {
             value: 'side' as const,
-            label: tp('Сбоку', 'Side', 'Z boku', { es: 'Lateral', fr: 'Cote', de: 'Seite', it: 'Lato' }),
+            label: tp('Сбоку', 'Side', 'Z boku', { es: 'Lateral', fr: 'Côté', de: 'Seite', it: 'Lato' }),
           },
           { value: '3d' as const, label: "3D" },
         ]}
@@ -59,7 +59,7 @@ export function ViewPod(props: {
         {paused ? tp("Продолжить", "Resume", "Wznów", { es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" })
           : tp("Пауза", "Pause", "Pauza", { es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" })}
       </button>
-      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda: rumbo mantenido y cambio automático de velas. Cambiar vista conserva el estado.", fr: "Aide : cap maintenu et passage automatique des voiles. Changer de vue conserve l'état.", de: "Lernhilfe: Kurs wird gehalten, Segel wechseln automatisch. Ansicht ändern erhält den Zustand.", it: "Aiuto: rotta mantenuta e cambio automatico delle vele. La vista non azzera lo stato." })}</p>
+      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda de aprendizaje: el rumbo se mantiene y las velas cambian de banda solas. Cambiar de vista no reinicia el barco.", fr: "Aide pédagogique : le cap est tenu et les voiles changent de bord seules. Changer de vue ne réinitialise pas le bateau.", de: "Lernhilfe: Der Kurs wird gehalten, die Segel gehen automatisch über. Ein Ansichtswechsel setzt das Boot nicht zurück.", it: "Aiuto didattico: la rotta è mantenuta e le vele passano da sole. Cambiare vista non azzera la barca." })}</p>
       <details>
         <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
         <div className="space-y-2 pb-2">
@@ -72,7 +72,7 @@ export function ViewPod(props: {
           },
           {
             value: 'main' as const,
-            label: tp('Грот', 'Main', 'Grot', { es: 'Mayor', fr: 'GV', de: 'Gross', it: 'Randa' }),
+            label: tp('Грот', 'Main', 'Grot', { es: 'Mayor', fr: 'GV', de: 'Groß', it: 'Randa' }),
           },
           {
             value: 'jib' as const,
@@ -102,12 +102,12 @@ export function ViewPod(props: {
             }}
           >
             {preset.id === 'close'
-              ? tp('Бей', 'Close', 'Bej', { es: 'Ceñida', fr: 'Près', de: 'Am Wind', it: 'Bolina' })
+              ? tp('Бей', 'Close', 'Bajd.', { es: 'Ceñida', fr: 'Près', de: 'Am Wind', it: 'Bolina' })
               : preset.id === 'beam'
-              ? tp('Галф', 'Beam', 'Galf', { es: 'Través', fr: 'Travers', de: 'Halbwind', it: 'Traverso' })
+              ? tp('Галф', 'Beam', 'Półw.', { es: 'Través', fr: 'Travers', de: 'Halbwind', it: 'Traverso' })
               : preset.id === 'broad'
-              ? tp('Бак', 'Broad', 'Bak', { es: 'Largo', fr: 'Largue', de: 'Raumwind', it: 'Lasco' })
-              : tp('Форд', 'Run', 'Ford', { es: 'Empopada', fr: 'Arrière', de: 'Vorwind', it: 'Poppa' })}
+              ? tp('Бак', 'Broad', 'Baks.', { es: 'Largo', fr: 'Largue', de: 'Raumwind', it: 'Lasco' })
+              : tp('Форд', 'Run', 'Ford.', { es: 'Empopada', fr: 'Arrière', de: 'Vorwind', it: 'Poppa' })}
           </button>
         ))}
       </div>
@@ -120,14 +120,14 @@ export function ViewPod(props: {
           className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: 'var(--success)' }}
         >
-          {tp('Оптим', 'Best', 'Opt', { es: 'Optimo', fr: 'Optimal', de: 'Optimal', it: 'Ottimo' })}
+          {tp('Оптим', 'Best', 'Optimum', { es: 'Óptimo', fr: 'Optimal', de: 'Optimal', it: 'Ottimo' })}
         </button>}
         <button
           onClick={resetAll}
           className={`${compact ? 'px-1 py-0.5 text-[9px]' : 'px-2 py-2 text-xs min-h-11'} rounded-md border font-semibold uppercase tracking-wider transition`}
           style={{ borderColor: 'rgba(139, 167, 184, 0.22)', color: 'var(--text-muted)' }}
         >
-          {ui.mainTrim ? tp("Новая простая сессия", "New simple session", "Nowa prosta sesja", { es: "Nueva sesión simple", fr: "Nouvelle session simple", de: "Neue einfache Sitzung", it: "Nuova sessione semplice" }) : tp('Сброс', 'Reset', 'Reset', { es: 'Reset', fr: 'Reset', de: 'Reset', it: 'Reset' })}
+          {ui.mainTrim ? tp("Новая простая сессия", "New simple session", "Nowa prosta sesja", { es: "Nueva sesión simple", fr: "Nouvelle session simple", de: "Neue einfache Sitzung", it: "Nuova sessione semplice" }) : tp('Сброс', 'Reset', 'Reset', { es: 'Reiniciar', fr: 'Remise à zéro', de: 'Zurücksetzen', it: 'Azzera' })}
         </button>
       </div>
       {ui.view === "top" && !ui.mainTrim && <label
@@ -140,9 +140,9 @@ export function ViewPod(props: {
           onChange={(e) => setUi((p) => ({ ...p, showOptimal: e.target.checked }))}
         />
         {tp('Призрак оптимума', 'Ghost optimum', 'Duch optimum', {
-          es: 'Fantasma del optimo',
-          fr: "Fantôme d'optimum",
-          de: 'Geister-Optimum',
+          es: 'Fantasma del óptimo',
+          fr: "Fantôme de l'optimum",
+          de: 'Optimum-Geist',
           it: "Fantasma dell'ottimo",
         })}
       </label>}

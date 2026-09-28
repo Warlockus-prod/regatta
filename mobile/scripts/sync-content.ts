@@ -30,6 +30,7 @@ import {
   quickRefreshLessons,
 } from '../../src/data/bootcamp.ts';
 import { anatomyParts } from '../../src/data/anatomy.ts';
+import { checklistSections } from '../../src/data/checklist.ts';
 import { trainerCatalog } from '../../src/data/drills.ts';
 import { galleryItems } from '../../src/data/gallery.ts';
 import { missions } from '../../src/data/missions.ts';
@@ -65,6 +66,14 @@ const bundles: Bundle[] = [
     filename: 'anatomy.json',
     data: { anatomyParts },
     count: anatomyParts.length,
+  },
+  {
+    // Was a hand-kept copy and drifted (a Spanish warning said "button"
+    // for the boom). Progress keys are `${sectionId}:${index}`, so the web
+    // file must only ever append items, never reorder them.
+    filename: 'checklist.json',
+    data: { checklistSections },
+    count: checklistSections.length,
   },
   {
     filename: 'drills.json',

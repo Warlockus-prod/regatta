@@ -37,113 +37,113 @@ export const missions: Mission[] = [
     id: 'clean-laps',
     emoji: '🧼',
     titleRu: 'Чистая гонка',
-    titleEn: 'Clean lap',
-    titlePl: 'Czysta runda',
-    titleEs: 'Carrera limpia',
-    titleFr: 'Course claire',
-    titleDe: 'Saubere Regatta',
-    titleIt: 'Una regata pulita',
+    titleEn: 'Clean race',
+    titlePl: 'Czysty wyścig',
+    titleEs: 'Regata limpia',
+    titleFr: 'Course propre',
+    titleDe: 'Sauberes Rennen',
+    titleIt: 'Regata pulita',
     descRu: 'Пройди трассу ни разу не попав в неходовую зону.',
     descEn: 'Complete the course without ever entering the no-go zone.',
-    descPl: 'Przejdz trase ani razu nie wchodzac w strefe martwa.',
-    descEs: 'Completa la regata sin entrar ni una sola vez en la zona muerta.',
-    descFr: 'Parcours la course sans jamais entrer dans la zone morte.',
-    descDe: 'Absolviere die Strecke, ohne je in die Totzone zu geraten.',
-    descIt: 'Completa il percorso senza entrare mai nella zona morta.',
+    descPl: 'Pokonaj trasę, ani razu nie wchodząc w kąt martwy.',
+    descEs: 'Completa el recorrido sin entrar ni una sola vez en la zona muerta.',
+    descFr: 'Boucle le parcours sans jamais entrer dans la zone morte.',
+    descDe: 'Segle die Bahn, ohne ein einziges Mal in den toten Winkel zu geraten.',
+    descIt: 'Completa il percorso senza mai entrare nell\'angolo morto.',
     difficulty: 'easy',
     windStrength: 'medium',
     constraints: [{ type: 'no-no-go' }],
     hintRu: 'Следи за углом к ветру - не меньше 40° при лавировке.',
     hintEn: 'Watch your TWA - at least 40° when beating upwind.',
-    hintPl: 'Uwazaj na TWA - nie mniej niz 40° przy halsowaniu.',
-    hintEs: 'Mantén el ángulo al viento por encima de 40° cuando ceñas.',
-    hintFr: 'Surveille l\'angle vent reel - minimum 40° en louvoyer.',
-    hintDe: 'Achte auf den Windwinkel - nicht weniger als 40° beim Kreuzen.',
-    hintIt: 'Tieni d\'occhio l\'angolo vento reale - non meno di 40° quando bolinari.',
+    hintPl: 'Pilnuj kąta do wiatru - na halsówce nie mniej niż 40°.',
+    hintEs: 'Vigila el ángulo al viento - al menos 40° cuando ciñas.',
+    hintFr: 'Surveille ton angle au vent - au moins 40° au louvoyage.',
+    hintDe: 'Achte auf den Windwinkel - beim Kreuzen nicht unter 40°.',
+    hintIt: 'Tieni d\'occhio l\'angolo al vento - non meno di 40° quando bordeggi.',
   },
   {
     id: 'sub-90',
     emoji: '⏱',
     titleRu: 'Под 90 секунд',
     titleEn: 'Sub 90 sec',
-    titlePl: 'Ponizej 90 s',
-    titleEs: 'Menos de 90 segundos',
-    titleFr: 'Moins de 90 secondes',
-    titleDe: 'Unter 90 Sekunden',
-    titleIt: 'Sotto i 90 secondi',
+    titlePl: 'Poniżej 90 s',
+    titleEs: 'Menos de 90 s',
+    titleFr: 'Moins de 90 s',
+    titleDe: 'Unter 90 s',
+    titleIt: 'Sotto i 90 s',
     descRu: 'Финишируй быстрее чем за 90 секунд.',
     descEn: 'Finish under 90 seconds.',
-    descPl: 'Ukoncz ponizej 90 sekund.',
-    descEs: 'Termina en menos de 90 segundos.',
-    descFr: 'Franchis en moins de 90 secondes.',
-    descDe: 'Finishe schneller als in 90 Sekunden.',
-    descIt: 'Termina più velocemente di 90 secondi.',
+    descPl: 'Dopłyń do mety w mniej niż 90 sekund.',
+    descEs: 'Cruza la llegada en menos de 90 segundos.',
+    descFr: 'Franchis la ligne d\'arrivée en moins de 90 secondes.',
+    descDe: 'Komm in weniger als 90 Sekunden ins Ziel.',
+    descIt: 'Taglia il traguardo in meno di 90 secondi.',
     difficulty: 'medium',
     windStrength: 'heavy',
     constraints: [{ type: 'finish-under-sec', value: 90 }],
     hintRu: 'Сильный ветер - скорость высокая. Минимизируй повороты.',
     hintEn: 'Strong wind, high speed. Minimize tacks.',
-    hintPl: 'Silny wiatr, wysoka predkosc. Minimalizuj zwroty.',
-    hintEs: 'Viento fuerte - velocidad alta. Minimiza los viajes.',
-    hintFr: 'Vent fort - vitesse élevée. Minimise les virages.',
-    hintDe: 'Starker Wind - hohe Geschwindigkeit. Minimiere die Wendemanöver.',
-    hintIt: 'Vento forte - velocita alta. Minimizza le virate.',
+    hintPl: 'Silny wiatr, duża prędkość. Rób jak najmniej zwrotów.',
+    hintEs: 'Viento fuerte, mucha velocidad. Vira lo menos posible.',
+    hintFr: 'Vent fort, vitesse élevée. Vire le moins possible.',
+    hintDe: 'Starker Wind, viel Fahrt. Wende so selten wie möglich.',
+    hintIt: 'Vento forte, velocità alta. Vira il meno possibile.',
   },
   {
     id: 'minimal-tacks',
     emoji: '📐',
     titleRu: 'Экономия галсов',
     titleEn: 'Minimal tacks',
-    titlePl: 'Minimum halsow',
-    titleEs: 'Economía de bordadas',
-    titleFr: 'Économie de bordées',
-    titleDe: 'Effizienz beim Kreuzen',
-    titleIt: 'Risparmio di bordi',
-    descRu: 'Дойди до верхнего знака не более чем за 4 поворота.',
-    descEn: 'Reach windward mark in 4 tacks or fewer.',
-    descPl: 'Dojdz do znaku nawietrznego w 4 zwrotach lub mniej.',
-    descEs: 'Llega a la boya de barlovento en no más de 4 viradas.',
-    descFr: 'Atteins la bouée au vent en 4 virements de bord au maximum.',
-    descDe: 'Erreiche die Luvtonne in maximal 4 Wendungen.',
-    descIt: 'Raggiungi la boa di bolina in non più di 4 virate.',
+    titlePl: 'Minimum zwrotów',
+    titleEs: 'Pocas viradas',
+    titleFr: 'Peu de virements',
+    titleDe: 'Sparsam wenden',
+    titleIt: 'Poche virate',
+    descRu: 'Пройди всю гонку не более чем за 4 поворота.',
+    descEn: 'Finish the race with 4 tacks or fewer.',
+    descPl: 'Ukończ wyścig w najwyżej 4 zwrotach.',
+    descEs: 'Termina la regata con 4 viradas como máximo.',
+    descFr: 'Termine la course en 4 virements de bord au maximum.',
+    descDe: 'Beende die Wettfahrt mit höchstens 4 Wenden.',
+    descIt: 'Completa la regata con non più di 4 virate.',
     difficulty: 'medium',
     windStrength: 'medium',
     constraints: [{ type: 'max-tacks', value: 4 }],
     hintRu: 'Лавируй длинными галсами, переходи на другой только на лейлайне.',
-    hintEn: 'Sail long tacks, switch only on the layline.',
-    hintPl: 'Halsuj dlugimi halsami, zmieniaj tylko na layline.',
-    hintEs: 'Ceñir en bordadas largas, cambiar de amura solo en el layline.',
-    hintFr: 'Louvre en longs bords, ne change de bord que sur la layline.',
-    hintDe: 'Kreuze mit langen Bugs, wechsle nur auf der Layline.',
-    hintIt: 'Naviga in bolina con lunghi bordi, cambia mura solo sulla layline.',
+    hintEn: 'Beat in long legs and tack only on the layline.',
+    hintPl: 'Halsuj długimi halsami, zmieniaj hals dopiero na layline.',
+    hintEs: 'Da bordos largos y vira solo en la layline.',
+    hintFr: 'Louvoie en longs bords et ne vire que sur la layline.',
+    hintDe: 'Kreuze in langen Schlägen und wende erst auf der Layline.',
+    hintIt: 'Bordeggia con bordi lunghi e vira solo sulla layline.',
   },
   {
     id: 'light-wind-master',
     emoji: '🍃',
     titleRu: 'Слабый ветер',
     titleEn: 'Light wind',
-    titlePl: 'Slaby wiatr',
-    titleEs: 'Viento débil',
+    titlePl: 'Słaby wiatr',
+    titleEs: 'Viento flojo',
     titleFr: 'Vent faible',
-    titleDe: 'Schwacher Wind',
-    titleIt: 'Vento debole',
+    titleDe: 'Leichtwind',
+    titleIt: 'Vento leggero',
     descRu: 'Финишируй на слабом ветре. Любая позиция засчитывается.',
     descEn: 'Finish in light wind. Any position counts.',
-    descPl: 'Ukoncz przy slabym wietrze. Kazda pozycja sie liczy.',
-    descEs: 'Termina en viento flojo. Se cuenta cualquier posición.',
-    descFr: 'Finisse par vent faible. Toute position compte.',
-    descDe: 'Ziel im schwachen Wind. Jede Position zählt.',
-    descIt: 'Termina con vento leggero. Vale qualsiasi posizione.',
+    descPl: 'Dopłyń do mety przy słabym wietrze. Każde miejsce jest zaliczane.',
+    descEs: 'Cruza la llegada con viento flojo. Vale cualquier puesto.',
+    descFr: 'Termine la course par vent faible. Toutes les places sont valables.',
+    descDe: 'Komm bei Leichtwind ins Ziel. Jeder Platz wird gewertet.',
+    descIt: 'Taglia il traguardo con vento leggero. Vale qualsiasi posizione.',
     difficulty: 'easy',
     windStrength: 'light',
     constraints: [],
     hintRu: 'При слабом ветре каждый поворот теряет скорость. Плавность важнее резкости.',
     hintEn: 'In light wind every tack loses speed. Smoothness over aggression.',
-    hintPl: 'Przy slabym wietrze kazdy zwrot traci predkosc. Plynnosc wazniejsza od agresji.',
-    hintEs: 'Con viento débil, cada virada pierde velocidad. La suavidad es más importante que la brusquedad.',
-    hintFr: 'Avec peu de vent, chaque virement perd de la vitesse. La fluidité est plus importante que l\'agressivité.',
-    hintDe: 'Bei schwachem Wind verliert jede Wende an Geschwindigkeit. Geschmeidigkeit ist wichtiger als Heftigkeit.',
-    hintIt: 'Con vento leggero ogni virata fa perdere velocità. La fluidità è più importante della bruschezza.',
+    hintPl: 'Przy słabym wietrze każdy zwrot kosztuje prędkość. Płynność jest ważniejsza niż gwałtowność.',
+    hintEs: 'Con viento flojo cada virada cuesta velocidad. Mejor suave que brusco.',
+    hintFr: 'Par vent faible, chaque virement coûte de la vitesse. Mieux vaut la douceur que la brusquerie.',
+    hintDe: 'Bei Leichtwind kostet jede Wende Fahrt. Gefühlvoll statt ruppig.',
+    hintIt: 'Con vento leggero ogni virata fa perdere velocità. Meglio movimenti fluidi che bruschi.',
   },
 ];
 
@@ -160,9 +160,8 @@ export interface RaceMetrics {
   topSpeed: number;
 }
 
-// MissionLang accepts any enabled language; `pick()` internally picks ru/pl
-// verbatim and falls through to EN for every other lang. New langs (ES/FR/
-// DE/IT) will see English evaluation strings until localized ones land.
+// MissionLang accepts any enabled language; `pick()` returns the string for
+// that language (RU, EN, PL positional, ES/FR/DE/IT from the 4th argument).
 import type { Lang } from '@/lib/languages';
 export type MissionLang = Lang;
 
@@ -171,16 +170,25 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
   const reasons: string[] = [];
   let passed = true;
 
-  // RU and PL verbatim; every other lang (EN/ES/FR/DE/IT) gets the EN string,
-  // matching the fallback contract documented above. These evaluation strings
-  // are hardcoded trios (not mission rows), so there are no es/fr/de/it fields
-  // to prefer here.
-  const pick = (ru: string, en: string, pl: string) =>
-    lang === 'ru' ? ru : lang === 'pl' ? pl : en;
+  // These evaluation strings are hardcoded (not mission rows), so each call
+  // carries all seven languages: RU / EN / PL positional plus ES / FR / DE / IT.
+  const pick = (ru: string, en: string, pl: string, x: { es: string; fr: string; de: string; it: string }) => {
+    if (lang === 'ru') return ru;
+    if (lang === 'pl') return pl;
+    if (lang === 'es' || lang === 'fr' || lang === 'de' || lang === 'it') return x[lang];
+    return en;
+  };
+  // Decimal comma for every language except English.
+  const dec = (n: number) => n.toFixed(1).replace('.', ',');
 
   if (metrics.finishTimeSec === null) {
     passed = false;
-    reasons.push(pick('Не финишировал', 'Did not finish', 'Nie ukonczono'));
+    reasons.push(pick('Не финишировал', 'Did not finish', 'Nie ukończono', {
+      es: 'No has terminado',
+      fr: 'Course non terminée',
+      de: 'Nicht im Ziel',
+      it: 'Regata non conclusa',
+    }));
     return { mission, passed, reasons };
   }
 
@@ -192,7 +200,13 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
           reasons.push(pick(
             `Время ${metrics.finishTimeSec.toFixed(1)}с больше чем ${c.value}с`,
             `Time ${metrics.finishTimeSec.toFixed(1)}s > ${c.value}s`,
-            `Czas ${metrics.finishTimeSec.toFixed(1)}s > ${c.value}s`,
+            `Czas ${dec(metrics.finishTimeSec)} s > ${c.value} s`,
+            {
+              es: `Tiempo ${dec(metrics.finishTimeSec)} s > ${c.value} s`,
+              fr: `Temps ${dec(metrics.finishTimeSec)} s > ${c.value} s`,
+              de: `Zeit ${dec(metrics.finishTimeSec)} s > ${c.value} s`,
+              it: `Tempo ${dec(metrics.finishTimeSec)} s > ${c.value} s`,
+            },
           ));
         }
         break;
@@ -202,7 +216,13 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
           reasons.push(pick(
             `Вошёл в мёртвую зону ${metrics.noGoEntries}×`,
             `Entered no-go zone ${metrics.noGoEntries}×`,
-            `Wszedles w strefe martwa ${metrics.noGoEntries}×`,
+            `Wejścia w kąt martwy: ${metrics.noGoEntries}×`,
+            {
+              es: `Entradas en la zona muerta: ${metrics.noGoEntries}×`,
+              fr: `Entrées dans la zone morte : ${metrics.noGoEntries}×`,
+              de: `Im toten Winkel: ${metrics.noGoEntries}×`,
+              it: `Ingressi nell'angolo morto: ${metrics.noGoEntries}×`,
+            },
           ));
         }
         break;
@@ -212,7 +232,13 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
           reasons.push(pick(
             `Поворотов ${metrics.tackCount}, нужно ≤ ${c.value}`,
             `${metrics.tackCount} tacks, need ≤ ${c.value}`,
-            `Zwrotow ${metrics.tackCount}, potrzebne ≤ ${c.value}`,
+            `Zwrotów: ${metrics.tackCount}, dozwolone ≤ ${c.value}`,
+            {
+              es: `Viradas: ${metrics.tackCount}, máximo ${c.value}`,
+              fr: `Virements : ${metrics.tackCount}, maximum ${c.value}`,
+              de: `Wenden: ${metrics.tackCount}, erlaubt ≤ ${c.value}`,
+              it: `Virate: ${metrics.tackCount}, massimo ${c.value}`,
+            },
           ));
         }
         break;
@@ -222,13 +248,24 @@ export function evaluateMission(mission: Mission, metrics: RaceMetrics, lang: Mi
           reasons.push(pick(
             `Максимум ${metrics.topSpeed.toFixed(1)}, нужно ≥ ${c.value}`,
             `Peak ${metrics.topSpeed.toFixed(1)} kts, need ≥ ${c.value}`,
-            `Max ${metrics.topSpeed.toFixed(1)} kts, potrzebne ≥ ${c.value}`,
+            `Maks. ${dec(metrics.topSpeed)} kn, potrzeba ≥ ${c.value}`,
+            {
+              es: `Máxima ${dec(metrics.topSpeed)} kn, se necesita ≥ ${c.value}`,
+              fr: `Pointe à ${dec(metrics.topSpeed)} kn, il faut ≥ ${c.value}`,
+              de: `Spitze ${dec(metrics.topSpeed)} kn, nötig ≥ ${c.value}`,
+              it: `Massima ${dec(metrics.topSpeed)} kn, servono ≥ ${c.value}`,
+            },
           ));
         }
         break;
     }
   }
 
-  if (passed) reasons.push(pick('✓ Все условия выполнены', '✓ All constraints met', '✓ Wszystkie warunki spelnione'));
+  if (passed) reasons.push(pick('✓ Все условия выполнены', '✓ All constraints met', '✓ Wszystkie warunki spełnione', {
+    es: '✓ Cumpliste todas las condiciones',
+    fr: '✓ Toutes les conditions sont remplies',
+    de: '✓ Alle Bedingungen erfüllt',
+    it: '✓ Tutte le condizioni soddisfatte',
+  }));
   return { mission, passed, reasons };
 }

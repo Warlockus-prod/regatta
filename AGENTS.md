@@ -1,17 +1,456 @@
-# Project rules
+# AGENTS - точка входа в проект Regatta
 
-## Typography
+Этот файл читают первым Claude, Codex, Cursor, Gemini и любой другой агент.
+`CLAUDE.md` импортирует его строкой `@AGENTS.md`, поэтому правила живут здесь, в
+одном месте. Карта кода - `ARCHITECTURE.md`. Что изменилось - `CHANGELOG.md`
+(читать первым, чтобы понять текущее состояние).
 
-- **Never use em-dash (unicode U+2014) or en-dash (U+2013) anywhere in the project.** Use a plain ASCII hyphen (`-`), or a comma/colon when a pause reads better. Applies to: TSX/TS string literals, comments, markdown docs, translations, commit messages, and AI prompts.
-- Same rule for every language: RU / EN / PL.
-- Double quotes for English strings. Russian text may use `«елочки»` where context fits.
+## Что это
 
-## Code style
+- Продукт: Regatta, в UI "Week to Regatta". Учебное приложение по парусному
+  спорту: теория, тренажеры на реальной модели сил, гонка с ботами и
+  мультиплеер, два курса под польские сертификаты (радиосвязь SRC и sternik
+  motorowodny).
+- Для кого: новичок перед первой неделей на яхте, возвращающийся шкипер,
+  кандидат на польский патент.
+- Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
+  `regatta` и `regatta-ws`) за общим контейнером nginx.
+- Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
+  1.6.2 (iOS build 43). Она собрана Xcode 27 и не запускается на iOS 27 (нужен
+  UIScene): до перехода на UIScene архивировать только Xcode 26.x, разбор в
+  `docs/design/mobile/BUILDS.md`. Выпуск только через обязательный гейт (см. ниже).
+- Стек: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict,
+  Tailwind v4, SQLite (better-sqlite3), three.js / R3F для 3D, отдельный
+  WebSocket-сервер на Node.
 
-- TypeScript strict; prefer `tp(ru, en, pl)` for new UI strings.
-- Keep the dark-ocean CSS vars (`--accent-cyan`, `--bg-primary`, etc).
-- Client-only components must start with `'use client';`.
+## Жесткие правила
 
-## Server
+1. **Типографика.** Никогда не использовать длинное тире (U+2014) и среднее
+   тире (U+2013): только ASCII-дефис, запятая или двоеточие. Касается TS/TSX
+   строк, комментариев, markdown, переводов, сообщений коммитов и промптов.
+   Правило одинаково для всех семи языков. Для английского двойные кавычки; в
+   русском допустимы `«елочки»`.
+2. **Полное написание во всех языках.** Польский пишется с диакритикой
+   (`ą ć ę ł ń ó ś ź ż`), как пишут поляки; ES / FR / DE / IT со своими знаками
+   (решение владельца 2026-09-27, прежнее правило "польский без диакритик"
+   отменено). Переводы адаптируются, а не переводятся слово в слово; термины по
+   `scripts/sailing-glossary.md`. Фигурные кавычки, символ многоточия и прочую
+   типографскую юникод-пунктуацию не используем. Курсы по радио (SRC) и sternik
+   motorowodny только на польском, в формулировках официальных материалов, их не
+   адаптируем. Исключение техническое: текст, который рисуется в OG-картинках
+   (`src/app/api/og/*`), остается без диакритики, у встроенного шрифта может не
+   быть глифов.
+3. **`src/app/simulator/*` - это Основы (внутреннее имя V1), основной
+   продакшен-тренажер.** Не рефакторить и не "улучшать" из лейнов V2/V3. Правки
+   только в Shared-лейне и только изолированные, без переписывания физики.
+4. **i18n-плумбинг** (`src/lib/i18n.tsx`, языковая часть `src/proxy.ts`,
+   `generateMetadata` в `src/app/layout.tsx`) принадлежит Shared-лейну. Им
+   пользуются, его не перепроектируют.
+5. **Контентные маршруты** (`/game`, `/multiplayer`, `/rules`, `/onboard`,
+   `/start`, `/checklist`, `/anatomy`, `/courses`, `/racing`, `/glossary`,
+   `/gallery`, `/leaderboard`) и `src/components/Navigation.tsx` принадлежат
+   Shared-лейну.
+6. **CI и деплой** (GitHub Actions, nginx, Docker, `.env` на VPS) принадлежат
+   Shared-лейну.
+7. **CSP.** Конфиг реверс-прокси разрешает практически только свой origin
+   (плюс GA и YouTube-фреймы). Любой внешний ассет в проде блокируется: это уже
+   стоило инцидента "page couldn't load" (Drei `<Environment preset="sunset">`
+   тянул HDR со сторонего домена). Новый внешний домен - только правкой
+   конфига на хосте и перезагрузкой nginx, не правкой кода.
+8. **Константы движка** (`src/lib/sailing-physics/*`) не трогать без нового ADR
+   в `DECISIONS.md`. Числа там выстраданы, обоснование в ADR-0001.
+9. **Имена V1 / V2 / V3 - внутренние кодовые имена маршрутов.** В UI они не
+   появляются. Источник истины по модели - `docs/design/SIMULATORS.md`.
+10. **Секреты** не попадают ни в код, ни в `AGENTS.md`, `ARCHITECTURE.md`,
+    `CHANGELOG.md`, ни в любой документ репозитория. Только имена переменных.
+11. **UI-инварианты** (`DESIGN.md`): ширина веб-контента 1080px, горизонтальный
+    отступ на мобиле 20px, текст 16px с интерлиньяжем около 24px, основная
+    тач-цель минимум 44px, ни один ключевой ярлык не обрезается. Циан означает
+    только действие, выбранный раздел или активный контрол. Новой декоративной
+    анимации не добавляем. На Home одно основное действие. Нативный нижний бар
+    скрывается при управлении лодкой, гонке, реплее и экзамене.
 
-- Next.js 16 (Turbopack) dev sometimes emits a noisy `Can't resolve 'tailwindcss' in /Users/Andrey/App/all` error that is cosmetic (tailwind lives in `regatta/node_modules`). Ignore unless the `/` route 500s.
+### Как правило типографики применяется
+
+- Хук: `.githooks/pre-commit` блокирует коммит с em/en-dash. Включается один раз
+  на клон: `git config core.hooksPath .githooks`. Хук проверяет staged-содержимое
+  (`git show :path`), а не рабочее дерево, то есть ровно то, что уходит в
+  коммит, и печатает `file:line` с типом тире. Файлы со старыми тире не
+  флагаются, пока их не пересоберут в индекс.
+- CI: `npm run check:dash` (`scripts/check-no-dash.mjs`) проходит по всему
+  репозиторию: `src`, `docs`, `scripts`, `mobile`, `ws-server`, `e2e`, `ops`,
+  `.github`, `.githooks` и корневые документы (`node_modules` и сборки пропускает).
+
+## Код-стайл
+
+- TypeScript strict. `npx tsc --noEmit` должно оставаться чистым перед каждым
+  коммитом, `npm run build` - перед каждым пушем.
+- Клиентские компоненты начинаются с `'use client';`.
+- Держим CSS-переменные темной океанской темы (`--accent-cyan`,
+  `--bg-primary` и остальные) из `src/app/globals.css`; светлая тема
+  переопределяет те же токены.
+- Для новых строк UI - `tl({...})`, см. раздел i18n. Новых вызовов `t(ru, en)`
+  не добавляем.
+- Данные и контент живут в `src/data/*`, а не в компонентах: один источник
+  истины для веба и мобильного.
+
+## Как запускать
+
+```
+npm install
+npm run dev                  # http://localhost:3000
+npm run dev -- --port 3007   # другой порт (нужно для ворктри и сканеров)
+```
+
+- Локальная админка: `/stats` закрыта basic-auth и без переменной
+  `ADMIN_PASSWORD` отдает 503 (фолбэка в коде нет). Для локальной разработки
+  задайте `ADMIN_PASSWORD` в `.env.local` любым значением.
+- Ворктри: Turbopack не принимает symlink на `node_modules`. Копируйте его из
+  основного чекаута через `cp -Rc` и поднимайте превью на своем порту.
+- Next 16 в dev иногда пишет шумное `Can't resolve 'tailwindcss'` уровнем выше
+  репозитория. Это косметика (tailwind лежит в `node_modules` проекта),
+  игнорировать, если `/` не отдает 500.
+
+## Как тестировать
+
+Красное - не мержим. Перед коммитом и перед пушем:
+
+```
+npx tsc --noEmit             # должно быть чисто
+npm run build                # прод-сборка Turbopack строже dev
+npm run test:physics         # 58 тестов, 7 файлов
+npm run test:api             # контракты API-роутов
+npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
+npx vitest run src/app/sternik   # грейдер устного экзамена
+npx vitest run               # все юнит-тесты: 434 теста, 45 файлов
+npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
+npm run check:dash           # типографика
+npm run check:map            # карта проекта актуальна
+```
+
+- `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
+  `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
+  из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
+  `src/lib/race-course.test.ts`.
+- Сканер утечек кириллицы: `npm run dev -- --port 3007` и затем
+  `node scripts/cyrillic-scan.mjs` - на контентных маршрутах ожидается ноль.
+- Мультиплеер нельзя проверить в двух вкладках одного браузера: cookie
+  `regatta_sid` одна на браузер. Нужны два браузера или инкогнито.
+- Прод-смоук: `curl -I https://weektoregatta.com/`, затем Playwright с
+  `BASE_URL=https://weektoregatta.com`.
+
+## Как шипить
+
+- Ветки: `main` - веб-приложение плюс инфраструктура; `app` - это `main` плюс
+  работа по мобильному приложению (`mobile/`).
+- Push в `main` запускает `.github/workflows/deploy.yml`: проверки и pre-deploy
+  E2E, затем SSH на VPS, `docker compose build`, `docker compose up -d`, затем
+  smoke по прод-маршрутам и Playwright на проде.
+- nginx это отдельный общий контейнер (`/opt/repos/nginx_server/conf.d/` на
+  хосте). Файл `regatta.nginx.conf` в репозитории НЕ применяется деплоем:
+  правится host-файл, затем `docker exec nginx_server nginx -s reload` (или
+  `scripts/apply-nginx-config.sh`).
+- Проверка после деплоя: `curl -I https://weektoregatta.com/`, живой
+  `/stats` под auth, сканер кириллицы.
+- Эксплуатационные рецепты (логи, база, бэкап, откат) - в `ARCHITECTURE.md`
+  раздел 6 и `docs/OPS.md`.
+
+### Релиз мобильного приложения (обязательный гейт)
+
+Перед ЛЮБОЙ отправкой в App Store пройти гейт из
+`docs/design/mobile/RELEASE_CHECKLIST.md`. Ни один пункт не может быть красным.
+По порядку:
+
+- G1: переводы полные - `node mobile/scripts/i18n-audit.mjs` (скрипт лежит в
+  `mobile/scripts/`, не в корневом `scripts/`).
+- G2: сборка плюс визуальная проверка на iOS-симуляторе (светлая, темная, авто).
+- G3: Codemagic `cancel_previous_submissions` плюс строго растущий номер сборки.
+- G4: `fastlane precheck` - ноль ошибок метаданных (именно это раньше давало
+  отказы по метаданным; lane не проверяет покупки внутри приложения).
+- G5: только после этого submit.
+
+## Где что искать
+
+| Что нужно | Файл или каталог | Маршрут |
+|---|---|---|
+| Глоссарий, курсы относительно ветра, маневры, правила, стратегии | `src/data/sailing-data.ts` | `/glossary`, `/courses`, `/racing` |
+| Сценарии правил и расхождения (21 карточка) | `src/data/rules.ts` | `/rules` |
+| Устройство яхты (части и подписи) | `src/data/anatomy.ts` | `/anatomy` |
+| Буткемп из 8 уроков | `src/data/bootcamp.ts` | `/start` |
+| Первая неделя на борту | `src/data/onboard.ts` | `/onboard` |
+| Чек-лист перед выходом | `src/data/checklist.ts` | `/checklist` |
+| Миссии гонки | `src/data/missions.ts` | `/game` |
+| Каталог упражнений тренажера | `src/data/drills.ts` | `/simulator-v3` |
+| Галерея | `src/data/gallery.ts`, `src/data/gallery-2026.generated.ts` | `/gallery` |
+| Банк вопросов SRC (324, UKE) | `src/data/src-radio.ts` | `/radio` |
+| Банк вопросов sternik (879) | `src/data/sternik.ts` | `/sternik` |
+| Уроки работы с парусами | `src/data/sailing-lab/course.ts` и соседние | `/learn/sails` |
+| Информационная архитектура (5 разделов, подписи, маршруты) | `src/lib/product/catalog.ts` | все хабы |
+| Физика скорости яхты (VPP) | `src/lib/sailing-physics/*` | все тренажеры |
+| Язык и переводы | `src/lib/i18n.tsx`, `src/lib/languages.ts` | все |
+| Аналитика и БД | `src/lib/db.ts`, `src/app/api/log/route.ts` | `/stats` |
+
+Полная карта кода, файл за файлом, - `ARCHITECTURE.md` раздел 4.
+
+### Курс sternik: правила контента
+
+- Банк: `src/data/sternik.ts`, 879 вопросов, экзамен 75 вопросов / 90 минут /
+  порог 65 правильных.
+- **Id вопросов стабильны, перенумеровывать нельзя** (на них висит прогресс
+  пользователей и разбор ошибок).
+- Язык курса только польский (`src/app/sternik/plOnly.ts`), текст как в
+  официальных материалах; языковая адаптация его не трогает.
+- Юридические факты сверены с Dz.U. 2026 poz. 604, источники и материалы -
+  `docs/sternik-materials/SOURCES.md`.
+
+### Общие движки
+
+- `src/lib/sailing-physics/*` - один VPP-движок на все: Основы, Тренажер, Лодка
+  3D, общая сессия `src/features/sailing-lab/runtime/session.ts` и мобильное
+  приложение (алиас `@regatta/physics`). От него зависят несколько лейнов, так
+  что изменения согласуются; форк движка в `mobile/` запрещен и проверяется в CI.
+- Серверная физика мультиплеера `ws-server/race-physics.js` генерируется из
+  TS-исходников: `node scripts/build-race-server.mjs`, проверка `--check`.
+- Гейт: `npm run test:physics`.
+
+### Тренажеры
+
+| Поверхность | Маршрут | Имя в UI | Роль |
+|---|---|---|---|
+| V1 | `/simulator` | Основы | основной продакшен-тренажер, canvas |
+| V3 | `/simulator-v3` | Тренажер трима | живая физика, трим, упражнения |
+| V2 | `/simulator2` | Лодка 3D | осмотр формы парусов, R3F и GLB, не гоночная поверхность |
+
+Источник истины по модели и названиям - `docs/design/SIMULATORS.md`.
+
+## i18n
+
+- 7 языков: RU (источник), EN, PL, ES, FR, DE, IT.
+- Приоритет языка (`src/lib/i18n.tsx`): `?lang=` в URL > localStorage > cookie
+  (для SSR) > Accept-Language > RU.
+- Короткие ссылки для шеринга: `/pl`, `/en`, `/ru`, `/es`, `/fr`, `/de`, `/it`
+  редиректят на `/` и закрепляют cookie.
+- Серверный конвейер: `src/proxy.ts` пишет cookie `regatta_lang`,
+  `src/app/layout.tsx` читает ее для `<html lang>` и `generateMetadata`. Эту
+  цепочку не ломать.
+- Хелперы: для нового кода `tl({ru, en, pl, es, fr, de, it})`; `tp(ru, en, pl,
+  {...})` - безопасный путь апгрейда существующих вызовов; `t(ru, en)` - legacy,
+  новых вызовов не добавлять.
+- Данные: строки в файлах данных лежат как `fieldRu/En/Pl` (обязательные) плюс
+  `fieldEs/Fr/De/It` (опциональные), тип `LegacyLocalized`, чтение через
+  `legacyPick(obj, 'field', lang)`.
+- Массовый перевод: `ANTHROPIC_API_KEY=... node scripts/translate-data-flat.mjs
+  --file <path> --lang es,fr,de,it`.
+- Сканер утечек: `node scripts/cyrillic-scan.mjs` (ожидается ноль на контентных
+  маршрутах). Статус по маршрутам: `docs/I18N_AUDIT.md`.
+- Исключение: подписи на `/courses` по-русски намеренно, это конвенция бумажных
+  диаграмм ветра, а не баг i18n.
+
+## Аналитика и приватность
+
+- Все записи событий идут через `insertEvent()` в `src/lib/db.ts`. Поля события
+  включают `country`, `device_model`, `ms_since_start`, `utm_source/medium/
+  campaign`, `referrer`, `device`, `viewport`, `language`.
+- Страна определяется в `/api/log` по заголовкам `cf-ipcountry`,
+  `x-vercel-ip-country`, `x-country-code`. Одноразовая настройка nginx geoip2
+  описана в `docs/OPS.md` (`scripts/setup-nginx-geoip2.sh`).
+- IP усекается на входе (`src/lib/net.ts`): последний октет IPv4 в ноль, IPv6 до
+  первых трех хекстетов. Полные IP не хранятся и не попадают в `/stats`.
+- В `meta` сохраняется только allow-list полей с лимитом 4 КБ, а не сырое тело
+  запроса.
+- `/api/race-result` ограничен 60 запросами в час на сессию и проверяет границы
+  значений (защита от отравления лидерборда).
+- Basic-auth на `/stats` сравнивает значения за константное время; без
+  `ADMIN_PASSWORD` отдает 503.
+- Серверные события: `race.finish`, `coach.requested`. Клиентские из
+  `src/components/ClientErrorReporter.tsx`: `page.view`, `page.engaged`,
+  `js.uncaught`, `js.rejection`.
+- GA4 поток `G-ZEWWJ4N31M` в `src/components/GoogleAnalytics.tsx`.
+
+## Окружение
+
+Значения не хранятся в репозитории. `.env` живет рядом с чекаутом на VPS,
+локально - `.env.local` (оба в `.gitignore`).
+
+| Переменная | Зачем | Где живет |
+|---|---|---|
+| `ADMIN_PASSWORD` | basic-auth для `/stats` и `/api/admin/*`, без нее 503 | VPS, локально `.env.local` |
+| `ANTHROPIC_API_KEY` | ИИ-коуч, чаты, скрипты перевода | VPS и локально при переводах |
+| `ANTHROPIC_MODEL` | переопределение модели | опционально |
+| `OPENAI_API_KEY` | STT и TTS радиокурса | VPS (локальный ключ мертв, предгенерация идет через прод) |
+| `OPENAI_MODEL`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `OPENAI_STT_MODEL` | параметры голоса и распознавания | опционально |
+| `REGATTA_DB_DIR` | каталог SQLite, в контейнере `/data` | `docker-compose.yml` |
+| `NEXT_INTERNAL_URL` | адрес приложения для ws-server | `docker-compose.yml` |
+| `PORT` | порт ws-server (3001 в контейнере) | `docker-compose.yml` |
+| `NEXT_PUBLIC_WS_URL`, `WS_URL` | адрес WebSocket для клиента и тестов | сборка и локально |
+| `NEXT_PUBLIC_SW_VERSION` | версия сервис-воркера | сборка |
+| `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | уведомления поддержки и статуса релиза | VPS и `ops/notify` |
+| `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_KEY_PATH`, `ASC_APP_ID` и прочие `ASC_*` | App Store Connect API для релизов | только машина релиза |
+| `GOOGLE_SITE_VERIFICATION`, `YANDEX_VERIFICATION` | подтверждение владения сайтом | VPS |
+| `SCAN_BASE`, `SHOT_DIR`, `REGATTA_I18N_REPORT`, `PREGEN_*` | параметры служебных скриптов | локально |
+
+## Библиотека документации
+
+| Документ | На что отвечает | Статус |
+|---|---|---|
+| `AGENTS.md` | точка входа, правила, где что искать | актуален |
+| `ARCHITECTURE.md` | карта кода и потоков, инфраструктура | актуален |
+| `CHANGELOG.md` | что изменилось, релизы | актуален |
+| `DESIGN.md` | продуктовая оболочка, визуальные и навигационные инварианты | актуален (2026-09-08), ссылка на PRODUCT.md мертвая (файла нет) |
+| `DECISIONS.md` | ADR, обоснование констант движка | актуален, новые развилки дописывать новым ADR |
+| `PATTERNS.md` | каталог повторяющихся провалов P1-P6 и чеклист "дверь" D1-D6 | актуален |
+| `README.md` | витрина проекта, внешние источники правил | в основном актуален, числа (глоссарий 64) устарели |
+| `docs/TECH.md` | краткий обзор стека, деплоя, i18n, погоды, ветвления | актуален |
+| `docs/OPS.md` | эксплуатация VPS, geoip2, бэкапы | актуален |
+| `docs/I18N_AUDIT.md` | покрытие маршрутов языками | поддерживать при изменении покрытия |
+| `docs/design/SIMULATORS.md` | двухтиерная модель тренажеров и названия | источник истины |
+| `docs/design/simulator-v3/*` | спека, контракты поведения, QA Тренажера | актуально для лейна V3 |
+| `docs/design/mobile/*` | мобильная архитектура, решения, гейт релиза | актуально для мобильного лейна |
+| `docs/design/books-audit-2026-09-26.md` | бэклог обучающего контента из трех книг (Дедекам, "Маневры под парусами", RYA Day Skipper), проверенная матрица трима, числа и допуски | актуален, спека для контентных задач; сделанное помечать в `CHANGELOG.md` |
+| `TECH.md` (корневой) | старая карта кода и инфраструктуры | устарел, заменен `ARCHITECTURE.md`; адреса хостов и числа неверны |
+| `FEATURES.md` | инвентарь фич на 2026-07 | частично устарел, см. `ARCHITECTURE.md` раздел 10 |
+| `AUDIT.md` | аудит состояния на 2026-06 | исторический |
+| `ROADMAP.md` | фазы 0-4 | исторический, долг перенесен в `CHANGELOG.md` |
+| `MEMORY.md` | датированные решения "почему X, а не Y" | исторический, ключевое перенесено в `ARCHITECTURE.md` раздел 7 |
+| `STRESS-REPORT.md` | базовая линия мультиплеера | актуален как базовая линия |
+| `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
+
+Если документ говорит одно, а код другое - прав код, и расхождение фиксируется
+в `ARCHITECTURE.md` раздел 10.
+
+## Границы продукта
+
+Сознательно не делаем (чтобы не "добавлять" уже отклоненное):
+
+- Нет аккаунтов и логина: ник живет в localStorage, логин-стена теряет
+  большинство первых визитов.
+- Нет платежей и платного тарифа.
+- Нет лицензирования бренда лодки: движок описывает абстрактный двухпарусный
+  крейсер, Bavaria 46 остается только анатомическим референсом.
+- Нет физики уровня ORC и CFD: минимально достаточный реализм, чтобы показать
+  причинную цепочку.
+- Нет динамики руля и рыскания.
+- Нет спинакера, Code 0 и генакера: двухпарусный риг.
+- Нет приливов и волн в модели хода (течение добавлено отдельно и аддитивно).
+- Нет 3D-заглушки Kenney в анатомии: удалена, потому что это была не та лодка с
+  хотспотами не на тех местах.
+
+## Правила работы
+
+Из `ROADMAP.md` (operating rules) и `PATTERNS.md` (дверь D1-D6):
+
+1. Одна фаза в работе одновременно: не совмещаем переделку физики и UI.
+2. Каждая фаза заканчивается деплоем и проверкой в браузере.
+3. Каждая развилка получает новый ADR в `DECISIONS.md`.
+4. Устаревший документ - это провал, его переписывает та же работа, которая его
+   обесценила, в том же коммите.
+5. D1: прежде чем сказать "готово", сформулируй поведенческий контракт одной
+   фразой и убедись, что есть тест, который упал бы при его нарушении. Для
+   физики - посмотри, как числа двигаются на трех разных входах.
+6. D2: не полируй UI во время физической задачи. Тяга к цветам при сложной
+   физике - это уход от задачи.
+7. D3: перед коммитом прогони проверку на тире, сборку и `git diff --stat`.
+8. D4: обнови документ, который стал ложным, в том же коммите.
+9. D5: проверь UI в браузере на затронутом маршруте, включая мобильный вьюпорт.
+10. D6: если спросили нумерованные вопросы, ответь по номерам в первом абзаце.
+11. Застрял - назови блок одной фразой (что пробовал, что дальше), не имитируй
+    прогресс правкой несвязанного кода.
+
+Разбор самих провалов P1-P6 - в `PATTERNS.md`, туда добавляют паттерн только
+после двух подтверждений.
+
+## Правило поддержки карты
+
+`AGENTS.md`, `ARCHITECTURE.md` и `CHANGELOG.md` - единственная карта, которой
+доверяет следующий агент. Поэтому:
+
+1. В том же коммите, что и изменение: если файл появился, переехал или удален -
+   поправь карту кода в `ARCHITECTURE.md` (одна строка на файл). Если изменился
+   поток, шаг деплоя, хост или правило - поправь соответствующий раздел.
+2. Любое изменение, видимое пользователю или эксплуатации, получает строку в
+   `## Unreleased` в `CHANGELOG.md` простым языком.
+3. Гейт: `npm run check:map` (`scripts/check-project-map.mjs`) проверяет, что
+   `CLAUDE.md` импортирует `AGENTS.md`, что все упомянутые пути существуют, что
+   у каждого файла из `src`, `scripts`, `ws-server`, `ops`, `e2e` и корневых
+   конфигов есть строка в карте, и что в карту не утек секрет. Он же стоит в CI
+   шагом "Project map is current".
+4. Значения секретов в эти три файла не попадают никогда: только имена
+   переменных.
+5. Если утверждение документа расходится с кодом, прав код: правь документ и
+   отмечай расхождение в `ARCHITECTURE.md` раздел 10.
+
+## Параллельные лейны
+
+Четыре чата работают по репозиторию параллельно, по одному на лейн. Определите
+свой лейн из задачи и оставайтесь в нем.
+
+### Лейн V3 (Тренажер трима)
+
+- Владеет: `src/app/simulator-v3/*`, `src/features/simulator-v3/*`,
+  `docs/design/simulator-v3/*`.
+- Может читать: `src/lib/sailing-physics/*`, глоссарий, файлы данных.
+- Не правит: i18n-систему, `src/app/simulator/*`, `src/app/simulator2/*`,
+  мобильное приложение.
+- Работает по `docs/design/simulator-v3/PIPELINE.md` и
+  `docs/design/simulator-v3/BACKLOG.md`, QA по
+  `docs/design/simulator-v3/QA_CHECKLIST.md`, контракты в
+  `docs/design/simulator-v3/BEHAVIORAL_CONTRACTS.md`.
+
+### Лейн V2 (Лодка 3D, `/simulator2`)
+
+- Владеет: `src/app/simulator2/*`, `src/features/simulator-3d/*`,
+  `docs/design/simulator2/*`.
+- Может читать: `src/lib/sailing-physics/*`, `src/data/sailing-data.ts`.
+- Не правит: i18n-систему, `src/app/simulator/*`, `src/app/simulator-v3/*`,
+  `src/features/simulator-v3/*`, мобильное приложение, общие контентные
+  маршруты.
+- Роль и названия: `docs/design/SIMULATORS.md`. Старая гоночная сборка
+  simulator-v2 удалена 2026-07-05 (`be43938`).
+
+### Shared-лейн (веб, i18n, контент, CI)
+
+- i18n-фиксы, документация, контент (`/rules`, `/onboard`, `/start`,
+  `/checklist`), HUD гонки, навигация, мелкие багфиксы по веб-приложению,
+  API-роуты (`src/app/api/*`).
+- Владеет: `src/proxy.ts`, `src/lib/i18n.tsx`, `src/app/layout.tsx`,
+  `src/components/Navigation.tsx`, все контентные маршруты, конфигурация CI и
+  деплоя.
+- Верификация: прод-смоук, сканер кириллицы, `/stats` под auth.
+
+### Мобильный лейн
+
+- Владеет: `docs/design/mobile/*` и `mobile/*`.
+- Может читать (и позже вынести в общий пакет): `src/data/*`,
+  `src/lib/sailing-physics/*`, ключи и переводы i18n, схемы HTTP API
+  (`/api/coach`, `/api/log`, `/api/feedback`, `/api/leaderboard`).
+- Обязан ходить в существующий веб-API, своего бэкенда у мобильного нет.
+- Не правит код веб-маршрутов (`src/app/*`), i18n-плумбинг, тренажеры V1/V2/V3,
+  nginx / docker / CI веба.
+- Решения, которые дублируют или меняют общие ассеты (контент, физика, i18n),
+  оформляются ADR в `docs/design/mobile/DECISIONS.md`. Прежде чем что-то
+  дублировать, вернитесь в Shared-лейн и спланируйте вынос общего пакета.
+- Верификация: `cd mobile && npm run check` (синхронность контента, lint,
+  typecheck, тесты) плюс гейт релиза выше.
+
+### Общие файлы: спросить или не трогать
+
+Перед правкой проверьте `git log` этих файлов; если неясно - согласуйте в
+Shared-лейне:
+
+- `src/lib/sailing-physics/*` (от движка зависят V2, V3 и мобильное)
+- `src/proxy.ts`, `src/lib/i18n.tsx`, `src/app/layout.tsx`,
+  `src/components/Navigation.tsx` (Shared-лейн)
+- `AGENTS.md`, `CLAUDE.md`, `ARCHITECTURE.md`, `CHANGELOG.md` (любой лейн, но
+  через коммит-согласование)
+- `docs/TECH.md`, `docs/I18N_AUDIT.md`, `README.md`
+
+### Этикет коммитов
+
+- Перед началом значимой работы: `git fetch origin`, `git status`,
+  `git log --oneline -10`. Если `main` ушел вперед - `git pull --rebase origin main`.
+- Коммитить только файлы своего лейна: `git add <конкретные файлы>`, не
+  `git add -A`.
+- Push в `main` напрямую допустим, если файлы изолированы.
+- Большой рефакторинг - через ветку (`feature/...`), потом `git merge --no-ff`.
+- Никогда `push --force` в `main`. Никогда `git reset --hard` без
+  предупреждения других лейнов.

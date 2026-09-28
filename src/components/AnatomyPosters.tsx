@@ -181,14 +181,14 @@ export default function AnatomyPosters() {
   const pickTitle = (p: Poster) => (posterLang === 'ru' ? p.titleRu : p.titleEn);
 
   const closeLabel = tp('Закрыть', 'Close', 'Zamknij',
-    { es: 'Cerrar', fr: 'Fermer', de: 'Schliessen', it: 'Chiudi' });
-  const shareLabel = tp('Поделиться', 'Share', 'Udostepnij',
+    { es: 'Cerrar', fr: 'Fermer', de: 'Schließen', it: 'Chiudi' });
+  const shareLabel = tp('Поделиться', 'Share', 'Udostępnij',
     { es: 'Compartir', fr: 'Partager', de: 'Teilen', it: 'Condividi' });
   const copiedLabel = tp('Ссылка скопирована', 'Link copied', 'Skopiowano link',
-    { es: 'Enlace copiado', fr: 'Lien copie', de: 'Link kopiert', it: 'Link copiato' });
+    { es: 'Enlace copiado', fr: 'Lien copié', de: 'Link kopiert', it: 'Link copiato' });
   const prevLabel = tp('Предыдущий', 'Previous', 'Poprzedni',
-    { es: 'Anterior', fr: 'Precedent', de: 'Zurueck', it: 'Precedente' });
-  const nextLabel = tp('Следующий', 'Next', 'Nastepny',
+    { es: 'Anterior', fr: 'Précédent', de: 'Zurück', it: 'Precedente' });
+  const nextLabel = tp('Следующий', 'Next', 'Następny',
     { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Successivo' });
 
   const activeIdx = active ? POSTERS.findIndex((p) => p.id === active.id) : -1;
@@ -205,12 +205,12 @@ export default function AnatomyPosters() {
     <section className="mt-10">
       <div className="flex items-baseline gap-3 mb-4">
         <h2 className="text-xl sm:text-2xl font-bold">
-          {tp('Графика', 'Graphics', 'Graphics',
-            { es: 'Graphics', fr: 'Graphics', de: 'Graphics', it: 'Graphics' })}
+          {tp('Графика', 'Graphics', 'Grafika',
+            { es: 'Gráficos', fr: 'Graphiques', de: 'Grafiken', it: 'Grafica' })}
         </h2>
         <span className="text-xs text-[var(--text-muted)]">
-          {tp('Постеры', 'Posters', 'Posters',
-            { es: 'Posters', fr: 'Posters', de: 'Posters', it: 'Posters' })}
+          {tp('Постеры', 'Posters', 'Plakaty',
+            { es: 'Pósteres', fr: 'Affiches', de: 'Poster', it: 'Poster' })}
         </span>
       </div>
 

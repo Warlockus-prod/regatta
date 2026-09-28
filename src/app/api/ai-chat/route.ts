@@ -31,9 +31,9 @@ const SITE_SECTIONS = `
 - /start - Bootcamp: 8 уроков по 5 минут (ветер, курсы, паруса, первая мини-гонка).
 - /quick - "Освежить за 15 мин" - 6 ключевых тем без воды.
 - /rules - Simple Rules: 8 карточек-сценариев (правый галс, место у знака, старт, столкновение).
-- /onboard - "Первая неделя на яхте": команды, что опасно, что брать, как вести себя на борту.
+- /onboard - "Первая неделя на яхте": команды, что опасно, что брать, как вести себя на борту, выход из гавани и возвращение, типы швартовки, газ и пожар.
 - /anatomy - Устройство яхты (Bavaria 46) с кликабельными деталями.
-- /checklist - Чек-лист к регате.
+- /checklist - Чек-лист к регате, включая готовность яхты у причала перед выходом.
 - /simulator - Интерактивный тренажёр яхты (top + side view, крен).
 - /racing - Тактика: лавировка, старт, знаки, правила расхождения.
 - /courses - Курсы относительно ветра (5 курсов + диаграмма).
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
   if (!daily.ok) {
     logWarn('ai-chat.daily-cap', { resetMs: daily.resetMs });
     return NextResponse.json(
-      { error: `Дневной лимит ${USER_DAILY_AI_LIMIT} AI-запросов исчерпан. Попробуй завтра.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
+      { error: `Дневной лимит ${USER_DAILY_AI_LIMIT} AI-запросов исчерпан. Попробуй завтра. / Daily limit of ${USER_DAILY_AI_LIMIT} AI requests reached. Try again tomorrow.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
       { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
     );
   }
@@ -113,7 +113,7 @@ export async function POST(req: Request) {
   if (!rl.ok) {
     logWarn('ai-chat.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
-      { error: 'Слишком много запросов. Попробуй через час.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
+      { error: 'Слишком много запросов. Попробуй через час. / Too many requests. Try again in an hour.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
       { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
     );
   }

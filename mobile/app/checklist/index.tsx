@@ -14,47 +14,47 @@ export default function Checklist() {
   const { tp, lang } = useI18n();
   const { isChecked, toggle, reset } = useChecklistProgress();
 
-  const headerTitle = tp('Чек-лист', 'Checklist', 'Lista', {
-    es: 'Lista',
-    fr: 'Liste',
-    de: 'Liste',
-    it: 'Lista',
+  const headerTitle = tp('Чек-лист', 'Checklist', 'Lista kontrolna', {
+    es: 'Checklist',
+    fr: 'Check-list',
+    de: 'Checkliste',
+    it: 'Checklist',
   });
 
   const introText = tp(
     'Прочитай ДО того как впервые встанешь на палубу. Отмечай по мере того, как разобрался.',
-    'Read this BEFORE stepping on deck for the first time. Tick items as you cover them.',
-    'Przeczytaj PRZED wejsciem na poklad po raz pierwszy. Odhaczaj w miare jak ogarniasz.',
+    'Read this BEFORE you step on deck for the first time. Tick items off as you get them.',
+    'Przeczytaj, ZANIM pierwszy raz wejdziesz na pokład. Odhaczaj punkty, kiedy już je ogarniesz.',
     {
-      es: 'Lee esto ANTES de subir a la cubierta por primera vez. Marca a medida que avances.',
-      fr: 'Lis ceci AVANT de monter sur le pont pour la premiere fois. Coche au fur et a mesure.',
-      de: 'Lies das BEVOR du das erste Mal an Deck gehst. Hake ab, was du erledigt hast.',
-      it: 'Leggi PRIMA di salire sul ponte la prima volta. Spunta man mano che procedi.',
+      es: 'Léelo ANTES de pisar la cubierta por primera vez. Marca cada punto cuando lo tengas claro.',
+      fr: 'Lis ceci AVANT de monter sur le pont pour la première fois. Coche chaque point quand tu l\'as compris.',
+      de: 'Lies das, BEVOR du zum ersten Mal an Deck gehst. Hake ab, was du verstanden hast.',
+      it: 'Leggi PRIMA di salire in coperta per la prima volta. Spunta ogni punto quando ti è chiaro.',
     },
   );
 
-  const warningLabel = tp('Важно', 'Important', 'Wazne', {
+  const warningLabel = tp('Важно', 'Important', 'Ważne', {
     es: 'Importante',
     fr: 'Important',
     de: 'Wichtig',
     it: 'Importante',
   });
 
-  const resetLabel = tp('Сбросить', 'Reset', 'Wyczysc', {
+  const resetLabel = tp('Сбросить', 'Reset', 'Wyczyść', {
     es: 'Reiniciar',
-    fr: 'Reinitialiser',
-    de: 'Zuruecksetzen',
+    fr: 'Réinitialiser',
+    de: 'Zurücksetzen',
     it: 'Azzera',
   });
 
   const resetConfirmTitle = tp(
     'Сбросить чек-лист?',
     'Reset the checklist?',
-    'Wyczyscic liste?',
+    'Wyczyścić listę?',
     {
-      es: 'Reiniciar la lista?',
-      fr: 'Reinitialiser la liste ?',
-      de: 'Liste zuruecksetzen?',
+      es: '¿Reiniciar la lista?',
+      fr: 'Réinitialiser la liste ?',
+      de: 'Liste zurücksetzen?',
       it: 'Azzerare la lista?',
     },
   );
@@ -62,11 +62,11 @@ export default function Checklist() {
   const resetConfirmMessage = tp(
     'Все отметки удалятся, но текст останется.',
     'All ticks will be cleared. The content stays.',
-    'Wszystkie znaczniki znikna, ale tresc zostaje.',
+    'Wszystkie odhaczenia znikną, ale treść zostanie.',
     {
-      es: 'Se borraran todas las marcas. El contenido se queda.',
-      fr: 'Toutes les coches seront effacees. Le contenu reste.',
-      de: 'Alle Haken werden geloescht. Der Inhalt bleibt.',
+      es: 'Se borrarán todas las marcas. El contenido se queda.',
+      fr: 'Toutes les coches seront effacées. Le contenu reste.',
+      de: 'Alle Häkchen werden gelöscht. Der Inhalt bleibt.',
       it: 'Tutte le spunte saranno cancellate. Il testo resta.',
     },
   );
@@ -80,13 +80,13 @@ export default function Checklist() {
 
   const closingText = tp(
     'Это базовая подборка. Каждая яхта - свой маленький мир. Главное: не уверен - спроси, не трогай без команды.',
-    'This is the basics. Each yacht is its own small world. Main rule: not sure - ask. Do not touch without a command.',
-    'To podstawa. Kazdy jacht jest innym malym swiatem. Glowna zasada: nie jestes pewien - pytaj, nie dotykaj bez polecenia.',
+    'These are the basics. Every yacht is a small world of its own. The main thing: not sure? Ask. Don\'t touch anything without a command.',
+    'To podstawy. Każdy jacht to osobny mały świat. Najważniejsze: nie jesteś pewien - zapytaj, niczego nie ruszaj bez komendy.',
     {
-      es: 'Esto es lo basico. Cada velero es su propio pequeno mundo. Regla principal: si no estas seguro, pregunta. No toques sin una orden.',
-      fr: "C'est la base. Chaque voilier est son propre petit monde. Regle principale : pas sur, demande. Ne touche a rien sans ordre.",
-      de: 'Das sind die Grundlagen. Jede Yacht ist ihre eigene kleine Welt. Hauptregel: nicht sicher - frag. Nichts ohne Kommando anfassen.',
-      it: 'Queste sono le basi. Ogni barca e il suo piccolo mondo. Regola principale: se non sei sicuro, chiedi. Non toccare senza un comando.',
+      es: 'Esto es lo básico. Cada velero es un pequeño mundo. Lo principal: si no estás seguro, pregunta, y no toques nada sin una orden.',
+      fr: "Ce sont les bases. Chaque voilier est un petit monde à part. L'essentiel : pas sûr, demande ; ne touche à rien sans ordre.",
+      de: 'Das sind die Grundlagen. Jede Yacht ist eine eigene kleine Welt. Das Wichtigste: Unsicher? Frag nach, und fass nichts ohne Kommando an.',
+      it: 'Queste sono le basi. Ogni barca a vela è un piccolo mondo a sé. La cosa principale: se non sei sicuro, chiedi, e non toccare niente senza un comando.',
     },
   );
 
@@ -110,12 +110,12 @@ export default function Checklist() {
   const totalLabel = tp(
     `Готово ${totalChecked} из ${totalItems}`,
     `${totalChecked} of ${totalItems} ready`,
-    `Gotowe ${totalChecked} z ${totalItems}`,
+    `Gotowe: ${totalChecked} z ${totalItems}`,
     {
-      es: `${totalChecked} de ${totalItems} listo`,
-      fr: `${totalChecked} sur ${totalItems} pret`,
-      de: `${totalChecked} von ${totalItems} bereit`,
-      it: `${totalChecked} su ${totalItems} pronto`,
+      es: `${totalChecked} de ${totalItems} completados`,
+      fr: `${totalChecked} sur ${totalItems} cochés`,
+      de: `${totalChecked} von ${totalItems} erledigt`,
+      it: `${totalChecked} su ${totalItems} completati`,
     },
   );
 

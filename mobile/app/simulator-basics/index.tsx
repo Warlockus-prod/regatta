@@ -160,27 +160,27 @@ export default function SimulatorBasicsScreen() {
 
   // ---- strings ------------------------------------------------------------
   const title = tp('Основы', 'Basics', 'Podstawy', {
-    es: 'Basico', fr: 'Bases', de: 'Grundlagen', it: 'Base',
+    es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
   });
   const windLabel = tp('ВЕТЕР', 'WIND', 'WIATR', {
     es: 'VIENTO', fr: 'VENT', de: 'WIND', it: 'VENTO',
   });
-  const angleLabel = tp('Угол к ветру', 'Angle to wind', 'Kat do wiatru', {
-    es: 'Angulo al viento', fr: 'Angle au vent', de: 'Winkel zum Wind', it: 'Angolo al vento',
+  const angleLabel = tp('Угол к ветру', 'Angle to wind', 'Kąt do wiatru', {
+    es: 'Ángulo al viento', fr: 'Angle au vent', de: 'Winkel zum Wind', it: 'Angolo al vento',
   });
-  const speedLabel = tp('Потенциал скорости', 'Speed potential', 'Potencjal predkosci', {
-    es: 'Potencial de velocidad', fr: 'Potentiel de vitesse', de: 'Tempo-Potenzial', it: 'Potenziale di velocita',
+  const speedLabel = tp('Потенциал скорости', 'Speed potential', 'Potencjał prędkości', {
+    es: 'Potencial de velocidad', fr: 'Potentiel de vitesse', de: 'Fahrtpotenzial', it: 'Potenziale di velocità',
   });
   const tackLabel =
     tack === 'starboard'
       ? tp('Правый галс', 'Starboard tack', 'Prawy hals', {
-          es: 'Amura a estribor', fr: 'Tribord amures', de: 'Steuerbordbug', it: 'Mure a dritta',
+          es: 'Amurado a estribor', fr: 'Tribord amures', de: 'Steuerbordbug', it: 'Mure a dritta',
         })
       : tp('Левый галс', 'Port tack', 'Lewy hals', {
-          es: 'Amura a babor', fr: 'Babord amures', de: 'Backbordbug', it: 'Mure a sinistra',
+          es: 'Amurado a babor', fr: 'Bâbord amures', de: 'Backbordbug', it: 'Mure a sinistra',
         });
-  const intoWindLabel = tp('В левентик', 'Into wind', 'W lewentyk', {
-    es: 'Proa al viento', fr: 'Bout au vent', de: 'In den Wind', it: 'Prua al vento',
+  const intoWindLabel = tp('В левентик', 'Into wind', 'Dziobem do wiatru', {
+    es: 'Proa al viento', fr: 'Face au vent', de: 'In den Wind', it: 'Prua al vento',
   });
   const resetLabel = tp('Сброс (90°)', "Reset (90°)", 'Reset (90°)', {es:"Restablecer (90°)", fr:"Réinitialiser (90°)", de:"Zurücksetzen (90°)", it:"Ripristina (90°)"});
   const headingWord = tp('Курс', 'Heading', 'Kurs', {
@@ -189,32 +189,32 @@ export default function SimulatorBasicsScreen() {
   const dragHint = tp(
     'Тяни по сцене, чтобы повернуть лодку',
     'Drag on the scene to turn the boat',
-    'Przeciagnij po scenie, aby obrocic lodke',
-    { es: 'Arrastra en la escena para girar el barco', fr: 'Glisse sur la scene pour tourner le bateau', de: 'Ziehe auf der Szene, um das Boot zu drehen', it: 'Trascina sulla scena per girare la barca' },
+    'Przeciągnij po scenie, aby obrócić łódkę',
+    { es: 'Arrastra en la escena para girar el barco', fr: 'Glisse sur la scène pour tourner le bateau', de: 'Ziehe auf der Szene, um das Boot zu drehen', it: 'Trascina sulla scena per girare la barca' },
   );
   const sceneA11yLabel = `${angleLabel}: ${twaRound}°. ${bandName}. ${tackLabel}. ${headingWord} ${Math.round(heading)}°. ${dragHint}.`;
 
-  const hintTitle = tp('Как это работает', 'How it works', 'Jak to dziala', {
-    es: 'Como funciona', fr: 'Comment ca marche', de: 'So funktioniert es', it: 'Come funziona',
+  const hintTitle = tp('Как это работает', 'How it works', 'Jak to działa', {
+    es: 'Cómo funciona', fr: 'Comment ça marche', de: 'So funktioniert es', it: 'Come funziona',
   });
   const hintSteps = [
     tp(
       'Тяни пальцем по кругу - лодка повернется за ним.',
       'Drag anywhere on the circle - the boat turns toward your finger.',
-      'Przeciagnij palcem po kole - lodka obroci sie za nim.',
-      { es: 'Arrastra el dedo por el circulo - el barco girara hacia el.', fr: 'Glisse le doigt sur le cercle - le bateau tourne vers lui.', de: 'Ziehe den Finger ueber den Kreis - das Boot dreht sich dorthin.', it: 'Trascina il dito sul cerchio - la barca girera verso di esso.' },
+      'Przeciągnij palcem po kole, a łódka obróci się za nim.',
+      { es: 'Arrastra el dedo por el círculo: el barco girará hacia él.', fr: 'Fais glisser ton doigt sur le cercle : le bateau tourne vers lui.', de: 'Ziehe den Finger über den Kreis: Das Boot dreht sich dorthin.', it: 'Trascina il dito sul cerchio: la barca girerà verso di lui.' },
     ),
     tp(
       'Красный сектор - мертвая зона: против ветра паруса не работают.',
       'The red wedge is the no-go zone - sails cannot drive the boat there.',
-      'Czerwony sektor to strefa martwa - zagle tam nie pracuja.',
-      { es: 'El sector rojo es la zona muerta - las velas no funcionan ahi.', fr: 'Le secteur rouge est la zone morte - les voiles ne portent pas la.', de: 'Der rote Sektor ist die tote Zone - dort ziehen die Segel nicht.', it: 'Il settore rosso e la zona morta - li le vele non spingono.' },
+      'Czerwony sektor to kąt martwy: pod wiatr żagle nie pracują.',
+      { es: 'El sector rojo es la zona muerta: contra el viento las velas no trabajan.', fr: 'Le secteur rouge est la zone morte : face au vent, les voiles ne portent pas.', de: 'Der rote Sektor ist der tote Winkel: Gegen den Wind ziehen die Segel nicht.', it: "Il settore rosso è l'angolo morto: controvento le vele non spingono." },
     ),
     tp(
       'Следи за шкалой скорости: галфвинд - самый быстрый курс.',
       'Watch the speed bar - beam reach is the fastest course.',
-      'Obserwuj pasek predkosci - polwiatr to najszybszy kurs.',
-      { es: 'Observa la barra de velocidad - el traves es el rumbo mas rapido.', fr: 'Regarde la barre de vitesse - le vent de travers est le cap le plus rapide.', de: 'Beobachte den Tempo-Balken - Halbwind ist der schnellste Kurs.', it: 'Guarda la barra della velocita - il traverso e la rotta piu veloce.' },
+      'Obserwuj pasek prędkości: półwiatr to najszybszy kurs.',
+      { es: 'Observa la barra de velocidad: el través es el rumbo más rápido.', fr: "Regarde la barre de vitesse : le travers est l'allure la plus rapide.", de: 'Beobachte den Geschwindigkeitsbalken: Halber Wind ist der schnellste Kurs.', it: "Guarda la barra della velocità: il traverso è l'andatura più veloce." },
     ),
   ];
   const gotItLabel = tp('Понятно', 'Got it', 'Rozumiem', {

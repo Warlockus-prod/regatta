@@ -22,17 +22,17 @@ export default function AnatomyScreen() {
     <SimWebView
       path="/anatomy"
       title={tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu', {
-        es: 'Anatomia del velero',
+        es: 'Anatomía del velero',
         fr: 'Anatomie du voilier',
         de: 'Aufbau der Yacht',
         it: 'Anatomia della barca',
       })}
       scrollEnabled
       fallbackRoute="/anatomy-offline"
-      fallbackLabel={tp('Открыть схему (офлайн)', 'Open the schema (offline)', 'Otworz schemat (offline)', {
-        es: 'Abrir el esquema (sin conexion)',
-        fr: 'Ouvrir le schema (hors ligne)',
-        de: 'Schema offnen (offline)',
+      fallbackLabel={tp('Открыть схему (офлайн)', 'Open the diagram (offline)', 'Otwórz schemat (offline)', {
+        es: 'Abrir el esquema (sin conexión)',
+        fr: 'Ouvrir le schéma (hors ligne)',
+        de: 'Schema öffnen (offline)',
         it: 'Apri lo schema (offline)',
       })}
     />

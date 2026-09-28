@@ -133,21 +133,21 @@ export function SimWebView({
       id: 'basics',
       route: '/simulator-v1',
       label: tp('Основы', 'Basics', 'Podstawy', {
-        es: 'Basicos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
+        es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi',
       }),
     },
     {
       id: 'trainer',
       route: '/simulator-v3',
       label: tp('Тренажёр', 'Trainer', 'Trener', {
-        es: 'Entrenador', fr: 'Entraineur', de: 'Trainer', it: 'Trainer',
+        es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer',
       }),
     },
     {
       id: 'boat3d',
       route: '/simulator2',
-      label: tp('Лодка 3D', '3D Boat', 'Lodka 3D', {
-        es: 'Barco 3D', fr: 'Bateau 3D', de: 'Boot 3D', it: 'Barca 3D',
+      label: tp('Лодка 3D', '3D Boat', 'Łódka 3D', {
+        es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D',
       }),
     },
   ];
@@ -285,10 +285,10 @@ export function SimWebView({
             ) : tp(
               'Не удалось загрузить симулятор. Нужен интернет.',
               'The simulator failed to load. An internet connection is required.',
-              'Nie udalo sie zaladowac symulatora. Potrzebny internet.',
+              'Nie udało się załadować symulatora. Potrzebny jest internet.',
               {
-                es: 'No se pudo cargar el simulador. Se necesita conexion a internet.',
-                fr: 'Echec du chargement du simulateur. Une connexion internet est requise.',
+                es: 'No se pudo cargar el simulador. Se necesita conexión a internet.',
+                fr: 'Échec du chargement du simulateur. Une connexion internet est requise.',
                 de: 'Simulator konnte nicht geladen werden. Internetverbindung erforderlich.',
                 it: 'Impossibile caricare il simulatore. Serve una connessione internet.',
               },
@@ -301,9 +301,9 @@ export function SimWebView({
               accessibilityRole="button"
             >
               <Text style={styles.btnPrimaryText}>
-                {tp('Повторить', 'Retry', 'Ponow', {
+                {tp('Повторить', 'Retry', 'Ponów', {
                   es: 'Reintentar',
-                  fr: 'Reessayer',
+                  fr: 'Réessayer',
                   de: 'Erneut versuchen',
                   it: 'Riprova',
                 })}
@@ -316,10 +316,10 @@ export function SimWebView({
             >
               <Text style={styles.btnGhostText}>
                 {fallbackLabel ??
-                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otworz Trener (offline)', {
-                    es: 'Abrir el Entrenador (sin conexion)',
-                    fr: "Ouvrir l'Entraineur (hors ligne)",
-                    de: 'Trainer offnen (offline)',
+                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otwórz Trenera (offline)', {
+                    es: 'Abrir el Entrenador (sin conexión)',
+                    fr: 'Ouvrir le Réglage des voiles (hors ligne)',
+                    de: 'Trainer öffnen (offline)',
                     it: 'Apri il Trainer (offline)',
                   })}
               </Text>
