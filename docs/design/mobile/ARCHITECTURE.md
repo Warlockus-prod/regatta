@@ -111,6 +111,9 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
   `accentCyan` means "action colour" (blue on paper, cyan on dark). Also `spacing`,
   `radii` (`control` 14, `card` 20, `photo` 24, `sheet` 28), `shadow`/`darkShadow`,
   `glow`/`darkGlow`. The web keeps its own palette (the site is not on v3 yet).
+- **Navigation:** five equal tabs from `navigation/tabs.ts`; the fifth is Menu (the whole
+  catalog, search, "My progress"). No Menu button in headers: where the tab bar is
+  hidden (instrument screens) the explicit way out is a chevron-only Back.
 - **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
   offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
   import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
@@ -144,7 +147,11 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, ...). |
-| `home/` | v3 Home: `copy.ts` (Home-only strings, 7 languages, "Label: N" counts), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp, sail course and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
+| `home/` | v3 Home and Menu progress: `copy.ts` (app-only strings, 7 languages, "N of TOTAL" / "Label: N" counts), `continue.ts` (`resolveContinue`: which course and lesson the Continue card offers, from the bookmark), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp evidence, sail course, bookmark and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
+| `bootcamp/status.ts` | Lesson state from evidence: `passed` needs a passed quiz (>= 70%) or, for a lesson without a quiz, an explicit done mark; the legacy "completed" key means viewed. `nextBootcampLesson`, `passedLessonIds`. |
+| `persistence/learning-bookmark.ts` | `regatta.learning.bookmark.v1`: last course (bootcamp, sails, radio, motor) and lesson, written on focus by the course screens; unknown IDs degrade to the course. |
+| `navigation/tabs.ts` | Native tab model over the shared catalog: Home, Learn, Practice, Race, Menu (`/menu`); `tabForPath` puts reference pages under Menu. `/library` redirects to `/menu`. |
+| `courses/tones.ts` | Paper tones for the points-of-sail wheel and course cards (the shared data keeps its web colours). |
 | `replay/`, `leaderboard/`, `multiplayer/`, `onboarding/` | feature helpers. |
 
 **Content is DUPLICATED, not live-imported:** web `src/data/*.ts` (source of truth) ->

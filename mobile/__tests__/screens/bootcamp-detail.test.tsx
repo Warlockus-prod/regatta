@@ -9,6 +9,9 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 // happy. The factory references `globalThis.__regattaMocks` which is set in
 // beforeEach below.
 jest.mock('expo-router', () => ({
+  // The lesson records the course bookmark on focus; run it once on mount.
+  useFocusEffect: (effect: () => void | (() => void)) =>
+    jest.requireActual('react').useEffect(effect, [effect]),
   Stack: { Screen: () => null },
   useRouter: () => ({
     push: (route: string) =>
@@ -72,7 +75,7 @@ describe('Bootcamp lesson detail', () => {
     await waitFor(() => view.getByText(/Lesson not found/i));
   });
 
-  it('marks the lesson completed and navigates to the practice route on press', async () => {
+  it('records the lesson as viewed and navigates to the practice route on press', async () => {
     const view = renderWithProviders(<BootcampLesson />);
     const cta = await waitFor(() => view.getByText('Open'));
     fireEvent.press(cta);
@@ -85,5 +88,24 @@ describe('Bootcamp lesson detail', () => {
     });
     const mocks = (globalThis as any).__regattaMocks as RegattaMocks;
     expect(mocks.pushMock).toHaveBeenCalledWith(bootcampLessons[0]!.route);
+  });
+
+  it('opening the practice does not pass the lesson', async () => {
+    const view = renderWithProviders(<BootcampLesson />);
+    fireEvent.press(await waitFor(() => view.getByText('Open')));
+    await waitFor(() => view.getByText(/at least 70% of the check below/));
+    expect(view.queryByText('Lesson passed')).toBeNull();
+  });
+
+  it('shows the lesson number in the header area and no decorative emoji', async () => {
+    const view = renderWithProviders(<BootcampLesson />);
+    await waitFor(() => view.getByText('Wind & direction'));
+    expect(view.queryByText(bootcampLessons[0]!.emoji)).toBeNull();
+  });
+
+  it('a passed check marks the lesson passed', async () => {
+    await AsyncStorage.setItem('regatta.bootcamp-quiz.v1', JSON.stringify({ 'wind-direction': { score: 3, total: 3, answeredAt: 1 } }));
+    const view = renderWithProviders(<BootcampLesson />);
+    await waitFor(() => view.getByText('Lesson passed'));
   });
 });

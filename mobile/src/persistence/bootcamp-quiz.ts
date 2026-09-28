@@ -16,7 +16,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const STORAGE_KEY = 'regatta.bootcamp-quiz.v1';
+export const QUIZ_RESULTS_KEY = 'regatta.bootcamp-quiz.v1';
+const STORAGE_KEY = QUIZ_RESULTS_KEY;
 
 export interface QuizResult {
   /** Number of correctly answered questions. */
@@ -39,7 +40,7 @@ function isQuizResult(x: unknown): x is QuizResult {
   );
 }
 
-async function readResults(): Promise<QuizResultsMap> {
+export async function readQuizResults(): Promise<QuizResultsMap> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
@@ -90,7 +91,7 @@ export function useBootcampQuiz(): BootcampQuizState {
 
   useEffect(() => {
     let cancelled = false;
-    readResults().then((map) => {
+    readQuizResults().then((map) => {
       if (cancelled) return;
       setResults(map);
       setReady(true);

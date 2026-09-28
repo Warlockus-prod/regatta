@@ -6,6 +6,33 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0014: A lesson is passed on evidence; Home continues the last course (2026-09-28, branch `design/v3`)
+
+**Status:** accepted for the design branch, after the Codex review of `fce14ea`.
+
+**Context.** `regatta.progress.bootcamp.v1` was written when a lesson's practice opened
+or any quiz result was recorded, and the app called that "completed": open and leave,
+or fail the quiz, and the lesson counted as passed. The redesign made it louder with a
+check mark. Home also only ever continued the first course.
+
+**Decision.** Keep every stored key; change what they mean. The legacy key means
+viewed. Passed needs evidence: a passed quiz (>= 70%, `QUIZ_PASS_THRESHOLD`) or, for a
+lesson without a quiz (none today), the learner's explicit done mark in
+`regatta.progress.bootcamp.done.v1`. A versioned bookmark
+(`regatta.learning.bookmark.v1`) records the course and lesson on screen focus; Home
+continues that course. Radio and the motorboat course reopen the course itself because
+their step lives inside the embedded course. Unknown IDs degrade to the course level.
+
+**Consequences.**
+
+- Old saves are not lost and not promoted: previously "completed" lessons now show as
+  viewed until their quiz is passed.
+- Counts say what they count ("Passed 2 of 8", "Theory checked: 3 of 12", "Races
+  saved: 4").
+- The bootcamp reset in Settings clears the done marks and quiz results too.
+
+---
+
 ## ADR-0013: v3 paper design: light app, dark instrument screens (2026-09-28, branch `design/v3`)
 
 **Status:** accepted for the design branch; ships only after the owner approves it.
@@ -29,6 +56,8 @@ which is a separate, larger change (see LIGHT_THEME_AND_RELEASE_SPEC.md).
   hardcoded dark colours were fixed where found (diagram frames, glossary badges,
   course cards, settings switch); keep grepping for literal colours in new code.
 - Status bar icons are chosen per screen (scene-based app, see Design system notes).
+- The fifth tab is Menu (whole catalog, reference material as a group), a native
+  adapter over the shared catalog (`navigation/tabs.ts`); the site keeps its sections.
 - The Home "Start/Continue" card and counts read the real saved progress only.
 - The site is unchanged; shared catalog and copy files are not edited, app-only strings
   live in `mobile/src/home/copy.ts`.

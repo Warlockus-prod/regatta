@@ -5,6 +5,8 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 jest.mock('expo-router', () => ({
+  useFocusEffect: (effect: () => void | (() => void)) =>
+    jest.requireActual('react').useEffect(effect, [effect]),
   Stack: { Screen: () => null },
   useRouter: () => ({
     push: jest.fn(),
@@ -56,5 +58,13 @@ describe('Bootcamp index screen', () => {
     const view = renderWithProviders(<BootcampIndex />);
     // First lesson Polish title.
     await waitFor(() => view.getByText('Wiatr i kierunek'));
+  });
+
+  it('shows opened lessons as viewed and counts only passed ones', async () => {
+    await AsyncStorage.setItem('regatta.progress.bootcamp.v1', JSON.stringify(['wind-direction', 'tacking']));
+    const view = renderWithProviders(<BootcampIndex />);
+    await waitFor(() => view.getByText('Passed 0 of 8'));
+    expect(view.getByLabelText('Lesson 1: Wind & direction, next')).toBeTruthy();
+    expect(view.getByLabelText(/^Lesson 4: .*, viewed$/)).toBeTruthy();
   });
 });

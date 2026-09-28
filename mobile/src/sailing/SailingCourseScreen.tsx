@@ -11,6 +11,7 @@ import { copy } from "../../../src/lib/product/copy";
 import { findSailLesson, sailCourse, sailLessons } from "../../../src/data/sailing-lab/course";
 import { checkSailTheory, emptySailProgress, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, type SailProgress } from "../../../src/features/sailing-lab/lessons/progress";
 import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../../../src/features/sailing-lab/lessons/diagrams";
+import { useLearningBookmark } from "../persistence/learning-bookmark";
 
 export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const { lang } = useI18n();
@@ -22,6 +23,7 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const [answer, setAnswer] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const lesson = lessonId ? findSailLesson(lessonId) : undefined;
+  useLearningBookmark("sails", lesson?.id ?? null);
   useFocusEffect(useCallback(() => {
     let active = true;
     AsyncStorage.getItem(SAIL_PROGRESS_KEY).then(raw => {

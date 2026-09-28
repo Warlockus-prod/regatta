@@ -31,9 +31,12 @@ export function bySurface<T>(make: (c: ThemeColors, surface: Surface) => T): Rec
 
 /**
  * Stack options for an instrument screen: dark header and content, light
- * status bar icons. Spread first so the screen's own title still applies.
+ * status bar icons, and a chevron-only Back so the system button stays small
+ * next to the title (iOS 26+ draws it as a light glass capsule because the
+ * app is light). Spread first so the screen's own title still applies.
  */
 export const darkStackOptions = {
+  headerBackButtonDisplayMode: 'minimal' as const,
   headerStyle: { backgroundColor: darkColors.bgPrimary },
   headerTintColor: darkColors.accentCyan,
   headerTitleStyle: { color: darkColors.textPrimary, fontWeight: '700' as const },

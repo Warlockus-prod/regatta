@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 import { colors, spacing } from '../tokens';
 import { pointOfSailAt } from '../../courses/polar';
 import { pointsOfSail } from '../../data';
+import { pointOfSailTone, toneFill } from '../../courses/tones';
 
 interface PointsOfSailDiagramProps {
   size?: number;
@@ -24,14 +25,6 @@ interface PointsOfSailDiagramProps {
 
 // Midpoint angle (deg off the wind) of each point-of-sail sector, for placing the
 // course name + boat glyph. Mirrors the colored sector wedges.
-// Convert a #rrggbb hex to an rgba() string with the given alpha.
-function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
 
 const POS_IDS = ['in-irons', 'close-hauled', 'beam-reach', 'broad-reach', 'running'] as const;
 
@@ -45,19 +38,18 @@ const SECTOR_MIDS: Record<string, number> = {
 };
 
 // Sector wedges derived from the CANONICAL `pointsOfSail` data: the same angle
-// boundaries the tap handler (`pointOfSailAt`) uses, and the same `color` the
-// course cards use - so the wheel never drifts from the data or the web (and a
-// tapped wedge always selects the course it is painted as).
+// boundaries the tap handler (`pointOfSailAt`) uses, so a tapped wedge always
+// selects the course it is painted as. Colours come from the app's paper tones
+// (`src/courses/tones.ts`), not the web's bright data colours.
 const SECTOR_META: { id: string; min: number; max: number; tint: string; hi: string }[] =
   POS_IDS.map((id) => {
     const p = pointsOfSail.find((x) => x.id === id);
-    const color = p?.color ?? '#888888';
     return {
       id,
       min: p?.angleMin ?? 0,
       max: p?.angleMax ?? 0,
-      tint: hexToRgba(color, 0.2),
-      hi: hexToRgba(color, 0.44),
+      tint: toneFill(id, false),
+      hi: toneFill(id, true),
     };
   });
 
@@ -216,9 +208,15 @@ export function PointsOfSailDiagram({
                   </Group>
                 );
               })}
-              <Path path={tickPath} color={'rgba(232, 244, 248, 0.30)'} style="stroke" strokeWidth={1} />
+              {sectorPaths.filter((s) => s.id === activeId).map((s) => (
+                <Group key={`${s.id}-outline`}>
+                  <Path path={s.stb} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                  <Path path={s.port} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                </Group>
+              ))}
+              <Path path={tickPath} color={'rgba(18, 50, 71, 0.55)'} style="stroke" strokeWidth={1} />
               <Path path={windArrowPath} color={colors.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
-              <Path path={ringPath} color={colors.borderCyanStrong} style="stroke" strokeWidth={1.5} />
+              <Path path={ringPath} color={'rgba(18, 50, 71, 0.45)'} style="stroke" strokeWidth={1.5} />
               {sectorBoats.map((b) => (
                 <Group
                   key={b.key}
@@ -226,9 +224,9 @@ export function PointsOfSailDiagram({
                 >
                   <Path
                     path={boatPath}
-                    color={b.id === activeId ? colors.accentCyan : 'rgba(232, 244, 248, 0.5)'}
+                    color={b.id === activeId ? pointOfSailTone(b.id).ink : colors.textPrimary}
                     style="stroke"
-                    strokeWidth={1.8}
+                    strokeWidth={b.id === activeId ? 2.8 : 1.8}
                   />
                 </Group>
               ))}
@@ -286,7 +284,7 @@ function DiagramLabels({
             key={c.key}
             x={c.x}
             y={c.y + 4}
-            fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
+            fill={c.muted ? pointOfSailTone('in-irons').ink : colors.textSecondary}
             fontSize={10}
             fontWeight="700"
             textAnchor="middle"

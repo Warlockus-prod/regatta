@@ -9,7 +9,6 @@ import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
-import { MenuButton } from '../src/navigation/MenuButton';
 import { colors } from '../src/design-system/tokens';
 
 // Block the native splash from auto-hiding before the JS bundle has
@@ -47,7 +46,6 @@ export default function RootLayout() {
                       headerShadowVisible: false,
                       headerTintColor: colors.accentCyan,
                       headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
-                      headerRight: ({ tintColor }) => <MenuButton tint={tintColor} />,
                       animation: 'slide_from_right',
                       // Scene-based apps (iOS 27) ignore the UIApplication status bar
                       // API, so each screen sets its style through react-native-screens

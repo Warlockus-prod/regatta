@@ -15,6 +15,8 @@ import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
 import { useBootcampQuiz } from '../../src/persistence/bootcamp-quiz';
 import { getLessonDay } from '../../src/bootcamp/days';
+import { lessonStatus } from '../../src/bootcamp/status';
+import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
 import {
   buildSimulatorDrillRoute,
   getDrillForLesson,
@@ -44,15 +46,19 @@ export default function BootcampLesson() {
   const params = useLocalSearchParams<{ id: string }>();
   const { tp, lang } = useI18n();
   const router = useRouter();
-  const { markCompleted, markLastViewed } = useBootcampProgress();
+  const { completedIds, doneIds, setDone, markCompleted, markLastViewed, lastViewedLessonId } = useBootcampProgress();
   const { results: quizResults, recordResult } = useBootcampQuiz();
 
   const lesson = bootcampLessons.find((l) => l.id === params.id);
   const lessonId = lesson?.id ?? null;
+  useLearningBookmark(lesson ? 'bootcamp' : null, lessonId);
 
+  // Opening a lesson makes it viewed (never passed: see src/bootcamp/status.ts).
   useEffect(() => {
-    if (lesson) markLastViewed(lesson.id);
-  }, [lesson, markLastViewed]);
+    if (!lesson) return;
+    markLastViewed(lesson.id);
+    markCompleted(lesson.id);
+  }, [lesson, markLastViewed, markCompleted]);
 
   // Memoise quiz lookup at the top so the hook order stays stable
   // across the early-return branch below. `lessonId` is null when the
@@ -110,16 +116,12 @@ export default function BootcampLesson() {
     it: 'Apri',
   });
 
+  // The header already says which lesson this is; the meta line keeps the time.
   const meta = tp(
-    `Урок ${lesson.order} (~${lesson.estMinutes} мин)`,
-    `Lesson ${lesson.order} (~${lesson.estMinutes} min)`,
-    `Lekcja ${lesson.order} (~${lesson.estMinutes} min)`,
-    {
-      es: `Lección ${lesson.order} (~${lesson.estMinutes} min)`,
-      fr: `Leçon ${lesson.order} (~${lesson.estMinutes} min)`,
-      de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min.)`,
-      it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
-    },
+    `~${lesson.estMinutes} мин`,
+    `~${lesson.estMinutes} min`,
+    `~${lesson.estMinutes} min`,
+    { de: `~${lesson.estMinutes} Min.` },
   );
 
   const day = getLessonDay(lesson.id);
@@ -153,15 +155,79 @@ export default function BootcampLesson() {
     ? isQuizPassed(previousResult.score, previousResult.total)
     : false;
 
+  const total = bootcampLessons.length;
+  const headerTitle = tp(
+    `Урок ${lesson.order} из ${total}`,
+    `Lesson ${lesson.order} of ${total}`,
+    `Lekcja ${lesson.order} z ${total}`,
+    {
+      es: `Lección ${lesson.order} de ${total}`,
+      fr: `Leçon ${lesson.order} sur ${total}`,
+      de: `Lektion ${lesson.order} von ${total}`,
+      it: `Lezione ${lesson.order} di ${total}`,
+    },
+  );
+  const status = lessonStatus(lesson.id, {
+    viewedIds: completedIds,
+    quizResults,
+    doneIds,
+    lastViewedLessonId,
+  });
+  const withQuiz = quizQuestions.length > 0;
+  const statusLine = status === 'passed'
+    ? tp('Урок пройден', 'Lesson passed', 'Lekcja zaliczona', {
+        es: 'Lección superada', fr: 'Leçon réussie', de: 'Lektion bestanden', it: 'Lezione superata',
+      })
+    : withQuiz
+      ? tp(
+          'Урок будет пройден, когда ты ответишь верно хотя бы на 70% вопросов проверки ниже.',
+          'The lesson counts as passed once you answer at least 70% of the check below correctly.',
+          'Lekcja będzie zaliczona, gdy odpowiesz poprawnie na co najmniej 70% pytań sprawdzianu poniżej.',
+          {
+            es: 'La lección cuenta como superada cuando aciertes al menos el 70% de la prueba de abajo.',
+            fr: 'La leçon est réussie dès que tu réponds juste à au moins 70 % du test ci-dessous.',
+            de: 'Die Lektion gilt als bestanden, sobald du mindestens 70 % des Tests unten richtig beantwortest.',
+            it: 'La lezione è superata quando rispondi correttamente ad almeno il 70% della verifica qui sotto.',
+          },
+        )
+      : tp(
+          'В этом уроке нет проверки. Отметь его сам, когда разберешься и попробуешь практику.',
+          'This lesson has no check. Mark it yourself once you understand it and have tried the practice.',
+          'Ta lekcja nie ma sprawdzianu. Zaznacz ją sam, gdy ją zrozumiesz i spróbujesz ćwiczenia.',
+          {
+            es: 'Esta lección no tiene prueba. Márcala tú cuando la entiendas y hayas probado la práctica.',
+            fr: "Cette leçon n'a pas de test. Marque-la toi-même quand tu l'as comprise et que tu as essayé l'exercice.",
+            de: 'Diese Lektion hat keinen Test. Markiere sie selbst, wenn du sie verstanden und die Übung ausprobiert hast.',
+            it: "Questa lezione non ha una verifica. Segnala tu quando l'hai capita e hai provato l'esercizio.",
+          },
+        );
+  const markDoneLabel = tp('Отметить урок пройденным', 'Mark lesson as passed', 'Oznacz lekcję jako zaliczoną', {
+    es: 'Marcar la lección como superada',
+    fr: 'Marquer la leçon comme réussie',
+    de: 'Lektion als bestanden markieren',
+    it: 'Segna la lezione come superata',
+  });
+  const unmarkLabel = tp('Снять отметку', 'Remove the mark', 'Usuń oznaczenie', {
+    es: 'Quitar la marca',
+    fr: 'Retirer la marque',
+    de: 'Markierung entfernen',
+    it: 'Togli il segno',
+  });
+
   return (
     <Screen>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen options={{ title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.hero}>
-          <Text style={styles.dayBadge}>{dayBadge.toUpperCase()}</Text>
-          <Text style={styles.emoji}>{lesson.emoji}</Text>
-          <Text variant="title" style={styles.title}>{title}</Text>
+          <Text variant="eyebrow">{dayBadge}</Text>
+          <Text variant="title" style={styles.title} accessibilityRole="header">{title}</Text>
           <Text variant="muted" style={styles.metaText}>{meta}</Text>
+          <Text
+            style={[styles.status, status === 'passed' && styles.statusPassed]}
+            accessibilityLiveRegion="polite"
+          >
+            {statusLine}
+          </Text>
         </View>
 
         <View style={styles.diagramWrap}>
@@ -201,6 +267,17 @@ export default function BootcampLesson() {
               variant="secondary"
             >
               {tryInSimulatorLabel}
+            </Button>
+          </View>
+        ) : null}
+
+        {!withQuiz ? (
+          <View style={styles.drillCta}>
+            <Button
+              variant={status === 'passed' ? 'ghost' : 'primary'}
+              onPress={() => setDone(lesson.id, status !== 'passed')}
+            >
+              {status === 'passed' ? unmarkLabel : markDoneLabel}
             </Button>
           </View>
         ) : null}
@@ -596,16 +673,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
-  dayBadge: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    marginBottom: spacing.md,
+  status: {
+    marginTop: spacing.md,
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: spacing.md,
+  statusPassed: {
+    color: colors.accentTeal,
+    fontWeight: '700',
   },
   title: {
     textAlign: 'center',
