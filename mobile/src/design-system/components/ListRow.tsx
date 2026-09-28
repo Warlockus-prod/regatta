@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { Text } from './Text';
 import { Icon, type IconName } from './Icon';
@@ -37,6 +37,14 @@ export function ListRow({
 }: ListRowProps) {
   const styles = themed[useSurface()];
   const c = useSurfaceColors();
+  // With large text a badge beside the title squeezes both until words
+  // break ("Assisten/ten", "erforderlic/h"): put it under the text instead.
+  const stacked = useWindowDimensions().fontScale >= 1.3;
+  const badgeView = badge ? (
+    <View style={[styles.badge, stacked && styles.badgeStacked]}>
+      <Text style={styles.badgeText} maxFontSizeMultiplier={1.6}>{badge}</Text>
+    </View>
+  ) : null;
   return (
     <Pressable
       accessibilityRole="button"
@@ -55,8 +63,9 @@ export function ListRow({
       <View style={styles.text}>
         <Text variant="subtitle" style={styles.title}>{title}</Text>
         {caption ? <Text variant="caption" style={styles.caption}>{caption}</Text> : null}
+        {stacked ? badgeView : null}
       </View>
-      {badge ? <View style={styles.badge}><Text style={styles.badgeText}>{badge}</Text></View> : null}
+      {stacked ? null : badgeView}
       <Svg width={8} height={14} viewBox="0 0 8 14" style={styles.chevron} accessibilityElementsHidden importantForAccessibility="no">
         <Path d="M1.5 1.5 6.5 7l-5 5.5" stroke={c.textMuted} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
       </Svg>
@@ -107,6 +116,12 @@ const themed = bySurface((c) => StyleSheet.create({
     borderRadius: 999,
     backgroundColor: c.sand,
     maxWidth: 140,
+  },
+  badgeStacked: {
+    marginLeft: 0,
+    marginTop: spacing.sm,
+    maxWidth: '100%',
+    alignSelf: 'flex-start',
   },
   badgeText: {
     fontSize: 12,
