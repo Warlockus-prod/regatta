@@ -1,0 +1,39 @@
+.page { max-width: 1140px; margin: 0 auto; padding: 48px 28px 64px; }
+.header { position: relative; min-height: 270px; border-radius: 24px; overflow: hidden; margin-bottom: 28px; background: #123247; display: flex; align-items: flex-end; }
+.heroImage { object-fit: cover; object-position: 65% 55%; }
+.header::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,31,47,.94), rgba(8,31,47,.76) 46%, rgba(8,31,47,.06)); pointer-events: none; }
+.heroCopy { position: relative; z-index: 1; width: 100%; padding: 36px; color: #f7f5f0; }
+.heroCopy .wordmark { color: #f7f5f0; font-size: 12px; font-weight: 650; letter-spacing: .14em; margin-bottom: 24px; }
+.header h1 { font-size: 36px; line-height: 1.18; letter-spacing: -.035em; font-weight: 650; margin-bottom: 12px; }
+.header p { color: #f7f5f0; font-size: 17px; line-height: 1.6; max-width: 42ch; }
+.layout { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 48px; align-items: start; }
+.resume { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 32px; min-width: 0; }
+.eyebrow { color: var(--text-secondary); font-size: 14px; line-height: 1.5; margin-bottom: 18px; }
+.resume h2 { font-size: 28px; font-weight: 600; line-height: 1.25; letter-spacing: -.025em; text-wrap: balance; }
+.detail { font-size: 16px; line-height: 1.6; color: var(--text-secondary); margin-top: 16px; max-width: 60ch; }
+.progressBlock { margin-top: 28px; }
+.progressLabel { display: flex; justify-content: space-between; gap: 16px; font-size: 13px; line-height: 1.5; color: var(--text-secondary); font-variant-numeric: tabular-nums; }
+.progressLabel span:last-child { flex-shrink: 0; }
+.progressBlock progress { display: block; width: 100%; height: 4px; border: 0; border-radius: 4px; overflow: hidden; margin-top: 10px; background: var(--border-subtle); accent-color: var(--accent-cyan); }
+.progressBlock progress::-webkit-progress-bar { background: var(--border-subtle); }
+.progressBlock progress::-webkit-progress-value { background: var(--accent-cyan); }
+.progressBlock progress::-moz-progress-bar { background: var(--accent-cyan); }
+.primary { display: flex; justify-content: space-between; align-items: center; gap: 16px; min-height: 52px; margin-top: 28px; padding: 14px 18px; border-radius: 8px; color: var(--accent-ink); background: var(--accent-cyan); font-size: 16px; line-height: 1.5; font-weight: 650; }
+.primary:hover { filter: brightness(.94); }
+.primary:active { transform: translateY(1px); }
+.overview { min-height: 44px; display: inline-flex; align-items: center; color: var(--text-secondary); margin-top: 8px; font-size: 14px; text-decoration: underline; text-underline-offset: 4px; }
+.overview:hover { color: var(--text-primary); }
+.courses h2 { font-size: 16px; line-height: 1.5; font-weight: 600; color: var(--text-secondary); padding-bottom: 16px; }
+.course { border-top: 1px solid var(--border-subtle); min-height: 64px; padding: 20px 0; display: flex; gap: 20px; justify-content: space-between; align-items: center; }
+.course > span:last-child { flex-shrink: 0; color: var(--text-secondary); }
+.course strong { font-size: 18px; font-weight: 550; line-height: 1.4; }
+.courseDetail { display: block; color: var(--text-secondary); font-size: 14px; line-height: 1.6; margin-top: 6px; }
+.course:hover strong { color: var(--accent-cyan); }
+.footer { border-top: 1px solid var(--border-subtle); margin-top: 40px; padding-top: 20px; display: flex; gap: 20px; align-items: center; justify-content: space-between; font-size: 14px; line-height: 1.6; color: var(--text-secondary); }
+.footer a { min-height: 44px; display: inline-flex; gap: 12px; align-items: center; flex-shrink: 0; color: var(--text-primary); }
+.placeholder { min-height: 260px; }
+.placeholder h2 { font-size: 20px; line-height: 1.5; color: var(--text-secondary); }
+.page :is(a,button):focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 4px; }
+@media (max-width: 800px) { .layout { grid-template-columns: minmax(0, 1fr); gap: 32px; } .page { max-width: 620px; } }
+@media (max-width: 480px) { .page { padding: 28px 20px 40px; } .header { margin-bottom: 24px; } .header h1 { font-size: 30px; } .header p { font-size: 16px; } .resume { padding: 24px 20px; } .resume h2 { font-size: 24px; } .footer { flex-direction: column; align-items: flex-start; gap: 4px; } }
+@media (max-width: 480px) { .page { padding-top: 16px; } .header { min-height: 210px; border-radius: 18px; } .heroCopy { padding: 24px 20px; } .header::after { background: linear-gradient(90deg, rgba(8,31,47,.92), rgba(8,31,47,.65)); } .heroCopy .wordmark { margin-bottom: 18px; font-size: 10px; } .header h1 { font-size: 27px; } .header p:not(.wordmark) { font-size: 14px; line-height: 1.5; } }

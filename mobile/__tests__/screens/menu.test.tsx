@@ -12,6 +12,7 @@ jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Menu from "../../app/menu";
 import { renderWithProviders } from "../../src/test-utils";
+import { sailLessons } from "../../../src/data/sailing-lab/course";
 
 beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); mockReplace.mockClear(); });
 
@@ -55,7 +56,7 @@ test("menu progress names what it counts and does not count viewed lessons as pa
   const view = renderWithProviders(<Menu />);
   fireEvent.press(await waitFor(() => view.getByText("My progress")));
   await waitFor(() => view.getByText("Passed 0 of 8"));
-  expect(view.getByText("Theory checked: 0 of 12")).toBeTruthy();
+  expect(view.getByText(`Theory checked: 0 of ${sailLessons.length}`)).toBeTruthy();
   expect(view.getByText("Races saved: 0")).toBeTruthy();
   expect(view.getByText("Stored on this device.")).toBeTruthy();
 });

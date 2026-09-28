@@ -6,6 +6,40 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0016: The 2026-09-21 learning slice merged into v3 (2026-09-29, branch `design/v3`)
+
+**Status:** accepted by the owner's request to ship everything done ("выкатывай все что сделали на тест").
+
+**Context.** A learning slice built on 2026-09-21 (roadmap
+`docs/design/sailing-ux-roadmap-2026-09-21.md`, navigation note
+`docs/design/platform-navigation-2026-09-21.md`) and the 2026-09-28 web design stand
+lay uncommitted in the owner's main checkout, so build 45 did not have them. It was
+captured without touching that checkout as `wip/main-checkout-2026-09-28` (base
+`ecf3c3b`, Codex's local graphics kit `design/` left out) and merged into `design/v3`.
+
+**Decision.**
+
+- Taken whole: lesson 13 "Winch and clutch" with the line bench (native and web), the
+  three lesson steps, module outline and lesson terms, the Trainer's separate camera /
+  conditions / controls / session sections and the independent trim assessment, the
+  web menu page and `/design-v3` review stand. The offline Trainer bundle was rebuilt
+  from the merged sources.
+- The winch lesson is appended as lesson 13, never inserted: stored progress follows
+  the lesson order. Modules follow that order (1-3, 4-6, 7-12, 13) and the six book
+  lessons got terms, which the 09-21 slice predates.
+- The v3 app shell stays: Home, the Menu tab and hubs, and the v3 bookmark format
+  `{course, lessonId, positions}` (ADR-0014). The 09-21 native Menu screen, header
+  Menu button, Home and navigation bookmark writer (older `{course, lesson}` format on
+  the same key) were not carried over; their web counterparts remain for the site.
+- In a template lesson (ADR-0015) the image and "How it works" live in the first step;
+  the check and the boat are the next steps.
+
+**Consequences.** The sail course counts 13 lessons ("Theory checked: N of 13"). The
+main checkout still holds its uncommitted copy; it is now a stale duplicate of this
+branch and should be discarded by the owner once they confirm.
+
+---
+
 ## ADR-0015: Lesson template with teaching graphics, two pilots (2026-09-28, branch `design/v3`)
 
 **Status:** proposed; the two pilots wait for the Codex visual review before the other

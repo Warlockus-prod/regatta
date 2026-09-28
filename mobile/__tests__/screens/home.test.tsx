@@ -43,7 +43,7 @@ describe("Home entry flows", () => {
     await AsyncStorage.setItem(BOOKMARK, bookmark("sails", lesson.id));
     const view = renderWithProviders(<Home />);
     await waitFor(() => view.getByText(lesson.title.en));
-    expect(view.getByText("Theory checked: 0 of 12")).toBeTruthy();
+    expect(view.getByText(`Theory checked: 0 of ${sailLessons.length}`)).toBeTruthy();
     fireEvent.press(view.getByRole("button", { name: "Continue learning" }));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: lesson.id } });
   });

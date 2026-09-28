@@ -29,6 +29,14 @@ export default function TheorySearch() {
   const [active, setActive] = useState(0);
   const supported = typeof window !== 'undefined' && 'highlights' in CSS;
 
+  useEffect(() => {
+    const style = document.createElement('style');
+    style.dataset.sternikSearchHighlight = 'true';
+    style.textContent = '::highlight(sternik-search) { background-color: #ffd23a; color: #14181d; }';
+    document.head.appendChild(style);
+    return () => style.remove();
+  }, []);
+
   const run = useCallback((q: string) => {
     const container = document.getElementById('sternik-theory');
     if (!container) return;

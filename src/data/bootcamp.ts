@@ -5,7 +5,7 @@
 // "focus this time" description.
 // ============================================================================
 
-import type { LegacyLocalized } from '@/lib/languages';
+import type { LegacyLocalized } from "../lib/languages";
 
 export type BootcampLesson =
   & LegacyLocalized<'title'>

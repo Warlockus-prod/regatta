@@ -82,17 +82,23 @@ describe('wind-direction on the lesson template', () => {
 });
 
 describe('rig-basics on the lesson template', () => {
-  it('goal, the annotated image first, How it works next, then theory, mistake, check and practice', async () => {
+  it('goal, the annotated image first, How it works next, then theory and mistake; the check and the boat are the next steps', async () => {
     const view = renderWithProviders(<SailingCourseScreen lessonId="rig-basics" />);
     await waitFor(() => view.getByText('Sail, boom and mast'));
     const json = JSON.stringify(view.toJSON());
-    const at = order(json, ['Goal', 'Sail, boom and mast', 'How it works', 'Halyard hoists, sheet trims', 'Common mistake', 'Check your understanding', 'Observe on the boat', 'Sources']);
+    const at = order(json, ['Goal', 'Sail, boom and mast', 'How it works', 'Halyard hoists, sheet trims', 'Common mistake', 'Sources', 'Continue to the check']);
     expect(at.every((i) => i >= 0)).toBe(true);
     expect([...at].sort((a, b) => a - b)).toEqual(at);
     // The old five-line schematic is replaced, the drawing starts closed.
     expect(view.queryByText('Select a line: its number matches the diagram.')).toBeNull();
     expect(view.queryByTestId('diagram-image')).toBeNull();
     expect(view.getByTestId('how-it-works').props.accessibilityState).toMatchObject({ expanded: false });
+    // Step 2 holds the unchanged check, step 3 the boat.
+    fireEvent.press(view.getByRole('button', { name: '2. Check' }));
+    expect(view.getByText('Check your understanding')).toBeTruthy();
+    expect(view.queryByText('Sail, boom and mast')).toBeNull();
+    fireEvent.press(view.getByRole('button', { name: '3. On the boat' }));
+    expect(view.getByText('Observe on the boat')).toBeTruthy();
   });
 
   it('How it works opens one drawing with the three lines, and the key follows the line', async () => {
@@ -112,6 +118,7 @@ describe('rig-basics on the lesson template', () => {
     for (const id of ['boom', 'cover', 'mast', 'cloth']) fireEvent.press(view.getByTestId(`part-${id}`));
     expect(view.getByRole('header', { name: '1. Sailcloth' })).toBeTruthy();
     expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
+    fireEvent.press(view.getByRole('button', { name: '2. Check' }));
     expect(view.getByRole('button', { name: 'Save theory check' }).props.accessibilityState.disabled).toBe(true);
   });
 

@@ -3,6 +3,8 @@
  * All keys live under "regatta." namespace and carry an embedded version.
  */
 
+import { saveLearningBookmark } from "./product/learning-web";
+
 const CURRENT_VERSION = 1;
 const NS = 'regatta.';
 
@@ -95,6 +97,7 @@ export function setCurrentLesson(lessonId: string | null): void {
   p.updatedAt = Date.now();
   if (p.startedAt === 0 && lessonId !== null) p.startedAt = Date.now();
   setBootcampProgress(p);
+  if (lessonId) saveLearningBookmark({ version: 1, course: "course", lesson: lessonId });
 }
 
 export function resetBootcamp(): void {
