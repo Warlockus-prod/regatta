@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-09-28T08:05:02.647Z
+Generated: 2026-09-28T17:16:14.940Z
 
-Files scanned: 73
+Files scanned: 77
 
 ## Summary
 
@@ -35,10 +35,10 @@ Files scanned: 73
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/design-system/components/WindNowCard.tsx:44` | non-english-leak | Hyères |
+| `mobile/src/design-system/components/WindNowCard.tsx:45` | non-english-leak | Hyères |
 
 ### `mobile/src/simulator/SimWebView.tsx` (1)
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/simulator/SimWebView.tsx:263` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { setLoading(false); setFail... |
+| `mobile/src/simulator/SimWebView.tsx:266` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { setLoading(false); setFail... |
