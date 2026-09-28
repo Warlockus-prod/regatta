@@ -114,6 +114,10 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
 - **Navigation:** five equal tabs from `navigation/tabs.ts`; the fifth is Menu (the whole
   catalog, search, "My progress"). No Menu button in headers: where the tab bar is
   hidden (instrument screens) the explicit way out is a chevron-only Back.
+- **Large text:** tab labels stay on one line (shrink to fit, growth capped at 1.3x),
+  Back is chevron-only on every screen, the Home photo title grows at most 1.4x, and
+  from a font scale of 1.6 the decorative thumbnails (Home card and paths, course path
+  icon tiles) are not drawn so titles get the full width.
 - **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
   offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
   import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
