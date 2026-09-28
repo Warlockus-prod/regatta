@@ -27,6 +27,15 @@ import {
   isQuizPassed,
 } from '../../src/bootcamp/quiz-data';
 import { colors, spacing } from '../../src/design-system/tokens';
+import { bootcampPilots, lessonCopy } from '../../src/lessons/pilots';
+import {
+  HowItWorks,
+  LessonExplanation,
+  LessonIntro,
+  LessonMistake,
+  LessonPhoto,
+  LessonScene,
+} from '../../src/lessons/LessonBlocks';
 
 /**
  * Bootcamp lesson detail. Resolves the lesson by id from the synced
@@ -214,87 +223,124 @@ export default function BootcampLesson() {
     it: 'Togli il segno',
   });
 
+  const hero = (
+    <View style={styles.hero}>
+      <Text variant="eyebrow">{dayBadge}</Text>
+      <Text variant="title" style={styles.title} accessibilityRole="header">{title}</Text>
+      <Text variant="muted" style={styles.metaText}>{meta}</Text>
+      <Text
+        style={[styles.status, status === 'passed' && styles.statusPassed]}
+        accessibilityLiveRegion="polite"
+      >
+        {statusLine}
+      </Text>
+    </View>
+  );
+
+  const practice = (
+    <>
+      <View style={styles.cta}>
+        <Button
+          onPress={() => {
+            markCompleted(lesson.id);
+            // lesson.route is a WEB path; "/simulator" means Basics on the
+            // web but the native trainer in the app (see web-route-to-app-route).
+            router.push(webRouteToAppRoute(lesson.route));
+          }}
+          variant="primary"
+        >
+          {openLabel}
+        </Button>
+      </View>
+
+      {drillId ? (
+        <View style={styles.drillCta}>
+          <Button
+            onPress={() => {
+              markCompleted(lesson.id);
+              router.push(buildSimulatorDrillRoute(lesson.id, drillId));
+            }}
+            variant="secondary"
+          >
+            {tryInSimulatorLabel}
+          </Button>
+        </View>
+      ) : null}
+    </>
+  );
+
+  const markDone = !withQuiz ? (
+    <View style={styles.drillCta}>
+      <Button
+        variant={status === 'passed' ? 'ghost' : 'primary'}
+        onPress={() => setDone(lesson.id, status !== 'passed')}
+      >
+        {status === 'passed' ? unmarkLabel : markDoneLabel}
+      </Button>
+    </View>
+  ) : null;
+
+  const quiz = quizQuestions.length > 0 ? (
+    <QuizSection
+      lessonId={lesson.id}
+      questions={quizQuestions}
+      previousScore={previousResult?.score}
+      previousTotal={previousResult?.total}
+      previouslyPassed={previouslyPassed}
+      onRecord={(score, total) => {
+        markCompleted(lesson.id);
+        recordResult(lesson.id, score, total);
+      }}
+    />
+  ) : null;
+
+  // Lessons on the v3 template (src/lessons/pilots.ts): goal, the image, the
+  // explanation, the common mistake, then the same check and the practice.
+  // The other lessons keep their layout until the template is accepted.
+  const pilot = bootcampPilots[lesson.id];
+
   return (
     <Screen>
       <Stack.Screen options={{ title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.hero}>
-          <Text variant="eyebrow">{dayBadge}</Text>
-          <Text variant="title" style={styles.title} accessibilityRole="header">{title}</Text>
-          <Text variant="muted" style={styles.metaText}>{meta}</Text>
-          <Text
-            style={[styles.status, status === 'passed' && styles.statusPassed]}
-            accessibilityLiveRegion="polite"
-          >
-            {statusLine}
-          </Text>
-        </View>
+        {hero}
+        {pilot ? (
+          <>
+            <Text variant="body" style={styles.summary}>{summary}</Text>
+            <View style={styles.pilot}>
+              <LessonIntro pilot={pilot} />
+              {pilot.photo ? <LessonPhoto photo={pilot.photo} /> : null}
+              {pilot.sceneRole === 'lead' ? <LessonScene pilot={pilot} /> : <HowItWorks pilot={pilot} />}
+              {pilot.explanation ? <LessonExplanation paragraphs={pilot.explanation.map((p) => p[lang])} /> : null}
+              <LessonMistake pilot={pilot} />
+            </View>
+            {quiz}
+            {markDone}
+            <View style={styles.pilotHeading}>
+              <Text variant="subtitle" accessibilityRole="header">{lessonCopy.practice[lang]}</Text>
+            </View>
+            {practice}
+          </>
+        ) : (
+          <>
+            <View style={styles.diagramWrap}>
+              <LessonDiagram lessonId={lesson.id} />
+            </View>
 
-        <View style={styles.diagramWrap}>
-          <LessonDiagram lessonId={lesson.id} />
-        </View>
+            <Text variant="body" style={styles.summary}>{summary}</Text>
 
-        <Text variant="body" style={styles.summary}>{summary}</Text>
+            <Card style={styles.focusCard}>
+              <Text variant="muted" style={styles.focusLabel}>
+                {focusLabel.toUpperCase()}
+              </Text>
+              <Text variant="body" style={styles.focusText}>{focus}</Text>
+            </Card>
 
-        <Card style={styles.focusCard}>
-          <Text variant="muted" style={styles.focusLabel}>
-            {focusLabel.toUpperCase()}
-          </Text>
-          <Text variant="body" style={styles.focusText}>{focus}</Text>
-        </Card>
-
-        <View style={styles.cta}>
-          <Button
-            onPress={() => {
-              markCompleted(lesson.id);
-              // lesson.route is a WEB path; "/simulator" means Basics on the
-              // web but the native trainer in the app (see web-route-to-app-route).
-              router.push(webRouteToAppRoute(lesson.route));
-            }}
-            variant="primary"
-          >
-            {openLabel}
-          </Button>
-        </View>
-
-        {drillId ? (
-          <View style={styles.drillCta}>
-            <Button
-              onPress={() => {
-                markCompleted(lesson.id);
-                router.push(buildSimulatorDrillRoute(lesson.id, drillId));
-              }}
-              variant="secondary"
-            >
-              {tryInSimulatorLabel}
-            </Button>
-          </View>
-        ) : null}
-
-        {!withQuiz ? (
-          <View style={styles.drillCta}>
-            <Button
-              variant={status === 'passed' ? 'ghost' : 'primary'}
-              onPress={() => setDone(lesson.id, status !== 'passed')}
-            >
-              {status === 'passed' ? unmarkLabel : markDoneLabel}
-            </Button>
-          </View>
-        ) : null}
-
-        {quizQuestions.length > 0 ? (
-          <QuizSection
-            lessonId={lesson.id}
-            questions={quizQuestions}
-            previousScore={previousResult?.score}
-            previousTotal={previousResult?.total}
-            previouslyPassed={previouslyPassed}
-            onRecord={(score, total) => {
-              markCompleted(lesson.id);
-              recordResult(lesson.id, score, total);
-            }}
-          />
-        ) : null}
+            {practice}
+            {markDone}
+            {quiz}
+          </>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -698,6 +744,15 @@ const styles = StyleSheet.create({
   diagramWrap: {
     paddingHorizontal: spacing.lg,
     marginTop: spacing.xs,
+  },
+  pilot: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.xl,
+  },
+  pilotHeading: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
   },
   quizSection: {
     marginHorizontal: spacing.lg,

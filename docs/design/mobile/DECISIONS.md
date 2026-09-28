@@ -6,6 +6,61 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0015: Lesson template with teaching graphics, two pilots (2026-09-28, branch `design/v3`)
+
+**Status:** proposed; the two pilots wait for the Codex visual review before the other
+lessons move to the template.
+
+**Context.** The owner wants lessons that show the real thing: which line does what, not
+three captions under an abstract drawing. Codex prepared a graphics kit
+(`design/codex-visual-kit-2026-09-28/graphics` in the owner's main checkout, not in git):
+21 topics with three drawn states each, 126 SVG exports, 9 images with 20 hotspots in
+percent of the full image, and a handoff plus an addendum (review folder
+`claude-app-v3-2026-09-28/round3`). The addendum asks for fewer drawings, not more: an
+image of the thing first, one selected detail explained in plain text, one simple drawing
+for the dependency, then the check and the next step.
+
+**Decision.**
+
+- Template order: goal and situation; the image (a photo or illustration for terminology,
+  a drawing first for wind, courses and forces); the explanation; the common mistake and
+  what the graphics leave out; the existing check; the practice. Lesson IDs, questions
+  and the rules for passing do not change, and looking at an image or every marker never
+  counts (`src/lessons/pilots.ts`, `LessonBlocks.tsx`).
+- `PhotoAnnotation` shows the whole frame ("contain") and places markers on the image
+  rectangle actually shown, so the kit's percent coordinates stay true with letterboxing.
+  One selected detail, a list of the same details, 44 pt targets, names and selected state
+  for VoiceOver, a closeup of the same image. Only the kit's points; no lines drawn onto
+  an AI illustration, and its caption says it is one.
+- `DiagramStates` shows one drawing at a time with states named by meaning, the numbered
+  key, and the limit. In a terminology lesson the drawing sits behind a plainly titled
+  "How it works" row after the image; the lesson text stays visible.
+- The two drawings are a TypeScript port of the kit's `drawings.js`
+  (`src/lessons/graphics/drawings.ts`), checked byte for byte against the kit exports in
+  `__tests__/fixtures/codex-graphics`. Words stay in localized components; the SVG carries
+  numbers only.
+- One correction to the kit, flagged for Codex: its wind-direction boat has the boom 24
+  degrees to starboard in all states, which with the wind from starboard is the windward
+  side. The lesson puts the boom on the centreline head to wind and to port (leeward)
+  otherwise; with the kit angle the port reproduces the export.
+- Pilots: `wind-direction` (bootcamp, drawing first) and `rig-basics` (sail course, image
+  first). All other lessons keep their layout until the template is accepted.
+
+**Consequences.**
+
+- `rig-basics` no longer shows the old five-line schematic: outhaul and topping lift stay
+  in the lesson text and the outhaul lesson, not in its drawing. Adding them needs a
+  drawing from Codex, not an invented one.
+- The `wind-direction` lesson loses the old compass drawing and its focus card, which
+  pointed at a no-go zone the drawing did not show; the explanation now covers the no-go
+  zone that quiz questions 2 and 3 ask about.
+- One AI illustration (363 KB) ships in the bundle; provenance in
+  `mobile/assets/lessons/SOURCES.md`.
+- New copy exists in all seven languages; a language adaptation pass by the owner's
+  rules is still open.
+
+---
+
 ## ADR-0014: A lesson is passed on evidence; Home continues the last course (2026-09-28, branch `design/v3`)
 
 **Status:** accepted for the design branch, after the Codex review of `fce14ea`.

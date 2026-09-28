@@ -12,6 +12,8 @@ import { findSailLesson, sailCourse, sailLessons } from "../../../src/data/saili
 import { checkSailTheory, emptySailProgress, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, type SailProgress } from "../../../src/features/sailing-lab/lessons/progress";
 import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../../../src/features/sailing-lab/lessons/diagrams";
 import { readBookmark, useLearningBookmark } from "../persistence/learning-bookmark";
+import { sailPilots } from "../lessons/pilots";
+import { HowItWorks, LessonIntro, LessonMistake, LessonPhoto, LessonScene } from "../lessons/LessonBlocks";
 
 export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const { lang } = useI18n();
@@ -67,19 +69,28 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const index = sailLessons.findIndex(item => item.id === lesson.id);
   const destination = destinations.find(item => item.id === lesson.destination)!;
   const checked = progress?.checked.includes(lesson.id);
+  const pilot = sailPilots[lesson.id];
   return <Screen noTopInset>
     <Stack.Screen options={{ title: sailCourse.title[lang] }} />
     <ScrollView ref={scrollRef} contentContainerStyle={styles.content}>
       <Text style={styles.note}>{index + 1}/{sailLessons.length} · {lesson.minutes} {copy.minutes[lang]}</Text>
       <Text variant="title" accessibilityRole="header">{lesson.title[lang]}</Text>
-      <View style={styles.diagram} accessible accessibilityRole="image" accessibilityLabel={diagramCopy[lesson.diagram][lang]}>
-        <SvgXml xml={sailDiagram(lesson.diagram, selected)} width="100%" height="100%" />
-      </View>
-      <Text style={styles.note}>{diagramCopy[lesson.diagram][lang]}</Text>
-      {diagramReadout(lesson.diagram, selected, lang) && <Text style={styles.note} accessibilityLiveRegion="polite">{diagramReadout(lesson.diagram, selected, lang)}</Text>}
-      <View style={styles.controls}>{diagramOptions(lesson.diagram, lang).map(option => <Button key={option.value} variant={selected === option.value ? "primary" : "secondary"} accessibilityState={{ selected: selected === option.value }} onPress={() => setSelected(option.value)}>{option.label}</Button>)}</View>
-      {lesson.diagram === "wind" && <Text style={styles.note}>{diagramCopy.windKeys.map((label, i) => `${i + 1}. ${label[lang]}`).join(" · ")}</Text>}
+      {pilot ? <>
+        {/* v3 lesson template (src/lessons/pilots.ts): recognise the thing on the image, then the drawing as "How it works". */}
+        <LessonIntro pilot={pilot} />
+        {pilot.photo && <LessonPhoto photo={pilot.photo} />}
+        {pilot.sceneRole === "lead" ? <LessonScene pilot={pilot} /> : <HowItWorks pilot={pilot} />}
+      </> : <>
+        <View style={styles.diagram} accessible accessibilityRole="image" accessibilityLabel={diagramCopy[lesson.diagram][lang]}>
+          <SvgXml xml={sailDiagram(lesson.diagram, selected)} width="100%" height="100%" />
+        </View>
+        <Text style={styles.note}>{diagramCopy[lesson.diagram][lang]}</Text>
+        {diagramReadout(lesson.diagram, selected, lang) && <Text style={styles.note} accessibilityLiveRegion="polite">{diagramReadout(lesson.diagram, selected, lang)}</Text>}
+        <View style={styles.controls}>{diagramOptions(lesson.diagram, lang).map(option => <Button key={option.value} variant={selected === option.value ? "primary" : "secondary"} accessibilityState={{ selected: selected === option.value }} onPress={() => setSelected(option.value)}>{option.label}</Button>)}</View>
+        {lesson.diagram === "wind" && <Text style={styles.note}>{diagramCopy.windKeys.map((label, i) => `${i + 1}. ${label[lang]}`).join(" · ")}</Text>}
+      </>}
       {lesson.sections.map((section, i) => <View key={i} style={styles.section}><Text variant="subtitle" accessibilityRole="header">{section.title[lang]}</Text><Text style={styles.body}>{section.body[lang]}</Text></View>)}
+      {pilot && <LessonMistake pilot={pilot} />}
       <View style={styles.section}>
         <Text variant="subtitle" accessibilityRole="header">{sailCourse.check[lang]}</Text><Text style={styles.body}>{lesson.question[lang]}</Text>
         {lesson.answers.map((option, i) => <Button key={i} variant={answer === i ? "primary" : "secondary"} accessibilityState={{ selected: answer === i }} onPress={() => setAnswer(i)}>{option[lang]}</Button>)}

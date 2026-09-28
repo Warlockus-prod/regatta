@@ -59,7 +59,10 @@ describe('Bootcamp lesson detail', () => {
     await waitFor(() => view.getByText('Wind & direction'));
   });
 
+  // wind-direction is on the v3 lesson template (goal card instead of the
+  // focus card, see pilot-lessons.test.tsx); the other lessons keep it.
   it('renders the focus block label uppercased', async () => {
+    (globalThis as any).__regattaMocks.id = 'points-of-sail';
     const view = renderWithProviders(<BootcampLesson />);
     await waitFor(() => view.getByText(/FOCUS THIS TIME/i));
   });
