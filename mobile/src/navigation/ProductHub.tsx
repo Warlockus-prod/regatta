@@ -1,7 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
@@ -24,11 +23,13 @@ const racePhoto = require("../../assets/design/race-card.jpg");
  * whole catalog: search, the learner's progress, then every native
  * destination once, grouped. Hubs have a large in-content title and grouped
  * rows on white cards; the bottom tab bar is the way between them.
+ *
+ * The status bar area stays a fixed paper strip (Screen pads it, outside the
+ * scroll view), so rows never scroll under the clock and the system icons.
  */
 export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
-  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [daily, setDaily] = useState<DailyChallenge | null>(null);
   const isMenu = section === "library";
@@ -57,9 +58,9 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   const row = (entry: Destination, index: number, count: number) => <ListRow key={entry.id} noBorder={index === count - 1}
     title={`${section === "practice" ? `${index + 1}. ` : ""}${entry.title[lang]}`} caption={entry.detail?.[lang]}
     badge={entry.online ? copy.online[lang] : undefined} onPress={() => router.push(entry.native as Href)} />;
-  return <Screen noTopInset>
+  return <Screen>
     <Stack.Screen options={{ title, headerShown: false, animation: "fade" }} />
-    <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={() => router.push(solo.native as Href)} />}
@@ -130,7 +131,7 @@ function Group({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingBottom: 32, gap: 20, maxWidth: 820, width: "100%", alignSelf: "center" },
+  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20, maxWidth: 820, width: "100%", alignSelf: "center" },
   title: { minHeight: 40 },
   intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: -8 },
   group: { gap: 8 },

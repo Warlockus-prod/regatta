@@ -126,7 +126,11 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
 - **Status bar:** the app is scene-based (`plugins/with-uiscene.js`), and iOS ignores the
   UIApplication status bar API there, so `UIViewControllerBasedStatusBarAppearance` is on
   and each screen sets `statusBarStyle` through its stack options (root default `dark`;
-  Home switches between `light` over the photo and `dark` over paper).
+  Home switches between `light` over the photo and `dark` over paper). Content never
+  scrolls under the clock: screens with a header are cleared by it, the tab hubs
+  (`navigation/ProductHub.tsx`: Menu, Learn, Practice, Race) keep `Screen`'s top inset
+  as a fixed paper strip outside the scroll view, and Home fades in its own paper strip
+  once the sheet reaches the top.
 - **Shared components** (barrel `components/index.ts`): `Screen`, `Text` (7 variants, incl. `eyebrow`),
   `Card`, `Button`, `Icon` (SVG glyphs), `ListRow`, `EmptyState`, `Skeleton`,
   `PulsePill`, `Wordmark`, `Slider`, `OfflineBanner`, `ErrorBoundary`, `PlaceholderScreen`.
@@ -157,6 +161,8 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `persistence/serial.ts` | One queue for the learning-progress keys: reads and read-merge-writes run in order, so an early write cannot replace stored history and a screen re-reading on focus sees writes queued before it. Bootcamp, quiz and bookmark IO go through it. |
 | `navigation/tabs.ts` | Native tab model over the shared catalog: Home, Learn, Practice, Race, Menu (`/menu`); `tabForPath` puts reference pages under Menu. `/library` redirects to `/menu`. |
 | `courses/tones.ts` | Paper tones for the points-of-sail wheel and course cards (the shared data keeps its web colours). |
+| `courses/tack.ts` | `tackForHeading`: the tack from the heading measured clockwise from where the wind comes from. With the wind from the top the left half of the wheel is starboard tack and the right half port; head to wind and dead downwind return null (there the mainsail side decides). The wheel's captions take their halves from it; `__tests__/points-of-sail-tack.test.tsx` checks it against vector geometry. |
+| `test-utils.tsx`, `test-settle.ts` | Test helpers, not app code: `renderWithProviders` (safe area + i18n) and `settleProgress` (waits inside act until the progress queue and its state updates have landed). |
 | `replay/`, `leaderboard/`, `multiplayer/`, `onboarding/` | feature helpers. |
 
 **Content is DUPLICATED, not live-imported:** web `src/data/*.ts` (source of truth) ->

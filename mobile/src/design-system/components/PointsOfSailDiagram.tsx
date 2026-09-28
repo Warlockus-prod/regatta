@@ -8,6 +8,7 @@ import { colors, spacing } from '../tokens';
 import { pointOfSailAt } from '../../courses/polar';
 import { pointsOfSail } from '../../data';
 import { pointOfSailTone, toneFill } from '../../courses/tones';
+import { tackForHeading } from '../../courses/tack';
 
 interface PointsOfSailDiagramProps {
   size?: number;
@@ -25,6 +26,12 @@ interface PointsOfSailDiagramProps {
 
 // Midpoint angle (deg off the wind) of each point-of-sail sector, for placing the
 // course name + boat glyph. Mirrors the colored sector wedges.
+
+// Which tack each half of the wheel shows. A boat glyph on the left half points
+// left (west with the wind from the top), so the wind is over its starboard side.
+// Taken from the same heading rule as the glyphs, never swapped by hand.
+export const LEFT_HALF_TACK = tackForHeading(-90) ?? 'starboard';
+export const RIGHT_HALF_TACK = tackForHeading(90) ?? 'port';
 
 const POS_IDS = ['in-irons', 'close-hauled', 'beam-reach', 'broad-reach', 'running'] as const;
 
@@ -69,8 +76,9 @@ export function PointsOfSailDiagram({
     () =>
       SECTOR_META.map((s) => ({
         ...s,
-        stb: wedgePath(cx, cy, outerR, s.min, s.max),
-        port: wedgePath(cx, cy, outerR, -s.max, -s.min),
+        // Screen halves, not boat sides: the right half is port tack.
+        right: wedgePath(cx, cy, outerR, s.min, s.max),
+        left: wedgePath(cx, cy, outerR, -s.max, -s.min),
       })),
     [cx, cy, outerR],
   );
@@ -205,15 +213,15 @@ export function PointsOfSailDiagram({
                 const fill = on ? s.hi : s.tint;
                 return (
                   <Group key={s.id}>
-                    <Path path={s.stb} color={fill} />
-                    <Path path={s.port} color={fill} />
+                    <Path path={s.right} color={fill} />
+                    <Path path={s.left} color={fill} />
                   </Group>
                 );
               })}
               {sectorPaths.filter((s) => s.id === activeId).map((s) => (
                 <Group key={`${s.id}-outline`}>
-                  <Path path={s.stb} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
-                  <Path path={s.port} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                  <Path path={s.right} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                  <Path path={s.left} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
                 </Group>
               ))}
               {/* 0.75 ink: at least 4.5:1 over every sector fill, selected (0.26) or not. */}
@@ -335,7 +343,7 @@ function DiagramLabels({
               textAnchor="middle"
               letterSpacing={0.6}
             >
-              {tackLabels.port.toUpperCase()}
+              {tackLabels[LEFT_HALF_TACK].toUpperCase()}
             </SvgText>
             <SvgText
               x={cx + outerR * 0.52}
@@ -346,7 +354,7 @@ function DiagramLabels({
               textAnchor="middle"
               letterSpacing={0.6}
             >
-              {tackLabels.starboard.toUpperCase()}
+              {tackLabels[RIGHT_HALF_TACK].toUpperCase()}
             </SvgText>
           </>
         ) : null}

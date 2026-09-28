@@ -32,7 +32,7 @@ jest.mock('expo-router', () => {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootcampIndex from '../app/bootcamp/index';
 import BootcampLesson from '../app/bootcamp/[id]';
-import { renderWithProviders } from '../src/test-utils';
+import { renderWithProviders, settleProgress } from '../src/test-utils';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
 import { useBootcampQuiz } from '../src/persistence/bootcamp-quiz';
 import { readBookmark, writeBookmark } from '../src/persistence/learning-bookmark';
@@ -44,6 +44,13 @@ import { emptySailProgress } from '../../src/features/sailing-lab/lessons/progre
 const VIEWED = 'regatta.progress.bootcamp.v1';
 const QUIZ = 'regatta.bootcamp-quiz.v1';
 const refocus = () => act(async () => { for (const effect of [...mockFocusEffects]) effect(); });
+// Read storage the way the next screen would, inside act: the pending write
+// of the action just taken may land during the read and update the hooks.
+const readNow = async () => {
+  let snapshot!: Awaited<ReturnType<typeof readLearningSnapshot>>;
+  await act(async () => { snapshot = await readLearningSnapshot(); });
+  return snapshot;
+};
 const emptyBootcamp = () => ({ viewedIds: new Set<string>(), doneIds: new Set<string>(), quizResults: {}, lastViewedLessonId: null });
 
 beforeEach(async () => {
@@ -61,6 +68,7 @@ describe('R3.2 opening a lesson keeps the stored history', () => {
         expect.arrayContaining(['tacking', 'points-of-sail', 'wind-direction']),
       );
     });
+    await settleProgress();
   });
 
   it('keeps older IDs when storage answers late and lessons switch quickly', async () => {
@@ -106,6 +114,8 @@ describe('R3.2 opening a lesson keeps the stored history', () => {
       const stored = JSON.parse((await AsyncStorage.getItem(QUIZ)) ?? '{}');
       expect(Object.keys(stored).sort()).toEqual(['points-of-sail', 'wind-direction']);
     });
+    await settleProgress();
+    expect(Object.keys(result.current.results).sort()).toEqual(['points-of-sail', 'wind-direction']);
   });
 });
 
@@ -137,8 +147,9 @@ describe('R3.1 the course path shows the result after Back', () => {
     await waitFor(() => expect(result.current.ready).toBe(true));
     act(() => { result.current.recordResult('wind-direction', 3, 3); });
     // No waiting: the snapshot read is queued after the write.
-    const snapshot = await readLearningSnapshot();
+    const snapshot = await readNow();
     expect(snapshot.bootcamp.quizResults['wind-direction']).toMatchObject({ score: 3, total: 3 });
+    await settleProgress();
   });
 });
 
@@ -208,18 +219,20 @@ describe('the lesson screen itself', () => {
     await answerAll(view, 'right');
     await waitFor(() => view.getByText(/3 of 3/));
     // No further tap: the result is already stored.
-    const snapshot = await readLearningSnapshot();
+    const snapshot = await readNow();
     expect(snapshot.bootcamp.quizResults['wind-direction']).toMatchObject({ score: 3, total: 3 });
     expect(view.queryByText('Mark complete')).toBeNull();
     await waitFor(() => view.getByText('Lesson passed'));
+    await settleProgress();
   });
 
   it('finishing a failed check records the attempt, not a pass', async () => {
     const view = renderWithProviders(<BootcampLesson />);
     await answerAll(view, 'wrong');
-    const snapshot = await readLearningSnapshot();
+    const snapshot = await readNow();
     expect(snapshot.bootcamp.quizResults['wind-direction']).toMatchObject({ score: 0, total: 3 });
     expect(view.queryByText('Lesson passed')).toBeNull();
+    await settleProgress();
   });
 
   it('opening the practice and coming back leaves the lesson not passed', async () => {
@@ -227,8 +240,9 @@ describe('the lesson screen itself', () => {
     fireEvent.press(await waitFor(() => view.getByText('Open')));
     await refocus();
     await waitFor(() => view.getByText(/at least 70% of the check below/));
-    const snapshot = await readLearningSnapshot();
+    const snapshot = await readNow();
     expect(snapshot.bootcamp.viewedIds.has('wind-direction')).toBe(true);
     expect(snapshot.bootcamp.quizResults['wind-direction']).toBeUndefined();
+    await settleProgress();
   });
 });
