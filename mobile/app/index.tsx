@@ -110,9 +110,9 @@ export default function Home() {
         <LinearGradient colors={["rgba(8, 40, 60, 0.6)", "rgba(8, 40, 60, 0)", "rgba(8, 40, 60, 0)", "rgba(8, 40, 60, 0.72)"]} locations={[0, 0.34, 0.45, 1]} style={StyleSheet.absoluteFill} />
         <View style={styles.brand} accessible accessibilityRole="header" accessibilityLabel="Week to Regatta">
           <Icon name="sail" size={22} color={colors.onPhoto} />
-          <Text style={styles.brandText}>{homeCopy.brand}</Text>
+          <Text style={styles.brandText} maxFontSizeMultiplier={1.3}>{homeCopy.brand}</Text>
         </View>
-        <Text style={styles.heroTitle} accessibilityRole="header">{copy.hello[lang]}</Text>
+        <Text style={styles.heroTitle} accessibilityRole="header" maxFontSizeMultiplier={1.4}>{copy.hello[lang]}</Text>
       </ImageBackground>
 
       <View style={styles.sheet}>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   placeholder: { gap: 10, paddingVertical: 6 },
   bar: { height: 12, borderRadius: 6, backgroundColor: colors.sand },
   barTall: { height: 22 },
-  next: { flexDirection: "row", gap: 14, alignItems: "center" },
+  next: { flexDirection: "row", gap: 14, alignItems: "flex-start" },
   thumb: { width: 72, height: 72 },
   thumbImage: { borderRadius: 14 },
   nextText: { flex: 1, gap: 4 },

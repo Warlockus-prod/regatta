@@ -44,6 +44,8 @@ export default function RootLayout() {
                       contentStyle: { backgroundColor: colors.bgPrimary },
                       headerStyle: { backgroundColor: colors.bgPrimary },
                       headerShadowVisible: false,
+                      // Chevron only: with large text iOS clipped the back title ("лавн").
+                      headerBackButtonDisplayMode: 'minimal',
                       headerTintColor: colors.accentCyan,
                       headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
                       animation: 'slide_from_right',

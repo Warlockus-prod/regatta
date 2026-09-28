@@ -28,7 +28,7 @@ export function AppNavigation({ children }: { children: ReactNode }) {
       {visible && <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
         {nativeTabs.map(s => <Pressable key={s.id} accessibilityRole="tab" accessibilityLabel={s.title[lang]} accessibilityState={{ selected: selected === s.id }} onPress={() => { if (pathname !== s.route) router.replace(s.route as Href); }} style={({ pressed }) => [styles.tab, selected === s.id && styles.selected, pressed && styles.pressed]}>
           <Icon name={s.icon as IconName} size={24} color={selected === s.id ? colors.accentCyan : colors.textSecondary} />
-          <Text style={[styles.label, selected === s.id && styles.activeLabel]}>{s.title[lang]}</Text>
+          <Text style={[styles.label, selected === s.id && styles.activeLabel]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3}>{s.title[lang]}</Text>
         </Pressable>)}
       </View>}
     </View>
