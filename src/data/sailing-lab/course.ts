@@ -1,12 +1,13 @@
 import { words, type Label } from "../../lib/product/catalog";
 import { mainsheetLesson } from "./mainsheet-lesson";
 import { vangLesson, outhaulLesson } from "./shape-lessons";
+import { winchLesson } from "./winch-lesson";
 
 export interface SailLesson {
   id: string;
   title: Label;
   minutes: number;
-  diagram: "rig" | "wind" | "sheet" | "mainsheet" | "vang" | "outhaul";
+  diagram: "rig" | "wind" | "sheet" | "mainsheet" | "vang" | "outhaul" | "winch";
   sections: { title: Label; body: Label }[];
   question: Label;
   answers: Label[];
@@ -15,13 +16,14 @@ export interface SailLesson {
   observe: Label;
   destination: "boat" | "trainer";
   study?: "mainsheet" | "shape";
+  practice?: "line-bench";
   sources: { title: string; url: string }[];
 }
 
 export const sailCourse = {
   title: words("Работа с парусами", "Working with sails", "Obsługa żagli", "Manejo de las velas", "Manœuvrer les voiles", "Mit Segeln arbeiten", "Manovrare le vele"),
   intro: words("Сначала пойми, какая снасть что меняет. Затем свяжи ветер, форму паруса и действия экипажа.", "First understand what each control changes. Then connect wind, sail shape and crew actions.", "Najpierw poznaj działanie każdej liny. Potem połącz wiatr, kształt żagla i pracę załogi.", "Primero comprende qué cambia cada cabo. Después relaciona viento, forma de la vela y acciones de la tripulación.", "Comprends d'abord l'effet de chaque commande. Relie ensuite vent, forme des voiles et gestes de l'équipage.", "Verstehe zuerst, was jede Leine verändert. Verbinde dann Wind, Segelform und Handgriffe.", "Prima comprendi cosa modifica ogni cima. Poi collega vento, forma della vela e manovre dell'equipaggio."),
-  scope: words("Первый модуль: устройство, ветер и работа шкотов. Подъем, рифление и работа с лебедками будут добавлены после проверки механики.", "First module: rig, wind and sheets. Hoisting, reefing and winch procedures will follow once their mechanics are validated.", "Pierwszy moduł: takielunek, wiatr i szoty. Stawianie, refowanie i obsługa kabestanów pojawią się po sprawdzeniu mechaniki.", "Primer módulo: aparejo, viento y escotas. El izado, los rizos y los winches llegarán tras validar su mecánica.", "Premier module : gréement, vent et écoutes. Hissage, prise de ris et winchs suivront après validation de leur mécanique.", "Erstes Modul: Rigg, Wind und Schoten. Setzen, Reffen und Winschen folgen nach Prüfung ihrer Mechanik.", "Primo modulo: attrezzatura, vento e scotte. Issata, terzaroli e winch seguiranno dopo la verifica della meccanica."),
+  scope: words("Доступны устройство, ветер, форма паруса и стенд лебёдки со стопором. Подъём и рифление пока не моделируются: эти уроки появятся после проверки механики.", "Available: rig, wind, sail shape and a winch/clutch bench. Hoisting and reefing are not yet simulated; those lessons will follow validated mechanics.", "Dostępne: takielunek, wiatr, kształt żagla oraz stanowisko kabestanu i stopera. Stawianie i refowanie nie są jeszcze modelowane; lekcje wymagają sprawdzonej mechaniki.", "Disponibles: aparejo, viento, forma de vela y banco de winch/stopper. Izado y rizos aún no se simulan; requieren validar su mecánica.", "Disponibles : gréement, vent, forme des voiles et banc winch/bloqueur. Hissage et prise de ris ne sont pas encore simulés ; leur mécanique doit être validée.", "Verfügbar: Rigg, Wind, Segelform und Winsch/Stopper-Übung. Setzen und Reffen werden noch nicht simuliert; diese Lektionen brauchen geprüfte Mechanik.", "Disponibili: attrezzatura, vento, forma delle vele e banco winch/stopper. Issata e terzaroli non sono ancora simulati; le lezioni richiedono meccanica validata."),
   check: words("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie", "Comprueba lo aprendido", "Vérifie ta compréhension", "Prüfe dein Verständnis", "Verifica la comprensione"),
   correct: words("Верно. Теперь объясни это своими словами.", "Correct. Now explain it in your own words.", "Dobrze. Teraz wyjaśnij to własnymi słowami.", "Correcto. Ahora explícalo con tus palabras.", "Exact. Explique-le maintenant avec tes mots.", "Richtig. Erkläre es jetzt mit eigenen Worten.", "Corretto. Ora spiegalo con parole tue."),
   retry: words("Не совсем. Прочитай объяснение и попробуй еще раз.", "Not quite. Read the explanation and try again.", "Nie całkiem. Przeczytaj wyjaśnienie i spróbuj ponownie.", "No exactamente. Lee la explicación e inténtalo de nuevo.", "Pas tout à fait. Lis l'explication et réessaie.", "Noch nicht. Lies die Erklärung und versuche es erneut.", "Non proprio. Leggi la spiegazione e riprova."),
@@ -134,6 +136,7 @@ export const sailLessons: SailLesson[] = [
   mainsheetLesson,
   vangLesson,
   outhaulLesson,
+  winchLesson,
 ];
 
 export const findSailLesson = (id: string) => sailLessons.find(lesson => lesson.id === id);

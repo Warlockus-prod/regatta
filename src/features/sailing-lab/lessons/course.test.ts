@@ -5,10 +5,28 @@ import { sailDiagram, windExample } from "./diagrams";
 import { mainsheetExample, mainsheetReadout } from "./mainsheet-diagram";
 import { vangExample } from "./shape-diagrams";
 import { vangRiseLimit } from "../rig/vang";
+import { courseModules, learningCopy, lessonTermIds, lessonTerms } from "../../../data/sailing-lab/learning-path";
+import { assessmentCopy } from "../../../data/sailing-lab/assessment-copy";
 
 describe("sailing theory module", () => {
-  it("offers six real lessons with shared vang geometry and lower-profile comparisons", () => {
-    expect(sailLessons).toHaveLength(6);
+  it("groups every available lesson exactly once and supplies contextual terms in all languages", () => {
+    expect(courseModules.flatMap(module => module.lessons)).toEqual(sailLessons.map(lesson => lesson.id));
+    for (const lesson of sailLessons) {
+      expect(lessonTermIds[lesson.id].length).toBeGreaterThan(1);
+      expect(new Set(lessonTermIds[lesson.id]).size).toBe(lessonTermIds[lesson.id].length);
+    }
+    const labels = [...Object.values(learningCopy), ...Object.values(assessmentCopy), ...Object.values(lessonTerms).flatMap(term => [term.name, term.meaning]), ...courseModules.map(module => module.title)];
+    for (const label of labels) {
+      for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {
+        expect(label[lang].length).toBeGreaterThan(2);
+        expect(label[lang]).not.toMatch(/[\u2013\u2014]/);
+      }
+    }
+  });
+  it("offers seven real lessons with shared geometry and a working equipment bench", () => {
+    expect(sailLessons).toHaveLength(7);
+    expect(sailLessons.find(l => l.id === "winch-clutch")?.practice).toBe("line-bench");
+    expect(sailDiagram("winch", 0)).not.toBe(sailDiagram("winch", 1));
     const short = vangExample(0), long = vangExample(1);
     expect(vangRiseLimit(short.span)).toBeCloseTo(2, 6);
     expect(vangRiseLimit(long.span)).toBeCloseTo(8, 6);

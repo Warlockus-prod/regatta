@@ -1,14 +1,17 @@
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import { Pressable, StyleSheet, View } from "react-native";
 import { copy } from "../../../src/lib/product/copy";
 import { Text } from "../design-system/components";
 import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
+import { showsMainNavigation } from "./visibility";
 
-/** A labelled entry, not an unexplained hamburger or another bottom tab. */
+/** Full-screen activities need an entry when the bottom navigation is hidden. */
 export function MenuButton() {
   const { lang } = useI18n();
   const router = useRouter();
+  const pathname = usePathname();
+  if (showsMainNavigation(pathname)) return null;
   return <Pressable accessibilityRole="button" accessibilityLabel={copy.menu[lang]}
     accessibilityHint={copy.allSections[lang]} onPress={() => router.push("/menu")}
     style={({ pressed }) => [styles.button, pressed && styles.pressed]}>

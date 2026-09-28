@@ -1,62 +1,70 @@
 'use client';
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { getBootcampProgress, setCurrentLesson, type BootcampProgress } from "@/lib/storage";
-import { bootcampLessons } from "@/data/bootcamp";
-import { destinations, sections } from "@/lib/product/catalog";
+import { setCurrentLesson } from "@/lib/storage";
+import { destinations } from "@/lib/product/catalog";
 import { copy } from "@/lib/product/copy";
-import styles from "@/components/product/Product.module.css";
+import { homeCopy, homeLearning, learningTracks, type LearningSnapshot } from "@/lib/product/learning";
+import { readWebLearning } from "@/lib/product/learning-web";
+import styles from "@/components/product/Home.module.css";
 
 export default function Home() {
-  const { lang, tp } = useI18n();
-  const [progress, setProgress] = useState<BootcampProgress | null>(null);
+  const { lang } = useI18n();
+  const [snapshot, setSnapshot] = useState<LearningSnapshot | null>(null);
+  const [error, setError] = useState(false);
+  const refresh = useCallback(() => {
+    try { setSnapshot(readWebLearning()); setError(false); }
+    catch { setSnapshot(null); setError(true); }
+  }, []);
   useEffect(() => {
-    const refresh = () => setProgress(getBootcampProgress());
     const timer = setTimeout(refresh, 0);
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", refresh);
     return () => { clearTimeout(timer); window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); };
-  }, []);
-  const completed = bootcampLessons.filter(l => progress?.completed.includes(l.id)).length;
-  const next = bootcampLessons.find(l => l.id === progress?.current && !progress?.completed.includes(l.id)) ?? bootcampLessons.find(l => !progress?.completed.includes(l.id));
-  const started = Boolean(progress?.current || completed);
-  const allDone = completed === bootcampLessons.length;
-  const title = next ? tp(next.titleRu, next.titleEn, next.titlePl, { es: next.titleEs, fr: next.titleFr, de: next.titleDe, it: next.titleIt }) : "";
-  const course = destinations.find(d => d.id === "course")!;
+  }, [refresh]);
+  const next = snapshot ? homeLearning(snapshot, lang, "web") : null;
+  const alternatives = learningTracks.filter(id => id !== next?.course.id);
   return <div className={styles.page}>
     <header className={styles.header}>
-      <h1 className={styles.title}>{copy.hello[lang]}</h1>
-      <p className={styles.intro}>{copy.intro[lang]}</p>
+      <Image src="/design-v3/sailing-editorial.webp" alt="" fill priority sizes="(max-width: 800px) 100vw, 1084px" className={styles.heroImage} />
+      <div className={styles.heroCopy}>
+        <p className={styles.wordmark}>WEEK TO REGATTA</p>
+        <h1>{homeCopy.title[lang]}</h1>
+        <p>{homeCopy.intro[lang]}</p>
+      </div>
     </header>
-    <section className={styles.feature} aria-labelledby="next-step">
-      <div>
-        <p className={styles.kicker}>{started ? `${copy.next[lang]} · ${completed}/${bootcampLessons.length}` : copy.next[lang]}</p>
-        <h2 id="next-step" className={styles.heading}>{allDone ? copy.learned[lang] : started ? title : course.title[lang]}</h2>
-        <p className={styles.description}>{started && next ? `${next.estMinutes} ${copy.minutes[lang]}` : course.detail![lang]}</p>
-        {started && <progress className={styles.progress} value={completed} max={bootcampLessons.length} aria-label={copy.viewed[lang]} />}
-      </div>
-      <div className={styles.actions}>
-        <Link className={styles.primary} href={allDone ? "/race" : next?.route ?? "/start"} onClick={() => { if (next) setCurrentLesson(next.id); }}>
-          {allDone ? sections.find(s => s.id === "race")!.title[lang] : started ? copy.resume[lang] : copy.start[lang]} <span aria-hidden="true">→</span>
-        </Link>
-        <Link className={styles.secondary} href="/start">{copy.overview[lang]}</Link>
-      </div>
-    </section>
-    <section className={styles.section} aria-labelledby="quick-access">
-      <h2 id="quick-access" className={styles.sectionTitle}>{copy.shortcuts[lang]}</h2>
-      <div className={styles.list}>{["sails", "radio", "trainer"].map(id => {
-        const entry = destinations.find(item => item.id === id)!;
-        return <Link className={styles.row} href={entry.web!} key={id}><strong>{entry.title[lang]}</strong><span className={styles.arrow} aria-hidden="true">→</span></Link>;
-      })}</div>
-    </section>
-    <div className={styles.choices}>{sections.filter(s => s.id === "practice" || s.id === "race").map(s => <Link href={s.web} key={s.id} className={styles.choice}>
-      <div><h2>{s.title[lang]}</h2><p className={styles.description}>{s.description[lang]}</p></div><span className={styles.arrow} aria-hidden="true">→</span>
-    </Link>)}</div>
-    <div className={styles.quietLinks}>
-      <Link href="/learn">{copy.exam[lang]} <span aria-hidden="true">→</span></Link>
-      <Link href="https://apps.apple.com/app/id6768134329">{copy.app[lang]} <span aria-hidden="true">↗</span></Link>
+    <div className={styles.layout}>
+      <section className={styles.resume} aria-labelledby="next-step" aria-busy={!snapshot && !error}>
+        {next ? <>
+          <p className={styles.eyebrow}>{next.course.title[lang]}{next.minutes ? ` · ${next.minutes} ${copy.minutes[lang]}` : ""}</p>
+          <h2 id="next-step">{next.title}</h2>
+          <p className={styles.detail}>{next.detail}</p>
+          {next.total !== null && <div className={styles.progressBlock}>
+            <div className={styles.progressLabel}><span>{next.metric}</span><span>{next.count}/{next.total}</span></div>
+            <progress value={next.count!} max={next.total} aria-label={next.metric!} />
+          </div>}
+          <Link className={styles.primary} href={next.href} onClick={() => { if (next.course.id === "course" && next.lessonId) setCurrentLesson(next.lessonId); }}>
+            {next.complete ? homeCopy.review[lang] : next.started ? copy.resume[lang] : copy.start[lang]}<span aria-hidden="true">→</span>
+          </Link>
+          {next.href !== next.overview && <Link className={styles.overview} href={next.overview}>{copy.overview[lang]}</Link>}
+        </> : <div role={error ? "alert" : "status"} className={styles.placeholder}>
+          <h2 id="next-step">{error ? homeCopy.unavailable[lang] : homeCopy.loading[lang]}</h2>
+          {error && <button type="button" className={styles.overview} onClick={refresh}>{homeCopy.retry[lang]}</button>}
+        </div>}
+      </section>
+      <section className={styles.courses} aria-labelledby="choose-course">
+        <h2 id="choose-course">{homeCopy.choose[lang]}</h2>
+        {alternatives.map(id => {
+          const course = destinations.find(d => d.id === id)!;
+          return <Link className={styles.course} href={course.web!} key={id}>
+            <span><strong>{course.title[lang]}</strong><span className={styles.courseDetail}>{course.detail![lang]}</span></span><span aria-hidden="true">→</span>
+          </Link>;
+        })}
+      </section>
     </div>
+    <footer className={styles.footer}><span>{homeCopy.tools[lang]}</span><Link href="/menu">{copy.allSections[lang]} <span aria-hidden="true">→</span></Link></footer>
   </div>;
 }

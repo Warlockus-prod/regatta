@@ -17,7 +17,8 @@ const PHYSICS_DIR = path.resolve(__dirname, '../src/lib/sailing-physics');
 config.watchFolders = [
   ...(config.watchFolders ?? []),
   path.dirname(PHYSICS_DIR),
-  path.resolve(__dirname, '../src/data/sailing-lab'),
+  // Home continuation also reads the shared bootcamp lesson IDs and routes.
+  path.resolve(__dirname, '../src/data'),
   path.resolve(__dirname, '../src/features/sailing-lab'),
 ];
 config.resolver.extraNodeModules = {

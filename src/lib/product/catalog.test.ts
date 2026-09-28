@@ -1,8 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { existsSync } from "node:fs";
 import { destinations, sectionForPath, searchDestinations, sections } from "./catalog";
+import { menuEntry, menuGroups, nativeTabs, navigationItemForSection } from "./menu";
 
 describe("product navigation", () => {
+  it("exposes Menu instead of Library in the primary navigation and preserves reference ownership", () => {
+    expect(nativeTabs.map(tab => tab.id)).toEqual(["home", "learn", "practice", "race", "menu"]);
+    expect(menuEntry.web).toBe("/menu");
+    expect(existsSync("src/app/menu/page.tsx")).toBe(true);
+    for (const path of ["/menu", "/library", "/anatomy", "/glossary"]) {
+      expect(navigationItemForSection(sectionForPath(path, "web"))).toBe("menu");
+    }
+    expect(navigationItemForSection(sectionForPath("/learn/sails", "native"))).toBe("learn");
+  });
+  it("lists every public platform destination exactly once in all seven languages", () => {
+    for (const platform of ["web", "native"] as const) {
+      for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {
+        const groups = menuGroups("", lang, platform);
+        const ids = groups.flatMap(group => group.entries.map(entry => entry.id));
+        expect(new Set(ids).size).toBe(ids.length);
+        expect([...ids].sort()).toEqual(destinations.filter(d => d[platform]).map(d => d.id).sort());
+        expect(groups.every(group => group.title[lang].length > 2)).toBe(true);
+        expect(menuEntry.title[lang].length).toBeGreaterThan(2);
+      }
+    }
+    expect(menuGroups("radio", "en", "web").flatMap(group => group.entries.map(d => d.id))).toEqual(["radio"]);
+    expect(menuGroups("settings", "en", "web")).toEqual([]);
+    expect(menuGroups("settings", "en", "native")[0].id).toBe("service");
+  });
   it("does not require a connection for the bundled simulators or sail theory", () => {
     expect(destinations.find(d => d.id === "boat")?.online).not.toBe(true);
     expect(destinations.find(d => d.id === "sails")?.online).not.toBe(true);

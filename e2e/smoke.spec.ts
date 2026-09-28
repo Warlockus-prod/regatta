@@ -1,4 +1,6 @@
 import { test, expect } from '@playwright/test';
+import { copy as productCopy } from '../src/lib/product/copy';
+import { menuDestinationCount } from '../src/lib/product/menu';
 
 // ============================================================================
 // Smoke E2E - must pass on every deploy. Keep fast (<60 sec total).
@@ -21,6 +23,42 @@ test.beforeEach(async ({ context }) => {
 });
 
 test.describe('Smoke: critical user flows', () => {
+  test("Menu is reachable from the header, searchable and readable on narrow screens in all locales", async ({ page }) => {
+    test.setTimeout(60_000);
+    for (const width of [320, 390, 1280]) {
+      await page.setViewportSize({ width, height: 844 });
+      await page.goto("/");
+      await page.getByRole("navigation", { name: "Основные разделы" }).getByRole("link", { name: "Меню", exact: true }).click();
+      await expect(page).toHaveURL(/\/menu$/);
+      await expect(page.locator("main a")).toHaveCount(menuDestinationCount("web"));
+      const menuLink = page.locator('nav a[href="/menu"]');
+      await expect(menuLink).toHaveAttribute("aria-current", "page");
+      const box = await menuLink.boundingBox();
+      expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    await page.setViewportSize({ width: 320, height: 740 });
+    for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {
+      await page.getByRole("button", { name: "Choose language" }).click();
+      const labels = { ru: "Русский", en: "English", pl: "Polski", es: "Español", fr: "Français", de: "Deutsch", it: "Italiano" };
+      await page.getByRole("menuitemradio", { name: new RegExp(labels[lang]) }).click();
+      await expect(page.getByRole("heading", { name: productCopy.menu[lang], exact: true })).toBeVisible();
+      const input = page.getByRole("searchbox", { name: productCopy.search[lang] });
+      await input.fill("no-matching-section");
+      await expect(page.getByRole("status")).toHaveText(productCopy.empty[lang]);
+      await page.getByRole("button", { name: productCopy.clear[lang], exact: true }).click();
+      await expect(page.locator("main a")).toHaveCount(menuDestinationCount("web"));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    }
+    // Theme remains accessible in Menu even when the narrow header hides its shortcut.
+    const theme = page.locator("main").getByRole("button", { name: /Tema:/ });
+    await theme.click();
+    await expect(theme).toHaveAccessibleName("Tema: chiaro");
+    await theme.click();
+    await expect(theme).toHaveAccessibleName("Tema: scuro");
+    await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
+  });
   test('home page renders with nav + language toggle', async ({ page }) => {
     await page.goto('/');
     await expect(page).toHaveTitle(/Regatta/i);
@@ -36,7 +74,7 @@ test.describe('Smoke: critical user flows', () => {
 
     // Primary nav - at least 4 nav entries should be wired to known routes
     const nav = page.locator('nav').first();
-    for (const href of ['/', '/learn', '/practice', '/race', '/library']) {
+    for (const href of ['/', '/learn', '/practice', '/race', '/menu']) {
       await expect(nav.locator(`a[href="${href}"]`).first()).toBeVisible();
     }
 
@@ -55,8 +93,9 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole("region", { name: "Навигация по курсу" })).toBeVisible();
   });
 
-  test("library search reaches the radio course and keeps its section selected", async ({ page }) => {
+  test("legacy library leads to Menu and search reaches the radio course", async ({ page }) => {
     await page.goto("/library");
+    await expect(page).toHaveURL(/\/menu$/);
     const search = page.getByRole("searchbox", { name: "Поиск по разделам" });
     await search.fill("радио");
     await expect(page.locator("main a")).toHaveCount(1);

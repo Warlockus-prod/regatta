@@ -90,6 +90,10 @@ key/
 # exports + zip, kept locally for reference only - not version controlled.
 /app-graf/
 
+# Original Claude Design handoff stays local; reviewed assets live in public/design-v3.
+/design/imported/
+/design/*.zip
+
 # More design/agent-handoff scratch drop-zones (same as /3d/, /app-graf/):
 # handoff zips + local agent-session sandboxes, kept out of the repo so they
 # stop dirtying `git status`. NOTE: /ops/ is intentionally NOT here - it is

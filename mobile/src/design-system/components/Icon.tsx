@@ -29,6 +29,7 @@ import { colors } from '../tokens';
  * icon to take down a screen.
  */
 export type IconName =
+  | "menu"
   | 'cap'
   | 'bolt'
   | 'book'
@@ -431,6 +432,7 @@ function InfoPaths({ color }: { color: string }) {
 }
 
 const REGISTRY: Record<IconName, (props: { color: string }) => React.ReactElement> = {
+  menu: ({ color }) => <Path d="M4 6H20 M4 12H20 M4 18H20" stroke={color} {...STROKE} />,
   cap: CapPaths,
   bolt: BoltPaths,
   book: BookPaths,

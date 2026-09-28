@@ -1,8 +1,8 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-07-20T10:12:09.223Z
+Generated: 2026-09-17T18:10:05.523Z
 
-Files scanned: 62
+Files scanned: 73
 
 ## Summary
 
@@ -11,9 +11,9 @@ Files scanned: 62
 | cyrillic-leak | 1 |
 | non-english-leak | 0 |
 | tp-arity | 0 |
-| tp-no-extras | 3 |
-| hardcoded-jsx | 3 |
-| **TOTAL** | **7** |
+| tp-no-extras | 0 |
+| hardcoded-jsx | 0 |
+| **TOTAL** | **1** |
 
 ## Categories
 
@@ -25,29 +25,8 @@ Files scanned: 62
 
 ## Findings by file
 
-### `mobile/app/courses/index.tsx` (2)
+### `mobile/src/simulator/SimWebView.tsx` (1)
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/app/courses/index.tsx:247` | hardcoded-jsx | Two sails, not one |
-| `mobile/app/courses/index.tsx:363` | hardcoded-jsx | What else is there? |
-
-### `mobile/app/replay/[id].tsx` (1)
-
-| Location | Kind | Snippet |
-| --- | --- | --- |
-| `mobile/app/replay/[id].tsx:156` | hardcoded-jsx | ,   replay: ReadonlyArray |
-
-### `mobile/app/rules/index.tsx` (3)
-
-| Location | Kind | Snippet |
-| --- | --- | --- |
-| `mobile/app/rules/index.tsx:165` | cyrillic-leak | ВФПС РФ (рус.) |
-| `mobile/app/rules/index.tsx:255` | tp-no-extras | tp(                   'Теория, тренажёр вопросов и пробный экзамен - на польском |
-| `mobile/app/rules/index.tsx:275` | tp-no-extras | tp(                   'Свидетельство SRC, симулятор ICOM с голосом, 26 заданий U |
-
-### `mobile/app/simulator-basics/index.tsx` (1)
-
-| Location | Kind | Snippet |
-| --- | --- | --- |
-| `mobile/app/simulator-basics/index.tsx:185` | tp-no-extras | tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)') |
+| `mobile/src/simulator/SimWebView.tsx:263` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { setLoading(false); setFail... |

@@ -114,7 +114,7 @@ export function WindPod(props: {
         onClick={() =>
           setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }))
         }
-        className={`w-full ${compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} rounded-md border font-semibold transition uppercase tracking-wider`}
+        className={`w-full min-h-11 ${compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} rounded-md border font-semibold transition uppercase tracking-wider`}
         style={{
           borderColor: 'rgba(0, 212, 255, 0.22)',
           background: 'rgba(0, 212, 255, 0.08)',

@@ -2,8 +2,11 @@ import { words, type Language } from "../../../lib/product/catalog";
 import type { SailLesson } from "../../../data/sailing-lab/course";
 import { mainsheetCopy, mainsheetDrawing, mainsheetReadout } from "./mainsheet-diagram";
 import { shapeCopy, shapeDrawing, shapeReadout } from "./shape-diagrams";
+import { lineBenchDrawing, lineBenchExample } from "../rig/line-bench-diagram";
+import { lineCopy } from "../../../data/sailing-lab/line-bench-copy";
 
 export const diagramCopy = {
+  winch: lineCopy.legend,
   vang: shapeCopy.vang,
   outhaul: shapeCopy.outhaul,
   mainsheet: mainsheetCopy.description,
@@ -22,6 +25,7 @@ export const diagramCopy = {
 };
 
 export function diagramOptions(kind: SailLesson["diagram"], lang: Language) {
+  if (kind === "winch") return [lineCopy.clutch, lineCopy.winch, lineCopy.paidOut].map((label, value) => ({ value, label: label[lang] }));
   if (kind === "vang" || kind === "outhaul") return shapeCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "mainsheet") return mainsheetCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "wind") return [0, 4, 8].map(value => ({ value, label: `${value} kn` }));
@@ -48,7 +52,9 @@ export function windExample(boatSpeed: number) {
 export function sailDiagram(kind: SailLesson["diagram"], selection: number): string {
   selection = Number.isFinite(selection) ? selection : 0;
   let drawing = "";
-  if (kind === "vang" || kind === "outhaul") {
+  if (kind === "winch") {
+    drawing = lineBenchDrawing(lineBenchExample(selection));
+  } else if (kind === "vang" || kind === "outhaul") {
     drawing = shapeDrawing(kind, selection);
   } else if (kind === "mainsheet") {
     drawing = mainsheetDrawing(selection);

@@ -14,7 +14,7 @@ beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); mockR
 
 test("menu searches every section and opens the requested screen directly", async () => {
   const view = renderWithProviders(<Menu />);
-  await waitFor(() => view.getByText("Main sections"));
+  await waitFor(() => view.getByText("All sections"));
   fireEvent.changeText(view.getByLabelText("Search sections"), "radio");
   expect(view.queryByText("3D Boat")).toBeNull();
   fireEvent.press(view.getByText("SRC radio"));
@@ -24,11 +24,11 @@ test("menu searches every section and opens the requested screen directly", asyn
   expect(mockPush).toHaveBeenCalledWith("/simulator2");
 });
 
-test("menu provides a way home and an understandable empty result", async () => {
+test("menu includes settings and an understandable empty result", async () => {
   const view = renderWithProviders(<Menu />);
-  await waitFor(() => view.getByText("Main sections"));
-  fireEvent.press(view.getByText("Home"));
-  expect(mockReplace).toHaveBeenCalledWith("/");
+  await waitFor(() => view.getByText("All sections"));
+  fireEvent.press(view.getByText("Settings"));
+  expect(mockPush).toHaveBeenCalledWith("/settings");
   fireEvent.changeText(view.getByLabelText("Search sections"), "does not exist");
   expect(view.getByText("No matching section. Try another word.")).toBeTruthy();
 });

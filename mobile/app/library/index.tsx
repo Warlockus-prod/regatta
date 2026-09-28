@@ -1,3 +1,3 @@
-import { ProductHub } from "../../src/navigation/ProductHub";
+import { Redirect } from "expo-router";
 
-export default function Page() { return <ProductHub section="library" />; }
+export default function Page() { return <Redirect href="/menu" />; }

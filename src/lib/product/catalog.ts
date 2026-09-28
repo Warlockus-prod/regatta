@@ -35,6 +35,8 @@ export const destinations: Destination[] = [
   { id: "gallery", section: "library", web: "/gallery", native: "/gallery", title: words("Галерея", "Gallery", "Galeria", "Galería", "Galerie", "Galerie", "Galleria") },
   { id: "ask", section: "library", web: null, native: "/ask", online: true, title: words("Спросить ассистента", "Ask the assistant", "Zapytaj asystenta", "Pregunta al asistente", "Demander à l'assistant", "Assistenten fragen", "Chiedi all'assistente") },
   { id: "settings", section: "library", web: null, native: "/settings", title: words("Настройки", "Settings", "Ustawienia", "Ajustes", "Réglages", "Einstellungen", "Impostazioni") },
+  { id: "support", section: "library", web: "/support", native: null, title: words("Поддержка", "Support", "Pomoc", "Soporte", "Assistance", "Support", "Assistenza") },
+  { id: "privacy", section: "library", web: "/privacy", native: null, title: words("Конфиденциальность", "Privacy", "Prywatność", "Privacidad", "Confidentialité", "Datenschutz", "Privacy") },
 ];
 export function sectionForPath(path: string, platform: "web" | "native"): Section {
   const clean = path.split(/[?#]/)[0].replace(/\/$/, "") || "/";

@@ -1,5 +1,5 @@
-import { ProductHub } from "../src/navigation/ProductHub";
+import { ProductMenu } from "../src/navigation/ProductMenu";
 
 export default function Menu() {
-  return <ProductHub section="library" menu />;
+  return <ProductMenu />;
 }
