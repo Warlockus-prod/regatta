@@ -312,7 +312,7 @@ interface QuizSectionProps {
 type Phase =
   | { kind: 'intro' }
   | { kind: 'question'; index: number; pickedId?: string; revealed: boolean }
-  | { kind: 'result'; score: number; recorded: boolean };
+  | { kind: 'result'; score: number };
 
 /**
  * In-screen quiz state machine. Lives next to the lesson copy so users
@@ -320,7 +320,6 @@ type Phase =
  * the quiz wasn't needed for v1.
  */
 function QuizSection({
-  lessonId,
   questions,
   previousScore,
   previousTotal,
@@ -390,17 +389,6 @@ function QuizSection({
       fr: 'Terminer le quiz',
       de: 'Quiz beenden',
       it: 'Termina il quiz',
-    },
-  );
-  const markCompleteLabel = tp(
-    'Отметить выполненным',
-    'Mark complete',
-    'Oznacz jako ukończoną',
-    {
-      es: 'Marcar como completada',
-      fr: 'Marquer comme terminée',
-      de: 'Als erledigt markieren',
-      it: 'Segna come completata',
     },
   );
   const tryAgainLabel = tp('Попробовать снова', 'Try again', 'Spróbuj ponownie', {
@@ -537,7 +525,10 @@ function QuizSection({
                   for (const question of questions) {
                     if (answers[question.id]) score += 1;
                   }
-                  setPhase({ kind: 'result', score, recorded: false });
+                  // A finished check is evidence either way: record it now,
+                  // so Back from the result screen keeps it.
+                  onRecord(score, questions.length);
+                  setPhase({ kind: 'result', score });
                 } else {
                   setPhase({
                     kind: 'question',
@@ -631,21 +622,8 @@ function QuizSection({
       </Text>
       <Text variant="body" style={styles.resultBody}>{passNote}</Text>
       <View style={styles.quizCta}>
-        {!phase.recorded ? (
-          <Button
-            variant="primary"
-            onPress={() => {
-              onRecord(phase.score, total);
-              setPhase({ ...phase, recorded: true });
-            }}
-            accessibilityHint={lessonId}
-          >
-            {markCompleteLabel}
-          </Button>
-        ) : null}
-        <View style={styles.tryAgainSpacer} />
         <Button
-          variant="secondary"
+          variant={passed ? 'secondary' : 'primary'}
           onPress={() => {
             setAnswers({});
             setPhase({ kind: 'question', index: 0, revealed: false });
@@ -776,8 +754,5 @@ const styles = StyleSheet.create({
   },
   resultBody: {
     lineHeight: 22,
-  },
-  tryAgainSpacer: {
-    height: 0,
   },
 });

@@ -190,6 +190,38 @@ describe('R2.1 the sail course overview keeps the unfinished lesson', () => {
 });
 
 describe('the lesson screen itself', () => {
+  const answerAll = async (view: ReturnType<typeof renderWithProviders>, pick: 'right' | 'wrong') => {
+    const { getQuizForLesson } = jest.requireActual('../src/bootcamp/quiz-data') as typeof import('../src/bootcamp/quiz-data');
+    const questions = getQuizForLesson('wind-direction');
+    fireEvent.press(await waitFor(() => view.getByText('Start quiz')));
+    for (let i = 0; i < questions.length; i += 1) {
+      const q = questions[i]!;
+      const option = q.options.find((o) => (pick === 'right' ? o.correct : !o.correct))!;
+      fireEvent.press(await waitFor(() => view.getByText(option.label.en)));
+      fireEvent.press(view.getByText('Check answer'));
+      fireEvent.press(await waitFor(() => view.getByText(i === questions.length - 1 ? 'Finish quiz' : 'Next question')));
+    }
+  };
+
+  it('finishing a passed check records it at once: Back right away keeps it', async () => {
+    const view = renderWithProviders(<BootcampLesson />);
+    await answerAll(view, 'right');
+    await waitFor(() => view.getByText(/3 of 3/));
+    // No further tap: the result is already stored.
+    const snapshot = await readLearningSnapshot();
+    expect(snapshot.bootcamp.quizResults['wind-direction']).toMatchObject({ score: 3, total: 3 });
+    expect(view.queryByText('Mark complete')).toBeNull();
+    await waitFor(() => view.getByText('Lesson passed'));
+  });
+
+  it('finishing a failed check records the attempt, not a pass', async () => {
+    const view = renderWithProviders(<BootcampLesson />);
+    await answerAll(view, 'wrong');
+    const snapshot = await readLearningSnapshot();
+    expect(snapshot.bootcamp.quizResults['wind-direction']).toMatchObject({ score: 0, total: 3 });
+    expect(view.queryByText('Lesson passed')).toBeNull();
+  });
+
   it('opening the practice and coming back leaves the lesson not passed', async () => {
     const view = renderWithProviders(<BootcampLesson />);
     fireEvent.press(await waitFor(() => view.getByText('Open')));
