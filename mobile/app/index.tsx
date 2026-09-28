@@ -192,8 +192,10 @@ const styles = StyleSheet.create({
   fill: { height: 6, borderRadius: 3, backgroundColor: colors.accentCyan },
   progressLabel: { fontSize: 13, lineHeight: 18, color: colors.textSecondary, fontWeight: "600" },
   section: { gap: 12 },
-  sectionHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
-  sectionTitle: { fontSize: 20, lineHeight: 26, fontWeight: "700", color: colors.textPrimary, flexShrink: 1 },
+  // Wraps: with large text the link moves under the title instead of squeezing
+  // it until a word breaks ("Lernweg/e").
+  sectionHead: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", columnGap: 12 },
+  sectionTitle: { fontSize: 20, lineHeight: 26, fontWeight: "700", color: colors.textPrimary },
   sectionLink: { minHeight: 44, justifyContent: "center" },
   sectionLinkText: { fontSize: 15, fontWeight: "600", color: colors.accentCyan },
   groupShadow: { backgroundColor: colors.bgCard, borderRadius: radii.card, ...shadow.card },
