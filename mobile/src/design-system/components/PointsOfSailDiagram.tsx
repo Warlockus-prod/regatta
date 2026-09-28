@@ -171,7 +171,9 @@ export function PointsOfSailDiagram({
           key: `${s.id}-${sign}`,
           name,
           x,
-          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 20 : 0),
+          // Beam reach names are clamped inward at the sides; keep them below
+          // the boat glyph (which sits 20 lower too) so they do not overlap.
+          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 36 : 0),
           muted: false,
         });
       }
