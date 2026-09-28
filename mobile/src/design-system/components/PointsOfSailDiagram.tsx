@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Text as SvgText } from 'react-native-svg';
+import Svg, { G, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing } from '../tokens';
 import { pointOfSailAt } from '../../courses/polar';
@@ -283,17 +283,35 @@ function DiagramLabels({
           {windLabel.toUpperCase()}
         </SvgText>
         {sectorNamePositions.map((c) => (
-          <SvgText
-            key={c.key}
-            x={c.x}
-            y={c.y + 4}
-            fill={c.muted ? pointOfSailTone('in-irons').ink : colors.textSecondary}
-            fontSize={10}
-            fontWeight="700"
-            textAnchor="middle"
-          >
-            {c.name}
-          </SvgText>
+          <G key={c.key}>
+            {/* Rim names sit where the ring passes: a paper-coloured halo
+                under the letters keeps the ring from cutting through them. */}
+            {!c.muted && (
+              <SvgText
+                x={c.x}
+                y={c.y + 4}
+                fill={colors.bgPrimary}
+                stroke={colors.bgPrimary}
+                strokeWidth={4}
+                strokeLinejoin="round"
+                fontSize={10}
+                fontWeight="700"
+                textAnchor="middle"
+              >
+                {c.name}
+              </SvgText>
+            )}
+            <SvgText
+              x={c.x}
+              y={c.y + 4}
+              fill={c.muted ? pointOfSailTone('in-irons').ink : colors.textSecondary}
+              fontSize={10}
+              fontWeight="700"
+              textAnchor="middle"
+            >
+              {c.name}
+            </SvgText>
+          </G>
         ))}
         {[30, 60, 90, 120, 150, 210, 240, 270, 300, 330].map((deg) => {
           const rad = ((deg - 90) * Math.PI) / 180;
