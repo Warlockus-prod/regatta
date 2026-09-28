@@ -5,10 +5,9 @@ import { useI18n } from '../../src/i18n/context';
 import { Icon, type IconName, Screen, Text } from '../../src/design-system/components';
 import { BOOTCAMP_TOTAL_MINUTES, bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { useBootcampProgress } from '../../src/persistence/bootcamp';
 import { getLessonDay } from '../../src/bootcamp/days';
 import { lessonStatus, nextBootcampLesson, passedLessonIds } from '../../src/bootcamp/status';
-import { useBootcampQuiz } from '../../src/persistence/bootcamp-quiz';
+import { useLearningSnapshot } from '../../src/home/useLearningSnapshot';
 import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
 import { destinations } from '../../../src/lib/product/catalog';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
@@ -50,14 +49,15 @@ const LESSON_ICON: Record<string, IconName> = {
 export default function BootcampIndex() {
   const { tp, lang } = useI18n();
   const router = useRouter();
-  const { completedIds, doneIds, lastViewedLessonId, ready } = useBootcampProgress();
+  // Re-read on every focus: coming Back from a lesson or its check must show
+  // the new state (the lesson screen writes through the same storage queue).
+  const snapshot = useLearningSnapshot();
   // At accessibility text sizes the icon tile gives its width to the title.
   const roomy = useWindowDimensions().fontScale < 1.6;
-  const { results: quizResults, ready: quizReady } = useBootcampQuiz();
   useLearningBookmark('bootcamp');
   const course = destinations.find((d) => d.id === 'course')!;
-  const loaded = ready && quizReady;
-  const evidence = { viewedIds: completedIds, quizResults, doneIds, lastViewedLessonId };
+  const loaded = snapshot !== null;
+  const evidence = snapshot?.bootcamp ?? { viewedIds: new Set<string>(), quizResults: {}, doneIds: new Set<string>(), lastViewedLessonId: null };
   const passed = loaded ? passedLessonIds(evidence).size : 0;
   const next = loaded ? nextBootcampLesson(evidence) : null;
   const total = bootcampLessons.length;

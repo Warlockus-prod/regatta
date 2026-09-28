@@ -111,8 +111,8 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
   `accentCyan` means "action colour" (blue on paper, cyan on dark). Also `spacing`,
   `radii` (`control` 14, `card` 20, `photo` 24, `sheet` 28), `shadow`/`darkShadow`,
   `glow`/`darkGlow`. The web keeps its own palette (the site is not on v3 yet).
-- **Navigation:** five equal tabs from `navigation/tabs.ts`; the fifth is Menu (the whole
-  catalog, search, "My progress"). No Menu button in headers: where the tab bar is
+- **Navigation:** five equal tabs from `navigation/tabs.ts`; the fifth is Menu (title,
+  search, then the whole catalog; "My progress" is a collapsed row after the catalog). No Menu button in headers: where the tab bar is
   hidden (instrument screens) the explicit way out is a chevron-only Back.
 - **Large text:** tab labels stay on one line (shrink to fit, growth capped at 1.3x),
   Back is chevron-only on every screen, the Home photo title grows at most 1.4x, and
@@ -153,7 +153,8 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, ...). |
 | `home/` | v3 Home and Menu progress: `copy.ts` (app-only strings, 7 languages, "N of TOTAL" / "Label: N" counts), `continue.ts` (`resolveContinue`: which course and lesson the Continue card offers, from the bookmark), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp evidence, sail course, bookmark and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
 | `bootcamp/status.ts` | Lesson state from evidence: `passed` needs a passed quiz (>= 70%) or, for a lesson without a quiz, an explicit done mark; the legacy "completed" key means viewed. `nextBootcampLesson`, `passedLessonIds`. |
-| `persistence/learning-bookmark.ts` | `regatta.learning.bookmark.v1`: last course (bootcamp, sails, radio, motor) and lesson, written on focus by the course screens; unknown IDs degrade to the course. |
+| `persistence/learning-bookmark.ts` | `regatta.learning.bookmark.v1`: last course (bootcamp, sails, radio, motor) and lesson, written on focus by the course screens, plus `positions` (last lesson per course), so an overview visit keeps the unfinished lesson and IDs never cross courses; unknown IDs degrade to the course. |
+| `persistence/serial.ts` | One queue for the learning-progress keys: reads and read-merge-writes run in order, so an early write cannot replace stored history and a screen re-reading on focus sees writes queued before it. Bootcamp, quiz and bookmark IO go through it. |
 | `navigation/tabs.ts` | Native tab model over the shared catalog: Home, Learn, Practice, Race, Menu (`/menu`); `tabForPath` puts reference pages under Menu. `/library` redirects to `/menu`. |
 | `courses/tones.ts` | Paper tones for the points-of-sail wheel and course cards (the shared data keeps its web colours). |
 | `replay/`, `leaderboard/`, `multiplayer/`, `onboarding/` | feature helpers. |

@@ -1,13 +1,13 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import Svg, { Circle, Path } from "react-native-svg";
 import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
 import { sailLessons } from "../../../src/data/sailing-lab/course";
 import { useI18n } from "../i18n/context";
-import { Button, Card, ListRow, Screen, Text } from "../design-system/components";
+import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors, radii, shadow } from "../design-system/tokens";
 import { fetchDaily, type DailyChallenge } from "../api/daily";
 import { PhotoCard } from "../home/PhotoCard";
@@ -61,7 +61,7 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     <Stack.Screen options={{ title, headerShown: false, animation: "fade" }} />
     <ScrollView contentContainerStyle={[styles.content, { paddingTop: insets.top + 8 }]} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
-      <Text style={styles.intro}>{isMenu ? copy.menuIntro[lang] : current.description[lang]}</Text>
+      {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={() => router.push(solo.native as Href)} />}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
@@ -73,10 +73,10 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
         </View>
         {query ? <Button variant="ghost" onPress={() => setQuery("")}>{copy.clear[lang]}</Button> : null}
       </View>}
-      {isMenu && !query.trim() && <MyProgress />}
       {groups.filter(g => g.entries.length).map(group => <Group key={group.id} title={group.title}>
         {group.entries.map((entry, index) => row(entry, index, group.entries.length))}
       </Group>)}
+      {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
       {section === "practice" && <Button variant="ghost" onPress={() => router.push("/simulator")}>{copy.fallback[lang]}</Button>}
       {section === "race" && daily && <Group title="">
@@ -86,10 +86,15 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   </Screen>;
 }
 
-/** Counts from this device only, each named for what it counts. */
+/**
+ * Counts from this device only, each named for what it counts. It sits after
+ * the catalog and starts collapsed, so the Menu opens on its sections even
+ * with the largest text.
+ */
 function MyProgress() {
   const { lang } = useI18n();
   const snapshot = useLearningSnapshot();
+  const [open, setOpen] = useState(false);
   if (!snapshot) return null;
   const passed = passedLessonIds(snapshot.bootcamp).size;
   const rows = [
@@ -97,14 +102,24 @@ function MyProgress() {
     { key: "sails", title: destinations.find(d => d.id === "sails")!.title[lang], value: checkedOf(snapshot.sail.checked.length, sailLessons.length)[lang] },
     { key: "races", title: sections.find(s => s.id === "race")!.title[lang], value: racesSaved(snapshot.races)[lang] },
   ];
-  return <Card style={styles.progress}>
-    <Text variant="eyebrow" accessibilityRole="header">{homeCopy.myProgress[lang]}</Text>
-    {rows.map(r => <View key={r.key} style={styles.progressRow} accessible accessibilityLabel={`${r.title}. ${r.value}`}>
-      <Text style={styles.progressTitle}>{r.title}</Text>
-      <Text style={styles.progressValue}>{r.value}</Text>
-    </View>)}
-    <Text style={styles.progressNote}>{homeCopy.onDevice[lang]}</Text>
-  </Card>;
+  return <View style={styles.group}>
+    <View style={styles.groupShadow}><View style={styles.groupCard}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(v => !v)}
+        style={({ pressed }) => [styles.progressHead, pressed && styles.progressHeadPressed]}>
+        <Text style={styles.progressHeadText}>{homeCopy.myProgress[lang]}</Text>
+        <Svg width={14} height={8} viewBox="0 0 14 8" style={open ? styles.chevronOpen : undefined} accessibilityElementsHidden importantForAccessibility="no">
+          <Path d="M1.5 1.5 7 6.5l5.5-5" stroke={colors.textMuted} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      </Pressable>
+      {open && <View style={styles.progressBody}>
+        {rows.map(r => <View key={r.key} style={styles.progressRow} accessible accessibilityLabel={`${r.title}. ${r.value}`}>
+          <Text style={styles.progressTitle}>{r.title}</Text>
+          <Text style={styles.progressValue}>{r.value}</Text>
+        </View>)}
+        <Text style={styles.progressNote}>{homeCopy.onDevice[lang]}</Text>
+      </View>}
+    </View></View>
+  </View>;
 }
 
 function Group({ title, children }: { title: string; children: ReactNode }) {
@@ -126,7 +141,11 @@ const styles = StyleSheet.create({
   field: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 48, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(18, 50, 71, 0.18)", backgroundColor: colors.bgCard, borderRadius: radii.control, paddingHorizontal: 14 },
   input: { flex: 1, paddingVertical: 12, fontSize: 16, color: colors.textPrimary },
   empty: { color: colors.textSecondary },
-  progress: { gap: 12, padding: 18 },
+  progressHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 52, paddingHorizontal: 16, paddingVertical: 14 },
+  progressHeadPressed: { backgroundColor: colors.bgCardHover },
+  progressHeadText: { fontSize: 16, lineHeight: 22, fontWeight: "600", color: colors.textPrimary, flexShrink: 1 },
+  chevronOpen: { transform: [{ rotate: "180deg" }] },
+  progressBody: { gap: 12, paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderCyanFaint, paddingTop: 14 },
   progressRow: { gap: 2 },
   progressTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600", color: colors.textPrimary },
   progressValue: { fontSize: 14, lineHeight: 20, color: colors.textSecondary },

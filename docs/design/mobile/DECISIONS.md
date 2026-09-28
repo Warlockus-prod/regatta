@@ -30,6 +30,12 @@ their step lives inside the embedded course. Unknown IDs degrade to the course l
 - Counts say what they count ("Passed 2 of 8", "Theory checked: 3 of 12", "Races
   saved: 4").
 - The bootcamp reset in Settings clears the done marks and quiz results too.
+- All progress IO runs through one queue (`persistence/serial.ts`) as read-merge-write,
+  and the course path, Home and Menu re-read on focus (`useLearningSnapshot`), after the
+  Codex round 2 review found that opening a lesson before the first read replaced the
+  stored history and that the mounted course path showed stale results after Back.
+- The bookmark keeps the last lesson per course, so passing through a course overview
+  does not erase the unfinished lesson.
 
 ---
 

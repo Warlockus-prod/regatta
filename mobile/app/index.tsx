@@ -138,7 +138,7 @@ export default function Home() {
               <Text style={styles.progressLabel}>{card.progress.label}</Text>
             </View>}
           </>}
-          <Button size="large" disabled={!card} onPress={() => card && router.push(card.href)} accessibilityLabel={card?.action}>{card ? `${card.action}  →` : copy.start[lang]}</Button>
+          <Button size="large" disabled={!card} onPress={() => card && router.push(card.href)} accessibilityLabel={card?.action}>{card ? `${card.action}\u00a0→` : copy.start[lang]}</Button>
         </Card>
 
         <View style={styles.section}>

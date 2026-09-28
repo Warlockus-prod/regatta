@@ -41,9 +41,19 @@ test("menu holds the reference material and settings, each destination once", as
   expect(view.getByText("No matching section. Try another word.")).toBeTruthy();
 });
 
+test("menu opens on its sections; progress comes after them, collapsed", async () => {
+  const view = renderWithProviders(<Menu />);
+  await waitFor(() => view.getByText("My progress"));
+  expect(view.queryByText("Stored on this device.")).toBeNull();
+  const order = JSON.stringify(view.toJSON());
+  expect(order.indexOf("Sailing glossary")).toBeLessThan(order.indexOf("My progress"));
+  expect(order.indexOf("Working with sails")).toBeLessThan(order.indexOf("My progress"));
+});
+
 test("menu progress names what it counts and does not count viewed lessons as passed", async () => {
   await AsyncStorage.setItem("regatta.progress.bootcamp.v1", JSON.stringify(["wind-direction", "tacking"]));
   const view = renderWithProviders(<Menu />);
+  fireEvent.press(await waitFor(() => view.getByText("My progress")));
   await waitFor(() => view.getByText("Passed 0 of 8"));
   expect(view.getByText("Theory checked: 0 of 12")).toBeTruthy();
   expect(view.getByText("Races saved: 0")).toBeTruthy();

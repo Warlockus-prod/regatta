@@ -214,9 +214,10 @@ export function PointsOfSailDiagram({
                   <Path path={s.port} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
                 </Group>
               ))}
-              <Path path={tickPath} color={'rgba(18, 50, 71, 0.55)'} style="stroke" strokeWidth={1} />
+              {/* 0.75 ink: at least 4.5:1 over every sector fill, selected (0.26) or not. */}
+              <Path path={tickPath} color={'rgba(18, 50, 71, 0.75)'} style="stroke" strokeWidth={1} />
               <Path path={windArrowPath} color={colors.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
-              <Path path={ringPath} color={'rgba(18, 50, 71, 0.55)'} style="stroke" strokeWidth={1.5} />
+              <Path path={ringPath} color={'rgba(18, 50, 71, 0.75)'} style="stroke" strokeWidth={1.5} />
               {sectorBoats.map((b) => (
                 <Group
                   key={b.key}
