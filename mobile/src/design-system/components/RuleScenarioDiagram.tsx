@@ -25,7 +25,7 @@ export function RuleScenarioDiagram({
   return (
     <View style={styles.frame}>
       <Svg viewBox="0 0 200 140" width="100%" height={184}>
-        <Circle cx={100} cy={70} r={66} fill="#0d2847" opacity={0.95} />
+        <Circle cx={100} cy={70} r={66} fill={colors.waterLight} opacity={0.95} />
         <ScenarioSvg id={scenario.svg} />
       </Svg>
       {caption ? (
@@ -390,7 +390,7 @@ function CollisionAvoid() {
     <G>
       <Boat x={70} y={72} rot={45} color={colors.danger} />
       <Boat x={130} y={72} rot={-45} color={colors.danger} />
-      <Circle cx={100} cy={70} r={12} fill="rgba(255, 68, 68, 0.18)" stroke={colors.danger} strokeWidth={1.2} />
+      <Circle cx={100} cy={70} r={12} fill="rgba(179, 38, 30, 0.18)" stroke={colors.danger} strokeWidth={1.2} />
       <SvgText x={100} y={74} textAnchor="middle" fontSize={13} fontWeight="800" fill={colors.danger}>!</SvgText>
       <SvgText x={100} y={118} textAnchor="middle" fontSize={9} fill={colors.warning}>
         {tp('безопасность важнее правоты', 'safety beats being right', 'bezpieczeństwo ważniejsze niż racja', {
@@ -428,7 +428,7 @@ function Penalty() {
 
 const styles = StyleSheet.create({
   frame: {
-    backgroundColor: 'rgba(11, 30, 56, 0.55)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,

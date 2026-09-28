@@ -344,7 +344,7 @@ export default function Courses() {
           <View
             style={[
               styles.subCard,
-              { backgroundColor: 'rgba(0, 212, 255, 0.05)', borderColor: 'rgba(0, 212, 255, 0.15)' },
+              { backgroundColor: 'rgba(0, 110, 166, 0.05)', borderColor: 'rgba(0, 110, 166, 0.15)' },
             ]}
           >
             <Text variant="caption" style={[styles.subCardTitle, { color: colors.accentCyan }]}>
@@ -402,7 +402,7 @@ export default function Courses() {
           <View
             style={[
               styles.subCard,
-              { backgroundColor: 'rgba(255, 170, 0, 0.05)', borderColor: 'rgba(255, 170, 0, 0.15)' },
+              { backgroundColor: 'rgba(138, 97, 0, 0.05)', borderColor: 'rgba(138, 97, 0, 0.15)' },
             ]}
           >
             <Text variant="caption" style={[styles.subCardTitle, { color: colors.warning }]}>
@@ -692,7 +692,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0, 212, 255, 0.10)',
+    borderTopColor: 'rgba(0, 110, 166, 0.10)',
   },
   sailLabel: {
     fontSize: 11,

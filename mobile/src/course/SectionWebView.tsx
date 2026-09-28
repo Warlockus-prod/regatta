@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 10,
     borderWidth: 1,
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
+    backgroundColor: 'rgba(0, 110, 166, 0.12)',
     borderColor: colors.accentCyan,
   },
   btnPressed: { opacity: 0.7 },

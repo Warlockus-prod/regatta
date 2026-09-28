@@ -23,11 +23,11 @@ const CATEGORY_ORDER: GlossaryCategoryId[] = ['boat', 'sail', 'course', 'maneuve
  * a literal here to match the web source of truth.
  */
 const CATEGORY_COLORS: Record<GlossaryCategoryId, { fg: string; bg: string; border: string }> = {
-  boat: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
-  sail: { fg: colors.accentCyan, bg: 'rgba(0, 212, 255, 0.12)', border: 'rgba(0, 212, 255, 0.25)' },
-  course: { fg: colors.success, bg: 'rgba(68, 255, 136, 0.12)', border: 'rgba(68, 255, 136, 0.25)' },
-  maneuver: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
-  racing: { fg: colors.warning, bg: 'rgba(255, 170, 0, 0.12)', border: 'rgba(255, 170, 0, 0.25)' },
+  boat: { fg: colors.accentCyan, bg: 'rgba(0, 110, 166, 0.12)', border: 'rgba(0, 110, 166, 0.25)' },
+  sail: { fg: colors.accentCyan, bg: 'rgba(0, 110, 166, 0.12)', border: 'rgba(0, 110, 166, 0.25)' },
+  course: { fg: colors.success, bg: 'rgba(0, 109, 112, 0.12)', border: 'rgba(0, 109, 112, 0.25)' },
+  maneuver: { fg: colors.warning, bg: 'rgba(138, 97, 0, 0.12)', border: 'rgba(138, 97, 0, 0.25)' },
+  racing: { fg: colors.warning, bg: 'rgba(138, 97, 0, 0.12)', border: 'rgba(138, 97, 0, 0.25)' },
   wind: { fg: colors.accentTeal, bg: 'rgba(0, 255, 204, 0.12)', border: 'rgba(0, 255, 204, 0.25)' },
   crew: { fg: '#8844ff', bg: 'rgba(136, 68, 255, 0.12)', border: 'rgba(136, 68, 255, 0.25)' },
 };
@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
   },
   search: {
     backgroundColor: colors.bgSecondary,
-    borderColor: 'rgba(0, 212, 255, 0.15)',
+    borderColor: 'rgba(0, 110, 166, 0.15)',
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,

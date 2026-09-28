@@ -2,7 +2,11 @@ import { fireEvent, waitFor } from "@testing-library/react-native";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 const mockPush = jest.fn();
-jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush }), useLocalSearchParams: () => ({}) }));
+jest.mock("expo-router", () => {
+  const { useEffect } = jest.requireActual("react");
+  // Home re-reads progress on every focus; in a test the screen is focused once.
+  return { Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush }), useLocalSearchParams: () => ({}), useFocusEffect: (effect: () => void | (() => void)) => useEffect(effect, [effect]) };
+});
 jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US" }] }));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -34,11 +38,19 @@ describe("Home entry flows", () => {
     fireEvent.press(view.getByRole("button", { name: "Continue learning" }));
     expect(mockPush).toHaveBeenCalledWith({ pathname: "/bootcamp/[id]", params: { id: "how-sail-works" } });
   });
-  it("honors persisted Polish language and keeps practice reachable", async () => {
+  it("honors persisted Polish language and keeps the race reachable", async () => {
     await AsyncStorage.setItem("regatta.lang.v1", "pl");
     const view = renderWithProviders(<Home />);
     await waitFor(() => view.getByText("Żeglarstwo. Krok po kroku."));
-    fireEvent.press(view.getByText("Trening"));
-    expect(mockPush).toHaveBeenCalledWith("/simulators");
+    fireEvent.press(view.getByText("Wyścig solo"));
+    expect(mockPush).toHaveBeenCalledWith("/game");
+  });
+  it("shows real progress across courses and races once storage is read", async () => {
+    await AsyncStorage.setItem("regatta.progress.bootcamp.v1", JSON.stringify(["wind-direction"]));
+    await AsyncStorage.setItem("regatta.progress.bootcamp.lastViewed.v1", JSON.stringify("points-of-sail"));
+    const view = renderWithProviders(<Home />);
+    await waitFor(() => view.getByLabelText("Lessons: 1/8"));
+    expect(view.getByLabelText("Races: 0")).toBeTruthy();
+    expect(view.getByText("Lessons: 8 · done: 1")).toBeTruthy();
   });
 });

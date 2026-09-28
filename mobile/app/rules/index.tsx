@@ -370,12 +370,12 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   badgeRrs: {
-    backgroundColor: 'rgba(255, 170, 0, 0.12)',
-    borderColor: 'rgba(255, 170, 0, 0.30)',
+    backgroundColor: 'rgba(138, 97, 0, 0.12)',
+    borderColor: 'rgba(138, 97, 0, 0.30)',
   },
   badgeColregs: {
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
-    borderColor: 'rgba(0, 212, 255, 0.30)',
+    backgroundColor: 'rgba(0, 110, 166, 0.12)',
+    borderColor: 'rgba(0, 110, 166, 0.30)',
   },
   badgeText: {
     fontSize: 12,
@@ -440,14 +440,14 @@ const styles = StyleSheet.create({
   },
   linkRowAmber: {
     borderWidth: 1,
-    borderColor: 'rgba(255, 170, 0, 0.30)',
+    borderColor: 'rgba(138, 97, 0, 0.30)',
     borderRadius: radii.md,
     paddingHorizontal: spacing.md,
     paddingVertical: spacing.sm,
     marginTop: spacing.sm,
   },
   linkRowAmberPressed: {
-    backgroundColor: 'rgba(255, 170, 0, 0.10)',
+    backgroundColor: 'rgba(138, 97, 0, 0.10)',
   },
   linkTextAmber: {
     color: colors.warning,

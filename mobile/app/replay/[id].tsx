@@ -74,7 +74,8 @@ import {
   scoreCourse,
   type CourseMarkScreen,
 } from '../../src/game/course';
-import { colors, glow, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { darkColors as colors, darkGlow as glow, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 
 const SPEED_OPTIONS: ReadonlyArray<1 | 2 | 4> = [1, 2, 4];
 
@@ -181,7 +182,7 @@ function buildEventMarkers(
   return out;
 }
 
-export default function Replay() {
+function Replay() {
   const { tp } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ id?: string }>();
@@ -519,7 +520,7 @@ export default function Replay() {
   if (!raceId || (hydrated && !race)) {
     return (
       <Screen>
-        <Stack.Screen options={{ title: screenTitle }} />
+        <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
         <ScrollView contentContainerStyle={styles.scroll}>
           <EmptyState
             icon="flag"
@@ -539,7 +540,7 @@ export default function Replay() {
     // jump once the record arrives.
     return (
       <Screen>
-        <Stack.Screen options={{ title: screenTitle }} />
+        <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
         <View style={styles.scroll}>
           <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]} />
         </View>
@@ -554,7 +555,7 @@ export default function Replay() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ title: screenTitle }} />
+      <Stack.Screen options={{ ...darkStackOptions, title: screenTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.summary}>
           <View style={styles.summaryHeader}>
@@ -982,3 +983,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 });
+
+/** Instrument screen: dark ocean palette, see design-system/surface. */
+export default function ReplayRoute() {
+  return <DarkSurface><Replay /></DarkSurface>;
+}

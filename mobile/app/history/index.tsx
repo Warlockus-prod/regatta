@@ -402,8 +402,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 68, 68, 0.40)',
-    backgroundColor: 'rgba(255, 68, 68, 0.10)',
+    borderColor: 'rgba(179, 38, 30, 0.40)',
+    backgroundColor: 'rgba(179, 38, 30, 0.10)',
   },
   clearButtonPressed: {
     opacity: 0.84,

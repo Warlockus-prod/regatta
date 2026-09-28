@@ -104,10 +104,23 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
 
 ## 3. Design system (`mobile/src/design-system/`)
 
-- **Tokens** (`tokens.ts`): dark-ocean theme - `colors` (`bgPrimary`, `accentCyan`,
-  `success`, `warning`, `textPrimary`, surfaces/borders), `spacing` scale, `radii`, glow.
-  Mirrors the web's `--accent-cyan` / `--bg-primary` CSS vars.
-- **Shared components** (barrel `components/index.ts`): `Screen`, `Text` (6 variants),
+- **Tokens** (`tokens.ts`): two palettes with the same keys. `lightColors` is the v3
+  "paper" look (paper `#f7f5f0`, ink `#123247`, action blue `#006ea6`, teal
+  confirmation `#006d70`, sand chips `#e9ddc7`) and is the app default `colors`.
+  `darkColors` is the dark-ocean palette of builds up to 1.6.3. Key names are roles:
+  `accentCyan` means "action colour" (blue on paper, cyan on dark). Also `spacing`,
+  `radii` (`control` 14, `card` 20, `photo` 24, `sheet` 28), `shadow`/`darkShadow`,
+  `glow`/`darkGlow`. The web keeps its own palette (the site is not on v3 yet).
+- **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
+  offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
+  import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
+  `EmptyState`, `WindNowCard` follow the surface via `bySurface()`. `darkStackOptions`
+  gives those screens a dark header and light status bar icons.
+- **Status bar:** the app is scene-based (`plugins/with-uiscene.js`), and iOS ignores the
+  UIApplication status bar API there, so `UIViewControllerBasedStatusBarAppearance` is on
+  and each screen sets `statusBarStyle` through its stack options (root default `dark`;
+  Home switches between `light` over the photo and `dark` over paper).
+- **Shared components** (barrel `components/index.ts`): `Screen`, `Text` (7 variants, incl. `eyebrow`),
   `Card`, `Button`, `Icon` (SVG glyphs), `ListRow`, `EmptyState`, `Skeleton`,
   `PulsePill`, `Wordmark`, `Slider`, `OfflineBanner`, `ErrorBoundary`, `PlaceholderScreen`.
 - **Rich/visual components** (each used by one screen family): `SkiaYacht` (Skia yacht
@@ -131,6 +144,7 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, ...). |
+| `home/` | v3 Home: `copy.ts` (Home-only strings, 7 languages, "Label: N" counts), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp, sail course and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
 | `replay/`, `leaderboard/`, `multiplayer/`, `onboarding/` | feature helpers. |
 
 **Content is DUPLICATED, not live-imported:** web `src/data/*.ts` (source of truth) ->

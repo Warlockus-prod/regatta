@@ -50,7 +50,7 @@ export function LessonDiagram({ lessonId, caption }: LessonDiagramProps) {
           >
             <Stop offset="0" stopColor={colors.accentCyan} stopOpacity={0.10} />
             <Stop offset="0.7" stopColor={colors.bgCard} stopOpacity={0.85} />
-            <Stop offset="1" stopColor={colors.bgPrimary} stopOpacity={1} />
+            <Stop offset="1" stopColor={colors.bgCard} stopOpacity={1} />
           </RadialGradient>
         </Defs>
         <Rect
@@ -276,13 +276,13 @@ function PointsOfSailMiniDiagram() {
   const sectors: Array<{ a0: number; a1: number; fill: string; label: string }> = useMemo(
     () => [
       { a0: -45, a1: 45, fill: 'url(#noGoGrad)', label: 'no-go' },
-      { a0: 45, a1: 70, fill: 'rgba(0, 212, 255, 0.18)', label: 'beat' },
+      { a0: 45, a1: 70, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
       { a0: 70, a1: 110, fill: 'url(#reachGrad)', label: 'reach' },
-      { a0: 110, a1: 160, fill: 'rgba(0, 212, 255, 0.18)', label: 'broad' },
-      { a0: 160, a1: 200, fill: 'rgba(255, 170, 0, 0.20)', label: 'run' },
-      { a0: 200, a1: 250, fill: 'rgba(0, 212, 255, 0.18)', label: 'broad' },
+      { a0: 110, a1: 160, fill: 'rgba(0, 110, 166, 0.18)', label: 'broad' },
+      { a0: 160, a1: 200, fill: 'rgba(138, 97, 0, 0.20)', label: 'run' },
+      { a0: 200, a1: 250, fill: 'rgba(0, 110, 166, 0.18)', label: 'broad' },
       { a0: 250, a1: 290, fill: 'url(#reachGrad)', label: 'reach' },
-      { a0: 290, a1: 315, fill: 'rgba(0, 212, 255, 0.18)', label: 'beat' },
+      { a0: 290, a1: 315, fill: 'rgba(0, 110, 166, 0.18)', label: 'beat' },
     ],
     [],
   );
@@ -675,10 +675,10 @@ function sectorPath(cx: number, cy: number, r: number, a0Deg: number, a1Deg: num
 
 const styles = StyleSheet.create({
   frame: {
-    backgroundColor: 'rgba(11, 30, 56, 0.55)',
+    backgroundColor: colors.bgCard,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
-    borderRadius: radii.md,
+    borderRadius: radii.card,
     padding: spacing.sm,
     overflow: 'hidden',
   },

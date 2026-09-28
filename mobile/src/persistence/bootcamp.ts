@@ -18,7 +18,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const STORAGE_KEY = 'regatta.progress.bootcamp.v1';
 const LAST_VIEWED_KEY = 'regatta.progress.bootcamp.lastViewed.v1';
 
-async function readCompletedIds(): Promise<Set<string>> {
+export async function readCompletedIds(): Promise<Set<string>> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return new Set();
@@ -38,7 +38,7 @@ async function writeCompletedIds(ids: Set<string>): Promise<void> {
   }
 }
 
-async function readLastViewedId(): Promise<string | null> {
+export async function readLastViewedId(): Promise<string | null> {
   try {
     const raw = await AsyncStorage.getItem(LAST_VIEWED_KEY);
     if (!raw) return null;

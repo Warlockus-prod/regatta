@@ -1,12 +1,14 @@
 import { Stack, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
-import { Card, Icon, type IconName, Screen, Text } from '../../src/design-system/components';
+import { Icon, type IconName, Screen, Text } from '../../src/design-system/components';
 import { BOOTCAMP_TOTAL_MINUTES, bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
-import { groupLessonsByDay } from '../../src/bootcamp/days';
-import { colors, spacing } from '../../src/design-system/tokens';
+import { groupLessonsByDay, summarizeContinue } from '../../src/bootcamp/days';
+import { destinations } from '../../../src/lib/product/catalog';
+import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 /**
  * Map each lesson id to a designer icon. Bootcamp lessons cover the
@@ -32,9 +34,10 @@ const LESSON_ICON: Record<string, IconName> = {
 };
 
 /**
- * Bootcamp index. The 8 lessons render under "Day N" headers - the
- * "race-ready in a week" arc - while the per-lesson Card and the
- * top-level "completed N of 8" line stay intact for parity with v0.2.
+ * Bootcamp index: the course path. Lessons sit under "Day N" headers (the
+ * "race-ready in a week" arc). Each row shows its state (done, next, not
+ * started); the next lesson is the raised white card, so the path reads at
+ * a glance. Counts come from the saved progress only.
  *
  * Lesson summary text comes through `legacyPick` so all 7 languages
  * resolve from the same JSON shape used on web (`{field}Ru`/`En`/`Pl`
@@ -43,14 +46,9 @@ const LESSON_ICON: Record<string, IconName> = {
 export default function BootcampIndex() {
   const { tp, lang } = useI18n();
   const router = useRouter();
-  const { isCompleted, completedIds, ready } = useBootcampProgress();
-
-  const headerTitle = tp('Bootcamp', 'Bootcamp', 'Bootcamp', {
-    es: 'Bootcamp',
-    fr: 'Bootcamp',
-    de: 'Bootcamp',
-    it: 'Bootcamp',
-  });
+  const { isCompleted, completedIds, lastViewedLessonId, ready } = useBootcampProgress();
+  const course = destinations.find((d) => d.id === 'course')!;
+  const next = ready ? summarizeContinue(completedIds, lastViewedLessonId).nextLesson : null;
 
   const summary = tp(
     `${bootcampLessons.length} уроков, около ${BOOTCAMP_TOTAL_MINUTES} мин в сумме - 7 дней до регаты`,
@@ -80,12 +78,17 @@ export default function BootcampIndex() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <Stack.Screen options={{ title: course.title[lang] }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.intro}>
-          <Text variant="caption">{summary}</Text>
+          <Text style={styles.summary}>{summary}</Text>
           {ready && completedIds.size > 0 ? (
-            <Text variant="muted" style={styles.progress}>{progressLine}</Text>
+            <View style={styles.progressBlock}>
+              <Text style={styles.progress}>{progressLine}</Text>
+              <View style={styles.track} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <View style={[styles.fill, { width: `${(completedIds.size / bootcampLessons.length) * 100}%` }]} />
+              </View>
+            </View>
           ) : null}
         </View>
 
@@ -117,13 +120,8 @@ export default function BootcampIndex() {
           return (
             <View key={day} style={styles.dayBlock}>
               <View style={styles.dayHeader}>
-                <Text style={styles.dayLabel}>{dayLabel.toUpperCase()}</Text>
-                <Text
-                  style={[
-                    styles.dayCount,
-                    dayComplete ? styles.dayCountDone : null,
-                  ]}
-                >
+                <Text variant="eyebrow">{dayLabel}</Text>
+                <Text style={[styles.dayCount, dayComplete ? styles.dayCountDone : null]}>
                   {dayProgress}
                 </Text>
               </View>
@@ -132,17 +130,22 @@ export default function BootcampIndex() {
                 const title = legacyPick(lesson, 'title', lang);
                 const lessonSummary = legacyPick(lesson, 'summary', lang);
                 const completed = isCompleted(lesson.id);
-                const meta = tp(
-                  `Урок ${lesson.order} (~${lesson.estMinutes} мин)`,
-                  `Lesson ${lesson.order} (~${lesson.estMinutes} min)`,
-                  `Lekcja ${lesson.order} (~${lesson.estMinutes} min)`,
-                  {
-                    es: `Lección ${lesson.order} (~${lesson.estMinutes} min)`,
-                    fr: `Leçon ${lesson.order} (~${lesson.estMinutes} min)`,
-                    de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min.)`,
-                    it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
-                  },
-                );
+                const current = !completed && next?.id === lesson.id;
+                const state = completed
+                  ? tp('пройден', 'done', 'ukończona', { es: 'completada', fr: 'terminée', de: 'abgeschlossen', it: 'completata' })
+                  : current
+                    ? tp('следующий', 'next', 'następna', { es: 'siguiente', fr: 'suivante', de: 'als Nächstes', it: 'prossima' })
+                    : null;
+                const meta = [
+                  tp(
+                    `Урок ${lesson.order}`,
+                    `Lesson ${lesson.order}`,
+                    `Lekcja ${lesson.order}`,
+                    { es: `Lección ${lesson.order}`, fr: `Leçon ${lesson.order}`, de: `Lektion ${lesson.order}`, it: `Lezione ${lesson.order}` },
+                  ),
+                  tp(`${lesson.estMinutes} мин`, `${lesson.estMinutes} min`, `${lesson.estMinutes} min`, { de: `${lesson.estMinutes} Min.` }),
+                  state,
+                ].filter(Boolean).join(' · ');
                 const lessonA11y = tp(
                   `Урок ${lesson.order}: ${title}${completed ? ', пройден' : ''}`,
                   `Lesson ${lesson.order}: ${title}${completed ? ', completed' : ''}`,
@@ -155,34 +158,29 @@ export default function BootcampIndex() {
                   },
                 );
                 return (
-                  <Card
+                  <Pressable
                     key={lesson.id}
                     onPress={() => router.push(`/bootcamp/${lesson.id}`)}
-                    style={styles.lesson}
+                    style={({ pressed }) => [styles.lesson, current && styles.lessonCurrent, pressed && styles.lessonPressed]}
+                    accessibilityRole="button"
                     accessibilityLabel={lessonA11y}
                     accessibilityState={{ selected: completed }}
                   >
-                    <View style={styles.lessonHeader}>
-                      <View style={styles.iconWrap}>
-                        <Icon
-                          name={LESSON_ICON[lesson.id] ?? 'compass'}
-                          size={20}
-                          color={completed ? colors.success : colors.textSecondary}
-                        />
-                        <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
-                      </View>
-                      <View style={styles.lessonText}>
-                        <Text variant="subtitle">{title}</Text>
-                        <Text variant="muted" style={styles.meta}>{meta}</Text>
-                      </View>
-                      {completed ? (
-                        <View style={styles.checkBadge}>
-                          <Icon name="check" size={14} color={colors.success} />
-                        </View>
-                      ) : null}
+                    <View style={[styles.iconTile, completed && styles.iconTileDone]}>
+                      <Icon
+                        name={LESSON_ICON[lesson.id] ?? 'compass'}
+                        size={24}
+                        color={completed ? colors.accentTeal : colors.textPrimary}
+                      />
+                      <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
                     </View>
-                    <Text variant="caption" style={styles.lessonSummary}>{lessonSummary}</Text>
-                  </Card>
+                    <View style={styles.lessonText}>
+                      <Text style={[styles.meta, completed && styles.metaDone, current && styles.metaCurrent]}>{meta}</Text>
+                      <Text style={styles.lessonTitle}>{title}</Text>
+                      <Text style={styles.lessonSummary} numberOfLines={2}>{lessonSummary}</Text>
+                    </View>
+                    <LessonState state={completed ? 'done' : current ? 'next' : 'todo'} />
+                  </Pressable>
                 );
               })}
             </View>
@@ -193,58 +191,98 @@ export default function BootcampIndex() {
   );
 }
 
+/** Done: teal disc with a check. Next: blue disc with a play mark. Else a ring. */
+function LessonState({ state }: { state: 'done' | 'next' | 'todo' }) {
+  return (
+    <Svg width={30} height={30} viewBox="0 0 30 30" style={styles.state} accessibilityElementsHidden importantForAccessibility="no">
+      {state === 'todo' ? (
+        <Circle cx={15} cy={15} r={13} stroke={colors.sandStrong} strokeWidth={2} fill="none" />
+      ) : (
+        <Circle cx={15} cy={15} r={14} fill={state === 'done' ? colors.accentTeal : colors.accentCyan} />
+      )}
+      {state === 'done' ? <Path d="m9.5 15.5 3.7 3.7 7.3-8" stroke="#ffffff" strokeWidth={2.2} fill="none" strokeLinecap="round" strokeLinejoin="round" /> : null}
+      {state === 'next' ? <Path d="M12.5 10.2v9.6l7.4-4.8z" fill="#ffffff" /> : null}
+    </Svg>
+  );
+}
+
 const styles = StyleSheet.create({
   scroll: {
     paddingBottom: spacing.xxl,
   },
   intro: {
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.xl - 4,
+    paddingTop: spacing.md,
+    gap: spacing.md,
+  },
+  summary: {
+    color: colors.textSecondary,
+    fontSize: 15,
+    lineHeight: 22,
+  },
+  progressBlock: {
+    gap: spacing.sm,
   },
   progress: {
-    marginTop: spacing.xs,
-    color: colors.success,
+    color: colors.textPrimary,
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  track: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.sand,
+    overflow: 'hidden',
+  },
+  fill: {
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.accentCyan,
   },
   dayBlock: {
-    marginTop: spacing.md,
+    marginTop: spacing.lg,
   },
   dayHeader: {
     flexDirection: 'row',
     alignItems: 'baseline',
     justifyContent: 'space-between',
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingHorizontal: spacing.xl - 4,
     paddingBottom: spacing.sm,
-  },
-  dayLabel: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.4,
   },
   dayCount: {
     color: colors.textMuted,
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '600',
-    letterSpacing: 0.4,
   },
   dayCountDone: {
-    color: colors.success,
+    color: colors.accentTeal,
   },
   lesson: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.md,
-  },
-  lessonHeader: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
+    gap: 14,
+    marginHorizontal: spacing.md,
+    paddingHorizontal: spacing.sm + 2,
+    paddingVertical: spacing.md,
+    borderRadius: radii.card,
   },
-  iconWrap: {
-    marginRight: spacing.md,
-    marginTop: 2,
-    width: 22,
+  lessonCurrent: {
+    backgroundColor: colors.bgCard,
+    ...shadow.card,
+  },
+  lessonPressed: {
+    backgroundColor: colors.bgCardHover,
+  },
+  iconTile: {
+    width: 56,
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: colors.sand,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  iconTileDone: {
+    backgroundColor: colors.surfaceSuccess,
   },
   emojiHidden: {
     position: 'absolute',
@@ -255,31 +293,32 @@ const styles = StyleSheet.create({
   },
   lessonText: {
     flex: 1,
+    gap: 2,
   },
   meta: {
-    marginTop: 2,
+    color: colors.textSecondary,
+    fontSize: 13,
+    lineHeight: 18,
+    fontWeight: '600',
   },
-  checkBadge: {
-    minWidth: 32,
-    height: 22,
-    paddingHorizontal: 8,
-    borderRadius: 11,
-    backgroundColor: colors.surfaceSuccess,
-    borderColor: colors.borderSuccess,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: spacing.sm,
-    marginTop: 2,
+  metaDone: {
+    color: colors.accentTeal,
   },
-  checkText: {
-    color: colors.success,
-    fontSize: 11,
+  metaCurrent: {
+    color: colors.accentCyan,
+  },
+  lessonTitle: {
+    color: colors.textPrimary,
+    fontSize: 17,
+    lineHeight: 22,
     fontWeight: '700',
-    letterSpacing: 0.5,
   },
   lessonSummary: {
-    marginTop: spacing.sm,
-    lineHeight: 18,
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  state: {
+    marginLeft: spacing.xs,
   },
 });

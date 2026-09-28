@@ -6,6 +6,36 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0013: v3 paper design: light app, dark instrument screens (2026-09-28, branch `design/v3`)
+
+**Status:** accepted for the design branch; ships only after the owner approves it.
+
+**Context.** The owner chose the Regatta v3 design (Claude Design export, audited in
+`docs/design/regatta-v3-master-plan.md`): warm paper, ink text, one blue action colour,
+real sea photos limited to heroes and covers. The app was dark-only, with 838 colour
+references baked into module-level StyleSheets, and the owner asked to redesign the app
+first and leave the site as it is.
+
+**Decision.** Swap the static palette: `colors` becomes the light "paper" palette and
+the dark-ocean one stays as `darkColors`. Instrument screens (simulators, race, replay,
+offline anatomy, web simulators) keep the dark palette explicitly through `<DarkSurface>`
+and `darkStackOptions`; the shared components pick their styles per surface. No runtime
+theme switch yet: a user-selectable dark mode needs every StyleSheet built per palette,
+which is a separate, larger change (see LIGHT_THEME_AND_RELEASE_SPEC.md).
+
+**Consequences.**
+
+- One coherent light app now, without touching 50 screens one by one; screens with
+  hardcoded dark colours were fixed where found (diagram frames, glossary badges,
+  course cards, settings switch); keep grepping for literal colours in new code.
+- Status bar icons are chosen per screen (scene-based app, see Design system notes).
+- The Home "Start/Continue" card and counts read the real saved progress only.
+- The site is unchanged; shared catalog and copy files are not edited, app-only strings
+  live in `mobile/src/home/copy.ts`.
+- iOS 26+ glass header buttons stay light on dark instrument screens (open item).
+
+---
+
 ## ADR-0012: UIScene through a local config plugin, not an Xcode downgrade or an Expo jump (2026-09-28)
 
 **Status:** accepted (hotfix 1.6.3, build 44).

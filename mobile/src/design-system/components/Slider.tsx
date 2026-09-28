@@ -7,7 +7,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import { colors, radii, spacing } from '../tokens';
+import { darkColors as colors, radii, spacing } from '../tokens';
 import { Text } from './Text';
 
 export type SliderOrientation = 'horizontal' | 'vertical';

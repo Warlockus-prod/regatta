@@ -694,9 +694,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     paddingVertical: 3,
     borderRadius: radii.pill,
-    backgroundColor: 'rgba(255, 170, 0, 0.16)',
+    backgroundColor: 'rgba(138, 97, 0, 0.16)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 170, 0, 0.4)',
+    borderColor: 'rgba(138, 97, 0, 0.4)',
   },
   pbPillText: {
     color: colors.warning,

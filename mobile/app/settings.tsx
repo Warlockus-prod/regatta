@@ -332,9 +332,9 @@ export default function Settings() {
                 value={analyticsOn}
                 onValueChange={toggleAnalytics}
                 disabled={!analyticsReady}
-                trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
-                thumbColor={colors.textPrimary}
-                ios_backgroundColor={colors.bgCardHover}
+                trackColor={{ true: colors.accentCyan, false: 'rgba(18, 50, 71, 0.16)' }}
+                ios_backgroundColor="rgba(18, 50, 71, 0.16)"
+                thumbColor="#ffffff"
                 accessibilityLabel={analyticsLabel}
               />
             </View>
@@ -1439,7 +1439,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dangerCard: {
-    borderColor: 'rgba(255, 68, 68, 0.35)',
+    borderColor: 'rgba(179, 38, 30, 0.35)',
     marginTop: spacing.md,
   },
   dangerLabel: {
@@ -1450,7 +1450,7 @@ const styles = StyleSheet.create({
 const privacyStyles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(6, 18, 36, 0.92)',
+    backgroundColor: 'rgba(18, 50, 71, 0.45)',
     justifyContent: 'flex-end',
   },
   sheet: {

@@ -53,7 +53,7 @@ const ONLINE_AFTER_LOAD = `
           'min-height:44px',
           'padding:0 16px',
           'border-radius:999px',
-          'border:1px solid rgba(0,212,255,.45)',
+          'border:1px solid rgba(0, 110, 166,.45)',
           'background:#0f2035',
           'color:#00d4ff',
           'font:700 13px -apple-system,BlinkMacSystemFont,sans-serif',
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 10,
     borderWidth: 1,
-    backgroundColor: "rgba(0, 212, 255, 0.12)",
+    backgroundColor: "rgba(0, 110, 166, 0.12)",
     borderColor: colors.accentCyan,
   },
   buttonPressed: {

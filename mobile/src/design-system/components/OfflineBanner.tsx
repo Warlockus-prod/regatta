@@ -49,8 +49,8 @@ const styles = StyleSheet.create({
   bar: {
     height: 32,
     paddingHorizontal: spacing.md,
-    backgroundColor: 'rgba(255, 170, 0, 0.14)',
-    borderBottomColor: 'rgba(255, 170, 0, 0.30)',
+    backgroundColor: 'rgba(138, 97, 0, 0.14)',
+    borderBottomColor: 'rgba(138, 97, 0, 0.30)',
     borderBottomWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center',

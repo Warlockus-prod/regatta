@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     padding: spacing.md,
     borderRadius: 8,
     backgroundColor: colors.bgCard,
-    borderColor: 'rgba(255, 68, 68, 0.40)',
+    borderColor: 'rgba(179, 38, 30, 0.40)',
     borderWidth: 1,
     maxWidth: 320,
   },

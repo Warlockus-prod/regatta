@@ -262,8 +262,8 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     padding: spacing.md,
     borderRadius: 8,
-    backgroundColor: 'rgba(255, 170, 0, 0.10)',
-    borderColor: 'rgba(255, 170, 0, 0.30)',
+    backgroundColor: 'rgba(138, 97, 0, 0.10)',
+    borderColor: 'rgba(138, 97, 0, 0.30)',
     borderWidth: 1,
   },
   warningLabel: {

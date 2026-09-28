@@ -353,13 +353,13 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
     borderRadius: radii.md,
     borderWidth: 1,
-    borderColor: 'rgba(255, 68, 68, 0.4)',
-    backgroundColor: 'rgba(255, 68, 68, 0.08)',
+    borderColor: 'rgba(179, 38, 30, 0.4)',
+    backgroundColor: 'rgba(179, 38, 30, 0.08)',
     padding: spacing.md,
     gap: spacing.sm,
   },
   errorText: {
-    color: '#ffb3b3',
+    color: colors.danger,
   },
   retryBtn: {
     alignSelf: 'flex-start',

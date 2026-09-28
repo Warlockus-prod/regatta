@@ -12,7 +12,8 @@ import {
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
 import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
-import { colors } from '../design-system/tokens';
+import { darkColors as colors } from '../design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../design-system/surface';
 import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 
 // ============================================================================
@@ -56,7 +57,9 @@ const SET_FLAGS = SEEN_FLAGS.map((k) => `localStorage.setItem('${k}', '1');`).jo
 // Runs before hydration. Also repeated in AFTER_LOAD because
 // injectedJavaScriptBeforeContentLoaded is not guaranteed to re-run on
 // in-page navigations.
-const BEFORE_LOAD = `try { ${SET_FLAGS} } catch (e) {} true;`;
+// The app is light, but every page here is an instrument or 3D view drawn
+// on the dark body forced below: ask the site for its dark theme too.
+const BEFORE_LOAD = `try { ${SET_FLAGS} localStorage.setItem('regatta_theme', 'dark'); } catch (e) {} true;`;
 
 // Runs after every load: re-assert flags, hide site chrome, signal ready.
 const AFTER_LOAD = `
@@ -188,8 +191,8 @@ export function SimWebView({
   };
 
   return (
-    <Screen noTopInset noBottomInset>
-      <Stack.Screen options={{ title }} />
+    <DarkSurface><Screen noTopInset noBottomInset>
+      <Stack.Screen options={{ ...darkStackOptions, title }} />
       {tier && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
@@ -327,7 +330,7 @@ export function SimWebView({
           </View>
         </View>
       )}
-    </Screen>
+    </Screen></DarkSurface>
   );
 }
 
