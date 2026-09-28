@@ -1,5 +1,5 @@
 import { Stack, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import Svg, { Circle, Path } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
 import { Icon, type IconName, Screen, Text } from '../../src/design-system/components';
@@ -51,6 +51,8 @@ export default function BootcampIndex() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const { completedIds, doneIds, lastViewedLessonId, ready } = useBootcampProgress();
+  // At accessibility text sizes the icon tile gives its width to the title.
+  const roomy = useWindowDimensions().fontScale < 1.6;
   const { results: quizResults, ready: quizReady } = useBootcampQuiz();
   useLearningBookmark('bootcamp');
   const course = destinations.find((d) => d.id === 'course')!;
@@ -140,14 +142,16 @@ export default function BootcampIndex() {
                 accessibilityLabel={lessonA11y}
                 accessibilityState={{ selected: status === 'passed' }}
               >
-                <View style={[styles.iconTile, status === 'passed' && styles.iconTileDone]}>
-                  <Icon
-                    name={LESSON_ICON[lesson.id] ?? 'compass'}
-                    size={24}
-                    color={status === 'passed' ? colors.accentTeal : colors.textPrimary}
-                  />
-                  <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
-                </View>
+                {roomy && (
+                  <View style={[styles.iconTile, status === 'passed' && styles.iconTileDone]}>
+                    <Icon
+                      name={LESSON_ICON[lesson.id] ?? 'compass'}
+                      size={24}
+                      color={status === 'passed' ? colors.accentTeal : colors.textPrimary}
+                    />
+                  </View>
+                )}
+                <Text style={styles.emojiHidden}>{lesson.emoji}</Text>
                 <View style={styles.lessonText}>
                   <Text style={[styles.meta, status === 'passed' && styles.metaDone, current && styles.metaCurrent]}>{meta}</Text>
                   <Text style={styles.lessonTitle}>{title}</Text>

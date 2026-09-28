@@ -84,7 +84,10 @@ export default function Home() {
   const { lang, tp } = useI18n();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { height, fontScale } = useWindowDimensions();
+  // Accessibility text sizes: drop the decorative thumbnails so long words
+  // (German "funktioniert") get the full width instead of breaking mid-word.
+  const roomy = fontScale < 1.6;
   // About 200 pt on a 667 pt phone, up to 300 pt on the largest ones, so the
   // continue action is on the first screen of every iPhone.
   const heroHeight = Math.round(Math.min(300, Math.max(200, height * 0.3)));
@@ -121,7 +124,7 @@ export default function Home() {
             <View style={[styles.bar, { width: "40%" }]} /><View style={[styles.bar, styles.barTall, { width: "75%" }]} /><View style={[styles.bar, { width: "55%" }]} />
           </View> : <>
             <View style={styles.next}>
-              <ImageBackground source={card.photo} style={styles.thumb} imageStyle={styles.thumbImage} accessibilityIgnoresInvertColors />
+              {roomy && <ImageBackground source={card.photo} style={styles.thumb} imageStyle={styles.thumbImage} accessibilityIgnoresInvertColors />}
               <View style={styles.nextText}>
                 <Text variant="eyebrow">{card.eyebrow}</Text>
                 <Text style={styles.nextTitle} accessibilityRole="header">{card.title}</Text>
@@ -148,7 +151,7 @@ export default function Home() {
           <View style={styles.groupShadow}><View style={styles.group}>
             {paths.map((p, index) => <Pressable key={p.key} accessibilityRole="button" accessibilityLabel={`${p.title}. ${p.caption}`} onPress={() => router.push(p.href as Href)}
               style={({ pressed }) => [styles.path, index < paths.length - 1 && styles.pathBorder, pressed && styles.pathPressed]}>
-              <ImageBackground source={p.photo} style={styles.pathThumb} imageStyle={styles.pathThumbImage} accessibilityIgnoresInvertColors />
+              {roomy && <ImageBackground source={p.photo} style={styles.pathThumb} imageStyle={styles.pathThumbImage} accessibilityIgnoresInvertColors />}
               <View style={styles.pathText}>
                 <Text style={styles.pathTitle}>{p.title}</Text>
                 <Text style={styles.pathCaption}>{p.caption}</Text>
