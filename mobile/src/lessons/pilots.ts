@@ -1,5 +1,4 @@
 import { words, type Label } from "../../../src/lib/product/catalog";
-import type { SceneId } from "./graphics/drawings";
 import { sailHandlingPhoto, type AnnotatedPhoto } from "./graphics/photos";
 
 /**
@@ -15,7 +14,7 @@ export interface LessonPilot {
   situation: Label;
   /** Recognise the thing first (terminology lessons). */
   photo?: AnnotatedPhoto;
-  scene: SceneId;
+  scene: "wind-direction" | "rig-basics";
   /**
    * `lead`: the drawing is the main image (wind, courses, forces).
    * `howItWorks`: it follows the photo as a separate "How it works" layer.

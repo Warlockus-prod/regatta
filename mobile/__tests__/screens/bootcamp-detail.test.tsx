@@ -18,6 +18,7 @@ jest.mock('expo-router', () => ({
       (globalThis as any).__regattaMocks?.pushMock?.(route),
     back: jest.fn(),
     replace: jest.fn(),
+    navigate: jest.fn(),
   }),
   useLocalSearchParams: () => ({
     id: (globalThis as any).__regattaMocks?.id ?? 'wind-direction',
@@ -32,7 +33,7 @@ jest.mock('expo-localization', () => ({
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootcampLesson from '../../app/bootcamp/[id]';
 import { bootcampLessons } from '../../src/data';
-import { renderWithProviders } from '../../src/test-utils';
+import { renderWithProviders, settleProgress } from '../../src/test-utils';
 
 const PROGRESS_KEY = 'regatta.progress.bootcamp.v1';
 
@@ -61,15 +62,18 @@ describe('Bootcamp lesson detail', () => {
 
   // wind-direction is on the v3 lesson template (goal card instead of the
   // focus card, see pilot-lessons.test.tsx); the other lessons keep it.
-  it('renders the focus block label uppercased', async () => {
+  it('shows the lesson goal and interactive diagram', async () => {
     (globalThis as any).__regattaMocks.id = 'points-of-sail';
     const view = renderWithProviders(<BootcampLesson />);
-    await waitFor(() => view.getByText(/FOCUS THIS TIME/i));
+    await waitFor(() => view.getByText('Goal'));
+    expect(view.getByTestId('diagram-image')).toBeTruthy();
   });
 
-  it('renders the Open CTA in EN', async () => {
+  it('shows a destination action in the practice step', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    await waitFor(() => view.getByText('Open'));
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '3. Practice' }));
+    await waitFor(() => view.getByRole('button', { name: /→$/ }));
   });
 
   it('renders the localized "not found" copy when id is unknown', async () => {
@@ -80,7 +84,9 @@ describe('Bootcamp lesson detail', () => {
 
   it('records the lesson as viewed and navigates to the practice route on press', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    const cta = await waitFor(() => view.getByText('Open'));
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '3. Practice' }));
+    const cta = await waitFor(() => view.getByRole('button', { name: /→$/ }));
     fireEvent.press(cta);
 
     await waitFor(async () => {
@@ -90,13 +96,16 @@ describe('Bootcamp lesson detail', () => {
       expect(parsed).toContain('wind-direction');
     });
     const mocks = (globalThis as any).__regattaMocks as RegattaMocks;
-    expect(mocks.pushMock).toHaveBeenCalledWith(bootcampLessons[0]!.route);
+    expect(mocks.pushMock).toHaveBeenCalledWith('/courses?fromLesson=wind-direction#wind');
   });
 
   it('opening the practice does not pass the lesson', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    fireEvent.press(await waitFor(() => view.getByText('Open')));
-    await waitFor(() => view.getByText(/at least 70% of the check below/));
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '3. Practice' }));
+    fireEvent.press(view.getByRole('button', { name: /→$/ }));
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
+    await waitFor(() => view.getByText(/at least 70% of the check/));
     expect(view.queryByText('Lesson passed')).toBeNull();
   });
 
@@ -109,6 +118,8 @@ describe('Bootcamp lesson detail', () => {
   it('a passed check marks the lesson passed', async () => {
     await AsyncStorage.setItem('regatta.bootcamp-quiz.v1', JSON.stringify({ 'wind-direction': { score: 3, total: 3, answeredAt: 1 } }));
     const view = renderWithProviders(<BootcampLesson />);
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
     await waitFor(() => view.getByText('Lesson passed'));
   });
 });

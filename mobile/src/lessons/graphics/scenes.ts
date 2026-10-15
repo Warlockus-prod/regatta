@@ -30,7 +30,7 @@ export interface SceneCopy {
   limit: Label;
 }
 
-export const scenes: Record<SceneId, SceneCopy> = {
+export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
   "wind-direction": {
     id: "wind-direction",
     title: words("Откуда приходит ветер", "Where the wind comes from", "Skąd wieje wiatr", "De dónde viene el viento", "D'où vient le vent", "Woher der Wind kommt", "Da dove arriva il vento"),

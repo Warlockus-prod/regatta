@@ -39,14 +39,17 @@ beforeEach(async () => {
 describe('wind-direction on the lesson template', () => {
   it('goal, the drawing, the explanation, the mistake, then the check and the practice', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    await waitFor(() => view.getByText('TEST YOUR UNDERSTANDING'));
+    await settleProgress();
     const json = JSON.stringify(view.toJSON());
-    const names = ['Goal', 'Where the wind comes from', 'How it works', 'Common mistake', 'TEST YOUR UNDERSTANDING', 'Practice', 'Open'];
+    const names = ['Goal', 'Where the wind comes from', 'How it works', 'Common mistake'];
     const at = order(json, names);
     expect(names.filter((_, i) => at[i]! < 0)).toEqual([]);
     expect([...at].sort((a, b) => a - b)).toEqual(at);
     // The old compass drawing and its focus card are replaced.
     expect(view.queryByText('FOCUS THIS TIME')).toBeNull();
+    expect(view.queryByText('TEST YOUR UNDERSTANDING')).toBeNull();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
+    expect(view.getByText('TEST YOUR UNDERSTANDING')).toBeTruthy();
     await settleProgress();
   });
 
@@ -69,14 +72,15 @@ describe('wind-direction on the lesson template', () => {
     await settleProgress();
     const snapshot = await readLearningSnapshot();
     expect(snapshot.bootcamp.quizResults['wind-direction']).toBeUndefined();
-    expect(view.getByText(/at least 70% of the check below/)).toBeTruthy();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
+    expect(view.getByText(/at least 70% of the check/)).toBeTruthy();
   });
 
-  it('a lesson not on the template keeps its layout', async () => {
+  it('the next lesson now has a goal and state diagram too', async () => {
     setLesson('points-of-sail');
     const view = renderWithProviders(<BootcampLesson />);
-    await waitFor(() => view.getByText('FOCUS THIS TIME'));
-    expect(view.queryByText('Goal')).toBeNull();
+    await waitFor(() => view.getByText('Goal'));
+    expect(view.getByTestId('diagram-state-2')).toBeTruthy();
     await settleProgress();
   });
 });

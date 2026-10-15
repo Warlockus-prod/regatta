@@ -10,6 +10,8 @@ import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
 import { colors } from '../src/design-system/tokens';
+import { isFoundationLesson } from '../src/bootcamp/lesson-position';
+import { ReturnToLesson } from '../src/bootcamp/ReturnToLesson';
 
 // Block the native splash from auto-hiding before the JS bundle has
 // hydrated language preferences. The Gate below hides it once
@@ -40,7 +42,11 @@ export default function RootLayout() {
                 <FirstLaunchGate>
                   <AppNavigation>
                   <Stack
-                    screenOptions={{
+                    screenOptions={({ route }) => ({
+                      ...(isFoundationLesson((route.params as { fromLesson?: string } | undefined)?.fromLesson) ? {
+                        headerBackVisible: false,
+                        headerLeft: ({ tintColor }) => <ReturnToLesson id={(route.params as { fromLesson: string }).fromLesson} tintColor={tintColor} />,
+                      } : {}),
                       contentStyle: { backgroundColor: colors.bgPrimary },
                       headerStyle: { backgroundColor: colors.bgPrimary },
                       headerShadowVisible: false,
@@ -53,7 +59,7 @@ export default function RootLayout() {
                       // API, so each screen sets its style through react-native-screens
                       // (UIViewControllerBasedStatusBarAppearance in app.json).
                       statusBarStyle: 'dark',
-                    }}
+                    })}
                   />
                   </AppNavigation>
                 </FirstLaunchGate>

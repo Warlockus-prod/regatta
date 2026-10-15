@@ -6,6 +6,35 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0018: Mobile foundation course completion (2026-10-15)
+
+**Status:** accepted under the owner's mobile-first and TestFlight instruction.
+
+**Decision.** Finish all eight foundation lessons before adapting the website.
+Three curriculum modules and three steps per lesson make the sequence explicit.
+Keep the wind-direction pilot; port seven relevant vector drawings from the
+local Codex visual kit into the native SVG renderer. New instructional copy
+lives in `bootcamp/learning-guide.ts`, with all seven locales. These are
+teaching diagrams, not a physics model or an operating manual.
+
+Persist step and diagram in `regatta.bootcamp.position.v1` through the existing
+serial storage queue. The position never awards progress. Quiz success is
+shown as saved only after storage acknowledges the write; a read error must
+not replace existing results. Preserve existing IDs, grades and bookmarks.
+
+Practice has an explicit validated `fromLesson` return action. The tacking
+lesson opens the native no-go recovery exercise and says this is not a full
+tack assessment. Gybing opens the bundled Trainer with an observation task;
+it does not invent a completed-maneuver score. Hide the unrelated tier switcher
+when entering the Trainer from a foundation lesson.
+
+**Consequences.** No web deployment, physics changes, remote asset dependency,
+Blender work or App Store review submission in this slice. TestFlight 47 also
+includes the prior sail-course work from ADR-0017. Evidence and limits:
+`foundation-release47-2026-10-15.md`.
+
+---
+
 ## ADR-0017: Complete the shared sail-learning path (2026-10-15)
 
 **Status:** accepted for local implementation, not released.

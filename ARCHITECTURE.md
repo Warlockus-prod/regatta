@@ -9,6 +9,15 @@
 
 ---
 
+## Мобильные учебные модули (2026-10-15)
+
+- `mobile/src/bootcamp/learning-guide.ts` - цели, три модуля, состояния схем и задания курса из восьми уроков, семь языков.
+- `mobile/src/bootcamp/FoundationScene.tsx` - нативная интерактивная схема выбранного урока.
+- `mobile/src/bootcamp/lesson-position.ts` - отдельная закладка шага и схемы, проверка ID и адрес возврата.
+- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики, цвет наследуется от заголовка.
+- `mobile/__tests__/foundation-learning.test.tsx` - покрытие уроков, языков, сохранения места, ошибок записи и отсутствия ложных оценок.
+- `docs/design/mobile/foundation-release47-2026-10-15.md` - объем, визуальная проверка и статус TestFlight 47.
+
 ## 1. Что это и где работает
 
 Regatta (в UI "Week to Regatta") - учебное приложение по парусному спорту:

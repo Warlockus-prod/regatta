@@ -9,6 +9,7 @@ import { getLessonDay } from '../../src/bootcamp/days';
 import { lessonStatus, nextBootcampLesson, passedLessonIds } from '../../src/bootcamp/status';
 import { useLearningSnapshot } from '../../src/home/useLearningSnapshot';
 import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
+import { foundationModules } from '../../src/bootcamp/learning-guide';
 import { destinations } from '../../../src/lib/product/catalog';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
@@ -105,7 +106,12 @@ export default function BootcampIndex() {
         </View>
 
         <View style={styles.list}>
-          {lessons.map((lesson) => {
+          {foundationModules.map((module, moduleIndex) => <View key={module.id} style={{ gap: 12 }}>
+            <View style={{ paddingHorizontal: 4, paddingTop: 12, gap: 4 }}>
+              <Text variant="eyebrow">{String(moduleIndex + 1).padStart(2, '0')}</Text>
+              <Text variant="subtitle" accessibilityRole="header">{module.title[lang]}</Text>
+            </View>
+          {lessons.filter(lesson => module.lessons.includes(lesson.id)).map((lesson) => {
             const title = legacyPick(lesson, 'title', lang);
             const status = loaded ? lessonStatus(lesson.id, evidence) : 'new';
             const current = status !== 'passed' && next?.id === lesson.id;
@@ -160,6 +166,7 @@ export default function BootcampIndex() {
               </Pressable>
             );
           })}
+          </View>)}
         </View>
       </ScrollView>
     </Screen>

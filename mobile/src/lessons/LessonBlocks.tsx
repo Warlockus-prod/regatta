@@ -35,7 +35,7 @@ export function LessonIntro({ pilot }: { pilot: LessonPilot }) {
 }
 
 /** The lesson drawing with its states, key and limit. */
-export function LessonScene({ pilot }: { pilot: LessonPilot }) {
+export function LessonScene({ pilot, selected, onSelect }: { pilot: LessonPilot; selected?: SceneState; onSelect?: (state: SceneState) => void }) {
   const { lang } = useI18n();
   const surface = useSurface();
   const [state, setState] = useState<SceneState>(0);
@@ -47,8 +47,8 @@ export function LessonScene({ pilot }: { pilot: LessonPilot }) {
       title={pilot.sceneRole === 'lead' ? scene.title[lang] : undefined}
       states={scene.states.map((st) => ({ label: st.label[lang], note: st.note[lang], description: st.description[lang] }))}
       stateGroup={scene.stateGroup[lang]}
-      selected={state}
-      onSelect={(i) => setState(i as SceneState)}
+      selected={selected ?? state}
+      onSelect={(i) => { setState(i as SceneState); onSelect?.(i as SceneState); }}
       legend={scene.legend.map((l) => l[lang])}
       legendFollowsState={pilot.scene === 'rig-basics'}
       limit={scene.limit[lang]}

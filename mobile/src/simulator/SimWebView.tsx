@@ -14,6 +14,7 @@ import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { darkColors as colors } from '../design-system/tokens';
 import { DarkSurface, darkStackOptions } from '../design-system/surface';
+import { isFoundationLesson } from '../bootcamp/lesson-position';
 import { findSailLesson } from "../../../src/data/sailing-lab/course";
 import { guideCopy } from "../../../src/data/sailing-lab/lesson-guide";
 import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
@@ -197,7 +198,7 @@ export function SimWebView({
     <DarkSurface><Screen noTopInset noBottomInset>
       <Stack.Screen options={{ ...darkStackOptions, title }} />
       {returnLesson && <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={{ minHeight: 48, paddingHorizontal: 20, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: colors.accentCyan, fontSize: 15 }}>← {guideCopy.return[lang]}</Text></Pressable>}
-      {tier && !returnLesson && (
+      {tier && !returnLesson && !isFoundationLesson(query?.fromLesson) && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
             const active = t.id === tier;

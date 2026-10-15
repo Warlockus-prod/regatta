@@ -1,11 +1,12 @@
 /**
  * Lesson drawings from the Codex graphics kit (design/codex-visual-kit-2026-09-28,
- * graphics/drawings.js), ported once for the two pilot lessons. The geometry and
+ * graphics/drawings.js), ported for the eight foundation lessons and the rig pilot. The geometry and
  * the SVG text are the kit's, so `__tests__/lesson-graphics.test.ts` can compare
  * the output byte for byte with the kit's exports (fixtures in
  * `__tests__/fixtures/codex-graphics`). No DOM code from the kit's gallery.
  *
- * One deliberate change, flagged for Codex: the kit draws the boom of the
+ * Reviewed corrections: turning sequences centre the boom at the crossing;
+ * points-of-sail ease it to leeward as the course opens. In the first pilot, the kit draws the boom of the
  * wind-direction boat 24 degrees to starboard in all three states, so with the
  * wind from starboard it sits on the windward side. The lesson passes the boom
  * angle per state instead (`windDirectionBoom`): centreline head to wind, to
@@ -17,7 +18,7 @@
  */
 
 export type GraphicTheme = 'paper' | 'instrument';
-export type SceneId = 'wind-direction' | 'rig-basics';
+export type SceneId = 'wind-direction' | 'rig-basics' | 'points-of-sail' | 'how-sail-works' | 'tacking' | 'jibing' | 'vmg-beating' | 'simple-rules' | 'mini-race';
 export type SceneState = 0 | 1 | 2;
 
 interface Palette {
@@ -131,7 +132,7 @@ export function renderScene(id: SceneId, state: SceneState, theme: GraphicTheme 
       dot(570, 162, 1, p, state === 0) +
       dot(278, 375, 2, p, state === 1) +
       dot(466, 394, 3, p, state === 2);
-  } else {
+  } else if (id === 'wind-direction') {
     const boom = options.boom ?? windDirectionBoom[state];
     d = topBoat(450, 290, 0, p, 1.25, boom) + dot(420, 140, 1, p);
     const points: [number, number, number, number][] = [
@@ -144,6 +145,20 @@ export function renderScene(id: SceneId, state: SceneState, theme: GraphicTheme 
       arrow(v[0], v[1], v[2], v[3], p.blue, 6) +
       dot(v[0] + (state === 1 ? 0 : 54), v[1] + (state === 1 ? -49 : 0), 2, p) +
       dot(v[2] + (state === 1 ? 0 : 55), v[3] + (state === 1 ? 48 : 0), 3, p);
+  } else if(id==="points-of-sail"){
+  const angle=[45,90,135][state],a=angle*Math.PI/180,cx=446,cy=306;d=path(`M${cx} ${cy}V73M${cx} ${cy}L${fmt(cx+Math.sin(a)*201)} ${fmt(cy-Math.cos(a)*201)}`,p.muted,2,"7 7")+path(`M446 186A120 120 0 0 1 ${fmt(cx+Math.sin(a)*120)} ${fmt(cy-Math.cos(a)*120)}`,p.blue,4)+topBoat(cx,cy,angle,p,.8,[22,48,75][state])+arrow(145,120,145,215,p.blue,5)+dot(194,115,1,p)+dot(fmt(cx+Math.sin(a)*94),fmt(cy-Math.cos(a)*94),2,p)+dot(656,180,3,p)+label(675,236,`${angle}°`,p.blue,38);
+  } else if(id==="how-sail-works"){
+  d=topBoat(400,320,0,p,1.35);d+=arrow(400,295,598,139,p.blue,6);if(state!==0)d+=arrow(400,295,400,139,p.teal,5)+arrow(400,295,598,295,p.sand,5)+path("M400 139H598V295",p.muted,2,"7 7");d+=dot(598,98,1,p)+(state!==0?dot(352,163,2,p)+dot(636,299,3,p):'');if(state===2)d+=arrow(395,351,245,351,p.muted,5)+path("M377 320H419V365H377Z",p.muted,2,"6 6");
+  } else if(id==="tacking"||id==="jibing"){
+  const angles=id==="tacking"?[315,0,45]:[135,180,225]; const booms=id==="tacking"?[-32,0,32]:[70,0,-70];d=arrow(450,55,450,124,p.blue,4);angles.forEach((a,i)=>{d+=`<g>`+(i===state?circle(215+i*235,293,116,p.faint):"")+topBoat(215+i*235,293,a,p,1.05,booms[i])+dot(215+i*235,431,i+1,p,i===state)+"</g>";});d+=arrow(292,295,362,295,p.muted,3)+arrow(536,295,608,295,p.muted,3);
+  } else if(id==="vmg-beating"){
+  const a=[40,55,70][state]*Math.PI/180,cx=265,cy=415,x=cx+Math.sin(a)*285,y=cy-Math.cos(a)*285;d=path("M265 454V66",p.muted,2,"7 8")+arrow(cx,cy,x,y,p.blue,5)+arrow(cx-16,cy,cx-16,y,p.teal,6)+path(`M${x} ${y}H265`,p.muted,2,"7 7")+dot(220,76,1,p)+dot(fmt(x+37),fmt(y+12),2,p)+dot(199,fmt((cy+y)/2),3,p)+label(650,191,"6",p.ink,30)+label(650,245,`${(6*Math.cos(a)).toFixed(2)}`,p.teal,30)+label(650,302,`${[40,55,70][state]}°`,p.muted,30);
+  } else if(id==="simple-rules"){
+  d=arrow(450,67,450,153,p.blue,5)+dot(504,112,1,p);if(state!==1)d+=topBoat(270,310,315,p,1.25,-32)+dot(220,444,2,p);if(state!==0)d+=topBoat(630,310,45,p,1.25,32)+dot(678,444,3,p);
+  } else if(id==="mini-race"){
+  d=path("M260 433H655",p.blue,3,"8 6")+circle(260,433,13,p.sand)+circle(655,433,13,p.sand)+circle(445,135,16,p.sand)+dot(714,434,1,p)+dot(490,116,2,p)+dot(587,200,3,p)+arrow(160,90,160,167,p.muted,3);
+  if(state===0)d+=topBoat(447,467,345,p,.42);if(state>=1)d+=path("M450 411 580 288 445 153",p.blue,4,"8 6");if(state===2)d+=path("M445 153C407 157 407 102 448 101C485 101 486 149 466 174",p.blue,4)+arrow(466,174,507,346,p.blue,4);
+
   }
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${SCENE_WIDTH} ${SCENE_HEIGHT}" role="img" aria-label="${id}, state ${state + 1}"><rect width="${SCENE_WIDTH}" height="${SCENE_HEIGHT}" rx="20" fill="${p.bg}"/>${d}</svg>`;
 }

@@ -204,6 +204,8 @@ describe('the lesson screen itself', () => {
   const answerAll = async (view: ReturnType<typeof renderWithProviders>, pick: 'right' | 'wrong') => {
     const { getQuizForLesson } = jest.requireActual('../src/bootcamp/quiz-data') as typeof import('../src/bootcamp/quiz-data');
     const questions = getQuizForLesson('wind-direction');
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
     fireEvent.press(await waitFor(() => view.getByText('Start quiz')));
     for (let i = 0; i < questions.length; i += 1) {
       const q = questions[i]!;
@@ -237,9 +239,12 @@ describe('the lesson screen itself', () => {
 
   it('opening the practice and coming back leaves the lesson not passed', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    fireEvent.press(await waitFor(() => view.getByText('Open')));
+    await settleProgress();
+    fireEvent.press(view.getByRole('button', { name: '3. Practice' }));
+    fireEvent.press(view.getByRole('button', { name: /→$/ }));
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
     await refocus();
-    await waitFor(() => view.getByText(/at least 70% of the check below/));
+    await waitFor(() => view.getByText(/at least 70% of the check/));
     const snapshot = await readNow();
     expect(snapshot.bootcamp.viewedIds.has('wind-direction')).toBe(true);
     expect(snapshot.bootcamp.quizResults['wind-direction']).toBeUndefined();
