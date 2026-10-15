@@ -1,6 +1,8 @@
 'use client';
 
 import styles from "./SimulatorV3.module.css";
+import { SavePractice } from "../sailing-lab/ui/SavePractice";
+import { LessonReturn } from "../sailing-lab/ui/LessonReturn";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
@@ -355,9 +357,12 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     trimStudy.cancel(); setUi(setup); reset(setup); setPaused(false); exitDrill(); setActiveScenarioId(null); setMode("free");
     trimAssessment.start(task);
   };
-  const studyPanel = trimAssessment.assessment
+  const studyPanel = <>{trimAssessment.assessment
     ? <TrimAssessmentPanel assessment={trimAssessment.assessment} lang={lang} record={trimAssessment.record} answer={trimAssessment.answer} restart={() => startAssessment(trimAssessment.assessment!.task)} close={trimAssessment.cancel} />
-    : <TrimStudyPanel study={trimStudy.study} start={startGuidedStudy} cancel={trimStudy.cancel} record={trimStudy.record} answer={trimStudy.answer} tp={tp} />;
+    : <TrimStudyPanel study={trimStudy.study} start={startGuidedStudy} cancel={trimStudy.cancel} record={trimStudy.record} answer={trimStudy.answer} tp={tp} />}
+    {trimAssessment.assessment?.phase === "complete" && <SavePractice key={trimAssessment.assessment.task} id={trimAssessment.assessment.task} lang={lang} />}
+    {trimStudy.study?.phase === "complete" && <SavePractice id="mainsheet" lang={lang} />}
+  </>;
   const checkpoint = useTrainerCheckpoint({ session: sim.session, ui, study: trimStudy.study }, saved => {
     trimAssessment.cancel();
     setPaused(true);
@@ -419,6 +424,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       }`}
       style={{ background: '#050b18' }}
     >
+      <LessonReturn lang={lang} initialSearch={initialSearch} />
       {/* Top bar with V3 badge + two-tier switcher (Basics / Trainer / 3D).
           Cross-links and Share are hidden under ?embed=1 - the iOS app
           embeds this page chromelessly and provides its own navigation. */}

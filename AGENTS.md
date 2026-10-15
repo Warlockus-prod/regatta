@@ -15,9 +15,9 @@
   кандидат на польский патент.
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
-- Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
-  1.6.2 (iOS build 43), которая не запускается на iOS 27. Исправление 1.6.3 (iOS
-  build 44) отправлено на ревью 2026-09-28, релиз автоматический после одобрения.
+- Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
+  Статус магазина и TestFlight проверять отдельно от исходников по журналу
+  `docs/design/mobile/BUILDS.md`; локальная сборка не означает публикацию.
   Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
   плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
   Журнал сборок и разбор: `docs/design/mobile/BUILDS.md`. Выпуск только через
@@ -25,6 +25,18 @@
 - Стек: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict,
   Tailwind v4, SQLite (better-sqlite3), three.js / R3F для 3D, отдельный
   WebSocket-сервер на Node.
+
+## Учебный интерфейс: текущая доработка
+
+- Срез 2026-10-15: `docs/design/learning-modules-2026-10-15.md`, решение
+  ADR-0017 в `docs/design/mobile/DECISIONS.md`. Все 13 уроков парусов имеют
+  общие цели и модульную структуру на сайте и в приложении.
+- Хранить отдельно теорию, место в уроке, результат упражнения и снимок
+  симулятора. Открытие шага не засчитывает навык. Native WebView использует
+  AsyncStorage через два разрешенных назначения, не file-origin localStorage.
+- Новая порция учебных материалов должна включать понятную цель, читаемую
+  схему, объяснение, проверку и подходящую практику с возвратом. Не заменять
+  проверенные учебные схемы декоративными AI-картинками.
 
 ## Жесткие правила
 
@@ -125,7 +137,7 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 434 теста, 45 файлов
+npx vitest run               # все юнит-тесты: 461 тест, 49 файлов
 npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна

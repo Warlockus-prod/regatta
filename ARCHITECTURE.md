@@ -362,6 +362,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/sailing-lab/reef-lesson.ts` - урок "Рифление": когда (крен 25, руль 8), системы, порядок слэб-рифления, ошибки, которые рвут парус.
 - `src/data/sailing-lab/winch-lesson.ts` - урок 13 «Лебедка и стопор: путь нагрузки» (7 языков), практика на учебном стенде (`practice: "line-bench"`), добавлен в конец курса.
 - `src/data/sailing-lab/line-bench-copy.ts` - тексты стенда лебедки и стопора: действия, причины отказа, подсказки, 7 языков.
+- `src/data/sailing-lab/lesson-guide.ts` - цели 13 уроков, результаты четырех модулей и подписи учебного пути на семи языках.
 - `src/data/sailing-lab/learning-path.ts` - шаги урока (разобраться, проверить, на лодке; шаги не засчитывают урок), модули программы курса парусов по порядку уроков, термины урока.
 - `src/data/sailing-lab/assessment-copy.ts` - тексты независимой проверки настройки в Тренажере (скрутка, глубина).
 
@@ -379,7 +380,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/runtime/wind.ts` - режимы ветра: ровный, смена, порыв.
 - `src/features/sailing-lab/runtime/presentation.ts` - проекция состояния сессии в модель яхты для сцены.
 - `src/features/sailing-lab/runtime/snapshot.ts` - снимок и воспроизведение сессии по событиям.
-- `src/features/sailing-lab/runtime/checkpoint-storage.ts` - хранилище чекпоинтов тренажера.
+- `src/features/sailing-lab/runtime/checkpoint-storage.ts` - хранилище чекпоинтов и отдельных результатов упражнений; два фиксированных назначения native bridge.
 - `src/features/sailing-lab/runtime/checkpoint-storage.test.ts` - тесты хранилища.
 - `src/features/sailing-lab/runtime/trainer-checkpoint.ts` - формат и лимит чекпоинта.
 - `src/features/sailing-lab/runtime/trainer-checkpoint.test.ts` - тесты чекпоинта.
@@ -394,6 +395,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/rig/response.ts` - статус паруса и знаковый угол атаки.
 - `src/features/sailing-lab/rig/transfer.ts` - перекладка парусов при повороте и перенос нагрузки.
 - `src/features/sailing-lab/lessons/course.test.ts` - целостность курса уроков.
+- `src/features/sailing-lab/lessons/lesson-position.ts` - отдельная версия закладки: шаг и выбранная схема каждого урока, без ответов и оценок.
+- `src/features/sailing-lab/lessons/practice-results.ts` - четыре разрешенных результата упражнений; проверка и объединение, отдельно от теории и снимка сессии.
+- `src/features/sailing-lab/lessons/learning-continuity.test.ts` - сохранение места, поврежденные данные, покрытие модулей и языков, границы native bridge.
 - `src/features/sailing-lab/lessons/progress.ts` - прогресс по урокам парусов в localStorage.
 - `src/features/sailing-lab/lessons/diagrams.ts` - схемы урока: подписи, варианты, показания.
 - `src/features/sailing-lab/lessons/mainsheet-diagram.ts` - схема урока по гика-шкоту.
@@ -408,6 +412,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/lessons/trim-study.test.ts` - тесты разбора трима.
 - `src/features/sailing-lab/scene/trim-rig.ts` - построение сцены рига для визуализации трима.
 - `src/features/sailing-lab/scene/trim-rig.test.ts` - тесты сцены рига.
+- `src/features/sailing-lab/ui/SavePractice.tsx` - явное сохранение завершенного упражнения через браузерное хранилище или native bridge, ошибка и повторная попытка.
+- `src/features/sailing-lab/ui/LessonReturn.tsx` - возврат из тренажера и лодки к известному уроку по разрешенному ID, без произвольного URL.
 - `src/features/sailing-lab/ui/SailingCourse.tsx` - UI курса работы с парусами.
 - `src/features/sailing-lab/ui/SailingCourse.module.css` - стили курса.
 - `src/features/sailing-lab/rig/line-handling.ts` - модель стенда: уже нагруженная снасть, стопор с двухступенчатым рычагом, шлаги, рукоятка, ходовой конец, self-tailer; блокировки строже реального железа, без чисел нагрузки.

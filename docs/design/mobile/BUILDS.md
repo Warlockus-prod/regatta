@@ -1,5 +1,10 @@
 # Mobile build journal
 
+Operational check dated 2026-10-13 (recorded in the project audit): public
+1.6.3 was READY_FOR_SALE; TestFlight 1.7.0 (46) was VALID / IN_BETA_TESTING
+in Self. Older rows below are historical submission snapshots. The local
+2026-10-15 learning changes have not been uploaded or submitted.
+
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
 to a TestFlight beta group, and what changed. Attaching is the step that was
 silently missing (builds 14-19 uploaded but were never distributed, so the phone

@@ -6,6 +6,42 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0017: Complete the shared sail-learning path (2026-10-15)
+
+**Status:** accepted for local implementation, not released.
+
+**Context.** The owner prioritised teaching graphics, clear modules and finished
+lessons. The course already has 13 sourced lessons, but step and diagram state
+were lost on navigation, web continuation disagreed with the bookmark, and
+completed exercise results could not survive leaving practice.
+
+**Decision.** Keep the four existing modules and their stable lesson IDs. Give
+every lesson a shared seven-language goal. Use illustrations in the module
+headers and a high-contrast canvas for the existing explanatory SVGs. Retain
+the native annotated-photo pilot. Save lesson position separately from theory.
+Save four completed exercises explicitly: guided mainsheet comparison, twist,
+depth and line bench. Their state machines still determine completion; no
+navigation event awards credit. A known lesson ID supplies the return route.
+Native result storage uses the existing acknowledged bridge with a second
+fixed store and serialized merges, never an arbitrary storage key.
+
+**Alternatives.** Replacing all source lessons or rebuilding 3D would expand
+scope without fixing the broken learning loop. Combining results with theory
+would incorrectly count assisted observation as assessed practical skill.
+File-origin localStorage would not give reliable native persistence on upgrade.
+
+**Consequences.** Existing theory IDs and stored grades stay valid. A read
+failure disables grade saving instead of writing an empty replacement. These
+are local results, not cross-device sync or a boating qualification. Practice
+attempts still reset; the saved completion record is not a session snapshot.
+
+**Verification.** Shared parser/module/locale tests, native remount and failure
+tests, bridge merge tests, browser return-and-reload flow and offline bundle
+consistency. Evidence and remaining gates in
+`docs/design/learning-modules-2026-10-15.md`.
+
+---
+
 ## ADR-0016: The 2026-09-21 learning slice merged into v3 (2026-09-29, branch `design/v3`)
 
 **Status:** accepted by the owner's request to ship everything done ("выкатывай все что сделали на тест").

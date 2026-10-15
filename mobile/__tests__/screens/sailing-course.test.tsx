@@ -5,10 +5,14 @@ const mockPush = jest.fn();
 jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useRouter: () => ({ push: mockPush, replace: jest.fn(), navigate: jest.fn() }), useFocusEffect: (cb: () => void) => require("react").useEffect(cb, [cb]) }));
 jest.mock("expo-localization", () => ({ getLocales: () => [{ languageTag: "en-US" }] }));
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { loadLessonPositions } from "../../src/sailing/lesson-position";
+import { LESSON_POSITION_KEY } from "../../../src/features/sailing-lab/lessons/lesson-position";
+import { PRACTICE_RESULTS_KEY } from "../../../src/features/sailing-lab/lessons/practice-results";
 import { SailingCourseScreen } from "../../src/sailing/SailingCourseScreen";
 import { renderWithProviders } from "../../src/test-utils";
 import { SAIL_PROGRESS_KEY } from "../../../src/features/sailing-lab/lessons/progress";
 
+afterEach(async () => { await act(async () => { await loadLessonPositions(); }); });
 beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); });
 test("bundled vang lesson changes the diagram and enters the ungraded shape session", async () => {
   const view = renderWithProviders(<SailingCourseScreen lessonId="vang" />);
@@ -18,7 +22,7 @@ test("bundled vang lesson changes the diagram and enters the ungraded shape sess
   expect(view.getByText(/Block separation:.*8°/)).toBeTruthy();
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   fireEvent.press(view.getByRole("button", { name: "Sail trim trainer" }));
-  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?study=shape");
+  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=vang&study=shape");
   expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
 });
 test("outhaul theory saves separately from practical competence", async () => {
@@ -32,9 +36,9 @@ test("outhaul theory saves separately from practical competence", async () => {
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   expect(view.getByText(/No practical grade/)).toBeTruthy();
   fireEvent.press(view.getByRole("button", { name: "Flatten the foot, keep the twist" }));
-  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?assessment=depth");
+  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=outhaul&assessment=depth");
   fireEvent.press(view.getByRole("button", { name: "Open the top, keep the boom angle" }));
-  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?assessment=twist");
+  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=outhaul&assessment=twist");
 });
 test("only saves a correct theory check, never a page visit", async () => {
   const view = renderWithProviders(<SailingCourseScreen lessonId="rig-basics" />);
@@ -50,7 +54,7 @@ test("only saves a correct theory check, never a page visit", async () => {
   await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(SAIL_PROGRESS_KEY))!).checked).toEqual(["rig-basics"]));
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   fireEvent.press(view.getByRole("button", { name: "3D Boat" }));
-  expect(mockPush).toHaveBeenCalledWith("/simulator2");
+  expect(mockPush).toHaveBeenCalledWith("/simulator2?lesson=rig-basics");
 });
 test("resumes the next unchecked lesson and recovers an invalid deep link", async () => {
   await AsyncStorage.setItem(SAIL_PROGRESS_KEY, JSON.stringify({ version: 1, checked: ["rig-basics"], current: "rig-basics" }));
@@ -92,7 +96,7 @@ test("mainsheet comparison works from bundled content and does not claim practic
   fireEvent.press(view.getByRole("button", { name: "3. On the boat" }));
   expect(view.getByText(/not a practical assessment/)).toBeTruthy();
   fireEvent.press(view.getByRole("button", { name: "Sail trim trainer" }));
-  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?study=mainsheet");
+  expect(mockPush).toHaveBeenCalledWith("/simulator-v3?lesson=mainsheet&study=mainsheet");
 });
 
 test("the overview offers the unfinished lesson Home continues, not the first one", async () => {
@@ -155,9 +159,46 @@ test("runs the offline equipment bench with load interlocks and no manufactured 
   }
   expect(view.getByText(/The clutch holds the load again/)).toBeTruthy();
   expect(view.getByText("Eased: 10 cm")).toBeTruthy();
+  fireEvent.press(view.getByRole("button", { name: "Save exercise result" }));
+  await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(PRACTICE_RESULTS_KEY))!).completed["line-bench"]).toBeGreaterThan(0));
   expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
   expect(mockPush).not.toHaveBeenCalled();
   fireEvent.press(view.getByRole("button", { name: "Start again" }));
   expect(view.getByText("Eased: 0 cm")).toBeTruthy();
   expect(view.getByRole("button", { name: "Lay 3 clockwise wraps" })).toBeTruthy();
+});
+
+
+test("returns to practice after unmount and keeps the chosen diagram", async () => {
+  const first = renderWithProviders(<SailingCourseScreen lessonId="mainsheet" />);
+  await act(async () => { await loadLessonPositions(); });
+  fireEvent.press(first.getByRole("button", { name: "Longer sheet, car to windward" }));
+  fireEvent.press(first.getByRole("button", { name: "3. On the boat" }));
+  await act(async () => { await loadLessonPositions(); });
+  first.unmount();
+  const returned = renderWithProviders(<SailingCourseScreen lessonId="mainsheet" />);
+  await waitFor(() => expect(returned.getByRole("button", { name: "Sail trim trainer" })).toBeTruthy());
+  fireEvent.press(returned.getByRole("button", { name: "1. Understand" }));
+  expect(returned.getByText(/Boom rise: 5°/)).toBeTruthy();
+  expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
+});
+
+test("shows simulator evidence without granting theory credit", async () => {
+  await AsyncStorage.setItem(LESSON_POSITION_KEY, JSON.stringify({ version: 1, current: "outhaul", lessons: { outhaul: { step: "try", diagram: 1 } } }));
+  await AsyncStorage.setItem(PRACTICE_RESULTS_KEY, JSON.stringify({ version: 1, completed: { depth: 123 } }));
+  const view = renderWithProviders(<SailingCourseScreen lessonId="outhaul" />);
+  await waitFor(() => expect(view.getByText("Exercise result saved on this device")).toBeTruthy());
+  expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBeNull();
+});
+
+test("a read failure never overwrites previous theory progress", async () => {
+  const saved = JSON.stringify({ version: 1, checked: ["mainsheet"], current: "mainsheet" });
+  await AsyncStorage.setItem(SAIL_PROGRESS_KEY, saved);
+  jest.mocked(AsyncStorage.getItem).mockRejectedValueOnce(new Error("Read unavailable"));
+  const view = renderWithProviders(<SailingCourseScreen lessonId="rig-basics" />);
+  await waitFor(() => expect(view.getByRole("alert")).toBeTruthy());
+  fireEvent.press(view.getByRole("button", { name: "2. Check" }));
+  fireEvent.press(view.getByRole("button", { name: "Mainsheet" }));
+  expect(view.getByRole("button", { name: "Save theory check" }).props.accessibilityState.disabled).toBe(true);
+  expect(await AsyncStorage.getItem(SAIL_PROGRESS_KEY)).toBe(saved);
 });

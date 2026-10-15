@@ -1,5 +1,6 @@
 'use client';
 
+import { SavePractice } from "./SavePractice";
 import { useState } from "react";
 import type { Language } from "../../../lib/product/catalog";
 import { lineActions, lineCopy, lineReasons } from "../../../data/sailing-lab/line-bench-copy";
@@ -38,6 +39,7 @@ export function LineBench({ lang }: { lang: Language }) {
     </details>
     </div>
     </div>
+    {!hint && <SavePractice id="line-bench" lang={lang} />}
     <button type="button" className={styles.secondary} onClick={() => setState(newLineBench())}>{lineCopy.reset[lang]}</button>
     <p className={styles.note}>{lineCopy.limit[lang]}</p>
   </section>;

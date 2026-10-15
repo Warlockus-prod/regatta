@@ -16,8 +16,25 @@
 .page p { font-size: 16px; line-height: 1.7; margin: 12px 0; max-width: 72ch; }
 .lead { color: var(--text-secondary); }
 .page .note { font-size: 14px; color: var(--text-secondary); }
-.module { margin: 28px 0; }
-.module h3 { font-size: 16px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+.modules { display: grid; gap: 16px; }
+.module { border: 1px solid var(--border-subtle); border-radius: 16px; overflow: hidden; background: var(--bg-secondary); }
+.moduleToggle { display: flex; width: 100%; align-items: center; gap: 22px; padding: 20px; text-align: left; cursor: pointer; }
+.moduleArt { flex: 0 0 136px; overflow: hidden; border-radius: 10px; background: #071827; }
+.moduleArt svg { width: 100%; height: auto; display: block; }
+.moduleText { display: grid; gap: 8px; min-width: 0; }
+.moduleText strong { font-size: 21px; line-height: 1.3; font-weight: 600; }
+.moduleText > span:not(.eyebrow) { font-size: 15px; line-height: 1.5; color: var(--text-secondary); }
+.moduleText small { font-size: 13px; color: var(--text-secondary); }
+.moduleChevron { margin-left: auto; font-size: 24px; color: var(--accent-cyan); }
+.page .eyebrow { font-size: 12px; line-height: 1.5; letter-spacing: .06em; text-transform: uppercase; font-weight: 600; color: var(--text-secondary); margin: 0; }
+.module .lessons { margin: 0 20px; }
+.module .lessons li:last-child a { border-bottom: 0; }
+.lessons a[data-next-lesson="true"] strong { color: var(--accent-cyan); }
+.goal { max-width: 720px; border-left: 3px solid var(--accent-cyan); padding: 2px 0 2px 18px; margin: 0 0 28px; }
+.goal p:last-child { margin: 6px 0 0; font-size: 18px; line-height: 1.5; }
+.figureTitle { font-size: 14px; font-weight: 600; margin-bottom: 14px; }
+.diagramCanvas { background: #071827; padding: 16px 8px; border-radius: 14px; overflow: hidden; }
+.resultSummary { border-left: 3px solid var(--accent-cyan); padding-left: 20px; margin: 24px 0; }
 .steps { display: flex; border-bottom: 1px solid var(--border-subtle); margin: 24px 0; }
 .steps button { flex: 1; min-width: 0; min-height: 56px; padding: 12px 6px; font-size: 14px; color: var(--text-secondary); border-bottom: 3px solid transparent; cursor: pointer; }
 .steps button span { display: block; font-size: 12px; margin-bottom: 4px; font-variant-numeric: tabular-nums; }
@@ -67,6 +84,13 @@
 .page button:not(:disabled):hover, .secondary:hover { filter: brightness(1.12); }
 @media (max-width: 420px) { .page h1 { font-size: 27px; } .controls button { padding: 10px 12px; } }
 @media (max-width: 640px) {
+  .moduleToggle { flex-wrap: wrap; gap: 14px; padding: 18px; }
+  .moduleArt { flex: 0 0 80px; }
+  .moduleText { flex: 1; }
+  .moduleText strong { font-size: 18px; }
+  .moduleText > span:not(.eyebrow) { display: none; }
+  .moduleChevron { font-size: 20px; }
+  .module .lessons { margin: 0 18px; }
   .benchWorkspace { grid-template-columns: 1fr; gap: 0; }
   .benchFigure svg { max-height: 180px; }
   .benchGuidance { margin: 12px 0; }

@@ -86,7 +86,7 @@ describe('rig-basics on the lesson template', () => {
     const view = renderWithProviders(<SailingCourseScreen lessonId="rig-basics" />);
     await waitFor(() => view.getByText('Sail, boom and mast'));
     const json = JSON.stringify(view.toJSON());
-    const at = order(json, ['Goal', 'Sail, boom and mast', 'How it works', 'Halyard hoists, sheet trims', 'Common mistake', 'Sources', 'Continue to the check']);
+    const at = order(json, ['After this lesson you can', 'Sail, boom and mast', 'How it works', 'Halyard hoists, sheet trims', 'Common mistake', 'Sources', 'Continue to the check']);
     expect(at.every((i) => i >= 0)).toBe(true);
     expect([...at].sort((a, b) => a - b)).toEqual(at);
     // The old five-line schematic is replaced, the drawing starts closed.

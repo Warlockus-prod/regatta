@@ -2,6 +2,7 @@
 
 import { useMemo, Suspense } from 'react';
 import dynamic from 'next/dynamic';
+import { LessonReturn } from '../sailing-lab/ui/LessonReturn';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
@@ -25,7 +26,7 @@ const Simulator3D = dynamic(() => import('./Simulator3D').then((m) => m.Simulato
 // ============================================================================
 
 function SimulatorV2Inner() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const embed = searchParams.get('embed') === '1';
@@ -306,6 +307,7 @@ function SimulatorV2Inner() {
 
   return (
     <div className="min-h-screen bg-[var(--bg-primary,#0a1118)] text-[var(--text-primary,#e7f1f7)]">
+      <LessonReturn lang={lang} />
       <Simulator3D labels={labels} headerSlot={switcher} embed={embed} initialMode="sail" />
     </div>
   );

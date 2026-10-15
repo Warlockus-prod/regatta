@@ -1,3 +1,4 @@
+import { SavePractice } from "./SavePractice";
 import { useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { SvgXml } from "react-native-svg";
@@ -24,6 +25,7 @@ export function LineBench({ lang }: { lang: Language }) {
     {hint ? <View style={styles.content}><Text style={styles.body}>{hint.reason[lang]}</Text><Button onPress={() => setState(current => handleLine(current, hint.action))}>{hint.label[lang]}</Button></View> : <Text accessibilityLiveRegion="polite">✓ {lineCopy.complete[lang]}</Text>}
     <Button variant="ghost" accessibilityState={{ expanded: controlsOpen }} onPress={() => setControlsOpen(value => !value)}>{lineCopy.controls[lang]}</Button>
     {controlsOpen && <View style={styles.content}>{lineBenchOptions(state).map(id => <Button variant="secondary" key={id} onPress={() => setState(current => handleLine(current, benchCommands[id]))}>{lineActions[id][lang]}</Button>)}</View>}
+    {!hint && <SavePractice id="line-bench" lang={lang} />}
     <Button variant="secondary" onPress={() => setState(newLineBench())}>{lineCopy.reset[lang]}</Button>
     <Text style={styles.note}>{lineCopy.limit[lang]}</Text>
   </View>;
