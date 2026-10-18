@@ -96,13 +96,13 @@ export default function ChapterCheck({
             <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
               {complete
                 ? tp("Проверка пройдена", "Check complete", "Sprawdzenie zaliczone")
-                : tp("Проверь понимание", "Check your understanding", "Sprawdz zrozumienie")}
+                : tp("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie")}
             </h2>
             <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
               {tp(
                 "Три вопроса из связанных материалов UKE. Глава завершится только после трех правильных ответов.",
                 "Three questions from the related UKE material. The chapter completes after three correct answers.",
-                "Trzy pytania z powiazanych materialow UKE. Rozdzial konczy sie po trzech poprawnych odpowiedziach.",
+                "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
               )}
             </p>
           </div>
@@ -113,7 +113,7 @@ export default function ChapterCheck({
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
             {complete
-              ? tp("Повторить", "Repeat", "Powtorz")
+              ? tp("Повторить", "Repeat", "Powtórz")
               : tp("Начать проверку", "Start check", "Zacznij sprawdzenie")}
           </button>
         </div>
@@ -131,8 +131,8 @@ export default function ChapterCheck({
       >
         <h2 className="text-lg font-bold" style={{ color: passed ? "var(--success-text, var(--success))" : "var(--warning-text, var(--warning))" }}>
           {passed
-            ? tp("Глава закреплена", "Chapter mastered", "Rozdzial utrwalony")
-            : tp("Нужно еще одно повторение", "One more review is needed", "Potrzebna jest jeszcze jedna powtorka")}
+            ? tp("Глава закреплена", "Chapter mastered", "Rozdział utrwalony")
+            : tp("Нужно еще одно повторение", "One more review is needed", "Potrzebna jest jeszcze jedna powtórka")}
         </h2>
         <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
           {correctCount}/{questions.length}.{" "}
@@ -140,12 +140,12 @@ export default function ChapterCheck({
             ? tp(
                 "Теперь переходи к практике.",
                 "Now move to practice.",
-                "Teraz przejdz do praktyki.",
+                "Teraz przejdź do praktyki.",
               )
             : tp(
                 "Вернись к схеме и объяснению, затем попробуй снова.",
                 "Review the diagram and explanation, then try again.",
-                "Wroc do schematu i wyjasnienia, potem sprobuj ponownie.",
+                "Wróć do schematu i wyjaśnienia, potem spróbuj ponownie.",
               )}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
@@ -155,7 +155,7 @@ export default function ChapterCheck({
             className="min-h-[46px] rounded-xl border px-5 text-sm font-bold"
             style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
           >
-            {tp("Пройти еще раз", "Try again", "Sprobuj ponownie")}
+            {tp("Пройти еще раз", "Try again", "Spróbuj ponownie")}
           </button>
           <Link
             href={chapter.practiceHref}
@@ -174,7 +174,7 @@ export default function ChapterCheck({
   return (
     <section className="border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
       <div className="mb-3 flex items-center justify-between gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
-        <span>{tp("Проверка главы", "Chapter check", "Sprawdzenie rozdzialu")}</span>
+        <span>{tp("Проверка главы", "Chapter check", "Sprawdzenie rozdziału")}</span>
         <span>{index + 1}/{questions.length}</span>
       </div>
       <h2 className="max-w-3xl text-base font-semibold leading-relaxed" style={{ color: "var(--text-primary)" }}>
@@ -226,8 +226,8 @@ export default function ChapterCheck({
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
             {index === questions.length - 1
-              ? tp("Показать результат", "Show result", "Pokaz wynik")
-              : tp("Следующий вопрос", "Next question", "Nastepne pytanie")}
+              ? tp("Показать результат", "Show result", "Pokaż wynik")
+              : tp("Следующий вопрос", "Next question", "Następne pytanie")}
           </button>
         </div>
       )}

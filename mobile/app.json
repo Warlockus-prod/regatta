@@ -73,7 +73,7 @@
                   ]
                 },
                 {
-                  "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCrashData",
+                  "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherDiagnosticData",
                   "NSPrivacyCollectedDataTypeLinked": false,
                   "NSPrivacyCollectedDataTypeTracking": false,
                   "NSPrivacyCollectedDataTypePurposes": [

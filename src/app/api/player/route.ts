@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { upsertPlayer, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
+import { NICKNAME_MAX, NICKNAME_MIN, sanitizeNickname } from '@/lib/race-submission';
 
 export const runtime = 'nodejs';
 
@@ -32,13 +33,13 @@ export async function POST(req: Request) {
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  const raw = (body.nickname ?? '').trim();
-  if (raw.length < 2 || raw.length > 20) {
+  const raw = typeof body.nickname === 'string' ? body.nickname.trim() : '';
+  if (raw.length < NICKNAME_MIN || raw.length > NICKNAME_MAX) {
     return NextResponse.json({ error: 'Nickname must be 2-20 chars' }, { status: 400 });
   }
   // Strip disallowed characters (keep letters from any alphabet, digits, -, _)
-  const clean = raw.replace(/[^\p{L}\p{N}\-_ .]/gu, '').slice(0, 20);
-  if (clean.length < 2) {
+  const clean = sanitizeNickname(raw);
+  if (!clean) {
     return NextResponse.json({ error: 'Nickname invalid' }, { status: 400 });
   }
 

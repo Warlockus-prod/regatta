@@ -1,7 +1,7 @@
 import { CHANNELS, otherDscRows, softkeys, type RadioState } from './radioModel';
 
 // ============================================================================
-// "?" hint ("Podpowiedz - pokaz na radiu") from the vhf-trainer design.
+// "?" hint ("Podpowiedź - pokaż na radiu") from the vhf-trainer design.
 //
 // Given the CURRENT scenario step and the CURRENT radio state, return the
 // data-testid of the control the user should press right now. The page feeds it

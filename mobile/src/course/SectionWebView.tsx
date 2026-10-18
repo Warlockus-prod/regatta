@@ -13,6 +13,9 @@ import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { colors } from '../design-system/tokens';
+import { AnalyticsEvent } from '../analytics/events';
+import { useAnalytics } from '../analytics/use-analytics';
+import { parseExamFinished } from '../analytics/web-bridge';
 
 // ============================================================================
 // SectionWebView - embed a WHOLE web section (its landing + all sub-pages) as
@@ -71,6 +74,7 @@ export interface SectionWebViewProps {
 export function SectionWebView({ path, section, title }: SectionWebViewProps) {
   const { tp } = useI18n();
   const navigation = useNavigation();
+  const analytics = useAnalytics();
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -183,6 +187,8 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         onMessage={(e: WebViewMessageEvent) => {
           const data = e.nativeEvent.data;
           if (data === 'ready') { setLoading(false); return; }
+          const exam = parseExamFinished(data);
+          if (exam) { analytics.capture(AnalyticsEvent.ExamFinished, exam); return; }
           // structured messages from the embedded course (e.g. exam dirty state)
           try {
             const msg = JSON.parse(data) as { type?: string; dirty?: boolean };

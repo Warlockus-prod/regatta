@@ -153,9 +153,9 @@ export function buildTutorContext(a: SternikAnalysis, lang: 'pl' | 'ru' | 'both'
     return `- [${cat.pl}] ${s.q} -> poprawna: ${s.correctText}`;
   }).join('\n');
   return [
-    `Wynik uczacego sie: ${Math.round(a.accuracy * 100)}% (${a.correct}/${a.answered}).`,
-    weak ? `Najslabsze tematy: ${weak}.` : '',
+    `Wynik uczącego się: ${Math.round(a.accuracy * 100)}% (${a.correct}/${a.answered}).`,
+    weak ? `Najsłabsze tematy: ${weak}.` : '',
     misses ? `Pytania powtarzalnie mylone:\n${misses}` : '',
-    `Jezyk wyjasnien: ${lang === 'pl' ? 'polski' : lang === 'ru' ? 'rosyjski' : 'polski i rosyjski'}.`,
+    `Język wyjaśnień: ${lang === 'pl' ? 'polski' : lang === 'ru' ? 'rosyjski' : 'polski i rosyjski'}.`,
   ].filter(Boolean).join('\n');
 }

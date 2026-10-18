@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { toggleGalleryLike } from '@/lib/db';
-import { rateLimitWithGlobal, rateLimitHeaders } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, clientKeys } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -30,7 +30,8 @@ export async function POST(req: Request) {
   // 60 toggles / minute per sid is plenty for a real user clicking around;
   // catches click-flooding bots without affecting humans.
   const rl = rateLimitWithGlobal({
-    key: 'gallery-like:' + sid,
+    key: 'gallery-like',
+    client: clientKeys(req, sid),
     perKeyLimit: 60,
     perKeyWindowMs: 60_000,
     globalKey: 'gallery-like',

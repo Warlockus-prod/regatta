@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { insertRaceResult, getPlayer, insertEvent } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
-import { rateLimit, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
+import { FINISH_SEC_MAX, FINISH_SEC_MIN, isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
 
 export const runtime = 'nodejs';
 
@@ -33,8 +34,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'No session cookie' }, { status: 400 });
   }
 
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
-  const rl = rateLimit('race-result:' + (sid ?? ip), RESULT_LIMIT, RESULT_WINDOW_MS);
+  const rl = rateLimitClient(clientKeys(req, sid), 'race-result', RESULT_LIMIT, RESULT_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json({ error: 'Too many results, wait' }, { status: 429 });
   }
@@ -43,15 +43,15 @@ export async function POST(req: Request) {
   try { body = await req.json(); }
   catch { return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 }); }
 
-  // finishTimeSec must be a positive, finite number and no longer than a full
-  // day (24h = 86400s). Anything outside that is junk / poisoning.
-  if (
-    typeof body.finishTimeSec !== 'number' ||
-    !isFinite(body.finishTimeSec) ||
-    body.finishTimeSec <= 0 ||
-    body.finishTimeSec > 86400
-  ) {
-    return NextResponse.json({ error: 'finishTimeSec out of range' }, { status: 400 });
+  // finishTimeSec must be a plausible race time (see race-submission.ts):
+  // under FINISH_SEC_MIN no boat can sail the course, so it is a forged
+  // leaderboard entry.
+  if (!isPlausibleFinishSec(body.finishTimeSec)) {
+    return NextResponse.json({ error: `finishTimeSec must be ${FINISH_SEC_MIN}-${FINISH_SEC_MAX}` }, { status: 400 });
+  }
+  const missionId = parseMissionId(body.missionId);
+  if (missionId === 'invalid') {
+    return NextResponse.json({ error: 'bad missionId' }, { status: 400 });
   }
   if (!['easy', 'medium', 'hard'].includes(body.difficulty)) {
     return NextResponse.json({ error: 'bad difficulty' }, { status: 400 });
@@ -77,9 +77,17 @@ export async function POST(req: Request) {
   if (!inRange(body.tacks, 0, 1000)) {
     return NextResponse.json({ error: 'tacks out of range' }, { status: 400 });
   }
+  if (!inRange(body.totalBoats, 1, 1000) || !inRange(body.noGoEntries, 0, 1000)) {
+    return NextResponse.json({ error: 'totalBoats/noGoEntries out of range' }, { status: 400 });
+  }
+  if (body.position != null && body.totalBoats != null && body.position > body.totalBoats) {
+    return NextResponse.json({ error: 'position above totalBoats' }, { status: 400 });
+  }
 
   const player = getPlayer(sid);
-  const nickname = player?.nickname || body.nicknameFallback?.trim().slice(0, 20);
+  // Same sanitizer as /api/player: the fallback is client text that lands on
+  // the public leaderboard.
+  const nickname = player?.nickname || sanitizeNickname(body.nicknameFallback);
   if (!nickname) {
     return NextResponse.json({ error: 'No nickname set; call /api/player first' }, { status: 400 });
   }
@@ -89,7 +97,7 @@ export async function POST(req: Request) {
     nickname,
     difficulty: body.difficulty,
     windStrength: body.windStrength,
-    missionId: body.missionId ?? null,
+    missionId,
     finishTimeSec: body.finishTimeSec,
     position: body.position ?? null,
     totalBoats: body.totalBoats ?? null,
@@ -104,7 +112,7 @@ export async function POST(req: Request) {
   logInfo('race-result.saved', {
     sid: sid.slice(0, 8),
     time: body.finishTimeSec,
-    mission: body.missionId ?? 'free',
+    mission: missionId ?? 'free',
   });
 
   // Custom event for /stats: race.finish with finish time + difficulty +
@@ -121,7 +129,7 @@ export async function POST(req: Request) {
       finishTimeSec: body.finishTimeSec,
       difficulty: body.difficulty,
       windStrength: body.windStrength,
-      missionId: body.missionId ?? null,
+      missionId,
       position: body.position ?? null,
       totalBoats: body.totalBoats ?? null,
       tacks: body.tacks ?? null,

@@ -9,7 +9,11 @@
 # Install as a systemd timer or cron job, e.g. every 6 hours:
 #
 #   # /etc/cron.d/regatta-backup
-#   0 */6 * * * root /opt/repos/regatta/scripts/backup-sqlite.sh >> /var/log/regatta-backup.log 2>&1
+#   0 */6 * * * root /usr/local/sbin/regatta-backup-sqlite >> /var/log/regatta-backup.log 2>&1
+#
+# Root runs a root-owned, reviewed COPY of this script, never the file in the
+# repository checkout (that would let a repository change run as root):
+#   sudo install -o root -g root -m 0755 scripts/backup-sqlite.sh /usr/local/sbin/regatta-backup-sqlite
 #
 # Or via systemd timer (preferred - better log handling):
 #
@@ -18,7 +22,7 @@
 #     Description=Regatta SQLite backup
 #     [Service]
 #     Type=oneshot
-#     ExecStart=/opt/repos/regatta/scripts/backup-sqlite.sh
+#     ExecStart=/usr/local/sbin/regatta-backup-sqlite
 #
 #   /etc/systemd/system/regatta-backup.timer:
 #     [Unit]
@@ -57,8 +61,8 @@ fi
 
 mkdir -p "$BACKUP_DIR"
 
-if [ ! -f "$DB_PATH" ]; then
-  echo "[$(date -Iseconds)] ERROR: DB not found at $DB_PATH"
+if [ ! -f "$DB_PATH" ] && ! docker inspect regatta >/dev/null 2>&1; then
+  echo "[$(date -Iseconds)] ERROR: DB not found at $DB_PATH and no regatta container"
   exit 1
 fi
 
@@ -69,12 +73,15 @@ OUT_GZ="$OUT.gz"
 echo "[$(date -Iseconds)] Starting online backup -> $OUT"
 
 # Online backup via sqlite3 itself (safe while the app is running).
-# Runs inside the regatta container if sqlite3 isn't on the host.
-if command -v sqlite3 >/dev/null 2>&1; then
+# Without sqlite3 on the host, or when the DB is only reachable inside the
+# container's named volume, back up inside the container instead. The runtime
+# image has no sqlite3 binary, so that path uses better-sqlite3's online
+# backup API (same page-level copy as `.backup`).
+if command -v sqlite3 >/dev/null 2>&1 && [ -f "$DB_PATH" ]; then
   sqlite3 "$DB_PATH" ".backup '$OUT'"
 else
   # Fallback: exec in container. Assumes the container is named "regatta".
-  docker exec regatta sh -c "sqlite3 /data/regatta-stats.db \".backup '/data/_tmp_backup.db'\""
+  docker exec regatta node -e "require('better-sqlite3')('/data/regatta-stats.db', { fileMustExist: true }).backup('/data/_tmp_backup.db').then(() => process.exit(0), (e) => { console.error(e.message); process.exit(1); })"
   docker cp regatta:/data/_tmp_backup.db "$OUT"
   docker exec regatta rm -f /data/_tmp_backup.db
 fi

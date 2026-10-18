@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
-import { rateLimit, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
 import { weatherProvider, type WeatherNow } from '@/lib/weather';
 
 export const runtime = 'nodejs';
@@ -58,8 +58,7 @@ export async function GET(req: Request) {
 
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
-  const rl = rateLimit('weather:' + (sid ?? ip), WEATHER_LIMIT, WEATHER_WINDOW_MS);
+  const rl = rateLimitClient(clientKeys(req, sid), 'weather', WEATHER_LIMIT, WEATHER_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json({ error: 'rate limited' }, { status: 429 });
   }

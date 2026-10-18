@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -70,10 +70,10 @@ export async function POST(req: Request) {
 
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
+  const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
   // Site-wide per-user daily AI cap (all AI endpoints share this budget).
-  const daily = checkUserDailyBudget(sid ?? ip);
+  const daily = checkUserDailyBudget(client);
   if (!daily.ok) {
     logWarn('sternik-chat.daily-cap', { resetMs: daily.resetMs });
     return NextResponse.json(
@@ -82,9 +82,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const rlKey = 'sternik-chat:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
-    key: rlKey,
+    key: 'sternik-chat',
+    client,
     perKeyLimit: CHAT_LIMIT,
     perKeyWindowMs: CHAT_WINDOW_MS,
     globalKey: 'sternik-chat',
@@ -92,7 +92,7 @@ export async function POST(req: Request) {
     globalWindowMs: CHAT_GLOBAL_WINDOW_MS,
   });
   if (!rl.ok) {
-    logWarn('sternik-chat.rate-limited', { key: rlKey.slice(0, 20), resetMs: rl.resetMs, by: rl.rejectedBy });
+    logWarn('sternik-chat.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
       { error: 'Zbyt wiele zapytan. Sprobuj za godzine.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
       { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },

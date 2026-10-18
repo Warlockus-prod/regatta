@@ -27,7 +27,7 @@ const TOPICS: OralPrompt['topic'][] = ['prawo drogi', 'znaki', 'bezpieczenstwo',
 const TOPIC_LABEL: Record<OralPrompt['topic'], { ru: string; pl: string }> = {
   'prawo drogi': { ru: 'Право дороги', pl: 'Prawo drogi' },
   znaki: { ru: 'Знаки', pl: 'Znaki' },
-  bezpieczenstwo: { ru: 'Безопасность', pl: 'Bezpieczenstwo' },
+  bezpieczenstwo: { ru: 'Безопасность', pl: 'Bezpieczeństwo' },
   przepisy: { ru: 'Правила', pl: 'Przepisy' },
   manewrowanie: { ru: 'Маневрирование', pl: 'Manewrowanie' },
   locja: { ru: 'Лоция', pl: 'Locja' },
@@ -115,13 +115,13 @@ export default function OralTrainer() {
   return (
     <main>
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-        🎓 {tp('Устный ответ', 'Answering out loud', 'Odpowiedz ustna')}
+        🎓 {tp('Устный ответ', 'Answering out loud', 'Odpowiedź ustna')}
       </h1>
       <p className="mb-5 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
         {tp(
           'Тесты учат узнавать правильный вариант из четырёх. Экзаменатор просит объяснить, и море тоже: никто на лодке не даёт тебе четыре варианта на выбор. Здесь ты отвечаешь голосом, ответ распознаётся и проверяется по пунктам, и только потом ты видишь эталон.',
           'A multiple-choice bank teaches you to recognise the right answer out of four. The examiner asks you to explain, and so does the sea: nobody on a boat hands you four options. Here you answer out loud, your words are transcribed and checked point by point, and only then do you see the model answer.',
-          'Testy ucza rozpoznawac dobra odpowiedz z czterech. Egzaminator prosi o wyjasnienie, i morze tez: nikt na lodzi nie daje ci czterech wariantow. Tutaj odpowiadasz glosem, mowa jest rozpoznawana i sprawdzana punkt po punkcie, a wzorcowa odpowiedz widzisz dopiero potem.',
+          'Testy uczą rozpoznawać dobrą odpowiedź z czterech. Egzaminator prosi o wyjaśnienie, i morze też: nikt na łodzi nie daje ci czterech wariantów. Tutaj odpowiadasz głosem, mowa jest rozpoznawana i sprawdzana punkt po punkcie, a wzorcową odpowiedź widzisz dopiero potem.',
         )}
       </p>
 
@@ -188,7 +188,7 @@ export default function OralTrainer() {
             aria-label={tp(
               'Держать и отвечать: зажми, ответь вслух, отпусти. Работает с клавиши пробел или Enter.',
               'Hold to answer: press and hold, answer aloud, release. Works with Space or Enter.',
-              'Trzymaj i odpowiadaj: przytrzymaj, odpowiedz na glos, pusc. Dziala tez klawiszem spacja lub Enter.',
+              'Trzymaj i odpowiadaj: przytrzymaj, odpowiedz na głos, puść. Działa też klawiszem spacja lub Enter.',
             )}
             className="mt-3 min-h-[52px] w-full touch-none rounded-xl px-4 text-sm font-bold"
             style={recording
@@ -196,9 +196,9 @@ export default function OralTrainer() {
               : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             {recording
-              ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mow...')
+              ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mów...')
               : working
-                ? tp('Слушаю...', 'Listening...', 'Slucham...')
+                ? tp('Слушаю...', 'Listening...', 'Słucham...')
                 : tp('🎙 Держи и отвечай', '🎙 Hold and answer', '🎙 Trzymaj i odpowiadaj')}
           </button>
 
@@ -206,7 +206,7 @@ export default function OralTrainer() {
             {tp(
               'Отвечай по-польски - экзамен принимают на польском. Один пропущенный пункт ещё проходит - кроме критического (например позиция или число людей в MAYDAY).',
               'Answer in Polish - the exam is held in Polish. One missing element still passes - unless it is a critical one (for example the position or the number of persons in a MAYDAY).',
-              'Odpowiadaj po polsku - egzamin jest po polsku. Jeden brakujacy punkt jeszcze przechodzi - chyba ze to punkt krytyczny (np. pozycja lub liczba osob w MAYDAY).',
+              'Odpowiadaj po polsku - egzamin jest po polsku. Jeden brakujący punkt jeszcze przechodzi - chyba że to punkt krytyczny (np. pozycja lub liczba osób w MAYDAY).',
             )}
           </p>
 
@@ -218,7 +218,7 @@ export default function OralTrainer() {
               className="mt-2 min-h-[36px] text-xs"
               style={{ color: 'var(--text-muted)' }}
             >
-              {tp('Сдаться и посмотреть эталон', 'Give up and see the model answer', 'Poddaj sie i zobacz wzor')}
+              {tp('Сдаться и посмотреть эталон', 'Give up and see the model answer', 'Poddaj się i zobacz wzór')}
             </button>
           )}
 
@@ -233,7 +233,7 @@ export default function OralTrainer() {
         <div className="rounded-2xl p-4" aria-live="polite" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Что ты сказал', 'What you said', 'Co powiedziales')}
+              {tp('Что ты сказал', 'What you said', 'Co powiedziałeś')}
             </span>
             {checks && (
               <span data-testid="oral-score" className="text-sm font-bold"
@@ -248,7 +248,7 @@ export default function OralTrainer() {
               {tp(
                 'Пока пусто. Держи кнопку и отвечай своими словами - зубрить формулировку не нужно, нужно назвать все пункты.',
                 'Nothing yet. Hold the button and answer in your own words - you do not have to recite the model, you have to cover every element.',
-                'Na razie pusto. Trzymaj przycisk i odpowiadaj wlasnymi slowami - nie musisz recytowac wzoru, musisz wymienic wszystkie punkty.',
+                'Na razie pusto. Trzymaj przycisk i odpowiadaj własnymi słowami - nie musisz recytować wzoru, musisz wymienić wszystkie punkty.',
               )}
             </p>
           ) : heard === '' ? (
@@ -256,7 +256,7 @@ export default function OralTrainer() {
               {tp(
                 'Я ничего не услышала. Проверь микрофон и ответь ещё раз - это не засчитано как ошибка.',
                 'I heard nothing. Check the mic and answer again - this was not counted against you.',
-                'Nic nie uslyszalem. Sprawdz mikrofon i odpowiedz jeszcze raz - to nie zostalo policzone jako blad.',
+                'Nic nie usłyszałem. Sprawdź mikrofon i odpowiedz jeszcze raz - to nie zostało policzone jako błąd.',
               )}
             </p>
           ) : (
@@ -280,7 +280,7 @@ export default function OralTrainer() {
           {showModel && (
             <div className="mt-4 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
               <div className="mb-1 text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--accent-cyan)' }}>
-                {tp('Как надо было', 'How it should have gone', 'Jak to mialo brzmiec')}
+                {tp('Как надо было', 'How it should have gone', 'Jak to miało brzmieć')}
               </div>
               <p lang="pl" data-testid="oral-model" className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>
                 {p.modelPl}
@@ -311,7 +311,7 @@ export default function OralTrainer() {
                 className="min-h-[44px] flex-1 rounded-xl px-3 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
-                {tp('Следующий вопрос', 'Next question', 'Nastepne pytanie')}
+                {tp('Следующий вопрос', 'Next question', 'Następne pytanie')}
               </button>
             </div>
           )}
@@ -321,7 +321,7 @@ export default function OralTrainer() {
               {tp(
                 'Распознавание речи сейчас недоступно. Вопросы и эталонные ответы читаются офлайн, а проверка голоса - нет.',
                 'Speech recognition is unavailable right now. The questions and model answers read fine offline; grading your voice does not.',
-                'Rozpoznawanie mowy jest teraz niedostepne. Pytania i wzorcowe odpowiedzi czytaja sie offline, ocena glosu nie.',
+                'Rozpoznawanie mowy jest teraz niedostępne. Pytania i wzorcowe odpowiedzi czytają się offline, ocena głosu nie.',
               )}
             </p>
           )}
