@@ -20,7 +20,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
 - Мобильное: Expo / React Native в `mobile/`, в продаже 1.6.3 (build 44, запуск
-  на iOS 27), черновик 1.6.4 в App Store Connect, свой CI-джоб и свой гейт релиза.
+  на iOS 27), 1.6.4 (build 48) на ревью с 2026-10-18, свой CI-джоб и свой гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -605,6 +605,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `scripts/blender/refine_yacht.py` - доводка модели яхты.
 - `scripts/blender/audit_yacht.py` - проверка модели перед экспортом.
 - `scripts/blender/export_sail_shapes.mjs` - выборка формы парусов из рантайма для Blender.
+- `scripts/blender/render_store_header.py` - рендер заголовка страницы App Store для iOS 27 (3840x1646, без альфы и текста, яхта в безопасной зоне Apple); загрузка через API Asset Library, разбор в `docs/audits/2026-10-18-aso-and-code-audit.md`.
 - `scripts/photoshop/README.md` - как запускать скрипты Photoshop.
 - `scripts/photoshop/add-watermark.jsx` - пакетный водяной знак.
 - `scripts/photoshop/export-layers.jsx` - экспорт слоев PSD.

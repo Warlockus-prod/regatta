@@ -16,10 +16,11 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
-  1.6.3 (iOS build 44, запуск на iOS 27). В App Store Connect создан черновик
-  1.6.4 (2026-10-18) с новой карточкой (ASO) и "Что нового", без сборки и не
-  отправлен. В TestFlight сборки 45-47 версии 1.7.0 из ветки Codex
-  `codex/learning-modules`, в `main` не слиты: к 1.6.4 их не прикреплять.
+  1.6.3 (iOS build 44, запуск на iOS 27). 1.6.4 (iOS build 48, новая карточка
+  ASO, заголовок страницы iOS 27, запрос отзыва) отправлена на ревью 2026-10-18,
+  релиз автоматический после одобрения. В TestFlight также сборки 45-47 версии
+  1.7.0 из ветки Codex `codex/learning-modules`, в `main` не слиты: следующая
+  версия после 1.6.4 должна быть выше (1.7.0 подходит).
   Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
   плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
   Журнал сборок и разбор: `docs/design/mobile/BUILDS.md`. Выпуск только через
