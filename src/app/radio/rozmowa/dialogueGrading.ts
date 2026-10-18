@@ -21,7 +21,7 @@
 
 export interface MustItem {
   id: string;
-  /** what is missing, shown to the learner (Polish, ASCII) */
+  /** what is missing, shown to the learner (Polish) */
   label: string;
   /** the turn passes this item if the transcript contains ANY of these */
   anyOf: string[];

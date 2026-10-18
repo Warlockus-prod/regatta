@@ -12,16 +12,16 @@ export default function RadioSubnav() {
   const primary = [
     { href: "/radio", label: tp("Карта курса", "Course map", "Mapa kursu") },
     { href: "/radio/teoria", label: tp("Теория", "Theory", "Teoria") },
-    { href: "/radio/obsluga", label: tp("Управление", "Controls", "Obsluga") },
+    { href: "/radio/obsluga", label: tp("Управление", "Controls", "Obsługa") },
     { href: "/radio/symulator", label: tp("Симулятор", "Simulator", "Symulator") },
     { href: "/radio/test", label: tp("Экзамен", "Exam", "Egzamin") },
   ];
   const secondary = [
-    { href: "/radio/rozmowa", label: tp("Живой разговор", "Live conversation", "Rozmowa na zywo") },
+    { href: "/radio/rozmowa", label: tp("Живой разговор", "Live conversation", "Rozmowa na żywo") },
     { href: "/radio/pozycja", label: tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji") },
-    { href: "/radio/zadania", label: tp("26 заданий UKE", "26 UKE tasks", "26 zadan UKE") },
-    { href: "/radio/sciaga", label: tp("Шпаргалка", "Cheat sheet", "Sciaga") },
-    { href: "/sternik", label: tp("Раздел шкипера", "Skipper section", "Dzial sternika") },
+    { href: "/radio/zadania", label: tp("26 заданий UKE", "26 UKE tasks", "26 zadań UKE") },
+    { href: "/radio/sciaga", label: tp("Шпаргалка", "Cheat sheet", "Ściąga") },
+    { href: "/sternik", label: tp("Раздел шкипера", "Skipper section", "Dział sternika") },
   ];
   const secondaryActive = secondary.some((item) => pathname === item.href);
 
@@ -54,11 +54,11 @@ export default function RadioSubnav() {
           className="flex min-h-[44px] cursor-pointer list-none items-center rounded-xl px-4 text-sm font-semibold"
           style={linkStyle(secondaryActive)}
         >
-          {tp("Еще", "More", "Wiecej")}
+          {tp("Еще", "More", "Więcej")}
           <span className="ml-2 transition-transform group-open:rotate-180" aria-hidden>⌄</span>
         </summary>
         <nav
-          aria-label={tp("Дополнительные разделы", "Additional sections", "Dodatkowe dzialy")}
+          aria-label={tp("Дополнительные разделы", "Additional sections", "Dodatkowe działy")}
           className="absolute right-0 z-30 mt-2 w-64 overflow-hidden rounded-xl border p-2 shadow-xl"
           style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}
         >

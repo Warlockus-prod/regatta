@@ -47,7 +47,7 @@ export default function WeakSpotsPanel() {
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-          🎯 {tp('Твои слабые места', 'What you keep getting wrong', 'Twoje slabe punkty')}
+          🎯 {tp('Твои слабые места', 'What you keep getting wrong', 'Twoje słabe punkty')}
         </span>
         <button
           type="button"
@@ -85,7 +85,7 @@ export default function WeakSpotsPanel() {
         {tp(
           'Это не оценка, а список того, что стоит починить. Он копится по всем тренажёрам и живёт только на этом устройстве.',
           'This is not a grade, it is a list of things to go and fix. It builds up across every trainer and never leaves this device.',
-          'To nie ocena, tylko lista rzeczy do naprawienia. Zbiera sie ze wszystkich trenazerow i nie opuszcza tego urzadzenia.',
+          'To nie ocena, tylko lista rzeczy do naprawienia. Zbiera się ze wszystkich trenażerów i nie opuszcza tego urządzenia.',
         )}
       </p>
     </section>

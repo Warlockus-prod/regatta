@@ -101,7 +101,7 @@ export default function RadioSimulatorPage() {
   /** Deep-linked scenarios must wait until the saved hardware model is loaded,
    *  otherwise an M323 faceplate can drive an M330 state machine. */
   const [modelReady, setModelReady] = useState(false);
-  /** Inspect ("Rozbior") mode: tap any control or display indicator to learn it.
+  /** Inspect ("Rozbiór") mode: tap any control or display indicator to learn it.
    *  While on, taps never reach the state machine - the radio is not operated. */
   const [inspect, setInspect] = useState(false);
   const [inspectKey, setInspectKey] = useState<string | null>(null);
@@ -488,9 +488,9 @@ export default function RadioSimulatorPage() {
     // Without this the learner sees a score and has no way to know which words
     // were missing - and the missing words are the whole lesson.
     if (r) {
-      pushLog(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${r.transcript.trim()}"`, 'tx');
+      pushLog(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${r.transcript.trim()}"`, 'tx');
       for (const c of r.checks.filter((x) => !x.ok)) {
-        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${c.label}`, 'bad');
       }
       // remember it: a thing failed eight times is a pattern, not eight incidents
       recordWeak(
@@ -611,7 +611,7 @@ export default function RadioSimulatorPage() {
     <div id="sternik-radio-sim">
       <div className="mb-2">
         <Link href="/radio" className="text-sm" style={{ color: 'var(--accent-cyan)' }}>
-          {'<'} {tp('Раздел рации', 'Radio section', 'Dzial radio')}
+          {'<'} {tp('Раздел рации', 'Radio section', 'Dział radio')}
         </Link>
       </div>
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -621,7 +621,7 @@ export default function RadioSimulatorPage() {
         {tp(
           'Учебная копия рации, которую UKE использует на практической части SRC. Панель, меню и процедура DISTRESS - по официальной инструкции ICOM.',
           'A training replica of the radio UKE uses in the SRC practical. Panel, menus and the DISTRESS procedure follow the official ICOM manual.',
-          'Treningowa kopia radia, ktorego UKE uzywa na czesci praktycznej SRC. Panel, menu i procedura DISTRESS - wg oficjalnej instrukcji ICOM.',
+          'Treningowa kopia radia, którego UKE używa na części praktycznej SRC. Panel, menu i procedura DISTRESS - wg oficjalnej instrukcji ICOM.',
         )}
       </p>
 
@@ -633,7 +633,7 @@ export default function RadioSimulatorPage() {
               {tp('Выбери сценарий', 'Pick a scenario', 'Wybierz scenariusz')}
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              · {tp('прогресс сохраняется на этом устройстве', 'progress is saved on this device', 'postep zapisuje sie na tym urzadzeniu')}
+              · {tp('прогресс сохраняется на этом устройстве', 'progress is saved on this device', 'postęp zapisuje się na tym urządzeniu')}
             </span>
             {/* The tour used to be a one-shot: shown once, then locked behind a
                 localStorage flag with no way back to it. Anyone who skipped it -
@@ -645,7 +645,7 @@ export default function RadioSimulatorPage() {
               className="min-h-[44px] rounded-full px-3 text-xs font-semibold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
-              ❔ {tp('Как это работает', 'How this works', 'Jak to dziala')}
+              ❔ {tp('Как это работает', 'How this works', 'Jak to działa')}
             </button>
             {/* model picker - both sets appear at the UKE practical; the third
                 option repaints the set as the real amber IC-M330GE hardware */}
@@ -658,7 +658,7 @@ export default function RadioSimulatorPage() {
               {tp(
                 'Профиль IC-M323: клавиша CLEAR, отдельное дерево меню, цикл ручки VOL -> SQL -> CH -> подсветка и завершение отмены без отдельного STBY. Интервал повтора DSC у обеих моделей случайный: 3,5-4,5 минуты.',
                 'IC-M323 profile: CLEAR key, its own menu tree, VOL -> SQL -> CH -> backlight dial cycle, and cancel completion without a separate STBY step. Both models randomize the DSC repeat interval between 3.5 and 4.5 minutes.',
-                'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokretla VOL -> SQL -> CH -> podswietlenie i zakonczenie odwolania bez osobnego STBY. W obu modelach odstep powtorki DSC jest losowy: 3,5-4,5 minuty.',
+                'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokrętła VOL -> SQL -> CH -> podświetlenie i zakończenie odwołania bez osobnego STBY. W obu modelach odstęp powtórki DSC jest losowy: 3,5-4,5 minuty.',
               )}
             </div>
           )}
@@ -705,7 +705,7 @@ export default function RadioSimulatorPage() {
             💡 {tp(
               'Обучение - подсказки и «почему» на каждом шаге. Экзамен - только ситуация, разбор в конце. Голосовые передачи можно наговорить в микрофон - Whisper оценит структуру.',
               'Learn mode shows hints and the "why" for every step. Exam mode gives only the situation, debrief at the end. Voice transmissions can be spoken into the mic - Whisper grades the structure.',
-              'Nauka - wskazowki i "dlaczego" na kazdym kroku. Egzamin - tylko sytuacja, omowienie na koncu. Transmisje glosowe mozesz nagrac mikrofonem - Whisper oceni strukture.',
+              'Nauka - wskazówki i "dlaczego" na każdym kroku. Egzamin - tylko sytuacja, omówienie na końcu. Transmisje głosowe możesz nagrać mikrofonem - Whisper oceni strukturę.',
             )}
           </div>
         </>
@@ -723,13 +723,13 @@ export default function RadioSimulatorPage() {
             </span>
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {fmtTime(elapsedSec)}</span>
             <button type="button" data-testid="exit-scenario" onClick={exitScenario} className="ml-auto min-h-[44px] rounded-lg px-3 text-xs" style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}>
-              ✕ {tp('Выйти', 'Exit', 'Wyjdz')}
+              ✕ {tp('Выйти', 'Exit', 'Wyjdź')}
             </button>
           </div>
 
           <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'lg:grid-cols-[minmax(0,460px)_1fr]'}`}>
             <div>
-              {/* Inspect ("Rozbior") toggle - tap any part of the radio to learn it */}
+              {/* Inspect ("Rozbiór") toggle - tap any part of the radio to learn it */}
               <div className="mb-2 flex items-center gap-2">
                 <button
                   type="button"
@@ -741,7 +741,7 @@ export default function RadioSimulatorPage() {
                     ? { background: '#ffce4d', color: '#3a2a00' }
                     : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
                 >
-                  🔍 {tp('Разбор', 'Inspect', 'Rozbior')}
+                  🔍 {tp('Разбор', 'Inspect', 'Rozbiór')}
                 </button>
                 <button
                   type="button"
@@ -751,16 +751,16 @@ export default function RadioSimulatorPage() {
                   className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
                   style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
                 >
-                  {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
+                  {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dźwięk')}
                 </button>
                 <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
                   {inspect
                     ? tp(
                         'Нажми на любую кнопку или индикатор экрана - объясню, что это. Рация не управляется.',
                         'Tap any control or display indicator - it explains itself. The radio is not operated.',
-                        'Dotknij dowolnego przycisku lub wskaznika na ekranie - wyjasni sie sam. Radio nie dziala.',
+                        'Dotknij dowolnego przycisku lub wskaźnika na ekranie - wyjaśni się sam. Radio nie działa.',
                       )
-                    : tp('Не знаешь, что за кнопка? Включи разбор.', 'Not sure what a control does? Turn on Inspect.', 'Nie wiesz, co robi przycisk? Wlacz Rozbior.')}
+                    : tp('Не знаешь, что за кнопка? Включи разбор.', 'Not sure what a control does? Turn on Inspect.', 'Nie wiesz, co robi przycisk? Włącz Rozbiór.')}
                 </span>
               </div>
 
@@ -815,7 +815,7 @@ export default function RadioSimulatorPage() {
               {/* finished -> debrief; else current step */}
               {finishedAt !== null ? (
                 <div data-testid="debrief" role="status" aria-live="polite" className="mb-3 rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
-                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Разбор', 'Debrief', 'Omowienie')}</div>
+                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Разбор', 'Debrief', 'Omówienie')}</div>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{finalScore}%</span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -836,7 +836,7 @@ export default function RadioSimulatorPage() {
                   {/* full why-walkthrough in the debrief (always, esp. for exam mode) */}
                   <details className="mt-3">
                     <summary className="cursor-pointer text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
-                      {tp('Почему именно так - по шагам', 'Why it works this way - step by step', 'Dlaczego wlasnie tak - krok po kroku')}
+                      {tp('Почему именно так - по шагам', 'Why it works this way - step by step', 'Dlaczego właśnie tak - krok po kroku')}
                     </summary>
                     <ol className="mt-2 space-y-2 pl-4 text-sm" style={{ color: 'var(--text-secondary)', listStyle: 'decimal' }}>
                       {scenario.steps.map((st) => (
@@ -858,7 +858,7 @@ export default function RadioSimulatorPage() {
                     <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                          {tp('Как надо было', 'How it should have sounded', 'Jak to mialo brzmiec')}
+                          {tp('Как надо было', 'How it should have sounded', 'Jak to miało brzmieć')}
                         </span>
                         <button
                           type="button"
@@ -868,7 +868,7 @@ export default function RadioSimulatorPage() {
                           className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-50"
                           style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                         >
-                          {playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posluchaj wzorca')}
+                          {playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posłuchaj wzorca')}
                         </button>
                       </div>
                       <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed" style={{ color: 'var(--text-primary)' }}>
@@ -876,7 +876,7 @@ export default function RadioSimulatorPage() {
                       </pre>
                       {voiceResult && (
                         <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                          {tp('Ты сказал', 'You said', 'Powiedziales')}: &quot;{voiceResult.transcript.trim().slice(0, 220)}&quot;
+                          {tp('Ты сказал', 'You said', 'Powiedziałeś')}: &quot;{voiceResult.transcript.trim().slice(0, 220)}&quot;
                         </p>
                       )}
                     </div>
@@ -908,7 +908,7 @@ export default function RadioSimulatorPage() {
                             type="button"
                             data-testid="hint-btn"
                             onClick={showHint}
-                            title={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedz - pokaz na radiu')}
+                            title={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedź - pokaż na radiu')}
                             className="flex h-11 w-11 min-h-[44px] min-w-[44px] items-center justify-center rounded-full text-sm font-bold transition active:scale-95"
                             style={{ background: 'rgba(255,206,77,0.15)', color: 'var(--hl-amber, #ffce4d)', border: '1px solid rgba(255,206,77,0.45)' }}
                           >
@@ -923,7 +923,7 @@ export default function RadioSimulatorPage() {
                         {tp(
                           'Сейчас нажимать нечего - жди ответа станции.',
                           'Nothing to press right now - wait for the station to answer.',
-                          'Teraz nic nie naciskasz - czekaj na odpowiedz stacji.',
+                          'Teraz nic nie naciskasz - czekaj na odpowiedź stacji.',
                         )}
                       </div>
                     )}
@@ -936,7 +936,7 @@ export default function RadioSimulatorPage() {
                       </>
                     ) : (
                       <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        {tp('Режим экзамена: действуй сам, разбор будет в конце.', 'Exam mode: act on your own, debrief at the end.', 'Tryb egzaminu: dzialaj sam, omowienie na koncu.')}
+                        {tp('Режим экзамена: действуй сам, разбор будет в конце.', 'Exam mode: act on your own, debrief at the end.', 'Tryb egzaminu: działaj sam, omówienie na końcu.')}
                       </div>
                     )}
                   </div>
@@ -966,7 +966,7 @@ export default function RadioSimulatorPage() {
               <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
                 <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>📋 {tp('Журнал', 'Log', 'Dziennik')}</div>
                 {pageLog.length === 0 ? (
-                  <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{tp('пусто - начни с включения рации', 'empty - start by powering on', 'pusto - zacznij od wlaczenia radia')}</div>
+                  <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{tp('пусто - начни с включения рации', 'empty - start by powering on', 'pusto - zacznij od włączenia radia')}</div>
                 ) : (
                   <ol data-testid="action-log" className="max-h-64 space-y-1 overflow-y-auto">
                     {pageLog.map((r, i) => {
@@ -995,32 +995,32 @@ export default function RadioSimulatorPage() {
               {
                 icon: '📻',
                 h: tp('Это копия настоящей рации', 'This is a replica of the real radio', 'To kopia prawdziwego radia'),
-                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the set used at the UKE SRC practical. Every key, menu and screen works like the original.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje sie praktyke SRC w UKE. Kazdy klawisz, menu i ekran dziala jak w oryginale.'),
+                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the set used at the UKE SRC practical. Every key, menu and screen works like the original.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.'),
               },
               {
                 icon: '🗺️',
-                h: tp('Сценарии из реальной жизни', 'Real-life scenarios', 'Scenariusze z zycia'),
-                p: tp('Пожар, человек за бортом, поломка, ложный алерт... Каждый шаг объясняется: почему так и зачем.', 'Fire, man overboard, breakdown, false alert... Every step is explained: why this way.', 'Pozar, czlowiek za burta, awaria, falszywy alert... Kazdy krok jest wyjasniony: dlaczego wlasnie tak.'),
+                h: tp('Сценарии из реальной жизни', 'Real-life scenarios', 'Scenariusze z życia'),
+                p: tp('Пожар, человек за бортом, поломка, ложный алерт... Каждый шаг объясняется: почему так и зачем.', 'Fire, man overboard, breakdown, false alert... Every step is explained: why this way.', 'Pożar, człowiek za burtą, awaria, fałszywy alert... Każdy krok jest wyjaśniony: dlaczego właśnie tak.'),
               },
               {
                 icon: '🎓',
                 h: tp('Два режима', 'Two modes', 'Dwa tryby'),
-                p: tp('Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.', 'Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved.', 'Nauka - wskazowki na kazdym kroku. Egzamin - jak w UKE: tylko sytuacja, omowienie na koncu. Postep sie zapisuje.'),
+                p: tp('Обучение - подсказки на каждом шаге. Экзамен - как в UKE: только ситуация, разбор в конце. Прогресс сохраняется.', 'Learn - hints at every step. Exam - like at UKE: situation only, debrief at the end. Progress is saved.', 'Nauka - wskazówki na każdym kroku. Egzamin - jak w UKE: tylko sytuacja, omówienie na końcu. Postęp się zapisuje.'),
               },
               {
                 icon: '🔍',
-                h: tp('Не знаешь кнопку - включи Разбор', 'Do not know a key? Turn on Inspect', 'Nie znasz klawisza? Wlacz Rozbior'),
-                p: tp('В режиме "Разбор" рация не работает: жми любую кнопку, индикатор или экран - она объяснит, что это, зачем нужна и когда используется. А кнопка "?" подсветит ту кнопку, которую надо нажать сейчас.', 'In Inspect mode the radio does not react: tap any key, indicator or the screen and it explains what it is, why it exists and when you use it. The "?" button spotlights the control you need right now.', 'W trybie Rozbior radio nie dziala: dotknij dowolnego klawisza, wskaznika lub ekranu, a wyjasni, co to jest, po co i kiedy sie tego uzywa. Przycisk "?" podswietli klawisz, ktory masz teraz nacisnac.'),
+                h: tp('Не знаешь кнопку - включи Разбор', 'Do not know a key? Turn on Inspect', 'Nie znasz klawisza? Włącz Rozbiór'),
+                p: tp('В режиме "Разбор" рация не работает: жми любую кнопку, индикатор или экран - она объяснит, что это, зачем нужна и когда используется. А кнопка "?" подсветит ту кнопку, которую надо нажать сейчас.', 'In Inspect mode the radio does not react: tap any key, indicator or the screen and it explains what it is, why it exists and when you use it. The "?" button spotlights the control you need right now.', 'W trybie Rozbiór radio nie działa: dotknij dowolnego klawisza, wskaźnika lub ekranu, a wyjaśni, co to jest, po co i kiedy się tego używa. Przycisk "?" podświetli klawisz, który masz teraz nacisnąć.'),
               },
               {
                 icon: '🔊',
-                h: tp('Слушай рацию', 'Listen to the radio', 'Sluchaj radia'),
-                p: tp('У рации есть звук: шум эфира, писк клавиш, отказ на 70-м канале, тревога DSC. Шумоподавитель (SQL) настраивают на слух - задерёшь порог ради тишины и не услышишь слабый далёкий вызов. Именно это и проверяют на экзамене.', 'The radio has sound: the hiss of an open channel, key beeps, the refusal on channel 70, the DSC alarm. Squelch is set BY EAR - turn it up for silence and you go deaf to the weak distant call. That is what the exam is testing.', 'Radio ma dzwiek: szum eteru, piski klawiszy, odmowa na kanale 70, alarm DSC. Blokade szumow (SQL) ustawia sie SLUCHEM - podkrec ja dla ciszy, a oglochniesz na slabe, dalekie wywolanie. Wlasnie to sprawdza egzamin.'),
+                h: tp('Слушай рацию', 'Listen to the radio', 'Słuchaj radia'),
+                p: tp('У рации есть звук: шум эфира, писк клавиш, отказ на 70-м канале, тревога DSC. Шумоподавитель (SQL) настраивают на слух - задерёшь порог ради тишины и не услышишь слабый далёкий вызов. Именно это и проверяют на экзамене.', 'The radio has sound: the hiss of an open channel, key beeps, the refusal on channel 70, the DSC alarm. Squelch is set BY EAR - turn it up for silence and you go deaf to the weak distant call. That is what the exam is testing.', 'Radio ma dźwięk: szum eteru, piski klawiszy, odmowa na kanale 70, alarm DSC. Blokadę szumów (SQL) ustawia się SŁUCHEM - podkręć ją dla ciszy, a ogłuchniesz na słabe, dalekie wywołanie. Właśnie to sprawdza egzamin.'),
               },
               {
                 icon: '🎤',
-                h: tp('Говори в эфир, станция ответит голосом', 'Speak on air - the station answers out loud', 'Mow do eteru - stacja odpowie glosem'),
-                p: tp('MAYDAY и PAN-PAN наговариваешь в микрофон. Речь распознаётся, структура сообщения проверяется по чек-листу, а в дневнике остаётся дословно то, что ты сказал, и то, чего не хватило. Береговая станция отвечает голосом, как в эфире.', 'You speak MAYDAY and PAN-PAN into the mic. The speech is transcribed, the message structure is graded against a checklist, and the journal keeps your exact words plus what was missing. The coast station answers out loud, as it would on air.', 'MAYDAY i PAN-PAN mowisz do mikrofonu. Mowa jest rozpoznawana, struktura komunikatu oceniana wedlug listy, a w dzienniku zostaje doslownie to, co powiedziales, i to, czego zabraklo. Stacja brzegowa odpowiada glosem, jak w eterze.'),
+                h: tp('Говори в эфир, станция ответит голосом', 'Speak on air - the station answers out loud', 'Mów do eteru - stacja odpowie głosem'),
+                p: tp('MAYDAY и PAN-PAN наговариваешь в микрофон. Речь распознаётся, структура сообщения проверяется по чек-листу, а в дневнике остаётся дословно то, что ты сказал, и то, чего не хватило. Береговая станция отвечает голосом, как в эфире.', 'You speak MAYDAY and PAN-PAN into the mic. The speech is transcribed, the message structure is graded against a checklist, and the journal keeps your exact words plus what was missing. The coast station answers out loud, as it would on air.', 'MAYDAY i PAN-PAN mówisz do mikrofonu. Mowa jest rozpoznawana, struktura komunikatu oceniana według listy, a w dzienniku zostaje dosłownie to, co powiedziałeś, i to, czego zabrakło. Stacja brzegowa odpowiada głosem, jak w eterze.'),
               },
             ].map((card, i) => (i === onboardStep ? (
               <div key={i}>
@@ -1042,7 +1042,7 @@ export default function RadioSimulatorPage() {
                   className="min-h-[44px] rounded-lg px-3 text-xs"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  {tp('Пропустить', 'Skip', 'Pomin')}
+                  {tp('Пропустить', 'Skip', 'Pomiń')}
                 </button>
                 <button
                   type="button"

@@ -51,11 +51,11 @@ export interface PosItem {
 }
 
 export const POS_RULES_PL = [
-  'Kazda cyfra osobno, po angielsku: 54 to FIVE FOUR, nigdy "fifty four".',
-  'Ulamek to DECIMAL, nigdy POINT: 30.5 to THREE ZERO DECIMAL FIVE.',
-  'Jednostki mowimy zawsze: DEGREES po stopniach, MINUTES po minutach.',
-  'Dlugosc ma trzy cyfry - zero wiodace tez wymawiamy: 018 to ZERO ONE EIGHT.',
-  'Na koncu polkula: NORTH albo SOUTH, potem EAST albo WEST. Najpierw szerokosc.',
+  'Każda cyfra osobno, po angielsku: 54 to FIVE FOUR, nigdy "fifty four".',
+  'Ułamek to DECIMAL, nigdy POINT: 30.5 to THREE ZERO DECIMAL FIVE.',
+  'Jednostki mówimy zawsze: DEGREES po stopniach, MINUTES po minutach.',
+  'Długość ma trzy cyfry - zero wiodące też wymawiamy: 018 to ZERO ONE EIGHT.',
+  'Na końcu półkula: NORTH albo SOUTH, potem EAST albo WEST. Najpierw szerokość.',
 ];
 
 export const POS_RULES_RU = [
@@ -75,32 +75,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: FIVE FOUR DEGREES',
+        label: 'stopnie szerokości: FIVE FOUR DEGREES',
         anyOf: ['5 4 degrees', 'five four degrees'],
         warnOf: ['54 degrees', 'fifty four degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: THREE ZERO DECIMAL FIVE MINUTES',
+        label: 'minuty szerokości: THREE ZERO DECIMAL FIVE MINUTES',
         anyOf: ['3 0 decimal 5 minutes', '3 0 decimal 5 minute', 'three zero decimal five minutes'],
         warnOf: ['30 decimal 5 minutes', 'thirty decimal five', '30 5 minutes', '3 0 5 minutes', 'thirty point five'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ONE EIGHT DEGREES',
+        label: 'stopnie długości: ZERO ONE EIGHT DEGREES',
         anyOf: ['0 1 8 degrees', '018 degrees', 'zero one eight degrees'],
         warnOf: ['18 degrees', 'eighteen degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: FOUR FIVE DECIMAL TWO MINUTES',
+        label: 'minuty długości: FOUR FIVE DECIMAL TWO MINUTES',
         anyOf: ['4 5 decimal 2 minutes', '4 5 decimal 2 minute', 'four five decimal two minutes'],
         warnOf: ['45 decimal 2 minutes', 'forty five decimal two', '45 2 minutes', '4 5 2 minutes', 'forty five point two'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Baza. Ludzie mowia "fifty four point three" zamiast cyfra po cyfrze i DECIMAL, oraz gubia slowa DEGREES / MINUTES.',
+    trapPl: 'Baza. Ludzie mówią "fifty four point three" zamiast cyfra po cyfrze i DECIMAL, oraz gubią słowa DEGREES / MINUTES.',
     trapRu: 'База. Говорят «fifty four point three» вместо чтения по цифрам и DECIMAL, теряют слова DEGREES / MINUTES.',
   },
   {
@@ -111,32 +111,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: FIVE FIVE DEGREES',
+        label: 'stopnie szerokości: FIVE FIVE DEGREES',
         anyOf: ['5 5 degrees', 'five five degrees'],
         warnOf: ['55 degrees', 'fifty five degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: ZERO SEVEN DECIMAL FOUR MINUTES',
+        label: 'minuty szerokości: ZERO SEVEN DECIMAL FOUR MINUTES',
         anyOf: ['0 7 decimal 4 minutes', '0 7 decimal 4 minute', '07 decimal 4 minutes', 'zero seven decimal four minutes'],
         warnOf: ['07 4 minutes', '0 7 4 minutes', '7 4 minutes', 'seven point four'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ZERO EIGHT DEGREES',
+        label: 'stopnie długości: ZERO ZERO EIGHT DEGREES',
         anyOf: ['0 0 8 degrees', '008 degrees', 'zero zero eight degrees'],
         warnOf: ['8 degrees', 'eight degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: THREE ZERO DECIMAL NINE MINUTES',
+        label: 'minuty długości: THREE ZERO DECIMAL NINE MINUTES',
         anyOf: ['3 0 decimal 9 minutes', '3 0 decimal 9 minute', 'three zero decimal nine minutes'],
         warnOf: ['30 decimal 9 minutes', 'thirty decimal nine', '30 9 minutes', '3 0 9 minutes', 'thirty point nine'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Zera wiodace. Dlugosc ma trzy cyfry, wiec ZERO ZERO EIGHT, a nie "eight degrees". Minuty szerokosci tez maja dwie cyfry: ZERO SEVEN, nie "seven".',
+    trapPl: 'Zera wiodące. Długość ma trzy cyfry, więc ZERO ZERO EIGHT, a nie "eight degrees". Minuty szerokości też mają dwie cyfry: ZERO SEVEN, nie "seven".',
     trapRu: 'Ведущие нули. У долготы три цифры: ZERO ZERO EIGHT, а не «eight degrees». Минуты широты тоже двузначные: ZERO SEVEN, не «seven».',
   },
   {
@@ -147,32 +147,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: FIVE FOUR DEGREES',
+        label: 'stopnie szerokości: FIVE FOUR DEGREES',
         anyOf: ['5 4 degrees', 'five four degrees'],
         warnOf: ['54 degrees', 'fifty four degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: TWO FOUR DECIMAL ZERO MINUTES',
+        label: 'minuty szerokości: TWO FOUR DECIMAL ZERO MINUTES',
         anyOf: ['2 4 decimal 0 minutes', '2 4 decimal zero minutes', 'two four decimal zero minutes'],
         warnOf: ['24 decimal 0 minutes', '24 decimal zero minutes', 'twenty four decimal zero', '24 minutes', '24 0 minutes', '2 4 minutes', 'twenty four minutes'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ONE NINE DEGREES',
+        label: 'stopnie długości: ZERO ONE NINE DEGREES',
         anyOf: ['0 1 9 degrees', '019 degrees', 'zero one nine degrees'],
         warnOf: ['19 degrees', 'nineteen degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: THREE NINE DECIMAL ZERO MINUTES',
+        label: 'minuty długości: THREE NINE DECIMAL ZERO MINUTES',
         anyOf: ['3 9 decimal 0 minutes', '3 9 decimal zero minutes', 'three nine decimal zero minutes'],
         warnOf: ['39 decimal 0 minutes', '39 decimal zero minutes', 'thirty nine decimal zero', '39 minutes', '39 0 minutes', 'thirty nine minutes'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Koncowe DECIMAL ZERO. Kandydat mowi "TWO FOUR MINUTES" i polyka ulamek - odbiorca nie wie, czy uslyszal cala liczbe.',
+    trapPl: 'Końcowe DECIMAL ZERO. Kandydat mówi "TWO FOUR MINUTES" i połyka ułamek - odbiorca nie wie, czy usłyszał całą liczbę.',
     trapRu: 'Конечный DECIMAL ZERO. Кандидат говорит «TWO FOUR MINUTES» и глотает дробную часть: приёмник не знает, всю ли цифру услышал.',
   },
   {
@@ -183,32 +183,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: FIVE SEVEN DEGREES',
+        label: 'stopnie szerokości: FIVE SEVEN DEGREES',
         anyOf: ['5 7 degrees', 'five seven degrees'],
         warnOf: ['57 degrees', 'fifty seven degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: ONE EIGHT DECIMAL TWO MINUTES',
+        label: 'minuty szerokości: ONE EIGHT DECIMAL TWO MINUTES',
         anyOf: ['1 8 decimal 2 minutes', '1 8 decimal 2 minute', 'one eight decimal two minutes'],
         warnOf: ['18 decimal 2 minutes', 'eighteen decimal two', '18 2 minutes', '1 8 2 minutes', 'eighteen point two'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ONE ONE DEGREES',
+        label: 'stopnie długości: ZERO ONE ONE DEGREES',
         anyOf: ['0 1 1 degrees', '011 degrees', 'zero one one degrees'],
         warnOf: ['11 degrees', 'eleven degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: FIVE EIGHT DECIMAL SEVEN MINUTES',
+        label: 'minuty długości: FIVE EIGHT DECIMAL SEVEN MINUTES',
         anyOf: ['5 8 decimal 7 minutes', '5 8 decimal 7 minute', 'five eight decimal seven minutes'],
         warnOf: ['58 decimal 7 minutes', 'fifty eight decimal seven', '58 7 minutes', '5 8 7 minutes', 'fifty eight point seven'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Szerokosc i dlugosc maja lustrzane minuty (18.2 i 58.7). Kolejnosc jest jedna: najpierw szerokosc N/S, dopiero potem dlugosc E/W.',
+    trapPl: 'Szerokość i długość mają lustrzane minuty (18.2 i 58.7). Kolejność jest jedna: najpierw szerokość N/S, dopiero potem długość E/W.',
     trapRu: 'У широты и долготы зеркальные минуты (18.2 и 58.7). Порядок один: сначала широта N/S, потом долгота E/W.',
   },
   {
@@ -219,32 +219,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: FIVE FIVE DEGREES',
+        label: 'stopnie szerokości: FIVE FIVE DEGREES',
         anyOf: ['5 5 degrees', 'five five degrees'],
         warnOf: ['55 degrees', 'fifty five degrees', 'double five degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: FIVE FIVE DECIMAL FIVE MINUTES',
+        label: 'minuty szerokości: FIVE FIVE DECIMAL FIVE MINUTES',
         anyOf: ['5 5 decimal 5 minutes', '5 5 decimal 5 minute', 'five five decimal five minutes'],
         warnOf: ['55 decimal 5 minutes', 'fifty five decimal five', '55 5 minutes', '5 5 5 minutes', 'fifty five point five', 'double five'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ONE FIVE DEGREES',
+        label: 'stopnie długości: ZERO ONE FIVE DEGREES',
         anyOf: ['0 1 5 degrees', '015 degrees', 'zero one five degrees'],
         warnOf: ['15 degrees', 'fifteen degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: ONE FIVE DECIMAL FIVE MINUTES',
+        label: 'minuty długości: ONE FIVE DECIMAL FIVE MINUTES',
         anyOf: ['1 5 decimal 5 minutes', '1 5 decimal 5 minute', 'one five decimal five minutes'],
         warnOf: ['15 decimal 5 minutes', 'fifteen decimal five', '15 5 minutes', '1 5 5 minutes', 'fifteen point five'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Powtorzone cyfry. Nie ma "DOUBLE FIVE" w pozycji - kazda cyfra osobno, piec razy FIVE. Ludzie skracaja i gubia jedna piatke.',
+    trapPl: 'Powtórzone cyfry. Nie ma "DOUBLE FIVE" w pozycji - każda cyfra osobno, pięć razy FIVE. Ludzie skracają i gubią jedną piątkę.',
     trapRu: 'Повторяющиеся цифры. Никакого «DOUBLE FIVE» в позиции: каждая цифра отдельно, пять раз FIVE. Люди сокращают и теряют одну пятёрку.',
   },
   {
@@ -255,32 +255,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: THREE THREE DEGREES',
+        label: 'stopnie szerokości: THREE THREE DEGREES',
         anyOf: ['3 3 degrees', 'three three degrees'],
         warnOf: ['33 degrees', 'thirty three degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: FIVE FIVE DECIMAL EIGHT MINUTES',
+        label: 'minuty szerokości: FIVE FIVE DECIMAL EIGHT MINUTES',
         anyOf: ['5 5 decimal 8 minutes', '5 5 decimal 8 minute', 'five five decimal eight minutes'],
         warnOf: ['55 decimal 8 minutes', 'fifty five decimal eight', '55 8 minutes', '5 5 8 minutes', 'fifty five point eight'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: SOUTH (nie NORTH)', anyOf: ['south'] },
+      { id: 'lat-hem', label: 'półkula szerokości: SOUTH (nie NORTH)', anyOf: ['south'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ONE EIGHT DEGREES',
+        label: 'stopnie długości: ZERO ONE EIGHT DEGREES',
         anyOf: ['0 1 8 degrees', '018 degrees', 'zero one eight degrees'],
         warnOf: ['18 degrees', 'eighteen degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: TWO FIVE DECIMAL THREE MINUTES',
+        label: 'minuty długości: TWO FIVE DECIMAL THREE MINUTES',
         anyOf: ['2 5 decimal 3 minutes', '2 5 decimal 3 minute', 'two five decimal three minutes'],
         warnOf: ['25 decimal 3 minutes', 'twenty five decimal three', '25 3 minutes', '2 5 3 minutes', 'twenty five point three'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: WEST (nie EAST)', anyOf: ['west'] },
+      { id: 'lon-hem', label: 'półkula długości: WEST (nie EAST)', anyOf: ['west'] },
     ],
-    trapPl: 'Polkula na autopilocie. Stopnie dlugosci te same co w pozycji z Zatoki Gdanskiej (018), ale tu jest SOUTH i WEST. Kto mowi NORTH / EAST z pamieci, oblewa.',
+    trapPl: 'Półkula na autopilocie. Stopnie długości te same co w pozycji z Zatoki Gdańskiej (018), ale tu jest SOUTH i WEST. Kto mówi NORTH / EAST z pamięci, oblewa.',
     trapRu: 'Полушарие на автопилоте. Градусы долготы те же, что в гданьской позиции (018), но здесь SOUTH и WEST. Кто по привычке говорит NORTH / EAST, тот проваливает.',
   },
   {
@@ -291,32 +291,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: ZERO SEVEN DEGREES',
+        label: 'stopnie szerokości: ZERO SEVEN DEGREES',
         anyOf: ['0 7 degrees', '07 degrees', 'zero seven degrees'],
         warnOf: ['7 degrees', 'seven degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: FOUR ZERO DECIMAL ZERO MINUTES',
+        label: 'minuty szerokości: FOUR ZERO DECIMAL ZERO MINUTES',
         anyOf: ['4 0 decimal 0 minutes', '4 0 decimal zero minutes', 'four zero decimal zero minutes'],
         warnOf: ['40 decimal 0 minutes', '40 decimal zero minutes', 'forty decimal zero', '40 minutes', '40 0 minutes', 'forty minutes'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: SOUTH', anyOf: ['south'] },
+      { id: 'lat-hem', label: 'półkula szerokości: SOUTH', anyOf: ['south'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO ZERO FIVE DEGREES',
+        label: 'stopnie długości: ZERO ZERO FIVE DEGREES',
         anyOf: ['0 0 5 degrees', '005 degrees', 'zero zero five degrees'],
         warnOf: ['5 degrees', 'five degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: ZERO NINE DECIMAL ZERO MINUTES',
+        label: 'minuty długości: ZERO NINE DECIMAL ZERO MINUTES',
         anyOf: ['0 9 decimal 0 minutes', '0 9 decimal zero minutes', '09 decimal 0 minutes', '09 decimal zero minutes', 'zero nine decimal zero minutes'],
         warnOf: ['9 minutes', '09 0 minutes', 'nine minutes'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: WEST', anyOf: ['west'] },
+      { id: 'lon-hem', label: 'półkula długości: WEST', anyOf: ['west'] },
     ],
-    trapPl: 'Wszystkie zera naraz: zero wiodace w szerokosci (ZERO SEVEN), dwa zera w dlugosci (ZERO ZERO FIVE), zero w minutach (ZERO NINE) i zero koncowe po DECIMAL. Plus polkula S / W.',
+    trapPl: 'Wszystkie zera naraz: zero wiodące w szerokości (ZERO SEVEN), dwa zera w długości (ZERO ZERO FIVE), zero w minutach (ZERO NINE) i zero końcowe po DECIMAL. Plus półkula S / W.',
     trapRu: 'Все нули сразу: ведущий ноль в широте (ZERO SEVEN), два нуля в долготе (ZERO ZERO FIVE), ноль в минутах (ZERO NINE) и конечный ноль после DECIMAL. Плюс полушарие S / W.',
   },
   {
@@ -327,32 +327,32 @@ export const POSITIONS: PosItem[] = [
     must: [
       {
         id: 'lat-deg',
-        label: 'stopnie szerokosci: SIX TWO DEGREES',
+        label: 'stopnie szerokości: SIX TWO DEGREES',
         anyOf: ['6 2 degrees', 'six two degrees'],
         warnOf: ['62 degrees', 'sixty two degrees'],
       },
       {
         id: 'lat-min',
-        label: 'minuty szerokosci: ZERO ZERO DECIMAL NINE MINUTES',
+        label: 'minuty szerokości: ZERO ZERO DECIMAL NINE MINUTES',
         anyOf: ['0 0 decimal 9 minutes', '0 0 decimal 9 minute', '00 decimal 9 minutes', 'zero zero decimal nine minutes'],
         warnOf: ['00 9 minutes', '0 0 9 minutes', 'zero zero point nine'],
       },
-      { id: 'lat-hem', label: 'polkula szerokosci: NORTH', anyOf: ['north'] },
+      { id: 'lat-hem', label: 'półkula szerokości: NORTH', anyOf: ['north'] },
       {
         id: 'lon-deg',
-        label: 'stopnie dlugosci: ZERO TWO ZERO DEGREES',
+        label: 'stopnie długości: ZERO TWO ZERO DEGREES',
         anyOf: ['0 2 0 degrees', '020 degrees', 'zero two zero degrees'],
         warnOf: ['20 degrees', 'twenty degrees'],
       },
       {
         id: 'lon-min',
-        label: 'minuty dlugosci: ZERO THREE DECIMAL ZERO MINUTES',
+        label: 'minuty długości: ZERO THREE DECIMAL ZERO MINUTES',
         anyOf: ['0 3 decimal 0 minutes', '0 3 decimal zero minutes', '03 decimal 0 minutes', '03 decimal zero minutes', 'zero three decimal zero minutes'],
         warnOf: ['3 minutes', '03 0 minutes', 'three minutes'],
       },
-      { id: 'lon-hem', label: 'polkula dlugosci: EAST', anyOf: ['east'] },
+      { id: 'lon-hem', label: 'półkula długości: EAST', anyOf: ['east'] },
     ],
-    trapPl: 'Final. Minuty ZERO ZERO DECIMAL NINE, dlugosc ZERO TWO ZERO z zerem w srodku i na koncu, minuty dlugosci z zerem wiodacym i koncowym. Kazde zero musi zostac wypowiedziane.',
+    trapPl: 'Final. Minuty ZERO ZERO DECIMAL NINE, długość ZERO TWO ZERO z zerem w środku i na końcu, minuty długości z zerem wiodącym i końcowym. Każde zero musi zostać wypowiedziane.',
     trapRu: 'Финал. Минуты ZERO ZERO DECIMAL NINE, долгота ZERO TWO ZERO с нулём в середине и в конце, минуты с ведущим и конечным нулём. Каждый ноль надо произнести.',
   },
 ];
@@ -385,7 +385,7 @@ export interface PosResult {
  * is checked separately, off the hemisphere words that terminate each half.
  */
 function orderCheck(said: string, must: PosElement[]): PosCheck {
-  const label = 'kolejnosc: najpierw szerokosc (N/S), potem dlugosc (E/W)';
+  const label = 'kolejność: najpierw szerokość (N/S), potem długość (E/W)';
   const find = (id: string) => {
     const el = must.find((m) => m.id === id);
     if (!el) return -1;

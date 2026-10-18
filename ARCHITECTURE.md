@@ -366,6 +366,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/gallery-2026.generated.ts` - автогенерация `scripts/build-gallery-year.mjs`, руками не править.
 - `src/data/src-radio.ts` - официальный банк 324 вопросов UKE SRC.
 - `src/data/sternik.ts` - банк sternik motorowodny: 879 вопросов, категории, конфиг экзамена (75 вопросов, 90 минут, порог 65). Id вопросов стабильны, не перенумеровывать.
+- `src/data/polishDiacritics.test.ts` - страж правила 2 из `AGENTS.md`: польский текст банков sternik и SRC и данных радиокурса не содержит снятых диакритик (`sie`, `moze`, `ktory` и подобных).
 - `src/data/sailing-lab/course.ts` - структура курса работы с парусами.
 - `src/data/sailing-lab/mainsheet-lesson.ts` - урок по гика-шкоту.
 - `src/data/sailing-lab/shape-lessons.ts` - уроки по форме паруса (оттяжка, шкаторины).

@@ -161,7 +161,7 @@ export default function SrcTrainerPage() {
         {tp(
           '324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.',
           'All 324 questions from the official UKE SRC study materials. Learn with instant feedback, or take a mock exam with feedback at the end.',
-          '324 pytania z oficjalnych materialow UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie probnym dopiero po zakonczeniu.',
+          '324 pytania z oficjalnych materiałów UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.',
         )}
       </p>
 
@@ -169,15 +169,15 @@ export default function SrcTrainerPage() {
         ⚠️ {tp(
           'UKE не публикует ключа ответов. Наш ключ составлен и перекрёстно проверен автоматически (по ITU/SOLAS/GMDSS-источникам); спорные вопросы помечены. Это учебное пособие, а не официальный ключ.',
           'UKE publishes no answer key. Ours was authored and cross-verified automatically against ITU/SOLAS/GMDSS sources; uncertain items are flagged. A study aid, not an official key.',
-          'UKE nie publikuje klucza odpowiedzi. Nasz klucz powstal i zostal niezaleznie zweryfikowany automatycznie (zrodla ITU/SOLAS/GMDSS); watpliwe pytania sa oznaczone. To pomoc naukowa, nie oficjalny klucz.',
+          'UKE nie publikuje klucza odpowiedzi. Nasz klucz powstał i został niezależnie zweryfikowany automatycznie (źródła ITU/SOLAS/GMDSS); wątpliwe pytania są oznaczone. To pomoc naukowa, nie oficjalny klucz.',
         )}
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label={tp('Режим тренировки', 'Training mode', 'Tryb treningu')}>
         {([
           ['adaptive', tp('Учить', 'Learn', 'Nauka')],
-          ['exam', tp('Пробный экзамен', 'Mock exam', 'Egzamin probny')],
-          ['weak', tp('Слабые места', 'Weak spots', 'Slabe punkty')],
+          ['exam', tp('Пробный экзамен', 'Mock exam', 'Egzamin próbny')],
+          ['weak', tp('Слабые места', 'Weak spots', 'Słabe punkty')],
         ] as const).map(([value, label]) => (
           <button
             key={value}
@@ -205,7 +205,7 @@ export default function SrcTrainerPage() {
             className="ml-auto min-h-[44px] rounded-lg px-3 text-xs font-semibold"
             style={{ color: 'var(--text-secondary)' }}
           >
-            {tp('Вся база', 'Full bank', 'Cala baza')}
+            {tp('Вся база', 'Full bank', 'Cała baza')}
           </button>
         </div>
       )}
@@ -221,7 +221,7 @@ export default function SrcTrainerPage() {
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
               : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
           >
-            {p === 'all' ? tp('Все', 'All', 'Wszystkie') : `${tp('Раздел', 'Part', 'Dzial')} ${p}`}
+            {p === 'all' ? tp('Все', 'All', 'Wszystkie') : `${tp('Раздел', 'Part', 'Dział')} ${p}`}
             {' '}
             <span className="opacity-60">{p === 'all' ? SRC_BANK.length : SRC_BANK.filter((q) => q.part === p).length}</span>
           </button>
@@ -238,12 +238,12 @@ export default function SrcTrainerPage() {
             <>
               <div className="text-3xl">🏁</div>
               <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
-                {tp('Серия пройдена', 'Round finished', 'Runda zakonczona')}: {sessionOk}/{sessionN}
+                {tp('Серия пройдена', 'Round finished', 'Runda zakończona')}: {sessionOk}/{sessionN}
               </div>
               {mode === "exam" && (
                 <div className="mt-4 text-left" data-testid="exam-result" role="status">
                   <p className="font-semibold" style={{ color: examResult.passed ? "var(--success)" : "var(--warning)" }}>
-                    {examResult.passed ? tp("Теоретический пробник сдан", "Theory mock passed", "Proba teorii zaliczona") : tp("Нужно повторить один или оба предмета", "Review one or both subjects", "Powtorz jeden lub oba przedmioty")}
+                    {examResult.passed ? tp("Теоретический пробник сдан", "Theory mock passed", "Próba teorii zaliczona") : tp("Нужно повторить один или оба предмета", "Review one or both subjects", "Powtórz jeden lub oba przedmioty")}
                   </p>
                   {examResult.parts.map((result) => (
                     <p key={result.part} className="mt-2 text-sm">
@@ -251,18 +251,18 @@ export default function SrcTrainerPage() {
                     </p>
                   ))}
                   <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                    {tp("Порог: 3/5 отдельно в каждом предмете. Это не оценка практических навыков.", "Threshold: 3/5 in each subject separately. This does not assess practical skills.", "Prog: 3/5 osobno z kazdego przedmiotu. To nie jest ocena umiejetnosci praktycznych.")}
+                    {tp("Порог: 3/5 отдельно в каждом предмете. Это не оценка практических навыков.", "Threshold: 3/5 in each subject separately. This does not assess practical skills.", "Próg: 3/5 osobno z każdego przedmiotu. To nie jest ocena umiejętności praktycznych.")}
                   </p>
                   <details className="mt-4">
-                    <summary className="min-h-[44px] cursor-pointer font-semibold">{tp("Разбор ответов", "Review answers", "Omowienie odpowiedzi")}</summary>
+                    <summary className="min-h-[44px] cursor-pointer font-semibold">{tp("Разбор ответов", "Review answers", "Omówienie odpowiedzi")}</summary>
                     <ol className="space-y-5">
                       {queue.map((question) => (
                         <li key={question.id} className="border-t pt-3 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
                           <p>{answers[question.id] === question.correct ? "✓" : "✗"} {question.q}</p>
-                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedz")}: {question.options[answers[question.id]]}</p>
+                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedź")}: {question.options[answers[question.id]]}</p>
                           <p className="mt-1">{tp("Учебный ключ", "Study key", "Klucz szkoleniowy")}: {question.options[question.correct]}</p>
                           <p className="mt-1" style={{ color: "var(--text-secondary)" }}>{question.whyPl}</p>
-                          <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tp("Повторить тему", "Review topic", "Powtorz temat")}</Link>
+                          <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tp("Повторить тему", "Review topic", "Powtórz temat")}</Link>
                         </li>
                       ))}
                     </ol>
@@ -273,13 +273,13 @@ export default function SrcTrainerPage() {
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
               {mode === 'exam'
-                ? tp('10 вопросов, по 5 из каждого предмета. Нужно минимум 3/5 в каждом. Ответы и разбор после завершения. Практическая часть оценивается отдельно.', '10 questions, 5 per subject. You need at least 3/5 in each. Answers and feedback appear at the end. Practical skills are assessed separately.', '10 pytan, po 5 z kazdego przedmiotu. Potrzebujesz co najmniej 3/5 w kazdym. Odpowiedzi i omowienie po zakonczeniu. Praktyka jest oceniana osobno.')
+                ? tp('10 вопросов, по 5 из каждого предмета. Нужно минимум 3/5 в каждом. Ответы и разбор после завершения. Практическая часть оценивается отдельно.', '10 questions, 5 per subject. You need at least 3/5 in each. Answers and feedback appear at the end. Practical skills are assessed separately.', '10 pytań, po 5 z każdego przedmiotu. Potrzebujesz co najmniej 3/5 w każdym. Odpowiedzi i omówienie po zakończeniu. Praktyka jest oceniana osobno.')
                 : pool.length === 0 && mode === 'weak'
-                  ? tp('Пока нет вопросов для повторения. Ошибки из курса и банка появятся здесь.', 'There are no questions to review yet. Mistakes from the course and bank will appear here.', 'Nie ma jeszcze pytan do powtorki. Bledy z kursu i banku pojawia sie tutaj.')
+                  ? tp('Пока нет вопросов для повторения. Ошибки из курса и банка появятся здесь.', 'There are no questions to review yet. Mistakes from the course and bank will appear here.', 'Nie ma jeszcze pytań do powtórki. Błędy z kursu i banku pojawią się tutaj.')
                   : chapter
                     ? `${lang === 'ru' ? chapter.title.ru : chapter.title.pl}: ${pool.length}`
                     : part === 'all'
-                ? tp('Вся база: сначала пойдут вопросы, которые ты ещё не видел или путаешь.', 'Full base: unseen and shaky questions come first.', 'Cala baza: najpierw pytania nowe i te, ktore mylisz.')
+                ? tp('Вся база: сначала пойдут вопросы, которые ты ещё не видел или путаешь.', 'Full base: unseen and shaky questions come first.', 'Cała baza: najpierw pytania nowe i te, które mylisz.')
                 : SRC_PARTS[part]}
             </p>
           )}
@@ -297,12 +297,12 @@ export default function SrcTrainerPage() {
         <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
             <span className="rounded-full px-2 py-0.5" style={{ background: 'var(--hover-bg)', color: 'var(--accent-cyan)' }}>
-              {tp('Раздел', 'Part', 'Dzial')} {current.part}
+              {tp('Раздел', 'Part', 'Dział')} {current.part}
             </span>
             <span>{idx + 1}/{queue.length}</span>
             {current.confidence === 'unsure' && (
-              <span title={tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz watpliwy - sprawdz w zrodlach')} style={{ color: 'var(--warning)' }}>
-                ⚠️ {tp('спорный ключ', 'uncertain key', 'watpliwy klucz')}
+              <span title={tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz wątpliwy - sprawdź w źródłach')} style={{ color: 'var(--warning)' }}>
+                ⚠️ {tp('спорный ключ', 'uncertain key', 'wątpliwy klucz')}
               </span>
             )}
             {mode !== 'exam' && <span className="ml-auto">{sessionOk}/{sessionN} ✓</span>}
@@ -354,7 +354,7 @@ export default function SrcTrainerPage() {
                   className="mt-3 flex min-h-[44px] items-center font-semibold underline underline-offset-4"
                   style={{ color: 'var(--accent-cyan)' }}
                 >
-                  {tp('Открыть связанную главу теории', 'Open the related theory chapter', 'Otworz powiazany rozdzial teorii')}
+                  {tp('Открыть связанную главу теории', 'Open the related theory chapter', 'Otwórz powiązany rozdział teorii')}
                 </Link>
               </div>}
               <button

@@ -132,7 +132,7 @@ export function ExplLangToggle() {
     <div
       className="inline-flex items-center gap-0.5 rounded-full p-0.5"
       role="group"
-      aria-label={tp('Язык пояснений', 'Explanation language', 'Jezyk wyjasnien')}
+      aria-label={tp('Язык пояснений', 'Explanation language', 'Język wyjaśnień')}
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
     >
       <span aria-hidden className="px-1.5 text-xs" style={{ color: 'var(--text-muted)' }}>
@@ -197,7 +197,7 @@ export function RadioVariantToggle({ model, onModel }: { model: RadioModel; onMo
           aria-pressed={m330On}
           className={cls}
           style={m330On ? on : off}
-          title={tp('Компактная рация, одна из двух на экзамене UKE', 'Compact set, one of the two UKE exam radios', 'Kompaktowe radio, jedno z dwoch na egzaminie UKE')}
+          title={tp('Компактная рация, одна из двух на экзамене UKE', 'Compact set, one of the two UKE exam radios', 'Kompaktowe radio, jedno z dwóch na egzaminie UKE')}
         >
           IC-M330
         </button>
@@ -219,7 +219,7 @@ export function RadioVariantToggle({ model, onModel }: { model: RadioModel; onMo
           aria-pressed={radioRealistic}
           className={cls}
           style={radioRealistic ? on : off}
-          title={tp('Реалистичный вид IC-M330GE, как на экзамене', 'Realistic IC-M330GE look, like at the exam', 'Realistyczny wyglad IC-M330GE, jak na egzaminie')}
+          title={tp('Реалистичный вид IC-M330GE, как на экзамене', 'Realistic IC-M330GE look, like at the exam', 'Realistyczny wygląd IC-M330GE, jak na egzaminie')}
         >
           <span aria-hidden style={{ width: 9, height: 9, borderRadius: 2, background: '#ffb638', boxShadow: '0 0 5px #ffb638' }} />
           {tp('M330 реальный', 'M330 real', 'M330 realny')}
@@ -300,13 +300,13 @@ export function BaseToggle({ counts }: { counts: { all: number; materialy: numbe
   const { tp } = useI18n();
   const opts: { id: ExamBase; label: string; n: number }[] = [
     { id: 'all', label: tp('Общая', 'All', 'Wszystkie'), n: counts.all },
-    { id: 'materialy', label: tp('Материалы', 'Materials', 'Materialy'), n: counts.materialy },
+    { id: 'materialy', label: tp('Материалы', 'Materials', 'Materiały'), n: counts.materialy },
     { id: 'internet', label: tp('Интернет', 'Internet', 'Internet'), n: counts.internet },
   ];
   return (
     <div>
       <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-        {tp('База вопросов', 'Question base', 'Baza pytan')}
+        {tp('База вопросов', 'Question base', 'Baza pytań')}
       </div>
       <div className="flex flex-wrap gap-1.5">
         {opts.map((o) => {
