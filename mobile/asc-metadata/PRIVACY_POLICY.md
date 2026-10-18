@@ -1,6 +1,6 @@
 # Week to Regatta - Privacy Policy
 
-Last updated: 2026-06-22.
+Last updated: 2026-10-18.
 
 ## TL;DR
 
@@ -17,8 +17,26 @@ is on by default and you can opt out at any time. It covers:
 
 - Screen views (which screens are opened), captured automatically.
 - A small set of explicit product events: race started, race finished, AI
-  coach requested, "ask" submitted.
+  coach requested, "ask" submitted, lesson completed (which course and which
+  lesson), and mock exam finished (sternik or SRC radio: score, number of
+  questions, passed or not).
 - Each event is tagged with your app language and the app version.
+
+The app does not collect crash reports. If iOS asks whether to share crash data
+with app developers, that is Apple's own setting and Apple's data.
+
+### Course pages inside the app
+
+The sternik motorowodny and SRC radio courses (and some trainers) are pages of
+weektoregatta.com shown inside the app. Like the website, those pages send
+anonymous usage events to weektoregatta.com: which page was opened, that it was
+opened inside the app, mock exam started and finished with the score, lessons
+and radio tasks completed, and technical error reports when a page script fails
+(the error message and the place in the code, never what you typed). These
+events carry no account and no advertising or device identifier, only a random
+session cookie of the website. The server stores the country, the browser and
+device type and a shortened IP address (the last part is removed before
+anything is saved), keeps the raw events for 180 days and then deletes them.
 
 This data is NOT linked to your identity. We do not collect your name, email,
 contacts, location, advertising identifier (IDFA), or any other personal
@@ -58,19 +76,21 @@ That removes every key listed above.
 Besides the anonymous analytics above, the app makes network requests in these
 cases, all initiated by you:
 
-1. **Gallery** loads photos and YouTube thumbnails from
+1. **Course pages** (sternik, SRC radio, some trainers) load from
+   weektoregatta.com and report the anonymous usage events described above.
+2. **Gallery** loads photos and YouTube thumbnails from
    weektoregatta.com. The request includes only what your browser /
    YouTube would normally see (User-Agent, IP). No identifier of you or
    the device is attached.
-2. **AI coach** (after a race, when you tap "AI coach"): sends the race log
+3. **AI coach** (after a race, when you tap "AI coach"): sends the race log
    (boat positions, time, score) to weektoregatta.com/api/coach to generate
    post-race coaching text. The race log does not contain personal data, only
    physics samples. We do not store the request beyond what is needed to
    compute the reply.
-3. **Daily challenge banner** on Home: a small GET to
+4. **Daily challenge banner** on Home: a small GET to
    weektoregatta.com/api/daily to fetch today's optional challenge.
    No identifier of you or the device is sent.
-4. **Leaderboard**: when you finish a race the score (time + course, no
+5. **Leaderboard**: when you finish a race the score (time + course, no
    identity) may be posted to weektoregatta.com so the global board can show
    it. No personal identifier is attached.
 

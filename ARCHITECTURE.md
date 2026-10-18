@@ -76,7 +76,21 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 полей `meta` с лимитом 4 КБ и определяет страну по заголовкам `cf-ipcountry`,
 `x-vercel-ip-country`, `x-country-code`. Серверные события: `race.finish`
 (`/api/race-result`), `coach.requested` (`/api/coach`). Клиентские:
-`page.view`, `page.engaged`, `js.uncaught`, `js.rejection`.
+`page.view`, `page.engaged`, `js.uncaught`, `js.rejection` и воронка
+(`src/lib/funnel.ts`): `exam.start`, `exam.finish` (base `sternik` или `src`,
+балл, сдан), `lesson.complete` (курс `bootcamp`, `sails`, `radio-theory`),
+`radio.task.complete`, `app_store.click` (токен `ct` места ссылки).
+Список имен и полей - `src/lib/analytics-events.ts`: `/api/log` молча
+отбрасывает любое другое имя и любое поле, не прошедшее проверку. У
+`page.view` есть `embed` (страница открыта с `?embed=1` в приложении,
+флаг живет в sessionStorage до конца сессии WebView) и `client` (`app` или
+`web`). В приложении результат экзамена дополнительно уходит в нативную
+оболочку через `postMessage` (`{ type: 'exam-finished' }`), она шлет
+`exam_finished` в PostHog (`mobile/src/analytics/web-bridge.ts`); на офлайн-
+бандле радиокурса (file://) `/api/log` не вызывается. `/stats` показывает
+воронку панелями (`getMetricsRange().funnel`), окно `/api/admin/stats-range`
+ограничено 90 днями. Сырые `events` и `sessions` старше 180 дней удаляет
+`scripts/prune-events.mjs` (сначала `--dry-run`, расписание в `docs/OPS.md`).
 
 ### 3.3 Физика
 
@@ -191,7 +205,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 - `src/app/api/health/route.ts` - liveness для healthcheck Docker и nginx, без рендера и БД.
 - `src/app/api/log/route.ts` - прием клиентских событий: усечение IP, allow-list `meta`, страна из заголовков.
-- `src/app/api/log/route.test.ts` - контракт: всегда 204, даже на мусорном теле.
+- `src/app/api/log/route.test.ts` - контракт: всегда 204, даже на мусорном теле; неизвестные и серверные имена событий не пишутся, поля воронки проверяются.
 - `src/app/api/race-result/route.ts` - запись результата гонки, лимит 60/час/сессия, границы значений.
 - `src/app/api/race-result/route.test.ts` - контракт валидации входа без реальной SQLite.
 - `src/app/api/leaderboard/route.ts` - выдача лучших времен по бакетам.
@@ -205,7 +219,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/feedback/route.ts` - прием обратной связи из виджета.
 - `src/app/api/support/route.ts` - заявка со страницы поддержки, уходит в Telegram.
 - `src/app/api/admin/feedback/route.ts` - смена статусов фидбэка для `/stats`.
-- `src/app/api/admin/stats-range/route.ts` - агрегаты за период для дашборда.
+- `src/app/api/admin/stats-range/route.ts` - агрегаты за период для дашборда, окно не шире 90 дней.
+- `src/app/api/admin/stats-range/route.test.ts` - контракт: окно шире 90 дней обрезается, плохой диапазон дает 400.
 - `src/app/api/weather/route.ts` - прокси Open-Meteo: ветер, волна, течение, кэш в памяти.
 - `src/app/api/weather/route.test.ts` - контракт роута погоды без сети.
 - `src/app/api/gallery/like/route.ts` - лайк фото галереи.
@@ -512,10 +527,15 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/proxy.ts` - middleware: короткие языковые ссылки, cookie `regatta_lang`, basic-auth `/stats` со сравнением за константное время и 503 без `ADMIN_PASSWORD`.
 - `src/lib/i18n.tsx` - провайдер и хуки `t` / `tp` / `tl`, приоритет источников языка.
 - `src/lib/languages.ts` - список языков, `LANG_SHORTCUT_PATHS`, `pickLocalized`, порядок в пикере.
-- `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`.
+- `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`; индекс `(evt, ts)`; воронка для `/stats`.
+- `src/lib/db.funnel.test.ts` - воронка `getMetricsRange()` на настоящем файле SQLite и наличие индекса `(evt, ts)`.
+- `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию.
+- `src/lib/funnel.ts` - клиентские хелперы воронки (экзамен, урок, задание по радио, клик App Store), `detectShell()` (app или web), `appStoreUrl(ct)`.
+- `src/lib/funnel.test.ts` - контракт воронки: реальные id уроков и сценариев проходят проверку, результат экзамена уходит и в `/api/log`, и в приложение.
+- `src/lib/event-retention.test.ts` - удаление старых событий: dry-run ничего не удаляет, реальный прогон удаляет ровно столько же, окно меньше 30 дней запрещено.
 - `src/lib/net.ts` - усечение клиентского IP перед логом и записью.
 - `src/lib/log.ts` - структурный лог JSON-строками в stdout контейнера.
-- `src/lib/client-log.ts` - клиентский логгер через `sendBeacon`, молча падает.
+- `src/lib/client-log.ts` - клиентский логгер через `sendBeacon`, молча падает; вне http(s) (офлайн-бандл) ничего не шлет.
 - `src/lib/rate-limit.ts` - скользящее окно в памяти (один контейнер, без Redis).
 - `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
@@ -564,6 +584,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `scripts/apply-nginx-config.sh` - применение `regatta.nginx.conf` к nginx на хосте.
 - `scripts/setup-nginx-geoip2.sh` - одноразовая настройка geoip2 в nginx.
 - `scripts/backup-sqlite.sh` - онлайн-бэкап `/data/regatta-stats.db` на VPS.
+- `scripts/prune-events.mjs` - удаление сырых `events` и `sessions` старше 180 дней, `--dry-run` сначала; копируется в образ и запускается `docker exec regatta node scripts/prune-events.mjs`.
 - `scripts/I18N_MIGRATION.md` - плейбук миграции i18n.
 - `scripts/sailing-glossary.md` - рабочий глоссарий терминологии для переводов.
 - `scripts/blender/build_sailing_yacht.py` - генерация учебной яхты в Blender.
@@ -663,6 +684,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
   хосте и перезагрузкой nginx.
 - База: том `/data` внутри контейнера (`REGATTA_DB_DIR=/data`), файл
   `regatta-stats.db` переживает редеплой. Бэкап: `scripts/backup-sqlite.sh`.
+  Хранение: сырые события 180 дней, `scripts/prune-events.mjs` (см. `docs/OPS.md`).
 - Секреты: `.env` рядом с чекаутом репозитория на VPS, в репозиторий не попадают.
 - Деплой: push в `main` -> `.github/workflows/deploy.yml` -> проверки и
   pre-deploy E2E -> SSH на VPS -> `docker compose build` и `docker compose up -d`

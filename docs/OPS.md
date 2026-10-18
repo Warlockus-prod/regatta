@@ -81,31 +81,85 @@ To register the site in Google / Yandex Search Console:
 
 ## Stats dashboard auth
 
-`/stats` and `/api/admin/*` are gated by Basic Auth. Credentials live
-in the VPS `.env` file (NOT in the repo) - format:
-```
-ADMIN_USER=admin
-ADMIN_PASS=<password>
-```
+`/stats` and `/api/admin/*` are gated by Basic Auth (user `admin`, checked in
+`src/proxy.ts` and in-handler). The password is `ADMIN_PASSWORD` in the VPS
+`.env` file (NOT in the repo); without it `/stats` answers 503. A password that
+was ever written in this file or in git history counts as disclosed: rotate it
+if it is still the one in use.
 
-Default for the regatta sandbox: `admin:regattA`. Rotate before
-sharing the URL with anyone outside the trusted set.
+The dashboard's range endpoint `/api/admin/stats-range` serves at most 90 days
+per request: a wider range keeps `to` and moves `from` forward.
 
 ---
 
 ## SQLite volume
 
-`docker-compose.yml` mounts `/srv/regatta/data` from the host into
-`/data` inside the container. The DB file lives at
-`/data/regatta-stats.db`. Backups:
+`docker-compose.yml` mounts the named volume `regatta_data` at `/data` inside
+the container (`REGATTA_DB_DIR=/data`). The DB file is
+`/data/regatta-stats.db`; on the host it sits under the volume's mountpoint:
 ```
-sudo cp /srv/regatta/data/regatta-stats.db /srv/regatta/backups/regatta-stats-$(date +%F).db
+docker volume inspect "$(docker volume ls -q | grep regatta_data)" --format '{{ .Mountpoint }}'
 ```
 
 DB schema migrates progressively on container boot via `safeAlter()`
 in `src/lib/db.ts`. No manual migration is normally needed; if a
 column add fails, check the boot log via
 `docker compose logs regatta | head -50`.
+
+### Backups
+
+Use `scripts/backup-sqlite.sh`, not `cp`: copying the file of a live WAL
+database can capture a torn or incomplete state. The script takes an online
+backup (host `sqlite3 .backup` when the file is reachable from the host,
+otherwise better-sqlite3's backup API inside the container), gzips it into
+`/var/backups/regatta`, keeps 14 days and optionally uploads to S3. Details and
+restore steps are in the script header.
+
+Root runs a root-owned copy, never the file in the repository checkout (that
+would let any repository change run as root on the host). Install or update the
+copy only after reading the diff:
+```
+sudo install -o root -g root -m 0755 scripts/backup-sqlite.sh /usr/local/sbin/regatta-backup-sqlite
+sudo /usr/local/sbin/regatta-backup-sqlite              # run once by hand, check the .gz
+# /etc/cron.d/regatta-backup
+0 */6 * * * root /usr/local/sbin/regatta-backup-sqlite >> /var/log/regatta-backup.log 2>&1
+```
+
+### Event retention (180 days)
+
+Raw analytics rows are kept for 180 days: `scripts/prune-events.mjs` deletes
+`events` older than that by `ts` and `sessions` by `last_seen`. Feedback,
+leaderboard, replays, players and gallery likes are not touched. The script is
+copied into the image and runs inside the container as its non-root user, so
+the host only triggers a fixed command.
+
+Always run the dry run first and read the counts:
+```
+docker exec regatta node scripts/prune-events.mjs --dry-run
+# [..] prune-events (dry run): would delete N events and M sessions older than <date> (180 days) in /data/regatta-stats.db
+```
+
+If the numbers look right, take a backup, then delete:
+```
+sudo /usr/local/sbin/regatta-backup-sqlite
+docker exec regatta node scripts/prune-events.mjs
+```
+
+The first real run may delete a lot (the table had no retention before
+2026-10-18); it deletes in batches of 5000 so the app keeps writing. The file
+does not shrink (SQLite reuses the freed pages); no VACUUM is needed.
+
+Schedule it only after a dry run on the server matched expectations. Daily,
+between two backups (they run at 00, 06, 12, 18), with a dry run logged right
+before each real run:
+```
+# /etc/cron.d/regatta-prune-events
+30 3 * * * root docker exec regatta node scripts/prune-events.mjs --dry-run >> /var/log/regatta-prune.log 2>&1 && docker exec regatta node scripts/prune-events.mjs >> /var/log/regatta-prune.log 2>&1
+```
+
+`--days=N` changes the window (minimum 30, a guard against typos). If the
+privacy page or the app privacy policy promise a different window, change them
+in the same commit as the cron line.
 
 ---
 

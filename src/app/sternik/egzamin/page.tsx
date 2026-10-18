@@ -21,6 +21,7 @@ import QuestionFigure, { QuestionPhoto } from '../QuestionFigure';
 import { BaseToggle, Explanation, useSternikPrefs } from '../prefs';
 import PersonalReport from '../PersonalReport';
 import { useFocusTrap } from '../useFocusTrap';
+import { trackExamFinish, trackExamStart } from '@/lib/funnel';
 
 // ============================================================================
 // /sternik/egzamin - mock exam in real format: 75 questions, 90 minutes,
@@ -137,6 +138,7 @@ export default function SternikExamPage() {
     lowTimeAnnouncedRef.current = false;
     setLowTimeAnnounce('');
     setPhase('exam');
+    trackExamStart('sternik');
   };
 
   const finish = (timedOut = false) => {
@@ -160,6 +162,14 @@ export default function SternikExamPage() {
       timedOut,
     };
     recordSternikExam(attempt);
+    trackExamFinish({
+      base: 'sternik',
+      score: attempt.correct,
+      total: attempt.total,
+      passed: attempt.passed,
+      timedOut: attempt.timedOut,
+      durationSec: attempt.durationSec,
+    });
     setLastAttempt(attempt);
     setConfirmFinish(false);
     setPhase('result');

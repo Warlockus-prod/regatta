@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } fr
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n";
+import { trackLessonComplete } from "@/lib/funnel";
 import { useSternikPrefs } from "../../sternik/prefs";
 import {
   THEORY_CHAPTERS,
@@ -294,6 +295,7 @@ export default function RadioTheoryCourse() {
     const next = [...completedIds, chapter.id];
     setCompletedIds(next);
     saveCompleted(next);
+    trackLessonComplete("radio-theory", chapter.id);
   };
 
   const continueCourse = () => {

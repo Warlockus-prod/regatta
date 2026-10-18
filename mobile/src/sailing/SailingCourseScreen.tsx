@@ -6,6 +6,8 @@ import { SvgXml } from "react-native-svg";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
+import { AnalyticsEvent } from "../analytics/events";
+import { useAnalytics } from "../analytics/use-analytics";
 import { destinations } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
 import { findSailLesson, sailCourse, sailLessons } from "../../../src/data/sailing-lab/course";
@@ -14,6 +16,7 @@ import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../../
 
 export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
   const { lang } = useI18n();
+  const analytics = useAnalytics();
   const router = useRouter();
   const scrollRef = useRef<ScrollView>(null);
   const [progress, setProgress] = useState<SailProgress | null>(null);
@@ -38,6 +41,9 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
     try { await AsyncStorage.setItem(SAIL_PROGRESS_KEY, JSON.stringify(updated)); setProgress(updated); setStorageError(false); }
     catch { setStorageError(true); }
     finally { setSaving(false); }
+    if (updated.checked.length > progress.checked.length) {
+      analytics.capture(AnalyticsEvent.LessonCompleted, { course: "sails", lesson_id: lesson.id });
+    }
   };
   if (lessonId && !lesson) return <Screen noTopInset>
     <Stack.Screen options={{ title: sailCourse.title[lang] }} />

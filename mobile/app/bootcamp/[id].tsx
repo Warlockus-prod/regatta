@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
@@ -13,6 +13,10 @@ import {
 import { bootcampLessons } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
 import { useBootcampProgress } from '../../src/persistence/bootcamp';
+// Leaf modules, not the barrel: the barrel pulls in the PostHog provider,
+// which Jest screen tests cannot load.
+import { AnalyticsEvent } from '../../src/analytics/events';
+import { useAnalytics } from '../../src/analytics/use-analytics';
 import { useBootcampQuiz } from '../../src/persistence/bootcamp-quiz';
 import { getLessonDay } from '../../src/bootcamp/days';
 import {
@@ -44,7 +48,8 @@ export default function BootcampLesson() {
   const params = useLocalSearchParams<{ id: string }>();
   const { tp, lang } = useI18n();
   const router = useRouter();
-  const { markCompleted, markLastViewed } = useBootcampProgress();
+  const { markCompleted, markLastViewed, isCompleted, ready } = useBootcampProgress();
+  const analytics = useAnalytics();
   const { results: quizResults, recordResult } = useBootcampQuiz();
 
   const lesson = bootcampLessons.find((l) => l.id === params.id);
@@ -53,6 +58,14 @@ export default function BootcampLesson() {
   useEffect(() => {
     if (lesson) markLastViewed(lesson.id);
   }, [lesson, markLastViewed]);
+
+  // lesson_completed fires once, on the first completion (progress loaded).
+  const completeLesson = useCallback((id: string) => {
+    if (ready && !isCompleted(id)) {
+      analytics.capture(AnalyticsEvent.LessonCompleted, { course: 'bootcamp', lesson_id: id });
+    }
+    markCompleted(id);
+  }, [analytics, isCompleted, markCompleted, ready]);
 
   // Memoise quiz lookup at the top so the hook order stays stable
   // across the early-return branch below. `lessonId` is null when the
@@ -180,7 +193,7 @@ export default function BootcampLesson() {
         <View style={styles.cta}>
           <Button
             onPress={() => {
-              markCompleted(lesson.id);
+              completeLesson(lesson.id);
               // lesson.route is a WEB path; "/simulator" means Basics on the
               // web but the native trainer in the app (see web-route-to-app-route).
               router.push(webRouteToAppRoute(lesson.route));
@@ -195,7 +208,7 @@ export default function BootcampLesson() {
           <View style={styles.drillCta}>
             <Button
               onPress={() => {
-                markCompleted(lesson.id);
+                completeLesson(lesson.id);
                 router.push(buildSimulatorDrillRoute(lesson.id, drillId));
               }}
               variant="secondary"
@@ -213,7 +226,7 @@ export default function BootcampLesson() {
             previousTotal={previousResult?.total}
             previouslyPassed={previouslyPassed}
             onRecord={(score, total) => {
-              markCompleted(lesson.id);
+              completeLesson(lesson.id);
               recordResult(lesson.id, score, total);
             }}
           />

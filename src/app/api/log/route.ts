@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logError, logWarn, logInfo } from '@/lib/log';
 import { insertEvent } from '@/lib/db';
+import { isClientEvent, pickEventFields } from '@/lib/analytics-events';
 import geoip from 'fast-geoip';
 
 export const runtime = 'nodejs';
@@ -47,8 +48,13 @@ const META_MAX_BYTES = 4096;
  * exceeds the byte budget we drop it entirely (null) rather than store a
  * truncated, invalid JSON fragment.
  */
-function buildMeta(body: Record<string, unknown>): Record<string, unknown> | undefined {
-  const out: Record<string, unknown> = {};
+function buildMeta(
+  body: Record<string, unknown>,
+  eventFields: Record<string, string | number | boolean> = {},
+): Record<string, unknown> | undefined {
+  // Funnel fields (exam score, lesson id, campaign token, embed/client) are
+  // already validated per event by pickEventFields().
+  const out: Record<string, unknown> = { ...eventFields };
   for (const key of META_ALLOW) {
     const v = body[key];
     if (v === undefined || v === null) continue;
@@ -70,6 +76,10 @@ function buildMeta(body: Record<string, unknown>): Record<string, unknown> | und
  * POST body: { level: "error"|"warn"|"info", evt: string, ...any }
  * Fire-and-forget from the browser - should always return 204 even on
  * malformed input so it never breaks the user's session.
+ *
+ * Event names: only the allow-list in src/lib/analytics-events.ts is logged
+ * and stored. Anything else (typos, forged server events like race.finish,
+ * junk from scanners) is dropped silently, still with 204.
  *
  * Session ID: read from the `regatta_sid` cookie that proxy.ts sets on
  * every page visit. Previously we looked at body.sessionId which the
@@ -97,7 +107,9 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const level = body?.level === 'error' || body?.level === 'warn' ? body.level : 'info';
-    const evt = typeof body?.evt === 'string' ? body.evt : 'unknown';
+    const evt = body?.evt;
+    if (!isClientEvent(evt)) return new NextResponse(null, { status: 204 });
+    const eventFields = pickEventFields(evt, body);
     // IP detection - try multiple proxy headers in priority order:
     //   1. x-forwarded-for (first hop, the real client)
     //   2. x-real-ip (nginx convention)
@@ -191,7 +203,7 @@ export async function POST(req: Request) {
       utmMedium: typeof body.utm_medium === 'string' ? body.utm_medium : undefined,
       utmCampaign: typeof body.utm_campaign === 'string' ? body.utm_campaign : undefined,
       referrer: typeof body.referrer === 'string' ? body.referrer : undefined,
-      meta: buildMeta(body),
+      meta: buildMeta(body, eventFields),
     });
   } catch {
     // Swallow - never 500 to the client for a log report

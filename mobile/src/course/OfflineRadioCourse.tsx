@@ -13,6 +13,9 @@ import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen } from "../design-system/components";
 import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
+import { AnalyticsEvent } from "../analytics/events";
+import { useAnalytics } from "../analytics/use-analytics";
+import { parseExamFinished } from "../analytics/web-bridge";
 
 const OFFLINE_SOURCE = require("../../assets/radio-offline.html");
 const STORAGE_KEY = "regatta.radio.offline.web-storage.v1";
@@ -109,6 +112,7 @@ function restoreScript(
 
 export function OfflineRadioCourse() {
   const { tp, lang } = useI18n();
+  const analytics = useAnalytics();
   const [restore, setRestore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -164,6 +168,11 @@ export function OfflineRadioCourse() {
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
+    const exam = parseExamFinished(event.nativeEvent.data);
+    if (exam) {
+      analytics.capture(AnalyticsEvent.ExamFinished, exam);
+      return;
+    }
     try {
       const message = JSON.parse(event.nativeEvent.data) as ProgressMessage;
       if (message.type === "radio-offline-ready") {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { SRC_BANK, SRC_PARTS, type SrcQuestion } from '@/data/src-radio';
@@ -15,6 +15,7 @@ import { THEORY_CHAPTERS } from '../teoria/courseData';
 import { CHAPTER_QUESTION_IDS, theoryHrefForQuestion, type TheoryChapterId } from '../teoria/courseMap';
 import { radioRuntimeSearch } from '../runtimeSearch';
 import { createExam, gradeExam } from './examModel';
+import { trackExamFinish, trackExamStart } from '@/lib/funnel';
 
 // ============================================================================
 // /radio/test - trainer over the OFFICIAL UKE SRC question base (324 A/B/C
@@ -80,6 +81,9 @@ export default function SrcTrainerPage() {
     return selected;
   }, [chapterId, mode, part, progress]);
 
+  // Set when a mock exam starts, cleared once its result is reported.
+  const examStartedAtRef = useRef<number | null>(null);
+
   const start = useCallback(() => {
     const scored = mode === 'exam'
       ? createExam(SRC_BANK)
@@ -94,7 +98,27 @@ export default function SrcTrainerPage() {
     setSessionOk(0);
     setSessionN(0);
     setAnswers({});
+    if (mode === 'exam') {
+      examStartedAtRef.current = Date.now();
+      trackExamStart('src');
+    } else {
+      examStartedAtRef.current = null;
+    }
   }, [chapterId, mode, pool, progress]);
+
+  // Mock exam finished: report the result once per started exam.
+  useEffect(() => {
+    const startedAt = examStartedAtRef.current;
+    if (mode !== 'exam' || startedAt === null || queue.length === 0 || idx < queue.length) return;
+    examStartedAtRef.current = null;
+    trackExamFinish({
+      base: 'src',
+      score: examResult.parts.reduce((sum, p) => sum + p.correct, 0),
+      total: queue.length,
+      passed: examResult.passed,
+      durationSec: Math.round((Date.now() - startedAt) / 1000),
+    });
+  }, [examResult, idx, mode, queue.length]);
 
   const current = queue[idx];
 
