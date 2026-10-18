@@ -73,7 +73,7 @@ function CatRow({ c, onAskAI }: { c: CatAnalysis; onAskAI: (catId: string) => vo
           className="rounded-lg px-2.5 py-1 text-xs"
           style={{ background: 'var(--hover-bg)', color: 'var(--accent-cyan)', border: '1px solid var(--border-subtle)' }}
         >
-          🎓 {tp('Объяснить', 'Explain', 'Wyjasnij')}
+          🎓 {tp('Объяснить', 'Explain', 'Wyjaśnij')}
         </button>
       </div>
     </div>
@@ -99,13 +99,13 @@ export default function PersonalReport({
     const ctx = buildTutorContext(a, explLang);
     const focusLine = focusCatId
       ? `Zacznij od tematu o kodzie kategorii "${focusCatId}".`
-      : 'Zacznij od najslabszego tematu.';
+      : 'Zacznij od najsłabszego tematu.';
     const question =
       explLang === 'pl'
-        ? `Przeanalizuj moje bledy i zacznij mnie uczyc jak korepetytor. ${focusLine} Wyjasnij regule prosto, daj mnemotechnike i na koncu zadaj mi 1 pytanie sprawdzajace.`
+        ? `Przeanalizuj moje błędy i zacznij mnie uczyć jak korepetytor. ${focusLine} Wyjaśnij regułę prosto, daj mnemotechnikę i na końcu zadaj mi 1 pytanie sprawdzające.`
         : explLang === 'ru'
           ? `Разбери мои ошибки и начни учить меня как репетитор. ${focusLine} Объясни правило просто, дай мнемонику и в конце задай 1 проверочный вопрос. Отвечай по-русски, польские термины давай в скобках.`
-          : `Przeanalizuj moje bledy i zacznij mnie uczyc. ${focusLine} Wyjasnij po polsku i po rosyjsku, daj mnemotechnike i zadaj 1 pytanie sprawdzajace.`;
+          : `Przeanalizuj moje błędy i zacznij mnie uczyć. ${focusLine} Wyjaśnij po polsku i po rosyjsku, daj mnemotechnikę i zadaj 1 pytanie sprawdzające.`;
     window.dispatchEvent(new CustomEvent('sternik:ask', { detail: { question, context: ctx, explLang } }));
   };
 
@@ -131,7 +131,7 @@ export default function PersonalReport({
           {tp(
             'Ты близок к готовности: слабых тем нет, точность выше порога. Прогони 2-3 пробных экзамена для уверенности.',
             'You look close to ready: no weak topics, accuracy above the pass mark. Run 2-3 mock exams for confidence.',
-            'Jestes blisko gotowosci: brak slabych tematow, skutecznosc powyzej progu. Zrob 2-3 probne egzaminy.',
+            'Jesteś blisko gotowości: brak słabych tematów, skuteczność powyżej progu. Zrób 2-3 próbne egzaminy.',
           )}
         </p>
       ) : a.weakest.length > 0 ? (
@@ -139,12 +139,12 @@ export default function PersonalReport({
           {tp(
             'Вот где чаще всего ошибаешься. Начни с верхних тем: повтори теорию, добей тренажёром, попроси AI объяснить.',
             'Here is where you slip most. Start from the top topics: review the theory, drill the trainer, ask the AI to explain.',
-            'Tu najczesciej sie mylisz. Zacznij od gornych tematow: powtorz teorie, dobij trening, popros AI o wyjasnienie.',
+            'Tu najczęściej się mylisz. Zacznij od górnych tematów: powtórz teorię, dobij trening, poproś AI o wyjaśnienie.',
           )}
         </p>
       ) : (
         <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {tp('Пока данных мало - прорешай больше вопросов, и разбор станет точнее.', 'Not much data yet - answer more questions for a sharper analysis.', 'Za malo danych - odpowiedz na wiecej pytan.')}
+          {tp('Пока данных мало - прорешай больше вопросов, и разбор станет точнее.', 'Not much data yet - answer more questions for a sharper analysis.', 'Za mało danych - odpowiedz na więcej pytań.')}
         </p>
       )}
 
@@ -159,7 +159,7 @@ export default function PersonalReport({
       {!compact && a.stubborn.length > 0 && (
         <div className="mt-4">
           <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
-            🔁 {tp('Упорные ошибки (мимо 2+ раз)', 'Stubborn mistakes (missed 2+ times)', 'Uporczywe bledy (2+ razy)')}
+            🔁 {tp('Упорные ошибки (мимо 2+ раз)', 'Stubborn mistakes (missed 2+ times)', 'Uporczywe błędy (2+ razy)')}
           </div>
           <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
             {a.stubborn.slice(0, 5).map((s) => (
@@ -188,7 +188,7 @@ export default function PersonalReport({
             className="rounded-xl px-4 py-2.5 text-sm font-semibold"
             style={{ background: 'var(--warning)', color: '#221a04' }}
           >
-            🔁 {tp('Тренировать ошибки', 'Train mistakes', 'Trenuj bledy')} ({a.weakIdCount})
+            🔁 {tp('Тренировать ошибки', 'Train mistakes', 'Trenuj błędy')} ({a.weakIdCount})
           </Link>
         )}
       </div>

@@ -72,7 +72,7 @@ export default function SternikHubPage() {
           {tp(
             'Подготовка к польскому госэкзамену на патент судоводителя моторной лодки: теория со схемами, тренажёр вопросов и пробный экзамен. Вопросы по-польски (как на экзамене), пояснения по-русски.',
             'Preparation for the Polish state exam for the motorboat helmsman licence: theory with diagrams, a question trainer and a mock exam. Questions in Polish (as on the exam), explanations in Russian.',
-            'Przygotowanie do panstwowego egzaminu na patent sternika motorowodnego: teoria ze schematami, trening pytan i probny egzamin.',
+            'Przygotowanie do państwowego egzaminu na patent sternika motorowodnego: teoria ze schematami, trening pytań i próbny egzamin.',
           )}
         </p>
       </header>
@@ -86,27 +86,27 @@ export default function SternikHubPage() {
           📋 {tp('Формат экзамена', 'Exam format', 'Format egzaminu')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile value={String(STERNIK_EXAM.questions)} label={tp('вопросов (A/B/C)', 'questions (A/B/C)', 'pytan (A/B/C)')} />
-          <StatTile value={`${STERNIK_EXAM.minutes} min`} label={tp('на весь тест', 'for the whole test', 'na caly test')} />
+          <StatTile value={String(STERNIK_EXAM.questions)} label={tp('вопросов (A/B/C)', 'questions (A/B/C)', 'pytań (A/B/C)')} />
+          <StatTile value={`${STERNIK_EXAM.minutes} min`} label={tp('на весь тест', 'for the whole test', 'na cały test')} />
           <StatTile
             value={`${STERNIK_EXAM.passCorrect}/${STERNIK_EXAM.questions}`}
-            label={tp(`порог сдачи (${STERNIK_EXAM.passPct}%)`, `pass mark (${STERNIK_EXAM.passPct}%)`, `prog zdania (${STERNIK_EXAM.passPct}%)`)}
+            label={tp(`порог сдачи (${STERNIK_EXAM.passPct}%)`, `pass mark (${STERNIK_EXAM.passPct}%)`, `próg zdania (${STERNIK_EXAM.passPct}%)`)}
             accent="var(--success)"
           />
-          <StatTile value="10" label={tp('макс. ошибок', 'max mistakes', 'maks. bledow')} accent="var(--warning)" />
+          <StatTile value="10" label={tp('макс. ошибок', 'max mistakes', 'maks. błędów')} accent="var(--warning)" />
         </div>
         <p className="mt-3 text-sm" style={{ color: 'var(--text-muted)' }}>
           {tp(
-            'Плюс практическая часть: манёвры на лодке (отход/подход к причалу, «человек за бортом», якорь). Минимальный возраст - 14 лет. Стоимость: экзамен 250 zl + патент 50 zl (ученикам и студентам до 26 лет - скидка 50%). Основание: rozporzadzenie MSiT z 9.04.2013 (tekst jednolity 2026).',
-            'Plus a practical part: boat maneuvers (dock departure/approach, man overboard, anchoring). Minimum age 14. Fees: exam 250 zl + licence 50 zl (50% off for pupils/students under 26). Legal basis: MSiT regulation of 9.04.2013 (2026 consolidated text).',
-            'Do tego czesc praktyczna: manewry (odejscie/dojscie do kei, czlowiek za burta, kotwiczenie). Minimalny wiek: 14 lat. Oplaty: egzamin 250 zl + patent 50 zl (uczniowie i studenci do 26 lat: 50%).',
+            'Плюс практическая часть: манёвры на лодке (отход/подход к причалу, «человек за бортом», якорь). Минимальный возраст - 14 лет. Стоимость: экзамен 250 zł + патент 50 zł (ученикам и студентам до 26 лет - скидка 50%). Основание: rozporządzenie MSiT z 9.04.2013 (tekst jednolity 2026).',
+            'Plus a practical part: boat maneuvers (dock departure/approach, man overboard, anchoring). Minimum age 14. Fees: exam 250 zł + licence 50 zł (50% off for pupils/students under 26). Legal basis: MSiT regulation of 9.04.2013 (2026 consolidated text).',
+            'Do tego część praktyczna: manewry (odejście/dojście do kei, człowiek za burtą, kotwiczenie). Minimalny wiek: 14 lat. Opłaty: egzamin 250 zł + patent 50 zł (uczniowie i studenci do 26 lat: 50%).',
           )}
         </p>
         <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
           {tp(
-            `База: ${STERNIK_BANK.length} вопросов из открытых источников (моя выборка + аутентичная база akademiasternika + база Centrum Zeglarskie с ключом; сверено с Wind / motosternik / h2o), дубли убраны. У PZMWiNW нет единой публичной базы - вопросы составляет комиссия из тем экзамена; в сети циркулирует набор ~286-337 в вариантах разных школ. Реальный экзамен - 3 варианта A/B/C: пробный экзамен берёт ${examPoolSize} вопросов такого формата, тренажёр даёт все ${STERNIK_BANK.length} (включая ${extendedSize} расширенных на 4 варианта для более глубокой проработки).`,
-            `Bank: ${STERNIK_BANK.length} questions from open sources (my set + the authentic akademiasternika base + Centrum Zeglarskie bank with key; cross-checked with Wind / motosternik / h2o), deduplicated. PZMWiNW has no single public bank - a commission draws questions from the exam topics; a ~286-337 set circulates in school variants. The real exam is 3-option A/B/C: the mock exam uses ${examPoolSize} such questions, the trainer offers all ${STERNIK_BANK.length} (including ${extendedSize} extended 4-option ones for deeper practice).`,
-            `Baza: ${STERNIK_BANK.length} pytan ze zrodel otwartych (moj zestaw + autentyczna baza akademiasternika + baza Centrum Zeglarskie z kluczem; sprawdzone z Wind / motosternik / h2o), bez duplikatow. PZMWiNW nie ma jednej publicznej bazy - pytania uklada komisja z zakresu egzaminu; w sieci krazy zestaw ~286-337 w wariantach szkol. Prawdziwy egzamin ma 3 warianty A/B/C: probny egzamin bierze ${examPoolSize} takich pytan, trening daje wszystkie ${STERNIK_BANK.length} (w tym ${extendedSize} rozszerzonych 4-wariantowych).`,
+            `База: ${STERNIK_BANK.length} вопросов из открытых источников (моя выборка + аутентичная база akademiasternika + база Centrum Żeglarskie с ключом; сверено с Wind / motosternik / h2o), дубли убраны. У PZMWiNW нет единой публичной базы - вопросы составляет комиссия из тем экзамена; в сети циркулирует набор ~286-337 в вариантах разных школ. Реальный экзамен - 3 варианта A/B/C: пробный экзамен берёт ${examPoolSize} вопросов такого формата, тренажёр даёт все ${STERNIK_BANK.length} (включая ${extendedSize} расширенных на 4 варианта для более глубокой проработки).`,
+            `Bank: ${STERNIK_BANK.length} questions from open sources (my set + the authentic akademiasternika base + Centrum Żeglarskie bank with key; cross-checked with Wind / motosternik / h2o), deduplicated. PZMWiNW has no single public bank - a commission draws questions from the exam topics; a ~286-337 set circulates in school variants. The real exam is 3-option A/B/C: the mock exam uses ${examPoolSize} such questions, the trainer offers all ${STERNIK_BANK.length} (including ${extendedSize} extended 4-option ones for deeper practice).`,
+            `Baza: ${STERNIK_BANK.length} pytań ze źródeł otwartych (mój zestaw + autentyczna baza akademiasternika + baza Centrum Żeglarskie z kluczem; sprawdzone z Wind / motosternik / h2o), bez duplikatów. PZMWiNW nie ma jednej publicznej bazy - pytania układa komisja z zakresu egzaminu; w sieci krąży zestaw ~286-337 w wariantach szkół. Prawdziwy egzamin ma 3 warianty A/B/C: próbny egzamin bierze ${examPoolSize} takich pytań, trening daje wszystkie ${STERNIK_BANK.length} (w tym ${extendedSize} rozszerzonych 4-wariantowych).`,
           )}
         </p>
       </section>
@@ -114,25 +114,25 @@ export default function SternikHubPage() {
       {/* Progress */}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          📈 {tp('Твой прогресс', 'Your progress', 'Twoj postep')}
+          📈 {tp('Твой прогресс', 'Your progress', 'Twój postęp')}
         </h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <StatTile value={String(answered)} label={tp('ответов дано', 'answers given', 'udzielonych odpowiedzi')} />
           <StatTile
             value={answered > 0 ? `${accuracy}%` : '-'}
-            label={tp('точность', 'accuracy', 'skutecznosc')}
+            label={tp('точность', 'accuracy', 'skuteczność')}
             accent={accuracy >= STERNIK_EXAM.passPct ? 'var(--success)' : 'var(--warning)'}
           />
-          <StatTile value={String(weak)} label={tp('вопросов на повтор', 'to review', 'do powtorki')} accent={weak > 0 ? 'var(--danger)' : 'var(--success)'} />
+          <StatTile value={String(weak)} label={tp('вопросов на повтор', 'to review', 'do powtórki')} accent={weak > 0 ? 'var(--danger)' : 'var(--success)'} />
           <StatTile
             value={exams.length > 0 ? `${passedExams}/${exams.length}` : '-'}
-            label={tp('экзаменов сдано', 'exams passed', 'zdanych egzaminow')}
+            label={tp('экзаменов сдано', 'exams passed', 'zdanych egzaminów')}
             accent="var(--accent-teal)"
           />
         </div>
         {lastExam && (
           <p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>
-            {tp('Последний пробный экзамен: ', 'Last mock exam: ', 'Ostatni probny egzamin: ')}
+            {tp('Последний пробный экзамен: ', 'Last mock exam: ', 'Ostatni próbny egzamin: ')}
             <span style={{ color: lastExam.passed ? 'var(--success)' : 'var(--danger)' }}>
               {lastExam.correct}/{lastExam.total} {lastExam.passed ? '✓' : '✗'}
             </span>
@@ -164,7 +164,7 @@ export default function SternikHubPage() {
             {tp(
               '14 разделов со схемами: патент, правила, огни, знаки, двигатели, манёвры, спасание.',
               '14 sections with diagrams: licence, rules, lights, marks, engines, maneuvers, rescue.',
-              '14 rozdzialow ze schematami: patent, przepisy, swiatla, znaki, silniki, manewry, ratownictwo.',
+              '14 rozdziałów ze schematami: patent, przepisy, światła, znaki, silniki, manewry, ratownictwo.',
             )}
           </p>
         </Link>
@@ -175,13 +175,13 @@ export default function SternikHubPage() {
         >
           <div className="text-3xl">🎯</div>
           <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytan')}
+            {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytań')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
             {tp(
               `${STERNIK_BANK.length} вопросов. Ответил - сразу видишь верно/нет и почему. Как при подготовке на автоправа.`,
               `${STERNIK_BANK.length} questions with instant right/wrong feedback and explanations.`,
-              `${STERNIK_BANK.length} pytan, od razu dobrze/zle + wyjasnienie.`,
+              `${STERNIK_BANK.length} pytań, od razu dobrze/źle + wyjaśnienie.`,
             )}
           </p>
         </Link>
@@ -195,13 +195,13 @@ export default function SternikHubPage() {
         >
           <div className="text-3xl">⏱️</div>
           <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
-            {tp('Пробный экзамен', 'Mock exam', 'Probny egzamin')}
+            {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
           </div>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
             {tp(
               '75 вопросов, 90 минут, порог 65 - всё как на настоящем экзамене. С паузой и разбором ошибок.',
               '75 questions, 90 minutes, pass mark 65 - just like the real exam. With pause and error review.',
-              '75 pytan, 90 minut, prog 65 - jak na prawdziwym egzaminie. Z pauza i powtorka bledow.',
+              '75 pytań, 90 minut, próg 65 - jak na prawdziwym egzaminie. Z pauzą i powtórką błędów.',
             )}
           </p>
         </Link>
@@ -217,18 +217,18 @@ export default function SternikHubPage() {
           <div className="text-3xl">📻</div>
           <div className="flex-1">
             <div className="font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Рация и сертификат SRC', 'Radio and the SRC certificate', 'Radio i swiadectwo SRC')}
+              {tp('Рация и сертификат SRC', 'Radio and the SRC certificate', 'Radio i świadectwo SRC')}
             </div>
             <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {tp(
                 'Отдельный раздел про морскую УКВ-рацию: как получить SRC в UKE, каналы, MAYDAY/PAN-PAN, DSC и фонетика.',
                 'A dedicated section on the marine VHF radio: how to get the SRC at UKE, channels, MAYDAY/PAN-PAN, DSC and phonetics.',
-                'Osobny dzial o radiu VHF: jak zdobyc SRC w UKE, kanaly, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
+                'Osobny dział o radiu VHF: jak zdobyć SRC w UKE, kanały, MAYDAY/PAN-PAN, DSC i alfabet fonetyczny.',
               )}
             </p>
           </div>
           <div className="text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
-            {tp('Открыть', 'Open', 'Otworz')} {'->'}
+            {tp('Открыть', 'Open', 'Otwórz')} {'->'}
           </div>
         </Link>
       </section>
@@ -236,7 +236,7 @@ export default function SternikHubPage() {
       {/* Categories overview */}
       <section className="mb-8">
         <h2 className="mb-3 text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          🗂️ {tp('Категории вопросов', 'Question categories', 'Kategorie pytan')}
+          🗂️ {tp('Категории вопросов', 'Question categories', 'Kategorie pytań')}
         </h2>
         <div className="grid gap-3 sm:grid-cols-2">
           {catStats.map(({ cat, total, seen, mastered }) => (
@@ -274,7 +274,7 @@ export default function SternikHubPage() {
           {tp(
             'Полоска - доля вопросов, отвеченных верно 2+ раза подряд («выучено»).',
             'Bar = share of questions answered correctly 2+ times in a row ("mastered").',
-            'Pasek = odsetek pytan opanowanych (2+ poprawne odpowiedzi z rzedu).',
+            'Pasek = odsetek pytań opanowanych (2+ poprawne odpowiedzi z rzędu).',
           )}
         </p>
       </section>
@@ -290,7 +290,7 @@ export default function SternikHubPage() {
         {tp(
           'Порог высокий: максимум 10 ошибок из 75. Больше всего баллов теряют на правилах расхождения и знаках - учи их до автоматизма. Прорешай тренажёр по категориям, добей «вопросы на повтор» до нуля, затем пройди 2-3 пробных экзамена подряд с результатом 70+.',
           'The pass mark is high: at most 10 mistakes out of 75. Most points are lost on right-of-way rules and marks - drill them until automatic. Work through the trainer by category, clear your review queue, then pass 2-3 mock exams in a row with 70+.',
-          'Prog jest wysoki: maksymalnie 10 bledow na 75. Najwiecej punktow traci sie na przepisach i znakach. Przerob trening kategoriami, wyzeruj powtorki, potem zdaj 2-3 probne egzaminy z wynikiem 70+.',
+          'Próg jest wysoki: maksymalnie 10 błędów na 75. Najwięcej punktów traci się na przepisach i znakach. Przerób trening kategoriami, wyzeruj powtórki, potem zdaj 2-3 próbne egzaminy z wynikiem 70+.',
         )}
       </section>
 
@@ -298,7 +298,7 @@ export default function SternikHubPage() {
         {tp(
           'Учебный материал для самоподготовки. Актуальную базу вопросов и требования уточняй у организатора экзамена (PZMWiNW).',
           'Self-study material. Check the current question base and requirements with the exam organizer (PZMWiNW).',
-          'Material pomocniczy do samodzielnej nauki. Aktualna baze pytan i wymagania sprawdz u organizatora egzaminu (PZMWiNW).',
+          'Materiał pomocniczy do samodzielnej nauki. Aktualną bazę pytań i wymagania sprawdź u organizatora egzaminu (PZMWiNW).',
         )}
       </p>
     </main>

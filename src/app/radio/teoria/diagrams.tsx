@@ -79,8 +79,8 @@ function SystemDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Система морской связи" : "System lacznosci morskiej"}
-      desc={ru ? "Сигнал DSC и голосовая связь соединяют яхту, берег, RCC и спасателей." : "DSC i fonia lacza jacht, brzeg, RCC i ratownikow."}
+      title={ru ? "Система морской связи" : "System łączności morskiej"}
+      desc={ru ? "Сигнал DSC и голосовая связь соединяют яхту, берег, RCC и спасателей." : "DSC i fonia łączą jacht, brzeg, RCC i ratowników."}
     >
       <ArrowDefs id="system-arrow" />
       <path d="M0 285 Q170 250 360 282 T720 272 V360 H0 Z" fill="rgba(0,153,204,0.18)" />
@@ -116,7 +116,7 @@ function SystemDiagram() {
       <Label x={465} y={110} size={11} fill={C.muted}>{ru ? "данные" : "dane"}</Label>
       <Label x={620} y={192} size={11} fill={C.muted}>{ru ? "задача" : "zadanie"}</Label>
       <Label x={360} y={338} size={12} fill={C.muted}>
-        {ru ? "Цифровой сигнал сообщает кто и где. Голос объясняет что произошло." : "Cyfrowy alarm mowi kto i gdzie. Glos wyjasnia co sie stalo."}
+        {ru ? "Цифровой сигнал сообщает кто и где. Голос объясняет что произошло." : "Cyfrowy alarm mówi kto i gdzie. Głos wyjaśnia co się stało."}
       </Label>
     </Base>
   );
@@ -128,7 +128,7 @@ function HorizonDiagram() {
   return (
     <Base
       title={ru ? "Радиогоризонт VHF" : "Radiogoryzont VHF"}
-      desc={ru ? "Высокая антенна видит дальше, а большая мощность не выпрямляет Землю." : "Wysoka antena widzi dalej, a wieksza moc nie prostuje Ziemi."}
+      desc={ru ? "Высокая антенна видит дальше, а большая мощность не выпрямляет Землю." : "Wysoka antena widzi dalej, a większa moc nie prostuje Ziemi."}
     >
       <defs>
         <radialGradient id="sea-earth" cx="50%" cy="0%" r="100%">
@@ -158,17 +158,17 @@ function HorizonDiagram() {
         <Label x={31} y={71} size={11}>{ru ? "низкая антенна" : "niska antena"}</Label>
       </g>
       <path d="M358 238 Q430 248 495 234" fill="none" stroke={C.red} strokeWidth="2" />
-      <Label x={432} y={270} size={12} fill={C.red}>{ru ? "Земля закрывает путь" : "Ziemia zaslania tor"}</Label>
+      <Label x={432} y={270} size={12} fill={C.red}>{ru ? "Земля закрывает путь" : "Ziemia zasłania tor"}</Label>
       <g transform="translate(70 35)">
         <rect width="240" height="92" rx="12" fill={C.panel} stroke={C.line} />
-        <Label x={18} y={28} anchor="start" size={13} fill={C.cyan}>{ru ? "Главный рычаг" : "Glowna dzwignia"}</Label>
-        <Label x={18} y={53} anchor="start" size={18}>{ru ? "высота антенны" : "wysokosc anteny"}</Label>
+        <Label x={18} y={28} anchor="start" size={13} fill={C.cyan}>{ru ? "Главный рычаг" : "Główna dźwignia"}</Label>
+        <Label x={18} y={53} anchor="start" size={18}>{ru ? "высота антенны" : "wysokość anteny"}</Label>
         <Label x={18} y={76} anchor="start" size={11} fill={C.muted}>d = 4,12 x (sqrt h1 + sqrt h2)</Label>
       </g>
       <g transform="translate(430 32)">
         <rect width="220" height="82" rx="12" fill="rgba(255,68,68,0.08)" stroke={C.red} />
         <Label x={18} y={28} anchor="start" size={13} fill={C.red}>25 W</Label>
-        <Label x={18} y={51} anchor="start" size={12}>{ru ? "усиливает сигнал" : "wzmacnia sygnal"}</Label>
+        <Label x={18} y={51} anchor="start" size={12}>{ru ? "усиливает сигнал" : "wzmacnia sygnał"}</Label>
         <Label x={18} y={70} anchor="start" size={11} fill={C.muted}>{ru ? "не убирает горизонт" : "nie usuwa horyzontu"}</Label>
       </g>
     </Base>
@@ -180,15 +180,15 @@ function ControlsDiagram() {
   const ru = explLang === "ru";
   const callouts = [
     { x: 75, y: 58, label: "DISTRESS", note: ru ? "только бедствие" : "tylko distress", color: C.red },
-    { x: 555, y: 68, label: "VOL", note: ru ? "громкость" : "glosnosc", color: C.cyan },
-    { x: 555, y: 172, label: "SQL", note: ru ? "порог шума" : "prog szumu", color: C.amber },
+    { x: 555, y: 68, label: "VOL", note: ru ? "громкость" : "głośność", color: C.cyan },
+    { x: 555, y: 172, label: "SQL", note: ru ? "порог шума" : "próg szumu", color: C.amber },
     { x: 84, y: 284, label: "PTT", note: ru ? "говорить" : "nadawanie", color: C.green },
-    { x: 355, y: 304, label: "16/C", note: ru ? "возврат на 16" : "powrot na 16", color: C.cyan },
+    { x: 355, y: 304, label: "16/C", note: ru ? "возврат на 16" : "powrót na 16", color: C.cyan },
   ];
   return (
     <Base
       title={ru ? "Органы управления VHF" : "Elementy sterowania VHF"}
-      desc={ru ? "DISTRESS, volume, squelch, PTT и быстрый канал 16 выполняют разные задачи." : "DISTRESS, volume, squelch, PTT i szybki kanal 16 maja rozne zadania."}
+      desc={ru ? "DISTRESS, volume, squelch, PTT и быстрый канал 16 выполняют разные задачи." : "DISTRESS, volume, squelch, PTT i szybki kanał 16 mają różne zadania."}
     >
       <rect x="170" y="36" width="380" height="276" rx="28" fill="#142333" stroke={C.line} strokeWidth="3" />
       <rect x="225" y="78" width="212" height="102" rx="8" fill="#b8d6a4" stroke="#07120d" strokeWidth="4" />
@@ -219,7 +219,7 @@ function ControlsDiagram() {
         </g>
       ))}
       <Label x={360} y={344} size={12} fill={C.muted}>
-        {ru ? "Сначала функция, затем расположение на конкретной модели" : "Najpierw funkcja, potem uklad konkretnego modelu"}
+        {ru ? "Сначала функция, затем расположение на конкретной модели" : "Najpierw funkcja, potem układ konkretnego modelu"}
       </Label>
     </Base>
   );
@@ -230,8 +230,8 @@ function ChannelsDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Simplex, duplex и роли каналов" : "Simplex, duplex i role kanalow"}
-      desc={ru ? "На simplex станции говорят по очереди, duplex использует две частоты, а 70 и 16 выполняют разные роли." : "Na simplexie stacje mowia po kolei, duplex uzywa dwoch czestotliwosci, a 70 i 16 maja inne role."}
+      title={ru ? "Simplex, duplex и роли каналов" : "Simplex, duplex i role kanałów"}
+      desc={ru ? "На simplex станции говорят по очереди, duplex использует две частоты, а 70 и 16 выполняют разные роли." : "Na simplexie stacje mówią po kolei, duplex używa dwóch częstotliwości, a 70 i 16 mają inne role."}
     >
       <ArrowDefs id="channel-arrow" />
       <g transform="translate(30 34)">
@@ -243,7 +243,7 @@ function ChannelsDiagram() {
         <Label x={245} y={90}>B</Label>
         <path d="M99 72 H205" stroke={C.cyan} strokeWidth="3" markerEnd="url(#channel-arrow)" />
         <path d="M211 105 H105" stroke={C.green} strokeWidth="3" markerEnd="url(#channel-arrow)" />
-        <Label x={155} y={137} size={12}>{ru ? "одна частота, по очереди" : "jedna czestotliwosc, na zmiane"}</Label>
+        <Label x={155} y={137} size={12}>{ru ? "одна частота, по очереди" : "jedna częstotliwość, na zmianę"}</Label>
         <Label x={155} y={158} size={11} fill={C.muted}>OVER</Label>
       </g>
       <g transform="translate(380 34)">
@@ -255,14 +255,14 @@ function ChannelsDiagram() {
         <Label x={245} y={90}>{ru ? "Б" : "B"}</Label>
         <path d="M99 70 H205" stroke={C.cyan} strokeWidth="3" markerEnd="url(#channel-arrow)" />
         <path d="M211 105 H105" stroke={C.amber} strokeWidth="3" markerEnd="url(#channel-arrow)" />
-        <Label x={155} y={137} size={12}>{ru ? "две частоты" : "dwie czestotliwosci"}</Label>
+        <Label x={155} y={137} size={12}>{ru ? "две частоты" : "dwie częstotliwości"}</Label>
         <Label x={155} y={158} size={11} fill={C.muted}>{ru ? "обычно судно и берег" : "typowo statek i brzeg"}</Label>
       </g>
       <g transform="translate(30 242)">
         {[
           { x: 0, n: "70", l: "DSC", c: C.red },
-          { x: 132, n: "16", l: ru ? "distress + вызов" : "distress + wywolanie", c: C.cyan },
-          { x: 328, n: "13", l: ru ? "безопасность" : "bezpieczenstwo", c: C.amber },
+          { x: 132, n: "16", l: ru ? "distress + вызов" : "distress + wywołanie", c: C.cyan },
+          { x: 328, n: "13", l: ru ? "безопасность" : "bezpieczeństwo", c: C.amber },
           { x: 504, n: "06", l: "ship-ship / SAR", c: C.green },
         ].map((item) => (
           <g key={item.n} transform={`translate(${item.x} 0)`}>
@@ -280,14 +280,14 @@ function IdentityDiagram() {
   const { explLang } = useSternikPrefs();
   const ru = explLang === "ru";
   const rows = [
-    { y: 72, k: ru ? "ИМЯ" : "NAZWA", v: "SY BALTICA", use: ru ? "человек слышит" : "czlowiek slyszy", c: C.cyan },
+    { y: 72, k: ru ? "ИМЯ" : "NAZWA", v: "SY BALTICA", use: ru ? "человек слышит" : "człowiek słyszy", c: C.cyan },
     { y: 164, k: "CALL SIGN", v: "SPG 2047", use: ru ? "официальный позывной" : "oficjalny znak", c: C.amber },
     { y: 256, k: "MMSI", v: "261 123 456", use: ru ? "DSC и AIS" : "DSC i AIS", c: C.green },
   ];
   return (
     <Base
       title={ru ? "Три идентификатора судна" : "Trzy identyfikatory jednostki"}
-      desc={ru ? "Название используется голосом, позывной официально идентифицирует станцию, MMSI адресует DSC и AIS." : "Nazwa sluzy w fonii, call sign oficjalnie identyfikuje stacje, a MMSI adresuje DSC i AIS."}
+      desc={ru ? "Название используется голосом, позывной официально идентифицирует станцию, MMSI адресует DSC и AIS." : "Nazwa służy w fonii, call sign oficjalnie identyfikuje stację, a MMSI adresuje DSC i AIS."}
     >
       <ArrowDefs id="id-arrow" />
       <g transform="translate(40 120)">
@@ -315,16 +315,16 @@ function RoutineDiagram() {
   const { explLang } = useSternikPrefs();
   const ru = explLang === "ru";
   const steps = [
-    { t: ru ? "СЛУШАЙ" : "NASLUCH", s: ru ? "канал свободен?" : "kanal wolny?" },
-    { t: ru ? "ВЫЗОВ" : "WYWOLAJ", s: "MARINA, THIS IS BALTICA, OVER" },
-    { t: ru ? "ПЕРЕХОД" : "PRZEJDZ", s: ru ? "рабочий канал" : "kanal roboczy" },
-    { t: ru ? "ДЕЛО" : "SPRAWA", s: ru ? "краткая просьба" : "krotka prosba" },
-    { t: "OUT", s: ru ? "связь окончена" : "koniec lacznosci" },
+    { t: ru ? "СЛУШАЙ" : "NASŁUCH", s: ru ? "канал свободен?" : "kanał wolny?" },
+    { t: ru ? "ВЫЗОВ" : "WYWOŁAJ", s: "MARINA, THIS IS BALTICA, OVER" },
+    { t: ru ? "ПЕРЕХОД" : "PRZEJDŹ", s: ru ? "рабочий канал" : "kanał roboczy" },
+    { t: ru ? "ДЕЛО" : "SPRAWA", s: ru ? "краткая просьба" : "krótka prośba" },
+    { t: "OUT", s: ru ? "связь окончена" : "koniec łączności" },
   ];
   return (
     <Base
-      title={ru ? "Последовательность обычного вызова" : "Sekwencja zwyklego wywolania"}
-      desc={ru ? "Сначала прослушивание и короткий вызов, затем рабочий канал, сообщение и OUT." : "Najpierw nasluch i krotkie wywolanie, potem kanal roboczy, wiadomosc i OUT."}
+      title={ru ? "Последовательность обычного вызова" : "Sekwencja zwykłego wywołania"}
+      desc={ru ? "Сначала прослушивание и короткий вызов, затем рабочий канал, сообщение и OUT." : "Najpierw nasłuch i krótkie wywołanie, potem kanał roboczy, wiadomość i OUT."}
     >
       <ArrowDefs id="routine-arrow" />
       <line x1="80" y1="172" x2="640" y2="172" stroke={C.line} strokeWidth="4" />
@@ -345,7 +345,7 @@ function RoutineDiagram() {
       })}
       <rect x="172" y="302" width="376" height="36" rx="18" fill="rgba(0,212,255,0.08)" stroke={C.cyan} />
       <Label x={360} y={325} size={12}>
-        {ru ? "OVER = жду ответа, OUT = связь закончена" : "OVER = czekam na odpowiedz, OUT = koniec lacznosci"}
+        {ru ? "OVER = жду ответа, OUT = связь закончена" : "OVER = czekam na odpowiedź, OUT = koniec łączności"}
       </Label>
     </Base>
   );
@@ -356,8 +356,8 @@ function DscDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Две дорожки DSC и голоса" : "Dwie sciezki DSC i fonii"}
-      desc={ru ? "Канал 70 передаёт короткий цифровой вызов, затем голос идёт на канале 16 или рабочем." : "Kanal 70 przenosi krotkie wywolanie cyfrowe, potem glos idzie na 16 lub kanale roboczym."}
+      title={ru ? "Две дорожки DSC и голоса" : "Dwie ścieżki DSC i fonii"}
+      desc={ru ? "Канал 70 передаёт короткий цифровой вызов, затем голос идёт на канале 16 или рабочем." : "Kanał 70 przenosi krótkie wywołanie cyfrowe, potem głos idzie na 16 lub kanale roboczym."}
     >
       <ArrowDefs id="dsc-arrow" />
       <Label x={78} y={92} anchor="start" size={16} fill={C.red}>CH 70</Label>
@@ -375,7 +375,7 @@ function DscDiagram() {
       <g transform="translate(400 59)">
         <rect width="130" height="82" rx="12" fill={C.panel} stroke={C.red} />
         <Label x={65} y={31} size={13}>SEND</Label>
-        <Label x={65} y={54} size={11} fill={C.muted}>{ru ? "короткий пакет" : "krotki pakiet"}</Label>
+        <Label x={65} y={54} size={11} fill={C.muted}>{ru ? "короткий пакет" : "krótki pakiet"}</Label>
       </g>
       <path d="M530 100 H610 V210 H470" fill="none" stroke={C.muted} strokeWidth="2" markerEnd="url(#dsc-arrow)" />
       <Label x={602} y={167} size={11} fill={C.muted}>ACK</Label>
@@ -386,7 +386,7 @@ function DscDiagram() {
         <Label x={95} y={69} size={11} fill={C.muted}>OVER / OUT</Label>
       </g>
       <Label x={360} y={334} size={12} fill={C.muted}>
-        {ru ? "DSC открывает дверь. Голос передаёт смысл." : "DSC otwiera drzwi. Glos przekazuje sens."}
+        {ru ? "DSC открывает дверь. Голос передаёт смысл." : "DSC otwiera drzwi. Głos przekazuje sens."}
       </Label>
     </Base>
   );
@@ -398,12 +398,12 @@ function PriorityDiagram() {
   return (
     <Base
       title={ru ? "Дерево выбора приоритета" : "Drzewo wyboru priorytetu"}
-      desc={ru ? "Непосредственная серьёзная угроза ведёт к MAYDAY, срочная безопасность к PAN PAN, предупреждение другим к SECURITE." : "Powazne bezposrednie zagrozenie prowadzi do MAYDAY, pilna sprawa bezpieczenstwa do PAN PAN, a ostrzezenie dla innych do SECURITE."}
+      desc={ru ? "Непосредственная серьёзная угроза ведёт к MAYDAY, срочная безопасность к PAN PAN, предупреждение другим к SECURITE." : "Poważne bezpośrednie zagrożenie prowadzi do MAYDAY, pilna sprawa bezpieczeństwa do PAN PAN, a ostrzeżenie dla innych do SECURITE."}
     >
       <ArrowDefs id="priority-arrow" />
       <rect x="235" y="22" width="250" height="54" rx="12" fill={C.panel} stroke={C.line} />
-      <Label x={360} y={45} size={13}>{ru ? "Есть серьёзная непосредственная" : "Czy jest powazne i bezposrednie"}</Label>
-      <Label x={360} y={64} size={13}>{ru ? "угроза и нужна помощь?" : "zagrozenie i potrzebna pomoc?"}</Label>
+      <Label x={360} y={45} size={13}>{ru ? "Есть серьёзная непосредственная" : "Czy jest poważne i bezpośrednie"}</Label>
+      <Label x={360} y={64} size={13}>{ru ? "угроза и нужна помощь?" : "zagrożenie i potrzebna pomoc?"}</Label>
       <path d="M360 76 V110 H155 V140" fill="none" stroke={C.green} strokeWidth="2" markerEnd="url(#priority-arrow)" />
       <path d="M360 76 V110 H565 V140" fill="none" stroke={C.muted} strokeWidth="2" markerEnd="url(#priority-arrow)" />
       <Label x={190} y={105} size={11} fill={C.green}>{ru ? "ДА" : "TAK"}</Label>
@@ -412,17 +412,17 @@ function PriorityDiagram() {
       <Label x={155} y={172} size={22} fill={C.red}>MAYDAY</Label>
       <Label x={155} y={193} size={11} fill={C.muted}>{ru ? "немедленная помощь" : "natychmiastowa pomoc"}</Label>
       <rect x="455" y="142" width="220" height="66" rx="12" fill={C.panel} stroke={C.line} />
-      <Label x={565} y={169} size={12}>{ru ? "Срочно для безопасности?" : "Pilne dla bezpieczenstwa?"}</Label>
+      <Label x={565} y={169} size={12}>{ru ? "Срочно для безопасности?" : "Pilne dla bezpieczeństwa?"}</Label>
       <path d="M565 208 V242 H420 V270" fill="none" stroke={C.amber} strokeWidth="2" markerEnd="url(#priority-arrow)" />
       <path d="M565 208 V242 H625 V270" fill="none" stroke={C.cyan} strokeWidth="2" markerEnd="url(#priority-arrow)" />
       <Label x={450} y={237} size={11} fill={C.amber}>{ru ? "ДА" : "TAK"}</Label>
-      <Label x={604} y={237} size={11} fill={C.cyan}>{ru ? "НЕТ, предупреждение" : "NIE, ostrzezenie"}</Label>
+      <Label x={604} y={237} size={11} fill={C.cyan}>{ru ? "НЕТ, предупреждение" : "NIE, ostrzeżenie"}</Label>
       <rect x="320" y="272" width="200" height="62" rx="14" fill="rgba(255,170,0,0.09)" stroke={C.amber} strokeWidth="2" />
       <Label x={420} y={309} size={21} fill={C.amber}>PAN PAN</Label>
       <rect x="545" y="272" width="150" height="62" rx="14" fill="rgba(0,212,255,0.09)" stroke={C.cyan} strokeWidth="2" />
       <Label x={620} y={309} size={19} fill={C.cyan}>SECURITE</Label>
       <Label x={155} y={244} size={11} fill={C.muted}>
-        {ru ? "Одинаковая поломка может дать разный ответ в разном контексте" : "Ta sama awaria moze dac inna odpowiedz w innym kontekscie"}
+        {ru ? "Одинаковая поломка может дать разный ответ в разном контексте" : "Ta sama awaria może dać inną odpowiedź w innym kontekście"}
       </Label>
     </Base>
   );
@@ -433,16 +433,16 @@ function MaydayDiagram() {
   const ru = explLang === "ru";
   const rows = [
     { n: "1", call: "MAYDAY x3, THIS IS, BALTICA x3", why: ru ? "привлечь внимание и назвать себя" : "uwaga i identyfikacja", c: C.red },
-    { n: "2", call: "MAYDAY BALTICA", why: ru ? "начало сообщения" : "poczatek komunikatu", c: C.red },
-    { n: "3", call: "MY POSITION IS 54... 018...", why: ru ? "куда направлять помощь" : "dokad wyslac pomoc", c: C.cyan },
-    { n: "4", call: "COLLISION, TAKING WATER", why: ru ? "что произошло" : "co sie stalo", c: C.amber },
+    { n: "2", call: "MAYDAY BALTICA", why: ru ? "начало сообщения" : "początek komunikatu", c: C.red },
+    { n: "3", call: "MY POSITION IS 54... 018...", why: ru ? "куда направлять помощь" : "dokąd wysłać pomoc", c: C.cyan },
+    { n: "4", call: "COLLISION, TAKING WATER", why: ru ? "что произошло" : "co się stało", c: C.amber },
     { n: "5", call: "I REQUIRE IMMEDIATE ASSISTANCE", why: ru ? "что требуется" : "czego potrzeba", c: C.green },
-    { n: "6", call: "FOUR PERSONS ON BOARD, OVER", why: ru ? "масштаб и ответ" : "skala i odpowiedz", c: C.cyan },
+    { n: "6", call: "FOUR PERSONS ON BOARD, OVER", why: ru ? "масштаб и ответ" : "skala i odpowiedź", c: C.cyan },
   ];
   return (
     <Base
       title={ru ? "Анатомия MAYDAY" : "Anatomia MAYDAY"}
-      desc={ru ? "Каждая строка сообщения отвечает спасателям на отдельный вопрос." : "Kazda linia komunikatu odpowiada ratownikom na osobne pytanie."}
+      desc={ru ? "Каждая строка сообщения отвечает спасателям на отдельный вопрос." : "Każda linia komunikatu odpowiada ratownikom na osobne pytanie."}
     >
       {rows.map((row, index) => {
         const y = 34 + index * 50;
@@ -459,7 +459,7 @@ function MaydayDiagram() {
         );
       })}
       <Label x={360} y={349} size={11} fill={C.muted}>
-        {ru ? "При угрозе жизни содержание важнее идеального акцента" : "W zagrozeniu tresc jest wazniejsza od idealnego akcentu"}
+        {ru ? "При угрозе жизни содержание важнее идеального акцента" : "W zagrożeniu treść jest ważniejsza od idealnego akcentu"}
       </Label>
     </Base>
   );
@@ -470,15 +470,15 @@ function ReceiveDiagram() {
   const ru = explLang === "ru";
   const boxes = [
     { x: 24, y: 125, w: 125, t: ru ? "ПРИНЯТ DSC" : "ODEBRANO DSC", s: ru ? "запиши данные" : "zapisz dane", c: C.red },
-    { x: 180, y: 125, w: 125, t: ru ? "СЛУШАЙ 16" : "SLUCHAJ 16", s: ru ? "5 минут" : "5 minut", c: C.cyan },
+    { x: 180, y: 125, w: 125, t: ru ? "СЛУШАЙ 16" : "SŁUCHAJ 16", s: ru ? "5 минут" : "5 minut", c: C.cyan },
     { x: 336, y: 125, w: 150, t: ru ? "ACK БЕРЕГА?" : "ACK BRZEGU?", s: ru ? "и обмен MAYDAY" : "i ruch MAYDAY", c: C.amber },
-    { x: 535, y: 42, w: 160, t: ru ? "ДА: СЛУШАЙ" : "TAK: SLUCHAJ", s: ru ? "не добавляй ACK" : "nie dokladaj ACK", c: C.green },
-    { x: 535, y: 230, w: 160, t: ru ? "НЕТ: ОТВЕТЬ" : "NIE: ODPOWIEDZ", s: ru ? "голосом на 16" : "fonia na 16", c: C.red },
+    { x: 535, y: 42, w: 160, t: ru ? "ДА: СЛУШАЙ" : "TAK: SŁUCHAJ", s: ru ? "не добавляй ACK" : "nie dokładaj ACK", c: C.green },
+    { x: 535, y: 230, w: 160, t: ru ? "НЕТ: ОТВЕТЬ" : "NIE: ODPOWIEDZ", s: ru ? "голосом на 16" : "fonią na 16", c: C.red },
   ];
   return (
     <Base
-      title={ru ? "Ответ на принятый DSC distress" : "Odpowiedz na odebrany DSC distress"}
-      desc={ru ? "После приёма слушай канал 16 пять минут, проверь береговое подтверждение и только затем решай об ответе." : "Po odbiorze sluchaj kanalu 16 przez piec minut, sprawdz ACK brzegu i dopiero potem decyduj o odpowiedzi."}
+      title={ru ? "Ответ на принятый DSC distress" : "Odpowiedź na odebrany DSC distress"}
+      desc={ru ? "После приёма слушай канал 16 пять минут, проверь береговое подтверждение и только затем решай об ответе." : "Po odbiorze słuchaj kanału 16 przez pięć minut, sprawdź ACK brzegu i dopiero potem decyduj o odpowiedzi."}
     >
       <ArrowDefs id="receive-arrow" />
       {boxes.map((box) => (
@@ -506,8 +506,8 @@ function GmdssDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Цепочка GMDSS" : "Lancuch GMDSS"}
-      desc={ru ? "EPIRB передаёт дальний сигнал через спутник, RCC координирует, SART помогает найти спасательное средство рядом." : "EPIRB wysyla daleki alarm przez satelite, RCC koordynuje, a SART pomaga znalezc srodek ratunkowy z bliska."}
+      title={ru ? "Цепочка GMDSS" : "Łańcuch GMDSS"}
+      desc={ru ? "EPIRB передаёт дальний сигнал через спутник, RCC координирует, SART помогает найти спасательное средство рядом." : "EPIRB wysyła daleki alarm przez satelitę, RCC koordynuje, a SART pomaga znaleźć środek ratunkowy z bliska."}
     >
       <ArrowDefs id="gmdss-arrow" />
       <g transform="translate(34 128)">
@@ -538,14 +538,14 @@ function GmdssDiagram() {
       <g transform="translate(190 234)">
         <rect width="260" height="76" rx="12" fill={C.panel} stroke={C.line} />
         <Label x={18} y={27} anchor="start" size={12} fill={C.cyan}>SART</Label>
-        <Label x={88} y={27} anchor="start" size={11}>{ru ? "ответ радару X-band" : "odpowiedz dla radaru X-band"}</Label>
+        <Label x={88} y={27} anchor="start" size={11}>{ru ? "ответ радару X-band" : "odpowiedź dla radaru X-band"}</Label>
         <Label x={18} y={55} anchor="start" size={12} fill={C.green}>AIS-SART</Label>
         <Label x={88} y={55} anchor="start" size={11}>{ru ? "цель в AIS, не на радаре" : "cel w AIS, nie na radarze"}</Label>
       </g>
       <path d="M451 271 H539" stroke={C.green} strokeWidth="2" strokeDasharray="5 4" markerEnd="url(#gmdss-arrow)" />
       <Label x={496} y={259} size={10} fill={C.muted}>{ru ? "последние мили" : "ostatnie mile"}</Label>
       <Label x={360} y={342} size={11} fill={C.muted}>
-        {ru ? "EPIRB вызывает помощь. SART помогает найти. NAVTEX заранее информирует." : "EPIRB wzywa pomoc. SART pomaga znalezc. NAVTEX informuje wczesniej."}
+        {ru ? "EPIRB вызывает помощь. SART помогает найти. NAVTEX заранее информирует." : "EPIRB wzywa pomoc. SART pomaga znaleźć. NAVTEX informuje wcześniej."}
       </Label>
     </Base>
   );
@@ -555,15 +555,15 @@ function PowerDiagram() {
   const { explLang } = useSternikPrefs();
   const ru = explLang === "ru";
   const stages = [
-    { x: 34, t: ru ? "ИСТОЧНИК" : "ZRODLO", s: "12 / 24 V", c: C.cyan },
+    { x: 34, t: ru ? "ИСТОЧНИК" : "ŹRÓDŁO", s: "12 / 24 V", c: C.cyan },
     { x: 204, t: ru ? "ЗАЩИТА" : "OCHRONA", s: ru ? "предохранитель" : "bezpiecznik", c: C.amber },
     { x: 374, t: ru ? "РАЦИЯ" : "RADIO", s: "RX << TX 25 W", c: C.green },
-    { x: 544, t: ru ? "АНТЕННА" : "ANTENA", s: ru ? "сигнал в эфир" : "sygnal w eter", c: C.cyan },
+    { x: 544, t: ru ? "АНТЕННА" : "ANTENA", s: ru ? "сигнал в эфир" : "sygnał w eter", c: C.cyan },
   ];
   return (
     <Base
-      title={ru ? "Цепь питания морской рации" : "Lancuch zasilania radia morskiego"}
-      desc={ru ? "Источник, защита, рация и антенна образуют одну цепь. Передача создает наибольшую нагрузку." : "Zrodlo, ochrona, radio i antena tworza jeden lancuch. Nadawanie powoduje najwieksze obciazenie."}
+      title={ru ? "Цепь питания морской рации" : "Łańcuch zasilania radia morskiego"}
+      desc={ru ? "Источник, защита, рация и антенна образуют одну цепь. Передача создает наибольшую нагрузку." : "Źródło, ochrona, radio i antena tworzą jeden łańcuch. Nadawanie powoduje największe obciążenie."}
     >
       <ArrowDefs id="power-arrow" />
       {stages.map((stage, index) => (
@@ -577,9 +577,9 @@ function PowerDiagram() {
         </g>
       ))}
       <rect x="84" y="232" width="552" height="76" rx="14" fill="rgba(255,170,0,0.07)" stroke={C.amber} />
-      <Label x={110} y={261} anchor="start" size={12} fill={C.amber}>{ru ? "Проверка под нагрузкой" : "Test pod obciazeniem"}</Label>
+      <Label x={110} y={261} anchor="start" size={12} fill={C.amber}>{ru ? "Проверка под нагрузкой" : "Test pod obciążeniem"}</Label>
       <Label x={110} y={286} anchor="start" size={12}>
-        {ru ? "Напряжение может выглядеть нормально в покое и резко упасть при TX." : "Napiecie moze byc poprawne w spoczynku i mocno spasc podczas TX."}
+        {ru ? "Напряжение может выглядеть нормально в покое и резко упасть при TX." : "Napięcie może być poprawne w spoczynku i mocno spaść podczas TX."}
       </Label>
       <Label x={360} y={340} size={11} fill={C.muted}>
         {ru ? "Сначала клеммы и питание, затем подозревай рацию." : "Najpierw zaciski i zasilanie, dopiero potem podejrzewaj radio."}
@@ -600,7 +600,7 @@ function SmcpDiagram() {
   return (
     <Base
       title={ru ? "Семейства фраз SMCP" : "Rodziny fraz SMCP"}
-      desc={ru ? "Шестьдесят экзаменационных фраз собираются из повторяющихся намерений и коротких конструкций." : "Szescdziesiat fraz egzaminacyjnych sklada sie z powtarzalnych intencji i krotkich konstrukcji."}
+      desc={ru ? "Шестьдесят экзаменационных фраз собираются из повторяющихся намерений и коротких конструкций." : "Sześćdziesiąt fraz egzaminacyjnych składa się z powtarzalnych intencji i krótkich konstrukcji."}
     >
       {rows.map((row) => (
         <g key={row.start}>
@@ -612,7 +612,7 @@ function SmcpDiagram() {
         </g>
       ))}
       <Label x={360} y={332} size={11} fill={C.muted}>
-        {ru ? "Одно намерение, одна короткая фраза, затем подтверждение." : "Jedna intencja, jedna krotka fraza, potem potwierdzenie."}
+        {ru ? "Одно намерение, одна короткая фраза, затем подтверждение." : "Jedna intencja, jedna krótka fraza, potem potwierdzenie."}
       </Label>
     </Base>
   );
@@ -622,7 +622,7 @@ function NavtexDiagram() {
   const { explLang } = useSternikPrefs();
   const ru = explLang === "ru";
   const fields = [
-    { x: 92, code: "ZCZC", label: ru ? "начало" : "poczatek", c: C.muted },
+    { x: 92, code: "ZCZC", label: ru ? "начало" : "początek", c: C.muted },
     { x: 226, code: "J", label: ru ? "станция B1" : "stacja B1", c: C.cyan },
     { x: 338, code: "A", label: ru ? "категория B2" : "kategoria B2", c: C.amber },
     { x: 454, code: "23", label: ru ? "номер B3B4" : "numer B3B4", c: C.green },
@@ -630,8 +630,8 @@ function NavtexDiagram() {
   ];
   return (
     <Base
-      title={ru ? "Анатомия заголовка NAVTEX" : "Anatomia naglowka NAVTEX"}
-      desc={ru ? "ZCZC начинает сообщение, J указывает станцию, A категорию, 23 номер, NNNN завершает сообщение." : "ZCZC rozpoczyna komunikat, J wskazuje stacje, A kategorie, 23 numer, a NNNN konczy komunikat."}
+      title={ru ? "Анатомия заголовка NAVTEX" : "Anatomia nagłówka NAVTEX"}
+      desc={ru ? "ZCZC начинает сообщение, J указывает станцию, A категорию, 23 номер, NNNN завершает сообщение." : "ZCZC rozpoczyna komunikat, J wskazuje stację, A kategorię, 23 numer, a NNNN kończy komunikat."}
     >
       {fields.map((field) => (
         <g key={field.code}>
@@ -642,10 +642,10 @@ function NavtexDiagram() {
       ))}
       <rect x="78" y="206" width="258" height="72" rx="14" fill="rgba(0,212,255,0.07)" stroke={C.cyan} />
       <Label x={207} y={237} size={18} fill={C.cyan}>518 kHz</Label>
-      <Label x={207} y={260} size={11}>{ru ? "международный, английский" : "miedzynarodowy, angielski"}</Label>
+      <Label x={207} y={260} size={11}>{ru ? "международный, английский" : "międzynarodowy, angielski"}</Label>
       <rect x="384" y="206" width="258" height="72" rx="14" fill="rgba(255,170,0,0.07)" stroke={C.amber} />
       <Label x={513} y={237} size={18} fill={C.amber}>490 kHz</Label>
-      <Label x={513} y={260} size={11}>{ru ? "национальный язык" : "jezyk krajowy"}</Label>
+      <Label x={513} y={260} size={11}>{ru ? "национальный язык" : "język krajowy"}</Label>
       <Label x={360} y={330} size={11} fill={C.muted}>
         {ru ? "Номер 00 передается как специальное сообщение." : "Numer 00 jest traktowany jako komunikat specjalny."}
       </Label>
@@ -659,14 +659,14 @@ function EpirbDiagram() {
   const nodes = [
     { x: 34, t: "EPIRB", s: "406 MHz", c: C.red },
     { x: 190, t: ru ? "СПУТНИКИ" : "SATELITY", s: "LEO / GEO / MEO", c: C.cyan },
-    { x: 360, t: "LUT", s: ru ? "прием" : "odbior", c: C.cyan },
+    { x: 360, t: "LUT", s: ru ? "прием" : "odbiór", c: C.cyan },
     { x: 500, t: "MCC", s: ru ? "маршрутизация" : "dystrybucja", c: C.amber },
     { x: 630, t: "RCC", s: "SAR", c: C.green },
   ];
   return (
     <Base
-      title={ru ? "Путь сигнала EPIRB" : "Droga sygnalu EPIRB"}
-      desc={ru ? "Сигнал 406 МГц проходит через спутники, LUT и MCC к спасательному координационному центру." : "Sygnal 406 MHz przechodzi przez satelity, LUT i MCC do ratowniczego osrodka koordynacyjnego."}
+      title={ru ? "Путь сигнала EPIRB" : "Droga sygnału EPIRB"}
+      desc={ru ? "Сигнал 406 МГц проходит через спутники, LUT и MCC к спасательному координационному центру." : "Sygnał 406 MHz przechodzi przez satelity, LUT i MCC do ratowniczego ośrodka koordynacyjnego."}
     >
       <ArrowDefs id="epirb-arrow" />
       {nodes.map((node, index) => (
@@ -681,7 +681,7 @@ function EpirbDiagram() {
       ))}
       <rect x="105" y="242" width="510" height="64" rx="14" fill="rgba(0,212,255,0.06)" stroke={C.line} />
       <Label x={130} y={268} anchor="start" size={12} fill={C.cyan}>GNSS / DOPPLER</Label>
-      <Label x={130} y={290} anchor="start" size={11}>{ru ? "дает позицию, регистрация связывает код с судном" : "daje pozycje, rejestracja laczy kod z jednostka"}</Label>
+      <Label x={130} y={290} anchor="start" size={11}>{ru ? "дает позицию, регистрация связывает код с судном" : "daje pozycję, rejestracja łączy kod z jednostką"}</Label>
       <Label x={360} y={342} size={11} fill={C.muted}>
         {ru ? "121,5 МГц помогает наводиться рядом с целью." : "121,5 MHz pomaga w naprowadzaniu blisko celu."}
       </Label>
@@ -694,8 +694,8 @@ function SartDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Как изображение Radar SART меняется при сближении" : "Jak zmienia sie obraz Radar SART przy zblizaniu"}
-      desc={ru ? "Вдали видны двенадцать точек, ближе дуги, совсем близко окружности." : "Daleko widac dwanascie kropek, blizej luki, a bardzo blisko okregi."}
+      title={ru ? "Как изображение Radar SART меняется при сближении" : "Jak zmienia się obraz Radar SART przy zbliżaniu"}
+      desc={ru ? "Вдали видны двенадцать точек, ближе дуги, совсем близко окружности." : "Daleko widać dwanaście kropek, bliżej łuki, a bardzo blisko okręgi."}
     >
       <g transform="translate(50 54)">
         {Array.from({ length: 12 }, (_, index) => (
@@ -708,19 +708,19 @@ function SartDiagram() {
         {Array.from({ length: 6 }, (_, index) => (
           <path key={index} d={`M${20 + index * 30} 82 A28 28 0 0 1 ${35 + index * 30} 54`} fill="none" stroke={C.amber} strokeWidth="4" />
         ))}
-        <Label x={98} y={20} size={14} fill={C.amber}>{ru ? "БЛИЖЕ" : "BLIZEJ"}</Label>
-        <Label x={98} y={108} size={11} fill={C.muted}>{ru ? "дуги" : "luki"}</Label>
+        <Label x={98} y={20} size={14} fill={C.amber}>{ru ? "БЛИЖЕ" : "BLIŻEJ"}</Label>
+        <Label x={98} y={108} size={11} fill={C.muted}>{ru ? "дуги" : "łuki"}</Label>
       </g>
       <g transform="translate(520 48)">
         {[54, 40, 26].map((radius) => (
           <circle key={radius} cx="74" cy="72" r={radius} fill="none" stroke={C.red} strokeWidth="3" />
         ))}
         <Label x={74} y={16} size={14} fill={C.red}>{ru ? "РЯДОМ" : "BLISKO"}</Label>
-        <Label x={74} y={142} size={11} fill={C.muted}>{ru ? "окружности" : "okregi"}</Label>
+        <Label x={74} y={142} size={11} fill={C.muted}>{ru ? "окружности" : "okręgi"}</Label>
       </g>
       <rect x="85" y="250" width="550" height="58" rx="14" fill={C.panel} stroke={C.line} />
       <Label x={110} y={275} anchor="start" size={12} fill={C.green}>X-BAND 9,2-9,5 GHz</Label>
-      <Label x={110} y={296} anchor="start" size={11}>{ru ? "Высота SART увеличивает дальность обнаружения." : "Wysokosc SART zwieksza zasieg wykrycia."}</Label>
+      <Label x={110} y={296} anchor="start" size={11}>{ru ? "Высота SART увеличивает дальность обнаружения." : "Wysokość SART zwiększa zasięg wykrycia."}</Label>
     </Base>
   );
 }
@@ -730,8 +730,8 @@ function AisSartDiagram() {
   const ru = explLang === "ru";
   return (
     <Base
-      title={ru ? "Radar SART и AIS-SART используют разные экраны" : "Radar SART i AIS-SART uzywaja innych ekranow"}
-      desc={ru ? "Radar SART отвечает радару X-band, AIS-SART передает позицию на AIS и обозначается кругом с крестом." : "Radar SART odpowiada radarowi X-band, AIS-SART wysyla pozycje do AIS i jest oznaczany okregiem z krzyzem."}
+      title={ru ? "Radar SART и AIS-SART используют разные экраны" : "Radar SART i AIS-SART używają innych ekranów"}
+      desc={ru ? "Radar SART отвечает радару X-band, AIS-SART передает позицию на AIS и обозначается кругом с крестом." : "Radar SART odpowiada radarowi X-band, AIS-SART wysyła pozycję do AIS i jest oznaczany okręgiem z krzyżem."}
     >
       <rect x="40" y="52" width="290" height="230" rx="18" fill={C.panel} stroke={C.cyan} strokeWidth="2" />
       <Label x={185} y={84} size={16} fill={C.cyan}>RADAR SART</Label>
@@ -747,7 +747,7 @@ function AisSartDiagram() {
       <Label x={535} y={218} size={13}>970 XX YYYY</Label>
       <Label x={535} y={242} size={11} fill={C.muted}>{ru ? "позиция на AIS" : "pozycja w AIS"}</Label>
       <Label x={360} y={330} size={11} fill={C.muted}>
-        {ru ? "Оба ведут к пострадавшим, но один не заменяет приемник другого." : "Oba prowadza do rozbitkow, ale wymagaja innych odbiornikow."}
+        {ru ? "Оба ведут к пострадавшим, но один не заменяет приемник другого." : "Oba prowadzą do rozbitków, ale wymagają innych odbiorników."}
       </Label>
     </Base>
   );
@@ -758,21 +758,21 @@ function WorldDiagram() {
   const ru = explLang === "ru";
   const regions = [
     { x: 32, title: ru ? "МОРЕ ЕВРОПЫ" : "MORZE EUROPA", lines: ["INT", "DSC CH 70", "VTS / PORT"], c: C.cyan },
-    { x: 205, title: ru ? "EU INLAND" : "EU INLAND", lines: ["ATIS", ru ? "часто без DSC" : "czesto bez DSC", ru ? "малая мощность" : "mala moc"], c: C.amber },
+    { x: 205, title: ru ? "EU INLAND" : "EU INLAND", lines: ["ATIS", ru ? "часто без DSC" : "często bez DSC", ru ? "малая мощность" : "mała moc"], c: C.amber },
     { x: 378, title: "USA / CAN", lines: ["USA / CAN mode", "CH 09 radio check", "Rescue 21 DSC"], c: C.green },
     { x: 551, title: ru ? "АВСТРАЛИЯ" : "AUSTRALIA", lines: ["local channels", "CH 16 / 67", "ACMA"], c: C.red },
   ];
   return (
     <Base
-      title={ru ? "Глобальная основа и региональные правила" : "Globalny rdzen i reguly regionalne"}
-      desc={ru ? "Международные MAYDAY, DSC и SMCP остаются общими, а каналы, ATIS и radio check меняются по региону." : "Miedzynarodowe MAYDAY, DSC i SMCP sa wspolne, a kanaly, ATIS i radio check zmieniaja sie regionalnie."}
+      title={ru ? "Глобальная основа и региональные правила" : "Globalny rdzeń i reguły regionalne"}
+      desc={ru ? "Международные MAYDAY, DSC и SMCP остаются общими, а каналы, ATIS и radio check меняются по региону." : "Międzynarodowe MAYDAY, DSC i SMCP są wspólne, a kanały, ATIS i radio check zmieniają się regionalnie."}
     >
       <rect x="74" y="34" width="572" height="94" rx="22" fill="rgba(0,212,255,0.07)" stroke={C.cyan} strokeWidth="2" />
-      <Label x={360} y={67} size={14} fill={C.cyan}>{ru ? "ГЛОБАЛЬНАЯ ОСНОВА" : "GLOBALNY RDZEN"}</Label>
+      <Label x={360} y={67} size={14} fill={C.cyan}>{ru ? "ГЛОБАЛЬНАЯ ОСНОВА" : "GLOBALNY RDZEŃ"}</Label>
       <Label x={360} y={92} size={18}>MAYDAY + DSC + SMCP + GMDSS</Label>
       <Label x={360} y={113} size={11} fill={C.muted}>ITU + IMO</Label>
       <path d="M360 128 V164" stroke={C.cyan} strokeWidth="3" />
-      <Label x={360} y={155} size={11} fill={C.muted}>{ru ? "добавь местный слой" : "dodaj lokalna nakladke"}</Label>
+      <Label x={360} y={155} size={11} fill={C.muted}>{ru ? "добавь местный слой" : "dodaj lokalną nakładkę"}</Label>
       {regions.map((region) => (
         <g key={region.title} transform={`translate(${region.x} 174)`}>
           <rect width="138" height="136" rx="14" fill={C.panel} stroke={region.c} strokeWidth="2" />
@@ -786,7 +786,7 @@ function WorldDiagram() {
         </g>
       ))}
       <Label x={360} y={340} size={11} fill={C.muted}>
-        {ru ? "Перед рейсом: план каналов, документы, VTS, Notices to Mariners" : "Przed rejsem: plan kanalow, dokumenty, VTS, Notices to Mariners"}
+        {ru ? "Перед рейсом: план каналов, документы, VTS, Notices to Mariners" : "Przed rejsem: plan kanałów, dokumenty, VTS, Notices to Mariners"}
       </Label>
     </Base>
   );

@@ -17,12 +17,17 @@ describe("embedded SRC Radio course", () => {
   });
 
   it("contains the complete radio course surfaces", () => {
+    // The bundler writes non-ASCII as \uXXXX escapes; decode them so the
+    // checks read the Polish text as users see it (full diacritics).
+    const text = html.replace(/\\u([0-9a-fA-F]{4})/g, (_, hex: string) =>
+      String.fromCharCode(parseInt(hex, 16)),
+    );
     expect(html).toContain("radio-offline-ready");
     expect(html).toContain("radio-open-online");
-    expect(html).toContain("Zrozum radio morskie przed symulatorem");
-    expect(html).toContain("Pamiec skanowania: sprawdz i dodaj kanaly");
-    expect(html).toContain("Reczne wprowadzenie pozycji i czasu");
-    expect(html).toContain("324 pytania");
+    expect(text).toContain("Zrozum radio morskie przed symulatorem");
+    expect(text).toContain("Pamięć skanowania: sprawdź i dodaj kanały");
+    expect(text).toContain("Ręczne wprowadzenie pozycji i czasu");
+    expect(text).toContain("324 pytania");
   });
 
   it("stays small enough to ship inside the app", () => {

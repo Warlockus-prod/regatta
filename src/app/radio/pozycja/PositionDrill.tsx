@@ -123,7 +123,7 @@ export default function PositionDrill() {
         {tp(
           'Позиция - единственное в радиообмене, что нельзя сказать приблизительно. Всё остальное можно переспросить, а позиция, услышанная как 54 вместо FIVE FOUR, отправляет спасателей не в то море. Восемь позиций, каждая ломается по-своему.',
           'A position is the one thing on a radio that cannot be approximate. Everything else can be asked again; a position heard as 54 instead of FIVE FOUR sends the lifeboat to the wrong sea. Eight of them, each breaking in a different way.',
-          'Pozycja to jedyna rzecz w lacznosci, ktorej nie wolno podac z grubsza. O wszystko inne mozna dopytac, a pozycja uslyszana jako 54 zamiast FIVE FOUR wysyla ratownikow na inne morze. Osiem pozycji, kazda psuje sie inaczej.',
+          'Pozycja to jedyna rzecz w łączności, której nie wolno podać z grubsza. O wszystko inne można dopytać, a pozycja usłyszana jako 54 zamiast FIVE FOUR wysyła ratowników na inne morze. Osiem pozycji, każda psuje się inaczej.',
         )}
       </p>
 
@@ -178,7 +178,7 @@ export default function PositionDrill() {
         {/* the position to read */}
         <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-            {tp('Продиктуй эту позицию', 'Dictate this position', 'Podyktuj te pozycje')}
+            {tp('Продиктуй эту позицию', 'Dictate this position', 'Podyktuj tę pozycję')}
           </div>
           <div data-testid="pos-coords" className="my-3 font-mono text-2xl font-bold leading-snug" style={{ color: 'var(--accent-cyan)' }}>
             {item.lat}<br />{item.lon}
@@ -198,7 +198,7 @@ export default function PositionDrill() {
               aria-label={tp(
                 'Держать и говорить: зажми, продиктуй позицию, отпусти. Работает с клавиши пробел или Enter.',
                 'Hold to talk: press and hold, dictate the position, release. Works with Space or Enter.',
-                'Trzymaj i mow: przytrzymaj, podyktuj pozycje, pusc. Dziala tez klawiszem spacja lub Enter.',
+                'Trzymaj i mów: przytrzymaj, podyktuj pozycję, puść. Działa też klawiszem spacja lub Enter.',
               )}
               className="min-h-[52px] flex-1 touch-none rounded-xl px-4 text-sm font-bold"
               style={recording
@@ -206,10 +206,10 @@ export default function PositionDrill() {
                 : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
               {recording
-                ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mow...')
+                ? tp('🔴 Говори...', '🔴 Speak...', '🔴 Mów...')
                 : working
-                  ? tp('Слушаю...', 'Listening...', 'Slucham...')
-                  : tp('🎙 Держи и говори', '🎙 Hold and speak', '🎙 Trzymaj i mow')}
+                  ? tp('Слушаю...', 'Listening...', 'Słucham...')
+                  : tp('🎙 Держи и говори', '🎙 Hold and speak', '🎙 Trzymaj i mów')}
             </button>
             <button
               type="button"
@@ -218,7 +218,7 @@ export default function PositionDrill() {
               className="min-h-[52px] rounded-xl px-4 text-sm font-semibold"
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
             >
-              {playing ? '🔊…' : tp('🔊 Как надо', '🔊 How it should sound', '🔊 Jak ma brzmiec')}
+              {playing ? '🔊...' : tp('🔊 Как надо', '🔊 How it should sound', '🔊 Jak ma brzmieć')}
             </button>
           </div>
 
@@ -231,7 +231,7 @@ export default function PositionDrill() {
           >
             {reveal
               ? tp('Скрыть текст', 'Hide the text', 'Ukryj tekst')
-              : tp('Показать текст (на экзамене его нет)', 'Show the text (the exam has none)', 'Pokaz tekst (na egzaminie go nie ma)')}
+              : tp('Показать текст (на экзамене его нет)', 'Show the text (the exam has none)', 'Pokaż tekst (na egzaminie go nie ma)')}
           </button>
 
           {reveal && (
@@ -246,7 +246,7 @@ export default function PositionDrill() {
         <div className="rounded-2xl p-4" aria-live="polite" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Что услышала модель', 'What the model heard', 'Co uslyszal model')}
+              {tp('Что услышала модель', 'What the model heard', 'Co usłyszał model')}
             </span>
             {checks && (
               <span data-testid="pos-score" className="text-sm font-bold"
@@ -261,7 +261,7 @@ export default function PositionDrill() {
               {tp(
                 'Держи кнопку и читай позицию вслух по-английски. Ничего не отправляется никуда, кроме распознавания.',
                 'Hold the button and read the position aloud in English. Nothing is sent anywhere except to be transcribed.',
-                'Trzymaj przycisk i przeczytaj pozycje na glos po angielsku. Nic nie idzie nigdzie poza rozpoznaniem mowy.',
+                'Trzymaj przycisk i przeczytaj pozycję na głos po angielsku. Nic nie idzie nigdzie poza rozpoznaniem mowy.',
               )}
             </p>
           ) : heard === '' ? (
@@ -269,7 +269,7 @@ export default function PositionDrill() {
               {tp(
                 'Я ничего не услышала. Проверь, что микрофон не выключен, и продиктуй ещё раз - это не засчитано как ошибка.',
                 'I heard nothing. Check the mic is not muted and dictate again - this was not counted against you.',
-                'Nic nie uslyszalem. Sprawdz, czy mikrofon nie jest wyciszony, i podyktuj jeszcze raz - to nie zostalo policzone jako blad.',
+                'Nic nie usłyszałem. Sprawdź, czy mikrofon nie jest wyciszony, i podyktuj jeszcze raz - to nie zostało policzone jako błąd.',
               )}
             </p>
           ) : (
@@ -291,7 +291,7 @@ export default function PositionDrill() {
                           {tp(
                             `услышано как "${c.heardAs}" - не могу отличить, слитно ли ты произнёс число или это распознавание склеило цифры. Скажи каждую цифру отдельно.`,
                             `heard as "${c.heardAs}" - I cannot tell whether you said the number as a whole or the transcriber merged the digits. Say each digit separately.`,
-                            `uslyszane jako "${c.heardAs}" - nie umiem rozroznic, czy powiedziales liczbe lacznie, czy to rozpoznawanie skleilo cyfry. Powiedz kazda cyfre osobno.`,
+                            `usłyszane jako "${c.heardAs}" - nie umiem rozróżnić, czy powiedziałeś liczbę łącznie, czy to rozpoznawanie skleiło cyfry. Powiedz każdą cyfrę osobno.`,
                           )}
                         </span>
                       )}
@@ -318,7 +318,7 @@ export default function PositionDrill() {
                     className="min-h-[44px] flex-1 rounded-xl px-3 text-sm font-semibold"
                     style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                   >
-                    {tp('Следующая', 'Next one', 'Nastepna')}
+                    {tp('Следующая', 'Next one', 'Następna')}
                   </button>
                 </div>
               )}
@@ -330,7 +330,7 @@ export default function PositionDrill() {
               {tp(
                 'Распознавание речи сейчас недоступно (нет сети или лимит). Позиции и правила читаются офлайн, а проверка произношения требует модели: подделывать её было бы враньём.',
                 'Speech recognition is unavailable right now (no network, or a rate limit). The positions and rules read fine offline; grading your speech needs a model, and faking it would be a lie.',
-                'Rozpoznawanie mowy jest teraz niedostepne (brak sieci albo limit). Pozycje i zasady czytaja sie offline, ocena wymowy wymaga modelu, a udawanie jej byloby klamstwem.',
+                'Rozpoznawanie mowy jest teraz niedostępne (brak sieci albo limit). Pozycje i zasady czytają się offline, ocena wymowy wymaga modelu, a udawanie jej byłoby kłamstwem.',
               )}
             </p>
           )}
@@ -339,7 +339,7 @@ export default function PositionDrill() {
               {tp(
                 'Озвучку эталона сейчас не получить, но текст выше на месте, и записать свой ответ по-прежнему можно.',
                 'The spoken model is unavailable right now, but the text above is there, and you can still record your own answer.',
-                'Nagrania wzorca teraz nie ma, ale tekst powyzej jest, a swoja odpowiedz nadal mozesz nagrac.',
+                'Nagrania wzorca teraz nie ma, ale tekst powyżej jest, a swoją odpowiedź nadal możesz nagrać.',
               )}
             </p>
           )}

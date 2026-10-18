@@ -127,7 +127,7 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 477 тестов, 51 файл
+npx vitest run               # все юнит-тесты: 517 тестов, 56 файлов
 npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
@@ -277,7 +277,16 @@ npm run check:map            # карта проекта актуальна
   этого вызова не мержим.
 - Серверные события: `race.finish`, `coach.requested`. Клиентские из
   `src/components/ClientErrorReporter.tsx`: `page.view`, `page.engaged`,
-  `js.uncaught`, `js.rejection`.
+  `js.uncaught`, `js.rejection`; воронка из `src/lib/funnel.ts`:
+  `exam.start`, `exam.finish`, `lesson.complete`, `radio.task.complete`,
+  `app_store.click`. `/api/log` пишет только имена из
+  `src/lib/analytics-events.ts` и только проверенные поля; новое событие
+  сначала добавляется туда (с тестом), иначе оно молча пропадает.
+- `page.view` несет `embed` и `client` (`app` внутри iOS-приложения, `web` в
+  браузере). Ссылки на App Store строятся через `appStoreUrl(ct)` с меткой
+  места (`web_home`), без нее источник установки не виден.
+- Сырые `events` и `sessions` хранятся 180 дней (`scripts/prune-events.mjs`,
+  сначала `--dry-run`, см. `docs/OPS.md`); окно `/stats` не шире 90 дней.
 - GA4 поток `G-ZEWWJ4N31M` в `src/components/GoogleAnalytics.tsx`.
 
 ## Окружение
