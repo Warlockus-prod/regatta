@@ -81,8 +81,8 @@ export default function CheatSheet() {
     return showRu ? ru : pl;
   }, [showPl, showRu]);
 
-  const listen = tp('Прослушать', 'Listen', 'Posluchaj', {
-    es: 'Escuchar', fr: 'Ecouter', de: 'Anhoren', it: 'Ascolta',
+  const listen = tp('Прослушать', 'Listen', 'Posłuchaj', {
+    es: 'Escuchar', fr: 'Écouter', de: 'Anhören', it: 'Ascolta',
   });
   // Prowords are shown "ENGLISH / ENGLISH" (e.g. ROGER / RECEIVED); speak the
   // clean spoken form (matches the pregen manifest key).
@@ -98,16 +98,16 @@ export default function CheatSheet() {
     <div>
       <div className="no-print">
         <Link href="/radio" className="text-sm" style={{ color: 'var(--accent-cyan)' }}>
-          {tp('< Раздел радио', '< Radio section', '< Dzial radio')}
+          {tp('< Раздел радио', '< Radio section', '< Dział radio')}
         </Link>
         <h1 className="mb-1 mt-2 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          📄 {tp('Шпаргалка и сертификат', 'Cheat sheet and certificate', 'Sciaga i certyfikat')}
+          📄 {tp('Шпаргалка и сертификат', 'Cheat sheet and certificate', 'Ściąga i certyfikat')}
         </h1>
         <p className="mb-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
           {tp(
             'Одна страница со всем, что спрашивают на SRC: каналы, MAYDAY/PAN-PAN/SECURITE, DSC, фонетика, типовые ошибки. Печатай и бери с собой.',
             'Everything the SRC exam asks for on one page: channels, MAYDAY/PAN-PAN/SECURITE, DSC, phonetics, common mistakes. Print it and take it along.',
-            'Wszystko, o co pyta egzamin SRC, na jednej stronie: kanaly, MAYDAY/PAN-PAN/SECURITE, DSC, fonetyka, typowe bledy. Wydrukuj i miej przy sobie.',
+            'Wszystko, o co pyta egzamin SRC, na jednej stronie: kanały, MAYDAY/PAN-PAN/SECURITE, DSC, fonetyka, typowe błędy. Wydrukuj i miej przy sobie.',
           )}
         </p>
         <div className="mb-6 flex flex-wrap gap-2">
@@ -118,7 +118,7 @@ export default function CheatSheet() {
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            🖨 {tp('Печать шпаргалки', 'Print the cheat sheet', 'Drukuj sciage')}
+            🖨 {tp('Печать шпаргалки', 'Print the cheat sheet', 'Drukuj ściągę')}
           </button>
           <button
             type="button"
@@ -136,22 +136,22 @@ export default function CheatSheet() {
       {/* ------------------------------------------------------------- SHEET */}
       <section data-testid="cheat-sheet" className={printing === 'sheet' ? 'printable' : undefined}>
         <SheetHead
-          title={bi('Sciaga SRC / VHF-DSC', 'Шпаргалка SRC / VHF-DSC')}
+          title={bi('Ściąga SRC / VHF-DSC', 'Шпаргалка SRC / VHF-DSC')}
           sub="Week to Regatta · weektoregatta.com/radio"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Box title={bi('Kanaly', 'Каналы')}>
+          <Box title={bi('Kanały', 'Каналы')}>
             <Rows rows={CHANNELS.map((c) => [c[0], bi(c[1], c[2])] as const)} />
-            <Note>{bi('Uzyj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy slabym sygnale i w niebezpieczenstwie. Sprawdz ograniczenia kanalu.', 'Используй минимальную достаточную мощность: обычно 1 Вт вблизи, 25 Вт при слабой связи и бедствии. Учитывай ограничения канала.')}</Note>
+            <Note>{bi('Użyj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy słabym sygnale i w niebezpieczeństwie. Sprawdź ograniczenia kanału.', 'Используй минимальную достаточную мощность: обычно 1 Вт вблизи, 25 Вт при слабой связи и бедствии. Учитывай ограничения канала.')}</Note>
           </Box>
 
-          <Box title={bi('Priorytet wywolan', 'Приоритет вызовов')}>
+          <Box title={bi('Priorytet wywołań', 'Приоритет вызовов')}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-              <li><b style={{ color: 'var(--danger)' }}>MAYDAY</b> - {bi('zagrozenie zycia lub jednostki', 'угроза жизни или судну')}</li>
-              <li><b style={{ color: 'var(--cat-orange)' }}>PAN-PAN</b> - {bi('pilne, bez zagrozenia zycia', 'срочно, без угрозы жизни')}</li>
-              <li><b style={{ color: 'var(--accent-cyan)' }}>SECURITE</b> - {bi('ostrzezenie nawigacyjne lub meteo', 'навигационное или метео предупреждение')}</li>
-              <li>{bi('kazde slowo powtarzane 3 razy na poczatku', 'каждое слово в начале повторяется 3 раза')}</li>
+              <li><b style={{ color: 'var(--danger)' }}>MAYDAY</b> - {bi('zagrożenie życia lub jednostki', 'угроза жизни или судну')}</li>
+              <li><b style={{ color: 'var(--cat-orange)' }}>PAN-PAN</b> - {bi('pilne, bez zagrożenia życia', 'срочно, без угрозы жизни')}</li>
+              <li><b style={{ color: 'var(--accent-cyan)' }}>SECURITE</b> - {bi('ostrzeżenie nawigacyjne lub meteo', 'навигационное или метео предупреждение')}</li>
+              <li>{bi('każde słowo powtarzane 3 razy na początku', 'каждое слово в начале повторяется 3 раза')}</li>
             </ul>
           </Box>
 
@@ -167,9 +167,9 @@ export default function CheatSheet() {
             <Pre>{SECURITE_TEMPLATE}</Pre>
           </Box>
 
-          <Box title={bi('Odwolanie falszywego alertu', 'Отмена ложного алерта')}>
+          <Box title={bi('Odwołanie fałszywego alertu', 'Отмена ложного алерта')}>
             <Pre>{CANCEL_TEMPLATE}</Pre>
-            <Note>{bi('Nie wylaczaj radia. Odwolaj cyfrowo i glosem na 16.', 'Не выключай рацию. Отмени цифрой и голосом на 16.')}</Note>
+            <Note>{bi('Nie wyłączaj radia. Odwołaj cyfrowo i głosem na 16.', 'Не выключай рацию. Отмени цифрой и голосом на 16.')}</Note>
           </Box>
 
           <Box title={bi('DSC DISTRESS na ICOM', 'DSC DISTRESS на ICOM')} wide>
@@ -221,7 +221,7 @@ export default function CheatSheet() {
             </div>
           </Box>
 
-          <Box title={bi('Typowe bledy - tu oblewa sie egzamin', 'Типовые ошибки - на них валят экзамен')}>
+          <Box title={bi('Typowe błędy - tu oblewa się egzamin', 'Типовые ошибки - на них валят экзамен')}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {MISTAKES.map(([pl, ru]) => (
                 <li key={pl}>✗ {bi(pl, ru)}</li>
@@ -260,7 +260,7 @@ export default function CheatSheet() {
           </div>
           <div className="mx-auto mt-1 max-w-md text-xs" style={{ color: 'var(--text-muted)' }}>
             {bi(
-              'Dokument treningowy. Nie jest swiadectwem operatora - swiadectwo SRC wydaje wylacznie UKE.',
+              'Dokument treningowy. Nie jest świadectwem operatora - świadectwo SRC wydaje wyłącznie UKE.',
               'Тренировочный документ. Не является свидетельством оператора: SRC выдаёт только UKE.',
             )}
           </div>
@@ -269,7 +269,7 @@ export default function CheatSheet() {
             data-testid="cert-name"
             value={name}
             onChange={(e) => onName(e.target.value)}
-            placeholder={bi('Imie i nazwisko', 'Имя и фамилия')}
+            placeholder={bi('Imię i nazwisko', 'Имя и фамилия')}
             className="mx-auto mt-5 block w-full max-w-sm rounded-xl px-4 py-2 text-center text-lg font-bold"
             style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           />
@@ -282,7 +282,7 @@ export default function CheatSheet() {
             {grade !== null && (
               <>
                 {' · '}
-                {bi('srednia', 'средний балл')}: <b style={{ color: 'var(--text-primary)' }}>{grade}%</b>
+                {bi('średnia', 'средний балл')}: <b style={{ color: 'var(--text-primary)' }}>{grade}%</b>
               </>
             )}
           </div>
@@ -304,11 +304,11 @@ export default function CheatSheet() {
           {!done && (
             <div className="mt-4 text-sm no-print" style={{ color: 'var(--text-muted)' }}>
               {bi(
-                'Zalicz co najmniej jeden scenariusz w symulatorze (min. 60%), zeby wydrukowac certyfikat.',
+                'Zalicz co najmniej jeden scenariusz w symulatorze (min. 60%), żeby wydrukować certyfikat.',
                 'Пройди хотя бы один сценарий в симуляторе (минимум 60%), чтобы напечатать сертификат.',
               )}{' '}
               <Link href="/radio/symulator" style={{ color: 'var(--accent-cyan)' }}>
-                {bi('Otworz symulator', 'Открыть симулятор')}
+                {bi('Otwórz symulator', 'Открыть симулятор')}
               </Link>
             </div>
           )}

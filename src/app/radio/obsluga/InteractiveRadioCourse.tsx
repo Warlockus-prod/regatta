@@ -95,8 +95,8 @@ export default function InteractiveRadioCourse() {
     {
       id: 'power',
       title: tp('1. Питание', '1. Power', '1. Zasilanie'),
-      instruction: tp('Удерживай центр ручки DIAL ровно 1 секунду.', 'Hold the center of DIAL for one second.', 'Przytrzymaj srodek DIAL przez 1 sekunde.'),
-      why: tp('Короткое нажатие не включает рацию: оно открывает настройку громкости. На экзамене важно именно удержание.', 'A short press does not power the set: it opens volume adjustment. The one second hold matters in the exam.', 'Krotkie nacisniecie nie wlacza radia: otwiera regulacje glosnosci. Na egzaminie liczy sie przytrzymanie.'),
+      instruction: tp('Удерживай центр ручки DIAL ровно 1 секунду.', 'Hold the center of DIAL for one second.', 'Przytrzymaj środek DIAL przez 1 sekundę.'),
+      why: tp('Короткое нажатие не включает рацию: оно открывает настройку громкости. На экзамене важно именно удержание.', 'A short press does not power the set: it opens volume adjustment. The one second hold matters in the exam.', 'Krótkie naciśnięcie nie włącza radia: otwiera regulację głośności. Na egzaminie liczy się przytrzymanie.'),
       highlight: () => 'dial-center',
       check: (event, prev, next) => event.type === 'dial-hold' && !prev.power && next.power,
     },
@@ -108,89 +108,89 @@ export default function InteractiveRadioCourse() {
     // procedure starts by opening the squelch.
     {
       id: 'squelch-open',
-      title: tp('2. Открой шумоподавитель', '2. Open the squelch', '2. Otworz blokade szumow'),
-      instruction: tp('Нажимай DIAL, пока не появится SQL, и крути влево до значения OPEN. Услышишь шум эфира - так и должно быть.', 'Push DIAL until SQL appears and turn it down to OPEN. You will hear the hiss of the open channel - that is the point.', 'Naciskaj DIAL, az pojawi sie SQL, i krec w lewo do pozycji OPEN. Uslyszysz szum eteru - o to wlasnie chodzi.'),
-      why: tp('Пустой канал не бывает тихим: приёмник усиливает шум. Этот шум - твой эталон, по нему ты сейчас выставишь громкость.', 'An idle channel is not silent: the receiver amplifies noise. That hiss is your reference signal - you are about to set the volume against it.', 'Pusty kanal nie jest cichy: odbiornik wzmacnia szum. Ten szum to twoj wzorzec - zaraz ustawisz wedlug niego glosnosc.'),
+      title: tp('2. Открой шумоподавитель', '2. Open the squelch', '2. Otwórz blokadę szumów'),
+      instruction: tp('Нажимай DIAL, пока не появится SQL, и крути влево до значения OPEN. Услышишь шум эфира - так и должно быть.', 'Push DIAL until SQL appears and turn it down to OPEN. You will hear the hiss of the open channel - that is the point.', 'Naciskaj DIAL, aż pojawi się SQL, i kręć w lewo do pozycji OPEN. Usłyszysz szum eteru - o to właśnie chodzi.'),
+      why: tp('Пустой канал не бывает тихим: приёмник усиливает шум. Этот шум - твой эталон, по нему ты сейчас выставишь громкость.', 'An idle channel is not silent: the receiver amplifies noise. That hiss is your reference signal - you are about to set the volume against it.', 'Pusty kanał nie jest cichy: odbiornik wzmacnia szum. Ten szum to twój wzorzec - zaraz ustawisz według niego głośność.'),
       highlight: (s) => (s.screen === 'squelch' ? 'dial-ccw' : 'dial-center'),
       check: (_event, prev, next) => next.screen === 'squelch' && next.squelch === 0 && prev.squelch !== 0,
     },
     {
       id: 'volume',
-      title: tp('3. Громкость - по шуму', '3. Volume - against the hiss', '3. Glosnosc - wedlug szumu'),
-      instruction: tp('Нажми DIAL, чтобы выйти на VOL, и выставь громкость так, чтобы шум был слышен у руля.', 'Push DIAL to reach VOL and set the volume so the hiss is audible at the helm.', 'Nacisnij DIAL, aby wejsc na VOL, i ustaw glosnosc tak, by szum bylo slychac przy sterze.'),
-      why: tp('У рации 20 уровней и OFF. Громкость влияет только на динамик и никак не на дальность передачи. Именно поэтому громкость ставят по шуму: тишину настроить нельзя.', 'The set has 20 levels plus OFF. Volume affects the speaker, never the transmit range. And it is set against the hiss because you cannot set a level against silence.', 'Radio ma 20 poziomow i OFF. Glosnosc wplywa na glosnik, nigdy na zasieg nadawania. Ustawia sie ja wedlug szumu, bo ciszy nie da sie wyregulowac.'),
+      title: tp('3. Громкость - по шуму', '3. Volume - against the hiss', '3. Głośność - według szumu'),
+      instruction: tp('Нажми DIAL, чтобы выйти на VOL, и выставь громкость так, чтобы шум был слышен у руля.', 'Push DIAL to reach VOL and set the volume so the hiss is audible at the helm.', 'Naciśnij DIAL, aby wejść na VOL, i ustaw głośność tak, by szum było słychać przy sterze.'),
+      why: tp('У рации 20 уровней и OFF. Громкость влияет только на динамик и никак не на дальность передачи. Именно поэтому громкость ставят по шуму: тишину настроить нельзя.', 'The set has 20 levels plus OFF. Volume affects the speaker, never the transmit range. And it is set against the hiss because you cannot set a level against silence.', 'Radio ma 20 poziomów i OFF. Głośność wpływa na głośnik, nigdy na zasięg nadawania. Ustawia się ją według szumu, bo ciszy nie da się wyregulować.'),
       highlight: () => 'dial-cw',
       check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'volume' && next.volume !== prev.volume,
     },
     {
       id: 'squelch',
-      title: tp('4. Порог SQL', '4. The squelch threshold', '4. Prog blokady szumow'),
-      instruction: tp('Вернись на SQL и поднимай порог, пока шум не пропадёт. Остановись на этом делении.', 'Go back to SQL and raise it until the hiss just disappears. Stop at that click.', 'Wroc na SQL i podnos prog, az szum wlasnie zniknie. Zatrzymaj sie na tym miejscu.'),
-      why: tp('Слишком высокий SQL скрывает слабые вызовы: далёкая лодка на 1 Вт просто не пробьётся. Порог - это первое деление, на котором ровный шум исчез, не выше.', 'Too much squelch hides weak calls: a distant boat on 1 W simply will not break through. The threshold is the first click where the steady hiss dies - no further.', 'Zbyt wysoki SQL ukrywa slabe wywolania: odlegla lodz na 1 W po prostu sie nie przebije. Prog to pierwsze miejsce, w ktorym staly szum zniknal - ani kroku dalej.'),
+      title: tp('4. Порог SQL', '4. The squelch threshold', '4. Próg blokady szumów'),
+      instruction: tp('Вернись на SQL и поднимай порог, пока шум не пропадёт. Остановись на этом делении.', 'Go back to SQL and raise it until the hiss just disappears. Stop at that click.', 'Wróć na SQL i podnoś próg, aż szum właśnie zniknie. Zatrzymaj się na tym miejscu.'),
+      why: tp('Слишком высокий SQL скрывает слабые вызовы: далёкая лодка на 1 Вт просто не пробьётся. Порог - это первое деление, на котором ровный шум исчез, не выше.', 'Too much squelch hides weak calls: a distant boat on 1 W simply will not break through. The threshold is the first click where the steady hiss dies - no further.', 'Zbyt wysoki SQL ukrywa słabe wywołania: odległa łódź na 1 W po prostu się nie przebije. Próg to pierwsze miejsce, w którym stały szum zniknął - ani kroku dalej.'),
       highlight: (s) => (s.screen === 'squelch' ? 'dial-cw' : 'dial-center'),
       check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'squelch' && next.squelch > prev.squelch && next.squelch >= 3,
     },
     {
       id: 'channel',
-      title: tp('5. Рабочий канал', '5. Working channel', '5. Kanal roboczy'),
-      instruction: tp('Клавишами вверх/вниз выбери канал 12.', 'Use the up/down keys to select channel 12.', 'Klawiszami gora/dol wybierz kanal 12.'),
-      why: tp('На M330 каналы выбирают стрелками, не вращением DIAL в режиме ожидания. Канал 12 используется портом и мариной Гдыня.', 'On M330, standby channels use the arrow keys, not DIAL rotation. Channel 12 is used by Gdynia port and marina.', 'Na M330 kanaly w trybie czuwania wybiera sie strzalkami, nie DIAL. Kanal 12 jest uzywany przez port i marine Gdynia.'),
+      title: tp('5. Рабочий канал', '5. Working channel', '5. Kanał roboczy'),
+      instruction: tp('Клавишами вверх/вниз выбери канал 12.', 'Use the up/down keys to select channel 12.', 'Klawiszami góra/dół wybierz kanał 12.'),
+      why: tp('На M330 каналы выбирают стрелками, не вращением DIAL в режиме ожидания. Канал 12 используется портом и мариной Гдыня.', 'On M330, standby channels use the arrow keys, not DIAL rotation. Channel 12 is used by Gdynia port and marina.', 'Na M330 kanały w trybie czuwania wybiera się strzałkami, nie DIAL. Kanał 12 jest używany przez port i marinę Gdynia.'),
       highlight: (s) => ['volume', 'squelch', 'channel-select', 'backlight'].includes(s.screen) ? 'key-clr' : 'key-down',
       check: (_event, prev, next) => channelNumber(prev) !== '12' && channelNumber(next) === '12',
     },
     {
       id: 'channel16',
-      title: tp('6. Аварийный канал 16', '6. Distress channel 16', '6. Kanal alarmowy 16'),
-      instruction: tp('Коротко нажми 16/C.', 'Press 16/C briefly.', 'Nacisnij krotko 16/C.'),
-      why: tp('Короткое нажатие из любого обычного экрана немедленно возвращает на канал бедствия и вызова 16.', 'A short press from any normal screen immediately selects distress and calling channel 16.', 'Krotkie nacisniecie z normalnego ekranu natychmiast wybiera kanal alarmowy i wywolawczy 16.'),
+      title: tp('6. Аварийный канал 16', '6. Distress channel 16', '6. Kanał alarmowy 16'),
+      instruction: tp('Коротко нажми 16/C.', 'Press 16/C briefly.', 'Naciśnij krótko 16/C.'),
+      why: tp('Короткое нажатие из любого обычного экрана немедленно возвращает на канал бедствия и вызова 16.', 'A short press from any normal screen immediately selects distress and calling channel 16.', 'Krótkie naciśnięcie z normalnego ekranu natychmiast wybiera kanał alarmowy i wywoławczy 16.'),
       highlight: () => 'key-16c',
       check: (event, _prev, next) => event.type === 'key-16c' && channelNumber(next) === '16',
     },
     {
       id: 'call-channel',
-      title: tp('7. Call Channel', '7. Call Channel', '7. Kanal wywolawczy'),
-      instruction: tp('Теперь удерживай 16/C 1 секунду.', 'Now hold 16/C for one second.', 'Teraz przytrzymaj 16/C przez 1 sekunde.'),
-      why: tp('Длинное нажатие выбирает запрограммированный Call Channel. В тренажере это канал 06.', 'The long press selects the programmed Call Channel. In this trainer it is channel 06.', 'Dlugie nacisniecie wybiera zaprogramowany kanal wywolawczy. W trenerze jest to kanal 06.'),
+      title: tp('7. Call Channel', '7. Call Channel', '7. Kanał wywoławczy'),
+      instruction: tp('Теперь удерживай 16/C 1 секунду.', 'Now hold 16/C for one second.', 'Teraz przytrzymaj 16/C przez 1 sekundę.'),
+      why: tp('Длинное нажатие выбирает запрограммированный Call Channel. В тренажере это канал 06.', 'The long press selects the programmed Call Channel. In this trainer it is channel 06.', 'Długie naciśnięcie wybiera zaprogramowany kanał wywoławczy. W trenerze jest to kanał 06.'),
       highlight: () => 'key-16c',
       check: (event, _prev, next) => event.type === 'key-16c-hold' && channelNumber(next) === '06',
     },
     {
       id: 'power-level',
       title: tp('8. Мощность 25W / 1W', '8. Power 25W / 1W', '8. Moc 25W / 1W'),
-      instruction: tp('Перейди на первую страницу софтклавиш и нажми HI/LO.', 'Return to the first softkey page and press HI/LO.', 'Wroc do pierwszej strony klawiszy i nacisnij HI/LO.'),
-      why: tp('Выбирай минимальную достаточную мощность: обычно 1W вблизи, 25W при слабой связи и бедствии. Каналы 15, 17, 75 и 76 принудительно ограничены малой мощностью.', 'Use the minimum effective power: normally 1 W nearby, 25 W for a weak link and distress. Channels 15, 17, 75 and 76 are limited to low power.', 'Uzywaj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy slabym sygnale i w niebezpieczenstwie. Kanaly 15, 17, 75 i 76 sa ograniczone do malej mocy.'),
+      instruction: tp('Перейди на первую страницу софтклавиш и нажми HI/LO.', 'Return to the first softkey page and press HI/LO.', 'Wróć do pierwszej strony klawiszy i naciśnij HI/LO.'),
+      why: tp('Выбирай минимальную достаточную мощность: обычно 1W вблизи, 25W при слабой связи и бедствии. Каналы 15, 17, 75 и 76 принудительно ограничены малой мощностью.', 'Use the minimum effective power: normally 1 W nearby, 25 W for a weak link and distress. Channels 15, 17, 75 and 76 are limited to low power.', 'Używaj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy słabym sygnale i w niebezpieczeństwie. Kanały 15, 17, 75 i 76 są ograniczone do małej mocy.'),
       highlight: (s) => s.softPage === 0 ? 'soft-2' : 'key-left',
       check: (event, prev, next) => event.type === 'soft' && prev.hiPower && !next.hiPower,
     },
     {
       id: 'dual-watch',
-      title: tp('9. Dual Watch', '9. Dual Watch', '9. Nasluch podwojny'),
-      instruction: tp('Стрелкой вправо открой страницу DW и нажми клавишу под DW.', 'Use the right arrow to reveal DW, then press the key below DW.', 'Strzalka w prawo pokaz DW, potem nacisnij klawisz pod DW.'),
-      why: tp('Dual Watch попеременно слушает выбранный рабочий канал и 16, чтобы не пропустить бедствие.', 'Dual Watch alternates between the working channel and channel 16, so distress traffic is not missed.', 'Nasluch podwojny sprawdza kanal roboczy i 16, aby nie przegapic ruchu alarmowego.'),
+      title: tp('9. Dual Watch', '9. Dual Watch', '9. Nasłuch podwójny'),
+      instruction: tp('Стрелкой вправо открой страницу DW и нажми клавишу под DW.', 'Use the right arrow to reveal DW, then press the key below DW.', 'Strzałką w prawo pokaż DW, potem naciśnij klawisz pod DW.'),
+      why: tp('Dual Watch попеременно слушает выбранный рабочий канал и 16, чтобы не пропустить бедствие.', 'Dual Watch alternates between the working channel and channel 16, so distress traffic is not missed.', 'Nasłuch podwójny sprawdza kanał roboczy i 16, aby nie przegapić ruchu alarmowego.'),
       highlight: (s) => s.model === 'M323' || s.softPage === 1 ? 'soft-1' : 'key-right',
       check: (event, _prev, next) => event.type === 'soft' && next.dualWatch,
     },
     {
       id: 'backlight',
-      title: tp('10. Подсветка', '10. Backlight', '10. Podswietlenie'),
-      instruction: tp('На странице DW нажми BKLT, затем поверни DIAL.', 'On the DW page press BKLT, then rotate DIAL.', 'Na stronie DW nacisnij BKLT, potem obroc DIAL.'),
-      why: tp('Подсветка экрана и клавиш регулируется от OFF до 7. Ночью используй минимальный читаемый уровень.', 'Display and key backlight runs from OFF to 7. At night use the lowest readable level.', 'Podswietlenie ekranu i klawiszy ma zakres OFF do 7. W nocy uzyj najnizszego czytelnego poziomu.'),
+      title: tp('10. Подсветка', '10. Backlight', '10. Podświetlenie'),
+      instruction: tp('На странице DW нажми BKLT, затем поверни DIAL.', 'On the DW page press BKLT, then rotate DIAL.', 'Na stronie DW naciśnij BKLT, potem obróć DIAL.'),
+      why: tp('Подсветка экрана и клавиш регулируется от OFF до 7. Ночью используй минимальный читаемый уровень.', 'Display and key backlight runs from OFF to 7. At night use the lowest readable level.', 'Podświetlenie ekranu i klawiszy ma zakres OFF do 7. W nocy użyj najniższego czytelnego poziomu.'),
       highlight: (s) => s.screen === 'backlight' ? 'dial-cw' : s.softPage === 1 ? 'soft-3' : 'key-right',
       check: (event, prev, next) => event.type === 'dial-rotate' && next.screen === 'backlight' && next.backlight !== prev.backlight,
     },
     {
       id: 'menu',
-      title: tp('11. Главное меню', '11. Main menu', '11. Menu glowne'),
-      instruction: tp('Вернись кнопкой CLEAR/CLR и открой MENU.', 'Return with CLEAR/CLR and open MENU.', 'Wroc przyciskiem CLEAR/CLR i otworz MENU.'),
-      why: tp('M330 и M323 имеют разное дерево меню. Тренажер переключает не только надпись на панели, но и набор пунктов.', 'M330 and M323 have different menu trees. The trainer changes both the faceplate and the available items.', 'M330 i M323 maja rozne drzewa menu. Trener zmienia panel i dostepne pozycje.'),
+      title: tp('11. Главное меню', '11. Main menu', '11. Menu główne'),
+      instruction: tp('Вернись кнопкой CLEAR/CLR и открой MENU.', 'Return with CLEAR/CLR and open MENU.', 'Wróć przyciskiem CLEAR/CLR i otwórz MENU.'),
+      why: tp('M330 и M323 имеют разное дерево меню. Тренажер переключает не только надпись на панели, но и набор пунктов.', 'M330 and M323 have different menu trees. The trainer changes both the faceplate and the available items.', 'M330 i M323 mają różne drzewa menu. Trener zmienia panel i dostępne pozycje.'),
       highlight: (s) => s.screen === 'standby' ? 'key-menu' : 'key-clr',
       check: (_event, prev, next) => prev.screen !== 'menu' && next.screen === 'menu',
     },
     {
       id: 'other-dsc',
-      title: tp('12. Меню вызовов DSC', '12. DSC calls menu', '12. Menu wywolan DSC'),
+      title: tp('12. Меню вызовов DSC', '12. DSC calls menu', '12. Menu wywołań DSC'),
       instruction: tp('M330: выбери Other DSC. M323: ENT на DSC Calls, затем выбери All Ships Call.', 'M330: select Other DSC. M323: press ENT on DSC Calls, then select All Ships Call.', 'M330: wybierz Other DSC. M323: ENT na DSC Calls, potem wybierz All Ships Call.'),
-      why: tp('Здесь создаются Individual, Group, All Ships и Test вызовы. Красная DISTRESS для них не используется.', 'This is where Individual, Group, All Ships and Test calls are composed. The red DISTRESS key is not used.', 'Tutaj tworzysz wywolania Individual, Group, All Ships i Test. Czerwony DISTRESS nie jest do tego uzywany.'),
+      why: tp('Здесь создаются Individual, Group, All Ships и Test вызовы. Красная DISTRESS для них не используется.', 'This is where Individual, Group, All Ships and Test calls are composed. The red DISTRESS key is not used.', 'Tutaj tworzysz wywołania Individual, Group, All Ships i Test. Czerwony DISTRESS nie jest do tego używany.'),
       highlight: (s) => {
         if (s.model === 'M323') {
           if (s.screen === 'menu') return s.menuCursor === 0 ? 'key-ent' : 'key-up';
@@ -204,8 +204,8 @@ export default function InteractiveRadioCourse() {
     {
       id: 'safety-dsc',
       title: tp('13. All Ships Safety', '13. All Ships Safety', '13. All Ships Safety'),
-      instruction: tp('Выбери Category: Safety, оставь рабочий канал 16 и отправь Send.', 'Select Category: Safety, keep working channel 16, and send.', 'Wybierz Category: Safety, zostaw kanal roboczy 16 i wyslij Send.'),
-      why: tp('Цифровое объявление уходит на 70 канале, после чего голосовое SECURITE передают на 16 или указанном рабочем канале.', 'The digital announcement goes on channel 70, followed by the spoken SECURITE on 16 or a stated working channel.', 'Zapowiedz cyfrowa idzie na kanale 70, potem glosowe SECURITE na 16 lub wskazanym kanale roboczym.'),
+      instruction: tp('Выбери Category: Safety, оставь рабочий канал 16 и отправь Send.', 'Select Category: Safety, keep working channel 16, and send.', 'Wybierz Category: Safety, zostaw kanał roboczy 16 i wyślij Send.'),
+      why: tp('Цифровое объявление уходит на 70 канале, после чего голосовое SECURITE передают на 16 или указанном рабочем канале.', 'The digital announcement goes on channel 70, followed by the spoken SECURITE on 16 or a stated working channel.', 'Zapowiedź cyfrowa idzie na kanale 70, potem głosowe SECURITE na 16 lub wskazanym kanale roboczym.'),
       highlight: (s) => {
         if (s.screen === 'otherdsc-field') return s.odFieldCursor === 1 ? 'key-ent' : 'key-down';
         const rows = otherDscRows(s);
@@ -218,16 +218,16 @@ export default function InteractiveRadioCourse() {
     {
       id: 'ptt',
       title: tp('14. Физическая PTT', '14. Physical PTT', '14. Fizyczny PTT'),
-      instruction: tp('Удержи PTT на ручном микрофоне, затем отпусти.', 'Hold PTT on the fist microphone, then release it.', 'Przytrzymaj PTT na mikrofonie recznym, potem pusc.'),
-      why: tp('Пока PTT нажата, рация передает и не принимает. Говори короткими фразами и отпускай кнопку для ответа.', 'While PTT is held, the set transmits and cannot receive. Use short phrases and release to listen.', 'Gdy PTT jest wcisniety, radio nadaje i nie odbiera. Mow krotko i puszczaj, aby sluchac.'),
+      instruction: tp('Удержи PTT на ручном микрофоне, затем отпусти.', 'Hold PTT on the fist microphone, then release it.', 'Przytrzymaj PTT na mikrofonie ręcznym, potem puść.'),
+      why: tp('Пока PTT нажата, рация передает и не принимает. Говори короткими фразами и отпускай кнопку для ответа.', 'While PTT is held, the set transmits and cannot receive. Use short phrases and release to listen.', 'Gdy PTT jest wciśnięty, radio nadaje i nie odbiera. Mów krótko i puszczaj, aby słuchać.'),
       highlight: () => 'ptt',
       check: (event, _prev, next) => event.type === 'ptt-down' && next.ptt,
     },
     {
       id: 'distress',
-      title: tp('15. DISTRESS под крышкой', '15. DISTRESS under the cover', '15. DISTRESS pod oslona'),
-      instruction: tp('Вернись STBY, открой защитную крышку и удерживай красную DISTRESS 3 секунды.', 'Return to STBY, open the cover, and hold red DISTRESS for three seconds.', 'Wroc do STBY, otworz oslone i trzymaj czerwony DISTRESS przez 3 sekundy.'),
-      why: tp('Три коротких сигнала переходят в непрерывный. Только после полного удержания DSC-алерт уходит на канале 70.', 'Three short beeps become a continuous tone. Only after the full hold is the DSC alert sent on channel 70.', 'Trzy krotkie sygnaly przechodza w ciagly. Dopiero po pelnym przytrzymaniu alert DSC idzie na kanale 70.'),
+      title: tp('15. DISTRESS под крышкой', '15. DISTRESS under the cover', '15. DISTRESS pod osłoną'),
+      instruction: tp('Вернись STBY, открой защитную крышку и удерживай красную DISTRESS 3 секунды.', 'Return to STBY, open the cover, and hold red DISTRESS for three seconds.', 'Wróć do STBY, otwórz osłonę i trzymaj czerwony DISTRESS przez 3 sekundy.'),
+      why: tp('Три коротких сигнала переходят в непрерывный. Только после полного удержания DSC-алерт уходит на канале 70.', 'Three short beeps become a continuous tone. Only after the full hold is the DSC alert sent on channel 70.', 'Trzy krótkie sygnały przechodzą w ciągły. Dopiero po pełnym przytrzymaniu alert DSC idzie na kanale 70.'),
       highlight: (s) => s.screen === 'otherdsc-sent' ? 'soft-0' : 'distress-cover',
       check: (event) => event.type === 'distress-held',
     },
@@ -281,9 +281,9 @@ export default function InteractiveRadioCourse() {
   const onVoiceDone = useCallback((r: VoiceResult | null) => {
     if (!r) return;
     // the whole point of the journal: you see YOUR OWN words, and what was missing
-    pushJournal(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${r.transcript.trim()}"`, 'tx');
+    pushJournal(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${r.transcript.trim()}"`, 'tx');
     for (const c of r.checks.filter((x) => !x.ok)) {
-      pushJournal(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+      pushJournal(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${c.label}`, 'bad');
     }
     pushJournal(`${tp('Оценка передачи', 'Transmission graded', 'Ocena nadania')}: ${r.score}%`, r.score >= 70 ? 'step' : 'ui');
     if (r.score >= 40) {
@@ -430,7 +430,7 @@ export default function InteractiveRadioCourse() {
             {tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania')}
           </h2>
           <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynnosci na radiu. Nastepna lekcja odblokuje sie dopiero po prawidlowym nacisnieciu lub obrocie.')}
+            {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynności na radiu. Następna lekcja odblokuje się dopiero po prawidłowym naciśnięciu lub obrocie.')}
           </p>
         </div>
         <div className="ml-auto">
@@ -464,7 +464,7 @@ export default function InteractiveRadioCourse() {
                 ? { background: '#ffce4d', color: '#3a2a00' }
                 : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
-              🔍 {tp('Разбор', 'Inspect', 'Rozbior')}
+              🔍 {tp('Разбор', 'Inspect', 'Rozbiór')}
             </button>
 
             {/* Sound. Off by default it would be silent - and a silent radio
@@ -479,13 +479,13 @@ export default function InteractiveRadioCourse() {
               className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
-              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
+              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dźwięk')}
             </button>
 
             <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {inspect
-                ? tp('Жми любую кнопку - она объяснит себя. Рация не работает.', 'Press any control - it explains itself. The radio does not react.', 'Nacisnij dowolny element - wyjasni sie sam. Radio nie dziala.')
-                : tp('Не знаешь, что делает кнопка? Включи Разбор.', 'Not sure what a control does? Turn Inspect on.', 'Nie wiesz, co robi przycisk? Wlacz Rozbior.')}
+                ? tp('Жми любую кнопку - она объяснит себя. Рация не работает.', 'Press any control - it explains itself. The radio does not react.', 'Naciśnij dowolny element - wyjaśni się sam. Radio nie działa.')
+                : tp('Не знаешь, что делает кнопка? Включи Разбор.', 'Not sure what a control does? Turn Inspect on.', 'Nie wiesz, co robi przycisk? Włącz Rozbiór.')}
             </span>
           </div>
 
@@ -531,18 +531,18 @@ export default function InteractiveRadioCourse() {
                 className="min-h-[44px] rounded-lg px-3 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
-                📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Slabe wywolanie z daleka')}
+                📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Słabe wywołanie z daleka')}
               </button>
               <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
                 {tp(
                   'Далёкая лодка на 1 Вт. Если SQL выставлен верно - услышишь её сквозь шум. Если задрал SQL ради тишины - не услышишь ничего, и на воде это будет чей-то вызов о помощи.',
                   'A distant boat on 1 W. With the squelch set correctly you hear it through the hiss. Turn the squelch up for silence and you hear nothing at all - and at sea that would be somebody calling for help.',
-                  'Odlegla lodz na 1 W. Przy dobrze ustawionym SQL uslyszysz ja przez szum. Podkrec SQL dla ciszy i nie uslyszysz nic - a na wodzie bylby to czyjs wolanie o pomoc.',
+                  'Odległa łódź na 1 W. Przy dobrze ustawionym SQL usłyszysz ją przez szum. Podkręć SQL dla ciszy i nie usłyszysz nic - a na wodzie byłoby to czyjeś wołanie o pomoc.',
                 )}
               </p>
               {testCallAt !== null && (
                 <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                  {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Sluchaj.')}
+                  {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Słuchaj.')}
                 </p>
               )}
             </div>
@@ -553,7 +553,7 @@ export default function InteractiveRadioCourse() {
               a text-only trainer never touches it. */}
           <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Послушай станцию', 'Listen to a station', 'Posluchaj stacji')}
+              {tp('Послушай станцию', 'Listen to a station', 'Posłuchaj stacji')}
             </div>
             <div className="flex flex-wrap gap-2">
               {LISTEN_LINES.map((l) => (
@@ -574,7 +574,7 @@ export default function InteractiveRadioCourse() {
               {tp(
                 'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Станция рядом - сильная, она пробьёт даже тугой SQL. А вот далёкая лодка на 1 Вт при том же SQL уже не пробьётся: именно в этом и опасность.',
                 'The voice arrives like any other signal: through your squelch and your volume. A station nearby is strong - it breaks even a tight squelch. A distant boat on 1 W, at that same squelch, does not. That is where the danger is.',
-                'Glos przychodzi jak kazdy inny sygnal: przez twoja blokade szumow i twoja glosnosc. Stacja obok jest mocna - przebije nawet ciasny SQL. Odlegla lodz na 1 W przy tym samym SQL juz nie: i wlasnie w tym tkwi niebezpieczenstwo.',
+                'Głos przychodzi jak każdy inny sygnał: przez twoją blokadę szumów i twoją głośność. Stacja obok jest mocna - przebije nawet ciasny SQL. Odległa łódź na 1 W przy tym samym SQL już nie: i właśnie w tym tkwi niebezpieczeństwo.',
               )}
             </p>
           </div>
@@ -589,7 +589,7 @@ export default function InteractiveRadioCourse() {
             </div>
             {journal.length === 0 ? (
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od wlaczenia radia')}
+                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
               </p>
             ) : (
               <ol data-testid="course-journal" className="max-h-56 space-y-1 overflow-y-auto">
@@ -619,7 +619,7 @@ export default function InteractiveRadioCourse() {
               {tp('Урок', 'Lesson', 'Lekcja')} {lessonIndex + 1}/{lessons.length}
             </span>
             <span aria-live="polite" className="text-sm font-semibold" style={{ color: lessonDone ? 'var(--success)' : 'var(--text-muted)' }}>
-              {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na dzialanie')}
+              {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na działanie')}
             </span>
           </div>
           <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{currentLesson.title}</h3>
@@ -636,7 +636,7 @@ export default function InteractiveRadioCourse() {
             <div className="mt-4 space-y-3">
               <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
               <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
-              <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy uzywasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
+              <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy używasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
               <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
             </div>
           )}
@@ -653,7 +653,7 @@ export default function InteractiveRadioCourse() {
                 {tp(
                   'Проверка связи с мариной - самая безопасная первая передача. Наговори её, и марина ответит голосом. Всё, что ты сказал, попадёт в дневник.',
                   'A radio check with the marina is the safest first transmission. Speak it and the marina answers out loud. Everything you said goes into the journal.',
-                  'Sprawdzenie lacznosci z marina to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie glosem. Wszystko, co powiedziales, trafi do dziennika.',
+                  'Sprawdzenie łączności z mariną to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie głosem. Wszystko, co powiedziałeś, trafi do dziennika.',
                 )}
               </p>
               <VoicePtt
@@ -671,7 +671,7 @@ export default function InteractiveRadioCourse() {
 
           {complete ? (
             <div className="mt-5 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
-              {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obslugi ukonczony. Przejdz teraz do scenariuszy egzaminacyjnych.')}
+              {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obsługi ukończony. Przejdź teraz do scenariuszy egzaminacyjnych.')}
             </div>
           ) : (
             <button
@@ -681,7 +681,7 @@ export default function InteractiveRadioCourse() {
               className="mt-5 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
               style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
-              {tp('Следующий урок', 'Next lesson', 'Nastepna lekcja')} {'>'}
+              {tp('Следующий урок', 'Next lesson', 'Następna lekcja')} {'>'}
             </button>
           )}
         </div>

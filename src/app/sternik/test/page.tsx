@@ -127,7 +127,7 @@ function TrainerInner() {
   const startErrors = () => {
     const ids = sternikWeakIds(loadSternikProgress());
     const qs = ids.map((id) => STERNIK_BANK_BY_ID[id]).filter(Boolean);
-    begin(qs, tp('Работа над ошибками', 'Error review', 'Powtorka bledow'));
+    begin(qs, tp('Работа над ошибками', 'Error review', 'Powtórka błędów'));
   };
   // Hard mode: questions flagged 'hard' by the source, plus the learner's own
   // stubborn misses (personal difficulty), deduped.
@@ -226,13 +226,13 @@ function TrainerInner() {
     const correctText = current.options.find((o) => o.ok)?.text ?? '';
     const question =
       explLang === 'pl'
-        ? 'Wyjasnij to pytanie egzaminacyjne po polsku.'
+        ? 'Wyjaśnij to pytanie egzaminacyjne po polsku.'
         : explLang === 'ru'
           ? 'Объясни этот вопрос экзамена по-русски (переведи вопрос и варианты).'
           : tp(
               'Объясни этот вопрос экзамена. Дай ответ и по-польски, и по-русски.',
               'Explain this exam question in both Polish and Russian.',
-              'Wyjasnij to pytanie egzaminacyjne po polsku i po rosyjsku.',
+              'Wyjaśnij to pytanie egzaminacyjne po polsku i po rosyjsku.',
             );
     window.dispatchEvent(
       new CustomEvent('sternik:ask', {
@@ -252,13 +252,13 @@ function TrainerInner() {
     return (
       <main>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          🎯 {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytan')}
+          🎯 {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytań')}
         </h1>
         <p className="mb-6 text-sm" style={{ color: 'var(--text-secondary)' }}>
           {tp(
             'Как при подготовке на автоправа: ответил - сразу видишь, верно или нет, и почему. Ошибки попадают в «повтор», пока не ответишь верно 2 раза подряд.',
             'Driving-school style: answer and instantly see right/wrong and why. Mistakes stay in review until answered correctly twice in a row.',
-            'Jak na prawo jazdy: odpowiadasz i od razu widzisz dobrze/zle + wyjasnienie. Bledy wracaja, az odpowiesz dobrze 2 razy z rzedu.',
+            'Jak na prawo jazdy: odpowiadasz i od razu widzisz dobrze/źle + wyjaśnienie. Błędy wracają, aż odpowiesz dobrze 2 razy z rzędu.',
           )}
         </p>
 
@@ -281,7 +281,7 @@ function TrainerInner() {
               {tp('Умная тренировка', 'Smart session', 'Inteligentny trening')}
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {tp('20 вопросов: ошибки + новые + слабые темы', '20 questions: mistakes + unseen + weak topics', '20 pytan: bledy + nowe + slabe tematy')}
+              {tp('20 вопросов: ошибки + новые + слабые темы', '20 questions: mistakes + unseen + weak topics', '20 pytań: błędy + nowe + słabe tematy')}
             </div>
           </button>
           <button
@@ -295,7 +295,7 @@ function TrainerInner() {
               {tp('Быстрые 20', 'Quick 20', 'Szybkie 20')}
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {tp('Случайные 20 вопросов, ~7 минут', 'Random 20 questions, ~7 min', 'Losowe 20 pytan, ~7 minut')}
+              {tp('Случайные 20 вопросов, ~7 минут', 'Random 20 questions, ~7 min', 'Losowe 20 pytań, ~7 minut')}
             </div>
           </button>
           <button
@@ -306,7 +306,7 @@ function TrainerInner() {
           >
             <div className="text-2xl">📚</div>
             <div className="mt-1 font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Вся база', 'Full bank', 'Cala baza')} ({bank.length})
+              {tp('Вся база', 'Full bank', 'Cała baza')} ({bank.length})
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {tp('Все вопросы вперемешку', 'All questions shuffled', 'Wszystkie pytania wymieszane')}
@@ -321,7 +321,7 @@ function TrainerInner() {
           >
             <div className="text-2xl">🔁</div>
             <div className="mt-1 font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Мои ошибки', 'My mistakes', 'Moje bledy')} ({weakCount})
+              {tp('Мои ошибки', 'My mistakes', 'Moje błędy')} ({weakCount})
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
               {weakCount > 0
@@ -343,13 +343,13 @@ function TrainerInner() {
               {tp('Трудные вопросы', 'Hard questions', 'Trudne pytania')}
             </div>
             <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {tp('Помеченные как сложные + твои упорные ошибки', 'Flagged hard + your stubborn mistakes', 'Oznaczone jako trudne + twoje uporczywe bledy')}
+              {tp('Помеченные как сложные + твои упорные ошибки', 'Flagged hard + your stubborn mistakes', 'Oznaczone jako trudne + twoje uporczywe błędy')}
             </div>
           </div>
         </button>
 
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-          {tp('По категориям', 'By category', 'Wedlug kategorii')}
+          {tp('По категориям', 'By category', 'Według kategorii')}
         </h2>
         <div className="grid gap-2 sm:grid-cols-2">
           {STERNIK_CATEGORIES.map((cat) => {
@@ -415,18 +415,18 @@ function TrainerInner() {
           </div>
           <p className="mt-2 text-sm" style={{ color: 'var(--text-muted)' }}>
             {pct >= 87
-              ? tp('Уровень экзамена! Так держать.', 'Exam level! Keep it up.', 'Poziom egzaminu! Tak trzymac.')
-              : tp('На экзамене нужно 87%. Разбери ошибки ниже и повтори.', 'The exam needs 87%. Review the mistakes below.', 'Na egzaminie trzeba 87%. Przejrzyj bledy ponizej.')}
+              ? tp('Уровень экзамена! Так держать.', 'Exam level! Keep it up.', 'Poziom egzaminu! Tak trzymać.')
+              : tp('На экзамене нужно 87%. Разбери ошибки ниже и повтори.', 'The exam needs 87%. Review the mistakes below.', 'Na egzaminie trzeba 87%. Przejrzyj błędy poniżej.')}
           </p>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             {wrongResults.length > 0 && (
               <button
                 type="button"
-                onClick={() => begin(wrongResults.map((r) => STERNIK_BANK_BY_ID[r.q.id]).filter(Boolean), tp('Повтор ошибок', 'Retry mistakes', 'Powtorka bledow'))}
+                onClick={() => begin(wrongResults.map((r) => STERNIK_BANK_BY_ID[r.q.id]).filter(Boolean), tp('Повтор ошибок', 'Retry mistakes', 'Powtórka błędów'))}
                 className="rounded-xl px-4 py-2 text-sm font-semibold"
                 style={{ background: 'var(--warning)', color: '#221a04' }}
               >
-                🔁 {tp('Повторить ошибки', 'Retry mistakes', 'Powtorz bledy')} ({wrongResults.length})
+                🔁 {tp('Повторить ошибки', 'Retry mistakes', 'Powtórz błędy')} ({wrongResults.length})
               </button>
             )}
             <button
@@ -442,7 +442,7 @@ function TrainerInner() {
               className="rounded-xl px-4 py-2 text-sm font-semibold"
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
             >
-              ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Probny egzamin')}
+              ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
             </Link>
           </div>
         </div>
@@ -454,7 +454,7 @@ function TrainerInner() {
         {catBreakdown.length > 1 && (
           <section className="mb-6">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('По категориям', 'By category', 'Wedlug kategorii')}
+              {tp('По категориям', 'By category', 'Według kategorii')}
             </h2>
             <div className="grid gap-2 sm:grid-cols-2">
               {catBreakdown.map(({ cat, total: t, ok }) => (
@@ -478,7 +478,7 @@ function TrainerInner() {
         {wrongResults.length > 0 && (
           <section>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Разбор ошибок', 'Error review', 'Do powtorki')}
+              {tp('Разбор ошибок', 'Error review', 'Do powtórki')}
             </h2>
             <div className="space-y-3">
               {wrongResults.map((r, i) => (
@@ -491,7 +491,7 @@ function TrainerInner() {
                     {r.q.q}
                   </div>
                   <div className="mt-1 text-sm" style={{ color: 'var(--danger)' }}>
-                    ✗ {tp('Твой ответ', 'Your answer', 'Twoja odpowiedz')}: {r.q.options[r.pickedIndex].text}
+                    ✗ {tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: {r.q.options[r.pickedIndex].text}
                   </div>
                   <div className="text-sm" style={{ color: 'var(--success)' }}>
                     ✓ {r.q.options.find((o) => o.ok)?.text}
@@ -525,7 +525,7 @@ function TrainerInner() {
           className="flex min-h-[44px] items-center pr-2"
           style={{ color: 'var(--text-muted)' }}
         >
-          ← {tp('Выйти', 'Exit', 'Wyjdz')}
+          ← {tp('Выйти', 'Exit', 'Wyjdź')}
         </button>
         <div className="flex items-center gap-3" style={{ color: 'var(--text-secondary)' }}>
           <span>
@@ -625,7 +625,7 @@ function TrainerInner() {
             <div className="font-semibold" style={{ color: current.options[picked!].ok ? 'var(--success)' : 'var(--danger)' }}>
               {current.options[picked!].ok
                 ? `✓ ${tp('Верно!', 'Correct!', 'Dobrze!')}`
-                : `✗ ${tp('Неверно.', 'Wrong.', 'Zle.')} ${tp('Правильно', 'Correct', 'Poprawna')}: ${current.options.find((o) => o.ok)?.text}`}
+                : `✗ ${tp('Неверно.', 'Wrong.', 'Źle.')} ${tp('Правильно', 'Correct', 'Poprawna')}: ${current.options.find((o) => o.ok)?.text}`}
             </div>
             <Explanation whyPl={current.whyPl} whyRu={current.whyRu} />
             <div className="mt-3 flex flex-wrap gap-2">
@@ -668,7 +668,7 @@ function TrainerInner() {
               className="flex min-h-[40px] items-center rounded-lg px-3 text-sm"
               style={{ color: 'var(--accent-cyan)', background: 'var(--hover-bg)', border: '1px solid var(--border-subtle)' }}
             >
-              🎓 {tp('Перевести / объяснить (AI)', 'Translate / explain (AI)', 'Przetlumacz / wyjasnij (AI)')}
+              🎓 {tp('Перевести / объяснить (AI)', 'Translate / explain (AI)', 'Przetłumacz / wyjaśnij (AI)')}
             </button>
           </div>
         )}
@@ -703,7 +703,7 @@ function TrainerInner() {
               className="mt-4 w-full rounded-xl px-4 py-2 font-semibold"
               style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
-              ▶ {tp('Продолжить', 'Resume', 'Wznow')}
+              ▶ {tp('Продолжить', 'Resume', 'Wznów')}
             </button>
           </div>
         </div>

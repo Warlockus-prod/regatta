@@ -213,11 +213,16 @@ describe('the data itself', () => {
     }
   });
 
-  it('carries no em-dash or en-dash, and no Polish diacritics in the PL text', () => {
+  it('carries no em-dash or en-dash, and writes the PL text with full diacritics', () => {
+    // AGENTS.md rule 2 (2026-09-27): Polish is written with diacritics. These
+    // stripped forms are never valid Polish words, so any of them means a
+    // string slipped back to the old ASCII-only spelling. Grading is not
+    // affected: normalize() folds diacritics on both sides.
+    const STRIPPED = /(?<!\p{L})(sie|moze|ktory|ktora|ktore|byc|nalezy|mozna|predkosc|lodz|jesli|wiecej|takze|rowniez|miedzy|swiatlo|swiatla)(?!\p{L})/iu;
     for (const p of ORAL_PROMPTS) {
       const pl = `${p.questionPl} ${p.modelPl} ${p.whyPl} ${p.must.map((m) => m.label).join(' ')}`;
       expect(pl).not.toMatch(/[\u2013\u2014]/);
-      expect(pl).not.toMatch(/[ąężłóćńśźĄĘŻŁÓĆŃŚŹ]/);
+      expect(pl).not.toMatch(STRIPPED);
     }
   });
 

@@ -30,12 +30,12 @@ const REACTIONS: { match: (ids: Set<string>, distress: boolean) => boolean; r: R
   {
     // nothing usable came through
     match: (ids) => ids.has('__unreadable__'),
-    r: { station: RESCUE, say: 'STATION CALLING, YOU ARE UNREADABLE. SAY AGAIN, OVER.', why: ['nieczytelne - stacja prosi o powtorzenie', 'неразборчиво, станция просит повторить'] },
+    r: { station: RESCUE, say: 'STATION CALLING, YOU ARE UNREADABLE. SAY AGAIN, OVER.', why: ['nieczytelne - stacja prosi o powtórzenie', 'неразборчиво, станция просит повторить'] },
   },
   {
     // the distress signal itself was missing/wrong in a distress call
     match: (ids, distress) => distress && (ids.has('mayday') || ids.has('mayday3') || ids.has('panpan') || ids.has('panpan3') || ids.has('securite') || ids.has('securite3')),
-    r: { station: RESCUE, say: 'STATION IN DISTRESS, SAY AGAIN YOUR DISTRESS SIGNAL, OVER.', why: ['brak/niepelny sygnal alarmowy', 'нет или неполный сигнал бедствия'] },
+    r: { station: RESCUE, say: 'STATION IN DISTRESS, SAY AGAIN YOUR DISTRESS SIGNAL, OVER.', why: ['brak/niepełny sygnał alarmowy', 'нет или неполный сигнал бедствия'] },
   },
   {
     match: (ids) => ids.has('position'),
@@ -43,30 +43,30 @@ const REACTIONS: { match: (ids: Set<string>, distress: boolean) => boolean; r: R
   },
   {
     match: (ids) => ids.has('pob') || ids.has('persons'),
-    r: { station: RESCUE, say: 'HOW MANY PERSONS ON BOARD, OVER.', why: ['brak liczby osob na pokladzie', 'нет числа людей на борту'] },
+    r: { station: RESCUE, say: 'HOW MANY PERSONS ON BOARD, OVER.', why: ['brak liczby osób na pokładzie', 'нет числа людей на борту'] },
   },
   {
     match: (ids) => ids.has('nature'),
-    r: { station: RESCUE, say: 'SAY AGAIN THE NATURE OF YOUR DISTRESS, OVER.', why: ['brak rodzaju niebezpieczenstwa', 'нет характера бедствия'] },
+    r: { station: RESCUE, say: 'SAY AGAIN THE NATURE OF YOUR DISTRESS, OVER.', why: ['brak rodzaju niebezpieczeństwa', 'нет характера бедствия'] },
   },
   {
     match: (ids) => ids.has('assistance') || ids.has('request'),
-    r: { station: RESCUE, say: 'SAY AGAIN WHAT ASSISTANCE YOU REQUIRE, OVER.', why: ['brak prosby o pomoc', 'нет запроса помощи'] },
+    r: { station: RESCUE, say: 'SAY AGAIN WHAT ASSISTANCE YOU REQUIRE, OVER.', why: ['brak prośby o pomoc', 'нет запроса помощи'] },
   },
   {
     match: (ids) => ids.has('identity') || ids.has('callsign') || ids.has('thisIs') || ids.has('mmsi'),
-    r: { station: RESCUE, say: 'STATION CALLING, SAY AGAIN YOUR NAME AND CALL SIGN, OVER.', why: ['brak nazwy/znaku wywolawczego', 'нет названия или позывного'] },
+    r: { station: RESCUE, say: 'STATION CALLING, SAY AGAIN YOUR NAME AND CALL SIGN, OVER.', why: ['brak nazwy/znaku wywoławczego', 'нет названия или позывного'] },
   },
   {
     match: (ids) => ids.has('over') || ids.has('out'),
-    r: { station: RESCUE, say: 'SAY AGAIN AND FINISH WITH OVER.', why: ['brak zwrotu koncowego OVER/OUT', 'нет завершающего OVER/OUT'] },
+    r: { station: RESCUE, say: 'SAY AGAIN AND FINISH WITH OVER.', why: ['brak zwrotu końcowego OVER/OUT', 'нет завершающего OVER/OUT'] },
   },
 ];
 
 const FALLBACK: Reaction = {
   station: RESCUE,
   say: 'SAY AGAIN, OVER.',
-  why: ['przekaz niepelny - stacja prosi o powtorzenie', 'передача неполная, станция просит повторить'],
+  why: ['przekaz niepełny - stacja prosi o powtórzenie', 'передача неполная, станция просит повторить'],
 };
 
 /** Every spoken line in the bank, for pre-generation. */

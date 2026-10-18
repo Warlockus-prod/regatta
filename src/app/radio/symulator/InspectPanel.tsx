@@ -44,7 +44,7 @@ export function InspectPanel({
             ru={showRu ? item.whyRu : null}
           />
           <Block
-            label={tp('Когда', 'When you use it', 'Kiedy uzywasz')}
+            label={tp('Когда', 'When you use it', 'Kiedy używasz')}
             pl={showPl ? item.whenPl : null}
             ru={showRu ? item.whenRu : null}
           />
@@ -54,7 +54,7 @@ export function InspectPanel({
           {tp(
             'Ткни в любую часть рации: экран, номер канала, любую клавишу, крутилку, 16/C, DISTRESS, PTT, микрофон. Каждая объяснит, что это, зачем и когда используется.',
             'Tap any part of the radio: the screen, the channel number, any key, the knob, 16/C, DISTRESS, PTT, the mic. Each one explains what it is, why it exists and when you use it.',
-            'Dotknij dowolnej czesci radia: ekranu, numeru kanalu, dowolnego klawisza, pokretla, 16/C, DISTRESS, PTT, mikrofonu. Kazda wyjasni, co to jest, po co i kiedy sie tego uzywa.',
+            'Dotknij dowolnej części radia: ekranu, numeru kanału, dowolnego klawisza, pokrętła, 16/C, DISTRESS, PTT, mikrofonu. Każda wyjaśni, co to jest, po co i kiedy się tego używa.',
           )}
         </p>
       )}
