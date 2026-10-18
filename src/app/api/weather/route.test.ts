@@ -26,14 +26,8 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('@/lib/rate-limit', () => ({
-  rateLimit: mocks.rateLimit,
-  // mirrors the real helper: limiter key = last X-Forwarded-For hop
-  clientIpKey: (req: Request) => {
-    const xff = req.headers.get('x-forwarded-for');
-    if (!xff) return 'ip:unknown';
-    const parts = xff.split(',').map((s) => s.trim()).filter(Boolean);
-    return parts.length > 0 ? parts[parts.length - 1] : 'ip:unknown';
-  },
+  rateLimitClient: mocks.rateLimit,
+  clientKeys: (_req: Request, sid?: string) => ({ user: sid ? 'sid:' + sid : 'ip:x', ip: 'ip:x' }),
 }));
 
 vi.mock('@/lib/weather', () => ({

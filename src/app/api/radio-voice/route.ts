@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { POSITION_POOL, VESSEL_POOL } from '@/app/radio/symulator/radioModel';
 import { VOICE_KINDS, gradeVoiceTransmission, type VoiceKind } from './voiceGrading';
 
@@ -35,9 +35,9 @@ export async function POST(req: Request) {
 
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
+  const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  const daily = checkUserDailyBudget(sid ?? ip);
+  const daily = checkUserDailyBudget(client);
   if (!daily.ok) {
     return NextResponse.json(
       { error: `Dzienny limit ${USER_DAILY_AI_LIMIT} zapytan AI wyczerpany.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
@@ -45,9 +45,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const rlKey = 'radio-voice:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
-    key: rlKey,
+    key: 'radio-voice',
+    client,
     perKeyLimit: VOICE_LIMIT,
     perKeyWindowMs: VOICE_WINDOW_MS,
     globalKey: 'radio-voice',

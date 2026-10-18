@@ -54,7 +54,7 @@ function missionReasonText(
 }
 
 export default function MultiplayerClient() {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
   const [phase, setPhase] = useState<Phase>('menu');
   const [error, setError] = useState<string | null>(null);
@@ -150,6 +150,7 @@ export default function MultiplayerClient() {
           : msg.code === "room-not-found" ? tp("Комната закрыта или код неверен", "Room closed or code incorrect", "Pokój zamknięty lub błędny kod", { es: "Sala cerrada o código incorrecto", fr: "Salon fermé ou code incorrect", de: "Raum geschlossen oder falscher Code", it: "Stanza chiusa o codice errato" })
           : msg.code === "race-in-progress" ? tp("Гонка уже началась", "The race has already started", "Wyścig już się rozpoczął", { es: "La regata ya ha empezado", fr: "La course a déjà commencé", de: "Das Rennen läuft bereits", it: "La regata è già iniziata" })
           : msg.code === "room-full" ? tp("Комната заполнена", "The room is full", "Pokój jest pełny", { es: "La sala está llena", fr: "Le salon est plein", de: "Der Raum ist voll", it: "La stanza è piena" })
+          : msg.code === "server-full" || msg.code === "too-many-rooms" ? tl({ ru: "Сейчас нельзя создать комнату, попробуй чуть позже", en: "Can't create a room right now, try again a bit later", pl: "Nie można teraz utworzyć pokoju, spróbuj za chwilę", es: "Ahora no se puede crear una sala, inténtalo un poco más tarde", fr: "Impossible de créer un salon pour l'instant, réessaie un peu plus tard", de: "Gerade kann kein Raum erstellt werden, versuch es gleich noch einmal", it: "Al momento non si può creare una stanza, riprova tra poco" })
           : msg.message);
         if (msg.code === "room-not-found" || msg.code === "race-in-progress" || msg.code === "room-full") {
           setReconnecting(false);
@@ -161,7 +162,7 @@ export default function MultiplayerClient() {
         setPhase((p) => p === 'menu' ? 'error' : p);
         break;
     }
-  }, [tp]);
+  }, [tp, tl]);
 
   const ensureClient = useCallback(async (): Promise<MPClient> => {
     if (clientRef.current?.isOpen) return clientRef.current;

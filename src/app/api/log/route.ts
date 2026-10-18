@@ -104,11 +104,11 @@ export async function POST(req: Request) {
     //   3. cf-connecting-ip (Cloudflare)
     //
     // Discard 127.0.0.1 / private-range values so we don't pollute the DB
-    // when the proxy chain is mis-set. Current production has nginx stream
-    // SNI routing that loses the client IP - until that's fixed (or
-    // Cloudflare is added in front), all values land NULL here. fast-geoip
-    // then no-ops gracefully and the /stats Countries panel renders the
-    // friendly EmptyHint.
+    // when the proxy chain is mis-set. Production restores the client IP:
+    // the nginx stream SNI router sends PROXY protocol to the :8443 vhost,
+    // which trusts it only from loopback (verified 2026-10-18, see
+    // src/lib/rate-limit.ts). The first hop read here is the client's claim,
+    // fine for geo; limiters use the last hop via clientIpKey().
     const isUseful = (ip: string | null | undefined) =>
       !!ip
       && ip !== 'unknown'

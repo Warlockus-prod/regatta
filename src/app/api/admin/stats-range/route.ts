@@ -1,13 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getMetricsRange } from '@/lib/db';
 import { logError } from '@/lib/log';
+import { requireAdmin } from '@/lib/admin-auth';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 /**
  * Range-aware stats endpoint. Protected by proxy.ts Basic Auth because
- * it sits under /api/admin/*.
+ * it sits under /api/admin/*, and again by requireAdmin() in the handler.
  *
  * Query params:
  *   from - ISO-8601 timestamp (e.g. 2026-04-20T00:00:00Z), defaults to
@@ -19,6 +20,9 @@ export const dynamic = 'force-dynamic';
  * Client auto-refreshes this every 15s when "live" toggle is on.
  */
 export async function GET(req: Request) {
+  const denied = requireAdmin(req);
+  if (denied) return denied;
+
   try {
     const url = new URL(req.url);
     const now = Date.now();
