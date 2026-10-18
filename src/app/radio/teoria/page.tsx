@@ -126,7 +126,7 @@ function CourseNav({
 }) {
   const { explLang } = useSternikPrefs();
   return (
-    <nav aria-label={explLang === "ru" ? "Главы курса" : "Rozdzialy kursu"}>
+    <nav aria-label={explLang === "ru" ? "Главы курса" : "Rozdziały kursu"}>
       <ol className="space-y-1">
         {THEORY_CHAPTERS.map((chapter) => {
           const active = chapter.id === activeId;
@@ -196,8 +196,8 @@ function Checklist({
         {positive ? "✓ " : "✕ "}
         <Text
           value={positive
-            ? { pl: "Tak rob", ru: "Так можно и нужно" }
-            : { pl: "Tego nie rob", ru: "Так делать нельзя" }}
+            ? { pl: "Tak rób", ru: "Так можно и нужно" }
+            : { pl: "Tego nie rób", ru: "Так делать нельзя" }}
         />
       </div>
       <ul className="space-y-3">
@@ -217,7 +217,7 @@ function SourceList({ sourceIds }: { sourceIds: string[] }) {
   return (
     <details className="group rounded-xl border px-4 py-3" style={{ borderColor: "var(--border-subtle)", background: "var(--bg-secondary)" }}>
       <summary className="flex min-h-[44px] cursor-pointer items-center text-sm font-semibold" style={{ color: "var(--text-secondary)" }}>
-        <Text value={{ pl: `Zrodla tej lekcji (${sources.length})`, ru: `Источники урока (${sources.length})` }} />
+        <Text value={{ pl: `Źródła tej lekcji (${sources.length})`, ru: `Источники урока (${sources.length})` }} />
       </summary>
       <ul className="mt-3 space-y-2">
         {sources.map((source) => (
@@ -237,7 +237,7 @@ function MobileTheoryFlow({ chapter }: { chapter: TheoryChapter }) {
   return (
     <ol
       className="space-y-0 md:hidden"
-      aria-label={explLang === "ru" ? "Краткая схема главы" : "Skrocony schemat rozdzialu"}
+      aria-label={explLang === "ru" ? "Краткая схема главы" : "Skrócony schemat rozdziału"}
     >
       {chapter.steps.slice(0, 4).map((step, index) => (
         <li key={step.pl} className="relative flex gap-3 pb-5 last:pb-0">
@@ -307,7 +307,7 @@ export default function RadioTheoryCourse() {
         <div className="grid gap-6 p-5 sm:p-7 lg:grid-cols-[1fr_280px]">
           <div>
             <div className="mb-3 text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent-cyan)" }}>
-              {tp("Полный теоретический курс SRC", "Complete SRC theory course", "Pelny kurs teorii SRC")}
+              {tp("Полный теоретический курс SRC", "Complete SRC theory course", "Pełny kurs teorii SRC")}
             </div>
             <h1 className="max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
               {tp(
@@ -320,12 +320,12 @@ export default function RadioTheoryCourse() {
               {tp(
                 "Не список фактов, а цельная модель: почему VHF работает именно так, как выбрать приоритет, что реально передаёт DSC, зачем нужна каждая строка MAYDAY и как польский экзамен связан с практикой в море.",
                 "A coherent model rather than a fact list: why VHF works this way, how to choose priority, what DSC actually sends, why every MAYDAY line exists, and how the Polish exam connects to real operations.",
-                "Nie lista faktow, lecz spojny model: dlaczego VHF dziala w ten sposob, jak wybrac priorytet, co naprawde wysyla DSC, po co jest kazda linia MAYDAY i jak egzamin laczy sie z praktyka.",
+                "Nie lista faktów, lecz spójny model: dlaczego VHF działa w ten sposób, jak wybrać priorytet, co naprawdę wysyła DSC, po co jest każda linia MAYDAY i jak egzamin łączy się z praktyką.",
               )}
             </p>
             <div className="mt-5 flex flex-wrap gap-2 text-xs" style={{ color: "var(--text-muted)" }}>
-              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{THEORY_CHAPTERS.length} {tp("глав", "chapters", "rozdzialow")}</span>
-              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{THEORY_CHAPTERS.length} {tp("схем", "diagrams", "schematow")}</span>
+              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{THEORY_CHAPTERS.length} {tp("глав", "chapters", "rozdziałów")}</span>
+              <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{THEORY_CHAPTERS.length} {tp("схем", "diagrams", "schematów")}</span>
               <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>{TOTAL_THEORY_MINUTES} min</span>
               <span className="rounded-full px-3 py-1.5" style={{ background: "var(--bg-secondary)" }}>324 {tp("вопроса UKE", "UKE questions", "pytania UKE")}</span>
             </div>
@@ -333,7 +333,7 @@ export default function RadioTheoryCourse() {
           <Surface tone="cyan" className="self-start p-5">
             <div className="flex items-end justify-between">
               <span className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
-                {tp("Прогресс курса", "Course progress", "Postep kursu")}
+                {tp("Прогресс курса", "Course progress", "Postęp kursu")}
               </span>
               <span className="text-2xl font-bold" style={{ color: "var(--accent-cyan)" }}>{progress}%</span>
             </div>
@@ -341,7 +341,7 @@ export default function RadioTheoryCourse() {
               <div className="h-full rounded-full transition-[width]" style={{ width: `${progress}%`, background: "var(--accent-cyan)" }} />
             </div>
             <div className="mt-2 text-xs" style={{ color: "var(--text-muted)" }}>
-              {completed.size}/{THEORY_CHAPTERS.length} {tp("завершено", "complete", "ukonczono")}
+              {completed.size}/{THEORY_CHAPTERS.length} {tp("завершено", "complete", "ukończono")}
             </div>
             <button
               type="button"
@@ -361,7 +361,7 @@ export default function RadioTheoryCourse() {
         <div className="inline-flex rounded-xl border p-1" role="group" aria-label={tp("Режим курса", "Course mode", "Tryb kursu")} style={{ borderColor: "var(--border-subtle)", background: "var(--bg-card)" }}>
           {([
             { id: "learn" as const, label: tp("Учить по порядку", "Learn in order", "Nauka po kolei") },
-            { id: "exam" as const, label: tp("Повторить к экзамену", "Exam review", "Powtorka do egzaminu") },
+            { id: "exam" as const, label: tp("Повторить к экзамену", "Exam review", "Powtórka do egzaminu") },
           ]).map((item) => (
             <button
               key={item.id}
@@ -378,7 +378,7 @@ export default function RadioTheoryCourse() {
           ))}
         </div>
         <Link href="/radio/sciaga" className="ml-auto flex min-h-[44px] items-center rounded-xl border px-4 text-sm font-semibold" style={{ color: "var(--text-secondary)", borderColor: "var(--border-subtle)", background: "var(--bg-card)" }}>
-          {tp("Открыть шпаргалку", "Open cheat sheet", "Otworz sciage")}
+          {tp("Открыть шпаргалку", "Open cheat sheet", "Otwórz ściągę")}
         </Link>
       </div>
 
@@ -389,7 +389,7 @@ export default function RadioTheoryCourse() {
 
         <div className="lg:hidden">
           <label htmlFor="theory-chapter" className="mb-2 block text-xs font-semibold" style={{ color: "var(--text-muted)" }}>
-            {tp("Глава курса", "Course chapter", "Rozdzial kursu")}
+            {tp("Глава курса", "Course chapter", "Rozdział kursu")}
           </label>
           <select
             id="theory-chapter"
@@ -411,12 +411,12 @@ export default function RadioTheoryCourse() {
             <div className="border-b p-5 sm:p-7" style={{ borderColor: "var(--border-subtle)" }}>
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: "rgba(0,212,255,0.1)", color: "var(--accent-cyan)" }}>
-                  {tp("Глава", "Chapter", "Rozdzial")} {chapter.number}/{THEORY_CHAPTERS.length}
+                  {tp("Глава", "Chapter", "Rozdział")} {chapter.number}/{THEORY_CHAPTERS.length}
                 </span>
                 <span className="text-xs" style={{ color: "var(--text-muted)" }}>{chapter.minutes} min</span>
                 {completed.has(chapter.id) && (
                   <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: "rgba(68,255,136,0.1)", color: "var(--success)" }}>
-                    ✓ {tp("Пройдено", "Complete", "Ukonczono")}
+                    ✓ {tp("Пройдено", "Complete", "Ukończono")}
                   </span>
                 )}
               </div>
@@ -432,11 +432,11 @@ export default function RadioTheoryCourse() {
                   <Text value={chapter.exam} as="p" className="text-sm leading-relaxed" />
                 </Surface>
                 <div>
-                  <SectionTitle icon="🧠" pl="Pojecia, ktore trzeba rozroznic" ru="Понятия, которые нужно различать" />
+                  <SectionTitle icon="🧠" pl="Pojęcia, które trzeba rozróżnić" ru="Понятия, которые нужно различать" />
                   <ConceptGrid chapter={chapter} />
                 </div>
                 <Surface className="p-5">
-                  <SectionTitle icon="✅" pl="Powiazane obszary banku UKE" ru="Связанные темы базы UKE" />
+                  <SectionTitle icon="✅" pl="Powiązane obszary banku UKE" ru="Связанные темы базы UKE" />
                   <div className="flex flex-wrap gap-2">
                     {chapter.questionTopics.map((topic) => (
                       <span key={topic.pl} className="rounded-full border px-3 py-1.5 text-xs" style={{ color: "var(--text-secondary)", borderColor: "var(--border-subtle)" }}>
@@ -445,7 +445,7 @@ export default function RadioTheoryCourse() {
                     ))}
                   </div>
                   <Link href={`/radio/test?chapter=${chapter.id}`} className="mt-4 inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-bold" style={{ background: "var(--accent-cyan)", color: "var(--accent-ink, #04222e)" }}>
-                    {tp("Перейти к вопросам UKE", "Open UKE questions", "Przejdz do pytan UKE")}
+                    {tp("Перейти к вопросам UKE", "Open UKE questions", "Przejdź do pytań UKE")}
                   </Link>
                 </Surface>
                 <SourceList sourceIds={chapter.sourceIds} />
@@ -453,12 +453,12 @@ export default function RadioTheoryCourse() {
             ) : (
               <div className="space-y-7 p-5 sm:p-7">
                 <Surface tone="amber" className="p-5">
-                  <SectionTitle icon="⛵" pl="Sytuacja z zycia" ru="Ситуация из жизни" />
+                  <SectionTitle icon="⛵" pl="Sytuacja z życia" ru="Ситуация из жизни" />
                   <Text value={chapter.situation} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 
                 <div>
-                  <SectionTitle icon="🗺️" pl="Schemat: zobacz zaleznosc" ru="Схема: увидь связь" />
+                  <SectionTitle icon="🗺️" pl="Schemat: zobacz zależność" ru="Схема: увидь связь" />
                   <div className="md:hidden">
                     <MobileTheoryFlow chapter={chapter} />
                   </div>
@@ -468,7 +468,7 @@ export default function RadioTheoryCourse() {
                 </div>
 
                 <Surface tone="cyan" className="p-5">
-                  <SectionTitle icon="💡" pl="Dlaczego to dziala wlasnie tak" ru="Почему это работает именно так" />
+                  <SectionTitle icon="💡" pl="Dlaczego to działa właśnie tak" ru="Почему это работает именно так" />
                   <Text value={chapter.why} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 
@@ -506,7 +506,7 @@ export default function RadioTheoryCourse() {
                 </div>
 
                 <Surface className="p-5">
-                  <SectionTitle icon="🌍" pl="Europa i swiat" ru="Европа и мир" />
+                  <SectionTitle icon="🌍" pl="Europa i świat" ru="Европа и мир" />
                   <Text value={chapter.world} as="p" className="text-sm leading-relaxed" />
                 </Surface>
 

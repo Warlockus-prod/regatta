@@ -103,7 +103,7 @@ interface Props {
   nextTxSec: number;
   /** Training course spotlight target, matched against data-testid. */
   highlightControl?: string;
-  /** Inspect ("Rozbior") mode: taps explain a part instead of operating it. */
+  /** Inspect ("Rozbiór") mode: taps explain a part instead of operating it. */
   inspect?: boolean;
   /** Called with the `data-ik` key of the tapped part while inspecting. */
   onInspect?: (key: string) => void;
@@ -985,7 +985,7 @@ export default function RadioFront({
       {/* Lifted from #6b7686 (~3.9:1) to the caption's own #9aa5b4 (~6.9:1). This
           sub-line is the ONLY place the press-vs-hold power gesture is documented. */}
       <span className="text-[#9aa5b4]">
-        {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krotko = VOL/SQL')}
+        {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krótko = VOL/SQL')}
         {' · '}
         {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
       </span>
@@ -1083,7 +1083,7 @@ export default function RadioFront({
       }}
     >
       <span style={{ position: 'absolute', left: realistic ? 7 : 12, top: '50%', transform: 'translateY(-50%)', fontSize: realistic ? 12 : 16 }}>⬒</span>
-      {realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otworz oslone')}`}
+      {realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otwórz osłonę')}`}
     </button>
   ) : (
     <div style={{ borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}>
@@ -1121,7 +1121,7 @@ export default function RadioFront({
         // it looking like the same small text link (44px floor, not a visual bar).
         style={{ minHeight: 44, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
       >
-        {tp('закрыть крышку', 'close the cover', 'zamknij oslone')}
+        {tp('закрыть крышку', 'close the cover', 'zamknij osłonę')}
       </button>
     </div>
   );
@@ -1170,7 +1170,7 @@ export default function RadioFront({
           transition: 'background .1s',
         }}
       >
-        PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mowisz')}
+        PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}
       </button>
       <div style={{ flex: '0 0 96px' }}>
         <div style={{ height: 8, background: '#12151b', borderRadius: 4, overflow: 'hidden', border: '1px solid #0a0c10' }}>

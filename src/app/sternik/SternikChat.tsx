@@ -126,7 +126,7 @@ export default function SternikChat() {
         if (!res.ok || (data.error && !data.reply)) {
           setError(
             data.error ||
-              tp('Сервис недоступен, попробуй позже', 'Service unavailable, try later', 'Usluga niedostepna, sprobuj pozniej'),
+              tp('Сервис недоступен, попробуй позже', 'Service unavailable, try later', 'Usługa niedostępna, spróbuj później'),
           );
         } else {
           const withReply: Msg[] = [...next, { role: 'assistant', content: String(data.reply || '') }];
@@ -136,8 +136,8 @@ export default function SternikChat() {
       } catch (e) {
         setError(
           e instanceof Error && e.name === 'AbortError'
-            ? tp('Ответ занял слишком долго. Попробуй ещё раз.', 'The reply took too long. Try again.', 'Odpowiedz trwala za dlugo. Sprobuj jeszcze raz.')
-            : tp('Ошибка сети. Попробуй ещё раз.', 'Network error. Try again.', 'Blad sieci. Sprobuj jeszcze raz.'),
+            ? tp('Ответ занял слишком долго. Попробуй ещё раз.', 'The reply took too long. Try again.', 'Odpowiedź trwała za długo. Spróbuj jeszcze raz.')
+            : tp('Ошибка сети. Попробуй ещё раз.', 'Network error. Try again.', 'Błąd sieci. Spróbuj jeszcze raz.'),
         );
       } finally {
         clearTimeout(timer);
@@ -164,11 +164,11 @@ export default function SternikChat() {
 
   const quick: { label: string; q: string }[] = [
     {
-      label: tp('С чего начать?', 'Where to start?', 'Od czego zaczac?'),
+      label: tp('С чего начать?', 'Where to start?', 'Od czego zacząć?'),
       q: tp(
         'Я готовлюсь к экзамену sternik motorowodny. С чего начать и что учить в первую очередь?',
         'I am preparing for the sternik motorowodny exam. Where should I start?',
-        'Przygotowuje sie do egzaminu na sternika motorowodnego. Od czego zaczac nauke?',
+        'Przygotowuję się do egzaminu na sternika motorowodnego. Od czego zacząć naukę?',
       ),
     },
     {
@@ -176,7 +176,7 @@ export default function SternikChat() {
       q: tp(
         'Объясни кардинальные знаки и мнемонику с часами (E=3, S=6, W=9, N=непрерывно)',
         'Explain cardinal marks and the clock mnemonic',
-        'Wyjasnij znaki kardynalne i mnemotechnike zegarowa',
+        'Wyjaśnij znaki kardynalne i mnemotechnikę zegarową',
       ),
     },
     {
@@ -184,7 +184,7 @@ export default function SternikChat() {
       q: tp(
         'Объясни коротко prawo drogi: кто кому уступает на воде?',
         'Explain briefly who gives way on the water',
-        'Wyjasnij krotko prawo drogi: kto komu ustepuje?',
+        'Wyjaśnij krótko prawo drogi: kto komu ustępuje?',
       ),
     },
   ];
@@ -262,7 +262,7 @@ export default function SternikChat() {
                 {tp(
                   'Привет! Я помогу подготовиться к экзамену: объясню правило, переведу вопрос, подскажу мнемонику. Спрашивай по-русски или po polsku.',
                   'Hi! I help you prepare: I explain rules, translate questions, share mnemonics.',
-                  'Czesc! Pomoge w przygotowaniu: wyjasnie przepis, przetlumacze pytanie, podpowiem mnemotechnike.',
+                  'Część! Pomogę w przygotowaniu: wyjaśnię przepis, przetłumaczę pytanie, podpowiem mnemotechnikę.',
                 )}
               </div>
             )}
@@ -341,7 +341,7 @@ export default function SternikChat() {
               className="rounded-xl px-4 py-2 text-sm font-semibold transition disabled:opacity-40"
               style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
-              {tp('Отпр.', 'Send', 'Wyslij')}
+              {tp('Отпр.', 'Send', 'Wyślij')}
             </button>
           </form>
         </div>

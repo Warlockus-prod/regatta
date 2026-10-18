@@ -119,7 +119,7 @@ export default function SternikExamPage() {
     if (phase !== 'exam') return;
     if (secondsLeft <= 5 * 60 && secondsLeft > 0 && !lowTimeAnnouncedRef.current) {
       lowTimeAnnouncedRef.current = true;
-      setLowTimeAnnounce(tp('5 минут до конца', '5 minutes left', '5 minut do konca'));
+      setLowTimeAnnounce(tp('5 минут до конца', '5 minutes left', '5 minut do końca'));
     }
   }, [secondsLeft, phase, tp]);
 
@@ -172,13 +172,13 @@ export default function SternikExamPage() {
     return (
       <main>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Probny egzamin')}
+          ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
         </h1>
         <p className="mb-5 max-w-2xl text-sm" style={{ color: 'var(--text-secondary)' }}>
           {tp(
             `${STERNIK_EXAM.questions} случайных вопросов формата экзамена (3 варианта A/B/C), ${STERNIK_EXAM.minutes} минут, порог ${STERNIK_EXAM.passCorrect}. Без мгновенной проверки - результат и разбор в конце, как на настоящем экзамене. Можно ставить флажки и возвращаться к вопросам. Пауза останавливает таймер (на реальном экзамене её нет).`,
             `${STERNIK_EXAM.questions} random exam-format questions (3 options A/B/C), ${STERNIK_EXAM.minutes} minutes, pass mark ${STERNIK_EXAM.passCorrect}. No instant feedback - score and review at the end, like the real exam. Flag questions and come back. Pause stops the clock (the real exam has none).`,
-            `${STERNIK_EXAM.questions} losowych pytan w formacie egzaminu (3 warianty A/B/C), ${STERNIK_EXAM.minutes} minut, prog ${STERNIK_EXAM.passCorrect}. Bez natychmiastowej odpowiedzi - wynik i powtorka na koncu. Mozna flagowac pytania i wracac.`,
+            `${STERNIK_EXAM.questions} losowych pytań w formacie egzaminu (3 warianty A/B/C), ${STERNIK_EXAM.minutes} minut, próg ${STERNIK_EXAM.passCorrect}. Bez natychmiastowej odpowiedzi - wynik i powtórka na końcu. Można flagować pytania i wracać.`,
           )}
         </p>
         <div className="mb-5">
@@ -187,7 +187,7 @@ export default function SternikExamPage() {
             {tp(
               `Экзамен берёт ${STERNIK_EXAM.questions} случайных 3-вариантных вопросов из выбранной базы (числа выше - сколько таких доступно). Материалы - оригинальные из конспекта; Интернет - из открытых источников; Общая - всё вместе.`,
               `The exam draws ${STERNIK_EXAM.questions} random 3-option questions from the chosen base (the numbers above are how many are available). Materials - from the konspekt; Internet - open sources; All - everything.`,
-              `Egzamin bierze ${STERNIK_EXAM.questions} losowych pytan 3-wariantowych z wybranej bazy (liczby wyzej - ile jest dostepnych). Materialy - z konspektu; Internet - ze zrodel otwartych; Wszystkie - razem.`,
+              `Egzamin bierze ${STERNIK_EXAM.questions} losowych pytań 3-wariantowych z wybranej bazy (liczby wyżej - ile jest dostępnych). Materiały - z konspektu; Internet - ze źródeł otwartych; Wszystkie - razem.`,
             )}
           </p>
         </div>
@@ -203,7 +203,7 @@ export default function SternikExamPage() {
         {attempts.length > 0 && (
           <section className="mt-8">
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('История попыток', 'Attempt history', 'Historia podejsc')}
+              {tp('История попыток', 'Attempt history', 'Historia podejść')}
             </h2>
             <div className="space-y-2">
               {attempts.slice(0, 10).map((a, i) => (
@@ -258,9 +258,9 @@ export default function SternikExamPage() {
           </div>
           <div className="mt-1 text-sm" style={{ color: 'var(--text-muted)' }}>
             {tp('Время', 'Time', 'Czas')}: {formatClock(a.durationSec)}
-            {a.timedOut ? ` · ${tp('время вышло', 'time ran out', 'czas minal')} ⏰` : ''}
+            {a.timedOut ? ` · ${tp('время вышло', 'time ran out', 'czas minął')} ⏰` : ''}
             {' · '}
-            {tp('ошибок', 'mistakes', 'bledow')}: {a.total - a.correct}
+            {tp('ошибок', 'mistakes', 'błędów')}: {a.total - a.correct}
           </div>
           <div className="mt-4 flex flex-wrap justify-center gap-2">
             <button
@@ -277,7 +277,7 @@ export default function SternikExamPage() {
                 className="rounded-xl px-4 py-2 text-sm font-semibold"
                 style={{ background: 'var(--warning)', color: '#221a04' }}
               >
-                🔁 {tp('Тренировать ошибки', 'Train mistakes', 'Trenuj bledy')}
+                🔁 {tp('Тренировать ошибки', 'Train mistakes', 'Trenuj błędy')}
               </Link>
             )}
             <Link
@@ -285,7 +285,7 @@ export default function SternikExamPage() {
               className="rounded-xl px-4 py-2 text-sm"
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
             >
-              {tp('На главную раздела', 'Section home', 'Strona glowna')}
+              {tp('На главную раздела', 'Section home', 'Strona główna')}
             </Link>
           </div>
         </div>
@@ -297,7 +297,7 @@ export default function SternikExamPage() {
         {wrongQuestions.length > 0 && (
           <section>
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Разбор ошибок', 'Error review', 'Powtorka bledow')} ({wrongQuestions.length})
+              {tp('Разбор ошибок', 'Error review', 'Powtórka błędów')} ({wrongQuestions.length})
             </h2>
             <div className="space-y-3">
               {wrongQuestions.map(({ q, picked }, i) => {
@@ -318,7 +318,7 @@ export default function SternikExamPage() {
                       ✗{' '}
                       {picked === null
                         ? tp('Без ответа', 'No answer', 'Brak odpowiedzi')
-                        : `${tp('Твой ответ', 'Your answer', 'Twoja odpowiedz')}: ${q.options[picked].text}`}
+                        : `${tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: ${q.options[picked].text}`}
                     </div>
                     <div className="text-sm" style={{ color: 'var(--success)' }}>
                       ✓ {q.options.find((o) => o.ok)?.text}
@@ -386,7 +386,7 @@ export default function SternikExamPage() {
           className="flex min-h-[44px] items-center rounded-lg px-3 font-semibold"
           style={{ background: 'var(--success)', color: '#042e14' }}
         >
-          {tp('Завершить', 'Finish', 'Zakoncz')}
+          {tp('Завершить', 'Finish', 'Zakończ')}
         </button>
       </div>
 
@@ -556,7 +556,7 @@ export default function SternikExamPage() {
               className="mt-4 w-full rounded-xl px-4 py-2 font-semibold"
               style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
             >
-              ▶ {tp('Продолжить', 'Resume', 'Wznow')}
+              ▶ {tp('Продолжить', 'Resume', 'Wznów')}
             </button>
           </div>
         </div>
@@ -567,7 +567,7 @@ export default function SternikExamPage() {
         <div
           role="dialog"
           aria-modal="true"
-          aria-label={tp('Завершить экзамен?', 'Finish the exam?', 'Zakonczyc egzamin?')}
+          aria-label={tp('Завершить экзамен?', 'Finish the exam?', 'Zakończyć egzamin?')}
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: 'rgba(4,12,22,0.85)', backdropFilter: 'blur(4px)' }}
         >
@@ -578,14 +578,14 @@ export default function SternikExamPage() {
             style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
           >
             <div className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Завершить экзамен?', 'Finish the exam?', 'Zakonczyc egzamin?')}
+              {tp('Завершить экзамен?', 'Finish the exam?', 'Zakończyć egzamin?')}
             </div>
             {unansweredCount > 0 && (
               <p className="mt-1 text-sm" style={{ color: 'var(--warning)' }}>
                 {tp(
                   `Осталось ${unansweredCount} вопросов без ответа - они засчитаются как ошибки.`,
                   `${unansweredCount} questions unanswered - they count as mistakes.`,
-                  `${unansweredCount} pytan bez odpowiedzi - beda liczone jako bledy.`,
+                  `${unansweredCount} pytań bez odpowiedzi - będą liczone jako błędy.`,
                 )}
               </p>
             )}
@@ -596,7 +596,7 @@ export default function SternikExamPage() {
                 className="flex-1 rounded-xl px-4 py-2 text-sm"
                 style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
               >
-                {tp('Вернуться', 'Go back', 'Wroc')}
+                {tp('Вернуться', 'Go back', 'Wróć')}
               </button>
               <button
                 type="button"
@@ -604,7 +604,7 @@ export default function SternikExamPage() {
                 className="flex-1 rounded-xl px-4 py-2 text-sm font-semibold"
                 style={{ background: 'var(--success)', color: '#042e14' }}
               >
-                {tp('Завершить', 'Finish', 'Zakoncz')}
+                {tp('Завершить', 'Finish', 'Zakończ')}
               </button>
             </div>
           </div>

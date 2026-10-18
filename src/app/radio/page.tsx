@@ -62,22 +62,22 @@ export default function RadioCourseHome() {
     if (progress.theoryCompleted < progress.theoryTotal) {
       return {
         href: "/radio/teoria",
-        title: tp("Продолжить теорию", "Continue theory", "Kontynuuj teorie"),
+        title: tp("Продолжить теорию", "Continue theory", "Kontynuuj teorię"),
         description: tp(
           "Следующая незакрытая глава, схема и проверка из трех вопросов.",
           "The next incomplete chapter, its diagram, and a three-question check.",
-          "Nastepny nieukonczony rozdzial, schemat i sprawdzenie z trzech pytan.",
+          "Następny nieukończony rozdział, schemat i sprawdzenie z trzech pytań.",
         ),
       };
     }
     if (progress.guideCompleted < progress.guideTotal) {
       return {
         href: "/radio/obsluga",
-        title: tp("Закрепить органы управления", "Master the controls", "Utrwal obsluge"),
+        title: tp("Закрепить органы управления", "Master the controls", "Utrwal obsługę"),
         description: tp(
           "Пройди управление ICOM до DISTRESS без поиска кнопок.",
           "Complete the ICOM controls through DISTRESS without hunting for buttons.",
-          "Przejdz obsluge ICOM do DISTRESS bez szukania klawiszy.",
+          "Przejdź obsługę ICOM do DISTRESS bez szukania klawiszy.",
         ),
       };
     }
@@ -88,17 +88,17 @@ export default function RadioCourseHome() {
         description: tp(
           "Отработай процедуру и голос, затем разбери конкретные ошибки.",
           "Practise the procedure and voice call, then review the exact mistakes.",
-          "Przecwicz procedure i glos, potem przejrzyj konkretne bledy.",
+          "Przećwicz procedurę i głos, potem przejrzyj konkretne błędy.",
         ),
       };
     }
     return {
       href: "/radio/test?mode=exam",
-      title: tp("Сдать пробный экзамен", "Take a mock exam", "Zdaj egzamin probny"),
+      title: tp("Сдать пробный экзамен", "Take a mock exam", "Zdaj egzamin próbny"),
       description: tp(
         "10 вопросов, по 5 из каждого предмета, затем повтор слабых мест.",
         "10 questions, 5 from each subject, followed by weak-spot review.",
-        "10 pytan, po 5 z kazdego przedmiotu, potem powtorka slabych punktow.",
+        "10 pytań, po 5 z każdego przedmiotu, potem powtórka słabych punktów.",
       ),
     };
   }, [progress, tp]);
@@ -110,32 +110,32 @@ export default function RadioCourseHome() {
       text: tp(
         "18 глав: физика VHF, питание, каналы, DSC, процедуры, NAVTEX, EPIRB, SART, SMCP и региональные различия.",
         "18 chapters: VHF physics, power, channels, DSC, procedures, NAVTEX, EPIRB, SART, SMCP, and regional differences.",
-        "18 rozdzialow: fizyka VHF, zasilanie, kanaly, DSC, procedury, NAVTEX, EPIRB, SART, SMCP i roznice regionalne.",
+        "18 rozdziałów: fizyka VHF, zasilanie, kanały, DSC, procedury, NAVTEX, EPIRB, SART, SMCP i różnice regionalne.",
       ),
       href: "/radio/teoria",
-      action: tp("Открыть курс", "Open course", "Otworz kurs"),
+      action: tp("Открыть курс", "Open course", "Otwórz kurs"),
     },
     {
       number: "02",
-      title: tp("Научиться управлять", "Operate", "Obsluguj"),
+      title: tp("Научиться управлять", "Operate", "Obsługuj"),
       text: tp(
         "15 последовательных уроков на моделях ICOM IC-M330GE и IC-M323, используемых на практике UKE.",
         "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in UKE practical exams.",
-        "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 uzywanych na praktyce UKE.",
+        "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na praktyce UKE.",
       ),
       href: "/radio/obsluga",
-      action: tp("Курс управления", "Controls course", "Kurs obslugi"),
+      action: tp("Курс управления", "Controls course", "Kurs obsługi"),
     },
     {
       number: "03",
-      title: tp("Выполнить под давлением", "Perform under pressure", "Wykonaj pod presja"),
+      title: tp("Выполнить под давлением", "Perform under pressure", "Wykonaj pod presją"),
       text: tp(
         "19 сценариев, голосовая оценка, разговоры, память сканирования, ручной ввод позиции и MMSI, а также разбор ошибок.",
         "19 scenarios, voice grading, conversations, scan memory, manual position and MMSI entry, and mistake debriefs.",
-        "19 scenariuszy, ocena glosu, rozmowy, pamiec skanowania, reczne wprowadzanie pozycji i MMSI oraz omowienie bledow.",
+        "19 scenariuszy, ocena głosu, rozmowy, pamięć skanowania, ręczne wprowadzanie pozycji i MMSI oraz omówienie błędów.",
       ),
       href: "/radio/symulator",
-      action: tp("Открыть симулятор", "Open simulator", "Otworz symulator"),
+      action: tp("Открыть симулятор", "Open simulator", "Otwórz symulator"),
     },
     {
       number: "04",
@@ -143,10 +143,10 @@ export default function RadioCourseHome() {
       text: tp(
         "324 учебных вопроса, пробный экзамен 2 x 5, 26 практических заданий и тематическое повторение.",
         "324 study questions, a 2 x 5 mock exam, 26 practical tasks, and topic-based review.",
-        "324 pytania, egzamin probny 2 x 5, 26 zadan praktycznych i powtorka tematyczna.",
+        "324 pytania, egzamin próbny 2 x 5, 26 zadań praktycznych i powtórka tematyczna.",
       ),
       href: "/radio/test?mode=exam",
-      action: tp("Пробный экзамен", "Mock exam", "Egzamin probny"),
+      action: tp("Пробный экзамен", "Mock exam", "Egzamin próbny"),
     },
   ];
 
@@ -168,7 +168,7 @@ export default function RadioCourseHome() {
             {tp(
               "Курс разделяет три вещи: ответ для экзамена UKE, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
               "The course separates the UKE exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM.",
-              "Kurs rozdziela odpowiedz egzaminacyjna UKE, procedure miedzynarodowa i praktyke lokalna. Najpierw rozumiesz przyczyne, potem odpowiadasz na pytania i wykonujesz procedure na ICOM.",
+              "Kurs rozdziela odpowiedź egzaminacyjną UKE, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
             )}
           </p>
           <Link
@@ -183,10 +183,10 @@ export default function RadioCourseHome() {
           </p>
         </div>
 
-        <section aria-label={tp("Общий прогресс", "Overall progress", "Postep ogolny")} className="self-start border-t pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" style={{ borderColor: "var(--border-subtle)" }}>
+        <section aria-label={tp("Общий прогресс", "Overall progress", "Postęp ogólny")} className="self-start border-t pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="mb-5 flex items-baseline justify-between">
             <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-              {tp("Прогресс обучения", "Learning progress", "Postep nauki")}
+              {tp("Прогресс обучения", "Learning progress", "Postęp nauki")}
             </h2>
             <span className="text-2xl font-bold" style={{ color: "var(--accent-cyan)" }}>
               {progress.overallPercent}%
@@ -196,7 +196,7 @@ export default function RadioCourseHome() {
             <ProgressLine label={tp("Теория", "Theory", "Teoria")} value={progress.theoryCompleted} total={progress.theoryTotal} />
             <ProgressLine label={tp("Вопросы закреплены", "Questions mastered", "Pytania utrwalone")} value={progress.questionsMastered} total={progress.questionsTotal} />
             <ProgressLine label={tp("Сценарии сданы", "Scenarios passed", "Scenariusze zaliczone")} value={progress.scenariosPassed} total={progress.scenariosTotal} />
-            <ProgressLine label={tp("Управление ICOM", "ICOM controls", "Obsluga ICOM")} value={progress.guideCompleted} total={progress.guideTotal} />
+            <ProgressLine label={tp("Управление ICOM", "ICOM controls", "Obsługa ICOM")} value={progress.guideCompleted} total={progress.guideTotal} />
           </div>
         </section>
       </header>
@@ -205,7 +205,7 @@ export default function RadioCourseHome() {
 
       <section className="mb-10">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-          {tp("Порядок подготовки", "Preparation path", "Sciezka przygotowania")}
+          {tp("Порядок подготовки", "Preparation path", "Ścieżka przygotowania")}
         </h2>
         <div className="mt-5 divide-y" style={{ borderColor: "var(--border-subtle)" }}>
           {path.map((stage) => (
@@ -240,7 +240,7 @@ export default function RadioCourseHome() {
             {tp(
               "По 5 вопросов из каждого экзаменационного предмета. Практика выполняется на ICOM IC-M323 или IC-M330GE.",
               "Five questions from each exam subject. The practical part uses an ICOM IC-M323 or IC-M330GE.",
-              "Po 5 pytan z kazdego przedmiotu. Praktyka odbywa sie na ICOM IC-M323 lub IC-M330GE.",
+              "Po 5 pytań z każdego przedmiotu. Praktyka odbywa się na ICOM IC-M323 lub IC-M330GE.",
             )}
           </p>
         </div>
@@ -252,13 +252,13 @@ export default function RadioCourseHome() {
             {tp(
               "UKE не публикует официальный ключ. Ответы курса являются учебной интерпретацией, спорные позиции помечены, а из каждого вопроса можно перейти к главе и источникам.",
               "UKE does not publish an official answer key. Course answers are a study interpretation, uncertain items are marked, and every question links to its chapter and sources.",
-              "UKE nie publikuje oficjalnego klucza. Odpowiedzi kursu sa interpretacja szkoleniowa, watpliwe pozycje sa oznaczone, a kazde pytanie prowadzi do rozdzialu i zrodel.",
+              "UKE nie publikuje oficjalnego klucza. Odpowiedzi kursu są interpretacją szkoleniową, wątpliwe pozycje są oznaczone, a każde pytanie prowadzi do rozdziału i źródeł.",
             )}
           </p>
         </div>
         <div>
           <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-            {tp("Официальный источник", "Official source", "Oficjalne zrodlo")}
+            {tp("Официальный источник", "Official source", "Oficjalne źródło")}
           </h2>
           <a
             href="https://bip.uke.gov.pl/swiadectwa-operatora-urzadzen-radiowych-tresci/swiadectwa-morskie-i-zeglugi-srodladowej%2C4.html"
@@ -267,23 +267,23 @@ export default function RadioCourseHome() {
             className="mt-2 flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4"
             style={{ color: "var(--accent-cyan)" }}
           >
-            {tp("Правила и материалы UKE", "UKE rules and materials", "Zasady i materialy UKE")}
+            {tp("Правила и материалы UKE", "UKE rules and materials", "Zasady i materiały UKE")}
           </a>
         </div>
       </section>
 
-      <nav aria-label={tp("Дополнительные тренажёры", "Additional trainers", "Dodatkowe trenazery")} className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      <nav aria-label={tp("Дополнительные тренажёры", "Additional trainers", "Dodatkowe trenażery")} className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <Link href="/radio/rozmowa" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("Живой разговор", "Live conversation", "Rozmowa na zywo")}
+          {tp("Живой разговор", "Live conversation", "Rozmowa na żywo")}
         </Link>
         <Link href="/radio/pozycja" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
           {tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji")}
         </Link>
         <Link href="/radio/zadania" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("26 практических заданий", "26 practical tasks", "26 zadan praktycznych")}
+          {tp("26 практических заданий", "26 practical tasks", "26 zadań praktycznych")}
         </Link>
         <Link href="/radio/sciaga" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("Шпаргалка после курса", "Post-course cheat sheet", "Sciaga po kursie")}
+          {tp("Шпаргалка после курса", "Post-course cheat sheet", "Ściąga po kursie")}
         </Link>
       </nav>
     </div>

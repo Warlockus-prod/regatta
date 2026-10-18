@@ -199,9 +199,9 @@ export default function LiveDialogue() {
           graded.checks.filter((c) => !c.ok).map((c) => ({ id: c.id, label: c.label })),
           graded.checks.filter((c) => c.ok).map((c) => ({ id: c.id })),
         );
-        push(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziales')}: "${text}"`, 'tx');
+        push(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${text}"`, 'tx');
         for (const c of graded.checks.filter((x) => !x.ok)) {
-          push(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padlo')}: ${c.label}`, 'bad');
+          push(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${c.label}`, 'bad');
         }
         push(`${tp('Оценка', 'Graded', 'Ocena')}: ${graded.score}%`, graded.passed ? 'step' : 'ui');
 
@@ -213,7 +213,7 @@ export default function LiveDialogue() {
         const expectedChannel = turn.channel ?? dialogue?.channel;
         const channelOk = !expectedChannel || channelNow === expectedChannel;
         if (!channelOk) {
-          push(`⚠ ${tp('Ты передавал на канале', 'You transmitted on channel', 'Nadawales na kanale')} ${channelNow}, ${tp('а это должно идти на', 'but this belongs on', 'a to powinno isc na')} ${expectedChannel}`, 'bad');
+          push(`⚠ ${tp('Ты передавал на канале', 'You transmitted on channel', 'Nadawałeś na kanale')} ${channelNow}, ${tp('а это должно идти на', 'but this belongs on', 'a to powinno iść na')} ${expectedChannel}`, 'bad');
         }
 
         if (graded.passed && channelOk) {
@@ -301,13 +301,13 @@ export default function LiveDialogue() {
     return (
       <div>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          🎙 {tp('Живой разговор', 'Live conversation', 'Rozmowa na zywo')}
+          🎙 {tp('Живой разговор', 'Live conversation', 'Rozmowa na żywo')}
         </h1>
         <p className="mb-5 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
           {tp(
             'Ты говоришь в микрофон - речь распознаётся и проверяется, а станция отвечает голосом. И ты отвечаешь ей. Это и есть радиосвязь: важно не только что ты передал, но и что ты УСЛЫШАЛ в ответ.',
             'You speak into the mic - your words are transcribed and checked - and the station answers out loud. Then you answer back. That is what a radio is: not only what you transmit, but what you CATCH coming back.',
-            'Mowisz do mikrofonu - mowa jest rozpoznawana i sprawdzana, a stacja odpowiada glosem. I ty jej odpowiadasz. Na tym polega lacznosc: liczy sie nie tylko to, co nadales, ale i to, co USLYSZALES w odpowiedzi.',
+            'Mówisz do mikrofonu - mowa jest rozpoznawana i sprawdzana, a stacja odpowiada głosem. I ty jej odpowiadasz. Na tym polega łączność: liczy się nie tylko to, co nadałeś, ale i to, co USŁYSZAŁEŚ w odpowiedzi.',
           )}
         </p>
 
@@ -331,7 +331,7 @@ export default function LiveDialogue() {
                   CH {d.channel}
                 </span>
                 <span className="rounded-full px-2 py-1" style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
-                  {d.turns.length} {tp('передач', 'transmissions', 'nadan')}
+                  {d.turns.length} {tp('передач', 'transmissions', 'nadań')}
                 </span>
               </div>
             </button>
@@ -361,7 +361,7 @@ export default function LiveDialogue() {
           className="ml-auto min-h-[44px] rounded-lg px-3 text-xs"
           style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
         >
-          ✕ {tp('Выйти', 'Exit', 'Wyjdz')}
+          ✕ {tp('Выйти', 'Exit', 'Wyjdź')}
         </button>
       </div>
 
@@ -376,7 +376,7 @@ export default function LiveDialogue() {
               className="min-h-[44px] rounded-xl px-3 text-sm font-semibold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
-              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dzwiek')}
+              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dźwięk')}
             </button>
             <RadioVariantToggle
               model={model}
@@ -411,7 +411,7 @@ export default function LiveDialogue() {
             {tp(
               'Включи рацию, поставь нужный канал и держи PTT, пока говоришь. Отпустил - передача ушла.',
               'Switch the radio on, set the channel, and hold PTT while you speak. Release and the transmission goes.',
-              'Wlacz radio, ustaw kanal i trzymaj PTT, kiedy mowisz. Puszczasz - nadanie idzie w eter.',
+              'Włącz radio, ustaw kanał i trzymaj PTT, kiedy mówisz. Puszczasz - nadanie idzie w eter.',
             )}
           </p>
         </div>
@@ -428,7 +428,7 @@ export default function LiveDialogue() {
           {done ? (
             <div className="rounded-2xl p-4" style={{ background: 'rgba(68,255,136,0.08)', border: '1px solid rgba(68,255,136,0.25)' }}>
               <div className="text-sm font-bold" style={{ color: 'var(--success)' }}>
-                ✓ {tp('Разговор завершён', 'Conversation complete', 'Rozmowa zakonczona')}
+                ✓ {tp('Разговор завершён', 'Conversation complete', 'Rozmowa zakończona')}
               </div>
               <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{bi(dialogue.why)}</p>
               <button
@@ -437,7 +437,7 @@ export default function LiveDialogue() {
                 className="mt-3 min-h-[44px] rounded-xl px-4 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
-                {tp('К списку разговоров', 'Back to the conversations', 'Wroc do listy rozmow')}
+                {tp('К списку разговоров', 'Back to the conversations', 'Wróć do listy rozmów')}
               </button>
             </div>
           ) : (
@@ -453,16 +453,16 @@ export default function LiveDialogue() {
                   className="min-h-[44px] rounded-full px-2 text-[11px]"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  {showScript ? tp('Скрыть текст (экзамен)', 'Hide the script (exam)', 'Ukryj tekst (egzamin)') : tp('Показать текст', 'Show the script', 'Pokaz tekst')}
+                  {showScript ? tp('Скрыть текст (экзамен)', 'Hide the script (exam)', 'Ukryj tekst (egzamin)') : tp('Показать текст', 'Show the script', 'Pokaż tekst')}
                 </button>
               </div>
 
               {showScript && turn && (
                 <div className="mb-2">
                   <div className="mb-1 flex items-center gap-2">
-                    <SpeakButton text={turn.youSay} label={tp('Прослушать эталон', 'Play the model', 'Posluchaj wzorca')} size={22} />
+                    <SpeakButton text={turn.youSay} label={tp('Прослушать эталон', 'Play the model', 'Posłuchaj wzorca')} size={22} />
                     <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {tp('Как это должно звучать', 'How it should sound', 'Jak to ma brzmiec')}
+                      {tp('Как это должно звучать', 'How it should sound', 'Jak to ma brzmieć')}
                     </span>
                   </div>
                   <pre
@@ -486,7 +486,7 @@ export default function LiveDialogue() {
               {heard !== null && (
                 <div className="mb-3 rounded-xl p-3" aria-live="polite" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                   <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                    {tp('Модель услышала', 'The model heard', 'Model uslyszal')}
+                    {tp('Модель услышала', 'The model heard', 'Model usłyszał')}
                   </div>
                   <p data-testid="turn-heard" className="mt-0.5 text-sm" style={{ color: 'var(--text-primary)' }}>
                     &quot;{heard || tp('ничего', 'nothing', 'nic')}&quot;
@@ -513,16 +513,16 @@ export default function LiveDialogue() {
                   style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
                   {turnIdx + 1 >= dialogue.turns.length
-                    ? tp('Завершить разговор', 'Finish the conversation', 'Zakoncz rozmowe')
-                    : tp('Дальше - твой ответ', 'Next - your reply', 'Dalej - twoja odpowiedz')}
+                    ? tp('Завершить разговор', 'Finish the conversation', 'Zakończ rozmowę')
+                    : tp('Дальше - твой ответ', 'Next - your reply', 'Dalej - twoja odpowiedź')}
                 </button>
               ) : (
                 <div className="text-sm font-semibold" style={{ color: phase === 'recording' ? 'var(--danger)' : 'var(--text-muted)' }}>
                   {phase === 'recording'
-                    ? tp('🔴 Идёт передача - говори', '🔴 Transmitting - speak', '🔴 Nadajesz - mow')
+                    ? tp('🔴 Идёт передача - говори', '🔴 Transmitting - speak', '🔴 Nadajesz - mów')
                     : phase === 'grading'
-                      ? tp('Слушаю...', 'Listening...', 'Slucham...')
-                      : tp('Держи PTT на рации и говори', 'Hold PTT on the radio and speak', 'Trzymaj PTT na radiu i mow')}
+                      ? tp('Слушаю...', 'Listening...', 'Słucham...')
+                      : tp('Держи PTT на рации и говори', 'Hold PTT on the radio and speak', 'Trzymaj PTT na radiu i mów')}
                 </div>
               )}
 
@@ -531,7 +531,7 @@ export default function LiveDialogue() {
                   {tp(
                     'Распознавание речи сейчас недоступно - разговор можно только прочитать.',
                     'Speech recognition is unavailable right now - the conversation can only be read.',
-                    'Rozpoznawanie mowy jest teraz niedostepne - rozmowe mozna tylko przeczytac.',
+                    'Rozpoznawanie mowy jest teraz niedostępne - rozmowę można tylko przeczytać.',
                   )}
                 </p>
               )}
@@ -545,7 +545,7 @@ export default function LiveDialogue() {
             </div>
             {log.length === 0 ? (
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od wlaczenia radia')}
+                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
               </p>
             ) : (
               <ol data-testid="dialogue-journal" className="max-h-64 space-y-1 overflow-y-auto">
