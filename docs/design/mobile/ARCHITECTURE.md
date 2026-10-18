@@ -53,6 +53,9 @@ build script. The paragraph above describes builds before 1.6.2.
 - **TestFlight pre-release train = `CFBundleShortVersionString` (= `expo.version`).** A
   version that reaches READY_FOR_SALE CLOSES its train; bump `expo.version` every release
   or `altool` bounces with a hidden `90186` train-closed error.
+- **App Store review prompt:** `mobile/src/review/review-prompt.ts` (expo-store-review)
+  asks for a rating after 3 wins (lesson, passed mock exam, top-3 race), at most
+  once per 120 days; the call sites sit next to the matching analytics events.
 - **Languages shown by iOS and the App Store** come from `CFBundleLocalizations` in
   `mobile/app.json`; without it the store page lists "English" only. Per-language
   permission texts (the SRC microphone prompt) live in `mobile/locales/<lang>.json`

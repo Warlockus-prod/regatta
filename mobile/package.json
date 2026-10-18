@@ -48,6 +48,7 @@
     "expo-router": "~6.0.23",
     "expo-splash-screen": "~31.0.13",
     "expo-status-bar": "~3.0.9",
+    "expo-store-review": "~9.0.9",
     "expo-updates": "~29.0.18",
     "posthog-react-native": "^4.46.17",
     "react": "19.1.0",

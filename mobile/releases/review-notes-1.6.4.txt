@@ -1,0 +1,9 @@
+Week to Regatta is a sailing learning and practice app. No sign-in or test account is required.
+
+Version 1.6.4 (48) brings the content that is already live on our website: a Turns section in Courses, six new sail-trim lessons, bots that sail the whole race course, better translations and full Polish spelling. The app now declares its seven interface languages (CFBundleLocalizations), and the microphone permission text, used only by the SRC radio voice simulator, is translated into each of them.
+
+New in this version: after the user has finished three lessons, passed a mock exam or placed in the top three of a race, the app asks iOS for the standard rating sheet (SKStoreReviewController) at most once every 120 days. Nothing is shown when iOS declines.
+
+The app collects only anonymous usage statistics (screen views and a few learning events, not linked to identity, no tracking); they can be turned off in Settings. The store description now says so.
+
+Verified on iPhone 17 Pro Max simulators with iOS 27.0 and iOS 26.5: fresh install of the Release build and launch.

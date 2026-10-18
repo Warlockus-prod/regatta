@@ -1,3 +1,4 @@
+import { recordReviewWin } from '../../src/review/review-prompt';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, View } from 'react-native';
@@ -63,6 +64,7 @@ export default function BootcampLesson() {
   const completeLesson = useCallback((id: string) => {
     if (ready && !isCompleted(id)) {
       analytics.capture(AnalyticsEvent.LessonCompleted, { course: 'bootcamp', lesson_id: id });
+      void recordReviewWin('lesson');
     }
     markCompleted(id);
   }, [analytics, isCompleted, markCompleted, ready]);
