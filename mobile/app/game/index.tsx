@@ -1,3 +1,4 @@
+import { recordReviewWin } from '../../src/review/review-prompt';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -340,6 +341,7 @@ export default function Game() {
           total_boats: totalBoats,
           won: positionRef.current === 1,
         });
+        if (positionRef.current <= 3) void recordReviewWin('race-podium');
         setPhase('finished');
       }
     }

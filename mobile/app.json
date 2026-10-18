@@ -3,7 +3,7 @@
     "name": "Week to Regatta",
     "slug": "regatta",
     "scheme": "regatta",
-    "version": "1.6.3",
+    "version": "1.6.4",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "44",
+      "buildNumber": "48",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN). The recording is used only for grading and is not stored.",
@@ -37,7 +37,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 44,
+      "versionCode": 48,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"

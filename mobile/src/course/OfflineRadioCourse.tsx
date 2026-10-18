@@ -1,3 +1,4 @@
+import { recordReviewWin } from "../review/review-prompt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -171,6 +172,7 @@ export function OfflineRadioCourse() {
     const exam = parseExamFinished(event.nativeEvent.data);
     if (exam) {
       analytics.capture(AnalyticsEvent.ExamFinished, exam);
+      if (exam.passed) void recordReviewWin("exam-passed");
       return;
     }
     try {

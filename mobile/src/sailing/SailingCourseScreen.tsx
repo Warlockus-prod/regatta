@@ -1,3 +1,4 @@
+import { recordReviewWin } from "../review/review-prompt";
 import { useCallback, useRef, useState } from "react";
 import { Stack, useFocusEffect, useRouter, type Href } from "expo-router";
 import { Linking, ScrollView, StyleSheet, View } from "react-native";
@@ -43,6 +44,7 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
     finally { setSaving(false); }
     if (updated.checked.length > progress.checked.length) {
       analytics.capture(AnalyticsEvent.LessonCompleted, { course: "sails", lesson_id: lesson.id });
+      void recordReviewWin("lesson");
     }
   };
   if (lessonId && !lesson) return <Screen noTopInset>

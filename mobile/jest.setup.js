@@ -87,6 +87,13 @@ jest.mock('@shopify/react-native-skia', () => {
   };
 });
 
+// Native rating sheet (src/review/review-prompt.ts); its own test mocks it too.
+jest.mock('expo-store-review', () => ({
+  hasAction: jest.fn().mockResolvedValue(false),
+  isAvailableAsync: jest.fn().mockResolvedValue(false),
+  requestReview: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('expo-haptics', () => ({
   selectionAsync: jest.fn().mockResolvedValue(undefined),
   impactAsync: jest.fn().mockResolvedValue(undefined),

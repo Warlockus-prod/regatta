@@ -1,3 +1,4 @@
+import { recordReviewWin } from '../review/review-prompt';
 import { Stack, useNavigation } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
@@ -188,7 +189,11 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
           const data = e.nativeEvent.data;
           if (data === 'ready') { setLoading(false); return; }
           const exam = parseExamFinished(data);
-          if (exam) { analytics.capture(AnalyticsEvent.ExamFinished, exam); return; }
+          if (exam) {
+            analytics.capture(AnalyticsEvent.ExamFinished, exam);
+            if (exam.passed) void recordReviewWin('exam-passed');
+            return;
+          }
           // structured messages from the embedded course (e.g. exam dirty state)
           try {
             const msg = JSON.parse(data) as { type?: string; dirty?: boolean };
