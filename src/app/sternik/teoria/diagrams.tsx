@@ -53,11 +53,11 @@ export function CrossingDiagram() {
         <ArrowDef id="cx-g" color={GREEN} />
         <ArrowDef id="cx-r" color={RED} />
       </defs>
-      <text x="110" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Kursy przecinajace sie</text>
+      <text x="110" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Kursy przecinające się</text>
       {/* give-way boat: heading east, sees the other to starboard */}
       <Boat x={45} y={95} rot={90} color={RED} />
       <line x1="60" y1="95" x2="110" y2="95" stroke={RED} strokeWidth="1.4" strokeDasharray="4,3" markerEnd="url(#cx-r)" />
-      <text x="45" y="125" textAnchor="middle" fontSize="9" fill={RED}>USTEPUJE</text>
+      <text x="45" y="125" textAnchor="middle" fontSize="9" fill={RED}>USTĘPUJE</text>
       <text x="45" y="136" textAnchor="middle" fontSize="8" fill={TXT2}>masz go z PRAWEJ</text>
       {ruOn && (
         <text x="45" y="146" textAnchor="middle" fontSize="8" fill={TXT2}>уступаешь</text>
@@ -65,7 +65,7 @@ export function CrossingDiagram() {
       {/* stand-on boat: heading north */}
       <Boat x={150} y={120} rot={0} color={GREEN} />
       <line x1="150" y1="103" x2="150" y2="60" stroke={GREEN} strokeWidth="1.4" strokeDasharray="4,3" markerEnd="url(#cx-g)" />
-      <text x="150" y="150" textAnchor="middle" fontSize="9" fill={GREEN}>PIERWSZENSTWO</text>
+      <text x="150" y="150" textAnchor="middle" fontSize="9" fill={GREEN}>PIERWSZEŃSTWO</text>
       {ruOn && (
         <text x="150" y="160" textAnchor="middle" fontSize="8" fill={TXT2}>приоритет</text>
       )}
@@ -107,7 +107,7 @@ export function OvertakingDiagram() {
       )}
       <Boat x={95} y={125} rot={0} color={RED} />
       <path d="M 95 108 C 95 90 80 78 85 62" fill="none" stroke={RED} strokeWidth="1.4" strokeDasharray="4,3" markerEnd="url(#ov)" />
-      <text x="110" y="152" textAnchor="middle" fontSize="9" fill={RED}>wyprzedzajacy ustepuje</text>
+      <text x="110" y="152" textAnchor="middle" fontSize="9" fill={RED}>wyprzedzający ustępuje</text>
       {ruOn && (
         <text x="110" y="163" textAnchor="middle" fontSize="8" fill={TXT2}>обгоняющий держится в стороне</text>
       )}
@@ -153,16 +153,16 @@ export function LightSectorsDiagram() {
       {/* stern white 135 */}
       <Sector cx={cx} cy={cy} r={r * 0.62} from={112.5} to={247.5} fill={WHITE} opacity={0.22} />
       <Boat x={cx} y={cy} rot={0} color="#8ba7b8" scale={1.6} />
-      <text x={cx} y={16} textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>DZIOB (nos) - widok z gory</text>
+      <text x={cx} y={16} textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>DZIÓB (nos) - widok z góry</text>
       <text x={cx + 78} y={70} textAnchor="middle" fontSize="9" fill={GREEN}>zielone 112,5</text>
       <text x={cx + 78} y={81} textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'sterburta / прав. борт' : 'sterburta'}</text>
       <text x={cx - 78} y={70} textAnchor="middle" fontSize="9" fill={RED}>czerwone 112,5</text>
       <text x={cx - 78} y={81} textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'bakburta / лев. борт' : 'bakburta'}</text>
-      <text x={cx} y={cy + 78} textAnchor="middle" fontSize="9" fill={TXT}>rufowe biale 135</text>
+      <text x={cx} y={cy + 78} textAnchor="middle" fontSize="9" fill={TXT}>rufowe białe 135</text>
       {ruOn && (
         <text x={cx} y={cy + 90} textAnchor="middle" fontSize="8" fill={TXT2}>кормовой белый</text>
       )}
-      <text x={cx} y={230} textAnchor="middle" fontSize="8.5" fill={TXT2}>masztowe (topowe) biale 225 = 2 x 112,5 z przodu · 112,5 + 112,5 + 135 = 360</text>
+      <text x={cx} y={230} textAnchor="middle" fontSize="8.5" fill={TXT2}>masztowe (topowe) białe 225 = 2 x 112,5 z przodu · 112,5 + 112,5 + 135 = 360</text>
     </svg>
   );
 }
@@ -192,7 +192,7 @@ export function LateralMarksDiagram() {
       <polygon points="201,96 213,120 189,120" fill={GREEN} stroke="rgba(0,0,0,0.35)" />
       <line x1="201" y1="120" x2="201" y2="132" stroke={TXT2} strokeWidth="1" />
       <text x="201" y="148" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>PRAWA</text>
-      <text x="201" y="159" textAnchor="middle" fontSize="8" fill={TXT2}>zielony stozek</text>
+      <text x="201" y="159" textAnchor="middle" fontSize="8" fill={TXT2}>zielony stożek</text>
       {ruOn && (
         <text x="201" y="169" textAnchor="middle" fontSize="8" fill={TXT2}>зелёный конус</text>
       )}
@@ -282,10 +282,10 @@ export function CardinalClockDiagram() {
         <text x={CX} y={CY + 9} textAnchor="middle" fontSize="8.5" fill={RED}>опасность</text>
       )}
       {/* stations */}
-      <CardinalStation cx={CX} top={20} type="N" label="N · 12:00" rhythm={ruOn ? 'Q ciagle / непрерывно' : 'Q ciagle'} />
-      <CardinalStation cx={320} top={128} type="E" label="E · 3:00" rhythm="VQ(3) - 3 blyski" />
-      <CardinalStation cx={40} top={128} type="W" label="W · 9:00" rhythm="VQ(9) - 9 blyskow" />
-      <CardinalStation cx={CX} top={262} type="S" label="S · 6:00" rhythm="VQ(6) + 1 dlugi" labelBelow />
+      <CardinalStation cx={CX} top={20} type="N" label="N · 12:00" rhythm={ruOn ? 'Q ciągłe / непрерывно' : 'Q ciągłe'} />
+      <CardinalStation cx={320} top={128} type="E" label="E · 3:00" rhythm="VQ(3) - 3 błyski" />
+      <CardinalStation cx={40} top={128} type="W" label="W · 9:00" rhythm="VQ(9) - 9 błysków" />
+      <CardinalStation cx={CX} top={262} type="S" label="S · 6:00" rhythm="VQ(6) + 1 długi" labelBelow />
     </svg>
   );
 }
@@ -304,14 +304,14 @@ export function NabieznikDiagram() {
       <Boat x={80} y={150} rot={0} color={GREEN} />
       <text x="80" y="174" textAnchor="middle" fontSize="8" fill={TXT2}>znaki w jednej linii = na osi</text>
       {/* right: off axis */}
-      <text x="240" y="16" textAnchor="middle" fontSize="10" fontWeight="700" fill={YELLOW}>Zejscie z osi</text>
+      <text x="240" y="16" textAnchor="middle" fontSize="10" fontWeight="700" fill={YELLOW}>Zejście z osi</text>
       <polygon points="256,32 250,44 262,44" fill={RED} />
       <rect x="254.5" y="44" width="3" height="14" fill={TXT2} />
       <polygon points="228,60 223,70 233,70" fill={RED} />
       <rect x="227" y="70" width="2" height="10" fill={TXT2} />
       <Boat x={222} y={150} rot={12} color={YELLOW} />
       <path d="M 218 134 Q 224 100 228 82" fill="none" stroke={YELLOW} strokeWidth="1.3" strokeDasharray="4,3" markerEnd="url(#nab)" />
-      <text x="240" y="174" textAnchor="middle" fontSize="8" fill={TXT2}>znaki rozjechane - wyrownaj (wyzszy nad nizszym)</text>
+      <text x="240" y="174" textAnchor="middle" fontSize="8" fill={TXT2}>znaki rozjechane - wyrównaj (wyższy nad niższym)</text>
     </svg>
   );
 }
@@ -331,16 +331,16 @@ export function RiverDiagram() {
       <path d="M 20 150 C 100 130 220 170 300 148" stroke="var(--border-subtle)" strokeWidth="2" fill="none" />
       {/* current */}
       <line x1="60" y1="95" x2="130" y2="95" stroke={CYAN} strokeWidth="1.4" markerEnd="url(#riv-c)" />
-      <text x="95" y="86" textAnchor="middle" fontSize="9" fill={CYAN}>{ruOn ? 'prad / течение' : 'prad'}</text>
+      <text x="95" y="86" textAnchor="middle" fontSize="9" fill={CYAN}>{ruOn ? 'prąd / течение' : 'prąd'}</text>
       {/* downstream boat */}
       <Boat x={200} y={70} rot={95} color={GREEN} />
       <line x1="216" y1="72" x2="258" y2="76" stroke={GREEN} strokeWidth="1.2" strokeDasharray="4,3" markerEnd="url(#riv-g)" />
-      <text x="228" y="56" textAnchor="middle" fontSize="9" fill={GREEN}>z pradem = PIERWSZENSTWO</text>
+      <text x="228" y="56" textAnchor="middle" fontSize="9" fill={GREEN}>z prądem = PIERWSZEŃSTWO</text>
       {/* upstream boat */}
       <Boat x={200} y={125} rot={-85} color="#8ba7b8" />
       <line x1="184" y1="123" x2="142" y2="119" stroke="#8ba7b8" strokeWidth="1.2" strokeDasharray="4,3" markerEnd="url(#riv-r)" />
-      <text x="196" y="148" textAnchor="middle" fontSize="9" fill={TXT}>pod prad - ustepuje</text>
-      <text x="160" y="172" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'trzymaj sie PRAWEJ strony szlaku · mijanie lewymi burtami · идущий вниз имеет приоритет' : 'trzymaj sie PRAWEJ strony szlaku · mijanie lewymi burtami'}</text>
+      <text x="196" y="148" textAnchor="middle" fontSize="9" fill={TXT}>pod prąd - ustępuje</text>
+      <text x="160" y="172" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'trzymaj się PRAWEJ strony szlaku · mijanie lewymi burtami · идущий вниз имеет приоритет' : 'trzymaj się PRAWEJ strony szlaku · mijanie lewymi burtami'}</text>
     </svg>
   );
 }
@@ -357,7 +357,7 @@ export function RiverBendDiagram() {
           <line x1="3" y1="0" x2="3" y2="6" stroke={YELLOW} strokeWidth="1" opacity="0.55" />
         </pattern>
       </defs>
-      <text x="160" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Zakret rzeki / поворот реки' : 'Zakret rzeki'}</text>
+      <text x="160" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Zakręt rzeki / поворот реки' : 'Zakręt rzeki'}</text>
       {/* water channel between the two banks */}
       <path d="M 20 62 C 120 62 160 122 300 122 L 300 168 C 150 168 110 108 20 108 Z" fill="rgba(93,170,210,0.14)" />
       {/* inner (convex) bank - top: shallow, deposits */}
@@ -366,16 +366,16 @@ export function RiverBendDiagram() {
       <path d="M 20 108 C 110 108 150 168 300 168" fill="none" stroke="var(--border-subtle)" strokeWidth="2" />
       {/* sandbar hugging the inner bank */}
       <path d="M 118 72 C 152 74 172 102 214 110 C 172 118 140 100 116 90 Z" fill="url(#rb-sand)" stroke={YELLOW} strokeWidth="0.6" opacity="0.9" />
-      <text x="150" y="98" textAnchor="middle" fontSize="8" fill={YELLOW}>{ruOn ? 'plycizna / отмель' : 'plycizna'}</text>
+      <text x="150" y="98" textAnchor="middle" fontSize="8" fill={YELLOW}>{ruOn ? 'płycizna / отмель' : 'płycizna'}</text>
       {/* current: stronger, concentrated near the outer bank */}
       <path d="M 55 94 C 130 94 150 150 252 150" fill="none" stroke={CYAN} strokeWidth="1.7" markerEnd="url(#rb-c)" />
       <path d="M 62 82 C 128 82 150 132 236 132" fill="none" stroke={CYAN} strokeWidth="0.9" opacity="0.55" markerEnd="url(#rb-c)" />
-      <text x="92" y="126" textAnchor="middle" fontSize="8" fill={CYAN}>{ruOn ? 'prad / течение' : 'prad'}</text>
+      <text x="92" y="126" textAnchor="middle" fontSize="8" fill={CYAN}>{ruOn ? 'prąd / течение' : 'prąd'}</text>
       {/* boat holding the fairway */}
       <Boat x={205} y={140} rot={80} color={GREEN} scale={0.9} />
       <line x1="220" y1="143" x2="260" y2="146" stroke={GREEN} strokeWidth="1.2" strokeDasharray="4,3" markerEnd="url(#rb-g)" />
-      <text x="118" y="52" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'brzeg wypukly - plytko / выпуклый' : 'brzeg wypukly - plytko'}</text>
-      <text x="250" y="188" textAnchor="middle" fontSize="8" fill={TXT2}>brzeg wklesly - gleboko, szybki prad</text>
+      <text x="118" y="52" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'brzeg wypukły - płytko / выпуклый' : 'brzeg wypukły - płytko'}</text>
+      <text x="250" y="188" textAnchor="middle" fontSize="8" fill={TXT2}>brzeg wklęsły - głęboko, szybki prąd</text>
     </svg>
   );
 }
@@ -389,7 +389,7 @@ export function BridgeClearanceDiagram() {
         <ArrowDef id="bc-h" color={YELLOW} />
         <ArrowDef id="bc-w" color={CYAN as string} />
       </defs>
-      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Most - wysokosc i szerokosc przejscia</text>
+      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Most - wysokość i szerokość przejścia</text>
 
       {/* bridge structure */}
       <rect x="34" y="48" width="272" height="18" rx="4" fill="var(--bg-secondary)" stroke="var(--border-subtle)" />
@@ -404,7 +404,7 @@ export function BridgeClearanceDiagram() {
       <line x1="248" y1="156" x2="248" y2="70" stroke={YELLOW} strokeWidth="1.5" markerStart="url(#bc-h)" markerEnd="url(#bc-h)" />
       <text x="258" y="118" fontSize="9" fontWeight="700" fill={YELLOW}>3,0 m</text>
       <line x1="84" y1="142" x2="256" y2="142" stroke={CYAN} strokeWidth="1.4" markerStart="url(#bc-w)" markerEnd="url(#bc-w)" />
-      <text x="170" y="135" textAnchor="middle" fontSize="8.5" fill={CYAN}>{ruOn ? 'szerokosc toru / ширина прохода' : 'szerokosc toru'}</text>
+      <text x="170" y="135" textAnchor="middle" fontSize="8.5" fill={CYAN}>{ruOn ? 'szerokość toru / ширина прохода' : 'szerokość toru'}</text>
 
       {/* inland restriction signs */}
       <rect x="48" y="24" width="38" height="38" rx="3" fill={WHITE} stroke={RED} strokeWidth="3" />
@@ -420,7 +420,7 @@ export function BridgeClearanceDiagram() {
       </g>
       <text x="273" y="61" textAnchor="middle" fontSize="7.5" fontWeight="700" fill={BLACK}>C.3</text>
 
-      <text x="170" y="202" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'sprawdz zanurzenie, wysokosc anteny i stan wody · не гадай на глаз' : 'sprawdz zanurzenie, wysokosc anteny i stan wody'}</text>
+      <text x="170" y="202" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'sprawdź zanurzenie, wysokość anteny i stan wody · не гадай на глаз' : 'sprawdź zanurzenie, wysokość anteny i stan wody'}</text>
     </svg>
   );
 }
@@ -434,21 +434,21 @@ export function DredgerPassDiagram() {
         <ArrowDef id="dg-route" color={GREEN} />
         <ArrowDef id="dg-current" color={CYAN as string} />
       </defs>
-      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Poglebiarka / przeszkoda w torze</text>
+      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Pogłębiarka / przeszkoda w torze</text>
 
       {/* waterway */}
       <path d="M 28 34 C 90 50 250 50 312 34" stroke="var(--border-subtle)" strokeWidth="2" fill="none" />
       <path d="M 28 196 C 90 180 250 180 312 196" stroke="var(--border-subtle)" strokeWidth="2" fill="none" />
       <rect x="28" y="42" width="284" height="146" rx="18" fill="rgba(93,170,210,0.13)" />
       <line x1="54" y1="116" x2="102" y2="116" stroke={CYAN} strokeWidth="1.1" opacity="0.65" markerEnd="url(#dg-current)" />
-      <text x="78" y="106" textAnchor="middle" fontSize="8" fill={CYAN}>prad</text>
+      <text x="78" y="106" textAnchor="middle" fontSize="8" fill={CYAN}>prąd</text>
 
       {/* dredger hull */}
       <rect x="136" y="76" width="68" height="56" rx="5" fill="var(--bg-secondary)" stroke="var(--border-subtle)" strokeWidth="1.4" />
       <rect x="150" y="61" width="40" height="16" rx="3" fill="var(--bg-card)" stroke="var(--border-subtle)" />
       <line x1="132" y1="84" x2="104" y2="60" stroke="var(--text-muted)" strokeWidth="1.3" strokeDasharray="4,3" />
       <line x1="204" y1="84" x2="236" y2="62" stroke="var(--text-muted)" strokeWidth="1.3" strokeDasharray="4,3" />
-      <text x="170" y="104" textAnchor="middle" fontSize="8.5" fill={TXT}>poglebiarka</text>
+      <text x="170" y="104" textAnchor="middle" fontSize="8.5" fill={TXT}>pogłębiarka</text>
       {ruOn && (
         <text x="170" y="116" textAnchor="middle" fontSize="7.5" fill={TXT2}>земснаряд</text>
       )}
@@ -469,12 +469,12 @@ export function DredgerPassDiagram() {
         <polygon points="226,128 235,137 226,146 217,137" />
       </g>
       <text x="258" y="75" fontSize="8.5" fontWeight="700" fill={GREEN}>2 zielone</text>
-      <text x="258" y="88" fontSize="8" fill={TXT2}>mijaj ta strona</text>
+      <text x="258" y="88" fontSize="8" fill={TXT2}>mijaj tą stroną</text>
 
       {/* safe route */}
       <Boat x={260} y={180} rot={0} color={GREEN} scale={0.9} />
       <path d="M 260 164 C 258 130 264 102 244 72" fill="none" stroke={GREEN} strokeWidth="1.6" strokeDasharray="5,4" markerEnd="url(#dg-route)" />
-      <text x="170" y="210" textAnchor="middle" fontSize="8.5" fill={TXT2}>egzamin: przejscie jest po stronie dwoch zielonych swiatel albo rombow</text>
+      <text x="170" y="210" textAnchor="middle" fontSize="8.5" fill={TXT2}>egzamin: przejście jest po stronie dwóch zielonych świateł albo rombów</text>
     </svg>
   );
 }
@@ -488,14 +488,14 @@ export function CableFerryDiagram() {
         <ArrowDef id="cf-route" color={YELLOW} />
         <ArrowDef id="cf-current" color={CYAN as string} />
       </defs>
-      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Prom linowy - lina pod woda</text>
+      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Prom linowy - lina pod wodą</text>
 
       {/* river */}
       <path d="M 22 40 C 90 54 250 54 318 40" stroke="var(--border-subtle)" strokeWidth="2" fill="none" />
       <path d="M 22 174 C 90 160 250 160 318 174" stroke="var(--border-subtle)" strokeWidth="2" fill="none" />
       <rect x="22" y="48" width="296" height="118" rx="18" fill="rgba(93,170,210,0.14)" />
       <line x1="48" y1="106" x2="94" y2="106" stroke={CYAN} strokeWidth="1.2" markerEnd="url(#cf-current)" opacity="0.7" />
-      <text x="72" y="96" textAnchor="middle" fontSize="8" fill={CYAN}>prad</text>
+      <text x="72" y="96" textAnchor="middle" fontSize="8" fill={CYAN}>prąd</text>
 
       {/* ferry and cable */}
       <line x1="72" y1="44" x2="268" y2="166" stroke={RED} strokeWidth="2" strokeDasharray="7,5" opacity="0.75" />
@@ -511,9 +511,9 @@ export function CableFerryDiagram() {
       <line x1="112" y1="122" x2="132" y2="146" stroke={RED} strokeWidth="3" strokeLinecap="round" />
       <line x1="132" y1="122" x2="112" y2="146" stroke={RED} strokeWidth="3" strokeLinecap="round" />
 
-      <text x="242" y="74" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={RED}>nie przechodz nad lina</text>
-      <text x="242" y="87" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'przepusc prom / пропусти' : 'przepusc prom'}</text>
-      <text x="170" y="200" textAnchor="middle" fontSize="8.5" fill={TXT2}>czekaj az prom zwolni tor, lina moze byc napieta pod powierzchnia</text>
+      <text x="242" y="74" textAnchor="middle" fontSize="8.5" fontWeight="700" fill={RED}>nie przechodź nad liną</text>
+      <text x="242" y="87" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'przepuść prom / пропусти' : 'przepuść prom'}</text>
+      <text x="170" y="200" textAnchor="middle" fontSize="8.5" fill={TXT2}>czekaj aż prom zwolni tor, lina może być napięta pod powierzchnią</text>
     </svg>
   );
 }
@@ -527,7 +527,7 @@ export function LockDiagram() {
         <ArrowDef id="lk-up" color={YELLOW} />
         <ArrowDef id="lk-in" color={GREEN} />
       </defs>
-      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Sluza - przekroj / шлюз в разрезе' : 'Sluza - przekroj'}</text>
+      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Śluza - przekrój / шлюз в разрезе' : 'Śluza - przekrój'}</text>
       {/* upper pound (left, high water) */}
       <rect x="20" y="60" width="102" height="110" fill="rgba(93,170,210,0.18)" />
       {/* chamber (mid level) */}
@@ -553,14 +553,14 @@ export function LockDiagram() {
       <rect x="258" y="68" width="10" height="24" rx="2" fill={BLACK} stroke="rgba(255,255,255,0.3)" />
       <circle cx="263" cy="75" r="2.8" fill={RED} opacity="0.35" />
       <circle cx="263" cy="85" r="2.8" fill={GREEN} />
-      <text x="263" y="104" textAnchor="middle" fontSize="7.5" fill={GREEN}>zielone = wejscie</text>
+      <text x="263" y="104" textAnchor="middle" fontSize="7.5" fill={GREEN}>zielone = wejście</text>
       {/* labels */}
-      <text x="68" y="54" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'gorna woda / верхний бьеф' : 'gorna woda'}</text>
+      <text x="68" y="54" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'górna woda / верхний бьеф' : 'górna woda'}</text>
       <text x="288" y="136" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'dolna woda / нижний' : 'dolna woda'}</text>
       <text x="186" y="164" textAnchor="middle" fontSize="8.5" fill={TXT}>{ruOn ? 'komora / камера' : 'komora'}</text>
       <text x="123" y="46" textAnchor="middle" fontSize="8" fill={TXT2}>wrota</text>
       <text x="250" y="56" textAnchor="middle" fontSize="8" fill={TXT2}>wrota</text>
-      <text x="170" y="190" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'cumy luzno, nie na glucho · bez kotwicy · концы не крепить наглухо' : 'cumy luzno, nie na glucho · bez kotwicy'}</text>
+      <text x="170" y="190" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'cumy luźno, nie na głucho · bez kotwicy · концы не крепить наглухо' : 'cumy luźno, nie na głucho · bez kotwicy'}</text>
     </svg>
   );
 }
@@ -579,9 +579,9 @@ export function OpenWaterDiagram() {
         <text x="160" y="113" textAnchor="middle" fontSize="8" fill={RED}>мель / камни</text>
       )}
       <CardinalPole x={160} y={26} type="N" />
-      <text x="196" y="42" fontSize="9" fill="var(--text-primary)">N - mijaj od polnocy</text>
+      <text x="196" y="42" fontSize="9" fill="var(--text-primary)">N - mijaj od północy</text>
       <CardinalPole x={160} y={140} type="S" />
-      <text x="196" y="158" fontSize="9" fill="var(--text-primary)">S - mijaj od poludnia</text>
+      <text x="196" y="158" fontSize="9" fill="var(--text-primary)">S - mijaj od południa</text>
       {/* safe tracks */}
       <path d="M 30 30 C 90 16 230 16 292 30" fill="none" stroke={GREEN} strokeWidth="1.6" strokeDasharray="6,4" markerEnd="url(#ow-g)" />
       <path d="M 30 186 C 90 200 230 200 292 186" fill="none" stroke={GREEN} strokeWidth="1.6" strokeDasharray="6,4" markerEnd="url(#ow-g)" />
@@ -608,7 +608,7 @@ export function PortEntryDiagram() {
       {/* boat path keeping right */}
       <Boat x={172} y={196} rot={-8} color={GREEN} />
       <path d="M 174 180 C 178 150 176 120 168 96" fill="none" stroke={CYAN} strokeWidth="1.4" strokeDasharray="4,3" markerEnd="url(#pe)" />
-      <text x="252" y="196" textAnchor="middle" fontSize="8.5" fill={TXT2}>mala predkosc · trzymaj prawej</text>
+      <text x="252" y="196" textAnchor="middle" fontSize="8.5" fill={TXT2}>mała prędkość · trzymaj prawej</text>
     </svg>
   );
 }
@@ -636,12 +636,12 @@ export function BoatTopDiagram() {
       <rect x="146" y="70" width="28" height="14" rx="3" fill="var(--bg-card)" stroke="var(--border-subtle)" />
       {/* engine on transom */}
       <rect x="150" y="158" width="20" height="16" rx="3" fill={BLACK} stroke="rgba(255,255,255,0.3)" />
-      <text x="160" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'DZIOB / нос' : 'DZIOB'}</text>
+      <text x="160" y="12" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'DZIÓB / нос' : 'DZIÓB'}</text>
       <text x="74" y="90" textAnchor="middle" fontSize="9" fontWeight="700" fill={RED}>BAKBURTA</text>
       <text x="74" y="101" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'lewa / красный' : 'lewa'}</text>
       <text x="248" y="90" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>STERBURTA</text>
       <text x="248" y="101" textAnchor="middle" fontSize="8" fill={TXT2}>{ruOn ? 'prawa / зелёный' : 'prawa'}</text>
-      <text x="160" y="186" textAnchor="middle" fontSize="9" fill={TXT}>{ruOn ? 'RUFA · PAWEZ (транец) + silnik' : 'RUFA · PAWEZ + silnik'}</text>
+      <text x="160" y="186" textAnchor="middle" fontSize="9" fill={TXT}>{ruOn ? 'RUFA · PAWĘŻ (транец) + silnik' : 'RUFA · PAWĘŻ + silnik'}</text>
     </svg>
   );
 }
@@ -671,14 +671,14 @@ export function BoatSideDiagram() {
       <text x="72" y="88" textAnchor="middle" fontSize="8.5" fill={TXT}>achterpik</text>
       {/* zeza lowest point */}
       <circle cx="188" cy="126" r="3" fill={YELLOW} />
-      <text x="188" y="146" textAnchor="middle" fontSize="8.5" fill={YELLOW}>{ruOn ? 'zeza (najnizej) / льяло' : 'zeza (najnizej)'}</text>
+      <text x="188" y="146" textAnchor="middle" fontSize="8.5" fill={YELLOW}>{ruOn ? 'zęza (najniżej) / льяло' : 'zęza (najniżej)'}</text>
       {/* keel */}
-      <text x="120" y="158" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'kil / stepka - киль' : 'kil / stepka'}</text>
+      <text x="120" y="158" textAnchor="middle" fontSize="8.5" fill={TXT2}>{ruOn ? 'kil / stępka - киль' : 'kil / stępka'}</text>
       {/* engine on transom (left = stern) */}
       <rect x="16" y="76" width="16" height="34" rx="3" fill={BLACK} stroke="rgba(255,255,255,0.3)" />
       <text x="24" y="126" textAnchor="middle" fontSize="8" fill={TXT2}>silnik</text>
       <text x="24" y="62" textAnchor="middle" fontSize="9" fontWeight="700" fill={TXT}>RUFA</text>
-      <text x="316" y="62" textAnchor="middle" fontSize="9" fontWeight="700" fill={TXT}>DZIOB</text>
+      <text x="316" y="62" textAnchor="middle" fontSize="9" fontWeight="700" fill={TXT}>DZIÓB</text>
     </svg>
   );
 }
@@ -694,11 +694,11 @@ export function FuelSystemDiagram() {
         <ArrowDef id="fs-c" color={CYAN as string} />
         <ArrowDef id="fs-g" color={GREEN} />
       </defs>
-      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Uklad paliwowy przed startem / топливо перед стартом' : 'Uklad paliwowy przed startem'}</text>
+      <text x="170" y="14" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>{ruOn ? 'Układ paliwowy przed startem / топливо перед стартом' : 'Układ paliwowy przed startem'}</text>
 
       {/* 1. air vent on the tank cap - must be opened */}
       <text x="52" y="30" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>1. odpowietrznik</text>
-      <text x="52" y="41" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'ODKRECIC / открути' : 'ODKRECIC'}</text>
+      <text x="52" y="41" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'ODKRĘCIĆ / открути' : 'ODKRĘCIĆ'}</text>
       <path d="M 57 58 A 7 7 0 1 1 71 60" fill="none" stroke={GREEN} strokeWidth="1.4" markerEnd="url(#fs-g)" />
       <rect x="50" y="66" width="26" height="10" rx="2" fill="var(--bg-card)" stroke="var(--border-subtle)" />
       <circle cx="63" cy="65" r="3.4" fill={YELLOW} stroke="rgba(0,0,0,0.35)" />
@@ -719,11 +719,11 @@ export function FuelSystemDiagram() {
       <ellipse cx="165" cy="150" rx="17" ry="11" fill="var(--bg-card)" stroke={GREEN} strokeWidth="1.4" />
       <path d="M 157 143 q -4 7 0 14 M 173 143 q 4 7 0 14" fill="none" stroke={GREEN} strokeWidth="1" opacity="0.7" />
       <text x="150" y="180" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>{ruOn ? '2. gruszka / груша' : '2. gruszka'}</text>
-      <text x="150" y="191" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'NAPOMPUJ do twardosci / до твёрдости' : 'NAPOMPUJ do twardosci'}</text>
+      <text x="150" y="191" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'NAPOMPUJ do twardości / до твёрдости' : 'NAPOMPUJ do twardości'}</text>
 
       {/* 3. fuel valve - open */}
-      <text x="240" y="118" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>{ruOn ? '3. zawor / кран' : '3. zawor'}</text>
-      <text x="240" y="129" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'OTWORZ / открой' : 'OTWORZ'}</text>
+      <text x="240" y="118" textAnchor="middle" fontSize="9" fontWeight="700" fill={GREEN}>{ruOn ? '3. zawór / кран' : '3. zawór'}</text>
+      <text x="240" y="129" textAnchor="middle" fontSize="8" fill={GREEN}>{ruOn ? 'OTWÓRZ / открой' : 'OTWÓRZ'}</text>
       <g fill="var(--bg-card)" stroke={TXT} strokeWidth="1">
         <polygon points="232,143 232,157 240,150" />
         <polygon points="248,143 248,157 240,150" />
@@ -737,7 +737,7 @@ export function FuelSystemDiagram() {
       <path d="M 296 184 L 308 184 L 312 194 L 292 194 Z" fill="var(--bg-card)" stroke="var(--border-subtle)" />
       <text x="302" y="138" textAnchor="middle" fontSize="8" fill={TXT}>silnik</text>
 
-      <text x="170" y="205" textAnchor="middle" fontSize="8" fill={TXT2}>4. luz (neutral) + linka na reke · 5. sruba w wodzie -&gt; start</text>
+      <text x="170" y="205" textAnchor="middle" fontSize="8" fill={TXT2}>4. luz (neutral) + linka na rękę · 5. śruba w wodzie -&gt; start</text>
     </svg>
   );
 }
@@ -754,7 +754,7 @@ export function PropWalkDiagram() {
         <ArrowDef id="pw-r" color={YELLOW} />
       </defs>
       {/* left panel: right-handed prop */}
-      <text x="80" y="18" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Sruba prawoskretna</text>
+      <text x="80" y="18" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Śruba prawoskrętna</text>
       <text x="80" y="30" textAnchor="middle" fontSize="8.5" fill={TXT2}>bieg WSTECZ (widok od rufy)</text>
       <path d="M50,52 L110,52 L104,96 L56,96 Z" fill="var(--bg-secondary)" stroke="var(--border-subtle)" strokeWidth="1.2" />
       <circle cx="80" cy="112" r="13" fill="none" stroke={TXT} strokeWidth="1.5" />
@@ -765,7 +765,7 @@ export function PropWalkDiagram() {
         <text x="80" y="163" textAnchor="middle" fontSize="8" fill={TXT2}>корма влево</text>
       )}
       {/* right panel: left-handed prop */}
-      <text x="240" y="18" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Sruba lewoskretna</text>
+      <text x="240" y="18" textAnchor="middle" fontSize="10" fontWeight="700" fill={CYAN}>Śruba lewoskrętna</text>
       <text x="240" y="30" textAnchor="middle" fontSize="8.5" fill={TXT2}>bieg WSTECZ (widok od rufy)</text>
       <path d="M210,52 L270,52 L264,96 L216,96 Z" fill="var(--bg-secondary)" stroke="var(--border-subtle)" strokeWidth="1.2" />
       <circle cx="240" cy="112" r="13" fill="none" stroke={TXT} strokeWidth="1.5" />
@@ -803,8 +803,8 @@ export function MobDiagram() {
         d="M 86 72 C 130 66 200 56 236 84 C 258 102 246 138 212 148 C 186 156 170 134 163 110"
         fill="none" stroke={GREEN} strokeWidth="1.5" strokeDasharray="5,4" markerEnd="url(#mob-p)"
       />
-      <text x="160" y="176" textAnchor="middle" fontSize="8.5" fill={TXT}>1. alarm + rzuc kolo · 2. obserwator nie spuszcza z oka</text>
-      <text x="160" y="190" textAnchor="middle" fontSize="8.5" fill={TXT}>3. podejscie POD WIATR, wolno · przy osobie silnik na luz/stop</text>
+      <text x="160" y="176" textAnchor="middle" fontSize="8.5" fill={TXT}>1. alarm + rzuć koło · 2. obserwator nie spuszcza z oka</text>
+      <text x="160" y="190" textAnchor="middle" fontSize="8.5" fill={TXT}>3. podejście POD WIATR, wolno · przy osobie silnik na luz/stop</text>
     </svg>
   );
 }

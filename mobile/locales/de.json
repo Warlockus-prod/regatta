@@ -1,0 +1,3 @@
+{
+  "NSMicrophoneUsageDescription": "Das Mikrofon wird im SRC-Funksimulator genutzt, um deine Sprechfunkrufe (MAYDAY, PAN-PAN) zu bewerten. Die Aufnahme dient nur der Bewertung und wird nicht gespeichert."
+}

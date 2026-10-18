@@ -7,6 +7,7 @@ import { getBootcampProgress, setCurrentLesson, type BootcampProgress } from "@/
 import { bootcampLessons } from "@/data/bootcamp";
 import { destinations, sections } from "@/lib/product/catalog";
 import { copy } from "@/lib/product/copy";
+import { appStoreUrl, trackAppStoreClick } from "@/lib/funnel";
 import styles from "@/components/product/Product.module.css";
 
 export default function Home() {
@@ -56,7 +57,7 @@ export default function Home() {
     </Link>)}</div>
     <div className={styles.quietLinks}>
       <Link href="/learn">{copy.exam[lang]} <span aria-hidden="true">→</span></Link>
-      <Link href="https://apps.apple.com/app/id6768134329">{copy.app[lang]} <span aria-hidden="true">↗</span></Link>
+      <Link href={appStoreUrl("web_home")} onClick={() => trackAppStoreClick("web_home")}>{copy.app[lang]} <span aria-hidden="true">↗</span></Link>
     </div>
   </div>;
 }

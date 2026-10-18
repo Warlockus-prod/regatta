@@ -16,6 +16,8 @@ export const AnalyticsEvent = {
   CoachRequested: 'coach_requested',
   AskSubmitted: 'ask_submitted',
   LessonCompleted: 'lesson_completed',
+  // Relayed from the embedded sternik / SRC mock-exam pages (see web-bridge.ts).
+  ExamFinished: 'exam_finished',
 } as const;
 
 export type AnalyticsEventName = (typeof AnalyticsEvent)[keyof typeof AnalyticsEvent];

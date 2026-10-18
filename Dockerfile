@@ -33,6 +33,9 @@ RUN addgroup --system --gid 1001 nodejs \
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/public ./public
+# Event retention job (docs/OPS.md), run with `docker exec regatta node
+# scripts/prune-events.mjs --dry-run`; uses the traced better-sqlite3 above.
+COPY --from=builder --chown=nextjs:nodejs /app/scripts/prune-events.mjs ./scripts/prune-events.mjs
 
 USER nextjs
 EXPOSE 3000

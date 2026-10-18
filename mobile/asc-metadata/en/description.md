@@ -1,57 +1,60 @@
-A calm, practical sailing tutor that gets you ready for your first race in seven days. No noise, no tracking, just the things you actually need on the water.
+Learn to sail and get ready for your first regatta in one focused week. Week to Regatta is a free sailing school in your pocket: short lessons, a sailing simulator built on real physics, races against bots and friends, and the racing rules explained with diagrams.
 
-THE 7-DAY ARC
+WHY SAILORS USE IT
 
-Eight focused lessons mapped to a 7-day plan:
+- One clear plan: 8 lessons over 7 days, from wind and points of sail to the start line.
+- A simulator that answers honestly: the yacht runs on a VPP physics model, the same family of math sail designers use.
+- Practice that sticks: drills for tacking, gybing, trim and wind shifts until they become automatic.
+- Completely free. No ads, no account, no paywall.
 
-Day 1. Wind, points of sail, and the first hand on the helm.
-Day 2. Sail trim and tell-tales. Reading the boat through your hands.
+THE 7-DAY PLAN
+
+Day 1. Wind, points of sail and the first hand on the helm.
+Day 2. Sail trim and tell-tales.
 Day 3. Tacking and gybing under control.
-Day 4. Heel, leeway, and how the boat actually moves.
-Day 5. Polar curves and finding your true target speed.
-Day 6. Race start, line, and the first beat.
-Day 7. Mark roundings, finish, and the pre-race checklist.
+Day 4. Heel, leeway and how the boat really moves.
+Day 5. Polars and your target speed.
+Day 6. The start, the line and the first beat.
+Day 7. Mark roundings, the finish and the pre-race checklist.
 
-A "Continue" hook on the home screen always points to the next thing you should open. You never have to think "what was I doing".
+The "Continue" button on the home screen always opens the next step, so you never wonder where you stopped.
 
-WHAT IS INSIDE
+SIMULATORS
 
-A real wind simulator. The boat uses a VPP (Velocity Prediction Program) physics engine, the same family of math used by professional sail designers. Move the wind sliders, change the sail trim and reef, and the boat answers honestly.
+- Basics: steer the boat and feel heel and leeway from the side, the top and the stern.
+- Trim trainer: sheet in, ease out, reef, and watch the speed respond.
+- 3D boat: look around the yacht and see the sail shape from any angle.
 
-A side-view, top-view, and rear-view of the same yacht so you can feel heel and leeway, not just read about them.
+RACE
 
-Drills and missions. Practice tack timing, the lift-and-header response, and the wind shift game until they are automatic.
+Race a short course against bots at three levels, or open a multiplayer race and invite friends. After the finish, an AI coach reviews your race and tells you what to fix next.
 
-An interactive yacht anatomy with 17 parts. Tap a hotspot, read the part, see it in a real photo poster, and learn the line that pulls it.
+LEARN THE BOAT AND THE RULES
 
-A glossary you can search. Halyard, hank, heel, helm, hike. Fifty-plus terms, in your pocket, offline.
+- Racing rules: 21 real situations with diagrams. Know who has right of way before the protest room does.
+- Yacht anatomy: 17 parts on an interactive boat, with the line that controls each one.
+- Glossary: 50+ sailing terms, searchable and offline.
+- First week on board: what to pack, what to ask the skipper, how to help the crew.
+- Pre-race checklist: tick it off the night before.
 
-Rules of the road, with diagrams. Know who has right of way before the protest committee asks you.
+POLISH CERTIFICATES (IN POLISH)
 
-A pre-race checklist. Hearing protection, watch, foul-weather bag, weather brief, sail plan. Tick it off the night before.
-
-BRAND PROMISE
-
-We believe one focused week of practice is the difference between watching a regatta and racing in one. The app is the calm voice next to you on day one of that week.
+- SRC marine radio: 324 official UKE exam questions and a voice simulator for MAYDAY and PAN-PAN calls.
+- Sternik motorowodny (motorboat helmsman): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes.
 
 PRIVACY
 
-No analytics.
-No tracking.
-No ads.
-All your progress stays on your device.
-
-You give the app nothing it does not need to teach you. There is no account, no email gate, no third-party SDK reading your data.
+No ads, no account, no tracking across apps. Your progress stays on your device. The app sends only anonymous usage statistics, and you can switch them off in Settings.
 
 LANGUAGES
 
-Russian, English, Polish, Spanish, French, German, Italian. The same content, the same tone, in your language.
+English, Polish, German, Spanish, French, Italian and Russian.
 
 WHO IT IS FOR
 
-First-time racers signing up for a club series.
-Cruisers who want to start racing.
-Crew who joined a boat last week and have a regatta on the calendar.
-Anyone who likes sailing and wants the vocabulary, the physics, and the muscle memory in one place.
+- First-time racers signing up for a club series.
+- Cruisers who want to start racing.
+- New crew with a regatta on the calendar.
+- Anyone preparing for a Polish SRC or motorboat licence exam.
 
-Open it. Start Day 1. We will see you on the start line.
+Open Day 1. See you on the start line.

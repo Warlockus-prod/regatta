@@ -7,7 +7,7 @@ import { SternikPrefsProvider, SternikLangScope, ExplLangHint } from './prefs';
 export const metadata: Metadata = {
   title: 'Sternik motorowodny - przygotowanie do egzaminu | Week to Regatta',
   description:
-    'Darmowe przygotowanie do egzaminu na patent sternika motorowodnego: konspekt teorii ze schematami, trening pytan z natychmiastowa odpowiedzia i probny egzamin 75 pytan / 90 minut. Komentarze po rosyjsku.',
+    'Darmowe przygotowanie do egzaminu na patent sternika motorowodnego: konspekt teorii ze schematami, trening pytań z natychmiastową odpowiedzią i próbny egzamin 75 pytań / 90 minut. Komentarze po rosyjsku.',
   keywords: [
     'sternik motorowodny', 'egzamin', 'patent motorowodny', 'test', 'pytania egzaminacyjne',
     'znaki kardynalne', 'prawo drogi', 'PZMWiNW',

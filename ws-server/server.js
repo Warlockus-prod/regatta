@@ -9,6 +9,7 @@
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import * as P from './race-physics.js';
+import { clientIpFrom, roomCreateBlock, MAX_ROOMS } from './limits.js';
 
 const PORT = Number(process.env.PORT || 3001);
 const NEXT_INTERNAL_URL = process.env.NEXT_INTERNAL_URL || 'http://regatta:3000';
@@ -63,11 +64,12 @@ function genPlayerId() {
              + Math.random().toString(36).slice(2, 6);
 }
 
-function newRoom(hostSid, hostId) {
+function newRoom(hostSid, hostId, creatorIp) {
   let code;
   do { code = randCode(); } while (rooms.has(code));
   const room = {
     code,
+    creatorIp,               // for the per-IP room cap (limits.js)
     hostSid,
     hostId,
     phase: 'lobby',
@@ -386,6 +388,10 @@ async function submitResultsToLeaderboard(room) {
         headers: {
           'Content-Type': 'application/json',
           'Cookie': `regatta_sid=${encodeURIComponent(p.sid)}`,
+          // The player's own IP (as nginx gave it to us), so /api/race-result
+          // limits each player by IP instead of lumping every multiplayer
+          // result under this server's address.
+          ...(p.ip && p.ip !== 'unknown' ? { 'X-Forwarded-For': p.ip } : {}),
         },
         body: JSON.stringify(body),
       });
@@ -440,11 +446,13 @@ setInterval(() => {
 
 // ------------------------------ WS handlers ------------------------------
 
-const wss = new WebSocketServer({ server: http });
+// maxPayload: the library default is 100 MiB, buffered in full before the
+// 4 KB check in the message handler runs. Refuse big frames at the socket.
+const wss = new WebSocketServer({ server: http, maxPayload: 4096 });
 
 wss.on('connection', (ws, req) => {
-  const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
-    .toString().split(',')[0].trim();
+  // LAST X-Forwarded-For hop: the first one is whatever the client sent.
+  const ip = clientIpFrom(req.headers['x-forwarded-for'], req.socket.remoteAddress);
   if (!allowConnect(ip)) {
     try { ws.close(1008, 'rate-limit'); } catch {}
     return;
@@ -452,6 +460,13 @@ wss.on('connection', (ws, req) => {
   let playerId = null;
   let roomCode = null;
   let sid = null;
+
+  // A malformed or oversized frame makes `ws` emit 'error' on the socket.
+  // Without a listener that is an uncaught exception that kills the whole
+  // server (every room). The library closes the socket itself; just log it.
+  ws.on('error', (err) => {
+    console.warn(`[regatta-ws] socket error from ${ip}: ${err?.message || err}`);
+  });
 
   ws.on('message', (raw) => {
     if (!allowMessage(ip)) return;
@@ -465,13 +480,18 @@ wss.on('connection', (ws, req) => {
     switch (msg.type) {
       case 'create': {
         if (roomCode) return;
+        const blocked = roomCreateBlock(rooms, ip);
+        if (blocked) {
+          sendJson(ws, { type: 'error', code: blocked, message: blocked === 'server-full' ? 'Server is full, try again later' : 'Too many rooms from your network' });
+          return;
+        }
         sid = String(msg.sid || ('s' + Math.random().toString(36).slice(2, 10)));
         playerId = genPlayerId();
         const nickname = String(msg.nickname || 'Player').slice(0, 20);
-        const r = newRoom(sid, playerId);
+        const r = newRoom(sid, playerId, ip);
         const boat = spawnBoat(r, playerId, nickname, 0);
         r.players.set(playerId, {
-          ws, id: playerId, sid, nickname,
+          ws, id: playerId, sid, ip, nickname,
           boat, input: { turn: 0 }, ready: false,
           isBot: false, connectedOrGrace: true,
         });
@@ -493,6 +513,7 @@ wss.on('connection', (ws, req) => {
         if (existing) {
           const oldSocket = existing.ws;
           existing.ws = ws;
+          existing.ip = ip;
           if (oldSocket && oldSocket !== ws) oldSocket.close(1000, "session-resumed");
           existing.input.turn = 0;
           existing.connectedOrGrace = true;
@@ -516,7 +537,7 @@ wss.on('connection', (ws, req) => {
         const idx = r.players.size + r.aiBots.length;
         const boat = spawnBoat(r, playerId, nickname, idx);
         r.players.set(playerId, {
-          ws, id: playerId, sid, nickname,
+          ws, id: playerId, sid, ip, nickname,
           boat, input: { turn: 0 }, ready: false,
           isBot: false, connectedOrGrace: true,
         });
@@ -664,5 +685,5 @@ wss.on('connection', (ws, req) => {
 });
 
 http.listen(PORT, () => {
-  console.log(`[regatta-ws] listening on :${PORT}  tick=${TICK_HZ}Hz  max=${MAX_PLAYERS_PER_ROOM}/room  grace=${RECONNECT_GRACE_MS}ms`);
+  console.log(`[regatta-ws] listening on :${PORT}  tick=${TICK_HZ}Hz  max=${MAX_PLAYERS_PER_ROOM}/room  rooms<=${MAX_ROOMS}  grace=${RECONNECT_GRACE_MS}ms`);
 });

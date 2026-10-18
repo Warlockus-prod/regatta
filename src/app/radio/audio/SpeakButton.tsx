@@ -13,7 +13,7 @@ export function SpeakButton({
 }: {
   /** Exactly what to speak (clean, no placeholders or slashes). */
   text: string;
-  /** Accessible label, e.g. tp('Прослушать', 'Listen', 'Posluchaj'). */
+  /** Accessible label, e.g. tp('Прослушать', 'Listen', 'Posłuchaj'). */
   label: string;
   size?: number;
 }) {

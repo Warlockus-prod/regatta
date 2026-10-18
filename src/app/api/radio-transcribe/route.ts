@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
 
 // ============================================================================
 // Transcription without grading: "what did the model actually hear?"
@@ -51,9 +51,9 @@ export async function POST(req: Request) {
 
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req);
+  const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  const daily = checkUserDailyBudget(sid ?? ip);
+  const daily = checkUserDailyBudget(client);
   if (!daily.ok) {
     return NextResponse.json(
       { error: `Dzienny limit ${USER_DAILY_AI_LIMIT} zapytan AI wyczerpany.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
@@ -62,7 +62,8 @@ export async function POST(req: Request) {
   }
 
   const rl = rateLimitWithGlobal({
-    key: 'radio-transcribe:' + (sid ?? ip),
+    key: 'radio-transcribe',
+    client,
     perKeyLimit: LIMIT,
     perKeyWindowMs: WINDOW_MS,
     globalKey: 'radio-transcribe',

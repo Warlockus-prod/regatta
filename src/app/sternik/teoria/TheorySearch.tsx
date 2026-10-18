@@ -123,7 +123,7 @@ export default function TheorySearch() {
       </div>
       {query.trim().length >= 2 && matches.length === 0 && (
         <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>
-          {tp('Ничего не найдено', 'No matches', 'Brak wynikow')}
+          {tp('Ничего не найдено', 'No matches', 'Brak wyników')}
         </div>
       )}
     </div>

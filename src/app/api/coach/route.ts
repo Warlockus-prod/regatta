@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { insertEvent } from '@/lib/db';
 import { mirrorCoachKeys, type Coaching } from '@/lib/fallback-coach';
+import { sanitizeRaceLog, type RaceLog } from './sanitize';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -241,38 +242,6 @@ Regole:
 - TIPOGRAFIA: non usare mai trattino lungo (U+2014) o trattino medio (U+2013). Usa il trattino semplice "-".`,
 };
 
-interface LogEvent {
-  type: 'mark-rounded' | 'tack' | 'finish' | 'no-go-entered' | 'start';
-  t: number;
-  note?: string;
-}
-
-interface LogSample {
-  t: number;
-  x: number;
-  y: number;
-  heading: number;
-  twa: number;
-  speed: number;
-  lap: number;
-}
-
-interface RaceLog {
-  difficulty: string;
-  courseInfo: { windDirection: number; windwardMark: { x: number; y: number }; startY: number };
-  finishTime: number | null;
-  position: number;
-  totalBoats: number;
-  samples: LogSample[];
-  events: LogEvent[];
-  /**
-   * Language for coaching output. All seven (ru/en/pl/es/fr/de/it) have
-   * native system prompts since 2026-04-25. Unknown values fall back to
-   * the English prompt.
-   */
-  lang?: 'ru' | 'en' | 'pl' | 'es' | 'fr' | 'de' | 'it';
-}
-
 export async function POST(req: Request) {
   const started = Date.now();
   const apiKey = process.env.OPENAI_API_KEY;
@@ -286,10 +255,10 @@ export async function POST(req: Request) {
 
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
+  const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
   // Site-wide per-user daily AI cap (shared across all AI endpoints).
-  const daily = checkUserDailyBudget(sid ?? ip);
+  const daily = checkUserDailyBudget(client);
   if (!daily.ok) {
     logWarn('coach.daily-cap', { resetMs: daily.resetMs });
     return NextResponse.json(
@@ -298,9 +267,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const rlKey = 'coach:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
-    key: rlKey,
+    key: 'coach',
+    client,
     perKeyLimit: COACH_LIMIT,
     perKeyWindowMs: COACH_WINDOW_MS,
     globalKey: 'coach',
@@ -308,57 +277,37 @@ export async function POST(req: Request) {
     globalWindowMs: COACH_GLOBAL_WINDOW_MS,
   });
   if (!rl.ok) {
-    logWarn('coach.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs, by: rl.rejectedBy });
+    logWarn('coach.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
       { error: 'Too many coach requests', fallback: true, retryAfterSec: Math.ceil(rl.resetMs / 1000) },
       { status: 429, headers: { ...rateLimitHeaders(rl, COACH_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
     );
   }
 
-  let log: RaceLog;
+  let raw: unknown;
   try {
-    log = await req.json();
+    raw = await req.json();
   } catch (err) {
     logError('coach.invalid-json', { err: err instanceof Error ? err.message : 'unknown' });
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
   }
 
-  // Validate shape before touching log.samples / log.courseInfo, so a malformed
-  // body returns a clean 400 instead of throwing into the generic 500 handler.
-  if (
-    !log ||
-    typeof log !== 'object' ||
-    !Array.isArray(log.samples) ||
-    !log.courseInfo ||
-    typeof log.courseInfo !== 'object'
-  ) {
+  // Validate and coerce before anything touches the log: shape check, size
+  // caps (MAX_SAMPLES / MAX_EVENTS bound token-burn against the wallet), and
+  // every field that reaches the prompt forced to a finite number, an enum or
+  // a clipped string. A malformed body gets a clean 400/413 instead of a
+  // throw into the generic 500 handler, and free text can only enter the
+  // prompt through the 80-char event note.
+  const sanitized = sanitizeRaceLog(raw);
+  if (!sanitized.ok) {
+    if (sanitized.status === 413) {
+      logWarn('coach.input-too-large');
+      return NextResponse.json({ error: 'Race log too large', fallback: true }, { status: 413 });
+    }
     logWarn('coach.bad-request');
     return NextResponse.json({ error: 'bad request' }, { status: 400 });
   }
-
-  // Bound input size: cap arrays and clamp each event note. Limits prompt
-  // token-burn against the wallet and shrinks the prompt-injection surface a
-  // free-text `note` would otherwise open. Also normalizes events into a safe
-  // array so the prompt builder below can't throw on a missing/!array field.
-  const MAX_SAMPLES = 4000;
-  const MAX_EVENTS = 200;
-  if (
-    log.samples.length > MAX_SAMPLES ||
-    (Array.isArray(log.events) && log.events.length > MAX_EVENTS)
-  ) {
-    logWarn('coach.input-too-large', {
-      samples: log.samples.length,
-      events: Array.isArray(log.events) ? log.events.length : 0,
-    });
-    return NextResponse.json({ error: 'Race log too large', fallback: true }, { status: 413 });
-  }
-  log.events = (Array.isArray(log.events) ? log.events : [])
-    .slice(0, MAX_EVENTS)
-    .map((e) => ({
-      type: e.type,
-      t: e.t,
-      note: typeof e.note === 'string' ? e.note.slice(0, 80) : undefined,
-    }));
+  const log: RaceLog = sanitized.log;
 
   // All 7 langs (ru/en/pl/es/fr/de/it) have native system prompts above, so
   // the coach output now matches the user's UI lang directly. Unknown values
@@ -401,13 +350,18 @@ export async function POST(req: Request) {
     },
   });
 
-  // Downsample samples to keep prompt small (~1 sample per 2 seconds)
-  const downsampled = log.samples.filter((_, i) => i % 4 === 0);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 28_000);
+  try {
+    // Built inside the try: sanitizeRaceLog() makes it throw-free, and any
+    // surprise still lands in the logged 500 path, not an unhandled reject.
+    // Downsample samples to keep prompt small (~1 sample per 2 seconds)
+    const downsampled = log.samples.filter((_, i) => i % 4 === 0);
 
-  // User-message uses English labels (universal, model parses them identically
-  // across languages; only the coach's *output* language is driven by the
-  // system prompt chosen below).
-  const userMsg = `Race finished.
+    // User-message uses English labels (universal, model parses them identically
+    // across languages; only the coach's *output* language is driven by the
+    // system prompt chosen below).
+    const userMsg = `Race finished.
 
 Difficulty: ${log.difficulty}
 Place: ${log.position} of ${log.totalBoats}
@@ -424,9 +378,6 @@ ${downsampled.map((s) => `t=${s.t.toFixed(1)} pos=(${s.x.toFixed(0)},${s.y.toFix
 
 Analyse how the player did. Return ONLY JSON, with no commentary before or after.`;
 
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 28_000);
-  try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {

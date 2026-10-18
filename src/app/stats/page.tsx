@@ -1,4 +1,7 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
+import { notFound } from 'next/navigation';
+import { checkAdminAuth } from '@/lib/admin-auth';
 import { listFeedback, type FeedbackRow } from '@/lib/db';
 import FeedbackAdmin from './FeedbackAdmin';
 import StatsDashboard from './StatsDashboard';
@@ -19,7 +22,12 @@ export const metadata: Metadata = {
   },
 };
 
-export default function StatsPage() {
+export default async function StatsPage() {
+  // src/proxy.ts answers 401 with the Basic-Auth challenge before this runs.
+  // Re-checked here so the page never renders analytics if the proxy is
+  // bypassed or its matcher changes; a page cannot send 401, so 404.
+  if (checkAdminAuth((await headers()).get('authorization')) !== 'ok') notFound();
+
   let feedback: FeedbackRow[] = [];
   try {
     feedback = listFeedback(100);

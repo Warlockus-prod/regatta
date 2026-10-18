@@ -1,1 +1,1 @@
-segeln,regatta,yacht,rennen,wind,taktik,bootcamp,simulator,glossar,anatomie
+segelkurs,segelschule,yacht,segelboot,trimm,wind,wende,halse,vorfahrt,wettfahrt,spiel,quiz,skipper

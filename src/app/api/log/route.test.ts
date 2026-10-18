@@ -100,13 +100,101 @@ describe('POST /api/log - privacy + meta hardening', () => {
     expect(arg.meta.nested).toBeUndefined();
   });
 
-  it('drops oversized meta rather than storing an unbounded blob', async () => {
+  it('refuses bodies over 16 KB without touching the DB', async () => {
     const huge = 'x'.repeat(20_000);
-    await POST(makeReq({ level: 'info', evt: 'page.view', message: huge }));
+    const res = await POST(makeReq({ level: 'info', evt: 'page.view', message: huge }));
+    expect(res.status).toBe(413);
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it('caps string columns so one event cannot store an unbounded row', async () => {
+    const long = 'p'.repeat(5_000);
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: long, referrer: long, viewport: long }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.path.length).toBe(256);
+    expect(arg.referrer.length).toBe(512);
+    expect(arg.viewport.length).toBe(32);
+  });
+
+  it('truncates long allow-listed meta strings to 512 chars', async () => {
+    const big = 'x'.repeat(10_000);
+    await POST(makeReq({ level: 'info', evt: 'page.view', message: big }));
     const arg = mocks.db.insertEvent.mock.calls[0][0];
     // message is allow-listed but truncated to 512 chars, so the object stays
     // well under the 4KB cap and is still stored.
     expect(arg.meta).toBeDefined();
     expect((arg.meta.message as string).length).toBe(512);
+  });
+});
+
+describe('POST /api/log - event allow-list', () => {
+  it('drops an unknown event name without storing it', async () => {
+    const res = await POST(makeReq({ level: 'info', evt: 'totally.made.up', path: '/' }));
+    expect(res.status).toBe(204);
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it('drops a forged server-side event (race.finish is written by its own route)', async () => {
+    await POST(makeReq({ level: 'info', evt: 'race.finish', finishTimeSec: 1 }));
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it('drops a request with no evt at all', async () => {
+    await POST(makeReq({ level: 'info', path: '/' }));
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it('stores embed + client on page.view', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/sternik', embed: true, client: 'app' }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.evt).toBe('page.view');
+    expect(arg.meta.embed).toBe(true);
+    expect(arg.meta.client).toBe('app');
+  });
+
+  it('drops an invalid client value but keeps the event', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/', client: 'android-tv', embed: 'yes' }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.meta.client).toBeUndefined();
+    expect(arg.meta.embed).toBeUndefined();
+  });
+
+  it('stores a validated exam.finish result', async () => {
+    await POST(makeReq({
+      level: 'info', evt: 'exam.finish', path: '/sternik/egzamin',
+      base: 'sternik', score: 66, total: 75, passed: true, timedOut: false, durationSec: 3120, client: 'web',
+    }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.evt).toBe('exam.finish');
+    expect(arg.meta).toMatchObject({ base: 'sternik', score: 66, total: 75, passed: true, timedOut: false, durationSec: 3120 });
+  });
+
+  it('drops out-of-range or wrongly typed exam fields', async () => {
+    await POST(makeReq({
+      level: 'info', evt: 'exam.finish', base: 'ppl', score: -1, total: '75', passed: 'true', durationSec: 1.5,
+    }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    for (const key of ['base', 'score', 'total', 'passed', 'durationSec']) {
+      expect(arg.meta?.[key]).toBeUndefined();
+    }
+  });
+
+  it('only keeps the fields that belong to the event', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/', score: 10, lessonId: 'x' }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.meta.score).toBeUndefined();
+    expect(arg.meta.lessonId).toBeUndefined();
+  });
+
+  it('stores lesson.complete, radio.task.complete and app_store.click fields', async () => {
+    await POST(makeReq({ level: 'info', evt: 'lesson.complete', course: 'sails', lessonId: 'telltales' }));
+    await POST(makeReq({ level: 'info', evt: 'radio.task.complete', taskId: 'mayday-fire', score: 85 }));
+    await POST(makeReq({ level: 'info', evt: 'app_store.click', ct: 'web_home' }));
+    await POST(makeReq({ level: 'info', evt: 'app_store.click', ct: 'Web Home!' }));
+    const metas = mocks.db.insertEvent.mock.calls.map((c) => c[0].meta);
+    expect(metas[0]).toMatchObject({ course: 'sails', lessonId: 'telltales' });
+    expect(metas[1]).toMatchObject({ taskId: 'mayday-fire', score: 85 });
+    expect(metas[2]).toMatchObject({ ct: 'web_home' });
+    expect(metas[3]?.ct).toBeUndefined();
   });
 });

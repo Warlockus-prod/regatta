@@ -22,7 +22,17 @@
       "buildNumber": "44",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSMicrophoneUsageDescription": "Mikrofon jest uzywany w symulatorze radia SRC do oceny transmisji glosowych (MAYDAY, PAN-PAN). Nagranie sluzy wylacznie do oceny i nie jest przechowywane."
+        "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN). The recording is used only for grading and is not stored.",
+        "CFBundleDevelopmentRegion": "en",
+        "CFBundleLocalizations": [
+          "en",
+          "ru",
+          "pl",
+          "de",
+          "es",
+          "fr",
+          "it"
+        ]
       }
     },
     "android": {
@@ -63,7 +73,7 @@
                   ]
                 },
                 {
-                  "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeCrashData",
+                  "NSPrivacyCollectedDataType": "NSPrivacyCollectedDataTypeOtherDiagnosticData",
                   "NSPrivacyCollectedDataTypeLinked": false,
                   "NSPrivacyCollectedDataTypeTracking": false,
                   "NSPrivacyCollectedDataTypePurposes": [
@@ -101,6 +111,15 @@
           }
         }
       ]
-    ]
+    ],
+    "locales": {
+      "en": "./locales/en.json",
+      "ru": "./locales/ru.json",
+      "pl": "./locales/pl.json",
+      "de": "./locales/de.json",
+      "es": "./locales/es.json",
+      "fr": "./locales/fr.json",
+      "it": "./locales/it.json"
+    }
   }
 }

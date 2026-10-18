@@ -25,8 +25,8 @@ export default function PrivacyPage() {
             { es: 'Política de privacidad', fr: 'Politique de confidentialité', de: 'Datenschutzerklärung', it: 'Informativa sulla privacy' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
-          {tp('Обновлено: 2026-07-10', 'Updated: 2026-07-10', 'Aktualizacja: 2026-07-10',
-            { es: 'Actualizado: 2026-07-10', fr: 'Mis à jour : 2026-07-10', de: 'Aktualisiert: 2026-07-10', it: 'Aggiornato: 2026-07-10' })}
+          {tp('Обновлено: 2026-10-18', 'Updated: 2026-10-18', 'Aktualizacja: 2026-10-18',
+            { es: 'Actualizado: 2026-10-18', fr: 'Mis à jour : 2026-10-18', de: 'Aktualisiert: 2026-10-18', it: 'Aggiornato: 2026-10-18' })}
         </p>
       </div>
 
@@ -78,6 +78,19 @@ export default function PrivacyPage() {
                   fr: "Événements techniques : ouvertures de pages, erreurs JavaScript, taille de la fenêtre, langue du navigateur, type d'appareil. Conservés dans notre base de données pour analyser la stabilité.",
                   de: 'Technische Ereignisse: Seitenaufrufe, JavaScript-Fehler, Fenstergröße, Browsersprache, Gerätetyp. Gespeichert in unserer Datenbank zur Stabilitätsanalyse.',
                   it: "Eventi tecnici: aperture di pagine, errori JavaScript, dimensione della finestra, lingua del browser, tipo di dispositivo. Salvati nel nostro database per l'analisi della stabilità.",
+                },
+              )}
+            </li>
+            <li>
+              {tp(
+                'Учебные события: пробный экзамен начат и завершен (балл, сдан или нет), пройденные уроки и задания по радио, переход в App Store и то, открыта ли страница внутри приложения. Без имени и без твоих ответов. Сырые события хранятся 180 дней, затем удаляются.',
+                'Learning events: mock exam started and finished (score, passed or not), lessons and radio tasks completed, App Store link clicks, and whether a page was opened inside the app. No name and none of your answers. Raw events are kept for 180 days, then deleted.',
+                'Zdarzenia nauki: rozpoczęcie i ukończenie egzaminu próbnego (wynik, zdany czy nie), ukończone lekcje i zadania radiowe, kliknięcia linku do App Store oraz to, czy strona została otwarta w aplikacji. Bez imienia i bez twoich odpowiedzi. Surowe zdarzenia przechowujemy 180 dni, potem je usuwamy.',
+                {
+                  es: 'Eventos de aprendizaje: inicio y fin del examen de prueba (puntuación, aprobado o no), lecciones y tareas de radio completadas, clics en el enlace de la App Store y si la página se abrió dentro de la app. Sin nombre y sin tus respuestas. Los eventos sin procesar se conservan 180 días y después se eliminan.',
+                  fr: "Événements d'apprentissage : début et fin de l'examen blanc (score, réussi ou non), leçons et exercices radio terminés, clics sur le lien App Store et ouverture de la page dans l'application. Sans nom et sans tes réponses. Les événements bruts sont conservés 180 jours, puis supprimés.",
+                  de: 'Lernereignisse: Probeprüfung begonnen und beendet (Punktzahl, bestanden oder nicht), abgeschlossene Lektionen und Funkaufgaben, Klicks auf den App-Store-Link und ob eine Seite in der App geöffnet wurde. Ohne Namen und ohne deine Antworten. Die Rohdaten werden 180 Tage aufbewahrt und dann gelöscht.',
+                  it: "Eventi di apprendimento: inizio e fine dell'esame di prova (punteggio, superato o no), lezioni e compiti radio completati, clic sul link dell'App Store e se la pagina è stata aperta nell'app. Senza nome e senza le tue risposte. Gli eventi grezzi sono conservati per 180 giorni, poi cancellati.",
                 },
               )}
             </li>

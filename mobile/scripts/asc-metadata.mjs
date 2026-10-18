@@ -14,6 +14,7 @@
  *   node scripts/asc-metadata.mjs                 # apply changes
  *   node scripts/asc-metadata.mjs --lang en,ru    # only these locales
  *   node scripts/asc-metadata.mjs --version 1.0.0 # target a specific version
+ *   node scripts/asc-metadata.mjs --promo-only    # promotional text on the LIVE version
  *
  * Behaviour notes:
  * - The script targets the latest App Store version that is in an
@@ -29,6 +30,9 @@
  * - `support_url.txt` and `marketing_url.txt` are stored in the
  *   per-locale `appStoreVersionLocalizations` record.
  * - `keywords.txt` is also per-locale on the App Store version.
+ * - `--promo-only` PATCHes only `promotionalText` on the version that is
+ *   READY_FOR_SALE: Apple lets promotional text change at any time without
+ *   a new version or review. Locales missing on the live version are skipped.
  * - `description.md` is uploaded as plain text - ASC strips Markdown
  *   on its end. The `.md` extension is for repo readability.
  *
@@ -106,6 +110,7 @@ const DRY_RUN = flag('--dry-run');
 const VERBOSE = flag('--verbose') || flag('-v');
 const LANG_FILTER = (value('--lang') || '').split(',').map((s) => s.trim()).filter(Boolean);
 const VERSION_FILTER = value('--version');
+const PROMO_ONLY = flag('--promo-only');
 
 // ---------- Locale map ----------
 //
@@ -114,6 +119,9 @@ const VERSION_FILTER = value('--version');
 const LOCALES = [
   { fs: 'ru', asc: 'ru' },
   { fs: 'en', asc: 'en-US' },
+  // Second English locale: its own 100-character keyword field, indexed by
+  // the UK and many European storefronts alongside their local language.
+  { fs: 'en-GB', asc: 'en-GB' },
   { fs: 'pl', asc: 'pl' },
   { fs: 'es', asc: 'es-ES' },
   { fs: 'fr', asc: 'fr-FR' },
@@ -182,6 +190,11 @@ async function pickTargetVersion() {
   if (!versions.length) {
     console.log('[asc] no app store versions found - create one in ASC web UI first');
     return null;
+  }
+  if (PROMO_ONLY) {
+    const live = versions.find((v) => v.attributes.appStoreState === 'READY_FOR_SALE');
+    if (!live) console.log('[asc] no READY_FOR_SALE version for --promo-only');
+    return live || null;
   }
   if (VERSION_FILTER) {
     const hit = versions.find((v) => v.attributes.versionString === VERSION_FILTER);
@@ -424,7 +437,13 @@ async function main() {
     logHeader(`locale ${loc.fs} -> ${loc.asc}`);
 
     // Version-level fields.
-    const vDiffs = buildVersionLocDiff(local, versionRemote);
+    if (PROMO_ONLY && !versionRemote) {
+      console.log(`  [version] ${loc.asc} not on the live version, skipped`);
+      continue;
+    }
+    const vDiffs = buildVersionLocDiff(local, versionRemote).filter(
+      (d) => !PROMO_ONLY || d.field === 'promotionalText',
+    );
     if (vDiffs.length === 0) {
       console.log(`  [version] in sync`);
     } else {
@@ -446,7 +465,7 @@ async function main() {
     }
 
     // App-info-level fields (name, subtitle).
-    if (appInfo) {
+    if (appInfo && !PROMO_ONLY) {
       const aDiffs = buildAppInfoLocDiff(local, appInfoRemote);
       if (aDiffs.length === 0) {
         console.log(`  [appInfo] in sync`);

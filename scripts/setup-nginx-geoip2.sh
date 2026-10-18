@@ -144,7 +144,7 @@ echo "  - /api/health -> $HEALTH"
 cat <<MSG
 
 Setup complete. Verify in /stats:
-  1. Open https://regatta.icoffio.com/stats (basic auth: admin:regattA)
+  1. Open https://regatta.icoffio.com/stats (basic auth: admin + ADMIN_PASSWORD from the VPS .env)
   2. Browse the site once from any external client (your phone, etc.)
   3. The "Countries" panel should populate within ~30 seconds.
 

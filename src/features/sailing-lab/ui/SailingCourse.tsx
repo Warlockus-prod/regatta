@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { useI18n } from "../../../lib/i18n";
 import { destinations } from "../../../lib/product/catalog";
 import { copy } from "../../../lib/product/copy";
+import { trackLessonComplete } from "../../../lib/funnel";
 import { findSailLesson, sailCourse, sailLessons } from "../../../data/sailing-lab/course";
 import { checkSailTheory, emptySailProgress, nextSailLesson, readSailProgress, SAIL_PROGRESS_KEY, type SailProgress } from "../lessons/progress";
 import { diagramCopy, diagramOptions, diagramReadout, sailDiagram } from "../lessons/diagrams";
@@ -30,6 +31,7 @@ export function SailingCourse({ lessonId }: { lessonId?: string }) {
     const updated = checkSailTheory(progress, lesson.id, answer);
     try { localStorage.setItem(SAIL_PROGRESS_KEY, JSON.stringify(updated)); setProgress(updated); setStorageError(false); }
     catch { setStorageError(true); }
+    if (updated.checked.length > progress.checked.length) trackLessonComplete("sails", lesson.id);
   };
   if (lessonId && !lesson) return <article className={styles.page}><h1>{copy.empty[lang]}</h1><Link href="/learn/sails">{sailCourse.back[lang]}</Link></article>;
   if (!lesson) return <article className={styles.page}>

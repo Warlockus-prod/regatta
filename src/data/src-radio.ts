@@ -1380,7 +1380,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "STOP"
   ],
   "correct": 0,
-  "whyPl": "Sposrod podanych opcji najlepsza jest OVER AND OUT, ale scisle proceduralnie zakonczenie lacznosci sygnalizuje sie slowem OUT; 'over and out' laczy dwa sprzeczne zwroty.",
+  "whyPl": "Spośród podanych opcji najlepsza jest OVER AND OUT, ale ściśle proceduralnie zakończenie łączności sygnalizuje się słowem OUT; 'over and out' łączy dwa sprzeczne zwroty.",
   "confidence": "sure"
  },
  {
@@ -1484,7 +1484,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "tylko w paśmie częstotliwości VHF"
   ],
   "correct": 1,
-  "whyPl": "Definicja z rozporzadzenia (Dz.U. 2015 poz. 99, par. 3 pkt 8): swiadectwo SRC uprawnia do obslugi urzadzen radiowych wykorzystujacych czestotliwosci i techniki stosowane w GMDSS na statkach morskich niepodlegajacych Konwencji SOLAS, na obszarze morza A1. Pytanie cytuje definicje doslownie, a konczy ja zwrot 'na obszarze morza A1'. Odpowiedz 'tylko w pasmie VHF' to stara wersja z poprzedniego banku pytan.",
+  "whyPl": "Definicja z rozporządzenia (Dz.U. 2015 poz. 99, par. 3 pkt 8): świadectwo SRC uprawnia do obsługi urządzeń radiowych wykorzystujących częstotliwości i techniki stosowane w GMDSS na statkach morskich niepodlegających Konwencji SOLAS, na obszarze morza A1. Pytanie cytuje definicję dosłownie, a kończy ją zwrot 'na obszarze morza A1'. Odpowiedź 'tylko w paśmie VHF' to stara wersja z poprzedniego banku pytań.",
   "confidence": "sure"
  },
  {
@@ -1549,7 +1549,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "I am taking water."
   ],
   "correct": 1,
-  "whyPl": "'I am making water' to standardowy morski idiom oznaczajacy 'nabieram wody' (przeciek kadluba). 'I am taking water' i 'I am flooding' sa zrozumiale, ale nie sa standardowymi zwrotami slownika morskiego uzywanego w banku UKE; w starszych wersjach banku wlasnie 'I am making water' bylo opcja kluczowana jako poprawna.",
+  "whyPl": "'I am making water' to standardowy morski idiom oznaczający 'nabieram wody' (przeciek kadłuba). 'I am taking water' i 'I am flooding' są zrozumiałe, ale nie są standardowymi zwrotami słownika morskiego używanego w banku UKE; w starszych wersjach banku właśnie 'I am making water' było opcją kluczowaną jako poprawna.",
   "confidence": "sure"
  },
  {
@@ -2641,7 +2641,7 @@ export const SRC_BANK: SrcQuestion[] = [
    "nadaniu typu pośrednictwo w niebezpieczeństwie do wszystkich stacji nadbrzeżnych"
   ],
   "correct": 0,
-  "whyPl": "Wg ITU-R M.541 (zal. 3, pkt 1.4) statek nadajacy DSC distress relay na MF/VHF adresuje wywolanie do wszystkich statkow (All Ships) albo do wybranej stacji (np. 9-cyfrowy identyfikator wlasciwej stacji nadbrzeznej). Adresowanie wylacznie 'do wlasciwej stacji nadbrzeznej' to odrebna procedura HF, gdy alarm nie zostal potwierdzony w ciagu 5 minut, wiec nie dotyczy pasma VHF.",
+  "whyPl": "Wg ITU-R M.541 (zał. 3, pkt 1.4) statek nadający DSC distress relay na MF/VHF adresuje wywołanie do wszystkich statków (All Ships) albo do wybranej stacji (np. 9-cyfrowy identyfikator właściwej stacji nadbrzeżnej). Adresowanie wyłącznie 'do właściwej stacji nadbrzeżnej' to odrębna procedura HF, gdy alarm nie został potwierdzony w ciągu 5 minut, więc nie dotyczy pasma VHF.",
   "confidence": "sure"
  },
  {

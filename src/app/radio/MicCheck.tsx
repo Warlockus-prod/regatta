@@ -131,7 +131,7 @@ export default function MicCheck({
     try {
       rec = new MediaRecorder(stream);
     } catch {
-      setSttError(tp('Браузер не умеет записывать звук.', 'This browser cannot record audio.', 'Ta przegladarka nie potrafi nagrywac dzwieku.'));
+      setSttError(tp('Браузер не умеет записывать звук.', 'This browser cannot record audio.', 'Ta przeglądarka nie potrafi nagrywać dźwięku.'));
       return;
     }
     recRef.current = rec;
@@ -150,14 +150,14 @@ export default function MicCheck({
         const data = (await res.json()) as { transcript?: string; fallback?: boolean; error?: string };
         if (data.fallback) { setSttOff(true); return; }
         if (!res.ok || data.error) {
-          setSttError(data.error ?? tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udalo sie rozpoznac mowy.'));
+          setSttError(data.error ?? tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udało się rozpoznać mowy.'));
           return;
         }
         const text = (data.transcript ?? '').trim();
         setTranscript(text);
         if (text) onTranscript?.(text);
       } catch {
-        setSttError(tp('Нет связи с сервером распознавания.', 'The transcription service is unreachable.', 'Brak polaczenia z serwerem rozpoznawania.'));
+        setSttError(tp('Нет связи с сервером распознавания.', 'The transcription service is unreachable.', 'Brak połączenia z serwerem rozpoznawania.'));
       } finally {
         setBusy(false);
       }
@@ -185,19 +185,19 @@ export default function MicCheck({
     denied: tp(
       'Доступ к микрофону запрещён. Нажми на значок замка (или камеры) слева в адресной строке, разреши микрофон и обнови страницу.',
       'Microphone blocked. Click the lock (or camera) icon in the address bar, allow the microphone and reload.',
-      'Dostep do mikrofonu zablokowany. Kliknij ikone klodki (lub kamery) w pasku adresu, zezwol na mikrofon i odswiez strone.',
+      'Dostęp do mikrofonu zablokowany. Kliknij ikonę kłódki (lub kamery) w pasku adresu, zezwól na mikrofon i odśwież stronę.',
     ),
     noDevice: tp(
       'Микрофон не найден. Подключи микрофон или гарнитуру и попробуй снова.',
       'No microphone found. Connect a mic or headset and try again.',
-      'Nie znaleziono mikrofonu. Podlacz mikrofon lub sluchawki i sprobuj ponownie.',
+      'Nie znaleziono mikrofonu. Podłącz mikrofon lub słuchawki i spróbuj ponownie.',
     ),
     insecure: tp(
       'Микрофон работает только по HTTPS. На weektoregatta.com всё в порядке; по локальному http браузер не даст доступ.',
       'The microphone only works over HTTPS. It is fine on weektoregatta.com; a plain http page is blocked by the browser.',
-      'Mikrofon dziala tylko przez HTTPS. Na weektoregatta.com jest OK; zwykla strona http jest blokowana przez przegladarke.',
+      'Mikrofon działa tylko przez HTTPS. Na weektoregatta.com jest OK; zwykła strona http jest blokowana przez przeglądarkę.',
     ),
-    error: tp('Не удалось получить доступ к микрофону.', 'Could not access the microphone.', 'Nie udalo sie uzyskac dostepu do mikrofonu.'),
+    error: tp('Не удалось получить доступ к микрофону.', 'Could not access the microphone.', 'Nie udało się uzyskać dostępu do mikrofonu.'),
   };
 
   return (
@@ -232,8 +232,8 @@ export default function MicCheck({
           <div className="mt-2 flex items-center justify-between gap-2">
             <span className="text-sm" style={{ color: heard ? 'var(--success)' : 'var(--text-secondary)' }}>
               {heard
-                ? tp('Отлично, слышу твой голос! Микрофон работает.', 'Great - I can hear your voice! The mic works.', 'Swietnie - slysze Twoj glos! Mikrofon dziala.')
-                : tp('Скажи что-нибудь - полоска должна двигаться.', 'Say something - the bar should move.', 'Powiedz cos - pasek powinien sie ruszac.')}
+                ? tp('Отлично, слышу твой голос! Микрофон работает.', 'Great - I can hear your voice! The mic works.', 'Świetnie - słyszę Twój głos! Mikrofon działa.')
+                : tp('Скажи что-нибудь - полоска должна двигаться.', 'Say something - the bar should move.', 'Powiedz coś - pasek powinien się ruszać.')}
             </span>
             <button
               type="button"
@@ -245,13 +245,13 @@ export default function MicCheck({
               {tp('Стоп', 'Stop', 'Stop')}
             </button>
           </div>
-          {device && <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{tp('Устройство', 'Device', 'Urzadzenie')}: {device}</div>}
+          {device && <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{tp('Устройство', 'Device', 'Urządzenie')}: {device}</div>}
 
           {/* Half two: does the MODEL understand you? A moving bar and an
               unusable microphone look identical until a MAYDAY scores zero. */}
           <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
             <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Теперь проверим, понимает ли тебя модель', 'Now check that the model understands you', 'Teraz sprawdzmy, czy model cie rozumie')}
+              {tp('Теперь проверим, понимает ли тебя модель', 'Now check that the model understands you', 'Teraz sprawdźmy, czy model cię rozumie')}
             </div>
             <pre className="mb-2 overflow-x-auto rounded-lg p-2 text-xs" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
 {SAY_LINE}
@@ -269,14 +269,14 @@ export default function MicCheck({
                   : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
                 {busy
-                  ? tp('Слушаю...', 'Listening...', 'Slucham...')
+                  ? tp('Слушаю...', 'Listening...', 'Słucham...')
                   : recording
                     ? tp('⏹ Стоп', '⏹ Stop', '⏹ Stop')
                     : tp('🔴 Сказать это', '🔴 Say it', '🔴 Powiedz to')}
               </button>
               {recording && (
                 <span className="text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                  {tp('Говори... запись до 6 секунд', 'Speak... recording for up to 6 seconds', 'Mow... nagrywam do 6 sekund')}
+                  {tp('Говори... запись до 6 секунд', 'Speak... recording for up to 6 seconds', 'Mów... nagrywam do 6 sekund')}
                 </span>
               )}
             </div>
@@ -286,7 +286,7 @@ export default function MicCheck({
                 {tp(
                   'Распознавание речи сейчас недоступно. Микрофон при этом проверен - полоска двигается.',
                   'Speech recognition is unavailable right now. The microphone itself is fine - the bar moves.',
-                  'Rozpoznawanie mowy jest teraz niedostepne. Sam mikrofon jest sprawny - pasek sie rusza.',
+                  'Rozpoznawanie mowy jest teraz niedostępne. Sam mikrofon jest sprawny - pasek się rusza.',
                 )}
               </p>
             )}
@@ -297,7 +297,7 @@ export default function MicCheck({
             {transcript !== null && (
               <div data-testid="mic-transcript" className="mt-2">
                 <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                  {tp('Модель услышала', 'The model heard', 'Model uslyszal')}
+                  {tp('Модель услышала', 'The model heard', 'Model usłyszał')}
                 </div>
                 {transcript ? (
                   <p className="mt-0.5 text-sm font-medium" style={{ color: 'var(--success)' }}>
@@ -308,7 +308,7 @@ export default function MicCheck({
                     {tp(
                       'Ничего. Говори громче и ближе к микрофону, убери фоновый шум.',
                       'Nothing. Speak louder and closer to the mic, and kill the background noise.',
-                      'Nic. Mow glosniej i blizej mikrofonu, wycisz halas w tle.',
+                      'Nic. Mów głośniej i bliżej mikrofonu, wycisz hałas w tle.',
                     )}
                   </p>
                 )}
@@ -316,7 +316,7 @@ export default function MicCheck({
                   {tp(
                     'Если это твои слова - голосовой тренажёр будет работать. Если нет - на экзаменационной передаче будет то же самое, только там это будет стоить баллов.',
                     'If those are your words, the voice trainer will work. If they are not, the same thing will happen to your exam transmission - only there it costs points.',
-                    'Jesli to twoje slowa - trening glosowy zadziala. Jesli nie - to samo stanie sie z nadaniem egzaminacyjnym, tylko tam bedzie to kosztowac punkty.',
+                    'Jeśli to twoje słowa - trening głosowy zadziała. Jeśli nie - to samo stanie się z nadaniem egzaminacyjnym, tylko tam będzie to kosztować punkty.',
                   )}
                 </p>
               </div>
@@ -334,8 +334,8 @@ export default function MicCheck({
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
             {status === 'requesting'
-              ? tp('Запрашиваю доступ...', 'Requesting access...', 'Prosze o dostep...')
-              : tp('🎤 Проверить микрофон', '🎤 Test the microphone', '🎤 Sprawdz mikrofon')}
+              ? tp('Запрашиваю доступ...', 'Requesting access...', 'Proszę o dostęp...')
+              : tp('🎤 Проверить микрофон', '🎤 Test the microphone', '🎤 Sprawdź mikrofon')}
           </button>
           {status !== 'idle' && status !== 'requesting' && (
             <div className="mt-2 text-sm" style={{ color: 'var(--danger, #ff6a5a)' }}>
@@ -347,7 +347,7 @@ export default function MicCheck({
               {tp(
                 'Браузер спросит разрешение на микрофон - нажми «Разрешить». Затем скажи «раз-два» и увидишь, как двигается индикатор. Это нужно для голосовой оценки MAYDAY в симуляторе.',
                 'The browser will ask for microphone permission - click "Allow". Then say "one-two" and watch the meter move. This is what the simulator uses to grade your voice MAYDAY.',
-                'Przegladarka poprosi o dostep do mikrofonu - kliknij "Zezwol". Powiedz "raz-dwa" i zobacz, jak rusza sie wskaznik. Tego uzywa symulator do oceny MAYDAY glosem.',
+                'Przeglądarka poprosi o dostęp do mikrofonu - kliknij "Zezwól". Powiedz "raz-dwa" i zobacz, jak rusza się wskaźnik. Tego używa symulator do oceny MAYDAY głosem.',
               )}
             </p>
           )}

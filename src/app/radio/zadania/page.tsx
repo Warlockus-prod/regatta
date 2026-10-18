@@ -29,13 +29,13 @@ export default function RadioTasksPage() {
   return (
     <div id="radio-zadania">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-        📋 {tp('26 практических заданий UKE', '26 UKE practical tasks', '26 zadan praktycznych UKE')}
+        📋 {tp('26 практических заданий UKE', '26 UKE practical tasks', '26 zadań praktycznych UKE')}
       </h1>
       <p className="mb-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
         {tp(
           'Полный официальный список практических заданий экзамена SRC (UKE) - с правильной процедурой для каждого и ссылкой на симулятор/курс, где его можно отработать. Источник: materialy_do_testu_src.pdf. Официального ключа ответов UKE не публикует, поэтому здесь описана правильная процедура по GMDSS/ICOM, а не выбор A/B/C.',
           'The full official list of the SRC (UKE) practical exam tasks - each with the correct procedure and a link to the simulator/course where you can practise it. Source: materialy_do_testu_src.pdf. UKE publishes no answer key, so this is the correct GMDSS/ICOM procedure, not an A/B/C quiz.',
-          'Pelna oficjalna lista zadan praktycznych egzaminu SRC (UKE) - kazde z poprawna procedura i linkiem do symulatora/kursu, gdzie je przecwiczysz. Zrodlo: materialy_do_testu_src.pdf. UKE nie publikuje klucza odpowiedzi, wiec to poprawna procedura wg GMDSS/ICOM, a nie wybor A/B/C.',
+          'Pełna oficjalna lista zadań praktycznych egzaminu SRC (UKE) - każde z poprawną procedurą i linkiem do symulatora/kursu, gdzie je przećwiczysz. Źródło: materialy_do_testu_src.pdf. UKE nie publikuje klucza odpowiedzi, więc to poprawna procedura wg GMDSS/ICOM, a nie wybór A/B/C.',
         )}
       </p>
 
@@ -64,7 +64,7 @@ export default function RadioTasksPage() {
                     <div className="min-w-0 flex-1">
                       <div className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{t.task}</div>
                       <div className="mt-2 rounded-xl px-3 py-2 text-sm leading-relaxed" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
-                        <span className="text-xs font-semibold uppercase" style={{ color: CYAN }}>{tp('Как выполнить', 'How to do it', 'Jak wykonac')}: </span>
+                        <span className="text-xs font-semibold uppercase" style={{ color: CYAN }}>{tp('Как выполнить', 'How to do it', 'Jak wykonać')}: </span>
                         {t.how.pl}
                         {showRu && <div className="mt-1 text-xs" style={{ color: 'var(--text-muted)' }}>{t.how.ru}</div>}
                       </div>
@@ -72,7 +72,7 @@ export default function RadioTasksPage() {
                         <div className="mt-3 flex flex-wrap gap-2">
                           {t.scenario && (
                             <Link href={`/radio/symulator?scenario=${t.scenario}`} className="inline-flex min-h-[44px] items-center rounded-lg px-3 text-xs font-semibold" style={{ background: 'rgba(0,212,255,0.12)', color: CYAN }}>
-                              🎙️ {tp('Отработать в симуляторе', 'Practise in the simulator', 'Przecwicz w symulatorze')}
+                              🎙️ {tp('Отработать в симуляторе', 'Practise in the simulator', 'Przećwicz w symulatorze')}
                             </Link>
                           )}
                           {t.guide && (
@@ -95,7 +95,7 @@ export default function RadioTasksPage() {
         💡 {tp(
           'На экзамене вытягиваешь карточку с несколькими заданиями из этого списка (0-5 баллов за каждое, минимум 12 из 20). Задания по рации и DSC отрабатывай в симуляторе, EPIRB/SART - выучи процедуру выше.',
           'At the exam you draw a card with several tasks from this list (0-5 points each, minimum 12 of 20). Practise the radio and DSC tasks in the simulator; for EPIRB/SART, learn the procedure above.',
-          'Na egzaminie losujesz karte z kilkoma zadaniami z tej listy (0-5 pkt kazde, minimum 12 z 20). Zadania radiowe i DSC cwicz w symulatorze, EPIRB/SART - naucz sie procedury powyzej.',
+          'Na egzaminie losujesz kartę z kilkoma zadaniami z tej listy (0-5 pkt każde, minimum 12 z 20). Zadania radiowe i DSC ćwicz w symulatorze, EPIRB/SART - naucz się procedury powyżej.',
         )}
       </div>
     </div>

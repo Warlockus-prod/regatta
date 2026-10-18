@@ -3,6 +3,8 @@
  * All keys live under "regatta." namespace and carry an embedded version.
  */
 
+import { trackLessonComplete } from './funnel';
+
 const CURRENT_VERSION = 1;
 const NS = 'regatta.';
 
@@ -83,7 +85,10 @@ export function setBootcampProgress(p: BootcampProgress): void {
 
 export function markLessonComplete(lessonId: string): void {
   const p = getBootcampProgress();
-  if (!p.completed.includes(lessonId)) p.completed.push(lessonId);
+  if (!p.completed.includes(lessonId)) {
+    p.completed.push(lessonId);
+    trackLessonComplete('bootcamp', lessonId);
+  }
   p.updatedAt = Date.now();
   if (p.startedAt === 0) p.startedAt = Date.now();
   setBootcampProgress(p);

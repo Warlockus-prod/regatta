@@ -16,8 +16,10 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
-  1.6.2 (iOS build 43), которая не запускается на iOS 27. Исправление 1.6.3 (iOS
-  build 44) отправлено на ревью 2026-09-28, релиз автоматический после одобрения.
+  1.6.3 (iOS build 44, запуск на iOS 27). В App Store Connect создан черновик
+  1.6.4 (2026-10-18) с новой карточкой (ASO) и "Что нового", без сборки и не
+  отправлен. В TestFlight сборки 45-47 версии 1.7.0 из ветки Codex
+  `codex/learning-modules`, в `main` не слиты: к 1.6.4 их не прикреплять.
   Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
   плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
   Журнал сборок и разбор: `docs/design/mobile/BUILDS.md`. Выпуск только через
@@ -125,7 +127,7 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 434 теста, 45 файлов
+npx vitest run               # все юнит-тесты: 517 тестов, 56 файлов
 npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
@@ -264,11 +266,27 @@ npm run check:map            # карта проекта актуальна
   запроса.
 - `/api/race-result` ограничен 60 запросами в час на сессию и проверяет границы
   значений (защита от отравления лидерборда).
-- Basic-auth на `/stats` сравнивает значения за константное время; без
-  `ADMIN_PASSWORD` отдает 503.
+- Лимиты API и дневной потолок ИИ (100 в сутки) считаются и по сессии, и по IP
+  (`clientKeys()` в `src/lib/rate-limit.ts`): `regatta_sid` выбирает клиент,
+  поэтому одной cookie мало. IP берется из последнего хопа X-Forwarded-For: на
+  vps2 SNI-роутер передает адрес клиента через PROXY protocol (проверено
+  2026-10-18). Первый хоп подделывается клиентом, для лимитов его не брать.
+- Basic-auth на `/stats` и `/api/admin/*` сравнивает значения за константное
+  время; без `ADMIN_PASSWORD` отдает 503. Проверку делает и прокси, и сам
+  хендлер (`requireAdmin()` из `src/lib/admin-auth.ts`): новый админ-роут без
+  этого вызова не мержим.
 - Серверные события: `race.finish`, `coach.requested`. Клиентские из
   `src/components/ClientErrorReporter.tsx`: `page.view`, `page.engaged`,
-  `js.uncaught`, `js.rejection`.
+  `js.uncaught`, `js.rejection`; воронка из `src/lib/funnel.ts`:
+  `exam.start`, `exam.finish`, `lesson.complete`, `radio.task.complete`,
+  `app_store.click`. `/api/log` пишет только имена из
+  `src/lib/analytics-events.ts` и только проверенные поля; новое событие
+  сначала добавляется туда (с тестом), иначе оно молча пропадает.
+- `page.view` несет `embed` и `client` (`app` внутри iOS-приложения, `web` в
+  браузере). Ссылки на App Store строятся через `appStoreUrl(ct)` с меткой
+  места (`web_home`), без нее источник установки не виден.
+- Сырые `events` и `sessions` хранятся 180 дней (`scripts/prune-events.mjs`,
+  сначала `--dry-run`, см. `docs/OPS.md`); окно `/stats` не шире 90 дней.
 - GA4 поток `G-ZEWWJ4N31M` в `src/components/GoogleAnalytics.tsx`.
 
 ## Окружение
@@ -311,6 +329,7 @@ npm run check:map            # карта проекта актуальна
 | `docs/design/simulator-v3/*` | спека, контракты поведения, QA Тренажера | актуально для лейна V3 |
 | `docs/design/mobile/*` | мобильная архитектура, решения, гейт релиза | актуально для мобильного лейна |
 | `docs/design/books-audit-2026-09-26.md` | бэклог обучающего контента из трех книг (Дедекам, "Маневры под парусами", RYA Day Skipper), проверенная матрица трима, числа и допуски | актуален, спека для контентных задач; сделанное помечать в `CHANGELOG.md` |
+| `docs/audits/2026-10-18-aso-and-code-audit.md` | ASO-анализ и карточка App Store, аудит безопасности, данных и инженерии, открытый бэклог | актуален на 2026-10-18 |
 | `TECH.md` (корневой) | старая карта кода и инфраструктуры | устарел, заменен `ARCHITECTURE.md`; адреса хостов и числа неверны |
 | `FEATURES.md` | инвентарь фич на 2026-07 | частично устарел, см. `ARCHITECTURE.md` раздел 10 |
 | `AUDIT.md` | аудит состояния на 2026-06 | исторический |

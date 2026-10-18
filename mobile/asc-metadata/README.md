@@ -70,6 +70,20 @@ You can also restrict to a subset of locales:
 node scripts/asc-metadata.mjs --lang en,ru
 ```
 
+Promotional text can change at any time, without a new version or review:
+
+```bash
+node scripts/asc-metadata.mjs --promo-only    # PATCH promotionalText on the live version
+```
+
+`en-GB/` is a second English locale on purpose: it adds its own 100-character
+keyword field, which the UK and many European storefronts index next to their
+own language. Keep its keywords different from `en/` (no repeats), and never
+repeat words from the name or subtitle in `keywords.txt`: Apple already indexes
+them. "What's New" lives in `mobile/releases/<version>.json` and is pushed by
+`scripts/asc-release.mjs`. ASO rationale and keyword research: the 2026-10-18
+audit report `docs/audits/2026-10-18-aso-and-code-audit.md`.
+
 ### 4. Capture iPhone screenshots.
 
 Open the iOS Simulator and install the latest preview build (drag the

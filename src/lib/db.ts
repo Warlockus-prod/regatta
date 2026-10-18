@@ -49,7 +49,6 @@ function db(): Database.Database {
       meta_json TEXT
     );
     CREATE INDEX IF NOT EXISTS idx_events_ts ON events(ts);
-    CREATE INDEX IF NOT EXISTS idx_events_evt ON events(evt);
     CREATE INDEX IF NOT EXISTS idx_events_session ON events(session_id);
     CREATE INDEX IF NOT EXISTS idx_events_country ON events(country);
 
@@ -171,6 +170,10 @@ function db(): Database.Database {
   safeAlter('ALTER TABLE events ADD COLUMN utm_campaign TEXT');
   safeAlter('ALTER TABLE events ADD COLUMN referrer TEXT');
   safeAlter('CREATE INDEX IF NOT EXISTS idx_events_country ON events(country)');
+  // Every /stats query filters by event name inside a time range. (evt, ts)
+  // serves those and plain evt lookups, so the old evt-only index goes.
+  safeAlter('CREATE INDEX IF NOT EXISTS idx_events_evt_ts ON events(evt, ts)');
+  safeAlter('DROP INDEX IF EXISTS idx_events_evt');
   // sessions columns
   safeAlter('ALTER TABLE sessions ADD COLUMN device_model TEXT');
   safeAlter('ALTER TABLE sessions ADD COLUMN utm_source TEXT');
@@ -399,6 +402,10 @@ export interface RangeMetrics {
   utmSourceSplit: Array<{ utm_source: string; count: number }>;
   utmCampaignSplit: Array<{ utm_campaign: string; count: number }>;
 
+  // Funnel (2026-10-18): app vs web traffic, exams, lessons, radio tasks,
+  // App Store clicks by placement.
+  funnel: FunnelMetrics;
+
   // Time-series
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
@@ -419,6 +426,63 @@ export interface RangeMetrics {
     ip: string | null; device: string | null; lang: string | null;
     country: string | null; device_model: string | null;
   }>;
+}
+
+export interface FunnelMetrics {
+  /** page.view split by shell: 'app' (iOS WebView) vs 'web'; old rows are 'unknown'. */
+  clientSplit: Array<{ client: string; count: number }>;
+  exams: Array<{ base: string; started: number; finished: number; passed: number; avgScorePct: number }>;
+  lessons: Array<{ course: string; count: number }>;
+  radioTasks: number;
+  appStoreClicks: Array<{ ct: string; count: number }>;
+}
+
+/**
+ * Funnel counters for a time range. Reads the validated fields that /api/log
+ * stores in meta_json (see src/lib/analytics-events.ts).
+ */
+function getFunnelMetrics(d: Database.Database, fromMs: number, toMs: number): FunnelMetrics {
+  const p = [fromMs, toMs] as const;
+  const clientSplit = d.prepare(`
+    SELECT COALESCE(json_extract(meta_json, '$.client'), 'unknown') client, COUNT(*) count
+    FROM events WHERE evt = 'page.view' AND ts >= ? AND ts < ?
+    GROUP BY client ORDER BY count DESC
+  `).all(...p) as Array<{ client: string; count: number }>;
+
+  const examRows = d.prepare(`
+    SELECT json_extract(meta_json, '$.base') base,
+           SUM(CASE WHEN evt = 'exam.start' THEN 1 ELSE 0 END) started,
+           SUM(CASE WHEN evt = 'exam.finish' THEN 1 ELSE 0 END) finished,
+           SUM(CASE WHEN evt = 'exam.finish' AND json_extract(meta_json, '$.passed') = 1 THEN 1 ELSE 0 END) passed,
+           AVG(CASE WHEN evt = 'exam.finish'
+                    THEN 100.0 * json_extract(meta_json, '$.score') / json_extract(meta_json, '$.total') END) avgScorePct
+    FROM events WHERE evt IN ('exam.start', 'exam.finish') AND ts >= ? AND ts < ?
+    GROUP BY base HAVING base IS NOT NULL ORDER BY base
+  `).all(...p) as Array<{ base: string; started: number; finished: number; passed: number; avgScorePct: number | null }>;
+
+  const lessons = d.prepare(`
+    SELECT COALESCE(json_extract(meta_json, '$.course'), 'unknown') course, COUNT(*) count
+    FROM events WHERE evt = 'lesson.complete' AND ts >= ? AND ts < ?
+    GROUP BY course ORDER BY count DESC
+  `).all(...p) as Array<{ course: string; count: number }>;
+
+  const radioTasks = (d.prepare(`
+    SELECT COUNT(*) c FROM events WHERE evt = 'radio.task.complete' AND ts >= ? AND ts < ?
+  `).get(...p) as { c: number }).c;
+
+  const appStoreClicks = d.prepare(`
+    SELECT COALESCE(json_extract(meta_json, '$.ct'), '(none)') ct, COUNT(*) count
+    FROM events WHERE evt = 'app_store.click' AND ts >= ? AND ts < ?
+    GROUP BY ct ORDER BY count DESC
+  `).all(...p) as Array<{ ct: string; count: number }>;
+
+  return {
+    clientSplit,
+    exams: examRows.map((r) => ({ ...r, avgScorePct: Math.round(r.avgScorePct ?? 0) })),
+    lessons,
+    radioTasks,
+    appStoreClicks,
+  };
 }
 
 /**
@@ -603,6 +667,7 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     topReferrers: topReferrers.map((r) => ({ ref: r.ref ?? '(direct)', count: r.count })),
     deviceSplit, deviceModelSplit, browserSplit, osSplit, viewportSplit, languageSplit,
     countrySplit, utmSourceSplit, utmCampaignSplit,
+    funnel: getFunnelMetrics(d, fromMs, toMs),
     hourly, daily,
     avgPagesPerSession: pagesPerSession,
     avgSessionSeconds,

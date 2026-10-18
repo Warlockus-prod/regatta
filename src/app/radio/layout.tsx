@@ -4,11 +4,11 @@ import RadioSubnav from './RadioSubnav';
 import { SternikPrefsProvider, SternikLangScope, ExplLangHint } from '../sternik/prefs';
 
 export const metadata: Metadata = {
-  title: 'Radio VHF i swiadectwo SRC - symulator ICOM | Week to Regatta',
+  title: 'Radio VHF i świadectwo SRC - symulator ICOM | Week to Regatta',
   description:
-    'Darmowe przygotowanie do egzaminu SRC w UKE: jak zdobyc swiadectwo, kanaly VHF, procedury MAYDAY / PAN-PAN / SECURITE i interaktywny symulator radia ICOM IC-M330GE z ocena transmisji glosowych.',
+    'Darmowe przygotowanie do egzaminu SRC w UKE: jak zdobyć świadectwo, kanały VHF, procedury MAYDAY / PAN-PAN / SECURITE i interaktywny symulator radia ICOM IC-M330GE z oceną transmisji głosowych.',
   keywords: [
-    'SRC', 'swiadectwo operatora', 'radio VHF', 'egzamin UKE', 'GMDSS', 'DSC',
+    'SRC', 'świadectwo operatora', 'radio VHF', 'egzamin UKE', 'GMDSS', 'DSC',
     'MAYDAY', 'symulator radia', 'ICOM IC-M330', 'ICOM IC-M323',
   ],
 };
