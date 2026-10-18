@@ -25,6 +25,13 @@ interface RangeMetrics {
   countrySplit?: Array<{ country: string; count: number }>;
   utmSourceSplit?: Array<{ utm_source: string; count: number }>;
   utmCampaignSplit?: Array<{ utm_campaign: string; count: number }>;
+  funnel?: {
+    clientSplit: Array<{ client: string; count: number }>;
+    exams: Array<{ base: string; started: number; finished: number; passed: number; avgScorePct: number }>;
+    lessons: Array<{ course: string; count: number }>;
+    radioTasks: number;
+    appStoreClicks: Array<{ ct: string; count: number }>;
+  };
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
   avgPagesPerSession: number;
@@ -297,6 +304,38 @@ export default function StatsDashboard() {
               )}
             </Panel>
           </div>
+
+          {/* Funnel (2026-10-18): app vs web, exams, lessons, App Store clicks */}
+          {metrics.funnel && (
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-3">
+              <Panel title="Page views: app vs web">
+                <Distribution items={metrics.funnel.clientSplit.map((c) => ({ label: c.client, value: c.count }))} />
+              </Panel>
+              <Panel title="Mock exams">
+                {metrics.funnel.exams.length > 0 ? (
+                  <div className="space-y-2 text-xs">
+                    {metrics.funnel.exams.map((x) => (
+                      <div key={x.base}>
+                        <div className="font-semibold text-[var(--text-primary)]">{x.base}</div>
+                        <div className="text-[var(--text-secondary)] tabular-nums">
+                          started {x.started} · finished {x.finished} · passed {x.passed} · avg {x.avgScorePct}%
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <EmptyHint text="No exam.start / exam.finish events in this range." />
+                )}
+              </Panel>
+              <Panel title="Lessons completed">
+                <Distribution items={metrics.funnel.lessons.map((l) => ({ label: l.course, value: l.count }))} />
+                <div className="mt-2 text-xs text-[var(--text-secondary)] tabular-nums">radio tasks: {metrics.funnel.radioTasks}</div>
+              </Panel>
+              <Panel title="App Store clicks (ct)">
+                <Distribution items={metrics.funnel.appStoreClicks.map((a) => ({ label: a.ct, value: a.count }))} />
+              </Panel>
+            </div>
+          )}
 
           {/* Time-on-page (ms_since_start) */}
           {(metrics.avgMsSinceStart !== undefined || metrics.medianMsSinceStart !== undefined) && (

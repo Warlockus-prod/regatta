@@ -21,6 +21,7 @@ import {
   type RadioEvent, type RadioModel, type RadioState, type Variant,
 } from './radioModel';
 import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios';
+import { trackRadioTaskComplete } from '@/lib/funnel';
 
 const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE', 6: 'SIX' };
 
@@ -548,6 +549,7 @@ export default function RadioSimulatorPage() {
   useEffect(() => {
     if (!scenario || finishedAt === null || startedAt === null) return;
     const timeSec = Math.round((finishedAt - startedAt) / 1000);
+    trackRadioTaskComplete(scenario.id, finalScore);
     setProgress((p) => {
       const prev = p[scenario.id] ?? { attempts: 0, best: 0, lastScore: 0, bestTimeSec: null };
       const nextP: ProgressMap = {

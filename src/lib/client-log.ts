@@ -39,10 +39,16 @@ function hashSig(level: Level, evt: string, fields: Record<string, unknown>): st
   const msg = String(fields.msg ?? fields.reason ?? '').slice(0, 120);
   const firstStackLine = String(fields.stack ?? '').split('|')[0]?.trim().slice(0, 80) ?? '';
   const path = String(fields.path ?? '').slice(0, 80);
-  return `${level}:${evt}:${path}:${msg}:${firstStackLine}`;
+  // Funnel events on one page (radio theory chapters, simulator scenarios)
+  // differ only by id, so the id is part of the signature too.
+  const id = String(fields.lessonId ?? fields.taskId ?? '').slice(0, 64);
+  return `${level}:${evt}:${path}:${id}:${msg}:${firstStackLine}`;
 }
 
 function send(body: string): void {
+  // The app's offline radio bundle runs from file://, where there is no
+  // /api/log to reach (it relays what matters over postMessage instead).
+  if (!/^https?:$/.test(window.location.protocol)) return;
   const url = '/api/log';
   if (navigator.sendBeacon) {
     const ok = navigator.sendBeacon(url, new Blob([body], { type: 'application/json' }));

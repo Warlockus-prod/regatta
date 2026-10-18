@@ -1,4 +1,4 @@
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -30,6 +30,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import BootcampLesson from '../../app/bootcamp/[id]';
 import { bootcampLessons } from '../../src/data';
 import { renderWithProviders } from '../../src/test-utils';
+import { AnalyticsClientContext } from '../../src/analytics/context';
 
 const PROGRESS_KEY = 'regatta.progress.bootcamp.v1';
 
@@ -85,5 +86,21 @@ describe('Bootcamp lesson detail', () => {
     });
     const mocks = (globalThis as any).__regattaMocks as RegattaMocks;
     expect(mocks.pushMock).toHaveBeenCalledWith(bootcampLessons[0]!.route);
+  });
+
+  it('captures lesson_completed once, on the first completion only', async () => {
+    const capture = jest.fn();
+    const view = renderWithProviders(
+      <AnalyticsClientContext.Provider value={{ capture } as any}>
+        <BootcampLesson />
+      </AnalyticsClientContext.Provider>,
+    );
+    const cta = await waitFor(() => view.getByText('Open'));
+    // let the stored progress load (the hook is not ready before that)
+    await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+    fireEvent.press(cta);
+    fireEvent.press(cta);
+    await waitFor(() => expect(capture).toHaveBeenCalledTimes(1));
+    expect(capture).toHaveBeenCalledWith('lesson_completed', { course: 'bootcamp', lesson_id: 'wind-direction' });
   });
 });

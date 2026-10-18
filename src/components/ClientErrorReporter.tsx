@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
+import { detectShell } from '@/lib/funnel';
 
 /**
  * Mounted once in the root layout - attaches listeners for uncaught errors
@@ -19,6 +20,10 @@ import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
  * the server-side session-upsert can store them stickily. ms_since_start
  * is the ms between the session's first page.view and the current event,
  * enabling time-on-page bucketing in /stats.
+ *
+ * embed + client (2026-10-18): page.view says whether the page runs inside
+ * the iOS app (?embed=1 WebView, client 'app') or a normal browser ('web'),
+ * so app traffic no longer looks like web traffic in /stats.
  */
 
 const SESSION_START_KEY = 'regatta.session-start-ms.v1';
@@ -128,6 +133,7 @@ export default function ClientErrorReporter() {
       ua: navigator.userAgent.slice(0, 200),
       language,
       msSinceStart: pageStart - startMs,
+      ...detectShell(),
       ...utm,
     });
 
