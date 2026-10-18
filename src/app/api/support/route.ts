@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logError, logWarn } from '@/lib/log';
-import { rateLimit, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitClient, clientIpKey, clientKeys } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 export const maxDuration = 15;
@@ -113,9 +113,9 @@ export async function POST(req: Request): Promise<NextResponse> {
   // Truncate IPv4 last octet to keep parity with /api/log privacy policy.
   const ipTrunc = ip.includes('.') ? ip.replace(/\.\d+$/, '.0') : ip;
 
-  const rl = rateLimit('support:' + (sid ?? ipTrunc), SUPPORT_LIMIT, SUPPORT_WINDOW_MS);
+  const rl = rateLimitClient(clientKeys(req, sid), 'support', SUPPORT_LIMIT, SUPPORT_WINDOW_MS);
   if (!rl.ok) {
-    logWarn('support.rate-limited', { key: (sid ?? ipTrunc).slice(0, 12), resetMs: rl.resetMs });
+    logWarn('support.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
       { error: 'Слишком много обращений за последний час / Too many requests this hour' },
       { status: 429 },

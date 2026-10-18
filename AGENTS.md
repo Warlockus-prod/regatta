@@ -127,7 +127,7 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 436 тестов, 45 файлов
+npx vitest run               # все юнит-тесты: 477 тестов, 51 файл
 npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
@@ -266,8 +266,15 @@ npm run check:map            # карта проекта актуальна
   запроса.
 - `/api/race-result` ограничен 60 запросами в час на сессию и проверяет границы
   значений (защита от отравления лидерборда).
-- Basic-auth на `/stats` сравнивает значения за константное время; без
-  `ADMIN_PASSWORD` отдает 503.
+- Лимиты API и дневной потолок ИИ (100 в сутки) считаются и по сессии, и по IP
+  (`clientKeys()` в `src/lib/rate-limit.ts`): `regatta_sid` выбирает клиент,
+  поэтому одной cookie мало. IP берется из последнего хопа X-Forwarded-For: на
+  vps2 SNI-роутер передает адрес клиента через PROXY protocol (проверено
+  2026-10-18). Первый хоп подделывается клиентом, для лимитов его не брать.
+- Basic-auth на `/stats` и `/api/admin/*` сравнивает значения за константное
+  время; без `ADMIN_PASSWORD` отдает 503. Проверку делает и прокси, и сам
+  хендлер (`requireAdmin()` из `src/lib/admin-auth.ts`): новый админ-роут без
+  этого вызова не мержим.
 - Серверные события: `race.finish`, `coach.requested`. Клиентские из
   `src/components/ClientErrorReporter.tsx`: `page.view`, `page.engaged`,
   `js.uncaught`, `js.rejection`.

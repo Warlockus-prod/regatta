@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logError, logWarn } from '@/lib/log';
 import { insertFeedback } from '@/lib/db';
-import { rateLimit, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
 import { truncateIp, clientIp } from '@/lib/net';
 import { promises as fs } from 'fs';
 import path from 'path';
@@ -44,10 +44,9 @@ const FEEDBACK_PATH = '/tmp/regatta-feedback.jsonl';
 export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
-  const rl = rateLimit('fb:' + (sid ?? ip), FEEDBACK_LIMIT, FEEDBACK_WINDOW_MS);
+  const rl = rateLimitClient(clientKeys(req, sid), 'fb', FEEDBACK_LIMIT, FEEDBACK_WINDOW_MS);
   if (!rl.ok) {
-    logWarn('feedback.rate-limited', { key: (sid ?? ip).slice(0, 12), resetMs: rl.resetMs });
+    logWarn('feedback.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json({ error: 'Слишком много отзывов за последний час / Too much feedback in the last hour' }, { status: 429 });
   }
 

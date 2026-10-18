@@ -34,6 +34,8 @@ vi.mock('@/lib/log', () => ({
 }));
 
 import { POST } from './route';
+import { FINISH_SEC_MAX, FINISH_SEC_MIN } from '@/lib/race-submission';
+import { __resetRateLimitsForTests } from '@/lib/rate-limit';
 
 function setSid(v: string | undefined) {
   mocks.cookieStore.value = v;
@@ -48,6 +50,7 @@ function makeReq(body: unknown): Request {
 }
 
 beforeEach(() => {
+  __resetRateLimitsForTests();
   setSid('sid-test-1234');
   mocks.db.insertRaceResult.mockReset().mockReturnValue(42);
   mocks.db.getPlayer.mockReset().mockReturnValue({ nickname: 'Tester' });
@@ -101,9 +104,26 @@ describe('POST /api/race-result - validation', () => {
 describe('POST /api/race-result - value bounds (leaderboard poisoning)', () => {
   const base = { finishTimeSec: 90, difficulty: 'easy', windStrength: 'light' };
 
-  it('400 when finishTimeSec exceeds 24h (86400s)', async () => {
-    const res = await POST(makeReq({ ...base, finishTimeSec: 86401 }));
+  it('400 when finishTimeSec exceeds the 2h ceiling', async () => {
+    const res = await POST(makeReq({ ...base, finishTimeSec: FINISH_SEC_MAX + 1 }));
     expect(res.status).toBe(400);
+  });
+
+  it('400 when finishTimeSec is faster than any boat can sail the course', async () => {
+    const res = await POST(makeReq({ ...base, finishTimeSec: FINISH_SEC_MIN - 0.1 }));
+    expect(res.status).toBe(400);
+    expect(mocks.db.insertRaceResult).not.toHaveBeenCalled();
+  });
+
+  it('400 when position is above totalBoats', async () => {
+    const res = await POST(makeReq({ ...base, position: 5, totalBoats: 4 }));
+    expect(res.status).toBe(400);
+  });
+
+  it('400 when missionId is not a short slug', async () => {
+    expect((await POST(makeReq({ ...base, missionId: 'x'.repeat(41) }))).status).toBe(400);
+    expect((await POST(makeReq({ ...base, missionId: '<img src=x>' }))).status).toBe(400);
+    expect((await POST(makeReq({ ...base, missionId: 42 }))).status).toBe(400);
   });
 
   it('400 when score is above the cap (1e7)', async () => {
@@ -139,7 +159,7 @@ describe('POST /api/race-result - value bounds (leaderboard poisoning)', () => {
   it('200 when all bounded fields are at their valid edges', async () => {
     const res = await POST(makeReq({
       ...base,
-      finishTimeSec: 86400,
+      finishTimeSec: FINISH_SEC_MAX,
       score: 1e7,
       position: 1000,
       topSpeed: 100,
@@ -185,5 +205,25 @@ describe('POST /api/race-result - happy path', () => {
       nicknameFallback: 'Anon',
     }));
     expect(res.status).toBe(200);
+  });
+
+  it('sanitizes nicknameFallback like /api/player', async () => {
+    mocks.db.getPlayer.mockReturnValueOnce(null);
+    const res = await POST(makeReq({
+      finishTimeSec: FINISH_SEC_MIN,
+      difficulty: 'easy',
+      windStrength: 'light',
+      nicknameFallback: '  <b>Ola</b>"); DROP TABLE x;--' + 'z'.repeat(50),
+    }));
+    expect(res.status).toBe(200);
+    const saved = (mocks.db.insertRaceResult.mock.calls[0] as unknown as [{ nickname: string }])[0].nickname;
+    expect(saved).toMatch(/^[\p{L}\p{N}\-_ .]{2,20}$/u);
+    expect(saved).not.toMatch(/[<>"();]/);
+  });
+
+  it('400 when nicknameFallback has nothing usable', async () => {
+    mocks.db.getPlayer.mockReturnValueOnce(null);
+    const res = await POST(makeReq({ finishTimeSec: 90, difficulty: 'easy', windStrength: 'light', nicknameFallback: '<>' }));
+    expect(res.status).toBe(400);
   });
 });

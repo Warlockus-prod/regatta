@@ -186,7 +186,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/leaderboard/page.tsx` - лучшие времена по бакетам и дневной вызов.
 - `src/app/r/[code]/page.tsx` - страница реплея по 6-символьному коду.
 - `src/app/r/[code]/ReplayViewer.tsx` - проигрыватель реплея с таймлайном.
-- `src/app/stats/page.tsx` - вход в админку, за basic-auth из `src/proxy.ts`.
+- `src/app/stats/page.tsx` - вход в админку, за basic-auth из `src/proxy.ts` и повторной проверкой `checkAdminAuth()` в самой странице (без нее 404).
 - `src/app/stats/StatsDashboard.tsx` - панели: страны, устройства, источники, время на странице.
 - `src/app/stats/FeedbackAdmin.tsx` - разбор обратной связи со статусами.
 
@@ -195,20 +195,24 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/health/route.ts` - liveness для healthcheck Docker и nginx, без рендера и БД.
 - `src/app/api/log/route.ts` - прием клиентских событий: усечение IP, allow-list `meta`, страна из заголовков.
 - `src/app/api/log/route.test.ts` - контракт: всегда 204, даже на мусорном теле.
-- `src/app/api/race-result/route.ts` - запись результата гонки, лимит 60/час/сессия, границы значений.
+- `src/app/api/race-result/route.ts` - запись результата гонки, лимит 60/час на сессию и 180/час на IP, правдоподобное время 20 с - 2 ч, ник через общий санитайзер.
 - `src/app/api/race-result/route.test.ts` - контракт валидации входа без реальной SQLite.
 - `src/app/api/leaderboard/route.ts` - выдача лучших времен по бакетам.
 - `src/app/api/daily/route.ts` - миссия дня (одна на UTC-сутки).
 - `src/app/api/player/route.ts` - ник игрока и его идентификатор.
-- `src/app/api/replay/route.ts` - сохранение реплея, выдача кода.
+- `src/app/api/replay/route.ts` - сохранение реплея, выдача кода; потолки размера `samples`, `events`, `course`, `missionId` только короткий слаг.
+- `src/app/api/replay/route.test.ts` - контракт: потолки размера, слаг миссии, санитайзер ника, ротация cookie не снимает лимит.
 - `src/app/api/replay/[code]/route.ts` - чтение реплея по коду.
 - `src/app/api/coach/route.ts` - ИИ-коуч на финише, событие `coach.requested`.
+- `src/app/api/coach/sanitize.ts` - `sanitizeRaceLog()`: каждое поле лога гонки до промпта приводится к конечному числу, enum или обрезанной строке.
+- `src/app/api/coach/route.test.ts` - контракт: враждебное тело дает 4xx или чистый промпт, а не исключение.
 - `src/app/api/ai-chat/route.ts` - общий ИИ-чат по учебным темам.
 - `src/app/api/sternik-chat/route.ts` - ИИ-разбор вопросов экзамена sternik.
 - `src/app/api/feedback/route.ts` - прием обратной связи из виджета.
 - `src/app/api/support/route.ts` - заявка со страницы поддержки, уходит в Telegram.
 - `src/app/api/admin/feedback/route.ts` - смена статусов фидбэка для `/stats`.
 - `src/app/api/admin/stats-range/route.ts` - агрегаты за период для дашборда.
+- `src/app/api/admin/require-admin.test.ts` - контракт: каждый админ-хендлер сам отвечает 401/403/503 без прокси.
 - `src/app/api/weather/route.ts` - прокси Open-Meteo: ветер, волна, течение, кэш в памяти.
 - `src/app/api/weather/route.test.ts` - контракт роута погоды без сети.
 - `src/app/api/gallery/like/route.ts` - лайк фото галереи.
@@ -512,14 +516,19 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 Остальное:
 
-- `src/proxy.ts` - middleware: короткие языковые ссылки, cookie `regatta_lang`, basic-auth `/stats` со сравнением за константное время и 503 без `ADMIN_PASSWORD`.
+- `src/proxy.ts` - middleware: короткие языковые ссылки, cookies `regatta_sid` и `regatta_lang` (в проде `Secure`), basic-auth `/stats` и `/api/admin/*` через `src/lib/admin-auth.ts`.
+- `src/proxy.test.ts` - контракт: `Secure` на cookies в проде и без него в dev, админ-шлюз 401/403.
+- `src/lib/admin-auth.ts` - basic-auth админки (константное время, 503 без `ADMIN_PASSWORD`, CSRF для мутаций); `requireAdmin()` вызывает каждый админ-хендлер, а не только прокси.
 - `src/lib/i18n.tsx` - провайдер и хуки `t` / `tp` / `tl`, приоритет источников языка.
 - `src/lib/languages.ts` - список языков, `LANG_SHORTCUT_PATHS`, `pickLocalized`, порядок в пикере.
 - `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`.
 - `src/lib/net.ts` - усечение клиентского IP перед логом и записью.
 - `src/lib/log.ts` - структурный лог JSON-строками в stdout контейнера.
 - `src/lib/client-log.ts` - клиентский логгер через `sendBeacon`, молча падает.
-- `src/lib/rate-limit.ts` - скользящее окно в памяти (один контейнер, без Redis).
+- `src/lib/rate-limit.ts` - скользящее окно в памяти (один контейнер, без Redis); `clientKeys()` дает ключ сессии и ключ IP (последний хоп X-Forwarded-For), оба бакета должны пропустить запрос.
+- `src/lib/rate-limit.test.ts` - контракт: свежая `regatta_sid` на каждый запрос не снимает лимит, отказ не списывает бюджет других слоев, короткое окно не стирает часовые бакеты.
+- `src/lib/race-submission.ts` - общие проверки присланных гонок: санитайзер ника, правдоподобное время финиша, слаг миссии.
+- `src/lib/ws-limits.test.ts` - контракт `ws-server/limits.js`: последний хоп XFF и потолки комнат.
 - `src/lib/storage.ts` - версионированный localStorage в пространстве `regatta.`.
 - `src/lib/theme.ts` - разрешение темы light/dark, один источник истины.
 - `src/lib/sounds.ts` - процедурные звуки на WebAudio, уважают общий mute.
@@ -542,6 +551,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 - `ws-server/server.js` - авторитетный сервер: комнаты, лобби, боты, миссии, тик 20 Гц.
 - `ws-server/race-physics.js` - сгенерированная физика (`scripts/build-race-server.mjs`), руками не править.
+- `ws-server/limits.js` - чистые хелперы лимитов: IP по последнему хопу X-Forwarded-For, потолок комнат (всего и на IP). При записи результата в `/api/race-result` ws-server передает IP игрока в X-Forwarded-For; запрос без этого заголовка (внутренний вызов) лимитируется только по сессии.
 - `ws-server/package.json` - зависимости отдельного процесса (вне сборки Next).
 - `ws-server/package-lock.json` - лок зависимостей ws-server.
 - `ws-server/Dockerfile` - образ контейнера `regatta-ws`.
@@ -623,7 +633,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 ## 5. ws-server: константы и базовая линия
 
-Сверено с `ws-server/server.js` (2026-09-26):
+Сверено с `ws-server/server.js` (2026-10-18):
 
 | Параметр | Значение | Где |
 |---|---|---|
@@ -635,7 +645,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 | Грейс переподключения | 20 с (`RECONNECT_GRACE_MS`) | `ws-server/server.js:19` |
 | Простой комнаты | 15 минут | `ws-server/server.js:17` |
 | Отсечка гонки | 300 с | `ws-server/server.js:328` |
-| Троттлинг | 30 соединений в минуту на IP, 60 сообщений в секунду | `ws-server/server.js:408` |
+| Троттлинг | 30 соединений в минуту на IP, 240 сообщений в секунду на IP (IP = последний хоп X-Forwarded-For) | `ws-server/server.js` `allowConnect`, `allowMessage` |
+| Комнат | 500 всего, 10 на IP (`MAX_ROOMS`, `MAX_ROOMS_PER_IP`) | `ws-server/limits.js` |
 
 Базовая линия производительности (`STRESS-REPORT.md`, 8 клиентов, 45 с):
 20.31 Гц, средний интервал 50.2 мс, p95 111 мс, p99 131 мс, максимум 140 мс,
@@ -750,7 +761,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 | Документ | Утверждение | Как на самом деле |
 |---|---|---|
-| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 58 тестов в 7 файлах; весь `npx vitest run` = 434 теста в 45 файлах |
+| `TECH.md`, `AUDIT.md`, `FEATURES.md` | физика 8/8 тестов | `npm run test:physics` = 58 тестов в 7 файлах; весь `npx vitest run` = 477 тестов в 51 файле |
 | `CLAUDE.md` (до этой правки) | 31/31 физика, 12/12 Playwright | 58 физики, `npx playwright test --list` = 16 тестов в 2 файлах |
 | `README.md` | глоссарий 64 термина | 51 запись в `src/data/sailing-data.ts` |
 | `FEATURES.md` | мультиплеер 2-8 игроков | `MAX_PLAYERS_PER_ROOM = 10` |

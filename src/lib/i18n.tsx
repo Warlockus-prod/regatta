@@ -14,6 +14,8 @@ export type { Lang } from './languages';
 
 const STORAGE_KEY = 'regatta.lang.v1';
 const COOKIE_NAME = 'regatta_lang';
+// Same flag as the proxy-set cookie: Secure on https, omitted on http dev.
+const cookieSecureAttr = () => (location.protocol === 'https:' ? '; secure' : '');
 
 /**
  * Optional 4th-arg overlay for `tp()` carrying ES/FR/DE/IT translations.
@@ -84,7 +86,7 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
           if (urlLang !== lang) setLangState(urlLang);
           try { localStorage.setItem(STORAGE_KEY, urlLang); } catch { /* ignore */ }
           try {
-            document.cookie = `${COOKIE_NAME}=${urlLang}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+            document.cookie = `${COOKIE_NAME}=${urlLang}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax${cookieSecureAttr()}`;
           } catch { /* ignore */ }
           // Strip ?lang= from the visible URL for cleanliness. No navigation.
           try {
@@ -130,7 +132,7 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
     // and we skip the first-paint flash across page navigations.
     if (typeof document !== 'undefined') {
       try {
-        document.cookie = `${COOKIE_NAME}=${l}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax`;
+        document.cookie = `${COOKIE_NAME}=${l}; path=/; max-age=${60 * 60 * 24 * 365}; samesite=lax${cookieSecureAttr()}`;
       } catch { /* ignore */ }
       document.documentElement.lang = l;
     }

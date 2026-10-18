@@ -1,6 +1,5 @@
 import { ImageResponse } from 'next/og';
-import { rateLimitWithGlobal } from '@/lib/rate-limit';
-import { clientIp } from '@/lib/net';
+import { rateLimitWithGlobal, clientIpKey } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
 
@@ -8,7 +7,8 @@ export async function GET(req: Request) {
   // Satori/next-og vector rendering is CPU-heavy; cap it per IP + globally so a
   // single source (or a burst) cannot spin the box up on this unauthenticated GET.
   const rl = rateLimitWithGlobal({
-    key: 'og:' + clientIp(req),
+    // Last X-Forwarded-For hop: the first one is whatever the client sent.
+    key: 'og:' + clientIpKey(req),
     perKeyLimit: 120,
     perKeyWindowMs: 60 * 60 * 1000,
     globalKey: 'og',

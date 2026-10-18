@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -89,10 +89,10 @@ export async function POST(req: Request) {
   // Rate-limit: 20 requests / hour per session. Falls back to IP if no cookie.
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
+  const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
   // Site-wide per-user daily AI cap (shared across all AI endpoints).
-  const daily = checkUserDailyBudget(sid ?? ip);
+  const daily = checkUserDailyBudget(client);
   if (!daily.ok) {
     logWarn('ai-chat.daily-cap', { resetMs: daily.resetMs });
     return NextResponse.json(
@@ -101,9 +101,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const rlKey = 'chat:' + (sid ?? ip);
   const rl = rateLimitWithGlobal({
-    key: rlKey,
+    key: 'chat',
+    client,
     perKeyLimit: CHAT_LIMIT,
     perKeyWindowMs: CHAT_WINDOW_MS,
     globalKey: 'chat',
@@ -111,7 +111,7 @@ export async function POST(req: Request) {
     globalWindowMs: CHAT_GLOBAL_WINDOW_MS,
   });
   if (!rl.ok) {
-    logWarn('ai-chat.rate-limited', { key: rlKey.slice(0, 16), resetMs: rl.resetMs, by: rl.rejectedBy });
+    logWarn('ai-chat.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
       { error: 'Слишком много запросов. Попробуй через час. / Too many requests. Try again in an hour.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
       { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },

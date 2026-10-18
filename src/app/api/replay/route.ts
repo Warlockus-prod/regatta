@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { insertReplay, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
-import { rateLimit, clientIpKey } from '@/lib/rate-limit';
+import { rateLimitClient, clientKeys } from '@/lib/rate-limit';
+import { isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
 
 export const runtime = 'nodejs';
 
@@ -24,8 +25,7 @@ interface Payload {
 export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value ?? null;
-  const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
-  const rl = rateLimit('replay:' + (sid ?? ip), REPLAY_LIMIT, REPLAY_WINDOW_MS);
+  const rl = rateLimitClient(clientKeys(req, sid), 'replay', REPLAY_LIMIT, REPLAY_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json({ error: 'Too many replays, wait' }, { status: 429 });
   }
@@ -50,8 +50,17 @@ export async function POST(req: Request) {
   if (JSON.stringify(body.samples).length > 600000) {
     return NextResponse.json({ error: 'Replay payload too large' }, { status: 400 });
   }
-  if (Array.isArray(body.events) && body.events.length > 2000) {
+  if (body.events.length > 2000) {
     return NextResponse.json({ error: 'Too many events' }, { status: 400 });
+  }
+  // Same reasoning for events: a few huge event objects stay under the count
+  // cap. Real races serialize to a few KB (prod max ~1.6KB on 2026-10-18).
+  if (JSON.stringify(body.events).length > 100000) {
+    return NextResponse.json({ error: 'Events payload too large' }, { status: 400 });
+  }
+  const missionId = parseMissionId(body.missionId);
+  if (missionId === 'invalid') {
+    return NextResponse.json({ error: 'Bad missionId' }, { status: 400 });
   }
   if (body.course != null && JSON.stringify(body.course).length > 50000) {
     return NextResponse.json({ error: 'Course payload too large' }, { status: 400 });
@@ -64,15 +73,16 @@ export async function POST(req: Request) {
   }
 
   const player = sid ? getPlayer(sid) : null;
-  const nickname = player?.nickname || body.nicknameFallback?.slice(0, 20) || null;
+  const nickname = player?.nickname || sanitizeNickname(body.nicknameFallback);
 
   const code = insertReplay({
     sid,
     nickname,
     difficulty: body.difficulty,
     windStrength: body.windStrength,
-    missionId: body.missionId ?? null,
-    finishTimeSec: typeof body.finishTimeSec === 'number' && isFinite(body.finishTimeSec) ? body.finishTimeSec : null,
+    missionId,
+    // An unfinished race is still shareable; an implausible time is dropped.
+    finishTimeSec: isPlausibleFinishSec(body.finishTimeSec) ? body.finishTimeSec : null,
     samples: body.samples,
     events: body.events,
     course: body.course ?? null,
