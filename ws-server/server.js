@@ -440,7 +440,9 @@ setInterval(() => {
 
 // ------------------------------ WS handlers ------------------------------
 
-const wss = new WebSocketServer({ server: http });
+// maxPayload: the library default is 100 MiB, buffered in full before the
+// 4 KB check in the message handler runs. Refuse big frames at the socket.
+const wss = new WebSocketServer({ server: http, maxPayload: 4096 });
 
 wss.on('connection', (ws, req) => {
   const ip = (req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown')
@@ -452,6 +454,13 @@ wss.on('connection', (ws, req) => {
   let playerId = null;
   let roomCode = null;
   let sid = null;
+
+  // A malformed or oversized frame makes `ws` emit 'error' on the socket.
+  // Without a listener that is an uncaught exception that kills the whole
+  // server (every room). The library closes the socket itself; just log it.
+  ws.on('error', (err) => {
+    console.warn(`[regatta-ws] socket error from ${ip}: ${err?.message || err}`);
+  });
 
   ws.on('message', (raw) => {
     if (!allowMessage(ip)) return;

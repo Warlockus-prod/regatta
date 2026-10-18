@@ -1,57 +1,59 @@
-Un tuteur de voile calme et pratique qui vous prépare à votre première course en sept jours. Sans bruit, sans tracking, juste ce dont vous avez vraiment besoin sur l'eau.
+Apprenez la voile et préparez votre première régate en une semaine. Week to Regatta est une école de voile gratuite dans votre poche: des leçons courtes, un simulateur de voile à la physique réelle, des régates contre des bots et des amis, et les règles de course expliquées en schémas.
 
-L'ARC DE 7 JOURS
+POURQUOI ÇA MARCHE
 
-Huit leçons concentrées réparties sur un plan de 7 jours:
+- Un plan clair: 8 leçons en 7 jours, du vent et des allures jusqu'à la ligne de départ.
+- Un simulateur honnête: le voilier suit un modèle physique VPP, la même famille de calculs que celle des architectes de voiles.
+- De la pratique jusqu'au réflexe: exercices de virement, d'empannage, de réglage et de bascules de vent.
+- Entièrement gratuit. Sans pub, sans compte, sans abonnement.
 
-Jour 1. Le vent, les allures et la première main à la barre.
-Jour 2. Réglage de voiles et penons. Lire le bateau avec les mains.
-Jour 3. Virer de bord et empanner sous contrôle.
-Jour 4. Gîte, dérive et comment le bateau bouge vraiment.
-Jour 5. Courbes polaires et trouver sa vitesse cible.
-Jour 6. Départ de course, ligne et le premier bord de près.
-Jour 7. Manoeuvres aux bouées, arrivée et checklist avant course.
+LE PLAN SUR 7 JOURS
 
-Un bouton Continuer sur l'écran d'accueil pointe toujours vers la prochaine chose à ouvrir. Vous n'avez jamais à vous demander où vous en étiez.
+Jour 1. Le vent, les allures et les premières minutes à la barre.
+Jour 2. Le réglage des voiles et les penons.
+Jour 3. Virement de bord et empannage maîtrisés.
+Jour 4. Gîte, dérive et la façon dont le bateau avance vraiment.
+Jour 5. Les polaires et votre vitesse cible.
+Jour 6. Le départ, la ligne et le premier bord de près.
+Jour 7. Le passage des bouées, l'arrivée et la checklist d'avant course.
 
-CE QU'IL Y A DEDANS
+Le bouton "Continuer" de l'écran d'accueil ouvre toujours l'étape suivante.
 
-Un vrai simulateur de vent. Le bateau utilise un moteur physique VPP (Velocity Prediction Program), la même famille de mathématiques utilisée par les concepteurs de voiles professionnels. Bougez les sliders de vent, changez le réglage et la prise de ris, le bateau répond honnêtement.
+SIMULATEURS
 
-Vue de côté, vue de dessus et vue arrière du même voilier pour que vous sentiez la gîte et la dérive, pas juste les lire.
+- Les bases: barrez le voilier et observez la gîte et la dérive de côté, du dessus et depuis l'arrière.
+- Entraîneur de réglage: bordez, choquez, prenez un ris et voyez la vitesse réagir.
+- Voilier 3D: tournez autour du bateau et regardez la forme des voiles sous tous les angles.
 
-Drills et missions. Travaillez le timing du virement, la réponse au refus et à l'adonnante, le jeu des bascules de vent jusqu'à l'automatisme.
+RÉGATE
 
-Une anatomie interactive du voilier avec 17 pièces. Touchez un hotspot, lisez la pièce, voyez-la sur un poster photo, apprenez le bout qui la commande.
+Courez un parcours court contre des bots de trois niveaux, ou ouvrez une course multijoueur avec vos amis. Après l'arrivée, un coach IA analyse votre course et vous dit quoi corriger.
 
-Un glossaire avec recherche. Drisse, mousqueton, gîte, barre, rappel. Plus de cinquante termes dans votre poche, hors ligne.
+LE BATEAU ET LES RÈGLES
 
-Règles de course avec diagrammes. Vous savez qui a la priorité avant que le jury ne demande.
+- Règles de course: 21 situations réelles en schémas. Sachez qui est prioritaire avant le jury.
+- Anatomie du voilier: 17 éléments sur un bateau interactif, avec le bout qui commande chacun.
+- Glossaire: plus de 50 termes de voile, avec recherche et hors ligne.
+- Première semaine à bord: quoi emporter, quoi demander au skipper, comment aider l'équipage.
+- Checklist d'avant course: à cocher la veille au soir.
 
-Checklist avant course. Protection auditive, montre, sac étanche, météo, plan de voilure. Vous la cochez la veille au soir.
+DIPLÔMES POLONAIS (EN POLONAIS)
 
-PROMESSE DE MARQUE
-
-Nous croyons qu'une semaine de pratique concentrée est la différence entre regarder une régate et y participer. L'app est la voix calme à côté de vous le premier jour de cette semaine.
+- Radio marine SRC: 324 questions officielles de l'UKE et un simulateur vocal pour les appels MAYDAY et PAN-PAN.
+- Sternik motorowodny (permis bateau à moteur polonais): 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes.
 
 CONFIDENTIALITÉ
 
-Sans analytique.
-Sans tracking.
-Sans publicité.
-Toute votre progression reste sur votre appareil.
-
-L'app ne reçoit rien dont elle n'a pas besoin pour vous enseigner. Pas de compte, pas de mur d'email, pas de SDK tiers lisant vos données.
+Sans pub, sans compte, sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie seulement des statistiques d'usage anonymes, que vous pouvez désactiver dans les Réglages.
 
 LANGUES
 
-Russe, anglais, polonais, espagnol, français, allemand, italien. Le même contenu, le même ton, dans votre langue.
+Français, anglais, polonais, allemand, espagnol, italien et russe.
 
 POUR QUI
 
-Pour les régatiers débutants inscrits à une série de club.
-Pour les croisiéristes qui veulent commencer à courir.
-Pour l'équipage arrivé sur un bateau la semaine dernière avec une régate au calendrier.
-Pour quiconque aime la voile et veut le vocabulaire, la physique et la mémoire musculaire au même endroit.
+- Les débutants inscrits à leur première régate de club.
+- Les plaisanciers qui veulent se lancer en course.
+- Les nouveaux équipiers avec une régate au calendrier.
 
-Ouvrez-la. Commencez le Jour 1. On se voit sur la ligne de départ.
+Ouvrez le jour 1. Rendez-vous sur la ligne de départ.

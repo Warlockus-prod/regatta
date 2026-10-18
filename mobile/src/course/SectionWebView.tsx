@@ -102,10 +102,10 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         // tp(ru, en, pl) - the RU slot is FIRST. These four calls shipped in
         // build 30 with RU and PL swapped, so a Russian tester saw Polish and an
         // English one saw Cyrillic.
-        tp('Выйти из экзамена?', 'Leave the exam?', 'Wyjsc z egzaminu?', {
+        tp('Выйти из экзамена?', 'Leave the exam?', 'Wyjść z egzaminu?', {
           es: 'Salir del examen?',
           fr: "Quitter l'examen?",
-          de: 'Pruefung verlassen?',
+          de: 'Prüfung verlassen?',
           it: "Uscire dall'esame?",
         }),
         tp(
@@ -127,7 +127,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
             style: 'cancel',
           },
           {
-            text: tp('Выйти', 'Leave', 'Wyjdz', {
+            text: tp('Выйти', 'Leave', 'Wyjdź', {
               es: 'Salir', fr: 'Quitter', de: 'Verlassen', it: 'Esci',
             }),
             style: 'destructive',
@@ -162,9 +162,10 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
         // iOS 15+: grant getUserMedia (the SRC voice simulator) without a second
-        // web-level prompt; the native mic prompt still appears once, gated by
-        // NSMicrophoneUsageDescription (app.json / Info.plist).
-        mediaCapturePermissionGrantType="grant"
+        // web-level prompt, but only to our own host: a third-party page that
+        // ends up in this WebView gets the prompt instead. The native mic prompt
+        // still appears once, gated by NSMicrophoneUsageDescription (app.json).
+        mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
         bounces={false}
         injectedJavaScriptBeforeContentLoaded={BEFORE_LOAD}
         injectedJavaScript={AFTER_LOAD}
@@ -206,10 +207,10 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
             {tp(
               'Не удалось загрузить курс. Нужен интернет.',
               'The course failed to load. An internet connection is required.',
-              'Nie udalo sie zaladowac kursu. Potrzebny internet.',
+              'Nie udało się załadować kursu. Potrzebny internet.',
               {
-                es: 'No se pudo cargar el curso. Se necesita conexion a internet.',
-                fr: 'Echec du chargement du cours. Une connexion internet est requise.',
+                es: 'No se pudo cargar el curso. Se necesita conexión a internet.',
+                fr: 'Échec du chargement du cours. Une connexion internet est requise.',
                 de: 'Kurs konnte nicht geladen werden. Internetverbindung erforderlich.',
                 it: 'Impossibile caricare il corso. Serve una connessione internet.',
               },

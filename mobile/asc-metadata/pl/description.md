@@ -1,57 +1,58 @@
-Spokojny, praktyczny nauczyciel zeglarstwa, ktory przygotowuje cie do pierwszego wyscigu w siedem dni. Bez halasu, bez sledzenia, tylko to, czego naprawde potrzebujesz na wodzie.
+Przygotuj się do egzaminu na sternika motorowodnego i świadectwo SRC, a przy okazji naucz się żeglować i stań na starcie pierwszych regat. Wszystko za darmo, bez reklam i bez zakładania konta.
 
-SIEDMIODNIOWY LUK
+STERNIK MOTOROWODNY
 
-Osiem skoncentrowanych lekcji rozlozonych na 7 dni:
+- 879 pytań egzaminacyjnych z wyjaśnieniami.
+- Teoria w działach: przepisy i prawo, locja, znaki i sygnały, budowa jednostki, silniki, meteorologia, manewry, ratownictwo.
+- Pełny egzamin próbny: 75 pytań, 90 minut, próg zaliczenia 65 poprawnych odpowiedzi.
+- Powtórka błędów: aplikacja pamięta pytania, na których się mylisz.
+- Trening części ustnej egzaminu.
 
-Dzien 1. Wiatr, kursy wzgledem wiatru, pierwsza reka na sterze.
-Dzien 2. Trymowanie zagli i czuwakow. Czytanie lodzi rekami.
-Dzien 3. Zwroty na wiatr i z wiatrem pod kontrola.
-Dzien 4. Przechyl, dryf i jak lodz naprawde plynie.
-Dzien 5. Krzywe biegunowe i znajdowanie predkosci docelowej.
-Dzien 6. Start regat, linia i pierwszy halsa.
-Dzien 7. Okrazanie znakow, finisz i lista przed startem.
+SRC: ŚWIADECTWO OPERATORA RADIOTELEFONISTY VHF
 
-Przycisk Kontynuuj na ekranie glownym zawsze wskazuje, co otworzyc dalej. Nie musisz pamietac, na czym skonczyles.
+- 324 pytania z oficjalnej bazy UKE.
+- Symulator radiostacji z oceną głosu: ćwiczysz MAYDAY, PAN-PAN i SECURITE na głos.
+- Kurs działa także offline.
 
-CO JEST W SRODKU
+NAUKA ŻEGLARSTWA W 7 DNI
 
-Prawdziwy symulator wiatru. Lodz uzywa silnika fizycznego VPP (Velocity Prediction Program), tej samej rodziny matematyki, ktorej uzywaja zawodowi projektanci zagli. Przesuwaj suwaki wiatru, zmieniaj trymowanie i refowanie zagli, lodz odpowiada uczciwie.
+Osiem krótkich lekcji rozłożonych na tydzień:
 
-Widok z boku, z gory i z tylu tego samego jachtu, abys mogl czuc przechyl i dryf, a nie tylko o nich czytac.
+Dzień 1. Wiatr, kursy względem wiatru i pierwsze chwile za sterem.
+Dzień 2. Trymowanie żagli i włoski.
+Dzień 3. Zwrot przez sztag i przez rufę pod kontrolą.
+Dzień 4. Przechył, dryf i to, jak jacht naprawdę płynie.
+Dzień 5. Biegunowe prędkości i prędkość docelowa.
+Dzień 6. Start, linia startu i pierwsza halsówka.
+Dzień 7. Okrążanie znaków, meta i lista kontrolna przed startem.
 
-Cwiczenia i misje. Trenuj timing zwrotu, reakcje na zachod i odejscie, gre na zmianach wiatru, az staja sie automatyczne.
+SYMULATORY NA PRAWDZIWEJ FIZYCE
 
-Interaktywna anatomia jachtu, 17 czesci. Dotykasz hotspotu, czytasz nazwe, widzisz na fotograficznym plakacie, poznajesz line, ktora to ciagnie.
+- Podstawy: sterujesz jachtem i widzisz przechył oraz dryf z boku, z góry i od rufy.
+- Trener trymu: wybierasz, luzujesz, refujesz i od razu widzisz zmianę prędkości.
+- Jacht 3D: oglądasz jacht i kształt żagli z każdej strony.
 
-Slownik z wyszukiwaniem. Fal, hak, przechyl, ster, balastowanie. Ponad piecdziesiat hasel w kieszeni, offline.
+Model jachtu opiera się na fizyce VPP, tej samej rodzinie obliczeń, której używają projektanci żagli.
 
-Zasady mijania z diagramami. Wiesz, kto ma prawo drogi, zanim zapyta komitet protestowy.
+REGATY
 
-Lista przed startem. Ochrona sluchu, zegarek, worek wodoodporny, prognoza, plan zagli. Odhaczasz wieczorem dzien wczesniej.
+Ścigaj się z botami na trzech poziomach albo otwórz wyścig wieloosobowy i zaproś znajomych. Po mecie trener AI analizuje Twój wyścig i podpowiada, co poprawić.
 
-OBIETNICA MARKI
+JACHT I PRZEPISY
 
-Wierzymy, ze jeden skoncentrowany tydzien praktyki to roznica miedzy ogladaniem regat a sciganiem sie w nich. Aplikacja to spokojny glos obok ciebie pierwszego dnia tego tygodnia.
+- Przepisy regatowe: 21 sytuacji z diagramami. Wiesz, kto ma pierwszeństwo, zanim zapyta komisja protestowa.
+- Budowa jachtu: 17 elementów na interaktywnym modelu.
+- Słownik: ponad 50 pojęć żeglarskich, z wyszukiwarką, offline.
+- Pierwszy tydzień na pokładzie: co spakować, o co zapytać skippera, jak pomagać załodze.
 
-PRYWATNOSC
+PRYWATNOŚĆ
 
-Bez analityki.
-Bez sledzenia.
-Bez reklam.
-Caly twoj postep zostaje na urzadzeniu.
+Bez reklam, bez konta, bez śledzenia między aplikacjami. Postępy zostają na Twoim telefonie. Aplikacja wysyła tylko anonimowe statystyki użycia, które możesz wyłączyć w Ustawieniach.
 
-Aplikacja nie dostaje niczego, czego nie potrzebuje, aby cie uczyc. Nie ma konta, nie ma bramki email, nie ma zewnetrznych SDK czytajacych twoje dane.
+Aplikacja ma charakter edukacyjny i nie jest oficjalnym narzędziem egzaminacyjnym.
 
-JEZYKI
+JĘZYKI
 
-Rosyjski, angielski, polski, hiszpanski, francuski, niemiecki, wloski. Ta sama tresc, ten sam ton, w twoim jezyku.
+Polski, angielski, niemiecki, hiszpański, francuski, włoski i rosyjski. Kursy na sternika motorowodnego i SRC są po polsku.
 
-DLA KOGO
-
-Dla pierwszorazowych zawodnikow zapisanych na seria klubowa.
-Dla zeglarzy turystycznych, ktorzy chca zaczac sie scigac.
-Dla zalogi, ktora doszla na lodz tydzien temu i ma regaty w kalendarzu.
-Dla kazdego, kto lubi zeglowac i chce slownictwo, fizyke i pamiec miesni w jednym miejscu.
-
-Otworz aplikacje. Zacznij Dzien 1. Spotkamy sie na linii startu.
+Otwórz pierwszą lekcję i do zobaczenia na starcie.

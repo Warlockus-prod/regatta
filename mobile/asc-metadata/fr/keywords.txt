@@ -1,1 +1,1 @@
-voile,regate,voilier,course,vent,tactique,bootcamp,simulateur,glossaire,anatomie
+voilier,bateau,yacht,navigation,cours,école,leçons,réglage,vent,virement,empannage,jeu,quiz,skipper

@@ -1,1 +1,1 @@
-vela,regata,yacht,corsa,vento,tattica,bootcamp,simulatore,glossario,anatomia
+barca,yacht,velista,navigare,scuola,lezioni,regata,regolazione,vento,virata,strambata,gioco,skipper

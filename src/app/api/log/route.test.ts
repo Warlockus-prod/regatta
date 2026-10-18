@@ -100,9 +100,25 @@ describe('POST /api/log - privacy + meta hardening', () => {
     expect(arg.meta.nested).toBeUndefined();
   });
 
-  it('drops oversized meta rather than storing an unbounded blob', async () => {
+  it('refuses bodies over 16 KB without touching the DB', async () => {
     const huge = 'x'.repeat(20_000);
-    await POST(makeReq({ level: 'info', evt: 'page.view', message: huge }));
+    const res = await POST(makeReq({ level: 'info', evt: 'page.view', message: huge }));
+    expect(res.status).toBe(413);
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+  });
+
+  it('caps string columns so one event cannot store an unbounded row', async () => {
+    const long = 'p'.repeat(5_000);
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: long, referrer: long, viewport: long }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.path.length).toBe(256);
+    expect(arg.referrer.length).toBe(512);
+    expect(arg.viewport.length).toBe(32);
+  });
+
+  it('truncates long allow-listed meta strings to 512 chars', async () => {
+    const big = 'x'.repeat(10_000);
+    await POST(makeReq({ level: 'info', evt: 'page.view', message: big }));
     const arg = mocks.db.insertEvent.mock.calls[0][0];
     // message is allow-listed but truncated to 512 chars, so the object stays
     // well under the 4KB cap and is still stored.

@@ -20,7 +20,7 @@ import {
 const BASIC_USER = 'admin';
 // No fallback. In production `/stats` is locked out entirely if
 // ADMIN_PASSWORD is not set. Local dev can use ADMIN_PASSWORD=dev in .env.local.
-// Previously had an insecure `|| 'regattA'` fallback that leaked into
+// Previously had an insecure hardcoded fallback that leaked into
 // production runtime if the .env file was dropped.
 const BASIC_PASS = process.env.ADMIN_PASSWORD ?? '';
 

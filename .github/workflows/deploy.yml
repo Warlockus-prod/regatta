@@ -11,6 +11,11 @@ on:
         required: false
         default: 'main'
 
+# Least privilege by default; jobs that need more (publish-images,
+# deploy) ask for it in their own permissions block.
+permissions:
+  contents: read
+
 concurrency:
   group: vps-deploy
   cancel-in-progress: false

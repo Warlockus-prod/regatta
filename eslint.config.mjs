@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // mobile/ has its own ESLint config (run via `cd mobile && npm run check`).
+    "mobile/**",
+    // Photoshop ExtendScript, not parseable as modern JS.
+    "scripts/photoshop/**",
   ]),
 ]);
 

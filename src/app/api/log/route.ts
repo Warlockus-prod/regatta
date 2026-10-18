@@ -40,6 +40,15 @@ const META_ALLOW = [
   'msOnPage', 'maxScrollPct', 'country', 'message', 'stack', 'reason',
 ] as const;
 const META_MAX_BYTES = 4096;
+// A log report is a few hundred bytes. Anything far larger is abuse: refuse it
+// before parsing so a 5 MB body (the nginx limit) never reaches the DB or logs.
+const BODY_MAX_BYTES = 16 * 1024;
+// Cap for the plain string columns (path, viewport, utm, referrer...).
+const COLUMN_MAX = 256;
+
+function str(v: unknown, max = COLUMN_MAX): string | undefined {
+  return typeof v === 'string' ? v.slice(0, max) : undefined;
+}
 
 /**
  * Build a bounded meta object from the request body: keep only allow-listed
@@ -95,9 +104,16 @@ function buildMeta(body: Record<string, unknown>): Record<string, unknown> | und
  */
 export async function POST(req: Request) {
   try {
-    const body = await req.json();
-    const level = body?.level === 'error' || body?.level === 'warn' ? body.level : 'info';
-    const evt = typeof body?.evt === 'string' ? body.evt : 'unknown';
+    const declared = Number(req.headers.get('content-length') ?? 0);
+    if (declared > BODY_MAX_BYTES) return new NextResponse(null, { status: 413 });
+    const text = await req.text();
+    if (text.length > BODY_MAX_BYTES) return new NextResponse(null, { status: 413 });
+    const body = JSON.parse(text);
+    if (!body || typeof body !== 'object' || Array.isArray(body)) {
+      return new NextResponse(null, { status: 204 });
+    }
+    const level = body.level === 'error' || body.level === 'warn' ? body.level : 'info';
+    const evt = str(body.evt, 64) ?? 'unknown';
     // IP detection - try multiple proxy headers in priority order:
     //   1. x-forwarded-for (first hop, the real client)
     //   2. x-real-ip (nginx convention)
@@ -130,9 +146,10 @@ export async function POST(req: Request) {
     // Mask the host part at ingest - no full client IP is ever stored or logged.
     const detectedIp = truncateIp(rawIp);
 
-    const fields = {
-      ...body,
-      ua: req.headers.get('user-agent') ?? 'unknown',
+    // Log only the allow-listed fields, never the raw body.
+    const fields: Record<string, unknown> = {
+      ...buildMeta(body),
+      ua: str(req.headers.get('user-agent')) ?? 'unknown',
       ip: detectedIp,
     };
     delete fields.level;
@@ -178,19 +195,19 @@ export async function POST(req: Request) {
     // Persist to DB for /stats dashboard
     insertEvent({
       evt,
-      path: typeof body.path === 'string' ? body.path : undefined,
-      sessionId: sid ?? (typeof body.sessionId === 'string' ? body.sessionId : undefined),
+      path: str(body.path),
+      sessionId: sid ?? str(body.sessionId, 64),
       ua: fields.ua as string,
       ip: fields.ip as string,
       country: country ?? undefined,
-      viewport: typeof body.viewport === 'string' ? body.viewport : undefined,
-      language: typeof body.language === 'string' ? body.language : undefined,
-      appVersion: typeof body.appVersion === 'string' ? body.appVersion : undefined,
+      viewport: str(body.viewport, 32),
+      language: str(body.language, 16),
+      appVersion: str(body.appVersion, 32),
       msSinceStart: typeof body.msSinceStart === 'number' ? body.msSinceStart : undefined,
-      utmSource: typeof body.utm_source === 'string' ? body.utm_source : undefined,
-      utmMedium: typeof body.utm_medium === 'string' ? body.utm_medium : undefined,
-      utmCampaign: typeof body.utm_campaign === 'string' ? body.utm_campaign : undefined,
-      referrer: typeof body.referrer === 'string' ? body.referrer : undefined,
+      utmSource: str(body.utm_source),
+      utmMedium: str(body.utm_medium),
+      utmCampaign: str(body.utm_campaign),
+      referrer: str(body.referrer, 512),
       meta: buildMeta(body),
     });
   } catch {

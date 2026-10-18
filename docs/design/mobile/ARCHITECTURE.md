@@ -53,6 +53,10 @@ build script. The paragraph above describes builds before 1.6.2.
 - **TestFlight pre-release train = `CFBundleShortVersionString` (= `expo.version`).** A
   version that reaches READY_FOR_SALE CLOSES its train; bump `expo.version` every release
   or `altool` bounces with a hidden `90186` train-closed error.
+- **Languages shown by iOS and the App Store** come from `CFBundleLocalizations` in
+  `mobile/app.json`; without it the store page lists "English" only. Per-language
+  permission texts (the SRC microphone prompt) live in `mobile/locales/<lang>.json`
+  (Expo `locales`). Both take effect with the next build.
 - **iOS 27 needs the UIScene life cycle.** Apps linked against the iOS 27 SDK
   (Xcode 27) close at launch on iOS 27 without it, which is what happened to 1.6.2.
   `mobile/plugins/with-uiscene.js` adds it at prebuild: single-scene manifest in

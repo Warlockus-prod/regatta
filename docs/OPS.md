@@ -88,8 +88,9 @@ ADMIN_USER=admin
 ADMIN_PASS=<password>
 ```
 
-Default for the regatta sandbox: `admin:regattA`. Rotate before
-sharing the URL with anyone outside the trusted set.
+There is no default password: without `ADMIN_PASSWORD` the route returns 503.
+The old sandbox password was published in this public repository, so the
+production value must never equal it or a variant of it.
 
 ---
 

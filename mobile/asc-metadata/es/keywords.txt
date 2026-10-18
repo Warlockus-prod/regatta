@@ -1,1 +1,1 @@
-vela,regata,yate,carrera,viento,tactica,bootcamp,simulador,glosario,anatomia
+navegar,navegación,velero,barco,yate,curso,escuela,táctica,trimado,viento,virada,reglas,juego,quiz
