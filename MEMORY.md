@@ -1,5 +1,10 @@
 # MEMORY
 
+> **Historical snapshot, not an ops reference.** Kept for history only: do not
+> follow its deploy, rollback, host, SSH or `.env` steps. Current sources:
+> `AGENTS.md` (rules), `ARCHITECTURE.md` (code map), `ops/deploy/README.md`
+> (deploy and rollback), `docs/OPS.md` (operations).
+
 Decisions and context. Append-only. Newest on top.
 
 Read this first at every new session so you know why things are the way they are.

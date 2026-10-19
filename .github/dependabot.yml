@@ -1,0 +1,53 @@
+# Version update PRs for the web app, the multiplayer server, their base
+# images and the CI actions. Weekly, minor and patch bumps grouped into one PR
+# per ecosystem, a low open-PR limit, and no auto-merge: every PR goes through
+# CI and a human merge like any other change.
+#
+# /mobile is deliberately absent: Expo pins react, react-native and the native
+# modules to the SDK, so a version bump there is an SDK upgrade done by hand
+# (docs/design/mobile/BUILDS.md). Dependabot alerts and security update PRs
+# are a repository setting, not this file; once the owner enables them they
+# cover /mobile too.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    groups:
+      web-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: npm
+    directory: /ws-server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      ws-minor-and-patch:
+        update-types: [minor, patch]
+
+  # Base images are pinned as node:22-alpine@sha256:<digest>; Dependabot moves
+  # the digest forward when the tag is rebuilt.
+  - package-ecosystem: docker
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+
+  - package-ecosystem: docker
+    directory: /ws-server
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+
+  # Actions are pinned by full commit SHA with a version comment.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+    groups:
+      actions-minor-and-patch:
+        update-types: [minor, patch]

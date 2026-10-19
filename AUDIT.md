@@ -1,5 +1,10 @@
 # Regatta - State Audit
 
+> **Historical snapshot, not an ops reference.** Kept for history only: do not
+> follow its deploy, rollback, host, SSH or `.env` steps. Current sources:
+> `AGENTS.md` (rules), `ARCHITECTURE.md` (code map), `ops/deploy/README.md`
+> (deploy and rollback), `docs/OPS.md` (operations).
+
 **Date:** 2026-04-20
 **Live:** https://weektoregatta.com
 **Repo:** https://github.com/Warlockus-prod/regatta
@@ -209,13 +214,10 @@ Playwright MCP on production live URL, desktop 1280x800 + mobile
 git push origin main
 ```
 
-**Rollback:**
-```bash
-ssh root@46.225.11.249
-cd /opt/repos/regatta
-git checkout <tag>
-docker compose up -d --build
-```
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the retired host
+46.225.11.249, `git checkout` and `docker compose up -d --build` in
+/opt/repos/regatta) would recreate prod without its hardening. Rollback is an
+administrator task: `ops/deploy/README.md`, "Verification and rollback".
 
 **Inspect logs:**
 ```bash

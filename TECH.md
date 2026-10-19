@@ -1,5 +1,10 @@
 # TECH
 
+> **Historical snapshot, not an ops reference.** Kept for history only: do not
+> follow its deploy, rollback, host, SSH or `.env` steps. Current sources:
+> `AGENTS.md` (rules), `ARCHITECTURE.md` (code map), `ops/deploy/README.md`
+> (deploy and rollback), `docs/OPS.md` (operations).
+
 Architecture snapshot. Updated on structural changes (new module, removed
 feature, changed data flow) - NOT on every commit. When updating, date the
 entry in MEMORY.md pointing to the change.
@@ -334,13 +339,10 @@ git ls-files '*.ts' '*.tsx' '*.js' '*.md' '*.json' '*.css' '*.conf' \
 git push origin main          # CI picks it up
 ```
 
-**Rollback:**
-```
-ssh root@46.225.11.249
-cd /opt/repos/regatta
-git checkout <tag>
-docker compose up -d --build
-```
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the retired host
+46.225.11.249, `git checkout` and `docker compose up -d --build` in
+/opt/repos/regatta) would recreate prod without its hardening. Rollback is an
+administrator task: `ops/deploy/README.md`, "Verification and rollback".
 
 **DB poke:**
 ```

@@ -22,7 +22,7 @@ A concise overview of how the Regatta web app is built and shipped.
 - The VPP (velocity-prediction) engine lives in `src/lib/sailing-physics/*` and
   is shared by all simulators - the Basics/Trainer tiers and the 3D boat view
   (internal route codenames V1/V2/V3; see `docs/design/SIMULATORS.md`). Physics
-  tests: `npm run test:physics` (31 green).
+  tests: `npm run test:physics` (current counts: the test block in `AGENTS.md`).
 
 ## Internationalization
 
@@ -39,11 +39,18 @@ A concise overview of how the Regatta web app is built and shipped.
 
 ## Deploy
 
-- Pushing to `main` triggers **GitHub Actions** -> SSH to the **VPS** ->
-  `docker compose up -d --build regatta` -> served via **nginx** on
-  `weektoregatta.com`.
+- Pushing to `main` triggers **GitHub Actions**: checks, the full unit suite,
+  the build and a pre-deploy E2E on the runner, then immutable images in GHCR.
+  The deploy job hands only the commit and image digests to a confined forced
+  command on the **VPS**, which starts them with a fixed root-owned Compose
+  policy (read-only, no capabilities, resource limits) and rolls back on a
+  failed health check. Served via **nginx** on `weektoregatta.com`. Details,
+  installation and rollback: `ops/deploy/README.md`.
+- The repo `docker-compose.yml` is for local development only (project
+  `regatta-local`); never run it on the VPS.
 - nginx itself is a separate container at `/opt/repos/nginx_server` and its
-  config is applied manually (not part of the app's CI).
+  config is applied manually by an administrator (`nginx -t`, then
+  `nginx -s reload` inside `nginx_server`), not by the app's CI.
 
 ## Branch model
 
