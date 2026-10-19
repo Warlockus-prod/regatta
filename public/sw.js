@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-globals */
 // ============================================================================
 // Offline for the course, and for nothing else.
 //
@@ -15,9 +14,10 @@
 // Those are never cached and never faked. A cached answer to "grade my MAYDAY"
 // would be a lie, and this is a safety trainer.
 //
-// FOUR THINGS THE FIRST VERSION OF THIS FILE GOT WRONG. A service worker is the
-// stickiest bug surface on a website - it survives redeploys and the user has no
-// way to clear it - so they are worth stating plainly.
+// FIVE THINGS EARLIER VERSIONS OF THIS FILE GOT WRONG (the fifth sits next to
+// precache() below). A service worker is the stickiest bug surface on a
+// website - it survives redeploys and the user has no way to clear it - so they
+// are worth stating plainly.
 //
 // 1. IT CACHED EVERYTHING, INCLUDING /stats.
 //    /stats is the admin dashboard behind basic auth: visitor feedback, country
@@ -120,30 +120,131 @@ function keyFor(url, l) {
   return new Request(`${url.origin}${url.pathname}?__lang=${l}`);
 }
 
+// --- what a page needs to run -------------------------------------------------
+//
+// FIFTH THING: A CACHED DOCUMENT IS NOT A WORKING PAGE.
+// The first precache stored the 14 documents and nothing else. Their scripts
+// were cached only if a page had already loaded them while online, so a course
+// page never opened online came back offline as dead HTML: /sternik/test
+// rendered, and "Szybkie 20" did nothing because its chunk was missing.
+// Turbopack also loads some chunks only on import() (the theory chapter
+// check), and those appear in no document at all, only inside other chunks.
+// So the precache now follows references: the document names its scripts,
+// styles and fonts; a script names the chunks it imports; a stylesheet names
+// its fonts. ASSET_DEPTH hops, deduplicated, each file stored on its own.
+
+/** Hops from a document: its own assets, then what those assets refer to. */
+const ASSET_DEPTH = 2;
+
 /**
- * Precache the course in the language the page is currently in. Done per entry,
- * never with addAll: one renamed route must not take the whole cache with it.
+ * The fingerprinted assets a fetched file refers to, as absolute URLs. Pure (it
+ * uses nothing but URL), so sw.test.ts can run it against real build output.
+ * kind: 'html' | 'js' | 'css'; base: the URL the text was fetched from.
+ */
+function assetRefs(text, base, kind) {
+  const origin = new URL(base).origin;
+  const found = new Set();
+  const add = (ref) => {
+    let url;
+    try { url = new URL(ref, base); } catch { return; }
+    if (url.origin !== origin) return;
+    if (!url.pathname.startsWith('/_next/static/') && !url.pathname.startsWith('/fonts/')) return;
+    if (!/\.(?:js|css|woff2)$/.test(url.pathname)) return;
+    url.hash = '';
+    found.add(url.href);
+  };
+  if (kind === 'css') {
+    // url(...) is relative to the stylesheet: ../media/x.woff2 from /_next/static/css/
+    for (const m of text.matchAll(/url\(\s*(['"]?)([^'")\s]+)\1\s*\)/g)) {
+      if (!m[2].startsWith('data:')) add(m[2]);
+    }
+    return [...found];
+  }
+  // Root-relative paths: <script src>, <link href>, and the RSC payload in the
+  // HTML (where the quotes around them are escaped). Not when a host name runs
+  // straight into the path: that is some other site's /_next/.
+  for (const m of text.matchAll(/(?<![\w.\-])\/_next\/static\/[\w\-./~%@]+?\.(?:js|css|woff2)(?![\w.])/g)) add(m[0]);
+  if (kind === 'js') {
+    // The chunk loader's own paths are relative to /_next/: "static/chunks/x.js".
+    for (const m of text.matchAll(/(?<![\w/])static\/(?:chunks|css|media)\/[\w\-./~%@]+?\.(?:js|css|woff2)(?![\w.])/g)) {
+      add(`/_next/${m[0]}`);
+    }
+  }
+  return [...found];
+}
+
+function kindOf(href) {
+  const p = new URL(href).pathname;
+  return p.endsWith('.js') ? 'js' : p.endsWith('.css') ? 'css' : null;
+}
+
+/**
+ * Precache the course in the language the page is currently in, and everything
+ * those pages need to run. Done per entry, never with addAll: one renamed route
+ * or one missing chunk must not take the whole cache with it.
  * credentials:'same-origin' so the request carries regatta_lang and the server
  * renders the language we are about to key it under.
  */
 async function precache(l) {
-  const c = await caches.open(HTML_CACHE);
+  const html = await caches.open(HTML_CACHE);
+  const assets = await caches.open(ASSET_CACHE);
+  const seen = new Set();
+  let frontier = [];
+  const queue = (refs, into) => {
+    for (const ref of refs) if (!seen.has(ref)) { seen.add(ref); into.push(ref); }
+  };
+
   await Promise.allSettled(PRECACHE.map(async (path) => {
     const url = new URL(path, self.location.origin);
     const res = await fetch(url.href, { credentials: 'same-origin' });
-    if (res.ok && !res.redirected) await c.put(keyFor(url, l), res.clone());
+    if (!res.ok || res.redirected) return;
+    await html.put(keyFor(url, l), res.clone());
+    queue(assetRefs(await res.text(), url.href, 'html'), frontier);
   }));
+
+  for (let depth = 1; depth <= ASSET_DEPTH && frontier.length > 0; depth++) {
+    const next = [];
+    await Promise.allSettled(frontier.map(async (href) => {
+      // Fingerprinted, so a copy already in the cache is the right copy.
+      let res = await assets.match(href);
+      if (!res) {
+        res = await fetch(href);
+        if (!res.ok || res.redirected) return;
+        await assets.put(href, res.clone());
+      }
+      const kind = kindOf(href);
+      if (depth < ASSET_DEPTH && kind) queue(assetRefs(await res.text(), href, kind), next);
+    }));
+    frontier = next;
+  }
+}
+
+// Precache is requested by course pages only (see ServiceWorkerRegistrar): a
+// visitor who only plays the race game should not download 14 documents and
+// their scripts in the background. Done once per language per version: the
+// marker lives in the versioned META_CACHE, so a deploy (new worker, caches
+// wiped) or a language switch runs it again, and nothing else does.
+let precaching = null;
+
+async function precacheOnce(l) {
+  const meta = await caches.open(META_CACHE);
+  const done = await meta.match('/__precached');
+  if (done && (await done.text()) === l) return;
+  if (precaching && precaching.lang === l) return precaching.run;
+  const run = (async () => {
+    await precache(l);
+    await meta.put('/__precached', new Response(l));
+  })();
+  precaching = { lang: l, run };
+  try { await run; } finally { if (precaching && precaching.run === run) precaching = null; }
 }
 
 self.addEventListener('message', (event) => {
   const data = event.data;
-  if (!data || data.type !== 'lang' || typeof data.lang !== 'string') return;
-  const next = data.lang.slice(0, 5);
-  event.waitUntil((async () => {
-    const before = await currentLang();
-    await persistLang(next);
-    if (before !== next) await precache(next);
-  })());
+  if (!data || typeof data.lang !== 'string') return;
+  const l = data.lang.slice(0, 5);
+  if (data.type === 'lang') event.waitUntil(persistLang(l));
+  else if (data.type === 'precache') event.waitUntil(precacheOnce(l));
 });
 
 self.addEventListener('install', (event) => {

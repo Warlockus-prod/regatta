@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useSyncExternalStore } from 'react';
 import { useI18n } from '@/lib/i18n';
 
 // The page the service worker falls back to when the network is gone and the
@@ -19,23 +19,25 @@ const OFFLINE_OK: { href: string; ru: string; en: string; pl: string; es: string
   { href: '/sternik', ru: 'Sternik: теория и тесты', en: 'Sternik: theory and tests', pl: 'Sternik: teoria i testy', es: 'Sternik: teoría y tests', fr: 'Sternik : théorie et tests', de: 'Sternik: Theorie und Tests', it: 'Sternik: teoria e quiz' },
 ];
 
+function subscribeOnline(onChange: () => void) {
+  window.addEventListener('online', onChange);
+  window.addEventListener('offline', onChange);
+  return () => {
+    window.removeEventListener('online', onChange);
+    window.removeEventListener('offline', onChange);
+  };
+}
+
 export default function OfflinePage() {
   const { tp } = useI18n();
-  const [online, setOnline] = useState(true);
-
-  useEffect(() => {
-    const sync = () => setOnline(navigator.onLine);
-    sync();
-    window.addEventListener('online', sync);
-    window.addEventListener('offline', sync);
-    return () => {
-      window.removeEventListener('online', sync);
-      window.removeEventListener('offline', sync);
-    };
-  }, []);
+  // navigator.onLine from the first client render. The server snapshot is
+  // "offline" on purpose: the HTML the service worker replays is the one shown
+  // when the network is gone, and it used to say "You are back online" to a
+  // phone with no signal whenever the page's script could not load.
+  const online = useSyncExternalStore(subscribeOnline, () => navigator.onLine, () => false);
 
   return (
-    <main className="mx-auto max-w-2xl px-4 py-10">
+    <div className="mx-auto max-w-2xl px-4 py-10">
       <div className="mb-6 text-4xl">{online ? '📡' : '📵'}</div>
 
       <h1 className="mb-3 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -107,6 +109,6 @@ export default function OfflinePage() {
           },
         )}
       </p>
-    </main>
+    </div>
   );
 }
