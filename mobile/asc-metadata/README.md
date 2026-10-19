@@ -10,7 +10,7 @@ here and push them to App Store Connect.
 mobile/asc-metadata/
   README.md             (this file)
   SCREENSHOTS.md        (5-frame story spec for App Store screenshots)
-  ru/                   per-locale metadata (7 langs)
+  ru/                   per-locale metadata (8 locales, 7 languages)
     name.txt            App Store display name (max 30 chars)
     subtitle.txt        below the name (max 30 chars)
     description.md      long copy (max 4000 chars; ASC strips Markdown)
@@ -18,7 +18,7 @@ mobile/asc-metadata/
     promotional.txt     above-the-fold editorial copy (max 170 chars)
     support_url.txt     a URL to the support page
     marketing_url.txt   a URL to the marketing site
-  en/ ... pl/ ... es/ ... fr/ ... de/ ... it/   (same shape as ru/)
+  en/ en-GB/ pl/ es/ fr/ de/ it/   (same shape as ru/; en/ is pushed as en-US)
   screenshots/          captured PNGs (gitignored or committed; team call)
     iphone-6.7/<lang>/<NN>-<screen>.png
     iphone-6.5/<lang>/<NN>-<screen>.png
@@ -76,11 +76,15 @@ Promotional text can change at any time, without a new version or review:
 node scripts/asc-metadata.mjs --promo-only    # PATCH promotionalText on the live version
 ```
 
-`en-GB/` is a second English locale on purpose: it adds its own 100-character
-keyword field, which the UK and many European storefronts index next to their
-own language. Keep its keywords different from `en/` (no repeats), and never
-repeat words from the name or subtitle in `keywords.txt`: Apple already indexes
-them. "What's New" lives in `mobile/releases/<version>.json` and is pushed by
+`en-GB/` is a second English locale on purpose. Apple's storefront table
+decides which English listing a country indexes: the UK and Ireland index only
+the en-GB listing, and no storefront indexes both English locales. So
+`en-GB/keywords.txt` must be a self-sufficient set that carries the core terms
+itself (sailing, simulator, lessons, course...); repeating words from `en/` is
+fine and expected. Within one locale, never repeat words from the name or
+subtitle in `keywords.txt`: Apple already indexes them.
+
+"What's New" lives in `mobile/releases/<version>.json` and is pushed by
 `scripts/asc-release.mjs`. ASO rationale and keyword research: the 2026-10-18
 audit report `docs/audits/2026-10-18-aso-and-code-audit.md`.
 
@@ -133,8 +137,20 @@ the ASC web UI per locale; the EN source captions live in
 
 In the ASC web UI:
 
-- App Privacy: confirm "no data collected" matches the privacy
-  manifest declaration in `mobile/app.json`.
+- App Privacy: the answer is **Data Collected**, never "Data Not
+  Collected" (the app runs PostHog analytics by default). It must match
+  `NSPrivacyCollectedDataTypes` in the privacy manifest of `mobile/app.json`
+  (`expo.ios.privacyManifests`):
+  - Usage Data > Product Interaction: purpose Analytics, not linked to the
+    user, not used for tracking.
+  - Diagnostics > Other Diagnostic Data: purpose Analytics, not linked, not
+    tracking.
+  - Any other type the owner adds after review (Crash Data for the error
+    reports of the embedded course pages, Coarse Location while PostHog GeoIP
+    or IP-derived country is in use, User Content for chat text and
+    multiplayer nicknames) goes into the manifest and the policy too.
+  The release checklist gate G4b (`docs/design/mobile/RELEASE_CHECKLIST.md`)
+  compares the label, the manifest and the policy before every submission.
 - Age Rating: questionnaire answered (no in-app purchases, no UGC, no
   ads, no location, no health data - rates 4+).
 - Pricing: Free (Tier 0) in all territories, no in-app purchases.
@@ -162,38 +178,63 @@ human.
 | supportUrl       | 255       |
 | marketingUrl     | 255       |
 
-The local files were sized within these limits at write time. Re-check
-with:
+The limits are enforced by the jest test `mobile/__tests__/asc-metadata.test.ts`,
+which runs inside `npm run check`. It measures each field the way
+`scripts/asc-metadata.mjs` sends it: trailing whitespace (the final newline) is
+stripped first, then Unicode code points are counted. Run it alone with:
 
 ```bash
-for lang in ru en pl es fr de it; do
-  for f in name subtitle keywords promotional; do
-    chars=$(python3 -c "print(len(open('asc-metadata/$lang/$f.txt').read()))")
-    echo "[$lang/$f] chars=$chars"
-  done
-done
+cd mobile
+npx jest __tests__/asc-metadata.test.ts
+```
+
+To see the actual lengths:
+
+```bash
+cd mobile
+node -e '
+const fs = require("fs"), path = require("path");
+for (const l of ["ru", "en", "en-GB", "pl", "es", "fr", "de", "it"])
+  for (const f of ["name.txt", "subtitle.txt", "keywords.txt", "promotional.txt", "description.md"]) {
+    const s = fs.readFileSync(path.join("asc-metadata", l, f), "utf8").replace(/\s+$/, "");
+    console.log(`[${l}/${f}] chars=${[...s].length}`);
+  }'
 ```
 
 ## Typography rules
 
-Per `CLAUDE.md`, all metadata files use ASCII typography only:
+Per `AGENTS.md`, all metadata files use ASCII typography only:
 
 - No em-dash (U+2014).
 - No en-dash (U+2013).
 - No curly quotes (U+201C, U+201D, U+2018, U+2019).
 - No ellipsis character (U+2026); use three ASCII dots `...`.
+- No non-breaking space (U+00A0, U+202F). French puts a plain ASCII space
+  before `:`.
 - Russian may use «» where context fits.
-- Polish: no diacritics (drop "a-ogonek", "z-cropka", etc).
-- Spanish / French / German / Italian: diacritics that carry meaning are
-  allowed (n-tilde, accent grave on e, umlaut on u).
+- Every language is written with its full diacritics: Polish with
+  `ą ć ę ł ń ó ś ź ż` (owner decision 2026-09-27), Spanish / French /
+  German / Italian with their own accents.
 
-There is a scan helper:
+The jest test above also scans every `.md`, `.txt` and `.json` file in this
+folder for these characters, checks that the Polish texts carry diacritics and
+that French has the space before `:`. A quick scan without jest (works with
+the BSD grep on macOS, unlike `grep -P`):
 
 ```bash
-grep -nP '[\x{2014}\x{2013}\x{201C}\x{201D}\x{2018}\x{2019}\x{2026}]' -r mobile/asc-metadata/
+cd mobile
+node -e '
+const fs = require("fs"), path = require("path");
+const bad = /[\u2013\u2014\u2018\u2019\u201C\u201D\u2026\u00A0\u202F]/u;
+const walk = (d) => fs.readdirSync(d).flatMap((e) => {
+  const p = path.join(d, e);
+  return fs.statSync(p).isDirectory() ? walk(p) : /\.(md|txt|json)$/.test(e) ? [p] : [];
+});
+for (const f of walk("asc-metadata"))
+  fs.readFileSync(f, "utf8").split("\n").forEach((l, i) => { if (bad.test(l)) console.log(`${f}:${i + 1}`); });'
 ```
 
-If it returns rows, fix them before pushing.
+If it prints rows, fix them before pushing.
 
 ## Manual fallback
 

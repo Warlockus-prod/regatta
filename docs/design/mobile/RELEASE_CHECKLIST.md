@@ -103,6 +103,65 @@ lane excludes IAP checking. Do not interpret a green precheck as all of G4.
   (`node scripts/asc-metadata.mjs`, or in ASC) and re-run. **Do NOT submit on a
   red precheck.**
 
+### G4b - Privacy label matches the binary and the policy
+The live 1.6.4 listing said "Data Not Collected" while PostHog analytics ran
+by default, and the shipped PrivacyInfo.xcprivacy declared nothing because the
+manifest sat where Expo ignores it. The manifest, the ASC answers, the store
+page and the policy texts must say the same thing, for the build being
+submitted:
+
+1. The manifest that will ship. From `mobile/`:
+   ```sh
+   npx expo config --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=(JSON.parse(s).ios||{}).privacyManifests;const t=(m&&m.NSPrivacyCollectedDataTypes)||[];if(!t.length){console.error("FAIL: ios.privacyManifests.NSPrivacyCollectedDataTypes is empty");process.exit(1)}for(const x of t)console.log(x.NSPrivacyCollectedDataType,"linked="+x.NSPrivacyCollectedDataTypeLinked,"tracking="+x.NSPrivacyCollectedDataTypeTracking,(x.NSPrivacyCollectedDataTypePurposes||[]).join(","))})'
+   ```
+   It must list at least ProductInteraction and OtherDiagnosticData, purpose
+   Analytics, linked=false, tracking=false. After `expo prebuild`, the
+   generated `ios/*/PrivacyInfo.xcprivacy` must contain the same types.
+2. App Store Connect > App Privacy
+   (https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy):
+   "Data Collected" with exactly the types, purposes, "not linked" and "not
+   used for tracking" answers of step 1, plus any type the owner added
+   (Crash Data, Coarse Location, User Content) in both places.
+3. The public store page shows the new label. The short URL answers with a
+   301 to the slug URL and an empty body, so follow redirects (`-L`), fail on
+   an HTTP error (`-f`), and require the new section as well as the absence of
+   the old one: an empty or blocked response must read as a failure, never as
+   a pass. Paste the whole block (the parentheses keep `exit` from closing
+   your shell):
+   ```sh
+   (
+     page=$(curl -sfL --max-time 30 https://apps.apple.com/us/app/id6768134329) \
+       || { echo "FAIL: the store page did not load"; exit 1; }
+     old=$(printf '%s' "$page" | grep -c "Data Not Collected")
+     new=$(printf '%s' "$page" | grep -c "Data Not Linked to You")
+     echo "Data Not Collected: $old, Data Not Linked to You: $new"
+     [ "$old" -eq 0 ] || { echo "FAIL: the page still shows Data Not Collected"; exit 1; }
+     [ "$new" -ge 1 ] || { echo "FAIL: no Data Not Linked to You section (empty or changed page)"; exit 1; }
+     echo "OK: the store page shows the new privacy label"
+   )
+   ```
+   It must end with `OK`. On 2026-10-19 it printed `Data Not Collected: 2,
+   Data Not Linked to You: 0` and `FAIL`, which is the expected result until
+   the owner publishes the new App Privacy answers.
+4. The texts: the iPhone box of `src/app/privacy/page.tsx` (the published
+   policy), `mobile/asc-metadata/PRIVACY_POLICY.md`, the privacy paragraph of
+   every `mobile/asc-metadata/<locale>/description.md`, the Settings analytics
+   and network texts and the review notes describe the same data and the same
+   scope of the analytics switch. That includes the voice answers (SRC radio
+   simulator and sternik oral exam practice, transcribed by OpenAI through our
+   server).
+5. The app version the policy texts name. They say that GeoIP is switched off
+   and that the analytics switch also covers the course pages "from app
+   versions newer than 1.6.4". The build being submitted must be such a
+   version and must contain both changes (`disableGeoip` in
+   `mobile/src/analytics/provider.tsx`, the WebView opt-out in
+   `mobile/src/persistence/analytics-consent.ts`). If a release ships without
+   them, or the texts ever name a specific version, correct the texts before
+   submitting.
+- **Gate:** all five agree. Red if the manifest list is empty, if the store
+  page check does not end with `OK`, if any text promises more than the
+  switch does, or if the version claims do not hold for the submitted build.
+
 ### G5 - Submit
 ```sh
 cd mobile
@@ -196,6 +255,8 @@ InfoPlist).
 - Shipping a visually broken build -> **G2 simulator verify**.
 - Shipping a build that the newest iOS refuses to launch -> **G2 newest-iOS launch**.
 - Missing translations -> **G1 LocaleLint / i18n-audit**.
+- A privacy label, manifest or policy that contradicts what the app does ->
+  **G4b privacy match**.
 
 See also: `RELEASE_ENGINEERING.md` (EAS/OTA + Apple notes),
 `LIGHT_THEME_AND_RELEASE_SPEC.md` (next release contents),

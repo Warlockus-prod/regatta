@@ -1,1 +1,1 @@
-sailing,simulator,keelboat,helm,tacking,gybe,rules,polar,coach,multiplayer,glossary,seamanship
+sailing,simulator,lessons,course,school,boat,sailboat,quiz,game,rules,tacking,gybe,helm,coach,crew

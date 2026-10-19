@@ -2,28 +2,28 @@ Aprende a navegar a vela y prepárate para tu primera regata en una semana. Week
 
 POR QUÉ FUNCIONA
 
-- Un plan claro: 8 lecciones en 7 días, desde el viento y los rumbos hasta la línea de salida.
+- Un plan claro: 8 lecciones en 7 días, desde el viento y los rumbos hasta tu primera regata.
 - Un simulador honesto: el velero sigue un modelo físico VPP, la misma familia de cálculos que usan los diseñadores de velas.
-- Práctica hasta que sale sola: ejercicios de virada, trasluchada, trimado y roles de viento.
+- Practica hasta que te salga solo: ejercicios de trimado, rachas, roladas del viento y bordos.
 - Totalmente gratis. Sin anuncios, sin cuenta, sin pagos.
 
 EL PLAN DE 7 DÍAS
 
-Día 1. El viento, los rumbos y los primeros minutos a la caña.
-Día 2. Trimado de velas y catavientos.
-Día 3. Virada y trasluchada bajo control.
-Día 4. Escora, abatimiento y cómo se mueve de verdad el barco.
-Día 5. Polares y tu velocidad objetivo.
-Día 6. La salida, la línea y la primera ceñida.
-Día 7. Paso de balizas, llegada y la lista antes de la regata.
+Día 1. Viento y dirección: de dónde sopla el viento y por qué no puedes ir directo contra él.
+Día 2. Rumbos respecto al viento: tus cinco rumbos básicos.
+Día 3. Cómo funciona una vela: un ala en ceñida, un paracaídas en popa.
+Día 4. Virar por avante y trasluchar: por la proa y por la popa.
+Día 5. Dar bordos y VMG: cómo avanzar contra el viento y por qué la línea recta no es la más rápida.
+Día 6. Reglas sencillas: quién se aparta en el agua.
+Día 7. Minirregata: todo junto y, al terminar, el entrenador con IA analiza tu regata.
 
-El botón "Continuar" de la pantalla principal siempre abre el siguiente paso.
+El botón "Seguir aprendiendo" de la pantalla principal siempre abre el siguiente paso.
 
 SIMULADORES
 
-- Básico: lleva el velero y observa la escora y el abatimiento de lado, desde arriba y desde popa.
-- Entrenador de trimado: caza, larga, toma rizos y mira cómo responde la velocidad.
-- Velero 3D: mira el barco y la forma de las velas desde cualquier ángulo.
+- Fundamentos: empieza aquí. Cambia el viento y aprende los rumbos y a virar.
+- Simulador de trimado: caza, larga, toma rizos y mira cómo responden la velocidad y la escora.
+- Barco 3D: mira el velero y la forma de las velas desde cualquier ángulo.
 
 REGATA
 
@@ -31,8 +31,8 @@ Compite en un recorrido corto contra bots de tres niveles o abre una regata mult
 
 EL BARCO Y LAS REGLAS
 
-- Reglamento de regatas: 21 situaciones reales con diagramas. Sabe quién tiene preferencia antes que el comité de protestas.
-- Anatomía del velero: 17 partes en un barco interactivo, con el cabo que controla cada una.
+- Reglamento de regatas: 13 situaciones del reglamento de regatas y 8 escenarios del RIPA (COLREG) con diagramas. Sabe quién tiene preferencia antes que el comité de protestas.
+- Anatomía del velero: 17 partes en un barco interactivo, con qué es cada una y cómo manejarla a bordo.
 - Glosario: más de 50 términos náuticos, con buscador y sin conexión.
 - Primera semana a bordo: qué llevar, qué preguntar al patrón, cómo ayudar a la tripulación.
 - Lista antes de la regata: márcala la noche anterior.
@@ -44,7 +44,7 @@ TITULACIONES POLACAS (EN POLACO)
 
 PRIVACIDAD
 
-Sin anuncios, sin cuenta, sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app solo envía estadísticas de uso anónimas, que puedes desactivar en Ajustes.
+Sin anuncios, sin cuenta, sin rastreo entre apps. Tu progreso se queda en tu dispositivo. La app envía estadísticas de uso no vinculadas a ti, y puedes desactivar la analítica de la app en Ajustes.
 
 IDIOMAS
 
