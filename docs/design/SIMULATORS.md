@@ -82,6 +82,17 @@ remain documented limitations. See the audit for open calibration work.
 - Sail-state vocabulary (RU): полощет / тянет / срыв / перетянут. Tour and
   coach strings must use these, not synonyms (хлопает, лопочет...).
 
+## Controls (2026-10-19)
+
+All three tiers share one control model on phones (src/features/trainer-controls,
+docs/design/trainer-controls-concept.md): the boat is pinned and never scrolls
+away, the controls live in a tabbed dock under it, and an optional wheel mode
+(helm in the middle, jib sheet and mainsheet at the sides) can replace the
+sliders. Sliders stay the default. Every sheet label names its sheet
+("Гика-шкот", "Стаксель-шкот") and reads 0% sheeted in, 100% eased out, with
+the sail angle in brackets. The controls feed the same session inputs; the
+physics does not change.
+
 ## Embed contract (iOS WebView)
 
 The app opens web sims with `?embed=1&lang=<lang>`. Every embedded page MUST:
