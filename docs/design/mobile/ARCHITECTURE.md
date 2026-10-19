@@ -54,12 +54,26 @@ build script. The paragraph above describes builds before 1.6.2.
   version that reaches READY_FOR_SALE CLOSES its train; bump `expo.version` every release
   or `altool` bounces with a hidden `90186` train-closed error.
 - **App Store review prompt:** `mobile/src/review/review-prompt.ts` (expo-store-review)
-  asks for a rating after 3 wins (lesson, passed mock exam, top-3 race), at most
-  once per 120 days; the call sites sit next to the matching analytics events.
+  asks for a rating after 3 wins, at most once per 120 days. A win is the first
+  passed bootcamp quiz of a lesson (not "Open"), a saved sail theory check, a
+  passed mock exam, or a race podium that is not last place (`isReviewPodium`).
+  The call sites sit next to the matching analytics events.
 - **Languages shown by iOS and the App Store** come from `CFBundleLocalizations` in
   `mobile/app.json`; without it the store page lists "English" only. Per-language
-  permission texts (the SRC microphone prompt) live in `mobile/locales/<lang>.json`
+  permission texts (the microphone prompt, which names both the SRC radio
+  simulator and the sternik oral exam practice) live in `mobile/locales/<lang>.json`
   (Expo `locales`). Both take effect with the next build.
+- **Privacy manifest** lives at `expo.ios.privacyManifests` in `mobile/app.json`,
+  the only place Expo's PrivacyInfo step reads it (until build 48 it sat in the
+  expo-build-properties options, which ignore it, so the shipped
+  `PrivacyInfo.xcprivacy` declared no collected data). Guarded by
+  `mobile/__tests__/app-config.test.ts`.
+- **Analytics consent** (`mobile/src/persistence/analytics-consent.ts`) is shared
+  by every mounted hook. The WebView hosts (`SectionWebView`, `SimWebView`,
+  `OfflineRadioCourse`) mount only after the choice is read, inject the
+  no-analytics flag (`window.__REGATTA_NO_ANALYTICS__` plus sessionStorage
+  `regatta.noanalytics.v1`) when it is off, and key the WebView on it. "Clear all
+  data" keeps this row. PostHog runs with `disableGeoip: true`.
 - **iOS 27 needs the UIScene life cycle.** Apps linked against the iOS 27 SDK
   (Xcode 27) close at launch on iOS 27 without it, which is what happened to 1.6.2.
   `mobile/plugins/with-uiscene.js` adds it at prebuild: single-scene manifest in
@@ -102,7 +116,7 @@ Home (`app/index.tsx`) is a card/list menu that pushes everything else.
 | `/leaderboard` | `app/leaderboard/index.tsx` | Local + global leaderboard | plain RN |
 | `/history` | `app/history/index.tsx` | Race history + replay/coach actions | plain RN |
 | `/replay/[id]` | `app/replay/[id].tsx` | Race replay scrubber | **Skia** + `SkiaYacht` |
-| `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | MP lobby + local ghost-boat race | **Skia** (race) |
+| `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
 
 Root layout / providers: `app/_layout.tsx` (ErrorBoundary -> GestureHandler ->
 SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -> Stack).
@@ -134,11 +148,12 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `api/` | HTTP clients to the **shared web backend** (`weektoregatta.com/api/*`): `chat.ts`, `coach.ts`, `daily.ts`, `leaderboard.ts`, `weather.ts`. No separate mobile backend. |
 | `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (ported VPP engine, pure TS). |
 | `courses/` | `polar.ts` - polar/VPP curve builder. **Used by the Points-of-Sail diagram.** |
-| `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents). |
+| `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents) + `progression.ts` (mark rounding) + `units.ts` (`KN_TO_PX_PER_S`, the one knots-to-pixels scale shared with `simulator/use-sim-loop.ts`). |
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
-| `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, ...). |
-| `replay/`, `leaderboard/`, `multiplayer/`, `onboarding/` | feature helpers. |
+| `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, `analytics-consent.ts`, ...). |
+| `review/` | `review-prompt.ts`: App Store rating prompt after real wins (see section 1). |
+| `replay/`, `leaderboard/`, `onboarding/` | feature helpers. (The old `multiplayer/` mock client, room codes and `persistence/recent-rooms.ts` were removed 2026-10-19: multiplayer is the live web room.) |
 
 **Content is DUPLICATED, not live-imported:** web `src/data/*.ts` (source of truth) ->
 `mobile/scripts/sync-content.ts` -> `mobile/src/data/*.json` -> `mobile/src/data/index.ts`.
@@ -173,13 +188,18 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
   LEWY/PRAWY HALS, tap a sector for detail). Target: mobile should match the web -
   remove the polar curve + speed rings + drag-polar, keep the clean sectors. (Tracked
   here; see `PointsOfSailDiagram.tsx`.)
+- **Solo race (`/game`):** the shared VPP, autopilot and mark rounding drive the
+  rivals, but position integration is native: 6 px per knot (`game/units.ts`),
+  soft-wrap at the edges, no boat-to-boat collisions. Collision parity is a
+  product decision, not a refactor of `race-physics`. Details in
+  `WEB_VS_APP_PARITY.md`.
 - Other parity items live in `WEB_VS_APP_PARITY.md` and `SIMULATOR_V3_PARITY.md`.
 
 ---
 
 ## 7. Verification checklist (before saying a mobile change is done)
 
-1. On branch `app` (`git branch --show-current`).
+1. On a branch cut from `main` (the old `app` branch is historical, see section 0).
 2. `cd mobile && npx tsc --noEmit` clean; `npm run lint`; `npm test`.
 3. Build + run on the iOS Simulator (`npx expo run:ios`) and **screenshot the actual
    screen** - do not trust the code alone. A visual change is only "done" when seen
