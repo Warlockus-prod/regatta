@@ -362,8 +362,8 @@ export default function FeedbackWidget({ hideOn = [] }: Props) {
                   </button>
                 </form>
                 <div className="text-[10px] text-[var(--text-muted)] mt-2 text-center">
-                  {tp('Только темы яхтинга. Powered by Claude.', 'Sailing topics only. Powered by Claude.', 'Tylko tematy żeglarskie. Powered by Claude.',
-                    { es: 'Solo temas de vela. Powered by Claude.', fr: 'Sujets de voile uniquement. Powered by Claude.', de: 'Nur Segelthemen. Powered by Claude.', it: 'Solo temi di vela. Powered by Claude.' })}
+                  {tp('Только темы яхтинга. Отвечает модель OpenAI.', 'Sailing topics only. Answers come from an OpenAI model.', 'Tylko tematy żeglarskie. Odpowiada model OpenAI.',
+                    { es: 'Solo temas de vela. Responde un modelo de OpenAI.', fr: "Sujets de voile uniquement. Les réponses viennent d'un modèle OpenAI.", de: 'Nur Segelthemen. Die Antworten kommen von einem OpenAI-Modell.', it: 'Solo temi di vela. Risponde un modello OpenAI.' })}
                 </div>
               </div>
             )}
