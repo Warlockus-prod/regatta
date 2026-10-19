@@ -45,8 +45,8 @@ architecture, modules, data flow, infrastructure.
 - **Tests:** Vitest (physics engine only, `npm run test:physics`);
   Playwright MCP for manual browser audits
 - **Deploy:** Docker Compose on VPS (178.104.223.93 Hetzner FSN1), standalone
-  Next build, GitHub Actions CI/CD via SSH push. Old address 46.225.11.249
-  retired 2026-04-21.
+  Next build, GitHub Actions CI/CD via SSH push. Regatta left its former host
+  46.225.11.249 (vps1, still live for other services) on 2026-04-21.
 - **PWA:** manifest + SVG icons, installable on home screen
 
 ---
@@ -276,8 +276,8 @@ a 500.
 
 ## Infrastructure
 
-- VPS: `178.104.223.93` (Ubuntu, Hetzner FSN1 16GB). Old `46.225.11.249`
-  retired 2026-04-21.
+- VPS: `178.104.223.93` (Ubuntu, Hetzner FSN1 16GB). Regatta left its former
+  host `46.225.11.249` (vps1, still live for other services) on 2026-04-21.
 - Next app container: `172.17.0.1:4500`
 - WS container: `172.17.0.1:4502`
 - Nginx: Let's Encrypt SSL, CSP in `regatta.nginx.conf` - only
@@ -339,10 +339,11 @@ git ls-files '*.ts' '*.tsx' '*.js' '*.md' '*.json' '*.css' '*.conf' \
 git push origin main          # CI picks it up
 ```
 
-**Rollback:** removed 2026-10-19. The old recipe (root SSH to the retired host
-46.225.11.249, `git checkout` and `docker compose up -d --build` in
-/opt/repos/regatta) would recreate prod without its hardening. Rollback is an
-administrator task: `ops/deploy/README.md`, "Verification and rollback".
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the former
+Regatta host 46.225.11.249, which is vps1 and still live for other services,
+then `git checkout` and `docker compose up -d --build` in /opt/repos/regatta)
+would recreate prod without its hardening. Rollback is an administrator task:
+`ops/deploy/README.md`, "Verification and rollback".
 
 **DB poke:**
 ```

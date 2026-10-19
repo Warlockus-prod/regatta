@@ -214,17 +214,15 @@ Playwright MCP on production live URL, desktop 1280x800 + mobile
 git push origin main
 ```
 
-**Rollback:** removed 2026-10-19. The old recipe (root SSH to the retired host
-46.225.11.249, `git checkout` and `docker compose up -d --build` in
-/opt/repos/regatta) would recreate prod without its hardening. Rollback is an
-administrator task: `ops/deploy/README.md`, "Verification and rollback".
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the former
+Regatta host 46.225.11.249, which is vps1 and still live for other services,
+then `git checkout` and `docker compose up -d --build` in /opt/repos/regatta)
+would recreate prod without its hardening. Rollback is an administrator task:
+`ops/deploy/README.md`, "Verification and rollback".
 
-**Inspect logs:**
-```bash
-ssh root@46.225.11.249
-docker logs --tail 500 regatta
-docker logs --tail 500 regatta-ws
-```
+**Inspect logs:** removed 2026-10-19 (it pointed to root SSH on the former
+host 46.225.11.249, vps1, where Regatta no longer runs). Logs are on vps2:
+`ARCHITECTURE.md` section 6.
 
 **DB poke:**
 ```bash

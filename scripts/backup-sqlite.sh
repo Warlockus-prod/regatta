@@ -49,24 +49,43 @@
 #   AWS_ENDPOINT_URL=https://hel1.your-objectstorage.com   # Hetzner etc
 #   REGATTA_BACKUP_DIR=/var/backups/regatta
 #   REGATTA_BACKUP_RETENTION_DAYS=14
+#   REGATTA_BACKUP_MAX_MB=2048      # cap on one uncompressed backup
+#   REGATTA_CONTAINER=regatta
 # With REGATTA_BACKUP_REMOTE set and no aws CLI the run keeps the local copy
 # and exits 1, so a missing off-site copy is a failed job, not a quiet "Done".
+#
+# Root never acts on a path the app container can write. The prod database
+# lives in a volume owned by the app's uid 1001, so the backup is taken inside
+# the container and streamed out through `docker exec` stdout: a symlink
+# planted there resolves (and is refused) only inside the container, and root
+# writes only regular files it creates itself in the 0700 backup directory.
+# The output must start with the SQLite header before it is compressed or
+# uploaded. The host `sqlite3` path is used only for a database whose file and
+# directory belong to the user running this script and nobody else can write.
 #
 # To restore (administrator with a root shell on the VPS, attended, with the
 # result checked from outside within 10 minutes). Prod runs from the
 # root-owned /etc/regatta-deploy/compose.yml (ops/deploy/README.md), so never
-# run `docker compose` from a repository checkout for this:
+# run `docker compose` from a repository checkout for this. The volume
+# directory is writable by uid 1001, so root never writes or chowns a fixed
+# name there (a name planted earlier as a symlink would redirect the write to
+# a host file): the new file is a fresh mktemp file, renamed into place.
+#   0. hold the deploy lock for the whole restore, so a CI deploy fails fast
+#      instead of starting the container in the middle of the swap:
+#      flock -n /var/lib/regatta-deploy-state/deploy.lock bash
+#      (run steps 1-7 in that shell; it fails at once while a deploy runs)
 #   1. docker stop regatta
 #   2. VOL="$(docker volume inspect regatta_regatta_data --format '{{ .Mountpoint }}')"
 #   3. keep the current files: KEEP="/root/regatta-before-restore-$(date +%Y%m%d-%H%M%S)"
 #      mkdir -m 700 "$KEEP" && cp -a "$VOL"/regatta-stats.db* "$KEEP"/
-#   4. gunzip -c /var/backups/regatta/regatta-stats-YYYYMMDD-HHMMSS.db.gz > "$VOL/regatta-stats.db.restore"
+#   4. TMP="$(mktemp "$VOL/restore.XXXXXX")"   (new 0600 file, never follows a link)
+#      gunzip -c /var/backups/regatta/regatta-stats-YYYYMMDD-HHMMSS.db.gz > "$TMP"
+#      chmod 600 "$TMP" && chown -h 1001:1001 "$TMP"
 #   5. rm -f "$VOL/regatta-stats.db-wal" "$VOL/regatta-stats.db-shm"
 #      (a WAL left from the old database would be replayed onto the restored one)
-#   6. mv "$VOL/regatta-stats.db.restore" "$VOL/regatta-stats.db"
-#   7. chown 1001:1001 "$VOL/regatta-stats.db" && chmod 600 "$VOL/regatta-stats.db"
-#   8. docker start regatta
-#   9. from the Mac: curl -fsS https://weektoregatta.com/api/health and open /stats
+#   6. mv -T "$TMP" "$VOL/regatta-stats.db"    (replaces a link, never follows it)
+#   7. docker start regatta, then `exit` to release the deploy lock
+#   8. from the Mac: curl -fsS https://weektoregatta.com/api/health and open /stats
 
 set -euo pipefail
 umask 077
@@ -89,39 +108,87 @@ DB_PATH="${REGATTA_DB_PATH:-/data/regatta-stats.db}"
 BACKUP_DIR="${REGATTA_BACKUP_DIR:-/var/backups/regatta}"
 RETENTION_DAYS="${REGATTA_BACKUP_RETENTION_DAYS:-14}"
 REMOTE="${REGATTA_BACKUP_REMOTE:-}"
+CONTAINER="${REGATTA_CONTAINER:-regatta}"
 
 mkdir -p "$BACKUP_DIR"
 chmod 700 "$BACKUP_DIR"
-
-if [ ! -f "$DB_PATH" ] && ! docker inspect regatta >/dev/null 2>&1; then
-  echo "[$(date -Iseconds)] ERROR: DB not found at $DB_PATH and no regatta container"
-  exit 1
-fi
 
 TS="$(date +%Y%m%d-%H%M%S)"
 OUT="$BACKUP_DIR/regatta-stats-$TS.db"
 OUT_GZ="$OUT.gz"
 
+# On any failure leave no half-written file behind: neither the raw copy nor
+# a partial .gz. A finished .gz is kept even when the upload fails.
+trap 'rm -f "$OUT" "$OUT_GZ.part"' EXIT
+
+# The host path is safe only when no other account can change the database
+# or its directory: sqlite3 running as root follows a planted symlink (the
+# database itself or its -wal/-shm files). The prod volume belongs to the
+# app's uid 1001, so on the VPS this is false and the container path runs.
+host_db_is_safe() {
+  local dir
+  dir="$(dirname -- "$DB_PATH")"
+  command -v sqlite3 >/dev/null 2>&1 \
+    && [ -f "$DB_PATH" ] && [ ! -L "$DB_PATH" ] && [ -O "$DB_PATH" ] \
+    && [ -d "$dir" ] && [ ! -L "$dir" ] && [ -O "$dir" ] \
+    && [ -z "$(find "$dir" -maxdepth 0 \( -perm -020 -o -perm -002 \) -print)" ]
+}
+
 echo "[$(date -Iseconds)] Starting online backup -> $OUT"
 
 # Online backup via sqlite3 itself (safe while the app is running).
-# Without sqlite3 on the host, or when the DB is only reachable inside the
-# container's named volume, back up inside the container instead. The runtime
-# image has no sqlite3 binary, so that path uses better-sqlite3's online
-# backup API (same page-level copy as `.backup`).
-if command -v sqlite3 >/dev/null 2>&1 && [ -f "$DB_PATH" ]; then
+if host_db_is_safe; then
   sqlite3 "$DB_PATH" ".backup '$OUT'"
+elif docker inspect "$CONTAINER" >/dev/null 2>&1; then
+  # Inside the container. The runtime image has no sqlite3 binary, so this
+  # uses better-sqlite3's online backup API (same page-level copy as
+  # `.backup`) into a temporary file in /data, then streams the bytes to
+  # stdout from that same process. Never `docker cp` here: it copies a
+  # symlink as a symlink, and the next host command would follow it to a
+  # host file as root. The read opens the temporary file with O_NOFOLLOW and
+  # O_NONBLOCK and accepts only a regular file, so a link (to /dev/zero, say)
+  # or a FIFO swapped in by the app fails instead of streaming forever or
+  # hanging; the file is unlinked as soon as it is open. On the host, the
+  # shell redirect creates "$OUT" as a new regular file under umask 077
+  # (0600) and head caps its size.
+  MAX_BYTES=$(( ${REGATTA_BACKUP_MAX_MB:-2048} * 1024 * 1024 ))
+  STREAM_JS='
+const fs = require("fs");
+const tmp = process.argv[1];
+const fail = (e) => { try { fs.unlinkSync(tmp); } catch {} console.error(String((e && e.message) || e)); process.exit(1); };
+require("better-sqlite3")("/data/regatta-stats.db", { fileMustExist: true }).backup(tmp).then(() => {
+  const fd = fs.openSync(tmp, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK);
+  fs.unlinkSync(tmp);
+  if (!fs.fstatSync(fd).isFile()) throw new Error("the backup copy is not a regular file");
+  fs.createReadStream("", { fd }).on("error", fail).pipe(process.stdout);
+}).catch(fail);
+'
+  if ! docker exec "$CONTAINER" node -e "$STREAM_JS" "/data/_tmp_backup-$TS.db" \
+      | head -c "$((MAX_BYTES + 1))" > "$OUT"; then
+    echo "[$(date -Iseconds)] ERROR: the in-container backup failed or exceeded ${REGATTA_BACKUP_MAX_MB:-2048} MB, nothing was kept or uploaded"
+    exit 1
+  fi
+  if [ "$(wc -c < "$OUT")" -gt "$MAX_BYTES" ]; then
+    echo "[$(date -Iseconds)] ERROR: the backup exceeded ${REGATTA_BACKUP_MAX_MB:-2048} MB, nothing was kept or uploaded"
+    exit 1
+  fi
 else
-  # Fallback: exec in container. Assumes the container is named "regatta".
-  docker exec regatta node -e "require('better-sqlite3')('/data/regatta-stats.db', { fileMustExist: true }).backup('/data/_tmp_backup.db').then(() => process.exit(0), (e) => { console.error(e.message); process.exit(1); })"
-  docker cp regatta:/data/_tmp_backup.db "$OUT"
-  docker exec regatta rm -f /data/_tmp_backup.db
+  echo "[$(date -Iseconds)] ERROR: no usable database: $DB_PATH is missing or writable by another account, and there is no $CONTAINER container"
+  exit 1
 fi
 
-# docker cp keeps the container file's mode and ignores the umask.
-chmod 600 "$OUT"
-gzip --force "$OUT"
-chmod 600 "$OUT_GZ"
+# Keep and upload only a regular file that starts with the 16-byte SQLite
+# header ("SQLite format 3" and a NUL byte).
+SQLITE_MAGIC="53514c69746520666f726d6174203300"
+if [ ! -f "$OUT" ] || [ -L "$OUT" ] \
+  || [ "$(head -c 16 "$OUT" | od -An -tx1 | tr -d ' \n')" != "$SQLITE_MAGIC" ]; then
+  echo "[$(date -Iseconds)] ERROR: the backup is not a SQLite database, nothing was kept or uploaded"
+  exit 1
+fi
+
+gzip -c "$OUT" > "$OUT_GZ.part"
+mv -f "$OUT_GZ.part" "$OUT_GZ"
+rm -f "$OUT"
 SIZE="$(du -h "$OUT_GZ" | awk '{print $1}')"
 echo "[$(date -Iseconds)] Backup complete: $OUT_GZ ($SIZE)"
 

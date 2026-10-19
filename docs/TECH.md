@@ -41,7 +41,8 @@ A concise overview of how the Regatta web app is built and shipped.
 
 - Pushing to `main` triggers **GitHub Actions**: checks, the full unit suite,
   the build and a pre-deploy E2E on the runner, then immutable images in GHCR.
-  The deploy job hands only the commit and image digests to a confined forced
+  The deploy job hands the commit, the two image digests and its ephemeral
+  GHCR token (erased right after the pull) over SSH stdin to a confined forced
   command on the **VPS**, which starts them with a fixed root-owned Compose
   policy (read-only, no capabilities, resource limits) and rolls back on a
   failed health check. Served via **nginx** on `weektoregatta.com`. Details,

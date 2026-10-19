@@ -123,11 +123,21 @@ column add fails, check the boot log via
 
 Use `scripts/backup-sqlite.sh`, not `cp`: copying the file of a live WAL
 database can capture a torn or incomplete state. The script takes an online
-backup (host `sqlite3 .backup` when the file is reachable from the host,
-otherwise better-sqlite3's backup API inside the container), gzips it into
-`/var/backups/regatta`, keeps 14 days and uploads each backup to S3 when
-`REGATTA_BACKUP_REMOTE` is set. Backups are private: the directory is 0700 and
-every file 0600.
+backup, gzips it into `/var/backups/regatta`, keeps 14 days and uploads each
+backup to S3 when `REGATTA_BACKUP_REMOTE` is set. Backups are private: the
+directory is 0700 and every file 0600.
+
+Root never acts on a path the app container can write. The prod volume belongs
+to the app's uid 1001, so the backup runs inside the container
+(better-sqlite3's backup API) and its bytes come out through `docker exec`
+stdout into a new file root creates itself. The in-container read refuses a
+symlink, a FIFO or anything that is not a regular file, the host side caps the
+size (`REGATTA_BACKUP_MAX_MB`, 2048 by default), and the result must start with
+the SQLite header before it is compressed or uploaded. Never use `docker cp`
+for this: it copies a symlink planted by the app as a symlink, and the next
+root command would follow it to a host file. The host `sqlite3 .backup` path
+runs only for a database whose file and directory belong to the user running
+the script and nobody else can write.
 
 Settings live in `/etc/default/regatta-backup` (root-owned, mode 0600, it holds
 the storage keys). The script reads it first and exports every variable, so the
@@ -160,17 +170,28 @@ An administrator with a root shell on the VPS, attended, checking the result
 from outside within 10 minutes. Production runs from the root-owned
 `/etc/regatta-deploy/compose.yml`, so do not use `docker compose` from a
 checkout here. The same steps are in the header of `scripts/backup-sqlite.sh`.
+
+The volume directory is writable by uid 1001, so root never writes or chowns a
+fixed name there: a name planted earlier as a symlink would send the write, or
+the chown, to a host file. The restored file is a fresh `mktemp` file (created
+exclusively, never through a link) renamed into place with `mv -T`. The whole
+restore holds the deploy lock that `regatta-deploy` takes without waiting, so a
+CI deploy started meanwhile fails at once instead of starting the container in
+the middle of the swap:
 ```
+flock -n /var/lib/regatta-deploy-state/deploy.lock bash   # fails at once while a deploy runs
 docker stop regatta
 VOL="$(docker volume inspect regatta_regatta_data --format '{{ .Mountpoint }}')"
 KEEP="/root/regatta-before-restore-$(date +%Y%m%d-%H%M%S)"
 mkdir -m 700 "$KEEP" && cp -a "$VOL"/regatta-stats.db* "$KEEP"/
-gunzip -c /var/backups/regatta/regatta-stats-YYYYMMDD-HHMMSS.db.gz > "$VOL/regatta-stats.db.restore"
+TMP="$(mktemp "$VOL/restore.XXXXXX")"
+gunzip -c /var/backups/regatta/regatta-stats-YYYYMMDD-HHMMSS.db.gz > "$TMP"
+chmod 600 "$TMP" && chown -h 1001:1001 "$TMP"
 # A WAL left from the old database would be replayed onto the restored one.
 rm -f "$VOL/regatta-stats.db-wal" "$VOL/regatta-stats.db-shm"
-mv "$VOL/regatta-stats.db.restore" "$VOL/regatta-stats.db"
-chown 1001:1001 "$VOL/regatta-stats.db" && chmod 600 "$VOL/regatta-stats.db"
+mv -T "$TMP" "$VOL/regatta-stats.db"
 docker start regatta
+exit                                                      # releases the deploy lock
 ```
 Then from the Mac: `curl -fsS https://weektoregatta.com/api/health` and open
 `/stats`.
@@ -218,8 +239,11 @@ in the same commit as the cron line.
 Deploys run only from CI; `ops/deploy/README.md` is the source of truth. A push
 to `main` runs `.github/workflows/deploy.yml`: checks, the full unit suite, the
 build and a pre-deploy E2E on the runner, then immutable images in GHCR. The
-deploy job (GitHub environment `production`) sends only the commit and the
-image digests over SSH to the forced command `regatta-deploy`, which starts them
+deploy job (GitHub environment `production`) sends the commit, the two image
+digests and the job's ephemeral GHCR token over SSH stdin to the forced command
+`regatta-deploy` (the token is erased with the temporary Docker login right
+after the pull; request contract: `ops/deploy/README.md`, "Trust boundary"),
+which starts the images
 with the fixed root-owned Compose policy (read-only filesystem, all
 capabilities dropped, resource limits) and rolls back by itself when a health
 check fails. No checkout on the VPS is used; the old `/opt/repos/regatta`

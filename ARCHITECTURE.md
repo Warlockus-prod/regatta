@@ -597,7 +597,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `scripts/build-gallery-year.mjs` - сборка галереи за год из папки фото.
 - `scripts/build-gallery-strip.mjs` - оптимизация папки фото в веб-полосу.
 - `scripts/setup-nginx-geoip2.sh` - одноразовая настройка geoip2 в nginx.
-- `scripts/backup-sqlite.sh` - онлайн-бэкап `regatta-stats.db` на VPS (root-owned копия в `/usr/local/sbin`): настройки из `/etc/default/regatta-backup` читаются первыми, каталог 0700 и файлы 0600, выгрузка в S3 при `REGATTA_BACKUP_REMOTE` (без aws CLI выход 1), в шапке порядок восстановления.
+- `scripts/backup-sqlite.sh` - онлайн-бэкап `regatta-stats.db` на VPS (root-owned копия в `/usr/local/sbin`): настройки из `/etc/default/regatta-backup` читаются первыми, каталог 0700 и файлы 0600, копия снимается внутри контейнера и выходит через stdout `docker exec` (root не трогает пути, которые пишет приложение; только обычный файл с заголовком SQLite, с потолком размера), выгрузка в S3 при `REGATTA_BACKUP_REMOTE` (без aws CLI выход 1), в шапке порядок восстановления под локом деплоя через `mktemp` и `mv -T`.
 - `scripts/prune-events.mjs` - удаление сырых `events` и `sessions` старше 180 дней, `--dry-run` сначала; копируется в образ и запускается `docker exec regatta node scripts/prune-events.mjs`.
 - `scripts/I18N_MIGRATION.md` - плейбук миграции i18n.
 - `scripts/sailing-glossary.md` - рабочий глоссарий терминологии для переводов.
@@ -653,7 +653,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
 - `.github/workflows/ci.yml` - CI на ветки и PR: типы, lint (advisory), тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного.
 - `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Экшены закреплены по SHA.
-- `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы, GitHub Actions; без автомержа, `mobile/` не входит.
+- `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 
 ---
 
@@ -710,8 +710,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
   источник релиза.
 - Деплой только из CI: push в `main` -> `.github/workflows/deploy.yml` ->
   проверки, весь `npx vitest run`, сборка и pre-deploy E2E на раннере ->
-  неизменяемые образы в GHCR -> джоба в environment `production` по SSH отдает
-  принудительной команде `regatta-deploy` commit и digest -> root-owned
+  неизменяемые образы в GHCR -> джоба в environment `production` по SSH stdin
+  отдает принудительной команде `regatta-deploy` commit, два digest и
+  одноразовый токен GHCR джобы (стирается после `docker pull`) -> root-owned
   `/etc/regatta-deploy/compose.yml` (исходник `ops/deploy/compose.yml`: read-only,
   `cap_drop: ALL`, лимиты) поднимает образы и сам откатывается при провале
   health -> smoke по прод-маршрутам -> Playwright на проде. Подробно:
@@ -811,7 +812,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `FEATURES.md` раздел 10 | i18n только localStorage, без cookie, только `t`/`tp` | cookie `regatta_lang` плюс SSR обязательны, есть `tl`; версию из `FEATURES.md` не переносить |
 | `FEATURES.md` раздел 14 | нет нативного приложения, нет живой погоды, нет светлой темы | есть `mobile/` с конвейером App Store, есть `/api/weather` на Open-Meteo, есть светлая тема |
 | `AUDIT.md` | порт ws `:4501` | 4502 в `ops/deploy/compose.yml` и `regatta.nginx.conf` |
-| `TECH.md`, `FEATURES.md` | откат root-SSH на `46.225.11.249`, деплой `docker compose up` в чекауте | `178.104.223.93` - это vps2, текущий прод; `46.225.11.249` (vps1) - бывший хост, туда ничего не откатывать. Деплой и откат только по `ops/deploy/README.md`; оба файла помечены баннером "исторический снимок" |
+| `TECH.md`, `FEATURES.md`, `AUDIT.md` | откат root-SSH на `46.225.11.249`, деплой `docker compose up` в чекауте | `178.104.223.93` - это vps2, текущий прод; `46.225.11.249` (vps1) - бывший хост Regatta, он жив и держит другие сервисы. Туда ничего не откатывать, но при аудите ключей деплоя проверять и его (ключ деплоя не должен иметь там авторизации). Деплой и откат только по `ops/deploy/README.md`; все три файла помечены баннером "исторический снимок" |
 | `regatta.nginx.conf` | `server_name regatta.icoffio.com` | прод отвечает на weektoregatta.com; файл в репозитории отстал и не применяется автоматически |
 | `TECH.md` R1, `AUDIT.md` R1, `ROADMAP.md` Phase 4 | переименовать src/middleware.ts в `src/proxy.ts` | уже сделано, middleware.ts в дереве нет |
 | `CLAUDE.md` (до этой правки), `ROADMAP.md`, `MEMORY.md` | живой маршрут `/trim-trainer`, каталог src/features/simulator-v2 | ни того, ни другого в дереве нет (сборка V2-гонки удалена 2026-07-05, `be43938`) |

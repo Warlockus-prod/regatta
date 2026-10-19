@@ -487,7 +487,8 @@ tests, see `docs/TEST_RUN_*.md`).
 **PWA:** manifest + SVG icons, installable.
 
 **Infrastructure:**
-- VPS at `46.225.11.249` (Ubuntu).
+- VPS at `46.225.11.249` (Ubuntu) at the time. Regatta now runs on vps2
+  (`178.104.223.93`); vps1 is its former host and still live for other services.
 - Docker Compose: `regatta` container on `172.17.0.1:4500`,
   `regatta-ws` on `172.17.0.1:4502`.
 - Nginx with Let's Encrypt SSL. CSP in `regatta.nginx.conf` - only
@@ -502,10 +503,11 @@ tests, see `docs/TEST_RUN_*.md`).
 **CI/CD:** GitHub Actions `.github/workflows/deploy.yml` on push to
 main -> SSH to VPS -> `git pull` + `docker compose up -d --build`.
 
-**Rollback:** removed 2026-10-19. The old recipe (root SSH to the retired host
-46.225.11.249, `git checkout` and `docker compose up -d --build` in
-/opt/repos/regatta) would recreate prod without its hardening. Rollback is an
-administrator task: `ops/deploy/README.md`, "Verification and rollback".
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the former
+Regatta host 46.225.11.249, which is vps1 and still live for other services,
+then `git checkout` and `docker compose up -d --build` in /opt/repos/regatta)
+would recreate prod without its hardening. Rollback is an administrator task:
+`ops/deploy/README.md`, "Verification and rollback".
 
 ---
 

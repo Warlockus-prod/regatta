@@ -158,8 +158,11 @@ npm run check:map            # карта проекта актуальна
 - Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
   проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
   pre-deploy E2E на раннере, затем неизменяемые образы в GHCR. Джоба деплоя
-  (GitHub environment `production`) по SSH отдает принудительной команде
-  `regatta-deploy` на VPS только commit и digest образов. Root-owned
+  (GitHub environment `production`) по SSH stdin отдает принудительной
+  команде `regatta-deploy` на VPS commit, два digest образов и одноразовый
+  токен GHCR этой джобы (стирается вместе с временной авторизацией Docker
+  сразу после `docker pull`; контракт запроса: `ops/deploy/README.md`, "Trust
+  boundary"). Root-owned
   `/etc/regatta-deploy/compose.yml` поднимает их с read-only файловой
   системой, без capabilities и с лимитами ресурсов и сам откатывается, если
   health не прошел. Затем smoke по прод-маршрутам и Playwright на проде.
