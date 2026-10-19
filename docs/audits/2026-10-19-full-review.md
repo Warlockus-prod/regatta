@@ -107,7 +107,7 @@ Playwright на проде после деплоя зеленый.
 
 ## 4. Что за владельцем
 
-1. **App Store Connect, App Privacy (high)**: поставить Data Collected:
+1. **Сделано 2026-10-19.** App Store Connect, App Privacy (high): поставить Data Collected:
    Usage Data > Product Interaction и Diagnostics > Other Diagnostic Data, цель
    Analytics, не связано с личностью, без трекинга; решить про User Content
    (чаты, ники) и Audio (голосовые ответы). Публичная страница должна перестать
