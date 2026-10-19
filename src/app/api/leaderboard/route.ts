@@ -1,18 +1,16 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { topByDifficulty, topByMission } from '@/lib/db';
+import { publicRows } from '@/lib/race-submission';
 
 export const runtime = 'nodejs';
 
-// Never expose the raw session id to clients (it is the unauthenticated write
-// key). Strip it from every row and replace it with an isMe flag computed
-// against the caller's own cookie sid, so the UI can still highlight "you".
+// Never expose the raw session id to clients (see publicRows()).
 async function markMine<T extends { sid: string }>(
   rows: T[],
 ): Promise<Array<Omit<T, 'sid'> & { isMe: boolean }>> {
   const jar = await cookies();
-  const me = jar.get('regatta_sid')?.value;
-  return rows.map(({ sid, ...rest }) => ({ ...rest, isMe: !!me && sid === me }));
+  return publicRows(rows, jar.get('regatta_sid')?.value);
 }
 
 /**

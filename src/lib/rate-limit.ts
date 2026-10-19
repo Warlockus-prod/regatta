@@ -11,11 +11,13 @@
  *
  * Defense in depth (added 2026-04-20 Tech Risk #7 closure):
  * 1. Per-sid / per-IP limit (existing).
- * 2. Global cap `rateLimitGlobal()` - caps total requests per endpoint across
- *    ALL users. Protects the ANTHROPIC_API_KEY wallet from denial-of-wallet
+ * 2. Global cap (the `globalKey` layer of `rateLimitWithGlobal()`) - caps
+ *    total requests per endpoint across ALL users. Protects the
+ *    OPENAI_API_KEY wallet (coach, chats, radio voice) from denial-of-wallet
  *    even if per-user limits are defeated.
  * 3. Combined `rateLimitWithGlobal()` applies both checks and returns the
- *    stricter failure.
+ *    stricter failure. With `dailyBudget: true` it also charges the
+ *    site-wide daily AI budget in the same atomic check (see below).
  *
  * Per-IP bucket (added 2026-10-18 security audit): `regatta_sid` is a cookie
  * the client chooses, so a fresh cookie per request used to reset every
@@ -34,6 +36,12 @@
  *
  * Commit order: every layer is checked first and counted only if all of them
  * pass, so a rejection by one layer never burns the budget of another.
+ *
+ * Requests without a `regatta_sid` (the iOS app's native fetch, curl) get
+ * their own `anon:` bucket at the per-user limit, separate from the bucket of
+ * any session on the same IP, and are counted in the IP bucket like everyone
+ * else. Web users on a shared IP therefore cannot use up the app's limit, and
+ * cookieless plus rotated-cookie traffic together stays capped by the IP.
  */
 
 interface Bucket {
@@ -65,8 +73,17 @@ export interface RateResult {
   ok: boolean;
   remaining: number;
   resetMs: number;
-  /** Which layer caused the rejection, when ok === false. */
-  rejectedBy?: 'per-key' | 'per-ip' | 'global';
+  /**
+   * Which layer caused the rejection, when ok === false. `daily` is the
+   * per-user daily AI budget and `daily-ip` the per-IP one (a whole network,
+   * e.g. a classroom NAT); `per-ip` is the hourly bucket of a shared network.
+   */
+  rejectedBy?: 'per-key' | 'per-ip' | 'global' | 'daily' | 'daily-ip';
+}
+
+/** True when the request was refused by the daily AI budget, not an hourly limit. */
+export function isDailyRejection(r: RateResult): boolean {
+  return r.rejectedBy === 'daily' || r.rejectedBy === 'daily-ip';
 }
 
 /**
@@ -89,11 +106,16 @@ export const IP_BUCKET_FACTOR = 3;
 const MAX_SID_KEY_LEN = 64;
 
 export interface ClientKeys {
-  /** Session key when the request has a `regatta_sid`, else the IP key. */
+  /**
+   * `sid:<regatta_sid>` when the request has a session cookie, else
+   * `anon:ip:<addr>`: a cookieless bucket of its own, so sessions on the same
+   * IP never fill it.
+   */
   user: string;
   /**
-   * The last-hop IP, so cookie rotation cannot reset it. Equal to `user` (so
-   * no separate IP bucket) when the IP is unknown, see clientKeys().
+   * The last-hop IP (`ip:<addr>`), so cookie rotation cannot reset it. Equal
+   * to `user` (so no separate IP bucket) when the IP is unknown, see
+   * clientKeys().
    */
   ip: string;
 }
@@ -111,7 +133,9 @@ export interface ClientKeys {
 export function clientKeys(req: Request, sid: string | null | undefined): ClientKeys {
   const raw = clientIpKey(req);
   const ip = raw.startsWith('ip:') ? raw : 'ip:' + raw;
-  const user = sid ? 'sid:' + sid.slice(0, MAX_SID_KEY_LEN) : ip;
+  const user = sid ? 'sid:' + sid.slice(0, MAX_SID_KEY_LEN) : 'anon:' + ip;
+  // Both `keys.ip === keys.user` guards (ipCheck, dailyChecks) rely on this:
+  // without them the no-XFF path would count every request twice.
   return { user, ip: raw === 'ip:unknown' ? user : ip };
 }
 
@@ -206,9 +230,14 @@ export function rateLimitClient(keys: ClientKeys, scope: string, limit: number, 
  *     globalLimit: 200, globalWindowMs: HOUR,
  *   });
  *
- * Ordering: per-key, then per-IP, then global. A rejected request is counted
- * nowhere, so a single misbehaving user doesn't burn the global budget for
- * everyone else.
+ * Ordering: daily budget (with `dailyBudget`), per-key, per-IP, global. A
+ * rejected request is counted nowhere, so a single misbehaving user doesn't
+ * burn the global budget for everyone else, and a request refused by an
+ * hourly or global limit never spends anyone's daily AI budget.
+ *
+ * `dailyBudget: true` (every AI route) adds the site-wide daily AI budget of
+ * `client` to the same atomic check; a refusal there has `rejectedBy`
+ * `'daily'` or `'daily-ip'` (see isDailyRejection()).
  */
 export function rateLimitWithGlobal(args: {
   /** With `client`: the endpoint scope. Without: the full per-key bucket key. */
@@ -220,9 +249,12 @@ export function rateLimitWithGlobal(args: {
   globalKey: string;
   globalLimit: number;
   globalWindowMs: number;
+  /** Also charge the shared daily AI budget of `client` (needs `client`). */
+  dailyBudget?: boolean;
 }): RateResult {
   const userKey = args.client ? args.key + ':' + args.client.user : args.key;
   return checkAll([
+    ...(args.dailyBudget && args.client ? dailyChecks(args.client) : []),
     { store: STORE, key: userKey, limit: args.perKeyLimit, windowMs: args.perKeyWindowMs, layer: 'per-key' },
     ...ipCheck(args.client, args.key, args.perKeyLimit, args.perKeyWindowMs, args.ipLimit),
     { store: GLOBAL_STORE, key: args.globalKey, limit: args.globalLimit, windowMs: args.globalWindowMs, layer: 'global' },
@@ -239,22 +271,43 @@ export function rateLimitHeaders(res: RateResult, limit: number): Record<string,
 
 // ---------------------------------------------------------------------------
 // Site-wide per-user daily safety cap across ALL AI endpoints combined.
-// A single user (session, or IP fallback) may make at most this many AI-backed
-// requests per rolling 24h, no matter which endpoint, and a single IP at most
-// USER_DAILY_AI_IP_LIMIT. Blunt wallet backstop.
+// A single user (session, or the cookieless bucket of an IP) may make at most
+// USER_DAILY_AI_LIMIT AI-backed requests per rolling 24h, no matter which
+// endpoint, and a single IP at most USER_DAILY_AI_IP_LIMIT. Blunt wallet
+// backstop; the global hourly caps of each route stay the cost ceiling.
 // ---------------------------------------------------------------------------
 export const USER_DAILY_AI_LIMIT = 100;
-export const USER_DAILY_AI_IP_LIMIT = USER_DAILY_AI_LIMIT * IP_BUCKET_FACTOR;
+/**
+ * How many users' daily AI budgets one IP may spend in total. Deliberately
+ * decoupled from IP_BUCKET_FACTOR (3): a classroom or club wifi behind one
+ * NAT runs a whole lesson of radio dialogues (about 2 AI calls per turn), and
+ * 3x one user locked every AI feature for that network for 24 h. Owner
+ * decision 2026-10-19: 10. The owner can tune it here; the global hourly caps
+ * of the AI routes (about 1380 calls per hour in total) remain the backstop.
+ */
+export const USER_DAILY_AI_IP_FACTOR = 10;
+export const USER_DAILY_AI_IP_LIMIT = USER_DAILY_AI_LIMIT * USER_DAILY_AI_IP_FACTOR;
 const USER_DAILY_WINDOW_MS = 24 * 60 * 60 * 1000;
 
-export function checkUserDailyBudget(keys: ClientKeys): RateResult {
+/** The daily AI budget layers of a client: its own and, when known, its IP's. */
+function dailyChecks(keys: ClientKeys): Check[] {
   const checks: Check[] = [
-    { store: USER_DAILY_STORE, key: 'ai:' + keys.user, limit: USER_DAILY_AI_LIMIT, windowMs: USER_DAILY_WINDOW_MS, layer: 'per-key' },
+    { store: USER_DAILY_STORE, key: 'ai:' + keys.user, limit: USER_DAILY_AI_LIMIT, windowMs: USER_DAILY_WINDOW_MS, layer: 'daily' },
   ];
   if (keys.ip !== keys.user) {
-    checks.push({ store: USER_DAILY_STORE, key: 'ai:' + keys.ip, limit: USER_DAILY_AI_IP_LIMIT, windowMs: USER_DAILY_WINDOW_MS, layer: 'per-ip' });
+    checks.push({ store: USER_DAILY_STORE, key: 'ai:' + keys.ip, limit: USER_DAILY_AI_IP_LIMIT, windowMs: USER_DAILY_WINDOW_MS, layer: 'daily-ip' });
   }
-  return checkAll(checks);
+  return checks;
+}
+
+/**
+ * Charges only the daily AI budget. The AI routes use
+ * `rateLimitWithGlobal({ ..., dailyBudget: true })` instead, so an hourly or
+ * global refusal never spends the daily budget; kept for callers without an
+ * hourly limit of their own.
+ */
+export function checkUserDailyBudget(keys: ClientKeys): RateResult {
+  return checkAll(dailyChecks(keys));
 }
 
 /** Test hook: forget every bucket. */

@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, isDailyRejection, USER_DAILY_AI_LIMIT, USER_DAILY_AI_IP_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -72,16 +72,8 @@ export async function POST(req: Request) {
   const sid = jar.get('regatta_sid')?.value;
   const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  // Site-wide per-user daily AI cap (all AI endpoints share this budget).
-  const daily = checkUserDailyBudget(client);
-  if (!daily.ok) {
-    logWarn('sternik-chat.daily-cap', { resetMs: daily.resetMs });
-    return NextResponse.json(
-      { error: `Dzienny limit ${USER_DAILY_AI_LIMIT} zapytan AI wyczerpany. Sprobuj jutro.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
-    );
-  }
-
+  // Hourly limits plus the site-wide daily AI budget (shared by all AI
+  // endpoints) in one atomic check, so a refused request spends none of them.
   const rl = rateLimitWithGlobal({
     key: 'sternik-chat',
     client,
@@ -90,12 +82,31 @@ export async function POST(req: Request) {
     globalKey: 'sternik-chat',
     globalLimit: CHAT_GLOBAL_LIMIT,
     globalWindowMs: CHAT_GLOBAL_WINDOW_MS,
+    dailyBudget: true,
   });
   if (!rl.ok) {
+    const retryAfterSec = Math.ceil(rl.resetMs / 1000);
+    if (isDailyRejection(rl)) {
+      logWarn('sternik-chat.daily-cap', { resetMs: rl.resetMs, by: rl.rejectedBy });
+      return NextResponse.json(
+        {
+          error: rl.rejectedBy === 'daily-ip'
+            ? `Dzienny limit zapytań AI dla twojej sieci (${USER_DAILY_AI_IP_LIMIT}, wspólny dla wszystkich w tej sieci) wyczerpany. Spróbuj jutro.`
+            : `Dzienny limit ${USER_DAILY_AI_LIMIT} zapytań AI wyczerpany. Spróbuj jutro.`,
+          retryAfterSec,
+        },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
+      );
+    }
     logWarn('sternik-chat.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
-      { error: 'Zbyt wiele zapytan. Sprobuj za godzine.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
-      { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
+      {
+        error: rl.rejectedBy === 'per-ip'
+          ? 'Zbyt wiele zapytań z twojej sieci (wspólny limit sieci). Spróbuj za godzinę.'
+          : 'Zbyt wiele zapytań. Spróbuj za godzinę.',
+        retryAfterSec,
+      },
+      { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(retryAfterSec) } },
     );
   }
 

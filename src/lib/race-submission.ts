@@ -1,5 +1,7 @@
 // Validation shared by the routes that store client-submitted races:
-// /api/player (nickname), /api/race-result (leaderboard) and /api/replay.
+// /api/player (nickname), /api/race-result (leaderboard) and /api/replay,
+// plus publicRows() for the routes that read leaderboards back out
+// (/api/leaderboard, /api/daily).
 
 export const NICKNAME_MIN = 2;
 export const NICKNAME_MAX = 20;
@@ -37,4 +39,18 @@ export function parseMissionId(v: unknown): string | null | 'invalid' {
   if (v == null) return null;
   if (typeof v !== 'string' || v.length === 0 || v.length > MISSION_ID_MAX || !/^[A-Za-z0-9_-]+$/.test(v)) return 'invalid';
   return v;
+}
+
+/**
+ * Leaderboard rows as sent to clients. The raw `regatta_sid` is the
+ * unauthenticated write key (rename via /api/player, results via
+ * /api/race-result, likes, per-session AI budgets), so it never leaves the
+ * server: it is stripped from every row and replaced by `isMe`, true only for
+ * the caller's own cookie sid, so the UI can still highlight "you".
+ */
+export function publicRows<T extends { sid?: string | null }>(
+  rows: T[],
+  mySid: string | null | undefined,
+): Array<Omit<T, 'sid'> & { isMe: boolean }> {
+  return rows.map(({ sid, ...rest }) => ({ ...rest, isMe: !!mySid && sid === mySid }));
 }

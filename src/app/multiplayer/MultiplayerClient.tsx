@@ -6,6 +6,7 @@ import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason 
 import { WORLD, makeStandardCourse, deg2rad } from '@/lib/race-physics';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
+import { sanitizeNickname } from '@/lib/race-submission';
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
@@ -178,43 +179,59 @@ export default function MultiplayerClient() {
     return c;
   }, [handleServerMsg]);
 
+  // The leaderboard's own rule (/api/race-result refuses anything else): the
+  // server stores this cleaned value, so it is what we send and show.
+  const cleanNickname = sanitizeNickname(nickname);
+  const nicknameInvalid = nickname.trim().length > 0 && cleanNickname === null;
+  const nicknameHint = tl({
+    ru: 'Ник: минимум 2 буквы или цифры, без эмодзи',
+    en: 'Nickname: at least 2 letters or digits, no emoji',
+    pl: 'Nick: co najmniej 2 litery lub cyfry, bez emoji',
+    es: 'Apodo: al menos 2 letras o cifras, sin emojis',
+    fr: 'Pseudo : au moins 2 lettres ou chiffres, sans emoji',
+    de: 'Nickname: mindestens 2 Buchstaben oder Ziffern, keine Emojis',
+    it: 'Nickname: almeno 2 lettere o cifre, niente emoji',
+  });
+
   const createLobby = useCallback(async () => {
     if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Gib einen Nickname ein', it: 'Inserisci un nickname' })); return; }
+    if (!cleanNickname) { setError(nicknameHint); return; }
     setError(null);
     setConnecting(true);
     try {
       const c = await ensureClient();
-      c.send({ type: 'create', nickname: nickname.trim(), sid });
+      c.send({ type: 'create', nickname: cleanNickname, sid });
     } catch {
       setConnecting(false);
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udało się połączyć z serwerem', { es: 'No se pudo conectar con el servidor', fr: 'Impossible de se connecter au serveur', de: 'Keine Verbindung zum Server', it: 'Impossibile connettersi al server' }));
       setPhase('error');
     }
-  }, [nickname, sid, ensureClient, tp]);
+  }, [nickname, cleanNickname, nicknameHint, sid, ensureClient, tp]);
 
   const joinLobby = useCallback(async () => {
     if (!nickname.trim()) { setError(tp('Введи ник', 'Enter a nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Gib einen Nickname ein', it: 'Inserisci un nickname' })); return; }
+    if (!cleanNickname) { setError(nicknameHint); return; }
     if (joinCode.length !== 4) { setError(tp('Код должен быть 4 символа', 'Code must be 4 characters', 'Kod musi mieć 4 znaki', { es: 'El código debe tener 4 caracteres', fr: 'Le code doit faire 4 caractères', de: 'Der Code muss 4 Zeichen haben', it: 'Il codice deve avere 4 caratteri' })); return; }
     setError(null);
     setConnecting(true);
     try {
       const c = await ensureClient();
-      c.send({ type: 'join', code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
-      if (sid) c.rememberForResume({ code: joinCode.toUpperCase(), nickname: nickname.trim(), sid });
+      c.send({ type: 'join', code: joinCode.toUpperCase(), nickname: cleanNickname, sid });
+      if (sid) c.rememberForResume({ code: joinCode.toUpperCase(), nickname: cleanNickname, sid });
     } catch {
       setConnecting(false);
       setError(tp('Не удалось подключиться к серверу', 'Could not connect to server', 'Nie udało się połączyć z serwerem', { es: 'No se pudo conectar con el servidor', fr: 'Impossible de se connecter au serveur', de: 'Keine Verbindung zum Server', it: 'Impossibile connettersi al server' }));
       setPhase('error');
     }
-  }, [nickname, joinCode, sid, ensureClient, tp]);
+  }, [nickname, cleanNickname, nicknameHint, joinCode, sid, ensureClient, tp]);
 
   // Once we've joined, enable auto-resume on WS drop
   useEffect(() => {
     if (!room || !sid || !clientRef.current) return;
     clientRef.current.rememberForResume({
-      code: room.code, nickname: nickname.trim() || 'Player', sid,
+      code: room.code, nickname: cleanNickname ?? 'Player', sid,
     });
-  }, [room, sid, nickname]);
+  }, [room, sid, cleanNickname]);
 
   const pickMission = useCallback((missionId: string | null, overrides?: { difficulty?: string; windStrength?: string }) => {
     clientRef.current?.send({
@@ -393,12 +410,19 @@ export default function MultiplayerClient() {
             type="text" value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             maxLength={20}
+            aria-invalid={nicknameInvalid || undefined}
+            aria-describedby={nicknameInvalid ? 'mp-nickname-hint' : undefined}
             className="w-full px-3 py-2 rounded text-sm"
             style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
             placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick', { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
           />
+          {nicknameInvalid && (
+            <p id="mp-nickname-hint" className="text-xs mt-1" style={{ color: 'var(--warning)' }}>
+              {nicknameHint}
+            </p>
+          )}
         </div>
-        <button disabled={connecting || !nickname.trim() || !sid} onClick={createLobby}
+        <button disabled={connecting || !cleanNickname || !sid} onClick={createLobby}
           className="w-full py-3 rounded-lg font-semibold text-sm mb-3 disabled:opacity-40"
           style={{ background: 'linear-gradient(135deg, var(--accent-cyan), #0099cc)', color: '#0a1628' }}>
           {tp('Создать лобби', 'Create lobby', 'Utwórz lobby', { es: 'Crear sala', fr: 'Créer un salon', de: 'Lobby erstellen', it: 'Crea lobby' })}
@@ -415,7 +439,7 @@ export default function MultiplayerClient() {
               style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
               placeholder="XXXX"
             />
-            <button onClick={joinLobby} disabled={connecting || joinCode.length !== 4 || !nickname.trim() || !sid}
+            <button onClick={joinLobby} disabled={connecting || joinCode.length !== 4 || !cleanNickname || !sid}
               className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-40"
               style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}>
               {tp('Войти', 'Join', 'Dołącz', { es: 'Unirse', fr: 'Rejoindre', de: 'Beitreten', it: 'Entra' })}
