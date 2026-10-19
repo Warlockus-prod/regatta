@@ -39,10 +39,13 @@ export function SailingCourseScreen({ lessonId }: { lessonId?: string }) {
     if (!lesson || !progress || answer === null || saving) return;
     const updated = checkSailTheory(progress, lesson.id, answer);
     setSaving(true);
-    try { await AsyncStorage.setItem(SAIL_PROGRESS_KEY, JSON.stringify(updated)); setProgress(updated); setStorageError(false); }
+    // Only a check that was actually saved counts: a failed write leaves the
+    // progress unchanged, so counting it would fire again on every retry.
+    let saved = false;
+    try { await AsyncStorage.setItem(SAIL_PROGRESS_KEY, JSON.stringify(updated)); setProgress(updated); setStorageError(false); saved = true; }
     catch { setStorageError(true); }
     finally { setSaving(false); }
-    if (updated.checked.length > progress.checked.length) {
+    if (saved && updated.checked.length > progress.checked.length) {
       analytics.capture(AnalyticsEvent.LessonCompleted, { course: "sails", lesson_id: lesson.id });
       void recordReviewWin("lesson");
     }

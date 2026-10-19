@@ -38,7 +38,8 @@ import { colors, spacing } from '../../src/design-system/tokens';
  * to the lesson (e.g. `/simulator`, `/courses`).
  *
  * Pressing "Open" marks the lesson as completed in AsyncStorage so the
- * Bootcamp index reflects the user's progress on next visit.
+ * Bootcamp index reflects the user's progress on next visit. It is not an
+ * App Store review win; the first passed quiz is.
  *
  * Sprint 11: at the bottom of the page, when the lesson has quiz
  * questions, a "Test your understanding" section offers a 2-3 question
@@ -51,7 +52,7 @@ export default function BootcampLesson() {
   const router = useRouter();
   const { markCompleted, markLastViewed, isCompleted, ready } = useBootcampProgress();
   const analytics = useAnalytics();
-  const { results: quizResults, recordResult } = useBootcampQuiz();
+  const { results: quizResults, ready: quizReady, recordResult } = useBootcampQuiz();
 
   const lesson = bootcampLessons.find((l) => l.id === params.id);
   const lessonId = lesson?.id ?? null;
@@ -61,10 +62,12 @@ export default function BootcampLesson() {
   }, [lesson, markLastViewed]);
 
   // lesson_completed fires once, on the first completion (progress loaded).
+  // Opening a lesson is not a review win: "Open" and "Try this in the
+  // simulator" navigate straight into a trainer or a race, and the rating
+  // sheet would slide over it. Only a passed quiz counts (see onRecord).
   const completeLesson = useCallback((id: string) => {
     if (ready && !isCompleted(id)) {
       analytics.capture(AnalyticsEvent.LessonCompleted, { course: 'bootcamp', lesson_id: id });
-      void recordReviewWin('lesson');
     }
     markCompleted(id);
   }, [analytics, isCompleted, markCompleted, ready]);
@@ -229,6 +232,12 @@ export default function BootcampLesson() {
             previouslyPassed={previouslyPassed}
             onRecord={(score, total) => {
               completeLesson(lesson.id);
+              // A review win only for the first pass of this lesson's quiz,
+              // once the stored results are loaded (a retake of a passed
+              // quiz, or a failed attempt, never counts).
+              if (quizReady && isQuizPassed(score, total) && !previouslyPassed) {
+                void recordReviewWin('lesson');
+              }
               recordResult(lesson.id, score, total);
             }}
           />

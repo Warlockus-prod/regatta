@@ -7,6 +7,9 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SailingCourseScreen } from "../../src/sailing/SailingCourseScreen";
 import { renderWithProviders } from "../../src/test-utils";
 import { SAIL_PROGRESS_KEY } from "../../../src/features/sailing-lab/lessons/progress";
+import { AnalyticsClientContext } from "../../src/analytics/context";
+
+const REVIEW_KEY = "regatta.review.v1";
 
 beforeEach(async () => { await AsyncStorage.clear(); mockPush.mockClear(); });
 test("bundled vang lesson changes the diagram and enters the ungraded shape session", async () => {
@@ -65,6 +68,28 @@ test("keeps the save action available after a storage failure", async () => {
   fireEvent.press(view.getByRole("button", { name: "Save theory check" }));
   await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(SAIL_PROGRESS_KEY))!).checked).toEqual(["rig-basics"]));
   expect(view.queryByRole("alert")).toBeNull();
+});
+
+test("a failed save is not a completion: no lesson_completed and no review win until it saves", async () => {
+  const capture = jest.fn();
+  const view = renderWithProviders(
+    <AnalyticsClientContext.Provider value={{ capture } as never}>
+      <SailingCourseScreen lessonId="rig-basics" />
+    </AnalyticsClientContext.Provider>,
+  );
+  fireEvent.press(view.getByRole("button", { name: "Mainsheet" }));
+  await waitFor(() => expect(view.getByRole("button", { name: "Save theory check" }).props.accessibilityState.disabled).not.toBe(true));
+  jest.mocked(AsyncStorage.setItem).mockRejectedValueOnce(new Error("Storage unavailable"));
+  fireEvent.press(view.getByRole("button", { name: "Save theory check" }));
+  await waitFor(() => expect(view.getByRole("alert")).toBeTruthy());
+  await act(async () => { await new Promise((r) => setTimeout(r, 0)); });
+  expect(capture).not.toHaveBeenCalled();
+  expect(await AsyncStorage.getItem(REVIEW_KEY)).toBeNull();
+  // The retry saves: now it counts, exactly once.
+  fireEvent.press(view.getByRole("button", { name: "Save theory check" }));
+  await waitFor(() => expect(capture).toHaveBeenCalledTimes(1));
+  expect(capture).toHaveBeenCalledWith("lesson_completed", { course: "sails", lesson_id: "rig-basics" });
+  await waitFor(async () => expect(JSON.parse((await AsyncStorage.getItem(REVIEW_KEY))!).wins).toBe(1));
 });
 
 test("mainsheet comparison works from bundled content and does not claim practical completion", async () => {
