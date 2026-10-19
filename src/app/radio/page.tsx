@@ -5,15 +5,16 @@ import Link from "next/link";
 import { useI18n } from "@/lib/i18n";
 import WeakSpotsPanel from "./WeakSpotsPanel";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
+import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
 
 const EMPTY_PROGRESS: RadioCourseProgress = {
   theoryCompleted: 0,
-  theoryTotal: 18,
+  theoryTotal: THEORY_CHAPTER_IDS.length,
   questionsMastered: 0,
   questionsSeen: 0,
-  questionsTotal: 324,
+  questionsTotal: SRC_QUESTION_IDS.length,
   scenariosPassed: 0,
-  scenariosTotal: 19,
+  scenariosTotal: SCENARIO_IDS.length,
   guideCompleted: 0,
   guideTotal: 15,
   overallPercent: 0,
