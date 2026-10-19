@@ -146,6 +146,27 @@ export default function SrcTrainerPage() {
     setIdx((v) => v + 1);
   }, []);
 
+  // Keyboard focus follows the quiz: answering disables the options and Next
+  // unmounts itself, so without this focus falls to <body> and the next
+  // question is 28 Tab presses away. A new question focuses its heading; the
+  // first one only when the Start button that launched it has just unmounted.
+  const questionHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const roundHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const focusedIdxRef = useRef<number | null>(null);
+  const inQuiz = queue.length > 0 && idx < queue.length;
+  const roundDone = queue.length > 0 && idx >= queue.length;
+  useEffect(() => {
+    if (!inQuiz) { focusedIdxRef.current = null; return; }
+    if (focusedIdxRef.current === idx) return;
+    const first = focusedIdxRef.current === null;
+    focusedIdxRef.current = idx;
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (!first || lost) questionHeadingRef.current?.focus();
+  }, [inQuiz, idx]);
+  useEffect(() => {
+    if (roundDone) roundHeadingRef.current?.focus();
+  }, [roundDone]);
+
   // aggregate stats
   const seenIds = pool.filter((q) => (progress[q.id]?.seen ?? 0) > 0).length;
   const mastered = pool.filter((q) => (progress[q.id]?.streak ?? 0) >= 2).length;
@@ -237,9 +258,14 @@ export default function SrcTrainerPage() {
           {queue.length > 0 && idx >= queue.length ? (
             <>
               <div className="text-3xl">🏁</div>
-              <div className="mt-2 font-semibold" style={{ color: 'var(--text-primary)' }}>
+              <h2
+                ref={roundHeadingRef}
+                tabIndex={-1}
+                className="mt-2 font-semibold outline-none"
+                style={{ color: 'var(--text-primary)' }}
+              >
                 {tp('Серия пройдена', 'Round finished', 'Runda zakończona')}: {sessionOk}/{sessionN}
-              </div>
+              </h2>
               {mode === "exam" && (
                 <div className="mt-4 text-left" data-testid="exam-result" role="status">
                   <p className="font-semibold" style={{ color: examResult.passed ? "var(--success)" : "var(--warning)" }}>
@@ -258,10 +284,10 @@ export default function SrcTrainerPage() {
                     <ol className="space-y-5">
                       {queue.map((question) => (
                         <li key={question.id} className="border-t pt-3 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
-                          <p>{answers[question.id] === question.correct ? "✓" : "✗"} {question.q}</p>
-                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedź")}: {question.options[answers[question.id]]}</p>
-                          <p className="mt-1">{tp("Учебный ключ", "Study key", "Klucz szkoleniowy")}: {question.options[question.correct]}</p>
-                          <p className="mt-1" style={{ color: "var(--text-secondary)" }}>{question.whyPl}</p>
+                          <p lang="pl">{answers[question.id] === question.correct ? "✓" : "✗"} {question.q}</p>
+                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedź")}: <span lang="pl">{question.options[answers[question.id]]}</span></p>
+                          <p className="mt-1">{tp("Учебный ключ", "Study key", "Klucz szkoleniowy")}: <span lang="pl">{question.options[question.correct]}</span></p>
+                          <p lang="pl" className="mt-1" style={{ color: "var(--text-secondary)" }}>{question.whyPl}</p>
                           <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tp("Повторить тему", "Review topic", "Powtórz temat")}</Link>
                         </li>
                       ))}
@@ -308,11 +334,17 @@ export default function SrcTrainerPage() {
             {mode !== 'exam' && <span className="ml-auto">{sessionOk}/{sessionN} ✓</span>}
           </div>
 
-          <div className="mb-4 text-base font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
+          <h2
+            ref={questionHeadingRef}
+            tabIndex={-1}
+            lang="pl"
+            className="mb-4 scroll-mt-28 text-base font-medium leading-snug outline-none"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {current.q}
-          </div>
+          </h2>
 
-          <div className="space-y-2">
+          <div lang="pl" className="space-y-2">
             {current.options.map((opt, i) => {
               const isPicked = picked === i;
               const isCorrect = i === current.correct;
@@ -343,7 +375,7 @@ export default function SrcTrainerPage() {
           {picked !== null && (
             <>
               {mode !== "exam" && <div role="status" aria-live="polite" className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
-                {picked === current.correct ? '✅ ' : '❌ '}{current.whyPl}
+                {picked === current.correct ? '✅ ' : '❌ '}<span lang="pl">{current.whyPl}</span>
                 {lang === 'ru' && (
                   <span className="mt-2 block text-xs" style={{ color: 'var(--text-muted)' }}>
                     Официальная база вопросов UKE и пояснения к ней доступны только на польском.

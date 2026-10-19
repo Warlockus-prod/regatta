@@ -122,11 +122,14 @@
   --cat-cyan: #0072a3;
   --cat-green: #0b6b3a;
   --cat-amber: #8a6100;
-  --cat-teal: #0f8a76;
+  /* teal, blue and orange are text colours on the chips (sternik, glossary,
+     courses, cheat sheet): darkened to reach 4.5:1 on the light tints. Teal
+     is not #0b6b5c, which would read as the same colour as --cat-green. */
+  --cat-teal: #0d7765;
   --cat-purple: #6d51c7;
-  --cat-blue: #1d6fd1;
+  --cat-blue: #1b68c4;
   --cat-red: #c62f2f;
-  --cat-orange: #c05a1d;
+  --cat-orange: #a94f1a;
 }
 
 @theme inline {

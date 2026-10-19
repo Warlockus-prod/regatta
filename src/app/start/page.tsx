@@ -7,15 +7,22 @@ import { bootcampLessons, BOOTCAMP_TOTAL_MINUTES } from '@/data/bootcamp';
 import { getBootcampProgress, markLessonComplete, setCurrentLesson, resetBootcamp, type BootcampProgress } from '@/lib/storage';
 import { useI18n } from '@/lib/i18n';
 
+// What the server renders and the first client render agrees with: the page
+// has real content (h1, tracks, all eight lessons) before hydration instead of
+// a "..." placeholder, and the stored progress is applied after mount.
+const EMPTY_PROGRESS: BootcampProgress = { completed: [], current: null, startedAt: 0, updatedAt: 0 };
+
 export default function StartHerePage() {
   const { tp } = useI18n();
-  const [progress, setProgress] = useState<BootcampProgress | null>(null);
+  const [progress, setProgress] = useState<BootcampProgress>(EMPTY_PROGRESS);
+  const [loaded, setLoaded] = useState(false);
   const bootcampSectionRef = useRef<HTMLDivElement>(null);
   const [highlightBootcamp, setHighlightBootcamp] = useState(false);
 
   useEffect(() => {
     const p = getBootcampProgress();
     setProgress(p);
+    setLoaded(true);
 
     // Auto-scroll to the next unstarted lesson on page load, not just the
     // one the user last opened. After "Mark done" + back-to-course, the user
@@ -40,10 +47,6 @@ export default function StartHerePage() {
     setHighlightBootcamp(true);
     setTimeout(() => setHighlightBootcamp(false), 1400);
   };
-
-  if (!progress) {
-    return <div className="max-w-3xl mx-auto px-4 py-10 text-center text-[var(--text-muted)]">...</div>;
-  }
 
   const completedCount = progress.completed.length;
   const percentage = Math.round((completedCount / bootcampLessons.length) * 100);
@@ -229,26 +232,30 @@ export default function StartHerePage() {
             style={{ width: `${percentage}%`, background: allDone ? 'var(--success)' : 'linear-gradient(90deg, var(--accent-cyan), var(--success))' }}
           />
         </div>
-        {completedCount > 0 && (
-          <button
-            onClick={handleReset}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mt-3 transition"
-          >
-            {tp('Сбросить прогресс', 'Reset progress', 'Wyzeruj postęp', {
-              es: 'Reiniciar progreso',
-              fr: 'Réinitialiser la progression',
-              de: 'Fortschritt zurücksetzen',
-              it: 'Azzera i progressi',
-            })}
-          </button>
-        )}
+        {/* Always rendered, hidden until there is progress to reset: the row
+            keeps its height, so loading stored progress does not shift the page. */}
+        <button
+          type="button"
+          onClick={handleReset}
+          disabled={completedCount === 0}
+          className={`text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] mt-3 transition ${completedCount > 0 ? '' : 'invisible'}`}
+        >
+          {tp('Сбросить прогресс', 'Reset progress', 'Wyzeruj postęp', {
+            es: 'Reiniciar progreso',
+            fr: 'Réinitialiser la progression',
+            de: 'Fortschritt zurücksetzen',
+            it: 'Azzera i progressi',
+          })}
+        </button>
       </div>
 
       {/* Lessons - accordion style, collapsed by default */}
       <div className="space-y-2">
         {bootcampLessons.map((lesson, i) => (
           <LessonAccordion
-            key={lesson.id}
+            // Remount once the stored progress is in, so the current lesson
+            // opens itself (its open state is initialised from `current`).
+            key={`${lesson.id}-${loaded ? 'stored' : 'initial'}`}
             lesson={lesson}
             done={progress.completed.includes(lesson.id)}
             current={progress.current === lesson.id}
@@ -429,8 +436,9 @@ function LessonAccordion({
   onToggle: () => void;
   onStart: () => void;
 }) {
-  const { lang, tp } = useI18n();
+  const { lang, tp, tl } = useI18n();
   const [open, setOpen] = useState(current);
+  const panelId = `lesson-${lesson.id}-panel`;
   const title = legacyPick(lesson, 'title', lang);
   const summary = legacyPick(lesson, 'summary', lang);
   const focus = legacyPick(lesson, 'focus', lang);
@@ -451,25 +459,45 @@ function LessonAccordion({
       }}
     >
       <div className="flex items-center gap-3 p-3 sm:p-4">
+        {/* 44px hit area around a 24px circle; the negative margin keeps the
+            circle where it was. */}
         <button
+          type="button"
           onClick={onToggle}
-          aria-label={done ? 'Mark incomplete' : 'Mark complete'}
-          className="w-6 h-6 rounded-full shrink-0 flex items-center justify-center transition"
-          style={{
-            background: done ? 'var(--success)' : 'transparent',
-            border: `2px solid ${done ? 'var(--success)' : 'rgba(139, 167, 184, 0.4)'}`,
-          }}
+          aria-pressed={done}
+          aria-label={`${tl({
+            ru: 'Урок пройден',
+            en: 'Lesson done',
+            pl: 'Lekcja ukończona',
+            es: 'Lección completada',
+            fr: 'Leçon terminée',
+            de: 'Lektion erledigt',
+            it: 'Lezione completata',
+          })}: ${title}`}
+          className="-m-2.5 flex h-11 w-11 shrink-0 items-center justify-center rounded-full"
         >
-          {done && (
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="20 6 9 17 4 12"/>
-            </svg>
-          )}
+          <span
+            aria-hidden
+            className="flex h-6 w-6 items-center justify-center rounded-full transition"
+            style={{
+              background: done ? 'var(--success)' : 'transparent',
+              border: `2px solid ${done ? 'var(--success)' : 'var(--text-muted)'}`,
+            }}
+          >
+            {done && (
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#0a1628" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12"/>
+              </svg>
+            )}
+          </span>
         </button>
 
         <button
+          type="button"
           onClick={() => setOpen(!open)}
-          className="flex-1 text-left flex items-center gap-2 min-w-0"
+          aria-expanded={open}
+          aria-controls={panelId}
+          className="flex min-h-[44px] flex-1 items-center gap-2 min-w-0 text-left"
         >
           <span className="text-xs font-mono text-[var(--text-muted)] shrink-0">#{lesson.order}</span>
           <span className="text-lg shrink-0">{lesson.emoji}</span>
@@ -479,20 +507,20 @@ function LessonAccordion({
           <span className="text-[10px] px-1.5 py-0.5 rounded-full shrink-0" style={{ background: 'rgba(0, 212, 255, 0.1)', color: 'var(--accent-cyan)' }}>
             {lesson.estMinutes} {tp('мин', 'min', 'min', { es: 'min', fr: 'min', de: 'Min.', it: 'min' })}
           </span>
+          {/* Inside the disclosure button, so the whole row toggles it. */}
+          <svg
+            aria-hidden
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            className="ml-auto shrink-0 text-[var(--text-muted)]"
+            style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
+          >
+            <polyline points="6 9 12 15 18 9"/>
+          </svg>
         </button>
-
-        <svg
-          width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-          className="shrink-0 text-[var(--text-muted)]"
-          style={{ transform: open ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}
-          onClick={() => setOpen(!open)}
-        >
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
       </div>
 
-      {open && (
-        <div className="px-4 pb-4 pl-12">
+      {/* Always in the DOM so aria-controls has a target; `hidden` collapses it. */}
+      <div id={panelId} hidden={!open} className="px-4 pb-4 pl-12">
           <p className="text-sm text-[var(--text-secondary)] mb-2">{summary}</p>
           <p className="text-xs text-[var(--text-muted)] italic mb-3">💡 {focus}</p>
 
@@ -534,8 +562,7 @@ function LessonAccordion({
               )}
             </div>
           )}
-        </div>
-      )}
+      </div>
     </div>
   );
 }
