@@ -21,6 +21,9 @@ export default function ThemeToggle() {
   const [mode, setMode] = useState<ThemeMode>('auto');
 
   useEffect(() => {
+    // The stored mode is in localStorage: read after mount so the server HTML
+    // ('auto') and the first client render agree.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount localStorage hydration
     setMode(readMode());
   }, []);
 

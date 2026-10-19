@@ -37,7 +37,9 @@ function Pole({ stripes, topmarks }: { stripes: { fill: string; frac: number }[]
   const w = 20;
   const y0 = 46;
   const h = 58;
-  let acc = 0;
+  // Each stripe starts where the ones above it end. Computed up front: a
+  // counter mutated inside the render's map() is what React's compiler rejects.
+  const offsets = stripes.map((_, i) => stripes.slice(0, i).reduce((a, s) => a + s.frac, 0));
   const cone = (dir: 'up' | 'down', cy: number) =>
     dir === 'up'
       ? `${x - 10},${cy + 8} ${x + 10},${cy + 8} ${x},${cy - 7}`
@@ -47,8 +49,7 @@ function Pole({ stripes, topmarks }: { stripes: { fill: string; frac: number }[]
       {/* waterline */}
       <line x1="8" y1="112" x2="112" y2="112" stroke="var(--accent-cyan)" strokeWidth="1" strokeDasharray="4,3" opacity="0.6" />
       {stripes.map((s, i) => {
-        const yy = y0 + acc * h;
-        acc += s.frac;
+        const yy = y0 + offsets[i] * h;
         return <rect key={i} x={x - w / 2} y={yy} width={w} height={s.frac * h + 0.5} fill={s.fill} stroke={OUTLINE} strokeWidth="0.5" />;
       })}
       {topmarks.map((t, i) => (

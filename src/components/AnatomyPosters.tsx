@@ -108,6 +108,9 @@ export default function AnatomyPosters() {
   // Hydrate from `#poster=...` on first mount, and react to hashchange
   // events (browser back/forward, manually editing the hash).
   useEffect(() => {
+    // location.hash exists only in the browser: read after mount, not during
+    // render, or the server HTML and the first client render disagree.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount browser-only read
     setActiveId(readHashPosterId());
     const onHashChange = () => setActiveId(readHashPosterId());
     window.addEventListener('hashchange', onHashChange);
