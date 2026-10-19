@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, isDailyRejection, USER_DAILY_AI_LIMIT, USER_DAILY_AI_IP_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { insertEvent } from '@/lib/db';
 import { mirrorCoachKeys, type Coaching } from '@/lib/fallback-coach';
 import { sanitizeRaceLog, type RaceLog } from './sanitize';
@@ -12,7 +12,7 @@ export const maxDuration = 30;
 const COACH_LIMIT = 30;
 const COACH_WINDOW_MS = 60 * 60 * 1000;
 // Global cap: total AI coach requests across ALL users per hour.
-// Protects ANTHROPIC_API_KEY wallet from denial-of-wallet even if the
+// Protects the OPENAI_API_KEY wallet from denial-of-wallet even if the
 // per-sid limit is bypassed by cookie rotation.
 const COACH_GLOBAL_LIMIT = 300;
 const COACH_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
@@ -22,7 +22,7 @@ const OPENAI_MODEL = process.env.OPENAI_MODEL || 'gpt-5-mini';
 // System prompts per language - cached so repeated requests are cheap.
 // The output JSON field names stay `titleRu / explanationRu / fixRu / nextGoalRu`
 // for backward compatibility with the client shape - the STRING VALUES inside
-// them are in the requested language. Claude is noticeably more fluent when
+// them are in the requested language. The model is noticeably more fluent when
 // the system prompt itself is in the target language, so we maintain seven.
 type CoachLang = 'ru' | 'en' | 'pl' | 'es' | 'fr' | 'de' | 'it';
 const SYSTEM_BY_LANG: Record<CoachLang, string> = {
@@ -257,16 +257,8 @@ export async function POST(req: Request) {
   const sid = jar.get('regatta_sid')?.value;
   const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  // Site-wide per-user daily AI cap (shared across all AI endpoints).
-  const daily = checkUserDailyBudget(client);
-  if (!daily.ok) {
-    logWarn('coach.daily-cap', { resetMs: daily.resetMs });
-    return NextResponse.json(
-      { error: `Daily AI limit (${USER_DAILY_AI_LIMIT}) reached. Try again tomorrow.`, fallback: true, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
-    );
-  }
-
+  // Hourly per-user, per-IP and global limits plus the site-wide daily AI
+  // budget, in one atomic check: a refused request spends none of them.
   const rl = rateLimitWithGlobal({
     key: 'coach',
     client,
@@ -275,12 +267,33 @@ export async function POST(req: Request) {
     globalKey: 'coach',
     globalLimit: COACH_GLOBAL_LIMIT,
     globalWindowMs: COACH_GLOBAL_WINDOW_MS,
+    dailyBudget: true,
   });
   if (!rl.ok) {
+    const retryAfterSec = Math.ceil(rl.resetMs / 1000);
+    if (isDailyRejection(rl)) {
+      logWarn('coach.daily-cap', { resetMs: rl.resetMs, by: rl.rejectedBy });
+      return NextResponse.json(
+        {
+          error: rl.rejectedBy === 'daily-ip'
+            ? `Daily AI limit for your network (${USER_DAILY_AI_IP_LIMIT}, shared by everyone on it) reached. Try again tomorrow.`
+            : `Daily AI limit (${USER_DAILY_AI_LIMIT}) reached. Try again tomorrow.`,
+          fallback: true,
+          retryAfterSec,
+        },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
+      );
+    }
     logWarn('coach.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
-      { error: 'Too many coach requests', fallback: true, retryAfterSec: Math.ceil(rl.resetMs / 1000) },
-      { status: 429, headers: { ...rateLimitHeaders(rl, COACH_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
+      {
+        error: rl.rejectedBy === 'per-ip'
+          ? 'Too many coach requests from your network (shared network limit)'
+          : 'Too many coach requests',
+        fallback: true,
+        retryAfterSec,
+      },
+      { status: 429, headers: { ...rateLimitHeaders(rl, COACH_LIMIT), 'Retry-After': String(retryAfterSec) } },
     );
   }
 
@@ -453,7 +466,7 @@ Analyse how the player did. Return ONLY JSON, with no commentary before or after
     // BOTH name forms, so old clients keep reading `titleRu` and new
     // clients can read the cleaner `title`. Old replays / cached coach
     // responses keep working - the legacy `*Ru` fields remain required
-    // and are still emitted by Claude.
+    // and are still emitted by the model.
     const coaching: Coaching = mirrorCoachKeys(parsed as Coaching);
 
     const usage = data?.usage ?? {};

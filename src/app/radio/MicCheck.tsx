@@ -147,8 +147,17 @@ export default function MicCheck({
         const fd = new FormData();
         fd.append('audio', blob, 'check.webm');
         const res = await fetch('/api/radio-transcribe', { method: 'POST', body: fd });
-        const data = (await res.json()) as { transcript?: string; fallback?: boolean; error?: string };
+        const data = (await res.json()) as { transcript?: string; fallback?: boolean; error?: string; retryAfterSec?: number };
         if (data.fallback) { setSttOff(true); return; }
+        if (res.status === 429) {
+          // The server text is a Polish fallback; say it in the learner's language.
+          const mins = Math.max(1, Math.ceil((Number(data.retryAfterSec) || 0) / 60));
+          const hours = Math.ceil(mins / 60);
+          setSttError(mins > 90
+            ? tp(`Лимит попыток исчерпан. Попробуй снова через ${hours} ч.`, `Attempt limit reached. Try again in ${hours} h.`, `Limit prób wyczerpany. Spróbuj ponownie za ${hours} godz.`)
+            : tp(`Лимит попыток исчерпан. Попробуй снова через ${mins} мин.`, `Attempt limit reached. Try again in ${mins} min.`, `Limit prób wyczerpany. Spróbuj ponownie za ${mins} min.`));
+          return;
+        }
         if (!res.ok || data.error) {
           setSttError(data.error ?? tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udało się rozpoznać mowy.'));
           return;

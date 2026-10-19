@@ -56,8 +56,8 @@
    `/start`, `/checklist`, `/anatomy`, `/courses`, `/racing`, `/glossary`,
    `/gallery`, `/leaderboard`) и `src/components/Navigation.tsx` принадлежат
    Shared-лейну.
-6. **CI и деплой** (GitHub Actions, nginx, Docker, `.env` на VPS) принадлежат
-   Shared-лейну.
+6. **CI и деплой** (GitHub Actions, nginx, Docker, `ops/deploy/*`, окружение
+   на VPS) принадлежат Shared-лейну.
 7. **CSP.** Конфиг реверс-прокси разрешает практически только свой origin
    (плюс GA и YouTube-фреймы). Любой внешний ассет в проде блокируется: это уже
    стоило инцидента "page couldn't load" (Drei `<Environment preset="sunset">`
@@ -128,12 +128,18 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 517 тестов, 56 файлов
-npx playwright test          # 16 тестов, 2 файла (BASE_URL задает цель)
+npx vitest run               # все юнит-тесты: 721 тест, 65 файлов
+npm run test:multiplayer     # живой ws-server: жизненный цикл сокетов
+npx playwright test          # 20 тестов, 4 файла (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```
 
+- CI гоняет весь набор, а не список папок: `.github/workflows/ci.yml` на
+  каждый PR и `.github/workflows/deploy.yml` перед сборкой запускают
+  `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
+  `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
+  угодно в `src` попадает в CI сам.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
@@ -149,17 +155,36 @@ npm run check:map            # карта проекта актуальна
 
 - Ветки: `main` - веб-приложение плюс инфраструктура; `app` - это `main` плюс
   работа по мобильному приложению (`mobile/`).
-- Push в `main` запускает `.github/workflows/deploy.yml`: проверки и pre-deploy
-  E2E, затем SSH на VPS, `docker compose build`, `docker compose up -d`, затем
-  smoke по прод-маршрутам и Playwright на проде.
+- Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
+  проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
+  pre-deploy E2E на раннере, затем неизменяемые образы в GHCR. Джоба деплоя
+  (GitHub environment `production`) по SSH stdin отдает принудительной
+  команде `regatta-deploy` на VPS commit, два digest образов и одноразовый
+  токен GHCR этой джобы (стирается вместе с временной авторизацией Docker
+  сразу после `docker pull`; контракт запроса: `ops/deploy/README.md`, "Trust
+  boundary"). Root-owned
+  `/etc/regatta-deploy/compose.yml` поднимает их с read-only файловой
+  системой, без capabilities и с лимитами ресурсов и сам откатывается, если
+  health не прошел. Затем smoke по прод-маршрутам и Playwright на проде.
+  Устройство, установка и проверки: `ops/deploy/README.md`.
+- Корневой `docker-compose.yml` только для локальной разработки (проект
+  `regatta-local`). На VPS его не запускать и `docker compose up` из чекаута не
+  делать: так пересоздаются захардненные прод-контейнеры без read-only и
+  прочих ограничений. Старый чекаут `/opt/repos/regatta` на VPS не источник
+  релиза.
+- Откат делает администратор, не деплой-аккаунт: образы из
+  `/var/lib/regatta-deploy-state/previous.json` поднимаются тем же
+  фиксированным compose-файлом (`ops/deploy/README.md`, "Verification and
+  rollback").
 - nginx это отдельный общий контейнер (`/opt/repos/nginx_server/conf.d/` на
-  хосте). Файл `regatta.nginx.conf` в репозитории НЕ применяется деплоем:
-  правится host-файл, затем `docker exec nginx_server nginx -s reload` (или
-  `scripts/apply-nginx-config.sh`).
+  хосте). Файл `regatta.nginx.conf` в репозитории только справочная копия и
+  деплоем НЕ применяется: администратор правит host-файл, затем
+  `docker exec nginx_server nginx -t` и
+  `docker exec nginx_server nginx -s reload`.
 - Проверка после деплоя: `curl -I https://weektoregatta.com/`, живой
   `/stats` под auth, сканер кириллицы.
-- Эксплуатационные рецепты (логи, база, бэкап, откат) - в `ARCHITECTURE.md`
-  раздел 6 и `docs/OPS.md`.
+- Эксплуатационные рецепты (логи, база, бэкап, восстановление) - в
+  `ARCHITECTURE.md` раздел 6 и `docs/OPS.md`.
 
 ### Релиз мобильного приложения (обязательный гейт)
 
@@ -292,19 +317,20 @@ npm run check:map            # карта проекта актуальна
 
 ## Окружение
 
-Значения не хранятся в репозитории. `.env` живет рядом с чекаутом на VPS,
-локально - `.env.local` (оба в `.gitignore`).
+Значения не хранятся в репозитории. На VPS прод читает
+`/etc/regatta-deploy/runtime.env` (root, 0600, см. `ops/deploy/README.md`), а
+не `.env` в чекауте; локально - `.env.local` (в `.gitignore`).
 
 | Переменная | Зачем | Где живет |
 |---|---|---|
 | `ADMIN_PASSWORD` | basic-auth для `/stats` и `/api/admin/*`, без нее 503 | VPS, локально `.env.local` |
-| `ANTHROPIC_API_KEY` | ИИ-коуч, чаты, скрипты перевода | VPS и локально при переводах |
-| `ANTHROPIC_MODEL` | переопределение модели | опционально |
-| `OPENAI_API_KEY` | STT и TTS радиокурса | VPS (локальный ключ мертв, предгенерация идет через прод) |
-| `OPENAI_MODEL`, `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `OPENAI_STT_MODEL` | параметры голоса и распознавания | опционально |
-| `REGATTA_DB_DIR` | каталог SQLite, в контейнере `/data` | `docker-compose.yml` |
-| `NEXT_INTERNAL_URL` | адрес приложения для ws-server | `docker-compose.yml` |
-| `PORT` | порт ws-server (3001 в контейнере) | `docker-compose.yml` |
+| `OPENAI_API_KEY` | ИИ-коуч (`/api/coach`), чаты (`/api/ai-chat`, `/api/sternik-chat`), STT и TTS радиокурса | VPS (локальный ключ мертв, предгенерация идет через прод) |
+| `OPENAI_MODEL` | модель коуча и чатов (по умолчанию `gpt-5-mini`) | опционально |
+| `OPENAI_TTS_MODEL`, `OPENAI_TTS_VOICE`, `OPENAI_STT_MODEL` | параметры голоса и распознавания | опционально |
+| `ANTHROPIC_API_KEY`, `ANTHROPIC_MODEL` | только скрипты перевода (`scripts/translate-data.mjs`, `scripts/translate-data-flat.mjs`), приложение их не читает | локально при переводах |
+| `REGATTA_DB_DIR` | каталог SQLite, в контейнере `/data` | `ops/deploy/compose.yml` (локально `docker-compose.yml`) |
+| `NEXT_INTERNAL_URL` | адрес приложения для ws-server | `ops/deploy/compose.yml` (локально `docker-compose.yml`) |
+| `PORT` | порт приложения (3000) и ws-server (3001) в контейнере | `ops/deploy/compose.yml` (локально `docker-compose.yml`) |
 | `NEXT_PUBLIC_WS_URL`, `WS_URL` | адрес WebSocket для клиента и тестов | сборка и локально |
 | `NEXT_PUBLIC_SW_VERSION` | версия сервис-воркера | сборка |
 | `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID` | уведомления поддержки и статуса релиза | VPS и `ops/notify` |
@@ -324,18 +350,19 @@ npm run check:map            # карта проекта актуальна
 | `PATTERNS.md` | каталог повторяющихся провалов P1-P6 и чеклист "дверь" D1-D6 | актуален |
 | `README.md` | витрина проекта, внешние источники правил | в основном актуален, числа (глоссарий 64) устарели |
 | `docs/TECH.md` | краткий обзор стека, деплоя, i18n, погоды, ветвления | актуален |
-| `docs/OPS.md` | эксплуатация VPS, geoip2, бэкапы | актуален |
+| `docs/OPS.md` | эксплуатация VPS, geoip2, бэкапы и восстановление базы | актуален; деплой и откат - `ops/deploy/README.md` |
+| `ops/deploy/README.md` | confined-деплой: принудительная команда, root-owned compose, откат | источник истины по деплою |
 | `docs/I18N_AUDIT.md` | покрытие маршрутов языками | поддерживать при изменении покрытия |
 | `docs/design/SIMULATORS.md` | двухтиерная модель тренажеров и названия | источник истины |
 | `docs/design/simulator-v3/*` | спека, контракты поведения, QA Тренажера | актуально для лейна V3 |
 | `docs/design/mobile/*` | мобильная архитектура, решения, гейт релиза | актуально для мобильного лейна |
 | `docs/design/books-audit-2026-09-26.md` | бэклог обучающего контента из трех книг (Дедекам, "Маневры под парусами", RYA Day Skipper), проверенная матрица трима, числа и допуски | актуален, спека для контентных задач; сделанное помечать в `CHANGELOG.md` |
 | `docs/audits/2026-10-18-aso-and-code-audit.md` | ASO-анализ и карточка App Store, аудит безопасности, данных и инженерии, открытый бэклог | актуален на 2026-10-18 |
-| `TECH.md` (корневой) | старая карта кода и инфраструктуры | устарел, заменен `ARCHITECTURE.md`; адреса хостов и числа неверны |
-| `FEATURES.md` | инвентарь фич на 2026-07 | частично устарел, см. `ARCHITECTURE.md` раздел 10 |
-| `AUDIT.md` | аудит состояния на 2026-06 | исторический |
-| `ROADMAP.md` | фазы 0-4 | исторический, долг перенесен в `CHANGELOG.md` |
-| `MEMORY.md` | датированные решения "почему X, а не Y" | исторический, ключевое перенесено в `ARCHITECTURE.md` раздел 7 |
+| `TECH.md` (корневой) | старая карта кода и инфраструктуры | исторический снимок, не руководство по эксплуатации (баннер в начале); заменен `ARCHITECTURE.md`, адреса хостов и числа неверны |
+| `FEATURES.md` | инвентарь фич на 2026-07 | исторический снимок, не руководство по эксплуатации; см. `ARCHITECTURE.md` раздел 10 |
+| `AUDIT.md` | аудит состояния на 2026-06 | исторический снимок, не руководство по эксплуатации |
+| `ROADMAP.md` | фазы 0-4 | исторический снимок, долг перенесен в `CHANGELOG.md` |
+| `MEMORY.md` | датированные решения "почему X, а не Y" | исторический снимок, ключевое перенесено в `ARCHITECTURE.md` раздел 7 |
 | `STRESS-REPORT.md` | базовая линия мультиплеера | актуален как базовая линия |
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
 

@@ -125,7 +125,7 @@ export const MISTAKES: Pair[] = [
 
 /** Exam facts (UKE). [PL, RU] */
 export const EXAM_FACTS: Pair[] = [
-  ['Egzamin w UKE, od 15 lat, świadectwo bezterminowe, opłata 175 zł', 'Экзамен в UKE, с 15 лет, свидетельство бессрочное, 175 zl'],
+  ['Egzamin w UKE, od 15 lat, świadectwo bezterminowe, opłata 175 zł', 'Экзамен в UKE, с 15 лет, свидетельство бессрочное, 175 zł'],
   ['Teoria SRC: 2 przedmioty po 5 pytań (10 łącznie), zaliczenie każdego osobno na min. 60%', 'Теория SRC: 2 предмета по 5 вопросов (10 всего), каждый предмет нужно сдать отдельно минимум на 60%'],
   ['Praktyka na radiu ICOM: zadania punktowane 0-5, max 20 pkt, zaliczenie 60% (12 pkt)', 'Практика на рации ICOM: задания по 0-5 баллов, максимум 20, зачет 60% (12 баллов)'],
   ['Zapis min. 14 dni przed sesją, opłata przed zapisem', 'Запись минимум за 14 дней, оплата до записи'],

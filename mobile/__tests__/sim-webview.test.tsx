@@ -16,6 +16,13 @@ jest.mock("../src/i18n/context", () => ({
 jest.mock("../src/design-system/components", () => ({
   Screen: ({ children }: { children: React.ReactNode }) => children,
 }));
+// The analytics choice as already read (analytics on), so these tests stay
+// synchronous and touch no storage of their own. The consent gating and the
+// injected flag are covered in webview-analytics-consent.test.tsx.
+jest.mock("../src/persistence/analytics-consent", () => ({
+  ...jest.requireActual("../src/persistence/analytics-consent"),
+  useAnalyticsConsent: () => ({ enabled: true, ready: true, setEnabled: () => {} }),
+}));
 jest.mock("react-native-webview", () => {
   const React = require("react");
   const { View } = require("react-native");

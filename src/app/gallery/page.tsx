@@ -457,6 +457,9 @@ function Tile({
     const el = tileRef.current;
     if (!el) return;
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      // matchMedia exists only in the browser, so this cannot be a render-time
+      // initialiser without a hydration mismatch.
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount browser-only read
       setShown(true);
       return;
     }

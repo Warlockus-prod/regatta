@@ -87,6 +87,8 @@ export default function SpotsPage() {
   // an 'error' state on any failure (the chart still renders regardless).
   useEffect(() => {
     let cancelled = false;
+    // Reset to the loading state for the new spot before the fetch resolves.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- fetch lifecycle for the selected spot
     setState('loading');
     setData(null);
     fetch(`/api/weather?lat=${spot.lat}&lon=${spot.lon}`)

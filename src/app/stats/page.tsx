@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { headers } from 'next/headers';
 import { notFound } from 'next/navigation';
 import { checkAdminAuth } from '@/lib/admin-auth';
-import { listFeedback, type FeedbackRow } from '@/lib/db';
+import { listFeedback, type FeedbackListItem } from '@/lib/db';
 import FeedbackAdmin from './FeedbackAdmin';
 import StatsDashboard from './StatsDashboard';
 
@@ -28,7 +28,8 @@ export default async function StatsPage() {
   // bypassed or its matcher changes; a page cannot send 401, so 404.
   if (checkAdminAuth((await headers()).get('authorization')) !== 'ok') notFound();
 
-  let feedback: FeedbackRow[] = [];
+  // No IP or raw user agent in these rows: they are serialized to the browser.
+  let feedback: FeedbackListItem[] = [];
   try {
     feedback = listFeedback(100);
   } catch {

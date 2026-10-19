@@ -64,8 +64,6 @@ plan). Both shapes render identically in consumer components.
 **Components (site chrome):**
 - `src/components/Navigation.tsx`
 - `src/components/FeedbackWidget.tsx` (AI chat + feedback form UI)
-- `src/components/OnboardingTour.tsx` (universal fallback chain; lang
-  pick: RU -> ru arg, PL -> pl arg, everything else -> en arg)
 - `src/components/HelpOverlay.tsx`
 - `src/components/LanguageToggle.tsx` + `LanguageNagBanner.tsx`
 - `src/components/BootcampFooterNav.tsx` (RU/EN/PL labels plus `tp`

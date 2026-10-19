@@ -112,15 +112,17 @@ node scripts/asc-state.mjs               # prints e.g. "1.0 WAITING_FOR_REVIEW"
 - Crash + error reporting. Without it you are blind to production crashes.
   Option: `@sentry/react-native` (Expo config plugin).
   CAVEAT: this is the one that touches your privacy story. Sentry sends crash
-  reports (stack traces, device/OS, optionally breadcrumbs) off device. If you
-  add it you MUST:
-    - flip the ASC App Privacy answer from "Data Not Collected" to
-      "Data Collected -> Diagnostics / Crash Data" (not linked, not tracking),
+  reports (stack traces, device/OS, optionally breadcrumbs) off device. The
+  App Privacy label must already say "Data Collected" (PostHog: Usage Data /
+  Product Interaction and Diagnostics / Other Diagnostic Data, Analytics, not
+  linked, not tracking). If you add Sentry you MUST:
+    - add "Diagnostics / Crash Data" (not linked, not tracking) to the ASC
+      App Privacy answers and `NSPrivacyCollectedDataTypeCrashData` to the
+      privacy manifest,
     - update PRIVACY_POLICY.md and the live /privacy page,
     - add the Sentry domain to the privacy manifest if needed.
-  If you want to keep the clean "Data Not Collected" label, skip Sentry and rely
-  on Apple's Xcode Organizer crash logs (no SDK, no disclosure) - lower fidelity
-  but zero privacy cost.
+  Without an SDK, Apple's Xcode Organizer crash logs remain the no-disclosure
+  option - lower fidelity but no extra privacy cost.
 
 - CI/CD for mobile. You already run GitHub Actions for the web deploy. Add a
   workflow that runs `eas build`/`eas submit` on a git tag (e.g. `mobile-v*`),
@@ -143,7 +145,14 @@ node scripts/asc-state.mjs               # prints e.g. "1.0 WAITING_FOR_REVIEW"
 ### Already in place (good, keep)
 - App Store Connect API automation: `scripts/asc*.mjs` (metadata, screenshots,
   TestFlight invites) with a `.p8` key in `~/.appstoreconnect/private_keys`.
-- iOS privacy manifest in app.json (required-reason APIs declared).
+- iOS privacy manifest in app.json under `expo.ios.privacyManifests`
+  (required-reason APIs and NSPrivacyCollectedDataTypes: ProductInteraction
+  and OtherDiagnosticData, Analytics, not linked, not tracking). Until 1.6.4
+  (build 48) the object sat in the expo-build-properties plugin options, which
+  ignore it, so every shipped PrivacyInfo.xcprivacy had an empty
+  NSPrivacyCollectedDataTypes; the move ships with the next build. Check the
+  resolved config before a build: `npx expo config --json` must show
+  `ios.privacyManifests.NSPrivacyCollectedDataTypes`.
 - Export compliance: `ITSAppUsesNonExemptEncryption=false` (no per-submit prompt).
 - TestFlight external invite script (`scripts/asc-invite-external.mjs`).
 - Screenshot pipeline (`scripts/asc-screenshots.mjs`) + the captured v1.0 sets
@@ -158,8 +167,13 @@ node scripts/asc-state.mjs               # prints e.g. "1.0 WAITING_FOR_REVIEW"
   review. Pure OTA `eas update` payloads do NOT go through review.
 - Build numbers must strictly increase across uploads. `autoIncrement: true`
   (+ `appVersionSource: remote`) in eas.json handles this on EAS builds.
-- App Privacy ("Data Not Collected") and Age Rating (4+) are app-level and
-  persist across versions; you only revisit them if data practices change.
+- App Privacy ("Data Collected": Product Interaction and Other Diagnostic
+  Data, Analytics, not linked, not tracking) and Age Rating (4+) are
+  app-level and persist across versions. The label must change whenever data
+  practices change; the release gate G4b in RELEASE_CHECKLIST.md compares it
+  with the privacy manifest and the policy before every submission. The audit
+  of 2026-10-18 found the live label still saying "Data Not Collected" while
+  PostHog ran by default; correcting it in ASC is an owner step.
 - iPad screenshots are required while `ios.supportsTablet: true`. If you ever
   want to drop iPad support to skip them, that is a native change (new build).
 

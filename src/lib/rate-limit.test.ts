@@ -1,6 +1,8 @@
 // Contract: a client cannot reset a per-user limit by sending a fresh
 // `regatta_sid` cookie, because the last-hop IP is counted too; a rejected
-// request is counted in no layer.
+// request is counted in no layer (so an hourly refusal never spends the daily
+// AI budget); cookieless callers (the iOS app) have a bucket of their own that
+// sessions on the same IP cannot fill.
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import {
@@ -10,10 +12,14 @@ import {
   rateLimitClient,
   rateLimitWithGlobal,
   checkUserDailyBudget,
+  isDailyRejection,
   IP_BUCKET_FACTOR,
   USER_DAILY_AI_LIMIT,
+  USER_DAILY_AI_IP_FACTOR,
   USER_DAILY_AI_IP_LIMIT,
   __resetRateLimitsForTests,
+  rateLimitIpPrefix,
+  rateLimitGlobal,
 } from './rate-limit';
 
 const HOUR = 60 * 60 * 1000;
@@ -35,11 +41,16 @@ describe('clientIpKey / clientKeys', () => {
 
   it('keys the user on sid when present and always keeps the IP', () => {
     expect(clientKeys(req('1.1.1.1, 203.0.113.7'), 'abc')).toEqual({ user: 'sid:abc', ip: 'ip:203.0.113.7' });
-    expect(clientKeys(req('203.0.113.7'), undefined)).toEqual({ user: 'ip:203.0.113.7', ip: 'ip:203.0.113.7' });
+    expect(clientKeys(req('203.0.113.7'), undefined)).toEqual({ user: 'anon:ip:203.0.113.7', ip: 'ip:203.0.113.7' });
   });
 
   it('without X-Forwarded-For (internal caller) there is no shared IP bucket', () => {
     expect(clientKeys(req(), 'abc')).toEqual({ user: 'sid:abc', ip: 'sid:abc' });
+    expect(clientKeys(req(), undefined)).toEqual({ user: 'anon:ip:unknown', ip: 'anon:ip:unknown' });
+    // No double counting on the no-XFF path: one bucket, the full limit.
+    let anon = 0;
+    for (let i = 0; i < 20; i++) if (rateLimitClient(clientKeys(req(), undefined), 'w', 10, HOUR).ok) anon++;
+    expect(anon).toBe(10);
     let passed = 0;
     for (let i = 0; i < 100; i++) if (rateLimitClient(clientKeys(req(), 'mp-' + i), 'race-result', 5, HOUR).ok) passed++;
     expect(passed).toBe(100);
@@ -80,11 +91,33 @@ describe('rateLimitClient', () => {
     expect(rateLimitClient(clientKeys(req('198.51.100.1'), 'other'), 'fb', 5, HOUR).ok).toBe(true);
   });
 
-  it('without a sid only one bucket applies, at the per-user limit', () => {
+  it('without a sid the cookieless bucket applies, at the per-user limit', () => {
     const keys = clientKeys(req('203.0.113.7'), undefined);
     let passed = 0;
     for (let i = 0; i < 20; i++) if (rateLimitClient(keys, 'fb', 5, HOUR).ok) passed++;
     expect(passed).toBe(5);
+    expect(rateLimitClient(keys, 'fb', 5, HOUR).rejectedBy).toBe('per-key');
+  });
+
+  it('cookieless and session traffic on one IP have separate buckets', () => {
+    // A web user spends their whole limit; the app on the same wifi still has its own.
+    const web = clientKeys(req('203.0.113.7'), 'web-user');
+    for (let i = 0; i < 5; i++) expect(rateLimitClient(web, 'weather', 5, HOUR).ok).toBe(true);
+    expect(rateLimitClient(web, 'weather', 5, HOUR).ok).toBe(false);
+    const app = clientKeys(req('203.0.113.7'), undefined);
+    let appPassed = 0;
+    for (let i = 0; i < 10; i++) if (rateLimitClient(app, 'weather', 5, HOUR).ok) appPassed++;
+    expect(appPassed).toBe(5);
+  });
+
+  it('cookieless plus rotated sids together stay capped by the IP at 3x', () => {
+    const limit = 5;
+    let passed = 0;
+    for (let i = 0; i < 50; i++) {
+      const keys = clientKeys(req('203.0.113.7'), i % 2 === 0 ? undefined : 'rot-' + i);
+      if (rateLimitClient(keys, 'fb', limit, HOUR).ok) passed++;
+    }
+    expect(passed).toBe(limit * IP_BUCKET_FACTOR);
   });
 });
 
@@ -120,12 +153,82 @@ describe('checkUserDailyBudget', () => {
     let passed = 0;
     for (let i = 0; i < USER_DAILY_AI_LIMIT + 10; i++) if (checkUserDailyBudget(stable).ok) passed++;
     expect(passed).toBe(USER_DAILY_AI_LIMIT);
+    expect(checkUserDailyBudget(stable).rejectedBy).toBe('daily');
 
     let rotated = 0;
     for (let i = 0; i < USER_DAILY_AI_IP_LIMIT + 50; i++) {
       if (checkUserDailyBudget(clientKeys(req('203.0.113.7'), 'r-' + i)).ok) rotated++;
     }
     expect(rotated).toBe(USER_DAILY_AI_IP_LIMIT - USER_DAILY_AI_LIMIT);
+    const last = checkUserDailyBudget(clientKeys(req('203.0.113.7'), 'fresh'));
+    expect(last.rejectedBy).toBe('daily-ip');
+    expect(isDailyRejection(last)).toBe(true);
+  });
+
+  it('the per-IP daily budget is its own factor, not the hourly IP factor', () => {
+    expect(USER_DAILY_AI_IP_FACTOR).toBe(10);
+    expect(USER_DAILY_AI_IP_LIMIT).toBe(USER_DAILY_AI_LIMIT * USER_DAILY_AI_IP_FACTOR);
+    expect(USER_DAILY_AI_IP_FACTOR).not.toBe(IP_BUCKET_FACTOR);
+  });
+});
+
+describe('rateLimitWithGlobal with dailyBudget', () => {
+  const ai = (client: ReturnType<typeof clientKeys>, perKeyLimit = 20, globalLimit = 10_000) => rateLimitWithGlobal({
+    key: 'chat', client,
+    perKeyLimit, perKeyWindowMs: HOUR,
+    globalKey: 'chat', globalLimit, globalWindowMs: HOUR,
+    dailyBudget: true,
+  });
+
+  it('hourly refusals do not spend the daily budget', () => {
+    const keys = clientKeys(req('203.0.113.7'), 'busy');
+    for (let i = 0; i < 20; i++) expect(ai(keys).ok).toBe(true);
+    for (let i = 0; i < 30; i++) {
+      const r = ai(keys);
+      expect(r.ok).toBe(false);
+      expect(r.rejectedBy).toBe('per-key');
+      expect(isDailyRejection(r)).toBe(false);
+    }
+    // Only the 20 admitted requests were charged: 80 of 100 remain today.
+    let left = 0;
+    for (let i = 0; i < USER_DAILY_AI_LIMIT; i++) if (checkUserDailyBudget(keys).ok) left++;
+    expect(left).toBe(USER_DAILY_AI_LIMIT - 20);
+  });
+
+  it('a global refusal does not spend the daily budget either', () => {
+    const keys = clientKeys(req('203.0.113.7'), 'unlucky');
+    expect(ai(keys, 20, 1).ok).toBe(true);
+    expect(ai(keys, 20, 1).rejectedBy).toBe('global');
+    let left = 0;
+    for (let i = 0; i < USER_DAILY_AI_LIMIT; i++) if (checkUserDailyBudget(keys).ok) left++;
+    expect(left).toBe(USER_DAILY_AI_LIMIT - 1);
+  });
+
+  it('a daily refusal is tagged daily and spends no hourly or global budget', () => {
+    const keys = clientKeys(req('203.0.113.7'), 'heavy');
+    for (let i = 0; i < USER_DAILY_AI_LIMIT; i++) expect(checkUserDailyBudget(keys).ok).toBe(true);
+    const r = ai(keys, 20, 1);
+    expect(r.ok).toBe(false);
+    expect(r.rejectedBy).toBe('daily');
+    // The single global slot is still free for someone else.
+    expect(ai(clientKeys(req('198.51.100.1'), 'other'), 20, 1).ok).toBe(true);
+  });
+
+  it('a classroom on one IP gets the per-IP daily factor across its sessions', () => {
+    let passed = 0;
+    for (let i = 0; i < USER_DAILY_AI_IP_LIMIT + 20; i++) {
+      // Each pupil makes 10 calls, well under their own hourly and daily limits.
+      const pupil = clientKeys(req('203.0.113.7'), 'pupil-' + Math.floor(i / 10));
+      const r = rateLimitWithGlobal({
+        key: 'chat', client: pupil,
+        perKeyLimit: 20, perKeyWindowMs: HOUR, ipLimit: 1_000_000,
+        globalKey: 'chat', globalLimit: 1_000_000, globalWindowMs: HOUR,
+        dailyBudget: true,
+      });
+      if (r.ok) passed++;
+      else expect(r.rejectedBy).toBe('daily-ip');
+    }
+    expect(passed).toBe(USER_DAILY_AI_IP_LIMIT);
   });
 });
 
@@ -142,5 +245,29 @@ describe('pruning', () => {
     // After the hour the bucket frees up.
     vi.setSystemTime(new Date('2026-10-18T11:00:01Z'));
     expect(rateLimit('coach:sid:a', 3, HOUR).ok).toBe(true);
+  });
+});
+
+describe('rateLimitIpPrefix (IPv6 grouped by /64)', () => {
+  it.each([
+    ['203.0.113.7', '203.0.113.7'],
+    ['::ffff:203.0.113.7', '::ffff:203.0.113.7'],
+    ['2001:db8:abcd:12::1', '2001:db8:abcd:12::/64'],
+    ['2001:0db8:abcd:0012:ffff:1:2:3', '2001:db8:abcd:12::/64'],
+    ['2001:db8::1', '2001:db8:0:0::/64'],
+    ['fe80::1%en0', 'fe80:0:0:0::/64'],
+    ['not-an-ip', 'not-an-ip'],
+  ])('%s -> %s', (input, expected) => {
+    expect(rateLimitIpPrefix(input)).toBe(expected);
+  });
+});
+
+describe('rateLimitGlobal', () => {
+  beforeEach(() => __resetRateLimitsForTests());
+  it('admits exactly the limit, then reports the global layer', () => {
+    for (let i = 0; i < 3; i++) expect(rateLimitGlobal('t', 3, 60_000).ok).toBe(true);
+    const r = rateLimitGlobal('t', 3, 60_000);
+    expect(r.ok).toBe(false);
+    expect(r.rejectedBy).toBe('global');
   });
 });

@@ -36,6 +36,8 @@ vi.mock('@/lib/log', () => ({
 import { POST } from './route';
 import { FINISH_SEC_MAX, FINISH_SEC_MIN } from '@/lib/race-submission';
 import { __resetRateLimitsForTests } from '@/lib/rate-limit';
+import { MAX_SPEED } from '@/lib/race-physics';
+import { buildRaceResultBody, MISSIONS, DIFFICULTIES, WINDS } from '../../../../ws-server/limits.js';
 
 function setSid(v: string | undefined) {
   mocks.cookieStore.value = v;
@@ -224,6 +226,44 @@ describe('POST /api/race-result - happy path', () => {
   it('400 when nicknameFallback has nothing usable', async () => {
     mocks.db.getPlayer.mockReturnValueOnce(null);
     const res = await POST(makeReq({ finishTimeSec: 90, difficulty: 'easy', windStrength: 'light', nicknameFallback: '<>' }));
+    expect(res.status).toBe(400);
+  });
+});
+
+describe('POST /api/race-result - multiplayer bodies from ws-server', () => {
+  // ws-server builds this body with buildRaceResultBody(); a 400 there only
+  // reaches a console.warn, so any drift from this route's validation would
+  // drop multiplayer leaderboard rows silently. Feed finished-room fixtures
+  // through the real route.
+  const ids = Array.from({ length: 10 }, (_, i) => 'p_' + i);
+  function finishedRoom(missionId: string | null, difficulty: string, windStrength: string) {
+    return {
+      difficulty, windStrength, missionId,
+      results: ids.map((id) => ({ id })),
+      stats: new Map(ids.map((id) => [id, { tacks: 1000, noGoEntries: 0, topSpeed: MAX_SPEED }])),
+    };
+  }
+  const settings = [
+    ...MISSIONS.map((m) => [m.id, m.difficulty, m.wind] as const),
+    ...DIFFICULTIES.flatMap((d) => WINDS.map((w) => [null, d, w] as const)),
+  ];
+
+  it.each(settings)('mission %s, %s / %s: every finisher, last place included, gets 200', async (missionId, difficulty, wind) => {
+    const room = finishedRoom(missionId, difficulty, wind);
+    for (const [i, nickname] of ['Ola', 'A', '⛵', '李'].entries()) {
+      // The 4th sailor finishes last of 10 (position === totalBoats) at the slowest legal time.
+      const last = i === 3;
+      const body = buildRaceResultBody(room, { id: last ? ids[9] : ids[i], nickname, boat: { finishTime: last ? FINISH_SEC_MAX : FINISH_SEC_MIN + i } });
+      expect(body).not.toBeNull();
+      mocks.db.getPlayer.mockReturnValueOnce(null);
+      const res = await POST(makeReq(body));
+      expect(res.status, JSON.stringify(body)).toBe(200);
+    }
+  });
+
+  it('the route itself stays strict: nicknameFallback A is a 400', async () => {
+    mocks.db.getPlayer.mockReturnValueOnce(null);
+    const res = await POST(makeReq({ finishTimeSec: 90, difficulty: 'easy', windStrength: 'light', nicknameFallback: 'A' }));
     expect(res.status).toBe(400);
   });
 });

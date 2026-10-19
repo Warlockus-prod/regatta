@@ -16,6 +16,13 @@
  *   node scripts/check-bundle-size.mjs
  *
  * Raise the budget deliberately after inspecting what caused growth.
+ *
+ * Also a server-bundle guard: a package that reads files next to its own code
+ * must stay in `serverExternalPackages` (next.config.ts). When Turbopack
+ * bundles one, the chunk points at a fake `/ROOT/node_modules/...` path and the
+ * package fails at runtime. fast-geoip did exactly that and swallowed the
+ * error, so no event got a country for months. Unit tests cannot catch it
+ * (they mock the module), so the built chunks are checked here.
  */
 
 import fs from 'node:fs';
@@ -64,6 +71,38 @@ function dirSizeSync(dir) {
   return { total, files };
 }
 
+// Strings that must never appear in a built server chunk.
+const FORBIDDEN_SERVER_STRINGS = [
+  { needle: '/ROOT/node_modules/fast-geoip', why: 'fast-geoip was bundled; keep it in serverExternalPackages (next.config.ts)' },
+];
+const SERVER_DIRS = ['.next/server', '.next/standalone/.next/server'];
+
+function listJsFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...listJsFiles(full));
+    else if (/\.(?:c|m)?js$/.test(entry.name)) out.push(full);
+  }
+  return out;
+}
+
+/** Returns one line per forbidden string found in a server chunk. */
+function checkServerChunks() {
+  const problems = [];
+  for (const rel of SERVER_DIRS) {
+    const dir = path.resolve(rel);
+    if (!fs.existsSync(dir)) continue;
+    for (const file of listJsFiles(dir)) {
+      const text = fs.readFileSync(file, 'utf8');
+      for (const { needle, why } of FORBIDDEN_SERVER_STRINGS) {
+        if (text.includes(needle)) problems.push(`${path.relative(process.cwd(), file)}: ${needle} (${why})`);
+      }
+    }
+  }
+  return problems;
+}
+
 function fmtMB(bytes) {
   return (bytes / 1024 / 1024).toFixed(2);
 }
@@ -107,10 +146,19 @@ function main() {
     console.error('');
     console.error('A new heavy dep or a bad import likely landed.');
     console.error('Inspect, then either trim the route OR raise the budget in scripts/check-bundle-size.mjs after agreeing on the new baseline.');
-    process.exit(1);
   }
 
-  console.log('Within budget.');
+  const serverProblems = checkServerChunks();
+  if (serverProblems.length > 0) {
+    console.error('');
+    console.error('FAIL: server chunks reference a path that does not exist at runtime:');
+    for (const line of serverProblems) console.error(`  ${line}`);
+    failed = true;
+  }
+
+  if (failed) process.exit(1);
+
+  console.log('Within budget. Server chunks clean.');
 }
 
 main();

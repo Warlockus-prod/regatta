@@ -53,6 +53,9 @@ import {
   type SimMode,
 } from './missions';
 import { deriveSailFeedback, type SailFeedback } from './sail-feedback';
+// Knots to canvas pixels per second, shared with the race rivals so both
+// move on the same scale.
+import { KN_TO_PX_PER_S } from '../game/units';
 
 const TICK_HZ = 30;
 const DT = 1 / TICK_HZ;
@@ -60,13 +63,6 @@ const DT = 1 / TICK_HZ;
 const TRAIL_MAX = 60;
 /** Squared min distance between consecutive trail points (canvas px). */
 const TRAIL_MIN_DIST_SQ = 4;
-
-/**
- * Rough conversion from real knots to canvas pixels per second. Tuned so a
- * cruiser at 6 kn glides across the 320-wide playfield in ~10 sec, which
- * reads as "moving" without leaving the visible field too quickly.
- */
-const KN_TO_PX_PER_S = 6;
 
 const DEFAULT_PARAMS: SimParams = {
   maxSpeed: 90,

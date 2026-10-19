@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, USER_DAILY_AI_LIMIT, clientKeys } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, isDailyRejection, USER_DAILY_AI_LIMIT, USER_DAILY_AI_IP_LIMIT, clientKeys } from '@/lib/rate-limit';
 import { isLang, type Lang } from '@/lib/languages';
 
 export const runtime = 'nodejs';
@@ -86,21 +86,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // Rate-limit: 20 requests / hour per session. Falls back to IP if no cookie.
+  // Rate-limit: 20 requests / hour per session (cookieless callers share one
+  // bucket per IP), and the IP as a whole.
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value;
   const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  // Site-wide per-user daily AI cap (shared across all AI endpoints).
-  const daily = checkUserDailyBudget(client);
-  if (!daily.ok) {
-    logWarn('ai-chat.daily-cap', { resetMs: daily.resetMs });
-    return NextResponse.json(
-      { error: `Дневной лимит ${USER_DAILY_AI_LIMIT} AI-запросов исчерпан. Попробуй завтра. / Daily limit of ${USER_DAILY_AI_LIMIT} AI requests reached. Try again tomorrow.`, retryAfterSec: Math.ceil(daily.resetMs / 1000) },
-      { status: 429, headers: { 'Retry-After': String(Math.ceil(daily.resetMs / 1000)) } },
-    );
-  }
-
+  // Hourly limits plus the site-wide daily AI budget in one atomic check, so
+  // a refused request spends none of them.
   const rl = rateLimitWithGlobal({
     key: 'chat',
     client,
@@ -109,12 +102,31 @@ export async function POST(req: Request) {
     globalKey: 'chat',
     globalLimit: CHAT_GLOBAL_LIMIT,
     globalWindowMs: CHAT_GLOBAL_WINDOW_MS,
+    dailyBudget: true,
   });
   if (!rl.ok) {
+    const retryAfterSec = Math.ceil(rl.resetMs / 1000);
+    if (isDailyRejection(rl)) {
+      logWarn('ai-chat.daily-cap', { resetMs: rl.resetMs, by: rl.rejectedBy });
+      return NextResponse.json(
+        {
+          error: rl.rejectedBy === 'daily-ip'
+            ? `Дневной лимит AI-запросов для твоей сети (${USER_DAILY_AI_IP_LIMIT}, общий для всех в ней) исчерпан. Попробуй завтра. / Daily AI limit for your network (${USER_DAILY_AI_IP_LIMIT}, shared by everyone on it) reached. Try again tomorrow.`
+            : `Дневной лимит ${USER_DAILY_AI_LIMIT} AI-запросов исчерпан. Попробуй завтра. / Daily limit of ${USER_DAILY_AI_LIMIT} AI requests reached. Try again tomorrow.`,
+          retryAfterSec,
+        },
+        { status: 429, headers: { 'Retry-After': String(retryAfterSec) } },
+      );
+    }
     logWarn('ai-chat.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
-      { error: 'Слишком много запросов. Попробуй через час. / Too many requests. Try again in an hour.', retryAfterSec: Math.ceil(rl.resetMs / 1000) },
-      { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
+      {
+        error: rl.rejectedBy === 'per-ip'
+          ? 'Слишком много запросов из твоей сети (общий лимит сети). Попробуй через час. / Too many requests from your network (shared network limit). Try again in an hour.'
+          : 'Слишком много запросов. Попробуй через час. / Too many requests. Try again in an hour.',
+        retryAfterSec,
+      },
+      { status: 429, headers: { ...rateLimitHeaders(rl, CHAT_LIMIT), 'Retry-After': String(retryAfterSec) } },
     );
   }
 

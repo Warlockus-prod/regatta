@@ -62,8 +62,11 @@ export function SternikPrefsProvider({ children }: { children: ReactNode }) {
   const [prefsLoaded, setPrefsLoaded] = useState(false);
 
   useEffect(() => {
+    // Hydration from localStorage must run after mount (see the comment above):
+    // reading it during render is what caused the mismatch this pattern fixes.
     try {
       const raw = window.localStorage.getItem(KEY);
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount localStorage hydration, see above
       if (raw === 'pl' || raw === 'ru' || raw === 'both') setExplLangState(raw);
       const b = window.localStorage.getItem(BASE_KEY);
       if (b === 'all' || b === 'materialy' || b === 'internet') setExamBaseState(b);
@@ -113,7 +116,16 @@ export function useSternikPrefs(): Ctx {
  */
 export function SternikLangScope({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
-  return <I18nScope lang={lang === 'ru' ? 'ru' : 'pl'}>{children}</I18nScope>;
+  const scope = lang === 'ru' ? 'ru' : 'pl';
+  // The DOM says it too (WCAG 3.1.2): <html lang> is the site language, so on
+  // the EN/DE/... site a screen reader would read this Polish course with an
+  // English voice. display:contents keeps the wrapper out of the layout. On the
+  // RU scope the Polish exam text inside carries its own lang="pl".
+  return (
+    <I18nScope lang={scope}>
+      <div lang={scope} style={{ display: 'contents' }}>{children}</div>
+    </I18nScope>
+  );
 }
 
 /** Segmented toggle: PL / RU / Oba. Compact, fits the subnav.
@@ -251,6 +263,9 @@ export function ExplLangHint() {
   const [hidden, setHidden] = useState(true);
 
   useEffect(() => {
+    // Read after mount so the server HTML (hint hidden) and the first client
+    // render agree; the stored dismissal is applied in the next commit.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- post-mount localStorage hydration
     try { setHidden(window.localStorage.getItem(HINT_KEY) === '1'); } catch { setHidden(false); }
   }, []);
 
@@ -325,7 +340,7 @@ export function BaseToggle({ counts }: { counts: { all: number; materialy: numbe
               aria-pressed={active}
             >
               {o.label}
-              <span className="text-xs opacity-70">{o.n}</span>
+              <span className="text-xs">{o.n}</span>
             </button>
           );
         })}
@@ -360,12 +375,12 @@ export function Explanation({
   return (
     <>
       {pl && (
-        <p className={cls} style={{ color: 'var(--text-primary)' }}>
+        <p lang="pl" className={cls} style={{ color: 'var(--text-primary)' }}>
           {pl}
         </p>
       )}
       {ru && (
-        <p className={cls} style={{ color: both ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
+        <p lang="ru" className={cls} style={{ color: both ? 'var(--text-secondary)' : 'var(--text-primary)' }}>
           {ru}
         </p>
       )}

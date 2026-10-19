@@ -1,13 +1,18 @@
-/** Rivals use the shared force model, with the same screen-space units as the player. */
+/**
+ * Rivals use the shared force model, with the same screen-space units as the
+ * player. Position integration is native-only: its own pixel scale (units.ts),
+ * soft-wrap at the playfield edges and no boat-to-boat collisions, unlike the
+ * web race (see docs/design/mobile/WEB_VS_APP_PARITY.md).
+ */
 import { useEffect, useReducer, useRef } from 'react';
 import { AppState } from 'react-native';
 import { createInitialState, tick as physicsTick, getBoatParams, trimForDrive, type BoatState, type Controls, type RaceBoat, raceAutopilotTurn } from '@regatta/physics';
 
 import { nativeCourse, nativeProgress, advanceNativeProgress } from "./progression";
+import { KN_TO_PX_PER_S } from './units';
 
 const TICK_HZ = 30;
 const DT = 1 / TICK_HZ;
-const KN_TO_PX_PER_S = 6; // must match use-sim-loop.ts
 const TURN_RATE = 0.7; // rad/s
 const RAD = Math.PI / 180;
 

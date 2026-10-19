@@ -34,8 +34,8 @@ export interface ApiResult<T> {
 
 /**
  * One sample row in the race log we ship to /api/coach. Shape matches the
- * web simulator's race recorder so the existing Anthropic prompts parse it
- * unchanged.
+ * web simulator's race recorder so the server's coaching prompt (answered by
+ * OpenAI, see src/app/api/coach/route.ts) parses it unchanged.
  */
 export interface CoachLogSample {
   /** Seconds since the start signal. */

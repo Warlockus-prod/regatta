@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
-import { rateLimitWithGlobal, rateLimitHeaders, checkUserDailyBudget, clientKeys } from '@/lib/rate-limit';
+import { rateLimitWithGlobal, rateLimitHeaders, isDailyRejection, clientKeys } from '@/lib/rate-limit';
 
 // ============================================================================
 // The coast station answers OUT LOUD.
@@ -58,18 +58,14 @@ export async function POST(req: Request) {
   const sid = jar.get('regatta_sid')?.value;
   const client = clientKeys(req, sid); // sid AND last-hop IP, both must pass
 
-  // Per-user daily AI budget - the same ceiling radio-voice enforces. The hourly
-  // rate limit below caps bursts; this caps the slow drip that would otherwise
-  // let one session run up an unbounded daily TTS bill. On cap we degrade to the
-  // written reply (fallback:true, 200) rather than 429, because that is the path
-  // the client already handles for every other radio-tts failure - a 429 here
-  // would surface as a broken button instead of a graceful text fallback.
-  const daily = checkUserDailyBudget(client);
-  if (!daily.ok) {
-    logWarn('radio-tts.daily-budget', { resetMs: daily.resetMs });
-    return NextResponse.json({ fallback: true }, { status: 200 });
-  }
-
+  // Hourly limits plus the per-user daily AI budget (the same ceiling
+  // radio-voice enforces) in one atomic check, so a refused request spends
+  // none of them. The hourly limit caps bursts; the daily budget caps the slow
+  // drip that would otherwise let one session run up an unbounded daily TTS
+  // bill. On the daily cap we degrade to the written reply (fallback:true, 200)
+  // rather than 429, because that is the path the client already handles for
+  // every other radio-tts failure - a 429 there would surface as a broken
+  // button instead of a graceful text fallback.
   const rl = rateLimitWithGlobal({
     key: 'radio-tts',
     client,
@@ -78,10 +74,16 @@ export async function POST(req: Request) {
     globalKey: 'radio-tts',
     globalLimit: TTS_GLOBAL_LIMIT,
     globalWindowMs: TTS_GLOBAL_WINDOW_MS,
+    dailyBudget: true,
   });
   if (!rl.ok) {
+    if (isDailyRejection(rl)) {
+      logWarn('radio-tts.daily-budget', { resetMs: rl.resetMs, by: rl.rejectedBy });
+      return NextResponse.json({ fallback: true }, { status: 200 });
+    }
+    logWarn('radio-tts.rate-limited', { resetMs: rl.resetMs, by: rl.rejectedBy });
     return NextResponse.json(
-      { error: 'Too many requests' },
+      { error: rl.rejectedBy === 'per-ip' ? 'Too many requests from your network (shared network limit)' : 'Too many requests' },
       { status: 429, headers: { ...rateLimitHeaders(rl, TTS_LIMIT), 'Retry-After': String(Math.ceil(rl.resetMs / 1000)) } },
     );
   }

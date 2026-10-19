@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 
 // ============================================================================
 // Focus trap for modal overlays (pause, confirm). While active: moves focus
@@ -21,8 +21,11 @@ export function useFocusTrap<T extends HTMLElement>(
   // every render) do not re-run the trap effect. A ticking countdown re-renders
   // the dialog once per second; without this the effect would remount and yank
   // focus back to the first control every tick.
+  // Updated after render (not during it), before any keydown can read it.
   const onEscapeRef = useRef(onEscape);
-  onEscapeRef.current = onEscape;
+  useLayoutEffect(() => {
+    onEscapeRef.current = onEscape;
+  });
 
   useEffect(() => {
     if (!active) return;

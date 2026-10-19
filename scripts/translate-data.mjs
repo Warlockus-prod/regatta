@@ -19,7 +19,8 @@
 // Prerequisites:
 // - File already migrated via `scripts/migrate-data-fields.mjs` so fields
 //   are `{ ru, en, pl }` (not `titleRu/titleEn/titlePl`).
-// - npm install @anthropic-ai/sdk   (already in deps for /api/coach).
+// - @anthropic-ai/sdk is a root devDependency (only the translation scripts
+//   use it; the app itself calls OpenAI), so a plain `npm install` is enough.
 //
 // Safety:
 // - Never overwrites an existing target-lang value (skips if present).

@@ -1,3 +1,3 @@
 {
-  "NSMicrophoneUsageDescription": "Le micro sert dans le simulateur radio SRC à évaluer vos appels vocaux (MAYDAY, PAN-PAN). L'enregistrement sert uniquement à l'évaluation et n'est pas conservé."
+  "NSMicrophoneUsageDescription": "Le micro sert dans le simulateur radio SRC à évaluer vos appels vocaux (MAYDAY, PAN-PAN) et dans l'entraînement à l'examen oral sternik à vérifier vos réponses orales. L'enregistrement sert uniquement à l'évaluation et n'est pas conservé."
 }

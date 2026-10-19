@@ -2,27 +2,27 @@ Impara ad andare a vela e preparati alla tua prima regata in una settimana. Week
 
 PERCHÉ FUNZIONA
 
-- Un piano chiaro: 8 lezioni in 7 giorni, dal vento e dalle andature fino alla linea di partenza.
+- Un piano chiaro: 8 lezioni in 7 giorni, dal vento e dalle andature fino alla tua prima regata.
 - Un simulatore onesto: la barca segue un modello fisico VPP, la stessa famiglia di calcoli usata dai progettisti di vele.
-- Pratica fino all'automatismo: esercizi di virata, strambata, regolazione delle vele e salti di vento.
+- Pratica fino all'automatismo: esercizi di regolazione, raffiche, salti di vento e bordeggio.
 - Completamente gratis. Niente pubblicità, niente account, niente abbonamenti.
 
 IL PIANO DI 7 GIORNI
 
-Giorno 1. Il vento, le andature e i primi minuti al timone.
-Giorno 2. Regolazione delle vele e filetti.
-Giorno 3. Virata e strambata sotto controllo.
-Giorno 4. Sbandamento, scarroccio e come si muove davvero la barca.
-Giorno 5. Le polari e la tua velocità obiettivo.
-Giorno 6. La partenza, la linea e la prima bolina.
-Giorno 7. Giro delle boe, arrivo e checklist pre-regata.
+Giorno 1. Vento e direzione: da dove soffia il vento e perché non puoi andare dritto controvento.
+Giorno 2. Le andature: le tue cinque andature di base.
+Giorno 3. Come funziona una vela: un'ala di bolina, un paracadute in poppa.
+Giorno 4. Virare di bordo e strambare: di prua e di poppa.
+Giorno 5. Bordeggiare e VMG: come risalire il vento e perché la linea retta non è la più veloce.
+Giorno 6. Regole semplici: chi deve dare la precedenza in acqua.
+Giorno 7. Mini-regata: tutto insieme, poi il coach IA analizza la tua regata.
 
-Il pulsante "Continua" nella schermata iniziale apre sempre il passo successivo.
+Il pulsante "Continua a imparare" nella schermata iniziale apre sempre il passo successivo.
 
 SIMULATORI
 
-- Basi: governa la barca e osserva sbandamento e scarroccio di lato, dall'alto e da poppa.
-- Allenatore di regolazione: cazza, lasca, prendi una mano di terzaroli e guarda come cambia la velocità.
+- Basi: inizia da qui. Cambia il vento e impara le andature e le virate.
+- Regolazione delle vele: cazza, lasca, prendi una mano di terzaroli e guarda come cambiano velocità e sbandamento.
 - Barca 3D: guarda la barca e la forma delle vele da ogni lato.
 
 REGATA
@@ -31,8 +31,8 @@ Corri un percorso breve contro bot di tre livelli oppure apri una regata multigi
 
 LA BARCA E LE REGOLE
 
-- Regolamento di regata: 21 situazioni reali con schemi. Sappi chi ha la precedenza prima del comitato delle proteste.
-- Anatomia della barca: 17 parti su una barca interattiva, con la cima che comanda ciascuna.
+- Regolamento di regata: 13 situazioni del regolamento di regata e 8 scenari COLREG con schemi. Sappi chi ha la precedenza prima del comitato delle proteste.
+- Anatomia della barca: 17 parti su una barca interattiva, con cosa sono e come si usano a bordo.
 - Glossario: oltre 50 termini velici, con ricerca e offline.
 - Prima settimana a bordo: cosa portare, cosa chiedere allo skipper, come aiutare l'equipaggio.
 - Checklist pre-regata: da spuntare la sera prima.
@@ -44,7 +44,7 @@ PATENTI POLACCHE (IN POLACCO)
 
 PRIVACY
 
-Niente pubblicità, niente account, nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia solo statistiche d'uso anonime, che puoi disattivare nelle Impostazioni.
+Niente pubblicità, niente account, nessun tracciamento tra app. I tuoi progressi restano sul dispositivo. L'app invia statistiche d'uso non collegate a te, e puoi disattivare le statistiche dell'app nelle Impostazioni.
 
 LINGUE
 

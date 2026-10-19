@@ -1,5 +1,10 @@
 # Что делать вам, по шагам
 
+Исторический пошаговый план первой отправки (версия 1.0). Тексты про
+приватность обновлены 2026-10-19: приложение собирает аналитику PostHog,
+поэтому ответ App Privacy - "Data Collected", а не "Data Not Collected".
+Актуальный порядок релиза: `docs/design/mobile/RELEASE_CHECKLIST.md`.
+
 ## Что я уже сделал автоматом
 
 App Store Connect через API уже заполнен на ~95%:
@@ -87,11 +92,18 @@ three drill modes (TWA hold, no-go avoidance, gust trim). The Anatomy
 screen has tap-able hotspots over a photo yacht. The Pre-race
 Checklist persists tick state locally.
 
-No sign-in is required. All data is stored locally on the device via
-AsyncStorage. There are no analytics SDKs, no third-party trackers,
-no advertising identifier. The Multiplayer feature in this version is
-local practice with simulated ghost boats; real network multiplayer
-ships in a later version.
+No sign-in is required. Learning progress is stored locally on the
+device via AsyncStorage. The app sends pseudonymous product analytics
+(PostHog, EU servers): screen views, app lifecycle events and a few
+product events, not linked to the user and not used for tracking;
+Settings -> Data -> Anonymous analytics turns it off. No advertising
+identifier, no third-party trackers. Multiplayer is the live room of
+weektoregatta.com shown in a web view, and the nickname is visible to
+the other players. The AI coach and the Ask screen send the race log
+or the typed question through weektoregatta.com to OpenAI. Voice
+answers in the SRC radio simulator and the sternik oral exam practice
+use the microphone after the iOS prompt; the recording goes through
+weektoregatta.com to OpenAI for transcription and is not stored.
 
 Test account: not required.
 ```
@@ -126,7 +138,9 @@ Email "Your app has been approved":
   https://appstoreconnect.apple.com/apps/6768134329/distribution
 - Версия 1.0 (где привязать build + загрузить screenshots):
   https://appstoreconnect.apple.com/apps/6768134329/distribution/version/1.0
-- App Privacy (уже сконфигурировано через API, но можно проверить):
+- App Privacy (ответ "Data Collected": Product Interaction и Other
+  Diagnostic Data, Analytics, not linked, not tracking; см. README.md раздел 6
+  и гейт G4b в `docs/design/mobile/RELEASE_CHECKLIST.md`):
   https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy
 - Pricing & Availability (уже сконфигурировано):
   https://appstoreconnect.apple.com/apps/6768134329/distribution/pricing

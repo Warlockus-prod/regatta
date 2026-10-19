@@ -1,8 +1,9 @@
 /**
  * App Store review prompt, asked only after the user has had real wins.
  *
- * A "win" is a finished lesson, a passed mock exam or a top-3 race finish.
- * After WINS_NEEDED wins we ask iOS to show its native rating sheet
+ * A "win" is a passed lesson quiz or sail theory check, a passed mock exam or
+ * a race podium (top 3, never last: see isReviewPodium). Opening a lesson is
+ * not a win. After WINS_NEEDED wins we ask iOS to show its native rating sheet
  * (SKStoreReviewController via expo-store-review). iOS itself decides whether
  * the sheet appears and caps it at 3 times a year, so we also keep our own
  * cool-down: at most once per COOLDOWN_DAYS, and the win counter restarts
@@ -38,6 +39,15 @@ async function readState(): Promise<ReviewState> {
   } catch {
     return { wins: 0, lastAskAt: null };
   }
+}
+
+/**
+ * A race finish that counts as a review win: top 3, and never last. The easy
+ * course races 2 AI boats, so "top 3" alone would count every finish there,
+ * last place included; 3rd of 4 still counts, 3rd of 3 does not.
+ */
+export function isReviewPodium(position: number, totalBoats: number): boolean {
+  return position >= 1 && position <= Math.min(3, totalBoats - 1);
 }
 
 /** Pure decision, exported for tests. */

@@ -199,6 +199,25 @@ function TrainerInner() {
   const pct = answeredCount > 0 ? Math.round((correctCount / answeredCount) * 100) : 0;
 
   const feedbackRef = useRef<HTMLDivElement | null>(null);
+  // Keyboard focus follows the quiz. Answering disables the options and Next
+  // unmounts the feedback block, so without this focus falls to <body> and the
+  // next question is 20+ Tab presses away. The question text is a focusable
+  // heading; it takes focus on every new question, and on the first one when
+  // the button that started the session has just unmounted.
+  const questionHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const resultsHeadingRef = useRef<HTMLHeadingElement | null>(null);
+  const focusedPosRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (phase !== 'quiz') { focusedPosRef.current = null; return; }
+    const first = focusedPosRef.current === null;
+    if (focusedPosRef.current === pos) return;
+    focusedPosRef.current = pos;
+    const lost = !document.activeElement || document.activeElement === document.body;
+    if (!first || lost) questionHeadingRef.current?.focus();
+  }, [phase, pos]);
+  useEffect(() => {
+    if (phase === 'done') resultsHeadingRef.current?.focus();
+  }, [phase]);
   const pauseTrapRef = useFocusTrap<HTMLDivElement>(paused, () => setPaused(false));
   const answer = (i: number) => {
     if (answered || !current) return;
@@ -250,7 +269,7 @@ function TrainerInner() {
   // ---------------------------------------------------------------- menu ---
   if (phase === 'menu') {
     return (
-      <main>
+      <div>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
           🎯 {tp('Тренажёр вопросов', 'Question trainer', 'Trening pytań')}
         </h1>
@@ -266,7 +285,7 @@ function TrainerInner() {
           <BaseToggle counts={STERNIK_BASE_COUNTS} />
         </div>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <button
             type="button"
             onClick={startSmart}
@@ -351,7 +370,7 @@ function TrainerInner() {
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
           {tp('По категориям', 'By category', 'Według kategorii')}
         </h2>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {STERNIK_CATEGORIES.map((cat) => {
             const count = bank.filter((q) => q.cat === cat.id).length;
             return (
@@ -364,7 +383,7 @@ function TrainerInner() {
               >
                 <span className="text-lg">{cat.icon}</span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  <span lang="pl" className="block truncate text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                     {cat.pl}
                   </span>
                   {lang === 'ru' && (
@@ -374,7 +393,7 @@ function TrainerInner() {
                   )}
                 </span>
                 <span
-                  className="rounded-full px-2 py-0.5 text-xs"
+                  className="shrink-0 rounded-full px-2 py-0.5 text-xs"
                   style={{ background: 'var(--hover-bg)', color: cat.color }}
                 >
                   {count}
@@ -383,7 +402,7 @@ function TrainerInner() {
             );
           })}
         </div>
-      </main>
+      </div>
     );
   }
 
@@ -396,14 +415,20 @@ function TrainerInner() {
     }).filter((c) => c.total > 0);
 
     return (
-      <main>
+      <div>
         <div
           className="mb-6 rounded-2xl p-6 text-center"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
         >
-          <div className="text-sm" style={{ color: 'var(--text-muted)' }}>
+          <h2
+            ref={resultsHeadingRef}
+            tabIndex={-1}
+            className="text-sm font-normal outline-none"
+            style={{ color: 'var(--text-muted)' }}
+          >
+            <span className="sr-only">{tp('Результаты', 'Results', 'Wyniki')}: </span>
             {sessionLabel} · {formatClock(elapsed)}
-          </div>
+          </h2>
           <div
             className="my-2 text-5xl font-bold"
             style={{ color: pct >= 87 ? 'var(--success)' : pct >= 70 ? 'var(--warning)' : 'var(--danger)' }}
@@ -456,7 +481,7 @@ function TrainerInner() {
             <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
               {tp('По категориям', 'By category', 'Według kategorii')}
             </h2>
-            <div className="grid gap-2 sm:grid-cols-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
               {catBreakdown.map(({ cat, total: t, ok }) => (
                 <div
                   key={cat.id}
@@ -487,13 +512,13 @@ function TrainerInner() {
                   className="rounded-xl p-4"
                   style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,68,68,0.35)' }}
                 >
-                  <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                  <div lang="pl" className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                     {r.q.q}
                   </div>
                   <div className="mt-1 text-sm" style={{ color: 'var(--danger)' }}>
-                    ✗ {tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: {r.q.options[r.pickedIndex].text}
+                    ✗ {tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: <span lang="pl">{r.q.options[r.pickedIndex].text}</span>
                   </div>
-                  <div className="text-sm" style={{ color: 'var(--success)' }}>
+                  <div lang="pl" className="text-sm" style={{ color: 'var(--success)' }}>
                     ✓ {r.q.options.find((o) => o.ok)?.text}
                   </div>
                   <Explanation whyPl={r.q.whyPl} whyRu={r.q.whyRu} size="sm" />
@@ -502,7 +527,7 @@ function TrainerInner() {
             </div>
           </section>
         )}
-      </main>
+      </div>
     );
   }
 
@@ -511,7 +536,7 @@ function TrainerInner() {
   const cat = STERNIK_CATEGORY_BY_ID[current.cat];
 
   return (
-    <main className="relative">
+    <div className="relative">
       {/* Content is inert while the pause modal is open (a11y + keyboard). */}
       <div inert={paused || undefined}>
       {/* Top bar (sticky so score + timer stay visible while scrolling on mobile) */}
@@ -567,14 +592,20 @@ function TrainerInner() {
           </span>
           {lang === 'ru' && <span style={{ color: 'var(--text-muted)' }}>{cat.ru}</span>}
         </div>
-        <div className="mb-4 text-lg font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
+        <h2
+          ref={questionHeadingRef}
+          tabIndex={-1}
+          lang="pl"
+          className="mb-4 scroll-mt-28 text-lg font-medium leading-snug outline-none"
+          style={{ color: 'var(--text-primary)' }}
+        >
           {current.q}
-        </div>
+        </h2>
 
         {current.figure && <QuestionFigure id={current.figure} />}
         {current.photo && <QuestionPhoto photo={current.photo} alt={current.q} />}
 
-        <div className="space-y-2">
+        <div lang="pl" className="space-y-2">
           {current.options.map((o, i) => {
             let bg = 'var(--bg-secondary)';
             let border = '1px solid var(--border-subtle)';
@@ -625,14 +656,14 @@ function TrainerInner() {
             <div className="font-semibold" style={{ color: current.options[picked!].ok ? 'var(--success)' : 'var(--danger)' }}>
               {current.options[picked!].ok
                 ? `✓ ${tp('Верно!', 'Correct!', 'Dobrze!')}`
-                : `✗ ${tp('Неверно.', 'Wrong.', 'Źle.')} ${tp('Правильно', 'Correct', 'Poprawna')}: ${current.options.find((o) => o.ok)?.text}`}
+                : <>✗ {tp('Неверно.', 'Wrong.', 'Źle.')} {tp('Правильно', 'Correct', 'Poprawna')}: <span lang="pl">{current.options.find((o) => o.ok)?.text}</span></>}
             </div>
             <Explanation whyPl={current.whyPl} whyRu={current.whyRu} />
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
                 onClick={next}
-                className="rounded-xl px-5 py-2 text-sm font-semibold"
+                className="min-h-[44px] rounded-xl px-5 py-2 text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
                 {pos + 1 >= queue.length
@@ -642,7 +673,7 @@ function TrainerInner() {
               <button
                 type="button"
                 onClick={askAI}
-                className="rounded-xl px-4 py-2 text-sm"
+                className="min-h-[44px] rounded-xl px-4 py-2 text-sm"
                 style={{ background: 'var(--hover-bg)', color: 'var(--accent-cyan)', border: '1px solid var(--border-subtle)' }}
               >
                 🎓 {tp('Спросить AI', 'Ask AI', 'Zapytaj AI')}
@@ -651,8 +682,8 @@ function TrainerInner() {
                 href={`/sternik/teoria#${THEORY_ANCHOR[current.cat] ?? ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="rounded-xl px-4 py-2 text-sm"
-                style={{ background: 'var(--hover-bg)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
+                className="flex min-h-[44px] items-center rounded-xl px-4 py-2 text-sm"
+                style={{ background: 'var(--hover-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
               >
                 📖 {tp('Теория по теме ↗', 'Topic theory ↗', 'Teoria tematu ↗')}
               </a>
@@ -665,7 +696,7 @@ function TrainerInner() {
             <button
               type="button"
               onClick={askAI}
-              className="flex min-h-[40px] items-center rounded-lg px-3 text-sm"
+              className="flex min-h-[44px] items-center rounded-lg px-3 text-sm"
               style={{ color: 'var(--accent-cyan)', background: 'var(--hover-bg)', border: '1px solid var(--border-subtle)' }}
             >
               🎓 {tp('Перевести / объяснить (AI)', 'Translate / explain (AI)', 'Przetłumacz / wyjaśnij (AI)')}
@@ -708,7 +739,7 @@ function TrainerInner() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
 

@@ -145,6 +145,16 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
               : (ru ? 'Голосовой экзамен сейчас недоступен.' : 'Egzamin głosowy jest teraz niedostępny.'));
             return;
           }
+          if (res.status === 429) {
+            // Our own words, in the learner's language: the server text is a
+            // Polish fallback for other clients and says nothing to a RU user.
+            const mins = Math.max(1, Math.ceil((Number(data.retryAfterSec) || 0) / 60));
+            const hours = Math.ceil(mins / 60);
+            setError(ru
+              ? `Лимит попыток исчерпан. Попробуй снова через ${mins > 90 ? `${hours} ч` : `${mins} мин`}.`
+              : `Limit prób wyczerpany. Spróbuj ponownie za ${mins > 90 ? `${hours} godz.` : `${mins} min`}.`);
+            return;
+          }
           if (!res.ok) {
             setError(data.error || (ru ? 'Ошибка оценки.' : 'Błąd oceny.'));
             return;

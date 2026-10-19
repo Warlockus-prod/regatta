@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { deg2rad, makeStandardCourse } from '@/lib/race-physics';
+import { WORLD, deg2rad, makeStandardCourse } from '@/lib/race-physics';
 import { useI18n } from '@/lib/i18n';
 
 interface Sample { t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number }
@@ -20,6 +20,30 @@ interface ReplayData {
   samples: Sample[];
   events: Event[];
   course: unknown;
+}
+
+type XY = { x: number; y: number };
+interface DrawnCourse { windward: XY; startLine: { a: XY; b: XY } }
+
+const isXY = (v: unknown): v is XY =>
+  !!v && typeof v === 'object'
+  && Number.isFinite((v as XY).x) && Number.isFinite((v as XY).y);
+
+/**
+ * The course stored with the replay, if it has the shape we draw. Replays are
+ * user-submitted JSON, so nothing is trusted: anything malformed falls back to
+ * the standard course, which is what every race so far has sailed anyway.
+ */
+function replayCourse(raw: unknown): DrawnCourse {
+  const fallback = makeStandardCourse();
+  const std: DrawnCourse = { windward: fallback.marks[0].pos, startLine: fallback.startLine };
+  if (!raw || typeof raw !== 'object') return std;
+  const c = raw as { marks?: unknown; startLine?: { a?: unknown; b?: unknown } };
+  if (!Array.isArray(c.marks) || !c.startLine || !isXY(c.startLine.a) || !isXY(c.startLine.b)) return std;
+  const marks = c.marks as { pos?: unknown; type?: unknown }[];
+  const windward = marks.find((m) => m && m.type === 'windward') ?? marks[0];
+  if (!windward || !isXY(windward.pos)) return std;
+  return { windward: windward.pos, startLine: { a: c.startLine.a, b: c.startLine.b } };
 }
 
 export default function ReplayViewer() {
@@ -70,7 +94,7 @@ export default function ReplayViewer() {
     const canvas = canvasRef.current;
     if (!canvas || !data) return;
 
-    const course = makeStandardCourse();
+    const course = replayCourse(data.course);
     const rect = canvas.getBoundingClientRect();
     const dpr = window.devicePixelRatio || 1;
     canvas.width = rect.width * dpr;
@@ -80,7 +104,7 @@ export default function ReplayViewer() {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
     const W = rect.width, H = rect.height;
-    const WORLD_W = 800, WORLD_H = 1200;
+    const WORLD_W = WORLD.width, WORLD_H = WORLD.height;
     const pad = 20;
     const s = Math.min((W - pad * 2) / WORLD_W, (H - pad * 2) / WORLD_H);
     const ox = (W - WORLD_W * s) / 2;
@@ -99,7 +123,7 @@ export default function ReplayViewer() {
     ctx.setLineDash([]);
 
     // Windward mark
-    const wm = toXY(course.marks[0].pos);
+    const wm = toXY(course.windward);
     ctx.beginPath(); ctx.arc(wm.x, wm.y, 8, 0, Math.PI * 2);
     ctx.fillStyle = '#ffaa00'; ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();

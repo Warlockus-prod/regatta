@@ -1,29 +1,29 @@
-Apprenez la voile et préparez votre première régate en une semaine. Week to Regatta est une école de voile gratuite dans votre poche: des leçons courtes, un simulateur de voile à la physique réelle, des régates contre des bots et des amis, et les règles de course expliquées en schémas.
+Apprenez la voile et préparez votre première régate en une semaine. Week to Regatta est une école de voile gratuite dans votre poche : des leçons courtes, un simulateur de voile à la physique réelle, des régates contre des bots et des amis, et les règles de course expliquées en schémas.
 
 POURQUOI ÇA MARCHE
 
-- Un plan clair: 8 leçons en 7 jours, du vent et des allures jusqu'à la ligne de départ.
-- Un simulateur honnête: le voilier suit un modèle physique VPP, la même famille de calculs que celle des architectes de voiles.
-- De la pratique jusqu'au réflexe: exercices de virement, d'empannage, de réglage et de bascules de vent.
+- Un plan clair : 8 leçons en 7 jours, du vent et des allures jusqu'à votre première course.
+- Un simulateur honnête : le voilier suit un modèle physique VPP, la même famille de calculs que celle des architectes de voiles.
+- De la pratique jusqu'au réflexe : exercices de réglage, de rafales, de bascules de vent et de louvoyage.
 - Entièrement gratuit. Sans pub, sans compte, sans abonnement.
 
 LE PLAN SUR 7 JOURS
 
-Jour 1. Le vent, les allures et les premières minutes à la barre.
-Jour 2. Le réglage des voiles et les penons.
-Jour 3. Virement de bord et empannage maîtrisés.
-Jour 4. Gîte, dérive et la façon dont le bateau avance vraiment.
-Jour 5. Les polaires et votre vitesse cible.
-Jour 6. Le départ, la ligne et le premier bord de près.
-Jour 7. Le passage des bouées, l'arrivée et la checklist d'avant course.
+Jour 1. Vent et direction : d'où vient le vent et pourquoi on ne peut pas aller droit dedans.
+Jour 2. Les allures : vos cinq allures de base.
+Jour 3. Comment fonctionne une voile : une aile au près, un parachute au portant.
+Jour 4. Virer de bord et empanner : par l'avant et par l'arrière.
+Jour 5. Louvoyer et VMG : comment remonter au vent et pourquoi la ligne droite n'est pas la plus rapide.
+Jour 6. Règles simples : qui doit s'écarter sur l'eau.
+Jour 7. Mini-régate : tout ensemble, puis le coach IA analyse votre course.
 
-Le bouton "Continuer" de l'écran d'accueil ouvre toujours l'étape suivante.
+Le bouton "Reprendre l'apprentissage" de l'écran d'accueil ouvre toujours l'étape suivante.
 
 SIMULATEURS
 
-- Les bases: barrez le voilier et observez la gîte et la dérive de côté, du dessus et depuis l'arrière.
-- Entraîneur de réglage: bordez, choquez, prenez un ris et voyez la vitesse réagir.
-- Voilier 3D: tournez autour du bateau et regardez la forme des voiles sous tous les angles.
+- Bases : commencez ici. Changez le vent et apprenez les allures et les virements.
+- Réglage des voiles : bordez, choquez, prenez un ris et voyez la vitesse et la gîte réagir.
+- Bateau 3D : tournez autour du voilier et regardez la forme des voiles sous tous les angles.
 
 RÉGATE
 
@@ -31,20 +31,20 @@ Courez un parcours court contre des bots de trois niveaux, ou ouvrez une course 
 
 LE BATEAU ET LES RÈGLES
 
-- Règles de course: 21 situations réelles en schémas. Sachez qui est prioritaire avant le jury.
-- Anatomie du voilier: 17 éléments sur un bateau interactif, avec le bout qui commande chacun.
-- Glossaire: plus de 50 termes de voile, avec recherche et hors ligne.
-- Première semaine à bord: quoi emporter, quoi demander au skipper, comment aider l'équipage.
-- Checklist d'avant course: à cocher la veille au soir.
+- Règles de course : 13 situations des règles de course et 8 scénarios du RIPAM (COLREG) en schémas. Sachez qui est prioritaire avant le jury.
+- Anatomie du voilier : 17 éléments sur un bateau interactif, avec ce qu'est chacun et comment le manœuvrer à bord.
+- Glossaire : plus de 50 termes de voile, avec recherche et hors ligne.
+- Première semaine à bord : quoi emporter, quoi demander au skipper, comment aider l'équipage.
+- Checklist d'avant course : à cocher la veille au soir.
 
 DIPLÔMES POLONAIS (EN POLONAIS)
 
-- Radio marine SRC: 324 questions officielles de l'UKE et un simulateur vocal pour les appels MAYDAY et PAN-PAN.
-- Sternik motorowodny (permis bateau à moteur polonais): 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes.
+- Radio marine SRC : 324 questions officielles de l'UKE et un simulateur vocal pour les appels MAYDAY et PAN-PAN.
+- Sternik motorowodny (permis bateau à moteur polonais) : 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes.
 
 CONFIDENTIALITÉ
 
-Sans pub, sans compte, sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie seulement des statistiques d'usage anonymes, que vous pouvez désactiver dans les Réglages.
+Sans pub, sans compte, sans suivi entre les apps. Votre progression reste sur votre appareil. L'app envoie des statistiques d'usage qui ne sont pas liées à vous, et vous pouvez désactiver les statistiques de l'app dans les Réglages.
 
 LANGUES
 

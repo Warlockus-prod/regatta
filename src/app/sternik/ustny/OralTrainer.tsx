@@ -113,7 +113,7 @@ export default function OralTrainer() {
   }, [reset]);
 
   return (
-    <main>
+    <div>
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
         🎓 {tp('Устный ответ', 'Answering out loud', 'Odpowiedź ustna')}
       </h1>
@@ -351,6 +351,6 @@ export default function OralTrainer() {
           })}
         </div>
       </div>
-    </main>
+    </div>
   );
 }

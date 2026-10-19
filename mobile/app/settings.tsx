@@ -14,7 +14,7 @@ import {
   View,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { useAnalyticsConsent } from '../src/persistence/analytics-consent';
+import { ANALYTICS_CONSENT_KEY, useAnalyticsConsent } from '../src/persistence/analytics-consent';
 import { useAnalyticsClient } from '../src/analytics/context';
 import { useI18n } from '../src/i18n/context';
 import { ENABLED_LANGUAGES } from '../src/i18n/languages';
@@ -1170,9 +1170,12 @@ function DataSection() {
 }
 
 /**
- * Removes every AsyncStorage key with the `regatta.` prefix. Best-effort:
- * any individual key that fails to remove is ignored so a single bad row
- * does not abort the wipe.
+ * Removes every AsyncStorage key with the `regatta.` prefix except the
+ * analytics choice. Wiping that row would turn an opted-out user's analytics
+ * back on at the next launch (the default is on). We do not call PostHog
+ * `reset()` either: it clears the stored opt-out and resumes capture.
+ * Best-effort: any individual key that fails to remove is ignored so a single
+ * bad row does not abort the wipe.
  */
 async function wipeAllRegattaKeys(
   doneTitle: string,
@@ -1181,7 +1184,9 @@ async function wipeAllRegattaKeys(
 ): Promise<void> {
   try {
     const keys = await AsyncStorage.getAllKeys();
-    const ours = keys.filter((k) => typeof k === 'string' && k.startsWith('regatta.'));
+    const ours = keys.filter(
+      (k) => typeof k === 'string' && k.startsWith('regatta.') && k !== ANALYTICS_CONSENT_KEY,
+    );
     if (ours.length > 0) {
       await AsyncStorage.multiRemove(ours);
     }
@@ -1262,15 +1267,22 @@ function PrivacyModal({ visible, onClose }: PrivacyModalProps) {
     },
   );
 
+  // What leaves the device over the network. Keep in step with the network
+  // list in mobile/asc-metadata/PRIVACY_POLICY.md: gallery and course pages
+  // (weektoregatta.com), video thumbnails (img.youtube.com), Ask and the AI
+  // coach (our /api/ai-chat and /api/coach, answered by OpenAI), voice answers
+  // (/api/radio-transcribe and /api/radio-voice, OpenAI speech-to-text) and
+  // the live multiplayer room (nickname shown to the room, result stored with
+  // the nickname and the random session id).
   const network = tp(
-    'Изображения и видео в галерее загружаются из сети с weektoregatta.com. Сервер не получает идентификаторов и не строит профиль пользователя.',
-    'Images and videos in the gallery load from weektoregatta.com over the network. The server does not receive identifiers and does not build a user profile.',
-    'Zdjęcia i filmy w galerii ładują się z sieci, z weektoregatta.com. Serwer nie otrzymuje żadnych identyfikatorów i nie tworzy profilu użytkownika.',
+    'Часть функций работает через сеть. Фото галереи и онлайн-страницы курсов загружаются с weektoregatta.com, превью видео - с YouTube. Вопросы, которые ты пишешь в «Спросить», и данные гонки для AI тренера уходят на наш сервер, а он передаёт их OpenAI, чтобы составить ответ; голосовые ответы в симуляторе радиосвязи и на тренировке устного экзамена распознаются так же. В мультиплеере твой ник видят все в комнате, а результат сохраняется с этим ником и случайным идентификатором сессии.',
+    'Some features use the network. Gallery photos and online course pages load from weektoregatta.com, and video thumbnails load from YouTube. Questions you type in "Ask" and the race data you send to the AI coach go to our server, which passes them to OpenAI to write the answer; spoken answers in the radio simulator and the oral exam practice are transcribed the same way. In multiplayer, everyone in the room sees your nickname, and the result is saved with that nickname and a random session id.',
+    'Część funkcji korzysta z sieci. Zdjęcia w galerii i strony kursów online ładują się z weektoregatta.com, a miniatury filmów z YouTube. Pytania wpisane w "Zapytaj" i dane wyścigu wysłane do Trenera AI trafiają na nasz serwer, który przekazuje je do OpenAI, aby przygotować odpowiedź; odpowiedzi mówione w symulatorze radia i w ćwiczeniu egzaminu ustnego są w ten sam sposób zamieniane na tekst. W trybie multiplayer wszyscy w pokoju widzą twój nick, a wynik jest zapisywany z tym nickiem i losowym identyfikatorem sesji.',
     {
-      es: 'Las imágenes y los videos de la galería se cargan desde weektoregatta.com. El servidor no recibe identificadores ni crea un perfil de usuario.',
-      fr: 'Les images et vidéos de la galerie sont chargées depuis weektoregatta.com. Le serveur ne reçoit aucun identifiant et ne crée pas de profil utilisateur.',
-      de: 'Bilder und Videos in der Galerie werden über das Netz von weektoregatta.com geladen. Der Server erhält keine Kennungen und legt kein Nutzerprofil an.',
-      it: 'Immagini e video della galleria vengono caricati da weektoregatta.com. Il server non riceve identificatori e non crea un profilo utente.',
+      es: 'Algunas funciones usan la red. Las fotos de la galería y las páginas de los cursos en línea se cargan desde weektoregatta.com, y las miniaturas de los videos, desde YouTube. Las preguntas que escribes en "Preguntar" y los datos de regata que envías al Coach IA van a nuestro servidor, que los pasa a OpenAI para redactar la respuesta; las respuestas habladas del simulador de radio y de la práctica del examen oral se transcriben del mismo modo. En el multijugador, todos en la sala ven tu apodo, y el resultado se guarda con ese apodo y un identificador de sesión aleatorio.',
+      fr: 'Certaines fonctions utilisent le réseau. Les photos de la galerie et les pages des cours en ligne se chargent depuis weektoregatta.com, et les miniatures des vidéos depuis YouTube. Les questions que tu écris dans "Demander" et les données de course envoyées au Coach IA passent par notre serveur, qui les transmet à OpenAI pour rédiger la réponse ; les réponses orales du simulateur radio et de l\'entraînement à l\'examen oral sont transcrites de la même façon. En multijoueur, tout le monde dans le salon voit ton pseudo, et le résultat est enregistré avec ce pseudo et un identifiant de session aléatoire.',
+      de: 'Einige Funktionen nutzen das Netz. Fotos in der Galerie und die Online-Kursseiten werden von weektoregatta.com geladen, Video-Vorschaubilder von YouTube. Fragen, die du in "Fragen" eingibst, und Renndaten, die du an den KI-Coach schickst, gehen an unseren Server, der sie an OpenAI weitergibt, um die Antwort zu formulieren; gesprochene Antworten im Funksimulator und im Training für die mündliche Prüfung werden auf dieselbe Weise in Text umgewandelt. Im Mehrspielermodus sehen alle im Raum deinen Spitznamen, und das Ergebnis wird mit diesem Spitznamen und einer zufälligen Sitzungs-ID gespeichert.',
+      it: 'Alcune funzioni usano la rete. Le foto della galleria e le pagine dei corsi online si caricano da weektoregatta.com, le anteprime dei video da YouTube. Le domande che scrivi in "Chiedi" e i dati di regata che invii al Coach IA passano dal nostro server, che li inoltra a OpenAI per scrivere la risposta; le risposte a voce nel simulatore radio e nell\'allenamento per l\'esame orale vengono trascritte allo stesso modo. Nel multigiocatore tutti nella stanza vedono il tuo nickname, e il risultato viene salvato con quel nickname e un identificativo di sessione casuale.',
     },
   );
 
