@@ -9,8 +9,8 @@ const port = 3198;
 const server = spawn(process.execPath, ["ws-server/server.js"], { env: { ...process.env, PORT: String(port), NEXT_INTERNAL_URL: "http://127.0.0.1:1" }, stdio: ["ignore", "pipe", "pipe"] });
 const sockets = [];
 const delay = (ms) => new Promise((r) => setTimeout(r, ms));
-async function client() {
-  const ws = new WebSocket(`ws://127.0.0.1:${port}`);
+async function client(headers = {}) {
+  const ws = new WebSocket(`ws://127.0.0.1:${port}`, { headers });
   sockets.push(ws);
   const messages = [];
   ws.on("message", (raw) => messages.push(JSON.parse(raw)));
@@ -103,6 +103,46 @@ try {
     atFinish.send({ type: "leave" });
   }
   resumed.send({ type: "leave" });
+  // Crash guard: a frame over maxPayload (4096) must close only that socket
+  // with 1009 (the ws library emits 'error' on it; without the listener in
+  // server.js that error kills the process and every room with it).
+  const big = await client();
+  const bigClosed = once(big.ws, "close");
+  big.ws.send("x".repeat(5000));
+  const [bigCode] = await bigClosed;
+  assert.equal(bigCode, 1009);
+  await delay(100);
+  assert.equal(server.exitCode, null, "ws-server died on an oversized frame");
+  const afterBig = await client();
+  afterBig.send({ type: "create", nickname: "After big frame", sid: "qa-after-big" });
+  await afterBig.wait("joined");
+  afterBig.send({ type: "leave" });
+  console.log("PASS: oversized frame closes with 1009 and the server keeps serving");
+
+  // Room caps per network: rooms are counted by the LAST X-Forwarded-For hop,
+  // so a client rotating the first hop cannot dodge MAX_ROOMS_PER_IP (10).
+  for (let i = 0; i < 10; i++) {
+    const c = await client({ "x-forwarded-for": `9.9.9.${i}, 203.0.113.7` });
+    c.send({ type: "create", nickname: `Cap ${i}`, sid: `qa-cap-${i}` });
+    await c.wait("joined");
+  }
+  const capped = await client({ "x-forwarded-for": "9.9.9.99, 203.0.113.7" });
+  capped.send({ type: "create", nickname: "Cap eleven", sid: "qa-cap-10" });
+  assert.equal((await capped.wait("error")).code, "too-many-rooms");
+  const neighbour = await client({ "x-forwarded-for": "9.9.9.99, 198.51.100.7" });
+  neighbour.send({ type: "create", nickname: "Other network", sid: "qa-cap-other" });
+  await neighbour.wait("joined");
+  console.log("PASS: 10 rooms per last-hop IP, the 11th refused, another network unaffected");
+
+  // Nicknames the leaderboard would refuse fall back to "Player" on the server.
+  const emoji = await client();
+  emoji.send({ type: "create", nickname: "\u26F5", sid: "qa-emoji" });
+  await emoji.wait("joined");
+  const emojiLobby = await emoji.wait("lobby-state");
+  assert.equal(emojiLobby.players[0].nickname, "Player");
+  emoji.send({ type: "leave" });
+  console.log("PASS: unusable nickname stored as Player");
+
   if (process.argv.includes("--expiry")) {
     const departing = await client(), remaining = await client();
     departing.send({ type: "create", nickname: "Departing host", sid: "qa-expiry-host" });
@@ -113,6 +153,20 @@ try {
     await remaining.wait("lobby-state", (m) => m.hostId === remainingId, 25000);
     remaining.send({ type: "leave" });
     console.log("PASS: disconnected host expires after grace and remaining sailor becomes host");
+
+    // A host alone with a bot who drops for longer than the grace: the room
+    // used to stay with a hostId nobody holds and could never start again.
+    const lonely = await client();
+    lonely.send({ type: "create", nickname: "Lonely host", sid: "qa-lonely" });
+    const lonelyRoom = await lonely.wait("joined");
+    lonely.send({ type: "add-bot" });
+    await lonely.wait("lobby-state", (m) => m.players.length === 2);
+    lonely.ws.close();
+    await delay(21500);
+    const late = await client();
+    late.send({ type: "join", code: lonelyRoom.code, nickname: "Late friend", sid: "qa-late" });
+    assert.equal((await late.wait("error")).code, "room-not-found");
+    console.log("PASS: a room left with only bots is destroyed after the grace");
   }
   console.log("PASS: bot roster, readiness gate, host transfer, socket replacement, countdown reconnect, authoritative racing snapshots");
 } finally {

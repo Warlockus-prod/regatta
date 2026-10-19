@@ -9,7 +9,10 @@
 import { WebSocketServer } from 'ws';
 import { createServer } from 'http';
 import * as P from './race-physics.js';
-import { clientIpFrom, roomCreateBlock, MAX_ROOMS } from './limits.js';
+import {
+  clientIpFrom, roomCreateBlock, MAX_ROOMS, maskIp,
+  MISSIONS, DIFFICULTIES, WINDS, safeNickname, dropPlayer, buildRaceResultBody,
+} from './limits.js';
 
 const PORT = Number(process.env.PORT || 3001);
 const NEXT_INTERNAL_URL = process.env.NEXT_INTERNAL_URL || 'http://regatta:3000';
@@ -19,14 +22,7 @@ const ROOM_IDLE_TIMEOUT_MS = 15 * 60 * 1000;
 const COUNTDOWN_SEC = 5;
 const RECONNECT_GRACE_MS = 20_000;
 
-// ------------------------------ Missions ---------------------------------
-// Mirror of src/data/missions.ts constraints that the SERVER can verify.
-const MISSIONS = [
-  { id: 'clean-laps',     difficulty: 'easy',   wind: 'medium', constraints: [{ type: 'no-no-go' }] },
-  { id: 'sub-90',         difficulty: 'medium', wind: 'heavy',  constraints: [{ type: 'finish-under-sec', value: 90 }] },
-  { id: 'minimal-tacks',  difficulty: 'medium', wind: 'medium', constraints: [{ type: 'max-tacks', value: 4 }] },
-  { id: 'light-wind-master', difficulty: 'easy', wind: 'light', constraints: [] },
-];
+// Missions (MISSIONS) live in limits.js.
 
 // ------------------------------ HTTP server (health) --------------------
 const http = createServer((req, res) => {
@@ -366,22 +362,9 @@ async function submitResultsToLeaderboard(room) {
   room.submittedResults = true;
   for (const p of room.players.values()) {
     if (!p.sid) continue;
-    const b = p.boat;
-    if (!b || b.finishTime == null) continue;
-    const stats = room.stats.get(p.id) || {};
-    const body = {
-      difficulty: room.difficulty,
-      windStrength: room.windStrength,
-      missionId: room.missionId,
-      finishTimeSec: b.finishTime,
-      position: room.results.findIndex((r) => r.id === p.id) + 1 || null,
-      totalBoats: room.results.length,
-      tacks: stats.tacks ?? null,
-      noGoEntries: stats.noGoEntries ?? null,
-      topSpeed: Math.round((stats.topSpeed ?? 0) * 10) / 10,
-      score: null,
-      nicknameFallback: p.nickname,
-    };
+    // Same validation contract as /api/race-result (pinned by its test).
+    const body = buildRaceResultBody(room, p);
+    if (!body) continue;
     try {
       const res = await fetch(`${NEXT_INTERNAL_URL}/api/race-result`, {
         method: 'POST',
@@ -465,7 +448,7 @@ wss.on('connection', (ws, req) => {
   // Without a listener that is an uncaught exception that kills the whole
   // server (every room). The library closes the socket itself; just log it.
   ws.on('error', (err) => {
-    console.warn(`[regatta-ws] socket error from ${ip}: ${err?.message || err}`);
+    console.warn(`[regatta-ws] socket error from ${maskIp(ip)}: ${err?.message || err}`);
   });
 
   ws.on('message', (raw) => {
@@ -487,7 +470,8 @@ wss.on('connection', (ws, req) => {
         }
         sid = String(msg.sid || ('s' + Math.random().toString(36).slice(2, 10)));
         playerId = genPlayerId();
-        const nickname = String(msg.nickname || 'Player').slice(0, 20);
+        // The leaderboard's nickname rule, 'Player' when nothing usable is left.
+        const nickname = safeNickname(msg.nickname);
         const r = newRoom(sid, playerId, ip);
         const boat = spawnBoat(r, playerId, nickname, 0);
         r.players.set(playerId, {
@@ -522,6 +506,7 @@ wss.on('connection', (ws, req) => {
           playerId = existing.id;
           roomCode = r.code;
           clients.set(ws, r.code);
+          if (!r.players.has(r.hostId)) r.hostId = playerId;
           sendJson(ws, { type: 'joined', code: r.code, id: playerId, isHost: r.hostId === playerId });
           broadcast(r, lobbyState(r));
           sendJson(ws, { type: 'phase', phase: r.phase });
@@ -533,7 +518,7 @@ wss.on('connection', (ws, req) => {
           sendJson(ws, { type: 'error', code: 'room-full', message: 'Room is full' }); return;
         }
         playerId = genPlayerId();
-        const nickname = String(msg.nickname || 'Player').slice(0, 20);
+        const nickname = safeNickname(msg.nickname);
         const idx = r.players.size + r.aiBots.length;
         const boat = spawnBoat(r, playerId, nickname, idx);
         r.players.set(playerId, {
@@ -541,10 +526,12 @@ wss.on('connection', (ws, req) => {
           boat, input: { turn: 0 }, ready: false,
           isBot: false, connectedOrGrace: true,
         });
+        // A room left without a host (older state) gets one back.
+        if (!r.players.has(r.hostId)) r.hostId = playerId;
         r.lastActivity = Date.now();
         roomCode = r.code;
         clients.set(ws, r.code);
-        sendJson(ws, { type: 'joined', code: r.code, id: playerId, isHost: false });
+        sendJson(ws, { type: 'joined', code: r.code, id: playerId, isHost: r.hostId === playerId });
         broadcast(r, lobbyState(r));
         break;
       }
@@ -555,8 +542,9 @@ wss.on('connection', (ws, req) => {
         applyMission(room, msg.missionId || null);
         for (const p of room.players.values()) p.ready = false;
         if (!msg.missionId) {
-          if (msg.difficulty) room.difficulty = String(msg.difficulty);
-          if (msg.windStrength) room.windStrength = String(msg.windStrength);
+          // Allow-listed: these go to /api/race-result, which refuses others.
+          if (DIFFICULTIES.includes(msg.difficulty)) room.difficulty = msg.difficulty;
+          if (WINDS.includes(msg.windStrength)) room.windStrength = msg.windStrength;
         }
         room.lastActivity = Date.now();
         broadcast(room, lobbyState(room));
@@ -630,13 +618,11 @@ wss.on('connection', (ws, req) => {
       }
       case 'leave': {
         if (room && playerId) {
-          room.players.delete(playerId);
+          const leaving = room.players.get(playerId);
+          if (leaving?.graceTimer) { clearTimeout(leaving.graceTimer); leaving.graceTimer = null; }
           room.lastActivity = Date.now();
-          if (room.players.size === 0) destroyRoom(room.code);
-          else {
-            if (room.hostId === playerId) room.hostId = room.players.keys().next().value;
-            broadcast(room, lobbyState(room));
-          }
+          if (dropPlayer(room, playerId) === 'destroy') destroyRoom(room.code);
+          else broadcast(room, lobbyState(room));
         }
         roomCode = null; playerId = null;
         break;
@@ -666,17 +652,11 @@ wss.on('connection', (ws, req) => {
       const q = room2.players.get(pid);
       if (!q || q.ws) return;   // reconnected
       q.graceTimer = null;
-      room2.players.delete(pid);
       room2.lastActivity = Date.now();
-      if (room2.players.size === 0 && room2.aiBots.length === 0) {
-        destroyRoom(rc);
-      } else {
-        if (room2.hostId === pid) {
-          const next = room2.players.keys().next().value;
-          if (next) room2.hostId = next;
-        }
-        broadcast(room2, lobbyState(room2));
-      }
+      // No human left (bots alone cannot start a race) destroys the room;
+      // otherwise a remaining human becomes host if the host was dropped.
+      if (dropPlayer(room2, pid) === 'destroy') destroyRoom(rc);
+      else broadcast(room2, lobbyState(room2));
     }, RECONNECT_GRACE_MS);
     // Grace timer lives on the Player so a reconnect can cancel it and a room
     // teardown can clear it (was a write-only `disconnected` map that leaked).
