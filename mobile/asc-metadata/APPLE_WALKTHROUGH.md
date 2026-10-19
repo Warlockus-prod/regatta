@@ -57,12 +57,24 @@ node scripts/asc-metadata.mjs              # реальный upload
 
 Нажмите **Get Started** или **Edit**. Apple задаст вопросы что приложение собирает.
 
-**Ваши ответы (правда, у нас всё локально, нет аналитики):**
+**Ваши ответы.** Приложение по умолчанию отправляет аналитику PostHog, поэтому
+ответ "No" (Data Not Collected) неверен. Ответы должны совпадать с
+`NSPrivacyCollectedDataTypes` в `mobile/app.json` (`expo.ios.privacyManifests`):
 
-1. "Do you or your third-party partners collect data from this app?" - **No**
-2. Save.
+1. "Do you or your third-party partners collect data from this app?" - **Yes**.
+2. Usage Data -> **Product Interaction**: purpose **Analytics**, linked to the
+   user **No**, used for tracking **No**.
+3. Diagnostics -> **Other Diagnostic Data**: purpose **Analytics**, linked
+   **No**, tracking **No**.
+4. Остальные типы решает владелец (Crash Data для отчетов об ошибках
+   встроенных страниц курсов, Coarse Location, пока PostHog определяет
+   местоположение по IP, User Content для текста чата и ников мультиплеера);
+   что выбрано, то же должно быть в манифесте и в политике.
+5. Publish. Потом откройте публичную страницу приложения в App Store и
+   проверьте, что там больше нет "Data Not Collected".
 
-Это закрывает Privacy раздел. Никакой telemetry, никаких трекеров - честно.
+Сверка ярлыка с манифестом и политикой входит в гейт G4b
+(`docs/design/mobile/RELEASE_CHECKLIST.md`).
 
 ## 5. Pricing and Availability
 
@@ -138,11 +150,19 @@ node scripts/asc-screenshots.mjs
 
   ```
   Week to Regatta is a sailing tutor app. The app is fully usable
-  without any sign-in. All data is stored locally on the device. No
-  external analytics, no tracking. The Bootcamp is a 7-day learning
-  arc, the Simulator is a Skia + VPP physics sandbox with drills and
-  missions, the Anatomy screen has interactive yacht hotspots, and
-  the Checklist helps the user prepare before a regatta.
+  without any sign-in. Learning progress is stored locally on the
+  device. The app sends pseudonymous product analytics (PostHog, EU
+  servers): screen views, app lifecycle events and a few product
+  events, not linked to the user and not used for tracking; Settings ->
+  Data -> Anonymous analytics turns it off. No advertising identifier.
+  The sternik and SRC radio courses and live multiplayer are pages of
+  weektoregatta.com shown in a web view; in multiplayer the nickname is
+  visible to the other players. The AI coach and the Ask screen send
+  the race log or the typed question through weektoregatta.com to
+  OpenAI. The Bootcamp is a 7-day learning arc, the Simulator is a
+  Skia + VPP physics sandbox with drills and missions, the Anatomy
+  screen has interactive yacht hotspots, and the Checklist helps the
+  user prepare before a regatta.
   
   Test account: not required.
   ```
@@ -202,7 +222,7 @@ Apple пришлёт email "Your app has been approved". После этого:
 ## Чеклист перед Submit
 
 - [ ] App Information заполнено (Subtitle, Privacy URL, Category Education+Sports)
-- [ ] App Privacy: ответы "No data collection"
+- [ ] App Privacy: "Data Collected" (Product Interaction и Other Diagnostic Data, Analytics, not linked, not tracking), совпадает с манифестом
 - [ ] Pricing: Free + регионы выбраны
 - [ ] 1.0 страница:
   - [ ] Screenshots для 6.7" и 6.5" (5 на каждый размер минимум на EN, идеально все 7 langs)

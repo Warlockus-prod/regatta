@@ -103,6 +103,37 @@ lane excludes IAP checking. Do not interpret a green precheck as all of G4.
   (`node scripts/asc-metadata.mjs`, or in ASC) and re-run. **Do NOT submit on a
   red precheck.**
 
+### G4b - Privacy label matches the binary and the policy
+The live 1.6.4 listing said "Data Not Collected" while PostHog analytics ran
+by default, and the shipped PrivacyInfo.xcprivacy declared nothing because the
+manifest sat where Expo ignores it. Four sources must say the same thing:
+
+1. The manifest that will ship. From `mobile/`:
+   ```sh
+   npx expo config --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=(JSON.parse(s).ios||{}).privacyManifests;const t=(m&&m.NSPrivacyCollectedDataTypes)||[];if(!t.length){console.error("FAIL: ios.privacyManifests.NSPrivacyCollectedDataTypes is empty");process.exit(1)}for(const x of t)console.log(x.NSPrivacyCollectedDataType,"linked="+x.NSPrivacyCollectedDataTypeLinked,"tracking="+x.NSPrivacyCollectedDataTypeTracking,(x.NSPrivacyCollectedDataTypePurposes||[]).join(","))})'
+   ```
+   It must list at least ProductInteraction and OtherDiagnosticData, purpose
+   Analytics, linked=false, tracking=false. After `expo prebuild`, the
+   generated `ios/*/PrivacyInfo.xcprivacy` must contain the same types.
+2. App Store Connect > App Privacy
+   (https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy):
+   "Data Collected" with exactly the types, purposes, "not linked" and "not
+   used for tracking" answers of step 1, plus any type the owner added
+   (Crash Data, Coarse Location, User Content) in both places.
+3. The public store page no longer shows the old label:
+   ```sh
+   curl -s https://apps.apple.com/us/app/id6768134329 | grep -c "Data Not Collected"
+   ```
+   must print `0`.
+4. The texts: the iPhone box of `src/app/privacy/page.tsx` (the published
+   policy), `mobile/asc-metadata/PRIVACY_POLICY.md`, the privacy paragraph of
+   every `mobile/asc-metadata/<locale>/description.md`, the Settings analytics
+   text and the review notes describe the same data and the same scope of the
+   analytics switch.
+- **Gate:** all four agree. Red if the manifest list is empty, if the public
+  page shows "Data Not Collected", or if any text promises more than the
+  switch does.
+
 ### G5 - Submit
 ```sh
 cd mobile
@@ -196,6 +227,8 @@ InfoPlist).
 - Shipping a visually broken build -> **G2 simulator verify**.
 - Shipping a build that the newest iOS refuses to launch -> **G2 newest-iOS launch**.
 - Missing translations -> **G1 LocaleLint / i18n-audit**.
+- A privacy label, manifest or policy that contradicts what the app does ->
+  **G4b privacy match**.
 
 See also: `RELEASE_ENGINEERING.md` (EAS/OTA + Apple notes),
 `LIGHT_THEME_AND_RELEASE_SPEC.md` (next release contents),
