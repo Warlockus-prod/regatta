@@ -17,6 +17,10 @@ import { colors } from '../design-system/tokens';
 import { AnalyticsEvent } from '../analytics/events';
 import { useAnalytics } from '../analytics/use-analytics';
 import { parseExamFinished } from '../analytics/web-bridge';
+import {
+  useAnalyticsConsent,
+  webAnalyticsGuardScript,
+} from '../persistence/analytics-consent';
 
 // ============================================================================
 // SectionWebView - embed a WHOLE web section (its landing + all sub-pages) as
@@ -24,9 +28,14 @@ import { parseExamFinished } from '../analytics/web-bridge';
 //   - keeps the section's own subnav and ALLOWS in-section navigation, so the
 //     user can move between the section pages (guide / simulator / tasks / ...);
 //   - hides only the GLOBAL site nav (the web already drops it on ?embed=1);
-//   - GRANTS the microphone so the SRC radio voice simulator works (getUserMedia
+//   - GRANTS the microphone to our own host for the sternik oral exam practice
+//     (/sternik/ustny), which records spoken answers. The SRC radio course
+//     (voice simulator included) runs in OfflineRadioCourse instead. getUserMedia
 //     in WKWebView needs mediaCapturePermissionGrantType + NSMicrophoneUsage-
-//     Description in Info.plist, both wired here / in app.json);
+//     Description in Info.plist, both wired here / in app.json, and the purpose
+//     string names both uses (radio calls and the oral exam);
+//   - honours the in-app "Anonymous analytics" switch: when it is off, the
+//     page gets the no-analytics flag before its own scripts run;
 //   - forces Polish (?lang=pl): the motorowodny section (sternik + radio) exists
 //     only in PL and RU, and in the app it is a Polish licence course.
 // Navigation OUT of the section (other site areas) or off-origin opens in the
@@ -76,6 +85,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
   const { tp } = useI18n();
   const navigation = useNavigation();
   const analytics = useAnalytics();
+  const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
   const webRef = useRef<WebView>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -108,7 +118,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         // build 30 with RU and PL swapped, so a Russian tester saw Polish and an
         // English one saw Cyrillic.
         tp('Выйти из экзамена?', 'Leave the exam?', 'Wyjść z egzaminu?', {
-          es: 'Salir del examen?',
+          es: '¿Salir del examen?',
           fr: "Quitter l'examen?",
           de: 'Prüfung verlassen?',
           it: "Uscire dall'esame?",
@@ -116,17 +126,17 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         tp(
           'Ответы экзамена будут потеряны.',
           'Your exam answers will be lost.',
-          'Odpowiedzi egzaminu zostana utracone.',
+          'Odpowiedzi egzaminu zostaną utracone.',
           {
-            es: 'Se perderan las respuestas del examen.',
-            fr: "Les reponses de l'examen seront perdues.",
-            de: 'Die Pruefungsantworten gehen verloren.',
+            es: 'Se perderán las respuestas del examen.',
+            fr: "Les réponses de l'examen seront perdues.",
+            de: 'Die Prüfungsantworten gehen verloren.',
             it: "Le risposte dell'esame andranno perse.",
           },
         ),
         [
           {
-            text: tp('Остаться', 'Stay', 'Zostan', {
+            text: tp('Остаться', 'Stay', 'Zostań', {
               es: 'Quedarse', fr: 'Rester', de: 'Bleiben', it: 'Restare',
             }),
             style: 'cancel',
@@ -156,8 +166,11 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
   return (
     <Screen noTopInset noBottomInset>
       <Stack.Screen options={{ title }} />
-      <WebView
-        key={reloadKey}
+      {/* Mount only once the analytics choice is known, so the first page load
+          already carries the no-analytics flag; the choice is part of the key,
+          so changing it reloads the page with or without the flag. */}
+      {consentReady && <WebView
+        key={`${reloadKey}-${analyticsOn ? 'a' : 'na'}`}
         ref={webRef}
         source={{ uri }}
         style={styles.web}
@@ -166,13 +179,14 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         domStorageEnabled
         allowsInlineMediaPlayback
         mediaPlaybackRequiresUserAction={false}
-        // iOS 15+: grant getUserMedia (the SRC voice simulator) without a second
-        // web-level prompt, but only to our own host: a third-party page that
-        // ends up in this WebView gets the prompt instead. The native mic prompt
-        // still appears once, gated by NSMicrophoneUsageDescription (app.json).
+        // iOS 15+: grant getUserMedia (the sternik oral exam practice) without
+        // a second web-level prompt, but only to our own host: a third-party
+        // page that ends up in this WebView gets the prompt instead. The native
+        // mic prompt still appears once, gated by NSMicrophoneUsageDescription
+        // (app.json).
         mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={BEFORE_LOAD}
+        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + BEFORE_LOAD}
         injectedJavaScript={AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (req.navigationType !== 'click') return true;
@@ -190,6 +204,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
           if (data === 'ready') { setLoading(false); return; }
           const exam = parseExamFinished(data);
           if (exam) {
+            // Goes through the app's PostHog client, which honours the opt-out.
             analytics.capture(AnalyticsEvent.ExamFinished, exam);
             if (exam.passed) void recordReviewWin('exam-passed');
             return;
@@ -206,7 +221,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
           setFailed(true);
         }}
         startInLoadingState={false}
-      />
+      />}
       {loading && !failed && (
         <View style={styles.overlay} pointerEvents="none">
           <ActivityIndicator color={colors.accentCyan} size="large" />
@@ -233,9 +248,9 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
             accessibilityRole="button"
           >
             <Text style={styles.btnText}>
-              {tp('Повторить', 'Retry', 'Ponow', {
+              {tp('Повторить', 'Retry', 'Ponów', {
                 es: 'Reintentar',
-                fr: 'Reessayer',
+                fr: 'Réessayer',
                 de: 'Erneut versuchen',
                 it: 'Riprova',
               })}

@@ -34,6 +34,11 @@ export function AnalyticsProvider({ children }: { children: ReactNode }) {
       // Application Installed / Updated / Opened / Backgrounded - gives
       // retention and session framing with zero manual instrumentation.
       captureAppLifecycleEvents: true,
+      // No IP-based location (city, lat/long) on our events: the SDK default
+      // is GeoIP ON, and the privacy policy says location is not collected.
+      // Installs older than this build need the project-level "Discard
+      // client IP data" setting in PostHog as well.
+      disableGeoip: true,
     });
     // Build once. The key/host are build-time constants; rebuilding the client
     // on every render would drop the in-memory event queue.
