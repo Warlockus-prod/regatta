@@ -14,6 +14,7 @@ import { Screen } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { colors } from '../design-system/tokens';
 import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
+import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -32,6 +33,9 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 //    back-button-less screen. Same-origin link navigations are blocked;
 //    off-origin links open in the system browser.
 // Language is passed through ?lang= so the embed matches the app locale.
+// The in-app "Anonymous analytics" switch reaches the page too: when it is
+// off, the no-analytics flag is injected before the page's own scripts, and
+// the WebView is keyed on the choice so a change reloads it.
 // A watchdog + Retry guard against a dead-network blank screen, with a
 // fall-through to the offline native V1 simulator.
 // ============================================================================
@@ -125,6 +129,7 @@ export function SimWebView({
 }: SimWebViewProps) {
   const { lang, tp } = useI18n();
   const router = useRouter();
+  const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
 
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
@@ -215,8 +220,10 @@ export function SimWebView({
           })}
         </View>
       )}
-      <WebView
-        key={reloadKey}
+      {/* Mount once the analytics choice is known so the first load already
+          carries the flag; the key includes the choice. */}
+      {consentReady && <WebView
+        key={`${reloadKey}-${analyticsOn ? 'a' : 'na'}`}
         ref={webRef}
         source={offlineSource ? bundledSource ?? { html: "" } : { uri }}
         style={styles.web}
@@ -227,7 +234,7 @@ export function SimWebView({
         mediaPlaybackRequiresUserAction={false}
         scrollEnabled={scrollEnabled}
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={languageScript + BEFORE_LOAD}
+        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + BEFORE_LOAD}
         injectedJavaScript={languageScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
@@ -268,7 +275,7 @@ export function SimWebView({
           setFailed(true);
         }}
         startInLoadingState={false}
-      />
+      />}
       {loading && !failed && (
         <View style={styles.overlay} pointerEvents="none">
           <ActivityIndicator color={colors.accentCyan} size="large" />

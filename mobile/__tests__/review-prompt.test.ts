@@ -1,8 +1,9 @@
 // Contract: the review sheet is requested only after 3 wins, at most once per
-// 120 days, and never when iOS reports it cannot show it.
+// 120 days, and never when iOS reports it cannot show it. A race counts as a
+// win only for a podium that is not last place.
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as StoreReview from 'expo-store-review';
-import { COOLDOWN_DAYS, WINS_NEEDED, recordReviewWin, shouldAsk } from '../src/review/review-prompt';
+import { COOLDOWN_DAYS, WINS_NEEDED, isReviewPodium, recordReviewWin, shouldAsk } from '../src/review/review-prompt';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -45,6 +46,22 @@ describe('review prompt', () => {
     for (let i = 0; i < WINS_NEEDED; i++) expect(await recordReviewWin('lesson', T0)).toBe(false);
     (StoreReview.hasAction as jest.Mock).mockResolvedValue(true);
     expect(await recordReviewWin('lesson', T0)).toBe(true);
+  });
+
+  // A podium is top 3 and never last: on the easy course (player + 2 AI
+  // boats) only 1st and 2nd count.
+  it.each([
+    [1, 3, true],
+    [2, 3, true],
+    [3, 3, false],
+    [3, 4, true],
+    [4, 4, false],
+    [3, 5, true],
+    [4, 5, false],
+    [1, 1, false],
+    [0, 3, false],
+  ])('isReviewPodium(position %i, %i boats) is %s', (position, boats, expected) => {
+    expect(isReviewPodium(position, boats)).toBe(expected);
   });
 
   it('shouldAsk respects both thresholds', () => {

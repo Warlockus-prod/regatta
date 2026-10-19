@@ -40,12 +40,21 @@ jest.mock('expo-application', () => ({
   nativeBuildVersion: '31',
 }));
 
+import { Alert, type AlertButton } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Settings from '../../app/settings';
 import { renderWithProviders } from '../../src/test-utils';
+import {
+  ANALYTICS_CONSENT_KEY,
+  readAnalyticsEnabled,
+} from '../../src/persistence/analytics-consent';
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+});
+
+afterEach(() => {
+  jest.restoreAllMocks();
 });
 
 describe('Settings screen', () => {
@@ -83,5 +92,26 @@ describe('Settings screen', () => {
       const stored = await AsyncStorage.getItem('regatta.lang.v1');
       expect(stored).toBe('pl');
     });
+  });
+
+  // Contract: "Clear all data" never turns an opted-out user's analytics back
+  // on (the default is on, so wiping the choice would do exactly that).
+  it('"Clear all data" keeps the analytics opt-out and wipes everything else', async () => {
+    await AsyncStorage.multiSet([
+      [ANALYTICS_CONSENT_KEY, JSON.stringify({ enabled: false })],
+      ['regatta.progress.bootcamp.v1', JSON.stringify(['wind-direction'])],
+      ['regatta.units.v1', JSON.stringify({ speed: 'kmh' })],
+    ]);
+    // Accept both confirmation steps; the final "Done" alert has no action.
+    jest.spyOn(Alert, 'alert').mockImplementation((_title, _body, buttons?: AlertButton[]) => {
+      buttons?.find((b) => b.text === 'Continue' || b.text === 'Delete all')?.onPress?.();
+    });
+    const view = renderWithProviders(<Settings />);
+    fireEvent.press(await waitFor(() => view.getByRole('button', { name: 'Clear all data' })));
+    await waitFor(async () => {
+      expect(await AsyncStorage.getItem('regatta.progress.bootcamp.v1')).toBeNull();
+    });
+    expect(await AsyncStorage.getItem('regatta.units.v1')).toBeNull();
+    expect(await readAnalyticsEnabled()).toBe(false);
   });
 });

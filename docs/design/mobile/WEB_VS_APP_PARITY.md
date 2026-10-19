@@ -3,6 +3,9 @@
 Last updated: 2026-06-03. App version 1.1 (build 17). Source of truth for "how
 the app differs from the site" and "what is worth doing next".
 
+Partial refresh 2026-10-19: the race and multiplayer rows below and the "Race
+layer" section were corrected; the rest of the page still describes build 17.
+
 ## Summary
 
 The mobile app ("Week to Regatta") is at full CONTENT parity with the web and
@@ -11,11 +14,12 @@ web V2/V3 simulators (a verbatim port), and the 7-language content is
 auto-synced from the web data with a CI parity guard, so item counts match
 exactly. The real differences are concentrated in three places:
 
-1. The race game has no AI opponents yet (web has 2-4).
+1. The race game: AI rivals exist now (since v1.2), but the native race moves
+   boats with its own integrator and has no collisions (see "Race layer").
 2. The simulator's visual polish (the engine is identical; the canvas is flatter
    than the web V3 look).
-3. Networked social features (multiplayer is a local mock, leaderboard shows
-   only on-device personal bests).
+3. Networked social features (2026-10-19: multiplayer is the live web room in a
+   WebView; the leaderboard row below still describes build 17).
 
 Legend: OK = parity, APP+ = app is ahead, POLISH = works but less polished,
 GAP = notable missing capability.
@@ -35,10 +39,10 @@ GAP = notable missing capability.
 | Rules of the road | RRS + COLREGS sections, intros, official source links | same: RRS/COLREGS sections + intros + IMO/national links (added this update) | OK |
 | Physics engine | VPP (used by V2/V3) | same VPP, verbatim port | OK |
 | Simulator | V3 look: animated water, wake particles, full chrome | V2-class look: waves + compass + wind-maps present, flatter canvas | POLISH |
-| Game / race | 2-4 AI opponents + easy/medium/hard, sound, minimap, mission presets | solo time-trial vs the clock, haptics, course lengths | GAP (AI opponents) |
+| Game / race | 2-4 AI opponents + easy/medium/hard, sound, minimap, mission presets | 2-4 AI rivals on the shared VPP + autopilot, easy/medium/hard, haptics, course lengths; own integrator without collisions (see "Race layer") | POLISH (no collisions) |
 | Post-race AI coach | yes (/api/coach) | yes (/api/coach), fed richer real-physics samples | OK |
 | AI assistant ("ask anything") | FeedbackWidget chat (/api/ai-chat) | dedicated Ask screen (/api/ai-chat), added this update | OK |
-| Multiplayer | real networked play (/api/player polling) | local mock: races vs deterministic ghost bots seeded by room code | GAP (stub backend) |
+| Multiplayer | live server-authoritative room over WebSocket | the same live web room in a WebView (`SimWebView` -> `/multiplayer`); the old local ghost-bot mock was deleted 2026-10-19 | OK |
 | Leaderboard | global board (/api/leaderboard) | on-device personal bests only (already POSTs scores to global) | POLISH (local-only) |
 | Live wind / weather | /api/weather snapshots | same, WindNowCard + spots | OK |
 | Spots / venues | 6 venues + chart + weather | same 6 venues + OpenSeaMap + weather | OK |
@@ -53,6 +57,21 @@ GAP = notable missing capability.
 Nothing on the web is entirely missing from the app. The app additionally ships
 features the web does not have (history, replay, dedicated coach screen, daily
 challenge, settings/data tools).
+
+## Race layer: what is shared and what is native (2026-10-19)
+
+- Shared with the web: the VPP (`@regatta/physics`), the race autopilot
+  (`raceAutopilotTurn`) and the mark-rounding logic. `mobile/src/game/race.test.ts`
+  gates them.
+- Native only (`mobile/src/game/ai-boats.ts` and the player loop in
+  `mobile/src/simulator/use-sim-loop.ts`): position integration at 6 px per
+  knot (`KN_TO_PX_PER_S` in `mobile/src/game/units.ts`; the web race uses 8
+  world units per knot-second), soft-wrap at the playfield edges instead of the
+  web's clamp, and no boat-to-boat collisions (the web repels boats closer than
+  `MIN_BOAT_SEPARATION`).
+- App race results never mix with the web boards. Whether the app race should
+  get collisions is a mobile product decision; do not refactor
+  `src/lib/race-physics.ts` for it.
 
 ## What shipped in this update (v1.1, build 17)
 

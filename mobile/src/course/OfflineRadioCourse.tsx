@@ -17,6 +17,7 @@ import { useI18n } from "../i18n/context";
 import { AnalyticsEvent } from "../analytics/events";
 import { useAnalytics } from "../analytics/use-analytics";
 import { parseExamFinished } from "../analytics/web-bridge";
+import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 
 const OFFLINE_SOURCE = require("../../assets/radio-offline.html");
 const STORAGE_KEY = "regatta.radio.offline.web-storage.v1";
@@ -114,6 +115,10 @@ function restoreScript(
 export function OfflineRadioCourse() {
   const { tp, lang } = useI18n();
   const analytics = useAnalytics();
+  // The in-app "Anonymous analytics" switch also covers the embedded pages,
+  // offline bundle and online /radio alike: when it is off, the page gets the
+  // no-analytics flag before its own scripts run.
+  const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
   const [restore, setRestore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
@@ -203,7 +208,7 @@ export function OfflineRadioCourse() {
     }
   };
 
-  if (restore === null) {
+  if (restore === null || !consentReady) {
     return (
       <Screen noTopInset noBottomInset>
         <Stack.Screen options={{ title: "SRC Radio" }} />
@@ -218,7 +223,7 @@ export function OfflineRadioCourse() {
     <Screen noTopInset noBottomInset>
       <Stack.Screen options={{ title: "SRC Radio" }} />
       <WebView
-        key={`${mode}-${reloadKey}`}
+        key={`${mode}-${reloadKey}-${analyticsOn ? "a" : "na"}`}
         source={source}
         style={styles.web}
         originWhitelist={["*"]}
@@ -231,7 +236,9 @@ export function OfflineRadioCourse() {
         mediaPlaybackRequiresUserAction={false}
         bounces={false}
         mediaCapturePermissionGrantType="grant"
-        injectedJavaScriptBeforeContentLoaded={mode === "offline" ? restore : undefined}
+        injectedJavaScriptBeforeContentLoaded={
+          (webAnalyticsGuardScript(analyticsOn) + (mode === "offline" ? restore : "")) || undefined
+        }
         injectedJavaScript={mode === "online" ? ONLINE_AFTER_LOAD : undefined}
         onMessage={onMessage}
         onShouldStartLoadWithRequest={(request) => {
