@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import type { FeedbackRow } from '@/lib/db';
+import type { FeedbackListItem } from '@/lib/db';
 
 const STATUS_OPTIONS = ['new', 'in_progress', 'fixed', 'ignored'];
 
@@ -9,7 +9,7 @@ function formatTs(ts: number): string {
   return new Date(ts).toISOString().replace('T', ' ').slice(0, 16);
 }
 
-export default function FeedbackAdmin({ items: initialItems }: { items: FeedbackRow[] }) {
+export default function FeedbackAdmin({ items: initialItems }: { items: FeedbackListItem[] }) {
   const [items, setItems] = useState(initialItems);
   const [filter, setFilter] = useState<'all' | 'feedback' | 'bug'>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -95,7 +95,7 @@ export default function FeedbackAdmin({ items: initialItems }: { items: Feedback
                     {f.actual && <div><strong className="text-[var(--text-muted)]">Actual:</strong> {f.actual}</div>}
                     {f.contact && <div><strong className="text-[var(--text-muted)]">Contact:</strong> {f.contact}</div>}
                     {f.viewport && <div><strong className="text-[var(--text-muted)]">Viewport:</strong> {f.viewport}</div>}
-                    {f.ua && <div className="break-words"><strong className="text-[var(--text-muted)]">UA:</strong> {f.ua}</div>}
+                    {f.client && <div><strong className="text-[var(--text-muted)]">Browser / OS:</strong> {f.client}</div>}
                     <div className="flex gap-1 pt-1">
                       {STATUS_OPTIONS.map((s) => (
                         <button

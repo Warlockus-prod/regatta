@@ -8,19 +8,24 @@
  */
 
 import { clientInfo } from './client-log';
-import { isCampaignToken, type ClientKind, type ExamBase, type LessonCourse } from './analytics-events';
-
-const EMBED_KEY = 'regatta.embed.v1';
+import {
+  EMBED_STORAGE_KEY,
+  isCampaignToken,
+  type ClientKind,
+  type ExamBase,
+  type LessonCourse,
+} from './analytics-events';
 
 // The iOS app opens course pages with ?embed=1 (mobile/src/course/SectionWebView,
 // SimWebView, OfflineRadioCourse). In-section links drop the query string, so
-// the flag is remembered for the rest of the WebView session.
+// the flag is remembered for the rest of the WebView session, under the same
+// key the GA4 loader checks (one constant, so the two can never disagree).
 export function detectShell(): { embed: boolean; client: ClientKind } {
   if (typeof window === 'undefined') return { embed: false, client: 'web' };
   let embed = /[?&]embed=1(?:&|$)/.test(window.location.search);
   try {
-    if (embed) window.sessionStorage.setItem(EMBED_KEY, '1');
-    else embed = window.sessionStorage.getItem(EMBED_KEY) === '1';
+    if (embed) window.sessionStorage.setItem(EMBED_STORAGE_KEY, '1');
+    else embed = window.sessionStorage.getItem(EMBED_STORAGE_KEY) === '1';
   } catch { /* storage blocked: rely on the URL alone */ }
   // react-native-webview injects window.ReactNativeWebView before page scripts.
   const inApp = embed || Boolean((window as unknown as { ReactNativeWebView?: unknown }).ReactNativeWebView);

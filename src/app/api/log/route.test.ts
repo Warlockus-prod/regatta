@@ -7,6 +7,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   cookieStore: { value: undefined as string | undefined },
   db: { insertEvent: vi.fn() },
+  log: { logError: vi.fn(), logWarn: vi.fn(), logInfo: vi.fn() },
 }));
 
 vi.mock('next/headers', () => ({
@@ -18,14 +19,11 @@ vi.mock('next/headers', () => ({
 }));
 
 vi.mock('@/lib/db', () => mocks.db);
-vi.mock('@/lib/log', () => ({
-  logError: vi.fn(),
-  logWarn: vi.fn(),
-  logInfo: vi.fn(),
-}));
+vi.mock('@/lib/log', () => mocks.log);
 vi.mock('fast-geoip', () => ({ default: { lookup: async () => null } }));
 
 import { POST } from './route';
+import { __resetRateLimitsForTests } from '@/lib/rate-limit';
 
 function makeReq(body: unknown, headers: Record<string, string> = {}): Request {
   return new Request('http://localhost/api/log', {
@@ -38,6 +36,8 @@ function makeReq(body: unknown, headers: Record<string, string> = {}): Request {
 beforeEach(() => {
   mocks.cookieStore.value = 'sid-test';
   mocks.db.insertEvent.mockReset();
+  for (const fn of Object.values(mocks.log)) fn.mockReset();
+  __resetRateLimitsForTests();
 });
 
 describe('POST /api/log - always 204', () => {
@@ -196,5 +196,114 @@ describe('POST /api/log - event allow-list', () => {
     expect(metas[1]).toMatchObject({ taskId: 'mayday-fire', score: 85 });
     expect(metas[2]).toMatchObject({ ct: 'web_home' });
     expect(metas[3]?.ct).toBeUndefined();
+  });
+});
+
+describe('POST /api/log - js error reports', () => {
+  const reporterBody = {
+    level: 'error', evt: 'js.uncaught', path: '/radio',
+    msg: "TypeError: undefined is not an object (evaluating 'a.b')",
+    src: 'https://weektoregatta.com/_next/static/chunks/app.js',
+    line: 12, col: 34,
+    stack: 'b@https://weektoregatta.com/_next/static/chunks/app.js:12:34',
+  };
+
+  it('keeps msg, src, line and col in the server log and in the stored meta', async () => {
+    await POST(makeReq(reporterBody));
+    expect(mocks.log.logError).toHaveBeenCalledTimes(1);
+    const [name, fields] = mocks.log.logError.mock.calls[0];
+    expect(name).toBe('client.js.uncaught');
+    const expected = { msg: reporterBody.msg, src: reporterBody.src, line: 12, col: 34 };
+    expect(fields).toMatchObject(expected);
+    expect(mocks.db.insertEvent.mock.calls[0][0].meta).toMatchObject(expected);
+  });
+
+  it('drops errors thrown by browser extensions, logging nothing', async () => {
+    await POST(makeReq({ ...reporterBody, src: 'chrome-extension://abcdef/frame_ant.js' }));
+    await POST(makeReq({
+      level: 'error', evt: 'js.rejection', reason: 'Error: x',
+      stack: 'Error: x | at chrome-extension://abcdef/frame_ant.js:1:2 | at https://weektoregatta.com/a.js:1:1',
+    }));
+    await POST(makeReq({ level: 'error', evt: 'js.uncaught', msg: 'Script error.', src: '', line: 0, col: 0 }));
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+    expect(mocks.log.logError).not.toHaveBeenCalled();
+  });
+
+  it('keeps an error whose stack only mentions an extension further down', async () => {
+    await POST(makeReq({
+      level: 'error', evt: 'js.rejection', reason: 'Error: ours',
+      stack: 'Error: ours | at https://weektoregatta.com/a.js:1:1 | at chrome-extension://abc/x.js:1:1',
+    }));
+    expect(mocks.db.insertEvent).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('POST /api/log - automation and abuse', () => {
+  it('does not store events from HeadlessChrome or our Playwright runs', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/' }, {
+      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/147.0.0.0 Safari/537.36',
+    }));
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/' }, {
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.7727.15 Safari/537.36 RegattaE2E',
+    }));
+    expect(mocks.db.insertEvent).not.toHaveBeenCalled();
+    expect(mocks.log.logInfo).not.toHaveBeenCalled();
+  });
+
+  it('drops the 121st event per minute from one session without storing or logging it', async () => {
+    const headers = { 'x-forwarded-for': '198.51.100.7' };
+    for (let i = 0; i < 120; i++) {
+      const res = await POST(makeReq({ level: 'info', evt: 'page.view', path: `/p${i}` }, headers));
+      expect(res.status).toBe(204);
+    }
+    expect(mocks.db.insertEvent).toHaveBeenCalledTimes(120);
+    mocks.log.logInfo.mockClear();
+    const res = await POST(makeReq({ level: 'info', evt: 'exam.finish', base: 'src', score: 10, total: 10, passed: true }, headers));
+    expect(res.status).toBe(204);
+    expect(mocks.db.insertEvent).toHaveBeenCalledTimes(120);
+    expect(mocks.log.logInfo).not.toHaveBeenCalled();
+  });
+
+  it('caps one IP even when every request carries a fresh session cookie', async () => {
+    const headers = { 'x-forwarded-for': '198.51.100.8' };
+    for (let i = 0; i < 361; i++) {
+      mocks.cookieStore.value = `sid-${i}`;
+      await POST(makeReq({ level: 'info', evt: 'exam.finish', base: 'src', score: 10, total: 10, passed: true }, headers));
+    }
+    expect(mocks.db.insertEvent).toHaveBeenCalledTimes(360);
+  });
+
+  it('ignores a session id in the body: only the cookie names the visitor', async () => {
+    mocks.cookieStore.value = undefined;
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/', sessionId: 'forged-visitor' }));
+    const arg = mocks.db.insertEvent.mock.calls[0][0];
+    expect(arg.sessionId).toBeUndefined();
+    expect(arg.meta.sessionId).toBeUndefined();
+  });
+
+  it('truncates an IPv4-mapped IPv6 address as IPv4 and treats junk as unknown', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view' }, { 'x-forwarded-for': '::ffff:203.0.113.9' }));
+    await POST(makeReq({ level: 'info', evt: 'page.view' }, { 'x-forwarded-for': 'not-an-ip' }));
+    expect(mocks.db.insertEvent.mock.calls[0][0].ip).toBe('203.0.113.0');
+    expect(mocks.db.insertEvent.mock.calls[1][0].ip).toBe('unknown');
+  });
+
+  it('stores the page view id on page.view and page.engaged', async () => {
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/', viewId: 'k3x9a1b2c3' }));
+    await POST(makeReq({ level: 'info', evt: 'page.engaged', path: '/', viewId: 'k3x9a1b2c3', msOnPage: 42_000 }));
+    await POST(makeReq({ level: 'info', evt: 'page.view', path: '/', viewId: '<script>' }));
+    const metas = mocks.db.insertEvent.mock.calls.map((c) => c[0].meta);
+    expect(metas[0].viewId).toBe('k3x9a1b2c3');
+    expect(metas[1]).toMatchObject({ viewId: 'k3x9a1b2c3', msOnPage: 42_000 });
+    expect(metas[2].viewId).toBeUndefined();
+  });
+
+  it('warns once per process when the geoip database gives no answer', async () => {
+    vi.resetModules();
+    const fresh = await import('./route');
+    const geoWarnings = () => mocks.log.logWarn.mock.calls.filter((c) => c[0] === 'geoip.unavailable');
+    await fresh.POST(makeReq({ level: 'info', evt: 'page.view' }, { 'x-forwarded-for': '81.2.69.160' }));
+    await fresh.POST(makeReq({ level: 'info', evt: 'page.view' }, { 'x-forwarded-for': '5.173.0.10' }));
+    expect(geoWarnings()).toHaveLength(1);
   });
 });

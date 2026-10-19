@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 // Must match the shape of RangeMetrics in src/lib/db.ts
 interface RangeMetrics {
@@ -34,10 +34,12 @@ interface RangeMetrics {
   };
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
-  avgPagesPerSession: number;
-  avgSessionSeconds: number;
+  visits: number;
+  pagesPerVisit: number;
   bounceRate: number;
-  returningSessionPct: number;
+  medianVisitSeconds: number;
+  p90VisitSeconds: number;
+  returningVisitorPct: number;
   avgMsSinceStart?: number;
   medianMsSinceStart?: number;
   recent: Array<{ ts: number; evt: string; path: string | null; ip: string | null; device: string | null; lang: string | null; country?: string | null; device_model?: string | null }>;
@@ -221,20 +223,29 @@ export default function StatsDashboard() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
             <Kpi label="Events"          value={metrics.events.toLocaleString()} />
             <Kpi label="Page views"      value={metrics.pageViews.toLocaleString()} accent />
-            <Kpi label="Unique sessions" value={metrics.uniqueSessions.toLocaleString()} />
+            <Kpi label="Visitors (sid)"  value={metrics.uniqueSessions.toLocaleString()} />
             <Kpi label="Unique IPs"      value={metrics.uniqueIps.toLocaleString()} />
             <Kpi label="JS errors"       value={metrics.jsErrors.toLocaleString()} tone={metrics.jsErrors > 0 ? 'danger' : undefined} />
             <Kpi label="Feedback new"    value={metrics.feedbackNew.toLocaleString()} />
             <Kpi label="Bugs new"        value={metrics.bugsNew.toLocaleString()} tone={metrics.bugsNew > 0 ? 'warn' : undefined} />
-            <Kpi label="Bounce"          value={`${(metrics.bounceRate * 100).toFixed(0)}%`} tone={metrics.bounceRate > 0.7 ? 'warn' : undefined} />
+            <Kpi label="1-page visits"   value={`${(metrics.bounceRate * 100).toFixed(0)}%`} tone={metrics.bounceRate > 0.7 ? 'warn' : undefined} />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <Kpi label="Avg pages / session" value={metrics.avgPagesPerSession.toFixed(1)} />
-            <Kpi label="Avg session duration" value={formatDuration(metrics.avgSessionSeconds)} />
-            <Kpi label="Returning sessions" value={`${(metrics.returningSessionPct * 100).toFixed(0)}%`} />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+            <Kpi label="Visits" value={metrics.visits.toLocaleString()} />
+            <Kpi label="Pages / visit" value={metrics.pagesPerVisit.toFixed(1)} />
+            <Kpi label="Median visit" value={formatDuration(metrics.medianVisitSeconds)} />
+            <Kpi label="Visit p90" value={formatDuration(metrics.p90VisitSeconds)} />
+            <Kpi label="Returning visitors" value={`${(metrics.returningVisitorPct * 100).toFixed(0)}%`} />
             <Kpi label="Range" value={`${formatRange(metrics.range.fromMs, metrics.range.toMs)}`} />
           </div>
+          <p className="text-[11px] leading-relaxed text-[var(--text-muted)]">
+            A visitor is one browser cookie (regatta_sid, kept a year). A visit ends after 30 min without a page view;
+            its length runs from the first to the last page view, so a 1-page visit counts as 0 s.
+            Returning: 2+ visits in the range, or first seen before it. Automated browsers (webdriver, HeadlessChrome,
+            our Playwright runs) are not recorded from the analytics release of 2026-10-19 on. Ranges that include
+            earlier days still count them (about half of all page views before then) until those rows are cleaned up.
+          </p>
 
           {/* Hourly chart */}
           <Panel title="Events timeline">
@@ -272,7 +283,7 @@ export default function StatsDashboard() {
               {metrics.countrySplit && metrics.countrySplit.length > 0 ? (
                 <Distribution items={metrics.countrySplit.map((c) => ({ label: c.country, value: c.count }))} topN={15} />
               ) : (
-                <EmptyHint text="No country data yet - configure proxy to inject cf-ipcountry or x-country-code headers." />
+                <EmptyHint text="No country data in this range. /api/log looks the country up from the truncated IP (fast-geoip) unless a cf-ipcountry or x-country-code header is present; the server log warns once if the lookup is broken." />
               )}
             </Panel>
             <Panel title="Device models">
@@ -334,6 +345,12 @@ export default function StatsDashboard() {
               <Panel title="App Store clicks (ct)">
                 <Distribution items={metrics.funnel.appStoreClicks.map((a) => ({ label: a.ct, value: a.count }))} />
               </Panel>
+              <p className="lg:col-span-4 text-[11px] leading-relaxed text-[var(--text-muted)]">
+                Funnel counts are reported by the browser (/api/log), so a visitor can send them by hand; treat them as
+                trends, not exact numbers. The app&apos;s offline SRC radio course (its default mode) runs from a local
+                file and never reaches /api/log: its lessons, simulator tasks and exam starts are missing here, and only
+                its finished exams reach the app&apos;s own analytics (PostHog).
+              </p>
             </div>
           )}
 

@@ -1,9 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Smoke E2E tests - run against the live prod URL by default so CI verifies
- * what users actually see, not a local dev build. For local runs point at
- * your dev server via `BASE_URL=http://localhost:3000 npx playwright test`.
+ * Smoke E2E tests. The target is BASE_URL: CI sets it twice in deploy.yml,
+ * http://localhost:3000 for the pre-deploy run and https://weektoregatta.com
+ * after the deploy. Without it the tests hit a local server, never prod by
+ * accident: every unintended prod run used to land in /stats as real traffic
+ * (half of all recorded page views were ours).
+ *
+ * The browser's user agent ends in "RegattaE2E", which /api/log drops, and
+ * navigator.webdriver is true, so src/lib/client-log.ts sends nothing anyway.
  */
 export default defineConfig({
   testDir: './e2e',
@@ -14,7 +19,7 @@ export default defineConfig({
   workers: process.env.CI ? 2 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : [['list']],
   use: {
-    baseURL: process.env.BASE_URL ?? 'https://weektoregatta.com',
+    baseURL: process.env.BASE_URL || 'http://localhost:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'off',
@@ -24,7 +29,7 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], userAgent: `${devices['Desktop Chrome'].userAgent} RegattaE2E` },
     },
   ],
 });

@@ -8,7 +8,9 @@
 import Database from 'better-sqlite3';
 import path from 'path';
 import { mkdirSync } from 'fs';
+import { isIP } from 'net';
 import { UAParser } from 'ua-parser-js';
+import { truncateIp } from './net';
 
 const DB_DIR = process.env.REGATTA_DB_DIR || '/tmp';
 const DB_PATH = path.join(DB_DIR, 'regatta-stats.db');
@@ -25,6 +27,10 @@ function db(): Database.Database {
   _db = new Database(DB_PATH);
   _db.pragma('journal_mode = WAL');
   _db.pragma('synchronous = NORMAL');
+  // Disk ceiling (audit F10), not set yet: the vps2 disk is shared with other
+  // products. Once the owner picks a size, cap the file with
+  // _db.pragma('max_page_count = <bytes / page_size>'). Inserts past the cap
+  // throw, and every insert helper below already catches and drops the row.
 
   _db.exec(`
     CREATE TABLE IF NOT EXISTS events (
@@ -183,6 +189,18 @@ function db(): Database.Database {
   return _db;
 }
 
+/**
+ * The only form of a client IP that may be stored: trimmed, a real IPv4 or
+ * IPv6 address, truncated by truncateIp(). Anything else (missing, "unknown",
+ * a forged X-Forwarded-For value) becomes NULL. Applied by insertEvent() and
+ * insertFeedback(), so no route can store a full IP.
+ */
+export function storedIp(ip: string | null | undefined): string | null {
+  const t = ip?.trim();
+  if (!t || !isIP(t)) return null;
+  return truncateIp(t);
+}
+
 function detectDevice(ua: string | null | undefined): string {
   if (!ua) return 'unknown';
   const s = ua.toLowerCase();
@@ -190,6 +208,16 @@ function detectDevice(ua: string | null | undefined): string {
   if (/ipad|tablet|android(?!.*mobile)/.test(s)) return 'tablet';
   return 'desktop';
 }
+
+/**
+ * Label for Chrome's reduced Android user agent ("Android 10; K"): Chrome
+ * replaces the real model with the placeholder "K" for most Android traffic,
+ * so "K" in /stats meant "model not reported", not a device.
+ */
+export const ANDROID_MODEL_HIDDEN = 'Android (model hidden)';
+
+/** Shows rows stored before the label existed under the same label. */
+const DEVICE_MODEL_SQL = `CASE WHEN device_model = 'K' THEN '${ANDROID_MODEL_HIDDEN}' ELSE device_model END`;
 
 /**
  * Extract specific device model from UA via ua-parser-js. Useful to see
@@ -206,6 +234,7 @@ export function detectDeviceModel(ua: string | null | undefined): string | null 
     if (!device.vendor && !device.model) {
       return os.name ? `${os.name} Desktop` : null;
     }
+    if (!device.vendor && device.model === 'K') return ANDROID_MODEL_HIDDEN;
     const parts = [device.vendor, device.model].filter(Boolean);
     const label = parts.join(' ').trim();
     return label || null;
@@ -269,6 +298,7 @@ export function insertEvent(e: EventInsert): void {
   try {
     const d = db();
     const deviceModel = detectDeviceModel(e.ua);
+    const ip = storedIp(e.ip);
     d.prepare(`
       INSERT INTO events (
         ts, evt, path, session_id, ua, ip, country, device, device_model,
@@ -282,7 +312,7 @@ export function insertEvent(e: EventInsert): void {
       e.path ?? null,
       e.sessionId ?? null,
       e.ua ?? null,
-      e.ip ?? null,
+      ip,
       e.country ?? null,
       detectDevice(e.ua),
       deviceModel,
@@ -364,7 +394,7 @@ export function insertFeedback(f: FeedbackInsert): number | null {
       Date.now(), f.kind, f.category ?? null, f.message,
       f.expected ?? null, f.actual ?? null, f.contact ?? null,
       f.path ?? null, f.viewport ?? null, f.language ?? null,
-      f.ua ?? null, f.ip ?? null,
+      f.ua ?? null, storedIp(f.ip),
     );
     return info.lastInsertRowid as number;
   } catch {
@@ -410,11 +440,14 @@ export interface RangeMetrics {
   hourly: Array<{ hour: string; events: number; pageViews: number }>;
   daily: Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
 
-  // Session-quality metrics
-  avgPagesPerSession: number;
-  avgSessionSeconds: number;
-  bounceRate: number;       // fraction 0..1 of sessions with exactly 1 page.view
-  returningSessionPct: number; // sessions with > 1 visit_count over all sessions in range
+  // Visit quality. A visitor is one `regatta_sid` (a 1-year cookie); a visit
+  // is a run of that visitor's page views with no gap over 30 minutes.
+  visits: number;
+  pagesPerVisit: number;
+  bounceRate: number;          // fraction 0..1 of visits with exactly 1 page.view
+  medianVisitSeconds: number;  // first to last page.view of a visit; 0 for a 1-page visit
+  p90VisitSeconds: number;
+  returningVisitorPct: number; // visitors with 2+ visits in range, or first seen before it
 
   // Time-on-page (from ms_since_start)
   avgMsSinceStart: number;      // avg time into session when page.view fires
@@ -485,6 +518,73 @@ function getFunnelMetrics(d: Database.Database, fromMs: number, toMs: number): F
   };
 }
 
+/** A visit ends after this long without a page view (the usual web convention). */
+export const VISIT_GAP_MS = 30 * 60 * 1000;
+
+/**
+ * One row per visit in [from, to): its visitor, page count and length. Page
+ * views of one `regatta_sid` start a new visit after a gap over VISIT_GAP_MS.
+ * Params: from, to, gap.
+ */
+const VISITS_CTE = `
+  WITH pv AS (
+    SELECT session_id, ts,
+           ts - LAG(ts) OVER (PARTITION BY session_id ORDER BY ts) AS gap
+    FROM events
+    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND session_id IS NOT NULL
+  ),
+  numbered AS (
+    SELECT session_id, ts,
+           SUM(CASE WHEN gap IS NULL OR gap > ? THEN 1 ELSE 0 END)
+             OVER (PARTITION BY session_id ORDER BY ts ROWS UNBOUNDED PRECEDING) AS visit_no
+    FROM pv
+  ),
+  visits AS (
+    SELECT session_id, visit_no, COUNT(*) AS pv_count, MAX(ts) - MIN(ts) AS dur_ms
+    FROM numbered GROUP BY session_id, visit_no
+  )`;
+
+/** Nearest-rank percentile of an ascending array; 0 when empty. */
+function percentile(sorted: number[], p: number): number {
+  if (sorted.length === 0) return 0;
+  const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1));
+  return sorted[idx];
+}
+
+type VisitMetrics = Pick<RangeMetrics,
+  'visits' | 'pagesPerVisit' | 'bounceRate' | 'medianVisitSeconds' | 'p90VisitSeconds' | 'returningVisitorPct'>;
+
+/**
+ * Visit-based quality metrics. Replaces the old per-sid figures: the sid lives
+ * a year, so "duration" (first to last view in the whole range) and
+ * "returning" (more than one page view) measured neither visits nor returns.
+ */
+function getVisitMetrics(d: Database.Database, fromMs: number, toMs: number): VisitMetrics {
+  const rows = d.prepare(`${VISITS_CTE}
+    SELECT pv_count, dur_ms FROM visits ORDER BY dur_ms
+  `).all(fromMs, toMs, VISIT_GAP_MS) as Array<{ pv_count: number; dur_ms: number }>;
+
+  // Returning: 2+ visits inside the range, or first seen before it.
+  // `returning` is a reserved SQLite keyword, hence `returning_n`.
+  const visitors = d.prepare(`${VISITS_CTE}
+    SELECT COUNT(*) AS total,
+           SUM(CASE WHEN v.n >= 2 OR s.first_seen < ? THEN 1 ELSE 0 END) AS returning_n
+    FROM (SELECT session_id, COUNT(*) AS n FROM visits GROUP BY session_id) v
+    LEFT JOIN sessions s ON s.id = v.session_id
+  `).get(fromMs, toMs, VISIT_GAP_MS, fromMs) as { total: number; returning_n: number | null };
+
+  const visits = rows.length;
+  const seconds = rows.map((r) => r.dur_ms / 1000);
+  return {
+    visits,
+    pagesPerVisit: visits > 0 ? rows.reduce((s, r) => s + r.pv_count, 0) / visits : 0,
+    bounceRate: visits > 0 ? rows.filter((r) => r.pv_count === 1).length / visits : 0,
+    medianVisitSeconds: percentile(seconds, 0.5),
+    p90VisitSeconds: percentile(seconds, 0.9),
+    returningVisitorPct: visitors.total > 0 ? (visitors.returning_n ?? 0) / visitors.total : 0,
+  };
+}
+
 /**
  * Rich metrics for a given time range. Backs the date-picker-driven
  * /stats dashboard. Returns totals, breakdowns, hourly + daily series,
@@ -535,10 +635,13 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
   `).all(...p) as Array<{ device: string; count: number }>;
 
   const deviceModelSplit = d.prepare(`
-    SELECT device_model, COUNT(*) count FROM events
+    SELECT ${DEVICE_MODEL_SQL} AS model, COUNT(*) count FROM events
     WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND device_model IS NOT NULL
-    GROUP BY device_model ORDER BY count DESC LIMIT 20
-  `).all(...p) as Array<{ device_model: string; count: number }>;
+    GROUP BY model ORDER BY count DESC LIMIT 20
+  `).all(...p).map((r) => {
+    const row = r as { model: string; count: number };
+    return { device_model: row.model, count: row.count };
+  });
 
   const countrySplit = d.prepare(`
     SELECT country, COUNT(*) count FROM events
@@ -606,39 +709,6 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     GROUP BY day ORDER BY day
   `).all(...p) as Array<{ day: string; events: number; pageViews: number; uniqueSessions: number }>;
 
-  // Session quality: pages per session, duration, bounce rate
-  const sessStats = d.prepare(`
-    SELECT session_id,
-           COUNT(*) pv_count,
-           MAX(ts) - MIN(ts) as dur_ms
-    FROM events
-    WHERE ts >= ? AND ts < ? AND evt = 'page.view' AND session_id IS NOT NULL
-    GROUP BY session_id
-  `).all(...p) as Array<{ session_id: string; pv_count: number; dur_ms: number }>;
-
-  const pagesPerSession = sessStats.length > 0
-    ? sessStats.reduce((s, r) => s + r.pv_count, 0) / sessStats.length
-    : 0;
-  const avgSessionSeconds = sessStats.length > 0
-    ? sessStats.reduce((s, r) => s + (r.dur_ms || 0), 0) / sessStats.length / 1000
-    : 0;
-  const bounces = sessStats.filter((r) => r.pv_count === 1).length;
-  const bounceRate = sessStats.length > 0 ? bounces / sessStats.length : 0;
-
-  // Returning sessions (visit_count > 1 in sessions table, among those seen in range).
-  // `returning` is a reserved SQLite keyword (RETURNING clause), so alias
-  // as `returning_n` to avoid a parser error.
-  const returningRow = d.prepare(`
-    SELECT
-      SUM(CASE WHEN visit_count > 1 THEN 1 ELSE 0 END) AS returning_n,
-      COUNT(*) AS total
-    FROM sessions
-    WHERE last_seen >= ? AND last_seen < ?
-  `).get(...p) as { returning_n: number | null; total: number };
-  const returningSessionPct = returningRow.total > 0
-    ? (returningRow.returning_n ?? 0) / returningRow.total
-    : 0;
-
   // Time-on-page via ms_since_start on page.view events.
   // Avg is cheap; median computed from sampled sorted array.
   const msRows = d.prepare(`
@@ -655,7 +725,7 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
 
   // Recent events feed (last 30 inside range)
   const recent = d.prepare(`
-    SELECT ts, evt, path, ip, device, language lang, country, device_model
+    SELECT ts, evt, path, ip, device, language lang, country, ${DEVICE_MODEL_SQL} AS device_model
     FROM events WHERE ts >= ? AND ts < ?
     ORDER BY ts DESC LIMIT 30
   `).all(...p) as RangeMetrics['recent'];
@@ -669,17 +739,20 @@ export function getMetricsRange(fromMs: number, toMs: number): RangeMetrics {
     countrySplit, utmSourceSplit, utmCampaignSplit,
     funnel: getFunnelMetrics(d, fromMs, toMs),
     hourly, daily,
-    avgPagesPerSession: pagesPerSession,
-    avgSessionSeconds,
-    bounceRate,
-    returningSessionPct,
+    ...getVisitMetrics(d, fromMs, toMs),
     avgMsSinceStart,
     medianMsSinceStart,
     recent,
   };
 }
 
-export interface FeedbackRow {
+/**
+ * A feedback row as the /stats admin list sees it. The page sends these rows
+ * to the browser, so the IP and the raw user agent stay on the server (older
+ * rows still hold full IPs); `client` is a coarse "Browser / OS" label for
+ * triaging bug reports instead.
+ */
+export interface FeedbackListItem {
   id: number;
   ts: number;
   kind: string;
@@ -691,17 +764,23 @@ export interface FeedbackRow {
   path: string | null;
   viewport: string | null;
   language: string | null;
-  ua: string | null;
-  ip: string | null;
+  client: string | null;
   status: string;
 }
 
-export function listFeedback(limit = 100, status?: string): FeedbackRow[] {
+const FEEDBACK_LIST_COLUMNS =
+  'id, ts, kind, category, message, expected, actual, contact, path, viewport, language, ua, status';
+
+export function listFeedback(limit = 100, status?: string): FeedbackListItem[] {
   const d = db();
-  if (status) {
-    return d.prepare('SELECT * FROM feedback WHERE status = ? ORDER BY ts DESC LIMIT ?').all(status, limit) as FeedbackRow[];
-  }
-  return d.prepare('SELECT * FROM feedback ORDER BY ts DESC LIMIT ?').all(limit) as FeedbackRow[];
+  const rows = (status
+    ? d.prepare(`SELECT ${FEEDBACK_LIST_COLUMNS} FROM feedback WHERE status = ? ORDER BY ts DESC LIMIT ?`).all(status, limit)
+    : d.prepare(`SELECT ${FEEDBACK_LIST_COLUMNS} FROM feedback ORDER BY ts DESC LIMIT ?`).all(limit)
+  ) as Array<Omit<FeedbackListItem, 'client'> & { ua: string | null }>;
+  return rows.map(({ ua, ...row }) => ({
+    ...row,
+    client: ua ? `${detectBrowser(ua)} / ${detectOS(ua)}` : null,
+  }));
 }
 
 export function updateFeedbackStatus(id: number, status: string): boolean {
