@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logError, logWarn } from '@/lib/log';
+import { insertFeedback } from '@/lib/db';
+import { truncateIp } from '@/lib/net';
 import { rateLimitClient, clientIpKey, clientKeys } from '@/lib/rate-limit';
 
 export const runtime = 'nodejs';
@@ -9,8 +11,11 @@ export const maxDuration = 15;
 // POST /api/support
 //
 // Public contact-form endpoint for the /support page (App Store Support URL).
-// Submits go to Telegram (@gtframe_bot, chat from env) so the operator gets a
-// push without depending on IMAP polling.
+// Every valid submission is first stored in the feedback table (kind
+// 'feedback', category 'support', visible in /stats) and then pushed to
+// Telegram (@gtframe_bot, chat from env) so the operator gets a push without
+// depending on IMAP polling. The Telegram push is best-effort; the row is the
+// record.
 //
 // Hardening:
 // - Honeypot field "company": filled by bots, real users leave it empty -> 200
@@ -23,7 +28,8 @@ export const maxDuration = 15;
 //   TELEGRAM_BOT_TOKEN   bot to send from (@gtframe_bot)
 //   TELEGRAM_CHAT_ID     destination chat id
 // If either is missing, the endpoint still returns 200 (so users always see
-// "thanks"), but logs an error - admin will see it in docker logs.
+// "thanks") and logs an error; the message itself is in the feedback table.
+// Neither the message nor the contact is ever written to stdout.
 
 const SUPPORT_LIMIT = 5;
 const SUPPORT_WINDOW_MS = 60 * 60 * 1000;
@@ -110,8 +116,8 @@ export async function POST(req: Request): Promise<NextResponse> {
   const sid = jar.get('regatta_sid')?.value;
   const ip = clientIpKey(req); // last XFF hop - see rate-limit.ts (anti-spoofing)
 
-  // Truncate IPv4 last octet to keep parity with /api/log privacy policy.
-  const ipTrunc = ip.includes('.') ? ip.replace(/\.\d+$/, '.0') : ip;
+  // Truncated like every stored IP (IPv4 last octet, IPv6 to 3 hextets).
+  const ipTrunc = ip === 'ip:unknown' ? 'unknown' : truncateIp(ip);
 
   const rl = rateLimitClient(clientKeys(req, sid), 'support', SUPPORT_LIMIT, SUPPORT_WINDOW_MS);
   if (!rl.ok) {
@@ -161,17 +167,31 @@ export async function POST(req: Request): Promise<NextResponse> {
     ua,
   };
 
+  // Store first: the Telegram push below can fail or be unconfigured.
+  const feedbackId = insertFeedback({
+    kind: 'feedback',
+    category: 'support',
+    message,
+    contact,
+    path: record.path,
+    language: record.language,
+    ua,
+    ip: ipTrunc === 'unknown' ? undefined : ipTrunc,
+  });
+
   logInfo('support.received', {
     messageLen: message.length,
     hasContact: !!contact,
     lang: record.language,
+    stored: feedbackId !== null,
   });
+  if (feedbackId === null) logError('support.store-failed');
 
   const tg = await sendToTelegram(record);
   if (!tg.ok) {
     logError('support.telegram-failed', { status: tg.status, err: tg.err });
-    // Still return 200 to the user - we have the record in logs and they did
-    // their part. Operator will see the error in docker logs.
+    // Still 200 for the user: they did their part, and the message is in the
+    // feedback table (/stats). The operator sees this error in docker logs.
   }
 
   return NextResponse.json({ ok: true });
