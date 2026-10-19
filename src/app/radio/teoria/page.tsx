@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
+import { Component, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { useI18n } from "@/lib/i18n";
@@ -16,6 +16,25 @@ import {
 import { TheoryDiagram } from "./diagrams";
 
 const ChapterCheck = dynamic(() => import("./ChapterCheck"), { ssr: false });
+
+/**
+ * The chapter check is a separate chunk, loaded on demand. Offline, with that
+ * chunk not in the cache, the import rejects - and without a boundary the
+ * error takes the whole theory page down to the route error screen, theory
+ * text included. Contain it: the chapter stays readable, the check says why
+ * it is missing.
+ */
+class ChapterCheckBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    return this.state.failed ? this.props.fallback : this.props.children;
+  }
+}
 
 const PROGRESS_KEY = "radio.src.theory.progress.v2";
 const CHAPTER_EVENT = "radio:theory-chapter";
@@ -525,11 +544,26 @@ export default function RadioTheoryCourse() {
 
                 <SourceList sourceIds={chapter.sourceIds} />
 
-                <ChapterCheck
-                  chapter={chapter}
-                  complete={completed.has(chapter.id)}
-                  onPassed={markComplete}
-                />
+                <ChapterCheckBoundary
+                  key={chapter.id}
+                  fallback={
+                    <Surface className="p-5">
+                      <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
+                        {tp(
+                          "Проверка главы не загрузилась: похоже, нет сети. Теория выше доступна, а проверку можно пройти, когда связь вернётся.",
+                          "The chapter check did not load, most likely because there is no connection. The theory above is all here; take the check once you are back online.",
+                          "Sprawdzenie rozdziału nie załadowało się, prawdopodobnie z braku sieci. Teoria powyżej jest dostępna, a sprawdzenie zrobisz, gdy połączenie wróci.",
+                        )}
+                      </p>
+                    </Surface>
+                  }
+                >
+                  <ChapterCheck
+                    chapter={chapter}
+                    complete={completed.has(chapter.id)}
+                    onPassed={markComplete}
+                  />
+                </ChapterCheckBoundary>
               </div>
             )}
           </Surface>

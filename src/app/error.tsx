@@ -19,7 +19,6 @@ export default function RouteError({
 
   useEffect(() => {
     // Surface to the client error reporter / console for diagnostics.
-    // eslint-disable-next-line no-console
     console.error('route error:', error);
   }, [error]);
 

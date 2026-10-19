@@ -155,7 +155,7 @@ export default function SternikTheoryPage() {
   const { tp, lang } = useI18n();
 
   return (
-    <main id="sternik-theory">
+    <div id="sternik-theory">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
         📖 {tp('Теория', 'Theory', 'Teoria')}: sternik motorowodny
       </h1>
@@ -194,7 +194,7 @@ export default function SternikTheoryPage() {
         aria-label={tp('Содержание', 'Contents', 'Spis treści')}
       >
         {SECTIONS.map((s) => (
-          <a key={s.id} href={`#${s.id}`} className="flex min-h-[40px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
+          <a key={s.id} href={`#${s.id}`} className="flex min-h-[44px] items-center rounded-lg px-2 py-1 text-sm transition hover:opacity-80" style={{ color: 'var(--text-secondary)' }}>
             <span style={{ color: 'var(--accent-cyan)' }}>{s.num}.</span>&nbsp;{s.pl}{' '}
             {lang === 'ru' && <span className="text-xs" style={{ color: 'var(--text-muted)' }}>&nbsp;· {s.ru}</span>}
           </a>
@@ -815,6 +815,6 @@ export default function SternikTheoryPage() {
         Materiał przygotowany na podstawie tematów bazy pytań PZMWiNW (sternik motorowodny), rozporządzenia MSiT z 9.04.2013
         i przepisów żeglugowych. Konspekt pomocniczy - aktualne wymagania sprawdź u organizatora egzaminu.
       </p>
-    </main>
+    </div>
   );
 }

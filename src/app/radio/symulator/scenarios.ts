@@ -312,7 +312,7 @@ const securiteScenario: Scenario = {
     },
     {
       id: 'securite-announce',
-      todo: { pl: 'Na kanale 16 zapowiedź SECURITE i wskaż kanał roboczy 72', ru: 'На канале 16 объяви SECURITE и укажи рабочий канал 72' },
+      todo: { pl: 'Na kanale 16 zapowiedz SECURITE i wskaż kanał roboczy 72', ru: 'На канале 16 объяви SECURITE и укажи рабочий канал 72' },
       why: {
         pl: 'Format egzaminacyjny UKE: na 16 idzie krótka zapowiedź SECURITE z informacją, gdzie słuchać treści. Kanał 16 pozostaje wolny dla wywołań i distress.',
         ru: 'Экзаменационный формат UKE: на 16 передается короткое объявление SECURITE с указанием канала сообщения. Канал 16 остается свободным для вызовов и distress.',

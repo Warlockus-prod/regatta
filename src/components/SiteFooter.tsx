@@ -48,12 +48,13 @@ export default function SiteFooter() {
       <span className="mx-2 opacity-50">·</span>
       <span>{tagline}</span>
       <span className="mx-2 opacity-50">·</span>
-      <Link href="/privacy" className="hover:text-[var(--accent-cyan)] transition">
+      {/* Inline padding: a 44px-tall touch target that does not move the line. */}
+      <Link href="/privacy" className="inline px-1 py-[15px] hover:text-[var(--accent-cyan)] transition">
         {tp('Конфиденциальность', 'Privacy', 'Prywatność',
           { es: 'Privacidad', fr: 'Confidentialité', de: 'Datenschutz', it: 'Privacy' })}
       </Link>
       <span className="mx-2 opacity-50">·</span>
-      <Link href="/support" className="hover:text-[var(--accent-cyan)] transition">
+      <Link href="/support" className="inline px-1 py-[15px] hover:text-[var(--accent-cyan)] transition">
         {tp('Контакты', 'Contact', 'Kontakt',
           { es: 'Contacto', fr: 'Contact', de: 'Kontakt', it: 'Contatti' })}
       </Link>

@@ -1,7 +1,8 @@
-import { SRC_BANK } from "@/data/src-radio";
-import { SCENARIOS } from "./symulator/scenarios";
-import { THEORY_CHAPTERS } from "./teoria/courseData";
+import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
 import { loadQuestionProgress } from "./questionProgress";
+
+// Counts against id lists, not the data itself: the hub is the course's front
+// page and has no business downloading the question bank to print "40/324".
 
 const THEORY_KEY = "radio.src.theory.progress.v2";
 const SIMULATOR_KEY = "sternik.radio.progress.v1";
@@ -31,23 +32,23 @@ function readJson(key: string): unknown {
 export function loadRadioCourseProgress(): RadioCourseProgress {
   const theoryRaw = readJson(THEORY_KEY);
   const theoryCompleted = Array.isArray(theoryRaw)
-    ? theoryRaw.filter((id) => THEORY_CHAPTERS.some((chapter) => chapter.id === id)).length
+    ? theoryRaw.filter((id) => THEORY_CHAPTER_IDS.includes(id)).length
     : 0;
 
   const questionProgress = loadQuestionProgress();
-  const questionsSeen = SRC_BANK.filter(
-    (question) => (questionProgress[question.id]?.seen ?? 0) > 0,
+  const questionsSeen = SRC_QUESTION_IDS.filter(
+    (id) => (questionProgress[id]?.seen ?? 0) > 0,
   ).length;
-  const questionsMastered = SRC_BANK.filter(
-    (question) => (questionProgress[question.id]?.streak ?? 0) >= 2,
+  const questionsMastered = SRC_QUESTION_IDS.filter(
+    (id) => (questionProgress[id]?.streak ?? 0) >= 2,
   ).length;
 
   const simulatorRaw = readJson(SIMULATOR_KEY);
   const simulatorProgress = simulatorRaw && typeof simulatorRaw === "object"
     ? simulatorRaw as Record<string, { best?: number }>
     : {};
-  const scenariosPassed = SCENARIOS.filter(
-    (scenario) => (simulatorProgress[scenario.id]?.best ?? 0) >= 60,
+  const scenariosPassed = SCENARIO_IDS.filter(
+    (id) => (simulatorProgress[id]?.best ?? 0) >= 60,
   ).length;
 
   const guideRaw = readJson(GUIDE_KEY);
@@ -57,9 +58,9 @@ export function loadRadioCourseProgress(): RadioCourseProgress {
   const guideCompleted = Math.max(guide.M330 ?? 0, guide.M323 ?? 0);
   const guideTotal = 15;
 
-  const theoryRatio = theoryCompleted / THEORY_CHAPTERS.length;
-  const questionRatio = questionsMastered / SRC_BANK.length;
-  const scenarioRatio = scenariosPassed / SCENARIOS.length;
+  const theoryRatio = theoryCompleted / THEORY_CHAPTER_IDS.length;
+  const questionRatio = questionsMastered / SRC_QUESTION_IDS.length;
+  const scenarioRatio = scenariosPassed / SCENARIO_IDS.length;
   const guideRatio = Math.min(guideCompleted / guideTotal, 1);
   const overallPercent = Math.round(
     (theoryRatio * 0.35 + questionRatio * 0.25 + scenarioRatio * 0.3 + guideRatio * 0.1) * 100,
@@ -67,12 +68,12 @@ export function loadRadioCourseProgress(): RadioCourseProgress {
 
   return {
     theoryCompleted,
-    theoryTotal: THEORY_CHAPTERS.length,
+    theoryTotal: THEORY_CHAPTER_IDS.length,
     questionsMastered,
     questionsSeen,
-    questionsTotal: SRC_BANK.length,
+    questionsTotal: SRC_QUESTION_IDS.length,
     scenariosPassed,
-    scenariosTotal: SCENARIOS.length,
+    scenariosTotal: SCENARIO_IDS.length,
     guideCompleted,
     guideTotal,
     overallPercent,

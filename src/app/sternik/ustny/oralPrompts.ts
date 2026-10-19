@@ -573,7 +573,10 @@ export const ORAL_PROMPTS: OralPrompt[] = [
       {
         id: 'q10-e1',
         label: 'Śruba znosi rufę na bok (praca boczna śmigła)',
-        anyOf: ['znosi', 'ściąga', 'na bok', 'w bok', 'praca boczna', 'boczna'],
+        // Bound to the stern, never bare: hits() folds diacritics and matches
+        // substrings, so a bare 'ściąga' fired on "ściągam gaz" and a bare
+        // 'znosi' on "wiatr znosi jacht" - neither says a word about prop walk.
+        anyOf: ['znosi ruf', 'rufę znosi', 'ściąga rufę', 'rufa ściąga', 'ściąga w lewo', 'ściąga w prawo', 'na bok', 'w bok', 'praca boczna', 'boczna'],
       },
       {
         id: 'q10-e2',

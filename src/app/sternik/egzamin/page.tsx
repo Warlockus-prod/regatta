@@ -180,7 +180,7 @@ export default function SternikExamPage() {
   // --------------------------------------------------------------- intro ---
   if (phase === 'intro') {
     return (
-      <main>
+      <div>
         <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
           ⏱️ {tp('Пробный экзамен', 'Mock exam', 'Próbny egzamin')}
         </h1>
@@ -237,7 +237,7 @@ export default function SternikExamPage() {
             </div>
           </section>
         )}
-      </main>
+      </div>
     );
   }
 
@@ -249,7 +249,7 @@ export default function SternikExamPage() {
       .filter(({ q, picked }) => !(picked !== null && q.options[picked].ok));
 
     return (
-      <main>
+      <div>
         <div
           className="mb-6 rounded-2xl p-6 text-center"
           style={{
@@ -318,19 +318,19 @@ export default function SternikExamPage() {
                     className="rounded-xl p-4"
                     style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,68,68,0.35)' }}
                   >
-                    <div className="mb-1 text-xs" style={{ color: cat.color }}>
+                    <div lang="pl" className="mb-1 text-xs" style={{ color: cat.color }}>
                       {cat.icon} {cat.pl}
                     </div>
-                    <div className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                    <div lang="pl" className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
                       {q.q}
                     </div>
                     <div className="mt-1 text-sm" style={{ color: 'var(--danger)' }}>
                       ✗{' '}
                       {picked === null
                         ? tp('Без ответа', 'No answer', 'Brak odpowiedzi')
-                        : `${tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: ${q.options[picked].text}`}
+                        : <>{tp('Твой ответ', 'Your answer', 'Twoja odpowiedź')}: <span lang="pl">{q.options[picked].text}</span></>}
                     </div>
-                    <div className="text-sm" style={{ color: 'var(--success)' }}>
+                    <div lang="pl" className="text-sm" style={{ color: 'var(--success)' }}>
                       ✓ {q.options.find((o) => o.ok)?.text}
                     </div>
                     <Explanation whyPl={q.whyPl} whyRu={q.whyRu} />
@@ -340,7 +340,7 @@ export default function SternikExamPage() {
             </div>
           </section>
         )}
-      </main>
+      </div>
     );
   }
 
@@ -351,7 +351,7 @@ export default function SternikExamPage() {
   const lowTime = secondsLeft <= 5 * 60;
 
   return (
-    <main className="relative">
+    <div className="relative">
       {/* One-shot polite announcement when the clock crosses the 5-minute mark.
           Kept outside the inert wrapper so it stays in the a11y tree while a
           dialog is open. */}
@@ -405,7 +405,7 @@ export default function SternikExamPage() {
         <button
           type="button"
           onClick={() => setShowNav((v) => !v)}
-          className="flex min-h-[40px] w-full items-center justify-between rounded-xl px-3 text-sm"
+          className="flex min-h-[44px] w-full items-center justify-between rounded-xl px-3 text-sm"
           style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}
         >
           <span>🧭 {tp('Все вопросы', 'All questions', 'Wszystkie pytania')} ({answers.length - unansweredCount}/{questions.length})</span>
@@ -473,14 +473,14 @@ export default function SternikExamPage() {
           </button>
         </div>
 
-        <div className="mb-4 text-lg font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
+        <div lang="pl" className="mb-4 text-lg font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>
           {current.q}
         </div>
 
         {current.figure && <QuestionFigure id={current.figure} />}
         {current.photo && <QuestionPhoto photo={current.photo} alt={current.q} />}
 
-        <div className="space-y-2">
+        <div lang="pl" className="space-y-2">
           {current.options.map((o, i) => {
             const selected = picked === i;
             return (
@@ -620,6 +620,6 @@ export default function SternikExamPage() {
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }
