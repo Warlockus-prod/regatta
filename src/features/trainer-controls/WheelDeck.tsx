@@ -221,12 +221,20 @@ export function WheelDeck(props: {
   const leftK: "main" | "jib" = prefs.jibSheetSide === "left" ? "jib" : "main";
   const rightK: "main" | "jib" = leftK === "jib" ? "main" : "jib";
   const small = 64;
-  const big = Math.max(116, Math.min(layout === "bottom" ? 176 : 184, h - CAPTION_H - 8, w - 2 * small - 40));
+  // Bottom dock: helm in the middle, sheets in the lower corners. Column (desktop
+  // panel): the two sheets in a row on top, the helm under them.
+  const sheetRow = small + CAPTION_H + 10;
+  const big = layout === "bottom"
+    ? Math.max(116, Math.min(176, h - CAPTION_H - 8, w - 2 * small - 40))
+    : Math.max(110, Math.min(184, h - (sheets ? sheetRow : 0) - CAPTION_H - 8, w - 40));
   const center: Box = layout === "bottom" || !sheets
     ? [w / 2, (h - CAPTION_H) / 2 + 2, big]
-    : [w / 2, small + CAPTION_H + 8 + big / 2, big];
-  const left: Box = layout === "bottom" ? [small / 2 + 14, h - CAPTION_H - small / 2 - 2, small] : [w / 2 - small - 20, small / 2 + 4, small];
-  const right: Box = layout === "bottom" ? [w - small / 2 - 14, h - CAPTION_H - small / 2 - 2, small] : [w / 2 + small + 20, small / 2 + 4, small];
+    : [w / 2, sheetRow + big / 2, big];
+  // Keep a sheet caption (about 104 px wide) inside the box.
+  const capHalf = 54;
+  const colX = (x: number) => Math.min(w - capHalf, Math.max(capHalf, x));
+  const left: Box = layout === "bottom" ? [small / 2 + 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 - small - 24), small / 2 + 4, small];
+  const right: Box = layout === "bottom" ? [w - small / 2 - 14, h - CAPTION_H - small / 2 - 2, small] : [colX(w / 2 + small + 24), small / 2 + 4, small];
   const pos: Record<Slot, Box> = { helm: center, [leftK]: left, [rightK]: right } as Record<Slot, Box>;
   if (expanded) {
     pos[expanded] = center;

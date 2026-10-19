@@ -540,7 +540,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       {(isDesktop || !embed) && <div
         className="sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b shrink-0"
         style={{
-          background: 'rgba(5, 11, 24, 0.92)',
+          background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)',
           borderColor: 'rgba(0, 212, 255, 0.16)',
           backdropFilter: 'blur(10px)',
         }}
@@ -740,7 +740,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               height: 'clamp(360px, 55dvh, 620px)',
               borderColor: 'rgba(0, 212, 255, 0.18)',
               background:
-                'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
+                'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)',
             }}
           >
             {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
@@ -764,7 +764,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
 
         <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
           {prefs.mode === 'wheels' && (
-            <div className="h-[330px] rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-2 pt-2">
+            <div className="h-[380px] rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-2 pt-2 pb-1">
               {wheelDeck('column')}
             </div>
           )}
@@ -788,7 +788,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               data-session-tick={sim.session.ticks}
               data-session-heading={sim.session.boat.heading}
               className="absolute inset-0"
-              style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light, #0c2745) 0%, var(--water-dark, #061020) 80%)' }}
+              style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
             >
               {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />

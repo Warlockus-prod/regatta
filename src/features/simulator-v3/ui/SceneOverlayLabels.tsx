@@ -31,7 +31,7 @@ export function SceneOverlayLabels(args: {
         <div
           className="rounded-full px-3 py-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider"
           style={{
-            background: 'rgba(8, 24, 48, 0.75)',
+            background: 'color-mix(in srgb, var(--bg-secondary) 75%, transparent)',
             border: '1px solid rgba(0, 212, 255, 0.22)',
             backdropFilter: 'blur(10px)',
           }}

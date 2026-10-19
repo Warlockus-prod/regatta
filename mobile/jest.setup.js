@@ -147,3 +147,10 @@ jest.mock('react-native-gesture-handler', () => {
     },
   };
 });
+
+// Native orientation module: no-op in tests (src/simulator/orientation.ts).
+jest.mock('expo-screen-orientation', () => ({
+  OrientationLock: { PORTRAIT_UP: 3, DEFAULT: 0 },
+  lockAsync: () => Promise.resolve(),
+  unlockAsync: () => Promise.resolve(),
+}));

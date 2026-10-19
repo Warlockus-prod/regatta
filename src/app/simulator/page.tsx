@@ -44,7 +44,7 @@ const COLORS = {
   accentCyan: '#00d4ff',
   textPrimary: '#e8f4f8',
   textSecondary: '#8ba7b8',
-  textMuted: '#5a7a8a',
+  textMuted: '#7593a6', // same as the --text-muted token (was a darker one-off)
   danger: '#ff4444',
   water1: '#0b1e38',
   water2: '#081830',
@@ -1160,7 +1160,7 @@ export default function SimulatorPage() {
     <>
       {!isEmbed && (
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
-           style={{ background: 'rgba(5, 11, 24, 0.92)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
+           style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
         <div className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
             {tp(
@@ -1295,7 +1295,7 @@ export default function SimulatorPage() {
 
       {/* Info Panel: controls first, so the sliders are on the first screen. */}
       <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
-           style={{ background: 'rgba(15, 32, 53, 0.6)' }}>
+           style={{ background: 'var(--bg-secondary)' }}>
 
         {introText}
 

@@ -349,7 +349,7 @@ export function TourOverlay({ lang, tp, forceOpen, onClose }: Props) {
         className="w-full max-w-md rounded-2xl p-5 sm:p-6 relative"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'rgba(8, 24, 48, 0.95)',
+          background: 'color-mix(in srgb, var(--bg-secondary) 95%, transparent)',
           border: '1px solid rgba(0, 212, 255, 0.35)',
           boxShadow: '0 24px 60px rgba(0, 0, 0, 0.6)',
         }}
