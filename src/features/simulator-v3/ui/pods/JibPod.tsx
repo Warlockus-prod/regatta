@@ -6,6 +6,7 @@ import {
   PodLabel,
   PodSlider,
   StatusDot,
+  jibEasePct,
   type SimulationModel,
   type TpFn,
   type UiState,
@@ -57,13 +58,13 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kąt', {
-          es: 'Ángulo',
-          fr: 'Angle',
-          de: 'Winkel',
-          it: 'Angolo',
+        label={tp('Стаксель-шкот', 'Jib sheet', 'Szot foka', {
+          es: 'Escota de foque',
+          fr: 'Écoute de foc',
+          de: 'Fockschot',
+          it: 'Scotta del fiocco',
         })}
-        value={`${Math.round(ui.jibAngle)}°`}
+        value={`${jibEasePct(ui.jibAngle, params.jibMinOff, params.jibMaxOff)}% (${Math.round(ui.jibAngle)}°)`}
         min={Math.round(params.jibMinOff)}
         max={Math.round(params.jibMaxOff)}
         step={1}

@@ -24,7 +24,7 @@ export const diagramCopy = {
   sheet: words("Выбери положение: вид сверху показывает предел отхода гика под нагрузкой. Это схема угла, а не расчет скорости.", "Choose a setting: the top view shows the boom's outward limit under load. This is an angle diagram, not a speed calculation.", "Wybierz ustawienie: widok z góry pokazuje granicę wychylenia bomu pod obciążeniem. To schemat kąta, nie obliczenie prędkości.", "Elige un ajuste: la vista superior muestra el límite de apertura bajo carga. Es un esquema angular, no un cálculo de velocidad.", "Choisis un réglage : la vue de dessus montre la limite d'ouverture sous charge. C'est un schéma d'angle, pas un calcul de vitesse.", "Wähle eine Stellung: Die Draufsicht zeigt die Auslenkungsgrenze unter Last. Ein Winkeldiagramm, keine Fahrtberechnung.", "Scegli una regolazione: la vista dall'alto mostra il limite di apertura sotto carico. È uno schema angolare, non un calcolo di velocità."),
   lines: [
     words("Фал", "Halyard", "Fał", "Driza", "Drisse", "Fall", "Drizza"),
-    words("Гротшкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta randa"),
+    words("Гика-шкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta della randa"),
     words("Оттяжка гика", "Vang", "Obciągacz bomu", "Contra", "Hale-bas", "Baumniederholer", "Vang"),
     words("Outhaul", "Outhaul", "Wybranka", "Pajarín", "Bordure", "Unterliekstrecker", "Tesabase"),
     words("Топенант", "Topping lift", "Topenanta", "Amantillo", "Balancine", "Dirk", "Amantiglio"),

@@ -60,6 +60,10 @@ Do not confuse the rows above:
 | spinnaker | спинакер | spinaker | spinnaker | spinnaker | spi | Spinnaker |
 | halyard | фал | fał | drizza | driza | drisse | Fall |
 | sheet (line controlling sail) | шкот | szot | scotta | escota | écoute | Schot |
+| mainsheet (UI label: always name the sheet) | гика-шкот | szot grota | scotta della randa | escota de mayor | écoute de grand-voile | Großschot |
+| jib sheet | стаксель-шкот | szot foka | scotta del fiocco | escota de foque | écoute de foc | Fockschot |
+| mainsheet traveler | каретка гика-шкота | wózek szotu grota | carrello della randa | carro de mayor | chariot de grand-voile | Großschot-Traveller |
+| jib lead car | каретка стаксель-шкота | wózek szotu foka | carrello del fiocco | carro de foque | chariot de foc | Fockholepunkt |
 | winch | лебёдка | kabestan | winch | winche | winch | Winsch |
 | cleat | утка | knaga | galloccia | cornamusa | taquet | Klampe |
 | clutch / jammer | стопор | stoper | stopper | mordaza | bloqueur | Fallenstopper |
@@ -75,6 +79,11 @@ Do not confuse the rows above:
 | luff (front edge of a sail) | передняя шкаторина | lik przedni | inferitura | grátil | guindant | Vorliek |
 | leech (back edge of a sail) | задняя шкаторина | lik tylny | balumina | baluma | chute | Achterliek |
 | keel | киль | kil | chiglia | quilla | quille | Kiel |
+
+Sheet labels in trainers and coach hints always name the sheet ("ease the mainsheet",
+never a bare "ease the sheet"); the learner must know which line to touch. Russian uses
+"гика-шкот" only (not "гротшкот" or "грота-шкот"). Sheet values read 0% sheeted in,
+100% eased out, with the sail angle in brackets: "Гика-шкот 61% (52°)".
 
 ## Race-specific (RRS + tactics)
 

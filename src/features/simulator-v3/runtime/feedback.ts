@@ -93,14 +93,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (mainSet && diag.mainStalled && heelAbs > 22 && absTwa < 135) {
     return {
       text: tp(
-        'Срыв грота + большой крен. Ослабь шкот и рифься.',
-        'Main stalled and heeling hard. Ease the main and reef.',
-        'Oderwanie przepływu na grocie i duży przechył. Poluzuj szot i refuj.',
+        'Срыв грота + большой крен. Потрави гика-шкот и рифься.',
+        'Main stalled and heeling hard. Ease the mainsheet and reef.',
+        'Oderwanie przepływu na grocie i duży przechył. Poluzuj szot grota i refuj.',
         {
-          es: 'Flujo desprendido en la mayor y mucha escora. Lasca la escota y toma un rizo.',
-          fr: "GV décrochée et forte gîte. Choque l'écoute et prends un ris.",
-          de: 'Strömungsabriss am Groß und starke Krängung. Schot fieren und reffen.',
-          it: 'Randa in stallo e forte sbandamento. Lasca la scotta e terzarola.',
+          es: 'Flujo desprendido en la mayor y mucha escora. Lasca la escota de mayor y toma un rizo.',
+          fr: "Grand-voile décrochée et forte gîte. Choque l'écoute de grand-voile et prends un ris.",
+          de: 'Strömungsabriss am Groß und starke Krängung. Großschot fieren und reffen.',
+          it: 'Randa in stallo e forte sbandamento. Lasca la scotta della randa e terzarola.',
         },
       ),
       tone: 'danger',
@@ -183,14 +183,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if ((mainSet || jibSet) && (!mainSet || diag.mainAoA < 5) && (!jibSet || diag.jibAoA < 5)) {
     return {
       text: tp(
-        'Паруса полощут - подтяни шкоты.',
-        'Sails are luffing - sheet in.',
-        'Żagle łopoczą: wybierz szoty.',
+        'Паруса полощут - выбери гика-шкот и стаксель-шкот.',
+        'Sails are luffing - trim the mainsheet and the jib sheet.',
+        'Żagle łopoczą: wybierz szot grota i szot foka.',
         {
-          es: 'Las velas flamean: caza las escotas.',
-          fr: 'Les voiles faseyent : borde les écoutes.',
-          de: 'Die Segel killen - Schoten dichtholen.',
-          it: 'Le vele fileggiano: cazza le scotte.',
+          es: 'Las velas flamean: caza la escota de mayor y la de foque.',
+          fr: "Les voiles faseyent : borde l'écoute de grand-voile et celle de foc.",
+          de: 'Die Segel killen: Groß- und Fockschot dichtholen.',
+          it: 'Le vele fileggiano: cazza la scotta della randa e quella del fiocco.',
         },
       ),
       tone: 'warn',
@@ -217,14 +217,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (mainSet && diag.mainAoA >= 15 && absTwa < 135) {
     return {
       text: tp(
-        'Грот у грани срыва. Не тяни сильнее.',
-        'Main is on the edge of stall. Do not sheet harder.',
-        'Grot na granicy oderwania przepływu. Nie wybieraj mocniej.',
+        'Грот у грани срыва. Не выбирай гика-шкот сильнее.',
+        'Main is on the edge of stall. Do not trim the mainsheet harder.',
+        'Grot na granicy oderwania przepływu. Nie wybieraj mocniej szotu grota.',
         {
-          es: 'La mayor está al borde del desprendimiento. No caces más.',
-          fr: 'La GV est au bord du décrochage. Ne borde pas plus.',
-          de: 'Groß kurz vor dem Strömungsabriss. Nicht weiter dichtholen.',
-          it: 'La randa è al limite dello stallo. Non cazzare oltre.',
+          es: 'La mayor está al borde del desprendimiento. No caces más la escota de mayor.',
+          fr: "La grand-voile est au bord du décrochage. Ne borde pas plus l'écoute de grand-voile.",
+          de: 'Groß kurz vor dem Strömungsabriss. Großschot nicht weiter dichtholen.',
+          it: 'La randa è al limite dello stallo. Non cazzare oltre la scotta della randa.',
         },
       ),
       tone: 'info',
@@ -233,14 +233,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (jibSet && diag.jibAoA >= 15 && ui.jibFurlPct > 30 && absTwa < 135) {
     return {
       text: tp(
-        'Стаксель у грани срыва.',
-        'Jib is on the edge of stall.',
-        'Fok na granicy oderwania przepływu.',
+        'Стаксель у грани срыва. Не выбирай стаксель-шкот сильнее.',
+        'Jib is on the edge of stall. Do not trim the jib sheet harder.',
+        'Fok na granicy oderwania przepływu. Nie wybieraj mocniej szotu foka.',
         {
-          es: 'El foque está al borde del desprendimiento.',
-          fr: 'Le foc est au bord du décrochage.',
-          de: 'Fock kurz vor dem Strömungsabriss.',
-          it: 'Il fiocco è al limite dello stallo.',
+          es: 'El foque está al borde del desprendimiento. No caces más la escota de foque.',
+          fr: "Le foc est au bord du décrochage. Ne borde pas plus l'écoute de foc.",
+          de: 'Fock kurz vor dem Strömungsabriss. Fockschot nicht weiter dichtholen.',
+          it: 'Il fiocco è al limite dello stallo. Non cazzare oltre la scotta del fiocco.',
         },
       ),
       tone: 'info',
@@ -249,14 +249,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (mainSet && jibSet && diag.slotHealth < 0.4 && ui.jibFurlPct > 20 && absTwa < 130) {
     return {
       text: tp(
-        'Слот закрывается - ослабь стаксель.',
-        'Slot is closing - ease the jib.',
+        'Слот закрывается - потрави стаксель-шкот.',
+        'Slot is closing - ease the jib sheet.',
         'Szczelina się zamyka: poluzuj szot foka.',
         {
-          es: 'La ranura se cierra: lasca el foque.',
-          fr: 'La fente se ferme : choque le foc.',
-          de: 'Der Spalt schließt sich: Fock fieren.',
-          it: 'La fessura si chiude: lasca il fiocco.',
+          es: 'La ranura se cierra: lasca la escota de foque.',
+          fr: "La fente se ferme : choque l'écoute de foc.",
+          de: 'Der Spalt schließt sich: Fockschot fieren.',
+          it: 'La fessura si chiude: lasca la scotta del fiocco.',
         },
       ),
       tone: 'info',

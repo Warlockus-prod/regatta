@@ -60,6 +60,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     presets: { ...DEFAULT_LABELS.presets, ...labels?.presets },
     coach: { ...DEFAULT_LABELS.coach, ...labels?.coach },
     sailStatus: { ...DEFAULT_LABELS.sailStatus, ...labels?.sailStatus },
+    sailHint: { ...DEFAULT_LABELS.sailHint, ...labels?.sailHint },
     maneuver: { ...DEFAULT_LABELS.maneuver, ...labels?.maneuver },
     tour: { ...DEFAULT_LABELS.tour, ...labels?.tour },
   }), [labels]);
@@ -83,7 +84,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   useEffect(() => { setActive(mode === "sail"); }, [mode, setActive]);
   useEffect(() => {
     if (mode === "sail" && enabled) update(t.awsKn, sim.wind.twsKn, t.speedKn,
-      t.coach === "luffEaseIn" || t.coach === "inIrons", performance.now() / 1000);
+      t.coach.startsWith("luff") || t.coach === "inIrons", performance.now() / 1000);
   }, [mode, enabled, update, t.awsKn, t.speedKn, t.coach, sim.wind.twsKn]);
   const setControlRef = useRef(sim.setControl);
   useEffect(() => { setControlRef.current = sim.setControl; });
@@ -166,8 +167,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <Slider label={L.jibsheet} value={sim.controls.jibSheet} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("jibSheet", v)} />
           <p className={styles.sheetScale}>{L.sheetScale}</p>
           <div className={styles.sailFeedback}>
-            <span>{L.scene.main}: {L.sailStatus[t.mainStatus]}</span>
-            <span>{L.scene.jib}: {L.sailStatus[t.jibStatus]}</span>
+            <span>{L.scene.main}: {t.mainStatus === "luffing" ? L.sailHint.mainLuffing : t.mainStatus === "stalled" ? L.sailHint.mainStalled : L.sailStatus[t.mainStatus]}</span>
+            <span>{L.scene.jib}: {t.jibStatus === "luffing" ? L.sailHint.jibLuffing : t.jibStatus === "stalled" ? L.sailHint.jibStalled : L.sailStatus[t.jibStatus]}</span>
           </div>
           <details className={styles.details}><summary>{L.scene.more}</summary><div>
             <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} fmt={(v) => degrees(v * 35)} onChange={(v) => sim.setControl("rudder", v)} />

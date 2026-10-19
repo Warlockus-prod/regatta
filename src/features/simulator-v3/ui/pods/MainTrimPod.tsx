@@ -10,10 +10,10 @@ export function MainTrimPod({ ui, setUi, sim, tp, children, studyActive = false 
   if (!rig || !target) return null;
   const put = (key: keyof MainTrimCommand, value: number) => setUi(p => ({ ...p, mainTrim: { ...p.mainTrim!, [key]: value } }));
   return <PodCard>
-    <PodLabel text={tp("ГРОТШКОТ И КАРЕТКА", "MAINSHEET AND TRAVELER", "SZOT GROTA I WÓZEK", { es: "ESCOTA DE MAYOR Y CARRO", fr: "ÉCOUTE DE GV ET CHARIOT", de: "GROSSSCHOT UND TRAVELLER", it: "SCOTTA RANDA E CARRELLO" })} />
-    <PodSlider label={tp("Выданная рабочая длина", "Paid-out working length", "Wydana długość robocza", { es: "Longitud de trabajo largada", fr: "Longueur utile filée", de: "Ausgegebene Arbeitslänge", it: "Lunghezza di lavoro filata" })}
+    <PodLabel text={tp("ГИКА-ШКОТ И КАРЕТКА", "MAINSHEET AND TRAVELER", "SZOT GROTA I WÓZEK", { es: "ESCOTA DE MAYOR Y CARRO", fr: "ÉCOUTE DE GRAND-VOILE ET CHARIOT", de: "GROSSSCHOT UND TRAVELLER", it: "SCOTTA DELLA RANDA E CARRELLO" })} />
+    <PodSlider label={tp("Гика-шкот: выданная рабочая длина", "Mainsheet: paid-out working length", "Szot grota: wydana długość robocza", { es: "Escota de mayor: longitud de trabajo largada", fr: "Écoute de grand-voile : longueur utile filée", de: "Großschot: ausgegebene Arbeitslänge", it: "Scotta della randa: lunghezza di lavoro filata" })}
       value={`${target.workingLength.toFixed(1)} m`} min={MAIN_TRIM_LIMITS.minLength} max={MAIN_TRIM_LIMITS.maxLength} step={.1} sliderValue={target.workingLength} onChange={v => put("workingLength", v)} />
-    <PodSlider label={tp("Каретка: - левый, + правый борт", "Traveler: - port, + starboard", "Wózek: - lewa, + prawa burta", { es: "Carro: - babor, + estribor", fr: "Chariot : - bâbord, + tribord", de: "Traveller: - Backbord, + Steuerbord", it: "Carrello: - sinistra, + dritta" })}
+    <PodSlider label={tp("Каретка гика-шкота: - левый, + правый борт", "Mainsheet traveler: - port, + starboard", "Wózek szotu grota: - lewa, + prawa burta", { es: "Carro de mayor: - babor, + estribor", fr: "Chariot de grand-voile : - bâbord, + tribord", de: "Großschot-Traveller: - Backbord, + Steuerbord", it: "Carrello della randa: - sinistra, + dritta" })}
       value={`${target.traveler.toFixed(2)} m`} min={-.8} max={.8} step={.05} sliderValue={target.traveler} onChange={v => put("traveler", v)} />
     <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm tabular-nums text-[var(--text-primary)]">
       <dt>{tp("Гик", "Boom", "Bom", { es: "Botavara", fr: "Bôme", de: "Baum", it: "Boma" })}</dt><dd>{Math.abs(rig.pose.yaw).toFixed(1)}°</dd>

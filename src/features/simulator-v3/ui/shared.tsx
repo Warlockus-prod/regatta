@@ -178,6 +178,17 @@ export function toJibSheet(angle: number, minOff: number, maxOff: number): numbe
   return clamp(1 - (angle - minOff) / span, 0, 1);
 }
 
+// How far the sheet is eased, 0 (sheeted in) .. 100 (fully eased). Every sheet
+// control shows this number first and the resulting sail angle in brackets,
+// one scale for the Trainer, the 3D boat and the app (owner decision 2026-10-19).
+export function mainEasePct(angle: number, maxOff: number): number {
+  return Math.round((1 - toMainSheet(angle, maxOff)) * 100);
+}
+
+export function jibEasePct(angle: number, minOff: number, maxOff: number): number {
+  return Math.round((1 - toJibSheet(angle, minOff, maxOff)) * 100);
+}
+
 // Inverse of toMainSheet / toJibSheet: recover the sheet angle in degrees
 // from a normalized 0..1 sheet value. Used to draw the runtime's LIVE
 // (interpolated) controls on the scenes.

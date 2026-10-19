@@ -453,7 +453,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след.
 - `src/features/simulator-3d/ocean/WindFlow.tsx` - видимый поток ветра.
 - `src/features/simulator-3d/ocean/waves.ts` - поле волн (сумма синусов), общее для воды и качки.
-- `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия.
+- `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия, подсказка коуча `coachFrom` (называет шкот).
+- `src/features/simulator-3d/physics/coach.test.ts` - контракт: каждая подсказка трима называет шкот (гика-шкот, стаксель-шкот или оба).
 - `src/features/simulator-3d/physics/sailModel.ts` - визуальные и подсказочные помощники (не силы).
 - `src/features/simulator-3d/physics/step.ts` - совместимость: шаг отдан общей сессии.
 - `src/features/simulator-3d/physics/step.test.ts` - тесты шага 3D-сцены.

@@ -94,11 +94,11 @@ function SimulatorV2Inner() {
       pointOfSail: tp('Точка курса', 'Point of sail', 'Kurs', {
         es: 'Rumbo', fr: 'Allure', de: 'Kurs zum Wind', it: 'Andatura',
       }),
-      mainsheet: tp('Грота-шкот (гик)', 'Mainsheet (boom)', 'Szot grota (bom)', {
-        es: 'Escota mayor', fr: 'Écoute de GV', de: 'Großschot', it: 'Scotta randa',
+      mainsheet: tp('Гика-шкот', 'Mainsheet', 'Szot grota', {
+        es: 'Escota de mayor', fr: 'Écoute de grand-voile', de: 'Großschot', it: 'Scotta della randa',
       }),
       jibsheet: tp('Стаксель-шкот', 'Jib sheet', 'Szot foka', {
-        es: 'Escota de foque', fr: 'Écoute de foc', de: 'Fockschot', it: 'Scotta fiocco',
+        es: 'Escota de foque', fr: 'Écoute de foc', de: 'Fockschot', it: 'Scotta del fiocco',
       }),
       camber: tp('Пузо (камбер)', 'Draft (camber)', 'Brzuch (głębokość)', {
         es: 'Bolsa (camber)', fr: 'Creux (camber)', de: 'Bauch (Camber)', it: 'Grasso (camber)',
@@ -173,14 +173,14 @@ function SimulatorV2Inner() {
           {
             title: tp('Шкоты', 'Sheets', 'Szoty', { es: 'Escotas', fr: 'Écoutes', de: 'Schoten', it: 'Scotte' }),
             body: tp(
-              'Трави грота- и стаксель-шкот, пока парус не начнёт полоскать, потом чуть подбери. Подсказка коуча - внизу сцены.',
-              'Ease the main and jib sheets until the sail just starts to luff, then sheet back in a touch. The coach hint sits at the bottom.',
-              'Luzuj szot grota i szot foka, aż żagiel zacznie łopotać, potem lekko go wybierz. Podpowiedź trenera jest na dole sceny.',
+              'Трави гика-шкот и стаксель-шкот, пока парус не начнёт полоскать, потом чуть подбери. Подсказка коуча называет, какой шкот трогать, она внизу сцены.',
+              'Ease the mainsheet and the jib sheet until the sail just starts to luff, then sheet back in a touch. The coach hint at the bottom names the sheet to adjust.',
+              'Luzuj szot grota i szot foka, aż żagiel zacznie łopotać, potem lekko go wybierz. Podpowiedź trenera na dole sceny mówi, który szot ruszyć.',
               {
-                es: 'Lasca la escota de mayor y la de foque hasta que la vela empiece a flamear; luego caza un poco. El consejo del entrenador está abajo.',
-                fr: "Choque l'écoute de GV et celle de foc jusqu'à ce que la voile commence à faseyer, puis borde un peu. Le conseil du coach est en bas.",
-                de: 'Fiere Groß- und Fockschot, bis das Segel zu killen beginnt, dann hol etwas dicht. Der Coach-Hinweis steht unten.',
-                it: 'Lasca la scotta della randa e quella del fiocco finché la vela comincia a fileggiare, poi cazza un poco. Il consiglio del coach è in basso.',
+                es: 'Lasca la escota de mayor y la de foque hasta que la vela empiece a flamear; luego caza un poco. El consejo del entrenador, abajo, dice qué escota tocar.',
+                fr: "Choque l'écoute de grand-voile et celle de foc jusqu'à ce que la voile commence à faseyer, puis borde un peu. Le conseil du coach, en bas, indique quelle écoute régler.",
+                de: 'Fiere Groß- und Fockschot, bis das Segel zu killen beginnt, dann hol etwas dicht. Der Coach-Hinweis unten nennt die Schot, die du bedienen sollst.',
+                it: 'Lasca la scotta della randa e quella del fiocco finché la vela comincia a fileggiare, poi cazza un poco. Il consiglio del coach, in basso, dice quale scotta regolare.',
               },
             ),
           },
@@ -214,7 +214,7 @@ function SimulatorV2Inner() {
           },
         ],
       },
-      sheetScale: tp("0% шкот выбран · 100% потравлен", "0% sheeted in · 100% eased out", "0% szot wybrany · 100% poluzowany", { es: "0% cazado · 100% lascado", fr: "0% bordé · 100% choqué", de: "0% dichtgeholt · 100% gefiert", it: "0% cazzata · 100% lascata" }),
+      sheetScale: tp("0% шкот выбран · 100% потравлен", "0% sheeted in · 100% eased out", "0% szot wybrany · 100% poluzowany", { es: "0% cazada · 100% lascada", fr: "0% bordée · 100% choquée", de: "0% dichtgeholt · 100% gefiert", it: "0% cazzata · 100% lascata" }),
       maneuver: {
         tacking: tp("Оверштаг: паруса разгружаются и наполняются на новом галсе", "Tacking: sails unload and fill on the new side", "Zwrot przez sztag: żagle tracą napór i napełniają się na nowym halsie", { es: "Virada por avante: las velas pierden presión y se llenan en la nueva banda", fr: "Virement : les voiles se déchargent puis se remplissent sur le nouveau bord", de: "Wende: Die Segel entlasten und füllen sich auf dem neuen Bug", it: "Virata: le vele si scaricano e si riempiono sulle nuove mure" }),
         gybing: tp("Фордевинд: экипаж автоматически переносит паруса", "Gybing: the crew transfers the sails automatically", "Zwrot przez rufę: załoga automatycznie przenosi żagle", { es: "Trasluchada: la tripulación cambia las velas de banda automáticamente", fr: "Empannage : l'équipage fait passer les voiles automatiquement", de: "Halse: Die Crew bringt die Segel automatisch auf die andere Seite", it: "Strambata: l'equipaggio fa passare le vele automaticamente" }),
@@ -223,19 +223,37 @@ function SimulatorV2Inner() {
         transferring: tp("Переходит на другой борт", "Changing sides", "Przechodzi na drugą burtę", { es: "Cambiando de banda", fr: "Changement de bord", de: "Wechselt die Seite", it: "Cambia lato" }),
         inIrons: tp("Левентик: увались", "In irons: bear away", "W łopocie: odpadnij", { es: "Proa al viento: arriba", fr: "Vent debout : abats", de: "Im Wind: abfallen", it: "Prua al vento: poggia" }),
         calm: tp("Мало потока", "Little airflow", "Słaby przepływ", { es: "Poco flujo", fr: "Peu de flux", de: "Wenig Strömung", it: "Poco flusso" }),
-        luffing: tp("Полощет: немного выбери шкот", "Luffing: sheet in slightly", "Łopocze: lekko wybierz szot", { es: "Flamea: caza un poco", fr: "Faseye : borde un peu", de: "Killt: leicht dichtholen", it: "Fileggia: cazza un poco" }),
-        stalled: tp("Срыв потока: потрави шкот", "Stalled: ease the sheet", "Oderwanie przepływu: poluzuj szot", { es: "Flujo desprendido: lasca la escota", fr: "Décrochage : choque l'écoute", de: "Strömungsabriss: Schot fieren", it: "Stallo: lasca la scotta" }),
+        luffing: tp("Полощет", "Luffing", "Łopocze", { es: "Flamea", fr: "Faseye", de: "Killt", it: "Fileggia" }),
+        stalled: tp("Срыв потока", "Stalled", "Oderwanie przepływu", { es: "Flujo desprendido", fr: "Décrochage", de: "Strömungsabriss", it: "Stallo" }),
         drawing: tp("Наполнен, тянет", "Filled and drawing", "Wypełniony, pracuje", { es: "Llena y tira", fr: "Gonflée, elle porte", de: "Gefüllt, zieht", it: "Gonfia e tira" }),
+      },
+      sailHint: {
+        mainLuffing: tp("Полощет: немного выбери гика-шкот", "Luffing: trim the mainsheet slightly", "Łopocze: lekko wybierz szot grota", { es: "Flamea: caza un poco la escota de mayor", fr: "Faseye : borde un peu l'écoute de grand-voile", de: "Killt: Großschot leicht dichtholen", it: "Fileggia: cazza un poco la scotta della randa" }),
+        mainStalled: tp("Срыв потока: потрави гика-шкот", "Stalled: ease the mainsheet", "Oderwanie przepływu: poluzuj szot grota", { es: "Flujo desprendido: lasca la escota de mayor", fr: "Décrochage : choque l'écoute de grand-voile", de: "Strömungsabriss: Großschot fieren", it: "Stallo: lasca la scotta della randa" }),
+        jibLuffing: tp("Полощет: немного выбери стаксель-шкот", "Luffing: trim the jib sheet slightly", "Łopocze: lekko wybierz szot foka", { es: "Flamea: caza un poco la escota de foque", fr: "Faseye : borde un peu l'écoute de foc", de: "Killt: Fockschot leicht dichtholen", it: "Fileggia: cazza un poco la scotta del fiocco" }),
+        jibStalled: tp("Срыв потока: потрави стаксель-шкот", "Stalled: ease the jib sheet", "Oderwanie przepływu: poluzuj szot foka", { es: "Flujo desprendido: lasca la escota de foque", fr: "Décrochage : choque l'écoute de foc", de: "Strömungsabriss: Fockschot fieren", it: "Stallo: lasca la scotta del fiocco" }),
       },
       coach: {
         inIrons: tp('В левентике - увались, чтобы наполнить паруса', 'In irons - bear away to fill the sails', 'W łopocie: odpadnij, żeby napełnić żagle', {
           es: 'Proa al viento: arriba para llenar las velas', fr: 'Vent debout : abats pour remplir les voiles', de: 'Im Wind: abfallen, um die Segel zu füllen', it: 'Prua al vento: poggia per riempire le vele',
         }),
-        luffEaseIn: tp('Полощет - выбери шкот или увались', 'Luffing - sheet in or bear away', 'Łopocze: wybierz szot lub odpadnij', {
-          es: 'Flamea: caza o arriba', fr: 'Ça faseye : borde ou abats', de: 'Killt: dichtholen oder abfallen', it: 'Fileggia: cazza o poggia',
+        luffMain: tp('Грот полощет - выбери гика-шкот или увались', 'Main luffing - trim the mainsheet or bear away', 'Grot łopocze: wybierz szot grota lub odpadnij', {
+          es: 'La mayor flamea: caza la escota de mayor o arriba', fr: 'La grand-voile faseye : borde l\'écoute de grand-voile ou abats', de: 'Großsegel killt: Großschot dichtholen oder abfallen', it: 'La randa fileggia: cazza la scotta della randa o poggia',
         }),
-        stallEaseOut: tp('Перебор - потрави шкот', 'Stalled - ease the sheet', 'Za mocno wybrany: poluzuj szot', {
-          es: 'Demasiado cazada: lasca la escota', fr: 'Décroché : choque l\'écoute', de: 'Strömungsabriss: Schot fieren', it: 'Stallo: lasca la scotta',
+        luffJib: tp('Стаксель полощет - выбери стаксель-шкот или увались', 'Jib luffing - trim the jib sheet or bear away', 'Fok łopocze: wybierz szot foka lub odpadnij', {
+          es: 'El foque flamea: caza la escota de foque o arriba', fr: 'Le foc faseye : borde l\'écoute de foc ou abats', de: 'Fock killt: Fockschot dichtholen oder abfallen', it: 'Il fiocco fileggia: cazza la scotta del fiocco o poggia',
+        }),
+        luffBoth: tp('Оба паруса полощут - выбери гика-шкот и стаксель-шкот или увались', 'Both sails luffing - trim the mainsheet and the jib sheet or bear away', 'Oba żagle łopoczą: wybierz szot grota i szot foka lub odpadnij', {
+          es: 'Las dos velas flamean: caza la escota de mayor y la de foque o arriba', fr: 'Les deux voiles faseyent : borde l\'écoute de grand-voile et celle de foc ou abats', de: 'Beide Segel killen: Groß- und Fockschot dichtholen oder abfallen', it: 'Entrambe le vele fileggiano: cazza la scotta della randa e quella del fiocco o poggia',
+        }),
+        stallMain: tp('Срыв на гроте - потрави гика-шкот', 'Main stalled - ease the mainsheet', 'Oderwanie na grocie: poluzuj szot grota', {
+          es: 'Flujo desprendido en la mayor: lasca la escota de mayor', fr: 'Grand-voile décrochée : choque l\'écoute de grand-voile', de: 'Abriss am Großsegel: Großschot fieren', it: 'Randa in stallo: lasca la scotta della randa',
+        }),
+        stallJib: tp('Срыв на стакселе - потрави стаксель-шкот', 'Jib stalled - ease the jib sheet', 'Oderwanie na foku: poluzuj szot foka', {
+          es: 'Flujo desprendido en el foque: lasca la escota de foque', fr: 'Foc décroché : choque l\'écoute de foc', de: 'Abriss an der Fock: Fockschot fieren', it: 'Fiocco in stallo: lasca la scotta del fiocco',
+        }),
+        stallBoth: tp('Срыв на обоих парусах - потрави гика-шкот и стаксель-шкот', 'Both sails stalled - ease the mainsheet and the jib sheet', 'Oderwanie na obu żaglach: poluzuj szot grota i szot foka', {
+          es: 'Flujo desprendido en las dos velas: lasca la escota de mayor y la de foque', fr: 'Les deux voiles décrochent : choque l\'écoute de grand-voile et celle de foc', de: 'Abriss an beiden Segeln: Groß- und Fockschot fieren', it: 'Entrambe le vele in stallo: lasca la scotta della randa e quella del fiocco',
         }),
         pinching: tp('Слишком круто - чуть увались', 'Pinching - bear away a touch', 'Za ostro: lekko odpadnij', {
           es: 'Demasiado ceñido: arriba un poco', fr: 'Trop près : abats un peu', de: 'Zu hoch: etwas abfallen', it: 'Troppo stretto: poggia un poco',
@@ -246,8 +264,8 @@ function SimulatorV2Inner() {
         reachOn: tp('Настрой под галфвинд', 'Trim for the reach', 'Wytrymuj żagle na półwiatr', {
           es: 'Trima para el través', fr: 'Règle pour le travers', de: 'Für Halbwind trimmen', it: 'Regola per il traverso',
         }),
-        run: tp("Фордевинд: потрави шкоты для попутного ветра", "Running: ease the sheets for the following wind", "Fordewind: poluzuj szoty", {
-          es: "En popa: lasca las escotas", fr: "Vent arrière : choque les écoutes", de: "Vorwind: Schoten fieren", it: "In poppa: lasca le scotte",
+        run: tp("Фордевинд: потрави гика-шкот и стаксель-шкот", "Running: ease the mainsheet and the jib sheet", "Fordewind: poluzuj szot grota i szot foka", {
+          es: "En popa: lasca la escota de mayor y la de foque", fr: "Vent arrière : choque l'écoute de grand-voile et celle de foc", de: "Vorwind: Groß- und Fockschot fieren", it: "In poppa: lasca la scotta della randa e quella del fiocco",
         }),
       },
     }),

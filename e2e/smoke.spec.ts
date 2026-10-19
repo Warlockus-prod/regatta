@@ -232,7 +232,7 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/simulator2?embed=1&lang=en");
-  const main = page.getByRole("slider", { name: "Mainsheet (boom)", exact: true });
+  const main = page.getByRole("slider", { name: "Mainsheet", exact: true });
   await expect(main).toBeVisible({ timeout: 20_000 });
   await expect(page.locator("canvas").first()).toBeVisible();
   await expect(page.getByRole("contentinfo", { name: "Site brand" })).toHaveCount(0);

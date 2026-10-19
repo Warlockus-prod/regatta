@@ -105,13 +105,22 @@ const INITIAL_TELEMETRY: SimTelemetry = {
  * Note: deep downwind the sails run in drag mode - the engine's "stalled"
  * flag is physically true but is NOT a trim error there, so stall coaching
  * only applies while flow should be attached (up to ~135 deg). */
-function coachFrom(twaAbs: number, speedKn: number, diag: TickDiagnostics, quality: number): CoachKey {
+export function coachFrom(
+  twaAbs: number, speedKn: number, diag: TickDiagnostics, quality: number,
+  incidence: { main: number; jib: number } = { main: 90, jib: 90 },
+): CoachKey {
   if (twaAbs < NO_GO_HALF_DEG) return speedKn < 1.5 ? 'inIrons' : 'pinching';
   if (twaAbs < NO_GO_HALF_DEG + 5) return 'pinching';
   if (twaAbs >= 150) return 'run';
-  if (twaAbs <= 135 && (diag.mainStalled || diag.jibStalled)) return 'stallEaseOut';
-  const minAoA = Math.min(diag.mainAoA, diag.jibAoA);
-  if (twaAbs <= 135 && minAoA < 7) return 'luffEaseIn';
+  const attached = twaAbs <= 135;
+  // Every trim hint names the sheet: the learner must know which line to touch.
+  const mainLuff = attached && (incidence.main < 1 || diag.mainAoA < 7);
+  const jibLuff = attached && (incidence.jib < 1 || diag.jibAoA < 7);
+  if (incidence.main < 1 || incidence.jib < 1) return mainLuff && jibLuff ? 'luffBoth' : mainLuff ? 'luffMain' : 'luffJib';
+  if (attached && (diag.mainStalled || diag.jibStalled)) {
+    return diag.mainStalled && diag.jibStalled ? 'stallBoth' : diag.mainStalled ? 'stallMain' : 'stallJib';
+  }
+  if (mainLuff || jibLuff) return mainLuff && jibLuff ? 'luffBoth' : mainLuff ? 'luffMain' : 'luffJib';
   if (quality >= 0.68) return 'good';
   return 'reachOn';
 }
@@ -188,8 +197,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             vmg: diag.vmg,
             vmgTargetAngle: twaAbs < 90 ? sv.vmgUp : sv.vmgDown,
             targetSpeedKn: sv.target,
-            coach: twaAbs >= NO_GO_HALF_DEG && twaAbs <= 135 && (mainIncidence < 1 || jibIncidence < 1)
-              ? "luffEaseIn" : coachFrom(twaAbs, next.boatSpeed, diag, quality),
+            coach: coachFrom(twaAbs, next.boatSpeed, diag, quality, { main: mainIncidence, jib: jibIncidence }),
             maneuver: motion.maneuver,
             mainStatus: mainResponse.status,
             jibStatus: jibResponse.status,

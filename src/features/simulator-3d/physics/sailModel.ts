@@ -72,8 +72,12 @@ export interface Controls {
 /** Coach hint vocabulary; labels for each key live in SimLabels.coach. */
 export type CoachKey =
   | 'inIrons'
-  | 'luffEaseIn'
-  | 'stallEaseOut'
+  | 'luffMain'
+  | 'luffJib'
+  | 'luffBoth'
+  | 'stallMain'
+  | 'stallJib'
+  | 'stallBoth'
   | 'pinching'
   | 'good'
   | 'reachOn'

@@ -120,19 +120,19 @@ const STEPS: TourStep[] = [
     titleDe: 'GROSS + FOCK',
     titleIt: 'RANDA + FIOCCO',
     bodyRu:
-      'Угол - насколько шкот выбран. Риф (R1/R2) уменьшает грот. Раскрытие стакселя 0-100. Зелёная точка ТЯНЕТ - парус работает. Красный СРЫВ - поток оторвался.',
+      'Гика-шкот и стаксель-шкот: 0% выбран, 100% потравлен, в скобках угол паруса к ДП. Риф (R1/R2) уменьшает грот. Раскрытие стакселя 0-100. Зелёная точка ТЯНЕТ - парус работает. Красный СРЫВ - поток оторвался.',
     bodyEn:
-      'Angle = how tightly the sheet is pulled. Reef (R1/R2) shrinks the main. Jib unfurled 0-100%. Green ATTACHED dot = sail working. Red STALL = flow detached.',
+      'Mainsheet and jib sheet: 0% sheeted in, 100% eased out, the sail angle to the centerline in brackets. Reef (R1/R2) shrinks the main. Jib unfurled 0-100%. Green ATTACHED dot = sail working. Red STALL = flow detached.',
     bodyPl:
-      'Kąt: jak mocno wybrany jest szot. Ref (R1/R2) zmniejsza grot. Rozwinięcie foka 0-100%. Zielona kropka PRACUJE: żagiel działa. Czerwone ODERWANIE PRZEPŁYWU: przepływ się oderwał.',
+      'Szot grota i szot foka: 0% wybrany, 100% poluzowany, w nawiasie kąt żagla do osi jachtu. Ref (R1/R2) zmniejsza grot. Rozwinięcie foka 0-100%. Zielona kropka PRACUJE: żagiel działa. Czerwone ODERWANIE PRZEPŁYWU: przepływ się oderwał.',
     bodyEs:
-      'Ángulo: cuánto está cazada la escota. El rizo (R1/R2) reduce la mayor. Foque desenrollado 0-100%. Punto verde TIRA: la vela trabaja. Rojo FLUJO DESPRENDIDO: el flujo se ha separado.',
+      'Escota de mayor y escota de foque: 0% cazada, 100% lascada, entre paréntesis el ángulo de la vela respecto a crujía. El rizo (R1/R2) reduce la mayor. Foque desenrollado 0-100%. Punto verde TIRA: la vela trabaja. Rojo FLUJO DESPRENDIDO: el flujo se ha separado.',
     bodyFr:
-      'Angle : à quel point l\'écoute est bordée. Le ris (R1/R2) réduit la grand-voile. Foc déroulé de 0 à 100%. Point vert PORTE : la voile travaille. Rouge DÉCROCHÉ : l\'écoulement a décroché.',
+      'Écoute de grand-voile et écoute de foc : 0% bordée, 100% choquée, entre parenthèses l\'angle de la voile par rapport à l\'axe. Le ris (R1/R2) réduit la grand-voile. Foc déroulé de 0 à 100%. Point vert PORTE : la voile travaille. Rouge DÉCROCHÉ : l\'écoulement a décroché.',
     bodyDe:
-      'Winkel: wie dicht die Schot geholt ist. Das Reff (R1/R2) verkleinert das Groß. Fock ausgerollt 0-100%. Grüner Punkt ZIEHT: das Segel arbeitet. Rot STRÖMUNGSABRISS: die Strömung ist abgerissen.',
+      'Großschot und Fockschot: 0% dichtgeholt, 100% gefiert, in Klammern der Segelwinkel zur Mittschiffslinie. Das Reff (R1/R2) verkleinert das Groß. Fock ausgerollt 0-100%. Grüner Punkt ZIEHT: das Segel arbeitet. Rot STRÖMUNGSABRISS: die Strömung ist abgerissen.',
     bodyIt:
-      'Angolo: quanto è cazzata la scotta. La mano di terzaroli (R1/R2) riduce la randa. Fiocco svolto 0-100%. Punto verde PORTA: la vela lavora. Rosso STALLO: il flusso si è staccato.',
+      'Scotta della randa e scotta del fiocco: 0% cazzata, 100% lascata, tra parentesi l\'angolo della vela rispetto all\'asse. La mano di terzaroli (R1/R2) riduce la randa. Fiocco svolto 0-100%. Punto verde PORTA: la vela lavora. Rosso STALLO: il flusso si è staccato.',
   },
   {
     icon: '👻',
