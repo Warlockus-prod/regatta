@@ -123,7 +123,14 @@ export default function SternikChat() {
           signal: controller.signal,
         });
         const data = await res.json().catch(() => ({}));
-        if (!res.ok || (data.error && !data.reply)) {
+        if (res.status === 429) {
+          // The server text is a Polish fallback; say it in the learner's language.
+          const mins = Math.max(1, Math.ceil((Number(data.retryAfterSec) || 0) / 60));
+          const hours = Math.ceil(mins / 60);
+          setError(mins > 90
+            ? tp(`Лимит вопросов исчерпан. Попробуй снова через ${hours} ч.`, `Question limit reached. Try again in ${hours} h.`, `Limit pytań wyczerpany. Spróbuj ponownie za ${hours} godz.`)
+            : tp(`Лимит вопросов исчерпан. Попробуй снова через ${mins} мин.`, `Question limit reached. Try again in ${mins} min.`, `Limit pytań wyczerpany. Spróbuj ponownie za ${mins} min.`));
+        } else if (!res.ok || (data.error && !data.reply)) {
           setError(
             data.error ||
               tp('Сервис недоступен, попробуй позже', 'Service unavailable, try later', 'Usługa niedostępna, spróbuj później'),
