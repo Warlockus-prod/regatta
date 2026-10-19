@@ -9,7 +9,10 @@
  * - Typography follows AGENTS.md: no en/em dash, no curly quotes, no ellipsis
  *   character, no non-breaking space (French uses a plain ASCII space before
  *   ':' instead).
- * - Polish is written with full diacritics (owner decision 2026-09-27).
+ * - Polish is written with full diacritics (owner decision 2026-09-27):
+ *   no common word spelled without them, and a normal diacritic density in
+ *   the description, so a partly de-accented text fails too.
+ * - French colons have a space before them; URLs and clock times are ignored.
  * - Keywords never repeat a word from the same locale's name or subtitle
  *   (Apple already indexes those).
  *
@@ -66,6 +69,52 @@ function words(s: string): string[] {
     .filter((w) => w.length > 2);
 }
 
+// ASCII spellings of common Polish words that only exist WITH diacritics
+// ("sie" for "się", "zeglarstwo" for "żeglarstwo", ...). Each pattern matches
+// a whole word, so a correct "się" or "zaglądać" never trips it. Only forms
+// that are not Polish words without their accents belong here.
+const DEACCENTED_POLISH: RegExp[] = [
+  /^sie$/,
+  /^zegl[a-z]*$/, // żegl-: żeglarstwo, żeglarz, żeglowanie
+  /^zag(iel|le|li|lami|lach|lem)$/, // żagiel, żagle
+  /^lodz[a-z]*$/, // łódź, łodzi
+  /^moz(e|esz|na|liwe)$/, // może, możesz, można, możliwe
+  /^wiecej$/,
+  /^ktor(y|a|e|ego|ej|ych|ym|zy)$/,
+  /^(takze|rowniez|dzieki|jezeli|bedzie|nauke|zaloga|pytan|egzaminow)$/,
+  /^cwicze[a-z]*$/, // ćwiczenie, ćwiczenia
+];
+
+/** Words of `text` written without the diacritics Polish needs. */
+function deAccentedPolish(text: string): string[] {
+  return text
+    .toLocaleLowerCase('pl')
+    .split(/[^\p{L}]+/u)
+    .filter((w) => DEACCENTED_POLISH.some((re) => re.test(w)));
+}
+
+/** Share of letters that carry a Polish diacritic (about 6-8% in real text). */
+function polishDiacriticRatio(text: string): number {
+  const letters = text.match(/\p{L}/gu) ?? [];
+  const marked = text.match(/[ąćęłńóśźż]/giu) ?? [];
+  return letters.length === 0 ? 0 : marked.length / letters.length;
+}
+
+/**
+ * Lines with a colon glued to the previous character, the French spacing
+ * error. URLs ("https://") and clock times ("12:30") are removed first so
+ * they never count as errors.
+ */
+function tightFrenchColons(text: string): string[] {
+  return text
+    .split('\n')
+    .filter((line) =>
+      /\S:/.test(
+        line.replace(/\b[a-z][a-z0-9+.-]*:\/\/\S+/gi, '').replace(/\d:\d/g, ''),
+      ),
+    );
+}
+
 describe('App Store listing text (mobile/asc-metadata)', () => {
   it('has a folder with every field for each pushed locale', () => {
     for (const locale of LOCALES) {
@@ -119,13 +168,39 @@ describe('App Store listing text (mobile/asc-metadata)', () => {
     for (const file of ['name.txt', 'description.md', 'promotional.txt']) {
       expect(readField('pl', file)).toMatch(/[ąćęłńóśźż]/iu);
     }
+    // A partly de-accented text still has some diacritics, so also look for
+    // common words spelled without them, in every Polish field.
+    for (const file of Object.keys(LIMITS)) {
+      const bare = deAccentedPolish(readField('pl', file));
+      expect({ file, bare }).toEqual({ file, bare: [] });
+    }
+    // And the long description keeps a normal density of diacritics.
+    expect(polishDiacriticRatio(readField('pl', 'description.md'))).toBeGreaterThan(0.04);
+  });
+
+  it('the Polish check catches de-accented words and passes correct ones', () => {
+    expect(deAccentedPolish('Uczysz sie zeglarstwa, ktore moze byc trudne.')).toEqual([
+      'sie',
+      'zeglarstwa',
+      'ktore',
+      'moze',
+    ]);
+    expect(deAccentedPolish('Uczysz się żeglarstwa, które może być trudne.')).toEqual([]);
+    expect(deAccentedPolish('Zaglądasz do żagli na łodzi.')).toEqual([]);
+    expect(polishDiacriticRatio('Zażółć gęślą jaźń')).toBeGreaterThan(0.4);
+    expect(polishDiacriticRatio('Zazolc gesla jazn')).toBe(0);
   });
 
   it('French puts a plain space before a colon in the long texts', () => {
     for (const file of ['description.md', 'promotional.txt']) {
-      const value = readField('fr', file);
-      const tight = value.split('\n').filter((line) => /\S:/.test(line));
+      const tight = tightFrenchColons(readField('fr', file));
       expect({ file, tight }).toEqual({ file, tight: [] });
     }
+  });
+
+  it('the French colon check ignores URLs and clock times', () => {
+    expect(tightFrenchColons('Voir https://weektoregatta.com/privacy à 12:30')).toEqual([]);
+    expect(tightFrenchColons('Gratuit : 879 questions')).toEqual([]);
+    expect(tightFrenchColons('Gratuit: 879 questions')).toEqual(['Gratuit: 879 questions']);
   });
 });
