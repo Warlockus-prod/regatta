@@ -61,6 +61,8 @@ import { AppState } from 'react-native';
 import Simulator from '../../app/simulator';
 import { fetchWeatherNow } from '../../src/api/weather';
 import { renderWithProviders } from '../../src/test-utils';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CONTROLS_STORAGE_KEY, __resetControlPrefsForTests } from '../../src/persistence/controls';
 
 type View = ReturnType<typeof renderWithProviders>;
 
@@ -111,6 +113,9 @@ describe('Native trainer (/simulator)', () => {
     expect(chip(view, 'Top').props.accessibilityState.selected).toBe(true);
     expect(view.getByLabelText(/^Wind and steering control/)).toBeTruthy();
     expect(fetchWeatherNow).not.toHaveBeenCalled();
+    // Sliders are the default control mode.
+    expect(view.getByLabelText(/^Mainsheet, 0% sheeted in/)).toBeTruthy();
+    expect(view.queryByTestId('wheel-deck')).toBeNull();
   });
 
   it('opens a bootcamp drill link (?drill=&lesson=) in drill mode', async () => {
@@ -147,5 +152,21 @@ describe('Native trainer (/simulator)', () => {
     setParams({ view: 'rear' });
     const view = await mountAndTick();
     expect(chip(view, 'Rear').props.accessibilityState.selected).toBe(true);
+  });
+
+  it('shows the wheels instead of the sheet sliders in wheel mode and steers through them', async () => {
+    await AsyncStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify({ version: 1, mode: 'wheels', sound: false }));
+    __resetControlPrefsForTests();
+    const view = await mountAndTick();
+    await waitFor(() => expect(view.getByTestId('wheel-deck')).toBeTruthy());
+    expect(view.queryByLabelText(/^Mainsheet, 0% sheeted in/)).toBeNull();
+    expect(view.getByLabelText('TWIST')).toBeTruthy();
+    const helm = view.getByTestId('wheel-helm');
+    const before = helm.props.accessibilityValue.now as number;
+    fireEvent(helm, 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+    await act(async () => { jest.advanceTimersByTime(200); });
+    expect(view.getByTestId('wheel-helm').props.accessibilityValue.now).toBe((before + 5) % 360);
+    await AsyncStorage.removeItem(CONTROLS_STORAGE_KEY);
+    __resetControlPrefsForTests();
   });
 });

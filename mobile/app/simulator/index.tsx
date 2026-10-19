@@ -60,6 +60,9 @@ import {
   windSpeedUnitLabel,
   useUnits,
 } from '../../src/persistence/units';
+import { useControlPrefs } from '../../src/persistence/controls';
+import { WheelDeck } from '../../src/simulator/WheelDeck';
+import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
 import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
 
 const COMPASS_R = 48;
@@ -480,6 +483,18 @@ export default function Simulator() {
   useEffect(() => {
     simLive.current = sim;
   });
+
+  // Wheel mode (owner decision 2026-10-19: sliders by default, wheels
+  // optional, chosen in Settings or inside a web trainer). The wheels drive
+  // the same setters as the drag steering and the sliders.
+  const { prefs: controlPrefs } = useControlPrefs();
+  const wheelsOn = controlPrefs.mode === 'wheels';
+  const wheelPrefs = wheelSettings(controlPrefs);
+  const onWheelCourse = useCallback((deg: number) => {
+    simLive.current.setTargetHeading((deg * Math.PI) / 180);
+  }, []);
+  const onWheelMain = useCallback((v: number) => simLive.current.setMainSheet(v), []);
+  const onWheelJib = useCallback((v: number) => simLive.current.setJibSheet(v), []);
 
   // Boat-relative hold-to-steer (the round < > buttons on the scene). While
   // held, keep the heading target ~20 deg ahead of the bow on the chosen side
@@ -1790,25 +1805,43 @@ export default function Simulator() {
             </Pressable>
           </View>
 
+          {wheelsOn ? (
+            <WheelDeck
+              targetHeadingDeg={normalizeDeg((sim.controls.targetHeading * 180) / Math.PI)}
+              windFromDeg={normalizeDeg((sim.wind.trueWindDirRad * 180) / Math.PI)}
+              mainSheet={mainSheet}
+              jibSheet={jibSheet}
+              onCourse={onWheelCourse}
+              setMainSheet={onWheelMain}
+              setJibSheet={onWheelJib}
+              sound={controlPrefs.sound}
+              sensitivity={wheelPrefs.sensitivity}
+              jibSheetSide={wheelPrefs.jibSheetSide}
+            />
+          ) : null}
           <View style={styles.sliderRow}>
-            <Slider
-              label={mainLabel}
-              accessibilityLabel={`${mainLabel}, ${sheetScale}`}
-              formatValue={easedPct}
-              value={mainSheet}
-              onChange={sim.setMainSheet}
-              orientation="vertical"
-              step={0.1}
-            />
-            <Slider
-              label={jibLabel}
-              accessibilityLabel={`${jibLabel}, ${sheetScale}`}
-              formatValue={easedPct}
-              value={jibSheet}
-              onChange={sim.setJibSheet}
-              orientation="vertical"
-              step={0.1}
-            />
+            {wheelsOn ? null : (
+              <>
+                <Slider
+                  label={mainLabel}
+                  accessibilityLabel={`${mainLabel}, ${sheetScale}`}
+                  formatValue={easedPct}
+                  value={mainSheet}
+                  onChange={sim.setMainSheet}
+                  orientation="vertical"
+                  step={0.1}
+                />
+                <Slider
+                  label={jibLabel}
+                  accessibilityLabel={`${jibLabel}, ${sheetScale}`}
+                  formatValue={easedPct}
+                  value={jibSheet}
+                  onChange={sim.setJibSheet}
+                  orientation="vertical"
+                  step={0.1}
+                />
+              </>
+            )}
             <Slider
               label={twistLabel}
               accessibilityLabel={twistLabel}
