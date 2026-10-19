@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
+import { isBrowserNoise } from '@/lib/analytics-events';
 import { clientError, clientInfo, flushBufferedLogs } from '@/lib/client-log';
 import { detectShell } from '@/lib/funnel';
 
@@ -24,10 +25,23 @@ import { detectShell } from '@/lib/funnel';
  * embed + client (2026-10-18): page.view says whether the page runs inside
  * the iOS app (?embed=1 WebView, client 'app') or a normal browser ('web'),
  * so app traffic no longer looks like web traffic in /stats.
+ *
+ * Noise (2026-10-19): errors thrown by browser extensions and opaque
+ * cross-origin "Script error." reports are not sent (isBrowserNoise), and
+ * clientLog() sends nothing from automated browsers.
  */
 
 const SESSION_START_KEY = 'regatta.session-start-ms.v1';
 const UTM_KEY = 'regatta.utm.v1';
+// page.engaged needs this much visible time, and is clamped to the cap so a
+// tab left open over a weekend does not report days of reading.
+const MIN_ENGAGED_MS = 5_000;
+const MAX_ENGAGED_MS = 30 * 60 * 1000;
+
+/** Random id that ties one page.view to its page.engaged. */
+function newViewId(): string {
+  return (Math.random().toString(36).slice(2, 10) + Date.now().toString(36)).slice(0, 20);
+}
 
 function getSessionStartMs(): number {
   try {
@@ -72,19 +86,23 @@ export default function ClientErrorReporter() {
   // Error + online handlers - mount once.
   useEffect(() => {
     const onError = (e: ErrorEvent) => {
-      clientError('js.uncaught', {
+      const report = {
         msg: e.message,
         src: e.filename,
         line: e.lineno,
         col: e.colno,
         stack: e.error?.stack?.split('\n').slice(0, 3).join(' | '),
-      });
+      };
+      if (isBrowserNoise(report)) return;
+      clientError('js.uncaught', report);
     };
     const onRejection = (e: PromiseRejectionEvent) => {
-      clientError('js.rejection', {
+      const report = {
         reason: String(e.reason).slice(0, 500),
         stack: (e.reason as Error | undefined)?.stack?.split('\n').slice(0, 3).join(' | '),
-      });
+      };
+      if (isBrowserNoise(report)) return;
+      clientError('js.rejection', report);
     };
 
     window.addEventListener('error', onError);
@@ -109,8 +127,8 @@ export default function ClientErrorReporter() {
     const startMs = getSessionStartMs();
     const utm = captureUtm();
     const pageStart = Date.now();
+    const viewId = newViewId();
     let maxScrollPct = 0;
-    let scrollTimer: number | null = null;
 
     // Language: prefer the user's i18n cookie/localStorage (the UI language
     // they actually picked) over `navigator.language` (their OS locale).
@@ -133,14 +151,13 @@ export default function ClientErrorReporter() {
       ua: navigator.userAgent.slice(0, 200),
       language,
       msSinceStart: pageStart - startMs,
+      viewId,
       ...detectShell(),
       ...utm,
     });
 
-    // Track scroll depth - sample at most every 200ms while user scrolls,
-    // then emit ONE summary event when navigating away or after 30 s of
-    // idle. We don't need every wheel tick - just the deepest the user
-    // got.
+    // Track scroll depth on every scroll event (cheap: one max() per tick).
+    // Only the deepest point reached is reported, in the page.engaged summary.
     const onScroll = () => {
       const doc = document.documentElement;
       const scrollable = Math.max(1, doc.scrollHeight - window.innerHeight);
@@ -149,31 +166,45 @@ export default function ClientErrorReporter() {
     };
     window.addEventListener('scroll', onScroll, { passive: true });
 
-    // Engagement summary - on unload or after 30 s. Fires only if the page
-    // got more than a brief glance (>= 5 s) so we don't log on instant
-    // bounces. Includes maxScrollPct + ms_on_page so /stats can compute
-    // engagement-time and scroll-depth distributions per route.
+    // Engagement summary: ONE page.engaged per view, sent the first time the
+    // page is hidden (tab switch, app to background, close), unloaded, or left
+    // by a client-side navigation, once the view has at least MIN_ENGAGED_MS
+    // of visible time. msOnPage counts only time the tab was visible, clamped
+    // to MAX_ENGAGED_MS. A hidden tab used to keep counting, and a 30 s timer
+    // plus the 60 s dedup reported 30-90 s stays as 30 s and longer ones twice.
+    let visibleMs = 0;
+    let visibleSince: number | null = document.visibilityState === 'visible' ? pageStart : null;
+    let engagedSent = false;
+    const pauseClock = () => {
+      if (visibleSince !== null) {
+        visibleMs += Date.now() - visibleSince;
+        visibleSince = null;
+      }
+    };
     const flushEngagement = () => {
-      const msOnPage = Date.now() - pageStart;
-      if (msOnPage < 5000) return;
+      pauseClock();
+      if (engagedSent || visibleMs < MIN_ENGAGED_MS) return;
+      engagedSent = true;
       clientInfo('page.engaged', {
         path: pathname,
-        msOnPage,
+        viewId,
+        msOnPage: Math.min(visibleMs, MAX_ENGAGED_MS),
         maxScrollPct,
       });
     };
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') flushEngagement();
+      else if (visibleSince === null) visibleSince = Date.now();
+    };
 
-    const onPageHide = () => flushEngagement();
-    window.addEventListener('pagehide', onPageHide);
-    // Late-snapshot in case the user just sits on the page for a minute
-    scrollTimer = window.setTimeout(flushEngagement, 30_000);
+    document.addEventListener('visibilitychange', onVisibility);
+    window.addEventListener('pagehide', flushEngagement);
 
     return () => {
       window.removeEventListener('scroll', onScroll);
-      window.removeEventListener('pagehide', onPageHide);
-      if (scrollTimer !== null) window.clearTimeout(scrollTimer);
-      // Try one last engagement flush for SPA route changes (the pagehide
-      // event doesn't fire on Next.js client-side navigations).
+      document.removeEventListener('visibilitychange', onVisibility);
+      window.removeEventListener('pagehide', flushEngagement);
+      // Client-side navigations fire neither pagehide nor visibilitychange.
       flushEngagement();
     };
   }, [pathname]);

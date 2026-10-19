@@ -9,8 +9,13 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname),
   },
-  // Native addons need to be external so Next doesn't try to bundle them
-  serverExternalPackages: ["better-sqlite3"],
+  // Kept out of the server bundle and loaded from node_modules at runtime:
+  // better-sqlite3 is a native addon, and fast-geoip reads its data files
+  // relative to its own directory. Bundled by Turbopack, fast-geoip pointed at
+  // a fake /ROOT/node_modules path, every lookup failed silently and no event
+  // got a country. scripts/check-bundle-size.mjs fails the build if that path
+  // shows up in a server chunk again.
+  serverExternalPackages: ["better-sqlite3", "fast-geoip"],
   // Don't advertise the framework in X-Powered-By. The other security headers
   // (CSP with frame-ancestors, HSTS, nosniff, referrer-policy,
   // permissions-policy) are set by the production nginx layer - verified live -
@@ -20,8 +25,11 @@ const nextConfig: NextConfig = {
   env: {
     // The service worker's cache version. It has to change every deploy, or the
     // browser (which compares sw.js byte-for-byte) never installs a new worker and
-    // the old caches live forever. GITHUB_SHA on CI; a build timestamp locally.
-    NEXT_PUBLIC_SW_VERSION: (process.env.GITHUB_SHA ?? `local-${Date.now()}`).slice(0, 12),
+    // the old caches live forever. The commit when GITHUB_SHA reaches the build,
+    // otherwise the full build timestamp. Only the SHA is shortened: slicing the
+    // fallback kept 6 digits of Date.now(), so builds about 2.8 hours apart
+    // shipped the same version. `||` also covers an empty GITHUB_SHA build-arg.
+    NEXT_PUBLIC_SW_VERSION: process.env.GITHUB_SHA?.slice(0, 12) || `local-${Date.now()}`,
   },
   async redirects() {
     return [
