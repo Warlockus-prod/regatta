@@ -19,6 +19,8 @@ config.watchFolders = [
   path.dirname(PHYSICS_DIR),
   path.resolve(__dirname, '../src/data/sailing-lab'),
   path.resolve(__dirname, '../src/features/sailing-lab'),
+  // Wheel mapping of the native trainer (src/simulator/wheel-controls.ts).
+  path.resolve(__dirname, '../src/features/trainer-controls'),
 ];
 config.resolver.extraNodeModules = {
   ...(config.resolver.extraNodeModules ?? {}),

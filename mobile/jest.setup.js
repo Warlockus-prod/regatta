@@ -154,3 +154,13 @@ jest.mock('expo-screen-orientation', () => ({
   lockAsync: () => Promise.resolve(),
   unlockAsync: () => Promise.resolve(),
 }));
+
+// Wheel clicks of the native trainer (src/simulator/wheel-sound.ts).
+jest.mock('expo-audio', () => ({
+  createAudioPlayer: jest.fn(() => ({
+    play: jest.fn(),
+    seekTo: jest.fn().mockResolvedValue(undefined),
+    remove: jest.fn(),
+  })),
+  setAudioModeAsync: jest.fn().mockResolvedValue(undefined),
+}));

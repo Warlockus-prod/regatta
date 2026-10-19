@@ -82,6 +82,27 @@ build script. The paragraph above describes builds before 1.6.2.
   read: a later value is injected live) and stores what the page posts back as
   `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
   `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Wheels in the native trainer** (`app/simulator/index.tsx`, the Practice
+  fallback): with `mode === 'wheels'` the mainsheet and jib sheet sliders give
+  way to `mobile/src/simulator/WheelDeck.tsx`, the twin of the web's
+  `WheelDeck` (helm big in the middle, jib sheet left and mainsheet right or
+  swapped by the record's `jibSheetSide`, tap a sheet to bring it to the
+  middle, back after 4 s). Pan from react-native-gesture-handler, angle around
+  the center, 22% hub dead zone. The numbers are the web's
+  `src/features/trainer-controls/mapping.ts`, imported through
+  `mobile/src/simulator/wheel-controls.ts` (metro watches that folder): one helm
+  turn = 90 degrees of course through `setTargetHeading`, one sheet turn = 25%,
+  clockwise sheets in; the native sheet value (1 = sheeted in) is converted to
+  the shared ease there and nowhere else. Each wheel is VoiceOver adjustable
+  (helm 5 degrees, sheet 5% per step), at least 64 pt, and the swap does not
+  animate under Reduce Motion. Clicks: `mobile/src/simulator/wheel-sound.ts`
+  plays four WAVs (`mobile/assets/sounds/wheel-*.wav`, rendered from the web's
+  WebAudio blips by `mobile/scripts/build-wheel-clicks.mjs`) through
+  `expo-audio`, only when `sound` is on, mixing with other apps and silent with
+  the ring switch off; no Haptics calls from the wheels. `expo-audio` is a
+  native module (no config plugin: playback needs no permission), so it ships
+  with the next build. Tests: `mobile/__tests__/wheel-controls.test.ts`,
+  `mobile/__tests__/wheel-deck.test.tsx`, `mobile/__tests__/screens/simulator.test.tsx`.
 - **Orientation**: `app.json` allows every orientation and the
   `expo-screen-orientation` plugin starts the app locked to portrait
   (`initialOrientation: PORTRAIT_UP`); `mobile/src/simulator/orientation.ts`
@@ -159,7 +180,7 @@ than in the design system - if you can't find a control in `design-system/`, gre
 |---|---|
 | `analytics/` | PostHog (provider, hook, events, config). No-ops when key absent. |
 | `api/` | HTTP clients to the **shared web backend** (`weektoregatta.com/api/*`): `chat.ts`, `coach.ts`, `daily.ts`, `leaderboard.ts`, `weather.ts`. No separate mobile backend. |
-| `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (ported VPP engine, pure TS). |
+| `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (shim to the golden VPP engine), wheel mode `WheelDeck.tsx` + `wheel-controls.ts` + `wheel-sound.ts`. |
 | `courses/` | `polar.ts` - polar/VPP curve builder. **Used by the Points-of-Sail diagram.** |
 | `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents) + `progression.ts` (mark rounding) + `units.ts` (`KN_TO_PX_PER_S`, the one knots-to-pixels scale shared with `simulator/use-sim-loop.ts`). |
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
