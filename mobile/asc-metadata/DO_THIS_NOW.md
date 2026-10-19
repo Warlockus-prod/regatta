@@ -100,7 +100,10 @@ Settings -> Data -> Anonymous analytics turns it off. No advertising
 identifier, no third-party trackers. Multiplayer is the live room of
 weektoregatta.com shown in a web view, and the nickname is visible to
 the other players. The AI coach and the Ask screen send the race log
-or the typed question through weektoregatta.com to OpenAI.
+or the typed question through weektoregatta.com to OpenAI. Voice
+answers in the SRC radio simulator and the sternik oral exam practice
+use the microphone after the iOS prompt; the recording goes through
+weektoregatta.com to OpenAI for transcription and is not stored.
 
 Test account: not required.
 ```

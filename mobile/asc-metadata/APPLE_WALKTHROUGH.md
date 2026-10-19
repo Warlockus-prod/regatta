@@ -71,7 +71,9 @@ node scripts/asc-metadata.mjs              # реальный upload
    местоположение по IP, User Content для текста чата и ников мультиплеера);
    что выбрано, то же должно быть в манифесте и в политике.
 5. Publish. Потом откройте публичную страницу приложения в App Store и
-   проверьте, что там больше нет "Data Not Collected".
+   проверьте, что там больше нет "Data Not Collected" и есть "Data Not
+   Linked to You" (готовая команда в G4b, шаг 3; простой `curl -s` без `-L`
+   получает пустой ответ-редирект и ничего не проверяет).
 
 Сверка ярлыка с манифестом и политикой входит в гейт G4b
 (`docs/design/mobile/RELEASE_CHECKLIST.md`).
@@ -159,7 +161,10 @@ node scripts/asc-screenshots.mjs
   weektoregatta.com shown in a web view; in multiplayer the nickname is
   visible to the other players. The AI coach and the Ask screen send
   the race log or the typed question through weektoregatta.com to
-  OpenAI. The Bootcamp is a 7-day learning arc, the Simulator is a
+  OpenAI. Voice answers in the SRC radio simulator and the sternik oral
+  exam practice use the microphone after the iOS prompt; the recording
+  goes through weektoregatta.com to OpenAI for transcription and is not
+  stored. The Bootcamp is a 7-day learning arc, the Simulator is a
   Skia + VPP physics sandbox with drills and missions, the Anatomy
   screen has interactive yacht hotspots, and the Checklist helps the
   user prepare before a regatta.
