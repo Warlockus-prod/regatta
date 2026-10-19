@@ -1,3 +1,3 @@
 {
-  "NSMicrophoneUsageDescription": "Il microfono viene usato nel simulatore radio SRC per valutare le tue chiamate vocali (MAYDAY, PAN-PAN). La registrazione serve solo alla valutazione e non viene conservata."
+  "NSMicrophoneUsageDescription": "Il microfono viene usato nel simulatore radio SRC per valutare le tue chiamate vocali (MAYDAY, PAN-PAN) e nell'allenamento per l'esame orale sternik per verificare le tue risposte a voce. La registrazione serve solo alla valutazione e non viene conservata."
 }
