@@ -243,7 +243,8 @@ export default function StatsDashboard() {
             A visitor is one browser cookie (regatta_sid, kept a year). A visit ends after 30 min without a page view;
             its length runs from the first to the last page view, so a 1-page visit counts as 0 s.
             Returning: 2+ visits in the range, or first seen before it. Automated browsers (webdriver, HeadlessChrome,
-            our Playwright runs) are not recorded.
+            our Playwright runs) are not recorded from the analytics release of 2026-10-19 on. Ranges that include
+            earlier days still count them (about half of all page views before then) until those rows are cleaned up.
           </p>
 
           {/* Hourly chart */}

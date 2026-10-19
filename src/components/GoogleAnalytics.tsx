@@ -26,15 +26,23 @@ import {
  * mismatch). The app's "Anonymous analytics" switch and the App Store privacy
  * answers cover the app, so GA must not run there.
  *
+ * Never in automated browsers either (navigator.webdriver, HeadlessChrome, or
+ * the "RegattaE2E" user agent of our Playwright runs): the post-deploy E2E job
+ * runs against prod and would otherwise count as GA4 page views, the same
+ * rule client-log applies to /api/log.
+ *
  * Privacy: we don't currently ask for consent. If we add GDPR-style
  * consent later, gate the loader below behind a consent flag.
  */
 const GA_ID = 'G-ZEWWJ4N31M';
 
-const LOADER = `
+/** Exported for the gating test in src/lib/funnel.test.ts. */
+export const GA_LOADER = `
 (function () {
   try {
     var w = window;
+    var nav = typeof navigator === 'undefined' ? null : navigator;
+    if (nav && (nav.webdriver === true || /HeadlessChrome|RegattaE2E/.test(nav.userAgent || ''))) return;
     if (w.ReactNativeWebView || w[${JSON.stringify(NO_ANALYTICS_GLOBAL)}] === true) return;
     var embed = /[?&]embed=1(?:&|$)/.test(w.location.search);
     try {
@@ -59,7 +67,7 @@ const LOADER = `
 export default function GoogleAnalytics() {
   return (
     <Script id="gtag-loader" strategy="afterInteractive">
-      {LOADER}
+      {GA_LOADER}
     </Script>
   );
 }

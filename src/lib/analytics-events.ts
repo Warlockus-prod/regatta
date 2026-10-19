@@ -59,7 +59,8 @@ export const NO_ANALYTICS_GLOBAL = '__REGATTA_NO_ANALYTICS__';
 export const NO_ANALYTICS_STORAGE_KEY = 'regatta.noanalytics.v1';
 /**
  * sessionStorage flag ('1') that the page runs inside the app (?embed=1 seen
- * earlier in this WebView session). Same key as detectShell() in funnel.ts.
+ * earlier in this WebView session). Written and read by detectShell() in
+ * funnel.ts, read by the GA4 loader.
  */
 export const EMBED_STORAGE_KEY = 'regatta.embed.v1';
 

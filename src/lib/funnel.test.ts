@@ -215,6 +215,18 @@ describe('client-log within one page load', () => {
     await flush();
     expect(env.beacons.map((b) => b.viewId)).toEqual(['aaaaaa1', 'bbbbbb2']);
   });
+
+  // page.engaged is sent from the route's cleanup, after a client-side
+  // navigation has already moved window.location to the next page.
+  it('credits page.engaged to the route the caller names, not the current URL', async () => {
+    const env = installBrowser('');
+    (window.location as { pathname: string }).pathname = '/next';
+    const { clientInfo } = await import('./client-log');
+    clientInfo('page.engaged', { path: '/prev', viewId: 'prevview1', msOnPage: 12_000, maxScrollPct: 40 });
+    clientInfo('exam.start', { base: 'sternik' });
+    await flush();
+    expect(env.beacons.map((b) => [b.evt, b.path])).toEqual([['page.engaged', '/prev'], ['exam.start', '/next']]);
+  });
 });
 
 describe('analytics off', () => {
@@ -233,6 +245,40 @@ describe('analytics off', () => {
     flushBufferedLogs();
     await flush();
     expect(env.beacons).toEqual([]);
+  });
+});
+
+// The GA4 loader in src/components/GoogleAnalytics.tsx runs as an inline
+// script; run the same text against the fake browser and look for gtag.js.
+describe('GA4 loader', () => {
+  async function runLoader(search: string, opts: BrowserOpts = {}): Promise<string[]> {
+    installBrowser(search, opts);
+    const injected: string[] = [];
+    vi.stubGlobal('document', {
+      createElement: () => ({}) as { src?: string },
+      head: { appendChild: (el: { src?: string }) => { injected.push(el.src ?? ''); } },
+    });
+    const { GA_LOADER } = await import('@/components/GoogleAnalytics');
+    new Function(GA_LOADER)();
+    return injected;
+  }
+
+  it('loads gtag.js for a normal web visitor', async () => {
+    const injected = await runLoader('');
+    expect(injected).toHaveLength(1);
+    expect(injected[0]).toContain('googletagmanager.com/gtag/js?id=G-ZEWWJ4N31M');
+  });
+
+  it.each([
+    ['an automated browser (navigator.webdriver)', '', { webdriver: true }],
+    ['HeadlessChrome', '', { userAgent: 'Mozilla/5.0 (X11; Linux x86_64) HeadlessChrome/147.0.0.0 Safari/537.36' }],
+    ['our Playwright user agent', '', { userAgent: 'Mozilla/5.0 Chrome/147.0.0.0 Safari/537.36 RegattaE2E' }],
+    ['an app embed (?embed=1)', '?embed=1', {}],
+    ['an app WebView', '', { webView: true }],
+    ['the remembered embed flag', '', { session: { 'regatta.embed.v1': '1' } }],
+    ['the app analytics switch', '', { noAnalytics: true }],
+  ] as const)('does not load for %s', async (_label, search, opts) => {
+    expect(await runLoader(search, opts)).toEqual([]);
   });
 });
 

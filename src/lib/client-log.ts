@@ -159,12 +159,16 @@ export function clientLog(level: Level, evt: string, fields: Record<string, unkn
 
     sent[budget] += 1;
 
+    // A caller that knows the route wins over the current URL: page.engaged
+    // is sent from the route's cleanup, after a client-side navigation has
+    // already changed window.location to the next page.
+    const path = typeof fields.path === 'string' ? fields.path : window.location.pathname;
     const entry: QueuedEntry = {
       level,
       evt,
       fields,
       ts: now,
-      path: window.location.pathname,
+      path,
     };
 
     // Offline buffer
