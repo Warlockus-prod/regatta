@@ -119,8 +119,9 @@ const PROMO_ONLY = flag('--promo-only');
 const LOCALES = [
   { fs: 'ru', asc: 'ru' },
   { fs: 'en', asc: 'en-US' },
-  // Second English locale: its own 100-character keyword field, indexed by
-  // the UK and many European storefronts alongside their local language.
+  // Second English locale. The UK and Ireland index only en-GB and no
+  // storefront indexes both English locales, so its keywords must be a
+  // self-sufficient set (see asc-metadata/README.md).
   { fs: 'en-GB', asc: 'en-GB' },
   { fs: 'pl', asc: 'pl' },
   { fs: 'es', asc: 'es-ES' },

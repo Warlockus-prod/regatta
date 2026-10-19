@@ -2,28 +2,28 @@ Segeln lernen und in einer Woche bereit für die erste Regatta. Week to Regatta 
 
 WARUM ES FUNKTIONIERT
 
-- Ein klarer Plan: 8 Lektionen in 7 Tagen, vom Wind und den Kursen bis zur Startlinie.
+- Ein klarer Plan: 8 Lektionen in 7 Tagen, vom Wind und den Kursen bis zum ersten Rennen.
 - Ein ehrlicher Simulator: Die Yacht folgt einem VPP-Physikmodell, derselben Mathematik, mit der Segeldesigner arbeiten.
-- Üben, bis es sitzt: Drills für Wende, Halse, Trimm und Winddreher.
+- Üben, bis es sitzt: Drills für Trimm, Böen, Winddreher und Kreuzen.
 - Komplett kostenlos. Keine Werbung, kein Konto, keine Bezahlschranke.
 
 DER 7-TAGE-PLAN
 
-Tag 1. Wind, Kurse zum Wind und die ersten Minuten an der Pinne.
-Tag 2. Segeltrimm und Windfäden.
-Tag 3. Wende und Halse unter Kontrolle.
-Tag 4. Krängung, Abdrift und wie die Yacht sich wirklich bewegt.
-Tag 5. Polardiagramme und deine Zielgeschwindigkeit.
-Tag 6. Start, Startlinie und die erste Kreuz.
-Tag 7. Tonnenrundung, Ziel und die Checkliste vor dem Rennen.
+Tag 1. Wind und Richtung: woher der Wind kommt und warum du nicht direkt gegen ihn segeln kannst.
+Tag 2. Kurse zum Wind: deine fünf Grundkurse.
+Tag 3. Wie ein Segel funktioniert: am Wind ein Flügel, vor dem Wind ein Fallschirm.
+Tag 4. Wenden und Halsen: Drehung über den Bug und über das Heck.
+Tag 5. Kreuzen und VMG: wie du gegen den Wind vorankommst und warum der direkte Weg nicht der schnellste ist.
+Tag 6. Einfache Regeln: wer auf dem Wasser ausweicht.
+Tag 7. Mini-Regatta: alles zusammen, danach analysiert der KI-Coach dein Rennen.
 
-Der Button "Weiter" auf dem Startbildschirm öffnet immer den nächsten Schritt.
+Der Button "Weiterlernen" auf dem Startbildschirm öffnet immer den nächsten Schritt.
 
 SIMULATOREN
 
-- Grundlagen: Steuere die Yacht und sieh Krängung und Abdrift von der Seite, von oben und von achtern.
-- Trimm-Trainer: dichtholen, fieren, reffen und sofort sehen, wie sich das Tempo ändert.
-- Yacht in 3D: Schau dir das Boot und die Segelform von allen Seiten an.
+- Grundlagen: Starte hier. Ändere den Wind und lerne die Kurse und die Manöver.
+- Segeltrimm-Trainer: dichtholen, fieren, reffen und sofort sehen, wie sich Tempo und Krängung ändern.
+- 3D-Boot: Schau dir die Yacht und die Segelform von allen Seiten an.
 
 RENNEN
 
@@ -31,8 +31,8 @@ Segle einen kurzen Kurs gegen Bots in drei Stufen oder starte ein Mehrspieler-Re
 
 BOOT UND REGELN
 
-- Wettfahrtregeln: 21 echte Situationen mit Diagrammen. Wisse, wer Wegerecht hat, bevor das Protestkomitee fragt.
-- Yacht-Anatomie: 17 Teile an einem interaktiven Boot, mit der Leine, die jedes Teil bedient.
+- Wettfahrtregeln: 13 Situationen aus den Wettfahrtregeln und 8 Szenarien aus den KVR (COLREGs) mit Diagrammen. Wisse, wer Wegerecht hat, bevor das Protestkomitee fragt.
+- Yacht-Anatomie: 17 Teile an einem interaktiven Boot, jeweils mit dem, was es ist und wie du es an Bord bedienst.
 - Glossar: über 50 Segelbegriffe, durchsuchbar und offline.
 - Erste Woche an Bord: was du einpackst, was du den Skipper fragst, wie du der Crew hilfst.
 - Checkliste vor dem Rennen: am Abend vorher abhaken.
@@ -44,7 +44,7 @@ POLNISCHE SCHEINE (AUF POLNISCH)
 
 DATENSCHUTZ
 
-Keine Werbung, kein Konto, kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet nur anonyme Nutzungsstatistiken, die du in den Einstellungen abschalten kannst.
+Keine Werbung, kein Konto, kein app-übergreifendes Tracking. Dein Fortschritt bleibt auf deinem Gerät. Die App sendet Nutzungsstatistiken, die nicht mit dir verknüpft sind, und die Analyse der App kannst du in den Einstellungen abschalten.
 
 SPRACHEN
 

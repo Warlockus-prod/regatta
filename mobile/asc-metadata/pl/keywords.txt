@@ -1,1 +1,1 @@
-patent,egzamin,żeglarz,jachtowy,jacht,regaty,łódź,motorówka,radio,vhf,kurs,symulator,wiatr,przepisy
+patent,egzamin,żeglarz,pytania,jacht,regaty,łódź,motorówka,radio,vhf,kurs,symulator,wiatr,przepisy
