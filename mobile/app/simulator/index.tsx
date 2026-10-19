@@ -2006,29 +2006,56 @@ function commentaryFor({
       },
     );
   }
-  if (mainStalled || jibStalled) {
+  // Every hint names the sheet to touch (owner decision 2026-10-19).
+  if (mainStalled && jibStalled) {
     return tp(
-      'Срыв потока: ослабь MAIN или JIB, пока скорость не вернется.',
-      'Stall: ease MAIN or JIB until speed comes back.',
-      'Oderwanie przepływu: poluzuj GROT albo FOK, aż wróci prędkość.',
+      'Срыв потока на обоих парусах: потрави гика-шкот и стаксель-шкот.',
+      'Both sails stalled: ease the mainsheet and the jib sheet.',
+      'Oderwanie przepływu na obu żaglach: poluzuj szot grota i szot foka.',
       {
-        es: 'Flujo desprendido: lasca MAYOR o FOQUE hasta que vuelva la velocidad.',
-        fr: "Décrochage : choque la GV ou le FOC jusqu'à ce que la vitesse revienne.",
-        de: 'Strömungsabriss: GROSS oder FOCK fieren, bis die Fahrt zurückkommt.',
-        it: 'Stallo: lasca RANDA o FIOCCO finché torna la velocità.',
+        es: 'Flujo desprendido en las dos velas: lasca la escota de mayor y la de foque.',
+        fr: "Les deux voiles décrochent : choque l'écoute de grand-voile et celle de foc.",
+        de: 'Abriss an beiden Segeln: Groß- und Fockschot fieren.',
+        it: 'Entrambe le vele in stallo: lasca la scotta della randa e quella del fiocco.',
+      },
+    );
+  }
+  if (mainStalled) {
+    return tp(
+      'Срыв на гроте: потрави гика-шкот, пока скорость не вернется.',
+      'Main stalled: ease the mainsheet until speed comes back.',
+      'Oderwanie na grocie: poluzuj szot grota, aż wróci prędkość.',
+      {
+        es: 'Flujo desprendido en la mayor: lasca la escota de mayor hasta que vuelva la velocidad.',
+        fr: "Grand-voile décrochée : choque l'écoute de grand-voile jusqu'à ce que la vitesse revienne.",
+        de: 'Abriss am Großsegel: Großschot fieren, bis die Fahrt zurückkommt.',
+        it: 'Randa in stallo: lasca la scotta della randa finché torna la velocità.',
+      },
+    );
+  }
+  if (jibStalled) {
+    return tp(
+      'Срыв на стакселе: потрави стаксель-шкот, пока скорость не вернется.',
+      'Jib stalled: ease the jib sheet until speed comes back.',
+      'Oderwanie na foku: poluzuj szot foka, aż wróci prędkość.',
+      {
+        es: 'Flujo desprendido en el foque: lasca la escota de foque hasta que vuelva la velocidad.',
+        fr: "Foc décroché : choque l'écoute de foc jusqu'à ce que la vitesse revienne.",
+        de: 'Abriss an der Fock: Fockschot fieren, bis die Fahrt zurückkommt.',
+        it: 'Fiocco in stallo: lasca la scotta del fiocco finché torna la velocità.',
       },
     );
   }
   if (Math.abs(heelDeg) > 25) {
     return tp(
-      'Крен высокий: поставь REEF или отпусти грот.',
-      'Heel is high: add REEF or ease the main.',
-      'Duży przechył: dodaj REF albo poluzuj grot.',
+      'Крен высокий: возьми риф или потрави гика-шкот.',
+      'Heel is high: reef or ease the mainsheet.',
+      'Duży przechył: weź ref albo poluzuj szot grota.',
       {
-        es: 'Mucha escora: toma un RIZO o lasca la mayor.',
-        fr: 'Forte gîte : prends un RIS ou choque la GV.',
-        de: 'Viel Krängung: REFF einbinden oder Groß fieren.',
-        it: 'Troppo sbandamento: prendi una mano di TERZAROLI o lasca la randa.',
+        es: 'Mucha escora: toma un rizo o lasca la escota de mayor.',
+        fr: "Forte gîte : prends un ris ou choque l'écoute de grand-voile.",
+        de: 'Viel Krängung: reffen oder Großschot fieren.',
+        it: 'Troppo sbandamento: prendi una mano di terzaroli o lasca la scotta della randa.',
       },
     );
   }
@@ -2046,14 +2073,14 @@ function commentaryFor({
     );
   }
   return tp(
-    'Подвигай ползунки ГРОТ и СТАКСЕЛЬ: цель - высокий TRIM без лишнего крена.',
-    'Work MAIN/JIB: aim for high TRIM without excess heel.',
-    'Pracuj GROTEM i FOKIEM: celem jest wysoki TRYM bez nadmiernego przechyłu.',
+    'Работай гика-шкотом и стаксель-шкотом: цель - высокий TRIM без лишнего крена.',
+    'Work the mainsheet and the jib sheet: aim for high TRIM without excess heel.',
+    'Pracuj szotem grota i szotem foka: celem jest wysoki TRYM bez nadmiernego przechyłu.',
     {
-      es: 'Ajusta MAYOR y FOQUE: busca un TRIM alto sin demasiada escora.',
-      fr: 'Règle GV et FOC : vise un TRIM élevé sans trop de gîte.',
-      de: 'Arbeite mit GROSS und FOCK: hoher TRIMM, wenig Krängung.',
-      it: 'Regola RANDA e FIOCCO: TRIM alto senza troppo sbandamento.',
+      es: 'Trabaja la escota de mayor y la de foque: busca un TRIM alto sin demasiada escora.',
+      fr: "Règle l'écoute de grand-voile et celle de foc : vise un TRIM élevé sans trop de gîte.",
+      de: 'Arbeite mit Groß- und Fockschot: hoher TRIMM, wenig Krängung.',
+      it: 'Regola la scotta della randa e quella del fiocco: TRIM alto senza troppo sbandamento.',
     },
   );
 }

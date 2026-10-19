@@ -119,14 +119,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
       : '';
     return {
       text: tp(
-        'Грот перетянут - поток сорвался.' + tail,
-        'Main overtrimmed - flow has detached.' + tail,
-        'Grot za mocno wybrany: przepływ się oderwał.' + tail,
+        'Грот перетянут, поток сорвался: потрави гика-шкот.' + tail,
+        'Main overtrimmed, flow has detached: ease the mainsheet.' + tail,
+        'Grot za mocno wybrany, przepływ się oderwał: poluzuj szot grota.' + tail,
         {
-          es: 'Mayor demasiado cazada: el flujo se ha desprendido.' + tail,
-          fr: "GV trop bordée : l'écoulement a décroché." + tail,
-          de: 'Groß zu dicht: Strömung abgerissen.' + tail,
-          it: 'Randa troppo cazzata: il flusso si è staccato.' + tail,
+          es: 'Mayor demasiado cazada, el flujo se ha desprendido: lasca la escota de mayor.' + tail,
+          fr: "Grand-voile trop bordée, l'écoulement a décroché : choque l'écoute de grand-voile." + tail,
+          de: 'Groß zu dicht, Strömung abgerissen: Großschot fieren.' + tail,
+          it: 'Randa troppo cazzata, il flusso si è staccato: lasca la scotta della randa.' + tail,
         },
       ),
       tone: 'warn',
@@ -135,14 +135,14 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (jibSet && diag.jibStalled && ui.jibFurlPct > 20 && absTwa < 135) {
     return {
       text: tp(
-        'Стаксель перетянут и душит слот.',
-        'Jib is overtrimmed and choking the slot.',
-        'Fok za mocno wybrany: zamyka szczelinę.',
+        'Стаксель перетянут и душит слот: потрави стаксель-шкот.',
+        'Jib is overtrimmed and choking the slot: ease the jib sheet.',
+        'Fok za mocno wybrany, zamyka szczelinę: poluzuj szot foka.',
         {
-          es: 'Foque demasiado cazado: cierra la ranura.',
-          fr: 'Foc trop bordé : il ferme la fente.',
-          de: 'Fock zu dicht: sie schließt den Spalt.',
-          it: 'Fiocco troppo cazzato: chiude la fessura.',
+          es: 'Foque demasiado cazado, cierra la ranura: lasca la escota de foque.',
+          fr: "Foc trop bordé, il ferme la fente : choque l'écoute de foc.",
+          de: 'Fock zu dicht, sie schließt den Spalt: Fockschot fieren.',
+          it: 'Fiocco troppo cazzato, chiude la fessura: lasca la scotta del fiocco.',
         },
       ),
       tone: 'warn',
