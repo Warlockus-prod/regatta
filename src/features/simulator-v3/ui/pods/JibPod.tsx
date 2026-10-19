@@ -19,8 +19,10 @@ export function JibPod(props: {
   sim: SimulationModel;
   tp: TpFn;
   compact?: boolean;
+  /** 44 px sliders for the phone dock. */
+  comfortable?: boolean;
 }) {
-  const { ui, setUi, params, sim, tp, compact } = props;
+  const { ui, setUi, params, sim, tp, compact, comfortable } = props;
   // Same 4-state gradient as main pod, plus a prefix "FURLED" state
   // when the jib is fully rolled up or lowered.
   const aoa = sim.result.diag.jibAoA;
@@ -58,6 +60,7 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
+        comfortable={comfortable}
         label={tp('Стаксель-шкот', 'Jib sheet', 'Szot foka', {
           es: 'Escota de foque',
           fr: 'Écoute de foc',
@@ -74,6 +77,7 @@ export function JibPod(props: {
       />
       <PodSlider
         compact={compact}
+        comfortable={comfortable}
         label={tp('Раскрытие', 'Unfurled', 'Rozwinięcie', {
           es: 'Desenrollado',
           fr: 'Déroulé',

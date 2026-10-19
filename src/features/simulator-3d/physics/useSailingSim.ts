@@ -57,6 +57,9 @@ export interface SimTelemetry {
   maneuver: Maneuver;
   mainStatus: SailStatus;
   jibStatus: SailStatus;
+  /** Boom and jib angle to the centerline, degrees (shown in brackets next to the sheet). */
+  boomAngleDeg: number;
+  jibAngleDeg: number;
   pos: { x: number; z: number };
 }
 
@@ -98,6 +101,8 @@ const INITIAL_TELEMETRY: SimTelemetry = {
   maneuver: 'sailing',
   mainStatus: 'drawing',
   jibStatus: 'drawing',
+  boomAngleDeg: 0,
+  jibAngleDeg: 0,
   pos: { x: 0, z: 0 },
 };
 
@@ -201,6 +206,8 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
             maneuver: motion.maneuver,
             mainStatus: mainResponse.status,
             jibStatus: jibResponse.status,
+            boomAngleDeg: Math.abs(yachtRef.current.boomAngle),
+            jibAngleDeg: Math.abs(yachtRef.current.jibAngle),
             pos,
           });
         }

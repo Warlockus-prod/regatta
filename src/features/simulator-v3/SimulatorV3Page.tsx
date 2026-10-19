@@ -1,6 +1,5 @@
 'use client';
 
-import styles from "./SimulatorV3.module.css";
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
@@ -41,6 +40,21 @@ import {
   type SimulationModel,
   type UiState,
 } from './ui/shared';
+import {
+  ControlDock,
+  ControlSettingsSheet,
+  GearButton,
+  TrainerWorkspace,
+  WheelDeck,
+  applyCourseDelta,
+  helmMappingFor,
+  trainerScreenClass,
+  useControlLabels,
+  useControlPrefs,
+  RUDDER_DISPLAY_MAX_DEG,
+  type DockTab,
+  type HelmTarget,
+} from '../trainer-controls';
 
 const TrainerBoat3D = dynamic(() => import("./ui/TrainerBoat3D"), { ssr: false });
 
@@ -170,7 +184,41 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     }
   };
   const [paused, setPaused] = useState(false);
-  const { sim, reset, restore } = useSimulatorV3({ ui, tp, paused });
+  // Shared trainer controls (docs/design/trainer-controls-concept.md): sliders
+  // or wheels, course or rudder steering, favorites; one record for all trainers.
+  const { prefs, update: updatePrefs } = useControlPrefs();
+  const controlLabels = useControlLabels();
+  const helmMapping = helmMappingFor(prefs, 'trainer');
+  const [rudder, setRudder] = useState(0);
+  const [desktopSettings, setDesktopSettings] = useState(false);
+  const { sim, reset, restore } = useSimulatorV3({ ui, tp, paused, rudder: helmMapping === 'rudder' ? rudder : null });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
+  // Rudder steering moves the boat itself; keep the course slider and the
+  // share link in step with the real heading so nothing snaps back later.
+  useEffect(() => {
+    if (helmMapping !== 'rudder' || rudder === 0) return;
+    const signed = ((sim.session.wind.baseDir - sim.session.boat.heading) % 360 + 540) % 360 - 180;
+    const twa = Math.round(Math.abs(signed));
+    const tack = signed >= 0 ? 'starboard' : 'port';
+    if (twa !== uiRef.current.twa || tack !== uiRef.current.tack) setUi((p) => ({ ...p, twa, tack }));
+  }, [helmMapping, rudder, sim.session.ticks, sim.session.wind.baseDir, sim.session.boat.heading]);
+  // The wheel turns the course in fractions of a degree; the UI keeps whole degrees.
+  const exactCourse = useRef<{ twa: number; tack: UiState['tack'] } | null>(null);
+  const onCourseDelta = (deg: number) => {
+    const cur = uiRef.current;
+    const base = exactCourse.current && Math.round(exactCourse.current.twa) === cur.twa && exactCourse.current.tack === cur.tack
+      ? exactCourse.current
+      : { twa: cur.twa, tack: cur.tack };
+    const next = applyCourseDelta(base.twa, base.tack, deg);
+    exactCourse.current = { twa: next.twa, tack: next.tack };
+    const twa = Math.round(next.twa);
+    if (twa !== cur.twa || next.tack !== cur.tack) {
+      uiRef.current = { ...cur, twa, tack: next.tack };
+      setUi((p) => ({ ...p, twa, tack: next.tack }));
+    }
+    return next.crossed;
+  };
   const trimStudy = useTrimStudy(sim.session);
 
   // Mode machine (PR-4). Drives what sits above the metrics strip:
@@ -371,19 +419,125 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           it: 'mure a sinistra',
         });
 
+  const helmTarget: HelmTarget = helmMapping === 'rudder'
+    ? {
+        mapping: 'rudder',
+        value: `${Math.round(rudder * RUDDER_DISPLAY_MAX_DEG)}°`,
+        unit: controlLabels.rudderShort,
+        ariaNow: Math.round(rudder * RUDDER_DISPLAY_MAX_DEG),
+        ariaMin: -RUDDER_DISPLAY_MAX_DEG,
+        ariaMax: RUDDER_DISPLAY_MAX_DEG,
+        rudder,
+        setRudder,
+      }
+    : {
+        mapping: 'course',
+        value: `${ui.twa}°`,
+        unit: controlLabels.courseToWind,
+        ariaNow: ui.tack === 'starboard' ? ui.twa : -ui.twa,
+        ariaMin: -180,
+        ariaMax: 180,
+        onCourseDelta,
+      };
+  const wheelDeck = (layout: 'bottom' | 'column') => (
+                <WheelDeck
+                  layout={layout}
+                  prefs={prefs}
+                  labels={controlLabels}
+                  arrowKeysSteer
+                  helm={helmTarget}
+                  main={ui.mainTrim ? null : {
+                    ease: Math.min(1, Math.max(0, ui.mainAngle / params.mainMaxOff)),
+                    angleDeg: ui.mainAngle,
+                    setEase: (v) => setUi((p) => ({ ...p, mainAngle: Math.round(v * params.mainMaxOff * 10) / 10 })),
+                  }}
+                  jib={ui.mainTrim ? null : {
+                    ease: Math.min(1, Math.max(0, (ui.jibAngle - params.jibMinOff) / (params.jibMaxOff - params.jibMinOff))),
+                    angleDeg: ui.jibAngle,
+                    setEase: (v) => setUi((p) => ({ ...p, jibAngle: Math.round((params.jibMinOff + v * (params.jibMaxOff - params.jibMinOff)) * 10) / 10 })),
+                  }}
+                />
+  );
+  const rudderCard = (
+            <label className="block rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
+              <span className="flex justify-between text-sm text-[var(--text-secondary)]"><span>{controlLabels.rudder}</span><b className="font-mono text-[var(--accent-cyan)]">{Math.round(rudder * RUDDER_DISPLAY_MAX_DEG)}°</b></span>
+              <input type="range" min={-1} max={1} step={0.05} value={rudder} onChange={(e) => setRudder(Number(e.target.value))} className="w-full" style={{ height: 44, accentColor: 'var(--accent-cyan)' }} />
+            </label>
+  );
+  const podsMain = ui.mainTrim
+    ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod>
+    : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} comfortable />;
+  const dockTabs: DockTab[] = [
+    {
+      id: 'sails',
+      label: controlLabels.tabs.sails,
+      cards: [
+        { id: 'main', title: tp('Грот: гика-шкот и риф', 'Main: mainsheet and reef', 'Grot: szot grota i ref', { es: 'Mayor: escota de mayor y rizo', fr: 'Grand-voile : écoute et ris', de: 'Groß: Großschot und Reff', it: 'Randa: scotta della randa e terzaroli' }), node: podsMain },
+        { id: 'jib', title: tp('Стаксель: стаксель-шкот и раскрытие', 'Jib: jib sheet and unfurl', 'Fok: szot foka i rozwinięcie', { es: 'Foque: escota de foque y desenrollado', fr: 'Foc : écoute et déroulé', de: 'Fock: Fockschot und Ausrollen', it: 'Fiocco: scotta del fiocco e svolgimento' }), node: <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} comfortable /> },
+      ],
+    },
+    {
+      id: 'helm',
+      label: controlLabels.tabs.helm,
+      cards: [
+        ...(helmMapping === 'rudder' ? [{
+          id: 'rudder',
+          title: controlLabels.rudder,
+          node: rudderCard,
+        }] : []),
+        { id: 'course', title: tp('Курс к ветру и галс', 'Course to wind and tack', 'Kurs względem wiatru i hals', { es: 'Rumbo al viento y amura', fr: 'Cap au vent et amure', de: 'Kurs zum Wind und Bug', it: 'Rotta al vento e mure' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="course" comfortable /> },
+        { id: 'compass', title: tp('Компас', 'Compass', 'Kompas', { es: 'Brújula', fr: 'Compas', de: 'Kompass', it: 'Bussola' }), node: <HelmPod sim={sim} tp={tp} /> },
+      ],
+    },
+    {
+      id: 'wind',
+      label: controlLabels.tabs.wind,
+      cards: [
+        { id: 'wind', title: tp('Ветер: сила и порывы', 'Wind: strength and gusts', 'Wiatr: siła i podmuchy', { es: 'Viento: fuerza y rachas', fr: 'Vent : force et rafales', de: 'Wind: Stärke und Böen', it: 'Vento: forza e raffiche' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="wind" comfortable /> },
+      ],
+    },
+    {
+      id: 'more',
+      label: controlLabels.tabs.more,
+      cards: [
+        {
+          id: 'tasks',
+          title: tp('Упражнения и сценарии', 'Drills and scenarios', 'Ćwiczenia i scenariusze', { es: 'Ejercicios y escenarios', fr: 'Exercices et scénarios', de: 'Übungen und Szenarien', it: 'Esercizi e scenari' }),
+          node: (
+            <div className="space-y-2">
+              <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
+              {mode === 'drill' && <DrillCard active={activeDrill} elapsed={drillElapsed} heldFor={drillHeldFor} result={drillResult} lang={lang} tp={tp} onStart={startDrill} onRestart={restartDrill} onExit={exitDrill} />}
+              {mode === 'scenario' && <ScenarioPicker activeId={activeScenarioId} onPick={pickScenario} lang={lang} tp={tp} />}
+            </div>
+          ),
+        },
+        {
+          id: 'view',
+          title: tp('Вид, пауза, оптимум, сессия', 'View, pause, optimum, session', 'Widok, pauza, optimum, sesja', { es: 'Vista, pausa, óptimo, sesión', fr: 'Vue, pause, optimum, session', de: 'Ansicht, Pause, Optimum, Sitzung', it: 'Vista, pausa, ottimo, sessione' }),
+          node: <ViewPod paused={paused} togglePause={() => setPaused((value) => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>,
+        },
+        ...(!embed ? [{ id: 'glossary', title: tp('Термины', 'Terms', 'Terminy', { es: 'Términos', fr: 'Termes', de: 'Begriffe', it: 'Termini' }), node: <GlossaryFooter tp={tp} /> }] : []),
+      ],
+    },
+  ];
+
   return (
     <div
       className={`page-enter flex flex-col ${
-        embed
+        !isDesktop
+          ? trainerScreenClass(embed)
+          : embed
           ? 'h-[100dvh] overflow-hidden'
           : 'min-h-[calc(100vh-var(--site-nav-h,56px))]'
       }`}
-      style={{ background: '#050b18' }}
+      style={{ background: 'var(--bg-primary)' }}
     >
       {/* Top bar with V3 badge + two-tier switcher (Basics / Trainer / 3D).
           Cross-links and Share are hidden under ?embed=1 - the iOS app
-          embeds this page chromelessly and provides its own navigation. */}
-      <div
+          embeds this page chromelessly and provides its own navigation.
+          On an embedded phone the bar would hold only "?", so the button
+          floats over the scene instead and the boat gets the height. */}
+      {(isDesktop || !embed) && <div
         className="sticky top-0 z-30 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b shrink-0"
         style={{
           background: 'rgba(5, 11, 24, 0.92)',
@@ -416,10 +570,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             )}
           </span>
         </div>
-        <div className="flex flex-wrap items-center gap-1 min-w-0">
-          <button onClick={openCheckpoint} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-3 text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]">
+        <div className={`flex items-center gap-1 min-w-0 ${isDesktop ? 'flex-wrap' : 'flex-nowrap overflow-x-auto'}`}>
+          {isDesktop && <GearButton label={controlLabels.openSettings} onClick={() => setDesktopSettings(true)} />}
+          {isDesktop && <button onClick={openCheckpoint} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-3 text-sm text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-[var(--accent-cyan)]">
             {tp("Сессия", "Session", "Sesja", { es: "Sesión", fr: "Session", de: "Sitzung", it: "Sessione" })}
-          </button>
+          </button>}
           <button
             onClick={() => setForceTour((n) => n + 1)}
             aria-label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', {
@@ -519,9 +674,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </>
           )}
         </div>
-      </div>
+      </div>}
 
-      {!embed && <p className="px-5 pt-3 pb-1 text-sm text-[var(--text-secondary)] max-w-[75ch]">
+      {!embed && isDesktop && <p className="px-5 pt-3 pb-1 text-sm text-[var(--text-secondary)] max-w-[75ch]">
         {tp("Выбери курс к ветру, настрой два шкота и сравни скорость. Для задания открой «Упражнения», для объяснений нажми «?».", "Choose a wind angle, trim both sails and compare speed. Open Drills for a task or ? for a guide.", "Wybierz kurs względem wiatru, ustaw oba szoty i porównaj prędkość. Zadanie znajdziesz w \"Ćwiczeniach\", objaśnienia pod \"?\".", { es: "Elige un rumbo respecto al viento, ajusta las dos escotas y compara la velocidad. Para una tarea abre \"Ejercicios\"; para las explicaciones, pulsa \"?\".", fr: "Choisis une allure, règle les deux écoutes et compare la vitesse. Pour une tâche, ouvre \"Exercices\" ; pour les explications, appuie sur \"?\".", de: "Wähle einen Kurs zum Wind, trimme beide Schoten und vergleiche die Fahrt. Aufgaben findest du unter \"Übungen\", Erklärungen unter \"?\".", it: "Scegli l'andatura, regola le due scotte e confronta la velocità. Per un compito apri \"Esercizi\", per le spiegazioni premi \"?\"." })}
       </p>}
 
@@ -558,6 +713,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             />
           )}
           <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
+          {helmMapping === 'rudder' && rudderCard}
           <details>
             <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Курс и компас", "Heading and compass", "Kurs i kompas", { es: "Rumbo y brújula", fr: "Cap et compas", de: "Kurs und Kompass", it: "Rotta e bussola" })}</summary>
             <HelmPod sim={sim} tp={tp} />
@@ -607,113 +763,88 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
         </div>
 
         <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
-          {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
-          <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
-        </div>
-      </div>
-      )}
-
-      {/* Mobile layout (< 1024px), mounted ONLY when !isDesktop (also the
-          SSR/first-render tree until matchMedia is measured): scene at full
-          width on top, pods in a 2x2 grid underneath. The pre-fix layout
-          overlapped pods on the scene corners which left almost no visible
-          scene on narrow viewports. Now the boat gets a proper 55vh stage
-          and every control is thumb-reachable without overlap.
-
-          Embed mode (iOS WebView, page scroll disabled): the column is
-          clamped by the 100dvh root and scrolls INTERNALLY (overflow-y-auto)
-          so every control stays reachable; the scene is trimmed to 42dvh so
-          the metrics and first pods are visible without scrolling. */}
-      {!isDesktop && (
-      <div
-        className={`flex-1 flex flex-col ${
-          embed ? 'min-h-0 overflow-y-auto' : ''
-        }`}
-      >
-        <div className="mx-2 mt-2">
-          <ModeBar active={mode} onChange={handleModeChange} tp={tp} />
-        </div>
-        {mode === 'drill' && (
-          <div className="mx-2 mt-2">
-            <DrillCard
-              active={activeDrill}
-              elapsed={drillElapsed}
-              heldFor={drillHeldFor}
-              result={drillResult}
-              lang={lang}
-              tp={tp}
-              onStart={startDrill}
-              onRestart={restartDrill}
-              onExit={exitDrill}
-            />
-          </div>
-        )}
-        {mode === 'scenario' && (
-          <div className="mx-2 mt-2">
-            <ScenarioPicker
-              activeId={activeScenarioId}
-              onPick={pickScenario}
-              lang={lang}
-              tp={tp}
-            />
-          </div>
-        )}
-        <div className={styles.stage}>
-        <div
-          data-testid="trainer-scene"
-            data-session-tick={sim.session.ticks}
-            data-session-heading={sim.session.boat.heading}
-          className="relative mx-2 mt-2 rounded-2xl overflow-hidden border shadow-[0_8px_40px_rgba(0,0,0,0.45)] shrink-0"
-          style={{
-            borderColor: 'rgba(0, 212, 255, 0.18)',
-            background:
-              'radial-gradient(ellipse at center 40%, #0c2745 0%, #061020 65%, #040a16 100%)',
-            height: 'clamp(270px, 32dvh, 310px)',
-          }}
-        >
-          {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
-            <SceneTop ui={ui} sim={sim} lang={lang} />
-          ) : ui.view === 'side' ? (
-            <SceneSide ui={ui} sim={sim} tp={tp} />
-          ) : (
-            <SceneRear ui={ui} sim={sim} tp={tp} />
+          {prefs.mode === 'wheels' && (
+            <div className="h-[330px] rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-secondary)] px-2 pt-2">
+              {wheelDeck('column')}
+            </div>
           )}
-          <SceneOverlayLabels
-            ui={ui}
-            sim={sim}
-            pointLabel={pointLabel}
-            tackLabel={tackLabel}
-            tp={tp}
-          />
-        </div>
-        <MetricsStrip ui={ui} sim={sim} tp={tp} />
-        <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
-        </div>
-        <div className="mx-2 grid shrink-0 grid-cols-1 min-[480px]:grid-cols-2 gap-3 mb-3">
-          <ViewPod
-            paused={paused}
-            togglePause={() => setPaused(value => !value)}
-            ui={ui}
-            setUi={setUi}
-            tp={tp}
-            applyOptimal={applyOptimal}
-            resetAll={resetAll}
-            setPreset={setPreset}
-          >{checkpointPanel}</ViewPod>
-          <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} />
           {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
-          <div className="min-[480px]:col-span-2">
-            <details>
-            <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Курс и компас", "Heading and compass", "Kurs i kompas", { es: "Rumbo y brújula", fr: "Cap et compas", de: "Kurs und Kompass", it: "Rotta e bussola" })}</summary>
-            <HelmPod sim={sim} tp={tp} />
-          </details>
-          </div>
         </div>
       </div>
       )}
 
-      {!embed && <GlossaryFooter tp={tp} />}
+      {/* Phone and tablet layout (< 1024px), mounted ONLY when !isDesktop
+          (also the SSR/first-render tree until matchMedia is measured). The
+          boat is pinned: the scene takes the spare height, the readouts sit
+          under it, and every control lives in the dock below; only the dock
+          panel scrolls (docs/design/trainer-controls-concept.md). */}
+      {!isDesktop && (
+        <TrainerWorkspace
+          embed={embed}
+          scene={
+            <div
+              data-testid="trainer-scene"
+              data-session-tick={sim.session.ticks}
+              data-session-heading={sim.session.boat.heading}
+              className="absolute inset-0"
+              style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light, #0c2745) 0%, var(--water-dark, #061020) 80%)' }}
+            >
+              {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+                <SceneTop ui={ui} sim={sim} lang={lang} />
+              ) : ui.view === 'side' ? (
+                <SceneSide ui={ui} sim={sim} tp={tp} />
+              ) : (
+                <SceneRear ui={ui} sim={sim} tp={tp} />
+              )}
+              <SceneOverlayLabels ui={ui} sim={sim} pointLabel={pointLabel} tackLabel={tackLabel} tp={tp} />
+              {embed && (
+                <button
+                  type="button"
+                  onClick={() => setForceTour((n) => n + 1)}
+                  aria-label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', { es: 'Mostrar la guía', fr: 'Afficher le guide', de: 'Tour anzeigen', it: 'Mostra il tour' })}
+                  className="absolute right-2 bottom-2 z-10 min-w-11 min-h-11 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[15px] font-bold text-[var(--accent-cyan)]"
+                >
+                  ?
+                </button>
+              )}
+            </div>
+          }
+          readouts={<>
+            <MetricsStrip ui={ui} sim={sim} tp={tp} />
+            <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
+          </>}
+          dock={
+            <ControlDock
+              surface="trainer"
+              layout="bottom"
+              prefs={prefs}
+              update={updatePrefs}
+              hasSheets={!ui.mainTrim}
+              rudderAvailable
+              defaultFavorites={['main', 'jib', 'course']}
+              tabs={dockTabs}
+              wheelDeck={wheelDeck('bottom')}
+            />
+          }
+        />
+      )}
+
+      {!embed && isDesktop && <GlossaryFooter tp={tp} />}
+
+      {desktopSettings && (
+        <ControlSettingsSheet
+          surface="trainer"
+          prefs={prefs}
+          update={updatePrefs}
+          labels={controlLabels}
+          hasSheets={!ui.mainTrim}
+          rudderAvailable
+          favorites={[]}
+          defaultFavorites={[]}
+          onClose={() => setDesktopSettings(false)}
+        />
+      )}
 
       {forceTour > 0 && <TourOverlay
         key={forceTour}

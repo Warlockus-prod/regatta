@@ -8,7 +8,7 @@
 // shows the short "Regatta" because anything else would be heavy in a
 // horizontal nav). Tagline is i18n'd in 7 languages.
 //
-// Hidden on immersive surfaces (game/multiplayer/simulator-v3) where the
+// Hidden on immersive surfaces (game, multiplayer, all three trainers) where the
 // canvas owns the screen and any persistent UI competes with controls.
 // ============================================================================
 
@@ -16,7 +16,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n';
 
-const HIDE_PATHS = ['/game', '/multiplayer', '/simulator-v3', '/simulator2'];
+const HIDE_PATHS = ['/game', '/multiplayer', '/simulator', '/simulator-v3', '/simulator2'];
 
 export default function SiteFooter() {
   const pathname = usePathname();

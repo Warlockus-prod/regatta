@@ -323,7 +323,7 @@ function SimulatorV2Inner() {
   );
 
   return (
-    <div className="min-h-screen bg-[var(--bg-primary,#0a1118)] text-[var(--text-primary,#e7f1f7)]">
+    <div className="min-h-[calc(100dvh-var(--site-nav-h,56px))] bg-[var(--bg-primary,#0a1118)] text-[var(--text-primary,#e7f1f7)]">
       <Simulator3D labels={labels} headerSlot={switcher} embed={embed} initialMode="sail" />
     </div>
   );

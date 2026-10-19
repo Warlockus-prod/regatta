@@ -21,9 +21,11 @@ export function MainPod(props: {
   sim: SimulationModel;
   tp: TpFn;
   compact?: boolean;
+  /** 44 px sliders for the phone dock. */
+  comfortable?: boolean;
   startRigStudy?: () => void;
 }) {
-  const { ui, setUi, params, sim, tp, compact } = props;
+  const { ui, setUi, params, sim, tp, compact, comfortable } = props;
   // 4-state gradient (more pedagogically honest than binary stall):
   //   AoA < 5   : LUFFING   - sail flapping, no lift
   //   5-15      : ATTACHED  - healthy lift
@@ -67,6 +69,7 @@ export function MainPod(props: {
       />
       <PodSlider
         compact={compact}
+        comfortable={comfortable}
         label={tp('Гика-шкот', 'Mainsheet', 'Szot grota', {
           es: 'Escota de mayor',
           fr: 'Écoute de grand-voile',

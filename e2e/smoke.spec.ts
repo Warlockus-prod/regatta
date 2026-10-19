@@ -239,7 +239,8 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   const before = Number(await main.inputValue());
   await main.press("ArrowRight");
   await expect(main).toHaveValue((before + 0.01).toFixed(2));
-  await page.getByText("Wind and fine tuning", { exact: true }).click();
+  // Phones get the shared control dock: the helm slider lives in the Helm tab.
+  await page.getByRole("tab", { name: "Helm", exact: true }).click();
   await expect(page.getByRole("slider", { name: "Helm", exact: true })).toHaveValue("0");
   await page.getByRole("button", { name: "Deck", exact: true }).click();
   await expect(page.getByRole("button", { name: "Deck", exact: true })).toHaveAttribute("aria-pressed", "true");
