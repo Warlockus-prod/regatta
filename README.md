@@ -4,7 +4,9 @@ Interactive sailing education app. Learn points of sail, sail trim, racing strat
 
 **Live:** https://weektoregatta.com
 
-For the full feature inventory see [`FEATURES.md`](./FEATURES.md).
+The current code map is [`ARCHITECTURE.md`](./ARCHITECTURE.md); agents start at
+[`AGENTS.md`](./AGENTS.md). `FEATURES.md` is a July 2026 inventory kept as a
+historical snapshot, not a description of the current app or of operations.
 
 September 2026: [3D yacht and Trainer update](./docs/design/3d-release-2026-09-07.md),
 with release checks and iOS 1.6.1 (34) TestFlight status.
@@ -19,8 +21,8 @@ with release checks and iOS 1.6.1 (34) TestFlight status.
 - **Physics engine** in `src/lib/sailing-physics/` - 8-step force-
   balance tick; `npm run test:physics` = 31 tests green (see `DECISIONS.md`
   ADR-0001).
-- **Race game** with AI opponents on 3 difficulty levels, Claude
-  Haiku coach on finish.
+- **Race game** with AI opponents on 3 difficulty levels and an AI
+  coach on finish (OpenAI, with a local heuristic fallback).
 - **Multiplayer** - WebSocket rooms, 2-8 players, 20 Hz authoritative
   server.
 - **Replay viewer** - scrubbable timeline for any finished race.
@@ -54,8 +56,10 @@ with release checks and iOS 1.6.1 (34) TestFlight status.
 - SVG (Trainer `/simulator-v3`, static diagrams)
 - SQLite via better-sqlite3 (`/data/regatta-stats.db` on VPS)
 - Separate WebSocket server at `:4502` (multiplayer)
-- Claude Haiku 4.5 via `@anthropic-ai/sdk` (coach + AI chat)
-- Standalone Next build, Docker Compose on VPS, GitHub Actions CI/CD
+- OpenAI (`gpt-5-mini` by default) for the coach and AI chats, plus
+  speech-to-text and text-to-speech in the radio course. The Claude SDK is a
+  dev dependency used only by the translation scripts.
+- Standalone Next build, immutable Docker images, GitHub Actions CI/CD
 
 ## Develop
 
@@ -72,13 +76,25 @@ npm run build
 npm start
 ```
 
-## Docker
+## Docker (local only)
 
 ```bash
 docker compose up -d --build
 # → http://localhost:4500 (bound to docker bridge 172.17.0.1)
 ```
 
+`docker-compose.yml` is for local development only (Compose project
+`regatta-local`). Never run it on the production server: production uses a
+separate, hardened, root-owned Compose file.
+
 ## Deployment
 
-Deployed on the shared `icoffio.com` VPS via Docker Compose + nginx reverse proxy. CI/CD: `.github/workflows/deploy.yml` (push to main triggers build + SSH deploy + Playwright smoke on prod).
+Production (vps2, behind the shared nginx reverse proxy) is deployed only by
+CI. A push to `main` runs `.github/workflows/deploy.yml`: checks, the full unit
+suite, the build and a pre-deploy E2E on the runner, then immutable images are
+published and handed to a confined deploy command on the server, which starts
+them with a read-only filesystem and rolls back on a failed health check.
+Smoke tests and Playwright then run against prod. How it works, how it is
+installed and how an administrator rolls back:
+[`ops/deploy/README.md`](./ops/deploy/README.md). Day-to-day operations
+(logs, database backup and restore, geoip2): [`docs/OPS.md`](./docs/OPS.md).

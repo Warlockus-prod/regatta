@@ -1,5 +1,10 @@
 # TECH
 
+> **Historical snapshot, not an ops reference.** Kept for history only: do not
+> follow its deploy, rollback, host, SSH or `.env` steps. Current sources:
+> `AGENTS.md` (rules), `ARCHITECTURE.md` (code map), `ops/deploy/README.md`
+> (deploy and rollback), `docs/OPS.md` (operations).
+
 Architecture snapshot. Updated on structural changes (new module, removed
 feature, changed data flow) - NOT on every commit. When updating, date the
 entry in MEMORY.md pointing to the change.
@@ -40,8 +45,8 @@ architecture, modules, data flow, infrastructure.
 - **Tests:** Vitest (physics engine only, `npm run test:physics`);
   Playwright MCP for manual browser audits
 - **Deploy:** Docker Compose on VPS (178.104.223.93 Hetzner FSN1), standalone
-  Next build, GitHub Actions CI/CD via SSH push. Old address 46.225.11.249
-  retired 2026-04-21.
+  Next build, GitHub Actions CI/CD via SSH push. Regatta left its former host
+  46.225.11.249 (vps1, still live for other services) on 2026-04-21.
 - **PWA:** manifest + SVG icons, installable on home screen
 
 ---
@@ -271,8 +276,8 @@ a 500.
 
 ## Infrastructure
 
-- VPS: `178.104.223.93` (Ubuntu, Hetzner FSN1 16GB). Old `46.225.11.249`
-  retired 2026-04-21.
+- VPS: `178.104.223.93` (Ubuntu, Hetzner FSN1 16GB). Regatta left its former
+  host `46.225.11.249` (vps1, still live for other services) on 2026-04-21.
 - Next app container: `172.17.0.1:4500`
 - WS container: `172.17.0.1:4502`
 - Nginx: Let's Encrypt SSL, CSP in `regatta.nginx.conf` - only
@@ -334,13 +339,11 @@ git ls-files '*.ts' '*.tsx' '*.js' '*.md' '*.json' '*.css' '*.conf' \
 git push origin main          # CI picks it up
 ```
 
-**Rollback:**
-```
-ssh root@46.225.11.249
-cd /opt/repos/regatta
-git checkout <tag>
-docker compose up -d --build
-```
+**Rollback:** removed 2026-10-19. The old recipe (root SSH to the former
+Regatta host 46.225.11.249, which is vps1 and still live for other services,
+then `git checkout` and `docker compose up -d --build` in /opt/repos/regatta)
+would recreate prod without its hardening. Rollback is an administrator task:
+`ops/deploy/README.md`, "Verification and rollback".
 
 **DB poke:**
 ```

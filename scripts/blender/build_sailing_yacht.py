@@ -13,7 +13,7 @@ out = root / "docs/design/audits/sailing-2026-09-08"
 out.mkdir(parents=True, exist_ok=True)
 shapes = json.loads((root / "assets/3d/sail-shapes.json").read_text())
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=str(root / "public/models/regatta_sloop.glb"))
+bpy.ops.import_scene.gltf(filepath=str(root / "assets/3d/regatta_sloop.glb"))
 scene = bpy.context.scene
 scene.unit_settings.system = "METRIC"
 scene["design_basis"] = "Synthetic cruiser, LOA 13.8554 m. Flat sail areas: main 45 m2, jib 30 m2. Not sea-trial calibrated."

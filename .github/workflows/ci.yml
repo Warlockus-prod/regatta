@@ -20,8 +20,8 @@ jobs:
     name: Typecheck + Lint + Typography
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -31,9 +31,11 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      # Advisory until the simulator-v3 lane clears its pre-existing lint
-      # errors (14 as of 2026-05). Reports issues without blocking the PR.
-      # Flip to blocking once `npm run lint` is clean on main.
+      # Advisory for now. As of 2026-10-19 `npx eslint .` reports 11 errors,
+      # all in shared web files (React compiler rules set-state-in-effect,
+      # purity, immutability and refs, plus one unescaped entity) and none in
+      # simulator-v3. Reports issues without blocking the PR. Remove
+      # continue-on-error once `npm run lint` is clean on main.
       - name: Next lint (advisory)
         run: npm run lint
         continue-on-error: true
@@ -48,11 +50,22 @@ jobs:
       - name: Project map is current
         run: npm run check:map
 
-      - name: Physics engine tests
-        run: npm run test:physics
+      # The server physics in ws-server/race-physics.js is generated from the
+      # TS engine; fail when the committed copy drifts from its source.
+      - name: Generated multiplayer physics matches the TS engine
+        run: node scripts/build-race-server.mjs --check
 
-      - name: Simulator feature tests (V3 runtime etc.)
-        run: npx vitest run src/features
+      # The whole unit suite, not a list of folders: a path filter silently
+      # skipped every test file added outside it (7 files on 2026-10-18,
+      # including rate limits, ws limits and the proxy). Takes about 10 s.
+      - name: All unit tests (vitest)
+        run: npx vitest run
+
+      # Real socket lifecycle against an isolated local ws-server
+      # (scripts/test-multiplayer.mjs). It used to run only in the deploy
+      # workflow, so a pull request could not fail on it.
+      - name: Multiplayer socket lifecycle
+        run: npm run test:multiplayer
 
       # One golden physics engine (docs/design/SIMULATORS.md): the mobile
       # trainer consumes src/lib/sailing-physics via the @regatta/physics
@@ -65,17 +78,6 @@ jobs:
             exit 1
           fi
 
-      - name: API contract tests
-        run: npm run test:api
-
-      # The radio + sternik grader tests are the guardrail against a trainer
-      # telling a learner they passed when they stated the rule backwards. They
-      # were shipping untested by any CI job; without this step a reversed keyword
-      # list is a green build.
-      - name: Radio and sternik course tests
-        run: |
-          npx vitest run src/app/radio
-          npx vitest run src/app/sternik
 
   # The mobile app (mobile/) shipped with NO CI of its own - its lint,
   # typecheck and 92 Jest tests only ran on a developer's laptop, so a broken
@@ -86,8 +88,8 @@ jobs:
     name: Mobile (twins + lint + typecheck + tests)
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'

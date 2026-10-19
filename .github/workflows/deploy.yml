@@ -4,12 +4,10 @@ on:
   push:
     branches: [main]
     tags: ['v*']
+  # A manual run deploys the ref it is started on. There is deliberately no
+  # free-form ref input: the deploy job runs in the 'production' environment,
+  # whose branch rule is the gate on what reaches prod.
   workflow_dispatch:
-    inputs:
-      ref:
-        description: 'Git ref to deploy (branch, tag, sha)'
-        required: false
-        default: 'main'
 
 # Least privilege by default; jobs that need more (publish-images,
 # deploy) ask for it in their own permissions block.
@@ -27,15 +25,13 @@ jobs:
     name: Build, checks + pre-deploy E2E
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.inputs.ref || github.ref }}
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - name: Record the tested commit
         id: source
         run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Deployment privilege boundary tests
         run: python3 -m unittest discover -s ops/deploy -p 'test_*.py'
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -46,37 +42,30 @@ jobs:
         run: npx tsc --noEmit
       - name: Typography (no em/en-dash)
         run: npm run check:dash
-      - name: API contract tests
-        run: npm run test:api
+      # A stale agent map now blocks a hotfix deploy too, the same as a PR.
+      - name: Project map is current
+        run: npm run check:map
+      - name: Generated multiplayer physics matches the TS engine
+        run: node scripts/build-race-server.mjs --check
+      # The whole unit suite before the build, not a list of folders: a path
+      # filter silently skipped every test file added outside it (7 files on
+      # 2026-10-18). It covers the API contracts, physics, simulator features,
+      # product navigation, and the radio and sternik graders (the guard
+      # against telling a candidate they passed with the rule stated backwards).
+      - name: All unit tests (vitest)
+        run: npx vitest run
       - name: Next build
         run: npm run build
         env:
           NEXT_TELEMETRY_DISABLED: '1'
       - name: Bundle-size budget check
         run: node scripts/check-bundle-size.mjs
-      - name: Product navigation routes and search
-        run: npx vitest run src/lib/product
-      - name: Physics engine tests
-        run: npm run test:physics
-      - name: 3D camera and sailing target regression tests
-        run: npx vitest run src/features/simulator-3d
-      - name: Trainer runtime and feedback regression tests
-        run: npx vitest run src/features/simulator-v3
-      - name: Shared sailing session, rig mechanics and course regression tests
-        run: npx vitest run src/features/sailing-lab
       - name: Install locked mobile dependencies for the offline package
         # The bundled WebView resolves React from mobile, not the Next.js tree.
         # Both lockfiles are required to reproduce the shipped native asset.
         run: npm ci --prefix mobile --no-audit --no-fund
       - name: Offline sailing package matches the website source
         run: npm run build:sailing-offline:check
-      - name: Radio trainer tests (state machine + scenarios)
-        run: npm run test:radio
-      # test:radio does not cover src/app/sternik. The oral trainer's grader tests
-      # are the guard against telling a candidate they passed with the rule stated
-      # backwards - run them or the guard cannot fail a deploy.
-      - name: Sternik trainer tests (oral grader)
-        run: npx vitest run src/app/sternik
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Pre-deploy E2E (boot the build, run smoke against localhost)
@@ -110,7 +99,7 @@ jobs:
           exit $RESULT
       - name: Upload pre-deploy E2E report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report-predeploy
           path: playwright-report/
@@ -127,7 +116,7 @@ jobs:
       app_digest: ${{ steps.images.outputs.app_digest }}
       ws_digest: ${{ steps.images.outputs.ws_digest }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           ref: ${{ needs.build-check.outputs.commit }}
           persist-credentials: false
@@ -159,6 +148,13 @@ jobs:
     name: Deploy to VPS
     needs: [build-check, publish-images]
     runs-on: ubuntu-24.04
+    # The owner configures this environment in GitHub: deployment branches
+    # limited to main (v* tags only once a tag ruleset restricts who may
+    # create them), and the deploy secrets (DEPLOY_SSH_KEY, VPS_HOST,
+    # VPS_USER, VPS_KNOWN_HOSTS) moved here from the repository level. Until
+    # then GitHub creates it on first use with no rules and the repository
+    # secrets still apply, so deploys keep working.
+    environment: production
     permissions:
       contents: read
       packages: read
@@ -217,17 +213,19 @@ jobs:
             [ "$code" = "200" ] || { echo "FAIL: $path returned $code"; exit 1; }
           done
           # Microphone must be same-origin allowed for the radio voice trainer.
-          # The header comes from the SHARED nginx_server reverse proxy, which is
-          # external to this repo's docker-compose and is NOT applied by this
-          # deploy. Until regatta.nginx.conf is copied to the shared proxy and it
-          # is reloaded (see docs/design/sternik-radio.md), warn instead of fail
-          # so an un-reloaded proxy never blocks an otherwise-good deploy.
+          # The header comes from the SHARED nginx_server reverse proxy on the
+          # host, which this deploy never touches. Its source of truth is the
+          # regatta vhost under /opt/repos/nginx_server/conf.d/ on the host,
+          # edited by an administrator and applied with `docker exec
+          # nginx_server nginx -t` and then `nginx -s reload`; the repo's
+          # regatta.nginx.conf is only a reference copy. Warn instead of fail so
+          # a proxy setting never blocks an otherwise-good deploy.
           policy=$(curl -sSI -m 15 "https://weektoregatta.com/radio/symulator" | tr -d '\r' | grep -i '^permissions-policy:' || true)
           echo "$policy"
           if echo "$policy" | grep -Fq 'microphone=(self)'; then
             echo "OK: microphone is allowed for same-origin radio training"
           else
-            echo "WARN: microphone is not allowed yet - reload the shared nginx_server with the updated regatta.nginx.conf to enable the voice trainer on prod"
+            echo "WARN: microphone is not allowed yet - add microphone=(self) to Permissions-Policy in the regatta vhost under /opt/repos/nginx_server/conf.d/ on the host, then docker exec nginx_server nginx -t and nginx -s reload"
           fi
 
   e2e:
@@ -235,8 +233,8 @@ jobs:
     needs: deploy
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: 'npm'
@@ -251,7 +249,7 @@ jobs:
           BASE_URL: https://weektoregatta.com
       - name: Upload HTML report on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
           path: playwright-report/

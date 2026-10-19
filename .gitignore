@@ -56,12 +56,10 @@ tsconfig.tsbuildinfo
 live-mobile-*.png
 qa-*.png
 
-# Playwright screenshots in repo root
-/anatomy-*.png
-/leaderboard*.png
-/game-*.png
-/home-*.png
-/v8-*.png
+# Screenshots in the repo root (Playwright and QA scratch). Nothing at the
+# root is a real asset: images that ship live in public/, documentation
+# images under docs/.
+/*.png
 
 # Playwright
 /playwright-report/

@@ -1,3 +1,15 @@
+# LOCAL DEVELOPMENT ONLY. Production never uses this file: CI deploys tested
+# images through the root-owned /etc/regatta-deploy/compose.yml (source:
+# ops/deploy/compose.yml, read-only filesystem, dropped capabilities, resource
+# limits), see ops/deploy/README.md. Do not run `docker compose up` with this
+# file on the VPS.
+#
+# The distinct project name keeps it away from prod: prod runs as project
+# "regatta", so on the VPS this file fails closed on the container_name
+# conflict instead of silently recreating the hardened containers, and its
+# volume is regatta-local_regatta_data, never the prod data volume.
+name: regatta-local
+
 services:
   regatta:
     build:

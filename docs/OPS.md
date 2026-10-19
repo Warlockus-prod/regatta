@@ -1,8 +1,13 @@
 # Ops runbook for weektoregatta.com
 
-Production VPS: `178.104.223.93`. nginx + Docker Compose front; Next.js
-standalone build inside the `regatta` container; SQLite on a host
-volume.
+Production VPS: `178.104.223.93` (vps2). The shared `nginx_server` container
+is in front; the Next.js standalone build runs in the `regatta` container and
+the multiplayer server in `regatta-ws`, both started by the root-owned
+`/etc/regatta-deploy/compose.yml` (source: `ops/deploy/compose.yml`); SQLite
+lives on the named volume `regatta_regatta_data`. Deploys and rollbacks go only
+through `ops/deploy/README.md`: never run `docker compose` from a repository
+checkout on the VPS (the repo `docker-compose.yml` is the local project
+`regatta-local` and lacks the production hardening).
 
 This file collects the repeatable manual setup that lives outside the
 repo: nginx snippets, Docker volume hygiene, secret rotation, etc.
@@ -65,12 +70,15 @@ Public surfaces:
 To register the site in Google / Yandex Search Console:
 1. Add the property in the respective console.
 2. Pick the "HTML tag" verification method, copy the `content` token.
-3. On the VPS, set the env var:
+3. An administrator adds the variable to the production environment file
+   `/etc/regatta-deploy/runtime.env` (root-owned, mode 0600; never a `.env` in
+   a checkout):
    ```
-   echo "GOOGLE_SITE_VERIFICATION=token-here" >> /srv/regatta/.env
-   echo "YANDEX_VERIFICATION=token-here"    >> /srv/regatta/.env
-   docker compose up -d --build regatta
+   GOOGLE_SITE_VERIFICATION=token-here
+   YANDEX_VERIFICATION=token-here
    ```
+   The next CI deploy (a push to `main`, or a manual run of the Deploy
+   workflow on `main`) recreates the container with it.
 4. Click "Verify" in the console. The meta tag is emitted in `<head>`
    only when the env var is set, so we don't ship empty values.
 5. After verification: submit `https://weektoregatta.com/sitemap.xml`
@@ -82,8 +90,9 @@ To register the site in Google / Yandex Search Console:
 ## Stats dashboard auth
 
 `/stats` and `/api/admin/*` are gated by Basic Auth (user `admin`, checked in
-`src/proxy.ts` and in-handler). The password is `ADMIN_PASSWORD` in the VPS
-`.env` file (NOT in the repo); without it `/stats` answers 503. A password that
+`src/proxy.ts` and in-handler). The password is `ADMIN_PASSWORD` in
+`/etc/regatta-deploy/runtime.env` on the VPS (NOT in the repo); without it
+`/stats` answers 503. A password that
 was ever written in this file or in git history counts as disclosed: rotate it
 if it is still the one in use.
 
@@ -97,26 +106,50 @@ per request: a wider range keeps `to` and moves `from` forward.
 
 ## SQLite volume
 
-`docker-compose.yml` mounts the named volume `regatta_data` at `/data` inside
-the container (`REGATTA_DB_DIR=/data`). The DB file is
-`/data/regatta-stats.db`; on the host it sits under the volume's mountpoint:
+The production policy (`ops/deploy/compose.yml`) mounts the named volume
+`regatta_regatta_data` at `/data` inside the container (`REGATTA_DB_DIR=/data`).
+The DB file is `/data/regatta-stats.db`; on the host it sits under the volume's
+mountpoint:
 ```
-docker volume inspect "$(docker volume ls -q | grep regatta_data)" --format '{{ .Mountpoint }}'
+docker volume inspect regatta_regatta_data --format '{{ .Mountpoint }}'
 ```
 
 DB schema migrates progressively on container boot via `safeAlter()`
 in `src/lib/db.ts`. No manual migration is normally needed; if a
 column add fails, check the boot log via
-`docker compose logs regatta | head -50`.
+`docker logs regatta 2>&1 | head -50`.
 
 ### Backups
 
 Use `scripts/backup-sqlite.sh`, not `cp`: copying the file of a live WAL
 database can capture a torn or incomplete state. The script takes an online
-backup (host `sqlite3 .backup` when the file is reachable from the host,
-otherwise better-sqlite3's backup API inside the container), gzips it into
-`/var/backups/regatta`, keeps 14 days and optionally uploads to S3. Details and
-restore steps are in the script header.
+backup, gzips it into `/var/backups/regatta`, keeps 14 days and uploads each
+backup to S3 when `REGATTA_BACKUP_REMOTE` is set. Backups are private: the
+directory is 0700 and every file 0600.
+
+Root never acts on a path the app container can write. The prod volume belongs
+to the app's uid 1001, so the backup runs inside the container
+(better-sqlite3's backup API) and its bytes come out through `docker exec`
+stdout into a new file root creates itself. The in-container read refuses a
+symlink, a FIFO or anything that is not a regular file, the host side caps the
+size (`REGATTA_BACKUP_MAX_MB`, 2048 by default), and the result must start with
+the SQLite header before it is compressed or uploaded. Never use `docker cp`
+for this: it copies a symlink planted by the app as a symlink, and the next
+root command would follow it to a host file. The host `sqlite3 .backup` path
+runs only for a database whose file and directory belong to the user running
+the script and nobody else can write.
+
+Settings live in `/etc/default/regatta-backup` (root-owned, mode 0600, it holds
+the storage keys). The script reads it first and exports every variable, so the
+aws CLI sees the keys; it refuses a settings file that group or others can
+write. With `REGATTA_BACKUP_REMOTE` set and no aws CLI installed, the run keeps
+the local copy and exits 1, so a missing off-site copy shows up as a failed job:
+```
+REGATTA_BACKUP_REMOTE=s3://my-bucket/regatta/
+AWS_ACCESS_KEY_ID=...
+AWS_SECRET_ACCESS_KEY=...
+AWS_ENDPOINT_URL=https://hel1.your-objectstorage.com
+```
 
 Root runs a root-owned copy, never the file in the repository checkout (that
 would let any repository change run as root on the host). Install or update the
@@ -127,6 +160,41 @@ sudo /usr/local/sbin/regatta-backup-sqlite              # run once by hand, chec
 # /etc/cron.d/regatta-backup
 0 */6 * * * root /usr/local/sbin/regatta-backup-sqlite >> /var/log/regatta-backup.log 2>&1
 ```
+
+A backup counts only after a restore was tested on a scratch copy (gunzip it
+and open it with sqlite3 or better-sqlite3 on another machine or directory).
+
+### Restore
+
+An administrator with a root shell on the VPS, attended, checking the result
+from outside within 10 minutes. Production runs from the root-owned
+`/etc/regatta-deploy/compose.yml`, so do not use `docker compose` from a
+checkout here. The same steps are in the header of `scripts/backup-sqlite.sh`.
+
+The volume directory is writable by uid 1001, so root never writes or chowns a
+fixed name there: a name planted earlier as a symlink would send the write, or
+the chown, to a host file. The restored file is a fresh `mktemp` file (created
+exclusively, never through a link) renamed into place with `mv -T`. The whole
+restore holds the deploy lock that `regatta-deploy` takes without waiting, so a
+CI deploy started meanwhile fails at once instead of starting the container in
+the middle of the swap:
+```
+flock -n /var/lib/regatta-deploy-state/deploy.lock bash   # fails at once while a deploy runs
+docker stop regatta
+VOL="$(docker volume inspect regatta_regatta_data --format '{{ .Mountpoint }}')"
+KEEP="/root/regatta-before-restore-$(date +%Y%m%d-%H%M%S)"
+mkdir -m 700 "$KEEP" && cp -a "$VOL"/regatta-stats.db* "$KEEP"/
+TMP="$(mktemp "$VOL/restore.XXXXXX")"
+gunzip -c /var/backups/regatta/regatta-stats-YYYYMMDD-HHMMSS.db.gz > "$TMP"
+chmod 600 "$TMP" && chown -h 1001:1001 "$TMP"
+# A WAL left from the old database would be replayed onto the restored one.
+rm -f "$VOL/regatta-stats.db-wal" "$VOL/regatta-stats.db-shm"
+mv -T "$TMP" "$VOL/regatta-stats.db"
+docker start regatta
+exit                                                      # releases the deploy lock
+```
+Then from the Mac: `curl -fsS https://weektoregatta.com/api/health` and open
+`/stats`.
 
 ### Event retention (180 days)
 
@@ -168,11 +236,23 @@ in the same commit as the cron line.
 
 ## Deployment
 
-`git push origin main` triggers GitHub Actions (`.github/workflows/`),
-which SSHes into the VPS and runs:
-```
-cd /srv/regatta && git pull && docker compose up -d --build regatta
-```
+Deploys run only from CI; `ops/deploy/README.md` is the source of truth. A push
+to `main` runs `.github/workflows/deploy.yml`: checks, the full unit suite, the
+build and a pre-deploy E2E on the runner, then immutable images in GHCR. The
+deploy job (GitHub environment `production`) sends the commit, the two image
+digests and the job's ephemeral GHCR token over SSH stdin to the forced command
+`regatta-deploy` (the token is erased with the temporary Docker login right
+after the pull; request contract: `ops/deploy/README.md`, "Trust boundary"),
+which starts the images
+with the fixed root-owned Compose policy (read-only filesystem, all
+capabilities dropped, resource limits) and rolls back by itself when a health
+check fails. No checkout on the VPS is used; the old `/opt/repos/regatta`
+checkout and its `.env` are not the release source.
+
+Rollback is an administrator task, not something the deploy account can do:
+restore the image references from `/var/lib/regatta-deploy-state/previous.json`
+with the same fixed Compose policy (`ops/deploy/README.md`, "Verification and
+rollback").
 
 Production smoke checks after a deploy:
 ```
@@ -204,6 +284,7 @@ from an external env, never committed):
 ## See also
 
 - `docs/I18N_AUDIT.md` - i18n status across routes + langs
-- `CLAUDE.md` - lane coordination rules for parallel chats
+- `AGENTS.md` - project rules and lane coordination for parallel chats
+- `ops/deploy/README.md` - confined deploy, its installation and rollback
 - `README.md` - product overview
 - `ops/notify/README.md` - ASC + support alert tooling
