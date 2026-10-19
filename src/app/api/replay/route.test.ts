@@ -1,5 +1,7 @@
-// Contract tests for /api/replay POST: size caps on every client blob, a
-// short slug for missionId, a sanitized nickname, and a plausible time.
+// Contract tests for /api/replay POST: size caps on every client blob,
+// counted in UTF-8 bytes; samples and events rebuilt from numeric allow-lists
+// so string padding is never stored; a short slug for missionId, a sanitized
+// nickname, a plausible time; per-session, per-IP and site-wide hourly caps.
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
@@ -20,14 +22,14 @@ vi.mock('@/lib/log', () => ({ logInfo: vi.fn(), logWarn: vi.fn() }));
 import { POST } from './route';
 import { __resetRateLimitsForTests } from '@/lib/rate-limit';
 
-const samples = [{ t: 0 }, { t: 0.5 }, { t: 1 }];
+const samples = [0, 0.5, 1].map((t) => ({ t, x: 400, y: 1050 - t * 10, heading: 45, twa: 45, speed: 5, lap: 0 }));
 const base = { difficulty: 'easy', windStrength: 'light', samples, events: [] as unknown[] };
 
-function makeReq(body: unknown): Request {
+function makeReq(body: unknown, xff = '203.0.113.20'): Request {
   return new Request('http://localhost/api/replay', {
     method: 'POST',
     body: JSON.stringify(body),
-    headers: { 'content-type': 'application/json', 'x-forwarded-for': '203.0.113.20' },
+    headers: { 'content-type': 'application/json', 'x-forwarded-for': xff },
   });
 }
 
@@ -77,5 +79,58 @@ describe('POST /api/replay', () => {
     }
     expect(ok).toBeLessThan(120);
     expect(ok).toBe(90); // 30 / hour per sid x IP_BUCKET_FACTOR 3 per IP
+  });
+
+  it('counts the caps in UTF-8 bytes: 3-byte characters under the old char cap are refused', async () => {
+    // 40 000 characters (under the old 100 000-char events cap) but 120 000 bytes.
+    const res = await POST(makeReq({ ...base, events: [{ type: 'tack', t: 1, note: '€'.repeat(40_000) }] }));
+    expect(res.status).toBe(400);
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it('413 when the whole body is over the byte cap', async () => {
+    const res = await POST(makeReq({ ...base, course: { pad: '€'.repeat(400_000) } }));
+    expect(res.status).toBe(413);
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
+  });
+
+  it('400 when the course blob is over its byte cap', async () => {
+    const res = await POST(makeReq({ ...base, course: { label: 'ж'.repeat(9000) } }));
+    expect(res.status).toBe(400);
+  });
+
+  it('stores only allow-listed numeric sample fields and slug events, never padding', async () => {
+    const padded = [0, 0.5, 1, 1.5].map((t) => ({
+      t, x: 400.123, y: 1050, heading: 'x'.repeat(5000), twa: 45, speed: 5.678, lap: 0,
+      pad: 'y'.repeat(5000), nested: { more: 'z'.repeat(5000) },
+    }));
+    const events = [
+      { type: 'tack', t: 2, note: 'to-port-tack', extra: 'q'.repeat(5000) },
+      { type: '<img src=x>', t: 3, note: '<script>alert(1)</script>' },
+      { type: 'finish', t: 'soon' },
+    ];
+    const res = await POST(makeReq({ ...base, samples: [...padded, { t: 2, x: 'NaN', y: 1 }], events }));
+    expect(res.status).toBe(200);
+    const stored = saved();
+    expect(stored.samples).toEqual(padded.map((p) => ({ t: p.t, x: 400.1, y: 1050, heading: 0, twa: 45, speed: 5.68, lap: 0 })));
+    expect(stored.events).toEqual([
+      { type: 'tack', t: 2, note: 'to-port-tack' },
+      { type: 'imgsrcx', t: 3, note: 'scriptalert1script' },
+    ]);
+    expect(JSON.stringify(stored.samples).length).toBeLessThan(400);
+  });
+
+  it('400 when fewer than 3 usable samples remain after rebuilding', async () => {
+    const res = await POST(makeReq({ ...base, samples: [{ t: 0, x: 1, y: 1 }, { t: 1, x: 'a', y: 1 }, 'junk', null] }));
+    expect(res.status).toBe(400);
+  });
+
+  it('caps uploads site-wide even across many IPs', async () => {
+    let ok = 0;
+    for (let i = 0; i < 320; i++) {
+      mocks.sid = 'global-' + i;
+      if ((await POST(makeReq(base, `198.51.${Math.floor(i / 50)}.${i % 50}`))).status === 200) ok++;
+    }
+    expect(ok).toBe(300);
   });
 });
