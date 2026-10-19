@@ -6,7 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  insertFeedback: vi.fn((_f: Record<string, unknown>) => 1 as number | null),
+  insertFeedback: vi.fn<(f: Record<string, unknown>) => number | null>(() => 1),
   log: { logInfo: vi.fn(), logError: vi.fn(), logWarn: vi.fn() },
 }));
 
@@ -17,7 +17,7 @@ vi.mock('@/lib/log', () => mocks.log);
 import { POST } from './route';
 import { __resetRateLimitsForTests } from '@/lib/rate-limit';
 
-const fetchMock = vi.fn(async (_url: string | URL | Request, _init?: RequestInit) => new Response('{"ok":true}', { status: 200 }));
+const fetchMock = vi.fn<(url: string | URL | Request, init?: RequestInit) => Promise<Response>>(async () => new Response('{"ok":true}', { status: 200 }));
 let ipSeq = 0;
 let xff = '';
 

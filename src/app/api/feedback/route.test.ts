@@ -7,7 +7,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 const mocks = vi.hoisted(() => ({
-  insertFeedback: vi.fn((_f: Record<string, unknown>) => 1 as number | null),
+  insertFeedback: vi.fn<(f: Record<string, unknown>) => number | null>(() => 1),
   fs: { mkdir: vi.fn(async () => undefined), appendFile: vi.fn(async () => undefined) },
 }));
 

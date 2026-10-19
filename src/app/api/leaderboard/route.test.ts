@@ -13,8 +13,8 @@ const mocks = vi.hoisted(() => {
   return {
     sid: 'me-sid' as string | undefined,
     db: {
-      topByDifficulty: vi.fn((_d: string, _w: string, _l?: number) => rows()),
-      topByMission: vi.fn((_m: string, _l?: number) => rows()),
+      topByDifficulty: vi.fn<(difficulty: string, wind: string, limit?: number) => ReturnType<typeof rows>>(() => rows()),
+      topByMission: vi.fn<(missionId: string, limit?: number) => ReturnType<typeof rows>>(() => rows()),
     },
   };
 });

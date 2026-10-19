@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
     getOrCreateDaily: vi.fn((day: string) => ({
       day, seed: 7, difficulty: 'medium', wind_strength: 'heavy', mission_id: null, created_at: 0,
     })),
-    getDailyLeaderboard: vi.fn((_day: string, _limit?: number) => [
+    getDailyLeaderboard: vi.fn<(day: string, limit?: number) => Array<Record<string, unknown>>>(() => [
       { nickname: 'Ola', sid: 'other-sid', difficulty: 'medium', wind_strength: 'heavy', mission_id: null, finish_time_sec: 81.2, score: null, ts: 1 },
       { nickname: 'Me', sid: 'me-sid', difficulty: 'medium', wind_strength: 'heavy', mission_id: null, finish_time_sec: 90, score: null, ts: 2 },
     ]),
