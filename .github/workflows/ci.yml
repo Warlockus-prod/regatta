@@ -31,14 +31,9 @@ jobs:
       - name: TypeScript check
         run: npx tsc --noEmit
 
-      # Advisory for now. As of 2026-10-19 `npx eslint .` reports 11 errors,
-      # all in shared web files (React compiler rules set-state-in-effect,
-      # purity, immutability and refs, plus one unescaped entity) and none in
-      # simulator-v3. Reports issues without blocking the PR. Remove
-      # continue-on-error once `npm run lint` is clean on main.
-      - name: Next lint (advisory)
+      # Blocking since 2026-10-19: errors went 129 -> 0 (warnings still allowed).
+      - name: Next lint
         run: npm run lint
-        continue-on-error: true
 
       - name: Typography check (no em-dash / en-dash)
         run: npm run check:dash

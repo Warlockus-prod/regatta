@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { insertReplay, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
-import { rateLimitWithGlobal, clientKeys } from '@/lib/rate-limit';
+import { rateLimitClient, rateLimitGlobal, clientKeys } from '@/lib/rate-limit';
 import { isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
 
 export const runtime = 'nodejs';
@@ -94,15 +94,10 @@ function rebuildEvents(raw: unknown[]): ReplayEvent[] {
 export async function POST(req: Request) {
   const jar = await cookies();
   const sid = jar.get('regatta_sid')?.value ?? null;
-  const rl = rateLimitWithGlobal({
-    key: 'replay',
-    client: clientKeys(req, sid),
-    perKeyLimit: REPLAY_LIMIT,
-    perKeyWindowMs: REPLAY_WINDOW_MS,
-    globalKey: 'replay',
-    globalLimit: REPLAY_GLOBAL_LIMIT,
-    globalWindowMs: REPLAY_WINDOW_MS,
-  });
+  // Per-session and per-IP first: every attempt counts, so one client cannot
+  // hammer the route. The site-wide budget is charged only after validation
+  // (below), so a stream of junk bodies cannot lock out everyone else.
+  const rl = rateLimitClient(clientKeys(req, sid), 'replay', REPLAY_LIMIT, REPLAY_WINDOW_MS);
   if (!rl.ok) {
     logWarn('replay.rate-limited', { by: rl.rejectedBy });
     return NextResponse.json({ error: 'Too many replays, wait' }, { status: 429 });
@@ -162,6 +157,12 @@ export async function POST(req: Request) {
 
   const player = sid ? getPlayer(sid) : null;
   const nickname = player?.nickname || sanitizeNickname(body.nicknameFallback);
+
+  const site = rateLimitGlobal('replay', REPLAY_GLOBAL_LIMIT, REPLAY_WINDOW_MS);
+  if (!site.ok) {
+    logWarn('replay.rate-limited', { by: 'global' });
+    return NextResponse.json({ error: 'Too many replays, wait' }, { status: 429 });
+  }
 
   const code = insertReplay({
     sid,

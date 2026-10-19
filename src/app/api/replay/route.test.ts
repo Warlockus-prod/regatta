@@ -125,6 +125,24 @@ describe('POST /api/replay', () => {
     expect(res.status).toBe(400);
   });
 
+  it('invalid uploads never spend the site-wide budget', async () => {
+    for (let i = 0; i < 400; i++) {
+      mocks.sid = 'junk-' + i;
+      expect((await POST(makeReq({ ...base, samples: [] }, `198.18.${Math.floor(i / 50)}.${i % 50}`))).status).toBe(400);
+    }
+    mocks.sid = 'real-uploader';
+    expect((await POST(makeReq(base, '192.0.2.200'))).status).toBe(200);
+  });
+
+  it('one IPv6 /64 shares a single per-IP bucket', async () => {
+    let ok = 0;
+    for (let i = 0; i < 100; i++) {
+      mocks.sid = 'v6-' + i;
+      if ((await POST(makeReq(base, `2001:db8:abcd:12::${(i + 1).toString(16)}`))).status === 200) ok++;
+    }
+    expect(ok).toBe(90); // REPLAY_LIMIT x IP_BUCKET_FACTOR for the whole /64
+  });
+
   it('caps uploads site-wide even across many IPs', async () => {
     let ok = 0;
     for (let i = 0; i < 320; i++) {

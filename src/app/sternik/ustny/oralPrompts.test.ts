@@ -282,6 +282,8 @@ describe('review 2026-10-19: q10 prop-walk keyword is bound to the stern', () =>
     expect(hits('Na wstecznym rufa ściąga w lewo.', e1)).toBe(true);
     expect(hits('Na wstecznym rufa sciaga w lewo.', e1)).toBe(true);   // transcript without diacritics
     expect(hits('Śruba znosi rufę w lewo.', e1)).toBe(true);
+    expect(hits('Na wstecznym śruba znosi jacht w lewo.', e1)).toBe(true);
+    expect(hits('Na wstecznym sruba sciaga jacht w lewo.', e1)).toBe(true);
     expect(hits('Rufę znosi na wstecznym w lewo.', e1)).toBe(true);
   });
 });

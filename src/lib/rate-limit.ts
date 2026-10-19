@@ -130,9 +130,25 @@ export interface ClientKeys {
  * multiplayer result would compete for a single IP budget, so the IP layer is
  * skipped and only the session limit applies.
  */
+/**
+ * IPv6 clients usually own a whole /64, so a per-address bucket lets one
+ * network rotate through billions of keys. Rate-limit keys group IPv6 by its
+ * /64 prefix; IPv4 (and IPv4-mapped IPv6) stay per address.
+ */
+export function rateLimitIpPrefix(addr: string): string {
+  if (!addr.includes(':') || /^::ffff:\d+\.\d+\.\d+\.\d+$/i.test(addr)) return addr;
+  const clean = addr.split('%')[0].toLowerCase();
+  const [head, tail = ''] = clean.split('::');
+  const h = head ? head.split(':') : [];
+  const t = clean.includes('::') && tail ? tail.split(':') : [];
+  const full = clean.includes('::') ? [...h, ...Array(Math.max(0, 8 - h.length - t.length)).fill('0'), ...t] : h;
+  if (full.length !== 8 || full.some((x) => !/^[0-9a-f]{1,4}$/.test(x))) return addr;
+  return full.slice(0, 4).map((x) => x.replace(/^0+(?=.)/, '')).join(':') + '::/64';
+}
+
 export function clientKeys(req: Request, sid: string | null | undefined): ClientKeys {
   const raw = clientIpKey(req);
-  const ip = raw.startsWith('ip:') ? raw : 'ip:' + raw;
+  const ip = raw.startsWith('ip:') ? raw : 'ip:' + rateLimitIpPrefix(raw);
   const user = sid ? 'sid:' + sid.slice(0, MAX_SID_KEY_LEN) : 'anon:' + ip;
   // Both `keys.ip === keys.user` guards (ipCheck, dailyChecks) rely on this:
   // without them the no-XFF path would count every request twice.
@@ -259,6 +275,15 @@ export function rateLimitWithGlobal(args: {
     ...ipCheck(args.client, args.key, args.perKeyLimit, args.perKeyWindowMs, args.ipLimit),
     { store: GLOBAL_STORE, key: args.globalKey, limit: args.globalLimit, windowMs: args.globalWindowMs, layer: 'global' },
   ]);
+}
+
+/**
+ * Site-wide bucket alone, for routes that gate the client first (per-key and
+ * per-IP via rateLimitClient) and charge the shared budget only for a request
+ * that passed validation, so junk traffic cannot drain it for everyone.
+ */
+export function rateLimitGlobal(globalKey: string, limit: number, windowMs: number): RateResult {
+  return checkAll([{ store: GLOBAL_STORE, key: globalKey, limit, windowMs, layer: 'global' }]);
 }
 
 export function rateLimitHeaders(res: RateResult, limit: number): Record<string, string> {

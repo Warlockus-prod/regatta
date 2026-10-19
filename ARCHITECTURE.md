@@ -215,8 +215,11 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/race-result/route.ts` - запись результата гонки, лимит 60/час на сессию и 180/час на IP, правдоподобное время 20 с - 2 ч, ник через общий санитайзер.
 - `src/app/api/race-result/route.test.ts` - контракт валидации входа без реальной SQLite.
 - `src/app/api/leaderboard/route.ts` - выдача лучших времен по бакетам.
+- `src/app/api/leaderboard/route.test.ts` - контракт: в строках нет `sid`, `isMe` только для своей cookie, плохие mission / difficulty / wind дают 400 без запроса к базе.
 - `src/app/api/daily/route.ts` - миссия дня (одна на UTC-сутки).
+- `src/app/api/daily/route.test.ts` - контракт: в строках нет `sid`, `isMe` только для своей cookie, строка создается только на реальную дату сегодня плюс-минус день, неверная дата дает 400, остальные даты 404.
 - `src/app/api/player/route.ts` - ник игрока и его идентификатор.
+- `src/app/api/player/route.test.ts` - контракт: ник пишется только для сессии с UUID, не больше 20 в час на сессию и втрое больше на IP, ник проходит через общий санитайзер.
 - `src/app/api/replay/route.ts` - сохранение реплея, выдача кода; потолки размера `samples`, `events`, `course`, `missionId` только короткий слаг.
 - `src/app/api/replay/route.test.ts` - контракт: потолки размера, слаг миссии, санитайзер ника, ротация cookie не снимает лимит.
 - `src/app/api/replay/[code]/route.ts` - чтение реплея по коду.
@@ -226,7 +229,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/ai-chat/route.ts` - общий ИИ-чат по учебным темам.
 - `src/app/api/sternik-chat/route.ts` - ИИ-разбор вопросов экзамена sternik.
 - `src/app/api/feedback/route.ts` - прием обратной связи из виджета.
+- `src/app/api/feedback/route.test.ts` - контракт: не строка в необязательном поле отбрасывается (без 500), длины обрезаются, категория из списка, иначе `other`; fs замокан.
 - `src/app/api/support/route.ts` - заявка со страницы поддержки, уходит в Telegram.
+- `src/app/api/support/route.test.ts` - контракт: обращение сохраняется в базе до Telegram и не теряется при его сбое или без настроек, IPv4 и IPv6 усекаются, текст и контакт не попадают в лог, шестое за час дает 429.
 - `src/app/api/admin/feedback/route.ts` - смена статусов фидбэка для `/stats`.
 - `src/app/api/admin/stats-range/route.ts` - агрегаты за период для дашборда, окно не шире 90 дней.
 - `src/app/api/admin/require-admin.test.ts` - контракт: каждый админ-хендлер сам отвечает 401/403/503 без прокси.
@@ -242,6 +247,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/radio-voice/route.ts` - прием записи, транскрипция и оценка передачи.
 - `src/app/api/radio-voice/voiceGrading.ts` - чистая оценка радиопередачи по ключевым элементам.
 - `src/app/api/radio-voice/voiceGrading.test.ts` - тесты грейдера: обратный порядок слов не должен проходить.
+- `src/app/api/ai-routes.limits.test.ts` - контракт шести ИИ-роутов (coach, ai-chat, sternik-chat, radio-tts, radio-voice, radio-transcribe): ротация cookie на одном IP пропускает ровно лимит x3, отказ не вызывает OpenAI, часовой отказ не тратит дневной бюджет, исчерпанный дневной бюджет дает дневной ответ.
 
 ### 4.5 Радиокурс SRC `src/app/radio`
 
@@ -307,10 +313,12 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/radio/test/page.tsx` - пробный экзамен SRC.
 - `src/app/radio/test/examModel.ts` - модель экзамена: выборка, время, порог.
 - `src/app/radio/test/examModel.test.ts` - тесты модели экзамена.
+- `src/app/radio/courseIds.test.ts` - сверяет списки id из `src/app/radio/courseIds.ts` с банком SRC, сценариями и главами теории.
+- `src/app/radio/courseIds.ts` - id глав теории, вопросов SRC и сценариев для счетчиков прогресса на /radio без импорта самих данных.
 
 ### 4.6 Курс sternik motorowodny `src/app/sternik`
 
-- `src/app/sternik/page.tsx` - вход в курс: тренажер, теория, экзамен, устная часть.
+- `src/app/sternik/page.tsx` - серверный вход в курс: считает из банка числа и карту id -> категория для `src/app/sternik/SternikHub.tsx`, банк вопросов в клиент не уходит.
 - `src/app/sternik/layout.tsx` - layout курса.
 - `src/app/sternik/SternikSubnav.tsx` - подраздельная навигация.
 - `src/app/sternik/test/page.tsx` - тренажер по банку вопросов.
@@ -331,6 +339,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/sternik/ustny/OralTrainer.tsx` - устный тренажер с оценкой ответа.
 - `src/app/sternik/ustny/oralPrompts.ts` - вопросы и ожидаемые элементы ответа.
 - `src/app/sternik/ustny/oralPrompts.test.ts` - тесты грейдера устной части.
+- `src/app/sternik/SternikHub.tsx` - клиентская часть хаба /sternik: формат экзамена, прогресс по категориям, личный отчет грузится лениво; числа считает серверный `src/app/sternik/page.tsx`.
 
 ### 4.7 Общие компоненты `src/components`
 
@@ -568,6 +577,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/lib/product/catalog.test.ts` - тесты маршрутов и поиска по каталогу.
 - `src/lib/product/copy.ts` - общие тексты оболочки.
 - `src/lib/sternik-progress.ts` - прогресс курса sternik в localStorage.
+- `src/lib/db.leaderboard.test.ts` - SQL лидербордов на настоящем файле SQLite: одна настоящая лучшая строка на sid, миссии не попадают в свободные бакеты, полуоткрытое окно дня.
 
 ### 4.13 `ws-server` - сервер мультиплеера
 
@@ -636,6 +646,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `ops/notify/regatta-support-email-to-telegram.workflow.json` - экспорт workflow n8n.
 - `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
+- `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
+- `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 
 ### 4.16 Корневые конфиги
 

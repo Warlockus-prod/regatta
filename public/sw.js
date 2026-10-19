@@ -194,11 +194,13 @@ async function precache(l) {
     for (const ref of refs) if (!seen.has(ref)) { seen.add(ref); into.push(ref); }
   };
 
+  let stored = 0;
   await Promise.allSettled(PRECACHE.map(async (path) => {
     const url = new URL(path, self.location.origin);
     const res = await fetch(url.href, { credentials: 'same-origin' });
     if (!res.ok || res.redirected) return;
     await html.put(keyFor(url, l), res.clone());
+    stored++;
     queue(assetRefs(await res.text(), url.href, 'html'), frontier);
   }));
 
@@ -217,6 +219,7 @@ async function precache(l) {
     }));
     frontier = next;
   }
+  return stored;
 }
 
 // Precache is requested by course pages only (see ServiceWorkerRegistrar): a
@@ -232,8 +235,9 @@ async function precacheOnce(l) {
   if (done && (await done.text()) === l) return;
   if (precaching && precaching.lang === l) return precaching.run;
   const run = (async () => {
-    await precache(l);
-    await meta.put('/__precached', new Response(l));
+    // Mark done only when every course document was stored: a flaky network
+    // or a 5xx during a deploy must leave the next course page free to retry.
+    if ((await precache(l)) === PRECACHE.length) await meta.put('/__precached', new Response(l));
   })();
   precaching = { lang: l, run };
   try { await run; } finally { if (precaching && precaching.run === run) precaching = null; }

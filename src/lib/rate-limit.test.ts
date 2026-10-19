@@ -18,6 +18,8 @@ import {
   USER_DAILY_AI_IP_FACTOR,
   USER_DAILY_AI_IP_LIMIT,
   __resetRateLimitsForTests,
+  rateLimitIpPrefix,
+  rateLimitGlobal,
 } from './rate-limit';
 
 const HOUR = 60 * 60 * 1000;
@@ -243,5 +245,29 @@ describe('pruning', () => {
     // After the hour the bucket frees up.
     vi.setSystemTime(new Date('2026-10-18T11:00:01Z'));
     expect(rateLimit('coach:sid:a', 3, HOUR).ok).toBe(true);
+  });
+});
+
+describe('rateLimitIpPrefix (IPv6 grouped by /64)', () => {
+  it.each([
+    ['203.0.113.7', '203.0.113.7'],
+    ['::ffff:203.0.113.7', '::ffff:203.0.113.7'],
+    ['2001:db8:abcd:12::1', '2001:db8:abcd:12::/64'],
+    ['2001:0db8:abcd:0012:ffff:1:2:3', '2001:db8:abcd:12::/64'],
+    ['2001:db8::1', '2001:db8:0:0::/64'],
+    ['fe80::1%en0', 'fe80:0:0:0::/64'],
+    ['not-an-ip', 'not-an-ip'],
+  ])('%s -> %s', (input, expected) => {
+    expect(rateLimitIpPrefix(input)).toBe(expected);
+  });
+});
+
+describe('rateLimitGlobal', () => {
+  beforeEach(() => __resetRateLimitsForTests());
+  it('admits exactly the limit, then reports the global layer', () => {
+    for (let i = 0; i < 3; i++) expect(rateLimitGlobal('t', 3, 60_000).ok).toBe(true);
+    const r = rateLimitGlobal('t', 3, 60_000);
+    expect(r.ok).toBe(false);
+    expect(r.rejectedBy).toBe('global');
   });
 });
