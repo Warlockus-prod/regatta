@@ -260,3 +260,28 @@ describe('audit 2026-07-17: overtaking grader is case-based, not position-based'
     expect(hits('do 12 metrow i do 2 mil morskich', q7e2)).toBe(true);
   });
 });
+
+describe('review 2026-10-19: q10 prop-walk keyword is bound to the stern', () => {
+  const q10 = ORAL_PROMPTS.find((p) => p.id === 'sternik-oral-10')!;
+  const e1 = q10.must.find((m) => m.id === 'q10-e1')!;
+
+  it('"ściągam gaz" (throttling back) is not an answer about prop walk', () => {
+    // A bare 'ściąga' keyword matched this as a substring and turned a 50% fail
+    // into a 75% pass. Nothing in it names the effect or says the stern moves.
+    const said = 'Na wstecznym rufa idzie w lewo, więc przy cumowaniu ściągam gaz.';
+    const r = gradeTurn(said, q10.must);
+    expect(r.checks.find((c) => c.id === 'q10-e1')!.ok).toBe(false);
+    expect(r.passed).toBe(false);
+  });
+
+  it('"wiatr znosi jacht" is wind drift, not the propeller', () => {
+    expect(hits('Wiatr znosi jacht na wstecznym.', e1)).toBe(false);
+  });
+
+  it('the stern pulled to one side still earns the element', () => {
+    expect(hits('Na wstecznym rufa ściąga w lewo.', e1)).toBe(true);
+    expect(hits('Na wstecznym rufa sciaga w lewo.', e1)).toBe(true);   // transcript without diacritics
+    expect(hits('Śruba znosi rufę w lewo.', e1)).toBe(true);
+    expect(hits('Rufę znosi na wstecznym w lewo.', e1)).toBe(true);
+  });
+});

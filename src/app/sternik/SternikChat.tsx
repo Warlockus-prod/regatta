@@ -262,7 +262,7 @@ export default function SternikChat() {
                 {tp(
                   'Привет! Я помогу подготовиться к экзамену: объясню правило, переведу вопрос, подскажу мнемонику. Спрашивай по-русски или po polsku.',
                   'Hi! I help you prepare: I explain rules, translate questions, share mnemonics.',
-                  'Część! Pomogę w przygotowaniu: wyjaśnię przepis, przetłumaczę pytanie, podpowiem mnemotechnikę.',
+                  'Cześć! Pomogę w przygotowaniu: wyjaśnię przepis, przetłumaczę pytanie, podpowiem mnemotechnikę.',
                 )}
               </div>
             )}
