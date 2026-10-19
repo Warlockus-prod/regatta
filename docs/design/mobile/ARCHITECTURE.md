@@ -74,6 +74,19 @@ build script. The paragraph above describes builds before 1.6.2.
   no-analytics flag (`window.__REGATTA_NO_ANALYTICS__` plus sessionStorage
   `regatta.noanalytics.v1`) when it is off, and key the WebView on it. "Clear all
   data" keeps this row. PostHog runs with `disableGeoip: true`.
+- **Trainer controls** (`mobile/src/persistence/controls.ts`, key
+  `regatta.controls.v1`, the same record as the website's
+  `src/features/trainer-controls/prefs.ts`): sliders or wheels and the click
+  sound, set in Settings > Trainers. `SimWebView` injects the record as
+  `window.__REGATTA_CONTROLS__` before the page runs (it does not wait for the
+  read: a later value is injected live) and stores what the page posts back as
+  `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
+  `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Orientation**: `app.json` allows every orientation and the
+  `expo-screen-orientation` plugin starts the app locked to portrait
+  (`initialOrientation: PORTRAIT_UP`); `mobile/src/simulator/orientation.ts`
+  unlocks only while a trainer WebView (`tier` set) is focused, and the tier
+  switcher hides when the phone is turned. Native module: needs a new build.
 - **iOS 27 needs the UIScene life cycle.** Apps linked against the iOS 27 SDK
   (Xcode 27) close at launch on iOS 27 without it, which is what happened to 1.6.2.
   `mobile/plugins/with-uiscene.js` adds it at prebuild: single-scene manifest in

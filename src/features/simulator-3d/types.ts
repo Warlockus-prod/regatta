@@ -90,10 +90,16 @@ export interface SimLabels {
   sailStatus: { inIrons: string; calm: string; luffing: string; stalled: string; drawing: string; transferring: string };
   maneuver: { tacking: string; gybing: string };
   sheetScale: string;
+  /** Per-sail status hint that names the sheet to adjust (shown instead of the bare luffing/stalled status). */
+  sailHint: { mainLuffing: string; mainStalled: string; jibLuffing: string; jibStalled: string };
   coach: {
     inIrons: string;
-    luffEaseIn: string;
-    stallEaseOut: string;
+    luffMain: string;
+    luffJib: string;
+    luffBoth: string;
+    stallMain: string;
+    stallJib: string;
+    stallBoth: string;
     pinching: string;
     good: string;
     reachOn: string;
@@ -145,17 +151,27 @@ export const DEFAULT_LABELS: SimLabels = {
   bestVmg: 'Best VMG',
   reset: 'Reset',
   presets: { luff: 'In irons', close: 'Close-hauled', beam: 'Beam reach', broad: 'Broad reach', run: 'Run' },
-  sailStatus: { inIrons: "In irons: bear away", calm: "Little airflow", luffing: "Luffing: sheet in slightly", stalled: "Stalled: ease the sheet", drawing: "Drawing", transferring: "Changing sides" },
+  sailStatus: { inIrons: "In irons: bear away", calm: "Little airflow", luffing: "Luffing", stalled: "Stalled", drawing: "Drawing", transferring: "Changing sides" },
   maneuver: { tacking: "Tacking: sails unload and fill on the new side", gybing: "Gybing: the crew transfers the sails automatically" },
   sheetScale: "0% sheeted in · 100% eased out",
+  sailHint: {
+    mainLuffing: "Luffing: trim the mainsheet slightly",
+    mainStalled: "Stalled: ease the mainsheet",
+    jibLuffing: "Luffing: trim the jib sheet slightly",
+    jibStalled: "Stalled: ease the jib sheet",
+  },
   coach: {
     inIrons: 'In irons - bear away to fill the sails',
-    luffEaseIn: 'Luffing - sheet in or bear away',
-    stallEaseOut: 'Stalled - ease the sheet',
+    luffMain: 'Main luffing - trim the mainsheet or bear away',
+    luffJib: 'Jib luffing - trim the jib sheet or bear away',
+    luffBoth: 'Both sails luffing - trim the mainsheet and the jib sheet or bear away',
+    stallMain: 'Main stalled - ease the mainsheet',
+    stallJib: 'Jib stalled - ease the jib sheet',
+    stallBoth: 'Both sails stalled - ease the mainsheet and the jib sheet',
     pinching: 'Pinching - bear away a touch',
     good: 'Well trimmed - both sails pulling',
     reachOn: 'Trim for the reach',
-    run: "Running: ease the sheets for the following wind",
+    run: "Running: ease the mainsheet and the jib sheet",
   },
   steerLeft: 'Steer left',
   steerRight: 'Steer right',

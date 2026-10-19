@@ -97,6 +97,9 @@ function YachtLoading({ label }: { label: string }) {
   );
 }
 
+// Sky palette shared by the background, the fog and the sky dome.
+const SKY = { haze: "#5f8aa5", horizon: "#86aec4", zenith: "#1f4a6e" } as const;
+
 export const RegattaScene = memo(function RegattaScene({
   stateRef,
   maxDpr = 2,
@@ -137,8 +140,11 @@ export const RegattaScene = memo(function RegattaScene({
         gl.outputColorSpace = THREE.SRGBColorSpace;
       }}
     >
-      <color attach="background" args={['#aecfdf']} />
-      <fog attach="fog" args={['#aecfdf', 110, 340]} />
+      {/* One color style for every trainer (owner decision 2026-10-19): the
+          sky is a deep sea-blue that sits with the dark ocean UI instead of a
+          pale daytime haze; the sun, sails and water read the same. */}
+      <color attach="background" args={[SKY.haze]} />
+      <fog attach="fog" args={[SKY.haze, 110, 340]} />
 
       <hemisphereLight args={['#cfe6ff', '#33454f', 0.4]} />
       <directionalLight
@@ -158,7 +164,7 @@ export const RegattaScene = memo(function RegattaScene({
       <mesh renderOrder={-100}>
         <sphereGeometry args={[190, 24, 12]} />
         <shaderMaterial side={THREE.BackSide} depthWrite={false} toneMapped={false}
-          uniforms={{ horizon: { value: new THREE.Color("#d2e3e9") }, zenith: { value: new THREE.Color("#72afd0") } }}
+          uniforms={{ horizon: { value: new THREE.Color(SKY.horizon) }, zenith: { value: new THREE.Color(SKY.zenith) } }}
           vertexShader={"varying vec3 vSky; void main() { vSky = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"}
           fragmentShader={`uniform vec3 horizon; uniform vec3 zenith; varying vec3 vSky;
             void main() {

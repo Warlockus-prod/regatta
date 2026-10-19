@@ -18,7 +18,7 @@ export function CommentaryLine({ text, tone }: { text: string; tone: FeedbackTon
   return (
     <div
       className="mx-2 lg:mx-0 mt-2 mb-2 px-3 py-2.5 rounded-xl flex items-center gap-2 text-[12px] sm:text-[13px]"
-      style={{ background: 'rgba(8, 24, 48, 0.5)', border: '1px solid rgba(0, 212, 255, 0.12)' }}
+      style={{ background: 'color-mix(in srgb, var(--bg-secondary) 50%, transparent)', border: '1px solid rgba(0, 212, 255, 0.12)' }}
     >
       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: color }} />
       <span className="text-[var(--text-secondary)] leading-snug">{text}</span>

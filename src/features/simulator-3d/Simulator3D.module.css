@@ -1,31 +1,31 @@
-.root { max-width: 1200px; margin: 0 auto; padding: 16px; color: var(--text-primary); }
+.root { --border-color: var(--border-subtle); max-width: 1200px; margin: 0 auto; padding: 16px; color: var(--text-primary); }
 .header, .modes, .toolbar { display: flex; align-items: center; gap: 8px; }
 .header { justify-content: space-between; flex-wrap: wrap; margin-bottom: 12px; }
 .layout { display: grid; grid-template-columns: minmax(0, 1fr) 292px; gap: 16px; }
-.visual { min-width: 0; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color, #24364a); border-radius: 16px; background: var(--bg-secondary, #102134); }
-.toolbar { flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--border-color, #24364a); }
+.visual { min-width: 0; display: flex; flex-direction: column; overflow: hidden; border: 1px solid var(--border-color); border-radius: 16px; background: var(--bg-secondary); }
+.toolbar { flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--border-color); }
 .viewport { position: relative; min-height: 0; height: clamp(340px, 57vh, 610px); isolation: isolate; }
 .button { min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid transparent; font-size: 13px; font-weight: 600; color: var(--text-secondary); cursor: pointer; }
-.button:hover { background: var(--hover-bg, #1c3446); color: var(--text-primary); }
-.button[aria-pressed="true"] { color: var(--accent-cyan); background: rgba(0,212,255,.09); border-color: rgba(0,212,255,.2); }
+.button:hover { background: var(--hover-bg); color: var(--text-primary); }
+.button[aria-pressed="true"] { color: var(--accent-cyan); background: color-mix(in srgb, var(--accent-cyan) 9%, transparent); border-color: color-mix(in srgb, var(--accent-cyan) 20%, transparent); }
 .button:focus-visible, .details > summary:focus-visible, .slider input:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 3px; }
-.stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 14px; gap: 12px; border-top: 1px solid var(--border-color, #24364a); }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); padding: 10px 14px; gap: 12px; border-top: 1px solid var(--border-color); }
 .readout { min-width: 0; }
 .readout span { display: block; font-size: 11px; color: var(--text-secondary); }
 .readout strong { display: block; font-size: 17px; line-height: 1.6; font-variant-numeric: tabular-nums; color: var(--text-primary); }
-.coach { margin: 0; padding: 10px 14px; font-size: 13px; line-height: 1.4; background: var(--bg-primary); border-top: 1px solid var(--border-color, #24364a); }
-.panel { min-width: 0; padding: 16px; border: 1px solid var(--border-color, #24364a); border-radius: 16px; align-self: start; }
+.coach { margin: 0; padding: 10px 14px; font-size: 13px; line-height: 1.4; background: var(--bg-primary); border-top: 1px solid var(--border-color); }
+.panel { min-width: 0; padding: 16px; border: 1px solid var(--border-color); border-radius: 16px; align-self: start; }
 .hint { font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin: 0 0 14px; }
 .slider { display: block; margin-bottom: 8px; }
 .slider > span { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--text-secondary); }
 .slider input { display: block; width: 100%; height: 32px; accent-color: var(--accent-cyan); cursor: pointer; }
-.details { border-top: 1px solid var(--border-color, #24364a); margin-top: 8px; }
+.details { border-top: 1px solid var(--border-color); margin-top: 8px; }
 .details > summary { min-height: 44px; padding: 12px 0; font-size: 13px; cursor: pointer; color: var(--text-primary); }
 .details > div { padding: 4px 0 10px; }
-.steer { position: absolute; bottom: 12px; width: 52px; height: 52px; border-radius: 50%; background: #102738; border: 1px solid #678799; color: #e7f2f6; font-size: 28px; touch-action: none; user-select: none; cursor: pointer; }
-.steer:active { background: #24617b; }
-.steer:focus-visible { outline: 3px solid #58d4f3; outline-offset: 3px; }
-.guide { margin-bottom: 12px; padding: 12px 16px; border: 1px solid var(--border-color, #24364a); border-radius: 12px; }
+.steer { position: absolute; bottom: 12px; width: 52px; height: 52px; border-radius: 50%; background: color-mix(in srgb, var(--bg-card) 88%, transparent); border: 1px solid var(--border-subtle); color: var(--text-primary); font-size: 28px; touch-action: none; user-select: none; cursor: pointer; }
+.steer:active { background: var(--bg-card-hover); }
+.steer:focus-visible { outline: 3px solid var(--accent-cyan); outline-offset: 3px; }
+.guide { margin-bottom: 12px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 12px; }
 .guide summary { cursor: pointer; min-height: 24px; font-size: 14px; }
 .guide ol { padding-left: 20px; font-size: 13px; line-height: 1.6; max-width: 75ch; }
 .guide li { margin-top: 8px; }
@@ -55,7 +55,7 @@
   .embed .panel { max-height: none; }
 }
 
-.windReadout { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--border-color, #24364a); color: var(--text-primary); font-size: 11px; line-height: 1.35; }
+.windReadout { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; padding: 6px 10px; border-bottom: 1px solid var(--border-color); color: var(--text-primary); font-size: 11px; line-height: 1.35; }
 .windReadout svg { flex: 0 0 54px; }
 .airArrow { color: var(--accent-cyan); }
 .windNumbers { flex: 1; min-width: 0; display: grid; gap: 2px; }
@@ -70,7 +70,31 @@
 
 .toolbar { overflow-x: auto; }
 .toolbar .button, .sailViews .button { flex-shrink: 0; }
-.sailViews { display: flex; gap: 4px; padding: 4px 10px; border-bottom: 1px solid var(--border-color, #24364a); }
+.sailViews { display: flex; gap: 4px; padding: 4px 10px; border-bottom: 1px solid var(--border-color); }
 .sailFeedback { display: grid; gap: 6px; margin: 8px 0 14px; font-size: 12px; line-height: 1.4; color: var(--text-secondary); }
 .sailFeedback span { display: block; }
 .sailFeedback strong { color: var(--text-primary); }
+
+/* Phone workspace (shared trainer controls): the 3D scene fills the space
+   above the dock; camera buttons and readouts float over it. */
+.compactRoot { --border-color: var(--border-subtle); color: var(--text-primary); }
+.compactRoot .header { margin: 0; padding: 4px 8px; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+.compactRoot .header::-webkit-scrollbar { display: none; }
+.compactRoot .header > * { flex-shrink: 0; }
+.compactScene { position: absolute; inset: 0; background: var(--bg-secondary); }
+.compactScene .viewport { position: absolute; inset: 0; height: auto; }
+.overlayTop { position: absolute; top: 0; left: 0; right: 0; z-index: 2; background: color-mix(in srgb, var(--bg-primary) 72%, transparent); }
+.overlayTop .toolbar { border-bottom: 0; padding: 2px 6px; }
+.overlayTop .sailViews { border-bottom: 0; }
+.overlayBottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: color-mix(in srgb, var(--bg-primary) 78%, transparent); }
+.overlayBottom .stats { padding: 4px 14px; border-top: 0; }
+.overlayBottom .readout strong { font-size: 15px; line-height: 1.4; }
+.overlayBottom .coach { font-size: 12px; padding: 6px 14px; background: transparent; }
+.compactScene .steer { bottom: 104px; }
+.compactRoot .slider input { height: 44px; }
+.compactRoot .sailFeedback { margin: 0; }
+.compactRoot .sheetScale { margin: 4px 0 0; }
+.overlayTop .windReadout { border-bottom: 0; padding: 2px 10px 4px; }
+.overlayTop .windReadout svg { flex-basis: 40px; width: 40px; height: 40px; }
+.panelHead { display: flex; justify-content: flex-end; margin: -6px 0 6px; }
+.deckBox { height: 320px; margin-bottom: 12px; }

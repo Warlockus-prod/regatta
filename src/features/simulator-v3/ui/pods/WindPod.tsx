@@ -17,12 +17,20 @@ export function WindPod(props: {
   tp: TpFn;
   tackLabel: string;
   compact?: boolean;
+  /** 44 px sliders and buttons for the phone dock. */
+  comfortable?: boolean;
+  /** The phone dock splits the pod: "course" = TWA and tack (Helm tab), "wind" = strength and gusts (Wind tab). */
+  part?: 'all' | 'course' | 'wind';
 }) {
-  const { ui, setUi, tp, tackLabel, compact } = props;
+  const { ui, setUi, tp, tackLabel, compact, comfortable, part = 'all' } = props;
+  const course = part !== 'wind';
+  const wind = part !== 'course';
   return (
     <PodCard compact={compact}>
       <PodLabel
-        text={tp('ВЕТЕР', 'WIND', 'WIATR', {
+        text={part === 'course'
+          ? tp('КУРС К ВЕТРУ', 'COURSE TO WIND', 'KURS WZGLĘDEM WIATRU', { es: 'RUMBO AL VIENTO', fr: 'CAP AU VENT', de: 'KURS ZUM WIND', it: 'ROTTA AL VENTO' })
+          : tp('ВЕТЕР', 'WIND', 'WIATR', {
           es: 'VIENTO',
           fr: 'VENT',
           de: 'WIND',
@@ -30,8 +38,9 @@ export function WindPod(props: {
         })}
         compact={compact}
       />
-      <PodSlider
+      {course && <PodSlider
         compact={compact}
+        comfortable={comfortable}
         label={tp('Угол TWA', 'Angle TWA', 'Kąt TWA', {
           es: 'Ángulo TWA',
           fr: 'Angle TWA',
@@ -44,9 +53,10 @@ export function WindPod(props: {
         step={1}
         sliderValue={ui.twa}
         onChange={(v) => setUi((p) => ({ ...p, twa: v }))}
-      />
-      <PodSlider
+      />}
+      {wind && <PodSlider
         compact={compact}
+        comfortable={comfortable}
         label={tp('Сила', 'Speed', 'Siła', {
           es: 'Fuerza',
           fr: 'Force',
@@ -59,8 +69,8 @@ export function WindPod(props: {
         step={1}
         sliderValue={ui.windSpeed}
         onChange={(v) => setUi((p) => ({ ...p, windSpeed: v }))}
-      />
-      <details className="pt-1">
+      />}
+      {wind && <details className="pt-1">
         <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">
           {tp("Порывы и живой ветер", "Gusts and live wind", "Podmuchy i wiatr na żywo", { es: "Rachas y viento en vivo", fr: "Rafales et vent en direct", de: "Böen und Live-Wind", it: "Raffiche e vento live" })}
         </summary>
@@ -109,12 +119,12 @@ export function WindPod(props: {
         onSelect={(v) => setUi((p) => ({ ...p, windMode: v }))}
       />
         </div>
-      </details>
-      <button
+      </details>}
+      {course && <button
         onClick={() =>
           setUi((p) => ({ ...p, tack: p.tack === 'starboard' ? 'port' : 'starboard' }))
         }
-        className={`w-full ${compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} rounded-md border font-semibold transition uppercase tracking-wider`}
+        className={`w-full ${comfortable ? 'min-h-11 px-3 text-xs' : compact ? 'px-1.5 py-0.5 text-[9px]' : 'px-2 py-1 text-[10px]'} rounded-md border font-semibold transition uppercase tracking-wider`}
         style={{
           borderColor: 'rgba(0, 212, 255, 0.22)',
           background: 'rgba(0, 212, 255, 0.08)',
@@ -122,7 +132,7 @@ export function WindPod(props: {
         }}
       >
         {tackLabel}
-      </button>
+      </button>}
     </PodCard>
   );
 }

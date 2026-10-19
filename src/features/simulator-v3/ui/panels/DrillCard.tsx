@@ -42,7 +42,7 @@ export function DrillCard({
       <div
         className="rounded-xl p-3 space-y-2"
         style={{
-          background: 'rgba(8, 24, 48, 0.72)',
+          background: 'color-mix(in srgb, var(--bg-secondary) 72%, transparent)',
           border: '1px solid rgba(0, 212, 255, 0.22)',
         }}
       >
@@ -111,7 +111,7 @@ export function DrillCard({
     <div
       className="rounded-xl p-3 space-y-2 transition-all"
       style={{
-        background: 'rgba(8, 24, 48, 0.72)',
+        background: 'color-mix(in srgb, var(--bg-secondary) 72%, transparent)',
         border: cardBorder,
         boxShadow: cardShadow,
       }}

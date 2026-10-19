@@ -33,6 +33,7 @@ import {
   windSpeedUnitLabel,
   useUnits,
 } from '../src/persistence/units';
+import { useControlPrefs } from '../src/persistence/controls';
 
 const SUPPORT_EMAIL = 'support@gtframe.io';
 
@@ -275,6 +276,8 @@ export default function Settings() {
         </Text>
         <UnitsSection />
 
+        <TrainersSection />
+
         <Text
           variant="muted"
           style={[styles.sectionLabel, styles.sectionLabelGap]}
@@ -358,6 +361,90 @@ export default function Settings() {
       </ScrollView>
       <PrivacyModal visible={privacyOpen} onClose={() => setPrivacyOpen(false)} />
     </Screen>
+  );
+}
+
+// ---------------------------------------------------------------------------
+//  Trainers section: sliders or wheels, wheel click sound. The same record
+//  as the web trainers' own settings sheet (src/persistence/controls.ts).
+// ---------------------------------------------------------------------------
+
+function TrainersSection() {
+  const { tp } = useI18n();
+  const { prefs, ready, patch } = useControlPrefs();
+  const title = tp('Тренажеры', 'Trainers', 'Trenażery', { es: 'Simuladores', fr: 'Simulateurs', de: 'Trainer', it: 'Simulatori' });
+  const modeLabel = tp('Управление', 'Controls', 'Sterowanie', { es: 'Controles', fr: 'Commandes', de: 'Steuerung', it: 'Comandi' });
+  const sliders = tp('Ползунки', 'Sliders', 'Suwaki', { es: 'Deslizadores', fr: 'Curseurs', de: 'Schieberegler', it: 'Cursori' });
+  const wheels = tp('Штурвалы', 'Wheels', 'Koła', { es: 'Ruedas', fr: 'Roues', de: 'Räder', it: 'Ruote' });
+  const modeHint = tp(
+    'Штурвалы: большой руль по центру, по бокам стаксель-шкот и гика-шкот. Остальное настраивается шестеренкой в тренажере.',
+    'Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides. The rest is in the gear inside the trainer.',
+    'Koła: duży ster pośrodku, po bokach szot foka i szot grota. Resztę ustawisz kołem zębatym w trenażerze.',
+    {
+      es: 'Ruedas: un timón grande en el centro y, a los lados, la escota de foque y la de mayor. El resto está en el engranaje del simulador.',
+      fr: "Roues : une grande barre au centre, l'écoute de foc et l'écoute de grand-voile sur les côtés. Le reste se règle avec l'engrenage du simulateur.",
+      de: 'Räder: ein großes Steuer in der Mitte, Fock- und Großschot an den Seiten. Den Rest stellst du über das Zahnrad im Trainer ein.',
+      it: "Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa. Il resto si regola con l'ingranaggio nel simulatore.",
+    },
+  );
+  const soundLabel = tp('Звук щелчков', 'Click sound', 'Dźwięk kliknięć', { es: 'Sonido de clics', fr: 'Son des clics', de: 'Klickton', it: 'Suono dei clic' });
+  const soundHint = tp(
+    'Щелчки при повороте штурвалов и упор в конце хода. Вибрации нет.',
+    'Clicks while turning the wheels and a bump at the end of travel. No vibration.',
+    'Kliknięcia przy obracaniu kół i opór na końcu zakresu. Bez wibracji.',
+    {
+      es: 'Clics al girar las ruedas y un tope al final del recorrido. Sin vibración.',
+      fr: 'Des clics en tournant les roues et une butée en fin de course. Sans vibration.',
+      de: 'Klicks beim Drehen der Räder und ein Anschlag am Ende. Keine Vibration.',
+      it: 'Clic girando le ruote e un fermo a fine corsa. Nessuna vibrazione.',
+    },
+  );
+  return (
+    <>
+      <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>
+        {title.toUpperCase()}
+      </Text>
+      <View style={styles.privacyList}>
+        <Card style={styles.privacyCard}>
+          <Text variant="subtitle">{modeLabel}</Text>
+          <View style={styles.modeRow} accessibilityRole="radiogroup" accessibilityLabel={modeLabel}>
+            {([['sliders', sliders], ['wheels', wheels]] as const).map(([value, label]) => {
+              const selected = prefs.mode === value;
+              return (
+                <Pressable
+                  key={value}
+                  disabled={!ready}
+                  onPress={() => patch({ mode: value })}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected, disabled: !ready }}
+                  style={[styles.modeOption, selected && styles.modeOptionSelected]}
+                >
+                  <Text variant={selected ? 'accent' : 'body'}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text variant="caption" style={styles.privacyHint}>{modeHint}</Text>
+        </Card>
+        <Card style={styles.privacyCard} accessibilityLabel={soundLabel}>
+          <View style={styles.privacyRow}>
+            <View style={styles.privacyText}>
+              <Text variant="subtitle">{soundLabel}</Text>
+              <Text variant="caption" style={styles.privacyHint}>{soundHint}</Text>
+            </View>
+            <Switch
+              value={prefs.sound}
+              onValueChange={(sound) => patch({ sound })}
+              disabled={!ready}
+              trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
+              thumbColor={colors.textPrimary}
+              ios_backgroundColor={colors.bgCardHover}
+              accessibilityLabel={soundLabel}
+            />
+          </View>
+        </Card>
+      </View>
+    </>
   );
 }
 
@@ -1422,6 +1509,25 @@ const styles = StyleSheet.create({
   },
   privacyHint: {
     marginTop: 2,
+  },
+  modeRow: {
+    flexDirection: 'row',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  modeOption: {
+    flex: 1,
+    minHeight: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: radii.md,
+    borderWidth: 1,
+    borderColor: colors.borderCyanFaint,
+    backgroundColor: colors.bgSecondary,
+  },
+  modeOptionSelected: {
+    borderColor: colors.accentCyan,
   },
   chevron: {
     fontSize: 18,

@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Text,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
 import { Screen } from '../design-system/components';
@@ -15,6 +16,8 @@ import { useI18n } from '../i18n/context';
 import { colors } from '../design-system/tokens';
 import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
+import { useControlPrefs } from '../persistence/controls';
+import { useLandscapeWhileFocused } from './orientation';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -130,6 +133,20 @@ export function SimWebView({
   const { lang, tp } = useI18n();
   const router = useRouter();
   const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
+  // Trainer controls (sliders or wheels, sound) live in the app: the page gets
+  // them before it runs and posts back what the learner changes in the
+  // trainer's own settings sheet (src/features/trainer-controls/prefs.ts).
+  // The WebView does not wait for the stored record: a later read reaches the
+  // page through the injection effect below, without a reload.
+  const { prefs: controlPrefs, replace: replaceControls } = useControlPrefs();
+  // Only the trainers turn with the phone; content pages (anatomy) stay portrait.
+  useLandscapeWhileFocused(Boolean(tier));
+  const { width: winW, height: winH } = useWindowDimensions();
+  // Turned phone: the trainer needs the height for the boat, the tier
+  // switcher comes back when the phone is upright.
+  const landscape = winW > winH && winH < 600;
+  const controlsJson = JSON.stringify(controlPrefs);
+  const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
 
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
@@ -174,6 +191,10 @@ export function SimWebView({
   useEffect(() => {
     if (offlineSource) webRef.current?.injectJavaScript(languageScript);
   }, [offlineSource, languageScript]);
+  // A change from the app Settings (or echoed from the page) reaches a mounted page without a reload.
+  useEffect(() => {
+    webRef.current?.injectJavaScript(`window.__REGATTA_CONTROLS__ = ${controlsJson}; window.dispatchEvent(new CustomEvent("regatta:controls-prefs")); true;`);
+  }, [controlsJson]);
 
   // Watchdog: if the page never signals ready (dead network, blocked load),
   // surface the error state instead of a blank chromeless screen.
@@ -195,7 +216,7 @@ export function SimWebView({
   return (
     <Screen noTopInset noBottomInset>
       <Stack.Screen options={{ title }} />
-      {tier && (
+      {tier && !landscape && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
             const active = t.id === tier;
@@ -234,8 +255,8 @@ export function SimWebView({
         mediaPlaybackRequiresUserAction={false}
         scrollEnabled={scrollEnabled}
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + BEFORE_LOAD}
-        injectedJavaScript={languageScript + AFTER_LOAD}
+        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + controlsScript + BEFORE_LOAD}
+        injectedJavaScript={languageScript + controlsScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
           // A link tap must not navigate the embed away from the simulator.
@@ -251,6 +272,10 @@ export function SimWebView({
         }}
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
+          if (status.startsWith('{"type":"controls-prefs"')) {
+            try { replaceControls((JSON.parse(status) as { prefs?: unknown }).prefs); } catch { /* malformed */ }
+            return;
+          }
           if (hasCheckpointBridge && status.startsWith("{")) {
             void handleCheckpointMessage(status, script => webRef.current?.injectJavaScript(script));
             return;

@@ -50,6 +50,12 @@ interface Options {
   ui: UiState;
   tp: TpFn;
   paused?: boolean;
+  /**
+   * Optional rudder steering (owner decision 3, an option in the control
+   * settings): -1..1, null = the default course assist. The yaw rate is the
+   * shared session's helm formula, so the Trainer turns like the 3D boat.
+   */
+  rudder?: number | null;
 }
 
 interface Result {
@@ -63,7 +69,7 @@ interface Result {
   restore: (session: SailingSession, nextUi: UiState) => void;
 }
 
-export function useSimulatorV3({ ui, tp, paused = false }: Options): Result {
+export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Options): Result {
   const params = useMemo(() => getBoatParams(), []);
 
   // Mutable runtime lives outside React state to avoid N re-renders per
@@ -86,6 +92,8 @@ export function useSimulatorV3({ ui, tp, paused = false }: Options): Result {
   const clockRef = useRef(createFixedClock());
   const pausedRef = useRef(paused);
   useEffect(() => { pausedRef.current = paused; }, [paused]);
+  const rudderRef = useRef<number | null>(rudder);
+  useEffect(() => { rudderRef.current = rudder; }, [rudder]);
   // Telemetry anchor for PR-5 delta-sensitive feedback. We capture
   // (trimScore, heelAbs, t) at a stable point up to ~1.5 s in the past,
   // then measure delta = current - anchor each frame. When the anchor
@@ -137,6 +145,13 @@ export function useSimulatorV3({ ui, tp, paused = false }: Options): Result {
     const clock = clockRef.current;
     const tickInterval = () => {
       const advanced = clock.advance(performance.now(), !pausedRef.current && !document.hidden, (dt) => {
+        const r = rudderRef.current;
+        if (r !== null && r !== 0) {
+          // Same yaw as stepSailingSession's helm mode; the course assist then follows this target.
+          const s = stateRef.current;
+          const yaw = clamp(r, -1, 1) * 22 * Math.max(0.12, clamp(s.boat.boatSpeed / 3, 0, 1)) * dt;
+          targetHeadingRef.current = ((s.boat.heading + yaw) % 360 + 360) % 360;
+        }
         stateRef.current = stepRuntime(
           stateRef.current,
           targetRef.current,

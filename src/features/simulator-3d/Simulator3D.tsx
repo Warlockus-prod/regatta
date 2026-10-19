@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { RegattaScene } from "./RegattaScene";
 import { useSailingSim } from "./physics/useSailingSim";
 import { useSailAudio } from "./audio/useSailAudio";
@@ -9,6 +9,30 @@ import { WindReadout } from "./ui/WindReadout";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
 import type { CameraView } from "./camera";
 import styles from "./Simulator3D.module.css";
+import {
+  ControlDock,
+  ControlSettingsSheet,
+  GearButton,
+  TrainerWorkspace,
+  WheelDeck,
+  helmMappingFor,
+  trainerScreenClass,
+  useControlLabels,
+  useControlPrefs,
+  type DockTab,
+  type HelmTarget,
+} from "../trainer-controls";
+
+// Phones (and landscape phones) get the pinned-boat workspace with the shared
+// control dock (docs/design/trainer-controls-concept.md); wider screens keep the
+// scene plus side panel. This module is client-only (dynamic, ssr: false).
+const COMPACT_QUERY = "(max-width: 900px), (orientation: landscape) and (max-height: 540px)";
+function subscribeCompact(onChange: () => void) {
+  const mq = window.matchMedia(COMPACT_QUERY);
+  mq.addEventListener("change", onChange);
+  return () => mq.removeEventListener("change", onChange);
+}
+const compactNow = () => window.matchMedia(COMPACT_QUERY).matches;
 
 type Mode = "free" | "sail";
 const FREE_PRESETS: { key: keyof SimLabels['presets']; state: Partial<YachtState> }[] = [
@@ -60,6 +84,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     presets: { ...DEFAULT_LABELS.presets, ...labels?.presets },
     coach: { ...DEFAULT_LABELS.coach, ...labels?.coach },
     sailStatus: { ...DEFAULT_LABELS.sailStatus, ...labels?.sailStatus },
+    sailHint: { ...DEFAULT_LABELS.sailHint, ...labels?.sailHint },
     maneuver: { ...DEFAULT_LABELS.maneuver, ...labels?.maneuver },
     tour: { ...DEFAULT_LABELS.tour, ...labels?.tour },
   }), [labels]);
@@ -80,17 +105,25 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const { reset } = sim;
   useEffect(() => { if (mode === "sail") reset(); }, [mode, reset]);
   const { enabled, toggle, update, setActive } = useSailAudio();
+  const compact = useSyncExternalStore(subscribeCompact, compactNow, () => false);
+  const { prefs, update: updatePrefs } = useControlPrefs();
+  const controlLabels = useControlLabels();
+  const wheels = prefs.mode === "wheels";
+  const helmMapping = helmMappingFor(prefs, "boat");
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  // Course mapping (an option for the 3D boat): a gentle assist turns the rudder toward the chosen heading.
+  const [courseTarget, setCourseTarget] = useState<number | null>(null);
   useEffect(() => { setActive(mode === "sail"); }, [mode, setActive]);
   useEffect(() => {
     if (mode === "sail" && enabled) update(t.awsKn, sim.wind.twsKn, t.speedKn,
-      t.coach === "luffEaseIn" || t.coach === "inIrons", performance.now() / 1000);
+      t.coach.startsWith("luff") || t.coach === "inIrons", performance.now() / 1000);
   }, [mode, enabled, update, t.awsKn, t.speedKn, t.coach, sim.wind.twsKn]);
   const setControlRef = useRef(sim.setControl);
   useEffect(() => { setControlRef.current = sim.setControl; });
   const hold = (dir: -1 | 1) => setControlRef.current("rudder", dir * 0.7);
   const release = () => setControlRef.current("rudder", 0);
   useEffect(() => {
-    if (mode !== "sail") return;
+    if (mode !== "sail" || wheels) return;
     const pressed = new Set<string>();
     const sync = () => setControlRef.current("rudder", pressed.has("ArrowRight") ? 0.7 : pressed.has("ArrowLeft") ? -0.7 : 0);
     const down = (event: KeyboardEvent) => {
@@ -109,20 +142,27 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
       window.removeEventListener("blur", blur); document.removeEventListener("visibilitychange", visibility);
       blur();
     };
-  }, [mode]);
+  }, [mode, wheels]);
+  useEffect(() => {
+    if (mode !== "sail" || !wheels || helmMapping !== "course" || courseTarget === null) return;
+    const error = ((courseTarget - t.heading) % 360 + 540) % 360 - 180;
+    setControlRef.current("rudder", Math.max(-1, Math.min(1, error / 25)));
+  }, [mode, wheels, helmMapping, courseTarget, t.heading]);
   const setFreeField = (patch: Partial<YachtState>) => setFree((state) => ({ ...state, ...patch }));
   const selectView = (next: CameraView) => { setView(next); setCameraRevision((revision) => revision + 1); };
-  return <div className={`${styles.root} ${embed ? styles.embed : ""} ${className ?? ""}`}>
-    <header className={styles.header}>
+  const header = <header className={styles.header}>
       <div className={styles.modes}>
         <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => setMode("sail")}>{L.modeSail}</button>
         <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{L.modeFree}</button>
         <button className={styles.button} aria-label={L.tour.open} aria-expanded={guide} onClick={() => { setGuide(!guide); panelRef.current?.scrollTo({ top: 0 }); }}>?</button>
       </div>
       {headerSlot}
-    </header>
-    <div className={styles.layout}>
-      <section className={styles.visual} aria-label={L.badge}>
+    </header>;
+  const guideBlock = guide && <details open className={styles.guide}>
+      <summary>{L.tour.open}</summary>
+      <ol>{L.tour.steps.map((step) => <li key={step.title}><strong>{step.title}.</strong> {step.body}</li>)}</ol>
+    </details>;
+  const cameraBar = <>
         <div className={styles.toolbar}>
           {(["whole", "sails", "stern", "deck"] as const).map((item) => <button key={item} className={styles.button}
             aria-pressed={view === item || (item === "sails" && (view === "main" || view === "jib"))} onClick={() => selectView(item)}>{L.scene[item]}</button>)}
@@ -132,18 +172,20 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {(["sails", "main", "jib"] as CameraView[]).includes(view) && <div className={styles.sailViews}>
           {(["sails", "main", "jib"] as const).map((item) => <button key={item} className={styles.button} aria-pressed={view === item} onClick={() => selectView(item)}>{item === "sails" ? L.scene.both : L.scene[item]}</button>)}
         </div>}
+  </>;
+  const windReadout = <>
         {mode === "sail" && <WindReadout awa={t.awaSigned} aws={t.awsKn} tws={sim.wind.twsKn}
           showFlow={showFlow} onToggle={() => setShowFlow(!showFlow)} labels={L.scene} />}
-        <div className={styles.viewport}>
+  </>;
+  const viewport = <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
-          {mode === "sail" && <>
+          {mode === "sail" && !wheels && <>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
           </>}
-        </div>
-        {view === "sails" && <p className={styles.coach}>{L.scene.fullSailPlan}</p>}
-        {mode === "sail" ? <>
+        </div>;
+  const readouts = mode === "sail" ? <>
           <div className={styles.stats}>
             <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
             <Readout label={L.heel} value={degrees(t.heelDeg)} />
@@ -152,38 +194,134 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <p className={styles.coach} data-maneuver={t.maneuver}>
             {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
           </p>
-        </> : <p className={styles.coach}>{L.orbitHint}</p>}
-      </section>
-      <aside ref={panelRef} className={styles.panel}>
-    {guide && <details open className={styles.guide}>
-      <summary>{L.tour.open}</summary>
-      <ol>{L.tour.steps.map((step) => <li key={step.title}><strong>{step.title}.</strong> {step.body}</li>)}</ol>
-    </details>}
-
-        <p className={styles.hint}>{mode === "sail" ? L.scene.sailingHint : L.freeModeHint}</p>
-        {mode === "sail" ? <>
-          <Slider label={L.mainsheet} value={sim.controls.mainSheet} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("mainSheet", v)} />
-          <Slider label={L.jibsheet} value={sim.controls.jibSheet} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("jibSheet", v)} />
-          <p className={styles.sheetScale}>{L.sheetScale}</p>
-          <div className={styles.sailFeedback}>
-            <span>{L.scene.main}: {L.sailStatus[t.mainStatus]}</span>
-            <span>{L.scene.jib}: {L.sailStatus[t.jibStatus]}</span>
-          </div>
-          <details className={styles.details}><summary>{L.scene.more}</summary><div>
-            <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} fmt={(v) => degrees(v * 35)} onChange={(v) => sim.setControl("rudder", v)} />
-            <button className={styles.button} onClick={release}>{L.helm}: 0°</button>
-            <Slider label={L.reef} value={sim.controls.reef} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("reef", v)} />
+        </> : <p className={styles.coach}>{L.orbitHint}</p>;
+  const sheetValue = (ease: number, angle: number) => `${percent(ease)} (${degrees(angle)})`;
+  const mainSlider = <Slider label={L.mainsheet} value={sim.controls.mainSheet} min={0} max={1} fmt={(v) => sheetValue(v, t.boomAngleDeg)} onChange={(v) => sim.setControl("mainSheet", v)} />;
+  const jibSlider = <Slider label={L.jibsheet} value={sim.controls.jibSheet} min={0} max={1} fmt={(v) => sheetValue(v, t.jibAngleDeg)} onChange={(v) => sim.setControl("jibSheet", v)} />;
+  const sailState = <div className={styles.sailFeedback}>
+            <span>{L.scene.main}: {t.mainStatus === "luffing" ? L.sailHint.mainLuffing : t.mainStatus === "stalled" ? L.sailHint.mainStalled : L.sailStatus[t.mainStatus]}</span>
+            <span>{L.scene.jib}: {t.jibStatus === "luffing" ? L.sailHint.jibLuffing : t.jibStatus === "stalled" ? L.sailHint.jibStalled : L.sailStatus[t.jibStatus]}</span>
+          </div>;
+  const rudderControls = <>
+            <Slider label={L.helm} value={sim.controls.rudder} min={-1} max={1} fmt={(v) => degrees(v * 35)} onChange={(v) => { setCourseTarget(null); sim.setControl("rudder", v); }} />
+            <button className={styles.button} onClick={() => { setCourseTarget(null); release(); }}>{L.helm}: 0°</button>
+  </>;
+  const reefSlider = <Slider label={L.reef} value={sim.controls.reef} min={0} max={1} fmt={percent} onChange={(v) => sim.setControl("reef", v)} />;
+  const windControls = <>
             <Slider label={L.windSpeed} value={sim.wind.twsKn} min={0} max={28} step={1} fmt={(v) => `${v} kn`} onChange={(v) => sim.setWind((w) => ({ ...w, twsKn: v }))} />
             <Slider label={L.wind} value={sim.wind.fromDeg} min={0} max={359} step={1} fmt={degrees} onChange={(v) => sim.setWind((w) => ({ ...w, fromDeg: v }))} />
-            <button className={styles.button} onClick={reset}>{L.reset}</button>
-          </div></details>
-          <details className={styles.details}><summary>{L.scene.instruments}</summary><div>
+  </>;
+  const instruments = <div>
             <WindDial twaSigned={t.twaSigned} awaSigned={t.awaSigned} label={L.scene.windDial} />
             <Readout label={L.scene.target} value={`${t.targetSpeedKn.toFixed(1)} kn`} />
             <Readout label="VMG" value={`${t.vmg.toFixed(1)} kn`} />
             <Readout label={L.scene.apparent} value={`${t.awsKn.toFixed(1)} kn / ${degrees(t.awaDeg)}`} />
             <Readout label={L.bestVmg} value={degrees(t.vmgTargetAngle)} />
+          </div>;
+  const toggleSound = () => { toggle(); updatePrefs({ sound: !enabled }); };
+  const extras = <div className="mt-2 flex flex-wrap gap-1">
+          <button className={styles.button} aria-pressed={light} onClick={() => setLight(!light)}>{L.scene.light}</button>
+          {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggleSound}>{L.sound}</button>}
+          {mode === "sail" && <button className={styles.button} onClick={reset}>{L.reset}</button>}
+        </div>;
+  const helmTarget: HelmTarget = helmMapping === "course"
+    ? {
+        mapping: "course",
+        value: degrees(courseTarget ?? t.heading),
+        unit: controlLabels.heading,
+        ariaNow: Math.round(courseTarget ?? t.heading),
+        ariaMin: 0,
+        ariaMax: 359,
+        onCourseDelta: (d) => { setCourseTarget((c) => (((c ?? t.heading) + d) % 360 + 360) % 360); return null; },
+      }
+    : {
+        mapping: "rudder",
+        value: degrees(sim.controls.rudder * 35),
+        unit: controlLabels.rudderShort,
+        ariaNow: Math.round(sim.controls.rudder * 35),
+        ariaMin: -35,
+        ariaMax: 35,
+        rudder: sim.controls.rudder,
+        setRudder: (v) => sim.setControl("rudder", v),
+      };
+  const wheelDeck = (layout: "bottom" | "column") => <WheelDeck
+    layout={layout}
+    prefs={prefs}
+    labels={controlLabels}
+    arrowKeysSteer
+    helm={helmTarget}
+    main={{ ease: sim.controls.mainSheet, angleDeg: t.boomAngleDeg, setEase: (v) => sim.setControl("mainSheet", v) }}
+    jib={{ ease: sim.controls.jibSheet, angleDeg: t.jibAngleDeg, setEase: (v) => sim.setControl("jibSheet", v) }}
+  />;
+
+  if (compact && mode === "sail") {
+    const dockTabs: DockTab[] = [
+      { id: "sails", label: controlLabels.tabs.sails, cards: [
+        { id: "main", title: L.mainsheet, node: mainSlider },
+        { id: "jib", title: L.jibsheet, node: jibSlider },
+        { id: "sailState", title: `${L.scene.main}, ${L.scene.jib}`, node: <>{sailState}<p className={styles.sheetScale}>{L.sheetScale}</p></> },
+        { id: "reef", title: L.reef, node: reefSlider },
+      ] },
+      { id: "helm", label: controlLabels.tabs.helm, cards: [{ id: "rudder", title: L.helm, node: rudderControls }] },
+      { id: "wind", label: controlLabels.tabs.wind, cards: [{ id: "wind", title: L.windSpeed, node: windControls }] },
+      { id: "more", label: controlLabels.tabs.more, cards: [
+        { id: "instruments", title: L.scene.instruments, node: instruments },
+        { id: "extras", title: `${L.scene.light}, ${L.sound}, ${L.reset}`, node: <>{guideBlock}<p className={styles.hint}>{L.scene.sailingHint}</p>{extras}</> },
+      ] },
+    ];
+    return <div className={`${trainerScreenClass(embed)} ${styles.compactRoot} ${className ?? ""}`}>
+      {header}
+      <TrainerWorkspace
+        embed={embed}
+        scene={<div className={styles.compactScene}>
+          <div className={styles.overlayTop}>{cameraBar}{windReadout}</div>
+          {viewport}
+          <div className={styles.overlayBottom}>{readouts}</div>
+        </div>}
+        dock={<ControlDock
+          surface="boat"
+          layout="bottom"
+          prefs={prefs}
+          update={updatePrefs}
+          hasSheets
+          rudderAvailable
+          defaultFavorites={["main", "jib", "sailState"]}
+          tabs={dockTabs}
+          wheelDeck={wheelDeck("bottom")}
+        />}
+      />
+    </div>;
+  }
+
+  return <div className={`${styles.root} ${embed ? styles.embed : ""} ${className ?? ""}`}>
+    {header}
+    <div className={styles.layout}>
+      <section className={styles.visual} aria-label={L.badge}>
+        {cameraBar}
+        {windReadout}
+        {viewport}
+        {view === "sails" && <p className={styles.coach}>{L.scene.fullSailPlan}</p>}
+        {readouts}
+      </section>
+      <aside ref={panelRef} className={styles.panel}>
+    {guideBlock}
+        {mode === "sail" && <div className={styles.panelHead}>
+          <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} />
+        </div>}
+        {mode === "sail" && wheels && <div className={styles.deckBox}>{wheelDeck("column")}</div>}
+        <p className={styles.hint}>{mode === "sail" ? L.scene.sailingHint : L.freeModeHint}</p>
+        {mode === "sail" ? <>
+          {mainSlider}
+          {jibSlider}
+          <p className={styles.sheetScale}>{L.sheetScale}</p>
+          {sailState}
+          <details className={styles.details}><summary>{L.scene.more}</summary><div>
+            {rudderControls}
+            {reefSlider}
+            {windControls}
+            <button className={styles.button} onClick={reset}>{L.reset}</button>
           </div></details>
+          <details className={styles.details}><summary>{L.scene.instruments}</summary>{instruments}</details>
         </> : <>
           <div className="mb-3 flex flex-wrap gap-1">{FREE_PRESETS.map((preset) => <button key={preset.key} className={styles.button}
             onClick={() => setFree({ ...FREE_DEFAULT, reef: 0, ...preset.state })}>{L.presets[preset.key]}</button>)}</div>
@@ -199,12 +337,11 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <button className={styles.button} onClick={() => setFree({ ...FREE_DEFAULT })}>{L.reset}</button>
           </div></details>
         </>}
-        <div className="mt-2 flex flex-wrap gap-1">
-          <button className={styles.button} aria-pressed={light} onClick={() => setLight(!light)}>{L.scene.light}</button>
-          {mode === "sail" && <button className={styles.button} aria-pressed={enabled} onClick={toggle}>{L.sound}</button>}
-        </div>
+        {extras}
       </aside>
     </div>
+    {settingsOpen && <ControlSettingsSheet surface="boat" prefs={prefs} update={updatePrefs} labels={controlLabels} hasSheets rudderAvailable
+      favorites={[]} defaultFavorites={[]} onClose={() => setSettingsOpen(false)} />}
   </div>;
 }
 export default Simulator3D;

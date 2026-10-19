@@ -146,6 +146,17 @@ URL и удаление со страницы не принимаются).
 `src/components/ThemeManager.tsx`, `src/components/ThemeToggle.tsx` и
 inline-скрипт без мигания в `src/app/layout.tsx`.
 
+### 3.8 Управление тренажерами
+
+На телефоне все три тренажера устроены одинаково: шапка, закрепленная сцена,
+показания, док управления (`src/features/trainer-controls`). Док: вкладка
+«Избранное» (состав и порядок выбирает пользователь) или «Штурвалы», затем
+«Паруса», «Руль», «Ветер», «Ещё». Настройки (`regatta.controls.v1`) общие для
+всех тренажеров; приложение передает их в WebView и получает обратно
+сообщением `controls-prefs`. Штурвал Основ и Тренажера трима задает курс,
+Лодки 3D перо руля (у обоих есть опция другого режима). Щелчки только звуком
+и только при включенном звуке; вибрации нет.
+
 ---
 
 ## 4. Карта кода
@@ -193,7 +204,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 
 ### 4.3 Тренажеры, гонка, реплей, статистика
 
-- `src/app/simulator/page.tsx` - Основы (внутреннее имя V1), canvas, прод-поверхность.
+- `src/app/simulator/layout.tsx`, `src/app/simulator-v3/layout.tsx`, `src/app/simulator2/layout.tsx` - цвет полосы браузера под всегда темные тренажеры (`themeColor`).
+- `src/app/simulator/page.tsx` - Основы (внутреннее имя V1), canvas, прод-поверхность; на телефоне холст закреплен, управление в общем доке (раскладка изменена с согласия владельца 2026-10-19, логика холста прежняя).
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
@@ -438,7 +450,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-3d/README.md` - назначение и границы самостоятельного 3D-модуля.
 - `src/features/simulator-3d/index.ts` - публичный барель портируемых частей модуля.
 - `src/features/simulator-3d/SimulatorV2.tsx` - обертка под Next.js для `/simulator2`.
-- `src/features/simulator-3d/Simulator3D.tsx` - корневой компонент 3D-вида и панелей.
+- `src/features/simulator-3d/Simulator3D.tsx` - корневой компонент 3D-вида и панелей; на телефоне под парусом сцена закреплена, панель становится общим доком управления.
 - `src/features/simulator-3d/Simulator3D.module.css` - стили 3D-вида.
 - `src/features/simulator-3d/RegattaScene.tsx` - сцена R3F: свет, камера, вода, яхта.
 - `src/features/simulator-3d/SceneBoundary.tsx` - граница ошибки сцены и отчет о сбое WebGL.
@@ -453,7 +465,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след.
 - `src/features/simulator-3d/ocean/WindFlow.tsx` - видимый поток ветра.
 - `src/features/simulator-3d/ocean/waves.ts` - поле волн (сумма синусов), общее для воды и качки.
-- `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия.
+- `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия, подсказка коуча `coachFrom` (называет шкот).
+- `src/features/simulator-3d/physics/coach.test.ts` - контракт: каждая подсказка трима называет шкот (гика-шкот, стаксель-шкот или оба).
 - `src/features/simulator-3d/physics/sailModel.ts` - визуальные и подсказочные помощники (не силы).
 - `src/features/simulator-3d/physics/step.ts` - совместимость: шаг отдан общей сессии.
 - `src/features/simulator-3d/physics/step.test.ts` - тесты шага 3D-сцены.
@@ -471,7 +484,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 ### 4.11 `src/features/simulator-v3` - Тренажер трима (V3)
 
 - `src/features/simulator-v3/index.ts` - публичный барель фичи.
-- `src/features/simulator-v3/SimulatorV3Page.tsx` - страница тренажера: сцены, поды, панели.
+- `src/features/simulator-v3/SimulatorV3Page.tsx` - страница тренажера: сцены, поды, панели; на телефоне закрепленная сцена и общий док, опция руления пером.
 - `src/features/simulator-v3/SimulatorV3.module.css` - стили тренажера.
 - `src/features/simulator-v3/hooks/use-simulator-v3.ts` - главный хук: состояние, цикл, ввод.
 - `src/features/simulator-v3/hooks/use-trainer-checkpoint.ts` - сохранение и восстановление прогресса.
@@ -515,6 +528,27 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-v3/ui/pods/JibPod.tsx` - под стакселя.
 - `src/features/simulator-v3/ui/pods/ShapeTrimControls.tsx` - оттяжки и форма паруса.
 - `src/features/simulator-v3/ui/pods/ViewPod.tsx` - выбор вида сцены.
+
+### 4.11a `src/features/trainer-controls` - общее управление тренажерами
+
+Одна модель управления для Основ, Тренажера трима и Лодки 3D (концепция и
+решения владельца: `docs/design/trainer-controls-concept.md`). Физику не
+трогает: штурвалы и ползунки отдают те же входы (курс, перо руля -1..1,
+шкот 0..1).
+
+- `src/features/trainer-controls/index.ts` - барель модуля.
+- `src/features/trainer-controls/mapping.ts` - чистые функции: оборот штурвала в курс, перо руля и шкот, щелчки, смена галса.
+- `src/features/trainer-controls/mapping.test.ts` - контракты: оборот = 90° курса, ±1 оборот = упор пера, оборот шкота = 25% хода.
+- `src/features/trainer-controls/prefs.ts` - настройки управления (`regatta.controls.v1`, в приложении `window.__REGATTA_CONTROLS__` и обратное сообщение `controls-prefs`), хук без расхождения гидратации.
+- `src/features/trainer-controls/prefs.test.ts` - умолчания по решениям владельца, очистка мусора, избранное.
+- `src/features/trainer-controls/sound.ts` - щелчки штурвалов звуком (WebAudio, без файлов), только при включенном звуке.
+- `src/features/trainer-controls/labels.ts` - строки дока, штурвалов и настроек на 7 языках.
+- `src/features/trainer-controls/Wheel.tsx` - один штурвал: жест по кругу, клавиши, `role="slider"`.
+- `src/features/trainer-controls/WheelDeck.tsx` - режим штурвалов: руль по центру, стаксель-шкот и гика-шкот по бокам, обмен местами по нажатию.
+- `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка.
+- `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
+- `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: закрепленная сцена, показания, док; горизонталь с доком справа.
+- `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 
 ### 4.12 `src/lib` - движок, i18n, данные, утилиты
 
@@ -647,6 +681,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
+- `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 
 ### 4.16 Корневые конфиги

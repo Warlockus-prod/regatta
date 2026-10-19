@@ -112,3 +112,20 @@ it("only exposes checkpoint storage to the bundled Trainer, not remote pages", a
   await act(async () => fireEvent(local.getByTestId("webview"), "message", { nativeEvent: { data } }));
   expect(AsyncStorage.getItem).toHaveBeenCalledWith(TRAINER_STORAGE_KEY);
 });
+
+// Trainer controls (owner decisions 2026-10-19): the app's record reaches the
+// page before it runs, and a change made in the page's own settings sheet is
+// stored by the app under the same key the website uses.
+it("passes trainer control prefs to the page and stores the ones it posts back", async () => {
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" />);
+  const web = view.getByTestId("webview");
+  expect(web.props.injectedJavaScriptBeforeContentLoaded).toContain("window.__REGATTA_CONTROLS__ = ");
+  const posted = JSON.stringify({ type: "controls-prefs", prefs: { version: 1, mode: "wheels", sound: true, helmMapping: { trainer: "rudder" } } });
+  await act(async () => { fireEvent(web, "message", { nativeEvent: { data: posted } }); });
+  const stored = JSON.parse((await AsyncStorage.getItem("regatta.controls.v1")) ?? "{}");
+  expect(stored.mode).toBe("wheels");
+  expect(stored.sound).toBe(true);
+  expect(stored.helmMapping).toEqual({ trainer: "rudder" });
+  // A controls message is not a load signal or a checkpoint.
+  expect(view.queryByText("Retry")).toBeNull();
+});

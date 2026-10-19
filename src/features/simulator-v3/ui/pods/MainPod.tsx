@@ -7,6 +7,7 @@ import {
   PodSegmented,
   PodSlider,
   StatusDot,
+  mainEasePct,
   type ReefLevel,
   type SimulationModel,
   type TpFn,
@@ -20,9 +21,11 @@ export function MainPod(props: {
   sim: SimulationModel;
   tp: TpFn;
   compact?: boolean;
+  /** 44 px sliders for the phone dock. */
+  comfortable?: boolean;
   startRigStudy?: () => void;
 }) {
-  const { ui, setUi, params, sim, tp, compact } = props;
+  const { ui, setUi, params, sim, tp, compact, comfortable } = props;
   // 4-state gradient (more pedagogically honest than binary stall):
   //   AoA < 5   : LUFFING   - sail flapping, no lift
   //   5-15      : ATTACHED  - healthy lift
@@ -66,13 +69,14 @@ export function MainPod(props: {
       />
       <PodSlider
         compact={compact}
-        label={tp('Угол', 'Angle', 'Kąt', {
-          es: 'Ángulo',
-          fr: 'Angle',
-          de: 'Winkel',
-          it: 'Angolo',
+        comfortable={comfortable}
+        label={tp('Гика-шкот', 'Mainsheet', 'Szot grota', {
+          es: 'Escota de mayor',
+          fr: 'Écoute de grand-voile',
+          de: 'Großschot',
+          it: 'Scotta della randa',
         })}
-        value={`${Math.round(ui.mainAngle)}°`}
+        value={`${mainEasePct(ui.mainAngle, params.mainMaxOff)}% (${Math.round(ui.mainAngle)}°)`}
         min={0}
         max={Math.round(params.mainMaxOff)}
         step={1}
@@ -101,7 +105,7 @@ export function MainPod(props: {
       <StatusDot tone={tone} text={text} compact={compact} />
       {props.startRigStudy && <details>
         <summary className="min-h-11 cursor-pointer py-3 text-sm text-[var(--accent-cyan)]">{tp("Изучить снасти", "Study rig controls", "Poznaj obsługę lin", { es: "Estudiar la maniobra", fr: "Étudier les réglages", de: "Trimmleinen erkunden", it: "Studiare le manovre" })}</summary>
-        <p className="mb-3 text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Начнется новая сессия: длина гротшкота и каретка вместо ползунка угла. Курс удерживает помощник. Это исследование, не экзамен.", "Starts a new session: sheet length and traveler replace the angle slider. An assistant holds course. Exploration, not an exam.", "Nowa sesja: długość szota i wózek zamiast suwaka kąta. Pomocnik utrzymuje kurs. To obserwacja, nie egzamin.", { es: "Empieza una sesión nueva: la longitud de la escota de mayor y el carro sustituyen al control de ángulo. Un ayudante mantiene el rumbo. Es exploración, no un examen.", fr: "Une nouvelle session démarre : la longueur d'écoute de GV et le chariot remplacent le curseur d'angle. Un assistant tient le cap. C'est une exploration, pas un examen.", de: "Eine neue Sitzung startet: Großschotlänge und Traveller ersetzen den Winkelregler. Ein Helfer hält den Kurs. Erkundung, keine Prüfung.", it: "Si apre una nuova sessione: lunghezza della scotta randa e carrello al posto del cursore dell'angolo. Un assistente tiene la rotta. È un'esplorazione, non un esame." })}</p>
+        <p className="mb-3 text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Начнется новая сессия: длина гика-шкота и каретка вместо ползунка угла. Курс удерживает помощник. Это исследование, не экзамен.", "Starts a new session: sheet length and traveler replace the angle slider. An assistant holds course. Exploration, not an exam.", "Nowa sesja: długość szota i wózek zamiast suwaka kąta. Pomocnik utrzymuje kurs. To obserwacja, nie egzamin.", { es: "Empieza una sesión nueva: la longitud de la escota de mayor y el carro sustituyen al control de ángulo. Un ayudante mantiene el rumbo. Es exploración, no un examen.", fr: "Une nouvelle session démarre : la longueur d'écoute de GV et le chariot remplacent le curseur d'angle. Un assistant tient le cap. C'est une exploration, pas un examen.", de: "Eine neue Sitzung startet: Großschotlänge und Traveller ersetzen den Winkelregler. Ein Helfer hält den Kurs. Erkundung, keine Prüfung.", it: "Si apre una nuova sessione: lunghezza della scotta randa e carrello al posto del cursore dell'angolo. Un assistente tiene la rotta. È un'esplorazione, non un esame." })}</p>
         <button className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]" onClick={props.startRigStudy}>{tp("Начать со снастями", "Start with rig controls", "Zacznij z szotem i wózkiem", { es: "Empezar con escota y carro", fr: "Commencer avec écoute et chariot", de: "Mit Schot und Traveller starten", it: "Inizia con scotta e carrello" })}</button>
       </details>}
     </PodCard>

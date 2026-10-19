@@ -17,7 +17,7 @@ export default function TrainerBoat3D({ sim, tp }: { sim: SimulationModel; tp: T
     { id: "deck", title: tp("Палуба", "Deck", "Pokład", { es: "Cubierta", fr: "Pont", de: "Deck", it: "Coperta" }) },
     { id: "whole", title: tp("Вся яхта", "Whole yacht", "Cały jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Tutta la barca" }) },
   ];
-  if (sim.session.mainTrim) views.push({ id: "mainsheet", title: tp("Гротшкот", "Mainsheet", "Szot grota", { es: "Escota mayor", fr: "Écoute", de: "Großschot", it: "Scotta randa" }) });
+  if (sim.session.mainTrim) views.push({ id: "mainsheet", title: tp("Гика-шкот", "Mainsheet", "Szot grota", { es: "Escota de mayor", fr: "Écoute de grand-voile", de: "Großschot", it: "Scotta della randa" }) });
   return <div className="absolute inset-0 flex flex-col">
     <div className="relative min-h-0 flex-1">
     <RegattaScene stateRef={yachtRef} maxDpr={1} postFx={false} view={activeView} showFlow={activeView !== "mainsheet"}

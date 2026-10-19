@@ -7,6 +7,18 @@ import { useI18n } from '@/lib/i18n';
 // Shared no-go half-angle (42 deg) from the VPP engine so Basics, Trainer
 // and the 3D boat all teach the same cone.
 import { NO_GO_HALF_DEG } from '@/lib/sailing-physics';
+import {
+  ControlDock,
+  ControlSettingsSheet,
+  GearButton,
+  TrainerWorkspace,
+  WheelDeck,
+  applyHeadingDelta,
+  trainerScreenClass,
+  useControlLabels,
+  useControlPrefs,
+  type DockTab,
+} from '@/features/trainer-controls';
 
 // ---- Constants ----
 const DEFAULT_WIND_DIR = 180; // Compass bearing: wind from south, flowing upward on screen.
@@ -14,6 +26,17 @@ const MAX_SPEED_KTS = 7.5;
 const subscribeEmbed = () => () => {};
 const readEmbed = () => new URLSearchParams(window.location.search).get("embed") === "1";
 const serverEmbed = () => false;
+// Phones and tablets get the pinned-canvas workspace with the shared control
+// dock (docs/design/trainer-controls-concept.md); the server renders the
+// desktop tree and the client switches after hydration.
+const DESKTOP_QUERY = '(min-width: 1024px)';
+const subscribeDesktop = (onChange: () => void) => {
+  const mq = window.matchMedia(DESKTOP_QUERY);
+  mq.addEventListener('change', onChange);
+  return () => mq.removeEventListener('change', onChange);
+};
+const readDesktop = () => window.matchMedia(DESKTOP_QUERY).matches;
+const serverDesktop = () => true;
 
 const COLORS = {
   bgPrimary: '#0a1628',
@@ -21,7 +44,7 @@ const COLORS = {
   accentCyan: '#00d4ff',
   textPrimary: '#e8f4f8',
   textSecondary: '#8ba7b8',
-  textMuted: '#5a7a8a',
+  textMuted: '#7593a6', // same as the --text-muted token (was a darker one-off)
   danger: '#ff4444',
   water1: '#0b1e38',
   water2: '#081830',
@@ -111,6 +134,14 @@ export default function SimulatorPage() {
   const [isDragging, setIsDragging] = useState(false);
   const [canvasSize, setCanvasSize] = useState({ w: 600, h: 600 });
   const windDirRef = useRef(DEFAULT_WIND_DIR);
+  // Wheel moves can arrive faster than renders: the wheel keeps its own latest
+  // heading and adopts the state only when something else (slider, drag, keys) changed it.
+  const headingRef = useRef(90);
+  const pendingHeadingRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (pendingHeadingRef.current === null) headingRef.current = boatAngle;
+    else if (Math.abs(pendingHeadingRef.current - boatAngle) < 1e-9) pendingHeadingRef.current = null;
+  }, [boatAngle]);
   // Keep ref in sync so the animation loop (which reads via closure) sees fresh value.
   useEffect(() => { windDirRef.current = windDir; }, [windDir]);
 
@@ -118,6 +149,10 @@ export default function SimulatorPage() {
   // header there. Read from window.location instead of useSearchParams so
   // this client page does not need a Suspense boundary.
   const isEmbed = useSyncExternalStore(subscribeEmbed, readEmbed, serverEmbed);
+  const isDesktop = useSyncExternalStore(subscribeDesktop, readDesktop, serverDesktop);
+  const { prefs, update: updatePrefs } = useControlPrefs();
+  const controlLabels = useControlLabels();
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   const wakeRef = useRef<WakeParticle[]>([]);
   const dotsRef = useRef<WaveDot[]>([]);
@@ -147,8 +182,12 @@ export default function SimulatorPage() {
   useEffect(() => {
     handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [handleResize]);
+    // The canvas box also changes when the control dock switches tabs or modes.
+    const el = containerRef.current;
+    const ro = el && typeof ResizeObserver !== 'undefined' ? new ResizeObserver(handleResize) : null;
+    if (el && ro) ro.observe(el);
+    return () => { window.removeEventListener('resize', handleResize); ro?.disconnect(); };
+  }, [handleResize, isDesktop]);
 
   // ---- Keyboard ----
   useEffect(() => {
@@ -814,74 +853,141 @@ export default function SimulatorPage() {
   }, []);
 
   // ---- Render ----
-  return (
-    <div className="page-enter flex flex-col min-h-[calc(100vh-var(--site-nav-h,56px))]">
-      {/* Tier header: Basics (this page) / Trainer / 3D Boat.
-          Hidden entirely under ?embed=1 (iOS app embeds this page chromelessly). */}
-      {!isEmbed && (
-      <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
-           style={{ background: 'rgba(5, 11, 24, 0.92)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
-        <div className="flex items-center gap-2 min-w-0">
-          <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
-            {tp(
-              'Простая лодка на круге: крути лодку и ветер, смотри что происходит.',
-              'Simple boat on a circle: spin the boat and the wind, watch what happens.',
-              'Prosta łódka na kole: obracaj łódkę i wiatr, patrz, co się dzieje.',
-              {
-                es: 'Un barco sencillo en un círculo: gira el barco y el viento y mira qué pasa.',
-                fr: 'Un bateau simple sur un cercle : fais tourner le bateau et le vent, et regarde ce qui se passe.',
-                de: 'Ein einfaches Boot auf einem Kreis: Dreh Boot und Wind und schau, was passiert.',
-                it: 'Una barca semplice su un cerchio: gira la barca e il vento e guarda cosa succede.',
-              },
+  const onCourseDelta = (deg: number) => {
+    const prev = headingRef.current;
+    const next = applyHeadingDelta(prev, deg);
+    headingRef.current = next;
+    pendingHeadingRef.current = next;
+    setBoatAngle(next);
+    if (getTackSide(prev, windDir) === getTackSide(next, windDir)) return null;
+    return windAngle(next, windDir) < 90 ? 'tack' : 'gybe';
+  };
+  const headingControl = (
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+                {tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
+              </span>
+              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
+                {Math.round(boatAngle)}°
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="359"
+              step="1"
+              value={boatAngle}
+              onChange={onSliderChange}
+              aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
+              className="w-full accent-[#00d4ff] h-11 lg:h-auto"
+              style={{ accentColor: COLORS.accentCyan }}
+            />
+            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
+              <span>0°</span>
+              <span>90°</span>
+              <span>180°</span>
+              <span>270°</span>
+              <span>360°</span>
+            </div>
+          </div>
+  );
+  const windControl = (
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
+                {tp('Откуда дует ветер', 'Wind from', 'Skąd wieje wiatr', { es: 'De dónde sopla el viento', fr: "D'où vient le vent", de: 'Woher der Wind weht', it: 'Da dove soffia il vento' })}
+              </span>
+              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
+                {Math.round(windDir)}°
+              </span>
+            </div>
+            <input
+              type="range"
+              min="0"
+              max="359"
+              step="1"
+              value={windDir}
+              onChange={(e) => setWindDir(Number(e.target.value))}
+              aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru', { es: 'Dirección del viento', fr: 'Direction du vent', de: 'Windrichtung', it: 'Direzione del vento' })}
+              className="w-full h-11 lg:h-auto"
+              style={{ accentColor: COLORS.accentCyan }}
+            />
+            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
+              <span>N</span>
+              <span>E</span>
+              <span>S</span>
+              <span>W</span>
+              <span>N</span>
+            </div>
+          </div>
+  );
+  const actionButtons = (
+          <div className="flex gap-2">
+            <button
+              onClick={onReset}
+              className="flex-1 min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
+              style={{
+                background: 'rgba(0, 212, 255, 0.12)',
+                color: COLORS.accentCyan,
+                border: '1px solid rgba(0, 212, 255, 0.2)',
+              }}
+            >
+              {tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)', {
+                es: 'Reiniciar (90°)',
+                fr: 'Réinitialiser (90°)',
+                de: 'Zurücksetzen (90°)',
+                it: 'Reimposta (90°)',
+              })}
+            </button>
+            <button
+              // Head-to-wind = heading equal to the CURRENT wind direction
+              // (windDir is a state the user can drag). The old setBoatAngle(0)
+              // pointed north, which with the default wind from 180 was a dead
+              // run - the exact opposite of "into wind".
+              onClick={() => setBoatAngle(windDir)}
+              className="min-h-11 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
+              style={{
+                background: 'rgba(255, 68, 68, 0.12)',
+                color: COLORS.danger,
+                border: '1px solid rgba(255, 68, 68, 0.2)',
+              }}
+            >
+              {tp('В левентик', 'Into wind', 'Dziobem do wiatru', {
+                es: 'Proa al viento',
+                fr: 'Face au vent',
+                de: 'In den Wind',
+                it: 'Prua al vento',
+              })}
+            </button>
+          </div>
+  );
+  const dragHint = (
+          <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
+            {lang === 'ru' && (
+              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.</>
             )}
-          </span>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <span className="text-[11px] font-semibold px-2 py-1 rounded-md border"
-                style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: COLORS.accentCyan }}>
-            {tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' })}
-          </span>
-          <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>
-            {tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer' })}
-          </a>
-          <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
-             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: COLORS.textSecondary }}>
-            {tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' })}
-          </a>
-        </div>
-      </div>
-      )}
-
-      <div className="flex flex-col lg:flex-row flex-1">
-      {/* Canvas area */}
-      <div
-        ref={containerRef}
-        className="flex-1 flex items-center justify-center p-2 sm:p-4 min-h-[400px]"
-      >
-        <canvas
-          ref={canvasRef}
-          width={canvasSize.w * 2}
-          height={canvasSize.h * 2}
-          style={{
-            width: canvasSize.w,
-            height: canvasSize.h,
-            borderRadius: 16,
-            cursor: isDragging ? 'grabbing' : 'grab',
-            touchAction: 'none',
-          }}
-          className="border border-[rgba(0,212,255,0.1)] shadow-lg"
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerCancel={onPointerUp}
-        />
-      </div>
-
-      {/* Info Panel */}
-      <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
-           style={{ background: 'rgba(15, 32, 53, 0.6)' }}>
-
+            {lang === 'en' && (
+              <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
+            )}
+            {lang === 'pl' && (
+              <>Przeciągnij <span style={{ color: COLORS.accentCyan }}>łódkę</span>, aby ją obrócić, albo <span style={{ color: COLORS.accentCyan }}>strzałkę wiatru</span>, aby zmienić kierunek wiatru. Suwaki i strzałki na klawiaturze też działają.</>
+            )}
+            {lang === 'es' && (
+              <>Arrastra <span style={{ color: COLORS.accentCyan }}>el barco</span> para girarlo, o <span style={{ color: COLORS.accentCyan }}>la flecha del viento</span> para cambiar la dirección del viento. Los deslizadores y las flechas del teclado también funcionan.</>
+            )}
+            {lang === 'fr' && (
+              <>Fais glisser <span style={{ color: COLORS.accentCyan }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: COLORS.accentCyan }}>la flèche du vent</span> pour changer la direction du vent. Les curseurs et les flèches du clavier fonctionnent aussi.</>
+            )}
+            {lang === 'de' && (
+              <>Ziehe <span style={{ color: COLORS.accentCyan }}>das Boot</span>, um es zu drehen, oder <span style={{ color: COLORS.accentCyan }}>den Windpfeil</span>, um die Windrichtung zu ändern. Schieberegler und Pfeiltasten funktionieren auch.</>
+            )}
+            {lang === 'it' && (
+              <>Trascina <span style={{ color: COLORS.accentCyan }}>la barca</span> per ruotarla, o <span style={{ color: COLORS.accentCyan }}>la freccia del vento</span> per cambiare la direzione del vento. Funzionano anche i cursori e i tasti freccia.</>
+            )}
+          </div>
+  );
+  const introText = (
         <p className="text-sm leading-relaxed" style={{color: "var(--text-secondary)"}}>
           {tp("Учебная схема курсов к ветру. Скорость условная, паруса настраиваются автоматически.",
             "Points-of-sail teaching diagram. Speed is illustrative; sails trim automatically.",
@@ -892,7 +998,9 @@ export default function SimulatorPage() {
               it: "Schema delle andature. Velocità indicativa; le vele si regolano automaticamente.",
             })}
         </p>
-
+  );
+  const courseCards = (
+    <>
         {/* Course Name */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
@@ -939,7 +1047,10 @@ export default function SimulatorPage() {
             </div>
           </div>
         </div>
-
+    </>
+  );
+  const speedCard = (
+    <>
         {/* Speed Bar */}
         <div className="card p-4">
           <div className="flex items-center justify-between mb-2">
@@ -967,7 +1078,10 @@ export default function SimulatorPage() {
             </span>
           </div>
         </div>
-
+    </>
+  );
+  const sailWorkCards = (
+    <>
         {/* Sail Work */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-2"
@@ -1004,138 +1118,10 @@ export default function SimulatorPage() {
             {legacyPick(pos, 'description', lang)}
           </p>
         </div>
-
-        {/* Controls */}
-        <div className="card p-4">
-          <div className="text-xs font-medium tracking-wider mb-3"
-               style={{ color: COLORS.textMuted }}>
-            {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}
-          </div>
-
-          {/* Rotation slider */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
-                {tp('Курс яхты / Boat heading', 'Boat heading', 'Kurs jachtu / Boat heading', { es: 'Rumbo del barco / Boat heading', fr: 'Cap du bateau / Boat heading', de: 'Kurs des Boots / Boat heading', it: 'Rotta della barca / Boat heading' })}
-              </span>
-              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
-                {Math.round(boatAngle)}°
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="359"
-              step="1"
-              value={boatAngle}
-              onChange={onSliderChange}
-              aria-label={tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' })}
-              className="w-full accent-[#00d4ff]"
-              style={{ accentColor: COLORS.accentCyan }}
-            />
-            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
-              <span>0°</span>
-              <span>90°</span>
-              <span>180°</span>
-              <span>270°</span>
-              <span>360°</span>
-            </div>
-          </div>
-
-          {/* Wind direction slider */}
-          <div className="mb-3">
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs" style={{ color: COLORS.textSecondary }}>
-                {tp('Откуда дует ветер / Wind from', 'Wind from', 'Kierunek wiatru / Wind from', { es: 'De dónde sopla el viento / Wind from', fr: "D'où vient le vent / Wind from", de: 'Woher der Wind weht / Wind from', it: 'Da dove soffia il vento / Wind from' })}
-              </span>
-              <span className="text-xs font-mono font-bold" style={{ color: COLORS.accentCyan }}>
-                {Math.round(windDir)}°
-              </span>
-            </div>
-            <input
-              type="range"
-              min="0"
-              max="359"
-              step="1"
-              value={windDir}
-              onChange={(e) => setWindDir(Number(e.target.value))}
-              aria-label={tp('Направление ветра', 'Wind direction', 'Kierunek wiatru', { es: 'Dirección del viento', fr: 'Direction du vent', de: 'Windrichtung', it: 'Direzione del vento' })}
-              className="w-full"
-              style={{ accentColor: COLORS.accentCyan }}
-            />
-            <div className="flex justify-between text-xs" style={{ color: COLORS.textMuted }}>
-              <span>N</span>
-              <span>E</span>
-              <span>S</span>
-              <span>W</span>
-              <span>N</span>
-            </div>
-          </div>
-
-          <div className="flex gap-2">
-            <button
-              onClick={onReset}
-              className="flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
-              style={{
-                background: 'rgba(0, 212, 255, 0.12)',
-                color: COLORS.accentCyan,
-                border: '1px solid rgba(0, 212, 255, 0.2)',
-              }}
-            >
-              {tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)', {
-                es: 'Reiniciar (90°)',
-                fr: 'Réinitialiser (90°)',
-                de: 'Zurücksetzen (90°)',
-                it: 'Reimposta (90°)',
-              })}
-            </button>
-            <button
-              // Head-to-wind = heading equal to the CURRENT wind direction
-              // (windDir is a state the user can drag). The old setBoatAngle(0)
-              // pointed north, which with the default wind from 180 was a dead
-              // run - the exact opposite of "into wind".
-              onClick={() => setBoatAngle(windDir)}
-              className="px-4 py-2 rounded-lg text-sm font-medium transition-all hover:brightness-110"
-              style={{
-                background: 'rgba(255, 68, 68, 0.12)',
-                color: COLORS.danger,
-                border: '1px solid rgba(255, 68, 68, 0.2)',
-              }}
-            >
-              {tp('В левентик', 'Into wind', 'Dziobem do wiatru', {
-                es: 'Proa al viento',
-                fr: 'Face au vent',
-                de: 'In den Wind',
-                it: 'Prua al vento',
-              })}
-            </button>
-          </div>
-
-          <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
-            {lang === 'ru' && (
-              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.</>
-            )}
-            {lang === 'en' && (
-              <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
-            )}
-            {lang === 'pl' && (
-              <>Przeciągnij <span style={{ color: COLORS.accentCyan }}>łódkę</span>, aby ją obrócić, albo <span style={{ color: COLORS.accentCyan }}>strzałkę wiatru</span>, aby zmienić kierunek wiatru. Suwaki i strzałki na klawiaturze też działają.</>
-            )}
-            {lang === 'es' && (
-              <>Arrastra <span style={{ color: COLORS.accentCyan }}>el barco</span> para girarlo, o <span style={{ color: COLORS.accentCyan }}>la flecha del viento</span> para cambiar la dirección del viento. Los deslizadores y las flechas del teclado también funcionan.</>
-            )}
-            {lang === 'fr' && (
-              <>Fais glisser <span style={{ color: COLORS.accentCyan }}>le bateau</span> pour le faire pivoter, ou <span style={{ color: COLORS.accentCyan }}>la flèche du vent</span> pour changer la direction du vent. Les curseurs et les flèches du clavier fonctionnent aussi.</>
-            )}
-            {lang === 'de' && (
-              <>Ziehe <span style={{ color: COLORS.accentCyan }}>das Boot</span>, um es zu drehen, oder <span style={{ color: COLORS.accentCyan }}>den Windpfeil</span>, um die Windrichtung zu ändern. Schieberegler und Pfeiltasten funktionieren auch.</>
-            )}
-            {lang === 'it' && (
-              <>Trascina <span style={{ color: COLORS.accentCyan }}>la barca</span> per ruotarla, o <span style={{ color: COLORS.accentCyan }}>la freccia del vento</span> per cambiare la direzione del vento. Funzionano anche i cursori e i tasti freccia.</>
-            )}
-          </div>
-        </div>
-
+    </>
+  );
+  const legendCard = (
+    <>
         {/* Point of Sail Legend */}
         <div className="card p-4">
           <div className="text-xs font-medium tracking-wider mb-3"
@@ -1168,8 +1154,177 @@ export default function SimulatorPage() {
             ))}
           </div>
         </div>
+    </>
+  );
+  const tierHeader = (
+    <>
+      {!isEmbed && (
+      <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
+           style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
+            {tp(
+              'Простая лодка на круге: крути лодку и ветер, смотри что происходит.',
+              'Simple boat on a circle: spin the boat and the wind, watch what happens.',
+              'Prosta łódka na kole: obracaj łódkę i wiatr, patrz, co się dzieje.',
+              {
+                es: 'Un barco sencillo en un círculo: gira el barco y el viento y mira qué pasa.',
+                fr: 'Un bateau simple sur un cercle : fais tourner le bateau et le vent, et regarde ce qui se passe.',
+                de: 'Ein einfaches Boot auf einem Kreis: Dreh Boot und Wind und schau, was passiert.',
+                it: 'Una barca semplice su un cerchio: gira la barca e il vento e guarda cosa succede.',
+              },
+            )}
+          </span>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <span className="text-[11px] font-semibold px-2 py-1 rounded-md border"
+                style={{ background: 'rgba(0, 212, 255, 0.14)', borderColor: 'rgba(0, 212, 255, 0.35)', color: COLORS.accentCyan }}>
+            {tp('Основы', 'Basics', 'Podstawy', { es: 'Fundamentos', fr: 'Bases', de: 'Grundlagen', it: 'Basi' })}
+          </span>
+          <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
+             style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>
+            {tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer' })}
+          </a>
+          <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
+             style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: COLORS.textSecondary }}>
+            {tp('Лодка 3D', '3D Boat', 'Łódka 3D', { es: 'Barco 3D', fr: 'Bateau 3D', de: '3D-Boot', it: 'Barca 3D' })}
+          </a>
+        </div>
+      </div>
+      )}
+    </>
+  );
+  const wheelDeck = (layout: 'bottom' | 'column') => (
+    <WheelDeck
+      layout={layout}
+      prefs={prefs}
+      labels={controlLabels}
+      helm={{
+        mapping: 'course',
+        value: `${Math.round(boatAngle)}°`,
+        unit: controlLabels.heading,
+        ariaNow: Math.round(boatAngle),
+        ariaMin: 0,
+        ariaMax: 359,
+        onCourseDelta,
+      }}
+    />
+  );
+  const canvasBox = (
+      <div
+        ref={containerRef}
+        className={isDesktop ? "flex-1 flex items-center justify-center p-2 sm:p-4 min-h-[400px]" : "absolute inset-0 flex items-center justify-center p-1"}
+      >
+        <canvas
+          ref={canvasRef}
+          width={canvasSize.w * 2}
+          height={canvasSize.h * 2}
+          style={{
+            width: canvasSize.w,
+            height: canvasSize.h,
+            borderRadius: 16,
+            cursor: isDragging ? 'grabbing' : 'grab',
+            touchAction: 'none',
+          }}
+          className="border border-[rgba(0,212,255,0.1)] shadow-lg"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+        />
+      </div>
+  );
+
+  if (!isDesktop) {
+    const tabs: DockTab[] = [
+      { id: 'helm', label: controlLabels.tabs.helm, cards: [
+        { id: 'heading', title: tp('Курс яхты', 'Boat heading', 'Kurs jachtu', { es: 'Rumbo del barco', fr: 'Cap du bateau', de: 'Kurs des Boots', it: 'Rotta della barca' }), node: <div className="card p-4">{headingControl}{actionButtons}</div> },
+      ] },
+      { id: 'wind', label: controlLabels.tabs.wind, cards: [
+        { id: 'windFrom', title: tp('Откуда дует ветер', 'Wind from', 'Skąd wieje wiatr', { es: 'De dónde sopla el viento', fr: "D'où vient le vent", de: 'Woher der Wind weht', it: 'Da dove soffia il vento' }), node: <div className="card p-4">{windControl}</div> },
+      ] },
+      { id: 'more', label: controlLabels.tabs.more, cards: [
+        { id: 'pointOfSail', title: tp('Курс и скорость', 'Point of sail and speed', 'Kurs i prędkość', { es: 'Rumbo y velocidad', fr: 'Allure et vitesse', de: 'Kurs und Fahrt', it: 'Andatura e velocità' }), node: <div className="flex flex-col gap-3">{courseCards}{speedCard}</div> },
+        { id: 'about', title: tp('Работа парусов и описание', 'Sail trim and description', 'Ustawienie żagli i opis', { es: 'Trimado y descripción', fr: 'Réglage des voiles et description', de: 'Segeltrimm und Beschreibung', it: 'Regolazione vele e descrizione' }), node: <div className="flex flex-col gap-3">{introText}{sailWorkCards}</div> },
+        { id: 'legend', title: tp('Курсы', 'Courses', 'Kursy', { es: 'Rumbos', fr: 'Allures', de: 'Kurse', it: 'Andature' }), node: <div className="flex flex-col gap-3">{legendCard}{dragHint}</div> },
+      ] },
+    ];
+    return (
+      <div className={`page-enter ${trainerScreenClass(isEmbed)}`}>
+        {tierHeader}
+        <TrainerWorkspace
+          embed={isEmbed}
+          scene={canvasBox}
+          readouts={
+            <div className="flex items-center justify-between gap-3 px-4 py-2 border-t border-[var(--border-subtle)] text-sm">
+              <span className="font-bold" style={{ color: pos.color }}>{legacyPick(pos, 'name', lang)}</span>
+              <span className="font-mono" style={{ color: COLORS.accentCyan }}>{Math.round(wa)}°</span>
+              <span style={{ color: tack === 'starboard' ? '#44ff88' : '#ff8844' }}>
+                {tack === 'starboard'
+                  ? tp('Правый галс', 'Starboard tack', 'Prawy hals', { es: 'Amurado a estribor', fr: 'Tribord amures', de: 'Steuerbordbug', it: 'Mure a dritta' })
+                  : tp('Левый галс', 'Port tack', 'Lewy hals', { es: 'Amurado a babor', fr: 'Bâbord amures', de: 'Backbordbug', it: 'Mure a sinistra' })}
+              </span>
+              <span className="font-mono" style={{ color: COLORS.accentCyan }}>{speed.toFixed(1)} {tp('уз', 'kn', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}</span>
+            </div>
+          }
+          dock={
+            <ControlDock
+              surface="basics"
+              layout="bottom"
+              prefs={prefs}
+              update={updatePrefs}
+              hasSheets={false}
+              rudderAvailable={false}
+              defaultFavorites={['heading', 'windFrom']}
+              tabs={tabs}
+              wheelDeck={wheelDeck('bottom')}
+            />
+          }
+        />
+      </div>
+    );
+  }
+
+  return (
+    <div className="page-enter flex flex-col min-h-[calc(100vh-var(--site-nav-h,56px))]">
+      {tierHeader}
+
+      <div className="flex flex-col lg:flex-row flex-1">
+      {/* Canvas area */}
+      {canvasBox}
+
+      {/* Info Panel: controls first, so the sliders are on the first screen. */}
+      <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
+           style={{ background: 'var(--bg-secondary)' }}>
+
+        {introText}
+
+        {/* Controls */}
+        <div className="card p-4">
+          <div className="flex items-start justify-between gap-2">
+          <div className="text-xs font-medium tracking-wider mb-3"
+               style={{ color: COLORS.textMuted }}>
+            {tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}
+          </div>
+            <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} className="-mt-3" />
+          </div>
+          {prefs.mode === 'wheels' && <div className="h-[300px] mb-3">{wheelDeck('column')}</div>}
+          {headingControl}
+          {windControl}
+          {actionButtons}
+          {dragHint}
+        </div>
+
+        {courseCards}
+        {speedCard}
+        {sailWorkCards}
+        {legendCard}
       </div>
       </div>
+      {settingsOpen && (
+        <ControlSettingsSheet surface="basics" prefs={prefs} update={updatePrefs} labels={controlLabels}
+          hasSheets={false} rudderAvailable={false} favorites={[]} defaultFavorites={[]} onClose={() => setSettingsOpen(false)} />
+      )}
     </div>
   );
 }

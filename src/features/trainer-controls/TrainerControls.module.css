@@ -1,0 +1,263 @@
+/* Shared trainer controls. Colors come only from the theme tokens in
+   src/app/globals.css, so the dark ocean theme and the light theme both work. */
+
+/* Screen: a fixed-height column under the site navigation (the bootcamp
+   footer bar, when shown, is subtracted too). Embedded in the app: 100dvh. */
+.screen {
+  display: flex;
+  flex-direction: column;
+  height: calc(100dvh - var(--site-nav-h, 56px) - var(--bootcamp-footer-h, 0px));
+  min-height: 460px;
+  background: var(--bg-primary);
+}
+.screenEmbed { height: 100dvh; min-height: 0; }
+
+.workspace { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+.sceneColumn { flex: 1 1 auto; min-height: 40%; display: flex; flex-direction: column; }
+.scene { position: relative; flex: 1 1 auto; min-height: 160px; overflow: hidden; }
+.readouts { flex: 0 0 auto; }
+
+.dock {
+  flex: 0 0 auto;
+  height: clamp(232px, 46%, 400px);
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border-subtle);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.dock[data-layout="column"] { height: 100%; border-top: 0; }
+.dock[data-mode="wheels"] { height: clamp(268px, 50%, 420px); }
+
+@media (orientation: landscape) and (max-height: 540px) {
+  .workspace { flex-direction: row; }
+  .sceneColumn { min-height: 0; min-width: 0; position: relative; }
+  /* Landscape phones are short: the readouts float over the bottom of the scene. */
+  .readouts { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; max-height: 45%; overflow: hidden; }
+  .dock, .dock[data-mode="wheels"] { height: auto; width: min(46%, 380px); border-top: 0; border-left: 1px solid var(--border-subtle); }
+  .screen { min-height: 0; }
+}
+
+.dockHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px max(12px, env(safe-area-inset-right, 0px)) 6px max(12px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--border-subtle);
+}
+.tabs {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tabs button {
+  flex: 1 0 auto;
+  min-height: 44px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.tabs button[aria-selected="true"] { color: var(--accent-cyan); background: var(--bg-card); box-shadow: inset 0 -2px 0 var(--accent-cyan); }
+.tabs button:focus-visible, .gear:focus-visible, .linkButton:focus-visible, .primary:focus-visible,
+.segmented button:focus-visible, .favList button:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+.gear {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.panel {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 10px max(20px, env(safe-area-inset-right, 0px)) 14px max(20px, env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.panelWheels { overflow: hidden; padding-top: 4px; padding-bottom: 6px; }
+.card { min-width: 0; }
+.dock[data-layout="bottom"] .panel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); align-content: start; }
+
+/* Wheels */
+.deck { display: flex; flex-direction: column; height: 100%; min-height: 0; }
+.deckArea { position: relative; flex: 1 1 auto; min-height: 196px; }
+.deckNote { margin: 0; padding-bottom: 2px; text-align: center; font-size: 12px; line-height: 16px; color: var(--text-muted); }
+.wheel {
+  position: absolute;
+  touch-action: none;
+  cursor: grab;
+  border-radius: 50%;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: left 0.18s ease-out, top 0.18s ease-out, width 0.18s ease-out, height 0.18s ease-out;
+}
+.wheel:active { cursor: grabbing; }
+.wheel:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 4px; }
+.wheelSvg { display: block; width: 100%; height: 100%; overflow: visible; }
+.wheelRim { fill: none; stroke: color-mix(in srgb, var(--text-secondary) 45%, var(--bg-card)); }
+.wheelSpoke { stroke: color-mix(in srgb, var(--text-secondary) 70%, var(--bg-card)); stroke-linecap: round; }
+.wheelHandle { fill: color-mix(in srgb, var(--text-secondary) 70%, var(--bg-card)); }
+.wheelTick { stroke: var(--text-muted); stroke-width: 1.5; }
+.wheelHub { fill: var(--bg-card); stroke: color-mix(in srgb, var(--text-secondary) 70%, var(--bg-card)); stroke-width: 4; }
+.wheelKing { fill: var(--accent-cyan); }
+.wheelArrow { fill: none; stroke: var(--accent-cyan); stroke-width: 3; }
+.wheelArrowHead { fill: var(--accent-cyan); }
+.wheelCaption {
+  position: absolute;
+  top: calc(100% + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 132px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 15px;
+  color: var(--text-secondary);
+  pointer-events: none;
+}
+.wheelCaption b { display: block; color: var(--text-primary); font-size: 13px; }
+.wheelCaption span { display: block; font-family: var(--font-geist-mono, ui-monospace, monospace); color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
+.wheelCaption small { display: block; font-size: 11px; color: var(--text-muted); }
+.wheelSmall .wheelCaption { width: 104px; }
+.wheelSmall .wheelCaption small { display: none; }
+
+/* Settings sheet */
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.45);
+}
+.sheet {
+  width: 100%;
+  max-width: 460px;
+  max-height: 88dvh;
+  overflow-y: auto;
+  border-radius: 20px 20px 0 0;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 18px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
+}
+@media (min-width: 700px), (orientation: landscape) and (max-height: 540px) {
+  .sheetBackdrop { align-items: center; }
+  .sheet { border-radius: 16px; max-height: 92dvh; }
+}
+.sheet h2 { margin: 0; font-size: 18px; line-height: 24px; }
+.sheetGroup { display: flex; flex-direction: column; gap: 8px; }
+.groupLabel { font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.note { margin: 0; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
+.segmented { display: flex; gap: 6px; }
+.segmented button {
+  flex: 1 1 0;
+  min-height: 44px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.segmented button[aria-checked="true"] { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.toggleRow { display: flex; align-items: center; gap: 12px; min-height: 44px; }
+.toggleRow label { flex: 1 1 auto; font-size: 16px; line-height: 22px; }
+.toggleRow small { display: block; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
+.switch {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 50px;
+  height: 30px;
+  margin: 0;
+  border-radius: 15px;
+  background: var(--border-subtle);
+  position: relative;
+  cursor: pointer;
+}
+.switch::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  transition: left 0.15s;
+}
+.switch:checked { background: var(--accent-cyan); }
+.switch:checked::after { left: 23px; background: var(--accent-ink); }
+.switch:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+.favList { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.favList li { display: flex; align-items: center; gap: 8px; min-height: 48px; border-bottom: 1px solid var(--border-subtle); }
+.favList input { flex: 0 0 auto; width: 22px; height: 22px; accent-color: var(--accent-cyan); }
+.favList label { flex: 1 1 auto; min-width: 0; font-size: 15px; }
+.favList button {
+  flex: 0 0 auto;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.favList button:disabled { opacity: 0.3; cursor: default; }
+.linkButton {
+  align-self: flex-start;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--accent-cyan);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.primary {
+  min-height: 48px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--accent-cyan);
+  color: var(--accent-ink);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .wheel, .switch::after { transition: none; }
+}

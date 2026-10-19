@@ -343,7 +343,8 @@ export default function Simulator() {
   const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
-  const sceneH = Math.min(Math.max(windowHeight * 0.46, 340), 520);
+  // Pinned scene: leave room under it for the scrolling controls.
+  const sceneH = Math.min(Math.max(windowHeight * 0.4, 260), 480);
   const centerX = sceneW / 2;
   const centerY = sceneH / 2;
   const compassCx = sceneW - COMPASS_R - 18;
@@ -695,18 +696,27 @@ export default function Simulator() {
     de: 'TRIMM',
     it: 'TRIM',
   });
-  const mainLabel = tp('ГРОТ', 'MAIN', 'GROT', {
-    es: 'MAYOR',
-    fr: 'GV',
-    de: 'GROSS',
-    it: 'RANDA',
+  // Every sheet control names its sheet (owner decision 2026-10-19), and the
+  // number reads like the website: 0% sheeted in, 100% eased out.
+  const mainLabel = tp('Гика-шкот', 'Mainsheet', 'Szot grota', {
+    es: 'Escota de mayor',
+    fr: 'Écoute de grand-voile',
+    de: 'Großschot',
+    it: 'Scotta della randa',
   });
-  const jibLabel = tp('СТАКСЕЛЬ', 'JIB', 'FOK', {
-    es: 'FOQUE',
-    fr: 'FOC',
-    de: 'FOCK',
-    it: 'FIOCCO',
+  const jibLabel = tp('Стаксель-шкот', 'Jib sheet', 'Szot foka', {
+    es: 'Escota de foque',
+    fr: 'Écoute de foc',
+    de: 'Fockschot',
+    it: 'Scotta del fiocco',
   });
+  const sheetScale = tp('0% выбран · 100% потравлен', '0% sheeted in · 100% eased out', '0% wybrany · 100% poluzowany', {
+    es: '0% cazada · 100% lascada',
+    fr: '0% bordée · 100% choquée',
+    de: '0% dichtgeholt · 100% gefiert',
+    it: '0% cazzata · 100% lascata',
+  });
+  const easedPct = (v: number) => `${Math.round((1 - v) * 100)}%`;
   const reefLabel = tp('РИФ', 'REEF', 'REF', {
     es: 'RIZO',
     fr: 'RIS',
@@ -720,14 +730,14 @@ export default function Simulator() {
     it: 'TWIST',
   });
   const note = tp(
-    'Тяни по воде - руление. Компас справа меняет ветер. ГРОТ и СТАКСЕЛЬ показывают, как шкот влияет на скорость, крен и срыв.',
-    'Drag on water to steer. The compass changes wind. MAIN/JIB show how sheet trim changes speed, heel and stall.',
-    'Przeciągaj po wodzie, aby sterować. Kompas zmienia wiatr. GROT i FOK pokazują, jak szoty wpływają na prędkość, przechył i oderwanie przepływu.',
+    'Тяни по воде - руление. Компас справа меняет ветер. Гика-шкот и стаксель-шкот показывают, как каждый шкот влияет на скорость, крен и срыв.',
+    'Drag on water to steer. The compass changes wind. The mainsheet and the jib sheet show how each sheet changes speed, heel and stall.',
+    'Przeciągaj po wodzie, aby sterować. Kompas zmienia wiatr. Szot grota i szot foka pokazują, jak każdy szot wpływa na prędkość, przechył i oderwanie przepływu.',
     {
-      es: 'Arrastra sobre el agua para gobernar. La brújula cambia el viento. MAYOR y FOQUE muestran cómo las escotas cambian la velocidad, la escora y el desprendimiento del flujo.',
-      fr: "Glisse sur l'eau pour barrer. Le compas change le vent. GV et FOC montrent comment les écoutes changent la vitesse, la gîte et le décrochage.",
-      de: 'Ziehe über das Wasser, um zu steuern. Der Kompass ändert den Wind. GROSS und FOCK zeigen, wie die Schoten Fahrt, Krängung und Strömungsabriss verändern.',
-      it: "Trascina sull'acqua per governare. La bussola cambia il vento. RANDA e FIOCCO mostrano come le scotte cambiano velocità, sbandamento e stallo.",
+      es: 'Arrastra sobre el agua para gobernar. La brújula cambia el viento. La escota de mayor y la de foque muestran cómo cada escota cambia la velocidad, la escora y el desprendimiento del flujo.',
+      fr: "Glisse sur l'eau pour barrer. Le compas change le vent. L'écoute de grand-voile et celle de foc montrent comment chaque écoute change la vitesse, la gîte et le décrochage.",
+      de: 'Ziehe über das Wasser, um zu steuern. Der Kompass ändert den Wind. Groß- und Fockschot zeigen, wie jede Schot Fahrt, Krängung und Strömungsabriss verändert.',
+      it: "Trascina sull'acqua per governare. La bussola cambia il vento. La scotta della randa e quella del fiocco mostrano come ogni scotta cambia velocità, sbandamento e stallo.",
     },
   );
   const modeFreeLabel = tp('Свободно', 'Free', 'Swobodnie', {
@@ -1158,7 +1168,9 @@ export default function Simulator() {
   return (
     <Screen noTopInset>
       <Stack.Screen options={{ title }} />
-      <ScrollView contentContainerStyle={styles.scroll}>
+      {/* The boat stays on screen (owner decision 2026-10-19): header, mission
+          status, scene and readouts are pinned; only the controls below scroll. */}
+      <View style={styles.pinned}>
         <View style={styles.header}>
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
@@ -1182,74 +1194,6 @@ export default function Simulator() {
             <Text style={styles.resetText}>{resetLabel}</Text>
           </Pressable>
         </View>
-
-        <View style={styles.modeBar}>
-          <ModeChip
-            label={modeFreeLabel}
-            active={mode === 'free'}
-            onPress={() => handlePickMode('free')}
-          />
-          <ModeChip
-            label={modeDrillLabel}
-            active={mode === 'drill'}
-            onPress={() => handlePickMode('drill')}
-          />
-          <ModeChip
-            label={modeMissionLabel}
-            active={mode === 'mission'}
-            onPress={() => handlePickMode('mission')}
-          />
-        </View>
-
-        <View style={styles.viewBar}>
-          <ViewChip
-            label={viewTopLabel}
-            active={simView === 'top'}
-            onPress={() => handlePickView('top')}
-          />
-          <ViewChip
-            label={viewSideLabel}
-            active={simView === 'side'}
-            onPress={() => handlePickView('side')}
-          />
-          <ViewChip
-            label={viewRearLabel}
-            active={simView === 'rear'}
-            onPress={() => handlePickView('rear')}
-          />
-        </View>
-
-        <View style={styles.windModeBar}>
-          <WindModeChip
-            label={windSteadyLabel}
-            active={windMapMode === 'steady'}
-            onPress={() => handlePickWindMode('steady')}
-          />
-          <WindModeChip
-            label={windShiftLabel}
-            active={windMapMode === 'shift'}
-            onPress={() => handlePickWindMode('shift')}
-          />
-          <WindModeChip
-            label={windGustLabel}
-            active={windMapMode === 'gust'}
-            onPress={() => handlePickWindMode('gust')}
-          />
-        </View>
-
-        <LiveWindControl
-          onApply={(speedKts, dirRad) => {
-            // Live wind only SETS the existing wind. The synthetic
-            // wind-map mode stays whatever the user chose; we just feed a
-            // real starting value into the same setters the sliders use.
-            sim.setWindSpeed(speedKts);
-            sim.setWindDir(dirRad);
-            // Keep the steady/shift/gust base refs in sync so toggling
-            // wind-map modes does not snap back to the old synthetic value.
-            windBaseRef.current = dirRad;
-            windSpeedBaseRef.current = speedKts;
-          }}
-        />
 
         {mode === 'mission' && activeMission && missionState ? (
           <View style={styles.missionHud}>
@@ -1807,6 +1751,160 @@ export default function Simulator() {
           ) : null}
         </View>
 
+        <View style={styles.hud}>
+          <HudCell label={headingLabel} value={`${headingDeg}°`} />
+          <HudCell label={speedLabel} value={speedDisplay} />
+          <HudCell label={heelLabel} value={`${heelDeg}°`} muted={Math.abs(heelDeg) < 18} />
+          <HudCell label={trimLabel} value={`${trimScore}`} color={trimColor} />
+        </View>
+
+      </View>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.trimPanel}>
+          <View style={styles.trimHeader}>
+            <Text style={styles.trimHeaderTitle}>
+              {autoTrim ? autoLabel : manualLabel}
+            </Text>
+            <Pressable
+              onPress={() => {
+                Haptics.selectionAsync().catch(() => {});
+                sim.setAutoTrim(!autoTrim);
+              }}
+              accessibilityRole="switch"
+              accessibilityLabel={autoLabel}
+              accessibilityState={{ checked: autoTrim }}
+              style={({ pressed }) => [
+                styles.autoButton,
+                autoTrim && styles.autoButtonActive,
+                pressed && styles.autoButtonPressed,
+              ]}
+            >
+              <Text
+                style={[
+                  styles.autoButtonText,
+                  autoTrim && styles.autoButtonTextActive,
+                ]}
+              >
+                {autoTrim ? 'ON' : 'OFF'}
+              </Text>
+            </Pressable>
+          </View>
+
+          <View style={styles.sliderRow}>
+            <Slider
+              label={mainLabel}
+              accessibilityLabel={`${mainLabel}, ${sheetScale}`}
+              formatValue={easedPct}
+              value={mainSheet}
+              onChange={sim.setMainSheet}
+              orientation="vertical"
+              step={0.1}
+            />
+            <Slider
+              label={jibLabel}
+              accessibilityLabel={`${jibLabel}, ${sheetScale}`}
+              formatValue={easedPct}
+              value={jibSheet}
+              onChange={sim.setJibSheet}
+              orientation="vertical"
+              step={0.1}
+            />
+            <Slider
+              label={twistLabel}
+              accessibilityLabel={twistLabel}
+              value={twist}
+              onChange={sim.setTwist}
+              orientation="vertical"
+              step={0.1}
+            />
+            <Slider
+              label={reefLabel}
+              accessibilityLabel={reefLabel}
+              value={reef}
+              onChange={sim.setReef}
+              orientation="vertical"
+              step={0.25}
+            />
+          </View>
+          <Text variant="caption" style={styles.note}>{sheetScale}</Text>
+        </View>
+
+        <View style={styles.commentary}>
+          <View style={[styles.commentaryDot, { backgroundColor: trimColor }]} />
+          <Text variant="caption" style={styles.commentaryText}>
+            {commentary}
+          </Text>
+        </View>
+
+        <Text variant="caption" style={styles.note}>{note}</Text>
+        <View style={styles.modeBar}>
+          <ModeChip
+            label={modeFreeLabel}
+            active={mode === 'free'}
+            onPress={() => handlePickMode('free')}
+          />
+          <ModeChip
+            label={modeDrillLabel}
+            active={mode === 'drill'}
+            onPress={() => handlePickMode('drill')}
+          />
+          <ModeChip
+            label={modeMissionLabel}
+            active={mode === 'mission'}
+            onPress={() => handlePickMode('mission')}
+          />
+        </View>
+
+        <View style={styles.viewBar}>
+          <ViewChip
+            label={viewTopLabel}
+            active={simView === 'top'}
+            onPress={() => handlePickView('top')}
+          />
+          <ViewChip
+            label={viewSideLabel}
+            active={simView === 'side'}
+            onPress={() => handlePickView('side')}
+          />
+          <ViewChip
+            label={viewRearLabel}
+            active={simView === 'rear'}
+            onPress={() => handlePickView('rear')}
+          />
+        </View>
+
+        <View style={styles.windModeBar}>
+          <WindModeChip
+            label={windSteadyLabel}
+            active={windMapMode === 'steady'}
+            onPress={() => handlePickWindMode('steady')}
+          />
+          <WindModeChip
+            label={windShiftLabel}
+            active={windMapMode === 'shift'}
+            onPress={() => handlePickWindMode('shift')}
+          />
+          <WindModeChip
+            label={windGustLabel}
+            active={windMapMode === 'gust'}
+            onPress={() => handlePickWindMode('gust')}
+          />
+        </View>
+
+        <LiveWindControl
+          onApply={(speedKts, dirRad) => {
+            // Live wind only SETS the existing wind. The synthetic
+            // wind-map mode stays whatever the user chose; we just feed a
+            // real starting value into the same setters the sliders use.
+            sim.setWindSpeed(speedKts);
+            sim.setWindDir(dirRad);
+            // Keep the steady/shift/gust base refs in sync so toggling
+            // wind-map modes does not snap back to the old synthetic value.
+            windBaseRef.current = dirRad;
+            windSpeedBaseRef.current = speedKts;
+          }}
+        />
+
         {mode === 'drill' ? (
           <View style={styles.pickerRow}>
             <Text style={styles.pickerLabel}>{drillSelectLabel}</Text>
@@ -1875,87 +1973,6 @@ export default function Simulator() {
           </View>
         ) : null}
 
-        <View style={styles.hud}>
-          <HudCell label={headingLabel} value={`${headingDeg}°`} />
-          <HudCell label={speedLabel} value={speedDisplay} />
-          <HudCell label={heelLabel} value={`${heelDeg}°`} muted={Math.abs(heelDeg) < 18} />
-          <HudCell label={trimLabel} value={`${trimScore}`} color={trimColor} />
-        </View>
-
-        <View style={styles.trimPanel}>
-          <View style={styles.trimHeader}>
-            <Text style={styles.trimHeaderTitle}>
-              {autoTrim ? autoLabel : manualLabel}
-            </Text>
-            <Pressable
-              onPress={() => {
-                Haptics.selectionAsync().catch(() => {});
-                sim.setAutoTrim(!autoTrim);
-              }}
-              accessibilityRole="switch"
-              accessibilityLabel={autoLabel}
-              accessibilityState={{ checked: autoTrim }}
-              style={({ pressed }) => [
-                styles.autoButton,
-                autoTrim && styles.autoButtonActive,
-                pressed && styles.autoButtonPressed,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.autoButtonText,
-                  autoTrim && styles.autoButtonTextActive,
-                ]}
-              >
-                {autoTrim ? 'ON' : 'OFF'}
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.sliderRow}>
-            <Slider
-              label={mainLabel}
-              accessibilityLabel={`${mainLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'écoute', de: 'Schot', it: 'scotta' })}`}
-              value={mainSheet}
-              onChange={sim.setMainSheet}
-              orientation="vertical"
-              step={0.1}
-            />
-            <Slider
-              label={jibLabel}
-              accessibilityLabel={`${jibLabel} ${tp('шкот', 'sheet', 'szot', { es: 'escota', fr: 'écoute', de: 'Schot', it: 'scotta' })}`}
-              value={jibSheet}
-              onChange={sim.setJibSheet}
-              orientation="vertical"
-              step={0.1}
-            />
-            <Slider
-              label={twistLabel}
-              accessibilityLabel={twistLabel}
-              value={twist}
-              onChange={sim.setTwist}
-              orientation="vertical"
-              step={0.1}
-            />
-            <Slider
-              label={reefLabel}
-              accessibilityLabel={reefLabel}
-              value={reef}
-              onChange={sim.setReef}
-              orientation="vertical"
-              step={0.25}
-            />
-          </View>
-        </View>
-
-        <View style={styles.commentary}>
-          <View style={[styles.commentaryDot, { backgroundColor: trimColor }]} />
-          <Text variant="caption" style={styles.commentaryText}>
-            {commentary}
-          </Text>
-        </View>
-
-        <Text variant="caption" style={styles.note}>{note}</Text>
       </ScrollView>
     </Screen>
   );
@@ -1989,29 +2006,56 @@ function commentaryFor({
       },
     );
   }
-  if (mainStalled || jibStalled) {
+  // Every hint names the sheet to touch (owner decision 2026-10-19).
+  if (mainStalled && jibStalled) {
     return tp(
-      'Срыв потока: ослабь MAIN или JIB, пока скорость не вернется.',
-      'Stall: ease MAIN or JIB until speed comes back.',
-      'Oderwanie przepływu: poluzuj GROT albo FOK, aż wróci prędkość.',
+      'Срыв потока на обоих парусах: потрави гика-шкот и стаксель-шкот.',
+      'Both sails stalled: ease the mainsheet and the jib sheet.',
+      'Oderwanie przepływu na obu żaglach: poluzuj szot grota i szot foka.',
       {
-        es: 'Flujo desprendido: lasca MAYOR o FOQUE hasta que vuelva la velocidad.',
-        fr: "Décrochage : choque la GV ou le FOC jusqu'à ce que la vitesse revienne.",
-        de: 'Strömungsabriss: GROSS oder FOCK fieren, bis die Fahrt zurückkommt.',
-        it: 'Stallo: lasca RANDA o FIOCCO finché torna la velocità.',
+        es: 'Flujo desprendido en las dos velas: lasca la escota de mayor y la de foque.',
+        fr: "Les deux voiles décrochent : choque l'écoute de grand-voile et celle de foc.",
+        de: 'Abriss an beiden Segeln: Groß- und Fockschot fieren.',
+        it: 'Entrambe le vele in stallo: lasca la scotta della randa e quella del fiocco.',
+      },
+    );
+  }
+  if (mainStalled) {
+    return tp(
+      'Срыв на гроте: потрави гика-шкот, пока скорость не вернется.',
+      'Main stalled: ease the mainsheet until speed comes back.',
+      'Oderwanie na grocie: poluzuj szot grota, aż wróci prędkość.',
+      {
+        es: 'Flujo desprendido en la mayor: lasca la escota de mayor hasta que vuelva la velocidad.',
+        fr: "Grand-voile décrochée : choque l'écoute de grand-voile jusqu'à ce que la vitesse revienne.",
+        de: 'Abriss am Großsegel: Großschot fieren, bis die Fahrt zurückkommt.',
+        it: 'Randa in stallo: lasca la scotta della randa finché torna la velocità.',
+      },
+    );
+  }
+  if (jibStalled) {
+    return tp(
+      'Срыв на стакселе: потрави стаксель-шкот, пока скорость не вернется.',
+      'Jib stalled: ease the jib sheet until speed comes back.',
+      'Oderwanie na foku: poluzuj szot foka, aż wróci prędkość.',
+      {
+        es: 'Flujo desprendido en el foque: lasca la escota de foque hasta que vuelva la velocidad.',
+        fr: "Foc décroché : choque l'écoute de foc jusqu'à ce que la vitesse revienne.",
+        de: 'Abriss an der Fock: Fockschot fieren, bis die Fahrt zurückkommt.',
+        it: 'Fiocco in stallo: lasca la scotta del fiocco finché torna la velocità.',
       },
     );
   }
   if (Math.abs(heelDeg) > 25) {
     return tp(
-      'Крен высокий: поставь REEF или отпусти грот.',
-      'Heel is high: add REEF or ease the main.',
-      'Duży przechył: dodaj REF albo poluzuj grot.',
+      'Крен высокий: возьми риф или потрави гика-шкот.',
+      'Heel is high: reef or ease the mainsheet.',
+      'Duży przechył: weź ref albo poluzuj szot grota.',
       {
-        es: 'Mucha escora: toma un RIZO o lasca la mayor.',
-        fr: 'Forte gîte : prends un RIS ou choque la GV.',
-        de: 'Viel Krängung: REFF einbinden oder Groß fieren.',
-        it: 'Troppo sbandamento: prendi una mano di TERZAROLI o lasca la randa.',
+        es: 'Mucha escora: toma un rizo o lasca la escota de mayor.',
+        fr: "Forte gîte : prends un ris ou choque l'écoute de grand-voile.",
+        de: 'Viel Krängung: reffen oder Großschot fieren.',
+        it: 'Troppo sbandamento: prendi una mano di terzaroli o lasca la scotta della randa.',
       },
     );
   }
@@ -2029,14 +2073,14 @@ function commentaryFor({
     );
   }
   return tp(
-    'Подвигай ползунки ГРОТ и СТАКСЕЛЬ: цель - высокий TRIM без лишнего крена.',
-    'Work MAIN/JIB: aim for high TRIM without excess heel.',
-    'Pracuj GROTEM i FOKIEM: celem jest wysoki TRYM bez nadmiernego przechyłu.',
+    'Работай гика-шкотом и стаксель-шкотом: цель - высокий TRIM без лишнего крена.',
+    'Work the mainsheet and the jib sheet: aim for high TRIM without excess heel.',
+    'Pracuj szotem grota i szotem foka: celem jest wysoki TRYM bez nadmiernego przechyłu.',
     {
-      es: 'Ajusta MAYOR y FOQUE: busca un TRIM alto sin demasiada escora.',
-      fr: 'Règle GV et FOC : vise un TRIM élevé sans trop de gîte.',
-      de: 'Arbeite mit GROSS und FOCK: hoher TRIMM, wenig Krängung.',
-      it: 'Regola RANDA e FIOCCO: TRIM alto senza troppo sbandamento.',
+      es: 'Trabaja la escota de mayor y la de foque: busca un TRIM alto sin demasiada escora.',
+      fr: "Règle l'écoute de grand-voile et celle de foc : vise un TRIM élevé sans trop de gîte.",
+      de: 'Arbeite mit Groß- und Fockschot: hoher TRIMM, wenig Krängung.',
+      it: 'Regola la scotta della randa e quella del fiocco: TRIM alto senza troppo sbandamento.',
     },
   );
 }
@@ -2847,9 +2891,16 @@ function SailBadge({
 }
 
 const styles = StyleSheet.create({
+  pinned: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    paddingBottom: spacing.sm,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.borderCyanFaint,
+  },
   scroll: {
     paddingHorizontal: spacing.lg,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
   },
   header: {

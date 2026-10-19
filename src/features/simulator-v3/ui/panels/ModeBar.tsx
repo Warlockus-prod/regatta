@@ -42,7 +42,7 @@ export function ModeBar({
     <div
       className="flex gap-1 px-2 py-1.5 rounded-lg"
       style={{
-        background: 'rgba(8, 24, 48, 0.55)',
+        background: 'color-mix(in srgb, var(--bg-secondary) 55%, transparent)',
         border: '1px solid rgba(0, 212, 255, 0.12)',
       }}
     >
