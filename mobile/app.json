@@ -3,7 +3,7 @@
     "name": "Week to Regatta",
     "slug": "regatta",
     "scheme": "regatta",
-    "version": "1.6.4",
+    "version": "1.7.0",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "48",
+      "buildNumber": "49",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
@@ -117,7 +117,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 48,
+      "versionCode": 49,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"
