@@ -2,19 +2,26 @@ import { test, expect } from '@playwright/test';
 
 // ============================================================================
 // Smoke E2E - must pass on every deploy. Keep fast (<60 sec total).
-// These run against prod by default (see playwright.config.ts).
+// The target is BASE_URL (see playwright.config.ts): localhost before the
+// deploy, prod after it.
 // ============================================================================
 
+const PROD_HOST = 'weektoregatta.com';
+const isProd = (baseURL: string | undefined) => {
+  try {
+    return new URL(baseURL ?? '').hostname.endsWith(PROD_HOST);
+  } catch {
+    return false;
+  }
+};
+
 // Pin language to Russian for deterministic string matches, and mark the
-// first-visit onboarding tour as seen. The tour (OnboardingTour.tsx, a
-// full-screen z-[100] overlay) pops up ~600 ms after load on a fresh context
-// and otherwise intercepts clicks (e.g. the language toggle), which made the
-// home-page test flaky. Seeding its localStorage flag keeps it from appearing.
+// Trainer's first-run tour (simulator-v3 TourOverlay) as seen so it cannot
+// cover the controls the simulator test clicks.
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(() => {
     try {
       window.localStorage.setItem('regatta.lang.v1', 'ru');
-      window.localStorage.setItem('regatta.onboarding.v1', '1');
       window.localStorage.setItem('regatta.v3.tour.v1', '1');
     } catch { /* ignore */ }
   });
@@ -91,7 +98,10 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: /(Таблица|Leaderboard|Ranking)/ })).toBeVisible();
   });
 
-  test('save nickname via /api/player end-to-end', async ({ request }) => {
+  test('save nickname via /api/player end-to-end', async ({ request, baseURL }) => {
+    // Writes a players row. The pre-deploy run on localhost covers it; on prod
+    // it only filled the table with E2E_Tester_* players.
+    test.skip(isProd(baseURL), 'writes a player row; covered by the pre-deploy localhost run');
     await request.get('/');
 
     const before = await request.get('/api/player');
