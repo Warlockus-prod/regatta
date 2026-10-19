@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 root = Path(sys.argv[sys.argv.index("--") + 1]).resolve()
 bpy.ops.wm.read_factory_settings(use_empty=True)
-bpy.ops.import_scene.gltf(filepath=str(root / "public/models/regatta_sloop.glb"))
+bpy.ops.import_scene.gltf(filepath=str(root / "assets/3d/regatta_sloop.glb"))
 scene = bpy.context.scene
 scene.unit_settings.system = "METRIC"
 scene.unit_settings.scale_length = 1
@@ -26,5 +26,5 @@ for name, xyz in {"Attachment_MainTack":(.4,0,2.7), "Attachment_JibTack":(6.3,0,
 source=root / "assets/3d/regatta_sloop.blend"
 source.parent.mkdir(parents=True,exist_ok=True)
 bpy.ops.wm.save_as_mainfile(filepath=str(source))
-bpy.ops.export_scene.gltf(filepath=str(root / "public/models/regatta_sloop_refined.glb"), export_format="GLB", export_apply=True, export_extras=True)
+bpy.ops.export_scene.gltf(filepath=str(root / "assets/3d/regatta_sloop_refined.glb"), export_format="GLB", export_apply=True, export_extras=True)
 print("REFINED_YACHT_EXPORTED")

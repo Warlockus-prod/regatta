@@ -126,7 +126,7 @@ I/O). Его используют Основы (`/simulator`), Тренажер 
 Провайдер Open-Meteo, без ключа: `src/lib/weather/open-meteo.ts` за контрактом
 `src/lib/weather/types.ts`, роут `src/app/api/weather/route.ts` нормализует
 ветер, волну и течение, переводит в узлы и кэширует в памяти. Потребители:
-`src/components/WindNowCard.tsx`, `/spots`, кнопка живого ветра в Тренажере.
+`/spots`, кнопка живого ветра в Тренажере и карточка ветра в мобильном приложении.
 
 ### 3.6 Офлайн-контент для мобильного
 
@@ -335,7 +335,6 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/components/SiteFooter.tsx` - подвал с брендовой строкой.
 - `src/components/ContentFooterNav.tsx` - переходы между контентными страницами.
 - `src/components/BootcampFooterNav.tsx` - нижняя панель на страницах уроков буткемпа.
-- `src/components/BootcampProgressChip.tsx` - чип прогресса буткемпа в шапке.
 - `src/components/LanguageToggle.tsx` - переключатель языка, пишет localStorage и cookie.
 - `src/components/ThemeToggle.tsx` - переключатель темы.
 - `src/components/ThemeManager.tsx` - применение темы и подписка на системную.
@@ -343,9 +342,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/components/ClientErrorReporter.tsx` - `page.view`, `page.engaged`, `js.uncaught`, `js.rejection`.
 - `src/components/FeedbackWidget.tsx` - виджет обратной связи, шлет в `/api/feedback`.
 - `src/components/HelpOverlay.tsx` - контекстная справка поверх страницы.
-- `src/components/OnboardingTour.tsx` - первый проход по интерфейсу.
 - `src/components/ServiceWorkerRegistrar.tsx` - регистрация сервис-воркера и офлайн-фолбэка.
-- `src/components/WindNowCard.tsx` - карточка живого ветра из `/api/weather`.
 - `src/components/AnatomyPosters.tsx` - два постера-инфографики на `/anatomy`.
 - `src/components/YachtViewer3D.tsx` - общий просмотрщик GLB-яхты (анатомия и тренажер, метры).
 - `src/components/product/ProductHub.tsx` - общий рендер хаба раздела по каталогу.
@@ -602,8 +599,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `scripts/prune-events.mjs` - удаление сырых `events` и `sessions` старше 180 дней, `--dry-run` сначала; копируется в образ и запускается `docker exec regatta node scripts/prune-events.mjs`.
 - `scripts/I18N_MIGRATION.md` - плейбук миграции i18n.
 - `scripts/sailing-glossary.md` - рабочий глоссарий терминологии для переводов.
-- `scripts/blender/build_sailing_yacht.py` - генерация учебной яхты в Blender.
-- `scripts/blender/refine_yacht.py` - доводка модели яхты.
+- `scripts/blender/build_sailing_yacht.py` - генерация учебной яхты в Blender: берет исходник `assets/3d/regatta_sloop.glb`, экспортирует рантайм-модель `public/models/regatta_sloop_sailing.glb`.
+- `scripts/blender/refine_yacht.py` - доводка модели яхты: `assets/3d/regatta_sloop.glb` в `assets/3d/regatta_sloop.blend` и `assets/3d/regatta_sloop_refined.glb`.
 - `scripts/blender/audit_yacht.py` - проверка модели перед экспортом.
 - `scripts/blender/export_sail_shapes.mjs` - выборка формы парусов из рантайма для Blender.
 - `scripts/blender/render_store_header.py` - рендер заголовка страницы App Store для iOS 27 (3840x1646, без альфы и текста, яхта в безопасной зоне Apple); загрузка через API Asset Library, разбор в `docs/audits/2026-10-18-aso-and-code-audit.md`.
@@ -651,7 +648,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `docker-compose.yml` - сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck.
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
-- `.gitignore` - что не попадает в репозиторий (включая `.env*`).
+- `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
 
 ---
 

@@ -4,6 +4,8 @@ Author: Lead Graphics Architect
 Stack: Next.js 16, React 19, three 0.184, @react-three/fiber 9.6, @react-three/drei 10.7. `@react-three/postprocessing` is NOT yet a dependency (confirmed absent in package.json) and must be added.
 Constraint baseline: web + Expo/iOS mobile, 60fps on mobile, graceful degradation, parallel V1/V2/V3 lanes.
 
+> Asset status 2026-10-19: `public/models/` ships only the runtime model `regatta_sloop_sailing.glb` (`YACHT_MODEL_URL` in `src/features/simulator-3d/config.ts`, used by `/simulator2` and by `YachtViewer3D` on `/anatomy`). `Andryu_Yacht_v8.glb` was deleted; the Blender sources `regatta_sloop.glb` and `regatta_sloop_refined.glb` moved to `assets/3d/` (read and written by `scripts/blender/*.py`). Mentions of other GLBs in `public/models/` below describe the state at the time of this analysis.
+
 ---
 
 ## 1. Executive summary
