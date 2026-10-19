@@ -533,10 +533,11 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 Остальное:
 
 - `src/proxy.ts` - middleware: короткие языковые ссылки, cookies `regatta_sid` и `regatta_lang` (в проде `Secure`), basic-auth `/stats` и `/api/admin/*` через `src/lib/admin-auth.ts`.
-- `src/proxy.test.ts` - контракт: `Secure` на cookies в проде и без него в dev, админ-шлюз 401/403.
+- `src/proxy.test.ts` - контракт: `Secure` на cookies в проде и без него в dev, админ-шлюз 401/403, цепочка языка (`/pl` дает 307 на `/?lang=pl`, `?lang=` сильнее cookie, неизвестный `?lang=` игнорируется, подделанный входящий `x-regatta-lang` перезаписывается, без Accept-Language RU, на `/api/*` cookies нет).
 - `src/lib/admin-auth.ts` - basic-auth админки (константное время, 503 без `ADMIN_PASSWORD`, CSRF для мутаций); `requireAdmin()` вызывает каждый админ-хендлер, а не только прокси.
 - `src/lib/i18n.tsx` - провайдер и хуки `t` / `tp` / `tl`, приоритет источников языка.
 - `src/lib/languages.ts` - список языков, `LANG_SHORTCUT_PATHS`, `pickLocalized`, порядок в пикере.
+- `src/lib/languages.test.ts` - контракт языков: Accept-Language (регион, пропуск неподдержанных, EN как запасной, RU без заголовка), ровно 7 языков и 14 коротких путей, порядок отката `legacyPick`.
 - `src/lib/db.ts` - SQLite: события, фидбэк, лидерборд, реплеи; единственный `insertEvent()`; индекс `(evt, ts)`; воронка для `/stats`.
 - `src/lib/db.funnel.test.ts` - воронка `getMetricsRange()` на настоящем файле SQLite и наличие индекса `(evt, ts)`.
 - `src/lib/analytics-events.ts` - allow-list клиентских событий для `/api/log` и проверка полей воронки по событию.
