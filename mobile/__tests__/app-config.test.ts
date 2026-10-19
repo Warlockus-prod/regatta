@@ -13,7 +13,12 @@ import { join } from 'node:path';
 
 const MOBILE_ROOT = join(__dirname, '..');
 
-type CollectedType = { NSPrivacyCollectedDataType: string; NSPrivacyCollectedDataTypeTracking: boolean };
+type CollectedType = {
+  NSPrivacyCollectedDataType: string;
+  NSPrivacyCollectedDataTypeLinked: boolean;
+  NSPrivacyCollectedDataTypeTracking: boolean;
+  NSPrivacyCollectedDataTypePurposes: string[];
+};
 interface AppJson {
   expo: {
     ios: {
@@ -36,6 +41,26 @@ describe('iOS privacy manifest', () => {
 
   it('lives at expo.ios.privacyManifests', () => {
     expect(manifest).toBeDefined();
+  });
+
+  // Must match the App Privacy label published in App Store Connect on
+  // 2026-10-19 (release gate G4b): same six types and purposes, none linked
+  // to identity, none used for tracking.
+  it('declares exactly the six types of the published App Privacy label', () => {
+    const byType = Object.fromEntries(
+      manifest!.NSPrivacyCollectedDataTypes.map((t) => [t.NSPrivacyCollectedDataType, t.NSPrivacyCollectedDataTypePurposes]),
+    );
+    expect(byType).toEqual({
+      NSPrivacyCollectedDataTypeProductInteraction: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
+      NSPrivacyCollectedDataTypeOtherDiagnosticData: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
+      NSPrivacyCollectedDataTypeCoarseLocation: ['NSPrivacyCollectedDataTypePurposeAnalytics'],
+      NSPrivacyCollectedDataTypeGameplayContent: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+      NSPrivacyCollectedDataTypeOtherUserContent: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+      NSPrivacyCollectedDataTypeAudioData: ['NSPrivacyCollectedDataTypePurposeAppFunctionality'],
+    });
+    for (const t of manifest!.NSPrivacyCollectedDataTypes) {
+      expect(t.NSPrivacyCollectedDataTypeLinked).toBe(false);
+    }
   });
 
   it('declares the analytics data the app collects, not used for tracking', () => {

@@ -114,8 +114,11 @@ submitted:
    ```sh
    npx expo config --json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const m=(JSON.parse(s).ios||{}).privacyManifests;const t=(m&&m.NSPrivacyCollectedDataTypes)||[];if(!t.length){console.error("FAIL: ios.privacyManifests.NSPrivacyCollectedDataTypes is empty");process.exit(1)}for(const x of t)console.log(x.NSPrivacyCollectedDataType,"linked="+x.NSPrivacyCollectedDataTypeLinked,"tracking="+x.NSPrivacyCollectedDataTypeTracking,(x.NSPrivacyCollectedDataTypePurposes||[]).join(","))})'
    ```
-   It must list at least ProductInteraction and OtherDiagnosticData, purpose
-   Analytics, linked=false, tracking=false. After `expo prebuild`, the
+   It must list exactly the six types published in App Store Connect on
+   2026-10-19: ProductInteraction, OtherDiagnosticData and CoarseLocation
+   (purpose Analytics) plus GameplayContent, OtherUserContent and AudioData
+   (purpose AppFunctionality), all linked=false, tracking=false
+   (`mobile/__tests__/app-config.test.ts` enforces it). After `expo prebuild`, the
    generated `ios/*/PrivacyInfo.xcprivacy` must contain the same types.
 2. App Store Connect > App Privacy
    (https://appstoreconnect.apple.com/apps/6768134329/distribution/privacy):
