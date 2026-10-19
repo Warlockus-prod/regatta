@@ -1,0 +1,683 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Regatta Trainer Controls</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: prototype chrome on top, one device frame (phone / landscape / desktop) scaled to fit, notes below.
+   Tokens mirror src/app/globals.css: dark ocean first, light theme overrides the same names. */
+:root {
+  --bg-primary: #0a1628;
+  --bg-secondary: #0f2035;
+  --bg-card: #152540;
+  --bg-card-hover: #1a2d4d;
+  --accent-cyan: #00d4ff;
+  --accent-ink: #04222e;
+  --text-primary: #e8f4f8;
+  --text-secondary: #8ba7b8;
+  --text-muted: #7593a6;
+  --border-subtle: rgba(255, 255, 255, 0.10);
+  --success: #44ff88;
+  --warning: #ffaa00;
+  --danger: #ff6b6b;
+  --water-light: #0d2847;
+  --water-dark: #061428;
+  --sail: #f4f8fb;
+  --hull: #dfe8ef;
+  --wheel-rim: #33506e;
+  --wheel-spoke: #5b7a96;
+  --nogo: rgba(255, 107, 107, 0.16);
+  --frame: #050c17;
+  --font-body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg-primary: #f4f8fc; --bg-secondary: #e9f1f8; --bg-card: #ffffff; --bg-card-hover: #eef5fb;
+    --accent-cyan: #0072a3; --accent-ink: #ffffff; --text-primary: #0c2233; --text-secondary: #45606f;
+    --text-muted: #57707f; --border-subtle: #c9d4e3; --success: #0b6b3a; --warning: #8a6100; --danger: #b3261e;
+    --water-light: #cfe3f2; --water-dark: #a9cbe3; --sail: #ffffff; --hull: #ffffff; --wheel-rim: #8aa4ba;
+    --wheel-spoke: #6d8aa2; --nogo: rgba(179, 38, 30, 0.12); --frame: #c3d2e0; color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg-primary: #f4f8fc; --bg-secondary: #e9f1f8; --bg-card: #ffffff; --bg-card-hover: #eef5fb;
+  --accent-cyan: #0072a3; --accent-ink: #ffffff; --text-primary: #0c2233; --text-secondary: #45606f;
+  --text-muted: #57707f; --border-subtle: #c9d4e3; --success: #0b6b3a; --warning: #8a6100; --danger: #b3261e;
+  --water-light: #cfe3f2; --water-dark: #a9cbe3; --sail: #ffffff; --hull: #ffffff; --wheel-rim: #8aa4ba;
+  --wheel-spoke: #6d8aa2; --nogo: rgba(179, 38, 30, 0.12); --frame: #c3d2e0; color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--bg-primary); color: var(--text-primary); font: 16px/1.5 var(--font-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 20px 40px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; display: grid; gap: 20px; }
+h1 { font-size: 26px; line-height: 1.2; margin: 0; text-wrap: balance; font-weight: 650; }
+h2 { font-size: 18px; margin: 0 0 8px; font-weight: 600; }
+.lede { color: var(--text-secondary); margin: 6px 0 0; max-width: 68ch; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; }
+.tgroup { display: grid; gap: 6px; }
+.tlabel { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; color: var(--text-muted); }
+.seg { display: inline-flex; flex-wrap: wrap; border: 1px solid var(--border-subtle); border-radius: 12px; padding: 3px; gap: 3px; background: var(--bg-secondary); }
+.seg button { min-height: 40px; padding: 0 12px; border: 0; border-radius: 9px; background: transparent; color: var(--text-secondary); font: 500 14px var(--font-body); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--bg-card); color: var(--accent-cyan); box-shadow: inset 0 0 0 1px var(--accent-cyan); }
+button:focus-visible, input:focus-visible, [tabindex]:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+
+.stage { display: grid; justify-items: center; min-width: 0; }
+.scaler { position: relative; }
+.frame { position: absolute; left: 0; top: 0; transform-origin: 0 0; background: var(--frame); border-radius: 44px; padding: 12px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.frame.desktop { border-radius: 14px; padding: 8px; }
+
+/* The simulator screen */
+.sim { position: relative; width: 100%; height: 100%; overflow: hidden; border-radius: 34px; background: var(--bg-primary); display: grid; }
+.frame.desktop .sim { border-radius: 8px; }
+.sim.portrait { grid-template-rows: auto minmax(0, 1fr) auto; }
+.sim.landscape { grid-template-columns: 168px minmax(0, 1fr) 190px; grid-template-rows: auto minmax(0, 1fr); }
+.sim.desktop { grid-template-columns: minmax(0, 1fr) 380px; grid-template-rows: auto minmax(0, 1fr); }
+.topbar { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border-bottom: 1px solid var(--border-subtle); }
+.sim.portrait .topbar { padding-top: 40px; }
+.sim.landscape .topbar, .sim.desktop .topbar { grid-column: 1 / -1; }
+.topbar .title { font-weight: 600; font-size: 16px; flex: 1; min-width: 0; }
+.iconbtn { width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); display: grid; place-items: center; cursor: pointer; padding: 0; }
+.iconbtn svg { width: 20px; height: 20px; }
+
+.viewport { position: relative; min-height: 0; background: radial-gradient(120% 90% at 50% 40%, var(--water-light), var(--water-dark)); }
+.sim.landscape .viewport { grid-column: 2; grid-row: 2; }
+.sim.desktop .viewport { grid-column: 1; grid-row: 2; }
+.viewport svg.scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hud { position: absolute; left: 10px; right: 10px; bottom: 10px; display: flex; gap: 6px; flex-wrap: wrap; pointer-events: none; }
+.chip { background: color-mix(in srgb, var(--bg-primary) 82%, transparent); border: 1px solid var(--border-subtle); border-radius: 10px; padding: 4px 9px; font-size: 13px; display: flex; gap: 6px; align-items: baseline; }
+.chip b { font-family: var(--font-mono); font-weight: 600; font-variant-numeric: tabular-nums; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; align-self: center; }
+
+/* Dock */
+.dock { position: relative; border-top: 1px solid var(--border-subtle); background: var(--bg-secondary); min-width: 0; }
+.sim.portrait .dock { padding: 10px 0 30px; }
+.sim.landscape .dock { border-top: 0; }
+.sim.desktop .dock { grid-column: 2; grid-row: 2; border-top: 0; border-left: 1px solid var(--border-subtle); padding: 14px 0; display: flex; flex-direction: column; }
+.dockhead { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 8px; gap: 8px; }
+.dockhead .tlabel { margin: 0; }
+.linkbtn { min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--accent-cyan); font: 500 14px var(--font-body); cursor: pointer; }
+
+.strip { display: flex; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 0 20px 6px; scrollbar-width: none; overscroll-behavior-x: contain; }
+.strip::-webkit-scrollbar { display: none; }
+.sim.desktop .strip { flex-direction: column; overflow-x: visible; overflow-y: auto; scroll-snap-type: none; padding: 0 16px; }
+.card { flex: 0 0 calc(100% - 44px); scroll-snap-align: center; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 16px; padding: 12px 14px; display: grid; gap: 6px; min-width: 0; }
+.sim.desktop .card { flex: 0 0 auto; }
+.card .row { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.card .name { font-weight: 600; font-size: 16px; }
+.card .sub { font-size: 13px; color: var(--text-secondary); }
+.card .val { font-family: var(--font-mono); color: var(--accent-cyan); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.card .scale { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); gap: 8px; }
+.card input[type=range] { width: 100%; height: 44px; margin: 0; accent-color: var(--accent-cyan); }
+.segrow { display: flex; gap: 6px; }
+.segrow button { flex: 1; min-height: 44px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-secondary); font: 500 14px var(--font-body); cursor: pointer; }
+.segrow button[aria-pressed="true"] { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.holdrow { display: flex; gap: 8px; align-items: center; }
+.holdrow button { width: 64px; height: 48px; border-radius: 12px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary); font-size: 22px; cursor: pointer; touch-action: none; }
+.holdrow .val { flex: 1; text-align: center; }
+.dots { display: flex; justify-content: center; gap: 6px; padding-top: 6px; }
+.dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--border-subtle); }
+.dots i.on { background: var(--text-secondary); }
+.sim.desktop .dots { display: none; }
+
+/* Wheels */
+.wheels { position: relative; height: 262px; }
+.sim.desktop .wheels { height: 330px; }
+.wheel { position: absolute; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.wheel svg { width: 100%; height: 100%; display: block; overflow: visible; }
+.wheel .cap { position: absolute; left: 50%; transform: translateX(-50%); text-align: center; font-size: 12px; line-height: 1.25; color: var(--text-secondary); width: 110px; pointer-events: none; }
+.wheel .cap b { display: block; color: var(--text-primary); font-size: 13px; font-weight: 600; }
+.wheel .cap .v { font-family: var(--font-mono); color: var(--accent-cyan); font-variant-numeric: tabular-nums; }
+.wheel.sheet.big { z-index: 3; }
+.wheel.small .cap { width: 100px; font-size: 11px; }
+.wheel.small .cap b { font-size: 12px; }
+.wheel.helm, .wheel.sheet { transition: width .18s ease-out, height .18s ease-out, left .18s ease-out, top .18s ease-out; }
+.tick-flash { transition: opacity .12s; }
+.wheelhint { position: absolute; left: 0; right: 0; bottom: -2px; text-align: center; font-size: 12px; color: var(--text-muted); pointer-events: none; padding: 0 8px; }
+.rail { background: var(--bg-secondary); position: relative; min-height: 0; }
+.sim.landscape .rail.left { grid-column: 1; grid-row: 2; border-right: 1px solid var(--border-subtle); }
+.sim.landscape .rail.right { grid-column: 3; grid-row: 2; border-left: 1px solid var(--border-subtle); }
+.sim.landscape .rail .strip { flex-direction: column; overflow-x: visible; overflow-y: auto; scroll-snap-type: y mandatory; padding: 10px; height: 100%; }
+.sim.landscape .rail .card { flex: 0 0 auto; padding: 8px 10px; }
+.sim.landscape .rail .card input[type=range] { height: 36px; }
+.sim.landscape.mode-sliders { grid-template-columns: 224px minmax(0, 1fr) 224px; }
+.sim.landscape .card .name { font-size: 15px; }
+.sim.landscape .card .scale { font-size: 11px; }
+
+/* Settings sheet */
+.sheet-bg { position: absolute; inset: 0; background: rgba(0,0,0,.45); z-index: 10; display: flex; align-items: flex-end; justify-content: center; }
+.sheetp { background: var(--bg-card); width: 100%; max-width: 440px; max-height: 88%; overflow-y: auto; border-radius: 20px 20px 0 0; padding: 16px 20px 28px; display: grid; gap: 14px; }
+.sim.desktop .sheet-bg, .sim.landscape .sheet-bg { align-items: center; }
+.sim.desktop .sheetp, .sim.landscape .sheetp { border-radius: 16px; }
+.sheetp h3 { margin: 0; font-size: 18px; }
+.sheetp .grp { display: grid; gap: 8px; }
+.sheetp .glabel { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); }
+.sheetp .note { font-size: 13px; color: var(--text-secondary); margin: 0; }
+.trow { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 44px; }
+.trow label { flex: 1; }
+.switch { appearance: none; -webkit-appearance: none; width: 50px; height: 30px; border-radius: 15px; background: var(--border-subtle); position: relative; cursor: pointer; flex: none; margin: 0; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--text-primary); transition: left .15s; }
+.switch:checked { background: var(--accent-cyan); }
+.switch:checked::after { left: 23px; background: var(--accent-ink); }
+.edrow { display: flex; align-items: center; gap: 8px; min-height: 48px; border-bottom: 1px solid var(--border-subtle); }
+.edrow input[type=checkbox] { width: 22px; height: 22px; accent-color: var(--accent-cyan); }
+.edrow label { flex: 1; min-width: 0; }
+.edrow .mv { width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--border-subtle); background: var(--bg-secondary); color: var(--text-primary); cursor: pointer; }
+.edrow .mv:disabled { opacity: .3; cursor: default; }
+.primary { min-height: 48px; border-radius: 12px; border: 0; background: var(--accent-cyan); color: var(--accent-ink); font: 600 16px var(--font-body); cursor: pointer; }
+
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.note-card { background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 14px; padding: 16px 18px; min-width: 0; }
+.note-card ul { margin: 0; padding-left: 18px; color: var(--text-secondary); display: grid; gap: 6px; font-size: 15px; }
+.note-card b { color: var(--text-primary); font-weight: 600; }
+kbd { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--border-subtle); border-bottom-width: 2px; border-radius: 5px; padding: 0 5px; background: var(--bg-card); color: var(--text-primary); }
+.disclaimer { font-size: 13px; color: var(--text-muted); }
+@media (prefers-reduced-motion: reduce) { .wheel.helm, .wheel.sheet, .switch::after, .tick-flash { transition: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Управление тренажерами: прототип</h1>
+    <p class="lede">Лодка всегда на экране, управление в доке под ней. Переключай экран, режим и язык. Покрути штурвал пальцем или мышью; маленькие штурвалы шкотов сначала нажми, чтобы увеличить. Физика здесь игрушечная, только для показа жестов.</p>
+  </header>
+
+  <div class="toolbar" role="group" aria-label="Параметры прототипа">
+    <div class="tgroup"><span class="tlabel" id="lb-dev">Экран</span>
+      <div class="seg" id="seg-device" aria-labelledby="lb-dev">
+        <button data-v="portrait">Телефон</button><button data-v="landscape">Телефон, горизонтально</button><button data-v="desktop">Десктоп</button>
+      </div></div>
+    <div class="tgroup"><span class="tlabel" id="lb-mode">Управление</span>
+      <div class="seg" id="seg-mode" aria-labelledby="lb-mode">
+        <button data-v="sliders">Ползунки</button><button data-v="wheels">Штурвалы</button>
+      </div></div>
+    <div class="tgroup"><span class="tlabel" id="lb-surf">Тренажер</span>
+      <div class="seg" id="seg-surface" aria-labelledby="lb-surf">
+        <button data-v="basics">Основы</button><button data-v="trainer">Тренажёр трима</button><button data-v="boat">Лодка 3D</button>
+      </div></div>
+    <div class="tgroup"><span class="tlabel" id="lb-lang">Язык подписей</span>
+      <div class="seg" id="seg-lang" aria-labelledby="lb-lang">
+        <button data-v="ru">RU</button><button data-v="en">EN</button><button data-v="pl">PL</button><button data-v="es">ES</button><button data-v="fr">FR</button><button data-v="de">DE</button><button data-v="it">IT</button>
+      </div></div>
+  </div>
+
+  <div class="stage" id="stage"><div class="scaler" id="scaler"><div class="frame" id="frame"><div class="sim" id="sim"></div></div></div></div>
+
+  <section class="notes" aria-label="Пояснения">
+    <div class="note-card"><h2>Что попробовать</h2><ul>
+      <li><b>Ползунки</b>: листай карточки под лодкой; «Изменить» выбирает и упорядочивает карточки.</li>
+      <li><b>Штурвалы</b>: большой штурвал по центру ведет лодку. Маленькие по бокам: стаксель-шкот и гика-шкот. Нажми, он вырастет, затем крути. По часовой стрелке шкот выбирается, против часовой травится, как на лебедке.</li>
+      <li><b>Шестеренка</b> в шапке тренажера: режим, что задает штурвал (курс или перо руля), возврат в центр, чувствительность, стороны, вибрация.</li>
+    </ul></div>
+    <div class="note-card"><h2>Клавиатура (веб)</h2><ul>
+      <li><kbd>←</kbd> <kbd>→</kbd> штурвал (при фокусе на штурвале или сцене)</li>
+      <li><kbd>Q</kbd> / <kbd>A</kbd> гика-шкот выбрать / потравить</li>
+      <li><kbd>W</kbd> / <kbd>S</kbd> стаксель-шкот выбрать / потравить</li>
+      <li>На штурвале в фокусе: <kbd>↑</kbd> <kbd>↓</kbd> шаг, <kbd>PgUp</kbd> <kbd>PgDn</kbd> крупный шаг, <kbd>Home</kbd> <kbd>End</kbd> упоры</li>
+    </ul></div>
+    <div class="note-card"><h2>Как считается поворот</h2><ul>
+      <li>Штурвал в режиме «курс»: оборот 360° меняет курс к ветру на 90°, щелчок каждые 5° курса.</li>
+      <li>Штурвал в режиме «перо руля»: ±1 оборот = перо ±30°, щелчок каждые 5°, сильный щелчок в нуле.</li>
+      <li>Шкотовый штурвал: оборот = 25% хода шкота, щелчок каждые 5%, упор на 0% и 100%.</li>
+    </ul></div>
+  </section>
+  <p class="disclaimer">Прототип концепции docs/design/trainer-controls-concept.md. Не продакшен-код, физика упрощена, вибрация в браузере работает только там, где есть navigator.vibrate (Android); в приложении ее дает expo-haptics.</p>
+</div>
+
+<script>
+(() => {
+'use strict';
+// ---------- strings (sim UI only, 7 languages) ----------
+const L = {
+  ru: { basics:'Основы', trainer:'Тренажёр трима', boat:'Лодка 3D', helm:'Руль', helmCourse:'курс к ветру', helmRudder:'перо руля',
+    main:'Гика-шкот', mainSub:'грот', mainSail:'Грот', jib:'Стаксель-шкот', jibSub:'стаксель', jibSail:'Стаксель', trav:'Каретка гика-шкота', travSub:'погон грота',
+    car:'Каретка стаксель-шкота', carSub:'погон стакселя', wind:'Ветер', windSub:'сила', reef:'Риф', reefFull:'Полный', windFrom:'Откуда ветер',
+    ease:'0% выбран · 100% потравлен', sIn:'выбрать', sOut:'потравить', luff:'полощет', draw:'тянет', stall:'срыв', speed:'Скорость',
+    port:'левый галс', stbd:'правый галс', edit:'Изменить', done:'Готово', controls:'Управление', panel:'Панель управления',
+    settings:'Настройки управления', mode:'Режим', sliders:'Ползунки', wheels:'Штурвалы', helmSets:'Штурвал задает', course:'Курс', rudder:'Перо руля',
+    center:'Возвращать штурвал в центр', sens:'Чувствительность', fine:'Точно', normal:'Обычно', fast:'Быстро', swap:'Стаксель-шкот справа',
+    vib:'Вибрация', ticks:'Щелчки при повороте', stops:'Упор в конце хода', editStrip:'Карточки под лодкой', tapBig:'Нажми шкот, чтобы увеличить, нажми руль, чтобы вернуть',
+    autoTrim:'В Основах паруса настраиваются сами', hold:'Держи стрелку, чтобы повернуть', pinned:'Лодка закреплена', modeNote:'Ползунки остаются по умолчанию. Штурвалы можно включить здесь и в Настройках приложения.' },
+  en: { basics:'Basics', trainer:'Sail trim trainer', boat:'3D Boat', helm:'Helm', helmCourse:'course to wind', helmRudder:'rudder angle',
+    main:'Mainsheet', mainSub:'mainsail', mainSail:'Main', jib:'Jib sheet', jibSub:'jib', jibSail:'Jib', trav:'Mainsheet traveler', travSub:'mainsail car',
+    car:'Jib lead car', carSub:'jib sheet lead', wind:'Wind', windSub:'strength', reef:'Reef', reefFull:'Full', windFrom:'Wind from',
+    ease:'0% sheeted in · 100% eased out', sIn:'sheet in', sOut:'ease', luff:'luffing', draw:'drawing', stall:'stalled', speed:'Speed',
+    port:'port tack', stbd:'starboard tack', edit:'Edit', done:'Done', controls:'Controls', panel:'Control panel',
+    settings:'Control settings', mode:'Mode', sliders:'Sliders', wheels:'Wheels', helmSets:'The wheel sets', course:'Course', rudder:'Rudder angle',
+    center:'Return the wheel to center', sens:'Sensitivity', fine:'Fine', normal:'Normal', fast:'Fast', swap:'Jib sheet on the right',
+    vib:'Vibration', ticks:'Clicks while turning', stops:'Bump at the end of travel', editStrip:'Cards under the boat', tapBig:'Tap a sheet to enlarge it, tap the helm to swap back',
+    autoTrim:'In Basics the sails trim themselves', hold:'Hold an arrow to turn', pinned:'Boat stays pinned', modeNote:'Sliders stay the default. Turn on wheels here or in the app Settings.' },
+  pl: { basics:'Podstawy', trainer:'Trenażer trymu', boat:'Łódka 3D', helm:'Ster', helmCourse:'kurs względem wiatru', helmRudder:'wychylenie steru',
+    main:'Szot grota', mainSub:'grot', mainSail:'Grot', jib:'Szot foka', jibSub:'fok', jibSail:'Fok', trav:'Wózek szotu grota', travSub:'szyna grota',
+    car:'Wózek szotu foka', carSub:'prowadzenie szotu foka', wind:'Wiatr', windSub:'siła', reef:'Ref', reefFull:'Pełny', windFrom:'Skąd wieje',
+    ease:'0% szot wybrany · 100% poluzowany', sIn:'wybierz', sOut:'poluzuj', luff:'łopocze', draw:'pracuje', stall:'oderwanie', speed:'Prędkość',
+    port:'lewy hals', stbd:'prawy hals', edit:'Zmień', done:'Gotowe', controls:'Sterowanie', panel:'Panel sterowania',
+    settings:'Ustawienia sterowania', mode:'Tryb', sliders:'Suwaki', wheels:'Koła', helmSets:'Koło sterowe ustawia', course:'Kurs', rudder:'Wychylenie steru',
+    center:'Wracaj kołem do środka', sens:'Czułość', fine:'Dokładnie', normal:'Normalnie', fast:'Szybko', swap:'Szot foka po prawej',
+    vib:'Wibracje', ticks:'Kliknięcia przy obrocie', stops:'Opór na końcu zakresu', editStrip:'Karty pod łódką', tapBig:'Dotknij szotu, aby go powiększyć, dotknij steru, aby wrócić',
+    autoTrim:'W Podstawach żagle trymują się same', hold:'Przytrzymaj strzałkę, aby skręcić', pinned:'Łódka zostaje na ekranie', modeNote:'Domyślnie zostają suwaki. Koła włączysz tutaj lub w Ustawieniach aplikacji.' },
+  es: { basics:'Fundamentos', trainer:'Simulador de trimado', boat:'Barco 3D', helm:'Timón', helmCourse:'rumbo al viento', helmRudder:'ángulo de pala',
+    main:'Escota de mayor', mainSub:'vela mayor', mainSail:'Mayor', jib:'Escota de foque', jibSub:'foque', jibSail:'Foque', trav:'Carro de mayor', travSub:'escotero de mayor',
+    car:'Carro de foque', carSub:'escotero de foque', wind:'Viento', windSub:'fuerza', reef:'Rizo', reefFull:'Completa', windFrom:'Viento de',
+    ease:'0% cazada · 100% lascada', sIn:'cazar', sOut:'lascar', luff:'flamea', draw:'porta', stall:'desprendida', speed:'Velocidad',
+    port:'amurado a babor', stbd:'amurado a estribor', edit:'Editar', done:'Listo', controls:'Controles', panel:'Panel de control',
+    settings:'Ajustes de control', mode:'Modo', sliders:'Deslizadores', wheels:'Ruedas', helmSets:'La rueda fija', course:'Rumbo', rudder:'Ángulo de pala',
+    center:'Volver la rueda al centro', sens:'Sensibilidad', fine:'Fina', normal:'Normal', fast:'Rápida', swap:'Escota de foque a la derecha',
+    vib:'Vibración', ticks:'Clics al girar', stops:'Tope al final del recorrido', editStrip:'Tarjetas bajo el barco', tapBig:'Toca una escota para ampliarla, toca el timón para volver',
+    autoTrim:'En Fundamentos las velas se trimán solas', hold:'Mantén una flecha para girar', pinned:'El barco queda fijo', modeNote:'Los deslizadores siguen por defecto. Activa las ruedas aquí o en los Ajustes de la app.' },
+  fr: { basics:'Bases', trainer:'Réglage des voiles', boat:'Bateau 3D', helm:'Barre', helmCourse:'cap par rapport au vent', helmRudder:'angle de safran',
+    main:"Écoute de grand-voile", mainSub:'grand-voile', mainSail:'Grand-voile', jib:'Écoute de foc', jibSub:'foc', jibSail:'Foc', trav:"Chariot de grand-voile", travSub:"rail d'écoute",
+    car:'Chariot de foc', carSub:"point de tire du foc", wind:'Vent', windSub:'force', reef:'Ris', reefFull:'Pleine', windFrom:'Vent de',
+    ease:'0% bordée · 100% choquée', sIn:'border', sOut:'choquer', luff:'faseye', draw:'porte', stall:'décrochage', speed:'Vitesse',
+    port:'bâbord amures', stbd:'tribord amures', edit:'Modifier', done:'OK', controls:'Commandes', panel:'Panneau de commandes',
+    settings:'Réglages des commandes', mode:'Mode', sliders:'Curseurs', wheels:'Roues', helmSets:'La roue règle', course:'Le cap', rudder:"L'angle de safran",
+    center:'Ramener la roue au centre', sens:'Sensibilité', fine:'Précise', normal:'Normale', fast:'Rapide', swap:'Écoute de foc à droite',
+    vib:'Vibrations', ticks:'Clics en tournant', stops:'Butée en fin de course', editStrip:'Cartes sous le bateau', tapBig:'Touche une écoute pour l\'agrandir, touche la barre pour revenir',
+    autoTrim:'Dans Bases, les voiles se règlent seules', hold:'Maintiens une flèche pour tourner', pinned:'Le bateau reste visible', modeNote:'Les curseurs restent par défaut. Active les roues ici ou dans les Réglages de l\'app.' },
+  de: { basics:'Grundlagen', trainer:'Segeltrimm-Trainer', boat:'3D-Boot', helm:'Steuer', helmCourse:'Kurs zum Wind', helmRudder:'Ruderwinkel',
+    main:'Großschot', mainSub:'Großsegel', mainSail:'Großsegel', jib:'Fockschot', jibSub:'Fock', jibSail:'Fock', trav:'Großschot-Traveller', travSub:'Travellerschlitten',
+    car:'Fockholepunkt', carSub:'Fockschotschlitten', wind:'Wind', windSub:'Stärke', reef:'Reff', reefFull:'Voll', windFrom:'Wind aus',
+    ease:'0% dichtgeholt · 100% gefiert', sIn:'dichtholen', sOut:'fieren', luff:'killt', draw:'zieht', stall:'Abriss', speed:'Fahrt',
+    port:'Backbordbug', stbd:'Steuerbordbug', edit:'Ändern', done:'Fertig', controls:'Steuerung', panel:'Bedienleiste',
+    settings:'Steuerung einstellen', mode:'Modus', sliders:'Schieberegler', wheels:'Räder', helmSets:'Das Steuerrad stellt', course:'Kurs', rudder:'Ruderwinkel',
+    center:'Steuerrad zur Mitte zurück', sens:'Empfindlichkeit', fine:'Fein', normal:'Normal', fast:'Schnell', swap:'Fockschot rechts',
+    vib:'Vibration', ticks:'Klicks beim Drehen', stops:'Anschlag am Ende', editStrip:'Karten unter dem Boot', tapBig:'Tippe auf eine Schot zum Vergrößern, auf das Steuer zum Zurückwechseln',
+    autoTrim:'In Grundlagen trimmen sich die Segel selbst', hold:'Pfeil halten zum Drehen', pinned:'Boot bleibt sichtbar', modeNote:'Schieberegler bleiben Standard. Räder hier oder in den App-Einstellungen einschalten.' },
+  it: { basics:'Basi', trainer:'Regolazione delle vele', boat:'Barca 3D', helm:'Timone', helmCourse:'rotta rispetto al vento', helmRudder:'angolo del timone',
+    main:'Scotta della randa', mainSub:'randa', mainSail:'Randa', jib:'Scotta del fiocco', jibSub:'fiocco', jibSail:'Fiocco', trav:'Carrello della randa', travSub:'trasto',
+    car:'Carrello del fiocco', carSub:'punto di scotta', wind:'Vento', windSub:'forza', reef:'Terzaroli', reefFull:'Piena', windFrom:'Vento da',
+    ease:'0% cazzata · 100% lascata', sIn:'cazzare', sOut:'lascare', luff:'fileggia', draw:'porta', stall:'stallo', speed:'Velocità',
+    port:'mure a sinistra', stbd:'mure a dritta', edit:'Modifica', done:'Fatto', controls:'Comandi', panel:'Pannello comandi',
+    settings:'Impostazioni comandi', mode:'Modalità', sliders:'Cursori', wheels:'Ruote', helmSets:'La ruota imposta', course:'Rotta', rudder:'Angolo del timone',
+    center:'Riporta la ruota al centro', sens:'Sensibilità', fine:'Fine', normal:'Normale', fast:'Rapida', swap:'Scotta del fiocco a destra',
+    vib:'Vibrazione', ticks:'Clic durante la rotazione', stops:'Fermo a fine corsa', editStrip:'Schede sotto la barca', tapBig:'Tocca una scotta per ingrandirla, tocca il timone per tornare',
+    autoTrim:'In Basi le vele si regolano da sole', hold:'Tieni premuta una freccia per virare', pinned:'La barca resta visibile', modeNote:'I cursori restano predefiniti. Attiva le ruote qui o nelle Impostazioni dell\'app.' },
+};
+// French and Italian strings above use a straight apostrophe in the code where possible; typographic ones are replaced below.
+for (const k of Object.keys(L)) for (const s of Object.keys(L[k])) L[k][s] = L[k][s].replace(/\u2019/g, "'");
+
+const SURF = {
+  basics:  { controls: ['helm', 'wind'], helmMap: 'course', sheets: false },
+  trainer: { controls: ['helm', 'main', 'jib', 'trav', 'car', 'wind', 'reef'], helmMap: 'course', sheets: true },
+  boat:    { controls: ['helm', 'main', 'jib', 'wind'], helmMap: 'rudder', sheets: true },
+};
+const DEFAULT_STRIP = { basics: ['helm', 'wind'], trainer: ['main', 'jib', 'helm', 'wind', 'reef'], boat: ['main', 'jib', 'helm', 'wind'] };
+
+// ---------- state ----------
+const S = {
+  device: 'portrait', mode: 'sliders', surface: 'trainer', lang: 'ru',
+  hdg: 90, hdgTarget: 90, rudderWheel: 0, main: 55, jib: 60, trav: 50, car: 50, wind: 12, reef: 0,
+  helmMap: null, center: true, sens: 1, swap: false, ticks: true, stops: true,
+  strip: JSON.parse(JSON.stringify(DEFAULT_STRIP)), expanded: null, sheetOpen: null, holdDir: 0,
+};
+const store = {
+  get() { try { return JSON.parse(localStorage.getItem('regatta.controls.proto') || 'null'); } catch { return null; } },
+  set() { try { localStorage.setItem('regatta.controls.proto', JSON.stringify({ device: S.device, mode: S.mode, surface: S.surface, lang: S.lang, center: S.center, sens: S.sens, swap: S.swap, ticks: S.ticks, stops: S.stops, strip: S.strip, helmMap: S.helmMap })); } catch {} },
+};
+Object.assign(S, store.get() || {});
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const t = (k) => (L[S.lang] && L[S.lang][k]) || L.en[k] || k;
+const helmMap = () => S.helmMap || SURF[S.surface].helmMap;
+
+// ---------- toy model ----------
+const norm = (a) => { a = ((a + 180) % 360 + 360) % 360 - 180; return a === -180 ? 180 : a; };
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function polar(twa) { const a = Math.abs(twa); if (a < 38) return 0;
+  const pts = [[38, 0], [45, 5.6], [60, 6.6], [90, 7.2], [110, 7.5], [150, 6.5], [180, 5.8]];
+  for (let i = 1; i < pts.length; i++) if (a <= pts[i][0]) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i]; return y0 + (y1 - y0) * (a - x0) / (x1 - x0); } return 5.8; }
+const sheetToAngle = (p) => 5 + p * 0.8;
+const optAngle = (twa) => clamp((Math.abs(twa) - 20) / 2, 8, 85);
+function sailState(p, twa) { const a = Math.abs(twa); if (a < 40) return 'luff';
+  const d = sheetToAngle(p) - optAngle(twa); return d > 12 ? 'luff' : d < -12 ? 'stall' : 'draw'; }
+function speed() { const twa = norm(S.hdg); const base = polar(twa) * (S.wind / 12) ** 0.35 * (S.reef ? 0.93 : 1);
+  if (S.surface === 'basics') return base;
+  const f = (p) => 1 - Math.min(1, Math.abs(sheetToAngle(p) - optAngle(twa)) / 45) * 0.75;
+  return base * (0.6 * f(S.main) + 0.4 * f(S.jib)); }
+
+// ---------- haptics (prototype: navigator.vibrate where present + a visual tick) ----------
+function haptic(kind) {
+  if (kind === 'tick' && !S.ticks) return; if (kind === 'stop' && !S.stops) return;
+  try { if (navigator.vibrate) navigator.vibrate(kind === 'tick' ? 6 : kind === 'stop' ? 18 : [10, 40, 10]); } catch {}
+  document.querySelectorAll('.tick-flash').forEach((el) => { el.style.opacity = '1'; setTimeout(() => (el.style.opacity = '0'), 90); });
+}
+
+// ---------- icons ----------
+const ICON = {
+  back: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M5.5 18.5l1.8-1.8M16.7 7.3l1.8-1.8"/></svg>',
+};
+
+// ---------- wheel svg ----------
+function wheelSVG(kind) {
+  const spokes = kind === 'helm' ? 8 : 4; let s = '';
+  for (let i = 0; i < spokes; i++) { const a = i * 360 / spokes; s += `<line x1="0" y1="0" x2="0" y2="-84" transform="rotate(${a})" stroke="var(--wheel-spoke)" stroke-width="${kind === 'helm' ? 6 : 9}" stroke-linecap="round"/>`;
+    if (kind === 'helm') s += `<circle cx="0" cy="-100" r="7" transform="rotate(${a})" fill="var(--wheel-spoke)"/>`; }
+  let ticks = ''; for (let i = 0; i < 36; i++) ticks += `<line x1="0" y1="-74" x2="0" y2="${i % 9 === 0 ? -64 : -69}" transform="rotate(${i * 10})" stroke="var(--text-muted)" stroke-width="1.5"/>`;
+  const top = kind === 'helm' ? '<rect x="-5" y="-96" width="10" height="20" rx="3" fill="var(--accent-cyan)"/>' : '';
+  const arrows = kind === 'helm' ? '' : `<path d="M -40 -40 A 57 57 0 0 1 40 -40" fill="none" stroke="var(--accent-cyan)" stroke-width="3" marker-end="url(#ah)"/>`;
+  return `<svg viewBox="-112 -112 224 224" aria-hidden="true">
+    <defs><marker id="ah" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-cyan)"/></marker></defs>
+    <g class="rot">
+      <circle r="84" fill="none" stroke="var(--wheel-rim)" stroke-width="${kind === 'helm' ? 14 : 20}"/>
+      ${s}${ticks}
+      <circle r="${kind === 'helm' ? 22 : 30}" fill="var(--bg-card)" stroke="var(--wheel-spoke)" stroke-width="4"/>
+      ${top}
+    </g>
+    ${arrows}
+    <circle class="tick-flash" r="96" fill="none" stroke="var(--accent-cyan)" stroke-width="2" opacity="0"/>
+  </svg>`;
+}
+
+// ---------- scene ----------
+function sceneSVG() {
+  return `<svg class="scene" viewBox="-110 -110 220 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="boat">
+    <path d="M0 0 L ${-Math.sin(42 * Math.PI / 180) * 140} ${-Math.cos(42 * Math.PI / 180) * 140} A 140 140 0 0 1 ${Math.sin(42 * Math.PI / 180) * 140} ${-Math.cos(42 * Math.PI / 180) * 140} Z" fill="var(--nogo)"/>
+    <circle r="92" fill="none" stroke="var(--border-subtle)" stroke-dasharray="2 4"/>
+    <g stroke="var(--accent-cyan)" stroke-width="2.5" fill="none"><line x1="0" y1="-104" x2="0" y2="-74"/><path d="M -5 -80 L 0 -72 L 5 -80"/></g>
+    <text x="8" y="-92" font-size="8" fill="var(--text-secondary)" id="windlbl"></text>
+    <g id="boat">
+      <path d="M0 -44 C 14 -26, 17 6, 12 38 L -12 38 C -17 6, -14 -26, 0 -44 Z" fill="var(--hull)" stroke="var(--wheel-spoke)" stroke-width="1"/>
+      <path id="jibsail" fill="var(--sail)" fill-opacity=".85" stroke="var(--text-secondary)" stroke-width=".8"/>
+      <g id="mainsail"><path id="mainpath" fill="var(--sail)" fill-opacity=".92" stroke="var(--text-secondary)" stroke-width=".8"/><line id="boom" stroke="var(--text-primary)" stroke-width="2.2" stroke-linecap="round"/></g>
+      <circle cx="0" cy="-10" r="2.6" fill="var(--text-primary)"/>
+      <line id="rudderline" x1="0" y1="38" x2="0" y2="48" stroke="var(--text-primary)" stroke-width="2.4" stroke-linecap="round"/>
+    </g>
+  </svg>`;
+}
+function drawScene() {
+  const sim = document.getElementById('sim'); if (!sim) return;
+  const twa = norm(S.hdg); const side = twa >= 0 ? 1 : -1; // twa > 0: wind over port, sails to starboard (leeward)
+  const boat = sim.querySelector('#boat'); boat.setAttribute('transform', `rotate(${S.hdg})`);
+  const auto = S.surface === 'basics';
+  const mainP = auto ? clamp((optAngle(twa) - 5) / 0.8, 0, 100) : S.main, jibP = auto ? clamp((optAngle(twa) - 5) / 0.8, 0, 100) : S.jib;
+  const lim = Math.max(4, Math.abs(twa) - 6);
+  const ma = Math.min(sheetToAngle(mainP), lim) * side, ja = Math.min(sheetToAngle(jibP) * 0.9, lim) * side;
+  const ms = auto ? 'draw' : sailState(mainP, twa), js = auto ? 'draw' : sailState(jibP, twa);
+  const rad = (d) => d * Math.PI / 180;
+  const bx = Math.sin(rad(ma)) * 44, by = -10 + Math.cos(rad(ma)) * 44;
+  const bulge = ms === 'luff' ? 2 : 9;
+  const mx = bx / 2 + Math.cos(rad(ma)) * bulge * side * -1 * -1, my = (-10 + by) / 2 + Math.sin(rad(ma)) * bulge * (side < 0 ? 1 : -1);
+  sim.querySelector('#mainpath').setAttribute('d', `M0 -10 Q ${mx + side * bulge} ${my} ${bx} ${by} Z`);
+  sim.querySelector('#boom').setAttribute('x1', 0); sim.querySelector('#boom').setAttribute('y1', -10);
+  sim.querySelector('#boom').setAttribute('x2', bx); sim.querySelector('#boom').setAttribute('y2', by);
+  const jx = Math.sin(rad(ja)) * 30, jy = -42 + Math.cos(rad(ja)) * 30; const jb = js === 'luff' ? 2 : 7;
+  sim.querySelector('#jibsail').setAttribute('d', `M0 -42 Q ${jx / 2 + side * jb} ${(-42 + jy) / 2} ${jx} ${jy} Z`);
+  const col = (st) => st === 'draw' ? 'var(--sail)' : st === 'luff' ? 'var(--text-muted)' : 'var(--warning)';
+  sim.querySelector('#mainpath').setAttribute('fill', col(ms)); sim.querySelector('#jibsail').setAttribute('fill', col(js));
+  const rud = helmMap() === 'rudder' ? clamp(S.rudderWheel / 360 * 30, -30, 30) : 0;
+  sim.querySelector('#rudderline').setAttribute('x2', -Math.sin(rad(rud)) * 10); sim.querySelector('#rudderline').setAttribute('y2', 38 + Math.cos(rad(rud)) * 10);
+  sim.querySelector('#windlbl').textContent = `${S.wind} kn`;
+  // HUD
+  const hud = sim.querySelector('.hud'); const sp = speed();
+  const stName = (st) => t(st === 'draw' ? 'draw' : st === 'luff' ? 'luff' : 'stall');
+  const stCol = (st) => st === 'draw' ? 'var(--success)' : st === 'luff' ? 'var(--text-muted)' : 'var(--warning)';
+  let h = `<span class="chip">${t('speed')} <b>${sp.toFixed(1)} kn</b></span><span class="chip">TWA <b>${Math.round(Math.abs(twa))}°</b> ${twa >= 0 ? t('port') : t('stbd')}</span>`;
+  if (!auto) h += `<span class="chip"><span class="dot" style="background:${stCol(ms)}"></span>${t('mainSail')}: ${stName(ms)}</span><span class="chip"><span class="dot" style="background:${stCol(js)}"></span>${t('jibSail')}: ${stName(js)}</span>`;
+  hud.innerHTML = h;
+}
+
+// ---------- controls: values and text ----------
+const fmt = {
+  helm: () => helmMap() === 'rudder' ? `${Math.round(clamp(S.rudderWheel / 360 * 30, -30, 30))}°` : `${Math.round(Math.abs(norm(S.hdg)))}°`,
+  main: () => `${Math.round(S.main)}%`, jib: () => `${Math.round(S.jib)}%`, trav: () => `${Math.round(S.trav - 50)}`, car: () => `${Math.round(S.car)}%`,
+  wind: () => `${S.wind} kn`, reef: () => S.reef ? `R${S.reef}` : t('reefFull'),
+};
+const sub = { helm: () => helmMap() === 'rudder' ? t('helmRudder') : t('helmCourse'), main: () => t('mainSub'), jib: () => t('jibSub'), trav: () => t('travSub'), car: () => t('carSub'), wind: () => t('windSub'), reef: () => '' };
+const nameOf = (k) => t(k === 'trav' ? 'trav' : k === 'car' ? 'car' : k);
+
+function cardHTML(k) {
+  const head = `<div class="row"><span class="name" id="lbl-${k}">${nameOf(k)}</span><span class="val" data-val="${k}">${fmt[k]()}</span></div>${sub[k]() ? `<div class="sub">${sub[k]()}</div>` : ''}`;
+  if (k === 'reef') return `<div class="card" data-card="${k}">${head}<div class="segrow">${[0, 1, 2].map((r) => `<button data-reef="${r}" aria-pressed="${S.reef === r}">${r ? 'R' + r : t('reefFull')}</button>`).join('')}</div></div>`;
+  if (k === 'helm' && helmMap() === 'rudder') return `<div class="card" data-card="helm">${head}<div class="holdrow"><button data-hold="-1" aria-label="${t('helm')} ‹">‹</button><span class="sub" style="flex:1;text-align:center">${t('hold')}</span><button data-hold="1" aria-label="${t('helm')} ›">›</button></div></div>`;
+  const r = { helm: [-180, 180, 1, Math.round(norm(S.hdgTarget))], main: [0, 100, 1, S.main], jib: [0, 100, 1, S.jib], trav: [0, 100, 1, S.trav], car: [0, 100, 1, S.car], wind: [4, 25, 1, S.wind] }[k];
+  const scale = (k === 'main' || k === 'jib') ? `<div class="scale"><span>${t('ease')}</span></div>` : '';
+  return `<div class="card" data-card="${k}">${head}<input type="range" id="rg-${k}" aria-labelledby="lbl-${k}" min="${r[0]}" max="${r[1]}" step="${r[2]}" value="${r[3]}" data-range="${k}">${scale}</div>`;
+}
+function stripHTML(keys) { return `<div class="strip" id="strip">${keys.map(cardHTML).join('')}</div>${keys.length > 1 ? `<div class="dots">${keys.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('')}</div>` : ''}`; }
+const visibleStrip = () => S.strip[S.surface].filter((k) => SURF[S.surface].controls.includes(k));
+
+// ---------- wheels layout ----------
+function wheelsHTML(area) {
+  const sheets = SURF[S.surface].sheets;
+  const helmCap = `<div class="cap" style="top:calc(100% + 2px)"><b>${t('helm')}</b><span class="v" data-val="helm">${fmt.helm()}</span> · ${sub.helm()}</div>`;
+  const sheetCap = (k) => `<div class="cap" style="top:calc(100% + 2px)"><b>${t(k)}</b><span class="v" data-val="${k}">${fmt[k]()}</span></div>`;
+  const helm = `<div class="wheel helm" id="w-helm" role="slider" tabindex="0" aria-label="${t('helm')}" aria-valuetext="">${wheelSVG('helm')}${helmCap}</div>`;
+  if (!sheets) return { helm, main: '', jib: '' , note: t('autoTrim') };
+  const mk = (k) => `<div class="wheel sheet" id="w-${k}" role="slider" tabindex="0" aria-label="${t(k)}" aria-valuemin="0" aria-valuemax="100">${wheelSVG('sheet')}${sheetCap(k)}</div>`;
+  return { helm, main: mk('main'), jib: mk('jib'), note: t('tapBig') };
+}
+function placeWheels(container, map) {
+  // map: { helm|jib|main: [cx, cy, diameter] } in px of the container
+  for (const [k, pos] of Object.entries(map)) {
+    const el = container.querySelector('#w-' + k); if (!el || !pos) continue;
+    const [cx, cy, d] = pos; el.style.width = d + 'px'; el.style.height = d + 'px'; el.style.left = (cx - d / 2) + 'px'; el.style.top = (cy - d / 2) + 'px';
+    el.classList.toggle('big', k !== 'helm' && S.expanded === k); el.classList.toggle('small', d < 100);
+  }
+}
+
+// ---------- render ----------
+const DEV = { portrait: [375, 760], landscape: [812, 375], desktop: [1080, 640] };
+function render() {
+  const sim = document.getElementById('sim'); const frame = document.getElementById('frame');
+  frame.className = 'frame ' + S.device; sim.className = 'sim ' + S.device + ' mode-' + S.mode;
+  document.documentElement.lang = S.lang;
+  const top = `<div class="topbar"><button class="iconbtn" aria-label="back">${ICON.back}</button><span class="title">${t(S.surface)}</span><button class="iconbtn" id="gear" aria-label="${t('settings')}">${ICON.gear}</button></div>`;
+  const vp = `<div class="viewport" id="vp" tabindex="0" aria-label="${t('pinned')}">${sceneSVG()}<div class="hud"></div></div>`;
+  const wheels = S.mode === 'wheels';
+  let html = '';
+  if (S.device === 'portrait') {
+    let dock;
+    if (wheels) { const w = wheelsHTML(); dock = `<div class="dock"><div class="wheels" id="wheels">${w.jib}${w.helm}${w.main}<div class="wheelhint">${w.note}</div></div></div>`; }
+    else dock = `<div class="dock"><div class="dockhead"><span class="tlabel">${t('controls')}</span><button class="linkbtn" id="editbtn">${t('edit')}</button></div>${stripHTML(visibleStrip())}</div>`;
+    html = top + vp + dock;
+  } else if (S.device === 'landscape') {
+    if (wheels) { const w = wheelsHTML(); const L1 = S.swap ? w.main : w.jib, R1 = S.swap ? w.jib : w.main;
+      html = top + `<div class="rail left"><div class="wheels" id="wheelsL" style="height:100%">${L1}${R1}</div></div>` + vp + `<div class="rail right"><div class="wheels" id="wheelsR" style="height:100%">${w.helm}</div></div>`; }
+    else { const keys = visibleStrip(); const sheetsK = keys.filter((k) => k !== 'helm'); const hasHelm = keys.includes('helm');
+      html = top + `<div class="rail left">${stripHTML(sheetsK).replace('id="strip"', 'id="stripL"')}</div>` + vp + `<div class="rail right"><div class="strip" style="padding:10px">${hasHelm ? cardHTML('helm') : ''}<button class="linkbtn" id="editbtn">${t('edit')}</button></div></div>`; }
+  } else {
+    if (wheels) { const w = wheelsHTML(); html = top + vp + `<div class="dock"><div class="dockhead"><span class="tlabel">${t('controls')}</span></div><div class="wheels" id="wheels">${w.jib}${w.helm}${w.main}<div class="wheelhint">${w.note}</div></div><div style="padding:16px">${stripHTML(visibleStrip().filter((k) => !['helm', 'main', 'jib'].includes(k)))}</div></div>`; }
+    else html = top + vp + `<div class="dock"><div class="dockhead"><span class="tlabel">${t('controls')}</span><button class="linkbtn" id="editbtn">${t('edit')}</button></div>${stripHTML(visibleStrip())}</div>`;
+  }
+  sim.innerHTML = html;
+  if (S.sheetOpen) sim.insertAdjacentHTML('beforeend', S.sheetOpen === 'settings' ? settingsHTML() : editorHTML());
+  fit(); layoutWheels(); bind(); drawScene(); updateValues();
+  for (const [id, key] of [['seg-device', 'device'], ['seg-mode', 'mode'], ['seg-surface', 'surface'], ['seg-lang', 'lang']])
+    document.querySelectorAll(`#${id} button`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === S[key])));
+}
+function layoutWheels() {
+  if (S.mode !== 'wheels') return;
+  const sheets = SURF[S.surface].sheets;
+  const leftK = S.swap ? 'main' : 'jib', rightK = S.swap ? 'jib' : 'main';
+  // Portrait and desktop: helm in the center, sheets small in the corners. Tapping a sheet swaps it with the helm:
+  // the sheet takes the center at full size, the helm shrinks into that corner and stays usable.
+  const swapLayout = (W, H, center, left, right) => {
+    const m = { helm: center, [leftK]: left, [rightK]: right };
+    if (S.expanded) { const side = S.expanded === leftK ? left : right; m[S.expanded] = center; m.helm = side; }
+    return m;
+  };
+  if (S.device === 'portrait') {
+    const c = document.getElementById('wheels'); const W = c.clientWidth, H = c.clientHeight;
+    placeWheels(c, swapLayout(W, H, [W / 2, H / 2 - 22, sheets ? 168 : 190], [62, H - 84, 64], [W - 62, H - 84, 64]));
+  } else if (S.device === 'desktop') {
+    const c = document.getElementById('wheels'); const W = c.clientWidth, H = c.clientHeight;
+    placeWheels(c, swapLayout(W, H, [W / 2, H / 2 - 24, sheets ? 176 : 200], [60, 58, 70], [W - 60, 58, 70]));
+  } else {
+    // Landscape: left thumb trims (both sheets in the left rail), right thumb steers.
+    const l = document.getElementById('wheelsL'); const r = document.getElementById('wheelsR');
+    if (l) { const W = l.clientWidth, H = l.clientHeight; const top = leftK, bot = rightK;
+      const m = S.expanded === top ? { [top]: [W / 2, H * 0.38, 136], [bot]: [W / 2, H * 0.84, 56] }
+        : S.expanded === bot ? { [top]: [W / 2, H * 0.14, 56], [bot]: [W / 2, H * 0.6, 136] }
+        : { [top]: [W / 2, H * 0.27, 72], [bot]: [W / 2, H * 0.71, 72] };
+      placeWheels(l, m); }
+    if (r) { const W = r.clientWidth, H = r.clientHeight; placeWheels(r, { helm: [W / 2, H / 2 - 14, 160] }); }
+  }
+}
+function fit() {
+  const [W, H] = DEV[S.device]; const frame = document.getElementById('frame'); const scaler = document.getElementById('scaler');
+  const pad = S.device === 'desktop' ? 16 : 24; frame.style.width = (W + pad) + 'px'; frame.style.height = (H + pad) + 'px';
+  const avail = document.getElementById('stage').clientWidth; const maxH = Math.max(420, innerHeight - 40);
+  const s = Math.min(1, avail / (W + pad), S.device === 'portrait' ? maxH / (H + pad) : 1);
+  frame.style.transform = `scale(${s})`; scaler.style.width = (W + pad) * s + 'px'; scaler.style.height = (H + pad) * s + 'px';
+}
+
+function updateValues() {
+  document.querySelectorAll('[data-val]').forEach((el) => { const k = el.dataset.val; if (fmt[k]) el.textContent = fmt[k](); });
+  const helm = document.getElementById('w-helm');
+  if (helm) { const rot = helmMap() === 'rudder' ? S.rudderWheel : S.helmVisual || 0; helm.querySelector('.rot').setAttribute('transform', `rotate(${rot})`);
+    helm.setAttribute('aria-valuetext', `${fmt.helm()} ${sub.helm()}`); }
+  for (const k of ['main', 'jib']) { const el = document.getElementById('w-' + k); if (!el) continue;
+    el.querySelector('.rot').setAttribute('transform', `rotate(${-(S[k] / 25) * 360})`);
+    el.setAttribute('aria-valuenow', Math.round(S[k])); el.setAttribute('aria-valuetext', `${Math.round(S[k])}%, ${t('ease')}`); }
+  document.querySelectorAll('[data-range]').forEach((r) => { if (document.activeElement !== r) { const k = r.dataset.range; r.value = k === 'helm' ? Math.round(norm(S.hdgTarget)) : S[k]; } });
+}
+
+// ---------- settings + editor sheets ----------
+function settingsHTML() {
+  const seg = (name, opts, cur) => `<div class="segrow">${opts.map(([v, l]) => `<button data-set="${name}" data-v="${v}" aria-pressed="${String(cur) === String(v)}">${l}</button>`).join('')}</div>`;
+  const sw = (id, label, on) => `<div class="trow"><label for="${id}">${label}</label><input type="checkbox" class="switch" id="${id}" ${on ? 'checked' : ''}></div>`;
+  return `<div class="sheet-bg" id="sheetbg"><div class="sheetp" role="dialog" aria-modal="true" aria-labelledby="sh-t">
+    <h3 id="sh-t">${t('settings')}</h3>
+    <div class="grp"><span class="glabel">${t('mode')}</span>${seg('mode', [['sliders', t('sliders')], ['wheels', t('wheels')]], S.mode)}<p class="note">${t('modeNote')}</p></div>
+    <div class="grp"><span class="glabel">${t('helmSets')}</span>${seg('helmMap', [['course', t('course')], ['rudder', t('rudder')]], helmMap())}${helmMap() === 'rudder' ? sw('sw-center', t('center'), S.center) : ''}</div>
+    <div class="grp"><span class="glabel">${t('sens')}</span>${seg('sens', [[0.5, t('fine')], [1, t('normal')], [2, t('fast')]], S.sens)}</div>
+    ${SURF[S.surface].sheets ? `<div class="grp">${sw('sw-swap', t('swap'), S.swap)}</div>` : ''}
+    <div class="grp"><span class="glabel">${t('vib')}</span>${sw('sw-ticks', t('ticks'), S.ticks)}${sw('sw-stops', t('stops'), S.stops)}</div>
+    <div class="grp"><button class="linkbtn" id="open-editor">${t('editStrip')}</button></div>
+    <button class="primary" id="sheet-done">${t('done')}</button>
+  </div></div>`;
+}
+function editorHTML() {
+  const avail = SURF[S.surface].controls; const order = S.strip[S.surface].filter((k) => avail.includes(k)).concat(avail.filter((k) => !S.strip[S.surface].includes(k)));
+  const on = new Set(S.strip[S.surface]);
+  return `<div class="sheet-bg" id="sheetbg"><div class="sheetp" role="dialog" aria-modal="true" aria-labelledby="ed-t">
+    <h3 id="ed-t">${t('editStrip')}</h3>
+    <div>${order.map((k, i) => `<div class="edrow"><input type="checkbox" id="ed-${k}" data-ed="${k}" ${on.has(k) ? 'checked' : ''}><label for="ed-${k}">${nameOf(k)}<br><span class="sub" style="font-size:13px;color:var(--text-secondary)">${sub[k]()}</span></label>
+      <button class="mv" data-up="${k}" aria-label="${nameOf(k)} ↑" ${i === 0 ? 'disabled' : ''}>↑</button><button class="mv" data-down="${k}" aria-label="${nameOf(k)} ↓" ${i === order.length - 1 ? 'disabled' : ''}>↓</button></div>`).join('')}</div>
+    <button class="primary" id="sheet-done">${t('done')}</button>
+  </div></div>`;
+}
+
+// ---------- input ----------
+function onHelmDelta(d) { // d: wheel degrees, clockwise positive
+  d *= S.sens;
+  if (helmMap() === 'rudder') {
+    const before = Math.round(S.rudderWheel / 360 * 30 / 5); const prev = S.rudderWheel;
+    S.rudderWheel = clamp(S.rudderWheel + d, -360, 360);
+    const after = Math.round(S.rudderWheel / 360 * 30 / 5);
+    if (after !== before) haptic(after === 0 ? 'stop' : 'tick');
+    if ((S.rudderWheel === 360 || S.rudderWheel === -360) && prev !== S.rudderWheel) haptic('stop');
+  } else {
+    S.helmVisual = (S.helmVisual || 0) + d;
+    const before = Math.floor(S.hdgTarget / 5); S.hdgTarget += d / 4; if (Math.floor(S.hdgTarget / 5) !== before) haptic('tick');
+  }
+  updateValues();
+}
+function onSheetDelta(k, d) { // clockwise = sheet in = smaller ease
+  const prev = S[k]; S[k] = clamp(S[k] - (d * S.sens) / 360 * 25, 0, 100);
+  if (Math.floor(prev / 5) !== Math.floor(S[k] / 5)) haptic('tick');
+  if ((S[k] === 0 || S[k] === 100) && prev !== S[k]) haptic('stop');
+  updateValues(); bumpCollapse();
+}
+let collapseTimer = null;
+function bumpCollapse() { clearTimeout(collapseTimer); collapseTimer = setTimeout(() => { if (S.expanded) { S.expanded = null; layoutWheels(); } }, 4000); }
+
+function attachRotate(el, onDelta, onStart) {
+  let last = null, id = null;
+  const ang = (e) => { const r = el.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const dx = e.clientX - cx, dy = e.clientY - cy; return { a: Math.atan2(dy, dx) * 180 / Math.PI, dist: Math.hypot(dx, dy) / (r.width / 2) }; };
+  el.addEventListener('pointerdown', (e) => { if (onStart && onStart(e) === false) return; id = e.pointerId; el.setPointerCapture(id); last = ang(e).a; e.preventDefault(); });
+  el.addEventListener('pointermove', (e) => { if (e.pointerId !== id) return; const p = ang(e); if (p.dist < 0.22) { last = p.a; return; }
+    let d = p.a - last; if (d > 180) d -= 360; if (d < -180) d += 360; last = p.a; if (d) onDelta(d); });
+  const end = (e) => { if (e.pointerId !== id) return; id = null; if (el.id === 'w-helm' && helmMap() === 'rudder' && S.center) { S.rudderWheel = 0; haptic('stop'); updateValues(); } };
+  el.addEventListener('pointerup', end); el.addEventListener('pointercancel', end);
+}
+function keyStep(el, onDelta, step) {
+  el.addEventListener('keydown', (e) => { const m = { ArrowRight: step, ArrowUp: step, ArrowLeft: -step, ArrowDown: -step, PageUp: step * 5, PageDown: -step * 5 }[e.key];
+    if (m) { onDelta(m); e.preventDefault(); e.stopPropagation(); }
+    if (e.key === 'Home' || e.key === 'End') { onDelta(e.key === 'Home' ? -100000 : 100000); e.preventDefault(); } });
+}
+
+function bind() {
+  const sim = document.getElementById('sim');
+  sim.querySelector('#gear').onclick = () => { S.sheetOpen = 'settings'; render(); };
+  const eb = sim.querySelector('#editbtn'); if (eb) eb.onclick = () => { S.sheetOpen = 'editor'; render(); };
+  sim.querySelectorAll('[data-range]').forEach((r) => r.addEventListener('input', () => { const k = r.dataset.range; const v = +r.value;
+    if (k === 'helm') S.hdgTarget = v; else { const prev = S[k]; S[k] = v; if (Math.floor(prev / 5) !== Math.floor(v / 5)) haptic('tick'); }
+    updateValues(); }));
+  sim.querySelectorAll('[data-reef]').forEach((b) => b.onclick = () => { S.reef = +b.dataset.reef; render(); });
+  sim.querySelectorAll('[data-hold]').forEach((b) => { const dir = +b.dataset.hold;
+    b.onpointerdown = (e) => { S.holdDir = dir; b.setPointerCapture(e.pointerId); }; b.onpointerup = b.onpointercancel = () => { S.holdDir = 0; };
+    b.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { S.holdDir = dir; e.preventDefault(); } }; b.onkeyup = () => { S.holdDir = 0; }; });
+  const strip = sim.querySelector('#strip') || sim.querySelector('#stripL');
+  if (strip) strip.addEventListener('scroll', () => { const cards = [...strip.children]; const mid = strip.scrollLeft + strip.clientWidth / 2;
+    let best = 0; cards.forEach((c, i) => { if (Math.abs(c.offsetLeft + c.offsetWidth / 2 - mid) < Math.abs(cards[best].offsetLeft + cards[best].offsetWidth / 2 - mid)) best = i; });
+    sim.querySelectorAll('.dots i').forEach((d, i) => d.classList.toggle('on', i === best)); }, { passive: true });
+  const helm = sim.querySelector('#w-helm');
+  if (helm) { attachRotate(helm, onHelmDelta, () => { if (S.expanded && S.device !== 'landscape') { S.expanded = null; layoutWheels(); } return true; }); keyStep(helm, (d) => onHelmDelta(Math.abs(d) > 1000 ? Math.sign(d) * 360 : d * 4), 5); }
+  for (const k of ['main', 'jib']) { const el = sim.querySelector('#w-' + k); if (!el) continue;
+    attachRotate(el, (d) => onSheetDelta(k, d), () => { if (S.expanded !== k) { S.expanded = k; layoutWheels(); bumpCollapse(); } return true; });
+    el.addEventListener('focus', () => { if (S.expanded !== k) { S.expanded = k; layoutWheels(); bumpCollapse(); } });
+    keyStep(el, (d) => onSheetDelta(k, Math.abs(d) > 1000 ? Math.sign(d) * 1600 : d * 14.4), 1); }
+  const vp = sim.querySelector('#vp'); vp.addEventListener('pointerdown', () => { if (S.expanded) { S.expanded = null; layoutWheels(); } });
+  // sheets
+  const bg = sim.querySelector('#sheetbg');
+  if (bg) {
+    bg.addEventListener('click', (e) => { if (e.target === bg) { S.sheetOpen = null; render(); } });
+    sim.querySelector('#sheet-done').onclick = () => { S.sheetOpen = null; store.set(); render(); };
+    sim.querySelectorAll('[data-set]').forEach((b) => b.onclick = () => { const n = b.dataset.set, v = b.dataset.v;
+      if (n === 'mode') S.mode = v; else if (n === 'helmMap') { S.helmMap = v; S.rudderWheel = 0; } else if (n === 'sens') S.sens = +v; store.set(); render(); });
+    const sw = (id, key) => { const el = sim.querySelector('#' + id); if (el) el.onchange = () => { S[key] = el.checked; store.set(); render(); }; };
+    sw('sw-center', 'center'); sw('sw-swap', 'swap'); sw('sw-ticks', 'ticks'); sw('sw-stops', 'stops');
+    const oe = sim.querySelector('#open-editor'); if (oe) oe.onclick = () => { S.sheetOpen = 'editor'; render(); };
+    const list = S.strip[S.surface];
+    sim.querySelectorAll('[data-ed]').forEach((c) => c.onchange = () => { const k = c.dataset.ed;
+      if (c.checked && !list.includes(k)) list.push(k); if (!c.checked && list.length > 1) list.splice(list.indexOf(k), 1); store.set(); render(); });
+    const move = (k, dir) => { const avail = SURF[S.surface].controls; const order = list.filter((x) => avail.includes(x)).concat(avail.filter((x) => !list.includes(x)));
+      const i = order.indexOf(k), j = i + dir; if (j < 0 || j >= order.length) return; [order[i], order[j]] = [order[j], order[i]];
+      S.strip[S.surface] = order.filter((x) => list.includes(x)); store.set(); render(); const f = document.querySelector(`[data-${dir < 0 ? 'up' : 'down'}="${k}"]`) || document.getElementById('ed-' + k); if (f) f.focus(); };
+    sim.querySelectorAll('[data-up]').forEach((b) => b.onclick = () => move(b.dataset.up, -1));
+    sim.querySelectorAll('[data-down]').forEach((b) => b.onclick = () => move(b.dataset.down, 1));
+  }
+}
+// global keys (web keyboard map)
+document.addEventListener('keydown', (e) => {
+  if (S.sheetOpen) { if (e.key === 'Escape') { S.sheetOpen = null; render(); } return; }
+  const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || e.target.getAttribute('role') === 'slider') return;
+  const k = e.key.toLowerCase();
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { onHelmDelta((e.key === 'ArrowLeft' ? -1 : 1) * 20); e.preventDefault(); }
+  else if (SURF[S.surface].sheets && k === 'q') onSheetDelta('main', 14.4 * 5); else if (SURF[S.surface].sheets && k === 'a') onSheetDelta('main', -14.4 * 5);
+  else if (SURF[S.surface].sheets && k === 'w') onSheetDelta('jib', 14.4 * 5); else if (SURF[S.surface].sheets && k === 's') onSheetDelta('jib', -14.4 * 5);
+});
+
+// toolbar
+for (const [id, key] of [['seg-device', 'device'], ['seg-mode', 'mode'], ['seg-surface', 'surface'], ['seg-lang', 'lang']])
+  document.querySelectorAll(`#${id} button`).forEach((b) => b.onclick = () => { S[key] = b.dataset.v; S.expanded = null; if (key === 'surface') { S.helmMap = null; S.rudderWheel = 0; } store.set(); render(); });
+addEventListener('resize', () => { fit(); layoutWheels(); });
+
+// sim loop
+let lastT = performance.now();
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+  const prevTwa = norm(S.hdg);
+  if (helmMap() === 'rudder') { const rud = clamp(S.rudderWheel / 360 * 30, -30, 30) + S.holdDir * 20; S.hdg += rud * (0.35 + speed() / 9) * dt * 1.6; S.hdgTarget = S.hdg; }
+  else { const diff = norm(S.hdgTarget - S.hdg); const stp = clamp(diff, -40 * dt, 40 * dt); S.hdg += stp; }
+  const nt = norm(S.hdg); if (Math.sign(nt) !== Math.sign(prevTwa) && Math.abs(nt) < 90) haptic('turn');
+  drawScene(); if (helmMap() !== 'rudder' || S.holdDir) updateValues();
+  requestAnimationFrame(loop);
+}
+render(); requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
