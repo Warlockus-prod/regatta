@@ -1,3 +1,6 @@
-import { ProductHub } from "../../src/navigation/ProductHub";
+import { Redirect } from "expo-router";
 
-export default function Page() { return <ProductHub section="library" />; }
+/** The app's full catalog lives under the Menu tab; old /library links land there. */
+export default function LibraryRedirect() {
+  return <Redirect href="/menu" />;
+}

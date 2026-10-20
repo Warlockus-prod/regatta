@@ -7,11 +7,16 @@
 .link:hover { color: var(--text-primary); background: var(--hover-bg); }
 .link[aria-current] { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
 .tools { justify-self: end; display: flex; align-items: center; gap: 4px; }
+.menu { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-primary); }
+.menu:hover { background: var(--hover-bg); }
+.menu[aria-current] { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+.theme { display: inline-flex; }
 .nav :is(a,button):focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: -3px; }
 @media (max-width: 1000px) {
-  .inner { grid-template-columns: 1fr auto; padding: 0 16px; gap: 0 16px; }
+  .inner { grid-template-columns: 1fr auto; padding: 0 16px; gap: 0 8px; }
   .brand { min-height: 56px; font-size: 20px; }
   .tools { grid-column: 2; grid-row: 1; }
-  .links { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(5,auto); gap: 0; margin: 0 -8px; }
-  .link { padding: 10px 2px; font-size: 11px; min-height: 44px; text-align: center; white-space: nowrap; }
+  .links { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4,auto); gap: 0; margin: 0 -8px; }
+  .link { padding: 10px 2px; font-size: 13px; min-height: 44px; text-align: center; white-space: nowrap; }
 }
+@media (max-width: 640px) { .theme { display: none; } .menu { padding-inline: 9px; gap: 6px; } }

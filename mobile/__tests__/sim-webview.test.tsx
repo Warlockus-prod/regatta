@@ -6,9 +6,10 @@ import { STORAGE_CHANNEL, TRAINER_STORAGE_KEY } from "../../src/features/sailing
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 
+const mockNavigate = jest.fn();
 jest.mock("expo-router", () => ({
   Stack: { Screen: () => null },
-  useRouter: () => ({ replace: jest.fn() }),
+  useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate }),
 }));
 jest.mock("../src/i18n/context", () => ({
   useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en }),
@@ -34,6 +35,17 @@ jest.mock("react-native-webview", () => {
 
 beforeEach(() => { jest.useFakeTimers(); jest.clearAllMocks(); });
 afterEach(() => jest.useRealTimers());
+
+it("returns to a known lesson and hides tier switching during lesson practice", () => {
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "mainsheet", study: "mainsheet" }} />);
+  expect(view.queryByRole("tab", { name: "Basics" })).toBeNull();
+  fireEvent.press(view.getByRole("button", { name: "Return to the lesson" }));
+  expect(mockNavigate).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
+  view.unmount();
+  const invalid = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "https://example.com" }} />);
+  expect(invalid.queryByRole("button", { name: "Return to the lesson" })).toBeNull();
+  expect(invalid.getByRole("tab", { name: "Basics" })).toBeTruthy();
+});
 
 it("keeps the 3D loader until the yacht is ready, then cancels the watchdog", () => {
   const view = render(<SimWebView path="/simulator2" title="3D" tier="boat3d" />);

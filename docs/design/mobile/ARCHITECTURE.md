@@ -1,7 +1,8 @@
 # Week to Regatta - Mobile: Architecture & Change Map
 
 Authoritative "how the mobile app is built and where every screen/element lives"
-reference. Release source verified: 2026-09-07, `main`, app 1.6.1 / build 34.
+reference. Current mobile learning slice: 2026-10-15, `codex/learning-modules`.
+Actual distribution state belongs to `BUILDS.md`.
 
 ## 0. READ FIRST - where the code lives
 
@@ -12,7 +13,8 @@ reference. Release source verified: 2026-09-07, `main`, app 1.6.1 / build 34.
 
 The branches were consolidated on 2026-06-21. The old `app` branch is historical
 and is no longer the release source. Do not switch to it for mobile changes.
-Both web and native code must be built from the same reviewed `main` commit.
+For the mobile-first 1.7.0 TestFlight iteration, build from the reviewed
+`codex/learning-modules` commit. Website adaptation and deployment follow later.
 See `BUILDS.md` for the release journal.
 
 **Shared 3D module:** `/simulator2` renders the React Three Fiber scene from
@@ -125,8 +127,8 @@ build script. The paragraph above describes builds before 1.6.2.
 
 ## 2. Screen map (route -> file -> what it renders)
 
-All routes under `mobile/app/` (expo-router v6, file-based, single Stack - NO tab bar).
-Home (`app/index.tsx`) is a card/list menu that pushes everything else.
+All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
+`AppNavigation`, with five product destinations. The bar hides for instruments.
 
 | Route | File | What it does | Render tech |
 |---|---|---|---|
@@ -136,7 +138,7 @@ Home (`app/index.tsx`) is a card/list menu that pushes everything else.
 | `/courses` | `app/courses/index.tsx` | **Points of Sail** explorer (see section 5) | `PointsOfSailDiagram` (**Skia** + SVG labels) |
 | `/anatomy` | `app/anatomy/index.tsx` | Yacht anatomy: SVG hotspots + part detail | **SVG** |
 | `/racing` | `app/racing/index.tsx` | Tactics: right-of-way rules + strategy diagrams | **SVG** (`RacingDiagrams`) |
-| `/bootcamp` + `/bootcamp/[id]` | `app/bootcamp/index.tsx`, `[id].tsx` | Curriculum + per-lesson (diagram, quiz) | `LessonDiagram` (**SVG**), `QuizCard` |
+| `/bootcamp` + `/bootcamp/[id]` | `app/bootcamp/index.tsx`, `[id].tsx` | 8 lessons in 3 modules; goal, understand / check / practice, saved place | `FoundationScene` / wind pilot (**SVG**), `QuizCard` |
 | `/rules` + `/rules/[id]` | `app/rules/index.tsx`, `[id].tsx` | Rule scenarios + reveal | `RuleScenarioDiagram` (**SVG**) |
 | `/quick` | `app/quick/index.tsx` | 6 quick-refresh tips | plain RN |
 | `/glossary` | `app/glossary/index.tsx` | Searchable term glossary | plain RN |
@@ -159,15 +161,41 @@ SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -
 
 ## 3. Design system (`mobile/src/design-system/`)
 
-- **Tokens** (`tokens.ts`): dark-ocean theme - `colors` (`bgPrimary`, `accentCyan`,
-  `success`, `warning`, `textPrimary`, surfaces/borders), `spacing` scale, `radii`, glow.
-  Mirrors the web's `--accent-cyan` / `--bg-primary` CSS vars.
-- **Shared components** (barrel `components/index.ts`): `Screen`, `Text` (6 variants),
+- **Tokens** (`tokens.ts`): two palettes with the same keys. `lightColors` is the v3
+  "paper" look (paper `#f7f5f0`, ink `#123247`, action blue `#006ea6`, teal
+  confirmation `#006d70`, sand chips `#e9ddc7`) and is the app default `colors`.
+  `darkColors` is the dark-ocean palette of builds up to 1.6.3. Key names are roles:
+  `accentCyan` means "action colour" (blue on paper, cyan on dark). Also `spacing`,
+  `radii` (`control` 14, `card` 20, `photo` 24, `sheet` 28), `shadow`/`darkShadow`,
+  `glow`/`darkGlow`. The web keeps its own palette (the site is not on v3 yet).
+- **Navigation:** five equal tabs from `navigation/tabs.ts`; the fifth is Menu (title,
+  search, then the whole catalog; "My progress" is a collapsed row after the catalog). No Menu button in headers: where the tab bar is
+  hidden (instrument screens) the explicit way out is a chevron-only Back.
+- **Large text:** tab labels stay on one line (shrink to fit, growth capped at 1.3x),
+  Back is chevron-only on every screen, the Home photo title grows at most 1.4x, and
+  from a font scale of 1.6 the decorative thumbnails (Home card and paths, course path
+  icon tiles) are not drawn so titles get the full width.
+- **Surfaces** (`surface.tsx`): instrument screens (native simulators, race, replay,
+  offline anatomy, every `SimWebView` page) wrap their content in `<DarkSurface>` and
+  import `darkColors as colors`; `Text`, `Button`, `Card`, `ListRow`, `Screen`,
+  `EmptyState`, `WindNowCard` follow the surface via `bySurface()`. `darkStackOptions`
+  gives those screens a dark header and light status bar icons.
+- **Status bar:** the app is scene-based (`plugins/with-uiscene.js`), and iOS ignores the
+  UIApplication status bar API there, so `UIViewControllerBasedStatusBarAppearance` is on
+  and each screen sets `statusBarStyle` through its stack options (root default `dark`;
+  Home switches between `light` over the photo and `dark` over paper). Content never
+  scrolls under the clock: screens with a header are cleared by it, the tab hubs
+  (`navigation/ProductHub.tsx`: Menu, Learn, Practice, Race) keep `Screen`'s top inset
+  as a fixed paper strip outside the scroll view, and Home fades in its own paper strip
+  once the sheet reaches the top.
+- **Shared components** (barrel `components/index.ts`): `Screen`, `Text` (7 variants, incl. `eyebrow`),
   `Card`, `Button`, `Icon` (SVG glyphs), `ListRow`, `EmptyState`, `Skeleton`,
   `PulsePill`, `Wordmark`, `Slider`, `OfflineBanner`, `ErrorBoundary`, `PlaceholderScreen`.
 - **Rich/visual components** (each used by one screen family): `SkiaYacht` (Skia yacht
   primitive), `PointsOfSailDiagram` (courses), `LessonDiagram`, `RuleScenarioDiagram`,
-  `RacingDiagrams`, `WindNowCard`, `QuizCard`.
+  `RacingDiagrams`, `WindNowCard`, `QuizCard`, `PhotoAnnotation` (image with numbered
+  details, list and closeup) and `DiagramStates` (one drawing, named states, key, limit),
+  the last two for the lesson template in `src/lessons`.
 
 Note: some screens define small composites inline (e.g. `FilterChip`, `HudStat`) rather
 than in the design system - if you can't find a control in `design-system/`, grep the screen file.
@@ -187,6 +215,18 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, `analytics-consent.ts`, ...). |
 | `review/` | `review-prompt.ts`: App Store rating prompt after real wins (see section 1). |
+| `home/` | v3 Home and Menu progress: `copy.ts` (app-only strings, 7 languages, "N of TOTAL" / "Label: N" counts), `continue.ts` (`resolveContinue`: which course and lesson the Continue card offers, from the bookmark), `PhotoCard.tsx` (photo with a live label on a fade), `useLearningSnapshot.ts` (re-reads bootcamp evidence, sail course, bookmark and race history on every focus). Photos: `assets/design/*.jpg`, resized from the site gallery (`public/gallery/regatta-2025`, `regatta-2026`). |
+| `bootcamp/learning-guide.ts`, `FoundationScene.tsx` | Three module groups, eight goals, seven new three-state diagrams and localized explanations. The first lesson keeps the wind pilot. Turn lessons use concrete practice tasks. |
+| `bootcamp/lesson-position.ts`, `ReturnToLesson.tsx` | Persist step and diagram separately from grades; validate `fromLesson`; native header returns to the same lesson from practice. |
+| `bootcamp/status.ts` | Lesson state from evidence: `passed` needs a passed quiz (>= 70%) or, for a lesson without a quiz, an explicit done mark; the legacy "completed" key means viewed. `nextBootcampLesson`, `passedLessonIds`. |
+| `persistence/learning-bookmark.ts` | `regatta.learning.bookmark.v1`: last course (bootcamp, sails, radio, motor) and lesson, written on focus by the course screens, plus `positions` (last lesson per course), so an overview visit keeps the unfinished lesson and IDs never cross courses; unknown IDs degrade to the course. |
+| `persistence/serial.ts` | One queue for the learning-progress keys: reads and read-merge-writes run in order, so an early write cannot replace stored history and a screen re-reading on focus sees writes queued before it. Bootcamp, quiz and bookmark IO go through it. |
+| `navigation/tabs.ts` | Native tab model over the shared catalog: Home, Learn, Practice, Race, Menu (`/menu`); `tabForPath` puts reference pages under Menu. `/library` redirects to `/menu`. |
+| `courses/tones.ts` | Paper tones for the points-of-sail wheel and course cards (the shared data keeps its web colours). |
+| `sailing/` | `SailingCourseScreen.tsx`: четыре раскрываемых модуля с графикой, цели всех 13 уроков и шаги understand / check / try. `lesson-position.ts` последовательно сохраняет шаг и вариант схемы через AsyncStorage. `LineBench.tsx` использует общую механику стенда; `SavePractice.tsx` сохраняет только завершенный результат. `checkpoint-storage.ts` обслуживает два фиксированных назначения WebView: снимок тренажера и результаты упражнений с объединением записей. Теория хранится отдельно; просмотр и переходы не дают оценку. Возврат из практики: параметр lesson с проверкой по каталогу и native-кнопка в SimWebView. |
+| `lessons/` | v3 lesson template (ADR-0015), two original pilots plus seven foundation diagrams (ADR-0018): `pilots.ts` (which lessons use it, goal / situation / explanation / mistake copy in 7 languages, shared template words), `LessonBlocks.tsx` (intro, annotated image, drawing, "How it works" row, explanation, mistake), `graphics/drawings.ts` (TS port of the Codex kit's `drawings.js` for the two pilots plus seven foundation lessons; original pilot exports are byte-checked against the kit exports in `__tests__/fixtures/codex-graphics`; the one change is the wind-direction boom on the leeward side), `graphics/layout.ts` (contain rectangle, markers in percent of the full image, closeup window), `graphics/scenes.ts` (state names, notes, spoken descriptions, key and limit per drawing), `graphics/photos.ts` (annotated images with the kit's points). Images: `assets/lessons/` with `SOURCES.md` (provenance, AI or not, what the image cannot be used for). |
+| `courses/tack.ts` | `tackForHeading`: the tack from the heading measured clockwise from where the wind comes from. With the wind from the top the left half of the wheel is starboard tack and the right half port; head to wind and dead downwind return null (there the mainsail side decides). The wheel's captions take their halves from it; `__tests__/points-of-sail-tack.test.tsx` checks it against vector geometry. |
+| `test-utils.tsx`, `test-settle.ts` | Test helpers, not app code: `renderWithProviders` (safe area + i18n) and `settleProgress` (waits inside act until the progress queue and its state updates have landed). |
 | `replay/`, `leaderboard/`, `onboarding/` | feature helpers. (The old `multiplayer/` mock client, room codes and `persistence/recent-rooms.ts` were removed 2026-10-19: multiplayer is the live web room.) |
 
 **Content is DUPLICATED, not live-imported:** web `src/data/*.ts` (source of truth) ->

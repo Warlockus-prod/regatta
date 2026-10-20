@@ -1,12 +1,11 @@
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { recordReviewWin } from '../../src/review/review-prompt';
-import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View, Pressable } from 'react-native';
 import { useI18n } from '../../src/i18n/context';
 import {
   Button,
   Card,
-  LessonDiagram,
   QuizCard,
   Screen,
   Text,
@@ -20,6 +19,8 @@ import { AnalyticsEvent } from '../../src/analytics/events';
 import { useAnalytics } from '../../src/analytics/use-analytics';
 import { useBootcampQuiz } from '../../src/persistence/bootcamp-quiz';
 import { getLessonDay } from '../../src/bootcamp/days';
+import { lessonStatus } from '../../src/bootcamp/status';
+import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
 import {
   buildSimulatorDrillRoute,
   getDrillForLesson,
@@ -29,48 +30,74 @@ import {
   getQuizForLesson,
   isQuizPassed,
 } from '../../src/bootcamp/quiz-data';
+import { FoundationScene } from '../../src/bootcamp/FoundationScene';
+import { foundationCopy, foundationGuides, foundationModules, foundationPractice } from '../../src/bootcamp/learning-guide';
+import { foundationSteps, loadFoundationPositions, saveFoundationPosition, foundationPracticeRoute, type FoundationPosition, type FoundationStep } from '../../src/bootcamp/lesson-position';
+import { destinations } from '../../../src/lib/product/catalog';
+import type { SceneState } from '../../src/lessons/graphics/drawings';
 import { colors, spacing } from '../../src/design-system/tokens';
+import { bootcampPilots, lessonCopy } from '../../src/lessons/pilots';
+import {
+  HowItWorks,
+  LessonExplanation,
+  LessonMistake,
+  LessonPhoto,
+  LessonScene,
+} from '../../src/lessons/LessonBlocks';
 
-/**
- * Bootcamp lesson detail. Resolves the lesson by id from the synced
- * bootcamp bundle, renders emoji + title + summary + a "focus this
- * time" card, and a primary CTA to open the practice route attached
- * to the lesson (e.g. `/simulator`, `/courses`).
- *
- * Pressing "Open" marks the lesson as completed in AsyncStorage so the
- * Bootcamp index reflects the user's progress on next visit. It is not an
- * App Store review win; the first passed quiz is.
- *
- * Sprint 11: at the bottom of the page, when the lesson has quiz
- * questions, a "Test your understanding" section offers a 2-3 question
- * micro-quiz. Quiz state is in-screen (no sub-route) so the user can
- * scroll back up to the lesson copy after finishing.
- */
+/** Eight native lessons: understand, check, practice. Navigation never awards credit. */
 export default function BootcampLesson() {
   const params = useLocalSearchParams<{ id: string }>();
+  return <LessonContent key={params.id} id={params.id} />;
+}
+
+function LessonContent({ id }: { id: string }) {
   const { tp, lang } = useI18n();
   const router = useRouter();
-  const { markCompleted, markLastViewed, isCompleted, ready } = useBootcampProgress();
+  const { completedIds, doneIds, setDone, markCompleted, markLastViewed, lastViewedLessonId } = useBootcampProgress();
+  const { results: quizResults, ready: quizReady, recordResult, saveError: quizSaveError, saving: quizSaving, retry: retryQuiz } = useBootcampQuiz();
   const analytics = useAnalytics();
-  const { results: quizResults, ready: quizReady, recordResult } = useBootcampQuiz();
+  // lesson_completed fires once, when a lesson first becomes passed (a first
+  // passed quiz, or "mark as done" on a lesson without a quiz). Opening or
+  // practising never counts (src/bootcamp/status.ts).
+  const reportPassed = useCallback((id: string) => {
+    analytics.capture(AnalyticsEvent.LessonCompleted, { course: 'bootcamp', lesson_id: id });
+  }, [analytics]);
 
-  const lesson = bootcampLessons.find((l) => l.id === params.id);
+  const lesson = bootcampLessons.find((l) => l.id === id);
   const lessonId = lesson?.id ?? null;
-
+  useLearningBookmark(lesson ? 'bootcamp' : null, lessonId);
+  const [step, setStep] = useState<FoundationStep>("understand");
+  const [diagram, setDiagram] = useState<SceneState>(0);
+  const [positionReady, setPositionReady] = useState(false);
+  const [positionError, setPositionError] = useState(false);
+  const scroll = useRef<ScrollView>(null);
   useEffect(() => {
-    if (lesson) markLastViewed(lesson.id);
-  }, [lesson, markLastViewed]);
+    let active = true;
+    loadFoundationPositions().then(positions => {
+      if (!active) return;
+      const saved = lessonId ? positions[lessonId] : null;
+      setStep(saved?.step ?? "understand");
+      setDiagram(saved?.diagram ?? 0);
+      setPositionReady(true);
+    }).catch(() => { if (active) setPositionError(true); });
+    return () => { active = false; };
+  }, [lessonId]);
+  const remember = (patch: Partial<FoundationPosition>) => {
+    if (!lessonId || !positionReady) return;
+    void saveFoundationPosition(lessonId, patch).then(() => setPositionError(false)).catch(() => setPositionError(true));
+  };
+  const changeStep = (value: FoundationStep) => {
+    setStep(value); remember({ step: value }); scroll.current?.scrollTo({ y: 0, animated: false });
+  };
 
-  // lesson_completed fires once, on the first completion (progress loaded).
-  // Opening a lesson is not a review win: "Open" and "Try this in the
-  // simulator" navigate straight into a trainer or a race, and the rating
-  // sheet would slide over it. Only a passed quiz counts (see onRecord).
-  const completeLesson = useCallback((id: string) => {
-    if (ready && !isCompleted(id)) {
-      analytics.capture(AnalyticsEvent.LessonCompleted, { course: 'bootcamp', lesson_id: id });
-    }
-    markCompleted(id);
-  }, [analytics, isCompleted, markCompleted, ready]);
+
+  // Opening a lesson makes it viewed (never passed: see src/bootcamp/status.ts).
+  useEffect(() => {
+    if (!lesson) return;
+    markLastViewed(lesson.id);
+    markCompleted(lesson.id);
+  }, [lesson, markLastViewed, markCompleted]);
 
   // Memoise quiz lookup at the top so the hook order stays stable
   // across the early-return branch below. `lessonId` is null when the
@@ -112,32 +139,16 @@ export default function BootcampLesson() {
 
   const title = legacyPick(lesson, 'title', lang);
   const summary = legacyPick(lesson, 'summary', lang);
-  const focus = legacyPick(lesson, 'focus', lang);
+  const focusedPractice = foundationPractice[lesson.id];
+  const focus = focusedPractice?.task[lang] ?? legacyPick(lesson, 'focus', lang);
+  const practiceRoute = focusedPractice?.route ?? webRouteToAppRoute(lesson.route);
 
-  const focusLabel = tp('Сфокусируйся', 'Focus this time', 'Skup się', {
-    es: 'Céntrate en esto',
-    fr: 'Concentre-toi',
-    de: 'Dein Fokus',
-    it: 'Concentrati',
-  });
-
-  const openLabel = tp('Открыть', 'Open', 'Otwórz', {
-    es: 'Abrir',
-    fr: 'Ouvrir',
-    de: 'Öffnen',
-    it: 'Apri',
-  });
-
+  // The header already says which lesson this is; the meta line keeps the time.
   const meta = tp(
-    `Урок ${lesson.order} (~${lesson.estMinutes} мин)`,
-    `Lesson ${lesson.order} (~${lesson.estMinutes} min)`,
-    `Lekcja ${lesson.order} (~${lesson.estMinutes} min)`,
-    {
-      es: `Lección ${lesson.order} (~${lesson.estMinutes} min)`,
-      fr: `Leçon ${lesson.order} (~${lesson.estMinutes} min)`,
-      de: `Lektion ${lesson.order} (~${lesson.estMinutes} Min.)`,
-      it: `Lezione ${lesson.order} (~${lesson.estMinutes} min)`,
-    },
+    `~${lesson.estMinutes} мин`,
+    `~${lesson.estMinutes} min`,
+    `~${lesson.estMinutes} min`,
+    { de: `~${lesson.estMinutes} Min.` },
   );
 
   const day = getLessonDay(lesson.id);
@@ -171,77 +182,198 @@ export default function BootcampLesson() {
     ? isQuizPassed(previousResult.score, previousResult.total)
     : false;
 
-  return (
-    <Screen>
-      <Stack.Screen options={{ title }} />
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.hero}>
-          <Text style={styles.dayBadge}>{dayBadge.toUpperCase()}</Text>
-          <Text style={styles.emoji}>{lesson.emoji}</Text>
-          <Text variant="title" style={styles.title}>{title}</Text>
-          <Text variant="muted" style={styles.metaText}>{meta}</Text>
-        </View>
+  const total = bootcampLessons.length;
+  const headerTitle = tp(
+    `Урок ${lesson.order} из ${total}`,
+    `Lesson ${lesson.order} of ${total}`,
+    `Lekcja ${lesson.order} z ${total}`,
+    {
+      es: `Lección ${lesson.order} de ${total}`,
+      fr: `Leçon ${lesson.order} sur ${total}`,
+      de: `Lektion ${lesson.order} von ${total}`,
+      it: `Lezione ${lesson.order} di ${total}`,
+    },
+  );
+  const status = lessonStatus(lesson.id, {
+    viewedIds: completedIds,
+    quizResults,
+    doneIds,
+    lastViewedLessonId,
+  });
+  const withQuiz = quizQuestions.length > 0;
+  const statusLine = status === 'passed'
+    ? tp('Урок пройден', 'Lesson passed', 'Lekcja zaliczona', {
+        es: 'Lección superada', fr: 'Leçon réussie', de: 'Lektion bestanden', it: 'Lezione superata',
+      })
+    : withQuiz
+      ? tp(
+          'Урок будет пройден, когда ты ответишь верно хотя бы на 70% вопросов проверки.',
+          'The lesson counts as passed once you answer at least 70% of the check correctly.',
+          'Lekcja będzie zaliczona, gdy odpowiesz poprawnie na co najmniej 70% pytań sprawdzianu.',
+          {
+            es: 'La lección cuenta como superada cuando aciertes al menos el 70% de la prueba.',
+            fr: 'La leçon est réussie dès que tu réponds juste à au moins 70 % du test.',
+            de: 'Die Lektion gilt als bestanden, sobald du mindestens 70 % des Tests richtig beantwortest.',
+            it: 'La lezione è superata quando rispondi correttamente ad almeno il 70% della verifica.',
+          },
+        )
+      : tp(
+          'В этом уроке нет проверки. Отметь его сам, когда разберешься и попробуешь практику.',
+          'This lesson has no check. Mark it yourself once you understand it and have tried the practice.',
+          'Ta lekcja nie ma sprawdzianu. Zaznacz ją sam, gdy ją zrozumiesz i spróbujesz ćwiczenia.',
+          {
+            es: 'Esta lección no tiene prueba. Márcala tú cuando la entiendas y hayas probado la práctica.',
+            fr: "Cette leçon n'a pas de test. Marque-la toi-même quand tu l'as comprise et que tu as essayé l'exercice.",
+            de: 'Diese Lektion hat keinen Test. Markiere sie selbst, wenn du sie verstanden und die Übung ausprobiert hast.',
+            it: "Questa lezione non ha una verifica. Segnala tu quando l'hai capita e hai provato l'esercizio.",
+          },
+        );
+  const markDoneLabel = tp('Отметить урок пройденным', 'Mark lesson as passed', 'Oznacz lekcję jako zaliczoną', {
+    es: 'Marcar la lección como superada',
+    fr: 'Marquer la leçon comme réussie',
+    de: 'Lektion als bestanden markieren',
+    it: 'Segna la lezione come superata',
+  });
+  const unmarkLabel = tp('Снять отметку', 'Remove the mark', 'Usuń oznaczenie', {
+    es: 'Quitar la marca',
+    fr: 'Retirer la marque',
+    de: 'Markierung entfernen',
+    it: 'Togli il segno',
+  });
 
-        <View style={styles.diagramWrap}>
-          <LessonDiagram lessonId={lesson.id} />
-        </View>
+  const hero = (
+    <View style={styles.hero}>
+      <Text variant="eyebrow">{dayBadge}</Text>
+      <Text variant="title" style={styles.title} accessibilityRole="header">{title}</Text>
+      <Text variant="muted" style={styles.metaText}>{meta}</Text>
+      {step === "check" && <Text
+        style={[styles.status, status === 'passed' && styles.statusPassed]}
+        accessibilityLiveRegion="polite"
+      >
+        {statusLine}
+      </Text>}
+    </View>
+  );
 
-        <Text variant="body" style={styles.summary}>{summary}</Text>
+  const practiceDestination = destinations.find(d => d.native === practiceRoute.split(/[?#]/)[0]);
+  const practice = (
+    <>
+      <View style={styles.cta}>
+        <Button
+          onPress={() => {
+            markCompleted(lesson.id);
+            // lesson.route is a WEB path; "/simulator" means Basics on the
+            // web but the native trainer in the app (see web-route-to-app-route).
+            router.push(foundationPracticeRoute(practiceRoute, lesson.id));
+          }}
+          variant="primary"
+        >
+          {practiceDestination?.title[lang] ?? foundationCopy.practice[lang]} →
+        </Button>
+      </View>
 
-        <Card style={styles.focusCard}>
-          <Text variant="muted" style={styles.focusLabel}>
-            {focusLabel.toUpperCase()}
-          </Text>
-          <Text variant="body" style={styles.focusText}>{focus}</Text>
-        </Card>
-
-        <View style={styles.cta}>
+      {drillId && !focusedPractice ? (
+        <View style={styles.drillCta}>
           <Button
             onPress={() => {
-              completeLesson(lesson.id);
-              // lesson.route is a WEB path; "/simulator" means Basics on the
-              // web but the native trainer in the app (see web-route-to-app-route).
-              router.push(webRouteToAppRoute(lesson.route));
+              markCompleted(lesson.id);
+              router.push(foundationPracticeRoute(buildSimulatorDrillRoute(lesson.id, drillId), lesson.id));
             }}
-            variant="primary"
+            variant="secondary"
           >
-            {openLabel}
+            {tryInSimulatorLabel}
           </Button>
         </View>
+      ) : null}
+    </>
+  );
 
-        {drillId ? (
-          <View style={styles.drillCta}>
-            <Button
-              onPress={() => {
-                completeLesson(lesson.id);
-                router.push(buildSimulatorDrillRoute(lesson.id, drillId));
-              }}
-              variant="secondary"
-            >
-              {tryInSimulatorLabel}
-            </Button>
+  const markDone = !withQuiz ? (
+    <View style={styles.drillCta}>
+      <Button
+        variant={status === 'passed' ? 'ghost' : 'primary'}
+        onPress={() => {
+          if (status !== 'passed') reportPassed(lesson.id);
+          setDone(lesson.id, status !== 'passed');
+        }}
+      >
+        {status === 'passed' ? unmarkLabel : markDoneLabel}
+      </Button>
+    </View>
+  ) : null;
+
+  const quiz = quizQuestions.length > 0 ? (
+    <QuizSection
+      lessonId={lesson.id}
+      questions={quizQuestions}
+      previousScore={previousResult?.score}
+      previousTotal={previousResult?.total}
+      previouslyPassed={previouslyPassed}
+      saved={!quizSaveError && !quizSaving}
+      onRecord={(score, total) => {
+        markCompleted(lesson.id);
+        // The first pass of this lesson's quiz, once stored results are
+        // loaded, is both the completion event and an App Store review win
+        // (a retake of a passed quiz, or a failed attempt, never counts).
+        if (quizReady && isQuizPassed(score, total) && !previouslyPassed) {
+          reportPassed(lesson.id);
+          void recordReviewWin('lesson');
+        }
+        recordResult(lesson.id, score, total);
+      }}
+    />
+  ) : null;
+
+  // First lesson keeps its reviewed pilot; the seven others use native state diagrams.
+  const pilot = bootcampPilots[lesson.id];
+  const guide = foundationGuides[lesson.id];
+  const nextLesson = bootcampLessons.find(l => l.order === lesson.order + 1);
+
+  return (
+    <Screen>
+      <Stack.Screen options={{ title: headerTitle }} />
+      <ScrollView ref={scroll} contentContainerStyle={styles.scroll}>
+        {hero}
+        <View style={styles.learningBody}>
+          <Text variant="eyebrow">{foundationModules.find(m => m.lessons.includes(lesson.id))?.title[lang]}</Text>
+          <View style={styles.goal}>
+            <Text variant="eyebrow">{lessonCopy.goal[lang]}</Text>
+            <Text>{guide?.goal[lang] ?? pilot?.goal[lang] ?? summary}</Text>
           </View>
-        ) : null}
-
-        {quizQuestions.length > 0 ? (
-          <QuizSection
-            lessonId={lesson.id}
-            questions={quizQuestions}
-            previousScore={previousResult?.score}
-            previousTotal={previousResult?.total}
-            previouslyPassed={previouslyPassed}
-            onRecord={(score, total) => {
-              completeLesson(lesson.id);
-              // A review win only for the first pass of this lesson's quiz,
-              // once the stored results are loaded (a retake of a passed
-              // quiz, or a failed attempt, never counts).
-              if (quizReady && isQuizPassed(score, total) && !previouslyPassed) {
-                void recordReviewWin('lesson');
-              }
-              recordResult(lesson.id, score, total);
-            }}
-          />
-        ) : null}
+          <View style={styles.steps}>
+            {foundationSteps.map((item, i) => <Pressable key={item} accessibilityRole="button" accessibilityLabel={`${i + 1}. ${foundationCopy[item][lang]}`} accessibilityState={{ selected: step === item, disabled: !positionReady }} disabled={!positionReady} onPress={() => changeStep(item)} style={[styles.step, step === item && styles.stepActive]}>
+              <Text style={styles.stepNumber}>{i + 1}</Text><Text style={styles.stepText}>{foundationCopy[item][lang]}</Text>
+            </Pressable>)}
+          </View>
+          {positionError && <Text accessibilityRole="alert">{foundationCopy.savedError[lang]}</Text>}
+          {quizSaveError && <View><Text accessibilityRole="alert">{foundationCopy.savedError[lang]}</Text><Button onPress={retryQuiz}>{foundationCopy.retry[lang]}</Button></View>}
+        </View>
+        {step === "understand" && <>
+          <View style={styles.pilot}>
+            {pilot ? <>
+              <Text>{pilot.situation[lang]}</Text>
+              {pilot.photo ? <LessonPhoto photo={pilot.photo} /> : null}
+              {pilot.sceneRole === 'lead' ? <LessonScene pilot={pilot} selected={diagram} onSelect={value => { setDiagram(value); remember({ diagram: value }); }} /> : <HowItWorks pilot={pilot} />}
+              {pilot.explanation ? <LessonExplanation paragraphs={pilot.explanation.map(p => p[lang])} /> : null}
+              <LessonMistake pilot={pilot} />
+            </> : guide ? <>
+              <FoundationScene id={lesson.id} selected={diagram} onSelect={value => { setDiagram(value); remember({ diagram: value }); }} />
+              <Card><Text variant="eyebrow">{lessonCopy.mistake[lang]}</Text><Text>{guide.mistake[lang]}</Text></Card>
+            </> : null}
+            <Button onPress={() => changeStep("check")} disabled={!positionReady}>{foundationCopy.check[lang]} →</Button>
+          </View>
+        </>}
+        {step === "check" && <>
+          {quiz}
+          {markDone}
+          <View style={styles.cta}><Button onPress={() => changeStep("practice")} disabled={!positionReady}>{foundationCopy.practice[lang]} →</Button></View>
+        </>}
+        {step === "practice" && <>
+          <View style={styles.pilot}><Text variant="subtitle">{lessonCopy.practice[lang]}</Text><Text>{focus}</Text></View>
+          {practice}
+          {nextLesson && <View style={styles.cta}><Button variant="secondary" onPress={() => router.push(`/bootcamp/${nextLesson.id}`)}>{foundationCopy.next[lang]}</Button></View>}
+        </>}
+        <View style={styles.cta}><Button variant="ghost" onPress={() => router.navigate("/bootcamp")}>{foundationCopy.outline[lang]}</Button></View>
       </ScrollView>
     </Screen>
   );
@@ -253,13 +385,14 @@ interface QuizSectionProps {
   previousScore?: number;
   previousTotal?: number;
   previouslyPassed: boolean;
+  saved: boolean;
   onRecord: (score: number, total: number) => void;
 }
 
 type Phase =
   | { kind: 'intro' }
   | { kind: 'question'; index: number; pickedId?: string; revealed: boolean }
-  | { kind: 'result'; score: number; recorded: boolean };
+  | { kind: 'result'; score: number };
 
 /**
  * In-screen quiz state machine. Lives next to the lesson copy so users
@@ -267,11 +400,11 @@ type Phase =
  * the quiz wasn't needed for v1.
  */
 function QuizSection({
-  lessonId,
   questions,
   previousScore,
   previousTotal,
   previouslyPassed,
+  saved,
   onRecord,
 }: QuizSectionProps) {
   const { tp } = useI18n();
@@ -337,17 +470,6 @@ function QuizSection({
       fr: 'Terminer le quiz',
       de: 'Quiz beenden',
       it: 'Termina il quiz',
-    },
-  );
-  const markCompleteLabel = tp(
-    'Отметить выполненным',
-    'Mark complete',
-    'Oznacz jako ukończoną',
-    {
-      es: 'Marcar como completada',
-      fr: 'Marquer comme terminée',
-      de: 'Als erledigt markieren',
-      it: 'Segna come completata',
     },
   );
   const tryAgainLabel = tp('Попробовать снова', 'Try again', 'Spróbuj ponownie', {
@@ -484,7 +606,10 @@ function QuizSection({
                   for (const question of questions) {
                     if (answers[question.id]) score += 1;
                   }
-                  setPhase({ kind: 'result', score, recorded: false });
+                  // A finished check is evidence either way: record it now,
+                  // so Back from the result screen keeps it.
+                  onRecord(score, questions.length);
+                  setPhase({ kind: 'result', score });
                 } else {
                   setPhase({
                     kind: 'question',
@@ -576,23 +701,10 @@ function QuizSection({
       <Text variant="subtitle" style={styles.resultHeadline}>
         {resultHeadline}
       </Text>
-      <Text variant="body" style={styles.resultBody}>{passNote}</Text>
+      {saved && <Text variant="body" style={styles.resultBody}>{passNote}</Text>}
       <View style={styles.quizCta}>
-        {!phase.recorded ? (
-          <Button
-            variant="primary"
-            onPress={() => {
-              onRecord(phase.score, total);
-              setPhase({ ...phase, recorded: true });
-            }}
-            accessibilityHint={lessonId}
-          >
-            {markCompleteLabel}
-          </Button>
-        ) : null}
-        <View style={styles.tryAgainSpacer} />
         <Button
-          variant="secondary"
+          variant={passed ? 'secondary' : 'primary'}
           onPress={() => {
             setAnswers({});
             setPhase({ kind: 'question', index: 0, revealed: false });
@@ -606,6 +718,13 @@ function QuizSection({
 }
 
 const styles = StyleSheet.create({
+  learningBody: { paddingHorizontal: 20, gap: 16, marginBottom: 20 },
+  goal: { borderLeftWidth: 3, borderLeftColor: colors.accentCyan, paddingLeft: 14, gap: 6 },
+  steps: { flexDirection: "row", gap: 8 },
+  step: { flex: 1, minHeight: 64, padding: 8, gap: 4, alignItems: "center", borderRadius: 12, borderWidth: 1, borderColor: colors.borderCyanFaint },
+  stepActive: { backgroundColor: colors.bgCard, borderColor: colors.accentCyan },
+  stepNumber: { color: colors.accentCyan, fontWeight: "700" },
+  stepText: { fontSize: 13, lineHeight: 19, textAlign: "center" },
   scroll: {
     paddingBottom: spacing.xxl,
   },
@@ -620,16 +739,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xl,
     paddingHorizontal: spacing.lg,
   },
-  dayBadge: {
-    color: colors.accentCyan,
-    fontSize: 11,
-    fontWeight: '700',
-    letterSpacing: 1.4,
-    marginBottom: spacing.md,
+  status: {
+    marginTop: spacing.md,
+    textAlign: 'center',
+    color: colors.textSecondary,
+    fontSize: 14,
+    lineHeight: 20,
   },
-  emoji: {
-    fontSize: 64,
-    marginBottom: spacing.md,
+  statusPassed: {
+    color: colors.accentTeal,
+    fontWeight: '700',
   },
   title: {
     textAlign: 'center',
@@ -667,6 +786,15 @@ const styles = StyleSheet.create({
   diagramWrap: {
     paddingHorizontal: spacing.lg,
     marginTop: spacing.xs,
+  },
+  pilot: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
+    gap: spacing.xl,
+  },
+  pilotHeading: {
+    paddingHorizontal: spacing.lg,
+    marginTop: spacing.lg,
   },
   quizSection: {
     marginHorizontal: spacing.lg,
@@ -723,8 +851,5 @@ const styles = StyleSheet.create({
   },
   resultBody: {
     lineHeight: 22,
-  },
-  tryAgainSpacer: {
-    height: 0,
   },
 });

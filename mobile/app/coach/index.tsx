@@ -556,12 +556,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   severityMinor: {
-    backgroundColor: 'rgba(0, 212, 255, 0.10)',
-    borderColor: 'rgba(0, 212, 255, 0.40)',
+    backgroundColor: 'rgba(0, 110, 166, 0.10)',
+    borderColor: 'rgba(0, 110, 166, 0.40)',
   },
   severityMajor: {
-    backgroundColor: 'rgba(255, 68, 68, 0.12)',
-    borderColor: 'rgba(255, 68, 68, 0.42)',
+    backgroundColor: 'rgba(179, 38, 30, 0.12)',
+    borderColor: 'rgba(179, 38, 30, 0.42)',
   },
   severityText: {
     fontSize: 10,
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     borderRadius: radii.md,
     borderWidth: 1,
     borderColor: colors.borderCyanSoft,
-    backgroundColor: 'rgba(0, 212, 255, 0.08)',
+    backgroundColor: 'rgba(0, 110, 166, 0.08)',
     marginBottom: spacing.md,
   },
   replayCtaPressed: {

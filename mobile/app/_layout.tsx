@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { type ReactNode, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
@@ -10,8 +9,9 @@ import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
-import { MenuButton } from '../src/navigation/MenuButton';
 import { colors } from '../src/design-system/tokens';
+import { isFoundationLesson } from '../src/bootcamp/lesson-position';
+import { ReturnToLesson } from '../src/bootcamp/ReturnToLesson';
 
 // Block the native splash from auto-hiding before the JS bundle has
 // hydrated language preferences. The Gate below hides it once
@@ -42,17 +42,26 @@ export default function RootLayout() {
                 <FirstLaunchGate>
                   <AppNavigation>
                   <Stack
-                    screenOptions={{
+                    screenOptions={({ route }) => ({
+                      ...(isFoundationLesson((route.params as { fromLesson?: string } | undefined)?.fromLesson) ? {
+                        headerBackVisible: false,
+                        headerLeft: ({ tintColor }) => <ReturnToLesson id={(route.params as { fromLesson: string }).fromLesson} tintColor={tintColor} />,
+                      } : {}),
                       contentStyle: { backgroundColor: colors.bgPrimary },
                       headerStyle: { backgroundColor: colors.bgPrimary },
-                      headerTintColor: colors.textPrimary,
-                      headerTitleStyle: { color: colors.textPrimary },
-                      headerRight: () => <MenuButton />,
+                      headerShadowVisible: false,
+                      // Chevron only: with large text iOS clipped the back title ("лавн").
+                      headerBackButtonDisplayMode: 'minimal',
+                      headerTintColor: colors.accentCyan,
+                      headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
                       animation: 'slide_from_right',
-                    }}
+                      // Scene-based apps (iOS 27) ignore the UIApplication status bar
+                      // API, so each screen sets its style through react-native-screens
+                      // (UIViewControllerBasedStatusBarAppearance in app.json).
+                      statusBarStyle: 'dark',
+                    })}
                   />
                   </AppNavigation>
-                  <StatusBar style="light" />
                 </FirstLaunchGate>
               </SplashGate>
             </AnalyticsProvider>

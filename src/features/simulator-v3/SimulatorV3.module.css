@@ -4,6 +4,14 @@
   background: var(--bg-primary);
   padding-bottom: 8px;
 }
+.groupTitle { font-size: 16px; font-weight: 600; color: var(--text-primary); padding: 12px 4px 4px; }
+.secondaryGroup { border-top: 1px solid var(--border-subtle); padding: 4px 0; }
+.secondaryGroup > summary { min-height: 48px; padding: 12px 4px; font-size: 14px; color: var(--text-secondary); cursor: pointer; }
+.otherTools { position: relative; color: var(--text-secondary); font-size: 13px; }
+.otherTools summary { cursor: pointer; min-height: 44px; padding: 12px 8px; }
+.otherTools nav { position: absolute; right: 0; top: 100%; width: 200px; display: grid; gap: 8px; padding: 12px; background: var(--bg-secondary); border: 1px solid var(--border-subtle); border-radius: 8px; }
+.otherTools nav a, .otherTools nav span { min-height: 44px; display: flex; align-items: center; }
+.courseLink { min-height: 44px; display: inline-flex; align-items: center; padding: 8px; color: var(--text-secondary); font-size: 14px; }
 @media (max-height: 600px) {
   .elevationHint { display: none; }
   .elevationHelp { display: block; }

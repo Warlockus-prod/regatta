@@ -1,18 +1,38 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
-import { ScrollView, StyleSheet, TextInput, View } from "react-native";
-import { destinations, searchDestinations, sections, type Section } from "../../../src/lib/product/catalog";
+import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
+import Svg, { Circle, Path } from "react-native-svg";
+import { destinations, searchDestinations, sections, type Destination, type Section } from "../../../src/lib/product/catalog";
 import { copy } from "../../../src/lib/product/copy";
+import { sailLessons } from "../../../src/data/sailing-lab/course";
 import { useI18n } from "../i18n/context";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
-import { colors } from "../design-system/tokens";
+import { colors, radii, shadow } from "../design-system/tokens";
 import { fetchDaily, type DailyChallenge } from "../api/daily";
+import { PhotoCard } from "../home/PhotoCard";
+import { useLearningSnapshot } from "../home/useLearningSnapshot";
+import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
+import { passedLessonIds } from "../bootcamp/status";
+import { bootcampLessons } from "../data";
 
-export function ProductHub({ section, menu = false }: { section: Exclude<Section, "home">; menu?: boolean }) {
+const racePhoto = require("../../assets/design/race-card.jpg");
+
+/**
+ * A tab hub. Learn, Practice and Race list their own section. The Menu tab
+ * (`section="library"`, served at /menu; /library redirects there) is the
+ * whole catalog: search, the learner's progress, then every native
+ * destination once, grouped. Hubs have a large in-content title and grouped
+ * rows on white cards; the bottom tab bar is the way between them.
+ *
+ * The status bar area stays a fixed paper strip (Screen pads it, outside the
+ * scroll view), so rows never scroll under the clock and the system icons.
+ */
+export function ProductHub({ section }: { section: Exclude<Section, "home">; menu?: boolean }) {
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [daily, setDaily] = useState<DailyChallenge | null>(null);
+  const isMenu = section === "library";
   useEffect(() => {
     if (section !== "race") return;
     let active = true;
@@ -20,41 +40,115 @@ export function ProductHub({ section, menu = false }: { section: Exclude<Section
     return () => { active = false; };
   }, [section]);
   const current = sections.find(s => s.id === section)!;
-  const visible = section === "library" ? searchDestinations(query, lang, "native") : destinations.filter(d => d.section === section && d.native);
-  const groups = section === "library" ? sections.filter(s => s.id !== "home").map(s => ({ id: s.id, title: s.title[lang], entries: visible.filter(d => d.section === s.id) }))
-    : section === "learn" ? [
-      { id: "sailing", title: copy.sailing[lang], entries: visible.filter(d => !d.certificate) },
-      { id: "exam", title: copy.exam[lang], entries: visible.filter(d => d.certificate) },
-    ] : [{ id: section, title: "", entries: visible }];
-  return <Screen noTopInset>
-    <Stack.Screen options={menu
-      ? { title: copy.allSections[lang], headerBackVisible: true, headerRight: () => null }
-      : { title: current.title[lang], headerBackVisible: false }} />
+  const title = isMenu ? copy.menu[lang] : current.title[lang];
+  const solo = destinations.find(d => d.id === "solo")!;
+  const visible = isMenu ? searchDestinations(query, lang, "native") : destinations.filter(d => d.section === section && d.native && !(section === "race" && d.id === "solo"));
+  const sectionTitle = (id: Section) => sections.find(s => s.id === id)!.title[lang];
+  const groups = isMenu ? [
+    { id: "sailing", title: copy.sailing[lang], entries: visible.filter(d => d.section === "learn" && !d.certificate) },
+    { id: "exam", title: copy.exam[lang], entries: visible.filter(d => d.certificate) },
+    { id: "practice", title: sectionTitle("practice"), entries: visible.filter(d => d.section === "practice") },
+    { id: "race", title: sectionTitle("race"), entries: visible.filter(d => d.section === "race") },
+    { id: "library", title: sectionTitle("library"), entries: visible.filter(d => d.section === "library" && d.id !== "settings") },
+    { id: "app", title: homeCopy.appGroup[lang], entries: visible.filter(d => d.id === "settings") },
+  ] : section === "learn" ? [
+    { id: "sailing", title: copy.sailing[lang], entries: visible.filter(d => !d.certificate) },
+    { id: "exam", title: copy.exam[lang], entries: visible.filter(d => d.certificate) },
+  ] : [{ id: section, title: "", entries: visible }];
+  const row = (entry: Destination, index: number, count: number) => <ListRow key={entry.id} noBorder={index === count - 1}
+    title={`${section === "practice" ? `${index + 1}. ` : ""}${entry.title[lang]}`} caption={entry.detail?.[lang]}
+    badge={entry.online ? copy.online[lang] : undefined} onPress={() => router.push(entry.native as Href)} />;
+  return <Screen>
+    <Stack.Screen options={{ title, headerShown: false, animation: "fade" }} />
     <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
-      <Text style={styles.intro}>{menu ? copy.menuIntro[lang] : current.description[lang]}</Text>
-      {section === "library" && <View style={styles.search}>
-        <TextInput accessibilityLabel={copy.search[lang]} placeholder={copy.hint[lang]} placeholderTextColor={colors.textMuted} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" clearButtonMode="while-editing" style={styles.input} />
+      <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
+      {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
+      {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={() => router.push(solo.native as Href)} />}
+      {isMenu && <View style={styles.search}>
+        <View style={styles.field}>
+          <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">
+            <Circle cx={7.5} cy={7.5} r={5.5} stroke={colors.textSecondary} strokeWidth={1.8} fill="none" />
+            <Path d="m11.8 11.8 4.2 4.2" stroke={colors.textSecondary} strokeWidth={1.8} strokeLinecap="round" />
+          </Svg>
+          <TextInput accessibilityLabel={copy.search[lang]} placeholder={copy.hint[lang]} placeholderTextColor={colors.textMuted} value={query} onChangeText={setQuery} autoCorrect={false} returnKeyType="search" clearButtonMode="while-editing" style={styles.input} />
+        </View>
         {query ? <Button variant="ghost" onPress={() => setQuery("")}>{copy.clear[lang]}</Button> : null}
       </View>}
-      {menu && !query.trim() && <View style={styles.group}>
-        <Text style={styles.groupTitle} accessibilityRole="header">{copy.navigation[lang]}</Text>
-        {sections.map(entry => <ListRow key={entry.id} title={entry.title[lang]} onPress={() => router.replace(entry.native as Href)} />)}
-      </View>}
-      {groups.filter(g => g.entries.length).map(group => <View key={group.id} style={styles.group}>
-        {group.title ? <Text style={styles.groupTitle} accessibilityRole="header">{group.title}</Text> : null}
-        {group.entries.map((entry, index) => <ListRow key={entry.id} title={`${section === "practice" ? `${index + 1}. ` : ""}${entry.title[lang]}`} caption={[entry.detail?.[lang], entry.online ? copy.online[lang] : null].filter(Boolean).join(" ")} onPress={() => router.push(entry.native as Href)} />)}
-      </View>)}
-      {!visible.length && <Text accessibilityLiveRegion="polite">{copy.empty[lang]}</Text>}
+      {groups.filter(g => g.entries.length).map(group => <Group key={group.id} title={group.title}>
+        {group.entries.map((entry, index) => row(entry, index, group.entries.length))}
+      </Group>)}
+      {isMenu && !query.trim() && <MyProgress />}
+      {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
       {section === "practice" && <Button variant="ghost" onPress={() => router.push("/simulator")}>{copy.fallback[lang]}</Button>}
-      {section === "race" && daily && <ListRow title={copy.daily[lang]} caption={daily.day} onPress={() => router.push("/game?course=daily")} />}
+      {section === "race" && daily && <Group title="">
+        <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push("/game?course=daily")} />
+      </Group>}
     </ScrollView>
   </Screen>;
 }
+
+/**
+ * Counts from this device only, each named for what it counts. It sits after
+ * the catalog and starts collapsed, so the Menu opens on its sections even
+ * with the largest text.
+ */
+function MyProgress() {
+  const { lang } = useI18n();
+  const snapshot = useLearningSnapshot();
+  const [open, setOpen] = useState(false);
+  if (!snapshot) return null;
+  const passed = passedLessonIds(snapshot.bootcamp).size;
+  const rows = [
+    { key: "bootcamp", title: destinations.find(d => d.id === "course")!.title[lang], value: passedOf(passed, bootcampLessons.length)[lang] },
+    { key: "sails", title: destinations.find(d => d.id === "sails")!.title[lang], value: checkedOf(snapshot.sail.checked.length, sailLessons.length)[lang] },
+    { key: "races", title: sections.find(s => s.id === "race")!.title[lang], value: racesSaved(snapshot.races)[lang] },
+  ];
+  return <View style={styles.group}>
+    <View style={styles.groupShadow}><View style={styles.groupCard}>
+      <Pressable accessibilityRole="button" accessibilityState={{ expanded: open }} onPress={() => setOpen(v => !v)}
+        style={({ pressed }) => [styles.progressHead, pressed && styles.progressHeadPressed]}>
+        <Text style={styles.progressHeadText}>{homeCopy.myProgress[lang]}</Text>
+        <Svg width={14} height={8} viewBox="0 0 14 8" style={open ? styles.chevronOpen : undefined} accessibilityElementsHidden importantForAccessibility="no">
+          <Path d="M1.5 1.5 7 6.5l5.5-5" stroke={colors.textMuted} strokeWidth={1.8} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+        </Svg>
+      </Pressable>
+      {open && <View style={styles.progressBody}>
+        {rows.map(r => <View key={r.key} style={styles.progressRow} accessible accessibilityLabel={`${r.title}. ${r.value}`}>
+          <Text style={styles.progressTitle}>{r.title}</Text>
+          <Text style={styles.progressValue}>{r.value}</Text>
+        </View>)}
+        <Text style={styles.progressNote}>{homeCopy.onDevice[lang]}</Text>
+      </View>}
+    </View></View>
+  </View>;
+}
+
+function Group({ title, children }: { title: string; children: ReactNode }) {
+  return <View style={styles.group}>
+    {title ? <Text style={styles.groupTitle} accessibilityRole="header">{title}</Text> : null}
+    <View style={styles.groupShadow}><View style={styles.groupCard}>{children}</View></View>
+  </View>;
+}
+
 const styles = StyleSheet.create({
-  content: { paddingHorizontal: 20, paddingTop: 20, paddingBottom: 32, gap: 24, maxWidth: 820, width: "100%", alignSelf: "center" },
-  intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24 },
-  group: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderCyanFaint },
-  groupTitle: { paddingTop: 20, paddingBottom: 8, fontSize: 14, fontWeight: "600", color: colors.textSecondary },
+  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 32, gap: 20, maxWidth: 820, width: "100%", alignSelf: "center" },
+  title: { minHeight: 40 },
+  intro: { color: colors.textSecondary, fontSize: 16, lineHeight: 24, marginTop: -8 },
+  group: { gap: 8 },
+  groupTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600", color: colors.textSecondary, paddingHorizontal: 4 },
+  groupShadow: { backgroundColor: colors.bgCard, borderRadius: radii.card, ...shadow.card },
+  groupCard: { borderRadius: radii.card, overflow: "hidden" },
   search: { gap: 4 },
-  input: { minHeight: 48, borderWidth: 1, borderColor: colors.borderCyanFaint, backgroundColor: colors.bgSecondary, borderRadius: 8, paddingHorizontal: 14, paddingVertical: 12, fontSize: 16, color: colors.textPrimary },
+  field: { flexDirection: "row", alignItems: "center", gap: 10, minHeight: 48, borderWidth: StyleSheet.hairlineWidth, borderColor: "rgba(18, 50, 71, 0.18)", backgroundColor: colors.bgCard, borderRadius: radii.control, paddingHorizontal: 14 },
+  input: { flex: 1, paddingVertical: 12, fontSize: 16, color: colors.textPrimary },
+  empty: { color: colors.textSecondary },
+  progressHead: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, minHeight: 52, paddingHorizontal: 16, paddingVertical: 14 },
+  progressHeadPressed: { backgroundColor: colors.bgCardHover },
+  progressHeadText: { fontSize: 16, lineHeight: 22, fontWeight: "600", color: colors.textPrimary, flexShrink: 1 },
+  chevronOpen: { transform: [{ rotate: "180deg" }] },
+  progressBody: { gap: 12, paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.borderCyanFaint, paddingTop: 14 },
+  progressRow: { gap: 2 },
+  progressTitle: { fontSize: 15, lineHeight: 20, fontWeight: "600", color: colors.textPrimary },
+  progressValue: { fontSize: 14, lineHeight: 20, color: colors.textSecondary },
+  progressNote: { fontSize: 13, lineHeight: 18, color: colors.textMuted },
 });

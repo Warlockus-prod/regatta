@@ -2,11 +2,13 @@ import { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Canvas, Group, Path, Skia } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Svg, { Text as SvgText } from 'react-native-svg';
+import Svg, { G, Text as SvgText } from 'react-native-svg';
 import * as Haptics from 'expo-haptics';
 import { colors, spacing } from '../tokens';
 import { pointOfSailAt } from '../../courses/polar';
 import { pointsOfSail } from '../../data';
+import { pointOfSailTone, toneFill } from '../../courses/tones';
+import { tackForHeading } from '../../courses/tack';
 
 interface PointsOfSailDiagramProps {
   size?: number;
@@ -24,14 +26,12 @@ interface PointsOfSailDiagramProps {
 
 // Midpoint angle (deg off the wind) of each point-of-sail sector, for placing the
 // course name + boat glyph. Mirrors the colored sector wedges.
-// Convert a #rrggbb hex to an rgba() string with the given alpha.
-function hexToRgba(hex: string, alpha: number): string {
-  const h = hex.replace('#', '');
-  const r = parseInt(h.slice(0, 2), 16);
-  const g = parseInt(h.slice(2, 4), 16);
-  const b = parseInt(h.slice(4, 6), 16);
-  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-}
+
+// Which tack each half of the wheel shows. A boat glyph on the left half points
+// left (west with the wind from the top), so the wind is over its starboard side.
+// Taken from the same heading rule as the glyphs, never swapped by hand.
+export const LEFT_HALF_TACK = tackForHeading(-90) ?? 'starboard';
+export const RIGHT_HALF_TACK = tackForHeading(90) ?? 'port';
 
 const POS_IDS = ['in-irons', 'close-hauled', 'beam-reach', 'broad-reach', 'running'] as const;
 
@@ -45,19 +45,18 @@ const SECTOR_MIDS: Record<string, number> = {
 };
 
 // Sector wedges derived from the CANONICAL `pointsOfSail` data: the same angle
-// boundaries the tap handler (`pointOfSailAt`) uses, and the same `color` the
-// course cards use - so the wheel never drifts from the data or the web (and a
-// tapped wedge always selects the course it is painted as).
+// boundaries the tap handler (`pointOfSailAt`) uses, so a tapped wedge always
+// selects the course it is painted as. Colours come from the app's paper tones
+// (`src/courses/tones.ts`), not the web's bright data colours.
 const SECTOR_META: { id: string; min: number; max: number; tint: string; hi: string }[] =
   POS_IDS.map((id) => {
     const p = pointsOfSail.find((x) => x.id === id);
-    const color = p?.color ?? '#888888';
     return {
       id,
       min: p?.angleMin ?? 0,
       max: p?.angleMax ?? 0,
-      tint: hexToRgba(color, 0.2),
-      hi: hexToRgba(color, 0.44),
+      tint: toneFill(id, false),
+      hi: toneFill(id, true),
     };
   });
 
@@ -77,8 +76,9 @@ export function PointsOfSailDiagram({
     () =>
       SECTOR_META.map((s) => ({
         ...s,
-        stb: wedgePath(cx, cy, outerR, s.min, s.max),
-        port: wedgePath(cx, cy, outerR, -s.max, -s.min),
+        // Screen halves, not boat sides: the right half is port tack.
+        right: wedgePath(cx, cy, outerR, s.min, s.max),
+        left: wedgePath(cx, cy, outerR, -s.max, -s.min),
       })),
     [cx, cy, outerR],
   );
@@ -179,7 +179,9 @@ export function PointsOfSailDiagram({
           key: `${s.id}-${sign}`,
           name,
           x,
-          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 20 : 0),
+          // Beam reach names are clamped inward at the sides; keep them below
+          // the boat glyph (which sits 20 lower too) so they do not overlap.
+          y: cy + r * Math.sin(rad) + (s.id === "beam-reach" ? 36 : 0),
           muted: false,
         });
       }
@@ -211,14 +213,21 @@ export function PointsOfSailDiagram({
                 const fill = on ? s.hi : s.tint;
                 return (
                   <Group key={s.id}>
-                    <Path path={s.stb} color={fill} />
-                    <Path path={s.port} color={fill} />
+                    <Path path={s.right} color={fill} />
+                    <Path path={s.left} color={fill} />
                   </Group>
                 );
               })}
-              <Path path={tickPath} color={'rgba(232, 244, 248, 0.30)'} style="stroke" strokeWidth={1} />
+              {sectorPaths.filter((s) => s.id === activeId).map((s) => (
+                <Group key={`${s.id}-outline`}>
+                  <Path path={s.right} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                  <Path path={s.left} color={pointOfSailTone(s.id).ink} style="stroke" strokeWidth={2} />
+                </Group>
+              ))}
+              {/* 0.75 ink: at least 4.5:1 over every sector fill, selected (0.26) or not. */}
+              <Path path={tickPath} color={'rgba(18, 50, 71, 0.75)'} style="stroke" strokeWidth={1} />
               <Path path={windArrowPath} color={colors.windColor} style="stroke" strokeWidth={2.5} strokeCap="round" strokeJoin="round" />
-              <Path path={ringPath} color={colors.borderCyanStrong} style="stroke" strokeWidth={1.5} />
+              <Path path={ringPath} color={'rgba(18, 50, 71, 0.75)'} style="stroke" strokeWidth={1.5} />
               {sectorBoats.map((b) => (
                 <Group
                   key={b.key}
@@ -226,9 +235,9 @@ export function PointsOfSailDiagram({
                 >
                   <Path
                     path={boatPath}
-                    color={b.id === activeId ? colors.accentCyan : 'rgba(232, 244, 248, 0.5)'}
+                    color={b.id === activeId ? pointOfSailTone(b.id).ink : colors.textPrimary}
                     style="stroke"
-                    strokeWidth={1.8}
+                    strokeWidth={b.id === activeId ? 2.8 : 1.8}
                   />
                 </Group>
               ))}
@@ -282,17 +291,35 @@ function DiagramLabels({
           {windLabel.toUpperCase()}
         </SvgText>
         {sectorNamePositions.map((c) => (
-          <SvgText
-            key={c.key}
-            x={c.x}
-            y={c.y + 4}
-            fill={c.muted ? 'rgba(255, 120, 120, 0.85)' : colors.textSecondary}
-            fontSize={10}
-            fontWeight="700"
-            textAnchor="middle"
-          >
-            {c.name}
-          </SvgText>
+          <G key={c.key}>
+            {/* Rim names sit where the ring passes: a paper-coloured halo
+                under the letters keeps the ring from cutting through them. */}
+            {!c.muted && (
+              <SvgText
+                x={c.x}
+                y={c.y + 4}
+                fill={colors.bgPrimary}
+                stroke={colors.bgPrimary}
+                strokeWidth={4}
+                strokeLinejoin="round"
+                fontSize={10}
+                fontWeight="700"
+                textAnchor="middle"
+              >
+                {c.name}
+              </SvgText>
+            )}
+            <SvgText
+              x={c.x}
+              y={c.y + 4}
+              fill={c.muted ? pointOfSailTone('in-irons').ink : colors.textSecondary}
+              fontSize={10}
+              fontWeight="700"
+              textAnchor="middle"
+            >
+              {c.name}
+            </SvgText>
+          </G>
         ))}
         {[30, 60, 90, 120, 150, 210, 240, 270, 300, 330].map((deg) => {
           const rad = ((deg - 90) * Math.PI) / 180;
@@ -316,7 +343,7 @@ function DiagramLabels({
               textAnchor="middle"
               letterSpacing={0.6}
             >
-              {tackLabels.port.toUpperCase()}
+              {tackLabels[LEFT_HALF_TACK].toUpperCase()}
             </SvgText>
             <SvgText
               x={cx + outerR * 0.52}
@@ -327,7 +354,7 @@ function DiagramLabels({
               textAnchor="middle"
               letterSpacing={0.6}
             >
-              {tackLabels.starboard.toUpperCase()}
+              {tackLabels[RIGHT_HALF_TACK].toUpperCase()}
             </SvgText>
           </>
         ) : null}

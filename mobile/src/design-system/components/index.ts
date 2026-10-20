@@ -11,6 +11,8 @@ export { RuleScenarioDiagram } from './RuleScenarioDiagram';
 export { RacingCourseDiagram, RacingStrategyDiagram, RacingConceptDiagram } from './RacingDiagrams';
 export { Slider, type SliderOrientation } from './Slider';
 export { LessonDiagram } from './LessonDiagram';
+export { PhotoAnnotation, type PhotoAnnotationPoint } from './PhotoAnnotation';
+export { DiagramStates, type DiagramState } from './DiagramStates';
 export { Icon, type IconName } from './Icon';
 export { Wordmark, type WordmarkSize } from './Wordmark';
 export { EmptyState } from './EmptyState';

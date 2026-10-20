@@ -9,6 +9,15 @@
 
 ---
 
+## Мобильные учебные модули (2026-10-15)
+
+- `mobile/src/bootcamp/learning-guide.ts` - цели, три модуля, состояния схем и задания курса из восьми уроков, семь языков.
+- `mobile/src/bootcamp/FoundationScene.tsx` - нативная интерактивная схема выбранного урока.
+- `mobile/src/bootcamp/lesson-position.ts` - отдельная закладка шага и схемы, проверка ID и адрес возврата.
+- `mobile/src/bootcamp/ReturnToLesson.tsx` - доступная кнопка возврата из практики, цвет наследуется от заголовка.
+- `mobile/__tests__/foundation-learning.test.tsx` - покрытие уроков, языков, сохранения места, ошибок записи и отсутствия ложных оценок.
+- `docs/design/mobile/foundation-release47-2026-10-15.md` - объем, визуальная проверка и статус TestFlight 47.
+
 ## 1. Что это и где работает
 
 Regatta (в UI "Week to Regatta") - учебное приложение по парусному спорту:
@@ -180,6 +189,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/offline/page.tsx` - страница офлайн-фолбэка сервис-воркера.
 - `src/app/privacy/page.tsx` - политика приватности (требование App Store).
 - `src/app/support/page.tsx` - страница поддержки, форма уходит в `/api/support`.
+- `src/app/menu/page.tsx` - Меню сайта: адресуемый каталог всех разделов с поиском (`ProductMenu`), `/library` ведет сюда.
+- `src/app/design-v3/page.tsx` - внутренняя витрина дизайна v3 на русском (`DesignStudio`), не выпущенный раздел и не замена курсов.
 
 ### 4.2 Пять разделов оболочки и контент
 
@@ -372,6 +383,10 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/components/product/ProductHub.tsx` - общий рендер хаба раздела по каталогу.
 - `src/components/product/Product.module.css` - стили продуктовой оболочки.
 - `src/components/product/Navigation.module.css` - стили навигации оболочки.
+- `src/components/product/ProductMenu.tsx` - веб-меню каталога: группы из `src/lib/product/menu.ts`, поиск, пустой результат, цели 44px.
+- `src/components/product/Home.module.css` - стили главной сайта с иллюстрацией.
+- `src/components/design-v3/DesignStudio.tsx` - витрина `/design-v3`: адаптация передачи Claude Design, пример урока, фото анатомии, настоящее меню.
+- `src/components/design-v3/DesignStudio.module.css` - стили витрины.
 
 ### 4.8 Контент `src/data`
 
@@ -398,6 +413,11 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/sailing-lab/slot-lesson.ts` - урок "Щель": грот и генуя как одно крыло, проверка щели, узкая и широкая, ложный диагноз грота.
 - `src/data/sailing-lab/trim-doctor-lesson.ts` - урок "Доктор трима": угол руля как прибор (3-5 / 8 градусов), тяжелый и подветренный руль, нет остроты или скорости.
 - `src/data/sailing-lab/reef-lesson.ts` - урок "Рифление": когда (крен 25, руль 8), системы, порядок слэб-рифления, ошибки, которые рвут парус.
+- `src/data/sailing-lab/winch-lesson.ts` - урок 13 «Лебедка и стопор: путь нагрузки» (7 языков), практика на учебном стенде (`practice: "line-bench"`), добавлен в конец курса.
+- `src/data/sailing-lab/line-bench-copy.ts` - тексты стенда лебедки и стопора: действия, причины отказа, подсказки, 7 языков.
+- `src/data/sailing-lab/lesson-guide.ts` - цели 13 уроков, результаты четырех модулей и подписи учебного пути на семи языках.
+- `src/data/sailing-lab/learning-path.ts` - шаги урока (разобраться, проверить, на лодке; шаги не засчитывают урок), модули программы курса парусов по порядку уроков, термины урока.
+- `src/data/sailing-lab/assessment-copy.ts` - тексты независимой проверки настройки в Тренажере (скрутка, глубина).
 
 ### 4.9 `src/features/sailing-lab` - общая сессия, риг и уроки
 
@@ -413,7 +433,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/runtime/wind.ts` - режимы ветра: ровный, смена, порыв.
 - `src/features/sailing-lab/runtime/presentation.ts` - проекция состояния сессии в модель яхты для сцены.
 - `src/features/sailing-lab/runtime/snapshot.ts` - снимок и воспроизведение сессии по событиям.
-- `src/features/sailing-lab/runtime/checkpoint-storage.ts` - хранилище чекпоинтов тренажера.
+- `src/features/sailing-lab/runtime/checkpoint-storage.ts` - хранилище чекпоинтов и отдельных результатов упражнений; два фиксированных назначения native bridge.
 - `src/features/sailing-lab/runtime/checkpoint-storage.test.ts` - тесты хранилища.
 - `src/features/sailing-lab/runtime/trainer-checkpoint.ts` - формат и лимит чекпоинта.
 - `src/features/sailing-lab/runtime/trainer-checkpoint.test.ts` - тесты чекпоинта.
@@ -428,6 +448,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/rig/response.ts` - статус паруса и знаковый угол атаки.
 - `src/features/sailing-lab/rig/transfer.ts` - перекладка парусов при повороте и перенос нагрузки.
 - `src/features/sailing-lab/lessons/course.test.ts` - целостность курса уроков.
+- `src/features/sailing-lab/lessons/lesson-position.ts` - отдельная версия закладки: шаг и выбранная схема каждого урока, без ответов и оценок.
+- `src/features/sailing-lab/lessons/practice-results.ts` - четыре разрешенных результата упражнений; проверка и объединение, отдельно от теории и снимка сессии.
+- `src/features/sailing-lab/lessons/learning-continuity.test.ts` - сохранение места, поврежденные данные, покрытие модулей и языков, границы native bridge.
 - `src/features/sailing-lab/lessons/progress.ts` - прогресс по урокам парусов в localStorage.
 - `src/features/sailing-lab/lessons/diagrams.ts` - схемы урока: подписи, варианты, показания.
 - `src/features/sailing-lab/lessons/mainsheet-diagram.ts` - схема урока по гика-шкоту.
@@ -442,8 +465,17 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/sailing-lab/lessons/trim-study.test.ts` - тесты разбора трима.
 - `src/features/sailing-lab/scene/trim-rig.ts` - построение сцены рига для визуализации трима.
 - `src/features/sailing-lab/scene/trim-rig.test.ts` - тесты сцены рига.
+- `src/features/sailing-lab/ui/SavePractice.tsx` - явное сохранение завершенного упражнения через браузерное хранилище или native bridge, ошибка и повторная попытка.
+- `src/features/sailing-lab/ui/LessonReturn.tsx` - возврат из тренажера и лодки к известному уроку по разрешенному ID, без произвольного URL.
 - `src/features/sailing-lab/ui/SailingCourse.tsx` - UI курса работы с парусами.
 - `src/features/sailing-lab/ui/SailingCourse.module.css` - стили курса.
+- `src/features/sailing-lab/rig/line-handling.ts` - модель стенда: уже нагруженная снасть, стопор с двухступенчатым рычагом, шлаги, рукоятка, ходовой конец, self-tailer; блокировки строже реального железа, без чисел нагрузки.
+- `src/features/sailing-lab/rig/line-handling.test.ts` - тесты блокировок и передачи нагрузки.
+- `src/features/sailing-lab/rig/line-bench-guide.ts` - команды, подсказки, варианты действий и отчет стенда.
+- `src/features/sailing-lab/rig/line-bench-diagram.ts` - SVG стенда и схема урока `winch`.
+- `src/features/sailing-lab/ui/LineBench.tsx` - веб-стенд лебедки и стопора в шаге «На лодке».
+- `src/features/sailing-lab/lessons/trim-assessment.ts` - независимая проверка настройки при другом ветре: скрутка при том же угле гика или меньшая глубина низа без смены скрутки; результат только в сессии.
+- `src/features/sailing-lab/lessons/trim-assessment.test.ts` - тесты проверки: исходное положение, пауза, смена вида и ранние нажатия результата не дают.
 
 ### 4.10 `src/features/simulator-3d` - Лодка 3D (V2)
 
@@ -528,6 +560,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-v3/ui/pods/JibPod.tsx` - под стакселя.
 - `src/features/simulator-v3/ui/pods/ShapeTrimControls.tsx` - оттяжки и форма паруса.
 - `src/features/simulator-v3/ui/pods/ViewPod.tsx` - выбор вида сцены.
+- `src/features/simulator-v3/hooks/use-trim-assessment.ts` - хук проверки настройки (`?assessment=twist|depth`).
+- `src/features/simulator-v3/ui/panels/TrimAssessmentPanel.tsx` - панель задания и результата проверки.
 
 ### 4.11a `src/features/trainer-controls` - общее управление тренажерами
 
@@ -545,7 +579,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/trainer-controls/labels.ts` - строки дока, штурвалов и настроек на 7 языках.
 - `src/features/trainer-controls/Wheel.tsx` - один штурвал: жест по кругу, клавиши, `role="slider"`.
 - `src/features/trainer-controls/WheelDeck.tsx` - режим штурвалов: руль по центру, стаксель-шкот и гика-шкот по бокам, обмен местами по нажатию.
-- `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка.
+- `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
 - `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: закрепленная сцена, показания, док; горизонталь с доком справа.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
@@ -612,6 +646,10 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/lib/product/copy.ts` - общие тексты оболочки.
 - `src/lib/sternik-progress.ts` - прогресс курса sternik в localStorage.
 - `src/lib/db.leaderboard.test.ts` - SQL лидербордов на настоящем файле SQLite: одна настоящая лучшая строка на sid, миссии не попадают в свободные бакеты, полуоткрытое окно дня.
+- `src/lib/product/menu.ts` - общий контракт меню: группы каталога для сайта и приложения, пункт навигации раздела; оболочки у сайта и приложения свои.
+- `src/lib/product/learning.ts` - продолжение обучения и закладка для сайта (формат сайта в localStorage, не формат приложения).
+- `src/lib/product/learning-web.ts` - чтение и запись закладки и снимка обучения в localStorage сайта.
+- `src/lib/product/learning.test.ts` - тесты продолжения и закладки сайта.
 
 ### 4.13 `ws-server` - сервер мультиплеера
 
@@ -683,6 +721,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
+- `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд.
 
 ### 4.16 Корневые конфиги
 

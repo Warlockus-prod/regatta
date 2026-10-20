@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useBootcampProgress } from '../src/persistence/bootcamp';
+import { settleProgress } from '../src/test-settle';
 
 jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock'),
@@ -72,6 +73,8 @@ describe('useBootcampProgress - markCompleted', () => {
 
     expect(result.current.isCompleted('wind-direction')).toBe(true);
     expect(result.current.completedIds.has('wind-direction')).toBe(true);
+    await settleProgress();
+    expect([...result.current.completedIds]).toEqual(['wind-direction']);
   });
 
   it('persists to AsyncStorage', async () => {
@@ -88,6 +91,7 @@ describe('useBootcampProgress - markCompleted', () => {
       const parsed = JSON.parse(raw ?? '[]');
       expect(parsed).toContain('wind-direction');
     });
+    await settleProgress();
   });
 
   it('is idempotent (multiple calls do not duplicate)', async () => {
@@ -101,6 +105,9 @@ describe('useBootcampProgress - markCompleted', () => {
     });
 
     expect(result.current.completedIds.size).toBe(1);
+    await settleProgress();
+    expect(result.current.completedIds.size).toBe(1);
+    expect(JSON.parse((await AsyncStorage.getItem(STORAGE_KEY)) ?? '[]')).toEqual(['wind-direction']);
   });
 
   it('accumulates multiple distinct lessons', async () => {
@@ -113,6 +120,8 @@ describe('useBootcampProgress - markCompleted', () => {
       result.current.markCompleted('rules');
     });
 
+    expect(result.current.completedIds.size).toBe(3);
+    await settleProgress();
     expect(result.current.completedIds.size).toBe(3);
   });
 });

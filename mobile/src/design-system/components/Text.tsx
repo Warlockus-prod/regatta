@@ -1,50 +1,62 @@
 import { Text as RNText, type TextProps as RNTextProps, StyleSheet } from 'react-native';
-import { colors } from '../tokens';
+import { bySurface, useSurface } from '../surface';
 
-export type TextVariant = 'title' | 'subtitle' | 'body' | 'caption' | 'muted' | 'accent';
+/**
+ * Themed Text. Default variant is `body`. `eyebrow` is the small uppercase
+ * label above a heading ("NEXT LESSON · 2 OF 8"); the caller passes the
+ * text in normal case, the style uppercases it.
+ */
+export type TextVariant = 'title' | 'subtitle' | 'body' | 'caption' | 'muted' | 'accent' | 'eyebrow';
 
 interface TextProps extends RNTextProps {
   variant?: TextVariant;
 }
 
-const variantStyles = StyleSheet.create({
+const variantStyles = bySurface((c) => StyleSheet.create({
   title: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 28,
+    lineHeight: 34,
     fontWeight: '700',
-    letterSpacing: 0.3,
+    letterSpacing: -0.4,
   },
   subtitle: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 18,
+    lineHeight: 24,
     fontWeight: '600',
   },
   body: {
-    color: colors.textPrimary,
+    color: c.textPrimary,
     fontSize: 16,
     fontWeight: '400',
-    lineHeight: 22,
+    lineHeight: 24,
   },
   caption: {
-    color: colors.textSecondary,
+    color: c.textSecondary,
     fontSize: 13,
     lineHeight: 18,
   },
   muted: {
-    color: colors.textMuted,
+    color: c.textMuted,
     fontSize: 13,
   },
   accent: {
-    color: colors.accentCyan,
+    color: c.accentCyan,
     fontSize: 16,
     fontWeight: '600',
   },
-});
+  eyebrow: {
+    color: c.eyebrow,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '700',
+    letterSpacing: 1.3,
+    textTransform: 'uppercase',
+  },
+}));
 
-/**
- * Brand-aware Text. Default variant is `body`. Pass `style` to override
- * specific properties; the variant style is applied first.
- */
 export function Text({ variant = 'body', style, ...rest }: TextProps) {
-  return <RNText {...rest} style={[variantStyles[variant], style]} />;
+  const surface = useSurface();
+  return <RNText {...rest} style={[variantStyles[surface][variant], style]} />;
 }

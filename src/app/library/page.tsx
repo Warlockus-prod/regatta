@@ -1,3 +1,4 @@
-import ProductHub from "@/components/product/ProductHub";
+import { redirect } from "next/navigation";
 
-export default function Page() { return <ProductHub section="library" />; }
+// Preserve bookmarks without maintaining two competing all-sections catalogs.
+export default function Page() { redirect("/menu"); }

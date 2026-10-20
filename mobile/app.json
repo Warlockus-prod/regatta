@@ -9,7 +9,7 @@
     },
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -19,9 +19,10 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "49",
+      "buildNumber": "50",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
+        "UIViewControllerBasedStatusBarAppearance": true,
         "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
         "CFBundleDevelopmentRegion": "en",
         "CFBundleLocalizations": [
@@ -117,7 +118,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 49,
+      "versionCode": 50,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"

@@ -29,7 +29,8 @@ import { Screen } from '../../src/design-system/components/Screen';
 import { Text } from '../../src/design-system/components/Text';
 import { anatomyParts, type AnatomyPart } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
-import { colors, motion, radii, spacing } from '../../src/design-system/tokens';
+import { darkColors as colors, motion, radii, spacing } from '../../src/design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 import { HOTSPOTS } from '../../src/anatomy/hotspots';
 import { YACHT_PATHS, YACHT_VIEWBOX } from '../../src/anatomy/yacht-svg';
 
@@ -80,7 +81,7 @@ function posterTitle(poster: AnatomyPosterAsset, posterLang: PosterLang): string
   return posterLang === 'ru' ? poster.titleRu : poster.titleEn;
 }
 
-export default function Anatomy() {
+function Anatomy() {
   const { tp, lang } = useI18n();
   const { width: screenWidth } = useWindowDimensions();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -160,7 +161,7 @@ export default function Anatomy() {
 
   return (
     <Screen>
-      <Stack.Screen options={{ title: headerTitle }} />
+      <Stack.Screen options={{ ...darkStackOptions, title: headerTitle }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.intro}>
           <Text variant="caption">{intro}</Text>
@@ -1023,3 +1024,8 @@ const sheetStyles = StyleSheet.create({
     fontWeight: '700',
   },
 });
+
+/** Instrument screen: dark ocean palette, see design-system/surface. */
+export default function AnatomyRoute() {
+  return <DarkSurface><Anatomy /></DarkSurface>;
+}

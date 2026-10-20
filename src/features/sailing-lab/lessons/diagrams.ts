@@ -8,8 +8,11 @@ import { jibLeadCopy, jibLeadDrawing, jibLeadReadout } from "./jib-lead-diagram"
 import { slotCopy, slotDrawing, slotReadout } from "./slot-diagram";
 import { helmCopy, helmDrawing, helmReadout } from "./helm-diagram";
 import { reefCopy, reefDrawing, reefReadout } from "./reef-diagram";
+import { lineBenchDrawing, lineBenchExample } from "../rig/line-bench-diagram";
+import { lineCopy } from "../../../data/sailing-lab/line-bench-copy";
 
 export const diagramCopy = {
+  winch: lineCopy.legend,
   vang: shapeCopy.vang,
   outhaul: shapeCopy.outhaul,
   mainsheet: mainsheetCopy.description,
@@ -46,6 +49,7 @@ const isBookDiagram = (kind: SailLesson["diagram"]): kind is BookDiagram => kind
 
 export function diagramOptions(kind: SailLesson["diagram"], lang: Language) {
   if (isBookDiagram(kind)) return bookDiagrams[kind].options.map((label, value) => ({ value, label: label[lang] }));
+  if (kind === "winch") return [lineCopy.clutch, lineCopy.winch, lineCopy.paidOut].map((label, value) => ({ value, label: label[lang] }));
   if (kind === "vang" || kind === "outhaul") return shapeCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "mainsheet") return mainsheetCopy.options.map((label, value) => ({ value, label: label[lang] }));
   if (kind === "wind") return [0, 4, 8].map(value => ({ value, label: `${value} kn` }));
@@ -75,6 +79,8 @@ export function sailDiagram(kind: SailLesson["diagram"], selection: number): str
   let drawing = "";
   if (isBookDiagram(kind)) {
     drawing = bookDiagrams[kind].drawing(selection);
+  } else if (kind === "winch") {
+    drawing = lineBenchDrawing(lineBenchExample(selection));
   } else if (kind === "vang" || kind === "outhaul") {
     drawing = shapeDrawing(kind, selection);
   } else if (kind === "mainsheet") {

@@ -8,7 +8,8 @@ import {
 import { Card } from './Card';
 import { Text } from './Text';
 import { Icon } from './Icon';
-import { colors, radii, spacing } from '../tokens';
+import { radii, spacing } from '../tokens';
+import { bySurface, useSurface, useSurfaceColors } from '../surface';
 import { useI18n } from '../../i18n/context';
 import { fetchWeatherNow, type WeatherNow } from '../../api/weather';
 
@@ -63,6 +64,8 @@ function toCardinal(dirDeg: number): string {
 }
 
 export function WindNowCard() {
+  const styles = themed[useSurface()];
+  const colors = useSurfaceColors();
   const { tp } = useI18n();
   const [selectedKey, setSelectedKey] = useState<string>(SPOTS[0].key);
   const [state, setState] = useState<LoadState>({ status: 'loading' });
@@ -265,6 +268,7 @@ interface WindReadoutProps {
 }
 
 function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindReadoutProps) {
+  const styles = themed[useSurface()];
   const speed = Math.round(data.wind.speedKn);
   const dirDeg = Math.round(data.wind.dirDeg);
   const cardinal = toCardinal(data.wind.dirDeg);
@@ -298,7 +302,7 @@ function WindReadout({ data, unitKn, gustLabel, waveLabel, currentLabel }: WindR
   );
 }
 
-const styles = StyleSheet.create({
+const themed = bySurface((colors) => StyleSheet.create({
   card: {
     marginHorizontal: spacing.lg,
     marginBottom: spacing.md,
@@ -403,4 +407,4 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     color: colors.textMuted,
   },
-});
+}));

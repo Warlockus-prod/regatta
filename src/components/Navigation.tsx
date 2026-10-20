@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
 import LanguageToggle from "./LanguageToggle";
 import ThemeToggle from "./ThemeToggle";
 import { useI18n } from "@/lib/i18n";
-import { sectionForPath, sections } from "@/lib/product/catalog";
+import { sectionForPath } from "@/lib/product/catalog";
+import { menuEntry, navigationItemForSection, primarySections } from "@/lib/product/menu";
 import { copy } from "@/lib/product/copy";
+import { bookmarkForPath } from "@/lib/product/learning";
+import { saveLearningBookmark } from "@/lib/product/learning-web";
 import styles from "./product/Navigation.module.css";
 
 export default function Navigation() {
@@ -15,6 +18,10 @@ export default function Navigation() {
   const { lang } = useI18n();
   const navRef = useRef<HTMLElement>(null);
   const [embed, setEmbed] = useState(false);
+  useEffect(() => {
+    const bookmark = bookmarkForPath(pathname, "web");
+    if (bookmark) saveLearningBookmark(bookmark);
+  }, [pathname]);
   useEffect(() => {
     // The native WebViews supply their own navigation.
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -29,7 +36,7 @@ export default function Navigation() {
     return () => { observer.disconnect(); document.documentElement.style.removeProperty("--site-nav-h"); };
   }, [embed]);
   if (embed) return null;
-  const selected = sectionForPath(pathname, "web");
+  const selected = navigationItemForSection(sectionForPath(pathname, "web"));
   return <nav data-product-navigation ref={navRef} className={styles.nav} aria-label={copy.navigation[lang]}>
     <div className={styles.inner}>
       <Link href="/" className={styles.brand} aria-label="Regatta">
@@ -38,8 +45,13 @@ export default function Navigation() {
           <path d="M2 24c6 3 16 3 22 0" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round"/>
         </svg><span>Regatta</span>
       </Link>
-      <div className={styles.links}>{sections.map(s => <Link key={s.id} href={s.web} aria-current={selected === s.id ? "page" : undefined} className={styles.link}>{s.title[lang]}</Link>)}</div>
-      <div className={styles.tools}><LanguageToggle /><ThemeToggle /></div>
+      <div className={styles.links}>{primarySections.map(s => <Link key={s.id} href={s.web} aria-current={selected === s.id ? "page" : undefined} className={styles.link}>{s.title[lang]}</Link>)}</div>
+      <div className={styles.tools}>
+        <Link href={menuEntry.web} className={styles.menu} aria-label={copy.menu[lang]} title={copy.allSections[lang]} aria-current={selected === "menu" ? "page" : undefined}>
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>{copy.menu[lang]}
+        </Link>
+        <LanguageToggle />{pathname !== menuEntry.web && <span className={styles.theme}><ThemeToggle /></span>}
+      </div>
     </div>
   </nav>;
 }

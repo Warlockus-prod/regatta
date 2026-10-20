@@ -1,26 +1,42 @@
 /**
- * Bootcamp progress: persists which lesson IDs the user has opened, in
- * AsyncStorage. v1 pattern: tapping "Open" on a lesson detail counts as
- * completion. Future versions may add explicit complete / uncomplete
- * controls and per-lesson notes.
+ * Bootcamp progress in AsyncStorage.
+ *
+ * The v1 key kept its old name ("completed") but was written when a lesson's
+ * practice opened or any quiz result was recorded, so it only proves the
+ * lesson was VIEWED. Whether a lesson is passed is decided in
+ * `src/bootcamp/status.ts` from real evidence: a passed quiz, or for lessons
+ * without a quiz the learner's explicit "done" mark stored below.
  *
  * Storage shape:
  *   key   = `regatta.progress.bootcamp.v1`
- *   value = JSON-encoded string[] of lesson IDs
+ *   value = JSON-encoded string[] of viewed lesson IDs (legacy name)
  *
  *   key   = `regatta.progress.bootcamp.lastViewed.v1`
  *   value = JSON-encoded string (the last opened lesson id) or absent
+ *
+ *   key   = `regatta.progress.bootcamp.done.v1`
+ *   value = JSON-encoded string[] of lessons the learner marked as done
+ *
+ * Every read and write goes through `serial` (./serial.ts), and updates are
+ * read-merge-write on the stored value, never a write of the in-memory copy:
+ * a lesson opened before the hook finished reading can no longer replace the
+ * stored history with a single ID.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { serial } from './serial';
 
 const STORAGE_KEY = 'regatta.progress.bootcamp.v1';
 const LAST_VIEWED_KEY = 'regatta.progress.bootcamp.lastViewed.v1';
+const DONE_KEY = 'regatta.progress.bootcamp.done.v1';
 
-async function readCompletedIds(): Promise<Set<string>> {
+/** Every bootcamp progress key, for resets. */
+export const BOOTCAMP_PROGRESS_KEYS = [STORAGE_KEY, LAST_VIEWED_KEY, DONE_KEY] as const;
+
+async function readSetRaw(key: string): Promise<Set<string>> {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const raw = await AsyncStorage.getItem(key);
     if (!raw) return new Set();
     const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return new Set();
@@ -30,15 +46,15 @@ async function readCompletedIds(): Promise<Set<string>> {
   }
 }
 
-async function writeCompletedIds(ids: Set<string>): Promise<void> {
+async function writeSetRaw(key: string, ids: Set<string>): Promise<void> {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+    await AsyncStorage.setItem(key, JSON.stringify([...ids]));
   } catch {
     /* ignore - keep in-memory state */
   }
 }
 
-async function readLastViewedId(): Promise<string | null> {
+async function readLastViewedRaw(): Promise<string | null> {
   try {
     const raw = await AsyncStorage.getItem(LAST_VIEWED_KEY);
     if (!raw) return null;
@@ -49,21 +65,71 @@ async function readLastViewedId(): Promise<string | null> {
   }
 }
 
-async function writeLastViewedId(id: string): Promise<void> {
-  try {
-    await AsyncStorage.setItem(LAST_VIEWED_KEY, JSON.stringify(id));
-  } catch {
-    /* ignore - keep in-memory state */
-  }
+export function readCompletedIds(): Promise<Set<string>> {
+  return serial(() => readSetRaw(STORAGE_KEY));
 }
 
+export function readDoneIds(): Promise<Set<string>> {
+  return serial(() => readSetRaw(DONE_KEY));
+}
+
+export function readLastViewedId(): Promise<string | null> {
+  return serial(readLastViewedRaw);
+}
+
+/** Add one viewed lesson to the stored set; resolves with the stored set. */
+export function addViewedId(id: string): Promise<Set<string>> {
+  return serial(async () => {
+    const stored = await readSetRaw(STORAGE_KEY);
+    if (!stored.has(id)) {
+      stored.add(id);
+      await writeSetRaw(STORAGE_KEY, stored);
+    }
+    return stored;
+  });
+}
+
+/** Set or clear one done mark; resolves with the stored set. */
+export function setDoneMark(id: string, done: boolean): Promise<Set<string>> {
+  return serial(async () => {
+    const stored = await readSetRaw(DONE_KEY);
+    if (stored.has(id) !== done) {
+      if (done) stored.add(id); else stored.delete(id);
+      await writeSetRaw(DONE_KEY, stored);
+    }
+    return stored;
+  });
+}
+
+export function writeLastViewedId(id: string): Promise<void> {
+  return serial(async () => {
+    try {
+      await AsyncStorage.setItem(LAST_VIEWED_KEY, JSON.stringify(id));
+    } catch {
+      /* ignore - keep in-memory state */
+    }
+  });
+}
+
+const union = (a: Set<string>, b: Set<string>): Set<string> => {
+  if ([...b].every((id) => a.has(id))) return a;
+  return new Set([...a, ...b]);
+};
+
 export interface BootcampProgress {
-  /** Set of completed lesson IDs. Empty until hydration completes. */
+  /**
+   * Viewed lesson IDs (legacy name: the v1 key calls them completed).
+   * Empty until hydration completes. Not proof of passing, see status.ts.
+   */
   completedIds: Set<string>;
+  /** Lessons the learner explicitly marked as done (lessons without a quiz). */
+  doneIds: Set<string>;
   /** True after the first hydration pass (storage read finished). */
   ready: boolean;
-  /** Mark a lesson id complete. Idempotent, safe to call repeatedly. */
+  /** Record that a lesson was viewed. Idempotent, safe to call repeatedly. */
   markCompleted: (id: string) => void;
+  /** Explicit "done" mark, or clear it. */
+  setDone: (id: string, done: boolean) => void;
   /** Synchronous check against the live in-memory set. */
   isCompleted: (id: string) => boolean;
   /**
@@ -76,22 +142,26 @@ export interface BootcampProgress {
 }
 
 /**
- * Hook for the bootcamp progress set. Hydrates from AsyncStorage on
- * mount, then keeps an in-memory mirror that consumers re-render off of.
- * Writes are fire-and-forget; if persistence fails the user's action
- * still reflects in the UI for the rest of the session.
+ * Hook for the bootcamp progress set: an in-memory mirror of the stored
+ * values. Actions update the mirror at once and merge into storage in the
+ * queue; hydration merges with actions taken before it finished instead of
+ * replacing them. Screens that must show changes made on another screen
+ * re-read through `useLearningSnapshot` (src/home) on focus.
  */
 export function useBootcampProgress(): BootcampProgress {
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [doneIds, setDoneIds] = useState<Set<string>>(new Set());
   const [lastViewedLessonId, setLastViewedLessonId] = useState<string | null>(null);
   const [ready, setReady] = useState(false);
+  const touched = useRef({ lastViewed: false, done: false });
 
   useEffect(() => {
     let cancelled = false;
-    Promise.all([readCompletedIds(), readLastViewedId()]).then(([ids, lastId]) => {
+    Promise.all([readCompletedIds(), readLastViewedId(), readDoneIds()]).then(([ids, lastId, done]) => {
       if (cancelled) return;
-      setCompletedIds(ids);
-      setLastViewedLessonId(lastId);
+      setCompletedIds((prev) => union(ids, prev));
+      if (!touched.current.lastViewed) setLastViewedLessonId(lastId);
+      if (!touched.current.done) setDoneIds(done);
       setReady(true);
     });
     return () => {
@@ -100,13 +170,19 @@ export function useBootcampProgress(): BootcampProgress {
   }, []);
 
   const markCompleted = useCallback((id: string) => {
-    setCompletedIds((prev) => {
-      if (prev.has(id)) return prev;
+    setCompletedIds((prev) => union(prev, new Set([id])));
+    void addViewedId(id).then((stored) => setCompletedIds((prev) => union(prev, stored)));
+  }, []);
+
+  const setDone = useCallback((id: string, done: boolean) => {
+    touched.current.done = true;
+    setDoneIds((prev) => {
+      if (prev.has(id) === done) return prev;
       const next = new Set(prev);
-      next.add(id);
-      void writeCompletedIds(next);
+      if (done) next.add(id); else next.delete(id);
       return next;
     });
+    void setDoneMark(id, done).then((stored) => setDoneIds(stored));
   }, []);
 
   const isCompleted = useCallback(
@@ -115,11 +191,9 @@ export function useBootcampProgress(): BootcampProgress {
   );
 
   const markLastViewed = useCallback((id: string) => {
-    setLastViewedLessonId((prev) => {
-      if (prev === id) return prev;
-      void writeLastViewedId(id);
-      return id;
-    });
+    touched.current.lastViewed = true;
+    setLastViewedLessonId(id);
+    void writeLastViewedId(id);
   }, []);
 
   // Stable returned object: re-renders only when one of the inputs flips,
@@ -127,14 +201,18 @@ export function useBootcampProgress(): BootcampProgress {
   return useMemo(
     () => ({
       completedIds,
+      doneIds,
       ready,
       markCompleted,
+      setDone,
       isCompleted,
       lastViewedLessonId,
       markLastViewed,
     }),
     [
       completedIds,
+      doneIds,
+      setDone,
       ready,
       markCompleted,
       isCompleted,

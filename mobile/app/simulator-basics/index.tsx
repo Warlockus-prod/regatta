@@ -8,7 +8,8 @@ import Svg, { Circle, G, Path, Text as SvgText } from 'react-native-svg';
 import { useI18n } from '../../src/i18n/context';
 import { legacyPick } from '../../src/i18n/languages';
 import { Button, Screen, Text } from '../../src/design-system/components';
-import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 import {
   NO_GO_HALF_DEG,
   angleToWind,
@@ -34,7 +35,7 @@ function ringPoint(cx: number, cy: number, r: number, deg: number) {
   return { x: cx + r * Math.sin(rad), y: cy - r * Math.cos(rad) };
 }
 
-export default function SimulatorBasicsScreen() {
+function SimulatorBasicsScreen() {
   const { tp, lang } = useI18n();
   const { width: winW, height: winH } = useWindowDimensions();
 
@@ -224,7 +225,7 @@ export default function SimulatorBasicsScreen() {
   // ---- render --------------------------------------------------------------
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen options={{ ...darkStackOptions, title }} />
       <View style={styles.content}>
         <GestureDetector gesture={pan}>
           <View
@@ -478,3 +479,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
+
+/** Instrument screen: dark ocean palette, see design-system/surface. */
+export default function SimulatorBasicsScreenRoute() {
+  return <DarkSurface><SimulatorBasicsScreen /></DarkSurface>;
+}
