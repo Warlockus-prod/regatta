@@ -3,8 +3,8 @@
 Operational check dated 2026-10-20: public 1.6.4 (48) is READY_FOR_SALE.
 TestFlight 1.7.0 has two lines that met in build 50: builds 45-47 (Codex
 branch `codex/learning-modules`, design v3 and learning modules) and build 49
-(trainer controls from `main`). Build 50 carries both; builds 51-52 add the
-polish pass and the regatta venues. App Store version 1.7.0 is in Prepare for
+(trainer controls from `main`). Build 50 carries both; builds 51-53 add the
+polish pass, the regatta venues and the race modes. App Store version 1.7.0 is in Prepare for
 Submission, not submitted yet (owner: polish first). Older rows below are historical submission snapshots.
 
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
@@ -14,6 +14,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 53 | 1.7.0 | branch `claude/polish-1.7.0` (`d3193d5` plus the build number) | Self (TestFlight, 2026-10-22) | Build 52 plus race modes in the Race hub (simple: auto trim; pro: mainsheet and jib sheet by sliders or wheels under the course, sail state shown), the shore and islands switch, steering toward the finger (it used to run from the screen centre) and a smaller player yacht. |
 | 52 | 1.7.0 | branch `claude/polish-1.7.0` (`803f711` plus the build number) | Self (TestFlight, 2026-10-22) | Build 51 plus the regatta venues (ADR-0005): shore and islands around the native race (Göcek, Split, Masuria, the Solent, open sea; picker in the Race hub; boats stay inside the bay), mountains and islands on the 3D horizon. What's New for 1.7.0 mentions the venues. |
 | 51 | 1.7.0 | branch `claude/polish-1.7.0` (`7676844` plus the build number) | Self (TestFlight, 2026-10-22) | Polish after build 50: nothing drawn over the boat in the trainers (bar above the scene, readouts under it, views slide out from the side, no empty band under the wheels), the native race HUD under the course, texts in 7 languages after the language review, American English. Checked as a Release build on iPhone 18 Pro, iOS 27. |
 | 50 | 1.7.0 | branch `claude/release-1.7.0-all` (merge `8d7b570` of `codex/learning-modules` into main `f867478`) | Self (TestFlight, 2026-10-20) | Builds 47 and 49 in one: design v3 Home with the photo header and course tiles, the Menu tab and hubs, learning modules (eight foundation lessons in three modules, 13 sail lessons with understand / check / on the boat), return to the lesson from the trainers, plus the trainer controls of build 49 (pinned boat, tabbed dock, wheels, Settings > Trainers, landscape). New here: coming from a lesson, the trainer dock opens on a Task tab. Gate 2026-10-21: Release build, clean install and launch on iOS 27.0 (iPhone 18 Pro) and iOS 26.5 (iPhone 17 Pro); installed over 1.6.4 (48, Release simulator build of `50a4cf7`) with seeded progress: all 8 stored keys kept, Russian UI kept, Home continues at lesson 4 "Tacking", sails 2 of 13; the foundation course shows 1 of 8 passed where 1.6.4 showed 3 of 8 done, because lessons now pass only on evidence (ADR-0014). Xcode 27.1 (27A9275), SDK 24A94232. G1 same 3 known heuristic findings as main, G4 precheck clean, G4b privacy label matches. App Store version 1.7.0 created with build 50, What's New in 8 locales (`mobile/releases/1.7.0.json`), review notes set (`mobile/releases/review-notes-1.7.0.txt`); not submitted. |
