@@ -69,7 +69,7 @@ export interface RaceRecord {
   windStrength?: 'light' | 'medium' | 'heavy';
 }
 
-async function readRaces(): Promise<RaceRecord[]> {
+export async function readRaces(): Promise<RaceRecord[]> {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return [];

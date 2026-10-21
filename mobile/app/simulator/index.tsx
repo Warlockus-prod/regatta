@@ -63,7 +63,8 @@ import {
 import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
-import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 
 const COMPASS_R = 48;
 const SNAP_DEG = 15;
@@ -341,7 +342,7 @@ function insideCompassAt(
   return dx * dx + dy * dy <= (COMPASS_R + 8) * (COMPASS_R + 8);
 }
 
-export default function Simulator() {
+function Simulator() {
   const { tp, lang } = useI18n();
   const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
@@ -1182,7 +1183,7 @@ export default function Simulator() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen options={{ ...darkStackOptions, title }} />
       {/* The boat stays on screen (owner decision 2026-10-19): header, mission
           status, scene and readouts are pinned; only the controls below scroll. */}
       <View style={styles.pinned}>
@@ -3656,3 +3657,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
 });
+
+/** Instrument screen: dark ocean palette, see design-system/surface. */
+export default function SimulatorRoute() {
+  return <DarkSurface><Simulator /></DarkSurface>;
+}

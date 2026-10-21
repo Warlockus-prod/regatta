@@ -22,19 +22,14 @@ export function ViewPod(props: {
   paused: boolean;
   togglePause: () => void;
   children?: React.ReactNode;
+  section: "camera" | "session";
 }) {
   const { ui, setUi, tp, applyOptimal, resetAll, setPreset, compact, paused, togglePause } = props;
   return (
     <PodCard compact={compact}>
-      <PodLabel
-        text={tp('ВИД', 'VIEW', 'WIDOK', {
-          es: 'VISTA',
-          fr: 'VUE',
-          de: 'ANSICHT',
-          it: 'VISTA',
-        })}
-        compact={compact}
-      />
+      {props.section === "camera" && <>
+      <div className="flex items-center gap-2" aria-label={tp("Вид и пауза", "View and pause", "Widok i pauza", { es: "Vista y pausa", fr: "Vue et pause", de: "Ansicht und Pause", it: "Vista e pausa" })}>
+      <div className="flex-1 min-w-0">
       <PodSegmented
         compact={compact}
         options={[
@@ -55,10 +50,15 @@ export function ViewPod(props: {
         active={ui.view}
         onSelect={(v) => setUi((p) => ({ ...p, view: v as ViewMode }))}
       />
-      <button onClick={togglePause} aria-pressed={paused} className="min-h-11 rounded-md border border-[var(--accent-cyan)] px-3 text-sm text-[var(--accent-cyan)]">
+      </div>
+      <button onClick={togglePause} aria-pressed={paused} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-2 text-xs text-[var(--text-primary)]">
         {paused ? tp("Продолжить", "Resume", "Wznów", { es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" })
           : tp("Пауза", "Pause", "Pauza", { es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" })}
       </button>
+      </div>
+      </>}
+      {props.section === "session" && <>
+      <PodLabel text={tp("НАСТРОЙКИ СЕССИИ", "SESSION SETTINGS", "USTAWIENIA SESJI", { es: "AJUSTES DE SESIÓN", fr: "RÉGLAGES DE SESSION", de: "SITZUNGSEINSTELLUNGEN", it: "IMPOSTAZIONI SESSIONE" })} />
       <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{tp("Учебная помощь: курс удерживается, паруса переходят сами. Смена вида не сбрасывает лодку.", "Teaching assistance: course is held and sails transfer automatically. Changing view keeps the same boat state.", "Pomoc szkoleniowa: kurs jest utrzymywany, żagle przechodzą automatycznie. Zmiana widoku zachowuje stan jachtu.", { es: "Ayuda de aprendizaje: el rumbo se mantiene y las velas cambian de banda solas. Cambiar de vista no reinicia el barco.", fr: "Aide pédagogique : le cap est tenu et les voiles changent de bord seules. Changer de vue ne réinitialise pas le bateau.", de: "Lernhilfe: Der Kurs wird gehalten, die Segel gehen automatisch über. Ein Ansichtswechsel setzt das Boot nicht zurück.", it: "Aiuto didattico: la rotta è mantenuta e le vele passano da sole. Cambiare vista non azzera la barca." })}</p>
       <details>
         <summary className="cursor-pointer py-3 text-xs text-[var(--text-secondary)]">{tp("Паруса и курсы", "Sails and courses", "Żagle i kursy", { es: "Velas y rumbos", fr: "Voiles et allures", de: "Segel und Kurse", it: "Vele e andature" })}</summary>
@@ -87,7 +87,7 @@ export function ViewPod(props: {
           <button
             key={preset.id}
             onClick={() => setPreset(preset.twa)}
-            className={`${
+            className={`min-h-11 ${
               compact ? 'px-0.5 py-0.5 text-[8px]' : 'px-1 py-1 text-[9px]'
             } rounded-md border font-semibold uppercase tracking-wider transition truncate`}
             style={{
@@ -147,6 +147,7 @@ export function ViewPod(props: {
         })}
       </label>}
       {props.children}
+      </>}
     </PodCard>
   );
 }

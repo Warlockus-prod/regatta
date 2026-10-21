@@ -10,13 +10,17 @@
  *
  * Each `recordResult(lessonId, score, total)` overwrites the previous
  * entry for that lesson (one current-best result per lesson is enough
- * for v1; history can be layered later if needed).
+ * for v1; history can be layered later if needed). The overwrite is a
+ * read-merge-write in the shared queue (./serial.ts), so recording a result
+ * never drops the stored results of other lessons.
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { serial } from './serial';
 
-const STORAGE_KEY = 'regatta.bootcamp-quiz.v1';
+export const QUIZ_RESULTS_KEY = 'regatta.bootcamp-quiz.v1';
+const STORAGE_KEY = QUIZ_RESULTS_KEY;
 
 export interface QuizResult {
   /** Number of correctly answered questions. */
@@ -39,9 +43,9 @@ function isQuizResult(x: unknown): x is QuizResult {
   );
 }
 
-async function readResults(): Promise<QuizResultsMap> {
+async function readResultsRaw(): Promise<QuizResultsMap> {
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (!raw) return {};
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
@@ -59,12 +63,17 @@ async function readResults(): Promise<QuizResultsMap> {
   }
 }
 
-async function writeResults(results: QuizResultsMap): Promise<void> {
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(results));
-  } catch {
-    /* ignore - keep in-memory state */
-  }
+export function readQuizResults(): Promise<QuizResultsMap> {
+  return serial(readResultsRaw);
+}
+
+/** Store one lesson's latest result next to the others; resolves with all stored results. */
+export function recordQuizResult(lessonId: string, result: QuizResult): Promise<QuizResultsMap> {
+  return serial(async () => {
+    const stored = { ...(await readResultsRaw()), [lessonId]: result };
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
+    return stored;
+  });
 }
 
 export interface BootcampQuizState {
@@ -72,6 +81,9 @@ export interface BootcampQuizState {
   results: QuizResultsMap;
   /** True after the first hydration pass (storage read finished). */
   ready: boolean;
+  saveError: boolean;
+  saving: boolean;
+  retry: () => void;
   /**
    * Record a freshly finished quiz. `answeredAt` is set automatically
    * to `Date.now()`. Idempotent in shape (overwrites the previous entry
@@ -87,39 +99,42 @@ export interface BootcampQuizState {
 export function useBootcampQuiz(): BootcampQuizState {
   const [results, setResults] = useState<QuizResultsMap>({});
   const [ready, setReady] = useState(false);
+  const [saveError, setSaveError] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const pending = useRef<{ id: string; result: QuizResult } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    readResults().then((map) => {
+    readQuizResults().then((map) => {
       if (cancelled) return;
-      setResults(map);
+      // Results recorded before this read finished win over older stored ones.
+      setResults((prev) => ({ ...map, ...prev }));
       setReady(true);
-    });
+    }).catch(() => { if (!cancelled) setSaveError(true); });
     return () => {
       cancelled = true;
     };
   }, []);
 
-  const recordResult = useCallback(
-    (lessonId: string, score: number, total: number) => {
-      setResults((prev) => {
-        const next: QuizResultsMap = {
-          ...prev,
-          [lessonId]: {
-            score,
-            total,
-            answeredAt: Date.now(),
-          },
-        };
-        void writeResults(next);
-        return next;
-      });
-    },
-    [],
-  );
+  const save = useCallback((id: string, result: QuizResult) => {
+    pending.current = { id, result };
+    setSaving(true);
+    void recordQuizResult(id, result).then(stored => {
+      setResults(stored);
+      if (pending.current?.result === result) { pending.current = null; setSaveError(false); }
+      setReady(true);
+    }).catch(() => setSaveError(true)).finally(() => setSaving(false));
+  }, []);
+  const recordResult = useCallback((lessonId: string, score: number, total: number) => {
+    save(lessonId, { score, total, answeredAt: Date.now() });
+  }, [save]);
+  const retry = useCallback(() => {
+    if (pending.current) save(pending.current.id, pending.current.result);
+    else void readQuizResults().then(map => { setResults(map); setReady(true); setSaveError(false); }).catch(() => setSaveError(true));
+  }, [save]);
 
   return useMemo(
-    () => ({ results, ready, recordResult }),
-    [results, ready, recordResult],
+    () => ({ results, ready, recordResult, saveError, saving, retry }),
+    [results, ready, recordResult, saveError, saving, retry],
   );
 }

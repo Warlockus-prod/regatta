@@ -156,15 +156,15 @@ const toneStyles = StyleSheet.create({
     borderColor: colors.borderCyanFaint,
   },
   picked: {
-    backgroundColor: 'rgba(0, 212, 255, 0.12)',
+    backgroundColor: 'rgba(0, 110, 166, 0.12)',
     borderColor: colors.accentCyan,
   },
   correct: {
-    backgroundColor: 'rgba(68, 255, 136, 0.12)',
+    backgroundColor: 'rgba(0, 109, 112, 0.12)',
     borderColor: colors.success,
   },
   wrong: {
-    backgroundColor: 'rgba(255, 68, 68, 0.12)',
+    backgroundColor: 'rgba(179, 38, 30, 0.12)',
     borderColor: colors.danger,
   },
 });
@@ -247,12 +247,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   explanationCorrect: {
-    backgroundColor: 'rgba(68, 255, 136, 0.08)',
-    borderColor: 'rgba(68, 255, 136, 0.35)',
+    backgroundColor: 'rgba(0, 109, 112, 0.08)',
+    borderColor: 'rgba(0, 109, 112, 0.35)',
   },
   explanationWrong: {
-    backgroundColor: 'rgba(255, 170, 0, 0.08)',
-    borderColor: 'rgba(255, 170, 0, 0.35)',
+    backgroundColor: 'rgba(138, 97, 0, 0.08)',
+    borderColor: 'rgba(138, 97, 0, 0.35)',
   },
   badge: {
     fontSize: 11,

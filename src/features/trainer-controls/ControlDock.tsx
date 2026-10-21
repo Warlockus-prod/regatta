@@ -8,8 +8,9 @@ import type { ControlPrefs, Surface } from "./prefs";
 
 // The control dock under the boat (owner decision 5): tabs instead of a
 // carousel, so a horizontal drag always belongs to the slider under the
-// finger. The first tab is either the user's Favorites (sliders mode) or
-// the wheels (wheels mode); the other tabs group every card by topic.
+// finger. The first tab is the user's Favorites (sliders mode), the wheels
+// (wheels mode) or, when the learner came from a lesson, its task; the other
+// tabs group every card by topic.
 
 export interface DockCard { id: string; title: string; node: ReactNode; }
 export interface DockTab { id: string; label: string; cards: DockCard[]; }
@@ -38,16 +39,18 @@ export function ControlDock(props: {
   update: (patch: Partial<ControlPrefs> | ((p: ControlPrefs) => ControlPrefs)) => void;
   /** Rendered as the first tab in wheels mode. */
   wheelDeck?: ReactNode;
+  /** A task the learner came for (a lesson exercise): takes the first tab's place and opens first. */
+  leadTab?: DockTab;
   hasSheets: boolean;
   rudderAvailable: boolean;
   layout: "bottom" | "column";
   className?: string;
 }) {
-  const { surface, tabs, defaultFavorites, prefs, update, wheelDeck, hasSheets, rudderAvailable, layout, className } = props;
+  const { surface, tabs, defaultFavorites, prefs, update, wheelDeck, leadTab, hasSheets, rudderAvailable, layout, className } = props;
   const labels = useControlLabels();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const wheels = prefs.mode === "wheels" && Boolean(wheelDeck);
-  const firstId = wheels ? "wheels" : "favorites";
+  const wheels = !leadTab && prefs.mode === "wheels" && Boolean(wheelDeck);
+  const firstId = leadTab ? leadTab.id : wheels ? "wheels" : "favorites";
   const [active, setActive] = useState<string>(firstId);
   const choose = (id: string) => setActive(id);
 
@@ -56,13 +59,14 @@ export function ControlDock(props: {
   const favoriteCards = favoriteIds.map((id) => allCards.find((c) => c.id === id)).filter((c): c is DockCard => Boolean(c));
 
   const tabList: { id: string; label: string }[] = [
-    { id: firstId, label: wheels ? labels.tabs.wheels : labels.tabs.favorites },
+    { id: firstId, label: leadTab ? leadTab.label : wheels ? labels.tabs.wheels : labels.tabs.favorites },
     ...tabs.map((t) => ({ id: t.id, label: t.label })),
   ];
   const current = tabList.some((t) => t.id === active) ? active : firstId;
 
   let panel: ReactNode;
-  if (current === "wheels") panel = wheelDeck;
+  if (leadTab && current === leadTab.id) panel = leadTab.cards.map((c) => <div key={c.id} className={styles.card}>{c.node}</div>);
+  else if (current === "wheels") panel = wheelDeck;
   else if (current === "favorites") {
     panel = (
       <>

@@ -13,6 +13,7 @@ import { maneuvers, pointsOfSail, type Maneuver } from '../../src/data';
 import { legacyPick, legacyPickArray, type Lang } from '../../src/i18n/languages';
 import { manoeuvres } from '../../../src/data/sailing-lab/sources';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
+import { pointOfSailTone } from '../../src/courses/tones';
 
 // Tacking and jibing as procedures (the web /courses#turns section): the
 // helmsman's and trimmer's side; the crew's choreography is in the checklist.
@@ -233,9 +234,9 @@ export default function Courses() {
         </View>
 
         {activePoint ? (
-          <View style={[styles.activeBanner, { borderLeftColor: activePoint.color }]}>
+          <View style={[styles.activeBanner, { borderLeftColor: pointOfSailTone(activePoint.id).ink }]}>
             <View style={styles.activeRow}>
-              <View style={[styles.activeDot, { backgroundColor: activePoint.color }]} />
+              <View style={[styles.activeDot, { backgroundColor: pointOfSailTone(activePoint.id).ink }]} />
               <View style={styles.activeNameCol}>
                 <Text variant="subtitle" style={styles.activeName}>
                   {activeName}
@@ -276,7 +277,7 @@ export default function Courses() {
               <Card
                 style={[
                   styles.card,
-                  { borderLeftColor: point.color, borderLeftWidth: 4 },
+                  { borderLeftColor: pointOfSailTone(point.id).ink, borderLeftWidth: 4 },
                   isActive && styles.cardActive,
                 ]}
               >
@@ -344,7 +345,7 @@ export default function Courses() {
           <View
             style={[
               styles.subCard,
-              { backgroundColor: 'rgba(0, 212, 255, 0.05)', borderColor: 'rgba(0, 212, 255, 0.15)' },
+              { backgroundColor: 'rgba(0, 110, 166, 0.05)', borderColor: 'rgba(0, 110, 166, 0.15)' },
             ]}
           >
             <Text variant="caption" style={[styles.subCardTitle, { color: colors.accentCyan }]}>
@@ -402,7 +403,7 @@ export default function Courses() {
           <View
             style={[
               styles.subCard,
-              { backgroundColor: 'rgba(255, 170, 0, 0.05)', borderColor: 'rgba(255, 170, 0, 0.15)' },
+              { backgroundColor: 'rgba(138, 97, 0, 0.05)', borderColor: 'rgba(138, 97, 0, 0.15)' },
             ]}
           >
             <Text variant="caption" style={[styles.subCardTitle, { color: colors.warning }]}>
@@ -692,7 +693,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
     paddingTop: spacing.md,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(0, 212, 255, 0.10)',
+    borderTopColor: 'rgba(0, 110, 166, 0.10)',
   },
   sailLabel: {
     fontSize: 11,

@@ -6,6 +6,225 @@ Each entry: short context + decision + consequences. Newest on top.
 
 ---
 
+## ADR-0018: Mobile foundation course completion (2026-10-15)
+
+**Status:** accepted under the owner's mobile-first and TestFlight instruction.
+
+**Decision.** Finish all eight foundation lessons before adapting the website.
+Three curriculum modules and three steps per lesson make the sequence explicit.
+Keep the wind-direction pilot; port seven relevant vector drawings from the
+local Codex visual kit into the native SVG renderer. New instructional copy
+lives in `bootcamp/learning-guide.ts`, with all seven locales. These are
+teaching diagrams, not a physics model or an operating manual.
+
+Persist step and diagram in `regatta.bootcamp.position.v1` through the existing
+serial storage queue. The position never awards progress. Quiz success is
+shown as saved only after storage acknowledges the write; a read error must
+not replace existing results. Preserve existing IDs, grades and bookmarks.
+
+Practice has an explicit validated `fromLesson` return action. The tacking
+lesson opens the native no-go recovery exercise and says this is not a full
+tack assessment. Gybing opens the bundled Trainer with an observation task;
+it does not invent a completed-maneuver score. Hide the unrelated tier switcher
+when entering the Trainer from a foundation lesson.
+
+**Consequences.** No web deployment, physics changes, remote asset dependency,
+Blender work or App Store review submission in this slice. TestFlight 47 also
+includes the prior sail-course work from ADR-0017. Evidence and limits:
+`foundation-release47-2026-10-15.md`.
+
+---
+
+## ADR-0017: Complete the shared sail-learning path (2026-10-15)
+
+**Status:** accepted for local implementation, not released.
+
+**Context.** The owner prioritised teaching graphics, clear modules and finished
+lessons. The course already has 13 sourced lessons, but step and diagram state
+were lost on navigation, web continuation disagreed with the bookmark, and
+completed exercise results could not survive leaving practice.
+
+**Decision.** Keep the four existing modules and their stable lesson IDs. Give
+every lesson a shared seven-language goal. Use illustrations in the module
+headers and a high-contrast canvas for the existing explanatory SVGs. Retain
+the native annotated-photo pilot. Save lesson position separately from theory.
+Save four completed exercises explicitly: guided mainsheet comparison, twist,
+depth and line bench. Their state machines still determine completion; no
+navigation event awards credit. A known lesson ID supplies the return route.
+Native result storage uses the existing acknowledged bridge with a second
+fixed store and serialized merges, never an arbitrary storage key.
+
+**Alternatives.** Replacing all source lessons or rebuilding 3D would expand
+scope without fixing the broken learning loop. Combining results with theory
+would incorrectly count assisted observation as assessed practical skill.
+File-origin localStorage would not give reliable native persistence on upgrade.
+
+**Consequences.** Existing theory IDs and stored grades stay valid. A read
+failure disables grade saving instead of writing an empty replacement. These
+are local results, not cross-device sync or a boating qualification. Practice
+attempts still reset; the saved completion record is not a session snapshot.
+
+**Verification.** Shared parser/module/locale tests, native remount and failure
+tests, bridge merge tests, browser return-and-reload flow and offline bundle
+consistency. Evidence and remaining gates in
+`docs/design/learning-modules-2026-10-15.md`.
+
+---
+
+## ADR-0016: The 2026-09-21 learning slice merged into v3 (2026-09-29, branch `design/v3`)
+
+**Status:** accepted by the owner's request to ship everything done ("выкатывай все что сделали на тест").
+
+**Context.** A learning slice built on 2026-09-21 (roadmap
+`docs/design/sailing-ux-roadmap-2026-09-21.md`, navigation note
+`docs/design/platform-navigation-2026-09-21.md`) and the 2026-09-28 web design stand
+lay uncommitted in the owner's main checkout, so build 45 did not have them. It was
+captured without touching that checkout as `wip/main-checkout-2026-09-28` (base
+`ecf3c3b`, Codex's local graphics kit `design/` left out) and merged into `design/v3`.
+
+**Decision.**
+
+- Taken whole: lesson 13 "Winch and clutch" with the line bench (native and web), the
+  three lesson steps, module outline and lesson terms, the Trainer's separate camera /
+  conditions / controls / session sections and the independent trim assessment, the
+  web menu page and `/design-v3` review stand. The offline Trainer bundle was rebuilt
+  from the merged sources.
+- The winch lesson is appended as lesson 13, never inserted: stored progress follows
+  the lesson order. Modules follow that order (1-3, 4-6, 7-12, 13) and the six book
+  lessons got terms, which the 09-21 slice predates.
+- The v3 app shell stays: Home, the Menu tab and hubs, and the v3 bookmark format
+  `{course, lessonId, positions}` (ADR-0014). The 09-21 native Menu screen, header
+  Menu button, Home and navigation bookmark writer (older `{course, lesson}` format on
+  the same key) were not carried over; their web counterparts remain for the site.
+- In a template lesson (ADR-0015) the image and "How it works" live in the first step;
+  the check and the boat are the next steps.
+
+**Consequences.** The sail course counts 13 lessons ("Theory checked: N of 13"). The
+main checkout still holds its uncommitted copy; it is now a stale duplicate of this
+branch and should be discarded by the owner once they confirm.
+
+---
+
+## ADR-0015: Lesson template with teaching graphics, two pilots (2026-09-28, branch `design/v3`)
+
+**Status:** proposed; the two pilots wait for the Codex visual review before the other
+lessons move to the template.
+
+**Context.** The owner wants lessons that show the real thing: which line does what, not
+three captions under an abstract drawing. Codex prepared a graphics kit
+(`design/codex-visual-kit-2026-09-28/graphics` in the owner's main checkout, not in git):
+21 topics with three drawn states each, 126 SVG exports, 9 images with 20 hotspots in
+percent of the full image, and a handoff plus an addendum (review folder
+`claude-app-v3-2026-09-28/round3`). The addendum asks for fewer drawings, not more: an
+image of the thing first, one selected detail explained in plain text, one simple drawing
+for the dependency, then the check and the next step.
+
+**Decision.**
+
+- Template order: goal and situation; the image (a photo or illustration for terminology,
+  a drawing first for wind, courses and forces); the explanation; the common mistake and
+  what the graphics leave out; the existing check; the practice. Lesson IDs, questions
+  and the rules for passing do not change, and looking at an image or every marker never
+  counts (`src/lessons/pilots.ts`, `LessonBlocks.tsx`).
+- `PhotoAnnotation` shows the whole frame ("contain") and places markers on the image
+  rectangle actually shown, so the kit's percent coordinates stay true with letterboxing.
+  One selected detail, a list of the same details, 44 pt targets, names and selected state
+  for VoiceOver, a closeup of the same image. Only the kit's points; no lines drawn onto
+  an AI illustration, and its caption says it is one.
+- `DiagramStates` shows one drawing at a time with states named by meaning, the numbered
+  key, and the limit. In a terminology lesson the drawing sits behind a plainly titled
+  "How it works" row after the image; the lesson text stays visible.
+- The two drawings are a TypeScript port of the kit's `drawings.js`
+  (`src/lessons/graphics/drawings.ts`), checked byte for byte against the kit exports in
+  `__tests__/fixtures/codex-graphics`. Words stay in localized components; the SVG carries
+  numbers only.
+- One correction to the kit, flagged for Codex: its wind-direction boat has the boom 24
+  degrees to starboard in all states, which with the wind from starboard is the windward
+  side. The lesson puts the boom on the centreline head to wind and to port (leeward)
+  otherwise; with the kit angle the port reproduces the export.
+- Pilots: `wind-direction` (bootcamp, drawing first) and `rig-basics` (sail course, image
+  first). All other lessons keep their layout until the template is accepted.
+
+**Consequences.**
+
+- `rig-basics` no longer shows the old five-line schematic: outhaul and topping lift stay
+  in the lesson text and the outhaul lesson, not in its drawing. Adding them needs a
+  drawing from Codex, not an invented one.
+- The `wind-direction` lesson loses the old compass drawing and its focus card, which
+  pointed at a no-go zone the drawing did not show; the explanation now covers the no-go
+  zone that quiz questions 2 and 3 ask about.
+- One AI illustration (363 KB) ships in the bundle; provenance in
+  `mobile/assets/lessons/SOURCES.md`.
+- New copy exists in all seven languages; a language adaptation pass by the owner's
+  rules is still open.
+
+---
+
+## ADR-0014: A lesson is passed on evidence; Home continues the last course (2026-09-28, branch `design/v3`)
+
+**Status:** accepted for the design branch, after the Codex review of `fce14ea`.
+
+**Context.** `regatta.progress.bootcamp.v1` was written when a lesson's practice opened
+or any quiz result was recorded, and the app called that "completed": open and leave,
+or fail the quiz, and the lesson counted as passed. The redesign made it louder with a
+check mark. Home also only ever continued the first course.
+
+**Decision.** Keep every stored key; change what they mean. The legacy key means
+viewed. Passed needs evidence: a passed quiz (>= 70%, `QUIZ_PASS_THRESHOLD`) or, for a
+lesson without a quiz (none today), the learner's explicit done mark in
+`regatta.progress.bootcamp.done.v1`. A versioned bookmark
+(`regatta.learning.bookmark.v1`) records the course and lesson on screen focus; Home
+continues that course. Radio and the motorboat course reopen the course itself because
+their step lives inside the embedded course. Unknown IDs degrade to the course level.
+
+**Consequences.**
+
+- Old saves are not lost and not promoted: previously "completed" lessons now show as
+  viewed until their quiz is passed.
+- Counts say what they count ("Passed 2 of 8", "Theory checked: 3 of 12", "Races
+  saved: 4").
+- The bootcamp reset in Settings clears the done marks and quiz results too.
+- All progress IO runs through one queue (`persistence/serial.ts`) as read-merge-write,
+  and the course path, Home and Menu re-read on focus (`useLearningSnapshot`), after the
+  Codex round 2 review found that opening a lesson before the first read replaced the
+  stored history and that the mounted course path showed stale results after Back.
+- The bookmark keeps the last lesson per course, so passing through a course overview
+  does not erase the unfinished lesson.
+
+---
+
+## ADR-0013: v3 paper design: light app, dark instrument screens (2026-09-28, branch `design/v3`)
+
+**Status:** accepted for the design branch; ships only after the owner approves it.
+
+**Context.** The owner chose the Regatta v3 design (Claude Design export, audited in
+`docs/design/regatta-v3-master-plan.md`): warm paper, ink text, one blue action colour,
+real sea photos limited to heroes and covers. The app was dark-only, with 838 colour
+references baked into module-level StyleSheets, and the owner asked to redesign the app
+first and leave the site as it is.
+
+**Decision.** Swap the static palette: `colors` becomes the light "paper" palette and
+the dark-ocean one stays as `darkColors`. Instrument screens (simulators, race, replay,
+offline anatomy, web simulators) keep the dark palette explicitly through `<DarkSurface>`
+and `darkStackOptions`; the shared components pick their styles per surface. No runtime
+theme switch yet: a user-selectable dark mode needs every StyleSheet built per palette,
+which is a separate, larger change (see LIGHT_THEME_AND_RELEASE_SPEC.md).
+
+**Consequences.**
+
+- One coherent light app now, without touching 50 screens one by one; screens with
+  hardcoded dark colours were fixed where found (diagram frames, glossary badges,
+  course cards, settings switch); keep grepping for literal colours in new code.
+- Status bar icons are chosen per screen (scene-based app, see Design system notes).
+- The fifth tab is Menu (whole catalog, reference material as a group), a native
+  adapter over the shared catalog (`navigation/tabs.ts`); the site keeps its sections.
+- The Home "Start/Continue" card and counts read the real saved progress only.
+- The site is unchanged; shared catalog and copy files are not edited, app-only strings
+  live in `mobile/src/home/copy.ts`.
+- iOS 26+ glass header buttons stay light on dark instrument screens (open item).
+
+---
+
 ## ADR-0012: UIScene through a local config plugin, not an Xcode downgrade or an Expo jump (2026-09-28)
 
 **Status:** accepted (hotfix 1.6.3, build 44).

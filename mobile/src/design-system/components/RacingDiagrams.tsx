@@ -30,7 +30,7 @@ export function RacingCourseDiagram() {
         })}
       </Text>
       <Svg viewBox="0 0 360 360" width="100%" height={320}>
-        <Rect x={0} y={0} width={360} height={360} rx={14} fill="#0d2847" />
+        <Rect x={0} y={0} width={360} height={360} rx={14} fill={colors.waterLight} />
         <WindArrow x={180} y={20} length={42} />
         <Line x1={180} y1={76} x2={180} y2={308} stroke="rgba(232,244,248,0.20)" strokeWidth={1} strokeDasharray="6 6" />
         <Buoy
@@ -77,7 +77,7 @@ export function RacingStrategyDiagram({ strategyId }: StrategyDiagramProps) {
   return (
     <View style={styles.strategyFrame}>
       <Svg viewBox="0 0 220 138" width="100%" height={138}>
-        <Rect x={0} y={0} width={220} height={138} rx={10} fill="#0d2847" />
+        <Rect x={0} y={0} width={220} height={138} rx={10} fill={colors.waterLight} />
         <StrategySvg id={strategyId} />
       </Svg>
     </View>
@@ -97,7 +97,7 @@ export function RacingConceptDiagram({ conceptId }: ConceptDiagramProps) {
   return (
     <View style={styles.conceptFrame}>
       <Svg viewBox="0 0 220 132" width="100%" height={132}>
-        <Rect x={0} y={0} width={220} height={132} rx={10} fill="#0d2847" />
+        <Rect x={0} y={0} width={220} height={132} rx={10} fill={colors.waterLight} />
         <ConceptSvg id={conceptId} />
       </Svg>
     </View>
@@ -420,7 +420,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
-    backgroundColor: '#0d2847',
+    backgroundColor: colors.waterLight,
   },
   conceptFrame: {
     marginTop: spacing.md,
@@ -428,6 +428,6 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
-    backgroundColor: '#0d2847',
+    backgroundColor: colors.waterLight,
   },
 });

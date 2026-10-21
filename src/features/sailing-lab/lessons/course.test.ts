@@ -11,10 +11,28 @@ import { halyardState, camberAt } from "./halyard-diagram";
 import { jibLeadState, luffHit, JIB_CARS } from "./jib-lead-diagram";
 import { slotGap } from "./slot-diagram";
 import { helmZone, helmState, HELM_ANGLES } from "./helm-diagram";
+import { courseModules, learningCopy, lessonTermIds, lessonTerms } from "../../../data/sailing-lab/learning-path";
+import { assessmentCopy } from "../../../data/sailing-lab/assessment-copy";
 
 describe("sailing theory module", () => {
-  it("offers twelve real lessons with shared vang geometry and lower-profile comparisons", () => {
-    expect(sailLessons).toHaveLength(12);
+  it("groups every available lesson exactly once and supplies contextual terms in all languages", () => {
+    expect(courseModules.flatMap(module => module.lessons)).toEqual(sailLessons.map(lesson => lesson.id));
+    for (const lesson of sailLessons) {
+      expect(lessonTermIds[lesson.id].length).toBeGreaterThan(1);
+      expect(new Set(lessonTermIds[lesson.id]).size).toBe(lessonTermIds[lesson.id].length);
+    }
+    const labels = [...Object.values(learningCopy), ...Object.values(assessmentCopy), ...Object.values(lessonTerms).flatMap(term => [term.name, term.meaning]), ...courseModules.map(module => module.title)];
+    for (const label of labels) {
+      for (const lang of ["ru", "en", "pl", "es", "fr", "de", "it"] as const) {
+        expect(label[lang].length).toBeGreaterThan(2);
+        expect(label[lang]).not.toMatch(/[\u2013\u2014]/);
+      }
+    }
+  });
+  it("offers thirteen real lessons: shared geometry, the book module and a working equipment bench", () => {
+    expect(sailLessons).toHaveLength(13);
+    expect(sailLessons.find(l => l.id === "winch-clutch")?.practice).toBe("line-bench");
+    expect(sailDiagram("winch", 0)).not.toBe(sailDiagram("winch", 1));
     const short = vangExample(0), long = vangExample(1);
     expect(vangRiseLimit(short.span)).toBeCloseTo(2, 6);
     expect(vangRiseLimit(long.span)).toBeCloseTo(8, 6);
@@ -75,9 +93,12 @@ describe("sailing theory module", () => {
 
   it("appends the book-based lessons after the original six, so stored progress keeps its order", () => {
     expect(sailLessons.slice(0, 6).map(l => l.id)).toEqual(["rig-basics", "apparent-wind", "sheet-control", "mainsheet", "vang", "outhaul"]);
-    expect(sailLessons.slice(6).map(l => l.id)).toEqual(["telltales", "halyard", "jib-lead", "slot", "trim-doctor", "reef"]);
+    expect(sailLessons.slice(6, 12).map(l => l.id)).toEqual(["telltales", "halyard", "jib-lead", "slot", "trim-doctor", "reef"]);
     expect(nextSailLesson({ version: 1, checked: sailLessons.slice(0, 6).map(l => l.id), current: null })?.id).toBe("telltales");
-    for (const lesson of sailLessons.slice(6)) {
+    // The equipment lesson is appended after the book module, never inserted.
+    expect(sailLessons.slice(12).map(l => l.id)).toEqual(["winch-clutch"]);
+    expect(nextSailLesson({ version: 1, checked: sailLessons.slice(0, 12).map(l => l.id), current: null })?.id).toBe("winch-clutch");
+    for (const lesson of sailLessons.slice(6, 12)) {
       expect(lesson.destination).toBe("boat");
       expect(lesson.sections.length).toBeGreaterThanOrEqual(3);
       expect(lesson.observe.en).toMatch(/checked (afloat|on the boat)/);

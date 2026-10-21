@@ -43,7 +43,8 @@ import {
   speedUnitLabel,
   useUnits,
 } from '../../src/persistence/units';
-import { colors, radii, shadow, spacing } from '../../src/design-system/tokens';
+import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
+import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
 
 type Phase = 'countdown' | 'racing' | 'finished';
@@ -129,7 +130,7 @@ function insideCompassAt(
  *  - finish detection that crosses the line on the return leg only,
  *  - result panel with Save / AI coach / Try again / Home actions.
  */
-export default function Game() {
+function Game() {
   const { tp, lang } = useI18n();
   const router = useRouter();
   const params = useLocalSearchParams<{ course?: string }>();
@@ -681,7 +682,7 @@ export default function Game() {
 
   return (
     <Screen noTopInset>
-      <Stack.Screen options={{ title }} />
+      <Stack.Screen options={{ ...darkStackOptions, title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.header}>
           <Text variant="subtitle" style={styles.title}>{title}</Text>
@@ -1133,3 +1134,8 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
 });
+
+/** Instrument screen: dark ocean palette, see design-system/surface. */
+export default function GameRoute() {
+  return <DarkSurface><Game /></DarkSurface>;
+}

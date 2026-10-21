@@ -25,7 +25,7 @@ import {
   SAIL_CLOTH_TUNING,
 } from '../../simulator/sail-cloth';
 import type { SailSet } from '../../simulator/types';
-import { colors } from '../tokens';
+import { darkColors as colors } from '../tokens';
 
 const YACHT_PHOTO_SOURCE = require('../../../assets/anatomy/yacht-top.png');
 

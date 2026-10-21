@@ -10,8 +10,11 @@ jest.mock('@react-native-async-storage/async-storage', () =>
 );
 
 jest.mock('expo-router', () => ({
+  // The lesson records the course bookmark on focus; run it once on mount.
+  useFocusEffect: (effect: () => void | (() => void)) =>
+    jest.requireActual('react').useEffect(effect, [effect]),
   Stack: { Screen: () => null },
-  useRouter: () => ({ push: jest.fn(), back: jest.fn(), replace: jest.fn() }),
+  useRouter: () => ({ push: jest.fn(), back: jest.fn(), replace: jest.fn(), navigate: jest.fn() }),
   useLocalSearchParams: () => ({ id: 'wind-direction' }),
   Link: ({ children }: { children: React.ReactNode }) => children,
 }));
@@ -43,8 +46,9 @@ async function storedWins(): Promise<number | null> {
   return raw ? (JSON.parse(raw) as { wins: number }).wins : null;
 }
 
-/** Answers every question, all correct or all wrong, and finishes the quiz. */
+/** Opens the check step and answers every question, all correct or all wrong. */
 async function takeQuiz(view: View, correct: boolean) {
+  fireEvent.press(await waitFor(() => view.getByText(/Start quiz|Retake quiz|Try again/)));
   for (const [index, q] of questions.entries()) {
     const option = q.options.find((o) => o.correct === correct)!;
     fireEvent.press(view.getByText(pickPrompt(option.label, 'en')));
@@ -52,6 +56,7 @@ async function takeQuiz(view: View, correct: boolean) {
     const last = index === questions.length - 1;
     fireEvent.press(view.getByText(last ? 'Finish quiz' : 'Next question'));
   }
+  await settle();
 }
 
 beforeEach(async () => {
@@ -60,11 +65,11 @@ beforeEach(async () => {
 });
 
 describe('Bootcamp lesson review wins', () => {
-  it('"Open" completes the lesson but is not a review win', async () => {
+  it('opening the practice is not a review win', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    const open = await waitFor(() => view.getByText('Open'));
     await settle();
-    fireEvent.press(open);
+    fireEvent.press(view.getByRole('button', { name: '3. Practice' }));
+    fireEvent.press(await waitFor(() => view.getByRole('button', { name: /→$/ })));
     await waitFor(async () => {
       expect(await AsyncStorage.getItem('regatta.progress.bootcamp.v1')).toContain('wind-direction');
     });
@@ -75,29 +80,22 @@ describe('Bootcamp lesson review wins', () => {
 
   it('a passed quiz counts once; a retake of the passed quiz does not', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    fireEvent.press(await waitFor(() => view.getByText('Start quiz')));
     await settle();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
     await takeQuiz(view, true);
-    fireEvent.press(view.getByText('Mark complete'));
     await waitFor(async () => expect(await storedWins()).toBe(1));
 
     // Retake and pass again: the stored result already passed.
-    await waitFor(async () => expect(await AsyncStorage.getItem(QUIZ_KEY)).not.toBeNull());
-    fireEvent.press(view.getByText('Try again'));
     await takeQuiz(view, true);
-    fireEvent.press(view.getByText('Mark complete'));
-    await settle();
     expect(await storedWins()).toBe(1);
   });
 
   it('a failed quiz is not a review win', async () => {
     const view = renderWithProviders(<BootcampLesson />);
-    fireEvent.press(await waitFor(() => view.getByText('Start quiz')));
     await settle();
+    fireEvent.press(view.getByRole('button', { name: '2. Check yourself' }));
     await takeQuiz(view, false);
-    fireEvent.press(view.getByText('Mark complete'));
     await waitFor(async () => expect(await AsyncStorage.getItem(QUIZ_KEY)).not.toBeNull());
-    await settle();
     expect(await AsyncStorage.getItem(REVIEW_KEY)).toBeNull();
   });
 });

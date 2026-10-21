@@ -51,4 +51,7 @@
 
 .groupsGrid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 40px; }
 .groupsGrid .section { margin-top: 0; }
+.menuRow { min-height: 56px; padding-block: 14px; }
+.menuRow strong { font-size: 16px; }
+.menuAppearance { display: flex; align-items: center; justify-content: space-between; gap: 16px; border-top: 1px solid var(--border-subtle); margin-top: 40px; padding-top: 20px; max-width: 460px; color: var(--text-secondary); font-size: 15px; }
 @media (max-width: 760px) { .groupsGrid { grid-template-columns: 1fr; gap: 32px; } }

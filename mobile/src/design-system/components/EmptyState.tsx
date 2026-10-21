@@ -2,7 +2,8 @@ import { type StyleProp, StyleSheet, View, type ViewStyle } from 'react-native';
 import { Button } from './Button';
 import { Icon, type IconName } from './Icon';
 import { Text } from './Text';
-import { colors, spacing } from '../tokens';
+import { spacing } from '../tokens';
+import { bySurface, useSurface, useSurfaceColors } from '../surface';
 
 interface EmptyStateCta {
   label: string;
@@ -32,6 +33,8 @@ export function EmptyState({
   cta,
   style,
 }: EmptyStateProps) {
+  const styles = themed[useSurface()];
+  const colors = useSurfaceColors();
   return (
     <View style={[styles.wrap, style]} accessible>
       <Icon name={icon} size={32} color={colors.accentCyan} style={styles.icon} />
@@ -48,7 +51,7 @@ export function EmptyState({
   );
 }
 
-const styles = StyleSheet.create({
+const themed = bySurface(() => StyleSheet.create({
   wrap: {
     alignItems: 'center',
     paddingVertical: spacing.xxl,
@@ -67,4 +70,4 @@ const styles = StyleSheet.create({
   ctaRow: {
     marginTop: spacing.md,
   },
-});
+}));

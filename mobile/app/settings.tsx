@@ -21,7 +21,9 @@ import { ENABLED_LANGUAGES } from '../src/i18n/languages';
 import { Button, Card, Icon, Screen, Text, Wordmark } from '../src/design-system/components';
 import { colors, radii, spacing } from '../src/design-system/tokens';
 import { useRaceHistory } from '../src/persistence/race-history';
-import { useBootcampProgress } from '../src/persistence/bootcamp';
+import { BOOTCAMP_PROGRESS_KEYS, useBootcampProgress } from '../src/persistence/bootcamp';
+import { QUIZ_RESULTS_KEY, useBootcampQuiz } from '../src/persistence/bootcamp-quiz';
+import { passedLessonIds } from '../src/bootcamp/status';
 import { useChecklistProgress, itemKey } from '../src/persistence/checklist';
 import { checklistSections, bootcampLessons } from '../src/data';
 import {
@@ -335,9 +337,9 @@ export default function Settings() {
                 value={analyticsOn}
                 onValueChange={toggleAnalytics}
                 disabled={!analyticsReady}
-                trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
-                thumbColor={colors.textPrimary}
-                ios_backgroundColor={colors.bgCardHover}
+                trackColor={{ true: colors.accentCyan, false: 'rgba(18, 50, 71, 0.16)' }}
+                ios_backgroundColor="rgba(18, 50, 71, 0.16)"
+                thumbColor="#ffffff"
                 accessibilityLabel={analyticsLabel}
               />
             </View>
@@ -436,9 +438,9 @@ function TrainersSection() {
               value={prefs.sound}
               onValueChange={(sound) => patch({ sound })}
               disabled={!ready}
-              trackColor={{ true: colors.accentCyan, false: colors.bgCardHover }}
-              thumbColor={colors.textPrimary}
-              ios_backgroundColor={colors.bgCardHover}
+              trackColor={{ true: colors.accentCyan, false: 'rgba(18, 50, 71, 0.16)' }}
+              ios_backgroundColor="rgba(18, 50, 71, 0.16)"
+              thumbColor="#ffffff"
               accessibilityLabel={soundLabel}
             />
           </View>
@@ -707,9 +709,13 @@ function DataSection() {
   const { tp } = useI18n();
   const { races, ready: racesReady, clear: clearRaces } = useRaceHistory();
   const {
-    completedIds: bootcampDone,
-    ready: bootcampReady,
+    completedIds: bootcampViewed,
+    doneIds: bootcampMarked,
+    lastViewedLessonId,
+    ready: bootcampProgressReady,
   } = useBootcampProgress();
+  const { results: quizResults, ready: quizReady } = useBootcampQuiz();
+  const bootcampReady = bootcampProgressReady && quizReady;
   const {
     checkedIds: checklistChecked,
     ready: checklistReady,
@@ -718,7 +724,14 @@ function DataSection() {
 
   const racesCount = races.length;
   const totalLessons = bootcampLessons.length;
-  const lessonsDone = bootcampDone.size;
+  // Passed with evidence (quiz passed, or marked done where there is no quiz);
+  // merely opened lessons do not count. See src/bootcamp/status.ts.
+  const lessonsDone = passedLessonIds({
+    viewedIds: bootcampViewed,
+    doneIds: bootcampMarked,
+    quizResults,
+    lastViewedLessonId,
+  }).size;
   const totalChecklistItems = useMemo(
     () =>
       checklistSections.reduce((acc, sec) => {
@@ -953,10 +966,7 @@ function DataSection() {
         onPress: () => {
           // The hook does not expose a reset; clear the storage rows
           // directly. The next mount will re-hydrate as empty.
-          void Promise.all([
-            AsyncStorage.removeItem('regatta.progress.bootcamp.v1'),
-            AsyncStorage.removeItem('regatta.progress.bootcamp.lastViewed.v1'),
-          ]);
+          void AsyncStorage.multiRemove([...BOOTCAMP_PROGRESS_KEYS, QUIZ_RESULTS_KEY]);
         },
       },
     ]);
@@ -1205,7 +1215,7 @@ function DataSection() {
           <Button
             onPress={handleResetBootcamp}
             variant="ghost"
-            disabled={!bootcampReady || lessonsDone === 0}
+            disabled={!bootcampReady || (lessonsDone === 0 && bootcampViewed.size === 0 && Object.keys(quizResults).length === 0)}
           >
             {resetProgressLabel}
           </Button>
@@ -1557,7 +1567,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   dangerCard: {
-    borderColor: 'rgba(255, 68, 68, 0.35)',
+    borderColor: 'rgba(179, 38, 30, 0.35)',
     marginTop: spacing.md,
   },
   dangerLabel: {
@@ -1568,7 +1578,7 @@ const styles = StyleSheet.create({
 const privacyStyles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(6, 18, 36, 0.92)',
+    backgroundColor: 'rgba(18, 50, 71, 0.45)',
     justifyContent: 'flex-end',
   },
   sheet: {
