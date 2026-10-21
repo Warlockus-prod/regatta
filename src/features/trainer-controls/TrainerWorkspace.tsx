@@ -5,9 +5,8 @@ import styles from "./TrainerControls.module.css";
 
 // Phone and tablet layout shared by the trainers: the boat is pinned and
 // never scrolls away, and nothing is drawn over it. Portrait: the scene bar
-// (status, view and help buttons), the scene (all spare height, never less
-// than 40%), the readouts, then the control dock; only the dock panel
-// scrolls. Landscape phone: the bar and the scene fill the left column, the
+// (status, view and help buttons), the scene (all spare height), the
+// readouts, then the control dock; only the dock panel scrolls. Landscape phone: the bar and the scene fill the left column, the
 // readouts and the dock stack in the right one. Desktop layouts stay with
 // each surface.
 
