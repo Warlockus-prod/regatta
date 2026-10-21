@@ -59,7 +59,7 @@ function missionReasonText(
 export default function MultiplayerClient() {
   const { tp, tl, lang } = useI18n();
   // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
-  const [venue] = useVenue();
+  const { venue } = useVenue();
   const venueRef = useRef(venue);
   const langRef = useRef(lang);
   useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);

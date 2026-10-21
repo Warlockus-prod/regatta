@@ -270,7 +270,7 @@ function makeCourse(): Course {
 export default function GamePage() {
   const { tp, lang } = useI18n();
   // Scenery around the race area (src/data/venues): drawn by the canvas loop, so kept in refs.
-  const [venue] = useVenue();
+  const { venue } = useVenue();
   const venueRef = useRef(venue);
   const langRef = useRef(lang);
   useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);

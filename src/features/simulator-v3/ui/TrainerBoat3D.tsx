@@ -10,7 +10,7 @@ import { useVenue } from "../../venues/useVenue";
 /** View only. The parent Trainer continues to own the ONE session clock. */
 export default function TrainerBoat3D({ sim, tp }: { sim: SimulationModel; tp: TpFn }) {
   const yachtRef = useRef(yachtFromSession(sim.session));
-  const [venue] = useVenue();
+  const { venue } = useVenue();
   const [view, setView] = useState<CameraView>("sails");
   const activeView = view === "mainsheet" && !sim.session.mainTrim ? "sails" : view;
   useEffect(() => { Object.assign(yachtRef.current, yachtFromSession(sim.session)); }, [sim.session]);

@@ -7,7 +7,7 @@ import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
 import { WindGlyph, WindReadout } from "./ui/WindReadout";
 import { useI18n } from "@/lib/i18n";
-import { VENUES, venueLabel } from "../../data/venues/venues";
+import { PICKABLE_VENUES, shoreLabel, venueLabel } from "../../data/venues/venues";
 import { useVenue } from "../venues/useVenue";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
 import type { CameraView } from "./camera";
@@ -111,7 +111,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
   const { lang } = useI18n();
-  const [venue, setVenue] = useVenue();
+  const { venue, picked, shoreOn, setVenue, setShoreOn } = useVenue();
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (mode === "free") Object.assign(yachtRef.current, free, { rigResolved: false, sailSide: undefined, heading: undefined, travel: undefined, jibShape: undefined, fill: 1, airSpeed: 12, apparentWind: undefined, wind: undefined, speedKn: 0 });
@@ -185,9 +185,13 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <button className={styles.button} style={{ marginLeft: "auto" }} aria-label={L.scene.resetView}
             onClick={() => selectView("whole")}>↺</button>
           <label className={styles.venueSelect}>
+            <input type="checkbox" checked={shoreOn} onChange={(e) => setShoreOn(e.target.checked)} />
+            <span>{shoreLabel[lang]}</span>
+          </label>
+          <label className={styles.venueSelect}>
             <span>{venueLabel[lang]}</span>
-            <select value={venue.id} onChange={(e) => setVenue(e.target.value as typeof venue.id)}>
-              {VENUES.map((v) => <option key={v.id} value={v.id}>{v.name[lang]}</option>)}
+            <select value={picked.id} disabled={!shoreOn} onChange={(e) => setVenue(e.target.value as typeof picked.id)}>
+              {PICKABLE_VENUES.map((v) => <option key={v.id} value={v.id}>{v.name[lang]}</option>)}
             </select>
           </label>
         </div>
@@ -339,7 +343,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             </DrawerGroup>}
             <DrawerGroup>
               <p className={styles.drawerLabel}>{venueLabel[lang]}</p>
-              {VENUES.map((v) => <DrawerItem key={v.id} pressed={venue.id === v.id}
+              <DrawerItem pressed={shoreOn} onClick={() => setShoreOn(!shoreOn)}>{shoreLabel[lang]}</DrawerItem>
+              {shoreOn && PICKABLE_VENUES.map((v) => <DrawerItem key={v.id} pressed={picked.id === v.id}
                 onClick={() => { setVenue(v.id); setViewsOpen(false); }}>{v.name[lang]}</DrawerItem>)}
             </DrawerGroup>
             <DrawerGroup>

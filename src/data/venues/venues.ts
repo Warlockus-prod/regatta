@@ -140,10 +140,21 @@ export const VENUES: Venue[] = [
 export const DEFAULT_VENUE: VenueId = "gocek";
 
 export const venueLabel = words("Акватория", "Venue", "Akwen", "Campo de regatas", "Plan d'eau", "Revier", "Campo di regata");
+export const shoreLabel = words("Берег и острова", "Shore and islands", "Brzeg i wyspy", "Costa e islas", "Côte et îles", "Küste und Inseln", "Costa e isole");
+
+/** Venues offered in the pickers; the shore switch turns all of them into open sea. */
+export const PICKABLE_VENUES = VENUES.filter((v) => v.id !== "open");
 
 export function findVenue(id: string | null | undefined): Venue {
   return VENUES.find((v) => v.id === id) ?? VENUES.find((v) => v.id === DEFAULT_VENUE)!;
 }
 
-/** Shared preference key, the same on the website and in the app. */
+/** Shared preference keys, the same on the website and in the app. */
 export const VENUE_STORAGE_KEY = "regatta.venue.v1";
+/** "off" hides the shore and the islands (open sea); anything else shows them. */
+export const SHORE_STORAGE_KEY = "regatta.shore.v1";
+
+/** What the scene shows: the picked venue, or open sea when the shore is switched off. */
+export function effectiveVenue(id: string | null | undefined, shoreOn: boolean): Venue {
+  return shoreOn ? findVenue(id === "open" ? DEFAULT_VENUE : id) : findVenue("open");
+}

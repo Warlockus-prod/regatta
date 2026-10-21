@@ -419,7 +419,8 @@ course; the first changes none of them.
   centred on the boat like the yacht itself (the ocean scrolls), with aerial
   perspective baked into the vertex colours instead of the scene fog.
 - The venue is a cosmetic preference (`regatta.venue.v1`), not synced
-  between multiplayer players.
+  between multiplayer players. A separate shore switch (`regatta.shore.v1`,
+  owner request 2026-10-22) turns any venue into open sea and keeps the pick.
 
 ### Consequences
 Islands to round or shores to avoid would need a new ADR: obstacle physics in

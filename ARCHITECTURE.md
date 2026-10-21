@@ -587,8 +587,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
 - `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: строка над сценой, закрепленная сцена, показания, док; горизонталь: сцена слева, показания и док справа.
 - `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
-- `src/features/venues/useVenue.ts` - выбранная акватория (localStorage), общая для гонок и Лодки 3D.
-- `src/features/venues/VenuePicker.tsx` - выбор акватории в меню веб-гонки.
+- `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
+- `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
 - `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 

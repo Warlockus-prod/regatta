@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { VENUES, findVenue } from "./venues";
+import { VENUES, effectiveVenue, findVenue } from "./venues";
 import { RACE_AREA, coastTerrain, islandTerrain, landPolygon, terrainIndices, venueTerrain } from "./geometry";
 
 // Contract: the scenery never reaches into the race area. Boats are clamped
@@ -71,6 +71,13 @@ describe("venue scenery", () => {
   it("builds closed island meshes and open coast meshes", () => {
     expect(terrainIndices(3, 4, true)).toHaveLength(2 * 4 * 6);
     expect(terrainIndices(3, 4, false)).toHaveLength(2 * 3 * 6);
+  });
+
+  it("the shore switch turns any venue into open sea and back", () => {
+    expect(effectiveVenue("split", false).id).toBe("open");
+    expect(effectiveVenue("split", false).lands).toHaveLength(0);
+    expect(effectiveVenue("split", true).id).toBe("split");
+    expect(effectiveVenue("open", true).id).toBe("gocek");
   });
 
   it("names every venue in all seven languages and falls back to Göcek", () => {
