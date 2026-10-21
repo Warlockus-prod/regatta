@@ -138,7 +138,9 @@ function Game() {
   const analytics = useAnalytics();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
-  const sceneH = Math.min(Math.max(windowHeight * 0.55, 380), 560);
+  // The course takes the height the HUD row under it leaves free; nothing is
+  // drawn over the boat (owner rule 2026-10-21, same as the trainers).
+  const sceneH = Math.min(Math.max(windowHeight * 0.6, 380), 600);
   const centerX = sceneW / 2;
   const centerY = sceneH / 2;
   const compassCx = sceneW - COMPASS_R - 16;
@@ -842,15 +844,6 @@ function Game() {
             </Canvas>
           </GestureDetector>
 
-          {/* HUD strip: heading / speed / TWA / AWA / time. */}
-          <View pointerEvents="none" style={styles.hud}>
-            <HudStat label={headingLabel} value={`${headingDeg}°`} />
-            <HudStat label={speedLabel} value={speedDisplay} />
-            <HudStat label={twaLabel} value={`${twaDeg}°`} />
-            <HudStat label={awaLabel} value={`${awaDeg}°`} />
-            <HudStat label={timeLabel} value={formatTime(raceTimeSec)} />
-          </View>
-
           {phase === 'countdown' ? (
             <View pointerEvents="none" style={styles.overlay}>
               <Text style={styles.countdownLabel}>{getReadyLabel}</Text>
@@ -962,6 +955,15 @@ function Game() {
             </View>
           ) : null}
         </View>
+
+        {/* HUD row under the course: heading / speed / TWA / AWA / time. */}
+        <View pointerEvents="none" style={[styles.hud, { width: sceneW }]}>
+          <HudStat label={headingLabel} value={`${headingDeg}°`} />
+          <HudStat label={speedLabel} value={speedDisplay} />
+          <HudStat label={twaLabel} value={`${twaDeg}°`} />
+          <HudStat label={awaLabel} value={`${awaDeg}°`} />
+          <HudStat label={timeLabel} value={formatTime(raceTimeSec)} />
+        </View>
       </ScrollView>
     </Screen>
   );
@@ -1003,33 +1005,34 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   hud: {
-    position: 'absolute',
-    left: spacing.sm,
-    bottom: spacing.sm,
+    alignSelf: 'center',
+    marginTop: spacing.sm,
     flexDirection: 'row',
-    gap: spacing.sm,
-    backgroundColor: 'rgba(10, 22, 40, 0.74)',
+    gap: spacing.xs,
+    backgroundColor: colors.bgSecondary,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: spacing.sm,
   },
   hudStat: {
+    flex: 1,
     minWidth: 44,
     alignItems: 'center',
   },
   hudLabel: {
     color: colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   hudValue: {
     color: colors.textPrimary,
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.2,
+    fontVariant: ['tabular-nums'],
   },
   overlay: {
     position: 'absolute',
