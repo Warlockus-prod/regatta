@@ -1,0 +1,9 @@
+Week to Regatta is a sailing learning and practice app. No sign-in or test account is required.
+
+Version 1.7.0 (50) brings a new design and structured lessons: Home continues the learner's course, a Menu tab lists every section, "Sailing from scratch" has 8 lessons in three modules and "Working with sails" has 13 lessons in four modules (including a new winch and clutch lesson with an interactive line bench). A lesson's practice step opens the matching trainer, which starts on the lesson task and offers a button back to the lesson.
+
+The trainers (Practice tab) keep the boat on screen with a tabbed control dock below it. An optional wheel mode (gear button in the trainer, or Settings > Trainers) lets the learner steer and trim with on-screen wheels; wheel clicks are a sound effect that plays only when the learner turns sound on in that setting. The trainer screens may rotate to landscape; the rest of the app stays portrait.
+
+No new permissions, no new data collection: the app still collects only anonymous usage statistics (not linked to identity, no tracking), which can be turned off in Settings.
+
+Verified on simulators with iOS 27.0 (iPhone 18 Pro) and iOS 26.5 (iPhone 17 Pro): fresh install of the Release build and launch, and installation over version 1.6.4 with the learner's progress kept.
