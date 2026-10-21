@@ -25,9 +25,10 @@ the official materials and are not adapted.
 | broad reach | бакштаг | baksztag | lasco | largo | grand largue | Raumschots (raumer Wind) |
 | running / dead run | фордевинд | fordewind | poppa | popa | vent arrière | vor dem Wind |
 
-German: lessons and trainers use the first form ("Am Wind" at about 45°, "Halbwind" at 90°,
-"Raumschots" at about 135°); the forms in brackets are correct variants (owner decision
-2026-10-21).
+German: both forms are correct ("Am Wind" / "Hoch am Wind" at about 45°, "Halbwind" /
+"Halber Wind" at 90°, "Raumschots" / "Raumer Wind" at about 135°). As of 2026-10-22 the sail
+course and trainers use the first form, the Points of sail screen and the foundation lessons the
+bracketed one; pick one with a German instructor and align them (open question).
 
 ## Tacks and gybes (maneuvers)
 

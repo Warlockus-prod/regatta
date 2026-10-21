@@ -38,7 +38,7 @@ export default function CoursesSection() {
       name: 'Sternik motorowodny',
       blurb: tp(
         'Польские права на моторную лодку. Теория, банк из 879 вопросов, пробный экзамен.',
-        'The Polish powerboat licence. Theory, an 879-question bank, and a mock exam.',
+        'The Polish powerboat license. Theory, an 879-question bank, and a mock exam.',
         'Patent sternika motorowodnego. Teoria, baza 879 pytań, egzamin próbny.',
         {
           es: 'La licencia polaca de patrón de motor. Teoría, banco de 879 preguntas y examen de prueba.',
@@ -88,7 +88,7 @@ export default function CoursesSection() {
         <h2 className="text-base font-semibold sm:text-lg">
           {tp(
             'Польские патенты: sternik motorowodny и radio SRC',
-            'Polish licences: sternik motorowodny and SRC radio',
+            'Polish licenses: sternik motorowodny and SRC radio',
             'Polskie patenty: sternik motorowodny i radio SRC',
             {
               es: 'Títulos polacos: sternik motorowodny y radio SRC',
@@ -142,7 +142,7 @@ export default function CoursesSection() {
           ? 'Оба курса ведутся на польском - это язык экзамена, и переводить его наполовину было бы хуже, чем не переводить вовсе. Внутри курса можно дополнительно включить русские комментарии: кнопка 💬 в подменю раздела.'
           : tp(
               '',
-              'Both courses are taught in Polish - it is the language of the exam, and a half-translated licence course would be worse than none.',
+              'Both courses are taught in Polish - it is the language of the exam, and a half-translated license course would be worse than none.',
               'Oba kursy są po polsku - to język egzaminu.',
               {
                 es: 'Ambos cursos son en polaco: es el idioma del examen, y un curso a medio traducir sería peor que ninguno.',

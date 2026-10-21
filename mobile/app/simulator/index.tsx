@@ -658,11 +658,13 @@ function Simulator() {
     [sim.boat.heading],
   );
 
-  const title = tp('Симулятор', 'Simulator', 'Symulator', {
-    es: 'Simulador',
-    fr: 'Simulateur',
-    de: 'Simulator',
-    it: 'Simulatore',
+  // Same name as the Practice button that opens it (src/lib/product/copy.ts
+  // "fallback"); lesson 4 opens it online too, so the title does not say offline.
+  const title = tp('Упрощённый тренажёр', 'Simplified trainer', 'Uproszczony symulator', {
+    es: 'Simulador simplificado',
+    fr: 'Simulateur simplifié',
+    de: 'Vereinfachter Simulator',
+    it: 'Simulatore semplificato',
   });
   const badge = tp('VPP физика', 'VPP physics', 'Fizyka VPP', {
     es: 'Física VPP',

@@ -100,7 +100,7 @@ export const bootcampPilots: Partial<Record<string, LessonPilot>> = {
 export const sailPilots: Partial<Record<string, LessonPilot>> = {
   "rig-basics": {
     goal: words(
-      "Понять, какой канат за что отвечает: какой поднимает парус, какой задает его положение, какой держит гик внизу.",
+      "Понять, какая снасть за что отвечает: какая поднимает парус, какая задает его положение, какая держит гик внизу.",
       "Know which line does what: which one hoists the sail, which sets its position and which holds the boom down.",
       "Wiedzieć, która lina za co odpowiada: która stawia żagiel, która ustawia jego położenie, a która trzyma bom na dole.",
       "Saber qué hace cada cabo: cuál iza la vela, cuál fija su posición y cuál mantiene abajo la botavara.",
@@ -153,8 +153,8 @@ export const lessonCopy = {
   ),
   parts: words("Детали на картинке", "Parts in the picture", "Elementy na obrazku", "Piezas de la imagen", "Éléments de l'image", "Teile im Bild", "Parti nell'immagine"),
   closeup: words("Крупный план", "Close-up", "Zbliżenie", "Primer plano", "Gros plan", "Nahaufnahme", "Primo piano"),
-  hideMarks: words("Скрыть отметки", "Hide markers", "Ukryj znaczniki", "Ocultar marcas", "Masquer les repères", "Markierungen ausblenden", "Nascondi i segni"),
-  showMarks: words("Показать отметки", "Show markers", "Pokaż znaczniki", "Mostrar marcas", "Afficher les repères", "Markierungen einblenden", "Mostra i segni"),
+  hideMarks: words("Скрыть отметки", "Hide markers", "Ukryj znaczniki", "Ocultar marcas", "Masquer les repères", "Markierungen ausblenden", "Nascondi i marcatori"),
+  showMarks: words("Показать отметки", "Show markers", "Pokaż znaczniki", "Mostrar marcas", "Afficher les repères", "Markierungen einblenden", "Mostra i marcatori"),
   showDiagram: words("Показать схему", "Show the diagram", "Pokaż schemat", "Mostrar el esquema", "Afficher le schéma", "Skizze zeigen", "Mostra lo schema"),
   hideDiagram: words("Скрыть схему", "Hide the diagram", "Ukryj schemat", "Ocultar el esquema", "Masquer le schéma", "Skizze ausblenden", "Nascondi lo schema"),
 };

@@ -50,7 +50,7 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
         ),
         description: words(
           "Вид сверху, лодка носом вверх. Ветер приходит сверху, прямо в нос; гик по центру.",
-          "Top view, bow pointing up. The wind comes from above, straight onto the bow; the boom is on the centreline.",
+          "Top view, bow pointing up. The wind comes from above, straight onto the bow; the boom is on the centerline.",
           "Widok z góry, dziób skierowany w górę. Wiatr wieje z góry, prosto w dziób; bom jest w osi jachtu.",
           "Vista desde arriba, proa hacia arriba. El viento llega desde arriba, justo por la proa; la botavara está en el centro.",
           "Vue de dessus, étrave vers le haut. Le vent arrive d'en haut, droit sur l'étrave ; la bôme est dans l'axe.",
@@ -147,7 +147,7 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
         label: words("Гика-шкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta della randa"),
         note: words(
           "Гика-шкот связывает гик с нижней точкой крепления на лодке. Выбрали шкот: гик ближе к середине. Потравили: гик отходит наружу, а парус остается поднятым.",
-          "The mainsheet links the boom to its lower attachment on the boat. Sheet in: the boom comes towards the centre. Ease it: the boom moves out and the sail stays up.",
+          "The mainsheet links the boom to its lower attachment on the boat. Sheet in: the boom comes towards the center. Ease it: the boom moves out and the sail stays up.",
           "Szot grota łączy bom z dolnym mocowaniem na jachcie. Wybierasz szot: bom idzie do środka. Luzujesz: bom odchodzi na zewnątrz, a żagiel zostaje postawiony.",
           "La escota de mayor une la botavara con su anclaje inferior en el barco. Cazas: la botavara va hacia el centro. Lascas: la botavara sale y la vela sigue izada.",
           "L'écoute de grand-voile relie la bôme à son point d'ancrage bas sur le bateau. On borde : la bôme revient vers l'axe. On choque : elle s'écarte et la voile reste hissée.",

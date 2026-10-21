@@ -218,9 +218,9 @@ function LessonContent({ id }: { id: string }) {
           },
         )
       : tp(
-          'В этом уроке нет проверки. Отметь его сам, когда разберешься и попробуешь практику.',
+          'В этом уроке нет проверки. Отметь его, когда разберешься и попробуешь практику.',
           'This lesson has no check. Mark it yourself once you understand it and have tried the practice.',
-          'Ta lekcja nie ma sprawdzianu. Zaznacz ją sam, gdy ją zrozumiesz i spróbujesz ćwiczenia.',
+          'Ta lekcja nie ma sprawdzianu. Zaznacz ją samodzielnie, gdy ją zrozumiesz i spróbujesz ćwiczenia.',
           {
             es: 'Esta lección no tiene prueba. Márcala tú cuando la entiendas y hayas probado la práctica.',
             fr: "Cette leçon n'a pas de test. Marque-la toi-même quand tu l'as comprise et que tu as essayé l'exercice.",

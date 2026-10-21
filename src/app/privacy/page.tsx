@@ -478,7 +478,7 @@ export default function PrivacyPage() {
           <p className="text-sm mb-2">
             {tp(
               'Когда политика меняется, мы обновляем дату вверху страницы и кратко описываем изменение здесь.',
-              'When this policy changes, we update the date at the top of this page and summarise the change here.',
+              'When this policy changes, we update the date at the top of this page and summarize the change here.',
               'Gdy polityka się zmienia, aktualizujemy datę u góry strony i krótko opisujemy zmianę tutaj.',
               {
                 es: 'Cuando la política cambia, actualizamos la fecha de arriba y resumimos aquí el cambio.',

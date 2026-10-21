@@ -437,7 +437,7 @@ export const checklistSections: Section[] = [
       'Le maniglie dei winch sono nei loro alloggi e la prolunga della barra è fissata perché non intralci la manovra.',
     ],
     warningRu: 'Сразу после выхода: кранцы на борт и ни одной снасти в воде. Конец на винте в узком выходе - худшее время потерять ход.',
-    warningEn: 'Straight after leaving: fenders aboard and no line in the water. A line round the propeller in a narrow harbour mouth is the worst time to lose drive.',
+    warningEn: 'Straight after leaving: fenders aboard and no line in the water. A line round the propeller in a narrow harbor mouth is the worst time to lose drive.',
     warningPl: 'Zaraz po wyjściu: odbijacze na pokład i żadnej liny w wodzie. Lina na śrubie w wąskim wyjściu z portu to najgorszy moment na utratę napędu.',
     warningEs: 'Nada más salir: defensas a bordo y ningún cabo en el agua. Un cabo en la hélice en una bocana estrecha es el peor momento para quedarse sin propulsión.',
     warningFr: 'Juste après la sortie : pare-battages à bord et aucun bout dans l\'eau. Un bout dans l\'hélice dans une passe étroite, c\'est le pire moment pour perdre la propulsion.',
@@ -771,7 +771,7 @@ export const checklistSections: Section[] = [
     ],
     itemsEn: [
       'Sailing gloves (fingerless or with neoprene pads) - without them the sheets will rub your hands raw in a day',
-      'Shoes with WHITE or light grey soles - dark soles leave black marks on the deck, and the skipper will not be happy',
+      'Shoes with WHITE or light gray soles - dark soles leave black marks on the deck, and the skipper will not be happy',
       'Second pair for the marina - crocs or flip-flops',
       'Shorts with zippered or buttoned pockets - keys and phone stay on board',
       'Thin long-sleeve shirt - all-day sun protection, two will not be too many',

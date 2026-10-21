@@ -17,11 +17,11 @@ export default function SimulatorV3Screen() {
       tier="trainer"
       offlineSource={OFFLINE_SAILING}
       query={passthroughQuery(params)}
-      title={tp('Тренажёр', 'Trainer', 'Trener', {
-        es: 'Entrenador',
+      title={tp('Тренажёр', 'Trainer', 'Trenażer trymu', {
+        es: 'Simulador de trimado',
         fr: 'Réglage des voiles',
         de: 'Trainer',
-        it: 'Trainer',
+        it: 'Regolazione delle vele',
       })}
       fallbackRoute="/simulator-basics"
       fallbackLabel={tp("Открыть Основы (офлайн)", "Open Basics (offline)", "Otwórz Podstawy (offline)", {

@@ -51,7 +51,7 @@ export const sailHandlingPhoto: AnnotatedPhoto = {
   ),
   caption: words(
     "Иллюстрация, созданная ИИ: по ней узнают крупные детали. Проводку снастей, блоки и крепления по ней не изучают.",
-    "AI-generated illustration: good for recognising the large parts. Do not learn how lines, blocks or fittings are rigged from it.",
+    "AI-generated illustration: good for recognizing the large parts. Do not learn how lines, blocks or fittings are rigged from it.",
     "Ilustracja wygenerowana przez AI: pozwala rozpoznać duże elementy. Nie ucz się z niej prowadzenia lin, bloków ani okuć.",
     "Ilustración generada por IA: sirve para reconocer las piezas grandes. No aprendas con ella cómo van los cabos, motones o herrajes.",
     "Illustration générée par IA : utile pour reconnaître les grandes pièces. N'y apprends pas le passage des cordages, les poulies ni les ferrures.",

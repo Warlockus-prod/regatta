@@ -380,13 +380,13 @@ function TrainersSection() {
   const wheels = tp('Штурвалы', 'Wheels', 'Koła', { es: 'Ruedas', fr: 'Roues', de: 'Räder', it: 'Ruote' });
   const modeHint = tp(
     'Штурвалы: большой руль по центру, по бокам стаксель-шкот и гика-шкот. Остальное настраивается шестеренкой в тренажере.',
-    'Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides. The rest is in the gear inside the trainer.',
-    'Koła: duży ster pośrodku, po bokach szot foka i szot grota. Resztę ustawisz kołem zębatym w trenażerze.',
+    'Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides. Everything else is under the gear button in the trainer.',
+    'Koła: duży ster pośrodku, po bokach szot foka i szot grota. Resztę ustawisz w trenażerze pod ikoną zębatki.',
     {
-      es: 'Ruedas: un timón grande en el centro y, a los lados, la escota de foque y la de mayor. El resto está en el engranaje del simulador.',
-      fr: "Roues : une grande barre au centre, l'écoute de foc et l'écoute de grand-voile sur les côtés. Le reste se règle avec l'engrenage du simulateur.",
+      es: 'Ruedas: un timón grande en el centro y, a los lados, la escota de foque y la de mayor. El resto se ajusta con el botón del engranaje del simulador.',
+      fr: "Roues : une grande barre au centre, l'écoute de foc et l'écoute de grand-voile sur les côtés. Le reste se règle avec le bouton en forme de roue dentée du simulateur.",
       de: 'Räder: ein großes Steuer in der Mitte, Fock- und Großschot an den Seiten. Den Rest stellst du über das Zahnrad im Trainer ein.',
-      it: "Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa. Il resto si regola con l'ingranaggio nel simulatore.",
+      it: "Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa. Il resto si regola con l'icona dell'ingranaggio nel simulatore.",
     },
   );
   const soundLabel = tp('Звук щелчков', 'Click sound', 'Dźwięk kliknięć', { es: 'Sonido de clics', fr: 'Son des clics', de: 'Klickton', it: 'Suono dei clic' });
@@ -518,7 +518,7 @@ function UnitsSection() {
 
   const distanceHint = tp(
     'Морские мили или километры.',
-    'Nautical miles or kilometres.',
+    'Nautical miles or kilometers.',
     'Mile morskie lub kilometry.',
     {
       es: 'Millas náuticas o kilómetros.',

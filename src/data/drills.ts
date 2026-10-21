@@ -347,7 +347,7 @@ export const trainerCatalog: TrainerCatalogEntry[] = [
     kind: 'drill',
     platforms: ['mobile'],
     title: {
-      ru: 'Выход из no-go',
+      ru: 'Выход из мёртвой зоны',
       en: 'Recover from no-go',
       pl: 'Wyjście z kąta martwego',
       es: 'Sal de la zona muerta',

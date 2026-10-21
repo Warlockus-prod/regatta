@@ -119,7 +119,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         // English one saw Cyrillic.
         tp('Выйти из экзамена?', 'Leave the exam?', 'Wyjść z egzaminu?', {
           es: '¿Salir del examen?',
-          fr: "Quitter l'examen?",
+          fr: "Quitter l'examen ?",
           de: 'Prüfung verlassen?',
           it: "Uscire dall'esame?",
         }),
@@ -137,7 +137,7 @@ export function SectionWebView({ path, section, title }: SectionWebViewProps) {
         [
           {
             text: tp('Остаться', 'Stay', 'Zostań', {
-              es: 'Quedarse', fr: 'Rester', de: 'Bleiben', it: 'Restare',
+              es: 'Quedarse', fr: 'Rester', de: 'Bleiben', it: 'Resta',
             }),
             style: 'cancel',
           },

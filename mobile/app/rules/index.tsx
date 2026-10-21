@@ -64,7 +64,7 @@ export default function Rules() {
   );
   const colregsIntro = tp(
     'RRS действуют только во время гонки между гонщиками. В остальных случаях (выход из порта, прогулка, встреча с моторным судном) работают МППСС-72. Их обязан знать любой у штурвала.',
-    'RRS applies only during a race between racing boats. Everywhere else (leaving harbour, cruising, meeting a power vessel), COLREGS / IRPCS applies. Every helmsman must know them.',
+    'RRS applies only during a race between racing boats. Everywhere else (leaving harbor, cruising, meeting a power vessel), COLREGS / IRPCS applies. Every helmsman must know them.',
     'RRS obowiązują tylko podczas wyścigu, między jachtami, które się ścigają. W innych sytuacjach (wyjście z portu, rejs, spotkanie z jednostką motorową) obowiązuje MPZZM. Musi je znać każdy, kto stoi za sterem.',
     {
       es: 'Las RRS solo se aplican durante una regata, entre barcos que compiten. En todos los demás casos (salir de puerto, navegar de paseo, cruzarse con un barco a motor) rige el RIPA. Todo timonel debe conocerlo.',
@@ -236,7 +236,7 @@ export default function Rules() {
             <Text style={[styles.badgeText, { color: colors.accentCyan }]}>🎓 KURSY</Text>
           </View>
           <Text variant="subtitle" style={styles.sectionTitle}>
-            {tp('Курсы (патенты PL)', 'Courses (PL licences)', 'Kursy (polskie patenty)', {
+            {tp('Курсы (патенты PL)', 'Courses (PL licenses)', 'Kursy (polskie patenty)', {
               es: 'Cursos (títulos polacos)', fr: 'Cours (permis polonais)', de: 'Kurse (polnische Scheine)', it: 'Corsi (patenti polacche)',
             })}
           </Text>

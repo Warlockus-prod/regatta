@@ -36,9 +36,9 @@ export function useControlLabels() {
     rudder: tl({ ru: "Перо руля", en: "Rudder angle", pl: "Wychylenie steru", es: "Ángulo de pala", fr: "L'angle de safran", de: "Ruderwinkel", it: "Angolo del timone" }),
     returnCenter: tl({ ru: "Возвращать штурвал в центр", en: "Return the wheel to center", pl: "Koło wraca do środka", es: "Devolver la rueda al centro", fr: "Ramener la roue au centre", de: "Steuerrad zur Mitte zurück", it: "Riporta la ruota al centro" }),
     returnCenterNote: tl({
-      ru: "Выключено: штурвал остается там, где ты его оставил, верни его сам, как на лодке.",
+      ru: "Выключено: штурвал остается там, где его отпустили; возвращай его в центр вручную, как на лодке.",
       en: "Off: the wheel stays where you leave it; bring it back yourself, as on a boat.",
-      pl: "Wyłączone: koło zostaje tam, gdzie je zostawisz; sam ustaw je z powrotem pośrodku, jak na jachcie.",
+      pl: "Wyłączone: koło zostaje tam, gdzie je zostawisz; ręcznie ustaw je z powrotem pośrodku, jak na jachcie.",
       es: "Desactivado: la rueda se queda donde la dejas; devuélvela tú, como en un barco.",
       fr: "Désactivé : la roue reste où tu la laisses ; ramène-la toi-même, comme à bord.",
       de: "Aus: Das Rad bleibt, wo du es lässt; bring es selbst zurück, wie an Bord.",
