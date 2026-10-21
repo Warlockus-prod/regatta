@@ -157,7 +157,7 @@ test("independent depth task grades settled geometry, not a click or a theory an
   await expect(panel.getByText("Why did the shape change?", { exact: true })).toBeVisible();
   await panel.getByRole("button", { name: "The camera changed the sail shape", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText("Not quite");
-  await panel.getByRole("button", { name: "Outhaul changes lower depth, not twist directly", exact: true }).click();
+  await panel.getByRole("button", { name: "The outhaul changes lower depth, not twist directly", exact: true }).click();
   await expect(panel.getByRole("status")).toContainText("Task completed in the learning model");
   expect(await page.evaluate(() => localStorage.getItem("regatta.sailing.theory.v1"))).toBeNull();
 });

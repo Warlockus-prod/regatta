@@ -23,7 +23,7 @@ export function LineBench({ lang }: { lang: Language }) {
     </figure>
     <div className={styles.benchStatus} aria-live="polite">
       <strong>{lineCopy.heldBy[lang]}: {lineCopy[state.owner][lang]}</strong>
-      <span>{lineCopy.paidOut[lang]}: {Math.round(state.paidOut * 100)} cm</span>
+      <span>{lineCopy.paidOut[lang]}: {Math.round(state.paidOut * 100)} {lang === "ru" ? "см" : "cm"}</span>
     </div>
     <p className={styles.note}>{lineBenchReadout(state, lang)}</p>
     </div>

@@ -45,8 +45,8 @@ export default function ThemeToggle() {
   }, [pathname]);
 
   const label = pinnedDark
-    ? tp('Тренажеры всегда в темной теме', 'Trainers always use the dark theme', 'Trenażery zawsze mają ciemny motyw',
-        { es: 'Los simuladores siempre usan el tema oscuro', fr: 'Les simulateurs restent en thème sombre', de: 'Trainer sind immer dunkel', it: 'I simulatori usano sempre il tema scuro' })
+    ? tp('Тренажёры и гонки всегда в тёмной теме', 'Trainers and races always use the dark theme', 'Trenażery i regaty zawsze mają ciemny motyw',
+        { es: 'Los simuladores y las regatas siempre usan el tema oscuro', fr: 'Les simulateurs et les courses restent en thème sombre', de: 'Simulatoren und Rennen sind immer dunkel', it: 'I simulatori e le regate usano sempre il tema scuro' })
     : mode === 'auto'
       ? tp('Тема: авто', 'Theme: auto', 'Motyw: auto',
           { es: 'Tema: auto', fr: 'Thème : auto', de: 'Design: automatisch', it: 'Tema: auto' })

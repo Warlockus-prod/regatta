@@ -538,8 +538,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       id: 'sails',
       label: controlLabels.tabs.sails,
       cards: [
-        { id: 'main', title: tp('Грот: гика-шкот и риф', 'Main: mainsheet and reef', 'Grot: szot grota i ref', { es: 'Mayor: escota de mayor y rizo', fr: 'Grand-voile : écoute et ris', de: 'Groß: Großschot und Reff', it: 'Randa: scotta della randa e terzaroli' }), node: podsMain },
-        { id: 'jib', title: tp('Стаксель: стаксель-шкот и раскрытие', 'Jib: jib sheet and unfurl', 'Fok: szot foka i rozwinięcie', { es: 'Foque: escota de foque y desenrollado', fr: 'Foc : écoute et déroulé', de: 'Fock: Fockschot und Ausrollen', it: 'Fiocco: scotta del fiocco e svolgimento' }), node: <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} comfortable /> },
+        { id: 'main', title: tp('Грот: гика-шкот и риф', 'Main: mainsheet and reef', 'Grot: szot grota i ref', { es: 'Mayor: escota de mayor y rizo', fr: 'Grand-voile : écoute de grand-voile et ris', de: 'Groß: Großschot und Reff', it: 'Randa: scotta della randa e terzaroli' }), node: podsMain },
+        { id: 'jib', title: tp('Стаксель: стаксель-шкот и раскрытие', 'Jib: jib sheet and furling', 'Fok: szot foka i rozwinięcie', { es: 'Foque: escota de foque y desenrollado', fr: 'Foc : écoute de foc et déroulement', de: 'Fock: Fockschot und Ausrollen', it: 'Fiocco: scotta del fiocco e svolgimento' }), node: <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} comfortable /> },
       ],
     },
     {
@@ -551,7 +551,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           title: controlLabels.rudder,
           node: rudderCard,
         }] : []),
-        { id: 'course', title: tp('Курс к ветру и галс', 'Course to wind and tack', 'Kurs względem wiatru i hals', { es: 'Rumbo al viento y amura', fr: 'Cap au vent et amure', de: 'Kurs zum Wind und Bug', it: 'Rotta al vento e mure' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="course" comfortable /> },
+        { id: 'course', title: tp('Курс к ветру и галс', 'Angle to wind and tack', 'Kurs względem wiatru i hals', { es: 'Ángulo al viento y amura', fr: 'Angle au vent et amure', de: 'Kurs zum Wind und Bug', it: 'Angolo al vento e mure' }), node: <WindPod ui={ui} setUi={setUi} tp={tp} tackLabel={tackLabel} part="course" comfortable /> },
         { id: 'compass', title: tp('Компас', 'Compass', 'Kompas', { es: 'Brújula', fr: 'Compas', de: 'Kompass', it: 'Bussola' }), node: <HelmPod sim={sim} tp={tp} /> },
       ],
     },
@@ -715,11 +715,11 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                   color: 'var(--accent-cyan)',
                 }}
               >
-                {tp('Тренажёр', 'Trainer', 'Trener', {
-                  es: 'Entrenador',
+                {tp('Тренажёр', 'Trainer', 'Trenażer', {
+                  es: 'Trimado',
                   fr: 'Réglage',
                   de: 'Trainer',
-                  it: 'Trainer',
+                  it: 'Regolazione',
                 })}
               </span>
               <a

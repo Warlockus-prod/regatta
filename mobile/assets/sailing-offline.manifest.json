@@ -1,8 +1,8 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "sha256": "59dfc9e48882d9714f154f3c8c3cf2b11b7f23616b26f650565b2dd6384b8f1f",
-  "bytes": 3934916,
+  "sha256": "0913d27a1117c7bf69d1b98f327c31c9bdb6fc78834b1878a04afefb239108d2",
+  "bytes": 3944318,
   "model": {
     "sha256": "2f640726cbc4a7f0ec1a35ca4794bb7f0f55fb5887ba9fe16838a1e8be808d97",
     "bytes": 1304944,
@@ -700,6 +700,7 @@
     "src/features/simulator-v3/ui/shared.tsx",
     "src/features/trainer-controls/ControlDock.tsx",
     "src/features/trainer-controls/ControlSettingsSheet.tsx",
+    "src/features/trainer-controls/SceneChrome.tsx",
     "src/features/trainer-controls/TrainerControls.module.css",
     "src/features/trainer-controls/TrainerWorkspace.tsx",
     "src/features/trainer-controls/Wheel.tsx",

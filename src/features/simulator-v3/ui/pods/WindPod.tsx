@@ -29,7 +29,7 @@ export function WindPod(props: {
     <PodCard compact={compact}>
       <PodLabel
         text={part === 'course'
-          ? tp('КУРС К ВЕТРУ', 'COURSE TO WIND', 'KURS WZGLĘDEM WIATRU', { es: 'RUMBO AL VIENTO', fr: 'CAP AU VENT', de: 'KURS ZUM WIND', it: 'ROTTA AL VENTO' })
+          ? tp('КУРС К ВЕТРУ', 'ANGLE TO WIND', 'KURS WZGLĘDEM WIATRU', { es: 'ÁNGULO AL VIENTO', fr: 'ANGLE AU VENT', de: 'KURS ZUM WIND', it: 'ANGOLO AL VENTO' })
           : tp('ВЕТЕР', 'WIND', 'WIATR', {
           es: 'VIENTO',
           fr: 'VENT',

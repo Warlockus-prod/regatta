@@ -66,7 +66,7 @@ export const sailHandlingPhoto: AnnotatedPhoto = {
       label: words("Парусина", "Sailcloth", "Tkanina żaglowa", "Tela de la vela", "Tissu de la voile", "Segeltuch", "Tessuto della vela"),
       body: words(
         "Материал паруса. На крупном плане видны швы и панели, из которых сшит парус.",
-        "The sail's fabric. The closeup shows the seams and panels the sail is sewn from.",
+        "The sail's fabric. The close-up shows the seams and panels the sail is sewn from.",
         "Materiał żagla. Na zbliżeniu widać szwy i panele, z których uszyto żagiel.",
         "El tejido de la vela. En el primer plano se ven las costuras y los paños con que está cosida.",
         "Le tissu de la voile. Le gros plan montre les coutures et les laizes qui la composent.",
@@ -80,11 +80,11 @@ export const sailHandlingPhoto: AnnotatedPhoto = {
       y: 39,
       label: words("Гик", "Boom", "Bom", "Botavara", "Bôme", "Baum", "Boma"),
       body: words(
-        "Жесткий рангоут вдоль нижней кромки грота. К нему крепятся гротшкот и оттяжка из схемы ниже.",
+        "Жесткий рангоут вдоль нижней кромки грота. К нему крепятся гика-шкот и оттяжка из схемы ниже.",
         "The rigid spar along the foot of the mainsail. The mainsheet and the vang in the diagram below attach to it.",
         "Sztywne drzewce wzdłuż dolnej krawędzi grota. Mocuje się do niego szot grota i obciągacz ze schematu poniżej.",
         "La percha rígida a lo largo del pujamen de la mayor. A ella se sujetan la escota de mayor y la contra del esquema de abajo.",
-        "L'espar rigide le long de la bordure de la grand-voile. L'écoute et le hale-bas du schéma ci-dessous s'y fixent.",
+        "L'espar rigide le long de la bordure de la grand-voile. L'écoute de grand-voile et le hale-bas du schéma ci-dessous s'y fixent.",
         "Die feste Spiere am Unterliek des Großsegels. Großschot und Baumniederholer aus der Skizze unten greifen daran an.",
         "L'asta rigida lungo la base della randa. Scotta della randa e vang dello schema qui sotto sono fissati qui.",
       ),

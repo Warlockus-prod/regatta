@@ -168,8 +168,8 @@ export function SimWebView({
     {
       id: 'trainer',
       route: '/simulator-v3',
-      label: tp('Тренажёр', 'Trainer', 'Trener', {
-        es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer',
+      label: tp('Тренажёр', 'Trainer', 'Trenażer', {
+        es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione',
       }),
     },
     {
@@ -356,11 +356,11 @@ export function SimWebView({
             >
               <Text style={styles.btnGhostText}>
                 {fallbackLabel ??
-                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otwórz Trenera (offline)', {
-                    es: 'Abrir el Entrenador (sin conexión)',
+                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otwórz Trenażer (offline)', {
+                    es: 'Abrir el simulador de trimado (sin conexión)',
                     fr: 'Ouvrir le Réglage des voiles (hors ligne)',
                     de: 'Trainer öffnen (offline)',
-                    it: 'Apri il Trainer (offline)',
+                    it: 'Apri la Regolazione delle vele (offline)',
                   })}
               </Text>
             </Pressable>

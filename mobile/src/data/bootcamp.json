@@ -78,11 +78,11 @@
       "route": "/simulator-v3?drill=hold-trim",
       "focusRu": "Первая практика в «Тренажёре»: дрилл «Держи трим» запустится сам. Подбирай углы грота и стакселя, пока трим не дойдёт до 85%, и удержи его десять секунд - почувствуй, как угол паруса превращает поток в тягу.",
       "focusEn": "First hands-on practice: the \"Hold trim\" drill starts automatically in the Trainer. Sheet the main and jib until trim reaches 85% and hold it for ten seconds - feel how sail angle turns flow into pull.",
-      "focusPl": "Pierwsza praktyka w \"Trenerze trymu\": ćwiczenie \"Utrzymaj trym\" uruchomi się samo. Dobieraj kąty grota i foka, aż trym dojdzie do 85%, i utrzymaj go przez dziesięć sekund. Poczuj, jak kąt żagla zamienia przepływ powietrza w ciąg.",
-      "focusEs": "Primera práctica en el \"Entrenador de trimado\": el ejercicio \"Mantén el trim\" arranca solo. Ajusta los ángulos de la mayor y el foque hasta que el trim llegue al 85% y mantenlo diez segundos. Siente cómo el ángulo de la vela convierte el flujo en empuje.",
+      "focusPl": "Pierwsza praktyka w \"Trenażerze trymu\": ćwiczenie \"Utrzymaj trym\" uruchomi się samo. Dobieraj kąty grota i foka, aż trym dojdzie do 85%, i utrzymaj go przez dziesięć sekund. Poczuj, jak kąt żagla zamienia przepływ powietrza w ciąg.",
+      "focusEs": "Primera práctica en el \"Simulador de trimado\": el ejercicio \"Mantén el trim\" arranca solo. Ajusta los ángulos de la mayor y el foque hasta que el trim llegue al 85% y mantenlo diez segundos. Siente cómo el ángulo de la vela convierte el flujo en empuje.",
       "focusFr": "Première pratique dans le simulateur \"Réglage des voiles\" : l'exercice \"Maintiens le trim\" démarre tout seul. Règle les angles de la grand-voile et du foc jusqu'à 85% de trim, puis tiens-le dix secondes. Sens comment l'angle de la voile transforme l'écoulement de l'air en traction.",
       "focusDe": "Erste Praxis im \"Segeltrimm-Trainer\": Die Übung \"Halte den Trimm\" startet von selbst. Stell Groß und Fock ein, bis der Trimm 85% erreicht, und halte ihn zehn Sekunden. Spür, wie der Segelwinkel die Strömung in Vortrieb verwandelt.",
-      "focusIt": "Prima pratica nel \"Trainer di regolazione\": l'esercizio \"Tieni il trim\" parte da solo. Regola randa e fiocco finché il trim arriva all'85% e tienilo per dieci secondi. Senti come l'angolo della vela trasforma il flusso d'aria in spinta."
+      "focusIt": "Prima pratica nel simulatore \"Regolazione delle vele\": l'esercizio \"Tieni il trim\" parte da solo. Regola randa e fiocco finché il trim arriva all'85% e tienilo per dieci secondi. Senti come l'angolo della vela trasforma il flusso d'aria in spinta."
     },
     {
       "id": "tacking",

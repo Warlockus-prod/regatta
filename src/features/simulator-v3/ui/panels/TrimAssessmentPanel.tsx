@@ -22,7 +22,7 @@ export function TrimAssessmentPanel({ assessment: a, lang, record, answer, resta
       </dl>
     </div>}
     {a.phase === "perform" && <>
-      <p className="text-sm text-[var(--text-secondary)]">{c.wait[lang]} {(Math.floor(a.stableFor * 10) / 10).toFixed(1)}/3 s</p>
+      <p className="text-sm text-[var(--text-secondary)]">{c.wait[lang]} {(Math.floor(a.stableFor * 10) / 10).toFixed(1)}/3 {lang === "ru" ? "с" : "s"}</p>
       <button className={button} onClick={record}>{c.record[lang]}</button>
     </>}
     {a.phase === "explain" && <fieldset className="space-y-2"><legend className="mb-2 text-sm text-[var(--text-primary)]">{c.why[lang]}</legend>

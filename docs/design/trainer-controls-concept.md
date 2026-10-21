@@ -375,7 +375,7 @@ V1/V2/V3 ниже только для ссылок на код.
 | sail: main | грот | mainsail | grot | vela mayor | grand-voile | Großsegel | randa |
 | sail: jib | стаксель | jib | fok | foque | foc | Fock | fiocco |
 | helm | Руль | Helm | Ster | Timón | Barre | Steuer | Timone |
-| sheetScale | 0% выбран · 100% потравлен | 0% sheeted in · 100% eased out | 0% szot wybrany · 100% poluzowany | 0% cazada · 100% lascada | 0% bordée · 100% choquée | 0% dichtgeholt · 100% gefiert | 0% cazzata · 100% lascata |
+| sheetScale | 0% выбран · 100% потравлен | 0% sheeted in · 100% eased out | 0% wybrany · 100% poluzowany | 0% cazada · 100% lascada | 0% bordée · 100% choquée | 0% dichtgeholt · 100% gefiert | 0% cazzata · 100% lascata |
 
 - Короткие формы для узких мест не вводим: «Стаксель-шкот» (13 знаков)
   помещается под штурвалом 64pt в две строки; «Écoute de grand-voile» тоже

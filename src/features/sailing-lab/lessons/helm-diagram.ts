@@ -44,7 +44,7 @@ export const helmCopy = {
   readouts: [
     words(
       "Лодка уваливается, руль приходится держать под ветер. Паруса слишком плоские, задняя шкаторина грота слишком открыта или гика-шкот растравлен. Сделай грот глубже, подбери гика-шкот или сдвинь каретку на ветер, сохранив твист.",
-      "The boat bears away and you hold the helm to leeward. The sails are too flat, the main leech too open, or the mainsheet eased too far. Make the main deeper, trim the mainsheet, or move the traveller to windward while keeping the twist.",
+      "The boat bears away and you hold the helm to leeward. The sails are too flat, the main leech too open, or the mainsheet eased too far. Make the main deeper, trim the mainsheet, or move the traveler to windward while keeping the twist.",
       "Jacht odpada, ster trzeba trzymać na zawietrzną. Żagle są za płaskie, lik tylny grota za bardzo otwarty albo szot grota za luźny. Pogłęb grota, wybierz szot albo przesuń wózek na nawietrzną, zachowując skręt.",
       "El barco arriba y hay que llevar la caña a sotavento. Las velas están demasiado planas, la baluma de la mayor muy abierta o la escota demasiado lascada. Da más bolsa a la mayor, caza la escota o sube el carro a barlovento manteniendo la torsión.",
       "Le bateau abat et tu tiens la barre sous le vent. Les voiles sont trop plates, la chute de grand-voile trop ouverte ou l'écoute trop choquée. Creuse la grand-voile, borde l'écoute ou monte le chariot au vent en gardant le vrillage.",
@@ -62,7 +62,7 @@ export const helmCopy = {
     ),
     words(
       "Руль работает как ручной тормоз. Уплости паруса, открой твист грота, потравив гика-шкот, и сдвинь каретку под ветер.",
-      "The rudder works as a hand brake. Flatten the sails, open the main's twist by easing the mainsheet, and move the traveller to leeward.",
+      "The rudder works as a hand brake. Flatten the sails, open the main's twist by easing the mainsheet, and move the traveler to leeward.",
       "Ster działa jak hamulec ręczny. Spłaszcz żagle, otwórz skręt grota, luzując szot, i przesuń wózek na zawietrzną.",
       "El timón trabaja como un freno de mano. Aplana las velas, abre la torsión de la mayor lascando la escota y baja el carro a sotavento.",
       "Le safran travaille comme un frein à main. Aplatis les voiles, ouvre le vrillage de la grand-voile en choquant l'écoute et descends le chariot sous le vent.",
