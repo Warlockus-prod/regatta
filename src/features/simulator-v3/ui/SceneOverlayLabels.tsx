@@ -3,7 +3,8 @@
 import { type SimulationModel, type TpFn, type UiState } from './shared';
 
 // ---------------------------------------------------------------------------
-// Overlay labels on scene (corner labels - point of sail, TWA, trim score)
+// Trim score, point of sail and tack. Rendered ABOVE the scene, never over it:
+// the boat and its wind marks stay uncovered (owner, 2026-10-21).
 // ---------------------------------------------------------------------------
 
 export function SceneOverlayLabels(args: {
@@ -25,9 +26,7 @@ export function SceneOverlayLabels(args: {
 
   return (
     <>
-      {/* Top-left label is NOT shown here - it's obvious from the point of sail chip */}
-      {/* Top-center: trim score pill */}
-      <div className="absolute top-2 left-1/2 -translate-x-1/2 pointer-events-none">
+      <div className="flex justify-center py-1">
         <div
           className="rounded-full px-3 py-1 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider"
           style={{

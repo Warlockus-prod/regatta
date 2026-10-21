@@ -581,7 +581,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/trainer-controls/WheelDeck.tsx` - режим штурвалов: руль по центру, стаксель-шкот и гика-шкот по бокам, обмен местами по нажатию.
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
-- `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: закрепленная сцена, показания, док; горизонталь с доком справа.
+- `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: строка над сценой, закрепленная сцена, показания, док; горизонталь: сцена слева, показания и док справа.
+- `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 
 ### 4.12 `src/lib` - движок, i18n, данные, утилиты

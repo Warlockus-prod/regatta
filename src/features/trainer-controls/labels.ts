@@ -66,6 +66,8 @@ export function useControlLabels() {
     moveDown: tl({ ru: "ниже", en: "move down", pl: "niżej", es: "bajar", fr: "descendre", de: "nach unten", it: "giù" }),
     done: tl({ ru: "Готово", en: "Done", pl: "Gotowe", es: "Listo", fr: "OK", de: "Fertig", it: "Fatto" }),
     close: tl({ ru: "Закрыть", en: "Close", pl: "Zamknij", es: "Cerrar", fr: "Fermer", de: "Schließen", it: "Chiudi" }),
+    view: tl({ ru: "Вид", en: "View", pl: "Widok", es: "Vista", fr: "Vue", de: "Ansicht", it: "Vista" }),
+    views: tl({ ru: "Виды и камера", en: "Views and camera", pl: "Widoki i kamera", es: "Vistas y cámara", fr: "Vues et caméra", de: "Ansichten und Kamera", it: "Viste e camera" }),
     helm: tl({ ru: "Руль", en: "Helm", pl: "Ster", es: "Timón", fr: "Barre", de: "Steuer", it: "Timone" }),
     mainsheet: tl({ ru: "Гика-шкот", en: "Mainsheet", pl: "Szot grota", es: "Escota de mayor", fr: "Écoute de grand-voile", de: "Großschot", it: "Scotta della randa" }),
     jibsheet: tl({ ru: "Стаксель-шкот", en: "Jib sheet", pl: "Szot foka", es: "Escota de foque", fr: "Écoute de foc", de: "Fockschot", it: "Scotta del fiocco" }),

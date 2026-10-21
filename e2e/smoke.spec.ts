@@ -281,10 +281,15 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   // Phones get the shared control dock: the helm slider lives in the Helm tab.
   await page.getByRole("tab", { name: "Helm", exact: true }).click();
   await expect(page.getByRole("slider", { name: "Helm", exact: true })).toHaveValue("0");
+  // Cameras slide out from the side on demand; nothing is drawn over the boat.
+  const views = page.getByTestId("scene-view-button");
+  await views.click();
   await page.getByRole("button", { name: "Deck", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Deck", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await page.getByRole("button", { name: "Reset camera", exact: true }).click();
-  await expect(page.getByRole("button", { name: "Whole yacht", exact: true })).toHaveAttribute("aria-pressed", "true");
+  await expect(views).toHaveAttribute("aria-expanded", "false");
+  await expect(views).toHaveAccessibleName("View: Deck");
+  await views.click();
+  await page.getByRole("button", { name: "↺ Reset camera", exact: true }).click();
+  await expect(views).toHaveAccessibleName("View: Whole yacht");
   const canvas = await page.locator("canvas").first().boundingBox();
   expect(canvas).not.toBeNull();
   expect(canvas!.height).toBeGreaterThan(200);
@@ -297,6 +302,7 @@ test("3D wind instrument stays visible when animated airflow is hidden", async (
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 680 });
   await page.goto("/simulator2?embed=1&lang=en");
+  await page.getByTestId("scene-view-button").click();
   const airflow = page.getByRole("button", { name: "Airflow", exact: true });
   await expect(airflow).toHaveAttribute("aria-pressed", "true");
   await airflow.click();

@@ -11,6 +11,22 @@ import {
   type ViewMode,
 } from '../shared';
 
+/** The four scene views, shared by this pod and the phone views drawer. */
+export function viewOptions(tp: TpFn): { value: ViewMode; label: string }[] {
+  return [
+    { value: 'top', label: tp('Сверху', 'Top', 'Z góry', { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }) },
+    { value: 'rear', label: tp('Сзади', 'Rear', 'Z tyłu', { es: 'Popa', fr: 'Arrière', de: 'Heck', it: 'Poppa' }) },
+    { value: 'side', label: tp('Сбоку', 'Side', 'Z boku', { es: 'Lateral', fr: 'Côté', de: 'Seite', it: 'Lato' }) },
+    { value: '3d', label: "3D" },
+  ];
+}
+
+export function pauseLabel(tp: TpFn, paused: boolean) {
+  return paused
+    ? tp("Продолжить", "Resume", "Wznów", { es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" })
+    : tp("Пауза", "Pause", "Pauza", { es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" });
+}
+
 export function ViewPod(props: {
   ui: UiState;
   setUi: React.Dispatch<React.SetStateAction<UiState>>;
@@ -32,28 +48,13 @@ export function ViewPod(props: {
       <div className="flex-1 min-w-0">
       <PodSegmented
         compact={compact}
-        options={[
-          {
-            value: 'top' as const,
-            label: tp('Сверху', 'Top', 'Z góry', { es: 'Cenital', fr: 'Dessus', de: 'Oben', it: 'Alto' }),
-          },
-          {
-            value: 'rear' as const,
-            label: tp('Сзади', 'Rear', 'Z tyłu', { es: 'Popa', fr: 'Arrière', de: 'Heck', it: 'Poppa' }),
-          },
-          {
-            value: 'side' as const,
-            label: tp('Сбоку', 'Side', 'Z boku', { es: 'Lateral', fr: 'Côté', de: 'Seite', it: 'Lato' }),
-          },
-          { value: '3d' as const, label: "3D" },
-        ]}
+        options={viewOptions(tp)}
         active={ui.view}
         onSelect={(v) => setUi((p) => ({ ...p, view: v as ViewMode }))}
       />
       </div>
       <button onClick={togglePause} aria-pressed={paused} className="min-h-11 rounded-md border border-[var(--border-subtle)] px-2 text-xs text-[var(--text-primary)]">
-        {paused ? tp("Продолжить", "Resume", "Wznów", { es: "Continuar", fr: "Reprendre", de: "Fortsetzen", it: "Riprendi" })
-          : tp("Пауза", "Pause", "Pauza", { es: "Pausa", fr: "Pause", de: "Pause", it: "Pausa" })}
+        {pauseLabel(tp, paused)}
       </button>
       </div>
       </>}

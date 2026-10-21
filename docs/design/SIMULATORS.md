@@ -91,7 +91,9 @@ away, the controls live in a tabbed dock under it, and an optional wheel mode
 sliders. Sliders stay the default. Every sheet label names its sheet
 ("Гика-шкот", "Стаксель-шкот") and reads 0% sheeted in, 100% eased out, with
 the sail angle in brackets. The controls feed the same session inputs; the
-physics does not change.
+physics does not change. Owner rule 2026-10-21: on a phone nothing is drawn
+over the boat. Status and buttons sit in a bar above the scene, readouts under
+it, and views or cameras slide out from the side only on demand.
 
 ## Embed contract (iOS WebView)
 

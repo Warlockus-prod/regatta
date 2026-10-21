@@ -4,7 +4,7 @@ import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
 import { LessonReturn } from "../sailing-lab/ui/LessonReturn";
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
 import { getBoatParams } from '@/lib/sailing-physics';
@@ -39,7 +39,7 @@ import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
 import { MainTrimPod } from "./ui/pods/MainTrimPod";
-import { ViewPod } from './ui/pods/ViewPod';
+import { ViewPod, pauseLabel, viewOptions } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
 import {
   DEFAULT_UI,
@@ -50,8 +50,14 @@ import {
 import {
   ControlDock,
   ControlSettingsSheet,
+  BarIconButton,
+  DrawerGroup,
+  DrawerItem,
   GearButton,
+  SceneBar,
+  SceneDrawer,
   TrainerWorkspace,
+  ViewButton,
   WheelDeck,
   applyCourseDelta,
   helmMappingFor,
@@ -64,6 +70,13 @@ import {
 } from '../trainer-controls';
 
 const TrainerBoat3D = dynamic(() => import("./ui/TrainerBoat3D"), { ssr: false });
+
+// The scene drawings are computed from live physics. Node (server) and the
+// browser round transcendental math differently in the 15th digit, so a
+// server-rendered SVG never hydrates cleanly. Draw the scene on the client
+// only; the box and its background still render on the server.
+const noopSubscribe = () => () => {};
+const useClientOnly = () => useSyncExternalStore(noopSubscribe, () => true, () => false);
 
 // ---------------------------------------------------------------------------
 // URL-state shareable setups.
@@ -198,6 +211,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
   const helmMapping = helmMappingFor(prefs, 'trainer');
   const [rudder, setRudder] = useState(0);
   const [desktopSettings, setDesktopSettings] = useState(false);
+  const [viewsOpen, setViewsOpen] = useState(false);
+  const onClient = useClientOnly();
   const { sim, reset, restore } = useSimulatorV3({ ui, tp, paused, rudder: helmMapping === 'rudder' ? rudder : null });
   const uiRef = useRef(ui);
   uiRef.current = ui;
@@ -562,11 +577,6 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </div>
           ),
         }]),
-        {
-          id: 'view',
-          title: tp('Вид и пауза', 'View and pause', 'Widok i pauza', { es: 'Vista y pausa', fr: 'Vue et pause', de: 'Ansicht und Pause', it: 'Vista e pausa' }),
-          node: cameraPanel,
-        },
         { id: 'session', title: sessionLabel, node: sessionPanel },
         ...(!embed ? [{ id: 'glossary', title: tp('Термины', 'Terms', 'Terminy', { es: 'Términos', fr: 'Termes', de: 'Begriffe', it: 'Termini' }), node: <GlossaryFooter tp={tp} /> }] : []),
       ],
@@ -782,6 +792,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
 
         <div className="relative flex flex-col min-h-0 overflow-y-auto">
           {cameraPanel}
+          <SceneOverlayLabels ui={ui} sim={sim} pointLabel={pointLabel} tackLabel={tackLabel} tp={tp} />
           <div
             data-testid="trainer-scene"
             data-session-tick={sim.session.ticks}
@@ -794,20 +805,13 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)',
             }}
           >
-            {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+            {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
               <SceneTop ui={ui} sim={sim} lang={lang} />
             ) : ui.view === 'side' ? (
               <SceneSide ui={ui} sim={sim} tp={tp} />
             ) : (
               <SceneRear ui={ui} sim={sim} tp={tp} />
             )}
-            <SceneOverlayLabels
-              ui={ui}
-              sim={sim}
-              pointLabel={pointLabel}
-              tackLabel={tackLabel}
-              tp={tp}
-            />
           </div>
           <MetricsStrip ui={ui} sim={sim} tp={tp} />
           <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
@@ -834,6 +838,26 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       {!isDesktop && (
         <TrainerWorkspace
           embed={embed}
+          sceneBar={
+            <SceneBar
+              status={<><strong>{pointLabel}</strong> · {tackLabel}</>}
+              actions={<>
+                <ViewButton
+                  label={controlLabels.view}
+                  current={viewOptions(tp).find((o) => o.value === ui.view)?.label}
+                  open={viewsOpen}
+                  controls="trainer-views"
+                  onToggle={() => setViewsOpen((v) => !v)}
+                />
+                {embed && (
+                  <BarIconButton
+                    label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', { es: 'Mostrar la guía', fr: 'Afficher le guide', de: 'Tour anzeigen', it: 'Mostra il tour' })}
+                    onClick={() => setForceTour((n) => n + 1)}
+                  >?</BarIconButton>
+                )}
+              </>}
+            />
+          }
           scene={
             <div
               data-testid="trainer-scene"
@@ -842,24 +866,29 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               className="absolute inset-0"
               style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
             >
-              {ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />
               ) : (
                 <SceneRear ui={ui} sim={sim} tp={tp} />
               )}
-              <SceneOverlayLabels ui={ui} sim={sim} pointLabel={pointLabel} tackLabel={tackLabel} tp={tp} />
-              {embed && (
-                <button
-                  type="button"
-                  onClick={() => setForceTour((n) => n + 1)}
-                  aria-label={tp('Показать обзор', 'Show tour', 'Pokaż przewodnik', { es: 'Mostrar la guía', fr: 'Afficher le guide', de: 'Tour anzeigen', it: 'Mostra il tour' })}
-                  className="absolute right-2 bottom-2 z-10 min-w-11 min-h-11 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[15px] font-bold text-[var(--accent-cyan)]"
-                >
-                  ?
-                </button>
-              )}
+              <SceneDrawer
+                id="trainer-views"
+                open={viewsOpen}
+                title={controlLabels.views}
+                closeLabel={controlLabels.close}
+                onClose={() => setViewsOpen(false)}
+              >
+                <DrawerGroup>
+                  {viewOptions(tp).map((o) => (
+                    <DrawerItem key={o.value} pressed={ui.view === o.value} onClick={() => { setUi((p) => ({ ...p, view: o.value })); setViewsOpen(false); }}>{o.label}</DrawerItem>
+                  ))}
+                </DrawerGroup>
+                <DrawerGroup>
+                  <DrawerItem pressed={paused} onClick={() => setPaused((value) => !value)}>{pauseLabel(tp, paused)}</DrawerItem>
+                </DrawerGroup>
+              </SceneDrawer>
             </div>
           }
           readouts={<>

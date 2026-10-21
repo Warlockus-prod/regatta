@@ -102,12 +102,15 @@ test("mobile rig workspace keeps the boat state across camera and panel changes"
   await length.focus();
   await length.press("ArrowRight");
   const changed = await length.inputValue();
-  await dock.getByRole("tab", { name: "More" }).click();
+  // Views and pause slide out from the side of the scene.
+  const views = page.getByTestId("scene-view-button");
+  await views.click();
   await page.getByRole("button", { name: "Pause", exact: true }).click();
   await expect(page.getByRole("button", { name: "Resume", exact: true })).toHaveAttribute("aria-pressed", "true");
   const tick = await scene.getAttribute("data-session-tick");
   await page.getByRole("button", { name: "Top", exact: true }).click();
   await expect(scene).toHaveAttribute("data-session-tick", tick!);
+  await views.click();
   await page.getByRole("button", { name: "Rear", exact: true }).click();
   await expect(scene).toHaveAttribute("data-session-tick", tick!);
   await dock.getByRole("tab", { name: "Helm" }).click();

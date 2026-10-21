@@ -83,18 +83,23 @@
 .compactRoot .header > * { flex-shrink: 0; }
 .compactScene { position: absolute; inset: 0; background: var(--bg-secondary); }
 .compactScene .viewport { position: absolute; inset: 0; height: auto; }
-.overlayTop { position: absolute; top: 0; left: 0; right: 0; z-index: 2; background: color-mix(in srgb, var(--bg-primary) 72%, transparent); }
-.overlayTop .toolbar { border-bottom: 0; padding: 2px 6px; }
-.overlayTop .sailViews { border-bottom: 0; }
-.overlayBottom { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; background: color-mix(in srgb, var(--bg-primary) 78%, transparent); }
-.overlayBottom .stats { padding: 4px 14px; border-top: 0; }
-.overlayBottom .readout strong { font-size: 15px; line-height: 1.4; }
-.overlayBottom .coach { font-size: 12px; padding: 6px 14px; background: transparent; }
-.compactScene .steer { bottom: 104px; }
 .compactRoot .slider input { height: 44px; }
 .compactRoot .sailFeedback { margin: 0; }
 .compactRoot .sheetScale { margin: 4px 0 0; }
-.overlayTop .windReadout { border-bottom: 0; padding: 2px 10px 4px; }
-.overlayTop .windReadout svg { flex-basis: 40px; width: 40px; height: 40px; }
 .panelHead { display: flex; justify-content: flex-end; margin: -6px 0 6px; }
 .deckBox { height: 320px; margin-bottom: 12px; }
+
+/* Phone readouts under the scene: steer buttons at the thumbs, four numbers
+   between them, the coach line below. Nothing sits on the boat itself. */
+.compactSlot { flex: 0 0 auto; padding: 4px 8px 0; }
+.compactRoot .modes { gap: 2px; }
+.compactRoot .modes .button { padding: 8px 10px; }
+.statsRow { display: flex; align-items: center; gap: 4px; padding: 4px max(6px, env(safe-area-inset-right, 0px)) 4px max(6px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border-color); background: var(--bg-primary); }
+.stats4 { flex: 1 1 auto; min-width: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; padding: 0 6px; }
+.stats4 .readout strong { font-size: 16px; line-height: 1.4; }
+.steerInline { position: static; flex: 0 0 auto; width: 48px; height: 48px; font-size: 26px; }
+.compactRoot .coach { font-size: 12px; padding: 6px 14px; }
+.guideSteps { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 8px; font-size: 13px; line-height: 18px; color: var(--text-secondary); }
+.guideSteps strong { color: var(--text-primary); }
+.readout strong.windCell { display: flex; align-items: center; gap: 4px; }
+.readout .windCell svg { flex: 0 0 auto; color: var(--text-secondary); }

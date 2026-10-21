@@ -5,15 +5,21 @@ import { RegattaScene } from "./RegattaScene";
 import { useSailingSim } from "./physics/useSailingSim";
 import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
-import { WindReadout } from "./ui/WindReadout";
+import { WindGlyph, WindReadout } from "./ui/WindReadout";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
 import type { CameraView } from "./camera";
 import styles from "./Simulator3D.module.css";
 import {
   ControlDock,
   ControlSettingsSheet,
+  BarIconButton,
+  DrawerGroup,
+  DrawerItem,
   GearButton,
+  SceneBar,
+  SceneDrawer,
   TrainerWorkspace,
+  ViewButton,
   WheelDeck,
   helmMappingFor,
   trainerScreenClass,
@@ -25,7 +31,10 @@ import {
 
 // Phones (and landscape phones) get the pinned-boat workspace with the shared
 // control dock (docs/design/trainer-controls-concept.md); wider screens keep the
-// scene plus side panel. This module is client-only (dynamic, ssr: false).
+// scene plus side panel. On phones nothing is drawn over the boat: the mode
+// buttons sit in the bar above it, the readouts and the steer buttons under
+// it, cameras and the guide slide out from the side on demand.
+// This module is client-only (dynamic, ssr: false).
 const COMPACT_QUERY = "(max-width: 900px), (orientation: landscape) and (max-height: 540px)";
 function subscribeCompact(onChange: () => void) {
   const mq = window.matchMedia(COMPACT_QUERY);
@@ -58,10 +67,11 @@ function Slider({ label, value, min, max, step = 0.01, onChange, fmt }: {
 function Readout({ label, value }: { label: string; value: string }) {
   return <div className={styles.readout}><span>{label}</span><strong>{value}</strong></div>;
 }
-function SteerButton({ dir, label, onHold, onRelease }: {
-  dir: -1 | 1; label: string; onHold: (dir: -1 | 1) => void; onRelease: () => void;
+function SteerButton({ dir, label, onHold, onRelease, inline }: {
+  dir: -1 | 1; label: string; onHold: (dir: -1 | 1) => void; onRelease: () => void; inline?: boolean;
 }) {
-  return <button aria-label={label} className={styles.steer} style={dir === -1 ? { left: 12 } : { right: 12 }}
+  return <button aria-label={label} className={inline ? `${styles.steer} ${styles.steerInline}` : styles.steer}
+    style={inline ? undefined : dir === -1 ? { left: 12 } : { right: 12 }}
     onPointerDown={(event) => { event.currentTarget.setPointerCapture(event.pointerId); onHold(dir); }}
     onPointerUp={onRelease} onPointerCancel={onRelease} onLostPointerCapture={onRelease}
     onBlur={onRelease} onContextMenu={(event) => event.preventDefault()}
@@ -96,6 +106,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [showFlow, setShowFlow] = useState(true);
   const [light, setLight] = useState(embed);
   const [guide, setGuide] = useState(false);
+  const [viewsOpen, setViewsOpen] = useState(false);
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (mode === "free") Object.assign(yachtRef.current, free, { rigResolved: false, sailSide: undefined, heading: undefined, travel: undefined, jibShape: undefined, fill: 1, airSpeed: 12, apparentWind: undefined, wind: undefined, speedKn: 0 });
@@ -180,7 +191,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const viewport = <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
             showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
-          {mode === "sail" && !wheels && <>
+          {mode === "sail" && !wheels && !compact && <>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
           </>}
@@ -266,18 +277,65 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
       { id: "wind", label: controlLabels.tabs.wind, cards: [{ id: "wind", title: L.windSpeed, node: windControls }] },
       { id: "more", label: controlLabels.tabs.more, cards: [
         { id: "instruments", title: L.scene.instruments, node: instruments },
-        { id: "extras", title: `${L.scene.light}, ${L.sound}, ${L.reset}`, node: <>{guideBlock}<p className={styles.hint}>{L.scene.sailingHint}</p>{extras}</> },
+        { id: "extras", title: `${L.scene.light}, ${L.sound}, ${L.reset}`, node: <><p className={styles.hint}>{L.scene.sailingHint}</p>{extras}</> },
       ] },
     ];
+    const sailsView = (["sails", "main", "jib"] as CameraView[]).includes(view);
+    const sceneBar = <SceneBar
+      status={<div className={styles.modes}>
+        <button className={styles.button} aria-pressed onClick={() => setMode("sail")}>{L.modeSail}</button>
+        <button className={styles.button} aria-pressed={false} onClick={() => setMode("free")}>{L.modeFree}</button>
+      </div>}
+      actions={<>
+        <ViewButton iconOnly label={controlLabels.view} current={L.scene[sailsView ? "sails" : view as "whole" | "stern" | "deck"]} open={viewsOpen}
+          controls="boat-views" onToggle={() => { setGuide(false); setViewsOpen((v) => !v); }} />
+        <BarIconButton label={L.tour.open} onClick={() => { setViewsOpen(false); setGuide((g) => !g); }}>?</BarIconButton>
+      </>}
+    />;
+    const compactReadouts = <>
+      <div className={styles.statsRow}>
+        {!wheels && <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />}
+        <div className={styles.stats4}>
+          <Readout label={L.speed} value={`${t.speedKn.toFixed(1)} kn`} />
+          <Readout label={L.heel} value={degrees(t.heelDeg)} />
+          <Readout label={L.scene.heading} value={degrees(t.heading)} />
+          <div className={styles.readout}><span>AWA</span><strong className={styles.windCell}>
+            <WindGlyph awa={t.awaSigned} moving={t.awsKn > .5} size={22} label={L.scene.relativeWind} />{degrees(t.awaDeg)}</strong></div>
+        </div>
+        {!wheels && <SteerButton inline dir={1} label={L.steerRight} onHold={hold} onRelease={release} />}
+      </div>
+      <p className={styles.coach} data-maneuver={t.maneuver}>
+        {t.maneuver === "sailing" ? L.coach[t.coach] : L.maneuver[t.maneuver]}
+      </p>
+    </>;
     return <div className={`${trainerScreenClass(embed)} ${styles.compactRoot} ${className ?? ""}`}>
-      {header}
+      {headerSlot && <div className={styles.compactSlot}>{headerSlot}</div>}
       <TrainerWorkspace
         embed={embed}
+        sceneBar={sceneBar}
         scene={<div className={styles.compactScene}>
-          <div className={styles.overlayTop}>{cameraBar}{windReadout}</div>
           {viewport}
-          <div className={styles.overlayBottom}>{readouts}</div>
+          <SceneDrawer id="boat-views" open={viewsOpen} title={controlLabels.views} closeLabel={controlLabels.close} onClose={() => setViewsOpen(false)}>
+            <DrawerGroup>
+              {(["whole", "sails", "stern", "deck"] as const).map((item) => <DrawerItem key={item}
+                pressed={view === item || (item === "sails" && sailsView)}
+                onClick={() => { selectView(item); if (item !== "sails") setViewsOpen(false); }}>{L.scene[item]}</DrawerItem>)}
+            </DrawerGroup>
+            {sailsView && <DrawerGroup>
+              {(["sails", "main", "jib"] as const).map((item) => <DrawerItem key={item} pressed={view === item}
+                onClick={() => { selectView(item); setViewsOpen(false); }}>{item === "sails" ? L.scene.both : L.scene[item]}</DrawerItem>)}
+            </DrawerGroup>}
+            <DrawerGroup>
+              <DrawerItem pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</DrawerItem>
+              <DrawerItem onClick={() => { selectView("whole"); setViewsOpen(false); }}>↺ {L.scene.resetView}</DrawerItem>
+            </DrawerGroup>
+          </SceneDrawer>
+          <SceneDrawer id="boat-guide" open={guide} title={L.tour.open} closeLabel={controlLabels.close} onClose={() => setGuide(false)}>
+            <ol className={styles.guideSteps}>{L.tour.steps.map((step) => <li key={step.title}><strong>{step.title}.</strong> {step.body}</li>)}</ol>
+            <DrawerItem onClick={() => setGuide(false)}>{controlLabels.close}</DrawerItem>
+          </SceneDrawer>
         </div>}
+        readouts={compactReadouts}
         dock={<ControlDock
           surface="boat"
           layout="bottom"
