@@ -892,8 +892,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </div>
           }
           readouts={<>
-            <MetricsStrip ui={ui} sim={sim} tp={tp} />
-            <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} />
+            <MetricsStrip ui={ui} sim={sim} tp={tp} dense />
+            <CommentaryLine text={sim.primaryFeedback} tone={sim.primaryFeedbackTone} dense />
           </>}
           dock={
             <ControlDock

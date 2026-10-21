@@ -45,8 +45,8 @@
   display: flex;
   align-items: center;
   gap: 6px;
-  min-height: 48px;
-  padding: 2px max(8px, env(safe-area-inset-right, 0px)) 2px max(14px, env(safe-area-inset-left, 0px));
+  min-height: 44px;
+  padding: 0 max(8px, env(safe-area-inset-right, 0px)) 0 max(14px, env(safe-area-inset-left, 0px));
   border-bottom: 1px solid var(--border-subtle);
   background: var(--bg-primary);
 }
