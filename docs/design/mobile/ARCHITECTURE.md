@@ -211,6 +211,7 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (shim to the golden VPP engine), wheel mode `WheelDeck.tsx` + `wheel-controls.ts` + `wheel-sound.ts`. |
 | `courses/` | `polar.ts` - polar/VPP curve builder. **Used by the Points-of-Sail diagram.** |
 | `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents) + `progression.ts` (mark rounding) + `units.ts` (`KN_TO_PX_PER_S`, the one knots-to-pixels scale shared with `simulator/use-sim-loop.ts`). |
+| `game/VenueLand.tsx`, `game/VenuePicker.tsx`, `persistence/venue.ts` | Regatta venue (ADR-0005 in the root `DECISIONS.md`): the shore of the picked venue drawn around the race bay in Skia, the picker in the Race hub, the preference `regatta.venue.v1` in AsyncStorage. With a shore the race keeps the player and the rivals inside the bay (`water` rect in `use-sim-loop.ts` and `ai-boats.ts`) instead of wrapping across the screen. |
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, `analytics-consent.ts`, ...). |

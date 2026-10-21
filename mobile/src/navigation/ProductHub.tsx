@@ -14,6 +14,7 @@ import { useLearningSnapshot } from "../home/useLearningSnapshot";
 import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
 import { passedLessonIds } from "../bootcamp/status";
 import { bootcampLessons } from "../data";
+import { VenuePicker } from "../game/VenuePicker";
 
 const racePhoto = require("../../assets/design/race-card.jpg");
 
@@ -64,6 +65,7 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       <Text variant="title" accessibilityRole="header" style={styles.title}>{title}</Text>
       {!isMenu && <Text style={styles.intro}>{current.description[lang]}</Text>}
       {section === "race" && <PhotoCard source={racePhoto} height={188} eyebrow={current.title[lang]} title={solo.title[lang]} caption={solo.detail?.[lang]} onPress={() => router.push(solo.native as Href)} />}
+      {section === "race" && <VenuePicker />}
       {isMenu && <View style={styles.search}>
         <View style={styles.field}>
           <Svg width={18} height={18} viewBox="0 0 18 18" accessibilityElementsHidden importantForAccessibility="no">

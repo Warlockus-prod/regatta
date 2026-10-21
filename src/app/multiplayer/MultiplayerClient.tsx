@@ -6,6 +6,8 @@ import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason 
 import { WORLD, makeStandardCourse, deg2rad } from '@/lib/race-physics';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
+import { drawVenue } from '@/features/venues/drawVenue';
+import { useVenue } from '@/features/venues/useVenue';
 import { sanitizeNickname } from '@/lib/race-submission';
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
@@ -55,7 +57,12 @@ function missionReasonText(
 }
 
 export default function MultiplayerClient() {
-  const { tp, tl } = useI18n();
+  const { tp, tl, lang } = useI18n();
+  // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
+  const [venue] = useVenue();
+  const venueRef = useRef(venue);
+  const langRef = useRef(lang);
+  useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);
   const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
   const [phase, setPhase] = useState<Phase>('menu');
   const [error, setError] = useState<string | null>(null);
@@ -320,10 +327,13 @@ export default function MultiplayerClient() {
       g.addColorStop(0, '#051425'); g.addColorStop(1, '#0a1f3d');
       ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
 
-      const s = Math.min(W / WORLD.width, H / WORLD.height);
+      // A margin around the race area shows the shore of the venue.
+      const margin = 70;
+      const s = Math.min(W / (WORLD.width + 2 * margin), H / (WORLD.height + 2 * margin));
       const ox = (W - WORLD.width * s) / 2;
       const oy = (H - WORLD.height * s) / 2;
       const toXY = (p: { x: number; y: number }) => ({ x: ox + p.x * s, y: oy + p.y * s });
+      drawVenue(ctx, venueRef.current, toXY, s, langRef.current);
 
       // Start/finish line
       const la = toXY(course.startLine.a), lb = toXY(course.startLine.b);

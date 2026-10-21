@@ -397,6 +397,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/onboard.ts` - "первая неделя на борту", 12 разделов, в том числе выход из гавани, возвращение, типы швартовки, газ и пожар.
 - `src/data/checklist.ts` - чек-лист перед выходом, 9 разделов, в том числе готовность яхты у причала.
 - `src/data/missions.ts` - миссии гонки, оцениваются после финиша по логу.
+- `src/data/venues/venues.ts` - акватории регат (Гёджек, Сплит, Мазуры, Солент, открытое море): берега и острова вокруг поля гонки, палитра, названия на 7 языках, ключ настройки `regatta.venue.v1` (ADR-0005).
+- `src/data/venues/geometry.ts` - детерминированная геометрия акваторий: полигоны берега для гонок (всегда снаружи поля), рельеф для горизонта 3D.
+- `src/data/venues/geometry.test.ts` - контракт: суша не заходит на поле, грани рельефа смотрят вверх, берег 3D дальше камеры.
 - `src/data/drills.ts` - каталог упражнений и сценариев, общий для веба и мобильного.
 - `src/data/gallery.ts` - видео и фото галереи.
 - `src/data/gallery-2026.generated.ts` - автогенерация `scripts/build-gallery-year.mjs`, руками не править.
@@ -495,6 +498,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-3d/audio/useSailAudio.ts` - звук парусов и воды.
 - `src/features/simulator-3d/ocean/Ocean.tsx` - поверхность воды.
 - `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след.
+- `src/features/simulator-3d/ocean/Backdrop.tsx` - горы и острова акватории на горизонте Лодки 3D (низкополигональный рельеф с воздушной перспективой).
 - `src/features/simulator-3d/ocean/WindFlow.tsx` - видимый поток ветра.
 - `src/features/simulator-3d/ocean/waves.ts` - поле волн (сумма синусов), общее для воды и качки.
 - `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия, подсказка коуча `coachFrom` (называет шкот).
@@ -582,6 +586,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/trainer-controls/ControlDock.tsx` - док под лодкой: вкладки «Избранное / Штурвалы, Паруса, Руль, Ветер, Ещё» и шестеренка; если пришли из урока, первой стоит и открывается вкладка «Задание» (`leadTab`).
 - `src/features/trainer-controls/ControlSettingsSheet.tsx` - лист настроек: режим, что задает штурвал, возврат в центр, чувствительность, сторона шкотов, звук, состав избранного.
 - `src/features/trainer-controls/TrainerWorkspace.tsx` - раскладка телефона: строка над сценой, закрепленная сцена, показания, док; горизонталь: сцена слева, показания и док справа.
+- `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
+- `src/features/venues/useVenue.ts` - выбранная акватория (localStorage), общая для гонок и Лодки 3D.
+- `src/features/venues/VenuePicker.tsx` - выбор акватории в меню веб-гонки.
 - `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 

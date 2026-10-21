@@ -32,6 +32,8 @@ import {
 import { findCourse, type CourseId, type CourseMarkScreen, projectCourse, scoreCourse, buildFinishLine } from '../../src/game/course';
 import { nativeProgress, advanceNativeProgress, nativeTarget } from "../../src/game/progression";
 import { useRaceAi, type RaceDifficulty } from '../../src/game/ai-boats';
+import { VenueLand } from '../../src/game/VenueLand';
+import { useVenue } from '../../src/persistence/venue';
 import { useRaceHistory, type ReplayPoint } from '../../src/persistence/race-history';
 import {
   submitRaceResult,
@@ -146,13 +148,25 @@ function Game() {
   const compassCx = sceneW - COMPASS_R - 16;
   const compassCy = COMPASS_R + 14;
   const boatLength = sceneW < 360 ? 46 : 54;
+  // The race bay: the course and the boats live in the water rect, the shore
+  // of the picked venue (src/data/venues) fills the margins around it.
+  const [venue] = useVenue();
+  const hasShore = venue.lands.length > 0;
+  const marginX = hasShore ? Math.round(sceneW * 0.1) : 0;
+  const marginY = hasShore ? 30 : 0;
+  const water = useMemo(
+    () => ({ x0: marginX, y0: marginY, x1: sceneW - marginX, y1: sceneH - marginY }),
+    [marginX, marginY, sceneW, sceneH],
+  );
+  const waterSize = useMemo(() => ({ width: water.x1 - water.x0, height: water.y1 - water.y0 }), [water]);
+  const projectInBay = useCallback(
+    (c: Parameters<typeof projectCourse>[0]) => projectCourse(c, waterSize).map((m) => ({ ...m, x: m.x + water.x0, y: m.y + water.y0 })),
+    [waterSize, water.x0, water.y0],
+  );
 
   const courseId = ((params.course as CourseId | undefined) ?? 'short') as CourseId;
   const course = useMemo(() => findCourse(courseId), [courseId]);
-  const initialMarks = useMemo(
-    () => projectCourse(course, { width: sceneW, height: sceneH }),
-    [course, sceneW, sceneH],
-  );
+  const initialMarks = useMemo(() => projectInBay(course), [course, projectInBay]);
 
   // Start mark drives the boat's initial position so the player begins
   // on the start line, bow pointing at the windward mark.
@@ -161,6 +175,7 @@ function Game() {
   const sim = useSimLoop({
     running: phase === "racing",
     bounds: { width: sceneW, height: sceneH },
+    water: hasShore ? water : undefined,
     initialX: startMark.x,
     initialY: startMark.y + 12,
   });
@@ -222,6 +237,7 @@ function Game() {
   );
   const ai = useRaceAi({
     bounds: { width: sceneW, height: sceneH },
+    water: hasShore ? water : undefined,
     marks: aiMarks,
     getWind: () => ({
       dirRad: sim.wind.trueWindDirRad,
@@ -666,7 +682,7 @@ function Game() {
     setRaceTimeSec(0);
     setSavedRaceId(null);
     setSaving(false);
-    const fresh = projectCourse(course, { width: sceneW, height: sceneH });
+    const fresh = projectInBay(course);
     marksRef.current = fresh;
     setMarks(fresh);
     progressionRef.current = nativeProgress(startMark.x,startMark.y+12,0);
@@ -689,7 +705,7 @@ function Game() {
         <View style={styles.header}>
           <Text variant="subtitle" style={styles.title}>{title}</Text>
           <Text variant="caption" style={styles.subtitle}>
-            {courseHint}
+            {courseHint}{hasShore ? ` ${venue.name[lang]}: ${venue.place[lang]}.` : ''}
           </Text>
         </View>
 
@@ -707,6 +723,7 @@ function Game() {
                   strokeCap="round"
                   opacity={0.32}
                 />
+                {hasShore && <VenueLand venue={venue} water={water} />}
 
                 {/* Mark overlays. Capture radius rendered as a faint ring. */}
                 {marks.map((m) => (

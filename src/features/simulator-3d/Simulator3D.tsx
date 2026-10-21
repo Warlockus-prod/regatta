@@ -6,6 +6,9 @@ import { useSailingSim } from "./physics/useSailingSim";
 import { useSailAudio } from "./audio/useSailAudio";
 import { WindDial } from "./ui/WindDial";
 import { WindGlyph, WindReadout } from "./ui/WindReadout";
+import { useI18n } from "@/lib/i18n";
+import { VENUES, venueLabel } from "../../data/venues/venues";
+import { useVenue } from "../venues/useVenue";
 import { DEFAULT_LABELS, NEUTRAL_YACHT, type SimLabels, type YachtState } from "./types";
 import type { CameraView } from "./camera";
 import styles from "./Simulator3D.module.css";
@@ -107,6 +110,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [light, setLight] = useState(embed);
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
+  const { lang } = useI18n();
+  const [venue, setVenue] = useVenue();
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (mode === "free") Object.assign(yachtRef.current, free, { rigResolved: false, sailSide: undefined, heading: undefined, travel: undefined, jibShape: undefined, fill: 1, airSpeed: 12, apparentWind: undefined, wind: undefined, speedKn: 0 });
@@ -179,6 +184,12 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             aria-pressed={view === item || (item === "sails" && (view === "main" || view === "jib"))} onClick={() => selectView(item)}>{L.scene[item]}</button>)}
           <button className={styles.button} style={{ marginLeft: "auto" }} aria-label={L.scene.resetView}
             onClick={() => selectView("whole")}>↺</button>
+          <label className={styles.venueSelect}>
+            <span>{venueLabel[lang]}</span>
+            <select value={venue.id} onChange={(e) => setVenue(e.target.value as typeof venue.id)}>
+              {VENUES.map((v) => <option key={v.id} value={v.id}>{v.name[lang]}</option>)}
+            </select>
+          </label>
         </div>
         {(["sails", "main", "jib"] as CameraView[]).includes(view) && <div className={styles.sailViews}>
           {(["sails", "main", "jib"] as const).map((item) => <button key={item} className={styles.button} aria-pressed={view === item} onClick={() => selectView(item)}>{item === "sails" ? L.scene.both : L.scene[item]}</button>)}
@@ -190,7 +201,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   </>;
   const viewport = <div className={styles.viewport}>
           <RegattaScene stateRef={yachtRef} maxDpr={light ? 1 : embed ? 1.5 : 1.75} postFx={!light && !embed}
-            showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry} />
+            showFlow={showFlow && mode === "sail"} view={view} revision={cameraRevision} sceneLabel={L.badge} loadingLabel={L.scene.loading} errorLabel={L.scene.error} retryLabel={L.scene.retry}
+            venue={venue} />
           {mode === "sail" && !wheels && !compact && <>
             <SteerButton dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />
             <SteerButton dir={1} label={L.steerRight} onHold={hold} onRelease={release} />
@@ -325,6 +337,11 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
               {(["sails", "main", "jib"] as const).map((item) => <DrawerItem key={item} pressed={view === item}
                 onClick={() => { selectView(item); setViewsOpen(false); }}>{item === "sails" ? L.scene.both : L.scene[item]}</DrawerItem>)}
             </DrawerGroup>}
+            <DrawerGroup>
+              <p className={styles.drawerLabel}>{venueLabel[lang]}</p>
+              {VENUES.map((v) => <DrawerItem key={v.id} pressed={venue.id === v.id}
+                onClick={() => { setVenue(v.id); setViewsOpen(false); }}>{v.name[lang]}</DrawerItem>)}
+            </DrawerGroup>
             <DrawerGroup>
               <DrawerItem pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</DrawerItem>
               <DrawerItem onClick={() => { selectView("whole"); setViewsOpen(false); }}>↺ {L.scene.resetView}</DrawerItem>

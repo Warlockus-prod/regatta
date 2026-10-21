@@ -103,3 +103,6 @@
 .guideSteps strong { color: var(--text-primary); }
 .readout strong.windCell { display: flex; align-items: center; gap: 4px; }
 .readout .windCell svg { flex: 0 0 auto; color: var(--text-secondary); }
+.venueSelect { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 4px; font-size: 12px; color: var(--text-secondary); }
+.venueSelect select { min-height: 36px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 13px; padding: 0 8px; }
+.drawerLabel { margin: 0; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }

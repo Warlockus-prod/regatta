@@ -22,6 +22,9 @@ import {
   calcTWA, deg2rad, distance, bearing,
   angleDiff,
 } from '@/lib/race-physics';
+import { drawVenue } from '@/features/venues/drawVenue';
+import { useVenue } from '@/features/venues/useVenue';
+import { VenuePicker } from '@/features/venues/VenuePicker';
 
 // ============================================================================
 // TYPES
@@ -266,6 +269,11 @@ function makeCourse(): Course {
 
 export default function GamePage() {
   const { tp, lang } = useI18n();
+  // Scenery around the race area (src/data/venues): drawn by the canvas loop, so kept in refs.
+  const [venue] = useVenue();
+  const venueRef = useRef(venue);
+  const langRef = useRef(lang);
+  useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -962,6 +970,9 @@ export default function GamePage() {
       }
     }
     ctx.restore();
+
+    // --- Venue: shore and islands around the race area (never inside it) ---
+    drawVenue(ctx, venueRef.current, toScreen, scale, langRef.current);
 
     // --- No-go zone projected around LIVE wind direction (visual aid) ---
     ctx.save();
@@ -2867,6 +2878,8 @@ function GameMenu({
           </div>
         </div>
       )}
+
+      <VenuePicker />
 
       {/* Collapsible details panel (controls + course rules) */}
       <button

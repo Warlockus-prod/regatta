@@ -9,6 +9,8 @@ import { Yacht } from './Yacht';
 import { Ocean } from './ocean/Ocean';
 import { WindFlow } from "./ocean/WindFlow";
 import { Wake } from './ocean/Wake';
+import { Backdrop } from './ocean/Backdrop';
+import type { Venue } from '../../data/venues/venues';
 import type { YachtState } from './types';
 import type { OrbitControls as Controls } from "three-stdlib";
 import { fitCamera, fitSailCamera, fitMainsheetCamera, type CameraView } from "./camera";
@@ -111,8 +113,11 @@ export const RegattaScene = memo(function RegattaScene({
   sceneLabel,
   errorLabel,
   retryLabel,
+  venue,
 }: {
   stateRef: MutableRefObject<YachtState>;
+  /** Shore and islands on the horizon (src/data/venues); none when omitted. */
+  venue?: Venue;
   view?: CameraView;
   revision?: number;
   showFlow?: boolean;
@@ -196,6 +201,7 @@ export const RegattaScene = memo(function RegattaScene({
       </Suspense>
 
       <Ocean stateRef={stateRef} />
+      {venue && <Backdrop venue={venue} />}
       <Wake stateRef={stateRef} />
       {showFlow && <WindFlow stateRef={stateRef} />}
 

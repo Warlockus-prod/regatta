@@ -392,6 +392,47 @@ game loop.
 
 ---
 
+## ADR-0005 - Regatta venues are scenery around the race area, not obstacles
+
+**Date:** 2026-10-22
+**Status:** accepted
+
+### Context
+The owner asked for mountains or islands around the races and the 3D boat
+"so racing has a sense of place", based on Göcek and other popular regatta
+venues. Land could either frame the race area or become part of the course
+(islands to round, shores to avoid). The second changes the physics, the
+server tick (generated from the same TS), the bots' routing and every
+course; the first changes none of them.
+
+### Decision
+- One data source, `src/data/venues/` (Göcek, Split, Masuria, the Solent,
+  open sea): coasts along a side of the race area and islands on a compass
+  bearing, both placed OUTSIDE the race area. Pure deterministic geometry
+  (`geometry.ts`) draws them everywhere: canvas on the website race and the
+  multiplayer race, Skia in the native race, low-poly terrain on the 3D horizon.
+- No collision and no physics change: on the website and in multiplayer the
+  boats are already clamped to the 800 x 1200 area; the native race now keeps
+  the boats inside the bay (clamp instead of wrapping across the screen)
+  because the shore is drawn at its edges.
+- 3D: the land rings the horizon at 150-330 m, world-fixed by compass and
+  centred on the boat like the yacht itself (the ocean scrolls), with aerial
+  perspective baked into the vertex colours instead of the scene fog.
+- The venue is a cosmetic preference (`regatta.venue.v1`), not synced
+  between multiplayer players.
+
+### Consequences
+Islands to round or shores to avoid would need a new ADR: obstacle physics in
+`src/lib/race-physics.ts`, the generated ws-server, bot routing and course
+design.
+
+### Verification
+`src/data/venues/geometry.test.ts`: no land vertex inside the race area, every
+terrain face looks up, the 3D shore sits beyond the orbit camera;
+`mobile/src/game/race.test.ts`: rivals finish every course inside the bay.
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```
