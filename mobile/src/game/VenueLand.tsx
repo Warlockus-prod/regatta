@@ -14,11 +14,16 @@ export function VenueLand({ venue, water }: { venue: Venue; water: WaterRect }) 
   const shapes = useMemo(() => {
     const sx = (water.x1 - water.x0) / RACE_AREA.width;
     const sy = (water.y1 - water.y0) / RACE_AREA.height;
+    // A phone has only a thin margin around the bay: distances beyond the
+    // race area are squashed (x0.38) so the shore comes into view. Points
+    // outside stay outside, so the land still never reaches the water.
+    const K = 0.38;
+    const squash = (v: number, max: number) => (v < 0 ? v * K : v > max ? max + (v - max) * K : v);
     const toPath = (poly: Pt[]): SkPath => {
       const p = Skia.Path.Make();
       poly.forEach((pt, i) => {
-        const x = water.x0 + pt.x * sx;
-        const y = water.y0 + pt.y * sy;
+        const x = water.x0 + squash(pt.x, RACE_AREA.width) * sx;
+        const y = water.y0 + squash(pt.y, RACE_AREA.height) * sy;
         if (i === 0) p.moveTo(x, y);
         else p.lineTo(x, y);
       });
