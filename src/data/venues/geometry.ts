@@ -300,6 +300,91 @@ export function venueTerrain(venue: Venue): Terrain3D[] {
   return venue.lands.map((l) => (l.kind === "coast" ? coastTerrain(l) : islandTerrain(l)));
 }
 
+// ---------------------------------------------------------------------------
+// 3D race: the shores of the top-down race, raised into terrain
+// ---------------------------------------------------------------------------
+
+export interface RaceTerrainOptions {
+  /** Metres per race unit (src/features/race-3d). */
+  metresPerUnit: number;
+  /** The race shore is nearer and wider than the horizon one, so it stands taller. */
+  heightScale?: number;
+  area?: { width: number; height: number };
+}
+
+/** Flattens a grid of rows, mirroring the columns if needed so the faces look up. */
+function gridTerrain(grid: { p: [number, number, number]; h: number }[][], relief: Relief): Terrain3D {
+  const [a, b] = [grid[0][0].p, grid[0][1].p];
+  const c = grid[1][0].p;
+  // y of (b - a) x (c - a): negative means the faces would look down.
+  const up = (b[2] - a[2]) * (c[0] - a[0]) - (b[0] - a[0]) * (c[2] - a[2]);
+  const rows = up < 0 ? grid.map((row) => [...row].reverse()) : grid;
+  return {
+    positions: rows.flatMap((row) => row.flatMap((v) => v.p)),
+    heights01: rows.flatMap((row) => row.map((v) => v.h)),
+    rows: rows.length,
+    cols: rows[0].length,
+    relief,
+  };
+}
+
+/** A coast: its 2D waterline at sea level, rising inland along the side's normal. */
+function raceCoast(c: Coast, area: { width: number; height: number }, m: number, scale: number): Terrain3D {
+  const depth = 420; // race units from the waterline to the back of the ridge
+  // Waterline, a narrow beach, then the slope: denser low down where the eye is.
+  const steps = [0, 0.012, ...Array.from({ length: 10 }, (_, k) => 0.04 + 0.96 * Math.pow(k / 9, 1.25))];
+  const line = coastPolygon(c, area).slice(0, COAST_SAMPLES + 1);
+  const { n } = sidePoint(c.side, 0, area.width, area.height);
+  const peak = PEAK_M[c.relief] * c.height * scale;
+  const grid = steps.map((d, j) => line.map((p, i) => {
+    const t = i / (line.length - 1);
+    const ends = smooth(0, c.from > 0 ? 0.14 : 0.07, t) * smooth(0, c.to < 1 ? 0.14 : 0.07, 1 - t);
+    const profile = 0.45 + 0.55 * fbm(c.seed, t * 11 + 3);
+    const rise = d < 0.6 ? Math.pow(d / 0.6, 0.55) : 1 - 0.35 * (d - 0.6) / 0.4;
+    const rugged = 0.82 + 0.18 * noise1(c.seed + 31, t * 23 + d * 7);
+    const h = j < 2 ? 0 : Math.min(1, profile * rise * rugged * ends);
+    const inland = d * depth + (j < 2 ? 0 : (fbm(c.seed + 5, t * 6) - 0.5) * 30);
+    const x = p.x + n.x * inland;
+    const y = p.y + n.y * inland;
+    return { p: [x * m, j === 0 ? -1.2 : j === 1 ? 0.5 : Math.max(0.5, h * peak), y * m] as [number, number, number], h };
+  }));
+  return gridTerrain(grid, c.relief);
+}
+
+/** An island: its 2D outline at sea level, rising to a dome over the centroid. */
+function raceIsland(i: Island, area: { width: number; height: number }, m: number, scale: number): Terrain3D {
+  const rings = 9;
+  const outline = islandPolygon(i, area);
+  const cx = outline.reduce((s, p) => s + p.x, 0) / outline.length;
+  const cy = outline.reduce((s, p) => s + p.y, 0) / outline.length;
+  const peak = PEAK_M[i.relief] * i.height * (i.relief === "flat" ? 1 : 0.8) * scale;
+  // Waterline, a narrow beach, then rings up to the summit.
+  const steps = [1, 0.97, ...Array.from({ length: rings - 1 }, (_, k) => 0.93 * (1 - k / (rings - 2)))];
+  const grid = steps.map((rho, j) => {
+    const dome = Math.pow(Math.max(0, 1 - rho * rho), 1.1);
+    return outline.map((p, k) => {
+      const h = j < 2 ? 0 : dome * (0.75 + 0.25 * fbm(i.seed + 9, k * 0.4 + j));
+      const x = cx + (p.x - cx) * rho;
+      const y = cy + (p.y - cy) * rho;
+      return { p: [x * m, j === 0 ? -1.2 : Math.max(0.5, h * peak), y * m] as [number, number, number], h };
+    });
+  });
+  return gridTerrain(grid, i.relief);
+}
+
+/**
+ * The 3D race's land, in metres with the race area's top-left corner at the
+ * origin (X east, Z south, Y up). The waterline is exactly the 2D shore, so
+ * a boat sees in 3D the same coast it sees from above.
+ */
+export function raceTerrain(venue: Venue, opts: RaceTerrainOptions): Terrain3D[] {
+  const area = opts.area ?? RACE_AREA;
+  const scale = opts.heightScale ?? 1;
+  return venue.lands.map((l) => (l.kind === "coast"
+    ? raceCoast(l, area, opts.metresPerUnit, scale)
+    : raceIsland(l, area, opts.metresPerUnit, scale)));
+}
+
 /** Triangle indices for a terrain grid. Islands close their rings (`wrap`). */
 export function terrainIndices(rows: number, cols: number, wrap: boolean): number[] {
   const idx: number[] = [];

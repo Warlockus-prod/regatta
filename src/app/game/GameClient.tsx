@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { legacyPick } from '@/lib/languages';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
 import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
@@ -25,6 +26,12 @@ import {
 import { drawVenue } from '@/features/venues/drawVenue';
 import { useVenue } from '@/features/venues/useVenue';
 import { VenuePicker } from '@/features/venues/VenuePicker';
+import { RaceViewPicker } from '@/features/race-3d/RaceViewPicker';
+import { useRaceView } from '@/features/race-3d/useRaceView';
+import { isEmbed } from '@/lib/theme';
+
+// three.js loads only when someone opens the race in 3D.
+const Race3DView = dynamic(() => import('@/features/race-3d/Race3DView').then((m) => m.Race3DView), { ssr: false });
 
 // ============================================================================
 // TYPES
@@ -255,6 +262,8 @@ const MARK_LABELS: Omit<CourseMark, 'pos' | 'radius' | 'type'>[] = [
   { label: 'Старт/Финиш П', labelEn: 'Start/Finish R', labelPl: 'Start/Meta P', labelEs: 'Salida/Llegada D', labelFr: 'Départ/Arrivée D', labelDe: 'Start/Ziel R', labelIt: 'Partenza/Arrivo D' },
 ];
 
+const noSubscribe = () => () => {};
+
 function makeCourse(): Course {
   const course = makeStandardCourse();
   return {
@@ -268,12 +277,25 @@ function makeCourse(): Course {
 // ============================================================================
 
 export default function GamePage() {
-  const { tp, lang } = useI18n();
+  const { tp, tl, lang } = useI18n();
   // Scenery around the race area (src/data/venues): drawn by the canvas loop, so kept in refs.
   const { venue } = useVenue();
   const venueRef = useRef(venue);
   const langRef = useRef(lang);
   useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);
+  // The map (2D) or the view from the boat (3D, src/features/race-3d). Both
+  // read the same race refs; in 3D the canvas keeps only the mini-map.
+  const { view3d, camera: raceCamera, setView3d, setCamera: setRaceCamera } = useRaceView();
+  const view3dRef = useRef(view3d);
+  useEffect(() => { view3dRef.current = view3d; }, [view3d]);
+  // Inside the app (?embed=1) the site nav is hidden, so the race takes the whole height.
+  const embed = useSyncExternalStore(noSubscribe, isEmbed, () => false);
+  const race3dLabels = useMemo(() => ({
+    loading: tl({ ru: 'Загружаем яхту', en: 'Loading the yacht', pl: 'Ładujemy jacht', es: 'Cargando el velero', fr: 'Chargement du voilier', de: 'Yacht wird geladen', it: 'Caricamento della barca' }),
+    scene: tl({ ru: '3D-вид гонки', en: '3D race view', pl: 'Widok 3D wyścigu', es: 'Vista 3D de la regata', fr: 'Vue 3D de la course', de: '3D-Rennansicht', it: 'Vista 3D della regata' }),
+    error: tl({ ru: '3D не загрузилось. Повтори или переключись на 2D.', en: "3D didn't load. Try again or switch to 2D.", pl: '3D się nie wczytało. Spróbuj ponownie albo przełącz na 2D.', es: 'El 3D no se cargó. Reinténtalo o cambia a 2D.', fr: "La 3D ne s'est pas chargée. Réessaie ou passe en 2D.", de: '3D wurde nicht geladen. Versuch es noch einmal oder wechsle zu 2D.', it: 'Il 3D non si è caricato. Riprova o passa al 2D.' }),
+    retry: tl({ ru: 'Повторить', en: 'Try again', pl: 'Spróbuj ponownie', es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' }),
+  }), [tl]);
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
@@ -938,6 +960,13 @@ export default function GamePage() {
     const player = boats.find((b) => b.isPlayer);
     if (!player) return;
 
+    // In 3D the scene is Race3DView under this canvas; only the mini-map stays on top.
+    if (view3dRef.current) {
+      ctx.clearRect(0, 0, W, H);
+      drawMiniMap(ctx, W, H, boats, course, tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' }));
+      return;
+    }
+
     // Camera follows player
     const scale = Math.min(W / 500, H / 700);
     const camX = player.pos.x;
@@ -1373,8 +1402,13 @@ export default function GamePage() {
   // RACING / COUNTDOWN / FINISHED SCREENS (Canvas)
   // =====================================================================
   return (
-    <div className="relative w-full" style={{ height: 'calc(100dvh - var(--site-nav-h, 56px))' }}>
-      <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
+    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
+      {view3d && (gameState === 'countdown' || gameState === 'racing') && (
+        <div className="absolute inset-0" data-testid="race-3d">
+          <Race3DView boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels} />
+        </div>
+      )}
+      <canvas ref={canvasRef} className="relative block w-full h-full" style={{ touchAction: 'none', pointerEvents: view3d ? 'none' : undefined }} />
 
       {/* HUD - top bar */}
       {gameState === 'racing' && (
@@ -1427,8 +1461,8 @@ export default function GamePage() {
           )}
 
           {/* Wind indicator (centered under the right HUD on mobile so it never overlaps with the left HUD) */}
-          <div className="absolute right-2 sm:right-4 card px-2 py-1 flex items-center gap-1.5"
-               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', top: 'calc(5.5rem + env(safe-area-inset-top, 0px))' }}>
+          <div className="absolute right-2 sm:right-4 top-[6.5rem] sm:top-[8.5rem] card px-2 py-1 flex items-center gap-1.5"
+               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
             <svg width="14" height="14" viewBox="-12 -12 24 24" style={{ transform: `rotate(${windDirDisplay}deg)` }}>
               <line x1="0" y1="-9" x2="0" y2="7" stroke="#00d4ff" strokeWidth="1.5" />
               <polygon points="-3,4 0,7 3,4" fill="#00d4ff" />
@@ -1446,16 +1480,16 @@ export default function GamePage() {
             aria-label={muted
               ? tp('Включить звук', 'Unmute', 'Włącz dźwięk', { es: 'Activar sonido', fr: 'Activer le son', de: 'Ton an', it: 'Attiva audio' })
               : tp('Выключить звук', 'Mute', 'Wycisz', { es: 'Silenciar', fr: 'Couper le son', de: 'Ton aus', it: 'Disattiva audio' })}
-            className="absolute top-16 left-2 sm:top-auto sm:left-4 w-9 h-9 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+            className="absolute left-2 top-[6.5rem] sm:left-4 sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] w-11 h-11 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
           >
             {muted ? '🔇' : '🔊'}
           </button>
 
           <button
             onClick={backToMenu}
-            className="absolute top-16 right-2 sm:top-auto sm:right-4 px-2.5 py-1.5 card text-[11px] sm:text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 16px)' }}
+            className="absolute left-[3.75rem] top-[6.5rem] sm:left-[4.5rem] sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] min-h-11 px-3 card flex items-center text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
+            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
           >
             ← {tp('Меню', 'Menu', 'Menu', { es: 'Menú', fr: 'Menu', de: 'Menü', it: 'Menu' })}
           </button>
@@ -1494,6 +1528,35 @@ export default function GamePage() {
           >
             {autopilotOn ? `⏸ ${tp('AUTO вкл', 'AUTO on', 'AUTO wł.', { es: 'AUTO activo', fr: 'AUTO actif', de: 'AUTO an', it: 'AUTO attivo' })}` : `▶ ${tp('AUTO', 'AUTO', 'AUTO', { es: 'AUTO', fr: 'AUTO', de: 'AUTO', it: 'AUTO' })}`}
           </button>
+
+          {/* Map or view from the boat, and the 3D camera: between the steering buttons on a phone */}
+          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 44px)' }}>
+            <div role="radiogroup" aria-label={tl({ ru: 'Вид гонки', en: 'Race view', pl: 'Widok wyścigu', es: 'Vista de la regata', fr: 'Vue de la course', de: 'Rennansicht', it: 'Vista della regata' })}
+              className="flex overflow-hidden rounded-full" style={{ border: '1px solid rgba(0, 212, 255, 0.5)', background: 'rgba(21, 37, 64, 0.85)', backdropFilter: 'blur(8px)' }}>
+              {[false, true].map((on) => (
+                <button key={String(on)} type="button" role="radio" aria-checked={view3d === on} onClick={() => setView3d(on)}
+                  className="min-h-11 min-w-11 px-3 text-xs font-semibold transition"
+                  style={{ background: view3d === on ? 'rgba(0, 212, 255, 0.85)' : 'transparent', color: view3d === on ? '#0a1628' : 'var(--accent-cyan)' }}>
+                  {on ? '3D' : '2D'}
+                </button>
+              ))}
+            </div>
+            {view3d && (() => {
+              const label = raceCamera === 'high'
+                ? tl({ ru: 'Камера за кормой', en: 'Camera behind the stern', pl: 'Kamera za rufą', es: 'Cámara tras la popa', fr: 'Caméra derrière la poupe', de: 'Kamera hinter dem Heck', it: 'Camera dietro la poppa' })
+                : tl({ ru: 'Камера сверху', en: 'Camera from above', pl: 'Kamera z góry', es: 'Cámara desde arriba', fr: 'Caméra en hauteur', de: 'Kamera von oben', it: "Camera dall'alto" });
+              return (
+                <button type="button" onClick={() => setRaceCamera(raceCamera === 'high' ? 'stern' : 'high')} aria-label={label} title={label}
+                  className="flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
+                  style={{ border: '1px solid rgba(0, 212, 255, 0.5)', background: 'rgba(21, 37, 64, 0.85)', backdropFilter: 'blur(8px)', color: 'var(--accent-cyan)' }}>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
+                    <rect x="3" y="7" width="12" height="10" rx="2" />
+                    <path d="M15 11l6-3v8l-6-3z" />
+                  </svg>
+                </button>
+              );
+            })()}
+          </div>
 
           {/* Touch controls - safe-area aware so they never hide behind mobile browser UI */}
           <div
@@ -2140,7 +2203,8 @@ function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats:
   const mapH = Math.min(180, H * 0.28);
   const pad = 12;
   const mx = W - mapW - pad;
-  const my = H - mapH - pad;
+  // Phones have the steering buttons in the bottom corners (md:hidden): sit above them.
+  const my = H - mapH - pad - (W < 768 ? 112 : 0);
 
   // Background
   ctx.save();
@@ -2879,6 +2943,7 @@ function GameMenu({
         </div>
       )}
 
+      <RaceViewPicker />
       <VenuePicker />
 
       {/* Collapsible details panel (controls + course rules) */}

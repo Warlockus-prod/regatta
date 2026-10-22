@@ -3,7 +3,7 @@
 import { memo, useEffect, useMemo } from "react";
 import * as THREE from "three";
 import type { Venue } from "../../../data/venues/venues";
-import { terrainColor, terrainIndices, venueTerrain, noise1 } from "../../../data/venues/geometry";
+import { terrainColor, terrainIndices, venueTerrain, noise1, type Terrain3D } from "../../../data/venues/geometry";
 
 // The venue on the horizon (src/data/venues): the shore and the islands as
 // low-poly terrain at 150-300 m, inside the fog, so they fade into the haze
@@ -18,27 +18,44 @@ import { terrainColor, terrainIndices, venueTerrain, noise1 } from "../../../dat
 // but blue-grey, the near islands keep their green.
 const HAZE = new THREE.Color("#7fa4bd");
 
-function buildGeometry(venue: Venue): THREE.BufferGeometry[] {
-  return venueTerrain(venue).map((t, n) => {
-    const g = new THREE.BufferGeometry();
-    g.setAttribute("position", new THREE.Float32BufferAttribute(t.positions, 3));
-    const colors: number[] = [];
-    const c = new THREE.Color();
-    t.heights01.forEach((h, k) => {
-      c.set(terrainColor(t.relief, h, venue.palette, noise1(97 + n, k * 0.37)));
-      const r = Math.hypot(t.positions[k * 3], t.positions[k * 3 + 2]);
-      c.lerp(HAZE, Math.min(0.48, 0.08 + Math.max(0, r - 150) / 330));
-      colors.push(c.r, c.g, c.b);
-    });
-    g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-    const island = venue.lands[n]?.kind === "island";
-    g.setIndex(terrainIndices(t.rows, t.cols, island));
-    // Low-poly faces: one normal per triangle.
-    const flat = g.toNonIndexed();
-    flat.computeVertexNormals();
-    g.dispose();
-    return flat;
+/**
+ * One low-poly terrain mesh with vertex colours by height. `haze` gives the
+ * share of the sky haze mixed into a vertex at (x, z); the race view passes
+ * none and lets its scene fog do it.
+ */
+export function terrainGeometry(t: Terrain3D, palette: Venue["palette"], seed: number, wrap: boolean,
+  haze?: (x: number, z: number) => number, faceted = false): THREE.BufferGeometry {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.Float32BufferAttribute(t.positions, 3));
+  const colors: number[] = [];
+  const c = new THREE.Color();
+  t.heights01.forEach((h, k) => {
+    c.set(terrainColor(t.relief, h, palette, noise1(97 + seed, k * 0.37)));
+    if (haze) c.lerp(HAZE, haze(t.positions[k * 3], t.positions[k * 3 + 2]));
+    colors.push(c.r, c.g, c.b);
   });
+  g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
+  g.setIndex(terrainIndices(t.rows, t.cols, wrap));
+  // Low-poly faces: one normal per triangle.
+  const flat = g.toNonIndexed();
+  flat.computeVertexNormals();
+  // Seen up close (the race), one colour per face reads as land; colours
+  // blended across a tall face read as a smeared wall.
+  if (faceted) {
+    const col = flat.getAttribute("color") as THREE.BufferAttribute;
+    const pos = flat.getAttribute("position") as THREE.BufferAttribute;
+    for (let v = 0; v < col.count; v += 3) {
+      const top = [v, v + 1, v + 2].reduce((a, b) => (pos.getY(b) > pos.getY(a) ? b : a));
+      for (let k = 0; k < 3; k++) col.setXYZ(v + k, col.getX(top), col.getY(top), col.getZ(top));
+    }
+  }
+  g.dispose();
+  return flat;
+}
+
+function buildGeometry(venue: Venue): THREE.BufferGeometry[] {
+  const haze = (x: number, z: number) => Math.min(0.48, 0.08 + Math.max(0, Math.hypot(x, z) - 150) / 330);
+  return venueTerrain(venue).map((t, n) => terrainGeometry(t, venue.palette, n, venue.lands[n]?.kind === "island", haze));
 }
 
 export const Backdrop = memo(function Backdrop({ venue }: { venue: Venue }) {

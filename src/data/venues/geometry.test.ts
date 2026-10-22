@@ -1,6 +1,23 @@
 import { describe, expect, it } from "vitest";
 import { VENUES, effectiveVenue, findVenue } from "./venues";
-import { RACE_AREA, coastTerrain, islandTerrain, landPolygon, terrainIndices, venueTerrain } from "./geometry";
+import { RACE_AREA, coastTerrain, islandTerrain, landPolygon, raceTerrain, terrainIndices, venueTerrain, type Terrain3D } from "./geometry";
+
+/** Share of the non-degenerate triangles whose normal points up (+Y). */
+function upShare(t: Terrain3D, wrap: boolean): number {
+  const idx = terrainIndices(t.rows, t.cols, wrap);
+  let up = 0;
+  let total = 0;
+  for (let k = 0; k < idx.length; k += 3) {
+    const [a, b, c] = [idx[k], idx[k + 1], idx[k + 2]].map((v) => [t.positions[v * 3], t.positions[v * 3 + 1], t.positions[v * 3 + 2]]);
+    const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
+    const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
+    const ny = u[2] * w[0] - u[0] * w[2];
+    if (Math.abs(ny) < 1e-6) continue;
+    total++;
+    if (ny > 0) up++;
+  }
+  return up / total;
+}
 
 // Contract: the scenery never reaches into the race area. Boats are clamped
 // 20 units inside it, so land drawn there would be sailed through.
@@ -50,21 +67,29 @@ describe("venue scenery", () => {
 
   it("turns every terrain face up toward the sky (else it renders as a black edge)", () => {
     for (const venue of VENUES) {
-      for (const [n, t] of venueTerrain(venue).entries()) {
-        const idx = terrainIndices(t.rows, t.cols, venue.lands[n].kind === "island");
-        let up = 0;
-        let total = 0;
-        for (let k = 0; k < idx.length; k += 3) {
-          const [a, b, c] = [idx[k], idx[k + 1], idx[k + 2]].map((v) => [t.positions[v * 3], t.positions[v * 3 + 1], t.positions[v * 3 + 2]]);
-          const u = [b[0] - a[0], b[1] - a[1], b[2] - a[2]];
-          const w = [c[0] - a[0], c[1] - a[1], c[2] - a[2]];
-          const ny = u[2] * w[0] - u[0] * w[2];
-          if (Math.abs(ny) < 1e-6) continue;
-          total++;
-          if (ny > 0) up++;
+      venueTerrain(venue).forEach((t, n) => expect(upShare(t, venue.lands[n].kind === "island"), `${venue.id} land ${n}`).toBeGreaterThan(0.95));
+      raceTerrain(venue, { metresPerUnit: 0.6, heightScale: 1.8 })
+        .forEach((t, n) => expect(upShare(t, venue.lands[n].kind === "island"), `race ${venue.id} land ${n}`).toBeGreaterThan(0.95));
+    }
+  });
+
+  it("raises the 3D race shore from the 2D waterline and keeps it out of the race area", () => {
+    const m = 0.6;
+    for (const venue of VENUES) {
+      raceTerrain(venue, { metresPerUnit: m, heightScale: 1.8 }).forEach((t, n) => {
+        // The sea-level ring is the 2D shore, in the same order or mirrored.
+        const shore = landPolygon(venue.lands[n]).map((p) => [p.x * m, p.y * m]);
+        const ring = Array.from({ length: t.cols }, (_, k) => [t.positions[k * 3], t.positions[k * 3 + 2]]);
+        const first = ring[0];
+        expect(shore.some((p) => Math.hypot(p[0] - first[0], p[1] - first[1]) < 1e-6), `${venue.id} land ${n}`).toBe(true);
+        for (let k = 0; k < t.positions.length; k += 3) {
+          const x = t.positions[k] / m;
+          const y = t.positions[k + 2] / m;
+          const inside = x > -10 && x < RACE_AREA.width + 10 && y > -10 && y < RACE_AREA.height + 10;
+          expect(inside, `${venue.id} land ${n} vertex ${k / 3}`).toBe(false);
         }
-        expect(up / total, `${venue.id} land ${n}`).toBeGreaterThan(0.95);
-      }
+        expect(t.heights01.every((h) => h >= 0 && h <= 1)).toBe(true);
+      });
     }
   });
 

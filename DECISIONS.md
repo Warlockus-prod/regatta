@@ -434,6 +434,52 @@ terrain face looks up, the 3D shore sits beyond the orbit camera;
 
 ---
 
+## ADR-0006 - The 3D race is a view of the same race, at 0.6 m per race unit
+
+**Date:** 2026-10-22
+**Status:** accepted
+
+### Context
+The owner asked for a 3D view of the race ("a 3D race view"), next to the
+simple and pro modes. A 3D race could run its own engine (real-scale metres,
+its own bots) or show the race the canvas already runs. Its own engine would
+fork the race rules, the bots, the results and the leaderboard; a view forks
+none of them. The app cannot draw three.js natively (see the native 3D
+WebView decision in `docs/design/mobile/DECISIONS.md`).
+
+### Decision
+- `src/features/race-3d/Race3DView.tsx` reads the refs the canvas race steps
+  (`boatsRef`, `courseRef`, `windDirRef` in `src/app/game/GameClient.tsx`).
+  The 2D/3D switch only changes what is drawn; the race loop, the keys, the
+  steering buttons, the autopilot and the result stay the same. In 3D the
+  canvas keeps only the mini-map, on top.
+- Scale: 0.6 m per race unit, so two hulls touch at the 22-unit repel distance
+  and the race area is 480 x 720 m. The race moves boats 8 units per knot per
+  second, about 9.3 times real speed in metres; the wake gets the scaled
+  speed so its foam stays on the water. The sail pose comes from each boat's
+  own trim (`pose.ts`): to leeward, eased as it bears away, flogging inside 30
+  degrees.
+- The player stays at the origin and the world moves under it (as in the 3D
+  trainer). The shore is the 2D shore raised into terrain (`raceTerrain` in
+  `src/data/venues/geometry.ts`), 1.8 times taller than the horizon shore.
+- A rival between the camera and the player steps out of the picture: the
+  player's boat comes first (owner rule 2026-10-21).
+- The app opens the same page online (`/race-3d` -> `/game?view=3d`) with the
+  Race hub venue and shore; offline it falls back to the native race.
+
+### Consequences
+3D shows nothing the race does not compute: no 3D-only physics, no wave
+effect on speed. Multiplayer stays 2D until its client gets the same view.
+
+### Verification
+`src/features/race-3d/pose.test.ts` (sails to leeward on both tacks, eased on
+the bear-away, the boat where the race has it, the next mark the race counts);
+`src/data/venues/geometry.test.ts` (the race shore starts at the 2D waterline,
+stays out of the race area, faces up); `e2e/smoke.spec.ts` (3D on, then back
+to 2D with the race clock still running).
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```

@@ -126,6 +126,31 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
   });
 
+  // Contract: 3D is a view of the same race, chosen in the menu or mid-race,
+  // and switching back to the map keeps racing (the canvas loop never stops).
+  test('/game races in 3D and switches back to the map', async ({ page }) => {
+    await page.goto('/game');
+    await expect(page.getByRole('heading', { name: 'Гонка' })).toBeVisible({ timeout: 15_000 });
+    const picker = page.getByTestId('race-view-picker');
+    await picker.getByRole('radio', { name: 'С лодки 3D' }).click();
+    await expect(picker.getByRole('radio', { name: 'С лодки 3D' })).toHaveAttribute('aria-checked', 'true');
+    // Start on the map: software WebGL on a CI runner would slow the countdown.
+    await picker.getByRole('radio', { name: 'Карта 2D' }).click();
+    await page.getByRole('button', { name: /Начать.*Учусь гоняю/i }).click();
+    await page.getByRole('button', { name: /Готов - старт/ }).click();
+    const view = page.getByRole('radiogroup', { name: 'Вид гонки' });
+    await expect(view).toBeVisible({ timeout: 15_000 });
+    await view.getByRole('radio', { name: '3D' }).click();
+    await expect(page.getByTestId('race-3d')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: 'Камера сверху' })).toBeVisible();
+    const time = page.getByText(/^\d+:\d\d\.\d$/);
+    const before = await time.textContent();
+    await view.getByRole('radio', { name: '2D' }).click();
+    await expect(page.getByTestId('race-3d')).toHaveCount(0);
+    await expect(time).not.toHaveText(before ?? '', { timeout: 10_000 });
+    await expect(view.getByRole('radio', { name: '2D' })).toHaveAttribute('aria-checked', 'true');
+  });
+
   test('/leaderboard API + page load', async ({ page, request }) => {
     const apiRes = await request.get('/api/leaderboard?difficulty=medium&wind=medium');
     expect(apiRes.ok()).toBeTruthy();

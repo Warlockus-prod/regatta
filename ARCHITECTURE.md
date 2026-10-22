@@ -220,7 +220,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - клиент гонки: старт, знаки, боты, коуч на финише.
+- `src/app/game/GameClient.tsx` - клиент гонки: старт, знаки, боты, коуч на финише; вид 2D (canvas) или 3D (`Race3DView`, canvas оставляет только мини-карту).
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.
 - `src/app/multiplayer/MultiplayerClient.tsx` - лобби, код комнаты, гонка по WebSocket.
 - `src/app/leaderboard/page.tsx` - лучшие времена по бакетам и дневной вызов.
@@ -398,8 +398,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/data/checklist.ts` - чек-лист перед выходом, 9 разделов, в том числе готовность яхты у причала.
 - `src/data/missions.ts` - миссии гонки, оцениваются после финиша по логу.
 - `src/data/venues/venues.ts` - акватории регат (Гёджек, Сплит, Мазуры, Солент, открытое море): берега и острова вокруг поля гонки, палитра, названия на 7 языках, ключ настройки `regatta.venue.v1` (ADR-0005).
-- `src/data/venues/geometry.ts` - детерминированная геометрия акваторий: полигоны берега для гонок (всегда снаружи поля), рельеф для горизонта 3D.
-- `src/data/venues/geometry.test.ts` - контракт: суша не заходит на поле, грани рельефа смотрят вверх, берег 3D дальше камеры.
+- `src/data/venues/geometry.ts` - детерминированная геометрия акваторий: полигоны берега для гонок (всегда снаружи поля), рельеф для горизонта 3D и для 3D-гонки (`raceTerrain`: береговая линия 2D, поднятая в холмы).
+- `src/data/venues/geometry.test.ts` - контракт: суша не заходит на поле, грани рельефа смотрят вверх, берег 3D дальше камеры, берег 3D-гонки начинается с линии воды 2D.
 - `src/data/drills.ts` - каталог упражнений и сценариев, общий для веба и мобильного.
 - `src/data/gallery.ts` - видео и фото галереи.
 - `src/data/gallery-2026.generated.ts` - автогенерация `scripts/build-gallery-year.mjs`, руками не править.
@@ -498,7 +498,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/simulator-3d/audio/useSailAudio.ts` - звук парусов и воды.
 - `src/features/simulator-3d/ocean/Ocean.tsx` - поверхность воды.
 - `src/features/simulator-3d/ocean/Wake.tsx` - кильватерный след.
-- `src/features/simulator-3d/ocean/Backdrop.tsx` - горы и острова акватории на горизонте Лодки 3D (низкополигональный рельеф с воздушной перспективой).
+- `src/features/simulator-3d/ocean/Backdrop.tsx` - горы и острова акватории на горизонте Лодки 3D (низкополигональный рельеф с воздушной перспективой); `terrainGeometry` строит меш рельефа и для 3D-гонки.
 - `src/features/simulator-3d/ocean/WindFlow.tsx` - видимый поток ветра.
 - `src/features/simulator-3d/ocean/waves.ts` - поле волн (сумма синусов), общее для воды и качки.
 - `src/features/simulator-3d/physics/useSailingSim.ts` - подключение общей сессии к сцене, телеметрия, подсказка коуча `coachFrom` (называет шкот).
@@ -589,6 +589,11 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/venues/drawVenue.ts` - берег и острова акватории на canvas веб-гонки и мультиплеера (под трассой).
 - `src/features/venues/useVenue.ts` - выбранная акватория и переключатель берега (localStorage `regatta.venue.v1`, `regatta.shore.v1`), общие для гонок и Лодки 3D.
 - `src/features/venues/VenuePicker.tsx` - переключатель «Берег и острова» и выбор акватории в меню веб-гонки.
+- `src/features/race-3d/Race3DView.tsx` - 3D-вид одиночной гонки (ADR-0006): читает refs гонки `GameClient`, игрок в начале координат, мир сдвигается под ним; соперники, знаки, линия старта, берег, камера за кормой или сверху.
+- `src/features/race-3d/pose.ts` - чистое преобразование лодки гонки в позу 3D-яхты (паруса под ветер по триму лодки, заполаскивание в мертвой зоне), масштаб 0.6 м на единицу, следующая цель.
+- `src/features/race-3d/pose.test.ts` - контракт: паруса под ветер на обоих галсах, травятся при уваливании, лодка там, где ее поставила гонка.
+- `src/features/race-3d/useRaceView.ts` - выбор вида гонки 2D/3D и камеры (localStorage `regatta.race.view.v1`, `regatta.race.camera.v1`, ссылка `?view=3d`).
+- `src/features/race-3d/RaceViewPicker.tsx` - выбор «Карта 2D» / «С лодки 3D» в меню веб-гонки.
 - `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 

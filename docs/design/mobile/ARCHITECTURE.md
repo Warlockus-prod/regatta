@@ -153,6 +153,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/history` | `app/history/index.tsx` | Race history + replay/coach actions | plain RN |
 | `/replay/[id]` | `app/replay/[id].tsx` | Race replay scrubber | **Skia** + `SkiaYacht` |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
+| `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
 
 Root layout / providers: `app/_layout.tsx` (ErrorBoundary -> GestureHandler ->
 SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -> Stack).
