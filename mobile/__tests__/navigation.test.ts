@@ -5,6 +5,8 @@ test("an activity releases screen space and returning to its hub restores naviga
   expect(showsMainNavigation("/simulators")).toBe(true);
   expect(showsMainNavigation("/simulator2")).toBe(false);
   expect(showsMainNavigation("/game")).toBe(false);
+  // The 3D race is the whole web race (menu and race) in one screen: its steering buttons sit where the tab bar would.
+  expect(showsMainNavigation("/race-3d")).toBe(false);
   expect(showsMainNavigation("/multiplayer/race/ABC123")).toBe(false);
   expect(showsMainNavigation("/multiplayer/join")).toBe(true);
   expect(showsMainNavigation("/library")).toBe(true);

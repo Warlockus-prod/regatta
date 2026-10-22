@@ -480,6 +480,45 @@ to 2D with the race clock still running).
 
 ---
 
+## ADR-0007 - Race difficulty slows the bots, not the force model
+
+**Date:** 2026-10-22
+**Status:** accepted
+
+### Context
+The game audit (`docs/audits/2026-10-22-game-audit.md`, A1) found that the
+difficulty a learner picks changed only the number of rivals. The website
+defined `aiSkill` and `aiSpeedMul` per level and the app a `skill` per bot,
+but nothing read them, and `stepBoat` accepted a `speedMul` it ignored: "calm
+opponents" on Easy sailed exactly like Hard. Difficulty could slow the bots
+(a handicap), make them steer or trim worse, or both. Worse steering touches
+the autopilot geometry that every course and the server rely on; worse trim
+changes the shared force model.
+
+### Decision
+- A bot makes a share of the speed the force model gives: `speedMul` in
+  `stepBoat` (`src/lib/race-physics.ts`, clamped 0.5 to 1.2) and `skill` in the
+  app's `mobile/src/game/ai-boats.ts`. The force model is fed back its own
+  speed, so the handicap never compounds; a contact slow-down still carries.
+- Website levels keep their designed values: Easy 0.78, Medium 0.92, Hard
+  1.02, with a 3% spread between bots. The app keeps its tiers (Easy 0.78 to
+  0.86, Medium 0.86 to 0.94, Hard 0.93 to 1.0).
+- The player and the multiplayer server pass nothing and sail exactly as before.
+
+### Consequences
+On the standard course the autopilot finishes in about 98 s at Easy, 84 s at
+Medium and 76 s at Hard. A bot's sails still show full trim at reduced speed;
+steering and trim skill stay a later option (it would need its own tests on
+every course).
+
+### Verification
+`src/lib/race-course.test.ts` "bot difficulty" (Easy clearly behind Medium,
+Medium behind Hard, all finish, no handicap equals `speedMul` 1);
+`mobile/src/game/race.test.ts` (the slowest hard rival beats the fastest easy
+one); `src/lib/race-physics.drift.test.ts` (server physics regenerated).
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```

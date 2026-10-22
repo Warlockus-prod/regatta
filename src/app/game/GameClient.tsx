@@ -28,6 +28,7 @@ import { useVenue } from '@/features/venues/useVenue';
 import { VenuePicker } from '@/features/venues/VenuePicker';
 import { RaceViewPicker } from '@/features/race-3d/RaceViewPicker';
 import { useRaceView } from '@/features/race-3d/useRaceView';
+import { raceRanks } from '@/features/race-3d/pose';
 import { isEmbed } from '@/lib/theme';
 
 // three.js loads only when someone opens the race in 3D.
@@ -86,7 +87,7 @@ interface Boat {
   lapDone: number;       // 0: before start, 1: windward rounded, 2: finished
   wake: Vec2[];
   finishTime?: number;
-  skill: number;         // 0.6-1.1 AI skill multiplier
+  speedMul: number;      // share of the force-model speed the boat makes (bots: difficulty, ADR-0007)
 }
 
 interface CourseMark {
@@ -173,7 +174,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
   descriptionIt: string;
   opponents: number;
   aiSpeedMul: number;
-  aiSkill: number;
   color: string;
 }> = {
   easy: {
@@ -193,7 +193,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
     descriptionIt: 'Avversari lenti, virate tranquille. Ideale per prendere confidenza con i comandi.',
     opponents: 2,
     aiSpeedMul: 0.78,
-    aiSkill: 0.7,
     color: '#44ff88',
   },
   medium: {
@@ -213,7 +212,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
     descriptionIt: 'Gli avversari tengono la rotta con sicurezza. Servono una buona tattica di bolina e giri di boa precisi.',
     opponents: 3,
     aiSpeedMul: 0.92,
-    aiSkill: 0.9,
     color: '#ffaa00',
   },
   hard: {
@@ -233,7 +231,6 @@ const DIFFICULTY_CONFIG: Record<Difficulty, {
     descriptionIt: 'Avversari aggressivi che navigano quasi alla perfezione. Ogni errore costa caro.',
     opponents: 4,
     aiSpeedMul: 1.02,
-    aiSkill: 1.0,
     color: '#ff4444',
   },
 };
@@ -568,7 +565,7 @@ export default function GamePage() {
       nextMarkIdx: 0,
       lapDone: 0,
       wake: [],
-      skill: 1.0,
+      speedMul: 1,
     });
 
     // Opponents spread along the line
@@ -587,7 +584,7 @@ export default function GamePage() {
         nextMarkIdx: 0,
         lapDone: 0,
         wake: [],
-        skill: cfg.aiSkill * (0.85 + Math.random() * 0.3), // variation
+        speedMul: cfg.aiSpeedMul * (0.97 + Math.random() * 0.06), // difficulty, a little spread between bots
       });
     }
 
@@ -734,7 +731,7 @@ export default function GamePage() {
           if (turnInput && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
           if (!turnInput && autopilotOnRef.current) turnInput = Math.max(-1, Math.min(1, angleDiff(boat.heading, autopilotHeadingRef.current) / 12));
         } else turnInput = raceAutopilotTurn(boat, course, windDirRef.current);
-        stepBoat(boat, dt, windDirRef.current, windGustRef.current, { turn: turnInput }, { windStrengthMul: windStrengthRef.current });
+        stepBoat(boat, dt, windDirRef.current, windGustRef.current, { turn: turnInput }, { windStrengthMul: windStrengthRef.current, speedMul: boat.speedMul });
         boat.targetSpeed = boat.speed;
       }
       resolveCollisions(boats, dt);
@@ -809,20 +806,8 @@ export default function GamePage() {
       const elapsedSec = isRacing ? (now - startTimeRef.current) / 1000 : 0;
       if (isRacing) setElapsed(elapsedSec);
 
-      // Calculate position (rank)
-      const progress = boats.map((b) => ({
-        id: b.id,
-        progress: b.lapDone === 2
-          ? 10000 - (b.finishTime ?? 0)
-          : b.lapDone === 1
-            ? 5000 - distance(b.pos, {
-                x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
-                y: course.finishLine.a.y,
-              })
-            : 2500 - distance(b.pos, course.marks[0].pos),
-      }));
-      progress.sort((a, b) => b.progress - a.progress);
-      const rank = progress.findIndex((p) => p.id === 'player') + 1;
+      // Calculate position (rank): the same count the 3D name tags show.
+      const rank = raceRanks(boats, course).get('player') ?? boats.length;
       setPosition({ rank, total: boats.length });
 
       // Render
@@ -2680,7 +2665,7 @@ function GameMenu({
   pickMission: (m: Mission | null) => void;
   openBriefing: () => void;
 }) {
-  const { tp } = useI18n();
+  const { tp, tl } = useI18n();
   const [tab, setTab] = useState<MenuTab>('learn');
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -2716,7 +2701,7 @@ function GameMenu({
   }, [tab]);
 
   const ctaLabel =
-    tab === 'learn' ? tp('Начать - Учусь гоняю', 'Start - Learning mode', 'Start - Tryb nauki', { es: 'Empezar - Modo aprendizaje', fr: 'Commencer - Mode apprentissage', de: 'Los - Lernmodus', it: 'Inizia - Modalità apprendimento' }) :
+    tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
     tab === 'mission' ? (selectedMission
       ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
           es: `Ir a la misión: ${selectedMission.titleEs ?? selectedMission.titleEn}`,
@@ -2737,22 +2722,16 @@ function GameMenu({
       },
     );
 
-  const ctaColor =
-    tab === 'learn' ? DIFFICULTY_CONFIG.easy.color :
-    tab === 'mission' ? (selectedMission ? DIFFICULTY_CONFIG[selectedMission.difficulty].color : '#8ba7b8') :
-    DIFFICULTY_CONFIG[difficulty].color;
-
   const ctaDisabled = tab === 'mission' && !selectedMission;
 
   return (
     <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl sm:text-5xl font-bold mb-2"
-            style={{ background: 'linear-gradient(135deg, var(--text-primary), #ff6688)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+      <div className="mb-6">
+        <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
           {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
         </h1>
-        <p className="text-sm text-[var(--text-muted)]">
-          {tp('Race · выбери режим', 'Race · pick a mode', 'Race · wybierz tryb', { es: 'Race · elige un modo', fr: 'Race · choisis un mode', de: 'Race · wähle einen Modus', it: 'Race · scegli una modalità' })}
+        <p className="text-base text-[var(--text-secondary)]">
+          {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}
         </p>
       </div>
 
@@ -2761,10 +2740,9 @@ function GameMenu({
         <PresetCard
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
-          emoji="🎓"
-          accent="#44ff88"
-          title={tp('Учусь гоняю', 'Learning to race', 'Uczę się ścigać', { es: 'Aprendo a competir', fr: 'J\'apprends à régater', de: 'Regatta lernen', it: 'Imparo a regatare' })}
-          subtitle={tp('Easy + средний ветер', 'Easy + medium wind', 'Łatwy + średni wiatr', { es: 'Fácil + viento medio', fr: 'Facile + vent moyen', de: 'Leicht + mittlerer Wind', it: 'Facile + vento medio' })}
+          icon="first"
+          title={tl({ ru: 'Первая гонка', en: 'First race', pl: 'Pierwszy wyścig', es: 'Primera regata', fr: 'Première course', de: 'Erstes Rennen', it: 'Prima regata' })}
+          subtitle={tl({ ru: 'Лёгкий уровень, средний ветер', en: 'Easy level, medium wind', pl: 'Łatwy poziom, średni wiatr', es: 'Nivel fácil, viento medio', fr: 'Niveau facile, vent moyen', de: 'Leichte Stufe, mittlerer Wind', it: 'Livello facile, vento medio' })}
           desc={tp(
             'Спокойные противники, плавные повороты. Для первого опыта гонки.',
             'Calm opponents, gentle turns. For a first racing experience.',
@@ -2780,8 +2758,7 @@ function GameMenu({
         <PresetCard
           active={tab === 'free'}
           onClick={() => setTab('free')}
-          emoji="🏁"
-          accent="#00d4ff"
+          icon="free"
           title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
           subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
@@ -2799,8 +2776,7 @@ function GameMenu({
         <PresetCard
           active={tab === 'mission'}
           onClick={() => setTab('mission')}
-          emoji="🎯"
-          accent="#ffaa00"
+          icon="mission"
           title={tp('Миссия', 'Mission', 'Misja', { es: 'Misión', fr: 'Mission', de: 'Mission', it: 'Missione' })}
           subtitle={tp('Конкретная задача', 'Specific objective', 'Konkretny cel', { es: 'Objetivo concreto', fr: 'Objectif précis', de: 'Konkretes Ziel', it: 'Obiettivo preciso' })}
           desc={tp(
@@ -2872,14 +2848,14 @@ function GameMenu({
                     onClick={() => setDifficulty(d)}
                     className={`p-2.5 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : ''}`}
                     style={{
-                      borderColor: active ? cfg.color : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? `${cfg.color}15` : 'transparent',
-                      outlineColor: cfg.color,
+                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
+                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
+                      outlineColor: 'var(--accent-cyan)',
                     }}
                   >
                     <div className="flex items-center gap-1.5">
                       <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                      <div className="font-semibold" style={{ color: cfg.color }}>{tp(cfg.label, cfg.labelEn, cfg.labelPl, { es: cfg.labelEs, fr: cfg.labelFr, de: cfg.labelDe, it: cfg.labelIt })}</div>
+                      <div className="font-semibold text-[var(--text-primary)]">{tp(cfg.label, cfg.labelEn, cfg.labelPl, { es: cfg.labelEs, fr: cfg.labelFr, de: cfg.labelDe, it: cfg.labelIt })}</div>
                     </div>
                     <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперника', 'opponents', 'rywali', { es: 'rivales', fr: 'adversaires', de: 'Gegner', it: 'avversari' })}</div>
                   </button>
@@ -2892,9 +2868,9 @@ function GameMenu({
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  icon: '🌬', desc: '~5 kn'  },
-                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), icon: '💨', desc: '~10 kn' },
-                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  icon: '🌪', desc: '~15 kn' },
+                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~5 kn'  },
+                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~10 kn' },
+                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~15 kn' },
               ] as const).map((w) => (
                 <button
                   key={w.id}
@@ -2906,9 +2882,8 @@ function GameMenu({
                     outlineColor: 'var(--accent-cyan)',
                   }}
                 >
-                  <div className="text-base mb-0.5">{w.icon}</div>
                   <div className="text-xs font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
-                  <div className="text-[9px] text-[var(--text-muted)]">{w.desc}</div>
+                  <div className="text-xs text-[var(--text-muted)]">{w.desc}</div>
                 </button>
               ))}
             </div>
@@ -2994,12 +2969,8 @@ function GameMenu({
       <button
         onClick={openBriefing}
         disabled={ctaDisabled}
-        className="w-full py-4 rounded-xl font-semibold text-lg transition-all disabled:opacity-40 hover:scale-[1.01]"
-        style={{
-          background: `linear-gradient(135deg, ${ctaColor}, ${ctaColor}cc)`,
-          color: '#0a1628',
-          boxShadow: `0 4px 24px ${ctaColor}44`,
-        }}
+        className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
       >
         {ctaLabel} →
       </button>
@@ -3007,27 +2978,40 @@ function GameMenu({
   );
 }
 
+/** Line icons for the race modes, drawn in the text colour (cyan when picked). */
+function PresetIcon({ kind }: { kind: 'first' | 'free' | 'mission' }) {
+  const common = { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
+  if (kind === 'first') return (
+    <svg {...common}><path d="M12 3v14" /><path d="M12 4l6 11h-6" /><path d="M11 6l-5 9h5" /><path d="M4 18h16l-2 3H6z" /></svg>
+  );
+  if (kind === 'free') return (
+    <svg {...common}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
+  );
+  return (
+    <svg {...common}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="0.8" fill="currentColor" /></svg>
+  );
+}
+
 function PresetCard({
-  active, onClick, emoji, accent, title, subtitle, desc,
+  active, onClick, icon, title, subtitle, desc,
 }: {
   active: boolean; onClick: () => void;
-  emoji: string; accent: string; title: string; subtitle: string; desc: string;
+  icon: 'first' | 'free' | 'mission'; title: string; subtitle: string; desc: string;
 }) {
   return (
     <button
       onClick={onClick}
-      className={`card p-4 text-left transition-all ${active ? 'ring-2 scale-[1.02]' : 'hover:scale-[1.01] opacity-85 hover:opacity-100'}`}
+      aria-pressed={active}
+      className="card p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
       style={{
-        borderColor: active ? accent : undefined,
-        outlineColor: active ? accent : undefined,
-        background: active ? `${accent}0D` : undefined,
-        boxShadow: active ? `0 4px 24px ${accent}33` : undefined,
+        borderColor: active ? 'var(--accent-cyan)' : undefined,
+        background: active ? 'rgba(0, 212, 255, 0.08)' : undefined,
       }}
     >
-      <div className="text-3xl mb-1.5">{emoji}</div>
-      <div className="font-semibold text-base" style={{ color: active ? accent : 'var(--text-primary)' }}>{title}</div>
-      <div className="text-[11px] text-[var(--text-muted)] mb-2">{subtitle}</div>
-      <p className="text-xs text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+      <div className="mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
+      <div className="font-semibold text-base text-[var(--text-primary)]">{title}</div>
+      <div className="text-xs text-[var(--text-muted)] mb-2">{subtitle}</div>
+      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
     </button>
   );
 }

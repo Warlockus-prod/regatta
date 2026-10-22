@@ -5,12 +5,12 @@ const boat = (): RaceBoat => ({ id: "one", name: "one", color: "white", pos: {x:
 // strength are given. Returns the boat at the end. The server ticks at 0.05 s;
 // the bulk sweeps use 0.1 s, which the autopilot sails the same (every start in
 // four winds finishes at 1/60, 0.05, 0.1 and 0.2 s, medians within 1 s).
-function sail(b: RaceBoat, wind?: { seed: number; mul: number }, dt = .05): RaceBoat {
+function sail(b: RaceBoat, wind?: { seed: number; mul: number }, dt = .05, speedMul?: number): RaceBoat {
   const c = makeStandardCourse();
   for (let t = 0; t < 600 && b.lapDone < 2; t += dt) {
     const w = wind ? windAt(t, wind.seed) : { dir: 0, gust: 1 };
     const prev = { ...b.pos };
-    stepBoat(b, dt, w.dir, w.gust, { turn: raceAutopilotTurn(b, c, w.dir) }, { windStrengthMul: wind?.mul ?? 1 });
+    stepBoat(b, dt, w.dir, w.gust, { turn: raceAutopilotTurn(b, c, w.dir) }, { windStrengthMul: wind?.mul ?? 1, speedMul });
     updateLap(b, prev, c, t);
   }
   return b;
@@ -157,5 +157,31 @@ describe("one complete fair regatta", () => {
     expect(a.heading).toBe(45);
     a.pos={...b.pos}; resolveCollisions([a,b]);
     expect(Math.hypot(a.pos.x-b.pos.x,a.pos.y-b.pos.y)).toBeCloseTo(22);
+  });
+});
+
+// Contract (ADR-0007): the difficulty you pick changes how fast the bots sail.
+// Easy bots (the website's 0.78) finish clearly behind medium (0.92) and hard
+// (1.02) on the same course and wind, and every one of them still finishes.
+describe("bot difficulty", () => {
+  it("slows easy bots and leaves the unhandicapped boat unchanged", () => {
+    const time = (mul?: number) => {
+      const b = sail(boat(), { seed: 7, mul: 1 }, .05, mul);
+      expect(b.lapDone, `speedMul ${mul}`).toBe(2);
+      return b.finishTime!;
+    };
+    const easy = time(.78), medium = time(.92), hard = time(1.02), plain = time(undefined);
+    expect(easy).toBeGreaterThan(medium * 1.08);
+    expect(medium).toBeGreaterThan(hard);
+    expect(time(1)).toBe(plain);
+  });
+
+  it("keeps a contact slow-down after the handicap", () => {
+    const b = boat();
+    for (let i = 0; i < 200; i++) stepBoat(b, .05, 0, 1, { turn: 0 }, { speedMul: .8 });
+    const before = b.speed;
+    b.speed *= .5;
+    stepBoat(b, .05, 0, 1, { turn: 0 }, { speedMul: .8 });
+    expect(b.speed).toBeLessThan(before * .6);
   });
 });

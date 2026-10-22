@@ -11,7 +11,8 @@ import { SHORE_STORAGE_KEY, VENUE_STORAGE_KEY } from "../../../src/data/venues/v
 export default function Race3D() {
   const { tp } = useI18n();
   const { picked, shoreOn } = useVenue();
-  return <SimWebView path="/game" query={{ view: "3d" }}
+  // The race menu is taller than a phone, so the page scrolls (the race itself fits the screen).
+  return <SimWebView path="/game" query={{ view: "3d" }} scrollEnabled
     title={tp("3D-гонка", "3D race", "Wyścig 3D", { es: "Regata en 3D", fr: "Course en 3D", de: "3D-Rennen", it: "Regata in 3D" })}
     localStorage={{ [VENUE_STORAGE_KEY]: picked.id, [SHORE_STORAGE_KEY]: shoreOn ? "on" : "off" }}
     fallbackRoute="/game"

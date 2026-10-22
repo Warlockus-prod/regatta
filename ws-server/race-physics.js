@@ -440,13 +440,14 @@ function windAt(t, seed = 0) {
   };
 }
 function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
+  const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
   const authority = Math.max(0, Math.min(1, boat.speed / 3));
   boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
   const params2 = getBoatParams();
   const state = {
     ...boat.physics ?? createInitialState({ tws: 12 }),
     heading: boat.heading,
-    boatSpeed: boat.speed,
+    boatSpeed: boat.speed / mul,
     trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
   };
@@ -456,7 +457,7 @@ function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
     boat.trimClock = 0;
   }
   boat.physics = tick(state, boat.trim, params2, dt).state;
-  boat.speed = boat.physics.boatSpeed;
+  boat.speed = boat.physics.boatSpeed * mul;
   const rad = deg2rad(boat.heading + boat.physics.leeway);
   boat.pos.x += Math.sin(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
   boat.pos.y -= Math.cos(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;

@@ -30,6 +30,19 @@ describe("native shared race rules", () => {
     }
     expect(fleet.every(b=>b.finished)).toBe(true);
   });
+  // Contract (ADR-0007): the course's difficulty changes how fast the rivals
+  // sail; the slowest hard rival still beats the fastest easy one.
+  it("sails easy rivals slower than hard ones on the same course",()=>{
+    const course=COURSES[0], bounds={width:390,height:464}, marks=projectCourse(course,bounds);
+    const finish=(difficulty:"easy"|"hard")=>{
+      const fleet=buildFleet({bounds,marks,getWind:()=>({dirRad:0,speedKts:course.initialWindKn}),difficulty,running:true,startX:marks[0].x,startY:marks[0].y+12,resetKey:0});
+      for(let t=0;t<360 && fleet.some(b=>!b.finished);t+=1/30) for(const b of fleet) stepBoat(b,marks,0,course.initialWindKn,bounds,t);
+      expect(fleet.every(b=>b.finished)).toBe(true);
+      return fleet.map(b=>b.finishSec!);
+    };
+    const easy=finish("easy"), hard=finish("hard");
+    expect(Math.max(...hard)).toBeLessThan(Math.min(...easy));
+  });
   it("does not count touching a mark or the finish stripe",()=>{
     const marks=projectCourse(COURSES[0],{width:360,height:380});
     const p=nativeProgress(marks[0].x,marks[0].y+12,0);
