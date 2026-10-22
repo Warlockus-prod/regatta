@@ -3,8 +3,9 @@
 Operational check dated 2026-10-20: public 1.6.4 (48) is READY_FOR_SALE.
 TestFlight 1.7.0 has two lines that met in build 50: builds 45-47 (Codex
 branch `codex/learning-modules`, design v3 and learning modules) and build 49
-(trainer controls from `main`). Build 50 carries both; builds 51-54 add the
-polish pass, the regatta venues, the race modes and the 3D race. App Store version 1.7.0 is in Prepare for
+(trainer controls from `main`). Build 50 carries both; builds 51-55 add the
+polish pass, the regatta venues, the race modes, the 3D race and stage 1 of
+the game audit. App Store version 1.7.0 is in Prepare for
 Submission, not submitted yet (owner: polish first). Older rows below are historical submission snapshots.
 
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
@@ -14,6 +15,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 55 | 1.7.0 | branch `claude/polish-1.7.0` (`abdfc70` plus the build number) | Self (TestFlight, 2026-10-22) | Build 54 plus stage 1 of the game audit (`docs/audits/2026-10-22-game-audit.md`): rivals sail at their difficulty (ADR-0007), the wind compass in the race moves away from the boat, the wheel labels are readable (dark palette), the sail line is not empty before the start. The 3D race (web, online) gets its new sky, rival colours and name tags once PR #76 is deployed. Checked as a Release build on iPhone 18 Pro, iOS 27. |
 | 54 | 1.7.0 | branch `claude/polish-1.7.0` (`177ca2c`: main `eaf451f` after PR #75 plus the build number, What's New, and two fixes of the new 3D race screen) | Self (TestFlight, 2026-10-22) | Build 53 plus "3D race" in the Race hub: the website race (`/game?view=3d`, live on production) in a WebView with the hub's venue and shore; offline it falls back to the native race. The screen hides the tab bar (it would sit over the steering buttons) and scrolls (the race menu is taller than a phone; without it Start was out of reach). What's New for 1.7.0 names the race modes and the 3D race; Spanish Simple-mode note fixed. |
 | 53 | 1.7.0 | branch `claude/polish-1.7.0` (`d3193d5` plus the build number) | Self (TestFlight, 2026-10-22) | Build 52 plus race modes in the Race hub (simple: auto trim; pro: mainsheet and jib sheet by sliders or wheels under the course, sail state shown), the shore and islands switch, steering toward the finger (it used to run from the screen centre) and a smaller player yacht. |
 | 52 | 1.7.0 | branch `claude/polish-1.7.0` (`803f711` plus the build number) | Self (TestFlight, 2026-10-22) | Build 51 plus the regatta venues (ADR-0005): shore and islands around the native race (Göcek, Split, Masuria, the Solent, open sea; picker in the Race hub; boats stay inside the bay), mountains and islands on the 3D horizon. What's New for 1.7.0 mentions the venues. |
