@@ -38,6 +38,7 @@ export interface AiBoat {
   finishSec: number | null;
   tackDir: 1 | -1;
   tackCdSec: number;
+  /** Share of the force-model speed the bot makes, from the race difficulty. */
   skill: number;
   progression?: RaceBoat;
   physics?: BoatState;
@@ -140,7 +141,9 @@ export function stepBoat(
     b.trimClock = 0;
   }
   b.physics = physicsTick(state, b.trim, getBoatParams(), DT).state;
-  b.speedKn = b.physics.boatSpeed;
+  // Difficulty (ADR-0007 in DECISIONS.md): a bot makes `skill` of the force
+  // model's speed; the model keeps its own speed, so the handicap never compounds.
+  b.speedKn = b.physics.boatSpeed * b.skill;
   const v = b.speedKn * KN_TO_PX_PER_S;
   const course = b.heading + b.physics.leeway * RAD;
   b.x += Math.sin(course) * v * DT;

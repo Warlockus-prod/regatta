@@ -15,7 +15,7 @@ import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import { raceTerrain } from "@/data/venues/geometry";
 import { makeStandardCourse } from "@/lib/race-physics";
 import type { Venue } from "@/data/venues/venues";
-import { METRES_PER_UNIT, headingDelta, nextTarget, racePose, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
+import { METRES_PER_UNIT, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
 
 // ============================================================================
 // Race3DView - the solo race seen from the water (owner request 2026-10-21).
@@ -29,7 +29,13 @@ import { METRES_PER_UNIT, headingDelta, nextTarget, racePose, toWorld, type Race
 // (raceTerrain), so a boat sees in 3D the coast it sees from above.
 // ============================================================================
 
-const SKY = { haze: "#6b93ac", horizon: "#8cb3c8", zenith: "#1f4a6e" } as const;
+// The fog takes the sky's horizon colour, so far water and land fade into the
+// sky with no seam. The sun stands about 45 degrees high: lower, its glitter
+// path filled the water ahead of the boat with white when sailing towards it.
+const SKY = { horizon: "#9ec1d3", zenith: "#1f4a6e" } as const;
+const SUN: [number, number, number] = [56, 64, 28];
+/** Waves flatten and roughen from 45 m out, gone by 420 m (see Ocean). */
+const FAR_CALM: [number, number] = [45, 420];
 const DEG = Math.PI / 180;
 /** The race shore stands taller than the horizon one: it is nearer and much wider. */
 const LAND_HEIGHT = 1.8;
@@ -91,15 +97,81 @@ function Player({ boatsRef, windDirRef, originRef, playerStateRef }: {
   );
 }
 
-function Rival({ id, color, boatsRef, windDirRef, originRef }: {
+/**
+ * Place and name over a rival's mast, the same size on screen at any distance,
+ * drawn on a canvas (no font file: the CSP blocks font CDNs).
+ */
+function NameTag({ text, color }: { text: string; color: string }) {
+  const texture = useMemo(() => {
+    const canvas = document.createElement("canvas");
+    canvas.width = 256;
+    canvas.height = 64;
+    const g = canvas.getContext("2d");
+    if (g) {
+      g.fillStyle = "rgba(10, 22, 40, 0.86)";
+      g.beginPath();
+      g.roundRect(2, 6, 252, 52, 26);
+      g.fill();
+      g.fillStyle = color;
+      g.beginPath();
+      g.arc(32, 32, 11, 0, Math.PI * 2);
+      g.fill();
+      g.fillStyle = "#ffffff";
+      g.font = "600 28px system-ui, -apple-system, Segoe UI, sans-serif";
+      g.textBaseline = "middle";
+      g.fillText(text, 54, 33, 190);
+    }
+    const t = new THREE.CanvasTexture(canvas);
+    t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }, [text, color]);
+  useEffect(() => () => texture.dispose(), [texture]);
+  return (
+    <sprite position={[0, 22, 0]} scale={[0.17, 0.0425, 1]} renderOrder={10}>
+      <spriteMaterial map={texture} sizeAttenuation={false} depthTest={false} transparent fog={false} />
+    </sprite>
+  );
+}
+
+function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
   id: string;
   color: string;
+  label: string;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
   originRef: OriginRef;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, id);
   const group = useRef<THREE.Group>(null);
+  // The rival's race colour on its hull, the same colour as its dot on the 2D
+  // map and its name tag. The GLB's gelcoat is shared by every yacht, so each
+  // rival paints its own copy and puts the shared one back when it leaves.
+  useEffect(() => {
+    const tint = new THREE.Color(color);
+    const painted: { mesh: THREE.Mesh; original: THREE.Material | THREE.Material[]; copies: THREE.Material[] }[] = [];
+    group.current?.traverse((o) => {
+      const mesh = o as THREE.Mesh;
+      if (!mesh.isMesh) return;
+      const original = mesh.material;
+      const copies: THREE.Material[] = [];
+      const paint = (m: THREE.Material) => {
+        if (!m.name.startsWith("Gelcoat_White")) return m;
+        const copy = m.clone() as THREE.MeshStandardMaterial;
+        copy.color.copy(tint).multiplyScalar(0.82);
+        copies.push(copy);
+        return copy;
+      };
+      mesh.material = Array.isArray(original) ? original.map(paint) : paint(original);
+      if (copies.length) painted.push({ mesh, original, copies });
+      else mesh.material = original;
+    });
+    return () => {
+      for (const p of painted) {
+        p.mesh.material = p.original;
+        p.copies.forEach((m) => m.dispose());
+      }
+    };
+  }, [color]);
   useFrame(({ camera }) => {
     const travel = state.current.travel;
     if (!group.current || !travel) return;
@@ -120,11 +192,7 @@ function Rival({ id, color, boatsRef, windDirRef, originRef }: {
   return (
     <group ref={group}>
       <Yacht stateRef={state} light />
-      {/* The rival's colour from the canvas race, high above the mast so it reads from afar. */}
-      <mesh position={[0, 23, 0]} rotation-x={Math.PI}>
-        <coneGeometry args={[1.1, 2.2, 4]} />
-        <meshBasicMaterial color={color} fog={false} />
-      </mesh>
+      <NameTag text={label} color={color} />
     </group>
   );
 }
@@ -297,12 +365,16 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
   const playerStateRef = useRef<MutableRefObject<YachtState> | null>(null);
   // The ocean reads the player's travel from this ref every frame.
   const oceanStateRef = useRef<YachtState>({ ...NEUTRAL_YACHT });
-  // Rivals come and go with each race (restart, other difficulty): follow the ids.
-  const [rivals, setRivals] = useState<{ id: string; color: string }[]>([]);
+  // Rivals come and go with each race (restart, other difficulty), and their
+  // places change: follow both twice a second for the name tags.
+  const [rivals, setRivals] = useState<{ id: string; color: string; label: string }[]>([]);
   useEffect(() => {
     const read = () => {
-      const next = boatsRef.current.filter((b) => !b.isPlayer).map((b) => ({ id: b.id, color: b.color }));
-      setRivals((prev) => (prev.map((r) => r.id).join() === next.map((r) => r.id).join() ? prev : next));
+      const ranks = raceRanks(boatsRef.current, STANDARD_COURSE);
+      const next = boatsRef.current.filter((b) => !b.isPlayer)
+        .map((b) => ({ id: b.id, color: b.color, label: `${ranks.get(b.id) ?? ""}  ${b.name ?? ""}`.trim() }));
+      const key = (list: { id: string; label: string }[]) => list.map((r) => `${r.id}:${r.label}`).join();
+      setRivals((prev) => (key(prev) === key(next) ? prev : next));
     };
     read();
     const id = window.setInterval(read, 500);
@@ -323,12 +395,13 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
           gl.outputColorSpace = THREE.SRGBColorSpace;
         }}
       >
-        <color attach="background" args={[SKY.haze]} />
-        {/* Far enough to see the windward mark from the start (about 520 m) and the shore behind it. */}
-        <fog attach="fog" args={[SKY.haze, 420, 2600]} />
+        <color attach="background" args={[SKY.horizon]} />
+        {/* The windward mark from the start (about 520 m) stays clear; by the
+            edge of the waves (1.4 km) the sea has faded into the horizon. */}
+        <fog attach="fog" args={[SKY.horizon, 300, 1700]} />
         <hemisphereLight args={["#cfe6ff", "#33454f", 0.45]} />
         <directionalLight
-          position={[56, 72, 28]}
+          position={SUN}
           intensity={2.2}
           color="#fff2dc"
           castShadow
@@ -344,15 +417,19 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
         <mesh renderOrder={-100}>
           <sphereGeometry args={[3600, 24, 12]} />
           <shaderMaterial side={THREE.BackSide} depthWrite={false} toneMapped={false} fog={false}
-            uniforms={{ horizon: { value: new THREE.Color(SKY.horizon) }, zenith: { value: new THREE.Color(SKY.zenith) } }}
+            uniforms={{ horizon: { value: new THREE.Color(SKY.horizon) }, zenith: { value: new THREE.Color(SKY.zenith) }, sunDir: { value: new THREE.Vector3(...SUN).normalize() } }}
             vertexShader={"varying vec3 vSky; void main() { vSky = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }"}
-            fragmentShader={`uniform vec3 horizon; uniform vec3 zenith; varying vec3 vSky;
+            fragmentShader={`uniform vec3 horizon; uniform vec3 zenith; uniform vec3 sunDir; varying vec3 vSky;
               void main() {
                 vec3 direction = normalize(vSky);
                 float blend = pow(max(direction.y, 0.0), 0.45);
                 vec3 sky = mix(horizon, zenith, blend);
-                float sun = pow(max(dot(direction, normalize(vec3(56.0, 72.0, 28.0))), 0.0), 600.0);
-                gl_FragColor = vec4(mix(sky, vec3(1.0, 0.93, 0.78), sun * 0.8), 1.0);
+                float facing = max(dot(direction, sunDir), 0.0);
+                // A bright band along the horizon and a warm glow round the sun.
+                sky += vec3(0.10, 0.10, 0.08) * exp(-abs(direction.y) * 16.0);
+                sky += vec3(0.30, 0.22, 0.10) * pow(facing, 12.0);
+                float disc = smoothstep(0.9993, 0.9997, facing);
+                gl_FragColor = vec4(mix(sky, vec3(1.0, 0.95, 0.82), disc), 1.0);
                 #include <colorspace_fragment>
               }`} />
         </mesh>
@@ -366,17 +443,17 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
         </Environment>
 
         <OceanFollow playerStateRef={playerStateRef} oceanStateRef={oceanStateRef} />
-        <Ocean stateRef={oceanStateRef} size={2000} seg={256} />
+        <Ocean stateRef={oceanStateRef} size={2800} seg={288} roughness={0.32} skyReflection={0.5} farCalm={FAR_CALM} sunGlint={0.18} />
         {/* Flat sea beyond the waves, under them, out to the fog. */}
         <mesh rotation-x={-Math.PI / 2} position={[0, -1.6, 0]}>
           <planeGeometry args={[9000, 9000]} />
-          <meshStandardMaterial color="#0e4256" roughness={0.45} metalness={0.07} />
+          <meshStandardMaterial color="#0e4256" roughness={0.6} metalness={0.07} />
         </mesh>
 
         <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} />
         <Suspense fallback={<Loading label={labels.loading} />}>
           <Player boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} playerStateRef={playerStateRef} />
-          {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
+          {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
           <Ready />
         </Suspense>
         <ChaseCamera stateRef={playerStateRef} mode={camera} />

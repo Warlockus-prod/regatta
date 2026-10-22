@@ -140,11 +140,15 @@ export function stepBoat(
   input: InputState,
   opts: { speedMul?: number; windStrengthMul?: number } = {},
 ): void {
+  // Bot difficulty (DECISIONS.md ADR-0007): the boat makes speedMul of the
+  // speed the force model gives. The model is fed back its own speed, so the
+  // handicap never compounds; a contact slow-down on boat.speed still carries.
+  const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
   const authority = Math.max(0, Math.min(1, boat.speed / 3));
   boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
   const params = getBoatParams();
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
-    boatSpeed: boat.speed, trueWindDir: windDir,
+    boatSpeed: boat.speed / mul, trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
   boat.trimClock = (boat.trimClock ?? 1) + dt;
   if (!boat.trim || boat.trimClock >= .5) {
@@ -152,7 +156,7 @@ export function stepBoat(
     boat.trimClock = 0;
   }
   boat.physics = tick(state, boat.trim, params, dt).state;
-  boat.speed = boat.physics.boatSpeed;
+  boat.speed = boat.physics.boatSpeed * mul;
   const rad = deg2rad(boat.heading + boat.physics.leeway);
   boat.pos.x += Math.sin(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;
   boat.pos.y -= Math.cos(rad) * boat.speed * UNITS_PER_KNOT_SECOND * dt;

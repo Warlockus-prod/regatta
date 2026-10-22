@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { makeStandardCourse, stepBoat, UNITS_PER_KNOT_SECOND, WIND_DIRECTION_BASE } from "@/lib/race-physics";
-import { METRES_PER_UNIT, VISUAL_SPEEDUP, headingDelta, nextTarget, racePose, toWorld, type Race3DBoat } from "./pose";
+import { METRES_PER_UNIT, VISUAL_SPEEDUP, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat } from "./pose";
 
 const boat = (heading: number, extra: Partial<Race3DBoat> = {}): Race3DBoat => ({
   id: "p", color: "#fff", pos: { x: 400, y: 1000 }, heading, speed: 5, lapDone: 0, isPlayer: true, ...extra,
@@ -61,5 +61,18 @@ describe("3D race pose", () => {
     const finish = nextTarget(boat(0, { lapDone: 1 }), course)!;
     expect(finish.y).toBe(course.finishLine.a.y);
     expect(nextTarget(boat(0, { lapDone: 2 }), course)).toBeNull();
+  });
+
+  it("ranks finished boats by time, then the run, then the beat by distance to go", () => {
+    const course = makeStandardCourse();
+    const mark = course.marks[0].pos;
+    const ranks = raceRanks([
+      boat(0, { id: "beat-far", pos: { x: mark.x, y: mark.y + 600 } }),
+      boat(0, { id: "beat-near", pos: { x: mark.x, y: mark.y + 100 } }),
+      boat(0, { id: "run", lapDone: 1, pos: { x: 400, y: 600 } }),
+      boat(0, { id: "second-home", lapDone: 2, finishTime: 95 }),
+      boat(0, { id: "first-home", lapDone: 2, finishTime: 80 }),
+    ], course);
+    expect(["first-home", "second-home", "run", "beat-near", "beat-far"].map((id) => ranks.get(id))).toEqual([1, 2, 3, 4, 5]);
   });
 });

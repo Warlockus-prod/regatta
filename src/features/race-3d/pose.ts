@@ -2,7 +2,7 @@
 // yacht pose (src/features/simulator-3d/types.ts). No three.js, so it is
 // tested on its own: the 3D race must show the same race the canvas runs.
 
-import { calcTWA, UNITS_PER_KNOT_SECOND, type Vec2 } from "@/lib/race-physics";
+import { calcTWA, distance, UNITS_PER_KNOT_SECOND, type Vec2 } from "@/lib/race-physics";
 import { getBoatParams } from "@/lib/sailing-physics/boat";
 import type { BoatState, Controls } from "@/lib/sailing-physics/types";
 import type { YachtState } from "@/features/simulator-3d/types";
@@ -28,11 +28,13 @@ const NO_GO_DEG = 30;
 
 export interface Race3DBoat {
   id: string;
+  name?: string;
   color: string;
   pos: Vec2;
   heading: number;
   speed: number;
   lapDone: number;
+  finishTime?: number;
   isPlayer?: boolean;
   physics?: BoatState;
   trim?: Controls;
@@ -96,4 +98,20 @@ export function nextTarget(boat: Race3DBoat, course: Race3DCourse): Vec2 | null 
   if (boat.lapDone === 0) return course.marks.find((m) => m.type === "windward")?.pos ?? null;
   const { a, b } = course.finishLine;
   return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+}
+
+/**
+ * Places in the race, 1 = leading, as the race HUD counts them: finished boats
+ * by time, then boats on the run by distance to the finish, then boats on the
+ * beat by distance to the windward mark.
+ */
+export function raceRanks(boats: Race3DBoat[], course: Race3DCourse): Map<string, number> {
+  const { a, b } = course.finishLine;
+  const finish = { x: (a.x + b.x) / 2, y: a.y };
+  const windward = course.marks.find((m) => m.type === "windward")?.pos ?? course.marks[0].pos;
+  const score = (boat: Race3DBoat) => boat.lapDone >= 2 ? 10000 - (boat.finishTime ?? 0)
+    : boat.lapDone === 1 ? 5000 - distance(boat.pos, finish)
+    : 2500 - distance(boat.pos, windward);
+  const sorted = [...boats].sort((x, y) => score(y) - score(x));
+  return new Map(sorted.map((boat, i) => [boat.id, i + 1]));
 }

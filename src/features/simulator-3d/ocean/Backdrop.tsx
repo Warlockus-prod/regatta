@@ -44,9 +44,16 @@ export function terrainGeometry(t: Terrain3D, palette: Venue["palette"], seed: n
   if (faceted) {
     const col = flat.getAttribute("color") as THREE.BufferAttribute;
     const pos = flat.getAttribute("position") as THREE.BufferAttribute;
+    const nrm = flat.getAttribute("normal") as THREE.BufferAttribute;
+    const rock = new THREE.Color(palette.high);
+    const face = new THREE.Color();
     for (let v = 0; v < col.count; v += 3) {
       const top = [v, v + 1, v + 2].reduce((a, b) => (pos.getY(b) > pos.getY(a) ? b : a));
-      for (let k = 0; k < 3; k++) col.setXYZ(v + k, col.getX(top), col.getY(top), col.getZ(top));
+      face.setRGB(col.getX(top), col.getY(top), col.getZ(top));
+      // Steep faces above the beach show bare rock, so the slopes read from the water.
+      const steep = Math.min(1, Math.max(0, (0.82 - nrm.getY(v)) * 2.5));
+      if (pos.getY(top) > 3) face.lerp(rock, steep * 0.65);
+      for (let k = 0; k < 3; k++) col.setXYZ(v + k, face.r, face.g, face.b);
     }
   }
   g.dispose();

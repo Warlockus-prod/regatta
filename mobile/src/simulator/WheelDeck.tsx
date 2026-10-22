@@ -15,7 +15,8 @@ import Svg, { Circle, Defs, G, Line, Marker, Path, Rect } from 'react-native-svg
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useI18n } from '../i18n/context';
 import { Text } from '../design-system/components/Text';
-import { colors } from '../design-system/tokens';
+// Both hosts (the race and Basics) are dark instrument screens.
+import { darkColors as colors } from '../design-system/tokens';
 import { angleDelta, type Sensitivity } from '../../../src/features/trainer-controls/mapping';
 import {
   COLLAPSE_MS,

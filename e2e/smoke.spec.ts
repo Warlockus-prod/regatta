@@ -117,12 +117,12 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: 'Гонка' })).toBeVisible({ timeout: 15_000 });
 
     // All three preset cards as distinct buttons
-    await expect(page.getByRole('button', { name: /Учусь гоняю/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Первая гонка/ }).first()).toBeVisible();
     await expect(page.getByRole('button', { name: /Свободная гонка/ }).first()).toBeVisible();
-    await expect(page.getByRole('button', { name: /^🎯.*Миссия/ }).first()).toBeVisible();
+    await expect(page.getByRole('button', { name: /^Миссия/ }).first()).toBeVisible();
 
     // Default CTA fires briefing
-    await page.getByRole('button', { name: /Начать.*Учусь гоняю/i }).click();
+    await page.getByRole('button', { name: /Начать первую гонку/i }).click();
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
   });
 
@@ -136,7 +136,7 @@ test.describe('Smoke: critical user flows', () => {
     await expect(picker.getByRole('radio', { name: 'С лодки 3D' })).toHaveAttribute('aria-checked', 'true');
     // Start on the map: software WebGL on a CI runner would slow the countdown.
     await picker.getByRole('radio', { name: 'Карта 2D' }).click();
-    await page.getByRole('button', { name: /Начать.*Учусь гоняю/i }).click();
+    await page.getByRole('button', { name: /Начать первую гонку/i }).click();
     await page.getByRole('button', { name: /Готов - старт/ }).click();
     const view = page.getByRole('radiogroup', { name: 'Вид гонки' });
     await expect(view).toBeVisible({ timeout: 15_000 });

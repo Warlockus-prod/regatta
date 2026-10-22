@@ -158,8 +158,6 @@ function Game() {
   // The course takes the height the HUD row (and the pro controls) under it
   // leave free; nothing is drawn over the boat (owner rule 2026-10-21).
   const sceneH = Math.min(600, Math.max(260, windowHeight - 252 - controlsH));
-  const compassCx = sceneW - COMPASS_R - 16;
-  const compassCy = COMPASS_R + 14;
   // Compact player yacht: the course reads as a race area, not a close-up.
   const boatLength = sceneW < 360 ? 36 : 42;
   // The race bay: the course and the boats live in the water rect, the shore
@@ -195,6 +193,14 @@ function Game() {
   // Live handle for gestures and effects that must not re-subscribe per tick.
   const simLive = useRef(sim);
   useEffect(() => { simLive.current = sim; });
+  // The wind compass sits in a top corner of the course and moves to the
+  // other one while the boat is near it: nothing is drawn over the boat
+  // (owner rule 2026-10-21).
+  const compassCy = COMPASS_R + 14;
+  const compassRightX = sceneW - COMPASS_R - 16;
+  const compassLeftX = COMPASS_R + 16;
+  const nearCompass = (cx: number) => Math.hypot(sim.boat.x - cx, sim.boat.y - compassCy) < COMPASS_R + boatLength + 12;
+  const compassCx = nearCompass(compassRightX) && !nearCompass(compassLeftX) ? compassLeftX : compassRightX;
   // Pro: the learner trims; simple: the engine trims every half second.
   useEffect(() => { simLive.current.setAutoTrim(!pro); }, [pro]);
   const onWheelCourse = useCallback((deg: number) => simLive.current.setTargetHeading((deg * Math.PI) / 180), []);
@@ -1015,7 +1021,7 @@ function Game() {
         {pro ? (
           <View style={[styles.proControls, { width: sceneW }]}>
             <Text style={styles.sailState}>
-              {`${raceCopy.main[lang]}: ${sailWord(sim.sailFeedback.main)} · ${raceCopy.jib[lang]}: ${sailWord(sim.sailFeedback.jib)}`}
+              {`${raceCopy.main[lang]}: ${sailWord(sim.sailFeedback.main) || '-'} · ${raceCopy.jib[lang]}: ${sailWord(sim.sailFeedback.jib) || '-'}`}
             </Text>
             {wheelsOn ? (
               <WheelDeck

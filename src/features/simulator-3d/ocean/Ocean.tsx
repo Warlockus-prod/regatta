@@ -49,11 +49,35 @@ export function Ocean({
   size = 700,
   seg = 192,
   color = '#0e4256',
+  roughness = 0.24,
+  skyReflection = 1,
+  farCalm,
+  sunGlint = 1,
 }: {
   stateRef: MutableRefObject<YachtState>;
   size?: number;
   seg?: number;
   color?: string;
+  /** Rougher water spreads the sun over the waves instead of sharp glints
+   *  (the race view, seen from far, uses more). */
+  roughness?: number;
+  /**
+   * Share of the reflected sky (the scene environment). Seen at grazing
+   * angles over a whole race area its bright panels smear into white sheets;
+   * the race view turns it down. Done in the shader: with a scene
+   * environment three.js ignores material.envMapIntensity.
+   */
+  skyReflection?: number;
+  /**
+   * From..to metres from the camera over which the waves flatten and the
+   * surface roughens. Far wave facets otherwise each mirror the sun, a white
+   * chequerboard over a whole race area. Off by default (the 3D boat's water
+   * ends at 340 m).
+   */
+  farCalm?: [number, number];
+  /** Share of the sun's direct glitter on the water (the race view seen from
+   *  above towards the sun turns the swell into white sheets at 1). */
+  sunGlint?: number;
 }) {
   const timeRef = useRef({ value: 0 });
   const travelRef = useRef({ value: new THREE.Vector2() });
@@ -71,13 +95,15 @@ export function Ocean({
     return g;
   }, [size, seg]);
 
+  const calmFrom = farCalm?.[0];
+  const calmTo = farCalm?.[1];
   const material = useMemo(() => {
     const m = new THREE.MeshStandardMaterial({
       color,
       metalness: 0.07,
       // Low roughness so the sun/environment breaks into a specular path on
       // the moving surface (the "premium water" read).
-      roughness: 0.24,
+      roughness,
       envMapIntensity: 1.15,
     });
     m.onBeforeCompile = (shader) => {
@@ -106,11 +132,20 @@ export function Ocean({
         float rippleFade = 1.0 - smoothstep(0.15, 0.9, length(fwidth(vOceanPosition.xz)) * 8.0);
         float rippleX = rippleFade * 0.02 * sin(vOceanPosition.x * 8.1 + vOceanPosition.z * 3.2 + uTime * 2.0);
         float rippleZ = rippleFade * 0.015 * cos(vOceanPosition.z * 9.4 - vOceanPosition.x * 2.8 - uTime * 1.6);
-        normal = normalize(mat3(viewMatrix) * normalize(vec3(waveNormal.y + rippleX, 1.0, waveNormal.z + rippleZ)));`,
+        float calm = ${calmFrom !== undefined && calmTo !== undefined ? `smoothstep(${calmFrom.toFixed(1)}, ${calmTo.toFixed(1)}, length(vViewPosition))` : "0.0"};
+        vec3 waterNormal = vec3(waveNormal.y + rippleX, 1.0, waveNormal.z + rippleZ);
+        waterNormal.xz *= 1.0 - 0.85 * calm;
+        normal = normalize(mat3(viewMatrix) * normalize(waterNormal));
+        roughnessFactor = mix(roughnessFactor, 0.72, calm);`,
+      ).replace(
+        "#include <lights_fragment_end>",
+        `#include <lights_fragment_end>
+        reflectedLight.directSpecular *= ${sunGlint.toFixed(3)};
+        reflectedLight.indirectSpecular *= ${skyReflection.toFixed(3)};`,
       );
     };
     return m;
-  }, [color]);
+  }, [color, roughness, skyReflection, calmFrom, calmTo, sunGlint]);
 
   useFrame(({ clock }) => {
     timeRef.current.value = clock.elapsedTime;
