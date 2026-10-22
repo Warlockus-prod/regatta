@@ -9,7 +9,7 @@ export const raceCopy = {
     'Паруса настраиваются сами, ты только рулишь.',
     'The sails trim themselves, you just steer.',
     'Żagle trymują się same, ty tylko sterujesz.',
-    'Las velas se trimán solas, tú solo gobiernas.',
+    'Las velas se ajustan solas, tú solo gobiernas.',
     'Les voiles se règlent seules, tu ne fais que barrer.',
     'Die Segel trimmen sich selbst, du steuerst nur.',
     'Le vele si regolano da sole, tu timoni e basta.',
