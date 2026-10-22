@@ -5,10 +5,12 @@ import { RegattaScene } from "../../simulator-3d/RegattaScene";
 import { yachtFromSession } from "../../sailing-lab/runtime/presentation";
 import type { CameraView } from "../../simulator-3d/camera";
 import type { SimulationModel, TpFn } from "./shared";
+import { useVenue } from "../../venues/useVenue";
 
 /** View only. The parent Trainer continues to own the ONE session clock. */
 export default function TrainerBoat3D({ sim, tp }: { sim: SimulationModel; tp: TpFn }) {
   const yachtRef = useRef(yachtFromSession(sim.session));
+  const { venue } = useVenue();
   const [view, setView] = useState<CameraView>("sails");
   const activeView = view === "mainsheet" && !sim.session.mainTrim ? "sails" : view;
   useEffect(() => { Object.assign(yachtRef.current, yachtFromSession(sim.session)); }, [sim.session]);
@@ -20,7 +22,7 @@ export default function TrainerBoat3D({ sim, tp }: { sim: SimulationModel; tp: T
   if (sim.session.mainTrim) views.push({ id: "mainsheet", title: tp("Гика-шкот", "Mainsheet", "Szot grota", { es: "Escota de mayor", fr: "Écoute de grand-voile", de: "Großschot", it: "Scotta della randa" }) });
   return <div className="absolute inset-0 flex flex-col">
     <div className="relative min-h-0 flex-1">
-    <RegattaScene stateRef={yachtRef} maxDpr={1} postFx={false} view={activeView} showFlow={activeView !== "mainsheet"}
+    <RegattaScene stateRef={yachtRef} maxDpr={1} postFx={false} view={activeView} showFlow={activeView !== "mainsheet"} venue={venue}
       sceneLabel="3D"
       loadingLabel={tp("Загрузка яхты", "Loading yacht", "Ładowanie jachtu", { es: "Cargando yate", fr: "Chargement du bateau", de: "Yacht wird geladen", it: "Caricamento della barca" })}
       errorLabel={tp("3D недоступно. Можно продолжить в виде «Сверху» без сброса упражнения.", "3D is unavailable. Continue in Top view without resetting the exercise.", "3D jest niedostępne. Wróć do widoku z góry bez resetowania ćwiczenia.", { es: "3D no disponible. Puedes seguir en la vista \"Cenital\" sin reiniciar el ejercicio.", fr: "La 3D est indisponible. Continue en vue \"Dessus\" sans réinitialiser l'exercice.", de: "3D nicht verfügbar. In der Draufsicht ohne Neustart fortfahren.", it: "3D non disponibile. Continua dall'alto senza ricominciare." })}

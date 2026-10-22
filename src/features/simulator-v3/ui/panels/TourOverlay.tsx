@@ -120,7 +120,7 @@ const STEPS: TourStep[] = [
     titleDe: 'GROSS + FOCK',
     titleIt: 'RANDA + FIOCCO',
     bodyRu:
-      'Гика-шкот и стаксель-шкот: 0% выбран, 100% потравлен, в скобках угол паруса к ДП. Риф (R1/R2) уменьшает грот. Раскрытие стакселя 0-100. Зелёная точка ТЯНЕТ - парус работает. Красный СРЫВ - поток оторвался.',
+      'Гика-шкот и стаксель-шкот: 0% выбран, 100% потравлен, в скобках угол паруса к оси лодки. Риф (R1/R2) уменьшает грот. Раскрытие стакселя 0-100%. Зелёная точка ТЯНЕТ - парус работает. Красный СРЫВ - поток оторвался.',
     bodyEn:
       'Mainsheet and jib sheet: 0% sheeted in, 100% eased out, the sail angle to the centerline in brackets. Reef (R1/R2) shrinks the main. Jib unfurled 0-100%. Green ATTACHED dot = sail working. Red STALL = flow detached.',
     bodyPl:

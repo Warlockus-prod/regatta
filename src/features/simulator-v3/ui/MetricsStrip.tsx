@@ -6,7 +6,8 @@ import { type SimulationModel, type TpFn, type UiState } from './shared';
 // Metrics strip (4 chips)
 // ---------------------------------------------------------------------------
 
-export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationModel; tp: TpFn }) {
+/** `dense`: the phone readouts under a pinned scene, where every pixel goes back to the boat. */
+export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim: SimulationModel; tp: TpFn; dense?: boolean }) {
   const heelAbs = Math.abs(sim.result.state.heel);
   const trimColor =
     sim.trimScore > 80
@@ -19,7 +20,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
 
   return (
     <div
-      className="grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 mt-2 lg:mt-3 rounded-xl overflow-hidden"
+      className={`grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'mt-1.5' : 'mt-2 lg:mt-3'}`}
       style={{ background: 'color-mix(in srgb, var(--bg-secondary) 60%, transparent)', border: '1px solid rgba(0, 212, 255, 0.18)' }}
     >
       <MetricChip
@@ -32,6 +33,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         value={sim.result.state.boatSpeed.toFixed(1)}
         unit={tp('уз', 'kts', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
         color="var(--accent-cyan)"
+        dense={dense}
       />
       <MetricChip
         label={tp('КРЕН', 'HEEL', 'PRZECHYŁ', {
@@ -44,6 +46,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         unit="°"
         color={heelColor}
         divider
+        dense={dense}
       />
       <MetricChip
         label="AWA"
@@ -51,6 +54,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         unit="°"
         color="var(--accent-cyan)"
         divider
+        dense={dense}
       />
       <MetricChip
         label={ui.mainTrim ? "TWIST" : tp('ТРИМ', 'TRIM', 'TRYM', {
@@ -63,6 +67,7 @@ export function MetricsStrip({ ui, sim, tp }: { ui: UiState; sim: SimulationMode
         unit={ui.mainTrim ? "°" : "%"}
         color={ui.mainTrim ? "var(--accent-cyan)" : trimColor}
         divider
+        dense={dense}
       />
     </div>
   );
@@ -74,15 +79,17 @@ function MetricChip({
   unit,
   color,
   divider,
+  dense,
 }: {
   label: string;
   value: string;
   unit: string;
   color: string;
   divider?: boolean;
+  dense?: boolean;
 }) {
   return (
-    <div className="px-2 py-2 sm:px-3 sm:py-3 relative">
+    <div className={`relative ${dense ? 'px-2 py-1.5' : 'px-2 py-2 sm:px-3 sm:py-3'}`}>
       {divider && (
         <div
           className="absolute left-0 top-2 bottom-2 w-px"

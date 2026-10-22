@@ -43,7 +43,7 @@ export const missions: Mission[] = [
     titleFr: 'Course propre',
     titleDe: 'Sauberes Rennen',
     titleIt: 'Regata pulita',
-    descRu: 'Пройди трассу ни разу не попав в неходовую зону.',
+    descRu: 'Пройди трассу ни разу не попав в мёртвую зону.',
     descEn: 'Complete the course without ever entering the no-go zone.',
     descPl: 'Pokonaj trasę, ani razu nie wchodząc w kąt martwy.',
     descEs: 'Completa el recorrido sin entrar ni una sola vez en la zona muerta.',

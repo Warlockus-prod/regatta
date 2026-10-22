@@ -19,11 +19,16 @@ the official materials and are not adapted.
 | English | Russian | Polish | Italian | Spanish | French | German |
 |---|---|---|---|---|---|---|
 | in irons / head to wind | левентик | łopot | prua al vento | proa al viento | vent debout | im Wind |
-| close-hauled | бейдевинд | bajdewind | bolina | ceñida | près | hoch am Wind |
-| close reach | острый галфвинд | pełny bajdewind | bolina larga | descuartelar | bon plein | am Wind |
-| beam reach | галфвинд | półwiatr | traverso | través | travers | halber Wind |
-| broad reach | бакштаг | baksztag | lasco | largo | grand largue | raumer Wind |
+| close-hauled | бейдевинд | bajdewind | bolina | ceñida | près | am Wind (hoch am Wind) |
+| close reach | острый галфвинд | pełny bajdewind | bolina larga | descuartelar | bon plein | raumer Amwindkurs |
+| beam reach | галфвинд | półwiatr | traverso | través | travers | Halbwind (halber Wind) |
+| broad reach | бакштаг | baksztag | lasco | largo | grand largue | Raumschots (raumer Wind) |
 | running / dead run | фордевинд | fordewind | poppa | popa | vent arrière | vor dem Wind |
+
+German: both forms are correct ("Am Wind" / "Hoch am Wind" at about 45°, "Halbwind" /
+"Halber Wind" at 90°, "Raumschots" / "Raumer Wind" at about 135°). As of 2026-10-22 the sail
+course and trainers use the first form, the Points of sail screen and the foundation lessons the
+bracketed one; pick one with a German instructor and align them (open question).
 
 ## Tacks and gybes (maneuvers)
 
@@ -64,9 +69,9 @@ Do not confuse the rows above:
 | jib sheet | стаксель-шкот | szot foka | scotta del fiocco | escota de foque | écoute de foc | Fockschot |
 | mainsheet traveler | каретка гика-шкота | wózek szotu grota | carrello della randa | carro de mayor | chariot de grand-voile | Großschot-Traveller |
 | jib lead car | каретка стаксель-шкота | wózek szotu foka | carrello del fiocco | carro de foque | chariot de foc | Fockholepunkt |
-| winch | лебёдка | kabestan | winch | winche | winch | Winsch |
+| winch | лебёдка | kabestan | winch | winch (plural: winches) | winch | Winsch |
 | cleat | утка | knaga | galloccia | cornamusa | taquet | Klampe |
-| clutch / jammer | стопор | stoper | stopper | mordaza | bloqueur | Fallenstopper |
+| clutch / jammer | стопор | stoper | stopper | stopper (mordaza) | bloqueur | Fallenstopper |
 | hull | корпус | kadłub | scafo | casco | coque | Rumpf |
 | bow | нос | dziób | prua | proa | étrave / avant | Bug |
 | stern | корма | rufa | poppa | popa | poupe / arrière | Heck |
@@ -85,6 +90,10 @@ never a bare "ease the sheet"); the learner must know which line to touch. Russi
 "гика-шкот" only (not "гротшкот" or "грота-шкот"). Sheet values read 0% sheeted in,
 100% eased out, with the sail angle in brackets: "Гика-шкот 61% (52°)".
 
+Spanish: the clutch is "el stopper" (masculine) in text and labels; "mordaza de levas" is
+only the cam cleat, which the winch lesson contrasts with the clutch. The winch is "el winch",
+plural "los winches".
+
 ## Race-specific (RRS + tactics)
 
 | English | Russian | Polish | Italian | Spanish | French | German |
@@ -97,7 +106,7 @@ never a bare "ease the sheet"); the learner must know which line to touch. Russi
 | no-go zone / dead zone | мёртвая зона | kąt martwy | angolo morto | zona muerta | zone morte | toter Winkel |
 | start line | стартовая линия | linia startu | linea di partenza | línea de salida | ligne de départ | Startlinie |
 | finish line | финишная линия | linia mety | linea di arrivo | línea de llegada | ligne d'arrivée | Ziellinie |
-| right of way | право прохода | prawo drogi | diritto di rotta | derecho de paso | priorité | Wegerecht |
+| right of way | право дороги | prawo drogi | diritto di rotta | derecho de paso | priorité | Wegerecht |
 | give way / keep clear | уступить | ustąpić drogi | tenersi discosto | mantenerse separado | se maintenir à l'écart | sich freihalten |
 | stand on | держать курс | utrzymać kurs | mantenere la rotta | mantener el rumbo | garder son cap | Kurs halten |
 

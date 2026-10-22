@@ -198,7 +198,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
         },
       ],
       explanation: {
-        ru: 'TWA измеряется от носа. На 45° яхта идёт самым острым курсом - бейдевиндом, на грани неходовой зоны.',
+        ru: 'TWA измеряется от носа. На 45° яхта идёт самым острым курсом - бейдевиндом, на грани мёртвой зоны.',
         en: 'TWA is measured from the bow. At 45 degrees the boat is on its closest possible point of sail - close-hauled, just outside the no-go zone.',
         pl: 'TWA mierzy się od dziobu. Przy 45° jacht płynie najostrzejszym kursem, bajdewindem, na granicy kąta martwego.',
         es: 'El TWA se mide desde la proa. A 45° el barco va en su rumbo más cerrado, la ceñida, justo en el límite de la zona muerta.',
@@ -210,7 +210,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
     {
       id: 'wd-q3',
       prompt: {
-        ru: 'Что такое неходовая зона?',
+        ru: 'Что такое мёртвая зона?',
         en: 'What is the no-go zone?',
         pl: 'Czym jest kąt martwy?',
         es: '¿Qué es la zona muerta?',
@@ -260,7 +260,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
         },
       ],
       explanation: {
-        ru: 'Парусная яхта не может идти прямо против ветра. Сектор примерно ±45° вокруг направления ветра - неходовой.',
+        ru: 'Парусная яхта не может идти прямо против ветра. Сектор примерно ±45° вокруг направления ветра - мёртвая зона.',
         en: 'A sailboat cannot sail directly into the wind. The sector roughly +/-45 degrees around the wind direction is the no-go zone.',
         pl: 'Jacht żaglowy nie popłynie prosto pod wiatr. Sektor mniej więcej ±45° wokół kierunku wiatru to kąt martwy.',
         es: 'Un velero no puede navegar directamente contra el viento. El sector de más o menos ±45° alrededor de la dirección del viento es la zona muerta.',
@@ -337,7 +337,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
     {
       id: 'pos-q2',
       prompt: {
-        ru: 'Что такое неходовая зона относительно курсов?',
+        ru: 'Что такое мёртвая зона относительно курсов?',
         en: 'How does the no-go zone relate to points of sail?',
         pl: 'Gdzie leży kąt martwy względem kursów?',
         es: '¿Qué relación tiene la zona muerta con los rumbos?',
@@ -387,7 +387,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
         },
       ],
       explanation: {
-        ru: 'Чтобы идти к ветру, надо лавировать (зигзаг через бейдевинд). В неходовой зоне парус не наполняется и яхта теряет ход.',
+        ru: 'Чтобы идти к ветру, надо лавировать (зигзаг через бейдевинд). В мёртвой зоне парус не наполняется и яхта теряет ход.',
         en: 'To go upwind you have to zigzag (tack through close-hauled). Inside the no-go zone the sail luffs and the boat stops.',
         pl: 'Żeby płynąć pod wiatr, trzeba halsować (zygzakiem, bajdewindem). W kącie martwym żagiel się nie napełnia i jacht traci prędkość.',
         es: 'Para ir hacia el viento hay que dar bordos (en zigzag, de ceñida). En la zona muerta la vela no se llena y el barco pierde arrancada.',
@@ -703,7 +703,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
         },
       ],
       explanation: {
-        ru: 'Оверштаг = поворот через нос. Нос пересекает линию ветра (через неходовую зону), и яхта переходит с одного галса на другой.',
+        ru: 'Оверштаг = поворот через нос. Нос пересекает линию ветра (через мёртвую зону), и яхта переходит с одного галса на другой.',
         en: 'Tacking turns the boat through the bow. The bow crosses the wind line (through the no-go zone), switching the boat from one tack to the other.',
         pl: 'Zwrot przez sztag to zwrot dziobem. Dziób przecina linię wiatru (przez kąt martwy) i jacht przechodzi z jednego halsu na drugi.',
         es: 'Virar por avante es girar por la proa. La proa cruza la línea del viento (atravesando la zona muerta) y el barco pasa de una amura a la otra.',
@@ -793,7 +793,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
           id: 'jb-q2-a',
           correct: false,
           label: {
-            ru: 'Яхта замирает в неходовой зоне',
+            ru: 'Яхта замирает в мёртвой зоне',
             en: 'The boat stalls in the no-go zone',
             pl: 'Jacht zatrzymuje się w kącie martwym',
             es: 'El barco se queda parado en la zona muerta',
@@ -831,7 +831,7 @@ export const BOOTCAMP_QUIZZES: QuizMap = {
       ],
       explanation: {
         ru: 'Резкий перелёт гика - главная опасность поворота фордевинд. Поэтому перед поворотом гика-шкот выбирают как можно туже, а после перекидки быстро травят. В сильный ветер до центра гик не выбрать, и он проходит большую дугу: держись и пригибайся.',
-        en: 'A sudden boom swing is the main jibing hazard. So before the gybe the mainsheet is hauled in as tight as possible and eased quickly once the boom has crossed. In strong wind it cannot be brought to the centre and the boom sweeps a wide arc: hold on and duck.',
+        en: 'A sudden boom swing is the main jibing hazard. So before the gybe the mainsheet is hauled in as tight as possible and eased quickly once the boom has crossed. In strong wind it cannot be brought to the center and the boom sweeps a wide arc: hold on and duck.',
         pl: 'Gwałtowny przerzut bomu to główne zagrożenie przy zwrocie przez rufę. Dlatego przed zwrotem szot grota wybiera się jak najmocniej, a po przerzucie szybko luzuje. Przy silnym wietrze bomu nie da się wybrać do środka i przechodzi on szerokim łukiem: trzymaj się i schyl głowę.',
         es: 'El paso brusco de la botavara es el mayor peligro de la trasluchada. Por eso, antes de trasluchar, se caza la escota de mayor todo lo posible y se larga rápido cuando la botavara ha pasado. Con viento fuerte no se puede llevar al centro y barre un arco amplio: agárrate y agacha la cabeza.',
         fr: 'Le passage brutal de la bôme est le principal danger de l\'empannage. Avant d\'empanner, on borde donc l\'écoute de grand-voile au maximum, puis on la choque vite une fois la bôme passée. Par vent fort, impossible de la ramener au centre : elle balaie un grand arc, tiens-toi et baisse la tête.',

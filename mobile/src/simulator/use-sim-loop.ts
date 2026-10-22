@@ -82,11 +82,16 @@ const DEFAULT_WIND: WindState = {
   trueWindSpeedKts: 12,
 };
 
+/** Water the boat stays in: it stops at these edges instead of wrapping around. */
+export interface WaterRect { x0: number; y0: number; x1: number; y1: number }
+
 interface SimLoopOptions {
   running?: boolean;
   initialX?: number;
   initialY?: number;
   bounds: { width: number; height: number };
+  /** The race keeps the boat inside the bay (the shore is drawn around it); without it the field wraps. */
+  water?: WaterRect;
 }
 
 export interface TrailPoint {
@@ -492,10 +497,16 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
         const h = options.bounds.height;
         let x = screen.x + dx;
         let y = screen.y + dy;
-        if (x < 0) x += w;
-        if (x > w) x -= w;
-        if (y < 0) y += h;
-        if (y > h) y -= h;
+        const water = options.water;
+        if (water) {
+          x = Math.min(water.x1, Math.max(water.x0, x));
+          y = Math.min(water.y1, Math.max(water.y0, y));
+        } else {
+          if (x < 0) x += w;
+          if (x > w) x -= w;
+          if (y < 0) y += h;
+          if (y > h) y -= h;
+        }
 
         screenStateRef.current = {
           heading: newHeadingRad,
@@ -695,7 +706,7 @@ export function useSimLoop(options: SimLoopOptions): SimLoopHandle {
     // params is a fresh object every render but always ===-equivalent; the
     // engine reads it by value each tick.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [options.bounds.width, options.bounds.height]);
+  }, [options.bounds.width, options.bounds.height, options.water?.x0, options.water?.y0, options.water?.x1, options.water?.y1]);
 
   const resetCore = () => {
     screenStateRef.current = {

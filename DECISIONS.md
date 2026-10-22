@@ -392,6 +392,94 @@ game loop.
 
 ---
 
+## ADR-0005 - Regatta venues are scenery around the race area, not obstacles
+
+**Date:** 2026-10-22
+**Status:** accepted
+
+### Context
+The owner asked for mountains or islands around the races and the 3D boat
+"so racing has a sense of place", based on Göcek and other popular regatta
+venues. Land could either frame the race area or become part of the course
+(islands to round, shores to avoid). The second changes the physics, the
+server tick (generated from the same TS), the bots' routing and every
+course; the first changes none of them.
+
+### Decision
+- One data source, `src/data/venues/` (Göcek, Split, Masuria, the Solent,
+  open sea): coasts along a side of the race area and islands on a compass
+  bearing, both placed OUTSIDE the race area. Pure deterministic geometry
+  (`geometry.ts`) draws them everywhere: canvas on the website race and the
+  multiplayer race, Skia in the native race, low-poly terrain on the 3D horizon.
+- No collision and no physics change: on the website and in multiplayer the
+  boats are already clamped to the 800 x 1200 area; the native race now keeps
+  the boats inside the bay (clamp instead of wrapping across the screen)
+  because the shore is drawn at its edges.
+- 3D: the land rings the horizon at 150-330 m, world-fixed by compass and
+  centred on the boat like the yacht itself (the ocean scrolls), with aerial
+  perspective baked into the vertex colours instead of the scene fog.
+- The venue is a cosmetic preference (`regatta.venue.v1`), not synced
+  between multiplayer players. A separate shore switch (`regatta.shore.v1`,
+  owner request 2026-10-22) turns any venue into open sea and keeps the pick.
+
+### Consequences
+Islands to round or shores to avoid would need a new ADR: obstacle physics in
+`src/lib/race-physics.ts`, the generated ws-server, bot routing and course
+design.
+
+### Verification
+`src/data/venues/geometry.test.ts`: no land vertex inside the race area, every
+terrain face looks up, the 3D shore sits beyond the orbit camera;
+`mobile/src/game/race.test.ts`: rivals finish every course inside the bay.
+
+---
+
+## ADR-0006 - The 3D race is a view of the same race, at 0.6 m per race unit
+
+**Date:** 2026-10-22
+**Status:** accepted
+
+### Context
+The owner asked for a 3D view of the race ("a 3D race view"), next to the
+simple and pro modes. A 3D race could run its own engine (real-scale metres,
+its own bots) or show the race the canvas already runs. Its own engine would
+fork the race rules, the bots, the results and the leaderboard; a view forks
+none of them. The app cannot draw three.js natively (see the native 3D
+WebView decision in `docs/design/mobile/DECISIONS.md`).
+
+### Decision
+- `src/features/race-3d/Race3DView.tsx` reads the refs the canvas race steps
+  (`boatsRef`, `courseRef`, `windDirRef` in `src/app/game/GameClient.tsx`).
+  The 2D/3D switch only changes what is drawn; the race loop, the keys, the
+  steering buttons, the autopilot and the result stay the same. In 3D the
+  canvas keeps only the mini-map, on top.
+- Scale: 0.6 m per race unit, so two hulls touch at the 22-unit repel distance
+  and the race area is 480 x 720 m. The race moves boats 8 units per knot per
+  second, about 9.3 times real speed in metres; the wake gets the scaled
+  speed so its foam stays on the water. The sail pose comes from each boat's
+  own trim (`pose.ts`): to leeward, eased as it bears away, flogging inside 30
+  degrees.
+- The player stays at the origin and the world moves under it (as in the 3D
+  trainer). The shore is the 2D shore raised into terrain (`raceTerrain` in
+  `src/data/venues/geometry.ts`), 1.8 times taller than the horizon shore.
+- A rival between the camera and the player steps out of the picture: the
+  player's boat comes first (owner rule 2026-10-21).
+- The app opens the same page online (`/race-3d` -> `/game?view=3d`) with the
+  Race hub venue and shore; offline it falls back to the native race.
+
+### Consequences
+3D shows nothing the race does not compute: no 3D-only physics, no wave
+effect on speed. Multiplayer stays 2D until its client gets the same view.
+
+### Verification
+`src/features/race-3d/pose.test.ts` (sails to leeward on both tacks, eased on
+the bear-away, the boat where the race has it, the next mark the race counts);
+`src/data/venues/geometry.test.ts` (the race shore starts at the 2D waterline,
+stays out of the race area, faces up); `e2e/smoke.spec.ts` (3D on, then back
+to 2D with the race clock still running).
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```

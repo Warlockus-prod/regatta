@@ -40,7 +40,7 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
       {
         label: words("С носа", "On the bow", "W dziób", "Por proa", "Par l'avant", "Von vorn", "Da prua"),
         note: words(
-          "Ветер приходит прямо в нос, воздух идет от носа к корме. Парус полощет и не тянет: это середина неходовой зоны.",
+          "Ветер приходит прямо в нос, воздух идет от носа к корме. Парус полощет и не тянет: это середина мёртвой зоны.",
           "The wind comes straight onto the bow; the air moves from bow to stern. The sail flaps and gives no drive: this is the middle of the no-go zone.",
           "Wiatr wieje prosto w dziób, powietrze płynie od dziobu do rufy. Żagiel łopocze i nie ciągnie: to środek kąta martwego.",
           "El viento entra justo por la proa; el aire va de proa a popa. La vela flamea y no empuja: es el centro de la zona muerta.",
@@ -50,7 +50,7 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
         ),
         description: words(
           "Вид сверху, лодка носом вверх. Ветер приходит сверху, прямо в нос; гик по центру.",
-          "Top view, bow pointing up. The wind comes from above, straight onto the bow; the boom is on the centreline.",
+          "Top view, bow pointing up. The wind comes from above, straight onto the bow; the boom is on the centerline.",
           "Widok z góry, dziób skierowany w górę. Wiatr wieje z góry, prosto w dziób; bom jest w osi jachtu.",
           "Vista desde arriba, proa hacia arriba. El viento llega desde arriba, justo por la proa; la botavara está en el centro.",
           "Vue de dessus, étrave vers le haut. Le vent arrive d'en haut, droit sur l'étrave ; la bôme est dans l'axe.",
@@ -84,7 +84,7 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
         note: words(
           "Ветер приходит с кормы, воздух движется туда же, куда идет лодка. Парус вытравлен далеко за борт, гик почти поперек лодки.",
           "The wind comes from astern; the air moves the same way as the boat. The sail is eased far out, the boom nearly across the boat.",
-          "Wiatr wieje od rufy, powietrze płynie w tę samą stronę co jacht. Żagiel jest mocno wyluzowany, bom stoi prawie w poprzek jachtu.",
+          "Wiatr wieje od rufy, powietrze płynie w tę samą stronę co jacht. Żagiel jest mocno poluzowany, bom stoi prawie w poprzek jachtu.",
           "El viento entra por popa; el aire va en el mismo sentido que el barco. La vela va muy abierta y la botavara, casi atravesada.",
           "Le vent arrive par l'arrière ; l'air va dans le même sens que le bateau. La voile est très choquée, la bôme presque en travers.",
           "Der Wind kommt von achtern; die Luft strömt in dieselbe Richtung wie das Boot. Das Segel ist weit gefiert, der Baum steht fast quer.",
@@ -113,13 +113,13 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
       "Vista simplificada desde arriba: la proa siempre hacia arriba y sin rumbos de compás. Los números se explican en la leyenda.",
       "Vue de dessus simplifiée : l'étrave toujours vers le haut, sans cap au compas. Les numéros sont expliqués dans la légende.",
       "Vereinfachte Draufsicht: Der Bug zeigt immer nach oben, Kompasskurse gibt es nicht. Die Zahlen erklärt die Legende.",
-      "Vista dall'alto semplificata: prua sempre in alto e nessuna rotta bussola. I numeri sono spiegati nella legenda.",
+      "Vista dall'alto semplificata: prua sempre in alto e nessuna rotta alla bussola. I numeri sono spiegati nella legenda.",
     ),
   },
   "rig-basics": {
     id: "rig-basics",
     title: words("Три снасти у грота", "Three lines on the mainsail", "Trzy liny przy grocie", "Tres cabos de la mayor", "Trois cordages de la grand-voile", "Drei Leinen am Großsegel", "Tre cime della randa"),
-    summary: words("Схема: фал, гротшкот и оттяжка гика", "Diagram: halyard, mainsheet and vang", "Schemat: fał, szot grota i obciągacz bomu", "Esquema: driza, escota de mayor y contra", "Schéma : drisse, écoute de grand-voile et hale-bas", "Skizze: Fall, Großschot und Baumniederholer", "Schema: drizza, scotta della randa e vang"),
+    summary: words("Схема: фал, гика-шкот и оттяжка гика", "Diagram: halyard, mainsheet and vang", "Schemat: fał, szot grota i obciągacz bomu", "Esquema: driza, escota de mayor y contra", "Schéma : drisse, écoute de grand-voile et hale-bas", "Skizze: Fall, Großschot und Baumniederholer", "Schema: drizza, scotta della randa e vang"),
     stateGroup: words("Снасть", "Line", "Lina", "Cabo", "Cordage", "Leine", "Cima"),
     states: [
       {
@@ -144,18 +144,18 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
         ),
       },
       {
-        label: words("Гротшкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta della randa"),
+        label: words("Гика-шкот", "Mainsheet", "Szot grota", "Escota de mayor", "Écoute de grand-voile", "Großschot", "Scotta della randa"),
         note: words(
-          "Гротшкот связывает гик с нижней точкой крепления на лодке. Выбрали шкот: гик ближе к середине. Потравили: гик отходит наружу, а парус остается поднятым.",
-          "The mainsheet links the boom to its lower attachment on the boat. Sheet in: the boom comes towards the centre. Ease it: the boom moves out and the sail stays up.",
+          "Гика-шкот связывает гик с нижней точкой крепления на лодке. Выбрали шкот: гик ближе к середине. Потравили: гик отходит наружу, а парус остается поднятым.",
+          "The mainsheet links the boom to its lower attachment on the boat. Sheet in: the boom comes towards the center. Ease it: the boom moves out and the sail stays up.",
           "Szot grota łączy bom z dolnym mocowaniem na jachcie. Wybierasz szot: bom idzie do środka. Luzujesz: bom odchodzi na zewnątrz, a żagiel zostaje postawiony.",
           "La escota de mayor une la botavara con su anclaje inferior en el barco. Cazas: la botavara va hacia el centro. Lascas: la botavara sale y la vela sigue izada.",
           "L'écoute de grand-voile relie la bôme à son point d'ancrage bas sur le bateau. On borde : la bôme revient vers l'axe. On choque : elle s'écarte et la voile reste hissée.",
           "Die Großschot verbindet den Baum mit seinem unteren Befestigungspunkt am Boot. Dichtholen: Der Baum kommt zur Mitte. Fieren: Er geht nach außen, das Segel bleibt gesetzt.",
-          "La scotta della randa collega il boma all'attacco inferiore sulla barca. Cazzi: il boma va verso il centro. Lasci: il boma si apre e la vela resta issata.",
+          "La scotta della randa collega il boma all'attacco inferiore sulla barca. Cazzando, il boma va verso il centro. Lascando, il boma si apre e la vela resta issata.",
         ),
         description: words(
-          "Яхта сбоку, нос справа. Выделен гротшкот: от гика вниз к палубе.",
+          "Яхта сбоку, нос справа. Выделен гика-шкот: от гика вниз к палубе.",
           "A yacht from the side, bow to the right. Highlighted: the mainsheet, from the boom down to the deck.",
           "Jacht z boku, dziób po prawej. Wyróżniony szot grota: od bomu w dół do pokładu.",
           "Un velero de perfil, proa a la derecha. Resaltada: la escota de mayor, desde la botavara hacia abajo, hasta la cubierta.",
@@ -188,14 +188,14 @@ export const scenes: Record<"wind-direction" | "rig-basics", SceneCopy> = {
     ],
     legend: [
       words("Фал: к верхнему углу паруса", "Halyard: to the head of the sail", "Fał: do głowicy żagla", "Driza: al puño de driza", "Drisse : au point de drisse", "Fall: zum Segelkopf", "Drizza: alla penna"),
-      words("Гротшкот: от гика вниз к лодке", "Mainsheet: from the boom down to the boat", "Szot grota: od bomu w dół do jachtu", "Escota de mayor: de la botavara hacia abajo, al barco", "Écoute de grand-voile : de la bôme vers le bas, au bateau", "Großschot: vom Baum hinunter zum Boot", "Scotta della randa: dal boma giù verso la barca"),
+      words("Гика-шкот: от гика вниз к лодке", "Mainsheet: from the boom down to the boat", "Szot grota: od bomu w dół do jachtu", "Escota de mayor: de la botavara hacia abajo, al barco", "Écoute de grand-voile : de la bôme vers le bas, au bateau", "Großschot: vom Baum hinunter zum Boot", "Scotta della randa: dal boma giù verso la barca"),
       words("Оттяжка: между мачтой и гиком", "Vang: between mast and boom", "Obciągacz: między masztem a bomem", "Contra: entre mástil y botavara", "Hale-bas : entre mât et bôme", "Baumniederholer: zwischen Mast und Baum", "Vang: tra albero e boma"),
     ],
     limit: words(
       "Схема расположения. Блоки, стопоры и свободные концы не показаны: как проведены снасти на твоей лодке, смотри на месте.",
       "A layout sketch. Blocks, clutches and tails are left out: check how the lines are led on your own boat.",
       "Schemat rozmieszczenia. Bloki, stopery i wolne końce pominięto: jak poprowadzono liny na twoim jachcie, sprawdź na miejscu.",
-      "Esquema de ubicación. Se omiten motones, mordazas y chicotes: comprueba a bordo cómo van los cabos en tu barco.",
+      "Esquema de ubicación. Se omiten motones, stoppers y chicotes: comprueba a bordo cómo van los cabos en tu barco.",
       "Schéma d'implantation. Poulies, bloqueurs et bouts libres sont omis : vérifie à bord comment les cordages sont renvoyés sur ton bateau.",
       "Lageskizze. Blöcke, Fallenstopper und lose Enden fehlen: Wie die Leinen auf deinem Boot geführt sind, prüfst du an Bord.",
       "Schema di posizione. Bozzelli, stopper e code libere non sono disegnati: verifica a bordo come sono rinviate le cime sulla tua barca.",

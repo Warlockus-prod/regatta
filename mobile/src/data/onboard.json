@@ -178,7 +178,7 @@
       "itemsEs": [
         "La BOTAVARA es el mayor peligro. En una trasluchada cruza el barco a la altura de la cabeza. No la pierdas nunca de vista.",
         "Las escotas en carga pueden arrancarte la piel y romperte los dedos. Nunca te enrolles una escota en la mano.",
-        "El winche funciona como una picadora de carne. Mantén los dedos lejos. Quítate anillos y pulseras antes de trabajar con él.",
+        "El winchfunciona como una picadora de carne. Mantén los dedos lejos. Quítate anillos y pulseras antes de trabajar con él.",
         "La cadena del ancla: apártate al fondear. El ancla baja muy rápido y la cadena puede arrancar de la cubierta todo lo que enganche.",
         "El estay y los obenques sujetan el mástil. No los cargues, no te cuelgues de ellos y no enganches en ellos el mosquetón del arnés salvo que te lo indiquen.",
         "Aseo, cocina, escotillas abiertas con mar: siempre dos puntos de apoyo."
@@ -349,7 +349,7 @@
         "Escota (sheet) - llega hasta ti en la bañera y regula el ángulo de la vela. La escota de mayor es la mainsheet y las escotas del foque son las jib sheets (hay dos, una para cada amura).",
         "Winche (winch) - un tambor redondo. Da 3-4 vueltas de escota en el sentido de las agujas del reloj y cobra con la manivela (handle).",
         "Cornamusa (cleat) - sujeta un cabo. Se dan vueltas en ocho y luego se remata el chicote.",
-        "Mordaza (clutch) - una palanca que retiene una driza o una escota para que el winche no tenga que aguantar la carga todo el rato.",
+        "Mordaza (clutch) - una palanca que retiene una driza o una escota para que el winchno tenga que aguantar la carga todo el rato.",
         "Botavara (boom) - la percha horizontal a lo largo del pujamen de la mayor. En ella se fija la escota de mayor (mainsheet)."
       ],
       "itemsFr": [
@@ -381,7 +381,7 @@
       "id": "harbour-departure",
       "icon": "⛵",
       "titleRu": "Выход из гавани",
-      "titleEn": "Leaving harbour",
+      "titleEn": "Leaving harbor",
       "titlePl": "Wyjście z portu",
       "titleEs": "Salir del puerto",
       "titleFr": "Sortir du port",
@@ -400,12 +400,12 @@
         "Твоя роль: подать, выбрать, доложить «готово». Фал и стопор трогай только по команде."
       ],
       "itemsEn": [
-        "The main goes up early, in the sheltered part of the harbour on calm water, not after you are out in the waves.",
-        "The engine keeps running at low revs until you are out of the harbour and the jib is drawing. It is the last thing to be switched off.",
+        "The main goes up early, in the sheltered part of the harbor on calm water, not after you are out in the waves.",
+        "The engine keeps running at low revs until you are out of the harbor and the jib is drawing. It is the last thing to be switched off.",
         "Before hoisting the main, ease the vang: with the vang tight the main will not set properly.",
         "The helmsman keeps the bow about 10-20 degrees off the wind: the sail luffs freely and the boom swings clear of the cockpit. The exact angle depends on the boat.",
         "A course hint: wool yarns on the shrouds 2-3 m above the deck. When they point roughly at the corner of the transom, the course is right.",
-        "The mainsheet traveller goes to leeward and the sheet starts trimmed in. Then the sheet is eased and the halyard finished on the winch.",
+        "The mainsheet traveler goes to leeward and the sheet starts trimmed in. Then the sheet is eased and the halyard finished on the winch.",
         "The jib goes up after you are out, in the lee of the breakwater where it is calmer.",
         "Figure-eight knots on the ends of the halyards and jib sheets: the halyard cannot escape up the mast and the sheet cannot fly overboard.",
         "Straight after leaving: fenders aboard and no line in the water, where the propeller could wrap it.",
@@ -429,11 +429,11 @@
         "Antes de izar la mayor, lasca la contra: con la contra tensa la mayor no se iza bien.",
         "El timonel mantiene la proa a unos 10-20 grados del viento: la vela flamea libre y la botavara se aparta de la bañera. El ángulo exacto depende del barco.",
         "Una pista para el rumbo: hilos de lana en los obenques, a 2-3 m sobre cubierta. Si apuntan más o menos a la esquina del espejo de popa, el rumbo es bueno.",
-        "El carro de la escota de mayor va a sotavento y la escota empieza cazada. Luego se lasca la escota y se termina de tensar la driza con el winche.",
+        "El carro de la escota de mayor va a sotavento y la escota empieza cazada. Luego se lasca la escota y se termina de tensar la driza con el winch.",
         "El foque se iza ya fuera, a sotavento del espigón, donde hay más calma.",
         "Nudos en ocho en los chicotes de las drizas y de las escotas del foque: la driza no se escapa dentro del mástil y la escota no sale por la borda.",
         "Nada más salir: defensas a bordo y ningún cabo en el agua, donde la hélice podría enrollarlo.",
-        "Tu papel: pasar, cazar, avisar \"¡Listo!\". Toca una driza o una mordaza solo cuando te lo ordenen."
+        "Tu papel: pasar, cazar, avisar \"¡Listo!\". Toca una driza o un stopper solo cuando te lo ordenen."
       ],
       "itemsFr": [
         "La grand-voile se hisse tôt, dans la partie abritée du port sur eau calme, pas une fois sorti dans les vagues.",
@@ -472,7 +472,7 @@
         "Il tuo ruolo: passare, cazzare, dire \"Pronto!\". Tocca drizze e stopper solo su comando."
       ],
       "warningRu": "В гавани держись с наветренной стороны: если конец намотается на винт, под ветром будет место для дрейфа.",
-      "warningEn": "In harbour, keep to windward: if a line wraps the propeller, you will have room to drift downwind.",
+      "warningEn": "In harbor, keep to windward: if a line wraps the propeller, you will have room to drift downwind.",
       "warningPl": "W porcie trzymaj się strony nawietrznej: jeśli lina nawinie się na śrubę, po zawietrznej zostanie ci miejsce na dryf.",
       "warningEs": "En el puerto mantente a barlovento: si un cabo se enrolla en la hélice, tendrás espacio para derivar a sotavento.",
       "warningFr": "Au port, reste au vent : si un bout se prend dans l'hélice, tu auras de la place pour dériver sous le vent.",
@@ -720,7 +720,7 @@
         "У свайного или неровного причала снаружи кранцев кладут кранцевую доску: она распределяет нагрузку и не дает кранцу выкатиться."
       ],
       "itemsEn": [
-        "Rafted alongside another yacht: breast lines hold the boats together, but run your own bow and stern lines ashore so you do not load the neighbour.",
+        "Rafted alongside another yacht: breast lines hold the boats together, but run your own bow and stern lines ashore so you do not load the neighbor.",
         "A floating pontoon rises and falls with the water, so the line lengths never need changing. One long line can serve as bow line and stern spring.",
         "A short finger, shorter than the boat: two bow lines and two springs, and if you can, one more spring on the water side.",
         "A box between piles: the stern lines are crossed. A tight guide line helps you reverse in with a crosswind.",

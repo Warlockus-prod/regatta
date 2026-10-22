@@ -933,7 +933,7 @@ export default function SimulatorPage() {
                 border: '1px solid rgba(0, 212, 255, 0.2)',
               }}
             >
-              {tp('Сброс (90°)', 'Reset (90°)', 'Reset (90°)', {
+              {tp('Сброс (90°)', 'Reset (90°)', 'Resetuj (90°)', {
                 es: 'Reiniciar (90°)',
                 fr: 'Réinitialiser (90°)',
                 de: 'Zurücksetzen (90°)',
@@ -965,7 +965,7 @@ export default function SimulatorPage() {
   const dragHint = (
           <div className="mt-3 text-xs leading-relaxed" style={{ color: COLORS.textMuted }}>
             {lang === 'ru' && (
-              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span> чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span> чтобы поменять направление ветра. Слайдеры и стрелки клавиатуры тоже работают.</>
+              <>Тащи <span style={{ color: COLORS.accentCyan }}>за лодку</span>, чтобы её повернуть, или <span style={{ color: COLORS.accentCyan }}>за стрелку ветра</span>, чтобы поменять направление ветра. Ползунки и стрелки клавиатуры тоже работают.</>
             )}
             {lang === 'en' && (
               <>Drag <span style={{ color: COLORS.accentCyan }}>the boat</span> to rotate it, or <span style={{ color: COLORS.accentCyan }}>the wind arrow</span> to change the wind direction. Sliders and arrow keys also work.</>
@@ -1164,9 +1164,9 @@ export default function SimulatorPage() {
         <div className="flex items-center gap-2 min-w-0">
           <span className="hidden sm:inline text-xs truncate" style={{ color: COLORS.textMuted }}>
             {tp(
-              'Простая лодка на круге: крути лодку и ветер, смотри что происходит.',
+              'Простая лодка на круге: крути лодку и ветер, смотри, что происходит.',
               'Simple boat on a circle: spin the boat and the wind, watch what happens.',
-              'Prosta łódka na kole: obracaj łódkę i wiatr, patrz, co się dzieje.',
+              'Prosta łódka na okręgu: obracaj łódkę i wiatr, patrz, co się dzieje.',
               {
                 es: 'Un barco sencillo en un círculo: gira el barco y el viento y mira qué pasa.',
                 fr: 'Un bateau simple sur un cercle : fais tourner le bateau et le vent, et regarde ce qui se passe.',
@@ -1183,7 +1183,7 @@ export default function SimulatorPage() {
           </span>
           <a href="/simulator-v3" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
              style={{ borderColor: 'rgba(82, 255, 142, 0.4)', color: '#44ff88' }}>
-            {tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer' })}
+            {tp('Тренажёр', 'Trainer', 'Trenażer', { es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione' })}
           </a>
           <a href="/simulator2" className="text-[11px] font-semibold px-2 py-1 rounded-md border transition hover:text-[#00d4ff]"
              style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: COLORS.textSecondary }}>
@@ -1246,7 +1246,7 @@ export default function SimulatorPage() {
       { id: 'more', label: controlLabels.tabs.more, cards: [
         { id: 'pointOfSail', title: tp('Курс и скорость', 'Point of sail and speed', 'Kurs i prędkość', { es: 'Rumbo y velocidad', fr: 'Allure et vitesse', de: 'Kurs und Fahrt', it: 'Andatura e velocità' }), node: <div className="flex flex-col gap-3">{courseCards}{speedCard}</div> },
         { id: 'about', title: tp('Работа парусов и описание', 'Sail trim and description', 'Ustawienie żagli i opis', { es: 'Trimado y descripción', fr: 'Réglage des voiles et description', de: 'Segeltrimm und Beschreibung', it: 'Regolazione vele e descrizione' }), node: <div className="flex flex-col gap-3">{introText}{sailWorkCards}</div> },
-        { id: 'legend', title: tp('Курсы', 'Courses', 'Kursy', { es: 'Rumbos', fr: 'Allures', de: 'Kurse', it: 'Andature' }), node: <div className="flex flex-col gap-3">{legendCard}{dragHint}</div> },
+        { id: 'legend', title: tp('Курсы', 'Points of sail', 'Kursy', { es: 'Rumbos', fr: 'Allures', de: 'Kurse', it: 'Andature' }), node: <div className="flex flex-col gap-3">{legendCard}{dragHint}</div> },
       ] },
     ];
     return (

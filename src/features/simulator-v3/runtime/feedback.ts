@@ -93,7 +93,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (mainSet && diag.mainStalled && heelAbs > 22 && absTwa < 135) {
     return {
       text: tp(
-        'Срыв грота + большой крен. Потрави гика-шкот и рифься.',
+        'Срыв на гроте и большой крен. Потрави гика-шкот и рифься.',
         'Main stalled and heeling hard. Ease the mainsheet and reef.',
         'Oderwanie przepływu na grocie i duży przechył. Poluzuj szot grota i refuj.',
         {
@@ -135,7 +135,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (jibSet && diag.jibStalled && ui.jibFurlPct > 20 && absTwa < 135) {
     return {
       text: tp(
-        'Стаксель перетянут и душит слот: потрави стаксель-шкот.',
+        'Стаксель перетянут и закрывает щель: потрави стаксель-шкот.',
         'Jib is overtrimmed and choking the slot: ease the jib sheet.',
         'Fok za mocno wybrany, zamyka szczelinę: poluzuj szot foka.',
         {
@@ -218,7 +218,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
     return {
       text: tp(
         'Грот у грани срыва. Не выбирай гика-шкот сильнее.',
-        'Main is on the edge of stall. Do not trim the mainsheet harder.',
+        'Main is on the edge of stall. Do not trim the mainsheet any further.',
         'Grot na granicy oderwania przepływu. Nie wybieraj mocniej szotu grota.',
         {
           es: 'La mayor está al borde del desprendimiento. No caces más la escota de mayor.',
@@ -234,7 +234,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
     return {
       text: tp(
         'Стаксель у грани срыва. Не выбирай стаксель-шкот сильнее.',
-        'Jib is on the edge of stall. Do not trim the jib sheet harder.',
+        'Jib is on the edge of stall. Do not trim the jib sheet any further.',
         'Fok na granicy oderwania przepływu. Nie wybieraj mocniej szotu foka.',
         {
           es: 'El foque está al borde del desprendimiento. No caces más la escota de foque.',
@@ -249,7 +249,7 @@ export function pickPrimaryFeedback(args: FeedbackInput): {
   if (mainSet && jibSet && diag.slotHealth < 0.4 && ui.jibFurlPct > 20 && absTwa < 130) {
     return {
       text: tp(
-        'Слот закрывается - потрави стаксель-шкот.',
+        'Щель закрывается - потрави стаксель-шкот.',
         'Slot is closing - ease the jib sheet.',
         'Szczelina się zamyka: poluzuj szot foka.',
         {

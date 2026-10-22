@@ -61,7 +61,7 @@ export const slotCopy = {
   readouts: [
     words(
       "Генуя выбрана слишком сильно, щель зажата: поток отражается в подветренную сторону грота, и грот полощет у мачты. Лечи геную, а не грот: немного потрави стаксель-шкот, открой твист грота кареткой на ветер с потравленным шкотом, уплости грот.",
-      "The genoa is trimmed too hard and the slot is choked: air is thrown into the lee of the main, which luffs at the mast. Treat the genoa, not the main: ease the jib sheet a little, open the main's twist with the traveller up and the sheet eased, flatten the main.",
+      "The genoa is trimmed too hard and the slot is choked: air is thrown into the lee of the main, which luffs at the mast. Treat the genoa, not the main: ease the jib sheet a little, open the main's twist with the traveler up and the sheet eased, flatten the main.",
       "Genua jest wybrana za mocno, szczelina ściśnięta: strumień trafia na zawietrzną stronę grota i grot łopocze przy maszcie. Lecz genuę, nie grota: lekko poluzuj szot foka, otwórz skręt grota wózkiem na nawietrzną z poluzowanym szotem, spłaszcz grota.",
       "El génova está demasiado cazado y la ranura ahogada: el aire se lanza al sotavento de la mayor, que flamea junto al mástil. Corrige el génova, no la mayor: lasca un poco la escota del foque, abre la torsión de la mayor con el carro a barlovento y la escota lascada, aplana la mayor.",
       "Le génois est trop bordé et la fente étranglée : l'air est projeté sous le vent de la grand-voile, qui faseye au mât. Soigne le génois, pas la grand-voile : choque un peu l'écoute de foc, ouvre le vrillage de la grand-voile chariot au vent et écoute choquée, aplatis la grand-voile.",

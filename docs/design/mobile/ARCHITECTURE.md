@@ -153,6 +153,7 @@ All routes under `mobile/app/` use expo-router v6 and a Stack wrapped by
 | `/history` | `app/history/index.tsx` | Race history + replay/coach actions | plain RN |
 | `/replay/[id]` | `app/replay/[id].tsx` | Race replay scrubber | **Skia** + `SkiaYacht` |
 | `/multiplayer` + `host`/`join`/`race/[code]` | `app/multiplayer/*` | Live web room (`/multiplayer`, shared with the site) in `SimWebView`; `host`/`join`/`race/[code]` redirect to it | WebView |
+| `/race-3d` | `app/race-3d/index.tsx` | The solo race seen from the boat: web `/game?view=3d` in `SimWebView` (online), with the Race hub venue and shore written into the page's localStorage (`localStorage` prop); offline falls back to the native `/game` | WebView |
 
 Root layout / providers: `app/_layout.tsx` (ErrorBoundary -> GestureHandler ->
 SafeArea -> I18nProvider -> AnalyticsProvider -> SplashGate -> FirstLaunchGate -> Stack).
@@ -211,6 +212,7 @@ than in the design system - if you can't find a control in `design-system/`, gre
 | `simulator/` | Sim runtime: `use-sim-loop.ts` (30Hz), `skia-wind.ts`, `sail-*`, `missions.ts`, `physics/` (shim to the golden VPP engine), wheel mode `WheelDeck.tsx` + `wheel-controls.ts` + `wheel-sound.ts`. |
 | `courses/` | `polar.ts` - polar/VPP curve builder. **Used by the Points-of-Sail diagram.** |
 | `game/` | `course.ts` (courses/marks) + `ai-boats.ts` (AI opponents) + `progression.ts` (mark rounding) + `units.ts` (`KN_TO_PX_PER_S`, the one knots-to-pixels scale shared with `simulator/use-sim-loop.ts`). |
+| `game/VenueLand.tsx`, `game/VenuePicker.tsx`, `game/copy.ts`, `persistence/venue.ts` | Race setup in the Race hub and its effect on the race (ADR-0005 in the root `DECISIONS.md`): race mode `regatta.race.mode.v1` (simple: auto trim; pro: the learner trims the mainsheet and the jib sheet under the course with the sliders or the wheels of Settings > Trainers, and sees the sail state), the shore switch `regatta.shore.v1` and the venue `regatta.venue.v1`; the shore of the venue drawn around the race bay in Skia. Steering is "point where to go": the heading runs from the boat to the finger. With a shore the race keeps the player and the rivals inside the bay (`water` rect in `use-sim-loop.ts` and `ai-boats.ts`) instead of wrapping across the screen. |
 | `data/` | **Content barrel.** JSON twins of the web `src/data/*`, re-exported typed. |
 | `i18n/` | `context.tsx` (`useI18n`, 7 langs), `languages.ts` (`legacyPick`), device locale. |
 | `persistence/` | AsyncStorage hooks (bootcamp, checklist, race-history, units, `analytics-consent.ts`, ...). |

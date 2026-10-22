@@ -124,6 +124,12 @@ export interface SimWebViewProps {
   fallbackLabel?: string;
   /** Bundled, self-contained content. Never falls through to a remote URL. */
   offlineSource?: WebViewProps["source"] | number;
+  /**
+   * App preferences the page reads from localStorage (the race venue, the
+   * shore switch). Written before the page runs; a later change is written
+   * into the live page with a "storage" event, so it updates without a reload.
+   */
+  localStorage?: Record<string, string>;
 }
 
 export function SimWebView({
@@ -135,6 +141,7 @@ export function SimWebView({
   fallbackRoute = '/simulator',
   fallbackLabel,
   offlineSource,
+  localStorage: pageStorage,
 }: SimWebViewProps) {
   const { lang, tp } = useI18n();
   const router = useRouter();
@@ -153,6 +160,8 @@ export function SimWebView({
   const landscape = winW > winH && winH < 600;
   const controlsJson = JSON.stringify(controlPrefs);
   const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
+  const storageJson = JSON.stringify(pageStorage ?? {});
+  const storageScript = `try { var s = ${storageJson}; for (var k in s) localStorage.setItem(k, s[k]); } catch (e) {} true;`;
   const returnLesson = findSailLesson(query?.lesson ?? "");
 
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
@@ -168,8 +177,8 @@ export function SimWebView({
     {
       id: 'trainer',
       route: '/simulator-v3',
-      label: tp('Тренажёр', 'Trainer', 'Trener', {
-        es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer',
+      label: tp('Тренажёр', 'Trainer', 'Trenażer', {
+        es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione',
       }),
     },
     {
@@ -202,6 +211,10 @@ export function SimWebView({
   useEffect(() => {
     webRef.current?.injectJavaScript(`window.__REGATTA_CONTROLS__ = ${controlsJson}; window.dispatchEvent(new CustomEvent("regatta:controls-prefs")); true;`);
   }, [controlsJson]);
+
+  useEffect(() => {
+    if (storageJson !== "{}") webRef.current?.injectJavaScript(`${storageScript} window.dispatchEvent(new Event("storage")); true;`);
+  }, [storageJson, storageScript]);
 
   // Watchdog: if the page never signals ready (dead network, blocked load),
   // surface the error state instead of a blank chromeless screen.
@@ -263,7 +276,7 @@ export function SimWebView({
         mediaPlaybackRequiresUserAction={false}
         scrollEnabled={scrollEnabled}
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + controlsScript + BEFORE_LOAD}
+        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + controlsScript + storageScript + BEFORE_LOAD}
         injectedJavaScript={languageScript + controlsScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
@@ -356,11 +369,11 @@ export function SimWebView({
             >
               <Text style={styles.btnGhostText}>
                 {fallbackLabel ??
-                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otwórz Trenera (offline)', {
-                    es: 'Abrir el Entrenador (sin conexión)',
+                  tp('Открыть Тренажёр (офлайн)', 'Open the Trainer (offline)', 'Otwórz Trenażer (offline)', {
+                    es: 'Abrir el simulador de trimado (sin conexión)',
                     fr: 'Ouvrir le Réglage des voiles (hors ligne)',
                     de: 'Trainer öffnen (offline)',
-                    it: 'Apri il Trainer (offline)',
+                    it: 'Apri la Regolazione delle vele (offline)',
                   })}
               </Text>
             </Pressable>

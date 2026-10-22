@@ -6,7 +6,7 @@ export const menuEntry = { id: "menu", web: "/menu", native: "/menu", title: cop
 export const primarySections = sections.filter(section => section.id !== "library");
 export const nativeTabs = [...primarySections, menuEntry];
 export const menuCopy = {
-  reference: words("На борту и справочные материалы", "On board and reference", "Na pokładzie i materiały", "A bordo y consultas", "À bord et références", "An Bord und Nachschlagen", "A bordo e riferimenti"),
+  reference: words("На борту и справочные материалы", "On board and reference", "Na pokładzie i materiały", "A bordo y material de consulta", "À bord et références", "An Bord und zum Nachschlagen", "A bordo e riferimenti"),
   service: words("Помощь и настройки", "Help and settings", "Pomoc i ustawienia", "Ayuda y ajustes", "Aide et réglages", "Hilfe und Einstellungen", "Aiuto e impostazioni"),
   appearance: words("Оформление сайта", "Website appearance", "Wygląd strony", "Aspecto del sitio", "Apparence du site", "Website-Darstellung", "Aspetto del sito"),
 };

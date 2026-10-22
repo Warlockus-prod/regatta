@@ -202,7 +202,7 @@ function WheelDeckImpl(props: WheelDeckProps) {
     heading: tl({ ru: 'курс', en: 'heading', pl: 'kurs', es: 'rumbo', fr: 'cap', de: 'Kurs', it: 'rotta' }),
     eased: tl({ ru: 'потравлен', en: 'eased', pl: 'poluzowany', es: 'lascada', fr: 'choquée', de: 'gefiert', it: 'lascata' }),
     hint: tl({
-      ru: 'Крути штурвал по кругу. Нажми шкот, чтобы увеличить, нажми руль, чтобы вернуть.',
+      ru: 'Крути штурвал по кругу. Нажми на шкот, чтобы увеличить его штурвал, или на руль, чтобы вернуть руль в центр.',
       en: 'Turn a wheel in a circle. Tap a sheet to enlarge it, tap the helm to swap back.',
       pl: 'Obracaj koło ruchem okrężnym. Dotknij szotu, aby go powiększyć, dotknij steru, aby wrócić.',
       es: 'Gira la rueda en círculo. Toca una escota para ampliarla y el timón para volver.',

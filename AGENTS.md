@@ -19,10 +19,12 @@
   1.6.4 (iOS build 48, новая карточка ASO, заголовок страницы iOS 27, запрос
   отзыва), в продаже с 2026-10-19. В TestFlight 1.7.0: сборки 45-47 (дизайн v3 и
   учебные модули, ветка Codex `codex/learning-modules`), 49 (управление
-  тренажерами из `main`) и 50, в которой все это сведено (ветка
-  `claude/release-1.7.0-all`, группа Self). Версия 1.7.0 в App Store Connect
-  подготовлена со сборкой 50 и прошла гейт, на ревью не отправлена (решение
-  владельца); следующий номер сборки 51. Статус магазина и TestFlight проверять по
+  тренажерами из `main`), 50, в которой все это сведено, и 51-53 с доводкой
+  (ничего поверх лодки, тексты на 7 языках, акватории регат, режимы гонки
+  «Простой» и «Про»; ветка `claude/polish-1.7.0`, группа Self). Версия 1.7.0 в
+  App Store Connect подготовлена, на ревью не отправлена (решение владельца:
+  сначала доводка); перед отправкой привязать последнюю сборку и обновить «Что
+  нового» (`mobile/releases/1.7.0.json`); следующий номер сборки 54. Статус магазина и TestFlight проверять по
   журналу `docs/design/mobile/BUILDS.md`; локальная сборка не означает публикацию.
   Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
   плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
@@ -151,9 +153,9 @@ npm run test:physics         # 58 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 769 тестов, 72 файла
+npx vitest run               # все юнит-тесты: 784 теста, 74 файла
 npm run test:multiplayer     # живой ws-server: жизненный цикл сокетов
-npx playwright test          # 33 теста, 6 файлов (BASE_URL задает цель)
+npx playwright test          # 37 тестов, 6 файлов (BASE_URL задает цель)
 npm run check:dash           # типографика
 npm run check:map            # карта проекта актуальна
 ```
@@ -237,6 +239,8 @@ npm run check:map            # карта проекта актуальна
 | Первая неделя на борту | `src/data/onboard.ts` | `/onboard` |
 | Чек-лист перед выходом | `src/data/checklist.ts` | `/checklist` |
 | Миссии гонки | `src/data/missions.ts` | `/game` |
+| Акватории регат (берег и острова вокруг гонки и на горизонте 3D) | `src/data/venues/` | `/game`, `/multiplayer`, `/simulator2` |
+| 3D-вид гонки (та же гонка с лодки, ADR-0006) | `src/features/race-3d/` | `/game` (переключатель 2D/3D), в приложении `/race-3d` |
 | Каталог упражнений тренажера | `src/data/drills.ts` | `/simulator-v3` |
 | Галерея | `src/data/gallery.ts`, `src/data/gallery-2026.generated.ts` | `/gallery` |
 | Банк вопросов SRC (324, UKE) | `src/data/src-radio.ts` | `/radio` |

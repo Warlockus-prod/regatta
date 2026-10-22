@@ -47,6 +47,8 @@ export interface AiBoat {
 
 export interface RaceAiOptions {
   bounds: { width: number; height: number };
+  /** Keep the rivals inside the bay (same rect as the player); without it they wrap. */
+  water?: { x0: number; y0: number; x1: number; y1: number };
   marks: ReadonlyArray<AiMark>;
   /** Live wind getter (the race wind can be set once but read this each tick). */
   getWind: () => { dirRad: number; speedKts: number };
@@ -116,6 +118,7 @@ export function stepBoat(
   windKts: number,
   bounds: { width: number; height: number },
   elapsedSec: number,
+  water?: { x0: number; y0: number; x1: number; y1: number },
 ): void {
   if (b.finished) return;
   const mark = marks[b.markIndex];
@@ -142,11 +145,17 @@ export function stepBoat(
   const course = b.heading + b.physics.leeway * RAD;
   b.x += Math.sin(course) * v * DT;
   b.y += -Math.cos(course) * v * DT;
-  // Soft-wrap like the player field so a boat does not vanish off-edge.
-  if (b.x < 0) b.x += bounds.width;
-  if (b.x > bounds.width) b.x -= bounds.width;
-  if (b.y < 0) b.y += bounds.height;
-  if (b.y > bounds.height) b.y -= bounds.height;
+  if (water) {
+    // The race bay: rivals stop at the shore like the player.
+    b.x = Math.min(water.x1, Math.max(water.x0, b.x));
+    b.y = Math.min(water.y1, Math.max(water.y0, b.y));
+  } else {
+    // Soft-wrap like the player field so a boat does not vanish off-edge.
+    if (b.x < 0) b.x += bounds.width;
+    if (b.x > bounds.width) b.x -= bounds.width;
+    if (b.y < 0) b.y += bounds.height;
+    if (b.y > bounds.height) b.y -= bounds.height;
+  }
 
   b.markIndex=advanceNativeProgress(b.progression,b.x,b.y,b.heading,marks,elapsedSec);
   if (b.markIndex>=marks.length) { b.finished=true; b.finishSec=elapsedSec; }
@@ -176,7 +185,7 @@ export function useRaceAi(opts: RaceAiOptions): RaceAiHandle {
       elapsedRef.current += DT;
       const boats = boatsRef.current;
       for (const b of boats) {
-        stepBoat(b, o.marks, wind.dirRad, wind.speedKts, o.bounds, elapsedRef.current);
+        stepBoat(b, o.marks, wind.dirRad, wind.speedKts, o.bounds, elapsedRef.current, o.water);
       }
       advance();
     };

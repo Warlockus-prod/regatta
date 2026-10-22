@@ -57,3 +57,43 @@ test("wheel mode: the helm and both sheets are keyboard sliders on the Trainer",
   await main.press("ArrowDown");
   await expect(main).toHaveAttribute("aria-valuenow", String(Math.round(eased - 5)));
 });
+
+// Owner rule 2026-10-21: on a phone nothing is drawn over the boat. Status and
+// buttons sit above the scene, readouts under it, and the views drawer slides
+// out from the side only when asked for, then slides back after a choice.
+for (const route of [
+  { path: "/simulator-v3?embed=1&lang=en", scene: '[data-testid="trainer-scene"]', choice: "Rear" },
+  { path: "/simulator2?embed=1&lang=en", scene: "canvas", choice: "Deck" },
+]) {
+  test(`nothing covers the boat, views slide out on demand: ${route.path}`, async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize(PHONE);
+    await page.goto(route.path);
+    const scene = page.locator(route.scene).first();
+    await expect(scene).toBeVisible({ timeout: 25_000 });
+    const s = (await scene.boundingBox())!;
+    const bar = (await page.getByTestId("scene-bar").boundingBox())!;
+    const readouts = (await page.getByTestId("trainer-readouts").boundingBox())!;
+    expect(bar.y + bar.height).toBeLessThanOrEqual(s.y + 1);
+    expect(readouts.y).toBeGreaterThanOrEqual(s.y + s.height - 1);
+    const drawer = page.getByTestId("scene-drawer").first();
+    await expect(drawer).toBeHidden();
+    await page.getByTestId("scene-view-button").click();
+    await expect(drawer).toBeVisible();
+    await page.getByRole("button", { name: route.choice, exact: true }).click();
+    await expect(drawer).toBeHidden();
+  });
+}
+
+test("wheel mode: the dock is as tall as the wheels, no empty band under them", async ({ page }) => {
+  await page.setViewportSize(PHONE);
+  await page.addInitScript(() => {
+    localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "wheels" }));
+  });
+  await page.goto("/simulator-v3?embed=1&lang=en");
+  await expect(page.getByRole("slider", { name: "Helm", exact: true })).toBeVisible({ timeout: 20_000 });
+  const dock = (await page.getByTestId("control-dock").boundingBox())!;
+  const deck = (await page.getByTestId("wheel-deck").boundingBox())!;
+  expect(dock.y + dock.height - (deck.y + deck.height)).toBeLessThan(24);
+  expect(deck.y + deck.height).toBeLessThanOrEqual(PHONE.height);
+});

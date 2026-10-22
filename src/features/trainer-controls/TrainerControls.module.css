@@ -13,9 +13,14 @@
 .screenEmbed { height: 100dvh; min-height: 0; }
 
 .workspace { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-.sceneColumn { flex: 1 1 auto; min-height: 40%; display: flex; flex-direction: column; }
+/* The scene takes all spare height; the docks are capped (sliders 46%, wheels 56%),
+   so the boat keeps most of the screen without a hard minimum that could push the
+   page into scrolling under the site navigation. */
+.sceneColumn { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
 .scene { position: relative; flex: 1 1 auto; min-height: 160px; overflow: hidden; }
 .readouts { flex: 0 0 auto; }
+/* Portrait: readouts and dock are plain rows of the workspace column. */
+.sideColumn { display: contents; }
 
 .dock {
   flex: 0 0 auto;
@@ -28,14 +33,98 @@
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 .dock[data-layout="column"] { height: 100%; border-top: 0; }
-.dock[data-mode="wheels"] { height: clamp(268px, 50%, 420px); }
+/* Wheels: the dock is exactly as tall as the wheels, the boat gets the rest
+   (no empty band under the helm). */
+.dock[data-mode="wheels"] { height: auto; max-height: 56%; }
+.dock[data-mode="wheels"] .deckArea { flex: 0 0 auto; height: 236px; }
+
+/* Nothing is drawn over the boat (owner, 2026-10-21): status and buttons sit
+   in this bar above the scene, the readouts under it. */
+.sceneBar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 max(8px, env(safe-area-inset-right, 0px)) 0 max(14px, env(safe-area-inset-left, 0px));
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-primary);
+}
+.sceneStatus { flex: 1 1 auto; min-width: 0; font-size: 13px; line-height: 17px; color: var(--text-secondary); }
+.sceneStatus strong { color: var(--text-primary); font-weight: 600; }
+.sceneBarActions { flex: 0 0 auto; display: flex; align-items: center; gap: 6px; }
+.barButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.barButton[aria-expanded="true"] { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.barIcon { padding: 0; border-radius: 999px; color: var(--accent-cyan); font-size: 15px; font-weight: 700; }
+.barIconSquare { padding: 0; }
+.barButton:focus-visible, .drawerItem:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+
+/* Views drawer: slides in from the right edge of the scene when asked for. */
+.drawerBackdrop { position: absolute; inset: 0; z-index: 5; border: 0; padding: 0; background: transparent; cursor: default; }
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 6;
+  width: min(236px, 72%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px max(12px, env(safe-area-inset-right, 0px)) 12px 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
+  border-left: 1px solid var(--border-subtle);
+  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
+  transform: translateX(105%);
+  visibility: hidden;
+  transition: transform 180ms ease, visibility 0s linear 180ms;
+}
+.drawer[data-open="true"] { transform: none; visibility: visible; transition: transform 180ms ease, visibility 0s; }
+@media (prefers-reduced-motion: reduce) { .drawer, .drawer[data-open="true"] { transition: none; } }
+.drawerTitle { margin: 0 0 2px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.drawerGroup { display: flex; flex-direction: column; gap: 6px; }
+.drawerGroup + .drawerGroup { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
+.drawerItem {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.drawerItem[aria-pressed="true"] { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 
 @media (orientation: landscape) and (max-height: 540px) {
   .workspace { flex-direction: row; }
   .sceneColumn { min-height: 0; min-width: 0; position: relative; }
-  /* Landscape phones are short: the readouts float over the bottom of the scene. */
-  .readouts { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; max-height: 45%; overflow: hidden; }
-  .dock, .dock[data-mode="wheels"] { height: auto; width: min(46%, 380px); border-top: 0; border-left: 1px solid var(--border-subtle); }
+  .sceneBar { min-height: 44px; padding-top: 0; padding-bottom: 0; }
+  .sideColumn { display: flex; flex-direction: column; flex: 0 0 auto; width: min(46%, 380px); min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--bg-secondary); }
+  .readouts { border-bottom: 1px solid var(--border-subtle); }
+  .dock, .dock[data-mode="wheels"] { flex: 1 1 auto; height: auto; max-height: none; border-top: 0; }
+  .dock[data-mode="wheels"] .deckArea { flex: 1 1 auto; height: auto; min-height: 150px; }
   .screen { min-height: 0; }
 }
 

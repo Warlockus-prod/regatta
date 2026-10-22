@@ -20,7 +20,7 @@ import {
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { useI18n } from '../../src/i18n/context';
-import { Screen, SkiaYacht, Text } from '../../src/design-system/components';
+import { Screen, SkiaYacht, Slider, Text } from '../../src/design-system/components';
 import { useSimLoop } from '../../src/simulator/use-sim-loop';
 import type { TrailPoint } from '../../src/simulator/use-sim-loop';
 import {
@@ -32,6 +32,12 @@ import {
 import { findCourse, type CourseId, type CourseMarkScreen, projectCourse, scoreCourse, buildFinishLine } from '../../src/game/course';
 import { nativeProgress, advanceNativeProgress, nativeTarget } from "../../src/game/progression";
 import { useRaceAi, type RaceDifficulty } from '../../src/game/ai-boats';
+import { VenueLand } from '../../src/game/VenueLand';
+import { useVenue } from '../../src/persistence/venue';
+import { useControlPrefs } from '../../src/persistence/controls';
+import { WheelDeck, DECK_H } from '../../src/simulator/WheelDeck';
+import { wheelSettings } from '../../src/simulator/wheel-controls';
+import { raceCopy } from '../../src/game/copy';
 import { useRaceHistory, type ReplayPoint } from '../../src/persistence/race-history';
 import {
   submitRaceResult,
@@ -137,20 +143,43 @@ function Game() {
   const { units } = useUnits();
   const analytics = useAnalytics();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
+  // Race mode (Race hub): simple = auto trim, the learner steers; pro = the
+  // learner trims the mainsheet and the jib sheet under the course, with the
+  // sliders or the wheels picked in Settings > Trainers.
+  const { venue, mode: raceMode } = useVenue();
+  const pro = raceMode === 'pro';
+  const { prefs: controlPrefs } = useControlPrefs();
+  const wheelsOn = pro && controlPrefs.mode === 'wheels';
+  const wheelPrefs = wheelSettings(controlPrefs);
+  // Height under the course: the HUD row is always there; simple adds the
+  // course hint and the steering hint, pro the sail state line and its controls.
+  const controlsH = pro ? (wheelsOn ? DECK_H + 64 : 150) : 76;
   const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
-  const sceneH = Math.min(Math.max(windowHeight * 0.55, 380), 560);
-  const centerX = sceneW / 2;
-  const centerY = sceneH / 2;
+  // The course takes the height the HUD row (and the pro controls) under it
+  // leave free; nothing is drawn over the boat (owner rule 2026-10-21).
+  const sceneH = Math.min(600, Math.max(260, windowHeight - 252 - controlsH));
   const compassCx = sceneW - COMPASS_R - 16;
   const compassCy = COMPASS_R + 14;
-  const boatLength = sceneW < 360 ? 46 : 54;
+  // Compact player yacht: the course reads as a race area, not a close-up.
+  const boatLength = sceneW < 360 ? 36 : 42;
+  // The race bay: the course and the boats live in the water rect, the shore
+  // of the picked venue (src/data/venues) fills the margins around it.
+  const hasShore = venue.lands.length > 0;
+  const marginX = hasShore ? Math.round(sceneW * 0.1) : 0;
+  const marginY = hasShore ? 30 : 0;
+  const water = useMemo(
+    () => ({ x0: marginX, y0: marginY, x1: sceneW - marginX, y1: sceneH - marginY }),
+    [marginX, marginY, sceneW, sceneH],
+  );
+  const waterSize = useMemo(() => ({ width: water.x1 - water.x0, height: water.y1 - water.y0 }), [water]);
+  const projectInBay = useCallback(
+    (c: Parameters<typeof projectCourse>[0]) => projectCourse(c, waterSize).map((m) => ({ ...m, x: m.x + water.x0, y: m.y + water.y0 })),
+    [waterSize, water.x0, water.y0],
+  );
 
   const courseId = ((params.course as CourseId | undefined) ?? 'short') as CourseId;
   const course = useMemo(() => findCourse(courseId), [courseId]);
-  const initialMarks = useMemo(
-    () => projectCourse(course, { width: sceneW, height: sceneH }),
-    [course, sceneW, sceneH],
-  );
+  const initialMarks = useMemo(() => projectInBay(course), [course, projectInBay]);
 
   // Start mark drives the boat's initial position so the player begins
   // on the start line, bow pointing at the windward mark.
@@ -159,9 +188,21 @@ function Game() {
   const sim = useSimLoop({
     running: phase === "racing",
     bounds: { width: sceneW, height: sceneH },
+    water: hasShore ? water : undefined,
     initialX: startMark.x,
     initialY: startMark.y + 12,
   });
+  // Live handle for gestures and effects that must not re-subscribe per tick.
+  const simLive = useRef(sim);
+  useEffect(() => { simLive.current = sim; });
+  // Pro: the learner trims; simple: the engine trims every half second.
+  useEffect(() => { simLive.current.setAutoTrim(!pro); }, [pro]);
+  const onWheelCourse = useCallback((deg: number) => simLive.current.setTargetHeading((deg * Math.PI) / 180), []);
+  const onWheelMain = useCallback((v: number) => simLive.current.setMainSheet(v), []);
+  const onWheelJib = useCallback((v: number) => simLive.current.setJibSheet(v), []);
+  const easedPct = (v: number) => `${Math.round((1 - v) * 100)}%`;
+  const sailWord = (state: string) =>
+    state === 'luff' ? raceCopy.luff[lang] : state === 'stall' ? raceCopy.stall[lang] : state === 'overtrim' ? raceCopy.overtrim[lang] : state === 'good' ? raceCopy.good[lang] : '';
 
   // One-time wind setup from the course definition. Keep idempotent so
   // RN strict-mode re-mounts don't fight a player who tweaks the compass.
@@ -220,6 +261,7 @@ function Game() {
   );
   const ai = useRaceAi({
     bounds: { width: sceneW, height: sceneH },
+    water: hasShore ? water : undefined,
     marks: aiMarks,
     getWind: () => ({
       dirRad: sim.wind.trueWindDirRad,
@@ -363,21 +405,25 @@ function Game() {
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
             () => {},
           );
-          const dx = e.x - centerX;
-          const dy = e.y - centerY;
-          if (dx === 0 && dy === 0) return;
-          sim.setTargetHeading(Math.atan2(dx, -dy));
+          // Point where to go: the heading runs from the boat to the finger.
+          const boat = simLive.current.boat;
+          const dx = e.x - boat.x;
+          const dy = e.y - boat.y;
+          if (Math.hypot(dx, dy) < 8) return;
+          simLive.current.setTargetHeading(Math.atan2(dx, -dy));
         })
         .onChange((e) => {
           if (insideCompassAt(e.x, e.y, compassCx, compassCy)) return;
           if (phase === 'finished') return;
-          const dx = e.x - centerX;
-          const dy = e.y - centerY;
-          if (dx === 0 && dy === 0) return;
-          sim.setTargetHeading(Math.atan2(dx, -dy));
+          // Point where to go: the heading runs from the boat to the finger.
+          const boat = simLive.current.boat;
+          const dx = e.x - boat.x;
+          const dy = e.y - boat.y;
+          if (Math.hypot(dx, dy) < 8) return;
+          simLive.current.setTargetHeading(Math.atan2(dx, -dy));
         }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [centerX, centerY, compassCx, compassCy, phase],
+    [compassCx, compassCy, phase],
   );
 
   // Pre-baked Skia primitives (recomputed once per tick).
@@ -664,11 +710,12 @@ function Game() {
     setRaceTimeSec(0);
     setSavedRaceId(null);
     setSaving(false);
-    const fresh = projectCourse(course, { width: sceneW, height: sceneH });
+    const fresh = projectInBay(course);
     marksRef.current = fresh;
     setMarks(fresh);
     progressionRef.current = nativeProgress(startMark.x,startMark.y+12,0);
     sim.reset();
+    sim.setAutoTrim(!pro);
     sim.setWindDir(course.initialWindDirRad);
     sim.setWindSpeed(course.initialWindKn);
     sim.setTargetHeading(course.initialWindDirRad + 52 * Math.PI / 180);
@@ -684,12 +731,13 @@ function Game() {
     <Screen noTopInset>
       <Stack.Screen options={{ ...darkStackOptions, title }} />
       <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.header}>
-          <Text variant="subtitle" style={styles.title}>{title}</Text>
+        {/* The course name is in the navigation bar. Simple mode keeps the
+            course hint; pro gives the height to the sheet controls. */}
+        {!pro && <View style={styles.header}>
           <Text variant="caption" style={styles.subtitle}>
-            {courseHint}
+            {courseHint}{hasShore ? ` ${venue.name[lang]}: ${venue.place[lang]}.` : ''}
           </Text>
-        </View>
+        </View>}
 
         <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
           <GestureDetector gesture={steer}>
@@ -705,6 +753,7 @@ function Game() {
                   strokeCap="round"
                   opacity={0.32}
                 />
+                {hasShore && <VenueLand venue={venue} water={water} />}
 
                 {/* Mark overlays. Capture radius rendered as a faint ring. */}
                 {marks.map((m) => (
@@ -842,15 +891,6 @@ function Game() {
             </Canvas>
           </GestureDetector>
 
-          {/* HUD strip: heading / speed / TWA / AWA / time. */}
-          <View pointerEvents="none" style={styles.hud}>
-            <HudStat label={headingLabel} value={`${headingDeg}°`} />
-            <HudStat label={speedLabel} value={speedDisplay} />
-            <HudStat label={twaLabel} value={`${twaDeg}°`} />
-            <HudStat label={awaLabel} value={`${awaDeg}°`} />
-            <HudStat label={timeLabel} value={formatTime(raceTimeSec)} />
-          </View>
-
           {phase === 'countdown' ? (
             <View pointerEvents="none" style={styles.overlay}>
               <Text style={styles.countdownLabel}>{getReadyLabel}</Text>
@@ -962,6 +1002,60 @@ function Game() {
             </View>
           ) : null}
         </View>
+
+        {/* HUD row under the course: heading / speed / TWA / AWA / time. */}
+        <View pointerEvents="none" style={[styles.hud, { width: sceneW }]}>
+          <HudStat label={headingLabel} value={`${headingDeg}°`} />
+          <HudStat label={speedLabel} value={speedDisplay} />
+          <HudStat label={twaLabel} value={`${twaDeg}°`} />
+          <HudStat label={awaLabel} value={`${awaDeg}°`} />
+          <HudStat label={timeLabel} value={formatTime(raceTimeSec)} />
+        </View>
+
+        {pro ? (
+          <View style={[styles.proControls, { width: sceneW }]}>
+            <Text style={styles.sailState}>
+              {`${raceCopy.main[lang]}: ${sailWord(sim.sailFeedback.main)} · ${raceCopy.jib[lang]}: ${sailWord(sim.sailFeedback.jib)}`}
+            </Text>
+            {wheelsOn ? (
+              <WheelDeck
+                targetHeadingDeg={((sim.controls.targetHeading * 180) / Math.PI % 360 + 360) % 360}
+                windFromDeg={((sim.wind.trueWindDirRad * 180) / Math.PI % 360 + 360) % 360}
+                mainSheet={sim.controls.mainSheet ?? 0.5}
+                jibSheet={sim.controls.jibSheet ?? 0.4}
+                onCourse={onWheelCourse}
+                setMainSheet={onWheelMain}
+                setJibSheet={onWheelJib}
+                sound={controlPrefs.sound}
+                sensitivity={wheelPrefs.sensitivity}
+                jibSheetSide={wheelPrefs.jibSheetSide}
+              />
+            ) : (
+              <>
+                <Slider
+                  label={raceCopy.mainsheet[lang]}
+                  accessibilityLabel={`${raceCopy.mainsheet[lang]}, ${raceCopy.sheetScale[lang]}`}
+                  formatValue={easedPct}
+                  value={sim.controls.mainSheet ?? 0.5}
+                  onChange={onWheelMain}
+                  orientation="horizontal"
+                  step={0.05}
+                />
+                <Slider
+                  label={raceCopy.jibsheet[lang]}
+                  accessibilityLabel={`${raceCopy.jibsheet[lang]}, ${raceCopy.sheetScale[lang]}`}
+                  formatValue={easedPct}
+                  value={sim.controls.jibSheet ?? 0.4}
+                  onChange={onWheelJib}
+                  orientation="horizontal"
+                  step={0.05}
+                />
+              </>
+            )}
+          </View>
+        ) : (
+          <Text variant="caption" style={[styles.steerHint, { width: sceneW }]}>{raceCopy.steerHint[lang]}</Text>
+        )}
       </ScrollView>
     </Screen>
   );
@@ -986,9 +1080,6 @@ const styles = StyleSheet.create({
     marginBottom: spacing.md,
     gap: spacing.xs,
   },
-  title: {
-    fontSize: 22,
-  },
   subtitle: {
     fontSize: 13,
     lineHeight: 18,
@@ -1002,34 +1093,50 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     position: 'relative',
   },
+  proControls: {
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+    gap: spacing.xs,
+  },
+  sailState: {
+    color: colors.textSecondary,
+    fontSize: 13,
+    textAlign: 'center',
+  },
+  steerHint: {
+    alignSelf: 'center',
+    marginTop: spacing.sm,
+    textAlign: 'center',
+  },
   hud: {
-    position: 'absolute',
-    left: spacing.sm,
-    bottom: spacing.sm,
+    alignSelf: 'center',
+    marginTop: spacing.sm,
     flexDirection: 'row',
-    gap: spacing.sm,
-    backgroundColor: 'rgba(10, 22, 40, 0.74)',
+    gap: spacing.xs,
+    backgroundColor: colors.bgSecondary,
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.md,
     paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
+    paddingVertical: spacing.sm,
   },
   hudStat: {
+    flex: 1,
     minWidth: 44,
     alignItems: 'center',
   },
   hudLabel: {
     color: colors.textMuted,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.6,
   },
   hudValue: {
     color: colors.textPrimary,
-    fontSize: 13,
+    fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.2,
+    fontVariant: ['tabular-nums'],
   },
   overlay: {
     position: 'absolute',

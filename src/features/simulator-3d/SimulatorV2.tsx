@@ -174,7 +174,7 @@ function SimulatorV2Inner() {
           {
             title: tp('Шкоты', 'Sheets', 'Szoty', { es: 'Escotas', fr: 'Écoutes', de: 'Schoten', it: 'Scotte' }),
             body: tp(
-              'Трави гика-шкот и стаксель-шкот, пока парус не начнёт полоскать, потом чуть подбери. Подсказка коуча называет, какой шкот трогать, она внизу сцены.',
+              'Трави гика-шкот и стаксель-шкот, пока парус не начнёт полоскать, потом чуть подбери. Подсказка коуча внизу сцены называет, какой шкот трогать.',
               'Ease the mainsheet and the jib sheet until the sail just starts to luff, then sheet back in a touch. The coach hint at the bottom names the sheet to adjust.',
               'Luzuj szot grota i szot foka, aż żagiel zacznie łopotać, potem lekko go wybierz. Podpowiedź trenera na dole sceny mówi, który szot ruszyć.',
               {
@@ -215,7 +215,7 @@ function SimulatorV2Inner() {
           },
         ],
       },
-      sheetScale: tp("0% шкот выбран · 100% потравлен", "0% sheeted in · 100% eased out", "0% szot wybrany · 100% poluzowany", { es: "0% cazada · 100% lascada", fr: "0% bordée · 100% choquée", de: "0% dichtgeholt · 100% gefiert", it: "0% cazzata · 100% lascata" }),
+      sheetScale: tp("0% выбран · 100% потравлен", "0% sheeted in · 100% eased out", "0% wybrany · 100% poluzowany", { es: "0% cazada · 100% lascada", fr: "0% bordée · 100% choquée", de: "0% dichtgeholt · 100% gefiert", it: "0% cazzata · 100% lascata" }),
       maneuver: {
         tacking: tp("Оверштаг: паруса разгружаются и наполняются на новом галсе", "Tacking: sails unload and fill on the new side", "Zwrot przez sztag: żagle tracą napór i napełniają się na nowym halsie", { es: "Virada por avante: las velas pierden presión y se llenan en la nueva banda", fr: "Virement : les voiles se déchargent puis se remplissent sur le nouveau bord", de: "Wende: Die Segel entlasten und füllen sich auf dem neuen Bug", it: "Virata: le vele si scaricano e si riempiono sulle nuove mure" }),
         gybing: tp("Фордевинд: экипаж автоматически переносит паруса", "Gybing: the crew transfers the sails automatically", "Zwrot przez rufę: załoga automatycznie przenosi żagle", { es: "Trasluchada: la tripulación cambia las velas de banda automáticamente", fr: "Empannage : l'équipage fait passer les voiles automatiquement", de: "Halse: Die Crew bringt die Segel automatisch auf die andere Seite", it: "Strambata: l'equipaggio fa passare le vele automaticamente" }),
@@ -284,9 +284,9 @@ function SimulatorV2Inner() {
       },
       {
         href: '/simulator-v3',
-        label: tp('Тренажёр', 'Trainer', 'Trener', { es: 'Entrenador', fr: 'Réglage', de: 'Trainer', it: 'Trainer' }),
-        title: tp('Полный тренажёр трима - шаг 2', 'Full trim trainer - step 2', 'Pełny trener trymu - krok 2', {
-          es: 'Entrenador de trimado completo - paso 2', fr: 'Réglage des voiles complet - étape 2', de: 'Voller Trimm-Trainer - Schritt 2', it: 'Trainer di regolazione completo - passo 2',
+        label: tp('Тренажёр', 'Trainer', 'Trenażer', { es: 'Trimado', fr: 'Réglage', de: 'Trainer', it: 'Regolazione' }),
+        title: tp('Полный тренажёр трима - шаг 2', 'Full trim trainer - step 2', 'Pełny trenażer trymu - krok 2', {
+          es: 'Simulador de trimado completo - paso 2', fr: 'Réglage des voiles complet - étape 2', de: 'Voller Trimm-Trainer - Schritt 2', it: 'Regolazione delle vele completa - passo 2',
         }),
       },
       {
