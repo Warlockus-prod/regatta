@@ -13,6 +13,7 @@ import { SceneBoundary, reportScene } from "@/features/simulator-3d/SceneBoundar
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import { raceTerrain } from "@/data/venues/geometry";
+import { makeStandardCourse } from "@/lib/race-physics";
 import type { Venue } from "@/data/venues/venues";
 import { METRES_PER_UNIT, headingDelta, nextTarget, racePose, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
 
@@ -34,6 +35,7 @@ const DEG = Math.PI / 180;
 const LAND_HEIGHT = 1.8;
 const MARK_COLOR = "#ff7a1a";
 const PIN_COLOR = "#ffd23f";
+const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
 
 export interface Race3DLabels {
   loading: string;
@@ -43,7 +45,7 @@ export interface Race3DLabels {
 }
 
 /** Player position in world metres, shared by everything that sits in the moving world. */
-type Origin = MutableRefObject<{ x: number; z: number }>;
+type OriginRef = MutableRefObject<{ x: number; z: number }>;
 
 function playerOf(boats: Race3DBoat[]): Race3DBoat | undefined {
   return boats.find((b) => b.isPlayer);
@@ -66,20 +68,20 @@ function useBoatPose(boatsRef: MutableRefObject<Race3DBoat[]>, windDirRef: Mutab
   return state;
 }
 
-function Player({ boatsRef, windDirRef, origin, stateOut }: {
+function Player({ boatsRef, windDirRef, originRef, playerStateRef }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
-  origin: Origin;
-  stateOut: MutableRefObject<MutableRefObject<YachtState> | null>;
+  originRef: OriginRef;
+  playerStateRef: MutableRefObject<MutableRefObject<YachtState> | null>;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, null);
   useEffect(() => {
-    stateOut.current = state;
-    return () => { stateOut.current = null; };
-  }, [state, stateOut]);
+    playerStateRef.current = state;
+    return () => { playerStateRef.current = null; };
+  }, [state, playerStateRef]);
   useFrame(() => {
     const travel = state.current.travel;
-    if (travel) origin.current = travel;
+    if (travel) originRef.current = travel;
   });
   return (
     <>
@@ -89,20 +91,20 @@ function Player({ boatsRef, windDirRef, origin, stateOut }: {
   );
 }
 
-function Rival({ id, color, boatsRef, windDirRef, origin }: {
+function Rival({ id, color, boatsRef, windDirRef, originRef }: {
   id: string;
   color: string;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
-  origin: Origin;
+  originRef: OriginRef;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, id);
   const group = useRef<THREE.Group>(null);
   useFrame(({ camera }) => {
     const travel = state.current.travel;
     if (!group.current || !travel) return;
-    const x = travel.x - origin.current.x;
-    const z = travel.z - origin.current.z;
+    const x = travel.x - originRef.current.x;
+    const z = travel.z - originRef.current.z;
     group.current.position.set(x, 0, z);
     // The player's boat comes first: a rival between the camera and the
     // player (close astern) steps out of the picture until it is clear.
@@ -196,17 +198,19 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Everything fixed to the race area, shifted so the player stays at the origin. */
-function World({ venue, courseRef, boatsRef, origin }: {
+function World({ venue, courseRef, boatsRef, originRef }: {
   venue: Venue;
   courseRef: MutableRefObject<Race3DCourse>;
   boatsRef: MutableRefObject<Race3DBoat[]>;
-  origin: Origin;
+  originRef: OriginRef;
 }) {
   const group = useRef<THREE.Group>(null);
   const pointer = useRef<THREE.Mesh>(null);
-  const course = courseRef.current;
+  // The marks are the standard course every race sails (solo, multiplayer,
+  // replay); the live course ref only drives the next-target marker.
+  const course = STANDARD_COURSE;
   useFrame(() => {
-    if (group.current) group.current.position.set(-origin.current.x, 0, -origin.current.z);
+    if (group.current) group.current.position.set(-originRef.current.x, 0, -originRef.current.z);
     const player = playerOf(boatsRef.current);
     const target = player ? nextTarget(player, courseRef.current) : null;
     if (pointer.current) {
@@ -289,10 +293,10 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
   maxDpr?: number;
   labels: Race3DLabels;
 }) {
-  const origin = useRef({ x: 0, z: 0 });
-  const playerState = useRef<MutableRefObject<YachtState> | null>(null);
+  const originRef = useRef({ x: 0, z: 0 });
+  const playerStateRef = useRef<MutableRefObject<YachtState> | null>(null);
   // The ocean reads the player's travel from this ref every frame.
-  const oceanState = useRef<YachtState>({ ...NEUTRAL_YACHT });
+  const oceanStateRef = useRef<YachtState>({ ...NEUTRAL_YACHT });
   // Rivals come and go with each race (restart, other difficulty): follow the ids.
   const [rivals, setRivals] = useState<{ id: string; color: string }[]>([]);
   useEffect(() => {
@@ -361,34 +365,34 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
           <Lightformer form="rect" intensity={0.22} color="#274a5a" position={[0, -12, 0]} rotation-x={-Math.PI / 2} scale={[160, 160, 1]} />
         </Environment>
 
-        <OceanFollow playerState={playerState} oceanState={oceanState} />
-        <Ocean stateRef={oceanState} size={2000} seg={256} />
+        <OceanFollow playerStateRef={playerStateRef} oceanStateRef={oceanStateRef} />
+        <Ocean stateRef={oceanStateRef} size={2000} seg={256} />
         {/* Flat sea beyond the waves, under them, out to the fog. */}
         <mesh rotation-x={-Math.PI / 2} position={[0, -1.6, 0]}>
           <planeGeometry args={[9000, 9000]} />
           <meshStandardMaterial color="#0e4256" roughness={0.45} metalness={0.07} />
         </mesh>
 
-        <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} origin={origin} />
+        <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} />
         <Suspense fallback={<Loading label={labels.loading} />}>
-          <Player boatsRef={boatsRef} windDirRef={windDirRef} origin={origin} stateOut={playerState} />
-          {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} boatsRef={boatsRef} windDirRef={windDirRef} origin={origin} />)}
+          <Player boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} playerStateRef={playerStateRef} />
+          {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
           <Ready />
         </Suspense>
-        <ChaseCamera stateRef={playerState} mode={camera} />
+        <ChaseCamera stateRef={playerStateRef} mode={camera} />
       </Canvas>
     </SceneBoundary>
   );
 });
 
 /** Copies the player's travel into the ocean's state, so the waves scroll under the boat. */
-function OceanFollow({ playerState, oceanState }: {
-  playerState: MutableRefObject<MutableRefObject<YachtState> | null>;
-  oceanState: MutableRefObject<YachtState>;
+function OceanFollow({ playerStateRef, oceanStateRef }: {
+  playerStateRef: MutableRefObject<MutableRefObject<YachtState> | null>;
+  oceanStateRef: MutableRefObject<YachtState>;
 }) {
   useFrame(() => {
-    const s = playerState.current?.current;
-    if (s) oceanState.current = s;
+    const s = playerStateRef.current?.current;
+    if (s) oceanStateRef.current = s;
   });
   return null;
 }
