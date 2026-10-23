@@ -28,6 +28,8 @@ interface ProgressMessage {
   type?: string;
   entries?: Record<string, string>;
   path?: string;
+  /** radio-workspace: the page's work screen (pinned radio) opened or closed */
+  open?: boolean;
 }
 
 type CourseMode = "offline" | "online";
@@ -125,6 +127,10 @@ export function OfflineRadioCourse() {
   const [reloadKey, setReloadKey] = useState(0);
   const [mode, setMode] = useState<CourseMode>("offline");
   const [onlinePath, setOnlinePath] = useState("/radio/symulator");
+  // While the page shows its radio work screen (pinned radio, task panel under
+  // it) the stack header gives its 44pt to the task panel; the page's own bar
+  // has the exit, and the swipe back still leaves the course.
+  const [workspaceOpen, setWorkspaceOpen] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -164,12 +170,14 @@ export function OfflineRadioCourse() {
     }
     setFailed(false);
     setLoading(true);
+    setWorkspaceOpen(false);
     setMode(nextMode);
   };
 
   const retry = () => {
     setFailed(false);
     setLoading(true);
+    setWorkspaceOpen(false);
     setReloadKey((value) => value + 1);
   };
 
@@ -190,6 +198,10 @@ export function OfflineRadioCourse() {
       if (message.type === "radio-online-ready") {
         setLoading(false);
         setFailed(false);
+        return;
+      }
+      if (message.type === "radio-workspace") {
+        setWorkspaceOpen(message.open === true);
         return;
       }
       if (message.type === "radio-open-online") {
@@ -220,8 +232,8 @@ export function OfflineRadioCourse() {
   }
 
   return (
-    <Screen noTopInset noBottomInset>
-      <Stack.Screen options={{ title: "SRC Radio" }} />
+    <Screen noTopInset={!workspaceOpen} noBottomInset>
+      <Stack.Screen options={{ title: "SRC Radio", headerShown: !workspaceOpen }} />
       <WebView
         key={`${mode}-${reloadKey}-${analyticsOn ? "a" : "na"}`}
         source={source}
@@ -274,6 +286,7 @@ export function OfflineRadioCourse() {
         onError={() => {
           setLoading(false);
           setFailed(true);
+          setWorkspaceOpen(false);
         }}
         startInLoadingState={false}
       />

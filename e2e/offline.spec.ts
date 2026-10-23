@@ -86,7 +86,7 @@ test.describe('Offline course', () => {
 
     // 2. The simulator responds to a control (its chunks and CSS are there).
     await page.goto('/radio/symulator');
-    await page.getByTestId('start-nauka-fire-mayday').click();
+    await page.getByTestId('start-fire-mayday').click();
     await expect(page.getByTestId('exit-scenario')).toBeVisible();
 
     // 3. Theory, including the chapter check, a chunk loaded only on import():

@@ -340,6 +340,14 @@ smoke step warns (does not fail) when the header is still missing.
   figures are still bilingual (baked into the SVG text nodes).
 - Simulator/scenario texts are `Bi {pl, ru}` rendered via the same policy
   (`ru` only for RU-site users who chose RU or Both).
+- **Owner decision 2026-10-24 (supersedes the two-language rule for the
+  radio course):** the SRC radio course is an international standard and may
+  be translated into all 7 site languages. Order: the trainer first (scenarios,
+  hints, debriefs, labels; radio phrases stay English; coast stations and
+  positions randomized worldwide instead of only the Gulf of Gdańsk), then the
+  theory, cheat sheet and the 324-question bank. Until that lands the code
+  still runs the PL/RU policy above. Watch the voice grader's keyword lists when
+  station names change.
 
 ### 2026-07-14: Polish is the base, Russian is an addition
 
@@ -869,3 +877,51 @@ Current status:
 - iOS app 1.6+: embedded course works from the first launch without a network.
 - Android app 1.6+: embedded course works from the first launch without a network.
 - Speech recognition, server voice grading and free conversation: online only.
+
+## Two screens and a pinned radio (2026-10-24)
+
+Owner: "when I scroll the task, the radio hides; it should stay on screen like
+the 3D boat, the radio on top and the tasks sliding out below. There are too
+many tabs. Make the trainer one or two screens." The proposal (before and
+after, phone 390x844) is `docs/design/radio-trainer/proposal-board.png`; the
+owner chose the recommended option on all four questions.
+
+- **Tabs: 10 sections became 4.** `RadioSubnav` shows Kurs, Teoria, Trening
+  (Практика), Egzamin. The old "Więcej" menu (which also opened off the left
+  edge of a phone, its links invisible) is gone. Obsługa, Rozmowa na żywo,
+  Dyktowanie pozycji and the 26 UKE tasks are rows of the Trening list and
+  light up the Trening tab; Ściąga belongs to Teoria. All old addresses work.
+- **Screen 1, the Trening list** (`/radio/symulator`): first steps (the
+  controls lessons, `/radio/obsluga?kurs=1`), the 19 scenarios in four groups
+  (`practiceMenu.ts`: alarm, urgency and safety, routine, radio settings), each
+  row naming the UKE tasks it trains, then the voice drills and links to the 26
+  tasks and the cheat sheet. One Nauka / Egzamin switch above the list
+  (remembered in `sternik.radio.mode.v1`) replaces the two buttons on every
+  card; a row is one tap. The radio model sits in a folded chip.
+- **Screen 2, the work screen** (`RadioWorkspace.tsx`), shared by the
+  simulator, the controls lessons and the live conversation: a fixed screen
+  with a bar (exit, mode or lesson, timer, Rozbiór, sound), the radio pinned
+  under it, and the panel that scrolls on its own: the explanation of a tapped
+  part (Rozbiór) first, then the task with its hint and the newest log line,
+  the voice step, the situation and the journal (both foldable). The panel
+  returns to its top on a new step, so the next task sits right under the
+  radio. The page behind it does not scroll.
+- **Compact faceplate** (`RadioFront compact`): the same wired controls in
+  about 450px: the screen's floor equals the switched-on standby screen (no jump
+  at power on), no duplicate softkey label row on the LCD, three key rows (MENU
+  next to 16/C, ENT next to CH-down), DISTRESS and PTT side by side. Every key
+  stays at least 44px. Used on phones and tablets and on desktops under 860px
+  of height; the realistic amber faceplate uses its compact form only on
+  phones and otherwise sits full width above the panel (beside it the panel
+  would be a narrow strip).
+- **Where it sits.** Desktop: radio column and panel column inside the 1080px
+  content width, under the site navigation. Phones: the work screen covers the
+  site navigation (about 110px that the panel needs), the bar's exit leads
+  back. In the iOS app the page posts `radio-workspace` and the native "SRC
+  Radio" header hides while the work screen is open. Measured at 390x844: radio
+  449px, panel 326px; app WebView 750px: panel 232px (plus 44pt with the header
+  hidden); iPhone SE 375x667: panel 149px.
+- **Contract test:** `e2e/radio-workspace.spec.ts` (the LCD, PTT, DISTRESS and
+  the knob stay inside the viewport after scrolling the panel and the page, on
+  a phone and a desktop; the radio works from the pinned view; four tabs).
+

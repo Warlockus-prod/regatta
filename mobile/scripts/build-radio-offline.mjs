@@ -80,6 +80,9 @@ const jsResult = await build({
   entryPoints: [join(sourceRoot, "entry.tsx")],
   bundle: true,
   write: false,
+  // never written (write: false); an outdir lets esbuild emit the CSS of
+  // imported CSS modules (the radio workspace) as a second output
+  outdir: join(mobileRoot, ".radio-offline-out"),
   minify: true,
   format: "iife",
   platform: "browser",
@@ -93,8 +96,9 @@ const jsResult = await build({
   },
 });
 
-const js = jsResult.outputFiles[0]?.text;
+const js = jsResult.outputFiles.find((file) => file.path.endsWith(".js"))?.text;
 if (!js) throw new Error("Offline radio JavaScript was not generated");
+const moduleCss = jsResult.outputFiles.find((file) => file.path.endsWith(".css"))?.text ?? "";
 
 const globalsPath = join(repoRoot, "src", "app", "globals.css");
 const globals = readFileSync(globalsPath, "utf8");
@@ -115,9 +119,11 @@ const cssResult = await postcss([tailwindcss()]).process(cssInput, {
   from: globalsPath,
 });
 
+const css = `${cssResult.css}\n${moduleCss}`;
+
 const version = createHash("sha256")
   .update(js)
-  .update(cssResult.css)
+  .update(css)
   .digest("hex")
   .slice(0, 12);
 
@@ -130,7 +136,7 @@ const html = [
   '<meta name="color-scheme" content="dark">',
   `<meta name="regatta-offline-version" content="${version}">`,
   "<title>SRC Radio Offline</title>",
-  `<style>${escapeInlineStyle(cssResult.css)}</style>`,
+  `<style>${escapeInlineStyle(css)}</style>`,
   "</head>",
   '<body class="ocean-bg">',
   '<div id="root"></div>',
