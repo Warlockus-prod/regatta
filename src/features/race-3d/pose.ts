@@ -24,7 +24,7 @@ export const VISUAL_SPEEDUP = (UNITS_PER_KNOT_SECOND * METRES_PER_UNIT) / 0.5144
 export type RaceCamera = "stern" | "high";
 
 /** Inside this true wind angle the sails cannot fill (the canvas race uses 30 too). */
-const NO_GO_DEG = 30;
+export const NO_GO_DEG = 30;
 
 export interface Race3DBoat {
   id: string;

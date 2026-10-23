@@ -153,7 +153,7 @@ npm run test:physics         # 60 тестов, 7 файлов
 npm run test:api             # контракты API-роутов
 npm run test:radio           # радиокурс (НЕ покрывает src/app/sternik)
 npx vitest run src/app/sternik   # грейдер устного экзамена
-npx vitest run               # все юнит-тесты: 787 тестов, 74 файла
+npx vitest run               # все юнит-тесты: 791 тест, 76 файлов
 npm run test:multiplayer     # живой ws-server: жизненный цикл сокетов
 npx playwright test          # 37 тестов, 6 файлов (BASE_URL задает цель)
 npm run check:dash           # типографика
