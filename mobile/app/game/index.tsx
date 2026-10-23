@@ -438,17 +438,20 @@ function Game() {
     [sceneW, sceneH],
   );
 
-  // Simple rival-boat silhouette (bow at -Y), drawn per AI boat under a
-  // rotate transform. Lighter than the player's full SkiaYacht.
+  // Rival yacht seen from above (bow at -Y), about the player's length, drawn
+  // per AI boat under a rotate transform: a hull in the rival's colour with a
+  // transom, the mast and the boom out to leeward. Lighter than SkiaYacht.
+  const aiHalf = boatLength * 0.48;
   const aiHullPath = useMemo(() => {
-    const L = boatLength * 0.4;
+    const L = aiHalf;
     const p = Skia.Path.Make();
     p.moveTo(0, -L);
-    p.lineTo(L * 0.52, L * 0.72);
-    p.quadTo(0, L * 0.96, -L * 0.52, L * 0.72);
+    p.cubicTo(L * 0.44, -L * 0.55, L * 0.42, L * 0.4, L * 0.3, L * 0.86);
+    p.lineTo(-L * 0.3, L * 0.86);
+    p.cubicTo(-L * 0.42, L * 0.4, -L * 0.44, -L * 0.55, 0, -L);
     p.close();
     return p;
-  }, [boatLength]);
+  }, [aiHalf]);
   const windArrowsPath = useMemo(
     () => buildWindArrowsPath(arrowGrid, sim.wind.trueWindDirRad),
     [arrowGrid, sim.wind.trueWindDirRad],
@@ -847,6 +850,16 @@ function Game() {
                       style="stroke"
                       strokeWidth={1.2}
                     />
+                    {/* Boom to leeward: wind over port puts it to starboard (+x). */}
+                    <SkiaLine
+                      p1={{ x: 0, y: -aiHalf * 0.18 }}
+                      p2={{ x: (Math.sin(b.heading - sim.wind.trueWindDirRad) > 0 ? 1 : -1) * aiHalf * 0.42, y: aiHalf * 0.62 }}
+                      color="#f4f8fb"
+                      strokeWidth={2.2}
+                      strokeCap="round"
+                      opacity={b.finished ? 0.5 : 0.95}
+                    />
+                    <Circle cx={0} cy={-aiHalf * 0.18} r={2.2} color="#f4f8fb" />
                   </Group>
                 ))}
 

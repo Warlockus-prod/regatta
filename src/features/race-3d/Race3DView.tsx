@@ -13,9 +13,9 @@ import { SceneBoundary, reportScene } from "@/features/simulator-3d/SceneBoundar
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
 import { NEUTRAL_YACHT, type YachtState } from "@/features/simulator-3d/types";
 import { raceTerrain } from "@/data/venues/geometry";
-import { makeStandardCourse } from "@/lib/race-physics";
+import { distance, makeStandardCourse } from "@/lib/race-physics";
 import type { Venue } from "@/data/venues/venues";
-import { METRES_PER_UNIT, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
+import { METRES_PER_UNIT, NO_GO_DEG, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "./pose";
 
 // ============================================================================
 // Race3DView - the solo race seen from the water (owner request 2026-10-21).
@@ -41,9 +41,13 @@ const DEG = Math.PI / 180;
 const LAND_HEIGHT = 1.8;
 const MARK_COLOR = "#ff7a1a";
 const PIN_COLOR = "#ffd23f";
+/** The start line, orange dashes as on the map. */
+const LINE_COLOR = "#ffaa00";
 const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
 
 export interface Race3DLabels {
+  /** Unit after a distance ("m"; "м" in Russian). */
+  metres: string;
   loading: string;
   scene: string;
   error: string;
@@ -101,7 +105,7 @@ function Player({ boatsRef, windDirRef, originRef, playerStateRef }: {
  * Place and name over a rival's mast, the same size on screen at any distance,
  * drawn on a canvas (no font file: the CSP blocks font CDNs).
  */
-function NameTag({ text, color }: { text: string; color: string }) {
+function NameTag({ text, color, y = 22 }: { text: string; color?: string; y?: number }) {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 256;
@@ -112,14 +116,20 @@ function NameTag({ text, color }: { text: string; color: string }) {
       g.beginPath();
       g.roundRect(2, 6, 252, 52, 26);
       g.fill();
-      g.fillStyle = color;
-      g.beginPath();
-      g.arc(32, 32, 11, 0, Math.PI * 2);
-      g.fill();
+      if (color) {
+        g.fillStyle = color;
+        g.beginPath();
+        g.arc(32, 32, 11, 0, Math.PI * 2);
+        g.fill();
+      }
       g.fillStyle = "#ffffff";
       g.font = "600 28px system-ui, -apple-system, Segoe UI, sans-serif";
       g.textBaseline = "middle";
-      g.fillText(text, 54, 33, 190);
+      if (color) g.fillText(text, 54, 33, 190);
+      else {
+        g.textAlign = "center";
+        g.fillText(text, 128, 33, 230);
+      }
     }
     const t = new THREE.CanvasTexture(canvas);
     t.colorSpace = THREE.SRGBColorSpace;
@@ -127,7 +137,7 @@ function NameTag({ text, color }: { text: string; color: string }) {
   }, [text, color]);
   useEffect(() => () => texture.dispose(), [texture]);
   return (
-    <sprite position={[0, 22, 0]} scale={[0.17, 0.0425, 1]} renderOrder={10}>
+    <sprite position={[0, y, 0]} scale={[0.17, 0.0425, 1]} renderOrder={10}>
       <spriteMaterial map={texture} sizeAttenuation={false} depthTest={false} transparent fog={false} />
     </sprite>
   );
@@ -229,9 +239,11 @@ function Buoy({ x, z, color, flag }: { x: number; z: number; color: string; flag
   );
 }
 
-/** The start and finish line: a row of small floats between the two pins. */
-function LineFloats({ a, b }: { a: { x: number; z: number }; b: { x: number; z: number } }) {
-  const count = Math.max(2, Math.round(Math.hypot(b.x - a.x, b.z - a.z) / 4));
+/** The start and finish line: an orange dashed line on the water, as on the map. */
+function LineDashes({ a, b }: { a: { x: number; z: number }; b: { x: number; z: number } }) {
+  const length = Math.hypot(b.x - a.x, b.z - a.z);
+  const count = Math.max(2, Math.round(length / 3.5));
+  const yaw = Math.atan2(b.x - a.x, b.z - a.z);
   const mesh = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
   useFrame(({ clock }) => {
@@ -241,7 +253,8 @@ function LineFloats({ a, b }: { a: { x: number; z: number }; b: { x: number; z: 
       const t = (i + 0.5) / count;
       const x = a.x + (b.x - a.x) * t;
       const z = a.z + (b.z - a.z) * t;
-      dummy.position.set(x, sampleWave(x, z, clock.elapsedTime).y + 0.15, z);
+      dummy.position.set(x, sampleWave(x, z, clock.elapsedTime).y + 0.1, z);
+      dummy.rotation.set(0, yaw, 0);
       dummy.updateMatrix();
       m.setMatrixAt(i, dummy.matrix);
     }
@@ -249,10 +262,120 @@ function LineFloats({ a, b }: { a: { x: number; z: number }; b: { x: number; z: 
   });
   return (
     <instancedMesh ref={mesh} args={[undefined, undefined, count]} frustumCulled={false}>
-      <sphereGeometry args={[0.45, 10, 8]} />
-      <meshStandardMaterial color={PIN_COLOR} roughness={0.6} />
+      <boxGeometry args={[0.28, 0.08, 1.8]} />
+      <meshStandardMaterial color={LINE_COLOR} emissive={LINE_COLOR} emissiveIntensity={0.35} roughness={0.6} />
     </instancedMesh>
   );
+}
+
+/** A motor-boat hull seen from above, bow north: extruded upward into a low-poly hull. */
+function committeeHull(): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  shape.moveTo(-1.3, 3.6);
+  shape.lineTo(1.3, 3.6);
+  shape.lineTo(1.35, -1.2);
+  shape.quadraticCurveTo(1.2, -3.2, 0, -4.4);
+  shape.quadraticCurveTo(-1.2, -3.2, -1.35, -1.2);
+  shape.closePath();
+  const g = new THREE.ExtrudeGeometry(shape, { depth: 1.3, bevelEnabled: false });
+  // Shape x/y become x/z, the extrusion becomes height (y).
+  g.rotateX(Math.PI / 2);
+  g.translate(0, 1.0, 0);
+  return g;
+}
+
+/** The race committee boat at the starboard end of the line, flag up. */
+function CommitteeBoat({ x, z }: { x: number; z: number }) {
+  const ref = useRef<THREE.Group>(null);
+  const hull = useMemo(() => committeeHull(), []);
+  useEffect(() => () => hull.dispose(), [hull]);
+  useFrame(({ clock }) => {
+    if (ref.current) ref.current.position.y = sampleWave(x, z, clock.elapsedTime).y;
+  });
+  return (
+    <group ref={ref} position={[x, 0, z]}>
+      <mesh geometry={hull} position-y={-0.3} castShadow>
+        <meshStandardMaterial color="#eef2f4" roughness={0.45} />
+      </mesh>
+      <mesh position={[0, 1.4, 0.9]} castShadow>
+        <boxGeometry args={[2.0, 1.0, 2.6]} />
+        <meshStandardMaterial color="#9fb3c0" roughness={0.5} />
+      </mesh>
+      <mesh position={[0, 3.6, 0.9]}>
+        <cylinderGeometry args={[0.06, 0.06, 3.6, 6]} />
+        <meshStandardMaterial color="#d8d8d8" />
+      </mesh>
+      <mesh position={[0.6, 4.9, 0.9]}>
+        <boxGeometry args={[1.2, 0.8, 0.04]} />
+        <meshStandardMaterial color={MARK_COLOR} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
+/** The sector the boat cannot sail into, on the water at the bow, turned with the wind. */
+function NoGoWedge({ windDirRef }: { windDirRef: MutableRefObject<number> }) {
+  const group = useRef<THREE.Group>(null);
+  const geometry = useMemo(() => {
+    // Bearing b points along (sin b, 0, -cos b); a ring angle t of the flat
+    // ring lands on bearing 90 - t, so north +-30 is t = 60..120 degrees.
+    const g = new THREE.RingGeometry(7, 34, 24, 1, (90 - NO_GO_DEG) * DEG, 2 * NO_GO_DEG * DEG);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  }, []);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  useFrame(() => {
+    if (group.current) group.current.rotation.y = -windDirRef.current * DEG;
+  });
+  // The two edges of the sector, like the lines a race broadcast draws on the water.
+  const edges = [-NO_GO_DEG, NO_GO_DEG].map((b) => ({ b, x: Math.sin(b * DEG) * 20.5, z: -Math.cos(b * DEG) * 20.5 }));
+  return (
+    <group ref={group}>
+      <mesh geometry={geometry} position-y={0.6} renderOrder={2}>
+        <meshBasicMaterial color="#ff4d66" transparent opacity={0.09} depthWrite={false} side={THREE.DoubleSide} fog={false} />
+      </mesh>
+      {edges.map((e) => (
+        <mesh key={e.b} position={[e.x, 0.65, e.z]} rotation-y={-e.b * DEG} renderOrder={3}>
+          <boxGeometry args={[0.35, 0.05, 27]} />
+          <meshBasicMaterial color="#ff6680" transparent opacity={0.75} depthWrite={false} fog={false} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/**
+ * Where the next target is when it is off screen: an arrow on the edge of the
+ * view (clear of the HUD at the top and the controls at the bottom).
+ */
+function TargetArrow({ boatsRef, courseRef, originRef, arrowRef }: {
+  boatsRef: MutableRefObject<Race3DBoat[]>;
+  courseRef: MutableRefObject<Race3DCourse>;
+  originRef: OriginRef;
+  arrowRef: MutableRefObject<HTMLDivElement | null>;
+}) {
+  const v = useMemo(() => new THREE.Vector3(), []);
+  useFrame(({ camera, size }) => {
+    const el = arrowRef.current;
+    if (!el) return;
+    const player = playerOf(boatsRef.current);
+    const target = player ? nextTarget(player, courseRef.current) : null;
+    if (!target) { el.style.display = "none"; return; }
+    const w = toWorld(target);
+    v.set(w.x - originRef.current.x, 4, w.z - originRef.current.z).project(camera);
+    const behind = v.z > 1;
+    const x = behind ? -v.x : v.x;
+    const y = behind ? -v.y : v.y;
+    if (!behind && Math.abs(x) < 0.9 && Math.abs(y) < 0.9) { el.style.display = "none"; return; }
+    const m = Math.max(Math.abs(x), Math.abs(y)) || 1;
+    const px = Math.min(size.width - 30, Math.max(30, size.width / 2 + (x / m) * (size.width / 2 - 30)));
+    const py = Math.min(size.height - 160, Math.max(170, size.height / 2 - (y / m) * (size.height / 2)));
+    el.style.display = "flex";
+    el.style.transform = `translate(${px - 22}px, ${py - 22}px)`;
+    const glyph = el.firstElementChild as HTMLElement | null;
+    if (glyph) glyph.style.transform = `rotate(${(Math.atan2(x, y) * 180) / Math.PI}deg)`;
+  });
+  return null;
 }
 
 /** The shore and islands of the venue, the 2D shore raised into terrain. */
@@ -266,14 +389,15 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Everything fixed to the race area, shifted so the player stays at the origin. */
-function World({ venue, courseRef, boatsRef, originRef }: {
+function World({ venue, courseRef, boatsRef, originRef, targetLabel }: {
   venue: Venue;
   courseRef: MutableRefObject<Race3DCourse>;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   originRef: OriginRef;
+  targetLabel: string;
 }) {
   const group = useRef<THREE.Group>(null);
-  const pointer = useRef<THREE.Mesh>(null);
+  const pointer = useRef<THREE.Group>(null);
   // The marks are the standard course every race sails (solo, multiplayer,
   // replay); the live course ref only drives the next-target marker.
   const course = STANDARD_COURSE;
@@ -297,15 +421,21 @@ function World({ venue, courseRef, boatsRef, originRef }: {
       <Land venue={venue} />
       {course.marks.map((m, i) => {
         const w = toWorld(m.pos);
-        return <Buoy key={i} x={w.x} z={w.z} color={m.type === "windward" ? MARK_COLOR : PIN_COLOR} flag />;
+        // The starboard end of the start line is the committee boat, the other end a pin.
+        const committee = m.type === "start" && m.pos.x === Math.max(course.startLine.a.x, course.startLine.b.x);
+        return committee ? <CommitteeBoat key={i} x={w.x} z={w.z} />
+          : <Buoy key={i} x={w.x} z={w.z} color={m.type === "windward" ? MARK_COLOR : PIN_COLOR} flag />;
       })}
-      <LineFloats a={start.a} b={start.b} />
-      {!finishSame && <LineFloats a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
-      {/* Where to sail next: the same target the race counts. */}
-      <mesh ref={pointer} rotation-x={Math.PI}>
-        <coneGeometry args={[1.8, 3.2, 4]} />
-        <meshBasicMaterial color="#00d4ff" fog={false} />
-      </mesh>
+      <LineDashes a={start.a} b={start.b} />
+      {!finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
+      {/* Where to sail next: the same target the race counts, and how far. */}
+      <group ref={pointer}>
+        <mesh rotation-x={Math.PI}>
+          <coneGeometry args={[1.8, 3.2, 4]} />
+          <meshBasicMaterial color="#00d4ff" fog={false} />
+        </mesh>
+        {targetLabel && <NameTag text={targetLabel} y={4.5} />}
+      </group>
     </group>
   );
 }
@@ -368,6 +498,9 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
   // Rivals come and go with each race (restart, other difficulty), and their
   // places change: follow both twice a second for the name tags.
   const [rivals, setRivals] = useState<{ id: string; color: string; label: string }[]>([]);
+  const [targetLabel, setTargetLabel] = useState("");
+  const metresUnit = labels.metres;
+  const arrowRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const read = () => {
       const ranks = raceRanks(boatsRef.current, STANDARD_COURSE);
@@ -375,14 +508,20 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
         .map((b) => ({ id: b.id, color: b.color, label: `${ranks.get(b.id) ?? ""}  ${b.name ?? ""}`.trim() }));
       const key = (list: { id: string; label: string }[]) => list.map((r) => `${r.id}:${r.label}`).join();
       setRivals((prev) => (key(prev) === key(next) ? prev : next));
+      // How far the next target is, in steps of 10 m so the tag is not redrawn every frame.
+      const player = playerOf(boatsRef.current);
+      const target = player ? nextTarget(player, STANDARD_COURSE) : null;
+      const metres = player && target ? Math.round((distance(player.pos, target) * METRES_PER_UNIT) / 10) * 10 : null;
+      setTargetLabel(metres === null ? "" : `${metres} ${metresUnit}`);
     };
     read();
     const id = window.setInterval(read, 500);
     return () => window.clearInterval(id);
-  }, [boatsRef]);
+  }, [boatsRef, metresUnit]);
 
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={labels.error} retryLabel={labels.retry}>
+      <div className="relative h-full w-full">
       <Canvas
         fallback={<span>{labels.scene}</span>}
         shadows="percentage"
@@ -450,7 +589,9 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
           <meshStandardMaterial color="#0e4256" roughness={0.6} metalness={0.07} />
         </mesh>
 
-        <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} />
+        <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} />
+        <NoGoWedge windDirRef={windDirRef} />
+        <TargetArrow boatsRef={boatsRef} courseRef={courseRef} originRef={originRef} arrowRef={arrowRef} />
         <Suspense fallback={<Loading label={labels.loading} />}>
           <Player boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} playerStateRef={playerStateRef} />
           {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
@@ -458,6 +599,14 @@ export const Race3DView = memo(function Race3DView({ boatsRef, courseRef, windDi
         </Suspense>
         <ChaseCamera stateRef={playerStateRef} mode={camera} />
       </Canvas>
+      {/* Off-screen pointer to the next target, moved by TargetArrow. */}
+      <div ref={arrowRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 hidden h-11 w-11 items-center justify-center rounded-full"
+        style={{ background: "rgba(10, 22, 40, 0.82)", border: "1px solid rgba(0, 212, 255, 0.6)" }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M12 19V5M5 12l7-7 7 7" />
+        </svg>
+      </div>
+      </div>
     </SceneBoundary>
   );
 });
