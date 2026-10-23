@@ -18,17 +18,20 @@ import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fal
 import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
 // Shared sailing engine; the WebSocket server imports a generated bundle.
 import {
-  WORLD, MAX_SPEED, stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, raceWaypoint, makeStandardCourse,
+  WORLD, stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, raceWaypoint, makeStandardCourse,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
   calcTWA, deg2rad, distance, bearing,
   angleDiff,
 } from '@/lib/race-physics';
 import { drawVenue } from '@/features/venues/drawVenue';
 import { useVenue } from '@/features/venues/useVenue';
-import { VenuePicker } from '@/features/venues/VenuePicker';
-import { RaceViewPicker } from '@/features/race-3d/RaceViewPicker';
+import { GameMenu } from './GameMenu';
+import { BOAT_STYLES, DIFFICULTY_CONFIG, type BoatStyle, type Difficulty } from './config';
 import { useRaceView } from '@/features/race-3d/useRaceView';
-import { raceRanks } from '@/features/race-3d/pose';
+import { METRES_PER_UNIT, nextTarget, raceRanks } from '@/features/race-3d/pose';
+import { RaceToast, SpeedCard, Standings, WindCompass, type StandingRow, type ToastTone } from '@/features/race-hud/RaceHud';
+import { polarFor, targetSpeed } from '@/features/race-hud/target';
+import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
 
 // three.js loads only when someone opens the race in 3D.
@@ -38,39 +41,8 @@ const Race3DView = dynamic(() => import('@/features/race-3d/Race3DView').then((m
 // TYPES
 // ============================================================================
 
-type Difficulty = 'easy' | 'medium' | 'hard';
 type GameState = 'menu' | 'briefing' | 'countdown' | 'racing' | 'finished' | 'replay';
-type BoatStyle = 'cruiser' | 'racer';
 
-const BOAT_STYLES: {
-  id: BoatStyle;
-  labelRu: string; labelEn: string; labelPl: string;
-  labelEs: string; labelFr: string; labelDe: string; labelIt: string;
-  descRu: string; descEn: string; descPl: string;
-  descEs: string; descFr: string; descDe: string; descIt: string;
-  hullScale: number; hullWidth: number; sailHue: string;
-}[] = [
-  { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', labelPl: 'Jacht turystyczny',
-    labelEs: 'Crucero', labelFr: 'Croiseur', labelDe: 'Fahrtenyacht', labelIt: 'Da crociera',
-    descRu: 'Сбалансированная, для начала.',
-    descEn: 'Balanced, good for starting out.',
-    descPl: 'Wyważony, dobry na początek.',
-    descEs: 'Equilibrado, ideal para empezar.',
-    descFr: 'Équilibré, idéal pour débuter.',
-    descDe: 'Ausgewogen, gut für den Einstieg.',
-    descIt: 'Equilibrata, ideale per iniziare.',
-    hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
-  { id: 'racer', labelRu: 'Гоночная', labelEn: 'Racer', labelPl: 'Jacht regatowy',
-    labelEs: 'De regatas', labelFr: 'Voilier de course', labelDe: 'Regattayacht', labelIt: 'Da regata',
-    descRu: 'Узкий длинный корпус, быстрая.',
-    descEn: 'Long, narrow hull. Fast.',
-    descPl: 'Długi, wąski kadłub. Szybki.',
-    descEs: 'Casco largo y estrecho. Rápido.',
-    descFr: 'Coque longue et étroite. Rapide.',
-    descDe: 'Langer, schmaler Rumpf. Schnell.',
-    descIt: 'Scafo lungo e stretto. Veloce.',
-    hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
-];
 
 interface Vec2 { x: number; y: number }
 
@@ -157,83 +129,6 @@ interface Coaching {
 // WORLD, WIND_DIRECTION, MAX_SPEED, TURN_RATE, ACCEL and MARK_ROUND_DIST are
 // imported from '@/lib/race-physics' (see top of file) - do not redefine here.
 
-const DIFFICULTY_CONFIG: Record<Difficulty, {
-  label: string;      // RU (legacy field name, kept for compat)
-  labelEn: string;
-  labelPl: string;
-  labelEs: string;
-  labelFr: string;
-  labelDe: string;
-  labelIt: string;
-  description: string;      // RU
-  descriptionEn: string;
-  descriptionPl: string;
-  descriptionEs: string;
-  descriptionFr: string;
-  descriptionDe: string;
-  descriptionIt: string;
-  opponents: number;
-  aiSpeedMul: number;
-  color: string;
-}> = {
-  easy: {
-    label: 'Лёгкий',
-    labelEn: 'Easy',
-    labelPl: 'Łatwy',
-    labelEs: 'Fácil',
-    labelFr: 'Facile',
-    labelDe: 'Leicht',
-    labelIt: 'Facile',
-    description: 'Медленные противники, спокойные повороты. Хорошо для знакомства с управлением.',
-    descriptionEn: 'Slow opponents, gentle turns. Good for getting used to the controls.',
-    descriptionPl: 'Wolni rywale, spokojne zwroty. Dobry na oswojenie się ze sterowaniem.',
-    descriptionEs: 'Rivales lentos que viran con calma. Ideal para hacerte con los controles.',
-    descriptionFr: 'Adversaires lents, virements tranquilles. Idéal pour prendre en main les commandes.',
-    descriptionDe: 'Langsame Gegner, ruhige Wenden. Gut, um dich mit der Steuerung vertraut zu machen.',
-    descriptionIt: 'Avversari lenti, virate tranquille. Ideale per prendere confidenza con i comandi.',
-    opponents: 2,
-    aiSpeedMul: 0.78,
-    color: '#44ff88',
-  },
-  medium: {
-    label: 'Средний',
-    labelEn: 'Medium',
-    labelPl: 'Średni',
-    labelEs: 'Medio',
-    labelFr: 'Moyen',
-    labelDe: 'Mittel',
-    labelIt: 'Medio',
-    description: 'Соперники держат курс уверенно. Нужна тактика лавировки и точное огибание знаков.',
-    descriptionEn: 'Opponents sail a confident line. You need tacking tactics and precise mark rounding.',
-    descriptionPl: 'Rywale pewnie trzymają kurs. Potrzebna jest taktyka halsowania i precyzyjne opływanie znaków.',
-    descriptionEs: 'Los rivales mantienen el rumbo con seguridad. Necesitas táctica de bordos y rodear las balizas con precisión.',
-    descriptionFr: 'Les adversaires tiennent leur cap avec assurance. Il te faut une tactique de louvoyage et des passages de bouée précis.',
-    descriptionDe: 'Die Gegner halten sicher ihren Kurs. Du brauchst eine gute Kreuztaktik und musst die Bahnmarken präzise runden.',
-    descriptionIt: 'Gli avversari tengono la rotta con sicurezza. Servono una buona tattica di bolina e giri di boa precisi.',
-    opponents: 3,
-    aiSpeedMul: 0.92,
-    color: '#ffaa00',
-  },
-  hard: {
-    label: 'Сложный',
-    labelEn: 'Hard',
-    labelPl: 'Trudny',
-    labelEs: 'Difícil',
-    labelFr: 'Difficile',
-    labelDe: 'Schwer',
-    labelIt: 'Difficile',
-    description: 'Агрессивные соперники идут почти оптимально. Каждая ошибка дорого стоит.',
-    descriptionEn: 'Aggressive opponents sail near-optimal lines. Every mistake is costly.',
-    descriptionPl: 'Agresywni rywale płyną niemal optymalnie. Każdy błąd drogo kosztuje.',
-    descriptionEs: 'Rivales agresivos que navegan casi a la perfección. Cada error se paga caro.',
-    descriptionFr: 'Des adversaires agressifs, presque parfaits. Chaque erreur coûte cher.',
-    descriptionDe: 'Aggressive Gegner segeln nahezu optimal. Jeder Fehler rächt sich.',
-    descriptionIt: 'Avversari aggressivi che navigano quasi alla perfezione. Ogni errore costa caro.',
-    opponents: 4,
-    aiSpeedMul: 1.02,
-    color: '#ff4444',
-  },
-};
 
 const AI_NAMES = ['Nautilus', 'Mistral', 'Trident', 'Aurora', 'Kraken', 'Borealis'];
 const AI_COLORS = ['#ff6688', '#88ddff', '#ffdd44', '#aa88ff', '#ff8844', '#66ffbb'];
@@ -288,18 +183,18 @@ export default function GamePage() {
   // Inside the app (?embed=1) the site nav is hidden, so the race takes the whole height.
   const embed = useSyncExternalStore(noSubscribe, isEmbed, () => false);
   const race3dLabels = useMemo(() => ({
+    metres: lang === 'ru' ? 'м' : 'm',
     loading: tl({ ru: 'Загружаем яхту', en: 'Loading the yacht', pl: 'Ładujemy jacht', es: 'Cargando el velero', fr: 'Chargement du voilier', de: 'Yacht wird geladen', it: 'Caricamento della barca' }),
     scene: tl({ ru: '3D-вид гонки', en: '3D race view', pl: 'Widok 3D wyścigu', es: 'Vista 3D de la regata', fr: 'Vue 3D de la course', de: '3D-Rennansicht', it: 'Vista 3D della regata' }),
     error: tl({ ru: '3D не загрузилось. Повтори или переключись на 2D.', en: "3D didn't load. Try again or switch to 2D.", pl: '3D się nie wczytało. Spróbuj ponownie albo przełącz na 2D.', es: 'El 3D no se cargó. Reinténtalo o cambia a 2D.', fr: "La 3D ne s'est pas chargée. Réessaie ou passe en 2D.", de: '3D wurde nicht geladen. Versuch es noch einmal oder wechsle zu 2D.', it: 'Il 3D non si è caricato. Riprova o passa al 2D.' }),
     retry: tl({ ru: 'Повторить', en: 'Try again', pl: 'Spróbuj ponownie', es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' }),
-  }), [tl]);
+  }), [tl, lang]);
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
   const [countdown, setCountdown] = useState(3);
   const [elapsed, setElapsed] = useState(0);
-  const [position, setPosition] = useState<{ rank: number; total: number }>({ rank: 1, total: 1 });
   const [results, setResults] = useState<{ name: string; time: number; color: string; isPlayer: boolean }[]>([]);
   // Personal-best record for the current difficulty + wind bucket. Updated
   // when the player finishes; surfaces as a "NEW RECORD" banner in the
@@ -323,6 +218,25 @@ export default function GamePage() {
   const lastSampleTimeRef = useRef<number>(0);
   const wasInNoGoRef = useRef<boolean>(false);
   const lastTackSignRef = useRef<number>(0);
+
+  // HUD (src/features/race-hud): standings, and short race events with the
+  // numbers the race measured (a tack's cost, the split at the mark, overtakes).
+  const [standings, setStandings] = useState<StandingRow[]>([]);
+  const standingsKeyRef = useRef('');
+  const [toast, setToast] = useState<{ id: number; text: string; tone: ToastTone } | null>(null);
+  const markTimesRef = useRef<Map<string, number>>(new Map());
+  const speedLogRef = useRef<{ t: number; speed: number }[]>([]);
+  const turnRef = useRef<{ kind: 'tack' | 'gybe'; t: number; before: number; min: number } | null>(null);
+  const shownRankRef = useRef(0);
+  const pendingRankRef = useRef<{ rank: number; since: number } | null>(null);
+  const showEvent = useCallback((event: RaceEvent, tone: ToastTone) => {
+    setToast({ id: performance.now(), text: eventText(langRef.current, event), tone });
+  }, []);
+  useEffect(() => {
+    if (!toast) return;
+    const id = window.setTimeout(() => setToast(null), 2600);
+    return () => window.clearTimeout(id);
+  }, [toast]);
 
   // AI coaching state
   const [coaching, setCoaching] = useState<Coaching | null>(null);
@@ -418,8 +332,6 @@ export default function GamePage() {
   // Wind shifts (live direction + gust multiplier)
   const windDirRef = useRef<number>(WIND_DIRECTION);
   const windGustRef = useRef<number>(1.0);
-  const [windDirDisplay, setWindDirDisplay] = useState<number>(WIND_DIRECTION);
-  const [windGustDisplay, setWindGustDisplay] = useState<number>(1.0);
 
   // When a mission is picked, auto-apply its difficulty + wind
   const pickMission = useCallback((m: Mission | null) => {
@@ -595,6 +507,12 @@ export default function GamePage() {
     setCoachingError(null);
     logSamplesRef.current = [];
     logEventsRef.current = [];
+    markTimesRef.current = new Map();
+    speedLogRef.current = [];
+    turnRef.current = null;
+    shownRankRef.current = 0;
+    pendingRankRef.current = null;
+    standingsKeyRef.current = '';
     lastSampleTimeRef.current = 0;
     wasInNoGoRef.current = false;
     lastTackSignRef.current = 0;
@@ -711,11 +629,6 @@ export default function GamePage() {
                  + Math.sin(raceT * (2 * Math.PI / 9)) * 0.12
                  + Math.sin(raceT * (2 * Math.PI / 3.3)) * 0.05;
       windGustRef.current = Math.max(0.75, Math.min(1.25, gust));
-      // Cheap display update (every ~5 frames) to avoid renders storm
-      if (Math.floor(now / 120) % 2 === 0) {
-        setWindDirDisplay(windDirRef.current);
-        setWindGustDisplay(windGustRef.current);
-      }
 
       // Capture previous positions BEFORE movement - used later for line-cross detection
       const prevPositions = new Map<string, Vec2>();
@@ -750,6 +663,14 @@ export default function GamePage() {
         if (!isRacing) continue;
 
         const event = updateLap(boat, prevPos, course, (now - startTimeRef.current) / 1000);
+        if (event === "mark") {
+          const t = (now - startTimeRef.current) / 1000;
+          markTimesRef.current.set(boat.id, t);
+          if (boat.isPlayer) {
+            const times = [...markTimesRef.current.values()];
+            showEvent({ kind: 'mark', place: times.filter((x) => x <= t).length, gapSec: t - Math.min(...times) }, 'info');
+          }
+        }
         if (boat.isPlayer && event === "mark") {
           logEventsRef.current.push({ type: "mark-rounded", t: (now - startTimeRef.current) / 1000, note: "windward-port" });
           playMarkRound();
@@ -785,11 +706,25 @@ export default function GamePage() {
         wasInNoGoRef.current = inNoGo;
         // Tack event (wind side flipped)
         const tackSign = pTWA > 0 ? 1 : -1;
+        const speedLog = speedLogRef.current;
+        speedLog.push({ t, speed: playerBoat.speed });
+        while (speedLog.length && speedLog[0].t < t - 3) speedLog.shift();
         if (lastTackSignRef.current !== 0 && tackSign !== lastTackSignRef.current && playerBoat.speed > 1) {
           logEventsRef.current.push({ type: 'tack', t, note: tackSign > 0 ? 'to-port-tack' : 'to-starboard-tack' });
           playTack();
+          // Its cost: the best speed of the last 3 s against the slowest of the next 4 s.
+          turnRef.current = { kind: Math.abs(pTWA) < 90 ? 'tack' : 'gybe', t, before: Math.max(...speedLog.map((s) => s.speed)), min: playerBoat.speed };
         }
         lastTackSignRef.current = tackSign;
+        const turn = turnRef.current;
+        if (turn) {
+          turn.min = Math.min(turn.min, playerBoat.speed);
+          if (t - turn.t >= 4) {
+            turnRef.current = null;
+            const loss = turn.before - turn.min;
+            if (loss >= 0.2) showEvent({ kind: turn.kind, lossKn: loss }, loss > 1.5 ? 'bad' : 'info');
+          }
+        }
       }
 
       // Update UI state
@@ -807,8 +742,25 @@ export default function GamePage() {
       if (isRacing) setElapsed(elapsedSec);
 
       // Calculate position (rank): the same count the 3D name tags show.
-      const rank = raceRanks(boats, course).get('player') ?? boats.length;
-      setPosition({ rank, total: boats.length });
+      const ranks = raceRanks(boats, course);
+      const rank = ranks.get('player') ?? boats.length;
+      const ordered = [...boats].sort((a, b) => (ranks.get(a.id) ?? 0) - (ranks.get(b.id) ?? 0));
+      const standingsKey = ordered.map((b) => b.id).join();
+      if (standingsKey !== standingsKeyRef.current) {
+        standingsKeyRef.current = standingsKey;
+        setStandings(ordered.map((b) => ({ id: b.id, name: b.name, color: b.color, isPlayer: b.isPlayer })));
+      }
+      // Overtakes: a place held for a second, not a flicker between two close boats.
+      if (isRacing && elapsedSec > 3 && player.lapDone < 2) {
+        if (shownRankRef.current === 0) shownRankRef.current = rank;
+        if (rank === shownRankRef.current) pendingRankRef.current = null;
+        else if (pendingRankRef.current?.rank !== rank) pendingRankRef.current = { rank, since: elapsedSec };
+        else if (elapsedSec - pendingRankRef.current.since >= 1) {
+          showEvent({ kind: rank < shownRankRef.current ? 'gained' : 'lost', place: rank }, rank < shownRankRef.current ? 'good' : 'bad');
+          shownRankRef.current = rank;
+          pendingRankRef.current = null;
+        }
+      }
 
       // Render
       draw();
@@ -1147,7 +1099,7 @@ export default function GamePage() {
         ctx.fillStyle = '#00d4ff';
         ctx.font = 'bold 11px system-ui, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(`${Math.round(distToTarget / 10)}m`, ax, ay + 24);
+        ctx.fillText(`${Math.round(distToTarget * METRES_PER_UNIT)} ${langRef.current === 'ru' ? 'м' : 'm'}`, ax, ay + 24);
         ctx.restore();
       }
     }
@@ -1184,6 +1136,14 @@ export default function GamePage() {
   const playerFinished = results.find((r) => r.isPlayer);
   const playerRank = results.findIndex((r) => r.isPlayer) + 1;
   const currentPoS = useMemo(() => getPointOfSailName(playerTWA), [playerTWA]);
+  // Target speeds for the HUD, solved once per wind strength when a race runs.
+  const polar = useMemo(() => (gameState === 'racing' ? polarFor(12 * windStrengthMul) : null), [gameState, windStrengthMul]);
+  // Distance to the next target in metres, at the scale of the 3D race (ADR-0006).
+  const hudPlayer = boatsRef.current.find((b) => b.isPlayer);
+  const hudTarget = hudPlayer ? nextTarget(hudPlayer, courseRef.current) : null;
+  const distanceToGo = hudPlayer && hudTarget
+    ? ` · ${Math.round(distance(hudPlayer.pos, hudTarget) * METRES_PER_UNIT)} ${lang === 'ru' ? 'м' : 'm'}`
+    : '';
 
   // =====================================================================
   // MENU SCREEN
@@ -1278,104 +1238,78 @@ export default function GamePage() {
           </div>
         </div>
 
-        <h1 className="text-3xl sm:text-4xl font-bold mb-2">
+        <h1 className="text-3xl sm:text-4xl font-semibold mb-1">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
-
-        {/* ARCADE badge: /game runs the shared VPP engine, but the sails trim
-            themselves (trimForDrive) and steering is a simple turn rate, while
-            /simulator-v3 lets you trim by hand. Users who noticed "speed
-            differs between /game and the trainer" were confused; this says why. */}
-        <div className="inline-flex items-center gap-2 mb-4 px-3 py-1.5 rounded-full text-xs font-semibold"
-             style={{ background: 'rgba(255, 170, 0, 0.12)', border: '1px solid rgba(255, 170, 0, 0.3)', color: 'var(--warning)' }}>
-          <span>🕹️</span>
-          <span>
-            {tp(
-              'АРКАДНЫЙ РЕЖИМ · паруса настраиваются сами, руление упрощено. Трим вручную - в «Тренажёре трима»',
-              'ARCADE MODE · the sails trim themselves and steering is simplified. Trim by hand in the Sail trim trainer',
-              'TRYB ARCADE · żagle trymują się same, a sterowanie jest uproszczone. Trym ręczny: w Trenażerze trymu',
-              {
-                es: 'MODO ARCADE · las velas se ajustan solas y el gobierno está simplificado. El trimado a mano, en el Simulador de trimado',
-                fr: 'MODE ARCADE · les voiles se règlent seules et la barre est simplifiée. Le réglage à la main se fait dans Réglage des voiles',
-                de: 'ARCADE-MODUS · die Segel trimmen sich selbst, das Steuern ist vereinfacht. Von Hand trimmen: im Segeltrimm-Trainer',
-                it: 'MODALITÀ ARCADE · le vele si regolano da sole e il timone è semplificato. La regolazione a mano è in Regolazione delle vele',
-              },
-            )}
-          </span>
-        </div>
-
-        <p className="text-sm text-[var(--text-secondary)] mb-6">
-          {tp(
-            'Что делать и как не накосячить. Прочитай - старт через 3 секунды будет некогда разбираться.',
-            'What to do and how not to screw up. Read it - in 3 seconds you won\'t have time.',
-            'Co robić i jak nie nawalić. Przeczytaj - po starcie za 3 sekundy nie będzie czasu się zastanawiać.',
-            {
-              es: 'Qué hacer y cómo no meter la pata. Léelo - en 3 segundos ya no habrá tiempo.',
-              fr: 'Ce qu\'il faut faire et comment ne pas te planter. Lis-le - dans 3 secondes, tu n\'auras plus le temps.',
-              de: 'Was zu tun ist und wie du keinen Mist baust. Lies es - in 3 Sekunden ist keine Zeit mehr dafür.',
-              it: 'Cosa fare e come non combinare pasticci. Leggilo - tra 3 secondi non avrai più tempo.',
-            },
-          )}
+        {/* The race trims the sails itself (trimForDrive); by-hand trim lives in
+            the trim trainer. Said once, plainly, so a different speed there is
+            no surprise. */}
+        <p className="text-sm text-[var(--text-secondary)] mb-5">
+          {tl({
+            ru: 'Паруса настраиваются сами, ты рулишь. Трим вручную: «Тренажёр трима».',
+            en: 'The sails trim themselves, you steer. To trim by hand: the Sail trim trainer.',
+            pl: 'Żagle trymują się same, ty sterujesz. Trym ręczny: Trenażer trymu.',
+            es: 'Las velas se ajustan solas, tú gobiernas. Para trimar a mano: el Simulador de trimado.',
+            fr: 'Les voiles se règlent seules, tu barres. Pour régler à la main : Réglage des voiles.',
+            de: 'Die Segel trimmen sich selbst, du steuerst. Von Hand trimmen: im Segeltrimm-Trainer.',
+            it: 'Le vele si regolano da sole, tu timoni. Per regolarle a mano: Regolazione delle vele.',
+          })}
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-6">
-          {/* Course preview */}
-          <div className="card p-4">
+        {/* One card: the course with its four steps, and three rules. */}
+        <div className="card p-4 sm:p-5 mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
             <CoursePreview />
             <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
               <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line at the bottom.', 'Start z pomarańczowej linii na dole.', { es: 'La salida es desde la línea naranja de abajo.', fr:'Départ depuis la ligne orange en bas.', de: 'Start an der orangen Linie unten.', it: 'Partenza dalla linea arancione in basso.' })}</li>
               <li>{tp('Идёшь', 'Work', 'Płyniesz', { es: 'Sube', fr: 'Remonte', de: 'Segle', it: 'Risali' })} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'upwind in tacks', 'halsami', { es: 'dando bordos', fr: 'en louvoyant', de: 'in Kreuzschlägen', it: 'bordeggiando' })}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t sail straight into the wind.', 'do znaku nawietrznego - prosto pod wiatr się nie da.', { es: 'hasta la baliza de barlovento - directo contra el viento no se puede.', fr: 'jusqu\'à la bouée au vent - impossible d\'aller droit contre le vent.', de: 'zur Luvtonne - direkt gegen den Wind geht es nicht.', it: 'fino alla boa di bolina - dritti controvento non si può.' })}</li>
-              <li>{tp('Обходишь верхний знак (подойди на ~30 м).', 'Round the windward mark (get within ~30 m).', 'Okrążasz znak nawietrzny (podejdź na ~30 m).', { es: 'Rodea la baliza de barlovento (acércate a ~30 m).', fr: 'Vire la bouée au vent (approche-toi à ~30 m).', de: 'Runde die Luvtonne (komm auf ~30 m heran).', it: 'Gira la boa di bolina (avvicinati a ~30 m).' })}</li>
+              <li>{tp('Обходишь верхний знак (подойди на ~20 м).', 'Round the windward mark (get within ~20 m).', 'Okrążasz znak nawietrzny (podejdź na ~20 m).', { es: 'Rodea la baliza de barlovento (acércate a ~20 m).', fr: 'Vire la bouée au vent (approche-toi à ~20 m).', de: 'Runde die Luvtonne (komm auf ~20 m heran).', it: 'Gira la boa di bolina (avvicinati a ~20 m).' })}</li>
               <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>
-
-          {/* Controls */}
-          <div className="card p-4">
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-3">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
-            <div className="space-y-3">
-              <div className="flex items-center gap-3">
-                <div className="flex gap-1">
-                  <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
-                  <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
-                </div>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Повернуть. На мобайле - кнопки внизу экрана.', 'Turn. On mobile - buttons at the bottom of the screen.', 'Skręt. Na telefonie - przyciski na dole ekranu.', { es: 'Girar. En el móvil - botones en la parte inferior de la pantalla.', fr: 'Tourner. Sur mobile - boutons en bas de l\'écran.', de: 'Steuern. Auf dem Handy - Tasten unten am Bildschirm.', it: 'Girare. Su mobile - pulsanti in basso sullo schermo.' })}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="px-2 py-1 rounded text-[10px] font-semibold border border-[rgba(0,212,255,0.3)] text-[var(--accent-cyan)]">▶ AUTO</div>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Автопилот - держит текущий курс. Выключается от любого поворота. Удобно на длинных галсах, чтобы не подправлять.', 'Autopilot - holds the current heading. Disengages on any turn. Handy on long tacks, so you don\'t have to keep correcting.', 'Autopilot - trzyma bieżący kurs. Wyłącza się przy każdym skręcie. Wygodny na długich halsach, żeby nie poprawiać kursu.', { es: 'Piloto automático - mantiene el rumbo actual. Se desactiva en cuanto giras. Útil en bordos largos para no ir corrigiendo.', fr: 'Pilote automatique - garde le cap actuel. Se coupe dès que tu tournes. Pratique sur les longs bords, pour ne pas corriger sans arrêt.', de: 'Autopilot - hält den aktuellen Kurs. Schaltet sich bei jeder Lenkbewegung ab. Praktisch auf langen Schlägen, damit du nicht ständig korrigieren musst.', it: 'Pilota automatico - mantiene la rotta attuale. Si disattiva appena giri. Comodo sui bordi lunghi, per non dover correggere.' })}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-base">🧭</span>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Левый HUD - TWA (угол к ветру) и скорость. Держи TWA > 40° на лавировке.', 'Left HUD - TWA (angle to wind) and speed. Keep TWA > 40° when beating upwind.', 'Lewy HUD - TWA (kąt do wiatru) i prędkość. Na halsówce trzymaj TWA > 40°.', { es: 'HUD izquierdo - TWA (ángulo al viento) y velocidad. En ceñida mantén TWA > 40°.', fr: 'HUD gauche - TWA (angle au vent) et vitesse. Au louvoyage, garde TWA > 40°.', de: 'Linkes HUD - TWA (Winkel zum Wind) und Geschwindigkeit. Halte beim Kreuzen TWA > 40°.', it: 'HUD sinistro - TWA (angolo al vento) e velocità. Di bolina tieni TWA > 40°.' })}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-base">📍</span>
-                <span className="text-sm text-[var(--text-secondary)]">{tp('Стрелка на экране показывает направление к следующему знаку.', 'The on-screen arrow points to the next mark.', 'Strzałka na ekranie wskazuje kierunek do następnego znaku.', { es: 'La flecha en pantalla apunta a la siguiente baliza.', fr: 'La flèche à l\'écran indique la prochaine bouée.', de: 'Der Pfeil auf dem Bildschirm zeigt zur nächsten Bahnmarke.', it: 'La freccia sullo schermo indica la prossima boa.' })}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Key rules */}
-        <div className="card p-4 mb-6" style={{ borderColor: 'rgba(255, 170, 0, 0.3)', background: 'rgba(255, 170, 0, 0.04)' }}>
-          <div className="text-xs font-semibold tracking-wider mb-2" style={{ color: 'var(--warning)' }}>⚠ {tp('ВАЖНО', 'IMPORTANT', 'WAŻNE', { es: 'IMPORTANTE', fr: 'IMPORTANT', de: 'WICHTIG', it: 'IMPORTANTE' })}</div>
-          <ul className="text-sm text-[var(--text-secondary)] space-y-1.5 leading-relaxed">
-            <li>• {tp('В секторе ±30° от ветра паруса не работают - это', 'Within ±30° of the wind the sails don\'t work - this is the', 'W sektorze ±30° od wiatru żagle nie pracują - to', { es: 'En el sector de ±30° respecto al viento las velas no trabajan - es la', fr: 'Dans le secteur de ±30° face au vent, les voiles ne portent pas - c\'est la', de: 'Im Bereich ±30° zum Wind arbeiten die Segel nicht - das ist der', it: 'Nel settore di ±30° dal vento le vele non portano - questo è' })} <span className="text-[var(--danger)] font-semibold">{tp('мёртвая зона', 'no-go zone', 'kąt martwy', { es: 'zona muerta', fr: 'zone morte', de: 'tote Winkel', it: 'l\'angolo morto' })}</span>. {tp('Если встал - отверни от ветра градусов на 50.', 'If you stall, bear away about 50° from the wind.', 'Jeśli stanąłeś, odpadnij od wiatru o jakieś 50°.', { es: 'Si te quedas parado, arriba unos 50°.', fr: 'Si tu es arrêté, abats d\'environ 50°.', de: 'Wenn du stehst, fall etwa 50° ab.', it: 'Se ti fermi, poggia di circa 50°.' })}</li>
-            <li>• {tp('Лавировка = длинные галсы, а не частые повороты. Каждый поворот теряет скорость.', 'Beating upwind = long legs, not constant tacking. Every tack costs speed.', 'Halsowanie = długie halsy, a nie częste zwroty. Każdy zwrot kosztuje prędkość.', { es: 'Barloventear = bordos largos, no viradas constantes. Cada virada cuesta velocidad.', fr: 'Louvoyer = de longs bords, pas des virements à répétition. Chaque virement coûte de la vitesse.', de: 'Kreuzen = lange Schläge, keine ständigen Wenden. Jede Wende kostet Fahrt.', it: 'Bordeggiare = bordi lunghi, non virate continue. Ogni virata costa velocità.' })}</li>
-            <li>• {tp('AI разберёт твою гонку после финиша и покажет, где ты терял время.', 'AI reviews your race after the finish and shows where you lost time.', 'AI przeanalizuje twój wyścig po mecie i pokaże, gdzie traciłeś czas.', { es: 'La IA analizará tu regata tras la llegada y te mostrará dónde perdiste tiempo.', fr: 'L\'IA analysera ta course après l\'arrivée et te montrera où tu as perdu du temps.', de: 'Die KI analysiert dein Rennen nach dem Zieldurchgang und zeigt dir, wo du Zeit verloren hast.', it: 'L\'IA analizzerà la tua regata dopo l\'arrivo e ti mostrerà dove hai perso tempo.' })}</li>
+          <ul className="space-y-4 self-center">
+            {[
+              { icon: 'nogo', text: tl({
+                ru: '±30° к ветру - мёртвая зона: паруса не тянут. Встал - отверни градусов на 50.',
+                en: 'Within 30° of the wind is the no-go zone: the sails do not pull. If you stop, bear away about 50°.',
+                pl: '±30° od wiatru to kąt martwy: żagle nie pracują. Jeśli staniesz, odpadnij o jakieś 50°.',
+                es: 'A ±30° del viento está la zona muerta: las velas no tiran. Si te paras, arriba unos 50°.',
+                fr: "À ±30° du vent, c'est la zone morte : les voiles ne portent pas. Si tu t'arrêtes, abats d'environ 50°.",
+                de: '±30° zum Wind ist der tote Winkel: Die Segel ziehen nicht. Wenn du stehst, fall etwa 50° ab.',
+                it: "A ±30° dal vento c'è l'angolo morto: le vele non portano. Se ti fermi, poggia di circa 50°.",
+              }) },
+              { icon: 'tack', text: tl({
+                ru: 'Длинные галсы: каждый поворот стоит скорости, HUD покажет сколько.',
+                en: 'Long tacks: every turn costs speed, and the HUD shows how much.',
+                pl: 'Długie halsy: każdy zwrot kosztuje prędkość, a HUD pokaże ile.',
+                es: 'Bordos largos: cada virada cuesta velocidad y el HUD te dice cuánta.',
+                fr: 'De longs bords : chaque virement coûte de la vitesse, et le HUD te dit combien.',
+                de: 'Lange Schläge: Jede Wende kostet Fahrt, das HUD zeigt dir, wie viel.',
+                it: "Bordi lunghi: ogni virata costa velocità e l'HUD ti dice quanta.",
+              }) },
+              { icon: 'steer', text: tl({
+                ru: 'Рули стрелками ← → (на телефоне кнопками внизу), AUTO держит курс.',
+                en: 'Steer with ← → (on a phone, the buttons at the bottom); AUTO holds your course.',
+                pl: 'Steruj strzałkami ← → (na telefonie przyciskami na dole); AUTO trzyma kurs.',
+                es: 'Gobierna con ← → (en el móvil, con los botones de abajo); AUTO mantiene el rumbo.',
+                fr: 'Barre avec ← → (sur téléphone, avec les boutons en bas) ; AUTO garde le cap.',
+                de: 'Steuere mit ← → (am Handy mit den Tasten unten); AUTO hält den Kurs.',
+                it: 'Timona con ← → (sul telefono, con i pulsanti in basso); AUTO mantiene la rotta.',
+              }) },
+            ].map((rule) => (
+              <li key={rule.icon} className="flex items-start gap-3">
+                <BriefingIcon kind={rule.icon as 'nogo' | 'tack' | 'steer'} />
+                <span className="text-sm leading-relaxed text-[var(--text-secondary)]">{rule.text}</span>
+              </li>
+            ))}
           </ul>
         </div>
 
         <button
           onClick={beginCountdown}
-          className="w-full py-4 rounded-xl font-semibold text-lg transition-all hover:scale-[1.01]"
-          style={{
-            background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
-            color: '#0a1628',
-            boxShadow: `0 4px 24px ${DIFFICULTY_CONFIG[difficulty].color}44`,
-          }}
+          className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+          style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
         >
           {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
@@ -1398,40 +1332,29 @@ export default function GamePage() {
       {/* HUD - top bar */}
       {gameState === 'racing' && (
         <>
-          {/* Left HUD: course info - compact on mobile */}
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4 card p-2 sm:p-3 flex flex-col gap-1 sm:gap-2 min-w-[140px] sm:min-w-[180px]" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('КУРС', 'POS', 'KURS', { es: 'RUMBO', fr: 'ALLURE', de: 'KURS', it: 'ANDATURA' })}</span>
-              <span className="text-[10px] sm:text-xs font-mono truncate" style={{ color: currentPoS.color }}>{legacyPick(currentPoS, 'name', lang)}</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">TWA</span>
-              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: currentPoS.color }}>{Math.round(Math.abs(playerTWA))}°</span>
-            </div>
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('СКОР.', 'SPD', 'PRĘD.', { es: 'VEL.', fr: 'VIT.', de: 'FAHRT', it: 'VEL.' })}</span>
-              <span className="text-xs sm:text-sm font-mono font-bold" style={{ color: 'var(--accent-cyan)' }}>{playerSpeed.toFixed(1)} kn</span>
-            </div>
-            <div className="w-full h-1 sm:h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.3)' }}>
-              <div className="h-full transition-all" style={{ width: `${(playerSpeed / MAX_SPEED) * 100}%`, background: currentPoS.color }} />
-            </div>
+          {/* HUD (src/features/race-hud): speed against the target for this
+              angle, the wind relative to the bow, the standings with the clock. */}
+          <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
+            <SpeedCard speed={playerSpeed} target={polar ? targetSpeed(polar, playerTWA) : 0}
+              pointName={legacyPick(currentPoS, 'name', lang)} pointColor={currentPoS.color} />
           </div>
-
-          {/* Right HUD: position + time - compact */}
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4 card p-2 sm:p-3 flex flex-col gap-1 items-end" style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)]">{tp('ПОЗИЦИЯ', 'PLACE', 'MIEJSCE', { es: 'PUESTO', fr: 'PLACE', de: 'PLATZ', it: 'POSIZIONE' })}</div>
-            <div className="text-lg sm:text-2xl font-bold leading-none" style={{ color: position.rank === 1 ? 'var(--warning)' : 'var(--text-primary)' }}>
-              {position.rank}<span className="text-[10px] sm:text-xs text-[var(--text-muted)]"> / {position.total}</span>
-            </div>
-            <div className="text-[10px] sm:text-xs text-[var(--text-muted)] mt-0.5 sm:mt-1">{tp('ВРЕМЯ', 'TIME', 'CZAS', { es: 'TIEMPO', fr: 'TEMPS', de: 'ZEIT', it: 'TEMPO' })}</div>
-            <div className="text-xs sm:text-sm font-mono text-[var(--text-primary)]">{formatTime(elapsed)}</div>
+          <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2">
+            <WindCompass twa={playerTWA} />
           </div>
+          <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
+            <Standings rows={standings} time={formatTime(elapsed)} />
+          </div>
+          {toast && (
+            <div key={toast.id} className="absolute left-1/2 -translate-x-1/2 top-[9.75rem] sm:top-[8.5rem]">
+              <RaceToast text={toast.text} tone={toast.tone} />
+            </div>
+          )}
 
           {/* Mark progress indicator - above touch controls on mobile */}
           <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs whitespace-nowrap"
                style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego', { es: 'A la baliza de barlovento', fr: 'Vers la bouée au vent', de: 'Zur Luvtonne', it: 'Alla boa di bolina' })}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety', { es: 'A la llegada', fr: 'Vers l\'arrivée', de: 'Zum Ziel', it: 'All\'arrivo' })}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego', { es: 'A la baliza de barlovento', fr: 'Vers la bouée au vent', de: 'Zur Luvtonne', it: 'Alla boa di bolina' })}${distanceToGo}`}
+            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety', { es: 'A la llegada', fr: 'Vers l\'arrivée', de: 'Zum Ziel', it: 'All\'arrivo' })}${distanceToGo}`}
             {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${tp('Финиш!', 'Finish!', 'Meta!', { es: '¡Llegada!', fr: 'Arrivée !', de: 'Im Ziel!', it: 'Arrivo!' })}`}
           </div>
 
@@ -1444,20 +1367,6 @@ export default function GamePage() {
               <span className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</span>
             </div>
           )}
-
-          {/* Wind indicator (centered under the right HUD on mobile so it never overlaps with the left HUD) */}
-          <div className="absolute right-2 sm:right-4 top-[6.5rem] sm:top-[8.5rem] card px-2 py-1 flex items-center gap-1.5"
-               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}>
-            <svg width="14" height="14" viewBox="-12 -12 24 24" style={{ transform: `rotate(${windDirDisplay}deg)` }}>
-              <line x1="0" y1="-9" x2="0" y2="7" stroke="#00d4ff" strokeWidth="1.5" />
-              <polygon points="-3,4 0,7 3,4" fill="#00d4ff" />
-            </svg>
-            <span className="text-[10px] font-mono text-[var(--accent-cyan)]">
-              {Math.round(windDirDisplay)}°
-            </span>
-            {windGustDisplay > 1.08 && <span className="text-[9px] text-[var(--warning)] font-semibold">G</span>}
-            {windGustDisplay < 0.92 && <span className="text-[9px] text-[var(--text-muted)]">l</span>}
-          </div>
 
           {/* Mute toggle */}
           <button
@@ -2642,408 +2551,17 @@ function ReplayOverlay({
   );
 }
 
-// ============================================================================
-// GameMenu - 3-preset entry (Учусь / Свободная / Миссия) with collapsible details
-// ============================================================================
-
-type MenuTab = 'learn' | 'free' | 'mission';
-
-function GameMenu({
-  difficulty, setDifficulty,
-  windStrength, setWindStrength,
-  boatStyle, setBoatStyle,
-  selectedMission, pickMission,
-  openBriefing,
-}: {
-  difficulty: Difficulty;
-  setDifficulty: (d: Difficulty) => void;
-  windStrength: 'light' | 'medium' | 'heavy';
-  setWindStrength: (w: 'light' | 'medium' | 'heavy') => void;
-  boatStyle: BoatStyle;
-  setBoatStyle: (b: BoatStyle) => void;
-  selectedMission: Mission | null;
-  pickMission: (m: Mission | null) => void;
-  openBriefing: () => void;
-}) {
-  const { tp, tl } = useI18n();
-  const [tab, setTab] = useState<MenuTab>('learn');
-  const [detailsOpen, setDetailsOpen] = useState(false);
-
-  // Wind-label helper used in several places in this menu.
-  const windLabel = (w: 'light' | 'medium' | 'heavy') =>
-    w === 'light' ? tp('слабый', 'light', 'słaby', { es: 'flojo', fr: 'faible', de: 'schwach', it: 'leggero' })
-    : w === 'heavy' ? tp('сильный', 'heavy', 'silny', { es: 'fuerte', fr: 'fort', de: 'stark', it: 'forte' })
-    : tp('средний', 'medium', 'średni', { es: 'medio', fr: 'moyen', de: 'mittel', it: 'medio' });
-
-  // Mission field pickers - mission titles / descriptions / hints are stored
-  // with *Ru/*En/*Pl/*Es/*Fr/*De/*It variants on src/data/missions.ts.
-  const mTitle = (m: Mission) => tp(m.titleRu, m.titleEn, m.titlePl, { es: m.titleEs, fr: m.titleFr, de: m.titleDe, it: m.titleIt });
-  const mDesc = (m: Mission) => tp(m.descRu, m.descEn, m.descPl, { es: m.descEs, fr: m.descFr, de: m.descDe, it: m.descIt });
-
-  // Difficulty label picker. DIFFICULTY_CONFIG has `label` (RU, legacy
-  // name), labelEn, labelPl, labelEs, labelFr, labelDe, labelIt.
-  const difficultyLabel = (d: Difficulty) =>
-    tp(DIFFICULTY_CONFIG[d].label, DIFFICULTY_CONFIG[d].labelEn, DIFFICULTY_CONFIG[d].labelPl, { es: DIFFICULTY_CONFIG[d].labelEs, fr: DIFFICULTY_CONFIG[d].labelFr, de: DIFFICULTY_CONFIG[d].labelDe, it: DIFFICULTY_CONFIG[d].labelIt });
-
-  // When tab changes, apply defaults
-  useEffect(() => {
-    if (tab === 'learn') {
-      pickMission(null);
-      setDifficulty('easy');
-      setWindStrength('medium');
-      setBoatStyle('cruiser');
-    } else if (tab === 'free') {
-      pickMission(null);
-      // keep user's manual selection
-    }
-    // mission tab: user picks mission -> it sets difficulty + wind automatically
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
-
-  const ctaLabel =
-    tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
-    tab === 'mission' ? (selectedMission
-      ? tp(`К миссии: ${selectedMission.titleRu}`, `To mission: ${selectedMission.titleEn}`, `Do misji: ${selectedMission.titlePl}`, {
-          es: `Ir a la misión: ${selectedMission.titleEs ?? selectedMission.titleEn}`,
-          fr: `Vers la mission : ${selectedMission.titleFr ?? selectedMission.titleEn}`,
-          de: `Zur Mission: ${selectedMission.titleDe ?? selectedMission.titleEn}`,
-          it: `Vai alla missione: ${selectedMission.titleIt ?? selectedMission.titleEn}`,
-        })
-      : tp('Выбери миссию', 'Pick a mission', 'Wybierz misję', { es: 'Elige una misión', fr: 'Choisis une mission', de: 'Wähle eine Mission', it: 'Scegli una missione' })) :
-    tp(
-      `К брифингу · ${DIFFICULTY_CONFIG[difficulty].label}`,
-      `To briefing · ${DIFFICULTY_CONFIG[difficulty].labelEn}`,
-      `Do odprawy · ${DIFFICULTY_CONFIG[difficulty].labelPl}`,
-      {
-        es: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelEs}`,
-        fr: `Vers le briefing · ${DIFFICULTY_CONFIG[difficulty].labelFr}`,
-        de: `Zum Briefing · ${DIFFICULTY_CONFIG[difficulty].labelDe}`,
-        it: `Al briefing · ${DIFFICULTY_CONFIG[difficulty].labelIt}`,
-      },
-    );
-
-  const ctaDisabled = tab === 'mission' && !selectedMission;
-
-  return (
-    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-10">
-      <div className="mb-6">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
-          {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
-        </h1>
-        <p className="text-base text-[var(--text-secondary)]">
-          {tl({ ru: 'Выбери режим гонки', en: 'Pick a race mode', pl: 'Wybierz tryb wyścigu', es: 'Elige un modo de regata', fr: 'Choisis un mode de course', de: 'Wähle einen Rennmodus', it: 'Scegli una modalità di regata' })}
-        </p>
-      </div>
-
-      {/* Three big preset cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
-        <PresetCard
-          active={tab === 'learn'}
-          onClick={() => setTab('learn')}
-          icon="first"
-          title={tl({ ru: 'Первая гонка', en: 'First race', pl: 'Pierwszy wyścig', es: 'Primera regata', fr: 'Première course', de: 'Erstes Rennen', it: 'Prima regata' })}
-          subtitle={tl({ ru: 'Лёгкий уровень, средний ветер', en: 'Easy level, medium wind', pl: 'Łatwy poziom, średni wiatr', es: 'Nivel fácil, viento medio', fr: 'Niveau facile, vent moyen', de: 'Leichte Stufe, mittlerer Wind', it: 'Livello facile, vento medio' })}
-          desc={tp(
-            'Спокойные противники, плавные повороты. Для первого опыта гонки.',
-            'Calm opponents, gentle turns. For a first racing experience.',
-            'Spokojni rywale, łagodne zwroty. Na pierwsze regatowe doświadczenie.',
-            {
-              es: 'Rivales tranquilos, viradas suaves. Para tu primera experiencia de regata.',
-              fr: 'Adversaires calmes, virements en douceur. Pour une première expérience de course.',
-              de: 'Ruhige Gegner, sanfte Wenden. Für dein erstes Regatta-Erlebnis.',
-              it: 'Avversari tranquilli, virate morbide. Per una prima esperienza di regata.',
-            },
-          )}
-        />
-        <PresetCard
-          active={tab === 'free'}
-          onClick={() => setTab('free')}
-          icon="free"
-          title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
-          subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
-          desc={tp(
-            'Сложность, сила ветра, лодка - под тебя. Без конкретной цели.',
-            'Difficulty, wind, boat - all yours. No specific objective.',
-            'Poziom, siła wiatru, łódź - według ciebie. Bez konkretnego celu.',
-            {
-              es: 'Dificultad, viento, barco - a tu gusto. Sin un objetivo concreto.',
-              fr: 'Difficulté, vent, bateau - à ta guise. Sans objectif précis.',
-              de: 'Schwierigkeit, Wind, Boot - wie du willst. Ohne festes Ziel.',
-              it: 'Difficoltà, vento, barca - a tua scelta. Senza un obiettivo preciso.',
-            },
-          )}
-        />
-        <PresetCard
-          active={tab === 'mission'}
-          onClick={() => setTab('mission')}
-          icon="mission"
-          title={tp('Миссия', 'Mission', 'Misja', { es: 'Misión', fr: 'Mission', de: 'Mission', it: 'Missione' })}
-          subtitle={tp('Конкретная задача', 'Specific objective', 'Konkretny cel', { es: 'Objetivo concreto', fr: 'Objectif précis', de: 'Konkretes Ziel', it: 'Obiettivo preciso' })}
-          desc={tp(
-            '4 сценария: чистая гонка, под 90 сек, мин. галсов, слабый ветер.',
-            '4 scenarios: clean race, under 90 sec, min tacks, light wind.',
-            '4 scenariusze: czysty wyścig, poniżej 90 s, minimum zwrotów, słaby wiatr.',
-            {
-              es: '4 escenarios: regata limpia, menos de 90 s, pocas viradas, viento flojo.',
-              fr: '4 scénarios : course propre, moins de 90 s, peu de virements, vent faible.',
-              de: '4 Szenarien: sauberes Rennen, unter 90 s, wenige Wenden, Leichtwind.',
-              it: '4 scenari: regata pulita, sotto i 90 s, poche virate, vento leggero.',
-            },
-          )}
-        />
-      </div>
-
-      {/* Tab-specific controls */}
-      {tab === 'mission' && (
-        <div className="card p-4 mb-5">
-          <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ВЫБЕРИ МИССИЮ', 'PICK A MISSION', 'WYBIERZ MISJĘ', { es: 'ELIGE UNA MISIÓN', fr: 'CHOISIS UNE MISSION', de: 'WÄHLE EINE MISSION', it: 'SCEGLI UNA MISSIONE' })}</div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-            {missions.map((m) => {
-              const active = selectedMission?.id === m.id;
-              return (
-                <button
-                  key={m.id}
-                  onClick={() => pickMission(m)}
-                  className={`p-3 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                  style={{
-                    borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                    outlineColor: 'var(--accent-cyan)',
-                  }}
-                >
-                  <div className="text-lg mb-1">{m.emoji}</div>
-                  <div className="font-semibold text-[var(--text-primary)] line-clamp-1">{mTitle(m)}</div>
-                  <div className="text-[10px] text-[var(--text-muted)] mt-0.5 line-clamp-2">{mDesc(m)}</div>
-                </button>
-              );
-            })}
-          </div>
-          {selectedMission && (
-            <div className="mt-3 p-3 rounded text-xs" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.2)' }}>
-              <div className="text-[var(--text-primary)] font-semibold mb-1">
-                {selectedMission.emoji} {mTitle(selectedMission)}
-              </div>
-              <div className="text-[var(--text-secondary)] leading-relaxed mb-1">{mDesc(selectedMission)}</div>
-              <div className="text-[var(--accent-cyan)]">💡 {tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</div>
-              <div className="text-[10px] text-[var(--text-muted)] mt-1">
-                {tp('Автонастройки', 'Auto-settings', 'Ustawienia automatyczne', { es: 'Ajustes automáticos', fr: 'Réglages auto', de: 'Automatische Einstellungen', it: 'Impostazioni automatiche' })}: {difficultyLabel(selectedMission.difficulty)} · {tp('ветер', 'wind', 'wiatr', { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' })} {windLabel(selectedMission.windStrength)}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 'free' && (
-        <div className="card p-4 mb-5 space-y-4">
-          {/* Difficulty */}
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СЛОЖНОСТЬ', 'DIFFICULTY', 'POZIOM', { es: 'DIFICULTAD', fr: 'DIFFICULTÉ', de: 'SCHWIERIGKEIT', it: 'DIFFICOLTÀ' })}</div>
-            <div className="grid grid-cols-3 gap-2">
-              {(Object.keys(DIFFICULTY_CONFIG) as Difficulty[]).map((d) => {
-                const cfg = DIFFICULTY_CONFIG[d];
-                const active = difficulty === d;
-                return (
-                  <button
-                    key={d}
-                    onClick={() => setDifficulty(d)}
-                    className={`p-2.5 rounded-lg text-left text-xs transition border ${active ? 'ring-1' : ''}`}
-                    style={{
-                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                      outlineColor: 'var(--accent-cyan)',
-                    }}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full" style={{ background: cfg.color }} />
-                      <div className="font-semibold text-[var(--text-primary)]">{tp(cfg.label, cfg.labelEn, cfg.labelPl, { es: cfg.labelEs, fr: cfg.labelFr, de: cfg.labelDe, it: cfg.labelIt })}</div>
-                    </div>
-                    <div className="text-[10px] text-[var(--text-muted)] mt-0.5">{cfg.opponents} {tp('соперника', 'opponents', 'rywali', { es: 'rivales', fr: 'adversaires', de: 'Gegner', it: 'avversari' })}</div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          {/* Wind */}
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
-            <div className="grid grid-cols-3 gap-2">
-              {([
-                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~5 kn'  },
-                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~10 kn' },
-                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~15 kn' },
-              ] as const).map((w) => (
-                <button
-                  key={w.id}
-                  onClick={() => setWindStrength(w.id)}
-                  className={`p-2.5 rounded-lg border transition text-center ${windStrength === w.id ? 'ring-1' : ''}`}
-                  style={{
-                    borderColor: windStrength === w.id ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                    background: windStrength === w.id ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-                    outlineColor: 'var(--accent-cyan)',
-                  }}
-                >
-                  <div className="text-xs font-semibold" style={{ color: windStrength === w.id ? 'var(--accent-cyan)' : 'var(--text-primary)' }}>{w.label}</div>
-                  <div className="text-xs text-[var(--text-muted)]">{w.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-          {/* Boat */}
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'ŁÓDŹ', { es: 'BARCO', fr: 'BATEAU', de: 'BOOT', it: 'BARCA' })}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {BOAT_STYLES.map((b) => {
-                const active = boatStyle === b.id;
-                return (
-                  <button
-                    key={b.id}
-                    onClick={() => setBoatStyle(b.id)}
-                    className={`p-2.5 rounded-lg text-left text-xs transition border flex items-center gap-3 ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                    style={{
-                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                      outlineColor: 'var(--accent-cyan)',
-                    }}
-                  >
-                    <BoatStylePreview style={b.id} />
-                    <div>
-                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl, { es: b.labelEs, fr: b.labelFr, de: b.labelDe, it: b.labelIt })}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl, { es: b.descEs, fr: b.descFr, de: b.descDe, it: b.descIt })}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
-      <RaceViewPicker />
-      <VenuePicker />
-
-      {/* Collapsible details panel (controls + course rules) */}
-      <button
-        onClick={() => setDetailsOpen(!detailsOpen)}
-        className="w-full mb-4 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center justify-center gap-1 transition"
-      >
-        <span>{detailsOpen
-          ? tp('Скрыть детали', 'Hide details', 'Ukryj szczegóły', { es: 'Ocultar detalles', fr: 'Masquer les détails', de: 'Details ausblenden', it: 'Nascondi i dettagli' })
-          : tp('Показать управление и правила трассы', 'Show controls and course rules', 'Pokaż sterowanie i zasady trasy', { es: 'Ver controles y reglas del recorrido', fr: 'Afficher les commandes et les règles du parcours', de: 'Steuerung und Bahnregeln anzeigen', it: 'Mostra comandi e regole del percorso' })
-        }</span>
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
-             style={{ transform: detailsOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }}>
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-
-      {detailsOpen && (
-        <div className="card p-4 mb-5 space-y-4">
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo', { es: 'Izquierda', fr: 'Gauche', de: 'Links', it: 'Sinistra' })}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo', { es: 'Derecha', fr: 'Droite', de: 'Rechts', it: 'Destra' })}</span>
-              </div>
-              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na telefonie - przyciski na dole ekranu.', { es: 'En el móvil - botones en la parte inferior.', fr: 'Sur mobile - boutons en bas de l\'écran.', de: 'Auf dem Handy - Tasten unten am Bildschirm.', it: 'Su mobile - pulsanti in basso.' })}</div>
-            </div>
-          </div>
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
-            <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
-              <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start z dolnej pomarańczowej linii (tam jest też meta).', { es: 'Salida desde la línea naranja de abajo (también es la llegada).', fr: 'Départ depuis la ligne orange du bas (c\'est aussi l\'arrivée).', de: 'Start an der unteren orangen Linie (dort ist auch das Ziel).', it: 'Partenza dalla linea arancione in basso (è anche l\'arrivo).' })}</li>
-              <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Tack your way up to the windward mark - the wind blows from the top.', 'Do znaku nawietrznego płyniesz halsami - wiatr wieje z góry.', { es: 'Subes a la baliza de barlovento dando bordos - el viento viene de arriba.', fr: 'Tu remontes vers la bouée au vent en louvoyant - le vent vient du haut.', de: 'Zur Luvtonne kreuzt du auf - der Wind kommt von oben.', it: 'Risali verso la boa di bolina bordeggiando - il vento arriva dall\'alto.' })}</li>
-              <li>{tp('Огибаешь знак (ближе 30 метров).', 'Round the mark (within 30 m).', 'Okrążasz znak (bliżej niż 30 m).', { es: 'Rodeas la baliza (a menos de 30 m).', fr: 'Tu vires la bouée (à moins de 30 m).', de: 'Du rundest die Bahnmarke (näher als 30 m).', it: 'Giri la boa (a meno di 30 m).' })}</li>
-              <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
-            </ol>
-          </div>
-        </div>
-      )}
-
-      <button
-        onClick={openBriefing}
-        disabled={ctaDisabled}
-        className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-      >
-        {ctaLabel} →
-      </button>
-    </div>
+/** Line icons for the three briefing rules. */
+function BriefingIcon({ kind }: { kind: 'nogo' | 'tack' | 'steer' }) {
+  const common = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true, className: 'shrink-0 mt-0.5 text-[var(--text-secondary)]' };
+  if (kind === 'nogo') return (
+    <svg {...common}><path d="M12 13 L7 4 M12 13 L17 4" /><path d="M12 13 v7" /><path d="M9.5 18.5 h5" /><path d="M12 1.5 v3" /></svg>
   );
-}
-
-/** Line icons for the race modes, drawn in the text colour (cyan when picked). */
-function PresetIcon({ kind }: { kind: 'first' | 'free' | 'mission' }) {
-  const common = { width: 28, height: 28, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true };
-  if (kind === 'first') return (
-    <svg {...common}><path d="M12 3v14" /><path d="M12 4l6 11h-6" /><path d="M11 6l-5 9h5" /><path d="M4 18h16l-2 3H6z" /></svg>
-  );
-  if (kind === 'free') return (
-    <svg {...common}><path d="M4 7h10M18 7h2M4 17h4M12 17h8" /><circle cx="16" cy="7" r="2" /><circle cx="10" cy="17" r="2" /></svg>
+  if (kind === 'tack') return (
+    <svg {...common}><path d="M8 21 L15 14 L9 8 L14 3" /><path d="M11.5 3 H14 V5.5" /></svg>
   );
   return (
-    <svg {...common}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="4" /><circle cx="12" cy="12" r="0.8" fill="currentColor" /></svg>
-  );
-}
-
-function PresetCard({
-  active, onClick, icon, title, subtitle, desc,
-}: {
-  active: boolean; onClick: () => void;
-  icon: 'first' | 'free' | 'mission'; title: string; subtitle: string; desc: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      aria-pressed={active}
-      className="card p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-      style={{
-        borderColor: active ? 'var(--accent-cyan)' : undefined,
-        background: active ? 'rgba(0, 212, 255, 0.08)' : undefined,
-      }}
-    >
-      <div className="mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
-      <div className="font-semibold text-base text-[var(--text-primary)]">{title}</div>
-      <div className="text-xs text-[var(--text-muted)] mb-2">{subtitle}</div>
-      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
-    </button>
-  );
-}
-
-// ============================================================================
-// Small SVG preview of a boat style (used in the boat picker)
-// ============================================================================
-
-function BoatStylePreview({ style }: { style: BoatStyle }) {
-  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
-  const w = 24 * cfg.hullWidth;
-  const h = 46 * cfg.hullScale;
-  return (
-    <svg viewBox="-24 -30 48 60" className="block mx-auto" width="44" height="55" aria-hidden="true">
-      {/* Hull */}
-      <path
-        d={`M 0,${-h / 2.2} Q ${w / 2},0 ${w / 3},${h / 2.8} L ${-w / 3},${h / 2.8} Q ${-w / 2},0 0,${-h / 2.2} Z`}
-        fill="#d7e8f4"
-        stroke="#8fb4c9"
-        strokeWidth="0.7"
-      />
-      {/* Sail */}
-      <path
-        d={`M 0,${-h / 2.4} Q 8,0 2,${h / 3.6} L 0,${h / 3.6} Z`}
-        fill={cfg.sailHue}
-        stroke="#ffffff"
-        strokeWidth="0.5"
-      />
-      {style === 'racer' && (
-        <rect x="-1" y={-h / 2.5} width="2" height={h * 0.7} fill="#00d4ff" opacity="0.4" />
-      )}
-    </svg>
+    <svg {...common}><circle cx="12" cy="12" r="8" /><circle cx="12" cy="12" r="2" /><path d="M12 4v6M12 14v6M4 12h6M14 12h6" /></svg>
   );
 }
 

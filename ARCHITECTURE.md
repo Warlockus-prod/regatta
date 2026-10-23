@@ -222,7 +222,9 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - клиент гонки: старт, знаки, боты, коуч на финише; вид 2D (canvas) или 3D (`Race3DView`, canvas оставляет только мини-карту).
+- `src/app/game/GameClient.tsx` - клиент гонки: брифинг в одну карточку, старт, знаки, боты, HUD (`src/features/race-hud`) и события гонки, коуч на финише; вид 2D (canvas) или 3D (`Race3DView`, canvas оставляет только мини-карту).
+- `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
+- `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.
 - `src/app/multiplayer/MultiplayerClient.tsx` - лобби, код комнаты, гонка по WebSocket.
 - `src/app/leaderboard/page.tsx` - лучшие времена по бакетам и дневной вызов.
@@ -600,6 +602,11 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/features/race-3d/pose.test.ts` - контракт: паруса под ветер на обоих галсах, травятся при уваливании, лодка там, где ее поставила гонка.
 - `src/features/race-3d/useRaceView.ts` - выбор вида гонки 2D/3D и камеры (localStorage `regatta.race.view.v1`, `regatta.race.camera.v1`, ссылка `?view=3d`).
 - `src/features/race-3d/RaceViewPicker.tsx` - выбор «Карта 2D» / «С лодки 3D» в меню веб-гонки.
+- `src/features/race-hud/RaceHud.tsx` - HUD гонки (аудит C2): скорость против цели на этом курсе, компас ветра относительно лодки с сектором мертвой зоны, таблица мест со временем, всплывающее событие.
+- `src/features/race-hud/target.ts` - целевая скорость из поляры движка: таблица через 5 градусов на силу ветра, интерполяция.
+- `src/features/race-hud/target.test.ts` - контракт: цель ноль в мертвой зоне, на галфвинде выше, чем в бейдевинд, лодка гонки выходит на цель с точностью 10%.
+- `src/features/race-hud/events.ts` - тексты событий гонки на 7 языках (цена поворота, отрыв на знаке, обгон) с порядковыми числительными.
+- `src/features/race-hud/events.test.ts` - контракт: события на всех 7 языках несут измеренные числа, порядковые числа по правилам языка.
 - `src/features/trainer-controls/SceneChrome.tsx` - строка над сценой (`SceneBar`), кнопка «Вид» и выезжающая сбоку панель видов и камеры (`SceneDrawer`): на телефоне поверх лодки ничего не лежит.
 - `src/features/trainer-controls/TrainerControls.module.css` - стили на токенах темы.
 
