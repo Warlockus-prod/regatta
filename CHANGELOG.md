@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Adapted the complete SRC course, theory, question presentation, lessons and practice to seven languages. Native speech stays on-device with typed checking when a model is unavailable; web also supports local typed practice. The pinned radio and separate task panel preserve the controls, official English protocol wording and real learner progress.
+
 - Prepared native candidate59 and aligned privacy/network descriptions in seven languages with local SRC speech, unavailable-model typed practice and the separate online sternik voice feature. No upload or submission is implied.
 
 - Shared replay links now open the same 3D yacht with recorded sails, wind, exact timestamps and training penalties. Fixed first-load wheel hints, duplicated desktop controls and course/keyboard settings that did not match their labels.

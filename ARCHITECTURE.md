@@ -272,11 +272,32 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/radio-tts/route.ts` - синтез радиофраз (fallback, когда нет статического mp3).
 - `src/app/api/radio-transcribe/route.ts` - распознавание речи для голосовых упражнений.
 - `src/app/api/radio-voice/route.ts` - прием записи, транскрипция и оценка передачи; поле `venue` выбирает акваторию (позиции, марина, VTS, береговая станция в подсказке распознаванию), без него Гданьский залив.
-- `src/app/api/radio-voice/voiceGrading.ts` - чистая оценка радиопередачи по ключевым элементам; станции акватории (марина и VTS дважды, береговая станция) и позиции N/S, E/W, неверное полушарие не проходит.
+- `src/app/api/radio-voice/voiceGrading.ts` - compatibility export of the shared pure local/API checker in `src/app/radio/voiceGrading.ts`; handler and grading contracts unchanged.
 - `src/app/api/radio-voice/voiceGrading.test.ts` - тесты грейдера: обратный порядок слов не должен проходить.
 - `src/app/api/ai-routes.limits.test.ts` - контракт шести ИИ-роутов (coach, ai-chat, sternik-chat, radio-tts, radio-voice, radio-transcribe): ротация cookie на одном IP пропускает ровно лимит x3, отказ не вызывает OpenAI, часовой отказ не тратит дневной бюджет, исчерпанный дневной бюджет дает дневной ответ.
 
 ### 4.5 Радиокурс SRC `src/app/radio`
+
+Radio pages, theory, lessons, all question presentation and practice use seven public catalogs in `public/radio-locales/`. Native embeds the same catalogs. Official English protocol utterances and the exact English language-exercise answer options remain unchanged. Original Polish UKE wording is available on request. See `docs/radio-i18n.md`.
+
+- `src/app/radio/LocalTranscriptEntry.tsx` - English transmission entry: native on-device PTT and separately labelled typed checking, with model-unavailable fallback.
+- `src/app/radio/OriginalPolish.tsx` - Optional exact Polish UKE wording disclosure, outside localization reads.
+- `src/app/radio/audio/localRecognitionSession.test.ts` - ASR regressions: segmented final results, accumulated end, PTT release and stale/cancelled sessions.
+- `src/app/radio/audio/localRecognitionSession.ts` - Pure local ASR session transitions; submit only after end plus release.
+- `src/app/radio/audio/localSpeech.test.ts` - Offline speech regressions: no server requests, English voice, gain, completion and cancellation.
+- `src/app/radio/audio/localSpeech.ts` - Native/local English synthesis, speech token type, offline detection and cancellation.
+- `src/app/radio/audio/useLocalRecognition.ts` - Radio WebView on-device ASR bridge lifecycle and capability probe, permission only on user start.
+- `src/app/radio/localization/build-catalog.mjs` - Local source enumeration, stable hashed aliases, reviewed seed preservation, pruning and check/stats modes; no API calls.
+- `src/app/radio/localization/context.tsx` - Radio-only seven-language provider and explicit rt/tp/tl reads; web JSON loading and native bundled catalogs.
+- `src/app/radio/localization/englishExercises.ts` - Protected English explanation examples and reviewed seven-language nautical question meanings.
+- `src/app/radio/localization/examText.ts` - Question presentation rules: exact English choices, preserved cloze stems and protected explanations.
+- `src/app/radio/localization/protocolTerms.ts` - Protect/restore spoken English position tokens and canonicalize old bilingual source labels.
+- `src/app/radio/localization/server.ts` - Server-side selected radio catalog and localized page metadata.
+- `src/app/radio/localization/sources.json` - Generated enumeration of 3726 radio resources and reviewed language seeds, used by coverage checks.
+- `src/app/radio/localization/text.ts` - Primitive text lookup, numeric template interpolation and cached public catalog/alias loading.
+- `src/app/radio/prefs.tsx` - SRC preferences separate from sternik: selected app language, default Russian help, model and realism controls.
+- `src/app/radio/symulator/audio/RadioAudioEngine.test.ts` - Station channel routing regression: wrong-channel SQL-open silence, retuning and disposal.
+- `src/app/radio/voiceGrading.ts` - Pure shared scenario transmission checker used by API, web typed practice and offline voice/typed practice.
 
 - `src/app/radio/page.tsx` - вход в курс: разделы, прогресс, слабые места.
 - `src/app/radio/layout.tsx` - layout курса, скрывает лишний хром в embed-режиме.
@@ -317,7 +338,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/radio/symulator/scenarios.ts` - сценарии тренировки: что нажать и что сказать; `needs` (береговая станция, марина, VTS) выбирает подходящие акватории, тексты несут подстановки `{marina}`, `{marinaCh}`, `{marinaNote}`, `{vts}`, `{vtsCh}`, `{coast}`, `{area}`, проверки шагов получают акваторию.
 - `src/app/radio/symulator/venues.ts` - акватории прогона (решение владельца 2026-10-24): Гданьский залив, Солент, бухта Пальма, Бодрум; только проверенные станции, MMSI и каналы, источники в шапке файла; Бодрум без береговой станции. `placeRadio`, `fillPlace`, `venuesFor`.
 - `src/app/radio/symulator/venues.test.ts` - эталонная передача каждого сценария проходит грейдер в каждой своей акватории, чужая марина и неверное полушарие не проходят, данные и подстановки.
-- `src/app/radio/symulator/trainerText.ts` - тренажер на 7 языках: тексты PL / RU в данных, EN / ES / FR / DE / IT в словарях по польскому исходнику, интерфейс через `useTrainerI18n` (tp плюс ES / FR / DE / IT по английской строке), подписи грейдера `checkLabel`.
+- `src/app/radio/symulator/trainerText.ts` - compatibility text/format helpers over the public seven-language catalogs; no static catalog payload in web JavaScript chunks.
 - `src/app/radio/symulator/trainerText.test.ts` - каждый текст сценариев, Rozbiór и грейдера и каждая строка интерфейса переведены на все языки, подстановки, клавиши и радиофразы целы, нет запрещенной типографики.
 - `src/app/radio/symulator/i18n/en.json`, `src/app/radio/symulator/i18n/es.json`, `src/app/radio/symulator/i18n/fr.json`, `src/app/radio/symulator/i18n/de.json`, `src/app/radio/symulator/i18n/it.json` - переводы текстов тренажера (сценарии, Rozbiór, пункты грейдера), ключ - польский исходник.
 - `src/app/radio/symulator/i18n/ui.es.json`, `src/app/radio/symulator/i18n/ui.fr.json`, `src/app/radio/symulator/i18n/ui.de.json`, `src/app/radio/symulator/i18n/ui.it.json` - строки интерфейса тренажера на ES / FR / DE / IT, ключ - английская строка.

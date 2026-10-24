@@ -8,10 +8,8 @@ import {
   type ReactNode,
 } from "react";
 
-// The offline course's stand-in for src/lib/i18n. The radio trainer runs in
-// all seven site languages (owner, 2026-10-24); the rest of the course is
-// Polish with a Russian aid, which SternikLangScope enforces per route, as on
-// the website.
+// The offline course's stand-in for src/lib/i18n. The whole radio course follows
+// the app's selected language, with all seven catalogs embedded locally.
 export type CourseLanguage = "pl" | "ru" | "en" | "es" | "fr" | "de" | "it";
 const LANGUAGES: readonly CourseLanguage[] = ["pl", "ru", "en", "es", "fr", "de", "it"];
 
@@ -56,26 +54,24 @@ export function appLanguage(): CourseLanguage | null {
 }
 
 function storedLanguage(): CourseLanguage {
+  const native = appLanguage();
+  if (native) return native;
   try {
     const stored = window.localStorage.getItem(LANGUAGE_KEY);
     if (isCourseLanguage(stored)) return stored;
   } catch {
     // The native wrapper restores localStorage when it is available.
   }
-  const fromApp = appLanguage();
-  if (fromApp) return fromApp;
   const device = navigator.language.toLowerCase().slice(0, 2);
   return isCourseLanguage(device) ? device : "pl";
 }
 
 export function OfflineI18nProvider({ children }: { children: ReactNode }) {
-  const [lang, setLanguage] = useState<CourseLanguage>("pl");
+  const [lang, setLanguage] = useState<CourseLanguage>(storedLanguage);
 
   useEffect(() => {
-    const initial = storedLanguage();
-    setLanguage(initial);
-    document.documentElement.lang = initial;
-  }, []);
+    document.documentElement.lang = lang;
+  }, [lang]);
 
   const setLang = useCallback((next: CourseLanguage) => {
     setLanguage(next);

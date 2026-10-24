@@ -119,7 +119,16 @@ const cssResult = await postcss([tailwindcss()]).process(cssInput, {
   from: globalsPath,
 });
 
-const css = `${cssResult.css}\n${moduleCss}`;
+// A file-origin WebView cannot resolve root-relative URLs. Embed every local
+// font so the offline course has the same readable typography as the website.
+const css = `${cssResult.css}\n${moduleCss}`.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quote, url) => {
+  if (/^(data:|blob:|#)/.test(url)) return match;
+  if (!url.startsWith("/") || url.startsWith("//") || url.includes("..")) throw new Error(`Unsupported offline CSS asset ${url}`);
+  const type = url.endsWith(".woff2") ? "font/woff2" : url.endsWith(".woff") ? "font/woff" : url.endsWith(".ttf") ? "font/ttf" : null;
+  if (!type) throw new Error(`Add an explicit media type for offline CSS asset ${url}`);
+  const asset = readFileSync(join(repoRoot, "public", url.slice(1)));
+  return `url("data:${type};base64,${asset.toString("base64")}")`;
+});
 
 const version = createHash("sha256")
   .update(js)

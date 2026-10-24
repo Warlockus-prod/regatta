@@ -1,4 +1,5 @@
 'use client';
+import { isLocalSpeech, playLocalSpeech, stopLocalSpeech, type VoiceAudio } from './audio/localSpeech';
 
 // ============================================================================
 // Playing a spoken line where there is no radio to route it through.
@@ -33,6 +34,7 @@ function context(): AudioContext {
 
 /** Stop whatever is currently speaking. Safe to call when nothing is. */
 export function stopVoice(): void {
+  stopLocalSpeech();
   try { playing?.stop(); } catch { /* already ended */ }
   playing = null;
 }
@@ -45,7 +47,8 @@ export function stopVoice(): void {
  * Starting a new line cuts off the previous one, so double-clicking cannot leave
  * two voices reading the same position over each other.
  */
-export async function playVoice(raw: ArrayBuffer): Promise<void> {
+export async function playVoice(raw: VoiceAudio): Promise<void> {
+  if (isLocalSpeech(raw)) { await playLocalSpeech(raw.text); return; }
   const ac = context();
   if (ac.state === 'suspended') await ac.resume();
 

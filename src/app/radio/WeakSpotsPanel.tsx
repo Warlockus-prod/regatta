@@ -1,8 +1,9 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useI18n } from '@/lib/i18n';
 import { clearWeakSpots, weakest, type WeakSpot } from './weakSpots';
 
 // ============================================================================
@@ -29,7 +30,8 @@ const AREA: Record<WeakSpot['area'], { icon: string; href: string }> = {
 };
 
 export default function WeakSpotsPanel() {
-  const { tp } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp } = useRadioI18n();
   const [spots, setSpots] = useState<WeakSpot[]>([]);
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export default function WeakSpotsPanel() {
     >
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-          🎯 {tp('Твои слабые места', 'What you keep getting wrong', 'Twoje słabe punkty')}
+          🎯 {radioText(tp('Твои слабые места', 'What you keep getting wrong', 'Twoje słabe punkty'))}
         </span>
         <button
           type="button"
@@ -56,37 +58,37 @@ export default function WeakSpotsPanel() {
           className="ml-auto flex min-h-[44px] items-center rounded-full px-3 text-[11px]"
           style={{ color: 'var(--text-muted)' }}
         >
-          {tp('Сбросить', 'Reset', 'Resetuj')}
+          {radioText(tp('Сбросить', 'Reset', 'Resetuj'))}
         </button>
       </div>
 
       <ul className="space-y-1.5">
         {spots.map((w) => (
           <li key={`${w.area}:${w.id}`} className="flex items-start gap-2 text-sm">
-            <span>{AREA[w.area].icon}</span>
+            <span>{radioText(AREA[w.area].icon)}</span>
             <Link
               href={AREA[w.area].href}
               className="flex-1 leading-relaxed"
               style={{ color: 'var(--text-primary)' }}
             >
-              {w.label}
+              {radioText(w.label)}
             </Link>
             <span
               className="shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold"
               style={{ background: 'rgba(255,107,82,0.12)', color: 'var(--danger)' }}
             >
-              {w.misses}x
+              {radioText(w.misses)}x
             </span>
           </li>
         ))}
       </ul>
 
       <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-        {tp(
+        {radioText(tp(
           'Это не оценка, а список того, что стоит починить. Он копится по всем тренажёрам и живёт только на этом устройстве.',
           'This is not a grade, it is a list of things to go and fix. It builds up across every trainer and never leaves this device.',
           'To nie ocena, tylko lista rzeczy do naprawienia. Zbiera się ze wszystkich trenażerów i nie opuszcza tego urządzenia.',
-        )}
+        ))}
       </p>
     </section>
   );

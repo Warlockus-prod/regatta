@@ -16,11 +16,13 @@
 // already shows is still there, so nothing breaks.
 // ============================================================================
 
+import { localSpeech, offlineRadio, type VoiceAudio } from '../../audio/localSpeech';
 const cache = new Map<string, ArrayBuffer>();
 
 /** Raw mp3 bytes for a station line, or null if TTS is unavailable. */
-export async function fetchStationVoice(text: string): Promise<ArrayBuffer | null> {
+export async function fetchStationVoice(text: string): Promise<VoiceAudio | null> {
   if (!text) return null;
+  if (offlineRadio()) return localSpeech(text);
   const hit = cache.get(text);
   if (hit) return hit.slice(0);
   try {

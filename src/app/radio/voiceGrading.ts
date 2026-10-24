@@ -1,0 +1,362 @@
+import type { Vessel } from '@/app/radio/symulator/radioModel';
+import { DEFAULT_VENUE, type Venue, type VenueId } from '@/app/radio/symulator/venues';
+
+export const VOICE_KINDS = [
+  'mayday-fire', 'mayday-mob', 'panpan-mob', 'panpan-engine',
+  'securite-hazard', 'radio-check', 'cancel-false',
+  'routine-marina', 'routine-ship', 'routine-group',
+  'panpan-medico', 'vts-report', 'mayday-relay',
+  'mayday-ack', 'answer-call',
+] as const;
+export type VoiceKind = (typeof VOICE_KINDS)[number];
+
+export interface VoiceGradeInput {
+  kind: VoiceKind;
+  transcript: string;
+  vessel: Vessel;
+  positionSpoken: string;
+  pob: number;
+  /** the run's venue (venues.ts): whose marina, VTS and coast station to expect */
+  venue?: Venue;
+}
+
+/**
+ * How each venue's stations come out of the transcriber. Deliberately the
+ * distinctive word, not the whole call: "Lymington Yacht Haven" may come back
+ * as "Lymington Haven", but nothing else in a radio check says "Lymington".
+ * The "x2" checks count these, so a single mention still fails.
+ */
+const MARINA_RE: Record<VenueId, RegExp> = {
+  gdansk: /marina gdynia/g,
+  solent: /lymington/g,
+  palma: /(?:real club nautico|club nautico|nautico de palma)/g,
+  bodrum: /milta/g,
+};
+const VTS_RE: Record<VenueId, RegExp> = {
+  gdansk: /(?:vts zatoka|zatoka gdansk|vts gdansk|traffic gdansk)/g,
+  solent: /(?:southampton vts|vts southampton)/g,
+  palma: /(?!)/g,
+  bodrum: /(?!)/g,
+};
+const COAST_RE: Record<VenueId, RegExp> = {
+  gdansk: /polish rescue radio/,
+  solent: /solent coast ?guard/,
+  palma: /palma radio/,
+  bodrum: /(?!)/,
+};
+
+export interface VoiceCheckResult {
+  id: string;
+  label: string;
+  ok: boolean;
+  /** A defining element (the distress/urgency/safety signal or its equivalent):
+   *  its absence disqualifies the transmission no matter how high the % score. */
+  mandatory?: boolean;
+}
+
+/**
+ * The load-bearing element of each emergency transmission. A MAYDAY without
+ * MAYDAY, a PAN-PAN said as a SECURITE, a distress cancel without the cancel
+ * phrase - each must FAIL, not merely lose ~1/8 of the score. Keyed by check id.
+ */
+const MANDATORY_CHECK_IDS = new Set(['mayday3', 'panpan3', 'securite3', 'relay3', 'received', 'cancel']);
+
+interface Check {
+  id: string;
+  label: string;
+  test: (text: string) => boolean;
+}
+
+export function normalizeRadioTranscript(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[.,!?;:'"()\-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function escRe(text: string): string {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function count(text: string, re: RegExp): number {
+  return text.match(re)?.length ?? 0;
+}
+
+/** MAYDAY as the OWN-distress signal: "may day" NOT part of "may day relay", so
+ *  announcing your own fire as a RELAY of someone else's distress fails the signal. */
+function maydaySignalCount(text: string): number {
+  return count(text, /may\s?day(?!\s+relay)/g);
+}
+
+/** Longest run of CONSECUTIVE "pan" tokens (after collapsing "panpan"/"pon"): a real
+ *  three-fold PAN-PAN is 6 tokens, so >= 5 passes it (tolerating one dropped by STT)
+ *  while scattered or interrupted pans - "pan pan pan all stations pan pan" - do not. */
+function longestPanRun(text: string): number {
+  const toks = text.replace(/panpan/g, 'pan pan').replace(/\bpon\b/g, 'pan').split(/\s+/);
+  let best = 0;
+  let cur = 0;
+  for (const t of toks) { if (t === 'pan') { cur += 1; if (cur > best) best = cur; } else cur = 0; }
+  return best;
+}
+
+function phrase(text: string, value: string): boolean {
+  const words = normalizeRadioTranscript(value).split(' ').filter(Boolean).map(escRe);
+  return new RegExp(words.join('\\s+')).test(text);
+}
+
+const DIGIT_WORDS: Record<string, string> = {
+  '0': '(?:0|zero|oh)', '1': '(?:1|one)', '2': '(?:2|two)', '3': '(?:3|three)',
+  '4': '(?:4|four)', '5': '(?:5|five)', '6': '(?:6|six)', '7': '(?:7|seven)',
+  '8': '(?:8|eight)', '9': '(?:9|nine|niner)',
+};
+
+function digitSequenceRe(value: string): RegExp {
+  const pattern = value.split('').map((digit) => DIGIT_WORDS[digit] ?? escRe(digit)).join('\\s*');
+  return new RegExp(pattern);
+}
+
+function exactIdentity(text: string, vessel: Vessel): boolean {
+  const exactMmsi = digitSequenceRe(vessel.mmsi).test(text);
+  const exactCall = /call\s+sign/.test(text) && digitSequenceRe(vessel.call.replace(/\D/g, '')).test(text);
+  return exactMmsi || exactCall;
+}
+
+// Between two spoken position digits the transcriber inserts the unit words
+// (DEGREES / MINUTES / DECIMAL / POINT) and splits "54" as "5 4", exactly as the
+// app's own pozycja drill teaches. Allow that filler between digit groups.
+const POS_FILLER = '[\\s]*(?:(?:degrees?|deg|decimal|point|minutes?|min|and)[\\s]*)*';
+
+function positionDigitsRe(digits: string): RegExp | null {
+  if (!digits) return null;
+  return new RegExp(digits.split('').map((d) => DIGIT_WORDS[d] ?? escRe(d)).join(POS_FILLER));
+}
+
+/**
+ * A correct position, read digit-by-digit (the SMCP form the pozycja drill
+ * trains: "FIVE FOUR DEGREES THREE ZERO DECIMAL FIVE MINUTES NORTH ..."). The old
+ * check required the terse contiguous "54 30 5 north" and failed every reading
+ * the app itself teaches; match the latitude and longitude DIGIT SEQUENCES with
+ * the unit words tolerated between them, plus the two hemispheres in order.
+ */
+function exactPosition(text: string, positionSpoken: string): boolean {
+  const tokens = normalizeRadioTranscript(positionSpoken).split(' ');
+  // NORTH/SOUTH and EAST/WEST: the Solent is west of Greenwich
+  const latH = tokens.findIndex((t) => t === 'north' || t === 'south');
+  const lonH = tokens.findIndex((t) => t === 'east' || t === 'west');
+  if (latH < 2 || lonH < latH + 3) return false;
+  const latDigits = tokens.slice(0, latH).join('').replace(/[^0-9]/g, '');
+  const lonDigits = tokens.slice(latH + 1, lonH).join('').replace(/[^0-9]/g, '');
+  const latRe = positionDigitsRe(latDigits);
+  const lonRe = positionDigitsRe(lonDigits);
+  if (!latRe || !lonRe) return false;
+  // Bind each coordinate to its own hemisphere, in the transmitted position.
+  // Matching digit sequences anywhere could accept swapped values or MMSI digits,
+  // and the wrong hemisphere word (WEST for EAST) is a wrong position.
+  const pattern = `\\b${latRe.source}${POS_FILLER}${tokens[latH]}\\s+(?:and\\s+)?${lonRe.source}${POS_FILLER}${tokens[lonH]}\\b`;
+  return new RegExp(pattern).test(text);
+}
+
+const NUMBER_TOKEN = /^(?:\d+|zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred)$/;
+
+/**
+ * The person count must be the token that DIRECTLY precedes person/people/crew/
+ * souls, and must not itself be the tail of a larger number. Otherwise pob=1
+ * grades correct on "twenty one persons on board" - the count that was spoken is
+ * twenty-one, not one.
+ */
+function exactPob(text: string, pob: number): boolean {
+  const word = ['zero', 'one', 'two', 'three', 'four', 'five', 'six'][pob] ?? String(pob);
+  const tokens = text.split(' ');
+  for (let i = 1; i < tokens.length; i++) {
+    if (!/^(?:persons?|people|crew|souls)$/.test(tokens[i])) continue;
+    const prev = tokens[i - 1];
+    if (prev !== String(pob) && prev !== word) continue;
+    if (tokens[i - 2] && NUMBER_TOKEN.test(tokens[i - 2])) continue; // e.g. "twenty one persons"
+    return true;
+  }
+  return false;
+}
+
+function ordered(text: string, values: RegExp[]): boolean {
+  let from = 0;
+  for (const re of values) {
+    const match = re.exec(text.slice(from));
+    if (!match) return false;
+    from += match.index + match[0].length;
+  }
+  return true;
+}
+
+function commonIdentityChecks(vessel: Vessel): Check[] {
+  return [
+    { id: 'thisis', label: 'THIS IS + nazwa', test: (t) => /this is/.test(t) && phrase(t, vessel.name) },
+    { id: 'name', label: `nazwa jednostki (${vessel.name})`, test: (t) => phrase(t, vessel.name) },
+    { id: 'ident', label: 'dokładny MMSI lub znak wywoławczy', test: (t) => exactIdentity(t, vessel) },
+  ];
+}
+
+function buildChecks(input: VoiceGradeInput): Check[] {
+  const position: Check = {
+    id: 'position',
+    label: `dokładna pozycja (${input.positionSpoken})`,
+    test: (t) => exactPosition(t, input.positionSpoken),
+  };
+  const persons: Check = {
+    id: 'persons',
+    label: `dokładna liczba osób (${input.pob})`,
+    test: (t) => exactPob(t, input.pob),
+  };
+  const identity = commonIdentityChecks(input.vessel);
+  const venue = input.venue ?? DEFAULT_VENUE;
+  const marinaRe = MARINA_RE[venue.id];
+  const marinaOnce = new RegExp(marinaRe.source);
+  const vtsRe = VTS_RE[venue.id];
+  const marinaName = venue.marina?.call ?? 'MARINA';
+
+  switch (input.kind) {
+    case 'mayday-mob':
+    case 'mayday-fire':
+      return [
+        { id: 'mayday3', label: 'MAYDAY x3', test: (t) => maydaySignalCount(t) >= 3 },
+        ...identity, position,
+        { id: 'nature', label: input.kind === "mayday-mob" ? "człowiek za burtą" : "rodzaj zagrożenia (fire)", test: (t) => input.kind === "mayday-mob" ? /(man overboard|person in (?:the )?water)/.test(t) : /(fire|explosion|burning)/.test(t) },
+        { id: 'assist', label: 'potrzebna pomoc', test: (t) => /(immediate assistance|require assistance|need help)/.test(t) },
+        persons,
+        { id: 'order', label: 'kolejność: alarm -> identyfikacja -> pozycja -> zagrożenie', test: (t) => ordered(t, [/may\s?day/, /this is/, /position/, input.kind === "mayday-mob" ? /(man overboard|person in (?:the )?water)/ : /(fire|explosion|burning)/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'panpan-mob':
+      return [
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
+        { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
+        ...identity, position,
+        { id: 'mob', label: 'człowiek za burtą', test: (t) => /(man overboard|person in (?:the )?water)/.test(t) },
+        { id: 'request', label: 'polecenie dla ruchu wokół', test: (t) => /(keep clear|reduce wake|stand by|assist)/.test(t) },
+        { id: 'order', label: 'kolejność: PAN PAN -> ALL STATIONS -> THIS IS -> pozycja', test: (t) => ordered(t, [/pan\s?pan/, /all (?:stations|ships)/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'panpan-engine':
+      return [
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
+        { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
+        ...identity, position,
+        { id: 'nature', label: 'awaria i dryf', test: (t) => /(engine|breakdown|disabled)/.test(t) && /(drift|drifting)/.test(t) },
+        { id: 'tow', label: 'prośba o holowanie', test: (t) => /(tow|towing assistance)/.test(t) },
+        persons,
+        { id: 'order', label: 'kolejność: PAN PAN -> identyfikacja -> pozycja -> sytuacja', test: (t) => ordered(t, [/pan\s?pan/, /this is/, /position/, /(engine|breakdown|disabled)/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'securite-hazard':
+      return [
+        { id: 'securite3', label: 'SECURITE x3', test: (t) => count(t, /(securite|security|say curitay)/g) >= 3 },
+        { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
+        ...identity.slice(0, 2), position,
+        { id: 'hazard', label: 'opis niebezpieczeństwa', test: (t) => /(container|hazard|obstruction|submerged|debris)/.test(t) },
+        { id: 'advice', label: 'zalecenie dla innych jednostek', test: (t) => /(keep sharp lookout|keep clear|navigate with caution)/.test(t) },
+        { id: 'order', label: 'kolejność: SECURITE -> ALL STATIONS -> identyfikacja -> ostrzeżenie', test: (t) => ordered(t, [/(securite|security)/, /all (?:stations|ships)/, /this is/, /(container|hazard|obstruction|submerged|debris)/]) },
+        { id: 'out', label: 'OUT na końcu', test: (t) => /\bout$/.test(t) },
+      ];
+    case 'radio-check':
+      return [
+        { id: 'station', label: `${marinaName} x2`, test: (t) => count(t, marinaRe) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'check', label: 'RADIO CHECK', test: (t) => /(radio check|how do you read)/.test(t) },
+        { id: 'order', label: 'kolejność: stacja -> THIS IS -> RADIO CHECK', test: (t) => ordered(t, [marinaOnce, /this is/, /(radio check|how do you read)/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'cancel-false':
+      return [
+        { id: 'allstations', label: 'ALL STATIONS x3', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 },
+        ...identity, position,
+        { id: 'cancel', label: 'CANCEL MY DISTRESS ALERT', test: (t) => /cancel my distress alert/.test(t) },
+        { id: 'when', label: 'data i czas UTC', test: (t) => /(today|date)/.test(t) && /utc/.test(t) },
+        { id: 'order', label: 'kolejność: ALL STATIONS -> identyfikacja -> odwołanie', test: (t) => ordered(t, [/all (?:stations|ships)/, /this is/, /cancel my distress alert/]) },
+        { id: 'out', label: 'OUT na końcu', test: (t) => /\bout$/.test(t) },
+      ];
+    case 'routine-marina':
+      return [
+        { id: 'station', label: `${marinaName} x2`, test: (t) => count(t, marinaRe) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'request', label: 'treść: prośba (miejsce/wejście/postój)', test: (t) => /(berth|mooring|moorage|slip|enter|entry|permission|space|place|water|fuel)/.test(t) },
+        { id: 'order', label: 'kolejność: stacja -> THIS IS -> prośba', test: (t) => ordered(t, [marinaOnce, /this is/, /(berth|mooring|enter|permission|space|place|water|fuel)/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'routine-ship':
+      return [
+        { id: 'station', label: 'wywoływana jednostka (TRAINING SHIP) x2', test: (t) => count(t, /training ship/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejność: wywoływany -> THIS IS', test: (t) => ordered(t, [/training ship/, /this is/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'routine-group':
+      return [
+        { id: 'group', label: 'wywołanie grupowe (REGATTA FLEET x2)', test: (t) => count(t, /(regatta fleet|regatta group|fleet)/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejność: grupa -> THIS IS', test: (t) => ordered(t, [/(regatta fleet|fleet)/, /this is/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'panpan-medico':
+      return [
+        { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
+        { id: 'allstations', label: 'ALL STATIONS x3 (lub stacja brzegowa)', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 || COAST_RE[venue.id].test(t) || /(coast|radio medico)/.test(t) },
+        ...identity, position,
+        { id: 'medico', label: 'prośba o poradę/pomoc medyczną', test: (t) => /(medical|medico|doctor|injur|casualty|ambulance|unconscious|bleeding)/.test(t) },
+        { id: 'order', label: 'kolejność: PAN PAN -> identyfikacja -> pozycja -> medyczne', test: (t) => ordered(t, [/pan\s?pan/, /this is/, /position/, /(medical|medico|doctor|injur|casualty)/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'vts-report':
+      return [
+        { id: 'station', label: `${venue.vts?.display ?? 'VTS'} x2`, test: (t) => count(t, vtsRe) >= 2 },
+        ...identity.slice(0, 2), position,
+        { id: 'report', label: 'meldunek (wejście/wyjście/kurs/zamiar)', test: (t) => /(inbound|outbound|proceeding|entering|leaving|departing|course|bound for|report)/.test(t) },
+        { id: 'order', label: 'kolejność: VTS -> THIS IS -> pozycja', test: (t) => ordered(t, [/(vts|zatoka|traffic)/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'mayday-relay':
+      return [
+        { id: 'relay3', label: 'MAYDAY RELAY x3', test: (t) => count(t, /may\s?day relay/g) >= 3 },
+        ...identity.slice(0, 2),
+        { id: 'casualty', label: 'nazwa jednostki w niebezpieczeństwie', test: (t) => /(neptun|casualty|distressed|the vessel|the yacht)/.test(t) },
+        { id: 'position', label: 'pozycja jednostki w niebezpieczeństwie', test: (t) => /position/.test(t) },
+        { id: 'nature', label: 'rodzaj zagrożenia', test: (t) => /(sinking|fire|flooding|aground|grounding|collision|abandon|taking water|help)/.test(t) },
+        { id: 'order', label: 'kolejność: MAYDAY RELAY -> THIS IS -> pozycja', test: (t) => ordered(t, [/may\s?day relay/, /this is/, /position/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'mayday-ack':
+      return [
+        { id: 'casualty', label: 'MAYDAY + nazwa jednostki w niebezpieczeństwie x3', test: (t) => count(t, /neptun/g) >= 3 },
+        ...identity.slice(0, 2),
+        { id: 'received', label: 'RECEIVED MAYDAY', test: (t) => /received may\s?day/.test(t) },
+        { id: 'order', label: 'kolejność: nazwa -> THIS IS -> RECEIVED MAYDAY', test: (t) => ordered(t, [/neptun/, /this is/, /received may\s?day/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+    case 'answer-call':
+      return [
+        { id: 'station', label: 'wywołująca jednostka (TRAINING SHIP) x2', test: (t) => count(t, /training ship/g) >= 2 },
+        ...identity.slice(0, 2),
+        { id: 'order', label: 'kolejność: wywołujący -> THIS IS', test: (t) => ordered(t, [/training ship/, /this is/]) },
+        { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
+      ];
+  }
+}
+
+export function gradeVoiceTransmission(input: VoiceGradeInput): {
+  transcript: string;
+  checks: VoiceCheckResult[];
+  score: number;
+  /** false when a defining element (MAYDAY/PAN-PAN/SECURITE/RELAY/RECEIVED/CANCEL)
+   *  is missing - the caller must treat that as a fail regardless of the score. */
+  mandatoryOk: boolean;
+} {
+  const text = normalizeRadioTranscript(input.transcript);
+  const checks = buildChecks(input).map((check) => ({
+    id: check.id,
+    label: check.label,
+    ok: check.test(text),
+    ...((MANDATORY_CHECK_IDS.has(check.id) || ((input.kind === "mayday-fire" || input.kind === "mayday-mob") && ["position", "nature", "assist"].includes(check.id))) ? { mandatory: true } : {}),
+  }));
+  const score = Math.round((checks.filter((check) => check.ok).length / checks.length) * 100);
+  const mandatoryOk = checks.every((check) => !check.mandatory || check.ok);
+  return { transcript: input.transcript, checks, score, mandatoryOk };
+}
