@@ -519,6 +519,63 @@ one); `src/lib/race-physics.drift.test.ts` (server physics regenerated).
 
 ---
 
+## ADR-0008 - One race, one three.js scene, WebGPU with the WebGL2 fallback
+
+**Date:** 2026-10-24
+**Status:** accepted (owner, 2026-10-24)
+
+### Context
+The owner saw the app's solo race and called the boat "ugly and not 3D, old;
+it should be modern, like a game". The app's main race is a flat Skia
+drawing; the 3D race with the real yacht is a separate WebView entry, online
+only. The concept `docs/design/game-graphics-concept.md` compared art
+directions and engines (native WebGPU in React Native, Filament, expo-gl,
+Babylon React Native, Unity as a Library, Godot, PlayCanvas).
+
+### Decision
+- One race, rendered by one three.js scene for the website and the app. The
+  "map" becomes the same scene with a high tilted camera ("tactical", the
+  default); the view from the stern is the second camera. The Skia race goes
+  once the 3D race works offline in the app.
+- The scene renders with `WebGPURenderer` and TSL node materials: WebGPU where
+  the browser has it (Safari and WKWebView from iOS 26), WebGL2 otherwise
+  (the iOS Simulator, older devices), with the same shaders.
+- Art direction: stylized and clean (flat-shaded land, water in a few tones
+  that shows the wind, white wakes, one warm palette), tactical lines drawn on
+  the water. Not photorealism.
+- It starts as a vertical slice beside the current 3D race, switched on by
+  `?scene=next` on `/game`, and replaces it only after it is measured on a
+  real iPhone.
+
+### Options considered
+- Native WebGPU canvas (`react-native-webgpu` 0.19): same TSL scene natively,
+  but pre-1.0, a shadow crash on Expo 54 and an unmeasured size cost. Kept as
+  a later spike if the WebView falls short.
+- Filament: a second scene and shader pipeline. Rejected.
+- expo-gl: three r163+ does not render on it. Rejected.
+- Babylon React Native: old architecture only. Rejected.
+- Unity or Godot: fork the TypeScript physics or bridge it every frame, plus
+  a rewrite of UI and languages. Rejected (game audit, section 3).
+
+### Consequences
+`onBeforeCompile` and `EffectComposer` do not run under `WebGPURenderer`, so
+the race water, sky and effects are written in TSL. The 3D Boat
+(`/simulator2`) keeps its WebGL scene until its own lane moves it. Gust
+patches on the water wait for the wind field of game audit A2 (its own ADR),
+so the slice shows only what the race models: one wind direction and
+strength.
+
+### Verification
+The slice reports its backend (WebGPU or WebGL2) and frame rate with
+`?fps=1`; it must hold 30 FPS or more on the owner's iPhone and render on the
+iOS Simulator through the WebGL2 fallback.
+
+### References
+`docs/design/game-graphics-concept.md`, `docs/audits/2026-10-22-game-audit.md`,
+ADR-0006 (the 3D race is a view of the same race).
+
+---
+
 ## ADR-0000 template (for new entries)
 
 ```
