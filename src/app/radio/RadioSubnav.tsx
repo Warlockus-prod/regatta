@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useI18n } from "@/lib/i18n";
+import { useTrainerI18n } from "./symulator/trainerText";
 import { ExplLangToggle } from "../sternik/prefs";
 
 // Four tabs (owner, 2026-10-24: "too many tabs"). The practice pages that used
@@ -11,7 +11,7 @@ import { ExplLangToggle } from "../sternik/prefs";
 // /radio/symulator; the cheat sheet belongs to Theory. Their addresses stay.
 export default function RadioSubnav() {
   const pathname = usePathname();
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
 
   const tabs = [
     { href: "/radio", label: tp("Курс", "Course", "Kurs"), match: ["/radio"] },

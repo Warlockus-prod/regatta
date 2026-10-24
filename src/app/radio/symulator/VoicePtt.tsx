@@ -3,6 +3,7 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { VoiceSpec } from './scenarios';
 import MicCheck from '../MicCheck';
+import { checkLabel, fmt, useTrainerI18n } from './trainerText';
 
 type VoiceKind = VoiceSpec['kind'];
 
@@ -30,9 +31,13 @@ interface Props {
   lines: string[];
   /** which vessel identity the grader should expect (index into VESSEL_POOL). */
   vesselIdx: number;
+  /** index into the venue's positions */
   positionIdx: number;
   pob: number;
-  /** 'ru' shows RU helper copy; PL otherwise (language policy). */
+  /** the run's venue id (venues.ts): which stations and positions to grade against */
+  venue?: string;
+  /** on the RU site: true shows the RU helper copy, false the Polish (language
+   *  policy); every other site language gets its own copy */
   ru: boolean;
   /** exam integrity: hide the scripted lines, the user must speak from memory. */
   hideScript?: boolean;
@@ -49,9 +54,12 @@ export interface VoicePttHandle {
 const MAX_RECORD_MS = 45_000;
 
 const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
-  kind, lines, vesselIdx, positionIdx, pob, ru, hideScript = false,
+  kind, lines, vesselIdx, positionIdx, pob, venue = 'gdansk', ru, hideScript = false,
   allowLinePractice = true, minimumScore = 70, onComplete,
 }, ref) {
+  const { tp: ttp, lang } = useTrainerI18n();
+  // the RU site with Polish explanations keeps the Polish copy
+  const t = useCallback((ruText: string, en: string, pl: string) => (lang === 'ru' && !ru ? pl : ttp(ruText, en, pl)), [lang, ru, ttp]);
   const [linesRead, setLinesRead] = useState(0);
   const [recording, setRecording] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -127,7 +135,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         // advance whatever scenario is active now with this aborted attempt.
         if (!aliveRef.current) return;
         const blob = new Blob(chunksRef.current, { type: rec.mimeType || 'audio/webm' });
-        if (blob.size < 4000) { setError(ru ? 'Слишком короткая запись.' : 'Nagranie za krótkie.'); return; }
+        if (blob.size < 4000) { setError(t('Слишком короткая запись.', 'The recording is too short.', 'Nagranie za krótkie.')); return; }
         setBusy(true);
         try {
           const fd = new FormData();
@@ -136,13 +144,14 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
           fd.append('vessel', String(vesselIdx));
           fd.append('position', String(positionIdx));
           fd.append('pob', String(pob));
+          fd.append('venue', venue);
           const res = await fetch('/api/radio-voice', { method: 'POST', body: fd });
           const data = await res.json();
           if (data.fallback) {
             setVoiceUnavailable(true);
             setError(allowLinePractice
-              ? (ru ? 'Голосовой режим недоступен - пройди передачу по строкам.' : 'Tryb głosowy niedostępny - przejdź transmisję liniami.')
-              : (ru ? 'Голосовой экзамен сейчас недоступен.' : 'Egzamin głosowy jest teraz niedostępny.'));
+              ? t('Голосовой режим недоступен - пройди передачу по строкам.', 'Voice mode is unavailable - go through the transmission line by line.', 'Tryb głosowy niedostępny - przejdź transmisję liniami.')
+              : t('Голосовой экзамен сейчас недоступен.', 'The voice exam is unavailable right now.', 'Egzamin głosowy jest teraz niedostępny.'));
             return;
           }
           if (res.status === 429) {
@@ -150,13 +159,13 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             // Polish fallback for other clients and says nothing to a RU user.
             const mins = Math.max(1, Math.ceil((Number(data.retryAfterSec) || 0) / 60));
             const hours = Math.ceil(mins / 60);
-            setError(ru
-              ? `Лимит попыток исчерпан. Попробуй снова через ${mins > 90 ? `${hours} ч` : `${mins} мин`}.`
-              : `Limit prób wyczerpany. Spróbuj ponownie za ${mins > 90 ? `${hours} godz.` : `${mins} min`}.`);
+            setError(mins > 90
+              ? fmt(t('Лимит попыток исчерпан. Попробуй снова через {n} ч.', 'Attempt limit reached. Try again in {n} h.', 'Limit prób wyczerpany. Spróbuj ponownie za {n} godz.'), { n: hours })
+              : fmt(t('Лимит попыток исчерпан. Попробуй снова через {n} мин.', 'Attempt limit reached. Try again in {n} min.', 'Limit prób wyczerpany. Spróbuj ponownie za {n} min.'), { n: mins }));
             return;
           }
           if (!res.ok) {
-            setError(data.error || (ru ? 'Ошибка оценки.' : 'Błąd oceny.'));
+            setError(data.error || t('Ошибка оценки.', 'Grading failed.', 'Błąd oceny.'));
             return;
           }
           const r = data as VoiceResult;
@@ -166,16 +175,18 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
           // the whole call exists for cannot be traded for supporting details.
           const missing = r.mandatoryOk === false ? r.checks.find((c) => c.mandatory && !c.ok) : undefined;
           if (missing) {
-            setError(ru
-              ? `Пропущен обязательный элемент: ${missing.label}. Без него передача не засчитывается.`
-              : `Brak elementu obowiązkowego: ${missing.label}. Bez niego transmisja nie liczy się.`);
+            setError(fmt(t(
+              'Пропущен обязательный элемент: {item}. Без него передача не засчитывается.',
+              'A mandatory element is missing: {item}. Without it the transmission does not count.',
+              'Brak elementu obowiązkowego: {item}. Bez niego transmisja nie liczy się.',
+            ), { item: checkLabel(missing.label, lang) }));
           } else if (r.score >= minimumScore) {
             finish(r);
           } else {
-            setError(ru ? `Нужно минимум ${minimumScore}%. Повтори передачу.` : `Wymagane minimum ${minimumScore}%. Powtórz transmisję.`);
+            setError(fmt(t('Нужно минимум {n}%. Повтори передачу.', 'At least {n}% is required. Repeat the transmission.', 'Wymagane minimum {n}%. Powtórz transmisję.'), { n: minimumScore }));
           }
         } catch {
-          setError(ru ? 'Сеть недоступна.' : 'Brak połączenia.');
+          setError(t('Сеть недоступна.', 'No connection.', 'Brak połączenia.'));
         } finally {
           setBusy(false);
         }
@@ -188,12 +199,12 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
     } catch {
       setVoiceUnavailable(true);
       setError(allowLinePractice
-        ? (ru ? 'Нет доступа к микрофону - пройди передачу по строкам.' : 'Brak dostępu do mikrofonu - przejdź transmisję liniami.')
-        : (ru ? 'Нет доступа к микрофону. Голосовой экзамен нельзя завершить.' : 'Brak dostępu do mikrofonu. Nie można ukończyć egzaminu głosowego.'));
+        ? t('Нет доступа к микрофону - пройди передачу по строкам.', 'No access to the microphone - go through the transmission line by line.', 'Brak dostępu do mikrofonu - przejdź transmisję liniami.')
+        : t('Нет доступа к микрофону. Голосовой экзамен нельзя завершить.', 'No access to the microphone. The voice exam cannot be finished.', 'Brak dostępu do mikrofonu. Nie można ukończyć egzaminu głosowego.'));
     } finally {
       starting.current = false;
     }
-  }, [allowLinePractice, busy, kind, minimumScore, pob, positionIdx, vesselIdx, ru, stopRecording, finish]);
+  }, [allowLinePractice, busy, kind, lang, minimumScore, pob, positionIdx, venue, vesselIdx, t, stopRecording, finish]);
 
   useImperativeHandle(ref, () => ({
     startRecording: () => { void startRecording(); },
@@ -210,7 +221,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   return (
     <div data-testid="voice-panel" className="rounded-2xl p-4" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.25)' }}>
       <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-        🎙️ {ru ? 'Передача голосом - канал открыт' : 'Transmisja głosem - kanał otwarty'}
+        🎙️ {t('Передача голосом - канал открыт', 'Voice transmission - the channel is open', 'Transmisja głosem - kanał otwarty')}
       </div>
 
       {!hideScript ? (
@@ -223,7 +234,11 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         </ol>
       ) : (
         <p className="mb-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {ru ? `Экзамен: сценарий скрыт. Удерживай физическую PTT и передай сообщение с памяти. Проходной балл ${minimumScore}%.` : `Egzamin: tekst jest ukryty. Trzymaj fizyczny PTT i nadaj komunikat z pamięci. Próg zaliczenia ${minimumScore}%.`}
+          {fmt(t(
+            'Экзамен: сценарий скрыт. Удерживай физическую PTT и передай сообщение с памяти. Проходной балл {n}%.',
+            'Exam: the script is hidden. Hold the PTT on the radio and send the message from memory. Pass mark {n}%.',
+            'Egzamin: tekst jest ukryty. Trzymaj fizyczny PTT i nadaj komunikat z pamięci. Próg zaliczenia {n}%.',
+          ), { n: minimumScore })}
         </p>
       )}
 
@@ -237,11 +252,17 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40"
             style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           >
-            {ru ? 'Репетиция: следующая строка' : 'Próba: kolejna linia'} ({linesRead}/{lines.length})
+            {t('Репетиция: следующая строка', 'Practice: next line', 'Próba: kolejna linia')} ({linesRead}/{lines.length})
           </button>
         )}
         <div data-testid="voice-record-status" aria-live="polite" className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: recording ? '#a81f14' : 'var(--bg-secondary)', color: recording ? '#fff' : 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-          {busy ? (ru ? 'Оцениваю передачу...' : 'Oceniam transmisję...') : recording ? (ru ? 'ЗАПИСЬ: говори и отпусти PTT' : 'NAGRYWANIE: mów i puść PTT') : voiceUnavailable ? (ru ? 'Голосовой режим недоступен' : 'Tryb głosowy niedostępny') : (ru ? 'Удерживай PTT на рации' : 'Trzymaj PTT na radiu')}
+          {busy
+            ? t('Оцениваю передачу...', 'Grading the transmission...', 'Oceniam transmisję...')
+            : recording
+              ? t('ЗАПИСЬ: говори и отпусти PTT', 'RECORDING: speak, then release PTT', 'NAGRYWANIE: mów i puść PTT')
+              : voiceUnavailable
+                ? t('Голосовой режим недоступен', 'Voice mode is unavailable', 'Tryb głosowy niedostępny')
+                : t('Удерживай PTT на рации', 'Hold PTT on the radio', 'Trzymaj PTT na radiu')}
         </div>
       </div>
 
@@ -260,7 +281,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             transcript: '',
             checks: [{
               id: 'voice-not-transmitted',
-              label: ru ? 'Голосовая передача не отправлена' : 'Transmisja głosowa nie została nadana',
+              label: t('Голосовая передача не отправлена', 'The voice transmission was not sent', 'Transmisja głosowa nie została nadana'),
               ok: false,
               mandatory: true,
             }],
@@ -270,7 +291,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
           className="mt-2 min-h-[44px] rounded-xl px-4 text-sm font-semibold"
           style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
         >
-          {ru ? 'Закончить без голосовой передачи' : 'Zakończ bez transmisji głosowej'}
+          {t('Закончить без голосовой передачи', 'Finish without the voice transmission', 'Zakończ bez transmisji głosowej')}
         </button>
       )}
 
@@ -283,7 +304,9 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         className="mt-2 inline-flex min-h-[44px] items-center px-1 text-xs underline"
         style={{ color: 'var(--text-muted)' }}
       >
-        {ru ? (showMicCheck ? 'Скрыть проверку микрофона' : 'Проверить микрофон') : (showMicCheck ? 'Ukryj sprawdzenie mikrofonu' : 'Sprawdź mikrofon')}
+        {showMicCheck
+          ? t('Скрыть проверку микрофона', 'Hide the microphone check', 'Ukryj sprawdzenie mikrofonu')
+          : t('Проверить микрофон', 'Check the microphone', 'Sprawdź mikrofon')}
       </button>
       {showMicCheck && <div className="mt-2"><MicCheck compact /></div>}
 
@@ -293,12 +316,12 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             <span className="text-2xl font-extrabold" style={{ color: result.score >= 70 ? 'var(--success)' : result.score >= 40 ? 'var(--warning)' : 'var(--danger, #ff6a5a)' }}>
               {result.score}%
             </span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{ru ? 'структура сообщения (Whisper)' : 'struktura komunikatu (Whisper)'}</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('структура сообщения (Whisper)', 'message structure (Whisper)', 'struktura komunikatu (Whisper)')}</span>
           </div>
           <ul className="mt-2 space-y-0.5 text-xs">
             {result.checks.map((c) => (
               <li key={c.id} style={{ color: c.ok ? 'var(--success)' : 'var(--danger, #ff6a5a)' }}>
-                {c.ok ? '✓' : '✗'} {c.label}
+                {c.ok ? '✓' : '✗'} {checkLabel(c.label, lang)}
               </li>
             ))}
           </ul>

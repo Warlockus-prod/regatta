@@ -14,7 +14,7 @@ import {
   SternikLangScope,
   SternikPrefsProvider,
 } from "../../../src/app/sternik/prefs";
-import { OfflineI18nProvider, useI18n } from "./i18n";
+import { OfflineI18nProvider, appLanguage, useI18n, type CourseLanguage } from "./i18n";
 import { OfflineRouterProvider } from "./router";
 
 declare global {
@@ -124,6 +124,11 @@ const ROUTES: Record<string, ComponentType> = {
   "/sternik": OfflineSkipperNotice,
 };
 
+function helperLanguages(): CourseLanguage[] {
+  const app = appLanguage();
+  return app && app !== "pl" && app !== "ru" ? [app, "pl", "ru"] : ["pl", "ru"];
+}
+
 function StatusBar() {
   const { lang, setLang, tp } = useI18n();
   const [online, setOnline] = useState(navigator.onLine);
@@ -148,13 +153,15 @@ function StatusBar() {
         }}
       >
         {online
-          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu")
-          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają")}
+          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })
+          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają", { es: "Sin conexión: la teoría y la radio funcionan", fr: "Hors ligne : la théorie et la radio fonctionnent", de: "Offline: Theorie und Funkgerät funktionieren", it: "Offline: teoria e radio funzionano" })}
       </span>
       <span className="ml-auto" style={{ color: "var(--text-muted)" }}>
-        {tp("Язык помощи", "Helper language", "Język pomocy")}
+        {tp("Язык помощи", "Helper language", "Język pomocy", { es: "Idioma de ayuda", fr: "Langue d'aide", de: "Hilfesprache", it: "Lingua di aiuto" })}
       </span>
-      {(["pl", "ru"] as const).map((item) => (
+      {/* the app's own language first when it is neither PL nor RU: the
+          trainer runs in it, the theory and the exam stay PL / RU */}
+      {helperLanguages().map((item) => (
         <button
           key={item}
           type="button"
@@ -178,7 +185,7 @@ function StatusBar() {
             border: "1px solid rgba(0,212,255,0.28)",
           }}
         >
-          {tp("Голос онлайн", "Voice online", "Głos online")}
+          {tp("Голос онлайн", "Voice online", "Głos online", { es: "Voz en línea", fr: "Voix en ligne", de: "Sprache online", it: "Voce online" })}
         </button>
       )}
     </div>
@@ -209,13 +216,15 @@ function App() {
 
   return (
     <OfflineI18nProvider>
-      <SternikLangScope>
-        <SternikPrefsProvider>
-          <OfflineRouterProvider>
-            {({ path, search }) => {
-              const Page = ROUTES[path] ?? RadioCourseHome;
-              const key = `${path}${search}`;
-              return (
+      {/* the router outside the language scope: SternikLangScope reads the
+          path to let the radio trainer run in the app language */}
+      <OfflineRouterProvider>
+        {({ path, search }) => {
+          const Page = ROUTES[path] ?? RadioCourseHome;
+          const key = `${path}${search}`;
+          return (
+            <SternikLangScope>
+              <SternikPrefsProvider>
                 <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-4">
                   <StatusBar />
                   <RadioSubnav />
@@ -224,11 +233,11 @@ function App() {
                     <Page />
                   </main>
                 </div>
-              );
-            }}
-          </OfflineRouterProvider>
-        </SternikPrefsProvider>
-      </SternikLangScope>
+              </SternikPrefsProvider>
+            </SternikLangScope>
+          );
+        }}
+      </OfflineRouterProvider>
     </OfflineI18nProvider>
   );
 }

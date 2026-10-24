@@ -96,18 +96,16 @@ function restoreScript(
   }
 
   const payload = JSON.stringify(entries);
-  const language = nativeLanguage === "ru" ? "ru" : "pl";
   return `
     (function () {
       window.__REGATTA_NATIVE_APP__ = true;
+      // the radio trainer runs in the app's language (any of the seven)
+      window.__REGATTA_APP_LANG__ = ${JSON.stringify(nativeLanguage)};
       try {
         var entries = ${payload};
         Object.keys(entries).forEach(function (key) {
           if (localStorage.getItem(key) === null) localStorage.setItem(key, entries[key]);
         });
-        if (localStorage.getItem('regatta.radio.offline.lang.v1') === null) {
-          localStorage.setItem('regatta.radio.offline.lang.v1', '${language}');
-        }
       } catch (error) {}
     })();
     true;
@@ -159,9 +157,11 @@ export function OfflineRadioCourse() {
     () => {
       if (mode === "offline") return OFFLINE_SOURCE;
       const separator = onlinePath.includes("?") ? "&" : "?";
-      return { uri: `${ORIGIN}${onlinePath}${separator}lang=pl&embed=1` };
+      // the app's language: the trainer pages run in it, the rest of the
+      // radio section stays PL / RU on the site as well
+      return { uri: `${ORIGIN}${onlinePath}${separator}lang=${lang}&embed=1` };
     },
-    [mode, onlinePath],
+    [lang, mode, onlinePath],
   );
 
   const switchMode = (nextMode: CourseMode, path?: string) => {

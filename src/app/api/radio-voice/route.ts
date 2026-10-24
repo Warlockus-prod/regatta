@@ -2,7 +2,8 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import { logInfo, logWarn, logError } from '@/lib/log';
 import { rateLimitWithGlobal, rateLimitHeaders, isDailyRejection, USER_DAILY_AI_LIMIT, USER_DAILY_AI_IP_LIMIT, clientKeys } from '@/lib/rate-limit';
-import { POSITION_POOL, VESSEL_POOL } from '@/app/radio/symulator/radioModel';
+import { VESSEL_POOL } from '@/app/radio/symulator/radioModel';
+import { venueById } from '@/app/radio/symulator/venues';
 import { VOICE_KINDS, gradeVoiceTransmission, type VoiceKind } from './voiceGrading';
 
 export const runtime = 'nodejs';
@@ -94,10 +95,13 @@ export async function POST(req: Request) {
   }
   // Scenario variant: which vessel identity the transmission should carry.
   const vesselIdx = Math.min(Math.max(0, Math.trunc(Number(form.get('vessel') ?? 0)) || 0), VESSEL_POOL.length - 1);
-  const posIdx = Math.min(Math.max(0, Math.trunc(Number(form.get('position') ?? 0)) || 0), POSITION_POOL.length - 1);
+  // The run's venue (an unknown or missing id is the Gulf of Gdańsk, which is
+  // what clients from before the venues sent); the position indexes its pool.
+  const venue = venueById(String(form.get('venue') ?? ''));
+  const posIdx = Math.min(Math.max(0, Math.trunc(Number(form.get('position') ?? 0)) || 0), venue.positions.length - 1);
   const pob = Math.min(Math.max(2, Math.trunc(Number(form.get('pob') ?? 4)) || 4), 6);
   const vessel = VESSEL_POOL[vesselIdx];
-  const position = POSITION_POOL[posIdx];
+  const position = venue.positions[posIdx];
 
   const audio = form.get('audio');
   if (!(audio instanceof Blob) || audio.size === 0) {
@@ -122,7 +126,7 @@ export async function POST(req: Request) {
   const STT_PRIMARY = process.env.OPENAI_STT_MODEL || 'gpt-4o-transcribe';
   const STT_FALLBACK = 'whisper-1';
 
-  const promptHint = `Marine VHF radio transmission. MAYDAY, MAYDAY RELAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, MARINA GDYNIA, VTS ZATOKA GDANSKA, TRAINING SHIP, REGATTA FLEET, REQUEST A BERTH, REQUEST MEDICAL ADVICE, RECEIVED MAYDAY, NEPTUN, CANCEL MY DISTRESS ALERT, OVER, OUT.`;
+  const promptHint = `Marine VHF radio transmission. MAYDAY, MAYDAY RELAY, PAN PAN, SECURITE, ALL STATIONS, THIS IS, ${vessel.name}, MMSI ${vessel.mmsi}, CALL SIGN ${vessel.call}, POSITION ${position.spoken}, ${pob} PERSONS ON BOARD, RADIO CHECK, ${[venue.marina?.call, venue.vts?.call, venue.coast?.call].filter(Boolean).join(', ')}, TRAINING SHIP, REGATTA FLEET, REQUEST A BERTH, REQUEST MEDICAL ADVICE, RECEIVED MAYDAY, NEPTUN, CANCEL MY DISTRESS ALERT, OVER, OUT.`;
   const ext = audio.type.includes('mp4') ? 'm4a' : audio.type.includes('ogg') ? 'ogg' : 'webm';
 
   async function transcribe(model: string): Promise<string> {
@@ -166,6 +170,7 @@ export async function POST(req: Request) {
     vessel,
     positionSpoken: position.spoken,
     pob,
+    venue,
   });
 
   logInfo('radio-voice.graded', { kind, score: grade.score, ms: Date.now() - started, chars: transcript.length });

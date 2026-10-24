@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, type ReactNode, type Ref } from 'react';
-import { useI18n } from '@/lib/i18n';
+import { useTrainerI18n } from './trainerText';
 import styles from './RadioWorkspace.module.css';
 
 // ============================================================================
@@ -76,7 +76,7 @@ export function RadioWorkspace({
   dockRef?: Ref<HTMLDivElement>;
   testId?: string;
 }) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   return (
     <div className={styles.workspace} data-stacked={stacked || undefined} data-testid={testId}>
       <div className={styles.bar}>
@@ -105,7 +105,7 @@ export function RadioWorkspace({
 
 /** Inspect ("Rozbiór"): while on, a tap on the radio explains the part. */
 export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle: () => void; testId: string }) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   return (
     <button
       type="button"
@@ -121,7 +121,7 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
 }
 
 export function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void }) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   return (
     <button
       type="button"

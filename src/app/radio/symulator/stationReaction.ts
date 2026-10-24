@@ -83,10 +83,12 @@ export const REACTION_LINES: readonly string[] = [
  */
 export function pickReaction(
   missedIds: readonly string[],
-  opts: { distress?: boolean; unreadable?: boolean } = {},
+  opts: { distress?: boolean; unreadable?: boolean; station?: string } = {},
 ): Reaction {
   const ids = new Set(missedIds);
   if (opts.unreadable) ids.add('__unreadable__');
   const hit = REACTIONS.find((x) => x.match(ids, Boolean(opts.distress)));
-  return hit ? hit.r : FALLBACK;
+  const reaction = hit ? hit.r : FALLBACK;
+  // the re-prompt comes from the run's coast station (venues.ts)
+  return opts.station ? { ...reaction, station: opts.station } : reaction;
 }
