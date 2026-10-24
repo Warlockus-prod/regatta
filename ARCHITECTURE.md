@@ -1023,7 +1023,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 ### Local course and native storage completion, build 59
 
-The original Polish Sternik pages are compiled into one installed package. Its local host reads asset bytes through expo-file-system, keeps the former website base origin for one-time WebKit progress migration, and guards active exams. Native snapshots become authoritative after a durable acknowledgment. Both SRC and Sternik clear their stale WebKit copies after Clear all data, retain first-run legacy migration and expose read, render and save retries.
+The original Polish Sternik pages are compiled into one installed package. Its local host reads asset bytes through expo-file-system, keeps the former website base origin for one-time WebKit progress migration, and guards active exams with an explicit React Native exit button, disabled swipe-back and usePreventRemove for external navigation. Cancel asks before beginning a native pop, so repeated Stay/Exit remains usable. Native snapshots become authoritative after a durable acknowledgment. Both SRC and Sternik clear their stale WebKit copies after Clear all data, retain first-run legacy migration and expose read, render and save retries.
 
 - `mobile/src/course/LocalCourseWebView.tsx` - Local asset loading, routing or durable storage.
 - `mobile/src/course/OfflineSternikCourse.tsx` - Local asset loading, routing or durable storage.

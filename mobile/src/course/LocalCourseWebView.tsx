@@ -80,10 +80,8 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     if (route) web.current?.injectJavaScript(`window.dispatchEvent(new CustomEvent("regatta:sternik-navigate",{detail:${JSON.stringify({ href: route })}}));true;`);
   }, [href, hasLoaded, loading, failed, localHref]);
   useEffect(() => examDirty ? hideMainNavigation() : undefined, [examDirty]);
-  // Registers native-stack prevention before UIKit can dismiss the screen.
-  // Re-dispatch the exact blocked action so React Navigation can continue it.
-  usePreventRemove(examDirty, ({ data }) => {
-    if (!dirty.current) { navigation.dispatch(data.action); return; }
+  const requestExit = (continueExit: () => void) => {
+    if (!dirty.current) { continueExit(); return; }
     if (exitPromptOpen.current) return;
     exitPromptOpen.current = true;
     const stay = () => { exitPromptOpen.current = false; };
@@ -92,10 +90,13 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
       { text: "Wyjdź", style: "destructive", onPress: () => {
         if (!exitPromptOpen.current) return;
         exitPromptOpen.current = false; dirty.current = false; setExamDirty(false);
-        navigation.dispatch(data.action);
+        continueExit();
       } },
     ], { cancelable: true, onDismiss: stay });
-  });
+  };
+  // The exam's header button asks before dispatching, avoiding UIKit's cancelled
+  // back-button state. Keep native-stack prevention for every other exit action.
+  usePreventRemove(examDirty, ({ data }) => requestExit(() => navigation.dispatch(data.action)));
 
   const persist = (entries: T) => {
     latestEntries.current = entries;
@@ -113,11 +114,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   };
   const openRadio = () => {
     if (!onOpenRadio) return;
-    if (!dirty.current) { onOpenRadio(); return; }
-    Alert.alert("Wyjść z egzaminu?", "Niezapisane odpowiedzi egzaminu zostaną utracone.", [
-      { text: "Zostań", style: "cancel" },
-      { text: "Wyjdź", style: "destructive", onPress: () => { dirty.current = false; setExamDirty(false); onOpenRadio(); } },
-    ]);
+    requestExit(onOpenRadio);
   };
   const onMessage = (event: WebViewMessageEvent) => {
     const raw = event.nativeEvent.data;
@@ -145,7 +142,13 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   };
 
   return <Screen>
-    <Stack.Screen options={{ title, headerBackButtonMenuEnabled: false }} />
+    <Stack.Screen options={{
+      title,
+      headerBackButtonMenuEnabled: false,
+      headerBackVisible: examDirty ? false : undefined,
+      gestureEnabled: examDirty ? false : undefined,
+      headerLeft: examDirty ? () => <Pressable accessibilityRole="button" accessibilityLabel="Wyjdź z egzaminu" onPress={() => requestExit(() => navigation.goBack())} style={styles.headerExit}><Text style={styles.headerExitText}>Wyjdź</Text></Pressable> : undefined,
+    }} />
     {saveFailed && <View style={styles.saveError} accessibilityRole="alert">
       <Text style={styles.text}>Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis.</Text>
       <Pressable accessibilityRole="button" onPress={() => { if (latestEntries.current) persist(latestEntries.current); }} style={styles.button}><Text style={styles.buttonText}>Ponów zapis</Text></Pressable>
@@ -177,6 +180,8 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
 }
 
 const styles = StyleSheet.create({
+  headerExit: { minHeight: 44, minWidth: 44, justifyContent: "center", paddingHorizontal: 8 },
+  headerExitText: { color: colors.accentCyan, fontSize: 16, fontWeight: "600" },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center", backgroundColor: colors.bgPrimary, paddingHorizontal: 28, gap: 18 },
   saveError: { backgroundColor: colors.bgPrimary, padding: 12, gap: 8 },
