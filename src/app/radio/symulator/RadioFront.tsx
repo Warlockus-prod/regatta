@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Share_Tech_Mono } from 'next/font/google';
-import { useI18n } from '@/lib/i18n';
+import { useTrainerI18n } from './trainerText';
 import {
   DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
   channel, dscFieldValues, effectivePower, menuItems, otherDscRows, radioProfile, softkeys,
@@ -116,6 +116,10 @@ interface Props {
   /** Realistic hardware faceplate (graphite body + speaker grille), matching the
    *  real IC-M330GE product photo. Pairs with skin="amber". */
   realistic?: boolean;
+  /** Pinned faceplate: the same wired controls packed into about 410px of
+   *  height (lower screen floor, three key rows, DISTRESS and PTT side by side),
+   *  so the radio stays on screen above the task panel on a phone. */
+  compact?: boolean;
 }
 
 function Key({
@@ -174,7 +178,8 @@ function LcdLine({ children, big, dim, color }: { children: ReactNode; big?: boo
     <div style={{
       color: color ?? (dim ? LCD_DIM : LCD_FG),
       fontSize: big ? 15 : 11,
-      lineHeight: 1.45,
+      // the compact (pinned) screen sets a tighter --lcd-lh on the LCD
+      lineHeight: 'var(--lcd-lh, 1.45)',
       letterSpacing: 0.4,
     }}>
       {children}
@@ -263,12 +268,12 @@ function StatusBar({ s, ins, busy = false }: { s: RadioState; ins?: Inspect; bus
 }
 
 /** Persistent bottom row of the LCD: TX/RX state + signal meter. */
-function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
+function TxMeter({ s, ins, compact = false }: { s: RadioState; ins?: Inspect; compact?: boolean }) {
   const tx = s.ptt;
   const label = tx ? 'TX' : 'RX';
   const pct = tx ? '86%' : s.power ? '22%' : '0%';
   return (
-    <div className="mt-2 flex items-center gap-2 border-t pt-1.5" style={{ borderColor: 'rgba(var(--lcd-tint),0.16)' }}>
+    <div className={`${compact ? 'mt-1 pt-1' : 'mt-2 pt-1.5'} flex items-center gap-2 border-t`} style={{ borderColor: 'rgba(var(--lcd-tint),0.16)' }}>
       <Ind
         ik="tx-meter"
         ins={ins}
@@ -291,7 +296,7 @@ function TxMeter({ s, ins }: { s: RadioState; ins?: Inspect }) {
   );
 }
 
-function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean }) {
+function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean; compact?: boolean }) {
   const ch16 = channel(s);
   const keys = softkeys(s);
 
@@ -550,8 +555,8 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         body = (
           <>
             <LcdLine big>RCVD DTRS ACK</LcdLine>
-            <LcdLine>FROM: 002618102</LcdLine>
-            <LcdLine>POLISH RESCUE RADIO</LcdLine>
+            <LcdLine>FROM: {s.coast?.mmsi ?? '---'}</LcdLine>
+            <LcdLine>{s.coast?.label ?? 'COAST STATION'}</LcdLine>
             <LcdLine color={LCD_ALERT}>{'♪'} ALARM {'♪'}</LcdLine>
           </>
         );
@@ -702,7 +707,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
                 }}
               >
                 <div style={{ fontSize: 9, letterSpacing: 1, color: LCD_DIM }}>CH</div>
-                <div style={{ fontSize: 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(var(--lcd-tint),.45)' }}>
+                <div style={{ fontSize: compact ? 42 : 54, lineHeight: 0.82, color: LCD_FG, textShadow: '0 0 10px rgba(var(--lcd-tint),.45)' }}>
                   {ch16.num}
                 </div>
               </div>
@@ -748,13 +753,17 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
         // Only handle keys aimed at the container itself, not a focused child indicator.
         if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ins.pick('lcd'); }
       } : undefined}
-      className={`${lcdFont.className} relative rounded-lg px-3 py-2`}
+      className={`${lcdFont.className} relative rounded-lg px-3 ${compact ? 'py-1.5' : 'py-2'}`}
       style={{
+        ...(compact ? { '--lcd-lh': '1.28' } as React.CSSProperties : {}),
         background: LCD_BG,
         backgroundImage: `${LCD_SCAN}, ${LCD_BG}`,
         border: ins?.on && ins.key === 'lcd' ? `2px solid ${HL}` : '2px solid #0c0f13',
         borderRadius: 9,
-        minHeight: 168,
+        // compact (pinned) faceplate: the floor is the standby screen's height,
+        // so switching the radio on does not push the task panel down; a longer
+        // screen (a menu, a received alert) still grows with its content
+        minHeight: compact ? 152 : 168,
         color: LCD_FG,
         boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(var(--lcd-tint),.06)',
         overflow: 'hidden',
@@ -769,10 +778,11 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy }: { s: RadioState; clock
       }}
     >
       {s.power && <StatusBar s={s} ins={ins} busy={busy} />}
-      <div style={{ minHeight: 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
-      {s.power && <TxMeter s={s} ins={ins} />}
-      {/* softkey labels - bottom row, like on the device */}
-      {s.power && (
+      <div style={{ minHeight: compact ? 62 : 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
+      {s.power && <TxMeter s={s} ins={ins} compact={compact} />}
+      {/* softkey labels - bottom row, like on the device. The compact faceplate
+          drops it: the softkeys right under the screen carry the same labels. */}
+      {s.power && !compact && (
         <div className="mt-1 grid grid-cols-4 gap-1 border-t pt-1" style={{ borderColor: 'rgba(var(--lcd-tint),0.25)' }}>
           {keys.map((k, i) => (
             <div key={i} style={{ fontSize: 8.5, textAlign: 'center', color: k ? LCD_FG : 'transparent', overflow: 'hidden', whiteSpace: 'nowrap' }}>
@@ -807,8 +817,9 @@ function softIk(label: string): string {
 export default function RadioFront({
   s, dispatch, model = s.model, holdPct, onDistressDown, onDistressUp, onPttDown, onPttUp, clock, nextTxSec,
   highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
+  compact = false,
 }: Props) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
 
@@ -911,7 +922,7 @@ export default function RadioFront({
     </span>
   );
 
-  const lcdBlock = <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} />;
+  const lcdBlock = <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} compact={compact} />;
 
   const softkeysBlock = (
     <div className="grid grid-cols-4 gap-1.5">
@@ -966,15 +977,15 @@ export default function RadioFront({
       })}
       className="relative select-none shrink-0"
       style={{
-        width: 76, height: 76, borderRadius: '50%',
+        width: compact ? 60 : 76, height: compact ? 60 : 76, borderRadius: '50%',
         border: inspect && inspectKey === 'dial' ? `2px solid ${HL}` : 'none',
         background: 'radial-gradient(circle at 38% 32%,#565d69,#2b2f38 70%,#1c1f26)',
         boxShadow: 'inset 0 2px 3px rgba(255,255,255,.18), inset 0 -3px 6px rgba(0,0,0,.6), 0 3px 8px rgba(0,0,0,.5)',
         touchAction: 'none',
       }}
     >
-      <span style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: 16, borderRadius: 2, background: '#cfd6e0' }} />
-      <span style={{ position: 'absolute', inset: 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
+      <span style={{ position: 'absolute', top: compact ? 5 : 6, left: '50%', transform: 'translateX(-50%)', width: 4, height: compact ? 13 : 16, borderRadius: 2, background: '#cfd6e0' }} />
+      <span style={{ position: 'absolute', inset: compact ? 16 : 20, borderRadius: '50%', background: 'radial-gradient(circle at 40% 35%,#3a3f49,#23272f)', boxShadow: 'inset 0 1px 2px rgba(255,255,255,.12)' }} />
     </button>
   );
 
@@ -1075,18 +1086,27 @@ export default function RadioFront({
       style={{
         // realistic: a compact red flip-tab, as on the hardware; trainer: a full bar.
         // The realistic tab is 44px (not 38) so its touch target clears the 44px floor.
-        height: realistic ? 44 : 46, borderRadius: realistic ? 6 : 9,
+        height: compact ? 48 : realistic ? 44 : 46, borderRadius: realistic ? 6 : 9,
         border: inspect && inspectKey === 'distress-cover' ? `2px solid ${HL}` : '2px solid #b23524',
         background: 'repeating-linear-gradient(45deg,#c93a26 0 11px,#a82e1e 11px 22px)',
         color: '#ffe8e2', fontWeight: 700, fontSize: realistic ? 10.5 : 12, letterSpacing: realistic ? 1 : 2,
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,.2), 0 3px 7px rgba(0,0,0,.4)',
       }}
     >
-      <span style={{ position: 'absolute', left: realistic ? 7 : 12, top: '50%', transform: 'translateY(-50%)', fontSize: realistic ? 12 : 16 }}>⬒</span>
-      {realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otwórz osłonę')}`}
+      <span style={{ position: 'absolute', left: realistic || compact ? 7 : 12, top: '50%', transform: 'translateY(-50%)', fontSize: realistic ? 12 : 16 }}>⬒</span>
+      {compact && !realistic ? (
+        // half-width bar: the cover hint goes on a second line instead of being cut
+        <span className="flex flex-col items-center leading-tight">
+          <span>DISTRESS</span>
+          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{tp('открой крышку', 'open the cover', 'otwórz osłonę')}</span>
+        </span>
+      ) : realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otwórz osłonę')}`}
     </button>
   ) : (
-    <div style={{ borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}>
+    <div
+      className={compact ? 'flex gap-1.5' : undefined}
+      style={compact ? undefined : { borderRadius: 9, padding: 5, background: 'rgba(200,58,38,.12)', border: '1px dashed rgba(210,90,70,.5)' }}
+    >
       <button
         type="button"
         data-testid="distress-key"
@@ -1102,28 +1122,74 @@ export default function RadioFront({
         onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
           if (isActivationKey(e.key)) { e.preventDefault(); onDistressUp(); }
         })}
-        className="w-full select-none"
+        className={compact ? 'min-w-0 flex-1 select-none' : 'w-full select-none'}
         style={{
-          height: 44, borderRadius: 7, border: 'none',
+          height: compact ? 48 : 44, borderRadius: 7, border: 'none',
           background: 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)',
-          color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 2,
+          color: '#fff', fontWeight: 700, fontSize: compact ? 12 : 13, letterSpacing: compact ? 1 : 2,
           boxShadow: 'inset 0 1px 0 rgba(255,255,255,.35), 0 3px 8px rgba(180,30,20,.55)',
           touchAction: 'none',
         }}
       >
-        DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}
+        {compact ? (
+          <span className="flex flex-col items-center leading-tight">
+            <span>DISTRESS</span>
+            <span style={{ fontSize: 9.5, letterSpacing: 0.4 }}>{tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}</span>
+          </span>
+        ) : <>DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}</>}
       </button>
       <button
         type="button"
         onClick={() => setCoverOpen(false)}
-        className="mt-1.5 w-full"
+        aria-label={compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined}
+        title={compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined}
+        className={compact ? 'shrink-0 rounded-lg' : 'mt-1.5 w-full'}
         // minHeight 44 gives a full touch target; the transparent background keeps
         // it looking like the same small text link (44px floor, not a visual bar).
-        style={{ minHeight: 44, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
+        // Compact: a 44x48 key beside DISTRESS, so the row keeps its height.
+        style={compact
+          ? { width: 44, height: 48, border: '1px dashed rgba(210,90,70,.6)', background: 'rgba(200,58,38,.12)', color: '#e0a49b', fontSize: 15 }
+          : { minHeight: 44, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
       >
-        {tp('закрыть крышку', 'close the cover', 'zamknij osłonę')}
+        {compact ? '✕' : tp('закрыть крышку', 'close the cover', 'zamknij osłonę')}
       </button>
     </div>
+  );
+
+  const pttButton = (
+    <button
+      type="button"
+      data-testid="ptt"
+      data-ik="ptt"
+      onClick={inspect ? () => onInspect?.('ptt') : undefined}
+      onPointerDown={hold(onPttDown)}
+      onPointerUp={hold(onPttUp)}
+      onPointerLeave={hold(onPttUp)}
+      onPointerCancel={hold(onPttUp)}
+      onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
+      })}
+      onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
+      })}
+      className={compact ? 'w-full select-none' : 'flex-1 select-none'}
+      style={{
+        height: compact ? 48 : 54, borderRadius: 9,
+        border: inspect && inspectKey === 'ptt' ? `2px solid ${HL}` : 'none',
+        background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
+        color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: compact ? 1 : 1.5,
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',
+        touchAction: 'none',
+        transition: 'background .1s',
+      }}
+    >
+      {compact ? (
+        <span className="flex flex-col items-center leading-tight">
+          <span>PTT</span>
+          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}</span>
+        </span>
+      ) : <>PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}</>}
+    </button>
   );
 
   const micBlock = (
@@ -1144,34 +1210,7 @@ export default function RadioFront({
         cursor: inspect ? 'help' : undefined,
       }}
     >
-      <button
-        type="button"
-        data-testid="ptt"
-        data-ik="ptt"
-        onClick={inspect ? () => onInspect?.('ptt') : undefined}
-        onPointerDown={hold(onPttDown)}
-        onPointerUp={hold(onPttUp)}
-        onPointerLeave={hold(onPttUp)}
-        onPointerCancel={hold(onPttUp)}
-        onKeyDown={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-          if (!e.repeat && isActivationKey(e.key)) { e.preventDefault(); onPttDown(); }
-        })}
-        onKeyUp={hold((e: React.KeyboardEvent<HTMLButtonElement>) => {
-          if (isActivationKey(e.key)) { e.preventDefault(); onPttUp(); }
-        })}
-        className="flex-1 select-none"
-        style={{
-          height: 54, borderRadius: 9,
-          border: inspect && inspectKey === 'ptt' ? `2px solid ${HL}` : 'none',
-          background: s.ptt ? 'radial-gradient(circle at 50% 35%,#ff5a44,#c8271a)' : 'linear-gradient(180deg,#4a5060,#343947)',
-          color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 1.5,
-          boxShadow: 'inset 0 1px 0 rgba(255,255,255,.18), 0 3px 8px rgba(0,0,0,.5)',
-          touchAction: 'none',
-          transition: 'background .1s',
-        }}
-      >
-        PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}
-      </button>
+      {pttButton}
       <div style={{ flex: '0 0 96px' }}>
         <div style={{ height: 8, background: '#12151b', borderRadius: 4, overflow: 'hidden', border: '1px solid #0a0c10' }}>
           <div
@@ -1208,14 +1247,58 @@ export default function RadioFront({
     />
   );
 
+  // ---- compact (pinned) faceplate: the same wired controls in about 410px of
+  //      height. Trainer: knob column beside three key rows (MENU moves up next
+  //      to 16/C, ENT down next to CH-down); realistic: its own keypad grid with
+  //      16/C and the knob beside it. DISTRESS and PTT share the bottom row, so
+  //      the mic is not a separate block here.
+  const compactFace = (
+    <div className="flex flex-col gap-2">
+      {lcdBlock}
+      {softkeysBlock}
+      {realistic ? (
+        <div className="grid items-start gap-2.5" style={{ gridTemplateColumns: '1fr 96px' }}>
+          <div className="grid grid-cols-3 gap-1.5">
+            <span />{kUp}<span />
+            {kLeft}{kEnt}{kRight}
+            {kMenu}{kDown}{kClr}
+          </div>
+          <div className="flex flex-col items-center gap-1.5">
+            {key16c}
+            {dialKnob}
+            {dialCaption}
+          </div>
+        </div>
+      ) : (
+        <div className="grid items-start gap-2.5" style={{ gridTemplateColumns: '100px 1fr' }}>
+          <div className="flex flex-col items-center gap-1">
+            {dialKnob}
+            {dialCaption}
+            {dialRockers}
+          </div>
+          <div className="grid grid-cols-3 gap-1.5">
+            <div className="col-span-2 grid">{key16c}</div>{kMenu}
+            {kLeft}{kUp}{kRight}
+            {kClr}{kDown}{kEnt}
+          </div>
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        {distressBlock}
+        {pttButton}
+      </div>
+    </div>
+  );
+
   return (
     // device stage: the radio sits on a lit deck, as in the design handoff
     <div
       data-radio-highlight={highlightControl}
+      data-compact={compact || undefined}
       className="radio-stage rounded-2xl"
       style={{
         background: 'radial-gradient(120% 100% at 50% 0%,#26527e 0%,#183a5c 45%,#0e263f 100%)',
-        padding: 'clamp(12px,2.2vw,22px)',
+        padding: compact ? 8 : 'clamp(12px,2.2vw,22px)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -20px rgba(6,26,50,.8)',
       }}
     >
@@ -1250,19 +1333,19 @@ export default function RadioFront({
           // subtree reads them, so the grey body stays identical on both skins.
           ...LCD_SKINS[skin],
           // the realistic faceplate is a wide, landscape unit like the real set
-          maxWidth: realistic ? 720 : 440,
+          maxWidth: realistic && !compact ? 720 : 440,
           background: realistic
             ? 'linear-gradient(180deg,#23262b 0%,#191b1f 58%,#101215 100%)'
             : 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
-          borderRadius: 16,
-          padding: '16px 15px 18px',
+          borderRadius: compact ? 13 : 16,
+          padding: compact ? '9px 9px 10px' : '16px 15px 18px',
           border: realistic ? '1px solid #06070a' : '1px solid #171a20',
           boxShadow: realistic
             ? 'inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 9px rgba(0,0,0,.65), 0 14px 30px -14px rgba(0,0,0,.78)'
             : 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
         }}
       >
-        {realistic ? (
+        {compact ? compactFace : realistic ? (
           // ---- wide realistic IC-M330GE: speaker | screen | controls, the real
           //      front-panel geometry so the learner meets the actual layout ----
           <>
@@ -1320,7 +1403,7 @@ export default function RadioFront({
         )}
       </div>
 
-      {micBlock}
+      {!compact && micBlock}
     </div>
   );
 }

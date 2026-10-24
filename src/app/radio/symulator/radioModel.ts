@@ -88,21 +88,26 @@ export interface ChannelDef {
 export const CHANNELS: ChannelDef[] = [
   { num: '01' }, { num: '02' }, { num: '03' }, { num: '04' }, { num: '05' },
   { num: '06' }, { num: '07' }, { num: '08' }, { num: '09' }, { num: '10' },
-  { num: '11' }, { num: '12', label: 'Gdynia port/marina' }, { num: '13' },
-  { num: '14', label: 'Gdansk port' }, { num: '15', lowOnly: true },
+  { num: '11' }, { num: '12' }, { num: '13' },
+  { num: '14' }, { num: '15', lowOnly: true },
   { num: '16', label: 'DISTRESS/CALLING' }, { num: '17', lowOnly: true },
   { num: '18' }, { num: '19' }, { num: '20' }, { num: '21' }, { num: '22' },
   { num: '23' }, { num: '24' }, { num: '25' }, { num: '26' }, { num: '27' },
   { num: '28' }, { num: '60' }, { num: '61' }, { num: '62' }, { num: '63' },
   { num: '64' }, { num: '65' }, { num: '66' }, { num: '67' }, { num: '68' },
   { num: '69' }, { num: '70', noVoice: true, label: 'DSC' },
-  { num: '71', label: 'VTS Zatoka Gdanska' }, { num: '72' }, { num: '73' },
+  { num: '71' }, { num: '72' }, { num: '73' },
   { num: '74' }, { num: '75', lowOnly: true }, { num: '76', lowOnly: true },
   { num: '77' }, { num: '78' }, { num: '79' }, { num: '80' }, { num: '81' },
   { num: '82' }, { num: '83' }, { num: '84' }, { num: '85' }, { num: '86' },
   { num: '87' }, { num: '88' },
 ];
 export const CH16_INDEX = CHANNELS.findIndex((c) => c.num === '16');
+/** Local working-channel labels of the default venue (Gulf of Gdańsk); a
+ *  scenario venue replaces them through `RadioState.channelLabels`. */
+export const GDANSK_CHANNEL_LABELS: Readonly<Record<string, string>> = {
+  '12': 'Gdynia port/marina', '14': 'Gdansk port', '71': 'VTS Zatoka Gdanska',
+};
 
 export const NATURES = [
   'Undesignated', 'Fire,Explosion', 'Flooding', 'Collision', 'Grounding',
@@ -183,6 +188,10 @@ export interface RadioState {
   dscSettingsCursor: number;
   idCursor: number;
   individualIds: DscAddress[];
+  /** the coast station that acknowledges your DSC alerts (null: none in the venue) */
+  coast: DscAddress | null;
+  /** local labels for working channels, shown under the channel number */
+  channelLabels: Readonly<Record<string, string>>;
   idEntryMmsi: string;
   idEntryCursor: number;
   positionInputStage: number;
@@ -248,6 +257,7 @@ export function createInitialRadio(
     workChannelIndex: null, aquaActive: false, keyBeep: true,
     favoriteChannels: ['06', '12', '16'], softPage: 0, menuCursor: 0, m323CallCursor: 0, stubTitle: '',
     dscSettingsCursor: 0, idCursor: 0, individualIds: DSC_ADDRESSES.map((item) => ({ ...item })),
+    coast: { label: COAST_STATION, mmsi: COAST_MMSI }, channelLabels: GDANSK_CHANNEL_LABELS,
     idEntryMmsi: '000000000', idEntryCursor: 2, positionInputStage: 0, positionTime: '1200',
     natureIndex: 0, natureCursor: 0, composeCursor: 0,
     distressActive: false, retxCount: 0, retxPaused: false, ackReceived: false,
@@ -312,7 +322,9 @@ function log(s: RadioState, text: string, kind: DeviceLogEntry['kind'] = 'ui'): 
 }
 
 export function channel(s: RadioState): ChannelDef {
-  return CHANNELS[s.channelIndex] ?? CHANNELS[CH16_INDEX];
+  const def = CHANNELS[s.channelIndex] ?? CHANNELS[CH16_INDEX];
+  const local = s.channelLabels?.[def.num];
+  return local ? { ...def, label: local } : def;
 }
 
 export function effectivePower(s: RadioState): '25W' | '1W' {
@@ -778,7 +790,7 @@ export function radioReducer(s: RadioState, e: RadioEvent): RadioState {
       return { ...s, retxCount: s.retxCount + 1, deviceLog: log(s, 'Auto re-TX of Distress Alert (CH 70)', 'tx') };
     case 'coast-ack':
       if (!s.distressActive || s.ackReceived) return s;
-      return { ...s, ackReceived: true, screen: 'distress-ack', deviceLog: log(s, `RX DSC DISTRESS ACK from ${COAST_STATION} (${COAST_MMSI}) - alarm sounds`, 'rx'), beeps: s.beeps + 1 };
+      return { ...s, ackReceived: true, screen: 'distress-ack', deviceLog: log(s, `RX DSC DISTRESS ACK from ${s.coast ? `${s.coast.label} (${s.coast.mmsi})` : 'COAST STATION'} - alarm sounds`, 'rx'), beeps: s.beeps + 1 };
     case 'otherdsc-ack':
       if (s.screen !== 'otherdsc-sent' || !s.odAwaitingAck) return s;
       return { ...s, screen: 'otherdsc-ack', odAwaitingAck: false, deviceLog: log(s, `RX DSC ACK from ${s.odSent?.address ?? 'station'}`, 'rx'), beeps: s.beeps + 1 };

@@ -340,6 +340,14 @@ smoke step warns (does not fail) when the header is still missing.
   figures are still bilingual (baked into the SVG text nodes).
 - Simulator/scenario texts are `Bi {pl, ru}` rendered via the same policy
   (`ru` only for RU-site users who chose RU or Both).
+- **Owner decision 2026-10-24 (supersedes the two-language rule for the
+  radio course):** the SRC radio course is an international standard and may
+  be translated into all 7 site languages. Order: the trainer first (scenarios,
+  hints, debriefs, labels; radio phrases stay English; coast stations and
+  positions randomized worldwide instead of only the Gulf of Gdańsk), then the
+  theory, cheat sheet and the 324-question bank. The trainer part is done (see
+  "Seven languages and four venues" below); the rest still runs the PL/RU
+  policy above.
 
 ### 2026-07-14: Polish is the base, Russian is an addition
 
@@ -869,3 +877,100 @@ Current status:
 - iOS app 1.6+: embedded course works from the first launch without a network.
 - Android app 1.6+: embedded course works from the first launch without a network.
 - Speech recognition, server voice grading and free conversation: online only.
+
+## Two screens and a pinned radio (2026-10-24)
+
+Owner: "when I scroll the task, the radio hides; it should stay on screen like
+the 3D boat, the radio on top and the tasks sliding out below. There are too
+many tabs. Make the trainer one or two screens." The proposal (before and
+after, phone 390x844) is `docs/design/radio-trainer/proposal-board.png`; the
+owner chose the recommended option on all four questions.
+
+- **Tabs: 10 sections became 4.** `RadioSubnav` shows Kurs, Teoria, Trening
+  (Практика), Egzamin. The old "Więcej" menu (which also opened off the left
+  edge of a phone, its links invisible) is gone. Obsługa, Rozmowa na żywo,
+  Dyktowanie pozycji and the 26 UKE tasks are rows of the Trening list and
+  light up the Trening tab; Ściąga belongs to Teoria. All old addresses work.
+- **Screen 1, the Trening list** (`/radio/symulator`): first steps (the
+  controls lessons, `/radio/obsluga?kurs=1`), the 19 scenarios in four groups
+  (`practiceMenu.ts`: alarm, urgency and safety, routine, radio settings), each
+  row naming the UKE tasks it trains, then the voice drills and links to the 26
+  tasks and the cheat sheet. One Nauka / Egzamin switch above the list
+  (remembered in `sternik.radio.mode.v1`) replaces the two buttons on every
+  card; a row is one tap. The radio model sits in a folded chip.
+- **Screen 2, the work screen** (`RadioWorkspace.tsx`), shared by the
+  simulator, the controls lessons and the live conversation: a fixed screen
+  with a bar (exit, mode or lesson, timer, Rozbiór, sound), the radio pinned
+  under it, and the panel that scrolls on its own: the explanation of a tapped
+  part (Rozbiór) first, then the task with its hint and the newest log line,
+  the voice step, the situation and the journal (both foldable). The panel
+  returns to its top on a new step, so the next task sits right under the
+  radio. The page behind it does not scroll.
+- **Compact faceplate** (`RadioFront compact`): the same wired controls in
+  about 450px: the screen's floor equals the switched-on standby screen (no jump
+  at power on), no duplicate softkey label row on the LCD, three key rows (MENU
+  next to 16/C, ENT next to CH-down), DISTRESS and PTT side by side. Every key
+  stays at least 44px. Used on phones and tablets and on desktops under 860px
+  of height; the realistic amber faceplate uses its compact form only on
+  phones and otherwise sits full width above the panel (beside it the panel
+  would be a narrow strip).
+- **Where it sits.** Desktop: radio column and panel column inside the 1080px
+  content width, under the site navigation. Phones: the work screen covers the
+  site navigation (about 110px that the panel needs), the bar's exit leads
+  back. In the iOS app the page posts `radio-workspace` and the native "SRC
+  Radio" header hides while the work screen is open. Measured at 390x844: radio
+  449px, panel 326px; app WebView 750px: panel 232px (plus 44pt with the header
+  hidden); iPhone SE 375x667: panel 149px.
+- **Contract test:** `e2e/radio-workspace.spec.ts` (the LCD, PTT, DISTRESS and
+  the knob stay inside the viewport after scrolling the panel and the page, on
+  a phone and a desktop; the radio works from the pinned view; four tabs).
+
+## Seven languages and four venues (2026-10-24)
+
+The trainer (`/radio/symulator`) runs in the site language, all seven of them.
+`SternikLangScope` (in `src/app/sternik/prefs.tsx`) exempts the trainer route
+from the PL / RU section scope; theory, the UKE bank, the cheat sheet, the
+Obsługa lessons and the live conversation stay PL / RU for now.
+
+- **Texts.** The data keeps `Bi {pl, ru}`. EN / ES / FR / DE / IT live in
+  `src/app/radio/symulator/i18n/<lang>.json`, keyed by the exact Polish source
+  string (scenario titles, briefs, steps, mistakes, debriefs, the Rozbiór
+  explanations, the grader checklist labels). Interface strings keep their
+  `tp(ru, en, pl)` calls; `useTrainerI18n` adds ES / FR / DE / IT from
+  `i18n/ui.<lang>.json`, keyed by the English string. Grader labels arrive in
+  Polish from the server and are localized on the client (`checkLabel`; the
+  value-carrying ones by template, "dokładna pozycja ({value})").
+  `trainerText.test.ts` fails on any untranslated, stale or damaged entry
+  (lost place-holder, key name or radio phrase, forbidden typography). Radio
+  phrases stay radio English in every language.
+- **Venues** (`venues.ts`). Each run draws a venue among those that have what
+  the scenario `needs`: a coast station (every DSC and distress scenario), a
+  marina (radio check, berth request), a VTS (traffic report). Gulf of Gdańsk:
+  Polish Rescue Radio 002618102, Marina Gdynia 12, VTS Zatoka Gdańska 71. The
+  Solent: Solent Coastguard 002320011 (RYA list of HM Coastguard MMSIs),
+  working channel 67, Lymington Yacht Haven 80 (the marina's own page),
+  Southampton VTS 12 (Southampton VTS notices). Bay of Palma: Palma coast
+  station of CCR Valencia, DSC 002241024, coordination channel 72 (Spanish
+  Ministry of Transport, national coast station network), Real Club Náutico de
+  Palma 9. Bodrum: Milta Bodrum Marina 73; no Turkish VHF coast-station MMSI
+  could be verified, so Bodrum has no coast station and only hosts the marina
+  calls and the scenarios that need no shore station. Positions are open water
+  in each area.
+- **What the venue changes.** The radio's coast station (DSC ACK, address book
+  entry, LCD), local channel labels, the step checks (`StepCtx`: the marina is
+  on 12, 80, 9 or 73), the text place-holders (`{marina}`, `{marinaCh}`,
+  `{marinaNote}` = a sentence on local practice in seven languages, `{vts}`,
+  `{vtsCh}`, `{coast}`, `{area}`), the voice lines, the station's spoken reply
+  and re-prompts, and the server grader (`venue` form field: positions,
+  station names, N/S and E/W hemispheres). A client without the field is graded
+  as Gulf of Gdańsk, as before.
+- **Contract tests.** `venues.test.ts`: the model transmission of every
+  scenario passes the grader at 100% in every venue it can be drawn in; Marina
+  Gdynia called in the Solent fails; "inbound to Southampton" is not a VTS call;
+  WEST for EAST fails the position.
+- **Audio.** Station replies were and are live TTS (`/api/radio-tts`), so new
+  station names need no audio files.
+- **Not done.** The Obsługa lessons,
+  the live conversation and the position drill are still Gulf of Gdańsk and
+  PL / RU.
+

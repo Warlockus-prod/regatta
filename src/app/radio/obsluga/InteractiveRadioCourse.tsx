@@ -5,12 +5,15 @@ import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
 import { InspectPanel } from '../symulator/InspectPanel';
+import { InspectToggle, PanelSection, RadioWorkspace, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
+import { radioRuntimeSearch } from '../runtimeSearch';
 import VoicePtt, { type VoiceResult } from '../symulator/VoicePtt';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
 import { fetchStationVoice } from '../symulator/audio/stationVoice';
 import { SIG_STRONG, SIG_WEAK, scriptOver } from '../symulator/radioTraffic';
 import { stationReply } from '../symulator/stationReply';
 import type { VariantData } from '../symulator/scenarios';
+import { DEFAULT_VENUE } from '../symulator/venues';
 import { LESSON_TEXT } from './lessonData';
 import {
   CHANNELS, DEFAULT_VARIANT, OTHERDSC_CATEGORIES, POSITION_POOL, VESSEL_POOL,
@@ -28,6 +31,7 @@ const VARIANT: VariantData = {
   posSpoken: POSITION_POOL[DEFAULT_VARIANT.posIdx].spoken,
   pobWord: 'FOUR',
   pob: DEFAULT_VARIANT.pob,
+  venue: DEFAULT_VENUE,
 };
 
 /** what the learner says at the PTT lesson - a radio check, the safest first transmission */
@@ -90,6 +94,14 @@ export default function InteractiveRadioCourse() {
   const holdRaf = useRef<number | null>(null);
   const audioRef = useRef<AudioContext | null>(null);
   const soundTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+  /** the lessons' work screen is open (pinned radio, lesson panel under it);
+   *  the Practice list links here with ?kurs=1 to open it straight away */
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    if (new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1') setOpen(true);
+  }, []);
+  const { stacked, compact } = useRadioWorkspace(open, radioRealistic);
+  const dockRef = useRef<HTMLDivElement | null>(null);
 
   const lessons = useMemo<Lesson[]>(() => [
     {
@@ -421,271 +433,296 @@ export default function InteractiveRadioCourse() {
   const highlight = currentLesson.highlight(state);
   const complete = lessonIndex === lessons.length - 1 && lessonDone;
   const text = LESSON_TEXT[currentLesson.id];
+  // a new lesson or a part tapped in Rozbiór: back to the top of the panel,
+  // right under the radio
+  useEffect(() => {
+    dockRef.current?.scrollTo({ top: 0 });
+  }, [lessonIndex, inspect, inspectKey]);
 
   return (
     <section id="interaktywny-kurs" className="mb-10 scroll-mt-24" data-testid="interactive-radio-course">
-      <div className="mb-3 flex flex-wrap items-center gap-3">
-        <div>
-          <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            {tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania')}
-          </h2>
-          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynności na radiu. Następna lekcja odblokuje się dopiero po prawidłowym naciśnięciu lub obrocie.')}
-          </p>
+      {/* screen 1: the start card in the guide. The lessons themselves open on
+          the radio work screen (pinned radio, lesson panel under it), the same
+          one the simulator uses. */}
+      <div className="rounded-2xl p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+        <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
+          {tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania')}
+        </h2>
+        <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+          {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynności na radiu. Następna lekcja odblokuje się dopiero po prawidłowym naciśnięciu lub obrocie.')}
+        </p>
+        <div className="mt-3 flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
+          <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--bg-secondary)' }}>
+            <div className="h-full transition-[width]" style={{ width: `${(savedProgress[model] / lessons.length) * 100}%`, background: 'var(--accent-cyan)' }} />
+          </div>
+          <span>{savedProgress[model]}/{lessons.length}</span>
         </div>
-        <div className="ml-auto">
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            data-testid="course-open"
+            onClick={() => setOpen(true)}
+            className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
+            style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+          >
+            {savedProgress[model] > 0
+              ? `${tp('Продолжить: урок', 'Continue: lesson', 'Kontynuuj: lekcja')} ${lessonIndex + 1}`
+              : tp('Начать уроки', 'Start the lessons', 'Zacznij lekcje')}
+          </button>
           <RadioVariantToggle model={model} onModel={chooseModel} />
         </div>
       </div>
 
-      <div className="mb-3 flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
-        <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--bg-secondary)' }}>
-          <div className="h-full transition-[width]" style={{ width: `${(savedProgress[model] / lessons.length) * 100}%`, background: 'var(--accent-cyan)' }} />
-        </div>
-        <span>{savedProgress[model]}/{lessons.length}</span>
-        <button type="button" onClick={resetCourse} className="min-h-[44px] px-2 underline" style={{ color: 'var(--text-muted)' }}>
-          {tp('Сбросить', 'Reset', 'Resetuj')}
-        </button>
-      </div>
+      {open && (
+        <RadioWorkspace
+          testId="course-workspace"
+          stacked={stacked}
+          onExit={() => setOpen(false)}
+          exitTestId="course-exit"
+          exitTitle={tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
+          status={(
+            <>
+              <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>
+                {tp('Урок', 'Lesson', 'Lekcja')} {lessonIndex + 1}/{lessons.length}
+              </span>
+              <span aria-live="polite" className="text-xs font-semibold" style={{ color: lessonDone ? 'var(--success)' : 'var(--text-muted)' }}>
+                {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na działanie')}
+              </span>
+            </>
+          )}
+          actions={(
+            <>
+              {/* Inspect ("Rozbior"): the course is where the learner meets the
+                  buttons, so this is where "what does this button even do" has to be
+                  answerable. While it is on, taps explain instead of acting. */}
+              <InspectToggle on={inspect} onToggle={() => { setInspect((v) => !v); setInspectKey(null); }} testId="course-inspect-toggle" />
+              {/* Sound. Off by default it would be silent - and a silent radio
+                  cannot teach squelch at all - so it is ON, and the AudioContext
+                  unlocks on the first touch of the panel (browsers refuse one made
+                  any other way). */}
+              <SoundToggle muted={audio.muted} onToggle={audio.toggleMute} />
+            </>
+          )}
+          onRadioPointerDown={audio.unlock}
+          radio={(
+            <RadioFront
+              s={state}
+              dispatch={dispatch}
+              model={model}
+              holdPct={holdPct}
+              onDistressDown={onDistressDown}
+              onDistressUp={onDistressUp}
+              onPttDown={() => dispatch({ type: 'ptt-down' })}
+              onPttUp={() => dispatch({ type: 'ptt-up' })}
+              clock="12:00"
+              nextTxSec={radioProfile(model).retxSeconds}
+              highlightControl={inspect ? undefined : highlight}
+              inspect={inspect}
+              inspectKey={inspectKey}
+              onInspect={setInspectKey}
+              busy={audio.busy}
+              skin={skin}
+              realistic={radioRealistic}
+              compact={compact}
+            />
+          )}
+          dockRef={dockRef}
+          dock={(
+            <>
+              {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} className="" />}
 
-      <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'xl:grid-cols-[minmax(0,520px)_1fr]'}`}>
-        <div className="min-w-0">
-          {/* Inspect ("Rozbior"): the course is where the learner meets the
-              buttons, so this is where "what does this button even do" has to be
-              answerable. While it is on, taps explain instead of acting. */}
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              data-testid="course-inspect-toggle"
-              onClick={() => { setInspect((v) => !v); setInspectKey(null); }}
-              aria-pressed={inspect}
-              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
-              style={inspect
-                ? { background: '#ffce4d', color: '#3a2a00' }
-                : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-            >
-              🔍 {tp('Разбор', 'Inspect', 'Rozbiór')}
-            </button>
+              <div data-testid="course-lesson" className="rounded-2xl p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+                <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{currentLesson.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{currentLesson.instruction}</p>
+                <div className="mt-4 border-l-2 pl-3 text-sm leading-relaxed" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--text-muted)' }}>
+                  {currentLesson.why}
+                </div>
 
-            {/* Sound. Off by default it would be silent - and a silent radio
-                cannot teach squelch at all - so it is ON, and the AudioContext
-                unlocks on the first touch of the panel (browsers refuse one made
-                any other way). */}
-            <button
-              type="button"
-              data-testid="sound-toggle"
-              onClick={audio.toggleMute}
-              aria-pressed={!audio.muted}
-              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold transition"
-              style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-            >
-              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dźwięk')}
-            </button>
-
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-              {inspect
-                ? tp('Жми любую кнопку - она объяснит себя. Рация не работает.', 'Press any control - it explains itself. The radio does not react.', 'Naciśnij dowolny element - wyjaśni się sam. Radio nie działa.')
-                : tp('Не знаешь, что делает кнопка? Включи Разбор.', 'Not sure what a control does? Turn Inspect on.', 'Nie wiesz, co robi przycisk? Włącz Rozbiór.')}
-            </span>
-          </div>
-
-          <div onPointerDownCapture={audio.unlock}>
-          <RadioFront
-            s={state}
-            dispatch={dispatch}
-            model={model}
-            holdPct={holdPct}
-            onDistressDown={onDistressDown}
-            onDistressUp={onDistressUp}
-            onPttDown={() => dispatch({ type: 'ptt-down' })}
-            onPttUp={() => dispatch({ type: 'ptt-up' })}
-            clock="12:00"
-            nextTxSec={radioProfile(model).retxSeconds}
-            highlightControl={inspect ? undefined : highlight}
-            inspect={inspect}
-            inspectKey={inspectKey}
-            onInspect={setInspectKey}
-            busy={audio.busy}
-            skin={skin}
-            realistic={radioRealistic}
-          />
-          </div>
-
-          {/* The squelch lesson only means something if there is a call to miss.
-              This puts a weak, distant station on the air for 8 seconds: set the
-              squelch correctly and you hear it, set it too high and you do not -
-              which is exactly what the exam is testing. */}
-          {currentLesson.id === 'squelch' && (
-            <div className="mt-2 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
-              <button
-                type="button"
-                data-testid="test-call"
-                onClick={() => {
-                  audio.unlock();
-                  const at = Date.now() + 400;
-                  scriptOver(CHANNELS[stateRef.current.channelIndex].num, {
-                    startMs: at, durMs: 8000, signal: SIG_WEAK, voice: 'male',
-                  });
-                  setTestCallAt(at);
-                }}
-                className="min-h-[44px] rounded-lg px-3 text-sm font-semibold"
-                style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
-              >
-                📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Słabe wywołanie z daleka')}
-              </button>
-              <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                {tp(
-                  'Далёкая лодка на 1 Вт. Если SQL выставлен верно - услышишь её сквозь шум. Если задрал SQL ради тишины - не услышишь ничего, и на воде это будет чей-то вызов о помощи.',
-                  'A distant boat on 1 W. With the squelch set correctly you hear it through the hiss. Turn the squelch up for silence and you hear nothing at all - and at sea that would be somebody calling for help.',
-                  'Odległa łódź na 1 W. Przy dobrze ustawionym SQL usłyszysz ją przez szum. Podkręć SQL dla ciszy i nie usłyszysz nic - a na wodzie byłoby to czyjeś wołanie o pomoc.',
+                {complete ? (
+                  <div className="mt-4 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
+                    {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obsługi ukończony. Przejdź teraz do scenariuszy egzaminacyjnych.')}
+                  </div>
+                ) : (
+                  // right under the task, so the next lesson is one tap away
+                  // without scrolling past the long explanation
+                  <button
+                    type="button"
+                    data-testid="course-next"
+                    onClick={nextLesson}
+                    disabled={!lessonDone}
+                    className="mt-4 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
+                    style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+                  >
+                    {tp('Следующий урок', 'Next lesson', 'Następna lekcja')} {'>'}
+                  </button>
                 )}
-              </p>
-              {testCallAt !== null && (
-                <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                  {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Słuchaj.')}
-                </p>
-              )}
-            </div>
-          )}
 
-          {/* Listen before you speak. Hearing what a station actually sounds like -
-              clipped, band-limited, coming out of the hiss - is half the exam, and
-              a text-only trainer never touches it. */}
-          <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
-            <div className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Послушай станцию', 'Listen to a station', 'Posłuchaj stacji')}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {LISTEN_LINES.map((l) => (
-                <button
-                  key={l.station}
-                  type="button"
-                  data-testid={`listen-${l.station.split(' ')[0].toLowerCase()}`}
-                  disabled={speaking}
-                  onClick={() => void stationSpeaks(l.station, l.say)}
-                  className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
-                  style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
-                >
-                  📻 {l.station}
-                </button>
-              ))}
-            </div>
-            <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              {tp(
-                'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Станция рядом - сильная, она пробьёт даже тугой SQL. А вот далёкая лодка на 1 Вт при том же SQL уже не пробьётся: именно в этом и опасность.',
-                'The voice arrives like any other signal: through your squelch and your volume. A station nearby is strong - it breaks even a tight squelch. A distant boat on 1 W, at that same squelch, does not. That is where the danger is.',
-                'Głos przychodzi jak każdy inny sygnał: przez twoją blokadę szumów i twoją głośność. Stacja obok jest mocna - przebije nawet ciasny SQL. Odległa łódź na 1 W przy tym samym SQL już nie: i właśnie w tym tkwi niebezpieczeństwo.',
-              )}
-            </p>
-          </div>
-
-          {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} />}
-
-          {/* The Dziennik - the same one the simulator has. It records what the
-              radio did AND what you said, word for word, plus what was missing. */}
-          <div className="mt-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-            <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-              📋 {tp('Дневник', 'Journal', 'Dziennik')}
-            </div>
-            {journal.length === 0 ? (
-              <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
-              </p>
-            ) : (
-              <ol data-testid="course-journal" className="max-h-56 space-y-1 overflow-y-auto">
-                {journal.map((r, i) => {
-                  const color = r.kind === 'bad' ? 'var(--danger)'
-                    : r.kind === 'step' ? 'var(--success)'
-                    : r.kind === 'tx' ? 'var(--warning)'
-                    : r.kind === 'rx' ? 'var(--accent-cyan)'
-                    : 'var(--text-secondary)';
-                  return (
-                    <li key={i} className="flex gap-2 text-xs leading-relaxed" style={{ color }}>
-                      <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>
-                        {new Date(r.t).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                      </span>
-                      <span>{r.text}</span>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-          </div>
-        </div>
-
-        <div className="min-w-0 rounded-lg p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Урок', 'Lesson', 'Lekcja')} {lessonIndex + 1}/{lessons.length}
-            </span>
-            <span aria-live="polite" className="text-sm font-semibold" style={{ color: lessonDone ? 'var(--success)' : 'var(--text-muted)' }}>
-              {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na działanie')}
-            </span>
-          </div>
-          <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{currentLesson.title}</h3>
-          <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{currentLesson.instruction}</p>
-          <div className="mt-4 border-l-2 pl-3 text-sm leading-relaxed" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--text-muted)' }}>
-            {currentLesson.why}
-          </div>
-
-          {/* The lesson used to stop here - "press HI/LO", and one line of why.
-              A learner who does not know what transmit power IS cannot pass an
-              oral exam on it, so every lesson now answers what / why / when, and
-              names what the examiner watches for. */}
-          {text && (
-            <div className="mt-4 space-y-3">
-              <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
-              <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
-              <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy używasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
-              <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
-            </div>
-          )}
-          {/* Say it out loud. The PTT lesson is where the learner first keys the
-              mic, so it is where they first find out that a transmission is
-              graded on the WORDS, not on the button - and the Dziennik shows them
-              exactly which words they left out. */}
-          {currentLesson.id === 'ptt' && (
-            <div className="mt-4 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
-              <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                🎙 {tp('Скажи в эфир', 'Say it on air', 'Powiedz do eteru')}
+                {/* The lesson used to stop here - "press HI/LO", and one line of why.
+                    A learner who does not know what transmit power IS cannot pass an
+                    oral exam on it, so every lesson now answers what / why / when, and
+                    names what the examiner watches for. */}
+                {text && (
+                  <div className="mt-4 space-y-3">
+                    <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
+                    <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
+                    <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy używasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
+                    <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
+                  </div>
+                )}
+                {/* Say it out loud. The PTT lesson is where the learner first keys the
+                    mic, so it is where they first find out that a transmission is
+                    graded on the WORDS, not on the button - and the Dziennik shows them
+                    exactly which words they left out. */}
+                {currentLesson.id === 'ptt' && (
+                  <div className="mt-4 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
+                    <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                      🎙 {tp('Скажи в эфир', 'Say it on air', 'Powiedz do eteru')}
+                    </div>
+                    <p className="mb-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                      {tp(
+                        'Проверка связи с мариной - самая безопасная первая передача. Наговори её, и марина ответит голосом. Всё, что ты сказал, попадёт в дневник.',
+                        'A radio check with the marina is the safest first transmission. Speak it and the marina answers out loud. Everything you said goes into the journal.',
+                        'Sprawdzenie łączności z mariną to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie głosem. Wszystko, co powiedziałeś, trafi do dziennika.',
+                      )}
+                    </p>
+                    <VoicePtt
+                      kind="radio-check"
+                      lines={CHECK_LINES(VARIANT)}
+                      vesselIdx={DEFAULT_VARIANT.vesselIdx}
+                      positionIdx={DEFAULT_VARIANT.posIdx}
+                      pob={DEFAULT_VARIANT.pob}
+                      ru={showRu}
+                      minimumScore={50}
+                      onComplete={onVoiceDone}
+                    />
+                  </div>
+                )}
               </div>
-              <p className="mb-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                {tp(
-                  'Проверка связи с мариной - самая безопасная первая передача. Наговори её, и марина ответит голосом. Всё, что ты сказал, попадёт в дневник.',
-                  'A radio check with the marina is the safest first transmission. Speak it and the marina answers out loud. Everything you said goes into the journal.',
-                  'Sprawdzenie łączności z mariną to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie głosem. Wszystko, co powiedziałeś, trafi do dziennika.',
-                )}
-              </p>
-              <VoicePtt
-                kind="radio-check"
-                lines={CHECK_LINES(VARIANT)}
-                vesselIdx={DEFAULT_VARIANT.vesselIdx}
-                positionIdx={DEFAULT_VARIANT.posIdx}
-                pob={DEFAULT_VARIANT.pob}
-                ru={showRu}
-                minimumScore={50}
-                onComplete={onVoiceDone}
-              />
-            </div>
-          )}
 
-          {complete ? (
-            <div className="mt-5 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
-              {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obsługi ukończony. Przejdź teraz do scenariuszy egzaminacyjnych.')}
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={nextLesson}
-              disabled={!lessonDone}
-              className="mt-5 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
-              style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
-            >
-              {tp('Следующий урок', 'Next lesson', 'Następna lekcja')} {'>'}
-            </button>
+              {/* The squelch lesson only means something if there is a call to miss.
+                  This puts a weak, distant station on the air for 8 seconds: set the
+                  squelch correctly and you hear it, set it too high and you do not -
+                  which is exactly what the exam is testing. */}
+              {currentLesson.id === 'squelch' && (
+                <div className="rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+                  <button
+                    type="button"
+                    data-testid="test-call"
+                    onClick={() => {
+                      audio.unlock();
+                      const at = Date.now() + 400;
+                      scriptOver(CHANNELS[stateRef.current.channelIndex].num, {
+                        startMs: at, durMs: 8000, signal: SIG_WEAK, voice: 'male',
+                      });
+                      setTestCallAt(at);
+                    }}
+                    className="min-h-[44px] rounded-lg px-3 text-sm font-semibold"
+                    style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+                  >
+                    📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Słabe wywołanie z daleka')}
+                  </button>
+                  <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                    {tp(
+                      'Далёкая лодка на 1 Вт. Если SQL выставлен верно - услышишь её сквозь шум. Если задрал SQL ради тишины - не услышишь ничего, и на воде это будет чей-то вызов о помощи.',
+                      'A distant boat on 1 W. With the squelch set correctly you hear it through the hiss. Turn the squelch up for silence and you hear nothing at all - and at sea that would be somebody calling for help.',
+                      'Odległa łódź na 1 W. Przy dobrze ustawionym SQL usłyszysz ją przez szum. Podkręć SQL dla ciszy i nie usłyszysz nic - a na wodzie byłoby to czyjeś wołanie o pomoc.',
+                    )}
+                  </p>
+                  {testCallAt !== null && (
+                    <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                      {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Słuchaj.')}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Listen before you speak. Hearing what a station actually sounds like -
+                  clipped, band-limited, coming out of the hiss - is half the exam, and
+                  a text-only trainer never touches it. */}
+              <PanelSection
+                defaultOpen={false}
+                title={(
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                    {tp('Послушай станцию', 'Listen to a station', 'Posłuchaj stacji')}
+                  </span>
+                )}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {LISTEN_LINES.map((l) => (
+                    <button
+                      key={l.station}
+                      type="button"
+                      data-testid={`listen-${l.station.split(' ')[0].toLowerCase()}`}
+                      disabled={speaking}
+                      onClick={() => void stationSpeaks(l.station, l.say)}
+                      className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
+                      style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                    >
+                      📻 {l.station}
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  {tp(
+                    'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Станция рядом - сильная, она пробьёт даже тугой SQL. А вот далёкая лодка на 1 Вт при том же SQL уже не пробьётся: именно в этом и опасность.',
+                    'The voice arrives like any other signal: through your squelch and your volume. A station nearby is strong - it breaks even a tight squelch. A distant boat on 1 W, at that same squelch, does not. That is where the danger is.',
+                    'Głos przychodzi jak każdy inny sygnał: przez twoją blokadę szumów i twoją głośność. Stacja obok jest mocna - przebije nawet ciasny SQL. Odległa łódź na 1 W przy tym samym SQL już nie: i właśnie w tym tkwi niebezpieczeństwo.',
+                  )}
+                </p>
+              </PanelSection>
+
+              {/* The Dziennik - the same one the simulator has. It records what the
+                  radio did AND what you said, word for word, plus what was missing. */}
+              <PanelSection
+                title={(
+                  <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    📋 {tp('Дневник', 'Journal', 'Dziennik')} {journal.length > 0 && <span className="font-normal" style={{ color: 'var(--text-muted)' }}>({journal.length})</span>}
+                  </span>
+                )}
+              >
+                {journal.length === 0 ? (
+                  <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                    {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
+                  </p>
+                ) : (
+                  <ol data-testid="course-journal" className={`space-y-1 ${stacked ? '' : 'max-h-56 overflow-y-auto'}`}>
+                    {journal.map((r, i) => {
+                      const color = r.kind === 'bad' ? 'var(--danger)'
+                        : r.kind === 'step' ? 'var(--success)'
+                        : r.kind === 'tx' ? 'var(--warning)'
+                        : r.kind === 'rx' ? 'var(--accent-cyan)'
+                        : 'var(--text-secondary)';
+                      return (
+                        <li key={i} className="flex gap-2 text-xs leading-relaxed" style={{ color }}>
+                          <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>
+                            {new Date(r.t).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                          <span>{r.text}</span>
+                        </li>
+                      );
+                    })}
+                  </ol>
+                )}
+              </PanelSection>
+
+              {/* rarely used: which set, and starting the course over */}
+              <PanelSection
+                defaultOpen={false}
+                title={(
+                  <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                    {tp('Рация и прогресс', 'Radio and progress', 'Radio i postęp')} · {savedProgress[model]}/{lessons.length}
+                  </span>
+                )}
+              >
+                <RadioVariantToggle model={model} onModel={chooseModel} />
+                <button type="button" onClick={resetCourse} className="mt-2 block min-h-[44px] px-1 text-xs underline" style={{ color: 'var(--text-muted)' }}>
+                  {tp('Начать курс заново', 'Start the course over', 'Zacznij kurs od nowa')}
+                </button>
+              </PanelSection>
+            </>
           )}
-        </div>
-      </div>
+        />
+      )}
     </section>
   );
 }

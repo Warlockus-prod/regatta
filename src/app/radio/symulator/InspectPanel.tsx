@@ -1,6 +1,6 @@
 'use client';
 
-import { useI18n } from '@/lib/i18n';
+import { trainerText, useTrainerI18n } from './trainerText';
 import { INSPECT } from './inspectData';
 
 // ============================================================================
@@ -13,40 +13,47 @@ import { INSPECT } from './inspectData';
 // ============================================================================
 
 export function InspectPanel({
-  inspectKey, showPl, showRu,
+  inspectKey, showPl, showRu, className = 'mt-3',
 }: {
   inspectKey: string | null;
   showPl: boolean;
   showRu: boolean;
+  /** spacing from the block above (the simulator's panel spaces its own cards) */
+  className?: string;
 }) {
-  const { tp } = useI18n();
+  const { tp, lang } = useTrainerI18n();
   const item = inspectKey ? INSPECT[inspectKey] : undefined;
+  // PL and RU follow the section's language policy; the other site languages
+  // (the trainer runs in all seven) get the translation of the Polish text
+  const other = lang !== 'pl' && lang !== 'ru';
+  const pl = (text: string) => (other ? trainerText(text, lang) : showPl ? text : null);
+  const ru = (text: string) => (other ? null : showRu ? text : null);
 
   return (
     <div
       data-testid="inspect-panel"
-      className="mt-3 rounded-2xl p-4"
+      className={`${className} rounded-2xl p-4`}
       style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,206,77,0.35)' }}
     >
       {item ? (
         <>
           <div className="mb-2 text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-            {showRu && !showPl ? item.titleRu : item.titlePl}
+            {other ? trainerText(item.titlePl, lang) : showRu && !showPl ? item.titleRu : item.titlePl}
           </div>
           <Block
             label={tp('Что это', 'What it is', 'Co to jest')}
-            pl={showPl ? item.whatPl : null}
-            ru={showRu ? item.whatRu : null}
+            pl={pl(item.whatPl)}
+            ru={ru(item.whatRu)}
           />
           <Block
             label={tp('Зачем', 'Why it exists', 'Po co')}
-            pl={showPl ? item.whyPl : null}
-            ru={showRu ? item.whyRu : null}
+            pl={pl(item.whyPl)}
+            ru={ru(item.whyRu)}
           />
           <Block
             label={tp('Когда', 'When you use it', 'Kiedy używasz')}
-            pl={showPl ? item.whenPl : null}
-            ru={showRu ? item.whenRu : null}
+            pl={pl(item.whenPl)}
+            ru={ru(item.whenRu)}
           />
         </>
       ) : (

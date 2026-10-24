@@ -1,0 +1,142 @@
+/* Radio trainer work screen (owner, 2026-10-24): the radio is pinned like the
+   trainers' boat and never scrolls away; the task, the voice step, the
+   situation and the log scroll in the panel beside or under it. Nothing is
+   drawn over the radio. Colors come only from the theme tokens in
+   src/app/globals.css.
+
+   The screen is fixed under the site navigation (top 0 in the app WebView and
+   the offline bundle, which have no site navigation), above the floating
+   feedback button (z 40) and under the navigation (z 50); on phones it covers
+   the navigation (see below).
+   data-stacked (phones, tablets, and the wide realistic faceplate at any
+   width): bar, radio, then the scrolling panel. Otherwise: bar across the
+   top, then the radio column and the panel column, each scrolling on its own. */
+
+.workspace {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: var(--site-nav-h, 0px);
+  bottom: var(--bootcamp-footer-h, 0px);
+  z-index: 45;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+}
+/* A phone cannot spare the site navigation (about 110px) next to a radio of
+   about 450px: the work screen covers it, the bar's exit button leads back.
+   Tablets and desktops keep it. */
+@media (max-width: 767px), (max-height: 759px) {
+  .workspace[data-stacked] { top: 0; z-index: 55; }
+  .workspace[data-stacked] .bar { padding-top: max(4px, env(safe-area-inset-top, 0px)); }
+}
+
+.bar {
+  flex: 0 0 auto;
+  border-bottom: 1px solid var(--border-subtle);
+  padding: 4px max(10px, env(safe-area-inset-right, 0px)) 4px max(10px, env(safe-area-inset-left, 0px));
+}
+.barInner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+}
+.barStatus {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 13px;
+  line-height: 17px;
+  color: var(--text-secondary);
+}
+.barButton {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.barIcon { padding: 0; }
+.barButton:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
+
+.main {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.radio {
+  flex: 0 0 auto;
+  min-width: 0;
+  padding: 8px max(8px, env(safe-area-inset-right, 0px)) 8px max(8px, env(safe-area-inset-left, 0px));
+}
+.radio > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+.dock {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px max(12px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+}
+.dock > * { flex: 0 0 auto; width: 100%; max-width: 720px; margin-left: auto; margin-right: auto; }
+
+/* Desktop: two columns inside the 1080px content width. */
+.workspace:not([data-stacked]) .main {
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  gap: 16px;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 12px 20px 0;
+}
+.workspace:not([data-stacked]) .radio { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 16px; }
+.workspace:not([data-stacked]) .dock { padding: 0 0 24px; border-top: 0; background: transparent; }
+
+/* Landscape phone: radio on the left, panel on the right. */
+@media (orientation: landscape) and (max-height: 540px) {
+  .workspace[data-stacked] .main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .workspace[data-stacked] .radio { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
+  .workspace[data-stacked] .dock { border-top: 0; border-left: 1px solid var(--border-subtle); }
+}
+
+/* While the work screen is open the page behind it does not scroll. */
+:global(html[data-radio-workspace]),
+:global(html[data-radio-workspace] body) { overflow: hidden; }
+
+.collapsible > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+  list-style: none;
+}
+.collapsible > summary::-webkit-details-marker { display: none; }
+.collapsible > summary::after { content: "\2304"; color: var(--text-muted); }
+.collapsible[open] > summary::after { transform: rotate(180deg); }

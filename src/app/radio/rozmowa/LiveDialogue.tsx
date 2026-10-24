@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import RadioFront from '../symulator/RadioFront';
+import { PanelSection, RadioWorkspace, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
 import { fetchStationVoice } from '../symulator/audio/stationVoice';
 import { SIG_STRONG, scriptOver } from '../symulator/radioTraffic';
@@ -71,6 +72,12 @@ export default function LiveDialogue() {
   const aliveRef = useRef(true);
   const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [holdPct] = useState(0);
+  /** the conversation's work screen: pinned radio, turn panel under it */
+  const { stacked, compact } = useRadioWorkspace(dialogue !== null, radioRealistic);
+  const dockRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    dockRef.current?.scrollTo({ top: 0 });
+  }, [turnIdx]);
 
   const push = useCallback((text: string, kind: LogRow['kind'] = 'ui') => {
     setLog((l) => [...l.slice(-60), { t: Date.now(), text, kind }]);
@@ -345,86 +352,53 @@ export default function LiveDialogue() {
 
   const done = phase === 'done';
 
+  // The conversation runs on the radio work screen: the radio is pinned (PTT is
+  // always one thumb away), the turn, the situation and the journal scroll under it.
   return (
-    <div>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <span className="rounded-full px-3 py-1 text-sm font-semibold" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-          {dialogue.icon} {bi(dialogue.title)}
-        </span>
-        <span className="rounded-full px-3 py-1 text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
-          CH {dialogue.channel}
-        </span>
-        <button
-          type="button"
-          data-testid="exit-dialogue"
-          onClick={exitDialogue}
-          className="ml-auto min-h-[44px] rounded-lg px-3 text-xs"
-          style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-        >
-          ✕ {tp('Выйти', 'Exit', 'Wyjdź')}
-        </button>
-      </div>
-
-      <div className={`grid gap-4 ${radioRealistic ? 'xl:grid-cols-[minmax(0,760px)_1fr]' : 'lg:grid-cols-[minmax(0,460px)_1fr]'}`}>
-        <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              data-testid="sound-toggle"
-              onClick={audio.toggleMute}
-              aria-pressed={!audio.muted}
-              className="min-h-[44px] rounded-xl px-3 text-sm font-semibold"
-              style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
-            >
-              {audio.muted ? '🔇' : '🔊'} {tp('Звук', 'Sound', 'Dźwięk')}
-            </button>
-            <RadioVariantToggle
-              model={model}
-              onModel={(m) => {
-                const initial = createInitialRadio(m);
-                setModel(m);
-                rsRef.current = initial;
-                setRs(initial);
-              }}
-            />
-          </div>
-
-          <div onPointerDownCapture={audio.unlock}>
-            <RadioFront
-              s={rs}
-              dispatch={dispatch}
-              model={model}
-              holdPct={holdPct}
-              onDistressDown={() => dispatch({ type: 'distress-down' })}
-              onDistressUp={() => dispatch({ type: 'distress-up' })}
-              onPttDown={() => void beginRecording()}
-              onPttUp={endRecording}
-              clock="12:00"
-              nextTxSec={radioProfile(model).retxSeconds}
-              busy={audio.busy}
-              skin={skin}
-              realistic={radioRealistic}
-            />
-          </div>
-
-          <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            {tp(
-              'Включи рацию, поставь нужный канал и держи PTT, пока говоришь. Отпустил - передача ушла.',
-              'Switch the radio on, set the channel, and hold PTT while you speak. Release and the transmission goes.',
-              'Włącz radio, ustaw kanał i trzymaj PTT, kiedy mówisz. Puszczasz - nadanie idzie w eter.',
-            )}
-          </p>
-        </div>
-
-        <div className="min-w-0">
-          {/* the situation */}
-          <div className="mb-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Ситуация', 'Situation', 'Sytuacja')}
-            </div>
-            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{bi(dialogue.brief)}</p>
-          </div>
-
+    <RadioWorkspace
+      testId="dialogue-workspace"
+      stacked={stacked}
+      onExit={exitDialogue}
+      exitTestId="exit-dialogue"
+      exitTitle={tp('К списку разговоров', 'Back to the conversations', 'Wróć do listy rozmów')}
+      status={(
+        <>
+          <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
+            CH {dialogue.channel}
+          </span>
+          <span className="text-xs font-semibold uppercase" style={{ color: 'var(--text-muted)' }}>
+            {done
+              ? tp('Готово', 'Done', 'Gotowe')
+              : `${tp('Передача', 'Transmission', 'Nadanie')} ${turnIdx + 1}/${dialogue.turns.length}`}
+          </span>
+          {!stacked && (
+            <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{dialogue.icon} {bi(dialogue.title)}</span>
+          )}
+        </>
+      )}
+      actions={<SoundToggle muted={audio.muted} onToggle={audio.toggleMute} />}
+      onRadioPointerDown={audio.unlock}
+      radio={(
+        <RadioFront
+          s={rs}
+          dispatch={dispatch}
+          model={model}
+          holdPct={holdPct}
+          onDistressDown={() => dispatch({ type: 'distress-down' })}
+          onDistressUp={() => dispatch({ type: 'distress-up' })}
+          onPttDown={() => void beginRecording()}
+          onPttUp={endRecording}
+          clock="12:00"
+          nextTxSec={radioProfile(model).retxSeconds}
+          busy={audio.busy}
+          skin={skin}
+          realistic={radioRealistic}
+          compact={compact}
+        />
+      )}
+      dockRef={dockRef}
+      dock={(
+        <>
           {done ? (
             <div className="rounded-2xl p-4" style={{ background: 'rgba(68,255,136,0.08)', border: '1px solid rgba(68,255,136,0.25)' }}>
               <div className="text-sm font-bold" style={{ color: 'var(--success)' }}>
@@ -443,42 +417,41 @@ export default function LiveDialogue() {
           ) : (
             <div className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
               <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                  {tp('Передача', 'Transmission', 'Nadanie')} {turnIdx + 1}/{dialogue.turns.length}
+                <span className="min-w-0 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                  {stacked ? <>{dialogue.icon} {bi(dialogue.title)}</> : `${tp('Передача', 'Transmission', 'Nadanie')} ${turnIdx + 1}/${dialogue.turns.length}`}
                 </span>
                 <button
                   type="button"
                   data-testid="toggle-script"
                   onClick={() => setShowScript((v) => !v)}
-                  className="min-h-[44px] rounded-full px-2 text-[11px]"
+                  className="min-h-[44px] shrink-0 rounded-full px-2 text-[11px]"
                   style={{ color: 'var(--text-muted)' }}
                 >
                   {showScript ? tp('Скрыть текст (экзамен)', 'Hide the script (exam)', 'Ukryj tekst (egzamin)') : tp('Показать текст', 'Show the script', 'Pokaż tekst')}
                 </button>
               </div>
 
-              {showScript && turn && (
-                <div className="mb-2">
-                  <div className="mb-1 flex items-center gap-2">
-                    <SpeakButton text={turn.youSay} label={tp('Прослушать эталон', 'Play the model', 'Posłuchaj wzorca')} size={22} />
-                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {tp('Как это должно звучать', 'How it should sound', 'Jak to ma brzmieć')}
-                    </span>
-                  </div>
-                  <pre
-                    data-testid="turn-script"
-                    className="overflow-x-auto whitespace-pre-wrap rounded-xl p-3 text-xs leading-relaxed"
-                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
-                  >
-                    {turn.youSay}
-                  </pre>
+              {/* what to do now comes first: the PTT state of this turn */}
+              {phase === 'answered' ? (
+                <button
+                  type="button"
+                  data-testid="next-turn"
+                  onClick={nextTurn}
+                  className="mb-3 min-h-[44px] w-full rounded-xl px-4 text-sm font-semibold"
+                  style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
+                >
+                  {turnIdx + 1 >= dialogue.turns.length
+                    ? tp('Завершить разговор', 'Finish the conversation', 'Zakończ rozmowę')
+                    : tp('Дальше - твой ответ', 'Next - your reply', 'Dalej - twoja odpowiedź')}
+                </button>
+              ) : (
+                <div className="mb-3 text-sm font-semibold" style={{ color: phase === 'recording' ? 'var(--danger)' : 'var(--text-muted)' }}>
+                  {phase === 'recording'
+                    ? tp('🔴 Идёт передача - говори', '🔴 Transmitting - speak', '🔴 Nadajesz - mów')
+                    : phase === 'grading'
+                      ? tp('Слушаю...', 'Listening...', 'Słucham...')
+                      : tp('Держи PTT на рации и говори', 'Hold PTT on the radio and speak', 'Trzymaj PTT na radiu i mów')}
                 </div>
-              )}
-
-              {turn && (
-                <p className="mb-3 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                  💡 {bi(turn.hint)}
-                </p>
               )}
 
               {/* what happened to the last thing you said - announced to a screen
@@ -504,26 +477,28 @@ export default function LiveDialogue() {
                 </div>
               )}
 
-              {phase === 'answered' ? (
-                <button
-                  type="button"
-                  data-testid="next-turn"
-                  onClick={nextTurn}
-                  className="min-h-[44px] w-full rounded-xl px-4 text-sm font-semibold"
-                  style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
-                >
-                  {turnIdx + 1 >= dialogue.turns.length
-                    ? tp('Завершить разговор', 'Finish the conversation', 'Zakończ rozmowę')
-                    : tp('Дальше - твой ответ', 'Next - your reply', 'Dalej - twoja odpowiedź')}
-                </button>
-              ) : (
-                <div className="text-sm font-semibold" style={{ color: phase === 'recording' ? 'var(--danger)' : 'var(--text-muted)' }}>
-                  {phase === 'recording'
-                    ? tp('🔴 Идёт передача - говори', '🔴 Transmitting - speak', '🔴 Nadajesz - mów')
-                    : phase === 'grading'
-                      ? tp('Слушаю...', 'Listening...', 'Słucham...')
-                      : tp('Держи PTT на рации и говори', 'Hold PTT on the radio and speak', 'Trzymaj PTT na radiu i mów')}
+              {showScript && turn && (
+                <div className="mb-2">
+                  <div className="mb-1 flex items-center gap-2">
+                    <SpeakButton text={turn.youSay} label={tp('Прослушать эталон', 'Play the model', 'Posłuchaj wzorca')} size={22} />
+                    <span className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {tp('Как это должно звучать', 'How it should sound', 'Jak to ma brzmieć')}
+                    </span>
+                  </div>
+                  <pre
+                    data-testid="turn-script"
+                    className="overflow-x-auto whitespace-pre-wrap rounded-xl p-3 text-xs leading-relaxed"
+                    style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
+                  >
+                    {turn.youSay}
+                  </pre>
                 </div>
+              )}
+
+              {turn && (
+                <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+                  💡 {bi(turn.hint)}
+                </p>
               )}
 
               {sttOff && (
@@ -538,17 +513,38 @@ export default function LiveDialogue() {
             </div>
           )}
 
+          {/* the situation */}
+          <PanelSection
+            title={(
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                {tp('Ситуация', 'Situation', 'Sytuacja')}
+              </span>
+            )}
+          >
+            <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{bi(dialogue.brief)}</p>
+            <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              {tp(
+                'Включи рацию, поставь нужный канал и держи PTT, пока говоришь. Отпустил - передача ушла.',
+                'Switch the radio on, set the channel, and hold PTT while you speak. Release and the transmission goes.',
+                'Włącz radio, ustaw kanał i trzymaj PTT, kiedy mówisz. Puszczasz - nadanie idzie w eter.',
+              )}
+            </p>
+          </PanelSection>
+
           {/* the journal */}
-          <div className="mt-3 rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-            <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-              📋 {tp('Дневник', 'Journal', 'Dziennik')}
-            </div>
+          <PanelSection
+            title={(
+              <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
+                📋 {tp('Дневник', 'Journal', 'Dziennik')} {log.length > 0 && <span className="font-normal" style={{ color: 'var(--text-muted)' }}>({log.length})</span>}
+              </span>
+            )}
+          >
             {log.length === 0 ? (
               <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
                 {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
               </p>
             ) : (
-              <ol data-testid="dialogue-journal" className="max-h-64 space-y-1 overflow-y-auto">
+              <ol data-testid="dialogue-journal" className={`space-y-1 ${stacked ? '' : 'max-h-64 overflow-y-auto'}`}>
                 {log.map((r, i) => {
                   const color = r.kind === 'bad' ? 'var(--danger)'
                     : r.kind === 'step' ? 'var(--success)'
@@ -566,9 +562,29 @@ export default function LiveDialogue() {
                 })}
               </ol>
             )}
-          </div>
-        </div>
-      </div>
-    </div>
+          </PanelSection>
+
+          {/* rarely used: which set (switching restarts the radio) */}
+          <PanelSection
+            defaultOpen={false}
+            title={(
+              <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
+                {tp('Рация', 'Radio', 'Radio')}
+              </span>
+            )}
+          >
+            <RadioVariantToggle
+              model={model}
+              onModel={(m) => {
+                const initial = createInitialRadio(m);
+                setModel(m);
+                rsRef.current = initial;
+                setRs(initial);
+              }}
+            />
+          </PanelSection>
+        </>
+      )}
+    />
   );
 }

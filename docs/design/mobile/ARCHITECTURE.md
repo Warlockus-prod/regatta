@@ -84,6 +84,24 @@ build script. The paragraph above describes builds before 1.6.2.
   read: a later value is injected live) and stores what the page posts back as
   `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
   `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Radio work screen** (owner 2026-10-24): the SRC simulator, the controls
+  lessons and the live conversation open a fixed work screen with the radio
+  pinned and the task panel scrolling under it
+  (`src/app/radio/symulator/RadioWorkspace.tsx`, the same code in the offline
+  bundle and in `?embed=1`). While it is open the page posts
+  `{"type":"radio-workspace","open":true}` and `OfflineRadioCourse` hides the
+  stack header (the page's own bar has the exit; the swipe back still leaves the
+  course), giving the 44pt back to the task panel; `open:false`, a mode switch, a
+  reload or a load error bring the header back.
+- **Radio trainer language** (owner 2026-10-24): the trainer runs in all seven
+  languages. `OfflineRadioCourse` injects `window.__REGATTA_APP_LANG__` (the
+  app language) into the offline bundle and opens the online pages with
+  `?lang=<app language>`; the bundle's i18n shim
+  (`mobile/scripts/offline-radio/i18n.tsx`) knows all seven, and
+  `SternikLangScope` keeps everything except `/radio/symulator` in PL / RU. The
+  course bar offers the app language next to PL and RU; an explicit choice is
+  stored in `regatta.radio.offline.lang.v2` (the old v1 key was written
+  automatically and is no longer read).
 - **Wheels in the native trainer** (`app/simulator/index.tsx`, the Practice
   fallback): with `mode === 'wheels'` the mainsheet and jib sheet sliders give
   way to `mobile/src/simulator/WheelDeck.tsx`, the twin of the web's

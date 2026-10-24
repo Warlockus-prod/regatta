@@ -14,7 +14,7 @@ import {
   SternikLangScope,
   SternikPrefsProvider,
 } from "../../../src/app/sternik/prefs";
-import { OfflineI18nProvider, useI18n } from "./i18n";
+import { OfflineI18nProvider, appLanguage, useI18n, type CourseLanguage } from "./i18n";
 import { OfflineRouterProvider } from "./router";
 
 declare global {
@@ -79,7 +79,7 @@ function OfflineConversationNotice() {
         {tp(
           "Свободный разговор и распознавание ответа требуют интернета. Открой раздел «Симулятор», чтобы без сети отработать кнопки, DSC, каналы и эталонные голосовые процедуры.",
           "Free conversation and speech recognition require a connection. Open the simulator to practise controls, DSC, channels and model voice procedures offline.",
-          "Swobodna rozmowa i rozpoznawanie odpowiedzi wymagaja internetu. Otworz symulator, aby offline cwiczyc przyciski, DSC, kanaly i wzorcowe procedury glosowe.",
+          "Swobodna rozmowa i rozpoznawanie odpowiedzi wymagają internetu. Otwórz symulator, aby offline ćwiczyć przyciski, DSC, kanały i wzorcowe procedury głosowe.",
         )}
       </p>
       {navigator.onLine && window.ReactNativeWebView && (
@@ -92,7 +92,7 @@ function OfflineConversationNotice() {
           {tp(
             "Открыть онлайн-разговор",
             "Open online conversation",
-            "Otworz rozmowe online",
+            "Otwórz rozmowę online",
           )}
         </button>
       )}
@@ -105,7 +105,7 @@ function OfflineSkipperNotice() {
   return (
     <section className="rounded-2xl border p-6" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
       <h1 className="text-xl font-bold">
-        {tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dzial sternika nie nalezy do pakietu SRC")}
+        {tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dział sternika nie należy do pakietu SRC")}
       </h1>
     </section>
   );
@@ -123,6 +123,11 @@ const ROUTES: Record<string, ComponentType> = {
   "/radio/rozmowa": OfflineConversationNotice,
   "/sternik": OfflineSkipperNotice,
 };
+
+function helperLanguages(): CourseLanguage[] {
+  const app = appLanguage();
+  return app && app !== "pl" && app !== "ru" ? [app, "pl", "ru"] : ["pl", "ru"];
+}
 
 function StatusBar() {
   const { lang, setLang, tp } = useI18n();
@@ -148,13 +153,15 @@ function StatusBar() {
         }}
       >
         {online
-          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urzadzeniu")
-          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio dzialaja")}
+          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })
+          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają", { es: "Sin conexión: la teoría y la radio funcionan", fr: "Hors ligne : la théorie et la radio fonctionnent", de: "Offline: Theorie und Funkgerät funktionieren", it: "Offline: teoria e radio funzionano" })}
       </span>
       <span className="ml-auto" style={{ color: "var(--text-muted)" }}>
-        {tp("Язык помощи", "Helper language", "Jezyk pomocy")}
+        {tp("Язык помощи", "Helper language", "Język pomocy", { es: "Idioma de ayuda", fr: "Langue d'aide", de: "Hilfesprache", it: "Lingua di aiuto" })}
       </span>
-      {(["pl", "ru"] as const).map((item) => (
+      {/* the app's own language first when it is neither PL nor RU: the
+          trainer runs in it, the theory and the exam stay PL / RU */}
+      {helperLanguages().map((item) => (
         <button
           key={item}
           type="button"
@@ -178,7 +185,7 @@ function StatusBar() {
             border: "1px solid rgba(0,212,255,0.28)",
           }}
         >
-          {tp("Голос онлайн", "Voice online", "Glos online")}
+          {tp("Голос онлайн", "Voice online", "Głos online", { es: "Voz en línea", fr: "Voix en ligne", de: "Sprache online", it: "Voce online" })}
         </button>
       )}
     </div>
@@ -209,13 +216,15 @@ function App() {
 
   return (
     <OfflineI18nProvider>
-      <SternikLangScope>
-        <SternikPrefsProvider>
-          <OfflineRouterProvider>
-            {({ path, search }) => {
-              const Page = ROUTES[path] ?? RadioCourseHome;
-              const key = `${path}${search}`;
-              return (
+      {/* the router outside the language scope: SternikLangScope reads the
+          path to let the radio trainer run in the app language */}
+      <OfflineRouterProvider>
+        {({ path, search }) => {
+          const Page = ROUTES[path] ?? RadioCourseHome;
+          const key = `${path}${search}`;
+          return (
+            <SternikLangScope>
+              <SternikPrefsProvider>
                 <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-4">
                   <StatusBar />
                   <RadioSubnav />
@@ -224,11 +233,11 @@ function App() {
                     <Page />
                   </main>
                 </div>
-              );
-            }}
-          </OfflineRouterProvider>
-        </SternikPrefsProvider>
-      </SternikLangScope>
+              </SternikPrefsProvider>
+            </SternikLangScope>
+          );
+        }}
+      </OfflineRouterProvider>
     </OfflineI18nProvider>
   );
 }

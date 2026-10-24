@@ -67,7 +67,7 @@ const OfflineVoicePtt = forwardRef<VoicePttHandle, Props>(
         }}
       >
         <div className="mb-2 text-sm font-semibold" style={{ color: "var(--accent-cyan)" }}>
-          {ru ? "Голосовой этап без сетевой оценки" : "Etap glosowy bez oceny sieciowej"}
+          {ru ? "Голосовой этап без сетевой оценки" : "Etap głosowy bez oceny sieciowej"}
         </div>
 
         {!hideScript && (
@@ -88,7 +88,7 @@ const OfflineVoicePtt = forwardRef<VoicePttHandle, Props>(
         <p className="mb-3 text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
           {ru
             ? "Произнеси сообщение вслух. Приложение не будет придумывать оценку без распознавания речи."
-            : "Wypowiedz komunikat na glos. Aplikacja nie wymysla oceny bez rozpoznawania mowy."}
+            : "Wypowiedz komunikat na głos. Aplikacja nie wymyśla oceny bez rozpoznawania mowy."}
         </p>
 
         {allowLinePractice && !hideScript ? (
@@ -104,7 +104,7 @@ const OfflineVoicePtt = forwardRef<VoicePttHandle, Props>(
               border: "1px solid var(--border-subtle)",
             }}
           >
-            {ru ? "Следующая строка" : "Nastepna linia"} ({linesRead}/{lines.length})
+            {ru ? "Следующая строка" : "Następna linia"} ({linesRead}/{lines.length})
           </button>
         ) : (
           <button
@@ -118,7 +118,7 @@ const OfflineVoicePtt = forwardRef<VoicePttHandle, Props>(
               border: "1px solid var(--border-subtle)",
             }}
           >
-            {ru ? "Я произнёс сообщение" : "Wypowiedzialem komunikat"}
+            {ru ? "Я произнёс сообщение" : "Wypowiedziałem komunikat"}
           </button>
         )}
 
@@ -126,7 +126,7 @@ const OfflineVoicePtt = forwardRef<VoicePttHandle, Props>(
           <div className="mt-2 text-xs" style={{ color: "var(--warning)" }}>
             {ru
               ? "PTT работает как орган управления. Запись и оценка голоса доступны только в сетевой версии."
-              : "PTT dziala jako element sterowania. Nagranie i ocena glosu sa dostepne tylko online."}
+              : "PTT działa jako element sterowania. Nagranie i ocena głosu są dostępne tylko online."}
           </div>
         )}
       </div>

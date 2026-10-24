@@ -18,7 +18,7 @@ export default function OfflineMicCheck({ compact = false }: { compact?: boolean
         {tp(
           "Микрофон и автоматическая оценка речи требуют интернета. Теория, эталонные фразы и управление рацией доступны без сети.",
           "The microphone and automatic speech grading require a connection. Theory, model phrases and radio controls remain available offline.",
-          "Mikrofon i automatyczna ocena mowy wymagaja internetu. Teoria, wzorcowe frazy i obsluga radia dzialaja bez sieci.",
+          "Mikrofon i automatyczna ocena mowy wymagają internetu. Teoria, wzorcowe frazy i obsługa radia działają bez sieci.",
         )}
       </div>
     </div>
