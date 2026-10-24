@@ -11,6 +11,7 @@ import {
   RX_CALLER, RX_DISTRESS,
   type RadioEvent, type RadioState, type Vessel,
 } from './radioModel';
+import type { PlaceNeed, Venue } from './venues';
 
 export interface Bi { pl: string; ru: string }
 
@@ -21,7 +22,13 @@ export interface VariantData {
   /** persons on board as a spoken English word, e.g. FOUR */
   pobWord: string;
   pob: number;
+  /** where this run takes place (venues.ts) */
+  venue: Venue;
 }
+
+/** What a step check or a mistake detector may need besides the radio state:
+ *  the venue's working channels (a marina is on 12 in Gdynia, 80 in the Solent). */
+export interface StepCtx { venue: Venue }
 
 export interface VoiceSpec {
   /** id understood by /api/radio-voice grading. */
@@ -40,7 +47,7 @@ export interface ScenarioStep {
   todo: Bi;
   /** the didactic "why this step exists / why this way". */
   why: Bi;
-  check: (e: RadioEvent, prev: RadioState, next: RadioState) => boolean;
+  check: (e: RadioEvent, prev: RadioState, next: RadioState, ctx: StepCtx) => boolean;
   /** voice transmission attached to this step (PTT walk-through or Whisper). */
   voice?: VoiceSpec;
 }
@@ -48,7 +55,7 @@ export interface ScenarioStep {
 export interface MistakeDetector {
   id: string;
   text: Bi;
-  detect: (e: RadioEvent, prev: RadioState, next: RadioState, done: Set<string>) => boolean;
+  detect: (e: RadioEvent, prev: RadioState, next: RadioState, done: Set<string>, ctx: StepCtx) => boolean;
 }
 
 export interface Scenario {
@@ -62,10 +69,19 @@ export interface Scenario {
   /** debrief note shown at the end (nuances, judgment calls). */
   debrief?: Bi;
   /** optional prepared radio state (e.g. the false alert already sent). */
-  init?: (vessel: Vessel) => RadioState;
+  init?: (vessel: Vessel, venue: Venue) => RadioState;
+  /** what the venue must have for this scenario (the run draws among those that do) */
+  needs?: PlaceNeed[];
 }
 
 const ch = (s: RadioState) => CHANNELS[s.channelIndex].num;
+const marinaCh = (ctx: StepCtx) => ctx.venue.marina?.channel ?? '12';
+const vtsCh = (ctx: StepCtx) => ctx.venue.vts?.channel ?? '71';
+const DIGIT_WORD = ['ZERO', 'ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE'];
+/** "54 40 NORTH, 018 50 EAST" -> "FIVE FOUR FOUR ZERO NORTH, ZERO ONE EIGHT FIVE ZERO EAST" */
+function spelledPosition(spoken: string): string {
+  return spoken.replace(/[0-9.]+(?:\s+[0-9.]+)*/g, (run) => run.replace(/[^0-9]/g, '').split('').map((d) => DIGIT_WORD[Number(d)]).join(' '));
+}
 
 // --- shared step builders ----------------------------------------------------
 
@@ -126,10 +142,11 @@ const MAYDAY_FIRE_LINES = (v: VariantData) => [
 const fireScenario: Scenario = {
   id: 'fire-mayday',
   icon: '🔥',
+  needs: ['coast'],
   title: { pl: 'Pożar na jachcie - MAYDAY', ru: 'Пожар на яхте - MAYDAY' },
   brief: {
-    pl: 'Płyniesz swoim jachtem po Zatoce Gdańskiej (dane jednostki - w karcie wariantu obok). W komorze silnika wybuchł pożar, gaśnica nie wystarcza, dym gęstnieje. Życie załogi jest bezpośrednio zagrożone - to sytuacja DISTRESS.',
-    ru: 'Ты идёшь на своей яхте по Гданьскому заливу (данные судна - в карточке варианта рядом). В моторном отсеке пожар, огнетушителя не хватает, дым густеет. Жизнь экипажа под прямой угрозой - это DISTRESS.',
+    pl: 'Płyniesz swoim jachtem (rejon: {area}; dane jednostki - w karcie wariantu obok). W komorze silnika wybuchł pożar, gaśnica nie wystarcza, dym gęstnieje. Życie załogi jest bezpośrednio zagrożone - to sytuacja DISTRESS.',
+    ru: 'Ты идёшь на своей яхте (район: {area}; данные судна - в карточке варианта рядом). В моторном отсеке пожар, огнетушителя не хватает, дым густеет. Жизнь экипажа под прямой угрозой - это DISTRESS.',
   },
   steps: [
     stepPower(),
@@ -227,6 +244,7 @@ const PANPAN_ENGINE_LINES = (v: VariantData) => [
 const engineScenario: Scenario = {
   id: 'engine-panpan',
   icon: '⚙️',
+  needs: ['coast'],
   title: { pl: 'Awaria silnika, dryf - PAN-PAN', ru: 'Отказ двигателя, дрейф - PAN-PAN' },
   brief: {
     pl: 'Silnik zgasł i nie odpala, kotwica nie trzyma, jacht dryfuje w stronę brzegu. Nikt nie tonie, ale potrzebujesz holowania, zanim zrobi się niebezpiecznie. To klasyczna PILNOŚĆ: PAN-PAN.',
@@ -292,6 +310,7 @@ const SECURITE_LINES = (v: VariantData) => [
 const securiteScenario: Scenario = {
   id: 'securite-hazard',
   icon: '⚠️',
+  needs: ['coast'],
   title: { pl: 'Kontener na torze - SECURITE', ru: 'Контейнер на фарватере - SECURITE' },
   brief: {
     pl: 'Mijasz na wpół zatopiony kontener dryfujący przy torze wodnym. Tobie nic nie grozi, ale to realne niebezpieczeństwo nawigacyjne dla innych. Kategoria BEZPIECZEŃSTWO: SECURITE.',
@@ -354,7 +373,7 @@ const securiteScenario: Scenario = {
 // --- scenario 5: routine radio check (NOT on 16) -----------------------------
 
 const RADIO_CHECK_LINES = (v: VariantData) => [
-  'MARINA GDYNIA, MARINA GDYNIA',
+  `${v.venue.marina?.call}, ${v.venue.marina?.call}`,
   `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
   'RADIO CHECK, OVER',
 ];
@@ -362,21 +381,22 @@ const RADIO_CHECK_LINES = (v: VariantData) => [
 const radioCheckScenario: Scenario = {
   id: 'radio-check',
   icon: '📞',
+  needs: ['marina'],
   title: { pl: 'Radio check w marinie', ru: 'Проверка связи с мариной' },
   brief: {
-    pl: 'Wychodzisz z Mariny Gdynia i chcesz sprawdzić, czy radio nadaje i odbiera. Do tego radio check użyj znanego kanału roboczego mariny Gdynia: 12. Kanał 16 służy również do krótkiego wywołania, ale nie do rutynowej rozmowy ani testowania radia.',
-    ru: 'Выходишь из марины Гдыня и хочешь проверить, что рация передаёт и принимает. Для этой проверки используй известный рабочий канал марины Гдыня: 12. Канал 16 также служит для короткого первоначального вызова, но не для обычной беседы или проверки рации.',
+    pl: 'Wychodzisz z portu ({marina}) i chcesz sprawdzić, czy radio nadaje i odbiera. Do tego radio check użyj kanału roboczego tej mariny: {marinaCh}. Kanał 16 służy również do krótkiego wywołania, ale nie do rutynowej rozmowy ani testowania radia.',
+    ru: 'Выходишь из порта ({marina}) и хочешь проверить, что рация передаёт и принимает. Для этой проверки используй рабочий канал этой марины: {marinaCh}. Канал 16 также служит для короткого первоначального вызова, но не для обычной беседы или проверки рации.',
   },
   steps: [
     stepPower(),
     {
       id: 'ch12',
-      todo: { pl: 'Ustaw kanał 12 (pokrętło albo [^]/[v])', ru: 'Выставь канал 12 (ручка или [^]/[v])' },
+      todo: { pl: 'Ustaw kanał {marinaCh} (pokrętło albo [^]/[v])', ru: 'Выставь канал {marinaCh} (ручка или [^]/[v])' },
       why: {
-        pl: 'Kanał 16 jest zarezerwowany dla niebezpieczeństwa i wywołań - nie wolno go blokować testami. W Polsce porty/mariny pracują na 10/12/14 (Gdynia - 12). Kanał 9 to konwencja amerykańska, nie polska.',
-        ru: 'Канал 16 зарезервирован для бедствия и вызовов - занимать его проверками нельзя. В Польше порты/марины работают на 10/12/14 (Гдыня - 12). Канал 9 - американская конвенция, не польская.',
+        pl: 'Kanał 16 jest zarezerwowany dla niebezpieczeństwa i wywołań - nie wolno go blokować testami. {marinaNote}',
+        ru: 'Канал 16 зарезервирован для бедствия и вызовов - занимать его проверками нельзя. {marinaNote}',
       },
-      check: (e, prev, next) => ch(next) === '12' && ch(prev) !== '12',
+      check: (e, prev, next, ctx) => ch(next) === marinaCh(ctx) && ch(prev) !== marinaCh(ctx),
     },
     {
       id: 'lowpower',
@@ -394,7 +414,7 @@ const radioCheckScenario: Scenario = {
         pl: 'Schemat: [stacja wywoływana] x2 -> THIS IS + nazwa x2 -> RADIO CHECK -> OVER. Odpowiedź oceni słyszalność w skali 1-5 ("READABILITY FIVE" = doskonale) albo "LOUD AND CLEAR".',
         ru: 'Схема: [вызываемая станция] x2 -> THIS IS + название x2 -> RADIO CHECK -> OVER. Ответ оценит слышимость по шкале 1-5 («READABILITY FIVE» = отлично) или «LOUD AND CLEAR».',
       },
-      check: (e, prev, next) => e.type === 'ptt-down' && ch(next) === '12' && next.ptt,
+      check: (e, prev, next, ctx) => e.type === 'ptt-down' && ch(next) === marinaCh(ctx) && next.ptt,
       voice: { kind: 'radio-check', lines: RADIO_CHECK_LINES },
     },
   ],
@@ -423,6 +443,7 @@ const CANCEL_LINES = (v: VariantData) => [
 const cancelScenario: Scenario = {
   id: 'false-cancel',
   icon: '🚫',
+  needs: ['coast'],
   init: (vessel) => ({
     ...INITIAL_RADIO,
     power: true,
@@ -526,7 +547,7 @@ const stepDscAlarmOff = (): ScenarioStep => ({
 // --- scenario 7: routine call to a marina -----------------------------------
 
 const MARINA_LINES = (v: VariantData) => [
-  'MARINA GDYNIA, MARINA GDYNIA',
+  `${v.venue.marina?.call}, ${v.venue.marina?.call}`,
   `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
   'REQUEST A BERTH FOR TONIGHT',
   `${v.pobWord} PERSONS ON BOARD, YACHT ELEVEN METRES`,
@@ -536,21 +557,22 @@ const MARINA_LINES = (v: VariantData) => [
 const marinaScenario: Scenario = {
   id: 'routine-marina',
   icon: '⚓',
+  needs: ['marina'],
   title: { pl: 'Wywołanie mariny - miejsce w porcie', ru: 'Вызов марины - место в порту' },
   brief: {
-    pl: 'Podchodzisz do Mariny Gdynia i chcesz zarezerwować miejsce na noc. To zwykła korespondencja - na kanale roboczym mariny (12), nie na 16.',
-    ru: 'Подходишь к марине Гдыня и хочешь место на ночь. Это обычная корреспонденция - на рабочем канале марины (12), не на 16.',
+    pl: 'Podchodzisz do portu ({marina}) i chcesz zarezerwować miejsce na noc. To zwykła korespondencja - na kanale roboczym mariny ({marinaCh}), nie na 16.',
+    ru: 'Подходишь к порту ({marina}) и хочешь место на ночь. Это обычная корреспонденция - на рабочем канале марины ({marinaCh}), не на 16.',
   },
   steps: [
     stepPower(),
     {
       id: 'ch12',
-      todo: { pl: 'Ustaw kanał roboczy mariny - 12', ru: 'Выставь рабочий канал марины - 12' },
+      todo: { pl: 'Ustaw kanał roboczy mariny - {marinaCh}', ru: 'Выставь рабочий канал марины - {marinaCh}' },
       why: {
-        pl: 'Sprawy portowe załatwia się na kanale roboczym mariny. W Trójmieście: Gdynia 12, Gdańsk 14. Kanał 16 zostaje wolny dla wywołań i niebezpieczeństwa.',
-        ru: 'Портовые дела решают на рабочем канале марины. В Труймясте: Гдыня 12, Гданьск 14. Канал 16 остаётся свободным для вызовов и бедствия.',
+        pl: 'Sprawy portowe załatwia się na kanale roboczym mariny. {marinaNote} Kanał 16 zostaje wolny dla wywołań i niebezpieczeństwa.',
+        ru: 'Портовые дела решают на рабочем канале марины. {marinaNote} Канал 16 остаётся свободным для вызовов и бедствия.',
       },
-      check: (_e, prev, next) => ch(next) === '12' && ch(prev) !== '12',
+      check: (_e, prev, next, ctx) => ch(next) === marinaCh(ctx) && ch(prev) !== marinaCh(ctx),
     },
     {
       id: 'marina-voice',
@@ -559,14 +581,14 @@ const marinaScenario: Scenario = {
         pl: 'Schemat: [stacja] x2 -> THIS IS + nazwa x2 -> treść (prośba) -> OVER. Krótko i konkretnie: czego potrzebujesz, jaka jednostka, ile osób.',
         ru: 'Схема: [станция] x2 -> THIS IS + название x2 -> суть (просьба) -> OVER. Коротко и по делу: что нужно, какое судно, сколько людей.',
       },
-      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '12' && next.ptt,
+      check: (e, _prev, next, ctx) => e.type === 'ptt-down' && ch(next) === marinaCh(ctx) && next.ptt,
       voice: { kind: 'routine-marina', lines: MARINA_LINES },
     },
   ],
   mistakes: [
     {
       id: 'marina-on-16',
-      text: { pl: 'Wywołanie portowe na kanale 16 - użyj kanału roboczego mariny (12).', ru: 'Портовый вызов на 16 - используй рабочий канал марины (12).' },
+      text: { pl: 'Wywołanie portowe na kanale 16 - użyj kanału roboczego mariny ({marinaCh}).', ru: 'Портовый вызов на 16 - используй рабочий канал марины ({marinaCh}).' },
       detect: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '16' && next.ptt,
     },
   ],
@@ -575,32 +597,33 @@ const marinaScenario: Scenario = {
 // --- scenario 8: traffic report to VTS --------------------------------------
 
 const VTS_LINES = (v: VariantData) => [
-  'VTS ZATOKA GDANSKA, VTS ZATOKA GDANSKA',
+  `${v.venue.vts?.call}, ${v.venue.vts?.call}`,
   `THIS IS ${v.vessel.name}, ${v.vessel.name}`,
   `CALL SIGN ${v.vessel.call}`,
   `POSITION ${v.posSpoken}`,
-  'INBOUND TO GDYNIA, REQUEST PERMISSION TO ENTER THE TRAFFIC ZONE',
+  `INBOUND TO ${v.venue.vts?.port}, REQUEST PERMISSION TO ENTER THE TRAFFIC ZONE`,
   'OVER',
 ];
 
 const vtsScenario: Scenario = {
   id: 'vts-report',
   icon: '🗼',
-  title: { pl: 'Meldunek do VTS Zatoka Gdańska', ru: 'Доклад в VTS Гданьский залив' },
+  needs: ['vts'],
+  title: { pl: 'Meldunek do VTS', ru: 'Доклад в VTS' },
   brief: {
-    pl: 'Wchodzisz w rejon ruchu Zatoki Gdańskiej. Służba VTS Zatoka Gdańska (kanał 71) porządkuje ruch - zgłoś się z pozycją i zamiarem. To korespondencja rutynowa.',
-    ru: 'Входишь в зону движения Гданьского залива. Служба VTS (канал 71) управляет трафиком - доложись с позицией и намерением. Рутинная корреспонденция.',
+    pl: 'Wchodzisz w rejon ruchu ({area}). Służba {vts} (kanał {vtsCh}) porządkuje ruch - zgłoś się z pozycją i zamiarem. To korespondencja rutynowa.',
+    ru: 'Входишь в зону движения ({area}). Служба {vts} (канал {vtsCh}) управляет трафиком - доложись с позицией и намерением. Рутинная корреспонденция.',
   },
   steps: [
     stepPower(),
     {
       id: 'ch71',
-      todo: { pl: 'Ustaw kanał VTS - 71', ru: 'Выставь канал VTS - 71' },
+      todo: { pl: 'Ustaw kanał VTS - {vtsCh}', ru: 'Выставь канал VTS - {vtsCh}' },
       why: {
-        pl: 'VTS Zatoka Gdańska pracuje na kanale 71. Meldujesz się tam, nie na 16 - 16 zostaje dla wywołań i niebezpieczeństwa.',
-        ru: 'VTS Гданьского залива работает на 71 канале. Докладываешься там, не на 16 - 16 остаётся для вызовов и бедствия.',
+        pl: '{vts} pracuje na kanale {vtsCh}. Meldujesz się tam, nie na 16 - 16 zostaje dla wywołań i niebezpieczeństwa.',
+        ru: '{vts} работает на канале {vtsCh}. Докладываешься там, не на 16 - 16 остаётся для вызовов и бедствия.',
       },
-      check: (_e, prev, next) => ch(next) === '71' && ch(prev) !== '71',
+      check: (_e, prev, next, ctx) => ch(next) === vtsCh(ctx) && ch(prev) !== vtsCh(ctx),
     },
     {
       id: 'vts-voice',
@@ -609,7 +632,7 @@ const vtsScenario: Scenario = {
         pl: 'Podaj: kogo wołasz, twoja nazwa i znak, pozycja, zamiar (wejście/wyjście, dokąd). VTS potrzebuje pozycji i intencji, żeby rozdzielić ruch.',
         ru: 'Сообщи: кого вызываешь, своё название и позывной, позицию, намерение (вход/выход, куда). VTS нужны позиция и намерение, чтобы разводить трафик.',
       },
-      check: (e, _prev, next) => e.type === 'ptt-down' && ch(next) === '71' && next.ptt,
+      check: (e, _prev, next, ctx) => e.type === 'ptt-down' && ch(next) === vtsCh(ctx) && next.ptt,
       voice: { kind: 'vts-report', lines: VTS_LINES },
     },
   ],
@@ -633,6 +656,7 @@ const MEDICO_LINES = (v: VariantData) => [
 const medicoScenario: Scenario = {
   id: 'panpan-medico',
   icon: '🩹',
+  needs: ['coast'],
   title: { pl: 'Kontuzja załogi - PAN-PAN medyczny', ru: 'Травма экипажа - PAN-PAN медицинский' },
   brief: {
     pl: 'Członek załogi mocno rozciął dłoń, krwawienie trudno opanować. Życie nie jest jeszcze bezpośrednio zagrożone, ale potrzebujesz porady medycznej. To PILNOŚĆ medyczna: PAN-PAN.',
@@ -687,6 +711,7 @@ const medicoScenario: Scenario = {
 const dscTestScenario: Scenario = {
   id: 'dsc-test',
   icon: '🧪',
+  needs: ['coast'],
   title: { pl: 'Test DSC do stacji brzegowej', ru: 'DSC-тест на береговую станцию' },
   brief: {
     pl: 'Chcesz sprawdzić, czy cały łańcuch DSC działa (MMSI, GPS, nadawanie na 70). Służy do tego wywołanie Test do stacji brzegowej - bez alarmowania kogokolwiek głosem.',
@@ -696,7 +721,7 @@ const dscTestScenario: Scenario = {
     stepPower(),
     stepChooseType('Test',
       { pl: 'Wybierz Test Call do stacji brzegowej (M330: [OTHER DSC] > Type: Test; M323: DSC Calls > Test Call)', ru: 'Выбери Test Call на береговую станцию (M330: [OTHER DSC] > Type: Test; M323: DSC Calls > Test Call)' },
-      { pl: 'Test to specjalny typ DSC - stacja brzegowa odpowiada automatycznym ACK. Adresuj do stacji brzegowej (Polish Rescue Radio), nie do All Ships.', ru: 'Test - специальный тип DSC: береговая станция отвечает автоматическим ACK. Адресуй на береговую станцию (Polish Rescue Radio), не на All Ships.' },
+      { pl: 'Test to specjalny typ DSC - stacja brzegowa odpowiada automatycznym ACK. Adresuj do stacji brzegowej ({coast}), nie do All Ships.', ru: 'Test - специальный тип DSC: береговая станция отвечает автоматическим ACK. Адресуй на береговую станцию ({coast}), не на All Ships.' },
     ),
     {
       id: 'test-sent',
@@ -788,7 +813,7 @@ const RELAY_LINES = (v: VariantData) => [
   'ALL STATIONS, ALL STATIONS, ALL STATIONS',
   `THIS IS ${v.vessel.name}, ${v.vessel.name}, ${v.vessel.name}`,
   'RECEIVED THE FOLLOWING MAYDAY FROM YACHT NEPTUN',
-  'POSITION FIVE FOUR FOUR ZERO NORTH, ZERO ONE EIGHT FIVE ZERO EAST',
+  `POSITION ${spelledPosition(v.venue.rxDistress.spoken)}`,
   'NEPTUN IS SINKING, THREE PERSONS ON BOARD, TAKING TO THE LIFERAFT',
   'OVER',
 ];
@@ -796,6 +821,7 @@ const RELAY_LINES = (v: VariantData) => [
 const relayScenario: Scenario = {
   id: 'mayday-relay',
   icon: '📡',
+  needs: ['coast'],
   title: { pl: 'Retransmisja cudzego MAYDAY', ru: 'Ретрансляция чужого MAYDAY' },
   brief: {
     pl: 'Słyszysz na 16 słaby MAYDAY jachtu NEPTUN (tonie, 3 osoby), ale stacja brzegowa nie odpowiada - twój sygnał sięga dalej. Twoim obowiązkiem jest retransmitować ten alarm: MAYDAY RELAY. NIE nadajesz własnego MAYDAY (tobie nic nie grozi) ani nie używasz czerwonego przycisku.',
@@ -900,11 +926,12 @@ const MAYDAY_ACK_LINES = (v: VariantData) => [
 const receiveDistressScenario: Scenario = {
   id: 'receive-distress',
   icon: '📥',
-  init: () => ({
+  needs: ['coast'],
+  init: (_vessel, venue) => ({
     ...INITIAL_RADIO,
     power: true,
     screen: 'rx-distress-alert',
-    rxDistress: { name: RX_DISTRESS.name, mmsi: RX_DISTRESS.mmsi, spoken: RX_DISTRESS.spoken, nature: RX_DISTRESS.nature, pob: RX_DISTRESS.pob },
+    rxDistress: { name: RX_DISTRESS.name, mmsi: RX_DISTRESS.mmsi, spoken: venue.rxDistress.spoken, nature: RX_DISTRESS.nature, pob: RX_DISTRESS.pob },
     deviceLog: [
       { t: Date.now() - 3000, text: 'Power ON - watch on CH 16 / CH 70 (DSC)', kind: 'ui' },
       { t: Date.now() - 1000, text: `RX DSC DISTRESS from ${RX_DISTRESS.name} MMSI ${RX_DISTRESS.mmsi}, nature ${RX_DISTRESS.nature}`, kind: 'rx' },

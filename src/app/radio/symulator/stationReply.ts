@@ -1,4 +1,5 @@
 import type { VoiceKind } from '../../api/radio-voice/voiceGrading';
+import { DEFAULT_VENUE, type Venue } from './venues';
 
 // ============================================================================
 // What the other station says back, out loud.
@@ -19,12 +20,15 @@ export interface StationLine {
   station: string;
 }
 
-const RESCUE = 'POLISH RESCUE RADIO';
-const MARINA = 'MARINA GDYNIA';
-const VTS = 'VTS ZATOKA GDANSKA';
-
-export function stationReply(kind: VoiceKind, vesselName: string): StationLine | null {
+/** The answering stations are the run's venue (venues.ts): Polish Rescue Radio
+ *  and Marina Gdynia in the Gulf of Gdańsk, Solent Coastguard and Lymington
+ *  Yacht Haven in the Solent, and so on. */
+export function stationReply(kind: VoiceKind, vesselName: string, venue: Venue = DEFAULT_VENUE): StationLine | null {
   const you = vesselName.toUpperCase();
+  const RESCUE = venue.coast?.call ?? 'COAST STATION';
+  const WORK = venue.coast?.workSpoken ?? 'SIX SEVEN';
+  const MARINA = venue.marina?.call ?? 'MARINA';
+  const VTS = venue.vts?.call ?? 'VTS';
   switch (kind) {
     case 'mayday-mob':
     case 'mayday-fire':
@@ -36,9 +40,9 @@ export function stationReply(kind: VoiceKind, vesselName: string): StationLine |
     case 'panpan-mob':
       return { station: RESCUE, say: `PAN PAN ${you}, THIS IS ${RESCUE}, RECEIVED PAN PAN. VESSELS IN THE AREA ALERTED. REPORT WHEN THE PERSON IS RECOVERED. OVER.` };
     case 'panpan-engine':
-      return { station: RESCUE, say: `PAN PAN ${you}, THIS IS ${RESCUE}, RECEIVED PAN PAN. TOWING ARRANGED. SWITCH TO CHANNEL SIX SEVEN. OVER.` };
+      return { station: RESCUE, say: `PAN PAN ${you}, THIS IS ${RESCUE}, RECEIVED PAN PAN. TOWING ARRANGED. SWITCH TO CHANNEL ${WORK}. OVER.` };
     case 'panpan-medico':
-      return { station: RESCUE, say: `PAN PAN ${you}, THIS IS ${RESCUE}, RECEIVED PAN PAN. MEDICAL ADVICE FOLLOWS ON CHANNEL SIX SEVEN. OVER.` };
+      return { station: RESCUE, say: `PAN PAN ${you}, THIS IS ${RESCUE}, RECEIVED PAN PAN. MEDICAL ADVICE FOLLOWS ON CHANNEL ${WORK}. OVER.` };
     case 'securite-hazard':
       return { station: RESCUE, say: `${you}, THIS IS ${RESCUE}, ROGER, YOUR SAFETY MESSAGE IS RECEIVED AND WILL BE BROADCAST. OUT.` };
     case 'cancel-false':

@@ -5,25 +5,28 @@ import {
   createInitialRadio, radioReducer,
   type RadioEvent, type RadioModel, type RadioState,
 } from './radioModel';
+import { DEFAULT_VENUE, placeRadio, type Venue } from './venues';
 
 // Drive a scenario through the pure reducer + the same linear step engine the
 // page uses (page.tsx): the current step's check() marks it done and advances;
 // voice steps advance here too (in the app onVoiceComplete does that after a
 // passing grade - separately covered by voiceGrading.test.ts). This proves each
 // scenario is actually completable on the shipped state machine.
-function play(id: string, events: RadioEvent[], model: RadioModel = 'M330') {
+function play(id: string, events: RadioEvent[], model: RadioModel = 'M330', venue: Venue = DEFAULT_VENUE) {
   const sc = SCENARIOS.find((s) => s.id === id);
   if (!sc) throw new Error(`no scenario ${id}`);
-  let state: RadioState = sc.init ? sc.init(createInitialRadio(model).vessel) : createInitialRadio(model);
+  const initial = createInitialRadio(model);
+  let state: RadioState = placeRadio(sc.init ? sc.init(initial.vessel, venue) : initial, venue);
+  const ctx = { venue };
   const done = new Set<string>();
   const mistakes = new Set<string>();
   let idx = 0;
   for (const e of events) {
     const prev = state;
     state = radioReducer(state, e);
-    for (const m of sc.mistakes) if (m.detect(e, prev, state, done)) mistakes.add(m.id);
+    for (const m of sc.mistakes) if (m.detect(e, prev, state, done, ctx)) mistakes.add(m.id);
     const step = sc.steps[idx];
-    if (step && !done.has(step.id) && step.check(e, prev, state)) { done.add(step.id); idx += 1; }
+    if (step && !done.has(step.id) && step.check(e, prev, state, ctx)) { done.add(step.id); idx += 1; }
   }
   return { sc, state, done, mistakes };
 }

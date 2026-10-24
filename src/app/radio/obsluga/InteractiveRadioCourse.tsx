@@ -13,6 +13,7 @@ import { fetchStationVoice } from '../symulator/audio/stationVoice';
 import { SIG_STRONG, SIG_WEAK, scriptOver } from '../symulator/radioTraffic';
 import { stationReply } from '../symulator/stationReply';
 import type { VariantData } from '../symulator/scenarios';
+import { DEFAULT_VENUE } from '../symulator/venues';
 import { LESSON_TEXT } from './lessonData';
 import {
   CHANNELS, DEFAULT_VARIANT, OTHERDSC_CATEGORIES, POSITION_POOL, VESSEL_POOL,
@@ -30,6 +31,7 @@ const VARIANT: VariantData = {
   posSpoken: POSITION_POOL[DEFAULT_VARIANT.posIdx].spoken,
   pobWord: 'FOUR',
   pob: DEFAULT_VARIANT.pob,
+  venue: DEFAULT_VENUE,
 };
 
 /** what the learner says at the PTT lesson - a radio check, the safest first transmission */
