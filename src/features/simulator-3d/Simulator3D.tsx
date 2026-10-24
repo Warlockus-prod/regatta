@@ -383,7 +383,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {view === "sails" && <p className={styles.coach}>{L.scene.fullSailPlan}</p>}
         {readouts}
       </section>
-      <aside ref={panelRef} className={styles.panel}>
+      <aside ref={panelRef} className={styles.panel} data-trainer-settings-host>
     {guideBlock}
         {mode === "sail" && <div className={styles.panelHead}>
           <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} />

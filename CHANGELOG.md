@@ -2,6 +2,8 @@
 
 Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
 
+- Reserved trainer control space for settings and views, stabilized keyboard focus, and added optional water-route guidance with smoother shore rendering and correct sail deployment visuals.
+
 - Added the shared model for manual Pro sheets, sail deployment, responsive solo steering, route advice and optional educational race rules with declared training penalties.
 
 - Recorded the complete 2026-10-24 audit, selected ocean cockpit direction and ordered app/site completion harness. Implementation is in progress; this entry does not mean deployment.`

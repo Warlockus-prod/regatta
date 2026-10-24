@@ -1295,6 +1295,7 @@ export default function SimulatorPage() {
 
       {/* Info Panel: controls first, so the sliders are on the first screen. */}
       <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
+           data-trainer-settings-host
            style={{ background: 'var(--bg-secondary)' }}>
 
         {introText}

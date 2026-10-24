@@ -31,3 +31,5 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 
 - Baseline: audit.md and related domain reports, screenshots and verified font metadata copied into this branch.
 - Model: 79 focused physics, autopilot, rules and guidance tests passed; TypeScript passed before UI integration. Responsive steering is opt-in for the local player, core VPP constants and server defaults preserved.
+
+- Presentation checkpoint: 100 focused tests in 12 suites, TypeScript and targeted ESLint passed. Trainer auxiliary panels now use reserved controls space; race guidance is a water ribbon, without the retired floating arrow/no-go overlay. Runtime visual review remains open.

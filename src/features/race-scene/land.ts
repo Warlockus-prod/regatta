@@ -4,7 +4,8 @@
 // every low vertex as sand, so the flat, tapered ends of a coast read as a
 // white plain under the brighter race light. Here only the beach row is sand,
 // everything behind it is vegetation by height, with bare rock on steep faces
-// and on the summits, one flat colour per face (low-poly).
+// and on the summits. Shared vertices keep the same small terrain grid but
+// interpolate its light and colour instead of exposing every triangle.
 
 import * as THREE from "three/webgpu";
 import { noise1, terrainIndices, type Terrain3D } from "@/data/venues/geometry";
@@ -32,21 +33,17 @@ export function landGeometry(t: Terrain3D, palette: Venue["palette"], seed: numb
   });
   g.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
   g.setIndex(terrainIndices(t.rows, t.cols, wrap));
-  const flat = g.toNonIndexed();
-  flat.computeVertexNormals();
-  const col = flat.getAttribute("color") as THREE.BufferAttribute;
-  const pos = flat.getAttribute("position") as THREE.BufferAttribute;
-  const nrm = flat.getAttribute("normal") as THREE.BufferAttribute;
+  g.computeVertexNormals();
+  const col = g.getAttribute("color") as THREE.BufferAttribute;
+  const pos = g.getAttribute("position") as THREE.BufferAttribute;
+  const nrm = g.getAttribute("normal") as THREE.BufferAttribute;
   const rock = new THREE.Color(palette.high);
-  const face = new THREE.Color();
-  for (let v = 0; v < col.count; v += 3) {
-    // The face takes its highest corner's colour; a steep face above the beach shows rock.
-    const top = [v, v + 1, v + 2].reduce((a, b) => (pos.getY(b) > pos.getY(a) ? b : a));
-    face.setRGB(col.getX(top), col.getY(top), col.getZ(top));
+  const color = new THREE.Color();
+  for (let v = 0; v < col.count; v++) {
+    color.setRGB(col.getX(v), col.getY(v), col.getZ(v));
     const steep = Math.min(1, Math.max(0, (0.8 - nrm.getY(v)) * 2.5));
-    if (pos.getY(top) > 3) face.lerp(rock, steep * 0.7);
-    for (let k = 0; k < 3; k++) col.setXYZ(v + k, face.r, face.g, face.b);
+    if (Math.floor(v / t.cols) >= BEACH_ROWS && pos.getY(v) > 3) color.lerp(rock, steep * 0.7);
+    col.setXYZ(v, color.r, color.g, color.b);
   }
-  g.dispose();
-  return flat;
+  return g;
 }

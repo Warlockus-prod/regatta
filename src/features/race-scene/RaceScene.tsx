@@ -11,16 +11,18 @@ import type { YachtState } from "@/features/simulator-3d/types";
 import { landPolygon, raceTerrain, noise1, RACE_AREA } from "@/data/venues/geometry";
 import type { Venue } from "@/data/venues/venues";
 import {
-  ChaseCamera, Loading, NoGoWedge, Ready, Rival, STANDARD_COURSE, SUN, TargetArrow, World,
+  ChaseCamera, Loading, Ready, Rival, SUN, World,
   playerOf, useBoatPose, type OriginRef, type Race3DLabels,
 } from "@/features/race-3d/Race3DView";
 import { METRES_PER_UNIT, nextTarget, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
 import { distance } from "@/lib/race-physics";
+import type { RaceGuidance } from "@/lib/race-guidance";
 import { follow, tacticalPose } from "./camera";
 import { shoreField } from "./shore";
 import { TRAIL_POINTS, buildRibbon, pushTrail, ribbonIndices, type TrailPoint } from "./trail";
 import { initialDpr, nextDpr } from "./quality";
 import { BEACH_ROWS, landGeometry } from "./land";
+import { guidancePath } from "./guidance";
 import { PALETTE, calmFactor, shadowMaterial, shoreTexture, skyMaterial, wakeMaterial, waterMaterial, waterUniforms, type WaterUniforms } from "./materials";
 
 // ============================================================================
@@ -41,8 +43,117 @@ const SUN_DIR = new THREE.Vector3(...SUN).normalize();
 const STERN = 6.3;
 /** The race shore stands taller than the horizon one (as in Race3DView). */
 const LAND_HEIGHT = 1.8;
+const GUIDANCE_POINTS = 80;
+const GUIDANCE_MARKERS = 14;
 
 export interface RaceSceneStats { backend: string; fps: number; dpr: number }
+
+/** Optional teaching route, painted on the water rather than over the yacht.
+ * Blue is a sailing leg; the rounded yellow part is the next change of course. */
+function WaterGuidance({ boatsRef, windDirRef, originRef, guidance }: {
+  boatsRef: MutableRefObject<Race3DBoat[]>;
+  windDirRef: MutableRefObject<number>;
+  originRef: OriginRef;
+  guidance?: RaceGuidance | null;
+}) {
+  const resources = useMemo(() => {
+    const positions = new Float32Array(GUIDANCE_POINTS * 6);
+    const colors = new Float32Array(GUIDANCE_POINTS * 6);
+    const indices: number[] = [];
+    for (let i = 0; i < GUIDANCE_POINTS - 1; i++) {
+      const v = i * 2;
+      indices.push(v, v + 1, v + 2, v + 1, v + 3, v + 2);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3).setUsage(THREE.DynamicDrawUsage));
+    geometry.setAttribute("color", new THREE.BufferAttribute(colors, 3).setUsage(THREE.DynamicDrawUsage));
+    geometry.setIndex(indices);
+    const material = new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.35, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const ribbon = new THREE.Mesh(geometry, material);
+    ribbon.frustumCulled = false;
+    ribbon.renderOrder = 2;
+    const chevron = new THREE.BufferGeometry();
+    chevron.setAttribute("position", new THREE.Float32BufferAttribute([
+      -1.8, 0, 1.4, 0, 0, -1.4, -0.85, 0, 1.4,
+      0, 0, -1.4, 1.8, 0, 1.4, 0.85, 0, 1.4,
+    ], 3));
+    const markerMaterial = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.68, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const markers = new THREE.InstancedMesh(chevron, markerMaterial, GUIDANCE_MARKERS);
+    markers.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(GUIDANCE_MARKERS * 3), 3);
+    markers.frustumCulled = false;
+    markers.renderOrder = 3;
+    const targetGeometry = new THREE.RingGeometry(3.4, 3.9, 32);
+    targetGeometry.rotateX(-Math.PI / 2);
+    const targetMaterial = new THREE.MeshBasicMaterial({ color: "#76c9e9", transparent: true, opacity: 0.6, depthWrite: false, side: THREE.DoubleSide, toneMapped: false });
+    const target = new THREE.Mesh(targetGeometry, targetMaterial);
+    target.frustumCulled = false;
+    return { geometry, material, ribbon, positions, colors, chevron, markerMaterial, markers, targetGeometry, targetMaterial, target,
+      dummy: new THREE.Object3D(), blue: new THREE.Color("#76c9e9"), yellow: new THREE.Color("#ecd47b") };
+  }, []);
+  const resourceRef = useRef(resources);
+  useEffect(() => () => {
+    resources.geometry.dispose(); resources.material.dispose();
+    resources.chevron.dispose(); resources.markerMaterial.dispose(); resources.markers.dispose();
+    resources.targetGeometry.dispose(); resources.targetMaterial.dispose();
+  }, [resources]);
+  useFrame(({ clock }) => {
+    const r = resourceRef.current;
+    const player = playerOf(boatsRef.current);
+    const points = player && guidance ? guidancePath(player.pos, player.heading, windDirRef.current, guidance) : [];
+    const count = Math.min(GUIDANCE_POINTS, points.length);
+    r.ribbon.visible = r.markers.visible = r.target.visible = count >= 2;
+    if (count < 2) return;
+    const origin = originRef.current;
+    const now = clock.elapsedTime;
+    const height = (x: number, z: number) => sampleWave(x, z, now).y * calmFactor(Math.hypot(x - origin.x, z - origin.z)) + 0.2;
+    let travelled = 0;
+    let nextMarker = 16;
+    let markerCount = 0;
+    for (let i = 0; i < count; i++) {
+      const point = points[i];
+      const before = points[Math.max(0, i - 1)];
+      const after = points[Math.min(count - 1, i + 1)];
+      const dx = after.x - before.x;
+      const dz = after.y - before.y;
+      const norm = Math.hypot(dx, dz) || 1;
+      const sideX = -dz / norm * 0.9;
+      const sideZ = dx / norm * 0.9;
+      const x = point.x * METRES_PER_UNIT;
+      const z = point.y * METRES_PER_UNIT;
+      const y = height(x, z);
+      const color = point.turning ? r.yellow : r.blue;
+      for (let edge = 0; edge < 2; edge++) {
+        const offset = i * 6 + edge * 3;
+        const sign = edge === 0 ? -1 : 1;
+        r.positions[offset] = x - origin.x + sideX * sign;
+        r.positions[offset + 1] = y;
+        r.positions[offset + 2] = z - origin.z + sideZ * sign;
+        r.colors[offset] = color.r; r.colors[offset + 1] = color.g; r.colors[offset + 2] = color.b;
+      }
+      travelled += Math.hypot(point.x - before.x, point.y - before.y) * METRES_PER_UNIT;
+      if (travelled >= nextMarker && markerCount < GUIDANCE_MARKERS) {
+        r.dummy.position.set(x - origin.x, y + 0.04, z - origin.z);
+        r.dummy.rotation.y = Math.atan2(-dx, -dz);
+        r.dummy.updateMatrix();
+        r.markers.setMatrixAt(markerCount, r.dummy.matrix);
+        r.markers.setColorAt(markerCount, color);
+        markerCount++;
+        nextMarker = travelled + 28;
+      }
+    }
+    r.geometry.setDrawRange(0, (count - 1) * 6);
+    r.geometry.getAttribute("position").needsUpdate = true;
+    r.geometry.getAttribute("color").needsUpdate = true;
+    r.markers.count = markerCount;
+    r.markers.instanceMatrix.needsUpdate = true;
+    if (r.markers.instanceColor) r.markers.instanceColor.needsUpdate = true;
+    const end = points[count - 1];
+    const endX = end.x * METRES_PER_UNIT;
+    const endZ = end.y * METRES_PER_UNIT;
+    r.target.position.set(endX - origin.x, height(endX, endZ), endZ - origin.z);
+  });
+  return <group><primitive object={resources.ribbon} /><primitive object={resources.markers} /><primitive object={resources.target} /></group>;
+}
 
 /** Each boat's wake and shadow, read straight from the race (not from the 3D pose). */
 function BoatMarks({ boatsRef, originRef, travel }: {
@@ -185,7 +296,7 @@ function Water({ venue, uniforms }: { venue: Venue; uniforms: WaterUniforms }) {
 const Land = memo(function Land({ venue }: { venue: Venue }) {
   const geometries = useMemo(() => raceTerrain(venue, { metresPerUnit: METRES_PER_UNIT, heightScale: LAND_HEIGHT })
     .map((t, n) => landGeometry(t, venue.palette, n, venue.lands[n]?.kind === "island")), [venue]);
-  const material = useMemo(() => new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, roughness: 1, metalness: 0 }), []);
+  const material = useMemo(() => new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.96, metalness: 0 }), []);
   useEffect(() => () => geometries.forEach((g) => g.dispose()), [geometries]);
   useEffect(() => () => material.dispose(), [material]);
   return <>{geometries.map((g, i) => <mesh key={`${venue.id}-${i}`} geometry={g} material={material} />)}</>;
@@ -338,7 +449,7 @@ async function createRenderer(props: { canvas: HTMLCanvasElement | OffscreenCanv
   return renderer;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "high", maxDpr = 2, labels, onStats }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "high", maxDpr = 2, labels, onStats, guidance }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -348,6 +459,8 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   maxDpr?: number;
   labels: Race3DLabels;
   onStats?: (s: RaceSceneStats) => void;
+  /** Optional educational aid. Coordinates use race units, converted here to metres. */
+  guidance?: RaceGuidance | null;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   const playerStateRef = useRef<MutableRefObject<YachtState> | null>(null);
@@ -358,23 +471,23 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   const [rivals, setRivals] = useState<{ id: string; color: string; label: string }[]>([]);
   const [targetLabel, setTargetLabel] = useState("");
   const metresUnit = labels.metres;
-  const arrowRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     const read = () => {
-      const ranks = raceRanks(boatsRef.current, STANDARD_COURSE);
+      const course = courseRef.current;
+      const ranks = raceRanks(boatsRef.current, course);
       const next = boatsRef.current.filter((b) => !b.isPlayer)
         .map((b) => ({ id: b.id, color: b.color, label: `${ranks.get(b.id) ?? ""}  ${b.name ?? ""}`.trim() }));
       const key = (list: { id: string; label: string }[]) => list.map((r) => `${r.id}:${r.label}`).join();
       setRivals((prev) => (key(prev) === key(next) ? prev : next));
       const player = playerOf(boatsRef.current);
-      const target = player ? nextTarget(player, STANDARD_COURSE) : null;
+      const target = player ? nextTarget(player, course) : null;
       const metres = player && target ? Math.round((distance(player.pos, target) * METRES_PER_UNIT) / 10) * 10 : null;
       setTargetLabel(metres === null ? "" : `${metres} ${metresUnit}`);
     };
     read();
     const id = window.setInterval(read, 500);
     return () => window.clearInterval(id);
-  }, [boatsRef, metresUnit]);
+  }, [boatsRef, courseRef, metresUnit]);
 
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={labels.error} retryLabel={labels.retry}>
@@ -401,9 +514,8 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           </mesh>
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
           <Dressing venue={venue} originRef={originRef} />
-          <NoGoWedge windDirRef={windDirRef} />
           <BoatMarks boatsRef={boatsRef} originRef={originRef} travel={uniforms.travel} />
-          <TargetArrow boatsRef={boatsRef} courseRef={courseRef} originRef={originRef} arrowRef={arrowRef} />
+          {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} />}
           <Suspense fallback={<Loading label={labels.loading} />}>
             <Player boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} playerStateRef={playerStateRef} />
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
@@ -414,12 +526,6 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
             : <TacticalCamera boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} />}
           <Quality onStats={onStats} maxDpr={maxDpr} />
         </Canvas>
-        <div ref={arrowRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 hidden h-11 w-11 items-center justify-center rounded-full"
-          style={{ background: "rgba(10, 22, 40, 0.82)", border: "1px solid rgba(0, 212, 255, 0.6)" }}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#00d4ff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 19V5M5 12l7-7 7 7" />
-          </svg>
-        </div>
       </div>
     </SceneBoundary>
   );
