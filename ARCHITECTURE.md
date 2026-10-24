@@ -950,3 +950,8 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
 | `ARCHITECTURE.md` (до 2026-10-24) | `src/app/radio/runtimeSearch.ts` - поиск по материалам курса | функция отдает строку запроса страницы (на сайте `location.search`, в офлайн-бандле адрес встроенного роутера); поиска по курсу в ней нет |
 | `AGENTS.md` (до 2026-10-24) | курс SRC только на польском, не адаптируется | решение владельца 2026-10-24: курс можно переводить на все 7 языков; тренажер рации уже на 7 языках со случайными акваториями, теория, уроки, разговор и банк 324 вопросов пока PL / RU |
+
+
+## 2026-10-24 completion map
+
+`docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.

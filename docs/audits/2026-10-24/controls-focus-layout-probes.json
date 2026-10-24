@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-24",
+  "target": "http://127.0.0.1:3017",
+  "scope": "Current-main local server, dedicated Playwright CLI session regatta-controls-audit",
+  "focus": [
+    {
+      "path": "/simulator-v3?embed=1",
+      "viewport": { "width": 390, "height": 844 },
+      "panel": "Control settings",
+      "action": "Focus the Fast sensitivity radio without changing its value",
+      "immediately": "Fast",
+      "after200ms": "Sliders"
+    },
+    {
+      "path": "/simulator-v3?embed=1",
+      "viewport": { "width": 390, "height": 844 },
+      "panel": "Views and camera",
+      "action": "Focus Rear without activating it",
+      "immediately": "Rear",
+      "after200ms": "Top"
+    }
+  ],
+  "expandedShape": [
+    {
+      "path": "/simulator-v3?embed=1&assessment=twist",
+      "storedControls": { "version": 1, "mode": "wheels" },
+      "viewport": { "width": 390, "height": 844 },
+      "scene": { "y": 45, "height": 298.765625, "bottom": 343.765625 },
+      "dock": { "y": 455.765625, "height": 388.234375, "bottom": 844 },
+      "shapeOpen": true,
+      "documentOverflow": 0,
+      "tabs": ["Task", "Sails", "Helm", "Wind", "More"],
+      "wheelHelmCount": 0
+    },
+    {
+      "path": "/simulator-v3?embed=1&assessment=twist",
+      "viewport": { "width": 375, "height": 667 },
+      "scene": { "y": 45, "height": 203.1875, "bottom": 248.1875 },
+      "dock": { "y": 360.1875, "height": 306.8125, "bottom": 667 },
+      "documentOverflow": 0
+    }
+  ],
+  "assessmentPrimaryControls": {
+    "path": "/simulator-v3?embed=1&assessment=depth",
+    "viewport": { "width": 390, "height": 844 },
+    "panel": { "y": 513.765625, "height": 330.234375, "bottom": 844, "scrollTop": 0 },
+    "mainsheet": { "y": 973.765625, "height": 44, "bottom": 1017.765625 },
+    "traveler": { "y": 1056.765625, "height": 44, "bottom": 1100.765625 },
+    "documentOverflow": 0
+  }
+}
