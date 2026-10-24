@@ -76,7 +76,7 @@ const AFTER_LOAD = `
   (function () {
     try { ${SET_FLAGS} } catch (e) {}
     var css = [
-      'nav { display: none !important; }',
+      'nav[data-product-navigation] { display: none !important; }',
       'a[href*="apps.apple.com"] { display: none !important; }',
       'section:has(a[href*="apps.apple.com"]) { display: none !important; }',
       'body { background: #0a1628 !important; }'
@@ -249,7 +249,7 @@ export function SimWebView({
   };
 
   return (
-    <DarkSurface><Screen noTopInset noBottomInset>
+    <DarkSurface><Screen noTopInset={!fullScreen}>
       <Stack.Screen options={{ ...darkStackOptions, title, headerShown: !fullScreen }} />
       {returnLesson && <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={{ minHeight: 48, paddingHorizontal: 20, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: colors.accentCyan, fontSize: 15 }}>← {guideCopy.return[lang]}</Text></Pressable>}
       {tier && !landscape && !returnLesson && !isFoundationLesson(query?.fromLesson) && (

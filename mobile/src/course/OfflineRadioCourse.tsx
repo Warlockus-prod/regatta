@@ -1,5 +1,4 @@
 import { recordReviewWin } from "../review/review-prompt";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -20,9 +19,9 @@ import { useAnalytics } from "../analytics/use-analytics";
 import { parseExamFinished } from "../analytics/web-bridge";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 import { LOCAL_RADIO_SPEECH_SCRIPT, useLocalRadioSpeech } from "../radio/useLocalRadioSpeech";
+import { parseRadioEntries, persistRadioEntries, radioBootstrap, radioStorageEvent, readRadioEntries, RADIO_MESSAGE_LIMIT, type RadioEntries } from "../persistence/radio-storage";
 
 const OFFLINE_SOURCE = require("../../assets/radio-offline.html");
-const STORAGE_KEY = "regatta.radio.offline.web-storage.v1";
 const LOAD_TIMEOUT_MS = 15000;
 const ORIGIN = "https://weektoregatta.com";
 
@@ -83,37 +82,6 @@ const ONLINE_AFTER_LOAD = `
   true;
 `;
 
-function restoreScript(
-  raw: string | null,
-  nativeLanguage: string,
-): string {
-  let entries: Record<string, string> = {};
-  try {
-    const parsed = JSON.parse(raw ?? "{}");
-    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-      entries = parsed as Record<string, string>;
-    }
-  } catch {
-    entries = {};
-  }
-
-  const payload = JSON.stringify(entries);
-  return `
-    (function () {
-      window.__REGATTA_NATIVE_APP__ = true;
-      // the radio trainer runs in the app's language (any of the seven)
-      window.__REGATTA_APP_LANG__ = ${JSON.stringify(nativeLanguage)};
-      try {
-        var entries = ${payload};
-        Object.keys(entries).forEach(function (key) {
-          if (localStorage.getItem(key) === null) localStorage.setItem(key, entries[key]);
-        });
-      } catch (error) {}
-    })();
-    true;
-  `;
-}
-
 export function OfflineRadioCourse() {
   const { tp, lang } = useI18n();
   const analytics = useAnalytics();
@@ -124,9 +92,12 @@ export function OfflineRadioCourse() {
   const [restore, setRestore] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [mode, setMode] = useState<CourseMode>("offline");
   const webRef = useRef<WebView>(null);
+  const latestEntries = useRef<RadioEntries | null>(null);
+  const writeTicket = useRef(0);
   const handleLocalSpeech = useLocalRadioSpeech(script => webRef.current?.injectJavaScript(script), mode === "offline");
   const [onlinePath, setOnlinePath] = useState("/radio/symulator");
   // While the page shows its radio work screen (pinned radio, task panel under
@@ -138,17 +109,20 @@ export function OfflineRadioCourse() {
 
   useEffect(() => {
     let active = true;
-    AsyncStorage.getItem(STORAGE_KEY)
+    setRestore(null);
+    setLoading(true);
+    setFailed(false);
+    readRadioEntries()
       .then((value) => {
-        if (active) setRestore(restoreScript(value, lang));
+        if (active) { setRestore(radioBootstrap(value, lang)); setFailed(false); }
       })
       .catch(() => {
-        if (active) setRestore(restoreScript(null, lang));
+        if (active) { setFailed(true); setLoading(false); }
       });
     return () => {
       active = false;
     };
-  }, [lang]);
+  }, [lang, reloadKey]);
 
   useEffect(() => {
     if (!loading || restore === null) return;
@@ -187,7 +161,21 @@ export function OfflineRadioCourse() {
     setReloadKey((value) => value + 1);
   };
 
+  const saveEntries = (entries: RadioEntries) => {
+    latestEntries.current = entries;
+    setRestore(radioBootstrap(entries, lang));
+    const ticket = ++writeTicket.current;
+    void persistRadioEntries(entries).then(() => {
+      webRef.current?.injectJavaScript(radioStorageEvent(true));
+      if (writeTicket.current === ticket) setSaveFailed(false);
+    }).catch(() => {
+      webRef.current?.injectJavaScript(radioStorageEvent(false));
+      if (writeTicket.current === ticket) setSaveFailed(true);
+    });
+  };
+
   const onMessage = (event: WebViewMessageEvent) => {
+    if (event.nativeEvent.data.length > RADIO_MESSAGE_LIMIT) return;
     if (mode === "offline" && handleLocalSpeech(event.nativeEvent.data)) return;
     const exam = parseExamFinished(event.nativeEvent.data);
     if (exam) {
@@ -219,15 +207,17 @@ export function OfflineRadioCourse() {
         switchMode("offline");
         return;
       }
-      if (message.type === "radio-offline-progress" && message.entries) {
-        void AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(message.entries));
+      if (mode === "offline" && message.type === "radio-offline-progress") {
+        const entries = parseRadioEntries(message.entries);
+        if (entries) saveEntries(entries);
+        else webRef.current?.injectJavaScript(radioStorageEvent(false));
       }
     } catch {
       // Ignore messages not owned by the offline course.
     }
   };
 
-  if (restore === null || !consentReady) {
+  if ((restore === null && !failed) || !consentReady) {
     return (
       <Screen noTopInset noBottomInset>
         <Stack.Screen options={{ title: "SRC Radio" }} />
@@ -239,9 +229,13 @@ export function OfflineRadioCourse() {
   }
 
   return (
-    <Screen noTopInset={!workspaceOpen} noBottomInset>
+    <Screen noTopInset={!workspaceOpen} noBottomInset={!workspaceOpen}>
       <Stack.Screen options={{ title: "SRC Radio", headerShown: !workspaceOpen }} />
-      <WebView
+      {saveFailed && <View style={styles.saveError} accessibilityRole="alert">
+        <Text style={styles.errorText}>{tp("Не удалось сохранить прогресс. Не закрывай курс и повтори запись.", "Progress could not be saved. Keep the course open and retry saving.", "Nie zapisano postępu. Nie zamykaj kursu i ponów zapis.", {es:"No se pudo guardar el progreso. Mantén el curso abierto e intenta guardarlo de nuevo.",fr:"La progression n’a pas pu être enregistrée. Gardez le cours ouvert et réessayez.",de:"Der Fortschritt wurde nicht gespeichert. Lass den Kurs geöffnet und versuche es erneut.",it:"Impossibile salvare i progressi. Tieni aperto il corso e riprova a salvare."})}</Text>
+        <Pressable accessibilityRole="button" style={styles.button} onPress={() => { if (latestEntries.current) saveEntries(latestEntries.current); }}><Text style={styles.buttonText}>{tp("Повторить запись", "Retry saving", "Ponów zapis", {es:"Reintentar guardado",fr:"Réessayer l’enregistrement",de:"Speichern wiederholen",it:"Riprova a salvare"})}</Text></Pressable>
+      </View>}
+      {restore !== null && <WebView
         ref={webRef}
         key={`${mode}-${reloadKey}-${analyticsOn ? "a" : "na"}`}
         source={source}
@@ -297,7 +291,7 @@ export function OfflineRadioCourse() {
           setWorkspaceOpen(false);
         }}
         startInLoadingState={false}
-      />
+      />}
 
       {loading && !failed && (
         <View style={styles.overlay} pointerEvents="none">
@@ -355,6 +349,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: colors.bgPrimary,
   },
+  saveError: { backgroundColor: colors.bgPrimary, padding: 12, gap: 8 },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     alignItems: "center",

@@ -1,4 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "El micrófono se usa para llamadas VHF (MAYDAY, PAN-PAN) en SRC y respuestas orales de sternik. El SRC integrado reconoce la voz en el dispositivo. La práctica oral de sternik en línea envía la grabación a través de nuestro servidor para transcribirla. La grabación no se conserva.",
+  "NSMicrophoneUsageDescription": "El micrófono sirve para practicar comunicaciones VHF en inglés (MAYDAY, PAN-PAN) en el curso SRC integrado. El habla se reconoce en este dispositivo si hay un modelo local disponible. El audio no se envía a un servidor ni se guarda.",
   "NSSpeechRecognitionUsageDescription": "El reconocimiento de voz transcribe tus llamadas VHF en este dispositivo para las prácticas SRC. El audio no se envía a un servidor de reconocimiento ni se guarda."
 }

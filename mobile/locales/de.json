@@ -1,4 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "Das Mikrofon wird für UKW-Funksprüche (MAYDAY, PAN-PAN) im SRC-Kurs und mündliche sternik-Antworten verwendet. Der integrierte SRC erkennt Sprache auf dem Gerät. Das Online-Training sternik sendet die Aufnahme über unseren Server zur Transkription. Die Aufnahme wird nicht gespeichert.",
+  "NSMicrophoneUsageDescription": "Das Mikrofon dient zum Üben englischer UKW-Funksprüche (MAYDAY, PAN-PAN) im integrierten SRC-Kurs. Sprache wird auf diesem Gerät erkannt, wenn ein lokales Modell verfügbar ist. Das Audio wird weder an einen Server gesendet noch gespeichert.",
   "NSSpeechRecognitionUsageDescription": "Die Spracherkennung wandelt deine UKW-Funkrufe für die SRC-Übungen auf diesem Gerät in Text um. Die Audiodaten werden weder an einen Erkennungsserver gesendet noch gespeichert."
 }

@@ -1020,3 +1020,38 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.
 
 - Privacy/network copy distinguishes offline SRC device speech in build59 and later from earlier app builds and online website/sternik speech. AudioData remains declared for those online features; public/native/store descriptions share this boundary.
+
+### Local course and native storage completion, build 59
+
+The original Polish Sternik pages are compiled into one installed package. Its local host reads asset bytes through expo-file-system, keeps the former website base origin for one-time WebKit progress migration, and guards active exams. Native snapshots become authoritative after a durable acknowledgment. Both SRC and Sternik clear their stale WebKit copies after Clear all data, retain first-run legacy migration and expose read, render and save retries.
+
+- `mobile/src/course/LocalCourseWebView.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/course/OfflineSternikCourse.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/course/local-course-asset.ts` - Local asset loading, routing or durable storage.
+- `mobile/src/course/OfflineRadioCourse.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/persistence/sternik-storage.ts` - Polish local course package and host.
+- `mobile/__tests__/local-course-asset.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/local-course-host.test.tsx` - Native course and persistence regression.
+- `mobile/__tests__/sternik-storage.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/app-config.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/offline-radio-asset.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/webview-analytics-consent.test.tsx` - Native course and persistence regression.
+- `mobile/src/persistence/radio-storage.ts` - Local asset loading, routing or durable storage.
+- `mobile/__tests__/radio-storage.test.ts` - Native course and persistence regression.
+- `mobile/scripts/build-sternik-offline.mjs` - Polish local course package and host.
+- `mobile/assets/sternik-offline.html` - Polish local course package and host.
+- `mobile/assets/sternik-offline.manifest.json` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/funnel.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/offline.css` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/model.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/bridge.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/OfflineOralTrainer.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/oral.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/build.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/model.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/README.md` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/i18n.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
+- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.

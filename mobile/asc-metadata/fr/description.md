@@ -40,7 +40,7 @@ LE BATEAU ET LES RÈGLES
 DIPLÔMES POLONAIS
 
 - Radio marine SRC : 324 questions UKE avec traductions pour étudier, théorie et pratique en sept langues. Les phrases radio standard restent en anglais. Dès la version 1.7.0, build 59, la reconnaissance utilise un modèle anglais local disponible ; sans modèle, la vérification de texte fonctionne hors ligne.
-- Sternik motorowodny (en polonais) : 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes.
+- Sternik motorowodny (en polonais) : 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes. Fonctionne hors ligne ; les réponses saisies en polonais pour la pratique orale sont vérifiées localement.
 
 CONFIDENTIALITÉ
 

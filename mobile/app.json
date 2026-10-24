@@ -23,7 +23,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
-        "NSMicrophoneUsageDescription": "The microphone is used for VHF (MAYDAY, PAN-PAN) calls in SRC practice and spoken sternik answers. Bundled SRC recognizes speech on device. Online sternik practice sends the recording through our server for transcription. The recording is not stored.",
+        "NSMicrophoneUsageDescription": "The microphone is used to practise English VHF calls (MAYDAY, PAN-PAN) in the bundled SRC course. Speech is recognized on this device when a local model is available. Audio is not sent to a server or saved.",
         "CFBundleDevelopmentRegion": "en",
         "CFBundleLocalizations": [
           "en",
@@ -149,7 +149,7 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "The microphone is used for VHF (MAYDAY, PAN-PAN) calls in SRC practice and spoken sternik answers. Bundled SRC recognizes speech on device. Online sternik practice sends the recording through our server for transcription. The recording is not stored.",
+          "microphonePermission": "The microphone is used to practise English VHF calls (MAYDAY, PAN-PAN) in the bundled SRC course. Speech is recognized on this device when a local model is available. Audio is not sent to a server or saved.",
           "speechRecognitionPermission": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
         }
       ],

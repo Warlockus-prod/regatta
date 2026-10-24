@@ -40,7 +40,7 @@ LEARN THE BOAT AND THE RULES
 POLISH CERTIFICATES
 
 - SRC marine radio: 324 UKE questions with study translations, theory and practice in seven languages. Standard on-air phrases stay English. From app 1.7.0 build 59, speech recognition uses an available local English model; typed content checks work offline when no model is installed.
-- Sternik motorowodny (in Polish): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes.
+- Sternik motorowodny (in Polish): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes. Works offline; oral practice checks typed Polish answers locally.
 
 PRIVACY
 

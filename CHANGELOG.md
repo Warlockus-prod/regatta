@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Installed Polish Sternik theory, question practice, mock exams and typed oral-answer checking for offline use, with progress migration and exam exit protection. Fixed SRC restoration so stale WebView data cannot replace saved progress or reappear after clearing data.
+
+- Fixed native 3D top and bottom safe areas and retained cockpit utility tabs when hiding site navigation. Radio controls now stay above the home indicator.
+
 - Adapted the complete SRC course, theory, question presentation, lessons and practice to seven languages. Native speech stays on-device with typed checking when a model is unavailable; web also supports local typed practice. The pinned radio and separate task panel preserve the controls, official English protocol wording and real learner progress.
 
 - Prepared native candidate59 and aligned privacy/network descriptions in seven languages with local SRC speech, unavailable-model typed practice and the separate online sternik voice feature. No upload or submission is implied.

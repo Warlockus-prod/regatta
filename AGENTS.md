@@ -12,6 +12,8 @@
 - New installations default to shared wheel controls; saved slider choices are preserved.
 - One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
 - Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
+- Native Sternik theory, tests, exams and typed oral practice use the installed Polish package. SRC and Sternik snapshots become authoritative only after durable storage; preserve first-use WebKit migration and Clear all data semantics.
+- Basics and Anatomy are also bundle-first, with their simplified native recovery screens retained.
 - SRC adapts to seven languages, sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
 
 ## Что это

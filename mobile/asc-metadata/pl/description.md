@@ -6,7 +6,7 @@ STERNIK MOTOROWODNY
 - Teoria w działach: przepisy i prawo, locja, znaki i sygnały, budowa jednostki, silniki, meteorologia, manewry, ratownictwo.
 - Pełny egzamin próbny: 75 pytań, 90 minut, próg zaliczenia 65 poprawnych odpowiedzi.
 - Powtórka błędów: aplikacja pamięta pytania, na których się mylisz.
-- Trening części ustnej egzaminu.
+- Trening części ustnej egzaminu: wpisujesz odpowiedź, a lokalne kryteria sprawdzają jej treść, bez mikrofonu i internetu.
 
 SRC: ŚWIADECTWO OPERATORA RADIOTELEFONISTY VHF
 

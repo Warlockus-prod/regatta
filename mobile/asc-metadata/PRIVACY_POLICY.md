@@ -17,8 +17,10 @@ analytics. From app 1.7.0 build 59, bundled SRC recognizes English VHF speech
 on device when a local model is available. Audio is not sent to a server or
 saved to a file. A missing model leaves a typed content check that works
 offline; it is labelled separately from a microphone check. Solo racing and
-its coaching are also local. Online course pages, Ask, online AI reviews,
-website radio speech and sternik oral speech still use the network as
+its coaching are also local. The bundled Sternik course runs locally in
+Polish, including theory, tests, exams and typed oral-answer practice without
+the microphone. Online course pages, Ask, online AI reviews,
+website radio speech and website sternik oral speech still use the network as
 described below. Older app builds retain their previous network behavior.
 Live multiplayer shows your nickname to other players in the room.
 
@@ -55,9 +57,9 @@ with app developers, that is Apple's own setting and Apple's data.
 
 ### Course pages inside the app
 
-Online course pages, including sternik motorowodny and explicitly opened
-online SRC pages, load from weektoregatta.com inside the app. From app 1.7.0
-build 59, the bundled SRC course and solo race are local assets and do not
+Online course pages in older app builds and explicitly opened online pages
+load from weektoregatta.com inside the app. From app 1.7.0
+build 59, the bundled SRC and Sternik courses and solo race are local assets and do not
 require a server page. Their optional analytics still follow the switch
 described below. Like the website, online pages send
 usage events to weektoregatta.com: which page was opened, that it was opened
@@ -108,6 +110,9 @@ stores starts with `regatta.`:
   (`regatta.sailing.theory.v1`, `regatta.sailing.trainer-checkpoint.v1`)
 - Your progress in the offline SRC radio course
   (`regatta.radio.offline.web-storage.v1`)
+- Your bundled Sternik course progress, test settings and weak-topic review
+  (`regatta.sternik.offline.web-storage.v1`). Existing website-origin course
+  progress is imported on this device without a network request.
 - Your pre-race checklist ticks (`regatta.checklist.v1`)
 - Your simulator race history, replay samples and local coaching
   (`regatta.race-history.v1`)
@@ -135,9 +140,9 @@ this device; Clear all data does not reset those either.
 Besides the analytics above, the app makes network requests in these cases,
 all initiated by you:
 
-1. **Online course pages**, including sternik and explicitly opened online
-   SRC, load from weektoregatta.com and report the events described above.
-   Bundled SRC and solo racing in app 1.7.0 build 59 and later do not require
+1. **Online course pages**, on the website, in older app builds or explicitly
+   opened online, load from weektoregatta.com and report the events described
+   above. Bundled SRC, Sternik and solo racing in app 1.7.0 build 59 and later do not require
    these requests.
 2. **Ask the assistant**: the question you type and the conversation so far
    go to weektoregatta.com/api/ai-chat, which forwards them to OpenAI to write
@@ -153,7 +158,7 @@ all initiated by you:
    app 1.7.0 build 59, the app calculates solo coaching locally and does not send
    that race log.
 4. **Online voice answers**: in the website radio trainer, in older app
-   builds and in sternik oral practice, a recording you start with the
+   builds and in website sternik oral practice, a recording you start with the
    microphone button goes to weektoregatta.com/api/radio-voice or
    /api/radio-transcribe, which forward it to OpenAI to turn the speech into
    text. The text is then checked against the exercise checklist, on our
@@ -163,7 +168,9 @@ all initiated by you:
    installed on-device English model, without sending audio or saving an audio
    file. It does not download models automatically. An unavailable model or
    denied microphone permission leaves an offline typed content check. Typing
-   is not represented as a successful microphone test.
+   is not represented as a successful microphone test. Bundled Sternik uses
+   typed Polish answers and a local rubric, without microphone access or
+   transcription requests.
 5. **Live multiplayer**: the multiplayer screen is the live room of
    weektoregatta.com/multiplayer. Everyone in the room sees your nickname.
    When the race finishes, each result is posted to the leaderboard with your
@@ -198,10 +205,11 @@ We do not receive any of this data from Apple.
 ## Children
 
 The app has no in-app purchases and no advertising. The Ask assistant sends
-your question to OpenAI as described above. Online radio and sternik oral
+your question to OpenAI as described above. Website radio and sternik oral
 practice send a recording you start to OpenAI for transcription; we do not
 store it. Bundled SRC from app 1.7.0 build 59 uses local recognition and an
-offline typed fallback instead. Live multiplayer shows your nickname to
+offline typed fallback instead. Bundled Sternik uses typed local practice
+without the microphone. Live multiplayer shows your nickname to
 other players in the room. Apart from these, the only data
 collected is the pseudonymous usage analytics described above (the app's own
 and that of the course pages), which the analytics switch in Settings turns
@@ -215,9 +223,9 @@ change here. If we ever start collecting anything that identifies you, we
 will also ask you to opt in inside the app, and the opt-out switch stays in
 Settings -> Data.
 
-- 2026-10-24: separated local SRC speech recognition, typed fallback and local
-  solo coaching in app 1.7.0 build 59 and later from the online website,
-  older app builds and sternik oral practice. Local speech does not upload or
+- 2026-10-24: separated local SRC speech recognition, typed fallback, local
+  Sternik theory/tests/exams/typed practice and solo coaching in app 1.7.0
+  build 59 and later from the online website and older app builds. Local speech does not upload or
   save audio. The existing AudioData disclosure remains for online speech.
 - 2026-10-19: named OpenAI as the AI provider for the coach and the Ask
   assistant; described live multiplayer (it was described as local-only), the

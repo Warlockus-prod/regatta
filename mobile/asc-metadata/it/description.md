@@ -40,7 +40,7 @@ LA BARCA E LE REGOLE
 PATENTI POLACCHE
 
 - Radio marina SRC: 324 domande UKE con traduzioni per lo studio, teoria e pratica in sette lingue. Le frasi radio standard restano in inglese. Dalla versione 1.7.0, build 59, la voce usa un modello inglese locale disponibile; senza modello puoi verificare il testo offline.
-- Sternik motorowodny (in polacco): 879 domande d'esame, teoria e una simulazione d'esame completa di 75 domande in 90 minuti.
+- Sternik motorowodny (in polacco): 879 domande d'esame, teoria e una simulazione d'esame completa di 75 domande in 90 minuti. Funziona offline; la pratica orale verifica localmente le risposte scritte in polacco.
 
 PRIVACY
 

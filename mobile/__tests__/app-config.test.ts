@@ -114,10 +114,15 @@ describe('microphone purpose string', () => {
     ]),
   ];
 
-  it.each(strings)('%s names both the radio simulator and the sternik oral exam', (_file, text) => {
+  it.each(strings)('%s names SRC radio practice without claiming microphone use for typed Sternik', (_file, text) => {
     expect(text).toMatch(/SRC/);
     expect(text).toMatch(/MAYDAY/);
-    expect(text.toLowerCase()).toMatch(/sternik/);
+    expect(text).toMatch(/PAN-PAN/);
+    expect(text.toLowerCase()).not.toMatch(/sternik/);
+  });
+  it('keeps the recognition plugin and native microphone purpose consistent', () => {
+    const plugin = appJson.expo.plugins.find(entry => Array.isArray(entry) && entry[0] === 'expo-speech-recognition');
+    expect(Array.isArray(plugin) && plugin[1].microphonePermission).toBe(appJson.expo.ios.infoPlist.NSMicrophoneUsageDescription);
   });
 });
 
