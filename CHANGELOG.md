@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepared the 1.7.0 store notes for the complete offline release and recorded the source, language, layout and storage verification. Native release and public publication still require their runtime gates.
+
 - Basics and 3D anatomy now load from the installed sailing package with their diagrams and yacht available offline. Completed solo races save immediately without waiting for bots; late replies cannot replace another race result, and custom replays show their own course marks.
 
 - Website deployment now checks all installed course packages and exercises radio layouts and offline practice against the production build before publishing.

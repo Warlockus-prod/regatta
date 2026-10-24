@@ -163,9 +163,13 @@ submitted:
    scope of the analytics switch. From app 1.7.0 build 59, bundled SRC recognition
    must use an installed on-device English model, send no audio and persist no
    audio file; an unavailable model leaves a clearly labelled typed content
-   check. Local solo race coaching sends no race log. Keep the separate online
-   website/older-app SRC and sternik oral paths described as OpenAI transcription
-   through our server. Do not remove AudioData while online sternik remains.
+   check. Bundled Sternik theory, tests, exams and typed oral-answer practice
+   run locally in Polish, without microphone access or a transcription request.
+   Local solo race coaching sends no race log. Keep the separate website and
+   older-app SRC/Sternik voice paths described as OpenAI transcription through
+   our server. Do not remove AudioData while those supported online paths remain.
+   Before G5, verify the published policy contains these build59 distinctions;
+   changing its local source alone does not update the public Privacy Policy URL.
 5. The app version the policy texts name. They say that GeoIP is switched off
    and that the analytics switch also covers the course pages "from app
    versions newer than 1.6.4". The build being submitted must be such a
