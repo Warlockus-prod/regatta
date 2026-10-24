@@ -79,7 +79,7 @@ function OfflineConversationNotice() {
         {tp(
           "Свободный разговор и распознавание ответа требуют интернета. Открой раздел «Симулятор», чтобы без сети отработать кнопки, DSC, каналы и эталонные голосовые процедуры.",
           "Free conversation and speech recognition require a connection. Open the simulator to practise controls, DSC, channels and model voice procedures offline.",
-          "Swobodna rozmowa i rozpoznawanie odpowiedzi wymagaja internetu. Otworz symulator, aby offline cwiczyc przyciski, DSC, kanaly i wzorcowe procedury glosowe.",
+          "Swobodna rozmowa i rozpoznawanie odpowiedzi wymagają internetu. Otwórz symulator, aby offline ćwiczyć przyciski, DSC, kanały i wzorcowe procedury głosowe.",
         )}
       </p>
       {navigator.onLine && window.ReactNativeWebView && (
@@ -92,7 +92,7 @@ function OfflineConversationNotice() {
           {tp(
             "Открыть онлайн-разговор",
             "Open online conversation",
-            "Otworz rozmowe online",
+            "Otwórz rozmowę online",
           )}
         </button>
       )}
@@ -105,7 +105,7 @@ function OfflineSkipperNotice() {
   return (
     <section className="rounded-2xl border p-6" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
       <h1 className="text-xl font-bold">
-        {tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dzial sternika nie nalezy do pakietu SRC")}
+        {tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dział sternika nie należy do pakietu SRC")}
       </h1>
     </section>
   );
@@ -148,11 +148,11 @@ function StatusBar() {
         }}
       >
         {online
-          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urzadzeniu")
-          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio dzialaja")}
+          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu")
+          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają")}
       </span>
       <span className="ml-auto" style={{ color: "var(--text-muted)" }}>
-        {tp("Язык помощи", "Helper language", "Jezyk pomocy")}
+        {tp("Язык помощи", "Helper language", "Język pomocy")}
       </span>
       {(["pl", "ru"] as const).map((item) => (
         <button
@@ -178,7 +178,7 @@ function StatusBar() {
             border: "1px solid rgba(0,212,255,0.28)",
           }}
         >
-          {tp("Голос онлайн", "Voice online", "Glos online")}
+          {tp("Голос онлайн", "Voice online", "Głos online")}
         </button>
       )}
     </div>

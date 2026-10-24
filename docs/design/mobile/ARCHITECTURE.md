@@ -84,6 +84,15 @@ build script. The paragraph above describes builds before 1.6.2.
   read: a later value is injected live) and stores what the page posts back as
   `{"type":"controls-prefs"}`. No vibration (owner decision 2026-10-19). Tests:
   `mobile/__tests__/controls-prefs.test.ts`, `mobile/__tests__/sim-webview.test.tsx`.
+- **Radio work screen** (owner 2026-10-24): the SRC simulator, the controls
+  lessons and the live conversation open a fixed work screen with the radio
+  pinned and the task panel scrolling under it
+  (`src/app/radio/symulator/RadioWorkspace.tsx`, the same code in the offline
+  bundle and in `?embed=1`). While it is open the page posts
+  `{"type":"radio-workspace","open":true}` and `OfflineRadioCourse` hides the
+  stack header (the page's own bar has the exit; the swipe back still leaves the
+  course), giving the 44pt back to the task panel; `open:false`, a mode switch, a
+  reload or a load error bring the header back.
 - **Wheels in the native trainer** (`app/simulator/index.tsx`, the Practice
   fallback): with `mode === 'wheels'` the mainsheet and jib sheet sliders give
   way to `mobile/src/simulator/WheelDeck.tsx`, the twin of the web's

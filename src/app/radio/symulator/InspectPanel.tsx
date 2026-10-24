@@ -13,11 +13,13 @@ import { INSPECT } from './inspectData';
 // ============================================================================
 
 export function InspectPanel({
-  inspectKey, showPl, showRu,
+  inspectKey, showPl, showRu, className = 'mt-3',
 }: {
   inspectKey: string | null;
   showPl: boolean;
   showRu: boolean;
+  /** spacing from the block above (the simulator's panel spaces its own cards) */
+  className?: string;
 }) {
   const { tp } = useI18n();
   const item = inspectKey ? INSPECT[inspectKey] : undefined;
@@ -25,7 +27,7 @@ export function InspectPanel({
   return (
     <div
       data-testid="inspect-panel"
-      className="mt-3 rounded-2xl p-4"
+      className={`${className} rounded-2xl p-4`}
       style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,206,77,0.35)' }}
     >
       {item ? (
