@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Basics and 3D anatomy now load from the installed sailing package with their diagrams and yacht available offline. Completed solo races save immediately without waiting for bots; late replies cannot replace another race result, and custom replays show their own course marks.
+
+- Website deployment now checks all installed course packages and exercises radio layouts and offline practice against the production build before publishing.
+
 - Installed Polish Sternik theory, question practice, mock exams and typed oral-answer checking for offline use, with progress migration and exam exit protection. Fixed SRC restoration so stale WebView data cannot replace saved progress or reappear after clearing data.
 
 - Fixed native 3D top and bottom safe areas and retained cockpit utility tabs when hiding site navigation. Radio controls now stay above the home indicator.

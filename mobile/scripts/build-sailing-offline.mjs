@@ -1,7 +1,7 @@
 import { build } from "esbuild";
 import { createHash } from "node:crypto";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import postcss from "postcss";
 import tailwindcss from "@tailwindcss/postcss";
@@ -14,6 +14,12 @@ const manifestPath = join(root, "mobile/assets/sailing-offline.manifest.json");
 const check = process.argv.includes("--check");
 const validateOnly = process.argv.includes("--validate");
 const digest = value => createHash("sha256").update(value).digest("hex");
+const embeddedAssets = [];
+const posters = Object.fromEntries(readdirSync(join(root, "public/anatomy/posters")).filter(name => name.endsWith(".jpg")).sort().map(name => {
+  const path = `public/anatomy/posters/${name}`, bytes = readFileSync(join(root, path));
+  embeddedAssets.push({ path, bytes: bytes.length, sha256: digest(bytes) });
+  return [name, `data:image/jpeg;base64,${bytes.toString("base64")}`];
+}));
 const model = readFileSync(join(root, "public/models/regatta_sloop_sailing.glb"));
 const gltf = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)).toString().trim());
 if ([...(gltf.buffers ?? []), ...(gltf.images ?? [])].some(item => item.uri && !item.uri.startsWith("data:"))) {
@@ -66,6 +72,30 @@ const result = await build({
         loader: "ts", resolveDir: root,
       }));
       api.onResolve({ filter: /^@\/lib\/i18n$/ }, () => ({ path: join(source, "i18n.tsx") }));
+      api.onResolve({ filter: /^offline-anatomy-posters$/ }, args => ({ path: args.path, namespace: "sailing-posters" }));
+      api.onLoad({ filter: /.*/, namespace: "sailing-posters" }, () => ({
+        contents: `const posters=${JSON.stringify(posters)};export const offlineAnatomyPoster=name=>posters[name]??"";`, loader: "js",
+      }));
+      // Compile the original content and controls. Only their asset and query
+      // lookups change for a bundled file, which has no website path or query.
+      api.onLoad({ filter: /(?:app\/simulator\/page|components\/ContentFooterNav)\.tsx$/ }, args => {
+        const contents = readFileSync(args.path, "utf8"), before = "new URLSearchParams(window.location.search)";
+        if (!contents.includes(before)) throw new Error(`Sailing embed query adapter needs updating: ${args.path}`);
+        return { contents: `import {readSailingSearch as __readSailingSearch} from ${JSON.stringify(join(source, "embed.ts"))};\n${contents.replaceAll(before, "__readSailingSearch()")}`, loader: "tsx", resolveDir: dirname(args.path) };
+      });
+      api.onLoad({ filter: /components\/AnatomyPosters\.tsx$/ }, args => {
+        let contents = readFileSync(args.path, "utf8");
+        for (const suffix of [".jpg", "-thumb.jpg"]) {
+          const filename = "`${stem}-${lang}" + suffix + "`", before = "`/anatomy/posters/${stem}-${lang}" + suffix + "`";
+          if (!contents.includes(before)) throw new Error(`Anatomy poster adapter needs updating: ${suffix}`);
+          contents = contents.replaceAll(before, `__offlineAnatomyPoster(${filename})`);
+        }
+        // A copied poster link should remain useful outside a local bundle.
+        const before = "const url = new URL(window.location.href);\n  url.searchParams.set('lang', lang);";
+        if (!contents.includes(before)) throw new Error("Anatomy poster sharing adapter needs updating");
+        contents = contents.replace(before, "const url = new URL('https://weektoregatta.com/anatomy');\n  url.searchParams.set('lang', lang);");
+        return { contents: `import {offlineAnatomyPoster as __offlineAnatomyPoster} from "offline-anatomy-posters";\n${contents}`, loader: "tsx", resolveDir: dirname(args.path) };
+      });
       api.onLoad({ filter: /simulator-3d\/config\.ts$/ }, () => ({
         contents: `export const YACHT_MODEL_URL = ${JSON.stringify(`data:model/gltf-binary;base64,${runtimeModel.toString("base64")}`)};`, loader: "ts",
       }));
@@ -76,8 +106,7 @@ const js = result.outputFiles.find(file => file.path.endsWith(".js"))?.text;
 const modulesCss = result.outputFiles.find(file => file.path.endsWith(".css"))?.text ?? "";
 if (!js) throw new Error("No sailing JavaScript generated");
 const cssPath = join(root, "src/app/globals.css");
-const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";');
-const embeddedAssets = [];
+const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";\n@source "../app/simulator";\n@source "../app/anatomy";\n@source "../components/YachtViewer3D.tsx";\n@source "../components/AnatomyPosters.tsx";\n@source "../components/ContentFooterNav.tsx";');
 const compiledCss = (await postcss([tailwindcss()]).process(cssInput, { from: cssPath })).css + modulesCss;
 const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quote, url) => {
   if (/^(data:|blob:|#)/.test(url)) return match;
@@ -88,19 +117,25 @@ const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quo
   embeddedAssets.push({ path: `public${url}`, sha256: digest(asset), bytes: asset.length });
   return `url("data:${type};base64,${asset.toString("base64")}")`;
 });
+const layoutCss = "html,body,#root{height:100%;margin:0;overflow:hidden}body{font-family:var(--font-source-sans)}html[data-sailing-document=true]{overflow:auto}html[data-sailing-document=true] body,html[data-sailing-document=true] #root{height:auto;min-height:100%;overflow:visible}html[data-sailing-document=true] body{overflow-x:hidden}";
+const version = digest(js + css + layoutCss).slice(0, 12);
 const html = [
   "<!doctype html>", '<html lang="en" data-theme="dark"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
   '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' \'wasm-unsafe-eval\'; style-src \'unsafe-inline\'; img-src data: blob:; connect-src data: blob:; worker-src blob:; media-src data: blob:; font-src data:; base-uri \'none\'; form-action \'none\'">',
-  `<style>${css.replaceAll("</style", "<\\/style")}html,body,#root{height:100%;margin:0;overflow:hidden}body{font-family:var(--font-source-sans)}</style>`,
+  `<meta name="regatta-sailing-offline-version" content="${version}">`,
+  `<style>${css.replaceAll("</style", "<\\/style")}${layoutCss}</style>`,
   '</head><body><div id="root"></div>',
   `<script>${js.replaceAll("</script", "<\\/script")}</script></body></html>`,
 ].join("\n");
+const inputs = Object.keys(result.metafile.inputs).sort();
+const sourcePaths = [...new Set([...inputs.filter(path => !path.includes(":") && !/(^|\/)node_modules\//.test(path)), relative(root, cssPath), relative(root, fileURLToPath(import.meta.url))])].sort();
+const sourceFiles = sourcePaths.map(path => { const bytes = readFileSync(join(root, path)); return { path, bytes: bytes.length, sha256: digest(bytes) }; });
 const manifest = JSON.stringify({
-  schema: 1, entry: "sailing-offline.html", sha256: digest(html), bytes: Buffer.byteLength(html),
+  schema: 1, entry: "sailing-offline.html", version, sha256: digest(html), bytes: Buffer.byteLength(html),
+  routes: ["/simulator", "/simulator-v3", "/simulator2", "/game", "/anatomy"],
   model: { sha256: digest(model), bytes: model.length, embeddedSha256: digest(runtimeModel), embeddedBytes: runtimeModel.length },
-  inputs: Object.keys(result.metafile.inputs).sort(),
-  embeddedAssets,
+  inputs, sourceFiles, embeddedAssets,
 }, null, 2) + "\n";
 if (Buffer.byteLength(html) > 8 * 1024 * 1024) throw new Error("Offline sailing exceeds the initial 8 MiB package budget");
 for (const [file, content] of [[target, html], [manifestPath, manifest]]) {
@@ -111,4 +146,4 @@ for (const [file, content] of [[target, html], [manifestPath, manifest]]) {
     writeFileSync(file, content);
   }
 }
-console.log(`${validateOnly ? "Validated without writing" : check ? "Verified" : "Built"} offline sailing: ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB, ${digest(html).slice(0, 12)}`);
+console.log(`${validateOnly ? "Validated without writing" : check ? "Verified" : "Built"} offline sailing: ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB, ${version}, ${sourceFiles.length} source files`);

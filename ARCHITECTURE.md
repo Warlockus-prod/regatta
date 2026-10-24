@@ -1055,3 +1055,26 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
+
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, radio workspace and offline browser suites against the loopback production build before publishing images. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
+
+Completion and installed sailing package:
+
+- `src/lib/race-completion.ts` - immediately resolves the bounded existing fleet finish window with the same 30 Hz engine; completed snapshots wait in an immutable queue for their matching native durable acknowledgment.
+- `src/lib/race-completion.test.ts` - actual bot finish, penalty ranking, DNF cutoff, ordinary-step equivalence and isolated pending saves.
+- `src/features/race-3d/Race3DView.test.tsx` - shared World course geometry, replaced course refs and stable-frame rendering.
+- `mobile/__tests__/race-native-history.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/app/simulator-v1/index.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/app/anatomy/index.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/assets/sailing-offline.html` - Installed shared sailing package routing, language or asset regression.
+- `mobile/assets/sailing-offline.manifest.json` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/i18n.test.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/build.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/README.md` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/i18n.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/entry.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/embed.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/embed.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/next.tsx` - Installed shared sailing package routing, language or asset regression.
+
+The installed sailing package includes the unchanged original Basics and Anatomy pages, their eight posters and the same yacht as Trainer/3D Boat/solo. Native routes retain their simplified recovery destinations. Saved replay geometry now drives the actual shared buoys and lines, including asynchronously replaced course refs. Race results are finalized at the player finish; delayed share, leaderboard or coach responses cannot update a later race.

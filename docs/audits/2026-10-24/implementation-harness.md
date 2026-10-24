@@ -14,7 +14,7 @@ Owner authorization: 2026-10-24. App first, complete the audited scope in revers
 
 1. [x] Inventory branches, releases, controls, radio, languages and layouts; record current evidence.
 2. [x] Create separate app/site release worktrees from the same main; preserve original work.
-3. [ ] Shared race model: manual Pro trim, sail deployment, responsive steering assistance, route guidance, educational rules and declared custom penalties. Unit and deterministic integration tests.
+3. [x] Shared race model: manual Pro trim, sail deployment, responsive steering assistance, route guidance, educational rules and declared custom penalties. Unit and deterministic integration tests.
 4. [ ] One locally bundled 3D solo race, trainer controls, durable native history/replay/local coach, no network dependency. Retain readability of old race records.
 5. [ ] Cockpit: protected scene area, shared wheels or sliders, reserved side/bottom utilities, stable focus, guidance and settings, selected ocean direction.
 6. [ ] Radio: localized theory, tests, lessons and situations in seven languages; guided learning and free exploration; pinned device; sternik remains Polish. No hidden language fallback claimed complete.
@@ -56,3 +56,5 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 
 - Local course checkpoint: Polish Sternik package 2.45 MiB, five original routes, local typed oral content checking and no microphone/network dependency. Ten builder/model/bridge tests pass; CUA exercised practice feedback, typed oral 75% with the missing item explained and exam startup. Native same-origin migration still needs the real upgrade gate. Source reviews fixed post-ready render recovery and authoritative SRC storage/clear semantics.
 - Release Simulator 59 compiled and launched on a new iOS27 QA device. Its real 3D scene worked; runtime exposed a generic nav-hiding selector and missing fullscreen safe areas, corrected in source with regression coverage. Final rebuilt binary verification remains open.
+
+- Final source package checkpoint: sailing 8aa38486d53e (6424283 bytes), radio ddb19eb33592 (6190132 bytes), Sternik c05376f4c523 (2.45 MiB). All exact source checks passed. Basics and Anatomy use original shared pages with local yacht/posters/fonts. A real finish now resolves the former 15-second fleet window immediately and retains immutable native saves by race ID; 52 focused web and 20 native tests passed. Shared World course rendering has two asynchronous geometry regressions plus eight pose tests passing.

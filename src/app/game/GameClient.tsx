@@ -46,6 +46,7 @@ import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
 import { RaceReplay } from "./RaceReplay";
+import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-completion";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -231,8 +232,7 @@ export default function GamePage() {
   const [penalty, setPenalty] = useState(0);
   const raceIdRef = useRef("");
   const [nativeSave, setNativeSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const nativeSnapshotRef = useRef<NativeRaceSnapshot | null>(null);
-  const nativeAttemptedRef = useRef(false);
+  const pendingNativeSaves = useRef(createPendingRaceSaves());
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
@@ -381,6 +381,8 @@ export default function GamePage() {
       return;
     }
     const finishTime = player.finishTime;
+    const completedRaceId = raceIdRef.current;
+    const completedPenalty = ruleStateRef.current.penalties.player ?? 0;
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
     if (!effectiveNick) {
       setSaveState('prompting');
@@ -404,7 +406,7 @@ export default function GamePage() {
           });
           const d = await r.json();
           if (!r.ok) throw new Error(d.error || tp('Не удалось сохранить ник', 'Failed to save nickname', 'Nie udało się zapisać nicku', { es: 'No se pudo guardar el apodo', fr: 'Impossible d\'enregistrer le pseudo', de: 'Nickname konnte nicht gespeichert werden', it: 'Impossibile salvare il nickname' }));
-          setNickname(d.nickname);
+          if (raceIdRef.current === completedRaceId) setNickname(d.nickname);
         }
         const res = await fetch('/api/race-result', {
           method: 'POST',
@@ -413,7 +415,7 @@ export default function GamePage() {
             difficulty,
             windStrength,
             missionId: selectedMission?.id ?? null,
-            finishTimeSec: finishTime + (ruleStateRef.current.penalties.player ?? 0),
+            finishTimeSec: finishTime + completedPenalty,
             position: playerRank || null,
             totalBoats: results.length || null,
             tacks,
@@ -425,8 +427,9 @@ export default function GamePage() {
         });
         const d = await res.json();
         if (!res.ok) throw new Error(d.error || tp('Не удалось сохранить результат', 'Failed to save result', 'Nie udało się zapisać wyniku', { es: 'No se pudo guardar el resultado', fr: 'Impossible d\'enregistrer le résultat', de: 'Ergebnis konnte nicht gespeichert werden', it: 'Impossibile salvare il risultato' }));
-        setSaveState('saved');
+        if (raceIdRef.current === completedRaceId) setSaveState('saved');
       } catch (err) {
+        if (raceIdRef.current !== completedRaceId) return;
         setSaveState('error');
         setSaveError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci', { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
       }
@@ -465,6 +468,7 @@ export default function GamePage() {
     if (!player || player.lapDone !== 2) return;
     if (logSamplesRef.current.length < 5) return;
     replayAttemptedRef.current = true;
+    const completedRaceId = raceIdRef.current;
     fetch('/api/replay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -482,7 +486,7 @@ export default function GamePage() {
       }),
     })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-      .then((d) => { if (d?.code) setReplayCode(d.code); })
+      .then((d) => { if (raceIdRef.current === completedRaceId && d?.code) setReplayCode(d.code); })
       .catch(() => { /* silent - replay is optional */ });
   }, [gameState, difficulty, windStrength, selectedMission, nickname]);
 
@@ -535,7 +539,6 @@ export default function GamePage() {
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
     setRuleNotice(null); setPenalty(0); setNativeSave("idle");
-    nativeAttemptedRef.current = false; nativeSnapshotRef.current = null;
     setResults([]);
     setElapsed(0);
     setCoaching(null); setCoachingSource("local");
@@ -662,7 +665,7 @@ export default function GamePage() {
       if (isRacing) raceClockRef.current += dt;
 
       const course = courseRef.current;
-      const boats = boatsRef.current;
+      let boats = boatsRef.current;
 
       // --- Wind shifts: slow sinusoidal direction drift + short gusts ---
       // Direction oscillates ±6° with period ~22s (slow shift)
@@ -682,6 +685,7 @@ export default function GamePage() {
 
       for (const boat of boats) {
         prevPositions.set(boat.id, { ...boat.pos });
+        if (boat.lapDone === 2) continue;
 
         let turnInput = 0;
         if (boat.isPlayer) {
@@ -695,6 +699,7 @@ export default function GamePage() {
           boat.isPlayer ? { turn: turnInput, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : { turn: turnInput },
           { windStrengthMul: windStrengthRef.current, speedMul: boat.speedMul, steering: boat.isPlayer ? "responsive" : "legacy" });
       }
+
       const checked = evaluateRaceRules(ruleStateRef.current, { boats, course, windDir: windDirRef.current, time: raceClockRef.current,
         racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
       ruleStateRef.current = checked.state;
@@ -730,6 +735,17 @@ export default function GamePage() {
           logSamplesRef.current.push(recordSample(boat, boat.finishTime!, windDirRef.current));
           playFinish();
         }
+      }
+
+      // A completed player's final sample is already fixed. Resolve only the
+      // remaining fleet now, so Menu/backgrounding cannot discard this finish
+      // during the former 15-second wait and penalty-adjusted places stay true.
+      if (isRacing && boats.some(boat => boat.isPlayer && boat.lapDone === 2)) {
+        const resolved = resolveFinishedFleet({ boats, course, time: raceClockRef.current,
+          windStrengthMul: windStrengthRef.current, rules: ruleStateRef.current,
+          rulesEnabled: racePrefsRef.current.rules, penaltiesEnabled: racePrefsRef.current.penalties });
+        boats = resolved.boats; boatsRef.current = boats;
+        ruleStateRef.current = resolved.rules;
       }
 
       // --- Race log recording (player only, race-time only) ---
@@ -812,7 +828,7 @@ export default function GamePage() {
       const playerFinished = player.lapDone === 2;
       const tooLong = elapsedSec > 300; // 5 minutes max
 
-      if (isRacing && (allFinished || (playerFinished && elapsedSec > (player.finishTime ?? 0) + 15) || tooLong)) {
+      if (isRacing && (allFinished || playerFinished || tooLong)) {
         const sorted = [...boats]
           .map((b) => ({ name: b.name, time: b.finishTime === undefined ? Infinity : b.finishTime + (ruleStateRef.current.penalties[b.id] ?? 0), color: b.color, isPlayer: b.isPlayer }))
           .sort((a, b) => a.time - b.time);
@@ -865,8 +881,21 @@ export default function GamePage() {
           events: logEventsRef.current,
           lang,
         };
-        setCoaching(analyseRaceLocally(payload, langRef.current));
+        const localCoaching = analyseRaceLocally(payload, langRef.current);
+        setCoaching(localCoaching);
+        // Post within the finish tick, before a result/menu render can replace
+        // the active refs. Keep the immutable payload until its own durable ack.
+        if (isNativeRace() && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {
+          const snapshot: NativeRaceSnapshot = { schema: 1, id: raceIdRef.current, mode: racePrefsRef.current.mode,
+            difficulty, windStrength, missionId: selectedMission?.id ?? null,
+            finishTimeSec: player.finishTime, position: playerRank, totalBoats: sorted.length,
+            course, samples: logSamplesRef.current, events: logEventsRef.current, coaching: localCoaching,
+            penaltySeconds: ruleStateRef.current.penalties.player ?? 0 };
+          pendingNativeSaves.current.add(snapshot);
+          setNativeSave(postNativeRace(pendingNativeSaves.current.get(snapshot.id)!) ? "saving" : "error");
+        }
         setCoachingLoading(!isNativeRace());
+        const completedRaceId = raceIdRef.current;
         if (!isNativeRace()) fetch('/api/coach', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -874,6 +903,7 @@ export default function GamePage() {
         })
           .then((r) => r.json())
           .then((data) => {
+            if (raceIdRef.current !== completedRaceId) return;
             if (data.coaching) {
               setCoaching(data.coaching); setCoachingSource(data.fallback ? "local" : "ai");
             } else {
@@ -885,12 +915,13 @@ export default function GamePage() {
             }
           })
           .catch(() => {
+            if (raceIdRef.current !== completedRaceId) return;
             // Network error - use local analysis
             const local = analyseRaceLocally(payload, lang);
             setCoaching(local);
             setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
           })
-          .finally(() => setCoachingLoading(false));
+          .finally(() => { if (raceIdRef.current === completedRaceId) setCoachingLoading(false); });
 
         return;
       }
@@ -950,26 +981,29 @@ export default function GamePage() {
     setElapsed(race.finishTimeSec); setGameState("replay");
   }, []);
   const retryNativeSave = useCallback(() => {
-    const race = nativeSnapshotRef.current;
-    if (!race) return;
-    setNativeSave(postNativeRace(race) ? "saving" : "error");
+    for (const race of pendingNativeSaves.current.values()) {
+      const sent = postNativeRace(race);
+      if (race.id === raceIdRef.current) setNativeSave(sent ? "saving" : "error");
+    }
   }, []);
   useEffect(() => {
-    const saved = () => setNativeSave("saved");
-    const error = () => setNativeSave("error");
+    const saved = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
+      if (typeof id !== "string" || !pendingNativeSaves.current.acknowledge(id)) return;
+      if (id === raceIdRef.current) setNativeSave("saved");
+    };
+    const error = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
+      if ((id === undefined || id === raceIdRef.current) && pendingNativeSaves.current.get(raceIdRef.current)) setNativeSave("error");
+    };
     window.addEventListener("regatta:race-history-saved", saved); window.addEventListener("regatta:race-history-error", error);
     return () => { window.removeEventListener("regatta:race-history-saved", saved); window.removeEventListener("regatta:race-history-error", error); };
   }, []);
   useEffect(() => {
-    if (!isNativeRace() || gameState !== "finished" || nativeAttemptedRef.current || !coaching) return;
-    const player = boatsRef.current.find(b => b.isPlayer);
-    if (player?.finishTime === undefined || logSamplesRef.current.length < 2) return;
-    nativeAttemptedRef.current = true;
-    nativeSnapshotRef.current = { schema: 1, id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null,
-      finishTimeSec: player.finishTime, position: Math.max(1, results.findIndex(r => r.isPlayer) + 1), totalBoats: results.length,
-      course: courseRef.current, samples: logSamplesRef.current, events: logEventsRef.current, coaching, penaltySeconds: ruleStateRef.current.penalties.player ?? 0 };
-    retryNativeSave();
-  }, [gameState, coaching, difficulty, windStrength, selectedMission, results, retryNativeSave]);
+    if (!nativeRace) return;
+    const timer = window.setInterval(retryNativeSave, 5000);
+    return () => window.clearInterval(timer);
+  }, [nativeRace, retryNativeSave]);
   const updateRacePrefs = useCallback((patch: Partial<typeof racePrefs>) => {
     if (patch.mode === "pro" && racePrefsRef.current.mode !== "pro") {
       const player = boatsRef.current.find(b => b.isPlayer);

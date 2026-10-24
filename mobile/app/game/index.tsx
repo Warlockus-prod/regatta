@@ -80,7 +80,8 @@ export default function Game() {
         mode: race.mode, wind_strength: race.windStrength, mission_id: race.missionId,
       });
     } else if (data.type === "race-finished") {
-      void saveNativeRace(data.race, lang, Boolean(query.daily))
+      const snapshot = validateNativeRace(data.race);
+      void saveNativeRace(snapshot, lang, Boolean(query.daily))
         .then(record => {
           inject(raceHistoryResponse(record.id));
           if (!record.webRace || reportedRaces.current.has(record.id)) return;
@@ -95,7 +96,7 @@ export default function Game() {
           } catch { /* Optional telemetry cannot turn a durable save into an error. */ }
           if (isReviewPodium(race.position, race.totalBoats)) void recordReviewWin("race-podium").catch(() => undefined);
         })
-        .catch(error => inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable")));
+        .catch(error => inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable", snapshot?.id)));
     }
   }, [lang, query.daily, replayId, router, persistStorage, analytics]);
 

@@ -1,40 +1,32 @@
 import { createRoot } from "react-dom/client";
-import { useEffect, useState } from "react";
+import { useEffect, useLayoutEffect, useState } from "react";
 import SimulatorV2 from "../../../src/features/simulator-3d/SimulatorV2";
 import SimulatorV3Page from "../../../src/features/simulator-v3/SimulatorV3Page";
 import GameClient from "../../../src/app/game/GameClient";
+import SimulatorBasics from "../../../src/app/simulator/page";
+import AnatomyPage from "../../../src/app/anatomy/page";
 import { OfflineSailingI18n } from "./i18n";
-
-declare global {
-  interface Window {
-    __REGATTA_EMBED__?: { path: string; query: string };
-  }
-}
-
-function readEmbed() {
-  const fallback = new URLSearchParams(window.location.search);
-  return window.__REGATTA_EMBED__ ?? {
-    path: fallback.get("screen") === "trainer" ? "/simulator-v3" : "/simulator2",
-    query: fallback.toString(),
-  };
-}
+import { readSailingEmbed, sailingSearch } from "./embed";
 
 function OfflineSailingApp() {
-  const [embed, setEmbed] = useState(readEmbed);
+  const [embed, setEmbed] = useState(readSailingEmbed);
+  useLayoutEffect(() => {
+    // Content pages retain document scrolling and the poster's body scroll lock.
+    document.documentElement.dataset.sailingDocument = String(embed.path === "/anatomy" || embed.path === "/simulator");
+  }, [embed.path]);
   useEffect(() => {
     const update = () => setEmbed(previous => {
-      const next = readEmbed();
+      const next = readSailingEmbed();
       return next.path === previous.path && next.query === previous.query ? previous : next;
     });
     window.addEventListener("regatta-embed", update);
     window.ReactNativeWebView?.postMessage("app-ready");
     return () => window.removeEventListener("regatta-embed", update);
   }, []);
-  const search = new URLSearchParams(embed.query);
-  search.set("embed", "1");
-  search.set("offline", "1");
+  const search = sailingSearch(embed.query);
   return <OfflineSailingI18n>{embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
-    ? <SimulatorV3Page initialSearch={search.toString()} /> : <SimulatorV2 />}</OfflineSailingI18n>;
+    ? <SimulatorV3Page initialSearch={search.toString()} /> : embed.path === "/simulator" ? <SimulatorBasics />
+    : embed.path === "/anatomy" ? <AnatomyPage /> : <SimulatorV2 />}</OfflineSailingI18n>;
 }
 
 const reportAppError = () => window.ReactNativeWebView?.postMessage("app-error");

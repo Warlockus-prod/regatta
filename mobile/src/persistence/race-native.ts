@@ -35,6 +35,7 @@ export function raceHistoryResponse(id: string): string {
   return `window.dispatchEvent(new CustomEvent("regatta:race-history-saved",{detail:${JSON.stringify({ id })}}));true;`;
 }
 
-export function raceHistoryFailure(code: "invalid-race" | "storage-unavailable"): string {
-  return `window.dispatchEvent(new CustomEvent("regatta:race-history-error",{detail:${JSON.stringify({ code })}}));true;`;
+export function raceHistoryFailure(code: "invalid-race" | "storage-unavailable", id?: string): string {
+  const safeId = id && /^[a-zA-Z0-9_-]{1,100}$/.test(id) ? id : undefined;
+  return `window.dispatchEvent(new CustomEvent("regatta:race-history-error",{detail:${JSON.stringify({ code, id: safeId })}}));true;`;
 }

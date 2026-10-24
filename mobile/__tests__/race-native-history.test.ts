@@ -56,6 +56,21 @@ it("does not report persistence on disk failure or replace unreadable history", 
   expect(await AsyncStorage.getItem(key)).toBe("unreadable history");
 });
 
+it("correlates a failed native save with its own race while another result saves successfully", async () => {
+  render(createElement(Game));
+  await waitFor(() => expect(mockRaceMessage).not.toBeNull());
+  const inject = jest.fn();
+  (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error("disk full"));
+  act(() => {
+    mockRaceMessage!(JSON.stringify({ type: "race-finished", race: { ...race, id: "pending-first", position: 3 } }), inject);
+    mockRaceMessage!(JSON.stringify({ type: "race-finished", race: { ...race, id: "pending-second", position: 3 } }), inject);
+  });
+  await waitFor(() => expect(inject).toHaveBeenCalledWith(expect.stringContaining('"code":"storage-unavailable","id":"pending-first"')));
+  await waitFor(() => expect(inject).toHaveBeenCalledWith(expect.stringContaining('regatta:race-history-saved')));
+  expect(inject).toHaveBeenCalledWith(expect.stringContaining('"id":"pending-second"'));
+  expect((await readRaces()).map(saved => saved.id)).toEqual(["pending-second"]);
+});
+
 it("rejects malformed recordings and confines browser storage to race-owned keys", async () => {
   await expect(saveNativeRace({ ...race, samples: [] }, "en")).rejects.toThrow("invalid-race");
   expect(parseRaceStorageEntries({ "regatta.bootcamp": "erase" })).toBeNull();

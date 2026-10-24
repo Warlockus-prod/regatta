@@ -1,16 +1,14 @@
 import { lazy, Suspense, useSyncExternalStore, type ComponentType, type AnchorHTMLAttributes } from "react";
+import { readSailingEmbed, sailingSearch } from "./embed";
 
 const subscribe = (update: () => void) => {
   window.addEventListener("regatta-embed", update);
   return () => window.removeEventListener("regatta-embed", update);
 };
-export const usePathname = () => useSyncExternalStore(subscribe, () => window.__REGATTA_EMBED__?.path ?? "/simulator2");
+export const usePathname = () => useSyncExternalStore(subscribe, () => readSailingEmbed().path);
 export const useSearchParams = () => {
-  const query = useSyncExternalStore(subscribe, () => window.__REGATTA_EMBED__?.query ?? "");
-  const params = new URLSearchParams(query);
-  params.set("embed", "1");
-  params.set("offline", "1");
-  return params;
+  const query = useSyncExternalStore(subscribe, () => readSailingEmbed().query);
+  return sailingSearch(query);
 };
 export function Link(props: AnchorHTMLAttributes<HTMLAnchorElement>) {
   return <a {...props} onClick={event => {
