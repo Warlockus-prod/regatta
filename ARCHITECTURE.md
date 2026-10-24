@@ -962,3 +962,17 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 - `src/features/trainer-controls/ReservedPanel.tsx` portals auxiliary views/settings into the existing controls area. `TrainerWorkspace` preserves the scene rectangle; inline callbacks do not restart focus effects.
 - `src/features/race-scene/guidance.ts` builds a pure water-route ribbon and direction markers; RaceScene displays it only when guidance is supplied. The old target-circle and no-go overlays are removed from the race scene.
+
+- `mobile/app/game/index.tsx` is the primary locally bundled shared 3D race. `race-3d` redirects there; the catalog has one solo entry. `mobile/src/navigation/race-entry.ts` validates supported local routes.
+- `src/lib/race-native.ts` validates the versioned world-coordinate race/Pro-rig snapshot before native persistence. `mobile/src/persistence/race-native.ts` stores it additively, acknowledges only successful durable writes, and keeps legacy history readable. `mobile/src/persistence/race-web-storage.ts` whitelists device preferences; new replay and coach use the same local course.
+- `src/app/game/RaceCockpit.tsx` and its CSS reserve the 3D scene and move controls/settings to a responsive dock. `src/app/game/race-prefs.ts` stores Simple/Pro and assistance preferences. `src/app/game/RaceReplay.tsx` replays actual local recordings in the shared 3D scene. `src/app/game/race-copy.ts` holds seven-language race UI copy.
+- `src/lib/daily-challenge.ts` generates identical date-based settings on server and fresh offline installs. `src/lib/db.ts` consumes it.
+- `public/fonts/source-sans-3/` vendors pinned Adobe Source Sans 3 with OFL/provenance. Native assets are bundled in `mobile/assets/fonts/`; `mobile/src/design-system/fonts.tsx` and common Text/Button select weights. Offline builders embed local font bytes.
+
+- `src/app/game/RaceCockpit.module.css` defines the protected ocean cockpit grid, responsive scene/dock split, controls and utility tabs.
+- `src/features/simulator-3d/useSailCoachLabels.ts` supplies the same seven-language trim coaching phrases to simulator and race.
+- `src/features/race-scene/guidance.test.ts` checks route mesh geometry, bounds and turn colors.
+- `src/lib/daily-challenge.test.ts` fixes date validation and deterministic offline/server daily vectors.
+- `src/lib/race-guidance.test.ts` verifies route/tack advice plus manual/automatic trim, sail deployment and opt-in steering behavior.
+- `src/lib/race-native.test.ts` tests bounded local snapshots, Pro rig state, injected route state and native message validation.
+- `src/lib/race-rules.test.ts` covers conservative right of way, collision/mark time penalties, early starts and rule toggles.

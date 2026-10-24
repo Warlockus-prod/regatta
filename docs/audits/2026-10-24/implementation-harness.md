@@ -33,3 +33,7 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 - Model: 79 focused physics, autopilot, rules and guidance tests passed; TypeScript passed before UI integration. Responsive steering is opt-in for the local player, core VPP constants and server defaults preserved.
 
 - Presentation checkpoint: 100 focused tests in 12 suites, TypeScript and targeted ESLint passed. Trainer auxiliary panels now use reserved controls space; race guidance is a water ribbon, without the retired floating arrow/no-go overlay. Runtime visual review remains open.
+
+- Native/cockpit source checkpoint: 24 focused native tests in six suites passed, web boundary/daily/catalog/control tests passed, TypeScript and targeted lint passed before the next environment integration. No generated offline artifact has been declared final.
+- Native startup always selects bundled solo content; finished snapshots are validated and acknowledged only after storage succeeds. Retry keeps failed-save data in memory. Old pixel recordings remain readable; new recordings use real world course geometry and the shared 3D replay.
+- Live ASC preflight confirms build 58 VALID and IN_BETA_TESTING in Self, public 1.6.4 READY_FOR_SALE and 1.7.0 PREPARE_FOR_SUBMISSION. Use next build 59 or higher and attach explicitly to Self. Fastlane read-only gate and public privacy prechecks passed.

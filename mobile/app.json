@@ -143,7 +143,8 @@
         {
           "initialOrientation": "PORTRAIT_UP"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "locales": {
       "en": "./locales/en.json",

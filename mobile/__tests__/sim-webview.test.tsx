@@ -36,8 +36,9 @@ jest.mock("react-native-webview", () => {
 beforeEach(() => { jest.useFakeTimers(); jest.clearAllMocks(); });
 afterEach(() => jest.useRealTimers());
 
-it("returns to a known lesson and hides tier switching during lesson practice", () => {
+it("returns to a known lesson and hides tier switching during lesson practice", async () => {
   const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" query={{ lesson: "mainsheet", study: "mainsheet" }} />);
+  await act(async () => {});
   expect(view.queryByRole("tab", { name: "Basics" })).toBeNull();
   fireEvent.press(view.getByRole("button", { name: "Return to the lesson" }));
   expect(mockNavigate).toHaveBeenCalledWith({ pathname: "/learn/sails/[lesson]", params: { lesson: "mainsheet" } });
@@ -94,6 +95,31 @@ it("loads the local source without an online fallback or network-error advice", 
   expect(view.getByText("The local simulator could not open. Retry or open simplified Basics. No internet is needed.")).toBeTruthy();
   fireEvent.press(view.getByText("Retry"));
   expect(view.getByTestId("webview").props.source).toEqual(local);
+});
+
+it("boots the shared race from the local asset with native replay and preferences before content", async () => {
+  const local = { uri: "file:///bundle/sailing-offline.html" };
+  const handle = jest.fn();
+  const replay = { schema: 1, id: "saved-race" };
+  const view = render(<SimWebView path="/game" title="Race" fullScreen offlineSource={local}
+      query={{ view: "3d", scene: "next", mode: "pro" }} raceReplay={replay}
+      localStorage={{ "regatta.race.mode.v1": "pro", "regatta.race-resume.v1": null }}
+      offlineBridgeScript="window.raceBridge = true;" onOfflineMessage={handle} />);
+  await act(async () => {});
+  const web = view.getByTestId("webview");
+  expect(web.props.source).toEqual(local);
+  const bootstrap = web.props.injectedJavaScriptBeforeContentLoaded;
+  expect(bootstrap).toContain("window.__REGATTA_RACE_NATIVE__ = true");
+  expect(bootstrap).toContain('window.__REGATTA_RACE_REPLAY__ = {"schema":1,"id":"saved-race"}');
+  expect(bootstrap).toContain('"path":"/game"');
+  expect(bootstrap).toContain("view=3d&scene=next&mode=pro");
+  expect(bootstrap).toContain("localStorage.removeItem(k)");
+  expect(bootstrap).toContain("window.raceBridge = true");
+  const message = JSON.stringify({ type: "native-navigate", href: "/history" });
+  fireEvent(web, "message", { nativeEvent: { data: message } });
+  expect(handle).toHaveBeenCalledWith(message, expect.any(Function));
+  fireEvent(web, "message", { nativeEvent: { data: "app-error" } });
+  expect(view.getByText("The race could not open. Retry or return to the race menu. No internet is needed.")).toBeTruthy();
 });
 
 it("passes the offline Trainer route and lesson parameters to the local bundle", () => {

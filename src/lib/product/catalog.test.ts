@@ -32,6 +32,10 @@ describe("product navigation", () => {
     expect(destinations.find(d => d.id === "boat")?.online).not.toBe(true);
     expect(destinations.find(d => d.id === "sails")?.online).not.toBe(true);
     expect(destinations.find(d => d.id === "trainer")?.online).not.toBe(true);
+    expect(destinations.find(d => d.id === "solo")?.online).not.toBe(true);
+    expect(destinations.some(d => d.id === "race3d")).toBe(false);
+    expect(destinations.find(d => d.id === "solo")?.native).toBe("/game");
+    expect(sectionForPath("/race-3d", "native")).toBe("race");
   });
   it("keeps nested exam, simulator and race routes in their parent section", () => {
     expect(sectionForPath("/radio/symulator?scenario=mayday", "web")).toBe("learn");

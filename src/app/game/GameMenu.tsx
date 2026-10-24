@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
-import { RaceViewPicker } from '@/features/race-3d/RaceViewPicker';
+import { RaceModePicker } from "./RaceCockpit";
+import type { RacePrefs } from "./race-prefs";
 import { VenuePicker } from '@/features/venues/VenuePicker';
-import { BOAT_STYLES, DIFFICULTY_CONFIG, type BoatStyle, type Difficulty } from './config';
+import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 
 // ============================================================================
 // GameMenu - 3-preset entry (Учусь / Свободная / Миссия) with collapsible details
@@ -16,16 +17,15 @@ type MenuTab = 'learn' | 'free' | 'mission';
 export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
-  boatStyle, setBoatStyle,
   selectedMission, pickMission,
-  openBriefing,
+  openBriefing, racePrefs, updateRacePrefs, dailyDay,
 }: {
+  dailyDay: string | null;
+  racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
   difficulty: Difficulty;
   setDifficulty: (d: Difficulty) => void;
   windStrength: 'light' | 'medium' | 'heavy';
   setWindStrength: (w: 'light' | 'medium' | 'heavy') => void;
-  boatStyle: BoatStyle;
-  setBoatStyle: (b: BoatStyle) => void;
   selectedMission: Mission | null;
   pickMission: (m: Mission | null) => void;
   openBriefing: () => void;
@@ -52,18 +52,18 @@ export function GameMenu({
 
   // When tab changes, apply defaults
   useEffect(() => {
+    if (dailyDay) return;
     if (tab === 'learn') {
       pickMission(null);
       setDifficulty('easy');
       setWindStrength('medium');
-      setBoatStyle('cruiser');
     } else if (tab === 'free') {
       pickMission(null);
       // keep user's manual selection
     }
     // mission tab: user picks mission -> it sets difficulty + wind automatically
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [tab, dailyDay]);
 
   const ctaLabel =
     tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
@@ -100,8 +100,9 @@ export function GameMenu({
         </p>
       </div>
 
+      {dailyDay && <p className="mb-4 text-[var(--accent-cyan)]">{dailyDay}</p>}
       {/* Three big preset cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
+      <div hidden={Boolean(dailyDay)} className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
         <PresetCard
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
@@ -198,7 +199,7 @@ export function GameMenu({
         </div>
       )}
 
-      {tab === 'free' && (
+      {tab === 'free' && !dailyDay && (
         <div className="card p-4 mb-5 space-y-4">
           {/* Difficulty */}
           <div>
@@ -233,9 +234,9 @@ export function GameMenu({
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~5 kn'  },
-                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~10 kn' },
-                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~15 kn' },
+                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~8 kn'  },
+                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~12 kn' },
+                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~16 kn' },
               ] as const).map((w) => (
                 <button
                   key={w.id}
@@ -253,37 +254,10 @@ export function GameMenu({
               ))}
             </div>
           </div>
-          {/* Boat */}
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'ŁÓDŹ', { es: 'BARCO', fr: 'BATEAU', de: 'BOOT', it: 'BARCA' })}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {BOAT_STYLES.map((b) => {
-                const active = boatStyle === b.id;
-                return (
-                  <button
-                    key={b.id}
-                    onClick={() => setBoatStyle(b.id)}
-                    className={`p-2.5 rounded-lg text-left text-xs transition border flex items-center gap-3 ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                    style={{
-                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                      outlineColor: 'var(--accent-cyan)',
-                    }}
-                  >
-                    <BoatStylePreview style={b.id} />
-                    <div>
-                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl, { es: b.labelEs, fr: b.labelFr, de: b.labelDe, it: b.labelIt })}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl, { es: b.descEs, fr: b.descFr, de: b.descDe, it: b.descIt })}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       )}
 
-      <RaceViewPicker />
+      <RaceModePicker prefs={racePrefs} update={updateRacePrefs} />
       <VenuePicker />
 
       {/* Collapsible details panel (controls + course rules) */}
@@ -378,36 +352,5 @@ function PresetCard({
       <div className="text-xs text-[var(--text-muted)] mb-2">{subtitle}</div>
       <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
     </button>
-  );
-}
-
-// ============================================================================
-// Small SVG preview of a boat style (used in the boat picker)
-// ============================================================================
-
-function BoatStylePreview({ style }: { style: BoatStyle }) {
-  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
-  const w = 24 * cfg.hullWidth;
-  const h = 46 * cfg.hullScale;
-  return (
-    <svg viewBox="-24 -30 48 60" className="block mx-auto" width="44" height="55" aria-hidden="true">
-      {/* Hull */}
-      <path
-        d={`M 0,${-h / 2.2} Q ${w / 2},0 ${w / 3},${h / 2.8} L ${-w / 3},${h / 2.8} Q ${-w / 2},0 0,${-h / 2.2} Z`}
-        fill="#d7e8f4"
-        stroke="#8fb4c9"
-        strokeWidth="0.7"
-      />
-      {/* Sail */}
-      <path
-        d={`M 0,${-h / 2.4} Q 8,0 2,${h / 3.6} L 0,${h / 3.6} Z`}
-        fill={cfg.sailHue}
-        stroke="#ffffff"
-        strokeWidth="0.5"
-      />
-      {style === 'racer' && (
-        <rect x="-1" y={-h / 2.5} width="2" height={h * 0.7} fill="#00d4ff" opacity="0.4" />
-      )}
-    </svg>
   );
 }

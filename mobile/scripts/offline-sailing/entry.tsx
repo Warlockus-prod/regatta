@@ -2,6 +2,7 @@ import { createRoot } from "react-dom/client";
 import { useEffect, useState } from "react";
 import SimulatorV2 from "../../../src/features/simulator-3d/SimulatorV2";
 import SimulatorV3Page from "../../../src/features/simulator-v3/SimulatorV3Page";
+import GameClient from "../../../src/app/game/GameClient";
 import { OfflineSailingI18n } from "./i18n";
 
 declare global {
@@ -32,7 +33,7 @@ function OfflineSailingApp() {
   const search = new URLSearchParams(embed.query);
   search.set("embed", "1");
   search.set("offline", "1");
-  return <OfflineSailingI18n>{embed.path === "/simulator-v3"
+  return <OfflineSailingI18n>{embed.path === "/game" ? <GameClient /> : embed.path === "/simulator-v3"
     ? <SimulatorV3Page initialSearch={search.toString()} /> : <SimulatorV2 />}</OfflineSailingI18n>;
 }
 

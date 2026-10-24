@@ -2,6 +2,8 @@
 
 Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
 
+- Replaced the flat native solo entry with the shared local 3D race, durable offline history/replay/coaching, a protected cockpit, Simple/Pro controls and locally bundled Source Sans 3. Preserved old race records and saved control choices. Offline assets and release verification are still pending.
+
 - Reserved trainer control space for settings and views, stabilized keyboard focus, and added optional water-route guidance with smoother shore rendering and correct sail deployment visuals.
 
 - Added the shared model for manual Pro sheets, sail deployment, responsive solo steering, route advice and optional educational race rules with declared training penalties.

@@ -7,8 +7,9 @@
 
 ## Current completion work
 
-- 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `design-proposal.md`.
+- 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
 - App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
+- New installations default to shared wheel controls; saved slider choices are preserved.
 - One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
 - SRC adapts to seven languages, sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
 
@@ -552,3 +553,13 @@ Shared-лейне:
 - Большой рефакторинг - через ветку (`feature/...`), потом `git merge --no-ff`.
 - Никогда `push --force` в `main`. Никогда `git reset --hard` без
   предупреждения других лейнов.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` - verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

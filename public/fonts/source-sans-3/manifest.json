@@ -1,0 +1,48 @@
+{
+  "upstream": "https://github.com/adobe-fonts/source-sans",
+  "commit": "87b37a2daaed80fcb8e8ccb0085c4d72ddade12e",
+  "license": "SIL Open Font License 1.1",
+  "files": [
+    {
+      "file": "SourceSans3-Regular.ttf",
+      "source": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/TTF/SourceSans3-Regular.ttf",
+      "bytes": 431196,
+      "sha256": "4644c81b86ec9caaa76b634889968ed3c4f4f52f054855933acc7c2b21e53b0f"
+    },
+    {
+      "file": "SourceSans3-Semibold.ttf",
+      "source": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/TTF/SourceSans3-Semibold.ttf",
+      "bytes": 425904,
+      "sha256": "a3f4f8dcf343a8f24dc61951de93f3ba1558b15cd250ba24af8a40e957081b7d"
+    },
+    {
+      "file": "SourceSans3-Bold.ttf",
+      "source": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/TTF/SourceSans3-Bold.ttf",
+      "bytes": 428176,
+      "sha256": "9214b9d95e4231c609802815c2646c98174e2102d0d37f88978a7f8e71006e6a"
+    },
+    {
+      "file": "SourceSans3VF-Upright.woff2",
+      "source": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/WOFF2/VF/SourceSans3VF-Upright.ttf.woff2",
+      "bytes": 170188,
+      "sha256": "5f16566f7a40d39b339ad26be151fa5a1ab1f0c2574c7a2e619765584a1acbd8"
+    },
+    {
+      "file": "LICENSE.md",
+      "source": "https://raw.githubusercontent.com/adobe-fonts/source-sans/87b37a2daaed80fcb8e8ccb0085c4d72ddade12e/LICENSE.md",
+      "bytes": 4485,
+      "sha256": "f9e57d28452ab6162c7fc0d248b5a5e81bf64676a6950d56b2e137c1253f79e8",
+      "upstreamSha256": "56af9b9c6715597e458284a474dc118a50a4150e9d547c70f7b4a33c3e6a9328",
+      "normalization": "Trailing whitespace removed; license text unchanged."
+    }
+  ],
+  "verifiedLanguageSamples": {
+    "ru": "Съешь ещё этих мягких французских булок, да выпей чаю. ЙЦУКЕН Ёё",
+    "en": "Sailing, mainsheet, jib sheet",
+    "pl": "Zażółć gęślą jaźń ĄĆĘŁŃÓŚŹŻ",
+    "es": "Navegación, escota, ceñida, pingüino ¿¡",
+    "fr": "Réglage, écoutes, manœuvre, où, Noël, façade",
+    "de": "Segeltrimm, Großschot, Übung, äöüß",
+    "it": "Regolazione, perché, è, più, città"
+  }
+}

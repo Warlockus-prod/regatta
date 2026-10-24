@@ -12,6 +12,7 @@ const source = join(here, "offline-sailing");
 const target = join(root, "mobile/assets/sailing-offline.html");
 const manifestPath = join(root, "mobile/assets/sailing-offline.manifest.json");
 const check = process.argv.includes("--check");
+const validateOnly = process.argv.includes("--validate");
 const digest = value => createHash("sha256").update(value).digest("hex");
 const model = readFileSync(join(root, "public/models/regatta_sloop_sailing.glb"));
 const gltf = JSON.parse(model.subarray(20, 20 + model.readUInt32LE(12)).toString().trim());
@@ -75,13 +76,23 @@ const js = result.outputFiles.find(file => file.path.endsWith(".js"))?.text;
 const modulesCss = result.outputFiles.find(file => file.path.endsWith(".css"))?.text ?? "";
 if (!js) throw new Error("No sailing JavaScript generated");
 const cssPath = join(root, "src/app/globals.css");
-const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";');
-const css = (await postcss([tailwindcss()]).process(cssInput, { from: cssPath })).css + modulesCss;
+const cssInput = readFileSync(cssPath, "utf8").replace('@import "tailwindcss";', '@import "tailwindcss" source(none);\n@source "../features/simulator-3d";\n@source "../features/simulator-v3";\n@source "../features/trainer-controls";\n@source "../features/race-hud";\n@source "../features/race-3d";\n@source "../features/race-scene";\n@source "../features/venues";\n@source "../app/game";');
+const embeddedAssets = [];
+const compiledCss = (await postcss([tailwindcss()]).process(cssInput, { from: cssPath })).css + modulesCss;
+const css = compiledCss.replace(/url\(\s*(["']?)([^"')]+)\1\s*\)/g, (match, _quote, url) => {
+  if (/^(data:|blob:|#)/.test(url)) return match;
+  if (!url.startsWith("/") || url.startsWith("//") || url.includes("..")) throw new Error(`Unsupported offline CSS asset ${url}`);
+  const asset = readFileSync(join(root, "public", url.slice(1)));
+  const type = url.endsWith(".woff2") ? "font/woff2" : url.endsWith(".woff") ? "font/woff" : url.endsWith(".ttf") ? "font/ttf" : null;
+  if (!type) throw new Error(`Add an explicit media type for offline CSS asset ${url}`);
+  embeddedAssets.push({ path: `public${url}`, sha256: digest(asset), bytes: asset.length });
+  return `url("data:${type};base64,${asset.toString("base64")}")`;
+});
 const html = [
   "<!doctype html>", '<html lang="en" data-theme="dark"><head><meta charset="utf-8">',
   '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">',
   '<meta http-equiv="Content-Security-Policy" content="default-src \'none\'; script-src \'unsafe-inline\' \'wasm-unsafe-eval\'; style-src \'unsafe-inline\'; img-src data: blob:; connect-src data: blob:; worker-src blob:; media-src data: blob:; font-src data:; base-uri \'none\'; form-action \'none\'">',
-  `<style>${css.replaceAll("</style", "<\\/style")}html,body,#root{height:100%;margin:0;overflow:hidden}body{font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif}</style>`,
+  `<style>${css.replaceAll("</style", "<\\/style")}html,body,#root{height:100%;margin:0;overflow:hidden}body{font-family:var(--font-source-sans)}</style>`,
   '</head><body><div id="root"></div>',
   `<script>${js.replaceAll("</script", "<\\/script")}</script></body></html>`,
 ].join("\n");
@@ -89,13 +100,15 @@ const manifest = JSON.stringify({
   schema: 1, entry: "sailing-offline.html", sha256: digest(html), bytes: Buffer.byteLength(html),
   model: { sha256: digest(model), bytes: model.length, embeddedSha256: digest(runtimeModel), embeddedBytes: runtimeModel.length },
   inputs: Object.keys(result.metafile.inputs).sort(),
+  embeddedAssets,
 }, null, 2) + "\n";
 if (Buffer.byteLength(html) > 8 * 1024 * 1024) throw new Error("Offline sailing exceeds the initial 8 MiB package budget");
 for (const [file, content] of [[target, html], [manifestPath, manifest]]) {
+  if (validateOnly) continue;
   if (check) {
     if (!existsSync(file) || readFileSync(file, "utf8") !== content) throw new Error(`Stale offline sailing artifact: ${file}`);
   } else {
     writeFileSync(file, content);
   }
 }
-console.log(`${check ? "Verified" : "Built"} offline sailing: ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB, ${digest(html).slice(0, 12)}`);
+console.log(`${validateOnly ? "Validated without writing" : check ? "Verified" : "Built"} offline sailing: ${(Buffer.byteLength(html) / 1024 / 1024).toFixed(2)} MiB, ${digest(html).slice(0, 12)}`);

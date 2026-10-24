@@ -56,8 +56,9 @@ export function WheelDeck(props: {
   /** Global keys: Q/A mainsheet, W/S jib sheet; arrows steer only when the surface has no arrow keys of its own. */
   arrowKeysSteer?: boolean;
   note?: string;
+  hideHint?: boolean;
 }) {
-  const { helm, main, jib, prefs, labels, layout, arrowKeysSteer, note } = props;
+  const { helm, main, jib, prefs, labels, layout, arrowKeysSteer, note, hideHint } = props;
   const sheets = Boolean(main && jib);
   const boxRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 340, h: 260 });
@@ -271,7 +272,7 @@ export function WheelDeck(props: {
 
   return (
     <div className={styles.deck} data-layout={layout}>
-      {showNote && <p className={styles.deckNote}>{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>}
+      {showNote && !hideHint && <p className={styles.deckNote}>{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>}
       <div ref={boxRef} className={styles.deckArea} data-testid="wheel-deck">
         {sheets && sheetWheel(leftK)}
         <Wheel
