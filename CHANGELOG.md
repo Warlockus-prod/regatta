@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Shared replay links now open the same 3D yacht with recorded sails, wind, exact timestamps and training penalties. Fixed first-load wheel hints, duplicated desktop controls and course/keyboard settings that did not match their labels.
+
+- Unified the online race cockpit and wheel controls while retaining server-authoritative movement. Solo timing is identical at normal and slower display rates, Simple/Pro records are separate, and linked missions/daily races retain their declared conditions. Mode selection is fixed before starting; training penalties count toward time objectives.
+
 - Unified the 3D trainer and race ocean, shore, yacht lighting and rendering backend, and added the same live Pro trim guidance with a separate hint toggle.
 
 - Replaced the flat native solo entry with the shared local 3D race, durable offline history/replay/coaching, a protected cockpit, Simple/Pro controls and locally bundled Source Sans 3. Preserved old race records and saved control choices. Offline assets and release verification are still pending.

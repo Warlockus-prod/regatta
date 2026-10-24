@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { raceGuidance } from "./race-guidance";
+import { guidanceToTarget, raceGuidance } from "./race-guidance";
 import { angleDiff, makeStandardCourse, raceTrim, raceTurnRate, stepBoat, type InputState, type RaceBoat } from "./race-physics";
 
 const boat = (patch: Partial<RaceBoat> = {}): RaceBoat => ({ id: "player", name: "Player", color: "cyan", pos: { x: 400, y: 700 }, heading: 90, speed: 0, lapDone: 0, started: true, ...patch });
@@ -84,6 +84,20 @@ describe("race player controls", () => {
 
 describe("read-only race route guidance", () => {
   const course = makeStandardCourse();
+  it("uses an explicit server waypoint without guessing race progress", () => {
+    const b = boat({ pos: { x: 400, y: 900 }, heading: 315, started: undefined, roundPhase: undefined });
+    const target = { x: 400, y: 100 };
+    const before = structuredClone(b);
+    const hint = guidanceToTarget(b, target, 0);
+    expect(hint).toMatchObject({ leg: "waypoint", target, suggestedHeading: 315, targetInNoGo: true, tack: "starboard" });
+    expect(hint.target).not.toBe(target);
+    expect(b).toEqual(before);
+  });
+  it("distinguishes a tack from a gybe for an explicitly supplied target", () => {
+    const b = boat({ pos: { x: 0, y: 0 }, heading: 315 });
+    expect(guidanceToTarget(b, { x: 100, y: -100 }, 0).action).toBe("tack");
+    expect(guidanceToTarget({ ...b, heading: 225 }, { x: 100, y: 100 }, 0).action).toBe("gybe");
+  });
   it("offers a sailable upwind course and keeps the current tack instead of pointing into no-go", () => {
     const b = boat({ heading: 315 });
     const before = structuredClone(b);

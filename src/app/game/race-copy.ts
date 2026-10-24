@@ -7,6 +7,7 @@ import type { RaceRuleEvent } from "@/lib/race-rules";
 export function useRaceCopy() {
   const { tl } = useI18n();
   return {
+    you: tl({ ru: "Ты", en: "You", pl: "Ty", es: "Tú", fr: "Toi", de: "Du", it: "Tu" }),
     simple: tl({ ru: "Обычный", en: "Simple", pl: "Prosty", es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" }),
     pro: "Pro",
     simpleNote: tl({ ru: "Ты рулишь, паруса настраиваются автоматически.", en: "You steer; the sails trim automatically.", pl: "Ty sterujesz, żagle trymują się automatycznie.", es: "Tú gobiernas; las velas se ajustan solas.", fr: "Tu barres, les voiles se règlent seules.", de: "Du steuerst, die Segel trimmen sich automatisch.", it: "Tu governi, le vele si regolano da sole." }),
@@ -36,6 +37,7 @@ export function useRaceCopy() {
     fleet: tl({ ru: "Флот", en: "Fleet", pl: "Flota", es: "Flota", fr: "Flotte", de: "Flotte", it: "Flotta" }),
     sound: tl({ ru: "Звук", en: "Sound", pl: "Dźwięk", es: "Sonido", fr: "Son", de: "Ton", it: "Audio" }),
     auto: tl({ ru: "Держать курс", en: "Hold heading", pl: "Trzymaj kurs", es: "Mantener rumbo", fr: "Garder le cap", de: "Kurs halten", it: "Mantieni rotta" }),
+    debrief: tl({ ru: "Разбор гонки", en: "Race debrief", pl: "Omówienie regat", es: "Análisis de la regata", fr: "Bilan de la course", de: "Rennauswertung", it: "Analisi della regata" }),
     saved: tl({ ru: "Гонка сохранена на устройстве", en: "Race saved on this device", pl: "Wyścig zapisany na urządzeniu", es: "Regata guardada en el dispositivo", fr: "Course enregistrée sur cet appareil", de: "Rennen auf dem Gerät gespeichert", it: "Regata salvata sul dispositivo" }),
     saving: tl({ ru: "Сохраняем гонку", en: "Saving race", pl: "Zapisujemy wyścig", es: "Guardando regata", fr: "Enregistrement de la course", de: "Rennen wird gespeichert", it: "Salvataggio regata" }),
     saveError: tl({ ru: "Не удалось сохранить. Повтори, пока гонка открыта.", en: "Could not save. Retry while the race is open.", pl: "Nie udało się zapisać. Spróbuj ponownie przed zamknięciem wyścigu.", es: "No se pudo guardar. Reintenta antes de cerrar la regata.", fr: "Échec de l'enregistrement. Réessaie avant de fermer la course.", de: "Speichern fehlgeschlagen. Vor dem Schließen erneut versuchen.", it: "Salvataggio non riuscito. Riprova prima di chiudere la regata." }),

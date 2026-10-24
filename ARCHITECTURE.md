@@ -985,3 +985,15 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 - `mobile/src/radio/local-speech.ts` validates the local SRC speech bridge, selects device voices, requests on-device recognition only, bounds sessions and cancels stale activity results. `mobile/src/radio/useLocalRadioSpeech.ts` binds its lifetime to the local WebView, focus and app state. `mobile/src/radio/README.md` specifies the contract and model-unavailable fallback.
 - `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds and patch idempotence.
+
+- `src/app/multiplayer/MultiplayerCockpit.tsx` and `src/app/multiplayer/MultiplayerCockpit.module.css` reserve server-driven race scenery and common helm controls. Online sailing remains automatically trimmed because the authoritative protocol accepts helm input only.
+- `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
+- `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
+- `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
+- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options; `src/lib/race-setup.test.ts` protects mission wind and identical bare/parameterized daily links.
+- `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
+
+- `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
+- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer, exact end-time scrubbing, camera and reserved playback controls.
+- A solo race captures its Simple/Pro classification at countdown start, independent of later preference changes in another tab. Sheet keyboard shortcuts are owned by the race across utility tabs; absolute course sliders set a target without accumulating render-delay errors.
+- Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.

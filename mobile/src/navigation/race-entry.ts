@@ -2,11 +2,12 @@ import { dailySettings } from "../../../src/lib/daily-challenge";
 
 /** The public race entry and old deep links all mount the same local scene. */
 export function raceEntryQuery(params: Record<string, string | string[] | undefined>, mode: "simple" | "pro", now = new Date()) {
-  const query: Record<string, string> = { view: "3d", scene: "next", camera: "high", mode };
+  const query: Record<string, string> = { view: "3d", scene: "next", mode };
   for (const name of ["mission", "difficulty", "wind", "replayId"] as const) {
     const value = params[name];
     if (typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value)) query[name] = value;
   }
+  if (params.camera === "high" || params.camera === "stern") query.camera = params.camera;
   const day = typeof params.daily === "string" ? params.daily : params.course === "daily" ? now.toISOString().slice(0, 10) : null;
   if (day) {
     try {

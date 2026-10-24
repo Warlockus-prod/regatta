@@ -87,3 +87,20 @@ export function postNativeRace(snapshot: NativeRaceSnapshot): boolean {
     return Boolean((window as NativeRaceWindow).ReactNativeWebView);
   } catch { return false; }
 }
+
+export type NativeRaceStarted = Pick<NativeRaceSnapshot, "id" | "difficulty" | "windStrength" | "missionId"> & { mode: "simple" | "pro" };
+
+export function validateNativeRaceStarted(raw: unknown): NativeRaceStarted | null {
+  if (!record(raw) || typeof raw.id !== "string" || !/^[a-zA-Z0-9_-]{1,100}$/.test(raw.id) || typeof raw.mode !== "string" || !["simple", "pro"].includes(raw.mode) || typeof raw.difficulty !== "string" || !["easy", "medium", "hard"].includes(raw.difficulty) || typeof raw.windStrength !== "string" || !["light", "medium", "heavy"].includes(raw.windStrength) || !(raw.missionId === null || typeof raw.missionId === "string" && raw.missionId.length <= 100)) return null;
+  return { id: raw.id, mode: raw.mode, difficulty: raw.difficulty, windStrength: raw.windStrength, missionId: raw.missionId } as NativeRaceStarted;
+}
+
+/** Start telemetry is optional and independent of local race execution. */
+export function postNativeRaceStarted(race: NativeRaceStarted): boolean {
+  const validated = validateNativeRaceStarted(race);
+  if (!isNativeRace() || !validated) return false;
+  try {
+    (window as NativeRaceWindow).ReactNativeWebView?.postMessage(JSON.stringify({ type: "race-started", ...validated }));
+    return Boolean((window as NativeRaceWindow).ReactNativeWebView);
+  } catch { return false; }
+}

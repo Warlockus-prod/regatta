@@ -8,7 +8,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 const mocks = vi.hoisted(() => ({
   sid: 'sid-replay-1' as string | undefined,
   db: {
-    insertReplay: vi.fn((_r: Record<string, unknown>) => 'ABC123' as string | null),
+    insertReplay: vi.fn<(r: Record<string, unknown>) => string | null>(() => 'ABC123'),
     getPlayer: vi.fn(() => null as { nickname: string } | null),
   },
 }));
@@ -21,6 +21,7 @@ vi.mock('@/lib/log', () => ({ logInfo: vi.fn(), logWarn: vi.fn() }));
 
 import { POST } from './route';
 import { __resetRateLimitsForTests } from '@/lib/rate-limit';
+import { defaultReplayCourse } from '@/lib/race-replay';
 
 const samples = [0, 0.5, 1].map((t) => ({ t, x: 400, y: 1050 - t * 10, heading: 45, twa: 45, speed: 5, lap: 0 }));
 const base = { difficulty: 'easy', windStrength: 'light', samples, events: [] as unknown[] };
@@ -123,6 +124,31 @@ describe('POST /api/replay', () => {
   it('400 when fewer than 3 usable samples remain after rebuilding', async () => {
     const res = await POST(makeReq({ ...base, samples: [{ t: 0, x: 1, y: 1 }, { t: 1, x: 'a', y: 1 }, 'junk', null] }));
     expect(res.status).toBe(400);
+  });
+
+  it('keeps exact start/finish timestamps, wind, deployment and bounded metadata', async () => {
+    const finish = 89 + 1 / 30;
+    const trim = { mainSheet: .3, jibSheet: .4, reef: .2, jibFurl: 1, mainHoisted: false, pad: 'drop' };
+    const track = [samples[0], { ...samples[1], trim, windDir: 358 }, { ...samples[2], t: finish, lap: 2, trim, windDir: 2 }];
+    const course = { ...defaultReplayCourse(), padding: 'drop' };
+    const res = await POST(makeReq({ ...base, samples: track, course, finishTimeSec: finish, mode: 'pro', penaltySeconds: 5, events: [{ type: 'finish', t: finish }] }));
+    expect(res.status).toBe(200);
+    const result = saved();
+    expect(result.finishTimeSec).toBe(finish);
+    expect(result.samples).toEqual([samples[0], { ...samples[1], trim: { mainSheet: .3, jibSheet: .4, reef: .2, jibFurl: 1, mainHoisted: false }, windDir: 358 },
+      { ...samples[2], t: finish, lap: 2, trim: { mainSheet: .3, jibSheet: .4, reef: .2, jibFurl: 1, mainHoisted: false }, windDir: 2 }]);
+    expect(result.events).toEqual([{ type: 'finish', t: finish }]);
+    expect(result.course).toEqual({ ...defaultReplayCourse(), replayMetadata: { schema: 1, mode: 'pro', penaltySeconds: 5 } });
+  });
+
+  it('refuses malformed new fields and non-monotone tracks without storing them', async () => {
+    for (const patch of [
+      { samples: samples.map(s => ({ ...s, windDir: 361 })) },
+      { samples: samples.map(s => ({ ...s, trim: { mainSheet: 2 } })) },
+      { samples: [...samples].reverse() }, { mode: 'mixed' }, { penaltySeconds: -5 }, { penaltySeconds: 3601 },
+      { course: { ...defaultReplayCourse(), finishLine: { a: { x: 'bad', y: 0 }, b: { x: 0, y: 0 } } } },
+    ]) expect((await POST(makeReq({ ...base, ...patch }))).status).toBe(400);
+    expect(mocks.db.insertReplay).not.toHaveBeenCalled();
   });
 
   it('invalid uploads never spend the site-wide budget', async () => {

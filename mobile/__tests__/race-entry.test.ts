@@ -2,7 +2,7 @@ import { raceEntryQuery, raceNativeDestination } from "../src/navigation/race-en
 
 it("opens the same non-debug 3D race for a normal and legacy daily entry", () => {
   const date = new Date("2026-10-24T12:00:00Z");
-  expect(raceEntryQuery({}, "pro", date)).toEqual({ view: "3d", scene: "next", camera: "high", mode: "pro" });
+  expect(raceEntryQuery({}, "pro", date)).toEqual({ view: "3d", scene: "next", mode: "pro" });
   expect(raceEntryQuery({ course: "daily" }, "simple", date)).toMatchObject({ daily: "2026-10-24", difficulty: "medium", wind: "heavy" });
   expect(raceEntryQuery({ daily: "2026-10-24" }, "simple", date)).toEqual(raceEntryQuery({ course: "daily" }, "simple", date));
 });

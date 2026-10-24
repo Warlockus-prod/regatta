@@ -21,7 +21,7 @@ function read(): RacePrefs {
     if (key === cachedKey) return cached;
     const a = JSON.parse(text) as Record<string, unknown>;
     cachedKey = key;
-    cached = { ...DEFAULTS, ...memory, mode: override === "pro" || override === "simple" ? override : mode === "pro" ? "pro" : memory?.mode ?? "simple",
+    cached = { ...DEFAULTS, ...memory, mode: override === "pro" || override === "simple" ? override : mode === "pro" || mode === "simple" ? mode : memory?.mode ?? "simple",
       ...Object.fromEntries(["guidance", "trimHints", "rules", "penalties"].filter(k => typeof a[k] === "boolean").map(k => [k, a[k]])) };
     return cached;
   } catch { return memory ?? DEFAULTS; }

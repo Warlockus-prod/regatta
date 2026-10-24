@@ -1,6 +1,6 @@
 import { angleDiff, bearing, calcTWA, distance, MIN_BOAT_SEPARATION, normalizeAngle, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
 
-export type RaceGuidanceLeg = "start" | "return-start" | "windward" | "round-port" | "finish" | "complete";
+export type RaceGuidanceLeg = "start" | "return-start" | "windward" | "round-port" | "finish" | "complete" | "waypoint";
 export type RaceGuidanceAction = "hold" | "steer-port" | "steer-starboard" | "tack" | "gybe" | "return-start" | "round-port";
 export interface RaceGuidance {
   leg: RaceGuidanceLeg;
@@ -41,6 +41,14 @@ export function raceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number
       : boat.roundPhase === 1 ? { x: mark.pos.x - r, y: mark.pos.y - r }
         : { x: mark.pos.x - r, y: mark.pos.y + r };
   }
+  return guidanceToTarget(boat, target, windDir, closeHauled, leg);
+}
+
+/** Shared read-only heading and maneuver aid for an explicitly supplied
+ * target. Online callers use the server waypoint without reconstructing
+ * started/roundPhase or advancing any local course progress. */
+export function guidanceToTarget(boat: Pick<RaceBoat, "pos" | "heading">, target: Vec2, windDir: number,
+  closeHauled = 45, leg: RaceGuidanceLeg = "waypoint"): RaceGuidance {
   const direct = leg === "complete" ? boat.heading : bearing(boat.pos, target);
   const limit = Math.max(35, Math.min(60, Number.isFinite(closeHauled) ? closeHauled : 45));
   const targetInNoGo = leg !== "complete" && Math.abs(calcTWA(direct, windDir)) < limit;
@@ -60,6 +68,6 @@ export function raceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number
   if (leg === "return-start") action = "return-start";
   if (leg === "round-port" && action === "hold") action = "round-port";
   if (leg === "complete") action = "hold";
-  return { leg, action, target, distance: distance(boat.pos, target), bearing: direct, suggestedHeading: heading, turn,
+  return { leg, action, target: { ...target }, distance: distance(boat.pos, target), bearing: direct, suggestedHeading: heading, turn,
     targetInNoGo, tack: Math.abs(before) < 1 || Math.abs(before) > 179 ? null : before > 0 ? "starboard" : "port" };
 }

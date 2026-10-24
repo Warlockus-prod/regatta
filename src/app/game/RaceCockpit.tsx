@@ -28,7 +28,7 @@ function Toggle({ label, checked, onChange }: { label: string; checked: boolean;
 export function RaceCockpit(p: {
   children: ReactNode;
   prefs: RacePrefs; updatePrefs: (patch: Partial<RacePrefs>) => void;
-  rudder: number; setRudder: (v: number) => void; courseDelta: (v: number) => void;
+  rudder: number; setRudder: (v: number) => void; courseDelta: (v: number) => void; setCourse: (v: number) => void; targetHeading: number;
   trim: Controls; setTrim: (patch: Partial<Controls>) => void;
   heading: number; speed: number; twa: number; time: string; rank: number;
   rows: StandingRow[]; trimAdvice?: string; guidance: RaceGuidance | null; message?: string;
@@ -43,8 +43,9 @@ export function RaceCockpit(p: {
   const [tab, setTab] = useState<"helm" | "sails" | "fleet" | "settings">("helm");
   const mapping = helmMappingFor(controls, "boat");
   const pro = p.prefs.mode === "pro";
-  const helm = { mapping, value: mapping === "rudder" ? `${Math.round(p.rudder * 35)}°` : `${Math.round(p.heading)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
-    ariaNow: mapping === "rudder" ? p.rudder * 35 : p.heading, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
+  const course = p.autopilot ? p.targetHeading : p.heading;
+  const helm = { mapping, value: mapping === "rudder" ? `${Math.round(p.rudder * 35)}°` : `${Math.round(course)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
+    ariaNow: mapping === "rudder" ? p.rudder * 35 : course, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
     rudder: p.rudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
   const range = (label: string, value: number, change: (v: number) => void, min = 0, max = 1) => <label className={styles.range}><span>{label}<output>{Math.round(value * (max === 1 ? 100 : 1))}{max === 1 ? "%" : "°"}</output></span><input type="range" min={min} max={max} step={max === 1 ? .01 : 1} value={value} onChange={e => change(Number(e.target.value))} /></label>;
   return <div className={styles.cockpit} data-testid="race-cockpit">
@@ -69,11 +70,11 @@ export function RaceCockpit(p: {
         <div className={styles.panel}>
           {tab === "helm" && <>
             <div className={styles.controlHeading}><span>{pro ? c.pro : c.simple}</span><button type="button" aria-pressed={p.autopilot} onClick={p.onAutopilot}>{c.auto}</button></div>
-            {controls.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint layout="bottom" helm={helm} prefs={controls} labels={labels}
+            {controls.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint sheetKeysEnabled={false} layout="bottom" helm={helm} prefs={controls} labels={labels}
               main={pro ? { ease: 1 - p.trim.mainSheet, setEase: v => p.setTrim({ mainSheet: 1 - v }) } : null}
               jib={pro ? { ease: 1 - p.trim.jibSheet, setEase: v => p.setTrim({ jibSheet: 1 - v }) } : null}
               note={pro ? labels.wheelHint : c.simpleNote} /></div> : <div className={styles.sliders}>
-                {range(labels.rudder, p.rudder * 35, v => p.setRudder(v / 35), -35, 35)}
+                {mapping === "course" ? range(labels.course, course, p.setCourse, 0, 360) : range(labels.rudder, p.rudder * 35, v => p.setRudder(v / 35), -35, 35)}
                 {pro && range(labels.mainsheet, 1 - p.trim.mainSheet, v => p.setTrim({ mainSheet: 1 - v }))}
                 {pro && range(labels.jibsheet, 1 - p.trim.jibSheet, v => p.setTrim({ jibSheet: 1 - v }))}
               </div>}
@@ -84,9 +85,12 @@ export function RaceCockpit(p: {
             {range(c.reef, p.trim.reef, reef => p.setTrim({ reef }))}
             <p>{pro ? p.prefs.trimHints ? c.trimHint : c.proNote : c.simpleNote}</p>
           </div>}
-          {tab === "fleet" && <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id}><b>{i + 1}</b><span style={{ color: r.color }}>{r.name}</span>{r.isPlayer && <strong>●</strong>}</li>)}</ol>}
+          {tab === "fleet" && <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id}><b>{i + 1}</b><span style={{ color: r.color }}>{r.isPlayer ? c.you : r.name}</span>{r.isPlayer && <strong>●</strong>}</li>)}</ol>}
           {tab === "settings" && <div className={styles.options}>
-            <RaceModePicker prefs={p.prefs} update={p.updatePrefs} />
+            <div className={styles.modePicker}>
+              <strong>{pro ? c.pro : c.simple}</strong>
+              <p>{pro ? c.proNote : c.simpleNote}</p>
+            </div>
             <div className={styles.segmented} role="radiogroup" aria-label={labels.controlsTitle}>{(["wheels", "sliders"] as const).map(mode => <button key={mode} type="button" role="radio" aria-checked={controls.mode === mode} onClick={() => update({ mode })}>{labels[mode]}</button>)}</div>
             <div className={styles.segmented} role="radiogroup" aria-label={labels.helmSets}>{(["rudder", "course"] as const).map(m => <button key={m} type="button" role="radio" aria-checked={mapping === m} onClick={() => update({ helmMapping: { ...controls.helmMapping, boat: m } })}>{labels[m]}</button>)}</div>
             <Toggle label={labels.returnCenter} checked={controls.helmReturnToCenter} onChange={helmReturnToCenter => update({ helmReturnToCenter })} />

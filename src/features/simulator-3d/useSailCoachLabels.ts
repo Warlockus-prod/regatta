@@ -34,8 +34,8 @@ export function useSailCoachLabels() {
         good: tp('Хороший трим - оба паруса тянут', 'Well trimmed - both sails pulling', 'Dobry trym: oba żagle pracują', {
           es: 'Buen trimado: las dos velas tiran', fr: 'Bien réglé : les deux voiles portent', de: 'Gut getrimmt: beide Segel ziehen', it: 'Buona regolazione: entrambe le vele tirano',
         }),
-        reachOn: tp('Настрой под галфвинд', 'Trim for the reach', 'Wytrymuj żagle na półwiatr', {
-          es: 'Trima para el través', fr: 'Règle pour le travers', de: 'Für Halbwind trimmen', it: 'Regola per il traverso',
+        reachOn: tp('Настраивай шкоты небольшими шагами', 'Adjust the sheets in small steps', 'Reguluj szoty małymi krokami', {
+          es: 'Ajusta las escotas poco a poco', fr: 'Règle les écoutes par petits pas', de: 'Schoten schrittweise trimmen', it: 'Regola le scotte a piccoli passi',
         }),
         run: tp("Фордевинд: потрави гика-шкот и стаксель-шкот", "Running: ease the mainsheet and the jib sheet", "Fordewind: poluzuj szot grota i szot foka", {
           es: "En popa: lasca la escota de mayor y la de foque", fr: "Vent arrière : choque l'écoute de grand-voile et celle de foc", de: "Vorwind: Groß- und Fockschot fieren", it: "In poppa: lasca la scotta della randa e quella del fiocco",

@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "./race-physics";
-import { isNativeRace, postNativeRace, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
+import { isNativeRace, postNativeRace, postNativeRaceStarted, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
 
 function fixture(): NativeRaceSnapshot {
   const course = makeStandardCourse();
@@ -44,6 +44,17 @@ describe("native offline race boundary", () => {
     expect(postNativeRace(fixture())).toBe(true);
     expect(JSON.parse(postMessage.mock.calls[0][0])).toMatchObject({ type: "race-finished", race: { schema: 1, id: "race_123" } });
     expect(postNativeRace({ ...fixture(), totalBoats: 0 })).toBe(false);
+    expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+  it("posts bounded starts only inside the native host", () => {
+    const postMessage = vi.fn();
+    const race = { id: "race_123", mode: "pro" as const, difficulty: "easy" as const, windStrength: "light" as const, missionId: null };
+    expect(postNativeRaceStarted(race)).toBe(false);
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true, ReactNativeWebView: { postMessage } });
+    expect(postNativeRaceStarted(race)).toBe(true);
+    expect(JSON.parse(postMessage.mock.calls[0][0])).toEqual({ type: "race-started", ...race });
+    expect(postNativeRaceStarted({ ...race, id: "../unsafe" })).toBe(false);
+    expect(postNativeRaceStarted({ ...race, missionId: "x".repeat(101) })).toBe(false);
     expect(postMessage).toHaveBeenCalledTimes(1);
   });
 });

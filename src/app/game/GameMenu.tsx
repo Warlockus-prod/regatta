@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRaceCopy } from "./race-copy";
 import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
 import { RaceModePicker } from "./RaceCockpit";
@@ -31,8 +32,11 @@ export function GameMenu({
   openBriefing: () => void;
 }) {
   const { tp, tl } = useI18n();
+  const raceCopy = useRaceCopy();
   const [tab, setTab] = useState<MenuTab>('learn');
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
 
   // Wind-label helper used in several places in this menu.
   const windLabel = (w: 'light' | 'medium' | 'heavy') =>
@@ -128,14 +132,14 @@ export function GameMenu({
           title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
           subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
-            'Сложность, сила ветра, лодка - под тебя. Без конкретной цели.',
-            'Difficulty, wind, boat - all yours. No specific objective.',
-            'Poziom, siła wiatru, łódź - według ciebie. Bez konkretnego celu.',
+            'Выбирай сложность и ветер. Без конкретной задачи.',
+            'Choose difficulty and wind. No specific objective.',
+            'Wybierz poziom i wiatr. Bez konkretnego zadania.',
             {
-              es: 'Dificultad, viento, barco - a tu gusto. Sin un objetivo concreto.',
-              fr: 'Difficulté, vent, bateau - à ta guise. Sans objectif précis.',
-              de: 'Schwierigkeit, Wind, Boot - wie du willst. Ohne festes Ziel.',
-              it: 'Difficoltà, vento, barca - a tua scelta. Senza un obiettivo preciso.',
+              es: 'Elige dificultad y viento. Sin un objetivo concreto.',
+              fr: 'Choisis la difficulté et le vent. Sans objectif précis.',
+              de: 'Wähle Schwierigkeit und Wind. Ohne festes Ziel.',
+              it: 'Scegli difficoltà e vento. Senza un obiettivo preciso.',
             },
           )}
         />
@@ -279,26 +283,15 @@ export function GameMenu({
         <div className="card p-4 mb-5 space-y-4">
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo', { es: 'Izquierda', fr: 'Gauche', de: 'Links', it: 'Sinistra' })}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo', { es: 'Derecha', fr: 'Droite', de: 'Rechts', it: 'Destra' })}</span>
-              </div>
-              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na telefonie - przyciski na dole ekranu.', { es: 'En el móvil - botones en la parte inferior.', fr: 'Sur mobile - boutons en bas de l\'écran.', de: 'Auf dem Handy - Tasten unten am Bildschirm.', it: 'Su mobile - pulsanti in basso.' })}</div>
-            </div>
+            <p className="text-sm text-[var(--text-secondary)]">{racePrefs.mode === "pro" ? raceCopy.proNote : raceCopy.simpleNote}</p>
+            <p className="mt-2 text-xs text-[var(--text-muted)]">{tl({ ru: "← →: руль. В Pro Q/A: гика-шкот, W/S: стаксель-шкот.", en: "← →: helm. In Pro, Q/A: mainsheet; W/S: jib sheet.", pl: "← →: ster. W Pro Q/A: szot grota, W/S: szot foka.", es: "← →: timón. En Pro, Q/A: escota de mayor; W/S: escota de foque.", fr: "← → : barre. En Pro, Q/A : écoute de grand-voile ; W/S : écoute de foc.", de: "← →: Steuer. In Pro Q/A: Großschot, W/S: Fockschot.", it: "← →: timone. In Pro Q/A: scotta della randa, W/S: scotta del fiocco." })}</p>
           </div>
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
             <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
               <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start z dolnej pomarańczowej linii (tam jest też meta).', { es: 'Salida desde la línea naranja de abajo (también es la llegada).', fr: 'Départ depuis la ligne orange du bas (c\'est aussi l\'arrivée).', de: 'Start an der unteren orangen Linie (dort ist auch das Ziel).', it: 'Partenza dalla linea arancione in basso (è anche l\'arrivo).' })}</li>
               <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Tack your way up to the windward mark - the wind blows from the top.', 'Do znaku nawietrznego płyniesz halsami - wiatr wieje z góry.', { es: 'Subes a la baliza de barlovento dando bordos - el viento viene de arriba.', fr: 'Tu remontes vers la bouée au vent en louvoyant - le vent vient du haut.', de: 'Zur Luvtonne kreuzt du auf - der Wind kommt von oben.', it: 'Risali verso la boa di bolina bordeggiando - il vento arriva dall\'alto.' })}</li>
-              <li>{tp('Огибаешь знак (ближе 20 метров).', 'Round the mark (within 20 m).', 'Okrążasz znak (bliżej niż 20 m).', { es: 'Rodeas la baliza (a menos de 20 m).', fr: 'Tu vires la bouée (à moins de 20 m).', de: 'Du rundest die Bahnmarke (näher als 20 m).', it: 'Giri la boa (a meno di 20 m).' })}</li>
+              <li>{tp('Огибаешь знак, оставляя его по левому борту.', 'Round the mark, leaving it to port.', 'Okrążasz znak, zostawiając go po lewej burcie.', { es: 'Rodeas la baliza dejándola a babor.', fr: 'Tu contournes la bouée en la laissant à bâbord.', de: 'Du rundest die Tonne und lässt sie an Backbord.', it: 'Giri la boa lasciandola a sinistra.' })}</li>
               <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>

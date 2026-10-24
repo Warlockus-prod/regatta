@@ -37,9 +37,11 @@ import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { raceGuidance } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
-import { isNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, type NativeRaceSnapshot } from "@/lib/race-native";
+import { isNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
+import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
+import { linkedRaceSetup } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
@@ -64,11 +66,8 @@ interface Boat extends RaceBoat {
   pos: Vec2;
   heading: number;       // degrees, 0 = up (north), clockwise
   speed: number;         // knots (game units)
-  targetSpeed: number;
   isPlayer: boolean;
-  nextMarkIdx: number;   // index of next mark to round
   lapDone: number;       // 0: before start, 1: windward rounded, 2: finished
-  wake: Vec2[];
   finishTime?: number;
   speedMul: number;      // share of the force-model speed the boat makes (bots: difficulty, ADR-0007)
 }
@@ -134,6 +133,13 @@ interface Coaching {
   nextGoal?: string;
 }
 
+function recordSample(boat: Boat, t: number, windDir: number): LogSample {
+  return { t, x: Math.round(boat.pos.x), y: Math.round(boat.pos.y), heading: Math.round(boat.heading),
+    twa: Math.round(calcTWA(boat.heading, windDir)), speed: Math.round(boat.speed * 10) / 10, lap: boat.lapDone, windDir,
+    trim: boat.trim ? { mainSheet: boat.trim.mainSheet, jibSheet: boat.trim.jibSheet, reef: boat.trim.reef,
+      jibFurl: boat.trim.jibFurl, mainHoisted: boat.trim.mainHoisted !== false } : undefined };
+}
+
 // ============================================================================
 // CONSTANTS & CONFIG
 // ============================================================================
@@ -186,8 +192,7 @@ export default function GamePage() {
   const { venue } = useVenue();
   const langRef = useRef(lang);
   useEffect(() => { langRef.current = lang; }, [lang]);
-  // The map (2D) or the view from the boat (3D, src/features/race-3d). Both
-  // read the same race refs; in 3D the canvas keeps only the mini-map.
+  // The shared 3D scene reads the same live race refs as the controls.
   const { camera: raceCamera, setCamera: setRaceCamera } = useRaceView();
   const sceneFlags = useRaceSceneFlags();
   // The next renderer's frame rate, written straight into its readout (no re-render).
@@ -206,10 +211,12 @@ export default function GamePage() {
   }), [tl, lang]);
   const nativeRace = useSyncExternalStore(noSubscribe, isNativeRace, () => false);
   const { prefs: racePrefs, update: writeRacePrefs } = useRacePrefs();
+  const [lockedMode, setLockedMode] = useState<"simple" | "pro" | null>(null);
+  const playingPrefs = lockedMode === null ? racePrefs : { ...racePrefs, mode: lockedMode };
   const copy = useRaceCopy();
   const trimLabels = useSailCoachLabels();
   const copyRef = useRef(copy); copyRef.current = copy;
-  const racePrefsRef = useRef(racePrefs); racePrefsRef.current = racePrefs;
+  const racePrefsRef = useRef(playingPrefs); racePrefsRef.current = playingPrefs;
   const [rudder, setRudderState] = useState(0);
   const rudderRef = useRef(0);
   const [trim, setTrimState] = useState<Controls>(() => raceTrim({ mainHoisted: true }));
@@ -245,7 +252,6 @@ export default function GamePage() {
   const boatsRef = useRef<Boat[]>([]);
   const courseRef = useRef<Course>(makeCourse());
   const keysRef = useRef<Set<string>>(new Set());
-  const lastTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
 
   // Race log for AI coaching
@@ -275,6 +281,7 @@ export default function GamePage() {
   }, [toast]);
 
   // AI coaching state
+  const [coachingSource, setCoachingSource] = useState<"local" | "ai">("local");
   const [coaching, setCoaching] = useState<Coaching | null>(null);
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [coachingError, setCoachingError] = useState<string | null>(null);
@@ -304,18 +311,17 @@ export default function GamePage() {
   // Daily mode: read URL params and lock difficulty/wind
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const query = readRaceSearch();
-    const day = query.get('daily');
-    if (!day) return;
-    setDailyDay(day);
-    const d = query.get('difficulty');
-    const w = query.get('wind');
-    if (d === 'easy' || d === 'medium' || d === 'hard') setDifficulty(d);
-    if (w === 'light' || w === 'medium' || w === 'heavy') setWindStrength(w);
+    const setup = linkedRaceSetup(readRaceSearch());
+    if (!setup) return;
+    setDifficulty(setup.difficulty);
+    setWindStrength(setup.windStrength);
+    setSelectedMission(missions.find(m => m.id === setup.missionId) ?? null);
+    setDailyDay(setup.dailyDay);
   }, []);
 
   // Autopilot: holds a target heading; any input turns it off
   const [autopilotOn, setAutopilotOn] = useState(false);
+  const [targetHeading, setTargetHeading] = useState(0);
   const autopilotHeadingRef = useRef<number>(0);
   // Mirror autopilot state into a ref. The rAF game-loop effect closes over its
   // deps at setup ([gameState, difficulty]) and is intentionally NOT restarted
@@ -374,6 +380,7 @@ export default function GamePage() {
         { es: 'No has terminado', fr: 'Course non terminée', de: 'Nicht im Ziel', it: 'Regata non conclusa' }));
       return;
     }
+    const finishTime = player.finishTime;
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
     if (!effectiveNick) {
       setSaveState('prompting');
@@ -406,7 +413,7 @@ export default function GamePage() {
             difficulty,
             windStrength,
             missionId: selectedMission?.id ?? null,
-            finishTimeSec: player.finishTime,
+            finishTimeSec: finishTime + (ruleStateRef.current.penalties.player ?? 0),
             position: playerRank || null,
             totalBoats: results.length || null,
             tacks,
@@ -466,6 +473,8 @@ export default function GamePage() {
         windStrength,
         missionId: selectedMission?.id ?? null,
         finishTimeSec: player.finishTime,
+        mode: racePrefsRef.current.mode,
+        penaltySeconds: ruleStateRef.current.penalties.player ?? 0,
         samples: logSamplesRef.current,
         events: logEventsRef.current,
         course: courseRef.current,
@@ -481,6 +490,8 @@ export default function GamePage() {
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
   const initRace = useCallback((diff: Difficulty) => {
+    setLockedMode(null);
+    keysRef.current.clear();
     const cfg = DIFFICULTY_CONFIG[diff];
     const course = courseRef.current;
     const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
@@ -489,16 +500,13 @@ export default function GamePage() {
     // Player in the middle
     boats.push({
       id: 'player',
-      name: 'Ты',
+      name: copyRef.current.you,
       color: '#00d4ff',
       pos: { x: lineCenter.x, y: lineCenter.y + 30 },
       heading: 45,
       speed: 0,
-      targetSpeed: 0,
       isPlayer: true,
-      nextMarkIdx: 0,
       lapDone: 0,
-      wake: [],
       speedMul: 1,
     });
 
@@ -513,11 +521,8 @@ export default function GamePage() {
         pos: { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
         heading: t > 0 ? 315 : 45,
         speed: 0,
-        targetSpeed: 0,
         isPlayer: false,
-        nextMarkIdx: 0,
         lapDone: 0,
-        wake: [],
         speedMul: cfg.aiSpeedMul * (0.97 + Math.random() * 0.06), // difficulty, a little spread between bots
       });
     }
@@ -533,7 +538,7 @@ export default function GamePage() {
     nativeAttemptedRef.current = false; nativeSnapshotRef.current = null;
     setResults([]);
     setElapsed(0);
-    setCoaching(null);
+    setCoaching(null); setCoachingSource("local");
     setCoachingError(null);
     logSamplesRef.current = [];
     logEventsRef.current = [];
@@ -556,7 +561,7 @@ export default function GamePage() {
     // Look up the user's best for this (difficulty, wind) bucket so the
     // briefing can show a "Your best: 1:27" badge - small motivator without
     // being competitive about it.
-    setBestRecord(getBestRecord(difficulty, windStrength));
+    setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
     setIsNewRecord(false); // reset from any previous race
     // Persist the user's INTENT to localStorage so we can offer to resume
     // after a reload. We refresh on every phase transition so the saved
@@ -569,7 +574,7 @@ export default function GamePage() {
     });
     setResumeOffer(null);
     setGameState('briefing');
-  }, [difficulty, windStrength, selectedMission, initRace]);
+  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode]);
 
   const beginCountdown = useCallback(() => {
     saveRaceSetup({
@@ -578,9 +583,10 @@ export default function GamePage() {
       missionId: selectedMission?.id ?? null,
       phase: 'countdown',
     });
+    setLockedMode(racePrefs.mode);
     setCountdown(3);
     setGameState('countdown');
-  }, [difficulty, windStrength, selectedMission]);
+  }, [difficulty, windStrength, selectedMission, racePrefs.mode]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
 
@@ -589,8 +595,10 @@ export default function GamePage() {
     if (gameState !== 'countdown' || paused) return;
     if (countdown === 0) {
       playStart();
-      lastTimeRef.current = performance.now();
+      postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
       logEventsRef.current.push({ type: "start", t: 0 });
+      const player = boatsRef.current.find(b => b.isPlayer);
+      if (player) logSamplesRef.current.push(recordSample(player, 0, windDirRef.current));
       // Mark the saved setup as "racing" so a reload knows the user
       // was actively in a race, not just on the briefing page.
       saveRaceSetup({
@@ -611,22 +619,32 @@ export default function GamePage() {
   // Keyboard input
   // -----------------------------------------------------------------------
   useEffect(() => {
+    if (gameState !== "racing" && gameState !== "countdown") return;
     const onDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target?.closest("input,textarea,select,[contenteditable=true],[role=slider]") || e.metaKey || e.ctrlKey || e.altKey) return;
-      keysRef.current.add(e.key.toLowerCase());
-      if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(e.key.toLowerCase())) {
+      const key = e.key.toLowerCase();
+      const sheet = key === "q" || key === "a" ? "mainSheet" : key === "w" || key === "s" ? "jibSheet" : null;
+      if (sheet && racePrefsRef.current.mode === "pro") {
         e.preventDefault();
+        setTrim({ [sheet]: trimRef.current[sheet] + (key === "q" || key === "w" ? .05 : -.05) });
+        return;
       }
+      keysRef.current.add(key);
+      if (["arrowleft", "arrowright", "arrowup", "arrowdown", " "].includes(key)) e.preventDefault();
     };
     const onUp = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
-    window.addEventListener('keydown', onDown);
-    window.addEventListener('keyup', onUp);
+    const clear = () => keysRef.current.clear();
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", clear);
     return () => {
-      window.removeEventListener('keydown', onDown);
-      window.removeEventListener('keyup', onUp);
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", clear);
+      clear();
     };
-  }, []);
+  }, [gameState, setTrim]);
 
   // -----------------------------------------------------------------------
   // Game loop - also runs during countdown so boats can sail freely before
@@ -636,15 +654,11 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState !== 'racing' && gameState !== 'countdown') return;
     const isRacing = gameState === 'racing';
-    // Initialize lastTime for countdown when loop starts
-    if (lastTimeRef.current === 0 || gameState === 'countdown') {
-      lastTimeRef.current = performance.now();
-    }
-
+    const clock = createFixedClock();
+    let ended = false;
     const step = (now: number) => {
-      const dt = Math.max(0, Math.min(0.05, (now - lastTimeRef.current) / 1000));
-      lastTimeRef.current = now;
-      if (pausedRef.current || document.hidden) { rafRef.current = requestAnimationFrame(step); return; }
+      clock.advance(now, !pausedRef.current && !document.hidden, (dt) => {
+      if (ended) return;
       if (isRacing) raceClockRef.current += dt;
 
       const course = courseRef.current;
@@ -680,7 +694,6 @@ export default function GamePage() {
         stepBoat(boat, dt, windDirRef.current, windGustRef.current,
           boat.isPlayer ? { turn: turnInput, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : { turn: turnInput },
           { windStrengthMul: windStrengthRef.current, speedMul: boat.speedMul, steering: boat.isPlayer ? "responsive" : "legacy" });
-        boat.targetSpeed = boat.speed;
       }
       const checked = evaluateRaceRules(ruleStateRef.current, { boats, course, windDir: windDirRef.current, time: raceClockRef.current,
         racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
@@ -696,12 +709,6 @@ export default function GamePage() {
       // Re-process course progression after collision adjustments
       for (const boat of boats) {
         const prevPos = prevPositions.get(boat.id) ?? { ...boat.pos };
-
-        // --- Wake ---
-        if (boat.speed > 0.3) {
-          boat.wake.unshift({ ...boat.pos });
-          if (boat.wake.length > 30) boat.wake.pop();
-        }
 
         // Mark / finish detection only counts once the race is officially on.
         if (!isRacing) continue;
@@ -720,6 +727,7 @@ export default function GamePage() {
           playMarkRound();
         } else if (boat.isPlayer && event === "finish") {
           logEventsRef.current.push({ type: "finish", t: boat.finishTime! });
+          logSamplesRef.current.push(recordSample(boat, boat.finishTime!, windDirRef.current));
           playFinish();
         }
       }
@@ -729,17 +737,7 @@ export default function GamePage() {
       if (isRacing && playerBoat && playerBoat.lapDone < 2) {
         const t = raceClockRef.current;
         if (t - lastSampleTimeRef.current >= 0.5) {
-          logSamplesRef.current.push({
-            t,
-            x: Math.round(playerBoat.pos.x),
-            y: Math.round(playerBoat.pos.y),
-            heading: Math.round(playerBoat.heading),
-            twa: Math.round(calcTWA(playerBoat.heading, windDirRef.current)),
-            speed: Math.round(playerBoat.speed * 10) / 10,
-            lap: playerBoat.lapDone,
-            trim: playerBoat.trim ? { mainSheet: playerBoat.trim.mainSheet, jibSheet: playerBoat.trim.jibSheet, reef: playerBoat.trim.reef, jibFurl: playerBoat.trim.jibFurl, mainHoisted: playerBoat.trim.mainHoisted !== false } : undefined,
-            windDir: windDirRef.current,
-          });
+          logSamplesRef.current.push(recordSample(playerBoat, t, windDirRef.current));
           lastSampleTimeRef.current = t;
         }
         // No-go zone event
@@ -818,6 +816,7 @@ export default function GamePage() {
         const sorted = [...boats]
           .map((b) => ({ name: b.name, time: b.finishTime === undefined ? Infinity : b.finishTime + (ruleStateRef.current.penalties[b.id] ?? 0), color: b.color, isPlayer: b.isPlayer }))
           .sort((a, b) => a.time - b.time);
+        ended = true;
         setResults(sorted);
         setGameState('finished');
         // Race ended cleanly - drop the resume offer so the next reload
@@ -828,7 +827,7 @@ export default function GamePage() {
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
         if (player.finishTime != null) {
-          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime);
+          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
         }
@@ -839,7 +838,7 @@ export default function GamePage() {
           const noGoEntries = logEventsRef.current.filter((e) => e.type === 'no-go-entered').length;
           const topSpeed = logSamplesRef.current.reduce((m, s) => Math.max(m, s.speed), 0);
           const metrics: RaceMetrics = {
-            finishTimeSec: player.finishTime ?? null,
+            finishTimeSec: player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0),
             tackCount: tacks,
             noGoEntries,
             topSpeed,
@@ -876,7 +875,7 @@ export default function GamePage() {
           .then((r) => r.json())
           .then((data) => {
             if (data.coaching) {
-              setCoaching(data.coaching);
+              setCoaching(data.coaching); setCoachingSource(data.fallback ? "local" : "ai");
             } else {
               // Fall back to local rule-based analysis so the user still gets feedback
               const local = analyseRaceLocally(payload, lang);
@@ -896,7 +895,8 @@ export default function GamePage() {
         return;
       }
 
-      rafRef.current = requestAnimationFrame(step);
+      });
+      if (!ended) rafRef.current = requestAnimationFrame(step);
     };
 
     rafRef.current = requestAnimationFrame(step);
@@ -910,6 +910,7 @@ export default function GamePage() {
   // Reset
   // -----------------------------------------------------------------------
   const backToMenu = useCallback(() => {
+    setLockedMode(null);
     setGameState('menu');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   }, []);
@@ -922,12 +923,17 @@ export default function GamePage() {
     rudderRef.current = next; setRudderState(next);
     autopilotOnRef.current = false; setAutopilotOn(false);
   }, []);
+  const setCourse = useCallback((degrees: number) => {
+    const next = ((degrees % 360) + 360) % 360;
+    autopilotHeadingRef.current = next;
+    setTargetHeading(next);
+    rudderRef.current = 0; setRudderState(0);
+    autopilotOnRef.current = true; setAutopilotOn(true);
+  }, []);
   const courseDelta = useCallback((degrees: number) => {
     const player = boatsRef.current.find(b => b.isPlayer);
-    if (!player) return;
-    autopilotHeadingRef.current = ((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees + 360) % 360;
-    rudderRef.current = 0; setRudderState(0); autopilotOnRef.current = true; setAutopilotOn(true);
-  }, []);
+    if (player) setCourse((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees);
+  }, [setCourse]);
   const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); }, []);
   useEffect(() => {
     const hide = () => { if (document.hidden && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); } };
@@ -971,7 +977,10 @@ export default function GamePage() {
     }
     writeRacePrefs(patch);
   }, [writeRacePrefs, setTrim]);
-  const trimCoach = hudPlayer && racePrefs.mode === "pro" && racePrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
+  const trimCoach = hudPlayer && playingPrefs.mode === "pro" && playingPrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
+  useEffect(() => {
+    if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
+  }, [gameState, difficulty, windStrength, racePrefs.mode]);
   const guidance = hudPlayer && racePrefs.guidance ? raceGuidance(hudPlayer, courseRef.current, windDirRef.current) : null;
 
   // =====================================================================
@@ -1000,7 +1009,7 @@ export default function GamePage() {
               }
               setResumeOffer(null);
               initRace(resumeOffer.difficulty);
-              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength));
+              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, racePrefsRef.current.mode));
               setIsNewRecord(false);
               saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId, phase: "briefing" });
               setGameState("briefing");
@@ -1142,13 +1151,14 @@ export default function GamePage() {
   return (
     <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
       {(gameState === "countdown" || gameState === "racing") && (
-        <RaceCockpit prefs={racePrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta}
+        <RaceCockpit prefs={playingPrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta} setCourse={setCourse} targetHeading={targetHeading}
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
           camera={raceCamera} setCamera={setRaceCamera} paused={paused} onPause={togglePause} onExit={backToMenu}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
+            setTargetHeading(autopilotHeadingRef.current);
             rudderRef.current = 0; setRudderState(0);
             autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
           }} muted={muted} onSound={() => setMutedState(toggleMuted())} penalty={penalty}
@@ -1266,11 +1276,11 @@ export default function GamePage() {
             <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">🧭</span>
-                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('AI-тренер', 'AI coach', 'Trener AI',
+                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
                   { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' })}</div>
               </div>
               {/* Apple Review 2025 + EU AI Act: explicit AI-content disclosure. */}
-              <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
+              {coachingSource === "ai" && <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
                 {tp(
                   'Разбор сгенерирован языковой моделью OpenAI по твоему логу гонки. Может ошибаться. Подробности в ',
                   'Generated by an OpenAI language model from your race log. Can be wrong. Details in our ',
@@ -1284,7 +1294,7 @@ export default function GamePage() {
                 )}
                 <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatności',
                   { es: 'política de privacidad', fr: 'politique de confidentialité', de: 'Datenschutzerklärung', it: 'informativa sulla privacy' })}</a>.
-              </div>
+              </div>}
               {coachingLoading && <AnalyzingProgress />}
               {coachingError && !coaching && (
                 <div className="text-xs text-[var(--text-muted)] italic">{coachingError}</div>

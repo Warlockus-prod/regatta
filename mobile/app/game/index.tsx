@@ -12,7 +12,7 @@ import { saveNativeRace, raceHistoryResponse, raceHistoryFailure } from "../../s
 import { parseRaceStorageEntries, RACE_STORAGE_BRIDGE_SCRIPT, useRaceWebStorage } from "../../src/persistence/race-web-storage";
 import { setRaceMode, setShoreOn, setVenue } from "../../src/persistence/venue";
 import { VENUES, type VenueId } from "../../../src/data/venues/venues";
-import { validateNativeRace, type NativeRaceSnapshot } from "../../../src/lib/race-native";
+import { validateNativeRace, validateNativeRaceStarted, type NativeRaceSnapshot } from "../../../src/lib/race-native";
 import { isReviewPodium, recordReviewWin } from "../../src/review/review-prompt";
 import { AnalyticsEvent, useAnalytics } from "../../src/analytics";
 
@@ -24,6 +24,7 @@ export default function Game() {
   const router = useRouter();
   const analytics = useAnalytics();
   const reportedRaces = useRef(new Set<string>());
+  const startedRaces = useRef(new Set<string>());
   const params = useLocalSearchParams<Record<string, string | string[]>>();
   const storage = useRaceWebStorage();
   const persistStorage = storage.persist;
@@ -68,6 +69,16 @@ export default function Game() {
           void persistStorage({ "regatta.race.assists.v1": JSON.stringify({ guidance: value.guidance, trimHints: typeof value.trimHints === "boolean" ? value.trimHints : true, rules: value.rules, penalties: value.penalties }) }).catch(() => undefined);
         }
       }
+    } else if (data.type === "race-started") {
+      if (replayId || message.length > 1024) return;
+      const race = validateNativeRaceStarted(data);
+      if (!race || startedRaces.current.has(race.id)) return;
+      if (startedRaces.current.size >= 128) startedRaces.current.delete(startedRaces.current.values().next().value!);
+      startedRaces.current.add(race.id);
+      analytics.capture(AnalyticsEvent.RaceStarted, {
+        course: query.daily ? "daily" : "short", difficulty: race.difficulty,
+        mode: race.mode, wind_strength: race.windStrength, mission_id: race.missionId,
+      });
     } else if (data.type === "race-finished") {
       void saveNativeRace(data.race, lang, Boolean(query.daily))
         .then(record => {
@@ -86,7 +97,7 @@ export default function Game() {
         })
         .catch(error => inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable")));
     }
-  }, [lang, query.daily, router, persistStorage, analytics]);
+  }, [lang, query.daily, replayId, router, persistStorage, analytics]);
 
   const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
   if (!storage.ready || !replayReady) return <DarkSurface><Screen>
