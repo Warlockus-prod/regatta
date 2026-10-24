@@ -15,7 +15,7 @@ Giorno 3. Come funziona una vela: un'ala di bolina, un paracadute in poppa.
 Giorno 4. Virare di bordo e strambare: di prua e di poppa.
 Giorno 5. Bordeggiare e VMG: come risalire il vento e perché la linea retta non è la più veloce.
 Giorno 6. Regole semplici: chi deve dare la precedenza in acqua.
-Giorno 7. Mini-regata: tutto insieme, poi il coach IA analizza la tua regata.
+Giorno 7. Miniregata: tutto insieme, poi un coach locale analizza la tua regata.
 
 Il pulsante "Continua a imparare" nella schermata iniziale apre sempre il passo successivo.
 
@@ -27,7 +27,7 @@ SIMULATORI
 
 REGATA
 
-Corri un percorso breve contro bot di tre livelli oppure apri una regata multigiocatore con gli amici. Dopo l'arrivo un coach con IA analizza la tua regata e ti dice cosa migliorare.
+Regata in 3D contro i bot offline. In Semplice le vele si regolano da sole; in Pro gestisci le scotte manualmente. Un coach locale analizza il risultato. Il multiplayer con gli amici richiede una connessione.
 
 LA BARCA E LE REGOLE
 
@@ -37,10 +37,10 @@ LA BARCA E LE REGOLE
 - Prima settimana a bordo: cosa portare, cosa chiedere allo skipper, come aiutare l'equipaggio.
 - Checklist pre-regata: da spuntare la sera prima.
 
-PATENTI POLACCHE (IN POLACCO)
+PATENTI POLACCHE
 
-- Radio marina SRC: 324 domande ufficiali d'esame UKE e un simulatore vocale per chiamate MAYDAY e PAN-PAN.
-- Sternik motorowodny (patente polacca per imbarcazioni a motore): 879 domande d'esame, teoria e una simulazione d'esame completa di 75 domande in 90 minuti.
+- Radio marina SRC: 324 domande UKE con traduzioni per lo studio, teoria e pratica in sette lingue. Le frasi radio standard restano in inglese. Dalla versione 1.7.0, build 59, la voce usa un modello inglese locale disponibile; senza modello puoi verificare il testo offline.
+- Sternik motorowodny (in polacco): 879 domande d'esame, teoria e una simulazione d'esame completa di 75 domande in 90 minuti.
 
 PRIVACY
 

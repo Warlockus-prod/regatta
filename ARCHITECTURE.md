@@ -997,3 +997,5 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer, exact end-time scrubbing, camera and reserved playback controls.
 - A solo race captures its Simple/Pro classification at countdown start, independent of later preference changes in another tab. Sheet keyboard shortcuts are owned by the race across utility tabs; absolute course sliders set a target without accumulating render-delay errors.
 - Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.
+
+- Privacy/network copy distinguishes offline SRC device speech in build59 and later from earlier app builds and online website/sternik speech. AudioData remains declared for those online features; public/native/store descriptions share this boundary.

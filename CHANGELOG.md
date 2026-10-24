@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepared native candidate59 and aligned privacy/network descriptions in seven languages with local SRC speech, unavailable-model typed practice and the separate online sternik voice feature. No upload or submission is implied.
+
 - Shared replay links now open the same 3D yacht with recorded sails, wind, exact timestamps and training penalties. Fixed first-load wheel hints, duplicated desktop controls and course/keyboard settings that did not match their labels.
 
 - Unified the online race cockpit and wheel controls while retaining server-authoritative movement. Solo timing is identical at normal and slower display rates, Simple/Pro records are separate, and linked missions/daily races retain their declared conditions. Mode selection is fixed before starting; training penalties count toward time objectives.

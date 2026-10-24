@@ -15,7 +15,7 @@ Tag 3. Wie ein Segel funktioniert: am Wind ein Flügel, vor dem Wind ein Fallsch
 Tag 4. Wenden und Halsen: Drehung über den Bug und über das Heck.
 Tag 5. Kreuzen und VMG: wie du gegen den Wind vorankommst und warum der direkte Weg nicht der schnellste ist.
 Tag 6. Einfache Regeln: wer auf dem Wasser ausweicht.
-Tag 7. Mini-Regatta: alles zusammen, danach analysiert der KI-Coach dein Rennen.
+Tag 7. Minirennen: alles zusammen, danach wertet ein lokaler Coach dein Rennen aus.
 
 Der Button "Weiterlernen" auf dem Startbildschirm öffnet immer den nächsten Schritt.
 
@@ -27,7 +27,7 @@ SIMULATOREN
 
 RENNEN
 
-Segle einen kurzen Kurs gegen Bots in drei Stufen oder starte ein Mehrspieler-Rennen mit Freunden. Nach dem Ziel analysiert ein KI-Coach dein Rennen und sagt dir, was du verbessern kannst.
+Fahre offline ein 3D-Rennen gegen Bots. Im Modus Einfach trimmen sich die Segel selbst; in Profi bedienst du die Schoten manuell. Ein lokaler Coach wertet das Ergebnis aus. Mehrspieler mit Freunden benötigt eine Verbindung.
 
 BOOT UND REGELN
 
@@ -37,10 +37,10 @@ BOOT UND REGELN
 - Erste Woche an Bord: was du einpackst, was du den Skipper fragst, wie du der Crew hilfst.
 - Checkliste vor dem Rennen: am Abend vorher abhaken.
 
-POLNISCHE SCHEINE (AUF POLNISCH)
+POLNISCHE SCHEINE
 
-- SRC-Seefunk: 324 offizielle UKE-Prüfungsfragen und ein Sprachsimulator für MAYDAY- und PAN-PAN-Rufe.
-- Sternik motorowodny (polnischer Motorbootschein): 879 Prüfungsfragen, Theorie und eine komplette Probeprüfung mit 75 Fragen in 90 Minuten.
+- SRC-Seefunk: 324 UKE-Fragen mit Lernübersetzungen, Theorie und Praxis in sieben Sprachen. Standardfunksprüche bleiben Englisch. Ab Version 1.7.0, Build 59, nutzt die Erkennung ein verfügbares lokales Englischmodell; ohne Modell lässt sich eingegebener Text offline prüfen.
+- Sternik motorowodny (auf Polnisch): 879 Prüfungsfragen, Theorie und eine komplette Probeprüfung mit 75 Fragen in 90 Minuten.
 
 DATENSCHUTZ
 

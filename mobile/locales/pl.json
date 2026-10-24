@@ -1,4 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "Mikrofon jest używany w symulatorze radia SRC do oceny transmisji głosowych (MAYDAY, PAN-PAN) oraz w ćwiczeniu egzaminu ustnego na patent sternika motorowodnego do sprawdzania odpowiedzi ustnych. Nagranie służy wyłącznie do oceny i nie jest przechowywane.",
+  "NSMicrophoneUsageDescription": "Mikrofon służy do komunikatów VHF (MAYDAY, PAN-PAN) w kursie SRC i odpowiedzi ustnych na sternika. Wbudowany SRC rozpoznaje mowę na urządzeniu. Trening ustny sternika online wysyła nagranie przez nasz serwer do transkrypcji. Nagranie nie jest przechowywane.",
   "NSSpeechRecognitionUsageDescription": "Rozpoznawanie mowy zamienia Twoje wywołania VHF na tekst na tym urządzeniu podczas ćwiczeń SRC. Dźwięk nie jest wysyłany na serwer rozpoznawania ani zapisywany."
 }

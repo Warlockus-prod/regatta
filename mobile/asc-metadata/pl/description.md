@@ -10,9 +10,9 @@ STERNIK MOTOROWODNY
 
 SRC: ŚWIADECTWO OPERATORA RADIOTELEFONISTY VHF
 
-- 324 pytania z oficjalnej bazy UKE.
+- 324 pytania z bazy UKE z tłumaczeniami do nauki, teoria i praktyka w siedmiu językach. Standardowe komunikaty radiowe pozostają angielskie.
 - Symulator radiostacji z oceną głosu: ćwiczysz MAYDAY, PAN-PAN i SECURITE na głos.
-- Kurs działa także offline.
+- Od wersji 1.7.0, kompilacja 59, kurs rozpoznaje mowę dostępnym lokalnym modelem angielskim. Bez modelu sprawdzisz wpisany tekst offline.
 
 NAUKA ŻEGLARSTWA W 7 DNI
 
@@ -24,7 +24,7 @@ Dzień 3. Jak działa żagiel: skrzydło na kursach ostrych, spadochron na pełn
 Dzień 4. Zwrot przez sztag i zwrot przez rufę: dziobem i rufą przez linię wiatru.
 Dzień 5. Halsowanie i VMG: jak dopłynąć pod wiatr i dlaczego prosta droga nie jest najszybsza.
 Dzień 6. Proste zasady: kto komu ustępuje na wodzie.
-Dzień 7. Miniwyścig: wszystko razem, a potem trener AI analizuje Twój wyścig.
+Dzień 7. Miniwyścig: wszystko razem, a potem lokalny trener analizuje Twój wyścig.
 
 SYMULATORY NA PRAWDZIWEJ FIZYCE
 
@@ -36,7 +36,7 @@ Model jachtu opiera się na fizyce VPP, tej samej rodzinie obliczeń, której u�
 
 REGATY
 
-Ścigaj się z botami na trzech poziomach albo otwórz wyścig wieloosobowy i zaproś znajomych. Po mecie trener AI analizuje Twój wyścig i podpowiada, co poprawić.
+Ścigaj się z botami w 3D offline. W trybie Prosty żagle trymują się same, w Pro obsługujesz szoty ręcznie. Lokalny trener analizuje wynik. Multiplayer ze znajomymi wymaga połączenia.
 
 JACHT I PRZEPISY
 
@@ -53,6 +53,6 @@ Aplikacja ma charakter edukacyjny i nie jest oficjalnym narzędziem egzaminacyjn
 
 JĘZYKI
 
-Polski, angielski, niemiecki, hiszpański, francuski, włoski i rosyjski. Kursy na sternika motorowodnego i SRC są po polsku.
+Polski, angielski, niemiecki, hiszpański, francuski, włoski i rosyjski. SRC jest dostosowany do wszystkich siedmiu języków; kurs na sternika motorowodnego pozostaje po polsku.
 
 Otwórz pierwszą lekcję i do zobaczenia na starcie.

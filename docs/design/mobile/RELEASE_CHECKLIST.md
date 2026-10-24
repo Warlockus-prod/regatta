@@ -160,9 +160,12 @@ submitted:
    policy), `mobile/asc-metadata/PRIVACY_POLICY.md`, the privacy paragraph of
    every `mobile/asc-metadata/<locale>/description.md`, the Settings analytics
    and network texts and the review notes describe the same data and the same
-   scope of the analytics switch. That includes the voice answers (SRC radio
-   simulator and sternik oral exam practice, transcribed by OpenAI through our
-   server).
+   scope of the analytics switch. From app 1.7.0 build 59, bundled SRC recognition
+   must use an installed on-device English model, send no audio and persist no
+   audio file; an unavailable model leaves a clearly labelled typed content
+   check. Local solo race coaching sends no race log. Keep the separate online
+   website/older-app SRC and sternik oral paths described as OpenAI transcription
+   through our server. Do not remove AudioData while online sternik remains.
 5. The app version the policy texts name. They say that GeoIP is switched off
    and that the analytics switch also covers the course pages "from app
    versions newer than 1.6.4". The build being submitted must be such a

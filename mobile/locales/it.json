@@ -1,4 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "Il microfono viene usato nel simulatore radio SRC per valutare le tue chiamate vocali (MAYDAY, PAN-PAN) e nell'allenamento per l'esame orale sternik per verificare le tue risposte a voce. La registrazione serve solo alla valutazione e non viene conservata.",
+  "NSMicrophoneUsageDescription": "Il microfono serve per le chiamate VHF (MAYDAY, PAN-PAN) nel corso SRC e le risposte orali sternik. Il SRC integrato riconosce la voce sul dispositivo. La pratica orale sternik online invia la registrazione tramite il nostro server per trascriverla. La registrazione non viene conservata.",
   "NSSpeechRecognitionUsageDescription": "Il riconoscimento vocale trascrive le tue chiamate VHF su questo dispositivo per le esercitazioni SRC. L'audio non viene inviato a un server di riconoscimento né salvato."
 }

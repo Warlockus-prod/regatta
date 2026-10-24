@@ -1,4 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "Le micro sert dans le simulateur radio SRC à évaluer vos appels vocaux (MAYDAY, PAN-PAN) et dans l'entraînement à l'examen oral sternik à vérifier vos réponses orales. L'enregistrement sert uniquement à l'évaluation et n'est pas conservé.",
+  "NSMicrophoneUsageDescription": "Le microphone sert aux appels VHF (MAYDAY, PAN-PAN) du cours SRC et aux réponses orales sternik. Le SRC intégré reconnaît la parole sur l'appareil. La pratique orale sternik en ligne transmet l'enregistrement via notre serveur pour le transcrire. L'enregistrement n'est pas conservé.",
   "NSSpeechRecognitionUsageDescription": "La reconnaissance vocale transcrit vos appels VHF sur cet appareil pour les exercices SRC. L'audio n'est ni envoyé à un serveur de reconnaissance ni enregistré."
 }

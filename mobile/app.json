@@ -19,11 +19,11 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "57",
+      "buildNumber": "59",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
-        "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
+        "NSMicrophoneUsageDescription": "The microphone is used for VHF (MAYDAY, PAN-PAN) calls in SRC practice and spoken sternik answers. Bundled SRC recognizes speech on device. Online sternik practice sends the recording through our server for transcription. The recording is not stored.",
         "CFBundleDevelopmentRegion": "en",
         "CFBundleLocalizations": [
           "en",
@@ -119,7 +119,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 57,
+      "versionCode": 59,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"
@@ -149,7 +149,7 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
+          "microphonePermission": "The microphone is used for VHF (MAYDAY, PAN-PAN) calls in SRC practice and spoken sternik answers. Bundled SRC recognizes speech on device. Online sternik practice sends the recording through our server for transcription. The recording is not stored.",
           "speechRecognitionPermission": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
         }
       ],
