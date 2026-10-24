@@ -34,7 +34,8 @@
           "fr",
           "it"
         ],
-        "NSSpeechRecognitionUsageDescription": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
+        "NSSpeechRecognitionUsageDescription": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved.",
+        "NSPhotoLibraryUsageDescription": "Regatta does not request or use access to your personal photo library. This description is included because the built-in file reader also supports photo-library files."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,

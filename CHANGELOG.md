@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Fixed Apple import validation for the Expo file reader with an honest photo-library description in all seven languages. The app does not request access to personal photos. Web CI now runs native navigation adapter tests without installing Expo.
+
 - Added an explicit return from the fullscreen solo menu to the app race hub in seven languages. Candidate60 supersedes uploaded59 before Self distribution.
 
 - Fixed native exam cancellation so Stay keeps the active Sternik session and its exit button remains usable on repeated attempts. Trim advice now describes deployed sails correctly when one sail is furled. Screenshot publishing requires an explicit version and verifies new images before replacing selected old frames.

@@ -89,6 +89,8 @@ Never submit a build no one has looked at.
 - Note: the store binary itself is produced by `eas build --profile production`;
   XcodeBuildMCP is the local build/verify path so we never ship an unseen build.
 
+The base Info.plist and all seven InfoPlist.strings must contain the exact source microphone, speech-recognition and photo-library purposes. ExpoFileSystem links unused Photos APIs, so Apple still requires NSPhotoLibraryUsageDescription even though Regatta does not request photo access. After upload, inspect altool build-status using the delivery UUID and confirm ASC VALID; upload success alone is insufficient (build59 failed import90683).
+
 ### G3 - Codemagic: clear stuck submissions + build numbering   [one-time setup below]
 - Run Codemagic's `cancel_previous_submissions` to clear accumulated empty /
   pending ASC submissions (the pile-up that blocks a new one).

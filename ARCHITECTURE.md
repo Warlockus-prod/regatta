@@ -793,7 +793,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `next.config.ts` - конфиг Next 16: standalone-сборка, заголовки, ремаппинг.
 - `eslint.config.mjs` - правила ESLint (в CI пока advisory: 11 ошибок в общих веб-файлах на 2026-10-19).
 - `postcss.config.mjs` - подключение Tailwind v4 через PostCSS.
-- `vitest.config.ts` - конфиг unit-тестов.
+- `vitest.config.ts` - web unit tests use the complete root tsconfig as a string, including pure native adapters without requiring Expo in root-only CI.
 - `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью.
 - `Dockerfile` - образ веб-приложения (node alpine по digest, standalone); код принадлежит root, рантайм-пользователь 1001 пишет только в `/data` и `/app/.next/cache`.
 - `docker-compose.yml` - только локальная разработка (проект `regatta-local`): сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck. Прод его не использует (`ops/deploy/compose.yml`).
@@ -1085,3 +1085,5 @@ Installed course asset reading: SDK54 expo-file-system 19.0.23 File.text() check
 - `mobile/scripts/asc-upload-screenshots.test.mjs` - nine offline Node regressions covering explicit selection, dry-run, capacity, upload/processing failure, safe deletion order, concurrency and idempotent retry. Included by mobile test:release-tools/check.
 - `mobile/scripts/asc-upload-screenshots.mjs` now requires an explicit editable version and local screenshot manifest; dry-run is default. Only selected existing sets change, all new files must be COMPLETE with verified checksums before any old selected ID is removed. `mobile/asc-metadata/SCREENSHOTS.md` distinguishes historical source frames from current release captures.
 - Sternik native exam navigation uses React Navigation usePreventRemove, which prevents UIKit/native-stack dismissal as well as JS navigation; plain beforeRemove prevention is unsupported there. Stay retains the same exam and Exit dispatches the blocked action once.
+
+Native Apple purpose descriptions: `mobile/app.json` and all seven JSON files in `mobile/locales/` include microphone and on-device SRC transcription purposes plus NSPhotoLibraryUsageDescription. The latter covers unused Photos symbols linked by ExpoFileSystem legacy packaged-file support; Regatta does not request personal photo access. Verify base Info.plist and all seven InfoPlist.strings in the archive and exported IPA, because successful upload does not establish Apple import success.
