@@ -1,4 +1,5 @@
 import type { Vessel } from '@/app/radio/symulator/radioModel';
+import { DEFAULT_VENUE, type Venue, type VenueId } from '@/app/radio/symulator/venues';
 
 export const VOICE_KINDS = [
   'mayday-fire', 'mayday-mob', 'panpan-mob', 'panpan-engine',
@@ -15,7 +16,34 @@ export interface VoiceGradeInput {
   vessel: Vessel;
   positionSpoken: string;
   pob: number;
+  /** the run's venue (venues.ts): whose marina, VTS and coast station to expect */
+  venue?: Venue;
 }
+
+/**
+ * How each venue's stations come out of the transcriber. Deliberately the
+ * distinctive word, not the whole call: "Lymington Yacht Haven" may come back
+ * as "Lymington Haven", but nothing else in a radio check says "Lymington".
+ * The "x2" checks count these, so a single mention still fails.
+ */
+const MARINA_RE: Record<VenueId, RegExp> = {
+  gdansk: /marina gdynia/g,
+  solent: /lymington/g,
+  palma: /(?:real club nautico|club nautico|nautico de palma)/g,
+  bodrum: /milta/g,
+};
+const VTS_RE: Record<VenueId, RegExp> = {
+  gdansk: /(?:vts zatoka|zatoka gdansk|vts gdansk|traffic gdansk)/g,
+  solent: /(?:southampton vts|vts southampton)/g,
+  palma: /(?!)/g,
+  bodrum: /(?!)/g,
+};
+const COAST_RE: Record<VenueId, RegExp> = {
+  gdansk: /polish rescue radio/,
+  solent: /solent coast ?guard/,
+  palma: /palma radio/,
+  bodrum: /(?!)/,
+};
 
 export interface VoiceCheckResult {
   id: string;
@@ -113,17 +141,19 @@ function positionDigitsRe(digits: string): RegExp | null {
  */
 function exactPosition(text: string, positionSpoken: string): boolean {
   const tokens = normalizeRadioTranscript(positionSpoken).split(' ');
-  const north = tokens.indexOf('north');
-  const east = tokens.indexOf('east');
-  if (north < 2 || east < north + 3) return false;
-  const latDigits = tokens.slice(0, north).join('').replace(/[^0-9]/g, '');
-  const lonDigits = tokens.slice(north + 1, east).join('').replace(/[^0-9]/g, '');
+  // NORTH/SOUTH and EAST/WEST: the Solent is west of Greenwich
+  const latH = tokens.findIndex((t) => t === 'north' || t === 'south');
+  const lonH = tokens.findIndex((t) => t === 'east' || t === 'west');
+  if (latH < 2 || lonH < latH + 3) return false;
+  const latDigits = tokens.slice(0, latH).join('').replace(/[^0-9]/g, '');
+  const lonDigits = tokens.slice(latH + 1, lonH).join('').replace(/[^0-9]/g, '');
   const latRe = positionDigitsRe(latDigits);
   const lonRe = positionDigitsRe(lonDigits);
   if (!latRe || !lonRe) return false;
   // Bind each coordinate to its own hemisphere, in the transmitted position.
-  // Matching digit sequences anywhere could accept swapped values or MMSI digits.
-  const pattern = `\\b${latRe.source}${POS_FILLER}north\\s+(?:and\\s+)?${lonRe.source}${POS_FILLER}east\\b`;
+  // Matching digit sequences anywhere could accept swapped values or MMSI digits,
+  // and the wrong hemisphere word (WEST for EAST) is a wrong position.
+  const pattern = `\\b${latRe.source}${POS_FILLER}${tokens[latH]}\\s+(?:and\\s+)?${lonRe.source}${POS_FILLER}${tokens[lonH]}\\b`;
   return new RegExp(pattern).test(text);
 }
 
@@ -178,6 +208,11 @@ function buildChecks(input: VoiceGradeInput): Check[] {
     test: (t) => exactPob(t, input.pob),
   };
   const identity = commonIdentityChecks(input.vessel);
+  const venue = input.venue ?? DEFAULT_VENUE;
+  const marinaRe = MARINA_RE[venue.id];
+  const marinaOnce = new RegExp(marinaRe.source);
+  const vtsRe = VTS_RE[venue.id];
+  const marinaName = venue.marina?.call ?? 'MARINA';
 
   switch (input.kind) {
     case 'mayday-mob':
@@ -224,10 +259,10 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'radio-check':
       return [
-        { id: 'station', label: 'MARINA GDYNIA x2', test: (t) => count(t, /marina gdynia/g) >= 2 },
+        { id: 'station', label: `${marinaName} x2`, test: (t) => count(t, marinaRe) >= 2 },
         ...identity.slice(0, 2),
         { id: 'check', label: 'RADIO CHECK', test: (t) => /(radio check|how do you read)/.test(t) },
-        { id: 'order', label: 'kolejność: stacja -> THIS IS -> RADIO CHECK', test: (t) => ordered(t, [/marina gdynia/, /this is/, /(radio check|how do you read)/]) },
+        { id: 'order', label: 'kolejność: stacja -> THIS IS -> RADIO CHECK', test: (t) => ordered(t, [marinaOnce, /this is/, /(radio check|how do you read)/]) },
         { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
       ];
     case 'cancel-false':
@@ -241,10 +276,10 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'routine-marina':
       return [
-        { id: 'station', label: 'MARINA GDYNIA x2', test: (t) => count(t, /marina gdynia/g) >= 2 },
+        { id: 'station', label: `${marinaName} x2`, test: (t) => count(t, marinaRe) >= 2 },
         ...identity.slice(0, 2),
         { id: 'request', label: 'treść: prośba (miejsce/wejście/postój)', test: (t) => /(berth|mooring|moorage|slip|enter|entry|permission|space|place|water|fuel)/.test(t) },
-        { id: 'order', label: 'kolejność: stacja -> THIS IS -> prośba', test: (t) => ordered(t, [/marina gdynia/, /this is/, /(berth|mooring|enter|permission|space|place|water|fuel)/]) },
+        { id: 'order', label: 'kolejność: stacja -> THIS IS -> prośba', test: (t) => ordered(t, [marinaOnce, /this is/, /(berth|mooring|enter|permission|space|place|water|fuel)/]) },
         { id: 'over', label: 'OVER na końcu', test: (t) => /\bover$/.test(t) },
       ];
     case 'routine-ship':
@@ -264,7 +299,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
     case 'panpan-medico':
       return [
         { id: 'panpan3', label: 'PAN PAN x3', test: (t) => longestPanRun(t) >= 5 },
-        { id: 'allstations', label: 'ALL STATIONS x3 (lub stacja brzegowa)', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 || /(polish rescue radio|coast|radio medico)/.test(t) },
+        { id: 'allstations', label: 'ALL STATIONS x3 (lub stacja brzegowa)', test: (t) => count(t, /all (?:stations|ships)/g) >= 3 || COAST_RE[venue.id].test(t) || /(coast|radio medico)/.test(t) },
         ...identity, position,
         { id: 'medico', label: 'prośba o poradę/pomoc medyczną', test: (t) => /(medical|medico|doctor|injur|casualty|ambulance|unconscious|bleeding)/.test(t) },
         { id: 'order', label: 'kolejność: PAN PAN -> identyfikacja -> pozycja -> medyczne', test: (t) => ordered(t, [/pan\s?pan/, /this is/, /position/, /(medical|medico|doctor|injur|casualty)/]) },
@@ -272,7 +307,7 @@ function buildChecks(input: VoiceGradeInput): Check[] {
       ];
     case 'vts-report':
       return [
-        { id: 'station', label: 'VTS ZATOKA GDAŃSKA x2', test: (t) => count(t, /(vts zatoka|zatoka gdansk|vts gdansk|traffic gdansk)/g) >= 2 },
+        { id: 'station', label: `${venue.vts?.display ?? 'VTS'} x2`, test: (t) => count(t, vtsRe) >= 2 },
         ...identity.slice(0, 2), position,
         { id: 'report', label: 'meldunek (wejście/wyjście/kurs/zamiar)', test: (t) => /(inbound|outbound|proceeding|entering|leaving|departing|course|bound for|report)/.test(t) },
         { id: 'order', label: 'kolejność: VTS -> THIS IS -> pozycja', test: (t) => ordered(t, [/(vts|zatoka|traffic)/, /this is/, /position/]) },

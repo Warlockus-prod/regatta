@@ -8,20 +8,37 @@ import {
   type ReactNode,
 } from "react";
 
-type CourseLanguage = "pl" | "ru";
+// The offline course's stand-in for src/lib/i18n. The radio trainer runs in
+// all seven site languages (owner, 2026-10-24); the rest of the course is
+// Polish with a Russian aid, which SternikLangScope enforces per route, as on
+// the website.
+export type CourseLanguage = "pl" | "ru" | "en" | "es" | "fr" | "de" | "it";
+const LANGUAGES: readonly CourseLanguage[] = ["pl", "ru", "en", "es", "fr", "de", "it"];
+
+declare global {
+  interface Window {
+    /** the app's language, injected by OfflineRadioCourse before the page runs */
+    __REGATTA_APP_LANG__?: string;
+  }
+}
+
+type Extras = Partial<Record<CourseLanguage, string>>;
 
 interface I18nContextValue {
   lang: CourseLanguage;
   setLang: (lang: CourseLanguage) => void;
-  tp: (
-    ru: string,
-    en: string,
-    pl: string,
-    extra?: Record<string, string>,
-  ) => string;
+  tp: (ru: string, en: string, pl: string, extra?: Extras) => string;
 }
 
-const LANGUAGE_KEY = "regatta.radio.offline.lang.v1";
+// v2: an explicit choice in the course bar. The v1 key was written automatically
+// (PL for every non-Russian app) and would pin a German app to Polish.
+const LANGUAGE_KEY = "regatta.radio.offline.lang.v2";
+
+function pick(lang: CourseLanguage, ru: string, en: string, pl: string, extra?: Extras): string {
+  if (lang === "ru") return ru;
+  if (lang === "pl") return pl;
+  return extra?.[lang] ?? en;
+}
 
 const I18nContext = createContext<I18nContextValue>({
   lang: "pl",
@@ -29,21 +46,35 @@ const I18nContext = createContext<I18nContextValue>({
   tp: (_ru, _en, pl) => pl,
 });
 
+const isCourseLanguage = (value: unknown): value is CourseLanguage =>
+  typeof value === "string" && (LANGUAGES as readonly string[]).includes(value);
+
+/** The app's language, when the native wrapper told us. */
+export function appLanguage(): CourseLanguage | null {
+  const injected = window.__REGATTA_APP_LANG__;
+  return isCourseLanguage(injected) ? injected : null;
+}
+
 function storedLanguage(): CourseLanguage {
   try {
     const stored = window.localStorage.getItem(LANGUAGE_KEY);
-    if (stored === "ru" || stored === "pl") return stored;
+    if (isCourseLanguage(stored)) return stored;
   } catch {
     // The native wrapper restores localStorage when it is available.
   }
-  return navigator.language.toLowerCase().startsWith("ru") ? "ru" : "pl";
+  const fromApp = appLanguage();
+  if (fromApp) return fromApp;
+  const device = navigator.language.toLowerCase().slice(0, 2);
+  return isCourseLanguage(device) ? device : "pl";
 }
 
 export function OfflineI18nProvider({ children }: { children: ReactNode }) {
   const [lang, setLanguage] = useState<CourseLanguage>("pl");
 
   useEffect(() => {
-    setLanguage(storedLanguage());
+    const initial = storedLanguage();
+    setLanguage(initial);
+    document.documentElement.lang = initial;
   }, []);
 
   const setLang = useCallback((next: CourseLanguage) => {
@@ -59,7 +90,7 @@ export function OfflineI18nProvider({ children }: { children: ReactNode }) {
   const value = useMemo<I18nContextValue>(() => ({
     lang,
     setLang,
-    tp: (ru, _en, pl) => (lang === "ru" ? ru : pl),
+    tp: (ru, en, pl, extra) => pick(lang, ru, en, pl, extra),
   }), [lang, setLang]);
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
@@ -76,7 +107,7 @@ export function I18nScope({
   const value = useMemo<I18nContextValue>(() => ({
     ...parent,
     lang,
-    tp: (ru, _en, pl) => (lang === "ru" ? ru : pl),
+    tp: (ru, en, pl, extra) => pick(lang, ru, en, pl, extra),
   }), [lang, parent]);
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>;
 }

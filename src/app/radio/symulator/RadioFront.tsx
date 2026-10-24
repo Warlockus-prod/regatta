@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Share_Tech_Mono } from 'next/font/google';
-import { useI18n } from '@/lib/i18n';
+import { useTrainerI18n } from './trainerText';
 import {
   DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
   channel, dscFieldValues, effectivePower, menuItems, otherDscRows, radioProfile, softkeys,
@@ -555,8 +555,8 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
         body = (
           <>
             <LcdLine big>RCVD DTRS ACK</LcdLine>
-            <LcdLine>FROM: 002618102</LcdLine>
-            <LcdLine>POLISH RESCUE RADIO</LcdLine>
+            <LcdLine>FROM: {s.coast?.mmsi ?? '---'}</LcdLine>
+            <LcdLine>{s.coast?.label ?? 'COAST STATION'}</LcdLine>
             <LcdLine color={LCD_ALERT}>{'♪'} ALARM {'♪'}</LcdLine>
           </>
         );
@@ -819,7 +819,7 @@ export default function RadioFront({
   highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
   compact = false,
 }: Props) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
 

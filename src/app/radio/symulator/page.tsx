@@ -2,7 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useI18n } from '@/lib/i18n';
 import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
@@ -17,13 +16,15 @@ import { record as recordWeak } from '../weakSpots';
 import { hintFor } from './hints';
 import { radioRuntimeSearch } from '../runtimeSearch';
 import {
-  CHANNELS, DEFAULT_VARIANT, POSITION_POOL, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
+  CHANNELS, DEFAULT_VARIANT, VESSEL_POOL, createInitialRadio, radioProfile, radioReducer,
   type RadioEvent, type RadioModel, type RadioState, type Variant,
 } from './radioModel';
 import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios';
 import { trackRadioTaskComplete } from '@/lib/funnel';
 import { InspectToggle, PanelSection, RadioWorkspace, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
+import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
+import { checkLabel, trainerText, useTrainerI18n } from './trainerText';
 
 const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE', 6: 'SIX' };
 
@@ -67,17 +68,25 @@ function saveProgress(p: ProgressMap) {
 }
 
 export default function RadioSimulatorPage() {
-  const { tp, lang } = useI18n();
+  const { tp, lang } = useTrainerI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
   const skin = radioRealistic ? 'amber' : 'green';
-  // Language policy: RU commentary only when the RU site user allows it.
+  // Language policy (owner, 2026-10-24: the trainer in all 7 languages): the
+  // site language; on the RU site the PL / RU / both choice still applies.
   const showRu = lang === 'ru' && explLang !== 'pl';
-  const showPl = explLang !== 'ru' || lang !== 'ru';
+  const showPl = lang !== 'ru' || explLang !== 'ru';
+  // The run's venue fills the place-holders ({marina}, {marinaCh}, ...); read
+  // through a ref so `bi` keeps its identity across runs (dispatch depends on it).
+  const venueRef = useRef(venueById(null));
   const bi = useCallback((b: Bi) => {
-    if (showRu && showPl) return `${b.ru} · ${b.pl}`;
-    if (showRu) return b.ru;
-    return b.pl;
-  }, [showRu, showPl]);
+    const venue = venueRef.current;
+    if (lang !== 'ru' && lang !== 'pl') return fillPlace(trainerText(b.pl, lang), venue, lang);
+    const pl = fillPlace(b.pl, venue, 'pl');
+    const ru = fillPlace(b.ru, venue, 'ru');
+    if (showRu && showPl) return `${ru} · ${pl}`;
+    if (showRu) return ru;
+    return pl;
+  }, [lang, showRu, showPl]);
 
   // --- radio state (imperative ref + render tick: avoids StrictMode double
   // side-effects that a reducer-with-effects would suffer) -------------------
@@ -102,8 +111,10 @@ export default function RadioSimulatorPage() {
   const voicePttRef = useRef<VoicePttHandle | null>(null);
   const [progress, setProgress] = useState<ProgressMap>({});
   const [onboardStep, setOnboardStep] = useState<number | null>(null);
-  /** randomized per-run scenario variant: vessel identity, position, POB. */
-  const [variant, setVariant] = useState<Variant>(DEFAULT_VARIANT);
+  /** randomized per-run scenario variant: venue, vessel identity, position, POB. */
+  const [variant, setVariant] = useState<Variant & { venueId: VenueId }>({ ...DEFAULT_VARIANT, venueId: 'gdansk' });
+  const venue = venueById(variant.venueId);
+  venueRef.current = venue;
   /** faceplate model (both UKE sets); DSC procedures follow the M330 manual. */
   const [model, setModel] = useState<RadioModel>('M330');
   /** Deep-linked scenarios must wait until the saved hardware model is loaded,
@@ -145,11 +156,13 @@ export default function RadioSimulatorPage() {
   }, []);
   /** the scenario's work screen: pinned radio, scrolling task panel */
   const { stacked, compact } = useRadioWorkspace(scenario !== null, radioRealistic);
+  const position = venue.positions[variant.posIdx] ?? venue.positions[0];
   const variantData: VariantData = {
     vessel: VESSEL_POOL[variant.vesselIdx],
-    posSpoken: POSITION_POOL[variant.posIdx].spoken,
+    posSpoken: position.spoken,
     pobWord: POB_WORDS[variant.pob] ?? 'FOUR',
     pob: variant.pob,
+    venue,
   };
 
   // hydrate progress + onboarding
@@ -211,12 +224,12 @@ export default function RadioSimulatorPage() {
       // pressed on a dead radio is not graded as a procedure error
       if (prev.power || next.power) {
         for (const m of sc.mistakes) {
-          if (m.detect(e, prev, next, doneRef.current)) {
+          if (m.detect(e, prev, next, doneRef.current, { venue: venueRef.current })) {
             // Record the weak spot outside the state updater: an updater must be
             // pure, and StrictMode runs it twice, which double-counted the miss.
             if (!weakedRef.current.has(m.id)) {
               weakedRef.current.add(m.id);
-              recordWeak('procedure', [{ id: m.id, label: m.text.pl }]);
+              recordWeak('procedure', [{ id: m.id, label: fillPlace(m.text.pl, venueRef.current, 'pl') }]);
             }
             setMistakes((ms) => (ms.some((x) => x.id === m.id) ? ms : [...ms, { id: m.id, text: m.text }]));
             // exam integrity: no live mistake feedback in exam mode - it all
@@ -228,7 +241,7 @@ export default function RadioSimulatorPage() {
       // current step check (skip if already satisfied - voice phase pending)
       const idx = stepIdxRef.current;
       const step = sc.steps[idx];
-      if (step && !doneRef.current.has(step.id) && step.check(e, prev, next)) {
+      if (step && !doneRef.current.has(step.id) && step.check(e, prev, next, { venue: venueRef.current })) {
         doneRef.current.add(step.id);
         if (!isExam) setPageLog((l) => [...l, { t: Date.now(), text: `✓ ${bi(step.todo)}`, kind: 'step' }]);
         if (step.voice) {
@@ -431,20 +444,25 @@ export default function RadioSimulatorPage() {
 
   // --- scenario control -------------------------------------------------------
   const startScenario = useCallback((sc: Scenario, m: Mode) => {
-    // "AI examiner" variability: every run draws a fresh vessel identity,
-    // position and crew size - the voice checklists adapt server-side.
-    const v: Variant = {
+    // "AI examiner" variability: every run draws a fresh venue (among those
+    // that have what the scenario needs), vessel identity, position and crew
+    // size - the voice checklists adapt server-side.
+    const places = venuesFor(sc.needs);
+    const runVenue = places[Math.floor(Math.random() * places.length)];
+    const v = {
+      venueId: runVenue.id,
       vesselIdx: Math.floor(Math.random() * VESSEL_POOL.length),
-      posIdx: Math.floor(Math.random() * POSITION_POOL.length),
+      posIdx: Math.floor(Math.random() * runVenue.positions.length),
       pob: 2 + Math.floor(Math.random() * 5),
     };
     setVariant(v);
+    venueRef.current = runVenue;
     const vessel = VESSEL_POOL[v.vesselIdx];
-    const posDef = POSITION_POOL[v.posIdx];
+    const posDef = runVenue.positions[v.posIdx];
     const initial = createInitialRadio(model, vessel, { lat: posDef.lat, lon: posDef.lon });
-    rsRef.current = sc.init
-      ? { ...initial, ...sc.init(vessel), model, vessel, pos: { lat: posDef.lat, lon: posDef.lon } }
-      : initial;
+    rsRef.current = placeRadio(sc.init
+      ? { ...initial, ...sc.init(vessel, runVenue), model, vessel, pos: { lat: posDef.lat, lon: posDef.lon } }
+      : initial, runVenue);
     doneRef.current = new Set();
     weakedRef.current = new Set();
     setScenario(sc);
@@ -508,7 +526,7 @@ export default function RadioSimulatorPage() {
     if (r) {
       pushLog(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${r.transcript.trim()}"`, 'tx');
       for (const c of r.checks.filter((x) => !x.ok)) {
-        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${c.label}`, 'bad');
+        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${checkLabel(c.label, lang)}`, 'bad');
       }
       // remember it: a thing failed eight times is a pattern, not eight incidents
       recordWeak(
@@ -529,10 +547,10 @@ export default function RadioSimulatorPage() {
       // "say again", "what is your position, over" - the same as real life.
       const line = kind
         ? (r.score >= 40
-            ? stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name)
+            ? stationReply(kind, VESSEL_POOL[variantRef.current.vesselIdx].name, venueRef.current)
             : pickReaction(
                 r.checks.filter((c) => !c.ok).map((c) => c.id),
-                { distress: /mayday|pan|securite/.test(kind), unreadable: !r.transcript.trim() },
+                { distress: /mayday|pan|securite/.test(kind), unreadable: !r.transcript.trim(), station: venueRef.current.coast?.call },
               ))
         : null;
       if (line) {
@@ -558,7 +576,7 @@ export default function RadioSimulatorPage() {
 
     if (idx + 1 >= sc.steps.length) setFinishedAt(Date.now());
     else setStepIdx(idx + 1);
-  }, [pushLog, tp]);
+  }, [lang, pushLog, tp]);
 
   // score + persistence on finish
   const doneCount = scenario ? scenario.steps.filter((s) => doneRef.current.has(s.id)).length : 0;
@@ -765,7 +783,7 @@ export default function RadioSimulatorPage() {
                           <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{bi(sc.title)}</span>
                           {tasks.length > 0 && (
                             <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                              {tp('зад. UKE', 'UKE tasks', 'zad. UKE')} {tasks.join(', ')}
+                              {tasks.length === 1 ? tp('зад. UKE', 'UKE task', 'zad. UKE') : tp('зад. UKE', 'UKE tasks', 'zad. UKE')} {tasks.join(', ')}
                             </span>
                           )}
                         </span>
@@ -1030,6 +1048,7 @@ export default function RadioSimulatorPage() {
                       lines={currentStep.voice.lines(variantData)}
                       vesselIdx={variant.vesselIdx}
                       positionIdx={variant.posIdx}
+                      venue={variant.venueId}
                       pob={variant.pob}
                       ru={showRu}
                       hideScript={!learning}
@@ -1051,11 +1070,12 @@ export default function RadioSimulatorPage() {
               >
                 <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{bi(scenario.brief)}</p>
                 <div data-testid="variant-card" className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-xl px-3 py-2 font-mono text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
+                  <span data-testid="variant-area">📍 {venue.area[lang]}</span>
                   <span>⛵ {variantData.vessel.name}</span>
                   <span>MMSI {variantData.vessel.mmsi}</span>
                   <span>{variantData.vessel.call}</span>
                   <span>POB {variantData.pob}</span>
-                  <span>{POSITION_POOL[variant.posIdx].lat} {POSITION_POOL[variant.posIdx].lon}</span>
+                  <span>{position.lat} {position.lon}</span>
                 </div>
               </PanelSection>
 

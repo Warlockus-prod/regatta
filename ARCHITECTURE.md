@@ -271,8 +271,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/og/result/route.tsx` - OG-картинка результата гонки.
 - `src/app/api/radio-tts/route.ts` - синтез радиофраз (fallback, когда нет статического mp3).
 - `src/app/api/radio-transcribe/route.ts` - распознавание речи для голосовых упражнений.
-- `src/app/api/radio-voice/route.ts` - прием записи, транскрипция и оценка передачи.
-- `src/app/api/radio-voice/voiceGrading.ts` - чистая оценка радиопередачи по ключевым элементам.
+- `src/app/api/radio-voice/route.ts` - прием записи, транскрипция и оценка передачи; поле `venue` выбирает акваторию (позиции, марина, VTS, береговая станция в подсказке распознаванию), без него Гданьский залив.
+- `src/app/api/radio-voice/voiceGrading.ts` - чистая оценка радиопередачи по ключевым элементам; станции акватории (марина и VTS дважды, береговая станция) и позиции N/S, E/W, неверное полушарие не проходит.
 - `src/app/api/radio-voice/voiceGrading.test.ts` - тесты грейдера: обратный порядок слов не должен проходить.
 - `src/app/api/ai-routes.limits.test.ts` - контракт шести ИИ-роутов (coach, ai-chat, sternik-chat, radio-tts, radio-voice, radio-transcribe): ротация cookie на одном IP пропускает ровно лимит x3, отказ не вызывает OpenAI, часовой отказ не тратит дневной бюджет, исчерпанный дневной бюджет дает дневной ответ.
 
@@ -312,12 +312,18 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/radio/symulator/practiceMenu.ts` - группы списка Практики и номера заданий UKE для каждого сценария (из `zadania/tasks.ts`).
 - `src/app/radio/symulator/practiceMenu.test.ts` - каждый сценарий в списке ровно один раз, ни одно задание UKE со сценарием не потеряно.
 - `src/app/radio/symulator/RadioFront.tsx` - передняя панель станции; `compact` укладывает те же органы управления примерно в 450px высоты (три ряда клавиш, DISTRESS и PTT рядом), чтобы рация помещалась над панелью задания на телефоне.
-- `src/app/radio/symulator/radioModel.ts` - чистый конечный автомат станции по мануалам ICOM.
+- `src/app/radio/symulator/radioModel.ts` - чистый конечный автомат станции по мануалам ICOM; береговая станция (`coast`) и подписи рабочих каналов (`channelLabels`) лежат в состоянии, по умолчанию Гданьский залив.
 - `src/app/radio/symulator/radioModel.test.ts` - тесты автомата станции.
-- `src/app/radio/symulator/scenarios.ts` - сценарии тренировки: что нажать и что сказать.
+- `src/app/radio/symulator/scenarios.ts` - сценарии тренировки: что нажать и что сказать; `needs` (береговая станция, марина, VTS) выбирает подходящие акватории, тексты несут подстановки `{marina}`, `{marinaCh}`, `{marinaNote}`, `{vts}`, `{vtsCh}`, `{coast}`, `{area}`, проверки шагов получают акваторию.
+- `src/app/radio/symulator/venues.ts` - акватории прогона (решение владельца 2026-10-24): Гданьский залив, Солент, бухта Пальма, Бодрум; только проверенные станции, MMSI и каналы, источники в шапке файла; Бодрум без береговой станции. `placeRadio`, `fillPlace`, `venuesFor`.
+- `src/app/radio/symulator/venues.test.ts` - эталонная передача каждого сценария проходит грейдер в каждой своей акватории, чужая марина и неверное полушарие не проходят, данные и подстановки.
+- `src/app/radio/symulator/trainerText.ts` - тренажер на 7 языках: тексты PL / RU в данных, EN / ES / FR / DE / IT в словарях по польскому исходнику, интерфейс через `useTrainerI18n` (tp плюс ES / FR / DE / IT по английской строке), подписи грейдера `checkLabel`.
+- `src/app/radio/symulator/trainerText.test.ts` - каждый текст сценариев, Rozbiór и грейдера и каждая строка интерфейса переведены на все языки, подстановки, клавиши и радиофразы целы, нет запрещенной типографики.
+- `src/app/radio/symulator/i18n/en.json`, `src/app/radio/symulator/i18n/es.json`, `src/app/radio/symulator/i18n/fr.json`, `src/app/radio/symulator/i18n/de.json`, `src/app/radio/symulator/i18n/it.json` - переводы текстов тренажера (сценарии, Rozbiór, пункты грейдера), ключ - польский исходник.
+- `src/app/radio/symulator/i18n/ui.es.json`, `src/app/radio/symulator/i18n/ui.fr.json`, `src/app/radio/symulator/i18n/ui.de.json`, `src/app/radio/symulator/i18n/ui.it.json` - строки интерфейса тренажера на ES / FR / DE / IT, ключ - английская строка.
 - `src/app/radio/symulator/scenarios.test.ts` - тесты сценариев.
 - `src/app/radio/symulator/radioTraffic.ts` - кто в эфире, на каком канале и с какой силой.
-- `src/app/radio/symulator/stationReply.ts` - правильный ответ береговой станции.
+- `src/app/radio/symulator/stationReply.ts` - правильный ответ станции акватории (береговая, марина, VTS) и ее рабочий канал.
 - `src/app/radio/symulator/stationReaction.ts` - реакция на неверную или неразборчивую передачу.
 - `src/app/radio/symulator/stationReaction.test.ts` - тесты реакций станции.
 - `src/app/radio/symulator/hints.ts` - подсказки по шагам сценария.
@@ -358,7 +364,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/sternik/analysis.ts` - персональный разбор: слабые категории из прогресса.
 - `src/app/sternik/PersonalReport.tsx` - отчет по ошибкам.
 - `src/app/sternik/QuestionFigure.tsx` - рисунки к вопросам (знаки, огни, ситуации).
-- `src/app/sternik/prefs.tsx` - настройки курса, читаются в эффекте плюс флаг `prefsLoaded`.
+- `src/app/sternik/prefs.tsx` - настройки курса, читаются в эффекте плюс флаг `prefsLoaded`; `SternikLangScope` держит раздел на PL / RU, кроме маршрутов тренажера рации (`RADIO_TRAINER_PATHS`), которые идут на языке сайта.
 - `src/app/sternik/plOnly.ts` - политика языка: экзаменационный контент только по-польски.
 - `src/app/sternik/useFocusTrap.ts` - фокус-ловушка для модальных окон.
 - `src/app/sternik/SternikChat.tsx` - ИИ-разбор вопроса, ходит в `/api/sternik-chat`.
@@ -943,4 +949,4 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `MEMORY.md` | банк sternik 148 вопросов | 879 вопросов в `src/data/sternik.ts` |
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
 | `ARCHITECTURE.md` (до 2026-10-24) | `src/app/radio/runtimeSearch.ts` - поиск по материалам курса | функция отдает строку запроса страницы (на сайте `location.search`, в офлайн-бандле адрес встроенного роутера); поиска по курсу в ней нет |
-| `AGENTS.md` (до 2026-10-24) | курс SRC только на польском, не адаптируется | решение владельца 2026-10-24: курс можно переводить на все 7 языков; первым следующим PR идет тренажер рации со случайными акваториями, теория и банк 324 вопросов позже |
+| `AGENTS.md` (до 2026-10-24) | курс SRC только на польском, не адаптируется | решение владельца 2026-10-24: курс можно переводить на все 7 языков; тренажер рации уже на 7 языках со случайными акваториями, теория, уроки, разговор и банк 324 вопросов пока PL / RU |

@@ -1,7 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { usePathname } from 'next/navigation';
 import { I18nScope, useI18n } from '@/lib/i18n';
+import { useTrainerI18n } from '../radio/symulator/trainerText';
 import type { RadioModel } from '../radio/symulator/radioModel';
 
 // ============================================================================
@@ -106,17 +108,24 @@ export function useSternikPrefs(): Ctx {
   return useContext(PrefsContext);
 }
 
+/** Radio trainer routes: they run in the site language (owner, 2026-10-24: the
+ *  radio procedures are an international standard, worth practising in any
+ *  language). The theory, the UKE question bank and the rest stay PL / RU. */
+export const RADIO_TRAINER_PATHS: readonly string[] = ['/radio/symulator'];
+
 /**
  * The motorowodny section (sternik + radio) exists only in Polish (the exam
  * language, and the default) and Russian (an opt-in aid). Any other site
  * language is rendered in Polish rather than a half-translated mix - there is
  * no EN/ES/FR/DE/IT version of a Polish licence exam. This forces the section's
  * effective language to PL for every non-RU visitor; the global language picker
- * (outside the section) still switches the real site language.
+ * (outside the section) still switches the real site language. The one
+ * exception is the radio trainer (RADIO_TRAINER_PATHS), which is translated.
  */
 export function SternikLangScope({ children }: { children: ReactNode }) {
   const { lang } = useI18n();
-  const scope = lang === 'ru' ? 'ru' : 'pl';
+  const pathname = usePathname();
+  const scope = RADIO_TRAINER_PATHS.includes(pathname ?? '') ? lang : lang === 'ru' ? 'ru' : 'pl';
   // The DOM says it too (WCAG 3.1.2): <html lang> is the site language, so on
   // the EN/DE/... site a screen reader would read this Polish course with an
   // English voice. display:contents keeps the wrapper out of the layout. On the
@@ -181,7 +190,8 @@ export function ExplLangToggle() {
  *  The two model buttons clear realistic; the third turns it on. */
 export function RadioVariantToggle({ model, onModel }: { model: RadioModel; onModel: (m: RadioModel) => void }) {
   const { radioRealistic, setRadioRealistic } = useSternikPrefs();
-  const { tp } = useI18n();
+  // shown in the radio trainer, which runs in all seven site languages
+  const { tp } = useTrainerI18n();
   const on = { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' } as const;
   const off = { background: 'var(--bg-card)', color: 'var(--text-secondary)' } as const;
   const cls = 'flex min-h-[44px] items-center gap-1.5 px-3 text-sm font-semibold transition';

@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useI18n } from '@/lib/i18n';
+import { fmt, useTrainerI18n } from './symulator/trainerText';
 
 // ============================================================================
 // MicCheck - browser microphone tester.
@@ -38,7 +38,7 @@ export default function MicCheck({
   /** the guide/simulator uses this to put the words in the Dziennik */
   onTranscript?: (text: string) => void;
 }) {
-  const { tp } = useI18n();
+  const { tp } = useTrainerI18n();
   const [status, setStatus] = useState<Status>('idle');
   const [level, setLevel] = useState(0);
   const [peak, setPeak] = useState(0);
@@ -154,8 +154,8 @@ export default function MicCheck({
           const mins = Math.max(1, Math.ceil((Number(data.retryAfterSec) || 0) / 60));
           const hours = Math.ceil(mins / 60);
           setSttError(mins > 90
-            ? tp(`Лимит попыток исчерпан. Попробуй снова через ${hours} ч.`, `Attempt limit reached. Try again in ${hours} h.`, `Limit prób wyczerpany. Spróbuj ponownie za ${hours} godz.`)
-            : tp(`Лимит попыток исчерпан. Попробуй снова через ${mins} мин.`, `Attempt limit reached. Try again in ${mins} min.`, `Limit prób wyczerpany. Spróbuj ponownie za ${mins} min.`));
+            ? fmt(tp('Лимит попыток исчерпан. Попробуй снова через {n} ч.', 'Attempt limit reached. Try again in {n} h.', 'Limit prób wyczerpany. Spróbuj ponownie za {n} godz.'), { n: hours })
+            : fmt(tp('Лимит попыток исчерпан. Попробуй снова через {n} мин.', 'Attempt limit reached. Try again in {n} min.', 'Limit prób wyczerpany. Spróbuj ponownie za {n} min.'), { n: mins }));
           return;
         }
         if (!res.ok || data.error) {

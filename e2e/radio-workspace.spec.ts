@@ -93,3 +93,16 @@ test("the radio section has four tabs and the practice pages live in the Practic
   await page.getByTestId("start-radio-check").click();
   await expect(page.getByTestId("task-card")).toContainText("Tryb egzaminu");
 });
+
+test("the trainer runs in the site language, the theory stays Polish", async ({ page }) => {
+  await skipTour(page);
+  await page.setViewportSize(PHONE);
+  await page.goto("/radio/symulator?lang=de");
+  await expect(page.getByRole("heading", { level: 1 })).toContainText("ICOM");
+  await page.getByTestId("start-radio-check").click();
+  // German instruction, and the run happens somewhere: one of the four venues
+  await expect(page.getByTestId("current-todo")).toContainText("Funkgerät");
+  await expect(page.getByTestId("variant-area")).toContainText(/Danziger Bucht|Solent|Palma|Bodrum/);
+  await page.goto("/radio/teoria?lang=de");
+  await expect(page.locator('[lang="pl"]').first()).toBeAttached();
+});
