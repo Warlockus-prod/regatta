@@ -86,6 +86,7 @@ export function racePose(boat: Race3DBoat, windDir: number, turnRate = 0): Yacht
     heel: boat.physics?.heel ?? 0,
     heading: boat.heading,
     speedKn: boat.speed * VISUAL_SPEEDUP,
+    wind: { from: windDir, knots: boat.physics?.trueWindSpeed ?? 12 },
     travel: toWorld(boat.pos),
     jibShape: { camber: 0.7, twist: trim?.jibTwist ?? 0.4, luff, fill, furl: clamp01(trim?.jibFurl ?? 0) },
   };

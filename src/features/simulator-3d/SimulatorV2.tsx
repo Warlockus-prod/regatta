@@ -265,7 +265,7 @@ function SimulatorV2Inner() {
         }),
       },
     ],
-    [tp, sailCoach],
+    [tp],
   );
 
   const switcher = embed ? null : (

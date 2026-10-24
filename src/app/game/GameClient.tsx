@@ -40,6 +40,8 @@ import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
 import { isNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
+import { raceTrimCoach } from "@/lib/race-trim-coach";
+import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
 import { useRaceCopy } from "./race-copy";
 import { RaceReplay } from "./RaceReplay";
 
@@ -205,6 +207,7 @@ export default function GamePage() {
   const nativeRace = useSyncExternalStore(noSubscribe, isNativeRace, () => false);
   const { prefs: racePrefs, update: writeRacePrefs } = useRacePrefs();
   const copy = useRaceCopy();
+  const trimLabels = useSailCoachLabels();
   const copyRef = useRef(copy); copyRef.current = copy;
   const racePrefsRef = useRef(racePrefs); racePrefsRef.current = racePrefs;
   const [rudder, setRudderState] = useState(0);
@@ -968,6 +971,7 @@ export default function GamePage() {
     }
     writeRacePrefs(patch);
   }, [writeRacePrefs, setTrim]);
+  const trimCoach = hudPlayer && racePrefs.mode === "pro" && racePrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
   const guidance = hudPlayer && racePrefs.guidance ? raceGuidance(hudPlayer, courseRef.current, windDirRef.current) : null;
 
   // =====================================================================
@@ -1141,7 +1145,7 @@ export default function GamePage() {
         <RaceCockpit prefs={racePrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta}
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
-          guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
+          trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
           camera={raceCamera} setCamera={setRaceCamera} paused={paused} onPause={togglePause} onExit={backToMenu}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
@@ -1446,10 +1450,10 @@ export default function GamePage() {
                 ▶ {tp('Replay гонки', 'Race replay', 'Powtórka wyścigu', { es: 'Repetición', fr: 'Revoir la course', de: 'Replay ansehen', it: 'Replay della regata' })}
               </button>
               <Link
-                href="/leaderboard"
+                href={nativeRace ? "/history" : "/leaderboard"}
                 className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
-                🏆 {tp('Лидерборд', 'Leaderboard', 'Ranking',
+                🏆 {nativeRace ? copy.history : tp('Лидерборд', 'Leaderboard', 'Ranking',
                   { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
               </Link>
               <button

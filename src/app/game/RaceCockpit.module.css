@@ -21,7 +21,7 @@
 .fleet { padding:4px 0; }.fleet li { display:flex; align-items:center; gap:12px; min-height:42px; font-size:13px; border-bottom:1px solid #ffffff0d; }.fleet b { width:20px; color:var(--text-muted); }.fleet strong { margin-left:auto; color:var(--accent-cyan); }
 @media(max-width:767px) and (orientation:portrait) {
  .toolbar { height:46px; }.metrics { padding:7px 12px; gap:6px; }.metrics span { font-size:10px; }.metrics small { font-size:10px; }
- .workspace { grid-template-columns:1fr; grid-template-rows:minmax(120px,1fr) minmax(310px,42%); }.dock { border-left:0; border-top:1px solid #ffffff12; }.notice { min-height:38px; padding:7px 12px; font-size:11px; }.tabs button { min-height:38px; }.panel { padding:2px 12px; }.wheels { height:190px; }.controlHeading { height:30px; }.controlHeading button { min-height:28px; font-size:11px; }.range { margin:4px 0; }.range input { height:30px; }
+ .workspace { grid-template-columns:1fr; grid-template-rows:minmax(100px,1fr) minmax(350px,44%); }.dock { border-left:0; border-top:1px solid #ffffff12; }.notice { min-height:38px; padding:7px 12px; font-size:11px; }.tabs button { min-height:38px; }.panel { padding:2px 12px; }.wheels { height:190px; }.controlHeading { height:30px; }.controlHeading button { min-height:28px; font-size:11px; }.range { margin:4px 0; }.range input { height:30px; }
 }
 @media(max-height:480px) and (orientation:landscape) { .toolbar { height:38px; }.metrics { padding:4px 12px; }.metrics span { display:none; }.metrics strong { font-size:18px; }.workspace { grid-template-columns:minmax(0,1fr) 290px; }.notice { min-height:32px; padding:5px 10px; font-size:11px; }.tabs button { min-height:34px; }.wheels { height:190px; }.controlHeading { height:30px; }.controlHeading button { min-height:28px; }.panel { padding:2px 10px; } }
 @media(prefers-reduced-motion:no-preference) { .cockpit button { transition:background .15s,color .15s,border-color .15s; } }
@@ -30,3 +30,7 @@
 .panel:has(.wheels) .controlHeading { flex:0 0 30px; }
 .panel .wheels { flex:1; height:auto; min-height:0; }
 .modePicker { margin-bottom:16px; }
+
+.trimAdvice { display:block; font-size:11px; line-height:1.4; color:var(--text-secondary); margin-top:4px; }
+.panel:has(.wheels) { overflow-y:auto; }
+.panel .wheels { min-height:180px; }

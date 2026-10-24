@@ -976,3 +976,9 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/lib/race-guidance.test.ts` verifies route/tack advice plus manual/automatic trim, sail deployment and opt-in steering behavior.
 - `src/lib/race-native.test.ts` tests bounded local snapshots, Pro rig state, injected route state and native message validation.
 - `src/lib/race-rules.test.ts` covers conservative right of way, collision/mark time penalties, early starts and rule toggles.
+
+- `src/features/race-scene/SailingEnvironment.tsx` is the common ocean, sky, shore, lighting, local reflections and hull wake/shadow used by RaceScene and RegattaScene. No external HDR is loaded.
+- `src/features/race-scene/renderer.ts` creates the shared WebGPU renderer with WebGL2 fallback and the same tone mapping. The old optional trainer Bloom/Vignette stack is superseded by common light/tone settings.
+- `src/features/race-scene/environment-state.ts` adapts trainer and fleet world travel/wind to common environment uniforms; `src/features/race-scene/environment-state.test.ts` verifies unit, origin and wind contracts.
+- `src/features/sailing-lab/runtime/trim-coach.ts` provides pure shared trim advice and quality; `src/features/sailing-lab/runtime/trim-coach.test.ts` checks active-sail masks and downwind behavior.
+- `src/lib/race-trim-coach.ts` reads race force diagnostics without stepping time and returns shared trainer coaching keys; `src/lib/race-trim-coach.test.ts` checks per-sail luff/stall, deployment, downwind and immutable state.

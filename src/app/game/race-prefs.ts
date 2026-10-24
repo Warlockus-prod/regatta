@@ -3,11 +3,11 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { isNativeRace, readRaceSearch } from "@/lib/race-native";
 
-export interface RacePrefs { mode: "simple" | "pro"; guidance: boolean; rules: boolean; penalties: boolean; }
+export interface RacePrefs { mode: "simple" | "pro"; guidance: boolean; trimHints: boolean; rules: boolean; penalties: boolean; }
 export const RACE_MODE_KEY = "regatta.race.mode.v1";
 export const RACE_ASSISTS_KEY = "regatta.race.assists.v1";
 const EVENT = "regatta:race-prefs";
-const DEFAULTS: RacePrefs = { mode: "simple", guidance: true, rules: true, penalties: false };
+const DEFAULTS: RacePrefs = { mode: "simple", guidance: true, trimHints: true, rules: true, penalties: false };
 let cachedKey = "";
 let cached = DEFAULTS;
 let memory: RacePrefs | null = null;
@@ -22,7 +22,7 @@ function read(): RacePrefs {
     const a = JSON.parse(text) as Record<string, unknown>;
     cachedKey = key;
     cached = { ...DEFAULTS, ...memory, mode: override === "pro" || override === "simple" ? override : mode === "pro" ? "pro" : memory?.mode ?? "simple",
-      ...Object.fromEntries(["guidance", "rules", "penalties"].filter(k => typeof a[k] === "boolean").map(k => [k, a[k]])) };
+      ...Object.fromEntries(["guidance", "trimHints", "rules", "penalties"].filter(k => typeof a[k] === "boolean").map(k => [k, a[k]])) };
     return cached;
   } catch { return memory ?? DEFAULTS; }
 }
@@ -40,8 +40,8 @@ export function useRacePrefs() {
     try { const u = new URL(window.location.href); u.searchParams.delete("mode"); window.history.replaceState(window.history.state, "", u); } catch { /* local file */ }
     if (isNativeRace()) {
       const w = window as Window & { ReactNativeWebView?: { postMessage(message: string): void }; __REGATTA_EMBED__?: { query?: string | Record<string, string> } };
-      if (typeof w.__REGATTA_EMBED__?.query === "string") { const q = new URLSearchParams(w.__REGATTA_EMBED__.query); q.delete("mode"); w.__REGATTA_EMBED__.query = q.toString(); }
-      w.ReactNativeWebView?.postMessage(JSON.stringify({ type: "race-prefs", mode: next.mode, assists: { guidance: next.guidance, rules: next.rules, penalties: next.penalties } }));
+      if (w.__REGATTA_EMBED__?.query) { const q = new URLSearchParams(w.__REGATTA_EMBED__.query); q.delete("mode"); w.__REGATTA_EMBED__.query = q.toString(); }
+      w.ReactNativeWebView?.postMessage(JSON.stringify({ type: "race-prefs", mode: next.mode, assists: { guidance: next.guidance, trimHints: next.trimHints, rules: next.rules, penalties: next.penalties } }));
     }
     window.dispatchEvent(new Event(EVENT));
   }, []);

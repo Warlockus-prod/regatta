@@ -65,7 +65,7 @@ export default function Game() {
       if (assists && typeof assists === "object" && !Array.isArray(assists)) {
         const value = assists as Record<string, unknown>;
         if (["guidance", "rules", "penalties"].every(key => typeof value[key] === "boolean")) {
-          void persistStorage({ "regatta.race.assists.v1": JSON.stringify({ guidance: value.guidance, rules: value.rules, penalties: value.penalties }) }).catch(() => undefined);
+          void persistStorage({ "regatta.race.assists.v1": JSON.stringify({ guidance: value.guidance, trimHints: typeof value.trimHints === "boolean" ? value.trimHints : true, rules: value.rules, penalties: value.penalties }) }).catch(() => undefined);
         }
       }
     } else if (data.type === "race-finished") {

@@ -31,7 +31,7 @@ export function RaceCockpit(p: {
   rudder: number; setRudder: (v: number) => void; courseDelta: (v: number) => void;
   trim: Controls; setTrim: (patch: Partial<Controls>) => void;
   heading: number; speed: number; twa: number; time: string; rank: number;
-  rows: StandingRow[]; guidance: RaceGuidance | null; message?: string;
+  rows: StandingRow[]; trimAdvice?: string; guidance: RaceGuidance | null; message?: string;
   camera: "high" | "stern"; setCamera: (v: "high" | "stern") => void;
   paused: boolean; onPause: () => void; onExit: () => void;
   autopilot: boolean; onAutopilot: () => void;
@@ -61,6 +61,7 @@ export function RaceCockpit(p: {
       <aside className={styles.dock} aria-label={labels.controlsTitle}>
         <div className={styles.notice} role="status" aria-live="polite">
           {p.countdown !== undefined ? <strong>{p.countdown || "START"}</strong> : p.paused ? c.pause : p.message || (p.prefs.guidance && p.guidance ? `${c.actions[p.guidance.action]} · ${Math.round(p.guidance.distance * .6)} m` : pro ? c.proNote : c.simpleNote)}
+          {pro && p.prefs.trimHints && p.trimAdvice && <small className={styles.trimAdvice}>{p.trimAdvice}</small>}
         </div>
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
           {(["helm", "sails", "fleet", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>{t === "helm" ? labels.helm : c[t]}</button>)}
@@ -81,7 +82,7 @@ export function RaceCockpit(p: {
             <Toggle label={c.main} checked={p.trim.mainHoisted !== false} onChange={mainHoisted => p.setTrim({ mainHoisted })} />
             <Toggle label={c.jib} checked={p.trim.jibFurl < .5} onChange={on => p.setTrim({ jibFurl: on ? 0 : 1 })} />
             {range(c.reef, p.trim.reef, reef => p.setTrim({ reef }))}
-            <p>{pro ? c.trimHint : c.simpleNote}</p>
+            <p>{pro ? p.prefs.trimHints ? c.trimHint : c.proNote : c.simpleNote}</p>
           </div>}
           {tab === "fleet" && <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id}><b>{i + 1}</b><span style={{ color: r.color }}>{r.name}</span>{r.isPlayer && <strong>●</strong>}</li>)}</ol>}
           {tab === "settings" && <div className={styles.options}>
@@ -93,6 +94,7 @@ export function RaceCockpit(p: {
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={controls.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
             <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["high", "stern"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />
+            <Toggle label={c.trimHints} checked={p.prefs.trimHints} onChange={trimHints => p.updatePrefs({ trimHints })} />
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />
             <Toggle label={c.penalties} checked={p.prefs.penalties} onChange={penalties => p.updatePrefs({ penalties })} />
             <Toggle label={c.sound} checked={!p.muted} onChange={() => { p.onSound(); update({ sound: p.muted }); }} />
