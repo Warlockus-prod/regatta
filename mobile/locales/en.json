@@ -1,3 +1,4 @@
 {
-  "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored."
+  "NSMicrophoneUsageDescription": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
+  "NSSpeechRecognitionUsageDescription": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
 }

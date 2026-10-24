@@ -1,8 +1,9 @@
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { act, renderHook, waitFor } from "@testing-library/react-native";
 import { saveNativeRace } from "../src/persistence/race-native";
-import { readRaces } from "../src/persistence/race-history";
+import { readRaces, useRaceHistory } from "../src/persistence/race-history";
 import { parseRaceStorageEntries, persistRaceStorage } from "../src/persistence/race-web-storage";
 import type { NativeRaceSnapshot } from "../../src/lib/race-native";
 
@@ -23,10 +24,14 @@ it("adds world-space replay without rewriting a legacy pixel recording", async (
   const saved = await saveNativeRace(race, "en");
   expect(saved.webRace?.course).toEqual(race.course);
   expect(saved.samples).toEqual(race.samples);
+  const penalized = await saveNativeRace({ ...race, id: "penalized-race", penaltySeconds: 5 }, "en");
+  expect(penalized.timeSec).toBe(15);
+  expect(penalized.webRace?.finishTimeSec).toBe(10);
+  expect(penalized.webRace?.penaltySeconds).toBe(5);
   expect(saved.webRace?.coaching?.overall).toBeTruthy();
-  expect(await readRaces()).toEqual([saved, legacy]);
+  expect(await readRaces()).toEqual([penalized, saved, legacy]);
   await saveNativeRace(race, "en");
-  expect((await readRaces()).map(record => record.id)).toEqual([race.id, legacy.id]);
+  expect((await readRaces()).map(record => record.id)).toEqual([penalized.id, race.id, legacy.id]);
 });
 
 it("does not report persistence on disk failure or replace unreadable history", async () => {
@@ -46,4 +51,15 @@ it("rejects malformed recordings and confines browser storage to race-owned keys
   await persistRaceStorage({ "regatta.race.mode.v1": "pro", "regatta.race-resume.v1": null });
   expect(await AsyncStorage.getItem("regatta.race.mode.v1")).toBe("pro");
   expect(await AsyncStorage.getItem(key)).toBeNull();
+});
+
+it("refreshes a mounted history after a local scene saves and clears durably", async () => {
+  const view = renderHook(() => useRaceHistory());
+  await waitFor(() => expect(view.result.current.ready).toBe(true));
+  expect(view.result.current.races).toEqual([]);
+  await act(async () => { await saveNativeRace(race, "en"); });
+  expect(view.result.current.races.map(saved => saved.id)).toEqual([race.id]);
+  await act(async () => { await view.result.current.clear(); });
+  expect(view.result.current.races).toEqual([]);
+  expect(await readRaces()).toEqual([]);
 });

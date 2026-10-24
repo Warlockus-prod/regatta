@@ -33,7 +33,8 @@
           "es",
           "fr",
           "it"
-        ]
+        ],
+        "NSSpeechRecognitionUsageDescription": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
       },
       "privacyManifests": {
         "NSPrivacyTracking": false,
@@ -144,7 +145,15 @@
           "initialOrientation": "PORTRAIT_UP"
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "The microphone is used in the SRC radio simulator to grade your voice calls (MAYDAY, PAN-PAN) and in the sternik oral exam practice to check your spoken answers. The recording is used only for grading and is not stored.",
+          "speechRecognitionPermission": "Speech recognition transcribes your VHF calls on this device for SRC practice. Audio is not sent to a speech server or saved."
+        }
+      ],
+      "./plugins/with-local-radio-speech"
     ],
     "locales": {
       "en": "./locales/en.json",

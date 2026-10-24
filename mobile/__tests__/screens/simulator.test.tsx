@@ -62,7 +62,7 @@ import Simulator from '../../app/simulator';
 import { fetchWeatherNow } from '../../src/api/weather';
 import { renderWithProviders } from '../../src/test-utils';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { CONTROLS_STORAGE_KEY, __resetControlPrefsForTests } from '../../src/persistence/controls';
+import { CONTROLS_STORAGE_KEY, __resetControlPrefsForTests, setControlPrefs } from '../../src/persistence/controls';
 
 type View = ReturnType<typeof renderWithProviders>;
 
@@ -113,9 +113,9 @@ describe('Native trainer (/simulator)', () => {
     expect(chip(view, 'Top').props.accessibilityState.selected).toBe(true);
     expect(view.getByLabelText(/^Wind and steering control/)).toBeTruthy();
     expect(fetchWeatherNow).not.toHaveBeenCalled();
-    // Sliders are the default control mode.
-    expect(view.getByLabelText(/^Mainsheet, 0% sheeted in/)).toBeTruthy();
-    expect(view.queryByTestId('wheel-deck')).toBeNull();
+    // A clean install uses the same wheel cockpit as the 3D trainers.
+    expect(view.getByTestId('wheel-deck')).toBeTruthy();
+    expect(view.queryByLabelText(/^Mainsheet, 0% sheeted in/)).toBeNull();
   });
 
   it('opens a bootcamp drill link (?drill=&lesson=) in drill mode', async () => {
@@ -154,10 +154,13 @@ describe('Native trainer (/simulator)', () => {
     expect(chip(view, 'Rear').props.accessibilityState.selected).toBe(true);
   });
 
-  it('shows the wheels instead of the sheet sliders in wheel mode and steers through them', async () => {
-    await AsyncStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify({ version: 1, mode: 'wheels', sound: false }));
+  it('keeps an existing slider choice and changes live to wheels when Settings selects them', async () => {
+    await AsyncStorage.setItem(CONTROLS_STORAGE_KEY, JSON.stringify({ version: 1, mode: 'sliders', sound: false }));
     __resetControlPrefsForTests();
     const view = await mountAndTick();
+    await waitFor(() => expect(view.getByLabelText(/^Mainsheet, 0% sheeted in/)).toBeTruthy());
+    expect(view.queryByTestId('wheel-deck')).toBeNull();
+    act(() => setControlPrefs({ version: 1, mode: 'wheels', sound: false }));
     await waitFor(() => expect(view.getByTestId('wheel-deck')).toBeTruthy());
     expect(view.queryByLabelText(/^Mainsheet, 0% sheeted in/)).toBeNull();
     expect(view.getByLabelText('TWIST')).toBeTruthy();

@@ -13,6 +13,11 @@ jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
   useNavigation: () => ({ addListener: () => () => {}, dispatch: jest.fn() }),
+  useFocusEffect: (callback: () => void | (() => void)) => jest.requireActual('react').useEffect(callback, [callback]),
+}));
+jest.mock('expo-speech', () => ({
+  getAvailableVoicesAsync: jest.fn().mockResolvedValue([]),
+  stop: jest.fn().mockResolvedValue(undefined), speak: jest.fn(),
 }));
 jest.mock('../src/i18n/context', () => ({
   useI18n: () => ({ lang: 'en', tp: (_ru: string, en: string) => en }),

@@ -1,7 +1,7 @@
 import { recordReviewWin } from "../review/review-prompt";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Linking,
@@ -19,6 +19,7 @@ import { AnalyticsEvent } from "../analytics/events";
 import { useAnalytics } from "../analytics/use-analytics";
 import { parseExamFinished } from "../analytics/web-bridge";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
+import { LOCAL_RADIO_SPEECH_SCRIPT, useLocalRadioSpeech } from "../radio/useLocalRadioSpeech";
 
 const OFFLINE_SOURCE = require("../../assets/radio-offline.html");
 const STORAGE_KEY = "regatta.radio.offline.web-storage.v1";
@@ -125,6 +126,8 @@ export function OfflineRadioCourse() {
   const [failed, setFailed] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
   const [mode, setMode] = useState<CourseMode>("offline");
+  const webRef = useRef<WebView>(null);
+  const handleLocalSpeech = useLocalRadioSpeech(script => webRef.current?.injectJavaScript(script), mode === "offline");
   const [onlinePath, setOnlinePath] = useState("/radio/symulator");
   // While the page shows its radio work screen (pinned radio, task panel under
   // it) the stack header gives its 44pt to the task panel; the page's own bar
@@ -185,6 +188,7 @@ export function OfflineRadioCourse() {
   };
 
   const onMessage = (event: WebViewMessageEvent) => {
+    if (mode === "offline" && handleLocalSpeech(event.nativeEvent.data)) return;
     const exam = parseExamFinished(event.nativeEvent.data);
     if (exam) {
       analytics.capture(AnalyticsEvent.ExamFinished, exam);
@@ -238,6 +242,7 @@ export function OfflineRadioCourse() {
     <Screen noTopInset={!workspaceOpen} noBottomInset>
       <Stack.Screen options={{ title: "SRC Radio", headerShown: !workspaceOpen }} />
       <WebView
+        ref={webRef}
         key={`${mode}-${reloadKey}-${analyticsOn ? "a" : "na"}`}
         source={source}
         style={styles.web}
@@ -252,7 +257,7 @@ export function OfflineRadioCourse() {
         bounces={false}
         mediaCapturePermissionGrantType="grant"
         injectedJavaScriptBeforeContentLoaded={
-          (webAnalyticsGuardScript(analyticsOn) + (mode === "offline" ? restore : "")) || undefined
+          (webAnalyticsGuardScript(analyticsOn) + (mode === "offline" ? LOCAL_RADIO_SPEECH_SCRIPT + restore : "")) || undefined
         }
         injectedJavaScript={mode === "online" ? ONLINE_AFTER_LOAD : undefined}
         onMessage={onMessage}

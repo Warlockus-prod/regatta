@@ -1,6 +1,11 @@
 # CHANGELOG
 
-Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
+Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased`
+добавляют в том же коммите, что и само изменение, если оно видно пользователю
+или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
+только короткая запись и ссылка.
+
+## Unreleased
 
 - Unified the 3D trainer and race ocean, shore, yacht lighting and rendering backend, and added the same live Pro trim guidance with a separate hint toggle.
 
@@ -10,12 +15,9 @@
 
 - Added the shared model for manual Pro sheets, sail deployment, responsive solo steering, route advice and optional educational race rules with declared training penalties.
 
-- Recorded the complete 2026-10-24 audit, selected ocean cockpit direction and ordered app/site completion harness. Implementation is in progress; this entry does not mean deployment.`
-добавляют в том же коммите, что и само изменение, если оно видно пользователю
-или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
-только короткая запись и ссылка.
+- Recorded the complete 2026-10-24 audit, selected ocean cockpit direction and ordered app/site completion harness. Implementation is in progress; this entry does not mean deployment.
 
-## Unreleased
+- Added local device speech and on-device recognition for offline SRC practice, with a typed-answer fallback when a voice/model is absent. Race history now updates mounted screens after durable saves and includes declared training penalties. Native binary verification is still required.
 
 - Тренажер рации SRC теперь на всех 7 языках сайта (решение владельца: процедуры радиосвязи - международный стандарт): сценарии, подсказки, «почему», ошибки, разбор, объяснения режима Rozbiór, пункты голосовой проверки и все кнопки. Радиофразы (MAYDAY, THIS IS, OVER) остаются английскими, как в эфире. Каждый прогон теперь проходит в случайной акватории: Гданьский залив, Солент (Англия), бухта Пальма (Майорка) или Бодрум (Турция), со своими береговой станцией, мариной, VTS, рабочими каналами и позициями; станции и каналы только проверенные (у Бодрума нет проверенного MMSI береговой станции, поэтому там только вызовы марины и сценарии без береговой станции). Голосовая проверка понимает позиции к западу от Гринвича и ждет станцию своей акватории. Теория, банк 324 вопросов UKE, шпаргалка, уроки Obsługa и живой разговор пока на польском (с русской помощью). В приложении тренажер идет на языке приложения, офлайн-курс пересобран и попадет к пользователям со следующей сборкой.
 - Тренажер рации SRC: рация больше не уезжает при прокрутке задания. Сценарий, уроки «Obsługa» и живой разговор открываются на рабочем экране: рация закреплена сверху (на компьютере слева), а задание, подсказка, голосовой шаг, ситуация и журнал прокручиваются под ней; новый шаг сразу виден под рацией, последнее событие журнала (ошибка или «✓») показано рядом с заданием. На телефоне рация стала компактнее (те же кнопки не меньше 44 px, DISTRESS и PTT рядом), рабочий экран закрывает меню сайта, а в приложении на это время прячется заголовок «SRC Radio». Вкладок у раздела рации теперь четыре: Kurs, Teoria, Trening, Egzamin; меню «Więcej» (на телефоне оно открывалось за краем экрана) убрано. «Trening» стал одним списком: первые шаги, 19 сценариев по группам с номерами заданий UKE, голосовые упражнения, ссылки на 26 заданий и шпаргалку; режим Nauka / Egzamin выбирается один раз над списком, сценарий запускается одним нажатием. Офлайн-курс в приложении (`mobile/assets/radio-offline.html`) пересобран и попадет к пользователям со следующей сборкой; в нем же исправлены польские надписи без диакритики («Kurs zapisany na urządzeniu», «Głos online» и другие). Решение владельца: курс радио можно переводить на все 7 языков, следующим шагом тренажер со случайными акваториями по миру.

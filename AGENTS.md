@@ -11,6 +11,7 @@
 - App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
 - New installations default to shared wheel controls; saved slider choices are preserved.
 - One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
+- Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
 - SRC adapts to seven languages, sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
 
 ## Что это

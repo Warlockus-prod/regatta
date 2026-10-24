@@ -19,6 +19,12 @@ import type { NativeRaceSnapshot } from '../../../src/lib/race-native';
 
 const STORAGE_KEY = 'regatta.race-history.v1';
 export const MAX_RACES = 20;
+let historyRevision = 0;
+const historyListeners = new Set<(races: RaceRecord[]) => void>();
+function publishHistory(races: RaceRecord[]) {
+  historyRevision += 1;
+  historyListeners.forEach(listener => listener(races));
+}
 
 export interface ReplayPoint {
   /** Canvas X coordinate at sample time. */
@@ -94,7 +100,9 @@ export function saveRaceRecord(record: NewRaceRecord): Promise<RaceRecord> {
     if (!isRaceRecord(next)) throw new Error('Invalid race record');
     const existing = previous.find(r => r.id === next.id);
     if (existing) return existing;
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify([next, ...previous].slice(0, MAX_RACES)));
+    const updated = [next, ...previous].slice(0, MAX_RACES);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    publishHistory(updated);
     return next;
   });
 }
@@ -161,14 +169,20 @@ export function useRaceHistory(): UseRaceHistory {
 
   useEffect(() => {
     let cancelled = false;
-    readRaces().then((list) => {
+    const initialRevision = historyRevision;
+    const update = (list: RaceRecord[]) => {
       if (cancelled) return;
       racesRef.current = list;
       setRaces(list);
       setReady(true);
+    };
+    historyListeners.add(update);
+    readRaces().then((list) => {
+      if (initialRevision === historyRevision) update(list);
     });
     return () => {
       cancelled = true;
+      historyListeners.delete(update);
     };
   }, []);
 
@@ -192,10 +206,11 @@ export function useRaceHistory(): UseRaceHistory {
   );
 
   const clear = useCallback(async () => {
-    racesRef.current = [];
-    setRaces([]);
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await serial(async () => {
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        publishHistory([]);
+      });
     } catch {
       /* ignore */
     }

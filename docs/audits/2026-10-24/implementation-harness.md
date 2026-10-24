@@ -40,3 +40,5 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 
 - Shared environment source checkpoint: both trainer and race use one SailingEnvironment and renderer factory. Trainer close-up cameras/OrbitControls/airflow remain. Optional old desktop Bloom/Vignette is replaced with common light, local reflections and AgX tone mapping. 40 relevant tests and TypeScript/lint passed; real WebView smoke remains required.
 - Pro starts with a suitable initial trim rather than motionless, fully eased sails. Switching Simple to Pro captures the current automatic trim; subsequent sheet changes are manual. Shared per-sail diagnosis can be switched off independently of route advice.
+
+- Native local speech/history checkpoint: all 358 Jest tests in 55 suites, native TypeScript and lint passed. SRC bridge lifetime, permission hydration, cancellation, local-only recognition and typed fallback are covered in unit tests; a new binary and actual device/model behavior are still open. Mounted history refreshes only after durable writes and the best time includes enabled training penalties.

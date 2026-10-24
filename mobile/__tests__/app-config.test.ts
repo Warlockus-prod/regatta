@@ -22,7 +22,7 @@ type CollectedType = {
 interface AppJson {
   expo: {
     ios: {
-      infoPlist: { NSMicrophoneUsageDescription: string };
+      infoPlist: { NSMicrophoneUsageDescription: string; NSSpeechRecognitionUsageDescription: string };
       privacyManifests?: {
         NSPrivacyTracking: boolean;
         NSPrivacyCollectedDataTypes: CollectedType[];
@@ -119,4 +119,14 @@ describe('microphone purpose string', () => {
     expect(text).toMatch(/MAYDAY/);
     expect(text.toLowerCase()).toMatch(/sternik/);
   });
+});
+
+it('localises the on-device SRC transcription purpose through the existing Expo locale files', () => {
+  for (const locale of Object.keys(appJson.expo.locales)) {
+    const data = JSON.parse(readFileSync(join(MOBILE_ROOT, 'locales', `${locale}.json`), 'utf8'));
+    expect(data.NSSpeechRecognitionUsageDescription).toEqual(expect.stringContaining('SRC'));
+    expect(data.NSSpeechRecognitionUsageDescription.length).toBeGreaterThan(50);
+  }
+  const plugin = appJson.expo.plugins.find(entry => Array.isArray(entry) && entry[0] === 'expo-speech-recognition');
+  expect(Array.isArray(plugin) && plugin[1].speechRecognitionPermission).toBe(appJson.expo.ios.infoPlist.NSSpeechRecognitionUsageDescription);
 });

@@ -20,7 +20,7 @@ export async function saveNativeRace(raw: unknown, lang: Lang, daily = false): P
   return saveRaceRecord({
     id: snapshot.id,
     courseId: daily ? "daily" : "short",
-    timeSec: snapshot.finishTimeSec,
+    timeSec: snapshot.finishTimeSec + (snapshot.penaltySeconds ?? 0),
     score: coaching.score,
     replay: snapshot.samples.filter((sample, index) => index === 0 || index === snapshot.samples.length - 1 || Math.floor(sample.t) > Math.floor(snapshot.samples[index - 1].t)).map(sample => ({ x: sample.x, y: sample.y, t: sample.t, headingRad: sample.heading * Math.PI / 180, speedKn: sample.speed })),
     samples: snapshot.samples,
