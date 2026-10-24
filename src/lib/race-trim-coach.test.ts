@@ -45,6 +45,14 @@ describe("live race Pro trim coach", () => {
     expect(raceTrimCoach(b)).toBeNull();
   });
 
+  it("reports good trim for the sail that is deployed without implying two working sails", () => {
+    for (const deployment of [{ mainHoisted: false, jibFurl: 0 }, { mainHoisted: true, jibFurl: 1 }]) {
+      const b = boat(90, deployment);
+      b.trim = optimum(b);
+      expect(raceTrimCoach(b)).toBe("good");
+    }
+  });
+
   it("keeps downwind drag separate from a sheet trim error and identifies irons", () => {
     expect(raceTrimCoach(boat(160, { mainSheet: 0, jibSheet: 0 }))).toBe("run");
     const stopped = boat(0);

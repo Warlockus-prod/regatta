@@ -19,7 +19,8 @@
     "lint:fix": "ESLINT_USE_FLAT_CONFIG=false eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "test": "jest",
     "typecheck": "tsc --noEmit",
-    "check": "npm run build:radio-offline:check && npm run build:sailing-offline:check && npm run build:sternik-offline:check && npm run sync-content:check && npm run lint && npm run typecheck && npm test"
+    "check": "npm run build:radio-offline:check && npm run build:sailing-offline:check && npm run build:sternik-offline:check && npm run sync-content:check && npm run lint && npm run typecheck && npm run test:release-tools && npm test",
+    "test:release-tools": "node --test scripts/asc-upload-screenshots.test.mjs"
   },
   "jest": {
     "preset": "jest-expo",

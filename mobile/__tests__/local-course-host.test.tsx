@@ -1,9 +1,11 @@
 import { act, fireEvent, render, renderHook, waitFor } from "@testing-library/react-native";
 import { Alert, Linking } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import type { NavigationAction } from "@react-navigation/native";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
-jest.mock("expo-router", () => ({ Stack: { Screen: () => null }, useNavigation: () => mockNavigation }));
+jest.mock("expo-router", () => ({ Stack: { Screen: (props: object) => mockStackScreen(props) }, useNavigation: () => mockNavigation }));
+jest.mock("@react-navigation/native", () => ({ usePreventRemove: (enabled: boolean, callback: GuardCallback) => mockUsePreventRemove(enabled, callback) }));
 jest.mock("../src/design-system/components", () => ({ Screen: (props: object) => jest.requireActual("react").createElement(jest.requireActual("react-native").View, { ...props, testID: "course-screen" }), Text: jest.requireActual("react-native").Text }));
 jest.mock("../src/course/local-course-asset", () => ({ loadLocalCourseHtml: jest.fn().mockResolvedValue("<html>bundled-only</html>") }));
 jest.mock("react-native-webview", () => {
@@ -15,7 +17,11 @@ import { LocalCourseWebView } from "../src/course/LocalCourseWebView";
 import { loadLocalCourseHtml } from "../src/course/local-course-asset";
 import { ANALYTICS_CONSENT_KEY, WEB_NO_ANALYTICS_SCRIPT, useAnalyticsConsent } from "../src/persistence/analytics-consent";
 import { parseSternikEntries, persistSternikEntries, readSternikEntries, sternikBootstrap, sternikHref, sternikStorageEvent, STERNIK_MESSAGE_LIMIT, STERNIK_STORAGE_KEY } from "../src/persistence/sternik-storage";
+import { mainNavigationHiddenByScreen } from "../src/navigation/visibility";
 
+type GuardCallback = (event: { data: { action: NavigationAction } }) => void;
+const mockUsePreventRemove = jest.fn<void, [boolean, GuardCallback]>();
+const mockStackScreen = jest.fn((_props: object) => null);
 const mockInject = jest.fn();
 const mockNavigation = { addListener: jest.fn(() => () => {}), dispatch: jest.fn() };
 const storage = { read: readSternikEntries, parse: parseSternikEntries, persist: persistSternikEntries, bootstrap: sternikBootstrap, response: sternikStorageEvent };
@@ -97,6 +103,46 @@ it("protects an unfinished exam and relays a validated result once", async () =>
   send(web, { ...result, base: "src" }); send(web, result); send(web, result);
   expect(onExamFinished).toHaveBeenCalledTimes(1);
   expect(onExamFinished).toHaveBeenCalledWith({ base: "sternik", score: 66, total: 75, passed: true });
+});
+
+it("prevents native-stack removal on Stay, continues the exact action once on Exit, and protects the next exam", async () => {
+  const entries = { "sternik.examBase.v1": "materialy" };
+  await persistSternikEntries(entries);
+  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+  const view = render(<LocalCourseWebView {...props} />);
+  const web = await waitFor(() => view.getByTestId("local-course-webview"));
+  expect(mockStackScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerBackButtonMenuEnabled: false }) }));
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(false);
+  send(web, { type: "exam-dirty", dirty: true });
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
+  expect(mainNavigationHiddenByScreen()).toBe(true);
+  const action: NavigationAction = { type: "POP", source: "course-route", target: "native-stack", payload: { count: 1 } };
+  const attempt = () => act(() => mockUsePreventRemove.mock.calls.at(-1)![1]({ data: { action } }));
+  attempt(); attempt();
+  expect(alert).toHaveBeenCalledTimes(1);
+  expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+  act(() => alert.mock.calls.at(-1)![2]![0].onPress!());
+  expect(view.getByTestId("local-course-webview")).toBe(web);
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
+  expect(mainNavigationHiddenByScreen()).toBe(true);
+  expect(mockNavigation.dispatch).not.toHaveBeenCalled();
+  expect(await readSternikEntries()).toEqual(entries);
+  attempt();
+  const leave = alert.mock.calls.at(-1)![2]![1].onPress!;
+  act(() => { leave(); leave(); });
+  expect(mockNavigation.dispatch).toHaveBeenCalledTimes(1);
+  expect(mockNavigation.dispatch.mock.calls[0][0]).toBe(action);
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(false);
+  expect(mainNavigationHiddenByScreen()).toBe(false);
+  expect(mockNavigation.addListener).not.toHaveBeenCalled();
+  send(web, { type: "exam-dirty", dirty: true });
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
+  attempt();
+  expect(alert).toHaveBeenCalledTimes(3);
+  act(() => alert.mock.calls.at(-1)![3]!.onDismiss!());
+  expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(true);
+  expect(await readSternikEntries()).toEqual(entries);
+  alert.mockRestore();
 });
 
 it("keeps unreadable native progress untouched and offers an offline retry", async () => {

@@ -1,4 +1,5 @@
 import { Stack, useNavigation } from "expo-router";
+import { usePreventRemove } from "@react-navigation/native";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
@@ -46,7 +47,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   const [revision, setRevision] = useState(0);
   const [examDirty, setExamDirty] = useState(false);
   const dirty = useRef(false);
-  const bypassExit = useRef(false);
+  const exitPromptOpen = useRef(false);
   const reportedExam = useRef(false);
   const latestEntries = useRef<T | null>(null);
   const writeTicket = useRef(0);
@@ -79,14 +80,22 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     if (route) web.current?.injectJavaScript(`window.dispatchEvent(new CustomEvent("regatta:sternik-navigate",{detail:${JSON.stringify({ href: route })}}));true;`);
   }, [href, hasLoaded, loading, failed, localHref]);
   useEffect(() => examDirty ? hideMainNavigation() : undefined, [examDirty]);
-  useEffect(() => navigation.addListener("beforeRemove", event => {
-    if (!dirty.current || bypassExit.current) return;
-    event.preventDefault();
+  // Registers native-stack prevention before UIKit can dismiss the screen.
+  // Re-dispatch the exact blocked action so React Navigation can continue it.
+  usePreventRemove(examDirty, ({ data }) => {
+    if (!dirty.current) { navigation.dispatch(data.action); return; }
+    if (exitPromptOpen.current) return;
+    exitPromptOpen.current = true;
+    const stay = () => { exitPromptOpen.current = false; };
     Alert.alert("Wyjść z egzaminu?", "Niezapisane odpowiedzi egzaminu zostaną utracone.", [
-      { text: "Zostań", style: "cancel" },
-      { text: "Wyjdź", style: "destructive", onPress: () => { bypassExit.current = true; dirty.current = false; setExamDirty(false); navigation.dispatch(event.data.action); } },
-    ]);
-  }), [navigation]);
+      { text: "Zostań", style: "cancel", onPress: stay },
+      { text: "Wyjdź", style: "destructive", onPress: () => {
+        if (!exitPromptOpen.current) return;
+        exitPromptOpen.current = false; dirty.current = false; setExamDirty(false);
+        navigation.dispatch(data.action);
+      } },
+    ], { cancelable: true, onDismiss: stay });
+  });
 
   const persist = (entries: T) => {
     latestEntries.current = entries;
@@ -136,7 +145,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   };
 
   return <Screen>
-    <Stack.Screen options={{ title }} />
+    <Stack.Screen options={{ title, headerBackButtonMenuEnabled: false }} />
     {saveFailed && <View style={styles.saveError} accessibilityRole="alert">
       <Text style={styles.text}>Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis.</Text>
       <Pressable accessibilityRole="button" onPress={() => { if (latestEntries.current) persist(latestEntries.current); }} style={styles.button}><Text style={styles.buttonText}>Ponów zapis</Text></Pressable>

@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "8aa38486d53e",
-  "sha256": "7c382c6aae3ce917adc3e8188893f577abefff0e1e3bdf60d7d3667fe9de577c",
-  "bytes": 6424283,
+  "version": "e77321424fe9",
+  "sha256": "c3186d131655e5a9e1b3557bd9c71632fb73dffbf586b7a60247e7e2c488a1ba",
+  "bytes": 6424390,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -1258,8 +1258,8 @@
     },
     {
       "path": "src/features/simulator-3d/types.ts",
-      "bytes": 7815,
-      "sha256": "33ac69e13cdbc79beedc28bb3739d81d2284bf9719138d5047d756c9543e8545"
+      "bytes": 7820,
+      "sha256": "fd12a94c82e9da1c09648a8818d3f65945a62f484e5166c598b654918f228be6"
     },
     {
       "path": "src/features/simulator-3d/ui/WindDial.tsx",
@@ -1273,8 +1273,8 @@
     },
     {
       "path": "src/features/simulator-3d/useSailCoachLabels.ts",
-      "bytes": 5138,
-      "sha256": "1a2531500db32d84ec1125183f71509ea6a848bc867f1c138b4b7747dfb00ec6"
+      "bytes": 5204,
+      "sha256": "aab7bc7c9b3c31f2dac452aae7a939d449d58186ca77c541ec6f5a390e0ec501"
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3.module.css",

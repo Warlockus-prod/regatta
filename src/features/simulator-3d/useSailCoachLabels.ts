@@ -31,8 +31,8 @@ export function useSailCoachLabels() {
         pinching: tp('Слишком круто - чуть увались', 'Pinching - bear away a touch', 'Za ostro: lekko odpadnij', {
           es: 'Demasiado ceñido: arriba un poco', fr: 'Trop près : abats un peu', de: 'Zu hoch: etwas abfallen', it: 'Troppo stretto: poggia un poco',
         }),
-        good: tp('Хороший трим - оба паруса тянут', 'Well trimmed - both sails pulling', 'Dobry trym: oba żagle pracują', {
-          es: 'Buen trimado: las dos velas tiran', fr: 'Bien réglé : les deux voiles portent', de: 'Gut getrimmt: beide Segel ziehen', it: 'Buona regolazione: entrambe le vele tirano',
+        good: tp('Хороший трим - поставленные паруса тянут', 'Good trim - deployed sails are working', 'Dobry trym: postawione żagle pracują', {
+          es: 'Buen trimado: las velas desplegadas trabajan bien', fr: 'Bon réglage : les voiles établies portent', de: 'Gut getrimmt: die gesetzten Segel ziehen', it: 'Buona regolazione: le vele spiegate lavorano bene',
         }),
         reachOn: tp('Настраивай шкоты небольшими шагами', 'Adjust the sheets in small steps', 'Reguluj szoty małymi krokami', {
           es: 'Ajusta las escotas poco a poco', fr: 'Règle les écoutes par petits pas', de: 'Schoten schrittweise trimmen', it: 'Regola le scotte a piccoli passi',

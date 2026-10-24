@@ -975,7 +975,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 ## 2026-10-24 completion map
 
-`docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
+`docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `docs/audits/2026-10-24/audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
 
 - `src/lib/race-guidance.ts` computes route, tack and turn advice without mutating a race.
 - `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
@@ -1080,3 +1080,7 @@ Completion and installed sailing package:
 The installed sailing package includes the unchanged original Basics and Anatomy pages, their eight posters and the same yacht as Trainer/3D Boat/solo. Native routes retain their simplified recovery destinations. Saved replay geometry now drives the actual shared buoys and lines, including asynchronously replaced course refs. Race results are finalized at the player finish; delayed share, leaderboard or coach responses cannot update a later race.
 
 Installed course asset reading: SDK54 expo-file-system 19.0.23 File.text() checks write access even for a read; application bundle resources are read-only. `mobile/src/course/local-course-asset.ts` retries the same bundled URI with legacy readAsStringAsync UTF-8 (read permission), never downloads it. Native diagnostics record only the bounded stage/code/scheme. `mobile/src/course/LocalCourseWebView.tsx` separates asset, storage, WebView, runtime and timeout failures without discarding stored progress.
+
+- `mobile/scripts/asc-upload-screenshots.test.mjs` - nine offline Node regressions covering explicit selection, dry-run, capacity, upload/processing failure, safe deletion order, concurrency and idempotent retry. Included by mobile test:release-tools/check.
+- `mobile/scripts/asc-upload-screenshots.mjs` now requires an explicit editable version and local screenshot manifest; dry-run is default. Only selected existing sets change, all new files must be COMPLETE with verified checksums before any old selected ID is removed. `mobile/asc-metadata/SCREENSHOTS.md` distinguishes historical source frames from current release captures.
+- Sternik native exam navigation uses React Navigation usePreventRemove, which prevents UIKit/native-stack dismissal as well as JS navigation; plain beforeRemove prevention is unsupported there. Stay retains the same exam and Exit dispatches the blocked action once.
