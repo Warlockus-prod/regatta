@@ -3,9 +3,9 @@
 Operational check dated 2026-10-20: public 1.6.4 (48) is READY_FOR_SALE.
 TestFlight 1.7.0 has two lines that met in build 50: builds 45-47 (Codex
 branch `codex/learning-modules`, design v3 and learning modules) and build 49
-(trainer controls from `main`). Build 50 carries both; builds 51-56 add the
+(trainer controls from `main`). Build 50 carries both; builds 51-57 add the
 polish pass, the regatta venues, the race modes, the 3D race, stage 1 and
-the first part of stage 2 of the game audit. App Store version 1.7.0 is in Prepare for
+the first part of stage 2 of the game audit, and the race graphics slice (57). App Store version 1.7.0 is in Prepare for
 Submission, not submitted yet (owner: polish first). Older rows below are historical submission snapshots.
 
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
@@ -15,6 +15,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 57 | 1.7.0 | branch `claude/polish-1.7.0` (`9b6c635`) | Self (TestFlight, 2026-10-24) | Build 56 plus the race graphics vertical slice for measuring on a real iPhone (ADR-0008): "3D race" opens `/game?view=3d&scene=next&camera=high&fps=1`, the next renderer (WebGPU or WebGL2, tactical camera, wakes, shore and pines) with a readout of its backend, frame rate and pixel ratio. The app loads the website, so the slice shows once PR #78 is deployed; before that the same entry shows the current 3D race. The flags go, or the slice becomes the default race, before an App Store release. |
 | 56 | 1.7.0 | branch `claude/polish-1.7.0` (`3ce16ab` plus the build number) | Self (TestFlight, 2026-10-24) | Build 55 plus stage 2, part 1 of the game audit: rival boats on the native race map are yachts in their colour with a boom to leeward, not dots. The 3D race (web, online) gets the new HUD (speed against target, wind compass with the no-go sector, standings, race events), the no-go wedge, the committee boat and start line, and the arrow to the next mark once PR #77 is deployed; offline the app keeps the native race. |
 | 55 | 1.7.0 | branch `claude/polish-1.7.0` (`abdfc70` plus the build number) | Self (TestFlight, 2026-10-22) | Build 54 plus stage 1 of the game audit (`docs/audits/2026-10-22-game-audit.md`): rivals sail at their difficulty (ADR-0007), the wind compass in the race moves away from the boat, the wheel labels are readable (dark palette), the sail line is not empty before the start. The 3D race (web, online) gets its new sky, rival colours and name tags once PR #76 is deployed. Checked as a Release build on iPhone 18 Pro, iOS 27. |
 | 54 | 1.7.0 | branch `claude/polish-1.7.0` (`177ca2c`: main `eaf451f` after PR #75 plus the build number, What's New, and two fixes of the new 3D race screen) | Self (TestFlight, 2026-10-22) | Build 53 plus "3D race" in the Race hub: the website race (`/game?view=3d`, live on production) in a WebView with the hub's venue and shore; offline it falls back to the native race. The screen hides the tab bar (it would sit over the steering buttons) and scrolls (the race menu is taller than a phone; without it Start was out of reach). What's New for 1.7.0 names the race modes and the 3D race; Spanish Simple-mode note fixed. |

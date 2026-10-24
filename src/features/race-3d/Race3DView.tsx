@@ -32,8 +32,8 @@ import { METRES_PER_UNIT, NO_GO_DEG, headingDelta, nextTarget, racePose, raceRan
 // The fog takes the sky's horizon colour, so far water and land fade into the
 // sky with no seam. The sun stands about 45 degrees high: lower, its glitter
 // path filled the water ahead of the boat with white when sailing towards it.
-const SKY = { horizon: "#9ec1d3", zenith: "#1f4a6e" } as const;
-const SUN: [number, number, number] = [56, 64, 28];
+export const SKY = { horizon: "#9ec1d3", zenith: "#1f4a6e" } as const;
+export const SUN: [number, number, number] = [56, 64, 28];
 /** Waves flatten and roughen from 45 m out, gone by 420 m (see Ocean). */
 const FAR_CALM: [number, number] = [45, 420];
 const DEG = Math.PI / 180;
@@ -43,7 +43,7 @@ const MARK_COLOR = "#ff7a1a";
 const PIN_COLOR = "#ffd23f";
 /** The start line, orange dashes as on the map. */
 const LINE_COLOR = "#ffaa00";
-const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
+export const STANDARD_COURSE: Race3DCourse = makeStandardCourse();
 
 export interface Race3DLabels {
   /** Unit after a distance ("m"; "м" in Russian). */
@@ -55,14 +55,14 @@ export interface Race3DLabels {
 }
 
 /** Player position in world metres, shared by everything that sits in the moving world. */
-type OriginRef = MutableRefObject<{ x: number; z: number }>;
+export type OriginRef = MutableRefObject<{ x: number; z: number }>;
 
-function playerOf(boats: Race3DBoat[]): Race3DBoat | undefined {
+export function playerOf(boats: Race3DBoat[]): Race3DBoat | undefined {
   return boats.find((b) => b.isPlayer);
 }
 
 /** One boat's pose, refreshed every frame from the race. */
-function useBoatPose(boatsRef: MutableRefObject<Race3DBoat[]>, windDirRef: MutableRefObject<number>, id: string | null) {
+export function useBoatPose(boatsRef: MutableRefObject<Race3DBoat[]>, windDirRef: MutableRefObject<number>, id: string | null) {
   const state = useRef<YachtState>({ ...NEUTRAL_YACHT });
   const last = useRef<{ heading: number; rate: number } | null>(null);
   useFrame((_, dt) => {
@@ -105,7 +105,7 @@ function Player({ boatsRef, windDirRef, originRef, playerStateRef }: {
  * Place and name over a rival's mast, the same size on screen at any distance,
  * drawn on a canvas (no font file: the CSP blocks font CDNs).
  */
-function NameTag({ text, color, y = 22 }: { text: string; color?: string; y?: number }) {
+export function NameTag({ text, color, y = 22 }: { text: string; color?: string; y?: number }) {
   const texture = useMemo(() => {
     const canvas = document.createElement("canvas");
     canvas.width = 256;
@@ -143,7 +143,7 @@ function NameTag({ text, color, y = 22 }: { text: string; color?: string; y?: nu
   );
 }
 
-function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
+export function Rival({ id, color, label, boatsRef, windDirRef, originRef }: {
   id: string;
   color: string;
   label: string;
@@ -314,7 +314,7 @@ function CommitteeBoat({ x, z }: { x: number; z: number }) {
 }
 
 /** The sector the boat cannot sail into, on the water at the bow, turned with the wind. */
-function NoGoWedge({ windDirRef }: { windDirRef: MutableRefObject<number> }) {
+export function NoGoWedge({ windDirRef }: { windDirRef: MutableRefObject<number> }) {
   const group = useRef<THREE.Group>(null);
   const geometry = useMemo(() => {
     // Bearing b points along (sin b, 0, -cos b); a ring angle t of the flat
@@ -348,7 +348,7 @@ function NoGoWedge({ windDirRef }: { windDirRef: MutableRefObject<number> }) {
  * Where the next target is when it is off screen: an arrow on the edge of the
  * view (clear of the HUD at the top and the controls at the bottom).
  */
-function TargetArrow({ boatsRef, courseRef, originRef, arrowRef }: {
+export function TargetArrow({ boatsRef, courseRef, originRef, arrowRef }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   originRef: OriginRef;
@@ -389,8 +389,10 @@ const Land = memo(function Land({ venue }: { venue: Venue }) {
 });
 
 /** Everything fixed to the race area, shifted so the player stays at the origin. */
-function World({ venue, courseRef, boatsRef, originRef, targetLabel }: {
+export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land = true }: {
   venue: Venue;
+  /** False when the caller draws the land itself (the next race scene, ADR-0008). */
+  land?: boolean;
   courseRef: MutableRefObject<Race3DCourse>;
   boatsRef: MutableRefObject<Race3DBoat[]>;
   originRef: OriginRef;
@@ -418,7 +420,7 @@ function World({ venue, courseRef, boatsRef, originRef, targetLabel }: {
     && course.finishLine.b.x === course.startLine.b.x && course.finishLine.b.y === course.startLine.b.y;
   return (
     <group ref={group}>
-      <Land venue={venue} />
+      {land && <Land venue={venue} />}
       {course.marks.map((m, i) => {
         const w = toWorld(m.pos);
         // The starboard end of the start line is the committee boat, the other end a pin.
@@ -441,7 +443,7 @@ function World({ venue, courseRef, boatsRef, originRef, targetLabel }: {
 }
 
 /** Behind the stern, or high above it to read the course; turns lag the boat a little. */
-function ChaseCamera({ stateRef, mode }: { stateRef: MutableRefObject<MutableRefObject<YachtState> | null>; mode: RaceCamera }) {
+export function ChaseCamera({ stateRef, mode }: { stateRef: MutableRefObject<MutableRefObject<YachtState> | null>; mode: RaceCamera }) {
   const yaw = useRef<number | null>(null);
   const look = useMemo(() => new THREE.Vector3(), []);
   useFrame(({ camera, size }, dt) => {
@@ -467,7 +469,7 @@ function ChaseCamera({ stateRef, mode }: { stateRef: MutableRefObject<MutableRef
   return null;
 }
 
-function Loading({ label }: { label: string }) {
+export function Loading({ label }: { label: string }) {
   return (
     <Html center>
       <div role="status" aria-label={label} style={{ width: 46, height: 46, border: "3px solid rgba(0, 212, 255, 0.25)",
@@ -477,7 +479,7 @@ function Loading({ label }: { label: string }) {
   );
 }
 
-function Ready() {
+export function Ready() {
   useEffect(() => { reportScene("scene-ready"); }, []);
   return null;
 }
