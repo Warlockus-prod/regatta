@@ -22,7 +22,7 @@ Owner authorization: 2026-10-24. App first, complete the audited scope in revers
 8. [x] Web and mobile typecheck, relevant unit suites, lint, content/dash/map/generated checks, production build and bundle budget.
 9. [ ] Visual and interaction review: small phone, landscape, desktop, all seven languages, manual sheets, sails, rules, finish, history, replay and radio learning. Verify local navigation with networking disabled.
 10. [ ] Synchronize website branch with tested shared implementation, run its gates, deploy through hardened CI and check production.
-11. [ ] Native release gate, build 59 or next unused number, install/smoke, upload, verify processing and TestFlight distribution. Update 1.7.0 release metadata and submit after actual gates pass.
+11. [ ] Native public release remains open. Internal TestFlight subgate is complete:1.7.0(60) VALID and IN_BETA_TESTING in Self,8notes locales verified. Public privacy/store screenshots/App Review still require their own gates.
 12. [ ] Reconcile documentation and branch state. Remove only superseded clean artifacts with preserved rollback commits; preserve historic user progress and dirty work.
 
 ## Working evidence
@@ -75,3 +75,5 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 - Final iPad review found that the fullscreen solo menu had no visible route back to the app. Candidate60 adds a native-only, seven-language 44px return link through the existing validated navigation bridge. Build59 was uploaded but is not distributed in Self. New sailing package31a44552e444 is 6424843 bytes; 972 web tests in 100 files, complete native400/65 and the production bundle budget pass. Final60 binary and delivery remain pending.
 
 - Apple processing correction: build59 import failed90683 although validate/upload succeeded. ExpoFileSystem links unused Photos handlers; candidate60 adds honest base/seven-language descriptions without requesting photo access. Extend independent generated/archive/IPA checks before rebuilding. Root-only CI navigation tests now use the complete root tsconfig string; isolated failure reproduction and all972 web tests pass.
+
+- Final TestFlight60 delivery: source8e39721, all six CI checks green (web972/100, native402/65); generated15/15, archive30/30 and exportedIPA28/28 pass. Clean iOS27 phone, upgraded26.5 with seven exact preserved values, installed Sternik and iPad menu-return/navigation pass. Apple validation/upload/import succeeded; delivery/build9c235e79-aa4e-4be7-8b0e-6d8352a4d0af is VALID and IN_BETA_TESTING in exact Self at18:50UTC. Eight beta-build notes locales verified before attachment. Details: `docs/design/mobile/testflight60-2026-10-24.md`. Physical tester installation, physical speech/model behavior and full manually steered native finish are not asserted. Website/App Review and remaining broad cleanup are open.

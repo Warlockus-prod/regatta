@@ -1,0 +1,110 @@
+{
+  "sourceCommit": "8e397217c477e2af46c8a43cef8f22b9f8c8de65",
+  "version": "1.7.0",
+  "build": "60",
+  "delivery": {
+    "checkedAt": "2026-10-24T18:50:04.800Z",
+    "mode": "APPLY",
+    "appId": "6768134329",
+    "bundleId": "com.icoffio.regatta",
+    "version": "1.7.0",
+    "build": "60",
+    "self": {
+      "id": "45b9252e-b6ac-4117-ae2b-c85afa520d73",
+      "name": "Self",
+      "isInternalGroup": true,
+      "hasAccessToAllBuilds": false
+    },
+    "writes": 1,
+    "buildId": "9c235e79-aa4e-4be7-8b0e-6d8352a4d0af",
+    "processingState": "VALID",
+    "expired": false,
+    "usesNonExemptEncryption": false,
+    "member": true,
+    "internalState": "IN_BETA_TESTING",
+    "externalState": "READY_FOR_BETA_SUBMISSION",
+    "autoNotifyEnabled": true,
+    "status": "DELIVERED",
+    "delivered": true
+  },
+  "notes": {
+    "status": "VERIFIED",
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 1161,
+        "bytes": 1161,
+        "sha256": "13822dfc5ce77b7a7961cd6a87c96f27156798d0717895cd3495646d46481c2f",
+        "action": "update"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 1162,
+        "bytes": 1162,
+        "sha256": "61eea28e9a61cd2ce206b1ad06604e5843d68cef51ec42f23c0f61ce486b80ec",
+        "action": "create"
+      },
+      {
+        "locale": "ru",
+        "chars": 1237,
+        "bytes": 2239,
+        "sha256": "60d6a051bae5baa99dde342045dc435ca8c5175560555e97e7781f591aff6ccc",
+        "action": "create"
+      },
+      {
+        "locale": "pl",
+        "chars": 1215,
+        "bytes": 1264,
+        "sha256": "85d636ef9febc8f415d7091dd276846011e23a9e30ab237be4c261acebe6eb7b",
+        "action": "create"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 1271,
+        "bytes": 1292,
+        "sha256": "cdb05843270583ecadf5e16cdbb2d21d101fcc964a76c6cc0eae378444cff493",
+        "action": "create"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 1289,
+        "bytes": 1330,
+        "sha256": "86a78d3a29aaa294c756e14493e846d8ca90a8caf58244cb7d78d53b4a10289c",
+        "action": "create"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 1304,
+        "bytes": 1321,
+        "sha256": "5372b1fce35a9ae43004c7e6b599b924aa89b7d2c21f1704260672ec174ce6d1",
+        "action": "create"
+      },
+      {
+        "locale": "it",
+        "chars": 1286,
+        "bytes": 1290,
+        "sha256": "e9cff6cb8d5c3882a32b914476279692db99e80034efec53dcef128354f8ffe6",
+        "action": "create"
+      }
+    ]
+  },
+  "ipa": {
+    "bytes": 29859627,
+    "sha256": "745cc9afe254a621e80d2e9953d428d4782aec80d19de473b55189657d3510b5"
+  },
+  "checks": {
+    "generated": 15,
+    "archive": 30,
+    "exportedIPA": 28,
+    "webTests": 972,
+    "webFiles": 100,
+    "nativeTests": 402,
+    "nativeSuites": 65,
+    "ciChecks": 6
+  },
+  "xcode": "27.1 (27A9275)",
+  "sdkBuild": "24A94232",
+  "physicalTesterInstallationObserved": false,
+  "websiteDeployed": false,
+  "appReviewSubmitted": false
+}

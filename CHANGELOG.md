@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Delivered 1.7.0 (60) to the internal Self TestFlight group with verified Apple processing, availability and release notes in eight locales. Final Release checks retain progress when updating the public build. Website and public App Store release remain separate.
+
 - Fixed Apple import validation for the Expo file reader with an honest photo-library description in all seven languages. The app does not request access to personal photos. Web CI now runs native navigation adapter tests without installing Expo.
 
 - Added an explicit return from the fullscreen solo menu to the app race hub in seven languages. Candidate60 supersedes uploaded59 before Self distribution.

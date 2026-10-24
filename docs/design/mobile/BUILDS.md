@@ -3,10 +3,11 @@
 Operational check dated 2026-10-24: public 1.6.4 (48) is READY_FOR_SALE.
 Build 58 was confirmed VALID and in Self before this release. Build 59 from
 `d30020a2a75611192bac8d2a6f806966ddedff59` passed Apple validation and upload,
-but Apple import failed with90683 (missing NSPhotoLibraryUsageDescription).
-It never appeared in ASC or Self. Candidate60 adds the seven-language purpose
-description required by unused Photos symbols in ExpoFileSystem, and the visible
-return from the fullscreen solo menu to the app race hub. App Store1.7.0
+but Apple import failed with 90683 (missing NSPhotoLibraryUsageDescription).
+It never appeared in ASC or Self. Build 60 from 8e39721 is VALID and
+IN_BETA_TESTING in Self (2026-10-24 18:50 UTC), with all eight TestFlight notes
+locales verified. It adds the seven-language SDK purpose description and visible
+return from the fullscreen solo menu. Evidence: `docs/design/mobile/testflight60-2026-10-24.md`. App Store1.7.0
 remains PREPARE_FOR_SUBMISSION. A TestFlight upload is not an App Store release.
 
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
@@ -16,7 +17,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
-| 60 | 1.7.0 | This checkpoint | Not uploaded yet | Candidate59 plus the visible native-only Back to races menu link and Photos SDK purpose description in seven languages. All 972 web tests in 100 files and the complete 400-test native check pass. |
+| 60 | 1.7.0 | `8e397217c477e2af46c8a43cef8f22b9f8c8de65` | Self, VALID / IN_BETA_TESTING (2026-10-24 18:50 UTC) | Complete installed 3D racing and seven-language SRC release described in59, plus the native Back to races menu link and seven-language Photos SDK purpose description. Apple import VALID, eight TestFlight notes locales verified. All six CI checks pass: web972/100, native402/65. Release launch27/upgrade26.5/iPad, seven saved values retained. Physical phone installation is not asserted. |
 | 59 | 1.7.0 | `d30020a2a75611192bac8d2a6f806966ddedff59` | Apple import FAILED90683, not distributed (2026-10-24) | One installed shared 3D solo race, Simple auto trim and manual Pro, trainer wheels, sail deployment, route and trim advice, optional educational penalties, durable history and shared 3D replay. Seven-language installed SRC with local speech and typed practice; installed Polish Sternik with typed oral checks; bundle-first Basics and Anatomy. Source Sans3 fonts and protected utility panels. All six CI checks pass: 964 web and 400 native tests. |
 | 58 | 1.7.0 | branch `claude/testflight-radio` (`claude/polish-1.7.0` at `d8e4bd0` plus PR #79 and #80, plus the build number) | Self (TestFlight, 2026-10-24) | Build 57 plus the SRC radio trainer rework: the radio stays pinned while the task panel scrolls (simulator, Obsługa lessons, live conversation), the course has four tabs (Kurs, Teoria, Trening, Egzamin) and one Trening list, the trainer runs in the app language (7 languages) and every run is in a random venue (Gulf of Gdańsk, the Solent, Bay of Palma, Bodrum). While the work screen is open the app hides the "SRC Radio" header and the tab bar. Offline bundle rebuilt (1791 KiB). Checked as a Release build on iPhone 18 Pro, iOS 27: English trainer from the English app, header and tab bar hidden in a scenario and back on Exit. The online radio pages show the new layout only after PR #79 and #80 are deployed. |
 | 57 | 1.7.0 | branch `claude/polish-1.7.0` (`9b6c635`) | Self (TestFlight, 2026-10-24) | Build 56 plus the race graphics vertical slice for measuring on a real iPhone (ADR-0008): "3D race" opens `/game?view=3d&scene=next&camera=high&fps=1`, the next renderer (WebGPU or WebGL2, tactical camera, wakes, shore and pines) with a readout of its backend, frame rate and pixel ratio. The app loads the website, so the slice shows once PR #78 is deployed; before that the same entry shows the current 3D race. The flags go, or the slice becomes the default race, before an App Store release. |
@@ -106,4 +107,4 @@ build must be attached explicitly.
 
 ### Apple import failure and replacement60
 
-Delivery e58fe614-d6a1-47be-a4ad-5c612c18871b uploaded successfully but failed import with90683. Read the normal-text altool build-status report, not just the upload result. ExpoFileSystem19.0.23 links Photos through its legacy ph:// handlers; installed Regatta only reads guarded packaged course files and has no photo-library feature. Candidate60 includes an accurate description in the base Info.plist and all seven localizations. The earlier33ac973 archive60 is superseded and must not be uploaded.
+Delivery e58fe614-d6a1-47be-a4ad-5c612c18871b uploaded successfully but failed import with 90683. Read the normal-text altool build-status report, not just the upload result. ExpoFileSystem19.0.23 links Photos through its legacy ph:// handlers; installed Regatta only reads guarded packaged course files and has no photo-library feature. Candidate60 includes an accurate description in the base Info.plist and all seven localizations. The earlier33ac973 archive60 is superseded and must not be uploaded.
