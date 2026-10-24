@@ -1023,6 +1023,11 @@ export default function GamePage() {
   if (gameState === 'menu') {
     return (
       <div className="h-dvh overflow-y-auto">
+        {nativeRace && <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+          <Link href="/" className="inline-flex items-center min-h-11 py-2 text-sm text-[var(--accent-cyan)]">
+            {tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
+          </Link>
+        </div>}
         {/* Resume banner: shown when we detect a saved setup from a
             recent (≤30 min) interrupted race. Clicking "Resume" loads
             those settings + opens the briefing; "Dismiss" clears the

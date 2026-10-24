@@ -15,11 +15,11 @@ Owner authorization: 2026-10-24. App first, complete the audited scope in revers
 1. [x] Inventory branches, releases, controls, radio, languages and layouts; record current evidence.
 2. [x] Create separate app/site release worktrees from the same main; preserve original work.
 3. [x] Shared race model: manual Pro trim, sail deployment, responsive steering assistance, route guidance, educational rules and declared custom penalties. Unit and deterministic integration tests.
-4. [ ] One locally bundled 3D solo race, trainer controls, durable native history/replay/local coach, no network dependency. Retain readability of old race records.
-5. [ ] Cockpit: protected scene area, shared wheels or sliders, reserved side/bottom utilities, stable focus, guidance and settings, selected ocean direction.
-6. [ ] Radio: localized theory, tests, lessons and situations in seven languages; guided learning and free exploration; pinned device; sternik remains Polish. No hidden language fallback claimed complete.
-7. [ ] Regenerate offline assets from final shared sources; check provenance, byte budgets, offline routing and persistence.
-8. [ ] Web and mobile typecheck, relevant unit suites, lint, content/dash/map/generated checks, production build and bundle budget.
+4. [x] One locally bundled 3D solo race, trainer controls, durable native history/replay/local coach, no network dependency. Retain readability of old race records.
+5. [x] Cockpit: protected scene area, shared wheels or sliders, reserved side/bottom utilities, stable focus, guidance and settings, selected ocean direction.
+6. [x] Radio: localized theory, tests, lessons and situations in seven languages; guided learning and free exploration; pinned device; sternik remains Polish. No hidden language fallback claimed complete.
+7. [x] Regenerate offline assets from final shared sources; check provenance, byte budgets, offline routing and persistence.
+8. [x] Web and mobile typecheck, relevant unit suites, lint, content/dash/map/generated checks, production build and bundle budget.
 9. [ ] Visual and interaction review: small phone, landscape, desktop, all seven languages, manual sheets, sails, rules, finish, history, replay and radio learning. Verify local navigation with networking disabled.
 10. [ ] Synchronize website branch with tested shared implementation, run its gates, deploy through hardened CI and check production.
 11. [ ] Native release gate, build 59 or next unused number, install/smoke, upload, verify processing and TestFlight distribution. Update 1.7.0 release metadata and submit after actual gates pass.
@@ -68,3 +68,8 @@ Each stage records its commit, commands, results and unresolved limits here. A p
 - Remote CI on 976178b passes complete mobile checks but found a case-sensitive documentation path hidden by macOS: root audit.md resolved AUDIT.md locally. The completion-map link now uses its full repository-relative audit path. Nine release-tool tests protect selected App Store screenshot replacements and are part of mobile check. No upload/deletion/review action has been executed.
 
 - Exact f6bcc29 CI: all six checks pass, 964 web tests in 99 files and 399 native tests in 65 suites, plus nine release-tool tests. The final source production build passes. UIKit inspection confirms Stay retains the exam, but repeated native Back becomes inert; the final explicit exam exit button asks before navigation and disables swipe-back. Eight host tests, TypeScript and scoped lint pass; final rebuilt interaction remains pending.
+
+- Final native G2 d30020a: installed over public48 on iOS26.5, local Sternik opens, Stay retains its exam, repeated exit prompts and confirmed exit restores Home/navigation. Final iOS27 phone launch and iPad27 Home/English/Pro cockpit/side utilities/pause pass. A complete manually steered native finish and physical speech model behavior are still open runtime limits.
+- Build59 archive28/28 and exportedIPA26/26 independent checks pass, including exact source assets and distribution signing. Apple validate and upload both succeeded without errors, delivery e58fe614-d6a1-47be-a4ad-5c612c18871b. Processing and explicit Self attachment remain pending; no App Store submission or website deployment has occurred.
+
+- Final iPad review found that the fullscreen solo menu had no visible route back to the app. Candidate60 adds a native-only, seven-language 44px return link through the existing validated navigation bridge. Build59 was uploaded but is not distributed in Self. New sailing package31a44552e444 is 6424843 bytes; 972 web tests in 100 files, complete native400/65 and the production bundle budget pass. Final60 binary and delivery remain pending.

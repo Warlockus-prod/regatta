@@ -24,7 +24,7 @@ iOS lists supported locales without proving that a language model is downloaded.
 - `expo-speech`14.0.8 accepts JS volume but its upstream native code omits it. `plugins/with-local-radio-speech.js` adds the Swift utterance and Android TTS volume assignments. Android voice enumeration excludes voices requiring a network connection.
 - `expo-speech-recognition`3.1.3, the upstream SDK54 package, conditionally assigns the on-device request flag. The plugin makes that assignment unconditional, so unsupported local recognition fails instead of falling back to a server.
 - Every patch validates the exact package version and source anchors before writing; repeated prebuilds are idempotent. Review and update these assertions when upgrading either package. Fresh native prebuild and a new binary are mandatory.
-- Permission descriptions use the existing seven `mobile/locales/*.json` files. The microphone purpose continues to include the separate sternik oral practice.
+- Permission descriptions use the existing seven `mobile/locales/*.json` files. The microphone purpose describes SRC practice only. Installed Sternik oral practice checks typed answers and does not request a microphone.
 
 Primary references: [Expo Speech](https://docs.expo.dev/versions/latest/sdk/speech/), [speech recognition package](https://github.com/jamsch/expo-speech-recognition). Actual SDK54 signatures and native behavior were also checked in the installed14.0.8/3.1.3 sources.
 

@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Added an explicit return from the fullscreen solo menu to the app race hub in seven languages. Candidate60 supersedes uploaded59 before Self distribution.
+
 - Fixed native exam cancellation so Stay keeps the active Sternik session and its exit button remains usable on repeated attempts. Trim advice now describes deployed sails correctly when one sail is furled. Screenshot publishing requires an explicit version and verifies new images before replacing selected old frames.
 
 - Fixed installed Sternik startup on SDK54: the packaged read-only HTML now uses a read-capable UTF-8 fallback when the SDK file reader incorrectly asks for write access. Retry reports a bounded failure stage while preserving course progress.

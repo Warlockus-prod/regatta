@@ -222,7 +222,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - клиент гонки: брифинг в одну карточку, старт, знаки, боты, HUD (`src/features/race-hud`) и события гонки, коуч на финише; вид 2D (canvas) или 3D (`Race3DView`, canvas оставляет только мини-карту).
+- `src/app/game/GameClient.tsx` - единая 3D-гонка: брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
+- `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
 - `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
 - `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.

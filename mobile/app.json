@@ -19,7 +19,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.icoffio.regatta",
-      "buildNumber": "59",
+      "buildNumber": "60",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "UIViewControllerBasedStatusBarAppearance": true,
@@ -119,7 +119,7 @@
     },
     "android": {
       "package": "com.icoffio.regatta",
-      "versionCode": 59,
+      "versionCode": 60,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0a1628"
