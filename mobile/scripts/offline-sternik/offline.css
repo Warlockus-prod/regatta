@@ -1,0 +1,9 @@
+* { box-sizing: border-box; }
+html { min-height: 100%; -webkit-text-size-adjust: 100%; overflow-x: hidden; }
+body { min-height: 100%; margin: 0; background: var(--bg-primary); color: var(--text-primary); font-family: var(--font-source-sans), -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif; }
+button, input, textarea, select { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+.sternik-offline-app button, .sternik-offline-app select { min-height: 44px; }
+.sternik-offline-app main { min-width: 0; }
+.sternik-offline-app textarea, .sternik-offline-app select { color: var(--text-primary); }
+.sternik-offline-app nav > div { min-width: 0; max-width: 100%; }

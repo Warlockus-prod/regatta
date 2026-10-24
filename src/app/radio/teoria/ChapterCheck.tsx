@@ -1,10 +1,13 @@
 "use client";
 
+import { OriginalPolish } from "../OriginalPolish";
+import { examOptionText, examQuestionText, examExplanationText, hasEnglishOptions } from "../localization/examText";
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { SRC_BANK, type SrcQuestion } from "@/data/src-radio";
-import { useI18n } from "@/lib/i18n";
-import { useSternikPrefs } from "../../sternik/prefs";
+import { useSternikPrefs } from "@/app/radio/prefs";
 import {
   loadQuestionProgress,
   saveQuestionProgress,
@@ -34,7 +37,8 @@ export default function ChapterCheck({
   complete: boolean;
   onPassed: () => void;
 }) {
-  const { tp } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp, lang } = useRadioI18n();
   const { explLang } = useSternikPrefs();
   const questions = useMemo(
     () => selectChecks(chapter.questionIds ?? []),
@@ -94,16 +98,16 @@ export default function ChapterCheck({
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
           <div className="max-w-2xl">
             <h2 className="text-base font-bold" style={{ color: "var(--text-primary)" }}>
-              {complete
+              {radioText(complete
                 ? tp("Проверка пройдена", "Check complete", "Sprawdzenie zaliczone")
-                : tp("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie")}
+                : tp("Проверь понимание", "Check your understanding", "Sprawdź zrozumienie"))}
             </h2>
             <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-              {tp(
+              {radioText(tp(
                 "Три вопроса из связанных материалов UKE. Глава завершится только после трех правильных ответов.",
                 "Three questions from the related UKE material. The chapter completes after three correct answers.",
                 "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
-              )}
+              ))}
             </p>
           </div>
           <button
@@ -112,9 +116,9 @@ export default function ChapterCheck({
             className="min-h-[48px] shrink-0 rounded-xl px-5 text-sm font-bold"
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
-            {complete
+            {radioText(complete
               ? tp("Повторить", "Repeat", "Powtórz")
-              : tp("Начать проверку", "Start check", "Zacznij sprawdzenie")}
+              : tp("Начать проверку", "Start check", "Zacznij sprawdzenie"))}
           </button>
         </div>
       </section>
@@ -130,13 +134,13 @@ export default function ChapterCheck({
         style={{ borderColor: "var(--border-subtle)" }}
       >
         <h2 className="text-lg font-bold" style={{ color: passed ? "var(--success-text, var(--success))" : "var(--warning-text, var(--warning))" }}>
-          {passed
+          {radioText(passed
             ? tp("Глава закреплена", "Chapter mastered", "Rozdział utrwalony")
-            : tp("Нужно еще одно повторение", "One more review is needed", "Potrzebna jest jeszcze jedna powtórka")}
+            : tp("Нужно еще одно повторение", "One more review is needed", "Potrzebna jest jeszcze jedna powtórka"))}
         </h2>
         <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
-          {correctCount}/{questions.length}.{" "}
-          {passed
+          {radioText(correctCount)}/{radioText(questions.length)}.{radioText(" ")}
+          {radioText(passed
             ? tp(
                 "Теперь переходи к практике.",
                 "Now move to practice.",
@@ -146,7 +150,7 @@ export default function ChapterCheck({
                 "Вернись к схеме и объяснению, затем попробуй снова.",
                 "Review the diagram and explanation, then try again.",
                 "Wróć do schematu i wyjaśnienia, potem spróbuj ponownie.",
-              )}
+              ))}
         </p>
         <div className="mt-4 flex flex-wrap gap-3">
           <button
@@ -155,14 +159,14 @@ export default function ChapterCheck({
             className="min-h-[46px] rounded-xl border px-5 text-sm font-bold"
             style={{ borderColor: "var(--border-subtle)", color: "var(--text-primary)" }}
           >
-            {tp("Пройти еще раз", "Try again", "Spróbuj ponownie")}
+            {radioText(tp("Пройти еще раз", "Try again", "Spróbuj ponownie"))}
           </button>
           <Link
             href={chapter.practiceHref}
             className="flex min-h-[46px] items-center rounded-xl px-5 text-sm font-bold"
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
-            {explLang === "ru" ? chapter.practiceLabel.ru : chapter.practiceLabel.pl}
+            {radioText(explLang === "ru" ? chapter.practiceLabel.ru : chapter.practiceLabel.pl)}
           </Link>
         </div>
       </section>
@@ -174,11 +178,11 @@ export default function ChapterCheck({
   return (
     <section className="border-t pt-6" style={{ borderColor: "var(--border-subtle)" }}>
       <div className="mb-3 flex items-center justify-between gap-3 text-xs" style={{ color: "var(--text-muted)" }}>
-        <span>{tp("Проверка главы", "Chapter check", "Sprawdzenie rozdziału")}</span>
-        <span>{index + 1}/{questions.length}</span>
+        <span>{radioText(tp("Проверка главы", "Chapter check", "Sprawdzenie rozdziału"))}</span>
+        <span>{radioText(index + 1)}/{radioText(questions.length)}</span>
       </div>
       <h2 className="max-w-3xl text-base font-semibold leading-relaxed" style={{ color: "var(--text-primary)" }}>
-        {current.q}
+        {examQuestionText(current, lang, radioText)}
       </h2>
       <div className="mt-4 space-y-2">
         {current.options.map((option, optionIndex) => {
@@ -207,17 +211,18 @@ export default function ChapterCheck({
               }}
             >
               <span className="font-bold" style={{ color: "var(--accent-cyan)" }}>
-                {String.fromCharCode(65 + optionIndex)}
+                {radioText(String.fromCharCode(65 + optionIndex))}
               </span>
-              <span>{option}</span>
+              <span lang={hasEnglishOptions(current) ? "en" : lang}>{examOptionText(current, option, radioText)}</span>
             </button>
           );
         })}
       </div>
+      <OriginalPolish><p>{current.q}</p><ol className="list-inside list-[upper-alpha]">{current.options.map((option,index)=><li key={index}>{option}</li>)}</ol></OriginalPolish>
       {picked !== null && (
         <div className="mt-4">
           <p className="text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            {picked === current.correct ? "✓ " : "✕ "}{current.whyPl}
+            {radioText(picked === current.correct ? "✓ " : "✕ ")}{examExplanationText(current, radioText)}
           </p>
           <button
             type="button"
@@ -225,9 +230,9 @@ export default function ChapterCheck({
             className="mt-4 min-h-[46px] rounded-xl px-5 text-sm font-bold"
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
-            {index === questions.length - 1
+            {radioText(index === questions.length - 1
               ? tp("Показать результат", "Show result", "Pokaż wynik")
-              : tp("Следующий вопрос", "Next question", "Następne pytanie")}
+              : tp("Следующий вопрос", "Next question", "Następne pytanie"))}
           </button>
         </div>
       )}

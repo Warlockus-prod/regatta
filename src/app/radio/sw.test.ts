@@ -38,6 +38,7 @@ function extract(name: string): (...args: unknown[]) => boolean {
 
 const isCacheableDoc = extract('isCacheableDoc');
 const isImmutableAsset = extract('isImmutableAsset');
+const isAsset = extract('isAsset');
 
 const u = (path: string) => new URL(`https://weektoregatta.com${path}`);
 
@@ -73,6 +74,13 @@ describe('the service worker never caches what it must not', () => {
     const list = m![1];
     expect(list).not.toMatch(/stats|api|multiplayer|leaderboard/);
     expect(list).toContain("'/radio/teoria'");
+  });
+
+  it("caches the seven public locale packs without widening to private JSON", () => {
+    for (const locale of ["aliases", "ru", "en", "pl", "es", "fr", "de", "it"]) expect(isAsset(u(`/radio-locales/${locale}.json`))).toBe(true);
+    for (const path of ["/stats.json", "/api/player.json", "/radio-locales/private.json", "/other/en.json"]) expect(isAsset(u(path))).toBe(false);
+    expect(src).toContain("Promise.allSettled(RADIO_CATALOGS.map");
+    expect(src).toContain("catalogStored === RADIO_CATALOGS.length");
   });
 
   it('bails out of /api before any cache logic', () => {

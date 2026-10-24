@@ -23,6 +23,8 @@ import {
 import { findCourse } from '../../src/game/course';
 import { colors, radii, spacing } from '../../src/design-system/tokens';
 import { useAnalytics, AnalyticsEvent } from '../../src/analytics';
+import { validateNativeRace } from '../../../src/lib/race-native';
+import { analyseRaceLocally } from '../../../src/lib/fallback-coach';
 
 type LoadState =
   | { kind: 'idle' }
@@ -63,12 +65,23 @@ export default function Coach() {
         return;
       }
       setRace(rec);
+      const localRace = validateNativeRace(rec.webRace);
+      if (localRace) {
+        const coaching = analyseRaceLocally({
+          difficulty: localRace.difficulty,
+          courseInfo: { windDirection: 0, windwardMark: localRace.course.marks[0].pos, startY: localRace.course.startLine.a.y },
+          finishTime: localRace.finishTimeSec, position: localRace.position, totalBoats: localRace.totalBoats,
+          samples: localRace.samples, events: localRace.events,
+        }, lang);
+        setState({ kind: 'loaded', coaching });
+        return;
+      }
       setState({ kind: 'loading-coach' });
     });
     return () => {
       cancelled = true;
     };
-  }, [raceId]);
+  }, [raceId, lang]);
 
   // 2. Build the /api/coach payload from the race + fire the request
   //    once race is hydrated. Re-fires when the user taps "Try again".
@@ -143,7 +156,7 @@ export default function Coach() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.kind]);
 
-  const title = tp('AI тренер', 'AI coach', 'Trener AI', {
+  const title = validateNativeRace(race?.webRace) ? tp("Разбор гонки", "Race debrief", "Omówienie regat", { es: "Análisis de la regata", fr: "Bilan de la course", de: "Rennauswertung", it: "Analisi della regata" }) : tp('AI тренер', 'AI coach', 'Trener AI', {
     es: 'Coach IA',
     fr: 'Coach IA',
     de: 'KI-Coach',

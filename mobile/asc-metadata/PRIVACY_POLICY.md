@@ -1,6 +1,6 @@
 # Week to Regatta - Privacy Policy
 
-Last updated: 2026-10-19.
+Last updated: 2026-10-24.
 
 The published policy is the page https://weektoregatta.com/privacy (the
 Privacy Policy URL of the App Store listing). This file is its app-side source
@@ -13,12 +13,16 @@ Week to Regatta does not track you across other apps or websites, shows no ads
 and has no account. Your learning progress stays on your phone. The app sends
 pseudonymous product analytics (tied to a random install id, not to you), and
 you can turn the app's analytics off in Settings -> Data -> Anonymous
-analytics. Some features need the network by design: the course pages are
-pages of weektoregatta.com, the AI coach and the Ask screen send your race log
-or your question to OpenAI through our server, a voice answer you record in
-the SRC radio simulator or the sternik oral exam practice goes to OpenAI
-through our server to be turned into text, and live multiplayer shows your
-nickname to the other players in the room. Each case is listed below.
+analytics. From app 1.7.0 build 59, bundled SRC recognizes English VHF speech
+on device when a local model is available. Audio is not sent to a server or
+saved to a file. A missing model leaves a typed content check that works
+offline; it is labelled separately from a microphone check. Solo racing and
+its coaching are also local. The bundled Sternik course runs locally in
+Polish, including theory, tests, exams and typed oral-answer practice without
+the microphone. Online course pages, Ask, online AI reviews,
+website radio speech and website sternik oral speech still use the network as
+described below. Older app builds retain their previous network behavior.
+Live multiplayer shows your nickname to other players in the room.
 
 ## What we collect
 
@@ -53,8 +57,11 @@ with app developers, that is Apple's own setting and Apple's data.
 
 ### Course pages inside the app
 
-The sternik motorowodny and SRC radio courses (and some trainers) are pages of
-weektoregatta.com shown inside the app. Like the website, those pages send
+Online course pages in older app builds and explicitly opened online pages
+load from weektoregatta.com inside the app. From app 1.7.0
+build 59, the bundled SRC and Sternik courses and solo race are local assets and do not
+require a server page. Their optional analytics still follow the switch
+described below. Like the website, online pages send
 usage events to weektoregatta.com: which page was opened, that it was opened
 inside the app, mock exam started and finished with the score, lessons and
 radio tasks completed, and technical error reports when a page script fails
@@ -103,8 +110,15 @@ stores starts with `regatta.`:
   (`regatta.sailing.theory.v1`, `regatta.sailing.trainer-checkpoint.v1`)
 - Your progress in the offline SRC radio course
   (`regatta.radio.offline.web-storage.v1`)
+- Your bundled Sternik course progress, test settings and weak-topic review
+  (`regatta.sternik.offline.web-storage.v1`). Existing website-origin course
+  progress is imported on this device without a network request.
 - Your pre-race checklist ticks (`regatta.checklist.v1`)
-- Your simulator race history (`regatta.race-history.v1`)
+- Your simulator race history, replay samples and local coaching
+  (`regatta.race-history.v1`)
+- Your bundled race preferences, resume state and local best times
+  (`regatta.race.mode.v1`, `regatta.race.assists.v1`, `regatta.race-resume.v1`,
+  `regatta.best-times.v1` and the shared trainer preference keys)
 - Your unit preferences - knots / m_s / Beaufort (`regatta.units.v1`)
 - Your analytics choice (`regatta.analytics.v1`)
 - Flags that you finished the first-launch tour or saw a hint
@@ -126,26 +140,37 @@ this device; Clear all data does not reset those either.
 Besides the analytics above, the app makes network requests in these cases,
 all initiated by you:
 
-1. **Course pages** (sternik, SRC radio, some trainers) load from
-   weektoregatta.com and report the usage events described above.
+1. **Online course pages**, on the website, in older app builds or explicitly
+   opened online, load from weektoregatta.com and report the events described
+   above. Bundled SRC, Sternik and solo racing in app 1.7.0 build 59 and later do not require
+   these requests.
 2. **Ask the assistant**: the question you type and the conversation so far
    go to weektoregatta.com/api/ai-chat, which forwards them to OpenAI to write
    the reply. We do not store the text. Under its API terms, OpenAI does not
    use these requests to train its models and may keep them for up to 30 days
    to monitor abuse.
-3. **AI coach** (after a race, when you tap "AI coach"): sends the race log
+3. **Online AI coach**, requested on the website or in an older app build,
+   sends the race log
    (boat positions, time, score) through weektoregatta.com/api/coach to OpenAI
    to generate post-race coaching text. The race log does not contain personal
    data, only physics samples. We store one event that a review was requested
-   (difficulty, position, finish time, language), not the race log.
-4. **Voice answers**: in the SRC radio simulator and in the sternik oral exam
-   practice (both course pages inside the app), a recording you start with the
+   (difficulty, position, finish time, language), not the race log. From
+   app 1.7.0 build 59, the app calculates solo coaching locally and does not send
+   that race log.
+4. **Online voice answers**: in the website radio trainer, in older app
+   builds and in website sternik oral practice, a recording you start with the
    microphone button goes to weektoregatta.com/api/radio-voice or
    /api/radio-transcribe, which forward it to OpenAI to turn the speech into
    text. The text is then checked against the exercise checklist, on our
    server or in the page. We do not store the recording or the text. The
    microphone is used only while you record; iOS asks for your permission the
-   first time.
+   first time. Bundled SRC in app 1.7.0 build 59 and later instead uses an
+   installed on-device English model, without sending audio or saving an audio
+   file. It does not download models automatically. An unavailable model or
+   denied microphone permission leaves an offline typed content check. Typing
+   is not represented as a successful microphone test. Bundled Sternik uses
+   typed Polish answers and a local rubric, without microphone access or
+   transcription requests.
 5. **Live multiplayer**: the multiplayer screen is the live room of
    weektoregatta.com/multiplayer. Everyone in the room sees your nickname.
    When the race finishes, each result is posted to the leaderboard with your
@@ -155,15 +180,17 @@ all initiated by you:
    YouTube (img.youtube.com), and a video opens on YouTube when you tap it.
    These requests carry only what any browser sends (User-Agent, IP address).
    No identifier of you or the device is attached.
-7. **Daily challenge banner** on Home: a small GET to
-   weektoregatta.com/api/daily to fetch today's optional challenge.
-   No identifier of you or the device is sent.
+7. **Daily challenge banner in older app builds**: a small GET to
+   weektoregatta.com/api/daily fetches today's challenge without an identifier.
+   From app 1.7.0 build 59, the app calculates the daily solo challenge locally.
 8. **Spot weather**: when you pick a sailing spot, a GET to
    weektoregatta.com/api/weather with that spot's coordinates (never your own
    location).
-9. **Leaderboard**: when you finish a solo race the score (time + course, no
+9. **Online leaderboard in older app builds**: after a solo race the score
+   (time + course, no
    identity) may be posted to weektoregatta.com so the global board can show
-   it. No personal identifier is attached.
+   it. From app 1.7.0 build 59, bundled solo results stay on the device and are
+   not posted to the online leaderboard.
 
 If you are offline, all of the above are silently skipped.
 
@@ -177,12 +204,13 @@ We do not receive any of this data from Apple.
 
 ## Children
 
-The app has no in-app purchases and no advertising. It does have three
-features where you type, say or show something: the Ask assistant (your
-question goes to OpenAI as described above), voice answers in the SRC radio
-simulator and the sternik oral exam practice (the recording goes to OpenAI to
-be turned into text and is not stored) and live multiplayer (your nickname is
-visible to the other players in the room). Apart from these, the only data
+The app has no in-app purchases and no advertising. The Ask assistant sends
+your question to OpenAI as described above. Website radio and sternik oral
+practice send a recording you start to OpenAI for transcription; we do not
+store it. Bundled SRC from app 1.7.0 build 59 uses local recognition and an
+offline typed fallback instead. Bundled Sternik uses typed local practice
+without the microphone. Live multiplayer shows your nickname to
+other players in the room. Apart from these, the only data
 collected is the pseudonymous usage analytics described above (the app's own
 and that of the course pages), which the analytics switch in Settings turns
 off as described under "Turning it off". The other requests under "What we
@@ -195,6 +223,10 @@ change here. If we ever start collecting anything that identifies you, we
 will also ask you to opt in inside the app, and the opt-out switch stays in
 Settings -> Data.
 
+- 2026-10-24: separated local SRC speech recognition, typed fallback, local
+  Sternik theory/tests/exams/typed practice and solo coaching in app 1.7.0
+  build 59 and later from the online website and older app builds. Local speech does not upload or
+  save audio. The existing AudioData disclosure remains for online speech.
 - 2026-10-19: named OpenAI as the AI provider for the coach and the Ask
   assistant; described live multiplayer (it was described as local-only), the
   Ask screen, voice answers in the radio simulator and the oral exam practice,

@@ -3,8 +3,9 @@ import { TACTICAL_PITCH, lookAhead, tacticalPose } from "./camera";
 import { shoreDistanceAt, shoreField } from "./shore";
 import { TRAIL_LIFE, buildRibbon, pushTrail, ribbonIndices, type TrailPoint } from "./trail";
 import { initialDpr, nextDpr } from "./quality";
-import { landColor } from "./land";
+import { landColor, landGeometry } from "./land";
 import { VENUES } from "@/data/venues/venues";
+import { raceTerrain, terrainIndices } from "@/data/venues/geometry";
 
 // Contracts of the race scene's pure parts (ADR-0008): the tactical camera
 // keeps upwind at the top and the next mark ahead, the shore field is zero on
@@ -105,5 +106,20 @@ describe("land colour", () => {
     expect(landColor(2, 0, palette, 0.2)).not.toBe(palette.sand);
     expect(landColor(6, 0.01, palette, 0.9)).not.toBe(palette.sand);
     expect(landColor(6, 0.95, palette, 0.2)).toBe(palette.peak);
+  });
+
+  it("smooths shared terrain vertices while keeping the original triangle budget", () => {
+    const venue = VENUES.find(candidate => candidate.lands.some(land => land.kind === "island"))!;
+    const terrains = raceTerrain(venue, { metresPerUnit: 0.6 });
+    terrains.forEach((terrain, i) => {
+      const wrap = venue.lands[i].kind === "island";
+      const mesh = landGeometry(terrain, venue.palette, i, wrap);
+      expect(mesh.index?.count).toBe(terrainIndices(terrain.rows, terrain.cols, wrap).length);
+      expect(mesh.getAttribute("position").count).toBe(terrain.rows * terrain.cols);
+      expect(mesh.getAttribute("normal").count).toBe(terrain.rows * terrain.cols);
+      expect(Array.from(mesh.getAttribute("normal").array).every(Number.isFinite)).toBe(true);
+      expect(Array.from(mesh.getAttribute("color").array).every(Number.isFinite)).toBe(true);
+      mesh.dispose();
+    });
   });
 });

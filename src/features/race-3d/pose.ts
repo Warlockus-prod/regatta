@@ -35,6 +35,9 @@ export interface Race3DBoat {
   speed: number;
   lapDone: number;
   finishTime?: number;
+  started?: boolean;
+  returningToStart?: boolean;
+  roundPhase?: number;
   isPlayer?: boolean;
   physics?: BoatState;
   trim?: Controls;
@@ -78,12 +81,14 @@ export function racePose(boat: Race3DBoat, windDir: number, turnRate = 0): Yacht
     luff,
     fill,
     reef: trim?.reef ?? 0,
+    mainHoisted: trim?.mainHoisted !== false,
     rudderAngle: Math.max(-30, Math.min(30, turnRate * 1.2)),
     heel: boat.physics?.heel ?? 0,
     heading: boat.heading,
     speedKn: boat.speed * VISUAL_SPEEDUP,
+    wind: { from: windDir, knots: boat.physics?.trueWindSpeed ?? 12 },
     travel: toWorld(boat.pos),
-    jibShape: { camber: 0.7, twist: trim?.jibTwist ?? 0.4, luff, fill, furl: trim?.jibFurl ?? 0 },
+    jibShape: { camber: 0.7, twist: trim?.jibTwist ?? 0.4, luff, fill, furl: clamp01(trim?.jibFurl ?? 0) },
   };
 }
 

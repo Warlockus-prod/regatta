@@ -64,8 +64,11 @@ jobs:
         # The bundled WebView resolves React from mobile, not the Next.js tree.
         # Both lockfiles are required to reproduce the shipped native asset.
         run: npm ci --prefix mobile --no-audit --no-fund
-      - name: Offline sailing package matches the website source
-        run: npm run build:sailing-offline:check
+      - name: Installed offline packages match the website source
+        run: |
+          npm run build:sailing-offline:check
+          npm run build:radio-offline:check
+          npm run build:sternik-offline:check
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Pre-deploy E2E (boot the build, run smoke against localhost)
@@ -89,10 +92,11 @@ jobs:
             echo "FAIL: app did not become healthy in 40s"; kill $APP_PID 2>/dev/null || true; exit 1
           fi
           set +e
-          # Full smoke suite minus the AI chat test (needs a live LLM key -
+          # Smoke, radio layouts and true offline practice before publication.
+          # Excludes the AI chat test (needs a live LLM key -
           # covered post-deploy on prod) and multiplayer.spec (needs the ws
           # server + prod nginx /ws upgrade, also covered post-deploy).
-          npx playwright test e2e/smoke.spec.ts --grep-invert "AI chat"
+          npx playwright test e2e/smoke.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
           RESULT=$?
           set -e
           kill $APP_PID 2>/dev/null || true

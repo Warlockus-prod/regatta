@@ -1,39 +1,7 @@
 // Race setup shared by the race screen and its menu (src/app/game): the
-// difficulty levels and the boat styles, in 7 languages.
+// difficulty levels in seven languages.
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type BoatStyle = 'cruiser' | 'racer';
-
-export const BOAT_STYLES: {
-  id: BoatStyle;
-  labelRu: string; labelEn: string; labelPl: string;
-  labelEs: string; labelFr: string; labelDe: string; labelIt: string;
-  descRu: string; descEn: string; descPl: string;
-  descEs: string; descFr: string; descDe: string; descIt: string;
-  hullScale: number; hullWidth: number; sailHue: string;
-}[] = [
-  { id: 'cruiser', labelRu: 'Круизер', labelEn: 'Cruiser', labelPl: 'Jacht turystyczny',
-    labelEs: 'Crucero', labelFr: 'Croiseur', labelDe: 'Fahrtenyacht', labelIt: 'Da crociera',
-    descRu: 'Сбалансированная, для начала.',
-    descEn: 'Balanced, good for starting out.',
-    descPl: 'Wyważony, dobry na początek.',
-    descEs: 'Equilibrado, ideal para empezar.',
-    descFr: 'Équilibré, idéal pour débuter.',
-    descDe: 'Ausgewogen, gut für den Einstieg.',
-    descIt: 'Equilibrata, ideale per iniziare.',
-    hullScale: 1.0, hullWidth: 1.0, sailHue: '#ffffff' },
-  { id: 'racer', labelRu: 'Гоночная', labelEn: 'Racer', labelPl: 'Jacht regatowy',
-    labelEs: 'De regatas', labelFr: 'Voilier de course', labelDe: 'Regattayacht', labelIt: 'Da regata',
-    descRu: 'Узкий длинный корпус, быстрая.',
-    descEn: 'Long, narrow hull. Fast.',
-    descPl: 'Długi, wąski kadłub. Szybki.',
-    descEs: 'Casco largo y estrecho. Rápido.',
-    descFr: 'Coque longue et étroite. Rapide.',
-    descDe: 'Langer, schmaler Rumpf. Schnell.',
-    descIt: 'Scafo lungo e stretto. Veloce.',
-    hullScale: 1.15, hullWidth: 0.82, sailHue: '#e8f4f8' },
-];
-
 export const DIFFICULTY_CONFIG: Record<Difficulty, {
   label: string;      // RU (legacy field name, kept for compat)
   labelEn: string;

@@ -1,8 +1,9 @@
 "use client";
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useI18n } from "@/lib/i18n";
 import WeakSpotsPanel from "./WeakSpotsPanel";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
 import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
@@ -29,13 +30,14 @@ function ProgressLine({
   value: number;
   total: number;
 }) {
+  const { rt: radioText } = useRadioI18n();
   const percent = total > 0 ? Math.min(100, Math.round((value / total) * 100)) : 0;
   return (
     <div>
       <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
-        <span style={{ color: "var(--text-secondary)" }}>{label}</span>
+        <span style={{ color: "var(--text-secondary)" }}>{radioText(label)}</span>
         <span className="font-semibold" style={{ color: "var(--text-primary)" }}>
-          {value}/{total}
+          {radioText(value)}/{radioText(total)}
         </span>
       </div>
       <div className="h-1.5 overflow-hidden rounded-full" style={{ background: "var(--bg-secondary)" }}>
@@ -49,7 +51,8 @@ function ProgressLine({
 }
 
 export default function RadioCourseHome() {
-  const { tp } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp } = useRadioI18n();
   const [progress, setProgress] = useState<RadioCourseProgress>(EMPTY_PROGRESS);
 
   useEffect(() => {
@@ -156,41 +159,41 @@ export default function RadioCourseHome() {
       <header className="mb-8 grid gap-6 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent-cyan)" }}>
-            {tp("Подготовка к польскому SRC", "Polish SRC preparation", "Przygotowanie do polskiego SRC")}
+            {radioText(tp("Подготовка к польскому SRC", "Polish SRC preparation", "Przygotowanie do polskiego SRC"))}
           </p>
           <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
-            {tp(
+            {radioText(tp(
               "От понимания системы до уверенной работы в эфире",
               "From understanding the system to confident radio work",
               "Od zrozumienia systemu do pewnej pracy w eterze",
-            )}
+            ))}
           </h1>
           <p className="mt-4 max-w-3xl text-base leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            {tp(
+            {radioText(tp(
               "Курс разделяет три вещи: ответ для экзамена UKE, международную процедуру и местную практику. Сначала ты понимаешь причину, затем отвечаешь на вопросы и только после этого выполняешь процедуру на ICOM.",
               "The course separates the UKE exam answer, international procedure, and local practice. First understand the reason, then answer questions, then perform the procedure on an ICOM.",
               "Kurs rozdziela odpowiedź egzaminacyjną UKE, procedurę międzynarodową i praktykę lokalną. Najpierw rozumiesz przyczynę, potem odpowiadasz na pytania i wykonujesz procedurę na ICOM.",
-            )}
+            ))}
           </p>
           <Link
             href={next.href}
             className="mt-6 inline-flex min-h-[48px] items-center rounded-xl px-5 text-sm font-bold"
             style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
           >
-            {next.title} <span className="ml-2" aria-hidden>{"->"}</span>
+            {radioText(next.title)} <span className="ml-2" aria-hidden>{radioText("->")}</span>
           </Link>
           <p className="mt-2 max-w-xl text-xs leading-relaxed" style={{ color: "var(--text-muted)" }}>
-            {next.description}
+            {radioText(next.description)}
           </p>
         </div>
 
-        <section aria-label={tp("Общий прогресс", "Overall progress", "Postęp ogólny")} className="self-start border-t pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" style={{ borderColor: "var(--border-subtle)" }}>
+        <section aria-label={radioText(tp("Общий прогресс", "Overall progress", "Postęp ogólny"))} className="self-start border-t pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0" style={{ borderColor: "var(--border-subtle)" }}>
           <div className="mb-5 flex items-baseline justify-between">
             <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-              {tp("Прогресс обучения", "Learning progress", "Postęp nauki")}
+              {radioText(tp("Прогресс обучения", "Learning progress", "Postęp nauki"))}
             </h2>
             <span className="text-2xl font-bold" style={{ color: "var(--accent-cyan)" }}>
-              {progress.overallPercent}%
+              {radioText(progress.overallPercent)}%
             </span>
           </div>
           <div className="space-y-4">
@@ -206,18 +209,18 @@ export default function RadioCourseHome() {
 
       <section className="mb-10">
         <h2 className="text-xl font-bold" style={{ color: "var(--text-primary)" }}>
-          {tp("Порядок подготовки", "Preparation path", "Ścieżka przygotowania")}
+          {radioText(tp("Порядок подготовки", "Preparation path", "Ścieżka przygotowania"))}
         </h2>
         <div className="mt-5 divide-y" style={{ borderColor: "var(--border-subtle)" }}>
           {path.map((stage) => (
             <article key={stage.number} className="grid gap-3 py-5 first:pt-0 sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:items-center">
               <span className="font-mono text-sm font-bold" style={{ color: "var(--accent-cyan)" }}>
-                {stage.number}
+                {radioText(stage.number)}
               </span>
               <div>
-                <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>{stage.title}</h3>
+                <h3 className="font-bold" style={{ color: "var(--text-primary)" }}>{radioText(stage.title)}</h3>
                 <p className="mt-1 max-w-3xl text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-                  {stage.text}
+                  {radioText(stage.text)}
                 </p>
               </div>
               <Link
@@ -225,7 +228,7 @@ export default function RadioCourseHome() {
                 className="flex min-h-[44px] items-center font-semibold underline decoration-dotted underline-offset-4"
                 style={{ color: "var(--accent-cyan)" }}
               >
-                {stage.action}
+                {radioText(stage.action)}
               </Link>
             </article>
           ))}
@@ -235,31 +238,31 @@ export default function RadioCourseHome() {
       <section className="mb-10 grid gap-6 border-y py-6 md:grid-cols-3" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
           <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-            {tp("Формат UKE", "UKE format", "Format UKE")}
+            {radioText(tp("Формат UKE", "UKE format", "Format UKE"))}
           </h2>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            {tp(
+            {radioText(tp(
               "По 5 вопросов из каждого экзаменационного предмета. Практика выполняется на ICOM IC-M323 или IC-M330GE.",
               "Five questions from each exam subject. The practical part uses an ICOM IC-M323 or IC-M330GE.",
               "Po 5 pytań z każdego przedmiotu. Praktyka odbywa się na ICOM IC-M323 lub IC-M330GE.",
-            )}
+            ))}
           </p>
         </div>
         <div>
           <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-            {tp("Статус ответов", "Answer status", "Status odpowiedzi")}
+            {radioText(tp("Статус ответов", "Answer status", "Status odpowiedzi"))}
           </h2>
           <p className="mt-2 text-sm leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-            {tp(
+            {radioText(tp(
               "UKE не публикует официальный ключ. Ответы курса являются учебной интерпретацией, спорные позиции помечены, а из каждого вопроса можно перейти к главе и источникам.",
               "UKE does not publish an official answer key. Course answers are a study interpretation, uncertain items are marked, and every question links to its chapter and sources.",
               "UKE nie publikuje oficjalnego klucza. Odpowiedzi kursu są interpretacją szkoleniową, wątpliwe pozycje są oznaczone, a każde pytanie prowadzi do rozdziału i źródeł.",
-            )}
+            ))}
           </p>
         </div>
         <div>
           <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
-            {tp("Официальный источник", "Official source", "Oficjalne źródło")}
+            {radioText(tp("Официальный источник", "Official source", "Oficjalne źródło"))}
           </h2>
           <a
             href="https://bip.uke.gov.pl/swiadectwa-operatora-urzadzen-radiowych-tresci/swiadectwa-morskie-i-zeglugi-srodladowej%2C4.html"
@@ -268,23 +271,23 @@ export default function RadioCourseHome() {
             className="mt-2 flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4"
             style={{ color: "var(--accent-cyan)" }}
           >
-            {tp("Правила и материалы UKE", "UKE rules and materials", "Zasady i materiały UKE")}
+            {radioText(tp("Правила и материалы UKE", "UKE rules and materials", "Zasady i materiały UKE"))}
           </a>
         </div>
       </section>
 
-      <nav aria-label={tp("Дополнительные тренажёры", "Additional trainers", "Dodatkowe trenażery")} className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
+      <nav aria-label={radioText(tp("Дополнительные тренажёры", "Additional trainers", "Dodatkowe trenażery"))} className="flex flex-wrap gap-x-6 gap-y-2 text-sm">
         <Link href="/radio/rozmowa" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("Живой разговор", "Live conversation", "Rozmowa na żywo")}
+          {radioText(tp("Живой разговор", "Live conversation", "Rozmowa na żywo"))}
         </Link>
         <Link href="/radio/pozycja" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji")}
+          {radioText(tp("Диктовка позиции", "Position dictation", "Dyktowanie pozycji"))}
         </Link>
         <Link href="/radio/zadania" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("26 практических заданий", "26 practical tasks", "26 zadań praktycznych")}
+          {radioText(tp("26 практических заданий", "26 practical tasks", "26 zadań praktycznych"))}
         </Link>
         <Link href="/radio/sciaga" className="flex min-h-[44px] items-center underline underline-offset-4" style={{ color: "var(--text-secondary)" }}>
-          {tp("Шпаргалка после курса", "Post-course cheat sheet", "Ściąga po kursie")}
+          {radioText(tp("Шпаргалка после курса", "Post-course cheat sheet", "Ściąga po kursie"))}
         </Link>
       </nav>
     </div>

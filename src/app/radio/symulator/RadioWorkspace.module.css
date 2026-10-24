@@ -88,6 +88,11 @@
   padding: 8px max(8px, env(safe-area-inset-right, 0px)) 8px max(8px, env(safe-area-inset-left, 0px));
 }
 .radio > * { max-width: 1080px; margin-left: auto; margin-right: auto; }
+.dockFrame { flex: 1 1 auto; min-height: 0; min-width: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); }
+.tabs { display: flex; flex: 0 0 auto; gap: 4px; overflow-x: auto; padding: 0 8px; border-block: 1px solid var(--border-subtle); scrollbar-width: thin; }
+.tabs button { flex: 1 0 auto; min-height: 44px; padding: 0 10px; color: var(--text-secondary); font-size: 12px; font-weight: 600; border: 0; border-bottom: 2px solid transparent; background: transparent; cursor: pointer; }
+.tabs button[aria-selected="true"] { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+.tabs button:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: -3px; }
 .dock {
   flex: 1 1 auto;
   min-height: 0;
@@ -115,13 +120,14 @@
   padding: 12px 20px 0;
 }
 .workspace:not([data-stacked]) .radio { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; padding: 0 0 16px; }
+.workspace:not([data-stacked]) .dockFrame { background: transparent; }
 .workspace:not([data-stacked]) .dock { padding: 0 0 24px; border-top: 0; background: transparent; }
 
 /* Landscape phone: radio on the left, panel on the right. */
 @media (orientation: landscape) and (max-height: 540px) {
   .workspace[data-stacked] .main { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .workspace[data-stacked] .radio { max-height: 100%; overflow-y: auto; overscroll-behavior: contain; }
-  .workspace[data-stacked] .dock { border-top: 0; border-left: 1px solid var(--border-subtle); }
+  .workspace[data-stacked] .dockFrame { border-left: 1px solid var(--border-subtle); }
 }
 
 /* While the work screen is open the page behind it does not scroll. */
@@ -140,3 +146,9 @@
 .collapsible > summary::-webkit-details-marker { display: none; }
 .collapsible > summary::after { content: "\2304"; color: var(--text-muted); }
 .collapsible[open] > summary::after { transform: rotate(180deg); }
+
+@media (max-height: 740px) {
+ .radio { padding: 4px max(4px, env(safe-area-inset-right, 0px)) 4px max(4px, env(safe-area-inset-left, 0px)); }
+ .dock { padding-top: 8px; gap: 8px; }
+ .bar { padding-block: 2px; }
+}

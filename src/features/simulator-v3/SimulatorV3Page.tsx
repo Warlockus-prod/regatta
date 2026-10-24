@@ -757,7 +757,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           embed ? 'min-h-0 overflow-hidden' : ''
         }`}
       >
-        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
+        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`} data-trainer-settings-host>
           {modePanel}
           {mode === 'drill' && (
             <DrillCard

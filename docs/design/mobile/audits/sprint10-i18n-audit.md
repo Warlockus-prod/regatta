@@ -1,19 +1,19 @@
 # Sprint 10 mobile i18n audit
 
-Generated: 2026-10-19T08:42:37.234Z
+Generated: 2026-10-24T17:12:37.620Z
 
-Files scanned: 73
+Files scanned: 88
 
 ## Summary
 
 | Category | Count |
 | --- | --- |
 | cyrillic-leak | 1 |
-| non-english-leak | 2 |
+| non-english-leak | 10 |
 | tp-arity | 0 |
 | tp-no-extras | 0 |
-| hardcoded-jsx | 0 |
-| **TOTAL** | **3** |
+| hardcoded-jsx | 3 |
+| **TOTAL** | **14** |
 
 ## Categories
 
@@ -31,14 +31,30 @@ Files scanned: 73
 | --- | --- | --- |
 | `mobile/app/spots/index.tsx:58` | non-english-leak | Hyères |
 
+### `mobile/src/course/LocalCourseWebView.tsx` (11)
+
+| Location | Kind | Snippet |
+| --- | --- | --- |
+| `mobile/src/course/LocalCourseWebView.tsx:77` | non-english-leak | Wyjść z egzaminu? |
+| `mobile/src/course/LocalCourseWebView.tsx:77` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
+| `mobile/src/course/LocalCourseWebView.tsx:78` | non-english-leak | Zostań |
+| `mobile/src/course/LocalCourseWebView.tsx:79` | non-english-leak | Wyjdź |
+| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Wyjść z egzaminu? |
+| `mobile/src/course/LocalCourseWebView.tsx:100` | non-english-leak | Niezapisane odpowiedzi egzaminu zostaną utracone. |
+| `mobile/src/course/LocalCourseWebView.tsx:101` | non-english-leak | Zostań |
+| `mobile/src/course/LocalCourseWebView.tsx:102` | non-english-leak | Wyjdź |
+| `mobile/src/course/LocalCourseWebView.tsx:133` | hardcoded-jsx | Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis. |
+| `mobile/src/course/LocalCourseWebView.tsx:156` | hardcoded-jsx | Otwieram kurs zapisany na urządzeniu... |
+| `mobile/src/course/LocalCourseWebView.tsx:157` | hardcoded-jsx | Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie w... |
+
 ### `mobile/src/design-system/components/WindNowCard.tsx` (1)
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/design-system/components/WindNowCard.tsx:44` | non-english-leak | Hyères |
+| `mobile/src/design-system/components/WindNowCard.tsx:45` | non-english-leak | Hyères |
 
 ### `mobile/src/simulator/SimWebView.tsx` (1)
 
 | Location | Kind | Snippet |
 | --- | --- | --- |
-| `mobile/src/simulator/SimWebView.tsx:270` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { setLoading(false); setFail... |
+| `mobile/src/simulator/SimWebView.tsx:332` | cyrillic-leak | ) setLoading(false); }}         onHttpError={() => { setLoading(false); setFail... |

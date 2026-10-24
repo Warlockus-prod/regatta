@@ -1,7 +1,11 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fmt, useTrainerI18n } from './symulator/trainerText';
+import { LocalTranscriptEntry } from './LocalTranscriptEntry';
+import { offlineRadio } from './audio/localSpeech';
 
 // ============================================================================
 // MicCheck - browser microphone tester.
@@ -38,6 +42,7 @@ export default function MicCheck({
   /** the guide/simulator uses this to put the words in the Dziennik */
   onTranscript?: (text: string) => void;
 }) {
+  const { rt: radioText } = useRadioI18n();
   const { tp } = useTrainerI18n();
   const [status, setStatus] = useState<Status>('idle');
   const [level, setLevel] = useState(0);
@@ -50,6 +55,7 @@ export default function MicCheck({
   const [transcript, setTranscript] = useState<string | null>(null);
   const [sttOff, setSttOff] = useState(false);
   const [sttError, setSttError] = useState<string | null>(null);
+  const [typedText, setTypedText] = useState<string | null>(null);
 
   const streamRef = useRef<MediaStream | null>(null);
   const ctxRef = useRef<AudioContext | null>(null);
@@ -122,6 +128,7 @@ export default function MicCheck({
    * "the words are arriving".
    */
   const sayIt = useCallback(() => {
+    if (offlineRadio()) { setSttOff(true); return; }
     const stream = streamRef.current;
     if (!stream || recording || busy) return;
     setTranscript(null);
@@ -159,7 +166,7 @@ export default function MicCheck({
           return;
         }
         if (!res.ok || data.error) {
-          setSttError(data.error ?? tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udało się rozpoznać mowy.'));
+          setSttError(tp('Не удалось распознать речь.', 'Could not transcribe.', 'Nie udało się rozpoznać mowy.'));
           return;
         }
         const text = (data.transcript ?? '').trim();
@@ -213,14 +220,14 @@ export default function MicCheck({
     <div data-testid="mic-check" className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
       {!compact && (
         <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-          🎤 {tp('Проверка микрофона', 'Microphone check', 'Sprawdzenie mikrofonu')}
+          🎤 {radioText(tp('Проверка микрофона', 'Microphone check', 'Sprawdzenie mikrofonu'))}
         </div>
       )}
 
       {status === 'live' ? (
         <>
           {/* live level meter */}
-          <div className="flex items-center gap-[3px]" aria-label="input level" data-testid="mic-meter">
+          <div className="flex items-center gap-[3px]" aria-label={radioText("input level")} data-testid="mic-meter">
             {Array.from({ length: SEGMENTS }, (_, i) => {
               const on = i < lit;
               const isPeak = i === peakSeg - 1 && peakSeg > lit;
@@ -240,9 +247,9 @@ export default function MicCheck({
           </div>
           <div className="mt-2 flex items-center justify-between gap-2">
             <span className="text-sm" style={{ color: heard ? 'var(--success)' : 'var(--text-secondary)' }}>
-              {heard
+              {radioText(heard
                 ? tp('Отлично, слышу твой голос! Микрофон работает.', 'Great - I can hear your voice! The mic works.', 'Świetnie - słyszę Twój głos! Mikrofon działa.')
-                : tp('Скажи что-нибудь - полоска должна двигаться.', 'Say something - the bar should move.', 'Powiedz coś - pasek powinien się ruszać.')}
+                : tp('Скажи что-нибудь - полоска должна двигаться.', 'Say something - the bar should move.', 'Powiedz coś - pasek powinien się ruszać.'))}
             </span>
             <button
               type="button"
@@ -251,19 +258,19 @@ export default function MicCheck({
               className="min-h-[44px] shrink-0 rounded-lg px-3 text-xs"
               style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
-              {tp('Стоп', 'Stop', 'Stop')}
+              {radioText(tp('Стоп', 'Stop', 'Stop'))}
             </button>
           </div>
-          {device && <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{tp('Устройство', 'Device', 'Urządzenie')}: {device}</div>}
+          {device && <div className="mt-1 text-[11px]" style={{ color: 'var(--text-muted)' }}>{radioText(tp('Устройство', 'Device', 'Urządzenie'))}: {radioText(device)}</div>}
 
           {/* Half two: does the MODEL understand you? A moving bar and an
               unusable microphone look identical until a MAYDAY scores zero. */}
           <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
             <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Теперь проверим, понимает ли тебя модель', 'Now check that the model understands you', 'Teraz sprawdźmy, czy model cię rozumie')}
+              {radioText(tp('Теперь проверим, понимает ли тебя модель', 'Now check that the model understands you', 'Teraz sprawdźmy, czy model cię rozumie'))}
             </div>
             <pre className="mb-2 overflow-x-auto rounded-lg p-2 text-xs" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-{SAY_LINE}
+{radioText(SAY_LINE)}
             </pre>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -277,56 +284,54 @@ export default function MicCheck({
                   ? { background: 'var(--danger)', color: '#fff' }
                   : { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
-                {busy
+                {radioText(busy
                   ? tp('Слушаю...', 'Listening...', 'Słucham...')
                   : recording
                     ? tp('⏹ Стоп', '⏹ Stop', '⏹ Stop')
-                    : tp('🔴 Сказать это', '🔴 Say it', '🔴 Powiedz to')}
+                    : tp('🔴 Сказать это', '🔴 Say it', '🔴 Powiedz to'))}
               </button>
               {recording && (
                 <span className="text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                  {tp('Говори... запись до 6 секунд', 'Speak... recording for up to 6 seconds', 'Mów... nagrywam do 6 sekund')}
+                  {radioText(tp('Говори... запись до 6 секунд', 'Speak... recording for up to 6 seconds', 'Mów... nagrywam do 6 sekund'))}
                 </span>
               )}
             </div>
 
             {sttOff && (
               <p className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>
-                {tp(
+                {radioText(tp(
                   'Распознавание речи сейчас недоступно. Микрофон при этом проверен - полоска двигается.',
                   'Speech recognition is unavailable right now. The microphone itself is fine - the bar moves.',
                   'Rozpoznawanie mowy jest teraz niedostępne. Sam mikrofon jest sprawny - pasek się rusza.',
-                )}
+                ))}
               </p>
             )}
             {sttError && (
-              <p className="mt-2 text-xs" style={{ color: 'var(--danger)' }}>{sttError}</p>
+              <p className="mt-2 text-xs" style={{ color: 'var(--danger)' }}>{radioText(sttError)}</p>
             )}
 
             {transcript !== null && (
               <div data-testid="mic-transcript" className="mt-2">
                 <div className="text-[11px] font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                  {tp('Модель услышала', 'The model heard', 'Model usłyszał')}
+                  {radioText(tp('Модель услышала', 'The model heard', 'Model usłyszał'))}
                 </div>
                 {transcript ? (
-                  <p className="mt-0.5 text-sm font-medium" style={{ color: 'var(--success)' }}>
-                    &quot;{transcript}&quot;
-                  </p>
+                  <p className="mt-0.5 text-sm font-medium" style={{ color: 'var(--success)' }}>{radioText(" \"")}{transcript}{radioText("\" ")}</p>
                 ) : (
                   <p className="mt-0.5 text-sm" style={{ color: 'var(--danger)' }}>
-                    {tp(
+                    {radioText(tp(
                       'Ничего. Говори громче и ближе к микрофону, убери фоновый шум.',
                       'Nothing. Speak louder and closer to the mic, and kill the background noise.',
                       'Nic. Mów głośniej i bliżej mikrofonu, wycisz hałas w tle.',
-                    )}
+                    ))}
                   </p>
                 )}
                 <p className="mt-1 text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                  {tp(
+                  {radioText(tp(
                     'Если это твои слова - голосовой тренажёр будет работать. Если нет - на экзаменационной передаче будет то же самое, только там это будет стоить баллов.',
                     'If those are your words, the voice trainer will work. If they are not, the same thing will happen to your exam transmission - only there it costs points.',
                     'Jeśli to twoje słowa - trening głosowy zadziała. Jeśli nie - to samo stanie się z nadaniem egzaminacyjnym, tylko tam będzie to kosztować punkty.',
-                  )}
+                  ))}
                 </p>
               </div>
             )}
@@ -342,26 +347,28 @@ export default function MicCheck({
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-60"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            {status === 'requesting'
+            {radioText(status === 'requesting'
               ? tp('Запрашиваю доступ...', 'Requesting access...', 'Proszę o dostęp...')
-              : tp('🎤 Проверить микрофон', '🎤 Test the microphone', '🎤 Sprawdź mikrofon')}
+              : tp('🎤 Проверить микрофон', '🎤 Test the microphone', '🎤 Sprawdź mikrofon'))}
           </button>
           {status !== 'idle' && status !== 'requesting' && (
             <div className="mt-2 text-sm" style={{ color: 'var(--danger, #ff6a5a)' }}>
-              {help[status]}
+              {radioText(help[status])}
             </div>
           )}
           {!compact && status === 'idle' && (
             <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-              {tp(
+              {radioText(tp(
                 'Браузер спросит разрешение на микрофон - нажми «Разрешить». Затем скажи «раз-два» и увидишь, как двигается индикатор. Это нужно для голосовой оценки MAYDAY в симуляторе.',
                 'The browser will ask for microphone permission - click "Allow". Then say "one-two" and watch the meter move. This is what the simulator uses to grade your voice MAYDAY.',
                 'Przeglądarka poprosi o dostęp do mikrofonu - kliknij "Zezwól". Powiedz "raz-dwa" i zobacz, jak rusza się wskaźnik. Tego używa symulator do oceny MAYDAY głosem.',
-              )}
+              ))}
             </p>
           )}
         </>
       )}
+      <LocalTranscriptEntry allowVoice={false} disabled={recording || busy} onSubmit={text => setTypedText(text)} />
+      {typedText && <p className="mt-3 text-sm" data-testid="mic-typed-text"><b>{tp('Введённый текст', 'Typed text', 'Wpisany tekst')}:</b> <span lang="en">{typedText}</span></p>}
     </div>
   );
 }

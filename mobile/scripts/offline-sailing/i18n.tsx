@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import type { Language } from "../../../src/lib/product/catalog";
+import { readSailingSearch } from "./embed";
 
 declare global {
   interface Window {
@@ -15,7 +16,7 @@ type TranslateAll = (values: Partial<Record<Language, string>> & { ru: string; e
 const Context = createContext<{ lang: Language; tp: Translate; tl: TranslateAll }>({ lang: "en", tp: (_ru, en) => en, tl: values => values.en });
 
 export function OfflineSailingI18n({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState(() => valid(window.__REGATTA_LANGUAGE__));
+  const [lang, setLang] = useState(() => valid(window.__REGATTA_LANGUAGE__ ?? readSailingSearch().get("lang")));
   useEffect(() => {
     const update = () => setLang(valid(window.__REGATTA_LANGUAGE__));
     window.addEventListener("regatta-language", update);

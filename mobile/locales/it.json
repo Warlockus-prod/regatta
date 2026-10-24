@@ -1,3 +1,5 @@
 {
-  "NSMicrophoneUsageDescription": "Il microfono viene usato nel simulatore radio SRC per valutare le tue chiamate vocali (MAYDAY, PAN-PAN) e nell'allenamento per l'esame orale sternik per verificare le tue risposte a voce. La registrazione serve solo alla valutazione e non viene conservata."
+  "NSMicrophoneUsageDescription": "Il microfono serve a esercitarsi nelle comunicazioni VHF in inglese (MAYDAY, PAN-PAN) nel corso SRC integrato. Il parlato viene riconosciuto su questo dispositivo se è disponibile un modello locale. L’audio non viene inviato a un server né salvato.",
+  "NSSpeechRecognitionUsageDescription": "Il riconoscimento vocale trascrive le tue chiamate VHF su questo dispositivo per le esercitazioni SRC. L'audio non viene inviato a un server di riconoscimento né salvato.",
+  "NSPhotoLibraryUsageDescription": "Regatta non richiede né utilizza l'accesso alla tua libreria fotografica personale. Questa descrizione è inclusa perché il lettore di file integrato supporta anche i file della libreria fotografica."
 }

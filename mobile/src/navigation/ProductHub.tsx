@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Stack, useRouter, type Href } from "expo-router";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import Svg, { Circle, Path } from "react-native-svg";
@@ -8,7 +8,7 @@ import { sailLessons } from "../../../src/data/sailing-lab/course";
 import { useI18n } from "../i18n/context";
 import { Button, ListRow, Screen, Text } from "../design-system/components";
 import { colors, radii, shadow } from "../design-system/tokens";
-import { fetchDaily, type DailyChallenge } from "../api/daily";
+import { dailySettings } from "../../../src/lib/daily-challenge";
 import { PhotoCard } from "../home/PhotoCard";
 import { useLearningSnapshot } from "../home/useLearningSnapshot";
 import { checkedOf, homeCopy, passedOf, racesSaved } from "../home/copy";
@@ -32,14 +32,8 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
   const { lang } = useI18n();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [daily, setDaily] = useState<DailyChallenge | null>(null);
+  const daily = dailySettings(new Date().toISOString().slice(0, 10));
   const isMenu = section === "library";
-  useEffect(() => {
-    if (section !== "race") return;
-    let active = true;
-    fetchDaily().then(result => { if (active && result.ok && result.data) setDaily(result.data); });
-    return () => { active = false; };
-  }, [section]);
   const current = sections.find(s => s.id === section)!;
   const title = isMenu ? copy.menu[lang] : current.title[lang];
   const solo = destinations.find(d => d.id === "solo")!;
@@ -82,8 +76,8 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
       {section === "practice" && <Button variant="ghost" onPress={() => router.push("/simulator")}>{copy.fallback[lang]}</Button>}
-      {section === "race" && daily && <Group title="">
-        <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push("/game?course=daily")} />
+      {section === "race" && <Group title="">
+        <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />
       </Group>}
     </ScrollView>
   </Screen>;

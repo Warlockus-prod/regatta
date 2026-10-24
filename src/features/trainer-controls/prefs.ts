@@ -37,7 +37,7 @@ export const CONTROL_PREFS_EVENT = "regatta:controls-prefs";
 
 export const DEFAULT_CONTROL_PREFS: ControlPrefs = {
   version: 1,
-  mode: "sliders",
+  mode: "wheels",
   helmMapping: {},
   helmReturnToCenter: false,
   sensitivity: 1,

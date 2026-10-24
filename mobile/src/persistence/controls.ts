@@ -9,7 +9,7 @@
  *           and the page posts { type: "controls-prefs", prefs } back when the
  *           learner changes something in the trainer's own settings sheet.
  *
- * Owner decisions 2026-10-19: sliders by default, wheels optional; no
+ * Owner decision 2026-10-24: wheels by default, existing slider choices stay; no
  * vibration, wheel clicks are sound and play only when sound is on.
  */
 
@@ -28,7 +28,7 @@ export interface ControlPrefsRecord {
   [key: string]: unknown;
 }
 
-export const DEFAULT_CONTROL_PREFS: ControlPrefsRecord = { version: 1, mode: 'sliders', sound: false };
+export const DEFAULT_CONTROL_PREFS: ControlPrefsRecord = { version: 1, mode: 'wheels', sound: false };
 
 /** Keeps known fields valid and passes the rest through for the web to sanitize. */
 export function coerceControlPrefs(raw: unknown): ControlPrefsRecord {
@@ -37,7 +37,7 @@ export function coerceControlPrefs(raw: unknown): ControlPrefsRecord {
   return {
     ...r,
     version: 1,
-    mode: r.mode === 'wheels' ? 'wheels' : 'sliders',
+    mode: r.mode === 'sliders' ? 'sliders' : 'wheels',
     sound: r.sound === true,
   };
 }

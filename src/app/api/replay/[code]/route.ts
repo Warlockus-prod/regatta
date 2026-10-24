@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getReplay } from '@/lib/db';
+import { replayMetadata } from '@/lib/race-replay';
 
 export const runtime = 'nodejs';
 
@@ -11,6 +12,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
   }
   const row = getReplay(clean);
   if (!row) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  const course = row.course_json ? JSON.parse(row.course_json) : null;
+  const metadata = replayMetadata(course?.replayMetadata ?? {}) ?? replayMetadata({})!;
 
   return NextResponse.json({
     code: row.code,
@@ -23,6 +26,8 @@ export async function GET(_req: Request, ctx: { params: Promise<{ code: string }
     views: row.views,
     samples: JSON.parse(row.samples_json),
     events: JSON.parse(row.events_json),
-    course: row.course_json ? JSON.parse(row.course_json) : null,
+    course,
+    mode: metadata.mode,
+    penaltySeconds: metadata.penaltySeconds,
   });
 }

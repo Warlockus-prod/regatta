@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useSyncExternalStore } from "react";
+import { readRaceSearch } from "@/lib/race-native";
 import type { RaceCamera } from "./pose";
 
 // How the solo race is shown, shared by the race menu and the race screen
@@ -13,15 +14,7 @@ export const RACE_VIEW_STORAGE_KEY = "regatta.race.view.v1";
 export const RACE_CAMERA_STORAGE_KEY = "regatta.race.camera.v1";
 const EVENT = "regatta:race-view";
 
-function read3d(): boolean {
-  try {
-    const fromUrl = new URLSearchParams(window.location.search).get("view");
-    if (fromUrl === "3d" || fromUrl === "2d") return fromUrl === "3d";
-    return localStorage.getItem(RACE_VIEW_STORAGE_KEY) === "3d";
-  } catch {
-    return false;
-  }
-}
+function read3d(): boolean { return true; }
 
 // A camera picked on this page wins over ?camera=: the Next router can put the
 // address it loaded with back after a replaceState, which reverted the toggle.
@@ -30,11 +23,11 @@ let pickedCamera: RaceCamera | null = null;
 function readCamera(): RaceCamera {
   if (pickedCamera) return pickedCamera;
   try {
-    const fromUrl = new URLSearchParams(window.location.search).get("camera");
+    const fromUrl = readRaceSearch().get("camera");
     if (fromUrl === "high" || fromUrl === "stern") return fromUrl;
-    return localStorage.getItem(RACE_CAMERA_STORAGE_KEY) === "high" ? "high" : "stern";
+    return localStorage.getItem(RACE_CAMERA_STORAGE_KEY) === "stern" ? "stern" : "high";
   } catch {
-    return "stern";
+    return "high";
   }
 }
 
@@ -69,8 +62,8 @@ export interface RaceViewState {
 }
 
 export function useRaceView(): RaceViewState {
-  const view3d = useSyncExternalStore(subscribe, read3d, () => false);
-  const camera = useSyncExternalStore(subscribe, readCamera, () => "stern" as const);
+  const view3d = useSyncExternalStore(subscribe, read3d, () => true);
+  const camera = useSyncExternalStore(subscribe, readCamera, () => "high" as const);
   const setView3d = useCallback((on: boolean) => write(RACE_VIEW_STORAGE_KEY, on ? "3d" : "2d"), []);
   const setCamera = useCallback((next: RaceCamera) => {
     pickedCamera = next;
@@ -81,12 +74,12 @@ export function useRaceView(): RaceViewState {
 
 const noSubscribe = () => () => {};
 const flag = (name: string, value: string) => {
-  try { return new URLSearchParams(window.location.search).get(name) === value; } catch { return false; }
+  try { return readRaceSearch().get(name) === value; } catch { return false; }
 };
 
 /** Address flags of the next race renderer: ?scene=next, and ?fps=1 for its frame-rate readout. */
 export function useRaceSceneFlags(): { next: boolean; fps: boolean } {
-  const next = useSyncExternalStore(noSubscribe, () => flag("scene", "next"), () => false);
+  const next = true;
   const fps = useSyncExternalStore(noSubscribe, () => flag("fps", "1"), () => false);
   return { next, fps };
 }

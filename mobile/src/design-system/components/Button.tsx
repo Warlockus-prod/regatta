@@ -3,8 +3,8 @@ import {
   type AccessibilityState,
   Pressable,
   StyleSheet,
-  Text,
 } from 'react-native';
+import { Text } from './Text';
 import { radii, spacing } from '../tokens';
 import { bySurface, useSurface } from '../surface';
 

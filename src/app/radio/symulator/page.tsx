@@ -1,8 +1,10 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
+import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
 import VoicePtt, { type VoicePttHandle, type VoiceResult } from './VoicePtt';
@@ -21,10 +23,10 @@ import {
 } from './radioModel';
 import { SCENARIOS, type Bi, type Scenario, type VariantData } from './scenarios';
 import { trackRadioTaskComplete } from '@/lib/funnel';
-import { InspectToggle, PanelSection, RadioWorkspace, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
+import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from './RadioWorkspace';
 import { CONTROLS_COURSE_TASKS, PRACTICE_GROUPS, ukeTasksFor } from './practiceMenu';
 import { fillPlace, placeRadio, venueById, venuesFor, type VenueId } from './venues';
-import { checkLabel, trainerText, useTrainerI18n } from './trainerText';
+import { checkLabel, useTrainerI18n } from './trainerText';
 
 const POB_WORDS: Record<number, string> = { 2: 'TWO', 3: 'THREE', 4: 'FOUR', 5: 'FIVE', 6: 'SIX' };
 
@@ -59,6 +61,12 @@ function logColor(kind: LogRow['kind']): string {
 }
 
 type Mode = 'nauka' | 'egzamin';
+const FREE_PRACTICE: Scenario = {
+ id:"free-practice",icon:"🎛️",title:{pl:"Swobodna praktyka",ru:"Свободная практика"},
+ brief:{pl:"Poznawaj radio bez odliczania i oceny. Ustaw kanał, moc, głośność i blokadę szumów. Przełącz tryb poznawania, aby sprawdzić znaczenie elementu, albo rozpocznij prawdziwy scenariusz.",ru:"Изучай рацию без отсчета и оценки. Настрой канал, мощность, громкость и шумоподавитель. Включи изучение кнопок, чтобы узнать значение элемента, или запусти реальный сценарий."},
+ steps:[],mistakes:[],needs:["coast"],
+};
+
 
 function loadProgress(): ProgressMap {
   try { return JSON.parse(window.localStorage.getItem(PROGRESS_KEY) ?? '{}') as ProgressMap; } catch { return {}; }
@@ -68,11 +76,11 @@ function saveProgress(p: ProgressMap) {
 }
 
 export default function RadioSimulatorPage() {
+  const { rt: radioText, tl } = useRadioI18n();
   const { tp, lang } = useTrainerI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
   const skin = radioRealistic ? 'amber' : 'green';
-  // Language policy (owner, 2026-10-24: the trainer in all 7 languages): the
-  // site language; on the RU site the PL / RU / both choice still applies.
+  // The complete radio course follows the selected site or app language.
   const showRu = lang === 'ru' && explLang !== 'pl';
   const showPl = lang !== 'ru' || explLang !== 'ru';
   // The run's venue fills the place-holders ({marina}, {marinaCh}, ...); read
@@ -80,13 +88,13 @@ export default function RadioSimulatorPage() {
   const venueRef = useRef(venueById(null));
   const bi = useCallback((b: Bi) => {
     const venue = venueRef.current;
-    if (lang !== 'ru' && lang !== 'pl') return fillPlace(trainerText(b.pl, lang), venue, lang);
+    if (lang !== 'ru' && lang !== 'pl') return fillPlace(radioText(b.pl), venue, lang);
     const pl = fillPlace(b.pl, venue, 'pl');
     const ru = fillPlace(b.ru, venue, 'ru');
     if (showRu && showPl) return `${ru} · ${pl}`;
     if (showRu) return ru;
     return pl;
-  }, [lang, showRu, showPl]);
+  }, [lang, showRu, showPl, radioText]);
 
   // --- radio state (imperative ref + render tick: avoids StrictMode double
   // side-effects that a reducer-with-effects would suffer) -------------------
@@ -98,6 +106,7 @@ export default function RadioSimulatorPage() {
   // --- scenario engine state -------------------------------------------------
   const [scenario, setScenario] = useState<Scenario | null>(null);
   const [mode, setMode] = useState<Mode>('nauka');
+  const freePractice = scenario?.id === FREE_PRACTICE.id;
   const [stepIdx, setStepIdx] = useState(0);
   const doneRef = useRef<Set<string>>(new Set());
   // Mistakes already tallied into weakSpots, so the tally survives StrictMode's
@@ -524,9 +533,9 @@ export default function RadioSimulatorPage() {
     // Without this the learner sees a score and has no way to know which words
     // were missing - and the missing words are the whole lesson.
     if (r) {
-      pushLog(`🎙 ${tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${r.transcript.trim()}"`, 'tx');
+      pushLog(`${r.inputMode === 'typed' ? '⌨' : '🎙'} ${r.inputMode === 'typed' ? tp('Ты ввёл', 'You entered', 'Wpisałeś') : tp('Ты сказал', 'You said', 'Powiedziałeś')}: "${r.transcript.trim()}"`, 'tx');
       for (const c of r.checks.filter((x) => !x.ok)) {
-        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${checkLabel(c.label, lang)}`, 'bad');
+        pushLog(`✗ ${tp('Не прозвучало', 'Missing', 'Nie padło')}: ${checkLabel(c.label, lang, radioText)}`, 'bad');
       }
       // remember it: a thing failed eight times is a pattern, not eight incidents
       recordWeak(
@@ -576,14 +585,14 @@ export default function RadioSimulatorPage() {
 
     if (idx + 1 >= sc.steps.length) setFinishedAt(Date.now());
     else setStepIdx(idx + 1);
-  }, [lang, pushLog, tp]);
+  }, [lang, pushLog, tp, radioText]);
 
   // score + persistence on finish
   const doneCount = scenario ? scenario.steps.filter((s) => doneRef.current.has(s.id)).length : 0;
-  const procScore = scenario ? Math.max(0, Math.round((doneCount / scenario.steps.length) * 100) - mistakes.length * 10) : 0;
+  const procScore = scenario?.steps.length ? Math.max(0, Math.round((doneCount / scenario.steps.length) * 100) - mistakes.length * 10) : 0;
   const finalScore = voiceResult ? Math.round(procScore * 0.65 + voiceResult.score * 0.35) : procScore;
   useEffect(() => {
-    if (!scenario || finishedAt === null || startedAt === null) return;
+    if (!scenario || scenario.id === FREE_PRACTICE.id || finishedAt === null || startedAt === null) return;
     const timeSec = Math.round((finishedAt - startedAt) / 1000);
     trackRadioTaskComplete(scenario.id, finalScore);
     setProgress((p) => {
@@ -665,7 +674,7 @@ export default function RadioSimulatorPage() {
         <>
           <div className="mb-1 flex items-start justify-between gap-3">
             <h1 className="text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-              {tp('Практика на рации ICOM', 'Practice on the ICOM radio', 'Trening na radiu ICOM')}
+              {radioText(tp('Практика на рации ICOM', 'Practice on the ICOM radio', 'Trening na radiu ICOM'))}
             </h1>
             {/* The tour used to be a one-shot: shown once, then locked behind a
                 localStorage flag with no way back to it. Anyone who skipped it -
@@ -674,8 +683,8 @@ export default function RadioSimulatorPage() {
               type="button"
               data-testid="replay-onboarding"
               onClick={() => setOnboardStep(0)}
-              aria-label={tp('Как это работает', 'How this works', 'Jak to działa')}
-              title={tp('Как это работает', 'How this works', 'Jak to działa')}
+              aria-label={radioText(tp('Как это работает', 'How this works', 'Jak to działa'))}
+              title={radioText(tp('Как это работает', 'How this works', 'Jak to działa'))}
               className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-base font-bold"
               style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
             >
@@ -683,15 +692,18 @@ export default function RadioSimulatorPage() {
             </button>
           </div>
           <p className="mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {tp(
+            {radioText(tp(
               'Учебная копия раций с практической части SRC в UKE. Меню и процедуры - по инструкциям ICOM.',
               'A training replica of the radios used in the UKE SRC practical. Menus and procedures follow the ICOM manuals.',
               'Treningowa kopia radiotelefonów z części praktycznej SRC w UKE. Menu i procedury wg instrukcji ICOM.',
-            )}
+            ))}
           </p>
 
+          <button type="button" data-testid="start-free-practice" onClick={()=>startScenario(FREE_PRACTICE,"nauka")} className="mb-4 flex min-h-[56px] w-full items-center justify-between rounded-xl border px-4 py-3 text-left font-semibold" style={{borderColor:"var(--accent-cyan)",color:"var(--accent-cyan)",background:"var(--bg-card)"}}>
+            {radioText("Swobodna praktyka: poznaj radio bez oceny")} <span aria-hidden="true">›</span>
+          </button>
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex overflow-hidden rounded-xl" role="group" aria-label={tp('Режим', 'Mode', 'Tryb')} style={{ border: '1px solid var(--border-subtle)' }}>
+            <div className="inline-flex overflow-hidden rounded-xl" role="group" aria-label={radioText(tp('Режим', 'Mode', 'Tryb'))} style={{ border: '1px solid var(--border-subtle)' }}>
               {(['nauka', 'egzamin'] as const).map((m) => (
                 <button
                   key={m}
@@ -704,7 +716,7 @@ export default function RadioSimulatorPage() {
                     ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
                     : { background: 'var(--bg-card)', color: 'var(--text-secondary)' }}
                 >
-                  {m === 'nauka' ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin')}
+                  {radioText(m === 'nauka' ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin'))}
                 </button>
               ))}
             </div>
@@ -716,28 +728,28 @@ export default function RadioSimulatorPage() {
                 className="flex min-h-[44px] cursor-pointer list-none items-center gap-1.5 rounded-xl px-3 text-sm font-semibold"
                 style={{ background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
               >
-                📻 {model === 'M323' ? 'IC-M323' : radioRealistic ? tp('M330 реальный', 'M330 real', 'M330 realny') : 'IC-M330'}
+                📻 {radioText(model === 'M323' ? 'IC-M323' : radioRealistic ? tp('M330 реальный', 'M330 real', 'M330 realny') : 'IC-M330')}
                 <span aria-hidden className="group-open:rotate-180">⌄</span>
               </summary>
               <div className="mt-2 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
                 <RadioVariantToggle model={model} onModel={pickModel} />
                 {model === 'M323' && (
                   <div className="mt-2 max-w-md text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {tp(
+                    {radioText(tp(
                       'Профиль IC-M323: клавиша CLEAR, отдельное дерево меню, цикл ручки VOL -> SQL -> CH -> подсветка и завершение отмены без отдельного STBY. Интервал повтора DSC у обеих моделей случайный: 3,5-4,5 минуты.',
                       'IC-M323 profile: CLEAR key, its own menu tree, VOL -> SQL -> CH -> backlight dial cycle, and cancel completion without a separate STBY step. Both models randomize the DSC repeat interval between 3.5 and 4.5 minutes.',
                       'Profil IC-M323: klawisz CLEAR, osobne drzewo menu, cykl pokrętła VOL -> SQL -> CH -> podświetlenie i zakończenie odwołania bez osobnego STBY. W obu modelach odstęp powtórki DSC jest losowy: 3,5-4,5 minuty.',
-                    )}
+                    ))}
                   </div>
                 )}
               </div>
             </details>
           </div>
           <p className="mb-4 mt-1.5 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-            {mode === 'nauka'
+            {radioText(mode === 'nauka'
               ? tp('Обучение: подсказка и «почему» на каждом шаге.', 'Learn: a hint and the "why" at every step.', 'Nauka: wskazówka i "dlaczego" na każdym kroku.')
-              : tp('Экзамен: только ситуация, разбор в конце.', 'Exam: the situation only, debrief at the end.', 'Egzamin: tylko sytuacja, omówienie na końcu.')}
-            {' '}{tp('Прогресс сохраняется на этом устройстве.', 'Progress is saved on this device.', 'Postęp zapisuje się na tym urządzeniu.')}
+              : tp('Экзамен: только ситуация, разбор в конце.', 'Exam: the situation only, debrief at the end.', 'Egzamin: tylko sytuacja, omówienie na końcu.'))}
+            {radioText(' ')}{radioText(tp('Прогресс сохраняется на этом устройстве.', 'Progress is saved on this device.', 'Postęp zapisuje się na tym urządzeniu.'))}
           </p>
 
           {/* first steps: the controls lessons, on the same pinned radio */}
@@ -750,10 +762,10 @@ export default function RadioSimulatorPage() {
             <span className="w-7 shrink-0 text-center text-xl" aria-hidden>🎛️</span>
             <span className="min-w-0 flex-1">
               <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>
-                {tp('Первые шаги: управление рацией', 'First steps: the radio controls', 'Pierwsze kroki: obsługa radia')}
+                {radioText(tp('Первые шаги: управление рацией', 'First steps: the radio controls', 'Pierwsze kroki: obsługa radia'))}
               </span>
               <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                {tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia')} · {tp('зад. UKE', 'UKE tasks', 'zad. UKE')} {CONTROLS_COURSE_TASKS.join(', ')}
+                {radioText(tp('уроки на кнопках рации', 'lessons on the radio keys', 'lekcje na przyciskach radia'))} · {radioText(tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(CONTROLS_COURSE_TASKS.join(', '))}
               </span>
             </span>
             <span aria-hidden style={{ color: 'var(--text-muted)' }}>›</span>
@@ -762,7 +774,7 @@ export default function RadioSimulatorPage() {
           {PRACTICE_GROUPS.map((group) => (
             <section key={group.id} className="mt-5" aria-labelledby={`practice-${group.id}`}>
               <h2 id={`practice-${group.id}`} className="mb-1.5 ml-0.5 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                {bi(group.title)}
+                {radioText(bi(group.title))}
               </h2>
               <ul className="overflow-hidden rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
                 {group.scenarios.map((id, i) => {
@@ -778,18 +790,18 @@ export default function RadioSimulatorPage() {
                         onClick={() => startScenario(sc, mode)}
                         className="flex min-h-[56px] w-full items-center gap-3 px-4 py-2 text-left"
                       >
-                        <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{sc.icon}</span>
+                        <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{radioText(sc.icon)}</span>
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{bi(sc.title)}</span>
+                          <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(bi(sc.title))}</span>
                           {tasks.length > 0 && (
                             <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>
-                              {tasks.length === 1 ? tp('зад. UKE', 'UKE task', 'zad. UKE') : tp('зад. UKE', 'UKE tasks', 'zad. UKE')} {tasks.join(', ')}
+                              {radioText(tasks.length === 1 ? tp('зад. UKE', 'UKE task', 'zad. UKE') : tp('зад. UKE', 'UKE tasks', 'zad. UKE'))} {radioText(tasks.join(', '))}
                             </span>
                           )}
                         </span>
                         {pr && (
                           <span className="shrink-0 text-xs font-semibold" style={{ color: pr.best >= 90 ? 'var(--success)' : 'var(--text-muted)' }}>
-                            {pr.best >= 90 ? '✓ ' : ''}{pr.best}%
+                            {radioText(pr.best >= 90 ? '✓ ' : '')}{radioText(pr.best)}%
                           </span>
                         )}
                         <span aria-hidden style={{ color: 'var(--text-muted)' }}>›</span>
@@ -803,19 +815,19 @@ export default function RadioSimulatorPage() {
 
           <section className="mt-5" aria-labelledby="practice-voice">
             <h2 id="practice-voice" className="mb-1.5 ml-0.5 text-xs font-bold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-              {tp('Голосовые упражнения', 'Voice drills', 'Ćwiczenia głosowe')}
+              {radioText(tp('Голосовые упражнения', 'Voice drills', 'Ćwiczenia głosowe'))}
             </h2>
             <ul className="overflow-hidden rounded-2xl" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
               {[
-                { href: '/radio/rozmowa', icon: '🎙️', title: tp('Живой разговор со станцией', 'Live conversation with a station', 'Rozmowa na żywo ze stacją'), note: tp('нужен интернет', 'needs a connection', 'wymaga internetu') },
+                { href: '/radio/rozmowa', icon: '🎙️', title: tp('Живой разговор со станцией', 'Live conversation with a station', 'Rozmowa na żywo ze stacją'), note: tl({ ru: 'Голосовая или текстовая практика', en: 'Voice or typed practice', pl: 'Ćwiczenia głosowe lub tekstowe', es: 'Práctica por voz o por escrito', fr: 'Entraînement oral ou écrit', de: 'Üben per Sprache oder Text', it: 'Esercitazioni vocali o scritte' }) },
                 { href: '/radio/pozycja', icon: '🧭', title: tp('Диктовка позиции', 'Position dictation', 'Dyktowanie pozycji'), note: null },
               ].map((item, i) => (
                 <li key={item.href} style={i > 0 ? { borderTop: '1px solid var(--border-subtle)' } : undefined}>
                   <Link href={item.href} className="flex min-h-[56px] items-center gap-3 px-4 py-2">
-                    <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{item.icon}</span>
+                    <span className="w-7 shrink-0 text-center text-xl" aria-hidden>{radioText(item.icon)}</span>
                     <span className="min-w-0 flex-1">
-                      <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{item.title}</span>
-                      {item.note && <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>{item.note}</span>}
+                      <span className="block text-[15px] font-semibold leading-5" style={{ color: 'var(--text-primary)' }}>{radioText(item.title)}</span>
+                      {item.note && <span className="block text-xs leading-4" style={{ color: 'var(--text-muted)' }}>{radioText(item.note)}</span>}
                     </span>
                     <span aria-hidden style={{ color: 'var(--text-muted)' }}>›</span>
                   </Link>
@@ -824,12 +836,12 @@ export default function RadioSimulatorPage() {
             </ul>
           </section>
 
-          <nav className="mt-4 flex flex-wrap gap-x-6" aria-label={tp('Справка', 'Reference', 'Ściągi')}>
+          <nav className="mt-4 flex flex-wrap gap-x-6" aria-label={radioText(tp('Справка', 'Reference', 'Ściągi'))}>
             <Link href="/radio/zadania" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
-              📋 {tp('Все 26 заданий UKE', 'All 26 UKE tasks', 'Wszystkie 26 zadań UKE')}
+              📋 {radioText(tp('Все 26 заданий UKE', 'All 26 UKE tasks', 'Wszystkie 26 zadań UKE'))}
             </Link>
             <Link href="/radio/sciaga" className="flex min-h-[44px] items-center text-sm font-semibold underline underline-offset-4" style={{ color: 'var(--text-secondary)' }}>
-              📄 {tp('Шпаргалка', 'Cheat sheet', 'Ściąga')}
+              📄 {radioText(tp('Шпаргалка', 'Cheat sheet', 'Ściąga'))}
             </Link>
           </nav>
         </>
@@ -849,11 +861,11 @@ export default function RadioSimulatorPage() {
           status={(
             <>
               <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ background: learning ? 'rgba(0,212,255,0.12)' : 'rgba(255,210,74,0.12)', color: learning ? 'var(--accent-cyan)' : 'var(--warning)' }}>
-                {learning ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin')}
+                {radioText(learning ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin'))}
               </span>
-              <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {fmtTime(elapsedSec)}</span>
+              <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {radioText(fmtTime(elapsedSec))}</span>
               {!stacked && (
-                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{scenario.icon} {bi(scenario.title)}</span>
+                <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(scenario.icon)} {radioText(bi(scenario.title))}</span>
               )}
             </>
           )}
@@ -892,46 +904,68 @@ export default function RadioSimulatorPage() {
               compact={compact}
             />
           )}
+          requestedPanel={inspect ? "help" : "task"}
+          requestVersion={stepIdx}
           dockRef={dockRef}
           dock={(
             <>
               {/* what the tapped part is: first in the panel, so the answer is
                   visible right under the radio without scrolling */}
-              {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} className="" />}
+              <DockPanel id="help" label={tp("Справка", "Help", "Pomoc")}>
+                <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} onSelect={(key)=>{setInspect(true);setInspectKey(key);}} className="" />
+              </DockPanel>
+              <DockPanel id="task" label={tp("Задание", "Task", "Zadanie")}>
 
               {/* finished -> debrief; else current step */}
-              {finishedAt !== null ? (
+              {freePractice ? (
+                <div className="space-y-4" data-testid="free-practice-guide">
+                  <h2 className="text-lg font-semibold">{radioText("Poznaj radio w swoim tempie")}</h2>
+                  <p className="text-sm leading-relaxed" style={{color:"var(--text-secondary)"}}>{radioText(FREE_PRACTICE.brief.pl)}</p>
+                  <ol className="list-inside list-decimal space-y-2 text-sm">
+                    <li>{radioText("Przytrzymaj [DIAL] przez sekundę, aby włączyć radio.")}</li>
+                    <li>{radioText("Naciśnij [DIAL], wybierz VOL lub SQL i użyj strzałek obrotu.")}</li>
+                    <li>{radioText("Sprawdź kanały i [HI/LO]. Kanał 70 nie pozwala na nadawanie głosem.")}</li>
+                    <li>{radioText("Otwórz MENU i ćwicz DSC. To symulacja: żaden sygnał nie jest nadawany na prawdziwej częstotliwości.")}</li>
+                  </ol>
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" className="min-h-[44px] rounded-lg border px-3" onClick={()=>{setInspect(true);setInspectKey("dial");}}>{radioText("Wyjaśnij pokrętło i przyciski")}</button>
+                    <button type="button" className="min-h-[44px] rounded-lg border px-3" onClick={()=>startScenario(FREE_PRACTICE,"nauka")}>{radioText("Przywróć ustawienia ćwiczenia")}</button>
+                  </div>
+                  <h3 className="font-semibold">{radioText("Uruchom sytuację")}</h3>
+                  <div className="divide-y" style={{borderColor:"var(--border-subtle)"}}>{SCENARIOS.map(sc=><button key={sc.id} type="button" className="flex min-h-[44px] w-full items-center justify-between py-2 text-left text-sm" onClick={()=>{setInspect(false);startScenario(sc,"nauka");}}><span>{sc.icon} {radioText(bi(sc.title))}</span><span aria-hidden="true">›</span></button>)}</div>
+                </div>
+              ) : finishedAt !== null ? (
                 <div data-testid="debrief" role="status" aria-live="polite" className="rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
-                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('Разбор', 'Debrief', 'Omówienie')}</div>
+                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{radioText(tp('Разбор', 'Debrief', 'Omówienie'))}</div>
                   <div className="flex flex-wrap items-baseline gap-3">
-                    <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{finalScore}%</span>
+                    <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{radioText(finalScore)}%</span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                      {tp('шаги', 'steps', 'kroki')} {doneCount}/{scenario.steps.length} · ⏱ {fmtTime(elapsedSec)}
-                      {voiceResult && <> · 🎙️ {voiceResult.score}%</>}
+                      {radioText(tp('шаги', 'steps', 'kroki'))} {radioText(doneCount)}/{radioText(scenario.steps.length)} · ⏱ {radioText(fmtTime(elapsedSec))}
+                      {voiceResult && <> · {voiceResult.inputMode === 'typed' ? '⌨' : '🎙️'} {radioText(voiceResult.score)}%</>}
                     </span>
                   </div>
                   {mistakes.length > 0 && (
                     <ul className="mt-2 space-y-1 text-sm">
                       {mistakes.map((m) => (
-                        <li key={m.id} style={{ color: 'var(--danger, #ff6a5a)' }}>✗ {bi(m.text)}</li>
+                        <li key={m.id} style={{ color: 'var(--danger, #ff6a5a)' }}>✗ {radioText(bi(m.text))}</li>
                       ))}
                     </ul>
                   )}
                   {scenario.debrief && (
-                    <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{bi(scenario.debrief)}</p>
+                    <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(bi(scenario.debrief))}</p>
                   )}
                   {/* full why-walkthrough in the debrief (always, esp. for exam mode) */}
                   <details className="mt-3">
                     <summary className="flex min-h-[44px] cursor-pointer items-center text-sm font-medium" style={{ color: 'var(--accent-cyan)' }}>
-                      {tp('Почему именно так - по шагам', 'Why it works this way - step by step', 'Dlaczego właśnie tak - krok po kroku')}
+                      {radioText(tp('Почему именно так - по шагам', 'Why it works this way - step by step', 'Dlaczego właśnie tak - krok po kroku'))}
                     </summary>
                     <ol className="mt-2 space-y-2 pl-4 text-sm" style={{ color: 'var(--text-secondary)', listStyle: 'decimal' }}>
                       {scenario.steps.map((st) => (
                         <li key={st.id}>
                           <span style={{ color: doneRef.current.has(st.id) ? 'var(--success)' : 'var(--danger, #ff6a5a)' }}>
-                            {doneRef.current.has(st.id) ? '✓' : '✗'} {bi(st.todo)}
+                            {radioText(doneRef.current.has(st.id) ? '✓' : '✗')} {radioText(bi(st.todo))}
                           </span>
-                          <div className="mt-0.5 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{bi(st.why)}</div>
+                          <div className="mt-0.5 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>{radioText(bi(st.why))}</div>
                         </li>
                       ))}
                     </ol>
@@ -945,7 +979,7 @@ export default function RadioSimulatorPage() {
                     <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                       <div className="mb-1 flex flex-wrap items-center gap-2">
                         <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                          {tp('Как надо было', 'How it should have sounded', 'Jak to miało brzmieć')}
+                          {radioText(tp('Как надо было', 'How it should have sounded', 'Jak to miało brzmieć'))}
                         </span>
                         <button
                           type="button"
@@ -955,26 +989,25 @@ export default function RadioSimulatorPage() {
                           className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-50"
                           style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                         >
-                          {playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posłuchaj wzorca')}
+                          {radioText(playingModel ? tp('Звучит...', 'Playing...', 'Odtwarzam...') : tp('▶ Послушать эталон', '▶ Play the model', '▶ Posłuchaj wzorca'))}
                         </button>
                       </div>
                       <pre className="overflow-x-auto whitespace-pre-wrap text-xs leading-relaxed" style={{ color: 'var(--text-primary)' }}>
-  {modelLines.join('\n')}
+  {radioText(modelLines.join('\n'))}
                       </pre>
                       {voiceResult && (
                         <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                          {tp('Ты сказал', 'You said', 'Powiedziałeś')}: &quot;{voiceResult.transcript.trim().slice(0, 220)}&quot;
-                        </p>
+                          {voiceResult.inputMode === 'typed' ? tp('Ты ввёл', 'You entered', 'Wpisałeś') : tp('Ты сказал', 'You said', 'Powiedziałeś')}{radioText(": \"")}{voiceResult.transcript.trim().slice(0, 220)}{radioText("\" ")}</p>
                       )}
                     </div>
                   )}
 
                   <div className="mt-3 flex gap-2">
                     <button type="button" data-testid="retry" onClick={() => startScenario(scenario, mode)} className="min-h-[44px] rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
-                      {tp('Ещё раз', 'Again', 'Jeszcze raz')}
+                      {radioText(tp('Ещё раз', 'Again', 'Jeszcze raz'))}
                     </button>
                     <button type="button" onClick={exitScenario} className="min-h-[44px] rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-                      {tp('К сценариям', 'Scenarios', 'Do scenariuszy')}
+                      {radioText(tp('К сценариям', 'Scenarios', 'Do scenariuszy'))}
                     </button>
                   </div>
                 </div>
@@ -985,11 +1018,11 @@ export default function RadioSimulatorPage() {
                     <div className="mb-1 flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <div className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
-                          {tp('Задание', 'Task', 'Zadanie')} {Math.min(stepIdx + 1, scenario.steps.length)}/{scenario.steps.length}
-                          <span className="ml-2 normal-case">{doneCount} ✓</span>
+                          {radioText(tp('Задание', 'Task', 'Zadanie'))} {radioText(Math.min(stepIdx + 1, scenario.steps.length))}/{radioText(scenario.steps.length)}
+                          <span className="ml-2 normal-case">{radioText(doneCount)} ✓</span>
                         </div>
                         {stacked && (
-                          <div className="mt-0.5 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{scenario.icon} {bi(scenario.title)}</div>
+                          <div className="mt-0.5 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(scenario.icon)} {radioText(bi(scenario.title))}</div>
                         )}
                       </div>
                       {/* "?" - show me on the radio which control this step wants.
@@ -1000,8 +1033,8 @@ export default function RadioSimulatorPage() {
                           type="button"
                           data-testid="hint-btn"
                           onClick={showHint}
-                          aria-label={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedź - pokaż na radiu')}
-                          title={tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedź - pokaż na radiu')}
+                          aria-label={radioText(tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedź - pokaż na radiu'))}
+                          title={radioText(tp('Подсказать - показать на рации', 'Hint - show it on the radio', 'Podpowiedź - pokaż na radiu'))}
                           className="flex h-11 w-11 min-h-[44px] min-w-[44px] shrink-0 items-center justify-center rounded-full text-sm font-bold transition active:scale-95"
                           style={{ background: 'rgba(255,206,77,0.15)', color: 'var(--hl-amber, #ffce4d)', border: '1px solid rgba(255,206,77,0.45)' }}
                         >
@@ -1011,31 +1044,31 @@ export default function RadioSimulatorPage() {
                     </div>
                     {hintNone && (
                       <div data-testid="hint-none" className="mb-2 text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                        {tp(
+                        {radioText(tp(
                           'Сейчас нажимать нечего - жди ответа станции.',
                           'Nothing to press right now - wait for the station to answer.',
                           'Teraz nic nie naciskasz - czekaj na odpowiedź stacji.',
-                        )}
+                        ))}
                       </div>
                     )}
                     {learning && currentStep ? (
                       <>
-                        <div data-testid="current-todo" className="text-base font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>{bi(currentStep.todo)}</div>
+                        <div data-testid="current-todo" className="text-base font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>{radioText(bi(currentStep.todo))}</div>
                         <div className="mt-2 rounded-xl px-3 py-2 text-xs leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
-                          💡 {bi(currentStep.why)}
+                          💡 {radioText(bi(currentStep.why))}
                         </div>
                       </>
                     ) : (
                       <div className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-                        {tp('Режим экзамена: действуй сам, разбор будет в конце.', 'Exam mode: act on your own, debrief at the end.', 'Tryb egzaminu: działaj sam, omówienie na końcu.')}
+                        {radioText(tp('Режим экзамена: действуй сам, разбор будет в конце.', 'Exam mode: act on your own, debrief at the end.', 'Tryb egzaminu: działaj sam, omówienie na końcu.'))}
                       </div>
                     )}
                     {/* the newest log line, so a mistake or a confirmation shows up
                         next to the task instead of only at the bottom of the log */}
                     {lastLog && (
                       <div data-testid="last-event" className="mt-2 flex gap-2 text-xs" style={{ color: logColor(lastLog.kind) }}>
-                        <span className="shrink-0" style={{ color: 'var(--text-muted)' }}>{tp('Последнее', 'Last', 'Ostatnio')}:</span>
-                        <span className="min-w-0">{lastLog.text}</span>
+                        <span className="shrink-0" style={{ color: 'var(--text-muted)' }}>{radioText(tp('Последнее', 'Last', 'Ostatnio'))}:</span>
+                        <span className="min-w-0">{radioText(lastLog.text)}</span>
                       </div>
                     )}
                   </div>
@@ -1043,6 +1076,7 @@ export default function RadioSimulatorPage() {
                   {/* voice phase */}
                   {currentStep?.voice && (
                     <VoicePtt
+                      key={`${scenario.id}-${currentStep.id}`}
                       ref={voicePttRef}
                       kind={currentStep.voice.kind}
                       lines={currentStep.voice.lines(variantData)}
@@ -1060,35 +1094,39 @@ export default function RadioSimulatorPage() {
                 </>
               )}
 
-              {/* situation + this run's vessel card; collapsible once read */}
+              </DockPanel>
+              <DockPanel id="situation" label={tp("Ситуация", "Situation", "Sytuacja")}>
+              {/* situation + this run's vessel card */}
               <PanelSection
-                title={(
+                title={radioText((
                   <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                     {tp('Ситуация', 'Situation', 'Sytuacja')}
                   </span>
-                )}
+                ))}
               >
-                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{bi(scenario.brief)}</p>
+                <p className="text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(bi(scenario.brief))}</p>
                 <div data-testid="variant-card" className="mt-2 flex flex-wrap gap-x-4 gap-y-1 rounded-xl px-3 py-2 font-mono text-xs" style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>
-                  <span data-testid="variant-area">📍 {venue.area[lang]}</span>
-                  <span>⛵ {variantData.vessel.name}</span>
-                  <span>MMSI {variantData.vessel.mmsi}</span>
-                  <span>{variantData.vessel.call}</span>
-                  <span>POB {variantData.pob}</span>
-                  <span>{position.lat} {position.lon}</span>
+                  <span data-testid="variant-area">📍 {radioText(venue.area[lang])}</span>
+                  <span>⛵ {radioText(variantData.vessel.name)}</span>
+                  <span>MMSI {radioText(variantData.vessel.mmsi)}</span>
+                  <span>{radioText(variantData.vessel.call)}</span>
+                  <span>POB {radioText(variantData.pob)}</span>
+                  <span>{radioText(position.lat)} {radioText(position.lon)}</span>
                 </div>
               </PanelSection>
 
+              </DockPanel>
+              <DockPanel id="log" label={tp("Журнал", "Log", "Dziennik")}>
               {/* action log */}
               <PanelSection
-                title={(
+                title={radioText((
                   <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     📋 {tp('Журнал', 'Log', 'Dziennik')} {pageLog.length > 0 && <span className="font-normal" style={{ color: 'var(--text-muted)' }}>({pageLog.length})</span>}
                   </span>
-                )}
+                ))}
               >
                 {pageLog.length === 0 ? (
-                  <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{tp('пусто - начни с включения рации', 'empty - start by powering on', 'pusto - zacznij od włączenia radia')}</div>
+                  <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{radioText(tp('пусто - начни с включения рации', 'empty - start by powering on', 'pusto - zacznij od włączenia radia'))}</div>
                 ) : (
                   // In the stacked panel the whole panel scrolls; a second scroll
                   // box inside it would trap the thumb.
@@ -1097,14 +1135,15 @@ export default function RadioSimulatorPage() {
                       const rel = startedAt ? Math.max(0, Math.round((r.t - startedAt) / 1000)) : 0;
                       return (
                         <li key={i} className="flex gap-2 text-xs" style={{ color: logColor(r.kind) }}>
-                          <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>{fmtTime(rel)}</span>
-                          <span>{r.text}</span>
+                          <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>{radioText(fmtTime(rel))}</span>
+                          <span>{radioText(r.text)}</span>
                         </li>
                       );
                     })}
                   </ol>
                 )}
               </PanelSection>
+              </DockPanel>
             </>
           )}
         />
@@ -1118,7 +1157,7 @@ export default function RadioSimulatorPage() {
               {
                 icon: '📻',
                 h: tp('Это копия настоящей рации', 'This is a replica of the real radio', 'To kopia prawdziwego radia'),
-                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the set used at the UKE SRC practical. Every key, menu and screen works like the original.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.'),
+                p: tp('ICOM IC-M330GE - именно на ней (или IC-M323) сдают практику SRC в UKE. Все кнопки, меню и экраны работают как в оригинале.', 'ICOM IC-M330GE - the radio used for the UKE SRC practical, along with the IC-M323. Every key, menu and display follows the original equipment.', 'ICOM IC-M330GE - na nim (lub IC-M323) zdaje się praktykę SRC w UKE. Każdy klawisz, menu i ekran działa jak w oryginale.'),
               },
               {
                 icon: '🗺️',
@@ -1147,9 +1186,9 @@ export default function RadioSimulatorPage() {
               },
             ].map((card, i) => (i === onboardStep ? (
               <div key={i}>
-                <div className="text-3xl">{card.icon}</div>
-                <div className="mt-2 text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{card.h}</div>
-                <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{card.p}</p>
+                <div className="text-3xl">{radioText(card.icon)}</div>
+                <div className="mt-2 text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(card.h)}</div>
+                <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(card.p)}</p>
               </div>
             ) : null))}
             <div className="mt-4 flex items-center justify-between">
@@ -1165,7 +1204,7 @@ export default function RadioSimulatorPage() {
                   className="min-h-[44px] rounded-lg px-3 text-xs"
                   style={{ color: 'var(--text-muted)' }}
                 >
-                  {tp('Пропустить', 'Skip', 'Pomiń')}
+                  {radioText(tp('Пропустить', 'Skip', 'Pomiń'))}
                 </button>
                 <button
                   type="button"
@@ -1177,7 +1216,7 @@ export default function RadioSimulatorPage() {
                   className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
                   style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                 >
-                  {onboardStep >= 5 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej')}
+                  {radioText(onboardStep >= 5 ? tp('Начать', 'Start', 'Start') : tp('Дальше', 'Next', 'Dalej'))}
                 </button>
               </div>
             </div>

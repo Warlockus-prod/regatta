@@ -1,114 +1,67 @@
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { VOICE_KINDS, gradeVoiceTransmission } from '@/app/api/radio-voice/voiceGrading';
-import { INSPECT } from './inspectData';
-import { PRACTICE_GROUPS } from './practiceMenu';
+import { SRC_BANK } from '@/data/src-radio';
 import { SCENARIOS } from './scenarios';
-import { TRAINER_DICTS, TRAINER_UI_DICTS, checkLabel, fmt, trainerText } from './trainerText';
-import { VENUES } from './venues';
-
-// The trainer runs in all seven site languages (owner, 2026-10-24). PL and RU
-// live in the data; EN / ES / FR / DE / IT in i18n/*.json, keyed by the Polish
-// source (content) or the English string (interface). A text changed or added
-// in Polish or English without its translations fails here, by name.
-
-function contentKeys(): string[] {
-  const keys = new Set<string>();
-  const add = (s?: string) => { if (s) keys.add(s); };
-  for (const sc of SCENARIOS) {
-    add(sc.title.pl); add(sc.brief.pl); add(sc.debrief?.pl);
-    for (const st of sc.steps) { add(st.todo.pl); add(st.why.pl); }
-    for (const m of sc.mistakes) add(m.text.pl);
-  }
-  for (const g of PRACTICE_GROUPS) add(g.title.pl);
-  for (const v of Object.values(INSPECT)) { add(v.titlePl); add(v.whatPl); add(v.whyPl); add(v.whenPl); }
-  // grader labels, with the value-carrying ones as templates ("... ({value})")
-  const vessel = { name: '{value}', mmsi: '261012345', call: 'SP 1234' };
-  for (const venue of VENUES) {
-    for (const kind of VOICE_KINDS) {
-      const g = gradeVoiceTransmission({ kind, transcript: '', vessel, positionSpoken: '{value}', pob: '{value}' as unknown as number, venue });
-      for (const c of g.checks) if (!/ x2$/.test(c.label) || c.label.includes('(')) add(c.label);
-    }
-  }
-  return [...keys];
-}
-
-const UI_FILES = [
-  'page.tsx', 'RadioWorkspace.tsx', 'RadioFront.tsx', 'InspectPanel.tsx', 'VoicePtt.tsx',
-  '../MicCheck.tsx', '../RadioSubnav.tsx', '../../sternik/prefs.tsx',
-];
-const LIT = String.raw`(?:'((?:\\.|[^'\\])*)'|"((?:\\.|[^"\\])*)"|` + '`' + String.raw`((?:\\.|[^` + '`' + String.raw`\\])*)` + '`' + ')';
-const TP_CALL = new RegExp(String.raw`\b(?:tp|t)\(\s*` + LIT + String.raw`\s*,\s*` + LIT + String.raw`\s*,\s*` + LIT, 'g');
-
-function uiKeys(): string[] {
-  const keys = new Set<string>();
-  for (const f of UI_FILES) {
-    const src = readFileSync(new URL(`./${f}`, import.meta.url), 'utf8');
-    for (const m of src.matchAll(TP_CALL)) keys.add(m[4] ?? m[5] ?? m[6]);
-  }
-  return [...keys];
-}
-
-// en and em dash, curly quotes, low quotes, ellipsis, guillemets (built from code points so this file stays ASCII)
-const FORBIDDEN = new RegExp(`[${[0x2013, 0x2014, 0x2018, 0x2019, 0x201a, 0x201c, 0x201d, 0x201e, 0x2026, 0xab, 0xbb].map((c) => String.fromCharCode(c)).join('')}]`);
-const RADIO_WORDS = /\b(?:MAYDAY RELAY|MAYDAY|PAN PAN|PAN-PAN|SECURITE|ALL STATIONS|THIS IS|OVER|OUT|RECEIVED MAYDAY|RADIO CHECK|CANCEL MY DISTRESS ALERT|DSC|MMSI|VTS|UKE)\b/g;
-
-function sameTokens(source: string, translation: string) {
-  const placeholders = (s: string) => (s.match(/\{[a-zA-Z]+\}/g) ?? []).sort();
-  expect(placeholders(translation), source).toEqual(placeholders(source));
-  // key names ([ENT], [ALARM OFF], [^]/[v]) stay; lowercase slots such as
-  // [stacja wywoływana] ("the station called") are translated
-  for (const key of source.match(/\[(?:[A-Z0-9][A-Z0-9 /.+-]*|\^|v)\]/g) ?? []) expect(translation, source).toContain(key);
-  for (const word of new Set(source.match(RADIO_WORDS) ?? [])) expect(translation, source).toContain(word);
-  expect(FORBIDDEN.test(translation), translation).toBe(false);
-}
-
-describe('radio trainer translations', () => {
-  const content = contentKeys();
-  const ui = uiKeys();
-
-  it('finds the texts it guards', () => {
-    expect(content.length).toBeGreaterThan(300);
-    expect(ui.length).toBeGreaterThan(100);
-    expect(ui).not.toContain(undefined);
-    // a template literal with ${} could never be looked up by its English text
-    for (const key of ui) expect(key, key).not.toContain('${');
+import { PRACTICAL_TASKS } from '../zadania/tasks';
+import { THEORY_CHAPTERS } from '../teoria/courseData';
+import { checkLabel, fmt } from './trainerText';
+import { radioText, type RadioAliases, type RadioCatalog } from '../localization/text';
+import { examOptionText, examQuestionText, examExplanationText, hasEnglishOptions } from '../localization/examText';
+import { ENGLISH_EXPLANATIONS, ENGLISH_QUESTION_MEANINGS } from '../localization/englishExercises';
+import { protectRadioTerms, restoreRadioTerms } from '../localization/protocolTerms';
+import { POSITIONS, POS_RULES_PL } from '../pozycja/drillData';
+const root=process.cwd();
+const sources=JSON.parse(readFileSync(join(root,'src/app/radio/localization/sources.json'),'utf8')) as {id:string;source:string}[];
+const aliases=JSON.parse(readFileSync(join(root,'public/radio-locales/aliases.json'),'utf8')) as RadioAliases;
+const normalize=(s:string)=>s.replace(/\s+/g,' ').trim();
+const catalogs=Object.fromEntries(['pl','ru','en','es','fr','de','it'].map(lang=>[lang,JSON.parse(readFileSync(join(root,`public/radio-locales/${lang}.json`),'utf8')) as RadioCatalog]));
+const placeholders=(s:string)=>(s.match(/\{\w+\}/g)??[]).sort();
+describe('complete radio learning resources',()=>{
+ it('covers real questions, options and explanations without changing exam IDs',()=>{
+  expect(SRC_BANK).toHaveLength(324);expect(PRACTICAL_TASKS).toHaveLength(26);expect(SCENARIOS).toHaveLength(19);expect(THEORY_CHAPTERS).toHaveLength(18);
+  for(const q of SRC_BANK)for(const text of [q.q,...q.options,q.whyPl])expect(aliases[normalize(text)],`${q.id}: ${text}`).toBeTruthy();
+ });
+ for(const lang of ['pl','ru','en','es','fr','de','it']){
+  it(`${lang}: every enumerated course resource is present, with intact placeholders and MMSIs`,()=>{
+   const dict=catalogs[lang];
+   const missing=sources.filter(s=>!dict[s.id]);
+   expect(missing.length,JSON.stringify({lang,missing:missing.length,firstIds:missing.slice(0,12).map(item=>item.id)})).toBe(0);
+   for(const resource of sources){const translated=dict[resource.id];if(!translated)continue;expect(translated).toBeTruthy();expect(placeholders(translated),resource.source).toEqual(placeholders(resource.source));expect(translated).not.toMatch(/[\u2013\u2014]/);for(const mmsi of resource.source.match(/\b\d{9}\b/g)??[])expect(translated,resource.source).toContain(mmsi);}
   });
-
-  for (const lang of ['en', 'es', 'fr', 'de', 'it'] as const) {
-    it(`${lang}: every scenario, Inspect and grader text is translated`, () => {
-      const dict = TRAINER_DICTS[lang];
-      const missing = content.filter((k) => !dict[k]);
-      expect(missing).toEqual([]);
-      for (const k of content) sameTokens(k, dict[k]);
-      // no stale entries for texts that no longer exist
-      expect(Object.keys(dict).filter((k) => !content.includes(k))).toEqual([]);
-    });
+ }
+ it('localizes a bank question in every non-Polish language and keeps its original intact',()=>{
+  const q=SRC_BANK[0],original=JSON.stringify(q);
+  for(const lang of ['ru','en','es','fr','de','it'])expect(radioText(q.q,catalogs[lang],aliases)).not.toBe(q.q);
+  expect(JSON.stringify(q)).toBe(original);
+ });
+ it('translates value-carrying grader labels in Russian and other locales',()=>{
+  const label='dokładna pozycja (50 43.4 NORTH, 001 30.2 WEST)';
+  for(const lang of ['ru','en','es','fr','de','it'] as const){const translated=checkLabel(label,lang,s=>radioText(s,catalogs[lang],aliases));expect(translated).toContain('50 43.4 NORTH, 001 30.2 WEST');expect(translated).not.toContain('dokładna');}
+  expect(fmt('{n}% min',{n:70})).toBe('70% min');
+ });
+ it('does not rewrite non-text state, input structures or an unknown spoken transmission',()=>{
+  const state={id:'power',score:70};expect(radioText(state,catalogs.de,aliases)).toBe(state);
+  const spoken='MAYDAY MAYDAY MAYDAY THIS IS BALTIC STAR BALTIC STAR BALTIC STAR OVER';expect(radioText(spoken,catalogs.de,aliases)).toBe(spoken);
+ });
+ it('preserves all 60 English exercise choices, including deliberate grammar errors',()=>{
+  const english=SRC_BANK.filter(hasEnglishOptions);expect(english).toHaveLength(60);
+  for(const q of english)for(const option of q.options)expect(examOptionText(q,option,()=>"translated")).toBe(option);
+  for(const q of english){const protectedText=ENGLISH_EXPLANATIONS[q.id];expect(protectedText).toBeTruthy();for(const value of Object.values(protectedText.terms))for(const lang of ['pl','ru','en','es','fr','de','it'])expect(examExplanationText(q,s=>radioText(s,catalogs[lang],aliases))).toContain(value);}
+ });
+ it('keeps English cloze stems and only adapts their local-language hints',()=>{
+  for(const id of ['src-1-132','src-1-134','src-1-135']){const q=SRC_BANK.find(q=>q.id===id)!;for(const lang of ['pl','ru','en','es','fr','de','it'] as const){const text=examQuestionText(q,lang,()=>"translated");expect(text.split(' (')[0]).toBe(q.q.split(' (')[0]);expect(text).toContain('(');expect(text).not.toContain('translated');}}
+ });
+ it('preserves reviewed nautical meanings instead of literal distractor meanings',()=>{
+  for(const [id,meanings] of Object.entries(ENGLISH_QUESTION_MEANINGS)){
+   const question=SRC_BANK.find(question=>question.id===id)!;
+   for(const lang of ['pl','ru','en','es','fr','de','it'] as const)expect(examQuestionText(question,lang,text=>radioText(text,catalogs[lang],aliases))).toBe(meanings[lang]);
   }
-
-  for (const lang of ['es', 'fr', 'de', 'it'] as const) {
-    it(`${lang}: every interface string is translated`, () => {
-      const dict = TRAINER_UI_DICTS[lang];
-      expect(ui.filter((k) => !dict[k])).toEqual([]);
-      for (const k of ui) sameTokens(k, dict[k]);
-      expect(Object.keys(dict).filter((k) => !ui.includes(k))).toEqual([]);
-    });
+ });
+ it('keeps every spoken position token and incorrect English example in every locale',()=>{
+  for(const source of [...POS_RULES_PL,...POSITIONS.flatMap(p=>[p.trapPl,...p.must.map(m=>m.label)])]){
+   const protectedText=protectRadioTerms(source);expect(restoreRadioTerms(protectedText.template,protectedText.values).replaceAll('«','"').replaceAll('»','"')).toBe(source.replaceAll('«','"').replaceAll('»','"'));
+   for(const lang of ['pl','ru','en','es','fr','de','it']){const translated=radioText(source,catalogs[lang],aliases);for(const token of protectedText.values)expect(translated,`${lang}: ${source}`).toContain(token);expect(translated).not.toMatch(/\{radioTerm\d+\}/);}
   }
-
-  it('resolves PL and RU from the data, the rest from the dictionaries', () => {
-    const power = SCENARIOS[0].steps[0].todo.pl;
-    expect(trainerText(power, 'pl')).toBe(power);
-    expect(trainerText(power, 'ru')).toBe(power);
-    expect(trainerText(power, 'de')).toBe(TRAINER_DICTS.de[power]);
-    expect(trainerText('no such text', 'it')).toBe('no such text');
-  });
-
-  it('translates grader labels that carry a value', () => {
-    const label = 'dokładna pozycja (50 43.4 NORTH, 001 30.2 WEST)';
-    const en = checkLabel(label, 'en');
-    expect(en).toContain('50 43.4 NORTH, 001 30.2 WEST');
-    expect(en).not.toContain('dokładna');
-    expect(checkLabel(label, 'pl')).toBe(label);
-    expect(fmt('{n}% min', { n: 70 })).toBe('70% min');
-  });
+ });
 });

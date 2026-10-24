@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import { Share_Tech_Mono } from 'next/font/google';
+import { useRadioI18n } from "@/app/radio/localization/context";
+
+import { Children, useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useTrainerI18n } from './trainerText';
 import {
   DSC_VOICE_CHANNELS, NATURES, OTHERDSC_CATEGORIES, OTHERDSC_TYPES,
@@ -17,7 +18,7 @@ import {
 // fist-mic PTT.
 //
 // The look follows the 2026-07 `vhf-trainer` design handoff: green phosphor LCD
-// with scanlines and a Share Tech Mono face, a persistent status bar (band /
+// with scanlines and a local monospace face, a persistent status bar (band /
 // GPS / watch / power / battery) above the screen and a TX + signal meter below
 // it, a machined PWR-VOL-SQL knob, hazard-striped DISTRESS cover, and an amber
 // (#ffce4d) pulse for the guided-course spotlight.
@@ -29,9 +30,6 @@ import {
 // can practise on the colour they will actually see on exam day. Only the SCREEN
 // changes: the grey device body is identical on both, exactly as on the hardware.
 // ============================================================================
-
-// Self-hosted by next/font (no external request, so the CSP stays untouched).
-const lcdFont = Share_Tech_Mono({ weight: '400', subsets: ['latin'], display: 'swap' });
 
 // --- LCD palette (design tokens) --------------------------------------------
 // The colours are CSS variables set on the faceplate per skin (see LCD_SKINS),
@@ -57,7 +55,7 @@ const LCD_SKINS: Record<RadioSkin, React.CSSProperties> = {
   green: {
     '--lcd-fg': '#79f0cf',
     '--lcd-dim': '#4fae9c',
-    '--lcd-faint': '#3f9184',
+    '--lcd-faint': '#53a99a',
     '--lcd-warn': '#e6c14a',
     '--lcd-alert': '#ff6b52',
     '--lcd-bg': 'linear-gradient(180deg,#062a26,#04201d)',
@@ -139,7 +137,7 @@ function Key({
     : tone === 'blue' ? 'radial-gradient(circle at 42% 30%,#3aa3ea,#1f74c4 62%,#175da0)'
     : tone === 'soft' ? 'linear-gradient(180deg,#3f4552,#2c313c)'
     : 'linear-gradient(180deg,#4a5060,#343947)';
-  const fg = tone === 'red' ? '#ff5f52' : tone === 'blue' ? '#ffffff' : '#dfe5ee';
+  const fg = tone === 'red' ? '#ffb3a6' : tone === 'blue' ? '#ffffff' : '#dfe5ee';
   return (
     <button
       type="button"
@@ -175,7 +173,7 @@ function Key({
 
 function LcdLine({ children, big, dim, color }: { children: ReactNode; big?: boolean; dim?: boolean; color?: string }) {
   return (
-    <div style={{
+    <div data-menu-current={Children.toArray(children).some(item => typeof item === "string" && item.startsWith("> ")) || undefined} style={{
       color: color ?? (dim ? LCD_DIM : LCD_FG),
       fontSize: big ? 15 : 11,
       // the compact (pinned) screen sets a tighter --lcd-lh on the LCD
@@ -213,6 +211,7 @@ function CenterGauge({ label, value, max = 10, zeroLabel }: { label: string; val
 
 /** An LCD indicator: plain text normally, a tappable target while inspecting. */
 function Ind({ ik, ins, style, label, children }: { ik: string; ins?: Inspect; style?: React.CSSProperties; label?: string; children: ReactNode }) {
+  const {rt: radioText} = useRadioI18n();
   if (!ins?.on) return <span style={style}>{children}</span>;
   const picked = ins.key === ik;
   return (
@@ -221,7 +220,7 @@ function Ind({ ik, ins, style, label, children }: { ik: string; ins?: Inspect; s
       data-ik={ik}
       // The visible content is a raw glyph ('▮▮▮', '◈ GPS', '·'); the aria-label
       // gives screen-reader users a real name for the indicator they can inspect.
-      aria-label={label ?? ik}
+      aria-label={radioText(label ?? ik)}
       onClick={() => ins.pick(ik)}
       style={{
         ...style,
@@ -296,7 +295,17 @@ function TxMeter({ s, ins, compact = false }: { s: RadioState; ins?: Inspect; co
   );
 }
 
-function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean; compact?: boolean }) {
+function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false, tight = false }: { s: RadioState; clock: string; holdPct: number; nextTxSec: number; ins?: Inspect; busy?: boolean; compact?: boolean; tight?: boolean }) {
+  const {rt: radioText} = useRadioI18n();
+  const bodyRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const body = bodyRef.current;
+    const current = body?.querySelector<HTMLElement>("[data-menu-current]");
+    if (!body || !current) return;
+    const outer = body.getBoundingClientRect(), inner = current.getBoundingClientRect();
+    if (inner.top < outer.top) body.scrollTop -= outer.top - inner.top;
+    else if (inner.bottom > outer.bottom) body.scrollTop += inner.bottom - outer.bottom;
+  }, [s]);
   const ch16 = channel(s);
   const keys = softkeys(s);
 
@@ -494,7 +503,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
         body = (
           <>
             <LcdLine big>{s.stubTitle.toUpperCase()}</LcdLine>
-            <LcdLine dim>(podglad - nieuzywane w scenariuszach)</LcdLine>
+            <LcdLine dim>{radioText("(podgląd - nieużywane w scenariuszach)")}</LcdLine>
             <LcdLine dim>[CLR] = back</LcdLine>
           </>
         );
@@ -694,7 +703,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
                 // keyboard user can ask "what is this big number".
                 role={ins?.on ? 'button' : undefined}
                 tabIndex={ins?.on ? 0 : undefined}
-                aria-label={ins?.on ? 'channel number readout' : undefined}
+                aria-label={ins?.on ? radioText('channel number readout') : undefined}
                 onClick={ins?.on ? () => ins.pick('ch-readout') : undefined}
                 onKeyDown={ins?.on ? (e) => {
                   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ins.pick('ch-readout'); }
@@ -744,7 +753,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
       // ask "what is this screen" (Enter/Space), matching the pointer behaviour.
       role={ins?.on ? 'button' : undefined}
       tabIndex={ins?.on ? 0 : undefined}
-      aria-label={ins?.on ? 'radio display screen' : undefined}
+      aria-label={ins?.on ? radioText('radio display screen') : undefined}
       onClick={ins?.on ? (e) => {
         // Only claim the tap if it did not land on a more specific indicator.
         if ((e.target as HTMLElement).closest('[data-ik]') === e.currentTarget) ins.pick('lcd');
@@ -753,17 +762,19 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
         // Only handle keys aimed at the container itself, not a focused child indicator.
         if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); ins.pick('lcd'); }
       } : undefined}
-      className={`${lcdFont.className} relative rounded-lg px-3 ${compact ? 'py-1.5' : 'py-2'}`}
+      className={`relative rounded-lg px-3 ${compact ? 'py-1.5' : 'py-2'}`}
       style={{
+        fontFamily: 'ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace',
         ...(compact ? { '--lcd-lh': '1.28' } as React.CSSProperties : {}),
         background: LCD_BG,
         backgroundImage: `${LCD_SCAN}, ${LCD_BG}`,
         border: ins?.on && ins.key === 'lcd' ? `2px solid ${HL}` : '2px solid #0c0f13',
         borderRadius: 9,
-        // compact (pinned) faceplate: the floor is the standby screen's height,
-        // so switching the radio on does not push the task panel down; a longer
-        // screen (a menu, a received alert) still grows with its content
-        minHeight: compact ? 152 : 168,
+        // The physical LCD never grows. Long menus and alerts scroll inside it
+        // so the task below the radio keeps its space on short screens.
+        height: tight ? 102 : compact ? 152 : 218,
+        minHeight: tight ? 102 : compact ? 152 : 218,
+        display: "flex", flexDirection: "column",
         color: LCD_FG,
         boxShadow: 'inset 0 0 22px rgba(0,0,0,.7), inset 0 0 0 1px rgba(var(--lcd-tint),.06)',
         overflow: 'hidden',
@@ -778,7 +789,7 @@ function Lcd({ s, clock, holdPct, nextTxSec, ins, busy, compact = false }: { s: 
       }}
     >
       {s.power && <StatusBar s={s} ins={ins} busy={busy} />}
-      <div style={{ minHeight: compact ? 62 : 96, paddingTop: s.power ? 4 : 0 }}>{body}</div>
+      <div ref={bodyRef} data-testid="radio-lcd-body" style={{ flex: "1 1 auto", minHeight: 0, overflowY: "auto", overscrollBehavior: "contain", paddingTop: s.power ? 4 : 0 }}>{body}</div>
       {s.power && <TxMeter s={s} ins={ins} compact={compact} />}
       {/* softkey labels - bottom row, like on the device. The compact faceplate
           drops it: the softkeys right under the screen carry the same labels. */}
@@ -819,7 +830,13 @@ export default function RadioFront({
   highlightControl, inspect = false, onInspect, inspectKey = null, busy = false, skin = 'green', realistic = false,
   compact = false,
 }: Props) {
+  const { rt: radioText } = useRadioI18n();
   const { tp } = useTrainerI18n();
+  const [tight, setTight] = useState(false);
+  useEffect(() => {
+    const query=window.matchMedia("(max-height: 740px)");
+    const update=()=>setTight(query.matches);update();query.addEventListener("change",update);return()=>query.removeEventListener("change",update);
+  }, []);
   const [coverOpen, setCoverOpen] = useState(false);
   const profile = radioProfile(model);
 
@@ -910,7 +927,7 @@ export default function RadioFront({
       />
       <span>
         {/* the real faceplate reads "IC-M330" - the GE (GPS) suffix is not printed on it */}
-        <span className="block whitespace-nowrap text-[12px] font-bold leading-none tracking-wide text-[#eef3fa]">{realistic ? profile.nameplate.replace('GE', '') : profile.nameplate}</span>
+        <span className="block whitespace-nowrap text-[12px] font-bold leading-none tracking-wide text-[#eef3fa]">{radioText(realistic ? profile.nameplate.replace('GE', '') : profile.nameplate)}</span>
         <span className="block text-[7.5px] font-medium leading-tight tracking-[1.5px] text-[#8b97a8]">DSC CLASS D</span>
       </span>
     </div>
@@ -922,7 +939,7 @@ export default function RadioFront({
     </span>
   );
 
-  const lcdBlock = <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} compact={compact} />;
+  const lcdBlock = <Lcd s={s} clock={clock} holdPct={holdPct} nextTxSec={nextTxSec} ins={ins} busy={busy} compact={compact} tight={tight && compact} />;
 
   const softkeysBlock = (
     <div className="grid grid-cols-4 gap-1.5">
@@ -963,7 +980,7 @@ export default function RadioFront({
       type="button"
       data-testid="dial-center"
       data-ik="dial"
-      aria-label="Dial: press for volume/squelch, hold for power"
+      aria-label={radioText("Dial: press for volume/squelch, hold for power")}
       onClick={inspect ? () => onInspect?.('dial') : undefined}
       onPointerDown={hold(dialDown)}
       onPointerUp={hold(dialUp)}
@@ -990,23 +1007,21 @@ export default function RadioFront({
   );
 
   const dialCaption = (
-    <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">
-      PWR·VOL·SQL
-      <br />
+    <div className="text-center text-[8px] font-semibold leading-tight tracking-wider text-[#9aa5b4]">{radioText(" PWR·VOL·SQL ")}<br />
       {/* Lifted from #6b7686 (~3.9:1) to the caption's own #9aa5b4 (~6.9:1). This
           sub-line is the ONLY place the press-vs-hold power gesture is documented. */}
       <span className="text-[#9aa5b4]">
-        {tp('жми = VOL/SQL', 'press = VOL/SQL', 'krótko = VOL/SQL')}
-        {' · '}
-        {tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR')}
+        {radioText(tp('жми = VOL/SQL', 'press = VOL/SQL', 'krótko = VOL/SQL'))}
+        {radioText(' · ')}
+        {radioText(tp('держи = PWR', 'hold = PWR', 'przytrzymaj = PWR'))}
       </span>
     </div>
   );
 
   const dialRockers = (
     <div className="flex gap-1.5">
-      <Key id="dial-ccw" ik="dial" small ariaLabel="Rotate dial counter-clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
-      <Key id="dial-cw" ik="dial" small ariaLabel="Rotate dial clockwise" onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
+      <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: -1 }))}>↺</Key>
+      <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dispatch({ type: 'dial-rotate', dir: 1 }))}>↻</Key>
     </div>
   );
 
@@ -1018,7 +1033,7 @@ export default function RadioFront({
       ik="key-16c"
       round={realistic}
       tone={realistic ? 'blue' : 'red'}
-      ariaLabel="Channel 16, hold for Call Channel"
+      ariaLabel={radioText("Channel 16, hold for Call Channel")}
       onClick={inspect ? () => onInspect?.('key-16c') : undefined}
       onPointerDown={hold(callDown)}
       onPointerUp={hold(callUp)}
@@ -1034,13 +1049,13 @@ export default function RadioFront({
     </Key>
   );
 
-  const kLeft = <Key id="key-left" ik="key-left" small ariaLabel="Softkey page left" onClick={act('key-left', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>;
-  const kUp = <Key id="key-up" ik="key-up" small ariaLabel="Up / channel up" onClick={act('key-up', () => dispatch({ type: 'up' }))}>▲</Key>;
-  const kRight = <Key id="key-right" ik="key-right" small ariaLabel="Softkey page right" onClick={act('key-right', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>;
-  const kClr = <Key id="key-clr" ik="key-clr" small ariaLabel="Clear / back" onClick={act('key-clr', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>;
-  const kDown = <Key id="key-down" ik="key-down" small ariaLabel="Down / channel down" onClick={act('key-down', () => dispatch({ type: 'down' }))}>▼</Key>;
-  const kMenu = <Key id="key-menu" ik="key-menu" small ariaLabel="Menu" onClick={act('key-menu', () => dispatch({ type: 'menu' }))}>MENU</Key>;
-  const kEnt = <Key id="key-ent" ik="key-ent" small ariaLabel="Enter" onClick={act('key-ent', () => dispatch({ type: 'ent' }))}>ENT</Key>;
+  const kLeft = <Key id="key-left" ik="key-left" small ariaLabel={radioText("Softkey page left")} onClick={act('key-left', () => dispatch({ type: 'soft-page', dir: -1 }))}>◀</Key>;
+  const kUp = <Key id="key-up" ik="key-up" small ariaLabel={radioText("Up / channel up")} onClick={act('key-up', () => dispatch({ type: 'up' }))}>▲</Key>;
+  const kRight = <Key id="key-right" ik="key-right" small ariaLabel={radioText("Softkey page right")} onClick={act('key-right', () => dispatch({ type: 'soft-page', dir: 1 }))}>▶</Key>;
+  const kClr = <Key id="key-clr" ik="key-clr" small ariaLabel={radioText("Clear / back")} onClick={act('key-clr', () => dispatch({ type: 'clr' }))}>{profile.clearLabel}</Key>;
+  const kDown = <Key id="key-down" ik="key-down" small ariaLabel={radioText("Down / channel down")} onClick={act('key-down', () => dispatch({ type: 'down' }))}>▼</Key>;
+  const kMenu = <Key id="key-menu" ik="key-menu" small ariaLabel={radioText("Menu")} onClick={act('key-menu', () => dispatch({ type: 'menu' }))}>MENU</Key>;
+  const kEnt = <Key id="key-ent" ik="key-ent" small ariaLabel={radioText("Enter")} onClick={act('key-ent', () => dispatch({ type: 'ent' }))}>ENT</Key>;
 
   // Vertical trainer keypad: knob column + keypad column (the original stacked look).
   const knobBlock = (
@@ -1080,7 +1095,7 @@ export default function RadioFront({
       type="button"
       data-testid="distress-cover"
       data-ik="distress-cover"
-      aria-label="Open DISTRESS cover"
+      aria-label={radioText("Open DISTRESS cover")}
       onClick={act('distress-cover', () => setCoverOpen(true))}
       className="relative w-full select-none"
       style={{
@@ -1098,7 +1113,7 @@ export default function RadioFront({
         // half-width bar: the cover hint goes on a second line instead of being cut
         <span className="flex flex-col items-center leading-tight">
           <span>DISTRESS</span>
-          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{tp('открой крышку', 'open the cover', 'otwórz osłonę')}</span>
+          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{radioText(tp('открой крышку', 'open the cover', 'otwórz osłonę'))}</span>
         </span>
       ) : realistic ? 'DISTRESS' : `DISTRESS · ${tp('открой крышку', 'open the cover', 'otwórz osłonę')}`}
     </button>
@@ -1134,15 +1149,15 @@ export default function RadioFront({
         {compact ? (
           <span className="flex flex-col items-center leading-tight">
             <span>DISTRESS</span>
-            <span style={{ fontSize: 9.5, letterSpacing: 0.4 }}>{tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}</span>
+            <span style={{ fontSize: 9.5, letterSpacing: 0.4 }}>{radioText(tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek'))}</span>
           </span>
-        ) : <>DISTRESS - {tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek')}</>}
+        ) : <>DISTRESS - {radioText(tp('держи 3 сек', 'hold 3 sec', 'trzymaj 3 sek'))}</>}
       </button>
       <button
         type="button"
         onClick={() => setCoverOpen(false)}
-        aria-label={compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined}
-        title={compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined}
+        aria-label={radioText(compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined)}
+        title={radioText(compact ? tp('закрыть крышку', 'close the cover', 'zamknij osłonę') : undefined)}
         className={compact ? 'shrink-0 rounded-lg' : 'mt-1.5 w-full'}
         // minHeight 44 gives a full touch target; the transparent background keeps
         // it looking like the same small text link (44px floor, not a visual bar).
@@ -1151,7 +1166,7 @@ export default function RadioFront({
           ? { width: 44, height: 48, border: '1px dashed rgba(210,90,70,.6)', background: 'rgba(200,58,38,.12)', color: '#e0a49b', fontSize: 15 }
           : { minHeight: 44, border: 'none', background: 'transparent', color: '#c48a82', fontSize: 10 }}
       >
-        {compact ? '✕' : tp('закрыть крышку', 'close the cover', 'zamknij osłonę')}
+        {radioText(compact ? '✕' : tp('закрыть крышку', 'close the cover', 'zamknij osłonę'))}
       </button>
     </div>
   );
@@ -1186,9 +1201,9 @@ export default function RadioFront({
       {compact ? (
         <span className="flex flex-col items-center leading-tight">
           <span>PTT</span>
-          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}</span>
+          <span style={{ fontSize: 9.5, fontWeight: 600, letterSpacing: 0.4 }}>{radioText(tp('держи = говори', 'hold = talk', 'trzymaj = mówisz'))}</span>
         </span>
-      ) : <>PTT · {tp('держи = говори', 'hold = talk', 'trzymaj = mówisz')}</>}
+      ) : <>{radioText("PTT · ")}{radioText(tp('держи = говори', 'hold = talk', 'trzymaj = mówisz'))}</>}
     </button>
   );
 
@@ -1223,7 +1238,7 @@ export default function RadioFront({
           />
         </div>
         <div className="mt-1 text-center text-[7.5px] font-medium tracking-widest text-[#7d8899]">
-          {tp('ПЕРЕДАЧА', 'TRANSMIT', 'NADAWANIE')}
+          {radioText(tp('ПЕРЕДАЧА', 'TRANSMIT', 'NADAWANIE'))}
         </div>
       </div>
     </div>
@@ -1252,6 +1267,21 @@ export default function RadioFront({
   //      to 16/C, ENT down next to CH-down); realistic: its own keypad grid with
   //      16/C and the knob beside it. DISTRESS and PTT share the bottom row, so
   //      the mic is not a separate block here.
+  const tightFace = (
+    <div className="flex flex-col gap-1">
+      <div className="grid items-center gap-2" style={{gridTemplateColumns:"minmax(0,1fr) 68px"}}>
+        {lcdBlock}<div className="flex flex-col items-center gap-1">{dialKnob}{dialCaption}</div>
+      </div>
+      {softkeysBlock}
+      <div className="grid grid-cols-5 gap-1">
+        {key16c}{kMenu}{kUp}{kEnt}{kClr}
+        {kLeft}{kDown}{kRight}
+        <Key id="dial-ccw" ik="dial" small ariaLabel={radioText("Rotate dial counter-clockwise")} onClick={act('dial', () => dispatch({type:'dial-rotate',dir:-1}))}>↺</Key>
+        <Key id="dial-cw" ik="dial" small ariaLabel={radioText("Rotate dial clockwise")} onClick={act('dial', () => dispatch({type:'dial-rotate',dir:1}))}>↻</Key>
+      </div>
+      <div className="grid grid-cols-2 gap-2">{distressBlock}{pttButton}</div>
+    </div>
+  );
   const compactFace = (
     <div className="flex flex-col gap-2">
       {lcdBlock}
@@ -1298,7 +1328,7 @@ export default function RadioFront({
       className="radio-stage rounded-2xl"
       style={{
         background: 'radial-gradient(120% 100% at 50% 0%,#26527e 0%,#183a5c 45%,#0e263f 100%)',
-        padding: compact ? 8 : 'clamp(12px,2.2vw,22px)',
+        padding: compact && tight ? 4 : compact ? 8 : 'clamp(12px,2.2vw,22px)',
         boxShadow: 'inset 0 1px 0 rgba(255,255,255,.08), 0 18px 40px -20px rgba(6,26,50,.8)',
       }}
     >
@@ -1338,14 +1368,14 @@ export default function RadioFront({
             ? 'linear-gradient(180deg,#23262b 0%,#191b1f 58%,#101215 100%)'
             : 'linear-gradient(168deg,#3b414c 0%,#2b303a 55%,#22262e 100%)',
           borderRadius: compact ? 13 : 16,
-          padding: compact ? '9px 9px 10px' : '16px 15px 18px',
+          padding: compact && tight ? '6px' : compact ? '9px 9px 10px' : '16px 15px 18px',
           border: realistic ? '1px solid #06070a' : '1px solid #171a20',
           boxShadow: realistic
             ? 'inset 0 1px 0 rgba(255,255,255,.07), inset 0 -2px 9px rgba(0,0,0,.65), 0 14px 30px -14px rgba(0,0,0,.78)'
             : 'inset 0 1px 0 rgba(255,255,255,.14), inset 0 -2px 6px rgba(0,0,0,.4), 0 10px 24px -12px rgba(0,0,0,.6)',
         }}
       >
-        {compact ? compactFace : realistic ? (
+        {compact ? (tight ? tightFace : compactFace) : realistic ? (
           // ---- wide realistic IC-M330GE: speaker | screen | controls, the real
           //      front-panel geometry so the learner meets the actual layout ----
           <>
@@ -1364,7 +1394,7 @@ export default function RadioFront({
                   {lcdBlock}
                   {softkeysBlock}
                 </div>
-                {realControls}
+                {radioText(realControls)}
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '0.6fr 1.7fr 1.05fr', gap: 12, alignItems: 'stretch' }}>
@@ -1380,7 +1410,7 @@ export default function RadioFront({
                 </div>
                 {/* RIGHT: keypad up top, 16/C + VOL/SQL knob at the bottom-right */}
                 <div className="flex flex-col">
-                  {realControls}
+                  {radioText(realControls)}
                 </div>
               </div>
             )}

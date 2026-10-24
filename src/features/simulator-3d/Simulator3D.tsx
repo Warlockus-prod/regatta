@@ -383,7 +383,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {view === "sails" && <p className={styles.coach}>{L.scene.fullSailPlan}</p>}
         {readouts}
       </section>
-      <aside ref={panelRef} className={styles.panel}>
+      <aside ref={panelRef} className={styles.panel} data-trainer-settings-host>
     {guideBlock}
         {mode === "sail" && <div className={styles.panelHead}>
           <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} />
@@ -391,12 +391,11 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         {mode === "sail" && wheels && <div className={styles.deckBox}>{wheelDeck("column")}</div>}
         <p className={styles.hint}>{mode === "sail" ? L.scene.sailingHint : L.freeModeHint}</p>
         {mode === "sail" ? <>
-          {mainSlider}
-          {jibSlider}
+          {!wheels && <>{mainSlider}{jibSlider}</>}
           <p className={styles.sheetScale}>{L.sheetScale}</p>
           {sailState}
           <details className={styles.details}><summary>{L.scene.more}</summary><div>
-            {rudderControls}
+            {!wheels && rudderControls}
             {reefSlider}
             {windControls}
             <button className={styles.button} onClick={reset}>{L.reset}</button>

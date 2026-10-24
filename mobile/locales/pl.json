@@ -1,3 +1,5 @@
 {
-  "NSMicrophoneUsageDescription": "Mikrofon jest używany w symulatorze radia SRC do oceny transmisji głosowych (MAYDAY, PAN-PAN) oraz w ćwiczeniu egzaminu ustnego na patent sternika motorowodnego do sprawdzania odpowiedzi ustnych. Nagranie służy wyłącznie do oceny i nie jest przechowywane."
+  "NSMicrophoneUsageDescription": "Mikrofon służy do ćwiczenia angielskich komunikatów VHF (MAYDAY, PAN-PAN) we wbudowanym kursie SRC. Mowa jest rozpoznawana na tym urządzeniu, jeśli jest dostępny lokalny model. Dźwięk nie jest wysyłany na serwer ani zapisywany.",
+  "NSSpeechRecognitionUsageDescription": "Rozpoznawanie mowy zamienia Twoje wywołania VHF na tekst na tym urządzeniu podczas ćwiczeń SRC. Dźwięk nie jest wysyłany na serwer rozpoznawania ani zapisywany.",
+  "NSPhotoLibraryUsageDescription": "Regatta nie prosi o dostęp do Twojej prywatnej biblioteki zdjęć ani z niego nie korzysta. Ten opis jest dołączony, ponieważ wbudowany czytnik plików obsługuje również pliki z biblioteki zdjęć."
 }

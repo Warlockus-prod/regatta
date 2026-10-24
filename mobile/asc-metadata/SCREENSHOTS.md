@@ -1,166 +1,155 @@
-# App Store screenshot story (5 frames)
+# App Store screenshots
 
-Per Apple's spec we ship App Store screenshots at the two required device
-families and let App Store Connect downscale to the smaller classes
-automatically:
+## Verified inventory, 2026-10-24
 
-- **6.7-inch iPhone**: 1290 x 2796 px portrait. Required.
-  Captured on iPhone 16 Pro Max simulator.
-- **6.5-inch iPhone**: 1284 x 2778 px portrait. Required for older bin.
-  Captured on iPhone 16 Plus simulator (closest current device that
-  matches the legacy 6.5 inch bucket).
+The live App Store Connect check of version 1.7.0 at
+17:14:33 UTC found PREPARE_FOR_SUBMISSION and eight metadata locales.
+Only the primary locale, en-US, owns screenshot sets:
 
-For each device family, we ship the same 5-frame story per locale (RU /
-EN / PL / ES / FR / DE / IT) so the App Store discovery surface tells the
-same story in every market.
+| ASC display family | Existing assets | Accepted portrait sizes used here |
+| --- | --- | --- |
+| APP_IPHONE_67 | 5 COMPLETE | 1320 x 2868 or 1290 x 2796 |
+| APP_IPAD_PRO_3GEN_129 | 5 COMPLETE | 2064 x 2752 or 2048 x 2732 |
 
-The captions in this doc are EN. The screenshot script captures the
-matching localised UI per locale, so the captions you overlay in the
-ASC web UI for each locale must be translated by a human (PM owns
-translation; the EN captions below are the source).
+The first image in both sets is named 01-home-build42.png. Its MD5 matches the
+tracked old Home capture exactly. The other eight remote images were inventoried
+but their current pixels were not independently reviewed. The COMPLETE state
+means Apple processed an image; it does not confirm the full submission size
+requirements or the accuracy of its content.
 
-## Frame 1: Hero - "Race-ready in a week"
+The repository contains ten English source PNGs, not seventy localized captures:
 
-- **Caption (EN)**: "Race in a week? / You will figure it out."
-- **Route to capture**: `regatta://` (Home).
-- **State**: Home with the brand wordmark visible at the top, the three
-  primary entry cards (Bootcamp / Quick / Rules) visible, the Continue
-  card at the top of the list pointing at "Day 1" if the user has just
-  installed (cold install state).
-- **What the user sees**: the calm dark-ocean palette, the brand mark,
-  three obvious things to tap. This is the trust-the-app frame.
-- **Device family**: 6.7-inch (1290 x 2796) and 6.5-inch (1284 x 2778).
+- screenshots/iphone-6.9/en/: 01-home, 02-bootcamp, 03-simulator,
+  04-anatomy and 05-checklist, all 1320 x 2868.
+- screenshots/ipad-13/en/: the same five filenames, all 2064 x 2752.
 
-## Frame 2: Bootcamp 7-day arc - "Day 4 of 7"
+These source images show the historical interface. The simulator source shows
+the old flat view, and the anatomy source shows the old photo/diagram screen.
+Do not present these files as screenshots of build 59. The September 8 update
+changed only Home to build 42 and preserved the other four remote images per set.
+The old capture script, scripts/asc-screenshots.mjs, also describes historical
+routes, device assumptions and manual language setup. It does not verify a
+localized build 59 capture automatically.
 
-- **Caption (EN)**: "8 lessons, 7 days. / You will know what to pull."
-- **Route to capture**: `regatta://bootcamp`.
-- **State**: Bootcamp index with Day 1, 2, 3 marked done (green check
-  pills), Day 4 highlighted as "in progress" (cyan-tint hero card),
-  Days 5 through 7 outlined as upcoming. The Continue hook on Home
-  has been tapped through to this list.
-- **What the user sees**: a clear 8-lesson breakdown mapped to a 7-day
-  arc, status pills per day, and an obvious next-up lesson.
-- **Device family**: 6.7-inch and 6.5-inch.
+The other seven metadata locales have no independent screenshot sets. They use
+the primary-language screenshots according to App Store Connect's localization
+fallback. This is separate from the application's seven UI languages. Do not
+claim that localized screenshots have already been captured.
 
-## Frame 3: Simulator - "Real wind physics"
+## Release 1.7.0 capture plan
 
-- **Caption (EN)**: "Real wind physics. / Your hand on the helm."
-- **Route to capture**: `regatta://simulator`.
-- **State**: Simulator on `Top` view mode, full Skia scene visible:
-  yacht silhouette with main + jib, wind compass at top right showing
-  10 kt, no-go cone, apparent-wind ghost, wake trail behind the boat.
-  The HUD shows HEADING / TARGET / SPEED. Mode bar at the bottom dock
-  shows `Training | Drills | Scenario` with `Training` selected. Sail
-  feedback badges visible (e.g., "lifted", "headed", "in slot").
-- **What the user sees**: a real, interactive wind simulator that
-  responds to the helm. This is the aha frame for serious sailors.
-- **Device family**: 6.7-inch and 6.5-inch.
+Capture the actual installed candidate after the native clean-install and
+upgrade checks. Start with three honest frames in each existing English set:
 
-## Frame 4: Anatomy - "17 parts of a yacht"
+| Order | File | Required visible content |
+| --- | --- | --- |
+| 1 | 01-home.png | Current Home and its real learning/navigation entries |
+| 2 | 02-pro-3d.png | Running solo 3D race in Pro, yacht visible, wheels and manual sail controls legible |
+| 3 | 03-src-radio.png | Working SRC radio and a readable task in the reserved panel |
 
-- **Caption (EN)**: "17 parts of a yacht. / Tap to learn each."
-- **Route to capture**: `regatta://anatomy`.
-- **State**: Anatomy index with the photo poster gallery visible at the
-  top, a single yacht photo poster expanded to fill the upper third,
-  hotspot dots pulsing on each named part (Mainsail, Jib, Boom, Mast,
-  Boom Vang, Cunningham, Backstay, Forestay). Below the poster, the
-  vector hotspot diagram with 17 numbered points.
-- **What the user sees**: a real photo of a real yacht, with named
-  parts you can tap. This is the curiosity frame.
-- **Device family**: 6.7-inch and 6.5-inch.
+A fourth current learning frame may be added after review. Do not fabricate
+progress, show a permission dialog, or describe unavailable speech as ready.
+Use the English UI, with no debugging overlays or test fixtures visible. Keep
+three or four frames per family rather than expanding to seventy assets.
 
-## Frame 5: Pre-race checklist - "Tick it off the night before"
+The prepared capture devices are iPhone 18 Pro Max, 1320 x 2868, and iPad Pro
+13-inch (M5), 2064 x 2752. Retain full-resolution opaque PNGs. The selected ASC
+families are the existing API identifiers above, even though the source device
+marketing names are 6.9-inch and 13-inch.
 
-- **Caption (EN)**: "Pre-race checklist. / Tick it off the night before."
-- **Route to capture**: `regatta://checklist`.
-- **State**: Checklist screen with a visible progress bar at the top
-  showing maybe 6 of 12 items complete (50%), the section cards
-  visible (Boat / Crew / Documents / Weather), each section shows two
-  or three bullet items, some checked, some not. The user is mid-prep.
-- **What the user sees**: a concrete, scannable checklist with progress
-  feedback. This is the "I am ready" frame.
-- **Device family**: 6.7-inch and 6.5-inch.
+Apple's current specification also lists the medium Dynamic Island iPhone
+sizes 1179 x 2556 and 1206 x 2622. The live version has no APP_IPHONE_61 set.
+Confirm required/scaled placements in ASC's View All Sizes before submission;
+the two existing COMPLETE sets alone are not proof of that final requirement.
+If ASC asks for another family, capture and review that family explicitly.
+The replacement tool does not silently create missing sets.
 
-## Capture order
+The carousel order is the manifest order, applied through the screenshot
+relationship API. Filename sorting is not relied upon. There is no per-image
+caption field in this uploader. Any marketing caption must be baked into a
+reviewed image; bare native captures need no invented caption overlay.
 
-The screenshot script (`scripts/asc-screenshots.mjs`) walks the 5 frames
-in this exact order so the output filenames sort alphabetically into
-the App Store display order:
+## Safe replacement tool
 
-```
-01-home.png
-02-bootcamp.png
-03-simulator.png
-04-anatomy.png
-05-checklist.png
-```
+Run from mobile/. The uploader validates all local images before authentication,
+then checks the live app ID, bundle ID, exact existing iOS version and
+PREPARE_FOR_SUBMISSION state. Every selected locale and family must already
+exist. There is no implicit English locale, version, folder scan, version
+creation, review cancellation or submission operation.
 
-ASC sorts uploaded screenshots by filename within each locale, so this
-order is what users will see in the App Store carousel.
+Create a manifest next to the new reviewed captures, for example:
 
-## Per-locale capture
-
-The script loops over RU / EN / PL / ES / FR / DE / IT. For each locale
-it:
-
-1. Pre-seeds AsyncStorage to set `regatta_lang` to the target locale
-   (via a deep link OR a manual settings tap, see
-   `asc-screenshots.mjs` for which path the running build supports).
-2. Cold-restarts the app to load the new locale.
-3. Captures the 5 frames listed above.
-
-Output tree:
-
-```
-mobile/asc-metadata/screenshots/
-  iphone-6.7/
-    ru/
-      01-home.png
-      02-bootcamp.png
-      03-simulator.png
-      04-anatomy.png
-      05-checklist.png
-    en/...
-    pl/...
-    es/...
-    fr/...
-    de/...
-    it/...
-  iphone-6.5/
-    ru/...
-    ...
+```json
+{
+  "appId": "6768134329",
+  "bundleId": "com.icoffio.regatta",
+  "version": "1.7.0",
+  "sets": [
+    {
+      "locale": "en-US",
+      "family": "APP_IPHONE_67",
+      "files": [
+        "iphone/01-home.png",
+        "iphone/02-pro-3d.png",
+        "iphone/03-src-radio.png"
+      ]
+    },
+    {
+      "locale": "en-US",
+      "family": "APP_IPAD_PRO_3GEN_129",
+      "files": [
+        "ipad/01-home.png",
+        "ipad/02-pro-3d.png",
+        "ipad/03-src-radio.png"
+      ]
+    }
+  ]
+}
 ```
 
-Total artefact count: 2 device families x 7 locales x 5 frames = 70
-PNG files. ASC accepts up to 10 screenshots per locale per device, so
-we are well under the limit.
+Paths are relative to the manifest, or absolute local paths. Files must be
+opaque 8-bit RGB/grayscale PNGs (an all-opaque alpha channel is accepted), have the selected family's supported dimensions,
+and be distinct within each set. New files are reserved with deterministic
+content-addressed filenames containing the full local MD5. This permits retry
+without duplicating matching completed or uncommitted uploads.
 
-## Manual fallback
+```sh
+node scripts/asc-upload-screenshots.mjs --version 1.7.0 --manifest /absolute/path/screenshots59.json
+node --test scripts/asc-upload-screenshots.test.mjs
+```
 
-If the simulator path does not work cleanly (no boot, no install, no
-deep-link locale switch), the script logs the routes + the locale toggle
-steps and the human captures them manually with the iPhone simulator
-keyboard shortcut Cmd+S. File the PNGs into the same tree by hand.
+The first command is a dry run. It performs GET requests only and writes a local
+report next to the manifest. Inspect the selected locale/family, desired order,
+checksums and old IDs before applying. An explicit --report path is also accepted.
+Once the six actual frames are reviewed and release authorization covers the
+update, the operator applies that same manifest:
 
-## Caption overlay (post-capture)
+```sh
+node scripts/asc-upload-screenshots.mjs --version 1.7.0 --manifest /absolute/path/screenshots59.json --apply --replace
+```
 
-The captions above are **NOT baked into the captured PNGs**. ASC has
-its own per-locale caption field that floats above each screenshot in
-the App Store carousel. We upload the bare PNG; the human sets the
-caption per-locale in the ASC web UI on submit day.
+The tool uploads all desired images in all selected sets, commits their MD5,
+then waits up to ten minutes for every image to become COMPLETE. Before any old
+image is deleted it rechecks the app/version and the selected set memberships.
+A changed set, upload/processing failure, checksum mismatch or timeout retains
+all old images. Only the initial old IDs in explicitly selected sets can be
+deleted; unrelated locales, families and previews are untouched. The tool then
+sets and verifies the exact desired order and checksums.
 
-If you want the captions baked in (heavier branding), use a Figma
-template overlay - that is a Sprint 9 nice-to-have, not a Sprint 8
-blocker. v1.0 ships clean device frames with ASC-side captions.
+There must be enough free slots to upload before deletion: existing count plus
+new reservations cannot exceed ten per set. This release's five old plus three
+new images fit. A failed or expired matching reservation requires inspection;
+the tool refuses to silently delete it. Retry transient failures with the same
+manifest and unchanged files. Completed uploads are reused; an interrupted final
+ordering can be retried without uploading again. The local report records the
+snapshot and last successful stage. It contains no JWT or signed upload URL.
 
+No new build 59 screenshots have been applied by this documentation/tooling
+change. Capture, native review and the explicit apply are separate release steps.
 
-## 2026-09-08, navigation update
+## Apple references
 
-Updated `iphone-6.9/en/01-home.png` (1320x2868, build 42) and
-`ipad-13/en/01-home.png` (2064x2752, visually identical home from build 41).
-Uploaded as `01-home-build42.png` in the existing English iPhone and iPad sets.
-Both assets are COMPLETE and first in their five-image sets. The remaining
-four images in each set were preserved. The original first images were backed
-up before replacement. Release review instructions now describe the current
-3D anatomy, network multiplayer, analytics settings and five-section navigation.
+- [Screenshot specifications](https://developer.apple.com/help/app-store-connect/reference/app-information/screenshot-specifications)
+- [Localize app information](https://developer.apple.com/help/app-store-connect/manage-app-information/localize-app-information)
+- [Manage your App Store assets](https://developer.apple.com/help/app-store-connect/manage-app-information/manage-your-app-store-assets/)
+- [Uploading assets to App Store Connect](https://developer.apple.com/documentation/appstoreconnectapi/uploading-assets-to-app-store-connect)

@@ -76,7 +76,7 @@
 .sailFeedback strong { color: var(--text-primary); }
 
 /* Phone workspace (shared trainer controls): the 3D scene fills the space
-   above the dock; camera buttons and readouts float over it. */
+   above the dock; camera buttons and readouts stay in reserved controls space. */
 .compactRoot { --border-color: var(--border-subtle); color: var(--text-primary); }
 .compactRoot .header { margin: 0; padding: 4px 8px; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 .compactRoot .header::-webkit-scrollbar { display: none; }

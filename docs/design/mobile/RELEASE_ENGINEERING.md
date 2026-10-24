@@ -1,6 +1,11 @@
 # Release engineering and Apple workflow - Week to Regatta (mobile)
 
-Current release submission verified 2026-09-17: website `972df53`, native source
+Operational snapshot verified 2026-10-24: public App Store 1.6.4 (48),
+TestFlight 1.7.0 (58), group Self. Candidate 1.7.0 (59) is undergoing local
+release verification; no archive, upload, VALID processing or Self delivery is
+claimed until the actual result is recorded in `BUILDS.md`.
+
+Historical release submission verified 2026-09-17: website `972df53`, native source
 `b5580aa`, app 1.6.2 (43). Build 43 is VALID, attached to TestFlight Self and
 WAITING_FOR_REVIEW in App Store Connect, with automatic release after approval.
 The public App Store version checked before submission was 1.6.1 READY_FOR_SALE.
@@ -11,11 +16,20 @@ not finished; this update ships six lessons and the working offline simulator.
 Local Xcode archive/export and `altool` remain the working release path.
 EAS Update is unconfigured (`updates.url` and `extra.eas.projectId` absent).
 Starting with build 43, Trainer and 3D Boat are bundled offline and require a
-new binary for updates. Anatomy remains an online scene. Bundled theory,
-radio, checkpoint logic and native navigation also ship with the binary.
+new binary for updates. Candidate build59 also bundles the 3D solo race,
+Basics and anatomy, the complete seven-language SRC course and the Polish
+Sternik theory/tests/exams/typed practice. SRC recognition requires an installed
+compatible local English model, with a clearly labelled typed fallback.
+Sternik typed practice requests no microphone. History, coaching, checkpoint
+logic and native navigation also ship with the binary. Multiplayer and optional
+Ask, weather and external gallery/video requests remain online. Website and
+older-app voice modes remain separate from the new local SRC recognizer.
 
 Historical setup notes below (snapshot 2026-05-31). App `com.icoffio.regatta`, ASC app id `6768134329`,
 Apple team `547PA2PLLB`, Expo SDK 54, RN 0.81, expo-router 6, New Arch on.
+
+The EAS/OTA instructions below describe a future setup, not the active release
+pipeline. Do not claim an OTA deployment while updates remain disabled.
 
 This doc covers (1) the EAS Update / OTA setup, (2) a command cheat-sheet for
 this project, (3) what else is worth connecting, and (4) Apple workflow notes.

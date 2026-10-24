@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { makeStandardCourse, stepBoat, UNITS_PER_KNOT_SECOND, WIND_DIRECTION_BASE } from "@/lib/race-physics";
+import { makeStandardCourse, raceTrim, stepBoat, UNITS_PER_KNOT_SECOND, WIND_DIRECTION_BASE } from "@/lib/race-physics";
 import { METRES_PER_UNIT, VISUAL_SPEEDUP, headingDelta, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat } from "./pose";
 
 const boat = (heading: number, extra: Partial<Race3DBoat> = {}): Race3DBoat => ({
@@ -38,6 +38,16 @@ describe("3D race pose", () => {
   it("flogs the sails head to wind and fills them off it", () => {
     expect(racePose(boat(10), WIND_DIRECTION_BASE).luff).toBe(1);
     expect(racePose(boat(60), WIND_DIRECTION_BASE).luff).toBe(0);
+  });
+
+  it("shows the same lowered main and rolled jib as the race controls", () => {
+    const bare = racePose(boat(90, { trim: raceTrim({ mainHoisted: false, jibFurl: 1 }) }), 0);
+    expect(bare.mainHoisted).toBe(false);
+    expect(bare.jibShape?.furl).toBe(1);
+    const half = racePose(boat(90, { trim: raceTrim({ mainHoisted: true, jibFurl: 0.5 }) }), 0);
+    expect(half.mainHoisted).toBe(true);
+    expect(half.jibShape?.furl).toBe(0.5);
+    expect(racePose(boat(90), 0).mainHoisted).toBe(true);
   });
 
   it("places the boat where the race has it and scales the wake to its visual speed", () => {

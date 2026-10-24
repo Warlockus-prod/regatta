@@ -1,289 +1,61 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { WORLD, deg2rad, makeStandardCourse } from '@/lib/race-physics';
-import { useI18n } from '@/lib/i18n';
-
-interface Sample { t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number }
-interface Event { type: string; t: number; note?: string }
-interface ReplayData {
-  code: string;
-  ts: number;
-  nickname: string | null;
-  difficulty: string | null;
-  windStrength: string | null;
-  missionId: string | null;
-  finishTimeSec: number | null;
-  views: number;
-  samples: Sample[];
-  events: Event[];
-  course: unknown;
-}
-
-type XY = { x: number; y: number };
-interface DrawnCourse { windward: XY; startLine: { a: XY; b: XY } }
-
-const isXY = (v: unknown): v is XY =>
-  !!v && typeof v === 'object'
-  && Number.isFinite((v as XY).x) && Number.isFinite((v as XY).y);
-
-/**
- * The course stored with the replay, if it has the shape we draw. Replays are
- * user-submitted JSON, so nothing is trusted: anything malformed falls back to
- * the standard course, which is what every race so far has sailed anyway.
- */
-function replayCourse(raw: unknown): DrawnCourse {
-  const fallback = makeStandardCourse();
-  const std: DrawnCourse = { windward: fallback.marks[0].pos, startLine: fallback.startLine };
-  if (!raw || typeof raw !== 'object') return std;
-  const c = raw as { marks?: unknown; startLine?: { a?: unknown; b?: unknown } };
-  if (!Array.isArray(c.marks) || !c.startLine || !isXY(c.startLine.a) || !isXY(c.startLine.b)) return std;
-  const marks = c.marks as { pos?: unknown; type?: unknown }[];
-  const windward = marks.find((m) => m && m.type === 'windward') ?? marks[0];
-  if (!windward || !isXY(windward.pos)) return std;
-  return { windward: windward.pos, startLine: { a: c.startLine.a, b: c.startLine.b } };
-}
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useParams, useRouter } from "next/navigation";
+import { useI18n } from "@/lib/i18n";
+import { sharedReplay, type SharedReplay } from "@/lib/race-replay";
+import { RaceReplay } from "@/app/game/RaceReplay";
 
 export default function ReplayViewer() {
   const { tp } = useI18n();
   const params = useParams();
+  const router = useRouter();
   const rawCode = Array.isArray(params?.code) ? params.code[0] : params?.code;
-  const code = (typeof rawCode === 'string' ? rawCode : '').toUpperCase();
-
-  const [data, setData] = useState<ReplayData | null>(null);
+  const code = typeof rawCode === "string" ? rawCode.toUpperCase() : "";
+  const [data, setData] = useState<SharedReplay | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(true);
   const [speed, setSpeed] = useState(1);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
   useEffect(() => {
-    // Async data fetch with setError/setData. React Compiler flags the setState
-    // as cascading; acceptable for fetch-driven views.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!code) { setError(tp('Код не задан', 'No code provided', 'Brak kodu', { es: 'No se ha indicado ningún código', fr: 'Aucun code fourni', de: 'Kein Code angegeben', it: 'Nessun codice fornito' })); return; }
-    fetch(`/api/replay/${code}`)
-      .then(async (r) => {
-        if (!r.ok) { throw new Error((await r.json().catch(() => ({}))).error || `HTTP ${r.status}`); }
-        return r.json();
-      })
-      .then((d) => setData(d))
-      .catch((e) => setError(e.message || tp('Ошибка', 'Error', 'Błąd', { es: 'Error', fr: 'Erreur', de: 'Fehler', it: 'Errore' })));
-  }, [code, tp]);
+    let cancelled = false;
+    if (!code) return;
+    fetch(`/api/replay/${encodeURIComponent(code)}`).then(async response => {
+      if (!response.ok) throw new Error("replay-unavailable");
+      const replay = sharedReplay(await response.json());
+      if (!replay) throw new Error("invalid-replay");
+      if (!cancelled) setData(replay);
+    }).catch(() => { if (!cancelled) setError(code); });
+    return () => { cancelled = true; };
+  }, [code]);
 
-  // Auto-advance
-  useEffect(() => {
-    if (!playing || !data) return;
-    const id = setInterval(() => {
-      setIdx((i) => {
-        const next = i + 1;
-        if (next >= data.samples.length) {
-          setPlaying(false);
-          return data.samples.length - 1;
-        }
-        return next;
-      });
-    }, 500 / speed);
-    return () => clearInterval(id);
-  }, [playing, speed, data]);
+  if (error === code || !code) return <div className="max-w-lg mx-auto px-4 py-10">
+    <Link href="/" className="text-xs text-[var(--text-muted)]">← {tp("Главная", "Home", "Strona główna", { es: "Inicio", fr: "Accueil", de: "Startseite", it: "Home" })}</Link>
+    <h1 className="text-2xl font-semibold mt-4 mb-2">{tp("Повтор не найден", "Replay not found", "Nie znaleziono powtórki", { es: "Repetición no encontrada", fr: "Replay introuvable", de: "Replay nicht gefunden", it: "Replay non trovato" })}</h1>
+  </div>;
+  if (!data || data.code !== code) return <div className="min-h-[50vh] flex items-center justify-center text-sm text-[var(--text-muted)]">{tp("Загружаю...", "Loading...", "Ładowanie...", { es: "Cargando...", fr: "Chargement...", de: "Wird geladen...", it: "Caricamento..." })}</div>;
 
-  // Canvas render
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !data) return;
-
-    const course = replayCourse(data.course);
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const W = rect.width, H = rect.height;
-    const WORLD_W = WORLD.width, WORLD_H = WORLD.height;
-    const pad = 20;
-    const s = Math.min((W - pad * 2) / WORLD_W, (H - pad * 2) / WORLD_H);
-    const ox = (W - WORLD_W * s) / 2;
-    const oy = (H - WORLD_H * s) / 2;
-    const toXY = (p: { x: number; y: number }) => ({ x: ox + p.x * s, y: oy + p.y * s });
-
-    // Bg
-    const g = ctx.createLinearGradient(0, 0, 0, H);
-    g.addColorStop(0, '#051425'); g.addColorStop(1, '#0a1f3d');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-    // Start/finish
-    const la = toXY(course.startLine.a), lb = toXY(course.startLine.b);
-    ctx.strokeStyle = '#ffaa00'; ctx.setLineDash([6, 4]); ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(la.x, la.y); ctx.lineTo(lb.x, lb.y); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Windward mark
-    const wm = toXY(course.windward);
-    ctx.beginPath(); ctx.arc(wm.x, wm.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffaa00'; ctx.fill();
-    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-
-    // Track up to current idx
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.85)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= Math.min(idx, data.samples.length - 1); i++) {
-      const p = toXY(data.samples[i]);
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
-
-    // Event dots
-    const current = data.samples[Math.min(idx, data.samples.length - 1)];
-    if (current) {
-      for (const ev of data.events) {
-        if (ev.t > current.t) break;
-        const samp = data.samples.find((sm) => Math.abs(sm.t - ev.t) < 0.6);
-        if (!samp) continue;
-        const pp = toXY(samp);
-        let col = '#00d4ff';
-        if (ev.type === 'tack') col = '#ffaa00';
-        else if (ev.type === 'no-go-entered') col = '#ff4444';
-        else if (ev.type === 'mark-rounded' || ev.type === 'finish') col = '#44ff88';
-        ctx.beginPath();
-        ctx.arc(pp.x, pp.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = col; ctx.fill();
-      }
-      // Boat arrow
-      const p = toXY(current);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(deg2rad(current.heading));
-      ctx.fillStyle = '#00d4ff';
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -8); ctx.lineTo(5, 6); ctx.lineTo(-5, 6); ctx.closePath();
-      ctx.fill(); ctx.stroke();
-      ctx.restore();
-    }
-  }, [idx, data]);
-
-  if (error) {
-    return (
-      <div className="max-w-lg mx-auto px-4 py-10">
-        <Link href="/" className="text-xs text-[var(--text-muted)]">
-          ← {tp('Главная', 'Home', 'Strona główna', { es: 'Inicio', fr: 'Accueil', de: 'Startseite', it: 'Home' })}
-        </Link>
-        <h1 className="text-2xl font-bold mt-4 mb-2">
-          {tp('Replay не найден', 'Replay not found', 'Nie znaleziono powtórki', { es: 'Repetición no encontrada', fr: 'Replay introuvable', de: 'Replay nicht gefunden', it: 'Replay non trovato' })}
-        </h1>
-        <p className="text-sm text-[var(--text-secondary)]">{error}</p>
+  const date = new Date(data.ts).toISOString().slice(0, 16).replace("T", " ");
+  const result = data.finishTimeSec === null ? null : data.finishTimeSec + data.metadata.penaltySeconds;
+  return <div className="flex flex-col min-h-0 overflow-hidden" style={{ height: "calc(100dvh - var(--site-nav-h, 56px))" }}>
+    <div className="shrink-0 px-4 py-3 border-b border-[var(--border)]">
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-sm font-semibold min-w-0 truncate">{tp("Повтор", "Replay", "Powtórka", { es: "Repetición", fr: "Replay", de: "Replay", it: "Replay" })}{data.nickname ? ` · ${data.nickname}` : ""} · <span className="font-mono text-[var(--accent-cyan)]">{data.code}</span></h1>
+        <button type="button" onClick={() => { void navigator.clipboard?.writeText(window.location.href).catch(() => {}); }} className="shrink-0 min-h-11 text-xs text-[var(--accent-cyan)]">{tp("Копировать ссылку", "Copy link", "Kopiuj link", { es: "Copiar enlace", fr: "Copier le lien", de: "Link kopieren", it: "Copia link" })}</button>
       </div>
-    );
-  }
-  if (!data) {
-    return <div className="min-h-[50vh] flex items-center justify-center text-sm text-[var(--text-muted)]">{tp('Загружаю...', 'Loading...', 'Ładowanie...', { es: 'Cargando...', fr: 'Chargement...', de: 'Wird geladen...', it: 'Caricamento...' })}</div>;
-  }
-
-  const date = new Date(data.ts).toISOString().slice(0, 16).replace('T', ' ');
-
-  return (
-    <div className="page-enter max-w-3xl mx-auto px-4 py-6">
-      <div className="flex items-center justify-between mb-4">
-        <Link href="/" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">
-          ← {tp('Главная', 'Home', 'Strona główna', { es: 'Inicio', fr: 'Accueil', de: 'Startseite', it: 'Home' })}
-        </Link>
-        <button
-          onClick={() => navigator.clipboard?.writeText(window.location.href)}
-          className="text-[11px] text-[var(--accent-cyan)] hover:underline"
-        >
-          📋 {tp('Копировать ссылку', 'Copy link', 'Kopiuj link', { es: 'Copiar enlace', fr: 'Copier le lien', de: 'Link kopieren', it: 'Copia link' })}
-        </button>
-      </div>
-
-      <h1 className="text-2xl font-bold mb-1">
-        {tp('Replay', 'Replay', 'Powtórka', { es: 'Repetición', fr: 'Replay', de: 'Replay', it: 'Replay' })} {data.nickname ? tp(`от ${data.nickname}`, `by ${data.nickname}`, `gracza ${data.nickname}`, { es: `de ${data.nickname}`, fr: `de ${data.nickname}`, de: `von ${data.nickname}`, it: `di ${data.nickname}` }) : ''} · <span className="font-mono text-[var(--accent-cyan)]">{data.code}</span>
-      </h1>
-      <div className="text-xs text-[var(--text-muted)] mb-4">
-        {date} · {data.difficulty === 'easy'
-          ? tp('лёгкий', 'easy', 'łatwy', { es: 'fácil', fr: 'facile', de: 'leicht', it: 'facile' })
-          : data.difficulty === 'medium'
-            ? tp('средний', 'medium', 'średni', { es: 'medio', fr: 'moyen', de: 'mittel', it: 'medio' })
-            : data.difficulty === 'hard'
-              ? tp('сложный', 'hard', 'trudny', { es: 'difícil', fr: 'difficile', de: 'schwer', it: 'difficile' })
-              : data.difficulty} · {tp('ветер', 'wind', 'wiatr', { es: 'viento', fr: 'vent', de: 'Wind', it: 'vento' })} {data.windStrength === 'light'
-          ? tp('слабый', 'light', 'słaby', { es: 'flojo', fr: 'faible', de: 'schwach', it: 'leggero' })
-          : data.windStrength === 'medium'
-            ? tp('средний', 'medium', 'średni', { es: 'medio', fr: 'moyen', de: 'mittel', it: 'medio' })
-            : data.windStrength === 'heavy'
-              ? tp('сильный', 'strong', 'silny', { es: 'fuerte', fr: 'fort', de: 'stark', it: 'forte' })
-              : data.windStrength}
-        {data.finishTimeSec
-          ? ` · ${tp('финиш', 'finish', 'meta', { es: 'llegada', fr: 'arrivée', de: 'Ziel', it: 'arrivo' })} ${formatTime(data.finishTimeSec)}`
-          : ` · ${tp('не финишировал', 'did not finish', 'nie ukończono', { es: 'no terminó', fr: 'pas d\'arrivée', de: 'nicht im Ziel', it: 'non arrivato' })}`}
-        {data.views ? ` · ${data.views} ${tp('просмотров', 'views', 'wyświetleń', { es: 'visualizaciones', fr: 'vues', de: 'Aufrufe', it: 'visualizzazioni' })}` : ''}
-      </div>
-
-      <div className="card p-2 sm:p-3 mb-4">
-        <canvas
-          ref={canvasRef}
-          className="w-full block rounded-lg"
-          style={{ aspectRatio: '2/3', maxHeight: '65vh', background: '#061428' }}
-        />
-      </div>
-
-      <div className="flex items-center gap-3 mb-2">
-        <button
-          onClick={() => setPlaying((p) => !p)}
-          className="w-10 h-10 rounded-full flex items-center justify-center"
-          style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-        >
-          {playing ? '⏸' : '▶'}
-        </button>
-        <input
-          type="range"
-          min={0}
-          max={Math.max(0, data.samples.length - 1)}
-          value={idx}
-          onChange={(e) => { setIdx(Number(e.target.value)); setPlaying(false); }}
-          className="flex-1"
-        />
-        <span className="text-xs font-mono text-[var(--text-secondary)] min-w-[60px] text-right">
-          {formatTime(data.samples[Math.min(idx, data.samples.length - 1)]?.t ?? 0)}
-        </span>
-      </div>
-      <div className="flex gap-2 text-xs">
-        <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Prędkość', { es: 'Velocidad', fr: 'Vitesse', de: 'Tempo', it: 'Velocità' })}</span>
-        {[0.5, 1, 2, 4].map((sp) => (
-          <button
-            key={sp}
-            onClick={() => setSpeed(sp)}
-            className="px-2 py-0.5 rounded border"
-            style={{
-              borderColor: speed === sp ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-              color: speed === sp ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-              background: speed === sp ? 'rgba(0, 212, 255, 0.1)' : 'transparent',
-            }}
-          >
-            {sp}×
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 text-center text-xs">
-        <Link href="/game" className="text-[var(--accent-cyan)] hover:underline">
-          {tp('Попробовать самому', 'Try it yourself', 'Spróbuj sam', { es: 'Pruébalo tú mismo', fr: 'Essaie toi-même', de: 'Selbst ausprobieren', it: 'Provaci tu' })} →
-        </Link>
+      <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-[var(--text-muted)]">
+        <span>{date} · {data.metadata.mode === "pro" ? "Pro" : tp("Обычный", "Simple", "Prosty", { es: "Sencillo", fr: "Simple", de: "Einfach", it: "Semplice" })}</span>
+        {result !== null && <span>{tp("Результат", "Result", "Wynik", { es: "Resultado", fr: "Résultat", de: "Ergebnis", it: "Risultato" })} {formatTime(result)}{data.metadata.penaltySeconds ? ` (+${data.metadata.penaltySeconds} s)` : ""}</span>}
+        <div className="flex items-center gap-1" role="group" aria-label={tp("Скорость повтора", "Playback speed", "Prędkość odtwarzania", { es: "Velocidad de reproducción", fr: "Vitesse de lecture", de: "Wiedergabegeschwindigkeit", it: "Velocità di riproduzione" })}>
+          {[.5, 1, 2, 4].map(rate => <button type="button" key={rate} aria-pressed={speed === rate} onClick={() => setSpeed(rate)} className="min-h-11 min-w-11 rounded px-1" style={{ color: speed === rate ? "var(--accent-cyan)" : undefined }}>{rate}×</button>)}
+        </div>
       </div>
     </div>
-  );
+    <div className="relative min-h-0 flex-1" data-testid="shared-replay-3d">
+      <RaceReplay key={data.code} samples={data.samples} course={data.course} playbackRate={speed} onClose={() => router.push("/game")} />
+    </div>
+  </div>;
 }
 
-function formatTime(s: number): string {
-  if (!isFinite(s)) return '-';
-  const m = Math.floor(s / 60);
-  const sec = Math.floor(s % 60);
-  const ms = Math.floor((s * 10) % 10);
-  return `${m}:${sec.toString().padStart(2, '0')}.${ms}`;
+function formatTime(seconds: number) {
+  return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}.${Math.floor(seconds * 10 % 10)}`;
 }

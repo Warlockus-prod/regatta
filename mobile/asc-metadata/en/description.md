@@ -15,7 +15,7 @@ Day 3. How a sail works: a wing upwind, a parachute downwind.
 Day 4. Tacking and jibing: turning through the bow and through the stern.
 Day 5. Beating and VMG: how to get upwind and why the straight line is not the fastest.
 Day 6. Simple rules: who gives way on the water.
-Day 7. Mini race: everything together, then the AI coach reviews your race.
+Day 7. Mini race: everything together, then a local coach reviews your race.
 
 The "Continue learning" button on the home screen always opens the next step, so you never wonder where you stopped.
 
@@ -27,7 +27,7 @@ SIMULATORS
 
 RACE
 
-Race a short course against bots at three levels, or open a multiplayer race and invite friends. After the finish, an AI coach reviews your race and tells you what to fix next.
+Race a 3D course against bots offline. Simple trims the sails automatically; Pro gives you manual sheets. A local coach reviews the result. Multiplayer with friends requires a connection.
 
 LEARN THE BOAT AND THE RULES
 
@@ -37,10 +37,10 @@ LEARN THE BOAT AND THE RULES
 - First week on board: what to pack, what to ask the skipper, how to help the crew.
 - Pre-race checklist: tick it off the night before.
 
-POLISH CERTIFICATES (IN POLISH)
+POLISH CERTIFICATES
 
-- SRC marine radio: 324 official UKE exam questions and a voice simulator for MAYDAY and PAN-PAN calls.
-- Sternik motorowodny (motorboat helmsman): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes.
+- SRC marine radio: 324 UKE questions with study translations, theory and practice in seven languages. Standard on-air phrases stay English. From app 1.7.0 build 59, speech recognition uses an available local English model; typed content checks work offline when no model is installed.
+- Sternik motorowodny (in Polish): 879 exam questions, theory and a full mock exam with 75 questions in 90 minutes. Works offline; oral practice checks typed Polish answers locally.
 
 PRIVACY
 

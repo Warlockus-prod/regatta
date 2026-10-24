@@ -71,6 +71,13 @@ const PRECACHE = [
   '/offline',
 ];
 
+/** Public learning text only. Never cache arbitrary JSON or API responses. */
+const RADIO_CATALOGS = [
+  "/radio-locales/aliases.json", "/radio-locales/ru.json", "/radio-locales/en.json",
+  "/radio-locales/pl.json", "/radio-locales/es.json", "/radio-locales/fr.json",
+  "/radio-locales/de.json", "/radio-locales/it.json",
+];
+
 /**
  * Only these documents may be cached. An allowlist, not a blocklist: a blocklist
  * is a list of the leaks you thought of, and /stats was not on the first one.
@@ -88,7 +95,8 @@ function isImmutableAsset(url) {
 }
 
 function isAsset(url) {
-  return /\.(?:css|js|woff2?|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname);
+  return /\.(?:css|js|woff2?|png|jpg|jpeg|svg|webp|ico)$/.test(url.pathname)
+    || /^\/radio-locales\/(?:aliases|ru|en|pl|es|fr|de|it)\.json$/.test(url.pathname);
 }
 
 // --- language ---------------------------------------------------------------
@@ -194,6 +202,17 @@ async function precache(l) {
     for (const ref of refs) if (!seen.has(ref)) { seen.add(ref); into.push(ref); }
   };
 
+  let catalogStored = 0;
+  await Promise.allSettled(RADIO_CATALOGS.map(async (path) => {
+    const url = new URL(path, self.location.origin);
+    let res = await assets.match(url.href);
+    if (!res) {
+      res = await fetch(url.href);
+      if (!res.ok || res.redirected) return;
+      await assets.put(url.href, res.clone());
+    }
+    catalogStored++;
+  }));
   let stored = 0;
   await Promise.allSettled(PRECACHE.map(async (path) => {
     const url = new URL(path, self.location.origin);
@@ -219,7 +238,7 @@ async function precache(l) {
     }));
     frontier = next;
   }
-  return stored;
+  return catalogStored === RADIO_CATALOGS.length ? stored : -1;
 }
 
 // Precache is requested by course pages only (see ServiceWorkerRegistrar): a

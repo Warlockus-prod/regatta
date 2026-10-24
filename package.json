@@ -20,7 +20,9 @@
     "check:map": "node scripts/check-project-map.mjs",
     "pregen:radio-audio": "node --experimental-strip-types scripts/pregen-radio-audio.mjs",
     "build:race-server": "node scripts/build-race-server.mjs",
-    "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs"
+    "test:multiplayer": "npm ci --prefix ws-server --no-audit --no-fund && node scripts/test-multiplayer.mjs",
+    "build:sternik-offline": "node mobile/scripts/build-sternik-offline.mjs",
+    "build:sternik-offline:check": "node mobile/scripts/build-sternik-offline.mjs --check"
   },
   "dependencies": {
     "@react-three/drei": "^10.7.7",

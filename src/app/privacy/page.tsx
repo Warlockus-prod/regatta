@@ -28,17 +28,26 @@ export default function PrivacyPage() {
             { es: 'Política de privacidad', fr: 'Politique de confidentialité', de: 'Datenschutzerklärung', it: 'Informativa sulla privacy' })}
         </h1>
         <p className="text-sm text-[var(--text-muted)]">
-          {tp('Обновлено: 2026-10-19', 'Updated: 2026-10-19', 'Aktualizacja: 2026-10-19',
-            { es: 'Actualizado: 2026-10-19', fr: 'Mis à jour : 2026-10-19', de: 'Aktualisiert: 2026-10-19', it: 'Aggiornato: 2026-10-19' })}
+          {tp(
+             "Обновлено: 2026-10-24",
+             "Updated: 2026-10-24",
+             "Aktualizacja: 2026-10-24",
+             {
+               es: "Actualizado: 2026-10-24",
+               fr: "Mis à jour : 2026-10-24",
+               de: "Aktualisiert: 2026-10-24",
+               it: "Aggiornato: 2026-10-24",
+             },
+           )}
         </p>
       </div>
 
       <div className="space-y-6 text-[var(--text-secondary)] leading-relaxed">
         {/* iOS app callout. The native app sends pseudonymous product analytics
             (PostHog EU, opt-out in Settings) and uses the network for the
-            course pages, Ask, the AI review, voice answers (SRC radio
-            simulator and sternik oral exam, OpenAI speech-to-text), live
-            multiplayer, the gallery, the daily banner and spot weather. This MUST stay consistent with
+            online course pages, Ask, online AI review, online speech,
+            multiplayer, gallery and spot weather. App 1.7.0 build 59 adds local
+            bundled SRC recognition, typed Sternik practice and solo coaching. This MUST stay consistent with
             the App Store App Privacy label (Data Collected: Usage Data /
             Product Interaction and Diagnostics / Other Diagnostic Data, purpose
             Analytics, not linked, not tracking), with NSPrivacyCollectedDataTypes
@@ -79,16 +88,16 @@ export default function PrivacyPage() {
           <ul className="list-disc pl-5 space-y-1 text-sm mb-3">
             <li>
               {tp(
-                'Страницы курсов (sternik, радио SRC, часть тренажеров) - это страницы weektoregatta.com, они отправляют события использования, описанные ниже для сайта.',
-                'Course pages (sternik, SRC radio, some trainers) are pages of weektoregatta.com and send the usage events described below for the website.',
-                'Strony kursów (sternik, radio SRC, część trenażerów) to strony weektoregatta.com i wysyłają zdarzenia użycia opisane niżej dla strony internetowej.',
-                {
-                  es: 'Las páginas de cursos (sternik, radio SRC, algunos simuladores) son páginas de weektoregatta.com y envían los eventos de uso que se describen abajo para el sitio web.',
-                  fr: 'Les pages de cours (sternik, radio SRC, certains simulateurs) sont des pages de weektoregatta.com et envoient les événements d\'utilisation décrits plus bas pour le site.',
-                  de: 'Kursseiten (sternik, SRC-Funk, einige Trainer) sind Seiten von weektoregatta.com und senden die unten für die Website beschriebenen Nutzungsereignisse.',
-                  it: 'Le pagine dei corsi (sternik, radio SRC, alcuni simulatori) sono pagine di weektoregatta.com e inviano gli eventi di utilizzo descritti più sotto per il sito.',
-                },
-              )}
+                 "Онлайн-страницы курсов на сайте и в старых сборках загружаются с weektoregatta.com и отправляют описанные ниже события сайта. С версии 1.7.0, сборка 59, встроенные курсы SRC и Sternik, одиночная гонка и ее локальный разбор не требуют загрузки страницы с сервера. Теория, тесты, экзамен и текстовая практика устных ответов Sternik работают локально на польском, без микрофона.",
+                 "Online course pages on the website and in older app builds load from weektoregatta.com and send the website events described below. From version 1.7.0, build 59, bundled SRC and Sternik, solo racing and its local review do not require a page from the server. Sternik theory, tests, exams and typed oral-answer practice work locally in Polish, without the microphone.",
+                 "Strony kursów online w witrynie i starszych kompilacjach aplikacji ładują się z weektoregatta.com i wysyłają opisane niżej zdarzenia strony. Od wersji 1.7.0, kompilacja 59, wbudowane kursy SRC i Sternik, wyścig solo i jego lokalna analiza nie wymagają pobrania strony z serwera. Teoria, testy, egzaminy i pisemne ćwiczenia odpowiedzi ustnych na sternika działają lokalnie po polsku, bez mikrofonu.",
+                 {
+                   es: "Las páginas de cursos en línea del sitio y de compilaciones anteriores de la app se cargan desde weektoregatta.com y envían los eventos del sitio descritos abajo. Desde la versión 1.7.0, compilación 59, los cursos SRC y Sternik integrados, la regata individual y su análisis local no necesitan una página del servidor. La teoría, los tests, los exámenes y la práctica escrita de respuestas orales de Sternik funcionan localmente en polaco, sin micrófono.",
+                   fr: "Les pages de cours en ligne du site et des anciens builds de l’app viennent de weektoregatta.com et envoient les événements du site décrits ci-dessous. À partir de la version 1.7.0, build 59, les cours SRC et Sternik intégrés, la course solo et son analyse locale ne nécessitent pas de page du serveur. La théorie, les tests, les examens et la préparation écrite des réponses orales Sternik fonctionnent localement en polonais, sans microphone.",
+                   de: "Online-Kursseiten auf der Website und in älteren App-Builds werden von weektoregatta.com geladen und senden die unten beschriebenen Website-Ereignisse. Ab Version 1.7.0, Build 59, benötigen die integrierten Kurse SRC und Sternik, das Solorennen und seine lokale Auswertung keine Seite vom Server. Sternik-Theorie, Tests, Prüfungen und schriftliche Übungen für mündliche Antworten laufen lokal auf Polnisch, ohne Mikrofon.",
+                   it: "Le pagine dei corsi online sul sito e nelle build precedenti dell’app vengono caricate da weektoregatta.com e inviano gli eventi del sito descritti sotto. Dalla versione 1.7.0, build 59, i corsi SRC e Sternik integrati, la regata in solitaria e la sua analisi locale non richiedono una pagina dal server. Teoria, test, esami ed esercitazioni scritte per le risposte orali di Sternik funzionano localmente in polacco, senza microfono.",
+                 },
+               )}
             </li>
             <li>
               {tp(
@@ -105,29 +114,29 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'AI-разбор гонки: лог гонки (позиции, время, счет, без личных данных) идет через наш сервер в OpenAI.',
-                'AI race review: the race log (positions, times, score, no personal data) goes through our server to OpenAI.',
-                'Analiza wyścigu przez AI: zapis wyścigu (pozycje, czasy, wynik, bez danych osobowych) trafia przez nasz serwer do OpenAI.',
-                {
-                  es: 'Análisis de regata con IA: el registro de la regata (posiciones, tiempos, puntuación, sin datos personales) pasa por nuestro servidor hasta OpenAI.',
-                  fr: 'Analyse de course par IA : le journal de course (positions, temps, score, sans données personnelles) passe par notre serveur jusqu\'à OpenAI.',
-                  de: 'KI-Rennanalyse: Das Rennprotokoll (Positionen, Zeiten, Punktzahl, keine personenbezogenen Daten) geht über unseren Server an OpenAI.',
-                  it: 'Analisi della regata con l\'IA: il registro della regata (posizioni, tempi, punteggio, nessun dato personale) passa dal nostro server a OpenAI.',
-                },
-              )}
+                 "Онлайн-разбор с AI: если ты запрашиваешь его на сайте или в старой сборке приложения, лог гонки (позиции, время, счет, без личных данных) идет через наш сервер в OpenAI. С версии 1.7.0, сборка 59, разбор одиночной гонки в приложении рассчитывается локально и не отправляет лог.",
+                 "Online AI review: when requested on the website or in an older app build, the race log (positions, time, score, no personal data) goes through our server to OpenAI. From version 1.7.0, build 59, the app calculates solo race coaching locally and does not send the log.",
+                 "Analiza AI online: gdy zamawiasz ją na stronie lub w starszej kompilacji aplikacji, zapis wyścigu (pozycje, czas, wynik, bez danych osobowych) trafia przez nasz serwer do OpenAI. Od wersji 1.7.0, kompilacja 59, aplikacja oblicza analizę wyścigu solo lokalnie i nie wysyła zapisu.",
+                 {
+                   es: "Análisis con IA en línea: cuando lo solicitas en el sitio o en una compilación anterior de la app, el registro de regata (posiciones, tiempo y puntuación, sin datos personales) pasa por nuestro servidor hasta OpenAI. Desde la versión 1.7.0, compilación 59, la app calcula el análisis individual localmente y no envía el registro.",
+                   fr: "Analyse IA en ligne : si tu la demandes sur le site ou dans un ancien build de l'app, le journal de course (positions, temps, score, sans données personnelles) passe par notre serveur jusqu'à OpenAI. À partir de la version 1.7.0, build 59, l'app calcule les conseils de course solo localement et n'envoie pas le journal.",
+                   de: "Online-KI-Auswertung: Wenn du sie auf der Website oder in einem älteren App-Build anforderst, geht das Rennprotokoll (Positionen, Zeit, Ergebnis, keine personenbezogenen Daten) über unseren Server an OpenAI. Ab Version 1.7.0, Build 59, berechnet die App die Auswertung des Solorennens lokal und sendet das Protokoll nicht.",
+                   it: "Analisi IA online: se la richiedi sul sito o in una build precedente dell'app, il registro della regata (posizioni, tempo, punteggio, senza dati personali) passa dal nostro server a OpenAI. Dalla versione 1.7.0, build 59, l'app calcola localmente i consigli per la regata in solitaria e non invia il registro.",
+                 },
+               )}
             </li>
             <li>
               {tp(
-                'Голосовые ответы: в симуляторе радиосвязи SRC и в тренажере устного экзамена sternik запись, которую ты сам запускаешь, идет через наш сервер в OpenAI для распознавания речи и не сохраняется (см. «Третьи стороны»).',
-                'Voice answers: in the SRC radio simulator and the sternik oral exam practice, a recording you start goes through our server to OpenAI to be turned into text and is not stored (see Third parties).',
-                'Odpowiedzi głosowe: w symulatorze radiowym SRC i w ćwiczeniu egzaminu ustnego na sternika nagranie, które sam uruchomisz, trafia przez nasz serwer do OpenAI w celu zamiany mowy na tekst i nie jest zapisywane (zob. "Strony trzecie").',
-                {
-                  es: 'Respuestas de voz: en el simulador de radio SRC y en la práctica del examen oral de sternik, una grabación que inicias tú pasa por nuestro servidor hasta OpenAI para convertir la voz en texto y no se guarda (ver "Terceros").',
-                  fr: 'Réponses vocales : dans le simulateur radio SRC et l\'entraînement à l\'examen oral sternik, un enregistrement que tu lances passe par notre serveur jusqu\'à OpenAI pour transcrire la parole et n\'est pas conservé (voir "Tiers").',
-                  de: 'Gesprochene Antworten: Im SRC-Funksimulator und im Training für die mündliche sternik-Prüfung geht eine Aufnahme, die du selbst startest, über unseren Server an OpenAI, um die Sprache in Text umzuwandeln, und wird nicht gespeichert (siehe "Drittanbieter").',
-                  it: 'Risposte vocali: nel simulatore radio SRC e nell\'allenamento per l\'esame orale sternik, una registrazione che avvii tu passa dal nostro server a OpenAI per trasformare la voce in testo e non viene salvata (vedi "Terze parti").',
-                },
-              )}
+                 "С версии 1.7.0, сборка 59, встроенный курс SRC распознает английские передачи VHF на устройстве при наличии локальной модели. Аудио не отправляется на сервер и не сохраняется в файл. Если модель недоступна, можно ввести передачу текстом и проверить содержание офлайн; это не проверка микрофона. В онлайн-рации на сайте, в старых сборках приложения и в устной практике sternik на сайте запись по твоей команде идет через наш сервер в OpenAI для распознавания. Мы не сохраняем запись или расшифровку в своей базе.",
+                 "From version 1.7.0, build 59, the bundled SRC course recognizes English VHF transmissions on device when a local model is available. Audio is not sent to a server or saved to a file. If the model is unavailable, you can type the transmission and check its content offline; this is not a microphone check. In the online radio trainer on the website, in older app builds and in website sternik oral practice, a recording you start goes through our server to OpenAI for transcription. We do not store the recording or transcript in our database.",
+                 "Od wersji 1.7.0, kompilacja 59, wbudowany kurs SRC rozpoznaje angielskie komunikaty VHF na urządzeniu, jeśli jest dostępny lokalny model. Dźwięk nie trafia na serwer ani do pliku. Jeśli model jest niedostępny, możesz wpisać komunikat i sprawdzić treść offline; nie jest to test mikrofonu. W internetowym trenażerze radiowym, w starszych kompilacjach aplikacji i w internetowym treningu ustnym na sternika nagranie, które sam uruchomisz, trafia przez nasz serwer do OpenAI w celu transkrypcji. Nie zapisujemy nagrania ani transkrypcji w naszej bazie.",
+                 {
+                   es: "Desde la versión 1.7.0, compilación 59, el curso SRC integrado reconoce las transmisiones VHF en inglés en el dispositivo si hay un modelo local disponible. El audio no se envía a un servidor ni se guarda en un archivo. Si el modelo no está disponible, puedes escribir la transmisión y comprobar su contenido sin conexión; esto no es una prueba del micrófono. En el simulador de radio del sitio web, en compilaciones anteriores de la app y en la práctica oral de sternik en el sitio web, una grabación que inicias tú pasa por nuestro servidor hasta OpenAI para su transcripción. No guardamos la grabación ni la transcripción en nuestra base de datos.",
+                   fr: "À partir de la version 1.7.0, build 59, le cours SRC intégré reconnaît les transmissions VHF en anglais sur l'appareil si un modèle local est disponible. L'audio n'est ni envoyé à un serveur ni enregistré dans un fichier. Si le modèle est indisponible, tu peux saisir la transmission et vérifier son contenu hors ligne ; cela ne teste pas le microphone. Dans le simulateur radio du site, dans les anciens builds de l'app et dans la pratique orale sternik du site, un enregistrement que tu lances passe par notre serveur jusqu'à OpenAI pour être transcrit. Nous ne conservons ni l'enregistrement ni la transcription dans notre base de données.",
+                   de: "Ab Version 1.7.0, Build 59, erkennt der integrierte SRC-Kurs englische UKW-Funksprüche auf dem Gerät, wenn ein lokales Modell verfügbar ist. Das Audio wird weder an einen Server gesendet noch in einer Datei gespeichert. Ist das Modell nicht verfügbar, kannst du den Funkspruch eintippen und seinen Inhalt offline prüfen; das ist kein Mikrofontest. Im Funktrainer auf der Website, in älteren App-Builds und im mündlichen sternik-Training auf der Website wird eine von dir gestartete Aufnahme über unseren Server zur Transkription an OpenAI gesendet. Wir speichern weder die Aufnahme noch das Transkript in unserer Datenbank.",
+                   it: "Dalla versione 1.7.0, build 59, il corso SRC integrato riconosce le trasmissioni VHF in inglese sul dispositivo se è disponibile un modello locale. L'audio non viene inviato a un server né salvato in un file. Se il modello non è disponibile, puoi scrivere la trasmissione e verificarne il contenuto offline; non è una prova del microfono. Nel simulatore radio del sito, nelle build precedenti dell'app e nella pratica orale sternik sul sito, una registrazione che avvii tu passa dal nostro server a OpenAI per la trascrizione. Non conserviamo la registrazione né la trascrizione nel nostro database.",
+                 },
+               )}
             </li>
             <li>
               {tp(
@@ -157,14 +166,14 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'Баннер дневного челленджа и погода для выбранного тобой места: простой запрос к weektoregatta.com без идентификаторов (координаты места, а не твои).',
-                'Daily challenge banner and the weather for a spot you pick: a plain request to weektoregatta.com without any identifier (the spot\'s coordinates, never yours).',
-                'Baner wyzwania dnia i pogoda dla wybranego miejsca: zwykłe zapytanie do weektoregatta.com bez identyfikatorów (współrzędne miejsca, nie Twoje).',
+                "Погода выбранного места: запрос к weektoregatta.com без идентификаторов (координаты места, а не твои). Дневной челлендж в старых сборках тоже загружается с сервера; с версии 1.7.0, сборка 59, он рассчитывается локально.",
+                "Weather for a spot you pick: a request to weektoregatta.com without identifiers (the spot's coordinates, never yours). Older app builds also fetch the daily challenge; from version 1.7.0, build 59, it is calculated locally.",
+                "Pogoda wybranego miejsca: zapytanie do weektoregatta.com bez identyfikatorów (współrzędne miejsca, nie twoje). Starsze kompilacje pobierają też wyzwanie dnia; od wersji 1.7.0, kompilacja 59, jest ono obliczane lokalnie.",
                 {
-                  es: 'Banner del reto diario y el tiempo del lugar que elijas: una petición simple a weektoregatta.com sin identificadores (las coordenadas del lugar, nunca las tuyas).',
-                  fr: 'Bannière du défi du jour et météo d\'un spot que tu choisis : une simple requête à weektoregatta.com sans identifiant (les coordonnées du spot, jamais les tiennes).',
-                  de: 'Banner der Tages-Challenge und Wetter für ein Revier, das du wählst: eine einfache Anfrage an weektoregatta.com ohne Kennung (die Koordinaten des Reviers, nie deine).',
-                  it: 'Banner della sfida del giorno e meteo di uno spot che scegli: una semplice richiesta a weektoregatta.com senza identificativi (le coordinate dello spot, mai le tue).',
+                  es: "Tiempo del lugar que elijas: una petición a weektoregatta.com sin identificadores (las coordenadas del lugar, nunca las tuyas). Las compilaciones anteriores también descargan el reto diario; desde la versión 1.7.0, compilación 59, se calcula localmente.",
+                  fr: "Météo du spot choisi : une requête à weektoregatta.com sans identifiant (les coordonnées du spot, jamais les tiennes). Les anciens builds téléchargent aussi le défi du jour ; à partir de la version 1.7.0, build 59, il est calculé localement.",
+                  de: "Wetter für dein gewähltes Revier: eine Anfrage an weektoregatta.com ohne Kennung (die Koordinaten des Reviers, nie deine). Ältere Builds laden auch die Tages-Challenge; ab Version 1.7.0, Build 59, wird sie lokal berechnet.",
+                  it: "Meteo dello spot scelto: una richiesta a weektoregatta.com senza identificativi (le coordinate dello spot, mai le tue). Le build precedenti scaricano anche la sfida del giorno; dalla versione 1.7.0, build 59, viene calcolata localmente.",
                 },
               )}
             </li>
@@ -248,16 +257,16 @@ export default function PrivacyPage() {
             </li>
             <li>
               {tp(
-                'Запись голоса только по твоей команде: в голосовом режиме тренажера рации и на тренировке устного экзамена на /sternik. Аудио идет через наш сервер в OpenAI для распознавания речи (см. «Третьи стороны»), затем текст проверяется по чек-листу упражнения. Ни аудио, ни текст не сохраняются в нашей базе; аудио удаляется после обработки запроса.',
-                'A voice recording, only when you start it: in the radio trainer voice mode and in the oral exam practice on /sternik. The audio goes through our server to OpenAI for transcription (see Third parties), then the text is checked against the exercise checklist. Neither the audio nor the text is stored in our database; the audio is discarded after the request is processed.',
-                'Nagranie głosu, wyłącznie gdy sam je uruchomisz: w trybie głosowym trenażera radiowego i w ćwiczeniu egzaminu ustnego na /sternik. Dźwięk trafia przez nasz serwer do OpenAI w celu rozpoznania mowy (zob. "Strony trzecie"), a potem tekst jest sprawdzany według listy kontrolnej ćwiczenia. Ani dźwięku, ani tekstu nie zapisujemy w naszej bazie; dźwięk jest usuwany po obsłużeniu żądania.',
-                {
-                  es: 'Una grabación de voz, solo cuando la inicias: en el modo de voz del simulador de radio y en la práctica del examen oral de /sternik. El audio pasa por nuestro servidor hasta OpenAI para su transcripción (ver "Terceros") y después el texto se comprueba con la lista de control del ejercicio. Ni el audio ni el texto se guardan en nuestra base de datos; el audio se elimina tras procesar la solicitud.',
-                  fr: "Un enregistrement vocal, uniquement quand tu le lances : dans le mode vocal du simulateur radio et dans l'entraînement à l'examen oral sur /sternik. L'audio passe par notre serveur jusqu'à OpenAI pour la transcription (voir \"Tiers\"), puis le texte est vérifié selon la liste de contrôle de l'exercice. Ni l'audio ni le texte ne sont stockés dans notre base de données ; l'audio est supprimé une fois la requête traitée.",
-                  de: 'Eine Sprachaufnahme, nur wenn du sie startest: im Sprachmodus des Funktrainers und im Training für die mündliche Prüfung auf /sternik. Das Audio geht über unseren Server zur Transkription an OpenAI (siehe "Drittanbieter"), danach wird der Text anhand der Übungscheckliste geprüft. Weder Audio noch Text werden in unserer Datenbank gespeichert; das Audio wird nach der Verarbeitung der Anfrage gelöscht.',
-                  it: "Una registrazione vocale, solo quando la avvii: nella modalità vocale del simulatore radio e nell'allenamento per l'esame orale su /sternik. L'audio passa dal nostro server a OpenAI per la trascrizione (vedi \"Terze parti\"), poi il testo viene verificato con la checklist dell'esercizio. Né l'audio né il testo vengono salvati nel nostro database; l'audio viene eliminato dopo l'elaborazione della richiesta.",
-                },
-              )}
+                 "На сайте запись голоса запускаешь только ты: в голосовом режиме рации и в устной практике /sternik. Аудио идет через наш сервер в OpenAI для распознавания, затем текст проверяется по чек-листу. Мы не сохраняем запись или текст в своей базе; аудио удаляется после обработки. Для встроенного SRC в приложении 1.7.0, сборка 59 и новее, действует локальный путь, описанный выше.",
+                 "On the website, only you can start a voice recording: in radio voice mode and /sternik oral practice. Audio goes through our server to OpenAI for transcription, then the text is checked against the exercise checklist. We do not store the recording or text in our database; audio is discarded after processing. Bundled SRC in app 1.7.0, build 59 and later, uses the local path described above.",
+                 "Na stronie tylko ty uruchamiasz nagranie głosu: w trybie głosowym radia i w treningu ustnym /sternik. Dźwięk trafia przez nasz serwer do OpenAI w celu transkrypcji, a tekst jest sprawdzany według listy kontrolnej. Nie zapisujemy nagrania ani tekstu w naszej bazie; dźwięk jest usuwany po przetworzeniu. Wbudowany SRC w aplikacji 1.7.0, kompilacja 59 i nowsze, korzysta z opisanej wyżej ścieżki lokalnej.",
+                 {
+                   es: "En el sitio web, solo tú puedes iniciar una grabación: en el modo de voz de la radio y en la práctica oral de /sternik. El audio pasa por nuestro servidor hasta OpenAI para su transcripción y el texto se comprueba con la lista del ejercicio. No guardamos la grabación ni el texto en nuestra base de datos; el audio se elimina tras procesarlo. El SRC integrado en la app 1.7.0, compilación 59 y posteriores, usa la opción local descrita arriba.",
+                   fr: "Sur le site, tu démarres toi-même tout enregistrement : dans le mode vocal de la radio et la pratique orale /sternik. L'audio passe par notre serveur jusqu'à OpenAI pour être transcrit, puis le texte est vérifié selon la liste de contrôle. Nous ne conservons ni l'enregistrement ni le texte dans notre base ; l'audio est supprimé après traitement. Le SRC intégré dans l'app 1.7.0, build 59 et suivants, utilise le fonctionnement local décrit ci-dessus.",
+                   de: "Auf der Website startest nur du eine Sprachaufnahme: im Sprachmodus des Funktrainers und im mündlichen Training /sternik. Das Audio geht über unseren Server zur Transkription an OpenAI, danach wird der Text anhand der Übungscheckliste geprüft. Wir speichern weder Aufnahme noch Text in unserer Datenbank; das Audio wird nach der Verarbeitung gelöscht. Der integrierte SRC-Kurs in App 1.7.0, Build 59 und neuer, nutzt den oben beschriebenen lokalen Weg.",
+                   it: "Sul sito avvii tu ogni registrazione vocale: nella modalità vocale della radio e nella pratica orale /sternik. L'audio passa dal nostro server a OpenAI per la trascrizione, poi il testo viene verificato con la checklist. Non conserviamo registrazione o testo nel nostro database; l'audio viene eliminato dopo l'elaborazione. Il SRC integrato nell'app 1.7.0, build 59 e successive, usa la modalità locale descritta sopra.",
+                 },
+               )}
             </li>
             <li>
               {tp(
@@ -349,16 +358,16 @@ export default function PrivacyPage() {
                 {tp('OpenAI (распознавание речи: тренажер рации и устный экзамен)', 'OpenAI (speech recognition: radio trainer and oral exam)', 'OpenAI (rozpoznawanie mowy: trenażer radiowy i egzamin ustny)',
                   { es: 'OpenAI (reconocimiento de voz: simulador de radio y examen oral)', fr: 'OpenAI (reconnaissance vocale : simulateur radio et examen oral)', de: 'OpenAI (Spracherkennung: Funktrainer und mündliche Prüfung)', it: 'OpenAI (riconoscimento vocale: simulatore radio ed esame orale)' })}
               </strong>: {tp(
-                'когда ты отправляешь голосовой ответ в тренажере рации или на тренировке устного экзамена на /sternik (на сайте или внутри приложения для iPhone), аудио передается через наш сервер в OpenAI для распознавания речи. Затем текст проверяется по чек-листу упражнения на нашем сервере или в браузере.',
-                'when you submit a voice answer in the radio trainer or in the oral exam practice on /sternik (on this site or inside the iPhone app), the audio is relayed through our server to OpenAI for speech transcription. The text is then checked against the exercise checklist on our server or in your browser.',
-                'gdy wysyłasz odpowiedź głosową w trenażerze radiowym albo w ćwiczeniu egzaminu ustnego na /sternik (na tej stronie lub w aplikacji na iPhone), nagranie jest przekazywane przez nasz serwer do OpenAI w celu rozpoznania mowy. Następnie tekst jest sprawdzany według listy kontrolnej ćwiczenia na naszym serwerze lub w przeglądarce.',
-                {
-                  es: 'cuando envías una respuesta de voz en el simulador de radio o en la práctica del examen oral de /sternik (en este sitio o dentro de la app para iPhone), el audio pasa por nuestro servidor hasta OpenAI para transcribir el habla. Después, el texto se comprueba con la lista de control del ejercicio en nuestro servidor o en tu navegador.',
-                  fr: "lorsque tu envoies une réponse vocale dans le simulateur radio ou dans l'entraînement à l'examen oral sur /sternik (sur ce site ou dans l'app iPhone), l'audio passe par notre serveur jusqu'à OpenAI pour la reconnaissance vocale. Le texte est ensuite vérifié selon la liste de contrôle de l'exercice, sur notre serveur ou dans ton navigateur.",
-                  de: 'wenn du eine gesprochene Antwort im Funktrainer oder im Training für die mündliche Prüfung auf /sternik absendest (auf dieser Website oder in der iPhone-App), wird das Audio über unseren Server zur Spracherkennung an OpenAI weitergeleitet. Der Text wird danach anhand der Übungscheckliste geprüft, auf unserem Server oder in deinem Browser.',
-                  it: "quando invii una risposta vocale nel simulatore radio o nell'allenamento per l'esame orale su /sternik (su questo sito o nell'app per iPhone), l'audio viene inoltrato tramite il nostro server a OpenAI per il riconoscimento vocale. Il testo viene poi verificato con la checklist dell'esercizio, sul nostro server o nel tuo browser.",
-                },
-              )}
+                            "В онлайн-тренажере рации на сайте, в старых версиях приложения и в устной практике sternik на сайте запись, которую ты сам запускаешь, передается через наш сервер в OpenAI для распознавания речи. Мы не сохраняем запись или расшифровку в своей базе. Этот онлайн-путь отличается от локального распознавания во встроенном курсе SRC. Для встроенного SRC в версии 1.7.0, сборка 59 и новее, применяется локальное распознавание, описанное выше.",
+                            "In the online radio trainer on the website, in older app versions and in website sternik oral practice, a recording you start is sent through our server to OpenAI for transcription. We do not store the recording or transcript in our database. This online path is separate from local recognition in the bundled SRC course. Bundled SRC in version 1.7.0, build 59 and later, uses the on-device recognition described above.",
+                            "W internetowym trenażerze radiowym, w starszych wersjach aplikacji i w internetowym treningu ustnym na sternika nagranie, które sam uruchomisz, trafia przez nasz serwer do OpenAI w celu rozpoznania mowy. Nie zapisujemy nagrania ani transkrypcji w naszej bazie. Ta ścieżka online jest odrębna od lokalnego rozpoznawania we wbudowanym kursie SRC. Wbudowany SRC w wersji 1.7.0, kompilacja 59 i nowsze, korzysta z opisanego wyżej rozpoznawania na urządzeniu.",
+                            {
+                              es: "En el simulador de radio del sitio web, en versiones anteriores de la app y en la práctica oral de sternik en el sitio web, una grabación que inicias tú pasa por nuestro servidor hasta OpenAI para su transcripción. No guardamos la grabación ni la transcripción en nuestra base de datos. Esta opción en línea es distinta del reconocimiento local del curso SRC integrado. El SRC integrado en la versión 1.7.0, compilación 59 y posteriores, usa el reconocimiento local descrito arriba.",
+                              fr: "Dans le simulateur radio en ligne du site, dans les anciennes versions de l'app et dans la pratique orale sternik du site, un enregistrement que tu lances passe par notre serveur jusqu'à OpenAI pour être transcrit. Nous ne conservons ni l'enregistrement ni la transcription dans notre base de données. Ce fonctionnement en ligne est distinct de la reconnaissance locale du cours SRC intégré. Le SRC intégré dans la version 1.7.0, build 59 et suivants, utilise la reconnaissance sur l'appareil décrite ci-dessus.",
+                              de: "Im Online-Funktrainer auf der Website, in älteren App-Versionen und im mündlichen sternik-Training auf der Website wird eine von dir gestartete Aufnahme über unseren Server zur Transkription an OpenAI gesendet. Wir speichern weder die Aufnahme noch das Transkript in unserer Datenbank. Dieser Online-Weg ist von der lokalen Erkennung im integrierten SRC-Kurs getrennt. Der integrierte SRC-Kurs in Version 1.7.0, Build 59 und neuer, nutzt die oben beschriebene Erkennung auf dem Gerät.",
+                              it: "Nel simulatore radio online del sito, nelle versioni precedenti dell'app e nella pratica orale sternik sul sito, una registrazione che avvii tu passa dal nostro server a OpenAI per la trascrizione. Non conserviamo la registrazione né la trascrizione nel nostro database. Questa modalità online è distinta dal riconoscimento locale del corso SRC integrato. Il SRC integrato nella versione 1.7.0, build 59 e successive, usa il riconoscimento sul dispositivo descritto sopra.",
+                            },
+                          )}
             </li>
             <li>
               <strong>PostHog</strong>: {tp(
@@ -485,6 +494,19 @@ export default function PrivacyPage() {
                 fr: 'Quand la politique change, nous mettons à jour la date en haut de cette page et résumons le changement ici.',
                 de: 'Wenn sich die Richtlinie ändert, aktualisieren wir das Datum oben und fassen die Änderung hier zusammen.',
                 it: "Quando l'informativa cambia, aggiorniamo la data in alto e riassumiamo qui la modifica.",
+              },
+            )}
+          </p>
+          <p className="text-sm mb-2">
+            {tp(
+              "2026-10-24: уточнены локальное распознавание SRC, текстовый запасной вариант, локальные теория, тесты, экзамен и текстовая практика Sternik, а также разбор одиночной гонки с версии 1.7.0, сборка 59. Сетевые функции сайта и старых сборок описаны отдельно.",
+              "2026-10-24: clarified local SRC recognition, typed fallback, local Sternik theory, tests, exams and typed practice, and solo race coaching from version 1.7.0, build 59. Website and older-build network features are described separately.",
+              "2026-10-24: doprecyzowano lokalne rozpoznawanie SRC, wpisywanie tekstu, lokalną teorię, testy, egzaminy i pisemne ćwiczenia na sternika oraz analizę wyścigu solo od wersji 1.7.0, kompilacja 59. Osobno opisano funkcje sieciowe strony i starszych kompilacji.",
+              {
+                es: "2026-10-24: se aclaran el reconocimiento SRC local, la alternativa escrita, la teoría, los tests, los exámenes y la práctica escrita local de Sternik, y el análisis individual desde la versión 1.7.0, compilación 59. Se describen por separado las funciones en línea del sitio y las compilaciones anteriores.",
+                fr: "2026-10-24 : précisions sur la reconnaissance SRC locale, la saisie de texte, la théorie, les tests, les examens et la pratique écrite locale Sternik, ainsi que les conseils de course solo à partir de la version 1.7.0, build 59. Les fonctions en ligne du site et des anciens builds sont décrites séparément.",
+                de: "2026-10-24: Lokale SRC-Erkennung, Texteingabe als Alternative, lokale Sternik-Theorie, Tests, Prüfungen und schriftliche Übungen sowie Solo-Rennauswertung ab Version 1.7.0, Build 59, wurden erläutert. Netzwerkfunktionen der Website und älterer Builds werden gesondert beschrieben.",
+                it: "2026-10-24: chiariti il riconoscimento SRC locale, l’alternativa scritta, la teoria, i test, gli esami e la pratica scritta locale di Sternik, e i consigli per la regata in solitaria dalla versione 1.7.0, build 59. Le funzioni online del sito e delle build precedenti sono descritte separatamente.",
               },
             )}
           </p>

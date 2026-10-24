@@ -390,6 +390,8 @@ var WORLD = { width: 800, height: 1200 };
 var WIND_DIRECTION_BASE = 0;
 var MAX_SPEED = 8;
 var TURN_RATE = 22;
+var RESPONSIVE_TURN_RATE = 40;
+var RESPONSIVE_MIN_AUTHORITY = 0.2;
 var ACCEL = 2.5;
 var MARK_ROUND_DIST = 28;
 var MIN_BOAT_SEPARATION = 22;
@@ -439,10 +441,29 @@ function windAt(t, seed = 0) {
     gust: Math.max(0.75, Math.min(1.25, gust))
   };
 }
+var DEFAULT_RACE_TRIM = { mainSheet: 0.4, jibSheet: 0.2, mainTwist: 0.35, jibTwist: 0.4, reef: 0, jibFurl: 0, jibSide: 1 };
+var unitControl = (value, fallback) => value !== void 0 && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+function raceTrim(input, previous = DEFAULT_RACE_TRIM) {
+  return {
+    mainSheet: unitControl(input?.mainSheet, previous.mainSheet),
+    jibSheet: unitControl(input?.jibSheet, previous.jibSheet),
+    mainTwist: unitControl(input?.mainTwist, previous.mainTwist),
+    jibTwist: unitControl(input?.jibTwist, previous.jibTwist),
+    reef: unitControl(input?.reef, previous.reef),
+    jibFurl: unitControl(input?.jibFurl, previous.jibFurl),
+    jibSide: input?.jibSide === -1 || input?.jibSide === 1 ? input.jibSide : previous.jibSide,
+    ...typeof input?.mainHoisted === "boolean" ? { mainHoisted: input.mainHoisted } : previous.mainHoisted !== void 0 ? { mainHoisted: previous.mainHoisted } : {}
+  };
+}
+function raceTurnRate(speed, steering = "legacy") {
+  const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
+  return steering === "responsive" ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority) : TURN_RATE * authority;
+}
 function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
+  if (!Number.isFinite(dt) || dt <= 0) return;
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const authority = Math.max(0, Math.min(1, boat.speed / 3));
-  boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params2 = getBoatParams();
   const state = {
     ...boat.physics ?? createInitialState({ tws: 12 }),
@@ -451,10 +472,18 @@ function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
     trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
   };
-  boat.trimClock = (boat.trimClock ?? 1) + dt;
-  if (!boat.trim || boat.trimClock >= 0.5) {
-    boat.trim = trimForDrive(state, boat.trim ?? { mainSheet: 0.4, jibSheet: 0.2, mainTwist: 0.35, jibTwist: 0.4, reef: 0, jibFurl: 0, jibSide: 1 });
-    boat.trimClock = 0;
+  if (input.autoTrim === false) {
+    boat.trim = raceTrim(input.trim, boat.trim);
+    boat.trimClock = 0.5;
+  } else {
+    boat.trimClock = (boat.trimClock ?? 1) + dt;
+    if (!boat.trim || boat.trimClock >= 0.5) {
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trimClock = 0;
+    }
+    if (input.trim) {
+      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
+    }
   }
   boat.physics = tick(state, boat.trim, params2, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
@@ -711,6 +740,8 @@ export {
   MARK_ROUND_DIST,
   MAX_SPEED,
   MIN_BOAT_SEPARATION,
+  RESPONSIVE_MIN_AUTHORITY,
+  RESPONSIVE_TURN_RATE,
   TURN_RATE,
   UNITS_PER_KNOT_SECOND,
   WIND_DIRECTION_BASE,
@@ -723,6 +754,8 @@ export {
   makeStandardCourse,
   normalizeAngle,
   raceAutopilotTurn,
+  raceTrim,
+  raceTurnRate,
   raceWaypoint,
   rad2deg,
   resolveCollisions,

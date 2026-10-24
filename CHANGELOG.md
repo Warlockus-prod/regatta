@@ -7,6 +7,46 @@
 
 ## Unreleased
 
+- Delivered 1.7.0 (60) to the internal Self TestFlight group with verified Apple processing, availability and release notes in eight locales. Final Release checks retain progress when updating the public build. Website and public App Store release remain separate.
+
+- Fixed Apple import validation for the Expo file reader with an honest photo-library description in all seven languages. The app does not request access to personal photos. Web CI now runs native navigation adapter tests without installing Expo.
+
+- Added an explicit return from the fullscreen solo menu to the app race hub in seven languages. Candidate60 supersedes uploaded59 before Self distribution.
+
+- Fixed native exam cancellation so Stay keeps the active Sternik session and its exit button remains usable on repeated attempts. Trim advice now describes deployed sails correctly when one sail is furled. Screenshot publishing requires an explicit version and verifies new images before replacing selected old frames.
+
+- Fixed installed Sternik startup on SDK54: the packaged read-only HTML now uses a read-capable UTF-8 fallback when the SDK file reader incorrectly asks for write access. Retry reports a bounded failure stage while preserving course progress.
+
+- Prepared the 1.7.0 store notes for the complete offline release and recorded the source, language, layout and storage verification. Native release and public publication still require their runtime gates.
+
+- Basics and 3D anatomy now load from the installed sailing package with their diagrams and yacht available offline. Completed solo races save immediately without waiting for bots; late replies cannot replace another race result, and custom replays show their own course marks.
+
+- Website deployment now checks all installed course packages and exercises radio layouts and offline practice against the production build before publishing.
+
+- Installed Polish Sternik theory, question practice, mock exams and typed oral-answer checking for offline use, with progress migration and exam exit protection. Fixed SRC restoration so stale WebView data cannot replace saved progress or reappear after clearing data.
+
+- Fixed native 3D top and bottom safe areas and retained cockpit utility tabs when hiding site navigation. Radio controls now stay above the home indicator.
+
+- Adapted the complete SRC course, theory, question presentation, lessons and practice to seven languages. Native speech stays on-device with typed checking when a model is unavailable; web also supports local typed practice. The pinned radio and separate task panel preserve the controls, official English protocol wording and real learner progress.
+
+- Prepared native candidate59 and aligned privacy/network descriptions in seven languages with local SRC speech, unavailable-model typed practice and the separate online sternik voice feature. No upload or submission is implied.
+
+- Shared replay links now open the same 3D yacht with recorded sails, wind, exact timestamps and training penalties. Fixed first-load wheel hints, duplicated desktop controls and course/keyboard settings that did not match their labels.
+
+- Unified the online race cockpit and wheel controls while retaining server-authoritative movement. Solo timing is identical at normal and slower display rates, Simple/Pro records are separate, and linked missions/daily races retain their declared conditions. Mode selection is fixed before starting; training penalties count toward time objectives.
+
+- Unified the 3D trainer and race ocean, shore, yacht lighting and rendering backend, and added the same live Pro trim guidance with a separate hint toggle.
+
+- Replaced the flat native solo entry with the shared local 3D race, durable offline history/replay/coaching, a protected cockpit, Simple/Pro controls and locally bundled Source Sans 3. Preserved old race records and saved control choices. Offline assets and release verification are still pending.
+
+- Reserved trainer control space for settings and views, stabilized keyboard focus, and added optional water-route guidance with smoother shore rendering and correct sail deployment visuals.
+
+- Added the shared model for manual Pro sheets, sail deployment, responsive solo steering, route advice and optional educational race rules with declared training penalties.
+
+- Recorded the complete 2026-10-24 audit, selected ocean cockpit direction and ordered app/site completion harness. Implementation is in progress; this entry does not mean deployment.
+
+- Added local device speech and on-device recognition for offline SRC practice, with a typed-answer fallback when a voice/model is absent. Race history now updates mounted screens after durable saves and includes declared training penalties. Native binary verification is still required.
+
 - Тренажер рации SRC теперь на всех 7 языках сайта (решение владельца: процедуры радиосвязи - международный стандарт): сценарии, подсказки, «почему», ошибки, разбор, объяснения режима Rozbiór, пункты голосовой проверки и все кнопки. Радиофразы (MAYDAY, THIS IS, OVER) остаются английскими, как в эфире. Каждый прогон теперь проходит в случайной акватории: Гданьский залив, Солент (Англия), бухта Пальма (Майорка) или Бодрум (Турция), со своими береговой станцией, мариной, VTS, рабочими каналами и позициями; станции и каналы только проверенные (у Бодрума нет проверенного MMSI береговой станции, поэтому там только вызовы марины и сценарии без береговой станции). Голосовая проверка понимает позиции к западу от Гринвича и ждет станцию своей акватории. Теория, банк 324 вопросов UKE, шпаргалка, уроки Obsługa и живой разговор пока на польском (с русской помощью). В приложении тренажер идет на языке приложения, офлайн-курс пересобран и попадет к пользователям со следующей сборкой.
 - Тренажер рации SRC: рация больше не уезжает при прокрутке задания. Сценарий, уроки «Obsługa» и живой разговор открываются на рабочем экране: рация закреплена сверху (на компьютере слева), а задание, подсказка, голосовой шаг, ситуация и журнал прокручиваются под ней; новый шаг сразу виден под рацией, последнее событие журнала (ошибка или «✓») показано рядом с заданием. На телефоне рация стала компактнее (те же кнопки не меньше 44 px, DISTRESS и PTT рядом), рабочий экран закрывает меню сайта, а в приложении на это время прячется заголовок «SRC Radio». Вкладок у раздела рации теперь четыре: Kurs, Teoria, Trening, Egzamin; меню «Więcej» (на телефоне оно открывалось за краем экрана) убрано. «Trening» стал одним списком: первые шаги, 19 сценариев по группам с номерами заданий UKE, голосовые упражнения, ссылки на 26 заданий и шпаргалку; режим Nauka / Egzamin выбирается один раз над списком, сценарий запускается одним нажатием. Офлайн-курс в приложении (`mobile/assets/radio-offline.html`) пересобран и попадет к пользователям со следующей сборкой; в нем же исправлены польские надписи без диакритики («Kurs zapisany na urządzeniu», «Głos online» и другие). Решение владельца: курс радио можно переводить на все 7 языков, следующим шагом тренажер со случайными акваториями по миру.
 - Новая графика гонки, вертикальный срез (ADR-0008), пока только по ссылке `/game?view=3d&scene=next` и в 3D-гонке TestFlight-сборки 57: WebGPU (на iOS 26+ и в новых браузерах) с откатом на WebGL2, вода показывает ветер полосами, мелководье и пену у пляжа, белые следы за всеми лодками, тени под корпусами, сосны на берегу, камера сверху по умолчанию (наветренная сторона вверху, как на карте). С `?fps=1` видно бэкенд и частоту кадров. Обычная гонка на сайте не изменилась.

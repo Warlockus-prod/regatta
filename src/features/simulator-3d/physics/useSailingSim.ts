@@ -4,11 +4,9 @@ import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 
 import {
   getBoatParams,
   twaFromCompass,
-  NO_GO_HALF_DEG,
   type BoatState as EngineState,
-  type TickDiagnostics,
 } from '@/lib/sailing-physics';
-import { clamp, type CoachKey, type Controls, type WindState } from './sailModel';
+import { type CoachKey, type Controls, type WindState } from './sailModel';
 import { createTargetSolver } from './targets';
 import type { YachtState } from '../types';
 import type { SailStatus } from '../sails/response';
@@ -17,6 +15,10 @@ import { createSailingSession, stepSailingSession } from '../../sailing-lab/runt
 import { yachtFromSession } from "../../sailing-lab/runtime/presentation";
 import { createFixedClock } from '../../sailing-lab/runtime/fixed-clock';
 import { engineTrimFromEase } from '../../sailing-lab/runtime/trim-controls';
+import { coachFrom, trimQualityFrom } from '../../sailing-lab/runtime/trim-coach';
+
+// Compatibility entry point for existing consumers and regression tests.
+export { coachFrom } from '../../sailing-lab/runtime/trim-coach';
 
 // ============================================================================
 // useSailingSim - drives the 3D boat from the GOLDEN VPP engine.
@@ -105,40 +107,6 @@ const INITIAL_TELEMETRY: SimTelemetry = {
   jibAngleDeg: 0,
   pos: { x: 0, z: 0 },
 };
-
-/** Coach hint from engine diagnostics (same keys/labels as before).
- * Note: deep downwind the sails run in drag mode - the engine's "stalled"
- * flag is physically true but is NOT a trim error there, so stall coaching
- * only applies while flow should be attached (up to ~135 deg). */
-export function coachFrom(
-  twaAbs: number, speedKn: number, diag: TickDiagnostics, quality: number,
-  incidence: { main: number; jib: number } = { main: 90, jib: 90 },
-): CoachKey {
-  if (twaAbs < NO_GO_HALF_DEG) return speedKn < 1.5 ? 'inIrons' : 'pinching';
-  if (twaAbs < NO_GO_HALF_DEG + 5) return 'pinching';
-  if (twaAbs >= 150) return 'run';
-  const attached = twaAbs <= 135;
-  // Every trim hint names the sheet: the learner must know which line to touch.
-  const mainLuff = attached && (incidence.main < 1 || diag.mainAoA < 7);
-  const jibLuff = attached && (incidence.jib < 1 || diag.jibAoA < 7);
-  if (incidence.main < 1 || incidence.jib < 1) return mainLuff && jibLuff ? 'luffBoth' : mainLuff ? 'luffMain' : 'luffJib';
-  if (attached && (diag.mainStalled || diag.jibStalled)) {
-    return diag.mainStalled && diag.jibStalled ? 'stallBoth' : diag.mainStalled ? 'stallMain' : 'stallJib';
-  }
-  if (mainLuff || jibLuff) return mainLuff && jibLuff ? 'luffBoth' : mainLuff ? 'luffMain' : 'luffJib';
-  if (quality >= 0.68) return 'good';
-  return 'reachOn';
-}
-
-/** 0..1 trim quality from angles of attack + slot (optimum AoA ~ 12-18).
- * Deep downwind (drag mode) attached-flow scoring does not apply: full,
- * well-eased sails there are GOOD trim even though the engine flags stall. */
-function trimQualityFrom(twaAbs: number, diag: TickDiagnostics): number {
-  if (twaAbs > 135) return clamp((0.6 * Math.sin(diag.mainAoA * Math.PI / 180) ** 2 + 0.4 * Math.sin(diag.jibAoA * Math.PI / 180) ** 2), 0, 1);
-  const q = (aoa: number, stalled: boolean) => (stalled ? 0.15 : clamp(1 - Math.abs(aoa - 16) / 14, 0, 1));
-  const base = 0.6 * q(diag.mainAoA, diag.mainStalled) + 0.4 * q(diag.jibAoA, diag.jibStalled);
-  return clamp(base * (0.7 + 0.3 * diag.slotHealth), 0, 1);
-}
 
 export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: boolean) {
   const [controls, setControls] = useState<Controls>({ rudder: 0, mainSheet: 0.6, jibSheet: 0.8, reef: 0 });

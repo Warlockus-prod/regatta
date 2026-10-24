@@ -222,7 +222,8 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/simulator2/page.tsx` - Лодка 3D (V2), обертка над `src/features/simulator-3d`.
 - `src/app/simulator-v3/page.tsx` - Тренажер трима (V3), обертка над `src/features/simulator-v3`.
 - `src/app/game/page.tsx` - серверная обертка одиночной гонки.
-- `src/app/game/GameClient.tsx` - клиент гонки: брифинг в одну карточку, старт, знаки, боты, HUD (`src/features/race-hud`) и события гонки, коуч на финише; вид 2D (canvas) или 3D (`Race3DView`, canvas оставляет только мини-карту).
+- `src/app/game/GameClient.tsx` - единая 3D-гонка: брифинг, старт, знаки, боты, Simple/Pro, локальный финиш и коуч. Сцена и штурвалы общие с тренажером. Нативное меню содержит явную ссылку возврата к выбору гонок через существующий проверенный bridge.
+- `src/app/game/GameClient.navigation.test.tsx` - реальное меню на семи языках, отсутствие native-only ссылки на сайте и переход через offline Link bridge в нативный раздел гонок.
 - `src/app/game/GameMenu.tsx` - меню гонки: три режима (первая гонка, свободная, миссия), вид 2D/3D, акватория, кнопка старта.
 - `src/app/game/config.ts` - уровни сложности (число соперников, `aiSpeedMul` по ADR-0007, подписи на 7 языках) и стили лодки, общие для меню и гонки.
 - `src/app/multiplayer/page.tsx` - серверная обертка мультиплеера.
@@ -272,11 +273,32 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/api/radio-tts/route.ts` - синтез радиофраз (fallback, когда нет статического mp3).
 - `src/app/api/radio-transcribe/route.ts` - распознавание речи для голосовых упражнений.
 - `src/app/api/radio-voice/route.ts` - прием записи, транскрипция и оценка передачи; поле `venue` выбирает акваторию (позиции, марина, VTS, береговая станция в подсказке распознаванию), без него Гданьский залив.
-- `src/app/api/radio-voice/voiceGrading.ts` - чистая оценка радиопередачи по ключевым элементам; станции акватории (марина и VTS дважды, береговая станция) и позиции N/S, E/W, неверное полушарие не проходит.
+- `src/app/api/radio-voice/voiceGrading.ts` - compatibility export of the shared pure local/API checker in `src/app/radio/voiceGrading.ts`; handler and grading contracts unchanged.
 - `src/app/api/radio-voice/voiceGrading.test.ts` - тесты грейдера: обратный порядок слов не должен проходить.
 - `src/app/api/ai-routes.limits.test.ts` - контракт шести ИИ-роутов (coach, ai-chat, sternik-chat, radio-tts, radio-voice, radio-transcribe): ротация cookie на одном IP пропускает ровно лимит x3, отказ не вызывает OpenAI, часовой отказ не тратит дневной бюджет, исчерпанный дневной бюджет дает дневной ответ.
 
 ### 4.5 Радиокурс SRC `src/app/radio`
+
+Radio pages, theory, lessons, all question presentation and practice use seven public catalogs in `public/radio-locales/`. Native embeds the same catalogs. Official English protocol utterances and the exact English language-exercise answer options remain unchanged. Original Polish UKE wording is available on request. See `docs/radio-i18n.md`.
+
+- `src/app/radio/LocalTranscriptEntry.tsx` - English transmission entry: native on-device PTT and separately labelled typed checking, with model-unavailable fallback.
+- `src/app/radio/OriginalPolish.tsx` - Optional exact Polish UKE wording disclosure, outside localization reads.
+- `src/app/radio/audio/localRecognitionSession.test.ts` - ASR regressions: segmented final results, accumulated end, PTT release and stale/cancelled sessions.
+- `src/app/radio/audio/localRecognitionSession.ts` - Pure local ASR session transitions; submit only after end plus release.
+- `src/app/radio/audio/localSpeech.test.ts` - Offline speech regressions: no server requests, English voice, gain, completion and cancellation.
+- `src/app/radio/audio/localSpeech.ts` - Native/local English synthesis, speech token type, offline detection and cancellation.
+- `src/app/radio/audio/useLocalRecognition.ts` - Radio WebView on-device ASR bridge lifecycle and capability probe, permission only on user start.
+- `src/app/radio/localization/build-catalog.mjs` - Local source enumeration, stable hashed aliases, reviewed seed preservation, pruning and check/stats modes; no API calls.
+- `src/app/radio/localization/context.tsx` - Radio-only seven-language provider and explicit rt/tp/tl reads; web JSON loading and native bundled catalogs.
+- `src/app/radio/localization/englishExercises.ts` - Protected English explanation examples and reviewed seven-language nautical question meanings.
+- `src/app/radio/localization/examText.ts` - Question presentation rules: exact English choices, preserved cloze stems and protected explanations.
+- `src/app/radio/localization/protocolTerms.ts` - Protect/restore spoken English position tokens and canonicalize old bilingual source labels.
+- `src/app/radio/localization/server.ts` - Server-side selected radio catalog and localized page metadata.
+- `src/app/radio/localization/sources.json` - Generated enumeration of 3726 radio resources and reviewed language seeds, used by coverage checks.
+- `src/app/radio/localization/text.ts` - Primitive text lookup, numeric template interpolation and cached public catalog/alias loading.
+- `src/app/radio/prefs.tsx` - SRC preferences separate from sternik: selected app language, default Russian help, model and realism controls.
+- `src/app/radio/symulator/audio/RadioAudioEngine.test.ts` - Station channel routing regression: wrong-channel SQL-open silence, retuning and disposal.
+- `src/app/radio/voiceGrading.ts` - Pure shared scenario transmission checker used by API, web typed practice and offline voice/typed practice.
 
 - `src/app/radio/page.tsx` - вход в курс: разделы, прогресс, слабые места.
 - `src/app/radio/layout.tsx` - layout курса, скрывает лишний хром в embed-режиме.
@@ -317,7 +339,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/radio/symulator/scenarios.ts` - сценарии тренировки: что нажать и что сказать; `needs` (береговая станция, марина, VTS) выбирает подходящие акватории, тексты несут подстановки `{marina}`, `{marinaCh}`, `{marinaNote}`, `{vts}`, `{vtsCh}`, `{coast}`, `{area}`, проверки шагов получают акваторию.
 - `src/app/radio/symulator/venues.ts` - акватории прогона (решение владельца 2026-10-24): Гданьский залив, Солент, бухта Пальма, Бодрум; только проверенные станции, MMSI и каналы, источники в шапке файла; Бодрум без береговой станции. `placeRadio`, `fillPlace`, `venuesFor`.
 - `src/app/radio/symulator/venues.test.ts` - эталонная передача каждого сценария проходит грейдер в каждой своей акватории, чужая марина и неверное полушарие не проходят, данные и подстановки.
-- `src/app/radio/symulator/trainerText.ts` - тренажер на 7 языках: тексты PL / RU в данных, EN / ES / FR / DE / IT в словарях по польскому исходнику, интерфейс через `useTrainerI18n` (tp плюс ES / FR / DE / IT по английской строке), подписи грейдера `checkLabel`.
+- `src/app/radio/symulator/trainerText.ts` - compatibility text/format helpers over the public seven-language catalogs; no static catalog payload in web JavaScript chunks.
 - `src/app/radio/symulator/trainerText.test.ts` - каждый текст сценариев, Rozbiór и грейдера и каждая строка интерфейса переведены на все языки, подстановки, клавиши и радиофразы целы, нет запрещенной типографики.
 - `src/app/radio/symulator/i18n/en.json`, `src/app/radio/symulator/i18n/es.json`, `src/app/radio/symulator/i18n/fr.json`, `src/app/radio/symulator/i18n/de.json`, `src/app/radio/symulator/i18n/it.json` - переводы текстов тренажера (сценарии, Rozbiór, пункты грейдера), ключ - польский исходник.
 - `src/app/radio/symulator/i18n/ui.es.json`, `src/app/radio/symulator/i18n/ui.fr.json`, `src/app/radio/symulator/i18n/ui.de.json`, `src/app/radio/symulator/i18n/ui.it.json` - строки интерфейса тренажера на ES / FR / DE / IT, ключ - английская строка.
@@ -771,7 +793,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `next.config.ts` - конфиг Next 16: standalone-сборка, заголовки, ремаппинг.
 - `eslint.config.mjs` - правила ESLint (в CI пока advisory: 11 ошибок в общих веб-файлах на 2026-10-19).
 - `postcss.config.mjs` - подключение Tailwind v4 через PostCSS.
-- `vitest.config.ts` - конфиг unit-тестов.
+- `vitest.config.ts` - web unit tests use the complete root tsconfig as a string, including pure native adapters without requiring Expo in root-only CI.
 - `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью.
 - `Dockerfile` - образ веб-приложения (node alpine по digest, standalone); код принадлежит root, рантайм-пользователь 1001 пишет только в `/data` и `/app/.next/cache`.
 - `docker-compose.yml` - только локальная разработка (проект `regatta-local`): сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck. Прод его не использует (`ops/deploy/compose.yml`).
@@ -950,3 +972,120 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 | `docs/design/simulator2/ROADMAP.md` | план гоночной сборки V2 | отменен, актуален только бэклог 3D-визуала |
 | `ARCHITECTURE.md` (до 2026-10-24) | `src/app/radio/runtimeSearch.ts` - поиск по материалам курса | функция отдает строку запроса страницы (на сайте `location.search`, в офлайн-бандле адрес встроенного роутера); поиска по курсу в ней нет |
 | `AGENTS.md` (до 2026-10-24) | курс SRC только на польском, не адаптируется | решение владельца 2026-10-24: курс можно переводить на все 7 языков; тренажер рации уже на 7 языках со случайными акваториями, теория, уроки, разговор и банк 324 вопросов пока PL / RU |
+
+
+## 2026-10-24 completion map
+
+`docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `docs/audits/2026-10-24/audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
+
+- `src/lib/race-guidance.ts` computes route, tack and turn advice without mutating a race.
+- `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
+- `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior.
+
+- `src/features/trainer-controls/ReservedPanel.tsx` portals auxiliary views/settings into the existing controls area. `TrainerWorkspace` preserves the scene rectangle; inline callbacks do not restart focus effects.
+- `src/features/race-scene/guidance.ts` builds a pure water-route ribbon and direction markers; RaceScene displays it only when guidance is supplied. The old target-circle and no-go overlays are removed from the race scene.
+
+- `mobile/app/game/index.tsx` is the primary locally bundled shared 3D race. `race-3d` redirects there; the catalog has one solo entry. `mobile/src/navigation/race-entry.ts` validates supported local routes.
+- `src/lib/race-native.ts` validates the versioned world-coordinate race/Pro-rig snapshot before native persistence. `mobile/src/persistence/race-native.ts` stores it additively, acknowledges only successful durable writes, and keeps legacy history readable. `mobile/src/persistence/race-web-storage.ts` whitelists device preferences; new replay and coach use the same local course.
+- `src/app/game/RaceCockpit.tsx` and its CSS reserve the 3D scene and move controls/settings to a responsive dock. `src/app/game/race-prefs.ts` stores Simple/Pro and assistance preferences. `src/app/game/RaceReplay.tsx` replays actual local recordings in the shared 3D scene. `src/app/game/race-copy.ts` holds seven-language race UI copy.
+- `src/lib/daily-challenge.ts` generates identical date-based settings on server and fresh offline installs. `src/lib/db.ts` consumes it.
+- `public/fonts/source-sans-3/` vendors pinned Adobe Source Sans 3 with OFL/provenance. Native assets are bundled in `mobile/assets/fonts/`; `mobile/src/design-system/fonts.tsx` and common Text/Button select weights. Offline builders embed local font bytes.
+
+- `src/app/game/RaceCockpit.module.css` defines the protected ocean cockpit grid, responsive scene/dock split, controls and utility tabs.
+- `src/features/simulator-3d/useSailCoachLabels.ts` supplies the same seven-language trim coaching phrases to simulator and race.
+- `src/features/race-scene/guidance.test.ts` checks route mesh geometry, bounds and turn colors.
+- `src/lib/daily-challenge.test.ts` fixes date validation and deterministic offline/server daily vectors.
+- `src/lib/race-guidance.test.ts` verifies route/tack advice plus manual/automatic trim, sail deployment and opt-in steering behavior.
+- `src/lib/race-native.test.ts` tests bounded local snapshots, Pro rig state, injected route state and native message validation.
+- `src/lib/race-rules.test.ts` covers conservative right of way, collision/mark time penalties, early starts and rule toggles.
+
+- `src/features/race-scene/SailingEnvironment.tsx` is the common ocean, sky, shore, lighting, local reflections and hull wake/shadow used by RaceScene and RegattaScene. No external HDR is loaded.
+- `src/features/race-scene/renderer.ts` creates the shared WebGPU renderer with WebGL2 fallback and the same tone mapping. The old optional trainer Bloom/Vignette stack is superseded by common light/tone settings.
+- `src/features/race-scene/environment-state.ts` adapts trainer and fleet world travel/wind to common environment uniforms; `src/features/race-scene/environment-state.test.ts` verifies unit, origin and wind contracts.
+- `src/features/sailing-lab/runtime/trim-coach.ts` provides pure shared trim advice and quality; `src/features/sailing-lab/runtime/trim-coach.test.ts` checks active-sail masks and downwind behavior.
+- `src/lib/race-trim-coach.ts` reads race force diagnostics without stepping time and returns shared trainer coaching keys; `src/lib/race-trim-coach.test.ts` checks per-sail luff/stall, deployment, downwind and immutable state.
+
+- `mobile/src/radio/local-speech.ts` validates the local SRC speech bridge, selects device voices, requests on-device recognition only, bounds sessions and cancels stale activity results. `mobile/src/radio/useLocalRadioSpeech.ts` binds its lifetime to the local WebView, focus and app state. `mobile/src/radio/README.md` specifies the contract and model-unavailable fallback.
+- `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds and patch idempotence.
+
+- `src/app/multiplayer/MultiplayerCockpit.tsx` and `src/app/multiplayer/MultiplayerCockpit.module.css` reserve server-driven race scenery and common helm controls. Online sailing remains automatically trimmed because the authoritative protocol accepts helm input only.
+- `src/app/multiplayer/presentation.ts` adapts server snapshots to shared scene poses without client-side stepping; `src/app/multiplayer/presentation.test.ts` protects identity, coordinates, input and render immutability.
+- `src/lib/best-times.test.ts` separates manual Pro records from existing auto-trim records while keeping old saved buckets readable.
+- `src/lib/race-clock.test.ts` verifies identical solo integration at 10/15/30/60/120 FPS and pause/background handling through the shared fixed clock.
+- `src/lib/race-setup.ts` fixes daily/mission query conditions before generic options; `src/lib/race-setup.test.ts` protects mission wind and identical bare/parameterized daily links.
+- `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
+
+- `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
+- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer, exact end-time scrubbing, camera and reserved playback controls.
+- A solo race captures its Simple/Pro classification at countdown start, independent of later preference changes in another tab. Sheet keyboard shortcuts are owned by the race across utility tabs; absolute course sliders set a target without accumulating render-delay errors.
+- Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.
+
+- Privacy/network copy distinguishes offline SRC device speech in build59 and later from earlier app builds and online website/sternik speech. AudioData remains declared for those online features; public/native/store descriptions share this boundary.
+
+### Local course and native storage completion, build 59
+
+The original Polish Sternik pages are compiled into one installed package. Its local host reads asset bytes through expo-file-system, keeps the former website base origin for one-time WebKit progress migration, and guards active exams with an explicit React Native exit button, disabled swipe-back and usePreventRemove for external navigation. Cancel asks before beginning a native pop, so repeated Stay/Exit remains usable. Native snapshots become authoritative after a durable acknowledgment. Both SRC and Sternik clear their stale WebKit copies after Clear all data, retain first-run legacy migration and expose read, render and save retries.
+
+- `mobile/src/course/LocalCourseWebView.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/course/OfflineSternikCourse.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/course/local-course-asset.ts` - Local asset loading, routing or durable storage.
+- `mobile/src/course/OfflineRadioCourse.tsx` - Local asset loading, routing or durable storage.
+- `mobile/src/persistence/sternik-storage.ts` - Polish local course package and host.
+- `mobile/__tests__/local-course-asset.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/local-course-host.test.tsx` - Native course and persistence regression.
+- `mobile/__tests__/sternik-storage.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/app-config.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/offline-radio-asset.test.ts` - Native course and persistence regression.
+- `mobile/__tests__/webview-analytics-consent.test.tsx` - Native course and persistence regression.
+- `mobile/src/persistence/radio-storage.ts` - Local asset loading, routing or durable storage.
+- `mobile/__tests__/radio-storage.test.ts` - Native course and persistence regression.
+- `mobile/scripts/build-sternik-offline.mjs` - Polish local course package and host.
+- `mobile/assets/sternik-offline.html` - Polish local course package and host.
+- `mobile/assets/sternik-offline.manifest.json` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/funnel.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/offline.css` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/model.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/bridge.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/OfflineOralTrainer.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/oral.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/build.test.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/model.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/README.md` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/i18n.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/router.tsx` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/bridge.ts` - Polish local course package and host.
+- `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
+- `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
+
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, radio workspace and offline browser suites against the loopback production build before publishing images. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
+
+Completion and installed sailing package:
+
+- `src/lib/race-completion.ts` - immediately resolves the bounded existing fleet finish window with the same 30 Hz engine; completed snapshots wait in an immutable queue for their matching native durable acknowledgment.
+- `src/lib/race-completion.test.ts` - actual bot finish, penalty ranking, DNF cutoff, ordinary-step equivalence and isolated pending saves.
+- `src/features/race-3d/Race3DView.test.tsx` - shared World course geometry, replaced course refs and stable-frame rendering.
+- `mobile/__tests__/race-native-history.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/app/simulator-v1/index.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/app/anatomy/index.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/assets/sailing-offline.html` - Installed shared sailing package routing, language or asset regression.
+- `mobile/assets/sailing-offline.manifest.json` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/i18n.test.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/build.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/README.md` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/i18n.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/entry.tsx` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/embed.test.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/embed.ts` - Installed shared sailing package routing, language or asset regression.
+- `mobile/scripts/offline-sailing/next.tsx` - Installed shared sailing package routing, language or asset regression.
+
+The installed sailing package includes the unchanged original Basics and Anatomy pages, their eight posters and the same yacht as Trainer/3D Boat/solo. Native routes retain their simplified recovery destinations. Saved replay geometry now drives the actual shared buoys and lines, including asynchronously replaced course refs. Race results are finalized at the player finish; delayed share, leaderboard or coach responses cannot update a later race.
+
+Installed course asset reading: SDK54 expo-file-system 19.0.23 File.text() checks write access even for a read; application bundle resources are read-only. `mobile/src/course/local-course-asset.ts` retries the same bundled URI with legacy readAsStringAsync UTF-8 (read permission), never downloads it. Native diagnostics record only the bounded stage/code/scheme. `mobile/src/course/LocalCourseWebView.tsx` separates asset, storage, WebView, runtime and timeout failures without discarding stored progress.
+
+- `mobile/scripts/asc-upload-screenshots.test.mjs` - nine offline Node regressions covering explicit selection, dry-run, capacity, upload/processing failure, safe deletion order, concurrency and idempotent retry. Included by mobile test:release-tools/check.
+- `mobile/scripts/asc-upload-screenshots.mjs` now requires an explicit editable version and local screenshot manifest; dry-run is default. Only selected existing sets change, all new files must be COMPLETE with verified checksums before any old selected ID is removed. `mobile/asc-metadata/SCREENSHOTS.md` distinguishes historical source frames from current release captures.
+- Sternik native exam navigation uses React Navigation usePreventRemove, which prevents UIKit/native-stack dismissal as well as JS navigation; plain beforeRemove prevention is unsupported there. Stay retains the same exam and Exit dispatches the blocked action once.
+
+Native Apple purpose descriptions: `mobile/app.json` and all seven JSON files in `mobile/locales/` include microphone and on-device SRC transcription purposes plus NSPhotoLibraryUsageDescription. The latter covers unused Photos symbols linked by ExpoFileSystem legacy packaged-file support; Regatta does not request personal photo access. Verify base Info.plist and all seven InfoPlist.strings in the archive and exported IPA, because successful upload does not establish Apple import success.
+
+TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` records exact source8e39721, IPA signing/hash, final Simulator checks, Apple VALID processing and verified Self distribution, while keeping website/App Review and physical-device limits explicit. Machine-readable selected evidence: `docs/audits/2026-10-24/verification/native60-delivery.json`.
