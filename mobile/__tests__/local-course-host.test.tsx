@@ -75,6 +75,7 @@ it("offers an offline retry after a ready page reports a runtime error without l
   send(web, { type: "sternik-offline-ready" });
   send(web, { type: "sternik-offline-error" });
   expect(view.getByText("Ponów")).toBeTruthy();
+  expect(view.getByText("Kod: course-page-runtime")).toBeTruthy();
   expect(await readSternikEntries()).toEqual(entries);
   fireEvent.press(view.getByText("Ponów"));
   await waitFor(() => expect(view.getByTestId("local-course-webview")).not.toBe(web));
@@ -102,9 +103,25 @@ it("keeps unreadable native progress untouched and offers an offline retry", asy
   await AsyncStorage.setItem(STERNIK_STORAGE_KEY, "unreadable");
   const view = render(<LocalCourseWebView {...props} />);
   await waitFor(() => view.getByText("Ponów"));
+  expect(view.getByText("Kod: course-storage-read")).toBeTruthy();
   expect(view.queryByTestId("local-course-webview")).toBeNull();
   expect(await AsyncStorage.getItem(STERNIK_STORAGE_KEY)).toBe("unreadable");
   await AsyncStorage.setItem(STERNIK_STORAGE_KEY, "{}");
   fireEvent.press(view.getByText("Ponów"));
   await waitFor(() => view.getByTestId("local-course-webview"));
+});
+
+it("distinguishes packaged-file and WK load errors without logging content or rewriting progress", async () => {
+  const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+  (loadLocalCourseHtml as jest.Mock).mockRejectedValueOnce(new Error("course-asset-read"));
+  const view = render(<LocalCourseWebView {...props} />);
+  await waitFor(() => view.getByText("Kod: course-asset-read"));
+  expect(view.queryByTestId("local-course-webview")).toBeNull();
+  fireEvent.press(view.getByText("Ponów"));
+  const web = await waitFor(() => view.getByTestId("local-course-webview"));
+  act(() => fireEvent(web, "error", { nativeEvent: { code: -999, description: "private content", url: "https://private.test/answer" } }));
+  expect(view.getByText("Kod: course-webview-load:-999")).toBeTruthy();
+  expect(JSON.stringify(warn.mock.calls)).not.toMatch(/private/);
+  expect(await AsyncStorage.getItem(STERNIK_STORAGE_KEY)).toBeNull();
+  warn.mockRestore();
 });

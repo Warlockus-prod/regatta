@@ -1078,3 +1078,5 @@ Completion and installed sailing package:
 - `mobile/scripts/offline-sailing/next.tsx` - Installed shared sailing package routing, language or asset regression.
 
 The installed sailing package includes the unchanged original Basics and Anatomy pages, their eight posters and the same yacht as Trainer/3D Boat/solo. Native routes retain their simplified recovery destinations. Saved replay geometry now drives the actual shared buoys and lines, including asynchronously replaced course refs. Race results are finalized at the player finish; delayed share, leaderboard or coach responses cannot update a later race.
+
+Installed course asset reading: SDK54 expo-file-system 19.0.23 File.text() checks write access even for a read; application bundle resources are read-only. `mobile/src/course/local-course-asset.ts` retries the same bundled URI with legacy readAsStringAsync UTF-8 (read permission), never downloads it. Native diagnostics record only the bounded stage/code/scheme. `mobile/src/course/LocalCourseWebView.tsx` separates asset, storage, WebView, runtime and timeout failures without discarding stored progress.

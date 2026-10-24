@@ -41,6 +41,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   const [loaded, setLoaded] = useState<{ html: string; entries: T | null } | null>(null);
   const [loading, setLoading] = useState(true);
   const [failed, setFailed] = useState(false);
+  const [failureCode, setFailureCode] = useState<string | null>(null);
   const [saveFailed, setSaveFailed] = useState(false);
   const [revision, setRevision] = useState(0);
   const [examDirty, setExamDirty] = useState(false);
@@ -52,17 +53,24 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
   const initialNavigation = useRef<string | null>(null);
   const navigationKey = `${revision}-${analyticsOn ? "a" : "na"}`;
   const hasLoaded = loaded !== null;
+  const fail = (code: string, nativeCode?: number) => {
+    const safeCode = /^[a-z-]{1,48}$/.test(code) ? code : "course-load";
+    const diagnostic = Number.isInteger(nativeCode) ? `${safeCode}:${nativeCode}` : safeCode;
+    // No URI, raw exception, storage value, answers or page content in logs.
+    console.warn("[local-course] failure", diagnostic);
+    setFailureCode(diagnostic); setFailed(true); setLoading(false);
+  };
 
   useEffect(() => {
     let active = true;
-    Promise.all([loadLocalCourseHtml(asset), storage.read()]).then(([html, entries]) => {
+    Promise.all([loadLocalCourseHtml(asset), storage.read().catch(() => { throw new Error("course-storage-read"); })]).then(([html, entries]) => {
       if (active) { setLoaded({ html, entries }); setLoading(true); setFailed(false); }
-    }).catch(() => { if (active) { setFailed(true); setLoading(false); } });
+    }).catch(error => { if (active) fail(error instanceof Error ? error.message : "course-load"); });
     return () => { active = false; };
   }, [asset, revision, storage]);
   useEffect(() => {
     if (!loading || !loaded || !consentReady) return undefined;
-    const timer = setTimeout(() => { setFailed(true); setLoading(false); }, 15000);
+    const timer = setTimeout(() => fail("course-page-timeout"), 15000);
     return () => clearTimeout(timer);
   }, [loading, loaded, consentReady, revision]);
   useEffect(() => {
@@ -108,7 +116,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     let data: Record<string, unknown>;
     try { const parsed: unknown = JSON.parse(raw); if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return; data = parsed as Record<string, unknown>; } catch { return; }
     if (data.type === readyMessage) { initialNavigation.current = navigationKey; setLoading(false); setFailed(false); return; }
-    if (data.type === errorMessage) { setLoading(false); setFailed(true); return; }
+    if (data.type === errorMessage) { fail("course-page-runtime"); return; }
     if (data.type === progressMessage) {
       const entries = storage.parse(data.entries);
       if (entries) persist(entries);
@@ -123,7 +131,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     }
   };
   const retry = () => {
-    setLoaded(null); setFailed(false); setLoading(true);
+    setLoaded(null); setFailed(false); setFailureCode(null); setLoading(true);
     setRevision(value => value + 1);
   };
 
@@ -150,11 +158,12 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
         if (request.navigationType === "click" && /^(?:https?:|mailto:)/.test(url)) void Linking.openURL(url).catch(() => undefined);
         return false;
       }}
-      onError={() => { setLoading(false); setFailed(true); }}
-      onContentProcessDidTerminate={() => { setLoading(false); setFailed(true); }}
+      onLoadStart={() => console.info("[local-course] webview-load-start")}
+      onError={event => fail("course-webview-load", event.nativeEvent.code)}
+      onContentProcessDidTerminate={() => fail("course-webview-process")}
     />}
     {loading && !failed && <View style={styles.overlay} pointerEvents="none"><ActivityIndicator color={colors.accentCyan} /><Text style={styles.text}>Otwieram kurs zapisany na urządzeniu...</Text></View>}
-    {failed && <View style={styles.overlay}><Text style={styles.text}>Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie wymaga internetu. Zachowane dane nie zostały usunięte.</Text><Pressable accessibilityRole="button" onPress={retry} style={styles.button}><Text style={styles.buttonText}>Ponów</Text></Pressable></View>}
+    {failed && <View style={styles.overlay}><Text style={styles.text}>Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie wymaga internetu. Zachowane dane nie zostały usunięte.</Text>{failureCode && <Text style={styles.text}>Kod: {failureCode}</Text>}<Pressable accessibilityRole="button" onPress={retry} style={styles.button}><Text style={styles.buttonText}>Ponów</Text></Pressable></View>}
   </Screen>;
 }
 

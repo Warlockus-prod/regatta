@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Fixed installed Sternik startup on SDK54: the packaged read-only HTML now uses a read-capable UTF-8 fallback when the SDK file reader incorrectly asks for write access. Retry reports a bounded failure stage while preserving course progress.
+
 - Prepared the 1.7.0 store notes for the complete offline release and recorded the source, language, layout and storage verification. Native release and public publication still require their runtime gates.
 
 - Basics and 3D anatomy now load from the installed sailing package with their diagrams and yacht available offline. Completed solo races save immediately without waiting for bots; late replies cannot replace another race result, and custom replays show their own course marks.
