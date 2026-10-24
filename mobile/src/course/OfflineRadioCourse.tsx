@@ -12,6 +12,7 @@ import {
 } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen } from "../design-system/components";
+import { hideMainNavigation } from "../navigation/visibility";
 import { colors } from "../design-system/tokens";
 import { useI18n } from "../i18n/context";
 import { AnalyticsEvent } from "../analytics/events";
@@ -129,6 +130,8 @@ export function OfflineRadioCourse() {
   // it) the stack header gives its 44pt to the task panel; the page's own bar
   // has the exit, and the swipe back still leaves the course.
   const [workspaceOpen, setWorkspaceOpen] = useState(false);
+  // and the tab bar goes too, like in the trainers and the race
+  useEffect(() => (workspaceOpen ? hideMainNavigation() : undefined), [workspaceOpen]);
 
   useEffect(() => {
     let active = true;

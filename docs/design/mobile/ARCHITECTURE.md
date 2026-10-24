@@ -90,7 +90,7 @@ build script. The paragraph above describes builds before 1.6.2.
   (`src/app/radio/symulator/RadioWorkspace.tsx`, the same code in the offline
   bundle and in `?embed=1`). While it is open the page posts
   `{"type":"radio-workspace","open":true}` and `OfflineRadioCourse` hides the
-  stack header (the page's own bar has the exit; the swipe back still leaves the
+  stack header and the tab bar (`hideMainNavigation` in `mobile/src/navigation/visibility.ts`) (the page's own bar has the exit; the swipe back still leaves the
   course), giving the 44pt back to the task panel; `open:false`, a mode switch, a
   reload or a load error bring the header back.
 - **Radio trainer language** (owner 2026-10-24): the trainer runs in all seven

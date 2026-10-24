@@ -1,11 +1,11 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { usePathname, useRouter, type Href } from "expo-router";
 import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useI18n } from "../i18n/context";
 import { Icon, Text, type IconName } from "../design-system/components";
 import { colors } from "../design-system/tokens";
-import { showsMainNavigation } from "./visibility";
+import { mainNavigationHiddenByScreen, showsMainNavigation, subscribeMainNavigationHidden } from "./visibility";
 import { NavigationInsetContext } from "./NavigationContext";
 import { nativeTabs, tabForPath } from "./tabs";
 
@@ -20,7 +20,8 @@ export function AppNavigation({ children }: { children: ReactNode }) {
     const hide = Keyboard.addListener("keyboardDidHide", () => setKeyboard(false));
     return () => { show.remove(); hide.remove(); };
   }, []);
-  const visible = showsMainNavigation(pathname) && !keyboard;
+  const hiddenByScreen = useSyncExternalStore(subscribeMainNavigationHidden, mainNavigationHiddenByScreen, mainNavigationHiddenByScreen);
+  const visible = showsMainNavigation(pathname) && !keyboard && !hiddenByScreen;
   const selected = tabForPath(pathname);
   return <NavigationInsetContext.Provider value={visible}>
     <View style={styles.root}>

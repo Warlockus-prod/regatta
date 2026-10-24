@@ -33,3 +33,15 @@ test("the fifth native tab is Menu, the whole catalog in one tap", () => {
   expect(tabForPath("/multiplayer/join")).toBe("race");
   expect(tabForPath("/")).toBe("home");
 });
+
+test("a screen can hide the tab bar while its activity runs, and only for as long as it asks", () => {
+  const { hideMainNavigation, mainNavigationHiddenByScreen } = require("../src/navigation/visibility");
+  expect(mainNavigationHiddenByScreen()).toBe(false);
+  const first = hideMainNavigation();
+  const second = hideMainNavigation();
+  first();
+  first();
+  expect(mainNavigationHiddenByScreen()).toBe(true);
+  second();
+  expect(mainNavigationHiddenByScreen()).toBe(false);
+});
