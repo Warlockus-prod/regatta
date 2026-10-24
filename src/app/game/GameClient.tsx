@@ -27,7 +27,8 @@ import { drawVenue } from '@/features/venues/drawVenue';
 import { useVenue } from '@/features/venues/useVenue';
 import { GameMenu } from './GameMenu';
 import { BOAT_STYLES, DIFFICULTY_CONFIG, type BoatStyle, type Difficulty } from './config';
-import { useRaceView } from '@/features/race-3d/useRaceView';
+import { useRaceSceneFlags, useRaceView } from '@/features/race-3d/useRaceView';
+import type { RaceSceneStats } from '@/features/race-scene/RaceScene';
 import { METRES_PER_UNIT, nextTarget, raceRanks } from '@/features/race-3d/pose';
 import { RaceToast, SpeedCard, Standings, WindCompass, type StandingRow, type ToastTone } from '@/features/race-hud/RaceHud';
 import { polarFor, targetSpeed } from '@/features/race-hud/target';
@@ -36,6 +37,7 @@ import { isEmbed } from '@/lib/theme';
 
 // three.js loads only when someone opens the race in 3D.
 const Race3DView = dynamic(() => import('@/features/race-3d/Race3DView').then((m) => m.Race3DView), { ssr: false });
+const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
 
 // ============================================================================
 // TYPES
@@ -178,6 +180,12 @@ export default function GamePage() {
   // The map (2D) or the view from the boat (3D, src/features/race-3d). Both
   // read the same race refs; in 3D the canvas keeps only the mini-map.
   const { view3d, camera: raceCamera, setView3d, setCamera: setRaceCamera } = useRaceView();
+  const sceneFlags = useRaceSceneFlags();
+  // The next renderer's frame rate, written straight into its readout (no re-render).
+  const statsRef = useRef<HTMLDivElement | null>(null);
+  const showSceneStats = useCallback((s: RaceSceneStats) => {
+    if (statsRef.current) statsRef.current.textContent = `${s.backend} · ${s.fps} fps · ${s.dpr}x`;
+  }, []);
   const view3dRef = useRef(view3d);
   useEffect(() => { view3dRef.current = view3d; }, [view3d]);
   // Inside the app (?embed=1) the site nav is hidden, so the race takes the whole height.
@@ -1324,8 +1332,15 @@ export default function GamePage() {
     <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
       {view3d && (gameState === 'countdown' || gameState === 'racing') && (
         <div className="absolute inset-0" data-testid="race-3d">
-          <Race3DView boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels} />
+          {sceneFlags.next
+            ? <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels}
+                onStats={sceneFlags.fps ? showSceneStats : undefined} />
+            : <Race3DView boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels} />}
         </div>
+      )}
+      {view3d && sceneFlags.next && sceneFlags.fps && (gameState === 'countdown' || gameState === 'racing') && (
+        <div ref={statsRef} data-testid="scene-stats" className="pointer-events-none absolute left-2 top-[13.5rem] z-20 rounded-md px-2 py-1 font-mono text-[11px] text-white"
+          style={{ background: 'rgba(10, 22, 40, 0.8)' }} />
       )}
       <canvas ref={canvasRef} className="relative block w-full h-full" style={{ touchAction: 'none', pointerEvents: view3d ? 'none' : undefined }} />
 

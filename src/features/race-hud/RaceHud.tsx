@@ -30,10 +30,9 @@ export function SpeedCard({ speed, target, pointName, pointColor }: {
       <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full" style={{ background: "rgba(0, 0, 0, 0.3)" }}>
         <div className="h-full" style={{ width: `${Math.min(100, share * 100)}%`, background: tone }} />
       </div>
-      <div className="mt-1 flex items-center justify-between gap-1 text-[11px] sm:text-xs">
-        <span className="truncate" style={{ color: pointColor }}>{pointName}</span>
-        <span className="shrink-0 tabular-nums text-[var(--text-muted)]">{targetLabel} {target > 0.3 ? target.toFixed(1) : "-"}</span>
-      </div>
+      {/* Two lines, not one truncated row: "Proa al viento" and "obiettivo 5.2" do not share 136 px. */}
+      <div className="mt-1 text-[11px] sm:text-xs leading-tight" style={{ color: pointColor }} data-testid="hud-point">{pointName}</div>
+      <div className="text-[11px] sm:text-xs leading-tight tabular-nums text-[var(--text-muted)]">{targetLabel} {target > 0.3 ? target.toFixed(1) : "-"}</div>
     </div>
   );
 }
