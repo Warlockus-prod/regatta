@@ -955,3 +955,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 ## 2026-10-24 completion map
 
 `docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
+
+- `src/lib/race-guidance.ts` computes route, tack and turn advice without mutating a race.
+- `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
+- `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior.

@@ -16,6 +16,10 @@ export const WORLD = { width: 800, height: 1200 };
 export const WIND_DIRECTION_BASE = 0;            // deg, wind source (0 = from north)
 export const MAX_SPEED = 8.0;                    // knots
 export const TURN_RATE = 22;                     // deg/sec player
+/** Solo-player assistance (ADR-0009): close to the native trainer's 0.7 rad/s.
+ * Opt-in only: bots, multiplayer and stored replays keep TURN_RATE. */
+export const RESPONSIVE_TURN_RATE = 40;
+export const RESPONSIVE_MIN_AUTHORITY = 0.2;
 export const ACCEL = 2.5;                        // speed lerp factor
 export const MARK_ROUND_DIST = 28;
 export const MIN_BOAT_SEPARATION = 22;           // collision repel distance
@@ -129,6 +133,45 @@ export interface RaceBoat {
 export interface InputState {
   /** -1..1, negative = port, positive = starboard. */
   turn: number;
+  /** Omitted = the existing automatic race trim. False gives the player the sheets. */
+  autoTrim?: boolean;
+  /** Engine convention: sheets 0 = eased, 1 = sheeted in; jibFurl 1 = furled.
+   * Deployment (mainHoisted, reef, jibFurl) also applies with automatic trim. */
+  trim?: Partial<Controls>;
+}
+
+export interface RaceStepOptions {
+  speedMul?: number;
+  windStrengthMul?: number;
+  /** A solo-player input assist, never inferred from isPlayer or applied to bots. */
+  steering?: "legacy" | "responsive";
+}
+
+const DEFAULT_RACE_TRIM: Controls = { mainSheet: .4, jibSheet: .2, mainTwist: .35, jibTwist: .4, reef: 0, jibFurl: 0, jibSide: 1 };
+const unitControl = (value: number | undefined, fallback: number) =>
+  value !== undefined && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+
+/** Converts untrusted UI input to a complete trim record without changing its source. */
+export function raceTrim(input: Partial<Controls> | undefined, previous: Controls = DEFAULT_RACE_TRIM): Controls {
+  return {
+    mainSheet: unitControl(input?.mainSheet, previous.mainSheet),
+    jibSheet: unitControl(input?.jibSheet, previous.jibSheet),
+    mainTwist: unitControl(input?.mainTwist, previous.mainTwist),
+    jibTwist: unitControl(input?.jibTwist, previous.jibTwist),
+    reef: unitControl(input?.reef, previous.reef),
+    jibFurl: unitControl(input?.jibFurl, previous.jibFurl),
+    jibSide: input?.jibSide === -1 || input?.jibSide === 1 ? input.jibSide : previous.jibSide,
+    ...(typeof input?.mainHoisted === "boolean" ? { mainHoisted: input.mainHoisted }
+      : previous.mainHoisted !== undefined ? { mainHoisted: previous.mainHoisted } : {}),
+  };
+}
+
+/** Assisted turning is deliberately separate from the force-model constants. */
+export function raceTurnRate(speed: number, steering: RaceStepOptions["steering"] = "legacy"): number {
+  const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
+  return steering === "responsive"
+    ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority)
+    : TURN_RATE * authority;
 }
 
 /** Advance one boat by dt seconds, with a given wind vector. */
@@ -138,22 +181,33 @@ export function stepBoat(
   windDir: number,
   gust: number,
   input: InputState,
-  opts: { speedMul?: number; windStrengthMul?: number } = {},
+  opts: RaceStepOptions = {},
 ): void {
+  if (!Number.isFinite(dt) || dt <= 0) return;
   // Bot difficulty (DECISIONS.md ADR-0007): the boat makes speedMul of the
   // speed the force model gives. The model is fed back its own speed, so the
   // handicap never compounds; a contact slow-down on boat.speed still carries.
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const authority = Math.max(0, Math.min(1, boat.speed / 3));
-  boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params = getBoatParams();
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
-  boat.trimClock = (boat.trimClock ?? 1) + dt;
-  if (!boat.trim || boat.trimClock >= .5) {
-    boat.trim = trimForDrive(state, boat.trim ?? { mainSheet: .4, jibSheet: .2, mainTwist: .35, jibTwist: .4, reef: 0, jibFurl: 0, jibSide: 1 });
-    boat.trimClock = 0;
+  if (input.autoTrim === false) {
+    boat.trim = raceTrim(input.trim, boat.trim);
+    // Re-entering automatic trim solves it immediately, rather than keeping stale manual trim.
+    boat.trimClock = .5;
+  } else {
+    boat.trimClock = (boat.trimClock ?? 1) + dt;
+    if (!boat.trim || boat.trimClock >= .5) {
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trimClock = 0;
+    }
+    if (input.trim) {
+      // Automatic sheets never silently hoist a lowered main or unfurl the jib.
+      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
+    }
   }
   boat.physics = tick(state, boat.trim, params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;

@@ -2,6 +2,8 @@
 
 Что изменилось, простым языком. Новое сверху. Строку в `## Unreleased
 
+- Added the shared model for manual Pro sheets, sail deployment, responsive solo steering, route advice and optional educational race rules with declared training penalties.
+
 - Recorded the complete 2026-10-24 audit, selected ocean cockpit direction and ordered app/site completion harness. Implementation is in progress; this entry does not mean deployment.`
 добавляют в том же коммите, что и само изменение, если оно видно пользователю
 или эксплуатации. Подробные разборы релизов лежат в `docs/design/*`, здесь
