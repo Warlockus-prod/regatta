@@ -1524,8 +1524,8 @@ export default function GamePage() {
                 onClick={openBriefing}
                 className="flex-1 min-w-[100px] py-2 rounded-lg font-semibold text-sm"
                 style={{
-                  background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
-                  color: '#0a1628',
+                  background: 'var(--accent-cyan)',
+                  color: 'var(--accent-ink)',
                 }}
               >
                 {tp('Ещё раз', 'Again', 'Jeszcze raz', { es: 'Otra vez', fr: 'Rejouer', de: 'Noch mal', it: 'Di nuovo' })}
@@ -1853,8 +1853,8 @@ function ResumeOffer({
             onClick={onResume}
             className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
             style={{
-              background: 'var(--warning)',
-              color: '#0a1628',
+              background: 'var(--accent-cyan)',
+              color: 'var(--accent-ink)',
             }}
           >
             {tp('Продолжить', 'Resume', 'Wznów',

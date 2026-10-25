@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "eebd9d783186",
-  "sha256": "465fa5d5296c039de5292e0050242d03c2000bf261f99e81c6cd615bee9da6d9",
-  "bytes": 6483212,
+  "version": "334b62f82d49",
+  "sha256": "6104446c4d1870130cd88afef070b80e051fa0730605ec568bc8ccc2325d81f3",
+  "bytes": 6483902,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -813,8 +813,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 104949,
-      "sha256": "ddd62f7d01aaa0a5d13f374d68b305a3cf44758040b12397fe101676c7ef3a30"
+      "bytes": 104886,
+      "sha256": "7ce1cf7665cbbbabbd8435fe05d132240d13a1397d43364bfc2c58fdebb937a9"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -823,13 +823,13 @@
     },
     {
       "path": "src/app/game/RaceCockpit.module.css",
-      "bytes": 6656,
-      "sha256": "13323c7a10590d5321bbe50e64d42edef849af84736cd21195eaf9cef9e03c44"
+      "bytes": 6727,
+      "sha256": "4b8826b7058648ba79bb302f60d82490d3e6a781908dad7bf9e169d15d487a99"
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 9800,
-      "sha256": "21baaa9a7c5d9e345c37f4ffe9d40eac2b1c988956660327ad753d7c9f7736d7"
+      "bytes": 10212,
+      "sha256": "e3111b770dab752708f3f81b7f1c576c709a2d5c7f998253a61bdbfdb31a2b58"
     },
     {
       "path": "src/app/game/RaceReplay.tsx",
@@ -843,8 +843,8 @@
     },
     {
       "path": "src/app/game/race-copy.ts",
-      "bytes": 16589,
-      "sha256": "0e0d914264a329888146e75a9c3bcfec933f85aee7867be8559785a7bebdb1e5"
+      "bytes": 16801,
+      "sha256": "355b3c3c127e9fd7718e01619bd8b7837ba846b8e7936a56f9ebba233b6ddad8"
     },
     {
       "path": "src/app/game/race-prefs.ts",

@@ -9,7 +9,7 @@ import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/pre
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { StandingRow } from "@/features/race-hud/RaceHud";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import type { RaceCamera } from "@/features/race-3d/pose";
+import { METRES_PER_UNIT, type RaceCamera } from "@/features/race-3d/pose";
 import { useRaceCopy } from "./race-copy";
 import type { RacePrefs } from "./race-prefs";
 import styles from "./RaceCockpit.module.css";
@@ -66,7 +66,13 @@ export function RaceCockpit(p: {
       <div className={styles.scene} data-testid="race-3d">{p.children}</div>
       <aside className={styles.dock} aria-label={labels.controlsTitle}>
         <div className={styles.notice} role="status" aria-live="polite">
-          {p.countdown !== undefined ? <strong>{p.countdown || "START"}</strong> : p.paused ? c.pause : p.message || (p.prefs.guidance && p.guidance ? `${c.actions[p.guidance.action]} · ${Math.round(p.guidance.distance * .6)} m` : pro ? c.proNote : c.simpleNote)}
+          {p.countdown !== undefined ? <strong>{p.countdown || "START"}</strong> : p.paused ? c.pause : p.message || (p.prefs.guidance && p.guidance ? c.actions[p.guidance.action] : pro ? c.proNote : c.simpleNote)}
+          {p.prefs.guidance && <small className={styles.trimAdvice} data-testid="race-route-heading">
+            <span className="flex flex-wrap gap-x-3 gap-y-1">
+              <span>{labels.course}: {Math.round(p.heading)}°</span>
+              <span>{c.routeHeading}: {p.guidance ? `${Math.round(p.guidance.suggestedHeading)}° · ${Math.round(p.guidance.distance * METRES_PER_UNIT)} m` : "-"}</span>
+            </span>
+          </small>}
           {pro && p.prefs.trimHints && p.trimAdvice && <small className={styles.trimAdvice}>{p.trimAdvice}</small>}
         </div>
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
