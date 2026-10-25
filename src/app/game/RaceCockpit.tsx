@@ -51,7 +51,7 @@ export function RaceCockpit(p: {
   const helm = { mapping, value: mapping === "rudder" ? `${Math.round(p.rudder * 35)}°` : `${Math.round(course)}°`, unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
     ariaNow: mapping === "rudder" ? p.rudder * 35 : course, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
     rudder: p.rudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
-  const range = (label: string, value: number, change: (v: number) => void, min = 0, max = 1) => <label className={styles.range}><span>{label}<output>{Math.round(value * (max === 1 ? 100 : 1))}{max === 1 ? "%" : "°"}</output></span><input type="range" min={min} max={max} step={max === 1 ? .01 : 1} value={value} onChange={e => change(Number(e.target.value))} /></label>;
+  const range = (label: string, value: number, change: (v: number) => void, min = 0, max = 1) => <label className={styles.range}><span>{label}<output>{Math.round(value * (max === 1 ? 100 : 1))}{max === 1 ? "%" : "°"}</output></span><input type="range" aria-label={label} min={min} max={max} step={max === 1 ? .01 : 1} value={value} onChange={e => change(Number(e.target.value))} /></label>;
   return <div className={styles.cockpit} data-testid="race-cockpit">
     <header className={styles.toolbar}>
       <button type="button" onClick={p.onExit}>{c.menu}</button>

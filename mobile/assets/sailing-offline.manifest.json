@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "3efe0c001bbf",
-  "sha256": "b8c2c702bac3c03d5df4aca67d46424967278456ae3fb119a3c8a0ba4c5d6c0a",
-  "bytes": 6487524,
+  "version": "7d263e22c6b2",
+  "sha256": "1139dd15829caf2958d3763a9c6233c0dd1cf74efdca9baf36cbbbfbfa8ee36e",
+  "bytes": 6488649,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -653,6 +653,7 @@
     "src/features/sailing-lab/rig/transfer.ts",
     "src/features/sailing-lab/rig/vang.ts",
     "src/features/sailing-lab/runtime/checkpoint-storage.ts",
+    "src/features/sailing-lab/runtime/clock-lifecycle.ts",
     "src/features/sailing-lab/runtime/controls.ts",
     "src/features/sailing-lab/runtime/fixed-clock.ts",
     "src/features/sailing-lab/runtime/input.ts",
@@ -813,8 +814,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 105404,
-      "sha256": "4fa288f5d92fefe83fca3e951fb31789490306364b0986d6076d8004d2ef30a9"
+      "bytes": 106369,
+      "sha256": "b320fe68dcbbfa0f7d1bc691cc6843ca4b67d145e0778d7888ede2748d862b30"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -828,8 +829,8 @@
     },
     {
       "path": "src/app/game/RaceCockpit.tsx",
-      "bytes": 10212,
-      "sha256": "e3111b770dab752708f3f81b7f1c576c709a2d5c7f998253a61bdbfdb31a2b58"
+      "bytes": 10231,
+      "sha256": "79b4c3a9b5d1b484d60a2f8e3ff62bb6296f8ae64254efcfca8fdf15a0137fcb"
     },
     {
       "path": "src/app/game/RaceReplay.tsx",
@@ -1122,14 +1123,19 @@
       "sha256": "8b8ad1fbdc11322d6a522d0256536969954eb37e04c339a4ccb5160458359e8d"
     },
     {
+      "path": "src/features/sailing-lab/runtime/clock-lifecycle.ts",
+      "bytes": 809,
+      "sha256": "3c26a9bd95f26cb00d9db613c3dee22c9b7d66ab5f50a786d9c7d0998d349026"
+    },
+    {
       "path": "src/features/sailing-lab/runtime/controls.ts",
       "bytes": 906,
       "sha256": "8a5dacc58512cdf11d1c2c87a2114cd388a64a986da9042d081039799595cdb3"
     },
     {
       "path": "src/features/sailing-lab/runtime/fixed-clock.ts",
-      "bytes": 1167,
-      "sha256": "d5c5c8fe87a6f1736d5a1da411c4e8746cf4f85f58921a97d848085919c99207"
+      "bytes": 1803,
+      "sha256": "f4abdcb0c8fb7e73ef10a768638e29bf432b0573554922ca61b1ec79a4356423"
     },
     {
       "path": "src/features/sailing-lab/runtime/input.ts",
@@ -1293,8 +1299,8 @@
     },
     {
       "path": "src/features/simulator-3d/physics/useSailingSim.ts",
-      "bytes": 7550,
-      "sha256": "20bf4a3637bb3bbd7ea529fa80561eb7d69cb29aef459737ba8c71994e8473d0"
+      "bytes": 7934,
+      "sha256": "8c3f258e173e3cfeed78839113363193da7762aac7212f46afeced9cfadf29b3"
     },
     {
       "path": "src/features/simulator-3d/sails/geometry.ts",
@@ -1333,8 +1339,8 @@
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
-      "bytes": 15300,
-      "sha256": "c9713193e2392bd726a2180cee90cddf4ac670ccbf4a134810c825e014ae2004"
+      "bytes": 15646,
+      "sha256": "c78a3f41944c3bd19357b7de75ce9af1cf0f9f8d5cc6fc8a193645aa0c8849da"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-trainer-checkpoint.ts",

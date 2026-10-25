@@ -15,6 +15,7 @@ import {
 } from '../runtime/create-runtime-state';
 import { stepRuntime } from '../runtime/step-runtime';
 import { createFixedClock, SAILING_STEP_SECONDS } from '../../sailing-lab/runtime/fixed-clock';
+import { bindClockLifecycle } from "../../sailing-lab/runtime/clock-lifecycle";
 import type { SailingSession } from "../../sailing-lab/runtime/session";
 import { type RuntimeState } from '../runtime/runtime-types';
 import { recommendedTrim } from '../runtime/trim-heuristics';
@@ -91,7 +92,10 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const clockRef = useRef(createFixedClock());
   const pausedRef = useRef(paused);
-  useEffect(() => { pausedRef.current = paused; }, [paused]);
+  useEffect(() => {
+    pausedRef.current = paused;
+    clockRef.current.synchronize(performance.now(), !paused && !document.hidden);
+  }, [paused]);
   const rudderRef = useRef<number | null>(rudder);
   useEffect(() => { rudderRef.current = rudder; }, [rudder]);
   // Telemetry anchor for PR-5 delta-sensitive feedback. We capture
@@ -143,6 +147,8 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
   // how many fixed steps run. Never simulate hidden time to satisfy a test.
   useEffect(() => {
     const clock = clockRef.current;
+    const unbindClock = bindClockLifecycle(clock, { target: document, now: () => performance.now(),
+      active: () => !pausedRef.current && !document.hidden });
     const tickInterval = () => {
       const advanced = clock.advance(performance.now(), !pausedRef.current && !document.hidden, (dt) => {
         const r = rudderRef.current;
@@ -169,7 +175,7 @@ export function useSimulatorV3({ ui, tp, paused = false, rudder = null }: Option
     return () => {
       if (intervalRef.current !== null) clearInterval(intervalRef.current);
       intervalRef.current = null;
-      clock.reset();
+      unbindClock(); clock.reset();
     };
   }, [params]);
 

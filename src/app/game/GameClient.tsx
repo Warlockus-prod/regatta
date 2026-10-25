@@ -42,6 +42,7 @@ import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay,
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
+import { bindClockLifecycle } from "@/features/sailing-lab/runtime/clock-lifecycle";
 import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
@@ -239,6 +240,7 @@ export default function GamePage() {
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
   const startupGate = useRef(createRaceStartupGate());
+  const simulationClockRef = useRef<ReturnType<typeof createFixedClock> | null>(null);
   const [sceneRaceId, setSceneRaceId] = useState("");
   const [sceneReady, setSceneReady] = useState(false);
   const onSceneReady = useCallback(() => {
@@ -672,9 +674,13 @@ export default function GamePage() {
     if (gameState !== 'racing' && gameState !== 'countdown') return;
     const isRacing = gameState === 'racing';
     const clock = createFixedClock();
+    simulationClockRef.current = clock;
+    const unbindClock = bindClockLifecycle(clock, { target: document, now: () => performance.now(),
+      active: () => startupGate.current.active(pausedRef.current, document.hidden) });
     let ended = false;
     const step = (now: number) => {
-      clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
+      const refreshHud = now - hudRefreshRef.current >= 100;
+      const advanced = clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
       if (ended) return;
       if (isRacing) raceClockRef.current += dt;
 
@@ -803,13 +809,6 @@ export default function GamePage() {
 
       // Update UI state
       const player = boats.find((b) => b.isPlayer)!;
-      const playerTwa = calcTWA(player.heading, windDirRef.current);
-      const refreshHud = now - hudRefreshRef.current >= 100;
-      if (refreshHud) {
-        hudRefreshRef.current = now; setPlayerTWA(playerTwa); setPlayerSpeed(player.speed);
-        const advisory = planRaceGuidance(player, course, windDirRef.current, guidanceStateRef.current);
-        guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
-      }
       // Live race time read from the clock each frame. Do NOT use the `elapsed`
       // state here or in the finish checks below: this loop effect closes over
       // `elapsed` at mount (deps are [gameState, difficulty]) and setElapsed does
@@ -817,7 +816,6 @@ export default function GamePage() {
       // 5-minute timeout / post-finish race-end paths would never fire (a stuck
       // AI in the no-go zone could hang the race forever).
       const elapsedSec = isRacing ? raceClockRef.current : 0;
-      if (isRacing && refreshHud) setElapsed(elapsedSec);
 
       // Calculate position (rank): the same count the 3D name tags show.
       const ranks = raceRanks(boats, course);
@@ -945,15 +943,32 @@ export default function GamePage() {
       }
 
       });
+      // Publish after the entire fixed-step batch. On a slow renderer, the
+      // first tick can be half a second behind the final state of this frame.
+      if (advanced && refreshHud) {
+        const player = boatsRef.current.find(boat => boat.isPlayer);
+        if (player) {
+          hudRefreshRef.current = now;
+          setPlayerTWA(calcTWA(player.heading, windDirRef.current)); setPlayerSpeed(player.speed);
+          const advisory = planRaceGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current);
+          guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
+        }
+        if (isRacing) setElapsed(raceClockRef.current);
+      }
       if (!ended) rafRef.current = requestAnimationFrame(step);
     };
 
     rafRef.current = requestAnimationFrame(step);
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      unbindClock();
+      if (simulationClockRef.current === clock) simulationClockRef.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gameState, difficulty]);
+  useEffect(() => {
+    simulationClockRef.current?.synchronize(performance.now(), startupGate.current.active(pausedRef.current, document.hidden));
+  }, [gameState, paused, sceneReady]);
 
   // -----------------------------------------------------------------------
   // Reset
