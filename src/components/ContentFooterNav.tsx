@@ -29,55 +29,33 @@ interface RelatedLink {
   labelIt?: string;
 }
 
+const RELATED_LINKS = {
+  checklist: { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regatami', labelEs: 'Checklist para la regata', labelFr: 'Check-list avant la régate', labelDe: 'Checkliste vor der Regatta', labelIt: 'Checklist pre-regata' },
+  anatomy: { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
+  onboard: { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzień na pokładzie', labelEs: 'Primera semana a bordo', labelFr: 'Première semaine à bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
+  glossary: { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
+  rules: { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
+  racing: { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
+  courses: { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy względem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Kurse zum Wind', labelIt: 'Andature' },
+  game: { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Rozegraj wyścig', labelEs: 'Juega una regata', labelFr: 'Jouer une régate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
+  privacy: { href: '/privacy', icon: '🔒', labelRu: 'Конфиденциальность', labelEn: 'Privacy', labelPl: 'Prywatność', labelEs: 'Privacidad', labelFr: 'Confidentialité', labelDe: 'Datenschutz', labelIt: 'Privacy' },
+  home: { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona główna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
+  support: { href: '/support', icon: '✉️', labelRu: 'Контакты', labelEn: 'Contact', labelPl: 'Kontakt', labelEs: 'Contacto', labelFr: 'Contact', labelDe: 'Kontakt', labelIt: 'Contatti' },
+} satisfies Record<string, RelatedLink>;
+
 const SIBLINGS: Record<string, RelatedLink[]> = {
-  '/onboard': [
-    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regatami', labelEs: 'Checklist para la regata', labelFr: 'Check-list avant la régate', labelDe: 'Checkliste vor der Regatta', labelIt: 'Checklist pre-regata' },
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
-  ],
-  '/anatomy': [
-    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzień na pokładzie', labelEs: 'Primera semana a bordo', labelFr: 'Première semaine à bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
-  ],
-  '/checklist': [
-    { href: '/onboard', icon: '⚓', labelRu: 'Первая неделя на борту', labelEn: 'First week on board', labelPl: 'Pierwszy tydzień na pokładzie', labelEs: 'Primera semana a bordo', labelFr: 'Première semaine à bord', labelDe: 'Erste Woche an Bord', labelIt: 'Prima settimana a bordo' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
-  ],
-  '/rules': [
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
-  ],
-  '/gallery': [
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
-    { href: '/courses', icon: '🧭', labelRu: 'Курсы относительно ветра', labelEn: 'Points of sail', labelPl: 'Kursy względem wiatru', labelEs: 'Rumbos respecto al viento', labelFr: 'Allures', labelDe: 'Kurse zum Wind', labelIt: 'Andature' },
-  ],
-  '/courses': [
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
-  ],
-  '/glossary': [
-    { href: '/anatomy', icon: '🔧', labelRu: 'Устройство яхты', labelEn: 'Yacht anatomy', labelPl: 'Budowa jachtu', labelEs: 'Anatomía del velero', labelFr: 'Anatomie du voilier', labelDe: 'Aufbau der Yacht', labelIt: 'Anatomia della barca' },
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
-  ],
-  '/racing': [
-    { href: '/rules', icon: '📜', labelRu: 'Правила расхождения', labelEn: 'Rules of the road', labelPl: 'Prawo drogi', labelEs: 'Reglas de paso', labelFr: 'Règles de priorité', labelDe: 'Vorfahrtsregeln', labelIt: 'Regole di precedenza' },
-    { href: '/glossary', icon: '📖', labelRu: 'Глоссарий', labelEn: 'Glossary', labelPl: 'Słownik', labelEs: 'Glosario', labelFr: 'Glossaire', labelDe: 'Glossar', labelIt: 'Glossario' },
-  ],
-  '/leaderboard': [
-    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Rozegraj wyścig', labelEs: 'Juega una regata', labelFr: 'Jouer une régate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
-    { href: '/racing', icon: '🏁', labelRu: 'Гоночные стратегии', labelEn: 'Racing strategy', labelPl: 'Strategie regatowe', labelEs: 'Estrategia de regatas', labelFr: 'Stratégie de régate', labelDe: 'Regattataktik', labelIt: 'Strategia di regata' },
-  ],
-  '/quick': [
-    { href: '/checklist', icon: '✅', labelRu: 'Чек-лист к регате', labelEn: 'Pre-race checklist', labelPl: 'Lista przed regatami', labelEs: 'Checklist para la regata', labelFr: 'Check-list avant la régate', labelDe: 'Checkliste vor der Regatta', labelIt: 'Checklist pre-regata' },
-    { href: '/game', icon: '🎮', labelRu: 'Сыграть гонку', labelEn: 'Play a race', labelPl: 'Rozegraj wyścig', labelEs: 'Juega una regata', labelFr: 'Jouer une régate', labelDe: 'Regatta spielen', labelIt: 'Gioca una regata' },
-  ],
-  '/support': [
-    { href: '/privacy', icon: '🔒', labelRu: 'Конфиденциальность', labelEn: 'Privacy', labelPl: 'Prywatność', labelEs: 'Privacidad', labelFr: 'Confidentialité', labelDe: 'Datenschutz', labelIt: 'Privacy' },
-    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona główna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
-  ],
-  '/privacy': [
-    { href: '/support', icon: '✉️', labelRu: 'Контакты', labelEn: 'Contact', labelPl: 'Kontakt', labelEs: 'Contacto', labelFr: 'Contact', labelDe: 'Kontakt', labelIt: 'Contatti' },
-    { href: '/', icon: '🏠', labelRu: 'На главную', labelEn: 'Home', labelPl: 'Strona główna', labelEs: 'Inicio', labelFr: 'Accueil', labelDe: 'Startseite', labelIt: 'Home' },
-  ],
+  '/onboard': [RELATED_LINKS.checklist, RELATED_LINKS.anatomy],
+  '/anatomy': [RELATED_LINKS.onboard, RELATED_LINKS.glossary],
+  '/checklist': [RELATED_LINKS.onboard, RELATED_LINKS.rules],
+  '/rules': [RELATED_LINKS.racing, RELATED_LINKS.glossary],
+  '/gallery': [RELATED_LINKS.anatomy, RELATED_LINKS.courses],
+  '/courses': [RELATED_LINKS.racing, RELATED_LINKS.rules],
+  '/glossary': [RELATED_LINKS.anatomy, RELATED_LINKS.rules],
+  '/racing': [RELATED_LINKS.rules, RELATED_LINKS.glossary],
+  '/leaderboard': [RELATED_LINKS.game, RELATED_LINKS.racing],
+  '/quick': [RELATED_LINKS.checklist, RELATED_LINKS.game],
+  '/support': [RELATED_LINKS.privacy, RELATED_LINKS.home],
+  '/privacy': [RELATED_LINKS.support, RELATED_LINKS.home],
 };
 
 function pickLabel(link: RelatedLink, lang: string): string {

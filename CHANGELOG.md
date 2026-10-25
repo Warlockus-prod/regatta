@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Added a live race course map with all marks, start/finish and boats in the reserved cockpit. Actual wind direction/speed stays visible, with compass, 3D air arrows, both or off choices saved for the next launch. Solo and multiplayer share the instrument; Settings now uses a real gear. Briefing wind text is readable. All new labels have seven language adaptations.
+
+- Shared content footer loading and deduplicated link metadata keep the existing6.5MiB build budget, preserving server-rendered links, translations and offline adapters.
+
 - Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
 
 - Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.

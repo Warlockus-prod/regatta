@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { legacyPick, type Lang } from '@/lib/languages';
 import { racingStrategies, racingRules } from '@/data/sailing-data';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 // ---------------------------------------------------------------------------
 // SVG sub-components for diagrams

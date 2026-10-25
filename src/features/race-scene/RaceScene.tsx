@@ -24,6 +24,8 @@ import { guidancePath } from "./guidance";
 import { calmFactor } from "./materials";
 import { SailingEnvironment } from "./SailingEnvironment";
 import { createSailingRenderer } from "./renderer";
+import { WindFlow } from "@/features/simulator-3d/ocean/WindFlow";
+import { raceWindReading } from "@/features/race-hud/navigation-model";
 
 // ============================================================================
 // RaceScene - the race presentation using the shared sailing renderer.
@@ -150,12 +152,21 @@ function WaterGuidance({ boatsRef, windDirRef, originRef, guidance }: {
 }
 
 /** The player's yacht, its pose shared with the camera and the water. */
-function Player({ boatsRef, windDirRef }: {
+function Player({ boatsRef, windDirRef, showWind }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
+  showWind: boolean;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, null);
-  return <Yacht stateRef={state} />;
+  const readWind = useCallback(() => {
+    const boat = playerOf(boatsRef.current);
+    if (!boat) return null;
+    const reading = raceWindReading({ heading: boat.heading, boatSpeedKn: boat.speed, windFrom: windDirRef.current,
+      windKnots: boat.physics?.trueWindSpeed, leeway: boat.physics?.leeway });
+    return reading?.apparentFrom != null && reading.apparentKnots != null
+      ? { from: reading.apparentFrom, knots: reading.apparentKnots } : null;
+  }, [boatsRef, windDirRef]);
+  return <><Yacht stateRef={state} />{showWind && <WindFlow stateRef={state} readWind={readWind} />}</>;
 }
 
 /** Frame rate and backend, measured over 2 s windows; steps the pixel ratio down while slow. */
@@ -185,7 +196,7 @@ function Quality({ onStats, maxDpr }: { onStats?: (s: RaceSceneStats) => void; m
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance, showWind = false }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
@@ -201,6 +212,8 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
   onReady?: () => void;
   /** Optional educational aid. Coordinates use race units, converted here to metres. */
   guidance?: RaceGuidance | null;
+  /** Optional incoming apparent-air arrows from the shared trainer. */
+  showWind?: boolean;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   const readState = useCallback(() => {
@@ -251,7 +264,7 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} />}
           <Suspense fallback={null}>
-            <Player boatsRef={boatsRef} windDirRef={windDirRef} />
+            <Player boatsRef={boatsRef} windDirRef={windDirRef} showWind={showWind} />
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
             <FirstSceneFrame onReady={ready} />
           </Suspense>

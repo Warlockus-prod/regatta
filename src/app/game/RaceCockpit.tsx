@@ -3,7 +3,7 @@
 import DiagnosticAccess from "@/components/diagnostics/DiagnosticAccess";
 import { FoundationReturn, useFoundationReturnId } from "@/components/FoundationReturn";
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { WheelDeck } from "@/features/trainer-controls/WheelDeck";
 import { useControlLabels } from "@/features/trainer-controls/labels";
 import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/prefs";
@@ -14,6 +14,12 @@ import { METRES_PER_UNIT, type RaceCamera } from "@/features/race-3d/pose";
 import { useRaceCopy } from "./race-copy";
 import type { RacePrefs } from "./race-prefs";
 import styles from "./RaceCockpit.module.css";
+import { RaceOverviewMap } from "@/features/race-hud/RaceOverviewMap";
+import { RaceWindInstrument, RaceWindSettings } from "@/features/race-hud/RaceWindInstrument";
+import { useRaceNavigationCopy } from "@/features/race-hud/navigation-copy";
+import type { RaceNavigationSnapshot, RaceWindReading } from "@/features/race-hud/navigation-model";
+import { GearIcon } from "@/features/trainer-controls/GearIcon";
+import { recordControlChange } from "@/lib/diagnostics-controls";
 
 export function RaceModePicker({ prefs, update }: { prefs: RacePrefs; update: (p: Partial<RacePrefs>) => void }) {
   const c = useRaceCopy();
@@ -35,6 +41,7 @@ export function RaceCockpit(p: {
   rudder: number; setRudder: (v: number) => void; courseDelta: (v: number) => void; setCourse: (v: number) => void; targetHeading: number;
   trim: Controls; setTrim: (patch: Partial<Controls>) => void;
   heading: number; speed: number; twa: number; time: string; rank: number;
+  windReading: RaceWindReading | null; navigation: RaceNavigationSnapshot | null;
   rows: StandingRow[]; trimAdvice?: string; guidance: RaceGuidance | null; message?: string;
   camera: RaceCamera; setCamera: (v: RaceCamera) => void; onResetCamera: () => void;
   paused: boolean; onPause: () => void; onExit: () => void;
@@ -42,10 +49,19 @@ export function RaceCockpit(p: {
   muted: boolean; onSound: () => void; penalty: number; countdown?: number;
 }) {
   const c = useRaceCopy();
+  const nav = useRaceNavigationCopy();
   const foundationLesson = useFoundationReturnId();
   const labels = useControlLabels();
   const { prefs: controls, update } = useControlPrefs();
-  const [tab, setTab] = useState<"helm" | "sails" | "fleet" | "settings">("helm");
+  type Tab = "helm" | "sails" | "map" | "settings";
+  const [tab, setTab] = useState<Tab>("helm");
+  const tabRef = useRef<Tab>("helm");
+  const selectTab = (next: Tab) => {
+    const previous = tabRef.current;
+    if (next === previous) return;
+    tabRef.current = next; setTab(next);
+    if (next === "map" || previous === "map") recordControlChange("race", "race-map", next === "map", previous === "map");
+  };
   const mapping = helmMappingFor(controls, "boat");
   const pro = p.prefs.mode === "pro";
   const course = p.autopilot ? p.targetHeading : p.heading;
@@ -61,7 +77,9 @@ export function RaceCockpit(p: {
       <button type="button" onClick={p.onPause} aria-pressed={p.paused}>{p.paused ? c.resume : c.pause}</button>
     </header>
     <div className={styles.metrics}>
-      {[[c.speed, `${p.speed.toFixed(1)}`, c.knots], [c.wind, `${Math.round(Math.abs(p.twa))}°`, "TWA"], [c.time, p.time, p.penalty ? `+${p.penalty} s` : ""], [c.position, `${p.rank || "-"}/${p.rows.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
+      <div><span>{c.speed}</span><strong>{p.speed.toFixed(1)}<small>{c.knots}</small></strong></div>
+      <div className={styles.windMetric}><span>{nav.wind}</span><RaceWindInstrument reading={p.windReading} display={p.prefs.windDisplay} compact /></div>
+      {[[c.time, p.time, p.penalty ? `+${p.penalty} s` : ""], [c.position, `${p.rank || "-"}/${p.rows.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
     </div>
     <div className={styles.workspace}>
       <div className={styles.scene} data-testid="race-3d">{p.children}</div>
@@ -77,7 +95,7 @@ export function RaceCockpit(p: {
           {pro && p.prefs.trimHints && p.trimAdvice && <small className={styles.trimAdvice}>{p.trimAdvice}</small>}
         </div>
         <nav className={styles.tabs} aria-label={labels.controlsTitle}>
-          {(["helm", "sails", "fleet", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => setTab(t)}>{t === "helm" ? labels.helm : c[t]}</button>)}
+          {(["helm", "sails", "map", "settings"] as const).map(t => <button type="button" key={t} aria-pressed={tab === t} onClick={() => selectTab(t)}>{t === "settings" && <GearIcon size={16} />}<span>{t === "helm" ? labels.helm : t === "map" ? nav.map : c[t]}</span></button>)}
         </nav>
         <div className={styles.panel}>
           {tab === "helm" && <>
@@ -97,7 +115,12 @@ export function RaceCockpit(p: {
             {range(c.reef, p.trim.reef, reef => p.setTrim({ reef }))}
             <p>{pro ? p.prefs.trimHints ? c.trimHint : c.proNote : c.simpleNote}</p>
           </div>}
-          {tab === "fleet" && <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id}><b>{i + 1}</b><span style={{ color: r.color }}>{r.isPlayer ? c.you : r.name}</span>{r.isPlayer && <strong>●</strong>}</li>)}</ol>}
+          {tab === "map" && <div className={styles.mapPanel}>
+            <RaceOverviewMap snapshot={p.navigation} labels={{ ...nav, title: nav.map, you: c.you, fleet: c.fleet }} />
+            <RaceWindInstrument reading={p.windReading} display={p.prefs.windDisplay} />
+            <h2>{c.fleet}</h2>
+            <ol className={styles.fleet}>{p.rows.map((r, i) => <li key={r.id}><b>{i + 1}</b><span style={{ color: r.color }}>{r.isPlayer ? c.you : r.name}</span>{r.isPlayer && <strong>●</strong>}</li>)}</ol>
+          </div>}
           {tab === "settings" && <div className={styles.options}>
             <div className={styles.modePicker}>
               <strong>{pro ? c.pro : c.simple}</strong>
@@ -111,6 +134,7 @@ export function RaceCockpit(p: {
             <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture}</p>
+            <RaceWindSettings display={p.prefs.windDisplay} onChange={windDisplay => p.updatePrefs({ windDisplay })} />
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />
             <Toggle label={c.trimHints} checked={p.prefs.trimHints} onChange={trimHints => p.updatePrefs({ trimHints })} />
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />

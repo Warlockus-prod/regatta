@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { galleryItems, groupByBadge, youtubeThumb, type GalleryItem } from '@/data/gallery';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 // ---------------------------------------------------------------------------
 // Gallery page - masonry grid of photo / video tiles with click-to-enlarge

@@ -129,7 +129,7 @@ test.describe('Multiplayer smoke', () => {
     expect(after.height).toBeCloseTo(scene.height, 0);
     await g.getByRole("button", { name: "Руль", exact: true }).click();
     await expect(g.getByRole("slider", { name: /^Перо руля/ })).toBeVisible();
-    await g.getByRole("button", { name: "Флот", exact: true }).click();
+    await g.getByRole("button", { name: "Карта трассы", exact: true }).click();
     await expect(g.getByText(hostNick, { exact: true })).toBeVisible();
     await expect(g.getByText(guestNick, { exact: true })).toBeVisible();
 
