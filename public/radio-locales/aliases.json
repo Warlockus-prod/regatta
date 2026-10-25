@@ -296,6 +296,7 @@
   "В аварии нет времени искать канал в списке, поэтому у 16 есть своя аппаратная клавиша, которую находишь в темноте за секунды. На 16 слушают все: суда, береговые станции и службы SAR, только там будет услышан голосовой MAYDAY, и туда же рация переходит сама после отправки DSC-алерта.": "0a59283d84c07d85",
   "Say again, please.": "0a5ea4627d08ea2c",
   "Statek z DSC utrzymuje w morzu ciągły nasłuch na kanale 70, przeznaczonym wyłącznie dla cyfrowego selektywnego wywołania.": "0a7ef252769e297e",
+  "regatta:radio-route": "0a957c06953a9dff",
   "nadajemy i odbieramy na różnych częstotliwościach": "0abd348b6b24228f",
   "Sygnały nadawane przez radiopławę na częstotliwości 406 MHz pozwalają na identyfikację statku z którego pochodzi radiopława na podstawie zakodowanego:": "0abeb1fa3a99e4a8",
   "DSC ACK ze statku nie jest pierwszym krokiem": "0ac34c506f4cecf2",

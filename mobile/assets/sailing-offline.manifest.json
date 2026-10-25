@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "334b62f82d49",
-  "sha256": "6104446c4d1870130cd88afef070b80e051fa0730605ec568bc8ccc2325d81f3",
-  "bytes": 6483902,
+  "version": "3efe0c001bbf",
+  "sha256": "b8c2c702bac3c03d5df4aca67d46424967278456ae3fb119a3c8a0ba4c5d6c0a",
+  "bytes": 6487524,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -813,8 +813,8 @@
     },
     {
       "path": "src/app/game/GameClient.tsx",
-      "bytes": 104886,
-      "sha256": "7ce1cf7665cbbbabbd8435fe05d132240d13a1397d43364bfc2c58fdebb937a9"
+      "bytes": 105404,
+      "sha256": "4fa288f5d92fefe83fca3e951fb31789490306364b0986d6076d8004d2ef30a9"
     },
     {
       "path": "src/app/game/GameMenu.tsx",
@@ -1033,8 +1033,8 @@
     },
     {
       "path": "src/features/race-scene/guidance.ts",
-      "bytes": 3266,
-      "sha256": "84ea41b34738a87313b5ff5008b52648b0ea53ccf6c19c9e4a8ec4fbfe3790f2"
+      "bytes": 5451,
+      "sha256": "8a329e0eadab49e33aa691a51e10f63909b590efd95d2f658f3faad666c4f704"
     },
     {
       "path": "src/features/race-scene/land.ts",
@@ -1328,8 +1328,8 @@
     },
     {
       "path": "src/features/simulator-v3/SimulatorV3Page.tsx",
-      "bytes": 45636,
-      "sha256": "f665b4fc82b1d81717c5a0755e9887d8f00986226818860821edcff2c7eff5f5"
+      "bytes": 46359,
+      "sha256": "19687bfa6c19afca1240ce76ee50c8da2f7f953876e8440de2596ec89bf919a6"
     },
     {
       "path": "src/features/simulator-v3/hooks/use-simulator-v3.ts",
@@ -1408,8 +1408,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/MetricsStrip.tsx",
-      "bytes": 3466,
-      "sha256": "98956cd027bc97a730c28accb74148204ca53d5e0d97c97a2392a205efde4b36"
+      "bytes": 3468,
+      "sha256": "4a9b537f594ab3e56ec08a760e7c4ca363cc8d4a78370d5c8f73118cb063cc38"
     },
     {
       "path": "src/features/simulator-v3/ui/SceneElevation.tsx",
@@ -1438,8 +1438,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/TrainerBoat3D.tsx",
-      "bytes": 3413,
-      "sha256": "12f5e16d3a11d5840d210f214b23451c09a49c3e33c81af128e8ed3a0526803a"
+      "bytes": 2049,
+      "sha256": "7c288d008ea63545f1b57a34938ad97972b9530c53b1075de48df80b51f685c4"
     },
     {
       "path": "src/features/simulator-v3/ui/panels/CheckpointPanel.tsx",
@@ -1503,8 +1503,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/pods/ViewPod.tsx",
-      "bytes": 7975,
-      "sha256": "275ed20bb611977531ae2014e3720eaae5878dab9c3cab6479fbdbb659e1093f"
+      "bytes": 9586,
+      "sha256": "fcdd075339089a91f4edb41a1610860e73fe10986e8d5ba319d394b673c10a5d"
     },
     {
       "path": "src/features/simulator-v3/ui/pods/WindPod.tsx",
@@ -1518,8 +1518,8 @@
     },
     {
       "path": "src/features/simulator-v3/ui/shared.tsx",
-      "bytes": 13591,
-      "sha256": "034d71b783a118514e6e0553c7e2b87003b587c8c11d78da5cb25b7887d75118"
+      "bytes": 13743,
+      "sha256": "6a9546a27b1ed7d2c55133e1d548a290f138b63ecd9f6a2f160937f6b3221189"
     },
     {
       "path": "src/features/trainer-controls/ControlDock.tsx",
@@ -1543,8 +1543,8 @@
     },
     {
       "path": "src/features/trainer-controls/TrainerControls.module.css",
-      "bytes": 13530,
-      "sha256": "77cdb2965f964f4039a01af5d9c7f91e4d12c0363273db3faf4b996791eefaa2"
+      "bytes": 13793,
+      "sha256": "5ffe066d685a2959e3b5645e638f58405e60f96606436dc21233e675e7ff0621"
     },
     {
       "path": "src/features/trainer-controls/TrainerWorkspace.tsx",
@@ -1638,8 +1638,8 @@
     },
     {
       "path": "src/lib/race-guidance.ts",
-      "bytes": 4160,
-      "sha256": "4cfe6afd025b8a56e5806c9e08f30528ee8deeee5568abeb6b9d942f851070ea"
+      "bytes": 8388,
+      "sha256": "9af400a4ddea7335cb76f63a413d110d9872f8a140042dffd0d0e57fd6e90230"
     },
     {
       "path": "src/lib/race-native.ts",
@@ -1648,8 +1648,8 @@
     },
     {
       "path": "src/lib/race-physics.ts",
-      "bytes": 25262,
-      "sha256": "0ba6088834015f068ba4722e09da3410ec24e3bd57bf6d6840c3699215002579"
+      "bytes": 26502,
+      "sha256": "6213cb3946e147c6ea8e7b4ae62e9f80b0fd4b4ff878c274874e7581ecfceea2"
     },
     {
       "path": "src/lib/race-replay.ts",

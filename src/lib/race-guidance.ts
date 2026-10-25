@@ -1,4 +1,4 @@
-import { angleDiff, bearing, calcTWA, distance, MIN_BOAT_SEPARATION, normalizeAngle, type RaceBoat, type RaceCourse, type Vec2 } from "./race-physics";
+import { angleDiff, bearing, calcTWA, distance, normalizeAngle, raceAutopilotPlan, WORLD, type AutopilotState, type RaceBoat, type RaceCourse, type RaceRoutePath, type Vec2 } from "./race-physics";
 
 export type RaceGuidanceLeg = "start" | "return-start" | "windward" | "round-port" | "finish" | "complete" | "waypoint";
 export type RaceGuidanceAction = "hold" | "steer-port" | "steer-starboard" | "tack" | "gybe" | "return-start" | "round-port";
@@ -14,34 +14,99 @@ export interface RaceGuidance {
   targetInNoGo: boolean;
   /** Windward side, not the sign of the race adapter's heading-minus-wind TWA. */
   tack: "port" | "starboard" | null;
+  /** Shared planner geometry. Online waypoint aids deliberately omit it. */
+  path?: RaceRoutePath;
+  beating?: boolean;
 }
 
-/** Read-only route aid. It neither steers the boat nor advances its rounding gates.
- * The proposed close-hauled headings are teaching aids, not a wind/traffic-aware router. */
-export function raceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, closeHauled = 45): RaceGuidance {
-  const line = course.startLine;
-  const lineX = (line.a.x + line.b.x) / 2;
-  const lineY = (line.a.y + line.b.y) / 2;
+export interface RaceGuidanceState {
+  courseKey: string;
+  autopilot: AutopilotState;
+}
+
+const pointIsFinite = (p: Vec2 | undefined) => Boolean(p && Number.isFinite(p.x) && Number.isFinite(p.y));
+// Responsive solo steering can follow a slightly tighter stadium than legacy
+// bots. Its 75-unit radius crosses the standard gates 66.3 east/west and 40
+// north, inside their 25..95 limits. A shorter correction lookahead keeps a
+// delayed heading entry from cutting across the far side of the rounding.
+const ADVISORY_ROUTE = { radius: 75, lookahead: 30 };
+
+/** This advisory planner supports the existing horizontal windward/return
+ * course only. A different or damaged course gets no misleading route aid. */
+function supportedCourse(course: RaceCourse): boolean {
+  if (!course || !Array.isArray(course.marks) || course.marks.some(m => !m || !pointIsFinite(m.pos) || !Number.isFinite(m.radius))) return false;
+  const mark = course?.marks?.[0];
+  if (!mark || mark.type !== "windward" || !pointIsFinite(mark.pos) || !Number.isFinite(mark.radius) || mark.radius < 3 || mark.radius > 24) return false;
+  if (course.marks.some((m, i) => i > 0 && m.type === "windward")) return false;
+  if (mark.pos.x < 110 || mark.pos.x > WORLD.width - 110 || mark.pos.y < 100) return false;
+  for (const line of [course.startLine, course.finishLine]) {
+    if (!line || !pointIsFinite(line.a) || !pointIsFinite(line.b) || line.a.y !== line.b.y || Math.abs(line.b.x - line.a.x) < 100) return false;
+    if (Math.min(line.a.x, line.b.x) < 100 || Math.max(line.a.x, line.b.x) > WORLD.width - 100 || line.a.y > WORLD.height - 100 || line.a.y - mark.pos.y < 220) return false;
+  }
+  return true;
+}
+
+function copyMemory(memory: AutopilotState): AutopilotState {
+  return { ...memory, dip: memory.dip && { ...memory.dip }, finishLoop: memory.finishLoop && { ...memory.finishLoop } };
+}
+
+/** Read-only advice with independent tack/recovery memory. The caller resets
+ * state for a new race. Only a shallow boat copy is passed to the shared
+ * planner: it writes autopilot memory, never position, trim, helm or gates. */
+export function planRaceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number, previous?: RaceGuidanceState | null): {
+  guidance: RaceGuidance | null; state: RaceGuidanceState | null;
+} {
+  if (!supportedCourse(course) || !boat || !pointIsFinite(boat.pos) || ![boat.heading, boat.speed, boat.lapDone, windDir].every(Number.isFinite)
+    || boat.speed < 0 || ![0, 1, 2].includes(boat.lapDone) || ![0, 1, 2].includes(boat.roundPhase ?? 0)) return { guidance: null, state: null };
+  const mark = course.marks[0];
+  const courseKey = JSON.stringify([course.startLine, course.finishLine, mark.pos, mark.radius]);
+  const probe: RaceBoat = { ...boat, autopilot: previous?.courseKey === courseKey && previous.autopilot ? copyMemory(previous.autopilot) : undefined };
+  const plan = raceAutopilotPlan(probe, course, windDir, ADVISORY_ROUTE);
+  const line = boat.lapDone > 0 ? course.finishLine : course.startLine;
+  const cx = (line.a.x + line.b.x) / 2;
   let leg: RaceGuidanceLeg;
   let target: Vec2;
   if (boat.lapDone >= 2) {
     leg = "complete"; target = { ...boat.pos };
   } else if (!boat.started) {
-    const returning = boat.pos.y < lineY || Boolean(boat.returningToStart && boat.pos.y < lineY + 35);
-    leg = returning ? "return-start" : "start";
-    target = { x: lineX, y: lineY + (returning ? 60 : -60) };
+    leg = probe.autopilot?.dip ? "return-start" : "start";
+    target = { x: cx, y: line.a.y + (leg === "return-start" ? 60 : -60) };
   } else if (boat.lapDone > 0) {
     leg = "finish";
-    target = { x: (course.finishLine.a.x + course.finishLine.b.x) / 2, y: course.finishLine.a.y + 30 };
+    target = { x: plan.path.kind === "vertical" ? plan.path.x : cx, y: line.a.y + 30 };
   } else {
-    const mark = course.marks[0];
-    const r = mark.radius + MIN_BOAT_SEPARATION / 2 + 35;
-    leg = (boat.roundPhase ?? 0) > 0 || distance(boat.pos, mark.pos) < r * 3 ? "round-port" : "windward";
-    target = (boat.roundPhase ?? 0) === 0 ? { x: mark.pos.x + r, y: mark.pos.y - r }
-      : boat.roundPhase === 1 ? { x: mark.pos.x - r, y: mark.pos.y - r }
-        : { x: mark.pos.x - r, y: mark.pos.y + r };
+    leg = plan.path.kind === "circle" || probe.autopilot?.down || (boat.roundPhase ?? 0) > 0 ? "round-port" : "windward";
+    // Exact points on the shared stadium where the ordered gates are met.
+    const { center, radius } = plan.rounding;
+    const drop = center.y - mark.pos.y;
+    const offset = Math.sqrt(radius * radius - drop * drop);
+    target = (boat.roundPhase ?? 0) === 0 ? { x: mark.pos.x + offset, y: mark.pos.y }
+      : boat.roundPhase === 1 ? { x: mark.pos.x, y: center.y - radius }
+        : { x: mark.pos.x - offset, y: mark.pos.y + 1 };
   }
-  return guidanceToTarget(boat, target, windDir, closeHauled, leg);
+  const guidance = guidanceToTarget(boat, target, windDir, 45, leg);
+  applyHeading(guidance, boat.heading, windDir, leg === "complete" ? boat.heading : plan.heading);
+  guidance.path = plan.path;
+  guidance.beating = plan.beating;
+  return { guidance, state: { courseKey, autopilot: copyMemory(probe.autopilot!) } };
+}
+
+/** Initial read-only snapshot; live races retain planRaceGuidance.state. */
+export function raceGuidance(boat: RaceBoat, course: RaceCourse, windDir: number): RaceGuidance | null {
+  return planRaceGuidance(boat, course, windDir).guidance;
+}
+
+function applyHeading(guidance: RaceGuidance, currentHeading: number, windDir: number, heading: number): void {
+  const change = angleDiff(currentHeading, heading);
+  guidance.suggestedHeading = heading;
+  guidance.turn = Math.abs(change) < 5 ? 0 : change > 0 ? 1 : -1;
+  const before = angleDiff(currentHeading, windDir), after = angleDiff(heading, windDir);
+  let action: RaceGuidanceAction = guidance.turn === 0 ? "hold" : guidance.turn > 0 ? "steer-starboard" : "steer-port";
+  if (Math.abs(before) > 1 && Math.abs(after) > 1 && Math.sign(before) !== Math.sign(after)) action = Math.abs(before) + Math.abs(after) < 180 ? "tack" : "gybe";
+  if (guidance.leg === "return-start") action = "return-start";
+  if (guidance.leg === "round-port" && action === "hold") action = "round-port";
+  if (guidance.leg === "complete") action = "hold";
+  guidance.action = action;
 }
 
 /** Shared read-only heading and maneuver aid for an explicitly supplied

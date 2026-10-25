@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getBoatParams } from "../../../lib/sailing-physics";
-import { DEFAULT_UI, type UiState } from "../../simulator-v3/ui/shared";
+import { DEFAULT_UI, FREE_TRAINER_UI, type UiState } from "../../simulator-v3/ui/shared";
 import { createRuntimeState } from "../../simulator-v3/runtime/create-runtime-state";
 import { advanceTrimStudy, explainTrimStudy, newTrimStudy, recordTrimStudy } from "../lessons/trim-study";
 import { sessionInput, stepSailingSession, type SailingSession } from "./session";
@@ -11,7 +11,7 @@ const detailed: UiState = { ...DEFAULT_UI, twa: 50, mainAngle: 15, jibAngle: 18,
 const make = (ui = detailed) => ({ savedAt: 123456, ui, session: createRuntimeState({ ui, params }), study: null });
 
 describe("trainer checkpoints", () => {
-  it.each([DEFAULT_UI, detailed])("preserves the exact next simulation tick", ui => {
+  it.each([FREE_TRAINER_UI, DEFAULT_UI, { ...DEFAULT_UI, view: "side" as const }, { ...detailed, view: "rear" as const }])("preserves the saved view and exact next simulation tick", ui => {
     const data = make(ui);
     const saved = readTrainerCheckpoint(writeTrainerCheckpoint(data));
     expect(saved.ok).toBe(true);

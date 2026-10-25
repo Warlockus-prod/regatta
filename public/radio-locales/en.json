@@ -157,6 +157,7 @@
   "0a59283d84c07d85": "In an emergency, there is no time to search for a channel in a list, so channel 16 has its own physical key that you can find in the dark within seconds. Everyone monitors channel 16: vessels, coast stations and SAR services, so only there will a voice MAYDAY be heard, and the radio switches there automatically after sending a DSC alert.",
   "0a5ea4627d08ea2c": "Say again, please.",
   "0a7ef252769e297e": "A vessel with DSC maintains a continuous watch at sea on channel 70, which is reserved exclusively for digital selective calling.",
+  "0a957c06953a9dff": "regatta:radio-route",
   "0abd348b6b24228f": "we transmit and receive on different frequencies",
   "0abeb1fa3a99e4a8": "Signals transmitted by a beacon on 406 MHz allow the vessel from which the beacon originates to be identified from the encoded:",
   "0ac34c506f4cecf2": "A DSC ACK from a ship is not the first step",

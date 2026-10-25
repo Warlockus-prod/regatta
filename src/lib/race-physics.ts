@@ -423,16 +423,22 @@ const AUTOPILOT = {
 /** Full-rudder turning radius per knot (stepBoat turns TURN_RATE deg/s at full authority). */
 const RADIUS_PER_KNOT = UNITS_PER_KNOT_SECOND / deg2rad(TURN_RATE);
 
+export type RaceRoutePath =
+  | { kind: "circle"; center: Vec2; radius: number; ccw: boolean }
+  | { kind: "vertical"; x: number; north: boolean; to: Vec2 };
+
 /** Direction of travel and signed distance to the right of the path. */
-interface PathFix { tangent: number; right: number }
+interface PathFix { tangent: number; right: number; path: RaceRoutePath }
 
 function onCircle(p: Vec2, c: Vec2, r: number, ccw: boolean): PathFix {
   const phi = bearing(c, p), d = distance(p, c);
-  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r } : { tangent: normalizeAngle(phi + 90), right: r - d };
+  const path: RaceRoutePath = { kind: "circle", center: { ...c }, radius: r, ccw };
+  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r, path } : { tangent: normalizeAngle(phi + 90), right: r - d, path };
 }
 
-function onVertical(p: Vec2, x: number, north: boolean): PathFix {
-  return north ? { tangent: 0, right: p.x - x } : { tangent: 180, right: x - p.x };
+function onVertical(p: Vec2, x: number, north: boolean, toY: number): PathFix {
+  const path: RaceRoutePath = { kind: "vertical", x, north, to: { x, y: toY } };
+  return north ? { tangent: 0, right: p.x - x, path } : { tangent: 180, right: x - p.x, path };
 }
 
 /** A stable offset in [-1, 1] per boat id, for spreading boats over lanes. */
@@ -442,9 +448,13 @@ function laneOf(id: string, lanes: number): number {
   return ((h % lanes) / (lanes - 1)) * 2 - 1;
 }
 
-/** Turn command (-1..1) that sails the boat round the course. */
-export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: number): number {
-  const A = AUTOPILOT, p = boat.pos;
+/** Existing bot planner. Only its private autopilot memory is changed. An
+ * advisory caller must supply a copy and keep that memory separate from helm. */
+export function raceAutopilotPlan(boat: RaceBoat, course: RaceCourse, windDir: number,
+  route?: { radius: number; lookahead: number }): {
+  heading: number; turn: number; path: RaceRoutePath; beating: boolean; rounding: { center: Vec2; radius: number };
+} {
+  const A = { ...AUTOPILOT, loopRadius: route?.radius ?? AUTOPILOT.loopRadius, lookahead: route?.lookahead ?? AUTOPILOT.lookahead }, p = boat.pos;
   if (!boat.autopilot || boat.lapDone < boat.autopilot.lap) boat.autopilot = { lap: boat.lapDone };
   const st = boat.autopilot;
   st.lap = boat.lapDone;
@@ -464,7 +474,7 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
   if (!boat.started) {
     const below = p.y > ly;
     if (below && Math.abs(p.x - cx) < half - 10 && !st.dip) {
-      fix = onVertical(p, cx, true);
+      fix = onVertical(p, cx, true, ly - 60);
       band = A.startBand;
     } else {
       if (!st.dip) {
@@ -491,8 +501,8 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     if (!st.down && p.y <= c.y && p.x < c.x - r / 2) st.down = true;
     else if (st.down && p.y >= c.y + leg && p.x > c.x) st.down = false;
     const climbing = !st.down && p.y > c.y;
-    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true);
-    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false);
+    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true, c.y);
+    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false, c.y + leg);
     if (climbing) band = Math.min(A.band.max, Math.max(A.band.top, A.band.slope * (p.y - c.y)));
     if (!st.down && p.y <= c.y) freeOverTop = true;
     const toTop = p.y - c.y;
@@ -506,7 +516,7 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     if (st.finishLoop) {
       fix = onCircle(p, { x: cx, y: ly - A.finishLoop.drop }, A.finishLoop.radius, st.finishLoop.ccw);
       band = A.loopBand;
-    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false);
+    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false, ly + 30);
   }
 
   const slow = v > 0 && v < A.tackMinSpeed;
@@ -535,5 +545,12 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     } else if (Math.abs(twa) >= A.closeHauled) tackTo(twa >= 0 ? 1 : -1);
   }
   if (v > 0 && v < A.stallSpeed && Math.abs(calcTWA(desired, windDir)) < 25) desired = normalizeAngle(windDir + st.tack * A.closeHauled);
-  return Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12));
+  return { heading: desired, turn: Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12)), path: fix.path,
+    beating: Boolean(st.shed) || (band > 0 && Math.abs(calcTWA(fix.tangent, windDir)) < A.closeHauled + 5),
+    rounding: { center: { x: mark.x, y: mark.y + A.loopDrop }, radius: A.loopRadius } };
+}
+
+/** Turn command (-1..1) that sails the boat round the course. */
+export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: number): number {
+  return raceAutopilotPlan(boat, course, windDir).turn;
 }

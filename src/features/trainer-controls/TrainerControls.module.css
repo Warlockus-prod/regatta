@@ -22,6 +22,12 @@
 /* Portrait: readouts and dock are plain rows of the workspace column. */
 .sideColumn { display: contents; }
 
+/* A short portrait has less than 204px left above readouts and wheels. Let
+   the canvas fit its actual allocation instead of overflowing into metrics. */
+@media (orientation: portrait) and (max-height: 640px) {
+  .scene { min-height: 0; }
+}
+
 .dock {
   flex: 0 0 auto;
   height: clamp(232px, 46%, 400px);
@@ -153,6 +159,7 @@
 .tabs button {
   flex: 1 0 auto;
   min-height: 44px;
+  min-width: 44px;
   padding: 0 8px;
   border: 0;
   border-radius: 10px;

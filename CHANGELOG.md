@@ -11,6 +11,11 @@
 
 - Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.
 
+- Fixed SRC Review topic opening the wrong offline theory chapter; Back now restores the chosen chapter and scroll position. Moved compact trainer camera presets into View so they do not overlap instruments on short screens.
+
+- Free trim now opens in 3D, while lessons and saved checkpoints keep their selected views. Informational trainer values use neutral colors.
+- Race route hints now retain the chosen tack, recover missed rounding gates and show the actual feasible turn on the water. The advice does not steer for the player; existing physics and bot behavior remain unchanged.
+
 - Race guidance now keeps the actual and suggested course visible while paused or explaining a rule. Primary restart/resume actions use the shared accent, and cockpit buttons avoid text selection during touch control.
 
 - Reopened the full completion audit after build60 feedback. Candidate61 adds the trainer's freely rotatable close3D camera to racing, a direct radio-practice entry, internal SRC Back, dependable native exits, and matching dark instrument frames. Actual-device acceptance and delivery are recorded separately.

@@ -157,6 +157,7 @@
   "0a59283d84c07d85": "W sytuacji zagrożenia nie ma czasu na szukanie kanału w liście, dlatego 16 dostał własny, sprzętowy klawisz, który trafiasz po ciemku w kilka sekund. Na 16 nasłuchują wszyscy: jednostki, stacje brzegowe i służby SAR, więc tylko tam głosowy MAYDAY zostanie usłyszany, i tam radio przechodzi samo po wysłaniu alertu DSC.",
   "0a5ea4627d08ea2c": "Powtórz, proszę.",
   "0a7ef252769e297e": "Statek z DSC utrzymuje w morzu ciągły nasłuch na kanale 70, przeznaczonym wyłącznie dla cyfrowego selektywnego wywołania.",
+  "0a957c06953a9dff": "regatta:radio-route",
   "0abd348b6b24228f": "nadajemy i odbieramy na różnych częstotliwościach",
   "0abeb1fa3a99e4a8": "Sygnały nadawane przez radiopławę na częstotliwości 406 MHz pozwalają na identyfikację statku z którego pochodzi radiopława na podstawie zakodowanego:",
   "0ac34c506f4cecf2": "DSC ACK ze statku nie jest pierwszym krokiem",

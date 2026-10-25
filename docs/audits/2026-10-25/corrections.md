@@ -57,3 +57,36 @@ Device Hub иногда показывал предыдущий streaming кад
 Первый локальный пакет 61 от eda54c9 прошел generated 18/18, archive 33/33, IPA 35/35, но не загружался в Apple. Он сохраняется как отдельный предыдущий checkpoint; итоговый пакет должен содержать перечисленные UI исправления.
 
 Русская installed-проверка: Settings -> Русский -> Practice -> Radio, весь свободный экран адаптирован ([08](checks/08-radio-russian-native.png)). Переход Course -> native Back вернул тот же прибор ([09](checks/09-radio-internal-back.png)); это проверенный внутренний возврат, не доказательство всех экзаменационных веток.
+
+## Дополнительные подтвержденные пробелы и исправления
+
+Фактический вход свободного трима открывал DEFAULT_UI.top, это не было сохраненной настройкой QA. [10](checks/10-native-trainer-entry.png) показывает плоский вход; [11](checks/11-trainer-reserved-view-panel.png) и [12](checks/12-native-trainer-shared-3d.png) показывают выбор существующего 3D в зарезервированной панели. FREE_TRAINER_UI теперь открывает 3D при свободном входе и сбросе. Учебные presets, упражнения и сохраненный checkpoint сохраняют свою явную камеру. Информационные показатели приведены к нейтральному цвету. Эти три кадра относятся к установленному eda54c9, новые исходники еще требуют повторной установки.
+
+Проверка поворота нашла конкретную причину широкой дуги: гонка проходит8 world units на knot-second, сцена отображает0.6м/unit, то есть4.8м на knot-second. Общий 3D-тренажер проходит0.514444м на knot-second. Визуальное ускорение гонки9.33046x. При6kn responsive-поворот40deg/s имеет радиус68.75world units, или41.25м сцены; тренажер22deg/s дает около8.04м. Угловой поворот гонки быстрее, но видимая дуга примерно5.13x шире. Эти величины вычислены из действующих исходников, не являются замером физической яхты. VPP и масштаб движения в этой поправке не изменяются. Вопрос о компактной трассе с физическим масштабом вынесен владельцу отдельно.
+
+Прежняя рекомендация вокруг60-unit углов не имела памяти галса и восстановления воротец. Детерминированное следование ей тем же error/12 управлением не финишировало за300s. Исправление использует общий stadium planner с отдельной памятью подсказок и радиусом75/lookahead30 для responsive-игрока. Боты сохраняют точные80/40. Водная полоса читает ту же геометрию. Подсказка не меняет позицию, скорость, трим, руль или прогресс игрока.
+
+128 интеграционных прогонов проходят реальные ordered start/mark/finish gates за менее300s: восемь исходных/пропущенных состояний, static и solo shifting wind x0.65/1/1.3, ввод рекомендуемого курса30Hz/10Hz/1s/3s при работающем10Hz advice. Все дают mark+finish; исходная траектория ботов закреплена точными числами. Независимая дифференциальная проверка12 полных гонок совпала на11028 шагах;60 deeply-frozen вызовов не меняют входы. Это математическая проверка доступности маршрута, не ручной native финиш. Новый полный harness и доставка еще не заявлены.
+
+## Короткий экран и переход SRC к теме
+
+На390x844 свободный вход нового sailing449cc0748462 сразу показал3D, море, лодку и отдельные штурвалы: [13](checks/13-free-trim-3d-mobile.png). На320x568 обнаружено перекрытие кнопок ракурса с метриками: [14](checks/14-short-trim-overlap-before.png). Исправление переносит ракурсы в существующую панель Вид; scene не переполняет выделенную высоту, вкладки имеют минимум44px. Это отдельное исправление после математического planner checkpoint.
+## SRC topic routing correction
+
+N06/R06: the installed SRC router now carries the theory chapter hash alongside its query and bounded internal history. A question's Review topic link opens its mapped chapter. Selecting another chapter replaces that current theory entry; leaving and using internal Back restores the selected chapter and saved scroll position. If an anchor is not present in the rendered page, navigation returns to the saved or top position instead of retaining an unrelated page's scroll. The regular website keeps its existing browser hash behavior.
+
+Source evidence: `src/lib/radio-navigation.ts`, `src/app/radio/runtimeSearch.ts`, `src/app/radio/teoria/page.tsx`, `mobile/scripts/offline-radio/router.tsx`. Focused navigation coverage includes replace/query/hash/scroll/Back; all 229 radio tests in 18 files pass. TypeScript for web and the offline entry, scoped lint and catalog freshness pass. Catalogs contain 3734 resources and 7391 aliases; the only added catalog value is a technical route event identifier, identical in all seven languages. Learning content, question IDs, answer keys and progress formats are unchanged.
+
+The existing native-bundle E2E recipe now covers Theory -> DSC questions -> Review topic -> DSC chapter, another chapter selection, Practice and the bounded native Back event. This recipe was updated but has not been executed by the SRC source agent. The exact regenerated HTML and installed native chapter/Back acceptance must be recorded separately by the release owner.
+
+## Final3 source и browser checkpoint
+
+1055 web tests/118 files, web TypeScript и lint (0 errors,15 existing warnings) PASS. Полный mobile check:435 tests/68 suites,9 release-tool tests, TypeScript/native lint/content и все пакеты PASS. Production build PASS; unchanged JS budget6.48MB/6.5MB, largest0.94MB/2MB. Live WS contracts4/4 PASS предыдущего exact engine source. Финальные пакеты: sailing3efe0c001bbf, radio11be678647b3, Sternikc05376f4c523.
+
+CUA повторил final sailing в browser320x568,390x844,844x390. Нет page horizontal overflow; canvas320x123,390x399,landscape464x345. На коротком экране [15](checks/15-short-trim-after.png) ракурсы не перекрывают метрики, вкладка Ещё44x44. View открывается в reserved bottom panel, выбор Палуба работает и закрывает панель. Landscape [16](checks/16-trim-landscape.png) оставляет море слева, приборы и штурвалы справа. Итоговый390 [17](checks/17-free-trim-final-mobile.png) подтверждает3D по умолчанию. Это browser проверка installed HTML, не physical touch/FPS acceptance.
+
+## Реальный native finish и сохраненная цепочка
+
+Release Simulator с sailing449cc0748462 вручную проведен через старт, знак и финиш:1:18.3,1/3,coach85/100. [18](checks/18-native-manual-finish.png) показывает подтверждение Гонка сохранена на устройстве. Использовались видимый course slider, реальные подсказки, паузы для чтения и собственный выбранный180deg на заключительном участке. Не вводился synthetic race-finished, позиция/воротца не подменялись. Это Simple, не проверка полного manual Pro finish.
+
+Проверено Result -> inline3D replay -> Back возвращает Result; Result -> native History содержит1:18/85; History -> saved replay открывает3D [19](checks/19-native-saved-replay.png), Back возвращает History; History -> Coach показывает85/100 и ту же гонку; Сыграть еще открывает новую гонку. Сохранение после перезапуска и повторная установка exact final3 еще проверяются отдельно. Математика гонки между449 иfinal3 неизменна; измененияfinal3 касаются компактных ракурсов трима и SRC chapter routing.

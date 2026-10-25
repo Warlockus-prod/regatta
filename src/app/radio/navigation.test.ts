@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { confirmRadioLeave, initialRadioHref, parseRadioRoute, popRadioRoute, pushRadioRoute, RADIO_FREE_HREF, RADIO_GUIDED_HREF, radioHref, radioLeaveCopy, radioNavigationScript, setRadioExamDirty } from "./navigation";
+import { confirmRadioLeave, initialRadioHref, parseRadioRoute, popRadioRoute, pushRadioRoute, replaceRadioRoute, RADIO_FREE_HREF, RADIO_GUIDED_HREF, radioHref, radioLeaveCopy, radioNavigationScript, setRadioExamDirty } from "./navigation";
+import { radioRuntimeHash, radioRuntimeSearch } from "./runtimeSearch";
 
 afterEach(() => vi.unstubAllGlobals());
 describe("installed SRC navigation", () => {
@@ -30,6 +31,28 @@ describe("installed SRC navigation", () => {
     expect(() => radioNavigationScript("navigate", "https://outside.test")).toThrow();
     expect(radioNavigationScript("navigate", RADIO_GUIDED_HREF)).toContain(JSON.stringify({ href: RADIO_GUIDED_HREF }));
     expect(radioNavigationScript("back")).toContain("regatta:radio-back");
+  });
+  it("replaces a selected chapter in the same history entry and restores its query, hash and scroll on Back", () => {
+    let history = [parseRadioRoute(RADIO_FREE_HREF)!];
+    history = pushRadioRoute(history, "/radio/teoria?lang=de#radio-system", 60);
+    history = replaceRadioRoute(history, "/radio/teoria?lang=de#dsc");
+    expect(history).toHaveLength(2);
+    expect(radioHref(history[1])).toBe("/radio/teoria?lang=de#dsc");
+    history = pushRadioRoute(history, "/radio/test?chapter=dsc", 840);
+    history = popRadioRoute(history);
+    expect(history[1]).toMatchObject({ search: "?lang=de", hash: "#dsc", scroll: 840 });
+    expect(radioHref(popRadioRoute(history)[0])).toBe(RADIO_FREE_HREF);
+    expect(replaceRadioRoute(history, "https://outside.test")).toEqual(history);
+    expect(replaceRadioRoute([], "/radio/teoria#dsc")).toHaveLength(1);
+  });
+  it("uses the installed route query/hash without stale file-document hashes and retains normal web behavior", () => {
+    const location = { search: "?lang=en", hash: "#old-chapter" };
+    vi.stubGlobal("window", { location });
+    expect(radioRuntimeHash()).toBe("#old-chapter");
+    expect(radioRuntimeSearch()).toBe("?lang=en");
+    vi.stubGlobal("window", { location, __REGATTA_OFFLINE_SEARCH__: "?lang=de", __REGATTA_OFFLINE_HASH__: "#dsc" });
+    expect(radioRuntimeHash()).toBe("#dsc");
+    expect(radioRuntimeSearch()).toBe("?lang=de");
   });
   it("confirms once per link gesture and keeps a cancelled or failed navigation protected", async () => {
     const confirm = vi.fn().mockReturnValueOnce(false).mockReturnValue(true), postMessage = vi.fn();

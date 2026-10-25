@@ -978,9 +978,10 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 
 `docs/audits/2026-10-24/implementation-harness.md` coordinates model, offline app, cockpit, radio adaptation, site sync and ordered releases. `docs/audits/2026-10-24/audit.md` and domain reports preserve the branch/release evidence and visual baseline. App and site release branches share source modules; release cadence does not duplicate the physics/content.
 
-- `src/lib/race-guidance.ts` computes route, tack and turn advice without mutating a race.
+- `src/lib/race-guidance.ts` retains independent advisory tack/recovery memory at 10Hz, using the shared stadium planner without steering or mutating the boat. Unsupported courses return no route.
+- `src/lib/race-guidance.integration.test.ts` follows the displayed recommendation through real start/mark/finish gates at four input cadences and four wind conditions; preserves legacy bot trajectory exactly.
 - `src/lib/race-rules.ts` owns educational events, conservative right-of-way advice, early starts, mark contact and optional custom time penalties.
-- `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior.
+- `src/lib/race-physics.ts` accepts explicit manual trim/deployment and opt-in responsive solo steering (ADR-0009), preserving default bot/server behavior. Its additive raceAutopilotPlan exposes route geometry; bots retain radius80/lookahead40, responsive-player advice uses75/30. Neither VPP constants nor accelerated race travel changes.
 
 - `src/features/trainer-controls/ReservedPanel.tsx` portals auxiliary views/settings into the existing controls area. `TrainerWorkspace` preserves the scene rectangle; inline callbacks do not restart focus effects.
 - `src/features/race-scene/guidance.ts` builds a pure water-route ribbon and direction markers; RaceScene displays it only when guidance is supplied. The old target-circle and no-go overlays are removed from the race scene.
@@ -1132,3 +1133,8 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/data/foundation-copy.ts` - общие короткие подписи шагов и возврата, без импорта всех учебных объяснений в каждый toolbar.
 
 - RaceCockpit notice keeps actual/suggested course visible in its reserved panel during pause/countdown/rule messages; primary Restart/Resume uses the common action accent. This UI checkpoint does not certify complete physical-scale parity or successful manual race completion.
+
+Free-trim acceptance correction2026-10-25: `src/features/simulator-v3/ui/shared.tsx` defines FREE_TRAINER_UI with view3d; `src/features/simulator-v3/SimulatorV3Page.tsx` applies it only to free entry, share-link defaults and free reset. DEFAULT_UI remains the instructional baseline, lesson presets and stored checkpoint ui retain their explicit views. Informational values in `src/features/simulator-v3/ui/MetricsStrip.tsx` use neutral colors; selected actions retain cyan.
+
+- `src/features/simulator-v3/ui/TrainerBoat3D.test.tsx` checks controlled camera preset rendering, preservation of session input and absence of overlaid camera buttons. Compact camera presets live in the existing reserved View panel; short portrait scenes cannot overflow the metric strip and shared dock tabs retain44px minimum width.
+- SRC offline navigation stores hash/query/chapter selection in its bounded internal history through `src/lib/radio-navigation.ts` and `src/app/radio/runtimeSearch.ts`; `mobile/scripts/offline-radio/router.tsx` publishes route changes before child render. `src/app/radio/teoria/page.tsx` replaces the selected chapter in the current entry, so Review topic and Back restore the correct chapter without new artificial history steps.

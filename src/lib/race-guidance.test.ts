@@ -98,18 +98,18 @@ describe("read-only race route guidance", () => {
     expect(guidanceToTarget(b, { x: 100, y: -100 }, 0).action).toBe("tack");
     expect(guidanceToTarget({ ...b, heading: 225 }, { x: 100, y: 100 }, 0).action).toBe("gybe");
   });
-  it("offers a sailable upwind course and keeps the current tack instead of pointing into no-go", () => {
+  it("commits a sailable upwind course using the shared corridor and leaves the boat unchanged", () => {
     const b = boat({ heading: 315 });
     const before = structuredClone(b);
-    const hint = raceGuidance(b, course, 0);
+    const hint = raceGuidance(b, course, 0)!;
     expect(hint.targetInNoGo).toBe(true);
-    expect(hint.suggestedHeading).toBe(315);
+    expect(hint.suggestedHeading).toBe(45);
     expect(hint.tack).toBe("starboard");
     expect(b).toEqual(before);
   });
   it("guides an early starter back before the line without mutating the boat", () => {
     const b = boat({ pos: { x: 400, y: 1020 }, started: false, heading: 90 });
-    const hint = raceGuidance(b, course, 0);
+    const hint = raceGuidance(b, course, 0)!;
     expect(hint.leg).toBe("return-start");
     expect(hint.action).toBe("return-start");
     expect(hint.target.y).toBeGreaterThan(course.startLine.a.y);
@@ -117,14 +117,14 @@ describe("read-only race route guidance", () => {
   });
   it("follows all three port-rounding gates, then the finish", () => {
     const b = boat({ pos: { x: 460, y: 180 }, heading: 315, roundPhase: 1 });
-    const north = raceGuidance(b, course, 0);
+    const north = raceGuidance(b, course, 0)!;
     expect(north.leg).toBe("round-port");
-    expect(north.target.x).toBeLessThan(course.marks[0].pos.x);
+    expect(north.target.x).toBe(course.marks[0].pos.x);
     expect(north.target.y).toBeLessThan(course.marks[0].pos.y);
     b.roundPhase = 2;
-    expect(raceGuidance(b, course, 0).target.y).toBeGreaterThan(course.marks[0].pos.y);
+    expect(raceGuidance(b, course, 0)!.target.y).toBeGreaterThan(course.marks[0].pos.y);
     b.lapDone = 1;
-    expect(raceGuidance(b, course, 0).leg).toBe("finish");
+    expect(raceGuidance(b, course, 0)!.leg).toBe("finish");
     b.lapDone = 2;
     expect(raceGuidance(b, course, 0)).toMatchObject({ leg: "complete", distance: 0, action: "hold" });
   });
