@@ -7,6 +7,7 @@
 
 ## Current completion work
 
+- Active63 reopened for the owner's finger-rotated DIAL, visible moving index, mandatory web arrows and a bounded local diagnostic journal across radio/controls/embedded startup/navigation. The first1b92567 archive passed33checks but was not exported/uploaded; it is preserved externally as native-archive63-1b92567. Source/new native acceptance must freeze again before any delivery.
 - Active63 UI/SRC checkpoint: `docs/audits/2026-10-25/release63-harness.md`. Radio status gets a reserved compact row, real guide strings omitted by the scanner get all7 adaptations, guided Back copy matches its existing route, Foundation gutters and neutral Sternik information are aligned. This is not a delivered binary until exact native/ASC gates. Physical API foundationa01c31a is committed but new racing motion/emission remains disabled.
 
 - Following physical-course work starts with a pure API/kinematics checkpoint under `docs/audits/2026-10-25/physical-courses-next.md`. Its registry alone is not a playable physical race. Keep versioned metadata, PB/replay/native/server classes ahead of any new result emission; multiplayer/no-context engine defaults remain legacy. Delivered62 still refers only to sourcee3d70a1.

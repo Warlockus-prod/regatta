@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Fixed browser Back after a language link: clearing the language query now preserves navigation history, so the free radio page can restore instead of leaving the lesson mounted under its URL.
+
 - Gave the shared3D replay browser case120s after its real camera selection passed at57.9s and the storage check met the former60s deadline. All readiness, recording, playback, camera and geometry assertions remain. The simulator smoke now retains actual error stacks in its private synthetic CI report; product telemetry is unchanged.
 
 - Gave radio status its own readable row below the compact toolbar, filled eight missing guide headings and three control descriptions in every SRC language, and made Back labels match the current return route. Aligned introductory lesson-list margins and neutral Sternik information colors. Candidate63 retains the62 progress-preserving startup repair; installed/native delivery gates follow separately.

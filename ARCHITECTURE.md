@@ -1169,3 +1169,5 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 - `docs/audits/2026-10-25/release63-harness.md` owns the bounded SRC layout/guide-copy, Foundation gutter and Sternik information checkpoint, native verification and separate website gates.
 
 - `docs/audits/2026-10-25/checks/website62-runtime-gate.json` is the portable72b4f57 publication, immutable image/runtime and red final browser-gate record. Healthy deployment and targeted manual UI do not replace successful full acceptance.
+
+- Language URL cleanup in `src/lib/i18n.tsx` preserves browser history state. Removing a lang query must not replace App Router metadata with null: that can change the Back URL while leaving the previous React screen mounted. The seven SRC course-return browser cases cover this flow.

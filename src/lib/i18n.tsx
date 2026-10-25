@@ -93,8 +93,10 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
             const clean = new URL(window.location.href);
             clean.searchParams.delete('lang');
             const newSearch = clean.searchParams.toString();
+            // Keep the framework's navigation state. Replacing it with null
+            // makes browser Back change the URL without restoring the page.
             window.history.replaceState(
-              null,
+              window.history.state,
               '',
               clean.pathname + (newSearch ? '?' + newSearch : '') + clean.hash,
             );
@@ -174,10 +176,10 @@ export function I18nProvider({ children, initialLang }: { children: ReactNode; i
  * Nests a provider that FORCES the effective display language for its subtree,
  * while `setLang` still drives the real site-wide language (the global picker
  * keeps working - it lives outside any scope). Use for a section that only
- * exists in a subset of languages: e.g. the motorowodny section (sternik +
- * radio) is authored in Polish (default) and Russian, so any non-RU visitor is
- * shown Polish rather than a half-translated mix. All existing `tp(ru,en,pl)`
- * calls inside resolve against the forced language automatically.
+ * exists in one language: the Sternik course deliberately stays Polish.
+ * SRC uses its separate seven-language RadioLocaleProvider and must not be
+ * forced into Sternik's language. Existing `tp(ru,en,pl)` calls inside this
+ * scope resolve against the explicitly forced language.
  */
 export function I18nScope({ lang: forced, children }: { lang: Lang; children: ReactNode }) {
   const parent = useI18n();
