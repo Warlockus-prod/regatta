@@ -28,7 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight 1.7.0 (60). Candidate61 проходит повторную приемку; доставка60 не означает завершения всего аудита. Свой CI-джоб и гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight1.7.0(61), source37c7079, exactSelf VALID/IN_BETA_TESTING. Доставка61 не означает завершения всех65 требований; сайт удержан pre-deploy gate, физические short/long трассы согласованы для62. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -1141,3 +1141,5 @@ Free-trim acceptance correction2026-10-25: `src/features/simulator-v3/ui/shared.
 
 - `src/app/radio/teoria/sectionLabels.ts` defines all12 Learn/Exam section headings explicitly in seven languages; `src/app/radio/teoria/sectionLabels.test.ts` checks all84 labels against actual locale catalogs and source usage. These are adapted UI, not original Polish exam text.
 - `src/app/radio/weakSpots.test.ts` protects filtering before limits, scoped SRC reset and preservation of complete Sternik oral records in the shared existing storage key. `src/app/radio/WeakSpotsPanel.tsx` uses the same optional scope for list and reset; default unscoped callers keep their previous behavior.
+
+61 delivery/current acceptance: `docs/design/mobile/testflight61-2026-10-25.md`, `docs/audits/2026-10-25/acceptance61.md`, `docs/audits/2026-10-25/checks/native61-delivery.json`. Actual UI/source/delivery proofs remain separate. The original build60 baseline stays immutable.

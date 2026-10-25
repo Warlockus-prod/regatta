@@ -1,0 +1,30 @@
+[
+  {
+    "key": "regatta.learning.bookmark.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.progress.bootcamp.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.progress.bootcamp.lastViewed.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.bootcamp-quiz.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.review.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.sternik.offline.web-storage.v1",
+    "sameBytes": true
+  },
+  {
+    "key": "regatta.firstLaunch.v1",
+    "sameBytes": true
+  }
+]

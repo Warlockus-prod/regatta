@@ -1,6 +1,8 @@
 # Mobile build journal
 
-Operational check dated 2026-10-24: public 1.6.4 (48) is READY_FOR_SALE.
+Operational check dated2026-10-25: build61 from37c7079 is VALID and IN_BETA_TESTING in Self, all8notes verified15:35:51UTC. See `docs/design/mobile/testflight61-2026-10-25.md`. Website publication remains blocked by pre-deploy browser checks; physical-scale courses are approved for62.
+
+Historical check dated 2026-10-24: public 1.6.4 (48) is READY_FOR_SALE.
 Build 58 was confirmed VALID and in Self before this release. Build 59 from
 `d30020a2a75611192bac8d2a6f806966ddedff59` passed Apple validation and upload,
 but Apple import failed with 90683 (missing NSPhotoLibraryUsageDescription).
@@ -17,6 +19,7 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 61 | 1.7.0 | `37c7079f758cf06e0bab2c8de307bd4008f527cc` | Self, VALID / IN_BETA_TESTING (2026-10-25 15:35:51 UTC) | Close free Orbit, direct SRC practice/Back, free trim3D default, feasible route advice, reserved short-screen panels, complete section headings7languages and scoped SRC mistakes. Actual Simple finish78.3s, History/replay/coach/restart, finalPro manualwheel and camera, repeatedSRC exit, upgrade26.5 preserving7values. Physical/fullmatrix/site/publicAppReview remain separate. |
 | 60 | 1.7.0 | `8e397217c477e2af46c8a43cef8f22b9f8c8de65` | Self, VALID / IN_BETA_TESTING (2026-10-24 18:50 UTC) | Complete installed 3D racing and seven-language SRC release described in59, plus the native Back to races menu link and seven-language Photos SDK purpose description. Apple import VALID, eight TestFlight notes locales verified. All six CI checks pass: web972/100, native402/65. Release launch27/upgrade26.5/iPad, seven saved values retained. Physical phone installation is not asserted. |
 | 59 | 1.7.0 | `d30020a2a75611192bac8d2a6f806966ddedff59` | Apple import FAILED90683, not distributed (2026-10-24) | One installed shared 3D solo race, Simple auto trim and manual Pro, trainer wheels, sail deployment, route and trim advice, optional educational penalties, durable history and shared 3D replay. Seven-language installed SRC with local speech and typed practice; installed Polish Sternik with typed oral checks; bundle-first Basics and Anatomy. Source Sans3 fonts and protected utility panels. All six CI checks pass: 964 web and 400 native tests. |
 | 58 | 1.7.0 | branch `claude/testflight-radio` (`claude/polish-1.7.0` at `d8e4bd0` plus PR #79 and #80, plus the build number) | Self (TestFlight, 2026-10-24) | Build 57 plus the SRC radio trainer rework: the radio stays pinned while the task panel scrolls (simulator, Obsługa lessons, live conversation), the course has four tabs (Kurs, Teoria, Trening, Egzamin) and one Trening list, the trainer runs in the app language (7 languages) and every run is in a random venue (Gulf of Gdańsk, the Solent, Bay of Palma, Bodrum). While the work screen is open the app hides the "SRC Radio" header and the tab bar. Offline bundle rebuilt (1791 KiB). Checked as a Release build on iPhone 18 Pro, iOS 27: English trainer from the English app, header and tab bar hidden in a scenario and back on Exit. The online radio pages show the new layout only after PR #79 and #80 are deployed. |

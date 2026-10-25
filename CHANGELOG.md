@@ -12,6 +12,7 @@
 - Website image publication and deployment now explicitly require main, so a manual run on another branch or tag performs checks without changing production. The confined server policy and credentials are unchanged.
 
 - Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.
+- Delivered1.7.0(61) to Self with Apple VALID processing, verified membership/readiness and8notes. It includes the reviewed3D camera, radio/navigation, route advice and language corrections. Public website/AppReview and the next physical-scale short/long course stage remain separate.
 
 - Finished adapting12 SRC theory section headings in all seven languages. Radio mistakes and their Reset now stay within SRC, preserving saved Polish Sternik oral practice.
 
