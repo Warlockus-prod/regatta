@@ -95,12 +95,16 @@ test("mobile rig workspace keeps the boat state across camera and panel changes"
   // Coming from a lesson, the control dock opens on the task.
   const dock = page.getByTestId("control-dock");
   await expect(dock.getByRole("tab", { name: "Task" })).toHaveAttribute("aria-selected", "true");
-  await expect(page.getByText("Observe: mainsail shape")).toBeVisible();
+  const task = dock.getByRole("tabpanel", { name: "Task", exact: true });
+  await expect(task.getByText("MAINSHEET AND TRAVELER", { exact: true })).toBeVisible();
+  await expect(page.getByText("Change one control. Compare boom angle, twist, heel and settled speed.", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "FREE SAIL", exact: true })).toHaveCount(0);
   const scene = page.getByTestId("trainer-scene");
-  const length = page.getByRole("slider", { name: /Mainsheet: paid-out working length/ });
+  const length = task.getByTestId("main-trim-primary").getByRole("slider", { name: /^Mainsheet(?:\s|$)/ });
+  await expect(length).toHaveValue("9");
   await length.focus();
-  await length.press("ArrowRight");
+  for (let step = 0; step < 20; step++) await length.press("ArrowRight");
+  await expect(length).toHaveValue("11");
   const changed = await length.inputValue();
   // Views and pause slide out from the side of the scene.
   const views = page.getByTestId("scene-view-button");
@@ -126,6 +130,7 @@ test("mobile rig workspace keeps the boat state across camera and panel changes"
   await expect(page.getByRole("status")).toContainText("Restored and paused");
   await dock.getByRole("tab", { name: "Task" }).click();
   await expect(length).toHaveValue(changed);
+  await expect(length).toHaveValue("11");
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(errors).toEqual([]);
 });

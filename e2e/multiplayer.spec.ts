@@ -40,7 +40,9 @@ test.describe('Multiplayer smoke', () => {
   });
 
   test('create lobby + guest joins by code', async ({ browser }) => {
-    test.setTimeout(60_000);
+    // Two real 3D contexts exhausted 60s at dock geometry after keyboard and
+    // positive WebSocket input had passed. Keep the complete interaction flow.
+    test.setTimeout(120_000);
     const host = await browser.newContext({ locale: 'ru-RU' });
     const guest = await browser.newContext({ locale: 'ru-RU' });
 

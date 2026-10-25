@@ -17,6 +17,7 @@ test("shared world-space replay uses the same 3D scene and exact recording timel
   const replay = page.getByTestId("race-replay-3d");
   await expect(page.getByTestId("shared-replay-3d")).toBeVisible();
   await expect(replay.locator("canvas")).toBeVisible({ timeout: 45_000 });
+  await expect(replay.locator('[data-scene-startup="ready"]')).toBeVisible({ timeout: 45_000 });
   const timeline = replay.getByRole("slider");
   await expect(timeline).toHaveAttribute("min", "0");
   await expect(timeline).toHaveAttribute("max", String(finish));
@@ -26,7 +27,10 @@ test("shared world-space replay uses the same 3D scene and exact recording timel
   await expect(page.getByText(/Результат 1:34\.0/)).toBeVisible();
   await page.getByRole("button", { name: "2×", exact: true }).click();
   await expect(page.getByRole("button", { name: "2×", exact: true })).toHaveAttribute("aria-pressed", "true");
-  await replay.getByRole("button", { name: "Камера", exact: true }).click();
+  const camera = replay.getByRole("combobox", { name: "Камера", exact: true });
+  await camera.selectOption("high");
+  await expect(camera).toHaveValue("high");
+  await expect.poll(() => page.evaluate(() => localStorage.getItem("regatta.race.camera.v1"))).toBe("high");
   await page.setViewportSize({ width: 390, height: 844 });
   const canvas = await replay.locator("canvas").boundingBox();
   const controls = await timeline.boundingBox();

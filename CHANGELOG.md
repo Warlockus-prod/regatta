@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Website pre-deploy checks now include sailing lessons and shared replay. Updated their browser contracts to the compact Task controls and actual camera selector, retaining real9m-to-11m keyboard input, pause, checkpoint and playback checks. Only the two-client multiplayer case receives120s after its60s deadline expired following verified helm input; global budgets and publication privileges are unchanged. Combined browser verification is still pending.
+
 - Gave three real 3D browser flows individual 120s budgets after cloud traces showed valid controls, pause and rendered scenes exhausting the former 30/60s limits. The trainer still must report its actual first rendered frame within 45s; every interaction and assertion remains in place, with no global timeout or app-runtime change.
 
 - Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.

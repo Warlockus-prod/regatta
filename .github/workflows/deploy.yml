@@ -92,11 +92,13 @@ jobs:
             echo "FAIL: app did not become healthy in 40s"; kill $APP_PID 2>/dev/null || true; exit 1
           fi
           set +e
-          # Smoke, foundation, radio layouts and offline practice before publication.
+          # Smoke, foundation, sailing lessons, replay, radio layouts and offline
+          # practice before publication. Lesson and replay contracts must pass
+          # on the candidate instead of first being exercised on production.
           # Excludes the AI chat test (needs a live LLM key -
           # covered post-deploy on prod) and multiplayer.spec (needs the ws
           # server + prod nginx /ws upgrade, also covered post-deploy).
-          npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
+          npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/sailing-learning.spec.ts e2e/replay.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
           RESULT=$?
           set -e
           kill $APP_PID 2>/dev/null || true

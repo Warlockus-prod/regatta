@@ -190,6 +190,13 @@ npm run check:map            # карта проекта актуальна
   Те же сценарии входят в pre-deploy E2E до публикации образов: настоящий квиз,
   черновик/reload, отказ записи/retry и возврат из практики. Это не приемка
   установленного приложения или всей матрицы устройств/языков.
+- Pre-deploy E2E также включает курс парусов и shared replay. Проверки используют
+  реальные Task controls, изменение длины9m->11m, сохранение/восстановление и
+  select камеры; первый настоящий кадр3D остается обязательным. Только
+  двухклиентный multiplayer case получает120s по production report: keyboard
+  и положительный WS input прошли, затем60s истекли на геометрии дока.
+  Non-main workflow_dispatch проверяет candidate без публикации/деплоя.
+  Изменение тестов не означает, что следующий browser gate уже пройден.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
