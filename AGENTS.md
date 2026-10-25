@@ -17,7 +17,7 @@
 - Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
 - Native Sternik theory, tests, exams and typed oral practice use the installed Polish package. SRC and Sternik snapshots become authoritative only after durable storage; preserve first-use WebKit migration and Clear all data semantics.
 - Basics and Anatomy are also bundle-first, with their simplified native recovery screens retained.
-- SRC adapts to seven languages, sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
+- SRC adapts to seven languages, including explicit theory section headings. Its weak-spots panel and Reset are scoped to SRC and preserve saved Sternik oral mistakes. Sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
 
 ## Что это
 

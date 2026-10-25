@@ -191,3 +191,9 @@ translation must not invent a different country's examination procedure.
 The installed host and website now share the bounded route/exit copy in `src/lib/radio-navigation.ts`; the web compatibility entry is `src/app/radio/navigation.ts`. New practice navigation uses explicit free practice, guided learning, course and scenario actions. Exit prompts and native labels are supplied in all seven languages. English operating protocols and the source question options remain literal. Native leaderboard copy separately explains why offline races do not appear globally.
 
 The resource catalog is rebuilt from current sources; its count can decrease when obsolete aliases or shared route copy move out of the radio extraction tree. Counts alone do not establish translation or installed UI acceptance. Fresh source/package and device evidence is recorded in `docs/audits/2026-10-25/corrections.md`.
+
+## 2026-10-25 actual UI corrections
+
+Theory section labels passed as component props were not in the original lookup catalog. The12 shared Learn/Exam labels now live in `src/app/radio/teoria/sectionLabels.ts` with explicit seven-language copy and84 catalog-backed checks in `src/app/radio/teoria/sectionLabels.test.ts`. Current catalog:3746 resources,7475aliases, missing0 inall7. CUA switched the installed94a299b1fcf4 package through all7 languages: all nine Learn headings and the comprehension heading follow the selected language with no horizontal overflow. This is not a full visual audit of all324questions. Official English phrases and expandable Polish originals retain their roles.
+
+The course-home weak-spots list is scoped to SRC before applying the six-item limit; its Reset clears the same scope. Shared saved Sternik oral records are preserved. Source contract and persistence are covered by `src/app/radio/weakSpots.test.ts`.
