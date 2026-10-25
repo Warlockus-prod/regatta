@@ -3,8 +3,8 @@ import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
 import { stepBoat, windAt, type RaceBoat } from "./race-physics";
 
 describe("solo race timing on slower displays", () => {
-  it("steers and sails identically at 10, 15, 30, 60 and 120 FPS", () => {
-    const runs = [10, 15, 30, 60, 120].map(fps => {
+  it("steers and sails identically at 2, 3, 5, 10, 15, 30, 60 and 120 FPS", () => {
+    const runs = [2, 3, 5, 10, 15, 30, 60, 120].map(fps => {
       const clock = createFixedClock();
       const boat: RaceBoat = { id: "player", name: "Test", color: "#00d4ff", pos: { x: 400, y: 900 }, heading: 60, speed: 4, lapDone: 0 };
       let time = 0;
@@ -29,6 +29,7 @@ describe("solo race timing on slower displays", () => {
     expect(time).toBeCloseTo(.1);
     clock.advance(100000, false, tick); clock.advance(100100, false, tick);
     expect(time).toBeCloseTo(.1);
+    clock.synchronize(100100, true);
     clock.advance(100200, true, tick);
     expect(time).toBeCloseTo(.2);
   });

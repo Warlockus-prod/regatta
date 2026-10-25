@@ -4,8 +4,8 @@ import { engineTrimFromEase, openPercentToFurl, sheetEaseToEngine } from "./trim
 import { createInitialState, getBoatParams, tick } from "../../../lib/sailing-physics";
 
 describe("sailing session clock", () => {
-  it("produces identical boat state at 15, 30, 60 and 120 display FPS", () => {
-    const runs = [15, 30, 60, 120].map(fps => {
+  it("produces identical boat state at 2, 3, 5, 10, 15, 30, 60 and 120 display FPS", () => {
+    const runs = [2, 3, 5, 10, 15, 30, 60, 120].map(fps => {
       const clock = createFixedClock();
       let state = createInitialState({ tws: 12, twa: 90, boatSpeed: 5 });
       const controls = engineTrimFromEase({ mainEase: 0.6, jibEase: 0.8, reef: 0 });

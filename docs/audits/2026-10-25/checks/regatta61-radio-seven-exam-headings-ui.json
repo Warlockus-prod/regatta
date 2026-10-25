@@ -1,0 +1,65 @@
+[
+  {
+    "headings": [
+      "🎯Das Wesentliche für die Prüfung",
+      "🧠Begriffe unterscheiden",
+      "✅Verwandte Themen der UKE-Fragenbank"
+    ],
+    "lang": "de",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯Exam essentials",
+      "🧠Concepts to distinguish",
+      "✅Related UKE question topics"
+    ],
+    "lang": "en",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯Lo esencial para el examen",
+      "🧠Conceptos que debes distinguir",
+      "✅Temas relacionados del banco UKE"
+    ],
+    "lang": "es",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯L'essentiel pour l'examen",
+      "🧠Notions à distinguer",
+      "✅Thèmes associés de la banque UKE"
+    ],
+    "lang": "fr",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯Punti essenziali per l'esame",
+      "🧠Concetti da distinguere",
+      "✅Argomenti correlati della banca UKE"
+    ],
+    "lang": "it",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯Sedno na egzamin",
+      "🧠Pojęcia, które trzeba rozróżnić",
+      "✅Powiązane obszary banku UKE"
+    ],
+    "lang": "pl",
+    "overflow": false
+  },
+  {
+    "headings": [
+      "🎯Суть для экзамена",
+      "🧠Понятия, которые нужно различать",
+      "✅Связанные темы базы UKE"
+    ],
+    "lang": "ru",
+    "overflow": false
+  }
+]

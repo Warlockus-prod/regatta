@@ -28,7 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight 1.7.0 (60). Candidate61 проходит повторную приемку; доставка60 не означает завершения всего аудита. Свой CI-джоб и гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight1.7.0(61), source37c7079, exactSelf VALID/IN_BETA_TESTING. Доставка61 не означает завершения всех65 требований; сайт удержан pre-deploy gate, физические short/long трассы согласованы для62. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -777,11 +777,11 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `ops/notify/asc-alert.sh` - управление launchd-задачей алерта.
 - `ops/notify/N8N_SUPPORT_SETUP.md` - настройка потока support@ в Telegram через n8n.
 - `ops/notify/regatta-support-email-to-telegram.workflow.json` - экспорт workflow n8n.
-- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима.
+- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены, глобальные defaults не меняются.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
-- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки.
+- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
 - `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд.
 
@@ -1006,6 +1006,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `src/features/sailing-lab/runtime/trim-coach.ts` provides pure shared trim advice and quality; `src/features/sailing-lab/runtime/trim-coach.test.ts` checks active-sail masks and downwind behavior.
 - `src/lib/race-trim-coach.ts` reads race force diagnostics without stepping time and returns shared trainer coaching keys; `src/lib/race-trim-coach.test.ts` checks per-sail luff/stall, deployment, downwind and immutable state.
 
+- `mobile/src/radio/startup-diagnostics.ts` - SRC startup attempt lifecycle, shared15s deadline and bounded session-only support codes; no storage contents, URL, message or stack retention. `mobile/__tests__/radio-startup-diagnostics.test.ts` verifies deadlines, stale callbacks, classifications and bounds.
 - `mobile/src/radio/local-speech.ts` validates the local SRC speech bridge, selects device voices, requests on-device recognition only, bounds sessions and cancels stale activity results. `mobile/src/radio/useLocalRadioSpeech.ts` binds its lifetime to the local WebView, focus and app state. `mobile/src/radio/README.md` specifies the contract and model-unavailable fallback.
 - `mobile/plugins/with-local-radio-speech.js` applies version/assertion-checked SDK54 native volume and local recognition patches. Fresh prebuild and binary are required. `mobile/__tests__/local-radio-speech.test.ts` and `mobile/__tests__/local-radio-speech-plugin.test.ts` protect permission hydration, cancellation, bounds and patch idempotence.
 
@@ -1038,7 +1039,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/__tests__/app-config.test.ts` - Native course and persistence regression.
 - `mobile/__tests__/offline-radio-asset.test.ts` - Native course and persistence regression.
 - `mobile/__tests__/webview-analytics-consent.test.tsx` - Native course and persistence regression.
-- `mobile/src/persistence/radio-storage.ts` - Local asset loading, routing or durable storage.
+- `mobile/src/persistence/radio-storage.ts` - Strict SRC snapshot allowlist and durable storage. Accepts the exact retired lang.v1 written by released48/49; preserves progress and app-language priority without accepting unknown keys.
 - `mobile/__tests__/radio-storage.test.ts` - Native course and persistence regression.
 - `mobile/scripts/build-sternik-offline.mjs` - Polish local course package and host.
 - `mobile/assets/sternik-offline.html` - Polish local course package and host.
@@ -1095,7 +1096,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 
 Повторная сверка утвержденного плана: `docs/audits/2026-10-25/plan-recheck.md`. Реализация, свежие скриншоты и незакрытые проверки: `docs/audits/2026-10-25/corrections.md`. Новые общие данные не меняют содержание native или коэффициенты physics.
 
-- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; выполнение отмечается отдельно.
+- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; минимум 44px для возврата сравнивается с точностью 0,001px из-за погрешности DOM geometry; выполнение отмечается отдельно.
 - `src/app/radio/navigation.ts` - совместимый экспорт общего контракта SRC из src/lib.
 - `src/app/radio/navigation.test.ts` - ограниченные маршруты, история и защита выхода из экзамена SRC.
 - `src/lib/radio-navigation.ts` - общий ограниченный контракт маршрутов SRC, native entry, Back, подтверждение выхода; Metro видит src/lib.
@@ -1141,3 +1142,9 @@ Free-trim acceptance correction2026-10-25: `src/features/simulator-v3/ui/shared.
 
 - `src/app/radio/teoria/sectionLabels.ts` defines all12 Learn/Exam section headings explicitly in seven languages; `src/app/radio/teoria/sectionLabels.test.ts` checks all84 labels against actual locale catalogs and source usage. These are adapted UI, not original Polish exam text.
 - `src/app/radio/weakSpots.test.ts` protects filtering before limits, scoped SRC reset and preservation of complete Sternik oral records in the shared existing storage key. `src/app/radio/WeakSpotsPanel.tsx` uses the same optional scope for list and reset; default unscoped callers keep their previous behavior.
+
+61 delivery/current acceptance: `docs/design/mobile/testflight61-2026-10-25.md`, `docs/audits/2026-10-25/acceptance61.md`, `docs/audits/2026-10-25/checks/native61-delivery.json`. Actual UI/source/delivery proofs remain separate. The original build60 baseline stays immutable.
+
+Checkpoint62 ordered work is `docs/audits/2026-10-25/release62-harness.md`: urgent SRC legacy-storage compatibility and bounded startup recovery, plus ADR-0010 foreground time/lifecycle and accessible slider names. Owner TestFlight screenshot60 shows failure before the radio mounts; an old lang.v1 snapshot reproduces that native read failure in60/61. Physical solo courses under ADR-0011 remain a following checkpoint. No physical course is enabled by this documentation.
+
+- `src/features/sailing-lab/runtime/clock-lifecycle.ts` anchors visibility boundaries even without hidden RAF/timer samples, and disposes stale clocks; `src/features/sailing-lab/runtime/clock-lifecycle.test.ts` verifies real helper timing/lifecycle contracts. Fixed clock accepts at most2seconds/60steps of foreground time and synchronizes ready/pause/enabled state without clearing cumulative ticks. GameClient publishes HUD from the final fixed-step batch.

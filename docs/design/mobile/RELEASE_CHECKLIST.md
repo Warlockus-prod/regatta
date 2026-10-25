@@ -43,6 +43,12 @@ instrument screens as they are, and do not report imaginary native modes. The
 embedded website separately supports its web themes. Retest changed
 screens and the main navigation on the exact release binary, with screenshots.
 
+## TestFlight hotfix delivery
+
+TestFlight delivery is separate from App Review submission. A hotfix must pass G0/G1, changed-screen installed Release acceptance and upgrade preservation under G2, an unused increasing build number, exact-source generated/archive/IPA checks, Apple validation and import VALID, matching localized beta notes and an independent GET confirming exact Self membership/readiness. Do not submit the public version or replace store assets as part of this delivery. G3 public-submission cleanup, G4 store metadata and G4b published privacy parity remain explicit public-release gates before G5, not claims implied by a TestFlight upload. A full product/device acceptance matrix remains separately qualified.
+
+For a radio upgrade fix, create real progress in the verified old public Simulator build through its UI; install the candidate over the same container without uninstall or Clear all data. Compare stored progress, open the instrument and exercise lesson/task/save/relaunch/Back. Include retired legitimate storage keys, language priority and classified Retry/Exit regressions. Use a new dedicated QA simulator for clean-install checks; never erase an existing user's or QA device's progress.
+
 ## The gate (run in order; all must be green)
 
 ### G0 - Content sync + version
