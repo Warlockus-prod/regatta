@@ -1095,7 +1095,7 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 
 Повторная сверка утвержденного плана: `docs/audits/2026-10-25/plan-recheck.md`. Реализация, свежие скриншоты и незакрытые проверки: `docs/audits/2026-10-25/corrections.md`. Новые общие данные не меняют содержание native или коэффициенты physics.
 
-- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; выполнение отмечается отдельно.
+- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; минимум 44px для возврата сравнивается с точностью 0,001px из-за погрешности DOM geometry; выполнение отмечается отдельно.
 - `src/app/radio/navigation.ts` - совместимый экспорт общего контракта SRC из src/lib.
 - `src/app/radio/navigation.test.ts` - ограниченные маршруты, история и защита выхода из экзамена SRC.
 - `src/lib/radio-navigation.ts` - общий ограниченный контракт маршрутов SRC, native entry, Back, подтверждение выхода; Metro видит src/lib.

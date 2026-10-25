@@ -72,7 +72,8 @@ test("immersive Basics, Trainer and Race preserve a visible course return outsid
     await expect(page).toHaveURL(new RegExp(`fromLesson=${id}`));
     const link = page.getByTestId("foundation-return");
     await expect(link).toBeVisible();
-    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    // DOM geometry can report 43.999992px for a 44px target. Keep millipixel precision.
+    expect(Number((await link.boundingBox())!.height.toFixed(3))).toBeGreaterThanOrEqual(44);
     await expect(link).toHaveAttribute("href", `/start?lesson=${id}&step=practice`);
     if (id !== "mini-race") {
       // It is a sibling of the workspace, never an absolute overlay on canvas.

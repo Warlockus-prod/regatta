@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- The foundation return test keeps the 44px minimum while comparing browser geometry to 0.001px precision, avoiding a false failure at 43.999992px. Course return, navigation and progress assertions remain unchanged.
+
 - Fixed foreground simulation time freezing at2-3FPS. Ready, pause, visibility and enabled boundaries exclude inactive time, while simulation keeps its1/30second step. Race sliders now expose their existing translated names to accessibility tools.
 
 - Preparing the next checkpoint: stable simulation time on slower foreground displays and accessible race sliders, followed by physical-scale short/medium/long solo courses approved by the owner. This is planned work, not a delivered62 release.
