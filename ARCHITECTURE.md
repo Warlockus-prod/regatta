@@ -1231,3 +1231,9 @@ product acceptance item has passed.
 - `src/lib/diagnostics-web.ts` - per-window browser journal and memory-only native WebView adapter.
 - `src/lib/diagnostics.test.ts` - privacy, event ranges, byte/entry bounds, coalescing and expiry regressions.
 - `src/lib/diagnostics.ts` - pure bounded journal, exact event schemas and validated persistence/transport codecs.
+
+The shared radio hardware stage disables text selection and iOS touch callouts
+for its faceplate/captions and cancels contextmenu. The DIAL button alone was
+already protected, but installed course holds could still select the nearby
+caption and cover controls. Teaching text and diagnostics lie outside this stage
+and keep selection/copy. The source6aaa110 candidate is preserved, never uploaded.

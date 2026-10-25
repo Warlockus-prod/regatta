@@ -137,3 +137,30 @@ requirements before the next delivered candidate, not completed features here.
   pre-exit diagnostic flush order are included. Source map now covers676
   tracked code files. ASC GET2026-10-25 20:31:36UTC still finds no build63;
  61known builds, latest62VALID, writes0.
+
+
+## Installed callout correction before delivery
+
+- Exact6aaa110 installed on the existing26.5 container with all7prior rows
+  byte-identical before first launch. PL Home/SRC1% and resumed lesson2 are
+  visible. Native held power, rim VOL16to20, centre drag20to16 and arrow17
+  work, with a moving marker and independent diagnostic dock scrolling.
+- Actual course holds exposed iOS Copy/Look Up/Translate selection on the
+  adjacent PWR caption, covering controls. Protect the whole hardware stage
+  (not only DIAL) with selection/callout suppression and contextmenu cancellation.
+  No learning text, journal copy, radio reducer, timing or physics changes.
+- The6aaa110 archive33 and Simulator27 checks passed. Export34/35 failed
+  only its invocation-log provenance guard: xcodebuild export does not itself
+  print the argv. Preserve that IPA/proof and log the actual next export
+  invocation before executing it, rather than fabricating a prior command.
+- The6aaa110 archive, IPA, logs and proofs are preserved with the source suffix;
+  no build63 has been uploaded. Rebuild/reinspect/retest corrected source, then
+  repeat exact-site browser provenance. Native clean27/journal copy remain open.
+
+- The hardware-only correction passes42focused radio checks, strict web types
+  and lint, full native472/71 plus9tools and all3package/content checks, catalog
+  validation, map676, typography and the6.49/6.5MiB production build. English
+  beta notes now explicitly place complete-app journal copy in Settings.
+- Corrected old-source SITE18592b5 safe60 is green:59first-pass plus1Pro
+  retry,0failures. All3actualSQL/rimVolume lessons and7locale utility/Back
+  contracts pass. It remains proof of6aaa110 only, not this callout correction.
