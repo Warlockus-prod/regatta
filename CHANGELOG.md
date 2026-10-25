@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Prepared one shared Trainer movement/turn helper and a versioned registry for short, medium and long physical courses. Current motion is preserved; the new race model is not enabled until saved records, replay and result classes support it.
+
 - Website pre-deploy checks now include sailing lessons and shared replay. Updated their browser contracts to the compact Task controls and actual camera selector, retaining real9m-to-11m keyboard input, pause, checkpoint and playback checks. Only the two-client multiplayer case receives120s after its60s deadline expired following verified helm input; global budgets and publication privileges are unchanged. Combined browser verification is still pending.
 
 - Gave three real 3D browser flows individual 120s budgets after cloud traces showed valid controls, pause and rendered scenes exhausting the former 30/60s limits. The trainer still must report its actual first rendered frame within 45s; every interaction and assertion remains in place, with no global timeout or app-runtime change.

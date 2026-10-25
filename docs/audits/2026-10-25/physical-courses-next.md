@@ -1,6 +1,6 @@
 # Следующий checkpoint: физический solo и выбор длины
 
-Статус: план следующей реализации, 2026-10-25. Решение владельца принято: движение и поворот как в Trainer, короткие и длинные дистанции. Ни новый физический adapter, ни профили120/300/600m пока не реализованы. Номер следующей сборки определяется отдельно; это не продолжение неизменяемой62.
+Статус: план следующей реализации, 2026-10-25. Решение владельца принято: движение и поворот как в Trainer, короткие и длинные дистанции. Игровой физический adapter пока не подключен. Фаза1 добавляет только общий helper и неактивный registry120/300/600m; playable courses, metadata integration и новые результаты еще не реализованы. Номер следующей сборки определяется отдельно; это не продолжение неизменяемой62.
 
 База runtime: `e3d70a18077b9f30509807f2106076fc476515bd`, TestFlight1.7.0(62). Доставка в exact Self подтверждена независимым GET17:09:17UTC. Доставленные60/61/62, их архивы, пакеты, сохранения и доказательства не меняются. Website publication и App Review имеют собственные открытые gates.
 
@@ -31,7 +31,7 @@ Clock stage0 уже завершен отдельным commit `fded2f1` и вк
 
 ## Фаза1: заморозить общий API до параллельной интеграции
 
-Это предложенные имена, не существующие новые файлы. После реализации pure слоя отправить точные exports всем lane owners; только затем начинать validators/UI/native/backend параллельно.
+Эти три pure-модуля теперь существуют в phase1 source checkpoint; их API заморожен ниже. Они не подключены к racing adapter и не разрешают physical result emission. Validators/UI/native/backend начинают integration после локального gate и rollback commit фазы1.
 
 | Предлагаемый модуль | Минимальный контракт |
 | --- | --- |
@@ -55,7 +55,9 @@ Parser принимает известные registry values, не произв�
 
 Новый physical record хранит context вместе с точной course geometry и timestamps. Geometry нового зарегистрированного class должна соответствовать canonical revision; labels локализуются отдельно. Replay использует сохраненную геометрию, а не последнюю factory. Legacy arbitrary world courses остаются читаемыми прежним parser.
 
-Gate фазы1: pure units/geometry/parsers и Trainer parity PASS; legacy engine пока не изменен; ни default, ни новый результат не переключен. Один rollback commit.
+Frozen exports: `SailingSteering`, `KNOT_METRES_PER_SECOND`, `HELM_TURN_RATE_DEG_PER_S`, `COURSE_ASSIST_TURN_RATE_DEG_PER_S`, `advanceSailingHeading`, `sailingDisplacement`; `PhysicalRaceProfile`, `RaceContext`, `LegacyRaceContext`, `PhysicalRaceContext`, `ReadRaceContext`, `RaceClassId`, `PHYSICAL_RACE_PROFILES`, `LEGACY_RACE_CONTEXT`, `physicalRaceContext`, `readRaceContext`, `raceClassId`; `PHYSICAL_COURSE_PROFILES`, `MetricRacePoint`, `PhysicalCourseDefinition`, `physicalCourseDefinition`, `makePhysicalRaceCourse`, `physicalFleetSpawns`. `readRaceContext` returns `{ok:true,context}` or `{ok:false,reason:"invalid"|"unsupported"}`. Metric points use `eastMetres/southMetres`.
+
+Gate фазы1:119targeted tests/9files PASS;600complete Trainer states exact JSON equal to untouched f883a19 before extraction, plus portable9-significant-digit trajectory digest and8readable high-precision checkpoints. Root full gate PASS:1107web tests/125files,452native tests/69suites plus9release tools, TS/lint/content/all3package freshness checks, production build and unchanged6.48/6.5MB budget. Sailing bundle rebuilt as3e5a21be32e3/196sources. [Portable phase1 proof](checks/physical-phase1.json). Legacy engine defaults, result emission, VPP, MP and all deployed binaries remain unchanged. This source foundation is not acceptance of full courses or recoveries.
 
 ## Фаза2: metadata и классы раньше physical emission
 
