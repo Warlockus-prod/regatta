@@ -1238,3 +1238,12 @@ for its faceplate/captions and cancels contextmenu. The DIAL button alone was
 already protected, but installed course holds could still select the nearby
 caption and cover controls. Teaching text and diagnostics lie outside this stage
 and keep selection/copy. The source6aaa110 candidate is preserved, never uploaded.
+
+### Delivered63 and following navigation instruments
+
+`docs/design/mobile/testflight63-2026-10-25.md` and
+`docs/audits/2026-10-25/checks/native63-delivery.json` pin source88fdaac and
+actual Self/native evidence. `docs/audits/2026-10-25/diagnostics63.md` owns
+coverage limits. `docs/audits/2026-10-25/acceptance63.md` retains all65rows
+and current qualified acceptance. Next64 adds race map/wind display and shared gear affordance;
+physical motion/classes and full product acceptance remain separate.

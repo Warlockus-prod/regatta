@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
+
 - Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.
 
 - Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.

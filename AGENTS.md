@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Delivered63 is immutable source88fdaac, tag testflight-1.7.0-63. Independent ASC GET21:53:34.798UTC confirms exact Self VALID/IN_BETA_TESTING and8notes match21:53:34.514UTC. Actual DIAL and bounded local diagnostics: `docs/design/mobile/testflight63-2026-10-25.md`. Current65row evidence: `docs/audits/2026-10-25/acceptance63.md`. Next owner-authorized64 adds live map, wind compass/3Darrow choices and an actual shared gear icon, without changing physics or enabling physical race emission. Dated candidate notes below remain history, not current delivery status.
+
 - Rapid native DIAL taps additionally cancel the local non-passive touchstart default, while pointer events remain the sole gesture owner and Inspect keeps its click. The verified00ea archive/simulator are preserved as another never-uploaded candidate; exact native acceptance must repeat.
 
 - Installed63 QA found an iOS selection callout over radio captions during a long hold. The hardware stage now suppresses selection/callouts/contextmenu; teaching text and diagnostics retain copy. Source6aaa110 archive/export is preserved as a superseded, never-uploaded candidate. Freeze/rebuild exact corrected source before delivery.
@@ -44,8 +46,8 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(62), группа Self.
-  Sourcee3d70a1, VALID/IN_BETA_TESTING,8notes проверены17:09:17UTC; `docs/design/mobile/testflight62-2026-10-25.md`.
+  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(63), группа Self.
+  Source88fdaac, VALID/IN_BETA_TESTING,8notes проверены21:53:34UTC; `docs/design/mobile/testflight63-2026-10-25.md`.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
   Сборка 59 отклонена Apple при импорте, не распространялась. Описание

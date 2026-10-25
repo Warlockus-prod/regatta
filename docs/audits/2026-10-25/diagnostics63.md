@@ -1,10 +1,10 @@
 # Candidate63: local diagnostics and actual coverage
 
-Status: implemented source before the final expanded63 release gate. The first
-1b92567 archive is a preserved earlier candidate, not proof of these additions.
-The new installed binary, Apple validation, upload and exact Self delivery have
-not been verified for this source. Delivered62 remains a separate immutable
-release. Follow [release63-harness.md](release63-harness.md) for final provenance.
+Status: delivered as source88fdaac in TestFlight1.7.0(63). Independent exact
+Self/8notes GET21:53:34UTC, final native upgrade/clean27 and archive/IPA proof
+are recorded in [the release note](../../design/mobile/testflight63-2026-10-25.md)
+and [release63-harness.md](release63-harness.md). Historical evidence below keeps
+its original scope; delivered62 remains a separate immutable release.
 
 This note records the DIAL/diagnostics requirement and its bounded implementation.
 It does not close the [65-item baseline](plan-recheck.md), the remaining acceptance
@@ -130,7 +130,8 @@ and installed offline loading still belong to the exact-source release gate.
   It does not establish all widths, all7language journeys or native Back branches.
 - The old radio upgrade issue and retained62 evidence remain in
   [acceptance62.md](acceptance62.md). They must not be presented as new63 runtime
-  proof. No new installed63 binary or ASC delivery is accepted by this note.
+  proof. Final63 installed/ASC proof is in the linked release note, with its
+  actual source/device scope.
 
 Explicitly not yet covered or not implied:
 
