@@ -1,0 +1,45 @@
+{
+  "checkedAt": "2026-10-25T16:56:11.503899+00:00",
+  "sourceCommit": "e3d70a18077b9f30509807f2106076fc476515bd",
+  "build": "62",
+  "uiCreatedOldData": true,
+  "storageInjected": false,
+  "uninstallOrClear": false,
+  "legacyChain": "verified48 -> exact61 fail/retry -> exact62 real instrument",
+  "clean27Russian": true,
+  "clean27ActualNextLesson2AndBackExit": true,
+  "devices": {
+    "D0DAA7B3-BDA0-4FD5-BF9E-37DC4FDC8DCE": {
+      "guideRaw": "{\"M330\":1,\"M323\":0}",
+      "radioKeys": [
+        "sternik.radio.onboard.v1",
+        "regatta.radio.offline.lang.v1",
+        "radio.src.progress.v2",
+        "sternik.radio.guide.v2"
+      ],
+      "currentNativeLanguage": null,
+      "guideDurable": true,
+      "originalRadioStringsPreserved": {
+        "regatta.radio.offline.lang.v1": true,
+        "radio.src.progress.v2": true
+      },
+      "oldPreference": "ru",
+      "visibleRadioLanguage": "pl",
+      "fullProcessRestartResumedLesson2": true
+    },
+    "42FF2491-C986-4B3C-8007-53B8BF498B79": {
+      "guideRaw": "{\"M330\":1,\"M323\":0}",
+      "radioKeys": [
+        "sternik.radio.guide.v2",
+        "sternik.radio.onboard.v1"
+      ],
+      "currentNativeLanguage": "ru",
+      "guideDurable": true
+    }
+  },
+  "limitations": [
+    "Old UI-created quiz row is empty; nonempty historical quiz/scenario/guide fixtures are covered by tests.",
+    "Physical owner iOS26.6.1 and local recognition models not inspected.",
+    "No network-disconnection or exhaustive language/device/error matrix claim."
+  ]
+}
