@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Race guidance now keeps the actual and suggested course visible while paused or explaining a rule. Primary restart/resume actions use the shared accent, and cockpit buttons avoid text selection during touch control.
+
 - Reopened the full completion audit after build60 feedback. Candidate61 adds the trainer's freely rotatable close3D camera to racing, a direct radio-practice entry, internal SRC Back, dependable native exits, and matching dark instrument frames. Actual-device acceptance and delivery are recorded separately.
 - Kept wheels visible alongside lesson tasks, restored real mainsheet lengths and precise steps, moved recovery-trainer overlays into reserved controls, and unified race/control sounds. Offline results no longer promise global publication.
 - Replaced website foundation manual completion with the original shared19-question checks, learning diagrams, saved drafts and honest viewed/theory/practice evidence. Original native content and historical progress remain intact.

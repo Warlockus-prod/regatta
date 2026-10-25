@@ -1129,3 +1129,5 @@ TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` r
 - `src/components/FoundationReturn.tsx` - видимый возврат из immersive web practice в отведенной панели, native использует собственный header.
 - `src/lib/learning/foundation-navigation.ts` - известные ID и ограниченные URL возврата без зависимости от банка вопросов.
 - `src/data/foundation-copy.ts` - общие короткие подписи шагов и возврата, без импорта всех учебных объяснений в каждый toolbar.
+
+- RaceCockpit notice keeps actual/suggested course visible in its reserved panel during pause/countdown/rule messages; primary Restart/Resume uses the common action accent. This UI checkpoint does not certify complete physical-scale parity or successful manual race completion.
