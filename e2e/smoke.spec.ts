@@ -266,7 +266,8 @@ test.describe('Smoke: critical user flows', () => {
     // routes are embedded by the iOS app, so a broken render here means a
     // broken App Store feature, not just a web page.
     const errors: string[] = [];
-    page.on('pageerror', (e) => errors.push(e.message));
+    // Keep the first failure's real stack in the private synthetic CI report.
+    page.on('pageerror', (e) => errors.push(e.stack ?? e.message));
 
     await page.goto('/simulator-v3');
     await expect(page.locator('canvas, svg').first()).toBeVisible({ timeout: 15_000 });

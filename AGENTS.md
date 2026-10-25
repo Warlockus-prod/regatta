@@ -197,9 +197,13 @@ npm run check:map            # карта проекта актуальна
   установленного приложения или всей матрицы устройств/языков.
 - Pre-deploy E2E также включает курс парусов и shared replay. Проверки используют
   реальные Task controls, изменение длины9m->11m, сохранение/восстановление и
-  select камеры; первый настоящий кадр3D остается обязательным. Только
+  select камеры; первый настоящий кадр3D остается обязательным.
   двухклиентный multiplayer case получает120s по production report: keyboard
   и положительный WS input прошли, затем60s истекли на геометрии дока.
+  Shared3D replay case также получает120s: corrected select/value прошли
+  на57.9s, но storage poll встретил прежний60s deadline. Все assertions
+  сохранены. Ошибка simulator smoke сохраняется со stack в private synthetic
+  CI report, это не изменение product telemetry.
   Non-main workflow_dispatch проверяет candidate без публикации/деплоя.
   Изменение тестов не означает, что следующий browser gate уже пройден.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала

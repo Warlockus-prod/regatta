@@ -10,7 +10,9 @@ const data = { code: "ABC234", ts: Date.UTC(2026, 9, 24), nickname: "Replay Sail
     startLine: { a: { x: 400, y: 1250 }, b: { x: 600, y: 1250 } }, finishLine: { a: { x: 400, y: 1250 }, b: { x: 600, y: 1250 } } } };
 
 test("shared world-space replay uses the same 3D scene and exact recording timeline", async ({ page }) => {
-  test.setTimeout(60_000);
+  // The real first frame, recorded endpoint, rate and camera value passed;
+  // the storage check began at58.890s, exhausting the former60s total budget.
+  test.setTimeout(120_000);
   await page.addInitScript(() => localStorage.setItem("regatta.lang.v1", "ru"));
   await page.route("**/api/replay/ABC234", route => route.fulfill({ json: data }));
   await page.goto("/r/ABC234");
