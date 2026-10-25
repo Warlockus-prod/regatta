@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Corrected the final DIAL browser checks to the actual LCD label Volume:, retaining real SQL and rim motion and every completion/layout check. Menu browser checks keep the catalog inventory separate from the Diagnostics utility and verify its seven translated names, exact route and 44px target during search. No runtime or timeout changed; the next full browser gate remains required.
+
 - Radio DIAL now turns with a finger and shows a moving index, with44px arrows retained in every layout and keyboard alternatives. Rotation, tap and power hold have separate cancellation paths.
 
 - Added a bounded local diagnostic journal for radio, sailing controls, embedded startup/navigation and real save results, with clear/copy and outcome filtering in the dock and native Settings. It excludes private transmission/storage contents and automatic physics updates; native global data clearing prevents delayed journal revival. Complete product and native delivery acceptance remain separate.

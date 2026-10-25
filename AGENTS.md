@@ -209,6 +209,7 @@ npm run check:map            # карта проекта актуальна
   CI report, это не изменение product telemetry.
   Non-main workflow_dispatch проверяет candidate без публикации/деплоя.
   Изменение тестов не означает, что следующий browser gate уже пройден.
+- Browser Menu inventory counts catalog destinations separately from its always-reachable Diagnostics utility. The utility must keep its localized name, exact route and 44px target during empty search and after clear. DIAL browser checks use the actual LCD label `Volume:` while preserving real SQL and rim motion, lesson completion, release and geometry checks; no timeout increase.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и

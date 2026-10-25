@@ -1,6 +1,7 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, type Page } from '@playwright/test';
 import { copy as productCopy } from '../src/lib/product/copy';
 import { menuDestinationCount } from '../src/lib/product/menu';
+import { diagnosticTitle } from '../src/lib/diagnostic-title';
 
 // ============================================================================
 // Smoke E2E - must pass on every deploy. Keep fast (<60 sec total).
@@ -17,6 +18,19 @@ const isProd = (baseURL: string | undefined) => {
   }
 };
 
+async function expectDiagnosticUtility(page: Page, lang: keyof typeof diagnosticTitle) {
+  const utility = page.locator('main a[href="/diagnostics"]');
+  const title = diagnosticTitle[lang];
+  expect(title).toBeTruthy();
+  await expect(utility).toHaveCount(1);
+  await expect(utility).toBeVisible();
+  await expect(utility).toHaveAccessibleName(title!);
+  await expect(utility).toHaveAttribute("href", "/diagnostics");
+  const box = await utility.boundingBox();
+  expect(box!.height).toBeGreaterThanOrEqual(44);
+  expect(box!.width).toBeGreaterThanOrEqual(44);
+}
+
 // Pin language to Russian for deterministic string matches, and mark the
 // Trainer's first-run tour (simulator-v3 TourOverlay) as seen so it cannot
 // cover the controls the simulator test clicks.
@@ -32,12 +46,14 @@ test.beforeEach(async ({ context }) => {
 test.describe('Smoke: critical user flows', () => {
   test("Menu is reachable from the header, searchable and readable on narrow screens in all locales", async ({ page }) => {
     test.setTimeout(60_000);
+    const catalogLinks = page.locator('main a:not([href="/diagnostics"])');
     for (const width of [320, 390, 1280]) {
       await page.setViewportSize({ width, height: 844 });
       await page.goto("/");
       await page.getByRole("navigation", { name: "Основные разделы" }).getByRole("link", { name: "Меню", exact: true }).click();
       await expect(page).toHaveURL(/\/menu$/);
-      await expect(page.locator("main a")).toHaveCount(menuDestinationCount("web"));
+      await expect(catalogLinks).toHaveCount(menuDestinationCount("web"));
+      await expectDiagnosticUtility(page, "ru");
       const menuLink = page.locator('nav a[href="/menu"]');
       await expect(menuLink).toHaveAttribute("aria-current", "page");
       const box = await menuLink.boundingBox();
@@ -54,8 +70,11 @@ test.describe('Smoke: critical user flows', () => {
       const input = page.getByRole("searchbox", { name: productCopy.search[lang] });
       await input.fill("no-matching-section");
       await expect(page.getByRole("status")).toHaveText(productCopy.empty[lang]);
+      await expect(catalogLinks).toHaveCount(0);
+      await expectDiagnosticUtility(page, lang);
       await page.getByRole("button", { name: productCopy.clear[lang], exact: true }).click();
-      await expect(page.locator("main a")).toHaveCount(menuDestinationCount("web"));
+      await expect(catalogLinks).toHaveCount(menuDestinationCount("web"));
+      await expectDiagnosticUtility(page, lang);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
     }
     // Theme remains accessible in Menu even when the narrow header hides its shortcut.
@@ -108,7 +127,8 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page).toHaveURL(/\/menu$/);
     const search = page.getByRole("searchbox", { name: "Поиск по разделам" });
     await search.fill("радио");
-    await expect(page.locator("main a")).toHaveCount(1);
+    await expect(page.locator('main a:not([href="/diagnostics"])')).toHaveCount(1);
+    await expectDiagnosticUtility(page, "ru");
     await page.getByRole("link", { name: /Радиосвязь SRC/ }).click();
     await expect(page).toHaveURL(/\/radio$/);
     await expect(page.locator('nav a[href="/learn"]')).toHaveAttribute("aria-current", "page");
