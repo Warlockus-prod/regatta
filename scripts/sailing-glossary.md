@@ -9,8 +9,9 @@ Every entry is normative: use the listed term. No synonyms unless flagged.
 
 Typography: no em-dash / en-dash anywhere (project-wide rule). Every language
 uses its full native spelling, Polish included (ą ć ę ł ń ó ś ź ż). The
-Polish-only exam courses (sternik motorowodny, SRC radio) keep the wording of
-the official materials and are not adapted.
+Sternik motorowodny stays in Polish and keeps official wording. SRC radio
+uses seven adapted UI/study languages; standard radio phrases stay in English
+and the original Polish exam wording remains available separately.
 
 ---
 

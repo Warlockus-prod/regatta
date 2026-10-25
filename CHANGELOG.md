@@ -7,9 +7,11 @@
 
 ## Unreleased
 
+- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.
+
 - Fixed foreground simulation time freezing at2-3FPS. Ready, pause, visibility and enabled boundaries exclude inactive time, while simulation keeps its1/30second step. Race sliders now expose their existing translated names to accessibility tools.
 
-- Preparing the next checkpoint: stable simulation time on slower foreground displays and accessible race sliders, followed by physical-scale short/medium/long solo courses approved by the owner. This is planned work, not a delivered62 release.
+- Reprioritized checkpoint62 for the urgent SRC upgrade failure plus stable foreground time and accessible race sliders. Owner-approved physical-scale short/medium/long courses follow separately; they are not part of62.
 
 - Delivered1.7.0(61) to Self with Apple VALID processing, verified membership/readiness and8notes. It includes the reviewed3D camera, radio/navigation, route advice and language corrections. Public website/AppReview and the next physical-scale short/long course stage remain separate.
 
