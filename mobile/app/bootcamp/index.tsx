@@ -107,7 +107,7 @@ export default function BootcampIndex() {
 
         <View style={styles.list}>
           {foundationModules.map((module, moduleIndex) => <View key={module.id} style={{ gap: 12 }}>
-            <View style={{ paddingHorizontal: 4, paddingTop: 12, gap: 4 }}>
+            <View style={{ paddingHorizontal: spacing.xl - 4, paddingTop: 12, gap: 4 }}>
               <Text variant="eyebrow">{String(moduleIndex + 1).padStart(2, '0')}</Text>
               <Text variant="subtitle" accessibilityRole="header">{module.title[lang]}</Text>
             </View>
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 14,
     marginHorizontal: spacing.md,
-    paddingHorizontal: spacing.sm + 2,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.md,
     borderRadius: radii.card,
   },

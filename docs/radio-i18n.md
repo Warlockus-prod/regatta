@@ -34,6 +34,24 @@ Translation keys are a hash of normalized source text. Numeric dynamic values us
 examples use protected `{radioTerm0}` placeholders. Keep every placeholder intact.
 Resource generation prunes retired keys, but does not change educational IDs.
 
+## Guide extraction correction, 2026-10-25
+
+Actual production UI revealed eight Polish section titles and three table cells
+still visible in Russian. The old inventory omitted JSX `pl`/`ru` attributes and
+filtered visible cells containing equals signs as if they were code. A zero
+missing-key count covered the enumerated catalog, not all rendered copy.
+
+The generator now includes paired language attributes and literal visible Table
+headers/rows. Fifteen resources were added to all7 catalogs:8headings,3control
+explanations and4verbatim equipment inscriptions. There are3761resources and7497
+aliases, with no old resource/translation/alias changes or removals. Narrow
+backward compatibility preserves the existing troubleshooting and cheat-sheet
+aliases. `src/app/radio/obsluga/guideTranslations.test.ts` checks the actual9guide
+headings,3previously omitted cells and4literal labels through runtime `rt` and
+the real generator. This is bounded coverage, not a full manual review of every
+question, lesson and language. The status toolbar also has dedicated compact
+rows; guided and inline Back labels describe their existing destinations.
+
 ## Text that stays literal
 
 The learning interface and explanations are adapted to the selected language.

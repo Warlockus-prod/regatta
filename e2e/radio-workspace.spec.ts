@@ -7,6 +7,20 @@ import { expect, test, type Page } from "@playwright/test";
 const PHONE = { width: 390, height: 844 };
 const DESKTOP = { width: 1280, height: 900 };
 const SHORT_SCREENS = [{ width: 320, height: 568 }, { width: 375, height: 667 }, { width: 667, height: 375 }];
+const STATUS_SCREENS = [
+  SHORT_SCREENS[0], SHORT_SCREENS[1], PHONE,
+  { width: 400, height: 844 }, { width: 402, height: 874 }, { width: 430, height: 932 },
+  SHORT_SCREENS[2],
+];
+const COURSE_STATUS = [
+  { lang: "ru", waiting: "Жду действие", complete: "Выполнено", back: "Назад" },
+  { lang: "en", waiting: "Waiting for action", complete: "Complete", back: "Back" },
+  { lang: "pl", waiting: "Czekam na działanie", complete: "Wykonano", back: "Wstecz" },
+  { lang: "es", waiting: "Esperando una acción", complete: "Completado", back: "Atrás" },
+  { lang: "fr", waiting: "En attente d'une action", complete: "Terminé", back: "Retour" },
+  { lang: "de", waiting: "Warte auf eine Aktion", complete: "Erledigt", back: "Zurück" },
+  { lang: "it", waiting: "In attesa di un'azione", complete: "Completato", back: "Indietro" },
+];
 
 async function skipTour(page: Page) {
   await page.addInitScript(() => {
@@ -27,6 +41,108 @@ async function scrollEverything(page: Page) {
   await page.getByTestId("radio-dock").evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
   await page.mouse.wheel(0, 2500);
 }
+
+async function radioHeaderFits(page: Page, viewport: { width: number; height: number }) {
+  await expect(page.getByTestId("radio-exit-app")).toBeVisible();
+  const geometry = await page.getByTestId("radio-workspace-bar").evaluate((bar) => {
+    const status = bar.querySelector<HTMLElement>('[data-testid="radio-workspace-status"]')!;
+    const rect = (r: DOMRect) => ({ left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height });
+    const text = document.createRange();
+    text.selectNodeContents(status);
+    return {
+      bar: rect(bar.getBoundingClientRect()),
+      status: rect(status.getBoundingClientRect()),
+      text: Array.from(text.getClientRects()).filter(r => r.width > 0).map(rect),
+      buttons: Array.from(bar.querySelectorAll("button")).map(button => rect(button.getBoundingClientRect())),
+      documentWidth: document.documentElement.scrollWidth,
+    };
+  });
+  expect(geometry.buttons).toHaveLength(4); // Back, Inspect, Sound, app Exit.
+  expect(geometry.text.length).toBeGreaterThan(0);
+  expect(geometry.documentWidth).toBeLessThanOrEqual(viewport.width);
+  for (const button of geometry.buttons) {
+    expect(button.width).toBeGreaterThanOrEqual(44);
+    expect(button.height).toBeGreaterThanOrEqual(44);
+    expect(button.left).toBeGreaterThanOrEqual(0);
+    expect(button.right).toBeLessThanOrEqual(viewport.width);
+  }
+  for (const text of geometry.text) {
+    expect(text.left).toBeGreaterThanOrEqual(geometry.bar.left - 1);
+    expect(text.right).toBeLessThanOrEqual(geometry.bar.right + 1);
+    expect(text.top).toBeGreaterThanOrEqual(geometry.bar.top - 1);
+    expect(text.bottom).toBeLessThanOrEqual(geometry.bar.bottom + 1);
+    for (const button of geometry.buttons) {
+      const overlaps = text.left < button.right && text.right > button.left && text.top < button.bottom && text.bottom > button.top;
+      expect(overlaps, "the complete status text must not run behind a toolbar button").toBe(false);
+    }
+  }
+  if (viewport.width < 640) {
+    expect(geometry.status.top).toBeGreaterThanOrEqual(Math.max(...geometry.buttons.map(button => button.bottom)));
+  }
+  await radioWholeInView(page, viewport);
+  expect((await page.getByTestId("radio-dock").boundingBox())!.height).toBeGreaterThanOrEqual(90);
+}
+
+for (const { lang, waiting, complete, back } of COURSE_STATUS) {
+  test(`native header layout keeps waiting, complete and free status readable in ${lang}`, async ({ page }) => {
+    // Seven sizes and three actual UI states share one course run per locale.
+    test.setTimeout(60_000);
+    await skipTour(page);
+    // Layout-only host stub: ?embed=1 alone does not render the native Exit.
+    // It neither supplies native persistence nor claims native navigation QA.
+    await page.addInitScript(() => {
+      const host = window as Window & { ReactNativeWebView?: { postMessage: (message: string) => void }; __radioLayoutMessages?: string[] };
+      host.__radioLayoutMessages = [];
+      host.ReactNativeWebView = { postMessage: message => host.__radioLayoutMessages!.push(message) };
+    });
+    await page.setViewportSize(STATUS_SCREENS[0]);
+    await page.goto(`/radio/symulator?lang=${lang}&practice=free&embed=1`);
+    await page.getByTestId("free-guided-lessons").click();
+    const status = page.getByTestId("radio-workspace-status");
+    await expect(status).toContainText(waiting);
+    await expect(page.getByTestId("course-exit")).toHaveAccessibleName(back);
+    await expect(page.getByTestId("course-exit")).toHaveAttribute("title", back);
+    for (const viewport of STATUS_SCREENS) {
+      await page.setViewportSize(viewport);
+      await radioHeaderFits(page, viewport);
+    }
+    // Complete the real first lesson, rather than injecting a completion flag.
+    const dial = await page.getByTestId("dial-center").boundingBox();
+    await page.mouse.move(dial!.x + dial!.width / 2, dial!.y + dial!.height / 2);
+    await page.mouse.down();
+    try {
+      await expect(status).toContainText(complete);
+    } finally {
+      await page.mouse.up();
+    }
+    await expect(page.getByTestId("course-next")).toBeEnabled();
+    for (const viewport of STATUS_SCREENS) {
+      await page.setViewportSize(viewport);
+      await radioHeaderFits(page, viewport);
+    }
+    await page.getByTestId("course-exit").click();
+    await expect(page).toHaveURL(/\/radio\/symulator\?.*practice=free/);
+    await expect(page.getByTestId("free-practice-guide")).toBeVisible();
+    for (const viewport of STATUS_SCREENS) {
+      await page.setViewportSize(viewport);
+      await radioHeaderFits(page, viewport);
+    }
+    await page.getByTestId("radio-exit-app").click();
+    expect(await page.evaluate(() => (window as Window & { __radioLayoutMessages?: string[] }).__radioLayoutMessages?.some(message => JSON.parse(message).type === "radio-exit"))).toBe(true);
+  });
+}
+
+test("the inline controls lesson returns to its visible guide without navigating away", async ({ page }) => {
+  await skipTour(page);
+  await page.goto("/radio/obsluga?lang=en&embed=1");
+  await page.getByTestId("course-open").click();
+  await expect(page.getByTestId("course-exit")).toHaveAccessibleName("Back to the guide");
+  const guideHref = page.url();
+  await page.getByTestId("course-exit").click();
+  await expect(page.getByTestId("course-workspace")).toHaveCount(0);
+  await expect(page).toHaveURL(guideHref);
+  await expect(page.getByTestId("course-open")).toBeVisible();
+});
 
 const SCREENS = [
   {

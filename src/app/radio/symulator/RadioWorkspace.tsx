@@ -92,7 +92,7 @@ export function RadioWorkspace({
   const selected = panels.some(panel=>panel.id===activePanel) ? activePanel : panels[0]?.id;
   return (
     <div className={styles.workspace} data-stacked={stacked || undefined} data-testid={testId}>
-      <div className={styles.bar}>
+      <div className={styles.bar} data-testid="radio-workspace-bar">
         <div className={styles.barInner}>
           <button
             type="button"
@@ -102,14 +102,16 @@ export function RadioWorkspace({
             title={radioText(exitTitle)}
             className={styles.barButton}
           >
-            <span aria-hidden="true">‹</span><span className="hidden min-[400px]:inline">{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
+            <span aria-hidden="true">‹</span><span className={styles.barLabel}>{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
           </button>
-          <div className={styles.barStatus}>{status}</div>
-          {actions}
-          {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => postRadioMessage({ type: "radio-exit" })}
-            aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
-            {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
-          </button>}
+          <div className={styles.barStatus} data-testid="radio-workspace-status">{status}</div>
+          <div className={styles.barActions}>
+            {actions}
+            {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => postRadioMessage({ type: "radio-exit" })}
+              aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
+              {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
+            </button>}
+          </div>
         </div>
       </div>
       <div className={styles.main}>
@@ -142,7 +144,7 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
       className={styles.barButton}
       style={on ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)', borderColor: 'var(--accent-cyan)' } : undefined}
     >
-      <span aria-hidden>🔍</span><span className="hidden min-[400px]:inline">{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
+      <span aria-hidden>🔍</span><span className={styles.barLabel}>{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
     </button>
   );
 }

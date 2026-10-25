@@ -48,6 +48,23 @@ for (const f of inputs) {
   // They never pass through a text translator at runtime.
   if(ts.isPropertyAssignment(n)&&technicalFields.has(n.name.getText(sf).replace(/["']/g,"")))return;
   if(ts.isJsxAttribute(n)&&technicalAttributes.has(n.name.getText(sf)))return;
+  if(ts.isJsxOpeningElement(n)||ts.isJsxSelfClosingElement(n)){
+   const attributes=new Map(n.attributes.properties.filter(ts.isJsxAttribute).map(attribute=>[attribute.name.getText(sf),attribute.initializer]));
+   const literal=value=>value&&ts.isJsxExpression(value)?value.expression:value;
+   const paired=Object.fromEntries(langs.map(lang=>[lang,text(literal(attributes.get(lang)))]));
+   if(paired.pl)add(paired.pl,Object.fromEntries(Object.entries(paired).filter(([,value])=>value)),true);
+   // The guide's Table renders these literal arrays, including "=" and real
+   // hardware labels which the generic code/style filter intentionally skips.
+   if(n.tagName.getText(sf)==="Table"){
+    const head=literal(attributes.get("head")),rows=literal(attributes.get("rows"));
+    if(head&&ts.isArrayLiteralExpression(head)){
+     const visible=head.elements.map(item=>{const value=text(item);return value!==null&&!/[а-яё]/i.test(value);});
+     for(const[index,item]of head.elements.entries())if(visible[index])add(text(item),{},true);
+     // Table omits the historical Russian-only helper column in every locale.
+     if(rows&&ts.isArrayLiteralExpression(rows))for(const row of rows.elements)if(ts.isArrayLiteralExpression(row))for(const[index,item]of row.elements.entries())if(visible[index])add(text(item),{},true);
+    }
+   }
+  }
   if (ts.isCallExpression(n)) {
    const name=n.expression.getText(sf).split(".").at(-1);
    if (["tp","t"].includes(name)&&n.arguments.length>=3) {
@@ -92,7 +109,10 @@ for (const f of inputs) {
 for(const lang of ["en","es","fr","de","it"]){const dict=JSON.parse(fs.readFileSync(path.join(root,`src/app/radio/symulator/i18n/${lang}.json`)));for(const [pl,value]of Object.entries(dict))add(pl,{pl,[lang]:value},true);}
 const pairedAliases=new Map();
 for(const rec of records.values())for(const value of Object.values(rec.known))if(value)pairedAliases.set(normalize(value),rec.id);
-for(const [id,rec]of records)if(Object.keys(rec.known).length===0&&pairedAliases.has(rec.source)&&pairedAliases.get(rec.source)!==id)records.delete(id);
+// This exact standalone TOC source already had a reviewed resource and still
+// exists in the guide. Keep its ID and alias alongside the newly paired title.
+const legacyGuideSource="Поиск неисправностей";
+for(const [id,rec]of records)if(rec.source!==legacyGuideSource&&Object.keys(rec.known).length===0&&pairedAliases.has(rec.source)&&pairedAliases.get(rec.source)!==id)records.delete(id);
 // Keep spoken English position tokens out of the translation input. Register
 // the real source as an alias of its interpolation template for explicit rt().
 const protectedAliases={},redirects={};
@@ -110,6 +130,8 @@ for(const [id,rec]of [...records]){
 const list=[...records.values()].sort((a,b)=>a.id.localeCompare(b.id));
 const aliases={};for(const rec of list){aliases[normalize(rec.source)]=rec.id;for(const value of Object.values(rec.known))if(value)aliases[normalize(value)]=rec.id;}
 Object.assign(aliases,protectedAliases);
+// The new heading must not take over the existing cheat-sheet shorthand.
+for(const[alias,source]of [[legacyGuideSource,legacyGuideSource],["Шпаргалка","Ściąga"]])if(records.has(idFor(source)))aliases[alias]=idFor(source);
 for(const key of Object.keys(aliases)){const visited=new Set();while(redirects[aliases[key]]&&!visited.has(aliases[key])){visited.add(aliases[key]);aliases[key]=redirects[aliases[key]];}}
 save(path.join(out,"sources.json"),list);
 save(path.join(publicOut,"aliases.json"),aliases);

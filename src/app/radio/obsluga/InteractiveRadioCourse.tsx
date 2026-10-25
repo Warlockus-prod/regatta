@@ -76,7 +76,7 @@ function channelNumber(state: RadioState): string {
 export default function InteractiveRadioCourse() {
   const router = useRouter();
   const { rt: radioText } = useRadioI18n();
-  const { tp, lang } = useRadioI18n();
+  const { tp, tl, lang } = useRadioI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
   // The realistic look is amber; the trainer models are green.
   const skin = radioRealistic ? 'amber' : 'green';
@@ -482,7 +482,9 @@ export default function InteractiveRadioCourse() {
           stacked={stacked}
           onExit={() => new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1' ? router.back() : setOpen(false)}
           exitTestId="course-exit"
-          exitTitle={tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
+          exitTitle={new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1'
+            ? tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })
+            : tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
           status={(
             <>
               <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>

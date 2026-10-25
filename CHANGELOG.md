@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Gave radio status its own readable row below the compact toolbar, filled eight missing guide headings and three control descriptions in every SRC language, and made Back labels match the current return route. Aligned introductory lesson-list margins and neutral Sternik information colors. Candidate63 retains the62 progress-preserving startup repair; installed/native delivery gates follow separately.
+
 - Prepared one shared Trainer movement/turn helper and a versioned registry for short, medium and long physical courses. Current motion is preserved; the new race model is not enabled until saved records, replay and result classes support it.
 
 - Website pre-deploy checks now include sailing lessons and shared replay. Updated their browser contracts to the compact Task controls and actual camera selector, retaining real9m-to-11m keyboard input, pause, checkpoint and playback checks. Only the two-client multiplayer case receives120s after its60s deadline expired following verified helm input; global budgets and publication privileges are unchanged. Combined browser verification is still pending.
