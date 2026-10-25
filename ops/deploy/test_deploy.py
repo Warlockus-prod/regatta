@@ -109,7 +109,7 @@ class WorkflowBoundary(unittest.TestCase):
         args = shlex.split(commands[0])
         self.assertEqual(set(arg for arg in args if arg.startswith("e2e/")), {
             "e2e/smoke.spec.ts", "e2e/foundation.spec.ts", "e2e/sailing-learning.spec.ts",
-            "e2e/replay.spec.ts", "e2e/radio-workspace.spec.ts", "e2e/offline.spec.ts",
+            "e2e/replay.spec.ts", "e2e/race-navigation.spec.ts", "e2e/trainer-controls.spec.ts", "e2e/radio-workspace.spec.ts", "e2e/offline.spec.ts",
         })
         self.assertEqual(args[-2:], ["--grep-invert", "AI chat"])
         self.assertIn("BASE_URL: http://localhost:3000", candidate)

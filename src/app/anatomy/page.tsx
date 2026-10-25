@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic';
 import { legacyPick } from '@/lib/languages';
 import { anatomyParts } from '@/data/anatomy';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import AnatomyPosters from '@/components/AnatomyPosters';
 
 // Shared Blender yacht with accessible part selection and five camera views.

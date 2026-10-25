@@ -6,7 +6,7 @@ import { legacyPick, legacyPickArray, type Lang } from '@/lib/languages';
 import { maneuvers, pointsOfSail, type Maneuver, type PointOfSail } from '@/data/sailing-data';
 import { manoeuvres } from '@/data/sailing-lab/sources';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 // Map the neon points-of-sail palette (tuned for the dark ocean) to
 // theme-aware CSS vars, so the compass + detail cards stay legible on the

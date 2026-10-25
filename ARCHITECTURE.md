@@ -1254,3 +1254,62 @@ physical motion/classes and full product acceptance remain separate.
 
 - `docs/audits/2026-10-25/checks/website63-prepublication.json` - immutable APP 88/runtime and SITE c8ae4ef first-pass 60 proof, validated Pro observations/artifact hashes and explicit unpublished/partial-acceptance boundaries; later docs-only sync does not add source 64.
 - `docs/audits/2026-10-25/checks/website63-production.json` - published b75c1e4/runtime88 image digests,60 first-pass prepublication cases,16 healthy public routes and exact catalogs/privacy; final74-case production gate has70 first-pass,1flaky,2failed,1skipped. Records the real63 multiplayer accessible-name defect and proposed bounded trainer test corrections, with fresh OPS/volume verification explicitly unknown.
+
+
+### Map/wind presentation checkpoint64
+
+`docs/audits/2026-10-25/release64-harness.md` owns the next ordered UI gate.
+`src/features/trainer-controls/GearIcon.tsx` is the lightweight shared toothed
+settings SVG used by existing control settings, with labels/actions retained.
+CoursePreview wind text suppresses the inherited arrow stroke.
+
+- `src/features/race-hud/navigation-model.ts` - pure finite true/apparent wind
+  readings and immutable live course/fleet snapshots, using the trainer sign
+  convention. Uniform north-up projection preserves all actual course geometry.
+- `src/features/race-hud/navigation-model.test.ts` - wind sign/speed/unknown data,
+  reversed shared lines, actual marks/boats and projection/terrain contracts.
+- `src/features/race-hud/RaceOverviewMap.tsx` - reserved SVG course overview with
+  start/finish lines, all marks, player/fleet headings and incoming true wind.
+- `src/features/race-hud/RaceOverviewMap.test.tsx` - map labels, actual elements,
+  shared-line deduplication and invalid snapshot fallback.
+- `src/features/race-hud/navigation-copy.ts` - all map/wind/style labels in
+  RU/EN/PL/ES/FR/DE/IT. True wind is geographic; air arrows use apparent wind.
+- `src/features/race-hud/RaceWindInstrument.tsx` - compact actual TWD/TWS,
+  north-up compass and detailed true/apparent readings; four visual aid choices.
+- `src/features/race-hud/RaceWindInstrument.module.css` - compact/detailed
+  instruments,44px choices and wrapping unknown values on narrow screens.
+- `src/features/race-hud/RaceWindInstrument.test.tsx` - known/unknown readings
+  and complete exclusive four-way controls across all seven languages.
+- `src/lib/race-visual-prefs.ts` - shared finite visual-assist schema with
+  compass/arrows/both/off enum, default compass and legacy-safe sanitization.
+- `src/lib/race-visual-prefs.test.ts` - all valid enum values, unknown payloads
+  and preserving independent old assists/defaults.
+- `src/app/game/race-prefs.test.ts` - web preference patches retain valid wind
+  style, normalize invalid persisted input and record finite outcomes.
+- `src/app/game/RaceCockpit.navigation.test.tsx` - reserved Map/fleet/Helm return,
+  settings, actual transition diagnostics and logger-failure isolation.
+- `src/features/simulator-3d/ocean/WindFlow.test.tsx` - shared real instanced
+  arrow callback flow, absent/invalid wind hiding and unchanged trainer fallback.
+- `src/components/ContentFooterNavLoader.tsx` - one shared dynamic import with
+  default SSR. Eleven content pages share it; footer links and all translations
+  stay server rendered. Keep ContentFooterNav's source path for offline adapters.
+- `e2e/race-navigation.spec.ts` - one real390px Simple race, actual ready frame,
+  numeric wind, all live course/fleet geometry, reserved running map, four wind
+  settings and Helm return. Validates private-free canonical journal in-browser.
+
+Solo and multiplayer both read actual model data in their existing100ms HUD
+batch. No per-frame React updates, invented wind speed, new timer or protocol.
+Map entry/exit and wind preferences use finite diagnostics, never boat positions.
+The existing shared WindFlow renderer takes an optional actual-wind callback;
+trainer callers retain their existing state path. Scene arrows require arrows
+or both. Off retains numeric wind. Native keeps the enum in the existing assists
+snapshot and validates durable restore/reopen without new keys or permissions.
+The map is a course schematic, not a geographic chart or new physical course.
+The shared Settings button uses the toothed icon; its full accessible name stays
+available even where the visible tab contains only the gear.
+
+Checkpoint64 extends the existing loopback pre-deploy E2E file set with the
+shared race navigation case and the existing trainer-controls suite. The finite expected list in ops/deploy/test_deploy.py
+changes with it; all9 deployment boundary tests pass. Publication/deployment
+remain main-only, with the same secrets, pinned actions, report retention and
+confined forced command. No host/runtime/permission policy changes.

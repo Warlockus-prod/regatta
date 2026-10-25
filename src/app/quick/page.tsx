@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { legacyPick } from '@/lib/languages';
 import { quickRefreshLessons, QUICK_REFRESH_TOTAL_MINUTES } from '@/data/bootcamp';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 export default function QuickRefreshPage() {
   const { lang, tp } = useI18n();

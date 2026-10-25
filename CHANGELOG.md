@@ -7,7 +7,15 @@
 
 ## Unreleased
 
+- Added the existing trainer control/layout suite to the same loopback pre-deploy browser gate so its real first-frame, occupied Diagnostics and unobscured-boat contracts run before publication. The frozen64 source also repairs the63 multiplayer slider's accessible name; its strict guest input check stays in place. Publication guards, permissions and timeout budgets are unchanged.
+
 - Recorded healthy website63 publication and its red final browser gate. Trainer geometry now waits for the real first3Dframe within the existing startup allowance and counts the44px Diagnostics utility as occupied content while retaining blank-gap, viewport and no-overlap checks. The real63 multiplayer accessibility defect remains visible to its unchanged assertion; no runtime, budget or deployment privilege changed.
+
+- Prepared native build64 with refreshed radio, sailing and Sternik offline packages. The running map and four wind choices join the existing browser check before website publication; deployment privileges and budgets stay unchanged.
+
+- Added a live race course map with all marks, start/finish and boats in the reserved cockpit. Actual wind direction/speed stays visible, with compass, 3D air arrows, both or off choices saved for the next launch. Solo and multiplayer share the instrument; Settings now uses a real gear. Briefing wind text is readable. All new labels have seven language adaptations.
+
+- Shared content footer loading and deduplicated link metadata keep the existing6.5MiB build budget, preserving server-rendered links, translations and offline adapters.
 
 - Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
 

@@ -16,7 +16,11 @@ export function windFlowDirection(from: number, out: THREE.Vector3) {
 /** Solid instanced arrows remain legible on Retina and in the iOS WebView.
  * Unlike WebGL lines their thickness is not limited to one device pixel.
  * These show incoming air, not a CFD solution around the cloth. */
-export function WindFlow({ stateRef }: { stateRef: MutableRefObject<YachtState> }) {
+export function WindFlow({ stateRef, readWind }: {
+  stateRef: MutableRefObject<YachtState>;
+  /** A race supplies actual apparent wind, independently of its visual wake speed. */
+  readWind?: () => { from: number; knots: number } | null;
+}) {
   const distance = useRef(0);
   const shaftsRef = useRef<THREE.InstancedMesh>(null);
   const headsRef = useRef<THREE.InstancedMesh>(null);
@@ -38,9 +42,10 @@ export function WindFlow({ stateRef }: { stateRef: MutableRefObject<YachtState> 
   useFrame((_, dt) => {
     const shafts = shaftsRef.current, heads = headsRef.current;
     if (!shafts || !heads) return;
-    const wind = stateRef.current.apparentWind ?? stateRef.current.wind;
-    shafts.visible = heads.visible = Boolean(wind && wind.knots > .5);
-    if (!wind || wind.knots <= .5) return;
+    const wind = readWind ? readWind() : stateRef.current.apparentWind ?? stateRef.current.wind;
+    const known = Boolean(wind && Number.isFinite(wind.from) && Number.isFinite(wind.knots) && wind.knots > .5);
+    shafts.visible = heads.visible = known;
+    if (!wind || !known) return;
     distance.current = (distance.current + Math.min(dt, .1) * wind.knots * .514444) % 32;
     const d = windFlowDirection(wind.from, flow.direction);
     flow.matrix.quaternion.setFromUnitVectors(UP, d);

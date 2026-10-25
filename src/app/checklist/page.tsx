@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick, legacyPickArray } from '@/lib/languages';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { checklistSections } from '@/data/checklist';
 
 // ============================================================================

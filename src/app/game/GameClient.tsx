@@ -52,6 +52,7 @@ import { RaceReplay } from "./RaceReplay";
 import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-completion";
 import { recordDiagnostic, recordControlChange, recordPreferenceChange } from "@/lib/diagnostics-controls";
 import { initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
+import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
 
 // three.js loads only when someone opens the race in 3D.
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
@@ -270,6 +271,8 @@ export default function GamePage() {
   const [isNewRecord, setIsNewRecord] = useState(false);
   const [playerTWA, setPlayerTWA] = useState(0);
   const [playerSpeed, setPlayerSpeed] = useState(0);
+  const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
+  const [navigation, setNavigation] = useState<RaceNavigationSnapshot | null>(null);
 
   const boatsRef = useRef<Boat[]>([]);
   const courseRef = useRef<Course>(makeCourse());
@@ -564,6 +567,8 @@ export default function GamePage() {
     const startingTrim = raceTrim({ ...trimForDrive(createInitialState({ tws: 12 * windStrengthRef.current, trueWindDir: WIND_DIRECTION, heading: 45, boatSpeed: 0 }), raceTrim({})), mainHoisted: true, jibFurl: 0, reef: 0 });
     trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
+    setWindReading(raceWindReading({ heading: boats[0].heading, boatSpeedKn: boats[0].speed, windFrom: WIND_DIRECTION, windKnots: 12 * windStrengthRef.current }));
+    setNavigation(createRaceNavigationSnapshot({ course, boats, windFrom: WIND_DIRECTION }));
     const initialGuidance = planRaceGuidance(boats[0], course, WIND_DIRECTION);
     guidanceStateRef.current = initialGuidance.state; setRouteGuidance(initialGuidance.guidance);
     raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -980,6 +985,9 @@ export default function GamePage() {
         if (player) {
           hudRefreshRef.current = now;
           setPlayerTWA(calcTWA(player.heading, windDirRef.current)); setPlayerSpeed(player.speed);
+          setWindReading(raceWindReading({ heading: player.heading, boatSpeedKn: player.speed, windFrom: windDirRef.current,
+            windKnots: player.physics?.trueWindSpeed, leeway: player.physics?.leeway }));
+          setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: boatsRef.current, windFrom: windDirRef.current }));
           const advisory = planRaceGuidance(player, courseRef.current, windDirRef.current, guidanceStateRef.current);
           guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
         }
@@ -1269,6 +1277,7 @@ export default function GamePage() {
       {(gameState === "countdown" || gameState === "racing") && (
         <RaceCockpit prefs={playingPrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta} setCourse={setCourse} targetHeading={targetHeading}
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
+          windReading={windReading} navigation={navigation}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
           camera={raceCamera} setCamera={camera => { setRaceCamera(camera); recordControlChange("race", "camera", camera, raceCamera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("race", "camera", raceCamera); }} paused={paused} onPause={togglePause} onExit={backToMenu}
@@ -1281,6 +1290,7 @@ export default function GamePage() {
           }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
           countdown={gameState === "countdown" ? countdown : undefined}>
           <RaceScene key={sceneRaceId} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
+            showWind={playingPrefs.windDisplay === "arrows" || playingPrefs.windDisplay === "both"}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
         </RaceCockpit>
@@ -1810,7 +1820,7 @@ function CoursePreview() {
       <g stroke="#00d4ff" strokeWidth="1.4" fill="#00d4ff">
         <line x1="100" y1="10" x2="100" y2="40" />
         <polygon points="96,38 100,48 104,38" />
-        <text x="108" y="28" fill="#00d4ff" fontSize="11" fontFamily="system-ui">{labelWind}</text>
+        <text x="108" y="28" fill="#00d4ff" stroke="none" fontSize="11" fontFamily="system-ui">{labelWind}</text>
       </g>
       {/* windward mark */}
       <circle cx="100" cy="60" r="7" fill="#ffaa00" stroke="#fff" strokeWidth="1.5" />
