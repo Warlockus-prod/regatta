@@ -11,10 +11,12 @@ describe("solo race waits for its loaded visual frame", () => {
     const scene = new Scene(), clock = createFixedClock();
     const boat: RaceBoat = { id: "player", name: "Player", color: "#00d4ff", pos: { x: 400, y: 1080 }, heading: 45, speed: 0, lapDone: 0 };
     const initial = structuredClone(boat);
-    let paint: FrameRequestCallback | null = null, seconds = 0;
-    const ready = vi.fn(() => gate.rendered("race_current"));
+    let paint: FrameRequestCallback | null = null, seconds = 0, now = 0;
+    const ready = vi.fn(() => {
+      if (gate.rendered("race_current")) clock.synchronize(now, gate.active(false, false));
+    });
     const dispose = watchFirstSceneFrame(scene, ready, callback => { paint = callback; return 1; }, () => {});
-    const frame = (now: number) => clock.advance(now, gate.active(false, false), dt => {
+    const frame = (timestamp: number) => clock.advance(now = timestamp, gate.active(false, false), dt => {
       seconds += dt; stepBoat(boat, dt, 0, 1, { turn: 0 }, { steering: "responsive" });
     });
     for (let f = 0; f <= 420; f++) frame(f * 1000 / 60);
@@ -22,9 +24,10 @@ describe("solo race waits for its loaded visual frame", () => {
     // A model-loaded/useFrame signal cannot release the clock. The scene must render.
     Reflect.apply(scene.onAfterRender, scene, []);
     frame(7010); expect(clock.ticks).toBe(0); expect(ready).not.toHaveBeenCalled();
-    expect(paint).not.toBeNull(); (paint as unknown as FrameRequestCallback)(7016);
+    now = 7016;
+    expect(paint).not.toBeNull(); (paint as unknown as FrameRequestCallback)(now);
     expect(gate.ready).toBe(true); expect(ready).toHaveBeenCalledOnce();
-    for (let f = 1; f <= 60; f++) frame(7010 + f * 1000 / 60);
+    for (let f = 1; f <= 60; f++) frame(7016 + f * 1000 / 60);
     expect(clock.ticks).toBe(30); expect(seconds).toBeCloseTo(1, 10);
     expect(boat).not.toEqual(initial); dispose();
   });

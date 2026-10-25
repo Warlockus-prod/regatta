@@ -14,6 +14,7 @@ import type { Maneuver } from '../sails/transfer';
 import { createSailingSession, stepSailingSession } from '../../sailing-lab/runtime/session';
 import { yachtFromSession } from "../../sailing-lab/runtime/presentation";
 import { createFixedClock } from '../../sailing-lab/runtime/fixed-clock';
+import { bindClockLifecycle } from "../../sailing-lab/runtime/clock-lifecycle";
 import { engineTrimFromEase } from '../../sailing-lab/runtime/trim-controls';
 import { coachFrom, trimQualityFrom } from '../../sailing-lab/runtime/trim-coach';
 
@@ -131,11 +132,17 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
   });
 
   useEffect(() => {
+    clockRef.current.synchronize(performance.now(), enabled && !document.hidden);
+  }, [enabled]);
+
+  useEffect(() => {
     let alive = true;
     let raf = 0;
     let acc = 0;
     const clock = clockRef.current;
     clock.reset();
+    const unbindClock = bindClockLifecycle(clock, { target: document, now: () => performance.now(),
+      active: () => enabledRef.current && !document.hidden });
     const loop = (t: number) => {
       if (!alive) return;
       clock.advance(t, enabledRef.current && !document.hidden, (dt) => {
@@ -186,6 +193,7 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
+      unbindClock();
     };
   }, [yachtRef]);
 

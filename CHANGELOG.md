@@ -7,6 +7,10 @@
 
 ## Unreleased
 
+- Fixed foreground simulation time freezing at2-3FPS. Ready, pause, visibility and enabled boundaries exclude inactive time, while simulation keeps its1/30second step. Race sliders now expose their existing translated names to accessibility tools.
+
+- Preparing the next checkpoint: stable simulation time on slower foreground displays and accessible race sliders, followed by physical-scale short/medium/long solo courses approved by the owner. This is planned work, not a delivered62 release.
+
 - Delivered1.7.0(61) to Self with Apple VALID processing, verified membership/readiness and8notes. It includes the reviewed3D camera, radio/navigation, route advice and language corrections. Public website/AppReview and the next physical-scale short/long course stage remain separate.
 
 - Finished adapting12 SRC theory section headings in all seven languages. Radio mistakes and their Reset now stay within SRC, preserving saved Polish Sternik oral practice.

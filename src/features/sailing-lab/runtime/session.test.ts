@@ -18,7 +18,7 @@ describe("one sailing session for all views", () => {
     const initial = createSailingSession(createInitialState({ tws: 12, twa: 70, boatSpeed: 5 }), detailed, params, 1234);
     const events = [{ atTick: 80, input: { ...detailed, mainTrim: { workingLength: 13, traveler: .6 } } }];
     const expected = replaySession(initial, events, 400, params);
-    for (const fps of [15, 30, 60, 120]) {
+    for (const fps of [2, 3, 5, 10, 15, 30, 60, 120]) {
       let state = initial;
       const clock = createFixedClock();
       for (let frame = 0; frame <= fps * 14; frame++) clock.advance(frame * 1000 / fps, true, () => {
@@ -52,7 +52,7 @@ describe("one sailing session for all views", () => {
     expect(targetHeading).toBe(0);
     expect(core).toEqual(direct);
   });
-  it.each([15, 30, 60, 120])("identical gust, maneuver and position at %i FPS", fps => {
+  it.each([2, 3, 5, 10, 15, 30, 60, 120])("identical gust, maneuver and position at %i FPS", fps => {
     let state = create();
     const clock = createFixedClock();
     for (let frame = 0; frame <= fps * 20; frame++) clock.advance(frame * 1000 / fps, true, () => {

@@ -1142,3 +1142,7 @@ Free-trim acceptance correction2026-10-25: `src/features/simulator-v3/ui/shared.
 - `src/app/radio/weakSpots.test.ts` protects filtering before limits, scoped SRC reset and preservation of complete Sternik oral records in the shared existing storage key. `src/app/radio/WeakSpotsPanel.tsx` uses the same optional scope for list and reset; default unscoped callers keep their previous behavior.
 
 61 delivery/current acceptance: `docs/design/mobile/testflight61-2026-10-25.md`, `docs/audits/2026-10-25/acceptance61.md`, `docs/audits/2026-10-25/checks/native61-delivery.json`. Actual UI/source/delivery proofs remain separate. The original build60 baseline stays immutable.
+
+Next62 ordered work is `docs/audits/2026-10-25/release62-harness.md`; ADR-0010 separates foreground time from lifecycle boundaries, ADR-0011 versions physical solo courses while preserving legacy storage/server defaults. No physical course is enabled by this documentation.
+
+- `src/features/sailing-lab/runtime/clock-lifecycle.ts` anchors visibility boundaries even without hidden RAF/timer samples, and disposes stale clocks; `src/features/sailing-lab/runtime/clock-lifecycle.test.ts` verifies real helper timing/lifecycle contracts. Fixed clock accepts at most2seconds/60steps of foreground time and synchronizes ready/pause/enabled state without clearing cumulative ticks. GameClient publishes HUD from the final fixed-step batch.

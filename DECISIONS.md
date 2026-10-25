@@ -615,3 +615,50 @@ The solo player's responsive steering assistance is opt-in in the race adapter, 
 Read-only route guidance proposes a sailing heading and mark approach without steering or advancing gates. Optional educational rules cover a conservative subset of RRS 2025-2028 (10, 11, 12, 14, 29.1, 31 and course completion). Hull circles and limited liability detection cannot replace a real umpire; uncertain situations do not receive time penalties. Contact +5 seconds and mark touch +3 seconds are explicitly custom game-training penalties, not the turns specified in RRS 44. A false start requires returning behind the line.
 
 Source: World Sailing RRS 2025-2028, corrected July 2025, https://media.sailing.org/sailing/wp-content/uploads/2025/07/29083752/2025-2028-RRS-with-Changes-and-Corrections.pdf . Unit tests and numeric probes cover these model contracts.
+
+
+## ADR-0010 - Foreground simulation time and explicit lifecycle boundaries
+
+Date:2026-10-25. Status:accepted for the next checkpoint after delivered61. Scope:shared fixed clock and its existing hosts; no Golden VPP constants.
+
+### Context
+
+A ready3D scene can render at2-3FPS on software GPUs. The previous clock discarded every interval over250ms, yielding zero simulation ticks forever. Background/pause protection was conflated with foreground frame rate. Main pre-deploy tests exposed0:00 despite a ready yacht; screenshot spacing is supporting evidence, not a direct RAF timing measurement.
+
+### Decision
+
+Keep integration at1/30second. Accept ordinary active foreground gaps up to2seconds with a maximum60steps per advance and only fractional remainder. Drop longer, backward or invalid discontinuities. An explicit synchronize(timestamp,active) anchors ready/pause/visibility/enabled transitions, clears elapsed/remainder and preserves cumulative ticks. Reset is reserved for a new session/race. All existing hosts provide lifecycle boundaries so short hidden intervals without any hidden RAF cannot enter catch-up. The race retains manual resume after hiding. HUD publication reads the end of a catch-up batch. No forced scene-ready,2D test replacement or relaxed clock assertion is permitted.
+
+### Consequences
+
+At2/3FPS simulation time advances correctly, although visual motion is still low frame rate. This does not certify physical FPS/heat or eliminate the need for renderer performance work. Gaps above2seconds remain a bounded discontinuity policy. Old stored timestamps/replay tracks and the physical1/30step remain unchanged.
+
+### Verification
+
+Equal exact trajectories at2/3/5/10/15/30/60/120FPS, jitter/remainder/bounds, hidden/resume without hidden frames, short pause, enabled/ready and stale cleanup, cold shader startup, giant/backward/invalid time. Keep real3D browser clock and named-control assertions. Check installed native background/foreground independently before native62 delivery.
+
+### References
+
+`src/features/sailing-lab/runtime/fixed-clock.ts`, `src/lib/race-clock.test.ts`, `docs/audits/2026-10-25/release62-harness.md`.
+
+## ADR-0011 - Versioned physical solo courses and shared trainer kinematics
+
+Date:2026-10-25. Status:accepted for implementation after ADR-0010. Owner selected physical scale like the trainer, with different short and long courses. Delivered61/tagged37c7079 and legacy records remain immutable.
+
+### Decision
+
+New physical solo races share the trainer motion laws:1kn=0.514444metres/second, helm22degrees/second with the same speed authority/low-speed assist, course assist45degrees/second with the same heading approach. Extract a pure shared kinematics helper while preserving the existing trainer numerically. Golden VPP constants remain unchanged. Coordinates continue using race-world-v1 at0.6metres/unit, so physical displacement is0.8574066666666668units per knot-second. Default no-context race/server functions retain legacy behavior.
+
+Provide three independently defined metric profiles, initially120/300/600metre windward legs, with declared time limits, preview and honest approximate duration. The yacht, equipment, collision envelope and turn law retain the same metric size across distances. Route/gate geometry uses measured clearance and the same physical planner descriptor as the water ribbon. No direct player speed cap or automatic route steering is introduced.
+
+Model/profile/geometry revision identifies PB, results, intents, history, replay, daily/mission conditions and global result classes. Missing metadata means legacy; unknown explicit future metadata yields an unsupported state, never pixel coordinates or a replacement standard course. Preserve old rows/IDs/progress and exact replay positions/timestamps. Never compare old accelerated times to physical course times. Multiplayer remains server-authoritative with unchanged legacy defaults until separately versioned.
+
+Metadata readers and server class partition precede new physical emission. Freeze course/context before countdown. Long duration uses per-profile limits, bounded recorder payloads and immediate durable final player result; remaining-fleet computation must not block the UI or mark normal long-course opponents DNF after15seconds. New daily/mission conditions are explicitly versioned and deterministic across installed/browser/server sources.
+
+### Verification
+
+Trainer numerical parity, real metre/second and turn-radius checks, legacy bot/WS differential, all profiles/winds/start/rounding recoveries and delayed manual heading entries, immutable advice, collision-only movement cannot award gates, bounded long record/replay/API payloads, class-separated PB/global ranking and old-record readability. Follow the ordered62harness and exact native/web release gates before enabling/publishing the new model.
+
+### References
+
+`docs/audits/2026-10-25/release62-harness.md`, `src/features/sailing-lab/runtime/session.ts`, `src/lib/race-physics.ts`, `src/lib/race-native.ts`, `src/lib/race-replay.ts`.

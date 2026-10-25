@@ -7,6 +7,8 @@
 
 ## Current completion work
 
+- Active next checkpoint62: `docs/audits/2026-10-25/release62-harness.md`, ADR-0010/0011. Fix foreground clock/lifecycle and slider names first, then versioned physical solo courses with short/medium/long distances. No new physical result may be emitted before metadata/PB/global-class compatibility. Native61 remains immutable.
+
 - Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 from37c7079 was delivered to exact Self at2026-10-25 15:35:51UTC, VALID/IN_BETA_TESTING with8notes. `docs/audits/2026-10-25/acceptance61.md` records all65 current statuses. Website pre-deploy browser gate blocked publication; foreground low-FPS clock and owner-approved physical short/long courses are next62 work.
 
 - 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
