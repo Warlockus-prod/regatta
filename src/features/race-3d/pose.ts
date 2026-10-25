@@ -20,8 +20,8 @@ export const METRES_PER_UNIT = 0.6;
  */
 export const VISUAL_SPEEDUP = (UNITS_PER_KNOT_SECOND * METRES_PER_UNIT) / 0.514444;
 
-/** Race camera: behind the stern, or high above it to read the course. */
-export type RaceCamera = "stern" | "high";
+/** Free orbit around the yacht, with optional stern and tactical presets. */
+export type RaceCamera = "orbit" | "stern" | "high";
 
 /** Inside this true wind angle the sails cannot fill (the canvas race uses 30 too). */
 export const NO_GO_DEG = 30;

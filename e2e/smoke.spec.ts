@@ -96,8 +96,11 @@ test.describe('Smoke: critical user flows', () => {
   test("home starts a lesson with working course navigation", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: "Начать первый урок", exact: true }).click();
-    await expect(page).toHaveURL(/\/courses#wind$/);
-    await expect(page.getByRole("region", { name: "Навигация по курсу" })).toBeVisible();
+    await expect(page).toHaveURL(/\/start\?lesson=wind-direction$/);
+    await expect(page.getByRole("heading", { name: "Ветер и направление", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "2. Проверить себя", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Проверить ответы", exact: true })).toBeDisabled();
+    await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
   });
 
   test("legacy library leads to Menu and search reaches the radio course", async ({ page }) => {

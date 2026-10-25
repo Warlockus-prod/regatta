@@ -1,14 +1,16 @@
-import { Stack, useNavigation } from "expo-router";
+import { Stack, useNavigation, useRouter } from "expo-router";
 import { usePreventRemove } from "@react-navigation/native";
 import { useEffect, useRef, useState } from "react";
 import { ActivityIndicator, Alert, Linking, Pressable, StyleSheet, View } from "react-native";
 import { WebView, type WebViewMessageEvent } from "react-native-webview";
 import { Screen, Text } from "../design-system/components";
-import { colors } from "../design-system/tokens";
+import { darkColors as colors } from "../design-system/tokens";
+import { DarkSurface, darkStackOptions } from "../design-system/surface";
 import { hideMainNavigation } from "../navigation/visibility";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from "../persistence/analytics-consent";
 import { parseExamFinished, type ExamFinishedProps } from "../analytics/web-bridge";
 import { loadLocalCourseHtml } from "./local-course-asset";
+import { ActivityBack } from "../navigation/ActivityBack";
 
 interface CourseStorage<T> {
   read: () => Promise<T | null>;
@@ -37,6 +39,8 @@ interface Props<T> {
  * for progress migration; page bytes always come from the packaged asset. */
 export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessage, errorMessage, progressMessage, messageLimit, storage, localHref, examBase, onExamFinished, onOpenRadio }: Props<T>) {
   const navigation = useNavigation();
+  const router = useRouter();
+  const leaveCourse = () => { if (navigation.canGoBack()) navigation.goBack(); else router.replace("/learn"); };
   const { enabled: analyticsOn, ready: consentReady } = useAnalyticsConsent();
   const web = useRef<WebView>(null);
   const [loaded, setLoaded] = useState<{ html: string; entries: T | null } | null>(null);
@@ -141,13 +145,14 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     setRevision(value => value + 1);
   };
 
-  return <Screen>
+  return <DarkSurface><Screen>
     <Stack.Screen options={{
+      ...darkStackOptions,
       title,
       headerBackButtonMenuEnabled: false,
-      headerBackVisible: examDirty ? false : undefined,
+      headerBackVisible: false,
       gestureEnabled: examDirty ? false : undefined,
-      headerLeft: examDirty ? () => <Pressable accessibilityRole="button" accessibilityLabel="Wyjdź z egzaminu" onPress={() => requestExit(() => navigation.goBack())} style={styles.headerExit}><Text style={styles.headerExitText}>Wyjdź</Text></Pressable> : undefined,
+      headerLeft: () => examDirty ? <Pressable accessibilityRole="button" accessibilityLabel="Wyjdź z egzaminu" onPress={() => requestExit(leaveCourse)} style={styles.headerExit}><Text style={styles.headerExitText}>Wyjdź</Text></Pressable> : <ActivityBack fallback="/learn" tintColor={colors.accentCyan} />,
     }} />
     {saveFailed && <View style={styles.saveError} accessibilityRole="alert">
       <Text style={styles.text}>Nie zapisano postępu na urządzeniu. Nie zamykaj kursu i ponów zapis.</Text>
@@ -176,7 +181,7 @@ export function LocalCourseWebView<T>({ asset, title, baseUrl, href, readyMessag
     />}
     {loading && !failed && <View style={styles.overlay} pointerEvents="none"><ActivityIndicator color={colors.accentCyan} /><Text style={styles.text}>Otwieram kurs zapisany na urządzeniu...</Text></View>}
     {failed && <View style={styles.overlay}><Text style={styles.text}>Nie udało się otworzyć wbudowanego kursu lub odczytać postępu. Ponowienie nie wymaga internetu. Zachowane dane nie zostały usunięte.</Text>{failureCode && <Text style={styles.text}>Kod: {failureCode}</Text>}<Pressable accessibilityRole="button" onPress={retry} style={styles.button}><Text style={styles.buttonText}>Ponów</Text></Pressable></View>}
-  </Screen>;
+  </Screen></DarkSurface>;
 }
 
 const styles = StyleSheet.create({

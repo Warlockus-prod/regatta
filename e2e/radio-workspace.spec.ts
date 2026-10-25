@@ -41,6 +41,22 @@ const SCREENS = [
   },
 ];
 
+test("direct radio practice, the scenario list and guided lessons retain their own navigation state", async ({ page }) => {
+  await page.setViewportSize(PHONE);
+  await page.goto("/radio/symulator?practice=free&lang=en");
+  await expect(page.getByTestId("free-practice-guide")).toBeVisible();
+  await expect(page.getByTestId("lcd")).toBeVisible();
+  await page.getByTestId("free-scenarios").click();
+  await expect(page.getByTestId("start-fire-mayday")).toBeVisible();
+  await expect(page.getByTestId("radio-dock")).toHaveCount(0);
+  await page.getByRole("navigation", { name: "Radio" }).getByRole("link", { name: "Practice", exact: true }).click();
+  await expect(page.getByTestId("free-practice-guide")).toBeVisible();
+  await page.getByTestId("free-guided-lessons").click();
+  await expect(page.getByTestId("course-exit")).toBeVisible();
+  await page.getByTestId("course-exit").click();
+  await expect(page.getByTestId("free-practice-guide")).toBeVisible();
+});
+
 for (const viewport of [PHONE, DESKTOP, ...SHORT_SCREENS]) {
   for (const screen of SCREENS) {
     test(`the radio stays on screen while the panel scrolls: ${screen.name}, ${viewport.width}px`, async ({ page }) => {

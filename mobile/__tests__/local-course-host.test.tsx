@@ -5,7 +5,8 @@ import type { NavigationAction } from "@react-navigation/native";
 import type { ReactNode } from "react";
 
 jest.mock("@react-native-async-storage/async-storage", () => require("@react-native-async-storage/async-storage/jest/async-storage-mock"));
-jest.mock("expo-router", () => ({ Stack: { Screen: (props: object) => mockStackScreen(props) }, useNavigation: () => mockNavigation }));
+jest.mock("expo-router", () => ({ Stack: { Screen: (props: object) => mockStackScreen(props) }, useNavigation: () => mockNavigation, useRouter: () => ({ canGoBack: mockNavigation.canGoBack, back: mockNavigation.goBack, replace: mockReplace }) }));
+jest.mock("../src/i18n/context", () => ({ useI18n: () => ({ lang: "pl", tp: (_ru: string, _en: string, pl: string) => pl }) }));
 jest.mock("@react-navigation/native", () => ({ usePreventRemove: (enabled: boolean, callback: GuardCallback) => mockUsePreventRemove(enabled, callback) }));
 jest.mock("../src/design-system/components", () => ({ Screen: (props: object) => jest.requireActual("react").createElement(jest.requireActual("react-native").View, { ...props, testID: "course-screen" }), Text: jest.requireActual("react-native").Text }));
 jest.mock("../src/course/local-course-asset", () => ({ loadLocalCourseHtml: jest.fn().mockResolvedValue("<html>bundled-only</html>") }));
@@ -24,11 +25,12 @@ type GuardCallback = (event: { data: { action: NavigationAction } }) => void;
 const mockUsePreventRemove = jest.fn<void, [boolean, GuardCallback]>();
 const mockStackScreen = jest.fn((props: { options?: { headerLeft?: () => ReactNode } }) => props.options?.headerLeft?.() ?? null);
 const mockInject = jest.fn();
-const mockNavigation = { addListener: jest.fn(() => () => {}), dispatch: jest.fn(), goBack: jest.fn() };
+const mockReplace = jest.fn();
+const mockNavigation = { addListener: jest.fn(() => () => {}), dispatch: jest.fn(), goBack: jest.fn(), canGoBack: jest.fn(() => true) };
 const storage = { read: readSternikEntries, parse: parseSternikEntries, persist: persistSternikEntries, bootstrap: sternikBootstrap, response: sternikStorageEvent };
 const props = { asset: 42, title: "Sternik", baseUrl: "https://weektoregatta.com/sternik", href: "/sternik", readyMessage: "sternik-offline-ready", errorMessage: "sternik-offline-error", progressMessage: "sternik-offline-progress", messageLimit: STERNIK_MESSAGE_LIMIT, storage, localHref: sternikHref, examBase: "sternik" as const };
 const send = (web: ReturnType<typeof render>["root"], data: object) => act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify(data) } }));
-beforeEach(async () => { jest.clearAllMocks(); await AsyncStorage.clear(); (loadLocalCourseHtml as jest.Mock).mockResolvedValue("<html>bundled-only</html>"); });
+beforeEach(async () => { jest.clearAllMocks(); mockNavigation.canGoBack.mockReturnValue(true); await AsyncStorage.clear(); (loadLocalCourseHtml as jest.Mock).mockResolvedValue("<html>bundled-only</html>"); });
 
 it("loads packaged HTML with the legacy origin, consent and PL bootstrap, and routes all links locally", async () => {
   await AsyncStorage.setItem(ANALYTICS_CONSENT_KEY, JSON.stringify({ enabled: false }));
@@ -176,7 +178,8 @@ it("keeps a repeatable RN exam exit button after Stay and dismiss, without initi
   expect(mockUsePreventRemove.mock.calls.at(-1)![0]).toBe(false);
   expect(mainNavigationHiddenByScreen()).toBe(false);
   expect(view.queryByRole("button", { name: "Wyjdź z egzaminu" })).toBeNull();
-  expect(mockStackScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerBackVisible: undefined, gestureEnabled: undefined, headerLeft: undefined }) }));
+  expect(mockStackScreen).toHaveBeenLastCalledWith(expect.objectContaining({ options: expect.objectContaining({ headerBackVisible: false, gestureEnabled: undefined, headerLeft: expect.any(Function) }) }));
+  expect(view.getByRole("button", { name: "Wróć" })).toBeTruthy();
   alert.mockRestore();
 });
 
@@ -205,4 +208,20 @@ it("distinguishes packaged-file and WK load errors without logging content or re
   expect(JSON.stringify(warn.mock.calls)).not.toMatch(/private/);
   expect(await AsyncStorage.getItem(STERNIK_STORAGE_KEY)).toBeNull();
   warn.mockRestore();
+});
+
+it("returns a deep-linked unfinished exam to Learn when its native stack has no previous screen", async () => {
+  mockNavigation.canGoBack.mockReturnValue(false);
+  const alert = jest.spyOn(Alert, "alert").mockImplementation(() => {});
+  const view = render(<LocalCourseWebView {...props} />);
+  const web = await waitFor(() => view.getByTestId("local-course-webview"));
+  send(web, { type: "exam-dirty", dirty: true });
+  fireEvent.press(view.getByRole("button", { name: "Wyjdź z egzaminu" }));
+  act(() => alert.mock.calls.at(-1)![2]![0].onPress!());
+  expect(mockReplace).not.toHaveBeenCalled();
+  fireEvent.press(view.getByRole("button", { name: "Wyjdź z egzaminu" }));
+  act(() => alert.mock.calls.at(-1)![2]![1].onPress!());
+  expect(mockReplace).toHaveBeenCalledWith("/learn");
+  expect(mockNavigation.goBack).not.toHaveBeenCalled();
+  alert.mockRestore();
 });

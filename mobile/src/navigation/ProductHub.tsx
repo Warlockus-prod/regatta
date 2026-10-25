@@ -51,7 +51,7 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
     { id: "exam", title: copy.exam[lang], entries: visible.filter(d => d.certificate) },
   ] : [{ id: section, title: "", entries: visible }];
   const row = (entry: Destination, index: number, count: number) => <ListRow key={entry.id} noBorder={index === count - 1}
-    title={`${section === "practice" ? `${index + 1}. ` : ""}${entry.title[lang]}`} caption={entry.detail?.[lang]}
+    title={entry.title[lang]} caption={entry.detail?.[lang]}
     badge={entry.online ? copy.online[lang] : undefined} onPress={() => router.push(entry.native as Href)} />;
   return <Screen>
     <Stack.Screen options={{ title, headerShown: false, animation: "fade" }} />
@@ -75,7 +75,6 @@ export function ProductHub({ section }: { section: Exclude<Section, "home">; men
       </Group>)}
       {isMenu && !query.trim() && <MyProgress />}
       {!visible.length && <Text accessibilityLiveRegion="polite" style={styles.empty}>{copy.empty[lang]}</Text>}
-      {section === "practice" && <Button variant="ghost" onPress={() => router.push("/simulator")}>{copy.fallback[lang]}</Button>}
       {section === "race" && <Group title="">
         <ListRow noBorder title={copy.daily[lang]} caption={daily.day} onPress={() => router.push(`/game?daily=${daily.day}`)} />
       </Group>}

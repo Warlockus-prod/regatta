@@ -185,3 +185,9 @@ MAYDAY, PAN-PAN, SECURITE, OVER, OUT, DSC, MMSI, VHF, SRC and UKE retain their
 protocol spelling or institutional abbreviation. Descriptions around them are
 adapted. Polish legal and UKE context stays Polish in substance in every locale;
 translation must not invent a different country's examination procedure.
+
+## 2026-10-25 navigation and adaptation correction
+
+The installed host and website now share the bounded route/exit copy in `src/lib/radio-navigation.ts`; the web compatibility entry is `src/app/radio/navigation.ts`. New practice navigation uses explicit free practice, guided learning, course and scenario actions. Exit prompts and native labels are supplied in all seven languages. English operating protocols and the source question options remain literal. Native leaderboard copy separately explains why offline races do not appear globally.
+
+The resource catalog is rebuilt from current sources; its count can decrease when obsolete aliases or shared route copy move out of the radio extraction tree. Counts alone do not establish translation or installed UI acceptance. Fresh source/package and device evidence is recorded in `docs/audits/2026-10-25/corrections.md`.

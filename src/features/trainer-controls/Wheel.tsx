@@ -58,7 +58,7 @@ export function Wheel(props: WheelProps) {
       tabIndex={0}
       aria-label={label}
       aria-valuetext={valueText}
-      aria-valuenow={Math.round(ariaNow)}
+      aria-valuenow={Number(ariaNow.toFixed(3))}
       aria-valuemin={ariaMin}
       aria-valuemax={ariaMax}
       data-testid={testId}

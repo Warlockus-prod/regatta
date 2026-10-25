@@ -3,7 +3,8 @@
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
+import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo } from '@/lib/sounds';
+import { useControlPrefs } from '@/features/trainer-controls/prefs';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
 import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
@@ -37,10 +38,11 @@ import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
 import { raceGuidance } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
-import { isNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
+import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
 import { useRacePrefs } from "./race-prefs";
 import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
+import { createRaceStartupGate } from "@/lib/race-startup";
 import { linkedRaceSetup } from "@/lib/race-setup";
 import { raceTrimCoach } from "@/lib/race-trim-coach";
 import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
@@ -195,6 +197,7 @@ export default function GamePage() {
   useEffect(() => { langRef.current = lang; }, [lang]);
   // The shared 3D scene reads the same live race refs as the controls.
   const { camera: raceCamera, setCamera: setRaceCamera } = useRaceView();
+  const [cameraRevision, setCameraRevision] = useState(0);
   const sceneFlags = useRaceSceneFlags();
   // The next renderer's frame rate, written straight into its readout (no re-render).
   const statsRef = useRef<HTMLDivElement | null>(null);
@@ -235,6 +238,12 @@ export default function GamePage() {
   const pendingNativeSaves = useRef(createPendingRaceSaves());
   const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const startupGate = useRef(createRaceStartupGate());
+  const [sceneRaceId, setSceneRaceId] = useState("");
+  const [sceneReady, setSceneReady] = useState(false);
+  const onSceneReady = useCallback(() => {
+    if (startupGate.current.rendered(sceneRaceId)) setSceneReady(true);
+  }, [sceneRaceId]);
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
@@ -330,9 +339,8 @@ export default function GamePage() {
   const autopilotOnRef = useRef(false);
   useEffect(() => { autopilotOnRef.current = autopilotOn; }, [autopilotOn]);
 
-  // Sound state (for UI toggle; actual playback reads live from lib)
-  const [muted, setMutedState] = useState(false);
-  useEffect(() => { setMutedState(isMuted()); }, []);
+  const { prefs: controlPrefs, update: updateControls } = useControlPrefs();
+  const muted = !controlPrefs.sound;
 
   // Wind strength multiplier: 0.6 (light) / 1.0 (medium) / 1.3 (heavy)
   const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
@@ -535,6 +543,8 @@ export default function GamePage() {
     trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
     raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    startupGate.current.reset(raceIdRef.current);
+    setSceneRaceId(raceIdRef.current); setSceneReady(false);
     ruleStateRef.current = createRaceRulesState();
     raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
     rudderRef.current = 0; setRudderState(0);
@@ -595,7 +605,7 @@ export default function GamePage() {
 
   // Countdown
   useEffect(() => {
-    if (gameState !== 'countdown' || paused) return;
+    if (gameState !== 'countdown' || paused || !sceneReady) return;
     if (countdown === 0) {
       playStart();
       postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
@@ -616,7 +626,7 @@ export default function GamePage() {
     playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused]);
+  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady]);
 
   // -----------------------------------------------------------------------
   // Keyboard input
@@ -660,7 +670,7 @@ export default function GamePage() {
     const clock = createFixedClock();
     let ended = false;
     const step = (now: number) => {
-      clock.advance(now, !pausedRef.current && !document.hidden, (dt) => {
+      clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
       if (ended) return;
       if (isRacing) raceClockRef.current += dt;
 
@@ -1025,7 +1035,7 @@ export default function GamePage() {
       <div className="h-dvh overflow-y-auto">
         {nativeRace && <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
           <Link href="/" className="inline-flex items-center min-h-11 py-2 text-sm text-[var(--accent-cyan)]">
-            {tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
+            {readRaceSearch().has("fromLesson") ? tl({ ru: "Вернуться к уроку", en: "Back to lesson", pl: "Wróć do lekcji", es: "Volver a la lección", fr: "Retour à la leçon", de: "Zurück zur Lektion", it: "Torna alla lezione" }) : tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
           </Link>
         </div>}
         {/* Resume banner: shown when we detect a saved setup from a
@@ -1079,11 +1089,12 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'briefing') {
     return (
-      <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-8 h-dvh overflow-y-auto">
+      <div className="page-enter h-dvh flex flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={backToMenu}
-            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
+            className="min-h-11 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
           >
             ← {tp('Назад к выбору', 'Back to menu', 'Wróć do wyboru', { es: 'Volver al menú', fr: 'Retour au menu', de: 'Zurück zum Menü', it: 'Torna al menu' })}
           </button>
@@ -1173,6 +1184,9 @@ export default function GamePage() {
           </ul>
         </div>
 
+        </div>
+        <div className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] px-4 sm:px-6 py-3">
+        <div className="max-w-4xl mx-auto">
         <button
           onClick={beginCountdown}
           className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
@@ -1180,6 +1194,7 @@ export default function GamePage() {
         >
           {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
+        </div></div>
       </div>
     );
   }
@@ -1194,24 +1209,24 @@ export default function GamePage() {
           trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
           time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
           trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
-          camera={raceCamera} setCamera={setRaceCamera} paused={paused} onPause={togglePause} onExit={backToMenu}
+          camera={raceCamera} setCamera={setRaceCamera} onResetCamera={() => setCameraRevision(value => value + 1)} paused={paused} onPause={togglePause} onExit={backToMenu}
           autopilot={autopilotOn} onAutopilot={() => {
             autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
             setTargetHeading(autopilotHeadingRef.current);
             rudderRef.current = 0; setRudderState(0);
             autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
-          }} muted={muted} onSound={() => setMutedState(toggleMuted())} penalty={penalty}
+          }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
           countdown={gameState === "countdown" ? countdown : undefined}>
-          <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels}
+          <RaceScene key={sceneRaceId} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
             guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
           {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
         </RaceCockpit>
       )}
 
-      {/* Finish overlay */}
+      {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
-        <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10, 22, 40, 0.9)', backdropFilter: 'blur(8px)' }}>
-          <div className="card p-6 sm:p-8 max-w-lg w-full my-4">
+        <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
+          <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
             {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             <div className="text-center mb-5">
               <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK', { es: 'RESULTADO', fr: 'RÉSULTAT', de: 'ERGEBNIS', it: 'RISULTATO' })}</div>
@@ -1258,8 +1273,8 @@ export default function GamePage() {
             </div>
 
             {/* Compact leaderboard - collapsed by default, only winner + you shown on mobile */}
-            <details className="mb-5 card p-3">
-              <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
+            <details className="mb-5 border-y border-[var(--border-subtle)]">
+              <summary className="min-h-11 cursor-pointer py-3 text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
                 <span>{tp('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS', 'WYNIKI WYŚCIGU', { es: 'RESULTADOS DE LA REGATA', fr: 'RÉSULTATS DE LA COURSE', de: 'ERGEBNISSE', it: 'RISULTATI DELLA REGATA' })} ({results.length})</span>
                 <span className="text-[var(--accent-cyan)]">▾</span>
               </summary>
@@ -1312,10 +1327,10 @@ export default function GamePage() {
             )}
 
             {/* AI Coach */}
-            <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+            <section className="mb-5 border-t border-[var(--border-subtle)] py-5">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">🧭</span>
-                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
+                <div className="text-sm font-semibold text-[var(--text-primary)]">{coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
                   { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' })}</div>
               </div>
               {/* Apple Review 2025 + EU AI Act: explicit AI-content disclosure. */}
@@ -1389,13 +1404,13 @@ export default function GamePage() {
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
+                  <div className="pt-2 border-t border-[var(--border-subtle)]">
                     <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na następny wyścig', { es: 'Objetivo para la próxima regata', fr: 'Objectif pour la prochaine course', de: 'Ziel für das nächste Rennen', it: 'Obiettivo per la prossima regata' })}</div>
-                    <p className="text-xs text-[var(--accent-cyan)]">{coachNextGoal(coaching)}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{coachNextGoal(coaching)}</p>
                   </div>
                 </div>
               )}
-            </div>
+            </section>
 
             {/* Nickname prompt: first finish without a stored nickname. The
                 nickname is stored server-side per session via POST /api/player
@@ -1418,7 +1433,7 @@ export default function GamePage() {
                     onChange={(e) => setNicknameInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && nicknameInput.trim().length >= 2) saveResult(nicknameInput); }}
                     maxLength={20}
-                    className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
+                    className="min-h-11 flex-1 min-w-0 px-3 py-2 rounded text-sm"
                     style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
                     placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick',
                       { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
@@ -1500,7 +1515,7 @@ export default function GamePage() {
               </button>
               <Link
                 href={nativeRace ? "/history" : "/leaderboard"}
-                className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
+                className="inline-flex min-h-11 flex-1 min-w-[100px] items-center justify-center py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
                 🏆 {nativeRace ? copy.history : tp('Лидерборд', 'Leaderboard', 'Ranking',
                   { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
@@ -1520,7 +1535,10 @@ export default function GamePage() {
         </div>
       )}
 
-      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} onClose={() => nativeReplayHydrated.current ? backToMenu() : setGameState("finished")} />}
+      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} onClose={() => {
+        if (!nativeReplayHydrated.current) setGameState("finished");
+        else if (!navigateNativeRace("/history")) backToMenu();
+      }} />}
     </div>
   );
 }

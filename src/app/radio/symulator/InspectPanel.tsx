@@ -37,11 +37,11 @@ export function InspectPanel({
     <div
       data-testid="inspect-panel"
       className={`${className} rounded-2xl p-4`}
-      style={{ background: 'var(--bg-card)', border: '1px solid rgba(255,206,77,0.35)' }}
+      style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
     >
       {item ? (
         <>
-          <div className="mb-2 text-sm font-bold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+          <div className="mb-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>
             {radioText(other ? radioText(item.titlePl) : showRu && !showPl ? item.titleRu : item.titlePl)}
           </div>
           <Block
@@ -70,7 +70,7 @@ export function InspectPanel({
         </p>
       )}
       {onSelect && <details className="mt-3"><summary className="flex min-h-[44px] cursor-pointer items-center text-sm font-semibold">{radioText("Wybierz element z listy")}</summary>
-        <div className="divide-y">{Object.entries(INSPECT).map(([key,part])=><button key={key} type="button" className="block min-h-[44px] w-full px-2 py-2 text-left text-sm" aria-pressed={inspectKey===key} onClick={()=>onSelect(key)}>{radioText(lang==="ru"?part.titleRu:part.titlePl)}</button>)}</div>
+        <div className="divide-y">{Object.entries(INSPECT).map(([key,part])=><button key={key} type="button" className="block min-h-[44px] w-full px-2 py-2 text-left text-sm" style={{ color: inspectKey===key ? 'var(--accent-cyan)' : 'var(--text-secondary)' }} aria-pressed={inspectKey===key} onClick={()=>onSelect(key)}>{radioText(lang==="ru"?part.titleRu:part.titlePl)}</button>)}</div>
       </details>}
     </div>
   );

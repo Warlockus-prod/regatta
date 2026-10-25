@@ -2,8 +2,10 @@
 
 import { useRadioI18n } from "@/app/radio/localization/context";
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { RADIO_GUIDED_HREF } from '../navigation';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import { useFocusTrap } from '../../sternik/useFocusTrap';
 import RadioFront from './RadioFront';
@@ -76,6 +78,16 @@ function saveProgress(p: ProgressMap) {
 }
 
 export default function RadioSimulatorPage() {
+  return <Suspense><RadioSimulatorRoute /></Suspense>;
+}
+
+function RadioSimulatorRoute() {
+  const search = useSearchParams();
+  return <RadioSimulator key={search.toString()} />;
+}
+
+function RadioSimulator() {
+  const router = useRouter();
   const { rt: radioText, tl } = useRadioI18n();
   const { tp, lang } = useTrainerI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
@@ -105,6 +117,8 @@ export default function RadioSimulatorPage() {
 
   // --- scenario engine state -------------------------------------------------
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const returnToFree = useRef(false);
+  const listScroll = useRef(0);
   const [mode, setMode] = useState<Mode>('nauka');
   const freePractice = scenario?.id === FREE_PRACTICE.id;
   const [stepIdx, setStepIdx] = useState(0);
@@ -178,7 +192,8 @@ export default function RadioSimulatorPage() {
   useEffect(() => {
     setProgress(loadProgress());
     try {
-      if (!window.localStorage.getItem(ONBOARD_KEY)) setOnboardStep(0);
+      const search = new URLSearchParams(radioRuntimeSearch());
+      if (!search.has('scenario') && search.get('practice') !== 'free' && !window.localStorage.getItem(ONBOARD_KEY)) setOnboardStep(0);
     } catch { /* ignore */ }
   }, []);
 
@@ -453,6 +468,8 @@ export default function RadioSimulatorPage() {
 
   // --- scenario control -------------------------------------------------------
   const startScenario = useCallback((sc: Scenario, m: Mode) => {
+    if (!scenarioRef.current) { listScroll.current = window.scrollY; returnToFree.current = false; }
+    if (scenarioRef.current?.id === FREE_PRACTICE.id && sc.id !== FREE_PRACTICE.id) returnToFree.current = true;
     // "AI examiner" variability: every run draws a fresh venue (among those
     // that have what the scenario needs), vessel identity, position and crew
     // size - the voice checklists adapt server-side.
@@ -493,9 +510,9 @@ export default function RadioSimulatorPage() {
   useEffect(() => {
     if (!modelReady) return;
     if (deepLinkStartedRef.current) return;
-    const requestedId = new URLSearchParams(radioRuntimeSearch()).get('scenario');
-    if (!requestedId) return;
-    const requested = SCENARIOS.find((item) => item.id === (requestedId === "mob-panpan" ? "mob-mayday" : requestedId));
+    const search = new URLSearchParams(radioRuntimeSearch());
+    const requestedId = search.get('scenario');
+    const requested = search.get('practice') === 'free' ? FREE_PRACTICE : SCENARIOS.find((item) => item.id === (requestedId === "mob-panpan" ? "mob-mayday" : requestedId));
     if (!requested) return;
     deepLinkStartedRef.current = true;
     try { window.localStorage.setItem(ONBOARD_KEY, '1'); } catch { /* ignore */ }
@@ -504,13 +521,16 @@ export default function RadioSimulatorPage() {
   }, [modelReady, startScenario]);
 
   const exitScenario = useCallback(() => {
+    if (scenarioRef.current?.id === FREE_PRACTICE.id) { router.push('/radio'); return; }
+    if (returnToFree.current) { startScenario(FREE_PRACTICE, 'nauka'); return; }
     setScenario(null);
     setFinishedAt(null);
     setStartedAt(null);
     rsRef.current = createInitialRadio(model);
     stopHold();
     force((n) => n + 1);
-  }, [model, stopHold]);
+    window.requestAnimationFrame(() => window.scrollTo({ top: listScroll.current }));
+  }, [model, router, startScenario, stopHold]);
 
   /** "?" - spotlight whatever the CURRENT step wants pressed right now. */
   const showHint = useCallback(() => {
@@ -857,10 +877,10 @@ export default function RadioSimulatorPage() {
           stacked={stacked}
           onExit={exitScenario}
           exitTestId="exit-scenario"
-          exitTitle={tp('Выйти к сценариям', 'Back to the scenarios', 'Wyjdź do scenariuszy')}
+          exitTitle={freePractice ? tl({ ru: "К курсу SRC", en: "SRC course", pl: "Kurs SRC", es: "Curso SRC", fr: "Cours SRC", de: "SRC-Kurs", it: "Corso SRC" }) : tp('Выйти к сценариям', 'Back to the scenarios', 'Wyjdź do scenariuszy')}
           status={(
             <>
-              <span className="rounded-full px-2.5 py-0.5 text-xs font-semibold" style={{ background: learning ? 'rgba(0,212,255,0.12)' : 'rgba(255,210,74,0.12)', color: learning ? 'var(--accent-cyan)' : 'var(--warning)' }}>
+              <span className="rounded-full border px-2.5 py-0.5 text-xs font-semibold" style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}>
                 {radioText(learning ? tp('Обучение', 'Learn', 'Nauka') : tp('Экзамен', 'Exam', 'Egzamin'))}
               </span>
               <span className="font-mono text-xs" style={{ color: 'var(--text-muted)' }}>⏱ {radioText(fmtTime(elapsedSec))}</span>
@@ -919,6 +939,13 @@ export default function RadioSimulatorPage() {
               {/* finished -> debrief; else current step */}
               {freePractice ? (
                 <div className="space-y-4" data-testid="free-practice-guide">
+                  <Link href={RADIO_GUIDED_HREF} data-testid="free-guided-lessons" className="flex min-h-[44px] items-center justify-center rounded-xl px-3 font-semibold" style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}>
+                    {tl({ ru: "Научиться работать с рацией", en: "Learn the radio controls", pl: "Naucz się obsługi radia", es: "Aprende a manejar la radio", fr: "Apprendre les commandes radio", de: "Funkgerät bedienen lernen", it: "Impara i comandi della radio" })}
+                  </Link>
+                  <div className="flex flex-wrap gap-x-4">
+                    <Link href="/radio" data-testid="free-course" className="flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tl({ ru: "Курс SRC", en: "SRC course", pl: "Kurs SRC", es: "Curso SRC", fr: "Cours SRC", de: "SRC-Kurs", it: "Corso SRC" })}</Link>
+                    <Link href="/radio/symulator" data-testid="free-scenarios" className="flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tl({ ru: "Сценарии", en: "Scenarios", pl: "Scenariusze", es: "Escenarios", fr: "Scénarios", de: "Szenarien", it: "Scenari" })}</Link>
+                  </div>
                   <h2 className="text-lg font-semibold">{radioText("Poznaj radio w swoim tempie")}</h2>
                   <p className="text-sm leading-relaxed" style={{color:"var(--text-secondary)"}}>{radioText(FREE_PRACTICE.brief.pl)}</p>
                   <ol className="list-inside list-decimal space-y-2 text-sm">
@@ -928,15 +955,15 @@ export default function RadioSimulatorPage() {
                     <li>{radioText("Otwórz MENU i ćwicz DSC. To symulacja: żaden sygnał nie jest nadawany na prawdziwej częstotliwości.")}</li>
                   </ol>
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" className="min-h-[44px] rounded-lg border px-3" onClick={()=>{setInspect(true);setInspectKey("dial");}}>{radioText("Wyjaśnij pokrętło i przyciski")}</button>
-                    <button type="button" className="min-h-[44px] rounded-lg border px-3" onClick={()=>startScenario(FREE_PRACTICE,"nauka")}>{radioText("Przywróć ustawienia ćwiczenia")}</button>
+                    <button type="button" className="min-h-[44px] rounded-lg border px-3" style={{ borderColor: "var(--border-subtle)", color: "var(--accent-cyan)" }} onClick={()=>{setInspect(true);setInspectKey("dial");}}>{radioText("Wyjaśnij pokrętło i przyciski")}</button>
+                    <button type="button" className="min-h-[44px] rounded-lg border px-3" style={{ borderColor: "var(--border-subtle)", color: "var(--text-secondary)" }} onClick={()=>startScenario(FREE_PRACTICE,"nauka")}>{radioText("Przywróć ustawienia ćwiczenia")}</button>
                   </div>
                   <h3 className="font-semibold">{radioText("Uruchom sytuację")}</h3>
                   <div className="divide-y" style={{borderColor:"var(--border-subtle)"}}>{SCENARIOS.map(sc=><button key={sc.id} type="button" className="flex min-h-[44px] w-full items-center justify-between py-2 text-left text-sm" onClick={()=>{setInspect(false);startScenario(sc,"nauka");}}><span>{sc.icon} {radioText(bi(sc.title))}</span><span aria-hidden="true">›</span></button>)}</div>
                 </div>
               ) : finishedAt !== null ? (
-                <div data-testid="debrief" role="status" aria-live="polite" className="rounded-2xl p-4" style={{ background: 'linear-gradient(140deg,var(--bg-card),rgba(0,212,255,0.08))', border: '1px solid var(--border-subtle)' }}>
-                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{radioText(tp('Разбор', 'Debrief', 'Omówienie'))}</div>
+                <div data-testid="debrief" role="status" aria-live="polite" className="rounded-2xl p-4" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
+                  <div className="mb-1 text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>{radioText(tp('Разбор', 'Debrief', 'Omówienie'))}</div>
                   <div className="flex flex-wrap items-baseline gap-3">
                     <span className="text-4xl font-extrabold" style={{ color: mistakes.length === 0 && finalScore >= 70 ? 'var(--success)' : 'var(--text-primary)' }}>{radioText(finalScore)}%</span>
                     <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
@@ -978,7 +1005,7 @@ export default function RadioSimulatorPage() {
                   {modelLines.length > 0 && (
                     <div className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                       <div className="mb-1 flex flex-wrap items-center gap-2">
-                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                        <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-secondary)' }}>
                           {radioText(tp('Как надо было', 'How it should have sounded', 'Jak to miało brzmieć'))}
                         </span>
                         <button
@@ -1043,7 +1070,7 @@ export default function RadioSimulatorPage() {
                       )}
                     </div>
                     {hintNone && (
-                      <div data-testid="hint-none" className="mb-2 text-xs" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
+                      <div data-testid="hint-none" className="mb-2 text-xs" style={{ color: 'var(--text-secondary)' }}>
                         {radioText(tp(
                           'Сейчас нажимать нечего - жди ответа станции.',
                           'Nothing to press right now - wait for the station to answer.',
@@ -1054,7 +1081,7 @@ export default function RadioSimulatorPage() {
                     {learning && currentStep ? (
                       <>
                         <div data-testid="current-todo" className="text-base font-medium leading-snug" style={{ color: 'var(--text-primary)' }}>{radioText(bi(currentStep.todo))}</div>
-                        <div className="mt-2 rounded-xl px-3 py-2 text-xs leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
+                        <div className="mt-2 rounded-xl px-3 py-2 text-xs leading-relaxed" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)', color: 'var(--text-secondary)' }}>
                           💡 {radioText(bi(currentStep.why))}
                         </div>
                       </>

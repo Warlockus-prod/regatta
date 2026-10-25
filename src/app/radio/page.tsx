@@ -7,6 +7,7 @@ import Link from "next/link";
 import WeakSpotsPanel from "./WeakSpotsPanel";
 import { loadRadioCourseProgress, type RadioCourseProgress } from "./courseProgress";
 import { SCENARIO_IDS, SRC_QUESTION_IDS, THEORY_CHAPTER_IDS } from "./courseIds";
+import { RADIO_GUIDED_HREF } from "./navigation";
 
 const EMPTY_PROGRESS: RadioCourseProgress = {
   theoryCompleted: 0,
@@ -43,7 +44,7 @@ function ProgressLine({
       <div className="h-1.5 overflow-hidden rounded-full" style={{ background: "var(--bg-secondary)" }}>
         <div
           className="h-full rounded-full transition-[width]"
-          style={{ width: `${percent}%`, background: "var(--accent-cyan)" }}
+          style={{ width: `${percent}%`, background: "var(--success)" }}
         />
       </div>
     </div>
@@ -76,7 +77,7 @@ export default function RadioCourseHome() {
     }
     if (progress.guideCompleted < progress.guideTotal) {
       return {
-        href: "/radio/obsluga",
+        href: RADIO_GUIDED_HREF,
         title: tp("Закрепить органы управления", "Master the controls", "Utrwal obsługę"),
         description: tp(
           "Пройди управление ICOM до DISTRESS без поиска кнопок.",
@@ -127,7 +128,7 @@ export default function RadioCourseHome() {
         "15 sequential lessons on the ICOM IC-M330GE and IC-M323 used in UKE practical exams.",
         "15 kolejnych lekcji na ICOM IC-M330GE i IC-M323 używanych na praktyce UKE.",
       ),
-      href: "/radio/obsluga",
+      href: RADIO_GUIDED_HREF,
       action: tp("Курс управления", "Controls course", "Kurs obsługi"),
     },
     {
@@ -158,7 +159,7 @@ export default function RadioCourseHome() {
     <div id="radio-course-home">
       <header className="mb-8 grid gap-6 border-b pb-8 lg:grid-cols-[minmax(0,1fr)_320px]" style={{ borderColor: "var(--border-subtle)" }}>
         <div>
-          <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--accent-cyan)" }}>
+          <p className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: "var(--text-secondary)" }}>
             {radioText(tp("Подготовка к польскому SRC", "Polish SRC preparation", "Przygotowanie do polskiego SRC"))}
           </p>
           <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-tight sm:text-4xl" style={{ color: "var(--text-primary)" }}>
@@ -192,7 +193,7 @@ export default function RadioCourseHome() {
             <h2 className="text-sm font-bold" style={{ color: "var(--text-primary)" }}>
               {radioText(tp("Прогресс обучения", "Learning progress", "Postęp nauki"))}
             </h2>
-            <span className="text-2xl font-bold" style={{ color: "var(--accent-cyan)" }}>
+            <span className="text-2xl font-bold" style={{ color: "var(--text-primary)" }}>
               {radioText(progress.overallPercent)}%
             </span>
           </div>
@@ -214,7 +215,7 @@ export default function RadioCourseHome() {
         <div className="mt-5 divide-y" style={{ borderColor: "var(--border-subtle)" }}>
           {path.map((stage) => (
             <article key={stage.number} className="grid gap-3 py-5 first:pt-0 sm:grid-cols-[56px_minmax(0,1fr)_auto] sm:items-center">
-              <span className="font-mono text-sm font-bold" style={{ color: "var(--accent-cyan)" }}>
+              <span className="font-mono text-sm font-bold" style={{ color: "var(--text-muted)" }}>
                 {radioText(stage.number)}
               </span>
               <div>

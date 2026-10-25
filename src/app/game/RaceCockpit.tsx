@@ -1,5 +1,7 @@
 'use client';
 
+import { FoundationReturn, useFoundationReturnId } from "@/components/FoundationReturn";
+
 import { useState, type ReactNode } from "react";
 import { WheelDeck } from "@/features/trainer-controls/WheelDeck";
 import { useControlLabels } from "@/features/trainer-controls/labels";
@@ -7,6 +9,7 @@ import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/pre
 import type { Controls } from "@/lib/sailing-physics/types";
 import type { StandingRow } from "@/features/race-hud/RaceHud";
 import type { RaceGuidance } from "@/lib/race-guidance";
+import type { RaceCamera } from "@/features/race-3d/pose";
 import { useRaceCopy } from "./race-copy";
 import type { RacePrefs } from "./race-prefs";
 import styles from "./RaceCockpit.module.css";
@@ -32,12 +35,13 @@ export function RaceCockpit(p: {
   trim: Controls; setTrim: (patch: Partial<Controls>) => void;
   heading: number; speed: number; twa: number; time: string; rank: number;
   rows: StandingRow[]; trimAdvice?: string; guidance: RaceGuidance | null; message?: string;
-  camera: "high" | "stern"; setCamera: (v: "high" | "stern") => void;
+  camera: RaceCamera; setCamera: (v: RaceCamera) => void; onResetCamera: () => void;
   paused: boolean; onPause: () => void; onExit: () => void;
   autopilot: boolean; onAutopilot: () => void;
   muted: boolean; onSound: () => void; penalty: number; countdown?: number;
 }) {
   const c = useRaceCopy();
+  const foundationLesson = useFoundationReturnId();
   const labels = useControlLabels();
   const { prefs: controls, update } = useControlPrefs();
   const [tab, setTab] = useState<"helm" | "sails" | "fleet" | "settings">("helm");
@@ -51,7 +55,8 @@ export function RaceCockpit(p: {
   return <div className={styles.cockpit} data-testid="race-cockpit">
     <header className={styles.toolbar}>
       <button type="button" onClick={p.onExit}>{c.menu}</button>
-      <strong>REGATTA <span>{pro ? "PRO" : "3D"}</span></strong>
+      <FoundationReturn compact />
+      <strong className={foundationLesson ? "hidden sm:block" : undefined}>REGATTA <span>{pro ? "PRO" : "3D"}</span></strong>
       <button type="button" onClick={p.onPause} aria-pressed={p.paused}>{p.paused ? c.resume : c.pause}</button>
     </header>
     <div className={styles.metrics}>
@@ -96,12 +101,15 @@ export function RaceCockpit(p: {
             <Toggle label={labels.returnCenter} checked={controls.helmReturnToCenter} onChange={helmReturnToCenter => update({ helmReturnToCenter })} />
             <Toggle label={labels.jibRight} checked={controls.jibSheetSide === "right"} onChange={on => update({ jibSheetSide: on ? "right" : "left" })} />
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={controls.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
-            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["high", "stern"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
+            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(v => <button key={v} type="button" role="radio" aria-checked={p.camera === v} onClick={() => p.setCamera(v)}>{c[v]}</button>)}</div>
+            <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
+            <p>{c.cameraGesture}</p>
             <Toggle label={c.guidance} checked={p.prefs.guidance} onChange={guidance => p.updatePrefs({ guidance })} />
             <Toggle label={c.trimHints} checked={p.prefs.trimHints} onChange={trimHints => p.updatePrefs({ trimHints })} />
             <Toggle label={c.rules} checked={p.prefs.rules} onChange={rules => p.updatePrefs({ rules })} />
             <Toggle label={c.penalties} checked={p.prefs.penalties} onChange={penalties => p.updatePrefs({ penalties })} />
-            <Toggle label={c.sound} checked={!p.muted} onChange={() => { p.onSound(); update({ sound: p.muted }); }} />
+            <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
+            <p>{labels.soundNote}</p>
             <p>{c.rulesNote}</p>
           </div>}
         </div>

@@ -2,53 +2,20 @@
 
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, memo, type MutableRefObject } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Html } from '@react-three/drei';
-import * as THREE from 'three';
 import { Yacht } from './Yacht';
 import { WindFlow } from "./ocean/WindFlow";
 import type { Venue } from '../../data/venues/venues';
 import type { YachtState } from './types';
-import type { OrbitControls as Controls } from "three-stdlib";
-import { fitCamera, fitSailCamera, fitMainsheetCamera, type CameraView } from "./camera";
-import { SceneBoundary, reportScene } from "./SceneBoundary";
+import { fitYachtCamera, type CameraView } from "./camera";
+import { SailingCameraRig } from "./SailingCameraRig";
+import { SceneBoundary } from "./SceneBoundary";
+import { FirstSceneFrame, SceneStartup } from "./SceneStartup";
 import { YACHT_MODEL_URL } from "./config";
 import { SailingEnvironment } from "@/features/race-scene/SailingEnvironment";
 import { createSailingRenderer } from "@/features/race-scene/renderer";
 import { trainerChartOrigin } from "@/features/race-scene/environment-state";
 import { METRES_PER_UNIT } from "@/features/race-3d/pose";
 import { RACE_AREA } from "@/data/venues/geometry";
-
-function CameraFit({ view, revision, stateRef }: { view: CameraView; revision: number; stateRef: MutableRefObject<YachtState> }) {
-  const { camera, controls, size } = useThree();
-  useEffect(() => {
-    const detail = view === "main" || view === "jib";
-    const bounds = view === "deck"
-      ? [new THREE.Vector3(-7, -0.2, -2.5), new THREE.Vector3(7, 4.5, 2.5)]
-      : [new THREE.Vector3(-7, -0.5, -4), new THREE.Vector3(7, 20.5, 4)];
-    const side = Math.sign(stateRef.current.boomAngle) || 1;
-    const dir = view === "stern" ? new THREE.Vector3(-1, 0.14, side * 0.12)
-      : view === "sails" ? new THREE.Vector3(0.3, 0.08, -side) : new THREE.Vector3(-0.8, view === "deck" ? 0.8 : 0.18, -side);
-    const silhouette = view === "deck" || detail ? undefined : [
-      [-7, 0, -2.3], [-7, 0, 2.3], [7, 0, -2.3], [7, 0, 2.3],
-      [0.3, 20.5, 0], [-1, 19, -1], [1, 19, 1],
-      [-5, 4, -5], [-5, 4, 5], [6.3, 1.5, 0],
-    ].map(([x, y, z]) => new THREE.Vector3(x, y, z));
-    const fit = view === "mainsheet" ? fitMainsheetCamera(stateRef.current, size.width / size.height) : view === "main" || view === "jib"
-      ? fitSailCamera(view, stateRef.current, size.width / size.height)
-      : fitCamera(bounds[0], bounds[1], dir, size.width / size.height, 42, 1.12, silhouette);
-    // Presets are relative to the yacht, even after steering to another heading.
-    const yaw = (90 - (stateRef.current.heading ?? 90)) * Math.PI / 180;
-    fit.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    fit.target.applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    camera.position.copy(fit.position);
-    camera.lookAt(fit.target);
-    if (controls) {
-      (controls as Controls).target.copy(fit.target);
-      (controls as Controls).update();
-    }
-  }, [camera, controls, size.width, size.height, view, revision, stateRef]);
-  return null;
-}
 
 function ContextHealth() {
   const { gl } = useThree();
@@ -63,11 +30,6 @@ function ContextHealth() {
   return null;
 }
 
-function Ready() {
-  useEffect(() => { reportScene("scene-ready"); }, []);
-  return null;
-}
-
 // ============================================================================
 // RegattaScene - the R3F canvas for the V2 3D simulator.
 //
@@ -75,29 +37,6 @@ function Ready() {
 // WebGPU/WebGL2 renderer. OrbitControls and the equipment camera presets
 // remain specific to training. All reflection lighting is generated locally.
 // ============================================================================
-
-// Shown while the 2.3 MB GLB downloads/parses. Before this existed the user
-// stared at an empty ocean for up to tens of seconds with no feedback (live
-// testing measured 26 s on a cold dev load).
-function YachtLoading({ label }: { label: string }) {
-  return (
-    <Html center>
-      <div
-        role="status"
-        aria-label={label}
-        style={{
-          width: 46,
-          height: 46,
-          border: '3px solid rgba(0,212,255,0.25)',
-          borderTopColor: '#00d4ff',
-          borderRadius: '50%',
-          animation: 'regatta-spin 0.9s linear infinite',
-        }}
-      />
-      <style>{'@keyframes regatta-spin { to { transform: rotate(360deg); } }'}</style>
-    </Html>
-  );
-}
 
 export const RegattaScene = memo(function RegattaScene({
   stateRef,
@@ -129,9 +68,11 @@ export const RegattaScene = memo(function RegattaScene({
 }) {
   const originRef = useRef({ x: 0, z: 0 });
   const readState = useCallback(() => stateRef.current, [stateRef]);
+  const cameraPose = useCallback((aspect: number) => fitYachtCamera(view, stateRef.current, aspect), [stateRef, view]);
   const chartOrigin = useMemo(() => trainerChartOrigin(RACE_AREA, METRES_PER_UNIT), []);
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={errorLabel} retryLabel={retryLabel}>
+    <SceneStartup label={loadingLabel}>{ready =>
     <Canvas
       fallback={<span>{sceneLabel}</span>}
       dpr={[1, maxDpr]}
@@ -140,26 +81,22 @@ export const RegattaScene = memo(function RegattaScene({
     >
       <SailingEnvironment venue={venue} readState={readState} originRef={originRef} chartOrigin={chartOrigin} />
 
-      <Suspense fallback={<YachtLoading label={loadingLabel} />}>
+      <Suspense fallback={null}>
         <Yacht stateRef={stateRef} light={maxDpr <= 1} />
-        <Ready />
+        <FirstSceneFrame onReady={ready} />
       </Suspense>
 
       {showFlow && <WindFlow stateRef={stateRef} />}
 
-      <OrbitControls
-        makeDefault
-        target={[0, 10, 0]}
-        enablePan={false}
+      <SailingCameraRig
+        poseForAspect={cameraPose}
+        revision={revision}
         minDistance={view === "mainsheet" ? 2.5 : 9}
         maxDistance={120}
-        maxPolarAngle={Math.PI / 2.04}
-        enableDamping
-        dampingFactor={0.08}
       />
       <ContextHealth />
-      <CameraFit view={view} revision={revision} stateRef={stateRef} />
     </Canvas>
+    }</SceneStartup>
     </SceneBoundary>
   );
 });

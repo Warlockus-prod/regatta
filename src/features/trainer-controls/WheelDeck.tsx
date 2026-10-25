@@ -38,6 +38,13 @@ export interface SheetTarget {
   setEase: (value: number) => void;
   /** Sail angle to the centerline, shown in brackets. */
   angleDeg?: number;
+  /** A physical line can show metres while keeping normalized wheel travel. */
+  valueText?: string;
+  ariaNow?: number;
+  ariaMin?: number;
+  ariaMax?: number;
+  /** Optional normalized step for physical-line keyboard/VoiceOver precision. */
+  stepEase?: number;
 }
 
 type Slot = "helm" | "main" | "jib";
@@ -194,9 +201,11 @@ export function WheelDeck(props: {
   const stepSheet = useCallback((which: "main" | "jib", steps: number) => {
     const s = which === "main" ? main : jib;
     if (!s) return;
-    // Keyboard and VoiceOver steps move the value directly: up = ease 5%.
+    // Keyboard and VoiceOver default to 5%; physical lines supply their resolution.
     const prev = ease.current[which];
-    const next = Number.isFinite(steps) ? clamp(Math.round((prev + steps * SHEET_TICK) * 100) / 100, 0, 1) : steps > 0 ? 1 : 0;
+    const next = Number.isFinite(steps)
+      ? clamp(s.stepEase === undefined ? Math.round((prev + steps * SHEET_TICK) * 100) / 100 : prev + steps * s.stepEase, 0, 1)
+      : steps > 0 ? 1 : 0;
     if (next === prev) return;
     ease.current[which] = next;
     ourEase.current[which] = next;
@@ -249,7 +258,7 @@ export function WheelDeck(props: {
   const place = ([cx, cy, d]: Box) => ({ width: d, height: d, left: cx - d / 2, top: cy - d / 2 });
 
   const helmRotation = helm.mapping === "course" ? courseAngle : rudderAngle;
-  const sheetValue = (s: SheetTarget) => `${Math.round(s.ease * 100)}%${s.angleDeg !== undefined ? ` (${Math.round(s.angleDeg)}°)` : ""}`;
+  const sheetValue = (s: SheetTarget) => s.valueText ?? `${Math.round(s.ease * 100)}%${s.angleDeg !== undefined ? ` (${Math.round(s.angleDeg)}°)` : ""}`;
   const sheetWheel = (which: "main" | "jib") => {
     const s = which === "main" ? main! : jib!;
     const name = which === "main" ? labels.mainsheet : labels.jibsheet;
@@ -263,11 +272,11 @@ export function WheelDeck(props: {
         style={place(pos[which])}
         rotation={-(s.ease / 0.25) * 360}
         label={name}
-        valueText={`${sheetValue(s)}, ${labels.eased}`}
+        valueText={s.valueText ?? `${sheetValue(s)}, ${labels.eased}`}
         caption={<><b>{name}</b><span>{sheetValue(s)}</span></>}
-        ariaNow={s.ease * 100}
-        ariaMin={0}
-        ariaMax={100}
+        ariaNow={s.ariaNow ?? s.ease * 100}
+        ariaMin={s.ariaMin ?? 0}
+        ariaMax={s.ariaMax ?? 100}
         onActivate={() => { if (expanded !== which) setExpanded(which); armCollapse(); }}
         onTurn={(d) => turnSheet(which, d)}
         onStep={(n) => stepSheet(which, n)}

@@ -120,6 +120,13 @@ test('the native radio bundle grades position and conversation text with no netw
   const network: string[] = [];
   page.on('request', request => { if (/\/(?:api|radio-locales|radio-audio)\//.test(request.url())) network.push(request.url()); });
   await page.goto('/__radio-native-bundle');
+  await expect(page.getByTestId('free-practice-guide')).toBeVisible();
+  await expect(page.getByTestId('lcd')).toBeVisible();
+  await page.getByTestId('free-guided-lessons').click();
+  await expect(page.getByTestId('course-exit')).toBeVisible();
+  await page.getByTestId('course-exit').click();
+  await expect(page.getByTestId('free-practice-guide')).toBeVisible();
+  await page.getByTestId('free-scenarios').click();
   await page.locator('a[href="/radio/pozycja"]').first().click();
   await expect(page.getByTestId('local-voice-ptt')).toBeDisabled();
   await page.getByTestId('local-transcript-input').fill(POSITIONS[0].say);
@@ -128,6 +135,7 @@ test('the native radio bundle grades position and conversation text with no netw
   await expect(page.getByText('Checked text', { exact: true })).toBeVisible();
 
   await page.getByRole('navigation').getByRole('link', { name: 'Practice', exact: true }).click();
+  await page.getByTestId('free-scenarios').click();
   await page.locator('a[href="/radio/rozmowa"]').click();
   await page.getByTestId('dialogue-radio-check').click();
   await page.getByTestId('dial-center').dispatchEvent('pointerdown', { pointerId: 1 });

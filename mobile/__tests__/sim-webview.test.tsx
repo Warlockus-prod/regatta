@@ -8,14 +8,15 @@ jest.mock("@react-native-async-storage/async-storage", () => require("@react-nat
 
 const mockNavigate = jest.fn();
 jest.mock("expo-router", () => ({
-  Stack: { Screen: () => null },
-  useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate }),
+  Stack: { Screen: ({ options }: { options?: { headerShown?: boolean; headerLeft?: () => React.ReactNode } }) => options?.headerShown === false ? null : options?.headerLeft?.() ?? null },
+  useRouter: () => ({ replace: jest.fn(), navigate: mockNavigate, canGoBack: () => true, back: jest.fn() }),
 }));
 jest.mock("../src/i18n/context", () => ({
   useI18n: () => ({ lang: "en", tp: (_ru: string, en: string) => en }),
 }));
 jest.mock("../src/design-system/components", () => ({
   Screen: ({ children }: { children: React.ReactNode }) => children,
+  Text: jest.requireActual("react-native").Text,
 }));
 // The analytics choice as already read (analytics on), so these tests stay
 // synchronous and touch no storage of their own. The consent gating and the
@@ -149,6 +150,16 @@ it("only exposes checkpoint storage to the bundled Trainer, not remote pages", a
   const local = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }} />);
   await act(async () => fireEvent(local.getByTestId("webview"), "message", { nativeEvent: { data } }));
   expect(AsyncStorage.getItem).toHaveBeenCalledWith(TRAINER_STORAGE_KEY);
+});
+
+it("routes actual offline lesson links instead of silently discarding the native navigation message", () => {
+  const view = render(<SimWebView path="/simulator-v3" title="Trainer" tier="trainer" offlineSource={{ uri: "file:///bundle/sailing-offline.html" }} />);
+  const web = view.getByTestId("webview");
+  fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "native-navigate", href: "/learn/sails/mainsheet" }) } });
+  expect(mockNavigate).toHaveBeenCalledWith("/learn/sails/mainsheet");
+  mockNavigate.mockClear();
+  fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "native-navigate", href: "https://example.com" }) } });
+  expect(mockNavigate).not.toHaveBeenCalled();
 });
 
 // Trainer controls (owner decisions 2026-10-19): the app's record reaches the

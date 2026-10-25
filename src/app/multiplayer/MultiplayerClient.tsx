@@ -91,7 +91,8 @@ export default function MultiplayerClient() {
   const courseRef = useRef(MULTIPLAYER_COURSE);
   const windDirRef = useRef(0);
   const [frame, setFrame] = useState<MultiplayerFrame | null>(null);
-  const [camera, setCamera] = useState<RaceCamera>("high");
+  const [camera, setCamera] = useState<RaceCamera>("orbit");
+  const [cameraRevision, setCameraRevision] = useState(0);
   const [guidanceOn, setGuidanceOn] = useState(true);
   const inputRef = useRef({ left: false, right: false, rudder: 0, course: null as number | null });
   const [helm, setHelm] = useState({ rudder: 0, course: null as number | null });
@@ -659,8 +660,8 @@ export default function MultiplayerClient() {
     <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
       <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
-        camera={camera} setCamera={setCamera} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={setGuidanceOn}>
-        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} />
+        camera={camera} setCamera={setCamera} onResetCamera={() => setCameraRevision(value => value + 1)} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={setGuidanceOn}>
+        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} />
       </MultiplayerCockpit>
     </div>
   );

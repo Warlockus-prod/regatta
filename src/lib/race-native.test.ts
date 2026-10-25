@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { makeStandardCourse } from "./race-physics";
-import { isNativeRace, postNativeRace, postNativeRaceStarted, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
+import { isNativeRace, navigateNativeRace, postNativeRace, postNativeRaceStarted, readNativeRaceReplay, readRaceSearch, validateNativeRace, type NativeRaceSnapshot } from "./race-native";
+import { raceNativeDestination } from "../../mobile/src/navigation/race-entry";
 
 function fixture(): NativeRaceSnapshot {
   const course = makeStandardCourse();
@@ -56,5 +57,36 @@ describe("native offline race boundary", () => {
     expect(postNativeRaceStarted({ ...race, id: "../unsafe" })).toBe(false);
     expect(postNativeRaceStarted({ ...race, missionId: "x".repeat(101) })).toBe(false);
     expect(postMessage).toHaveBeenCalledTimes(1);
+  });
+  it("returns a hydrated replay to actual native history without reposting its result", () => {
+    const postMessage = vi.fn();
+    const saved = fixture();
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true, __REGATTA_RACE_REPLAY__: saved, ReactNativeWebView: { postMessage } });
+    expect(readNativeRaceReplay()?.id).toBe(saved.id);
+    expect(navigateNativeRace("/history")).toBe(true);
+    expect(postMessage).toHaveBeenCalledOnce();
+    const message = JSON.parse(postMessage.mock.calls[0][0]);
+    expect(message).toEqual({ type: "native-navigate", href: "/history" });
+    expect(raceNativeDestination(message.href)).toBe("/history");
+    expect(readNativeRaceReplay()).toEqual(saved);
+  });
+  it("limits direct navigation to Race or History in a native host", () => {
+    const postMessage = vi.fn();
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true, ReactNativeWebView: { postMessage } });
+    expect(navigateNativeRace("/race")).toBe(true);
+    expect(JSON.parse(postMessage.mock.calls[0][0])).toEqual({ type: "native-navigate", href: "/race" });
+    for (const href of ["/", "/settings", "/game?replay=1", "https://example.com/history", "//example.com/history"]) {
+      expect(navigateNativeRace(href as "/history")).toBe(false);
+    }
+    expect(postMessage).toHaveBeenCalledOnce();
+  });
+  it("allows web replay to use its local close fallback without an available native bridge", () => {
+    expect(navigateNativeRace("/history")).toBe(false);
+    const postMessage = vi.fn();
+    vi.stubGlobal("window", { ReactNativeWebView: { postMessage } });
+    expect(navigateNativeRace("/history")).toBe(false);
+    vi.stubGlobal("window", { __REGATTA_RACE_NATIVE__: true });
+    expect(navigateNativeRace("/history")).toBe(false);
+    expect(postMessage).not.toHaveBeenCalled();
   });
 });

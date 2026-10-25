@@ -1,10 +1,12 @@
 'use client';
 
 import { useRadioI18n } from "@/app/radio/localization/context";
+import { postRadioMessage } from "../navigation";
 
-import { Children, Fragment, isValidElement, useEffect, useState, type ReactNode, type Ref } from 'react';
+import { Children, Fragment, isValidElement, useEffect, useState, useSyncExternalStore, type ReactNode, type Ref } from 'react';
 import { useTrainerI18n } from './trainerText';
 import styles from './RadioWorkspace.module.css';
+const noSubscribe = () => () => {};
 
 // ============================================================================
 // The radio work screen shared by the simulator, the controls lessons and the
@@ -78,8 +80,9 @@ export function RadioWorkspace({
   dockRef?: Ref<HTMLDivElement>;
   testId?: string; requestedPanel?:string; requestVersion?:number;
 }) {
-  const { rt: radioText } = useRadioI18n();
+  const { rt: radioText, tl } = useRadioI18n();
   const { tp } = useTrainerI18n();
+  const native = useSyncExternalStore(noSubscribe, () => typeof window !== 'undefined' && Boolean((window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView), () => false);
   const order=["task","help","situation","listen","log","device"];
   const panels = dockPanels(dock).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
   const [selection, setSelection] = useState({ panel: requestedPanel ?? "task", requestedPanel, requestVersion });
@@ -95,14 +98,18 @@ export function RadioWorkspace({
             type="button"
             data-testid={exitTestId}
             onClick={onExit}
-            aria-label={radioText(tp('Выйти', 'Exit', 'Wyjdź'))}
+            aria-label={radioText(exitTitle)}
             title={radioText(exitTitle)}
             className={styles.barButton}
           >
-            ✕<span className="hidden min-[400px]:inline">{radioText(tp('Выйти', 'Exit', 'Wyjdź'))}</span>
+            <span aria-hidden="true">‹</span><span className="hidden min-[400px]:inline">{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
           </button>
           <div className={styles.barStatus}>{status}</div>
           {actions}
+          {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => postRadioMessage({ type: "radio-exit" })}
+            aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
+            {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
+          </button>}
         </div>
       </div>
       <div className={styles.main}>
@@ -133,7 +140,7 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
       aria-label={tp('Изучить радио', 'Explore controls', 'Poznaj przyciski')}
       title={tp('Изучить радио', 'Explore controls', 'Poznaj przyciski')}
       className={styles.barButton}
-      style={on ? { background: '#ffce4d', color: '#3a2a00', borderColor: '#ffce4d' } : undefined}
+      style={on ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)', borderColor: 'var(--accent-cyan)' } : undefined}
     >
       <span aria-hidden>🔍</span><span className="hidden min-[400px]:inline">{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
     </button>

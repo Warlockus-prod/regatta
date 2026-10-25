@@ -1,5 +1,7 @@
 'use client';
 
+import { FoundationReturn } from "@/components/FoundationReturn";
+
 import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
@@ -1158,6 +1160,7 @@ export default function SimulatorPage() {
   );
   const tierHeader = (
     <>
+      <FoundationReturn bar />
       {!isEmbed && (
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
            style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>

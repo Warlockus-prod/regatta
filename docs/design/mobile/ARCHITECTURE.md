@@ -300,3 +300,13 @@ CI guard `npm run sync-content:check` fails if stale. (ADR-0003 plans a shared p
    on-device.
 4. For a release: bump version + buildNumber, archive, upload, confirm the build shows
    in TestFlight (`mobile/scripts/asc-state.mjs` / App Store Connect).
+
+## 2026-10-25 native correction flow
+
+- `mobile/src/navigation/ActivityBack.tsx` provides a labelled44px exit with a contextual hub when no native history exists. `mobile/src/navigation/sailing-entry.ts` accepts only installed trainer/lesson routes and bounded query parameters.
+- `mobile/src/simulator/SimWebView.tsx` shows the dark native header while loading or failed, owns a validated return to the lesson, and permits scrolling in reserved content panels. Canvas and wheels own their own pointer gestures.
+- `mobile/src/course/OfflineRadioCourse.tsx` boots explicit free practice or course intent. Shared route/exit contract: `src/lib/radio-navigation.ts`. Practice first item goes directly to the radio; Learn continues the course with view=course.
+- `mobile/app/multiplayer/index.tsx` is the actual combined lobby/race surface; its native frame is dark and the five main tabs do not consume cockpit space.
+- `mobile/app/simulator/index.tsx` retains the simplified recovery trainer with overlays moved to a reserved scrollable dock. Wheels do not acquire a second rudder; core physics is unchanged.
+- Pure foundation sources are canonical in `src/data/bootcamp-quiz.ts`, `src/data/foundation-guide.ts` and `src/lib/learning/foundation-drawings.ts`. The old mobile modules re-export them; mobile-only practice routes remain native.
+- Focused contracts: `mobile/__tests__/activity-back.test.tsx`, `mobile/__tests__/sailing-navigation.test.ts`, `mobile/__tests__/radio-course-host.test.tsx`. Installed UI evidence remains separate in `docs/audits/2026-10-25/corrections.md`.

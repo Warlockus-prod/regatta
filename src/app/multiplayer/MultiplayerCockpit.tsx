@@ -16,7 +16,7 @@ export function MultiplayerCockpit(p: {
   children: ReactNode; results?: ReactNode; frame: MultiplayerFrame | null;
   phase: "countdown" | "racing" | "finished"; countdown: number; reconnecting: boolean; code: string;
   rudder: number; course: number | null; setRudder: (v: number) => void; setCourse: (v: number) => void; courseDelta: (v: number) => void;
-  camera: RaceCamera; setCamera: (v: RaceCamera) => void; onLeave: () => void;
+  camera: RaceCamera; setCamera: (v: RaceCamera) => void; onResetCamera: () => void; onLeave: () => void;
   guidanceOn: boolean; setGuidanceOn: (on: boolean) => void;
 }) {
   const c = useRaceCopy();
@@ -75,7 +75,9 @@ export function MultiplayerCockpit(p: {
             <label className={styles.toggle}><span>{labels.returnCenter}</span><input type="checkbox" role="switch" checked={prefs.helmReturnToCenter} onChange={e => update({ helmReturnToCenter: e.target.checked })} /></label>
             <div className={styles.segmented} role="radiogroup" aria-label={labels.sensitivity}>{([0.5, 1, 2] as const).map((s, i) => <button key={s} type="button" role="radio" aria-checked={prefs.sensitivity === s} onClick={() => update({ sensitivity: s })}>{[labels.fine, labels.normal, labels.fast][i]}</button>)}</div>
             <span className={local.settingsLabel}>{c.view}</span>
-            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["high", "stern"] as const).map(view => <button key={view} type="button" role="radio" aria-checked={p.camera === view} onClick={() => p.setCamera(view)}>{c[view]}</button>)}</div>
+            <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(view => <button key={view} type="button" role="radio" aria-checked={p.camera === view} onClick={() => p.setCamera(view)}>{c[view]}</button>)}</div>
+            <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
+            <p>{c.cameraGesture}</p>
             <label className={styles.toggle}><span>{c.guidance}</span><input type="checkbox" role="switch" checked={p.guidanceOn} onChange={e => p.setGuidanceOn(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{labels.sound}</span><input type="checkbox" role="switch" checked={prefs.sound} onChange={e => update({ sound: e.target.checked })} /></label>
             <p>{auto}</p>

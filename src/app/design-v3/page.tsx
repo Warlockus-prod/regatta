@@ -1,11 +1,6 @@
-import type { Metadata } from "next";
-import DesignStudio from "@/components/design-v3/DesignStudio";
+import { notFound } from "next/navigation";
 
-export const metadata: Metadata = {
-  title: "Regatta | Design v3 review",
-  robots: { index: false, follow: false },
-};
-
+/** Historical review source remains in components/design-v3 and Git history. */
 export default function DesignReviewPage() {
-  return <DesignStudio />;
+  notFound();
 }

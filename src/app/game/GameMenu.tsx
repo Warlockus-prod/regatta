@@ -1,5 +1,7 @@
 'use client';
 
+import { FoundationReturn } from "@/components/FoundationReturn";
+
 import { useEffect, useState } from 'react';
 import { useRaceCopy } from "./race-copy";
 import { useI18n } from '@/lib/i18n';
@@ -94,7 +96,8 @@ export function GameMenu({
   const ctaDisabled = tab === 'mission' && !selectedMission;
 
   return (
-    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <FoundationReturn />
       <div className="mb-6">
         <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
           {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
@@ -105,7 +108,7 @@ export function GameMenu({
       </div>
 
       {dailyDay && <p className="mb-4 text-[var(--accent-cyan)]">{dailyDay}</p>}
-      {/* Three big preset cards */}
+      {/* Compact presets keep the start action visible on a phone. */}
       <div hidden={Boolean(dailyDay)} className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
         <PresetCard
           active={tab === 'learn'}
@@ -262,6 +265,14 @@ export function GameMenu({
       )}
 
       <RaceModePicker prefs={racePrefs} update={updateRacePrefs} />
+      <button
+        onClick={openBriefing}
+        disabled={ctaDisabled}
+        className="w-full mb-4 min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+      >
+        {ctaLabel} →
+      </button>
       <VenuePicker />
 
       {/* Collapsible details panel (controls + course rules) */}
@@ -298,14 +309,7 @@ export function GameMenu({
         </div>
       )}
 
-      <button
-        onClick={openBriefing}
-        disabled={ctaDisabled}
-        className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-      >
-        {ctaLabel} →
-      </button>
+
     </div>
   );
 }
@@ -334,16 +338,17 @@ function PresetCard({
     <button
       onClick={onClick}
       aria-pressed={active}
-      className="card p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+      aria-label={`${title}. ${subtitle}. ${desc}`}
+      className="card p-3 md:p-4 grid grid-cols-[28px_1fr] gap-x-3 md:block text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
       style={{
         borderColor: active ? 'var(--accent-cyan)' : undefined,
         background: active ? 'rgba(0, 212, 255, 0.08)' : undefined,
       }}
     >
-      <div className="mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
+      <div className="row-span-2 self-center md:mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
       <div className="font-semibold text-base text-[var(--text-primary)]">{title}</div>
-      <div className="text-xs text-[var(--text-muted)] mb-2">{subtitle}</div>
-      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+      <div className="text-xs text-[var(--text-muted)] md:mb-2">{subtitle}</div>
+      <p className="hidden md:block text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
     </button>
   );
 }

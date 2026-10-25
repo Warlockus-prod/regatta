@@ -1,11 +1,39 @@
-# Cross-platform plan: 3 simulators on web + app, fully synchronized
+# Historical cross-platform proposal
+
+Updated 2026-10-25. The original proposal below is retained as history. Its unchecked boxes are not the active backlog and must not trigger a workspace, R3F-native, Skia or react-native-svg rewrite.
+
+Current work is governed by [the completion harness](../../audits/2026-10-24/implementation-harness.md), [the selected design direction](../../audits/2026-10-24/design-proposal.md) and [the follow-up baseline recheck](../../audits/2026-10-25/plan-recheck.md). The recheck is frozen baseline evidence; new source and installed-device proof are recorded separately by the harness.
+
+## Accepted architecture and current source
+
+| Historical proposal | Accepted replacement | Evidence boundary |
+| --- | --- | --- |
+| Physics duplicated, create packages/sailing-physics and workspaces | ADR-0009 in DECISIONS.md in this folder uses @regatta/physics to consume canonical src/lib/sailing-physics. The former native copy is a compatibility shim. | Do not create a second physics engine or merge constants as a visual task. |
+| Port the 3D renderer to R3F-native/expo-gl | ADR-0011 chose shared web-tier delivery through SimWebView. Installed sailing-offline.html now includes the shared race, 3D trainer, trim trainer, Basics and Anatomy source with local boat/fonts/assets. | Offline builders and source tests verify packaging; an installed binary must still prove loading, touch, camera and navigation. |
+| Rewrite trim SVG scenes/pods in React Native | Compile the same existing web trim runtime and views into the local sailing package. | Keep native fallback screens for actual failure/deep links; do not advertise them as the normal offline path. |
+| Decide whether Basics stays web only | Native /simulator-v1 opens the same bundled /simulator source. Anatomy uses the same local package. | Route and shared-asset presence alone do not prove the whole user flow. |
+| Single switcher named V1/V2/V3 | Shared product catalog and native/web hubs use meaningful user labels. V names remain internal. | Every entry, Back, exit-to-hub and deep-link fallback needs explicit flow acceptance. |
+| Content packages extraction | Shared pure content under src/data and src/lib; native compatibility exports preserve existing paths. Foundation quiz/guide/drawings moved without changing original answers or rendered geometry. | No web runtime imports from mobile implementation modules or Expo configuration. Native-only practice routes stay native. |
+| State/account synchronization | Progress and race history remain local per device with approved native storage bridges. Preserve legacy records and first-use WebKit migration; a durable native acknowledgement establishes snapshot ownership. | Opening a lesson or exercise is not theory or practical evidence. Cross-device accounts/sync remain a separate unapproved scope. |
+
+Native SRC installs its seven-language course, original exam bank and local radio practice. Exact protocol phrases and English language-exercise options remain protected. Device TTS and strict on-device recognition use typed fallback if a model is unavailable. Native Sternik theory, test, exam and typed oral practice are installed in Polish only. Multiplayer needs a network; website-only voice/AI capabilities have their own availability and privacy rules.
+
+The active visual direction is the first Ocean Cockpit concept: dark instruments, readable values, a protected boat/radio rectangle and reserved bottom/side controls. Paper learning surfaces remain valid. Source Sans 3 is already locally bundled for web/native; the old Geist/system-only instruction is superseded. See root DESIGN.md for typography and semantic tokens.
+
+## Verification status
+
+Build60 delivery is historical evidence for the 24 October candidate, not proof that the 25 October source corrections are already released or that the owner accepted them. The current corrections address direct radio entry, camera orbit, activity Back/exit, protected fallback controls and honest website foundation progress. Source tests can close their own contracts; installed-device and browser acceptance remain explicit harness gates until their actual evidence is recorded. Do not mark the old checklist complete merely because a unit suite is green.
+
+## Original proposal, superseded
+
+### Original goal: three simulators on web and app
 
 Goal: the three web simulators (V1 2D, V2 3D, V3 trim trainer) run inside the
 iOS app, behaving the same, with one source of truth so web and app never
 drift. Then a final independent audit (tech + UI/UX + app) and an App Store
 growth plan (see APPSTORE_GROWTH.md).
 
-This is the closeable checklist. Each item is [ ] open / [x] done. "Owner: me"
+This was the original proposed checklist. Its boxes are historical, not current tasks. "Owner: me"
 = code I write and verify here (tsc/lint/tests/web build). "Owner: device" =
 needs the Mac (Expo/Xcode build, TestFlight, on-device QA).
 

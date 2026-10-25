@@ -15,6 +15,7 @@ jest.mock('expo-router', () => ({
   useNavigation: () => ({ addListener: () => () => {}, dispatch: jest.fn() }),
   useFocusEffect: (callback: () => void | (() => void)) => jest.requireActual('react').useEffect(callback, [callback]),
 }));
+jest.mock('@react-navigation/native', () => ({ usePreventRemove: jest.fn() }));
 jest.mock('expo-speech', () => ({
   getAvailableVoicesAsync: jest.fn().mockResolvedValue([]),
   stop: jest.fn().mockResolvedValue(undefined), speak: jest.fn(),
@@ -24,6 +25,7 @@ jest.mock('../src/i18n/context', () => ({
 }));
 jest.mock('../src/design-system/components', () => ({
   Screen: (props: object) => jest.requireActual('react').createElement(jest.requireActual('react-native').View, { ...props, testID: 'native-screen' }),
+  Text: jest.requireActual('react-native').Text,
 }));
 jest.mock('react-native-webview', () => {
   const React = require('react');
@@ -95,7 +97,7 @@ it('does not mount the page before the stored choice is read', async () => {
   await waitFor(() => expect(view.getByTestId('webview')).toBeTruthy());
 });
 
-it('the online /radio pages get the flag too', async () => {
+it('legacy radio links stay in the local course with analytics disabled', async () => {
   await optOut();
   const view = render(<OfflineRadioCourse />);
   const offline = await waitFor(() => view.getByTestId('webview'));
@@ -104,9 +106,11 @@ it('the online /radio pages get the flag too', async () => {
       nativeEvent: { data: JSON.stringify({ type: 'radio-open-online', path: '/radio/symulator' }) },
     });
   });
-  const online = view.getByTestId('webview');
-  expect(online.props.source.uri).toContain('/radio/symulator');
-  expect(online.props.injectedJavaScriptBeforeContentLoaded).toContain(FLAG);
+  const local = view.getByTestId('webview');
+  expect(local).toBe(offline);
+  expect(local.props.source).toBe(offline.props.source);
+  expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining('regatta:radio-navigate'));
+  expect(local.props.injectedJavaScriptBeforeContentLoaded).toContain(FLAG);
 });
 
 // Stand-in for the Settings switch: another screen that flips the shared choice.
@@ -151,6 +155,7 @@ it("keeps cockpit utility navigation visible inside the local race", async () =>
 it("reserves the home-indicator inset while the radio workspace hides main navigation", async () => {
   const view = render(<OfflineRadioCourse />);
   const web = await waitFor(() => view.getByTestId("webview"));
+  act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "radio-offline-ready" }) } }));
   act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "radio-workspace", open: true }) } }));
   expect(view.getByTestId("native-screen").props.noBottomInset).toBe(false);
   expect(view.getByTestId("native-screen").props.noTopInset).toBe(false);

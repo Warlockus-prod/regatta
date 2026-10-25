@@ -5,7 +5,7 @@
 падает, если появился файл без строки в разделе 4 или путь в карте больше не
 существует.
 
-Проверено по коду 2026-09-26 (ветка `claude/sailing-educational-materials-3b2792`).
+Историческая полная карта: 2026-09-26. Актуальные изменения и статус приемки: разделы completion map и 2026-10-25 corrections ниже.
 
 ---
 
@@ -28,8 +28,7 @@ Regatta (в UI "Week to Regatta") - учебное приложение по п�
 - Веб: Next.js 16 (App Router, Turbopack) + React 19, TypeScript strict,
   Tailwind v4. Прод: https://weektoregatta.com, vps2, два контейнера
   (`regatta`, `regatta-ws`) за общим контейнером nginx.
-- Мобильное: Expo / React Native в `mobile/`, в продаже 1.6.3 (build 44, запуск
-  на iOS 27), 1.6.4 (build 48) на ревью с 2026-10-18, свой CI-джоб и свой гейт релиза.
+- Мобильное: Expo / React Native в `mobile/`, публичная 1.6.4 (48), внутренний TestFlight 1.7.0 (60). Candidate61 проходит повторную приемку; доставка60 не означает завершения всего аудита. Свой CI-джоб и гейт релиза.
   Карточка App Store: `mobile/asc-metadata/` (8 локалей, включая `mobile/asc-metadata/en-GB`),
   "Что нового": `mobile/releases/` (`mobile/releases/1.6.4.json`), языки Info.plist и переводы запроса
   микрофона: `mobile/app.json` (`CFBundleLocalizations`) и `mobile/locales/` (`mobile/locales/pl.json` и еще 6).
@@ -192,7 +191,7 @@ inline-скрипт без мигания в `src/app/layout.tsx`.
 - `src/app/privacy/page.tsx` - политика приватности (требование App Store).
 - `src/app/support/page.tsx` - страница поддержки, форма уходит в `/api/support`.
 - `src/app/menu/page.tsx` - Меню сайта: адресуемый каталог всех разделов с поиском (`ProductMenu`), `/library` ведет сюда.
-- `src/app/design-v3/page.tsx` - внутренняя витрина дизайна v3 на русском (`DesignStudio`), не выпущенный раздел и не замена курсов.
+- `src/app/design-v3/page.tsx` - архивный review entry возвращает404; внутренний прототип не попадает в release JS. Исходник DesignStudio и Git history сохранены.
 
 ### 4.2 Пять разделов оболочки и контент
 
@@ -421,7 +420,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `src/components/product/Navigation.module.css` - стили навигации оболочки.
 - `src/components/product/ProductMenu.tsx` - веб-меню каталога: группы из `src/lib/product/menu.ts`, поиск, пустой результат, цели 44px.
 - `src/components/product/Home.module.css` - стили главной сайта с иллюстрацией.
-- `src/components/design-v3/DesignStudio.tsx` - витрина `/design-v3`: адаптация передачи Claude Design, пример урока, фото анатомии, настоящее меню.
+- `src/components/design-v3/DesignStudio.tsx` - сохраненный исторический исходник витрины Claude Design; в release не импортируется.
 - `src/components/design-v3/DesignStudio.module.css` - стили витрины.
 
 ### 4.8 Контент `src/data`
@@ -1089,3 +1088,44 @@ Installed course asset reading: SDK54 expo-file-system 19.0.23 File.text() check
 Native Apple purpose descriptions: `mobile/app.json` and all seven JSON files in `mobile/locales/` include microphone and on-device SRC transcription purposes plus NSPhotoLibraryUsageDescription. The latter covers unused Photos symbols linked by ExpoFileSystem legacy packaged-file support; Regatta does not request personal photo access. Verify base Info.plist and all seven InfoPlist.strings in the archive and exported IPA, because successful upload does not establish Apple import success.
 
 TestFlight60 release evidence: `docs/design/mobile/testflight60-2026-10-24.md` records exact source8e39721, IPA signing/hash, final Simulator checks, Apple VALID processing and verified Self distribution, while keeping website/App Review and physical-device limits explicit. Machine-readable selected evidence: `docs/audits/2026-10-24/verification/native60-delivery.json`.
+
+## 2026-10-25 corrections
+
+Повторная сверка утвержденного плана: `docs/audits/2026-10-25/plan-recheck.md`. Реализация, свежие скриншоты и незакрытые проверки: `docs/audits/2026-10-25/corrections.md`. Новые общие данные не меняют содержание native или коэффициенты physics.
+
+- `e2e/foundation.spec.ts` - браузерные сценарии настоящего квиза, возврата и ошибки сохранения; выполнение отмечается отдельно.
+- `src/app/radio/navigation.ts` - совместимый экспорт общего контракта SRC из src/lib.
+- `src/app/radio/navigation.test.ts` - ограниченные маршруты, история и защита выхода из экзамена SRC.
+- `src/lib/radio-navigation.ts` - общий ограниченный контракт маршрутов SRC, native entry, Back, подтверждение выхода; Metro видит src/lib.
+- `src/app/start/copy.ts` - семь языков учебных состояний и честных итогов.
+- `src/app/start/foundation-content.test.ts` - неизменность 19 исходных вопросов, учебных текстов и SVG после переноса.
+- `src/app/start/foundation-progress.test.ts` - сохранение проверок, черновика, места и повторной записи без ложного зачета.
+- `src/app/start/start.module.css` - адаптивный учебный экран на бумажной теме, доступные цели и контраст.
+- `src/app/start/useFoundationProgress.ts` - загрузка и последовательная запись учебных свидетельств с retry.
+- `src/data/bootcamp-quiz.ts` - единый исходный банк 19 вопросов для сайта и native.
+- `src/data/foundation-guide.ts` - общие цели, модули, шаги и семь языков курса из восьми уроков.
+- `src/features/race-3d/useRaceView.test.ts` - сохраненные camera presets и безопасный default orbit.
+- `src/features/race-scene/orbit-camera.ts` - начальные игровые ракурсы с тем же fit яхты, что в тренажере.
+- `src/features/race-scene/orbit-camera.test.ts` - проекция лодки и мачты во viewport при разных размерах.
+- `src/features/simulator-3d/SailingCameraRig.tsx` - общая свободная камера, preset/reset один раз, удержание пользовательского ракурса.
+- `src/features/simulator-3d/SailingCameraRig.test.tsx` - реальный Three camera lifecycle, жесты, resize, reset и cleanup.
+- `src/features/simulator-3d/SceneStartup.tsx` - готовность после первого рендера и локализованный видимый статус загрузки.
+- `src/features/simulator-3d/SceneStartup.test.tsx` - готовность после рендера, однократное событие и отмена при cleanup.
+- `src/features/simulator-3d/Simulator3D.test.tsx` - честное разделение осмотра формы и управления яхтой.
+- `src/features/simulator-3d/orbit-controls.ts` - canvas-only rotate/zoom и фильтрация независимых пальцев на штурвалах.
+- `src/features/simulator-3d/orbit-controls.test.ts` - поворот, zoom и независимость управления от чужих pointer events.
+- `src/features/simulator-v3/ui/pods/MainTrimPod.test.tsx` - краткая цель задания и рабочие длины снасти в панели.
+- `src/features/trainer-controls/ControlDock.test.tsx` - задание сохраняет видимый доступ к общим штурвалам.
+- `src/features/trainer-controls/Wheel.test.tsx` - точное дробное значение в ARIA без неверного округления.
+- `src/features/trainer-controls/WheelDeck.test.tsx` - штурвал реального гика-шкота использует метры и нужный шаг.
+- `src/features/trainer-controls/sound-copy.ts` - общие семь языков настройки звука, отдельно от громкости рации.
+- `src/lib/learning/foundation-drawings.ts` - исходная чистая геометрия учебных схем для обеих платформ.
+- `src/lib/learning/foundation-progress.ts` - новое ограниченное web evidence; старое completed означает просмотр, не сдачу.
+- `src/lib/product/learning-web.test.ts` - продолжение и честные счетчики сайта с сохранением legacy данных.
+- `src/lib/sounds.test.ts` - одна настройка звука управления/гонки, legacy migration и native injection.
+
+- `src/lib/race-startup.ts` - готовность относится к конкретной гонке; до первого отправленного кадра нет отсчета или движения.
+- `src/lib/race-startup.test.ts` - загрузка не превращается во время simulation, устаревший callback не запускает новую гонку.
+- `src/components/FoundationReturn.tsx` - видимый возврат из immersive web practice в отведенной панели, native использует собственный header.
+- `src/lib/learning/foundation-navigation.ts` - известные ID и ограниченные URL возврата без зависимости от банка вопросов.
+- `src/data/foundation-copy.ts` - общие короткие подписи шагов и возврата, без импорта всех учебных объяснений в каждый toolbar.

@@ -7,9 +7,11 @@
 
 ## Current completion work
 
+- Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 is in verification, not yet delivered.
+
 - 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
 - App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
-- New installations default to shared wheel controls; saved slider choices are preserved.
+- New installations default to shared wheel controls; saved slider choices are preserved. The historical /design-v3 review entry returns404 in this release branch; reviewed source/assets and the protected root checkout remain preserved.
 - One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
 - Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
 - Native Sternik theory, tests, exams and typed oral practice use the installed Polish package. SRC and Sternik snapshots become authoritative only after durable storage; preserve first-use WebKit migration and Clear all data semantics.

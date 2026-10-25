@@ -1,3 +1,4 @@
+import { controlSoundCopy } from "../../src/features/trainer-controls/sound-copy";
 import { Stack } from 'expo-router';
 import Constants from 'expo-constants';
 import * as Application from 'expo-application';
@@ -372,7 +373,7 @@ export default function Settings() {
 // ---------------------------------------------------------------------------
 
 function TrainersSection() {
-  const { tp } = useI18n();
+  const { tp, lang } = useI18n();
   const { prefs, ready, patch } = useControlPrefs();
   const title = tp('Тренажеры', 'Trainers', 'Trenażery', { es: 'Simuladores', fr: 'Simulateurs', de: 'Trainer', it: 'Simulatori' });
   const modeLabel = tp('Управление', 'Controls', 'Sterowanie', { es: 'Controles', fr: 'Commandes', de: 'Steuerung', it: 'Comandi' });
@@ -389,18 +390,8 @@ function TrainersSection() {
       it: "Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa. Il resto si regola con l'icona dell'ingranaggio nel simulatore.",
     },
   );
-  const soundLabel = tp('Звук щелчков', 'Click sound', 'Dźwięk kliknięć', { es: 'Sonido de clics', fr: 'Son des clics', de: 'Klickton', it: 'Suono dei clic' });
-  const soundHint = tp(
-    'Щелчки при повороте штурвалов и упор в конце хода. Вибрации нет.',
-    'Clicks while turning the wheels and a bump at the end of travel. No vibration.',
-    'Kliknięcia przy obracaniu kół i opór na końcu zakresu. Bez wibracji.',
-    {
-      es: 'Clics al girar las ruedas y un tope al final del recorrido. Sin vibración.',
-      fr: 'Des clics en tournant les roues et une butée en fin de course. Sans vibration.',
-      de: 'Klicks beim Drehen der Räder und ein Anschlag am Ende. Keine Vibration.',
-      it: 'Clic girando le ruote e un fermo a fine corsa. Nessuna vibrazione.',
-    },
-  );
+  const soundLabel = controlSoundCopy.label[lang];
+  const soundHint = controlSoundCopy.note[lang];
   return (
     <>
       <Text variant="muted" style={[styles.sectionLabel, styles.sectionLabelGap]}>

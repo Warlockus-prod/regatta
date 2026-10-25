@@ -22,7 +22,7 @@ test("menu searches every section and opens the requested screen directly", asyn
   fireEvent.changeText(view.getByLabelText("Search sections"), "radio");
   expect(view.queryByText("3D Boat")).toBeNull();
   fireEvent.press(view.getByText("SRC radio"));
-  expect(mockPush).toHaveBeenCalledWith("/kursy/radio");
+  expect(mockPush).toHaveBeenCalledWith("/kursy/radio?view=course");
   fireEvent.press(view.getByText("Clear search"));
   await waitFor(() => view.getByText("My progress"));
   fireEvent.press(view.getByText("3D Boat"));

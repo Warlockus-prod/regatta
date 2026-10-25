@@ -4,10 +4,9 @@
  * All sounds respect the global mute flag (persisted in localStorage).
  */
 
-const MUTE_KEY = 'regatta.muted.v1';
+import { readControlPrefs, writeControlPrefs } from "@/features/trainer-controls/prefs";
 
 let ctx: AudioContext | null = null;
-let _muted: boolean | null = null;
 
 function getCtx(): AudioContext | null {
   if (typeof window === 'undefined') return null;
@@ -28,19 +27,11 @@ function getCtx(): AudioContext | null {
 }
 
 export function isMuted(): boolean {
-  if (_muted !== null) return _muted;
-  if (typeof window === 'undefined') return true;
-  try {
-    _muted = localStorage.getItem(MUTE_KEY) === '1';
-  } catch {
-    _muted = false;
-  }
-  return _muted;
+  return !readControlPrefs().sound;
 }
 
 export function setMuted(m: boolean): void {
-  _muted = m;
-  try { localStorage.setItem(MUTE_KEY, m ? '1' : '0'); } catch { /* ignore */ }
+  writeControlPrefs({ ...readControlPrefs(), sound: !m });
 }
 
 export function toggleMuted(): boolean {

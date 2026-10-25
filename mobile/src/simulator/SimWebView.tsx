@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,12 +6,11 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
-import { Screen } from '../design-system/components';
+import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { darkColors as colors } from '../design-system/tokens';
 import { DarkSurface, darkStackOptions } from '../design-system/surface';
@@ -22,6 +21,9 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
+import { ActivityBack } from '../navigation/ActivityBack';
+import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
+import { sailingNativeDestination } from '../navigation/sailing-entry';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -112,10 +114,9 @@ export interface SimWebViewProps {
   /** Render the native tier switcher and mark this tier active. */
   tier?: SimTier;
   /**
-   * Allow page scrolling. Off for the simulators (they fit 100dvh by the
-   * embed contract); on for content pages like /anatomy where natural scroll
-   * is the right UX (OrbitControls sets touch-action:none on its canvas, so
-   * orbit drags do not fight the scroll view).
+   * Allow the reserved docks and multi-step menus to scroll. The scene and
+   * wheels own their gestures with touch-action:none; disabling the whole
+   * WKWebView can also prevent learners from reaching dock content.
    */
   scrollEnabled?: boolean;
   /** Offline fallback route (default: the native Basics/Trainer entry). */
@@ -145,7 +146,7 @@ export function SimWebView({
   title,
   query,
   tier,
-  scrollEnabled = false,
+  scrollEnabled = true,
   fallbackRoute = '/simulator',
   fallbackLabel,
   offlineSource,
@@ -178,6 +179,7 @@ export function SimWebView({
     ? `window.__REGATTA_RACE_NATIVE__ = true; window.__REGATTA_RACE_REPLAY__ = ${JSON.stringify(raceReplay ?? null)}; true;`
     : "";
   const returnLesson = findSailLesson(query?.lesson ?? "");
+  const backFallback = path === "/anatomy" ? "/menu" : path === "/game" ? "/race" : "/simulators";
 
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
@@ -250,8 +252,13 @@ export function SimWebView({
 
   return (
     <DarkSurface><Screen noTopInset={!fullScreen}>
-      <Stack.Screen options={{ ...darkStackOptions, title, headerShown: !fullScreen }} />
-      {returnLesson && <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={{ minHeight: 48, paddingHorizontal: 20, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: colors.accentCyan, fontSize: 15 }}>← {guideCopy.return[lang]}</Text></Pressable>}
+      <Stack.Screen options={{ ...darkStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
+        headerLeft: () => returnLesson
+          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
+          : isFoundationLesson(query?.fromLesson)
+            ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
+            : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />,
+      }} />
       {tier && !landscape && !returnLesson && !isFoundationLesson(query?.fromLesson) && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
@@ -309,6 +316,16 @@ export function SimWebView({
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
           if (offlineSource && status.startsWith("{")) onOfflineMessage?.(status, script => webRef.current?.injectJavaScript(script));
+          if (offlineSource && path !== "/game" && status.length <= 1024 && status.startsWith("{")) {
+            try {
+              const data = JSON.parse(status) as { type?: string; href?: unknown };
+              if (data.type === "native-navigate") {
+                const destination = sailingNativeDestination(data.href);
+                if (destination) router.navigate(destination as Href);
+                return;
+              }
+            } catch { /* Ignore malformed messages from the local page. */ }
+          }
           if (status.startsWith('{"type":"controls-prefs"')) {
             try { replaceControls((JSON.parse(status) as { prefs?: unknown }).prefs); } catch { /* malformed */ }
             return;
@@ -406,6 +423,7 @@ export function SimWebView({
 }
 
 const styles = StyleSheet.create({
+  headerBack: { minHeight: 44, minWidth: 44, paddingRight: 12, justifyContent: "center" },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   tierBar: {
     flexDirection: 'row',
@@ -417,7 +435,7 @@ const styles = StyleSheet.create({
   },
   tierChip: {
     flex: 1,
-    minHeight: 36,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,

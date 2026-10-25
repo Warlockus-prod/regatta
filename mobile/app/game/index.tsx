@@ -15,6 +15,8 @@ import { VENUES, type VenueId } from "../../../src/data/venues/venues";
 import { validateNativeRace, validateNativeRaceStarted, type NativeRaceSnapshot } from "../../../src/lib/race-native";
 import { isReviewPodium, recordReviewWin } from "../../src/review/review-prompt";
 import { AnalyticsEvent, useAnalytics } from "../../src/analytics";
+import { ActivityBack } from "../../src/navigation/ActivityBack";
+import { ReturnToLesson } from "../../src/bootcamp/ReturnToLesson";
 
 const OFFLINE_SOURCE = require("../../assets/sailing-offline.html");
 
@@ -53,7 +55,7 @@ export default function Game() {
       data = parsed as Record<string, unknown>;
     } catch { return; }
     if (data.type === "native-navigate") {
-      const destination = raceNativeDestination(data.href);
+      const destination = raceNativeDestination(data.href, query.fromLesson);
       if (destination) router.navigate(destination);
     } else if (data.type === "race-storage") {
       const entries = parseRaceStorageEntries(data.entries);
@@ -98,18 +100,24 @@ export default function Game() {
         })
         .catch(error => inject(raceHistoryFailure(error instanceof Error && error.message === "invalid-race" ? "invalid-race" : "storage-unavailable", snapshot?.id)));
     }
-  }, [lang, query.daily, replayId, router, persistStorage, analytics]);
+  }, [lang, query.daily, query.fromLesson, replayId, router, persistStorage, analytics]);
 
   const title = tp("Гонка", "Race", "Wyścig", { es: "Regata", fr: "Course", de: "Rennen", it: "Regata" });
   if (!storage.ready || !replayReady) return <DarkSurface><Screen>
-    <Stack.Screen options={{ ...darkStackOptions, headerShown: false, title }} />
+    <Stack.Screen options={{ ...darkStackOptions, headerShown: true, title, headerBackVisible: false,
+      headerLeft: () => query.fromLesson
+        ? <ReturnToLesson id={query.fromLesson} tintColor={darkColors.accentCyan} />
+        : <ActivityBack fallback="/race" tintColor={darkColors.accentCyan} />,
+    }} />
     {storage.failed ? <>
       <Text>{tp("Не удалось прочитать данные гонок. Повтори попытку: сохраненная история не удалена.", "Could not read race data. Try again; your saved history has not been deleted.", "Nie udało się odczytać danych regat. Spróbuj ponownie; zapisana historia nie została usunięta.", { es: "No se pudieron leer los datos. Reintenta; tu historial no se ha borrado.", fr: "Impossible de lire les données. Réessaie ; ton historique n'a pas été supprimé.", de: "Renndaten konnten nicht gelesen werden. Erneut versuchen; dein Verlauf wurde nicht gelöscht.", it: "Impossibile leggere i dati. Riprova; la cronologia non è stata eliminata." })}</Text>
       <Button onPress={storage.retry}>{tp("Повторить", "Retry", "Ponów", { es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" })}</Button>
     </> : <ActivityIndicator color={darkColors.accentCyan} />}
   </Screen></DarkSurface>;
   if (replayId && !replay) return <DarkSurface><Screen>
-    <Stack.Screen options={{ ...darkStackOptions, title }} />
+    <Stack.Screen options={{ ...darkStackOptions, title, headerBackVisible: false,
+      headerLeft: () => <ActivityBack fallback="/history" tintColor={darkColors.accentCyan} />,
+    }} />
     <Text>{tp("Повтор не найден на устройстве.", "Replay not found on this device.", "Nie znaleziono powtórki na tym urządzeniu.", { es: "No se encontró la repetición en este dispositivo.", fr: "La rediffusion est introuvable sur cet appareil.", de: "Wiederholung auf diesem Gerät nicht gefunden.", it: "Replay non trovato su questo dispositivo." })}</Text>
     <Button onPress={() => router.replace("/history")}>{tp("История гонок", "Race history", "Historia regat", { es: "Historial de regatas", fr: "Historique des courses", de: "Rennverlauf", it: "Cronologia regate" })}</Button>
   </Screen></DarkSurface>;

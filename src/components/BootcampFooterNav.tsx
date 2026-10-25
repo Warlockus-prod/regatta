@@ -1,237 +1,46 @@
-'use client';
+"use client";
 
-// ============================================================================
-// BootcampFooterNav
-//
-// Sticky bottom bar that appears on lesson-destination pages (/courses,
-// /simulator, /rules, /racing, /glossary) whenever the user has an active
-// bootcamp lesson. Shows progress, offers a quick "mark done" action, and a
-// "next lesson" shortcut so the flow doesn't dead-end.
-//
-// Mounts only client-side (reads localStorage). Invisible when there is no
-// current bootcamp lesson, or when the visible route doesn't belong to the
-// lesson the user started (= they navigated away manually).
-// ============================================================================
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useRef } from "react";
+import { bootcampLessons } from "@/data/bootcamp";
+import { foundationCopy } from "@/data/foundation-copy";
+import { useI18n } from "@/lib/i18n";
+import { legacyPick } from "@/lib/languages";
+import { theoryResult } from "@/lib/learning/foundation-progress";
+import { foundationHref } from "@/lib/learning/foundation-navigation";
+import { foundationWebCopy } from "@/app/start/copy";
+import { useFoundationProgress } from "@/app/start/useFoundationProgress";
 
-import Link from 'next/link';
-import { legacyPick } from '@/lib/languages';
-import { usePathname, useRouter } from 'next/navigation';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { bootcampLessons } from '@/data/bootcamp';
-import {
-  getBootcampProgress,
-  markLessonComplete,
-  setCurrentLesson,
-  type BootcampProgress,
-} from '@/lib/storage';
-import { useI18n } from '@/lib/i18n';
-
+/** Return from a lesson destination without turning a visit into a passed check. */
 export default function BootcampFooterNav() {
-  const { lang, tp } = useI18n();
+  const { lang } = useI18n();
   const pathname = usePathname();
-  const router = useRouter();
-  // `progress === null` doubles as the "not mounted yet" signal. On first
-  // client render we have null (matches SSR output -> no hydration mismatch),
-  // then the mount effect reads localStorage and populates state. No separate
-  // `mounted` boolean needed - avoids the cascade-render lint.
-  const [progress, setProgress] = useState<BootcampProgress | null>(null);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setProgress(getBootcampProgress());
-    // Refresh from storage on focus in case user marked completion elsewhere
-    const onFocus = () => setProgress(getBootcampProgress());
-    window.addEventListener('focus', onFocus);
-    return () => window.removeEventListener('focus', onFocus);
-  }, [pathname]);
-
-  const currentLesson = progress?.current
-    ? bootcampLessons.find((l) => l.id === progress.current)
-    : null;
-
-  const refresh = useCallback(() => setProgress(getBootcampProgress()), []);
-
-  // Match check moved up before the early `return null` so we can use the
-  // visibility flag in the ResizeObserver effect below (hooks must run in
-  // the same order on every render).
-  // Strip the hash and query before comparing - lessons can route to
-  // /courses#wind or /simulator-v3?drill=hold-trim, but pathname contains
-  // neither, so we compare base paths only.
-  const baseRoute = currentLesson?.route.split(/[#?]/)[0] ?? '';
-  const matchesRoute = !!(
-    currentLesson && pathname && baseRoute && (
-      pathname === baseRoute ||
-      pathname.startsWith(baseRoute + '/') ||
-      pathname.startsWith(baseRoute + '?')
-    )
-  );
-  // Immersive surfaces (game / multiplayer / V3 canvas) own the screen; the
-  // sticky bar would cover the game's touch controls during the lesson-8
-  // mini-race, so never show it there even when a lesson routes to /game.
-  const onImmersive = !!pathname && ['/game', '/multiplayer', '/simulator-v3'].some(
-    (p) => pathname === p || pathname.startsWith(p + '/'),
-  );
-  const isVisible = !!(currentLesson && progress && matchesRoute && !onImmersive);
-
-  // Publish the rendered height of the sticky bar to a CSS custom property
-  // on <body>. The root layout's <main> consumes it as padding-bottom so
-  // that on mobile, where the bar is fairly tall (two text lines + 3
-  // buttons + safe-area inset), the last items in the page content are
-  // never trapped behind the bar. ResizeObserver covers Mark-done -> Next
-  // transitions (button count changes height) and locale-driven text
-  // reflow.
+  const state = useFoundationProgress();
+  const current = state.progress.current ?? state.legacyCurrent;
+  const lesson = bootcampLessons.find(item => item.id === current);
+  const baseRoute = lesson?.route.split(/[#?]/)[0];
+  const immersive = ["/game", "/multiplayer", "/simulator", "/simulator2", "/simulator-v3"].some(route => pathname === route || pathname.startsWith(`${route}/`));
+  const visible = Boolean(state.ready && !state.readError && lesson && baseRoute && (pathname === baseRoute || pathname.startsWith(`${baseRoute}/`)) && !immersive);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const el = ref.current;
-    if (!isVisible || !el) {
-      document.body.style.removeProperty('--bootcamp-footer-h');
-      return;
-    }
-    const update = () => {
-      document.body.style.setProperty('--bootcamp-footer-h', `${el.offsetHeight}px`);
-    };
+    const element = ref.current;
+    if (!visible || !element) { document.body.style.removeProperty("--bootcamp-footer-h"); return; }
+    const update = () => document.body.style.setProperty("--bootcamp-footer-h", `${element.offsetHeight}px`);
     update();
-    const ro = new ResizeObserver(update);
-    ro.observe(el);
-    return () => {
-      ro.disconnect();
-      document.body.style.removeProperty('--bootcamp-footer-h');
-    };
-  }, [isVisible]);
-
-  if (!isVisible) return null;
-  // From here on TypeScript needs the non-null assertions because the
-  // visibility flag isn't a type predicate.
-  if (!currentLesson || !progress) return null;
-
-  const idx = bootcampLessons.findIndex((l) => l.id === currentLesson.id);
-  const nextLesson = idx >= 0 && idx < bootcampLessons.length - 1
-    ? bootcampLessons[idx + 1]
-    : null;
-  const isDone = progress.completed.includes(currentLesson.id);
-  const totalCompleted = progress.completed.length;
-
-  const title = legacyPick(currentLesson, 'title', lang);
-
-  const nextTitle = nextLesson
-    ? (legacyPick(nextLesson, 'title', lang))
-    : null;
-
-  const handleMarkDone = () => {
-    markLessonComplete(currentLesson.id);
-    refresh();
-  };
-
-  const handleOpenNext = () => {
-    if (!nextLesson) return;
-    // Mark current as complete (if not already) + set next as current.
-    if (!isDone) markLessonComplete(currentLesson.id);
-    setCurrentLesson(nextLesson.id);
-    refresh();
-    router.push(nextLesson.route);
-    // router.push() with a hash on the same pathname won't scroll the page
-    // by itself - the URL updates but no scroll fires. Manually scroll to the
-    // anchor element on the next tick so the user lands on the right section
-    // (e.g. /courses#points-of-sail jumps to the points-of-sail section).
-    const hash = nextLesson.route.split('#')[1];
-    if (hash) {
-      setTimeout(() => {
-        document.getElementById(hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 80);
-    }
-  };
-
-  const handleFinish = () => {
-    if (!isDone) markLessonComplete(currentLesson.id);
-    router.push('/start');
-  };
-
-  return (
-    <div
-      ref={ref}
-      className="fixed inset-x-0 bottom-0 z-40 border-t backdrop-blur-md"
-      style={{
-        background: 'var(--nav-bg)',
-        borderColor: 'var(--border-cyan-soft, rgba(0, 212, 255, 0.25))',
-        paddingBottom: 'env(safe-area-inset-bottom, 0px)',
-      }}
-      role="region"
-      aria-label={tp('Навигация по курсу', 'Course navigation', 'Nawigacja po kursie',
-        { es: 'Navegación del curso', fr: 'Navigation du cours', de: 'Kursnavigation', it: 'Navigazione del corso' })}
-    >
-      <div className="max-w-5xl mx-auto px-3 sm:px-5 py-2 sm:py-3 flex items-center gap-2 sm:gap-3 flex-wrap">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-xl shrink-0">{currentLesson.emoji}</span>
-          <div className="min-w-0">
-            <div className="text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'var(--accent-cyan)' }}>
-              {tp('Урок', 'Lesson', 'Lekcja',
-                { es: 'Lección', fr: 'Leçon', de: 'Lektion', it: 'Lezione' })} {currentLesson.order}/{bootcampLessons.length}
-              {' · '}
-              <span className="text-[var(--text-muted)] font-normal">
-                {totalCompleted}/{bootcampLessons.length} {tp('пройдено', 'done', 'ukończono',
-                  { es: 'completadas', fr: 'terminées', de: 'erledigt', it: 'completate' })}
-              </span>
-            </div>
-            <div className="text-sm font-semibold truncate">{title}</div>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/start"
-            className="text-xs px-3 py-1.5 rounded-md border transition hover:bg-[rgba(0,212,255,0.08)]"
-            style={{ borderColor: 'rgba(139, 167, 184, 0.3)', color: 'var(--text-secondary)' }}
-          >
-            ← {tp('К курсу', 'Course', 'Kurs',
-              { es: 'Curso', fr: 'Cours', de: 'Kurs', it: 'Corso' })}
-          </Link>
-
-          {!isDone && (
-            <button
-              type="button"
-              onClick={handleMarkDone}
-              className="text-xs px-3 py-1.5 rounded-md border transition"
-              style={{
-                borderColor: 'rgba(68, 255, 136, 0.4)',
-                color: 'var(--success)',
-                background: 'rgba(68, 255, 136, 0.08)',
-              }}
-            >
-              ✓ {tp('Отметить пройденным', 'Mark done', 'Oznacz jako ukończoną',
-                { es: 'Marcar como hecha', fr: 'Marquer comme faite', de: 'Als erledigt markieren', it: 'Segna come fatta' })}
-            </button>
-          )}
-
-          {nextLesson ? (
-            <button
-              type="button"
-              onClick={handleOpenNext}
-              className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
-              style={{
-                background: 'var(--accent-cyan)',
-                color: '#0a1628',
-              }}
-              title={nextTitle ?? ''}
-            >
-              {tp('Следующий', 'Next', 'Następna',
-                { es: 'Siguiente', fr: 'Suivant', de: 'Weiter', it: 'Avanti' })} →
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleFinish}
-              className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
-              style={{
-                background: 'linear-gradient(135deg, var(--success), var(--accent-cyan))',
-                color: '#0a1628',
-              }}
-            >
-              🎉 {tp('Завершить', 'Finish', 'Zakończ',
-                { es: 'Terminar', fr: 'Terminer', de: 'Abschließen', it: 'Concludi' })}
-            </button>
-          )}
-        </div>
+    const observer = new ResizeObserver(update); observer.observe(element);
+    return () => { observer.disconnect(); document.body.style.removeProperty("--bootcamp-footer-h"); };
+  }, [visible]);
+  if (!visible || !lesson) return null;
+  const passed = theoryResult(state.progress, lesson.id).passed;
+  return <div ref={ref} className="fixed inset-x-0 bottom-0 z-40 border-t" style={{ background: "var(--nav-bg)", borderColor: "var(--border-subtle, rgba(139,167,184,.3))", paddingBottom: "env(safe-area-inset-bottom, 0px)" }} role="region" aria-label={foundationCopy.return[lang]}>
+    <div className="mx-auto flex max-w-[1080px] flex-wrap items-center gap-3 px-5 py-3">
+      <div className="min-w-0 flex-1 basis-48">
+        <p className="text-sm text-[var(--text-secondary)]">{lesson.order}/8 · {passed ? foundationWebCopy.passed[lang] : foundationWebCopy.notChecked[lang]}</p>
+        <p className="text-base font-semibold">{legacyPick(lesson, "title", lang)}</p>
       </div>
+      <Link href={foundationHref(lesson.id, "check")} className="inline-flex min-h-11 items-center rounded-md bg-[var(--accent-cyan)] px-4 py-2.5 text-center font-semibold text-[var(--accent-ink)]">{foundationCopy.check[lang]}</Link>
+      <Link href={foundationHref(lesson.id, "practice")} className="inline-flex min-h-11 items-center rounded-md border border-[var(--text-muted)] px-4 py-2.5 text-center">{foundationCopy.return[lang]}</Link>
     </div>
-  );
+  </div>;
 }

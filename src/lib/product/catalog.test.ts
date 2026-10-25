@@ -24,7 +24,7 @@ describe("product navigation", () => {
         expect(menuEntry.title[lang].length).toBeGreaterThan(2);
       }
     }
-    expect(menuGroups("radio", "en", "web").flatMap(group => group.entries.map(d => d.id))).toEqual(["radio"]);
+    expect(menuGroups("radio", "en", "web").flatMap(group => group.entries.map(d => d.id))).toEqual(["radio", "radio-practice"]);
     expect(menuGroups("settings", "en", "web")).toEqual([]);
     expect(menuGroups("settings", "en", "native")[0].id).toBe("service");
   });
@@ -41,6 +41,9 @@ describe("product navigation", () => {
   it("keeps nested exam, simulator and race routes in their parent section", () => {
     expect(sectionForPath("/radio/symulator?scenario=mayday", "web")).toBe("learn");
     expect(sectionForPath("/kursy/radio", "native")).toBe("learn");
+    expect(sectionForPath("/kursy/radio?view=course", "native")).toBe("learn");
+    expect(sectionForPath("/kursy/radio?practice=free", "native")).toBe("practice");
+    expect(sectionForPath("/radio/symulator?practice=free", "web")).toBe("practice");
     expect(sectionForPath("/simulator-v3", "web")).toBe("practice");
     expect(sectionForPath("/simulator-basics", "native")).toBe("practice");
     expect(sectionForPath("/multiplayer/race/ABC123", "native")).toBe("race");
@@ -59,9 +62,9 @@ describe("product navigation", () => {
   });
   it("every catalog destination has a real entry point on its platform", () => {
     for (const item of [...sections, ...destinations]) {
-      if (item.web) expect(existsSync(`src/app${item.web === "/" ? "" : item.web}/page.tsx`), item.web).toBe(true);
+      if (item.web) expect(existsSync(`src/app${item.web === "/" ? "" : item.web.split("?")[0]}/page.tsx`), item.web).toBe(true);
       if (item.native) {
-        const base = `mobile/app${item.native === "/" ? "/index" : item.native}`;
+        const base = `mobile/app${item.native === "/" ? "/index" : item.native.split("?")[0]}`;
         expect(existsSync(`${base}.tsx`) || existsSync(`${base}/index.tsx`), item.native).toBe(true);
       }
     }

@@ -19,6 +19,7 @@ import { CHAPTER_QUESTION_IDS, theoryHrefForQuestion, type TheoryChapterId } fro
 import { radioRuntimeSearch } from '../runtimeSearch';
 import { createExam, gradeExam } from './examModel';
 import { trackExamFinish, trackExamStart } from '@/lib/funnel';
+import { confirmRadioLeave, setRadioExamDirty } from '../navigation';
 
 // ============================================================================
 // /radio/test - trainer over the OFFICIAL UKE SRC question base (324 A/B/C
@@ -160,6 +161,20 @@ export default function SrcTrainerPage() {
   const inQuiz = queue.length > 0 && idx < queue.length;
   const roundDone = queue.length > 0 && idx >= queue.length;
   useEffect(() => {
+    const dirty = mode === 'exam' && inQuiz;
+    setRadioExamDirty(dirty);
+    if (!dirty) return;
+    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const link = (event: MouseEvent) => {
+      const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank' || anchor.getAttribute('href')?.startsWith('#')) return;
+      if (!confirmRadioLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    window.addEventListener('beforeunload', unload);
+    document.addEventListener('click', link, true);
+    return () => { setRadioExamDirty(false); window.removeEventListener('beforeunload', unload); document.removeEventListener('click', link, true); };
+  }, [inQuiz, mode]);
+  useEffect(() => {
     if (!inQuiz) { focusedIdxRef.current = null; return; }
     if (focusedIdxRef.current === idx) return;
     const first = focusedIdxRef.current === null;
@@ -208,7 +223,7 @@ export default function SrcTrainerPage() {
             key={value}
             type="button"
             aria-pressed={mode === value}
-            onClick={() => { setMode(value); setQueue([]); if (value === "exam") setChapterId(null); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setMode(value); setQueue([]); if (value === "exam") setChapterId(null); }}
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={mode === value
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }
@@ -226,7 +241,7 @@ export default function SrcTrainerPage() {
           </span>
           <button
             type="button"
-            onClick={() => { setChapterId(null); setQueue([]); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setChapterId(null); setQueue([]); }}
             className="ml-auto min-h-[44px] rounded-lg px-3 text-xs font-semibold"
             style={{ color: 'var(--text-secondary)' }}
           >
@@ -240,7 +255,7 @@ export default function SrcTrainerPage() {
           <button
             key={String(p)}
             type="button"
-            onClick={() => { setPart(p); setQueue([]); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setPart(p); setQueue([]); }}
             className="min-h-[44px] rounded-full px-4 text-sm font-medium"
             style={part === p
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }

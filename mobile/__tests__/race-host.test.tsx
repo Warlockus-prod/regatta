@@ -2,10 +2,11 @@ jest.mock("@react-native-async-storage/async-storage", () => require("@react-nat
 jest.mock("../assets/sailing-offline.html", () => 123);
 const mockNavigate = jest.fn();
 const mockCapture = jest.fn();
+let mockParams: Record<string, string | string[]> = {};
 jest.mock("expo-router", () => ({
-  Stack: { Screen: () => null },
-  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate }),
-  useLocalSearchParams: () => ({}),
+  Stack: { Screen: (props: { options?: { headerLeft?: () => React.ReactNode } }) => props.options?.headerLeft?.() ?? null },
+  useRouter: () => ({ navigate: mockNavigate, replace: mockNavigate, canGoBack: () => false }),
+  useLocalSearchParams: () => mockParams,
 }));
 jest.mock("../src/analytics", () => ({
   AnalyticsEvent: { RaceFinished: "race_finished" },
@@ -25,7 +26,7 @@ jest.mock("../src/simulator/SimWebView", () => {
 });
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { act, render, waitFor } from "@testing-library/react-native";
+import { act, fireEvent, render, waitFor } from "@testing-library/react-native";
 import Game from "../app/game";
 import { readRaces } from "../src/persistence/race-history";
 import type { NativeRaceSnapshot } from "../../src/lib/race-native";
@@ -38,7 +39,7 @@ const race: NativeRaceSnapshot = {
   events: [{ type: "start", t: 0 }, { type: "finish", t: 10 }],
 };
 
-beforeEach(async () => { jest.clearAllMocks(); await AsyncStorage.clear(); });
+beforeEach(async () => { jest.clearAllMocks(); mockParams = {}; await AsyncStorage.clear(); });
 
 it("starts one local 3D game on a clean install and keeps changed prefs for Retry", async () => {
   const view = render(<Game />);
@@ -76,4 +77,44 @@ it("acknowledges a finish only after native storage and reports a disk failure e
   await act(async () => message(JSON.stringify({ type: "race-finished", race }), inject));
   expect(await readRaces()).toHaveLength(1);
   expect(mockCapture).toHaveBeenCalledTimes(1);
+});
+
+it("returns a lesson-launched mini-race through both the loading header and the trusted full-screen exit bridge", async () => {
+  mockParams = { fromLesson: "mini-race" };
+  const view = render(<Game />);
+  fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
+  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
+  const game = await waitFor(() => view.getByTestId("local-race"));
+  expect(game.props.query.fromLesson).toBe("mini-race");
+  const message = game.props.onOfflineMessage;
+  for (const href of ["/", "/race"]) {
+    act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
+    expect(mockNavigate).toHaveBeenLastCalledWith("/bootcamp/mini-race");
+  }
+  for (const href of ["/history", "/replay/web-race-10"]) {
+    act(() => message(JSON.stringify({ type: "native-navigate", href }), jest.fn()));
+    expect(mockNavigate).toHaveBeenLastCalledWith(href);
+  }
+  const calls = mockNavigate.mock.calls.length;
+  act(() => message(JSON.stringify({ type: "native-navigate", href: "/bootcamp/unknown" }), jest.fn()));
+  expect(mockNavigate).toHaveBeenCalledTimes(calls);
+});
+
+it("keeps ordinary or unknown-lesson race exits at the race hub", async () => {
+  mockParams = { fromLesson: "unknown" };
+  const view = render(<Game />);
+  const game = await waitFor(() => view.getByTestId("local-race"));
+  expect(game.props.query).not.toHaveProperty("fromLesson");
+  act(() => game.props.onOfflineMessage(JSON.stringify({ type: "native-navigate", href: "/race" }), jest.fn()));
+  expect(mockNavigate).toHaveBeenLastCalledWith("/race");
+});
+
+it("retains Return to lesson when local race preferences fail to load", async () => {
+  mockParams = { fromLesson: "mini-race" };
+  (AsyncStorage.multiGet as jest.Mock).mockRejectedValueOnce(new Error("disk unavailable"));
+  const view = render(<Game />);
+  await waitFor(() => view.getByText(/Could not read race data/));
+  expect(view.queryByTestId("local-race")).toBeNull();
+  fireEvent.press(view.getByRole("button", { name: "Return to lesson" }));
+  expect(mockNavigate).toHaveBeenLastCalledWith({ pathname: "/bootcamp/[id]", params: { id: "mini-race" } });
 });

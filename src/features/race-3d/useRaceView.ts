@@ -4,12 +4,9 @@ import { useCallback, useSyncExternalStore } from "react";
 import { readRaceSearch } from "@/lib/race-native";
 import type { RaceCamera } from "./pose";
 
-// How the solo race is shown, shared by the race menu and the race screen
-// (localStorage "regatta.race.view.v1" = "2d" | "3d", "regatta.race.camera.v1"
-// = "stern" | "high"). A link with ?view=3d (the app opens the race that way)
-// switches to 3D and remembers it. ?camera=high|stern picks the camera the
-// same way, and ?scene=next draws the race with the next renderer
-// (src/features/race-scene, ADR-0008) with ?fps=1 showing its frame rate.
+// Solo uses the shared 3D scene for every entry. Legacy view keys stay readable,
+// but never restore the retired flat presentation. Saved camera presets and
+// explicit camera links remain supported; a new installation starts in orbit.
 export const RACE_VIEW_STORAGE_KEY = "regatta.race.view.v1";
 export const RACE_CAMERA_STORAGE_KEY = "regatta.race.camera.v1";
 const EVENT = "regatta:race-view";
@@ -20,14 +17,17 @@ function read3d(): boolean { return true; }
 // address it loaded with back after a replaceState, which reverted the toggle.
 let pickedCamera: RaceCamera | null = null;
 
+export function raceCameraPreference(fromUrl: string | null, saved: string | null): RaceCamera {
+  const valid = (value: string | null): value is RaceCamera => value === "orbit" || value === "high" || value === "stern";
+  return valid(fromUrl) ? fromUrl : valid(saved) ? saved : "orbit";
+}
+
 function readCamera(): RaceCamera {
   if (pickedCamera) return pickedCamera;
   try {
-    const fromUrl = readRaceSearch().get("camera");
-    if (fromUrl === "high" || fromUrl === "stern") return fromUrl;
-    return localStorage.getItem(RACE_CAMERA_STORAGE_KEY) === "stern" ? "stern" : "high";
+    return raceCameraPreference(readRaceSearch().get("camera"), localStorage.getItem(RACE_CAMERA_STORAGE_KEY));
   } catch {
-    return "high";
+    return "orbit";
   }
 }
 
@@ -63,7 +63,7 @@ export interface RaceViewState {
 
 export function useRaceView(): RaceViewState {
   const view3d = useSyncExternalStore(subscribe, read3d, () => true);
-  const camera = useSyncExternalStore(subscribe, readCamera, () => "high" as const);
+  const camera = useSyncExternalStore(subscribe, readCamera, () => "orbit" as const);
   const setView3d = useCallback((on: boolean) => write(RACE_VIEW_STORAGE_KEY, on ? "3d" : "2d"), []);
   const setCamera = useCallback((next: RaceCamera) => {
     pickedCamera = next;

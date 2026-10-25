@@ -41,6 +41,15 @@ export function isNativeRace(): boolean {
   return typeof window !== "undefined" && (window as NativeRaceWindow).__REGATTA_RACE_NATIVE__ === true;
 }
 
+/** A saved replay returns to native history instead of creating another race menu. */
+export function navigateNativeRace(href: "/race" | "/history"): boolean {
+  if (!isNativeRace() || (href !== "/race" && href !== "/history")) return false;
+  const bridge = (window as NativeRaceWindow).ReactNativeWebView;
+  if (!bridge) return false;
+  bridge.postMessage(JSON.stringify({ type: "native-navigate", href }));
+  return true;
+}
+
 const record = (v: unknown): v is Record<string, unknown> => Boolean(v) && typeof v === "object" && !Array.isArray(v);
 const finite = (v: unknown, low: number, high: number): v is number => typeof v === "number" && Number.isFinite(v) && v >= low && v <= high;
 const point = (v: unknown) => record(v) && finite(v.x, -10000, 10000) && finite(v.y, -10000, 10000);

@@ -5,6 +5,28 @@ import { mainsheetPath, travelerPoint } from "../sailing-lab/rig/layout";
 import { toGlb } from "../sailing-lab/rig/passport";
 
 export type CameraView = "whole" | "sails" | "main" | "jib" | "stern" | "deck" | "mainsheet";
+export const YACHT_CAMERA_FOV = 42;
+
+/** The same fitted yacht and equipment presets in the trainer and the race. */
+export function fitYachtCamera(view: CameraView, state: YachtState, aspect: number) {
+  const detail = view === "main" || view === "jib";
+  const bounds = view === "deck"
+    ? [new Vector3(-7, -0.2, -2.5), new Vector3(7, 4.5, 2.5)]
+    : [new Vector3(-7, -0.5, -4), new Vector3(7, 20.5, 4)];
+  const side = Math.sign(state.boomAngle) || 1;
+  const direction = view === "stern" ? new Vector3(-1, 0.14, side * 0.12)
+    : view === "sails" ? new Vector3(0.3, 0.08, -side) : new Vector3(-0.8, view === "deck" ? 0.8 : 0.18, -side);
+  const silhouette = view === "deck" || detail ? undefined : [
+    [-7, 0, -2.3], [-7, 0, 2.3], [7, 0, -2.3], [7, 0, 2.3],
+    [0.3, 20.5, 0], [-1, 19, -1], [1, 19, 1], [-5, 4, -5], [-5, 4, 5], [6.3, 1.5, 0],
+  ].map(([x, y, z]) => new Vector3(x, y, z));
+  const fit = view === "mainsheet" ? fitMainsheetCamera(state, aspect) : detail
+    ? fitSailCamera(view, state, aspect) : fitCamera(bounds[0], bounds[1], direction, aspect, YACHT_CAMERA_FOV, 1.12, silhouette);
+  const yaw = (90 - (state.heading ?? 90)) * Math.PI / 180;
+  fit.position.applyAxisAngle(new Vector3(0, 1, 0), yaw);
+  fit.target.applyAxisAngle(new Vector3(0, 1, 0), yaw);
+  return { ...fit, fov: YACHT_CAMERA_FOV };
+}
 
 export function fitMainsheetCamera(state: YachtState, aspect: number) {
   const trim = state.mainTrim ?? { pose: { yaw: state.boomAngle, rise: 0 }, traveler: 0 };

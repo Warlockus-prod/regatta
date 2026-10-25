@@ -882,6 +882,11 @@
     }
   },
   {
+    "id": "080266f58971ac4e",
+    "source": "regatta:radio-back",
+    "known": {}
+  },
+  {
     "id": "0807eeba5408ee2d",
     "source": "Zalecam ci przejść na kanał UKF",
     "known": {
@@ -2303,6 +2308,11 @@
       "pl": "To zadanie sprawdza po prostu, czy znasz swoje urządzenie - egzaminator może poprosić o zmianę podświetlenia. Klasyczny błąd: błąkanie się po funkcjach DIAL i przypadkowa zmiana głośności albo SQL zamiast podświetlenia.",
       "ru": "Это задание проверяет просто знание своего аппарата: экзаменатор может попросить изменить подсветку. Классическая ошибка: заблудиться в функциях DIAL и случайно сбить громкость или SQL вместо подсветки."
     }
+  },
+  {
+    "id": "130ce35772ded939",
+    "source": "_blank",
+    "known": {}
   },
   {
     "id": "130d799175bbaacc",
@@ -7095,11 +7105,6 @@
     }
   },
   {
-    "id": "3d182ee0851e0849",
-    "source": "Hors ligne : la théorie et la radio fonctionnent",
-    "known": {}
-  },
-  {
     "id": "3d2a44384fd99105",
     "source": "Umieść go pionowo i co najmniej metr nad wodą, jeśli to możliwe.",
     "known": {
@@ -7209,6 +7214,19 @@
     "source": "2 minutach, a następne po 3 minutach",
     "known": {
       "pl": "2 minutach, a następne po 3 minutach"
+    }
+  },
+  {
+    "id": "3dee51a9ffa2b9af",
+    "source": "Wyjdź z SRC do aplikacji",
+    "known": {
+      "pl": "Wyjdź z SRC do aplikacji",
+      "ru": "Выйти из SRC в приложение",
+      "en": "Leave SRC for the app",
+      "es": "Salir de SRC a la aplicación",
+      "fr": "Quitter SRC pour revenir à l'app",
+      "de": "SRC verlassen und zur App",
+      "it": "Esci da SRC e torna all'app"
     }
   },
   {
@@ -8232,15 +8250,6 @@
     "known": {}
   },
   {
-    "id": "47712cc98e52a140",
-    "source": "Mikrofon działa - do symulatora",
-    "known": {
-      "pl": "Mikrofon działa - do symulatora",
-      "ru": "Микрофон работает - в симулятор",
-      "en": "Mic works - open the simulator"
-    }
-  },
-  {
     "id": "478ccd60fe8d608e",
     "source": "Od zrozumienia systemu do pewnej pracy w eterze",
     "known": {
@@ -8516,6 +8525,11 @@
   {
     "id": "4982db1b8fa7c482",
     "source": "__unreadable__",
+    "known": {}
+  },
+  {
+    "id": "49973cc2d813cb8a",
+    "source": "a[href]",
     "known": {}
   },
   {
@@ -11356,11 +11370,6 @@
     }
   },
   {
-    "id": "6187c3961e447883",
-    "source": "Offline: Theorie und Funkgerät funktionieren",
-    "known": {}
-  },
-  {
     "id": "618ffefe509fd015",
     "source": "Cisza radiowa",
     "known": {
@@ -13526,6 +13535,11 @@
     }
   },
   {
+    "id": "76900f1bfd16c8d4",
+    "source": "Back",
+    "known": {}
+  },
+  {
     "id": "769357a19089ca81",
     "source": "datę i czas uruchomienia radiopławy",
     "known": {
@@ -14487,6 +14501,19 @@
     "known": {}
   },
   {
+    "id": "7fd552db0d258f4a",
+    "source": "Naucz się obsługi radia",
+    "known": {
+      "pl": "Naucz się obsługi radia",
+      "ru": "Научиться работать с рацией",
+      "en": "Learn the radio controls",
+      "es": "Aprende a manejar la radio",
+      "fr": "Apprendre les commandes radio",
+      "de": "Funkgerät bedienen lernen",
+      "it": "Impara i comandi della radio"
+    }
+  },
+  {
     "id": "7fef39f41afe2d3f",
     "source": "Egzamin UKE",
     "known": {}
@@ -14688,11 +14715,6 @@
       "pl": "NAVTEX odbiera ostrzeżenia nawigacyjne, meteorologiczne i informacje SAR. Kluczem do egzaminu jest nagłówek B1B2B3B4, częstotliwości 518 i 490 kHz oraz świadome ustawienie odbiornika.",
       "ru": "NAVTEX принимает навигационные и метеорологические предупреждения, а также сообщения SAR. Для экзамена нужно понимать заголовок B1B2B3B4, частоты 518 и 490 кГц и настройку приемника."
     }
-  },
-  {
-    "id": "8172ec9760ae7036",
-    "source": "Offline: teoria e radio funzionano",
-    "known": {}
   },
   {
     "id": "8190322b09bcf66b",
@@ -19317,6 +19339,19 @@
     }
   },
   {
+    "id": "a9586c18b1a53714",
+    "source": "Offline możesz sprawdzić wpisany komunikat. Na obsługiwanym urządzeniu mikrofon korzysta z zainstalowanego angielskiego modelu rozpoznawania. Bez modelu lub zgody na mikrofon kontynuuj pisemnie.",
+    "known": {
+      "pl": "Offline możesz sprawdzić wpisany komunikat. Na obsługiwanym urządzeniu mikrofon korzysta z zainstalowanego angielskiego modelu rozpoznawania. Bez modelu lub zgody na mikrofon kontynuuj pisemnie.",
+      "ru": "Офлайн можно проверить введенную передачу. На поддерживаемом устройстве микрофон использует установленную английскую модель распознавания. Если модели или разрешения нет, продолжай с текстом.",
+      "en": "You can check a typed transmission offline. On a supported device, the microphone uses an installed English recognition model. If the model or permission is unavailable, continue by typing.",
+      "es": "Puedes comprobar una transmisión escrita sin conexión. En un dispositivo compatible, el micrófono utiliza un modelo de reconocimiento de inglés instalado. Sin modelo o permiso, continúa por escrito.",
+      "fr": "Vous pouvez vérifier un message saisi hors ligne. Sur un appareil compatible, le micro utilise un modèle anglais installé. Sans modèle ou autorisation, continuez par écrit.",
+      "de": "Du kannst einen getippten Funkspruch offline prüfen. Auf unterstützten Geräten nutzt das Mikrofon ein installiertes Englischmodell. Ohne Modell oder Berechtigung übst du per Texteingabe weiter.",
+      "it": "Puoi verificare una trasmissione scritta offline. Su un dispositivo compatibile, il microfono usa un modello inglese installato. Senza modello o autorizzazione, continua per iscritto."
+    }
+  },
+  {
     "id": "a9735ea5580780c8",
     "source": "EPIRB i COSPAS-SARSAT: od pławy do RCC",
     "known": {
@@ -21678,7 +21713,11 @@
     "known": {
       "pl": "Wyjdź",
       "ru": "Выйти",
-      "en": "Exit"
+      "en": "Exit",
+      "es": "Salir",
+      "fr": "Quitter",
+      "de": "Zur App",
+      "it": "Esci"
     }
   },
   {
@@ -23091,11 +23130,6 @@
       "ru": "Конец связи - OUT (ответа не ждёшь). Не говорят «OVER AND OUT».",
       "en": "End with OUT (no reply expected). Never say \"OVER AND OUT\"."
     }
-  },
-  {
-    "id": "c93d77d2cee96aa5",
-    "source": "Sin conexión: la teoría y la radio funcionan",
-    "known": {}
   },
   {
     "id": "c94d5ca9c7944525",
@@ -24980,6 +25014,11 @@
     }
   },
   {
+    "id": "da3a8ad0df929100",
+    "source": "К курсу SRC",
+    "known": {}
+  },
+  {
     "id": "da50e7df8e7cbc2a",
     "source": "You are obstructing other traffic.",
     "known": {
@@ -25568,7 +25607,11 @@
     "known": {
       "pl": "Wstecz",
       "ru": "Назад",
-      "en": "Previous"
+      "en": "Previous",
+      "es": "Atrás",
+      "fr": "Retour",
+      "de": "Zurück",
+      "it": "Indietro"
     }
   },
   {
@@ -26112,6 +26155,11 @@
     "known": {
       "pl": "Jakie masz problemy?"
     }
+  },
+  {
+    "id": "e3baf9263b8fe93b",
+    "source": "regatta:radio-navigate",
+    "known": {}
   },
   {
     "id": "e3c9c923185e777e",
@@ -26976,6 +27024,19 @@
     }
   },
   {
+    "id": "e9dc3a327092be97",
+    "source": "Otwórz radio",
+    "known": {
+      "pl": "Otwórz radio",
+      "ru": "Открыть рацию",
+      "en": "Open the radio",
+      "es": "Abrir la radio",
+      "fr": "Ouvrir la radio",
+      "de": "Funkgerät öffnen",
+      "it": "Apri la radio"
+    }
+  },
+  {
     "id": "e9eb681b6663f96d",
     "source": "tylko informacja wychodząca ze stacji nie może trafić do osób trzecich",
     "known": {
@@ -27754,15 +27815,6 @@
     }
   },
   {
-    "id": "f0eb35999486c0f8",
-    "source": "Offline: teoria i radio działają",
-    "known": {
-      "pl": "Offline: teoria i radio działają",
-      "ru": "Офлайн: теория и рация работают",
-      "en": "Offline: theory and radio work"
-    }
-  },
-  {
     "id": "f115343fb8404605",
     "source": "koordynacja",
     "known": {
@@ -28114,6 +28166,19 @@
       "fr": "I have collided with unknown derelict.",
       "de": "I have collided with unknown derelict.",
       "it": "I have collided with unknown derelict."
+    }
+  },
+  {
+    "id": "f41221cd47c9689f",
+    "source": "Kurs SRC",
+    "known": {
+      "pl": "Kurs SRC",
+      "ru": "Курс SRC",
+      "en": "SRC course",
+      "es": "Curso SRC",
+      "fr": "Cours SRC",
+      "de": "SRC-Kurs",
+      "it": "Corso SRC"
     }
   },
   {
@@ -28619,6 +28684,19 @@
     "source": "około 24 godziny",
     "known": {
       "pl": "około 24 godziny"
+    }
+  },
+  {
+    "id": "f891caa8b1e22614",
+    "source": "Scenariusze",
+    "known": {
+      "pl": "Scenariusze",
+      "ru": "Сценарии",
+      "en": "Scenarios",
+      "es": "Escenarios",
+      "fr": "Scénarios",
+      "de": "Szenarien",
+      "it": "Scenari"
     }
   },
   {

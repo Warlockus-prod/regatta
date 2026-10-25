@@ -6,17 +6,19 @@ import * as THREE from "three/webgpu";
 import { Yacht } from "@/features/simulator-3d/Yacht";
 import { sampleWave } from "@/features/simulator-3d/ocean/waves";
 import { SceneBoundary } from "@/features/simulator-3d/SceneBoundary";
+import { FirstSceneFrame, SceneStartup } from "@/features/simulator-3d/SceneStartup";
 import { YACHT_MODEL_URL } from "@/features/simulator-3d/config";
-import type { YachtState } from "@/features/simulator-3d/types";
+import { NEUTRAL_YACHT } from "@/features/simulator-3d/types";
 import type { Venue } from "@/data/venues/venues";
 import {
-  ChaseCamera, Loading, Ready, Rival, World,
+  Rival, World,
   playerOf, useBoatPose, type OriginRef, type Race3DLabels,
 } from "@/features/race-3d/Race3DView";
-import { METRES_PER_UNIT, nextTarget, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
+import { METRES_PER_UNIT, nextTarget, racePose, raceRanks, toWorld, type Race3DBoat, type Race3DCourse, type RaceCamera } from "@/features/race-3d/pose";
 import { distance } from "@/lib/race-physics";
 import type { RaceGuidance } from "@/lib/race-guidance";
-import { follow, tacticalPose } from "./camera";
+import { raceCameraPose } from "./orbit-camera";
+import { SailingCameraRig } from "@/features/simulator-3d/SailingCameraRig";
 import { initialDpr, nextDpr } from "./quality";
 import { guidancePath } from "./guidance";
 import { calmFactor } from "./materials";
@@ -31,8 +33,8 @@ import { createSailingRenderer } from "./renderer";
 // WebGPU where the browser has it, WebGL2 otherwise. Stylized: water that
 // shows the wind and the shallows, white wakes that keep every tack, soft
 // shadows under the hulls, trees on the shore. The tactical camera (the
-// default) keeps upwind at the top like the race map; "stern" is the chase
-// view. Trainer cameras remain independent of this race presentation.
+// optional preset) keeps upwind at the top like the race map. The default
+// is a close, freely rotatable view fitted exactly like the trainer.
 // ============================================================================
 
 const GUIDANCE_POINTS = 80;
@@ -148,53 +150,12 @@ function WaterGuidance({ boatsRef, windDirRef, originRef, guidance }: {
 }
 
 /** The player's yacht, its pose shared with the camera and the water. */
-function Player({ boatsRef, windDirRef, playerStateRef }: {
+function Player({ boatsRef, windDirRef }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   windDirRef: MutableRefObject<number>;
-  playerStateRef: MutableRefObject<MutableRefObject<YachtState> | null>;
 }) {
   const state = useBoatPose(boatsRef, windDirRef, null);
-  useEffect(() => {
-    playerStateRef.current = state;
-    return () => { playerStateRef.current = null; };
-  }, [state, playerStateRef]);
   return <Yacht stateRef={state} />;
-}
-
-/** High above and downwind, upwind at the top of the screen; eases after the boat and the wind. */
-function TacticalCamera({ boatsRef, courseRef, windDirRef }: {
-  boatsRef: MutableRefObject<Race3DBoat[]>;
-  courseRef: MutableRefObject<Race3DCourse>;
-  windDirRef: MutableRefObject<number>;
-}) {
-  const wind = useRef<number | null>(null);
-  const look = useRef<THREE.Vector3 | null>(null);
-  const pos = useMemo(() => new THREE.Vector3(), []);
-  useFrame(({ camera, size }, dt) => {
-    const player = playerOf(boatsRef.current);
-    if (!player) return;
-    // The view turns slowly with a wind shift, so a shift reads on the water, not as a spinning camera.
-    const w = windDirRef.current;
-    if (wind.current === null) wind.current = w;
-    const dw = ((w - wind.current + 540) % 360) - 180;
-    wind.current += dw * follow(dt, 3);
-    const target = nextTarget(player, courseRef.current);
-    const pose = tacticalPose({
-      player: toWorld(player.pos),
-      target: target ? toWorld(target) : null,
-      windFrom: wind.current,
-      portrait: size.width < size.height,
-    });
-    const k = follow(dt, 0.6);
-    if (!look.current) look.current = new THREE.Vector3(...pose.look);
-    else look.current.lerp(new THREE.Vector3(...pose.look), k);
-    pos.set(pose.position[0] - pose.look[0] + look.current.x, pose.position[1], pose.position[2] - pose.look[2] + look.current.z);
-    camera.position.copy(pos);
-    camera.lookAt(look.current);
-    const cam = camera as THREE.PerspectiveCamera;
-    if (cam.fov !== pose.fov) { cam.fov = pose.fov; cam.updateProjectionMatrix(); }
-  });
-  return null;
 }
 
 /** Frame rate and backend, measured over 2 s windows; steps the pixel ratio down while slow. */
@@ -224,25 +185,34 @@ function Quality({ onStats, maxDpr }: { onStats?: (s: RaceSceneStats) => void; m
   return null;
 }
 
-export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "high", maxDpr = 2, labels, onStats, guidance }: {
+export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirRef, venue, camera = "orbit", cameraRevision = 0, maxDpr = 2, labels, onStats, onReady, guidance }: {
   boatsRef: MutableRefObject<Race3DBoat[]>;
   courseRef: MutableRefObject<Race3DCourse>;
   windDirRef: MutableRefObject<number>;
   venue: Venue;
-  /** "high" is the tactical camera (the default here), "stern" the chase view. */
+  /** All three presets support free orbit and pinch/scroll zoom. */
   camera?: RaceCamera;
+  /** Increment to refit the selected preset after a manual camera gesture. */
+  cameraRevision?: number;
   maxDpr?: number;
   labels: Race3DLabels;
   onStats?: (s: RaceSceneStats) => void;
+  /** The loaded yacht has been submitted in a frame. Optional for server-clock consumers. */
+  onReady?: () => void;
   /** Optional educational aid. Coordinates use race units, converted here to metres. */
   guidance?: RaceGuidance | null;
 }) {
   const originRef = useRef({ x: 0, z: 0 });
-  const playerStateRef = useRef<MutableRefObject<YachtState> | null>(null);
   const readState = useCallback(() => {
     const player = playerOf(boatsRef.current);
     return player ? { travel: toWorld(player.pos), wind: { from: windDirRef.current, knots: player.physics?.trueWindSpeed ?? 12 } } : null;
   }, [boatsRef, windDirRef]);
+  const cameraPose = useCallback((aspect: number) => {
+    const player = playerOf(boatsRef.current);
+    const target = player ? nextTarget(player, courseRef.current) : null;
+    return raceCameraPose(camera, player ? racePose(player, windDirRef.current) : NEUTRAL_YACHT, aspect, { player: player ? toWorld(player.pos) : { x: 0, z: 0 },
+      target: target ? toWorld(target) : null, windFrom: windDirRef.current });
+  }, [camera, boatsRef, courseRef, windDirRef]);
   const readBoats = useCallback(() => boatsRef.current.map(boat => ({
     id: boat.id, travel: toWorld(boat.pos), heading: boat.heading, speedKn: boat.speed,
   })), [boatsRef]);
@@ -269,27 +239,27 @@ export const RaceScene = memo(function RaceScene({ boatsRef, courseRef, windDirR
 
   return (
     <SceneBoundary modelUrl={YACHT_MODEL_URL} errorLabel={labels.error} retryLabel={labels.retry}>
+      <SceneStartup label={labels.loading} onReady={onReady}>{ready =>
       <div className="relative h-full w-full" data-scene="next">
         <Canvas
           fallback={<span>{labels.scene}</span>}
           gl={createSailingRenderer}
           dpr={[1, maxDpr]}
-          camera={{ position: [0, 140, 110], fov: 60, near: 1, far: 4200 }}
+          camera={{ position: [26, 18, 32], fov: 42, near: 0.5, far: 4200 }}
         >
           <SailingEnvironment venue={venue} readState={readState} readBoats={readBoats} originRef={originRef} />
           <World venue={venue} courseRef={courseRef} boatsRef={boatsRef} originRef={originRef} targetLabel={targetLabel} land={false} />
           {guidance && <WaterGuidance boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} guidance={guidance} />}
-          <Suspense fallback={<Loading label={labels.loading} />}>
-            <Player boatsRef={boatsRef} windDirRef={windDirRef} playerStateRef={playerStateRef} />
+          <Suspense fallback={null}>
+            <Player boatsRef={boatsRef} windDirRef={windDirRef} />
             {rivals.map((r) => <Rival key={r.id} id={r.id} color={r.color} label={r.label} boatsRef={boatsRef} windDirRef={windDirRef} originRef={originRef} />)}
-            <Ready />
+            <FirstSceneFrame onReady={ready} />
           </Suspense>
-          {camera === "stern"
-            ? <ChaseCamera stateRef={playerStateRef} mode="stern" />
-            : <TacticalCamera boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} />}
+          <SailingCameraRig poseForAspect={cameraPose} revision={cameraRevision} />
           <Quality onStats={onStats} maxDpr={maxDpr} />
         </Canvas>
       </div>
+      }</SceneStartup>
     </SceneBoundary>
   );
 });

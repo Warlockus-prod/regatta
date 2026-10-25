@@ -6,6 +6,8 @@ import type { ReactNode } from 'react';
 import Link from 'next/link';
 import MicCheck from '../MicCheck';
 import InteractiveRadioCourse from './InteractiveRadioCourse';
+import { offlineRadio } from '../audio/localSpeech';
+import { RADIO_FREE_HREF } from '../navigation';
 
 // ============================================================================
 // /radio/obsluga - a full operating + maintenance guide to a marine VHF set:
@@ -99,8 +101,9 @@ function Checklist({ title, items }: { title: string; items: string[] }) {
 }
 
 export default function RadioGuidePage() {
-  const { rt: radioText } = useRadioI18n();
+  const { rt: radioText, tl } = useRadioI18n();
   const { tp } = useRadioI18n();
+  const local = offlineRadio();
 
   return (
     <div id="radio-guide">
@@ -140,7 +143,15 @@ export default function RadioGuidePage() {
       {/* 0. MIC CHECK */}
       <Section id="mikrofon" num={0} pl="Sprawdź mikrofon" ru="Проверка микрофона (для голосового режима)">
         <Tip>
-          {radioText(tp(
+          {local ? tl({
+            ru: "Офлайн можно проверить введенную передачу. На поддерживаемом устройстве микрофон использует установленную английскую модель распознавания. Если модели или разрешения нет, продолжай с текстом.",
+            en: "You can check a typed transmission offline. On a supported device, the microphone uses an installed English recognition model. If the model or permission is unavailable, continue by typing.",
+            pl: "Offline możesz sprawdzić wpisany komunikat. Na obsługiwanym urządzeniu mikrofon korzysta z zainstalowanego angielskiego modelu rozpoznawania. Bez modelu lub zgody na mikrofon kontynuuj pisemnie.",
+            es: "Puedes comprobar una transmisión escrita sin conexión. En un dispositivo compatible, el micrófono utiliza un modelo de reconocimiento de inglés instalado. Sin modelo o permiso, continúa por escrito.",
+            fr: "Vous pouvez vérifier un message saisi hors ligne. Sur un appareil compatible, le micro utilise un modèle anglais installé. Sans modèle ou autorisation, continuez par écrit.",
+            de: "Du kannst einen getippten Funkspruch offline prüfen. Auf unterstützten Geräten nutzt das Mikrofon ein installiertes Englischmodell. Ohne Modell oder Berechtigung übst du per Texteingabe weiter.",
+            it: "Puoi verificare una trasmissione scritta offline. Su un dispositivo compatibile, il microfono usa un modello inglese installato. Senza modello o autorizzazione, continua per iscritto.",
+          }) : radioText(tp(
             'Голосовой режим симулятора записывает твой MAYDAY через микрофон браузера и оценивает его. Чтобы это работало: страница должна быть по HTTPS (weektoregatta.com - да) и браузер должен получить разрешение на микрофон. Проверь прямо сейчас - скажи «раз-два» и убедись, что индикатор двигается.',
             'The simulator voice mode records your MAYDAY through the browser microphone and grades it. For this to work the page must be HTTPS (weektoregatta.com is) and the browser must be granted mic permission. Test it now - say "one-two" and check the meter moves.',
             'Tryb głosowy symulatora nagrywa Twój MAYDAY przez mikrofon przeglądarki i ocenia go. Aby działał: strona musi być na HTTPS (weektoregatta.com jest) i przeglądarka musi dostać dostęp do mikrofonu. Sprawdź teraz - powiedz "raz-dwa" i zobacz, czy wskaźnik się rusza.',
@@ -148,8 +159,8 @@ export default function RadioGuidePage() {
         </Tip>
         <MicCheck />
         <div className="mt-3">
-          <Link href="/radio/symulator" className="inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
-            🎙️ {radioText(tp('Микрофон работает - в симулятор', 'Mic works - open the simulator', 'Mikrofon działa - do symulatora'))}
+          <Link href={RADIO_FREE_HREF} className="inline-flex min-h-[44px] items-center rounded-xl px-4 text-sm font-semibold" style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}>
+            {tl({ ru: "Открыть рацию", en: "Open the radio", pl: "Otwórz radio", es: "Abrir la radio", fr: "Ouvrir la radio", de: "Funkgerät öffnen", it: "Apri la radio" })}
           </Link>
         </div>
       </Section>

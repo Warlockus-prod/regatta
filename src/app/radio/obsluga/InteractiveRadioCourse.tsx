@@ -1,6 +1,7 @@
 'use client';
 
 import { useRadioI18n } from "@/app/radio/localization/context";
+import { useRouter } from 'next/navigation';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
@@ -73,6 +74,7 @@ function channelNumber(state: RadioState): string {
 }
 
 export default function InteractiveRadioCourse() {
+  const router = useRouter();
   const { rt: radioText } = useRadioI18n();
   const { tp, lang } = useRadioI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
@@ -478,7 +480,7 @@ export default function InteractiveRadioCourse() {
         <RadioWorkspace
           testId="course-workspace"
           stacked={stacked}
-          onExit={() => setOpen(false)}
+          onExit={() => new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1' ? router.back() : setOpen(false)}
           exitTestId="course-exit"
           exitTitle={tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
           status={(

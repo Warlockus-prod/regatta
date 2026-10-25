@@ -10,16 +10,20 @@ Owner authorization: 2026-10-24. App first, complete the audited scope in revers
 - Public App Store 1.6.4, TestFlight 1.7.0 build 58 at audit time. Next build 59; verify live status before upload/submission.
 - Existing web deployment PR79, PR80 blocked by total JS budget. Resolve measured payload rather than silently raise its limit.
 
+## Reopened acceptance, 2026-10-25
+
+Owner feedback showed that source checks and delivery60 had been mistaken for product completion in several areas. The snapshot audit is `docs/audits/2026-10-25/plan-recheck.md`; current fixes and acceptance are `docs/audits/2026-10-25/corrections.md`. The historical checkpoints below stay as delivery/source evidence. Gates4-8 are reopened for candidate61 until its exact final sources/packages and UI are checked again. Gate9 has never been complete. TestFlight60 remains genuinely delivered;61 has not yet been delivered.
+
 ## Ordered gates
 
 1. [x] Inventory branches, releases, controls, radio, languages and layouts; record current evidence.
 2. [x] Create separate app/site release worktrees from the same main; preserve original work.
 3. [x] Shared race model: manual Pro trim, sail deployment, responsive steering assistance, route guidance, educational rules and declared custom penalties. Unit and deterministic integration tests.
-4. [x] One locally bundled 3D solo race, trainer controls, durable native history/replay/local coach, no network dependency. Retain readability of old race records.
-5. [x] Cockpit: protected scene area, shared wheels or sliders, reserved side/bottom utilities, stable focus, guidance and settings, selected ocean direction.
-6. [x] Radio: localized theory, tests, lessons and situations in seven languages; guided learning and free exploration; pinned device; sternik remains Polish. No hidden language fallback claimed complete.
-7. [x] Regenerate offline assets from final shared sources; check provenance, byte budgets, offline routing and persistence.
-8. [x] Web and mobile typecheck, relevant unit suites, lint, content/dash/map/generated checks, production build and bundle budget.
+4. [ ] One locally bundled 3D solo race, trainer controls, durable native history/replay/local coach, no network dependency. Retain readability of old race records.
+5. [ ] Cockpit: protected scene area, shared wheels or sliders, reserved side/bottom utilities, stable focus, guidance and settings, selected ocean direction.
+6. [ ] Radio: localized theory, tests, lessons and situations in seven languages; guided learning and free exploration; pinned device; sternik remains Polish. No hidden language fallback claimed complete.
+7. [ ] Regenerate offline assets from final shared sources; check provenance, byte budgets, offline routing and persistence.
+8. [ ] Web and mobile typecheck, relevant unit suites, lint, content/dash/map/generated checks, production build and bundle budget.
 9. [ ] Visual and interaction review: small phone, landscape, desktop, all seven languages, manual sheets, sails, rules, finish, history, replay and radio learning. Verify local navigation with networking disabled.
 10. [ ] Synchronize website branch with tested shared implementation, run its gates, deploy through hardened CI and check production.
 11. [ ] Native public release remains open. Internal TestFlight subgate is complete:1.7.0(60) VALID and IN_BETA_TESTING in Self,8notes locales verified. Public privacy/store screenshots/App Review still require their own gates.

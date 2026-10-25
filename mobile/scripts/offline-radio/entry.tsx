@@ -1,6 +1,6 @@
 'use client';
 import { useRadioI18n } from "@/app/radio/localization/context";
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+import { useEffect, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
 import RadioCourseHome from "../../../src/app/radio/page";
 import RadioSubnav from "../../../src/app/radio/RadioSubnav";
@@ -64,13 +64,6 @@ function postProgressSnapshot(entries = collectProgressEntries()) {
   }));
 }
 
-function openOnlineCourse(path = "/radio") {
-  window.ReactNativeWebView?.postMessage(JSON.stringify({
-    type: "radio-open-online",
-    path,
-  }));
-}
-
 function OfflineSkipperNotice() {
   const { rt: radioText } = useRadioI18n();
   const { tp } = useRadioI18n();
@@ -100,48 +93,15 @@ function helperLanguages(): CourseLanguage[] { return ["de", "en", "es", "fr", "
 
 function StatusBar() {
   const { lang, setLang, tp } = useRadioI18n();
-  const [online, setOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
-
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 text-xs" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
-      <span
-        className="rounded-full px-2 py-1 font-bold"
-        style={{
-          background: online ? "rgba(68,255,136,0.1)" : "rgba(255,170,0,0.1)",
-          color: online ? "var(--success)" : "var(--warning)",
-        }}
-      >
-        {online
-          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })
-          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają", { es: "Sin conexión: la teoría y la radio funcionan", fr: "Hors ligne : la théorie et la radio fonctionnent", de: "Offline: Theorie und Funkgerät funktionieren", it: "Offline: teoria e radio funzionano" })}
-      </span>
-      <span className="ml-auto" style={{ color: "var(--text-muted)" }}>
-        {tp("Язык курса", "Course language", "Język kursu", { es: "Idioma del curso", fr: "Langue du cours", de: "Kurssprache", it: "Lingua del corso" })}
-      </span>
-      {helperLanguages().map((item) => (
-        <button
-          key={item}
-          type="button"
-          onClick={() => setLang(item)}
-          className="min-h-[44px] rounded-full px-3 font-bold"
-          style={lang === item
-            ? { background: "var(--accent-cyan)", color: "var(--accent-ink)" }
-            : { background: "var(--bg-secondary)", color: "var(--text-secondary)" }}
-        >
-          {item.toUpperCase()}
-        </button>
-      ))}
-
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+      <span>{tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })}</span>
+      <label className="flex min-h-[44px] items-center gap-2">
+        <span>{tp("Язык курса", "Course language", "Język kursu", { es: "Idioma del curso", fr: "Langue du cours", de: "Kurssprache", it: "Lingua del corso" })}</span>
+        <select className="min-h-[44px] rounded-lg border px-2" value={lang} onChange={event => setLang(event.target.value as CourseLanguage)} style={{ background: "var(--bg-card)", color: "var(--text-primary)", borderColor: "var(--border-subtle)" }}>
+          {helperLanguages().map(item => <option key={item} value={item}>{item.toUpperCase()}</option>)}
+        </select>
+      </label>
     </div>
   );
 }

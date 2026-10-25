@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
+import { controlSoundCopy } from "./sound-copy";
 
 // Strings of the shared control dock, wheels and settings sheet, 7 languages.
 // Sheet names follow scripts/sailing-glossary.md: the label always names the sheet.
@@ -49,16 +50,8 @@ export function useControlLabels() {
     normal: tl({ ru: "Обычно", en: "Normal", pl: "Normalnie", es: "Normal", fr: "Normale", de: "Normal", it: "Normale" }),
     fast: tl({ ru: "Быстро", en: "Fast", pl: "Szybko", es: "Rápida", fr: "Rapide", de: "Schnell", it: "Rapida" }),
     jibRight: tl({ ru: "Стаксель-шкот справа", en: "Jib sheet on the right", pl: "Szot foka po prawej", es: "Escota de foque a la derecha", fr: "Écoute de foc à droite", de: "Fockschot rechts", it: "Scotta del fiocco a destra" }),
-    sound: tl({ ru: "Звук", en: "Sound", pl: "Dźwięk", es: "Sonido", fr: "Son", de: "Ton", it: "Suono" }),
-    soundNote: tl({
-      ru: "Щелчки штурвалов и шкотов при повороте, упор в конце хода.",
-      en: "Clicks while turning the wheels, a bump at the end of travel.",
-      pl: "Kliknięcia przy obracaniu kół, opór na końcu zakresu.",
-      es: "Clics al girar las ruedas y un tope al final del recorrido.",
-      fr: "Des clics en tournant les roues, une butée en fin de course.",
-      de: "Klicks beim Drehen der Räder, ein Anschlag am Ende.",
-      it: "Clic girando le ruote, un fermo a fine corsa.",
-    }),
+    sound: tl(controlSoundCopy.label),
+    soundNote: tl(controlSoundCopy.note),
     favoritesEdit: tl({ ru: "Что показывать в «Избранном»", en: "What Favorites shows", pl: "Co pokazują Ulubione", es: "Qué muestra Favoritos", fr: "Ce qu'affichent les Favoris", de: "Was Favoriten zeigt", it: "Cosa mostrano i Preferiti" }),
     edit: tl({ ru: "Изменить", en: "Edit", pl: "Zmień", es: "Editar", fr: "Modifier", de: "Ändern", it: "Modifica" }),
     resetOrder: tl({ ru: "Вернуть как было", en: "Restore defaults", pl: "Przywróć domyślne", es: "Restaurar", fr: "Rétablir", de: "Zurücksetzen", it: "Ripristina" }),

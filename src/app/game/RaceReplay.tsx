@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { NativeRaceSnapshot } from "@/lib/race-native";
-import type { Race3DBoat } from "@/features/race-3d/pose";
+import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
 import { useVenue } from "@/features/venues/useVenue";
 import { useRaceView } from "@/features/race-3d/useRaceView";
 import { replayFrame } from "@/lib/race-replay";
@@ -21,6 +21,7 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   const c = useRaceCopy();
   const { venue } = useVenue();
   const { camera, setCamera } = useRaceView();
+  const [cameraRevision, setCameraRevision] = useState(0);
   const [playing, setPlaying] = useState(false);
   const [time, setTime] = useState(samples[0]?.t ?? 0);
   const cursor = useRef(time);
@@ -53,8 +54,12 @@ export function RaceReplay({ samples, course, onClose, playbackRate = 1 }: {
   }, [playing, samples, total, title, playbackRate]);
 
   return <div className={`${styles.cockpit} absolute inset-0`} data-testid="race-replay-3d">
-    <header className={styles.toolbar}><button type="button" onClick={onClose}>{c.menu}</button><strong>{title}</strong><button type="button" onClick={() => setCamera(camera === "high" ? "stern" : "high")}>{c.view}</button></header>
-    <div className={styles.scene} style={{ flex: 1 }}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} labels={labels} /></div>
+    <header className={styles.toolbar}><button type="button" onClick={onClose}>{c.back}</button><strong>{title}</strong></header>
+    <div className="flex shrink-0 flex-wrap items-center gap-2 px-4 py-2">
+      <select className="min-h-11 min-w-0 flex-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-2 text-sm text-[var(--text-primary)]" aria-label={c.view} value={camera} onChange={event => setCamera(event.target.value as RaceCamera)}>{(["orbit", "stern", "high"] as const).map(view => <option key={view} value={view}>{c[view]}</option>)}</select>
+      <button type="button" onClick={() => setCameraRevision(value => value + 1)}>{c.resetCamera}</button>
+    </div>
+    <div className={styles.scene} style={{ flex: 1 }}><RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={labels} /></div>
     <div className="px-4 py-3 flex items-center gap-4">
       <button type="button" onClick={() => { if (cursor.current >= total) cursor.current = samples[0]?.t ?? 0; setPlaying(p => !p); }}>{playing ? c.pause : c.resume}</button>
       <input type="range" className="flex-1 min-w-0 min-h-11" aria-label={title} min={samples[0]?.t ?? 0} max={total} step="any" value={time}

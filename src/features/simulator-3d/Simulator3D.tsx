@@ -110,7 +110,15 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const [light, setLight] = useState(embed);
   const [guide, setGuide] = useState(false);
   const [viewsOpen, setViewsOpen] = useState(false);
-  const { lang } = useI18n();
+  const { lang, tl } = useI18n();
+  const poseLabels = {
+    mode: tl({ ru: "Осмотр формы", en: "Inspect shape", pl: "Oglądaj kształt", es: "Explorar forma", fr: "Observer la forme", de: "Form ansehen", it: "Esplora la forma" }),
+    boom: tl({ ru: "Угол гика", en: "Boom angle", pl: "Kąt bomu", es: "Ángulo de botavara", fr: "Angle de bôme", de: "Baumwinkel", it: "Angolo del boma" }),
+    jib: tl({ ru: "Угол стакселя", en: "Jib angle", pl: "Kąt foka", es: "Ángulo del foque", fr: "Angle du foc", de: "Fockwinkel", it: "Angolo del fiocco" }),
+    hint: tl({ ru: `Углы напрямую задают позу модели. Для работы шкотами и рулем включи «${L.modeSail}».`, en: `Angles directly pose the model. Switch to "${L.modeSail}" to use sheets and steer.`, pl: `Kąty bezpośrednio ustawiają model. Włącz "${L.modeSail}", aby używać szotów i sterować.`, es: `Los ángulos colocan el modelo directamente. Cambia a "${L.modeSail}" para usar escotas y timón.`, fr: `Les angles règlent directement la pose. Passe en mode "${L.modeSail}" pour manœuvrer les écoutes et la barre.`, de: `Die Winkel stellen das Modell direkt ein. Unter "${L.modeSail}" bedienst du Schoten und Ruder.`, it: `Gli angoli impostano direttamente il modello. Passa a "${L.modeSail}" per usare scotte e timone.` }),
+    details: tl({ ru: "Форма и поза модели", en: "Model shape and pose", pl: "Kształt i ustawienie modelu", es: "Forma y posición del modelo", fr: "Forme et pose du modèle", de: "Form und Haltung des Modells", it: "Forma e posa del modello" }),
+    gesture: tl({ ru: "Вращай сцену пальцем или мышью. Масштаб: два пальца или колесо мыши.", en: "Drag to look around. Pinch or scroll to zoom.", pl: "Przeciągnij, żeby się rozejrzeć. Zbliżaj dwoma palcami lub kółkiem myszy.", es: "Arrastra para mirar alrededor. Usa dos dedos o la rueda para acercar y alejar.", fr: "Fais glisser pour regarder autour. Pince ou utilise la molette pour zoomer.", de: "Ziehen zum Umschauen. Mit zwei Fingern oder Mausrad zoomen.", it: "Trascina per guardarti intorno. Usa due dita o la rotella per lo zoom." }),
+  };
   const { venue, picked, shoreOn, setVenue, setShoreOn } = useVenue();
   const panelRef = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -169,7 +177,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
   const header = <header className={styles.header}>
       <div className={styles.modes}>
         <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => setMode("sail")}>{L.modeSail}</button>
-        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{L.modeFree}</button>
+        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{poseLabels.mode}</button>
         <button className={styles.button} aria-label={L.tour.open} aria-expanded={guide} onClick={() => { setGuide(!guide); panelRef.current?.scrollTo({ top: 0 }); }}>?</button>
       </div>
       {headerSlot}
@@ -281,7 +289,27 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     jib={{ ease: sim.controls.jibSheet, angleDeg: t.jibAngleDeg, setEase: (v) => sim.setControl("jibSheet", v) }}
   />;
 
-  if (compact && mode === "sail") {
+  const poseControls = <section className={styles.poseControls} aria-label={poseLabels.mode} data-testid="pose-controls">
+    <p className={styles.hint}>{poseLabels.hint}</p>
+    <div className={styles.poseAngles}>
+      <Slider label={poseLabels.boom} value={free.boomAngle} min={0} max={85} step={1} fmt={degrees} onChange={v => setFreeField({ boomAngle: v })} />
+      <Slider label={poseLabels.jib} value={free.jibAngle} min={0} max={70} step={1} fmt={degrees} onChange={v => setFreeField({ jibAngle: v })} />
+    </div>
+    <details className={styles.details}><summary>{poseLabels.details}</summary><div>
+      <div className="mb-3 flex flex-wrap gap-1">{FREE_PRESETS.map(preset => <button key={preset.key} className={styles.button}
+        onClick={() => setFree({ ...FREE_DEFAULT, reef: 0, ...preset.state })}>{L.presets[preset.key]}</button>)}</div>
+      <Slider label={L.camber} value={free.camber} min={0} max={1} fmt={percent} onChange={v => setFreeField({ camber: v })} />
+      <Slider label={L.twist} value={free.twist} min={0} max={1} fmt={percent} onChange={v => setFreeField({ twist: v })} />
+      <Slider label={L.luffing} value={free.luff} min={0} max={1} fmt={percent} onChange={v => setFreeField({ luff: v })} />
+      <Slider label={L.reef} value={free.reef} min={0} max={1} fmt={percent} onChange={v => setFreeField({ reef: v })} />
+      <Slider label={L.rudder} value={free.rudderAngle} min={-35} max={35} step={1} fmt={degrees} onChange={v => setFreeField({ rudderAngle: v })} />
+      <Slider label={L.heel} value={free.heel} min={0} max={35} step={1} fmt={degrees} onChange={v => setFreeField({ heel: v })} />
+      <button className={styles.button} onClick={() => setFree({ ...FREE_DEFAULT })}>{L.reset}</button>
+    </div></details>
+    {extras}
+  </section>;
+
+  if (compact) {
     const dockTabs: DockTab[] = [
       { id: "sails", label: controlLabels.tabs.sails, cards: [
         { id: "main", title: L.mainsheet, node: mainSlider },
@@ -299,8 +327,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
     const sailsView = (["sails", "main", "jib"] as CameraView[]).includes(view);
     const sceneBar = <SceneBar
       status={<div className={styles.modes}>
-        <button className={styles.button} aria-pressed onClick={() => setMode("sail")}>{L.modeSail}</button>
-        <button className={styles.button} aria-pressed={false} onClick={() => setMode("free")}>{L.modeFree}</button>
+        <button className={styles.button} aria-pressed={mode === "sail"} onClick={() => setMode("sail")}>{L.modeSail}</button>
+        <button className={styles.button} aria-pressed={mode === "free"} onClick={() => setMode("free")}>{poseLabels.mode}</button>
       </div>}
       actions={<>
         <ViewButton iconOnly label={controlLabels.view} current={L.scene[sailsView ? "sails" : view as "whole" | "stern" | "deck"]} open={viewsOpen}
@@ -308,7 +336,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
         <BarIconButton label={L.tour.open} onClick={() => { setViewsOpen(false); setGuide((g) => !g); }}>?</BarIconButton>
       </>}
     />;
-    const compactReadouts = <>
+    const compactReadouts = mode === "free" ? <p className={styles.coach}>{poseLabels.gesture}</p> : <>
       <div className={styles.statsRow}>
         {!wheels && <SteerButton inline dir={-1} label={L.steerLeft} onHold={hold} onRelease={release} />}
         <div className={styles.stats4}>
@@ -348,7 +376,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
                 onClick={() => { setVenue(v.id); setViewsOpen(false); }}>{v.name[lang]}</DrawerItem>)}
             </DrawerGroup>
             <DrawerGroup>
-              <DrawerItem pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</DrawerItem>
+              {mode === "sail" && <DrawerItem pressed={showFlow} onClick={() => setShowFlow(!showFlow)}>{L.scene.flow}</DrawerItem>}
               <DrawerItem onClick={() => { selectView("whole"); setViewsOpen(false); }}>↺ {L.scene.resetView}</DrawerItem>
             </DrawerGroup>
           </SceneDrawer>
@@ -358,7 +386,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           </SceneDrawer>
         </div>}
         readouts={compactReadouts}
-        dock={<ControlDock
+        dock={mode === "free" ? <div className={styles.poseDock}>{poseControls}</div> : <ControlDock
           surface="boat"
           layout="bottom"
           prefs={prefs}
@@ -389,7 +417,7 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
           <GearButton label={controlLabels.openSettings} onClick={() => setSettingsOpen(true)} />
         </div>}
         {mode === "sail" && wheels && <div className={styles.deckBox}>{wheelDeck("column")}</div>}
-        <p className={styles.hint}>{mode === "sail" ? L.scene.sailingHint : L.freeModeHint}</p>
+        {mode === "sail" && <p className={styles.hint}>{L.scene.sailingHint}</p>}
         {mode === "sail" ? <>
           {!wheels && <>{mainSlider}{jibSlider}</>}
           <p className={styles.sheetScale}>{L.sheetScale}</p>
@@ -401,22 +429,8 @@ export function Simulator3D({ labels, headerSlot, className, initialMode = "free
             <button className={styles.button} onClick={reset}>{L.reset}</button>
           </div></details>
           <details className={styles.details}><summary>{L.scene.instruments}</summary>{instruments}</details>
-        </> : <>
-          <div className="mb-3 flex flex-wrap gap-1">{FREE_PRESETS.map((preset) => <button key={preset.key} className={styles.button}
-            onClick={() => setFree({ ...FREE_DEFAULT, reef: 0, ...preset.state })}>{L.presets[preset.key]}</button>)}</div>
-          <Slider label={L.mainsheet} value={free.boomAngle} min={0} max={85} step={1} fmt={degrees} onChange={(v) => setFreeField({ boomAngle: v })} />
-          <Slider label={L.jibsheet} value={free.jibAngle} min={0} max={70} step={1} fmt={degrees} onChange={(v) => setFreeField({ jibAngle: v })} />
-          <details className={styles.details}><summary>{L.scene.more}</summary><div>
-            <Slider label={L.camber} value={free.camber} min={0} max={1} fmt={percent} onChange={(v) => setFreeField({ camber: v })} />
-            <Slider label={L.twist} value={free.twist} min={0} max={1} fmt={percent} onChange={(v) => setFreeField({ twist: v })} />
-            <Slider label={L.luffing} value={free.luff} min={0} max={1} fmt={percent} onChange={(v) => setFreeField({ luff: v })} />
-            <Slider label={L.reef} value={free.reef} min={0} max={1} fmt={percent} onChange={(v) => setFreeField({ reef: v })} />
-            <Slider label={L.rudder} value={free.rudderAngle} min={-35} max={35} step={1} fmt={degrees} onChange={(v) => setFreeField({ rudderAngle: v })} />
-            <Slider label={L.heel} value={free.heel} min={0} max={35} step={1} fmt={degrees} onChange={(v) => setFreeField({ heel: v })} />
-            <button className={styles.button} onClick={() => setFree({ ...FREE_DEFAULT })}>{L.reset}</button>
-          </div></details>
-        </>}
-        {extras}
+        </> : poseControls}
+        {mode === "sail" && extras}
       </aside>
     </div>
     {settingsOpen && <ControlSettingsSheet surface="boat" prefs={prefs} update={updatePrefs} labels={controlLabels} hasSheets rudderAvailable

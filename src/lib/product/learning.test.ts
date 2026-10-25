@@ -6,9 +6,17 @@ import { bookmarkForPath, emptyLearningSnapshot, homeLearning, readLearningBookm
 describe("honest home learning continuation", () => {
   it("starts a new learner without fabricating progress", () => {
     const next = homeLearning(emptyLearningSnapshot(), "en", "web");
-    expect(next.href).toBe("/courses#wind");
+    expect(next.href).toBe("/start?lesson=wind-direction");
     expect(next.started).toBe(false);
     expect(next.count).toBe(0);
+  });
+  it("resumes web foundation position and counts only validated checked IDs", () => {
+    const snapshot = { ...emptyLearningSnapshot(), foundation: { current: "tacking", checked: ["wind-direction", "removed-id"], visited: ["wind-direction", "tacking"] } };
+    const next = homeLearning(snapshot, "en", "web");
+    expect(next.href).toBe("/start?lesson=tacking");
+    expect(next.count).toBe(1);
+    const complete = homeLearning({ ...snapshot, foundation: { ...snapshot.foundation, checked: bootcampLessons.map(l => l.id) } }, "en", "web");
+    expect(complete).toMatchObject({ count: 8, complete: true, href: "/start", title: "Review lessons" });
   });
   it("uses existing nonsequential bootcamp progress", () => {
     const next = homeLearning({ ...emptyLearningSnapshot(), bootcamp: { completed: ["wind-direction", "tacking", "removed-id"], current: "how-sail-works" } }, "en", "native");
@@ -33,7 +41,7 @@ describe("honest home learning continuation", () => {
   });
   it("opens the platform-specific radio course without an invented percentage", () => {
     const snapshot = { ...emptyLearningSnapshot(), bookmark: JSON.stringify(bookmarkForPath("/radio/teoria", "web")) };
-    expect(homeLearning(snapshot, "en", "native")).toMatchObject({ href: "/kursy/radio", total: null, count: null });
+    expect(homeLearning(snapshot, "en", "native")).toMatchObject({ href: "/kursy/radio?view=course", total: null, count: null });
     expect(homeLearning(snapshot, "en", "web").href).toBe("/radio");
   });
   it("does not let reference or free practice overwrite the current course", () => {
@@ -44,10 +52,11 @@ describe("honest home learning continuation", () => {
     expect(readLearningBookmark('{"version":1,"course":"sails","lesson":"https://evil.test"}')?.lesson).toBeNull();
     expect(homeLearning({ ...emptyLearningSnapshot(), bootcamp: { completed: "bad", current: {} } }, "en", "web").count).toBe(0);
   });
-  it("offers review rather than claiming expertise when all lessons were visited", () => {
+  it("keeps all legacy visited lessons but requires original theory checks on the website", () => {
     const next = homeLearning({ ...emptyLearningSnapshot(), bootcamp: { completed: bootcampLessons.map(l => l.id), current: null } }, "en", "web");
-    expect(next.complete).toBe(true);
-    expect(next.href).toBe("/start");
-    expect(next.title).toBe("Review lessons");
+    expect(next.complete).toBe(false);
+    expect(next.count).toBe(0);
+    expect(next.metric).toBe("Theory checks passed");
+    expect(next.href).toBe("/start?lesson=wind-direction");
   });
 });
