@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Pro browser startup now requires an actual rendered frame within the same 25s allowance as canvas visibility, before its unchanged 15s clock and 120s case checks. CI serializes independent browser cases after measured WebGL2/ReadPixels stalls and overlapping heavy scenes; contention remains an inference. Local defaults, real multiplayer clients, assertions, retries and trace policy are preserved.
+
 - Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.
 
 - Preserve bounded Pro browser evidence on successful retries: actual scene readiness, clock, visibility, pageerror stacks and a validated local journal. Invalid journal contents stay inside the read-only probe. Both deployment browser reports retain their existing 14-day artifact scope after success or failure; UI checks, budgets, trace policy and publication privileges are unchanged.

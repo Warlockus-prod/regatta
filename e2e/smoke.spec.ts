@@ -230,7 +230,13 @@ test.describe('Smoke: critical user flows', () => {
       await page.getByRole("button", { name: /Начать первую гонку/i }).click();
       await page.getByRole("button", { name: /Готов - старт/ }).click();
       await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
+      // Run 40235863701 began the clock check while the real scene was loading.
+      // Canvas visibility and the first rendered frame share the existing 25s.
+      const startupDeadline = Date.now() + 25_000;
       await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
+      await expect(page.getByTestId("race-3d").locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", {
+        timeout: Math.max(1, startupDeadline - Date.now()),
+      });
       const helm = page.getByRole("slider", { name: "Руль", exact: true });
       const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
       const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
