@@ -5,7 +5,7 @@ import { legacyPick, legacyPickArray } from '@/lib/languages';
 import { useState } from 'react';
 import { onboardSections } from '@/data/onboard';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 export default function OnboardPage() {
   const { lang, tp } = useI18n();

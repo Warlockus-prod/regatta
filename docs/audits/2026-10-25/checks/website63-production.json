@@ -1,0 +1,318 @@
+{
+  "schema": 1,
+  "project": "Regatta website63",
+  "checkedAtUTC": "2026-10-25T22:54:03.222432+00:00",
+  "state": "published-healthy-production-browser-gate-failed",
+  "webMergeCommit": "b75c1e49d849a6a3cbd8b4c7ffdea1f9aa73653f",
+  "appRuntimeSource": "88fdaac37e1c0ac4acce35a5208ccceef0e04751",
+  "source64Included": false,
+  "runtimePathsEqualApp88": true,
+  "runtimeDiffPaths": [],
+  "pullRequest": 83,
+  "pipelineRun": 40239117733,
+  "pipelineURL": "https://github.com/Warlockus-prod/regatta/actions/runs/40239117733",
+  "pipelineEvent": "push",
+  "prepublication": {
+    "testedHead": "c8ae4ef3af78e98d0acbeb79da6ca8795b198633",
+    "passedFirstAttempt": 60,
+    "flaky": 0,
+    "failed": 0,
+    "workflowSHA256": "770568145fdabd4872c09be9d7451baa656495e1741c4a836627378464985de6"
+  },
+  "deployment": {
+    "status": "healthy-CI-attestation",
+    "freshOPSRuntimeProof": "unknown-authorized-launcher-not-located",
+    "manualHostMutations": 0,
+    "policySource": {
+      "ops/deploy/regatta-ssh": {
+        "sourceSHA256": "5433a88dea6d2b4e438a326b7ca680001557f5328c3de2a6a240ed23569b9eee",
+        "matchesPreviouslyVerifiedInstalledPolicy": true
+      },
+      "ops/deploy/regatta-deploy.py": {
+        "sourceSHA256": "2c61e3bb1f626de8b324edc827d284ef5c62dfd45206930d464fa326d097bc86",
+        "matchesPreviouslyVerifiedInstalledPolicy": true
+      },
+      "ops/deploy/compose.yml": {
+        "sourceSHA256": "5c04927337d462d105278948f3ed8b3471e7cd3b2b9d74cd0a918a684c552b54",
+        "matchesPreviouslyVerifiedInstalledPolicy": true
+      }
+    },
+    "policyEvidenceScope": "Source matches the prior website62 live verification; fresh installation not yet independently observed",
+    "completedHealthyAtUTC": "2026-10-25T22:24:27.886Z",
+    "commit": "b75c1e49d849a6a3cbd8b4c7ffdea1f9aa73653f",
+    "appDigest": "sha256:43e5d91c66b6a4581a44875fc830b532ceb336bf979eeb49ad2415501977a78a",
+    "wsDigest": "sha256:593f4a3cda50550146c4b5f50ba7648855b1a69d7dc2b8e7df153f16494d8221",
+    "ciShellCommandDeniedExit126": true,
+    "ciDeployKeyRootLoginDenied": true,
+    "ci16RoutesHTTP200": true,
+    "ciMicrophoneSameOriginAllowed": true,
+    "volumePreservationCurrentIndependentVerification": "unknown-authorized-OPS-launcher-not-located",
+    "priorVerifiedVolumeName": "regatta_regatta_data"
+  },
+  "productionBrowser": {
+    "status": "failure",
+    "jobId": 121309779719,
+    "fullSuite": true,
+    "total": 74,
+    "passedFirstAttempt": 70,
+    "passedAfterRetry": 1,
+    "eventualPasses": 71,
+    "failed": 2,
+    "skipped": 1,
+    "durationMinutes": 11.8,
+    "artifact": {
+      "id": 12617002894,
+      "bytes": 18786499,
+      "sha256": "d2c6624f7efdca22a26e03cba0136398be10b124e3c87aa41975da3b0d68d60d"
+    },
+    "issues": [
+      {
+        "case": "multiplayer create lobby + guest joins by code",
+        "classification": "real accessibility defect in published63",
+        "failedAttempts": 3,
+        "evidence": "Guest trace after call113 has output before range input without aria-label or explicit label association. Screenshot shows the actual range. Host error-context wheel named Руль is another page and cannot justify changing the guest locator.",
+        "nextAction": "Keep the Перо руля assertion. APP1543d825 source adds aria-label={label}; actual future published verification remains required.",
+        "firstAttemptDurationMs": 99596,
+        "retry1DurationMs": 124603,
+        "retry2DurationMs": 102099
+      },
+      {
+        "case": "Trainer wheels leave no empty band",
+        "classification": "outdated occupied-content geometry contract",
+        "failedAttempts": 3,
+        "receivedGapPx": 86,
+        "originalGenuineBlankGapLimitPx": 24,
+        "evidence": "Screenshots show the new Diagnostics details/summary occupying the measured area, ControlDock.tsx mounts it after wheelDeck.",
+        "nextAction": "Verify exact localized Diagnostics name and44px target, no boat/wheel overlap and actual remaining blank gaps below24px. Retain viewport constraints."
+      },
+      {
+        "case": "simulator2 scene stays visible while dock scrolls",
+        "classification": "flaky first-frame readiness race, bounded source/trace inference",
+        "firstAttemptDurationMs": 1672,
+        "receivedCanvasHeightPx": 150,
+        "requiredCanvasHeightGreaterThanPx": 150,
+        "retry1DurationMs": 12030,
+        "retry1Passed": true,
+        "evidence": "Failure screenshot still shows Loading yacht. The case waited canvas visibility but not shared actual first rendered frame.",
+        "nextAction": "Require actual data-scene-startup=ready inside the existing25s startup deadline, preserving >150px and all scroll/viewport assertions."
+      }
+    ]
+  },
+  "releaseGatesComplete": false,
+  "scopeLimits": [
+    "65-requirement audit remains partially accepted",
+    "No claim of complete seven-language semantic certification",
+    "No native64 source",
+    "No App Store submission by this task"
+  ],
+  "mainPredeploy": {
+    "status": "success",
+    "unitTests": 1211,
+    "unitFiles": 139,
+    "staticChunksMB": 6.49,
+    "budgetMB": 6.5,
+    "offlinePackagesFresh": 3,
+    "browser": {
+      "total": 60,
+      "passedFirstAttempt": 60,
+      "flaky": 0,
+      "failed": 0,
+      "skipped": 0,
+      "workers": 1,
+      "durationSummary": "6.2m",
+      "proDurationMs": 88459,
+      "proObservability": {
+        "pageErrors": 0,
+        "beforeInitialClock": {
+          "performanceMs": 25415,
+          "sceneStartup": "ready",
+          "clock": "0:06.6",
+          "visibility": "visible"
+        },
+        "finalCanonicalJournal": {
+          "status": "valid",
+          "entries": 24
+        },
+        "finalSimpleCountdownStartedIntentionally": true
+      }
+    },
+    "artifact": {
+      "id": 12616021735,
+      "bytes": 589559,
+      "sha256": "3ae856456f6cb2dcc5e4f9a6db2fe80c91f7258f09743aa485afc8426e9a18ca"
+    }
+  },
+  "livePublished": true,
+  "publicContent": {
+    "schema": 1,
+    "checkedAtUTC": "2026-10-25T22:25:04.963785+00:00",
+    "phase": "post-deployment public read-only verification",
+    "routes": [
+      {
+        "path": "/",
+        "status": 200
+      },
+      {
+        "path": "/game",
+        "status": 200
+      },
+      {
+        "path": "/leaderboard",
+        "status": 200
+      },
+      {
+        "path": "/anatomy",
+        "status": 200
+      },
+      {
+        "path": "/simulator",
+        "status": 200
+      },
+      {
+        "path": "/simulator2",
+        "status": 200
+      },
+      {
+        "path": "/simulator-v3",
+        "status": 200
+      },
+      {
+        "path": "/courses",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails/vang",
+        "status": 200
+      },
+      {
+        "path": "/learn/sails/outhaul",
+        "status": 200
+      },
+      {
+        "path": "/radio",
+        "status": 200
+      },
+      {
+        "path": "/radio/obsluga",
+        "status": 200
+      },
+      {
+        "path": "/radio/symulator",
+        "status": 200
+      },
+      {
+        "path": "/radio/zadania",
+        "status": 200
+      },
+      {
+        "path": "/radio/test",
+        "status": 200
+      }
+    ],
+    "all16HTTP200": true,
+    "health": {
+      "path": "/api/health",
+      "status": 200
+    },
+    "radioPermissionsPolicyAllowsSameOriginMicrophone": true,
+    "catalogs": [
+      {
+        "locale": "pl",
+        "status": 200,
+        "bytes": 342144,
+        "sha256": "ae10123ccc878544b2e529c345057dfc1ea9db152082bf84b20fcae6ab5a91a0",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "ru",
+        "status": 200,
+        "bytes": 501872,
+        "sha256": "4b6867397891ed864b500e89ce546931019fddc7b0624a8f330f7223b3eadc54",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "en",
+        "status": 200,
+        "bytes": 338236,
+        "sha256": "f1056f09db398ded0ba9f3af0acea9f3f16c30ecdd7bd5e84a96494af65a781e",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "es",
+        "status": 200,
+        "bytes": 368984,
+        "sha256": "daf96fb037a9edd0f6c37aa7c6d4e4a2b99fb2f07ad98300a05075531cd4ded2",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "fr",
+        "status": 200,
+        "bytes": 377714,
+        "sha256": "bc69bb14589d6a7e3b558236e249b27867a5f46b04d42e3403637ae57d29c5a7",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "de",
+        "status": 200,
+        "bytes": 370609,
+        "sha256": "d7b9411e3cc57e59ad18281ff6d47909b39e9a0369ea670171b79e56f4b290bb",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "it",
+        "status": 200,
+        "bytes": 364689,
+        "sha256": "944d1ce59e380d91d0e67b5d708e90ca5eb2651f8dca1a156ddb6941eb16cf16",
+        "byteEqualSource": true
+      },
+      {
+        "locale": "aliases",
+        "status": 200,
+        "bytes": 870908,
+        "sha256": "431eaff77e31f7c1beb366033dae24f666dcab67a90b085f1a3401f271cc7dd8",
+        "byteEqualSource": true
+      }
+    ],
+    "privacy": {
+      "status": 200,
+      "bytes": 48039,
+      "sha256": "7e28674ef4fcd3f450416acea45f8a12861a23377b86f9cf3d0f48951a34f5d6",
+      "serverRenderedLanguage": "ru",
+      "nativeBuild59CopyPresent": true,
+      "localSternikTypedCopyPresent": true,
+      "onDeviceModelCopyPresent": true,
+      "legacyWebsiteOnlineCopyPresent": true,
+      "verificationScope": "HTTP/SSR content presence, not hydrated visual review"
+    },
+    "allCatalogsByteEqualSource": true
+  },
+  "postDeployHealthSamples": [
+    {
+      "checkedAtUTC": "2026-10-25T22:33:11.965129+00:00",
+      "path": "/api/health",
+      "status": 200
+    },
+    {
+      "checkedAtUTC": "2026-10-25T22:55:08.860570+00:00",
+      "path": "/api/health",
+      "status": 200
+    }
+  ],
+  "pipelineConclusion": "failure",
+  "pipelineJobs": {
+    "predeploy": "success",
+    "publishImages": "success",
+    "deploy": "success",
+    "productionBrowser": "failure"
+  },
+  "changesByObserver": {
+    "manualDeploys": 0,
+    "reruns": 0,
+    "productionSourceWrites": 0,
+    "serverChanges": 0
+  }
+}

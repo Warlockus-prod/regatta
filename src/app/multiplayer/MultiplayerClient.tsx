@@ -13,6 +13,8 @@ import { sanitizeNickname } from '@/lib/race-submission';
 import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
 import { MultiplayerCockpit } from "./MultiplayerCockpit";
 import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
+import { createRaceNavigationSnapshot, raceWindReading, type RaceNavigationSnapshot, type RaceWindReading } from "@/features/race-hud/navigation-model";
+import { useRacePrefs } from "../game/race-prefs";
 
 const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
 
@@ -65,6 +67,7 @@ function missionReasonText(
 export default function MultiplayerClient() {
   useEffect(() => { initializeDiagnosticBridge(); }, []);
   const { tp, tl } = useI18n();
+  const { prefs: visualPrefs, update: updateVisualPrefs } = useRacePrefs("multiplayer");
   // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
   const { venue } = useVenue();
   const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
@@ -94,6 +97,8 @@ export default function MultiplayerClient() {
   const courseRef = useRef(MULTIPLAYER_COURSE);
   const windDirRef = useRef(0);
   const [frame, setFrame] = useState<MultiplayerFrame | null>(null);
+  const [windReading, setWindReading] = useState<RaceWindReading | null>(null);
+  const [navigation, setNavigation] = useState<RaceNavigationSnapshot | null>(null);
   const [camera, setCamera] = useState<RaceCamera>("orbit");
   const [cameraRevision, setCameraRevision] = useState(0);
   const [guidanceOn, setGuidanceOn] = useState(true);
@@ -181,7 +186,7 @@ export default function MultiplayerClient() {
         if (msg.phase === 'lobby') setPhase('lobby');
         else if (msg.phase === 'countdown') {
           setPhase('countdown'); bufferRef.current.reset(); presentationRef.current.reset();
-          boatsRef.current = []; setFrame(null); releaseInput();
+          boatsRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
         }
         else if (msg.phase === 'racing') setPhase('racing');
         else if (msg.phase === 'finished') setPhase('finished');
@@ -305,7 +310,7 @@ export default function MultiplayerClient() {
     clientRef.current?.close();
     clientRef.current = null;
     bufferRef.current.reset();
-    presentationRef.current.reset(); boatsRef.current = []; setFrame(null); releaseInput();
+    presentationRef.current.reset(); boatsRef.current = []; setFrame(null); setWindReading(null); setNavigation(null); releaseInput();
     setRoom(null);
     setLobbyPlayers([]);
     setResults([]);
@@ -361,7 +366,13 @@ export default function MultiplayerClient() {
         boatsRef.current = next.boats;
         windDirRef.current = next.windDir;
         const now = performance.now();
-        if (now - lastHud >= 100) { lastHud = now; setFrame(next); }
+        if (now - lastHud >= 100) {
+          lastHud = now; setFrame(next);
+          const player = next.boats.find(boat => boat.isPlayer);
+          setWindReading(player ? raceWindReading({ heading: player.heading, boatSpeedKn: player.speed,
+            windFrom: next.windDir, windKnots: next.windKnots, leeway: player.physics?.leeway }) : null);
+          setNavigation(createRaceNavigationSnapshot({ course: courseRef.current, boats: next.boats, windFrom: next.windDir }));
+        }
       }
       raf = requestAnimationFrame(render);
     };
@@ -666,9 +677,11 @@ export default function MultiplayerClient() {
   return (
     <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
       <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
+        windReading={windReading} navigation={navigation} windDisplay={visualPrefs.windDisplay} setWindDisplay={windDisplay => updateVisualPrefs({ windDisplay })}
         rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
         camera={camera} setCamera={view => { setCamera(view); recordControlChange("multiplayer", "camera", view, camera); }} onResetCamera={() => { setCameraRevision(value => value + 1); recordControlChange("multiplayer", "camera", camera); }} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={value => { setGuidanceOn(value); recordPreferenceChange("multiplayer", "guidance", value, guidanceOn); }}>
-        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} />
+        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null}
+          showWind={visualPrefs.windDisplay === "arrows" || visualPrefs.windDisplay === "both"} />
       </MultiplayerCockpit>
     </div>
   );

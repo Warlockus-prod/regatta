@@ -1,16 +1,22 @@
 'use client';
 
-import { useState, type ReactNode } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { useI18n } from "@/lib/i18n";
 import { useControlLabels } from "@/features/trainer-controls/labels";
 import { helmMappingFor, useControlPrefs } from "@/features/trainer-controls/prefs";
 import { WheelDeck } from "@/features/trainer-controls/WheelDeck";
 import { METRES_PER_UNIT, raceRanks, type RaceCamera } from "@/features/race-3d/pose";
-import { calcTWA } from "@/lib/race-physics";
 import { useRaceCopy } from "../game/race-copy";
 import styles from "../game/RaceCockpit.module.css";
 import local from "./MultiplayerCockpit.module.css";
 import { MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
+import { RaceOverviewMap } from "@/features/race-hud/RaceOverviewMap";
+import { RaceWindInstrument, RaceWindSettings } from "@/features/race-hud/RaceWindInstrument";
+import { useRaceNavigationCopy } from "@/features/race-hud/navigation-copy";
+import type { RaceNavigationSnapshot, RaceWindReading } from "@/features/race-hud/navigation-model";
+import type { WindDisplay } from "@/lib/race-visual-prefs";
+import { GearIcon } from "@/features/trainer-controls/GearIcon";
+import { recordControlChange } from "@/lib/diagnostics-controls";
 
 export function MultiplayerCockpit(p: {
   children: ReactNode; results?: ReactNode; frame: MultiplayerFrame | null;
@@ -18,12 +24,23 @@ export function MultiplayerCockpit(p: {
   rudder: number; course: number | null; setRudder: (v: number) => void; setCourse: (v: number) => void; courseDelta: (v: number) => void;
   camera: RaceCamera; setCamera: (v: RaceCamera) => void; onResetCamera: () => void; onLeave: () => void;
   guidanceOn: boolean; setGuidanceOn: (on: boolean) => void;
+  windReading: RaceWindReading | null; navigation: RaceNavigationSnapshot | null;
+  windDisplay: WindDisplay; setWindDisplay: (display: WindDisplay) => void;
 }) {
   const c = useRaceCopy();
+  const nav = useRaceNavigationCopy();
   const labels = useControlLabels();
   const { tl } = useI18n();
   const { prefs, update } = useControlPrefs();
-  const [tab, setTab] = useState<"helm" | "fleet" | "settings">("helm");
+  type Tab = "helm" | "map" | "settings";
+  const [tab, setTab] = useState<Tab>("helm");
+  const tabRef = useRef<Tab>("helm");
+  const selectTab = (next: Tab) => {
+    const previous = tabRef.current;
+    if (next === previous) return;
+    tabRef.current = next; setTab(next);
+    if (next === "map" || previous === "map") recordControlChange("multiplayer", "race-map", next === "map", previous === "map");
+  };
   const mapping = helmMappingFor(prefs, "boat");
   const player = p.frame?.boats.find(boat => boat.isPlayer);
   const heading = player?.heading ?? 0;
@@ -38,7 +55,7 @@ export function MultiplayerCockpit(p: {
     unit: mapping === "rudder" ? labels.rudderShort : labels.heading,
     ariaNow: mapping === "rudder" ? p.rudder * 35 : course, ariaMin: mapping === "rudder" ? -35 : 0, ariaMax: mapping === "rudder" ? 35 : 360,
     rudder: p.rudder, setRudder: p.setRudder, onCourseDelta: p.courseDelta };
-  const range = (label: string, value: number, min: number, max: number, onChange: (v: number) => void) => <label className={styles.range}><span>{label}<output>{Math.round(value)}°</output></span><input type="range" min={min} max={max} step="1" value={value} onChange={e => onChange(Number(e.target.value))} /></label>;
+  const range = (label: string, value: number, min: number, max: number, onChange: (v: number) => void) => <label className={styles.range}><span>{label}<output>{Math.round(value)}°</output></span><input type="range" aria-label={label} min={min} max={max} step="1" value={value} onChange={e => onChange(Number(e.target.value))} /></label>;
   const minutes = Math.floor((p.frame?.time ?? 0) / 60);
   const seconds = Math.floor((p.frame?.time ?? 0) % 60).toString().padStart(2, "0");
   return <div className={styles.cockpit} data-testid="multiplayer-cockpit">
@@ -48,7 +65,9 @@ export function MultiplayerCockpit(p: {
       <span className={local.identity}>{p.code}</span>
     </header>
     <div className={styles.metrics}>
-      {[[c.speed, player?.speed.toFixed(1) ?? "-", c.knots], [c.wind, player ? `${Math.round(Math.abs(calcTWA(heading, p.frame?.windDir ?? 0)))}°` : "-", "TWA"], [c.time, `${minutes}:${seconds}`, ""], [c.position, `${player ? ranks.get(player.id) ?? "-" : "-"}/${fleet.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
+      <div><span>{c.speed}</span><strong>{player?.speed.toFixed(1) ?? "-"}<small>{c.knots}</small></strong></div>
+      <div className={styles.windMetric}><span>{nav.wind}</span><RaceWindInstrument reading={p.windReading} display={p.windDisplay} compact /></div>
+      {[[c.time, `${minutes}:${seconds}`, ""], [c.position, `${player ? ranks.get(player.id) ?? "-" : "-"}/${fleet.length}`, ""]].map(([label, value, unit]) => <div key={label}><span>{label}</span><strong>{value}<small>{unit}</small></strong></div>)}
     </div>
     <div className={styles.workspace}>
       <div className={styles.scene} data-testid="multiplayer-scene">{p.children}</div>
@@ -60,13 +79,18 @@ export function MultiplayerCockpit(p: {
           </>}
         </div>
         {p.phase !== "finished" && <nav className={`${styles.tabs} ${local.tabs}`} aria-label={labels.controlsTitle}>
-          {(["helm", "fleet", "settings"] as const).map(id => <button key={id} type="button" aria-pressed={tab === id} onClick={() => setTab(id)}>{id === "helm" ? labels.helm : c[id]}</button>)}
+          {(["helm", "map", "settings"] as const).map(id => <button key={id} type="button" aria-pressed={tab === id} onClick={() => selectTab(id)}>{id === "settings" && <GearIcon size={16} />}<span>{id === "helm" ? labels.helm : id === "map" ? nav.map : c[id]}</span></button>)}
         </nav>}
         <div className={styles.panel}>
           {p.phase === "finished" ? <div className={local.results}>{p.results}</div> : tab === "helm" ? <div className={local.controls} inert={p.phase !== "racing" || p.reconnecting || !p.frame}>
             {prefs.mode === "wheels" ? <div className={styles.wheels}><WheelDeck hideHint layout="bottom" helm={helm} prefs={prefs} labels={labels} /></div>
               : <div className={styles.sliders}>{mapping === "course" ? range(labels.course, course, 0, 360, p.setCourse) : range(labels.rudder, p.rudder * 35, -35, 35, v => p.setRudder(v / 35))}</div>}
-          </div> : tab === "fleet" ? <ol className={styles.fleet}>{fleet.map((boat, i) => <li key={boat.id}><b>{i + 1}</b><span style={{ color: boat.color }}>{boat.isPlayer ? c.you : boat.name}</span>{boat.isPlayer && <strong>●</strong>}</li>)}</ol>
+          </div> : tab === "map" ? <div className={styles.mapPanel}>
+            <RaceOverviewMap snapshot={p.navigation} labels={{ ...nav, title: nav.map, you: c.you, fleet: c.fleet }} />
+            <RaceWindInstrument reading={p.windReading} display={p.windDisplay} />
+            <h2>{c.fleet}</h2>
+            <ol className={styles.fleet}>{fleet.map((boat, i) => <li key={boat.id}><b>{i + 1}</b><span style={{ color: boat.color }}>{boat.isPlayer ? c.you : boat.name}</span>{boat.isPlayer && <strong>●</strong>}</li>)}</ol>
+          </div>
           : <div className={styles.options}>
             <span className={local.settingsLabel}>{labels.mode}</span>
             <div className={styles.segmented} role="radiogroup" aria-label={labels.mode}>{(["wheels", "sliders"] as const).map(mode => <button key={mode} type="button" role="radio" aria-checked={prefs.mode === mode} onClick={() => update({ mode })}>{labels[mode]}</button>)}</div>
@@ -78,6 +102,7 @@ export function MultiplayerCockpit(p: {
             <div className={styles.segmented} role="radiogroup" aria-label={c.view}>{(["orbit", "stern", "high"] as const).map(view => <button key={view} type="button" role="radio" aria-checked={p.camera === view} onClick={() => p.setCamera(view)}>{c[view]}</button>)}</div>
             <button type="button" className="min-h-11" onClick={p.onResetCamera}>{c.resetCamera}</button>
             <p>{c.cameraGesture}</p>
+            <RaceWindSettings display={p.windDisplay} onChange={p.setWindDisplay} />
             <label className={styles.toggle}><span>{c.guidance}</span><input type="checkbox" role="switch" checked={p.guidanceOn} onChange={e => p.setGuidanceOn(e.target.checked)} /></label>
             <label className={styles.toggle}><span>{labels.sound}</span><input type="checkbox" role="switch" checked={prefs.sound} onChange={e => update({ sound: e.target.checked })} /></label>
             <p>{auto}</p>

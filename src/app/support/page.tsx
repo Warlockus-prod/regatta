@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import { useState, useEffect } from 'react';
 
 // Support page at /support. This is the URL set as the App Store "Support URL"

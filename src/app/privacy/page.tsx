@@ -1,7 +1,7 @@
 'use client';
 
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 
 // Privacy policy at /privacy. Linked from mobile app + web nav footer, and it
 // is the Privacy Policy URL of the App Store listing. Required for App Store

@@ -115,6 +115,9 @@ plural "los winches".
 
 | English | Russian | Polish | Italian | Spanish | French | German |
 |---|---|---|---|---|---|---|
+| true wind direction (TWD, from) | направление истинного ветра (откуда) | kierunek wiatru prawdziwego (skąd wieje) | direzione del vento reale (provenienza) | dirección del viento real (procedencia) | direction du vent réel (provenance) | wahre Windrichtung (Herkunft) |
+| north-up compass | компас с севером наверху | kompas z północą u góry | bussola orientata a nord | brújula con el norte arriba | compas orienté au nord | Kompass mit Norden oben |
+| wind arrows (apparent airflow) | стрелки вымпельного ветра | strzałki wiatru pozornego | frecce del vento apparente | flechas del viento aparente | flèches du vent apparent | Pfeile des scheinbaren Windes |
 | true wind angle (TWA) | истинный угол к ветру (TWA) | kąt wiatru prawdziwego (TWA) | angolo del vento reale (TWA) | ángulo del viento real (TWA) | angle du vent réel (TWA) | wahrer Windwinkel (TWA) |
 | apparent wind angle (AWA) | вымпельный угол (AWA) | kąt wiatru pozornego (AWA) | angolo del vento apparente (AWA) | ángulo del viento aparente (AWA) | angle du vent apparent (AWA) | scheinbarer Windwinkel (AWA) |
 | true wind speed (TWS) | истинная скорость ветра (TWS) | prędkość wiatru prawdziwego (TWS) | velocità del vento reale (TWS) | velocidad del viento real (TWS) | vitesse du vent réel (TWS) | wahre Windgeschwindigkeit (TWS) |
@@ -123,6 +126,16 @@ plural "los winches".
 | heel (boat tilt) | крен | przechył | sbandamento | escora | gîte | Krängung |
 | leeway (sideways drift) | дрейф | dryf | scarroccio | abatimiento | dérive | Abdrift |
 | boat speed (bs) | скорость лодки (bs) | prędkość jachtu (bs) | velocità della barca (bs) | velocidad del barco (bs) | vitesse du bateau (bs) | Bootsgeschwindigkeit (bs) |
+
+TWD identifies where true wind comes from, clockwise from north: 0 degrees is
+north, 90 degrees is east. The race compass keeps north at the top while the
+boat heading turns independently. The 3D arrows show incoming apparent airflow
+relative to the moving boat, not a cloth-flow simulation. Turning the visual aid
+off hides the compass and arrows while retaining numeric wind readings.
+Unknown wind speed keeps its localized unavailable label, never an assumed
+12 kn. The course map is a local race overview, not a geographic navigation chart.
+The seven-language map, instrument and style labels live in
+`src/features/race-hud/navigation-copy.ts`.
 
 ## Sail trim
 
@@ -177,4 +190,8 @@ plural "los winches".
    Russian. Three dots, not the ellipsis character. No curly apostrophes.
 7. **Numbers.** Keep every number and unit of the source. Decimal point in English, decimal
    comma in the other languages ("0,5 kn"). Knots are "kn" (kts in English is fine).
+   Instrument notation is an exception: live instrument readouts, including race
+   speed and wind speed, keep a fixed decimal point in all seven languages.
+   Prose still follows the locale's decimal convention. Wind units remain "уз"
+   in RU, "w." in PL, "nd" in FR and "kn" in EN / ES / DE / IT.
 8. **Keep proper nouns** unchanged: "Bavaria 46", "Regatta", "World Sailing", "Claude".

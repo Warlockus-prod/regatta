@@ -3,6 +3,7 @@
 import DiagnosticAccess from "@/components/diagnostics/DiagnosticAccess";
 import { useMemo, useState, type ReactNode } from "react";
 import styles from "./TrainerControls.module.css";
+import { GearIcon } from "./GearIcon";
 import { ControlSettingsSheet } from "./ControlSettingsSheet";
 import { useControlLabels } from "./labels";
 import type { ControlPrefs, Surface } from "./prefs";
@@ -15,13 +16,6 @@ import type { ControlPrefs, Surface } from "./prefs";
 
 export interface DockCard { id: string; title: string; node: ReactNode; }
 export interface DockTab { id: string; label: string; cards: DockCard[]; }
-
-const GearIcon = () => (
-  <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true">
-    <circle cx="12" cy="12" r="3.2" />
-    <path d="M12 2.8v2.6M12 18.6v2.6M2.8 12h2.6M18.6 12h2.6M5.5 5.5l1.8 1.8M16.7 16.7l1.8 1.8M5.5 18.5l1.8-1.8M16.7 7.3l1.8-1.8" />
-  </svg>
-);
 
 /** The gear that opens the control settings, for surfaces that place it themselves (desktop panels). */
 export function GearButton(props: { label: string; onClick: () => void; className?: string }) {

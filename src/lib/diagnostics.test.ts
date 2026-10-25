@@ -151,6 +151,23 @@ describe("diagnostic journal", () => {
 });
 
 describe("diagnostic strict transport and privacy", () => {
+  it("accepts only the four wind styles and boolean map targets in both current and previous fields", () => {
+    for (const value of ["off", "compass", "arrows", "both"]) {
+      const event = { type: "control.preferences", surface: "multiplayer", outcome: "accepted", preference: "wind-display", value, previous: "compass" };
+      expect(parseDiagnosticBatch({ version: 1, events: [event] })?.events).toEqual([event]);
+    }
+    for (const value of [true, false]) {
+      const event = { type: "control.change", surface: "race", outcome: "accepted", control: "race-map", value, previous: !value };
+      expect(parseDiagnosticBatch({ version: 1, events: [event] })?.events).toEqual([event]);
+    }
+    for (const extra of [{ value: "PRIVATE" }, { previous: "PRIVATE" }, { value: true }, { text: "PRIVATE" }]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ type: "control.preferences", surface: "race", outcome: "accepted", preference: "wind-display", value: "both", previous: "off", ...extra }] })).toBeNull();
+    }
+    for (const extra of [{ value: "open" }, { previous: 1 }, { position: { x: 1, y: 2 } }]) {
+      expect(parseDiagnosticBatch({ version: 1, events: [{ type: "control.change", surface: "race", outcome: "accepted", control: "race-map", value: true, previous: false, ...extra }] })).toBeNull();
+    }
+  });
+
   it("accepts the actual full RadioEvent action vocabulary without carrying its payload", () => {
     const coverage: Exclude<RadioEvent["type"], typeof RADIO_DIAGNOSTIC_ACTIONS[number]> extends never ? true : never = true;
     const actions: readonly RadioEvent["type"][] = RADIO_DIAGNOSTIC_ACTIONS;

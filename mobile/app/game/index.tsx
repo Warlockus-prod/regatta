@@ -17,6 +17,7 @@ import { isReviewPodium, recordReviewWin } from "../../src/review/review-prompt"
 import { AnalyticsEvent, useAnalytics } from "../../src/analytics";
 import { ActivityBack } from "../../src/navigation/ActivityBack";
 import { ReturnToLesson } from "../../src/bootcamp/ReturnToLesson";
+import { sanitizeRaceAssists } from "../../../src/lib/race-visual-prefs";
 
 const OFFLINE_SOURCE = require("../../assets/sailing-offline.html");
 
@@ -68,7 +69,7 @@ export default function Game() {
       if (assists && typeof assists === "object" && !Array.isArray(assists)) {
         const value = assists as Record<string, unknown>;
         if (["guidance", "rules", "penalties"].every(key => typeof value[key] === "boolean")) {
-          void persistStorage({ "regatta.race.assists.v1": JSON.stringify({ guidance: value.guidance, trimHints: typeof value.trimHints === "boolean" ? value.trimHints : true, rules: value.rules, penalties: value.penalties }) }).catch(() => undefined);
+          void persistStorage({ "regatta.race.assists.v1": JSON.stringify(sanitizeRaceAssists(value)) }).catch(() => undefined);
         }
       }
     } else if (data.type === "race-started") {

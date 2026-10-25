@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { ruleScenarios, type RuleScenario } from '@/data/rules';
 import { useI18n } from '@/lib/i18n';
-import ContentFooterNav from '@/components/ContentFooterNav';
+import ContentFooterNav from '@/components/ContentFooterNavLoader';
 import CoursesSection from './CoursesSection';
 
 // ============================================================================

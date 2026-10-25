@@ -1,3 +1,5 @@
+import { WIND_DISPLAYS, type WindDisplay } from "./race-visual-prefs";
+
 /** Local diagnostics only. This module has no platform, storage or clock globals. */
 export const DIAGNOSTIC_STORAGE_KEY = "regatta.diagnostics.v1";
 export const DIAGNOSTIC_MAX_ENTRIES = 200;
@@ -34,12 +36,12 @@ type ControlValues = {
   camber: number; heel: number; luff: number;
   "main-hoisted": boolean; "jib-open": boolean; "sails-raised": boolean; airflow: boolean;
   "wind-mode": "steady" | "shift" | "gust"; tack: "port" | "starboard";
-  camera: Member<typeof CAMERAS>; view: Member<typeof CAMERAS>;
+  camera: Member<typeof CAMERAS>; view: Member<typeof CAMERAS>; "race-map": boolean;
 };
 type PreferenceValues = {
   mode: "sliders" | "wheels"; "helm-mapping": "course" | "rudder";
   "return-center": boolean; sensitivity: 0.5 | 1 | 2; "jib-side": "left" | "right";
-  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number;
+  sound: boolean; guidance: boolean; "trim-hints": boolean; rules: boolean; penalties: boolean; "favorites-count": number; "wind-display": WindDisplay;
 };
 type Changes<T, K extends string> = { [P in keyof T]: { [Q in K]: P } & { value: T[P]; previous?: T[P] } }[keyof T];
 export type DiagnosticInput = Common & (
@@ -94,11 +96,11 @@ const controlChecks: Record<keyof ControlValues, Check> = {
   "main-working-length": numeric(6.4, 32), traveler: numeric(-.8, .8), "wind-speed": numeric(0, 60), "wind-direction": numeric(0, 360),
   "main-angle": numeric(-180, 180), "jib-angle": numeric(-180, 180), "main-twist": numeric(0, 1), "jib-twist": numeric(0, 1),
   camber: numeric(0, 1), heel: numeric(-90, 90), luff: numeric(0, 1), "main-hoisted": boolean, "jib-open": boolean, "sails-raised": boolean, airflow: boolean,
-  "wind-mode": enumeration(["steady", "shift", "gust"]), tack: enumeration(["port", "starboard"]), camera: enumeration(CAMERAS), view: enumeration(CAMERAS),
+  "wind-mode": enumeration(["steady", "shift", "gust"]), tack: enumeration(["port", "starboard"]), camera: enumeration(CAMERAS), view: enumeration(CAMERAS), "race-map": boolean,
 };
 const preferenceChecks: Record<keyof PreferenceValues, Check> = {
   mode: enumeration(["sliders", "wheels"]), "helm-mapping": enumeration(["course", "rudder"]), "return-center": boolean,
-  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean,
+  "favorites-count": numeric(0, 12, true), sensitivity: enumeration([.5, 1, 2]), "jib-side": enumeration(["left", "right"]), sound: boolean, guidance: boolean, "trim-hints": boolean, rules: boolean, penalties: boolean, "wind-display": enumeration(WIND_DISPLAYS),
 };
 const commonChecks: Record<string, Check> = { surface: enumeration(DIAGNOSTIC_SURFACES), outcome: enumeration(DIAGNOSTIC_OUTCOMES), reason: enumeration(DIAGNOSTIC_REASONS), source: enumeration(SOURCES) };
 const attempt = numeric(0, 100000, true);

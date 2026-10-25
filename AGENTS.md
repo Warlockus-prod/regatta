@@ -7,6 +7,15 @@
 
 ## Current completion work
 
+- Candidate64 source1543 was never uploaded: native G2 found the initial map extended below its dock. Its archive/IPA/Simulator and proofs are preserved externally. The panel-relative SVG/caption correction has actual four-viewport browser evidence; freeze fresh assets/source and repeat exact native/delivery gates. See `docs/audits/2026-10-25/release64-harness.md`.
+
+- SITE integrates frozen Map-fit APPef180df after1543d825, retaining0198d63 and7d87bf3 trainer contracts. Prepublication now includes the existing trainer-controls suite alongside the real map/wind case; the combined68-case gate must pass before another publication. Website63's red production evidence stays historical and does not become green through this source merge.
+- Its first68-case run on3fefb602 passed67first-attempt plus1flaky drawer geometry sample while Loading yacht was visible. Both3D drawer cases now share their existing25s startup deadline with actual first-frame readiness before box reads;60s totals,1px bounds and drawer actions are unchanged. This local correction still needs the next combined gate and native Map-fit acceptance.
+
+- Website63 is published and healthy at b75c1e4, but its final production browser gate has2failures and1flaky case. `docs/audits/2026-10-25/checks/website63-production.json` separates the real multiplayer slider-name defect from the Diagnostics occupied-content and first-frame test contracts. The multiplayer assertion stays strict; its source correction belongs to the following64 candidate. Local test corrections do not prove a green production rerun.
+
+- Active64 map/wind/settings presentation follows `docs/audits/2026-10-25/release64-harness.md`. Preserve actual course/wind truth, native visual preferences, reserved boat space and diagnostic privacy. No new physics, live weather service or physical race emission belongs to this slice.
+
 - SITE prepublication after the delivery snapshot: all 60 browser cases passed first attempt on c8ae4ef, with actual scene-ready, clock progression and canonical Pro evidence. `docs/audits/2026-10-25/checks/website63-prepublication.json` owns this portable proof. It does not claim website publication or full 65-item closure; APP 64 implementation is excluded from this site candidate.
 
 - Delivered63 is immutable source88fdaac, tag testflight-1.7.0-63. Independent ASC GET21:53:34.798UTC confirms exact Self VALID/IN_BETA_TESTING and8notes match21:53:34.514UTC. Actual DIAL and bounded local diagnostics: `docs/design/mobile/testflight63-2026-10-25.md`. Current65row evidence: `docs/audits/2026-10-25/acceptance63.md`. Next owner-authorized64 adds live map, wind compass/3Darrow choices and an actual shared gear icon, without changing physics or enabling physical race emission. Dated candidate notes below remain history, not current delivery status.
@@ -220,6 +229,7 @@ npm run check:map            # карта проекта актуальна
 - Browser Menu inventory counts catalog destinations separately from its always-reachable Diagnostics utility. The utility must keep its localized name, exact route and 44px target during empty search and after clear. DIAL browser checks use the actual LCD label `Volume:` while preserving real SQL and rim motion, lesson completion, release and geometry checks; no timeout increase.
 - The Pro smoke case attaches private CI observations before its initial clock check and in finally: bounded pageerror stacks, actual scene-startup/clock/visibility and only the shared parser's canonical diagnostic snapshot. Invalid storage never leaves the browser probe. Both deploy-workflow browser reports upload on success/failure for 14 days, including flaky-success evidence; assertions, trace policy, permissions and main-only release guards stay unchanged.
 - Pro canvas visibility and actual first-frame readiness share one 25s startup deadline before the unchanged 15s clock check and 120s case limit. CI runs independent browser cases with one worker; local defaults and each multiplayer case's real concurrent clients stay unchanged. Recorded WebGL2/ReadPixels stalls and heavy-scene overlap justify isolation, but contention as the sole cause is not proven.
+- Checkpoint64 adds `e2e/race-navigation.spec.ts` to the same loopback pre-deploy command and finite expected-file guard. It covers actual running Map, wind choices and Helm return; main-only publication, pinned actions, secrets and host authority stay unchanged.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
