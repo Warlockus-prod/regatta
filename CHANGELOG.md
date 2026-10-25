@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Fixed browser Back after a language link: clearing the language query now preserves navigation history, so the free radio page can restore instead of leaving the lesson mounted under its URL.
+
 - Gave radio status its own readable row below the compact toolbar, filled eight missing guide headings and three control descriptions in every SRC language, and made Back labels match the current return route. Aligned introductory lesson-list margins and neutral Sternik information colors. Candidate63 retains the62 progress-preserving startup repair; installed/native delivery gates follow separately.
 
 - Prepared one shared Trainer movement/turn helper and a versioned registry for short, medium and long physical courses. Current motion is preserved; the new race model is not enabled until saved records, replay and result classes support it.
