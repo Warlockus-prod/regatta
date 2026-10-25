@@ -64,3 +64,33 @@ to north; TWS is its measured speed. AWA/AWS describe apparent wind relative to
 the moving boat. The compass uses true wind; 3D flow uses apparent wind.
 PL uses wiatr prawdziwy, never a literal generic compass label for apparent wind.
 An absent old replay wind speed remains unknown instead of inventing12kn.
+
+## Exact source gates and release preparation
+
+The feature rollback commit is4c6ad5a; fdec8a2 integrates verified website
+browser contracts without changing its64 runtime. Apple GET22:29:41UTC finds
+build64 unused, writes0. Native config now selects64 and all3offline packages
+were regenerated; sailing source stampf00f8cff9f49 (6.24MiB). Expo prebuild
+completed after the version bump. Source63 simulator app/archive/export stay
+preserved independently before the64 build overwrites warm build output.
+
+The final full web suite1269/146 passes. Native npm check's package/content,
+lint, types and9tool gates pass; its first Jest run with automatic14workers
+exceeded two unchanged5s test deadlines (Menu/legacy simulator) while local
+3D review was rendering. This is recorded as a failed run, not a product
+cause conclusion. Full Jest rerun with2workers and unchanged timeouts passes475tests/71suites.
+The failed automatic-worker run remains retained separately.
+Native audit still has12classified baseline findings/91files; tp-arity and
+missing extras are zero. New wind copy has21resources/147explicit seven-language
+values and a semantic true/apparent/north/from-direction review.
+
+External helper64 copies pass36mock tests and independent review; they reject
+build63, require exact full40hex source, retain local resources/signing/freshness
+checks and isolate all64reports. No Apple write or native build occurred during
+helper preparation. Generated/Simulator/archive/IPA verification still follows.
+
+Independent source review cross-checks324wind/heading/speed/leeway combinations
+against direct world air-minus-boat vectors, maximum speed error1.07e-14kn;
+all direction vectors agree. After merge, strict types and scoped browser lint
+pass; AST review retains all113old Pro calls in order plus actual-frame wait and
+bounded observations. Shared map/gear/Helm tests15/3 pass after final CSS.

@@ -1305,3 +1305,9 @@ snapshot and validates durable restore/reopen without new keys or permissions.
 The map is a course schematic, not a geographic chart or new physical course.
 The shared Settings button uses the toothed icon; its full accessible name stays
 available even where the visible tab contains only the gear.
+
+Checkpoint64 extends the existing loopback pre-deploy E2E file set with the
+shared race navigation case. The finite expected list in ops/deploy/test_deploy.py
+changes with it; all9 deployment boundary tests pass. Publication/deployment
+remain main-only, with the same secrets, pinned actions, report retention and
+confined forced command. No host/runtime/permission policy changes.
