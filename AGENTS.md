@@ -8,6 +8,7 @@
 ## Current completion work
 
 - SITE integrates frozen APP1543d825 with the retained0198d63 trainer contracts. Prepublication now includes the existing trainer-controls suite alongside the real map/wind case; the combined68-case gate must pass before another publication. Website63's red production evidence stays historical and does not become green through this source merge.
+- Its first68-case run on3fefb602 passed67first-attempt plus1flaky drawer geometry sample while Loading yacht was visible. Both3D drawer cases now share their existing25s startup deadline with actual first-frame readiness before box reads;60s totals,1px bounds and drawer actions are unchanged. This local correction still needs the next combined gate and native Map-fit acceptance.
 
 - Website63 is published and healthy at b75c1e4, but its final production browser gate has2failures and1flaky case. `docs/audits/2026-10-25/checks/website63-production.json` separates the real multiplayer slider-name defect from the Diagnostics occupied-content and first-frame test contracts. The multiplayer assertion stays strict; its source correction belongs to the following64 candidate. Local test corrections do not prove a green production rerun.
 

@@ -29,6 +29,21 @@ tests still require loopback, no deployment secrets in checks and main-only
 publication/deployment. A fresh combined cloud run remains required; no64
 runtime or installed package differs from the frozen APP source.
 
+The first combined68-case non-main run40242561385 on3fefb602 succeeded with
+67first-pass and1flaky, no failures/skips, and all publication/deployment jobs
+skipped. The corrected scroll and occupied-Diagnostics cases passed first
+attempt. The unchanged V3 drawer case sampled boxes after597ms while its
+retained screenshot still displayed Loading yacht; readoutsY330.5 missed the
+scene-bottom-minus1 threshold330.747833. Retry1 passed in12.646s. Both3D
+drawer cases now require the actual first rendered frame inside their same25s
+startup allowance before reading boxes. All1px bounds, drawer actions and60s
+total budgets remain unchanged; execution of this correction is pending.
+
+The source1543 installed native Map still needed scrolling to expose its start
+line/player under the reduced safe-area height. That separate shared Map-fit
+repair and fresh combined/native verification are required before publication;
+the successful68-case run does not close this installed UI defect.
+
 1. [x] Confirm source causes: missing live overview/TWD/TWS, literal sun-shaped
    shared settings SVG and inherited arrow stroke on the briefing wind label.
 2. [x] Shared toothed gear and clean briefing label, actual browser inspection,

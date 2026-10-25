@@ -75,7 +75,10 @@ for (const route of [
     await page.setViewportSize(PHONE);
     await page.goto(route.path);
     const scene = page.locator(route.scene).first();
-    await expect(scene).toBeVisible({ timeout: 25_000 });
+    const deadline = Date.now() + 25_000;
+    const remaining = () => Math.max(1, deadline - Date.now());
+    await expect(scene).toBeVisible({ timeout: remaining() });
+    await expect(page.locator("[data-scene-startup]")).toHaveAttribute("data-scene-startup", "ready", { timeout: remaining() });
     const s = (await scene.boundingBox())!;
     const bar = (await page.getByTestId("scene-bar").boundingBox())!;
     const readouts = (await page.getByTestId("trainer-readouts").boundingBox())!;
