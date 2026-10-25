@@ -130,7 +130,9 @@ test.describe('Smoke: critical user flows', () => {
   });
 
   test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }) => {
-    test.setTimeout(60_000);
+    // Trace 40213873678: real wheel input and pause consumed 58.8s before settings.
+    // Keep the complete real 3D clock, mode, controls and pause/resume contract.
+    test.setTimeout(120_000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/game?embed=1");
     await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
@@ -284,6 +286,8 @@ test.describe('Smoke: critical user flows', () => {
   });
 
   test('embed mode hides the sim switcher (iOS WebView contract)', async ({ page }) => {
+    // Trace 40213873678 reached the third scene's real first frame at 35.8s.
+    test.setTimeout(120_000);
     // Since app 1.5.0 b30 ALL THREE simulator tiers are embedded by the iOS app
     // (mobile/app/simulator-v1|simulator-v3|simulator2 -> SimWebView), so the
     // chromeless contract - no global nav, no cross-sim switcher links - must
@@ -301,7 +305,8 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
 
     await page.goto('/simulator-v3?embed=1');
-    await expect(page.getByTestId('trainer-scene').locator('svg').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('trainer-scene').locator('canvas').first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId('trainer-scene').locator('[data-scene-startup]')).toHaveAttribute('data-scene-startup', 'ready', { timeout: 45_000 });
     await expect(page.locator('nav[data-product-navigation]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator"]')).toHaveCount(0);
     await expect(page.locator('a[href="/simulator2"]')).toHaveCount(0);
@@ -334,9 +339,9 @@ test.describe('Smoke: critical user flows', () => {
 });
 
 test("3D embed keeps slider keys local and essential controls inside the viewport", async ({ page }) => {
-  // Software WebGL in CI takes ~25s before the final camera click (trace from
-  // run 35257508736). Keep every interaction/assertion and budget the whole flow.
-  test.setTimeout(60_000);
+  // Trace 40213873678 passed keys/cameras and reached final geometry at 60.2s.
+  // Budget only this software-rendered flow; preserve every interaction/assertion.
+  test.setTimeout(120_000);
   await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "sliders" })));
   await page.goto("/simulator2?embed=1&lang=en");

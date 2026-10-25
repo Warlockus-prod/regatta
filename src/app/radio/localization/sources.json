@@ -136,6 +136,14 @@
     "known": {}
   },
   {
+    "id": "011fb9f78a89d07f",
+    "source": "Konserwacja i obsługa - żeby działało, gdy trzeba",
+    "known": {
+      "pl": "Konserwacja i obsługa - żeby działało, gdy trzeba",
+      "ru": "Обслуживание - чтобы работало, когда нужно"
+    }
+  },
+  {
     "id": "01224c0f77e0c640",
     "source": "RSC",
     "known": {
@@ -2270,6 +2278,14 @@
     "known": {
       "pl": "Znaj kolejność wywołania, alfabet fonetyczny, cyfry oraz znaczenie najczęstszych prowords.",
       "ru": "Знай порядок вызова, фонетический алфавит, цифры и значение основных prowords."
+    }
+  },
+  {
+    "id": "126773c9da48aced",
+    "source": "Squelch - blokada szumów (najczęściej źle ustawiana)",
+    "known": {
+      "pl": "Squelch - blokada szumów (najczęściej źle ustawiana)",
+      "ru": "Squelch (шумоподавитель) - чаще всего настраивают неправильно"
     }
   },
   {
@@ -6146,6 +6162,11 @@
     }
   },
   {
+    "id": "3444017af6307e80",
+    "source": "natychmiast kanał 16 (przytrzymanie = kanał wywoławczy)",
+    "known": {}
+  },
+  {
     "id": "3455f8fe560f7da9",
     "source": "Półkula na autopilocie. Stopnie długości te same co w pozycji z Zatoki Gdańskiej (018), ale tu jest {radioTerm0} i {radioTerm1}. Kto mówi {radioTerm2} / {radioTerm3} z pamięci, oblewa.",
     "known": {
@@ -6465,6 +6486,11 @@
     "known": {
       "pl": "semidupleksowym"
     }
+  },
+  {
+    "id": "3784247e5aac188a",
+    "source": "DSC / MENU",
+    "known": {}
   },
   {
     "id": "378c990a0144aff2",
@@ -11340,6 +11366,13 @@
     }
   },
   {
+    "id": "60093ad311074b2f",
+    "source": "jedno pokrętło, kilka funkcji - przytrzymaj = ON/OFF, kręć = głośność",
+    "known": {
+      "pl": "jedno pokrętło, kilka funkcji - przytrzymaj = ON/OFF, kręć = głośność"
+    }
+  },
+  {
     "id": "600be162805c3105",
     "source": "Trzy pytania z powiązanych materiałów UKE. Rozdział kończy się po trzech poprawnych odpowiedziach.",
     "known": {
@@ -14287,6 +14320,11 @@
   {
     "id": "7c91cd38029cc201",
     "source": "Każda cyfra osobno, po angielsku: 54 to {radioTerm1} {radioTerm2}, nigdy \"{radioTerm0}\".",
+    "known": {}
+  },
+  {
+    "id": "7c929d89cebb2dc3",
+    "source": "[16/C]",
     "known": {}
   },
   {
@@ -20272,6 +20310,11 @@
     "known": {}
   },
   {
+    "id": "af9591de46693ae6",
+    "source": "DW / TRI / SCAN",
+    "known": {}
+  },
+  {
     "id": "afa2a424b48459a0",
     "source": "Limit prób wyczerpany. Spróbuj ponownie za {n} min.",
     "known": {
@@ -20871,6 +20914,14 @@
     "known": {
       "pl": "Krzywizna Ziemi zasłania niskie anteny. Przybliżenie dla dwóch anten to d[km] = 4,12 x (pierwiastek h1 + pierwiastek h2), gdzie wysokości są w metrach.",
       "ru": "Кривизна Земли скрывает низкие антенны. Приближённо d[км] = 4,12 x (корень h1 + корень h2), высоты в метрах."
+    }
+  },
+  {
+    "id": "b516f3ada9174bb3",
+    "source": "Antena i zasięg - dlaczego to ważniejsze niż moc",
+    "known": {
+      "pl": "Antena i zasięg - dlaczego to ważniejsze niż moc",
+      "ru": "Антенна и дальность - почему это важнее мощности"
     }
   },
   {
@@ -21601,6 +21652,14 @@
     "id": "bb247d4ceb147895",
     "source": "Dyktowanie pozycji przez radio VHF - trening SMCP | Week to Regatta",
     "known": {}
+  },
+  {
+    "id": "bb3d83bcbafc33cb",
+    "source": "Jak nadawać i odbierać (zwykła łączność)",
+    "known": {
+      "pl": "Jak nadawać i odbierać (zwykła łączność)",
+      "ru": "Как вести обычную связь"
+    }
   },
   {
     "id": "bb4474ce5038cf83",
@@ -22787,6 +22846,11 @@
     }
   },
   {
+    "id": "c53b50201fb3361c",
+    "source": "naciśnij = nadajesz, puścisz = słuchasz",
+    "known": {}
+  },
+  {
     "id": "c54310bf24e9944e",
     "source": "DISTRESS, volume, squelch, PTT i szybki kanał 16 mają różne zadania.",
     "known": {
@@ -23963,6 +24027,14 @@
     "source": "W nocy zasięg odbioru sygnałów w systemie NAVTEX jest:",
     "known": {
       "pl": "W nocy zasięg odbioru sygnałów w systemie NAVTEX jest:"
+    }
+  },
+  {
+    "id": "cf899262c7648a15",
+    "source": "Budowa radia - co robi każdy element i po co",
+    "known": {
+      "pl": "Budowa radia - co robi każdy element i po co",
+      "ru": "Устройство рации: что делает каждый орган и зачем"
     }
   },
   {
@@ -25198,6 +25270,14 @@
     }
   },
   {
+    "id": "dab281ed77883d03",
+    "source": "DSC i numer MMSI - cyfrowa część radia",
+    "known": {
+      "pl": "DSC i numer MMSI - cyfrowa część radia",
+      "ru": "DSC и номер MMSI - цифровая часть рации"
+    }
+  },
+  {
     "id": "dabdb616e58a7f08",
     "source": "Exam preset for MMSI 002191000",
     "known": {}
@@ -25551,6 +25631,14 @@
     "known": {
       "pl": "ODEBRANO DSC",
       "ru": "ПРИНЯТ DSC"
+    }
+  },
+  {
+    "id": "dd67694b01cf55c8",
+    "source": "Rozwiązywanie problemów",
+    "known": {
+      "pl": "Rozwiązywanie problemów",
+      "ru": "Поиск неисправностей"
     }
   },
   {
@@ -26398,6 +26486,11 @@
       "de": "Du prüfst das beim ersten Einschalten des Funkgeräts auf einem neuen Boot und nachdem jemand in den Einstellungen herumgespielt hat. In Europa muss auf dem Display INT stehen.",
       "it": "Lo controlli alla prima accensione della radio su una barca nuova e dopo che qualcuno ha toccato le impostazioni. In Europa sul display deve esserci INT."
     }
+  },
+  {
+    "id": "e491ad5af2df561b",
+    "source": "HI / LO",
+    "known": {}
   },
   {
     "id": "e4a72a79f43155cc",
@@ -27954,6 +28047,14 @@
     "source": "Zasięg transpondera radarowego zależy:",
     "known": {
       "pl": "Zasięg transpondera radarowego zależy:"
+    }
+  },
+  {
+    "id": "f12605f3fd3966f5",
+    "source": "Szybka ściąga",
+    "known": {
+      "pl": "Szybka ściąga",
+      "ru": "Шпаргалка"
     }
   },
   {

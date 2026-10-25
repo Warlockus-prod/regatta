@@ -1,0 +1,105 @@
+{
+  "schema": 1,
+  "project": "Regatta",
+  "checkedAt": "2026-10-25T17:58:55.740543+00:00",
+  "webMergeCommit": "72b4f57ba4b6a039c1e8850a93c7077c55b2fb4d",
+  "testedSiteHead": "22a59ee59c17577969cc8d4b12fa5e87184519ee",
+  "appRuntimeSource": "e3d70a18077b9f30509807f2106076fc476515bd",
+  "pullRequest": 82,
+  "pipelineRun": 40216449294,
+  "livePublished": true,
+  "releaseGatesComplete": false,
+  "branchCI": {
+    "checksPassed": 6,
+    "checksFailed": 0,
+    "webTests": 1075,
+    "webFiles": 121,
+    "nativeTests": 452,
+    "nativeSuites": 69,
+    "foundationBrowserTests": 3
+  },
+  "mainPredeploy": {
+    "job": 121238507840,
+    "state": "success",
+    "total": 38,
+    "passedFirstAttempt": 37,
+    "passedOnRetry": 1,
+    "failed": 0,
+    "minutes": 4.4,
+    "knownRetry": "Pro controls exhausted the 120s first-attempt budget; complete unchanged assertions passed on retry."
+  },
+  "productionBrowser": {
+    "job": 121241064326,
+    "state": "failure",
+    "total": 62,
+    "passedFirstAttempt": 56,
+    "passedOnRetry": 2,
+    "failed": 3,
+    "skipped": 1,
+    "minutes": 10.7,
+    "intentionalSkip": "Nickname write on production; covered before deployment.",
+    "failedCases": [
+      "multiplayer.spec.ts create lobby and join, 60s test deadline during helm/dock actions",
+      "replay.spec.ts shared3D recording timeline, 60s test deadline during playback/camera actions",
+      "sailing-learning.spec.ts mobile rig workspace, expected observation heading absent in hydrated Task panel"
+    ],
+    "retryPassCases": [
+      "radio-workspace controls lessons375px initial LCD mount",
+      "smoke Pro controls120s later Resume action"
+    ],
+    "diagnosis": {
+      "multiplayer": "First attempt proved nonzero helm and a positive WebSocket input by37.505s, then exhausted60s during dock geometry. Retry trace confirms real scene ready; remaining settings and fleet checks are unproven.",
+      "replay": "Stale camera role: current UI is a labelled select, test searches a button. Retry2 spent its remaining22.194s on the absent button; another retry also exhausted the total budget during2x. Recorded endpoint, timeline1:29 and result1:34 passed.",
+      "learning": "Stale compact-workspace expectations: desktop observation heading is intentionally absent; actual Task and Mainsheet/Traveler controls are mounted. Old paid-out working length label is also absent. Remaining checkpoint flow was not reached.",
+      "radioRetry": "Transient LCD null during responsive remount is the source-supported hypothesis. Error screenshot already shows working radio and retry passes; no failing browser trace was retained.",
+      "proRetry": "Total120s exhausted in two attempts before unchanged full flow passed. Separate manual public Pro checks are bounded supporting evidence."
+    }
+  },
+  "deployment": {
+    "job": 121240825378,
+    "state": "success",
+    "healthyAt": "2026-10-25T17:36:06Z",
+    "smokeRoutesHTTP200": 16,
+    "appDigest": "sha256:d76bc426b62371e2df9688f57fcd197163fd5cbce50b63c62733347717c0da92",
+    "wsDigest": "sha256:07ffd5c8d2bc332a012cae813cebeb59450b80c40eccdd0f17d10019abd14b06",
+    "runningRevisionMatches": true,
+    "ciDigestsMatchRuntime": true,
+    "bothServicesHealthy": true,
+    "nonRoot": true,
+    "readOnly": true,
+    "allCapabilitiesDropped": true,
+    "noNewPrivileges": true,
+    "bridgeBound": true,
+    "previousDataVolumeRetained": true,
+    "installedFixedPolicyMatchesSource": true
+  },
+  "publicContent": {
+    "healthHTTP200": true,
+    "radioLocaleCount": 7,
+    "aliasesChecked": true,
+    "allCatalogBytesMatchSource": true,
+    "visiblePrivacyScopeVerified": true,
+    "sevenLanguageSemanticCertification": false
+  },
+  "knownOpenLocalization": {
+    "evidence": "Root production CUA after publication",
+    "guidePolishTitles": 8,
+    "guidePolishCells": 3,
+    "status": "Bounded follow-up checkpoint; not fixed by this release."
+  },
+  "boundaries": [
+    "Native TestFlight62 delivery is separate from this website pipeline.",
+    "Runtime source e3d is immutable; later APP physical/course/context work is not part of this publication.",
+    "Catalog byte equality verifies served artifacts, not full language adaptation.",
+    "Manual production checks covered German free radio and Russian guided lesson navigation; complete device/language/accessibility acceptance remains open.",
+    "The full65-requirement audit is not closed.",
+    "Main is live and healthy, but the final production browser gate is red; no further publication or data rollback was performed."
+  ],
+  "pipelineState": "failure in final production browser gate after healthy deployment",
+  "manualProductionScope": [
+    "Root CUA German free radio powers on CH16; Russian guide lesson1->Next2 and durable guide progress.",
+    "Root CUA real3D Pro clock29.4 paused through Orbit/manualmain35->30/sliders, resumed29.5->89.1 and paused107.1; Menu and control preferences work.",
+    "These spot checks do not replace full language/device acceptance or the failed production browser gate."
+  ],
+  "detailedTraces": "Retained in the external audit directory; no private feedback is copied here."
+}

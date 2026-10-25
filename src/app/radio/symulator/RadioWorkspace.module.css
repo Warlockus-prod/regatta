@@ -37,7 +37,8 @@
   padding: 4px max(10px, env(safe-area-inset-right, 0px)) 4px max(10px, env(safe-area-inset-left, 0px));
 }
 .barInner {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: 6px;
   min-height: 44px;
@@ -46,7 +47,8 @@
   margin: 0 auto;
 }
 .barStatus {
-  flex: 1 1 auto;
+  grid-column: 2;
+  grid-row: 1;
   min-width: 0;
   display: flex;
   flex-wrap: wrap;
@@ -55,6 +57,18 @@
   font-size: 13px;
   line-height: 17px;
   color: var(--text-secondary);
+}
+.barStatus > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.barInner > .barButton { grid-column: 1; grid-row: 1; }
+.barActions { grid-column: 3; grid-row: 1; display: flex; align-items: center; justify-self: end; gap: 6px; }
+.barLabel { display: inline; }
+/* The app also needs its explicit Exit. Give status its own full-width row
+   before labels can consume the remaining space around 400px. */
+@media (max-width: 639px) {
+  .barInner { grid-template-columns: auto minmax(0, 1fr); }
+  .barStatus { grid-column: 1 / -1; grid-row: 2; }
+  .barActions { grid-column: 2; }
+  .barLabel { display: none; }
 }
 .barButton {
   flex: 0 0 auto;

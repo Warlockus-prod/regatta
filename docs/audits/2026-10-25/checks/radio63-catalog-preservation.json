@@ -1,0 +1,50 @@
+[
+  {
+    "path": "public/radio-locales/pl.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/ru.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/en.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/es.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/fr.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/de.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/it.json",
+    "added": 15,
+    "removed": 0,
+    "changed": 0
+  },
+  {
+    "path": "public/radio-locales/aliases.json",
+    "added": 22,
+    "removed": 0,
+    "changed": 0
+  }
+]

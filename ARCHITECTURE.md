@@ -1163,3 +1163,8 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 - `src/lib/race-context.test.ts` checks all registered contexts, unknown revisions/models/units and preservation of raw inputs.
 - `src/lib/race-courses.ts` is an unconnected120/300/600m metric registry and fresh world-coordinate factory/spawn layout. It does not switch race defaults, physics, progression, recordings or multiplayer. Metadata/PB/replay/server compatibility must precede activation.
 - `src/lib/race-courses.test.ts` checks metric distances, fixed hull/hardware, all five fleet clearances, proposed rounding envelopes and unchanged legacy factory output. Full sailing/recovery validation remains a later engine gate.
+
+- `src/app/radio/obsluga/guideTranslations.test.ts` reads actual JSX section titles and visible table cells through the real catalog/generator, protecting all7 guide adaptations, verbatim hardware inscriptions and existing aliases. The generator explicitly enumerates paired JSX language attributes and visible Table arrays, including copy with equals signs; it does not rewrite course IDs, state or protocol speech.
+- `docs/audits/2026-10-25/release63-harness.md` owns the bounded SRC layout/guide-copy, Foundation gutter and Sternik information checkpoint, native verification and separate website gates.
+
+- `docs/audits/2026-10-25/checks/website62-runtime-gate.json` is the portable72b4f57 publication, immutable image/runtime and red final browser-gate record. Healthy deployment and targeted manual UI do not replace successful full acceptance.

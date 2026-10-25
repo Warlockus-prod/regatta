@@ -7,6 +7,7 @@ const questions = getQuizForLesson("wind-direction");
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(({ old }) => {
     localStorage.setItem("regatta.lang.v1", "ru");
+    localStorage.setItem("regatta.v3.tour.v1", "1");
     if (!localStorage.getItem("foundation-fixture")) {
       localStorage.setItem("regatta.bootcamp", old);
       localStorage.setItem("foundation-fixture", "1");
@@ -53,11 +54,11 @@ test("failed durable check write keeps the counter unchanged and retries without
     };
   });
   await page.getByRole("button", { name: "Проверить ответы", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Не удалось сохранить");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("Не удалось сохранить");
   await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
   await page.evaluate(() => Object.assign(window, { foundationFail: false }));
   await page.getByRole("button", { name: "Повторить сохранение", exact: true }).click();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("Пройдено проверок: 1/8", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Пройдено проверок: 1/8", { exact: true })).toBeVisible();
@@ -71,7 +72,8 @@ test("immersive Basics, Trainer and Race preserve a visible course return outsid
     await expect(page).toHaveURL(new RegExp(`fromLesson=${id}`));
     const link = page.getByTestId("foundation-return");
     await expect(link).toBeVisible();
-    expect((await link.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+    // DOM geometry can report 43.999992px for a 44px target. Keep millipixel precision.
+    expect(Number((await link.boundingBox())!.height.toFixed(3))).toBeGreaterThanOrEqual(44);
     await expect(link).toHaveAttribute("href", `/start?lesson=${id}&step=practice`);
     if (id !== "mini-race") {
       // It is a sibling of the workspace, never an absolute overlay on canvas.

@@ -41,7 +41,7 @@ function StatTile({ value, label, accent }: { value: string; label: string; acce
       className="rounded-xl px-4 py-3 text-center"
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="text-2xl font-bold" style={{ color: accent ?? 'var(--accent-cyan)' }}>
+      <div className="text-2xl font-bold" style={{ color: accent ?? 'var(--text-primary)' }}>
         {value}
       </div>
       <div className="mt-0.5 text-xs" style={{ color: 'var(--text-muted)' }}>

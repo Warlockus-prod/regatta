@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Gave radio status its own readable row below the compact toolbar, filled eight missing guide headings and three control descriptions in every SRC language, and made Back labels match the current return route. Aligned introductory lesson-list margins and neutral Sternik information colors. Candidate63 retains the62 progress-preserving startup repair; installed/native delivery gates follow separately.
+
 - Prepared one shared Trainer movement/turn helper and a versioned registry for short, medium and long physical courses. Current motion is preserved; the new race model is not enabled until saved records, replay and result classes support it.
 
 - Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Delivered1.7.0(62) to Self: independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. Actual48->61failure->62instrument/relaunch and existing8-value upgrade retain progress; full product/physical acceptance remains qualified.
