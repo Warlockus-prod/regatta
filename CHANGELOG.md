@@ -7,7 +7,7 @@
 
 ## Unreleased
 
-- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.
+- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Delivered1.7.0(62) to Self: independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. Actual48->61failure->62instrument/relaunch and existing8-value upgrade retain progress; full product/physical acceptance remains qualified.
 
 - Fixed foreground simulation time freezing at2-3FPS. Ready, pause, visibility and enabled boundaries exclude inactive time, while simulation keeps its1/30second step. Race sliders now expose their existing translated names to accessibility tools.
 

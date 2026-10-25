@@ -1,0 +1,20 @@
+{
+  "checkedAt": "2026-10-25T17:14:12.440175+00:00",
+  "sourceCommit": "e3d70a18077b9f30509807f2106076fc476515bd",
+  "build": "62",
+  "simulator": "B6BF0440-5701-4285-95E7-696CB9481DFD",
+  "runtime": "iOS26.5",
+  "upgradeWithoutUninstallOrClear": true,
+  "originalValuesBytePreserved": {
+    "regatta.learning.bookmark.v1": true,
+    "regatta.progress.bootcamp.v1": true,
+    "regatta.progress.bootcamp.lastViewed.v1": true,
+    "regatta.bootcamp-quiz.v1": true,
+    "regatta.review.v1": true,
+    "regatta.sternik.offline.web-storage.v1": true,
+    "regatta.race-resume.v1": true,
+    "regatta.firstLaunch.v1": true
+  },
+  "count": 8,
+  "visualHomeAcceptance": "Home retains last Sternik course and shows Foundation passed1of8"
+}

@@ -7,7 +7,7 @@
 
 ## Current completion work
 
-- Active checkpoint62: urgent SRC startup compatibility for the retired language key saved by released48/49, preserving progress. `docs/audits/2026-10-25/release62-harness.md` includes bounded startup diagnostics plus the committed foreground clock/lifecycle and slider names. Physical short/medium/long courses (ADR-0011) move to a following checkpoint; no new physical result may be emitted before metadata/PB/global-class compatibility. Native61 remains immutable.
+- Delivered checkpoint62: urgent SRC startup compatibility for the retired language key saved by released48/49, preserving progress. `docs/audits/2026-10-25/release62-harness.md` includes bounded startup diagnostics plus the committed foreground clock/lifecycle and slider names. Physical short/medium/long courses (ADR-0011) move to a following checkpoint; no new physical result may be emitted before metadata/PB/global-class compatibility. Native61 remains immutable;62 is pinned at e3d70a1/tag testflight-1.7.0-62. Independent ASC GET17:09:17UTC confirms Self IN_BETA_TESTING and8notes. Current full65 matrix: `docs/audits/2026-10-25/acceptance62.md`; ordered following physical-course plan: `docs/audits/2026-10-25/physical-courses-next.md`; release proof: `docs/design/mobile/testflight62-2026-10-25.md`.
 
 - Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 from37c7079 was delivered to exact Self at2026-10-25 15:35:51UTC, VALID/IN_BETA_TESTING with8notes. `docs/audits/2026-10-25/acceptance61.md` records all65 current statuses. Website pre-deploy browser gate blocked publication; checkpoint62 repairs radio upgrades and includes the foreground low-FPS clock fix. Owner-approved physical short/long courses remain a separate following stage.
 
@@ -32,8 +32,8 @@
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
 - Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
-  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(61), группа Self.
-  Source37c7079, VALID/IN_BETA_TESTING,8notes проверены; `docs/design/mobile/testflight61-2026-10-25.md`.
+  Проверено2026-10-25: публичная1.6.4(48), TestFlight1.7.0(62), группа Self.
+  Sourcee3d70a1, VALID/IN_BETA_TESTING,8notes проверены17:09:17UTC; `docs/design/mobile/testflight62-2026-10-25.md`.
   Историческая проверка60:
   Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
   Сборка 59 отклонена Apple при импорте, не распространялась. Описание
