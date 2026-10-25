@@ -125,6 +125,17 @@ class WorkflowBoundary(unittest.TestCase):
         self.assertIn("needs: build-check", self.job("publish-images"))
         self.assertIn("needs: [build-check, publish-images]", self.job("deploy"))
         self.assertIn("needs: deploy", self.job("e2e"))
+        # Keep flaky-success traces/attachments without broadening artifact input
+        # or making the production job run when its deploy prerequisite is skipped.
+        for name in ["build-check", "e2e"]:
+            job = self.job(name)
+            uploads = re.findall(r"      - name: Upload[^\n]*\n(.*?)(?=      - |\Z)", job, re.DOTALL)
+            self.assertEqual(len(uploads), 1)
+            self.assertEqual(re.findall(r"^        if: (.+)$", uploads[0], re.MULTILINE), ["always()"])
+            self.assertEqual(re.findall(r"^        uses: (\S+)", uploads[0], re.MULTILINE),
+                             ["actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02"])
+            self.assertEqual(re.findall(r"^          path: (.+)$", uploads[0], re.MULTILINE), ["playwright-report/"])
+            self.assertEqual(re.findall(r"^          retention-days: (.+)$", uploads[0], re.MULTILINE), ["14"])
 
 
 if __name__ == "__main__":

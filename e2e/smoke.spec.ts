@@ -2,6 +2,8 @@ import { test, expect, type Page } from '@playwright/test';
 import { copy as productCopy } from '../src/lib/product/copy';
 import { menuDestinationCount } from '../src/lib/product/menu';
 import { diagnosticTitle } from '../src/lib/diagnostic-title';
+import { buildSync } from "esbuild";
+import type { DiagnosticSnapshot } from "../src/lib/diagnostics";
 
 // ============================================================================
 // Smoke E2E - must pass on every deploy. Keep fast (<60 sec total).
@@ -29,6 +31,66 @@ async function expectDiagnosticUtility(page: Page, lang: keyof typeof diagnostic
   const box = await utility.boundingBox();
   expect(box!.height).toBeGreaterThanOrEqual(44);
   expect(box!.width).toBeGreaterThanOrEqual(44);
+}
+
+type ProObservation = {
+  stage: "before-initial-clock" | "finally";
+  captured: boolean;
+  observedAtMs: number;
+  performanceMs?: number;
+  sceneStartup?: ("loading" | "ready" | "unknown")[];
+  clock?: string | null;
+  visibility?: "visible" | "hidden" | "unknown";
+  diagnostics?: { status: "not-read" | "absent" | "valid" | "invalid" | "unavailable"; present?: boolean; snapshot?: DiagnosticSnapshot };
+};
+
+let proParserSource: string | undefined;
+function proJournalParserSource() {
+  // Validate inside the browser: raw invalid storage must not enter a retry trace.
+  // The fixed pure module is scoped inside evaluate, without installing globals.
+  return proParserSource ??= buildSync({
+    stdin: { contents: 'export { parseDiagnosticPersistence, DIAGNOSTIC_STORAGE_KEY } from "./src/lib/diagnostics";', resolveDir: process.cwd(), loader: "ts" },
+    bundle: true, write: false, platform: "browser", format: "iife", globalName: "ProJournalParser",
+    target: "es2020", minify: true, tsconfigRaw: "{}",
+  }).outputFiles[0].text;
+}
+
+function boundedProError(text: string) {
+  let result = "", bytes = 0;
+  for (const character of text) {
+    const size = Buffer.byteLength(character, "utf8");
+    if (bytes + size > 4 * 1024) break;
+    result += character; bytes += size;
+  }
+  return result;
+}
+
+async function observeProPage(page: Page, stage: ProObservation["stage"]): Promise<ProObservation> {
+  try {
+    return await page.evaluate<ProObservation>(`(() => {
+      ${proJournalParserSource()}
+      const now = Date.now();
+      const sceneStartup = Array.from(document.querySelectorAll('[data-testid="race-3d"] [data-scene-startup]')).slice(0, 4).map(node => {
+        const value = node.getAttribute("data-scene-startup");
+        return value === "ready" || value === "loading" ? value : "unknown";
+      });
+      const clock = Array.from(document.querySelectorAll('[data-testid="race-cockpit"] strong')).slice(0, 16)
+        .map(node => node.firstChild?.textContent?.trim() ?? "").find(value => /^[0-9]{1,6}:[0-9]{2}[.][0-9]$/.test(value)) ?? null;
+      let diagnostics = { status: "not-read" };
+      if (${stage === "finally"}) {
+        try {
+          const raw = localStorage.getItem(ProJournalParser.DIAGNOSTIC_STORAGE_KEY);
+          const snapshot = raw === null ? null : ProJournalParser.parseDiagnosticPersistence(raw, now);
+          diagnostics = raw === null ? { status: "absent", present: false }
+            : snapshot ? { status: "valid", present: true, snapshot } : { status: "invalid", present: true };
+        } catch { diagnostics = { status: "unavailable" }; }
+      }
+      return { stage: ${JSON.stringify(stage)}, captured: true, observedAtMs: now, performanceMs: Math.round(performance.now()),
+        sceneStartup, clock, visibility: document.visibilityState === "visible" || document.visibilityState === "hidden" ? document.visibilityState : "unknown", diagnostics };
+    })()`);
+  } catch {
+    return { stage, captured: false, observedAtMs: Date.now() };
+  }
 }
 
 // Pin language to Russian for deterministic string matches, and mark the
@@ -149,71 +211,87 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
   });
 
-  test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }) => {
+  test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }, testInfo) => {
     // Trace 40213873678: real wheel input and pause consumed 58.8s before settings.
     // Keep the complete real 3D clock, mode, controls and pause/resume contract.
     test.setTimeout(120_000);
-    await page.setViewportSize({ width: 390, height: 844 });
-    await page.goto("/game?embed=1");
-    await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
-    await page.getByRole("radio", { name: "Pro", exact: true }).click();
-    await expect(page.getByRole("radio", { name: /2D/ })).toHaveCount(0);
-    await page.getByRole("button", { name: /Начать первую гонку/i }).click();
-    await page.getByRole("button", { name: /Готов - старт/ }).click();
-    await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
-    await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
-    const helm = page.getByRole("slider", { name: "Руль", exact: true });
-    const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
-    const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
-    await expect(helm).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
-    const original = await main.getAttribute("aria-valuenow");
-    await main.press("ArrowDown");
-    await expect(main).not.toHaveAttribute("aria-valuenow", original ?? "");
-    await helm.press("ArrowRight");
-    await expect(helm).not.toHaveAttribute("aria-valuenow", "0");
-    await helm.press("ArrowLeft");
-    // Let the countdown finish; the clock must advance before and after a pause.
-    const clock = page.getByText(/^\d+:\d\d\.\d$/);
-    await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
-    await page.getByRole("button", { name: "Пауза", exact: true }).click();
-    const paused = await clock.textContent();
-    const scene = (await page.getByTestId("race-3d").boundingBox())!;
-    await page.getByRole("button", { name: "Настройки", exact: true }).click();
-    const dock = (await page.locator("aside").boundingBox())!;
-    expect(dock.y >= scene.y + scene.height - 1 || dock.x >= scene.x + scene.width - 1).toBe(true);
-    await page.getByRole("switch", { name: "Подсказки трима Pro", exact: true }).uncheck();
-    await page.getByRole("switch", { name: "Путь и подсказки", exact: true }).uncheck();
-    await page.getByRole("radio", { name: "За кормой", exact: true }).click();
-    await expect(clock).toHaveText(paused ?? "");
-    await expect(page.getByTestId("race-3d")).toHaveCount(1);
-    // Another tab may change preferences for the next race, never this race's classification.
-    const other = await page.context().newPage();
-    await other.goto("/game?embed=1");
-    await other.getByRole("radio", { name: "Обычный", exact: true }).click();
-    await other.close();
-    await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
-    // Keyboard sheets work in slider mode and after opening another utility tab.
-    await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
-    await page.getByRole("radio", { name: "Курс", exact: true }).click();
-    await page.getByRole("button", { name: "Руль", exact: true }).click();
-    await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible();
-    const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
-    const beforeKey = await mainSlider.inputValue();
-    await page.keyboard.press("q");
-    await expect(mainSlider).not.toHaveValue(beforeKey);
-    await page.getByRole("button", { name: "Настройки", exact: true }).click();
-    await page.getByRole("radio", { name: "Штурвалы", exact: true }).click();
-    await page.getByRole("radio", { name: "Перо руля", exact: true }).click();
-    await page.getByRole("button", { name: "Продолжить", exact: true }).click();
-    await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
-    // A mode cannot change after starting and recategorize an auto-trim record.
-    await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
-    await page.getByRole("button", { name: "Меню", exact: true }).click();
-    await page.getByRole("radio", { name: "Обычный", exact: true }).click();
-    await page.getByRole("button", { name: /Начать первую гонку/i }).click();
-    await page.getByRole("button", { name: /Готов - старт/ }).click();
-    await expect(helm).toBeVisible();
-    await expect(page.getByRole("slider", { name: "Гика-шкот", exact: true })).toHaveCount(0);
+    const observations: ProObservation[] = [];
+    const pageErrors: { observedAtMs: number; stack: string }[] = [];
+    const onPageError = (error: Error) => {
+      if (pageErrors.length < 10) pageErrors.push({ observedAtMs: Date.now(), stack: boundedProError(error.stack ?? error.message) });
+    };
+    page.on("pageerror", onPageError);
+    try {
+      await page.setViewportSize({ width: 390, height: 844 });
+      await page.goto("/game?embed=1");
+      await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+      await page.getByRole("radio", { name: "Pro", exact: true }).click();
+      await expect(page.getByRole("radio", { name: /2D/ })).toHaveCount(0);
+      await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+      await page.getByRole("button", { name: /Готов - старт/ }).click();
+      await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
+      await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
+      const helm = page.getByRole("slider", { name: "Руль", exact: true });
+      const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
+      const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
+      await expect(helm).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
+      const original = await main.getAttribute("aria-valuenow");
+      await main.press("ArrowDown");
+      await expect(main).not.toHaveAttribute("aria-valuenow", original ?? "");
+      await helm.press("ArrowRight");
+      await expect(helm).not.toHaveAttribute("aria-valuenow", "0");
+      await helm.press("ArrowLeft");
+      // Let the countdown finish; the clock must advance before and after a pause.
+      observations.push(await observeProPage(page, "before-initial-clock"));
+      const clock = page.getByText(/^\d+:\d\d\.\d$/);
+      await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
+      await page.getByRole("button", { name: "Пауза", exact: true }).click();
+      const paused = await clock.textContent();
+      const scene = (await page.getByTestId("race-3d").boundingBox())!;
+      await page.getByRole("button", { name: "Настройки", exact: true }).click();
+      const dock = (await page.locator("aside").boundingBox())!;
+      expect(dock.y >= scene.y + scene.height - 1 || dock.x >= scene.x + scene.width - 1).toBe(true);
+      await page.getByRole("switch", { name: "Подсказки трима Pro", exact: true }).uncheck();
+      await page.getByRole("switch", { name: "Путь и подсказки", exact: true }).uncheck();
+      await page.getByRole("radio", { name: "За кормой", exact: true }).click();
+      await expect(clock).toHaveText(paused ?? "");
+      await expect(page.getByTestId("race-3d")).toHaveCount(1);
+      // Another tab may change preferences for the next race, never this race's classification.
+      const other = await page.context().newPage();
+      await other.goto("/game?embed=1");
+      await other.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await other.close();
+      await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
+      // Keyboard sheets work in slider mode and after opening another utility tab.
+      await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
+      await page.getByRole("radio", { name: "Курс", exact: true }).click();
+      await page.getByRole("button", { name: "Руль", exact: true }).click();
+      await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible();
+      const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
+      const beforeKey = await mainSlider.inputValue();
+      await page.keyboard.press("q");
+      await expect(mainSlider).not.toHaveValue(beforeKey);
+      await page.getByRole("button", { name: "Настройки", exact: true }).click();
+      await page.getByRole("radio", { name: "Штурвалы", exact: true }).click();
+      await page.getByRole("radio", { name: "Перо руля", exact: true }).click();
+      await page.getByRole("button", { name: "Продолжить", exact: true }).click();
+      await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
+      // A mode cannot change after starting and recategorize an auto-trim record.
+      await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
+      await page.getByRole("button", { name: "Меню", exact: true }).click();
+      await page.getByRole("radio", { name: "Обычный", exact: true }).click();
+      await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+      await page.getByRole("button", { name: /Готов - старт/ }).click();
+      await expect(helm).toBeVisible();
+      await expect(page.getByRole("slider", { name: "Гика-шкот", exact: true })).toHaveCount(0);
+    } finally {
+      observations.push(await observeProPage(page, "finally"));
+      page.off("pageerror", onPageError);
+      await testInfo.attach("pro-observability", {
+        body: Buffer.from(JSON.stringify({ schema: 1, retry: testInfo.retry, observations, pageErrors })),
+        contentType: "application/json",
+      });
+    }
   });
 
   test('/leaderboard API + page load', async ({ page, request }) => {

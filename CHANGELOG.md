@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Preserve bounded Pro browser evidence on successful retries: actual scene readiness, clock, visibility, pageerror stacks and a validated local journal. Invalid journal contents stay inside the read-only probe. Both deployment browser reports retain their existing 14-day artifact scope after success or failure; UI checks, budgets, trace policy and publication privileges are unchanged.
+
 - Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.
 
 - Corrected the final DIAL browser checks to the actual LCD label Volume:, retaining real SQL and rim motion and every completion/layout check. Menu browser checks keep the catalog inventory separate from the Diagnostics utility and verify its seven translated names, exact route and 44px target during search. No runtime or timeout changed; the next full browser gate remains required.

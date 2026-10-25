@@ -103,8 +103,8 @@ jobs:
           set -e
           kill $APP_PID 2>/dev/null || true
           exit $RESULT
-      - name: Upload pre-deploy E2E report on failure
-        if: failure()
+      - name: Upload pre-deploy E2E report
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report-predeploy
@@ -255,8 +255,8 @@ jobs:
         run: npx playwright test
         env:
           BASE_URL: https://weektoregatta.com
-      - name: Upload HTML report on failure
-        if: failure()
+      - name: Upload HTML report
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report
