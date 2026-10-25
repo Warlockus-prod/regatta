@@ -1,9 +1,9 @@
 {
   "schema": 1,
   "entry": "sailing-offline.html",
-  "version": "7d263e22c6b2",
-  "sha256": "1139dd15829caf2958d3763a9c6233c0dd1cf74efdca9baf36cbbbfbfa8ee36e",
-  "bytes": 6488649,
+  "version": "3e5a21be32e3",
+  "sha256": "4293b2d7a5c7039e8d72b083423c1735eb1ef84caca1f15ab1927b122222bb5a",
+  "bytes": 6488834,
   "routes": [
     "/simulator",
     "/simulator-v3",
@@ -766,6 +766,7 @@
     "src/lib/race-setup.ts",
     "src/lib/race-startup.ts",
     "src/lib/race-trim-coach.ts",
+    "src/lib/sailing-kinematics.ts",
     "src/lib/sailing-physics/aero.ts",
     "src/lib/sailing-physics/balance.ts",
     "src/lib/sailing-physics/boat.ts",
@@ -1154,8 +1155,8 @@
     },
     {
       "path": "src/features/sailing-lab/runtime/session.ts",
-      "bytes": 5330,
-      "sha256": "e4d38bad0440d2565b38dccd98d8ce1a74f62adf3b3091d13548e82ac86a4127"
+      "bytes": 5125,
+      "sha256": "a86f4a5925d1bfc9d9eaf34a2926685e21651f58b58a902f3a9ffa1a7afbfae7"
     },
     {
       "path": "src/features/sailing-lab/runtime/snapshot.ts",
@@ -1686,6 +1687,11 @@
       "path": "src/lib/race-trim-coach.ts",
       "bytes": 1861,
       "sha256": "c14e5355facea7fe36c6adcc978952b0fb8b9df70803beb25d3f880bf7c51ed2"
+    },
+    {
+      "path": "src/lib/sailing-kinematics.ts",
+      "bytes": 1706,
+      "sha256": "ca3585111eb2dd8c982702d7d6adb89a83b82c8389ce84491f40f04ef63788cd"
     },
     {
       "path": "src/lib/sailing-physics/aero.ts",

@@ -2,16 +2,16 @@ import type { BoatState, BoatParams, Controls, TickDiagnostics } from "../../../
 import type { RigMotion } from "../rig/transfer";
 import { interpolateControls } from "./controls";
 import { SAILING_STEP_SECONDS } from "./fixed-clock";
-import { approachHeading, clamp, compass } from "./math";
+import { compass } from "./math";
+import { advanceSailingHeading, sailingDisplacement, type SailingSteering } from "../../../lib/sailing-kinematics";
 import { stepWithRig } from "./step-rig";
 import { createWindState, stepWind, type WindMode, type WindState } from "./wind";
 import { isSessionInput } from "./input";
 import type { MainTrimCommand, MainTrimState } from "../rig/main-trim";
 
 export const SESSION_MODEL = "assisted-cruiser-v2";
-export const HEADING_TURN_RATE_DEG_PER_S = 45;
-export type Steering = { mode: "course-assist"; heading: number }
-  | { mode: "helm"; rudder: number; lowSpeedAssist: boolean };
+export { COURSE_ASSIST_TURN_RATE_DEG_PER_S as HEADING_TURN_RATE_DEG_PER_S } from "../../../lib/sailing-kinematics";
+export type Steering = SailingSteering;
 export interface SessionInput {
   mainTrim?: MainTrimCommand;
   controls: Controls;
@@ -72,17 +72,13 @@ export function stepSailingSession(prev: SailingSession, input: SessionInput, pa
   const wind = stepWind({ ...prev.wind, baseTws: input.wind.speed, baseDir: compass(input.wind.direction) }, input.wind.mode, dt);
   const live = interpolateControls(prev.live, input.controls, dt);
   const steering = input.steering;
-  const heading = steering.mode === "course-assist"
-    ? approachHeading(prev.boat.heading, steering.heading, HEADING_TURN_RATE_DEG_PER_S * dt)
-    : compass(prev.boat.heading + clamp(steering.rudder, -1, 1) * 22
-      * Math.max(steering.lowSpeedAssist ? 0.12 : 0, clamp(prev.boat.boatSpeed / 3, 0, 1)) * dt);
+  const heading = advanceSailingHeading(prev.boat.heading, prev.boat.boatSpeed, steering, dt);
   const boat = { ...prev.boat, heading, trueWindSpeed: wind.baseTws * wind.twsFactor, trueWindDir: compass(wind.baseDir + wind.dirOffset) };
   // Control-mode changes require an explicit fresh study, never a hidden
   // conversion that can jump the boom or erase a loaded tackle.
   if (Boolean(prev.mainTrim) !== Boolean(input.mainTrim)) throw new RangeError("Start a new session to change rig control mode");
   const result = stepWithRig(boat, live, params, prev.rig, dt, input.mainTrim ? { command: input.mainTrim, state: prev.mainTrim ?? null } : undefined);
-  const course = (result.state.heading + result.state.leeway) * Math.PI / 180;
-  const distance = result.state.boatSpeed * 0.514444 * dt;
+  const travel = sailingDisplacement(result.state.heading, result.state.leeway, result.state.boatSpeed, dt);
   const ticks = prev.ticks + 1;
   return {
     model: SESSION_MODEL, ticks, simTime: ticks * dt, boat: result.state, live: result.resolvedControls,
@@ -90,6 +86,6 @@ export function stepSailingSession(prev: SailingSession, input: SessionInput, pa
     target: { ...input.controls }, steering: { ...steering }, wind, windMode: input.wind.mode,
     rig: result.motion, lastDiag: result.diag, main: result.main, jib: result.jib,
     mainIncidence: result.mainIncidence, jibIncidence: result.jibIncidence,
-    position: { east: prev.position.east + Math.sin(course) * distance, north: prev.position.north + Math.cos(course) * distance },
+    position: { east: prev.position.east + travel.east, north: prev.position.north + travel.north },
   };
 }

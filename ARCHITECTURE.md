@@ -1153,3 +1153,13 @@ Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-
 
 - `docs/audits/2026-10-25/physical-courses-next.md` is the portable ordered implementation plan for shared Trainer kinematics, versioned short/medium/long contexts and pre-emission metadata/PB/replay/server compatibility. Proposed modules are not implemented by this document. It keeps map/wind and geographic island topology separate from three leg lengths.
 - `docs/audits/2026-10-25/feedback-triage.md` reconciles actual submitted build60 feedback with bounded62 evidence; raw feedback/contact data stays outside Git.
+
+## Physical-course phase1, preparation only
+
+- `src/lib/sailing-kinematics.ts` owns the existing Trainer heading and metre displacement laws without React, DOM or feature dependencies. `src/features/sailing-lab/runtime/session.ts` calls it in the original heading-before-force and travel-after-force order. The public Steering and heading-rate exports remain compatible.
+- `src/lib/sailing-kinematics.test.ts` checks knot/metre travel, compass/leeway signs, low-speed helm authority and bounded course assist.
+- `src/features/sailing-lab/runtime/session.kinematics.test.ts` locks a complete600-tick pre-extraction production trajectory with a portable normalized digest and readable numeric checkpoints.
+- `src/lib/race-context.ts` defines immutable registered legacy/physical contexts, strict invalid/unsupported reads and canonical base result classes. Missing historical context remains legacy.
+- `src/lib/race-context.test.ts` checks all registered contexts, unknown revisions/models/units and preservation of raw inputs.
+- `src/lib/race-courses.ts` is an unconnected120/300/600m metric registry and fresh world-coordinate factory/spawn layout. It does not switch race defaults, physics, progression, recordings or multiplayer. Metadata/PB/replay/server compatibility must precede activation.
+- `src/lib/race-courses.test.ts` checks metric distances, fixed hull/hardware, all five fleet clearances, proposed rounding envelopes and unchanged legacy factory output. Full sailing/recovery validation remains a later engine gate.
