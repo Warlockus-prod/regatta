@@ -1,6 +1,7 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type MutableRefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type MutableRefObject, type SetStateAction } from 'react';
+import { recordControlChange, recordDiagnostic } from "@/lib/diagnostics-controls";
 import {
   getBoatParams,
   twaFromCompass,
@@ -110,8 +111,9 @@ const INITIAL_TELEMETRY: SimTelemetry = {
 };
 
 export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: boolean) {
-  const [controls, setControls] = useState<Controls>({ rudder: 0, mainSheet: 0.6, jibSheet: 0.8, reef: 0 });
-  const [wind, setWind] = useState<WindState>({ twsKn: 12, fromDeg: 0 });
+  const [controls, setControlsState] = useState<Controls>({ rudder: 0, mainSheet: 0.6, jibSheet: 0.8, reef: 0 });
+  const [wind, setWindState] = useState<WindState>({ twsKn: 12, fromDeg: 0 });
+  const commandControls = useRef(controls), commandWind = useRef(wind);
   const [telemetry, setTelemetry] = useState<SimTelemetry>(INITIAL_TELEMETRY);
 
   const controlsRef = useRef(controls);
@@ -201,10 +203,25 @@ export function useSailingSim(yachtRef: MutableRefObject<YachtState>, enabled: b
     sessionRef.current = initialSession(controlsRef.current, windRef.current);
     solveRef.current = createTargetSolver();
     clockRef.current.reset();
+    recordDiagnostic({ type: "trainer.lifecycle", surface: "boat", outcome: "accepted", action: "reset" });
   }, []);
 
-  const setControl = <K extends keyof Controls>(key: K, value: Controls[K]) =>
-    setControls((c) => ({ ...c, [key]: value }));
+  const setControl = <K extends keyof Controls>(key: K, value: Controls[K], diagnostic = true) => {
+    const previous = commandControls.current[key];
+    commandControls.current = { ...commandControls.current, [key]: value };
+    setControlsState(c => ({ ...c, [key]: value }));
+    if (diagnostic) recordControlChange<"rudder" | "mainsheet" | "jibsheet" | "reef">("boat", ({ rudder: "rudder", mainSheet: "mainsheet", jibSheet: "jibsheet", reef: "reef" } as const)[key], value, previous);
+  };
+  const setControls = (action: SetStateAction<Controls>) => {
+    const previous = commandControls.current, next = typeof action === "function" ? action(previous) : action;
+    commandControls.current = next; setControlsState(action);
+    for (const key of ["rudder", "mainSheet", "jibSheet", "reef"] as const) if (next[key] !== previous[key]) recordControlChange("boat", ({ rudder: "rudder", mainSheet: "mainsheet", jibSheet: "jibsheet", reef: "reef" } as const)[key], next[key], previous[key]);
+  };
+  const setWind = (action: SetStateAction<WindState>) => {
+    const previous = commandWind.current, next = typeof action === "function" ? action(previous) : action;
+    commandWind.current = next; setWindState(action);
+    for (const [key, control] of [["twsKn", "wind-speed"], ["fromDeg", "wind-direction"]] as const) if (next[key] !== previous[key]) recordControlChange("boat", control, next[key], previous[key]);
+  };
 
   return { controls, setControl, setControls, wind, setWind, telemetry, reset };
 }

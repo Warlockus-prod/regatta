@@ -1,0 +1,163 @@
+{
+  "sourceCommit": "88fdaac37e1c0ac4acce35a5208ccceef0e04751",
+  "rollbackTag": "testflight-1.7.0-63",
+  "version": "1.7.0",
+  "build": "63",
+  "buildId": "5a0b9322-5356-4faa-aa3f-693eb3f2018c",
+  "self": {
+    "checkedAt": "2026-10-25T21:53:34.798Z",
+    "mode": "DRY RUN",
+    "appId": "6768134329",
+    "bundleId": "com.icoffio.regatta",
+    "version": "1.7.0",
+    "build": "63",
+    "self": {
+      "id": "45b9252e-b6ac-4117-ae2b-c85afa520d73",
+      "name": "Self",
+      "isInternalGroup": true,
+      "hasAccessToAllBuilds": false
+    },
+    "writes": 0,
+    "buildId": "5a0b9322-5356-4faa-aa3f-693eb3f2018c",
+    "processingState": "VALID",
+    "expired": false,
+    "usesNonExemptEncryption": false,
+    "member": true,
+    "internalState": "IN_BETA_TESTING",
+    "externalState": "READY_FOR_BETA_SUBMISSION",
+    "autoNotifyEnabled": true,
+    "status": "DELIVERED",
+    "delivered": true,
+    "sourceVerification": {
+      "sourceCommit": "88fdaac37e1c0ac4acce35a5208ccceef0e04751",
+      "headExact": true,
+      "releasePath": "mobile/releases/1.7.0.json",
+      "releaseBlobSha256": "9267decf6fa0963ad2320c2abb5c675f59bd90ea5dacd6957afaf8dde1f18de3",
+      "workingReleaseByteExact": true,
+      "allEightLocaleHashesMatch": true
+    }
+  },
+  "notes": {
+    "checkedAt": "2026-10-25T21:53:34.514Z",
+    "writes": 0,
+    "locales": [
+      {
+        "locale": "en-US",
+        "chars": 1953,
+        "bytes": 1953,
+        "sha256": "6dd5eb74125e091b258fd61b7053e50fcf654a8a36c3ddd5ceaaf4e3a85dee99",
+        "action": "unchanged"
+      },
+      {
+        "locale": "en-GB",
+        "chars": 1955,
+        "bytes": 1955,
+        "sha256": "3265644e3021f46820da7cef5bc28926528b05f0773dae504e1245eb6252852e",
+        "action": "unchanged"
+      },
+      {
+        "locale": "ru",
+        "chars": 2005,
+        "bytes": 3620,
+        "sha256": "de90f63572cf13a16bc5a4a561a51203203f32cb6936983036ec0fc6010c7177",
+        "action": "unchanged"
+      },
+      {
+        "locale": "pl",
+        "chars": 2005,
+        "bytes": 2085,
+        "sha256": "cdca9defd272ad3115da26d5185d6d14225259136ee8bf3c4598260fb66e3624",
+        "action": "unchanged"
+      },
+      {
+        "locale": "es-ES",
+        "chars": 2133,
+        "bytes": 2162,
+        "sha256": "f9a2eb5e08d2c33e04c0546e9a9dbeec2290703b9b917e71a6106782fca476cc",
+        "action": "unchanged"
+      },
+      {
+        "locale": "fr-FR",
+        "chars": 2161,
+        "bytes": 2222,
+        "sha256": "d827fc9d67dba0875596c0a71359928f8900e1b5f226a9627b2051c47311ce9f",
+        "action": "unchanged"
+      },
+      {
+        "locale": "de-DE",
+        "chars": 2164,
+        "bytes": 2197,
+        "sha256": "9accd110ffa1c5883af0065344738af5273815d08a534c5ee8d02c403681493a",
+        "action": "unchanged"
+      },
+      {
+        "locale": "it",
+        "chars": 2119,
+        "bytes": 2125,
+        "sha256": "a0b1b44a2727c885c8ff4f15b1cc01db1f59f4420808f2533c0d0bb8a156996a",
+        "action": "unchanged"
+      }
+    ]
+  },
+  "ipa": {
+    "bytes": 29964025,
+    "sha256": "fbec2b4cb0e4544f310da855d2d39b286640f590abbb9e8c7f93c194b395c15f"
+  },
+  "checks": {
+    "generated": 18,
+    "simulator": 27,
+    "archive": 33,
+    "ipa": 35,
+    "webTests": 1211,
+    "nativeTests": 472,
+    "releaseTools": 9
+  },
+  "installed": {
+    "checkedAt": "2026-10-25T21:44:33.354716+00:00",
+    "sourceCommit": "88fdaac37e1c0ac4acce35a5208ccceef0e04751",
+    "version": "1.7.0",
+    "build": "63",
+    "upgrade26_5": {
+      "all8RowsRetainedBeforeLaunch": true,
+      "priorDiagnosticEntries": 84,
+      "copiedAfterActions": 127,
+      "persistedAfterRelaunch": 129,
+      "sessionsAfterRelaunch": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "observed": [
+        "PL Home and SRC1%",
+        "resume lesson3 from preserved lesson2 completion",
+        "2600ms hold and two rapid taps: SQL4 with no callout/selection",
+        "centre rotation VOL16to20 with moving index and lesson3 complete",
+        "Inspect DIAL opens explanation",
+        "Back restores actual free practice",
+        "Exit returns native Home",
+        "Settings Diagnostics Copy shows Skopiowano and validJSON"
+      ]
+    },
+    "clean27_0": {
+      "dedicatedNewDevice": true,
+      "uninstallOrClear": false,
+      "observed": [
+        "Release launch",
+        "paper Foundation lesson1 readable",
+        "native Practice navigation",
+        "bundled radio free practice",
+        "held power and tap for Volume",
+        "rim rotation16to20 with moving index",
+        "arrow20to19",
+        "reserved Diagnostics panel opens"
+      ],
+      "persistedDiagnosticEntries": 26
+    },
+    "limits": [
+      "Physical owner iPhone18_2/iOS26.6.1 not observed.",
+      "No new all65 product, microphone/ASR, FPS or AppReview acceptance implied."
+    ]
+  },
+  "scope": "TestFlight delivery and changed-screen Simulator acceptance; not full65 product, physical owner phone or public AppReview acceptance."
+}

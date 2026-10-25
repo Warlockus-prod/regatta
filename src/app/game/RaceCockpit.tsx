@@ -1,5 +1,6 @@
 'use client';
 
+import DiagnosticAccess from "@/components/diagnostics/DiagnosticAccess";
 import { FoundationReturn, useFoundationReturnId } from "@/components/FoundationReturn";
 
 import { useState, type ReactNode } from "react";
@@ -117,6 +118,7 @@ export function RaceCockpit(p: {
             <Toggle label={c.sound} checked={!p.muted} onChange={p.onSound} />
             <p>{labels.soundNote}</p>
             <p>{c.rulesNote}</p>
+            <DiagnosticAccess />
           </div>}
         </div>
       </aside>

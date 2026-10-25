@@ -1,0 +1,33 @@
+{
+  "scope": "15 newly enumerated radio guide resources, not the complete SRC corpus",
+  "languages": [
+    "ru",
+    "en",
+    "pl",
+    "es",
+    "fr",
+    "de",
+    "it"
+  ],
+  "newResources": 15,
+  "valuesReviewed": 105,
+  "newHeadings": 8,
+  "newControlDescriptions": 3,
+  "verbatimHardwareLabels": [
+    "DSC / MENU",
+    "[16/C]",
+    "DW / TRI / SCAN",
+    "HI / LO"
+  ],
+  "allValuesMatchCatalogs": true,
+  "oldResourcesChanged": 0,
+  "oldResourcesRemoved": 0,
+  "oldTranslationsChanged": 0,
+  "oldTranslationsRemoved": 0,
+  "oldAliasesChanged": 0,
+  "oldAliasesRemoved": 0,
+  "independentSemanticReview": "PASS with one nonblocking Russian wording suggestion",
+  "reference": "https://icomuk.co.uk/files/icom/PDF/productManual/IC-M330_330G_ENG_IM_10.pdf",
+  "protocolMeaning": "PTT transmit/release-listen, held DIAL ON/OFF, turn volume, tap16 and hold calling-channel remain consistent",
+  "remaining": "Full content/device/accessibility/speech and every SRC branch are not certified by this bounded review."
+}

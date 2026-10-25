@@ -1,10 +1,10 @@
 {
   "schema": 1,
   "entry": "sternik-offline.html",
-  "version": "c05376f4c523",
+  "version": "775d74906866",
   "lang": "pl",
-  "sha256": "a50096b288b7cfc19d7eeb1ba63966e3b48bb63818539d8de266968da5207355",
-  "bytes": 2566470,
+  "sha256": "fa692b9f1671cfa8a130874a1c301f334b1fd43b5b1fd5853b771494633c6f64",
+  "bytes": 2580186,
   "routes": [
     "/sternik",
     "/sternik/teoria",
@@ -53,6 +53,9 @@
     "src/app/sternik/ustny/oralPrompts.ts",
     "src/app/sternik/ustny/page.tsx",
     "src/data/sternik.ts",
+    "src/lib/diagnostics-bridge.ts",
+    "src/lib/diagnostics-web.ts",
+    "src/lib/diagnostics.ts",
     "src/lib/sternik-progress.ts",
     "sternik-clouds:offline-sternik-clouds",
     "sternik-next:next/link",
@@ -162,8 +165,8 @@
     },
     {
       "path": "mobile/scripts/offline-sternik/router.tsx",
-      "bytes": 2881,
-      "sha256": "c24f76d190f4735ce4f4dfa26d12fd5f7c0efc9831134da03f884d3ceecc3a58"
+      "bytes": 3606,
+      "sha256": "04bb2fdb06d048bb4608b31038676d9c03e7fe98352818efec3b3b176bbbefb0"
     },
     {
       "path": "src/app/globals.css",
@@ -192,8 +195,8 @@
     },
     {
       "path": "src/app/sternik/SternikHub.tsx",
-      "bytes": 19875,
-      "sha256": "0ab93a11bf33bd903a3ecc17bb4c671e24ef5ea4d801344f59ff57a86a135d36"
+      "bytes": 19876,
+      "sha256": "a5f8b08f11acbdc0ff3101d99c13a53cccf4ffc9cfbb67555699f742c9357ffc"
     },
     {
       "path": "src/app/sternik/SternikSubnav.tsx",
@@ -274,6 +277,21 @@
       "path": "src/data/sternik.ts",
       "bytes": 612997,
       "sha256": "3ea47032c641735330ea25092bb7f923daebf5d062c1033c2c02f11a255194b0"
+    },
+    {
+      "path": "src/lib/diagnostics-bridge.ts",
+      "bytes": 1782,
+      "sha256": "7e8d0e434104ace903df97783e512347b009b81f7c42474a4d138441fbc33ce0"
+    },
+    {
+      "path": "src/lib/diagnostics-web.ts",
+      "bytes": 3877,
+      "sha256": "cd1a0996994ec483c139f45fe89d51c743c607d326eedb4069318a1b0309e263"
+    },
+    {
+      "path": "src/lib/diagnostics.ts",
+      "bytes": 24868,
+      "sha256": "6f911f0c4dc460b3a9935c8f122ad68cd474c80cdfa9eb4b11771cd9eee23f27"
     },
     {
       "path": "src/lib/sternik-progress.ts",

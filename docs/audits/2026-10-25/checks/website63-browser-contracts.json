@@ -1,0 +1,42 @@
+{
+  "schema": 1,
+  "appSource": "6aaa110ca5a85095f3ec17cdc8fecfc20666089f",
+  "failedSiteHead": "b01dce52e7b367dd99951f66eb53dfc3afa66593",
+  "run": {
+    "id": 40231485308,
+    "url": "https://github.com/Warlockus-prod/regatta/actions/runs/40231485308",
+    "event": "workflow_dispatch",
+    "total": 60,
+    "passedFirstAttempt": 55,
+    "failed": 5,
+    "flaky": 0,
+    "publicationSkipped": true,
+    "deploymentSkipped": true,
+    "productionE2ESkipped": true,
+    "artifactId": 12613028279,
+    "artifactSha256": "e29d6cd3fdcccc79adaa054bc65c61aa044e4e86f6c4173dbe5ea36e8e20d670"
+  },
+  "corrections": [
+    {
+      "file": "e2e/radio-workspace.spec.ts",
+      "cases": ["m330", "m323", "real"],
+      "evidence": "The actual volume LCD label is Volume:, not uppercase VOL. The false loop condition pushed through the volume screen before its assertion.",
+      "change": "Match Volume: in the existing push loop and before/after rotation assertions.",
+      "preserved": "Actual SQL drag, OPEN, moving index, 44px alternatives, rim motion, lesson Complete, release, Next and whole-radio geometry."
+    },
+    {
+      "file": "e2e/smoke.spec.ts",
+      "cases": ["Menu inventory", "legacy library radio search"],
+      "evidence": "The separate Diagnostics utility intentionally remains visible outside catalog search. Inventory is 23 catalog destinations plus 1 utility; radio search is 1 catalog match plus 1 utility.",
+      "change": "Keep catalog counts and assert the separate utility exactly once with all seven explicit localized names, exact href and 44px target, including empty search and clear.",
+      "preserved": "Header navigation, full catalog inventory, search, empty state, clear, theme, radio destination and overflow assertions."
+    }
+  ],
+  "runtimeChanged": false,
+  "timeoutsChanged": false,
+  "workflowGuardsChanged": false,
+  "nextCombinedGate": "pending",
+  "releaseGatesComplete": false,
+  "mergeOrDeploymentAuthorized": false,
+  "limitations": "The failed run did not reach volume rim motion after the mismatched label. Corrected tests require a new exact-head 60-case run; no installed-device or full product acceptance is inferred."
+}

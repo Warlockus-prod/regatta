@@ -7,9 +7,37 @@
 
 ## Unreleased
 
+- Delivered1.7.0(63) to Self: finger-operated radio DIAL, moving index, retained arrows, native selection protection and bounded local diagnostics. Native copy/relaunch and progress-preserving upgrade plus clean27 pass; independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. The following map/wind/gear and physical-course checkpoints remain separate.
+
+- Website 63 prepublication passed all 60 browser cases on the first attempt with actual frame readiness and unchanged budgets; Pro observations and its canonical journal are verified. Native 63 delivery is separate, and website merge/deploy/production acceptance remain pending.
+
+- Pro browser startup now requires an actual rendered frame within the same 25s allowance as canvas visibility, before its unchanged 15s clock and 120s case checks. CI serializes independent browser cases after measured WebGL2/ReadPixels stalls and overlapping heavy scenes; contention remains an inference. Local defaults, real multiplayer clients, assertions, retries and trace policy are preserved.
+
+- Suppressed the native touch default only on the active DIAL, preserving separate tap/hold/rotation commands and normal Inspect clicks. Repeated rapid taps now have an explicit selection-prevention path; native UI acceptance remains required.
+
+- Preserve bounded Pro browser evidence on successful retries: actual scene readiness, clock, visibility, pageerror stacks and a validated local journal. Invalid journal contents stay inside the read-only probe. Both deployment browser reports retain their existing 14-day artifact scope after success or failure; UI checks, budgets, trace policy and publication privileges are unchanged.
+
+- Prevented iOS Copy/Look Up callouts on the radio hardware and its captions, so long holds cannot cover the instrument. Learning text and the diagnostic journal remain selectable.
+
+- Corrected the final DIAL browser checks to the actual LCD label Volume:, retaining real SQL and rim motion and every completion/layout check. Menu browser checks keep the catalog inventory separate from the Diagnostics utility and verify its seven translated names, exact route and 44px target during search. No runtime or timeout changed; the next full browser gate remains required.
+
+- Radio DIAL now turns with a finger and shows a moving index, with44px arrows retained in every layout and keyboard alternatives. Rotation, tap and power hold have separate cancellation paths.
+
+- Added a bounded local diagnostic journal for radio, sailing controls, embedded startup/navigation and real save results, with clear/copy and outcome filtering in the dock and native Settings. It excludes private transmission/storage contents and automatic physics updates; native global data clearing prevents delayed journal revival. Complete product and native delivery acceptance remain separate.
+
+- Fixed browser Back after a language link: clearing the language query now preserves navigation history, so the free radio page can restore instead of leaving the lesson mounted under its URL.
+
+- Gave the shared3D replay browser case120s after its real camera selection passed at57.9s and the storage check met the former60s deadline. All readiness, recording, playback, camera and geometry assertions remain. The simulator smoke now retains actual error stacks in its private synthetic CI report; product telemetry is unchanged.
+
+- Gave radio status its own readable row below the compact toolbar, filled eight missing guide headings and three control descriptions in every SRC language, and made Back labels match the current return route. Aligned introductory lesson-list margins and neutral Sternik information colors. Candidate63 retains the62 progress-preserving startup repair; installed/native delivery gates follow separately.
+
+- Prepared one shared Trainer movement/turn helper and a versioned registry for short, medium and long physical courses. Current motion is preserved; the new race model is not enabled until saved records, replay and result classes support it.
+
+- Website pre-deploy checks now include sailing lessons and shared replay. Updated their browser contracts to the compact Task controls and actual camera selector, retaining real9m-to-11m keyboard input, pause, checkpoint and playback checks. The two-client multiplayer case receives120s after its60s deadline expired following verified helm input; global budgets and publication privileges are unchanged. Combined browser verification is still pending.
+
 - Gave three real 3D browser flows individual 120s budgets after cloud traces showed valid controls, pause and rendered scenes exhausting the former 30/60s limits. The trainer still must report its actual first rendered frame within 45s; every interaction and assertion remains in place, with no global timeout or app-runtime change.
 
-- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.
+- Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Delivered1.7.0(62) to Self: independent Apple GET confirms VALID/IN_BETA_TESTING and8notes. Actual48->61failure->62instrument/relaunch and existing8-value upgrade retain progress; full product/physical acceptance remains qualified.
 
 - The foundation return test keeps the 44px minimum while comparing browser geometry to 0.001px precision, avoiding a false failure at 43.999992px. Course return, navigation and progress assertions remain unchanged.
 

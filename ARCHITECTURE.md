@@ -770,20 +770,20 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `ops/deploy/compose.yml` - описание контейнеров, лежащее в `/etc/regatta-deploy`
   и доступное на запись только root. CI управляет содержимым образов, но никогда
   не монтированием, сетями и привилегиями рантайма.
-- `ops/deploy/test_deploy.py` - тесты именно границы привилегий, а не приложения.
+- `ops/deploy/test_deploy.py` - тесты границы привилегий: ограниченные deploy input/SSH/Compose/rollback, main-only publication/deployment и обязательные loopback learning/replay проверки без deploy secrets.
 - `ops/deploy/.gitignore` - прячет `__pycache__/` рядом с python-скриптами.
 - `ops/notify/README.md` - какие уведомления настроены и куда идут.
 - `ops/notify/asc-telegram-notify.mjs` - опрос статуса ревью App Store и сообщение в Telegram.
 - `ops/notify/asc-alert.sh` - управление launchd-задачей алерта.
 - `ops/notify/N8N_SUPPORT_SETUP.md` - настройка потока support@ в Telegram через n8n.
 - `ops/notify/regatta-support-email-to-telegram.workflow.json` - экспорт workflow n8n.
-- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены, глобальные defaults не меняются.
-- `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
+- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; catalog inventory отдельно от Diagnostics utility, для которой проверяются все7 названий, route, доступность при поиске и 44px. Три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены. Pro требует canvas и actual data-scene-startup=ready в одном 25s startup deadline перед прежней 15s clock-проверкой, без обхода renderer gate. Pro прикладывает before-clock/finally scene-startup, clock, visibility и максимум 10 pageerror stacks по 4KiB UTF-8. Read-only probe собирает shared pure parser внутри evaluate, возвращая только canonical 64KiB/200-entry journal либо present/invalid flags: raw invalid storage не попадает даже в retry trace. Переход Trainer/3D сохраняет actual pageerror stack в private synthetic CI report без изменения product telemetry.
+- `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8); отдельные120s сохраняют весь keyboard/WS/settings/layout/Fleet flow после доказанного60s deadline на поздней геометрии.
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.
-- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев.
+- `e2e/radio-workspace.spec.ts` - рация SRC остается в кадре целиком при прокрутке панели задания (симулятор и уроки Obsługa, телефон и десктоп), работает из закрепленного вида, у раздела четыре вкладки; действующая польская кнопка открывает объяснение управления, свободная практика не создает завершенных сценариев. Три модели проходят реальные SQL/Volume уроки мышью: actual LCD `Volume:`, вращение обода и индекса, Complete, release, Next и 44px альтернативы проверяются без изменения timeout.
 - `e2e/offline.spec.ts` - офлайн-курс: один онлайн-визит на /radio, затем без сети тренажер, симулятор и теория (нужна прод-сборка, BASE_URL).
-- `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд.
+- `e2e/sailing-learning.spec.ts` - e2e курса парусов: шаги урока, проверка теории, стенд, compact Task и реальное изменение9m->11m с сохранением намерения через виды, панели и checkpoint; обычный30s бюджет этого case сохранен.
 
 ### 4.16 Корневые конфиги
 
@@ -793,14 +793,14 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `eslint.config.mjs` - правила ESLint (в CI пока advisory: 11 ошибок в общих веб-файлах на 2026-10-19).
 - `postcss.config.mjs` - подключение Tailwind v4 через PostCSS.
 - `vitest.config.ts` - web unit tests use the complete root tsconfig as a string, including pure native adapters without requiring Expo in root-only CI.
-- `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью.
+- `playwright.config.ts` - конфиг E2E, `BASE_URL` управляет целью; CI использует одного worker для независимых тяжелых сцен, локальный default и два реальных клиента внутри multiplayer case сохранены. Retries, trace policy и бюджеты не меняются.
 - `Dockerfile` - образ веб-приложения (node alpine по digest, standalone); код принадлежит root, рантайм-пользователь 1001 пишет только в `/data` и `/app/.next/cache`.
 - `docker-compose.yml` - только локальная разработка (проект `regatta-local`): сервисы `regatta` (172.17.0.1:4500) и `regatta-ws` (172.17.0.1:4502), том `/data`, healthcheck. Прод его не использует (`ops/deploy/compose.yml`).
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
 - `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет неизменный JS-бюджет и выполняет `e2e/foundation.spec.ts` до публикации.
-- `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Экшены закреплены по SHA.
+- `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E включая sailing lessons/replay, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Non-main checks не получают deploy secrets и не публикуют образы. Экшены закреплены по SHA.
 - `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 
 ---
@@ -1018,7 +1018,7 @@ PYA для PL, RFEV для ES, FFVoile для FR, DSV для DE, Federvela дл�
 - `public/sw.js` precaches exactly the eight public radio catalog/alias JSON resources for offline language switching; arbitrary JSON and private/API responses remain excluded. `src/app/radio/sw.test.ts` covers this boundary.
 
 - `src/lib/race-replay.ts` validates shared world recordings, preserves bounded rig/wind and mode/penalty metadata in the existing course JSON, upgrades legacy course geometry and interpolates by exact sample timestamps. `src/lib/race-replay.test.ts` verifies these contracts.
-- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer, exact end-time scrubbing, camera and reserved playback controls.
+- `src/app/api/replay/[code]/route.test.ts` verifies old/new replay reads; `e2e/replay.spec.ts` checks the shared 3D viewer and actual first rendered frame, exact end-time scrubbing, camera select/high preference and reserved playback controls within its own120s case budget. The corrected camera value passed at58.888s before the old60s deadline interrupted storage verification; assertions and global defaults remain unchanged.
 - A solo race captures its Simple/Pro classification at countdown start, independent of later preference changes in another tab. Sheet keyboard shortcuts are owned by the race across utility tabs; absolute course sliders set a target without accumulating render-delay errors.
 - Wheel hints read browser visit counts after identical server/client hydration. Desktop trainer wheel mode no longer duplicates the sheet/rudder sliders below its wheels.
 
@@ -1059,7 +1059,9 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
 
-Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. Image publication and deployment explicitly require refs/heads/main. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged.
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, sailing learning, shared replay, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. `ops/deploy/test_deploy.py` locks the prepublication suite selection, loopback target, absence of deploy secrets and main-only publication/deployment conditions. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged. The expanded browser gate must still run on the combined source candidate before another publication.
+
+Both pre-deploy and production browser report steps use always() with the same pinned upload action, narrow playwright-report directory and 14-day retention, so successful retries preserve screenshots, retry traces and bounded Pro JSON attachments. The existing boundary tests also lock these artifact limits; the production job still requires successful deploy. This does not change trace-on-first-retry, UI assertions, budgets or host authority. Foundation-only CI report retention is unchanged.
 
 Completion and installed sailing package:
 
@@ -1148,3 +1150,106 @@ Free-trim acceptance correction2026-10-25: `src/features/simulator-v3/ui/shared.
 Checkpoint62 ordered work is `docs/audits/2026-10-25/release62-harness.md`: urgent SRC legacy-storage compatibility and bounded startup recovery, plus ADR-0010 foreground time/lifecycle and accessible slider names. Owner TestFlight screenshot60 shows failure before the radio mounts; an old lang.v1 snapshot reproduces that native read failure in60/61. Physical solo courses under ADR-0011 remain a following checkpoint. No physical course is enabled by this documentation.
 
 - `src/features/sailing-lab/runtime/clock-lifecycle.ts` anchors visibility boundaries even without hidden RAF/timer samples, and disposes stale clocks; `src/features/sailing-lab/runtime/clock-lifecycle.test.ts` verifies real helper timing/lifecycle contracts. Fixed clock accepts at most2seconds/60steps of foreground time and synchronizes ready/pause/enabled state without clearing cumulative ticks. GameClient publishes HUD from the final fixed-step batch.
+
+
+Delivered62/current full65 acceptance: `docs/design/mobile/testflight62-2026-10-25.md`, `docs/audits/2026-10-25/acceptance62.md`, `docs/audits/2026-10-25/checks/native62-delivery.json`. Exacte3d/tag testflight-1.7.0-62 is immutable; actual48->61failure->62instrument/relaunch and existing8-value upgrade are separate QA proofs. Physical courses/map/wind instruments/geographic island routes remain open, and website publication has its own full gate.
+
+- `docs/audits/2026-10-25/physical-courses-next.md` is the portable ordered implementation plan for shared Trainer kinematics, versioned short/medium/long contexts and pre-emission metadata/PB/replay/server compatibility. Proposed modules are not implemented by this document. It keeps map/wind and geographic island topology separate from three leg lengths.
+- `docs/audits/2026-10-25/feedback-triage.md` reconciles actual submitted build60 feedback with bounded62 evidence; raw feedback/contact data stays outside Git.
+
+## Physical-course phase1, preparation only
+
+- `src/lib/sailing-kinematics.ts` owns the existing Trainer heading and metre displacement laws without React, DOM or feature dependencies. `src/features/sailing-lab/runtime/session.ts` calls it in the original heading-before-force and travel-after-force order. The public Steering and heading-rate exports remain compatible.
+- `src/lib/sailing-kinematics.test.ts` checks knot/metre travel, compass/leeway signs, low-speed helm authority and bounded course assist.
+- `src/features/sailing-lab/runtime/session.kinematics.test.ts` locks a complete600-tick pre-extraction production trajectory with a portable normalized digest and readable numeric checkpoints.
+- `src/lib/race-context.ts` defines immutable registered legacy/physical contexts, strict invalid/unsupported reads and canonical base result classes. Missing historical context remains legacy.
+- `src/lib/race-context.test.ts` checks all registered contexts, unknown revisions/models/units and preservation of raw inputs.
+- `src/lib/race-courses.ts` is an unconnected120/300/600m metric registry and fresh world-coordinate factory/spawn layout. It does not switch race defaults, physics, progression, recordings or multiplayer. Metadata/PB/replay/server compatibility must precede activation.
+- `src/lib/race-courses.test.ts` checks metric distances, fixed hull/hardware, all five fleet clearances, proposed rounding envelopes and unchanged legacy factory output. Full sailing/recovery validation remains a later engine gate.
+
+- `src/app/radio/obsluga/guideTranslations.test.ts` reads actual JSX section titles and visible table cells through the real catalog/generator, protecting all7 guide adaptations, verbatim hardware inscriptions and existing aliases. The generator explicitly enumerates paired JSX language attributes and visible Table arrays, including copy with equals signs; it does not rewrite course IDs, state or protocol speech.
+- `docs/audits/2026-10-25/release63-harness.md` owns the bounded SRC layout/guide-copy, Foundation gutter and Sternik information checkpoint, native verification and separate website gates.
+
+- `docs/audits/2026-10-25/checks/website62-runtime-gate.json` is the portable72b4f57 publication, immutable image/runtime and red final browser-gate record. Healthy deployment and targeted manual UI do not replace successful full acceptance.
+- `docs/audits/2026-10-25/checks/website63-browser-contracts.json` records the exact red60-case source/artifact, five diagnosed LCD/Menu expectation corrections and the required next combined gate without claiming runtime or delivery acceptance.
+
+- Language URL cleanup in `src/lib/i18n.tsx` preserves browser history state. Removing a lang query must not replace App Router metadata with null: that can change the Back URL while leaving the previous React screen mounted. The seven SRC course-return browser cases cover this flow.
+
+
+## Local diagnostics and rotary radio input, candidate63
+
+The typed journal accepts only finite command projections and fixed outcome/reason
+codes. It retains at most200 entries/64KiB with a48h persisted envelope. Adjacent
+control samples can coalesce while retaining their input count and endpoints.
+Browser journals use one debounced localStorage row. Installed WebViews use
+memory only; validated append-only batches flow to the authoritative native
+AsyncStorage journal. Neither transport can invoke navigation, storage or speech
+commands. Raw messages, answers, callsigns, MMSI, positions, audio, URLs and
+exception text never enter these entries. No automatic upload is added.
+
+Native Settings opens the app journal with filter, clear and confirmed clipboard
+copy. Clear all suspends native persistence before deletion and removes any late
+write. One pending diagnostic flush and one latest-state follow-up bound a stalled
+writer. Radio panels and sailing docks expose the current screen journal in
+reserved space. One preloaded split point shares its seven-language panel without
+duplicating the catalog in every route; offline builders embed that code locally.
+
+Radio DIAL uses one pointer owner, centre horizontal detents or rim angle detents,
+a visible index, tap selection and1000ms power hold. Rotation cancels tap/hold;
+cancellation, model/Inspect changes and unmount clear pending timers. All layouts
+retain44px arrow controls and keyboard alternatives. Runtime radio commands are
+projected from actual previous/next reducer states, outside React updaters.
+Race/trainer adapters log user commands and actual save acknowledgements, excluding
+physics ticks and automatic helm corrections. Coverage and limits are recorded
+in `docs/audits/2026-10-25/diagnostics63.md`; a journal is not proof that every
+product acceptance item has passed.
+
+- `mobile/__tests__/screens/diagnostics.test.tsx` - native journal filtering, progress-preserving clear and confirmed clipboard outcomes.
+- `mobile/app/diagnostics.tsx` - native Settings destination for the whole app journal.
+- `mobile/src/diagnostics/DiagnosticLifecycle.tsx` - nonblocking native initialization and foreground/background flush boundaries.
+- `mobile/src/diagnostics/journal.test.ts` - native delayed read/write, wipe, failed storage, transport and boundedness checks.
+- `mobile/src/diagnostics/journal.ts` - native asynchronous journal, coalesced flushes, safe embedded transport and global-clear epoch barrier.
+- `src/app/diagnostics/page.tsx` - web Menu destination for the current browser journal.
+- `src/app/game/GameClient.commands.test.tsx` - actual solo handler normalization, rapid commands, no-op and recorder failure isolation.
+- `src/app/radio/symulator/RadioFront.test.tsx` - all model/skin/layout arrow and index markup contracts.
+- `src/app/radio/symulator/commandDiagnostics.test.ts` - radio clamp/rejection results and private-data exclusion.
+- `src/app/radio/symulator/commandDiagnostics.ts` - safe actual radio reducer outcome projection without transmission contents.
+- `src/app/radio/symulator/dialGesture.test.ts` - rim/centre motion, cancellation, keyboard and hold exclusivity.
+- `src/app/radio/symulator/dialGesture.ts` - pure detents and exclusive tap/hold/rotate lifecycle controller.
+- `src/app/radio/symulator/useRotaryDial.ts` - React pointer capture, moving index, gesture diagnostics and local non-passive touch-default cancellation outside Inspect.
+- `src/app/radio/symulator/useRotaryDial.test.ts` - actual hook/ref listener, pointer command exclusivity, Inspect and node/model cleanup contracts.
+- `src/components/diagnostics/DiagnosticAccess.tsx` - preloaded journal disclosure inside existing sailing dock space.
+- `src/components/diagnostics/DiagnosticPanel.tsx` - filtered local journal, explicit clear and guarded browser copy.
+- `src/components/diagnostics/DiagnosticPanelLoader.tsx` - shared dynamic panel split point, locally bundled in native builds.
+- `src/features/simulator-3d/physics/useSailingSim.diagnostics.test.ts` - real control hook commands, no-op, automatic correction suppression and logger failure isolation.
+- `src/features/simulator-v3/SimulatorV3Page.diagnostics.test.tsx` - actual trainer UI trim geometry/reef/furl projection.
+- `src/features/simulator-v3/hooks/use-trainer-checkpoint.test.ts` - pending versus acknowledged checkpoint saves, errors and restore.
+- `src/lib/diagnostic-copy.ts` - complete seven-language journal/outcome copy.
+- `src/lib/diagnostic-destination.test.ts` - static route projection and unknown-route privacy regression.
+- `src/lib/diagnostic-destination.ts` - fixed route and surface identifiers that omit all dynamic path/query data.
+- `src/lib/diagnostic-title.ts` - small shared title and language lookup without the full panel catalog.
+- `src/lib/diagnostics-bridge.test.ts` - batch bounds, original event counts, private-field rejection and failed transport isolation.
+- `src/lib/diagnostics-bridge.ts` - one append-only native transport for original validated events.
+- `src/lib/diagnostics-controls.test.ts` - actual outcome and unchanged-value projections.
+- `src/lib/diagnostics-controls.ts` - failure-isolated normalized control and preference recording.
+- `src/lib/diagnostics-web.test.ts` - SSR isolation, persistence failures, original-input subscription and native memory-only regression.
+- `src/lib/diagnostics-web.ts` - per-window browser journal and memory-only native WebView adapter.
+- `src/lib/diagnostics.test.ts` - privacy, event ranges, byte/entry bounds, coalescing and expiry regressions.
+- `src/lib/diagnostics.ts` - pure bounded journal, exact event schemas and validated persistence/transport codecs.
+
+The shared radio hardware stage disables text selection and iOS touch callouts
+for its faceplate/captions and cancels contextmenu. The DIAL button alone was
+already protected, but installed course holds could still select the nearby
+caption and cover controls. Teaching text and diagnostics lie outside this stage
+and keep selection/copy. The source6aaa110 candidate is preserved, never uploaded.
+
+### Delivered63 and following navigation instruments
+
+`docs/design/mobile/testflight63-2026-10-25.md` and
+`docs/audits/2026-10-25/checks/native63-delivery.json` pin source88fdaac and
+actual Self/native evidence. `docs/audits/2026-10-25/diagnostics63.md` owns
+coverage limits. `docs/audits/2026-10-25/acceptance63.md` retains all65rows
+and current qualified acceptance. Next64 adds race map/wind display and shared gear affordance;
+physical motion/classes and full product acceptance remain separate.
+
+- `docs/audits/2026-10-25/checks/website63-prepublication.json` - immutable APP 88/runtime and SITE c8ae4ef first-pass 60 proof, validated Pro observations/artifact hashes and explicit unpublished/partial-acceptance boundaries; later docs-only sync does not add source 64.

@@ -1,5 +1,10 @@
 'use client';
 
+import DiagnosticPanel from "@/components/diagnostics/DiagnosticPanelLoader";
+import { diagnosticTitle, diagnosticText } from "@/lib/diagnostic-title";
+import { useI18n } from "@/lib/i18n";
+import { recordWebDiagnostic } from "@/lib/diagnostics-web";
+import { flushDiagnosticBridge, initializeDiagnosticBridge } from "@/lib/diagnostics-bridge";
 import { useRadioI18n } from "@/app/radio/localization/context";
 import { postRadioMessage } from "../navigation";
 
@@ -42,6 +47,7 @@ export function useRadioWorkspace(active: boolean, realistic: boolean) {
   }, [realistic]);
   useEffect(() => {
     if (!active) return undefined;
+    initializeDiagnosticBridge();
     const root = document.documentElement;
     root.setAttribute('data-radio-workspace', '');
     // In the iOS app (offline bundle or ?embed=1) the native screen hides its
@@ -83,8 +89,9 @@ export function RadioWorkspace({
   const { rt: radioText, tl } = useRadioI18n();
   const { tp } = useTrainerI18n();
   const native = useSyncExternalStore(noSubscribe, () => typeof window !== 'undefined' && Boolean((window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView), () => false);
+  const { lang } = useI18n();
   const order=["task","help","situation","listen","log","device"];
-  const panels = dockPanels(dock).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+  const panels = [...dockPanels(dock).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id)), { id: "diagnostics", label: diagnosticText(diagnosticTitle, lang), content: null }];
   const [selection, setSelection] = useState({ panel: requestedPanel ?? "task", requestedPanel, requestVersion });
   const activePanel = selection.requestedPanel === requestedPanel && selection.requestVersion === requestVersion
     ? selection.panel : requestedPanel ?? "task";
@@ -92,7 +99,7 @@ export function RadioWorkspace({
   const selected = panels.some(panel=>panel.id===activePanel) ? activePanel : panels[0]?.id;
   return (
     <div className={styles.workspace} data-stacked={stacked || undefined} data-testid={testId}>
-      <div className={styles.bar}>
+      <div className={styles.bar} data-testid="radio-workspace-bar">
         <div className={styles.barInner}>
           <button
             type="button"
@@ -102,14 +109,16 @@ export function RadioWorkspace({
             title={radioText(exitTitle)}
             className={styles.barButton}
           >
-            <span aria-hidden="true">‹</span><span className="hidden min-[400px]:inline">{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
+            <span aria-hidden="true">‹</span><span className={styles.barLabel}>{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
           </button>
-          <div className={styles.barStatus}>{status}</div>
-          {actions}
-          {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => postRadioMessage({ type: "radio-exit" })}
-            aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
-            {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
-          </button>}
+          <div className={styles.barStatus} data-testid="radio-workspace-status">{status}</div>
+          <div className={styles.barActions}>
+            {actions}
+            {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => { recordWebDiagnostic({ type: "navigation", surface: "radio", action: "request", outcome: "accepted", to: "practice" }); flushDiagnosticBridge(); postRadioMessage({ type: "radio-exit" }); }}
+              aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
+              {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
+            </button>}
+          </div>
         </div>
       </div>
       <div className={styles.main}>
@@ -119,7 +128,7 @@ export function RadioWorkspace({
             {panels.map(panel=><button key={panel.id} type="button" role="tab" id={`radio-tab-${panel.id}`} aria-selected={selected===panel.id} aria-controls={`radio-panel-${panel.id}`} onKeyDown={(event)=>{const keys=["ArrowLeft","ArrowRight","Home","End"];if(!keys.includes(event.key))return;event.preventDefault();const index=panels.findIndex(item=>item.id===selected);const next=event.key==="Home"?0:event.key==="End"?panels.length-1:(index+(event.key==="ArrowRight"?1:-1)+panels.length)%panels.length;setActivePanel(panels[next].id);document.getElementById(`radio-tab-${panels[next].id}`)?.focus();}} tabIndex={selected===panel.id?0:-1} onClick={()=>{setActivePanel(panel.id);if(dockRef&&typeof dockRef!=="function"&&dockRef.current)dockRef.current.scrollTop=0;}}>{radioText(panel.label)}</button>)}
           </div>}
           <div ref={dockRef} className={styles.dock} data-testid="radio-dock">
-            {panels.length ? panels.map(panel=><section key={panel.id} role="tabpanel" id={`radio-panel-${panel.id}`} aria-labelledby={`radio-tab-${panel.id}`} hidden={selected!==panel.id}>{panel.content}</section>) : dock}
+            {panels.length ? panels.map(panel=><section key={panel.id} role="tabpanel" id={`radio-panel-${panel.id}`} aria-labelledby={`radio-tab-${panel.id}`} hidden={selected!==panel.id}>{panel.id === "diagnostics" ? <DiagnosticPanel active={selected === panel.id} /> : panel.content}</section>) : dock}
           </div>
         </div>
       </div>
@@ -142,7 +151,7 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
       className={styles.barButton}
       style={on ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)', borderColor: 'var(--accent-cyan)' } : undefined}
     >
-      <span aria-hidden>🔍</span><span className="hidden min-[400px]:inline">{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
+      <span aria-hidden>🔍</span><span className={styles.barLabel}>{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
     </button>
   );
 }

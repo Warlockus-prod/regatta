@@ -1,10 +1,13 @@
 'use client';
 
+import { recordWebDiagnostic } from "@/lib/diagnostics-web";
+import { diagnosticSurface } from "@/lib/diagnostic-destination";
 import { Component, type ReactNode } from "react";
 import { useGLTF } from "@react-three/drei";
 
 export function reportScene(status: "scene-ready" | "scene-error") {
   const host = window as Window & { ReactNativeWebView?: { postMessage: (value: string) => void } };
+  if (status === "scene-error") recordWebDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface(window.location.pathname), action: "error", outcome: "failed", reason: "scene-load", source: "system" });
   host.ReactNativeWebView?.postMessage(status);
 }
 
@@ -22,6 +25,7 @@ export class SceneBoundary extends Component<{
       <div role="alert" className="flex h-full min-h-48 flex-col items-center justify-center gap-4 bg-[var(--bg-primary)] p-6 text-center text-[var(--text-primary)]">
         <p>{this.props.errorLabel}</p>
         <button className="min-h-11 rounded-lg border border-[var(--accent-cyan)] px-5" onClick={() => {
+          recordWebDiagnostic({ type: "embedded.lifecycle", surface: diagnosticSurface(window.location.pathname), action: "retry", outcome: "accepted", source: "pointer" });
           useGLTF.clear(this.props.modelUrl);
           this.setState(({ attempt }) => ({ failed: false, attempt: attempt + 1 }));
         }}>{this.props.retryLabel}</button>

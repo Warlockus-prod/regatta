@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import RadioFront from '../symulator/RadioFront';
+import { recordRadioCommand, recordRadioCommandFailure } from '../symulator/commandDiagnostics';
 import { InspectPanel } from '../symulator/InspectPanel';
 import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
 import { radioRuntimeSearch } from '../runtimeSearch';
@@ -76,7 +77,7 @@ function channelNumber(state: RadioState): string {
 export default function InteractiveRadioCourse() {
   const router = useRouter();
   const { rt: radioText } = useRadioI18n();
-  const { tp, lang } = useRadioI18n();
+  const { tp, tl, lang } = useRadioI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
   // The realistic look is amber; the trainer models are green.
   const skin = radioRealistic ? 'amber' : 'green';
@@ -337,8 +338,11 @@ export default function InteractiveRadioCourse() {
 
   const dispatch = useCallback((event: RadioEvent) => {
     const prev = stateRef.current;
-    const next = radioReducer(prev, event);
+    let next: RadioState;
+    try { next = radioReducer(prev, event); }
+    catch (error) { recordRadioCommandFailure(prev, event); throw error; }
     stateRef.current = next;
+    recordRadioCommand(prev, event, next);
     // The radio's own sounds: a keypress, a refusal, a dial detent, the hiss
     // behind the squelch. A refused PTT on CH 70 must not sound like success.
     audio.onEvent(event, prev, next);
@@ -482,7 +486,9 @@ export default function InteractiveRadioCourse() {
           stacked={stacked}
           onExit={() => new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1' ? router.back() : setOpen(false)}
           exitTestId="course-exit"
-          exitTitle={tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
+          exitTitle={new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1'
+            ? tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })
+            : tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
           status={(
             <>
               <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>

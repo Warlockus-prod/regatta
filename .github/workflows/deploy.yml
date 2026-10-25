@@ -92,17 +92,19 @@ jobs:
             echo "FAIL: app did not become healthy in 40s"; kill $APP_PID 2>/dev/null || true; exit 1
           fi
           set +e
-          # Smoke, foundation, radio layouts and offline practice before publication.
+          # Smoke, foundation, sailing lessons, replay, radio layouts and offline
+          # practice before publication. Lesson and replay contracts must pass
+          # on the candidate instead of first being exercised on production.
           # Excludes the AI chat test (needs a live LLM key -
           # covered post-deploy on prod) and multiplayer.spec (needs the ws
           # server + prod nginx /ws upgrade, also covered post-deploy).
-          npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
+          npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/sailing-learning.spec.ts e2e/replay.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
           RESULT=$?
           set -e
           kill $APP_PID 2>/dev/null || true
           exit $RESULT
-      - name: Upload pre-deploy E2E report on failure
-        if: failure()
+      - name: Upload pre-deploy E2E report
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report-predeploy
@@ -253,8 +255,8 @@ jobs:
         run: npx playwright test
         env:
           BASE_URL: https://weektoregatta.com
-      - name: Upload HTML report on failure
-        if: failure()
+      - name: Upload HTML report
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: playwright-report

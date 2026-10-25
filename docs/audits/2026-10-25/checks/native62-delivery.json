@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-25T17:09:17.160Z",
+  "sourceCommit": "e3d70a18077b9f30509807f2106076fc476515bd",
+  "tag": "testflight-1.7.0-62",
+  "version": "1.7.0",
+  "build": "62",
+  "buildId": "c2741c4b-435d-426e-89b4-a17437ba999e",
+  "processingState": "VALID",
+  "expired": false,
+  "usesNonExemptEncryption": false,
+  "selfGroup": "Self",
+  "selfMember": true,
+  "internalState": "IN_BETA_TESTING",
+  "independentReadsOnly": true,
+  "writes": 0,
+  "notesCheckedAt": "2026-10-25T17:09:16.870Z",
+  "notesLocalesUnchanged": [
+    "en-US",
+    "en-GB",
+    "ru",
+    "pl",
+    "es-ES",
+    "fr-FR",
+    "de-DE",
+    "it"
+  ],
+  "ipa": {
+    "bytes": 29904774,
+    "sha256": "5388295c4d8118702012f5ea81732ce1fe4f76176d8b6fdc4be5923d963d5f20"
+  }
+}

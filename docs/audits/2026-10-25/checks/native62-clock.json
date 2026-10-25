@@ -1,0 +1,31 @@
+{
+  "checkedAt": "2026-10-25T17:01:36.555399+00:00",
+  "sourceCommit": "e3d70a18077b9f30509807f2106076fc476515bd",
+  "build": "62",
+  "runtime": "iOS26.5",
+  "mode": "Pro",
+  "sceneLoadedBeforeClock": true,
+  "observedClockSeconds": [
+    21.2,
+    43.0,
+    46.9,
+    93.5
+  ],
+  "paused43DuringOrbitAndSettings": true,
+  "actualOrbitDragChangedView": true,
+  "actualControlModeChanges": [
+    "wheels to sliders",
+    "rudder to course"
+  ],
+  "actualVisibleLabels": [
+    "Kurs45deg",
+    "Szot grota35%",
+    "Szot foka53%"
+  ],
+  "resumedClockAdvanced": true,
+  "finalPausedSeconds": 93.5,
+  "limitations": [
+    "No measured physical FPS or heat claim",
+    "Native WK accessibility tree not exposed by Device Hub; actual ARIA names are covered by browser DOM acceptance and cloud E2E."
+  ]
+}
