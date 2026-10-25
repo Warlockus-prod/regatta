@@ -7,6 +7,7 @@ const questions = getQuizForLesson("wind-direction");
 test.beforeEach(async ({ context }) => {
   await context.addInitScript(({ old }) => {
     localStorage.setItem("regatta.lang.v1", "ru");
+    localStorage.setItem("regatta.v3.tour.v1", "1");
     if (!localStorage.getItem("foundation-fixture")) {
       localStorage.setItem("regatta.bootcamp", old);
       localStorage.setItem("foundation-fixture", "1");

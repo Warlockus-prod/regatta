@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.
+
 - Reopened the full completion audit after build60 feedback. Candidate61 adds the trainer's freely rotatable close3D camera to racing, a direct radio-practice entry, internal SRC Back, dependable native exits, and matching dark instrument frames. Actual-device acceptance and delivery are recorded separately.
 - Kept wheels visible alongside lesson tasks, restored real mainsheet lengths and precise steps, moved recovery-trainer overlays into reserved controls, and unified race/control sounds. Offline results no longer promise global publication.
 - Replaced website foundation manual completion with the original shared19-question checks, learning diagrams, saved drafts and honest viewed/theory/practice evidence. Original native content and historical progress remain intact.

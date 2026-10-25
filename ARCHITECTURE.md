@@ -799,7 +799,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `regatta.nginx.conf` - эталон конфига реверс-прокси и CSP; на хосте применяется вручную.
 - `.dockerignore` - что не попадает в контекст сборки образа.
 - `.gitignore` - что не попадает в репозиторий (включая `.env*` и любые `*.png` в корне).
-- `.github/workflows/ci.yml` - CI на ветки и PR: типы, lint (advisory), тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного.
+- `.github/workflows/ci.yml` - CI на ветки и PR: типы, blocking lint, тире, карта, весь `npx vitest run`, `npm run test:multiplayer`, отдельная джоба мобильного; Foundation browser flow собирает web, проверяет неизменный JS-бюджет и выполняет `e2e/foundation.spec.ts` до публикации.
 - `.github/workflows/deploy.yml` - деплой с `main`: те же проверки до сборки, сборка и pre-deploy E2E, образы в GHCR, деплой через `ops/deploy` в environment `production`, smoke и Playwright на проде. Экшены закреплены по SHA.
 - `.github/dependabot.yml` - еженедельные PR обновлений: npm для корня и `ws-server`, docker-образы (digest, без смены мажорной версии Node: она меняется вместе с `node-version` в воркфлоу), GitHub Actions; без автомержа, `mobile/` не входит.
 
@@ -1056,7 +1056,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
 
-Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, radio workspace and offline browser suites against the loopback production build before publishing images. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
 
 Completion and installed sailing package:
 
