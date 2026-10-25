@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useI18n } from "@/lib/i18n";
+import { controlSoundCopy } from "./sound-copy";
 
 // Strings of the shared control dock, wheels and settings sheet, 7 languages.
 // Sheet names follow scripts/sailing-glossary.md: the label always names the sheet.
@@ -23,13 +24,13 @@ export function useControlLabels() {
     sliders: tl({ ru: "Ползунки", en: "Sliders", pl: "Suwaki", es: "Deslizadores", fr: "Curseurs", de: "Schieberegler", it: "Cursori" }),
     wheels: tl({ ru: "Штурвалы", en: "Wheels", pl: "Koła", es: "Ruedas", fr: "Roues", de: "Räder", it: "Ruote" }),
     modeNote: tl({
-      ru: "Ползунки по умолчанию. Штурвалы: большой руль по центру, по бокам стаксель-шкот и гика-шкот.",
-      en: "Sliders are the default. Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides.",
-      pl: "Domyślnie suwaki. Koła: duży ster pośrodku, po bokach szot foka i szot grota.",
-      es: "Por defecto, deslizadores. Ruedas: un timón grande en el centro y, a los lados, la escota de foque y la de mayor.",
-      fr: "Par défaut, des curseurs. Roues : une grande barre au centre, l'écoute de foc et l'écoute de grand-voile sur les côtés.",
-      de: "Standard sind Schieberegler. Räder: ein großes Steuer in der Mitte, Fock- und Großschot an den Seiten.",
-      it: "Di base i cursori. Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa.",
+      ru: "Штурвалы по умолчанию. Ползунки можно выбрать здесь. Штурвалы: большой руль по центру, по бокам стаксель-шкот и гика-шкот.",
+      en: "Wheels are the default. Sliders are available here. Wheels: a big helm in the middle, the jib sheet and the mainsheet at the sides.",
+      pl: "Domyślnie koła. Tutaj możesz wybrać suwaki. Koła: duży ster pośrodku, po bokach szot foka i szot grota.",
+      es: "Por defecto, ruedas. Aquí puedes elegir deslizadores. Ruedas: un timón grande en el centro y, a los lados, la escota de foque y la de mayor.",
+      fr: "Par défaut, des roues. Les curseurs sont disponibles ici. Roues : une grande barre au centre, l'écoute de foc et l'écoute de grand-voile sur les côtés.",
+      de: "Standard sind Räder. Schieberegler stehen hier zur Wahl. Räder: ein großes Steuer in der Mitte, Fock- und Großschot an den Seiten.",
+      it: "Di base le ruote. Qui puoi scegliere i cursori. Ruote: un grande timone al centro, ai lati la scotta del fiocco e quella della randa.",
     }),
     helmSets: tl({ ru: "Штурвал задает", en: "The wheel sets", pl: "Koło sterowe ustawia", es: "La rueda fija", fr: "La roue règle", de: "Das Steuerrad stellt", it: "La ruota imposta" }),
     course: tl({ ru: "Курс", en: "Course", pl: "Kurs", es: "Rumbo", fr: "Le cap", de: "Kurs", it: "Rotta" }),
@@ -49,16 +50,8 @@ export function useControlLabels() {
     normal: tl({ ru: "Обычно", en: "Normal", pl: "Normalnie", es: "Normal", fr: "Normale", de: "Normal", it: "Normale" }),
     fast: tl({ ru: "Быстро", en: "Fast", pl: "Szybko", es: "Rápida", fr: "Rapide", de: "Schnell", it: "Rapida" }),
     jibRight: tl({ ru: "Стаксель-шкот справа", en: "Jib sheet on the right", pl: "Szot foka po prawej", es: "Escota de foque a la derecha", fr: "Écoute de foc à droite", de: "Fockschot rechts", it: "Scotta del fiocco a destra" }),
-    sound: tl({ ru: "Звук", en: "Sound", pl: "Dźwięk", es: "Sonido", fr: "Son", de: "Ton", it: "Suono" }),
-    soundNote: tl({
-      ru: "Щелчки штурвалов и шкотов при повороте, упор в конце хода.",
-      en: "Clicks while turning the wheels, a bump at the end of travel.",
-      pl: "Kliknięcia przy obracaniu kół, opór na końcu zakresu.",
-      es: "Clics al girar las ruedas y un tope al final del recorrido.",
-      fr: "Des clics en tournant les roues, une butée en fin de course.",
-      de: "Klicks beim Drehen der Räder, ein Anschlag am Ende.",
-      it: "Clic girando le ruote, un fermo a fine corsa.",
-    }),
+    sound: tl(controlSoundCopy.label),
+    soundNote: tl(controlSoundCopy.note),
     favoritesEdit: tl({ ru: "Что показывать в «Избранном»", en: "What Favorites shows", pl: "Co pokazują Ulubione", es: "Qué muestra Favoritos", fr: "Ce qu'affichent les Favoris", de: "Was Favoriten zeigt", it: "Cosa mostrano i Preferiti" }),
     edit: tl({ ru: "Изменить", en: "Edit", pl: "Zmień", es: "Editar", fr: "Modifier", de: "Ändern", it: "Modifica" }),
     resetOrder: tl({ ru: "Вернуть как было", en: "Restore defaults", pl: "Przywróć domyślne", es: "Restaurar", fr: "Rétablir", de: "Zurücksetzen", it: "Ripristina" }),

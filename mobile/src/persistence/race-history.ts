@@ -14,9 +14,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { CoachLogEvent, CoachLogSample } from '../api/coach';
+import { serial } from './serial';
+import type { NativeRaceSnapshot } from '../../../src/lib/race-native';
 
 const STORAGE_KEY = 'regatta.race-history.v1';
 export const MAX_RACES = 20;
+let historyRevision = 0;
+const historyListeners = new Set<(races: RaceRecord[]) => void>();
+function publishHistory(races: RaceRecord[]) {
+  historyRevision += 1;
+  historyListeners.forEach(listener => listener(races));
+}
 
 export interface ReplayPoint {
   /** Canvas X coordinate at sample time. */
@@ -67,6 +75,36 @@ export interface RaceRecord {
   difficulty?: 'easy' | 'medium' | 'hard';
   /** Optional wind bucket label, also for /api/race-result. */
   windStrength?: 'light' | 'medium' | 'heavy';
+  /** Additive canonical web-race payload. Legacy pixel replays keep their original format. */
+  webRace?: NativeRaceSnapshot;
+}
+
+export type NewRaceRecord = Omit<RaceRecord, 'id' | 'finishedAt'> & { id?: string; finishedAt?: number };
+
+function isRaceRecord(value: unknown): value is RaceRecord {
+  if (!value || typeof value !== 'object') return false;
+  const r = value as Partial<RaceRecord>;
+  return typeof r.id === 'string' && typeof r.courseId === 'string'
+    && typeof r.timeSec === 'number' && Number.isFinite(r.timeSec)
+    && typeof r.score === 'number' && Number.isFinite(r.score)
+    && typeof r.finishedAt === 'number' && Number.isFinite(r.finishedAt) && Array.isArray(r.replay);
+}
+
+/** Durable and idempotent: a failed read/write must never acknowledge or replace history. */
+export function saveRaceRecord(record: NewRaceRecord): Promise<RaceRecord> {
+  return serial(async () => {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    const previous: unknown = raw === null ? [] : JSON.parse(raw);
+    if (!Array.isArray(previous) || !previous.every(isRaceRecord)) throw new Error('Unreadable race history');
+    const next: RaceRecord = { ...record, id: record.id ?? generateId(), finishedAt: record.finishedAt ?? Date.now() };
+    if (!isRaceRecord(next)) throw new Error('Invalid race record');
+    const existing = previous.find(r => r.id === next.id);
+    if (existing) return existing;
+    const updated = [next, ...previous].slice(0, MAX_RACES);
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    publishHistory(updated);
+    return next;
+  });
 }
 
 export async function readRaces(): Promise<RaceRecord[]> {
@@ -99,14 +137,6 @@ export async function readRaces(): Promise<RaceRecord[]> {
   }
 }
 
-async function writeRaces(list: RaceRecord[]): Promise<void> {
-  try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-  } catch {
-    /* ignore - keep in-memory state */
-  }
-}
-
 export interface UseRaceHistory {
   races: RaceRecord[];
   ready: boolean;
@@ -129,9 +159,8 @@ export interface UseRaceHistory {
 
 /**
  * Hook for the race history list. Hydrates once on mount, then keeps an
- * in-memory mirror that consumers re-render off of. Writes go through
- * `setRaces` so the UI always reflects the latest state immediately and
- * the persistence write is a fire-and-forget side effect.
+ * in-memory mirror that consumers re-render off of. The mirror changes
+ * after durable persistence succeeds, so callers can trust the saved result.
  */
 export function useRaceHistory(): UseRaceHistory {
   const [races, setRaces] = useState<RaceRecord[]>([]);
@@ -140,14 +169,20 @@ export function useRaceHistory(): UseRaceHistory {
 
   useEffect(() => {
     let cancelled = false;
-    readRaces().then((list) => {
+    const initialRevision = historyRevision;
+    const update = (list: RaceRecord[]) => {
       if (cancelled) return;
       racesRef.current = list;
       setRaces(list);
       setReady(true);
+    };
+    historyListeners.add(update);
+    readRaces().then((list) => {
+      if (initialRevision === historyRevision) update(list);
     });
     return () => {
       cancelled = true;
+      historyListeners.delete(update);
     };
   }, []);
 
@@ -158,26 +193,24 @@ export function useRaceHistory(): UseRaceHistory {
         finishedAt?: number;
       },
     ): Promise<RaceRecord> => {
-      const id = record.id ?? generateId();
-      const finishedAt = record.finishedAt ?? Date.now();
-      const next: RaceRecord = { ...record, id, finishedAt };
-      const merged = [next, ...racesRef.current.filter((r) => r.id !== id)].slice(
+      const next = await saveRaceRecord(record);
+      const merged = [next, ...racesRef.current.filter((r) => r.id !== next.id)].slice(
         0,
         MAX_RACES,
       );
       racesRef.current = merged;
       setRaces(merged);
-      await writeRaces(merged);
       return next;
     },
     [],
   );
 
   const clear = useCallback(async () => {
-    racesRef.current = [];
-    setRaces([]);
     try {
-      await AsyncStorage.removeItem(STORAGE_KEY);
+      await serial(async () => {
+        await AsyncStorage.removeItem(STORAGE_KEY);
+        publishHistory([]);
+      });
     } catch {
       /* ignore */
     }

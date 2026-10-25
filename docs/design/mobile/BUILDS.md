@@ -1,12 +1,14 @@
 # Mobile build journal
 
-Operational check dated 2026-10-20: public 1.6.4 (48) is READY_FOR_SALE.
-TestFlight 1.7.0 has two lines that met in build 50: builds 45-47 (Codex
-branch `codex/learning-modules`, design v3 and learning modules) and build 49
-(trainer controls from `main`). Build 50 carries both; builds 51-57 add the
-polish pass, the regatta venues, the race modes, the 3D race, stage 1 and
-the first part of stage 2 of the game audit, and the race graphics slice (57). App Store version 1.7.0 is in Prepare for
-Submission, not submitted yet (owner: polish first). Older rows below are historical submission snapshots.
+Operational check dated 2026-10-24: public 1.6.4 (48) is READY_FOR_SALE.
+Build 58 was confirmed VALID and in Self before this release. Build 59 from
+`d30020a2a75611192bac8d2a6f806966ddedff59` passed Apple validation and upload,
+but Apple import failed with 90683 (missing NSPhotoLibraryUsageDescription).
+It never appeared in ASC or Self. Build 60 from 8e39721 is VALID and
+IN_BETA_TESTING in Self (2026-10-24 18:50 UTC), with all eight TestFlight notes
+locales verified. It adds the seven-language SDK purpose description and visible
+return from the fullscreen solo menu. Evidence: `docs/design/mobile/testflight60-2026-10-24.md`. App Store1.7.0
+remains PREPARE_FOR_SUBMISSION. A TestFlight upload is not an App Store release.
 
 Every iOS build: number, version (train), source commit, whether it was ATTACHED
 to a TestFlight beta group, and what changed. Attaching is the step that was
@@ -15,6 +17,9 @@ stayed on 0.13.0). A build is NOT shipped until attached + visible to a tester.
 
 | Build | Version | Commit | Attached (TestFlight) | What changed |
 |---|---|---|---|---|
+| 60 | 1.7.0 | `8e397217c477e2af46c8a43cef8f22b9f8c8de65` | Self, VALID / IN_BETA_TESTING (2026-10-24 18:50 UTC) | Complete installed 3D racing and seven-language SRC release described in59, plus the native Back to races menu link and seven-language Photos SDK purpose description. Apple import VALID, eight TestFlight notes locales verified. All six CI checks pass: web972/100, native402/65. Release launch27/upgrade26.5/iPad, seven saved values retained. Physical phone installation is not asserted. |
+| 59 | 1.7.0 | `d30020a2a75611192bac8d2a6f806966ddedff59` | Apple import FAILED90683, not distributed (2026-10-24) | One installed shared 3D solo race, Simple auto trim and manual Pro, trainer wheels, sail deployment, route and trim advice, optional educational penalties, durable history and shared 3D replay. Seven-language installed SRC with local speech and typed practice; installed Polish Sternik with typed oral checks; bundle-first Basics and Anatomy. Source Sans3 fonts and protected utility panels. All six CI checks pass: 964 web and 400 native tests. |
+| 58 | 1.7.0 | branch `claude/testflight-radio` (`claude/polish-1.7.0` at `d8e4bd0` plus PR #79 and #80, plus the build number) | Self (TestFlight, 2026-10-24) | Build 57 plus the SRC radio trainer rework: the radio stays pinned while the task panel scrolls (simulator, Obsługa lessons, live conversation), the course has four tabs (Kurs, Teoria, Trening, Egzamin) and one Trening list, the trainer runs in the app language (7 languages) and every run is in a random venue (Gulf of Gdańsk, the Solent, Bay of Palma, Bodrum). While the work screen is open the app hides the "SRC Radio" header and the tab bar. Offline bundle rebuilt (1791 KiB). Checked as a Release build on iPhone 18 Pro, iOS 27: English trainer from the English app, header and tab bar hidden in a scenario and back on Exit. The online radio pages show the new layout only after PR #79 and #80 are deployed. |
 | 57 | 1.7.0 | branch `claude/polish-1.7.0` (`9b6c635`) | Self (TestFlight, 2026-10-24) | Build 56 plus the race graphics vertical slice for measuring on a real iPhone (ADR-0008): "3D race" opens `/game?view=3d&scene=next&camera=high&fps=1`, the next renderer (WebGPU or WebGL2, tactical camera, wakes, shore and pines) with a readout of its backend, frame rate and pixel ratio. The app loads the website, so the slice shows once PR #78 is deployed; before that the same entry shows the current 3D race. The flags go, or the slice becomes the default race, before an App Store release. |
 | 56 | 1.7.0 | branch `claude/polish-1.7.0` (`3ce16ab` plus the build number) | Self (TestFlight, 2026-10-24) | Build 55 plus stage 2, part 1 of the game audit: rival boats on the native race map are yachts in their colour with a boom to leeward, not dots. The 3D race (web, online) gets the new HUD (speed against target, wind compass with the no-go sector, standings, race events), the no-go wedge, the committee boat and start line, and the arrow to the next mark once PR #77 is deployed; offline the app keeps the native race. |
 | 55 | 1.7.0 | branch `claude/polish-1.7.0` (`abdfc70` plus the build number) | Self (TestFlight, 2026-10-22) | Build 54 plus stage 1 of the game audit (`docs/audits/2026-10-22-game-audit.md`): rivals sail at their difficulty (ADR-0007), the wind compass in the race moves away from the boat, the wheel labels are readable (dark palette), the sail line is not empty before the start. The 3D race (web, online) gets its new sky, rival colours and name tags once PR #76 is deployed. Checked as a Release build on iPhone 18 Pro, iOS 27. |
@@ -91,3 +96,15 @@ node scripts/asc-attach-build.mjs <buildNumber>
 See `COMPLETION_STANDARD.md` section 3. The internal "Self" group has
 `hasAccessToAllBuilds=false` and that flag can't be toggled via the API, so each
 build must be attached explicitly.
+
+## Build59 verification and delivery
+
+- Exact runtime source: d30020a. Xcode27.1 (27A9275), iPhoneOS27.1 SDK24A94232. Release Simulator launches on iOS27.0 and iOS26.5. Updating over public48 retained all five native progress values; the old Sternik WebKit progress migrated byte-for-byte. Actual final exam Stay, repeated exit and confirmed return to normal navigation passed. iPadOS27 Home, language switching, Pro3D side controls and pause passed.
+- Archive28/28 and exportedIPA26/26 independent checks passed: all three HTML packages, local fonts and JS bundle match source; App Store profile, Apple Distribution signature and get-task-allow=false verified. IPA SHA256: a2bc907b38fd89ffa28872e0c13cee88a14d9b64df386feeecc6edbf87587586.
+- Apple validation and upload succeeded without errors. DeliveryUUID e58fe614-d6a1-47be-a4ad-5c612c18871b. Explicit processing, Self and TestFlight notes verification is the next delivery step.
+- Runtime limits: a complete human-steered native finish and physical-device speech model/microphone behavior were not established by this Simulator pass. Finish/persistence/replay logic has automated and browser verification; do not describe that as a complete physical-device test.
+- The website deployment, refreshed store screenshots and matching public privacy policy remain separate App Review gates in the completion harness. Original dirty root work is preserved.
+
+### Apple import failure and replacement60
+
+Delivery e58fe614-d6a1-47be-a4ad-5c612c18871b uploaded successfully but failed import with 90683. Read the normal-text altool build-status report, not just the upload result. ExpoFileSystem19.0.23 links Photos through its legacy ph:// handlers; installed Regatta only reads guarded packaged course files and has no photo-library feature. Candidate60 includes an accurate description in the base Info.plist and all seven localizations. The earlier33ac973 archive60 is superseded and must not be uploaded.

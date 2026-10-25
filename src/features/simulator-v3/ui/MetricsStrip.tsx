@@ -13,15 +13,15 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
     sim.trimScore > 80
       ? 'var(--success)'
       : sim.trimScore > 55
-      ? 'var(--accent-cyan)'
+      ? 'var(--text-primary)'
       : 'var(--warning)';
   const heelColor =
-    heelAbs > 28 ? 'var(--danger)' : heelAbs > 22 ? 'var(--warning)' : 'var(--accent-cyan)';
+    heelAbs > 28 ? 'var(--danger)' : heelAbs > 22 ? 'var(--warning)' : 'var(--text-primary)';
 
   return (
     <div
       className={`grid shrink-0 grid-cols-4 gap-0 mx-2 lg:mx-0 rounded-xl overflow-hidden ${dense ? 'mt-1.5' : 'mt-2 lg:mt-3'}`}
-      style={{ background: 'color-mix(in srgb, var(--bg-secondary) 60%, transparent)', border: '1px solid rgba(0, 212, 255, 0.18)' }}
+      style={{ background: 'color-mix(in srgb, var(--bg-secondary) 60%, transparent)', border: '1px solid var(--border-subtle)' }}
     >
       <MetricChip
         label={tp('СКОРОСТЬ', 'SPEED', 'PRĘDKOŚĆ', {
@@ -32,7 +32,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         })}
         value={sim.result.state.boatSpeed.toFixed(1)}
         unit={tp('уз', 'kts', 'kn', { es: 'kn', fr: 'kn', de: 'kn', it: 'kn' })}
-        color="var(--accent-cyan)"
+        color="var(--text-primary)"
         dense={dense}
       />
       <MetricChip
@@ -52,7 +52,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         label="AWA"
         value={Math.round(Math.abs(sim.result.diag.awa)).toString()}
         unit="°"
-        color="var(--accent-cyan)"
+        color="var(--text-primary)"
         divider
         dense={dense}
       />
@@ -65,7 +65,7 @@ export function MetricsStrip({ ui, sim, tp, dense = false }: { ui: UiState; sim:
         })}
         value={ui.mainTrim ? (sim.session.live.mainTwist * 20).toFixed(1) : sim.trimScore.toString()}
         unit={ui.mainTrim ? "°" : "%"}
-        color={ui.mainTrim ? "var(--accent-cyan)" : trimColor}
+        color={ui.mainTrim ? "var(--text-primary)" : trimColor}
         divider
         dense={dense}
       />

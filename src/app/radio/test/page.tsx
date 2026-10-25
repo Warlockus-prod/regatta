@@ -1,8 +1,11 @@
 'use client';
 
+import { OriginalPolish } from "../OriginalPolish";
+import { examOptionText, examQuestionText, examExplanationText, hasEnglishOptions } from "../localization/examText";
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { useI18n } from '@/lib/i18n';
 import { SRC_BANK, SRC_PARTS, type SrcQuestion } from '@/data/src-radio';
 import {
   loadQuestionProgress,
@@ -16,6 +19,7 @@ import { CHAPTER_QUESTION_IDS, theoryHrefForQuestion, type TheoryChapterId } fro
 import { radioRuntimeSearch } from '../runtimeSearch';
 import { createExam, gradeExam } from './examModel';
 import { trackExamFinish, trackExamStart } from '@/lib/funnel';
+import { confirmRadioLeave, setRadioExamDirty } from '../navigation';
 
 // ============================================================================
 // /radio/test - trainer over the OFFICIAL UKE SRC question base (324 A/B/C
@@ -37,7 +41,8 @@ type PartFilter = 'all' | 1 | 2;
 type TrainingMode = 'adaptive' | 'exam' | 'weak';
 
 export default function SrcTrainerPage() {
-  const { tp, lang } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp, lang } = useRadioI18n();
   const [progress, setProgress] = useState<QuestionProgress>({});
   const [part, setPart] = useState<PartFilter>('all');
   const [mode, setMode] = useState<TrainingMode>('adaptive');
@@ -104,7 +109,7 @@ export default function SrcTrainerPage() {
     } else {
       examStartedAtRef.current = null;
     }
-  }, [chapterId, mode, pool, progress]);
+  }, [mode, pool, progress]);
 
   // Mock exam finished: report the result once per started exam.
   useEffect(() => {
@@ -156,6 +161,20 @@ export default function SrcTrainerPage() {
   const inQuiz = queue.length > 0 && idx < queue.length;
   const roundDone = queue.length > 0 && idx >= queue.length;
   useEffect(() => {
+    const dirty = mode === 'exam' && inQuiz;
+    setRadioExamDirty(dirty);
+    if (!dirty) return;
+    const unload = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    const link = (event: MouseEvent) => {
+      const anchor = event.target instanceof Element ? event.target.closest('a[href]') : null;
+      if (!(anchor instanceof HTMLAnchorElement) || anchor.target === '_blank' || anchor.getAttribute('href')?.startsWith('#')) return;
+      if (!confirmRadioLeave()) { event.preventDefault(); event.stopPropagation(); }
+    };
+    window.addEventListener('beforeunload', unload);
+    document.addEventListener('click', link, true);
+    return () => { setRadioExamDirty(false); window.removeEventListener('beforeunload', unload); document.removeEventListener('click', link, true); };
+  }, [inQuiz, mode]);
+  useEffect(() => {
     if (!inQuiz) { focusedIdxRef.current = null; return; }
     if (focusedIdxRef.current === idx) return;
     const first = focusedIdxRef.current === null;
@@ -176,25 +195,25 @@ export default function SrcTrainerPage() {
   return (
     <div id="radio-src-trainer">
       <h1 className="mb-1 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-        ✅ {tp('Тренажёр: официальная база UKE (SRC)', 'Trainer: official UKE SRC base', 'Trening: oficjalna baza UKE (SRC)')}
+        ✅ {radioText(tp('Тренажёр: официальная база UKE (SRC)', 'Practice: official UKE SRC question bank', 'Trening: oficjalna baza UKE (SRC)'))}
       </h1>
       <p className="mb-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {tp(
+        {radioText(tp(
           '324 вопроса из официальных материалов UKE к тесту SRC (по 5 из каждого раздела попадут на экзамен). В режиме обучения сразу видишь ответ. На пробном экзамене разбор появляется после завершения.',
           'All 324 questions from the official UKE SRC study materials. Learn with instant feedback, or take a mock exam with feedback at the end.',
           '324 pytania z oficjalnych materiałów UKE do testu SRC. W nauce odpowiedzi widzisz od razu, na egzaminie próbnym dopiero po zakończeniu.',
-        )}
+        ))}
       </p>
 
       <div className="mb-4 rounded-xl px-4 py-3 text-xs leading-relaxed" style={{ background: 'rgba(255,210,74,0.08)', border: '1px solid rgba(255,210,74,0.3)', color: 'var(--text-secondary)' }}>
-        ⚠️ {tp(
+        ⚠️ {radioText(tp(
           'UKE не публикует ключа ответов. Наш ключ составлен и перекрёстно проверен автоматически (по ITU/SOLAS/GMDSS-источникам); спорные вопросы помечены. Это учебное пособие, а не официальный ключ.',
           'UKE publishes no answer key. Ours was authored and cross-verified automatically against ITU/SOLAS/GMDSS sources; uncertain items are flagged. A study aid, not an official key.',
           'UKE nie publikuje klucza odpowiedzi. Nasz klucz powstał i został niezależnie zweryfikowany automatycznie (źródła ITU/SOLAS/GMDSS); wątpliwe pytania są oznaczone. To pomoc naukowa, nie oficjalny klucz.',
-        )}
+        ))}
       </div>
 
-      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label={tp('Режим тренировки', 'Training mode', 'Tryb treningu')}>
+      <div className="mb-4 flex flex-wrap gap-2" role="group" aria-label={radioText(tp('Режим тренировки', 'Training mode', 'Tryb treningu'))}>
         {([
           ['adaptive', tp('Учить', 'Learn', 'Nauka')],
           ['exam', tp('Пробный экзамен', 'Mock exam', 'Egzamin próbny')],
@@ -204,13 +223,13 @@ export default function SrcTrainerPage() {
             key={value}
             type="button"
             aria-pressed={mode === value}
-            onClick={() => { setMode(value); setQueue([]); if (value === "exam") setChapterId(null); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setMode(value); setQueue([]); if (value === "exam") setChapterId(null); }}
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={mode === value
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)' }
               : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
           >
-            {label}
+            {radioText(label)}
           </button>
         ))}
       </div>
@@ -218,15 +237,15 @@ export default function SrcTrainerPage() {
       {chapter && (
         <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border px-4 py-3" style={{ borderColor: 'var(--border-subtle)', background: 'var(--bg-secondary)' }}>
           <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-            {tp('Тема', 'Topic', 'Temat')}: {lang === 'ru' ? chapter.title.ru : chapter.title.pl}
+            {radioText(tp('Тема', 'Topic', 'Temat'))}: {radioText(lang === 'ru' ? chapter.title.ru : chapter.title.pl)}
           </span>
           <button
             type="button"
-            onClick={() => { setChapterId(null); setQueue([]); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setChapterId(null); setQueue([]); }}
             className="ml-auto min-h-[44px] rounded-lg px-3 text-xs font-semibold"
             style={{ color: 'var(--text-secondary)' }}
           >
-            {tp('Вся база', 'Full bank', 'Cała baza')}
+            {radioText(tp('Вся база', 'Full bank', 'Cała baza'))}
           </button>
         </div>
       )}
@@ -236,19 +255,19 @@ export default function SrcTrainerPage() {
           <button
             key={String(p)}
             type="button"
-            onClick={() => { setPart(p); setQueue([]); }}
+            onClick={() => { if (!confirmRadioLeave()) return; setPart(p); setQueue([]); }}
             className="min-h-[44px] rounded-full px-4 text-sm font-medium"
             style={part === p
               ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }
               : { background: 'var(--bg-card)', color: 'var(--text-secondary)', border: '1px solid var(--border-subtle)' }}
           >
-            {p === 'all' ? tp('Все', 'All', 'Wszystkie') : `${tp('Раздел', 'Part', 'Dział')} ${p}`}
-            {' '}
-            <span className="opacity-60">{p === 'all' ? SRC_BANK.length : SRC_BANK.filter((q) => q.part === p).length}</span>
+            {radioText(p === 'all' ? tp('Все', 'All', 'Wszystkie') : `${tp('Раздел', 'Part', 'Dział')} ${p}`)}
+            {radioText(' ')}
+            <span className="opacity-60">{radioText(p === 'all' ? SRC_BANK.length : SRC_BANK.filter((q) => q.part === p).length)}</span>
           </button>
         ))}
         <span className="ml-auto text-xs" style={{ color: 'var(--text-muted)' }}>
-          {tp('пройдено', 'seen', 'przerobione')} {seenIds}/{pool.length} · {tp('закреплено', 'mastered', 'utrwalone')} {mastered}
+          {radioText(tp('пройдено', 'seen', 'przerobione'))} {radioText(seenIds)}/{radioText(pool.length)} · {radioText(tp('закреплено', 'mastered', 'utrwalone'))} {radioText(mastered)}
         </span>
       </div>
 
@@ -264,31 +283,31 @@ export default function SrcTrainerPage() {
                 className="mt-2 font-semibold outline-none"
                 style={{ color: 'var(--text-primary)' }}
               >
-                {tp('Серия пройдена', 'Round finished', 'Runda zakończona')}: {sessionOk}/{sessionN}
+                {radioText(tp('Серия пройдена', 'Round finished', 'Runda zakończona'))}: {radioText(sessionOk)}/{radioText(sessionN)}
               </h2>
               {mode === "exam" && (
                 <div className="mt-4 text-left" data-testid="exam-result" role="status">
                   <p className="font-semibold" style={{ color: examResult.passed ? "var(--success)" : "var(--warning)" }}>
-                    {examResult.passed ? tp("Теоретический пробник сдан", "Theory mock passed", "Próba teorii zaliczona") : tp("Нужно повторить один или оба предмета", "Review one or both subjects", "Powtórz jeden lub oba przedmioty")}
+                    {radioText(examResult.passed ? tp("Теоретический пробник сдан", "Theory mock passed", "Próba teorii zaliczona") : tp("Нужно повторить один или оба предмета", "Review one or both subjects", "Powtórz jeden lub oba przedmioty"))}
                   </p>
                   {examResult.parts.map((result) => (
                     <p key={result.part} className="mt-2 text-sm">
-                      {SRC_PARTS[result.part]}: {result.correct}/{result.total} {result.passed ? "✓" : "✗"}
+                      {radioText(SRC_PARTS[result.part])}: {radioText(result.correct)}/{radioText(result.total)} {radioText(result.passed ? "✓" : "✗")}
                     </p>
                   ))}
                   <p className="mt-2 text-sm" style={{ color: "var(--text-muted)" }}>
-                    {tp("Порог: 3/5 отдельно в каждом предмете. Это не оценка практических навыков.", "Threshold: 3/5 in each subject separately. This does not assess practical skills.", "Próg: 3/5 osobno z każdego przedmiotu. To nie jest ocena umiejętności praktycznych.")}
+                    {radioText(tp("Порог: 3/5 отдельно в каждом предмете. Это не оценка практических навыков.", "Threshold: 3/5 in each subject separately. This does not assess practical skills.", "Próg: 3/5 osobno z każdego przedmiotu. To nie jest ocena umiejętności praktycznych."))}
                   </p>
                   <details className="mt-4">
-                    <summary className="min-h-[44px] cursor-pointer font-semibold">{tp("Разбор ответов", "Review answers", "Omówienie odpowiedzi")}</summary>
+                    <summary className="min-h-[44px] cursor-pointer font-semibold">{radioText(tp("Разбор ответов", "Review answers", "Omówienie odpowiedzi"))}</summary>
                     <ol className="space-y-5">
                       {queue.map((question) => (
                         <li key={question.id} className="border-t pt-3 text-sm" style={{ borderColor: "var(--border-subtle)" }}>
-                          <p lang="pl">{answers[question.id] === question.correct ? "✓" : "✗"} {question.q}</p>
-                          <p className="mt-1">{tp("Твой ответ", "Your answer", "Twoja odpowiedź")}: <span lang="pl">{question.options[answers[question.id]]}</span></p>
-                          <p className="mt-1">{tp("Учебный ключ", "Study key", "Klucz szkoleniowy")}: <span lang="pl">{question.options[question.correct]}</span></p>
-                          <p lang="pl" className="mt-1" style={{ color: "var(--text-secondary)" }}>{question.whyPl}</p>
-                          <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{tp("Повторить тему", "Review topic", "Powtórz temat")}</Link>
+                          <p>{radioText(answers[question.id] === question.correct ? "✓" : "✗")} {examQuestionText(question, lang, radioText)}</p>
+                          <p className="mt-1">{radioText(tp("Твой ответ", "Your answer", "Twoja odpowiedź"))}: <span>{examOptionText(question, question.options[answers[question.id]], radioText)}</span></p>
+                          <p className="mt-1">{radioText(tp("Учебный ключ", "Study key", "Klucz szkoleniowy"))}: <span>{examOptionText(question, question.options[question.correct], radioText)}</span></p>
+                          <p className="mt-1" style={{ color: "var(--text-secondary)" }}>{examExplanationText(question, radioText)}</p>
+                          <Link href={theoryHrefForQuestion(question.id)} className="mt-2 flex min-h-[44px] items-center underline" style={{ color: "var(--accent-cyan)" }}>{radioText(tp("Повторить тему", "Review topic", "Powtórz temat"))}</Link>
                         </li>
                       ))}
                     </ol>
@@ -298,15 +317,15 @@ export default function SrcTrainerPage() {
             </>
           ) : (
             <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              {mode === 'exam'
+              {radioText(mode === 'exam'
                 ? tp('10 вопросов, по 5 из каждого предмета. Нужно минимум 3/5 в каждом. Ответы и разбор после завершения. Практическая часть оценивается отдельно.', '10 questions, 5 per subject. You need at least 3/5 in each. Answers and feedback appear at the end. Practical skills are assessed separately.', '10 pytań, po 5 z każdego przedmiotu. Potrzebujesz co najmniej 3/5 w każdym. Odpowiedzi i omówienie po zakończeniu. Praktyka jest oceniana osobno.')
                 : pool.length === 0 && mode === 'weak'
                   ? tp('Пока нет вопросов для повторения. Ошибки из курса и банка появятся здесь.', 'There are no questions to review yet. Mistakes from the course and bank will appear here.', 'Nie ma jeszcze pytań do powtórki. Błędy z kursu i banku pojawią się tutaj.')
                   : chapter
-                    ? `${lang === 'ru' ? chapter.title.ru : chapter.title.pl}: ${pool.length}`
+                    ? `${radioText(lang === 'ru' ? chapter.title.ru : chapter.title.pl)}: ${pool.length}`
                     : part === 'all'
                 ? tp('Вся база: сначала пойдут вопросы, которые ты ещё не видел или путаешь.', 'Full base: unseen and shaky questions come first.', 'Cała baza: najpierw pytania nowe i te, które mylisz.')
-                : SRC_PARTS[part]}
+                : SRC_PARTS[part])}
             </p>
           )}
           <button
@@ -316,35 +335,35 @@ export default function SrcTrainerPage() {
             className="mt-4 min-h-[44px] rounded-xl px-6 text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            {queue.length > 0 && idx >= queue.length ? tp('Ещё раз', 'Again', 'Jeszcze raz') : tp('Начать', 'Start', 'Start')}
+            {radioText(queue.length > 0 && idx >= queue.length ? tp('Ещё раз', 'Again', 'Jeszcze raz') : tp('Начать', 'Start', 'Start'))}
           </button>
         </div>
       ) : (
         <div className="rounded-2xl p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="mb-2 flex items-center gap-2 text-xs" style={{ color: 'var(--text-muted)' }}>
             <span className="rounded-full px-2 py-0.5" style={{ background: 'var(--hover-bg)', color: 'var(--accent-cyan)' }}>
-              {tp('Раздел', 'Part', 'Dział')} {current.part}
+              {radioText(tp('Раздел', 'Part', 'Dział'))} {radioText(current.part)}
             </span>
-            <span>{idx + 1}/{queue.length}</span>
+            <span>{radioText(idx + 1)}/{radioText(queue.length)}</span>
             {current.confidence === 'unsure' && (
-              <span title={tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz wątpliwy - sprawdź w źródłach')} style={{ color: 'var(--warning)' }}>
-                ⚠️ {tp('спорный ключ', 'uncertain key', 'wątpliwy klucz')}
+              <span title={radioText(tp('Ответ спорный - проверь в источниках', 'Uncertain key - double-check', 'Klucz wątpliwy - sprawdź w źródłach'))} style={{ color: 'var(--warning)' }}>
+                ⚠️ {radioText(tp('спорный ключ', 'uncertain key', 'wątpliwy klucz'))}
               </span>
             )}
-            {mode !== 'exam' && <span className="ml-auto">{sessionOk}/{sessionN} ✓</span>}
+            {mode !== 'exam' && <span className="ml-auto">{radioText(sessionOk)}/{radioText(sessionN)} ✓</span>}
           </div>
 
           <h2
             ref={questionHeadingRef}
             tabIndex={-1}
-            lang="pl"
+
             className="mb-4 scroll-mt-28 text-base font-medium leading-snug outline-none"
             style={{ color: 'var(--text-primary)' }}
           >
-            {current.q}
+            {examQuestionText(current, lang, radioText)}
           </h2>
 
-          <div lang="pl" className="space-y-2">
+          <div className="space-y-2">
             {current.options.map((opt, i) => {
               const isPicked = picked === i;
               const isCorrect = i === current.correct;
@@ -362,9 +381,9 @@ export default function SrcTrainerPage() {
                     color: 'var(--text-primary)',
                   }}
                 >
-                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{letters[i]}</span>
-                  <span>{opt}</span>
-                  {mode === 'exam' && isPicked && <span className="ml-auto">{tp("Выбрано", "Selected", "Wybrano")}</span>}
+                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{radioText(letters[i])}</span>
+                  <span lang={hasEnglishOptions(current) ? "en" : lang}>{examOptionText(current, opt, radioText)}</span>
+                  {mode === 'exam' && isPicked && <span className="ml-auto">{radioText(tp("Выбрано", "Selected", "Wybrano"))}</span>}
                   {show && isCorrect && <span className="ml-auto shrink-0" style={{ color: 'var(--success)' }}>✓</span>}
                   {show && isPicked && !isCorrect && <span className="ml-auto shrink-0" style={{ color: 'var(--danger, #ff6a5a)' }}>✗</span>}
                 </button>
@@ -372,21 +391,20 @@ export default function SrcTrainerPage() {
             })}
           </div>
 
+          <OriginalPolish>
+            <p>{current.q}</p><ol className="list-inside list-[upper-alpha]">{current.options.map((option,index)=><li key={index}>{option}</li>)}</ol>
+          </OriginalPolish>
+
           {picked !== null && (
             <>
               {mode !== "exam" && <div role="status" aria-live="polite" className="mt-3 rounded-xl px-4 py-3 text-sm leading-relaxed" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-secondary)' }}>
-                {picked === current.correct ? '✅ ' : '❌ '}<span lang="pl">{current.whyPl}</span>
-                {lang === 'ru' && (
-                  <span className="mt-2 block text-xs" style={{ color: 'var(--text-muted)' }}>
-                    Официальная база вопросов UKE и пояснения к ней доступны только на польском.
-                  </span>
-                )}
+                {radioText(picked === current.correct ? '✅ ' : '❌ ')}<span>{examExplanationText(current, radioText)}</span>
                 <Link
                   href={theoryHrefForQuestion(current.id)}
                   className="mt-3 flex min-h-[44px] items-center font-semibold underline underline-offset-4"
                   style={{ color: 'var(--accent-cyan)' }}
                 >
-                  {tp('Открыть связанную главу теории', 'Open the related theory chapter', 'Otwórz powiązany rozdział teorii')}
+                  {radioText(tp('Открыть связанную главу теории', 'Open the related theory chapter', 'Otwórz powiązany rozdział teorii'))}
                 </Link>
               </div>}
               <button
@@ -396,7 +414,7 @@ export default function SrcTrainerPage() {
                 className="mt-3 min-h-[44px] w-full rounded-xl text-sm font-semibold"
                 style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
               >
-                {tp('Дальше', 'Next', 'Dalej')} →
+                {radioText(tp('Дальше', 'Next', 'Dalej'))} →
               </button>
             </>
           )}
@@ -405,10 +423,10 @@ export default function SrcTrainerPage() {
 
       <div className="mt-6 flex flex-wrap gap-2">
         <Link href="/radio/teoria" className="flex min-h-[44px] items-center rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-          📻 {tp('Теория рации', 'Radio theory', 'Teoria radia')}
+          📻 {radioText(tp('Теория рации', 'Radio theory', 'Teoria radia'))}
         </Link>
         <Link href="/radio/symulator" className="flex min-h-[44px] items-center rounded-xl px-4 text-sm" style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-          🎙️ {tp('Симулятор', 'Simulator', 'Symulator')}
+          🎙️ {radioText(tp('Симулятор', 'Simulator', 'Symulator'))}
         </Link>
       </div>
     </div>

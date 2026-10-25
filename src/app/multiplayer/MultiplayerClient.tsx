@@ -1,21 +1,25 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from "next/dynamic";
 import Link from 'next/link';
 import { MPClient, getWsUrl, SnapshotBuffer, type MPMessage, type MissionReason } from '@/lib/mp-client';
-import { WORLD, makeStandardCourse, deg2rad } from '@/lib/race-physics';
 import { missions } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
-import { drawVenue } from '@/features/venues/drawVenue';
 import { useVenue } from '@/features/venues/useVenue';
 import { sanitizeNickname } from '@/lib/race-submission';
+import type { Race3DBoat, RaceCamera } from "@/features/race-3d/pose";
+import { MultiplayerCockpit } from "./MultiplayerCockpit";
+import { createMultiplayerPresentation, multiplayerTurn, withMultiplayerCourse, FLEET_COLORS, MULTIPLAYER_COURSE, type MultiplayerFrame } from "./presentation";
+
+const RaceScene = dynamic(() => import("@/features/race-scene/RaceScene").then(module => module.RaceScene), { ssr: false });
 
 type Phase = 'menu' | 'lobby' | 'countdown' | 'racing' | 'finished' | 'error';
 
 interface LobbyPlayer { id: string; nickname: string; ready: boolean; isBot: boolean; connected: boolean }
 interface Results { id: string; nickname: string; isBot: boolean; time: number | null; mission: { passed: boolean; reasons: MissionReason[] } | null }
 
-const COLORS = ['#00d4ff', '#ff6688', '#ffdd44', '#44ff88', '#aa88ff', '#ff8844', '#55ccee', '#ff99cc', '#c6f0a5', '#bb99ff'];
+const COLORS = FLEET_COLORS;
 
 // Localize a mission-evaluation reason code from the (language-agnostic) server.
 // All seven languages via tp(): RU / EN / PL positional, ES / FR / DE / IT in
@@ -57,12 +61,9 @@ function missionReasonText(
 }
 
 export default function MultiplayerClient() {
-  const { tp, tl, lang } = useI18n();
+  const { tp, tl } = useI18n();
   // Scenery around the race area: each player sees the venue they picked (cosmetic, not synced).
   const { venue } = useVenue();
-  const venueRef = useRef(venue);
-  const langRef = useRef(lang);
-  useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);
   const embed = typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('embed') === '1';
   const [phase, setPhase] = useState<Phase>('menu');
   const [error, setError] = useState<string | null>(null);
@@ -84,9 +85,44 @@ export default function MultiplayerClient() {
   const [results, setResults] = useState<Results[]>([]);
 
   const clientRef = useRef<MPClient | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const bufferRef = useRef<SnapshotBuffer>(new SnapshotBuffer());
-  const windRef = useRef<{ dir: number; gust: number }>({ dir: 0, gust: 1 });
+  const presentationRef = useRef(createMultiplayerPresentation());
+  const boatsRef = useRef<Race3DBoat[]>([]);
+  const courseRef = useRef(MULTIPLAYER_COURSE);
+  const windDirRef = useRef(0);
+  const [frame, setFrame] = useState<MultiplayerFrame | null>(null);
+  const [camera, setCamera] = useState<RaceCamera>("orbit");
+  const [cameraRevision, setCameraRevision] = useState(0);
+  const [guidanceOn, setGuidanceOn] = useState(true);
+  const inputRef = useRef({ left: false, right: false, rudder: 0, course: null as number | null });
+  const [helm, setHelm] = useState({ rudder: 0, course: null as number | null });
+  const releaseInput = useCallback(() => {
+    inputRef.current = { left: false, right: false, rudder: 0, course: null };
+    setHelm({ rudder: 0, course: null });
+  }, []);
+  const setRudder = useCallback((value: number) => {
+    const rudder = Number.isFinite(value) ? Math.max(-1, Math.min(1, value)) : 0;
+    inputRef.current.rudder = rudder; inputRef.current.course = null;
+    setHelm({ rudder, course: null });
+  }, []);
+  const setCourse = useCallback((degrees: number) => {
+    const next = withMultiplayerCourse(inputRef.current, degrees);
+    if (next === inputRef.current) return;
+    inputRef.current = next;
+    setHelm({ rudder: next.rudder, course: next.course });
+  }, []);
+  const courseDelta = useCallback((degrees: number) => {
+    if (!Number.isFinite(degrees)) return;
+    const heading = boatsRef.current.find(boat => boat.isPlayer)?.heading ?? 0;
+    setCourse((inputRef.current.course ?? heading) + degrees);
+  }, [setCourse]);
+  const sceneLabels = useMemo(() => ({
+    metres: tl({ ru: "м", en: "m", pl: "m", es: "m", fr: "m", de: "m", it: "m" }),
+    scene: "3D",
+    loading: tl({ ru: "Загрузка яхты", en: "Loading yacht", pl: "Ładowanie jachtu", es: "Cargando yate", fr: "Chargement du bateau", de: "Yacht wird geladen", it: "Caricamento della barca" }),
+    error: tl({ ru: "Не удалось загрузить 3D сцену", en: "Could not load the 3D scene", pl: "Nie udało się wczytać sceny 3D", es: "No se pudo cargar la escena 3D", fr: "Impossible de charger la scène 3D", de: "3D-Szene konnte nicht geladen werden", it: "Impossibile caricare la scena 3D" }),
+    retry: tl({ ru: "Повторить", en: "Retry", pl: "Ponów", es: "Reintentar", fr: "Réessayer", de: "Erneut versuchen", it: "Riprova" }),
+  }), [tl]);
 
   useEffect(() => () => { clientRef.current?.close(); clientRef.current = null; }, []);
 
@@ -136,7 +172,10 @@ export default function MultiplayerClient() {
         break;
       case 'phase':
         if (msg.phase === 'lobby') setPhase('lobby');
-        else if (msg.phase === 'countdown') { setPhase('countdown'); bufferRef.current.reset(); }
+        else if (msg.phase === 'countdown') {
+          setPhase('countdown'); bufferRef.current.reset(); presentationRef.current.reset();
+          boatsRef.current = []; setFrame(null); releaseInput();
+        }
         else if (msg.phase === 'racing') setPhase('racing');
         else if (msg.phase === 'finished') setPhase('finished');
         break;
@@ -145,7 +184,6 @@ export default function MultiplayerClient() {
         break;
       case 'state':
         bufferRef.current.push({ t: msg.t, wind: msg.wind, boats: msg.boats });
-        windRef.current = msg.wind;
         break;
       case 'finished':
         setResults(msg.results);
@@ -170,7 +208,7 @@ export default function MultiplayerClient() {
         setPhase((p) => p === 'menu' ? 'error' : p);
         break;
     }
-  }, [tp, tl]);
+  }, [tp, tl, releaseInput]);
 
   const ensureClient = useCallback(async (): Promise<MPClient> => {
     if (clientRef.current?.isOpen) return clientRef.current;
@@ -178,13 +216,14 @@ export default function MultiplayerClient() {
     if (!clientRef.current) {
       c.on(handleServerMsg);
       c.onClose((wasReconnect) => {
+        releaseInput();
         if (wasReconnect) setReconnecting(true);
       });
       clientRef.current = c;
     }
     await c.connect(getWsUrl());
     return c;
-  }, [handleServerMsg]);
+  }, [handleServerMsg, releaseInput]);
 
   // The leaderboard's own rule (/api/race-result refuses anything else): the
   // server stores this cleaned value, so it is what we send and show.
@@ -259,18 +298,20 @@ export default function MultiplayerClient() {
     clientRef.current?.close();
     clientRef.current = null;
     bufferRef.current.reset();
+    presentationRef.current.reset(); boatsRef.current = []; setFrame(null); releaseInput();
     setRoom(null);
     setLobbyPlayers([]);
     setResults([]);
     setPhase('menu');
     setError(null);
-  }, []);
+  }, [releaseInput]);
 
   // Input capture + 20Hz send
-  const inputRef = useRef<{ left: boolean; right: boolean }>({ left: false, right: false });
   useEffect(() => {
-    if (phase !== 'racing' && phase !== 'countdown') return;
+    if ((phase !== 'racing' && phase !== 'countdown') || reconnecting) return;
     const onDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input,textarea,select,[contenteditable=true],[role=slider]") || e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key.toLowerCase();
       if (k === 'arrowleft' || k === 'a') inputRef.current.left = true;
       if (k === 'arrowright' || k === 'd') inputRef.current.right = true;
@@ -281,115 +322,45 @@ export default function MultiplayerClient() {
       if (k === 'arrowleft' || k === 'a') inputRef.current.left = false;
       if (k === 'arrowright' || k === 'd') inputRef.current.right = false;
     };
-    const releaseInput = () => { inputRef.current = { left: false, right: false }; };
     window.addEventListener("blur", releaseInput);
+    const onHidden = () => { if (document.hidden) releaseInput(); };
+    document.addEventListener("visibilitychange", onHidden);
     window.addEventListener('keydown', onDown);
     window.addEventListener('keyup', onUp);
     const id = setInterval(() => {
-      const turn = (inputRef.current.right ? 1 : 0) - (inputRef.current.left ? 1 : 0);
+      const heading = boatsRef.current.find(boat => boat.isPlayer)?.heading ?? 0;
+      const turn = multiplayerTurn(inputRef.current, heading);
       clientRef.current?.send({ type: 'input', turn });
     }, 50);
     return () => {
       releaseInput();
       window.removeEventListener('blur', releaseInput);
+      document.removeEventListener("visibilitychange", onHidden);
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup', onUp);
       clearInterval(id);
     };
-  }, [phase]);
+  }, [phase, reconnecting, releaseInput]);
 
-  // Canvas render loop - interpolated
+  // Only interpolate received positions. The view never steps a local boat.
   useEffect(() => {
-    if (phase !== 'racing' && phase !== 'countdown' && phase !== 'finished') return;
-    const cv = canvasRef.current;
-    if (!cv) return;
-    const course = makeStandardCourse();
+    if (phase !== "racing" && phase !== "countdown" && phase !== "finished") return;
     let raf = 0;
-
-    const resize = () => {
-      const rect = cv.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      cv.width = rect.width * dpr;
-      cv.height = rect.height * dpr;
-      const ctx = cv.getContext('2d');
-      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener('resize', resize);
-
+    let lastHud = -Infinity;
     const render = () => {
-      const ctx = cv.getContext('2d');
-      if (!ctx) return;
-      const rect = cv.getBoundingClientRect();
-      const W = rect.width, H = rect.height;
-
-      const g = ctx.createLinearGradient(0, 0, 0, H);
-      g.addColorStop(0, '#051425'); g.addColorStop(1, '#0a1f3d');
-      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-      // A margin around the race area shows the shore of the venue.
-      const margin = 70;
-      const s = Math.min(W / (WORLD.width + 2 * margin), H / (WORLD.height + 2 * margin));
-      const ox = (W - WORLD.width * s) / 2;
-      const oy = (H - WORLD.height * s) / 2;
-      const toXY = (p: { x: number; y: number }) => ({ x: ox + p.x * s, y: oy + p.y * s });
-      drawVenue(ctx, venueRef.current, toXY, s, langRef.current);
-
-      // Start/finish line
-      const la = toXY(course.startLine.a), lb = toXY(course.startLine.b);
-      ctx.strokeStyle = '#ffaa00'; ctx.setLineDash([6, 4]); ctx.lineWidth = 2;
-      ctx.beginPath(); ctx.moveTo(la.x, la.y); ctx.lineTo(lb.x, lb.y); ctx.stroke();
-      ctx.setLineDash([]);
-      // Windward
-      const wm = toXY(course.marks[0].pos);
-      ctx.beginPath(); ctx.arc(wm.x, wm.y, 10 * s + 6, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffaa00'; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
-
-      // Boats (interpolated)
-      const snap = bufferRef.current.sample();
-      if (snap) {
-        for (let i = 0; i < snap.boats.length; i++) {
-          const b = snap.boats[i];
-          const screen = toXY({ x: b.x, y: b.y });
-          const isMe = room?.myId === b.id;
-          if (isMe && b.target && b.f == null) {
-            const target = toXY(b.target);
-            ctx.strokeStyle = "#00d4ff"; ctx.lineWidth = 1.5; ctx.setLineDash([5, 5]);
-            ctx.beginPath(); ctx.moveTo(screen.x, screen.y); ctx.lineTo(target.x, target.y); ctx.stroke();
-            ctx.setLineDash([]); ctx.beginPath(); ctx.arc(target.x, target.y, 8, 0, Math.PI * 2); ctx.stroke();
-          }
-          drawBoat(ctx, screen.x, screen.y, b.h, COLORS[i % COLORS.length], isMe);
-          ctx.fillStyle = isMe ? "#00d4ff" : "#d9e8f1";
-          ctx.font = "12px system-ui, sans-serif"; ctx.textAlign = "center";
-          ctx.fillText(lobbyPlayers.find((p) => p.id === b.id)?.nickname.slice(0, 16) ?? "", screen.x, screen.y + 26);
-
-        }
+      const snapshot = bufferRef.current.sample();
+      if (snapshot && room) {
+        const next = presentationRef.current.frame(snapshot, lobbyPlayers, room.myId, room.windStrength);
+        boatsRef.current = next.boats;
+        windDirRef.current = next.windDir;
+        const now = performance.now();
+        if (now - lastHud >= 100) { lastHud = now; setFrame(next); }
       }
-
-      // HUD wind
-      ctx.fillStyle = '#ffffff';
-      ctx.font = '13px system-ui, sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })} ${Math.round(windRef.current.dir)}°  ${(12 * (room?.windStrength === "light" ? 0.65 : room?.windStrength === "heavy" ? 1.3 : 1) * windRef.current.gust).toFixed(1)} kn`, 10, 18);
-
-      if (phase === 'countdown') {
-        ctx.fillStyle = 'rgba(10, 22, 40, 0.6)';
-        ctx.fillRect(0, 0, W, H);
-        ctx.fillStyle = '#00d4ff';
-        ctx.font = 'bold 72px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(countdown === 0 ? tp('СТАРТ!', 'START!', 'START!', { es: '¡SALIDA!', fr: 'DÉPART !', de: 'START!', it: 'VIA!' }) : String(countdown), W / 2, H / 2);
-      }
-
       raf = requestAnimationFrame(render);
     };
     raf = requestAnimationFrame(render);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener('resize', resize);
-    };
-  }, [phase, countdown, room, lobbyPlayers, tp]);
+    return () => cancelAnimationFrame(raf);
+  }, [phase, room, lobbyPlayers]);
 
   // --- UI ---
 
@@ -463,14 +434,14 @@ export default function MultiplayerClient() {
         )}
         <div className="text-[10px] text-[var(--text-muted)] mt-6 leading-relaxed">
           {tp(
-            'При обрыве связи твоё место сохраняется на 20 секунд. Управляй стрелками или кнопками поворота.',
-            "Your place is held for 20 seconds if you disconnect. Steer with the arrow keys or turn buttons.",
-            'Po zerwaniu połączenia twoje miejsce czeka 20 sekund. Steruj strzałkami albo przyciskami skrętu.',
+            'При обрыве связи твоё место сохраняется на 20 секунд. Управляй штурвалом, ползунком или стрелками.',
+            "Your place is held for 20 seconds if you disconnect. Steer with the wheel, slider or arrow keys.",
+            'Po zerwaniu połączenia twoje miejsce czeka 20 sekund. Steruj kołem, suwakiem lub strzałkami.',
             {
-              es: 'Si se corta la conexión, tu plaza se guarda 20 segundos. Gobierna con las flechas o con los botones de giro.',
-              fr: 'En cas de déconnexion, ta place est gardée 20 secondes. Barre avec les flèches ou les boutons de direction.',
-              de: 'Bei Verbindungsabbruch bleibt dein Platz 20 Sekunden reserviert. Steuere mit den Pfeiltasten oder den Lenktasten.',
-              it: 'Se cade la connessione, il tuo posto resta riservato per 20 secondi. Timona con le frecce o con i pulsanti di direzione.',
+              es: 'Si se corta la conexión, tu plaza se guarda 20 segundos. Gobierna con la rueda, el deslizador o las flechas.',
+              fr: 'En cas de déconnexion, ta place est gardée 20 secondes. Barre avec la roue, le curseur ou les flèches.',
+              de: 'Bei Verbindungsabbruch bleibt dein Platz 20 Sekunden reserviert. Steuere mit dem Rad, dem Regler oder den Pfeiltasten.',
+              it: 'Se cade la connessione, il tuo posto resta riservato per 20 secondi. Timona con la ruota, il cursore o le frecce.',
             },
           )}
         </div>
@@ -623,45 +594,11 @@ export default function MultiplayerClient() {
     );
   }
 
-  // Racing / countdown / finished
-  return (
-    <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
-      <canvas ref={canvasRef} className="block w-full h-full" style={{ touchAction: 'none' }} />
+  if (phase === "lobby") return null;
 
-      {phase !== "finished" && <button onClick={leaveLobby} className="absolute top-2 right-3 min-h-11 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-primary)] px-3 text-xs">
-        {tp("Выйти", "Leave", "Wyjdź", { es: "Salir", fr: "Quitter", de: "Verlassen", it: "Esci" })}
-      </button>}
-      {reconnecting && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-xs font-semibold"
-             style={{ background: 'rgba(255,170,0,0.2)', color: 'var(--warning)', backdropFilter: 'blur(8px)' }}>
-          {tp('Переподключаюсь...', 'Reconnecting...', 'Łączę ponownie...', { es: 'Reconectando...', fr: 'Reconnexion...', de: 'Verbinde neu...', it: 'Riconnessione...' })}
-        </div>
-      )}
-
-      {phase === 'racing' && (
-        <div className="absolute bottom-6 left-0 right-0 flex justify-between px-6 pointer-events-none">
-          <button
-            aria-label={tp("Поворот влево", "Turn left", "Skręt w lewo", { es: "Girar a la izquierda", fr: "Tourner à gauche", de: "Nach links steuern", it: "Gira a sinistra" })}
-            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.left = true; }}
-            onPointerUp={() => { inputRef.current.left = false; }}
-            onPointerCancel={() => { inputRef.current.left = false; }}
-            className="pointer-events-auto w-20 h-20 rounded-full text-3xl font-bold select-none"
-            style={{ background: 'rgba(21,37,64,0.7)', border: '2px solid rgba(0,212,255,0.5)', color: 'var(--accent-cyan)', touchAction: 'none' }}
-          >←</button>
-          <button
-            aria-label={tp("Поворот вправо", "Turn right", "Skręt w prawo", { es: "Girar a la derecha", fr: "Tourner à droite", de: "Nach rechts steuern", it: "Gira a destra" })}
-            onPointerDown={(e) => { e.currentTarget.setPointerCapture(e.pointerId); inputRef.current.right = true; }}
-            onPointerUp={() => { inputRef.current.right = false; }}
-            onPointerCancel={() => { inputRef.current.right = false; }}
-            className="pointer-events-auto w-20 h-20 rounded-full text-3xl font-bold select-none"
-            style={{ background: 'rgba(21,37,64,0.7)', border: '2px solid rgba(0,212,255,0.5)', color: 'var(--accent-cyan)', touchAction: 'none' }}
-          >→</button>
-        </div>
-      )}
-
-      {phase === 'finished' && (
-        <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10,22,40,0.9)', backdropFilter: 'blur(8px)' }}>
-          <div className="card p-6 max-w-md w-full my-4">
+  // The scene and every control occupy separate, reserved layout regions.
+  const finishedPanel = phase === "finished" ? (
+          <div className="w-full">
             <div className="text-center mb-4">
               <div className="text-2xl font-bold mb-1">{tp('Гонка окончена', 'Race finished', 'Wyścig zakończony', { es: 'Regata terminada', fr: 'Course terminée', de: 'Rennen beendet', it: 'Regata conclusa' })}</div>
               <div className="text-xs text-[var(--text-muted)]">{room?.code}</div>
@@ -718,35 +655,16 @@ export default function MultiplayerClient() {
               </Link>}
             </div>
           </div>
-        </div>
-      )}
+  ) : null;
+  return (
+    <div style={{ height: embed ? "100dvh" : "calc(100dvh - var(--site-nav-h, 56px))" }}>
+      <MultiplayerCockpit frame={frame} phase={phase} countdown={countdown} reconnecting={reconnecting} code={room?.code ?? ""}
+        rudder={helm.rudder} course={helm.course} setRudder={setRudder} setCourse={setCourse} courseDelta={courseDelta}
+        camera={camera} setCamera={setCamera} onResetCamera={() => setCameraRevision(value => value + 1)} onLeave={leaveLobby} results={finishedPanel} guidanceOn={guidanceOn} setGuidanceOn={setGuidanceOn}>
+        <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={camera} cameraRevision={cameraRevision} labels={sceneLabels} maxDpr={embed ? 1.5 : 2} guidance={guidanceOn ? frame?.guidance : null} />
+      </MultiplayerCockpit>
     </div>
   );
-}
-
-function drawBoat(ctx: CanvasRenderingContext2D, x: number, y: number, heading: number, color: string, isMe: boolean) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(deg2rad(heading));
-  ctx.fillStyle = isMe ? '#e8f4f8' : '#c5d4dd';
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(0, -12);
-  ctx.quadraticCurveTo(6, 0, 4, 10);
-  ctx.lineTo(-4, 10);
-  ctx.quadraticCurveTo(-6, 0, 0, -12);
-  ctx.closePath(); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = isMe ? color : '#ffffff';
-  ctx.beginPath();
-  ctx.moveTo(0, -6); ctx.quadraticCurveTo(4, 0, 1, 6); ctx.lineTo(0, 6);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
-  if (isMe) {
-    ctx.beginPath(); ctx.arc(x, y, 16, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.5)'; ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]); ctx.stroke(); ctx.setLineDash([]);
-  }
 }
 
 function formatTime(s: number): string {

@@ -1,9 +1,9 @@
-import { SectionWebView } from '../../src/course/SectionWebView';
+import { OfflineSternikCourse } from '../../src/course/OfflineSternikCourse';
 import { useLearningBookmark } from '../../src/persistence/learning-bookmark';
 
-// Kurs: sternik motorowodny (Polish licence). Embeds the full /sternik web
-// section - theory, trainer and mock exam - always in Polish.
+// The Polish licence course ships locally, with shared theory, questions and
+// mock exam. Oral practice checks typed answers locally and requests no mic.
 export default function KursMotorowodny() {
   useLearningBookmark('motor');
-  return <SectionWebView path="/sternik" section="/sternik" title="Sternik motorowodny" />;
+  return <OfflineSternikCourse />;
 }

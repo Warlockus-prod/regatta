@@ -4,7 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { useI18n } from "@/lib/i18n";
-import { setCurrentLesson } from "@/lib/storage";
+import { FOUNDATION_EVENT } from "@/lib/learning/foundation-progress";
 import { destinations } from "@/lib/product/catalog";
 import { copy } from "@/lib/product/copy";
 import { appStoreUrl, trackAppStoreClick } from "@/lib/funnel";
@@ -24,7 +24,8 @@ export default function Home() {
     const timer = setTimeout(refresh, 0);
     window.addEventListener("focus", refresh);
     window.addEventListener("storage", refresh);
-    return () => { clearTimeout(timer); window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); };
+    window.addEventListener(FOUNDATION_EVENT, refresh);
+    return () => { clearTimeout(timer); window.removeEventListener("focus", refresh); window.removeEventListener("storage", refresh); window.removeEventListener(FOUNDATION_EVENT, refresh); };
   }, [refresh]);
   const next = snapshot ? homeLearning(snapshot, lang, "web") : null;
   const alternatives = learningTracks.filter(id => id !== next?.course.id);
@@ -47,7 +48,7 @@ export default function Home() {
             <div className={styles.progressLabel}><span>{next.metric}</span><span>{next.count}/{next.total}</span></div>
             <progress value={next.count!} max={next.total} aria-label={next.metric!} />
           </div>}
-          <Link className={styles.primary} href={next.href} onClick={() => { if (next.course.id === "course" && next.lessonId) setCurrentLesson(next.lessonId); }}>
+          <Link className={styles.primary} href={next.href}>
             {next.complete ? homeCopy.review[lang] : next.started ? copy.resume[lang] : copy.start[lang]}<span aria-hidden="true">→</span>
           </Link>
           {next.href !== next.overview && <Link className={styles.overview} href={next.overview}>{copy.overview[lang]}</Link>}

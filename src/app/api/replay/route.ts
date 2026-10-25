@@ -4,6 +4,7 @@ import { insertReplay, getPlayer } from '@/lib/db';
 import { logInfo, logWarn } from '@/lib/log';
 import { rateLimitClient, rateLimitGlobal, clientKeys } from '@/lib/rate-limit';
 import { isPlausibleFinishSec, parseMissionId, sanitizeNickname } from '@/lib/race-submission';
+import { defaultReplayCourse, replayCourse, replayMetadata, replaySamples } from '@/lib/race-replay';
 
 export const runtime = 'nodejs';
 
@@ -24,7 +25,6 @@ const MAX_SAMPLES = 5000;
 const MAX_EVENTS = 2000;
 
 const MAX_RACE_SEC = 24 * 60 * 60;
-const MAX_COORD = 100_000;           // the race world is 800 x 1200
 
 interface Payload {
   difficulty: string;
@@ -35,45 +35,14 @@ interface Payload {
   events: unknown;
   course?: unknown;
   nicknameFallback?: string;
+  mode?: "simple" | "pro";
+  penaltySeconds?: number;
 }
 
-interface ReplaySample { t: number; x: number; y: number; heading: number; twa: number; speed: number; lap: number }
 interface ReplayEvent { type: string; t: number; note?: string }
 
 function bytes(v: unknown): number {
   return Buffer.byteLength(JSON.stringify(v) ?? '', 'utf8');
-}
-
-/** A finite number clamped to [min, max] and rounded to `digits`, or null. */
-function num(v: unknown, min: number, max: number, digits: number): number | null {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return null;
-  const f = 10 ** digits;
-  return Math.round(Math.min(max, Math.max(min, v)) * f) / f;
-}
-
-/**
- * Rebuilds the samples from an allow-list of numeric fields, so whatever the
- * client sent (extra keys, string padding, NaN) never reaches the DB. A sample
- * without a finite t/x/y is dropped rather than drawn at the origin.
- */
-function rebuildSamples(raw: unknown[]): ReplaySample[] {
-  const out: ReplaySample[] = [];
-  for (const item of raw) {
-    if (!item || typeof item !== 'object') continue;
-    const r = item as Record<string, unknown>;
-    const t = num(r.t, 0, MAX_RACE_SEC, 2);
-    const x = num(r.x, -MAX_COORD, MAX_COORD, 1);
-    const y = num(r.y, -MAX_COORD, MAX_COORD, 1);
-    if (t === null || x === null || y === null) continue;
-    out.push({
-      t, x, y,
-      heading: num(r.heading, -720, 720, 1) ?? 0,
-      twa: num(r.twa, -360, 360, 1) ?? 0,
-      speed: num(r.speed, 0, 1000, 2) ?? 0,
-      lap: num(r.lap, 0, 100, 0) ?? 0,
-    });
-  }
-  return out;
 }
 
 /** Events keep a slug `type`, a finite `t` and an optional slug `note`. */
@@ -82,7 +51,7 @@ function rebuildEvents(raw: unknown[]): ReplayEvent[] {
   for (const item of raw) {
     if (!item || typeof item !== 'object') continue;
     const r = item as Record<string, unknown>;
-    const t = num(r.t, 0, MAX_RACE_SEC, 2);
+    const t = typeof r.t === 'number' && Number.isFinite(r.t) && r.t >= 0 && r.t <= MAX_RACE_SEC ? r.t : null;
     const type = typeof r.type === 'string' ? r.type.replace(/[^a-z-]/gi, '').slice(0, 24) : '';
     if (t === null || !type) continue;
     const note = typeof r.note === 'string' ? r.note.replace(/[^a-z0-9-]/gi, '').slice(0, 40) : '';
@@ -136,8 +105,8 @@ export async function POST(req: Request) {
   if (bytes(body.events) > MAX_EVENTS_BYTES) {
     return NextResponse.json({ error: 'Events payload too large' }, { status: 400 });
   }
-  const samples = rebuildSamples(body.samples);
-  if (samples.length < 3) {
+  const samples = replaySamples(body.samples);
+  if (!samples || samples.length < 3) {
     return NextResponse.json({ error: 'Race too short to share' }, { status: 400 });
   }
   const events = rebuildEvents(body.events);
@@ -148,6 +117,10 @@ export async function POST(req: Request) {
   if (body.course != null && bytes(body.course) > MAX_COURSE_BYTES) {
     return NextResponse.json({ error: 'Course payload too large' }, { status: 400 });
   }
+  const metadata = replayMetadata(body);
+  if (!metadata) return NextResponse.json({ error: 'Bad replay metadata' }, { status: 400 });
+  const course = body.course == null ? null : replayCourse(body.course);
+  if (body.course != null && !course) return NextResponse.json({ error: 'Bad course' }, { status: 400 });
   if (!['easy', 'medium', 'hard'].includes(body.difficulty)) {
     return NextResponse.json({ error: 'Bad difficulty' }, { status: 400 });
   }
@@ -174,7 +147,9 @@ export async function POST(req: Request) {
     finishTimeSec: isPlausibleFinishSec(body.finishTimeSec) ? body.finishTimeSec : null,
     samples,
     events,
-    course: body.course ?? null,
+    // Metadata shares the existing bounded JSON column, preserving old rows.
+    course: body.mode !== undefined || body.penaltySeconds !== undefined
+      ? { ...(course ?? defaultReplayCourse()), replayMetadata: metadata } : course,
   });
   if (!code) return NextResponse.json({ error: 'DB write failed' }, { status: 500 });
 

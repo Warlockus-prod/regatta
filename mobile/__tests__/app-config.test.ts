@@ -1,12 +1,13 @@
 /**
- * Guards two App Store facts that live only in app.json and the locales:
+ * Guards App Store privacy declarations in app.json and the locales:
  *
  * 1. The privacy manifest sits at `expo.ios.privacyManifests`, the only place
  *    Expo's PrivacyInfo plugin reads it. From build 2 to 48 it sat inside the
  *    expo-build-properties plugin options, which ignore it, so the shipped
  *    PrivacyInfo.xcprivacy declared no collected data at all.
- * 2. The microphone purpose string names both uses: the SRC radio simulator
- *    and the sternik oral exam practice, in app.json and in all 7 locales.
+ * 2. Microphone and speech recognition purposes name local SRC practice.
+ * 3. The bundled file reader's unused Photos APIs still require a localized
+ *    purpose string for Apple's binary scan, without inventing a photo feature.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -22,7 +23,7 @@ type CollectedType = {
 interface AppJson {
   expo: {
     ios: {
-      infoPlist: { NSMicrophoneUsageDescription: string };
+      infoPlist: { NSMicrophoneUsageDescription: string; NSSpeechRecognitionUsageDescription: string; NSPhotoLibraryUsageDescription: string };
       privacyManifests?: {
         NSPrivacyTracking: boolean;
         NSPrivacyCollectedDataTypes: CollectedType[];
@@ -114,9 +115,49 @@ describe('microphone purpose string', () => {
     ]),
   ];
 
-  it.each(strings)('%s names both the radio simulator and the sternik oral exam', (_file, text) => {
+  it.each(strings)('%s names SRC radio practice without claiming microphone use for typed Sternik', (_file, text) => {
     expect(text).toMatch(/SRC/);
     expect(text).toMatch(/MAYDAY/);
-    expect(text.toLowerCase()).toMatch(/sternik/);
+    expect(text).toMatch(/PAN-PAN/);
+    expect(text.toLowerCase()).not.toMatch(/sternik/);
+  });
+  it('keeps the recognition plugin and native microphone purpose consistent', () => {
+    const plugin = appJson.expo.plugins.find(entry => Array.isArray(entry) && entry[0] === 'expo-speech-recognition');
+    expect(Array.isArray(plugin) && plugin[1].microphonePermission).toBe(appJson.expo.ios.infoPlist.NSMicrophoneUsageDescription);
+  });
+});
+
+it('localises the on-device SRC transcription purpose through the existing Expo locale files', () => {
+  for (const locale of Object.keys(appJson.expo.locales)) {
+    const data = JSON.parse(readFileSync(join(MOBILE_ROOT, 'locales', `${locale}.json`), 'utf8'));
+    expect(data.NSSpeechRecognitionUsageDescription).toEqual(expect.stringContaining('SRC'));
+    expect(data.NSSpeechRecognitionUsageDescription.length).toBeGreaterThan(50);
+  }
+  const plugin = appJson.expo.plugins.find(entry => Array.isArray(entry) && entry[0] === 'expo-speech-recognition');
+  expect(Array.isArray(plugin) && plugin[1].speechRecognitionPermission).toBe(appJson.expo.ios.infoPlist.NSSpeechRecognitionUsageDescription);
+});
+
+describe('bundled file reader Photos declaration', () => {
+  it('declares the purpose required by expo-file-system Photos references without claiming an app photo feature', () => {
+    const vendor = readFileSync(join(MOBILE_ROOT, 'node_modules/expo-file-system/ios/Legacy/FileSystemHelpers.swift'), 'utf8');
+    expect(vendor).toContain('PHPhotoLibrary.authorizationStatus');
+    const purpose = appJson.expo.ios.infoPlist.NSPhotoLibraryUsageDescription;
+    expect(purpose).toContain('does not request or use access');
+    expect(purpose).toContain('built-in file reader');
+    const source = readFileSync(join(MOBILE_ROOT, 'src/course/local-course-asset.ts'), 'utf8');
+    expect(source).toContain('/^(?:file|assets?|content):/');
+    expect(source).toContain('readAsStringAsync(uri');
+  });
+
+  it('includes a distinct Photos purpose for every registered language and keeps the default English in sync', () => {
+    const purposes = Object.keys(appJson.expo.locales).map(locale => {
+      const data = JSON.parse(readFileSync(join(MOBILE_ROOT, 'locales', `${locale}.json`), 'utf8'));
+      expect(data.NSPhotoLibraryUsageDescription).toEqual(expect.stringContaining('Regatta'));
+      expect(data.NSPhotoLibraryUsageDescription.length).toBeGreaterThan(100);
+      expect(data.NSPhotoLibraryUsageDescription).not.toMatch(/[\u2013\u2014]/);
+      if (locale === 'en') expect(data.NSPhotoLibraryUsageDescription).toBe(appJson.expo.ios.infoPlist.NSPhotoLibraryUsageDescription);
+      return data.NSPhotoLibraryUsageDescription;
+    });
+    expect(new Set(purposes).size).toBe(7);
   });
 });

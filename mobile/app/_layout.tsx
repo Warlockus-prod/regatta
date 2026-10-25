@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { useFonts } from 'expo-font';
 import { type ReactNode, useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -9,9 +10,12 @@ import { ErrorBoundary } from '../src/design-system/components';
 import { FirstLaunchGate } from '../src/onboarding/first-launch-language';
 import { AnalyticsProvider } from '../src/analytics';
 import { AppNavigation } from '../src/navigation/AppNavigation';
-import { colors } from '../src/design-system/tokens';
+import { colors, darkColors } from '../src/design-system/tokens';
+import { usesDarkNavigation } from '../src/navigation/visibility';
 import { isFoundationLesson } from '../src/bootcamp/lesson-position';
 import { ReturnToLesson } from '../src/bootcamp/ReturnToLesson';
+import { AppFontContext, SOURCE_SANS_FONTS } from '../src/design-system/fonts';
+import { ActivityBack, activityHubForRoute } from '../src/navigation/ActivityBack';
 
 // Block the native splash from auto-hiding before the JS bundle has
 // hydrated language preferences. The Gate below hides it once
@@ -32,17 +36,20 @@ SplashScreen.preventAutoHideAsync().catch(() => {
  *    `<Stack.Screen options={...} />` inside each route file.
  */
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts(SOURCE_SANS_FONTS);
   return (
-    <ErrorBoundary>
+    <AppFontContext.Provider value={fontsLoaded}><ErrorBoundary>
       <GestureHandlerRootView style={styles.root}>
         <SafeAreaProvider>
           <I18nProvider>
             <AnalyticsProvider>
-              <SplashGate>
+              <SplashGate fontsReady={fontsLoaded || Boolean(fontError)}>
                 <FirstLaunchGate>
                   <AppNavigation>
                   <Stack
                     screenOptions={({ route }) => ({
+                      headerBackVisible: false,
+                      headerLeft: ({ tintColor }) => <ActivityBack fallback={activityHubForRoute(route.name)} tintColor={tintColor} />,
                       ...(isFoundationLesson((route.params as { fromLesson?: string } | undefined)?.fromLesson) ? {
                         headerBackVisible: false,
                         headerLeft: ({ tintColor }) => <ReturnToLesson id={(route.params as { fromLesson: string }).fromLesson} tintColor={tintColor} />,
@@ -53,7 +60,7 @@ export default function RootLayout() {
                       // Chevron only: with large text iOS clipped the back title ("лавн").
                       headerBackButtonDisplayMode: 'minimal',
                       headerTintColor: colors.accentCyan,
-                      headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+                      headerTitleStyle: { color: usesDarkNavigation(`/${route.name}`) ? darkColors.textPrimary : colors.textPrimary, fontFamily: fontsLoaded ? 'SourceSans3Bold' : undefined, fontWeight: fontsLoaded ? 'normal' : '700' },
                       animation: 'slide_from_right',
                       // Scene-based apps (iOS 27) ignore the UIApplication status bar
                       // API, so each screen sets its style through react-native-screens
@@ -68,7 +75,7 @@ export default function RootLayout() {
           </I18nProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
-    </ErrorBoundary>
+    </ErrorBoundary></AppFontContext.Provider>
   );
 }
 
@@ -77,18 +84,18 @@ export default function RootLayout() {
  * a child of `I18nProvider` so it can read the context without leaking
  * I18n internals into the SplashScreen API.
  */
-function SplashGate({ children }: { children: ReactNode }) {
+function SplashGate({ children, fontsReady }: { children: ReactNode; fontsReady: boolean }) {
   const { ready } = useI18n();
 
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || !fontsReady) return;
     SplashScreen.hideAsync().catch(() => {
       /* ignore; either already hidden or the module isn't initialized in
          a non-native test environment. */
     });
-  }, [ready]);
+  }, [ready, fontsReady]);
 
-  return <>{children}</>;
+  return fontsReady ? <>{children}</> : null;
 }
 
 const styles = StyleSheet.create({

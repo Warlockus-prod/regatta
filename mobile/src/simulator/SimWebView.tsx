@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { Stack, useRouter, type Href } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
@@ -6,12 +6,11 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useWindowDimensions,
 } from 'react-native';
 import { WebView, type WebViewMessageEvent, type WebViewProps } from 'react-native-webview';
-import { Screen } from '../design-system/components';
+import { Screen, Text } from '../design-system/components';
 import { useI18n } from '../i18n/context';
 import { darkColors as colors } from '../design-system/tokens';
 import { DarkSurface, darkStackOptions } from '../design-system/surface';
@@ -22,6 +21,9 @@ import { handleCheckpointMessage } from "../sailing/checkpoint-storage";
 import { useAnalyticsConsent, webAnalyticsGuardScript } from '../persistence/analytics-consent';
 import { useControlPrefs } from '../persistence/controls';
 import { useLandscapeWhileFocused } from './orientation';
+import { ActivityBack } from '../navigation/ActivityBack';
+import { ReturnToLesson } from '../bootcamp/ReturnToLesson';
+import { sailingNativeDestination } from '../navigation/sailing-entry';
 
 // ============================================================================
 // SimWebView - embed a web simulator route inside the app via WebView.
@@ -76,7 +78,7 @@ const AFTER_LOAD = `
   (function () {
     try { ${SET_FLAGS} } catch (e) {}
     var css = [
-      'nav { display: none !important; }',
+      'nav[data-product-navigation] { display: none !important; }',
       'a[href*="apps.apple.com"] { display: none !important; }',
       'section:has(a[href*="apps.apple.com"]) { display: none !important; }',
       'body { background: #0a1628 !important; }'
@@ -112,10 +114,9 @@ export interface SimWebViewProps {
   /** Render the native tier switcher and mark this tier active. */
   tier?: SimTier;
   /**
-   * Allow page scrolling. Off for the simulators (they fit 100dvh by the
-   * embed contract); on for content pages like /anatomy where natural scroll
-   * is the right UX (OrbitControls sets touch-action:none on its canvas, so
-   * orbit drags do not fight the scroll view).
+   * Allow the reserved docks and multi-step menus to scroll. The scene and
+   * wheels own their gestures with touch-action:none; disabling the whole
+   * WKWebView can also prevent learners from reaching dock content.
    */
   scrollEnabled?: boolean;
   /** Offline fallback route (default: the native Basics/Trainer entry). */
@@ -124,12 +125,20 @@ export interface SimWebViewProps {
   fallbackLabel?: string;
   /** Bundled, self-contained content. Never falls through to a remote URL. */
   offlineSource?: WebViewProps["source"] | number;
+  /** The race owns its navigation bar inside the reserved control area. */
+  fullScreen?: boolean;
+  /** Saved canonical race log for the shared local replay renderer. */
+  raceReplay?: unknown;
+  /** Trusted local content messages, handled by the owning activity. */
+  onOfflineMessage?: (message: string, inject: (script: string) => void) => void;
+  /** Extra startup bridge code for the bundled activity. */
+  offlineBridgeScript?: string;
   /**
    * App preferences the page reads from localStorage (the race venue, the
    * shore switch). Written before the page runs; a later change is written
    * into the live page with a "storage" event, so it updates without a reload.
    */
-  localStorage?: Record<string, string>;
+  localStorage?: Record<string, string | null>;
 }
 
 export function SimWebView({
@@ -137,10 +146,14 @@ export function SimWebView({
   title,
   query,
   tier,
-  scrollEnabled = false,
+  scrollEnabled = true,
   fallbackRoute = '/simulator',
   fallbackLabel,
   offlineSource,
+  fullScreen = false,
+  raceReplay,
+  onOfflineMessage,
+  offlineBridgeScript = "",
   localStorage: pageStorage,
 }: SimWebViewProps) {
   const { lang, tp } = useI18n();
@@ -151,9 +164,9 @@ export function SimWebView({
   // trainer's own settings sheet (src/features/trainer-controls/prefs.ts).
   // The WebView does not wait for the stored record: a later read reaches the
   // page through the injection effect below, without a reload.
-  const { prefs: controlPrefs, replace: replaceControls } = useControlPrefs();
+  const { prefs: controlPrefs, replace: replaceControls, ready: controlsReady } = useControlPrefs();
   // Only the trainers turn with the phone; content pages (anatomy) stay portrait.
-  useLandscapeWhileFocused(Boolean(tier));
+  useLandscapeWhileFocused(Boolean(tier) || path === "/game");
   const { width: winW, height: winH } = useWindowDimensions();
   // Turned phone: the trainer needs the height for the boat, the tier
   // switcher comes back when the phone is upright.
@@ -161,8 +174,12 @@ export function SimWebView({
   const controlsJson = JSON.stringify(controlPrefs);
   const controlsScript = `window.__REGATTA_CONTROLS__ = ${controlsJson}; true;`;
   const storageJson = JSON.stringify(pageStorage ?? {});
-  const storageScript = `try { var s = ${storageJson}; for (var k in s) localStorage.setItem(k, s[k]); } catch (e) {} true;`;
+  const storageScript = `try { var s = ${storageJson}; for (var k in s) { if(s[k] === null) localStorage.removeItem(k); else localStorage.setItem(k, s[k]); } } catch (e) {} true;`;
+  const raceScript = path === "/game" && offlineSource
+    ? `window.__REGATTA_RACE_NATIVE__ = true; window.__REGATTA_RACE_REPLAY__ = ${JSON.stringify(raceReplay ?? null)}; true;`
+    : "";
   const returnLesson = findSailLesson(query?.lesson ?? "");
+  const backFallback = path === "/anatomy" ? "/menu" : path === "/game" ? "/race" : "/simulators";
 
   // The three learning tiers, in the site's order. `replace` (not `push`) keeps
   // the back button pointing at the hub instead of stacking simulators.
@@ -234,9 +251,14 @@ export function SimWebView({
   };
 
   return (
-    <DarkSurface><Screen noTopInset noBottomInset>
-      <Stack.Screen options={{ ...darkStackOptions, title }} />
-      {returnLesson && <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={{ minHeight: 48, paddingHorizontal: 20, paddingVertical: 12, justifyContent: "center" }}><Text style={{ color: colors.accentCyan, fontSize: 15 }}>← {guideCopy.return[lang]}</Text></Pressable>}
+    <DarkSurface><Screen noTopInset={!fullScreen}>
+      <Stack.Screen options={{ ...darkStackOptions, title, headerShown: !fullScreen || loading || failed, headerBackVisible: false,
+        headerLeft: () => returnLesson
+          ? <Pressable accessibilityRole="button" accessibilityLabel={guideCopy.return[lang]} onPress={() => router.navigate({ pathname: "/learn/sails/[lesson]", params: { lesson: returnLesson.id } })} style={styles.headerBack}><Text style={{ color: colors.accentCyan }}>‹ {guideCopy.return[lang]}</Text></Pressable>
+          : isFoundationLesson(query?.fromLesson)
+            ? <ReturnToLesson id={query!.fromLesson} tintColor={colors.accentCyan} />
+            : <ActivityBack fallback={backFallback} tintColor={colors.accentCyan} />,
+      }} />
       {tier && !landscape && !returnLesson && !isFoundationLesson(query?.fromLesson) && (
         <View style={styles.tierBar} accessibilityRole="tablist">
           {tiers.map((t) => {
@@ -264,7 +286,7 @@ export function SimWebView({
       )}
       {/* Mount once the analytics choice is known so the first load already
           carries the flag; the key includes the choice. */}
-      {consentReady && <WebView
+      {consentReady && (path !== "/game" || controlsReady) && <WebView
         key={`${reloadKey}-${analyticsOn ? 'a' : 'na'}`}
         ref={webRef}
         source={offlineSource ? bundledSource ?? { html: "" } : { uri }}
@@ -276,7 +298,7 @@ export function SimWebView({
         mediaPlaybackRequiresUserAction={false}
         scrollEnabled={scrollEnabled}
         bounces={false}
-        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + languageScript + controlsScript + storageScript + BEFORE_LOAD}
+        injectedJavaScriptBeforeContentLoaded={webAnalyticsGuardScript(analyticsOn) + raceScript + languageScript + controlsScript + storageScript + offlineBridgeScript + BEFORE_LOAD}
         injectedJavaScript={languageScript + controlsScript + AFTER_LOAD}
         onShouldStartLoadWithRequest={(req) => {
           if (offlineSource) return req.navigationType !== "click" && (req.url.startsWith("file://") || req.url === "about:blank" || Boolean(developmentOrigin && req.url === bundledUri));
@@ -293,6 +315,17 @@ export function SimWebView({
         }}
         onMessage={(e: WebViewMessageEvent) => {
           const status = e.nativeEvent.data;
+          if (offlineSource && status.startsWith("{")) onOfflineMessage?.(status, script => webRef.current?.injectJavaScript(script));
+          if (offlineSource && path !== "/game" && status.length <= 1024 && status.startsWith("{")) {
+            try {
+              const data = JSON.parse(status) as { type?: string; href?: unknown };
+              if (data.type === "native-navigate") {
+                const destination = sailingNativeDestination(data.href);
+                if (destination) router.navigate(destination as Href);
+                return;
+              }
+            } catch { /* Ignore malformed messages from the local page. */ }
+          }
           if (status.startsWith('{"type":"controls-prefs"')) {
             try { replaceControls((JSON.parse(status) as { prefs?: unknown }).prefs); } catch { /* malformed */ }
             return;
@@ -330,7 +363,12 @@ export function SimWebView({
       {failed && (
         <View style={styles.overlay}>
           <Text style={styles.errText}>
-            {offlineSource ? tp(
+            {path === "/game" && offlineSource ? tp(
+              "Не удалось открыть гонку. Повтори запуск или вернись к выбору гонки. Интернет не требуется.",
+              "The race could not open. Retry or return to the race menu. No internet is needed.",
+              "Nie udało się otworzyć wyścigu. Spróbuj ponownie lub wróć do menu regat. Internet nie jest potrzebny.",
+              { es: "No se pudo abrir la regata. Reintenta o vuelve al menú. No necesitas internet.", fr: "La course ne s'ouvre pas. Réessaie ou retourne au menu. Internet n'est pas nécessaire.", de: "Das Rennen konnte nicht geöffnet werden. Erneut versuchen oder zum Rennmenü zurückkehren. Kein Internet nötig.", it: "Impossibile aprire la regata. Riprova o torna al menu. Non serve internet." },
+            ) : offlineSource ? tp(
               "Не удалось открыть локальный симулятор. Повтори запуск или открой упрощенные Основы. Интернет не требуется.",
               "The local simulator could not open. Retry or open simplified Basics. No internet is needed.",
               "Nie udało się otworzyć lokalnego symulatora. Spróbuj ponownie lub otwórz uproszczone Podstawy. Internet nie jest potrzebny.",
@@ -385,6 +423,7 @@ export function SimWebView({
 }
 
 const styles = StyleSheet.create({
+  headerBack: { minHeight: 44, minWidth: 44, paddingRight: 12, justifyContent: "center" },
   web: { flex: 1, backgroundColor: colors.bgPrimary },
   tierBar: {
     flexDirection: 'row',
@@ -396,7 +435,7 @@ const styles = StyleSheet.create({
   },
   tierChip: {
     flex: 1,
-    minHeight: 36,
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,

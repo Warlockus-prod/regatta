@@ -13,19 +13,26 @@ jest.mock('expo-router', () => ({
   Stack: { Screen: () => null },
   useRouter: () => ({ replace: jest.fn(), push: jest.fn() }),
   useNavigation: () => ({ addListener: () => () => {}, dispatch: jest.fn() }),
+  useFocusEffect: (callback: () => void | (() => void)) => jest.requireActual('react').useEffect(callback, [callback]),
+}));
+jest.mock('@react-navigation/native', () => ({ usePreventRemove: jest.fn() }));
+jest.mock('expo-speech', () => ({
+  getAvailableVoicesAsync: jest.fn().mockResolvedValue([]),
+  stop: jest.fn().mockResolvedValue(undefined), speak: jest.fn(),
 }));
 jest.mock('../src/i18n/context', () => ({
   useI18n: () => ({ lang: 'en', tp: (_ru: string, en: string) => en }),
 }));
 jest.mock('../src/design-system/components', () => ({
-  Screen: ({ children }: { children: React.ReactNode }) => children,
+  Screen: (props: object) => jest.requireActual('react').createElement(jest.requireActual('react-native').View, { ...props, testID: 'native-screen' }),
+  Text: jest.requireActual('react-native').Text,
 }));
 jest.mock('react-native-webview', () => {
   const React = require('react');
   const { View: RNView } = require('react-native');
   return {
     WebView: React.forwardRef((props: object, ref: unknown) => {
-      React.useImperativeHandle(ref, () => ({ injectJavaScript: jest.fn() }));
+      React.useImperativeHandle(ref, () => ({ injectJavaScript: mockInject }));
       return React.createElement(RNView, { ...props, testID: 'webview' });
     }),
   };
@@ -35,6 +42,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SectionWebView } from '../src/course/SectionWebView';
 import { SimWebView } from '../src/simulator/SimWebView';
 import { OfflineRadioCourse } from '../src/course/OfflineRadioCourse';
+import { RADIO_STORAGE_KEY } from '../src/persistence/radio-storage';
 import {
   ANALYTICS_CONSENT_KEY,
   WEB_NO_ANALYTICS_SCRIPT,
@@ -42,6 +50,7 @@ import {
 } from '../src/persistence/analytics-consent';
 
 const FLAG = '__REGATTA_NO_ANALYTICS__=true';
+const mockInject = jest.fn();
 
 const hosts: [string, () => React.ReactElement][] = [
   ['SectionWebView', () => <SectionWebView path="/sternik" section="/sternik" title="Sternik" />],
@@ -57,6 +66,7 @@ async function optOut() {
 }
 
 beforeEach(async () => {
+  jest.clearAllMocks();
   await AsyncStorage.clear();
 });
 
@@ -87,7 +97,7 @@ it('does not mount the page before the stored choice is read', async () => {
   await waitFor(() => expect(view.getByTestId('webview')).toBeTruthy());
 });
 
-it('the online /radio pages get the flag too', async () => {
+it('legacy radio links stay in the local course with analytics disabled', async () => {
   await optOut();
   const view = render(<OfflineRadioCourse />);
   const offline = await waitFor(() => view.getByTestId('webview'));
@@ -96,9 +106,11 @@ it('the online /radio pages get the flag too', async () => {
       nativeEvent: { data: JSON.stringify({ type: 'radio-open-online', path: '/radio/symulator' }) },
     });
   });
-  const online = view.getByTestId('webview');
-  expect(online.props.source.uri).toContain('/radio/symulator');
-  expect(online.props.injectedJavaScriptBeforeContentLoaded).toContain(FLAG);
+  const local = view.getByTestId('webview');
+  expect(local).toBe(offline);
+  expect(local.props.source).toBe(offline.props.source);
+  expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining('regatta:radio-navigate'));
+  expect(local.props.injectedJavaScriptBeforeContentLoaded).toContain(FLAG);
 });
 
 // Stand-in for the Settings switch: another screen that flips the shared choice.
@@ -130,4 +142,46 @@ it('a change made elsewhere reloads the page with the new choice', async () => {
   await waitFor(async () => {
     expect(await AsyncStorage.getItem(ANALYTICS_CONSENT_KEY)).toBe(JSON.stringify({ enabled: false }));
   });
+});
+
+
+it("keeps cockpit utility navigation visible inside the local race", async () => {
+  const view = render(<SimWebView path="/game" title="Race" fullScreen offlineSource={{ uri: "file:///bundle/sailing-offline.html" }} />);
+  const web = await waitFor(() => view.getByTestId("webview"));
+  expect(web.props.injectedJavaScript).toContain("nav[data-product-navigation]");
+  expect(web.props.injectedJavaScript).not.toContain("nav { display: none");
+});
+
+it("reserves the home-indicator inset while the radio workspace hides main navigation", async () => {
+  const view = render(<OfflineRadioCourse />);
+  const web = await waitFor(() => view.getByTestId("webview"));
+  act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "radio-offline-ready" }) } }));
+  act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "radio-workspace", open: true }) } }));
+  expect(view.getByTestId("native-screen").props.noBottomInset).toBe(false);
+  expect(view.getByTestId("native-screen").props.noTopInset).toBe(false);
+});
+
+it("acknowledges radio progress only after durable storage and retries disk errors", async () => {
+  const view = render(<OfflineRadioCourse />);
+  const web = await waitFor(() => view.getByTestId("webview"));
+  const entries = { "sternik.radio.progress.v1": "new-progress" };
+  (AsyncStorage.setItem as jest.Mock).mockRejectedValueOnce(new Error("disk full"));
+  act(() => fireEvent(web, "message", { nativeEvent: { data: JSON.stringify({ type: "radio-offline-progress", entries }) } }));
+  await waitFor(() => view.getByText("Retry saving"));
+  expect(mockInject).not.toHaveBeenCalledWith(expect.stringContaining("radio-storage-saved"));
+  expect(await AsyncStorage.getItem(RADIO_STORAGE_KEY)).toBeNull();
+  fireEvent.press(view.getByText("Retry saving"));
+  await waitFor(() => expect(mockInject).toHaveBeenLastCalledWith(expect.stringContaining("radio-storage-saved")));
+  expect(JSON.parse((await AsyncStorage.getItem(RADIO_STORAGE_KEY))!)).toEqual(entries);
+});
+
+it("does not mount SRC over unreadable native progress and retries without overwriting it", async () => {
+  await AsyncStorage.setItem(RADIO_STORAGE_KEY, "unreadable");
+  const view = render(<OfflineRadioCourse />);
+  await waitFor(() => view.getByText("Retry"));
+  expect(view.queryByTestId("webview")).toBeNull();
+  expect(await AsyncStorage.getItem(RADIO_STORAGE_KEY)).toBe("unreadable");
+  await AsyncStorage.setItem(RADIO_STORAGE_KEY, "{}");
+  fireEvent.press(view.getByText("Retry"));
+  await waitFor(() => view.getByTestId("webview"));
 });

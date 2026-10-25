@@ -602,3 +602,16 @@ How do we know the decision is working?
 ### References
 External links, prior ADRs, MEMORY.md entries.
 ```
+
+
+## ADR-0009 - Offline solo Pro controls and educational race assistance
+
+Date: 2026-10-24. Status: accepted by owner request.
+
+The solo race uses the shared force model and the same controls convention as the trainer: sheet tension is 0 eased, 1 sheeted in. The display uses ease and converts with 1 - ease. Simple mode automatically trims sheets; deployment, furling and reefing remain explicit. Pro uses manual sheets, twist and deployment. No VPP constants change.
+
+The solo player's responsive steering assistance is opt-in in the race adapter, 40 degrees per second at speed, with 20 percent low-speed authority. It shortens the control response compared with the legacy 22 degrees per second, and is an input assistance rather than a claim of physical rudder realism. Bots, multiplayer and existing replay consumers retain legacy defaults.
+
+Read-only route guidance proposes a sailing heading and mark approach without steering or advancing gates. Optional educational rules cover a conservative subset of RRS 2025-2028 (10, 11, 12, 14, 29.1, 31 and course completion). Hull circles and limited liability detection cannot replace a real umpire; uncertain situations do not receive time penalties. Contact +5 seconds and mark touch +3 seconds are explicitly custom game-training penalties, not the turns specified in RRS 44. A false start requires returning behind the line.
+
+Source: World Sailing RRS 2025-2028, corrected July 2025, https://media.sailing.org/sailing/wp-content/uploads/2025/07/29083752/2025-2028-RRS-with-Changes-and-Corrections.pdf . Unit tests and numeric probes cover these model contracts.

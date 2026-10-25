@@ -1,0 +1,203 @@
+{
+  "source": "Adobe Fonts connector, font_search + font_details",
+  "date": "2026-10-24",
+  "fontResults": [
+    {
+      "family_name": "Source Sans 3",
+      "style_name": "Regular",
+      "full_name": "Source Sans 3 Regular",
+      "designers": [
+        "Paul D. Hunt"
+      ],
+      "foundry": "Adobe Originals",
+      "detail_url": "https://fonts.adobe.com/fonts/source-sans-3",
+      "language_support": [
+        "de",
+        "es",
+        "nl",
+        "en",
+        "pl",
+        "ru",
+        "fr",
+        "cs",
+        "sv",
+        "pt",
+        "ca",
+        "it",
+        "sl",
+        "mt",
+        "el",
+        "tr",
+        "hu",
+        "vi",
+        "be",
+        "da",
+        "mk",
+        "uk",
+        "no",
+        "sr",
+        "IPA",
+        "lv",
+        "zh-Latn-pinyin",
+        "fi",
+        "fil",
+        "ms",
+        "hr",
+        "kk",
+        "ro",
+        "id",
+        "sk",
+        "bg",
+        "uz"
+      ],
+      "library_availability": {
+        "full": true,
+        "trial": true
+      },
+      "weight": 400,
+      "style": "normal",
+      "is_variable_font": false,
+      "resolved_via": "font_id",
+      "requested": {
+        "postscript_name": "SourceSans3-Regular",
+        "font_id": "TkD-47081-83341dae76d9d03b3fe8b27115fa8f94eff9b1d1"
+      },
+      "font_identifier": {
+        "postscript_name": "SourceSans3-Regular",
+        "font_id": "TkD-47081-83341dae76d9d03b3fe8b27115fa8f94eff9b1d1"
+      },
+      "is_user_added": false
+    },
+    {
+      "family_name": "IBM Plex Sans",
+      "style_name": "Regular",
+      "full_name": "IBM Plex Sans Regular",
+      "designers": [
+        "Mike Abbink",
+        "Paul van der Laan",
+        "Pieter van Rosmalen"
+      ],
+      "foundry": "IBM",
+      "detail_url": "https://fonts.adobe.com/fonts/ibm-plex-sans",
+      "language_support": [
+        "de",
+        "es",
+        "nl",
+        "en",
+        "pl",
+        "ru",
+        "fr",
+        "cs",
+        "sv",
+        "pt",
+        "ca",
+        "it",
+        "sl",
+        "mt",
+        "el",
+        "tr",
+        "hu",
+        "vi",
+        "be",
+        "da",
+        "mk",
+        "uk",
+        "no",
+        "sr",
+        "fi",
+        "fil",
+        "ms",
+        "hr",
+        "kk",
+        "ro",
+        "id",
+        "sk",
+        "bg",
+        "uz"
+      ],
+      "library_availability": {
+        "full": true,
+        "trial": true
+      },
+      "weight": 400,
+      "style": "normal",
+      "is_variable_font": false,
+      "resolved_via": "font_id",
+      "requested": {
+        "postscript_name": "IBMPlexSans",
+        "font_id": "TkD-39885-ebda775c8d58b7763aa9fc9d0eef2c04f34beea0"
+      },
+      "font_identifier": {
+        "postscript_name": "IBMPlexSans",
+        "font_id": "TkD-39885-ebda775c8d58b7763aa9fc9d0eef2c04f34beea0"
+      },
+      "is_user_added": false
+    },
+    {
+      "family_name": "Source Serif 4",
+      "style_name": "Regular",
+      "full_name": "Source Serif 4 Regular",
+      "designers": [
+        "Frank Grießhammer"
+      ],
+      "foundry": "Adobe Originals",
+      "detail_url": "https://fonts.adobe.com/fonts/source-serif-4",
+      "language_support": [
+        "de",
+        "es",
+        "nl",
+        "en",
+        "pl",
+        "ru",
+        "fr",
+        "cs",
+        "sv",
+        "pt",
+        "ca",
+        "it",
+        "sl",
+        "mt",
+        "el",
+        "tr",
+        "hu",
+        "vi",
+        "be",
+        "da",
+        "mk",
+        "uk",
+        "no",
+        "sr",
+        "lv",
+        "zh-Latn-pinyin",
+        "fi",
+        "fil",
+        "ms",
+        "hr",
+        "kk",
+        "ro",
+        "id",
+        "sk",
+        "bg",
+        "uz"
+      ],
+      "library_availability": {
+        "full": true,
+        "trial": true
+      },
+      "weight": 400,
+      "style": "normal",
+      "is_variable_font": false,
+      "resolved_via": "font_id",
+      "requested": {
+        "postscript_name": "SourceSerif4-Regular",
+        "font_id": "TkD-45923-74cabfd2d4407c82e897c8fa6f96276af3c6e624"
+      },
+      "font_identifier": {
+        "postscript_name": "SourceSerif4-Regular",
+        "font_id": "TkD-45923-74cabfd2d4407c82e897c8fa6f96276af3c6e624"
+      },
+      "is_user_added": false
+    }
+  ],
+  "previewStatus": "Connector schema mismatch prevented specimen cards; metadata resolved successfully."
+}

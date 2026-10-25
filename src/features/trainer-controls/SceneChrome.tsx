@@ -1,11 +1,13 @@
 'use client';
 
 import { useEffect, useRef, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import styles from "./TrainerControls.module.css";
+import { useReservedPanel } from "./ReservedPanel";
 
 // Owner rule (2026-10-21): on a phone nothing is drawn over the boat. Status
 // and view buttons sit in a bar ABOVE the scene, readouts UNDER it, and the
-// view choices slide out from the side only when asked for, then slide back.
+// view choices borrow the control area only when asked for.
 
 /** The strip above the scene: a short status on the left, buttons on the right. */
 export function SceneBar(props: { status?: ReactNode; actions?: ReactNode; className?: string }) {
@@ -53,37 +55,52 @@ export function BarIconButton(props: { label: string; onClick: () => void; child
 }
 
 /**
- * Drawer that slides in from the right edge of the scene. Lives inside the
- * scene box (position: relative). Closed, it takes no room and covers nothing.
+ * Views borrow the control dock below the scene (beside it in landscape).
+ * The canvas keeps its size, even while the learner reads an open panel.
  */
 export function SceneDrawer(props: { id: string; open: boolean; title: string; closeLabel: string; onClose: () => void; children: ReactNode }) {
   const { id, open, title, closeLabel, onClose, children } = props;
   const panelRef = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  const previousFocus = useRef<HTMLElement | null>(null);
+  const host = useReservedPanel(id, open);
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
   useEffect(() => {
-    if (!open) return;
+    if (!open || !host) return;
+    previousFocus.current = document.activeElement as HTMLElement | null;
     panelRef.current?.querySelector<HTMLElement>("button")?.focus({ preventScroll: true });
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeRef.current(); };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open, onClose]);
-  return (
-    <>
-      {open && <button type="button" className={styles.drawerBackdrop} aria-label={closeLabel} tabIndex={-1} onClick={onClose} />}
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      const previous = previousFocus.current;
+      queueMicrotask(() => { if (previous?.isConnected) previous.focus({ preventScroll: true }); });
+    };
+  }, [open, host]);
+  if (!open) {
+    const placeholder = <div id={id} hidden data-testid="scene-drawer" />;
+    return host ? createPortal(placeholder, host) : placeholder;
+  }
+  const panel = (
       <div
         ref={panelRef}
         id={id}
         role="region"
         aria-label={title}
         className={styles.drawer}
+        data-trainer-panel
         data-open={open}
         inert={!open}
         data-testid="scene-drawer"
       >
-        <p className={styles.drawerTitle}>{title}</p>
+        <div className={styles.panelTitleRow}>
+          <p className={styles.drawerTitle}>{title}</p>
+          <button type="button" className={styles.barButton} aria-label={closeLabel} onClick={() => closeRef.current()}>×</button>
+        </div>
         {children}
       </div>
-    </>
   );
+  return host ? createPortal(panel, host) : panel;
 }
 
 /** A group of choices in the drawer, divided from the next one by a rule. */

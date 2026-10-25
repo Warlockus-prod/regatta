@@ -1,26 +1,17 @@
 import { SimWebView } from '../../src/simulator/SimWebView';
 import { useI18n } from '../../src/i18n/context';
 
-// ============================================================================
-// Yacht anatomy - the WEB 3D experience, 1:1.
-//
-// The web /anatomy page is the good version (R3F viewer of the Bavaria-style
-// GLB with 17 clickable hotspots, 5 camera projections, part descriptions in
-// 7 languages). The old native SVG schema was a pale copy, so this route now
-// embeds the web page via the hardened WebView (user decision 2026-07-05:
-// "хочу вэб 1 к 1 3д перенести в апп"). Page scrolling stays ENABLED here -
-// unlike the simulators this is a content page; OrbitControls marks its
-// canvas touch-action:none so orbit drags never fight the scroll.
-//
-// Offline: the native schema survives at /anatomy-offline and is offered as
-// the fallback when the network is down.
-// ============================================================================
+const OFFLINE_SOURCE = require('../../assets/sailing-offline.html');
+
+// The shared 3D anatomy viewer, local GLB and seven-language descriptions ship
+// inside the sailing package. The native diagram is an asset-error fallback.
 
 export default function AnatomyScreen() {
   const { tp } = useI18n();
   return (
     <SimWebView
       path="/anatomy"
+      offlineSource={OFFLINE_SOURCE}
       title={tp('Устройство яхты', 'Yacht anatomy', 'Budowa jachtu', {
         es: 'Anatomía del velero',
         fr: 'Anatomie du voilier',

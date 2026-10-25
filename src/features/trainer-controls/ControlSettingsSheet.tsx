@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
+import { createPortal } from "react-dom";
 import styles from "./TrainerControls.module.css";
 import type { ControlLabels } from "./labels";
 import { helmMappingFor, type ControlPrefs, type Surface } from "./prefs";
 import type { Sensitivity } from "./mapping";
+import { useReservedPanel } from "./ReservedPanel";
 
 export interface FavoriteOption { id: string; title: string; }
 
@@ -41,17 +43,26 @@ export function ControlSettingsSheet(props: {
 }) {
   const { surface, prefs, update, labels, hasSheets, rudderAvailable, favorites, defaultFavorites, onClose } = props;
   const dialogRef = useRef<HTMLDivElement>(null);
+  const id = useId();
+  const closeRef = useRef(onClose);
+  const previousFocus = useRef<HTMLElement | null>(typeof document === "undefined" ? null : document.activeElement as HTMLElement | null);
+  const host = useReservedPanel(`settings-${id}`, true);
   const mapping = helmMappingFor(prefs, surface);
   const chosen = prefs.dock[surface]?.favorites ?? defaultFavorites;
   const order = [...chosen.filter((id) => favorites.some((f) => f.id === id)), ...favorites.map((f) => f.id).filter((id) => !chosen.includes(id))];
 
+  useEffect(() => { closeRef.current = onClose; }, [onClose]);
   useEffect(() => {
-    const previous = document.activeElement as HTMLElement | null;
-    dialogRef.current?.querySelector<HTMLElement>("button, input")?.focus();
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose(); };
+    if (!host) return;
+    const previous = previousFocus.current;
+    dialogRef.current?.querySelector<HTMLElement>("button, input")?.focus({ preventScroll: true });
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") closeRef.current(); };
     window.addEventListener("keydown", onKey);
-    return () => { window.removeEventListener("keydown", onKey); previous?.focus?.(); };
-  }, [onClose]);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      queueMicrotask(() => { if (previous?.isConnected) previous.focus({ preventScroll: true }); });
+    };
+  }, [host]);
 
   const setFavorites = (ids: string[]) => update((p) => ({ ...p, dock: { ...p.dock, [surface]: { favorites: ids } } }));
   const move = (id: string, dir: -1 | 1) => {
@@ -63,10 +74,12 @@ export function ControlSettingsSheet(props: {
     setFavorites(next.filter((x) => chosen.includes(x)));
   };
 
-  return (
-    <div className={styles.sheetBackdrop} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div ref={dialogRef} className={styles.sheet} role="dialog" aria-modal="true" aria-labelledby="tc-settings-title" data-testid="control-settings">
-        <h2 id="tc-settings-title">{labels.settings}</h2>
+  const panel = (
+      <div ref={dialogRef} className={styles.sheet} role="region" aria-labelledby={`tc-settings-title-${id}`} data-testid="control-settings" data-trainer-panel>
+        <div className={styles.panelTitleRow}>
+          <h2 id={`tc-settings-title-${id}`}>{labels.settings}</h2>
+          <button type="button" className={styles.barButton} aria-label={labels.close} onClick={() => closeRef.current()}>×</button>
+        </div>
 
         <section className={styles.sheetGroup}>
           <span className={styles.groupLabel}>{labels.mode}</span>
@@ -117,8 +130,8 @@ export function ControlSettingsSheet(props: {
           </section>
         )}
 
-        <button type="button" className={styles.primary} onClick={onClose}>{labels.done}</button>
+        <button type="button" className={styles.primary} onClick={() => closeRef.current()}>{labels.done}</button>
       </div>
-    </div>
   );
+  return host ? createPortal(panel, host) : panel;
 }

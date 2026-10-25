@@ -1,9 +1,10 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useI18n } from '@/lib/i18n';
-import { useSternikPrefs } from '../../sternik/prefs';
+import { useSternikPrefs } from "@/app/radio/prefs";
 import { SCENARIOS } from '../symulator/scenarios';
 import { SpeakButton } from '../audio/SpeakButton';
 import {
@@ -34,7 +35,8 @@ const PASS = 60;
 interface ScenarioProgress { attempts: number; best: number; lastScore: number; bestTimeSec: number | null }
 
 export default function CheatSheet() {
-  const { tp, lang } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp, lang } = useRadioI18n();
   const { explLang } = useSternikPrefs();
   const showRu = lang === 'ru' && explLang !== 'pl';
   const showPl = explLang !== 'ru' || lang !== 'ru';
@@ -56,8 +58,8 @@ export default function CheatSheet() {
       );
       setName(window.localStorage.getItem(NAME_KEY) ?? '');
     } catch { /* private browsing */ }
-    setToday(new Date().toLocaleDateString('pl-PL', { day: '2-digit', month: '2-digit', year: 'numeric' }));
-  }, []);
+    setToday(new Date().toLocaleDateString(lang, { day: '2-digit', month: '2-digit', year: 'numeric' }));
+  }, [lang]);
 
   const onName = useCallback((v: string) => {
     setName(v);
@@ -98,17 +100,17 @@ export default function CheatSheet() {
     <div>
       <div className="no-print">
         <Link href="/radio" className="text-sm" style={{ color: 'var(--accent-cyan)' }}>
-          {tp('< Раздел радио', '< Radio section', '< Dział radio')}
+          {radioText(tp('< Раздел радио', '< Radio section', '< Dział radio'))}
         </Link>
         <h1 className="mb-1 mt-2 text-2xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          📄 {tp('Шпаргалка и сертификат', 'Cheat sheet and certificate', 'Ściąga i certyfikat')}
+          📄 {radioText(tp('Шпаргалка и сертификат', 'Cheat sheet and certificate', 'Ściąga i certyfikat'))}
         </h1>
         <p className="mb-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {tp(
+          {radioText(tp(
             'Одна страница со всем, что спрашивают на SRC: каналы, MAYDAY/PAN-PAN/SECURITE, DSC, фонетика, типовые ошибки. Печатай и бери с собой.',
             'Everything the SRC exam asks for on one page: channels, MAYDAY/PAN-PAN/SECURITE, DSC, phonetics, common mistakes. Print it and take it along.',
             'Wszystko, o co pyta egzamin SRC, na jednej stronie: kanały, MAYDAY/PAN-PAN/SECURITE, DSC, fonetyka, typowe błędy. Wydrukuj i miej przy sobie.',
-          )}
+          ))}
         </p>
         <div className="mb-6 flex flex-wrap gap-2">
           <button
@@ -118,7 +120,7 @@ export default function CheatSheet() {
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            🖨 {tp('Печать шпаргалки', 'Print the cheat sheet', 'Drukuj ściągę')}
+            🖨 {radioText(tp('Печать шпаргалки', 'Print the cheat sheet', 'Drukuj ściągę'))}
           </button>
           <button
             type="button"
@@ -128,7 +130,7 @@ export default function CheatSheet() {
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold disabled:opacity-40"
             style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           >
-            🏅 {tp('Печать сертификата', 'Print the certificate', 'Drukuj certyfikat')}
+            🏅 {radioText(tp('Печать сертификата', 'Print the certificate', 'Drukuj certyfikat'))}
           </button>
         </div>
       </div>
@@ -136,51 +138,51 @@ export default function CheatSheet() {
       {/* ------------------------------------------------------------- SHEET */}
       <section data-testid="cheat-sheet" className={printing === 'sheet' ? 'printable' : undefined}>
         <SheetHead
-          title={bi('Ściąga SRC / VHF-DSC', 'Шпаргалка SRC / VHF-DSC')}
+          title={radioText(bi('Ściąga SRC / VHF-DSC', 'Шпаргалка SRC / VHF-DSC'))}
           sub="Week to Regatta · weektoregatta.com/radio"
         />
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <Box title={bi('Kanały', 'Каналы')}>
+          <Box title={radioText(bi('Kanały', 'Каналы'))}>
             <Rows rows={CHANNELS.map((c) => [c[0], bi(c[1], c[2])] as const)} />
-            <Note>{bi('Użyj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy słabym sygnale i w niebezpieczeństwie. Sprawdź ograniczenia kanału.', 'Используй минимальную достаточную мощность: обычно 1 Вт вблизи, 25 Вт при слабой связи и бедствии. Учитывай ограничения канала.')}</Note>
+            <Note>{radioText(bi('Użyj najmniejszej skutecznej mocy: zwykle 1 W blisko, 25 W przy słabym sygnale i w niebezpieczeństwie. Sprawdź ograniczenia kanału.', 'Используй минимальную достаточную мощность: обычно 1 Вт вблизи, 25 Вт при слабой связи и бедствии. Учитывай ограничения канала.'))}</Note>
           </Box>
 
-          <Box title={bi('Priorytet wywołań', 'Приоритет вызовов')}>
+          <Box title={radioText(bi('Priorytet wywołań', 'Приоритет вызовов'))}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-              <li><b style={{ color: 'var(--danger)' }}>MAYDAY</b> - {bi('zagrożenie życia lub jednostki', 'угроза жизни или судну')}</li>
-              <li><b style={{ color: 'var(--cat-orange)' }}>PAN-PAN</b> - {bi('pilne, bez zagrożenia życia', 'срочно, без угрозы жизни')}</li>
-              <li><b style={{ color: 'var(--accent-cyan)' }}>SECURITE</b> - {bi('ostrzeżenie nawigacyjne lub meteo', 'навигационное или метео предупреждение')}</li>
-              <li>{bi('każde słowo powtarzane 3 razy na początku', 'каждое слово в начале повторяется 3 раза')}</li>
+              <li><b style={{ color: 'var(--danger)' }}>MAYDAY</b> - {radioText(bi('zagrożenie życia lub jednostki', 'угроза жизни или судну'))}</li>
+              <li><b style={{ color: 'var(--cat-orange)' }}>PAN-PAN</b> - {radioText(bi('pilne, bez zagrożenia życia', 'срочно, без угрозы жизни'))}</li>
+              <li><b style={{ color: 'var(--accent-cyan)' }}>SECURITE</b> - {radioText(bi('ostrzeżenie nawigacyjne lub meteo', 'навигационное или метео предупреждение'))}</li>
+              <li>{radioText(bi('każde słowo powtarzane 3 razy na początku', 'каждое слово в начале повторяется 3 раза'))}</li>
             </ul>
           </Box>
 
           <Box title="MAYDAY">
-            <Pre>{MAYDAY_TEMPLATE}</Pre>
+            <Pre>{radioText(MAYDAY_TEMPLATE)}</Pre>
           </Box>
 
           <Box title="PAN-PAN">
-            <Pre>{PANPAN_TEMPLATE}</Pre>
+            <Pre>{radioText(PANPAN_TEMPLATE)}</Pre>
           </Box>
 
           <Box title="SECURITE">
-            <Pre>{SECURITE_TEMPLATE}</Pre>
+            <Pre>{radioText(SECURITE_TEMPLATE)}</Pre>
           </Box>
 
-          <Box title={bi('Odwołanie fałszywego alertu', 'Отмена ложного алерта')}>
-            <Pre>{CANCEL_TEMPLATE}</Pre>
-            <Note>{bi('Nie wyłączaj radia. Odwołaj cyfrowo i głosem na 16.', 'Не выключай рацию. Отмени цифрой и голосом на 16.')}</Note>
+          <Box title={radioText(bi('Odwołanie fałszywego alertu', 'Отмена ложного алерта'))}>
+            <Pre>{radioText(CANCEL_TEMPLATE)}</Pre>
+            <Note>{radioText(bi('Nie wyłączaj radia. Odwołaj cyfrowo i głosem na 16.', 'Не выключай рацию. Отмени цифрой и голосом на 16.'))}</Note>
           </Box>
 
-          <Box title={bi('DSC DISTRESS na ICOM', 'DSC DISTRESS на ICOM')} wide>
+          <Box title={radioText(bi('DSC DISTRESS na ICOM', 'DSC DISTRESS на ICOM'))} wide>
             <Rows rows={DSC_STEPS.map((s) => [s[0], bi(s[1], s[2])] as const)} />
           </Box>
 
-          <Box title={bi('Alfabet fonetyczny', 'Фонетический алфавит')} wide>
+          <Box title={radioText(bi('Alfabet fonetyczny', 'Фонетический алфавит'))} wide>
             <div className="grid grid-cols-2 gap-x-3 gap-y-1 text-sm sm:grid-cols-4 lg:grid-cols-6" style={{ color: 'var(--text-secondary)' }}>
               {PHONETIC.map(([l, w]) => (
                 <div key={l} className="flex items-center gap-1.5">
-                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{l}</span>
+                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{radioText(l)}</span>
                   <span>{w}</span>
                   <span className="no-print ml-auto"><SpeakButton text={w} label={listen} size={20} /></span>
                 </div>
@@ -189,7 +191,7 @@ export default function CheatSheet() {
             <div className="mt-2 grid grid-cols-2 gap-x-3 gap-y-1 text-sm sm:grid-cols-5" style={{ color: 'var(--text-secondary)' }}>
               {DIGITS.map(([d, w]) => (
                 <div key={d} className="flex items-center gap-1.5">
-                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{d}</span>
+                  <span className="font-bold" style={{ color: 'var(--accent-cyan)' }}>{radioText(d)}</span>
                   <span>{w}</span>
                   <span className="no-print ml-auto"><SpeakButton text={w} label={listen} size={20} /></span>
                 </div>
@@ -197,42 +199,42 @@ export default function CheatSheet() {
             </div>
           </Box>
 
-          <Box title="Prowords" wide>
+          <Box title={radioText("Prowords")} wide>
             <div className="space-y-1 text-sm">
               {PROWORDS.map((p) => (
                 <div key={p[0]} className="flex flex-wrap items-center gap-2">
                   <span className="no-print"><SpeakButton text={say(p[0])} label={listen} size={20} /></span>
                   <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
-                  <span style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{radioText(bi(p[1], p[2]))}</span>
                 </div>
               ))}
             </div>
           </Box>
 
-          <Box title={bi('Zwroty SMCP (morski angielski)', 'Фразы SMCP (морской английский)')} wide>
+          <Box title={radioText(bi('Zwroty SMCP (morski angielski)', 'Фразы SMCP (морской английский)'))} wide>
             <div className="space-y-1 text-sm">
               {SMCP.map((p) => (
                 <div key={p[0]} className="flex flex-wrap items-center gap-2">
                   <span className="no-print"><SpeakButton text={p[0]} label={listen} size={20} /></span>
                   <span className="min-w-0 font-semibold sm:min-w-[210px] sm:shrink-0" style={{ color: 'var(--accent-cyan)' }}>{p[0]}</span>
-                  <span className="w-full min-w-0 sm:w-auto sm:flex-1" style={{ color: 'var(--text-secondary)' }}>{bi(p[1], p[2])}</span>
+                  <span className="w-full min-w-0 sm:w-auto sm:flex-1" style={{ color: 'var(--text-secondary)' }}>{radioText(bi(p[1], p[2]))}</span>
                 </div>
               ))}
             </div>
           </Box>
 
-          <Box title={bi('Typowe błędy - tu oblewa się egzamin', 'Типовые ошибки - на них валят экзамен')}>
+          <Box title={radioText(bi('Typowe błędy - tu oblewa się egzamin', 'Типовые ошибки - на них валят экзамен'))}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {MISTAKES.map(([pl, ru]) => (
-                <li key={pl}>✗ {bi(pl, ru)}</li>
+                <li key={pl}>✗ {radioText(bi(pl, ru))}</li>
               ))}
             </ul>
           </Box>
 
-          <Box title={bi('Egzamin UKE', 'Экзамен UKE')}>
+          <Box title={radioText(bi('Egzamin UKE', 'Экзамен UKE'))}>
             <ul className="space-y-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
               {EXAM_FACTS.map(([pl, ru]) => (
-                <li key={pl}>· {bi(pl, ru)}</li>
+                <li key={pl}>· {radioText(bi(pl, ru))}</li>
               ))}
             </ul>
           </Box>
@@ -245,44 +247,42 @@ export default function CheatSheet() {
         className={`mt-8 ${printing === 'cert' ? 'printable' : ''}`}
       >
         <h2 className="mb-3 text-lg font-bold no-print" style={{ color: 'var(--text-primary)' }}>
-          🏅 {tp('Сертификат тренировки', 'Training certificate', 'Certyfikat treningu')}
+          🏅 {radioText(tp('Сертификат тренировки', 'Training certificate', 'Certyfikat treningu'))}
         </h2>
 
         <div
           className="rounded-2xl p-6 text-center"
           style={{ background: 'var(--bg-card)', border: `2px solid ${complete ? 'var(--accent-cyan)' : 'var(--border-subtle)'}` }}
         >
-          <div className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--accent-cyan)' }}>
-            Week to Regatta · SRC / VHF-DSC
-          </div>
+          <div className="text-xs font-bold uppercase tracking-[0.2em]" style={{ color: 'var(--accent-cyan)' }}>{radioText(" Week to Regatta · SRC / VHF-DSC ")}</div>
           <div className="mt-3 text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-            {bi('Certyfikat treningu symulatora', 'Сертификат тренировки на симуляторе')}
+            {radioText(bi('Certyfikat treningu symulatora', 'Сертификат тренировки на симуляторе'))}
           </div>
           <div className="mx-auto mt-1 max-w-md text-xs" style={{ color: 'var(--text-muted)' }}>
-            {bi(
+            {radioText(bi(
               'Dokument treningowy. Nie jest świadectwem operatora - świadectwo SRC wydaje wyłącznie UKE.',
               'Тренировочный документ. Не является свидетельством оператора: SRC выдаёт только UKE.',
-            )}
+            ))}
           </div>
 
           <input
             data-testid="cert-name"
             value={name}
             onChange={(e) => onName(e.target.value)}
-            placeholder={bi('Imię i nazwisko', 'Имя и фамилия')}
+            placeholder={radioText(bi('Imię i nazwisko', 'Имя и фамилия'))}
             className="mx-auto mt-5 block w-full max-w-sm rounded-xl px-4 py-2 text-center text-lg font-bold"
             style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           />
 
           <div className="mt-5 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            {bi('Zaliczone scenariusze', 'Пройдено сценариев')}:{' '}
+            {radioText(bi('Zaliczone scenariusze', 'Пройдено сценариев'))}:{radioText(' ')}
             <b data-testid="cert-count" style={{ color: complete ? 'var(--success)' : 'var(--text-primary)' }}>
-              {done} / {total}
+              {radioText(done)} / {radioText(total)}
             </b>
             {grade !== null && (
               <>
-                {' · '}
-                {bi('średnia', 'средний балл')}: <b style={{ color: 'var(--text-primary)' }}>{grade}%</b>
+                {radioText(' · ')}
+                {radioText(bi('średnia', 'средний балл'))}: <b style={{ color: 'var(--text-primary)' }}>{radioText(grade)}%</b>
               </>
             )}
           </div>
@@ -291,24 +291,24 @@ export default function CheatSheet() {
             <div className="mx-auto mt-3 flex max-w-lg flex-wrap justify-center gap-1 text-xs" style={{ color: 'var(--text-muted)' }}>
               {passed.map((p) => (
                 <span key={p.id} className="rounded-full px-2 py-1" style={{ background: 'var(--bg-secondary)' }}>
-                  {p.title} {p.best}%
+                  {radioText(p.title)} {radioText(p.best)}%
                 </span>
               ))}
             </div>
           )}
 
           <div className="mt-5 text-xs" style={{ color: 'var(--text-muted)' }}>
-            {today && <>{bi('Data', 'Дата')}: {today}</>}
+            {today && <>{radioText(bi('Data', 'Дата'))}: {radioText(today)}</>}
           </div>
 
           {!done && (
             <div className="mt-4 text-sm no-print" style={{ color: 'var(--text-muted)' }}>
-              {bi(
+              {radioText(bi(
                 'Zalicz co najmniej jeden scenariusz w symulatorze (min. 60%), żeby wydrukować certyfikat.',
                 'Пройди хотя бы один сценарий в симуляторе (минимум 60%), чтобы напечатать сертификат.',
-              )}{' '}
+              ))}{radioText(' ')}
               <Link href="/radio/symulator" style={{ color: 'var(--accent-cyan)' }}>
-                {bi('Otwórz symulator', 'Открыть симулятор')}
+                {radioText(bi('Otwórz symulator', 'Открыть симулятор'))}
               </Link>
             </div>
           )}
@@ -322,33 +322,36 @@ export default function CheatSheet() {
 
 /** Only shows up on paper: the sheet needs a title, the site page already has one. */
 function SheetHead({ title, sub }: { title: string; sub: string }) {
+  const { rt: radioText } = useRadioI18n();
   return (
     <div className="print-only mb-4">
-      <div className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{title}</div>
-      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{sub}</div>
+      <div className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(title)}</div>
+      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>{radioText(sub)}</div>
     </div>
   );
 }
 
 function Box({ title, children, wide }: { title: string; children: React.ReactNode; wide?: boolean }) {
+  const { rt: radioText } = useRadioI18n();
   return (
     <div
       className={`break-inside-avoid rounded-2xl p-4 ${wide ? 'sm:col-span-2' : ''}`}
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
     >
-      <div className="mb-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{title}</div>
-      {children}
+      <div className="mb-2 text-sm font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(title)}</div>
+      {radioText(children)}
     </div>
   );
 }
 
 function Rows({ rows }: { rows: (readonly [string, string])[] }) {
+  const { rt: radioText } = useRadioI18n();
   return (
     <div className="space-y-1 text-sm">
       {rows.map(([k, v]) => (
         <div key={k} className="flex gap-2">
-          <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{k}</span>
-          <span style={{ color: 'var(--text-secondary)' }}>{v}</span>
+          <span className="min-w-[92px] shrink-0 font-bold" style={{ color: 'var(--accent-cyan)' }}>{radioText(k)}</span>
+          <span style={{ color: 'var(--text-secondary)' }}>{radioText(v)}</span>
         </div>
       ))}
     </div>
@@ -356,16 +359,18 @@ function Rows({ rows }: { rows: (readonly [string, string])[] }) {
 }
 
 function Pre({ children }: { children: string }) {
+  const { rt: radioText } = useRadioI18n();
   return (
     <pre
       className="overflow-x-auto rounded-xl p-3 text-xs leading-relaxed"
       style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
     >
-      {children}
+      {radioText(children)}
     </pre>
   );
 }
 
 function Note({ children }: { children: React.ReactNode }) {
-  return <div className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>{children}</div>;
+  const { rt: radioText } = useRadioI18n();
+  return <div className="mt-2 text-xs" style={{ color: 'var(--text-muted)' }}>{radioText(children)}</div>;
 }

@@ -1,7 +1,13 @@
 // Keep controls clear during activities. Reference and course pages retain tabs.
 export function showsMainNavigation(path: string): boolean {
   if (path === "/simulators") return true;
-  return !(/^\/simulator/.test(path) || /^\/(?:game|race-3d)(?:\/|$)/.test(path) || /^\/multiplayer\/race(?:\/|$)/.test(path) || /^\/replay(?:\/|$)/.test(path) || /\/(symulator|egzamin|exam)(?:\/|$)/.test(path));
+  return !(/^\/simulator/.test(path) || /^\/(?:game|race-3d)(?:\/|$)/.test(path) || /^\/multiplayer(?:\/race(?:\/|$)|$)/.test(path) || /^\/replay(?:\/|$)/.test(path) || /\/(symulator|egzamin|exam)(?:\/|$)/.test(path));
+}
+
+/** The native frame must match the installed instrument content it surrounds. */
+export function usesDarkNavigation(path: string): boolean {
+  const clean = path.split(/[?#]/)[0];
+  return /^\/(?:kursy\/(?:radio|motorowodny)|anatomy(?:-offline)?|game|multiplayer|replay|simulator(?:-basics|-v1|-v3|2)?)(?:\/|$)/.test(clean);
 }
 
 // A screen whose page runs its own full-screen activity inside a WebView (the

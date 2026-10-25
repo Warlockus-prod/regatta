@@ -16,6 +16,10 @@ export const WORLD = { width: 800, height: 1200 };
 export const WIND_DIRECTION_BASE = 0;            // deg, wind source (0 = from north)
 export const MAX_SPEED = 8.0;                    // knots
 export const TURN_RATE = 22;                     // deg/sec player
+/** Solo-player assistance (ADR-0009): close to the native trainer's 0.7 rad/s.
+ * Opt-in only: bots, multiplayer and stored replays keep TURN_RATE. */
+export const RESPONSIVE_TURN_RATE = 40;
+export const RESPONSIVE_MIN_AUTHORITY = 0.2;
 export const ACCEL = 2.5;                        // speed lerp factor
 export const MARK_ROUND_DIST = 28;
 export const MIN_BOAT_SEPARATION = 22;           // collision repel distance
@@ -129,6 +133,45 @@ export interface RaceBoat {
 export interface InputState {
   /** -1..1, negative = port, positive = starboard. */
   turn: number;
+  /** Omitted = the existing automatic race trim. False gives the player the sheets. */
+  autoTrim?: boolean;
+  /** Engine convention: sheets 0 = eased, 1 = sheeted in; jibFurl 1 = furled.
+   * Deployment (mainHoisted, reef, jibFurl) also applies with automatic trim. */
+  trim?: Partial<Controls>;
+}
+
+export interface RaceStepOptions {
+  speedMul?: number;
+  windStrengthMul?: number;
+  /** A solo-player input assist, never inferred from isPlayer or applied to bots. */
+  steering?: "legacy" | "responsive";
+}
+
+const DEFAULT_RACE_TRIM: Controls = { mainSheet: .4, jibSheet: .2, mainTwist: .35, jibTwist: .4, reef: 0, jibFurl: 0, jibSide: 1 };
+const unitControl = (value: number | undefined, fallback: number) =>
+  value !== undefined && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+
+/** Converts untrusted UI input to a complete trim record without changing its source. */
+export function raceTrim(input: Partial<Controls> | undefined, previous: Controls = DEFAULT_RACE_TRIM): Controls {
+  return {
+    mainSheet: unitControl(input?.mainSheet, previous.mainSheet),
+    jibSheet: unitControl(input?.jibSheet, previous.jibSheet),
+    mainTwist: unitControl(input?.mainTwist, previous.mainTwist),
+    jibTwist: unitControl(input?.jibTwist, previous.jibTwist),
+    reef: unitControl(input?.reef, previous.reef),
+    jibFurl: unitControl(input?.jibFurl, previous.jibFurl),
+    jibSide: input?.jibSide === -1 || input?.jibSide === 1 ? input.jibSide : previous.jibSide,
+    ...(typeof input?.mainHoisted === "boolean" ? { mainHoisted: input.mainHoisted }
+      : previous.mainHoisted !== undefined ? { mainHoisted: previous.mainHoisted } : {}),
+  };
+}
+
+/** Assisted turning is deliberately separate from the force-model constants. */
+export function raceTurnRate(speed: number, steering: RaceStepOptions["steering"] = "legacy"): number {
+  const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
+  return steering === "responsive"
+    ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority)
+    : TURN_RATE * authority;
 }
 
 /** Advance one boat by dt seconds, with a given wind vector. */
@@ -138,22 +181,33 @@ export function stepBoat(
   windDir: number,
   gust: number,
   input: InputState,
-  opts: { speedMul?: number; windStrengthMul?: number } = {},
+  opts: RaceStepOptions = {},
 ): void {
+  if (!Number.isFinite(dt) || dt <= 0) return;
   // Bot difficulty (DECISIONS.md ADR-0007): the boat makes speedMul of the
   // speed the force model gives. The model is fed back its own speed, so the
   // handicap never compounds; a contact slow-down on boat.speed still carries.
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const authority = Math.max(0, Math.min(1, boat.speed / 3));
-  boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params = getBoatParams();
   const state = { ...(boat.physics ?? createInitialState({tws:12})), heading: boat.heading,
     boatSpeed: boat.speed / mul, trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust };
-  boat.trimClock = (boat.trimClock ?? 1) + dt;
-  if (!boat.trim || boat.trimClock >= .5) {
-    boat.trim = trimForDrive(state, boat.trim ?? { mainSheet: .4, jibSheet: .2, mainTwist: .35, jibTwist: .4, reef: 0, jibFurl: 0, jibSide: 1 });
-    boat.trimClock = 0;
+  if (input.autoTrim === false) {
+    boat.trim = raceTrim(input.trim, boat.trim);
+    // Re-entering automatic trim solves it immediately, rather than keeping stale manual trim.
+    boat.trimClock = .5;
+  } else {
+    boat.trimClock = (boat.trimClock ?? 1) + dt;
+    if (!boat.trim || boat.trimClock >= .5) {
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trimClock = 0;
+    }
+    if (input.trim) {
+      // Automatic sheets never silently hoist a lowered main or unfurl the jib.
+      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
+    }
   }
   boat.physics = tick(state, boat.trim, params, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
@@ -369,16 +423,22 @@ const AUTOPILOT = {
 /** Full-rudder turning radius per knot (stepBoat turns TURN_RATE deg/s at full authority). */
 const RADIUS_PER_KNOT = UNITS_PER_KNOT_SECOND / deg2rad(TURN_RATE);
 
+export type RaceRoutePath =
+  | { kind: "circle"; center: Vec2; radius: number; ccw: boolean }
+  | { kind: "vertical"; x: number; north: boolean; to: Vec2 };
+
 /** Direction of travel and signed distance to the right of the path. */
-interface PathFix { tangent: number; right: number }
+interface PathFix { tangent: number; right: number; path: RaceRoutePath }
 
 function onCircle(p: Vec2, c: Vec2, r: number, ccw: boolean): PathFix {
   const phi = bearing(c, p), d = distance(p, c);
-  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r } : { tangent: normalizeAngle(phi + 90), right: r - d };
+  const path: RaceRoutePath = { kind: "circle", center: { ...c }, radius: r, ccw };
+  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r, path } : { tangent: normalizeAngle(phi + 90), right: r - d, path };
 }
 
-function onVertical(p: Vec2, x: number, north: boolean): PathFix {
-  return north ? { tangent: 0, right: p.x - x } : { tangent: 180, right: x - p.x };
+function onVertical(p: Vec2, x: number, north: boolean, toY: number): PathFix {
+  const path: RaceRoutePath = { kind: "vertical", x, north, to: { x, y: toY } };
+  return north ? { tangent: 0, right: p.x - x, path } : { tangent: 180, right: x - p.x, path };
 }
 
 /** A stable offset in [-1, 1] per boat id, for spreading boats over lanes. */
@@ -388,9 +448,13 @@ function laneOf(id: string, lanes: number): number {
   return ((h % lanes) / (lanes - 1)) * 2 - 1;
 }
 
-/** Turn command (-1..1) that sails the boat round the course. */
-export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: number): number {
-  const A = AUTOPILOT, p = boat.pos;
+/** Existing bot planner. Only its private autopilot memory is changed. An
+ * advisory caller must supply a copy and keep that memory separate from helm. */
+export function raceAutopilotPlan(boat: RaceBoat, course: RaceCourse, windDir: number,
+  route?: { radius: number; lookahead: number }): {
+  heading: number; turn: number; path: RaceRoutePath; beating: boolean; rounding: { center: Vec2; radius: number };
+} {
+  const A = { ...AUTOPILOT, loopRadius: route?.radius ?? AUTOPILOT.loopRadius, lookahead: route?.lookahead ?? AUTOPILOT.lookahead }, p = boat.pos;
   if (!boat.autopilot || boat.lapDone < boat.autopilot.lap) boat.autopilot = { lap: boat.lapDone };
   const st = boat.autopilot;
   st.lap = boat.lapDone;
@@ -410,7 +474,7 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
   if (!boat.started) {
     const below = p.y > ly;
     if (below && Math.abs(p.x - cx) < half - 10 && !st.dip) {
-      fix = onVertical(p, cx, true);
+      fix = onVertical(p, cx, true, ly - 60);
       band = A.startBand;
     } else {
       if (!st.dip) {
@@ -437,8 +501,8 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     if (!st.down && p.y <= c.y && p.x < c.x - r / 2) st.down = true;
     else if (st.down && p.y >= c.y + leg && p.x > c.x) st.down = false;
     const climbing = !st.down && p.y > c.y;
-    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true);
-    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false);
+    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true, c.y);
+    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false, c.y + leg);
     if (climbing) band = Math.min(A.band.max, Math.max(A.band.top, A.band.slope * (p.y - c.y)));
     if (!st.down && p.y <= c.y) freeOverTop = true;
     const toTop = p.y - c.y;
@@ -452,7 +516,7 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     if (st.finishLoop) {
       fix = onCircle(p, { x: cx, y: ly - A.finishLoop.drop }, A.finishLoop.radius, st.finishLoop.ccw);
       band = A.loopBand;
-    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false);
+    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false, ly + 30);
   }
 
   const slow = v > 0 && v < A.tackMinSpeed;
@@ -481,5 +545,12 @@ export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: n
     } else if (Math.abs(twa) >= A.closeHauled) tackTo(twa >= 0 ? 1 : -1);
   }
   if (v > 0 && v < A.stallSpeed && Math.abs(calcTWA(desired, windDir)) < 25) desired = normalizeAngle(windDir + st.tack * A.closeHauled);
-  return Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12));
+  return { heading: desired, turn: Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12)), path: fix.path,
+    beating: Boolean(st.shed) || (band > 0 && Math.abs(calcTWA(fix.tangent, windDir)) < A.closeHauled + 5),
+    rounding: { center: { x: mark.x, y: mark.y + A.loopDrop }, radius: A.loopRadius } };
+}
+
+/** Turn command (-1..1) that sails the boat round the course. */
+export function raceAutopilotTurn(boat: RaceBoat, course: RaceCourse, windDir: number): number {
+  return raceAutopilotPlan(boat, course, windDir).turn;
 }

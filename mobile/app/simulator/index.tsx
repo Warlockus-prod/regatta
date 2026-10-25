@@ -9,6 +9,7 @@ import {
   StyleSheet,
   View,
   useWindowDimensions,
+  type LayoutChangeEvent,
 } from 'react-native';
 import {
   Canvas,
@@ -21,6 +22,7 @@ import {
   vec,
 } from '@shopify/react-native-skia';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useI18n } from '../../src/i18n/context';
 import { pointsOfSail } from '../../src/data';
 import { legacyPick } from '../../src/i18n/languages';
@@ -63,6 +65,7 @@ import {
 import { useControlPrefs } from '../../src/persistence/controls';
 import { WheelDeck } from '../../src/simulator/WheelDeck';
 import { normalizeDeg, wheelSettings } from '../../src/simulator/wheel-controls';
+import { useLandscapeWhileFocused } from '../../src/simulator/orientation';
 import { darkColors as colors, radii, darkShadow as shadow, spacing } from '../../src/design-system/tokens';
 import { DarkSurface, darkStackOptions } from '../../src/design-system/surface';
 
@@ -344,14 +347,29 @@ function insideCompassAt(
 
 function Simulator() {
   const { tp, lang } = useI18n();
+  useLandscapeWhileFocused(true);
   const { units } = useUnits();
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
-  const sceneW = Math.min(Math.max(windowWidth - spacing.lg * 2, 320), 440);
-  // Pinned scene: leave room under it for the scrolling controls.
-  const sceneH = Math.min(Math.max(windowHeight * 0.4, 260), 480);
+  const insets = useSafeAreaInsets();
+  const [workspaceSize, setWorkspaceSize] = useState<{ width: number; height: number } | null>(null);
+  const availableWidth = Math.max(1, (workspaceSize?.width ?? windowWidth) - insets.left - insets.right);
+  const availableHeight = workspaceSize?.height ?? Math.max(240, windowHeight - 100);
+  const landscape = windowWidth > windowHeight;
+  const dockWidth = landscape ? Math.min(420, Math.max(260, availableWidth * 0.46)) : availableWidth;
+  const sceneColumnWidth = landscape ? Math.max(1, availableWidth - dockWidth) : availableWidth;
+  const sceneW = Math.min(440, Math.max(1, sceneColumnWidth - 40));
+  // Header and readouts keep their own space; auxiliary content only scrolls
+  // below the scene, or beside it in landscape. Measure the actual safe host.
+  const sceneH = landscape
+    ? Math.max(96, Math.min(480, availableHeight - 144))
+    : Math.max(128, Math.min(340, availableHeight * 0.38));
+  const measureWorkspace = useCallback((event: LayoutChangeEvent) => {
+    const { width, height } = event.nativeEvent.layout;
+    if (width > 0 && height > 0) setWorkspaceSize(current => current?.width === width && current.height === height ? current : { width, height });
+  }, []);
   const centerX = sceneW / 2;
   const centerY = sceneH / 2;
-  const compassCx = sceneW - COMPASS_R - 18;
+  const compassCx = COMPASS_R + 18;
   const compassCy = COMPASS_R + 18;
   const sim = useSimLoop({ bounds: { width: sceneW, height: sceneH } });
   const boatLength = sceneW < 360 ? 48 : 56;
@@ -427,7 +445,6 @@ function Simulator() {
         .runOnJS(true)
         .minDistance(0)
         .onBegin((e) => {
-          if (insideCompassAt(e.x, e.y, compassCx, compassCy)) return;
           Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
             () => {},
           );
@@ -437,7 +454,6 @@ function Simulator() {
           sim.setTargetHeading(Math.atan2(dx, -dy));
         })
         .onChange((e) => {
-          if (insideCompassAt(e.x, e.y, compassCx, compassCy)) return;
           const dx = e.x - centerX;
           const dy = e.y - centerY;
           if (dx === 0 && dy === 0) return;
@@ -445,7 +461,7 @@ function Simulator() {
         }),
     // Gesture callbacks intentionally close over the current scene geometry.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [centerX, centerY, compassCx, compassCy],
+    [centerX, centerY],
   );
 
   const windDrag = useMemo(
@@ -471,11 +487,6 @@ function Simulator() {
         }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [compassCx, compassCy],
-  );
-
-  const composedGesture = useMemo(
-    () => Gesture.Simultaneous(windDrag, steer),
-    [windDrag, steer],
   );
 
   // Live mirror of the sim handle: its identity changes every tick, so the
@@ -1186,9 +1197,9 @@ function Simulator() {
   return (
     <Screen noTopInset>
       <Stack.Screen options={{ ...darkStackOptions, title }} />
-      {/* The boat stays on screen (owner decision 2026-10-19): header, mission
-          status, scene and readouts are pinned; only the controls below scroll. */}
-      <View style={styles.pinned}>
+      <View testID="native-trainer-workspace" onLayout={measureWorkspace}
+        style={[styles.workspace, landscape && styles.workspaceLandscape, { paddingLeft: insets.left, paddingRight: insets.right }]}>
+      <View testID="native-trainer-scene-column" style={[styles.pinned, { width: sceneColumnWidth }]}>
         <View style={styles.header}>
           <View style={styles.badge}>
             <View style={styles.badgeDot} />
@@ -1213,76 +1224,9 @@ function Simulator() {
           </Pressable>
         </View>
 
-        {mode === 'mission' && activeMission && missionState ? (
-          <View style={styles.missionHud}>
-            <View style={styles.missionHudRow}>
-              <Text style={styles.missionHudKicker}>{missionLabel}</Text>
-              <Text style={styles.missionHudClock}>
-                {formatTime(missionState.elapsedSec)}
-              </Text>
-            </View>
-            <Text style={styles.missionHudTitle} numberOfLines={3}>
-              {activeMission.title(tp)}
-            </Text>
-            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
-              {activeMission.hint(tp)}
-            </Text>
-            {missionState.distanceToNextPx != null &&
-              !missionState.done && (
-              <View style={styles.missionHudMeta}>
-                <Text style={styles.missionHudMetaLabel}>{distanceLabel}</Text>
-                <Text style={styles.missionHudMetaValue}>
-                  {`${Math.round(missionState.distanceToNextPx)} px`}
-                </Text>
-              </View>
-            )}
-          </View>
-        ) : null}
-
-        {mode === 'drill' && activeDrill && drillState ? (
-          <View style={styles.missionHud}>
-            <Text style={styles.missionHudKicker}>{modeDrillLabel.toUpperCase()}</Text>
-            <Text style={styles.missionHudTitle} numberOfLines={3}>
-              {activeDrill.title(tp)}
-            </Text>
-            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
-              {activeDrill.hint(tp)}
-            </Text>
-            <View style={styles.missionHudMeta}>
-              <Text style={styles.missionHudMetaLabel}>
-                {activeDrill.progressLabel(
-                  drillState.progressSec,
-                  drillState.targetSec,
-                  tp,
-                )}
-              </Text>
-              <View style={styles.drillBarTrack}>
-                <View
-                  style={[
-                    styles.drillBarFill,
-                    {
-                      width: `${Math.min(
-                        100,
-                        Math.round(
-                          (drillState.progressSec / drillState.targetSec) * 100,
-                        ),
-                      )}%`,
-                      backgroundColor: drillState.done
-                        ? colors.success
-                        : drillState.active
-                        ? colors.accentCyan
-                        : colors.textMuted,
-                    },
-                  ]}
-                />
-              </View>
-            </View>
-          </View>
-        ) : null}
-
-        <View style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
+        <View testID="native-trainer-scene" style={[styles.canvasWrap, { width: sceneW, height: sceneH }]}>
           {simView === 'top' ? (
-            <GestureDetector gesture={composedGesture}>
+            <GestureDetector gesture={steer}>
             <Canvas
               style={{ width: sceneW, height: sceneH }}
               accessible
@@ -1470,49 +1414,7 @@ function Simulator() {
                   opacity={0.96}
                 />
 
-                <Group
-                  transform={[
-                    { translateX: compassCx },
-                    { translateY: compassCy },
-                  ]}
-                >
-                  <Circle cx={0} cy={0} r={COMPASS_R} color="rgba(15, 32, 53, 0.92)" />
-                  {/* Points-of-sail sectors, rotated so the no-go zone sits
-                      under the wind-from arrow. The boat's current point of
-                      sail lights up - this is the "understand the wind" part. */}
-                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
-                    {roseSectorPaths.map((s) => {
-                      const on = s.id === activeRoseId;
-                      return (
-                        <Group key={s.id}>
-                          <Path path={s.stb} color={on ? s.hi : s.tint} />
-                          <Path path={s.port} color={on ? s.hi : s.tint} />
-                        </Group>
-                      );
-                    })}
-                  </Group>
-                  <Circle
-                    cx={0}
-                    cy={0}
-                    r={COMPASS_R}
-                    color={colors.windColor}
-                    style="stroke"
-                    strokeWidth={1.2}
-                    opacity={0.6}
-                  />
-                  {/* Bow-heading marker: whichever sector it falls in is the
-                      current point of sail. */}
-                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
-                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
-                    <Path
-                      path={compassArrowPath}
-                      color={colors.windColor}
-                      style="stroke"
-                      strokeWidth={2.5}
-                      strokeCap="round"
-                    />
-                  </Group>
-                </Group>
+
               </Group>
             </Canvas>
             </GestureDetector>
@@ -1556,126 +1458,19 @@ function Simulator() {
             />
           )}
 
-          <Pressable
-            style={[styles.windSpeedButton, { top: compassCy + COMPASS_R + 8 }]}
-            onPress={() => {
-              Haptics.selectionAsync().catch(() => {});
-              handleCycleWindSpeed();
-            }}
-            accessibilityRole="button"
-            accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windDisplayWithUnit}, ${twdDeg}°`}
-            accessibilityHint={tp(
-              'Нажми, чтобы поменять силу ветра',
-              'Tap to cycle wind speed',
-              'Stuknij, aby zmienić prędkość wiatru',
-              {
-                es: 'Toca para cambiar la velocidad del viento',
-                fr: 'Touche pour changer la vitesse du vent',
-                de: 'Tippen, um die Windstärke zu wechseln',
-                it: 'Tocca per cambiare la velocità del vento',
-              },
-            )}
-          >
-            <Text allowFontScaling={false} style={styles.windSpeedValue}>{windDisplayWithUnit}</Text>
-            <Text allowFontScaling={false} style={styles.windSpeedLabel}>TWD</Text>
-            <Text allowFontScaling={false} style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
-          </Pressable>
+        </View>
 
-          {/* Cockpit hero readout: TRIM% . point-of-sail . tack (the web V3
-              header pill), placed at the bottom where it is unobstructed on a
-              phone, with the raw TWA/AWA/VMG chips beneath it. */}
-          <View style={styles.sceneReadout}>
-            <Text
-              allowFontScaling={false}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.75}
-              style={[styles.cockpitPill, { maxWidth: sceneW - 20 }]}
-            >
-              {cockpitPillText}
-            </Text>
-            <View style={styles.sceneReadoutRow}>
-              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
-              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
-              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
-            </View>
-          </View>
+        <View style={styles.hud}>
+          <HudCell label={headingLabel} value={`${headingDeg}°`} />
+          <HudCell label={speedLabel} value={speedDisplay} />
+          <HudCell label={heelLabel} value={`${heelDeg}°`} muted={Math.abs(heelDeg) < 18} />
+          <HudCell label={trimLabel} value={`${trimScore}`} color={trimColor} />
+        </View>
 
-          <View pointerEvents="none" style={styles.mapLegend}>
-            <View style={styles.mapLegendRow}>
-              <View style={[styles.mapLegendDot, { backgroundColor: colors.windColor }]} />
-              <Text allowFontScaling={false} style={styles.mapLegendText}>
-                {`${windMapLabel} ${activeWindModeLabel.toUpperCase()}`}
-              </Text>
-            </View>
-            {simView === 'top' ? (
-              <>
-                <View style={styles.mapLegendRow}>
-                  <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
-                  <Text allowFontScaling={false} style={styles.mapLegendText}>
-                    {driveWord.toUpperCase()}
-                  </Text>
-                </View>
-                <View style={styles.mapLegendRow}>
-                  <View style={[styles.mapLegendDot, { backgroundColor: colors.warning }]} />
-                  <Text allowFontScaling={false} style={styles.mapLegendText}>
-                    {sideWord.toUpperCase()}
-                  </Text>
-                </View>
-              </>
-            ) : null}
-            {showTrack ? (
-              <View style={styles.mapLegendRow}>
-                <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
-                <Text allowFontScaling={false} style={styles.mapLegendText}>{trackLabel}</Text>
-              </View>
-            ) : null}
-          </View>
-
-          {!showSpinnaker ? (
-            <SailBadge
-              state={sim.sailFeedback.main}
-              label={`MAIN ${sailStateLabel(sim.sailFeedback.main)}`}
-              left={Math.max(8, sim.boat.x - 92)}
-              top={Math.max(8, sim.boat.y - 26)}
-            />
-          ) : null}
-          {!showSpinnaker ? (
-            <SailBadge
-              state={sim.sailFeedback.jib}
-              label={`JIB ${sailStateLabel(sim.sailFeedback.jib)}`}
-              left={Math.min(sceneW - 96, sim.boat.x + 36)}
-              top={Math.max(8, sim.boat.y - 26)}
-            />
-          ) : null}
-
-          {/* Hold-to-steer: port/starboard relative to the BOAT (like a real
-              helm), regardless of which way the bow points on screen. The
-              drag-to-steer gesture aims at an absolute screen direction, which
-              reads inverted when the boat points down - these buttons fix that
-              (user feedback, 2026-07-07). Hold = keep turning; release = hold
-              course. */}
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={steerPortLabel}
-            onPressIn={() => startHoldSteer(-1)}
-            onPressOut={stopHoldSteer}
-            style={({ pressed }) => [styles.steerBtn, styles.steerBtnLeft, pressed && styles.steerBtnActive]}
-          >
-            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u2039'}</Text>
-          </Pressable>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={steerStbdLabel}
-            onPressIn={() => startHoldSteer(1)}
-            onPressOut={stopHoldSteer}
-            style={({ pressed }) => [styles.steerBtn, styles.steerBtnRight, pressed && styles.steerBtnActive]}
-          >
-            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u203a'}</Text>
-          </Pressable>
-
+      </View>
+      <ScrollView testID="native-trainer-controls" style={[styles.controls, landscape && { width: dockWidth }]} contentContainerStyle={styles.scroll}>
           {missionState?.done && activeMission ? (
-            <View style={styles.resultPanel}>
+            <View testID="native-trainer-result" style={styles.resultPanel}>
               <Text style={styles.resultKicker}>{missionDoneLabel}</Text>
               <Text style={styles.resultTitle} numberOfLines={3}>
                 {activeMission.title(tp)}
@@ -1725,7 +1520,7 @@ function Simulator() {
           ) : null}
 
           {drillState?.done && activeDrill ? (
-            <View style={styles.resultPanel}>
+            <View testID="native-trainer-result" style={styles.resultPanel}>
               <Text
                 style={[
                   styles.resultKicker,
@@ -1767,17 +1562,6 @@ function Simulator() {
               </View>
             </View>
           ) : null}
-        </View>
-
-        <View style={styles.hud}>
-          <HudCell label={headingLabel} value={`${headingDeg}°`} />
-          <HudCell label={speedLabel} value={speedDisplay} />
-          <HudCell label={heelLabel} value={`${heelDeg}°`} muted={Math.abs(heelDeg) < 18} />
-          <HudCell label={trimLabel} value={`${trimScore}`} color={trimColor} />
-        </View>
-
-      </View>
-      <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.trimPanel}>
           <View style={styles.trimHeader}>
             <Text style={styles.trimHeaderTitle}>
@@ -1808,6 +1592,27 @@ function Simulator() {
             </Pressable>
           </View>
 
+          {!wheelsOn && <View testID="native-trainer-steering" style={styles.steeringRow}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={steerPortLabel}
+            onPressIn={() => startHoldSteer(-1)}
+            onPressOut={stopHoldSteer}
+            style={({ pressed }) => [styles.steerBtn, pressed && styles.steerBtnActive]}
+          >
+            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u2039'}</Text>
+          </Pressable>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={steerStbdLabel}
+            onPressIn={() => startHoldSteer(1)}
+            onPressOut={stopHoldSteer}
+            style={({ pressed }) => [styles.steerBtn, pressed && styles.steerBtnActive]}
+          >
+            <Text allowFontScaling={false} style={styles.steerBtnText}>{'\u203a'}</Text>
+          </Pressable>
+
+          </View>}
           {wheelsOn ? (
             <WheelDeck
               targetHeadingDeg={normalizeDeg((sim.controls.targetHeading * 180) / Math.PI)}
@@ -1863,6 +1668,220 @@ function Simulator() {
             />
           </View>
           <Text variant="caption" style={styles.note}>{sheetScale}</Text>
+        </View>
+
+        {mode === 'mission' && activeMission && missionState ? (
+          <View style={styles.missionHud}>
+            <View style={styles.missionHudRow}>
+              <Text style={styles.missionHudKicker}>{missionLabel}</Text>
+              <Text style={styles.missionHudClock}>
+                {formatTime(missionState.elapsedSec)}
+              </Text>
+            </View>
+            <Text style={styles.missionHudTitle} numberOfLines={3}>
+              {activeMission.title(tp)}
+            </Text>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
+              {activeMission.hint(tp)}
+            </Text>
+            {missionState.distanceToNextPx != null &&
+              !missionState.done && (
+              <View style={styles.missionHudMeta}>
+                <Text style={styles.missionHudMetaLabel}>{distanceLabel}</Text>
+                <Text style={styles.missionHudMetaValue}>
+                  {`${Math.round(missionState.distanceToNextPx)} px`}
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : null}
+
+        {mode === 'drill' && activeDrill && drillState ? (
+          <View style={styles.missionHud}>
+            <Text style={styles.missionHudKicker}>{modeDrillLabel.toUpperCase()}</Text>
+            <Text style={styles.missionHudTitle} numberOfLines={3}>
+              {activeDrill.title(tp)}
+            </Text>
+            <Text variant="caption" style={styles.missionHudHint} numberOfLines={3}>
+              {activeDrill.hint(tp)}
+            </Text>
+            <View style={styles.missionHudMeta}>
+              <Text style={styles.missionHudMetaLabel}>
+                {activeDrill.progressLabel(
+                  drillState.progressSec,
+                  drillState.targetSec,
+                  tp,
+                )}
+              </Text>
+              <View style={styles.drillBarTrack}>
+                <View
+                  style={[
+                    styles.drillBarFill,
+                    {
+                      width: `${Math.min(
+                        100,
+                        Math.round(
+                          (drillState.progressSec / drillState.targetSec) * 100,
+                        ),
+                      )}%`,
+                      backgroundColor: drillState.done
+                        ? colors.success
+                        : drillState.active
+                        ? colors.accentCyan
+                        : colors.textMuted,
+                    },
+                  ]}
+                />
+              </View>
+            </View>
+          </View>
+        ) : null}
+
+        <View testID="native-trainer-wind" style={styles.windPanel}>
+          <View style={styles.windPanelRow}>
+            <GestureDetector gesture={windDrag}>
+              <Canvas testID="native-trainer-compass" style={{ width: 132, height: 132 }} accessible
+                accessibilityRole="adjustable" accessibilityLabel={windMapLabel}
+                accessibilityValue={{ min: 0, max: 359, now: twdDeg, text: `${twdDeg}°` }}
+                accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
+                onAccessibilityAction={event => {
+                  const action = event.nativeEvent.actionName;
+                  if (action !== 'increment' && action !== 'decrement') return;
+                  const next = snapToStep(sim.wind.trueWindDirRad + (action === 'increment' ? SNAP_RAD : -SNAP_RAD), SNAP_RAD);
+                  windBaseRef.current = next;
+                  sim.setWindDir(next);
+                }}>
+                <Group
+                  transform={[
+                    { translateX: compassCx },
+                    { translateY: compassCy },
+                  ]}
+                >
+                  <Circle cx={0} cy={0} r={COMPASS_R} color="rgba(15, 32, 53, 0.92)" />
+                  {/* Points-of-sail sectors, rotated so the no-go zone sits
+                      under the wind-from arrow. The boat's current point of
+                      sail lights up - this is the "understand the wind" part. */}
+                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
+                    {roseSectorPaths.map((s) => {
+                      const on = s.id === activeRoseId;
+                      return (
+                        <Group key={s.id}>
+                          <Path path={s.stb} color={on ? s.hi : s.tint} />
+                          <Path path={s.port} color={on ? s.hi : s.tint} />
+                        </Group>
+                      );
+                    })}
+                  </Group>
+                  <Circle
+                    cx={0}
+                    cy={0}
+                    r={COMPASS_R}
+                    color={colors.windColor}
+                    style="stroke"
+                    strokeWidth={1.2}
+                    opacity={0.6}
+                  />
+                  {/* Bow-heading marker: whichever sector it falls in is the
+                      current point of sail. */}
+                  <Circle cx={boatMarkerXY.x} cy={boatMarkerXY.y} r={3} color={colors.textPrimary} />
+                  <Group transform={[{ rotate: sim.wind.trueWindDirRad }]}>
+                    <Path
+                      path={compassArrowPath}
+                      color={colors.windColor}
+                      style="stroke"
+                      strokeWidth={2.5}
+                      strokeCap="round"
+                    />
+                  </Group>
+                </Group>
+              </Canvas>
+            </GestureDetector>
+          <Pressable
+            style={styles.windSpeedButton}
+            onPress={() => {
+              Haptics.selectionAsync().catch(() => {});
+              handleCycleWindSpeed();
+            }}
+            accessibilityRole="button"
+            accessibilityLabel={`${tp('Ветер', 'Wind', 'Wiatr', { es: 'Viento', fr: 'Vent', de: 'Wind', it: 'Vento' })}: ${windDisplayWithUnit}, ${twdDeg}°`}
+            accessibilityHint={tp(
+              'Нажми, чтобы поменять силу ветра',
+              'Tap to cycle wind speed',
+              'Stuknij, aby zmienić prędkość wiatru',
+              {
+                es: 'Toca para cambiar la velocidad del viento',
+                fr: 'Touche pour changer la vitesse du vent',
+                de: 'Tippen, um die Windstärke zu wechseln',
+                it: 'Tocca per cambiare la velocità del vento',
+              },
+            )}
+          >
+            <Text allowFontScaling={false} style={styles.windSpeedValue}>{windDisplayWithUnit}</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedLabel}>TWD</Text>
+            <Text allowFontScaling={false} style={styles.windSpeedTwd}>{`${twdDeg}°`}</Text>
+          </Pressable>
+
+          </View>
+          <View style={styles.sceneReadout}>
+            <Text
+              allowFontScaling={false}
+              style={styles.cockpitPill}
+            >
+              {cockpitPillText}
+            </Text>
+            <View style={styles.sceneReadoutRow}>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`TWA ${twaDeg}°`}</Text>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`AWA ${awaDeg}°`}</Text>
+              <Text allowFontScaling={false} style={styles.sceneReadoutText}>{`VMG ${vmgDisplay}`}</Text>
+            </View>
+          </View>
+
+          <View pointerEvents="none" style={styles.mapLegend}>
+            <View style={styles.mapLegendRow}>
+              <View style={[styles.mapLegendDot, { backgroundColor: colors.windColor }]} />
+              <Text allowFontScaling={false} style={styles.mapLegendText}>
+                {`${windMapLabel} ${activeWindModeLabel.toUpperCase()}`}
+              </Text>
+            </View>
+            {simView === 'top' ? (
+              <>
+                <View style={styles.mapLegendRow}>
+                  <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                  <Text allowFontScaling={false} style={styles.mapLegendText}>
+                    {driveWord.toUpperCase()}
+                  </Text>
+                </View>
+                <View style={styles.mapLegendRow}>
+                  <View style={[styles.mapLegendDot, { backgroundColor: colors.warning }]} />
+                  <Text allowFontScaling={false} style={styles.mapLegendText}>
+                    {sideWord.toUpperCase()}
+                  </Text>
+                </View>
+              </>
+            ) : null}
+            {showTrack ? (
+              <View style={styles.mapLegendRow}>
+                <View style={[styles.mapLegendDot, { backgroundColor: colors.success }]} />
+                <Text allowFontScaling={false} style={styles.mapLegendText}>{trackLabel}</Text>
+              </View>
+            ) : null}
+          </View>
+
+          <View style={styles.sailFeedback}>
+          {!showSpinnaker ? (
+            <SailBadge
+              state={sim.sailFeedback.main}
+              label={`${mainLabel}: ${sailStateLabel(sim.sailFeedback.main)}`}
+            />
+          ) : null}
+          {!showSpinnaker ? (
+            <SailBadge
+              state={sim.sailFeedback.jib}
+              label={`${jibLabel}: ${sailStateLabel(sim.sailFeedback.jib)}`}
+            />
+          ) : null}
+
+          </View>
         </View>
 
         <View style={styles.commentary}>
@@ -2010,6 +2029,7 @@ function Simulator() {
         ) : null}
 
       </ScrollView>
+      </View>
     </Screen>
   );
 }
@@ -2885,13 +2905,9 @@ function RearScene({
 function SailBadge({
   state,
   label,
-  left,
-  top,
 }: {
   state: SailState;
   label: string;
-  left: number;
-  top: number;
 }) {
   const opacity = useRef(new Animated.Value(0)).current;
   const visible = state !== 'idle';
@@ -2912,8 +2928,6 @@ function SailBadge({
       style={[
         styles.sailBadge,
         {
-          left,
-          top,
           opacity,
           borderColor: bg,
           backgroundColor: 'rgba(10, 22, 40, 0.78)',
@@ -2927,22 +2941,29 @@ function SailBadge({
 }
 
 const styles = StyleSheet.create({
+  workspace: { flex: 1, minHeight: 0 },
+  workspaceLandscape: { flexDirection: 'row' },
+  controls: { flex: 1, minHeight: 0, minWidth: 0 },
+  steeringRow: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
+  windPanel: { gap: spacing.sm, marginTop: spacing.md, padding: spacing.sm, backgroundColor: colors.bgSecondary, borderRadius: radii.md },
+  windPanelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm },
+  sailFeedback: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   pinned: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 20,
     paddingTop: spacing.sm,
     paddingBottom: spacing.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.borderCyanFaint,
   },
   scroll: {
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: 12,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    marginBottom: spacing.xs,
   },
   headerSpacer: {
     flex: 1,
@@ -2991,9 +3012,6 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   steerBtn: {
-    position: 'absolute',
-    top: '50%',
-    marginTop: -28,
     width: 56,
     height: 56,
     borderRadius: 28,
@@ -3002,10 +3020,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(4, 22, 30, 0.55)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 5,
   },
-  steerBtnLeft: { left: 10 },
-  steerBtnRight: { right: 10 },
   steerBtnActive: { backgroundColor: 'rgba(0, 212, 255, 0.28)', transform: [{ scale: 0.95 }] },
   steerBtnText: {
     color: colors.accentCyan,
@@ -3025,8 +3040,7 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   windSpeedButton: {
-    position: 'absolute',
-    right: 10,
+    minHeight: 44,
     paddingHorizontal: spacing.sm,
     paddingVertical: 5,
     borderRadius: radii.sm,
@@ -3070,9 +3084,6 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   sceneReadout: {
-    position: 'absolute',
-    left: 10,
-    bottom: 10,
     alignItems: 'flex-start',
     gap: 5,
   },
@@ -3108,9 +3119,6 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
   mapLegend: {
-    position: 'absolute',
-    left: 10,
-    top: 10,
     gap: 4,
     paddingHorizontal: 8,
     paddingVertical: 6,
@@ -3137,30 +3145,29 @@ const styles = StyleSheet.create({
   },
   hud: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: spacing.md,
-    gap: spacing.sm,
+    marginTop: spacing.sm,
+    gap: spacing.xs,
   },
   hudCell: {
     flexGrow: 1,
-    flexBasis: '22%',
-    minWidth: 74,
+    flexBasis: 0,
+    minWidth: 0,
     backgroundColor: 'rgba(21, 37, 64, 0.72)',
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
     borderRadius: radii.sm,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    paddingVertical: 6,
   },
   hudLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     letterSpacing: 1,
     marginBottom: 2,
   },
   hudValue: {
-    color: colors.accentCyan,
-    fontSize: 22,
+    color: colors.textPrimary,
+    fontSize: 18,
     fontWeight: '800',
     fontVariant: ['tabular-nums'],
   },
@@ -3189,6 +3196,10 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   autoButton: {
+    minHeight: 44,
+    minWidth: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,
     borderRadius: radii.sm,
@@ -3221,6 +3232,7 @@ const styles = StyleSheet.create({
   },
   modeBar: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     backgroundColor: 'rgba(15, 32, 53, 0.78)',
     borderColor: colors.borderCyanFaint,
     borderWidth: 1,
@@ -3256,6 +3268,7 @@ const styles = StyleSheet.create({
   },
   viewBar: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignSelf: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
@@ -3290,6 +3303,7 @@ const styles = StyleSheet.create({
   },
   windModeBar: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignSelf: 'center',
     gap: spacing.sm,
     marginBottom: spacing.sm,
@@ -3359,6 +3373,9 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   liveWindChip: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.sm,
     paddingVertical: 6,
     borderRadius: radii.pill,
@@ -3394,6 +3411,9 @@ const styles = StyleSheet.create({
     color: colors.warning,
   },
   liveWindRetry: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
     paddingHorizontal: spacing.md,
     paddingVertical: 5,
     borderRadius: radii.sm,
@@ -3530,7 +3550,6 @@ const styles = StyleSheet.create({
     color: colors.accentCyan,
   },
   sailBadge: {
-    position: 'absolute',
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 6,
@@ -3551,10 +3570,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
   },
   resultPanel: {
-    position: 'absolute',
-    left: spacing.md,
-    right: spacing.md,
-    top: '22%',
+    marginTop: spacing.sm,
     backgroundColor: 'rgba(15, 32, 53, 0.96)',
     borderColor: colors.borderCyanStrong,
     borderWidth: 1,
@@ -3605,6 +3621,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   resultButton: {
+    minHeight: 44,
+    minWidth: 44,
+    justifyContent: 'center',
     flex: 1,
     borderColor: colors.borderCyanSoft,
     borderWidth: 1,

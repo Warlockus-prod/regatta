@@ -1,0 +1,10 @@
+.tabs { grid-template-columns:repeat(3,minmax(0,1fr)); }
+.tabs button { min-height:44px; }
+.identity { font-size:12px; color:var(--text-muted); }
+.identity strong { color:var(--text-primary); }
+.results { padding:4px 0 12px; }
+.controls[inert] { opacity:.55; }
+.controls { display:flex; flex-direction:column; min-height:0; height:100%; }
+.controls>p { flex:0 0 auto; margin:6px 0; font-size:12px; line-height:1.4; color:var(--text-secondary); }
+.controls>div { flex:1 1 auto; min-height:180px; }
+.settingsLabel { font-size:12px; color:var(--text-secondary); }

@@ -5,6 +5,20 @@
 одном месте. Карта кода - `ARCHITECTURE.md`. Что изменилось - `CHANGELOG.md`
 (читать первым, чтобы понять текущее состояние).
 
+## Current completion work
+
+- Reopened after owner feedback on 2026-10-25: `docs/audits/2026-10-25/plan-recheck.md` is the immutable build60 source baseline. Corrections and fresh installed evidence live in `docs/audits/2026-10-25/corrections.md`. Do not equate TestFlight delivery, unit tests or implemented source with full product acceptance. Candidate61 is in verification, not yet delivered.
+
+- 2026-10-24 owner-approved completion: `docs/audits/2026-10-24/implementation-harness.md` is the ordered implementation/release gate. Evidence baseline and selected first concept: `docs/audits/2026-10-24/audit.md` and `docs/audits/2026-10-24/design-proposal.md`.
+- App branch `codex/app-1.7.0-completion`, site branch `codex/site-1.7.0-sync`. Shared engine, content and scenes stay in one repository. Do not discard historical dirty root work.
+- New installations default to shared wheel controls; saved slider choices are preserved. The historical /design-v3 review entry returns404 in this release branch; reviewed source/assets and the protected root checkout remain preserved.
+- Free trim opens in 3D; instructional presets and explicit saved checkpoint views retain their own camera. Solo route advice keeps independent tack/recovery memory and never steers the boat or advances its gates.
+- One offline bundled 3D solo race replaces the flat native entry; simple auto-trim and manual Pro use the same trainer wheels. Multiplayer needs the network. Keep old saved race records readable.
+- Offline SRC speech uses device voices and strict on-device recognition through the checked SDK54 prebuild plugin; absent models expose typed practice. See `mobile/src/radio/README.md`.
+- Native Sternik theory, tests, exams and typed oral practice use the installed Polish package. SRC and Sternik snapshots become authoritative only after durable storage; preserve first-use WebKit migration and Clear all data semantics.
+- Basics and Anatomy are also bundle-first, with their simplified native recovery screens retained.
+- SRC adapts to seven languages, including explicit theory section headings. Its weak-spots panel and Reset are scoped to SRC and preserve saved Sternik oral mistakes. Sternik remains Polish. Release and cleanup only after the harness gates, each completed stage has a rollback commit.
+
 ## Что это
 
 - Продукт: Regatta, в UI "Week to Regatta". Учебное приложение по парусному
@@ -15,21 +29,16 @@
   кандидат на польский патент.
 - Прод: https://weektoregatta.com. Хост vps2, Docker Compose (контейнеры
   `regatta` и `regatta-ws`) за общим контейнером nginx.
-- Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`, в продаже
-  1.6.4 (iOS build 48, новая карточка ASO, заголовок страницы iOS 27, запрос
-  отзыва), в продаже с 2026-10-19. В TestFlight 1.7.0: сборки 45-47 (дизайн v3 и
-  учебные модули, ветка Codex `codex/learning-modules`), 49 (управление
-  тренажерами из `main`), 50, в которой все это сведено, и 51-57 с доводкой
-  (ничего поверх лодки, тексты на 7 языках, акватории регат, режимы гонки
-  «Простой» и «Про», 3D-гонка, этап 1 и первая часть этапа 2 аудита игры, в 57 срез новой графики гонки с замером FPS; ветка `claude/polish-1.7.0`, группа Self). Версия 1.7.0 в
-  App Store Connect подготовлена, на ревью не отправлена (решение владельца:
-  сначала доводка); перед отправкой привязать последнюю сборку и обновить «Что
-  нового» (`mobile/releases/1.7.0.json`); следующий номер сборки 58; перед отправкой убрать флаги среза из `mobile/app/race-3d/index.tsx` или сделать срез основной гонкой. Статус магазина и TestFlight проверять по
-  журналу `docs/design/mobile/BUILDS.md`; локальная сборка не означает публикацию.
-  Жизненный цикл UIScene, без которого iOS 27 не запускает сборки Xcode 27, дает
-  плагин `mobile/plugins/with-uiscene.js` (убрать при переходе на Expo SDK 58).
-  Журнал сборок и разбор: `docs/design/mobile/BUILDS.md`. Выпуск только через
-  обязательный гейт (см. ниже).
+- Мобильное приложение: Expo / React Native (Expo SDK 54) в `mobile/`.
+  Проверено 2026-10-24: публичная 1.6.4 (48), TestFlight 1.7.0 (60), группа Self.
+  Сборка 60 из 8e39721: VALID, IN_BETA_TESTING, восемь локалей заметок проверены.
+  Сборка 59 отклонена Apple при импорте, не распространялась. Описание
+  Photos API встроенного Expo file reader исправлено на семи языках.
+  Доказательства: `docs/design/mobile/testflight60-2026-10-24.md`.
+  Доставку в Self подтверждают отдельно через живой ASC GET; архив и успешная
+  загрузка сами по себе не означают доступность тестировщику. Журнал и история:
+  `docs/design/mobile/BUILDS.md`. Выпуск только через обязательный гейт ниже.
+  Жизненный цикл UIScene для Xcode 27 дает `mobile/plugins/with-uiscene.js`.
 - Стек: Next.js 16 (App Router, Turbopack), React 19, TypeScript strict,
   Tailwind v4, SQLite (better-sqlite3), three.js / R3F для 3D, отдельный
   WebSocket-сервер на Node.
@@ -73,8 +82,9 @@
    сценарии, подсказки, разбор, Rozbiór, интерфейс) уже на 7 языках, радиофразы
    остаются английскими, акватории случайные (`src/app/radio/symulator/venues.ts`,
    только проверенные станции и каналы). Теория, шпаргалка, уроки Obsługa,
-   живой разговор и банк 324 вопросов UKE пока польские (помощь на русском на
-   RU-сайте), их перевод следующим шагом. Исключение техническое: текст, который рисуется в OG-картинках
+   живой разговор и банк 324 вопросов UKE адаптированы на все 7 языков.
+   Исходная польская формулировка доступна отдельно. Английские фразы и
+   варианты языковых упражнений сохраняются точно. Карта: `docs/radio-i18n.md`. Исключение техническое: текст, который рисуется в OG-картинках
    (`src/app/api/og/*`), остается без диакритики, у встроенного шрифта может не
    быть глифов.
 3. **`src/app/simulator/*` - это Основы (внутреннее имя V1), основной
@@ -171,6 +181,11 @@ npm run check:map            # карта проекта актуальна
   `node scripts/build-race-server.mjs --check`, затем `npx vitest run`, плюс
   `npm run test:multiplayer` и `npm run check:map`. Новый тестовый файл где
   угодно в `src` попадает в CI сам.
+- Отдельная джоба CI `Foundation browser flow` собирает web, проверяет прежний
+  JS-бюджет и запускает `e2e/foundation.spec.ts` на локальной production-сборке.
+  Те же сценарии входят в pre-deploy E2E до публикации образов: настоящий квиз,
+  черновик/reload, отказ записи/retry и возврат из практики. Это не приемка
+  установленного приложения или всей матрицы устройств/языков.
 - `npm run test:physics` это не только `src/lib/sailing-physics`: сначала
   `node scripts/build-race-server.mjs --check` (серверная физика сгенерирована
   из TS), затем `sailing-physics`, `src/lib/race-physics.drift.test.ts` и
@@ -188,7 +203,9 @@ npm run check:map            # карта проекта актуальна
   работа по мобильному приложению (`mobile/`).
 - Деплой только из CI. Push в `main` запускает `.github/workflows/deploy.yml`:
   проверки (типы, типографика, карта, весь `npx vitest run`, сокеты), сборка и
-  pre-deploy E2E на раннере, затем неизменяемые образы в GHCR. Джоба деплоя
+  pre-deploy E2E на раннере, затем неизменяемые образы в GHCR.
+  Публикация образов и deploy имеют явное условие refs/heads/main; другой ref
+  запускает только проверки. Это не заменяет отдельные правила environment. Джоба деплоя
   (GitHub environment `production`) по SSH stdin отдает принудительной
   команде `regatta-deploy` на VPS commit, два digest образов и одноразовый
   токен GHCR этой джобы (стирается вместе с временной авторизацией Docker
@@ -545,3 +562,13 @@ Shared-лейне:
 - Большой рефакторинг - через ветку (`feature/...`), потом `git merge --no-ff`.
 - Никогда `push --force` в `main`. Никогда `git reset --hard` без
   предупреждения других лейнов.
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes - APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` - verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

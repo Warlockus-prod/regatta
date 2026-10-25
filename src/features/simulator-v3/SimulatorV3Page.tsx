@@ -1,5 +1,7 @@
 'use client';
 
+import { FoundationReturn } from "@/components/FoundationReturn";
+
 import styles from "./SimulatorV3.module.css";
 import { SavePractice } from "../sailing-lab/ui/SavePractice";
 import { LessonReturn } from "../sailing-lab/ui/LessonReturn";
@@ -7,14 +9,15 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
+import type { CameraView } from "../simulator-3d/camera";
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
 import { useTrimStudy } from "./hooks/use-trim-study";
 import { useTrimAssessment } from "./hooks/use-trim-assessment";
-import { TrimAssessmentPanel } from "./ui/panels/TrimAssessmentPanel";
+import { TrimAssessmentGoal, TrimAssessmentPanel } from "./ui/panels/TrimAssessmentPanel";
 import { trimTasks, type TrimTask } from "../sailing-lab/lessons/trim-assessment";
 import { assessmentCopy } from "../../data/sailing-lab/assessment-copy";
-import { TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
+import { TrimStudyGoal, TrimStudyPanel } from "./ui/panels/TrimStudyPanel";
 import { CheckpointPanel } from "./ui/panels/CheckpointPanel";
 import { useTrainerCheckpoint } from "./hooks/use-trainer-checkpoint";
 import { resolveTrainerDeepLink } from './runtime/deep-link';
@@ -38,11 +41,12 @@ import { TourOverlay } from './ui/panels/TourOverlay';
 import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
-import { MainTrimPod } from "./ui/pods/MainTrimPod";
-import { ViewPod, pauseLabel, viewOptions } from './ui/pods/ViewPod';
+import { MainTrimPod, MainTrimTraveler, mainTrimWheelTarget } from "./ui/pods/MainTrimPod";
+import { BoatViewPresets, ViewPod, pauseLabel, viewOptions } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
 import {
   DEFAULT_UI,
+  FREE_TRAINER_UI,
   type ReefLevel,
   type SimulationModel,
   type UiState,
@@ -148,12 +152,14 @@ function buildShareUrl(ui: UiState): string {
 export default function SimulatorV3Page({ initialSearch }: { initialSearch?: string } = {}) {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
-  // Start from DEFAULT_UI on both server and client so hydration matches;
+  // Start from the free 3D setup on both server and client so hydration matches;
   // URL params (share links) are applied in a mount effect below. Reading
   // window.location.search during render made the client's first render
   // differ from the SSR HTML on /simulator-v3?twa=... and threw React
   // hydration errors. The 1-frame settle after mount is acceptable.
-  const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  const [ui, setUi] = useState<UiState>(FREE_TRAINER_UI);
+  const [boatView, setBoatView] = useState<CameraView>("sails");
+  const activeBoatView = boatView === "mainsheet" && !ui.mainTrim ? "sails" : boatView;
   // ?embed=1 (sent by the iOS app's WebView) strips the in-page chrome
   // (tier switcher, Share, glossary footer) and locks the layout to 100dvh
   // with the controls scrolling internally, because the WKWebView disables
@@ -362,7 +368,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       } else {
         const fromUrl = readUiFromUrl(initialSearch);
         if (fromUrl) {
-          const next = { ...DEFAULT_UI, ...fromUrl };
+          const next = { ...FREE_TRAINER_UI, ...fromUrl };
           setUi(next);
           reset(next);
         }
@@ -400,8 +406,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
-    setUi(DEFAULT_UI);
-    reset(DEFAULT_UI);
+    setUi(FREE_TRAINER_UI);
+    reset(FREE_TRAINER_UI);
     exitDrill();
     setActiveScenarioId(null);
   };
@@ -427,6 +433,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     {trimAssessment.assessment?.phase === "complete" && <SavePractice key={trimAssessment.assessment.task} id={trimAssessment.assessment.task} lang={lang} />}
     {trimStudy.study?.phase === "complete" && <SavePractice id="mainsheet" lang={lang} />}
   </>;
+  const studyGoal = trimAssessment.assessment
+    ? <TrimAssessmentGoal assessment={trimAssessment.assessment} lang={lang} />
+    : trimStudy.study ? <TrimStudyGoal study={trimStudy.study} tp={tp} /> : null;
   const checkpoint = useTrainerCheckpoint({ session: sim.session, ui, study: trimStudy.study }, saved => {
     trimAssessment.cancel();
     setPaused(true);
@@ -453,7 +462,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
-  const cameraPanel = <ViewPod section="camera" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />;
+  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
+    {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={setBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
+  </>;
   const sessionPanel = <ViewPod section="session" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
   const controlsLabel = tp("Управление парусами", "Sail controls", "Obsługa żagli", { es: "Controles de velas", fr: "Commandes des voiles", de: "Segelbedienung", it: "Comandi delle vele" });
   const conditionsLabel = tp("Условия: ветер и курс", "Conditions: wind and course", "Warunki: wiatr i kurs", { es: "Condiciones: viento y rumbo", fr: "Conditions : vent et cap", de: "Bedingungen: Wind und Kurs", it: "Condizioni: vento e rotta" });
@@ -499,25 +510,33 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
         ariaMax: 180,
         onCourseDelta,
       };
-  const wheelDeck = (layout: 'bottom' | 'column') => (
-                <WheelDeck
+  const wheelDeck = (layout: 'bottom' | 'column') => {
+    const deck = <WheelDeck
                   layout={layout}
                   prefs={prefs}
                   labels={controlLabels}
                   arrowKeysSteer
                   helm={helmTarget}
-                  main={ui.mainTrim ? null : {
+                  hideHint={Boolean(ui.mainTrim)}
+                  main={ui.mainTrim ? mainTrimWheelTarget(ui.mainTrim, sim.session.mainTrim?.pose.yaw ?? sim.liveMainAngle,
+                    workingLength => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, workingLength } } : p)) : {
                     ease: Math.min(1, Math.max(0, ui.mainAngle / params.mainMaxOff)),
                     angleDeg: ui.mainAngle,
                     setEase: (v) => setUi((p) => ({ ...p, mainAngle: Math.round(v * params.mainMaxOff * 10) / 10 })),
                   }}
-                  jib={ui.mainTrim ? null : {
+                  jib={{
                     ease: Math.min(1, Math.max(0, (ui.jibAngle - params.jibMinOff) / (params.jibMaxOff - params.jibMinOff))),
                     angleDeg: ui.jibAngle,
                     setEase: (v) => setUi((p) => ({ ...p, jibAngle: Math.round((params.jibMinOff + v * (params.jibMaxOff - params.jibMinOff)) * 10) / 10 })),
                   }}
-                />
-  );
+                />;
+    return ui.mainTrim ? <div className="flex h-full min-h-0 flex-col overflow-y-auto" data-testid="rig-wheel-controls">
+      {studyGoal && <div className="shrink-0 pb-2">{studyGoal}</div>}
+      <div className="shrink-0" style={{ height: layout === "bottom" ? 236 : 320 }}>{deck}</div>
+      <div className="shrink-0 pt-2"><MainTrimTraveler target={ui.mainTrim} tp={tp}
+        onChange={traveler => setUi(p => p.mainTrim ? { ...p, mainTrim: { ...p.mainTrim, traveler } } : p)} /></div>
+    </div> : deck;
+  };
   const rudderCard = (
             <label className="block rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3">
               <span className="flex justify-between text-sm text-[var(--text-secondary)]"><span>{controlLabels.rudder}</span><b className="font-mono text-[var(--accent-cyan)]">{Math.round(rudder * RUDDER_DISPLAY_MAX_DEG)}°</b></span>
@@ -525,13 +544,13 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </label>
   );
   const podsMain = ui.mainTrim
-    ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} taskFirst={Boolean(trimStudy.study || trimAssessment.assessment)} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod>
+    ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} goal={studyGoal} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod>
     : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} comfortable />;
   // Arriving from a lesson (rig study or an independent check), the task opens
   // first on a phone, the way the lesson promised it; free sailing keeps Favorites.
   const taskLabel = tp('Задание', 'Task', 'Zadanie', { es: 'Tarea', fr: 'Exercice', de: 'Aufgabe', it: 'Compito' });
   const taskTab: DockTab | undefined = ui.mainTrim
-    ? { id: 'task', label: taskLabel, cards: [{ id: 'task', title: taskLabel, node: <div className="space-y-2">{modePanel}{podsMain}</div> }] }
+    ? { id: 'task', label: taskLabel, cards: [{ id: 'task', title: taskLabel, node: podsMain }] }
     : undefined;
   const dockTabs: DockTab[] = [
     {
@@ -594,6 +613,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       }`}
       style={{ background: 'var(--bg-primary)' }}
     >
+      <FoundationReturn bar initialSearch={initialSearch} />
       <LessonReturn lang={lang} initialSearch={initialSearch} />
       {/* Top bar with V3 badge + two-tier switcher (Basics / Trainer / 3D).
           Cross-links and Share are hidden under ?embed=1 - the iOS app
@@ -757,7 +777,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           embed ? 'min-h-0 overflow-hidden' : ''
         }`}
       >
-        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`}>
+        <div className={`space-y-3 ${embed ? 'min-h-0 overflow-y-auto' : ''}`} data-trainer-settings-host>
           {modePanel}
           {mode === 'drill' && (
             <DrillCard
@@ -805,7 +825,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)',
             }}
           >
-            {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+            {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
               <SceneTop ui={ui} sim={sim} lang={lang} />
             ) : ui.view === 'side' ? (
               <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -824,7 +844,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
             </div>
           )}
           <h2 className={styles.groupTitle}>{controlsLabel}</h2>
-          {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} taskFirst={Boolean(trimStudy.study || trimAssessment.assessment)} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
+          {ui.mainTrim ? <MainTrimPod ui={ui} setUi={setUi} sim={sim} tp={tp} goal={studyGoal} studyActive={trimStudy.study !== null}>{studyPanel}</MainTrimPod> : <MainPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} startRigStudy={startRigStudy} />}
           <JibPod ui={ui} setUi={setUi} params={params} sim={sim} tp={tp} />
         </div>
       </div>
@@ -866,7 +886,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               className="absolute inset-0"
               style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
             >
-              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -885,6 +905,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                     <DrawerItem key={o.value} pressed={ui.view === o.value} onClick={() => { setUi((p) => ({ ...p, view: o.value })); setViewsOpen(false); }}>{o.label}</DrawerItem>
                   ))}
                 </DrawerGroup>
+                {ui.view === "3d" && <DrawerGroup>
+                  <BoatViewPresets view={activeBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp}
+                    onSelect={view => { setBoatView(view); setViewsOpen(false); }} />
+                </DrawerGroup>}
                 <DrawerGroup>
                   <DrawerItem pressed={paused} onClick={() => setPaused((value) => !value)}>{pauseLabel(tp, paused)}</DrawerItem>
                 </DrawerGroup>
@@ -902,7 +926,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               layout="bottom"
               prefs={prefs}
               update={updatePrefs}
-              hasSheets={!ui.mainTrim}
+              hasSheets
               rudderAvailable
               defaultFavorites={['main', 'jib', 'course']}
               tabs={dockTabs}
@@ -921,7 +945,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
           prefs={prefs}
           update={updatePrefs}
           labels={controlLabels}
-          hasSheets={!ui.mainTrim}
+          hasSheets
           rudderAvailable
           favorites={[]}
           defaultFavorites={[]}

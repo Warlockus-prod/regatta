@@ -144,7 +144,7 @@ export function Yacht({ stateRef, light = false }: { stateRef: MutableRefObject<
       const original = mesh.material;
       const owned: THREE.Material[] = [];
       const upgrade = (material: THREE.Material) => {
-        if (material.name !== "Gelcoat_White") return material;
+        if (!material.name.startsWith("Gelcoat_White")) return material;
         const source = material as THREE.MeshStandardMaterial;
         const finish = new THREE.MeshPhysicalMaterial({ color: source.color, map: source.map,
           roughness: 0.26, metalness: 0, clearcoat: 0.4, clearcoatRoughness: 0.2 });

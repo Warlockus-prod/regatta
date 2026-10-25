@@ -15,7 +15,7 @@ Jour 3. Comment fonctionne une voile : une aile au près, un parachute au portan
 Jour 4. Virer de bord et empanner : par l'avant et par l'arrière.
 Jour 5. Louvoyer et VMG : comment remonter au vent et pourquoi la ligne droite n'est pas la plus rapide.
 Jour 6. Règles simples : qui doit s'écarter sur l'eau.
-Jour 7. Mini-régate : tout ensemble, puis le coach IA analyse votre course.
+Jour 7. Mini-course : tout ensemble, puis un coach local analyse votre course.
 
 Le bouton "Reprendre l'apprentissage" de l'écran d'accueil ouvre toujours l'étape suivante.
 
@@ -27,7 +27,7 @@ SIMULATEURS
 
 RÉGATE
 
-Courez un parcours court contre des bots de trois niveaux, ou ouvrez une course multijoueur avec vos amis. Après l'arrivée, un coach IA analyse votre course et vous dit quoi corriger.
+Régatez en 3D contre des bots hors ligne. En mode Simple, les voiles se règlent seules ; en Pro, vous réglez les écoutes. Un coach local analyse le résultat. Le multijoueur entre amis nécessite une connexion.
 
 LE BATEAU ET LES RÈGLES
 
@@ -37,10 +37,10 @@ LE BATEAU ET LES RÈGLES
 - Première semaine à bord : quoi emporter, quoi demander au skipper, comment aider l'équipage.
 - Checklist d'avant course : à cocher la veille au soir.
 
-DIPLÔMES POLONAIS (EN POLONAIS)
+DIPLÔMES POLONAIS
 
-- Radio marine SRC : 324 questions officielles de l'UKE et un simulateur vocal pour les appels MAYDAY et PAN-PAN.
-- Sternik motorowodny (permis bateau à moteur polonais) : 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes.
+- Radio marine SRC : 324 questions UKE avec traductions pour étudier, théorie et pratique en sept langues. Les phrases radio standard restent en anglais. Dès la version 1.7.0, build 59, la reconnaissance utilise un modèle anglais local disponible ; sans modèle, la vérification de texte fonctionne hors ligne.
+- Sternik motorowodny (en polonais) : 879 questions d'examen, la théorie et un examen blanc complet de 75 questions en 90 minutes. Fonctionne hors ligne ; les réponses saisies en polonais pour la pratique orale sont vérifiées localement.
 
 CONFIDENTIALITÉ
 

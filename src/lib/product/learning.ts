@@ -50,6 +50,7 @@ export interface LearningSnapshot {
   bookmark: string | null;
   sails: string | null;
   bootcamp: { completed: unknown; current: unknown };
+  foundation?: { current: string | null; checked: string[]; visited: string[] };
 }
 export const emptyLearningSnapshot = (): LearningSnapshot => ({ bookmark: null, sails: null, bootcamp: { completed: [], current: null } });
 
@@ -58,7 +59,8 @@ export function homeLearning(snapshot: LearningSnapshot, lang: Language, platfor
   const sail = readSailProgress(snapshot.sails);
   const boot = snapshot.bootcamp;
   const viewed = bootcampLessons.filter(l => Array.isArray(boot.completed) && boot.completed.includes(l.id));
-  const bootStarted = viewed.length > 0 || bootcampLessons.some(l => l.id === boot.current);
+  const foundation = platform === "web" ? snapshot.foundation : undefined;
+  const bootStarted = viewed.length > 0 || bootcampLessons.some(l => l.id === boot.current) || Boolean(foundation?.current || foundation?.visited.length);
   const sailStarted = sail.checked.length > 0 || Boolean(sail.current);
   const courseId = bookmark?.course ?? (bootStarted ? "course" : sailStarted ? "sails" : "course");
   const course = destinations.find(d => d.id === courseId)!;
@@ -68,8 +70,8 @@ export function homeLearning(snapshot: LearningSnapshot, lang: Language, platfor
   }
   const isSails = courseId === "sails";
   const lessons = isSails ? sailLessons : bootcampLessons;
-  const done = isSails ? sail.checked : viewed.map(l => l.id);
-  const current = bookmark?.lesson ?? (isSails ? sail.current : boot.current);
+  const done = isSails ? sail.checked : platform === "web" ? bootcampLessons.filter(l => foundation?.checked.includes(l.id)).map(l => l.id) : viewed.map(l => l.id);
+  const current = bookmark?.lesson ?? (isSails ? sail.current : foundation?.current ?? boot.current);
   const next = lessons.find(l => l.id === current && !done.includes(l.id)) ?? lessons.find(l => !done.includes(l.id));
   const complete = !next;
   const lesson = next ?? lessons[0];
@@ -78,6 +80,6 @@ export function homeLearning(snapshot: LearningSnapshot, lang: Language, platfor
   const sailLesson = sailLessons.find(l => l.id === lesson.id);
   const titles = bootLesson ? { ru: bootLesson.titleRu, en: bootLesson.titleEn, pl: bootLesson.titlePl, es: bootLesson.titleEs, fr: bootLesson.titleFr, de: bootLesson.titleDe, it: bootLesson.titleIt } : null;
   const title = complete ? homeCopy.review[lang] : isSails ? sailLesson!.title[lang] : titles![lang] ?? bootLesson!.titleEn;
-  const href = complete ? overview : isSails ? `/learn/sails/${lesson.id}` : platform === "native" ? `/bootcamp/${lesson.id}` : bootLesson!.route;
-  return { course, href, overview, title, detail: course.detail![lang], started, complete, count: done.length, total: lessons.length, metric: isSails ? homeCopy.checked[lang] : homeCopy.visited[lang], lessonId: complete ? null : lesson.id, minutes: complete ? null : isSails ? sailLesson!.minutes : bootLesson!.estMinutes };
+  const href = complete ? overview : isSails ? `/learn/sails/${lesson.id}` : platform === "native" ? `/bootcamp/${lesson.id}` : `/start?lesson=${lesson.id}`;
+  return { course, href, overview, title, detail: course.detail![lang], started, complete, count: done.length, total: lessons.length, metric: isSails || platform === "web" ? homeCopy.checked[lang] : homeCopy.visited[lang], lessonId: complete ? null : lesson.id, minutes: complete ? null : isSails ? sailLesson!.minutes : bootLesson!.estMinutes };
 }

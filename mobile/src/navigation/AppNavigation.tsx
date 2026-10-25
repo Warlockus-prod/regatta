@@ -4,8 +4,8 @@ import { Keyboard, Pressable, StyleSheet, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useI18n } from "../i18n/context";
 import { Icon, Text, type IconName } from "../design-system/components";
-import { colors } from "../design-system/tokens";
-import { mainNavigationHiddenByScreen, showsMainNavigation, subscribeMainNavigationHidden } from "./visibility";
+import { colors, darkColors } from "../design-system/tokens";
+import { mainNavigationHiddenByScreen, showsMainNavigation, subscribeMainNavigationHidden, usesDarkNavigation } from "./visibility";
 import { NavigationInsetContext } from "./NavigationContext";
 import { nativeTabs, tabForPath } from "./tabs";
 
@@ -23,13 +23,15 @@ export function AppNavigation({ children }: { children: ReactNode }) {
   const hiddenByScreen = useSyncExternalStore(subscribeMainNavigationHidden, mainNavigationHiddenByScreen, mainNavigationHiddenByScreen);
   const visible = showsMainNavigation(pathname) && !keyboard && !hiddenByScreen;
   const selected = tabForPath(pathname);
+  const dark = usesDarkNavigation(pathname);
+  const palette = dark ? darkColors : colors;
   return <NavigationInsetContext.Provider value={visible}>
-    <View style={styles.root}>
+    <View style={[styles.root, dark && darkStyles.root]}>
       <View style={styles.content}>{children}</View>
-      {visible && <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
-        {nativeTabs.map(s => <Pressable key={s.id} accessibilityRole="tab" accessibilityLabel={s.title[lang]} accessibilityState={{ selected: selected === s.id }} onPress={() => { if (pathname !== s.route) router.replace(s.route as Href); }} style={({ pressed }) => [styles.tab, selected === s.id && styles.selected, pressed && styles.pressed]}>
-          <Icon name={s.icon as IconName} size={24} color={selected === s.id ? colors.accentCyan : colors.textSecondary} />
-          <Text style={[styles.label, selected === s.id && styles.activeLabel]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6} maxFontSizeMultiplier={1.3}>{s.title[lang]}</Text>
+      {visible && <View style={[styles.bar, dark && darkStyles.bar, { paddingBottom: Math.max(insets.bottom, 8) }]}>
+        {nativeTabs.map(s => <Pressable key={s.id} accessibilityRole="tab" accessibilityLabel={s.title[lang]} accessibilityState={{ selected: selected === s.id }} onPress={() => { if (pathname !== s.route) router.replace(s.route as Href); }} style={({ pressed }) => [styles.tab, selected === s.id && styles.selected, pressed && (dark ? darkStyles.pressed : styles.pressed)]}>
+          <Icon name={s.icon as IconName} size={24} color={selected === s.id ? palette.accentCyan : palette.textSecondary} />
+          <Text style={[styles.label, selected === s.id && styles.activeLabel, { color: selected === s.id ? palette.accentCyan : palette.textSecondary }]} numberOfLines={2} maxFontSizeMultiplier={1.3}>{s.title[lang]}</Text>
         </Pressable>)}
       </View>}
     </View>
@@ -44,4 +46,9 @@ const styles = StyleSheet.create({
   pressed: { backgroundColor: colors.bgCardHover },
   label: { fontSize: 11, lineHeight: 14, textAlign: "center", color: colors.textSecondary, fontWeight: "500" },
   activeLabel: { color: colors.accentCyan, fontWeight: "700" },
+});
+const darkStyles = StyleSheet.create({
+  root: { backgroundColor: darkColors.bgPrimary },
+  bar: { backgroundColor: darkColors.surfaceRaised, borderTopColor: darkColors.borderCyanFaint },
+  pressed: { backgroundColor: darkColors.bgCardHover },
 });

@@ -70,15 +70,4 @@ export interface Controls {
 }
 
 /** Coach hint vocabulary; labels for each key live in SimLabels.coach. */
-export type CoachKey =
-  | 'inIrons'
-  | 'luffMain'
-  | 'luffJib'
-  | 'luffBoth'
-  | 'stallMain'
-  | 'stallJib'
-  | 'stallBoth'
-  | 'pinching'
-  | 'good'
-  | 'reachOn'
-  | 'run';
+export type { CoachKey } from "../../sailing-lab/runtime/trim-coach";

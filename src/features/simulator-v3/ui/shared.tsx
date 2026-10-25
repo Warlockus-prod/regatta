@@ -112,6 +112,9 @@ export const DEFAULT_UI: UiState = {
   showOptimal: true,
 };
 
+/** Free trim opens on the shared sea; teaching presets keep their own view. */
+export const FREE_TRAINER_UI: UiState = { ...DEFAULT_UI, view: '3d' };
+
 export const REEF_VALUES: Record<ReefLevel, number> = {
   0: 0,
   1: 0.45,

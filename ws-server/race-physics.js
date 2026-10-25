@@ -390,6 +390,8 @@ var WORLD = { width: 800, height: 1200 };
 var WIND_DIRECTION_BASE = 0;
 var MAX_SPEED = 8;
 var TURN_RATE = 22;
+var RESPONSIVE_TURN_RATE = 40;
+var RESPONSIVE_MIN_AUTHORITY = 0.2;
 var ACCEL = 2.5;
 var MARK_ROUND_DIST = 28;
 var MIN_BOAT_SEPARATION = 22;
@@ -439,10 +441,29 @@ function windAt(t, seed = 0) {
     gust: Math.max(0.75, Math.min(1.25, gust))
   };
 }
+var DEFAULT_RACE_TRIM = { mainSheet: 0.4, jibSheet: 0.2, mainTwist: 0.35, jibTwist: 0.4, reef: 0, jibFurl: 0, jibSide: 1 };
+var unitControl = (value, fallback) => value !== void 0 && Number.isFinite(value) ? Math.max(0, Math.min(1, value)) : fallback;
+function raceTrim(input, previous = DEFAULT_RACE_TRIM) {
+  return {
+    mainSheet: unitControl(input?.mainSheet, previous.mainSheet),
+    jibSheet: unitControl(input?.jibSheet, previous.jibSheet),
+    mainTwist: unitControl(input?.mainTwist, previous.mainTwist),
+    jibTwist: unitControl(input?.jibTwist, previous.jibTwist),
+    reef: unitControl(input?.reef, previous.reef),
+    jibFurl: unitControl(input?.jibFurl, previous.jibFurl),
+    jibSide: input?.jibSide === -1 || input?.jibSide === 1 ? input.jibSide : previous.jibSide,
+    ...typeof input?.mainHoisted === "boolean" ? { mainHoisted: input.mainHoisted } : previous.mainHoisted !== void 0 ? { mainHoisted: previous.mainHoisted } : {}
+  };
+}
+function raceTurnRate(speed, steering = "legacy") {
+  const authority = Math.max(0, Math.min(1, (Number.isFinite(speed) ? speed : 0) / 3));
+  return steering === "responsive" ? RESPONSIVE_TURN_RATE * Math.max(RESPONSIVE_MIN_AUTHORITY, authority) : TURN_RATE * authority;
+}
 function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
+  if (!Number.isFinite(dt) || dt <= 0) return;
   const mul = Math.max(0.5, Math.min(1.2, opts.speedMul ?? 1));
-  const authority = Math.max(0, Math.min(1, boat.speed / 3));
-  boat.heading = normalizeAngle(boat.heading + Math.max(-1, Math.min(1, input.turn)) * TURN_RATE * authority * dt);
+  const turn = Number.isFinite(input.turn) ? Math.max(-1, Math.min(1, input.turn)) : 0;
+  boat.heading = normalizeAngle(boat.heading + turn * raceTurnRate(boat.speed, opts.steering) * dt);
   const params2 = getBoatParams();
   const state = {
     ...boat.physics ?? createInitialState({ tws: 12 }),
@@ -451,10 +472,18 @@ function stepBoat(boat, dt, windDir, gust, input, opts = {}) {
     trueWindDir: windDir,
     trueWindSpeed: 12 * (opts.windStrengthMul ?? 1) * gust
   };
-  boat.trimClock = (boat.trimClock ?? 1) + dt;
-  if (!boat.trim || boat.trimClock >= 0.5) {
-    boat.trim = trimForDrive(state, boat.trim ?? { mainSheet: 0.4, jibSheet: 0.2, mainTwist: 0.35, jibTwist: 0.4, reef: 0, jibFurl: 0, jibSide: 1 });
-    boat.trimClock = 0;
+  if (input.autoTrim === false) {
+    boat.trim = raceTrim(input.trim, boat.trim);
+    boat.trimClock = 0.5;
+  } else {
+    boat.trimClock = (boat.trimClock ?? 1) + dt;
+    if (!boat.trim || boat.trimClock >= 0.5) {
+      boat.trim = trimForDrive(state, boat.trim ?? DEFAULT_RACE_TRIM);
+      boat.trimClock = 0;
+    }
+    if (input.trim) {
+      boat.trim = raceTrim({ mainHoisted: input.trim.mainHoisted, reef: input.trim.reef, jibFurl: input.trim.jibFurl }, boat.trim);
+    }
   }
   boat.physics = tick(state, boat.trim, params2, dt).state;
   boat.speed = boat.physics.boatSpeed * mul;
@@ -607,18 +636,20 @@ var AUTOPILOT = {
 var RADIUS_PER_KNOT = UNITS_PER_KNOT_SECOND / deg2rad(TURN_RATE);
 function onCircle(p, c, r, ccw) {
   const phi = bearing(c, p), d = distance(p, c);
-  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r } : { tangent: normalizeAngle(phi + 90), right: r - d };
+  const path = { kind: "circle", center: { ...c }, radius: r, ccw };
+  return ccw ? { tangent: normalizeAngle(phi - 90), right: d - r, path } : { tangent: normalizeAngle(phi + 90), right: r - d, path };
 }
-function onVertical(p, x, north) {
-  return north ? { tangent: 0, right: p.x - x } : { tangent: 180, right: x - p.x };
+function onVertical(p, x, north, toY) {
+  const path = { kind: "vertical", x, north, to: { x, y: toY } };
+  return north ? { tangent: 0, right: p.x - x, path } : { tangent: 180, right: x - p.x, path };
 }
 function laneOf(id, lanes) {
   let h = 5381;
   for (let i = 0; i < id.length; i++) h = (h * 33 ^ id.charCodeAt(i)) >>> 0;
   return h % lanes / (lanes - 1) * 2 - 1;
 }
-function raceAutopilotTurn(boat, course, windDir) {
-  const A = AUTOPILOT, p = boat.pos;
+function raceAutopilotPlan(boat, course, windDir, route) {
+  const A = { ...AUTOPILOT, loopRadius: route?.radius ?? AUTOPILOT.loopRadius, lookahead: route?.lookahead ?? AUTOPILOT.lookahead }, p = boat.pos;
   if (!boat.autopilot || boat.lapDone < boat.autopilot.lap) boat.autopilot = { lap: boat.lapDone };
   const st = boat.autopilot;
   st.lap = boat.lapDone;
@@ -634,7 +665,7 @@ function raceAutopilotTurn(boat, course, windDir) {
   if (!boat.started) {
     const below = p.y > ly;
     if (below && Math.abs(p.x - cx) < half - 10 && !st.dip) {
-      fix = onVertical(p, cx, true);
+      fix = onVertical(p, cx, true, ly - 60);
       band = A.startBand;
     } else {
       if (!st.dip) {
@@ -660,8 +691,8 @@ function raceAutopilotTurn(boat, course, windDir) {
     if (!st.down && p.y <= c.y && p.x < c.x - r / 2) st.down = true;
     else if (st.down && p.y >= c.y + leg && p.x > c.x) st.down = false;
     const climbing = !st.down && p.y > c.y;
-    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true);
-    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false);
+    if (!st.down) fix = p.y <= c.y ? onCircle(p, c, r, true) : onVertical(p, c.x + r, true, c.y);
+    else fix = p.y >= c.y + leg ? onCircle(p, { x: c.x, y: c.y + leg }, r, true) : onVertical(p, c.x - r, false, c.y + leg);
     if (climbing) band = Math.min(A.band.max, Math.max(A.band.top, A.band.slope * (p.y - c.y)));
     if (!st.down && p.y <= c.y) freeOverTop = true;
     const toTop = p.y - c.y;
@@ -675,7 +706,7 @@ function raceAutopilotTurn(boat, course, windDir) {
     if (st.finishLoop) {
       fix = onCircle(p, { x: cx, y: ly - A.finishLoop.drop }, A.finishLoop.radius, st.finishLoop.ccw);
       band = A.loopBand;
-    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false);
+    } else fix = onVertical(p, cx + laneOf(boat.id, A.finishLanes) * Math.max(0, half - A.finishLaneMargin), false, ly + 30);
   }
   const slow = v > 0 && v < A.tackMinSpeed;
   if (st.tack === void 0) st.tack = calcTWA(boat.heading, windDir) >= 0 ? 1 : -1;
@@ -703,7 +734,16 @@ function raceAutopilotTurn(boat, course, windDir) {
     } else if (Math.abs(twa) >= A.closeHauled) tackTo(twa >= 0 ? 1 : -1);
   }
   if (v > 0 && v < A.stallSpeed && Math.abs(calcTWA(desired, windDir)) < 25) desired = normalizeAngle(windDir + st.tack * A.closeHauled);
-  return Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12));
+  return {
+    heading: desired,
+    turn: Math.max(-1, Math.min(1, angleDiff(boat.heading, desired) / 12)),
+    path: fix.path,
+    beating: Boolean(st.shed) || band > 0 && Math.abs(calcTWA(fix.tangent, windDir)) < A.closeHauled + 5,
+    rounding: { center: { x: mark.x, y: mark.y + A.loopDrop }, radius: A.loopRadius }
+  };
+}
+function raceAutopilotTurn(boat, course, windDir) {
+  return raceAutopilotPlan(boat, course, windDir).turn;
 }
 export {
   ACCEL,
@@ -711,6 +751,8 @@ export {
   MARK_ROUND_DIST,
   MAX_SPEED,
   MIN_BOAT_SEPARATION,
+  RESPONSIVE_MIN_AUTHORITY,
+  RESPONSIVE_TURN_RATE,
   TURN_RATE,
   UNITS_PER_KNOT_SECOND,
   WIND_DIRECTION_BASE,
@@ -722,7 +764,10 @@ export {
   distance,
   makeStandardCourse,
   normalizeAngle,
+  raceAutopilotPlan,
   raceAutopilotTurn,
+  raceTrim,
+  raceTurnRate,
   raceWaypoint,
   rad2deg,
   resolveCollisions,

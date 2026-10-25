@@ -1,11 +1,13 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+import { useRouter } from 'next/navigation';
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useI18n } from '@/lib/i18n';
-import { useSternikPrefs, RadioVariantToggle } from '../../sternik/prefs';
+import { useSternikPrefs, RadioVariantToggle } from "@/app/radio/prefs";
 import RadioFront from '../symulator/RadioFront';
 import { InspectPanel } from '../symulator/InspectPanel';
-import { InspectToggle, PanelSection, RadioWorkspace, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
+import { InspectToggle, PanelSection, RadioWorkspace, DockPanel, SoundToggle, useRadioWorkspace } from '../symulator/RadioWorkspace';
 import { radioRuntimeSearch } from '../runtimeSearch';
 import VoicePtt, { type VoiceResult } from '../symulator/VoicePtt';
 import { useRadioAudio } from '../symulator/audio/useRadioAudio';
@@ -72,12 +74,13 @@ function channelNumber(state: RadioState): string {
 }
 
 export default function InteractiveRadioCourse() {
-  const { tp, lang } = useI18n();
+  const router = useRouter();
+  const { rt: radioText } = useRadioI18n();
+  const { tp, lang } = useRadioI18n();
   const { explLang, radioRealistic } = useSternikPrefs();
   // The realistic look is amber; the trainer models are green.
   const skin = radioRealistic ? 'amber' : 'green';
-  // Same language policy as the rest of the section: PL for everyone, RU only as
-  // an opt-in aid on the RU site version.
+  // Explanation strings are adapted to the selected radio course language.
   const showRu = lang === 'ru' && explLang !== 'pl';
   const showPl = explLang !== 'ru' || lang !== 'ru';
   const [inspect, setInspect] = useState(false);
@@ -446,16 +449,16 @@ export default function InteractiveRadioCourse() {
           one the simulator uses. */}
       <div className="rounded-2xl p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
         <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-          {tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania')}
+          {radioText(tp('Интерактивный курс на настоящих органах управления', 'Interactive course on real controls', 'Interaktywny kurs na prawdziwych elementach sterowania'))}
         </h2>
         <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          {tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynności na radiu. Następna lekcja odblokuje się dopiero po prawidłowym naciśnięciu lub obrocie.')}
+          {radioText(tp('Выполняй действие на рации. Следующий урок откроется только после правильного нажатия или поворота.', 'Perform the action on the radio. The next lesson unlocks only after the correct press or rotation.', 'Wykonaj czynności na radiu. Następna lekcja odblokuje się dopiero po prawidłowym naciśnięciu lub obrocie.'))}
         </p>
         <div className="mt-3 flex items-center gap-3 text-xs" style={{ color: 'var(--text-muted)' }}>
           <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--bg-secondary)' }}>
             <div className="h-full transition-[width]" style={{ width: `${(savedProgress[model] / lessons.length) * 100}%`, background: 'var(--accent-cyan)' }} />
           </div>
-          <span>{savedProgress[model]}/{lessons.length}</span>
+          <span>{radioText(savedProgress[model])}/{radioText(lessons.length)}</span>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3">
           <button
@@ -465,9 +468,9 @@ export default function InteractiveRadioCourse() {
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold"
             style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
           >
-            {savedProgress[model] > 0
+            {radioText(savedProgress[model] > 0
               ? `${tp('Продолжить: урок', 'Continue: lesson', 'Kontynuuj: lekcja')} ${lessonIndex + 1}`
-              : tp('Начать уроки', 'Start the lessons', 'Zacznij lekcje')}
+              : tp('Начать уроки', 'Start the lessons', 'Zacznij lekcje'))}
           </button>
           <RadioVariantToggle model={model} onModel={chooseModel} />
         </div>
@@ -477,16 +480,16 @@ export default function InteractiveRadioCourse() {
         <RadioWorkspace
           testId="course-workspace"
           stacked={stacked}
-          onExit={() => setOpen(false)}
+          onExit={() => new URLSearchParams(radioRuntimeSearch()).get('kurs') === '1' ? router.back() : setOpen(false)}
           exitTestId="course-exit"
           exitTitle={tp('Вернуться к инструкции', 'Back to the guide', 'Wróć do poradnika')}
           status={(
             <>
               <span className="text-xs font-semibold uppercase" style={{ color: 'var(--accent-cyan)' }}>
-                {tp('Урок', 'Lesson', 'Lekcja')} {lessonIndex + 1}/{lessons.length}
+                {radioText(tp('Урок', 'Lesson', 'Lekcja'))} {radioText(lessonIndex + 1)}/{radioText(lessons.length)}
               </span>
               <span aria-live="polite" className="text-xs font-semibold" style={{ color: lessonDone ? 'var(--success)' : 'var(--text-muted)' }}>
-                {lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na działanie')}
+                {radioText(lessonDone ? tp('Выполнено', 'Complete', 'Wykonano') : tp('Жду действие', 'Waiting for action', 'Czekam na działanie'))}
               </span>
             </>
           )}
@@ -526,21 +529,34 @@ export default function InteractiveRadioCourse() {
               compact={compact}
             />
           )}
+          requestedPanel={inspect ? "help" : "task"}
+          requestVersion={lessonIndex}
           dockRef={dockRef}
           dock={(
             <>
-              {inspect && <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} className="" />}
+              <DockPanel id="help" label={tp("Справка","Help","Pomoc")}>
+                <InspectPanel inspectKey={inspectKey} showPl={showPl} showRu={showRu} onSelect={(key)=>{setInspect(true);setInspectKey(key);}} className="" />
+                {text && (
+                  <div className="mt-4 space-y-3">
+                    <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
+                    <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
+                    <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy używasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
+                    <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
+                  </div>
+                )}
+              </DockPanel>
+              <DockPanel id="task" label={tp("Задание","Task","Zadanie")}>
 
               <div data-testid="course-lesson" className="rounded-2xl p-4 sm:p-5" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
-                <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{currentLesson.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{currentLesson.instruction}</p>
+                <h3 className="text-lg font-bold" style={{ color: 'var(--text-primary)' }}>{radioText(currentLesson.title)}</h3>
+                <p className="mt-2 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(currentLesson.instruction)}</p>
                 <div className="mt-4 border-l-2 pl-3 text-sm leading-relaxed" style={{ borderColor: 'var(--accent-cyan)', color: 'var(--text-muted)' }}>
-                  {currentLesson.why}
+                  {radioText(currentLesson.why)}
                 </div>
 
                 {complete ? (
                   <div className="mt-4 rounded-md px-4 py-3 text-sm font-semibold" style={{ background: 'rgba(68,255,136,0.08)', color: 'var(--success)', border: '1px solid rgba(68,255,136,0.25)' }}>
-                    {tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obsługi ukończony. Przejdź teraz do scenariuszy egzaminacyjnych.')}
+                    {radioText(tp('Курс управления пройден. Теперь переходи к экзаменационным сценариям.', 'Control course complete. Continue with the exam scenarios.', 'Kurs obsługi ukończony. Przejdź teraz do scenariuszy egzaminacyjnych.'))}
                   </div>
                 ) : (
                   // right under the task, so the next lesson is one tap away
@@ -553,7 +569,7 @@ export default function InteractiveRadioCourse() {
                     className="mt-4 min-h-[44px] rounded-lg px-4 text-sm font-semibold disabled:opacity-35"
                     style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                   >
-                    {tp('Следующий урок', 'Next lesson', 'Następna lekcja')} {'>'}
+                    {radioText(tp('Следующий урок', 'Next lesson', 'Następna lekcja'))} {radioText('>')}
                   </button>
                 )}
 
@@ -561,14 +577,6 @@ export default function InteractiveRadioCourse() {
                     A learner who does not know what transmit power IS cannot pass an
                     oral exam on it, so every lesson now answers what / why / when, and
                     names what the examiner watches for. */}
-                {text && (
-                  <div className="mt-4 space-y-3">
-                    <LessonBlock label={tp('Что это', 'What it is', 'Co to jest')} pl={showPl ? text.whatPl : null} ru={showRu ? text.whatRu : null} />
-                    <LessonBlock label={tp('Зачем это нужно', 'Why it exists', 'Po co to jest')} pl={showPl ? text.whyPl : null} ru={showRu ? text.whyRu : null} />
-                    <LessonBlock label={tp('Когда используешь', 'When you use it', 'Kiedy używasz')} pl={showPl ? text.whenPl : null} ru={showRu ? text.whenRu : null} />
-                    <LessonBlock label={tp('На экзамене', 'At the exam', 'Na egzaminie')} pl={showPl ? text.examPl : null} ru={showRu ? text.examRu : null} exam />
-                  </div>
-                )}
                 {/* Say it out loud. The PTT lesson is where the learner first keys the
                     mic, so it is where they first find out that a transmission is
                     graded on the WORDS, not on the button - and the Dziennik shows them
@@ -576,16 +584,17 @@ export default function InteractiveRadioCourse() {
                 {currentLesson.id === 'ptt' && (
                   <div className="mt-4 rounded-xl p-3" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-subtle)' }}>
                     <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                      🎙 {tp('Скажи в эфир', 'Say it on air', 'Powiedz do eteru')}
+                      🎙 {radioText(tp('Скажи в эфир', 'Say it on air', 'Powiedz do eteru'))}
                     </div>
                     <p className="mb-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                      {tp(
+                      {radioText(tp(
                         'Проверка связи с мариной - самая безопасная первая передача. Наговори её, и марина ответит голосом. Всё, что ты сказал, попадёт в дневник.',
                         'A radio check with the marina is the safest first transmission. Speak it and the marina answers out loud. Everything you said goes into the journal.',
                         'Sprawdzenie łączności z mariną to najbezpieczniejsze pierwsze nadanie. Powiedz je, a marina odpowie głosem. Wszystko, co powiedziałeś, trafi do dziennika.',
-                      )}
+                      ))}
                     </p>
                     <VoicePtt
+                      key={`${model}-${lessonIndex}`}
                       kind="radio-check"
                       lines={CHECK_LINES(VARIANT)}
                       vesselIdx={DEFAULT_VARIANT.vesselIdx}
@@ -599,6 +608,8 @@ export default function InteractiveRadioCourse() {
                 )}
               </div>
 
+              </DockPanel>
+              <DockPanel id="listen" label={tp("Эфир","Listen","Eter")}>
               {/* The squelch lesson only means something if there is a call to miss.
                   This puts a weak, distant station on the air for 8 seconds: set the
                   squelch correctly and you hear it, set it too high and you do not -
@@ -619,18 +630,18 @@ export default function InteractiveRadioCourse() {
                     className="min-h-[44px] rounded-lg px-3 text-sm font-semibold"
                     style={{ background: 'var(--accent-cyan)', color: 'var(--accent-ink, #04222e)' }}
                   >
-                    📡 {tp('Слабый вызов издалека', 'Weak distant call', 'Słabe wywołanie z daleka')}
+                    📡 {radioText(tp('Слабый вызов издалека', 'Weak distant call', 'Słabe wywołanie z daleka'))}
                   </button>
                   <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                    {tp(
+                    {radioText(tp(
                       'Далёкая лодка на 1 Вт. Если SQL выставлен верно - услышишь её сквозь шум. Если задрал SQL ради тишины - не услышишь ничего, и на воде это будет чей-то вызов о помощи.',
                       'A distant boat on 1 W. With the squelch set correctly you hear it through the hiss. Turn the squelch up for silence and you hear nothing at all - and at sea that would be somebody calling for help.',
                       'Odległa łódź na 1 W. Przy dobrze ustawionym SQL usłyszysz ją przez szum. Podkręć SQL dla ciszy i nie usłyszysz nic - a na wodzie byłoby to czyjeś wołanie o pomoc.',
-                    )}
+                    ))}
                   </p>
                   {testCallAt !== null && (
                     <p className="mt-1 text-xs font-semibold" style={{ color: 'var(--hl-amber, #ffce4d)' }}>
-                      {tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Słuchaj.')}
+                      {radioText(tp('Станция в эфире 8 секунд. Слушай.', 'The station is on the air for 8 seconds. Listen.', 'Stacja jest w eterze przez 8 sekund. Słuchaj.'))}
                     </p>
                   )}
                 </div>
@@ -641,11 +652,11 @@ export default function InteractiveRadioCourse() {
                   a text-only trainer never touches it. */}
               <PanelSection
                 defaultOpen={false}
-                title={(
+                title={radioText((
                   <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                     {tp('Послушай станцию', 'Listen to a station', 'Posłuchaj stacji')}
                   </span>
-                )}
+                ))}
               >
                 <div className="flex flex-wrap gap-2">
                   {LISTEN_LINES.map((l) => (
@@ -658,31 +669,33 @@ export default function InteractiveRadioCourse() {
                       className="min-h-[44px] rounded-lg px-3 text-xs font-semibold disabled:opacity-40"
                       style={{ background: 'var(--bg-secondary)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
                     >
-                      📻 {l.station}
+                      📻 {radioText(l.station)}
                     </button>
                   ))}
                 </div>
                 <p className="mt-2 text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
-                  {tp(
+                  {radioText(tp(
                     'Голос приходит как обычный сигнал: через твой шумоподавитель и твою громкость. Станция рядом - сильная, она пробьёт даже тугой SQL. А вот далёкая лодка на 1 Вт при том же SQL уже не пробьётся: именно в этом и опасность.',
                     'The voice arrives like any other signal: through your squelch and your volume. A station nearby is strong - it breaks even a tight squelch. A distant boat on 1 W, at that same squelch, does not. That is where the danger is.',
                     'Głos przychodzi jak każdy inny sygnał: przez twoją blokadę szumów i twoją głośność. Stacja obok jest mocna - przebije nawet ciasny SQL. Odległa łódź na 1 W przy tym samym SQL już nie: i właśnie w tym tkwi niebezpieczeństwo.',
-                  )}
+                  ))}
                 </p>
               </PanelSection>
 
+              </DockPanel>
+              <DockPanel id="log" label={tp("Журнал","Log","Dziennik")}>
               {/* The Dziennik - the same one the simulator has. It records what the
                   radio did AND what you said, word for word, plus what was missing. */}
               <PanelSection
-                title={(
+                title={radioText((
                   <span className="text-sm font-semibold" style={{ color: 'var(--text-primary)' }}>
                     📋 {tp('Дневник', 'Journal', 'Dziennik')} {journal.length > 0 && <span className="font-normal" style={{ color: 'var(--text-muted)' }}>({journal.length})</span>}
                   </span>
-                )}
+                ))}
               >
                 {journal.length === 0 ? (
                   <p className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                    {tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia')}
+                    {radioText(tp('пусто - начни с включения рации', 'empty - start by switching the radio on', 'pusto - zacznij od włączenia radia'))}
                   </p>
                 ) : (
                   <ol data-testid="course-journal" className={`space-y-1 ${stacked ? '' : 'max-h-56 overflow-y-auto'}`}>
@@ -695,9 +708,9 @@ export default function InteractiveRadioCourse() {
                       return (
                         <li key={i} className="flex gap-2 text-xs leading-relaxed" style={{ color }}>
                           <span className="shrink-0 font-mono" style={{ color: 'var(--text-muted)' }}>
-                            {new Date(r.t).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            {radioText(new Date(r.t).toLocaleTimeString(lang, { hour: '2-digit', minute: '2-digit', second: '2-digit' }))}
                           </span>
-                          <span>{r.text}</span>
+                          <span>{radioText(r.text)}</span>
                         </li>
                       );
                     })}
@@ -705,20 +718,23 @@ export default function InteractiveRadioCourse() {
                 )}
               </PanelSection>
 
+              </DockPanel>
+              <DockPanel id="device" label={tp("Рация","Radio","Radio")}>
               {/* rarely used: which set, and starting the course over */}
               <PanelSection
                 defaultOpen={false}
-                title={(
+                title={radioText((
                   <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'var(--text-muted)' }}>
                     {tp('Рация и прогресс', 'Radio and progress', 'Radio i postęp')} · {savedProgress[model]}/{lessons.length}
                   </span>
-                )}
+                ))}
               >
                 <RadioVariantToggle model={model} onModel={chooseModel} />
                 <button type="button" onClick={resetCourse} className="mt-2 block min-h-[44px] px-1 text-xs underline" style={{ color: 'var(--text-muted)' }}>
-                  {tp('Начать курс заново', 'Start the course over', 'Zacznij kurs od nowa')}
+                  {radioText(tp('Начать курс заново', 'Start the course over', 'Zacznij kurs od nowa'))}
                 </button>
               </PanelSection>
+              </DockPanel>
             </>
           )}
         />
@@ -733,6 +749,7 @@ export default function InteractiveRadioCourse() {
  * blocks the channel for everyone to the radio horizon" is a lesson.
  */
 function LessonBlock({ label, pl, ru, exam }: { label: string; pl: string | null; ru: string | null; exam?: boolean }) {
+  const { rt: radioText } = useRadioI18n();
   if (!pl && !ru) return null;
   return (
     <div
@@ -745,10 +762,10 @@ function LessonBlock({ label, pl, ru, exam }: { label: string; pl: string | null
         className="mb-1 text-[11px] font-bold uppercase tracking-wide"
         style={{ color: exam ? 'var(--hl-amber, #ffce4d)' : 'var(--accent-cyan)' }}
       >
-        {label}
+        {radioText(label)}
       </div>
-      {pl && <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{pl}</p>}
-      {ru && <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{ru}</p>}
+      {pl && <p className="text-sm leading-relaxed" style={{ color: 'var(--text-primary)' }}>{radioText(pl)}</p>}
+      {ru && <p className="mt-1 text-sm leading-relaxed" style={{ color: 'var(--text-secondary)' }}>{radioText(ru)}</p>}
     </div>
   );
 }

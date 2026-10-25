@@ -96,8 +96,11 @@ test.describe('Smoke: critical user flows', () => {
   test("home starts a lesson with working course navigation", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("link", { name: "Начать первый урок", exact: true }).click();
-    await expect(page).toHaveURL(/\/courses#wind$/);
-    await expect(page.getByRole("region", { name: "Навигация по курсу" })).toBeVisible();
+    await expect(page).toHaveURL(/\/start\?lesson=wind-direction$/);
+    await expect(page.getByRole("heading", { name: "Ветер и направление", exact: true })).toBeVisible();
+    await page.getByRole("button", { name: "2. Проверить себя", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Проверить ответы", exact: true })).toBeDisabled();
+    await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
   });
 
   test("legacy library leads to Menu and search reaches the radio course", async ({ page }) => {
@@ -126,29 +129,69 @@ test.describe('Smoke: critical user flows', () => {
     await expect(page.getByRole('heading', { name: 'Брифинг' })).toBeVisible({ timeout: 5_000 });
   });
 
-  // Contract: 3D is a view of the same race, chosen in the menu or mid-race,
-  // and switching back to the map keeps racing (the canvas loop never stops).
-  test('/game races in 3D and switches back to the map', async ({ page }) => {
-    await page.goto('/game');
-    await expect(page.getByRole('heading', { name: 'Гонка' })).toBeVisible({ timeout: 15_000 });
-    const picker = page.getByTestId('race-view-picker');
-    await picker.getByRole('radio', { name: 'С лодки 3D' }).click();
-    await expect(picker.getByRole('radio', { name: 'С лодки 3D' })).toHaveAttribute('aria-checked', 'true');
-    // Start on the map: software WebGL on a CI runner would slow the countdown.
-    await picker.getByRole('radio', { name: 'Карта 2D' }).click();
-    await page.getByRole('button', { name: /Начать первую гонку/i }).click();
-    await page.getByRole('button', { name: /Готов - старт/ }).click();
-    const view = page.getByRole('radiogroup', { name: 'Вид гонки' });
-    await expect(view).toBeVisible({ timeout: 15_000 });
-    await view.getByRole('radio', { name: '3D' }).click();
-    await expect(page.getByTestId('race-3d')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole('button', { name: 'Камера сверху' })).toBeVisible();
-    const time = page.getByText(/^\d+:\d\d\.\d$/);
-    const before = await time.textContent();
-    await view.getByRole('radio', { name: '2D' }).click();
-    await expect(page.getByTestId('race-3d')).toHaveCount(0);
-    await expect(time).not.toHaveText(before ?? '', { timeout: 10_000 });
-    await expect(view.getByRole('radio', { name: '2D' })).toHaveAttribute('aria-checked', 'true');
+  test("/game uses one 3D cockpit with real Pro controls and reserved settings", async ({ page }) => {
+    test.setTimeout(60_000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto("/game?embed=1");
+    await expect(page.getByRole("heading", { name: "Гонка", exact: true })).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("radio", { name: "Pro", exact: true }).click();
+    await expect(page.getByRole("radio", { name: /2D/ })).toHaveCount(0);
+    await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+    await page.getByRole("button", { name: /Готов - старт/ }).click();
+    await expect(page.getByTestId("race-3d")).toBeVisible({ timeout: 25_000 });
+    await expect(page.locator('[data-scene="next"] canvas')).toBeVisible({ timeout: 25_000 });
+    const helm = page.getByRole("slider", { name: "Руль", exact: true });
+    const main = page.getByRole("slider", { name: "Гика-шкот", exact: true });
+    const jib = page.getByRole("slider", { name: "Стаксель-шкот", exact: true });
+    await expect(helm).toBeVisible(); await expect(main).toBeVisible(); await expect(jib).toBeVisible();
+    const original = await main.getAttribute("aria-valuenow");
+    await main.press("ArrowDown");
+    await expect(main).not.toHaveAttribute("aria-valuenow", original ?? "");
+    await helm.press("ArrowRight");
+    await expect(helm).not.toHaveAttribute("aria-valuenow", "0");
+    await helm.press("ArrowLeft");
+    // Let the countdown finish; the clock must advance before and after a pause.
+    const clock = page.getByText(/^\d+:\d\d\.\d$/);
+    await expect(clock).not.toHaveText("0:00.0", { timeout: 15_000 });
+    await page.getByRole("button", { name: "Пауза", exact: true }).click();
+    const paused = await clock.textContent();
+    const scene = (await page.getByTestId("race-3d").boundingBox())!;
+    await page.getByRole("button", { name: "Настройки", exact: true }).click();
+    const dock = (await page.locator("aside").boundingBox())!;
+    expect(dock.y >= scene.y + scene.height - 1 || dock.x >= scene.x + scene.width - 1).toBe(true);
+    await page.getByRole("switch", { name: "Подсказки трима Pro", exact: true }).uncheck();
+    await page.getByRole("switch", { name: "Путь и подсказки", exact: true }).uncheck();
+    await page.getByRole("radio", { name: "За кормой", exact: true }).click();
+    await expect(clock).toHaveText(paused ?? "");
+    await expect(page.getByTestId("race-3d")).toHaveCount(1);
+    // Another tab may change preferences for the next race, never this race's classification.
+    const other = await page.context().newPage();
+    await other.goto("/game?embed=1");
+    await other.getByRole("radio", { name: "Обычный", exact: true }).click();
+    await other.close();
+    await expect(page.getByTestId("race-cockpit").locator("header")).toContainText("PRO");
+    // Keyboard sheets work in slider mode and after opening another utility tab.
+    await page.getByRole("radio", { name: "Ползунки", exact: true }).click();
+    await page.getByRole("radio", { name: "Курс", exact: true }).click();
+    await page.getByRole("button", { name: "Руль", exact: true }).click();
+    await expect(page.getByRole("slider", { name: "Курс", exact: true })).toBeVisible();
+    const mainSlider = page.getByRole("slider", { name: /Гика-шкот/ });
+    const beforeKey = await mainSlider.inputValue();
+    await page.keyboard.press("q");
+    await expect(mainSlider).not.toHaveValue(beforeKey);
+    await page.getByRole("button", { name: "Настройки", exact: true }).click();
+    await page.getByRole("radio", { name: "Штурвалы", exact: true }).click();
+    await page.getByRole("radio", { name: "Перо руля", exact: true }).click();
+    await page.getByRole("button", { name: "Продолжить", exact: true }).click();
+    await expect(clock).not.toHaveText(paused ?? "", { timeout: 10_000 });
+    // A mode cannot change after starting and recategorize an auto-trim record.
+    await expect(page.getByRole("radio", { name: "Обычный", exact: true })).toHaveCount(0);
+    await page.getByRole("button", { name: "Меню", exact: true }).click();
+    await page.getByRole("radio", { name: "Обычный", exact: true }).click();
+    await page.getByRole("button", { name: /Начать первую гонку/i }).click();
+    await page.getByRole("button", { name: /Готов - старт/ }).click();
+    await expect(helm).toBeVisible();
+    await expect(page.getByRole("slider", { name: "Гика-шкот", exact: true })).toHaveCount(0);
   });
 
   test('/leaderboard API + page load', async ({ page, request }) => {
@@ -265,14 +308,14 @@ test.describe('Smoke: critical user flows', () => {
   });
 
   test('embed mode hides global chrome but keeps the course subnav (mobile course contract)', async ({ page }) => {
-    // The iOS app ships the Polish licence courses as WebView embeds of
+    // The iOS app ships SRC in seven languages and sternik in Polish as embeds of
     // /radio and /sternik at ?embed=1 (mobile/src/course/SectionWebView.tsx).
     // The embed strips the global site chrome (sticky nav, footer nav, feedback
     // widget) and pins the dark theme, while keeping the in-section subnav so
     // the learner can move around the course. A web change that breaks this
     // silently breaks an App Store feature - so guard it in CI.
     for (const { path, subnav } of [
-      { path: '/radio', subnav: 'Radio' },
+      { path: '/radio', subnav: 'Рация' },
       { path: '/sternik', subnav: 'Sternik' },
     ]) {
       // Sanity / positive control: without embed the global sticky nav renders.
@@ -295,6 +338,7 @@ test("3D embed keeps slider keys local and essential controls inside the viewpor
   // run 35257508736). Keep every interaction/assertion and budget the whole flow.
   test.setTimeout(60_000);
   await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => localStorage.setItem("regatta.controls.v1", JSON.stringify({ version: 1, mode: "sliders" })));
   await page.goto("/simulator2?embed=1&lang=en");
   const main = page.getByRole("slider", { name: "Mainsheet", exact: true });
   await expect(main).toBeVisible({ timeout: 20_000 });

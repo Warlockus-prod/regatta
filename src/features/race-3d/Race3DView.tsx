@@ -400,10 +400,15 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
 }) {
   const group = useRef<THREE.Group>(null);
   const pointer = useRef<THREE.Group>(null);
-  // The marks are the standard course every race sails (solo, multiplayer,
-  // replay); the live course ref only drives the next-target marker.
-  const course = STANDARD_COURSE;
+  // A saved course can arrive after mount without changing the ref object.
+  // Refresh geometry only when its snapshot changes, not on every race frame.
+  const [course, setCourse] = useState<Race3DCourse | null>(null);
+  const geometryCourse = useRef<Race3DCourse | null>(null);
   useFrame(() => {
+    if (geometryCourse.current !== courseRef.current) {
+      geometryCourse.current = courseRef.current;
+      setCourse(courseRef.current);
+    }
     if (group.current) group.current.position.set(-originRef.current.x, 0, -originRef.current.z);
     const player = playerOf(boatsRef.current);
     const target = player ? nextTarget(player, courseRef.current) : null;
@@ -415,21 +420,21 @@ export function World({ venue, courseRef, boatsRef, originRef, targetLabel, land
       }
     }
   });
-  const start = { a: toWorld(course.startLine.a), b: toWorld(course.startLine.b) };
-  const finishSame = course.finishLine.a.x === course.startLine.a.x && course.finishLine.a.y === course.startLine.a.y
+  const start = course ? { a: toWorld(course.startLine.a), b: toWorld(course.startLine.b) } : null;
+  const finishSame = course && course.finishLine.a.x === course.startLine.a.x && course.finishLine.a.y === course.startLine.a.y
     && course.finishLine.b.x === course.startLine.b.x && course.finishLine.b.y === course.startLine.b.y;
   return (
     <group ref={group}>
       {land && <Land venue={venue} />}
-      {course.marks.map((m, i) => {
+      {course?.marks.map((m, i) => {
         const w = toWorld(m.pos);
         // The starboard end of the start line is the committee boat, the other end a pin.
         const committee = m.type === "start" && m.pos.x === Math.max(course.startLine.a.x, course.startLine.b.x);
         return committee ? <CommitteeBoat key={i} x={w.x} z={w.z} />
           : <Buoy key={i} x={w.x} z={w.z} color={m.type === "windward" ? MARK_COLOR : PIN_COLOR} flag />;
       })}
-      <LineDashes a={start.a} b={start.b} />
-      {!finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
+      {start && <LineDashes a={start.a} b={start.b} />}
+      {course && !finishSame && <LineDashes a={toWorld(course.finishLine.a)} b={toWorld(course.finishLine.b)} />}
       {/* Where to sail next: the same target the race counts, and how far. */}
       <group ref={pointer}>
         <mesh rotation-x={Math.PI}>

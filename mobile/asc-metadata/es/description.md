@@ -15,7 +15,7 @@ Día 3. Cómo funciona una vela: un ala en ceñida, un paracaídas en popa.
 Día 4. Virar por avante y trasluchar: por la proa y por la popa.
 Día 5. Dar bordos y VMG: cómo avanzar contra el viento y por qué la línea recta no es la más rápida.
 Día 6. Reglas sencillas: quién se aparta en el agua.
-Día 7. Minirregata: todo junto y, al terminar, el entrenador con IA analiza tu regata.
+Día 7. Minirregata: todo junto y, al terminar, un entrenador local analiza tu regata.
 
 El botón "Seguir aprendiendo" de la pantalla principal siempre abre el siguiente paso.
 
@@ -27,7 +27,7 @@ SIMULADORES
 
 REGATA
 
-Compite en un recorrido corto contra bots de tres niveles o abre una regata multijugador con tus amigos. Al cruzar la llegada, un entrenador con IA analiza tu regata y te dice qué mejorar.
+Compite en 3D contra bots sin conexión. En Sencillo las velas se ajustan solas; en Pro llevas las escotas manualmente. Un entrenador local analiza el resultado. El multijugador con amigos requiere conexión.
 
 EL BARCO Y LAS REGLAS
 
@@ -37,10 +37,10 @@ EL BARCO Y LAS REGLAS
 - Primera semana a bordo: qué llevar, qué preguntar al patrón, cómo ayudar a la tripulación.
 - Lista antes de la regata: márcala la noche anterior.
 
-TITULACIONES POLACAS (EN POLACO)
+TITULACIONES POLACAS
 
-- Radio marina SRC: 324 preguntas oficiales de examen de la UKE y un simulador de voz para llamadas MAYDAY y PAN-PAN.
-- Sternik motorowodny (patrón de embarcación a motor en Polonia): 879 preguntas de examen, teoría y un examen de prueba completo de 75 preguntas en 90 minutos.
+- Radio marina SRC: 324 preguntas UKE con traducciones de estudio, teoría y práctica en siete idiomas. Las frases de radio estándar siguen en inglés. Desde la versión 1.7.0, compilación 59, la voz usa un modelo local de inglés disponible; sin modelo puedes comprobar el contenido escrito sin conexión.
+- Sternik motorowodny (en polaco): 879 preguntas de examen, teoría y un examen de prueba completo de 75 preguntas en 90 minutos. Funciona sin conexión; la práctica oral comprueba localmente las respuestas escritas en polaco.
 
 PRIVACIDAD
 

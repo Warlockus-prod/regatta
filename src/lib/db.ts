@@ -1,3 +1,4 @@
+import { dailySettings } from "./daily-challenge";
 /**
  * SQLite-backed storage for analytics events and feedback.
  * File: /tmp/regatta-stats.db (persisted on VPS via Docker volume later)
@@ -1093,13 +1094,7 @@ export function getOrCreateDaily(day: string): DailyChallenge {
   const d = db();
   let row = d.prepare('SELECT * FROM daily_challenges WHERE day = ?').get(day) as DailyChallenge | undefined;
   if (row) return row;
-  // Deterministic pseudo-random from the date string
-  const hash = Array.from(day).reduce((acc, c) => (acc * 131 + c.charCodeAt(0)) >>> 0, 7);
-  const difficulties = ['easy', 'medium', 'medium', 'medium', 'hard'];
-  const winds = ['light', 'medium', 'medium', 'heavy'];
-  const seed = (hash % 1000);
-  const difficulty = difficulties[hash % difficulties.length];
-  const wind = winds[(hash >>> 3) % winds.length];
+  const { seed, difficulty, windStrength: wind } = dailySettings(day);
   d.prepare(`
     INSERT INTO daily_challenges (day, seed, difficulty, wind_strength, mission_id, created_at)
     VALUES (?, ?, ?, ?, NULL, ?)

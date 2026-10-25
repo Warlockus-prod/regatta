@@ -1,4 +1,8 @@
 import { test, expect, type BrowserContext, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { POSITIONS } from '../src/app/radio/pozycja/drillData';
+import { DIALOGUES } from '../src/app/radio/rozmowa/dialogues';
 
 // ============================================================================
 // Offline course (public/sw.js). The service worker used to precache the 14
@@ -98,4 +102,101 @@ test.describe('Offline course', () => {
 
     await context.setOffline(false);
   });
+});
+
+test('the native radio bundle grades position and conversation text with no network or speech model', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    const app = window as Window & { __REGATTA_APP_LANG__?: string; __REGATTA_NATIVE_ASR__?: boolean; __REGATTA_NATIVE_SPEECH__?: boolean; ReactNativeWebView?: { postMessage: (value: string) => void } };
+    app.__REGATTA_APP_LANG__ = 'en'; app.__REGATTA_NATIVE_ASR__ = true; app.__REGATTA_NATIVE_SPEECH__ = true;
+    app.ReactNativeWebView = { postMessage(value) {
+      const message = JSON.parse(value) as { type: string; id: string; action?: string };
+      if (message.type === 'radio-asr' && message.action === 'availability') window.dispatchEvent(new CustomEvent('regatta:radio-asr', { detail: { id: message.id, status: 'availability', available: false } }));
+      if (message.type === 'radio-speech' && !message.action) window.dispatchEvent(new CustomEvent('regatta:radio-speech', { detail: { id: message.id, status: 'done' } }));
+    } };
+    localStorage.setItem('sternik.radio.onboard.v1', '1');
+  });
+  await page.route('**/__radio-native-bundle', route => route.fulfill({ contentType: 'text/html', body: readFileSync(resolve('mobile/assets/radio-offline.html'), 'utf8') }));
+  const network: string[] = [];
+  page.on('request', request => { if (/\/(?:api|radio-locales|radio-audio)\//.test(request.url())) network.push(request.url()); });
+  await page.goto('/__radio-native-bundle');
+  await expect(page.getByTestId('free-practice-guide')).toBeVisible();
+  await expect(page.getByTestId('lcd')).toBeVisible();
+  await page.getByTestId('free-guided-lessons').click();
+  await expect(page.getByTestId('course-exit')).toBeVisible();
+  await page.getByTestId('course-exit').click();
+  await expect(page.getByTestId('free-practice-guide')).toBeVisible();
+  await page.getByTestId('free-course').click();
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Theory', exact: true }).click();
+  const chapter = page.locator('#theory-chapter');
+  await chapter.selectOption('dsc');
+  await page.getByRole('button', { name: 'Exam review', exact: true }).click();
+  await page.locator('a[href="/radio/test?chapter=dsc"]').click();
+  await page.getByTestId('start-training').click();
+  await page.locator('button:has(> span.font-bold)').first().click();
+  await page.locator('a[href="/radio/teoria#dsc"]').click();
+  await expect(chapter).toHaveValue('dsc');
+  await chapter.selectOption({ index: 1 });
+  const selectedChapter = await chapter.inputValue();
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Practice', exact: true }).click();
+  // The native header sends this bounded local Back event.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('regatta:radio-back')));
+  await expect(chapter).toHaveValue(selectedChapter);
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Practice', exact: true }).click();
+  await page.getByTestId('free-scenarios').click();
+  await page.locator('a[href="/radio/pozycja"]').first().click();
+  await expect(page.getByTestId('local-voice-ptt')).toBeDisabled();
+  await page.getByTestId('local-transcript-input').fill(POSITIONS[0].say);
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByText('100%', { exact: true })).toBeVisible();
+  await expect(page.getByText('Checked text', { exact: true })).toBeVisible();
+
+  await page.getByRole('navigation').getByRole('link', { name: 'Practice', exact: true }).click();
+  await page.getByTestId('free-scenarios').click();
+  await page.locator('a[href="/radio/rozmowa"]').click();
+  await page.getByTestId('dialogue-radio-check').click();
+  await page.getByTestId('dial-center').dispatchEvent('pointerdown', { pointerId: 1 });
+  await page.waitForTimeout(1150);
+  await page.getByTestId('dial-center').dispatchEvent('pointerup', { pointerId: 1 });
+  for (let i = 0; i < 4; i++) await page.getByTestId('key-down').click();
+  const dialogue = DIALOGUES.find(dialogue => dialogue.id === 'radio-check')!;
+  await page.getByTestId('local-transcript-input').fill(dialogue.turns[0].youSay);
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByTestId('next-turn')).toBeVisible();
+  await expect(page.getByTestId('turn-heard')).toContainText(dialogue.turns[0].youSay);
+  expect(network).toEqual([]);
+});
+
+test('web position and conversation accept typed practice without starting a microphone', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator.mediaDevices, 'getUserMedia', { value: () => { throw new Error('Typed practice must not request the microphone'); } });
+  });
+  const voiceRequests: string[] = [];
+  page.on('request', request => { if (/\/api\/radio-(?:voice|transcribe)/.test(request.url())) voiceRequests.push(request.url()); });
+  await page.goto('/radio/pozycja?lang=en');
+  await expect(page.getByTestId('local-voice-ptt')).toHaveCount(0);
+  await page.getByTestId('local-transcript-input').fill(POSITIONS[0].say);
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByTestId('pos-score')).toHaveText('100%');
+  await expect(page.getByText('Checked text', { exact: true })).toBeVisible();
+  await page.goto('/radio/rozmowa?lang=en');
+  await page.getByTestId('dialogue-radio-check').click();
+  const dialogue = DIALOGUES.find(dialogue => dialogue.id === 'radio-check')!;
+  await page.getByTestId('local-transcript-input').fill(dialogue.turns[0].youSay);
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByTestId('dialogue-setup-warning')).toContainText('Switch the radio on');
+  await expect(page.getByTestId('next-turn')).toHaveCount(0);
+  await page.getByTestId('dial-center').dispatchEvent('pointerdown', { pointerId: 1 });
+  await page.waitForTimeout(1150);
+  await page.getByTestId('dial-center').dispatchEvent('pointerup', { pointerId: 1 });
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByTestId('dialogue-setup-warning')).toContainText('Select channel 12');
+  await expect(page.getByTestId('next-turn')).toHaveCount(0);
+  for (let i = 0; i < 4; i++) await page.getByTestId('key-down').click();
+  await expect(page.getByTestId('dialogue-setup-warning')).toHaveCount(0);
+  await page.getByTestId('local-transcript-input').fill(dialogue.turns[0].youSay);
+  await page.getByTestId('local-transcript-check').click();
+  await expect(page.getByTestId('next-turn')).toBeVisible();
+  expect(voiceRequests).toEqual([]);
 });

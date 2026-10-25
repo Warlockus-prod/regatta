@@ -22,6 +22,12 @@
 /* Portrait: readouts and dock are plain rows of the workspace column. */
 .sideColumn { display: contents; }
 
+/* A short portrait has less than 204px left above readouts and wheels. Let
+   the canvas fit its actual allocation instead of overflowing into metrics. */
+@media (orientation: portrait) and (max-height: 640px) {
+  .scene { min-height: 0; }
+}
+
 .dock {
   flex: 0 0 auto;
   height: clamp(232px, 46%, 400px);
@@ -37,6 +43,20 @@
    (no empty band under the helm). */
 .dock[data-mode="wheels"] { height: auto; max-height: 56%; }
 .dock[data-mode="wheels"] .deckArea { flex: 0 0 auto; height: 236px; }
+
+/* Auxiliary panels borrow the existing dock footprint. The controls stay in
+   the flow, so opening a panel never resizes or covers the boat. */
+.controlArea { position: relative; flex: 0 0 auto; height: clamp(232px, 46%, 400px); min-height: 0; display: flex; flex-direction: column; }
+.controlArea > .dock { height: 100%; max-height: none; flex: 1 1 auto; }
+.controlArea:has(> .dock[data-mode="wheels"]) { height: auto; max-height: 56%; }
+.controlArea > .dock[data-mode="wheels"] { height: auto; flex: 0 1 auto; }
+.controlArea[data-panel-open="true"] > .dock { visibility: hidden; pointer-events: none; }
+.reservedPanelHost { position: absolute; inset: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; background: var(--bg-secondary); border-top: 1px solid var(--border-subtle); }
+.reservedPanelHost[hidden] { display: none; }
+.panelTitleRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: 0 0 auto; }
+.panelTitleRow .barButton { padding: 0; font-size: 24px; font-weight: 400; }
+.desktopPanelReserved > :not([data-trainer-panel]) { display: none !important; }
+.desktopPanelReserved { min-height: 0; overflow-y: auto; }
 
 /* Nothing is drawn over the boat (owner, 2026-10-21): status and buttons sit
    in this bar above the scene, the readouts under it. */
@@ -75,30 +95,19 @@
 .barIconSquare { padding: 0; }
 .barButton:focus-visible, .drawerItem:focus-visible { outline: 2px solid var(--accent-cyan); outline-offset: 2px; }
 
-/* Views drawer: slides in from the right edge of the scene when asked for. */
-.drawerBackdrop { position: absolute; inset: 0; z-index: 5; border: 0; padding: 0; background: transparent; cursor: default; }
+/* Views use the same reserved area as settings and the ordinary controls. */
 .drawer {
-  position: absolute;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 6;
-  width: min(236px, 72%);
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 12px max(12px, env(safe-area-inset-right, 0px)) 12px 12px;
+  padding: 12px max(20px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
   overflow-y: auto;
   overscroll-behavior: contain;
-  background: color-mix(in srgb, var(--bg-secondary) 96%, transparent);
-  border-left: 1px solid var(--border-subtle);
-  box-shadow: -12px 0 32px rgba(0, 0, 0, 0.35);
-  transform: translateX(105%);
-  visibility: hidden;
-  transition: transform 180ms ease, visibility 0s linear 180ms;
+  background: var(--bg-secondary);
 }
-.drawer[data-open="true"] { transform: none; visibility: visible; transition: transform 180ms ease, visibility 0s; }
-@media (prefers-reduced-motion: reduce) { .drawer, .drawer[data-open="true"] { transition: none; } }
 .drawerTitle { margin: 0 0 2px; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
 .drawerGroup { display: flex; flex-direction: column; gap: 6px; }
 .drawerGroup + .drawerGroup { margin-top: 6px; padding-top: 10px; border-top: 1px solid var(--border-subtle); }
@@ -124,6 +133,9 @@
   .sideColumn { display: flex; flex-direction: column; flex: 0 0 auto; width: min(46%, 380px); min-height: 0; border-left: 1px solid var(--border-subtle); background: var(--bg-secondary); }
   .readouts { border-bottom: 1px solid var(--border-subtle); }
   .dock, .dock[data-mode="wheels"] { flex: 1 1 auto; height: auto; max-height: none; border-top: 0; }
+  .controlArea, .controlArea:has(> .dock[data-mode="wheels"]) { flex: 1 1 auto; height: auto; max-height: none; }
+  .controlArea > .dock[data-mode="wheels"] { flex: 1 1 auto; }
+  .reservedPanelHost { border-top: 0; }
   .dock[data-mode="wheels"] .deckArea { flex: 1 1 auto; height: auto; min-height: 150px; }
   .screen { min-height: 0; }
 }
@@ -147,6 +159,7 @@
 .tabs button {
   flex: 1 0 auto;
   min-height: 44px;
+  min-width: 44px;
   padding: 0 8px;
   border: 0;
   border-radius: 10px;
@@ -231,33 +244,19 @@
 .wheelSmall .wheelCaption { width: 104px; }
 .wheelSmall .wheelCaption small { display: none; }
 
-/* Settings sheet */
-.sheetBackdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 80;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.45);
-}
+/* Settings panel, inside the reserved bottom dock or desktop side column. */
 .sheet {
+  flex: 1 1 auto;
+  min-height: 0;
   width: 100%;
-  max-width: 460px;
-  max-height: 88dvh;
   overflow-y: auto;
-  border-radius: 20px 20px 0 0;
-  background: var(--bg-card);
+  overscroll-behavior: contain;
+  background: var(--bg-secondary);
   color: var(--text-primary);
   padding: 18px max(20px, env(safe-area-inset-right, 0px)) calc(20px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.35);
-}
-@media (min-width: 700px), (orientation: landscape) and (max-height: 540px) {
-  .sheetBackdrop { align-items: center; }
-  .sheet { border-radius: 16px; max-height: 92dvh; }
 }
 .sheet h2 { margin: 0; font-size: 18px; line-height: 24px; }
 .sheetGroup { display: flex; flex-direction: column; gap: 8px; }

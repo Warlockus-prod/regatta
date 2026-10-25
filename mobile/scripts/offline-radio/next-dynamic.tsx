@@ -7,6 +7,7 @@ import {
 
 export default function dynamic<P extends object>(
   loader: () => Promise<{ default: ComponentType<P> }>,
+  _options?: { ssr?: boolean },
 ): ComponentType<P> {
   const Lazy = lazy(loader) as LazyExoticComponent<ComponentType<P>>;
   return function OfflineDynamic(props: P) {

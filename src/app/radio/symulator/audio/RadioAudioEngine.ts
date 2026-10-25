@@ -85,6 +85,7 @@ export class RadioAudioEngine {
   private aquaLfo: OscillatorNode | null = null;
   /** ctx.currentTime until which a real (TTS) voice is on the air */
   private speakingUntil = 0;
+  private stationVoices = new Set<{ source: AudioBufferSourceNode; gate: GainNode; channel?: string }>();
 
   get started(): boolean { return this.ctx !== null; }
   get isBusy(): boolean { return this.busy; }
@@ -176,6 +177,9 @@ export class RadioAudioEngine {
   /** called on every radio state change; the tick does the rest */
   update(view: AudioRadioView): void {
     this.view = view;
+    if (this.ctx) for (const voice of this.stationVoices) {
+      voice.gate.gain.setValueAtTime(!voice.channel || voice.channel === view.channelNum ? 1 : 0, this.ctx.currentTime);
+    }
   }
 
   // ------------------------------------------------------------------ tick ---
@@ -414,16 +418,35 @@ export class RadioAudioEngine {
    * shut - which silently undid the squelch lesson the moment the learner opened
    * a scenario.
    */
-  speak(buffer: AudioBuffer): void {
+  speak(buffer: AudioBuffer, onChannel = this.view?.channelNum): void {
     const ctx = this.ctx;
     if (!ctx) return;
     const src = ctx.createBufferSource();
     src.buffer = buffer;
-    src.connect(this.squelchGate);
+    const gate = ctx.createGain();
+    gate.gain.value = !onChannel || onChannel === this.view?.channelNum ? 1 : 0;
+    src.connect(gate);
+    gate.connect(this.squelchGate);
+    const voice = { source: src, gate, channel: onChannel };
+    this.stationVoices.add(voice);
+    src.onended = () => { this.stationVoices.delete(voice); src.disconnect(); gate.disconnect(); };
     src.start(ctx.currentTime + 0.05);
     // while a real voice is on the air, the synthetic babble stands down - the
     // carrier is the station, not a second one on top of it
     this.speakingUntil = ctx.currentTime + buffer.duration + 0.25;
+  }
+
+  /** System voices cannot enter WebAudio. Keep the fallback downstream of the
+   * same power/PTT/squelch/mute/volume decisions as a decoded station clip. */
+  get systemVoiceGain(): number {
+    const view = this.view;
+    return !view || !view.power || view.noVoice || view.ptt || this.muted || !this.gateOpen
+      ? 0 : Math.pow(view.volume / 20, 1.8) * 0.9;
+  }
+  get systemVoiceChannel(): string | undefined { return this.view?.channelNum; }
+
+  suppressSyntheticVoice(durationMs: number): void {
+    if (this.ctx) this.speakingUntil = this.ctx.currentTime + durationMs / 1000 + 0.25;
   }
 
   /** decode compressed audio in the engine's own context */
@@ -505,6 +528,11 @@ export class RadioAudioEngine {
     this.timer = null;
     this.stopAlarm();
     this.stopAqua();
+    for (const voice of this.stationVoices) {
+      try { voice.source.stop(); } catch { /* already stopped */ }
+      voice.source.disconnect(); voice.gate.disconnect();
+    }
+    this.stationVoices.clear();
     try { this.voiceOsc?.stop(); } catch { /* already stopped */ }
     void this.ctx?.close();
     this.ctx = null;

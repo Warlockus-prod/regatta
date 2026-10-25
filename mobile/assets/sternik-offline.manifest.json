@@ -1,0 +1,331 @@
+{
+  "schema": 1,
+  "entry": "sternik-offline.html",
+  "version": "c05376f4c523",
+  "lang": "pl",
+  "sha256": "a50096b288b7cfc19d7eeb1ba63966e3b48bb63818539d8de266968da5207355",
+  "bytes": 2566470,
+  "routes": [
+    "/sternik",
+    "/sternik/teoria",
+    "/sternik/test",
+    "/sternik/egzamin",
+    "/sternik/ustny"
+  ],
+  "inputs": [
+    "mobile/node_modules/react-dom/cjs/react-dom-client.production.js",
+    "mobile/node_modules/react-dom/cjs/react-dom.production.js",
+    "mobile/node_modules/react-dom/client.js",
+    "mobile/node_modules/react-dom/index.js",
+    "mobile/node_modules/react/cjs/react-jsx-runtime.production.js",
+    "mobile/node_modules/react/cjs/react.production.js",
+    "mobile/node_modules/react/index.js",
+    "mobile/node_modules/react/jsx-runtime.js",
+    "mobile/node_modules/scheduler/cjs/scheduler.production.js",
+    "mobile/node_modules/scheduler/index.js",
+    "mobile/scripts/offline-radio/next-dynamic.tsx",
+    "mobile/scripts/offline-sternik/OfflineOralTrainer.tsx",
+    "mobile/scripts/offline-sternik/bridge.ts",
+    "mobile/scripts/offline-sternik/entry.tsx",
+    "mobile/scripts/offline-sternik/funnel.ts",
+    "mobile/scripts/offline-sternik/i18n.tsx",
+    "mobile/scripts/offline-sternik/model.ts",
+    "mobile/scripts/offline-sternik/oral.ts",
+    "mobile/scripts/offline-sternik/router.tsx",
+    "src/app/radio/rozmowa/dialogueGrading.ts",
+    "src/app/radio/weakSpots.ts",
+    "src/app/sternik/PersonalReport.tsx",
+    "src/app/sternik/QuestionFigure.tsx",
+    "src/app/sternik/SternikHub.tsx",
+    "src/app/sternik/SternikSubnav.tsx",
+    "src/app/sternik/analysis.ts",
+    "src/app/sternik/egzamin/page.tsx",
+    "src/app/sternik/page.tsx",
+    "src/app/sternik/plOnly.ts",
+    "src/app/sternik/prefs.tsx",
+    "src/app/sternik/quiz-utils.ts",
+    "src/app/sternik/teoria/SignsWeather.tsx",
+    "src/app/sternik/teoria/TheorySearch.tsx",
+    "src/app/sternik/teoria/diagrams.tsx",
+    "src/app/sternik/teoria/page.tsx",
+    "src/app/sternik/test/page.tsx",
+    "src/app/sternik/useFocusTrap.ts",
+    "src/app/sternik/ustny/oralPrompts.ts",
+    "src/app/sternik/ustny/page.tsx",
+    "src/data/sternik.ts",
+    "src/lib/sternik-progress.ts",
+    "sternik-clouds:offline-sternik-clouds",
+    "sternik-next:next/link",
+    "sternik-next:next/navigation",
+    "sternik-next:polish-trainer-i18n"
+  ],
+  "sourceFiles": [
+    {
+      "path": "mobile/node_modules/react-dom/cjs/react-dom-client.production.js",
+      "bytes": 515019,
+      "sha256": "2f60615d2504361fadca40064af1b64b3657a85e32fdac09ce22b424dab522c5"
+    },
+    {
+      "path": "mobile/node_modules/react-dom/cjs/react-dom.production.js",
+      "bytes": 6655,
+      "sha256": "990df13c2852940eb124f51f005abdfcd0436700e7bc661ddee202a84ca140cb"
+    },
+    {
+      "path": "mobile/node_modules/react-dom/client.js",
+      "bytes": 1373,
+      "sha256": "00e348ab3d6bc2eef908345d0bc4e008c95bcfecec060dfda5c4967953761396"
+    },
+    {
+      "path": "mobile/node_modules/react-dom/index.js",
+      "bytes": 1359,
+      "sha256": "ba1a3e33489f868371561777607e3ee5091df0f7ea3f1a10f789d6b86e4c1505"
+    },
+    {
+      "path": "mobile/node_modules/react/cjs/react-jsx-runtime.production.js",
+      "bytes": 976,
+      "sha256": "1e46f15002696985e80c61d47aaa30dabb03c954270a690f5f7dfbbacfa9002b"
+    },
+    {
+      "path": "mobile/node_modules/react/cjs/react.production.js",
+      "bytes": 17075,
+      "sha256": "66fdfbcc9c1c7e1c35f8ccf462ea24ead8fba28172ac9d6cbc13a9d6d650094e"
+    },
+    {
+      "path": "mobile/node_modules/react/index.js",
+      "bytes": 186,
+      "sha256": "60caffdecbdc5db3bc4ec4e83df9488345ccb271d07533b9210bf5750918d97e"
+    },
+    {
+      "path": "mobile/node_modules/react/jsx-runtime.js",
+      "bytes": 210,
+      "sha256": "b392951a77d0a2e6a6bd017e49d768481ae5b63c4109c6c31f622cf7b2433edc"
+    },
+    {
+      "path": "mobile/node_modules/scheduler/cjs/scheduler.production.js",
+      "bytes": 10181,
+      "sha256": "679adff761d31e9426604f80c0e99be44a3e6f4c6834b0218ecf0312a67c171f"
+    },
+    {
+      "path": "mobile/node_modules/scheduler/index.js",
+      "bytes": 194,
+      "sha256": "145965504d60007bc25486ab930b0367867dcd5d579ccd343c148d69349a7cfb"
+    },
+    {
+      "path": "mobile/scripts/build-sternik-offline.mjs",
+      "bytes": 7988,
+      "sha256": "2b4f587c2dde6558ec9077186d4a98a8c9af044968332afac585390b293f834e"
+    },
+    {
+      "path": "mobile/scripts/offline-radio/next-dynamic.tsx",
+      "bytes": 478,
+      "sha256": "2564e343b94ba925efedb4f869f0b40326f8bab38603edf6c85002f5d152be88"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/OfflineOralTrainer.tsx",
+      "bytes": 4239,
+      "sha256": "ea99ba31caf00fb04b3b0b171a24296bf79a8cd09814328e1f4b13c802c27164"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/bridge.ts",
+      "bytes": 2495,
+      "sha256": "4512eea0e890ebc4210b7d4d499f7612c6f67a5a2b7967c45396767711e77ff4"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/entry.tsx",
+      "bytes": 3932,
+      "sha256": "c87a44210c5994c9bbdd520ac53cfaaee1b3e3b84c3812323abf96d5db4f775e"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/funnel.ts",
+      "bytes": 397,
+      "sha256": "5494e50cdf770d4dbb2a62f592cf0de6c8f21461a7a908b5be940428733502e0"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/i18n.tsx",
+      "bytes": 425,
+      "sha256": "606969b869655c07f9a88b6b6af043d823659a36be613a1b894774b7f40b2aa6"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/model.ts",
+      "bytes": 2006,
+      "sha256": "9dcbae2569c5e6e404721817ed1a15248b33ad50527ae2a438a0fa2f0960b4b8"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/offline.css",
+      "bytes": 697,
+      "sha256": "b35c1b41732a78ef2cf28104e1998c702e02b6cb4f8c11926d28d223a91914a5"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/oral.ts",
+      "bytes": 388,
+      "sha256": "57e6d208ad4a348105fd5c3cf201b49db6b5b79dd93f329634663a3ba3f188ae"
+    },
+    {
+      "path": "mobile/scripts/offline-sternik/router.tsx",
+      "bytes": 2881,
+      "sha256": "c24f76d190f4735ce4f4dfa26d12fd5f7c0efc9831134da03f884d3ceecc3a58"
+    },
+    {
+      "path": "src/app/globals.css",
+      "bytes": 16157,
+      "sha256": "83699ead64e106c29ce55584e68a82b5211efa4ecb257a5606af1f94ad8f7673"
+    },
+    {
+      "path": "src/app/radio/rozmowa/dialogueGrading.ts",
+      "bytes": 5197,
+      "sha256": "55364d97b08ea1723a2ac5e09f98feb50838b535feeb338fdf2bf89d9294c5f2"
+    },
+    {
+      "path": "src/app/radio/weakSpots.ts",
+      "bytes": 4083,
+      "sha256": "a9c362e6ce99f9e595e3dbdeafd961a51f95f9bf2396702d230eec608e4850a0"
+    },
+    {
+      "path": "src/app/sternik/PersonalReport.tsx",
+      "bytes": 9001,
+      "sha256": "68801b7a5260410b6dd238e5dfdb0894f7ae8fdb28f852bc0e309d33f9e3ac02"
+    },
+    {
+      "path": "src/app/sternik/QuestionFigure.tsx",
+      "bytes": 6537,
+      "sha256": "8759147ae852bf226afee0eb832557d23f0650d9177f2704a059de094c1959ea"
+    },
+    {
+      "path": "src/app/sternik/SternikHub.tsx",
+      "bytes": 19875,
+      "sha256": "0ab93a11bf33bd903a3ecc17bb4c671e24ef5ea4d801344f59ff57a86a135d36"
+    },
+    {
+      "path": "src/app/sternik/SternikSubnav.tsx",
+      "bytes": 2250,
+      "sha256": "45f8757ff52dd9a4ac7e064824939587af2b1b7728c38ee45d673a77afdc634c"
+    },
+    {
+      "path": "src/app/sternik/analysis.ts",
+      "bytes": 5909,
+      "sha256": "e94e48ca97c379549260975115b8a34ce47e6f6d18ba7195d4de3228440ed26e"
+    },
+    {
+      "path": "src/app/sternik/egzamin/page.tsx",
+      "bytes": 28404,
+      "sha256": "f3be796fc58d5982ae90beb3f9f14efb541fcf4941302d42b63a0df6e9fafd5a"
+    },
+    {
+      "path": "src/app/sternik/page.tsx",
+      "bytes": 1490,
+      "sha256": "28216489baf93fec31849c59f83891e80a5f4b6481442d3c013e02d018d11efe"
+    },
+    {
+      "path": "src/app/sternik/plOnly.ts",
+      "bytes": 1581,
+      "sha256": "71805730c105742ecf960859909fa4a28222a02d098663e37bba8b20dec57915"
+    },
+    {
+      "path": "src/app/sternik/prefs.tsx",
+      "bytes": 17295,
+      "sha256": "66597bafb8e9c54ce4d0e0b2c1b2ed664990432dc13c3a930c5ded2e38b3c306"
+    },
+    {
+      "path": "src/app/sternik/quiz-utils.ts",
+      "bytes": 1501,
+      "sha256": "5e4f2af5bb0f5d6e7f751e970ae7b3265ddd0bcfad082ef547fc3dd6b00e346c"
+    },
+    {
+      "path": "src/app/sternik/teoria/SignsWeather.tsx",
+      "bytes": 33749,
+      "sha256": "be50a6ef6cf682f47ce1f908d45080623ef769cf0195086e90f670ba272009ea"
+    },
+    {
+      "path": "src/app/sternik/teoria/TheorySearch.tsx",
+      "bytes": 5723,
+      "sha256": "29f8e93f05ee9882c9ecd5bb23be5a03842779e41c6879602cbaca18a3ddfb90"
+    },
+    {
+      "path": "src/app/sternik/teoria/diagrams.tsx",
+      "bytes": 46435,
+      "sha256": "c5af1007f216032f3836b831daa2dc1f60adf2ea84fa8b814863d212b877b2c4"
+    },
+    {
+      "path": "src/app/sternik/teoria/page.tsx",
+      "bytes": 68900,
+      "sha256": "6f13b6536d2f6cdfcb4c0a995ab8f01dffd2e341f8fb9c2d452b13a2f08f768b"
+    },
+    {
+      "path": "src/app/sternik/test/page.tsx",
+      "bytes": 32972,
+      "sha256": "ec70d409306f615427a01b194fc6b64cb02995d706f8f6667df8441c4ad96cba"
+    },
+    {
+      "path": "src/app/sternik/useFocusTrap.ts",
+      "bytes": 2510,
+      "sha256": "5d5441537e1f1bb9fb382ebb08eab75687929e0b0dc9ad11bd10d4f88e0a16b8"
+    },
+    {
+      "path": "src/app/sternik/ustny/oralPrompts.ts",
+      "bytes": 49342,
+      "sha256": "88ec2c52f2a2ba2c3c52532e15e55d521886b3ece0586d860aedfca0ecd8c4da"
+    },
+    {
+      "path": "src/app/sternik/ustny/page.tsx",
+      "bytes": 647,
+      "sha256": "a793718609b2da51fa22b9bb4f8ecc85f189d81301680176a14bef10a4a60c9c"
+    },
+    {
+      "path": "src/data/sternik.ts",
+      "bytes": 612997,
+      "sha256": "3ea47032c641735330ea25092bb7f923daebf5d062c1033c2c02f11a255194b0"
+    },
+    {
+      "path": "src/lib/sternik-progress.ts",
+      "bytes": 3898,
+      "sha256": "b73bfb05431f856995aaa74c5d61a04431618539346ad0e8d47a50d02d8894d3"
+    }
+  ],
+  "embeddedAssets": [
+    {
+      "path": "public/sternik/clouds/altocumulus.jpg",
+      "bytes": 94802,
+      "sha256": "7259a56dc3e1dfbf03a8091e22ea13bf5db5e5da08bdef20e82258299a6f6786"
+    },
+    {
+      "path": "public/sternik/clouds/cirrus.jpg",
+      "bytes": 57417,
+      "sha256": "fa07438be8a7d308373e855033d3fbda32183b3bb2873ffb753fdaeb41d9f662"
+    },
+    {
+      "path": "public/sternik/clouds/cumulonimbus.jpg",
+      "bytes": 71029,
+      "sha256": "0bcfcb836b2055f9c240b0aecf3a51d74e5679c958f6c86fbbb1be65d18d196a"
+    },
+    {
+      "path": "public/sternik/clouds/cumulus.jpg",
+      "bytes": 34626,
+      "sha256": "3ad415853d4330a3721fa85e5c725df07697f93e7d42dc596ef84342dd321082"
+    },
+    {
+      "path": "public/sternik/clouds/fog.jpg",
+      "bytes": 97100,
+      "sha256": "f7425d678f82197555d09992604b04650fc3e050f92daff59f705c0df465d354"
+    },
+    {
+      "path": "public/sternik/clouds/nimbostratus.jpg",
+      "bytes": 55405,
+      "sha256": "229618406dfd040be0ded8cb62deb885dd52e2d81e405673607e7323660005f1"
+    },
+    {
+      "path": "public/sternik/clouds/shelf.jpg",
+      "bytes": 66893,
+      "sha256": "7246263c83a363a49ecb154f0806ec50daa535b90a8777e41570748a970b0e7d"
+    },
+    {
+      "path": "public/sternik/clouds/stratus.jpg",
+      "bytes": 146632,
+      "sha256": "d2be8ac41308e9adc34b42d033b1b0e6862183eaa654c3279c52d1723dc54c4f"
+    },
+    {
+      "path": "public/fonts/source-sans-3/SourceSans3VF-Upright.woff2",
+      "sha256": "5f16566f7a40d39b339ad26be151fa5a1ab1f0c2574c7a2e619765584a1acbd8",
+      "bytes": 170188
+    }
+  ]
+}

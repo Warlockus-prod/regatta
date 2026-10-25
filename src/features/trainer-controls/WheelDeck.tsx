@@ -38,6 +38,13 @@ export interface SheetTarget {
   setEase: (value: number) => void;
   /** Sail angle to the centerline, shown in brackets. */
   angleDeg?: number;
+  /** A physical line can show metres while keeping normalized wheel travel. */
+  valueText?: string;
+  ariaNow?: number;
+  ariaMin?: number;
+  ariaMax?: number;
+  /** Optional normalized step for physical-line keyboard/VoiceOver precision. */
+  stepEase?: number;
 }
 
 type Slot = "helm" | "main" | "jib";
@@ -55,9 +62,12 @@ export function WheelDeck(props: {
   layout: "bottom" | "column";
   /** Global keys: Q/A mainsheet, W/S jib sheet; arrows steer only when the surface has no arrow keys of its own. */
   arrowKeysSteer?: boolean;
+  /** A parent race can own sheet shortcuts across all of its utility tabs. */
+  sheetKeysEnabled?: boolean;
   note?: string;
+  hideHint?: boolean;
 }) {
-  const { helm, main, jib, prefs, labels, layout, arrowKeysSteer, note } = props;
+  const { helm, main, jib, prefs, labels, layout, arrowKeysSteer, sheetKeysEnabled = true, note, hideHint } = props;
   const sheets = Boolean(main && jib);
   const boxRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 340, h: 260 });
@@ -81,17 +91,20 @@ export function WheelDeck(props: {
     }
   }, [mainEase, jibEase]);
   const collapse = useRef<ReturnType<typeof setTimeout> | null>(null);
-  // One line of help for the first three times the wheels open (no modal tour, DESIGN.md).
-  // The deck only mounts on the client after the stored mode is read, so this cannot break hydration.
-  const [showNote] = useState(() => {
+  // Hydration starts with the same hint on the server and client. The saved
+  // visit count is browser-only and is synchronized after the deck mounts.
+  const hintCounted = useRef(false);
+  const [showNote, setShowNote] = useState(true);
+  useEffect(() => {
+    if (hideHint || hintCounted.current) return;
+    hintCounted.current = true;
     try {
       const seen = Number(window.localStorage.getItem(HINT_KEY) ?? "0");
       window.localStorage.setItem(HINT_KEY, String(seen + 1));
-      return seen < 3;
-    } catch {
-      return true;
-    }
-  });
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Browser-only persistence is read after identical hydration markup.
+      setShowNote(seen < 3);
+    } catch { /* An unavailable preference keeps the introductory hint. */ }
+  }, [hideHint]);
 
   const tick = useCallback((kind: TickKind) => { if (prefs.sound) playTick(kind); }, [prefs.sound]);
 
@@ -188,9 +201,11 @@ export function WheelDeck(props: {
   const stepSheet = useCallback((which: "main" | "jib", steps: number) => {
     const s = which === "main" ? main : jib;
     if (!s) return;
-    // Keyboard and VoiceOver steps move the value directly: up = ease 5%.
+    // Keyboard and VoiceOver default to 5%; physical lines supply their resolution.
     const prev = ease.current[which];
-    const next = Number.isFinite(steps) ? clamp(Math.round((prev + steps * SHEET_TICK) * 100) / 100, 0, 1) : steps > 0 ? 1 : 0;
+    const next = Number.isFinite(steps)
+      ? clamp(s.stepEase === undefined ? Math.round((prev + steps * SHEET_TICK) * 100) / 100 : prev + steps * s.stepEase, 0, 1)
+      : steps > 0 ? 1 : 0;
     if (next === prev) return;
     ease.current[which] = next;
     ourEase.current[which] = next;
@@ -206,7 +221,7 @@ export function WheelDeck(props: {
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       const k = e.key.toLowerCase();
       if (arrowKeysSteer && (e.key === "ArrowLeft" || e.key === "ArrowRight")) { e.preventDefault(); stepHelm(e.key === "ArrowLeft" ? -1 : 1); return; }
-      if (!sheets) return;
+      if (!sheets || !sheetKeysEnabled) return;
       if (k === "q") stepSheet("main", -1);
       else if (k === "a") stepSheet("main", 1);
       else if (k === "w") stepSheet("jib", -1);
@@ -214,7 +229,7 @@ export function WheelDeck(props: {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [arrowKeysSteer, sheets, stepHelm, stepSheet]);
+  }, [arrowKeysSteer, sheetKeysEnabled, sheets, stepHelm, stepSheet]);
 
   // Geometry.
   const { w, h } = size;
@@ -243,7 +258,7 @@ export function WheelDeck(props: {
   const place = ([cx, cy, d]: Box) => ({ width: d, height: d, left: cx - d / 2, top: cy - d / 2 });
 
   const helmRotation = helm.mapping === "course" ? courseAngle : rudderAngle;
-  const sheetValue = (s: SheetTarget) => `${Math.round(s.ease * 100)}%${s.angleDeg !== undefined ? ` (${Math.round(s.angleDeg)}°)` : ""}`;
+  const sheetValue = (s: SheetTarget) => s.valueText ?? `${Math.round(s.ease * 100)}%${s.angleDeg !== undefined ? ` (${Math.round(s.angleDeg)}°)` : ""}`;
   const sheetWheel = (which: "main" | "jib") => {
     const s = which === "main" ? main! : jib!;
     const name = which === "main" ? labels.mainsheet : labels.jibsheet;
@@ -257,11 +272,11 @@ export function WheelDeck(props: {
         style={place(pos[which])}
         rotation={-(s.ease / 0.25) * 360}
         label={name}
-        valueText={`${sheetValue(s)}, ${labels.eased}`}
+        valueText={s.valueText ?? `${sheetValue(s)}, ${labels.eased}`}
         caption={<><b>{name}</b><span>{sheetValue(s)}</span></>}
-        ariaNow={s.ease * 100}
-        ariaMin={0}
-        ariaMax={100}
+        ariaNow={s.ariaNow ?? s.ease * 100}
+        ariaMin={s.ariaMin ?? 0}
+        ariaMax={s.ariaMax ?? 100}
         onActivate={() => { if (expanded !== which) setExpanded(which); armCollapse(); }}
         onTurn={(d) => turnSheet(which, d)}
         onStep={(n) => stepSheet(which, n)}
@@ -271,7 +286,7 @@ export function WheelDeck(props: {
 
   return (
     <div className={styles.deck} data-layout={layout}>
-      {showNote && <p className={styles.deckNote}>{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>}
+      {showNote && !hideHint && <p className={styles.deckNote}>{note ?? (sheets ? labels.wheelHint : labels.autoTrim)}</p>}
       <div ref={boxRef} className={styles.deckArea} data-testid="wheel-deck">
         {sheets && sheetWheel(leftK)}
         <Wheel

@@ -49,8 +49,9 @@ export function ControlDock(props: {
   const { surface, tabs, defaultFavorites, prefs, update, wheelDeck, leadTab, hasSheets, rudderAvailable, layout, className } = props;
   const labels = useControlLabels();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const wheels = !leadTab && prefs.mode === "wheels" && Boolean(wheelDeck);
-  const firstId = leadTab ? leadTab.id : wheels ? "wheels" : "favorites";
+  const wheels = prefs.mode === "wheels" && Boolean(wheelDeck);
+  const controlsId = wheels ? "wheels" : "favorites";
+  const firstId = leadTab?.id ?? controlsId;
   const [active, setActive] = useState<string>(firstId);
   const choose = (id: string) => setActive(id);
 
@@ -59,7 +60,8 @@ export function ControlDock(props: {
   const favoriteCards = favoriteIds.map((id) => allCards.find((c) => c.id === id)).filter((c): c is DockCard => Boolean(c));
 
   const tabList: { id: string; label: string }[] = [
-    { id: firstId, label: leadTab ? leadTab.label : wheels ? labels.tabs.wheels : labels.tabs.favorites },
+    ...(leadTab ? [{ id: leadTab.id, label: leadTab.label }] : []),
+    { id: controlsId, label: wheels ? labels.tabs.wheels : labels.tabs.favorites },
     ...tabs.map((t) => ({ id: t.id, label: t.label })),
   ];
   const current = tabList.some((t) => t.id === active) ? active : firstId;

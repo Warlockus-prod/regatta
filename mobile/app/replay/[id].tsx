@@ -29,10 +29,11 @@
  *    to where they happened on the track via `frameAt(event.t)` and drawn
  *    as colour-coded dots, with a small legend under the canvas.
  */
-import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
+import { Redirect, Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
+  ActivityIndicator,
   ScrollView,
   Share,
   StyleSheet,
@@ -57,9 +58,11 @@ import {
 } from '../../src/design-system/components';
 import {
   shareCode,
+  loadRaceById,
   useRaceHistory,
   type RaceRecord,
 } from '../../src/persistence/race-history';
+import { validateNativeRace } from '../../../src/lib/race-native';
 import {
   frameAt,
   summarizeReplay,
@@ -986,5 +989,15 @@ const styles = StyleSheet.create({
 
 /** Instrument screen: dark ocean palette, see design-system/surface. */
 export default function ReplayRoute() {
+  const { id } = useLocalSearchParams<{ id?: string }>();
+  const [checked, setChecked] = useState<{ id: string | undefined; shared: boolean } | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (!id) return undefined;
+    loadRaceById(id).then(record => { if (active) setChecked({ id, shared: Boolean(validateNativeRace(record?.webRace)) }); });
+    return () => { active = false; };
+  }, [id]);
+  if (id && checked?.id !== id) return <DarkSurface><Screen><ActivityIndicator color={colors.accentCyan} /></Screen></DarkSurface>;
+  if (checked?.shared && id) return <Redirect href={{ pathname: "/game", params: { replayId: id } }} />;
   return <DarkSurface><Replay /></DarkSurface>;
 }

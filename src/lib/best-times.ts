@@ -1,5 +1,5 @@
 /**
- * Best-time records per (difficulty + windStrength) bucket.
+ * Best-time records per (mode + difficulty + windStrength) bucket.
  *
  * Stored in localStorage as a flat object so future code can extend with
  * per-mission records or per-month resets without a schema migration.
@@ -13,6 +13,7 @@ const STORAGE_KEY = 'regatta.best-times.v1';
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
 export type WindStrength = 'light' | 'medium' | 'heavy';
+export type BestRecordMode = "simple" | "pro";
 
 export interface BestRecord {
   /** Best finish time in seconds. */
@@ -23,8 +24,10 @@ export interface BestRecord {
 
 type Store = Record<string, BestRecord>;
 
-function bucketKey(difficulty: Difficulty, windStrength: WindStrength): string {
-  return `${difficulty}-${windStrength}`;
+function bucketKey(difficulty: Difficulty, windStrength: WindStrength, mode: BestRecordMode): string {
+  // Keep legacy records in Simple. Pro shares the same storage row/native
+  // bridge but never competes against an automatically trimmed result.
+  return `${mode === "pro" ? "pro:" : ""}${difficulty}-${windStrength}`;
 }
 
 function readStore(): Store {
@@ -52,9 +55,10 @@ function writeStore(store: Store): void {
 export function getBestRecord(
   difficulty: Difficulty,
   windStrength: WindStrength,
+  mode: BestRecordMode = "simple",
 ): BestRecord | null {
   const store = readStore();
-  return store[bucketKey(difficulty, windStrength)] ?? null;
+  return store[bucketKey(difficulty, windStrength, mode)] ?? null;
 }
 
 /**
@@ -67,6 +71,7 @@ export function tryUpdateBestRecord(
   difficulty: Difficulty,
   windStrength: WindStrength,
   finishTimeSec: number,
+  mode: BestRecordMode = "simple",
 ): {
   isNewRecord: boolean;
   /** Previous best, null if there wasn't one. */
@@ -75,7 +80,7 @@ export function tryUpdateBestRecord(
   currentBest: BestRecord;
 } {
   if (!isFinite(finishTimeSec) || finishTimeSec <= 0) {
-    const cur = getBestRecord(difficulty, windStrength) ?? {
+    const cur = getBestRecord(difficulty, windStrength, mode) ?? {
       timeSec: finishTimeSec,
       ts: Date.now(),
     };
@@ -83,7 +88,7 @@ export function tryUpdateBestRecord(
   }
 
   const store = readStore();
-  const key = bucketKey(difficulty, windStrength);
+  const key = bucketKey(difficulty, windStrength, mode);
   const previousBest = store[key] ?? null;
   const isNewRecord = !previousBest || finishTimeSec < previousBest.timeSec;
   const currentBest: BestRecord = isNewRecord

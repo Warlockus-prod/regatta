@@ -1,8 +1,12 @@
 'use client';
 
-import { useEffect, useState, type ReactNode, type Ref } from 'react';
+import { useRadioI18n } from "@/app/radio/localization/context";
+import { postRadioMessage } from "../navigation";
+
+import { Children, Fragment, isValidElement, useEffect, useState, useSyncExternalStore, type ReactNode, type Ref } from 'react';
 import { useTrainerI18n } from './trainerText';
 import styles from './RadioWorkspace.module.css';
+const noSubscribe = () => () => {};
 
 // ============================================================================
 // The radio work screen shared by the simulator, the controls lessons and the
@@ -58,7 +62,7 @@ function tellNativeApp(open: boolean) {
 
 export function RadioWorkspace({
   stacked, onExit, exitTestId, exitTitle, status, actions, radio, onRadioPointerDown, dock, dockRef,
-  testId = 'radio-workspace',
+  testId = 'radio-workspace', requestedPanel, requestVersion,
 }: {
   stacked: boolean;
   onExit: () => void;
@@ -74,9 +78,18 @@ export function RadioWorkspace({
   onRadioPointerDown?: () => void;
   dock: ReactNode;
   dockRef?: Ref<HTMLDivElement>;
-  testId?: string;
+  testId?: string; requestedPanel?:string; requestVersion?:number;
 }) {
+  const { rt: radioText, tl } = useRadioI18n();
   const { tp } = useTrainerI18n();
+  const native = useSyncExternalStore(noSubscribe, () => typeof window !== 'undefined' && Boolean((window as Window & { ReactNativeWebView?: unknown }).ReactNativeWebView), () => false);
+  const order=["task","help","situation","listen","log","device"];
+  const panels = dockPanels(dock).sort((a,b)=>order.indexOf(a.id)-order.indexOf(b.id));
+  const [selection, setSelection] = useState({ panel: requestedPanel ?? "task", requestedPanel, requestVersion });
+  const activePanel = selection.requestedPanel === requestedPanel && selection.requestVersion === requestVersion
+    ? selection.panel : requestedPanel ?? "task";
+  const setActivePanel = (panel: string) => setSelection({ panel, requestedPanel, requestVersion });
+  const selected = panels.some(panel=>panel.id===activePanel) ? activePanel : panels[0]?.id;
   return (
     <div className={styles.workspace} data-stacked={stacked || undefined} data-testid={testId}>
       <div className={styles.bar}>
@@ -85,19 +98,30 @@ export function RadioWorkspace({
             type="button"
             data-testid={exitTestId}
             onClick={onExit}
-            aria-label={tp('Выйти', 'Exit', 'Wyjdź')}
-            title={exitTitle}
+            aria-label={radioText(exitTitle)}
+            title={radioText(exitTitle)}
             className={styles.barButton}
           >
-            ✕<span className="hidden min-[400px]:inline">{tp('Выйти', 'Exit', 'Wyjdź')}</span>
+            <span aria-hidden="true">‹</span><span className="hidden min-[400px]:inline">{tl({ ru: "Назад", en: "Back", pl: "Wstecz", es: "Atrás", fr: "Retour", de: "Zurück", it: "Indietro" })}</span>
           </button>
           <div className={styles.barStatus}>{status}</div>
           {actions}
+          {native && <button type="button" className={styles.barButton} data-testid="radio-exit-app" onClick={() => postRadioMessage({ type: "radio-exit" })}
+            aria-label={tl({ ru: "Выйти из SRC в приложение", en: "Leave SRC for the app", pl: "Wyjdź z SRC do aplikacji", es: "Salir de SRC a la aplicación", fr: "Quitter SRC pour revenir à l'app", de: "SRC verlassen und zur App", it: "Esci da SRC e torna all'app" })}>
+            {tl({ ru: "Выйти", en: "Exit", pl: "Wyjdź", es: "Salir", fr: "Quitter", de: "Zur App", it: "Esci" })}
+          </button>}
         </div>
       </div>
       <div className={styles.main}>
         <div className={styles.radio} onPointerDownCapture={onRadioPointerDown}>{radio}</div>
-        <div ref={dockRef} className={styles.dock} data-testid="radio-dock">{dock}</div>
+        <div className={styles.dockFrame}>
+          {panels.length > 0 && <div className={styles.tabs} role="tablist" aria-label={tp("Панель рации", "Radio panel", "Panel radia")}>
+            {panels.map(panel=><button key={panel.id} type="button" role="tab" id={`radio-tab-${panel.id}`} aria-selected={selected===panel.id} aria-controls={`radio-panel-${panel.id}`} onKeyDown={(event)=>{const keys=["ArrowLeft","ArrowRight","Home","End"];if(!keys.includes(event.key))return;event.preventDefault();const index=panels.findIndex(item=>item.id===selected);const next=event.key==="Home"?0:event.key==="End"?panels.length-1:(index+(event.key==="ArrowRight"?1:-1)+panels.length)%panels.length;setActivePanel(panels[next].id);document.getElementById(`radio-tab-${panels[next].id}`)?.focus();}} tabIndex={selected===panel.id?0:-1} onClick={()=>{setActivePanel(panel.id);if(dockRef&&typeof dockRef!=="function"&&dockRef.current)dockRef.current.scrollTop=0;}}>{radioText(panel.label)}</button>)}
+          </div>}
+          <div ref={dockRef} className={styles.dock} data-testid="radio-dock">
+            {panels.length ? panels.map(panel=><section key={panel.id} role="tabpanel" id={`radio-panel-${panel.id}`} aria-labelledby={`radio-tab-${panel.id}`} hidden={selected!==panel.id}>{panel.content}</section>) : dock}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -105,6 +129,7 @@ export function RadioWorkspace({
 
 /** Inspect ("Rozbiór"): while on, a tap on the radio explains the part. */
 export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle: () => void; testId: string }) {
+  const { rt: radioText } = useRadioI18n();
   const { tp } = useTrainerI18n();
   return (
     <button
@@ -112,15 +137,18 @@ export function InspectToggle({ on, onToggle, testId }: { on: boolean; onToggle:
       data-testid={testId}
       onClick={onToggle}
       aria-pressed={on}
+      aria-label={tp('Изучить радио', 'Explore controls', 'Poznaj przyciski')}
+      title={tp('Изучить радио', 'Explore controls', 'Poznaj przyciski')}
       className={styles.barButton}
-      style={on ? { background: '#ffce4d', color: '#3a2a00', borderColor: '#ffce4d' } : undefined}
+      style={on ? { background: 'var(--accent-cyan)', color: 'var(--accent-ink)', borderColor: 'var(--accent-cyan)' } : undefined}
     >
-      🔍 {tp('Разбор', 'Inspect', 'Rozbiór')}
+      <span aria-hidden>🔍</span><span className="hidden min-[400px]:inline">{radioText(tp('Изучить радио', 'Explore controls', 'Poznaj przyciski'))}</span>
     </button>
   );
 }
 
 export function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () => void }) {
+  const { rt: radioText } = useRadioI18n();
   const { tp } = useTrainerI18n();
   return (
     <button
@@ -128,25 +156,37 @@ export function SoundToggle({ muted, onToggle }: { muted: boolean; onToggle: () 
       data-testid="sound-toggle"
       onClick={onToggle}
       aria-pressed={!muted}
-      aria-label={tp('Звук', 'Sound', 'Dźwięk')}
-      title={tp('Звук', 'Sound', 'Dźwięk')}
+      aria-label={radioText(tp('Звук', 'Sound', 'Dźwięk'))}
+      title={radioText(tp('Звук', 'Sound', 'Dźwięk'))}
       className={`${styles.barButton} ${styles.barIcon}`}
     >
-      {muted ? '🔇' : '🔊'}
+      {radioText(muted ? '🔇' : '🔊')}
     </button>
   );
 }
 
 /** A panel card that can be folded away once read (situation, journal). */
 export function PanelSection({ title, children, defaultOpen = true }: { title: ReactNode; children: ReactNode; defaultOpen?: boolean }) {
+  const { rt: radioText } = useRadioI18n();
   return (
     <details
       open={defaultOpen}
       className={`${styles.collapsible} rounded-2xl px-4 pb-3 pt-1`}
       style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}
     >
-      <summary>{title}</summary>
-      {children}
+      <summary>{radioText(title)}</summary>
+      {radioText(children)}
     </details>
   );
+}
+
+
+export function DockPanel({children}:{id:string;label:string;children:ReactNode}) { return <>{children}</>; }
+function dockPanels(node:ReactNode): {id:string;label:string;content:ReactNode}[] {
+ return Children.toArray(node).flatMap(child=>{
+  if(!isValidElement(child))return [];
+  if(child.type===Fragment)return dockPanels((child.props as {children?:ReactNode}).children);
+  if(child.type===DockPanel){const p=child.props as {id:string;label:string;children:ReactNode};return [{id:p.id,label:p.label,content:p.children}];}
+  return [];
+ });
 }

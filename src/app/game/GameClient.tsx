@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
-import { legacyPick } from '@/lib/languages';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo, isMuted, toggleMuted } from '@/lib/sounds';
+import { playBeep, playStart, playTack, playMarkRound, playFinish, playNoGo } from '@/lib/sounds';
+import { useControlPrefs } from '@/features/trainer-controls/prefs';
 import { analyseRaceLocally } from '@/lib/fallback-coach';
 import { missions, evaluateMission, type Mission, type RaceMetrics } from '@/data/missions';
 import { useI18n } from '@/lib/i18n';
@@ -18,25 +18,39 @@ import { coachTitle, coachExplanation, coachFix, coachNextGoal } from '@/lib/fal
 import { saveRaceSetup, loadRaceSetup, clearRaceSetup } from '@/lib/race-resume';
 // Shared sailing engine; the WebSocket server imports a generated bundle.
 import {
-  WORLD, stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, raceWaypoint, makeStandardCourse,
+  stepBoat, resolveCollisions, updateLap, raceAutopilotTurn, makeStandardCourse,
   WIND_DIRECTION_BASE as WIND_DIRECTION,
-  calcTWA, deg2rad, distance, bearing,
+  calcTWA,
   angleDiff,
 } from '@/lib/race-physics';
-import { drawVenue } from '@/features/venues/drawVenue';
 import { useVenue } from '@/features/venues/useVenue';
 import { GameMenu } from './GameMenu';
-import { BOAT_STYLES, DIFFICULTY_CONFIG, type BoatStyle, type Difficulty } from './config';
+import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 import { useRaceSceneFlags, useRaceView } from '@/features/race-3d/useRaceView';
 import type { RaceSceneStats } from '@/features/race-scene/RaceScene';
-import { METRES_PER_UNIT, nextTarget, raceRanks } from '@/features/race-3d/pose';
-import { RaceToast, SpeedCard, Standings, WindCompass, type StandingRow, type ToastTone } from '@/features/race-hud/RaceHud';
-import { polarFor, targetSpeed } from '@/features/race-hud/target';
+import { raceRanks } from '@/features/race-3d/pose';
+import { type StandingRow, type ToastTone } from '@/features/race-hud/RaceHud';
 import { eventText, type RaceEvent } from '@/features/race-hud/events';
 import { isEmbed } from '@/lib/theme';
+import type { RaceBoat } from "@/lib/race-physics";
+import type { Controls } from "@/lib/sailing-physics/types";
+import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
+import { raceTrim } from "@/lib/race-physics";
+import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
+import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
+import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
+import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
+import { useRacePrefs } from "./race-prefs";
+import { createFixedClock } from "@/features/sailing-lab/runtime/fixed-clock";
+import { createRaceStartupGate } from "@/lib/race-startup";
+import { linkedRaceSetup } from "@/lib/race-setup";
+import { raceTrimCoach } from "@/lib/race-trim-coach";
+import { useSailCoachLabels } from "@/features/simulator-3d/useSailCoachLabels";
+import { useRaceCopy } from "./race-copy";
+import { RaceReplay } from "./RaceReplay";
+import { createPendingRaceSaves, resolveFinishedFleet } from "@/lib/race-completion";
 
 // three.js loads only when someone opens the race in 3D.
-const Race3DView = dynamic(() => import('@/features/race-3d/Race3DView').then((m) => m.Race3DView), { ssr: false });
 const RaceScene = dynamic(() => import('@/features/race-scene/RaceScene').then((m) => m.RaceScene), { ssr: false });
 
 // ============================================================================
@@ -48,18 +62,15 @@ type GameState = 'menu' | 'briefing' | 'countdown' | 'racing' | 'finished' | 're
 
 interface Vec2 { x: number; y: number }
 
-interface Boat {
+interface Boat extends RaceBoat {
   id: string;
   name: string;
   color: string;
   pos: Vec2;
   heading: number;       // degrees, 0 = up (north), clockwise
   speed: number;         // knots (game units)
-  targetSpeed: number;
   isPlayer: boolean;
-  nextMarkIdx: number;   // index of next mark to round
   lapDone: number;       // 0: before start, 1: windward rounded, 2: finished
-  wake: Vec2[];
   finishTime?: number;
   speedMul: number;      // share of the force-model speed the boat makes (bots: difficulty, ADR-0007)
 }
@@ -85,6 +96,7 @@ interface Course {
 }
 
 interface LogSample {
+  trim?: NativeRaceSnapshot["samples"][number]["trim"]; windDir?: number;
   t: number;
   x: number;
   y: number;
@@ -122,6 +134,13 @@ interface Coaching {
   strengths: string[];
   nextGoalRu: string;
   nextGoal?: string;
+}
+
+function recordSample(boat: Boat, t: number, windDir: number): LogSample {
+  return { t, x: Math.round(boat.pos.x), y: Math.round(boat.pos.y), heading: Math.round(boat.heading),
+    twa: Math.round(calcTWA(boat.heading, windDir)), speed: Math.round(boat.speed * 10) / 10, lap: boat.lapDone, windDir,
+    trim: boat.trim ? { mainSheet: boat.trim.mainSheet, jibSheet: boat.trim.jibSheet, reef: boat.trim.reef,
+      jibFurl: boat.trim.jibFurl, mainHoisted: boat.trim.mainHoisted !== false } : undefined };
 }
 
 // ============================================================================
@@ -174,30 +193,57 @@ export default function GamePage() {
   const { tp, tl, lang } = useI18n();
   // Scenery around the race area (src/data/venues): drawn by the canvas loop, so kept in refs.
   const { venue } = useVenue();
-  const venueRef = useRef(venue);
   const langRef = useRef(lang);
-  useEffect(() => { venueRef.current = venue; langRef.current = lang; }, [venue, lang]);
-  // The map (2D) or the view from the boat (3D, src/features/race-3d). Both
-  // read the same race refs; in 3D the canvas keeps only the mini-map.
-  const { view3d, camera: raceCamera, setView3d, setCamera: setRaceCamera } = useRaceView();
+  useEffect(() => { langRef.current = lang; }, [lang]);
+  // The shared 3D scene reads the same live race refs as the controls.
+  const { camera: raceCamera, setCamera: setRaceCamera } = useRaceView();
+  const [cameraRevision, setCameraRevision] = useState(0);
   const sceneFlags = useRaceSceneFlags();
   // The next renderer's frame rate, written straight into its readout (no re-render).
   const statsRef = useRef<HTMLDivElement | null>(null);
   const showSceneStats = useCallback((s: RaceSceneStats) => {
     if (statsRef.current) statsRef.current.textContent = `${s.backend} · ${s.fps} fps · ${s.dpr}x`;
   }, []);
-  const view3dRef = useRef(view3d);
-  useEffect(() => { view3dRef.current = view3d; }, [view3d]);
   // Inside the app (?embed=1) the site nav is hidden, so the race takes the whole height.
-  const embed = useSyncExternalStore(noSubscribe, isEmbed, () => false);
+  const embed = useSyncExternalStore(noSubscribe, () => isNativeRace() || isEmbed(), () => false);
   const race3dLabels = useMemo(() => ({
     metres: lang === 'ru' ? 'м' : 'm',
     loading: tl({ ru: 'Загружаем яхту', en: 'Loading the yacht', pl: 'Ładujemy jacht', es: 'Cargando el velero', fr: 'Chargement du voilier', de: 'Yacht wird geladen', it: 'Caricamento della barca' }),
     scene: tl({ ru: '3D-вид гонки', en: '3D race view', pl: 'Widok 3D wyścigu', es: 'Vista 3D de la regata', fr: 'Vue 3D de la course', de: '3D-Rennansicht', it: 'Vista 3D della regata' }),
-    error: tl({ ru: '3D не загрузилось. Повтори или переключись на 2D.', en: "3D didn't load. Try again or switch to 2D.", pl: '3D się nie wczytało. Spróbuj ponownie albo przełącz na 2D.', es: 'El 3D no se cargó. Reinténtalo o cambia a 2D.', fr: "La 3D ne s'est pas chargée. Réessaie ou passe en 2D.", de: '3D wurde nicht geladen. Versuch es noch einmal oder wechsle zu 2D.', it: 'Il 3D non si è caricato. Riprova o passa al 2D.' }),
+    error: tl({ ru: '3D не загрузилось. Повтори загрузку.', en: "3D did not load. Retry loading.", pl: '3D się nie wczytało. Ponów ładowanie.', es: 'El 3D no se cargó. Reintenta la carga.', fr: "La 3D ne s'est pas chargée. Relance le chargement.", de: '3D wurde nicht geladen. Erneut laden.', it: 'Il 3D non si è caricato. Riprova il caricamento.' }),
     retry: tl({ ru: 'Повторить', en: 'Try again', pl: 'Spróbuj ponownie', es: 'Reintentar', fr: 'Réessayer', de: 'Erneut versuchen', it: 'Riprova' }),
   }), [tl, lang]);
+  const nativeRace = useSyncExternalStore(noSubscribe, isNativeRace, () => false);
+  const { prefs: racePrefs, update: writeRacePrefs } = useRacePrefs();
+  const [lockedMode, setLockedMode] = useState<"simple" | "pro" | null>(null);
+  const playingPrefs = lockedMode === null ? racePrefs : { ...racePrefs, mode: lockedMode };
+  const copy = useRaceCopy();
+  const trimLabels = useSailCoachLabels();
+  const copyRef = useRef(copy); copyRef.current = copy;
+  const racePrefsRef = useRef(playingPrefs); racePrefsRef.current = playingPrefs;
+  const [rudder, setRudderState] = useState(0);
+  const rudderRef = useRef(0);
+  const [trim, setTrimState] = useState<Controls>(() => raceTrim({ mainHoisted: true }));
+  const trimRef = useRef(trim);
+  const setTrim = useCallback((patch: Partial<Controls>) => { const next = raceTrim(patch, trimRef.current); trimRef.current = next; setTrimState(next); }, []);
+  const [paused, setPaused] = useState(false);
+  const pausedRef = useRef(false);
+  const raceClockRef = useRef(0);
+  const hudRefreshRef = useRef(0);
+  const ruleStateRef = useRef(createRaceRulesState());
+  const [ruleNotice, setRuleNotice] = useState<{text: string; until: number} | null>(null);
+  const [penalty, setPenalty] = useState(0);
+  const raceIdRef = useRef("");
+  const [nativeSave, setNativeSave] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const pendingNativeSaves = useRef(createPendingRaceSaves());
+  const nativeReplayHydrated = useRef(false);
   const [gameState, setGameState] = useState<GameState>('menu');
+  const startupGate = useRef(createRaceStartupGate());
+  const [sceneRaceId, setSceneRaceId] = useState("");
+  const [sceneReady, setSceneReady] = useState(false);
+  const onSceneReady = useCallback(() => {
+    if (startupGate.current.rendered(sceneRaceId)) setSceneReady(true);
+  }, [sceneRaceId]);
   // Daily challenge mode: read ?daily=YYYY-MM-DD&difficulty=...&wind=...
   const [dailyDay, setDailyDay] = useState<string | null>(null);
   const [difficulty, setDifficulty] = useState<Difficulty>('medium');
@@ -212,13 +258,12 @@ export default function GamePage() {
   const [playerTWA, setPlayerTWA] = useState(0);
   const [playerSpeed, setPlayerSpeed] = useState(0);
 
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const boatsRef = useRef<Boat[]>([]);
   const courseRef = useRef<Course>(makeCourse());
+  const guidanceStateRef = useRef<RaceGuidanceState | null>(null);
+  const [routeGuidance, setRouteGuidance] = useState<RaceGuidance | null>(null);
   const keysRef = useRef<Set<string>>(new Set());
-  const lastTimeRef = useRef<number>(0);
   const rafRef = useRef<number | null>(null);
-  const startTimeRef = useRef<number>(0);
 
   // Race log for AI coaching
   const logSamplesRef = useRef<LogSample[]>([]);
@@ -247,6 +292,7 @@ export default function GamePage() {
   }, [toast]);
 
   // AI coaching state
+  const [coachingSource, setCoachingSource] = useState<"local" | "ai">("local");
   const [coaching, setCoaching] = useState<Coaching | null>(null);
   const [coachingLoading, setCoachingLoading] = useState(false);
   const [coachingError, setCoachingError] = useState<string | null>(null);
@@ -267,6 +313,7 @@ export default function GamePage() {
 
   // Load nickname on mount
   useEffect(() => {
+    if (isNativeRace()) return;
     fetch('/api/player').then((r) => r.json()).then((d) => {
       if (d?.nickname) setNickname(d.nickname);
     }).catch(() => {});
@@ -275,27 +322,17 @@ export default function GamePage() {
   // Daily mode: read URL params and lock difficulty/wind
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const url = new URL(window.location.href);
-    const day = url.searchParams.get('daily');
-    if (!day) return;
-    setDailyDay(day);
-    const d = url.searchParams.get('difficulty');
-    const w = url.searchParams.get('wind');
-    if (d === 'easy' || d === 'medium' || d === 'hard') setDifficulty(d);
-    if (w === 'light' || w === 'medium' || w === 'heavy') setWindStrength(w);
+    const setup = linkedRaceSetup(readRaceSearch());
+    if (!setup) return;
+    setDifficulty(setup.difficulty);
+    setWindStrength(setup.windStrength);
+    setSelectedMission(missions.find(m => m.id === setup.missionId) ?? null);
+    setDailyDay(setup.dailyDay);
   }, []);
-
-  // Touch controls state (true while button held). Mirror to ref so the game
-  // loop always reads the current value - fixes B1 (mobile steering).
-  const [leftHeld, setLeftHeld] = useState(false);
-  const [rightHeld, setRightHeld] = useState(false);
-  const leftHeldRef = useRef(false);
-  const rightHeldRef = useRef(false);
-  useEffect(() => { leftHeldRef.current = leftHeld; }, [leftHeld]);
-  useEffect(() => { rightHeldRef.current = rightHeld; }, [rightHeld]);
 
   // Autopilot: holds a target heading; any input turns it off
   const [autopilotOn, setAutopilotOn] = useState(false);
+  const [targetHeading, setTargetHeading] = useState(0);
   const autopilotHeadingRef = useRef<number>(0);
   // Mirror autopilot state into a ref. The rAF game-loop effect closes over its
   // deps at setup ([gameState, difficulty]) and is intentionally NOT restarted
@@ -304,9 +341,8 @@ export default function GamePage() {
   const autopilotOnRef = useRef(false);
   useEffect(() => { autopilotOnRef.current = autopilotOn; }, [autopilotOn]);
 
-  // Sound state (for UI toggle; actual playback reads live from lib)
-  const [muted, setMutedState] = useState(false);
-  useEffect(() => { setMutedState(isMuted()); }, []);
+  const { prefs: controlPrefs, update: updateControls } = useControlPrefs();
+  const muted = !controlPrefs.sound;
 
   // Wind strength multiplier: 0.6 (light) / 1.0 (medium) / 1.3 (heavy)
   const [windStrength, setWindStrength] = useState<'light' | 'medium' | 'heavy'>('medium');
@@ -332,11 +368,6 @@ export default function GamePage() {
     }
   }, []);
 
-  // Boat visual style
-  const [boatStyle, setBoatStyle] = useState<BoatStyle>('cruiser');
-  const boatStyleRef = useRef<BoatStyle>(boatStyle);
-  useEffect(() => { boatStyleRef.current = boatStyle; }, [boatStyle]);
-
   // Wind shifts (live direction + gust multiplier)
   const windDirRef = useRef<number>(WIND_DIRECTION);
   const windGustRef = useRef<number>(1.0);
@@ -359,6 +390,9 @@ export default function GamePage() {
         { es: 'No has terminado', fr: 'Course non terminée', de: 'Nicht im Ziel', it: 'Regata non conclusa' }));
       return;
     }
+    const finishTime = player.finishTime;
+    const completedRaceId = raceIdRef.current;
+    const completedPenalty = ruleStateRef.current.penalties.player ?? 0;
     const effectiveNick = (withNickname ?? nickname ?? '').trim();
     if (!effectiveNick) {
       setSaveState('prompting');
@@ -382,7 +416,7 @@ export default function GamePage() {
           });
           const d = await r.json();
           if (!r.ok) throw new Error(d.error || tp('Не удалось сохранить ник', 'Failed to save nickname', 'Nie udało się zapisać nicku', { es: 'No se pudo guardar el apodo', fr: 'Impossible d\'enregistrer le pseudo', de: 'Nickname konnte nicht gespeichert werden', it: 'Impossibile salvare il nickname' }));
-          setNickname(d.nickname);
+          if (raceIdRef.current === completedRaceId) setNickname(d.nickname);
         }
         const res = await fetch('/api/race-result', {
           method: 'POST',
@@ -391,7 +425,7 @@ export default function GamePage() {
             difficulty,
             windStrength,
             missionId: selectedMission?.id ?? null,
-            finishTimeSec: player.finishTime,
+            finishTimeSec: finishTime + completedPenalty,
             position: playerRank || null,
             totalBoats: results.length || null,
             tacks,
@@ -403,8 +437,9 @@ export default function GamePage() {
         });
         const d = await res.json();
         if (!res.ok) throw new Error(d.error || tp('Не удалось сохранить результат', 'Failed to save result', 'Nie udało się zapisać wyniku', { es: 'No se pudo guardar el resultado', fr: 'Impossible d\'enregistrer le résultat', de: 'Ergebnis konnte nicht gespeichert werden', it: 'Impossibile salvare il risultato' }));
-        setSaveState('saved');
+        if (raceIdRef.current === completedRaceId) setSaveState('saved');
       } catch (err) {
+        if (raceIdRef.current !== completedRaceId) return;
         setSaveState('error');
         setSaveError(err instanceof Error ? err.message : tp('Ошибка сети', 'Network error', 'Błąd sieci', { es: 'Error de red', fr: 'Erreur réseau', de: 'Netzwerkfehler', it: 'Errore di rete' }));
       }
@@ -416,7 +451,7 @@ export default function GamePage() {
   // silently; without one saveResult() flips saveState to 'prompting' and
   // the finish overlay shows a skippable nickname prompt.
   useEffect(() => {
-    if (gameState !== 'finished') return;
+    if (gameState !== 'finished' || isNativeRace()) return;
     if (saveAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
@@ -437,12 +472,13 @@ export default function GamePage() {
 
   // Auto-save replay on finish (fire and forget)
   useEffect(() => {
-    if (gameState !== 'finished') return;
+    if (gameState !== 'finished' || isNativeRace()) return;
     if (replayAttemptedRef.current) return;
     const player = boatsRef.current.find((b) => b.isPlayer);
     if (!player || player.lapDone !== 2) return;
     if (logSamplesRef.current.length < 5) return;
     replayAttemptedRef.current = true;
+    const completedRaceId = raceIdRef.current;
     fetch('/api/replay', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -451,6 +487,8 @@ export default function GamePage() {
         windStrength,
         missionId: selectedMission?.id ?? null,
         finishTimeSec: player.finishTime,
+        mode: racePrefsRef.current.mode,
+        penaltySeconds: ruleStateRef.current.penalties.player ?? 0,
         samples: logSamplesRef.current,
         events: logEventsRef.current,
         course: courseRef.current,
@@ -458,7 +496,7 @@ export default function GamePage() {
       }),
     })
       .then((r) => r.ok ? r.json() : Promise.reject(new Error('HTTP ' + r.status)))
-      .then((d) => { if (d?.code) setReplayCode(d.code); })
+      .then((d) => { if (raceIdRef.current === completedRaceId && d?.code) setReplayCode(d.code); })
       .catch(() => { /* silent - replay is optional */ });
   }, [gameState, difficulty, windStrength, selectedMission, nickname]);
 
@@ -466,25 +504,23 @@ export default function GamePage() {
   // Initialize boats for a new race
   // -----------------------------------------------------------------------
   const initRace = useCallback((diff: Difficulty) => {
+    setLockedMode(null);
+    keysRef.current.clear();
     const cfg = DIFFICULTY_CONFIG[diff];
     const course = courseRef.current;
     const lineCenter = { x: (course.startLine.a.x + course.startLine.b.x) / 2, y: course.startLine.a.y };
-    const numBoats = cfg.opponents + 1;
     const boats: Boat[] = [];
 
     // Player in the middle
     boats.push({
       id: 'player',
-      name: 'Ты',
+      name: copyRef.current.you,
       color: '#00d4ff',
       pos: { x: lineCenter.x, y: lineCenter.y + 30 },
       heading: 45,
       speed: 0,
-      targetSpeed: 0,
       isPlayer: true,
-      nextMarkIdx: 0,
       lapDone: 0,
-      wake: [],
       speedMul: 1,
     });
 
@@ -499,19 +535,27 @@ export default function GamePage() {
         pos: { x: lineCenter.x + t * spread * 0.7, y: lineCenter.y + 30 + (i % 2) * 20 },
         heading: t > 0 ? 315 : 45,
         speed: 0,
-        targetSpeed: 0,
         isPlayer: false,
-        nextMarkIdx: 0,
         lapDone: 0,
-        wake: [],
         speedMul: cfg.aiSpeedMul * (0.97 + Math.random() * 0.06), // difficulty, a little spread between bots
       });
     }
 
+    const startingTrim = raceTrim({ ...trimForDrive(createInitialState({ tws: 12 * windStrengthRef.current, trueWindDir: WIND_DIRECTION, heading: 45, boatSpeed: 0 }), raceTrim({})), mainHoisted: true, jibFurl: 0, reef: 0 });
+    trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
+    const initialGuidance = planRaceGuidance(boats[0], course, WIND_DIRECTION);
+    guidanceStateRef.current = initialGuidance.state; setRouteGuidance(initialGuidance.guidance);
+    raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    startupGate.current.reset(raceIdRef.current);
+    setSceneRaceId(raceIdRef.current); setSceneReady(false);
+    ruleStateRef.current = createRaceRulesState();
+    raceClockRef.current = 0; pausedRef.current = false; setPaused(false);
+    rudderRef.current = 0; setRudderState(0);
+    setRuleNotice(null); setPenalty(0); setNativeSave("idle");
     setResults([]);
     setElapsed(0);
-    setCoaching(null);
+    setCoaching(null); setCoachingSource("local");
     setCoachingError(null);
     logSamplesRef.current = [];
     logEventsRef.current = [];
@@ -534,7 +578,7 @@ export default function GamePage() {
     // Look up the user's best for this (difficulty, wind) bucket so the
     // briefing can show a "Your best: 1:27" badge - small motivator without
     // being competitive about it.
-    setBestRecord(getBestRecord(difficulty, windStrength));
+    setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
     setIsNewRecord(false); // reset from any previous race
     // Persist the user's INTENT to localStorage so we can offer to resume
     // after a reload. We refresh on every phase transition so the saved
@@ -547,7 +591,7 @@ export default function GamePage() {
     });
     setResumeOffer(null);
     setGameState('briefing');
-  }, [difficulty, windStrength, selectedMission, initRace]);
+  }, [difficulty, windStrength, selectedMission, initRace, racePrefs.mode]);
 
   const beginCountdown = useCallback(() => {
     saveRaceSetup({
@@ -556,20 +600,22 @@ export default function GamePage() {
       missionId: selectedMission?.id ?? null,
       phase: 'countdown',
     });
+    setLockedMode(racePrefs.mode);
     setCountdown(3);
     setGameState('countdown');
-  }, [difficulty, windStrength, selectedMission]);
+  }, [difficulty, windStrength, selectedMission, racePrefs.mode]);
 
   // Legacy name - kept so existing handlers don't break (e.g. "Ещё раз" button)
-  const startRace = openBriefing;
 
   // Countdown
   useEffect(() => {
-    if (gameState !== 'countdown') return;
+    if (gameState !== 'countdown' || paused || !sceneReady) return;
     if (countdown === 0) {
       playStart();
-      startTimeRef.current = performance.now();
-      lastTimeRef.current = performance.now();
+      postNativeRaceStarted({ id: raceIdRef.current, mode: racePrefsRef.current.mode, difficulty, windStrength, missionId: selectedMission?.id ?? null });
+      logEventsRef.current.push({ type: "start", t: 0 });
+      const player = boatsRef.current.find(b => b.isPlayer);
+      if (player) logSamplesRef.current.push(recordSample(player, 0, windDirRef.current));
       // Mark the saved setup as "racing" so a reload knows the user
       // was actively in a race, not just on the briefing page.
       saveRaceSetup({
@@ -584,26 +630,38 @@ export default function GamePage() {
     playBeep();
     const id = setTimeout(() => setCountdown((c) => c - 1), 1000);
     return () => clearTimeout(id);
-  }, [gameState, countdown, difficulty, windStrength, selectedMission]);
+  }, [gameState, countdown, difficulty, windStrength, selectedMission, paused, sceneReady]);
 
   // -----------------------------------------------------------------------
   // Keyboard input
   // -----------------------------------------------------------------------
   useEffect(() => {
+    if (gameState !== "racing" && gameState !== "countdown") return;
     const onDown = (e: KeyboardEvent) => {
-      keysRef.current.add(e.key.toLowerCase());
-      if (['arrowleft', 'arrowright', 'arrowup', 'arrowdown', ' '].includes(e.key.toLowerCase())) {
+      const target = e.target as HTMLElement | null;
+      if (target?.closest("input,textarea,select,[contenteditable=true],[role=slider]") || e.metaKey || e.ctrlKey || e.altKey) return;
+      const key = e.key.toLowerCase();
+      const sheet = key === "q" || key === "a" ? "mainSheet" : key === "w" || key === "s" ? "jibSheet" : null;
+      if (sheet && racePrefsRef.current.mode === "pro") {
         e.preventDefault();
+        setTrim({ [sheet]: trimRef.current[sheet] + (key === "q" || key === "w" ? .05 : -.05) });
+        return;
       }
+      keysRef.current.add(key);
+      if (["arrowleft", "arrowright", "arrowup", "arrowdown", " "].includes(key)) e.preventDefault();
     };
     const onUp = (e: KeyboardEvent) => keysRef.current.delete(e.key.toLowerCase());
-    window.addEventListener('keydown', onDown);
-    window.addEventListener('keyup', onUp);
+    const clear = () => keysRef.current.clear();
+    window.addEventListener("keydown", onDown);
+    window.addEventListener("keyup", onUp);
+    window.addEventListener("blur", clear);
     return () => {
-      window.removeEventListener('keydown', onDown);
-      window.removeEventListener('keyup', onUp);
+      window.removeEventListener("keydown", onDown);
+      window.removeEventListener("keyup", onUp);
+      window.removeEventListener("blur", clear);
+      clear();
     };
-  }, []);
+  }, [gameState, setTrim]);
 
   // -----------------------------------------------------------------------
   // Game loop - also runs during countdown so boats can sail freely before
@@ -613,22 +671,20 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState !== 'racing' && gameState !== 'countdown') return;
     const isRacing = gameState === 'racing';
-    // Initialize lastTime for countdown when loop starts
-    if (lastTimeRef.current === 0 || gameState === 'countdown') {
-      lastTimeRef.current = performance.now();
-    }
-
+    const clock = createFixedClock();
+    let ended = false;
     const step = (now: number) => {
-      const dt = Math.min(0.05, (now - lastTimeRef.current) / 1000);
-      lastTimeRef.current = now;
+      clock.advance(now, startupGate.current.active(pausedRef.current, document.hidden), (dt) => {
+      if (ended) return;
+      if (isRacing) raceClockRef.current += dt;
 
       const course = courseRef.current;
-      const boats = boatsRef.current;
+      let boats = boatsRef.current;
 
       // --- Wind shifts: slow sinusoidal direction drift + short gusts ---
       // Direction oscillates ±6° with period ~22s (slow shift)
       // Plus a faster ±2° wobble with period ~7s (nervous breeze)
-      const raceT = (now - (startTimeRef.current || now)) / 1000;
+      const raceT = raceClockRef.current;
       const shift = Math.sin(raceT * (2 * Math.PI / 22)) * 6
                   + Math.sin(raceT * (2 * Math.PI / 7)) * 2;
       windDirRef.current = (WIND_DIRECTION + shift + 360) % 360;
@@ -643,17 +699,29 @@ export default function GamePage() {
 
       for (const boat of boats) {
         prevPositions.set(boat.id, { ...boat.pos });
+        if (boat.lapDone === 2) continue;
 
         let turnInput = 0;
         if (boat.isPlayer) {
-          const right = keysRef.current.has("arrowright") || keysRef.current.has("d") || rightHeldRef.current;
-          const left = keysRef.current.has("arrowleft") || keysRef.current.has("a") || leftHeldRef.current;
-          turnInput = Number(right) - Number(left);
+          const right = keysRef.current.has("arrowright");
+          const left = keysRef.current.has("arrowleft");
+          turnInput = right || left ? Number(right) - Number(left) : rudderRef.current;
           if (turnInput && autopilotOnRef.current) { setAutopilotOn(false); autopilotOnRef.current = false; }
           if (!turnInput && autopilotOnRef.current) turnInput = Math.max(-1, Math.min(1, angleDiff(boat.heading, autopilotHeadingRef.current) / 12));
         } else turnInput = raceAutopilotTurn(boat, course, windDirRef.current);
-        stepBoat(boat, dt, windDirRef.current, windGustRef.current, { turn: turnInput }, { windStrengthMul: windStrengthRef.current, speedMul: boat.speedMul });
-        boat.targetSpeed = boat.speed;
+        stepBoat(boat, dt, windDirRef.current, windGustRef.current,
+          boat.isPlayer ? { turn: turnInput, autoTrim: racePrefsRef.current.mode !== "pro", trim: trimRef.current } : { turn: turnInput },
+          { windStrengthMul: windStrengthRef.current, speedMul: boat.speedMul, steering: boat.isPlayer ? "responsive" : "legacy" });
+      }
+
+      const checked = evaluateRaceRules(ruleStateRef.current, { boats, course, windDir: windDirRef.current, time: raceClockRef.current,
+        racing: isRacing, enabled: racePrefsRef.current.rules, penalties: racePrefsRef.current.penalties, previousPositions: Object.fromEntries(prevPositions) });
+      ruleStateRef.current = checked.state;
+      const playerEvents = checked.events.filter(e => e.boatId === "player");
+      if (playerEvents.length) {
+        const important = playerEvents.find(e => e.penaltySeconds || e.kind === "early-start" || e.kind === "give-way") ?? playerEvents[0];
+        setRuleNotice({ text: copyRef.current.ruleMessage(important), until: raceClockRef.current + 7 });
+        setPenalty(checked.state.penalties.player ?? 0);
       }
       resolveCollisions(boats, dt);
 
@@ -661,18 +729,12 @@ export default function GamePage() {
       for (const boat of boats) {
         const prevPos = prevPositions.get(boat.id) ?? { ...boat.pos };
 
-        // --- Wake ---
-        if (boat.speed > 0.3) {
-          boat.wake.unshift({ ...boat.pos });
-          if (boat.wake.length > 30) boat.wake.pop();
-        }
-
         // Mark / finish detection only counts once the race is officially on.
         if (!isRacing) continue;
 
-        const event = updateLap(boat, prevPos, course, (now - startTimeRef.current) / 1000);
+        const event = updateLap(boat, prevPos, course, raceClockRef.current);
         if (event === "mark") {
-          const t = (now - startTimeRef.current) / 1000;
+          const t = raceClockRef.current;
           markTimesRef.current.set(boat.id, t);
           if (boat.isPlayer) {
             const times = [...markTimesRef.current.values()];
@@ -680,28 +742,32 @@ export default function GamePage() {
           }
         }
         if (boat.isPlayer && event === "mark") {
-          logEventsRef.current.push({ type: "mark-rounded", t: (now - startTimeRef.current) / 1000, note: "windward-port" });
+          logEventsRef.current.push({ type: "mark-rounded", t: raceClockRef.current, note: "windward-port" });
           playMarkRound();
         } else if (boat.isPlayer && event === "finish") {
           logEventsRef.current.push({ type: "finish", t: boat.finishTime! });
+          logSamplesRef.current.push(recordSample(boat, boat.finishTime!, windDirRef.current));
           playFinish();
         }
+      }
+
+      // A completed player's final sample is already fixed. Resolve only the
+      // remaining fleet now, so Menu/backgrounding cannot discard this finish
+      // during the former 15-second wait and penalty-adjusted places stay true.
+      if (isRacing && boats.some(boat => boat.isPlayer && boat.lapDone === 2)) {
+        const resolved = resolveFinishedFleet({ boats, course, time: raceClockRef.current,
+          windStrengthMul: windStrengthRef.current, rules: ruleStateRef.current,
+          rulesEnabled: racePrefsRef.current.rules, penaltiesEnabled: racePrefsRef.current.penalties });
+        boats = resolved.boats; boatsRef.current = boats;
+        ruleStateRef.current = resolved.rules;
       }
 
       // --- Race log recording (player only, race-time only) ---
       const playerBoat = boats.find((b) => b.isPlayer);
       if (isRacing && playerBoat && playerBoat.lapDone < 2) {
-        const t = (now - startTimeRef.current) / 1000;
+        const t = raceClockRef.current;
         if (t - lastSampleTimeRef.current >= 0.5) {
-          logSamplesRef.current.push({
-            t,
-            x: Math.round(playerBoat.pos.x),
-            y: Math.round(playerBoat.pos.y),
-            heading: Math.round(playerBoat.heading),
-            twa: Math.round(calcTWA(playerBoat.heading, windDirRef.current)),
-            speed: Math.round(playerBoat.speed * 10) / 10,
-            lap: playerBoat.lapDone,
-          });
+          logSamplesRef.current.push(recordSample(playerBoat, t, windDirRef.current));
           lastSampleTimeRef.current = t;
         }
         // No-go zone event
@@ -738,16 +804,20 @@ export default function GamePage() {
       // Update UI state
       const player = boats.find((b) => b.isPlayer)!;
       const playerTwa = calcTWA(player.heading, windDirRef.current);
-      setPlayerTWA(playerTwa);
-      setPlayerSpeed(player.speed);
+      const refreshHud = now - hudRefreshRef.current >= 100;
+      if (refreshHud) {
+        hudRefreshRef.current = now; setPlayerTWA(playerTwa); setPlayerSpeed(player.speed);
+        const advisory = planRaceGuidance(player, course, windDirRef.current, guidanceStateRef.current);
+        guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
+      }
       // Live race time read from the clock each frame. Do NOT use the `elapsed`
       // state here or in the finish checks below: this loop effect closes over
       // `elapsed` at mount (deps are [gameState, difficulty]) and setElapsed does
       // not retrigger it, so the captured value would stay frozen at 0 and the
       // 5-minute timeout / post-finish race-end paths would never fire (a stuck
       // AI in the no-go zone could hang the race forever).
-      const elapsedSec = isRacing ? (now - startTimeRef.current) / 1000 : 0;
-      if (isRacing) setElapsed(elapsedSec);
+      const elapsedSec = isRacing ? raceClockRef.current : 0;
+      if (isRacing && refreshHud) setElapsed(elapsedSec);
 
       // Calculate position (rank): the same count the 3D name tags show.
       const ranks = raceRanks(boats, course);
@@ -770,18 +840,17 @@ export default function GamePage() {
         }
       }
 
-      // Render
-      draw();
 
       // Check race end: all boats finished OR player finished - only when racing
       const allFinished = boats.every((b) => b.lapDone === 2);
       const playerFinished = player.lapDone === 2;
       const tooLong = elapsedSec > 300; // 5 minutes max
 
-      if (isRacing && (allFinished || (playerFinished && elapsedSec > (player.finishTime ?? 0) + 15) || tooLong)) {
+      if (isRacing && (allFinished || playerFinished || tooLong)) {
         const sorted = [...boats]
-          .map((b) => ({ name: b.name, time: b.finishTime ?? Infinity, color: b.color, isPlayer: b.isPlayer }))
+          .map((b) => ({ name: b.name, time: b.finishTime === undefined ? Infinity : b.finishTime + (ruleStateRef.current.penalties[b.id] ?? 0), color: b.color, isPlayer: b.isPlayer }))
           .sort((a, b) => a.time - b.time);
+        ended = true;
         setResults(sorted);
         setGameState('finished');
         // Race ended cleanly - drop the resume offer so the next reload
@@ -792,7 +861,7 @@ export default function GamePage() {
         // bucket. Only counts ACTUAL finishers - the 5-minute timeout above
         // sets player.finishTime to undefined which the lib filters out.
         if (player.finishTime != null) {
-          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime);
+          const rec = tryUpdateBestRecord(difficulty, windStrength, player.finishTime + (ruleStateRef.current.penalties.player ?? 0), racePrefsRef.current.mode);
           setBestRecord(rec.currentBest);
           setIsNewRecord(rec.isNewRecord);
         }
@@ -803,7 +872,7 @@ export default function GamePage() {
           const noGoEntries = logEventsRef.current.filter((e) => e.type === 'no-go-entered').length;
           const topSpeed = logSamplesRef.current.reduce((m, s) => Math.max(m, s.speed), 0);
           const metrics: RaceMetrics = {
-            finishTimeSec: player.finishTime ?? null,
+            finishTimeSec: player.finishTime == null ? null : player.finishTime + (ruleStateRef.current.penalties.player ?? 0),
             tackCount: tacks,
             noGoEntries,
             topSpeed,
@@ -830,16 +899,31 @@ export default function GamePage() {
           events: logEventsRef.current,
           lang,
         };
-        setCoachingLoading(true);
-        fetch('/api/coach', {
+        const localCoaching = analyseRaceLocally(payload, langRef.current);
+        setCoaching(localCoaching);
+        // Post within the finish tick, before a result/menu render can replace
+        // the active refs. Keep the immutable payload until its own durable ack.
+        if (isNativeRace() && player.finishTime !== undefined && logSamplesRef.current.length >= 2) {
+          const snapshot: NativeRaceSnapshot = { schema: 1, id: raceIdRef.current, mode: racePrefsRef.current.mode,
+            difficulty, windStrength, missionId: selectedMission?.id ?? null,
+            finishTimeSec: player.finishTime, position: playerRank, totalBoats: sorted.length,
+            course, samples: logSamplesRef.current, events: logEventsRef.current, coaching: localCoaching,
+            penaltySeconds: ruleStateRef.current.penalties.player ?? 0 };
+          pendingNativeSaves.current.add(snapshot);
+          setNativeSave(postNativeRace(pendingNativeSaves.current.get(snapshot.id)!) ? "saving" : "error");
+        }
+        setCoachingLoading(!isNativeRace());
+        const completedRaceId = raceIdRef.current;
+        if (!isNativeRace()) fetch('/api/coach', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
           .then((r) => r.json())
           .then((data) => {
+            if (raceIdRef.current !== completedRaceId) return;
             if (data.coaching) {
-              setCoaching(data.coaching);
+              setCoaching(data.coaching); setCoachingSource(data.fallback ? "local" : "ai");
             } else {
               // Fall back to local rule-based analysis so the user still gets feedback
               const local = analyseRaceLocally(payload, lang);
@@ -849,17 +933,19 @@ export default function GamePage() {
             }
           })
           .catch(() => {
+            if (raceIdRef.current !== completedRaceId) return;
             // Network error - use local analysis
             const local = analyseRaceLocally(payload, lang);
             setCoaching(local);
             setCoachingError(tp('AI недоступен - показан локальный анализ', 'AI unavailable - showing local analysis', 'AI niedostępne - pokazuję analizę lokalną', { es: 'IA no disponible - se muestra el análisis local', fr: 'IA indisponible - analyse locale affichée', de: 'KI nicht verfügbar - lokale Analyse wird angezeigt', it: 'IA non disponibile - viene mostrata l\'analisi locale' }));
           })
-          .finally(() => setCoachingLoading(false));
+          .finally(() => { if (raceIdRef.current === completedRaceId) setCoachingLoading(false); });
 
         return;
       }
 
-      rafRef.current = requestAnimationFrame(step);
+      });
+      if (!ended) rafRef.current = requestAnimationFrame(step);
     };
 
     rafRef.current = requestAnimationFrame(step);
@@ -870,295 +956,96 @@ export default function GamePage() {
   }, [gameState, difficulty]);
 
   // -----------------------------------------------------------------------
-  // Canvas setup (retina)
-  // -----------------------------------------------------------------------
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const resize = () => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      canvas.width = rect.width * dpr;
-      canvas.height = rect.height * dpr;
-      const ctx = canvas.getContext('2d');
-      if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener('resize', resize);
-    return () => window.removeEventListener('resize', resize);
-  }, [gameState]);
-
-  // -----------------------------------------------------------------------
-  // Draw function
-  // -----------------------------------------------------------------------
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const W = rect.width;
-    const H = rect.height;
-    const course = courseRef.current;
-    const boats = boatsRef.current;
-    const player = boats.find((b) => b.isPlayer);
-    if (!player) return;
-
-    // In 3D the scene is Race3DView under this canvas; only the mini-map stays on top.
-    if (view3dRef.current) {
-      ctx.clearRect(0, 0, W, H);
-      drawMiniMap(ctx, W, H, boats, course, tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' }));
-      return;
-    }
-
-    // Camera follows player
-    const scale = Math.min(W / 500, H / 700);
-    const camX = player.pos.x;
-    const camY = player.pos.y;
-    const toScreen = (p: Vec2) => ({
-      x: W / 2 + (p.x - camX) * scale,
-      y: H / 2 + (p.y - camY) * scale,
-    });
-
-    // --- Background: ocean ---
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, '#051425');
-    grad.addColorStop(1, '#0a1f3d');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-
-    // --- Water pattern (world-locked) ---
-    ctx.save();
-    ctx.globalAlpha = 0.4;
-    ctx.fillStyle = '#ffffff';
-    const patternSize = 40 * scale;
-    const offX = ((W / 2 - camX * scale) % patternSize + patternSize) % patternSize;
-    const offY = ((H / 2 - camY * scale) % patternSize + patternSize) % patternSize;
-    for (let x = -patternSize + offX; x < W; x += patternSize) {
-      for (let y = -patternSize + offY; y < H; y += patternSize) {
-        ctx.globalAlpha = 0.12;
-        ctx.beginPath();
-        ctx.arc(x, y, 1.2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.restore();
-
-    // --- Venue: shore and islands around the race area (never inside it) ---
-    drawVenue(ctx, venueRef.current, toScreen, scale, langRef.current);
-
-    // --- No-go zone projected around LIVE wind direction (visual aid) ---
-    ctx.save();
-    const playerScreen = toScreen(player.pos);
-    const wd = windDirRef.current;
-    ctx.translate(playerScreen.x, playerScreen.y);
-    ctx.rotate(deg2rad(wd)); // rotate local frame so wind points up
-    ctx.beginPath();
-    const coneLen = 120 * scale;
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, coneLen, -Math.PI / 2 - deg2rad(30), -Math.PI / 2 + deg2rad(30));
-    ctx.lineTo(0, 0);
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(255,68,68,0.08)';
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,68,68,0.25)';
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // Wind arrow (short cyan) pointing DOWN from wind source toward player
-    ctx.beginPath();
-    const arrowLen = 22 * scale;
-    ctx.moveTo(0, -coneLen * 0.6);
-    ctx.lineTo(0, -coneLen * 0.6 + arrowLen);
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.9)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-4, -coneLen * 0.6 + arrowLen - 4);
-    ctx.lineTo(0, -coneLen * 0.6 + arrowLen);
-    ctx.lineTo(4, -coneLen * 0.6 + arrowLen - 4);
-    ctx.fillStyle = 'rgba(0, 212, 255, 0.9)';
-    ctx.fill();
-    ctx.restore();
-
-    // --- Start/Finish line ---
-    const lineA = toScreen(course.startLine.a);
-    const lineB = toScreen(course.startLine.b);
-    ctx.strokeStyle = '#ffaa00';
-    ctx.setLineDash([8, 6]);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(lineA.x, lineA.y);
-    ctx.lineTo(lineB.x, lineB.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // --- Laylines from windward mark (shift with live wind) ---
-    const windwardScreen = toScreen(course.marks[0].pos);
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,68,68,0.25)';
-    ctx.setLineDash([4, 8]);
-    ctx.lineWidth = 1;
-    const laylen = 400 * scale;
-    const wdL = windDirRef.current;
-    // Port layline = wind direction + 180 + 45 (downwind-right of wind source)
-    const portA = deg2rad(wdL + 180 + 45);
-    const starA = deg2rad(wdL + 180 - 45);
-    ctx.beginPath();
-    ctx.moveTo(windwardScreen.x, windwardScreen.y);
-    ctx.lineTo(windwardScreen.x + Math.sin(portA) * laylen, windwardScreen.y - Math.cos(portA) * laylen);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(windwardScreen.x, windwardScreen.y);
-    ctx.lineTo(windwardScreen.x + Math.sin(starA) * laylen, windwardScreen.y - Math.cos(starA) * laylen);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.restore();
-
-    // --- Marks ---
-    for (const mark of course.marks) {
-      const p = toScreen(mark.pos);
-      ctx.save();
-      // Pulsing outer ring
-      const pulse = 1 + Math.sin(performance.now() / 400) * 0.15;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, mark.radius * scale * pulse, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(255,170,0,0.2)';
-      ctx.fill();
-      // Mark circle
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, mark.radius * scale * 0.7, 0, Math.PI * 2);
-      ctx.fillStyle = '#ffaa00';
-      ctx.strokeStyle = '#ffffff';
-      ctx.lineWidth = 2;
-      ctx.fill();
-      ctx.stroke();
-      // Label
-      if (mark.type === 'windward') {
-        ctx.fillStyle = '#ffaa00';
-        ctx.font = 'bold 12px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        const markLabel = tp(mark.label, mark.labelEn, mark.labelPl, { es: mark.labelEs, fr: mark.labelFr, de: mark.labelDe, it: mark.labelIt });
-        ctx.fillText(markLabel, p.x, p.y - mark.radius * scale * 1.8);
-      }
-      ctx.restore();
-    }
-
-    // --- Boats & wakes ---
-    for (const boat of boats) {
-      // Wake
-      if (boat.wake.length > 1) {
-        ctx.save();
-        for (let i = 0; i < boat.wake.length - 1; i++) {
-          const p = toScreen(boat.wake[i]);
-          ctx.globalAlpha = (1 - i / boat.wake.length) * 0.4;
-          ctx.fillStyle = '#ffffff';
-          ctx.beginPath();
-          ctx.arc(p.x, p.y, 1.5 * scale * (1 - i / boat.wake.length), 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-
-      // Boat
-      const bp = toScreen(boat.pos);
-      drawBoat(ctx, bp.x, bp.y, boat.heading, boat.color, scale, boat.isPlayer, windDirRef.current, boat.isPlayer ? boatStyleRef.current : 'cruiser');
-
-      // Name label for opponents
-      if (!boat.isPlayer) {
-        ctx.save();
-        ctx.fillStyle = boat.color;
-        ctx.font = '10px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.globalAlpha = 0.8;
-        ctx.fillText(boat.name, bp.x, bp.y - 24 * scale);
-        ctx.restore();
-      }
-    }
-
-    // --- Arrow pointing to next mark ---
-    if (player.lapDone < 2) {
-      const target = raceWaypoint(player, course);
-      const targetScreen = toScreen(target);
-      // Only show arrow if target is off-screen or far
-      const distToTarget = distance(player.pos, target);
-      if (distToTarget > 180) {
-        const bear = bearing(player.pos, target);
-        const arrowR = Math.min(W, H) * 0.22;
-        const ax = W / 2 + Math.sin(deg2rad(bear)) * arrowR;
-        const ay = H / 2 - Math.cos(deg2rad(bear)) * arrowR;
-        ctx.save();
-        ctx.translate(ax, ay);
-        ctx.rotate(deg2rad(bear));
-        ctx.fillStyle = 'rgba(0,212,255,0.85)';
-        ctx.strokeStyle = '#00d4ff';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.moveTo(0, -12);
-        ctx.lineTo(8, 8);
-        ctx.lineTo(0, 4);
-        ctx.lineTo(-8, 8);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
-        // Distance label
-        ctx.save();
-        ctx.fillStyle = '#00d4ff';
-        ctx.font = 'bold 11px system-ui, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`${Math.round(distToTarget * METRES_PER_UNIT)} ${langRef.current === 'ru' ? 'м' : 'm'}`, ax, ay + 24);
-        ctx.restore();
-      }
-    }
-
-    // --- Mini-map (bottom-right) ---
-    drawMiniMap(ctx, W, H, boats, course, tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' }));
-  }, []);
-
-  // -----------------------------------------------------------------------
   // Reset
   // -----------------------------------------------------------------------
   const backToMenu = useCallback(() => {
+    setLockedMode(null);
     setGameState('menu');
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
   }, []);
 
-  // Re-render canvas on countdown / state changes
-  useEffect(() => {
-    if (gameState === 'countdown') {
-      // Ensure canvas is ready
-      const canvas = canvasRef.current;
-      if (canvas) {
-        const rect = canvas.getBoundingClientRect();
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = rect.width * dpr;
-        canvas.height = rect.height * dpr;
-        const ctx = canvas.getContext('2d');
-        if (ctx) ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      }
-      draw();
-    }
-  }, [gameState, countdown, draw]);
-
   const playerFinished = results.find((r) => r.isPlayer);
   const playerRank = results.findIndex((r) => r.isPlayer) + 1;
-  const currentPoS = useMemo(() => getPointOfSailName(playerTWA), [playerTWA]);
-  // Target speeds for the HUD, solved once per wind strength when a race runs.
-  const polar = useMemo(() => (gameState === 'racing' ? polarFor(12 * windStrengthMul) : null), [gameState, windStrengthMul]);
-  // Distance to the next target in metres, at the scale of the 3D race (ADR-0006).
   const hudPlayer = boatsRef.current.find((b) => b.isPlayer);
-  const hudTarget = hudPlayer ? nextTarget(hudPlayer, courseRef.current) : null;
-  const distanceToGo = hudPlayer && hudTarget
-    ? ` · ${Math.round(distance(hudPlayer.pos, hudTarget) * METRES_PER_UNIT)} ${lang === 'ru' ? 'м' : 'm'}`
-    : '';
+  const setRudder = useCallback((value: number) => {
+    const next = Math.max(-1, Math.min(1, value));
+    rudderRef.current = next; setRudderState(next);
+    autopilotOnRef.current = false; setAutopilotOn(false);
+  }, []);
+  const setCourse = useCallback((degrees: number) => {
+    const next = ((degrees % 360) + 360) % 360;
+    autopilotHeadingRef.current = next;
+    setTargetHeading(next);
+    rudderRef.current = 0; setRudderState(0);
+    autopilotOnRef.current = true; setAutopilotOn(true);
+  }, []);
+  const courseDelta = useCallback((degrees: number) => {
+    const player = boatsRef.current.find(b => b.isPlayer);
+    if (player) setCourse((autopilotOnRef.current ? autopilotHeadingRef.current : player.heading) + degrees);
+  }, [setCourse]);
+  const togglePause = useCallback(() => { pausedRef.current = !pausedRef.current; setPaused(pausedRef.current); keysRef.current.clear(); }, []);
+  useEffect(() => {
+    const hide = () => { if (document.hidden && (gameState === "racing" || gameState === "countdown")) { pausedRef.current = true; setPaused(true); keysRef.current.clear(); } };
+    document.addEventListener("visibilitychange", hide);
+    return () => document.removeEventListener("visibilitychange", hide);
+  }, [gameState]);
+  useEffect(() => {
+    if (nativeReplayHydrated.current) return;
+    const race = readNativeRaceReplay();
+    if (!race) return;
+    nativeReplayHydrated.current = true;
+    courseRef.current = race.course; logSamplesRef.current = race.samples; logEventsRef.current = race.events;
+    setDifficulty(race.difficulty); setWindStrength(race.windStrength); setCoaching(race.coaching ?? null);
+    setElapsed(race.finishTimeSec); setGameState("replay");
+  }, []);
+  const retryNativeSave = useCallback(() => {
+    for (const race of pendingNativeSaves.current.values()) {
+      const sent = postNativeRace(race);
+      if (race.id === raceIdRef.current) setNativeSave(sent ? "saving" : "error");
+    }
+  }, []);
+  useEffect(() => {
+    const saved = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
+      if (typeof id !== "string" || !pendingNativeSaves.current.acknowledge(id)) return;
+      if (id === raceIdRef.current) setNativeSave("saved");
+    };
+    const error = (event: Event) => {
+      const id = (event as CustomEvent<{ id?: unknown }>).detail?.id;
+      if ((id === undefined || id === raceIdRef.current) && pendingNativeSaves.current.get(raceIdRef.current)) setNativeSave("error");
+    };
+    window.addEventListener("regatta:race-history-saved", saved); window.addEventListener("regatta:race-history-error", error);
+    return () => { window.removeEventListener("regatta:race-history-saved", saved); window.removeEventListener("regatta:race-history-error", error); };
+  }, []);
+  useEffect(() => {
+    if (!nativeRace) return;
+    const timer = window.setInterval(retryNativeSave, 5000);
+    return () => window.clearInterval(timer);
+  }, [nativeRace, retryNativeSave]);
+  const updateRacePrefs = useCallback((patch: Partial<typeof racePrefs>) => {
+    if (patch.mode === "pro" && racePrefsRef.current.mode !== "pro") {
+      const player = boatsRef.current.find(b => b.isPlayer);
+      if (player?.trim) setTrim(player.trim);
+    }
+    writeRacePrefs(patch);
+  }, [writeRacePrefs, setTrim]);
+  const trimCoach = hudPlayer && playingPrefs.mode === "pro" && playingPrefs.trimHints ? raceTrimCoach(hudPlayer) : null;
+  useEffect(() => {
+    if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
+  }, [gameState, difficulty, windStrength, racePrefs.mode]);
+  const guidance = racePrefs.guidance ? routeGuidance : null;
 
   // =====================================================================
   // MENU SCREEN
   // =====================================================================
   if (gameState === 'menu') {
     return (
-      <>
+      <div className="h-dvh overflow-y-auto">
+        {nativeRace && <div className="max-w-4xl mx-auto px-4 sm:px-6 pt-4">
+          <Link href="/" className="inline-flex items-center min-h-11 py-2 text-sm text-[var(--accent-cyan)]">
+            {readRaceSearch().has("fromLesson") ? tl({ ru: "Вернуться к уроку", en: "Back to lesson", pl: "Wróć do lekcji", es: "Volver a la lección", fr: "Retour à la leçon", de: "Zurück zur Lektion", it: "Torna alla lezione" }) : tl({ ru: "Вернуться к гонкам", en: "Back to races", pl: "Wróć do regat", es: "Volver a regatas", fr: "Retour aux courses", de: "Zurück zu den Rennen", it: "Torna alle regate" })}
+          </Link>
+        </div>}
         {/* Resume banner: shown when we detect a saved setup from a
             recent (≤30 min) interrupted race. Clicking "Resume" loads
             those settings + opens the briefing; "Dismiss" clears the
@@ -1178,8 +1065,11 @@ export default function GamePage() {
                 setSelectedMission(null);
               }
               setResumeOffer(null);
-              // openBriefing will re-save the setup with a fresh ts
-              setTimeout(openBriefing, 0);
+              initRace(resumeOffer.difficulty);
+              setBestRecord(getBestRecord(resumeOffer.difficulty, resumeOffer.windStrength, racePrefsRef.current.mode));
+              setIsNewRecord(false);
+              saveRaceSetup({ difficulty: resumeOffer.difficulty, windStrength: resumeOffer.windStrength, missionId: resumeOffer.missionId, phase: "briefing" });
+              setGameState("briefing");
             }}
             onDismiss={() => {
               clearRaceSetup();
@@ -1192,13 +1082,13 @@ export default function GamePage() {
           setDifficulty={setDifficulty}
           windStrength={windStrength}
           setWindStrength={setWindStrength}
-          boatStyle={boatStyle}
-          setBoatStyle={setBoatStyle}
           selectedMission={selectedMission}
           pickMission={pickMission}
           openBriefing={openBriefing}
+          dailyDay={dailyDay}
+          racePrefs={racePrefs} updateRacePrefs={updateRacePrefs}
         />
-      </>
+      </div>
     );
   }
 
@@ -1207,11 +1097,12 @@ export default function GamePage() {
   // =====================================================================
   if (gameState === 'briefing') {
     return (
-      <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-8">
+      <div className="page-enter h-dvh flex flex-col">
+        <div className="min-h-0 flex-1 overflow-y-auto w-full max-w-4xl mx-auto px-4 sm:px-6 pt-4 pb-6">
         <div className="flex items-center justify-between mb-6">
           <button
             onClick={backToMenu}
-            className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
+            className="min-h-11 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition flex items-center gap-1"
           >
             ← {tp('Назад к выбору', 'Back to menu', 'Wróć do wyboru', { es: 'Volver al menú', fr: 'Retour au menu', de: 'Zurück zum Menü', it: 'Torna al menu' })}
           </button>
@@ -1249,20 +1140,7 @@ export default function GamePage() {
         <h1 className="text-3xl sm:text-4xl font-semibold mb-1">
           {tp('Брифинг', 'Briefing', 'Odprawa', { es: 'Briefing', fr: 'Briefing', de: 'Briefing', it: 'Briefing' })}
         </h1>
-        {/* The race trims the sails itself (trimForDrive); by-hand trim lives in
-            the trim trainer. Said once, plainly, so a different speed there is
-            no surprise. */}
-        <p className="text-sm text-[var(--text-secondary)] mb-5">
-          {tl({
-            ru: 'Паруса настраиваются сами, ты рулишь. Трим вручную: «Тренажёр трима».',
-            en: 'The sails trim themselves, you steer. To trim by hand: the Sail trim trainer.',
-            pl: 'Żagle trymują się same, ty sterujesz. Trym ręczny: Trenażer trymu.',
-            es: 'Las velas se ajustan solas, tú gobiernas. Para trimar a mano: el Simulador de trimado.',
-            fr: 'Les voiles se règlent seules, tu barres. Pour régler à la main : Réglage des voiles.',
-            de: 'Die Segel trimmen sich selbst, du steuerst. Von Hand trimmen: im Segeltrimm-Trainer.',
-            it: 'Le vele si regolano da sole, tu timoni. Per regolarle a mano: Regolazione delle vele.',
-          })}
-        </p>
+        <div className="mb-5"><RaceModePicker prefs={racePrefs} update={updateRacePrefs} /></div>
 
         {/* One card: the course with its four steps, and three rules. */}
         <div className="card p-4 sm:p-5 mb-5 grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -1272,7 +1150,7 @@ export default function GamePage() {
             <ol className="text-sm text-[var(--text-secondary)] mt-4 space-y-1.5 list-decimal list-inside leading-relaxed">
               <li>{tp('Старт от оранжевой линии внизу.', 'Start from the orange line at the bottom.', 'Start z pomarańczowej linii na dole.', { es: 'La salida es desde la línea naranja de abajo.', fr:'Départ depuis la ligne orange en bas.', de: 'Start an der orangen Linie unten.', it: 'Partenza dalla linea arancione in basso.' })}</li>
               <li>{tp('Идёшь', 'Work', 'Płyniesz', { es: 'Sube', fr: 'Remonte', de: 'Segle', it: 'Risali' })} <span className="text-[var(--accent-cyan)] font-semibold">{tp('галсами', 'upwind in tacks', 'halsami', { es: 'dando bordos', fr: 'en louvoyant', de: 'in Kreuzschlägen', it: 'bordeggiando' })}</span> {tp('к верхнему знаку - прямо против ветра нельзя.', 'to the windward mark - you can\'t sail straight into the wind.', 'do znaku nawietrznego - prosto pod wiatr się nie da.', { es: 'hasta la baliza de barlovento - directo contra el viento no se puede.', fr: 'jusqu\'à la bouée au vent - impossible d\'aller droit contre le vent.', de: 'zur Luvtonne - direkt gegen den Wind geht es nicht.', it: 'fino alla boa di bolina - dritti controvento non si può.' })}</li>
-              <li>{tp('Обходишь верхний знак (подойди на ~20 м).', 'Round the windward mark (get within ~20 m).', 'Okrążasz znak nawietrzny (podejdź na ~20 m).', { es: 'Rodea la baliza de barlovento (acércate a ~20 m).', fr: 'Vire la bouée au vent (approche-toi à ~20 m).', de: 'Runde die Luvtonne (komm auf ~20 m heran).', it: 'Gira la boa di bolina (avvicinati a ~20 m).' })}</li>
+              <li>{tp('Обогни верхний знак, оставив его по левому борту.', 'Round the windward mark, leaving it to port.', 'Okrąż znak nawietrzny, zostawiając go po lewej burcie.', { es: 'Rodea la baliza de barlovento dejándola a babor.', fr: 'Contourne la bouée au vent en la laissant à bâbord.', de: 'Runde die Luvtonne und lasse sie an Backbord.', it: 'Gira la boa di bolina lasciandola a sinistra.' })}</li>
               <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>
@@ -1297,13 +1175,13 @@ export default function GamePage() {
                 it: "Bordi lunghi: ogni virata costa velocità e l'HUD ti dice quanta.",
               }) },
               { icon: 'steer', text: tl({
-                ru: 'Рули стрелками ← → (на телефоне кнопками внизу), AUTO держит курс.',
-                en: 'Steer with ← → (on a phone, the buttons at the bottom); AUTO holds your course.',
-                pl: 'Steruj strzałkami ← → (na telefonie przyciskami na dole); AUTO trzyma kurs.',
-                es: 'Gobierna con ← → (en el móvil, con los botones de abajo); AUTO mantiene el rumbo.',
-                fr: 'Barre avec ← → (sur téléphone, avec les boutons en bas) ; AUTO garde le cap.',
-                de: 'Steuere mit ← → (am Handy mit den Tasten unten); AUTO hält den Kurs.',
-                it: 'Timona con ← → (sul telefono, con i pulsanti in basso); AUTO mantiene la rotta.',
+                ru: 'Рули штурвалом или ползунком. Стрелки ← → тоже поворачивают лодку.',
+                en: 'Steer with the wheel or slider. The ← → keys also turn the boat.',
+                pl: 'Steruj kołem lub suwakiem. Strzałki ← → również skręcają łódź.',
+                es: 'Gobierna con la rueda o el deslizador. Las teclas ← → también giran el barco.',
+                fr: 'Barre avec la roue ou le curseur. Les touches ← → font aussi tourner le bateau.',
+                de: 'Steuere mit Rad oder Schieberegler. Auch ← → drehen das Boot.',
+                it: 'Governa con la ruota o il cursore. Anche i tasti ← → fanno girare la barca.',
               }) },
             ].map((rule) => (
               <li key={rule.icon} className="flex items-start gap-3">
@@ -1314,6 +1192,9 @@ export default function GamePage() {
           </ul>
         </div>
 
+        </div>
+        <div className="shrink-0 border-t border-[var(--border-subtle)] bg-[var(--bg-primary)] px-4 sm:px-6 py-3">
+        <div className="max-w-4xl mx-auto">
         <button
           onClick={beginCountdown}
           className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
@@ -1321,6 +1202,7 @@ export default function GamePage() {
         >
           {tp('Готов - старт через 3·2·1', 'Ready - starting in 3·2·1', 'Gotowy - start za 3·2·1', { es: 'Listo - salida en 3·2·1', fr: 'Prêt - départ dans 3·2·1', de: 'Bereit - Start in 3·2·1', it: 'Pronto - partenza tra 3·2·1' })}
         </button>
+        </div></div>
       </div>
     );
   }
@@ -1330,202 +1212,30 @@ export default function GamePage() {
   // =====================================================================
   return (
     <div className="relative w-full" style={{ height: embed ? '100dvh' : 'calc(100dvh - var(--site-nav-h, 56px))' }}>
-      {view3d && (gameState === 'countdown' || gameState === 'racing') && (
-        <div className="absolute inset-0" data-testid="race-3d">
-          {sceneFlags.next
-            ? <RaceScene boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels}
-                onStats={sceneFlags.fps ? showSceneStats : undefined} />
-            : <Race3DView boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} labels={race3dLabels} />}
-        </div>
-      )}
-      {view3d && sceneFlags.next && sceneFlags.fps && (gameState === 'countdown' || gameState === 'racing') && (
-        <div ref={statsRef} data-testid="scene-stats" className="pointer-events-none absolute left-2 top-[13.5rem] z-20 rounded-md px-2 py-1 font-mono text-[11px] text-white"
-          style={{ background: 'rgba(10, 22, 40, 0.8)' }} />
-      )}
-      <canvas ref={canvasRef} className="relative block w-full h-full" style={{ touchAction: 'none', pointerEvents: view3d ? 'none' : undefined }} />
-
-      {/* HUD - top bar */}
-      {gameState === 'racing' && (
-        <>
-          {/* HUD (src/features/race-hud): speed against the target for this
-              angle, the wind relative to the bow, the standings with the clock. */}
-          <div className="absolute top-2 left-2 sm:top-4 sm:left-4">
-            <SpeedCard speed={playerSpeed} target={polar ? targetSpeed(polar, playerTWA) : 0}
-              pointName={legacyPick(currentPoS, 'name', lang)} pointColor={currentPoS.color} />
-          </div>
-          <div className="absolute top-2 sm:top-4 left-1/2 -translate-x-1/2">
-            <WindCompass twa={playerTWA} />
-          </div>
-          <div className="absolute top-2 right-2 sm:top-4 sm:right-4">
-            <Standings rows={standings} time={formatTime(elapsed)} />
-          </div>
-          {toast && (
-            <div key={toast.id} className="absolute left-1/2 -translate-x-1/2 top-[9.75rem] sm:top-[8.5rem]">
-              <RaceToast text={toast.text} tone={toast.tone} />
-            </div>
-          )}
-
-          {/* Mark progress indicator - above touch controls on mobile */}
-          <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[11px] sm:text-xs whitespace-nowrap"
-               style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 0 && `→ ${tp('К верхнему знаку', 'To windward mark', 'Do znaku nawietrznego', { es: 'A la baliza de barlovento', fr: 'Vers la bouée au vent', de: 'Zur Luvtonne', it: 'Alla boa di bolina' })}${distanceToGo}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 1 && `→ ${tp('На финиш', 'To finish', 'Do mety', { es: 'A la llegada', fr: 'Vers l\'arrivée', de: 'Zum Ziel', it: 'All\'arrivo' })}${distanceToGo}`}
-            {boatsRef.current.find((b) => b.isPlayer)?.lapDone === 2 && `✓ ${tp('Финиш!', 'Finish!', 'Meta!', { es: '¡Llegada!', fr: 'Arrivée !', de: 'Im Ziel!', it: 'Arrivo!' })}`}
-          </div>
-
-          {/* Mission hint (if any) - under the mark progress, only during race */}
-          {selectedMission && gameState === 'racing' && (
-            <div className="absolute left-1/2 -translate-x-1/2 card px-3 py-1.5 text-[10px] sm:text-[11px] max-w-[280px] text-center"
-                 style={{ backdropFilter: 'blur(8px)', background: 'rgba(0, 212, 255, 0.15)', borderColor: 'rgba(0, 212, 255, 0.4)', bottom: 'calc(env(safe-area-inset-bottom, 0px) + 230px)' }}>
-              <span className="mr-1">{selectedMission.emoji}</span>
-              <span className="text-[var(--accent-cyan)] font-semibold">{tp(selectedMission.titleRu, selectedMission.titleEn, selectedMission.titlePl, { es: selectedMission.titleEs, fr: selectedMission.titleFr, de: selectedMission.titleDe, it: selectedMission.titleIt })}:</span>{' '}
-              <span className="text-[var(--text-secondary)]">{tp(selectedMission.hintRu, selectedMission.hintEn, selectedMission.hintPl, { es: selectedMission.hintEs, fr: selectedMission.hintFr, de: selectedMission.hintDe, it: selectedMission.hintIt })}</span>
-            </div>
-          )}
-
-          {/* Mute toggle */}
-          <button
-            onClick={() => setMutedState(toggleMuted())}
-            aria-label={muted
-              ? tp('Включить звук', 'Unmute', 'Włącz dźwięk', { es: 'Activar sonido', fr: 'Activer le son', de: 'Ton an', it: 'Attiva audio' })
-              : tp('Выключить звук', 'Mute', 'Wycisz', { es: 'Silenciar', fr: 'Couper le son', de: 'Ton aus', it: 'Disattiva audio' })}
-            className="absolute left-2 top-[6.5rem] sm:left-4 sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] w-11 h-11 rounded-full card flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
-          >
-            {muted ? '🔇' : '🔊'}
-          </button>
-
-          <button
-            onClick={backToMenu}
-            className="absolute left-[3.75rem] top-[6.5rem] sm:left-[4.5rem] sm:top-auto sm:bottom-[calc(env(safe-area-inset-bottom,0px)+16px)] min-h-11 px-3 card flex items-center text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition"
-            style={{ backdropFilter: 'blur(8px)', background: 'rgba(21, 37, 64, 0.85)' }}
-          >
-            ← {tp('Меню', 'Menu', 'Menu', { es: 'Menú', fr: 'Menu', de: 'Menü', it: 'Menu' })}
-          </button>
-
-          {/* Autopilot button - above touch controls, safe-area aware */}
-          <button
-            onClick={() => {
-              const player = boatsRef.current.find((b) => b.isPlayer);
-              if (!player) return;
-              if (autopilotOn) {
-                setAutopilotOn(false);
-                autopilotOnRef.current = false;
-              } else {
-                autopilotHeadingRef.current = player.heading;
-                setAutopilotOn(true);
-                autopilotOnRef.current = true;
-              }
-            }}
-            title={tp('AUTO: удерживает текущий курс. Выключится от любого поворота.',
-                     'AUTO: holds current heading. Disengages on any turn input.',
-                     'AUTO: trzyma bieżący kurs. Wyłącza się przy każdym skręcie.',
-                     {
-                       es: 'AUTO: mantiene el rumbo actual. Se desactiva en cuanto giras.',
-                       fr: 'AUTO : garde le cap actuel. Se coupe dès que tu tournes.',
-                       de: 'AUTO: hält den aktuellen Kurs. Schaltet sich bei jeder Lenkbewegung ab.',
-                       it: 'AUTO: mantiene la rotta attuale. Si disattiva appena giri.',
-                     })}
-            className="absolute left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-full text-[11px] font-semibold transition active:scale-95"
-            style={{
-              background: autopilotOn ? 'rgba(0, 212, 255, 0.85)' : 'rgba(21, 37, 64, 0.85)',
-              color: autopilotOn ? '#0a1628' : 'var(--accent-cyan)',
-              border: '1px solid rgba(0, 212, 255, 0.5)',
-              backdropFilter: 'blur(8px)',
-              bottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)',
-            }}
-          >
-            {autopilotOn ? `⏸ ${tp('AUTO вкл', 'AUTO on', 'AUTO wł.', { es: 'AUTO activo', fr: 'AUTO actif', de: 'AUTO an', it: 'AUTO attivo' })}` : `▶ ${tp('AUTO', 'AUTO', 'AUTO', { es: 'AUTO', fr: 'AUTO', de: 'AUTO', it: 'AUTO' })}`}
-          </button>
-
-          {/* Map or view from the boat, and the 3D camera: between the steering buttons on a phone */}
-          <div className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 44px)' }}>
-            <div role="radiogroup" aria-label={tl({ ru: 'Вид гонки', en: 'Race view', pl: 'Widok wyścigu', es: 'Vista de la regata', fr: 'Vue de la course', de: 'Rennansicht', it: 'Vista della regata' })}
-              className="flex overflow-hidden rounded-full" style={{ border: '1px solid rgba(0, 212, 255, 0.5)', background: 'rgba(21, 37, 64, 0.85)', backdropFilter: 'blur(8px)' }}>
-              {[false, true].map((on) => (
-                <button key={String(on)} type="button" role="radio" aria-checked={view3d === on} onClick={() => setView3d(on)}
-                  className="min-h-11 min-w-11 px-3 text-xs font-semibold transition"
-                  style={{ background: view3d === on ? 'rgba(0, 212, 255, 0.85)' : 'transparent', color: view3d === on ? '#0a1628' : 'var(--accent-cyan)' }}>
-                  {on ? '3D' : '2D'}
-                </button>
-              ))}
-            </div>
-            {view3d && (() => {
-              const label = raceCamera === 'high'
-                ? tl({ ru: 'Камера за кормой', en: 'Camera behind the stern', pl: 'Kamera za rufą', es: 'Cámara tras la popa', fr: 'Caméra derrière la poupe', de: 'Kamera hinter dem Heck', it: 'Camera dietro la poppa' })
-                : tl({ ru: 'Камера сверху', en: 'Camera from above', pl: 'Kamera z góry', es: 'Cámara desde arriba', fr: 'Caméra en hauteur', de: 'Kamera von oben', it: "Camera dall'alto" });
-              return (
-                <button type="button" onClick={() => setRaceCamera(raceCamera === 'high' ? 'stern' : 'high')} aria-label={label} title={label}
-                  className="flex h-11 w-11 items-center justify-center rounded-full transition active:scale-95"
-                  style={{ border: '1px solid rgba(0, 212, 255, 0.5)', background: 'rgba(21, 37, 64, 0.85)', backdropFilter: 'blur(8px)', color: 'var(--accent-cyan)' }}>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" aria-hidden="true">
-                    <rect x="3" y="7" width="12" height="10" rx="2" />
-                    <path d="M15 11l6-3v8l-6-3z" />
-                  </svg>
-                </button>
-              );
-            })()}
-          </div>
-
-          {/* Touch controls - safe-area aware so they never hide behind mobile browser UI */}
-          <div
-            className="absolute left-0 right-0 flex justify-between items-end px-4 pointer-events-none md:hidden"
-            style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}
-          >
-            <button
-              onPointerDown={(e) => { e.preventDefault(); setLeftHeld(true); }}
-              onPointerUp={() => setLeftHeld(false)}
-              onPointerCancel={() => setLeftHeld(false)}
-              onPointerLeave={() => setLeftHeld(false)}
-              aria-label={tp('Поворот влево', 'Turn left', 'Skręt w lewo', { es: 'Girar a la izquierda', fr: 'Tourner à gauche', de: 'Nach links steuern', it: 'Gira a sinistra' })}
-              className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
-              style={{
-                background: leftHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
-                border: '2px solid rgba(0, 212, 255, 0.5)',
-                color: 'var(--accent-cyan)',
-                backdropFilter: 'blur(8px)',
-                touchAction: 'none',
-              }}
-            >
-              ←
-            </button>
-            <button
-              onPointerDown={(e) => { e.preventDefault(); setRightHeld(true); }}
-              onPointerUp={() => setRightHeld(false)}
-              onPointerCancel={() => setRightHeld(false)}
-              onPointerLeave={() => setRightHeld(false)}
-              aria-label={tp('Поворот вправо', 'Turn right', 'Skręt w prawo', { es: 'Girar a la derecha', fr: 'Tourner à droite', de: 'Nach rechts steuern', it: 'Gira a destra' })}
-              className="pointer-events-auto w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold transition active:scale-95 select-none"
-              style={{
-                background: rightHeld ? 'rgba(0, 212, 255, 0.35)' : 'rgba(21, 37, 64, 0.7)',
-                border: '2px solid rgba(0, 212, 255, 0.5)',
-                color: 'var(--accent-cyan)',
-                backdropFilter: 'blur(8px)',
-                touchAction: 'none',
-              }}
-            >
-              →
-            </button>
-          </div>
-        </>
+      {(gameState === "countdown" || gameState === "racing") && (
+        <RaceCockpit prefs={playingPrefs} updatePrefs={updateRacePrefs} rudder={rudder} setRudder={setRudder} courseDelta={courseDelta} setCourse={setCourse} targetHeading={targetHeading}
+          trim={trim} setTrim={setTrim} heading={hudPlayer?.heading ?? 0} speed={playerSpeed} twa={playerTWA}
+          time={formatTime(elapsed)} rank={standings.findIndex(r => r.isPlayer) + 1} rows={standings}
+          trimAdvice={trimCoach ? trimLabels[trimCoach] : undefined} guidance={guidance} message={ruleNotice && ruleNotice.until > elapsed ? ruleNotice.text : toast?.text}
+          camera={raceCamera} setCamera={setRaceCamera} onResetCamera={() => setCameraRevision(value => value + 1)} paused={paused} onPause={togglePause} onExit={backToMenu}
+          autopilot={autopilotOn} onAutopilot={() => {
+            autopilotHeadingRef.current = hudPlayer?.heading ?? 0;
+            setTargetHeading(autopilotHeadingRef.current);
+            rudderRef.current = 0; setRudderState(0);
+            autopilotOnRef.current = !autopilotOnRef.current; setAutopilotOn(autopilotOnRef.current);
+          }} muted={muted} onSound={() => updateControls({ sound: !controlPrefs.sound })} penalty={penalty}
+          countdown={gameState === "countdown" ? countdown : undefined}>
+          <RaceScene key={sceneRaceId} onReady={onSceneReady} boatsRef={boatsRef} courseRef={courseRef} windDirRef={windDirRef} venue={venue} camera={raceCamera} cameraRevision={cameraRevision} labels={race3dLabels}
+            guidance={guidance} onStats={sceneFlags.fps ? showSceneStats : undefined} />
+          {sceneFlags.fps && <div ref={statsRef} className="absolute bottom-1 left-1 text-xs text-white" data-testid="scene-stats" />}
+        </RaceCockpit>
       )}
 
-      {/* Countdown overlay */}
-      {gameState === 'countdown' && (
-        <div className="absolute inset-0 flex items-center justify-center" style={{ background: 'rgba(10, 22, 40, 0.6)', backdropFilter: 'blur(4px)' }}>
-          <div className="text-center">
-            <div className="text-8xl font-bold mb-4 pulse-gentle" style={{ color: 'var(--accent-cyan)' }}>
-              {countdown === 0 ? tp('СТАРТ!', 'START!', 'START!', { es: '¡SALIDA!', fr: 'DÉPART !', de: 'START!', it: 'VIA!' }) : countdown}
-            </div>
-            <div className="text-[var(--text-secondary)]">{tp('Приготовься к старту...', 'Get ready for the start...', 'Przygotuj się do startu...', { es: 'Prepárate para la salida...', fr: 'Prépare-toi pour le départ...', de: 'Mach dich bereit für den Start...', it: 'Preparati alla partenza...' })}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Finish overlay */}
+      {/* Results occupy the full page after the racing cockpit unmounts. */}
       {gameState === 'finished' && (
-        <div className="absolute inset-0 flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'rgba(10, 22, 40, 0.9)', backdropFilter: 'blur(8px)' }}>
-          <div className="card p-6 sm:p-8 max-w-lg w-full my-4">
+        <div className="h-full overflow-y-auto overscroll-contain bg-[var(--bg-primary)] px-4 py-6 sm:px-6" data-testid="race-results">
+          <div className="mx-auto w-full max-w-2xl [&_button]:min-h-11">
+            {nativeRace && nativeSave !== "idle" && <div className="mb-4 text-sm" role="status">{nativeSave === "saved" ? copy.saved : nativeSave === "error" ? copy.saveError : copy.saving}{nativeSave === "error" && <button type="button" className="ml-2 underline" onClick={retryNativeSave}>{copy.retry}</button>}</div>}
             <div className="text-center mb-5">
               <div className="text-sm text-[var(--text-muted)] mb-2">{tp('РЕЗУЛЬТАТ', 'RESULT', 'WYNIK', { es: 'RESULTADO', fr: 'RÉSULTAT', de: 'ERGEBNIS', it: 'RISULTATO' })}</div>
               {playerFinished?.time !== undefined && playerFinished.time !== Infinity ? (
@@ -1571,8 +1281,8 @@ export default function GamePage() {
             </div>
 
             {/* Compact leaderboard - collapsed by default, only winner + you shown on mobile */}
-            <details className="mb-5 card p-3">
-              <summary className="cursor-pointer text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
+            <details className="mb-5 border-y border-[var(--border-subtle)]">
+              <summary className="min-h-11 cursor-pointer py-3 text-xs font-semibold tracking-wider text-[var(--text-muted)] flex items-center justify-between">
                 <span>{tp('РЕЗУЛЬТАТЫ ГОНКИ', 'RACE RESULTS', 'WYNIKI WYŚCIGU', { es: 'RESULTADOS DE LA REGATA', fr: 'RÉSULTATS DE LA COURSE', de: 'ERGEBNISSE', it: 'RISULTATI DELLA REGATA' })} ({results.length})</span>
                 <span className="text-[var(--accent-cyan)]">▾</span>
               </summary>
@@ -1625,14 +1335,14 @@ export default function GamePage() {
             )}
 
             {/* AI Coach */}
-            <div className="mb-5 p-4 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.05)', border: '1px solid rgba(0, 212, 255, 0.15)' }}>
+            <section className="mb-5 border-t border-[var(--border-subtle)] py-5">
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-xl">🧭</span>
-                <div className="text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>{tp('AI-тренер', 'AI coach', 'Trener AI',
+                <div className="text-sm font-semibold text-[var(--text-primary)]">{coachingSource === "local" ? copy.debrief : tp('AI-тренер', 'AI coach', 'Trener AI',
                   { es: 'Entrenador IA', fr: 'Coach IA', de: 'KI-Trainer', it: 'Coach IA' })}</div>
               </div>
               {/* Apple Review 2025 + EU AI Act: explicit AI-content disclosure. */}
-              <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
+              {coachingSource === "ai" && <div className="text-[10px] text-[var(--text-muted)] mb-3 leading-relaxed">
                 {tp(
                   'Разбор сгенерирован языковой моделью OpenAI по твоему логу гонки. Может ошибаться. Подробности в ',
                   'Generated by an OpenAI language model from your race log. Can be wrong. Details in our ',
@@ -1646,7 +1356,7 @@ export default function GamePage() {
                 )}
                 <a href="/privacy" target="_blank" rel="noopener" className="underline hover:text-[var(--accent-cyan)]">{tp('политике конфиденциальности', 'privacy policy', 'polityce prywatności',
                   { es: 'política de privacidad', fr: 'politique de confidentialité', de: 'Datenschutzerklärung', it: 'informativa sulla privacy' })}</a>.
-              </div>
+              </div>}
               {coachingLoading && <AnalyzingProgress />}
               {coachingError && !coaching && (
                 <div className="text-xs text-[var(--text-muted)] italic">{coachingError}</div>
@@ -1702,19 +1412,19 @@ export default function GamePage() {
                     </div>
                   )}
 
-                  <div className="pt-2 border-t border-[rgba(0,212,255,0.15)]">
+                  <div className="pt-2 border-t border-[var(--border-subtle)]">
                     <div className="text-xs uppercase tracking-wider text-[var(--text-muted)] mb-1">{tp('Цель на следующую гонку', 'Goal for next race', 'Cel na następny wyścig', { es: 'Objetivo para la próxima regata', fr: 'Objectif pour la prochaine course', de: 'Ziel für das nächste Rennen', it: 'Obiettivo per la prossima regata' })}</div>
-                    <p className="text-xs text-[var(--accent-cyan)]">{coachNextGoal(coaching)}</p>
+                    <p className="text-xs text-[var(--text-secondary)]">{coachNextGoal(coaching)}</p>
                   </div>
                 </div>
               )}
-            </div>
+            </section>
 
             {/* Nickname prompt: first finish without a stored nickname. The
                 nickname is stored server-side per session via POST /api/player
                 (same flow /multiplayer uses), API validates 2-20 chars.
                 Non-blocking: "skip" dismisses without saving. */}
-            {saveState === 'prompting' && (
+            {!nativeRace && saveState === 'prompting' && (
               <div className="mb-4 p-3 rounded-lg" style={{ background: 'rgba(0, 212, 255, 0.06)', border: '1px solid rgba(0, 212, 255, 0.3)' }}>
                 <div className="text-sm font-semibold mb-1" style={{ color: 'var(--accent-cyan)' }}>
                   {tp('Сохранить результат в лидерборд?', 'Save your result to the leaderboard?', 'Zapisać wynik w rankingu?',
@@ -1731,7 +1441,7 @@ export default function GamePage() {
                     onChange={(e) => setNicknameInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === 'Enter' && nicknameInput.trim().length >= 2) saveResult(nicknameInput); }}
                     maxLength={20}
-                    className="flex-1 min-w-0 px-3 py-2 rounded text-sm"
+                    className="min-h-11 flex-1 min-w-0 px-3 py-2 rounded text-sm"
                     style={{ background: 'var(--bg-secondary)', border: '1px solid rgba(0,212,255,0.2)', color: 'var(--text-primary)' }}
                     placeholder={tp('Введи ник', 'Enter nickname', 'Podaj nick',
                       { es: 'Escribe un apodo', fr: 'Entre un pseudo', de: 'Nickname eingeben', it: 'Inserisci un nickname' })}
@@ -1760,19 +1470,19 @@ export default function GamePage() {
             )}
 
             {/* Save status feedback (auto-save with stored nickname or after the prompt) */}
-            {saveState === 'saving' && (
+            {!nativeRace && saveState === 'saving' && (
               <div className="mb-4 text-xs text-[var(--text-muted)]">
                 {tp('Сохраняю результат...', 'Saving result...', 'Zapisywanie wyniku...',
                   { es: 'Guardando el resultado...', fr: 'Enregistrement du résultat...', de: 'Ergebnis wird gespeichert...', it: 'Salvataggio del risultato...' })}
               </div>
             )}
-            {saveState === 'saved' && (
+            {!nativeRace && saveState === 'saved' && (
               <div className="mb-4 text-xs" style={{ color: 'var(--success)' }}>
                 ✓ {tp('Результат сохранён в лидерборд', 'Result saved to the leaderboard', 'Wynik zapisany w rankingu',
                   { es: 'Resultado guardado en la clasificación', fr: 'Résultat enregistré au classement', de: 'Ergebnis in der Bestenliste gespeichert', it: 'Risultato salvato in classifica' })}
               </div>
             )}
-            {saveState === 'error' && saveError && (
+            {!nativeRace && saveState === 'error' && saveError && (
               <div className="mb-4 text-xs flex items-center gap-2 flex-wrap" style={{ color: 'var(--danger)' }}>
                 <span>{saveError}</span>
                 <button onClick={() => saveResult(nicknameInput || undefined)} className="underline">
@@ -1812,18 +1522,18 @@ export default function GamePage() {
                 ▶ {tp('Replay гонки', 'Race replay', 'Powtórka wyścigu', { es: 'Repetición', fr: 'Revoir la course', de: 'Replay ansehen', it: 'Replay della regata' })}
               </button>
               <Link
-                href="/leaderboard"
-                className="flex-1 min-w-[100px] py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
+                href={nativeRace ? "/history" : "/leaderboard"}
+                className="inline-flex min-h-11 flex-1 min-w-[100px] items-center justify-center py-2 rounded-lg border border-[rgba(0,212,255,0.3)] text-sm text-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--accent-cyan)] transition"
               >
-                🏆 {tp('Лидерборд', 'Leaderboard', 'Ranking',
+                🏆 {nativeRace ? copy.history : tp('Лидерборд', 'Leaderboard', 'Ranking',
                   { es: 'Clasificación', fr: 'Classement', de: 'Bestenliste', it: 'Classifica' })}
               </Link>
               <button
                 onClick={openBriefing}
                 className="flex-1 min-w-[100px] py-2 rounded-lg font-semibold text-sm"
                 style={{
-                  background: `linear-gradient(135deg, ${DIFFICULTY_CONFIG[difficulty].color}, ${DIFFICULTY_CONFIG[difficulty].color}cc)`,
-                  color: '#0a1628',
+                  background: 'var(--accent-cyan)',
+                  color: 'var(--accent-ink)',
                 }}
               >
                 {tp('Ещё раз', 'Again', 'Jeszcze raz', { es: 'Otra vez', fr: 'Rejouer', de: 'Noch mal', it: 'Di nuovo' })}
@@ -1833,167 +1543,16 @@ export default function GamePage() {
         </div>
       )}
 
-      {/* Replay overlay */}
-      {gameState === 'replay' && (
-        <ReplayOverlay
-          samples={logSamplesRef.current}
-          events={logEventsRef.current}
-          course={courseRef.current}
-          mistakes={coaching?.mistakes ?? []}
-          onClose={() => setGameState('finished')}
-        />
-      )}
+      {gameState === "replay" && <RaceReplay samples={logSamplesRef.current} course={courseRef.current} onClose={() => {
+        if (!nativeReplayHydrated.current) setGameState("finished");
+        else if (!navigateNativeRace("/history")) backToMenu();
+      }} />}
     </div>
   );
 }
 
 // ============================================================================
 // DRAWING HELPERS
-// ============================================================================
-
-function drawBoat(
-  ctx: CanvasRenderingContext2D,
-  x: number, y: number, heading: number,
-  color: string, scale: number, isPlayer: boolean,
-  windDir = 0, style: BoatStyle = 'cruiser',
-) {
-  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(deg2rad(heading));
-  // Player boat is ~1.8x bigger than AI so you clearly see your sail shape.
-  // AI bumped ~1.4x too - they were too tiny to see their sails.
-  const s = scale * (isPlayer ? 1.8 : 1.35) * cfg.hullScale;
-  const w = cfg.hullWidth; // hull width multiplier
-
-  const hullLen = 14 * s;
-  const hullHalfW = 7 * s * w;
-  const hullStern = 4.5 * s * w;
-
-  // Hull shadow
-  ctx.save();
-  ctx.translate(1, 2);
-  ctx.fillStyle = 'rgba(0,0,0,0.4)';
-  ctx.beginPath();
-  ctx.moveTo(0, -hullLen);
-  ctx.quadraticCurveTo(hullHalfW, 0, hullStern, 12 * s);
-  ctx.lineTo(-hullStern, 12 * s);
-  ctx.quadraticCurveTo(-hullHalfW, 0, 0, -hullLen);
-  ctx.fill();
-  ctx.restore();
-
-  // Hull
-  const hullGrad = ctx.createLinearGradient(-hullHalfW, 0, hullHalfW, 0);
-  hullGrad.addColorStop(0, isPlayer ? '#cfe7f4' : '#aaaaaa');
-  hullGrad.addColorStop(0.5, '#ffffff');
-  hullGrad.addColorStop(1, isPlayer ? '#8fb4c9' : '#666666');
-  ctx.fillStyle = hullGrad;
-  ctx.strokeStyle = isPlayer ? '#ffffff' : '#555555';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(0, -hullLen);
-  ctx.quadraticCurveTo(hullHalfW, 0, hullStern, 12 * s);
-  ctx.lineTo(-hullStern, 12 * s);
-  ctx.quadraticCurveTo(-hullHalfW, 0, 0, -hullLen);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-
-  // Style-specific deck trim
-  if (style === 'racer') {
-    // Racing stripe along the deck
-    ctx.fillStyle = color;
-    ctx.globalAlpha = 0.35;
-    ctx.fillRect(-0.8 * s, -11 * s, 1.6 * s, 20 * s);
-    ctx.globalAlpha = 1;
-  }
-
-  // Cockpit
-  ctx.fillStyle = 'rgba(0,0,0,0.5)';
-  ctx.beginPath();
-  ctx.ellipse(0, 4 * s, 2.2 * s, 4 * s, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Mast dot
-  ctx.fillStyle = '#333';
-  ctx.beginPath();
-  ctx.arc(0, -3 * s, 1.2 * s, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Both sails angle based on TWA. Wind comes FROM windDir, so from the boat's
-  // local frame the wind source is at (windDir - heading) relative. The sail
-  // extends to the LEE side (opposite the wind source).
-  const twa = calcTWA(heading, windDir);
-  const absTWA = Math.abs(twa);
-  let mainAngleFromCenterline = 0;
-  if (absTWA < 30) mainAngleFromCenterline = 0;
-  else if (absTWA < 45) mainAngleFromCenterline = 12;
-  else if (absTWA < 90) mainAngleFromCenterline = 30;
-  else if (absTWA < 140) mainAngleFromCenterline = 55;
-  else mainAngleFromCenterline = 75;
-  // TWA > 0 means wind FROM starboard, sail goes to PORT (left, negative X in local frame).
-  const sailSide = twa > 0 ? -1 : 1;
-  const jibFactor = absTWA < 120 ? 0.75 : 0.55;     // jib sheeted tighter than main upwind
-  const inNoGo = absTWA < 30;
-  const jibBlanketed = absTWA > 155;                // dead downwind - main blocks wind from jib
-
-  // --- Mainsail (behind mast, extends aft) ---
-  ctx.save();
-  ctx.rotate(deg2rad(mainAngleFromCenterline * sailSide));
-  ctx.fillStyle = inNoGo ? 'rgba(255,255,255,0.3)' : (isPlayer ? color : cfg.sailHue);
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  const mainTop = style === 'racer' ? -4 * s : -3 * s;
-  const mainFoot = 9 * s;
-  ctx.moveTo(0, mainTop);
-  ctx.quadraticCurveTo(2 * s * sailSide, 3 * s, 0.5 * s * sailSide, mainFoot);
-  ctx.lineTo(0, mainFoot);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  // --- Jib (in front of mast, smaller) ---
-  ctx.save();
-  ctx.translate(0, -11 * s);                          // tack near bow
-  ctx.rotate(deg2rad(mainAngleFromCenterline * jibFactor * sailSide));
-  ctx.fillStyle = inNoGo
-    ? 'rgba(255,255,255,0.3)'
-    : jibBlanketed
-      ? 'rgba(246,251,255,0.4)'
-      : 'rgba(246,251,255,0.92)';
-  ctx.strokeStyle = '#ffffff';
-  ctx.lineWidth = 0.8;
-  ctx.beginPath();
-  ctx.moveTo(0, 0);
-  ctx.quadraticCurveTo(1.6 * s * sailSide, 3 * s, 0.5 * s * sailSide, 6 * s);
-  ctx.lineTo(0, 6 * s);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.restore();
-
-  // Player indicator
-  if (isPlayer) {
-    ctx.beginPath();
-    ctx.arc(0, 0, 20 * s, 0, Math.PI * 2);
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.3)';
-    ctx.lineWidth = 1;
-    ctx.setLineDash([3, 3]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-  }
-
-  ctx.restore();
-}
-
-// ============================================================================
-// HELPERS
-// ============================================================================
-
-// ============================================================================
-// ShareBlock - nickname + replay code + copy-url / native share
 // ============================================================================
 
 function ShareBlock({
@@ -2093,107 +1652,6 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, '0')}.${ms}`;
 }
 
-function getPointOfSailName(twa: number): {
-  nameRu: string; nameEn: string; namePl: string;
-  nameEs: string; nameFr: string; nameDe: string; nameIt: string;
-  color: string;
-} {
-  const a = Math.abs(twa);
-  if (a < 30) return { nameRu: 'Левентик', nameEn: 'In irons', namePl: 'Łopot', nameEs: 'Proa al viento', nameFr: 'Vent debout', nameDe: 'Im Wind', nameIt: 'Prua al vento', color: '#ff4444' };
-  if (a < 60) return { nameRu: 'Бейдевинд', nameEn: 'Close-hauled', namePl: 'Bajdewind', nameEs: 'Ceñida', nameFr: 'Près', nameDe: 'Hoch am Wind', nameIt: 'Bolina', color: '#ff8844' };
-  if (a < 110) return { nameRu: 'Галфвинд', nameEn: 'Beam reach', namePl: 'Półwiatr', nameEs: 'Través', nameFr: 'Travers', nameDe: 'Halber Wind', nameIt: 'Traverso', color: '#44ff88' };
-  if (a < 160) return { nameRu: 'Бакштаг', nameEn: 'Broad reach', namePl: 'Baksztag', nameEs: 'Largo', nameFr: 'Grand largue', nameDe: 'Raumer Wind', nameIt: 'Lasco', color: '#44aaff' };
-  return { nameRu: 'Фордевинд', nameEn: 'Running', namePl: 'Fordewind', nameEs: 'Popa', nameFr: 'Vent arrière', nameDe: 'Vor dem Wind', nameIt: 'Poppa', color: '#8844ff' };
-}
-
-function drawMiniMap(ctx: CanvasRenderingContext2D, W: number, H: number, boats: Boat[], course: Course, label: string) {
-  // Size + position of mini-map
-  const mapW = Math.min(140, W * 0.22);
-  const mapH = Math.min(180, H * 0.28);
-  const pad = 12;
-  const mx = W - mapW - pad;
-  // Phones have the steering buttons in the bottom corners (md:hidden): sit above them.
-  const my = H - mapH - pad - (W < 768 ? 112 : 0);
-
-  // Background
-  ctx.save();
-  ctx.fillStyle = 'rgba(10, 22, 40, 0.85)';
-  ctx.strokeStyle = 'rgba(0, 212, 255, 0.25)';
-  ctx.lineWidth = 1;
-  roundRect(ctx, mx, my, mapW, mapH, 8);
-  ctx.fill();
-  ctx.stroke();
-
-  // Label
-  ctx.fillStyle = 'rgba(139, 167, 184, 0.8)';
-  ctx.font = '600 9px system-ui, sans-serif';
-  ctx.textAlign = 'left';
-  ctx.fillText(label, mx + 6, my + 12);
-
-  // World bounds from the shared engine (800 x 1200). Figure out scale to fit.
-  const WORLD_W = WORLD.width;
-  const WORLD_H = WORLD.height;
-  const margin = 12;
-  const innerW = mapW - margin * 2;
-  const innerH = mapH - margin * 2 - 10; // extra top margin for label
-  const scaleX = innerW / WORLD_W;
-  const scaleY = innerH / WORLD_H;
-  const s = Math.min(scaleX, scaleY);
-  const offsetX = mx + margin + (innerW - WORLD_W * s) / 2;
-  const offsetY = my + margin + 10 + (innerH - WORLD_H * s) / 2;
-
-  const worldToMap = (p: Vec2) => ({ x: offsetX + p.x * s, y: offsetY + p.y * s });
-
-  // Clip to mini-map bounds
-  ctx.save();
-  ctx.beginPath();
-  ctx.rect(mx + 2, my + 14, mapW - 4, mapH - 16);
-  ctx.clip();
-
-  // Start/finish line
-  const lineA = worldToMap(course.startLine.a);
-  const lineB = worldToMap(course.startLine.b);
-  ctx.strokeStyle = '#ffaa00';
-  ctx.lineWidth = 1.5;
-  ctx.beginPath();
-  ctx.moveTo(lineA.x, lineA.y);
-  ctx.lineTo(lineB.x, lineB.y);
-  ctx.stroke();
-
-  // Windward mark
-  const wm = worldToMap(course.marks[0].pos);
-  ctx.fillStyle = '#ffaa00';
-  ctx.beginPath();
-  ctx.arc(wm.x, wm.y, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Boats
-  for (const b of boats) {
-    const bp = worldToMap(b.pos);
-    ctx.fillStyle = b.isPlayer ? '#00d4ff' : b.color;
-    ctx.beginPath();
-    ctx.arc(bp.x, bp.y, b.isPlayer ? 3 : 2, 0, Math.PI * 2);
-    ctx.fill();
-    if (b.isPlayer) {
-      // Heading line
-      ctx.strokeStyle = '#00d4ff';
-      ctx.lineWidth = 1;
-      const hr = 6;
-      ctx.beginPath();
-      ctx.moveTo(bp.x, bp.y);
-      ctx.lineTo(bp.x + Math.sin(deg2rad(b.heading)) * hr, bp.y - Math.cos(deg2rad(b.heading)) * hr);
-      ctx.stroke();
-    }
-  }
-
-  ctx.restore();
-  ctx.restore();
-}
-
-// ============================================================================
-// Staged analysis progress (shown while Claude is thinking)
-// ============================================================================
-
 function AnalyzingProgress() {
   const { tp } = useI18n();
   const stages = [
@@ -2252,321 +1710,6 @@ function AnalyzingProgress() {
 // Ghost path - idealised optimal trajectory for the current course
 // ============================================================================
 
-function computeGhostPath(course: Course): Vec2[] {
-  const startMid = {
-    x: (course.startLine.a.x + course.startLine.b.x) / 2,
-    y: course.startLine.a.y,
-  };
-  const mark = course.marks[0].pos;
-  const finishMid = {
-    x: (course.finishLine.a.x + course.finishLine.b.x) / 2,
-    y: course.finishLine.a.y,
-  };
-
-  // Wind from north (0 deg). Close-hauled angle ~ 42 deg from wind on each side.
-  // Layline from the mark going DOWNwind at +/- 42 deg. The player should tack at the layline.
-  const CH = 42;                                       // close-hauled angle (deg from wind)
-  const mx = mark.x;
-  const my = mark.y;
-  const startY = startMid.y;
-
-  // Starboard-tack layline from the mark (heading ~ 135-90=45 deg when reaching mark from port side)
-  // We want a single-tack path: sail port tack from start to (layline point), then starboard tack to mark.
-  // Layline equation: from mark, going south-east at 42 deg from vertical.
-  // Tack point = intersection of port-tack line from start (going up-left at 42 from vertical)
-  //          with starboard layline from mark (going down-left at 42 from vertical).
-  // Simple formula:
-  const tanCH = Math.tan(CH * Math.PI / 180);
-  // Port-tack heading from start: up-left. x decreases as y decreases.
-  // Starboard-layline from mark: down-left (relative to mark). x decreases as y increases.
-  // Let dy1 = distance sailed north before tack, then:
-  //   tack point: (startMid.x - dy1 * tanCH, startY - dy1)
-  // Starboard-layline point for same x: tacked distance dy2 going up-right toward mark:
-  //   tack point: (mx - (my - py) * tanCH, py) for some py
-  // Solve: startMid.x - dy1 * tanCH = mx - (startY - dy1 - my) * ... (treat simply below)
-
-  // Pragmatic: pick tack point at midway of the vertical distance, offset by the reach-out amount.
-  const verticalDist = startY - my;
-  const halfHeight = verticalDist / 2;
-  const reachX = halfHeight * tanCH;                        // horizontal offset at tack
-  const tackPoint: Vec2 = { x: startMid.x - reachX, y: startY - halfHeight };
-
-  // Broad reach back: curve via a midpoint shifted east (to simulate VMG-optimal broad reach)
-  const broadMid: Vec2 = { x: finishMid.x + 60, y: (my + finishMid.y) / 2 };
-
-  return [
-    startMid,
-    tackPoint,
-    mark,
-    broadMid,
-    finishMid,
-  ];
-}
-
-// ============================================================================
-// Replay overlay - scrubbable timeline on a mini-course map
-// ============================================================================
-
-function ReplayOverlay({
-  samples,
-  events,
-  course,
-  mistakes,
-  onClose,
-}: {
-  samples: LogSample[];
-  events: LogEvent[];
-  course: Course;
-  mistakes: Coaching['mistakes'];
-  onClose: () => void;
-}) {
-  const { tp } = useI18n();
-  const [idx, setIdx] = useState(0);
-  const [playing, setPlaying] = useState(true);
-  const [speed, setSpeed] = useState(1);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-
-  const total = samples.length;
-  const current = samples[Math.min(idx, total - 1)];
-
-  // Auto-advance
-  useEffect(() => {
-    if (!playing || total === 0) return;
-    const id = setInterval(() => {
-      setIdx((i) => {
-        const next = i + 1;
-        if (next >= total) {
-          setPlaying(false);
-          return total - 1;
-        }
-        return next;
-      });
-    }, 500 / speed);
-    return () => clearInterval(id);
-  }, [playing, speed, total]);
-
-  // Draw replay on canvas
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = window.devicePixelRatio || 1;
-    canvas.width = rect.width * dpr;
-    canvas.height = rect.height * dpr;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-    const W = rect.width;
-    const H = rect.height;
-    const WORLD_W = 800;
-    const WORLD_H = 1200;
-    const pad = 20;
-    const innerW = W - pad * 2;
-    const innerH = H - pad * 2;
-    const s = Math.min(innerW / WORLD_W, innerH / WORLD_H);
-    const ox = pad + (innerW - WORLD_W * s) / 2;
-    const oy = pad + (innerH - WORLD_H * s) / 2;
-    const toXY = (p: { x: number; y: number }) => ({ x: ox + p.x * s, y: oy + p.y * s });
-
-    // Bg
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, '#051425');
-    grad.addColorStop(1, '#0a1f3d');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, W, H);
-
-    // Start/finish line
-    const lineA = toXY(course.startLine.a);
-    const lineB = toXY(course.startLine.b);
-    ctx.strokeStyle = '#ffaa00';
-    ctx.setLineDash([6, 4]);
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(lineA.x, lineA.y);
-    ctx.lineTo(lineB.x, lineB.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    // Windward mark
-    const wm = toXY(course.marks[0].pos);
-    ctx.beginPath();
-    ctx.arc(wm.x, wm.y, 8, 0, Math.PI * 2);
-    ctx.fillStyle = '#ffaa00';
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // --- Ghost / ideal path overlay (computed from course geometry) ---
-    const ghost = computeGhostPath(course);
-    ctx.save();
-    ctx.strokeStyle = 'rgba(68, 255, 136, 0.55)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    for (let i = 0; i < ghost.length; i++) {
-      const p = toXY(ghost[i]);
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // Label the ghost
-    const gMid = toXY(ghost[Math.floor(ghost.length / 2)]);
-    ctx.font = '600 9px system-ui, sans-serif';
-    ctx.fillStyle = 'rgba(68, 255, 136, 0.85)';
-    ctx.textAlign = 'left';
-    ctx.fillText(tp('идеал', 'ideal', 'ideał', { es: 'ideal', fr: 'idéal', de: 'Ideal', it: 'ideale' }), gMid.x + 6, gMid.y - 4);
-    ctx.restore();
-
-    // Track trail up to current idx (player track)
-    ctx.strokeStyle = 'rgba(0, 212, 255, 0.85)';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    for (let i = 0; i <= Math.min(idx, total - 1); i++) {
-      const p = toXY(samples[i]);
-      if (i === 0) ctx.moveTo(p.x, p.y);
-      else ctx.lineTo(p.x, p.y);
-    }
-    ctx.stroke();
-
-    // Event markers on the track (tacks, no-go, mark-rounded) - show cumulatively
-    if (current) {
-      for (const ev of events) {
-        if (ev.t > current.t) break;
-        const sampAt = samples.find((sm) => Math.abs(sm.t - ev.t) < 0.6);
-        if (!sampAt) continue;
-        const pp = toXY(sampAt);
-        let col = '#00d4ff';
-        if (ev.type === 'tack') col = '#ffaa00';
-        else if (ev.type === 'no-go-entered') col = '#ff4444';
-        else if (ev.type === 'mark-rounded') col = '#44ff88';
-        else if (ev.type === 'finish') col = '#44ff88';
-        ctx.beginPath();
-        ctx.arc(pp.x, pp.y, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = col;
-        ctx.fill();
-      }
-
-      // Current boat position
-      const p = toXY(current);
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(deg2rad(current.heading));
-      ctx.fillStyle = '#00d4ff';
-      ctx.strokeStyle = '#fff';
-      ctx.lineWidth = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(0, -8);
-      ctx.lineTo(5, 6);
-      ctx.lineTo(-5, 6);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
-    }
-  }, [idx, total, samples, events, course, current, tp]);
-
-  // Active mistake at current time (from AI coach) - for overlay comment
-  const activeMistake = current
-    ? mistakes.find((m) => current.t >= m.timeStart && current.t <= m.timeEnd)
-    : undefined;
-
-  return (
-    <div
-      className="fixed inset-0 z-[60] flex items-center justify-center p-2 sm:p-4"
-      style={{ background: 'rgba(5, 12, 24, 0.95)', backdropFilter: 'blur(8px)' }}
-    >
-      <div className="card w-full max-w-2xl p-4 sm:p-5" style={{ border: '1px solid rgba(0, 212, 255, 0.3)' }}>
-        <div className="flex items-center justify-between mb-3">
-          <div>
-            <div className="text-lg font-semibold">{tp('Replay гонки', 'Race replay', 'Powtórka wyścigu', { es: 'Repetición de la regata', fr: 'Replay de la course', de: 'Replay des Rennens', it: 'Replay della regata' })}</div>
-            <div className="text-[11px] text-[var(--text-muted)]">
-              {tp('Прокрути таймлайн - точки на треке это события: поворот, мёртвая зона, знак.', 'Scrub the timeline - dots on the track are events: tack, no-go zone, mark.', 'Przewiń oś czasu - punkty na śladzie to zdarzenia: zwrot, kąt martwy, znak.', { es: 'Desliza la línea de tiempo - los puntos de la traza son eventos: virada, zona muerta, baliza.', fr: 'Fais défiler la timeline - les points sur la trace sont des événements : virement, zone morte, bouée.', de: 'Zieh an der Zeitleiste - die Punkte auf dem Track sind Ereignisse: Wende, toter Winkel, Bahnmarke.', it: 'Scorri la timeline - i punti sulla traccia sono eventi: virata, angolo morto, boa.' })}
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center text-[var(--text-muted)] hover:text-[var(--text-primary)]"
-            aria-label={tp('Закрыть replay', 'Close replay', 'Zamknij powtórkę', { es: 'Cerrar la repetición', fr: 'Fermer le replay', de: 'Replay schließen', it: 'Chiudi il replay' })}
-          >
-            ✕
-          </button>
-        </div>
-
-        <canvas ref={canvasRef} className="w-full block rounded-lg" style={{ aspectRatio: '2/3', maxHeight: '55vh', background: '#061428' }} />
-
-        {/* Legend */}
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-3 text-[10px] text-[var(--text-muted)]">
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-[2px]" style={{ background: '#00d4ff' }} />{tp('твой трек', 'your track', 'twój ślad', { es: 'tu traza', fr: 'ta trace', de: 'dein Track', it: 'la tua traccia' })}</span>
-          <span className="flex items-center gap-1"><span className="inline-block w-5 h-0 border-t border-dashed" style={{ borderColor: 'rgba(68,255,136,0.7)' }} />{tp('идеальный путь', 'ideal path', 'idealna trasa', { es: 'ruta ideal', fr: 'trajectoire idéale', de: 'Ideallinie', it: 'percorso ideale' })}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ffaa00' }} />{tp('поворот', 'tack', 'zwrot', { es: 'virada', fr: 'virement', de: 'Wende', it: 'virata' })}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#ff4444' }} />{tp('мёртвая зона', 'no-go zone', 'kąt martwy', { es: 'zona muerta', fr: 'zone morte', de: 'toter Winkel', it: 'angolo morto' })}</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: '#44ff88' }} />{tp('знак / финиш', 'mark / finish', 'znak / meta', { es: 'baliza / llegada', fr: 'bouée / arrivée', de: 'Bahnmarke / Ziel', it: 'boa / arrivo' })}</span>
-        </div>
-
-        {/* Timeline slider */}
-        <div className="mt-3 flex items-center gap-3">
-          <button
-            onClick={() => setPlaying((p) => !p)}
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-          >
-            {playing ? '⏸' : '▶'}
-          </button>
-          <input
-            type="range"
-            min={0}
-            max={Math.max(0, total - 1)}
-            value={idx}
-            onChange={(e) => { setIdx(Number(e.target.value)); setPlaying(false); }}
-            className="flex-1"
-          />
-          <span className="text-xs font-mono text-[var(--text-secondary)] min-w-[60px] text-right">
-            {current ? formatTime(current.t) : '-'}
-          </span>
-        </div>
-
-        {/* Speed control */}
-        <div className="mt-2 flex items-center gap-2 text-xs">
-          <span className="text-[var(--text-muted)]">{tp('Скорость', 'Speed', 'Prędkość', { es: 'Velocidad', fr: 'Vitesse', de: 'Tempo', it: 'Velocità' })}</span>
-          {[0.5, 1, 2, 4].map((sp) => (
-            <button
-              key={sp}
-              onClick={() => setSpeed(sp)}
-              className="px-2 py-0.5 rounded border text-[11px]"
-              style={{
-                borderColor: speed === sp ? 'var(--accent-cyan)' : 'rgba(139,167,184,0.2)',
-                color: speed === sp ? 'var(--accent-cyan)' : 'var(--text-secondary)',
-                background: speed === sp ? 'rgba(0,212,255,0.1)' : 'transparent',
-              }}
-            >
-              {sp}×
-            </button>
-          ))}
-        </div>
-
-        {/* Active coach comment at this timestamp */}
-        {activeMistake && (
-          <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(255, 68, 68, 0.08)', border: '1px solid rgba(255, 68, 68, 0.2)' }}>
-            <div className="text-xs font-semibold mb-1" style={{ color: 'var(--danger)' }}>
-              ⚠ {coachTitle(activeMistake)}
-            </div>
-            <div className="text-xs text-[var(--text-secondary)] leading-relaxed mb-1">
-              {coachExplanation(activeMistake)}
-            </div>
-            <div className="text-xs text-[var(--success)] leading-relaxed">
-              💡 {coachFix(activeMistake)}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-/** Line icons for the three briefing rules. */
 function BriefingIcon({ kind }: { kind: 'nogo' | 'tack' | 'steer' }) {
   const common = { width: 24, height: 24, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const, 'aria-hidden': true, className: 'shrink-0 mt-0.5 text-[var(--text-secondary)]' };
   if (kind === 'nogo') return (
@@ -2647,20 +1790,6 @@ function CoursePreview() {
   );
 }
 
-function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y);
-  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
-  ctx.lineTo(x + w, y + h - r);
-  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  ctx.lineTo(x + r, y + h);
-  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
-  ctx.lineTo(x, y + r);
-  ctx.quadraticCurveTo(x, y, x + r, y);
-  ctx.closePath();
-}
-
 // ============================================================================
 // Resume offer banner shown above the menu when a recent interrupted race
 // was found in localStorage. Reuses tp() for i18n; takes the saved setup
@@ -2701,14 +1830,14 @@ function ResumeOffer({
         <div className="flex-1 min-w-[200px]">
           <div className="text-sm font-semibold mb-0.5" style={{ color: 'var(--warning)' }}>
             {tp(
-              'Гонка прервана. Продолжить?',
-              'A race was interrupted. Resume?',
-              'Wyścig przerwany. Wznowić?',
+              'Повторить гонку с прежними настройками?',
+              'Restart the race with your previous settings?',
+              'Powtórzyć wyścig z poprzednimi ustawieniami?',
               {
-                es: 'Regata interrumpida. ¿Continuar?',
-                fr: 'Course interrompue. Reprendre ?',
-                de: 'Rennen unterbrochen. Fortsetzen?',
-                it: 'Regata interrotta. Riprendere?',
+                es: '¿Reiniciar con los ajustes anteriores?',
+                fr: 'Recommencer avec les réglages précédents ?',
+                de: 'Rennen mit den bisherigen Einstellungen neu starten?',
+                it: 'Ricominciare con le impostazioni precedenti?',
               },
             )}
           </div>
@@ -2732,8 +1861,8 @@ function ResumeOffer({
             onClick={onResume}
             className="text-xs px-3 py-1.5 rounded-md font-semibold transition"
             style={{
-              background: 'var(--warning)',
-              color: '#0a1628',
+              background: 'var(--accent-cyan)',
+              color: 'var(--accent-ink)',
             }}
           >
             {tp('Продолжить', 'Resume', 'Wznów',

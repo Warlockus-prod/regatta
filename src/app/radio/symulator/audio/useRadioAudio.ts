@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RadioEvent, RadioState } from '../radioModel';
 import { RadioAudioEngine, type Cue } from './RadioAudioEngine';
 import { audioView, cuesFor } from './radioSounds';
+import { isLocalSpeech, playLocalSpeech, stopLocalSpeech, type VoiceAudio } from '../../audio/localSpeech';
 
 const MUTE_KEY = 'sternik.radio.muted.v1';
 
@@ -18,6 +19,7 @@ const MUTE_KEY = 'sternik.radio.muted.v1';
  */
 export function useRadioAudio(state: RadioState) {
   const engineRef = useRef<RadioAudioEngine | null>(null);
+  const localSpeechRef = useRef<{ generation: number; started: boolean; timer: ReturnType<typeof setInterval> | null }>({ generation: 0, started: false, timer: null });
   const [muted, setMuted] = useState(false);
   const [started, setStarted] = useState(false);
   // BUSY on the LCD must be the same condition as "the speaker is open", so it is
@@ -31,8 +33,11 @@ export function useRadioAudio(state: RadioState) {
     } catch { /* private browsing */ }
     const frame = window.requestAnimationFrame(() => setMuted(savedMuted));
     const engine = new RadioAudioEngine();
+    const local = localSpeechRef.current;
     engineRef.current = engine;
     return () => {
+      if (local.timer) clearInterval(local.timer);
+      if (local.started) stopLocalSpeech();
       window.cancelAnimationFrame(frame);
       engine.dispose();
       engineRef.current = null;
@@ -93,12 +98,32 @@ export function useRadioAudio(state: RadioState) {
    *  Returns the voice length in ms (0 if nothing played) so the caller can put a
    *  carrier of exactly that length on the air - the squelch then closes when the
    *  voice stops, instead of the synthetic babble droning on to a fixed window. */
-  const speak = useCallback(async (raw: ArrayBuffer): Promise<number> => {
+  const speak = useCallback(async (raw: VoiceAudio, onChannel?: string): Promise<number> => {
     const engine = engineRef.current;
     if (!engine || !engine.started) return 0;
+    if (isLocalSpeech(raw)) {
+      const local = localSpeechRef.current;
+      if (local.timer) clearInterval(local.timer);
+      if (local.started) stopLocalSpeech();
+      const generation = ++local.generation;
+      const channel = onChannel ?? engine.systemVoiceChannel;
+      local.started = false;
+      engine.suppressSyntheticVoice(raw.durationMs);
+      const since = Date.now();
+      local.timer = setInterval(() => {
+        const gain = engine.systemVoiceChannel === channel ? engine.systemVoiceGain : 0;
+        if (local.started && gain <= 0) { stopLocalSpeech(); if (local.timer) clearInterval(local.timer); local.timer = null; local.started = false; }
+        if (!local.started && gain > 0 && Date.now() - since < raw.durationMs) {
+          local.started = true;
+          void playLocalSpeech(raw.text, gain).finally(() => { if (local.generation === generation) { if (local.timer) clearInterval(local.timer); local.timer = null; local.started = false; } });
+        }
+        if (!local.started && Date.now() - since >= raw.durationMs && local.timer) { clearInterval(local.timer); local.timer = null; }
+      }, 75);
+      return raw.durationMs;
+    }
     const buf = await engine.decode(raw);
     if (!buf) return 0;
-    engine.speak(buf);
+    engine.speak(buf, onChannel);
     return buf.duration * 1000;
   }, []);
 

@@ -75,6 +75,26 @@ describe('race-physics mirror parity (ws-server/race-physics.js vs src/lib/race-
     expect(MIRROR.makeStandardCourse()).toEqual(SRC.makeStandardCourse());
   });
 
+  it("keeps legacy bot turns and private memory identical to the server adapter through a complete race", () => {
+    const course = SRC.makeStandardCourse();
+    const client: SRC.RaceBoat = { id: "one", name: "One", color: "cyan", pos: { x: 365, y: 1080 }, heading: 45, speed: 0, lapDone: 0 };
+    const server = structuredClone(client);
+    for (let i = 0; i < 9000 && client.lapDone < 2; i++) {
+      const wind = SRC.windAt(i / 30, 3);
+      const a = SRC.raceAutopilotTurn(client, course, wind.dir);
+      const b = MIRROR.raceAutopilotTurn(server, course, wind.dir);
+      expect(a).toBe(b);
+      expect(client.autopilot).toEqual(server.autopilot);
+      const beforeA = { ...client.pos }, beforeB = { ...server.pos };
+      SRC.stepBoat(client, 1 / 30, wind.dir, wind.gust, { turn: a });
+      MIRROR.stepBoat(server, 1 / 30, wind.dir, wind.gust, { turn: b });
+      expect(SRC.updateLap(client, beforeA, course, i / 30)).toBe(MIRROR.updateLap(server, beforeB, course, i / 30));
+      expect(client.pos).toEqual(server.pos);
+    }
+    expect(client.lapDone).toBe(2);
+    expect(server.finishTime).toBe(client.finishTime);
+  });
+
   it('updateLap agrees on mark rounding', () => {
     const course = SRC.makeStandardCourse();
     const mk = (): AnyBoat => ({ id: 'x', name: 'x', color: '#fff', pos: { ...course.marks[0].pos }, heading: 0, speed: 5, lapDone: 0 });

@@ -281,14 +281,14 @@ export default function Leaderboard() {
   };
   const globalEmptyTitle = tp('Пока пусто', 'No entries yet', 'Jeszcze pusto', { es: 'Aún vacío', fr: 'Encore vide', de: 'Noch leer', it: 'Ancora vuoto' });
   const globalEmptySub = tp(
-    'Никто ещё не финишировал в этом классе. Сыграй гонку - и попадёшь сюда.',
-    'No finishes in this class yet. Play a race to land here.',
-    'Nikt jeszcze nie dopłynął do mety w tej klasie. Zagraj wyścig, a trafisz tutaj.',
+    'В этом классе пока нет онлайн-результатов. Офлайн-гонки в приложении сохраняются в личном рейтинге и истории, без публикации в глобальной таблице.',
+    'No online results in this class yet. Offline races in this app stay in Personal and History, without global publication.',
+    'W tej klasie nie ma jeszcze wyników online. Wyścigi offline w aplikacji zostają w rankingu Osobiste i Historii, bez publikacji w rankingu globalnym.',
     {
-      es: 'Aún no hay llegadas en esta clase. Juega una regata para aparecer aquí.',
-      fr: 'Aucune arrivée dans cette classe. Joue une course pour y figurer.',
-      de: 'Noch keine Zieleinläufe in dieser Klasse. Fahr ein Rennen, um hier zu landen.',
-      it: 'Nessun arrivo in questa classe. Gioca una regata per comparire qui.',
+      es: 'Aún no hay resultados online en esta clase. Las regatas sin conexión de esta app quedan en Personal e Historial, sin publicarse en la tabla global.',
+      fr: 'Aucun résultat en ligne dans cette classe. Les courses hors ligne de cette app restent dans Perso et Historique, sans publication au classement global.',
+      de: 'Noch keine Online-Ergebnisse in dieser Klasse. Offline-Rennen in dieser App bleiben unter Persönlich und Verlauf und werden nicht global veröffentlicht.',
+      it: 'Ancora nessun risultato online in questa classe. Le regate offline in questa app restano in Personale e Cronologia, senza pubblicazione nella classifica globale.',
     },
   );
   const globalErrorTitle = tp('Не загрузилось', 'Could not load', 'Nie udało się wczytać', { es: 'No se pudo cargar', fr: 'Échec du chargement', de: 'Laden fehlgeschlagen', it: 'Caricamento non riuscito' });

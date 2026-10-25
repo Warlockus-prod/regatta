@@ -18,7 +18,7 @@
 .hint { font-size: 12px; line-height: 1.5; color: var(--text-secondary); margin: 0 0 14px; }
 .slider { display: block; margin-bottom: 8px; }
 .slider > span { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--text-secondary); }
-.slider input { display: block; width: 100%; height: 32px; accent-color: var(--accent-cyan); cursor: pointer; }
+.slider input { display: block; width: 100%; height: 44px; accent-color: var(--accent-cyan); cursor: pointer; }
 .details { border-top: 1px solid var(--border-color); margin-top: 8px; }
 .details > summary { min-height: 44px; padding: 12px 0; font-size: 13px; cursor: pointer; color: var(--text-primary); }
 .details > div { padding: 4px 0 10px; }
@@ -26,7 +26,7 @@
 .steer:active { background: var(--bg-card-hover); }
 .steer:focus-visible { outline: 3px solid var(--accent-cyan); outline-offset: 3px; }
 .guide { margin-bottom: 12px; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: 12px; }
-.guide summary { cursor: pointer; min-height: 24px; font-size: 14px; }
+.guide summary { cursor: pointer; min-height: 44px; font-size: 14px; }
 .guide ol { padding-left: 20px; font-size: 13px; line-height: 1.6; max-width: 75ch; }
 .guide li { margin-top: 8px; }
 .embed { height: 100dvh; display: flex; flex-direction: column; padding: 8px; overflow: hidden; }
@@ -76,7 +76,7 @@
 .sailFeedback strong { color: var(--text-primary); }
 
 /* Phone workspace (shared trainer controls): the 3D scene fills the space
-   above the dock; camera buttons and readouts float over it. */
+   above the dock; camera buttons and readouts stay in reserved controls space. */
 .compactRoot { --border-color: var(--border-subtle); color: var(--text-primary); }
 .compactRoot .header { margin: 0; padding: 4px 8px; gap: 4px; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 .compactRoot .header::-webkit-scrollbar { display: none; }
@@ -104,5 +104,10 @@
 .readout strong.windCell { display: flex; align-items: center; gap: 4px; }
 .readout .windCell svg { flex: 0 0 auto; color: var(--text-secondary); }
 .venueSelect { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: 4px; font-size: 12px; color: var(--text-secondary); }
-.venueSelect select { min-height: 36px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 13px; padding: 0 8px; }
+.venueSelect select { min-height: 44px; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-card); color: var(--text-primary); font: inherit; font-size: 13px; padding: 0 8px; }
 .drawerLabel { margin: 0; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-muted); }
+.poseDock { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; padding: 12px max(12px, env(safe-area-inset-right, 0px)) max(12px, env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px)); border-top: 1px solid var(--border-color); background: var(--bg-primary); }
+.poseControls { min-width: 0; }
+[data-panel-open="true"] > .poseDock { visibility: hidden; pointer-events: none; }
+.poseAngles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.poseAngles .slider > span { flex-wrap: wrap; }

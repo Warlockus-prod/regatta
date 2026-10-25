@@ -1,5 +1,6 @@
 'use client';
 
+import type { CameraView } from "../../../simulator-3d/camera";
 import {
   COURSE_PRESETS,
   PodCard,
@@ -10,6 +11,23 @@ import {
   type UiState,
   type ViewMode,
 } from '../shared';
+
+/** Camera presets belong to the reserved View controls, outside the canvas. */
+export function BoatViewPresets({ view, onSelect, mainTrim, tp }: {
+  view: CameraView; onSelect: (view: CameraView) => void; mainTrim: boolean; tp: TpFn;
+}) {
+  const views: { id: CameraView; title: string }[] = [
+    { id: "sails", title: tp("Паруса", "Sails", "Żagle", { es: "Velas", fr: "Voiles", de: "Segel", it: "Vele" }) },
+    { id: "deck", title: tp("Палуба", "Deck", "Pokład", { es: "Cubierta", fr: "Pont", de: "Deck", it: "Coperta" }) },
+    { id: "whole", title: tp("Вся яхта", "Whole yacht", "Cały jacht", { es: "Yate completo", fr: "Tout le bateau", de: "Ganze Yacht", it: "Tutta la barca" }) },
+  ];
+  if (mainTrim) views.push({ id: "mainsheet", title: tp("Гика-шкот", "Mainsheet", "Szot grota", { es: "Escota de mayor", fr: "Écoute de grand-voile", de: "Großschot", it: "Scotta della randa" }) });
+  return <div className="flex shrink-0 flex-wrap gap-2 p-2" data-testid="boat-view-presets">
+    {views.map(item => <button key={item.id} type="button" aria-pressed={view === item.id} onClick={() => onSelect(item.id)}
+      className="min-h-11 min-w-11 rounded-md border px-3 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+      style={{ background: "var(--bg-primary)", color: view === item.id ? "var(--accent-cyan)" : "var(--text-primary)", borderColor: view === item.id ? "var(--accent-cyan)" : "var(--border-subtle)" }}>{item.title}</button>)}
+  </div>;
+}
 
 /** The four scene views, shared by this pod and the phone views drawer. */
 export function viewOptions(tp: TpFn): { value: ViewMode; label: string }[] {

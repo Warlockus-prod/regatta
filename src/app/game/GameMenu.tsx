@@ -1,11 +1,15 @@
 'use client';
 
+import { FoundationReturn } from "@/components/FoundationReturn";
+
 import { useEffect, useState } from 'react';
+import { useRaceCopy } from "./race-copy";
 import { useI18n } from '@/lib/i18n';
 import { missions, type Mission } from '@/data/missions';
-import { RaceViewPicker } from '@/features/race-3d/RaceViewPicker';
+import { RaceModePicker } from "./RaceCockpit";
+import type { RacePrefs } from "./race-prefs";
 import { VenuePicker } from '@/features/venues/VenuePicker';
-import { BOAT_STYLES, DIFFICULTY_CONFIG, type BoatStyle, type Difficulty } from './config';
+import { DIFFICULTY_CONFIG, type Difficulty } from './config';
 
 // ============================================================================
 // GameMenu - 3-preset entry (Учусь / Свободная / Миссия) with collapsible details
@@ -16,23 +20,25 @@ type MenuTab = 'learn' | 'free' | 'mission';
 export function GameMenu({
   difficulty, setDifficulty,
   windStrength, setWindStrength,
-  boatStyle, setBoatStyle,
   selectedMission, pickMission,
-  openBriefing,
+  openBriefing, racePrefs, updateRacePrefs, dailyDay,
 }: {
+  dailyDay: string | null;
+  racePrefs: RacePrefs; updateRacePrefs: (patch: Partial<RacePrefs>) => void;
   difficulty: Difficulty;
   setDifficulty: (d: Difficulty) => void;
   windStrength: 'light' | 'medium' | 'heavy';
   setWindStrength: (w: 'light' | 'medium' | 'heavy') => void;
-  boatStyle: BoatStyle;
-  setBoatStyle: (b: BoatStyle) => void;
   selectedMission: Mission | null;
   pickMission: (m: Mission | null) => void;
   openBriefing: () => void;
 }) {
   const { tp, tl } = useI18n();
+  const raceCopy = useRaceCopy();
   const [tab, setTab] = useState<MenuTab>('learn');
   const [detailsOpen, setDetailsOpen] = useState(false);
+
+  useEffect(() => { if (selectedMission) setTab("mission"); }, [selectedMission]);
 
   // Wind-label helper used in several places in this menu.
   const windLabel = (w: 'light' | 'medium' | 'heavy') =>
@@ -52,18 +58,18 @@ export function GameMenu({
 
   // When tab changes, apply defaults
   useEffect(() => {
+    if (dailyDay) return;
     if (tab === 'learn') {
       pickMission(null);
       setDifficulty('easy');
       setWindStrength('medium');
-      setBoatStyle('cruiser');
     } else if (tab === 'free') {
       pickMission(null);
       // keep user's manual selection
     }
     // mission tab: user picks mission -> it sets difficulty + wind automatically
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab]);
+  }, [tab, dailyDay]);
 
   const ctaLabel =
     tab === 'learn' ? tl({ ru: 'Начать первую гонку', en: 'Start your first race', pl: 'Zacznij pierwszy wyścig', es: 'Empezar la primera regata', fr: 'Lancer la première course', de: 'Erstes Rennen starten', it: 'Inizia la prima regata' }) :
@@ -90,7 +96,8 @@ export function GameMenu({
   const ctaDisabled = tab === 'mission' && !selectedMission;
 
   return (
-    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-10">
+    <div className="page-enter max-w-4xl mx-auto px-4 sm:px-6 py-4 sm:py-8">
+      <FoundationReturn />
       <div className="mb-6">
         <h1 className="text-3xl sm:text-4xl font-semibold text-[var(--text-primary)] mb-1">
           {tp('Гонка', 'Race', 'Wyścig', { es: 'Regata', fr: 'Course', de: 'Rennen', it: 'Regata' })}
@@ -100,8 +107,9 @@ export function GameMenu({
         </p>
       </div>
 
-      {/* Three big preset cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
+      {dailyDay && <p className="mb-4 text-[var(--accent-cyan)]">{dailyDay}</p>}
+      {/* Compact presets keep the start action visible on a phone. */}
+      <div hidden={Boolean(dailyDay)} className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-5">
         <PresetCard
           active={tab === 'learn'}
           onClick={() => setTab('learn')}
@@ -127,14 +135,14 @@ export function GameMenu({
           title={tp('Свободная гонка', 'Free race', 'Wolny wyścig', { es: 'Regata libre', fr: 'Course libre', de: 'Freies Rennen', it: 'Regata libera' })}
           subtitle={tp('Сам выбираешь', 'You choose', 'Ty decydujesz', { es: 'Tú eliges', fr: 'Tu choisis', de: 'Du entscheidest', it: 'Scegli tu' })}
           desc={tp(
-            'Сложность, сила ветра, лодка - под тебя. Без конкретной цели.',
-            'Difficulty, wind, boat - all yours. No specific objective.',
-            'Poziom, siła wiatru, łódź - według ciebie. Bez konkretnego celu.',
+            'Выбирай сложность и ветер. Без конкретной задачи.',
+            'Choose difficulty and wind. No specific objective.',
+            'Wybierz poziom i wiatr. Bez konkretnego zadania.',
             {
-              es: 'Dificultad, viento, barco - a tu gusto. Sin un objetivo concreto.',
-              fr: 'Difficulté, vent, bateau - à ta guise. Sans objectif précis.',
-              de: 'Schwierigkeit, Wind, Boot - wie du willst. Ohne festes Ziel.',
-              it: 'Difficoltà, vento, barca - a tua scelta. Senza un obiettivo preciso.',
+              es: 'Elige dificultad y viento. Sin un objetivo concreto.',
+              fr: 'Choisis la difficulté et le vent. Sans objectif précis.',
+              de: 'Wähle Schwierigkeit und Wind. Ohne festes Ziel.',
+              it: 'Scegli difficoltà e vento. Senza un obiettivo preciso.',
             },
           )}
         />
@@ -198,7 +206,7 @@ export function GameMenu({
         </div>
       )}
 
-      {tab === 'free' && (
+      {tab === 'free' && !dailyDay && (
         <div className="card p-4 mb-5 space-y-4">
           {/* Difficulty */}
           <div>
@@ -233,9 +241,9 @@ export function GameMenu({
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('СИЛА ВЕТРА', 'WIND STRENGTH', 'SIŁA WIATRU', { es: 'FUERZA DEL VIENTO', fr: 'FORCE DU VENT', de: 'WINDSTÄRKE', it: 'FORZA DEL VENTO' })}</div>
             <div className="grid grid-cols-3 gap-2">
               {([
-                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~5 kn'  },
-                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~10 kn' },
-                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~15 kn' },
+                { id: 'light',  label: tp('Слабый',  'Light',  'Słaby', { es: 'Flojo', fr: 'Faible', de: 'Schwach', it: 'Leggero' }),  desc: '~8 kn'  },
+                { id: 'medium', label: tp('Средний', 'Medium', 'Średni', { es: 'Medio', fr: 'Moyen', de: 'Mittel', it: 'Medio' }), desc: '~12 kn' },
+                { id: 'heavy',  label: tp('Сильный', 'Strong', 'Silny', { es: 'Fuerte', fr: 'Fort', de: 'Stark', it: 'Forte' }),  desc: '~16 kn' },
               ] as const).map((w) => (
                 <button
                   key={w.id}
@@ -253,37 +261,18 @@ export function GameMenu({
               ))}
             </div>
           </div>
-          {/* Boat */}
-          <div>
-            <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ЛОДКА', 'BOAT', 'ŁÓDŹ', { es: 'BARCO', fr: 'BATEAU', de: 'BOOT', it: 'BARCA' })}</div>
-            <div className="grid grid-cols-2 gap-2">
-              {BOAT_STYLES.map((b) => {
-                const active = boatStyle === b.id;
-                return (
-                  <button
-                    key={b.id}
-                    onClick={() => setBoatStyle(b.id)}
-                    className={`p-2.5 rounded-lg text-left text-xs transition border flex items-center gap-3 ${active ? 'ring-1' : 'opacity-80 hover:opacity-100'}`}
-                    style={{
-                      borderColor: active ? 'var(--accent-cyan)' : 'rgba(139, 167, 184, 0.2)',
-                      background: active ? 'rgba(0, 212, 255, 0.08)' : 'transparent',
-                      outlineColor: 'var(--accent-cyan)',
-                    }}
-                  >
-                    <BoatStylePreview style={b.id} />
-                    <div>
-                      <div className="font-semibold text-[var(--text-primary)]">{tp(b.labelRu, b.labelEn, b.labelPl, { es: b.labelEs, fr: b.labelFr, de: b.labelDe, it: b.labelIt })}</div>
-                      <div className="text-[10px] text-[var(--text-muted)]">{tp(b.descRu, b.descEn, b.descPl, { es: b.descEs, fr: b.descFr, de: b.descDe, it: b.descIt })}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
         </div>
       )}
 
-      <RaceViewPicker />
+      <RaceModePicker prefs={racePrefs} update={updateRacePrefs} />
+      <button
+        onClick={openBriefing}
+        disabled={ctaDisabled}
+        className="w-full mb-4 min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
+      >
+        {ctaLabel} →
+      </button>
       <VenuePicker />
 
       {/* Collapsible details panel (controls + course rules) */}
@@ -305,40 +294,22 @@ export function GameMenu({
         <div className="card p-4 mb-5 space-y-4">
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('УПРАВЛЕНИЕ', 'CONTROLS', 'STEROWANIE', { es: 'CONTROLES', fr: 'COMMANDES', de: 'STEUERUNG', it: 'COMANDI' })}</div>
-            <div className="flex flex-wrap gap-3 text-sm">
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">←</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">A</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Влево', 'Left', 'W lewo', { es: 'Izquierda', fr: 'Gauche', de: 'Links', it: 'Sinistra' })}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">→</kbd>
-                <kbd className="px-2 py-1 rounded border border-[rgba(0,212,255,0.2)] bg-[var(--bg-secondary)] text-xs font-mono">D</kbd>
-                <span className="text-[var(--text-secondary)]">{tp('Вправо', 'Right', 'W prawo', { es: 'Derecha', fr: 'Droite', de: 'Rechts', it: 'Destra' })}</span>
-              </div>
-              <div className="text-xs text-[var(--text-muted)]">{tp('На мобайле - кнопки внизу экрана.', 'On mobile - buttons at the bottom.', 'Na telefonie - przyciski na dole ekranu.', { es: 'En el móvil - botones en la parte inferior.', fr: 'Sur mobile - boutons en bas de l\'écran.', de: 'Auf dem Handy - Tasten unten am Bildschirm.', it: 'Su mobile - pulsanti in basso.' })}</div>
-            </div>
+            <p className="text-sm text-[var(--text-secondary)]">{racePrefs.mode === "pro" ? raceCopy.proNote : raceCopy.simpleNote}</p>
+            <p className="mt-2 text-xs text-[var(--text-muted)]">{tl({ ru: "← →: руль. В Pro Q/A: гика-шкот, W/S: стаксель-шкот.", en: "← →: helm. In Pro, Q/A: mainsheet; W/S: jib sheet.", pl: "← →: ster. W Pro Q/A: szot grota, W/S: szot foka.", es: "← →: timón. En Pro, Q/A: escota de mayor; W/S: escota de foque.", fr: "← → : barre. En Pro, Q/A : écoute de grand-voile ; W/S : écoute de foc.", de: "← →: Steuer. In Pro Q/A: Großschot, W/S: Fockschot.", it: "← →: timone. In Pro Q/A: scotta della randa, W/S: scotta del fiocco." })}</p>
           </div>
           <div>
             <div className="text-xs font-semibold tracking-wider text-[var(--text-muted)] mb-2">{tp('ТРАССА', 'COURSE', 'TRASA', { es: 'RECORRIDO', fr: 'PARCOURS', de: 'BAHN', it: 'PERCORSO' })}</div>
             <ol className="text-xs text-[var(--text-secondary)] space-y-1 list-decimal list-inside leading-relaxed">
               <li>{tp('Старт от нижней оранжевой линии (там же финиш).', 'Start from the bottom orange line (that\'s also the finish).', 'Start z dolnej pomarańczowej linii (tam jest też meta).', { es: 'Salida desde la línea naranja de abajo (también es la llegada).', fr: 'Départ depuis la ligne orange du bas (c\'est aussi l\'arrivée).', de: 'Start an der unteren orangen Linie (dort ist auch das Ziel).', it: 'Partenza dalla linea arancione in basso (è anche l\'arrivo).' })}</li>
               <li>{tp('Идёшь к верхнему знаку галсами - ветер сверху.', 'Tack your way up to the windward mark - the wind blows from the top.', 'Do znaku nawietrznego płyniesz halsami - wiatr wieje z góry.', { es: 'Subes a la baliza de barlovento dando bordos - el viento viene de arriba.', fr: 'Tu remontes vers la bouée au vent en louvoyant - le vent vient du haut.', de: 'Zur Luvtonne kreuzt du auf - der Wind kommt von oben.', it: 'Risali verso la boa di bolina bordeggiando - il vento arriva dall\'alto.' })}</li>
-              <li>{tp('Огибаешь знак (ближе 20 метров).', 'Round the mark (within 20 m).', 'Okrążasz znak (bliżej niż 20 m).', { es: 'Rodeas la baliza (a menos de 20 m).', fr: 'Tu vires la bouée (à moins de 20 m).', de: 'Du rundest die Bahnmarke (näher als 20 m).', it: 'Giri la boa (a meno di 20 m).' })}</li>
+              <li>{tp('Огибаешь знак, оставляя его по левому борту.', 'Round the mark, leaving it to port.', 'Okrążasz znak, zostawiając go po lewej burcie.', { es: 'Rodeas la baliza dejándola a babor.', fr: 'Tu contournes la bouée en la laissant à bâbord.', de: 'Du rundest die Tonne und lässt sie an Backbord.', it: 'Giri la boa lasciandola a sinistra.' })}</li>
               <li>{tp('Возвращаешься полным курсом и пересекаешь финиш сверху вниз.', 'Run back downwind and cross the finish top to bottom.', 'Wracasz kursem pełnym i przecinasz linię mety z góry na dół.', { es: 'Vuelve a favor del viento y cruza la línea de llegada de arriba abajo.', fr: 'Redescends au portant et coupe la ligne d\'arrivée de haut en bas.', de: 'Segle raumschots zurück und fahr von oben nach unten über die Ziellinie.', it: 'Torna con le andature portanti e taglia il traguardo dall\'alto verso il basso.' })}</li>
             </ol>
           </div>
         </div>
       )}
 
-      <button
-        onClick={openBriefing}
-        disabled={ctaDisabled}
-        className="w-full min-h-[52px] py-3 rounded-xl font-semibold text-lg transition-colors disabled:opacity-40 hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
-        style={{ background: 'var(--accent-cyan)', color: '#0a1628' }}
-      >
-        {ctaLabel} →
-      </button>
+
     </div>
   );
 }
@@ -367,47 +338,17 @@ function PresetCard({
     <button
       onClick={onClick}
       aria-pressed={active}
-      className="card p-4 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
+      aria-label={`${title}. ${subtitle}. ${desc}`}
+      className="card p-3 md:p-4 grid grid-cols-[28px_1fr] gap-x-3 md:block text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-cyan)]"
       style={{
         borderColor: active ? 'var(--accent-cyan)' : undefined,
         background: active ? 'rgba(0, 212, 255, 0.08)' : undefined,
       }}
     >
-      <div className="mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
+      <div className="row-span-2 self-center md:mb-2" style={{ color: active ? 'var(--accent-cyan)' : 'var(--text-secondary)' }}><PresetIcon kind={icon} /></div>
       <div className="font-semibold text-base text-[var(--text-primary)]">{title}</div>
-      <div className="text-xs text-[var(--text-muted)] mb-2">{subtitle}</div>
-      <p className="text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
+      <div className="text-xs text-[var(--text-muted)] md:mb-2">{subtitle}</div>
+      <p className="hidden md:block text-sm text-[var(--text-secondary)] leading-relaxed">{desc}</p>
     </button>
-  );
-}
-
-// ============================================================================
-// Small SVG preview of a boat style (used in the boat picker)
-// ============================================================================
-
-function BoatStylePreview({ style }: { style: BoatStyle }) {
-  const cfg = BOAT_STYLES.find((b) => b.id === style) ?? BOAT_STYLES[0];
-  const w = 24 * cfg.hullWidth;
-  const h = 46 * cfg.hullScale;
-  return (
-    <svg viewBox="-24 -30 48 60" className="block mx-auto" width="44" height="55" aria-hidden="true">
-      {/* Hull */}
-      <path
-        d={`M 0,${-h / 2.2} Q ${w / 2},0 ${w / 3},${h / 2.8} L ${-w / 3},${h / 2.8} Q ${-w / 2},0 0,${-h / 2.2} Z`}
-        fill="#d7e8f4"
-        stroke="#8fb4c9"
-        strokeWidth="0.7"
-      />
-      {/* Sail */}
-      <path
-        d={`M 0,${-h / 2.4} Q 8,0 2,${h / 3.6} L 0,${h / 3.6} Z`}
-        fill={cfg.sailHue}
-        stroke="#ffffff"
-        strokeWidth="0.5"
-      />
-      {style === 'racer' && (
-        <rect x="-1" y={-h / 2.5} width="2" height={h * 0.7} fill="#00d4ff" opacity="0.4" />
-      )}
-    </svg>
   );
 }

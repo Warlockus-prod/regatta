@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  # A manual run deploys the ref it is started on. There is deliberately no
-  # free-form ref input: the deploy job runs in the 'production' environment,
-  # whose branch rule is the gate on what reaches prod.
+  # Branch and tag runs may check source, but image publication and deployment
+  # below explicitly require main. Environment restrictions are a separate
+  # owner-configured control; do not assume they have already been installed.
   workflow_dispatch:
 
 # Least privilege by default; jobs that need more (publish-images,
@@ -64,8 +64,11 @@ jobs:
         # The bundled WebView resolves React from mobile, not the Next.js tree.
         # Both lockfiles are required to reproduce the shipped native asset.
         run: npm ci --prefix mobile --no-audit --no-fund
-      - name: Offline sailing package matches the website source
-        run: npm run build:sailing-offline:check
+      - name: Installed offline packages match the website source
+        run: |
+          npm run build:sailing-offline:check
+          npm run build:radio-offline:check
+          npm run build:sternik-offline:check
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
       - name: Pre-deploy E2E (boot the build, run smoke against localhost)
@@ -89,10 +92,11 @@ jobs:
             echo "FAIL: app did not become healthy in 40s"; kill $APP_PID 2>/dev/null || true; exit 1
           fi
           set +e
-          # Full smoke suite minus the AI chat test (needs a live LLM key -
+          # Smoke, foundation, radio layouts and offline practice before publication.
+          # Excludes the AI chat test (needs a live LLM key -
           # covered post-deploy on prod) and multiplayer.spec (needs the ws
           # server + prod nginx /ws upgrade, also covered post-deploy).
-          npx playwright test e2e/smoke.spec.ts --grep-invert "AI chat"
+          npx playwright test e2e/smoke.spec.ts e2e/foundation.spec.ts e2e/radio-workspace.spec.ts e2e/offline.spec.ts --grep-invert "AI chat"
           RESULT=$?
           set -e
           kill $APP_PID 2>/dev/null || true
@@ -106,6 +110,7 @@ jobs:
           retention-days: 14
 
   publish-images:
+    if: github.ref == 'refs/heads/main'
     name: Build immutable deployment images
     needs: build-check
     runs-on: ubuntu-24.04
@@ -145,12 +150,13 @@ jobs:
           done
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     name: Deploy to VPS
     needs: [build-check, publish-images]
     runs-on: ubuntu-24.04
     # The owner configures this environment in GitHub: deployment branches
     # limited to main (v* tags only once a tag ruleset restricts who may
-    # create them), and the deploy secrets (DEPLOY_SSH_KEY, VPS_HOST,
+    # create them; this workflow currently deploys main only), and the deploy secrets (DEPLOY_SSH_KEY, VPS_HOST,
     # VPS_USER, VPS_KNOWN_HOSTS) moved here from the repository level. Until
     # then GitHub creates it on first use with no rules and the repository
     # secrets still apply, so deploys keep working.

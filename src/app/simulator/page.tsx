@@ -1,5 +1,7 @@
 'use client';
 
+import { FoundationReturn } from "@/components/FoundationReturn";
+
 import { useRef, useEffect, useState, useCallback, useSyncExternalStore } from 'react';
 import { legacyPick } from '@/lib/languages';
 import { pointsOfSail, type PointOfSail } from '@/data/sailing-data';
@@ -1158,6 +1160,7 @@ export default function SimulatorPage() {
   );
   const tierHeader = (
     <>
+      <FoundationReturn bar />
       {!isEmbed && (
       <div className="sticky top-0 z-20 flex items-center justify-between gap-3 px-3 sm:px-5 py-2 border-b"
            style={{ background: 'color-mix(in srgb, var(--bg-primary) 92%, transparent)', borderColor: 'rgba(0, 212, 255, 0.14)', backdropFilter: 'blur(10px)' }}>
@@ -1295,6 +1298,7 @@ export default function SimulatorPage() {
 
       {/* Info Panel: controls first, so the sliders are on the first screen. */}
       <div className="lg:w-[380px] shrink-0 p-4 lg:p-6 flex flex-col gap-4 overflow-y-auto lg:max-h-[calc(100vh-var(--site-nav-h,56px))]"
+           data-trainer-settings-host
            style={{ background: 'var(--bg-secondary)' }}>
 
         {introText}

@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState, type ComponentType } from "react";
+'use client';
+import { useRadioI18n } from "@/app/radio/localization/context";
+import { useEffect, type ComponentType } from "react";
 import { createRoot } from "react-dom/client";
 import RadioCourseHome from "../../../src/app/radio/page";
 import RadioSubnav from "../../../src/app/radio/RadioSubnav";
@@ -9,12 +11,19 @@ import SrcTrainerPage from "../../../src/app/radio/test/page";
 import RadioTasksPage from "../../../src/app/radio/zadania/page";
 import CheatSheet from "../../../src/app/radio/sciaga/CheatSheet";
 import PositionDrill from "../../../src/app/radio/pozycja/PositionDrill";
-import {
-  ExplLangHint,
-  SternikLangScope,
-  SternikPrefsProvider,
-} from "../../../src/app/sternik/prefs";
-import { OfflineI18nProvider, appLanguage, useI18n, type CourseLanguage } from "./i18n";
+import LiveDialogue from "../../../src/app/radio/rozmowa/LiveDialogue";
+import { RadioPrefsProvider } from "../../../src/app/radio/prefs";
+import { RadioLocaleProvider } from "../../../src/app/radio/localization/context";
+import pl from "../../../public/radio-locales/pl.json";
+import ru from "../../../public/radio-locales/ru.json";
+import en from "../../../public/radio-locales/en.json";
+import es from "../../../public/radio-locales/es.json";
+import fr from "../../../public/radio-locales/fr.json";
+import de from "../../../public/radio-locales/de.json";
+import it from "../../../public/radio-locales/it.json";
+import bundledAliases from "../../../public/radio-locales/aliases.json";
+const bundledCatalogs = { pl, ru, en, es, fr, de, it };
+import { OfflineI18nProvider, type CourseLanguage } from "./i18n";
 import { OfflineRouterProvider } from "./router";
 
 declare global {
@@ -55,57 +64,13 @@ function postProgressSnapshot(entries = collectProgressEntries()) {
   }));
 }
 
-function openOnlineCourse(path = "/radio") {
-  window.ReactNativeWebView?.postMessage(JSON.stringify({
-    type: "radio-open-online",
-    path,
-  }));
-}
-
-function OfflineConversationNotice() {
-  const { tp } = useI18n();
-  return (
-    <section
-      className="rounded-2xl p-6"
-      style={{
-        background: "var(--bg-card)",
-        border: "1px solid var(--border-subtle)",
-      }}
-    >
-      <h1 className="text-2xl font-bold">
-        {tp("Разговор по радио", "Radio conversation", "Rozmowa radiowa")}
-      </h1>
-      <p className="mt-3 leading-relaxed" style={{ color: "var(--text-secondary)" }}>
-        {tp(
-          "Свободный разговор и распознавание ответа требуют интернета. Открой раздел «Симулятор», чтобы без сети отработать кнопки, DSC, каналы и эталонные голосовые процедуры.",
-          "Free conversation and speech recognition require a connection. Open the simulator to practise controls, DSC, channels and model voice procedures offline.",
-          "Swobodna rozmowa i rozpoznawanie odpowiedzi wymagają internetu. Otwórz symulator, aby offline ćwiczyć przyciski, DSC, kanały i wzorcowe procedury głosowe.",
-        )}
-      </p>
-      {navigator.onLine && window.ReactNativeWebView && (
-        <button
-          type="button"
-          onClick={() => openOnlineCourse("/radio/rozmowa")}
-          className="mt-4 min-h-[44px] rounded-xl px-4 text-sm font-bold"
-          style={{ background: "var(--accent-cyan)", color: "var(--accent-ink)" }}
-        >
-          {tp(
-            "Открыть онлайн-разговор",
-            "Open online conversation",
-            "Otwórz rozmowę online",
-          )}
-        </button>
-      )}
-    </section>
-  );
-}
-
 function OfflineSkipperNotice() {
-  const { tp } = useI18n();
+  const { rt: radioText } = useRadioI18n();
+  const { tp } = useRadioI18n();
   return (
     <section className="rounded-2xl border p-6" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
       <h1 className="text-xl font-bold">
-        {tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dział sternika nie należy do pakietu SRC")}
+        {radioText(tp("Раздел шкипера не входит в пакет SRC", "Skipper section is outside this SRC package", "Dział sternika nie należy do pakietu SRC"))}
       </h1>
     </section>
   );
@@ -120,74 +85,23 @@ const ROUTES: Record<string, ComponentType> = {
   "/radio/zadania": RadioTasksPage,
   "/radio/sciaga": CheatSheet,
   "/radio/pozycja": PositionDrill,
-  "/radio/rozmowa": OfflineConversationNotice,
+  "/radio/rozmowa": LiveDialogue,
   "/sternik": OfflineSkipperNotice,
 };
 
-function helperLanguages(): CourseLanguage[] {
-  const app = appLanguage();
-  return app && app !== "pl" && app !== "ru" ? [app, "pl", "ru"] : ["pl", "ru"];
-}
+function helperLanguages(): CourseLanguage[] { return ["de", "en", "es", "fr", "it", "pl", "ru"]; }
 
 function StatusBar() {
-  const { lang, setLang, tp } = useI18n();
-  const [online, setOnline] = useState(navigator.onLine);
-
-  useEffect(() => {
-    const update = () => setOnline(navigator.onLine);
-    window.addEventListener("online", update);
-    window.addEventListener("offline", update);
-    return () => {
-      window.removeEventListener("online", update);
-      window.removeEventListener("offline", update);
-    };
-  }, []);
-
+  const { lang, setLang, tp } = useRadioI18n();
   return (
-    <div className="mb-4 flex flex-wrap items-center gap-2 rounded-xl border px-3 py-2 text-xs" style={{ background: "var(--bg-card)", borderColor: "var(--border-subtle)" }}>
-      <span
-        className="rounded-full px-2 py-1 font-bold"
-        style={{
-          background: online ? "rgba(68,255,136,0.1)" : "rgba(255,170,0,0.1)",
-          color: online ? "var(--success)" : "var(--warning)",
-        }}
-      >
-        {online
-          ? tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })
-          : tp("Офлайн: теория и рация работают", "Offline: theory and radio work", "Offline: teoria i radio działają", { es: "Sin conexión: la teoría y la radio funcionan", fr: "Hors ligne : la théorie et la radio fonctionnent", de: "Offline: Theorie und Funkgerät funktionieren", it: "Offline: teoria e radio funzionano" })}
-      </span>
-      <span className="ml-auto" style={{ color: "var(--text-muted)" }}>
-        {tp("Язык помощи", "Helper language", "Język pomocy", { es: "Idioma de ayuda", fr: "Langue d'aide", de: "Hilfesprache", it: "Lingua di aiuto" })}
-      </span>
-      {/* the app's own language first when it is neither PL nor RU: the
-          trainer runs in it, the theory and the exam stay PL / RU */}
-      {helperLanguages().map((item) => (
-        <button
-          key={item}
-          type="button"
-          onClick={() => setLang(item)}
-          className="min-h-[36px] rounded-full px-3 font-bold"
-          style={lang === item
-            ? { background: "var(--accent-cyan)", color: "var(--accent-ink)" }
-            : { background: "var(--bg-secondary)", color: "var(--text-secondary)" }}
-        >
-          {item.toUpperCase()}
-        </button>
-      ))}
-      {online && window.ReactNativeWebView && (
-        <button
-          type="button"
-          onClick={() => openOnlineCourse("/radio/symulator")}
-          className="min-h-[36px] rounded-full px-3 font-bold"
-          style={{
-            background: "rgba(0,212,255,0.1)",
-            color: "var(--accent-cyan)",
-            border: "1px solid rgba(0,212,255,0.28)",
-          }}
-        >
-          {tp("Голос онлайн", "Voice online", "Głos online", { es: "Voz en línea", fr: "Voix en ligne", de: "Sprache online", it: "Voce online" })}
-        </button>
-      )}
+    <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm" style={{ color: "var(--text-secondary)" }}>
+      <span>{tp("Курс сохранён на устройстве", "Course stored on device", "Kurs zapisany na urządzeniu", { es: "Curso guardado en el dispositivo", fr: "Cours enregistré sur l'appareil", de: "Kurs auf dem Gerät gespeichert", it: "Corso salvato sul dispositivo" })}</span>
+      <label className="flex min-h-[44px] items-center gap-2">
+        <span>{tp("Язык курса", "Course language", "Język kursu", { es: "Idioma del curso", fr: "Langue du cours", de: "Kurssprache", it: "Lingua del corso" })}</span>
+        <select className="min-h-[44px] rounded-lg border px-2" value={lang} onChange={event => setLang(event.target.value as CourseLanguage)} style={{ background: "var(--bg-card)", color: "var(--text-primary)", borderColor: "var(--border-subtle)" }}>
+          {helperLanguages().map(item => <option key={item} value={item}>{item.toUpperCase()}</option>)}
+        </select>
+      </label>
     </div>
   );
 }
@@ -216,25 +130,22 @@ function App() {
 
   return (
     <OfflineI18nProvider>
-      {/* the router outside the language scope: SternikLangScope reads the
-          path to let the radio trainer run in the app language */}
       <OfflineRouterProvider>
         {({ path, search }) => {
           const Page = ROUTES[path] ?? RadioCourseHome;
           const key = `${path}${search}`;
           return (
-            <SternikLangScope>
-              <SternikPrefsProvider>
+            <RadioLocaleProvider bundled={bundledCatalogs} bundledAliases={bundledAliases}>
+              <RadioPrefsProvider>
                 <div className="mx-auto w-full max-w-5xl px-4 pb-32 pt-4">
                   <StatusBar />
                   <RadioSubnav />
-                  <ExplLangHint />
                   <main key={key}>
                     <Page />
                   </main>
                 </div>
-              </SternikPrefsProvider>
-            </SternikLangScope>
+              </RadioPrefsProvider>
+            </RadioLocaleProvider>
           );
         }}
       </OfflineRouterProvider>
@@ -244,4 +155,6 @@ function App() {
 
 const rootElement = document.getElementById("root");
 if (!rootElement) throw new Error("Offline radio root not found");
+// Components choose local speech/grading during their very first render.
+window.__REGATTA_OFFLINE_BUNDLE__ = true;
 createRoot(rootElement).render(<App />);

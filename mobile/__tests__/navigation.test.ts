@@ -1,5 +1,10 @@
-import { showsMainNavigation } from "../src/navigation/visibility";
+import { showsMainNavigation, usesDarkNavigation } from "../src/navigation/visibility";
 import { sectionForPath } from "../../src/lib/product/catalog";
+
+test("the native frame follows instrument surfaces and returns to paper at the hub", () => {
+  for (const path of ["/kursy/radio", "/kursy/radio?practice=free", "/kursy/motorowodny", "/anatomy", "/game", "/multiplayer"]) expect(usesDarkNavigation(path)).toBe(true);
+  for (const path of ["/simulators", "/menu", "/learn", "/settings", "/kursy/radio-other"]) expect(usesDarkNavigation(path)).toBe(false);
+});
 
 test("an activity releases screen space and returning to its hub restores navigation", () => {
   expect(showsMainNavigation("/simulators")).toBe(true);
@@ -7,6 +12,7 @@ test("an activity releases screen space and returning to its hub restores naviga
   expect(showsMainNavigation("/game")).toBe(false);
   // The 3D race is the whole web race (menu and race) in one screen: its steering buttons sit where the tab bar would.
   expect(showsMainNavigation("/race-3d")).toBe(false);
+  expect(showsMainNavigation("/multiplayer")).toBe(false);
   expect(showsMainNavigation("/multiplayer/race/ABC123")).toBe(false);
   expect(showsMainNavigation("/multiplayer/join")).toBe(true);
   expect(showsMainNavigation("/library")).toBe(true);

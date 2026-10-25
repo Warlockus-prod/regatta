@@ -53,7 +53,7 @@ describe("Home entry flows", () => {
     const view = renderWithProviders(<Home />);
     await waitFor(() => view.getByText("Your last course"));
     fireEvent.press(view.getByRole("button", { name: "Continue learning" }));
-    expect(mockPush).toHaveBeenCalledWith("/kursy/radio");
+    expect(mockPush).toHaveBeenCalledWith("/kursy/radio?view=course");
   });
 
   it("does not count opened lessons as passed", async () => {

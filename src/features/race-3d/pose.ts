@@ -20,8 +20,8 @@ export const METRES_PER_UNIT = 0.6;
  */
 export const VISUAL_SPEEDUP = (UNITS_PER_KNOT_SECOND * METRES_PER_UNIT) / 0.514444;
 
-/** Race camera: behind the stern, or high above it to read the course. */
-export type RaceCamera = "stern" | "high";
+/** Free orbit around the yacht, with optional stern and tactical presets. */
+export type RaceCamera = "orbit" | "stern" | "high";
 
 /** Inside this true wind angle the sails cannot fill (the canvas race uses 30 too). */
 export const NO_GO_DEG = 30;
@@ -35,6 +35,9 @@ export interface Race3DBoat {
   speed: number;
   lapDone: number;
   finishTime?: number;
+  started?: boolean;
+  returningToStart?: boolean;
+  roundPhase?: number;
   isPlayer?: boolean;
   physics?: BoatState;
   trim?: Controls;
@@ -78,12 +81,14 @@ export function racePose(boat: Race3DBoat, windDir: number, turnRate = 0): Yacht
     luff,
     fill,
     reef: trim?.reef ?? 0,
+    mainHoisted: trim?.mainHoisted !== false,
     rudderAngle: Math.max(-30, Math.min(30, turnRate * 1.2)),
     heel: boat.physics?.heel ?? 0,
     heading: boat.heading,
     speedKn: boat.speed * VISUAL_SPEEDUP,
+    wind: { from: windDir, knots: boat.physics?.trueWindSpeed ?? 12 },
     travel: toWorld(boat.pos),
-    jibShape: { camber: 0.7, twist: trim?.jibTwist ?? 0.4, luff, fill, furl: trim?.jibFurl ?? 0 },
+    jibShape: { camber: 0.7, twist: trim?.jibTwist ?? 0.4, luff, fill, furl: clamp01(trim?.jibFurl ?? 0) },
   };
 }
 

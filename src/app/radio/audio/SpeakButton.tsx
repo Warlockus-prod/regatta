@@ -1,5 +1,7 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { useState } from 'react';
 import { playRadioSpeech } from './radioPlayback';
 
@@ -17,6 +19,7 @@ export function SpeakButton({
   label: string;
   size?: number;
 }) {
+  const { rt: radioText } = useRadioI18n();
   const [playing, setPlaying] = useState(false);
 
   const play = async () => {
@@ -33,9 +36,9 @@ export function SpeakButton({
     <button
       type="button"
       onClick={() => void play()}
-      aria-label={`${label}: ${text}`}
+      aria-label={radioText(`${label}: ${text}`)}
       aria-busy={playing}
-      title={label}
+      title={radioText(label)}
       style={{
         display: 'inline-flex',
         alignItems: 'center',
@@ -53,7 +56,7 @@ export function SpeakButton({
         flexShrink: 0,
       }}
     >
-      <span aria-hidden>{playing ? '■' : '▶'}</span>
+      <span aria-hidden>{radioText(playing ? '■' : '▶')}</span>
     </button>
   );
 }

@@ -34,10 +34,11 @@ export interface ControlPrefs {
 
 export const CONTROL_PREFS_KEY = "regatta.controls.v1";
 export const CONTROL_PREFS_EVENT = "regatta:controls-prefs";
+export const LEGACY_RACE_MUTE_KEY = "regatta.muted.v1";
 
 export const DEFAULT_CONTROL_PREFS: ControlPrefs = {
   version: 1,
-  mode: "sliders",
+  mode: "wheels",
   helmMapping: {},
   helmReturnToCenter: false,
   sensitivity: 1,
@@ -100,14 +101,26 @@ export function readControlPrefs(): ControlPrefs {
   if (w.__REGATTA_CONTROLS__ && typeof w.__REGATTA_CONTROLS__ === "object") {
     return sanitizeControlPrefs({ ...(stored as object | null ?? {}), ...(w.__REGATTA_CONTROLS__ as object) });
   }
-  return sanitizeControlPrefs(stored);
+  const clean = sanitizeControlPrefs(stored);
+  // Preserve an explicit older race choice only until this device has a
+  // canonical sound preference. The injected native record always wins.
+  if (!stored || typeof stored !== "object" || typeof (stored as { sound?: unknown }).sound !== "boolean") {
+    try {
+      const legacy = window.localStorage.getItem(LEGACY_RACE_MUTE_KEY);
+      if (legacy === "0" || legacy === "1") clean.sound = legacy === "0";
+    } catch { /* Keep the silent default when storage is unavailable. */ }
+  }
+  return clean;
 }
 
 export function writeControlPrefs(next: ControlPrefs) {
   if (typeof window === "undefined") return;
   const w = window as ControlsWindow;
   const clean = sanitizeControlPrefs(next);
-  try { window.localStorage.setItem(CONTROL_PREFS_KEY, JSON.stringify(clean)); } catch { /* private mode */ }
+  try {
+    window.localStorage.setItem(CONTROL_PREFS_KEY, JSON.stringify(clean));
+    window.localStorage.setItem(LEGACY_RACE_MUTE_KEY, clean.sound ? "0" : "1");
+  } catch { /* private mode */ }
   if (w.__REGATTA_CONTROLS__) w.__REGATTA_CONTROLS__ = clean;
   try { w.ReactNativeWebView?.postMessage(JSON.stringify({ type: "controls-prefs", prefs: clean })); } catch { /* not in the app */ }
   window.dispatchEvent(new CustomEvent(CONTROL_PREFS_EVENT));

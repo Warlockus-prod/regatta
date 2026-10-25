@@ -1,5 +1,6 @@
-import { Text as RNText, type TextProps as RNTextProps, StyleSheet } from 'react-native';
+import { Text as RNText, type TextProps as RNTextProps, type TextStyle, StyleSheet } from 'react-native';
 import { bySurface, useSurface } from '../surface';
+import { sourceSansFamily, useAppFontsReady } from '../fonts';
 
 /**
  * Themed Text. Default variant is `body`. `eyebrow` is the small uppercase
@@ -58,5 +59,10 @@ const variantStyles = bySurface((c) => StyleSheet.create({
 
 export function Text({ variant = 'body', style, ...rest }: TextProps) {
   const surface = useSurface();
-  return <RNText {...rest} style={[variantStyles[surface][variant], style]} />;
+  const fontsReady = useAppFontsReady();
+  const merged: TextStyle = StyleSheet.flatten([variantStyles[surface][variant], style]);
+  // Pick an actual static weight instead of asking iOS/Android to synthesize
+  // a bold style from the Regular alias. Explicit diagram/mono fonts win.
+  const font = fontsReady && !merged.fontFamily ? { fontFamily: sourceSansFamily(merged.fontWeight), fontWeight: 'normal' as const } : undefined;
+  return <RNText {...rest} style={[variantStyles[surface][variant], style, font]} />;
 }

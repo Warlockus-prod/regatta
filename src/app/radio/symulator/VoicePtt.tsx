@@ -1,9 +1,16 @@
 'use client';
 
+import { useRadioI18n } from "@/app/radio/localization/context";
+
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import type { VoiceSpec } from './scenarios';
 import MicCheck from '../MicCheck';
 import { checkLabel, fmt, useTrainerI18n } from './trainerText';
+import { LocalTranscriptEntry, type TranscriptInputMode } from '../LocalTranscriptEntry';
+import { offlineRadio } from '../audio/localSpeech';
+import { gradeVoiceTransmission } from '../voiceGrading';
+import { VESSEL_POOL } from './radioModel';
+import { venueById } from './venues';
 
 type VoiceKind = VoiceSpec['kind'];
 
@@ -23,6 +30,7 @@ export interface VoiceResult {
   /** false when a defining element (MAYDAY/PAN-PAN/SECURITE/RELAY/RECEIVED/CANCEL)
    *  was missing: a fail regardless of the percentage. */
   mandatoryOk?: boolean;
+  inputMode?: 'typed' | 'voice';
 }
 
 interface Props {
@@ -57,6 +65,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   kind, lines, vesselIdx, positionIdx, pob, venue = 'gdansk', ru, hideScript = false,
   allowLinePractice = true, minimumScore = 70, onComplete,
 }, ref) {
+  const { rt: radioText } = useRadioI18n();
   const { tp: ttp, lang } = useTrainerI18n();
   // the RU site with Polish explanations keeps the Polish copy
   const t = useCallback((ruText: string, en: string, pl: string) => (lang === 'ru' && !ru ? pl : ttp(ruText, en, pl)), [lang, ru, ttp]);
@@ -87,6 +96,14 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
     onComplete(r);
   }, [onComplete]);
 
+  const checkText = useCallback((transcript: string, inputMode: TranscriptInputMode) => {
+    if (busy || recording || wantRecording.current || doneRef.current) return;
+    const place = venueById(venue);
+    const graded = { ...gradeVoiceTransmission({ kind, transcript, vessel: VESSEL_POOL[vesselIdx] ?? VESSEL_POOL[0], positionSpoken: place.positions[positionIdx % place.positions.length].spoken, pob, venue: place }), inputMode };
+    setResult(graded);
+    if (graded.mandatoryOk && graded.score >= minimumScore) finish(graded);
+  }, [busy, recording, venue, kind, vesselIdx, positionIdx, pob, minimumScore, finish]);
+
   // --- step-through mode -----------------------------------------------------
   const readNext = useCallback(() => {
     setLinesRead((n) => {
@@ -106,6 +123,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   }, []);
 
   const startRecording = useCallback(async () => {
+    if (offlineRadio()) { setVoiceUnavailable(true); return; }
     // Reentrancy + release-before-grant guards (permission prompt race).
     if (busy || starting.current || mediaRef.current?.state === 'recording') return;
     starting.current = true;
@@ -165,7 +183,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             return;
           }
           if (!res.ok) {
-            setError(data.error || t('Ошибка оценки.', 'Grading failed.', 'Błąd oceny.'));
+            setError(t('Ошибка оценки.', 'Grading failed.', 'Błąd oceny.'));
             return;
           }
           const r = data as VoiceResult;
@@ -179,7 +197,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
               'Пропущен обязательный элемент: {item}. Без него передача не засчитывается.',
               'A mandatory element is missing: {item}. Without it the transmission does not count.',
               'Brak elementu obowiązkowego: {item}. Bez niego transmisja nie liczy się.',
-            ), { item: checkLabel(missing.label, lang) }));
+            ), { item: checkLabel(missing.label, lang, radioText) }));
           } else if (r.score >= minimumScore) {
             finish(r);
           } else {
@@ -204,7 +222,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
     } finally {
       starting.current = false;
     }
-  }, [allowLinePractice, busy, kind, lang, minimumScore, pob, positionIdx, venue, vesselIdx, t, stopRecording, finish]);
+  }, [allowLinePractice, busy, kind, lang, minimumScore, pob, positionIdx, venue, vesselIdx, t, stopRecording, finish, radioText]);
 
   useImperativeHandle(ref, () => ({
     startRecording: () => { void startRecording(); },
@@ -221,24 +239,24 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
   return (
     <div data-testid="voice-panel" className="rounded-2xl p-4" style={{ background: 'rgba(0,212,255,0.06)', border: '1px solid rgba(0,212,255,0.25)' }}>
       <div className="mb-2 text-sm font-semibold" style={{ color: 'var(--accent-cyan)' }}>
-        🎙️ {t('Передача голосом - канал открыт', 'Voice transmission - the channel is open', 'Transmisja głosem - kanał otwarty')}
+        🎙️ {radioText(t('Передача голосом - канал открыт', 'Voice transmission - the channel is open', 'Transmisja głosem - kanał otwarty'))}
       </div>
 
       {!hideScript ? (
         <ol className="mb-3 space-y-0.5 font-mono text-xs leading-relaxed">
           {lines.map((line, i) => (
             <li key={i} style={{ color: i < linesRead ? 'var(--success)' : 'var(--text-secondary)', opacity: i < linesRead ? 1 : 0.85 }}>
-              {i < linesRead ? '✓ ' : '· '}{line}
+              {radioText(i < linesRead ? '✓ ' : '· ')}{line}
             </li>
           ))}
         </ol>
       ) : (
         <p className="mb-3 text-xs" style={{ color: 'var(--text-secondary)' }}>
-          {fmt(t(
+          {radioText(fmt(t(
             'Экзамен: сценарий скрыт. Удерживай физическую PTT и передай сообщение с памяти. Проходной балл {n}%.',
             'Exam: the script is hidden. Hold the PTT on the radio and send the message from memory. Pass mark {n}%.',
             'Egzamin: tekst jest ukryty. Trzymaj fizyczny PTT i nadaj komunikat z pamięci. Próg zaliczenia {n}%.',
-          ), { n: minimumScore })}
+          ), { n: minimumScore }))}
         </p>
       )}
 
@@ -252,21 +270,23 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
             className="min-h-[44px] rounded-xl px-4 text-sm font-semibold transition active:scale-95 disabled:opacity-40"
             style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
           >
-            {t('Репетиция: следующая строка', 'Practice: next line', 'Próba: kolejna linia')} ({linesRead}/{lines.length})
+            {radioText(t('Репетиция: следующая строка', 'Practice: next line', 'Próba: kolejna linia'))} ({radioText(linesRead)}/{radioText(lines.length)})
           </button>
         )}
         <div data-testid="voice-record-status" aria-live="polite" className="min-h-[44px] flex-1 rounded-xl px-4 py-3 text-center text-sm font-bold" style={{ background: recording ? '#a81f14' : 'var(--bg-secondary)', color: recording ? '#fff' : 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}>
-          {busy
+          {radioText(busy
             ? t('Оцениваю передачу...', 'Grading the transmission...', 'Oceniam transmisję...')
             : recording
               ? t('ЗАПИСЬ: говори и отпусти PTT', 'RECORDING: speak, then release PTT', 'NAGRYWANIE: mów i puść PTT')
               : voiceUnavailable
                 ? t('Голосовой режим недоступен', 'Voice mode is unavailable', 'Tryb głosowy niedostępny')
-                : t('Удерживай PTT на рации', 'Hold PTT on the radio', 'Trzymaj PTT na radiu')}
+                : t('Удерживай PTT на рации', 'Hold PTT on the radio', 'Trzymaj PTT na radiu'))}
         </div>
       </div>
 
-      {error && <div role="alert" className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{error}</div>}
+      <LocalTranscriptEntry allowVoice={false} disabled={recording || busy} onSubmit={checkText} />
+
+      {error && <div role="alert" className="mt-2 text-xs" style={{ color: 'var(--danger, #ff6a5a)' }}>{radioText(error)}</div>}
 
       {/* Exam mode has no line-practice fallback, so a denied/absent mic or an
           offline grader used to strand the whole run: onComplete never fired and
@@ -291,7 +311,7 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
           className="mt-2 min-h-[44px] rounded-xl px-4 text-sm font-semibold"
           style={{ background: 'var(--bg-card)', color: 'var(--text-primary)', border: '1px solid var(--border-subtle)' }}
         >
-          {t('Закончить без голосовой передачи', 'Finish without the voice transmission', 'Zakończ bez transmisji głosowej')}
+          {radioText(t('Закончить без голосовой передачи', 'Finish without the voice transmission', 'Zakończ bez transmisji głosowej'))}
         </button>
       )}
 
@@ -304,9 +324,9 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         className="mt-2 inline-flex min-h-[44px] items-center px-1 text-xs underline"
         style={{ color: 'var(--text-muted)' }}
       >
-        {showMicCheck
+        {radioText(showMicCheck
           ? t('Скрыть проверку микрофона', 'Hide the microphone check', 'Ukryj sprawdzenie mikrofonu')
-          : t('Проверить микрофон', 'Check the microphone', 'Sprawdź mikrofon')}
+          : t('Проверить микрофон', 'Check the microphone', 'Sprawdź mikrofon'))}
       </button>
       {showMicCheck && <div className="mt-2"><MicCheck compact /></div>}
 
@@ -314,20 +334,18 @@ const VoicePtt = forwardRef<VoicePttHandle, Props>(function VoicePtt({
         <div data-testid="voice-result" aria-live="polite" className="mt-3 rounded-xl p-3" style={{ background: 'var(--bg-card)', border: '1px solid var(--border-subtle)' }}>
           <div className="flex items-baseline gap-2">
             <span className="text-2xl font-extrabold" style={{ color: result.score >= 70 ? 'var(--success)' : result.score >= 40 ? 'var(--warning)' : 'var(--danger, #ff6a5a)' }}>
-              {result.score}%
+              {radioText(result.score)}%
             </span>
-            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('структура сообщения (Whisper)', 'message structure (Whisper)', 'struktura komunikatu (Whisper)')}</span>
+            <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{result.inputMode === 'typed' ? t('Проверенный текст', 'Checked text', 'Sprawdzony tekst') : radioText(t('структура сообщения (Whisper)', 'message structure (Whisper)', 'struktura komunikatu (Whisper)'))}</span>
           </div>
           <ul className="mt-2 space-y-0.5 text-xs">
             {result.checks.map((c) => (
               <li key={c.id} style={{ color: c.ok ? 'var(--success)' : 'var(--danger, #ff6a5a)' }}>
-                {c.ok ? '✓' : '✗'} {checkLabel(c.label, lang)}
+                {radioText(c.ok ? '✓' : '✗')} {radioText(checkLabel(c.label, lang, radioText))}
               </li>
             ))}
           </ul>
-          <div className="mt-2 text-xs italic" style={{ color: 'var(--text-muted)' }}>
-            &quot;{result.transcript.slice(0, 300)}&quot;
-          </div>
+          <div className="mt-2 text-xs italic" style={{ color: 'var(--text-muted)' }}>{radioText(" \"")}{result.transcript.slice(0, 300)}{radioText("\" ")}</div>
         </div>
       )}
     </div>

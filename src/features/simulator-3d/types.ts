@@ -169,7 +169,7 @@ export const DEFAULT_LABELS: SimLabels = {
     stallJib: 'Jib stalled - ease the jib sheet',
     stallBoth: 'Both sails stalled - ease the mainsheet and the jib sheet',
     pinching: 'Pinching - bear away a touch',
-    good: 'Well trimmed - both sails pulling',
+    good: 'Good trim - deployed sails are working',
     reachOn: 'Trim for the reach',
     run: "Running: ease the mainsheet and the jib sheet",
   },

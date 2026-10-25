@@ -17,6 +17,7 @@
 // ============================================================================
 
 import manifest from './pregenManifest.json';
+import { offlineRadio, playLocalSpeech, stopLocalSpeech } from './localSpeech';
 
 const MANIFEST = manifest as Record<string, string>;
 
@@ -65,6 +66,7 @@ async function fetchAudio(text: string): Promise<ArrayBuffer | null> {
 
 /** Stop whatever is currently playing (e.g. before starting a new phrase). */
 export function stopRadioSpeech(): void {
+  stopLocalSpeech();
   if (current) {
     try { current.stop(); } catch { /* already stopped */ }
     current = null;
@@ -75,6 +77,7 @@ export function stopRadioSpeech(): void {
  *  if audio is unavailable (no key, offline, decode failure) - the caller keeps
  *  showing the written phrase either way. */
 export async function playRadioSpeech(text: string): Promise<void> {
+  if (offlineRadio()) { await playLocalSpeech(text); return; }
   const c = getCtx();
   if (!c) return;
   if (c.state === 'suspended') { try { await c.resume(); } catch { /* ignore */ } }
