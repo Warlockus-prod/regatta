@@ -777,7 +777,7 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - `ops/notify/asc-alert.sh` - управление launchd-задачей алерта.
 - `ops/notify/N8N_SUPPORT_SETUP.md` - настройка потока support@ в Telegram через n8n.
 - `ops/notify/regatta-support-email-to-telegram.workflow.json` - экспорт workflow n8n.
-- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; стартовый 3D-тренажер должен показать canvas и настоящий первый кадр, без глобальной навигации и ссылок между тренажерами.
+- `e2e/smoke.spec.ts` - smoke по критичным маршрутам и контрактам embed-режима; три тяжелых 3D-сценария имеют отдельный бюджет 120s по cloud trace, ожидание настоящего первого кадра V3 ограничено 45s; проверки часов, управления, pause/resume и отсутствия embed-навигации сохранены, глобальные defaults не меняются.
 - `e2e/multiplayer.spec.ts` - двухклиентный мультиплеер (нужны два браузера, см. раздел 8).
 - `e2e/a11y-focus.spec.ts` - фокус на новом вопросе после "Dalej" в тренажерах sternik и SRC, lang="pl" польского курса на английском сайте.
 - `e2e/trainer-controls.spec.ts` - на телефоне лодка остается в кадре при прокрутке дока во всех трех тренажерах; штурвалы управляются с клавиатуры.

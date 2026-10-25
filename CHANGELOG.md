@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Gave three real 3D browser flows individual 120s budgets after cloud traces showed valid controls, pause and rendered scenes exhausting the former 30/60s limits. The trainer still must report its actual first rendered frame within 45s; every interaction and assertion remains in place, with no global timeout or app-runtime change.
+
 - Fixed SRC failing to open after an update from released48/49 when their retired language preference is present. Saved progress is preserved. Startup now has a bounded wait, separate support codes and usable Retry/Exit, including interrupted WebView processes. Candidate62 still requires installed-binary and TestFlight delivery verification.
 
 - The foundation return test keeps the 44px minimum while comparing browser geometry to 0.001px precision, avoiding a false failure at 43.999992px. Course return, navigation and progress assertions remain unchanged.
