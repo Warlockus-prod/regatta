@@ -4,9 +4,9 @@ on:
   push:
     branches: [main]
     tags: ['v*']
-  # A manual run deploys the ref it is started on. There is deliberately no
-  # free-form ref input: the deploy job runs in the 'production' environment,
-  # whose branch rule is the gate on what reaches prod.
+  # Branch and tag runs may check source, but image publication and deployment
+  # below explicitly require main. Environment restrictions are a separate
+  # owner-configured control; do not assume they have already been installed.
   workflow_dispatch:
 
 # Least privilege by default; jobs that need more (publish-images,
@@ -110,6 +110,7 @@ jobs:
           retention-days: 14
 
   publish-images:
+    if: github.ref == 'refs/heads/main'
     name: Build immutable deployment images
     needs: build-check
     runs-on: ubuntu-24.04
@@ -149,12 +150,13 @@ jobs:
           done
 
   deploy:
+    if: github.ref == 'refs/heads/main'
     name: Deploy to VPS
     needs: [build-check, publish-images]
     runs-on: ubuntu-24.04
     # The owner configures this environment in GitHub: deployment branches
     # limited to main (v* tags only once a tag ruleset restricts who may
-    # create them), and the deploy secrets (DEPLOY_SSH_KEY, VPS_HOST,
+    # create them; this workflow currently deploys main only), and the deploy secrets (DEPLOY_SSH_KEY, VPS_HOST,
     # VPS_USER, VPS_KNOWN_HOSTS) moved here from the repository level. Until
     # then GitHub creates it on first use with no rules and the repository
     # secrets still apply, so deploys keep working.

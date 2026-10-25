@@ -54,11 +54,11 @@ test("failed durable check write keeps the counter unchanged and retries without
     };
   });
   await page.getByRole("button", { name: "Проверить ответы", exact: true }).click();
-  await expect(page.getByRole("alert")).toContainText("Не удалось сохранить");
+  await expect(page.getByRole("main").getByRole("alert")).toContainText("Не удалось сохранить");
   await expect(page.getByText("Пройдено проверок: 0/8", { exact: true })).toBeVisible();
   await page.evaluate(() => Object.assign(window, { foundationFail: false }));
   await page.getByRole("button", { name: "Повторить сохранение", exact: true }).click();
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByRole("main").getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("Пройдено проверок: 1/8", { exact: true })).toBeVisible();
   await page.reload();
   await expect(page.getByText("Пройдено проверок: 1/8", { exact: true })).toBeVisible();

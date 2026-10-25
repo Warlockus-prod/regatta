@@ -874,9 +874,10 @@ Radio pages, theory, lessons, all question presentation and practice use seven p
 - Откат: администратор (не деплой-аккаунт) поднимает образы из
   `/var/lib/regatta-deploy-state/previous.json` тем же фиксированным
   compose-файлом, см. `ops/deploy/README.md` ("Verification and rollback").
-  Ручного `workflow_dispatch` с произвольным ref больше нет: ручной запуск
-  деплоит ветку, на которой запущен, и проходит правила environment
-  `production`.
+  Ручной `workflow_dispatch` на другом ref выполняет проверки, но публикация
+  образов и deploy явно требуют `refs/heads/main`. Настройки environment
+  `production` - отдельный контроль владельца, их наличие нельзя выводить
+  из YAML или успешных unit-тестов.
 
 ---
 
@@ -1056,7 +1057,7 @@ The original Polish Sternik pages are compiled into one installed package. Its l
 - `mobile/scripts/offline-sternik/entry.tsx` - Polish local course package and host.
 - `mobile/src/simulator/SimWebView.tsx` - Local asset loading, routing or durable storage.
 
-Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. Production authority, pinned actions, immutable image deployment and forced SSH boundary are unchanged.
+Release verification: `.github/workflows/deploy.yml` checks all three installed offline packages and runs smoke, foundation, radio workspace and offline browser suites against the loopback production build before publishing images. The focused foundation suite also runs in its own CI job for branch/PR feedback; its fixture dismisses the unrelated trainer introduction tour. Image publication and deployment explicitly require refs/heads/main. This workflow guard does not replace owner-configured environment restrictions. Pinned actions, immutable image deployment and the forced SSH boundary remain unchanged.
 
 Completion and installed sailing package:
 

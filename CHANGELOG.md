@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Website image publication and deployment now explicitly require main, so a manual run on another branch or tag performs checks without changing production. The confined server policy and credentials are unchanged.
+
 - Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.
 
 - Reopened the full completion audit after build60 feedback. Candidate61 adds the trainer's freely rotatable close3D camera to racing, a direct radio-practice entry, internal SRC Back, dependable native exits, and matching dark instrument frames. Actual-device acceptance and delivery are recorded separately.
