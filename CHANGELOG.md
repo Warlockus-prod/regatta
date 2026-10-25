@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Fitted the complete course map and legend inside the available cockpit panel, including the native safe area and short/landscape screens. Marks and boats are visible before scrolling; boat space and controls stay reserved.
+
 - Trainer drawer geometry now waits for the actual first3Dframe inside the same25s startup allowance. A retained cloud screenshot showed Loading yacht during the former597ms geometry sample; both drawer cases keep their1px bounds, view actions and60s total budgets. No runtime or timeout was changed.
 
 - Added the existing trainer control/layout suite to the same loopback pre-deploy browser gate so its real first-frame, occupied Diagnostics and unobscured-boat contracts run before publication. The frozen64 source also repairs the63 multiplayer slider's accessible name; its strict guest input check stays in place. Publication guards, permissions and timeout budgets are unchanged.

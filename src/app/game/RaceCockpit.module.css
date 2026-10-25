@@ -13,7 +13,8 @@
 .dock { min-height:0; min-width:0; display:flex; flex-direction:column; border-left:1px solid #ffffff12; background:var(--bg-primary,#071923); }
 .notice { min-height:55px; flex-shrink:0; padding:10px 14px; border-bottom:1px solid #ffffff10; font-size:12px; line-height:1.45; color:#b9e8ed; }.notice strong { font-size:28px; }
 .tabs { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); flex-shrink:0; border-bottom:1px solid #ffffff12; gap:2px; padding:2px 4px; }.tabs button { min-width:0; overflow-wrap:anywhere; padding:4px; font-size:12px; border-radius:6px; display:flex; align-items:center; justify-content:center; gap:4px; }.tabs button svg { flex-shrink:0; }.tabs button span { min-width:0; }
-.mapPanel { display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
+.mapPanel { --race-map-height:clamp(90px,calc(100cqh - 58px),220px); display:flex; flex-direction:column; gap:12px; padding:4px 0 12px; }.mapPanel h2 { font-size:13px; color:var(--text-secondary); }.mapPanel .fleet { padding:0; }
+.panel:has(.mapPanel) { container-type:size; }
 .tabs button:has(svg)>span { position:absolute; clip-path:inset(50%); width:1px; height:1px; overflow:hidden; white-space:nowrap; }
 .panel { min-height:0; overflow:auto; overscroll-behavior:contain; scrollbar-width:thin; flex:1; padding:8px 12px; }
 .controlHeading { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:12px; }.controlHeading>span { color:var(--accent-cyan); }

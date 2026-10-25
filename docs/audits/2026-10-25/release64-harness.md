@@ -7,8 +7,9 @@ This is a separate presentation checkpoint. Physical course emission stays off.
 
 ## Website integration after the63 production gate
 
-SITE merges frozen APP1543d8251941fa671d17272a7016308d3229584b while retaining
-0198d63's trainer browser contracts and portable website63-production.json.
+SITE initially merged APP1543d825, then adds frozen Map-fit source
+ef180dfc520df389353bc6e208e7187894b9f976 while retaining0198d63 and7d87bf3
+trainer browser contracts and portable website63-production.json.
 Published63/b75c1e4 was healthy, but its74-case production report has70 first-pass,
 1flaky,2failed and1skipped. The multiplayer range had no accessible name because
 its implicit label selected the earlier output element;64 explicitly supplies
@@ -133,3 +134,32 @@ against direct world air-minus-boat vectors, maximum speed error1.07e-14kn;
 all direction vectors agree. After merge, strict types and scoped browser lint
 pass; AST review retains all113old Pro calls in order plus actual-frame wait and
 bounded observations. Shared map/gear/Helm tests15/3 pass after final CSS.
+
+## Installed G2 finding and superseded candidate1543
+
+Source1543d825 produced verified generated18, Simulator27, archive33 and IPA35,
+with independent real binary/IPA/UUID hashes. Cloud61 first-pass,1269web/475native
+and3Foundation checks pass. It was never uploaded. After the host restart,
+all8saved values and129journal entries survived its installation on26.5.
+Native Home, retained Pro/sliders/course preference, actual bundled3D, live
+Map, clock0:12.0 and pause1:24.7 were observed. This is not a Pro finish.
+
+G2 found that the initial SVG used width-driven auto height: the native safe
+area leaves less dock space and the start line was clipped below its initial
+view. Candidate1543 archive/export/logs/reports are preserved externally as
+native-archive64-1543d825, with original-path relocation documented. Its expanded
+Simulator app is preserved separately. No existing progress was cleared.
+
+The correction sizes only the Map SVG against its own panel's query-container
+height and reserves room for the caption. No new React state/timer/observer,
+physics, data or control change. Existing standalone Map height is the fallback.
+Actual production browser geometry shows full SVG and caption within every
+panel/viewport edge at390x844,320x568,390x720 and844x390. The strengthened single
+E2E repeats these four sizes before any Fleet scroll, restoring390x844 and all
+old controls/assertions.25s/15s/120s budgets remain unchanged.
+
+Corrected sourceef180df is frozen with fresh sailing asseta129165d4b2b. Exact
+new native proof, installed26.5/clean27, Apple validation/VALID/8notes/Self remain
+required. Prior1543 checks do not stand in for the corrected package. Website
+PR84 now synchronizesef180df with the retained drawer-readiness correction;
+normal CI and the full68-case non-main gate must repeat before publication.

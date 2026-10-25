@@ -1313,3 +1313,10 @@ shared race navigation case and the existing trainer-controls suite. The finite 
 changes with it; all9 deployment boundary tests pass. Publication/deployment
 remain main-only, with the same secrets, pinned actions, report retention and
 confined forced command. No host/runtime/permission policy changes.
+
+Map SVG height now accepts the cockpit's --race-map-height custom property.
+Only the active Map panel becomes a size query container; its SVG fits the
+available panel height with caption space, preserving standalone auto height.
+The race-navigation E2E checks complete SVG/caption containment at four viewport
+sizes before any scroll. Native1543 clipping was found before upload; its
+verified artifacts remain a historical never-uploaded candidate.

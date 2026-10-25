@@ -30,7 +30,7 @@ export function RaceOverviewMap({ snapshot, labels, width = 320, height = 220 }:
   };
   return <figure className="m-0" data-testid="race-overview-map">
     <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height} role="img" aria-label={labels.title}
-      style={{ width: "100%", height: "auto", display: "block", color: SECONDARY }}>
+      style={{ width: "100%", height: "var(--race-map-height, auto)", display: "block", color: SECONDARY }}>
       <title>{labels.title}</title>
       <defs><clipPath id={clip}><rect x={viewport.x} y={viewport.y} width={viewport.width} height={viewport.height} /></clipPath></defs>
       <rect x={0} y={0} width={width} height={height} rx={8} fill="var(--bg-card, #102838)" />
