@@ -7,6 +7,8 @@
 
 ## Unreleased
 
+- Updated two website browser expectations to the current Polish radio help label and default 3D trim view. The checks still require working help without invented progress, a rendered first frame and hidden embed navigation. Race timing and production runtime are unchanged.
+
 - Website image publication and deployment now explicitly require main, so a manual run on another branch or tag performs checks without changing production. The confined server policy and credentials are unchanged.
 
 - Website foundation browser journeys now run in branch/PR CI and before deployment: original checks, restored drafts, failed-save retry and return from practice must work before the website is published. App release sources and installed assets are unchanged by this site-only gate.

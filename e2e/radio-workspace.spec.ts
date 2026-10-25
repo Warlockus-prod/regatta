@@ -155,7 +155,7 @@ test("free practice uses the real controls and does not invent completed scenari
   await page.goto("/radio/symulator?lang=pl");
   const before = await page.evaluate(() => localStorage.getItem("sternik.radio.progress.v1"));
   await page.getByTestId("start-free-practice").click();
-  await page.getByRole("button", { name: "Wyjaśnij pokrętło i przyciski" }).click();
+  await page.getByRole("button", { name: "Wyjaśnij działanie pokrętła i przycisków", exact: true }).click();
   await expect(page.getByRole("tab", { name: "Pomoc", exact: true })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByTestId("inspect-panel")).toBeVisible();
   await page.getByTestId("exit-scenario").click();
