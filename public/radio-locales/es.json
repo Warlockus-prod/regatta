@@ -157,6 +157,7 @@
   "0a59283d84c07d85": "En una emergencia no hay tiempo para buscar un canal en una lista. Por eso, el 16 tiene una tecla física propia que puedes localizar a oscuras en pocos segundos. Todos mantienen escucha en el 16: embarcaciones, estaciones costeras y servicios SAR. Por tanto, solo allí se oirá un MAYDAY por voz, y el radioteléfono pasa automáticamente a ese canal después de enviar una alerta DSC.",
   "0a5ea4627d08ea2c": "Repite, por favor.",
   "0a7ef252769e297e": "Un barco con DSC mantiene en la mar una escucha continua en el canal 70, reservado exclusivamente para la llamada selectiva digital.",
+  "0a957c06953a9dff": "regatta:radio-route",
   "0abd348b6b24228f": "transmitimos y recibimos en frecuencias distintas",
   "0abeb1fa3a99e4a8": "Las señales transmitidas por una radiobaliza en la frecuencia de 406 MHz permiten identificar el barco al que pertenece mediante el siguiente dato codificado:",
   "0ac34c506f4cecf2": "Enviar un ACK DSC desde un barco no es el primer paso",

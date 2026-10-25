@@ -157,6 +157,7 @@
   "0a59283d84c07d85": "En situation de danger, vous n'avez pas le temps de chercher un canal dans une liste. Le 16 dispose donc d'une touche physique dédiée, que vous pouvez trouver dans l'obscurité en quelques secondes. Tout le monde veille sur le 16 : navires, stations côtières et services SAR. C'est donc uniquement sur ce canal qu'un MAYDAY en phonie sera entendu, et la radio y passe automatiquement après l'envoi d'une alerte DSC.",
   "0a5ea4627d08ea2c": "Répétez, s'il vous plaît.",
   "0a7ef252769e297e": "En mer, un navire équipé du DSC assure une veille permanente sur le canal 70, réservé exclusivement à l'appel sélectif numérique.",
+  "0a957c06953a9dff": "regatta:radio-route",
   "0abd348b6b24228f": "nous émettons et recevons sur des fréquences différentes",
   "0abeb1fa3a99e4a8": "Les signaux émis par une radiobalise sur la fréquence 406 MHz permettent d'identifier le navire dont elle provient grâce à l'information codée suivante :",
   "0ac34c506f4cecf2": "Un DSC ACK émis par un navire n'est pas la première étape",

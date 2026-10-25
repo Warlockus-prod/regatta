@@ -4,6 +4,7 @@ import { useRadioI18n } from "@/app/radio/localization/context";
 
 import { Component, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import { trackLessonComplete } from "@/lib/funnel";
 import { useSternikPrefs } from "@/app/radio/prefs";
@@ -15,6 +16,8 @@ import {
   type TheoryChapter,
 } from "./courseData";
 import { TheoryDiagram } from "./diagrams";
+import { RADIO_ROUTE_EVENT, radioRuntimeHash, radioRuntimeSearch } from "../runtimeSearch";
+import { offlineRadio } from "../audio/localSpeech";
 
 const ChapterCheck = dynamic(() => import("./ChapterCheck"), { ssr: false });
 
@@ -59,16 +62,18 @@ function saveCompleted(ids: string[]) {
 }
 
 function readChapterHash(): string {
-  const hash = window.location.hash.slice(1);
+  const hash = radioRuntimeHash().slice(1);
   return THEORY_CHAPTERS.some((item) => item.id === hash) ? hash : THEORY_CHAPTERS[0].id;
 }
 
 function subscribeChapterHash(listener: () => void) {
   window.addEventListener("hashchange", listener);
   window.addEventListener(CHAPTER_EVENT, listener);
+  window.addEventListener(RADIO_ROUTE_EVENT, listener);
   return () => {
     window.removeEventListener("hashchange", listener);
     window.removeEventListener(CHAPTER_EVENT, listener);
+    window.removeEventListener(RADIO_ROUTE_EVENT, listener);
   };
 }
 
@@ -289,6 +294,7 @@ function MobileTheoryFlow({ chapter }: { chapter: TheoryChapter }) {
 }
 
 export default function RadioTheoryCourse() {
+  const router = useRouter();
   const { rt: radioText } = useRadioI18n();
   const { tp } = useRadioI18n();
   const { explLang } = useSternikPrefs();
@@ -312,7 +318,8 @@ export default function RadioTheoryCourse() {
   }, []);
 
   const selectChapter = (id: string) => {
-    window.history.replaceState(null, "", `#${id}`);
+    if (offlineRadio()) router.replace(`/radio/teoria${radioRuntimeSearch()}#${id}`, { scroll: false });
+    else window.history.replaceState(null, "", `#${id}`);
     window.dispatchEvent(new Event(CHAPTER_EVENT));
     window.scrollTo({ top: 0, behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
   };

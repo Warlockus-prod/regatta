@@ -126,6 +126,22 @@ test('the native radio bundle grades position and conversation text with no netw
   await expect(page.getByTestId('course-exit')).toBeVisible();
   await page.getByTestId('course-exit').click();
   await expect(page.getByTestId('free-practice-guide')).toBeVisible();
+  await page.getByTestId('free-course').click();
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Theory', exact: true }).click();
+  const chapter = page.locator('#theory-chapter');
+  await chapter.selectOption('dsc');
+  await page.locator('a[href="/radio/test?chapter=dsc"]').click();
+  await page.getByTestId('start-training').click();
+  await page.locator('button:has(> span.font-bold)').first().click();
+  await page.locator('a[href="/radio/teoria#dsc"]').click();
+  await expect(chapter).toHaveValue('dsc');
+  await chapter.selectOption({ index: 1 });
+  const selectedChapter = await chapter.inputValue();
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Practice', exact: true }).click();
+  // The native header sends this bounded local Back event.
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('regatta:radio-back')));
+  await expect(chapter).toHaveValue(selectedChapter);
+  await page.getByRole('navigation', { name: 'Radio', exact: true }).getByRole('link', { name: 'Practice', exact: true }).click();
   await page.getByTestId('free-scenarios').click();
   await page.locator('a[href="/radio/pozycja"]').first().click();
   await expect(page.getByTestId('local-voice-ptt')).toBeDisabled();

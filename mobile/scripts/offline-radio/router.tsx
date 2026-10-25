@@ -10,7 +10,8 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { confirmRadioLeave, parseRadioRoute, popRadioRoute, postRadioMessage, pushRadioRoute, RADIO_FREE_HREF, radioHref, type RadioRoute } from "../../../src/app/radio/navigation";
+import { confirmRadioLeave, parseRadioRoute, popRadioRoute, postRadioMessage, pushRadioRoute, replaceRadioRoute, RADIO_FREE_HREF, radioHref, type RadioRoute } from "../../../src/app/radio/navigation";
+import { RADIO_ROUTE_EVENT } from "../../../src/app/radio/runtimeSearch";
 
 interface RouteState {
   path: string;
@@ -20,6 +21,7 @@ interface RouteState {
 
 interface RouterContextValue extends RouteState {
   navigate: (href: string) => void;
+  replace: (href: string, options?: { scroll?: boolean }) => void;
   back: () => void;
 }
 
@@ -34,6 +36,7 @@ const DEFAULT_ROUTE: RadioRoute = parseRadioRoute(RADIO_FREE_HREF)!;
 const RouterContext = createContext<RouterContextValue>({
   ...DEFAULT_ROUTE,
   navigate: () => {},
+  replace: () => {},
   back: () => {},
 });
 
@@ -44,17 +47,24 @@ export function OfflineRouterProvider({
 }) {
   const [history, setHistory] = useState<RadioRoute[]>(() => {
     const entry = (window as Window & { __REGATTA_RADIO_ENTRY__?: string }).__REGATTA_RADIO_ENTRY__;
-    return [parseRadioRoute(entry) ?? DEFAULT_ROUTE];
+    const route = parseRadioRoute(entry) ?? DEFAULT_ROUTE;
+    window.__REGATTA_OFFLINE_SEARCH__ = route.search;
+    window.__REGATTA_OFFLINE_HASH__ = route.hash;
+    return [route];
   });
   const historyRef = useRef(history);
   const route = history[history.length - 1];
-  const apply = useCallback((next: RadioRoute[], restoreScroll = false) => {
+  const apply = useCallback((next: RadioRoute[], restoreScroll = false, scroll = true) => {
     historyRef.current = next;
     const current = next[next.length - 1];
     window.__REGATTA_OFFLINE_SEARCH__ = current.search;
+    window.__REGATTA_OFFLINE_HASH__ = current.hash;
     setHistory(next);
+    window.dispatchEvent(new Event(RADIO_ROUTE_EVENT));
+    if (!scroll) return;
     window.requestAnimationFrame(() => {
-      if (!restoreScroll && current.hash) document.getElementById(current.hash.slice(1))?.scrollIntoView({ block: "start" });
+      const anchor = !restoreScroll && current.hash ? document.getElementById(current.hash.slice(1)) : null;
+      if (anchor) anchor.scrollIntoView({ block: "start" });
       else window.scrollTo({ top: current.scroll, behavior: "auto" });
     });
   }, []);
@@ -62,6 +72,10 @@ export function OfflineRouterProvider({
   const navigate = useCallback((href: string) => {
     if (!parseRadioRoute(href) || !confirmRadioLeave()) return;
     apply(pushRadioRoute(historyRef.current, href, window.scrollY));
+  }, [apply]);
+  const replace = useCallback((href: string, options?: { scroll?: boolean }) => {
+    if (!parseRadioRoute(href) || !confirmRadioLeave()) return;
+    apply(replaceRadioRoute(historyRef.current, href), false, options?.scroll !== false);
   }, [apply]);
   const back = useCallback(() => {
     if (confirmRadioLeave()) apply(popRadioRoute(historyRef.current), true);
@@ -81,8 +95,9 @@ export function OfflineRouterProvider({
   const value = useMemo<RouterContextValue>(() => ({
     ...route,
     navigate,
+    replace,
     back,
-  }), [back, navigate, route]);
+  }), [back, navigate, replace, route]);
 
   return (
     <RouterContext.Provider value={value}>
@@ -98,8 +113,8 @@ export function useSearchParams() {
   return new URLSearchParams(useContext(RouterContext).search);
 }
 export function useRouter() {
-  const { navigate, back } = useContext(RouterContext);
-  return { push: navigate, back };
+  const { navigate, replace, back } = useContext(RouterContext);
+  return { push: navigate, replace, back };
 }
 
 export function OfflineLink({

@@ -157,6 +157,7 @@
   "0a59283d84c07d85": "In einer Gefahrensituation bleibt keine Zeit, einen Kanal in einer Liste zu suchen. Deshalb hat Kanal 16 eine eigene Taste, die du auch im Dunkeln in wenigen Sekunden findest. Auf Kanal 16 halten alle Hörwache: Fahrzeuge, Küstenfunkstellen und SAR-Dienste. Deshalb wird ein MAYDAY-Ruf per Sprechfunk nur dort gehört, und das Funkgerät wechselt nach dem Senden eines DSC-Alarms automatisch dorthin.",
   "0a5ea4627d08ea2c": "Bitte wiederholen Sie.",
   "0a7ef252769e297e": "Ein Schiff mit DSC hält auf See ständig Hörwache auf Kanal 70, der ausschließlich dem digitalen Selektivruf vorbehalten ist.",
+  "0a957c06953a9dff": "regatta:radio-route",
   "0abd348b6b24228f": "Wir senden und empfangen auf unterschiedlichen Frequenzen",
   "0abeb1fa3a99e4a8": "Die von einer Seenotfunkbake auf 406 MHz ausgesendeten Signale ermöglichen die Identifizierung des zugehörigen Schiffs anhand der codierten:",
   "0ac34c506f4cecf2": "Eine DSC-Bestätigung durch ein Schiff ist nicht der erste Schritt",

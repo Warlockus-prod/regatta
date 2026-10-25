@@ -6,7 +6,7 @@ import { stepRuntime, approachHeading, interpolateControls } from './step-runtim
 import { CONTROL_RATES, HEADING_TURN_RATE_DEG_PER_S } from './runtime-types';
 import { recommendedTrim } from './trim-heuristics';
 import { pickPrimaryFeedback } from './feedback';
-import { DEFAULT_UI } from '../ui/shared';
+import { DEFAULT_UI, FREE_TRAINER_UI } from '../ui/shared';
 import { DRILLS, SCENARIO_PRESETS, pickText } from './scenario-presets';
 
 // ---------------------------------------------------------------------------
@@ -19,6 +19,14 @@ import { DRILLS, SCENARIO_PRESETS, pickText } from './scenario-presets';
 const params = getBoatParams();
 
 describe('createRuntimeState', () => {
+  it("opens free trim in 3D without changing the teaching setup, controls or runtime", () => {
+    expect(FREE_TRAINER_UI.view).toBe("3d");
+    expect(DEFAULT_UI.view).toBe("top");
+    expect(uiToControls(FREE_TRAINER_UI, params)).toEqual(uiToControls(DEFAULT_UI, params));
+    expect(createRuntimeState({ ui: FREE_TRAINER_UI, params })).toEqual(createRuntimeState({ ui: DEFAULT_UI, params }));
+    expect(DRILLS.every(drill => drill.initialUi.view === "top")).toBe(true);
+    expect(SCENARIO_PRESETS.every(scenario => scenario.ui.view === "top")).toBe(true);
+  });
   it("lowering the main is separate from deep reefing and survives interpolation", () => {
     const target = uiToControls({...DEFAULT_UI, sailsRaised:"jib"}, params);
     expect(target.mainHoisted).toBe(false);
@@ -226,7 +234,7 @@ describe('recommendedTrim', () => {
 });
 
 describe('pickPrimaryFeedback', () => {
-  const tp = (ru: string, _en: string, _pl: string) => ru;
+  const tp = (ru: string) => ru;
 
   function makeArgs(uiOverride: Partial<typeof DEFAULT_UI>, simOverride: {
     boatSpeed?: number; heel?: number; leeway?: number;

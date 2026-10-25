@@ -26,6 +26,11 @@ export function pushRadioRoute(history: readonly RadioRoute[], href: string, scr
 export function popRadioRoute(history: readonly RadioRoute[]): RadioRoute[] {
   return history.length > 1 ? history.slice(0, -1) : [parseRadioRoute(RADIO_FREE_HREF)!];
 }
+export function replaceRadioRoute(history: readonly RadioRoute[], href: string): RadioRoute[] {
+  const next = parseRadioRoute(href);
+  if (!next) return [...history];
+  return [...history.slice(0, -1), next];
+}
 
 const leaveCopy = {
   title: { ru: "Выйти из пробного экзамена?", en: "Leave the mock exam?", pl: "Wyjść z egzaminu próbnego?", es: "¿Salir del simulacro?", fr: "Quitter l'examen blanc ?", de: "Probeprüfung verlassen?", it: "Uscire dalla simulazione d'esame?" },

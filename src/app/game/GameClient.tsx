@@ -36,7 +36,7 @@ import type { RaceBoat } from "@/lib/race-physics";
 import type { Controls } from "@/lib/sailing-physics/types";
 import { trimForDrive, createInitialState } from "@/lib/sailing-physics";
 import { raceTrim } from "@/lib/race-physics";
-import { raceGuidance } from "@/lib/race-guidance";
+import { planRaceGuidance, type RaceGuidance, type RaceGuidanceState } from "@/lib/race-guidance";
 import { createRaceRulesState, evaluateRaceRules } from "@/lib/race-rules";
 import { isNativeRace, navigateNativeRace, readRaceSearch, readNativeRaceReplay, postNativeRace, postNativeRaceStarted, type NativeRaceSnapshot } from "@/lib/race-native";
 import { RaceCockpit, RaceModePicker } from "./RaceCockpit";
@@ -260,6 +260,8 @@ export default function GamePage() {
 
   const boatsRef = useRef<Boat[]>([]);
   const courseRef = useRef<Course>(makeCourse());
+  const guidanceStateRef = useRef<RaceGuidanceState | null>(null);
+  const [routeGuidance, setRouteGuidance] = useState<RaceGuidance | null>(null);
   const keysRef = useRef<Set<string>>(new Set());
   const rafRef = useRef<number | null>(null);
 
@@ -542,6 +544,8 @@ export default function GamePage() {
     const startingTrim = raceTrim({ ...trimForDrive(createInitialState({ tws: 12 * windStrengthRef.current, trueWindDir: WIND_DIRECTION, heading: 45, boatSpeed: 0 }), raceTrim({})), mainHoisted: true, jibFurl: 0, reef: 0 });
     trimRef.current = startingTrim; setTrimState(startingTrim);
     boatsRef.current = boats;
+    const initialGuidance = planRaceGuidance(boats[0], course, WIND_DIRECTION);
+    guidanceStateRef.current = initialGuidance.state; setRouteGuidance(initialGuidance.guidance);
     raceIdRef.current = `race_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     startupGate.current.reset(raceIdRef.current);
     setSceneRaceId(raceIdRef.current); setSceneReady(false);
@@ -801,7 +805,11 @@ export default function GamePage() {
       const player = boats.find((b) => b.isPlayer)!;
       const playerTwa = calcTWA(player.heading, windDirRef.current);
       const refreshHud = now - hudRefreshRef.current >= 100;
-      if (refreshHud) { hudRefreshRef.current = now; setPlayerTWA(playerTwa); setPlayerSpeed(player.speed); }
+      if (refreshHud) {
+        hudRefreshRef.current = now; setPlayerTWA(playerTwa); setPlayerSpeed(player.speed);
+        const advisory = planRaceGuidance(player, course, windDirRef.current, guidanceStateRef.current);
+        guidanceStateRef.current = advisory.state; setRouteGuidance(advisory.guidance);
+      }
       // Live race time read from the clock each frame. Do NOT use the `elapsed`
       // state here or in the finish checks below: this loop effect closes over
       // `elapsed` at mount (deps are [gameState, difficulty]) and setElapsed does
@@ -1025,7 +1033,7 @@ export default function GamePage() {
   useEffect(() => {
     if (gameState === "briefing") setBestRecord(getBestRecord(difficulty, windStrength, racePrefs.mode));
   }, [gameState, difficulty, windStrength, racePrefs.mode]);
-  const guidance = hudPlayer && racePrefs.guidance ? raceGuidance(hudPlayer, courseRef.current, windDirRef.current) : null;
+  const guidance = racePrefs.guidance ? routeGuidance : null;
 
   // =====================================================================
   // MENU SCREEN

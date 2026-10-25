@@ -9,6 +9,7 @@ import dynamic from "next/dynamic";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { useI18n } from '@/lib/i18n';
 import { legacyPick } from '@/lib/languages';
+import type { CameraView } from "../simulator-3d/camera";
 import { getBoatParams } from '@/lib/sailing-physics';
 import { useSimulatorV3 } from './hooks/use-simulator-v3';
 import { useTrimStudy } from "./hooks/use-trim-study";
@@ -41,10 +42,11 @@ import { HelmPod } from './ui/pods/HelmPod';
 import { JibPod } from './ui/pods/JibPod';
 import { MainPod } from './ui/pods/MainPod';
 import { MainTrimPod, MainTrimTraveler, mainTrimWheelTarget } from "./ui/pods/MainTrimPod";
-import { ViewPod, pauseLabel, viewOptions } from './ui/pods/ViewPod';
+import { BoatViewPresets, ViewPod, pauseLabel, viewOptions } from './ui/pods/ViewPod';
 import { WindPod } from './ui/pods/WindPod';
 import {
   DEFAULT_UI,
+  FREE_TRAINER_UI,
   type ReefLevel,
   type SimulationModel,
   type UiState,
@@ -150,12 +152,14 @@ function buildShareUrl(ui: UiState): string {
 export default function SimulatorV3Page({ initialSearch }: { initialSearch?: string } = {}) {
   const { lang, tp } = useI18n();
   const params = useMemo(() => getBoatParams(), []);
-  // Start from DEFAULT_UI on both server and client so hydration matches;
+  // Start from the free 3D setup on both server and client so hydration matches;
   // URL params (share links) are applied in a mount effect below. Reading
   // window.location.search during render made the client's first render
   // differ from the SSR HTML on /simulator-v3?twa=... and threw React
   // hydration errors. The 1-frame settle after mount is acceptable.
-  const [ui, setUi] = useState<UiState>(DEFAULT_UI);
+  const [ui, setUi] = useState<UiState>(FREE_TRAINER_UI);
+  const [boatView, setBoatView] = useState<CameraView>("sails");
+  const activeBoatView = boatView === "mainsheet" && !ui.mainTrim ? "sails" : boatView;
   // ?embed=1 (sent by the iOS app's WebView) strips the in-page chrome
   // (tier switcher, Share, glossary footer) and locks the layout to 100dvh
   // with the controls scrolling internally, because the WKWebView disables
@@ -364,7 +368,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
       } else {
         const fromUrl = readUiFromUrl(initialSearch);
         if (fromUrl) {
-          const next = { ...DEFAULT_UI, ...fromUrl };
+          const next = { ...FREE_TRAINER_UI, ...fromUrl };
           setUi(next);
           reset(next);
         }
@@ -402,8 +406,8 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     trimAssessment.cancel();
     trimStudy.cancel();
     setPaused(false);
-    setUi(DEFAULT_UI);
-    reset(DEFAULT_UI);
+    setUi(FREE_TRAINER_UI);
+    reset(FREE_TRAINER_UI);
     exitDrill();
     setActiveScenarioId(null);
   };
@@ -458,7 +462,9 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
     panel.querySelector("summary")?.focus({ preventScroll: true });
   };
 
-  const cameraPanel = <ViewPod section="camera" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />;
+  const cameraPanel = <><ViewPod section="camera" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset} />
+    {ui.view === "3d" && <BoatViewPresets view={activeBoatView} onSelect={setBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp} />}
+  </>;
   const sessionPanel = <ViewPod section="session" paused={paused} togglePause={() => setPaused(value => !value)} ui={ui} setUi={setUi} tp={tp} applyOptimal={applyOptimal} resetAll={resetAll} setPreset={setPreset}>{checkpointPanel}</ViewPod>;
   const controlsLabel = tp("Управление парусами", "Sail controls", "Obsługa żagli", { es: "Controles de velas", fr: "Commandes des voiles", de: "Segelbedienung", it: "Comandi delle vele" });
   const conditionsLabel = tp("Условия: ветер и курс", "Conditions: wind and course", "Warunki: wiatr i kurs", { es: "Condiciones: viento y rumbo", fr: "Conditions : vent et cap", de: "Bedingungen: Wind und Kurs", it: "Condizioni: vento e rotta" });
@@ -819,7 +825,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)',
             }}
           >
-            {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+            {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
               <SceneTop ui={ui} sim={sim} lang={lang} />
             ) : ui.view === 'side' ? (
               <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -880,7 +886,7 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
               className="absolute inset-0"
               style={{ background: 'radial-gradient(ellipse at center 40%, var(--water-light) 0%, var(--water-dark) 80%)' }}
             >
-              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} /> : ui.view === 'top' ? (
+              {!onClient ? null : ui.view === "3d" ? <TrainerBoat3D sim={sim} tp={tp} view={activeBoatView} /> : ui.view === 'top' ? (
                 <SceneTop ui={ui} sim={sim} lang={lang} />
               ) : ui.view === 'side' ? (
                 <SceneSide ui={ui} sim={sim} tp={tp} />
@@ -899,6 +905,10 @@ export default function SimulatorV3Page({ initialSearch }: { initialSearch?: str
                     <DrawerItem key={o.value} pressed={ui.view === o.value} onClick={() => { setUi((p) => ({ ...p, view: o.value })); setViewsOpen(false); }}>{o.label}</DrawerItem>
                   ))}
                 </DrawerGroup>
+                {ui.view === "3d" && <DrawerGroup>
+                  <BoatViewPresets view={activeBoatView} mainTrim={Boolean(ui.mainTrim)} tp={tp}
+                    onSelect={view => { setBoatView(view); setViewsOpen(false); }} />
+                </DrawerGroup>}
                 <DrawerGroup>
                   <DrawerItem pressed={paused} onClick={() => setPaused((value) => !value)}>{pauseLabel(tp, paused)}</DrawerItem>
                 </DrawerGroup>

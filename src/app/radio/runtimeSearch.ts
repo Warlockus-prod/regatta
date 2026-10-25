@@ -1,7 +1,15 @@
 declare global {
   interface Window {
     __REGATTA_OFFLINE_SEARCH__?: string;
+    __REGATTA_OFFLINE_HASH__?: string;
   }
+}
+
+export const RADIO_ROUTE_EVENT = "regatta:radio-route";
+
+export function radioRuntimeHash(): string {
+  if (typeof window === "undefined") return "";
+  return window.__REGATTA_OFFLINE_HASH__ ?? window.location.hash;
 }
 
 /**
